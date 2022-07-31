@@ -1,0 +1,48 @@
+package app.bpartners.api.endpoint.rest.controller;
+
+import app.bpartners.api.model.BoundedPageSize;
+import java.util.List;
+import lombok.AllArgsConstructor;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import app.bpartners.api.endpoint.rest.mapper.PaymentMapper;
+import app.bpartners.api.endpoint.rest.model.CreatePayment;
+import app.bpartners.api.endpoint.rest.model.Payment;
+import app.bpartners.api.model.PageFromOne;
+import app.bpartners.api.service.PaymentService;
+
+import static java.util.stream.Collectors.toUnmodifiableList;
+
+@RestController
+@AllArgsConstructor
+public class PaymentController {
+
+  private final PaymentService paymentService;
+  private final PaymentMapper paymentMapper;
+
+  @PostMapping("/students/{studentId}/fees/{feeId}/payments")
+  public List<Payment> createPayments(
+      @PathVariable String feeId,
+      @RequestBody List<CreatePayment> toCreate) {
+    return paymentService
+        .saveAll(paymentMapper.toDomainPayment(feeId, toCreate))
+        .stream()
+        .map(paymentMapper::toRestPayment)
+        .collect(toUnmodifiableList());
+  }
+
+  @GetMapping("/students/{studentId}/fees/{feeId}/payments")
+  public List<Payment> getPaymentsByStudentId(
+      @PathVariable String studentId,
+      @PathVariable String feeId,
+      @RequestParam PageFromOne page,
+      @RequestParam("page_size") BoundedPageSize pageSize) {
+    return paymentService.getByStudentIdAndFeeId(studentId, feeId, page, pageSize).stream()
+        .map(paymentMapper::toRestPayment)
+        .collect(toUnmodifiableList());
+  }
+}

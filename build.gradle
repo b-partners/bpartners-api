@@ -21,7 +21,7 @@ plugins {
     id 'checkstyle'
 }
 
-group = 'school.hei'
+group = 'app.bpartners'
 sourceCompatibility = '11'
 
 configurations {
@@ -39,9 +39,9 @@ task generateJavaClient(type: org.openapitools.generator.gradle.plugin.tasks.Gen
     generatorName = "java"
     inputSpec = "$rootDir/doc/api.yml".toString()
     outputDir = "$buildDir/gen".toString()
-    apiPackage = "school.hei.haapi.endpoint.rest.api"
-    invokerPackage = "school.hei.haapi.endpoint.rest.client"
-    modelPackage = "school.hei.haapi.endpoint.rest.model"
+    apiPackage = "app.bpartners.api.endpoint.rest.api"
+    invokerPackage = "app.bpartners.api.endpoint.rest.client"
+    modelPackage = "app.bpartners.api.endpoint.rest.model"
 
     configOptions = [
             serializationLibrary: "jackson",
@@ -54,8 +54,8 @@ task generateJavaClient(type: org.openapitools.generator.gradle.plugin.tasks.Gen
     ]
     library = "native"
 
-    groupId = 'school.hei'
-    id = 'haapi-gen'
+    groupId = 'app.bpartners'
+    id = 'api-gen'
     skipValidateSpec = false
     logToStderr = true
     generateAliasAsModel = false
@@ -116,7 +116,7 @@ dependencies {
     implementation 'org.flywaydb:flyway-core'
     implementation 'org.postgresql:postgresql'
 
-    implementation 'school.hei:haapi-gen:1.0'
+    implementation 'app.bpartners:api-gen:1.0'
 
     implementation 'software.amazon.awssdk:eventbridge:2.17.109'
     implementation 'software.amazon.awssdk:sqs:2.17.109'

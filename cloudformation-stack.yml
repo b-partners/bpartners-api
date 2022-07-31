@@ -1,16 +1,14 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: Stack for HEI Admin API
+Description: Stack for BPartners API
 
 Parameters:
   Env:
     Type: String
-  Subnet:
-    Type: AWS::EC2::Subnet::Id
   Image:
     Type: String
   ContainerName:
     Type: String
-    Default: hei-admin-api
+    Default: bpartners-api
   ContainerPort:
     Type: Number
     Default: 8080
@@ -24,16 +22,16 @@ Resources:
   Cluster:
     Type: AWS::ECS::Cluster
     Properties:
-      ClusterName: !Join ['', [!Ref Env, -hei-admin-api]]
+      ClusterName: !Join ['', [!Ref Env, -bpartners-api]]
   LogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Join ['', [/ecs/, !Ref Env, -hei-admin-api]]
+      LogGroupName: !Join ['', [/ecs/, !Ref Env, -bpartners-api]]
   TaskDefinition:
     Type: AWS::ECS::TaskDefinition
     DependsOn: LogGroup
     Properties:
-      Family: !Join ['', [!Ref Env, -hei-admin-api]]
+      Family: !Join ['', [!Ref Env, -bpartners-api]]
       NetworkMode: awsvpc
       RequiresCompatibilities:
         - FARGATE
@@ -50,17 +48,17 @@ Resources:
             - Name: ENV
               Value: !Ref Env
             - Name: SENTRY_DSN
-              Value: !Sub '{{resolve:ssm:/hei-admin-api/sentry/dsn}}'
+              Value: !Sub '{{resolve:ssm:/bpartners/sentry/dsn}}'
             - Name: AWS_COGNITO_USERPOOL_ID
-              Value: !Sub '{{resolve:ssm:/hei-admin-api/${Env}/cognito/userpool-id}}'
+              Value: !Sub '{{resolve:ssm:/bpartners/${Env}/cognito/userpool-id}}'
             - Name: AWS_EVENTBRIDGE_BUS
-              Value: !Sub '{{resolve:ssm:/hei-admin-api/${Env}/eventbridge/bus-name}}'
+              Value: !Sub '{{resolve:ssm:/bpartners/${Env}/eventbridge/bus-name}}'
             - Name: AWS_SQS_QUEUEURL
-              Value: !Sub '{{resolve:ssm:/hei-admin-api/${Env}/sqs/queue-url}}'
+              Value: !Sub '{{resolve:ssm:/bpartners/${Env}/sqs/api-queue-url}}'
             - Name: SPRING_DATASOURCE_URL
-              Value: !Sub '{{resolve:ssm:/hei-admin-api/${Env}/db/url}}'
+              Value: !Sub '{{resolve:ssm:/bpartners/${Env}/db/url}}'
             - Name: SPRING_DATASOURCE_PASSWORD
-              Value: !Sub '{{resolve:ssm:/hei-admin-api/${Env}/db/password}}'
+              Value: !Sub '{{resolve:ssm:/bpartners/${Env}/db/password}}'
           LogConfiguration:
             LogDriver: awslogs
             Options:
@@ -70,7 +68,7 @@ Resources:
   ExecutionRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: !Join ['', [!Ref Env, -hei-admin-api, -ExecutionRole]]
+      RoleName: !Join ['', [!Ref Env, -bpartners-api, -ExecutionRole]]
       AssumeRolePolicyDocument:
         Statement:
           - Effect: Allow
@@ -82,7 +80,7 @@ Resources:
   TaskRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: !Join ['', [!Ref Env, -hei-admin-api, -TaskRole]]
+      RoleName: !Join ['', [!Ref Env, -bpartners-api, -TaskRole]]
       AssumeRolePolicyDocument:
         Statement:
           - Effect: Allow
@@ -94,7 +92,7 @@ Resources:
     Type: AWS::ECS::Service
     Properties:
       Cluster: !Ref Cluster
-      ServiceName: hei-admin-api
+      ServiceName: bpartners-api
       DesiredCount: !Ref TasksDesiredCount
       TaskDefinition: !Ref TaskDefinition
       LaunchType: 'FARGATE'
@@ -102,9 +100,9 @@ Resources:
         AwsvpcConfiguration:
           AssignPublicIp: 'ENABLED'
           SecurityGroups:
-            - '{{resolve:ssm:/hei-admin-api/sg:1}}'
+            - !Sub '{{resolve:ssm:/bpartners/${Env}/sg-id}}'
           Subnets:
-            - !Ref Subnet
+            - !Sub '{{resolve:ssm:/bpartners/${Env}/subnet-id}}'
       LoadBalancers:
         - ContainerName: !Ref ContainerName
           ContainerPort: !Ref ContainerPort
@@ -112,7 +110,7 @@ Resources:
   TargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties: 
-      Name: !Join ['', [!Ref Env, -ha-api, -TG]]
+      Name: !Join ['', [!Ref Env, -bpartners-api, -tg]]
       Protocol: HTTP
       Port: !Ref ContainerPort
       # TargetType must be ip with Fargate: targets are (de-)registered on container creation/destruction
@@ -121,7 +119,7 @@ Resources:
       #  - AvailabilityZone: all
       #    Id: 
       #    Port: ! Ref ContainerPort
-      VpcId: '{{resolve:ssm:/hei-admin-api/vpc:1}}'
+      VpcId: !Sub '{{resolve:ssm:/bpartners/${Env}/vpc-id}}'
       HealthCheckEnabled: true
       HealthCheckIntervalSeconds: 30
       HealthCheckPath: /ping
@@ -133,13 +131,13 @@ Resources:
   ListenerRule:
     Type: AWS::ElasticLoadBalancingV2::ListenerRule
     Properties:
-      ListenerArn: '{{resolve:ssm:/hei-admin-api/alb-https-listener-arn:1}}'
+      ListenerArn: !Sub '{{resolve:ssm:/bpartners/${Env}/alb-https-listener-arn}}'
       Priority: !Ref ListenerRuleAvailablePriority
       Conditions:
         - Field: host-header
           HostHeaderConfig:
             Values:
-              - !Join ['', [api-, !Ref Env, .hei.school]]
+              - !Join ['', [api-, !Ref Env, .bpartners.app]]
       Actions:
         - Type: forward
           TargetGroupArn: !Ref TargetGroup

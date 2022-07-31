@@ -15,7 +15,7 @@ jobs:
 
     env:
       AWS_REGION: eu-west-3
-      ECR_REPOSITORY: hei-admin-api-latest
+      ECR_REPOSITORY: bpartners-api-latest
 
     steps:
       - name: Checkout
@@ -39,7 +39,7 @@ jobs:
 
       - name: Build Gradle project
         run: |
-          export TEST_AWS_COGNITO_IDTOKEN=${{ secrets.TEST_COGNITO_IDTOKEN }}
+          export TEST_USER_IDTOKEN=${{ secrets.TEST_USER_IDTOKEN }}
           ./gradlew build
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@13d241b293754004c80624b5567555c4a39ffbe3
@@ -64,26 +64,23 @@ jobs:
             -t $ECR_PRIVATE_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_PRIVATE_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
   
-      - name: Put branch_env, subnet and listenerRuleAvailablePriority into GITHUB_ENV
+      - name: Put branch_env and listenerRuleAvailablePriority into GITHUB_ENV
         run: |
           if ${{ github.ref == 'refs/heads/dev' }}; then
             echo "branch_env=dev" >> $GITHUB_ENV
             echo "listenerRuleAvailablePriority=1" >> $GITHUB_ENV
-            echo "subnet=${{ secrets.DEV_SUBNET }}" >> $GITHUB_ENV
           elif ${{ github.ref == 'refs/heads/prod' }}; then
             echo "branch_env=prod" >> $GITHUB_ENV
             echo "listenerRuleAvailablePriority=10" >> $GITHUB_ENV
-            echo "subnet=${{ secrets.PROD_SUBNET }}" >> $GITHUB_ENV
           fi
       - name: Deploy with AWS CloudFormation
         uses: aws-actions/aws-cloudformation-github-deploy@v1
         with:
-          name: ${{ env.branch_env }}-hei-admin-api
+          name: ${{ env.branch_env }}-bpartners-api
           template: cloudformation-stack.yml
-          tags: "[ { \"Key\": \"App\", \"Value\": \"hei-admin\" }, { \"Key\": \"Env\", \"Value\": \"${{ env.branch_env }}\" } ]"
+          tags: "[ { \"Key\": \"app\", \"Value\": \"api\" }, { \"Key\": \"env\", \"Value\": \"${{ env.branch_env }}\" } ]"
           capabilities: CAPABILITY_NAMED_IAM
           parameter-overrides:
             "Env=${{ env.branch_env }},
             ListenerRuleAvailablePriority=${{ env.listenerRuleAvailablePriority }},
-            Subnet=${{ env.subnet }},
             Image=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}"

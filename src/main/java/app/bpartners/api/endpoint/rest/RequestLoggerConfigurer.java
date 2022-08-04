@@ -63,7 +63,7 @@ public class RequestLoggerConfigurer implements WebMvcConfigurer {
         log.info("preHandle: "
                 + "userId={}, role={}, method={}, uri={}, parameters=[{}], "
                 + "handler={}, oldThreadName={}",
-            principal.getUserId(), principal.getRole(),
+            principal.getUserId(),
             request.getMethod(), request.getRequestURI(), parameters, handler,
             oldThreadName);
       }

@@ -9,7 +9,6 @@ import lombok.ToString;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-
 @Getter
 @AllArgsConstructor
 @ToString
@@ -20,7 +19,7 @@ public class Principal implements UserDetails {
 
   @Override
   public Collection<? extends GrantedAuthority> getAuthorities() {
-    return List.of(Role.valueOf(user.getRole().toString()));
+    return List.of();
   }
 
   @Override
@@ -30,7 +29,7 @@ public class Principal implements UserDetails {
 
   @Override
   public String getUsername() {
-    return user.getLastName();
+    return null;
   }
 
   @Override
@@ -50,14 +49,11 @@ public class Principal implements UserDetails {
 
   @Override
   public boolean isEnabled() {
-    return User.Status.ENABLED.equals(user.getStatus());
+    return true;
   }
 
   public String getUserId() {
     return user.getId();
   }
 
-  public String getRole() {
-    return user.getRole().toString();
-  }
 }

@@ -1,6 +1,6 @@
 package app.bpartners.api.endpoint.rest.security;
 
-import app.bpartners.api.endpoint.rest.security.model.Role;
+import app.bpartners.api.model.exception.ForbiddenException;
 import javax.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -13,12 +13,9 @@ import org.springframework.security.web.util.matcher.NegatedRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.servlet.HandlerExceptionResolver;
-import app.bpartners.api.model.exception.ForbiddenException;
 
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpMethod.OPTIONS;
-import static org.springframework.http.HttpMethod.POST;
-import static org.springframework.http.HttpMethod.PUT;
 
 @Configuration
 @Slf4j
@@ -73,31 +70,10 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
         .antMatchers("/ping").permitAll()
         .antMatchers(OPTIONS, "/**").permitAll()
         .antMatchers("/whoami").authenticated()
-        .antMatchers(GET, "/students").hasAnyRole(Role.TEACHER.getRole(), Role.MANAGER.getRole())
-        .requestMatchers(new SelfMatcher(GET, "/students/*/fees/*")).hasAnyRole(Role.STUDENT.getRole())
-        .antMatchers(GET, "/students/*/fees/*").hasAnyRole(Role.MANAGER.getRole())
-        .requestMatchers(new SelfMatcher(GET, "/students/*/fees")).hasAnyRole(Role.STUDENT.getRole())
-        .requestMatchers(new SelfMatcher(GET, "/students/*/fees/*/payments")).hasAnyRole(Role.STUDENT.getRole())
-        .antMatchers(GET, "/students/*/fees/*/payments").hasAnyRole(Role.MANAGER.getRole())
-        .antMatchers(POST, "/students/*/fees/*/payments").hasAnyRole(Role.MANAGER.getRole())
-        .antMatchers(GET, "/students/*/fees").hasAnyRole(Role.MANAGER.getRole())
-        .antMatchers(POST, "/students/*/fees").hasAnyRole(Role.MANAGER.getRole())
-        .requestMatchers(new SelfMatcher(GET, "/students/*/fees/*/payments")).hasAnyRole(
-            Role.STUDENT.getRole())
-        .antMatchers(GET, "/students/*/fees/*/payments").hasAnyRole(Role.MANAGER.getRole())
-        .antMatchers(POST, "/students/*/fees/*/payments").hasAnyRole(Role.MANAGER.getRole())
-        .requestMatchers(new SelfMatcher(GET, "/students/*")).hasAnyRole(Role.STUDENT.getRole())
-        .antMatchers(GET, "/fees").hasAnyRole(Role.MANAGER.getRole())
-        .antMatchers(GET, "/students/*").hasAnyRole(Role.TEACHER.getRole(), Role.MANAGER.getRole())
-        .antMatchers(PUT, "/students/**").hasAnyRole(Role.MANAGER.getRole())
-        .antMatchers(GET, "/teachers").hasAnyRole(Role.MANAGER.getRole())
-        .requestMatchers(new SelfMatcher(GET, "/teachers/*")).hasAnyRole(Role.TEACHER.getRole())
-        .antMatchers(GET, "/teachers/**").hasAnyRole(Role.MANAGER.getRole())
-        .antMatchers(PUT, "/teachers/**").hasAnyRole(Role.MANAGER.getRole())
-        .antMatchers("/managers/**").hasAnyRole(Role.MANAGER.getRole())
-        .antMatchers(GET, "/groups").authenticated()
-        .antMatchers(GET, "/groups/*").authenticated()
-        .antMatchers(PUT, "/groups/**").hasAnyRole(Role.MANAGER.getRole())
+        .antMatchers(GET, "/users").authenticated()
+        .antMatchers(GET, "/users/*").authenticated()
+        .antMatchers(GET, "/accounts").authenticated()
+        .antMatchers(GET, "/accounts/*").authenticated()
         .antMatchers("/**").denyAll()
 
         // disable superfluous protections

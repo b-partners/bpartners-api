@@ -2,6 +2,8 @@ package app.bpartners.api.endpoint.rest.security;
 
 import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.endpoint.rest.security.model.Principal;
+import app.bpartners.api.model.User;
+import app.bpartners.api.service.UserService;
 import lombok.AllArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.authentication.dao.AbstractUserDetailsAuthenticationProvider;
@@ -11,7 +13,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
-import app.bpartners.api.service.UserService;
 
 @Component
 @AllArgsConstructor
@@ -39,8 +40,8 @@ public class AuthProvider extends AbstractUserDetailsAuthenticationProvider {
     if (email == null) {
       throw new UsernameNotFoundException("Bad credentials"); // NOSONAR
     }
-
-    return new Principal(userService.getByEmail(email), bearer);
+    //TODO
+    return new Principal(new User(), bearer);
   }
 
   private String getBearer(

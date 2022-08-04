@@ -1,18 +1,14 @@
 package app.bpartners.api.model;
 
+import app.bpartners.api.repository.types.PostgresEnumType;
 import java.io.Serializable;
-import java.time.Instant;
-import java.time.LocalDate;
 import java.util.Objects;
-import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Table;
-import javax.validation.constraints.Email;
-import javax.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -22,7 +18,6 @@ import lombok.ToString;
 import org.hibernate.Hibernate;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
-import app.bpartners.api.repository.types.PostgresEnumType;
 
 import static javax.persistence.GenerationType.IDENTITY;
 
@@ -40,40 +35,15 @@ public class User implements Serializable {
   @GeneratedValue(strategy = IDENTITY)
   private String id;
 
-  @NotBlank(message = "First name is mandatory")
-  private String firstName;
+  private String swanUserId;
 
-  @NotBlank(message = "Last name is mandatory")
-  private String lastName;
+  private String phoneNumber;
 
-  @NotBlank(message = "Email is mandatory")
-  @Email(message = "Email must be valid")
-  private String email;
-
-  @NotBlank(message = "Reference is mandatory")
-  private String ref;
+  private int monthlySubscription;
 
   @Type(type = "pgsql_enum")
   @Enumerated(EnumType.STRING)
   private Status status;
-
-  @NotBlank(message = "Phone number is mandatory")
-  private String phone;
-
-  private LocalDate birthDate;
-  private Instant entranceDatetime;
-
-  @Type(type = "pgsql_enum")
-  @Enumerated(EnumType.STRING)
-  private Sex sex;
-
-  @NotBlank(message = "Address is mandatory")
-  private String address;
-
-  @Column(name = "\"role\"")
-  @Type(type = "pgsql_enum")
-  @Enumerated(EnumType.STRING)
-  private Role role;
 
   @Override
   public boolean equals(Object o) {
@@ -92,15 +62,7 @@ public class User implements Serializable {
     return getClass().hashCode();
   }
 
-  public enum Sex {
-    M, F
-  }
-
   public enum Status {
     ENABLED, DISABLED
-  }
-
-  public enum Role {
-    STUDENT, TEACHER, MANAGER
   }
 }

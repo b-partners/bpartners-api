@@ -18,24 +18,8 @@ import static org.mockito.Mockito.when;
 
 public class TestUtils {
 
-  public static final String STUDENT1_ID = "student1_id";
-  public static final String STUDENT2_ID = "student2_id";
-  public static final String TEACHER1_ID = "teacher1_id";
-  public static final String TEACHER2_ID = "teacher2_id";
-  public static final String MANAGER_ID = "manager1_id";
-  public static final String GROUP1_ID = "group1_id";
-  public static final String FEE1_ID = "fee1_id";
-  public static final String FEE2_ID = "fee2_id";
-  public static final String FEE3_ID = "fee3_id";
-  public static final String FEE4_ID = "fee4_id";
-  public static final String PAYMENT1_ID = "payment1_id";
-  public static final String PAYMENT2_ID = "payment2_id";
-  public static final String PAYMENT4_ID = "payment4_id";
-
+  public static final String USER1_TOKEN = "user1_id";
   public static final String BAD_TOKEN = "bad_token";
-  public static final String STUDENT1_TOKEN = "student1_token";
-  public static final String TEACHER1_TOKEN = "teacher1_token";
-  public static final String MANAGER1_TOKEN = "manager1_token";
 
   public static ApiClient anApiClient(String token, int serverPort) {
     ApiClient client = new ApiClient();
@@ -48,10 +32,8 @@ public class TestUtils {
   }
 
   public static void setUpCognito(CognitoComponent cognitoComponent) {
+    when(cognitoComponent.getEmailByIdToken(USER1_TOKEN)).thenReturn("test+ryan@hei.school");
     when(cognitoComponent.getEmailByIdToken(BAD_TOKEN)).thenReturn(null);
-    when(cognitoComponent.getEmailByIdToken(STUDENT1_TOKEN)).thenReturn("test+ryan@hei.school");
-    when(cognitoComponent.getEmailByIdToken(TEACHER1_TOKEN)).thenReturn("test+teacher1@hei.school");
-    when(cognitoComponent.getEmailByIdToken(MANAGER1_TOKEN)).thenReturn("test+manager1@hei.school");
   }
 
   public static void setUpEventBridge(EventBridgeClient eventBridgeClient) {

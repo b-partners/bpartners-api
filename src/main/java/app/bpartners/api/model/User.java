@@ -37,7 +37,7 @@ public class User implements Serializable {
 
   private String swanUserId;
 
-  private String phoneNumber;
+  private String mobilePhoneNumber;
 
   private int monthlySubscription;
 

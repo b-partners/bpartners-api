@@ -18,14 +18,14 @@ public class UserController {
   private final UserService userService;
 
   @GetMapping("/users/{id}")
-  public User getStudentById(@PathVariable String id) {
-    throw new NotImplementedException("/users/id endpoint not yet implemented");
+  public User getUserById(@PathVariable String id) {
+    return userService.getById(id);
   }
 
   @GetMapping("/users")
-  public List<User> getStudents(
+  public List<User> getUsers(
       @RequestParam PageFromOne page,
       @RequestParam("page_size") BoundedPageSize pageSize) {
-    throw new NotImplementedException("/users endpoint not yet implemented");
+    return userService.getUsers(page, pageSize);
   }
 }

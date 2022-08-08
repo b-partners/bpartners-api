@@ -19,6 +19,9 @@ public class TestUtils {
 
   public static final String USER1_TOKEN = "user1_id";
   public static final String BAD_TOKEN = "bad_token";
+  public static final String USER1_ID = "user1_id";
+
+  public static final String SWAN_USER1_ID = "swan_user1_id";
 
   public static ApiClient anApiClient(String token, int serverPort) {
     ApiClient client = new ApiClient();

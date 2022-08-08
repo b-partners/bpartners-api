@@ -1,7 +1,9 @@
 package app.bpartners.api.endpoint.rest.security.swan;
 
 import app.bpartners.api.endpoint.rest.model.OauthToken;
+import app.bpartners.api.endpoint.rest.model.SwanUser;
 import app.bpartners.api.model.exception.ApiException;
+import app.bpartners.api.model.exception.NotImplementedException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.net.URI;
@@ -34,5 +36,9 @@ public class SwanComponent {
     } catch (IOException | InterruptedException e) {
       throw new ApiException(SERVER_EXCEPTION, e.getMessage());
     }
+  }
+
+  public static SwanUser getUserById(String swanUser1Id) {
+    throw new NotImplementedException("GraphQL API client not yet configured");
   }
 }

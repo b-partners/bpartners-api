@@ -1,12 +1,11 @@
 package app.bpartners.api.integration.conf;
 
-import java.io.IOException;
-import java.net.ServerSocket;
-import java.util.UUID;
-import org.junit.jupiter.api.function.Executable;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
 import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
+import java.io.IOException;
+import java.net.ServerSocket;
+import org.junit.jupiter.api.function.Executable;
 import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsRequest;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsResponse;
@@ -53,15 +52,6 @@ public class TestUtils {
     assertEquals("{"
         + "\"type\":\"403 FORBIDDEN\","
         + "\"message\":\"Access is denied\"}", responseBody);
-  }
-
-  public static boolean isValidUUID(String candidate) {
-    try {
-      UUID.fromString(candidate);
-      return true;
-    } catch (Exception e) {
-      return false;
-    }
   }
 
   public static int anAvailableRandomPort() {

@@ -3,7 +3,6 @@ package app.bpartners.api.endpoint.rest.security;
 import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.endpoint.rest.security.model.Principal;
 import app.bpartners.api.model.User;
-import app.bpartners.api.service.UserService;
 import lombok.AllArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.authentication.dao.AbstractUserDetailsAuthenticationProvider;
@@ -19,7 +18,6 @@ import org.springframework.stereotype.Component;
 public class AuthProvider extends AbstractUserDetailsAuthenticationProvider {
 
   private static final String BEARER_PREFIX = "Bearer ";
-  private final UserService userService;
   private final CognitoComponent cognitoComponent;
 
   @Override
@@ -40,7 +38,8 @@ public class AuthProvider extends AbstractUserDetailsAuthenticationProvider {
     if (email == null) {
       throw new UsernameNotFoundException("Bad credentials"); // NOSONAR
     }
-    //TODO
+    //TODO : Identify the persisted user using the provided token (id_token)
+    // Instead of new User() should be userService.findByXXX() provided by decoding the token
     return new Principal(new User(), bearer);
   }
 

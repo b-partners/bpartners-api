@@ -1,6 +1,7 @@
 package app.bpartners.api.integration;
 
 import app.bpartners.api.SentryConf;
+import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
 import app.bpartners.api.integration.conf.AbstractContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
 import java.io.IOException;
@@ -8,8 +9,8 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -18,14 +19,14 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 
+import static app.bpartners.api.integration.conf.TestUtils.SWAN_USER1_ID;
+import static app.bpartners.api.integration.conf.TestUtils.setUpSwan;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpMethod.OPTIONS;
-import static org.springframework.http.HttpMethod.PUT;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @Testcontainers
@@ -35,21 +36,25 @@ class SpringSecurityIT {
 
   @MockBean
   private SentryConf sentryConf;
-
-  @Autowired
-  private CognitoComponent cognitoComponent;
+  @MockBean
+  private SwanComponent swanComponentMock;
   @Value("${test.user.idToken}")
   private String bearer;
 
+  @BeforeEach
+  void setUp() {
+    setUpSwan(swanComponentMock);
+  }
+
   @Test
-  void authenticated_user_has_known_email() {
-    String email = cognitoComponent.getEmailByIdToken(bearer);
-    assertEquals("test+ryan@hei.school", email);
+  void authenticated_user_has_known_id() {
+    String swanUserId = swanComponentMock.getSwanUserIdByToken(bearer);
+    assertEquals(SWAN_USER1_ID, swanUserId);
   }
 
   @Test
   void unauthenticated_user_is_forbidden() {
-    assertNull(cognitoComponent.getEmailByIdToken(TestUtils.BAD_TOKEN));
+    assertNull(swanComponentMock.getSwanUserIdByToken(TestUtils.BAD_TOKEN));
   }
 
   @Test
@@ -78,8 +83,7 @@ class SpringSecurityIT {
 
   @Test
   void options_has_cors_headers() throws IOException, InterruptedException {
-    test_cors(GET, "/whoami");
-    test_cors(PUT, "/students");
+    test_cors(GET, "/users");
   }
 
   void test_cors(HttpMethod method, String path) throws IOException, InterruptedException {

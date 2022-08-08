@@ -1,8 +1,7 @@
 package app.bpartners.api.endpoint.rest.security;
 
-import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.endpoint.rest.security.model.Principal;
-import app.bpartners.api.model.User;
+import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
 import app.bpartners.api.service.UserService;
 import lombok.AllArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -19,8 +18,8 @@ import org.springframework.stereotype.Component;
 public class AuthProvider extends AbstractUserDetailsAuthenticationProvider {
 
   private static final String BEARER_PREFIX = "Bearer ";
+  private final SwanComponent swanComponent;
   private final UserService userService;
-  private final CognitoComponent cognitoComponent;
 
   @Override
   protected void additionalAuthenticationChecks(
@@ -35,13 +34,11 @@ public class AuthProvider extends AbstractUserDetailsAuthenticationProvider {
     if (bearer == null) {
       throw new UsernameNotFoundException("Bad credentials"); // NOSONAR
     }
-
-    String email = cognitoComponent.getEmailByIdToken(bearer);
-    if (email == null) {
+    String swanUserId = swanComponent.getSwanUserIdByToken(bearer);
+    if (swanUserId == null) {
       throw new UsernameNotFoundException("Bad credentials"); // NOSONAR
     }
-    //TODO
-    return new Principal(new User(), bearer);
+    return new Principal(userService.getUserBySwanId(swanUserId), bearer);
   }
 
   private String getBearer(

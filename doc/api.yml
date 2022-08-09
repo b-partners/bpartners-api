@@ -138,6 +138,70 @@ paths:
           $ref: '#/components/responses/429'
         '500':
           $ref: '#/components/responses/500'
+  /pre-registration:
+    get:
+      tags:
+        - Pre-registration
+      summary: Get all pre-registration.
+      operationId: getPreRegistrations
+      parameters:
+        - name: page
+          in: query
+          schema:
+            $ref: '#/components/schemas/Page'
+          required: true
+        - name: page_size
+          in: query
+          schema:
+            $ref: '#/components/schemas/PageSize'
+          required: true
+      responses:
+        '200':
+          description: List of pre-registered users.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PreRegistration'
+        '400':
+          $ref: '#/components/responses/400'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+        '429':
+          $ref: '#/components/responses/429'
+        '500':
+          $ref: '#/components/responses/500'
+    post:
+      tags:
+        - Pre-registration
+      summary: Pre-register a user.
+      operationId: createPreRegistration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePreRegistration'
+      responses:
+        200:
+          description: Pre-registered user created!
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PreRegistration'
+        '400':
+          $ref: '#/components/responses/400'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+        '429':
+          $ref: '#/components/responses/429'
+        '500':
+          $ref: '#/components/responses/500'
   /accounts:
     get:
       tags:
@@ -309,6 +373,30 @@ components:
           type: string
         refresh_token:
           type: string
+    CreatePreRegistration:
+      type: object
+      properties:
+        first_name:
+          type: string
+        last_name:
+          type: string
+        society:
+          type: string
+        email:
+          type: string
+          example: username@domain.com
+        phone_number:
+          type: string
+    PreRegistration:
+      allOf:
+        - $ref: '#/components/schemas/CreatePreRegistration'
+      type: object
+      properties:
+        id:
+          type: string
+        entranceDatetime:
+          type: string
+          format: date-time
     Page:
       type: integer
       description: Start at `1`

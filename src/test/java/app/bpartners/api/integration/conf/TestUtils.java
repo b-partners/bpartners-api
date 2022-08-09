@@ -1,9 +1,11 @@
 package app.bpartners.api.integration.conf;
 
+
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
 import app.bpartners.api.endpoint.rest.model.SwanUser;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
+import app.bpartners.api.model.PreRegistration;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.time.LocalDate;

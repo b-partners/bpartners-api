@@ -138,6 +138,30 @@ paths:
           $ref: '#/components/responses/429'
         '500':
           $ref: '#/components/responses/500'
+  /email:
+    post:
+      tags:
+        - Users
+      summary: Register user's email.
+      operationId: createEmail
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Email'
+      responses:
+        200:
+          description: Email created!
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "Email created successfully"
+
+
+        400:
+          description: Bad email format !
   /accounts:
     get:
       tags:
@@ -352,3 +376,15 @@ components:
       example:
         type: InternalServerException
         message: Unexpected error
+    Email:
+      type: object
+      properties:
+        email:
+          description: |
+            "Accepts any of these :
+              * user.name@domain.com
+              * user-name@domain.com
+              * username@domain.co.in
+              * user_name@domain.com"
+          type: string
+          example: username@domain.com

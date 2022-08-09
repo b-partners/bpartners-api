@@ -4,11 +4,13 @@ import app.bpartners.api.SentryConf;
 import app.bpartners.api.endpoint.rest.api.UsersApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
+import app.bpartners.api.endpoint.rest.model.Email;
 import app.bpartners.api.endpoint.rest.model.EnableStatus;
 import app.bpartners.api.endpoint.rest.model.User;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
 import app.bpartners.api.integration.conf.AbstractContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
+import app.bpartners.api.model.exception.BadRequestException;
 import java.time.LocalDate;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,6 +21,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import static org.junit.Assert.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
@@ -60,6 +63,18 @@ class UserIT {
     return user;
   }
 
+  Email validMail(){
+    Email userEmail = new Email();
+    userEmail.setEmail(TestUtils.VALID_EMAIL.getEmail());
+    return userEmail;
+  }
+
+  Email invalidMail(){
+    Email badEmail = new Email();
+    badEmail.setEmail(TestUtils.BAD_EMAIL.getEmail());
+    return badEmail;
+  }
+
   @MockBean
   private SentryConf sentryConf;
   @MockBean
@@ -86,6 +101,23 @@ class UserIT {
     assertEquals(2, actualUsers.size());
     assertTrue(actualUsers.contains(user1()));
     assertTrue(actualUsers.contains(user2()));
+  }
+
+  @Test
+  void valid_email_ok() throws ApiException {
+    UsersApi usersApi = new UsersApi(anApiClient(TestUtils.USER1_TOKEN));
+
+    String result = usersApi.createEmail(validMail());
+
+    assertEquals(result,"Email created successfully");
+
+  }
+
+  @Test
+  void invalid_email_ko(){
+    UsersApi usersApi = new UsersApi(anApiClient(TestUtils.USER1_TOKEN));
+
+    assertThrows(BadRequestException.class,() -> usersApi.createEmail(invalidMail()));
   }
 
   static class ContextInitializer extends AbstractContextInitializer {

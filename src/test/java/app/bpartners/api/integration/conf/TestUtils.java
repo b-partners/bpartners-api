@@ -1,9 +1,11 @@
 package app.bpartners.api.integration.conf;
 
+
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
 import app.bpartners.api.endpoint.rest.model.SwanUser;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
+import app.bpartners.api.model.Email;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.time.LocalDate;
@@ -27,6 +29,9 @@ public class TestUtils {
 
   public static final String SWAN_USER2_ID = "swan_user2_id";
   public static final String BAD_TOKEN = "bad_token";
+
+  public static final Email VALID_EMAIL = new Email("valid.email@domain.com");
+  public static final Email BAD_EMAIL = new Email(".bad-email/dom.ain");
 
   public static SwanUser swanUser1() {
     SwanUser swanUser = new SwanUser();

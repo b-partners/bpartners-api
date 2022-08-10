@@ -6,15 +6,20 @@ import app.bpartners.api.repository.PreRegistrationRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @AllArgsConstructor
 public class PreRegistrationService {
   private final PreRegistrationRepository preRegistrationRepository;
   private final PreRegistrationValidator preRegistrationValidator;
 
-  public PreRegistration createEmail(PreRegistration preRegistration) {
+  public PreRegistration createPreRegistration(PreRegistration preRegistration) {
     preRegistrationValidator.accept(preRegistration);
     preRegistrationRepository.save(preRegistration);
     return preRegistration;
+  }
+  public List<PreRegistration> getPreRegistration(){
+    return preRegistrationRepository.findAll();
   }
 }

@@ -28,7 +28,7 @@ public class CognitoComponent {
   public String getEmailByIdToken(String idToken) {
     JWTClaimsSet claims;
     try {
-      claims = cognitoConf.getJwtProcessor().process(idToken, null);
+      claims = cognitoConf.getCognitoJwtProcessor().process(idToken, null);
     } catch (ParseException | BadJOSEException | JOSEException e) {
       /* From Javadoc:
          ParseException – If the string couldn't be parsed to a valid JWT.

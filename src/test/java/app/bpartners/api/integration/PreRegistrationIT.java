@@ -55,7 +55,7 @@ public class PreRegistrationIT {
   }
 
   @Test
-  void create_email_ok() throws ApiException {
+  void create_preregistration_ok() throws ApiException {
     ApiClient userClient = anApiClient(USER1_TOKEN);
     PreRegistrationApi api = new PreRegistrationApi(userClient);
 
@@ -67,11 +67,11 @@ public class PreRegistrationIT {
   }
 
   @Test
-  void create_email_ko() {
+  void create_preregistration_ko() {
     ApiClient userClient = anApiClient(USER1_TOKEN);
     PreRegistrationApi api = new PreRegistrationApi(userClient);
 
-    assertThrowsApiException("", () -> api.createPreRegistration(invalidPreRegistration()));
+    assertThrowsApiException("Invalid email", () -> api.createPreRegistration(invalidPreRegistration()));
   }
 
 

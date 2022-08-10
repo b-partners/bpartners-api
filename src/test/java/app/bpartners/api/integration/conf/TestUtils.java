@@ -20,6 +20,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 public class TestUtils {
+  public static final String PREREGISTRATION_ID = "preregistration_id";
 
   public static final String USER1_TOKEN = "user1_id";
   public static final String USER1_ID = "user1_id";

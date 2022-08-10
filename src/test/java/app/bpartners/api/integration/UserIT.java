@@ -4,7 +4,6 @@ import app.bpartners.api.SentryConf;
 import app.bpartners.api.endpoint.rest.api.UsersApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
-import app.bpartners.api.endpoint.rest.model.Email;
 import app.bpartners.api.endpoint.rest.model.EnableStatus;
 import app.bpartners.api.endpoint.rest.model.User;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;

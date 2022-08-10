@@ -62,6 +62,7 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
                     new AntPathRequestMatcher("/pre-registration", POST.name()),
                     new AntPathRequestMatcher("/auth"),
                     new AntPathRequestMatcher("/token"),
+                    new AntPathRequestMatcher("/onboarding"),
                     new AntPathRequestMatcher("/**", OPTIONS.toString())
                 )
             )),
@@ -74,6 +75,7 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
         .antMatchers("/ping").permitAll()
         .antMatchers("/auth").permitAll()
         .antMatchers("/token").permitAll()
+        .antMatchers("/onboarding").permitAll()
         .antMatchers(POST, "/pre-registration").permitAll()
         .antMatchers(OPTIONS, "/**").permitAll()
         .antMatchers(GET, "/pre-registration").authenticated()

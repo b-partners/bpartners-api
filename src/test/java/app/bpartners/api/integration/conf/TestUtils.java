@@ -25,6 +25,8 @@ public class TestUtils {
   public static final String USER2_ID = "user2_id";
   public static final String SWAN_USER1_ID = "swan_user1_id";
   public static final String SWAN_USER2_ID = "swan_user2_id";
+  public static final String VALID_EMAIL = "username@domain.com";
+  public static final String INVALID_EMAIL = "username.@domain.com";
 
   public static SwanUser joeDoe() {
     SwanUser swanUser = new SwanUser();

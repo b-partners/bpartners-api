@@ -16,6 +16,7 @@ import org.springframework.web.servlet.HandlerExceptionResolver;
 
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpMethod.OPTIONS;
+import static org.springframework.http.HttpMethod.POST;
 
 @Configuration
 @Slf4j
@@ -58,6 +59,7 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
             bearerFilter(new NegatedRequestMatcher(
                 new OrRequestMatcher(
                     new AntPathRequestMatcher("/ping"),
+                    new AntPathRequestMatcher("/pre-registration", POST.name()),
                     new AntPathRequestMatcher("/**", OPTIONS.toString())
                 )
             )),
@@ -68,12 +70,11 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
         .and()
         .authorizeRequests()
         .antMatchers("/ping").permitAll()
+        .antMatchers(POST, "/pre-registration").permitAll()
         .antMatchers(OPTIONS, "/**").permitAll()
-        .antMatchers("/whoami").authenticated()
+        .antMatchers(GET, "/pre-registration").authenticated()
         .antMatchers(GET, "/users").authenticated()
         .antMatchers(GET, "/users/*").authenticated()
-        .antMatchers(GET, "/accounts").authenticated()
-        .antMatchers(GET, "/accounts/*").authenticated()
         .antMatchers("/**").denyAll()
 
         // disable superfluous protections

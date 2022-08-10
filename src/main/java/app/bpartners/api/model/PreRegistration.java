@@ -2,16 +2,20 @@ package app.bpartners.api.model;
 
 import java.io.Serializable;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Objects;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.validation.constraints.NotBlank;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.Hibernate;
+import org.hibernate.annotations.CreationTimestamp;
 
 import static javax.persistence.GenerationType.IDENTITY;
 
@@ -19,6 +23,7 @@ import static javax.persistence.GenerationType.IDENTITY;
 @AllArgsConstructor
 @NoArgsConstructor
 @Setter
+@Builder
 @Entity
 public class PreRegistration implements Serializable {
   @Id
@@ -36,7 +41,13 @@ public class PreRegistration implements Serializable {
 
   private String phoneNumber;
 
+  @CreationTimestamp
+  @Getter(AccessLevel.NONE)
   private Instant entranceDatetime;
+
+  public Instant getEntranceDatetime() {
+    return entranceDatetime.truncatedTo(ChronoUnit.MILLIS);
+  }
 
   @Override
   public boolean equals(Object o) {

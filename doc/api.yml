@@ -138,6 +138,7 @@ paths:
         - Pre-registration
       summary: Pre-register a user.
       operationId: createPreRegistration
+      security: [ ] #no security
       requestBody:
         required: true
         content:

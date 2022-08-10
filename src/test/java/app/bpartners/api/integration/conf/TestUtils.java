@@ -30,6 +30,9 @@ public class TestUtils {
   public static final String SWAN_USER2_ID = "swan_user2_id";
   public static final String BAD_TOKEN = "bad_token";
 
+  public static final String PREREGISTRATION1_ID = "preRegistration1_id";
+  public static final String PREREGISTRATION2_ID = "preRegistration2_id";
+
   public static SwanUser swanUser1() {
     SwanUser swanUser = new SwanUser();
     swanUser.setSwanId(TestUtils.SWAN_USER1_ID);

@@ -267,6 +267,37 @@ paths:
           $ref: '#/components/responses/429'
         '500':
           $ref: '#/components/responses/500'
+  /email:
+    post:
+      tags:
+        - Email
+      summary: All about the emails for the user
+      description: Add a new email
+      operationId: createEmail
+      requestBody:
+        content:
+          text/plain:
+            schema:
+              type: string
+              format: email
+              example: 'test+ryan@gmail.com'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Email'
+        '400':
+          $ref: '#/components/responses/400'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+        '429':
+          $ref: '#/components/responses/429'
+        '500':
+          $ref: '#/components/responses/500'
 components:
   securitySchemes:
     BearerAuth:
@@ -316,6 +347,16 @@ components:
           default: 5
         status:
           $ref: '#/components/schemas/EnableStatus'
+    Email:
+      type: object
+      properties:
+        id:
+          type: string
+          example: 'uuid'
+        email:
+          type: string
+          format: email
+          example: 'test+ryan@gmail.com'
     Account:
       allOf:
         - $ref: '#/components/schemas/SwanAccount'

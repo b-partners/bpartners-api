@@ -5,14 +5,14 @@ import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
 import app.bpartners.api.endpoint.rest.model.SwanUser;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
-import app.bpartners.api.model.PreRegistration;
-import java.io.IOException;
-import java.net.ServerSocket;
-import java.time.LocalDate;
 import org.junit.jupiter.api.function.Executable;
 import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsRequest;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsResponse;
+
+import java.io.IOException;
+import java.net.ServerSocket;
+import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -29,6 +29,8 @@ public class TestUtils {
 
   public static final String SWAN_USER2_ID = "swan_user2_id";
   public static final String BAD_TOKEN = "bad_token";
+
+  public static final String VALID_PREREGISTRATION_ID = "valid_preregistration_id";
 
   public static SwanUser swanUser1() {
     SwanUser swanUser = new SwanUser();
@@ -62,7 +64,7 @@ public class TestUtils {
     client.setHost("localhost");
     client.setPort(serverPort);
     client.setRequestInterceptor(httpRequestBuilder ->
-        httpRequestBuilder.header("Authorization", "Bearer " + token));
+            httpRequestBuilder.header("Authorization", "Bearer " + token));
     return client;
   }
 
@@ -75,7 +77,7 @@ public class TestUtils {
 
   public static void setUpEventBridge(EventBridgeClient eventBridgeClient) {
     when(eventBridgeClient.putEvents((PutEventsRequest) any())).thenReturn(
-        PutEventsResponse.builder().build()
+            PutEventsResponse.builder().build()
     );
   }
 
@@ -88,8 +90,8 @@ public class TestUtils {
     ApiException apiException = assertThrows(ApiException.class, executable);
     String responseBody = apiException.getResponseBody();
     assertEquals("{"
-        + "\"type\":\"403 FORBIDDEN\","
-        + "\"message\":\"Access is denied\"}", responseBody);
+            + "\"type\":\"403 FORBIDDEN\","
+            + "\"message\":\"Access is denied\"}", responseBody);
   }
 
   public static int anAvailableRandomPort() {

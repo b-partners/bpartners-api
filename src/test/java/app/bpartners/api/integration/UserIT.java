@@ -4,6 +4,7 @@ import app.bpartners.api.SentryConf;
 import app.bpartners.api.endpoint.rest.api.UsersApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
+import app.bpartners.api.endpoint.rest.model.Email;
 import app.bpartners.api.endpoint.rest.model.EnableStatus;
 import app.bpartners.api.endpoint.rest.model.User;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
@@ -86,6 +87,11 @@ class UserIT {
     assertEquals(2, actualUsers.size());
     assertTrue(actualUsers.contains(user1()));
     assertTrue(actualUsers.contains(user2()));
+  }
+  @Test
+  void create_email_ok() {
+    String validEmail = "test+ryan@gmail.com";
+
   }
 
   static class ContextInitializer extends AbstractContextInitializer {

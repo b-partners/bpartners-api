@@ -7,6 +7,7 @@ import app.bpartners.api.endpoint.rest.client.ApiException;
 import app.bpartners.api.endpoint.rest.model.CreatePreRegistration;
 import app.bpartners.api.endpoint.rest.model.PreRegistration;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
+import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
 import app.bpartners.api.integration.conf.AbstractContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -40,6 +41,9 @@ public class PreRegistrationIT {
   private SentryConf sentryConf;
   @MockBean
   private SwanComponent swanComponentMock;
+
+  @MockBean
+  private SwanConf swanConf;
 
   @BeforeEach
   public void setUp() {

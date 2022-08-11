@@ -2,6 +2,7 @@ package app.bpartners.api.integration;
 
 import app.bpartners.api.SentryConf;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
+import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
 import app.bpartners.api.integration.conf.AbstractContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
 import java.io.IOException;
@@ -35,6 +36,8 @@ class SpringSecurityIT {
 
   @MockBean
   private SentryConf sentryConf;
+  @MockBean
+  private SwanConf swanConf;
   @Autowired
   private SwanComponent swanComponentMock;
   @Value("${test.user.access.token}")

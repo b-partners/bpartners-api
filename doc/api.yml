@@ -22,16 +22,52 @@ paths:
               schema:
                 type: string
                 example: pong
-        '400':
-          $ref: '#/components/responses/400'
-        '403':
-          $ref: '#/components/responses/403'
-        '404':
-          $ref: '#/components/responses/404'
-        '429':
-          $ref: '#/components/responses/429'
         '500':
           $ref: '#/components/responses/500'
+  /auth:
+    post:
+      tags:
+        - Security
+      summary: Identify a registered user with Swan's strong authentication
+      operationId: authentication
+      security: [ ] #No security
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PhoneNumber'
+        required: true
+      responses:
+        '301':
+          description: Redirect to Swan's strong authentication
+        '400':
+          $ref: '#/components/schemas/BadRequestException'
+        500:
+          $ref: '#/components/schemas/InternalServerException'
+  /token:
+    post:
+      tags:
+        - Security
+      summary: Generate a new Swan access token
+      operationId: generateToken
+      security: [ ] #No security
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Code'
+        required: true
+      responses:
+        '200':
+          description: The generated token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Token'
+        '400':
+          $ref: '#/components/schemas/BadRequestException'
+        500:
+          $ref: '#/components/schemas/InternalServerException'
   /users:
     get:
       tags:
@@ -357,6 +393,31 @@ components:
         entranceDatetime:
           type: string
           format: date-time
+    PhoneNumber:
+      type: object
+      properties:
+        phoneNumber:
+          type: string
+    Code:
+      type: object
+      properties:
+        code:
+          type: string
+    Token:
+      type: object
+      properties:
+        idToken:
+          type: string
+        accessToken:
+          type: string
+        refresh_token:
+          type: string
+        expires_in:
+          type: string
+        scope:
+          type: string
+        token_type:
+          type: string
     Page:
       type: integer
       description: Start at `1`

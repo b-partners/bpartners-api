@@ -1,8 +1,11 @@
 package app.bpartners.api.endpoint.rest.security.swan;
 
 import app.bpartners.api.endpoint.rest.model.SwanUser;
+import app.bpartners.api.endpoint.rest.model.Token;
 import app.bpartners.api.graphql.SwanMapper;
+import app.bpartners.api.graphql.responses.TokenResponse;
 import app.bpartners.api.graphql.responses.UserResponse;
+import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.NotImplementedException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
@@ -18,6 +21,8 @@ import org.springframework.stereotype.Component;
 @AllArgsConstructor
 public class SwanComponent {
   private final SwanMapper swanMapper;
+
+  private final SwanConf swanConf;
   private static final String BEARER_PREFIX = "Bearer ";
 
   public String getSwanUserIdByToken(String accessToken) {
@@ -47,6 +52,30 @@ public class SwanComponent {
       return swanMapper.graphQLToRest(userResponse.data.user);
     } catch (IOException | InterruptedException | URISyntaxException e) {
       return null;
+    }
+  }
+
+  public Token getTokenByCode(String code) {
+    try {
+      HttpClient httpClient = HttpClient.newBuilder().build();
+      String message =
+          "client_id=" + swanConf.getClientId()
+              + "&client_secret=" + swanConf.getClientSecret()
+              + "&redirect_uri=" + swanConf.getRedirectUri()
+              + "&grant_type=authorization_code"
+              + "&code=" + code;
+      HttpRequest request = HttpRequest.newBuilder()
+          .uri(new URI("https://oauth.swan.io/oauth2/token"))
+          .header("Content-Type", "x-www-form-urlencoded")
+          .POST(HttpRequest.BodyPublishers.ofString(message))
+          .build();
+      HttpResponse<String> response =
+          httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+      TokenResponse tokenResponse = new ObjectMapper().readValue(response.body(),
+          TokenResponse.class);
+      return swanMapper.graphQLToRest(tokenResponse);
+    } catch (IOException | InterruptedException | URISyntaxException e) {
+      throw new BadRequestException("Invalid code");
     }
   }
 }

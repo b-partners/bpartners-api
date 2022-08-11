@@ -1,6 +1,8 @@
 package app.bpartners.api.graphql;
 
 import app.bpartners.api.endpoint.rest.model.SwanUser;
+import app.bpartners.api.endpoint.rest.model.Token;
+import app.bpartners.api.graphql.responses.TokenResponse;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -16,5 +18,16 @@ public class SwanMapper {
     user.setNationalityCCA3(graphqlUser.nationalityCCA3);
     user.setIdVerified(graphqlUser.idVerified);
     return user;
+  }
+
+  public Token graphQLToRest(TokenResponse graphQLToken) {
+    Token token = new Token();
+    token.setIdToken(graphQLToken.idToken);
+    token.setAccessToken(graphQLToken.accessToken);
+    token.setRefreshToken(graphQLToken.refreshToken);
+    token.setScope(graphQLToken.scope);
+    token.setTokenType(graphQLToken.tokenType);
+    token.setExpiresIn(graphQLToken.expiresIn);
+    return token;
   }
 }

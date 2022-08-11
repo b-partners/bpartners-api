@@ -36,6 +36,9 @@ jobs:
       - name: Jacoco test coverage
         run: |
           export TEST_USER_ACCESS_TOKEN=${{ secrets.TEST_USER_ACCESS_TOKEN }}
+          export API_SWAN_CLIENTID=${{ secrets.API_SWAN_CLIENTID }}
+          export API_SWAN_CLIENTSECRET=${{ secrets.API_SWAN_CLIENTSECRET }}
+          export API_SWAN_USER_CODE=${{ secrets.API_SWAN_USER_CODE }}
           ./gradlew test
 
       - name: Checkstyle

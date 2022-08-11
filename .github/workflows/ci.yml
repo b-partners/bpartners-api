@@ -35,7 +35,7 @@ jobs:
 
       - name: Jacoco test coverage
         run: |
-          export TEST_USER_IDTOKEN=${{ secrets.TEST_USER_IDTOKEN }}
+          export TEST_USER_ACCESS_TOKEN=${{ secrets.TEST_USER_ACCESS_TOKEN }}
           ./gradlew test
 
       - name: Checkstyle

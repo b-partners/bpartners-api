@@ -24,14 +24,13 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @Testcontainers
 @ContextConfiguration(initializers = AuthenticationIT.ContextInitializer.class)
 @AutoConfigureMockMvc
-public class AuthenticationIT {
+class AuthenticationIT {
   @MockBean
   private SentryConf sentryConf;
   @MockBean

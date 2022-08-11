@@ -45,11 +45,11 @@ task generateJavaClient(type: org.openapitools.generator.gradle.plugin.tasks.Gen
 
     configOptions = [
             serializationLibrary: "jackson",
-            dateLibrary: "custom"
+            dateLibrary         : "custom"
     ]
     typeMappings = [
             // What date-time type to use when? https://i.stack.imgur.com/QPhGW.png
-            Date: "java.time.LocalDate",
+            Date    : "java.time.LocalDate",
             DateTime: "java.time.Instant",
     ]
     library = "native"
@@ -67,7 +67,7 @@ task generateTsClient(type: org.openapitools.generator.gradle.plugin.tasks.Gener
     outputDir = "$buildDir/gen-ts".toString()
 }
 task publishJavaClientToMavenLocal(type: Exec, dependsOn: generateJavaClient) {
-    if (org.apache.tools.ant.taskdefs.condition.Os.isFamily(org.apache.tools.ant.taskdefs.condition.Os.FAMILY_WINDOWS)){
+    if (org.apache.tools.ant.taskdefs.condition.Os.isFamily(org.apache.tools.ant.taskdefs.condition.Os.FAMILY_WINDOWS)) {
         commandLine './publish_gen_to_maven_local.bat'
     } else {
         commandLine './publish_gen_to_maven_local.sh'
@@ -126,6 +126,8 @@ dependencies {
     implementation 'io.sentry:sentry-logback:5.5.3'
 
     implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
 
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'

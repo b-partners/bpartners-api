@@ -1,11 +1,9 @@
 package app.bpartners.api.integration.conf;
 
-
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
 import app.bpartners.api.endpoint.rest.model.SwanUser;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
-import app.bpartners.api.model.PreRegistration;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.time.LocalDate;
@@ -20,7 +18,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 public class TestUtils {
-
+  public static final String JOE_DOE_ID = "01bc8036-9d45-426b-a89e-e2ee0e48db01";
   public static final String USER1_TOKEN = "user1_token";
   public static final String BAD_TOKEN = "bad_token";
   public static final String USER1_ID = "user1_id";
@@ -28,9 +26,22 @@ public class TestUtils {
   public static final String SWAN_USER1_ID = "swan_user1_id";
   public static final String SWAN_USER2_ID = "swan_user2_id";
 
+  public static SwanUser joeDoe() {
+    SwanUser swanUser = new SwanUser();
+    swanUser.setId(JOE_DOE_ID);
+    swanUser.setFirstName("Joe");
+    swanUser.setLastName("Doe");
+    swanUser.setBirthDate(LocalDate.of(2022, 8, 3));
+    swanUser.setIdVerified(true);
+    swanUser.setIdentificationStatus("ValidIdentity");
+    swanUser.setNationalityCCA3("FRA");
+    swanUser.setMobilePhoneNumber("+261343919883");
+    return swanUser;
+  }
+
   public static SwanUser swanUser1() {
     SwanUser swanUser = new SwanUser();
-    swanUser.setSwanId(SWAN_USER1_ID);
+    swanUser.setId(SWAN_USER1_ID);
     swanUser.setFirstName("Mathieu");
     swanUser.setLastName("Dupont");
     swanUser.setBirthDate(LocalDate.of(2022, 8, 8));
@@ -43,7 +54,7 @@ public class TestUtils {
 
   public static SwanUser swanUser2() {
     SwanUser swanUser = new SwanUser();
-    swanUser.setSwanId(TestUtils.SWAN_USER2_ID);
+    swanUser.setId(TestUtils.SWAN_USER2_ID);
     swanUser.setFirstName("Jean");
     swanUser.setLastName("Dupont");
     swanUser.setBirthDate(LocalDate.of(2022, 8, 8));
@@ -67,6 +78,7 @@ public class TestUtils {
   public static void setUpSwan(SwanComponent swanComponent) {
     when(swanComponent.getSwanUserIdByToken(USER1_TOKEN)).thenReturn(SWAN_USER1_ID);
     when(swanComponent.getSwanUserIdByToken(BAD_TOKEN)).thenReturn(null);
+    when(swanComponent.getUserById(JOE_DOE_ID)).thenReturn(joeDoe());
     when(swanComponent.getUserById(SWAN_USER1_ID)).thenReturn(swanUser1());
     when(swanComponent.getUserById(SWAN_USER2_ID)).thenReturn(swanUser2());
   }

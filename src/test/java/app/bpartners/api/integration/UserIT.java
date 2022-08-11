@@ -31,7 +31,7 @@ class UserIT {
   User user1() {
     User user = new User();
     user.setId(TestUtils.USER1_ID);
-    user.setSwanId(TestUtils.SWAN_USER1_ID);
+    user.setId(TestUtils.SWAN_USER1_ID);
     user.setFirstName("Mathieu");
     user.setLastName("Dupont");
     user.setBirthDate(LocalDate.of(2022, 8, 8));
@@ -47,7 +47,7 @@ class UserIT {
   User user2() {
     User user = new User();
     user.setId(TestUtils.USER2_ID);
-    user.setSwanId(TestUtils.SWAN_USER2_ID);
+    user.setId(TestUtils.SWAN_USER2_ID);
     user.setFirstName("Jean");
     user.setLastName("Dupont");
     user.setBirthDate(LocalDate.of(2022, 8, 8));
@@ -83,7 +83,7 @@ class UserIT {
     List<User> actualUsers = api.getUsers(1, 10);
 
     assertEquals(user1(), actualUser);
-    assertEquals(2, actualUsers.size());
+    assertEquals(3, actualUsers.size());
     assertTrue(actualUsers.contains(user1()));
     assertTrue(actualUsers.contains(user2()));
   }

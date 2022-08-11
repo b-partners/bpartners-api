@@ -288,7 +288,7 @@ components:
     SwanUser:
       type: object
       properties:
-        swan_id:
+        id:
           type: string
           example: 'uuid'
         first_name:

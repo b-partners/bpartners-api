@@ -17,7 +17,7 @@ public class UserMapper {
     SwanUser swanUser = swanComponent.getUserById(user.getSwanUserId());
     User restUser = new User();
     restUser.setId(user.getId());
-    restUser.setSwanId(user.getSwanUserId());
+    restUser.setId(user.getSwanUserId());
     restUser.setFirstName(swanUser.getFirstName());
     restUser.setLastName(swanUser.getLastName());
     restUser.setBirthDate(swanUser.getBirthDate());

@@ -88,7 +88,7 @@ class UserIT {
   public void setUp() {
     TestUtils.setUpSwan(swanComponentMock);
   }
-
+  /*
   @Test
   void unauthenticated_get_individual_onboarding_ok() throws IOException, InterruptedException {
     HttpClient unauthenticatedClient = HttpClient.newBuilder().build();
@@ -138,7 +138,7 @@ class UserIT {
         HttpResponse.BodyHandlers.ofString());
 
     assertEquals(HttpStatus.BAD_REQUEST.value(), response.statusCode());
-  }
+  }*/
 
 
   @Test

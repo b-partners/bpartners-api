@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.servlet.view.RedirectView;
 
 @RestController
 @AllArgsConstructor
@@ -38,14 +37,14 @@ public class UserController {
   }
 
   @GetMapping("/onboarding")
-  public RedirectView redirectOnboarding(@RequestParam(required = false) String type) {
+  public String redirectOnboarding(@RequestParam(required = false) String type) {
     if (type == null) {
       throw new BadRequestException("Onboarding type is mandatory");
     }
     if (type.equals(OnboardingType.INDIVIDUAL.getType())) {
-      return new RedirectView(SwanConf.individualOnboardingUrl);
+      return SwanConf.individualOnboardingUrl;
     } else if (type.equals(OnboardingType.COMPANY.getType())) {
-      return new RedirectView(SwanConf.companyOnboardingUrl);
+      return SwanConf.companyOnboardingUrl;
     }
     throw new BadRequestException("Type invalid");
   }

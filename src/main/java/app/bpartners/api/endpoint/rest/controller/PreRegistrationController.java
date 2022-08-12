@@ -32,7 +32,7 @@ public class PreRegistrationController {
   }
 
   @PostMapping("/pre-registration")
-  public app.bpartners.api.endpoint.rest.model.PreRegistration createEmail(
+  public app.bpartners.api.endpoint.rest.model.PreRegistration createPreRegistration(
       @RequestBody CreatePreRegistration createPreRegistration) {
     PreRegistration toCreate =
         mapper.toDomain(createPreRegistration);

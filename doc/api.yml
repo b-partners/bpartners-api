@@ -88,6 +88,29 @@ paths:
           description: Redirection to Swan onboarding
         '500':
           $ref: '#/components/responses/500'
+  /whoami:
+    get:
+      tags:
+        - Security
+      summary: Who Am I ? Tells you who you are
+      operationId: whoami
+      responses:
+        '200':
+          description: Who you are.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Whoami'
+        '400':
+          $ref: '#/components/responses/400'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+        '429':
+          $ref: '#/components/responses/429'
+        '500':
+          $ref: '#/components/responses/500'
   /users:
     get:
       tags:
@@ -381,14 +404,10 @@ components:
         - DISABLED
     Whoami:
       properties:
-        id_user:
+        bearer_token:
           type: string
-        id_token:
-          type: string
-        access_token:
-          type: string
-        refresh_token:
-          type: string
+        user:
+          $ref: '#/components/schemas/User'
     CreatePreRegistration:
       type: object
       properties:

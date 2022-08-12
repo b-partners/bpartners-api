@@ -40,9 +40,9 @@ jobs:
       - name: Build Gradle project
         run: |
           export TEST_USER_ACCESS_TOKEN=${{ secrets.TEST_USER_ACCESS_TOKEN }}
-          export API_SWAN_CLIENTID=${{ secrets.API_SWAN_CLIENTID }}
-          export API_SWAN_CLIENTSECRET=${{ secrets.API_SWAN_CLIENTSECRET }}
-          export API_SWAN_USER_CODE=${{ secrets.API_SWAN_USER_CODE }}
+          export SWAN_CLIENT_ID=${{ secrets.SWAN_CLIENT_ID }}
+          export SWAN_CLIENT_SECRET=${{ secrets.SWAN_CLIENT_SECRET }}
+          export TEST_SWAN_USER_CODE=${{ secrets.TEST_SWAN_USER_CODE }}
           ./gradlew build
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@13d241b293754004c80624b5567555c4a39ffbe3

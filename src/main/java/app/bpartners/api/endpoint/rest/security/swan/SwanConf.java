@@ -18,11 +18,11 @@ public class SwanConf {
       "https://api.banking.sandbox.swan.io/projects/df47a093-efda-4802-b7ff-8d4946545a5e/onboarding/company/upfront";
 
   public SwanConf(
-      @Value("${api.swan.clientId}")
+      @Value("${swan.client.id}")
       String clientId,
-      @Value("${api.swan.clientSecret}")
+      @Value("${swan.client.secret}")
       String clientSecret,
-      @Value("${api.swan.redirect.uri}")
+      @Value("${swan.redirect.uri}")
       String redirectUri) {
     this.clientId = clientId;
     this.clientSecret = clientSecret;

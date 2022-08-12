@@ -59,6 +59,10 @@ Resources:
               Value: !Sub '{{resolve:ssm:/bpartners/${Env}/db/url}}'
             - Name: SPRING_DATASOURCE_PASSWORD
               Value: !Sub '{{resolve:ssm:/bpartners/${Env}/db/password}}'
+            - Name: SWAN_CLIENT_ID
+              Value: !Sub '{{resolve:ssm:/bpartners/${Env}/swan/client-id}}'
+            - Name: SWAN_CLIENT_SECRET
+              Value: !Sub '{{resolve:ssm:/bpartners/${Env}/swan/client-secret}}'
           LogConfiguration:
             LogDriver: awslogs
             Options:

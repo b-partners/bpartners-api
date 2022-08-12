@@ -24,6 +24,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
@@ -40,7 +41,7 @@ class AuthenticationIT {
   private SwanConf swanConf;
 
   private static final String phoneNumber = "+261343919883";
-  @Value("${api.swan.user.code}")
+  @Value("${test.swan.user.code}")
   private static String userCode;
 
   @BeforeEach
@@ -96,7 +97,7 @@ class AuthenticationIT {
         HttpResponse.BodyHandlers.ofString());
 
     assertEquals(HttpStatus.OK.value(), response.statusCode());
-    assertEquals("", response.body());
+    assertNotEquals(null, response.body());
   }
 
 

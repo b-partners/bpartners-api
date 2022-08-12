@@ -56,4 +56,7 @@ public class Principal implements UserDetails {
     return user.getId();
   }
 
+  public User getUser() {
+    return user;
+  }
 }

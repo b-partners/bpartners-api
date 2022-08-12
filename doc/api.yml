@@ -38,8 +38,8 @@ paths:
               $ref: '#/components/schemas/PhoneNumber'
         required: true
       responses:
-        '302':
-          description: Redirect to Swan's strong authentication
+        '200':
+          description: URL for redirection
         '400':
           $ref: '#/components/schemas/BadRequestException'
         500:

@@ -17,6 +17,9 @@ public class PreRegistrationValidator {
   }
 
   public void accept(PreRegistration preRegistration) {
+    if (preRegistration.getEmail() == null) {
+      throw new BadRequestException("Email is mandatory");
+    }
     if (!hasValidEmail(preRegistration)) {
       throw new BadRequestException("Invalid email");
     }

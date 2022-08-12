@@ -38,7 +38,7 @@ paths:
               $ref: '#/components/schemas/PhoneNumber'
         required: true
       responses:
-        '301':
+        '302':
           description: Redirect to Swan's strong authentication
         '400':
           $ref: '#/components/schemas/BadRequestException'
@@ -68,6 +68,26 @@ paths:
           $ref: '#/components/schemas/BadRequestException'
         500:
           $ref: '#/components/schemas/InternalServerException'
+  /onboarding:
+    get:
+      tags:
+        - Users
+      summary: Redirect new users to Swan onboarding
+      operationId: redirectOnboarding
+      parameters:
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum:
+              - INDIVIDUAL
+              - COMPANY
+          required: true
+      responses:
+        '302':
+          description: Redirection to Swan onboarding
+        '500':
+          $ref: '#/components/responses/500'
   /users:
     get:
       tags:
@@ -172,9 +192,9 @@ paths:
     post:
       tags:
         - Pre-registration
+      security: [ ] #no security
       summary: Pre-register a user.
       operationId: createPreRegistration
-      security: [ ] #no security
       requestBody:
         required: true
         content:

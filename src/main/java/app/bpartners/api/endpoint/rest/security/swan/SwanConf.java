@@ -11,6 +11,12 @@ public class SwanConf {
   private String clientSecret;
   private String redirectUri;
 
+  public static final String individualOnboardingUrl =
+      "https://api.banking.sandbox.swan.io/projects/df47a093-efda-4802-b7ff-8d4946545a5e/onboarding/individual/upfront";
+
+  public static final String companyOnboardingUrl =
+      "https://api.banking.sandbox.swan.io/projects/df47a093-efda-4802-b7ff-8d4946545a5e/onboarding/company/upfront";
+
   public SwanConf(
       @Value("${api.swan.clientId}")
       String clientId,

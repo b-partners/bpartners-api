@@ -62,25 +62,6 @@ class AuthenticationIT {
   }
 
   @Test
-  void unauthenticated_attempt_swan_auth_ok() throws IOException, InterruptedException {
-    HttpClient unauthenticatedClient = HttpClient.newBuilder().build();
-    String basePath = "http://localhost:" + AuthenticationIT.ContextInitializer.SERVER_PORT;
-
-    HttpResponse<String> response = unauthenticatedClient.send(
-        HttpRequest.newBuilder()
-            .uri(URI.create(basePath + "/auth"))
-            .header("Access-Control-Request-Method", "POST")
-            .header("Content-Type", "application/json")
-            .header("Origin", "http://localhost:3000")
-            .POST(HttpRequest.BodyPublishers.ofString(
-                new ObjectMapper().writeValueAsString(phoneNumber())))
-            .build(),
-        HttpResponse.BodyHandlers.ofString());
-
-    assertEquals(HttpStatus.MOVED_TEMPORARILY.value(), response.statusCode());
-  }
-
-  @Test
   void unauthenticated_request_token_ok() throws IOException, InterruptedException {
     HttpClient unauthenticatedClient = HttpClient.newBuilder().build();
     String basePath = "http://localhost:" + AuthenticationIT.ContextInitializer.SERVER_PORT;

@@ -1,4 +1,4 @@
-package app.bpartners.api.model;
+package app.bpartners.api.model.entity;
 
 import lombok.Getter;
 import app.bpartners.api.model.exception.BadRequestException;

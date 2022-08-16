@@ -13,11 +13,12 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 
+import static app.bpartners.api.endpoint.rest.security.swan.SwanConf.BEARER_PREFIX;
+
 @Component
 @AllArgsConstructor
 public class AuthProvider extends AbstractUserDetailsAuthenticationProvider {
 
-  private static final String BEARER_PREFIX = "Bearer ";
   private final SwanComponent swanComponent;
   private final UserService userService;
 

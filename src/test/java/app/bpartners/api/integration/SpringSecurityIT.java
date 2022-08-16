@@ -1,6 +1,7 @@
 package app.bpartners.api.integration;
 
 import app.bpartners.api.SentryConf;
+import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
 import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
 import app.bpartners.api.integration.conf.AbstractContextInitializer;
@@ -39,19 +40,19 @@ class SpringSecurityIT {
   @MockBean
   private SwanConf swanConf;
   @Autowired
-  private SwanComponent swanComponentMock;
+  private SwanComponent swanComponent;
   @Value("${test.user.access.token}")
   private String bearer;
 
-  @Test
-  void authenticated_user_has_known_id() {
-    String swanUserId = swanComponentMock.getSwanUserIdByToken(bearer);
-    assertEquals(JOE_DOE_ID, swanUserId);
-  }
+ @Test
+ void authenticated_has_known_id() {
+   String swanUserId = swanComponent.getSwanUserIdByToken(bearer);
+   assertEquals(JOE_DOE_ID, swanUserId);
+ }
 
   @Test
   void unauthenticated_user_is_forbidden() {
-    assertNull(swanComponentMock.getSwanUserIdByToken(TestUtils.BAD_TOKEN));
+    assertNull(swanComponent.getSwanUserIdByToken(TestUtils.BAD_TOKEN));
   }
 
   @Test

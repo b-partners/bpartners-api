@@ -1,6 +1,6 @@
-package app.bpartners.api.graphql.responses;
+package app.bpartners.api.repository.swan.response;
 
-import app.bpartners.api.graphql.schemas.SwanUser;
+import app.bpartners.api.repository.swan.schema.SwanUser;
 
 public class UserResponse {
   public Data data;

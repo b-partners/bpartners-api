@@ -1,7 +1,6 @@
 package app.bpartners.api.model;
 
-import app.bpartners.api.endpoint.rest.model.EnableStatus;
-import app.bpartners.api.model.SwanUser;
+import java.time.LocalDate;
 import java.util.Objects;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -14,14 +13,22 @@ import lombok.Setter;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class User {
+public class SwanUser {
   private String id;
 
-  private SwanUser swanUser;
+  private String firstName;
 
-  private int monthlySubscription;
+  private String lastName;
 
-  private EnableStatus status;
+  private String mobilePhoneNumber;
+
+  private LocalDate birthDate;
+
+  private String identificationStatus;
+
+  private String nationalityCCA3;
+
+  private Boolean idVerified;
 
   @Override
   public boolean equals(Object o) {
@@ -31,7 +38,7 @@ public class User {
     if (o == null) {
       return false;
     }
-    User user = (User) o;
+    SwanUser user = (SwanUser) o;
     return id != null && Objects.equals(id, user.id);
   }
 

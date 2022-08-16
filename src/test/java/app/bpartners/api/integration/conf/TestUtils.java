@@ -19,7 +19,11 @@ import static org.mockito.Mockito.when;
 
 public class TestUtils {
   public static final String JOE_DOE_ID = "01bc8036-9d45-426b-a89e-e2ee0e48db01";
+
+  public static final String JOE_DOE_TOKEN = "joe_doe_token";
   public static final String USER1_TOKEN = "user1_token";
+
+  public static final String USER2_TOKEN = "user2_token";
   public static final String BAD_TOKEN = "bad_token";
   public static final String USER1_ID = "user1_id";
   public static final String USER2_ID = "user2_id";
@@ -82,9 +86,7 @@ public class TestUtils {
   public static void setUpSwan(SwanComponent swanComponent) {
     when(swanComponent.getSwanUserIdByToken(USER1_TOKEN)).thenReturn(SWAN_USER1_ID);
     when(swanComponent.getSwanUserIdByToken(BAD_TOKEN)).thenReturn(null);
-    when(swanComponent.getUserById(JOE_DOE_ID)).thenReturn(joeDoe());
-    when(swanComponent.getUserById(SWAN_USER1_ID)).thenReturn(swanUser1());
-    when(swanComponent.getUserById(SWAN_USER2_ID)).thenReturn(swanUser2());
+    when(swanComponent.whoami()).thenReturn(swanUser1());
   }
 
   public static void setUpEventBridge(EventBridgeClient eventBridgeClient) {

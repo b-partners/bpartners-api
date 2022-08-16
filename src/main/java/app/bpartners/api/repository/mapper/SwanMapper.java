@@ -1,13 +1,13 @@
-package app.bpartners.api.graphql;
+package app.bpartners.api.repository.mapper;
 
 import app.bpartners.api.endpoint.rest.model.SwanUser;
 import app.bpartners.api.endpoint.rest.model.Token;
-import app.bpartners.api.graphql.responses.TokenResponse;
+import app.bpartners.api.repository.swan.response.TokenResponse;
 import org.springframework.stereotype.Component;
 
 @Component
 public class SwanMapper {
-  public SwanUser graphQLToRest(app.bpartners.api.graphql.schemas.SwanUser graphqlUser) {
+  public SwanUser graphQLToRest(app.bpartners.api.repository.swan.schema.SwanUser graphqlUser) {
     SwanUser user = new SwanUser();
     user.setId(graphqlUser.id);
     user.setFirstName(graphqlUser.firstName);

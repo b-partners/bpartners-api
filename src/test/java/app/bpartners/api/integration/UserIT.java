@@ -7,7 +7,6 @@ import app.bpartners.api.endpoint.rest.client.ApiException;
 import app.bpartners.api.endpoint.rest.model.EnableStatus;
 import app.bpartners.api.endpoint.rest.model.User;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
-import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
 import app.bpartners.api.integration.conf.AbstractContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
 import java.io.IOException;
@@ -68,16 +67,9 @@ class UserIT {
   }
 
   @MockBean
-  private SwanConf swanConf;
-  @MockBean
   private SentryConf sentryConf;
   @MockBean
   private SwanComponent swanComponentMock;
-
-  private static final String INDIVIDUAL_ONBOARDING = "INDIVIDUAL";
-
-  private static final String COMPANY_ONBOARDING = "COMPANY";
-
   private static final String BAD_TYPE = "BAD_TYPE";
 
   private static ApiClient anApiClient(String token) {
@@ -88,58 +80,23 @@ class UserIT {
   public void setUp() {
     TestUtils.setUpSwan(swanComponentMock);
   }
-  /*
+
   @Test
-  void unauthenticated_get_individual_onboarding_ok() throws IOException, InterruptedException {
+  void unauthenticated_get_onboarding_ok() throws IOException, InterruptedException {
     HttpClient unauthenticatedClient = HttpClient.newBuilder().build();
     String basePath = "http://localhost:" + UserIT.ContextInitializer.SERVER_PORT;
 
     HttpResponse<String> response = unauthenticatedClient.send(
         HttpRequest.newBuilder()
-            .uri(URI.create(basePath + "/onboarding?type=" + INDIVIDUAL_ONBOARDING))
+            .uri(URI.create(basePath + "/onboarding"))
             .header("Access-Control-Request-Method", "GET")
             .header("Content-Type", "application/json")
             .header("Origin", "http://localhost:3000")
             .build(),
         HttpResponse.BodyHandlers.ofString());
 
-    assertEquals(HttpStatus.MOVED_TEMPORARILY.value(), response.statusCode());
+    assertEquals(HttpStatus.OK.value(), response.statusCode());
   }
-
-  @Test
-  void unauthenticated_get_company_onboarding_ok() throws IOException, InterruptedException {
-    HttpClient unauthenticatedClient = HttpClient.newBuilder().build();
-    String basePath = "http://localhost:" + UserIT.ContextInitializer.SERVER_PORT;
-
-    HttpResponse<String> response = unauthenticatedClient.send(
-        HttpRequest.newBuilder()
-            .uri(URI.create(basePath + "/onboarding?type=" + COMPANY_ONBOARDING))
-            .header("Access-Control-Request-Method", "GET")
-            .header("Content-Type", "application/json")
-            .header("Origin", "http://localhost:3000")
-            .build(),
-        HttpResponse.BodyHandlers.ofString());
-
-    assertEquals(HttpStatus.MOVED_TEMPORARILY.value(), response.statusCode());
-  }
-
-  @Test
-  void unauthenticated_get_onboards_ko() throws IOException, InterruptedException {
-    HttpClient unauthenticatedClient = HttpClient.newBuilder().build();
-    String basePath = "http://localhost:" + UserIT.ContextInitializer.SERVER_PORT;
-
-    HttpResponse<String> response = unauthenticatedClient.send(
-        HttpRequest.newBuilder()
-            .uri(URI.create(basePath + "/onboarding?type=" + BAD_TYPE))
-            .header("Access-Control-Request-Method", "GET")
-            .header("Content-Type", "application/json")
-            .header("Origin", "http://localhost:3000")
-            .build(),
-        HttpResponse.BodyHandlers.ofString());
-
-    assertEquals(HttpStatus.BAD_REQUEST.value(), response.statusCode());
-  }*/
-
 
   @Test
   void user_read_ok() throws ApiException {
@@ -150,9 +107,8 @@ class UserIT {
     List<User> actualUsers = api.getUsers(1, 10);
 
     assertEquals(user1(), actualUser);
-    assertEquals(3, actualUsers.size());
+    assertEquals(1, actualUsers.size());
     assertTrue(actualUsers.contains(user1()));
-    assertTrue(actualUsers.contains(user2()));
   }
 
   static class ContextInitializer extends AbstractContextInitializer {

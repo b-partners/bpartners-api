@@ -23,14 +23,14 @@ import static javax.persistence.GenerationType.IDENTITY;
 
 
 @Entity
-@Table(name = "\"pre_registration\"")
+@Table(name = "\"pre_user\"")
 @Getter
 @Setter
 @ToString
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class PreRegistration implements Serializable {
+public class PreUser implements Serializable {
   @Id
   @GeneratedValue(strategy = IDENTITY)
   private String id;
@@ -62,8 +62,8 @@ public class PreRegistration implements Serializable {
     if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) {
       return false;
     }
-    PreRegistration preRegistration = (PreRegistration) o;
-    return id != null && Objects.equals(id, preRegistration.id);
+    PreUser preUser = (PreUser) o;
+    return id != null && Objects.equals(id, preUser.id);
   }
 
   @Override

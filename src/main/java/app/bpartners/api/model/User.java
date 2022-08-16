@@ -1,6 +1,6 @@
 package app.bpartners.api.model;
 
-import app.bpartners.api.repository.types.PostgresEnumType;
+import app.bpartners.api.repository.jpa.types.PostgresEnumType;
 import java.io.Serializable;
 import java.util.Objects;
 import javax.persistence.Entity;

@@ -1,4 +1,4 @@
-package app.bpartners.api.repository.types;
+package app.bpartners.api.repository.jpa.types;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;

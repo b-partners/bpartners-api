@@ -1,4 +1,4 @@
-package app.bpartners.api.graphql.responses;
+package app.bpartners.api.repository.swan.response;
 
 public class TokenResponse {
   public String accessToken;

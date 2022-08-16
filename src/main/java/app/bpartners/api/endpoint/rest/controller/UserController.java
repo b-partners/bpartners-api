@@ -2,7 +2,6 @@ package app.bpartners.api.endpoint.rest.controller;
 
 import app.bpartners.api.endpoint.rest.mapper.UserMapper;
 import app.bpartners.api.endpoint.rest.model.User;
-import app.bpartners.api.endpoint.rest.security.swan.OnboardingType;
 import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
 import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.PageFromOne;
@@ -13,6 +12,7 @@ import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserController {
   private final UserService userService;
   private final UserMapper userMapper;
+  private final SwanConf swanConf;
 
   @GetMapping("/users/{id}")
   public User getUserById(@PathVariable String id) {
@@ -37,15 +38,7 @@ public class UserController {
   }
 
   @GetMapping("/onboarding")
-  public String redirectOnboarding(@RequestParam(required = false) String type) {
-    if (type == null) {
-      throw new BadRequestException("Onboarding type is mandatory");
-    }
-    if (type.equals(OnboardingType.INDIVIDUAL.getType())) {
-      return SwanConf.individualOnboardingUrl;
-    } else if (type.equals(OnboardingType.COMPANY.getType())) {
-      return SwanConf.companyOnboardingUrl;
-    }
-    throw new BadRequestException("Type invalid");
+  public String redirectOnboardingUrl() {
+    return swanConf.getOnboardingUrl();
   }
 }

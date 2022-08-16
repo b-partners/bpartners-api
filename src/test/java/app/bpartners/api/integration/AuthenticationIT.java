@@ -1,8 +1,8 @@
 package app.bpartners.api.integration;
 
 import app.bpartners.api.SentryConf;
-import app.bpartners.api.endpoint.rest.model.Code;
-import app.bpartners.api.endpoint.rest.model.PhoneNumber;
+import app.bpartners.api.endpoint.rest.model.RedirectionParams;
+import app.bpartners.api.endpoint.rest.model.TokenParams;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
 import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
 import app.bpartners.api.integration.conf.AbstractContextInitializer;
@@ -49,37 +49,19 @@ class AuthenticationIT {
     TestUtils.setUpSwan(swanComponentMock);
   }
 
-  static PhoneNumber phoneNumber() {
-    return new PhoneNumber().phoneNumber(phoneNumber);
+  static RedirectionParams phoneNumber() {
+    return new RedirectionParams().phoneNumber(phoneNumber);
   }
 
-  static Code validCode() {
-    return new Code().code(userCode);
+  static TokenParams validCode() {
+    return new TokenParams().code(userCode);
   }
 
-  static Code badCode() {
-    return new Code().code("bad_code");
+  static TokenParams badCode() {
+    return new TokenParams().code("bad_code");
   }
 
-  @Test
-  void unauthenticated_request_token_ok() throws IOException, InterruptedException {
-    HttpClient unauthenticatedClient = HttpClient.newBuilder().build();
-    String basePath = "http://localhost:" + AuthenticationIT.ContextInitializer.SERVER_PORT;
 
-    HttpResponse<String> response = unauthenticatedClient.send(
-        HttpRequest.newBuilder()
-            .uri(URI.create(basePath + "/token"))
-            .header("Access-Control-Request-Method", "POST")
-            .header("Content-Type", "application/json")
-            .header("Origin", "http://localhost:3000")
-            .POST(HttpRequest.BodyPublishers.ofString(
-                new ObjectMapper().writeValueAsString(validCode())))
-            .build(),
-        HttpResponse.BodyHandlers.ofString());
-
-    assertEquals(HttpStatus.OK.value(), response.statusCode());
-    assertNotEquals(null, response.body());
-  }
 
 
   public static class ContextInitializer extends AbstractContextInitializer {

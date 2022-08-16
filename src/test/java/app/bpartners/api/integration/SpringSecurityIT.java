@@ -12,7 +12,6 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -21,7 +20,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
@@ -38,20 +36,12 @@ class SpringSecurityIT {
   private SentryConf sentryConf;
   @MockBean
   private SwanConf swanConf;
-  @Autowired
-  private SwanComponent swanComponentMock;
-  @Value("${test.user.access.token}")
-  private String bearer;
-
-  @Test
-  void authenticated_user_has_known_id() {
-    String swanUserId = swanComponentMock.getSwanUserIdByToken(bearer);
-    assertEquals(JOE_DOE_ID, swanUserId);
-  }
+  @MockBean
+  private SwanComponent swanComponent;
 
   @Test
   void unauthenticated_user_is_forbidden() {
-    assertNull(swanComponentMock.getSwanUserIdByToken(TestUtils.BAD_TOKEN));
+    assertNull(swanComponent.getSwanUserIdByToken(TestUtils.BAD_TOKEN));
   }
 
   @Test

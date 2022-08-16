@@ -1,11 +1,11 @@
 package app.bpartners.api.integration;
 
 import app.bpartners.api.SentryConf;
-import app.bpartners.api.endpoint.rest.api.PreRegistrationApi;
+import app.bpartners.api.endpoint.rest.api.PreUsersApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
-import app.bpartners.api.endpoint.rest.model.CreatePreRegistration;
-import app.bpartners.api.endpoint.rest.model.PreRegistration;
+import app.bpartners.api.endpoint.rest.model.CreatePreUser;
+import app.bpartners.api.endpoint.rest.model.PreUser;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
 import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
 import app.bpartners.api.integration.conf.AbstractContextInitializer;
@@ -34,9 +34,9 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @Testcontainers
-@ContextConfiguration(initializers = PreRegistrationIT.ContextInitializer.class)
+@ContextConfiguration(initializers = PreUserIT.ContextInitializer.class)
 @AutoConfigureMockMvc
-public class PreRegistrationIT {
+public class PreUserIT {
   @MockBean
   private SentryConf sentryConf;
   @MockBean
@@ -54,28 +54,28 @@ public class PreRegistrationIT {
     return TestUtils.anApiClient(token, ContextInitializer.SERVER_PORT);
   }
 
-  CreatePreRegistration validPreRegistration() {
-    CreatePreRegistration createPreRegistration = new CreatePreRegistration();
-    createPreRegistration.setEmail(TestUtils.VALID_EMAIL);
-    createPreRegistration.setFirstName("john");
-    createPreRegistration.setLastName("doe");
-    createPreRegistration.setSociety("johnSociety");
-    createPreRegistration.setPhoneNumber("+33 54 234 234");
-    return createPreRegistration;
+  CreatePreUser validPreUser() {
+    CreatePreUser createPreUser = new CreatePreUser();
+    createPreUser.setEmail(TestUtils.VALID_EMAIL);
+    createPreUser.setFirstName("john");
+    createPreUser.setLastName("doe");
+    createPreUser.setSociety("johnSociety");
+    createPreUser.setPhoneNumber("+33 54 234 234");
+    return createPreUser;
   }
 
-  CreatePreRegistration badPreRegistration() {
-    CreatePreRegistration createPreRegistration = new CreatePreRegistration();
-    createPreRegistration.setEmail(TestUtils.INVALID_EMAIL);
-    createPreRegistration.setFirstName("math");
-    createPreRegistration.setLastName("doe");
-    createPreRegistration.setSociety("johnSociety");
-    createPreRegistration.setPhoneNumber("+33 54 234 234");
-    return createPreRegistration;
+  CreatePreUser badPreUser() {
+    CreatePreUser createPreUser = new CreatePreUser();
+    createPreUser.setEmail(TestUtils.INVALID_EMAIL);
+    createPreUser.setFirstName("math");
+    createPreUser.setLastName("doe");
+    createPreUser.setSociety("johnSociety");
+    createPreUser.setPhoneNumber("+33 54 234 234");
+    return createPreUser;
   }
 
-  PreRegistration preRegistration1() {
-    PreRegistration preRegistration = new PreRegistration();
+  PreUser preUser1() {
+    PreUser preRegistration = new PreUser();
     preRegistration.setId(PRE_REGISTRATION1_ID);
     preRegistration.setEmail("mathieu@email.com");
     preRegistration.setFirstName("Mathieu");
@@ -87,18 +87,17 @@ public class PreRegistrationIT {
   }
 
   @Test
-  void unauthenticated_create_pre_registration_ok() throws IOException, InterruptedException {
+  void unauthenticated_create_pre_users_ok() throws IOException, InterruptedException {
     HttpClient unauthenticatedClient = HttpClient.newBuilder().build();
-    String basePath = "http://localhost:" + PreRegistrationIT.ContextInitializer.SERVER_PORT;
+    String basePath = "http://localhost:" + PreUserIT.ContextInitializer.SERVER_PORT;
 
     HttpResponse<String> response = unauthenticatedClient.send(
         HttpRequest.newBuilder()
-            .uri(URI.create(basePath + "/pre-registration"))
+            .uri(URI.create(basePath + "/preUsers"))
             .header("Access-Control-Request-Method", "POST")
             .header("Content-Type", "application/json")
-            .header("Origin", "http://localhost:3000")
             .POST(HttpRequest.BodyPublishers.ofString(
-                new ObjectMapper().writeValueAsString(validPreRegistration())))
+                new ObjectMapper().writeValueAsString(List.of(validPreUser()))))
             .build(),
         HttpResponse.BodyHandlers.ofString());
 
@@ -106,13 +105,13 @@ public class PreRegistrationIT {
   }
 
   @Test
-  void unauthenticated_read_registrations_ko() throws IOException, InterruptedException {
+  void unauthenticated_read_pre_users_ko() throws IOException, InterruptedException {
     HttpClient unauthenticatedClient = HttpClient.newBuilder().build();
-    String basePath = "http://localhost:" + PreRegistrationIT.ContextInitializer.SERVER_PORT;
+    String basePath = "http://localhost:" + PreUserIT.ContextInitializer.SERVER_PORT;
 
     HttpResponse<String> response = unauthenticatedClient.send(
         HttpRequest.newBuilder()
-            .uri(URI.create(basePath + "/pre-registration"))
+            .uri(URI.create(basePath + "/preUsers"))
             .header("Access-Control-Request-Method", "GET")
             .header("Content-Type", "application/json")
             .header("Origin", "http://localhost:3000")
@@ -123,35 +122,35 @@ public class PreRegistrationIT {
   }
 
   @Test
-  void authenticated_read_registrations_ok() throws ApiException {
+  void authenticated_read_pre_users_ok() throws ApiException {
     ApiClient apiClient = anApiClient(TestUtils.USER1_TOKEN);
-    PreRegistrationApi api = new PreRegistrationApi(apiClient);
+    PreUsersApi api = new PreUsersApi(apiClient);
 
-    List<PreRegistration> actual = api.getPreRegistrations(1, 10);
+    List<PreUser> actual = api.getPreUsers(1, 10);
 
-    assertTrue(actual.contains(preRegistration1()));
+    assertTrue(actual.contains(preUser1()));
   }
 
   @Test
-  void create_pre_registration_ok() throws ApiException {
+  void create_pre_users_ok() throws ApiException {
     ApiClient apiClient = anApiClient(TestUtils.USER1_TOKEN);
-    PreRegistrationApi api = new PreRegistrationApi(apiClient);
+    PreUsersApi api = new PreUsersApi(apiClient);
 
-    PreRegistration actual = api.createPreRegistration(validPreRegistration());
+    List<PreUser> actual = api.createPreUsers(List.of(validPreUser()));
 
-    List<PreRegistration> actualList = api.getPreRegistrations(1, 10);
-    assertTrue(actualList.contains(actual));
+    List<PreUser> actualList = api.getPreUsers(1, 10);
+    assertTrue(actualList.containsAll(actual));
   }
 
   @Test
-  void create_pre_registration_ko() {
+  void create_pre_users_ko() {
     ApiClient apiClient = anApiClient(TestUtils.USER1_TOKEN);
-    PreRegistrationApi api = new PreRegistrationApi(apiClient);
+    PreUsersApi api = new PreUsersApi(apiClient);
 
     TestUtils.assertThrowsApiException(
         "{\"type\":\"400 BAD_REQUEST\",\"message\":\"Invalid email\"}",
         () ->
-            api.createPreRegistration(badPreRegistration()));
+            api.createPreUsers(List.of(badPreUser())));
   }
 
   public static class ContextInitializer extends AbstractContextInitializer {

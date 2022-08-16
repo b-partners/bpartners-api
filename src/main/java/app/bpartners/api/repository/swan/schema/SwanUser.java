@@ -1,4 +1,4 @@
-package app.bpartners.api.graphql.schemas;
+package app.bpartners.api.repository.swan.schema;
 
 import java.time.LocalDate;
 

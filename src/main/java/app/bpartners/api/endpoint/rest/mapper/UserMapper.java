@@ -14,7 +14,7 @@ public class UserMapper {
   private final SwanComponent swanComponent;
 
   public User toRestUser(app.bpartners.api.model.User user) {
-    SwanUser swanUser = swanComponent.getUserById(user.getSwanUserId());
+    SwanUser swanUser = swanComponent.whoami();
     User restUser = new User();
     restUser.setId(user.getId());
     restUser.setId(user.getSwanUserId());

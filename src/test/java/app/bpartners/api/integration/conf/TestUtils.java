@@ -18,8 +18,12 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 public class TestUtils {
-  public static final String JOE_DOE_ID = "01bc8036-9d45-426b-a89e-e2ee0e48db01";
+  public static final String JOE_DOE_ID = "joe_doe_id";
+
+  public static final String JOE_DOE_TOKEN = "joe_doe_token";
   public static final String USER1_TOKEN = "user1_token";
+
+  public static final String USER2_TOKEN = "user2_token";
   public static final String BAD_TOKEN = "bad_token";
   public static final String USER1_ID = "user1_id";
   public static final String USER2_ID = "user2_id";
@@ -32,7 +36,7 @@ public class TestUtils {
 
   public static SwanUser joeDoe() {
     SwanUser swanUser = new SwanUser();
-    swanUser.setId(JOE_DOE_ID);
+    swanUser.setId("01bc8036-9d45-426b-a89e-e2ee0e48db01");
     swanUser.setFirstName("Joe");
     swanUser.setLastName("Doe");
     swanUser.setBirthDate(LocalDate.of(2022, 8, 3));
@@ -56,19 +60,6 @@ public class TestUtils {
     return swanUser;
   }
 
-  public static SwanUser swanUser2() {
-    SwanUser swanUser = new SwanUser();
-    swanUser.setId(TestUtils.SWAN_USER2_ID);
-    swanUser.setFirstName("Jean");
-    swanUser.setLastName("Dupont");
-    swanUser.setBirthDate(LocalDate.of(2022, 8, 8));
-    swanUser.setIdVerified(true);
-    swanUser.setIdentificationStatus("ValidIdentity");
-    swanUser.setNationalityCCA3("FRA");
-    swanUser.setMobilePhoneNumber("+33123456789");
-    return swanUser;
-  }
-
   public static ApiClient anApiClient(String token, int serverPort) {
     ApiClient client = new ApiClient();
     client.setScheme("http");
@@ -80,11 +71,8 @@ public class TestUtils {
   }
 
   public static void setUpSwan(SwanComponent swanComponent) {
-    when(swanComponent.getSwanUserIdByToken(USER1_TOKEN)).thenReturn(SWAN_USER1_ID);
-    when(swanComponent.getSwanUserIdByToken(BAD_TOKEN)).thenReturn(null);
-    when(swanComponent.getUserById(JOE_DOE_ID)).thenReturn(joeDoe());
-    when(swanComponent.getUserById(SWAN_USER1_ID)).thenReturn(swanUser1());
-    when(swanComponent.getUserById(SWAN_USER2_ID)).thenReturn(swanUser2());
+    when(swanComponent.getSwanUserByToken(BAD_TOKEN)).thenReturn(null);
+    when(swanComponent.getSwanUserByToken(USER1_TOKEN)).thenReturn(swanUser1());
   }
 
   public static void setUpEventBridge(EventBridgeClient eventBridgeClient) {

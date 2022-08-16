@@ -9,7 +9,7 @@ $$
     end
 $$;
 
-create table if not exists "user"
+create table if not exists "HUser"
 (
     id                   varchar
         constraint user_pk primary key        default uuid_generate_v4(),
@@ -18,4 +18,4 @@ create table if not exists "user"
     monthly_subscription integer     not null,
     status               user_status not null default 'ENABLED'
 );
-create index if not exists swan_user_id_index on "user" (swan_user_id);
+create index if not exists swan_user_id_index on "HUser" (swan_user_id);

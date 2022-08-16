@@ -1,32 +1,33 @@
 package app.bpartners.api.service;
 
-import app.bpartners.api.model.BoundedPageSize;
-import app.bpartners.api.model.PageFromOne;
+import app.bpartners.api.endpoint.rest.model.OnboardingParams;
+import app.bpartners.api.endpoint.rest.model.RedirectionComponent;
 import app.bpartners.api.model.User;
+import app.bpartners.api.model.entity.validator.OnboardingValidator;
 import app.bpartners.api.repository.UserRepository;
-import java.util.List;
 import lombok.AllArgsConstructor;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 @Service
 @AllArgsConstructor
 public class UserService {
   private UserRepository userRepository;
-
-  public List<User> getUsers(PageFromOne page, BoundedPageSize pageSize) {
-    Pageable pageable = PageRequest.of(
-        page.getValue() - 1,
-        pageSize.getValue());
-    return userRepository.findAll(pageable).toList();
-  }
+  private OnboardingValidator onboardingValidator;
 
   public User getUserById(String userId) {
-    return userRepository.getById(userId);
+    return userRepository.getUserById(userId);
   }
 
   public User getUserBySwanId(String swanUserId) {
     return userRepository.getUserBySwanUserId(swanUserId);
+  }
+
+  public RedirectionComponent generateOnboardingUrl(OnboardingParams params) {
+    onboardingValidator.accept(params);
+    RedirectionComponent redirectionComponent = new RedirectionComponent();
+    redirectionComponent.setRedirectionUrl("TODO");
+    redirectionComponent.setOnSuccessUrl(params.getOnSuccessUrl());
+    redirectionComponent.setOnFailUrl(params.getOnFailUrl());
+    return redirectionComponent;
   }
 }

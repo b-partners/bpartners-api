@@ -1,32 +1,25 @@
 package app.bpartners.api.endpoint.rest.mapper;
 
-
-import app.bpartners.api.endpoint.rest.model.EnableStatus;
-import app.bpartners.api.endpoint.rest.model.SwanUser;
 import app.bpartners.api.endpoint.rest.model.User;
-import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
-import lombok.AllArgsConstructor;
+import app.bpartners.api.model.SwanUser;
 import org.springframework.stereotype.Component;
 
 @Component
-@AllArgsConstructor
 public class UserMapper {
-  private final SwanComponent swanComponent;
-
-  public User toRestUser(app.bpartners.api.model.User user) {
-    SwanUser swanUser = swanComponent.getUserById(user.getSwanUserId());
-    User restUser = new User();
-    restUser.setId(user.getId());
-    restUser.setId(user.getSwanUserId());
-    restUser.setFirstName(swanUser.getFirstName());
-    restUser.setLastName(swanUser.getLastName());
-    restUser.setBirthDate(swanUser.getBirthDate());
-    restUser.setIdVerified(swanUser.getIdVerified());
-    restUser.setIdentificationStatus(swanUser.getIdentificationStatus());
-    restUser.setMonthlySubscription(user.getMonthlySubscription());
-    restUser.setNationalityCCA3(swanUser.getNationalityCCA3());
-    restUser.setMobilePhoneNumber(user.getPhoneNumber());
-    restUser.setStatus(EnableStatus.fromValue(user.getStatus().toString()));
-    return restUser;
+  public User toRest(app.bpartners.api.model.User domain) {
+    SwanUser domainSwanUser = domain.getSwanUser();
+    User user = new User();
+    user.setId(domain.getId());
+    user.setSwanId(domainSwanUser.getId());
+    user.setFirstName(domainSwanUser.getFirstName());
+    user.setLastName(domainSwanUser.getLastName());
+    user.setBirthDate(domainSwanUser.getBirthDate());
+    user.setMobilePhoneNumber(domainSwanUser.getMobilePhoneNumber());
+    user.setIdVerified(domainSwanUser.getIdVerified());
+    user.setNationalityCCA3(domainSwanUser.getNationalityCCA3());
+    user.setIdentificationStatus(domainSwanUser.getIdentificationStatus());
+    user.setMonthlySubscription(domain.getMonthlySubscription());
+    user.setStatus(domain.getStatus());
+    return user;
   }
 }

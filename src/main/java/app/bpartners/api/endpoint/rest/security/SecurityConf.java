@@ -59,7 +59,7 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
             bearerFilter(new NegatedRequestMatcher(
                 new OrRequestMatcher(
                     new AntPathRequestMatcher("/ping"),
-                    new AntPathRequestMatcher("/pre-registration", POST.name()),
+                    new AntPathRequestMatcher("/preUsers", POST.name()),
                     new AntPathRequestMatcher("/auth"),
                     new AntPathRequestMatcher("/token"),
                     new AntPathRequestMatcher("/onboarding"),
@@ -76,10 +76,10 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
         .antMatchers("/auth").permitAll()
         .antMatchers("/token").permitAll()
         .antMatchers("/onboarding").permitAll()
-        .antMatchers(POST, "/pre-registration").permitAll()
+        .antMatchers(POST, "/preUsers").permitAll()
         .antMatchers(OPTIONS, "/**").permitAll()
         .antMatchers(GET, "/whoami").authenticated()
-        .antMatchers(GET, "/pre-registration").authenticated()
+        .antMatchers(GET, "/preUsers").authenticated()
         .antMatchers(GET, "/whoami").authenticated()
         .antMatchers(GET, "/users").authenticated()
         .antMatchers(GET, "/users/*").authenticated()

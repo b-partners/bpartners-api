@@ -14,6 +14,7 @@ paths:
       summary: pong
       operationId: ping
       security: [ ] # No security
+      description: Check the server health
       responses:
         '200':
           description: pong
@@ -28,18 +29,22 @@ paths:
     post:
       tags:
         - Security
-      summary: Identify a registered user with Swan's strong authentication
+      summary: Identify a registered user
       operationId: authentication
       security: [ ] #No security
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PhoneNumber'
+              $ref: '#/components/schemas/AuthParams'
         required: true
       responses:
         '200':
-          description: URL for redirection
+          description: Informations about auth link
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedirectionComponent'
         '400':
           $ref: '#/components/schemas/BadRequestException'
         500:
@@ -48,14 +53,14 @@ paths:
     post:
       tags:
         - Security
-      summary: Generate a new Swan access token
+      summary: Generate a new token
       operationId: generateToken
       security: [ ] #No security
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Code'
+              $ref: '#/components/schemas/TokenParams'
         required: true
       responses:
         '200':
@@ -69,23 +74,24 @@ paths:
         500:
           $ref: '#/components/schemas/InternalServerException'
   /onboarding:
-    get:
+    post:
       tags:
         - Users
-      summary: Redirect new users to Swan onboarding
-      operationId: redirectOnboarding
-      parameters:
-        - name: type
-          in: query
-          schema:
-            type: string
-            enum:
-              - INDIVIDUAL
-              - COMPANY
-          required: true
+      summary: Onboard new users
+      operationId: onboardUsers
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OnboardingParams'
+        required: true
       responses:
-        '302':
-          description: Redirection to Swan onboarding
+        '200':
+          description: Informations about onboarding link
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedirectionComponent'
         '500':
           $ref: '#/components/responses/500'
   /whoami:
@@ -101,42 +107,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Whoami'
-        '400':
-          $ref: '#/components/responses/400'
-        '403':
-          $ref: '#/components/responses/403'
-        '404':
-          $ref: '#/components/responses/404'
-        '429':
-          $ref: '#/components/responses/429'
-        '500':
-          $ref: '#/components/responses/500'
-  /users:
-    get:
-      tags:
-        - Users
-      summary: Get all users
-      operationId: getUsers
-      parameters:
-        - name: page
-          in: query
-          schema:
-            $ref: '#/components/schemas/Page'
-          required: true
-        - name: page_size
-          in: query
-          schema:
-            $ref: '#/components/schemas/PageSize'
-          required: true
-      responses:
-        '200':
-          description: List of users.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/User'
         '400':
           $ref: '#/components/responses/400'
         '403':
@@ -176,12 +146,12 @@ paths:
           $ref: '#/components/responses/429'
         '500':
           $ref: '#/components/responses/500'
-  /pre-registration:
+  /preUsers:
     get:
       tags:
-        - Pre-registration
-      summary: Get all pre-registration.
-      operationId: getPreRegistrations
+        - PreUsers
+      summary: Get all pre-registered users.
+      operationId: getPreUsers
       parameters:
         - name: page
           in: query
@@ -201,7 +171,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/PreRegistration'
+                  $ref: '#/components/schemas/PreUser'
         '400':
           $ref: '#/components/responses/400'
         '403':
@@ -214,59 +184,27 @@ paths:
           $ref: '#/components/responses/500'
     post:
       tags:
-        - Pre-registration
+        - PreUsers
       security: [ ] #no security
       summary: Pre-register a user.
-      operationId: createPreRegistration
+      operationId: createPreUsers
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreatePreRegistration'
+              type: array
+              items:
+                $ref: '#/components/schemas/CreatePreUser'
       responses:
         200:
           description: Pre-registered user created!
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PreRegistration'
-        '400':
-          $ref: '#/components/responses/400'
-        '403':
-          $ref: '#/components/responses/403'
-        '404':
-          $ref: '#/components/responses/404'
-        '429':
-          $ref: '#/components/responses/429'
-        '500':
-          $ref: '#/components/responses/500'
-  /accounts:
-    get:
-      tags:
-        - Users
-      summary: Get all accounts
-      operationId: getAccounts
-      parameters:
-        - name: page
-          in: query
-          schema:
-            $ref: '#/components/schemas/Page'
-          required: true
-        - name: page_size
-          in: query
-          schema:
-            $ref: '#/components/schemas/PageSize'
-          required: true
-      responses:
-        '200':
-          description: List of accounts.
-          content:
-            application/json:
-              schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Account'
+                  $ref: '#/components/schemas/PreUser'
         '400':
           $ref: '#/components/responses/400'
         '403':
@@ -358,26 +296,30 @@ components:
     Account:
       allOf:
         - $ref: '#/components/schemas/SwanAccount'
+    SwanAccountHolder:
+      type: object
       properties:
-        id:
+        accountHolderName:
           type: string
-          example: 'uuid'
-        user_id:
+        address:
           type: string
-          example: 'uuid'
+        city:
+          type: string
+        postalCode:
+          type: string
     SwanUser:
       type: object
       properties:
-        id:
+        swan_id:
           type: string
           example: 'uuid'
-        first_name:
+        firstName:
           type: string
           example: 'John'
-        last_name:
+        lastName:
           type: string
           example: 'Doe'
-        birth_date:
+        birthDate:
           type: string
           format: date
         idVerified:
@@ -392,10 +334,18 @@ components:
           type: string
           example: "+33 1 23 45 67 89"
     SwanAccount:
+      allOf:
+        - $ref: '#/components/schemas/SwanAccountHolder'
       properties:
-        swan_id:
+        accountId:
+          type: string
+        accountName:
+          type: string
+        number:
           type: integer
-        name:
+        IBAN:
+          type: string
+        BIC:
           type: string
     EnableStatus:
       type: string
@@ -404,27 +354,27 @@ components:
         - DISABLED
     Whoami:
       properties:
-        bearer_token:
+        bearerToken:
           type: string
         user:
           $ref: '#/components/schemas/User'
-    CreatePreRegistration:
+    CreatePreUser:
       type: object
       properties:
-        first_name:
+        firstName:
           type: string
-        last_name:
+        lastName:
           type: string
         society:
           type: string
         email:
           type: string
           example: username@domain.com
-        phone_number:
+        phoneNumber:
           type: string
-    PreRegistration:
+    PreUser:
       allOf:
-        - $ref: '#/components/schemas/CreatePreRegistration'
+        - $ref: '#/components/schemas/CreatePreUser'
       type: object
       properties:
         id:
@@ -432,15 +382,31 @@ components:
         entranceDatetime:
           type: string
           format: date-time
-    PhoneNumber:
+    AuthParams:
       type: object
       properties:
         phoneNumber:
           type: string
-    Code:
+        onSuccessUrl:
+          type: string
+        onFailUrl:
+          type: string
+    OnboardingParams:
+      allOf:
+        - $ref: '#/components/schemas/AuthParams'
+    TokenParams:
       type: object
       properties:
         code:
+          type: string
+    RedirectionComponent:
+      type: object
+      properties:
+        redirectionUrl:
+          type: string
+        onSuccessUrl:
+          type: string
+        onFailUrl:
           type: string
     Token:
       type: object
@@ -449,13 +415,13 @@ components:
           type: string
         accessToken:
           type: string
-        refresh_token:
+        refreshToken:
           type: string
-        expires_in:
+        expiresIn:
           type: string
         scope:
           type: string
-        token_type:
+        tokenType:
           type: string
     Page:
       type: integer

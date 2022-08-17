@@ -1,5 +1,3 @@
-package app.bpartners.api.integration;
-
 import app.bpartners.api.SentryConf;
 import app.bpartners.api.endpoint.rest.api.PreUsersApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
@@ -126,8 +124,7 @@ public class PreUserIT {
     ApiClient apiClient = anApiClient(TestUtils.USER1_TOKEN);
     PreUsersApi api = new PreUsersApi(apiClient);
 
-    List<PreUser> actual = api.getPreUsers(1,10);
-
+    List<PreUser> actual = api.getPreUsers(1,10,"","","","");
     assertTrue(actual.contains(preUser1()));
   }
 
@@ -138,7 +135,7 @@ public class PreUserIT {
 
     List<PreUser> actual = api.createPreUsers(List.of(validPreUser()));
 
-    List<PreUser> actualList = api.getPreUsers(1, 10);
+    List<PreUser> actualList = api.getPreUsers(1, 10,"john","doe","johnSociety",TestUtils.VALID_EMAIL);
     assertTrue(actualList.containsAll(actual));
   }
 

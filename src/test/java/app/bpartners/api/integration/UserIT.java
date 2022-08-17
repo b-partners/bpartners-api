@@ -1,5 +1,9 @@
 package app.bpartners.api.integration;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import app.bpartners.api.SentryConf;
 import app.bpartners.api.endpoint.rest.api.UsersApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
@@ -25,15 +29,21 @@ import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
-
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @Testcontainers
 @ContextConfiguration(initializers = UserIT.ContextInitializer.class)
 @AutoConfigureMockMvc
 class UserIT {
+  private static final String BAD_TYPE = "BAD_TYPE";
+  @MockBean
+  private SentryConf sentryConf;
+  @MockBean
+  private SwanComponent swanComponentMock;
+
+  private static ApiClient anApiClient(String token) {
+    return TestUtils.anApiClient(token, ContextInitializer.SERVER_PORT);
+  }
+
   User user1() {
     User user = new User();
     user.setId(TestUtils.USER1_ID);
@@ -66,16 +76,6 @@ class UserIT {
     return user;
   }
 
-  @MockBean
-  private SentryConf sentryConf;
-  @MockBean
-  private SwanComponent swanComponentMock;
-  private static final String BAD_TYPE = "BAD_TYPE";
-
-  private static ApiClient anApiClient(String token) {
-    return TestUtils.anApiClient(token, ContextInitializer.SERVER_PORT);
-  }
-
   @BeforeEach
   public void setUp() {
     TestUtils.setUpSwan(swanComponentMock);
@@ -104,9 +104,48 @@ class UserIT {
     UsersApi api = new UsersApi(user1Client);
 
     User actualUser = api.getUserById(TestUtils.USER1_ID);
-    List<User> actualUsers = api.getUsers(1, 10);
+    List<User> actualUsers = api.getUsers(1, 10, null, null, null);
 
     assertEquals(user1(), actualUser);
+    assertEquals(1, actualUsers.size());
+    assertTrue(actualUsers.contains(user1()));
+  }
+
+  @Test
+  void user_read_by_bad_names_ko() throws ApiException {
+    ApiClient user1Client = anApiClient(TestUtils.USER1_TOKEN);
+    UsersApi api = new UsersApi(user1Client);
+
+    List<User> actualUsers =
+        api.getUsers(1, 10, user1().getFirstName() + "123", user1().getLastName(),
+            user1().getMobilePhoneNumber());
+
+
+    assertEquals(0, actualUsers.size());
+    assertFalse(actualUsers.contains(user1()));
+  }
+
+  @Test
+  void user_read_by_criteria_ok() throws ApiException {
+    ApiClient user1Client = anApiClient(TestUtils.USER1_TOKEN);
+    UsersApi api = new UsersApi(user1Client);
+
+    List<User> actualUsers = api.getUsers(1, 10, user1().getFirstName(), user1().getLastName(),
+        user1().getMobilePhoneNumber());
+
+    assertEquals(1, actualUsers.size());
+    assertTrue(actualUsers.contains(user1()));
+  }
+
+  @Test
+  void user_read_ignore_case_ok() throws ApiException {
+    ApiClient user1Client = anApiClient(TestUtils.USER1_TOKEN);
+    UsersApi api = new UsersApi(user1Client);
+
+    List<User> actualUsers = api.getUsers(1, 10, user1().getFirstName().toUpperCase(),
+        user1().getLastName().toUpperCase(),
+        user1().getMobilePhoneNumber());
+
     assertEquals(1, actualUsers.size());
     assertTrue(actualUsers.contains(user1()));
   }

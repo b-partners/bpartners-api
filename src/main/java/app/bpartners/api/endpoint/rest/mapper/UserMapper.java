@@ -5,6 +5,7 @@ import app.bpartners.api.endpoint.rest.model.EnableStatus;
 import app.bpartners.api.endpoint.rest.model.SwanUser;
 import app.bpartners.api.endpoint.rest.model.User;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
+import app.bpartners.api.service.UserService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Component;
 @AllArgsConstructor
 public class UserMapper {
   private final SwanComponent swanComponent;
+  private final UserService userService;
 
   public User toRestUser(app.bpartners.api.model.User user) {
     SwanUser swanUser = swanComponent.whoami();
@@ -28,5 +30,10 @@ public class UserMapper {
     restUser.setMobilePhoneNumber(user.getPhoneNumber());
     restUser.setStatus(EnableStatus.fromValue(user.getStatus().toString()));
     return restUser;
+  }
+
+  public User toRestUser(SwanUser swanUser) {
+    app.bpartners.api.model.User user = userService.getUserBySwanId(swanUser.getId());
+    return toRestUser(user);
   }
 }

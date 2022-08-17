@@ -4,6 +4,7 @@ import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.repository.swan.UserSwanRepository;
 import app.bpartners.api.repository.swan.schema.SwanUser;
 import java.util.List;
+import org.springframework.data.domain.Pageable;
 
 public class UserSwanRepositoryImpl implements UserSwanRepository {
 
@@ -13,7 +14,9 @@ public class UserSwanRepositoryImpl implements UserSwanRepository {
   }
 
   @Override
-  public List<SwanUser> getSwanUsers() {
+  public List<SwanUser> getSwanUsers(Pageable pageable, String firstName, String lastName,
+                                     String mobilePhoneNumber) {
     throw new NotImplementedException("Not yet implemented");
   }
+
 }

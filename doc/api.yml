@@ -199,6 +199,25 @@ paths:
           schema:
             $ref: '#/components/schemas/PageSize'
           required: true
+        - name: firstname
+          in: query
+          schema:
+            type: string
+        - name: lastname
+          in: query
+          schema:
+            type: string
+        - name: society
+          in: query
+          schema:
+            type: string
+        - name : email
+          in: query
+          schema:
+            type: string
+            format: email
+            example: 'userdomain@domain.com'
+
       responses:
         '200':
           description: List of pre-registered users.

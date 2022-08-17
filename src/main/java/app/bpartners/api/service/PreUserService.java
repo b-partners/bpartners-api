@@ -28,4 +28,10 @@ public class PreUserService {
         pageSize.getValue());
     return repository.findAll(pageable).toList();
   }
+  public List<PreUser> getByCriteria(PageFromOne page, BoundedPageSize pageSize,String firstName, String lastName, String society, String email){
+    Pageable pageable = PageRequest.of(
+      page.getValue() - 1,
+      pageSize.getValue());
+    return repository.getByCriteria(firstName,lastName,society, email, pageable);
+  }
 }

@@ -126,7 +126,7 @@ public class PreUserIT {
     ApiClient apiClient = anApiClient(TestUtils.USER1_TOKEN);
     PreUsersApi api = new PreUsersApi(apiClient);
 
-    List<PreUser> actual = api.getPreUsers(1, 10);
+    List<PreUser> actual = api.getPreUsers(1,10);
 
     assertTrue(actual.contains(preUser1()));
   }

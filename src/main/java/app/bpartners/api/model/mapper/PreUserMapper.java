@@ -4,7 +4,9 @@ package app.bpartners.api.model.mapper;
 import app.bpartners.api.model.PreUser;
 import app.bpartners.api.model.entity.HPreUser;
 import java.util.List;
+import org.springframework.stereotype.Component;
 
+@Component
 public class PreUserMapper {
   public PreUser toDomain(HPreUser hPreUser) {
     PreUser preUser = PreUser.builder()

@@ -7,9 +7,9 @@ import app.bpartners.api.endpoint.rest.client.ApiException;
 import app.bpartners.api.endpoint.rest.model.CreatePreUser;
 import app.bpartners.api.endpoint.rest.model.PreUser;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
-import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
 import app.bpartners.api.integration.conf.AbstractContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
+import app.bpartners.api.repository.swan.UserSwanRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.net.URI;
@@ -28,6 +28,8 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import static app.bpartners.api.integration.conf.TestUtils.PRE_REGISTRATION1_ID;
+import static app.bpartners.api.integration.conf.TestUtils.setUpSwanComponent;
+import static app.bpartners.api.integration.conf.TestUtils.setUpSwanRepository;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
@@ -39,19 +41,21 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 public class PreUserIT {
   @MockBean
   private SentryConf sentryConf;
+
   @MockBean
   private SwanComponent swanComponentMock;
 
   @MockBean
-  private SwanConf swanConf;
-
-  @BeforeEach
-  public void setUp() {
-    TestUtils.setUpSwan(swanComponentMock);
-  }
+  UserSwanRepository swanRepositoryMock;
 
   private static ApiClient anApiClient(String token) {
     return TestUtils.anApiClient(token, ContextInitializer.SERVER_PORT);
+  }
+
+  @BeforeEach
+  public void setUp() {
+    setUpSwanComponent(swanComponentMock);
+    setUpSwanRepository(swanRepositoryMock);
   }
 
   CreatePreUser validPreUser() {
@@ -126,7 +130,7 @@ public class PreUserIT {
     ApiClient apiClient = anApiClient(TestUtils.USER1_TOKEN);
     PreUsersApi api = new PreUsersApi(apiClient);
 
-    List<PreUser> actual = api.getPreUsers(1, 10);
+    List<PreUser> actual = api.getPreUsers(1, 10, null, null, null, null);
 
     assertTrue(actual.contains(preUser1()));
   }
@@ -138,12 +142,13 @@ public class PreUserIT {
 
     List<PreUser> actual = api.createPreUsers(List.of(validPreUser()));
 
-    List<PreUser> actualList = api.getPreUsers(1, 10);
+    List<PreUser> actualList =
+        api.getPreUsers(1, 10, "john", "doe", "johnSociety", TestUtils.VALID_EMAIL);
     assertTrue(actualList.containsAll(actual));
   }
 
   @Test
-  void create_pre_users_ko() {
+  void create_pre_users_bad_email_ko() {
     ApiClient apiClient = anApiClient(TestUtils.USER1_TOKEN);
     PreUsersApi api = new PreUsersApi(apiClient);
 

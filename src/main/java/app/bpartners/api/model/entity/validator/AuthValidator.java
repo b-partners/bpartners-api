@@ -12,11 +12,11 @@ public class AuthValidator implements Consumer<AuthParams> {
     if (params.getPhoneNumber() == null) {
       throw new BadRequestException("Phone number is mandatory");
     }
-    if (params.getOnSuccessUrl() == null) {
-      throw new BadRequestException("On success URL is mandatory");
+    if (params.getSuccessUrl() == null) {
+      throw new BadRequestException("Success URL is mandatory");
     }
-    if (params.getOnFailUrl() == null) {
-      throw new BadRequestException("On fail URL is mandatory");
+    if (params.getFailureUrl() == null) {
+      throw new BadRequestException("Failure URL is mandatory");
     }
   }
 }

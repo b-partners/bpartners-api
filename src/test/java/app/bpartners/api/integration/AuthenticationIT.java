@@ -1,7 +1,7 @@
 package app.bpartners.api.integration;
 
 import app.bpartners.api.SentryConf;
-import app.bpartners.api.endpoint.rest.model.RedirectionParams;
+import app.bpartners.api.endpoint.rest.model.AuthParams;
 import app.bpartners.api.endpoint.rest.model.Token;
 import app.bpartners.api.endpoint.rest.model.TokenParams;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
@@ -35,8 +35,8 @@ class AuthenticationIT {
   @Value("${test.swan.user.code}")
   private String userCode;
 
-  RedirectionParams phoneNumberRedirection() {
-    return new RedirectionParams().phoneNumber(PHONE_NUMBER);
+  AuthParams phoneNumberRedirection() {
+    return new AuthParams().phoneNumber(PHONE_NUMBER);
   }
 
   TokenParams validCode() {

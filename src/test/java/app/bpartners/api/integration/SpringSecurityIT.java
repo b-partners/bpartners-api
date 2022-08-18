@@ -23,6 +23,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ID;
+import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_SWAN_USER_ID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
@@ -37,8 +38,7 @@ class SpringSecurityIT {
 
   @MockBean
   private SentryConf sentryConf;
-  @MockBean
-  private SwanConf swanConf;
+
   @Autowired
   private SwanComponent swanComponent;
   @Value("${test.user.access.token}")
@@ -47,7 +47,7 @@ class SpringSecurityIT {
  @Test
  void authenticated_has_known_id() {
    String swanUserId = swanComponent.getSwanUserIdByToken(bearer);
-   assertEquals(JOE_DOE_ID, swanUserId);
+   assertEquals(JOE_DOE_SWAN_USER_ID, swanUserId);
  }
 
   @Test

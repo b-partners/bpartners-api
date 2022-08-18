@@ -24,9 +24,13 @@ public class PreUserController {
   @GetMapping("/preUsers")
   public List<app.bpartners.api.endpoint.rest.model.PreUser> getPreUsers(
       @RequestParam PageFromOne page,
-      @RequestParam("page_size") BoundedPageSize pageSize
+      @RequestParam("page_size") BoundedPageSize pageSize,
+      @RequestParam(required = false) String firstName,
+      @RequestParam(required = false) String lastName,
+      @RequestParam(required = false) String society,
+      @RequestParam(required = false) String email
   ) {
-    return service.getPreUsers(page, pageSize).stream()
+    return service.getPreUsers(page, pageSize,firstName,lastName,society,email).stream()
         .map(mapper::toRest)
         .toList();
   }

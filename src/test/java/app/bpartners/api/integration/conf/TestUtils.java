@@ -19,9 +19,12 @@ import static org.mockito.Mockito.when;
 
 public class TestUtils {
   public static final String JOE_DOE_ID = "joe_doe_id";
+  public static final String JOE_DOE_SWAN_USER_ID = "f2af7bb5-26d8-4f9d-927c-26c51645d141";
+
 
   public static final String JOE_DOE_TOKEN = "joe_doe_token";
   public static final String USER1_TOKEN = "user1_token";
+
 
   public static final String USER2_TOKEN = "user2_token";
   public static final String BAD_TOKEN = "bad_token";
@@ -36,7 +39,7 @@ public class TestUtils {
 
   public static SwanUser joeDoe() {
     SwanUser swanUser = new SwanUser();
-    swanUser.setId("01bc8036-9d45-426b-a89e-e2ee0e48db01");
+    //swanUser.setId("01bc8036-9d45-426b-a89e-e2ee0e48db01");
     swanUser.setFirstName("Joe");
     swanUser.setLastName("Doe");
     swanUser.setBirthDate(LocalDate.of(2022, 8, 3));
@@ -49,7 +52,7 @@ public class TestUtils {
 
   public static SwanUser swanUser1() {
     SwanUser swanUser = new SwanUser();
-    swanUser.setId(SWAN_USER1_ID);
+    swanUser.setSwanId(SWAN_USER1_ID);
     swanUser.setFirstName("Mathieu");
     swanUser.setLastName("Dupont");
     swanUser.setBirthDate(LocalDate.of(2022, 8, 8));

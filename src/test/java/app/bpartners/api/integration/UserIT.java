@@ -35,7 +35,7 @@ class UserIT {
   User joeDoeUser() {
     SwanUser joeDoe = joeDoe();
     User user = new User();
-    user.setId(TestUtils.JOE_DOE_ID);
+    user.setSwanId(TestUtils.JOE_DOE_ID);
     user.setFirstName(joeDoe.getFirstName());
     user.setLastName(joeDoe.getLastName());
     user.setBirthDate(joeDoe.getBirthDate());

@@ -36,7 +36,7 @@ public class TestUtils {
 
   public static SwanUser joeDoe() {
     SwanUser swanUser = new SwanUser();
-    swanUser.setId("01bc8036-9d45-426b-a89e-e2ee0e48db01");
+    //swanUser.setId("01bc8036-9d45-426b-a89e-e2ee0e48db01");
     swanUser.setFirstName("Joe");
     swanUser.setLastName("Doe");
     swanUser.setBirthDate(LocalDate.of(2022, 8, 3));
@@ -49,7 +49,7 @@ public class TestUtils {
 
   public static SwanUser swanUser1() {
     SwanUser swanUser = new SwanUser();
-    swanUser.setId(SWAN_USER1_ID);
+    swanUser.setSwanId(SWAN_USER1_ID);
     swanUser.setFirstName("Mathieu");
     swanUser.setLastName("Dupont");
     swanUser.setBirthDate(LocalDate.of(2022, 8, 8));

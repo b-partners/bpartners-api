@@ -1,19 +1,57 @@
 package app.bpartners.api.repository.swan.impl;
 
-import app.bpartners.api.model.exception.NotImplementedException;
+import app.bpartners.api.endpoint.rest.security.principal.PrincipalProvider;
+import app.bpartners.api.endpoint.rest.security.model.Principal;
+import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
+import app.bpartners.api.repository.mapper.SwanMapper;
 import app.bpartners.api.repository.swan.UserSwanRepository;
+import app.bpartners.api.repository.swan.response.UserResponse;
 import app.bpartners.api.repository.swan.schema.SwanUser;
-import java.util.List;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import lombok.AllArgsConstructor;
+import org.springframework.stereotype.Repository;
 
+import static app.bpartners.api.endpoint.rest.security.swan.SwanConf.BEARER_PREFIX;
+
+@Repository
+@AllArgsConstructor
 public class UserSwanRepositoryImpl implements UserSwanRepository {
+  private final SwanMapper mapper;
+  private final PrincipalProvider auth;
+  private SwanConf swanConf;
 
   @Override
-  public SwanUser getSwanUserById(String id) {
-    throw new NotImplementedException("Not yet implemented");
+  public SwanUser whoami() {
+    try {
+      HttpClient httpClient = HttpClient.newBuilder().build();
+      String message = "{\"query\":\"query ProfilePage "
+          + "{user { id firstName lastName mobilePhoneNumber identificationStatus idVerified "
+          + "birthDate "
+          + "nationalityCCA3}}\"}";
+      HttpRequest request = HttpRequest.newBuilder()
+          .uri(new URI(swanConf.getApiUrl()))
+          .header("Content-Type", "application/json")
+          .header("Authorization", BEARER_PREFIX + bearerToken())
+          .POST(HttpRequest.BodyPublishers.ofString(message))
+          .build();
+      HttpResponse<String> response =
+          httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+      UserResponse userResponse = new ObjectMapper()
+          .findAndRegisterModules() //Load DateTime Module
+          .readValue(response.body(), UserResponse.class);
+      return userResponse.data.user;
+    } catch (IOException | InterruptedException | URISyntaxException e) {
+      return null;
+    }
   }
 
-  @Override
-  public List<SwanUser> getSwanUsers() {
-    throw new NotImplementedException("Not yet implemented");
+  private String bearerToken() {
+    return ((Principal) auth.getAuthentication().getPrincipal()).getBearer();
   }
 }

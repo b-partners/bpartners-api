@@ -1,15 +1,15 @@
-package app.bpartners.api.model;
+package app.bpartners.api.model.entity;
 
+import app.bpartners.api.endpoint.rest.model.EnableStatus;
+import app.bpartners.api.repository.jpa.types.PostgresEnumType;
 import java.io.Serializable;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.Objects;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Table;
-import javax.validation.constraints.NotBlank;
-import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -17,42 +17,34 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.Hibernate;
-import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.Type;
+import org.hibernate.annotations.TypeDef;
 
 import static javax.persistence.GenerationType.IDENTITY;
 
-
 @Entity
-@Table(name = "\"pre_user\"")
+@Table(name = "\"user\"")
+@TypeDef(name = "pgsql_enum", typeClass = PostgresEnumType.class)
 @Getter
 @Setter
 @ToString
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class PreUser implements Serializable {
+public class HUser implements Serializable {
   @Id
   @GeneratedValue(strategy = IDENTITY)
   private String id;
 
-  private String firstName;
-
-  private String lastName;
-
-  private String society;
-
-  @NotBlank(message = "Email is mandatory")
-  private String email;
+  private String swanUserId;
 
   private String phoneNumber;
 
-  @CreationTimestamp
-  @Getter(AccessLevel.NONE)
-  private Instant entranceDatetime;
+  private int monthlySubscription;
 
-  public Instant getEntranceDatetime() {
-    return entranceDatetime.truncatedTo(ChronoUnit.MILLIS);
-  }
+  @Type(type = "pgsql_enum")
+  @Enumerated(EnumType.STRING)
+  private EnableStatus status;
 
   @Override
   public boolean equals(Object o) {
@@ -62,13 +54,12 @@ public class PreUser implements Serializable {
     if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) {
       return false;
     }
-    PreUser preUser = (PreUser) o;
-    return id != null && Objects.equals(id, preUser.id);
+    HUser HUser = (HUser) o;
+    return id != null && Objects.equals(id, HUser.id);
   }
 
   @Override
   public int hashCode() {
     return getClass().hashCode();
   }
-
 }

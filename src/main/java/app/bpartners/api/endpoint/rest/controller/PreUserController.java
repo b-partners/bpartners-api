@@ -2,9 +2,9 @@ package app.bpartners.api.endpoint.rest.controller;
 
 import app.bpartners.api.endpoint.rest.mapper.PreUserMapper;
 import app.bpartners.api.endpoint.rest.model.CreatePreUser;
-import app.bpartners.api.model.BoundedPageSize;
-import app.bpartners.api.model.PageFromOne;
-import app.bpartners.api.model.PreUser;
+import app.bpartners.api.model.entity.BoundedPageSize;
+import app.bpartners.api.model.entity.PageFromOne;
+import app.bpartners.api.model.entity.HPreUser;
 import app.bpartners.api.service.PreUserService;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -34,7 +34,7 @@ public class PreUserController {
   @PostMapping("/preUsers")
   public List<app.bpartners.api.endpoint.rest.model.PreUser> createPreUser(
       @RequestBody List<CreatePreUser> createPreUsers) {
-    List<PreUser> toCreate =
+    List<HPreUser> toCreate =
         mapper.toDomain(createPreUsers);
     return mapper.toRest(service.createPreUsers(toCreate));
   }

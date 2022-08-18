@@ -1,12 +1,12 @@
 package app.bpartners.api.integration;
 
 import app.bpartners.api.SentryConf;
-import app.bpartners.api.endpoint.rest.api.UsersApi;
+import app.bpartners.api.endpoint.rest.api.SecurityApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
 import app.bpartners.api.endpoint.rest.model.EnableStatus;
+import app.bpartners.api.endpoint.rest.model.SwanUser;
 import app.bpartners.api.endpoint.rest.model.User;
-import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
 import app.bpartners.api.integration.conf.AbstractContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
 import java.io.IOException;
@@ -14,10 +14,8 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.time.LocalDate;
-import java.util.List;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -25,8 +23,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import static app.bpartners.api.integration.conf.TestUtils.joeDoe;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
@@ -34,33 +32,17 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @ContextConfiguration(initializers = UserIT.ContextInitializer.class)
 @AutoConfigureMockMvc
 class UserIT {
-  User user1() {
+  User joeDoeUser() {
+    SwanUser joeDoe = joeDoe();
     User user = new User();
-    user.setId(TestUtils.USER1_ID);
-    user.setId(TestUtils.SWAN_USER1_ID);
-    user.setFirstName("Mathieu");
-    user.setLastName("Dupont");
-    user.setBirthDate(LocalDate.of(2022, 8, 8));
-    user.setIdVerified(true);
-    user.setIdentificationStatus("ValidIdentity");
-    user.setNationalityCCA3("FRA");
-    user.setMobilePhoneNumber("+33123456789");
-    user.setMonthlySubscription(5);
-    user.setStatus(EnableStatus.ENABLED);
-    return user;
-  }
-
-  User user2() {
-    User user = new User();
-    user.setId(TestUtils.USER2_ID);
-    user.setId(TestUtils.SWAN_USER2_ID);
-    user.setFirstName("Jean");
-    user.setLastName("Dupont");
-    user.setBirthDate(LocalDate.of(2022, 8, 8));
-    user.setIdVerified(true);
-    user.setIdentificationStatus("ValidIdentity");
-    user.setNationalityCCA3("FRA");
-    user.setMobilePhoneNumber("+33123456789");
+    user.setId(TestUtils.JOE_DOE_ID);
+    user.setFirstName(joeDoe.getFirstName());
+    user.setLastName(joeDoe.getLastName());
+    user.setBirthDate(joeDoe.getBirthDate());
+    user.setIdVerified(joeDoe.getIdVerified());
+    user.setIdentificationStatus(joeDoe.getIdentificationStatus());
+    user.setNationalityCCA3(joeDoe.getNationalityCCA3());
+    user.setMobilePhoneNumber(joeDoe.getMobilePhoneNumber());
     user.setMonthlySubscription(5);
     user.setStatus(EnableStatus.ENABLED);
     return user;
@@ -68,17 +50,12 @@ class UserIT {
 
   @MockBean
   private SentryConf sentryConf;
-  @MockBean
-  private SwanComponent swanComponentMock;
-  private static final String BAD_TYPE = "BAD_TYPE";
+
+  @Value("${test.user.access.token}")
+  private String bearerToken;
 
   private static ApiClient anApiClient(String token) {
     return TestUtils.anApiClient(token, ContextInitializer.SERVER_PORT);
-  }
-
-  @BeforeEach
-  public void setUp() {
-    TestUtils.setUpSwan(swanComponentMock);
   }
 
   @Test
@@ -99,16 +76,13 @@ class UserIT {
   }
 
   @Test
-  void user_read_ok() throws ApiException {
-    ApiClient user1Client = anApiClient(TestUtils.USER1_TOKEN);
-    UsersApi api = new UsersApi(user1Client);
+  void user_read_whoami_ok() throws ApiException {
+    ApiClient joeDoeClient = anApiClient(bearerToken);
+    SecurityApi api = new SecurityApi(joeDoeClient);
 
-    User actualUser = api.getUserById(TestUtils.USER1_ID);
-    List<User> actualUsers = api.getUsers(1, 10);
+    User actualUser = api.whoami().getUser();
 
-    assertEquals(user1(), actualUser);
-    assertEquals(1, actualUsers.size());
-    assertTrue(actualUsers.contains(user1()));
+    assertEquals(joeDoeUser(), actualUser);
   }
 
   static class ContextInitializer extends AbstractContextInitializer {

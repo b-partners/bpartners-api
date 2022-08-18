@@ -1,6 +1,6 @@
-package app.bpartners.api.model.validator;
+package app.bpartners.api.model.entity.validator;
 
-import app.bpartners.api.model.User;
+import app.bpartners.api.model.entity.HUser;
 import app.bpartners.api.model.exception.BadRequestException;
 import java.util.List;
 import java.util.Set;
@@ -13,15 +13,15 @@ import org.springframework.stereotype.Component;
 
 @Component
 @AllArgsConstructor
-public class UserValidator implements Consumer<User> {
+public class UserValidator implements Consumer<HUser> {
   private final Validator validator;
 
-  public void accept(List<User> users) {
-    users.forEach(this);
+  public void accept(List<HUser> HUsers) {
+    HUsers.forEach(this);
   }
 
-  @Override public void accept(User user) {
-    Set<ConstraintViolation<User>> violations = validator.validate(user);
+  @Override public void accept(HUser HUser) {
+    Set<ConstraintViolation<HUser>> violations = validator.validate(HUser);
     if (!violations.isEmpty()) {
       String constraintMessages = violations
           .stream()

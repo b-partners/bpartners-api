@@ -7,7 +7,7 @@ Contributors are welcome to:
 In case you open a PR, please meet the following conditions, most of which are automatically checked by our CI:
 * Tests are passing
 * Coverage on new code is 80% or more.
-  Please note that this is not line coverage, but [Sonar coverage](https://docs.sonarqube.org/latest/user-guide/metric-definitions/).
+  Please note that this is not line coverage, but [Sonar coverage](https://docs.sonarqube.org/latest/HUser-guide/metric-definitions/).
   Sonar coverage is more strict as it takes into account condition coverage (how much branching conditions were tested).
 * No major bug|vulnerability|security hostpot detected by Sonar
 * Format with respect to [checkstyle](./config/checkstyle)

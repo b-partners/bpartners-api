@@ -36,7 +36,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/RedirectionParams'
+              $ref: '#/components/schemas/AuthParams'
         required: true
       responses:
         '200':
@@ -74,7 +74,7 @@ paths:
         500:
           $ref: '#/components/schemas/InternalServerException'
   /onboarding:
-    get:
+    post:
       tags:
         - Users
       summary: Onboard new users
@@ -83,7 +83,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/RedirectionParams'
+              $ref: '#/components/schemas/OnboardingParams'
         required: true
       responses:
         '200':
@@ -107,42 +107,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Whoami'
-        '400':
-          $ref: '#/components/responses/400'
-        '403':
-          $ref: '#/components/responses/403'
-        '404':
-          $ref: '#/components/responses/404'
-        '429':
-          $ref: '#/components/responses/429'
-        '500':
-          $ref: '#/components/responses/500'
-  /users:
-    get:
-      tags:
-        - Users
-      summary: Get all users
-      operationId: getUsers
-      parameters:
-        - name: page
-          in: query
-          schema:
-            $ref: '#/components/schemas/Page'
-          required: true
-        - name: page_size
-          in: query
-          schema:
-            $ref: '#/components/schemas/PageSize'
-          required: true
-      responses:
-        '200':
-          description: List of users.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/User'
         '400':
           $ref: '#/components/responses/400'
         '403':
@@ -251,46 +215,6 @@ paths:
           $ref: '#/components/responses/429'
         '500':
           $ref: '#/components/responses/500'
-  /accounts:
-    get:
-      tags:
-        - Users
-      summary: Get all accounts
-      operationId: getAccounts
-      parameters:
-        - name: page
-          in: query
-          schema:
-            $ref: '#/components/schemas/Page'
-          required: true
-        - name: page_size
-          in: query
-          schema:
-            $ref: '#/components/schemas/PageSize'
-          required: true
-        - name: name
-          in: query
-          schema:
-            type: string
-      responses:
-        '200':
-          description: List of accounts.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Account'
-        '400':
-          $ref: '#/components/responses/400'
-        '403':
-          $ref: '#/components/responses/403'
-        '404':
-          $ref: '#/components/responses/404'
-        '429':
-          $ref: '#/components/responses/429'
-        '500':
-          $ref: '#/components/responses/500'
   /accounts/{id}:
     get:
       tags:
@@ -382,7 +306,7 @@ components:
     SwanUser:
       type: object
       properties:
-        id:
+        swan_id:
           type: string
           example: 'uuid'
         firstName:
@@ -450,7 +374,7 @@ components:
         entranceDatetime:
           type: string
           format: date-time
-    RedirectionParams:
+    AuthParams:
       type: object
       properties:
         phoneNumber:
@@ -459,14 +383,13 @@ components:
           type: string
         onFailUrl:
           type: string
+    OnboardingParams:
+      allOf:
+        - $ref: '#/components/schemas/AuthParams'
     TokenParams:
       type: object
       properties:
         code:
-          type: string
-        onSuccessUrl:
-          type: string
-        onFailUrl:
           type: string
     RedirectionComponent:
       type: object

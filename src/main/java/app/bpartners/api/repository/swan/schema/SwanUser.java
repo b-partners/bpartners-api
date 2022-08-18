@@ -8,7 +8,6 @@ public class SwanUser {
   public String lastName;
   public String mobilePhoneNumber;
   public LocalDate birthDate;
-
   public String identificationStatus;
 
   public String nationalityCCA3;

@@ -32,10 +32,19 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @ContextConfiguration(initializers = UserIT.ContextInitializer.class)
 @AutoConfigureMockMvc
 class UserIT {
+  @MockBean
+  private SentryConf sentryConf;
+  @Value("${test.user.access.token}")
+  private String bearerToken;
+
+  private static ApiClient anApiClient(String token) {
+    return TestUtils.anApiClient(token, ContextInitializer.SERVER_PORT);
+  }
+
   User joeDoeUser() {
     SwanUser joeDoe = joeDoe();
     User user = new User();
-    user.setId(TestUtils.JOE_DOE_ID);
+    user.setSwanId(TestUtils.JOE_DOE_ID);
     user.setFirstName(joeDoe.getFirstName());
     user.setLastName(joeDoe.getLastName());
     user.setBirthDate(joeDoe.getBirthDate());
@@ -48,16 +57,6 @@ class UserIT {
     return user;
   }
 
-  @MockBean
-  private SentryConf sentryConf;
-
-  @Value("${test.user.access.token}")
-  private String bearerToken;
-
-  private static ApiClient anApiClient(String token) {
-    return TestUtils.anApiClient(token, ContextInitializer.SERVER_PORT);
-  }
-
   @Test
   void unauthenticated_get_onboarding_ok() throws IOException, InterruptedException {
     HttpClient unauthenticatedClient = HttpClient.newBuilder().build();
@@ -66,9 +65,15 @@ class UserIT {
     HttpResponse<String> response = unauthenticatedClient.send(
         HttpRequest.newBuilder()
             .uri(URI.create(basePath + "/onboarding"))
-            .header("Access-Control-Request-Method", "GET")
+            .header("Access-Control-Request-Method", "POST")
             .header("Content-Type", "application/json")
+            .header("Accept", "application/json")
             .header("Origin", "http://localhost:3000")
+            .POST(HttpRequest.BodyPublishers.ofString("{\n"
+                + "  \"phoneNumber\": \"string\",\n"
+                + "  \"onSuccessUrl\": \"string\",\n"
+                + "  \"onFailUrl\": \"string\"\n"
+                + "}"))
             .build(),
         HttpResponse.BodyHandlers.ofString());
 
@@ -76,7 +81,7 @@ class UserIT {
   }
 
   @Test
-  void user_read_whoami_ok() throws ApiException {
+  void user_read_own_informations_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient(bearerToken);
     SecurityApi api = new SecurityApi(joeDoeClient);
 

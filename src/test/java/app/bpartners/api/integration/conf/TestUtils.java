@@ -4,6 +4,7 @@ import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
 import app.bpartners.api.endpoint.rest.model.SwanUser;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
+import app.bpartners.api.repository.swan.UserSwanRepository;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.time.LocalDate;
@@ -19,10 +20,9 @@ import static org.mockito.Mockito.when;
 
 public class TestUtils {
   public static final String JOE_DOE_ID = "joe_doe_id";
-
+  public static final String JOE_DOE_SWAN_USER_ID = "f2af7bb5-26d8-4f9d-927c-26c51645d141";
   public static final String JOE_DOE_TOKEN = "joe_doe_token";
   public static final String USER1_TOKEN = "user1_token";
-
   public static final String USER2_TOKEN = "user2_token";
   public static final String BAD_TOKEN = "bad_token";
   public static final String USER1_ID = "user1_id";
@@ -31,12 +31,11 @@ public class TestUtils {
   public static final String SWAN_USER2_ID = "swan_user2_id";
   public static final String VALID_EMAIL = "username@domain.com";
   public static final String INVALID_EMAIL = "username.@domain.com";
-
   public static final String PRE_REGISTRATION1_ID = "pre_registration_1_id";
 
   public static SwanUser joeDoe() {
     SwanUser swanUser = new SwanUser();
-    swanUser.setId("01bc8036-9d45-426b-a89e-e2ee0e48db01");
+    swanUser.setSwanId(JOE_DOE_SWAN_USER_ID);
     swanUser.setFirstName("Joe");
     swanUser.setLastName("Doe");
     swanUser.setBirthDate(LocalDate.of(2022, 8, 3));
@@ -49,7 +48,7 @@ public class TestUtils {
 
   public static SwanUser swanUser1() {
     SwanUser swanUser = new SwanUser();
-    swanUser.setId(SWAN_USER1_ID);
+    swanUser.setSwanId(SWAN_USER1_ID);
     swanUser.setFirstName("Mathieu");
     swanUser.setLastName("Dupont");
     swanUser.setBirthDate(LocalDate.of(2022, 8, 8));
@@ -70,9 +69,24 @@ public class TestUtils {
     return client;
   }
 
-  public static void setUpSwan(SwanComponent swanComponent) {
+  public static void setUpSwanComponent(SwanComponent swanComponent) {
     when(swanComponent.getSwanUserByToken(BAD_TOKEN)).thenReturn(null);
+    when(swanComponent.getSwanUserIdByToken(USER1_TOKEN)).thenReturn(swanUser1().getSwanId());
     when(swanComponent.getSwanUserByToken(USER1_TOKEN)).thenReturn(swanUser1());
+  }
+
+  public static void setUpSwanRepository(UserSwanRepository swanRepository) {
+    app.bpartners.api.repository.swan.schema.SwanUser swanUserSchema =
+        new app.bpartners.api.repository.swan.schema.SwanUser();
+    swanUserSchema.id = swanUser1().getSwanId();
+    swanUserSchema.firstName = swanUser1().getFirstName();
+    swanUserSchema.lastName = swanUser1().getLastName();
+    swanUserSchema.identificationStatus = swanUser1().getIdentificationStatus();
+    swanUserSchema.birthDate = swanUser1().getBirthDate();
+    swanUserSchema.mobilePhoneNumber = swanUser1().getMobilePhoneNumber();
+    swanUserSchema.idVerified = swanUser1().getIdVerified();
+    swanUserSchema.nationalityCCA3 = swanUser1().getNationalityCCA3();
+    when(swanRepository.whoami()).thenReturn(swanUserSchema);
   }
 
   public static void setUpEventBridge(EventBridgeClient eventBridgeClient) {

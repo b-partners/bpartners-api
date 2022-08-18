@@ -3,7 +3,7 @@
 
 ### Bug Fixes
 
-* PUT /HUsers validation ([a1b3fab](https://github.com/hei-school/hei-admin-api/commit/a1b3fabf692cf4a75b64a37393e8604fc80c99db)), closes [#50](https://github.com/hei-school/hei-admin-api/issues/50)
+* PUT /users validation ([a1b3fab](https://github.com/hei-school/hei-admin-api/commit/a1b3fabf692cf4a75b64a37393e8604fc80c99db)), closes [#50](https://github.com/hei-school/hei-admin-api/issues/50)
 
 
 
@@ -12,7 +12,7 @@
 
 ### Features
 
-* filter HUsers by params ignoring case ([d151927](https://github.com/hei-school/hei-admin-api/commit/d151927dd01bdb31604af85b69c7031aedf2b71f)), closes [#47](https://github.com/hei-school/hei-admin-api/issues/47)
+* filter users by params ignoring case ([d151927](https://github.com/hei-school/hei-admin-api/commit/d151927dd01bdb31604af85b69c7031aedf2b71f)), closes [#47](https://github.com/hei-school/hei-admin-api/issues/47)
 
 
 
@@ -22,8 +22,8 @@
 ### Bug Fixes
 
 * build.gradle works for both unix and windows os ([ddfc835](https://github.com/hei-school/hei-admin-api/commit/ddfc83510b68bec2212ec7feaa5980f239071c8c))
-* limit HUser upsertion to EventBridge max ([9be6693](https://github.com/hei-school/hei-admin-api/commit/9be66939823eecfbdf6c4c134a1c1f5b630415a8)), closes [#37](https://github.com/hei-school/hei-admin-api/issues/37)
-* HUsers can be filter by ref and names ([0dd534f](https://github.com/hei-school/hei-admin-api/commit/0dd534f2952d8a835180c0c39aa2e355958a0fe2)), closes [#39](https://github.com/hei-school/hei-admin-api/issues/39)
+* limit user upsertion to EventBridge max ([9be6693](https://github.com/hei-school/hei-admin-api/commit/9be66939823eecfbdf6c4c134a1c1f5b630415a8)), closes [#37](https://github.com/hei-school/hei-admin-api/issues/37)
+* users can be filter by ref and names ([0dd534f](https://github.com/hei-school/hei-admin-api/commit/0dd534f2952d8a835180c0c39aa2e355958a0fe2)), closes [#39](https://github.com/hei-school/hei-admin-api/issues/39)
 
 
 ### Features
@@ -52,7 +52,7 @@
 * add bearer to whoami ([9d10108](https://github.com/hei-school/hei-admin-api/commit/9d10108f14038dff2cb8d5d5a371181710adbd65))
 * add EventServiceInvoker ([970faad](https://github.com/hei-school/hei-admin-api/commit/970faadecf37a58978cca4c11cfc59bbfd85f92f))
 * cors ([849fb4d](https://github.com/hei-school/hei-admin-api/commit/849fb4dccd4175cc92e39ca840d6899a0972d46e))
-* create Cognito HUsers ([b5e6d0e](https://github.com/hei-school/hei-admin-api/commit/b5e6d0ec92cd9975d80fd28c15ca83f75e3e9fb2))
+* create Cognito users ([b5e6d0e](https://github.com/hei-school/hei-admin-api/commit/b5e6d0ec92cd9975d80fd28c15ca83f75e3e9fb2))
 * event consumer ([fbfc2eb](https://github.com/hei-school/hei-admin-api/commit/fbfc2ebd7c762ebb3e6e85ad98e8bd1b6a719943))
 * generate ts client ([1179a0f](https://github.com/hei-school/hei-admin-api/commit/1179a0f5354de564a5fb7721d6cfc1fb15d7b4d9))
 * GET /groups ([e78c744](https://github.com/hei-school/hei-admin-api/commit/e78c744d4d3b4bc76519e0d2eaf4da470ae70fd1))
@@ -68,7 +68,7 @@
 * PUT /groups absorbs POST /groups ([3669442](https://github.com/hei-school/hei-admin-api/commit/3669442f4d1ccbb8b99242953d8fffbec713a56a))
 * PUT /students ([7382f72](https://github.com/hei-school/hei-admin-api/commit/7382f7236914b31f4bf56f09fde4355d4b99f283))
 * PUT /teachers ([87cbec8](https://github.com/hei-school/hei-admin-api/commit/87cbec80f5f3dd961ee0bdad74fa40d5839c20cc))
-* send events on PUT HUsers ([8fb8ad5](https://github.com/hei-school/hei-admin-api/commit/8fb8ad58f975fe45a27bac36777f560e42af44c4))
+* send events on PUT users ([8fb8ad5](https://github.com/hei-school/hei-admin-api/commit/8fb8ad58f975fe45a27bac36777f560e42af44c4))
 * whoami ([0563e9c](https://github.com/hei-school/hei-admin-api/commit/0563e9c8d1cee528429a35f34365ec7dc4ad84cd))
 
 

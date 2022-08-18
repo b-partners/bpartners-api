@@ -2,8 +2,9 @@ package app.bpartners.api.integration.conf;
 
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
-import app.bpartners.api.endpoint.rest.model.SwanUser;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
+import app.bpartners.api.repository.swan.UserSwanRepository;
+import app.bpartners.api.repository.swan.schema.SwanUser;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.time.LocalDate;
@@ -19,44 +20,40 @@ import static org.mockito.Mockito.when;
 
 public class TestUtils {
   public static final String JOE_DOE_ID = "joe_doe_id";
-
-  public static final String JOE_DOE_TOKEN = "joe_doe_token";
+  public static final String JOE_DOE_SWAN_USER_ID = "c15924bf-61f9-4381-8c9b-d34369bf91f7";
   public static final String USER1_TOKEN = "user1_token";
-
-  public static final String USER2_TOKEN = "user2_token";
   public static final String BAD_TOKEN = "bad_token";
-  public static final String USER1_ID = "user1_id";
-  public static final String USER2_ID = "user2_id";
+
   public static final String SWAN_USER1_ID = "swan_user1_id";
-  public static final String SWAN_USER2_ID = "swan_user2_id";
   public static final String VALID_EMAIL = "username@domain.com";
   public static final String INVALID_EMAIL = "username.@domain.com";
-
   public static final String PRE_REGISTRATION1_ID = "pre_registration_1_id";
+  public static final String REDIRECT_URL = "https://dashboard-dev.bpartners.app";
+  public static final String BAD_REDIRECT_URL = "bad_redirect_url";
 
   public static SwanUser joeDoe() {
     SwanUser swanUser = new SwanUser();
-    swanUser.setId("01bc8036-9d45-426b-a89e-e2ee0e48db01");
-    swanUser.setFirstName("Joe");
-    swanUser.setLastName("Doe");
-    swanUser.setBirthDate(LocalDate.of(2022, 8, 3));
-    swanUser.setIdVerified(true);
-    swanUser.setIdentificationStatus("ValidIdentity");
-    swanUser.setNationalityCCA3("FRA");
-    swanUser.setMobilePhoneNumber("+261343919883");
+    swanUser.id = JOE_DOE_SWAN_USER_ID;
+    swanUser.firstName = "Joe";
+    swanUser.lastName = "Doe";
+    swanUser.birthDate = LocalDate.of(2022, 8, 9);
+    swanUser.idVerified = true;
+    swanUser.identificationStatus = "ValidIdentity";
+    swanUser.nationalityCCA3 = "FRA";
+    swanUser.mobilePhoneNumber = "+261340465338";
     return swanUser;
   }
 
   public static SwanUser swanUser1() {
     SwanUser swanUser = new SwanUser();
-    swanUser.setId(SWAN_USER1_ID);
-    swanUser.setFirstName("Mathieu");
-    swanUser.setLastName("Dupont");
-    swanUser.setBirthDate(LocalDate.of(2022, 8, 8));
-    swanUser.setIdVerified(true);
-    swanUser.setIdentificationStatus("ValidIdentity");
-    swanUser.setNationalityCCA3("FRA");
-    swanUser.setMobilePhoneNumber("+33123456789");
+    swanUser.id = SWAN_USER1_ID;
+    swanUser.firstName = "Mathieu";
+    swanUser.lastName = "Dupont";
+    swanUser.birthDate = LocalDate.of(2022, 8, 8);
+    swanUser.idVerified = true;
+    swanUser.identificationStatus = "ValidIdentity";
+    swanUser.nationalityCCA3 = "FRA";
+    swanUser.mobilePhoneNumber = "+33123456789";
     return swanUser;
   }
 
@@ -70,9 +67,24 @@ public class TestUtils {
     return client;
   }
 
-  public static void setUpSwan(SwanComponent swanComponent) {
+  public static void setUpSwanComponent(SwanComponent swanComponent) {
     when(swanComponent.getSwanUserByToken(BAD_TOKEN)).thenReturn(null);
+    when(swanComponent.getSwanUserIdByToken(USER1_TOKEN)).thenReturn(swanUser1().id);
     when(swanComponent.getSwanUserByToken(USER1_TOKEN)).thenReturn(swanUser1());
+  }
+
+  public static void setUpSwanRepository(UserSwanRepository swanRepository) {
+    app.bpartners.api.repository.swan.schema.SwanUser swanUserSchema =
+        new app.bpartners.api.repository.swan.schema.SwanUser();
+    swanUserSchema.id = swanUser1().id;
+    swanUserSchema.firstName = swanUser1().firstName;
+    swanUserSchema.lastName = swanUser1().lastName;
+    swanUserSchema.identificationStatus = swanUser1().identificationStatus;
+    swanUserSchema.birthDate = swanUser1().birthDate;
+    swanUserSchema.mobilePhoneNumber = swanUser1().mobilePhoneNumber;
+    swanUserSchema.idVerified = swanUser1().idVerified;
+    swanUserSchema.nationalityCCA3 = swanUser1().nationalityCCA3;
+    when(swanRepository.whoami()).thenReturn(swanUserSchema);
   }
 
   public static void setUpEventBridge(EventBridgeClient eventBridgeClient) {

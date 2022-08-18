@@ -6,6 +6,7 @@ import app.bpartners.api.model.mapper.PreUserMapper;
 import app.bpartners.api.repository.PreUserRepository;
 import app.bpartners.api.repository.jpa.PreUserJpaRepository;
 import java.util.List;
+import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
@@ -20,7 +21,7 @@ public class PreUserRepositoryImpl implements PreUserRepository {
   public List<PreUser> getPreUsers(Pageable pageable) {
     return repository.findAll(pageable).stream()
         .map(mapper::toDomain)
-        .toList();
+        .collect(Collectors.toUnmodifiableList());
   }
 
   @Override
@@ -28,6 +29,6 @@ public class PreUserRepositoryImpl implements PreUserRepository {
     List<HPreUser> hPreUsers = mapper.toEntity(toCreate);
     return repository.saveAll(hPreUsers).stream()
         .map(mapper::toDomain)
-        .toList();
+        .collect(Collectors.toUnmodifiableList());
   }
 }

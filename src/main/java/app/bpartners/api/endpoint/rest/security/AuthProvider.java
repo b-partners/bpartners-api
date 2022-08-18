@@ -39,7 +39,7 @@ public class AuthProvider extends AbstractUserDetailsAuthenticationProvider {
     if (swanUserId == null) {
       throw new UsernameNotFoundException("Bad credentials"); // NOSONAR
     }
-    return new Principal(userService.getUserBySwanId(swanUserId), bearer);
+    return new Principal(userService.getUserBySwanUserIdAndToken(swanUserId, bearer), bearer);
   }
 
   private String getBearer(

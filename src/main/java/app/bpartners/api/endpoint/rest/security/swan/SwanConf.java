@@ -9,9 +9,8 @@ import org.springframework.context.annotation.Configuration;
 public class SwanConf {
   private String clientId;
   private String clientSecret;
-  private String redirectUri;
+  private String projectToken;
   private String oauthUrl;
-  private String onboardingUrl;
   private String swanEnv;
 
   public static final String API_DOMAIN_URL = "https://api.swan.io/";
@@ -23,21 +22,18 @@ public class SwanConf {
       String clientId,
       @Value("${swan.client.secret}")
       String clientSecret,
-      @Value("${swan.redirect.uri}")
-      String redirectUri,
       @Value("${swan.oauth.url}")
       String oauthUrl,
       @Value("${swan.env}")
       String swanEnv,
-      @Value("https://api.banking.sandbox.swan.io/projects/df47a093-efda-4802-b7ff-8d4946545a5e/onboarding/company/upfront")
-      String publicOnboardingUrl
+      @Value("${test.project.access.token}")
+      String projectToken
   ) {
     this.clientId = clientId;
     this.clientSecret = clientSecret;
-    this.redirectUri = redirectUri;
     this.oauthUrl = oauthUrl;
     this.swanEnv = swanEnv;
-    this.onboardingUrl = publicOnboardingUrl;
+    this.projectToken = projectToken;
   }
 
   public String getApiUrl() {

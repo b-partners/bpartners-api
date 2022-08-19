@@ -5,7 +5,7 @@ import app.bpartners.api.model.SwanUser;
 import org.springframework.stereotype.Component;
 
 @Component
-public class UserMapper {
+public class RestUserMapper {
   public User toRest(app.bpartners.api.model.User domain) {
     SwanUser domainSwanUser = domain.getSwanUser();
     User user = new User();

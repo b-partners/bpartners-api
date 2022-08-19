@@ -153,6 +153,10 @@ public class PreUserIT {
             api.createPreUsers(List.of(badPreUser())));
   }
 
+  /*
+  * SWAN_CLIENT_ID=SANDBOX_a96f6f28-82ef-4dc6-accc-07bd1c96afd5;SWAN_CLIENT_SECRET=rlh2gv506k7l;TEST_USER_ACCESS_TOKEN=TODO;TEST_SWAN_USER_CODE=TODO
+  * */
+
   public static class ContextInitializer extends AbstractContextInitializer {
     public static final int SERVER_PORT = TestUtils.anAvailableRandomPort();
 

@@ -39,6 +39,16 @@ public class PreUserMapper {
     return restPreUser;
   }
 
+  public PreUser toRest(CreatePreUser createPreUser) {
+    PreUser restPreUser = new PreUser();
+    restPreUser.setSociety(createPreUser.getSociety());
+    restPreUser.setEmail(createPreUser.getEmail());
+    restPreUser.setLastName(createPreUser.getLastName());
+    restPreUser.setFirstName(createPreUser.getFirstName());
+    restPreUser.setPhoneNumber(createPreUser.getPhoneNumber());
+    return restPreUser;
+  }
+
   public List<PreUser> toRest(List<HPreUser> hPreUsers) {
     return hPreUsers.stream()
         .map(this::toRest)

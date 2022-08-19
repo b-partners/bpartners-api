@@ -1,12 +1,16 @@
 package app.bpartners.api.repository.implementation;
 
+import app.bpartners.api.model.PreUser;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.entity.HUser;
 import app.bpartners.api.model.mapper.UserMapper;
+import app.bpartners.api.repository.PreUserRepository;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.jpa.UserJpaRepository;
 import app.bpartners.api.repository.swan.UserSwanRepository;
 import app.bpartners.api.repository.swan.schema.SwanUser;
+import java.awt.print.Pageable;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Repository;
 

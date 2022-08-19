@@ -19,9 +19,12 @@ import static org.mockito.Mockito.when;
 
 public class TestUtils {
   public static final String JOE_DOE_ID = "joe_doe_id";
+  public static final String JOE_DOE_SWAN_USER_ID = "f2af7bb5-26d8-4f9d-927c-26c51645d141";
+
 
   public static final String JOE_DOE_TOKEN = "joe_doe_token";
   public static final String USER1_TOKEN = "user1_token";
+
 
   public static final String USER2_TOKEN = "user2_token";
   public static final String BAD_TOKEN = "bad_token";

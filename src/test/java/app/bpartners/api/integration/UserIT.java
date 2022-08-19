@@ -1,5 +1,8 @@
 package app.bpartners.api.integration;
 
+import static app.bpartners.api.integration.conf.TestUtils.joeDoe;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import app.bpartners.api.SentryConf;
 import app.bpartners.api.endpoint.rest.api.SecurityApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
@@ -23,15 +26,20 @@ import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import static app.bpartners.api.integration.conf.TestUtils.joeDoe;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
-
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @Testcontainers
 @ContextConfiguration(initializers = UserIT.ContextInitializer.class)
 @AutoConfigureMockMvc
 class UserIT {
+  @MockBean
+  private SentryConf sentryConf;
+  @Value("${test.user.access.token}")
+  private String bearerToken;
+
+  private static ApiClient anApiClient(String token) {
+    return TestUtils.anApiClient(token, ContextInitializer.SERVER_PORT);
+  }
+
   User joeDoeUser() {
     SwanUser joeDoe = joeDoe();
     User user = new User();
@@ -48,16 +56,6 @@ class UserIT {
     return user;
   }
 
-  @MockBean
-  private SentryConf sentryConf;
-
-  @Value("${test.user.access.token}")
-  private String bearerToken;
-
-  private static ApiClient anApiClient(String token) {
-    return TestUtils.anApiClient(token, ContextInitializer.SERVER_PORT);
-  }
-
   @Test
   void unauthenticated_get_onboarding_ok() throws IOException, InterruptedException {
     HttpClient unauthenticatedClient = HttpClient.newBuilder().build();
@@ -66,9 +64,10 @@ class UserIT {
     HttpResponse<String> response = unauthenticatedClient.send(
         HttpRequest.newBuilder()
             .uri(URI.create(basePath + "/onboarding"))
-            .header("Access-Control-Request-Method", "GET")
+            .header("Access-Control-Request-Method", "POST")
             .header("Content-Type", "application/json")
             .header("Origin", "http://localhost:3000")
+            .POST(HttpRequest.BodyPublishers.ofString("{phoneNumber:}"))
             .build(),
         HttpResponse.BodyHandlers.ofString());
 

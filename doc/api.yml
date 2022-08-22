@@ -296,13 +296,17 @@ components:
     Account:
       allOf:
         - $ref: '#/components/schemas/SwanAccount'
+    SwanAccountHolder:
+      type: object
       properties:
-        id:
+        accountHolderName:
           type: string
-          example: 'uuid'
-        userId:
+        address:
           type: string
-          example: 'uuid'
+        city:
+          type: string
+        postalCode:
+          type: string
     SwanUser:
       type: object
       properties:
@@ -330,14 +334,18 @@ components:
           type: string
           example: "+33 1 23 45 67 89"
     SwanAccount:
+      allOf:
+        - $ref: '#/components/schemas/SwanAccountHolder'
       properties:
-        swanAccountId:
+        accountId:
           type: string
-        name:
+        accountName:
           type: string
         number:
           type: integer
         IBAN:
+          type: string
+        BIC:
           type: string
     EnableStatus:
       type: string

@@ -1,5 +1,6 @@
 package app.bpartners.api.model.entity.validator;
 
+import app.bpartners.api.model.PreUser;
 import app.bpartners.api.model.entity.HPreUser;
 import app.bpartners.api.model.exception.BadRequestException;
 import java.util.List;

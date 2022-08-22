@@ -1,9 +1,8 @@
-package app.bpartners.api.repository.swan.impl;
+package app.bpartners.api.repository.swan.implementation;
 
-import app.bpartners.api.endpoint.rest.security.principal.PrincipalProvider;
 import app.bpartners.api.endpoint.rest.security.model.Principal;
+import app.bpartners.api.endpoint.rest.security.principal.PrincipalProvider;
 import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
-import app.bpartners.api.repository.mapper.SwanMapper;
 import app.bpartners.api.repository.swan.UserSwanRepository;
 import app.bpartners.api.repository.swan.response.UserResponse;
 import app.bpartners.api.repository.swan.schema.SwanUser;
@@ -22,7 +21,6 @@ import static app.bpartners.api.endpoint.rest.security.swan.SwanConf.BEARER_PREF
 @Repository
 @AllArgsConstructor
 public class UserSwanRepositoryImpl implements UserSwanRepository {
-  private final SwanMapper mapper;
   private final PrincipalProvider auth;
   private SwanConf swanConf;
 

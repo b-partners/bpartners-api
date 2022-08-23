@@ -6,6 +6,7 @@ import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
 import app.bpartners.api.repository.swan.UserSwanRepository;
 import app.bpartners.api.repository.swan.response.UserResponse;
 import app.bpartners.api.repository.swan.schema.SwanUser;
+import app.bpartners.api.utils.ReflectApi;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.net.URI;
@@ -29,9 +30,7 @@ public class UserSwanRepositoryImpl implements UserSwanRepository {
     try {
       HttpClient httpClient = HttpClient.newBuilder().build();
       String message = "{\"query\":\"query ProfilePage "
-          + "{user { id firstName lastName mobilePhoneNumber identificationStatus idVerified "
-          + "birthDate "
-          + "nationalityCCA3}}\"}";
+          +ReflectApi.getFields("user",SwanUser.class)+"\"}";
       HttpRequest request = HttpRequest.newBuilder()
           .uri(new URI(swanConf.getApiUrl()))
           .header("Content-Type", "application/json")

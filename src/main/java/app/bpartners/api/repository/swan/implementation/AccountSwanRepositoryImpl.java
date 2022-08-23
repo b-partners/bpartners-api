@@ -6,6 +6,7 @@ import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
 import app.bpartners.api.repository.swan.AccountSwanRepository;
 import app.bpartners.api.repository.swan.response.AccountResponse;
 import app.bpartners.api.repository.swan.schema.SwanAccount;
+import app.bpartners.api.utils.ReflectApi;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.net.URI;
@@ -30,7 +31,7 @@ public class AccountSwanRepositoryImpl implements AccountSwanRepository {
     try {
       HttpClient httpClient = HttpClient.newBuilder().build();
       String message = "{\"query\":\"query AccountPage "
-          + "{account { id name number IBAN BIC }}\"}";
+          +ReflectApi.getFields("account",SwanAccount.class)+"\"}";
       HttpRequest request = HttpRequest.newBuilder()
           .uri(new URI(swanConf.getApiUrl()))
           .header("Content-Type", "application/json")

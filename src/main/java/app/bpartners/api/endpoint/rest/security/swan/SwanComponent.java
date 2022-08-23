@@ -1,11 +1,10 @@
 package app.bpartners.api.endpoint.rest.security.swan;
 
-import app.bpartners.api.endpoint.rest.model.SwanUser;
 import app.bpartners.api.endpoint.rest.model.Token;
-import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.repository.mapper.SwanMapper;
 import app.bpartners.api.repository.swan.response.TokenResponse;
 import app.bpartners.api.repository.swan.response.UserResponse;
+import app.bpartners.api.repository.swan.schema.SwanUser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.net.URI;
@@ -28,17 +27,17 @@ public class SwanComponent {
 
 
   public String getSwanUserIdByToken(String accessToken) {
-    return getSwanUserByToken(accessToken) != null ? getSwanUserByToken(accessToken).getSwanId() :
+    return getSwanUserByToken(accessToken) != null ? getSwanUserByToken(accessToken).id :
         null;
   }
 
-  public Token getTokenByCode(String code) {
+  public Token getTokenByCode(String code, String redirectUrl) {
     try {
       HttpClient httpClient = HttpClient.newBuilder().build();
       String data =
           "client_id=" + swanConf.getClientId()
               + "&client_secret=" + swanConf.getClientSecret()
-              + "&redirect_uri=" + swanConf.getRedirectUri()
+              + "&redirect_uri=" + redirectUrl
               + "&grant_type=authorization_code"
               + "&code=" + code;
       byte[] postData = data.getBytes(StandardCharsets.UTF_8);
@@ -53,7 +52,7 @@ public class SwanComponent {
           TokenResponse.class);
       return swanMapper.graphQLToRest(tokenResponse);
     } catch (IOException | InterruptedException | URISyntaxException e) {
-      throw new BadRequestException(e.getMessage());
+      return null;
     }
   }
 
@@ -75,7 +74,7 @@ public class SwanComponent {
       UserResponse userResponse = new ObjectMapper()
           .findAndRegisterModules() //Load DateTime Module
           .readValue(response.body(), UserResponse.class);
-      return swanMapper.graphQLToRest(userResponse.data.user);
+      return userResponse.data.user;
     } catch (IOException | InterruptedException | URISyntaxException e) {
       return null;
     }

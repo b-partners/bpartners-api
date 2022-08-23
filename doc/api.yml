@@ -354,8 +354,7 @@ components:
           type: string
           example: "+33 1 23 45 67 89"
     SwanAccount:
-      allOf:
-        - $ref: '#/components/schemas/SwanAccountHolder'
+      type: object
       properties:
         accountId:
           type: string
@@ -407,26 +406,34 @@ components:
       properties:
         phoneNumber:
           type: string
-        onSuccessUrl:
+        successUrl:
           type: string
-        onFailUrl:
+        failureUrl:
           type: string
     OnboardingParams:
-      allOf:
-        - $ref: '#/components/schemas/AuthParams'
+      type: object
+      properties:
+        successUrl:
+          type: string
+        failureUrl:
+          type: string
     TokenParams:
       type: object
       properties:
         code:
+          type: string
+        successUrl:
+          type: string
+        failureUrl:
           type: string
     RedirectionComponent:
       type: object
       properties:
         redirectionUrl:
           type: string
-        onSuccessUrl:
+        successUrl:
           type: string
-        onFailUrl:
+        failureUrl:
           type: string
     Token:
       type: object

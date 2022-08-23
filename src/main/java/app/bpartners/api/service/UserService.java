@@ -3,18 +3,14 @@ package app.bpartners.api.service;
 import app.bpartners.api.endpoint.rest.model.OnboardingParams;
 import app.bpartners.api.endpoint.rest.model.RedirectionComponent;
 import app.bpartners.api.model.User;
-import app.bpartners.api.model.entity.HUser;
 import app.bpartners.api.model.entity.validator.OnboardingValidator;
 import app.bpartners.api.repository.UserRepository;
-import app.bpartners.api.repository.jpa.UserJpaRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 @Service
 @AllArgsConstructor
 public class UserService {
-  private UserJpaRepository userJpaRepository;
-
   private UserRepository userRepository;
   private OnboardingValidator onboardingValidator;
 

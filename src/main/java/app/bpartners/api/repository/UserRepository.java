@@ -5,7 +5,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface UserRepository {
-  public User getUserById(String id);
+  User getUserById(String id);
 
   User getUserBySwanUserId(String swanUserId);
 }

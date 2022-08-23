@@ -2,56 +2,31 @@ package app.bpartners.api.endpoint.rest.mapper;
 
 import app.bpartners.api.endpoint.rest.model.CreatePreUser;
 import app.bpartners.api.endpoint.rest.model.PreUser;
-import app.bpartners.api.model.entity.HPreUser;
-import java.util.List;
-import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
 
 @Component
 public class PreUserMapper {
 
-  public HPreUser toDomain(
-      CreatePreUser createPreUser) {
-    return HPreUser.builder()
-        .email(createPreUser.getEmail())
-        .firstName(createPreUser.getFirstName())
-        .lastName(createPreUser.getLastName())
-        .phoneNumber(createPreUser.getPhoneNumber())
-        .society(createPreUser.getSociety())
+  public app.bpartners.api.model.PreUser toDomain(
+      CreatePreUser toCreate) {
+    return app.bpartners.api.model.PreUser.builder()
+        .firstname(toCreate.getFirstName())
+        .lastname(toCreate.getFirstName())
+        .email(toCreate.getEmail())
+        .society(toCreate.getSociety())
+        .mobilePhoneNumber(toCreate.getPhoneNumber())
         .build();
   }
 
-  public List<HPreUser> toDomain(List<CreatePreUser> toCreate) {
-    return toCreate.stream()
-        .map(this::toDomain)
-        .collect(Collectors.toUnmodifiableList());
-  }
-
-  public PreUser toRest(HPreUser hPreUser) {
+  public PreUser toRest(app.bpartners.api.model.PreUser preUser) {
     PreUser restPreUser = new PreUser();
-    restPreUser.setId(hPreUser.getId());
-    restPreUser.setEmail(hPreUser.getEmail());
-    restPreUser.setEntranceDatetime(hPreUser.getEntranceDatetime());
-    restPreUser.setFirstName(hPreUser.getFirstName());
-    restPreUser.setLastName(hPreUser.getLastName());
-    restPreUser.setPhoneNumber(hPreUser.getPhoneNumber());
-    restPreUser.setSociety(hPreUser.getSociety());
+    restPreUser.setId(preUser.getId());
+    restPreUser.setFirstName(preUser.getFirstname());
+    restPreUser.setLastName(preUser.getLastname());
+    restPreUser.setPhoneNumber(preUser.getMobilePhoneNumber());
+    restPreUser.setSociety(preUser.getSociety());
+    restPreUser.setEmail(preUser.getEmail());
+    restPreUser.setEntranceDatetime(preUser.getEntranceDateTime());
     return restPreUser;
-  }
-
-  public PreUser toRest(CreatePreUser createPreUser) {
-    PreUser restPreUser = new PreUser();
-    restPreUser.setSociety(createPreUser.getSociety());
-    restPreUser.setEmail(createPreUser.getEmail());
-    restPreUser.setLastName(createPreUser.getLastName());
-    restPreUser.setFirstName(createPreUser.getFirstName());
-    restPreUser.setPhoneNumber(createPreUser.getPhoneNumber());
-    return restPreUser;
-  }
-
-  public List<PreUser> toRest(List<HPreUser> hPreUsers) {
-    return hPreUsers.stream()
-        .map(this::toRest)
-        .collect(Collectors.toUnmodifiableList());
   }
 }

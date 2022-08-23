@@ -5,7 +5,7 @@ import app.bpartners.api.endpoint.rest.model.PreUser;
 import org.springframework.stereotype.Component;
 
 @Component
-public class PreUserMapper {
+public class PreUserRestMapper {
 
   public app.bpartners.api.model.PreUser toDomain(
       CreatePreUser toCreate) {

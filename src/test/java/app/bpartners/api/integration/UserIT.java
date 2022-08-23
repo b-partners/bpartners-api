@@ -1,8 +1,5 @@
 package app.bpartners.api.integration;
 
-import static app.bpartners.api.integration.conf.TestUtils.joeDoe;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import app.bpartners.api.SentryConf;
 import app.bpartners.api.endpoint.rest.api.SecurityApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
@@ -25,6 +22,10 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
+
+import static app.bpartners.api.integration.conf.TestUtils.joeDoe;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @Testcontainers
@@ -66,8 +67,13 @@ class UserIT {
             .uri(URI.create(basePath + "/onboarding"))
             .header("Access-Control-Request-Method", "POST")
             .header("Content-Type", "application/json")
+            .header("Accept", "application/json")
             .header("Origin", "http://localhost:3000")
-            .POST(HttpRequest.BodyPublishers.ofString("{phoneNumber:}"))
+            .POST(HttpRequest.BodyPublishers.ofString("{\n"
+                + "  \"phoneNumber\": \"string\",\n"
+                + "  \"onSuccessUrl\": \"string\",\n"
+                + "  \"onFailUrl\": \"string\"\n"
+                + "}"))
             .build(),
         HttpResponse.BodyHandlers.ofString());
 
@@ -75,7 +81,7 @@ class UserIT {
   }
 
   @Test
-  void user_read_whoami_ok() throws ApiException {
+  void user_read_own_informations_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient(bearerToken);
     SecurityApi api = new SecurityApi(joeDoeClient);
 

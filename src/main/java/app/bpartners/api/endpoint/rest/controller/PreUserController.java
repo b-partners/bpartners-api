@@ -1,7 +1,7 @@
 package app.bpartners.api.endpoint.rest.controller;
 
 
-import app.bpartners.api.endpoint.rest.mapper.PreUserMapper;
+import app.bpartners.api.endpoint.rest.mapper.PreUserRestMapper;
 import app.bpartners.api.endpoint.rest.model.CreatePreUser;
 import app.bpartners.api.model.PreUser;
 import app.bpartners.api.model.entity.BoundedPageSize;
@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 @AllArgsConstructor
 public class PreUserController {
   private final PreUserService service;
-  private final PreUserMapper mapper;
+  private final PreUserRestMapper mapper;
 
   @GetMapping("/preUsers")
   public List<app.bpartners.api.endpoint.rest.model.PreUser> getPreUsers(
@@ -30,7 +30,7 @@ public class PreUserController {
       @RequestParam(required = false) String society,
       @RequestParam(required = false) String email
   ) {
-    return service.getPreUsers(page, pageSize,firstName,lastName,society,email).stream()
+    return service.getPreUsers(page, pageSize).stream()
         .map(mapper::toRest)
         .toList();
   }

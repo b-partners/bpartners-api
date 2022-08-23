@@ -354,8 +354,7 @@ components:
           type: string
           example: "+33 1 23 45 67 89"
     SwanAccount:
-      allOf:
-        - $ref: '#/components/schemas/SwanAccountHolder'
+      type: object
       properties:
         accountId:
           type: string

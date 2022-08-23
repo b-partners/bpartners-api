@@ -62,7 +62,7 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
                     new AntPathRequestMatcher("/preUsers", POST.name()),
                     new AntPathRequestMatcher("/auth"),
                     new AntPathRequestMatcher("/token"),
-                    new AntPathRequestMatcher("/onboarding"),
+                    new AntPathRequestMatcher("/onboarding", POST.name()),
                     new AntPathRequestMatcher("/**", OPTIONS.toString())
                 )
             )),

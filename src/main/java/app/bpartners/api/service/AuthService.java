@@ -1,7 +1,7 @@
 package app.bpartners.api.service;
 
-import app.bpartners.api.endpoint.rest.model.RedirectionComponent;
 import app.bpartners.api.endpoint.rest.model.AuthParams;
+import app.bpartners.api.endpoint.rest.model.RedirectionComponent;
 import app.bpartners.api.endpoint.rest.model.Token;
 import app.bpartners.api.endpoint.rest.model.TokenParams;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
@@ -20,11 +20,11 @@ public class AuthService {
     RedirectionComponent redirectionComponent = new RedirectionComponent();
     redirectionComponent.setRedirectionUrl(
         swanConf.getAuthProviderUrl() + "?response_type=code&client_id="
-            + swanConf.getClientId() + "&redirect_uri=" + params.getOnSuccessUrl()
+            + swanConf.getClientId() + "&redirect_uri=" + params.getSuccessUrl()
             + "&scope=openid%20offline%20idverified&state=12341234"
             + "&phoneNumber=" + params.getPhoneNumber());
-    redirectionComponent.onSuccessUrl(params.getOnSuccessUrl());
-    redirectionComponent.onSuccessUrl(params.getOnFailUrl());
+    redirectionComponent.setSuccessUrl(params.getSuccessUrl());
+    redirectionComponent.setFailureUrl(params.getFailureUrl());
     return redirectionComponent;
   }
 
@@ -32,6 +32,6 @@ public class AuthService {
     if (params.getCode() == null) {
       throw new BadRequestException("Code is mandatory");
     }
-    return swanComponent.getTokenByCode(params.getCode());
+    return swanComponent.getTokenByCode(params.getCode(), params.getSuccessUrl());
   }
 }

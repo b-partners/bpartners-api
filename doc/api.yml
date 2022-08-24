@@ -406,26 +406,34 @@ components:
       properties:
         phoneNumber:
           type: string
-        onSuccessUrl:
+        successUrl:
           type: string
-        onFailUrl:
+        failureUrl:
           type: string
     OnboardingParams:
-      allOf:
-        - $ref: '#/components/schemas/AuthParams'
+      type: object
+      properties:
+        successUrl:
+          type: string
+        failureUrl:
+          type: string
     TokenParams:
       type: object
       properties:
         code:
+          type: string
+        successUrl:
+          type: string
+        failureUrl:
           type: string
     RedirectionComponent:
       type: object
       properties:
         redirectionUrl:
           type: string
-        onSuccessUrl:
+        successUrl:
           type: string
-        onFailUrl:
+        failureUrl:
           type: string
     Token:
       type: object

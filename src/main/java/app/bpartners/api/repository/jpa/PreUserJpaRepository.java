@@ -10,12 +10,11 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface PreUserJpaRepository extends JpaRepository<HPreUser, String> {
-  @Query("select h from HPreUser h where (:firstname is null or lower(h.firstName) like lower" +
-      "(concat('%',:fistname,'%') )" +
-      " ) and " +
-      "(:lastname is null or lower(h.lastName) like lower(concat('%',:lastname,'%') ) ) and " +
-      "(:society is null or lower(h.society) like lower(concat('%',:society,'%') ) ) and" +
-      "(:email is null or lower(h.email) like lower(concat('%',:email,'%') ) )")
+  @Query("select h from HPreUser h where (:firstname is null or lower(h.firstName) like lower"
+      + "(concat('%',:fistname,'%') ) ) and "
+      + "(:lastname is null or lower(h.lastName) like lower(concat('%',:lastname,'%') ) ) and "
+      + "(:society is null or lower(h.society) like lower(concat('%',:society,'%') ) ) and"
+      + "(:email is null or lower(h.email) like lower(concat('%',:email,'%') ) )")
   List<HPreUser> getByCriteria(
       @Param("firstname") String firstName,
       @Param("lastname") String lastName,

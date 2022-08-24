@@ -16,12 +16,13 @@ import org.springframework.stereotype.Component;
 public class UserValidator implements Consumer<HUser> {
   private final Validator validator;
 
-  public void accept(List<HUser> HUsers) {
-    HUsers.forEach(this);
+  public void accept(List<HUser> users) {
+    users.forEach(this);
   }
 
-  @Override public void accept(HUser HUser) {
-    Set<ConstraintViolation<HUser>> violations = validator.validate(HUser);
+  @Override
+  public void accept(HUser user) {
+    Set<ConstraintViolation<HUser>> violations = validator.validate(user);
     if (!violations.isEmpty()) {
       String constraintMessages = violations
           .stream()

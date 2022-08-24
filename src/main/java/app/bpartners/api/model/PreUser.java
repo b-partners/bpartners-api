@@ -2,7 +2,6 @@ package app.bpartners.api.model;
 
 import java.io.Serializable;
 import java.time.Instant;
-import java.util.Objects;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -29,20 +28,4 @@ public class PreUser implements Serializable {
 
   private Instant entranceDateTime;
 
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null) {
-      return false;
-    }
-    PreUser preUser = (PreUser) o;
-    return id != null && Objects.equals(id, preUser.id);
-  }
-
-  @Override
-  public int hashCode() {
-    return getClass().hashCode();
-  }
 }

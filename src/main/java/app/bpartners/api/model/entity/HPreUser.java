@@ -3,7 +3,6 @@ package app.bpartners.api.model.entity;
 import java.io.Serializable;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Objects;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
@@ -12,11 +11,11 @@ import javax.validation.constraints.NotBlank;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-import org.hibernate.Hibernate;
 import org.hibernate.annotations.CreationTimestamp;
 
 import static javax.persistence.GenerationType.IDENTITY;
@@ -30,6 +29,7 @@ import static javax.persistence.GenerationType.IDENTITY;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@EqualsAndHashCode
 public class HPreUser implements Serializable {
   @Id
   @GeneratedValue(strategy = IDENTITY)
@@ -52,23 +52,6 @@ public class HPreUser implements Serializable {
 
   public Instant getEntranceDatetime() {
     return entranceDatetime.truncatedTo(ChronoUnit.MILLIS);
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) {
-      return false;
-    }
-    HPreUser HPreUser = (HPreUser) o;
-    return id != null && Objects.equals(id, HPreUser.id);
-  }
-
-  @Override
-  public int hashCode() {
-    return getClass().hashCode();
   }
 
 }

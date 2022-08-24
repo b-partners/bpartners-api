@@ -1,5 +1,6 @@
 package app.bpartners.api.repository.swan.response;
 
+
 public class TokenResponse {
   public String access_token;
   public String id_token;

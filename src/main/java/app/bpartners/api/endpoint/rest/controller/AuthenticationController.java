@@ -4,7 +4,6 @@ import app.bpartners.api.endpoint.rest.model.RedirectionComponent;
 import app.bpartners.api.endpoint.rest.model.AuthParams;
 import app.bpartners.api.endpoint.rest.model.Token;
 import app.bpartners.api.endpoint.rest.model.TokenParams;
-import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
 import app.bpartners.api.service.AuthService;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;

@@ -1,9 +1,9 @@
 package app.bpartners.api.model;
 
 import java.time.LocalDate;
-import java.util.Objects;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -13,6 +13,7 @@ import lombok.Setter;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@EqualsAndHashCode
 public class SwanUser {
   private String id;
 
@@ -29,21 +30,4 @@ public class SwanUser {
   private String nationalityCCA3;
 
   private Boolean idVerified;
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null) {
-      return false;
-    }
-    SwanUser user = (SwanUser) o;
-    return id != null && Objects.equals(id, user.id);
-  }
-
-  @Override
-  public int hashCode() {
-    return getClass().hashCode();
-  }
 }

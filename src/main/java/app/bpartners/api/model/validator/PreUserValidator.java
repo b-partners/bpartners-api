@@ -19,10 +19,11 @@ public class PreUserValidator {
   }
 
   private boolean hasValidEmail(PreUser preUser) {
-    String emailPattern = "^(?=.{1,64}@)[A-Za-z0-9_-]+(\\.[A-Za-z0-9_-]+)*@"
-        + "[^-][A-Za-z0-9-]+(\\.[A-Za-z0-9-]+)*(\\.[A-Za-z]{2,})$";
+    String pattern = "[A-Za-z0-9_-]";
+    String emailPattern = "^(?=.{1,64}@)" + pattern + "+(\\." + pattern + "+)*@"
+        + "[^-]" + pattern + "+(\\." + pattern + "+)*(\\.[A-Za-z]{2,})$";
     return Pattern.compile(emailPattern)
-        .matcher(preUser.getEmail())
-        .matches();
+      .matcher(preUser.getEmail())
+      .matches();
   }
 }

@@ -10,16 +10,15 @@ import org.springframework.stereotype.Component;
 @Component
 public class PreUserMapper {
   public PreUser toDomain(HPreUser hPreUser) {
-    PreUser preUser = PreUser.builder()
-        .id(hPreUser.getId())
-        .email(hPreUser.getEmail())
-        .entranceDateTime(hPreUser.getEntranceDatetime())
-        .firstname(hPreUser.getFirstName())
-        .lastname(hPreUser.getLastName())
-        .mobilePhoneNumber(hPreUser.getPhoneNumber())
-        .society(hPreUser.getSociety())
-        .build();
-    return preUser;
+    return PreUser.builder()
+      .id(hPreUser.getId())
+      .email(hPreUser.getEmail())
+      .entranceDateTime(hPreUser.getEntranceDatetime())
+      .firstname(hPreUser.getFirstName())
+      .lastname(hPreUser.getLastName())
+      .mobilePhoneNumber(hPreUser.getPhoneNumber())
+      .society(hPreUser.getSociety())
+      .build();
   }
 
   public HPreUser toEntity(PreUser preUser) {
@@ -36,7 +35,7 @@ public class PreUserMapper {
 
   public List<HPreUser> toEntity(List<PreUser> preUser) {
     return preUser.stream()
-        .map(this::toEntity)
-        .collect(Collectors.toUnmodifiableList());
+      .map(this::toEntity)
+      .collect(Collectors.toUnmodifiableList());
   }
 }

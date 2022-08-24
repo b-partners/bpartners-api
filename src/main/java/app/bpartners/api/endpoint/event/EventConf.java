@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.sqs.SqsClient;
+import software.amazon.awssdk.services.ssm.SsmClient;
 
 @Configuration
 public class EventConf {
@@ -17,5 +18,10 @@ public class EventConf {
   @Bean
   public SqsClient getSqsClient() {
     return SqsClient.builder().region(region).build();
+  }
+
+  @Bean
+  public SsmClient getSsmClient() {
+    return SsmClient.builder().region(region).build();
   }
 }

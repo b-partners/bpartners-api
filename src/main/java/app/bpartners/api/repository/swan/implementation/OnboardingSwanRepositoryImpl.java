@@ -1,6 +1,7 @@
 package app.bpartners.api.repository.swan.implementation;
 
 import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
+import app.bpartners.api.manager.ProjectTokenManager;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.repository.swan.OnboardingSwanRepository;
@@ -22,6 +23,8 @@ import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVE
 @AllArgsConstructor
 public class OnboardingSwanRepositoryImpl implements OnboardingSwanRepository {
   private final SwanConf swanConf;
+  private final ProjectTokenManager tokenManager;
+
 
   @Override
   public String getOnboardingUrl(String redirectUrl) {
@@ -35,7 +38,7 @@ public class OnboardingSwanRepositoryImpl implements OnboardingSwanRepository {
       HttpRequest request = HttpRequest.newBuilder()
           .uri(new URI(swanConf.getApiUrl()))
           .header("Content-Type", "application/json")
-          .header("Authorization", BEARER_PREFIX + swanConf.getProjectToken())
+          .header("Authorization", BEARER_PREFIX + tokenManager.getSwanProjecToken())
           .POST(HttpRequest.BodyPublishers.ofString(message))
           .build();
       HttpResponse<String> response =

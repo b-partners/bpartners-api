@@ -9,7 +9,6 @@ import org.springframework.context.annotation.Configuration;
 public class SwanConf {
   private String clientId;
   private String clientSecret;
-  private String projectToken;
   private String oauthUrl;
   private String swanEnv;
 
@@ -25,15 +24,12 @@ public class SwanConf {
       @Value("${swan.oauth.url}")
       String oauthUrl,
       @Value("${swan.env}")
-      String swanEnv,
-      @Value("${project.access.token}")
-      String projectToken
+      String swanEnv
   ) {
     this.clientId = clientId;
     this.clientSecret = clientSecret;
     this.oauthUrl = oauthUrl;
     this.swanEnv = swanEnv;
-    this.projectToken = projectToken;
   }
 
   public String getApiUrl() {

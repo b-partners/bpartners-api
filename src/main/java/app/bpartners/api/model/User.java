@@ -1,7 +1,6 @@
 package app.bpartners.api.model;
 
 import app.bpartners.api.endpoint.rest.model.EnableStatus;
-import app.bpartners.api.model.SwanUser;
 import java.util.Objects;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

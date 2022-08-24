@@ -43,7 +43,7 @@ jobs:
           export SWAN_CLIENT_ID=${{ secrets.SWAN_CLIENT_ID }}
           export SWAN_CLIENT_SECRET=${{ secrets.SWAN_CLIENT_SECRET }}
           export TEST_SWAN_USER_CODE=${{ secrets.TEST_SWAN_USER_CODE }}
-          export TEST_PROJECT_ACCESS_TOKEN=${{ secrets.TEST_PROJECT_ACCESS_TOKEN }}
+          export PROJECT_ACCESS_TOKEN=${{ secrets.PROJECT_ACCESS_TOKEN }}
           ./gradlew build
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@13d241b293754004c80624b5567555c4a39ffbe3
@@ -67,7 +67,7 @@ jobs:
           docker build --build-arg version=${{ steps.read-semver.outputs.version }} \
             -t $ECR_PRIVATE_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_PRIVATE_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-  
+
       - name: Put branch_env and listenerRuleAvailablePriority into GITHUB_ENV
         run: |
           if ${{ github.ref == 'refs/heads/dev' }}; then

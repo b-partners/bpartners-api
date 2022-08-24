@@ -29,9 +29,9 @@ public class UserRepositoryImpl implements UserRepository {
 
   @Override
   public User getUserBySwanUserId(String swanUserId) {
-    HUser hUser = jpaRepository.getUserBySwanUserId(swanUserId);
+    HUser entityUser = jpaRepository.getUserBySwanUserId(swanUserId);
     SwanUser swanUser = swanRepository.whoami();
-    return userMapper.toDomain(hUser, swanUser);
+    return userMapper.toDomain(entityUser, swanUser);
   }
 
   @Override

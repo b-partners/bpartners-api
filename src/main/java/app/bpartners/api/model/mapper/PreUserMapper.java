@@ -9,29 +9,28 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class PreUserMapper {
-  public PreUser toDomain(HPreUser hPreUser) {
-    PreUser preUser = PreUser.builder()
-        .id(hPreUser.getId())
-        .email(hPreUser.getEmail())
-        .entranceDateTime(hPreUser.getEntranceDatetime())
-        .firstname(hPreUser.getFirstName())
-        .lastname(hPreUser.getLastName())
-        .mobilePhoneNumber(hPreUser.getPhoneNumber())
-        .society(hPreUser.getSociety())
+  public PreUser toDomain(HPreUser entityPreUser) {
+    return PreUser.builder()
+        .id(entityPreUser.getId())
+        .email(entityPreUser.getEmail())
+        .entranceDateTime(entityPreUser.getEntranceDatetime())
+        .firstname(entityPreUser.getFirstName())
+        .lastname(entityPreUser.getLastName())
+        .mobilePhoneNumber(entityPreUser.getPhoneNumber())
+        .society(entityPreUser.getSociety())
         .build();
-    return preUser;
   }
 
   public HPreUser toEntity(PreUser preUser) {
-    HPreUser hPreUser = new HPreUser();
-    hPreUser.setEmail(preUser.getEmail());
-    hPreUser.setId(preUser.getId());
-    hPreUser.setEntranceDatetime(preUser.getEntranceDateTime());
-    hPreUser.setSociety(preUser.getSociety());
-    hPreUser.setFirstName(preUser.getFirstname());
-    hPreUser.setLastName(preUser.getLastname());
-    hPreUser.setPhoneNumber(preUser.getMobilePhoneNumber());
-    return hPreUser;
+    HPreUser entityPreUser = new HPreUser();
+    entityPreUser.setEmail(preUser.getEmail());
+    entityPreUser.setId(preUser.getId());
+    entityPreUser.setEntranceDatetime(preUser.getEntranceDateTime());
+    entityPreUser.setSociety(preUser.getSociety());
+    entityPreUser.setFirstName(preUser.getFirstname());
+    entityPreUser.setLastName(preUser.getLastname());
+    entityPreUser.setPhoneNumber(preUser.getMobilePhoneNumber());
+    return entityPreUser;
   }
 
   public List<HPreUser> toEntity(List<PreUser> preUser) {

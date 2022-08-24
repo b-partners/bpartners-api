@@ -27,8 +27,8 @@ public class PreUserRepositoryImpl implements PreUserRepository {
 
   @Override
   public List<PreUser> createPreUsers(List<PreUser> toCreate) {
-    List<HPreUser> hPreUsers = mapper.toEntity(toCreate);
-    return repository.saveAll(hPreUsers).stream()
+    List<HPreUser> entityPreUsers = mapper.toEntity(toCreate);
+    return repository.saveAll(entityPreUsers).stream()
         .map(mapper::toDomain)
         .collect(Collectors.toUnmodifiableList());
   }

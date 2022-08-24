@@ -26,7 +26,7 @@ public class SwanConf {
       String oauthUrl,
       @Value("${swan.env}")
       String swanEnv,
-      @Value("${test.project.access.token}")
+      @Value("${project.access.token}")
       String projectToken
   ) {
     this.clientId = clientId;

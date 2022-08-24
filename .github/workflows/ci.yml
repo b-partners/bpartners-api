@@ -39,6 +39,7 @@ jobs:
           export SWAN_CLIENT_ID=${{ secrets.SWAN_CLIENT_ID }}
           export SWAN_CLIENT_SECRET=${{ secrets.SWAN_CLIENT_SECRET }}
           export TEST_SWAN_USER_CODE=${{ secrets.TEST_SWAN_USER_CODE }}
+          export TEST_PROJECT_ACCESS_TOKEN=${{ secrets.TEST_PROJECT_ACCESS_TOKEN }}
           ./gradlew test
 
       - name: Checkstyle

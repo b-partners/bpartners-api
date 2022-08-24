@@ -50,7 +50,7 @@ public class SwanComponent {
           httpClient.send(request, HttpResponse.BodyHandlers.ofString());
       TokenResponse tokenResponse = new ObjectMapper().readValue(response.body(),
           TokenResponse.class);
-      return swanMapper.graphQLToRest(tokenResponse);
+      return swanMapper.toRest(tokenResponse);
     } catch (IOException | InterruptedException | URISyntaxException e) {
       return null;
     }

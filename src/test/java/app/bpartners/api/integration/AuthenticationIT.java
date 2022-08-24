@@ -42,12 +42,15 @@ class AuthenticationIT {
   @Value("${test.swan.user.code}")
   private String userCode;
 
-  TokenParams validCode() {
+  /*TokenParams validCode() {
     return new TokenParams().code(userCode);
-  }
+  }*/
 
   TokenParams badCode() {
-    return new TokenParams().code("bad_code");
+    return new TokenParams()
+        .code("bad_code")
+        .successUrl(REDIRECT_URL)
+        .failureUrl("FailureUrl");
   }
 
   @Test
@@ -66,6 +69,29 @@ class AuthenticationIT {
                 + "  \"phoneNumber\": \"" + PHONE_NUMBER + "\",\n"
                 + "  \"successUrl\": \"" + REDIRECT_URL + "\",\n"
                 + "  \"failureUrl\": \"failureUrl\"\n"
+                + "}"))
+            .build(),
+        HttpResponse.BodyHandlers.ofString());
+
+    assertEquals(HttpStatus.OK.value(), response.statusCode());
+  }
+
+  @Test
+  void unauthenticated_get_token_ko() throws IOException, InterruptedException {
+    HttpClient unauthenticatedClient = HttpClient.newBuilder().build();
+    String basePath = "http://localhost:" + AuthenticationIT.ContextInitializer.SERVER_PORT;
+
+    HttpResponse<String> response = unauthenticatedClient.send(
+        HttpRequest.newBuilder()
+            .uri(URI.create(basePath + "/token"))
+            .header("Access-Control-Request-Method", "POST")
+            .header("Content-Type", "application/json")
+            .header("Accept", "application/json")
+            .header("Origin", "http://localhost:3000")
+            .POST(HttpRequest.BodyPublishers.ofString("{\n"
+                + "  \"code\": \"" + badCode().getCode() + "\",\n"
+                + "  \"successUrl\": \"" + badCode().getSuccessUrl() + "\",\n"
+                + "  \"failureUrl\": \"" + badCode().getFailureUrl() + "\"\n"
                 + "}"))
             .build(),
         HttpResponse.BodyHandlers.ofString());

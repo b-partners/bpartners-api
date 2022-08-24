@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class PreUserMapper {
   public PreUser toDomain(HPreUser hPreUser) {
-    PreUser preUser = PreUser.builder()
+    return PreUser.builder()
         .id(hPreUser.getId())
         .email(hPreUser.getEmail())
         .entranceDateTime(hPreUser.getEntranceDatetime())
@@ -19,7 +19,6 @@ public class PreUserMapper {
         .mobilePhoneNumber(hPreUser.getPhoneNumber())
         .society(hPreUser.getSociety())
         .build();
-    return preUser;
   }
 
   public HPreUser toEntity(PreUser preUser) {

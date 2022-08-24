@@ -211,6 +211,31 @@ paths:
           $ref: '#/components/responses/429'
         '500':
           $ref: '#/components/responses/500'
+  /transactions:
+    get:
+      tags:
+        - Payment
+      summary: Get authenticated user' s transactions.
+      operationId: getTransactions
+      responses:
+        '200':
+          description: List of authenticated user' s transactions.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Transaction'
+        '400':
+          $ref: '#/components/responses/400'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+        '429':
+          $ref: '#/components/responses/429'
+        '500':
+          $ref: '#/components/responses/500'
 components:
   securitySchemes:
     BearerAuth:
@@ -248,6 +273,38 @@ components:
           schema:
             $ref: '#/components/schemas/InternalServerException'
   schemas:
+    SwanTransaction:
+      type: object
+      properties:
+        swanTransactionId:
+          type: string
+          example: 'uuid'
+        amount:
+          type: number
+        currency:
+          type: string
+          example: 'EUR'
+        label:
+          type: string
+        reference:
+          type: string
+        paymentDatetime:
+          type: string
+          format: date-time
+    Transaction:
+      allOf:
+        - $ref: '#/components/schemas/SwanTransaction'
+      type: object
+      properties:
+        category:
+          $ref: '#/components/schemas/TransactionCategory'
+    TransactionCategory:
+      type: object
+      properties:
+        id:
+          type: string
+        label:
+          type: string
     User:
       allOf:
         - $ref: '#/components/schemas/SwanUser'

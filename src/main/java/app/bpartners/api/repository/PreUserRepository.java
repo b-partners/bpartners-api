@@ -14,4 +14,7 @@ public interface PreUserRepository {
   List<PreUser> createPreUsers(List<PreUser> toCreate);
 
 
+  List<PreUser> getByCriteria(
+      Pageable pageable, String firstName,
+      String lastName, String email, String society, String phoneNumber);
 }

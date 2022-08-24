@@ -28,8 +28,8 @@ public class OnboardingSwanRepositoryImpl implements OnboardingSwanRepository {
     try {
       HttpClient httpClient = HttpClient.newBuilder().build();
       String message =
-          "{\"query\": \"mutation MyMutation { onboardCompanyAccountHolder( input: { redirectUrl:" +
-              " \\\"" + redirectUrl + "\\\" }) "
+          "{\"query\": \"mutation MyMutation { onboardCompanyAccountHolder( input: { redirectUrl:"
+              + " \\\"" + redirectUrl + "\\\" }) "
               + "{ ... on OnboardCompanyAccountHolderSuccessPayload { onboarding "
               + "{ onboardingUrl } } }}\"}";
       HttpRequest request = HttpRequest.newBuilder()

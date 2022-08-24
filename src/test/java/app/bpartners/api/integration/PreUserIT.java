@@ -38,7 +38,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @Testcontainers
 @ContextConfiguration(initializers = PreUserIT.ContextInitializer.class)
 @AutoConfigureMockMvc
-class PreUserIT {
+public class PreUserIT {
   @MockBean
   private SentryConf sentryConf;
 

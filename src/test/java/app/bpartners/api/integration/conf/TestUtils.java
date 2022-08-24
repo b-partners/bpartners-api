@@ -33,27 +33,27 @@ public class TestUtils {
 
   public static SwanUser joeDoe() {
     SwanUser swanUser = new SwanUser();
-    swanUser.setId(JOE_DOE_SWAN_USER_ID);
-    swanUser.setFirstName("Joe");
-    swanUser.setLastName("Doe");
-    swanUser.setBirthDate(LocalDate.of(2022, 8, 9));
-    swanUser.setIdVerified(true);
-    swanUser.setIdentificationStatus("ValidIdentity");
-    swanUser.setNationalityCCA3("FRA");
-    swanUser.setMobilePhoneNumber("+261340465338");
+    swanUser.id = JOE_DOE_SWAN_USER_ID;
+    swanUser.firstName = "Joe";
+    swanUser.lastName = "Doe";
+    swanUser.birthDate = LocalDate.of(2022, 8, 9);
+    swanUser.idVerified = true;
+    swanUser.identificationStatus = "ValidIdentity";
+    swanUser.nationalityCCA3 = "FRA";
+    swanUser.mobilePhoneNumber = "+261340465338";
     return swanUser;
   }
 
   public static SwanUser swanUser1() {
     SwanUser swanUser = new SwanUser();
-    swanUser.setId(SWAN_USER1_ID);
-    swanUser.setFirstName("Mathieu");
-    swanUser.setLastName("Dupont");
-    swanUser.setBirthDate(LocalDate.of(2022, 8, 8));
-    swanUser.setIdVerified(true);
-    swanUser.setIdentificationStatus("ValidIdentity");
-    swanUser.setNationalityCCA3("FRA");
-    swanUser.setMobilePhoneNumber("+33123456789");
+    swanUser.id = SWAN_USER1_ID;
+    swanUser.firstName = "Mathieu";
+    swanUser.lastName = "Dupont";
+    swanUser.birthDate = LocalDate.of(2022, 8, 8);
+    swanUser.idVerified = true;
+    swanUser.identificationStatus = "ValidIdentity";
+    swanUser.nationalityCCA3 = "FRA";
+    swanUser.mobilePhoneNumber = "+33123456789";
     return swanUser;
   }
 
@@ -69,21 +69,21 @@ public class TestUtils {
 
   public static void setUpSwanComponent(SwanComponent swanComponent) {
     when(swanComponent.getSwanUserByToken(BAD_TOKEN)).thenReturn(null);
-    when(swanComponent.getSwanUserIdByToken(USER1_TOKEN)).thenReturn(swanUser1().getId());
+    when(swanComponent.getSwanUserIdByToken(USER1_TOKEN)).thenReturn(swanUser1().id);
     when(swanComponent.getSwanUserByToken(USER1_TOKEN)).thenReturn(swanUser1());
   }
 
   public static void setUpSwanRepository(UserSwanRepository swanRepository) {
     app.bpartners.api.repository.swan.schema.SwanUser swanUserSchema =
         new app.bpartners.api.repository.swan.schema.SwanUser();
-    swanUserSchema.setId(swanUser1().getId());
-    swanUserSchema.setFirstName(swanUser1().getFirstName());
-    swanUserSchema.setLastName(swanUser1().getLastName());
-    swanUserSchema.setIdentificationStatus(swanUser1().getIdentificationStatus());
-    swanUserSchema.setBirthDate(swanUser1().getBirthDate());
-    swanUserSchema.setMobilePhoneNumber(swanUser1().getMobilePhoneNumber());
-    swanUserSchema.setIdVerified(swanUser1().getIdVerified());
-    swanUserSchema.setNationalityCCA3(swanUser1().getNationalityCCA3());
+    swanUserSchema.id = swanUser1().id;
+    swanUserSchema.firstName = swanUser1().firstName;
+    swanUserSchema.lastName = swanUser1().lastName;
+    swanUserSchema.identificationStatus = swanUser1().identificationStatus;
+    swanUserSchema.birthDate = swanUser1().birthDate;
+    swanUserSchema.mobilePhoneNumber = swanUser1().mobilePhoneNumber;
+    swanUserSchema.idVerified = swanUser1().idVerified;
+    swanUserSchema.nationalityCCA3 = swanUser1().nationalityCCA3;
     when(swanRepository.whoami()).thenReturn(swanUserSchema);
   }
 

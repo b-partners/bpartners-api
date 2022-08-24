@@ -117,35 +117,6 @@ paths:
           $ref: '#/components/responses/429'
         '500':
           $ref: '#/components/responses/500'
-  /users/{id}:
-    get:
-      tags:
-        - Users
-      summary: Get user by identifier
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      operationId: getUserById
-      responses:
-        '200':
-          description: The identified user
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'
-        '400':
-          $ref: '#/components/responses/400'
-        '403':
-          $ref: '#/components/responses/403'
-        '404':
-          $ref: '#/components/responses/404'
-        '429':
-          $ref: '#/components/responses/429'
-        '500':
-          $ref: '#/components/responses/500'
   /preUsers:
     get:
       tags:
@@ -159,6 +130,21 @@ paths:
             $ref: '#/components/schemas/Page'
           required: true
         - name: page_size
+          in: query
+          schema:
+            $ref: '#/components/schemas/PageSize'
+          required: true
+        - name: firstName
+          in: query
+          schema:
+            type: string
+          required: false
+        - name: lastName
+          in: query
+          schema:
+            type: string
+          required: false
+        - name: society
           in: query
           schema:
             $ref: '#/components/schemas/PageSize'
@@ -225,35 +211,6 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/PreUser'
-        '400':
-          $ref: '#/components/responses/400'
-        '403':
-          $ref: '#/components/responses/403'
-        '404':
-          $ref: '#/components/responses/404'
-        '429':
-          $ref: '#/components/responses/429'
-        '500':
-          $ref: '#/components/responses/500'
-  /accounts/{id}:
-    get:
-      tags:
-        - Users
-      summary: Get account by identifier
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      operationId: getAccountById
-      responses:
-        '200':
-          description: The identified account
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Account'
         '400':
           $ref: '#/components/responses/400'
         '403':

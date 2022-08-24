@@ -24,7 +24,7 @@ import static app.bpartners.api.endpoint.rest.security.swan.SwanConf.BEARER_PREF
 public class UserSwanRepositoryImpl implements UserSwanRepository {
   private final PrincipalProvider auth;
   private SwanConf swanConf;
-
+  
   @Override
   public SwanUser whoami() {
     try {

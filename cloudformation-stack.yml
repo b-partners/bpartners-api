@@ -65,6 +65,10 @@ Resources:
               Value: !Sub '{{resolve:ssm:/bpartners/${Env}/swan/client-secret}}'
             - Name: AWS_SSM_SWAN_PROJECT_PARAM
               Value: !Sub '{{resolve:ssm:/bpartners/${Env}/swan/swan-project-param-name}}'
+            - Name: FINTECTURE_APP_ID
+              Value: !Sub '{{resolve:ssm:/bpartners/${Env}/fintecture/app-id}}'
+            - Name: FINTECTURE_APP_SECRET
+              Value: !Sub '{{resolve:ssm:/bpartners/${Env}/fintecture/app-secret}}'
           LogConfiguration:
             LogDriver: awslogs
             Options:

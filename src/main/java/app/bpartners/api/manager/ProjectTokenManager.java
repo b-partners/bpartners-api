@@ -11,13 +11,17 @@ import software.amazon.awssdk.services.ssm.model.SsmException;
 @Component
 public class ProjectTokenManager {
   private SsmClient ssmClient;
-  private final String projectParameterName;
+  private final String swanProjectParamName;
+  private final String fintectureProjectParamName;
 
   public ProjectTokenManager(SsmClient ssmClient,
                              @Value("${aws.ssm.swan.project.param}")
-                             String projectParameterName) {
+                             String swanProjectParamName,
+                             @Value("${fintecture.project.param.name}")
+                             String fintectureProjectParamName) {
     this.ssmClient = ssmClient;
-    this.projectParameterName = projectParameterName;
+    this.swanProjectParamName = swanProjectParamName;
+    this.fintectureProjectParamName = fintectureProjectParamName;
   }
 
   private String getParameterValue(SsmClient ssmClient, String parameterName) {
@@ -35,6 +39,10 @@ public class ProjectTokenManager {
   }
 
   public String getSwanProjecToken() {
-    return getParameterValue(ssmClient, projectParameterName);
+    return getParameterValue(ssmClient, swanProjectParamName);
+  }
+
+  public String getFintectureProjectToken() {
+    return getParameterValue(ssmClient, fintectureProjectParamName);
   }
 }

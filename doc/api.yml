@@ -286,6 +286,39 @@ paths:
           $ref: '#/components/responses/429'
         '500':
           $ref: '#/components/responses/500'
+  /paymentRequests:
+    post:
+      tags:
+        - Payment
+      summary: Request new payments.
+      operationId: createPaymentReq
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/PaymentReq'
+      responses:
+        200:
+          description: Return paymentUrl information
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PaymentUrl'
+        '400':
+          $ref: '#/components/responses/400'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+        '429':
+          $ref: '#/components/responses/429'
+        '500':
+          $ref: '#/components/responses/500'
 components:
   securitySchemes:
     BearerAuth:
@@ -323,6 +356,34 @@ components:
           schema:
             $ref: '#/components/schemas/InternalServerException'
   schemas:
+    PaymentReq:
+      type: object
+      properties:
+        id:
+          type: string
+        label:
+          type: string
+        reference:
+          type: string
+        amount:
+          type: number
+        payer_name:
+          type: string
+        payer_email:
+          type: string
+        successUrl:
+          type: string
+        failureUrl:
+          type: string
+    PaymentUrl:
+      type: object
+      properties:
+        redirectUrl:
+          type: string
+        successUrl:
+          type: string
+        failureUrl:
+          type: string
     SwanTransaction:
       type: object
       properties:

@@ -8,6 +8,7 @@ import app.bpartners.api.model.entity.BoundedPageSize;
 import app.bpartners.api.model.entity.PageFromOne;
 import app.bpartners.api.service.PreUserService;
 import java.util.List;
+import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -32,7 +33,7 @@ public class PreUserController {
   ) {
     return service.getPreUsers(page, pageSize).stream()
         .map(mapper::toRest)
-        .toList();
+        .collect(Collectors.toUnmodifiableList());
   }
 
   @PostMapping("/preUsers")
@@ -40,9 +41,9 @@ public class PreUserController {
       @RequestBody List<CreatePreUser> createPreUsers) {
     List<PreUser> toCreate = createPreUsers.stream()
         .map(mapper::toDomain)
-        .toList();
+        .collect(Collectors.toUnmodifiableList());
     return service.createPreUsers(toCreate).stream()
         .map(mapper::toRest)
-        .toList();
+        .collect(Collectors.toUnmodifiableList());
   }
 }

@@ -4,6 +4,7 @@ package app.bpartners.api.model.mapper;
 import app.bpartners.api.model.PreUser;
 import app.bpartners.api.model.entity.HPreUser;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -36,6 +37,6 @@ public class PreUserMapper {
   public List<HPreUser> toEntity(List<PreUser> preUser) {
     return preUser.stream()
         .map(this::toEntity)
-        .toList();
+        .collect(Collectors.toUnmodifiableList());
   }
 }

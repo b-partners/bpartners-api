@@ -9,25 +9,6 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class SwanMapper {
-  public SwanUser graphQLToRest(app.bpartners.api.repository.swan.schema.SwanUser graphqlUser) {
-    SwanUser user = new SwanUser();
-    user.setSwanId(graphqlUser.id);
-    user.setFirstName(graphqlUser.firstName);
-    user.setLastName(graphqlUser.lastName);
-    user.setMobilePhoneNumber(graphqlUser.mobilePhoneNumber);
-    user.setIdentificationStatus(graphqlUser.identificationStatus);
-    user.setBirthDate(graphqlUser.birthDate);
-    user.setNationalityCCA3(graphqlUser.nationalityCCA3);
-    user.setIdVerified(graphqlUser.idVerified);
-    return user;
-  }
-
-  public List<SwanUser> graphQLToRest(
-      List<app.bpartners.api.repository.swan.schema.SwanUser> graphqlUsers) {
-    return graphqlUsers.stream()
-        .map(this::graphQLToRest)
-        .collect(Collectors.toUnmodifiableList());
-  }
 
   public Token graphQLToRest(TokenResponse graphQLToken) {
     Token token = new Token();

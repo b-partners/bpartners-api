@@ -22,7 +22,7 @@ plugins {
 }
 
 group = 'app.bpartners'
-sourceCompatibility = "16"
+sourceCompatibility = "11"
 
 configurations {
     compileOnly {
@@ -147,4 +147,3 @@ dependencyManagement {
         mavenBom "org.testcontainers:testcontainers-bom:${testcontainersVersion}"
     }
 }
-targetCompatibility = JavaVersion.VERSION_16

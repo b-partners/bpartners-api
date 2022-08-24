@@ -317,20 +317,6 @@ components:
           default: 5
         status:
           $ref: '#/components/schemas/EnableStatus'
-    Account:
-      allOf:
-        - $ref: '#/components/schemas/SwanAccount'
-    SwanAccountHolder:
-      type: object
-      properties:
-        accountHolderName:
-          type: string
-        address:
-          type: string
-        city:
-          type: string
-        postalCode:
-          type: string
     SwanUser:
       type: object
       properties:
@@ -357,19 +343,6 @@ components:
         mobilePhoneNumber:
           type: string
           example: "+33 1 23 45 67 89"
-    SwanAccount:
-      type: object
-      properties:
-        accountId:
-          type: string
-        accountName:
-          type: string
-        number:
-          type: integer
-        IBAN:
-          type: string
-        BIC:
-          type: string
     EnableStatus:
       type: string
       enum:

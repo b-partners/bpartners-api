@@ -29,9 +29,12 @@ public class PreUserController {
       @RequestParam(required = false) String firstName,
       @RequestParam(required = false) String lastName,
       @RequestParam(required = false) String society,
-      @RequestParam(required = false) String email
+      @RequestParam(required = false) String email,
+      @RequestParam(required = false) String phoneNumber
   ) {
-    return service.getPreUsers(page, pageSize).stream()
+    return service.getPreUsersByCriteria(page, pageSize, firstName, lastName, email, society,
+            phoneNumber)
+        .stream()
         .map(mapper::toRest)
         .collect(Collectors.toUnmodifiableList());
   }

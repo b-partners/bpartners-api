@@ -144,12 +144,17 @@ paths:
           schema:
             type: string
           required: false
+        - name: email
+          in: query
+          schema:
+            type: string
+          required: false
         - name: society
           in: query
           schema:
             type: string
           required: false
-        - name: email
+        - name: phoneNumber
           in: query
           schema:
             type: string

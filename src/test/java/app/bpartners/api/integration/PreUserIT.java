@@ -27,10 +27,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import static app.bpartners.api.integration.conf.TestUtils.PRE_REGISTRATION1_ID;
+import static app.bpartners.api.integration.conf.TestUtils.PRE_USER1_ID;
 import static app.bpartners.api.integration.conf.TestUtils.setUpSwanComponent;
 import static app.bpartners.api.integration.conf.TestUtils.setUpSwanRepository;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
@@ -40,13 +41,11 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @AutoConfigureMockMvc
 class PreUserIT {
   @MockBean
+  UserSwanRepository swanRepositoryMock;
+  @MockBean
   private SentryConf sentryConf;
-
   @MockBean
   private SwanComponent swanComponentMock;
-
-  @MockBean
-  UserSwanRepository swanRepositoryMock;
 
   private static ApiClient anApiClient(String token) {
     return TestUtils.anApiClient(token, ContextInitializer.SERVER_PORT);
@@ -80,7 +79,7 @@ class PreUserIT {
 
   PreUser preUser1() {
     PreUser preRegistration = new PreUser();
-    preRegistration.setId(PRE_REGISTRATION1_ID);
+    preRegistration.setId(PRE_USER1_ID);
     preRegistration.setEmail("mathieu@email.com");
     preRegistration.setFirstName("Mathieu");
     preRegistration.setLastName("Dupont");
@@ -130,9 +129,38 @@ class PreUserIT {
     ApiClient apiClient = anApiClient(TestUtils.USER1_TOKEN);
     PreUsersApi api = new PreUsersApi(apiClient);
 
-    List<PreUser> actual = api.getPreUsers(1, 10, null, null, null, null);
+    List<PreUser> actual = api.getPreUsers(1, 10, null, null, null, null, null);
 
     assertTrue(actual.contains(preUser1()));
+  }
+
+
+  @Test
+  void authenticated_read_filtered_pre_users_ignore_case_ok() throws ApiException {
+    ApiClient apiClient = anApiClient(TestUtils.USER1_TOKEN);
+    PreUsersApi api = new PreUsersApi(apiClient);
+
+    List<PreUser> actual =
+        api.getPreUsers(1, 10, preUser1().getFirstName().toUpperCase(), preUser1().getLastName(),
+            preUser1().getEmail(), preUser1().getSociety().toUpperCase(),
+            preUser1().getPhoneNumber());
+
+    assertTrue(actual.contains(preUser1()));
+    assertEquals(1, actual.size());
+  }
+
+  @Test
+  void authenticated_read_pre_users_by_firstName_and_bad_mail_ko() throws ApiException {
+    ApiClient apiClient = anApiClient(TestUtils.USER1_TOKEN);
+    PreUsersApi api = new PreUsersApi(apiClient);
+
+    List<PreUser> actual3 =
+        api.getPreUsers(1, 10, preUser1().getFirstName(), preUser1().getLastName(),
+            validPreUser().getEmail(), preUser1().getSociety().toUpperCase(),
+            preUser1().getPhoneNumber());
+
+    assertFalse(actual3.contains(preUser1()));
+    assertEquals(0, actual3.size());
   }
 
   @Test
@@ -143,7 +171,8 @@ class PreUserIT {
     List<PreUser> actual = api.createPreUsers(List.of(validPreUser()));
 
     List<PreUser> actualList =
-        api.getPreUsers(1, 10, "john", "doe", "johnSociety", TestUtils.VALID_EMAIL);
+        api.getPreUsers(1, 10, null, null, null, null,
+            null);
     assertTrue(actualList.containsAll(actual));
   }
 

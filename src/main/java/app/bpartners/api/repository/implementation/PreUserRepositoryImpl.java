@@ -2,7 +2,6 @@ package app.bpartners.api.repository.implementation;
 
 import app.bpartners.api.model.PreUser;
 import app.bpartners.api.model.entity.HPreUser;
-import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.model.mapper.PreUserMapper;
 import app.bpartners.api.repository.PreUserRepository;
 import app.bpartners.api.repository.jpa.PreUserJpaRepository;
@@ -36,6 +35,8 @@ public class PreUserRepositoryImpl implements PreUserRepository {
   @Override
   public List<PreUser> getByCriteria(Pageable pageable, String firstName, String lastName,
                                      String email, String society, String phoneNumber) {
-    throw new NotImplementedException("Not implemented yet");
+    return repository.getByCriteria(firstName, lastName, society, email, pageable).stream()
+        .map(mapper::toDomain)
+        .collect(Collectors.toUnmodifiableList());
   }
 }

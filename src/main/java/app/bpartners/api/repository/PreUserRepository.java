@@ -9,10 +9,9 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface PreUserRepository {
 
-  public List<PreUser> getPreUsers(Pageable pageable);
-
   List<PreUser> createPreUsers(List<PreUser> toCreate);
 
+  List<PreUser> getPreUsers(Pageable pageable);
 
   List<PreUser> getByCriteria(
       Pageable pageable, String firstName,

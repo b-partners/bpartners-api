@@ -23,21 +23,17 @@ public class PreUserService {
     return repository.createPreUsers(toCreate);
   }
 
-  public List<PreUser> getPreUsers(PageFromOne page, BoundedPageSize pageSize) {
-    Pageable pageable = PageRequest.of(
-        page.getValue() - 1,
-        pageSize.getValue());
-    return repository.getPreUsers(pageable);
-  }
-
-  //TODO : Implementation of getByCriteria in PreUserRepositoryImpl and change the controller of
-  // PreUser
   public List<PreUser> getPreUsersByCriteria(
       PageFromOne page, BoundedPageSize pageSize, String firstName,
       String lastName, String email, String society, String phoneNumber) {
     Pageable pageable = PageRequest.of(
         page.getValue() - 1,
         pageSize.getValue());
+    //TODO : fix list by criteria with null value
+    if (firstName == null || lastName == null || email == null || society == null || phoneNumber
+        == null) {
+      return repository.getPreUsers(pageable);
+    }
     return repository.getByCriteria(pageable, firstName, lastName, email, society, phoneNumber);
   }
 }

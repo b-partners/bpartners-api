@@ -117,6 +117,31 @@ paths:
           $ref: '#/components/responses/429'
         '500':
           $ref: '#/components/responses/500'
+  /accountHolders:
+    get:
+      tags:
+        - Accounts
+      summary: Get authenticated user accountHolders.
+      operationId: getAccountHolders
+      responses:
+        '200':
+          description: List of authenticated user accountHolders.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AccountHolder'
+        '400':
+          $ref: '#/components/responses/400'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+        '429':
+          $ref: '#/components/responses/429'
+        '500':
+          $ref: '#/components/responses/500'
   /preUsers:
     get:
       tags:
@@ -320,14 +345,21 @@ components:
     Account:
       allOf:
         - $ref: '#/components/schemas/SwanAccount'
+    AccountHolder:
+      allOf:
+        - $ref: '#/components/schemas/SwanAccountHolder'
     SwanAccountHolder:
       type: object
       properties:
-        accountHolderName:
+        id:
+          type: string
+        name:
           type: string
         address:
           type: string
         city:
+          type: string
+        country:
           type: string
         postalCode:
           type: string

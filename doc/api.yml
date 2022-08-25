@@ -317,6 +317,10 @@ components:
           type: string
         amount:
           type: number
+        payer_name:
+          type: string
+        payer_email:
+          type: string
     PaymentUrl:
       type: object
       properties:

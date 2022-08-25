@@ -31,9 +31,9 @@ class AccountIT {
 
   Account joeDoeAccount() {
     return new Account()
-        .id("cd892bc5-9897-4d27-81b8-9b560f4d5be8")
-        .name("Facebook Account")
-        .IBAN("FR7699999001001190368281623")
+        .id("beed1765-5c16-472a-b3f4-5c376ce5db58")
+        .name("Numer Swan Account")
+        .IBAN("FR7699999001001190346460988")
         .BIC("SWNBFR22");
   }
 
@@ -46,10 +46,9 @@ class AccountIT {
     ApiClient joeDoeClient = anApiClient(bearerToken);
     AccountsApi api = new AccountsApi(joeDoeClient);
 
-    //TODO : Uncomment the line 50-51 when everything ok and remove line 52
-    //List<Account> actual = api.getAccounts();
-    //assertTrue(actual.contains(joeDoeAccount()));
-    assertTrue(true);
+    List<Account> actual = api.getAccounts();
+
+    assertTrue(actual.contains(joeDoeAccount()));
   }
 
   static class ContextInitializer extends AbstractContextInitializer {

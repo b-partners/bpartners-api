@@ -214,7 +214,7 @@ paths:
   /accounts:
     get:
       tags:
-        - Account
+        - Accounts
       summary: Get authenticated user's accounts.
       operationId: getAccounts
       responses:
@@ -239,7 +239,7 @@ paths:
   /transactions:
     get:
       tags:
-        - Payment
+        - Payments
       summary: Get authenticated user' s transactions.
       operationId: getTransactions
       responses:

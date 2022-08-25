@@ -21,7 +21,7 @@ public class ProjectTokenManager {
   }
 
   private String getParameterValue(SsmClient ssmClient, String parameterName) {
-    try (ssmClient) {
+    try {
       GetParameterRequest parameterRequest = GetParameterRequest.builder()
           .name(parameterName)
           .build();

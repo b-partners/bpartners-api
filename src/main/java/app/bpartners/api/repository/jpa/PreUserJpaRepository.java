@@ -16,10 +16,11 @@ public interface PreUserJpaRepository extends JpaRepository<HPreUser, String> {
       + "(:society is null or lower(h.society) like lower(concat('%',:society,'%') ) ) and"
       + "(:email is null or lower(h.email) like lower(concat('%',:email,'%') ) )")
   List<HPreUser> getByCriteria(
+      Pageable pageable,
       @Param("firstname") String firstName,
       @Param("lastname") String lastName,
       @Param("society") String society,
-      @Param("email") String email,
-      Pageable pageable
+      @Param("email") String email
   );
+
 }

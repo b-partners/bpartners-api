@@ -26,11 +26,11 @@ public class PreUserController {
   public List<app.bpartners.api.endpoint.rest.model.PreUser> getPreUsers(
       @RequestParam PageFromOne page,
       @RequestParam("page_size") BoundedPageSize pageSize,
-      @RequestParam(required = false) String firstName,
-      @RequestParam(required = false) String lastName,
-      @RequestParam(required = false) String society,
-      @RequestParam(required = false) String email,
-      @RequestParam(required = false) String phoneNumber
+      @RequestParam(required = false, defaultValue = "") String firstName,
+      @RequestParam(required = false, defaultValue = "") String lastName,
+      @RequestParam(required = false, defaultValue = "") String society,
+      @RequestParam(required = false, defaultValue = "") String email,
+      @RequestParam(required = false, defaultValue = "") String phoneNumber
   ) {
     return service.getPreUsersByCriteria(page, pageSize, firstName, lastName, email, society,
             phoneNumber)

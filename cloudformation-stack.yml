@@ -64,7 +64,7 @@ Resources:
             - Name: SWAN_CLIENT_SECRET
               Value: !Sub '{{resolve:ssm:/bpartners/${Env}/swan/client-secret}}'
             - Name: AWS_SSM_SWAN_PROJECT_PARAM
-              Value: !Sub '{{resolve:ssm/bpartners/${Env}/ssm/swan-project-param-name}}'
+              Value: !Sub '{{resolve:ssm/bpartners/${Env}/swan/swan-project-param-name}}'
           LogConfiguration:
             LogDriver: awslogs
             Options:

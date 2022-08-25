@@ -76,6 +76,7 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
         .antMatchers("/auth").permitAll()
         .antMatchers("/token").permitAll()
         .antMatchers("/onboarding").permitAll()
+        .antMatchers(GET, "/accountHolders").permitAll()
         .antMatchers(POST, "/preUsers").permitAll()
         .antMatchers(OPTIONS, "/**").permitAll()
         .antMatchers(GET, "/transactions").authenticated()

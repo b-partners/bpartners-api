@@ -8,6 +8,8 @@ import app.bpartners.api.endpoint.rest.model.Account;
 import app.bpartners.api.integration.conf.AbstractContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
 import java.util.List;
+
+import app.bpartners.api.model.Account;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;

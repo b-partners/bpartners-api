@@ -29,11 +29,6 @@ public class PreUserService {
     Pageable pageable = PageRequest.of(
         page.getValue() - 1,
         pageSize.getValue());
-    //TODO : fix list by criteria with null value
-    if (firstName == null || lastName == null || email == null || society == null || phoneNumber
-        == null) {
-      return repository.getPreUsers(pageable);
-    }
     return repository.getByCriteria(pageable, firstName, lastName, email, society, phoneNumber);
   }
 }

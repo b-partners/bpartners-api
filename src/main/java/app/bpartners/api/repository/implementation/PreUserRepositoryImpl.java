@@ -35,7 +35,7 @@ public class PreUserRepositoryImpl implements PreUserRepository {
   @Override
   public List<PreUser> getByCriteria(Pageable pageable, String firstName, String lastName,
                                      String email, String society, String phoneNumber) {
-    return repository.getByCriteria(firstName, lastName, society, email, pageable).stream()
+    return repository.getByCriteria(pageable, firstName, lastName, society, email).stream()
         .map(mapper::toDomain)
         .collect(Collectors.toUnmodifiableList());
   }

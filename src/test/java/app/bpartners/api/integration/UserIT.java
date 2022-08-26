@@ -23,7 +23,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import static app.bpartners.api.integration.conf.TestUtils.BAD_REDIRECT_URL;
 import static app.bpartners.api.integration.conf.TestUtils.REDIRECT_URL;
 import static app.bpartners.api.integration.conf.TestUtils.joeDoe;
 import static org.junit.jupiter.api.Assertions.assertEquals;

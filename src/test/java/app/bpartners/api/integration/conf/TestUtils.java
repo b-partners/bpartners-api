@@ -74,8 +74,8 @@ public class TestUtils {
   }
 
   public static void setUpSwanRepository(UserSwanRepository swanRepository) {
-    app.bpartners.api.repository.swan.schema.SwanUser swanUserSchema =
-        new app.bpartners.api.repository.swan.schema.SwanUser();
+    SwanUser swanUserSchema =
+        new SwanUser();
     swanUserSchema.id = swanUser1().id;
     swanUserSchema.firstName = swanUser1().firstName;
     swanUserSchema.lastName = swanUser1().lastName;

@@ -1,8 +1,8 @@
 package app.bpartners.api.endpoint.rest.controller;
 
 import app.bpartners.api.endpoint.rest.mapper.RedirectionMapper;
-import app.bpartners.api.endpoint.rest.model.OnboardingParams;
-import app.bpartners.api.endpoint.rest.model.RedirectionComponent;
+import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
+import app.bpartners.api.endpoint.rest.model.Redirection;
 import app.bpartners.api.service.OnboardingService;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -16,7 +16,7 @@ public class OnboardingController {
   private final RedirectionMapper mapper;
 
   @PostMapping(value = "/onboarding")
-  public RedirectionComponent generateOnboarding(@RequestBody OnboardingParams params) {
+  public Redirection generateOnboarding(@RequestBody RedirectionStatusUrls params) {
     return mapper.toRest(
         onboardingService.generateOnboarding(params.getSuccessUrl(), params.getFailureUrl()));
   }

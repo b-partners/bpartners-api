@@ -4,8 +4,8 @@ import app.bpartners.api.SentryConf;
 import app.bpartners.api.endpoint.rest.api.PaymentApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
-import app.bpartners.api.endpoint.rest.model.PaymentReq;
-import app.bpartners.api.endpoint.rest.model.PaymentUrl;
+import app.bpartners.api.endpoint.rest.model.PaymentInitiation;
+import app.bpartners.api.endpoint.rest.model.PaymentRedirection;
 import app.bpartners.api.integration.conf.AbstractContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
 import java.math.BigDecimal;
@@ -31,8 +31,8 @@ class PaymentIT {
   @Value("${test.user.access.token}")
   private String bearerToken;
 
-  PaymentReq paymentReq1() {
-    return new PaymentReq()
+  PaymentInitiation paymentReq1() {
+    return new PaymentInitiation()
         .id("uuid")
         .amount(BigDecimal.valueOf(100))
         .label("Payment label")
@@ -52,9 +52,9 @@ class PaymentIT {
     ApiClient joeDoeClient = anApiClient(bearerToken);
     PaymentApi api = new PaymentApi(joeDoeClient);
 
-    List<PaymentUrl> actual = api.createPaymentReq(List.of(paymentReq1()));
+    List<PaymentRedirection> actual = api.createPaymentReq(List.of(paymentReq1()));
 
-    PaymentUrl actualPaymentUrl = actual.get(0);
+    PaymentRedirection actualPaymentUrl = actual.get(0);
     assertTrue(
         actualPaymentUrl.getRedirectUrl().startsWith("https://connect-v2-sbx.fintecture.com"));
   }

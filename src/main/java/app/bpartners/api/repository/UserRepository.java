@@ -9,5 +9,6 @@ public interface UserRepository {
 
   User getUserBySwanUserId(String swanUserId);
 
+  //TODO: why the need to filter by token?
   User getUserBySwanUserIdAndToken(String swanUserId, String token);
 }

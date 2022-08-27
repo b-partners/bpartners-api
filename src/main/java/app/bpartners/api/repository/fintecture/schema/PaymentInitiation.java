@@ -1,6 +1,6 @@
 package app.bpartners.api.repository.fintecture.schema;
 
-public class PaymentReq {
+public class PaymentInitiation {
   public Meta meta;
   public Data data;
 

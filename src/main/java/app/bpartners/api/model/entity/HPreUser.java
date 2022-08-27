@@ -20,7 +20,7 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import static javax.persistence.GenerationType.IDENTITY;
 
-
+//TODO: move all the HObject from model.entity to repository.jpa.model
 @Entity
 @Table(name = "\"pre_user\"")
 @Getter

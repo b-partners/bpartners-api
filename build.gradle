@@ -55,7 +55,7 @@ task generateJavaClient(type: org.openapitools.generator.gradle.plugin.tasks.Gen
     library = "native"
 
     groupId = 'app.bpartners'
-    id = 'api-gen'
+    id = 'api-rest'
     skipValidateSpec = false
     logToStderr = true
     generateAliasAsModel = false
@@ -116,7 +116,7 @@ dependencies {
     implementation 'org.flywaydb:flyway-core'
     implementation 'org.postgresql:postgresql'
 
-    implementation 'app.bpartners:api-gen:1.0'
+    implementation 'app.bpartners:api-rest:latest'
 
     implementation 'software.amazon.awssdk:eventbridge:2.17.109'
     implementation 'software.amazon.awssdk:sqs:2.17.109'

@@ -1,11 +1,12 @@
 openapi: 3.0.3
 info:
-  version: '1.0'
+  version: 'latest'
   title: BPartners API
 servers:
-  - url: 'https://api-dev.bpartners.app'
+  - url: https://api-dev.bpartners.app
 security:
   - BearerAuth: [ ]
+
 paths:
   /ping:
     get:
@@ -13,39 +14,39 @@ paths:
         - Security
       summary: pong
       operationId: ping
-      security: [ ] # No security
-      description: Check the server health
+      security: [ ]
+      description: Check server health
       responses:
-        '200':
+        200:
           description: pong
           content:
             text/plain:
               schema:
                 type: string
                 example: pong
-        '500':
+        500:
           $ref: '#/components/responses/500'
-  /auth:
+  /authInitiation:
     post:
       tags:
         - Security
-      summary: Identify a registered user
-      operationId: authentication
-      security: [ ] #No security
+      summary: Initiate an authentication process
+      operationId: initiateAuth
+      security: [ ]
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AuthParams'
+              $ref: '#/components/schemas/AuthInitiation'
         required: true
       responses:
-        '200':
-          description: Informations about auth link
+        200:
+          description: A redirection URL where to initiate authentication
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RedirectionComponent'
-        '400':
+                $ref: '#/components/schemas/Redirection'
+        400:
           $ref: '#/components/schemas/BadRequestException'
         500:
           $ref: '#/components/schemas/InternalServerException'
@@ -53,161 +54,106 @@ paths:
     post:
       tags:
         - Security
-      summary: Generate a new token
-      operationId: generateToken
-      security: [ ] #No security
+      summary: Create a new access token and corresponding refresh token
+      operationId: createToken
+      security: [ ]
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/TokenParams'
+              $ref: '#/components/schemas/CreateToken'
         required: true
       responses:
-        '200':
+        200:
           description: The generated token
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Token'
-        '400':
+        400:
           $ref: '#/components/schemas/BadRequestException'
         500:
           $ref: '#/components/schemas/InternalServerException'
-  /onboarding:
+  /onboardingInitiation:
     post:
       tags:
-        - Users
-      summary: Onboard new users
-      operationId: onboardUsers
+        - Onboarding
+      summary: Initiate an onboarding process
+      operationId: initiateOnboarding
+      security: [ ]
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/OnboardingParams'
+              $ref: '#/components/schemas/OnboardingInitiation'
         required: true
       responses:
-        '200':
-          description: Informations about onboarding link
+        200:
+          description: A redirection component where to initiate onboarding
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RedirectionComponent'
-        '500':
+                $ref: '#/components/schemas/Redirection'
+        500:
           $ref: '#/components/responses/500'
   /whoami:
     get:
       tags:
         - Security
-      summary: Who Am I ? Tells you who you are
+      summary: Who Am I? Tells you who you are
       operationId: whoami
       responses:
-        '200':
-          description: Who you are.
+        200:
+          description: Who you are
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Whoami'
-        '400':
+        400:
           $ref: '#/components/responses/400'
-        '403':
+        403:
           $ref: '#/components/responses/403'
-        '404':
+        404:
           $ref: '#/components/responses/404'
-        '429':
+        429:
           $ref: '#/components/responses/429'
-        '500':
+        500:
           $ref: '#/components/responses/500'
-  /accountHolders:
+  /users/{id}:
     get:
       tags:
-        - Accounts
-      summary: Get authenticated user accountHolders.
-      operationId: getAccountHolders
+        - User Accounts
+      summary: Get a user
+      operationId: getUserById
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
       responses:
-        '200':
-          description: List of authenticated user accountHolders.
+        200:
+          description: The user
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/AccountHolder'
-        '400':
+                $ref: '#/components/schemas/User'
+        400:
           $ref: '#/components/responses/400'
-        '403':
+        403:
           $ref: '#/components/responses/403'
-        '404':
+        404:
           $ref: '#/components/responses/404'
-        '429':
+        429:
           $ref: '#/components/responses/429'
-        '500':
+        500:
           $ref: '#/components/responses/500'
   /preUsers:
-    get:
-      tags:
-        - PreUsers
-      summary: Get all pre-registered users.
-      operationId: getPreUsers
-      parameters:
-        - name: page
-          in: query
-          schema:
-            $ref: '#/components/schemas/Page'
-          required: true
-        - name: page_size
-          in: query
-          schema:
-            $ref: '#/components/schemas/PageSize'
-          required: true
-        - name: firstName
-          in: query
-          schema:
-            type: string
-          required: false
-        - name: lastName
-          in: query
-          schema:
-            type: string
-          required: false
-        - name: email
-          in: query
-          schema:
-            type: string
-          required: false
-        - name: society
-          in: query
-          schema:
-            type: string
-          required: false
-        - name: phoneNumber
-          in: query
-          schema:
-            type: string
-          required: false
-      responses:
-        '200':
-          description: List of pre-registered users.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/PreUser'
-        '400':
-          $ref: '#/components/responses/400'
-        '403':
-          $ref: '#/components/responses/403'
-        '404':
-          $ref: '#/components/responses/404'
-        '429':
-          $ref: '#/components/responses/429'
-        '500':
-          $ref: '#/components/responses/500'
     post:
       tags:
-        - PreUsers
-      security: [ ] #no security
-      summary: Pre-register a user.
+        - Onboarding
+      security: [ ]
+      summary: Pre-onboard users
       operationId: createPreUsers
       requestBody:
         required: true
@@ -219,79 +165,164 @@ paths:
                 $ref: '#/components/schemas/CreatePreUser'
       responses:
         200:
-          description: Pre-registered user created!
+          description: User is pre-onboarded!
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: '#/components/schemas/PreUser'
-        '400':
+        400:
           $ref: '#/components/responses/400'
-        '403':
+        403:
           $ref: '#/components/responses/403'
-        '404':
+        404:
           $ref: '#/components/responses/404'
-        '429':
+        429:
           $ref: '#/components/responses/429'
-        '500':
+        500:
           $ref: '#/components/responses/500'
-  /accounts:
+  /users/{id}/accounts:
     get:
       tags:
-        - Accounts
-      summary: Get authenticated user's accounts.
-      operationId: getAccounts
+        - User Accounts
+      summary: Get accounts of a user
+      operationId: getAccountsByUserId
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
       responses:
-        '200':
-          description: List of authenticated user' s accounts.
+        200:
+          description: List of accounts for the user
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: '#/components/schemas/Account'
-        '400':
+        400:
           $ref: '#/components/responses/400'
-        '403':
+        403:
           $ref: '#/components/responses/403'
-        '404':
+        404:
           $ref: '#/components/responses/404'
-        '429':
+        429:
           $ref: '#/components/responses/429'
-        '500':
+        500:
           $ref: '#/components/responses/500'
-  /transactions:
+  /accounts/{id}/transactions:
     get:
       tags:
-        - Payments
-      summary: Get authenticated user' s transactions.
+        - Paying
+      summary: Get transactions of an account
       operationId: getTransactions
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
       responses:
-        '200':
-          description: List of authenticated user' s transactions.
+        200:
+          description: List of transactions of the account
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: '#/components/schemas/Transaction'
-        '400':
+        400:
           $ref: '#/components/responses/400'
-        '403':
+        403:
           $ref: '#/components/responses/403'
-        '404':
+        404:
           $ref: '#/components/responses/404'
-        '429':
+        429:
           $ref: '#/components/responses/429'
-        '500':
+        500:
           $ref: '#/components/responses/500'
-  /paymentRequests:
+  /accounts/{aId}/invoices/{iId}:
+    put:
+      tags:
+        - Paying
+      summary: Crupdate an invoice
+      operationId: crupdateInvoice
+      parameters:
+        - in: path
+          name: aId
+          description: Account identifier
+          schema:
+            type: string
+          required: true
+        - in: path
+          name: iId
+          description: Invoice identifier
+          schema:
+            type: string
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CrupdateInvoice'
+      responses:
+        200:
+          description: The crupdated invoice
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Invoice'
+    get:
+      tags:
+        - Paying
+      summary: Get an invoice
+      operationId: getInvoiceById
+      parameters:
+        - in: path
+          name: aId
+          description: Account identifier
+          schema:
+            type: string
+          required: true
+        - in: path
+          name: iId
+          description: Invoice identifier
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description: The invoice
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Invoice'
+        400:
+          $ref: '#/components/responses/400'
+        403:
+          $ref: '#/components/responses/403'
+        404:
+          $ref: '#/components/responses/404'
+        429:
+          $ref: '#/components/responses/429'
+        500:
+          $ref: '#/components/responses/500'
+  /accounts/{id}/paymentInitiations:
     post:
       tags:
-        - Payment
-      summary: Request new payments.
-      operationId: createPaymentReq
+        - Paying
+      summary: Initiate payment processes to an account
+      operationId: initiatePayments
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
       requestBody:
         required: true
         content:
@@ -299,25 +330,145 @@ paths:
             schema:
               type: array
               items:
-                $ref: '#/components/schemas/PaymentReq'
+                $ref: '#/components/schemas/PaymentInitiation'
       responses:
         200:
-          description: Return paymentUrl information
+          description: List of redirections where to initiate payments to the account
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/PaymentUrl'
-        '400':
+                  $ref: '#/components/schemas/PaymentRedirection'
+        400:
           $ref: '#/components/responses/400'
-        '403':
+        403:
           $ref: '#/components/responses/403'
-        '404':
+        404:
           $ref: '#/components/responses/404'
-        '429':
+        429:
           $ref: '#/components/responses/429'
-        '500':
+        500:
+          $ref: '#/components/responses/500'
+
+  /files/{id}:
+    get:
+      tags:
+        - Files
+      summary: Get information of a file
+      operationId: getFileById
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description: Information of the file
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/File'
+        400:
+          $ref: '#/components/responses/400'
+        403:
+          $ref: '#/components/responses/403'
+        404:
+          $ref: '#/components/responses/404'
+        429:
+          $ref: '#/components/responses/429'
+        500:
+          $ref: '#/components/responses/500'
+  /files/{id}/raw:
+    get:
+      tags:
+        - Files
+      summary: Download a file
+      operationId: downloadFile
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description: The file
+          content:
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+            image/png:
+              schema:
+                type: string
+                format: binary
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        400:
+          $ref: '#/components/responses/400'
+        403:
+          $ref: '#/components/responses/403'
+        404:
+          $ref: '#/components/responses/404'
+        429:
+          $ref: '#/components/responses/429'
+        500:
+          $ref: '#/components/responses/500'
+    post:
+      tags:
+        - Files
+      summary: Upload a file. Fails if file already exists.
+      operationId: uploadFile
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+      requestBody:
+        required: true
+        content:
+          image/jpeg:
+            schema:
+              type: string
+              format: binary
+          image/png:
+            schema:
+              type: string
+              format: binary
+          application/pdf:
+            schema:
+              type: string
+              format: binary
+      responses:
+        200:
+          description: The crupdated file
+          content:
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+            image/png:
+              schema:
+                type: string
+                format: binary
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        400:
+          $ref: '#/components/responses/400'
+        403:
+          $ref: '#/components/responses/403'
+        404:
+          $ref: '#/components/responses/404'
+        429:
+          $ref: '#/components/responses/429'
+        500:
           $ref: '#/components/responses/500'
 components:
   securitySchemes:
@@ -325,38 +476,38 @@ components:
       type: http
       scheme: bearer
   responses:
-    '400':
+    400:
       description: Bad request
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/BadRequestException'
-    '403':
+    403:
       description: Forbidden
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/NotAuthorizedException'
-    '404':
+    404:
       description: Not found
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/ResourceNotFoundException'
-    '429':
+    429:
       description: Too many requests to the API
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/TooManyRequestsException'
-    '500':
+    500:
       description: Internal server error
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/InternalServerException'
   schemas:
-    PaymentReq:
+    PaymentInitiation:
       type: object
       properties:
         id:
@@ -367,34 +518,20 @@ components:
           type: string
         amount:
           type: number
-        payer_name:
+        payerName:
           type: string
-        payer_email:
+        payerEmail:
           type: string
-        successUrl:
-          type: string
-        failureUrl:
-          type: string
-    PaymentUrl:
+        redirectionStatusUrls:
+          $ref: '#/components/schemas/RedirectionStatusUrls'
+    Transaction:
       type: object
       properties:
-        redirectUrl:
-          type: string
-        successUrl:
-          type: string
-        failureUrl:
-          type: string
-    SwanTransaction:
-      type: object
-      properties:
-        swanTransactionId:
+        id:
           type: string
           example: 'uuid'
         amount:
           type: number
-        currency:
-          type: string
-          example: 'EUR'
         label:
           type: string
         reference:
@@ -402,11 +539,6 @@ components:
         paymentDatetime:
           type: string
           format: date-time
-    Transaction:
-      allOf:
-        - $ref: '#/components/schemas/SwanTransaction'
-      type: object
-      properties:
         category:
           $ref: '#/components/schemas/TransactionCategory'
     TransactionCategory:
@@ -417,42 +549,8 @@ components:
         label:
           type: string
     User:
-      allOf:
-        - $ref: '#/components/schemas/SwanUser'
       properties:
         id:
-          type: string
-          example: 'uuid'
-        monthlySubscription:
-          type: integer
-          default: 5
-        status:
-          $ref: '#/components/schemas/EnableStatus'
-    Account:
-      allOf:
-        - $ref: '#/components/schemas/SwanAccount'
-    AccountHolder:
-      allOf:
-        - $ref: '#/components/schemas/SwanAccountHolder'
-    SwanAccountHolder:
-      type: object
-      properties:
-        id:
-          type: string
-        name:
-          type: string
-        address:
-          type: string
-        city:
-          type: string
-        country:
-          type: string
-        postalCode:
-          type: string
-    SwanUser:
-      type: object
-      properties:
-        swan_id:
           type: string
           example: 'uuid'
         firstName:
@@ -472,11 +570,16 @@ components:
         nationalityCCA3:
           type: string
           example: 'FRA'
-        mobilePhoneNumber:
+        phone:
           type: string
           example: "+33 1 23 45 67 89"
-    SwanAccount:
-      type: object
+        monthlySubscriptionAmount:
+          type: integer
+        logoFileId:
+          type: string
+        status:
+          $ref: '#/components/schemas/EnableStatus'
+    Account:
       properties:
         id:
           type: string
@@ -493,8 +596,6 @@ components:
         - DISABLED
     Whoami:
       properties:
-        bearerToken:
-          type: string
         user:
           $ref: '#/components/schemas/User'
     CreatePreUser:
@@ -509,7 +610,7 @@ components:
         email:
           type: string
           example: username@domain.com
-        phoneNumber:
+        phone:
           type: string
     PreUser:
       allOf:
@@ -521,61 +622,121 @@ components:
         entranceDatetime:
           type: string
           format: date-time
-    AuthParams:
+    AuthInitiation:
       type: object
       properties:
-        phoneNumber:
+        phone:
           type: string
+        redirectionStatusUrls:
+          $ref: '#/components/schemas/RedirectionStatusUrls'
+    OnboardingInitiation:
+      type: object
+      properties:
+        redirectionStatusUrls:
+          $ref: '#/components/schemas/RedirectionStatusUrls'
+    RedirectionStatusUrls:
+      type: object
+      properties:
         successUrl:
           type: string
         failureUrl:
           type: string
-    OnboardingParams:
-      type: object
-      properties:
-        successUrl:
-          type: string
-        failureUrl:
-          type: string
-    TokenParams:
-      type: object
-      properties:
-        code:
-          type: string
-        successUrl:
-          type: string
-        failureUrl:
-          type: string
-    RedirectionComponent:
+    Redirection:
       type: object
       properties:
         redirectionUrl:
           type: string
-        successUrl:
+        redirectionStatusUrls:
+          $ref: '#/components/schemas/RedirectionStatusUrls'
+    PaymentRedirection:
+      allOf:
+        - $ref: '#/components/schemas/Redirection'
+      type: object
+      properties:
+        id:
           type: string
-        failureUrl:
+    CreateToken:
+      type: object
+      properties:
+        code:
           type: string
+        redirectionStatusUrls:
+          $ref: '#/components/schemas/RedirectionStatusUrls'
     Token:
       type: object
       properties:
-        idToken:
-          type: string
         accessToken:
           type: string
         refreshToken:
           type: string
-        expiresIn:
+        expiresAt:
           type: string
-        scope:
+          format: date-time
+        whoami:
+          $ref: '#/components/schemas/Whoami'
+    CrupdateInvoice:
+      type: object
+      properties:
+        ref:
           type: string
-        tokenType:
+        title:
           type: string
-    Page:
-      type: integer
-      description: Start at `1`
-    PageSize:
-      type: integer
-      description: Cannot exceed `500`
+        status:
+          $ref: '#/components/schemas/InvoiceStatus'
+        amount:
+          type: integer
+        customer:
+          $ref: '#/components/schemas/Customer'
+        toPayAt:
+          type: string
+          format: date-time
+    Invoice:
+      allOf:
+        - $ref: '#/components/schemas/CrupdateInvoice'
+      type: object
+      properties:
+        id:
+          type: string
+        updatedAt:
+          type: string
+          format: date-time
+        fileId:
+          type: string
+          nullable: true
+          description: |
+            Identifier of the PDF file that is automatically generated for each crupdate.
+            Its value is `null` when generation is not finished yet.
+    InvoiceStatus:
+      type: string
+      enum:
+        - CONFIRMED
+    Customer:
+      type: object
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+
+    File:
+      type: object
+      properties:
+        id:
+          type: string
+        uploadedAt:
+          type: string
+          format: date-time
+        uploadedByUserId:
+          type: string
+          format: date-time
+        sizeInKB:
+          type: integer
+        sha256:
+          type: string
     Exception:
       type: object
       properties:

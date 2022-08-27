@@ -17,9 +17,16 @@ import lombok.Setter;
 public class User {
   private String id;
 
-  private SwanUser swanUser;
+  private SwanUser swanUser; //TODO: no, no swan notion in the domain!
 
   private int monthlySubscription;
 
   private EnableStatus status;
+
+  /* TODO(no-accountHolder): here, add accounts parameter of type Map<Account,UserRole>
+  * where UserRole=HOLDER|ACCOUNTANT.
+  *
+  * For the moment, let's suppose that HOLDER have admin permissions
+  * while ACCOUNTANT has read-only permissions.
+  * No need to implement those permissions distinctions for the moment, just have them in mind. */
 }

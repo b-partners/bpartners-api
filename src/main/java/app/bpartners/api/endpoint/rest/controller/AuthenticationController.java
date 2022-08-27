@@ -1,9 +1,9 @@
 package app.bpartners.api.endpoint.rest.controller;
 
-import app.bpartners.api.endpoint.rest.model.AuthParams;
-import app.bpartners.api.endpoint.rest.model.RedirectionComponent;
+import app.bpartners.api.endpoint.rest.model.AuthInitiation;
+import app.bpartners.api.endpoint.rest.model.Redirection;
 import app.bpartners.api.endpoint.rest.model.Token;
-import app.bpartners.api.endpoint.rest.model.TokenParams;
+import app.bpartners.api.endpoint.rest.model.CreateToken;
 import app.bpartners.api.service.AuthService;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -16,12 +16,13 @@ public class AuthenticationController {
   private final AuthService authService;
 
   @PostMapping("/auth")
-  public RedirectionComponent redirectUrlToSwan(@RequestBody AuthParams params) {
+  //TODO: rename ALL params parameters to a more explicit name!
+  public Redirection redirectUrlToSwan(@RequestBody AuthInitiation params) {
     return authService.generateAuthUrl(params);
   }
 
   @PostMapping("/token")
-  public Token generateToken(@RequestBody(required = false) TokenParams params) {
+  public Token generateToken(@RequestBody(required = false) CreateToken params) {
     return authService.generateTokenUrl(params);
   }
 }

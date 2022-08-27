@@ -14,7 +14,7 @@ public class PreUserRestMapper {
         .lastname(toCreate.getFirstName())
         .email(toCreate.getEmail())
         .society(toCreate.getSociety())
-        .mobilePhoneNumber(toCreate.getPhoneNumber())
+        .mobilePhoneNumber(toCreate.getPhone())
         .build();
   }
 
@@ -23,7 +23,7 @@ public class PreUserRestMapper {
     restPreUser.setId(preUser.getId());
     restPreUser.setFirstName(preUser.getFirstname());
     restPreUser.setLastName(preUser.getLastname());
-    restPreUser.setPhoneNumber(preUser.getMobilePhoneNumber());
+    restPreUser.setPhone(preUser.getMobilePhoneNumber());
     restPreUser.setSociety(preUser.getSociety());
     restPreUser.setEmail(preUser.getEmail());
     restPreUser.setEntranceDatetime(preUser.getEntranceDateTime());

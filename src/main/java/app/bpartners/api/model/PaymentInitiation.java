@@ -13,7 +13,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 @EqualsAndHashCode
-public class PaymentReq {
+public class PaymentInitiation {
   private String id;
   private String label;
   private String reference;

@@ -1,6 +1,6 @@
 package app.bpartners.api.repository.fintecture.schema;
 
-public class PaymentUrl {
+public class PaymentRedirection {
   public Meta meta;
 
   public static class Meta {

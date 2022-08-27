@@ -4,8 +4,8 @@ import app.bpartners.api.manager.ProjectTokenManager;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.repository.fintecture.FintectureConf;
 import app.bpartners.api.repository.fintecture.FintecturePaymentReqRepository;
-import app.bpartners.api.repository.fintecture.schema.PaymentReq;
-import app.bpartners.api.repository.fintecture.schema.PaymentUrl;
+import app.bpartners.api.repository.fintecture.schema.PaymentInitiation;
+import app.bpartners.api.repository.fintecture.schema.PaymentRedirection;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.net.URI;
@@ -25,7 +25,7 @@ public class FintecturePaymentReqRepositoryImpl implements FintecturePaymentReqR
   private final ProjectTokenManager tokenManager;
 
   @Override
-  public PaymentUrl generatePaymentUrl(PaymentReq paymentReq, String redirectUri) {
+  public PaymentRedirection generatePaymentUrl(PaymentInitiation paymentReq, String redirectUri) {
     try {
       HttpClient httpClient = HttpClient.newBuilder().build();
       String urlParams = String.format("?redirectUri=%s&state=1234", redirectUri);
@@ -41,7 +41,7 @@ public class FintecturePaymentReqRepositoryImpl implements FintecturePaymentReqR
           httpClient.send(request, HttpResponse.BodyHandlers.ofString());
       return new ObjectMapper()
           .findAndRegisterModules() //Load DateTime Module
-          .readValue(response.body(), PaymentUrl.class);
+          .readValue(response.body(), PaymentRedirection.class);
     } catch (IOException | InterruptedException | URISyntaxException e) {
       throw new ApiException(ApiException.ExceptionType.SERVER_EXCEPTION, e);
     }

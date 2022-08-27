@@ -11,9 +11,10 @@ public interface PreUserRepository {
 
   List<PreUser> createPreUsers(List<PreUser> toCreate);
 
+  //TODO: will NEVER be used, remove: just provide read acces to DB as it's just for internal usage
   List<PreUser> getPreUsers(Pageable pageable);
 
   List<PreUser> getByCriteria(
       Pageable pageable, String firstName,
-      String lastName, String email, String society, String phoneNumber);
+      String lastName, String email, String society, String phone);
 }

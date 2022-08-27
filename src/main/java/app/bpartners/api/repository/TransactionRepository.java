@@ -4,5 +4,5 @@ import app.bpartners.api.model.Transaction;
 import java.util.List;
 
 public interface TransactionRepository {
-  List<Transaction> getTransactions();
+  List<Transaction> findAll(); //TODO: will NEVER be used, remove
 }

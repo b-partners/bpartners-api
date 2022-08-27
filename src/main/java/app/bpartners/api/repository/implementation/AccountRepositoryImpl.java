@@ -16,7 +16,7 @@ public class AccountRepositoryImpl implements AccountRepository {
   private AccountMapper mapper;
 
   @Override
-  public List<Account> getAccounts() {
+  public List<Account> findAll() {
     return accountRepository.getAccounts().stream()
         .map(mapper::toDomain)
         .collect(Collectors.toUnmodifiableList());

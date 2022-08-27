@@ -13,7 +13,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 @EqualsAndHashCode
-public class PaymentUrl {
+public class PaymentRedirection {
   private String redirectUrl;
   private String successUrl;
   private String failureUrl;

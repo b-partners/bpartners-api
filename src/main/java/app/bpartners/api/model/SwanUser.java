@@ -14,7 +14,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 @EqualsAndHashCode
-public class SwanUser {
+public class SwanUser { //TODO: no Swan in the domain
   private String id;
 
   private String firstName;

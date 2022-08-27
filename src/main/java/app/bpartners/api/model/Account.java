@@ -20,4 +20,6 @@ public class Account {
   private String name;
   private String iban;
   private String bic;
+
+  /* TODO(no-accountHolder): here, add users parameter of type Map<User,UserRole> */
 }

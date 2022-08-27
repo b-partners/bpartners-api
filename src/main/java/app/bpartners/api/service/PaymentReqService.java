@@ -1,7 +1,7 @@
 package app.bpartners.api.service;
 
-import app.bpartners.api.model.PaymentReq;
-import app.bpartners.api.model.PaymentUrl;
+import app.bpartners.api.model.PaymentInitiation;
+import app.bpartners.api.model.PaymentRedirection;
 import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.repository.PaymentReqRepository;
 import java.util.List;
@@ -13,11 +13,11 @@ import org.springframework.stereotype.Service;
 public class PaymentReqService {
   private final PaymentReqRepository repository;
 
-  public List<PaymentUrl> createPaymentReq(List<PaymentReq> paymentReqs) {
+  public List<PaymentRedirection> createPaymentReq(List<PaymentInitiation> paymentReqs) {
     if (paymentReqs.size() > 1) {
       throw new NotImplementedException("Only one payment request is supported.");
     }
-    PaymentReq paymentReq = paymentReqs.get(0);
+    PaymentInitiation paymentReq = paymentReqs.get(0);
     return repository.generatePaymentUrl(paymentReq);
   }
 }

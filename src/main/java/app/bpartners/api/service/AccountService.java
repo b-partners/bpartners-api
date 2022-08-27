@@ -12,6 +12,6 @@ public class AccountService {
   private AccountRepository repository;
 
   public List<Account> getAccounts() {
-    return repository.getAccounts();
+    return repository.findAll();
   }
 }

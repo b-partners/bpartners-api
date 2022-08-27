@@ -18,7 +18,7 @@ public class TransactionRepositoryImpl implements TransactionRepository {
   private final TransactionMapper mapper;
 
   @Override
-  public List<Transaction> getTransactions() {
+  public List<Transaction> findAll() {
     TransactionCategory domainCategory = mapper.toDomain(category1Mock());
     return swanRepository.getTransactions().stream()
         .map(transaction -> mapper.toDomain(transaction, domainCategory))

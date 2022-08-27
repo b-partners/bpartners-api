@@ -2,8 +2,8 @@ package app.bpartners.api.endpoint.rest.controller;
 
 import app.bpartners.api.endpoint.rest.mapper.PaymentReqRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.PaymentUrlRestMapper;
-import app.bpartners.api.endpoint.rest.model.PaymentReq;
-import app.bpartners.api.endpoint.rest.model.PaymentUrl;
+import app.bpartners.api.endpoint.rest.model.PaymentInitiation;
+import app.bpartners.api.endpoint.rest.model.PaymentRedirection;
 import app.bpartners.api.service.PaymentReqService;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -20,8 +20,8 @@ public class PaymentController {
   private final PaymentReqService service;
 
   @PostMapping(value = "/paymentRequests")
-  List<PaymentUrl> createPaymentReq(@RequestBody List<PaymentReq> paymentRequests) {
-    List<app.bpartners.api.model.PaymentReq> domainPaymentReq = paymentRequests.stream()
+  List<PaymentRedirection> createPaymentReq(@RequestBody List<PaymentInitiation> paymentRequests) {
+    List<app.bpartners.api.model.PaymentInitiation> domainPaymentReq = paymentRequests.stream()
         .map(paymentReqMapper::toDomain)
         .collect(Collectors.toUnmodifiableList());
     return service.createPaymentReq(domainPaymentReq).stream()

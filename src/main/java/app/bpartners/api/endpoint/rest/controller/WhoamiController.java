@@ -20,7 +20,6 @@ public class WhoamiController {
     Whoami whoami = new Whoami();
     whoami.setUser(
         userRestMapper.toRest(userRepository.getUserById(principal.getUserId())));
-    whoami.setBearerToken(principal.getBearer());
     return whoami;
   }
 }

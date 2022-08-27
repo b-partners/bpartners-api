@@ -1,9 +1,10 @@
 package app.bpartners.api.repository;
 
-import app.bpartners.api.model.PaymentReq;
-import app.bpartners.api.model.PaymentUrl;
+import app.bpartners.api.model.PaymentInitiation;
+import app.bpartners.api.model.PaymentRedirection;
 import java.util.List;
 
 public interface PaymentReqRepository {
-  List<PaymentUrl> generatePaymentUrl(PaymentReq paymentReq);
+  //TODO(repository-functions)
+  List<PaymentRedirection> generatePaymentUrl(PaymentInitiation paymentReq);
 }

@@ -1,12 +1,24 @@
 package app.bpartners.api.repository.swan.response;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
 public class TokenResponse {
-  public String access_token;
-  public String id_token;
-  public String expires_in;
-  public String refresh_token;
-  public String scope;
-  public String token_type;
+  @JsonProperty
+  private String access_token;
+  @JsonProperty
+  private String id_token;
+  @JsonProperty
+  private String expires_in;
+  @JsonProperty
+  private String refresh_token;
+  @JsonProperty
+  private String scope;
+  @JsonProperty
+  private String token_type;
 }
 
 

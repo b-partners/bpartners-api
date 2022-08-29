@@ -2,20 +2,35 @@ package app.bpartners.api.repository.swan.response;
 
 
 import app.bpartners.api.repository.swan.schema.SwanAccount;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
+import lombok.Getter;
+import lombok.Setter;
 
+@Getter
+@Setter
 public class AccountResponse {
-  public Data data;
+  @JsonProperty
+  private Data data;
 
+  @Getter
+  @Setter
   public static class Data {
-    public Accounts accounts;
+    @JsonProperty
+    private Accounts accounts;
   }
 
+  @Getter
+  @Setter
   public static class Accounts {
-    public List<Edge> edges;
+    @JsonProperty
+    private List<Edge> edges;
   }
 
+  @Getter
+  @Setter
   public static class Edge {
-    public SwanAccount node;
+    @JsonProperty
+    private SwanAccount node;
   }
 }

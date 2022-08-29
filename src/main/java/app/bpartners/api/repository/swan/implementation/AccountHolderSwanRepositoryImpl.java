@@ -20,6 +20,7 @@ public class AccountHolderSwanRepositoryImpl implements AccountHolderSwanReposit
 
   @Override
   public List<AccountHolder> getAccountHolders() {
-    return List.of(swanApi.getData(message, "").data.accountHolders.edges.get(0).node);
+    return List.of(
+        swanApi.getData(message, "").getData().getAccountHolders().getEdges().get(0).getNode());
   }
 }

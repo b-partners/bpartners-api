@@ -9,12 +9,12 @@ public class SwanMapper {
 
   public Token toRest(TokenResponse tokenResponse) {
     Token token = new Token();
-    token.setIdToken(tokenResponse.id_token);
-    token.setAccessToken(tokenResponse.access_token);
-    token.setRefreshToken(tokenResponse.refresh_token);
-    token.setScope(tokenResponse.scope);
-    token.setTokenType(tokenResponse.token_type);
-    token.setExpiresIn(tokenResponse.expires_in);
+    token.setIdToken(tokenResponse.getId_token());
+    token.setAccessToken(tokenResponse.getAccess_token());
+    token.setRefreshToken(tokenResponse.getRefresh_token());
+    token.setScope(tokenResponse.getScope());
+    token.setTokenType(tokenResponse.getToken_type());
+    token.setExpiresIn(tokenResponse.getExpires_in());
     return token;
   }
 }

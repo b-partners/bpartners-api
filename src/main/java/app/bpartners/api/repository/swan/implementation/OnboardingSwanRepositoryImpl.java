@@ -24,9 +24,10 @@ public class OnboardingSwanRepositoryImpl implements OnboardingSwanRepository {
             + "{ onboardingUrl } } }}\"}";
     OnboardingResponse onboardingResponse =
         swanApi.getData(message, tokenManager.getSwanProjecToken());
-    if (onboardingResponse.data.onboardCompanyAccountHolder.onboarding == null) {
+    if (onboardingResponse.getData().getOnboardCompanyAccountHolder().getOnboarding() == null) {
       throw new BadRequestException("Invalid redirect URL");
     }
-    return onboardingResponse.data.onboardCompanyAccountHolder.onboarding.onboardingUrl;
+    return onboardingResponse.getData().getOnboardCompanyAccountHolder().getOnboarding()
+        .getOnboardingUrl();
   }
 }

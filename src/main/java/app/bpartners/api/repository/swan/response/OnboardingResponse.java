@@ -1,18 +1,33 @@
 package app.bpartners.api.repository.swan.response;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
+import lombok.Setter;
 
+@Getter
+@Setter
 public class OnboardingResponse {
-  public Data data;
+  @JsonProperty
+  private Data data;
 
+  @Getter
+  @Setter
   public static class Data {
-    public OnboardCompanyAccountHolder onboardCompanyAccountHolder;
+    @JsonProperty
+    private OnboardCompanyAccountHolder onboardCompanyAccountHolder;
   }
 
+  @Getter
+  @Setter
   public static class OnboardCompanyAccountHolder {
-    public Onboarding onboarding;
+    @JsonProperty
+    private Onboarding onboarding;
   }
 
+  @Getter
+  @Setter
   public static class Onboarding {
-    public String onboardingUrl;
+    @JsonProperty
+    private String onboardingUrl;
   }
 }

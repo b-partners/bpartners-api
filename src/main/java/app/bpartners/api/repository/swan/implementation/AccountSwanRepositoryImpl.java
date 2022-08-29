@@ -17,7 +17,8 @@ public class AccountSwanRepositoryImpl implements AccountSwanRepository {
 
   @Override
   public List<SwanAccount> getAccounts() {
-    SwanAccount account = swanApi.getData(message, "").data.accounts.edges.get(0).node;
+    SwanAccount account =
+        swanApi.getData(message, "").getData().getAccounts().getEdges().get(0).getNode();
     return List.of(account);
   }
 }

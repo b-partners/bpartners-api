@@ -2,9 +2,13 @@ package app.bpartners.api.repository.swan.response;
 
 import app.bpartners.api.repository.swan.schema.Transaction;
 import java.util.List;
+import lombok.Getter;
+import lombok.Setter;
 
+@Getter
+@Setter
 public class TransactionResponse {
-  public Data data;
+  private Data data;
 
   public static class Data {
     public Account accounts;

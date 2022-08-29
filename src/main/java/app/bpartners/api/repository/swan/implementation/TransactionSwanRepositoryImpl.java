@@ -19,6 +19,7 @@ public class TransactionSwanRepositoryImpl implements TransactionSwanRepository 
 
   @Override
   public List<Transaction> getTransactions() {
-    return swanApi.getData(message,"").data.accounts.edges.get(0).node.transactions.edges;
+    return swanApi.getData(message, "").getData().getAccounts().getEdges().get(0).getNode()
+        .getTransactions().getEdges();
   }
 }

@@ -27,7 +27,7 @@ public class SwanComponent {
 
 
   public String getSwanUserIdByToken(String accessToken) {
-    return getSwanUserByToken(accessToken) != null ? getSwanUserByToken(accessToken).id :
+    return getSwanUserByToken(accessToken) != null ? getSwanUserByToken(accessToken).getId() :
         null;
   }
 

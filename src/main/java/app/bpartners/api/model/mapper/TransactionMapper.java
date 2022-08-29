@@ -10,12 +10,12 @@ public class TransactionMapper {
   public Transaction toDomain(app.bpartners.api.repository.swan.schema.Transaction external,
                               TransactionCategory category) {
     return Transaction.builder()
-        .transactionId(external.node.id)
-        .amount(external.node.amount.value)
-        .currency(external.node.amount.currency)
-        .label(external.node.label)
-        .reference(external.node.reference)
-        .paymentDatetime(external.node.createdAt)
+        .transactionId(external.getNode().getId())
+        .amount(external.getNode().getAmount().getValue())
+        .currency(external.getNode().getAmount().getCurrency())
+        .label(external.getNode().getLabel())
+        .reference(external.getNode().getReference())
+        .paymentDatetime(external.getNode().getCreatedAt())
         .category(category)
         .build();
   }

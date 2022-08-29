@@ -1,18 +1,36 @@
 package app.bpartners.api.repository.swan.schema;
 
-public class AccountHolder {
-  public String id;
-  public Info info;
-  public ResidencyAddress residencyAddress;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 
+@Getter
+@Setter
+@AllArgsConstructor
+public class AccountHolder {
+  @JsonProperty
+  private String id;
+  private Info info;
+  private ResidencyAddress residencyAddress;
+
+  @Getter
+  @Setter
   public static class Info {
-    public String name;
+    @JsonProperty
+    private String name;
   }
 
+  @Getter
+  @Setter
   public static class ResidencyAddress {
-    public String addressLine1;
-    public String city;
-    public String country;
-    public String postalCode;
+    @JsonProperty
+    private String addressLine1;
+    @JsonProperty
+    private String city;
+    @JsonProperty
+    private String country;
+    @JsonProperty
+    private String postalCode;
   }
 }

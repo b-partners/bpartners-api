@@ -1,9 +1,20 @@
 package app.bpartners.api.repository.swan.schema;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 
+@Getter
+@Setter
+@AllArgsConstructor
 public class SwanAccount {
-  public String id;
-  public String name;
-  public String IBAN;
-  public String BIC;
+  @JsonProperty
+  private String id;
+  @JsonProperty
+  private String name;
+  @JsonProperty
+  private String IBAN;
+  @JsonProperty
+  private String BIC;
 }

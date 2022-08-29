@@ -1,21 +1,37 @@
 package app.bpartners.api.repository.swan.schema;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.Instant;
+import lombok.Getter;
+import lombok.Setter;
 
+@Getter
+@Setter
 public class Transaction {
-  public Node node;
+  private Node node;
 
+  @Getter
+  @Setter
   public static class Amount {
-    public String currency;
-    public Double value;
+    @JsonProperty
+    private String currency;
+    @JsonProperty
+    private Double value;
   }
 
+  @Getter
+  @Setter
   public static class Node {
-    public String id;
-    public String label;
-    public String reference;
-    public Amount amount;
-    public Instant createdAt;
+    @JsonProperty
+    private String id;
+    @JsonProperty
+    private String label;
+    @JsonProperty
+    private String reference;
+    @JsonProperty
+    private Amount amount;
+    @JsonProperty
+    private Instant createdAt;
 
   }
 }

@@ -8,10 +8,10 @@ import org.springframework.stereotype.Component;
 public class AccountMapper {
   public Account toDomain(SwanAccount external) {
     return Account.builder()
-        .id(external.id)
-        .name(external.name)
-        .iban(external.IBAN)
-        .bic(external.BIC)
+        .id(external.getId())
+        .name(external.getName())
+        .iban(external.getIBAN())
+        .bic(external.getBIC())
         .build();
   }
 }

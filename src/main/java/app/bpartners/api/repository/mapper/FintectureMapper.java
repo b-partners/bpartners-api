@@ -14,13 +14,13 @@ import org.springframework.stereotype.Component;
 @AllArgsConstructor
 public class FintectureMapper {
   private final AccountService accountService;
-  private AccountHolderService accountHolderService;
+  private final AccountHolderService accountHolderService;
 
   private Beneficiary toBeneficiary(Account account, AccountHolder accountHolder) {
     return Beneficiary.builder()
         .name(account.getName())
         .iban(account.getIban())
-        .swift_bic(account.getBic())
+        .swiftBic(account.getBic())
         .street(accountHolder.getAddress())
         .city(accountHolder.getCity())
         .country(accountHolder.getCountry().substring(0, 2))
@@ -35,20 +35,20 @@ public class FintectureMapper {
     Beneficiary beneficiary = toBeneficiary(authenticatedAccount, authenticatedAccountHolder);
 
     PaymentInitiation.Attributes attributes = new PaymentInitiation.Attributes();
-    attributes.communication = domain.getLabel();
-    attributes.amount = String.valueOf(domain.getAmount());
-    attributes.beneficiary = beneficiary;
+    attributes.setCommunication(domain.getLabel());
+    attributes.setAmount(String.valueOf(domain.getAmount()));
+    attributes.setBeneficiary(beneficiary);
 
     PaymentInitiation.Meta meta = new PaymentInitiation.Meta();
-    meta.psu_name = domain.getPayerEmail();
-    meta.psu_email = domain.getPayerEmail();
+    meta.setPsuName(domain.getPayerEmail());
+    meta.setPsuEmail(domain.getPayerEmail());
 
     PaymentInitiation.Data data = new PaymentInitiation.Data();
-    data.attributes = attributes;
+    data.setAttributes(attributes);
 
     PaymentInitiation paymentReq = new PaymentInitiation();
-    paymentReq.meta = meta;
-    paymentReq.data = data;
+    paymentReq.setMeta(meta);
+    paymentReq.setData(data);
 
     return paymentReq;
   }

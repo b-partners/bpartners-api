@@ -1,8 +1,9 @@
 package app.bpartners.api.integration;
 
 import app.bpartners.api.SentryConf;
+import app.bpartners.api.endpoint.rest.model.CreateToken;
+import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
 import app.bpartners.api.endpoint.rest.model.Token;
-import app.bpartners.api.endpoint.rest.model.TokenParams;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
 import app.bpartners.api.integration.conf.AbstractContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
@@ -42,15 +43,18 @@ class AuthenticationIT {
   @Value("${test.swan.user.code}")
   private String userCode;
 
-  /*TokenParams validCode() {
-    return new TokenParams().code(userCode);
+  /*CreateToken validCode() {
+    return new CreateToken().code(userCode);
   }*/
 
-  TokenParams badCode() {
-    return new TokenParams()
+  CreateToken badCode() {
+    return new CreateToken()
         .code("bad_code")
-        .successUrl(REDIRECT_URL)
-        .failureUrl("FailureUrl");
+        .redirectionStatusUrls(
+            new RedirectionStatusUrls()
+                .successUrl(REDIRECT_URL)
+                .failureUrl("FailureUrl")
+        );
   }
 
   @Test
@@ -60,15 +64,17 @@ class AuthenticationIT {
 
     HttpResponse<String> response = unauthenticatedClient.send(
         HttpRequest.newBuilder()
-            .uri(URI.create(basePath + "/auth"))
+            .uri(URI.create(basePath + "/authInitiation"))
             .header("Access-Control-Request-Method", "POST")
             .header("Content-Type", "application/json")
             .header("Accept", "application/json")
             .header("Origin", "http://localhost:3000")
             .POST(HttpRequest.BodyPublishers.ofString("{\n"
                 + "  \"phoneNumber\": \"" + PHONE_NUMBER + "\",\n"
-                + "  \"successUrl\": \"" + REDIRECT_URL + "\",\n"
-                + "  \"failureUrl\": \"failureUrl\"\n"
+                + "\"redirectionStatusUrls\": {\n"
+                + "    \"successUrl\": \"" + REDIRECT_URL + "\",\n"
+                + "    \"failureUrl\": \"" + REDIRECT_URL + "/error\"\n"
+                + "  }"
                 + "}"))
             .build(),
         HttpResponse.BodyHandlers.ofString());
@@ -90,8 +96,10 @@ class AuthenticationIT {
             .header("Origin", "http://localhost:3000")
             .POST(HttpRequest.BodyPublishers.ofString("{\n"
                 + "  \"code\": \"" + badCode().getCode() + "\",\n"
-                + "  \"successUrl\": \"" + badCode().getSuccessUrl() + "\",\n"
-                + "  \"failureUrl\": \"" + badCode().getFailureUrl() + "\"\n"
+                + "\"redirectionStatusUrls\": {\n"
+                + "    \"successUrl\": \"string\",\n"
+                + "    \"failureUrl\": \"string\"\n"
+                + "  }"
                 + "}"))
             .build(),
         HttpResponse.BodyHandlers.ofString());

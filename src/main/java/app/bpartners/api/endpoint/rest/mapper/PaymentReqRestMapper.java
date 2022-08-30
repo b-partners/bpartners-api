@@ -13,7 +13,7 @@ public class PaymentReqRestMapper {
         .id(rest.getId())
         .label(rest.getLabel())
         .reference(rest.getReference())
-        .amount(rest.getAmount().doubleValue()) //TODO: nooooooo
+        .amount(rest.getAmount())
         .payerEmail(rest.getPayerEmail())
         .payerName(rest.getPayerName())
         .successUrl(statusUrls.getSuccessUrl())

@@ -1,7 +1,7 @@
 package app.bpartners.api.model.mapper;
 
 import app.bpartners.api.model.Account;
-import app.bpartners.api.repository.swan.schema.SwanAccount;
+import app.bpartners.api.repository.swan.model.SwanAccount;
 import org.springframework.stereotype.Component;
 
 @Component

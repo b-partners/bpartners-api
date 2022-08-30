@@ -1,6 +1,7 @@
 package app.bpartners.api.model;
 
 import app.bpartners.api.endpoint.rest.model.EnableStatus;
+import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -17,16 +18,24 @@ import lombok.Setter;
 public class User {
   private String id;
 
-  private SwanUser swanUser; //TODO: no, no swan notion in the domain!
+  private String firstName;
+
+  private String lastName;
+
+  private String mobilePhoneNumber;
 
   private int monthlySubscription;
 
   private EnableStatus status;
 
-  /* TODO(no-accountHolder): here, add accounts parameter of type Map<Account,UserRole>
-  * where UserRole=HOLDER|ACCOUNTANT.
-  *
-  * For the moment, let's suppose that HOLDER have admin permissions
-  * while ACCOUNTANT has read-only permissions.
-  * No need to implement those permissions distinctions for the moment, just have them in mind. */
+  private Map<Account, UserRole> accounts;
+
+  public String getName() {
+    return firstName + " " + lastName;
+  }
+
+  public enum UserRole {
+    HOLDER, ACCOUNTANT
+  }
+
 }

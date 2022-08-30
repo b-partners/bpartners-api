@@ -1,4 +1,4 @@
-package app.bpartners.api.repository.fintecture.schema;
+package app.bpartners.api.repository.fintecture.model;
 
 public class PaymentInitiation {
   public Meta meta;
@@ -16,8 +16,8 @@ public class PaymentInitiation {
   }
 
   public static class Attributes {
-    public String amount;
     public final String currency = "EUR";
+    public String amount;
     public String communication;
     public Beneficiary beneficiary;
   }

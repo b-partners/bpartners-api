@@ -1,14 +1,14 @@
 package app.bpartners.api.integration;
 
 import app.bpartners.api.SentryConf;
-import app.bpartners.api.endpoint.rest.api.PaymentApi;
+import app.bpartners.api.endpoint.rest.api.PayingApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
 import app.bpartners.api.endpoint.rest.model.PaymentInitiation;
 import app.bpartners.api.endpoint.rest.model.PaymentRedirection;
+import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
 import app.bpartners.api.integration.conf.AbstractContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
-import java.math.BigDecimal;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,6 +18,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
@@ -34,13 +35,15 @@ class PaymentIT {
   PaymentInitiation paymentReq1() {
     return new PaymentInitiation()
         .id("uuid")
-        .amount(BigDecimal.valueOf(100))
+        .amount(100)
         .label("Payment label")
         .reference("Payment reference")
         .payerName("Payer")
         .payerEmail("payer@email.com")
-        .successUrl("https://dashboard-dev.bpartners.app")
-        .failureUrl("https://dashboard-dev.bpartners.app/error");
+        .redirectionStatusUrls(
+            new RedirectionStatusUrls()
+                .successUrl("https://dashboard-dev.bpartners.app")
+                .failureUrl("https://dashboard-dev.bpartners.app/error"));
   }
 
   private static ApiClient anApiClient(String token) {
@@ -48,15 +51,17 @@ class PaymentIT {
   }
 
   @Test
-  void create_payment_req_ok() throws ApiException {
+  void initiate_payment_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient(bearerToken);
-    PaymentApi api = new PaymentApi(joeDoeClient);
+    PayingApi api = new PayingApi(joeDoeClient);
 
-    List<PaymentRedirection> actual = api.createPaymentReq(List.of(paymentReq1()));
+    List<PaymentRedirection> actual = api.initiatePayments(JOE_DOE_ACCOUNT_ID,
+        List.of(paymentReq1()));
 
     PaymentRedirection actualPaymentUrl = actual.get(0);
     assertTrue(
-        actualPaymentUrl.getRedirectUrl().startsWith("https://connect-v2-sbx.fintecture.com"));
+        actualPaymentUrl.getRedirectionUrl().startsWith(
+            "https://connect-v2-sbx.fintecture.com"));
   }
 
   static class ContextInitializer extends AbstractContextInitializer {

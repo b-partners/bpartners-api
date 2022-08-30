@@ -1,7 +1,7 @@
 package app.bpartners.api.integration;
 
 import app.bpartners.api.SentryConf;
-import app.bpartners.api.endpoint.rest.api.AccountsApi;
+import app.bpartners.api.endpoint.rest.api.UserAccountsApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
 import app.bpartners.api.endpoint.rest.model.AccountHolder;
@@ -16,6 +16,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
@@ -46,9 +47,9 @@ class AccountHolderIT {
   @Test
   void read_account_holders_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient(bearerToken);
-    AccountsApi api = new AccountsApi(joeDoeClient);
+    UserAccountsApi api = new UserAccountsApi(joeDoeClient);
 
-    List<AccountHolder> actual = api.getAccountHolders();
+    List<AccountHolder> actual = api.getAccountHolders(TestUtils.JOE_DOE_ID, JOE_DOE_ACCOUNT_ID);
 
     assertTrue(actual.contains(joeDoeAccountHolder()));
   }

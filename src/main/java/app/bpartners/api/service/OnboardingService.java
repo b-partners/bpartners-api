@@ -11,7 +11,7 @@ public class OnboardingService {
   private final OnboardingRepository repository;
 
   public Onboarding generateOnboarding(String successUrl, String failureUrl) {
-    Onboarding onboarding = repository.generateOnboardingUrl(successUrl);
+    Onboarding onboarding = repository.save(successUrl);
     onboarding.setFailureUrl(failureUrl);
     return onboarding;
   }

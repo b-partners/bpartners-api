@@ -5,7 +5,7 @@ import app.bpartners.api.endpoint.rest.security.principal.PrincipalProvider;
 import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
 import app.bpartners.api.repository.swan.UserSwanRepository;
 import app.bpartners.api.repository.swan.response.UserResponse;
-import app.bpartners.api.repository.swan.schema.SwanUser;
+import app.bpartners.api.repository.swan.model.SwanUser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.net.URI;

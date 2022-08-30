@@ -213,6 +213,42 @@ paths:
           $ref: '#/components/responses/429'
         500:
           $ref: '#/components/responses/500'
+  /users/{userId}/accounts/{accountId}/accountHolders:
+    get:
+      tags:
+        - User Accounts
+      summary: Get accountHolders of an account
+      operationId: getAccountHolders
+      parameters:
+        - in: path
+          name: userId
+          schema:
+            type: string
+          required: true
+        - in: path
+          name: accountId
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description: List of accountHolders of an account
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AccountHolder'
+        400:
+          $ref: '#/components/responses/400'
+        403:
+          $ref: '#/components/responses/403'
+        404:
+          $ref: '#/components/responses/404'
+        429:
+          $ref: '#/components/responses/429'
+        500:
+          $ref: '#/components/responses/500'
   /accounts/{id}/transactions:
     get:
       tags:
@@ -517,7 +553,7 @@ components:
         reference:
           type: string
         amount:
-          type: number
+          type: integer
         payerName:
           type: string
         payerEmail:
@@ -547,6 +583,21 @@ components:
         id:
           type: string
         label:
+          type: string
+    AccountHolder:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        address:
+          type: string
+        city:
+          type: string
+        country:
+          type: string
+        postalCode:
           type: string
     User:
       properties:
@@ -625,6 +676,8 @@ components:
     AuthInitiation:
       type: object
       properties:
+        state:
+          type: string
         phone:
           type: string
         redirectionStatusUrls:

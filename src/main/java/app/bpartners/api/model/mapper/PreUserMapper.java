@@ -2,7 +2,7 @@ package app.bpartners.api.model.mapper;
 
 
 import app.bpartners.api.model.PreUser;
-import app.bpartners.api.model.entity.HPreUser;
+import app.bpartners.api.repository.jpa.model.HPreUser;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;

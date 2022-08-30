@@ -10,7 +10,7 @@ public class TransactionRestMapper {
 
   public Transaction toRest(app.bpartners.api.model.Transaction internal) {
     Transaction transaction = new Transaction();
-    transaction.setId(internal.getTransactionId());
+    transaction.setId(internal.getId());
     transaction.setAmount(BigDecimal.valueOf(internal.getAmount()));
     transaction.setLabel(internal.getLabel());
     transaction.setPaymentDatetime(internal.getPaymentDatetime());

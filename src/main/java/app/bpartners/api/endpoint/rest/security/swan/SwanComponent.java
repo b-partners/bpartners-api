@@ -4,7 +4,7 @@ import app.bpartners.api.endpoint.rest.model.Token;
 import app.bpartners.api.repository.mapper.SwanMapper;
 import app.bpartners.api.repository.swan.response.TokenResponse;
 import app.bpartners.api.repository.swan.response.UserResponse;
-import app.bpartners.api.repository.swan.schema.SwanUser;
+import app.bpartners.api.repository.swan.model.SwanUser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.net.URI;

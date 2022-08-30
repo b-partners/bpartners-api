@@ -1,8 +1,9 @@
 package app.bpartners.api.integration;
 
 import app.bpartners.api.SentryConf;
+import app.bpartners.api.endpoint.rest.model.CreateToken;
+import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
 import app.bpartners.api.endpoint.rest.model.Token;
-import app.bpartners.api.endpoint.rest.model.TokenParams;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
 import app.bpartners.api.integration.conf.AbstractContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
@@ -42,15 +43,18 @@ class AuthenticationIT {
   @Value("${test.swan.user.code}")
   private String userCode;
 
-  /*TokenParams validCode() {
-    return new TokenParams().code(userCode);
+  /*CreateToken validCode() {
+    return new CreateToken().code(userCode);
   }*/
 
-  TokenParams badCode() {
-    return new TokenParams()
+  CreateToken badCode() {
+    return new CreateToken()
         .code("bad_code")
-        .successUrl(REDIRECT_URL)
-        .failureUrl("FailureUrl");
+        .redirectionStatusUrls(
+            new RedirectionStatusUrls()
+                .successUrl(REDIRECT_URL)
+                .failureUrl("FailureUrl")
+        );
   }
 
   @Test
@@ -90,8 +94,10 @@ class AuthenticationIT {
             .header("Origin", "http://localhost:3000")
             .POST(HttpRequest.BodyPublishers.ofString("{\n"
                 + "  \"code\": \"" + badCode().getCode() + "\",\n"
-                + "  \"successUrl\": \"" + badCode().getSuccessUrl() + "\",\n"
-                + "  \"failureUrl\": \"" + badCode().getFailureUrl() + "\"\n"
+                + "  \"successUrl\": \"" + badCode().getRedirectionStatusUrls().getSuccessUrl() +
+                "\",\n"
+                + "  \"failureUrl\": \"" + badCode().getRedirectionStatusUrls().getFailureUrl() +
+                "\"\n"
                 + "}"))
             .build(),
         HttpResponse.BodyHandlers.ofString());

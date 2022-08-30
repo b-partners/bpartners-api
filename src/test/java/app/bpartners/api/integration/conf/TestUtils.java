@@ -4,7 +4,7 @@ import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
 import app.bpartners.api.repository.swan.UserSwanRepository;
-import app.bpartners.api.repository.swan.schema.SwanUser;
+import app.bpartners.api.repository.swan.model.SwanUser;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.time.LocalDate;
@@ -74,8 +74,8 @@ public class TestUtils {
   }
 
   public static void setUpSwanRepository(UserSwanRepository swanRepository) {
-    app.bpartners.api.repository.swan.schema.SwanUser swanUserSchema =
-        new app.bpartners.api.repository.swan.schema.SwanUser();
+    app.bpartners.api.repository.swan.model.SwanUser swanUserSchema =
+        new app.bpartners.api.repository.swan.model.SwanUser();
     swanUserSchema.id = swanUser1().id;
     swanUserSchema.firstName = swanUser1().firstName;
     swanUserSchema.lastName = swanUser1().lastName;

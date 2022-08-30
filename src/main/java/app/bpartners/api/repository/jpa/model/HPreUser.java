@@ -1,4 +1,4 @@
-package app.bpartners.api.model.entity;
+package app.bpartners.api.repository.jpa.model;
 
 import java.io.Serializable;
 import java.time.Instant;
@@ -20,7 +20,6 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import static javax.persistence.GenerationType.IDENTITY;
 
-//TODO: move all the HObject from model.entity to repository.jpa.model
 @Entity
 @Table(name = "\"pre_user\"")
 @Getter

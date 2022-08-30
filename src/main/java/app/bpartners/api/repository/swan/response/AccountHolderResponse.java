@@ -1,6 +1,6 @@
 package app.bpartners.api.repository.swan.response;
 
-import app.bpartners.api.repository.swan.schema.AccountHolder;
+import app.bpartners.api.repository.swan.model.AccountHolder;
 import java.util.List;
 
 public class AccountHolderResponse {

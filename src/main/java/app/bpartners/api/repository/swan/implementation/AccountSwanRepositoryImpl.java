@@ -6,7 +6,7 @@ import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.repository.swan.AccountSwanRepository;
 import app.bpartners.api.repository.swan.response.AccountResponse;
-import app.bpartners.api.repository.swan.schema.SwanAccount;
+import app.bpartners.api.repository.swan.model.SwanAccount;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.net.URI;

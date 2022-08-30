@@ -3,9 +3,9 @@ package app.bpartners.api.repository.fintecture.implementation;
 import app.bpartners.api.manager.ProjectTokenManager;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.repository.fintecture.FintectureConf;
-import app.bpartners.api.repository.fintecture.FintecturePaymentReqRepository;
-import app.bpartners.api.repository.fintecture.schema.PaymentInitiation;
-import app.bpartners.api.repository.fintecture.schema.PaymentRedirection;
+import app.bpartners.api.repository.fintecture.FPaymentInitiationRepository;
+import app.bpartners.api.repository.fintecture.model.PaymentInitiation;
+import app.bpartners.api.repository.fintecture.model.PaymentRedirection;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.net.URI;
@@ -20,12 +20,12 @@ import static app.bpartners.api.endpoint.rest.security.swan.SwanConf.BEARER_PREF
 
 @Repository
 @AllArgsConstructor
-public class FintecturePaymentReqRepositoryImpl implements FintecturePaymentReqRepository {
+public class FPaymentInitiationRepositoryImpl implements FPaymentInitiationRepository {
   private final FintectureConf fintectureConf;
   private final ProjectTokenManager tokenManager;
 
   @Override
-  public PaymentRedirection generatePaymentUrl(PaymentInitiation paymentReq, String redirectUri) {
+  public PaymentRedirection save(PaymentInitiation paymentReq, String redirectUri) {
     try {
       HttpClient httpClient = HttpClient.newBuilder().build();
       String urlParams = String.format("?redirectUri=%s&state=1234", redirectUri);

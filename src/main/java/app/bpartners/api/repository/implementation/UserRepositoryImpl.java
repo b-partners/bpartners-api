@@ -2,12 +2,12 @@ package app.bpartners.api.repository.implementation;
 
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
 import app.bpartners.api.model.User;
-import app.bpartners.api.model.entity.HUser;
 import app.bpartners.api.model.mapper.UserMapper;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.jpa.UserJpaRepository;
+import app.bpartners.api.repository.jpa.model.HUser;
 import app.bpartners.api.repository.swan.UserSwanRepository;
-import app.bpartners.api.repository.swan.schema.SwanUser;
+import app.bpartners.api.repository.swan.model.SwanUser;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -25,13 +25,6 @@ public class UserRepositoryImpl implements UserRepository {
     HUser user = jpaRepository.getById(id);
     SwanUser swanUser = swanRepository.whoami();
     return userMapper.toDomain(user, swanUser);
-  }
-
-  @Override
-  public User getUserBySwanUserId(String swanUserId) {
-    HUser entityUser = jpaRepository.getUserBySwanUserId(swanUserId);
-    SwanUser swanUser = swanRepository.whoami();
-    return userMapper.toDomain(entityUser, swanUser);
   }
 
   @Override

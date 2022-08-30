@@ -8,7 +8,7 @@ import app.bpartners.api.endpoint.rest.model.EnableStatus;
 import app.bpartners.api.endpoint.rest.model.User;
 import app.bpartners.api.integration.conf.AbstractContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
-import app.bpartners.api.repository.swan.schema.SwanUser;
+import app.bpartners.api.repository.swan.model.SwanUser;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -23,7 +23,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import static app.bpartners.api.integration.conf.TestUtils.BAD_REDIRECT_URL;
 import static app.bpartners.api.integration.conf.TestUtils.REDIRECT_URL;
 import static app.bpartners.api.integration.conf.TestUtils.joeDoe;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -48,15 +47,14 @@ class UserIT {
     SwanUser joeDoe = joeDoe();
     User user = new User();
     user.setId(TestUtils.JOE_DOE_ID);
-    user.setSwanId(TestUtils.JOE_DOE_SWAN_USER_ID);
     user.setFirstName(joeDoe.firstName);
     user.setLastName(joeDoe.lastName);
     user.setBirthDate(joeDoe.birthDate);
     user.setIdVerified(joeDoe.idVerified);
     user.setIdentificationStatus(joeDoe.identificationStatus);
     user.setNationalityCCA3(joeDoe.nationalityCCA3);
-    user.setMobilePhoneNumber(joeDoe.mobilePhoneNumber);
-    user.setMonthlySubscription(5);
+    user.setPhone(joeDoe.mobilePhoneNumber);
+    user.setMonthlySubscriptionAmount(5);
     user.setStatus(EnableStatus.ENABLED);
     return user;
   }

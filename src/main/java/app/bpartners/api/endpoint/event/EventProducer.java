@@ -65,9 +65,6 @@ public class EventProducer implements Consumer<List<TypedEvent>> {
    */
   @Override
   public void accept(List<TypedEvent> events) {
-    log.info(
-        // TODO(PII): Personal Identifiable Information can be leaked here
-        "Sending events={}", events);
     PutEventsResponse response = sendRequest(events);
     checkResponse(response);
   }

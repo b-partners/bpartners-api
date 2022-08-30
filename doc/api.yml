@@ -517,7 +517,7 @@ components:
         reference:
           type: string
         amount:
-          type: number
+          type: integer
         payerName:
           type: string
         payerEmail:
@@ -625,6 +625,8 @@ components:
     AuthInitiation:
       type: object
       properties:
+        state:
+          type: string
         phone:
           type: string
         redirectionStatusUrls:

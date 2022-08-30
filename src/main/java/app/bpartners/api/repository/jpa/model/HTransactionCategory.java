@@ -1,4 +1,4 @@
-package app.bpartners.api.model.entity;
+package app.bpartners.api.repository.jpa.model;
 
 import java.io.Serializable;
 import javax.persistence.Entity;

@@ -4,7 +4,7 @@ import app.bpartners.api.endpoint.rest.mapper.PaymentReqRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.PaymentUrlRestMapper;
 import app.bpartners.api.endpoint.rest.model.PaymentInitiation;
 import app.bpartners.api.endpoint.rest.model.PaymentRedirection;
-import app.bpartners.api.service.PaymentReqService;
+import app.bpartners.api.service.PaymentInitiationService;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class PaymentController {
   private final PaymentReqRestMapper paymentReqMapper;
   private final PaymentUrlRestMapper paymentUrlMapper;
-  private final PaymentReqService service;
+  private final PaymentInitiationService service;
 
   @PostMapping(value = "/paymentRequests")
   List<PaymentRedirection> createPaymentReq(@RequestBody List<PaymentInitiation> paymentRequests) {

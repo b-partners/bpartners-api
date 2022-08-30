@@ -1,6 +1,6 @@
-package app.bpartners.api.model.entity.validator;
+package app.bpartners.api.model.validator;
 
-import app.bpartners.api.model.entity.HUser;
+import app.bpartners.api.repository.jpa.model.HUser;
 import app.bpartners.api.model.exception.BadRequestException;
 import java.util.List;
 import java.util.Set;

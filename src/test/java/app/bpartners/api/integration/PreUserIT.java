@@ -1,7 +1,7 @@
 package app.bpartners.api.integration;
 
 import app.bpartners.api.SentryConf;
-import app.bpartners.api.endpoint.rest.api.PreUsersApi;
+import app.bpartners.api.endpoint.rest.api.OnboardingApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
 import app.bpartners.api.endpoint.rest.model.CreatePreUser;
@@ -63,7 +63,7 @@ class PreUserIT {
     createPreUser.setFirstName("john");
     createPreUser.setLastName("doe");
     createPreUser.setSociety("johnSociety");
-    createPreUser.setPhoneNumber("+33 54 234 234");
+    createPreUser.setPhone("+33 54 234 234");
     return createPreUser;
   }
 
@@ -73,7 +73,7 @@ class PreUserIT {
     createPreUser.setFirstName("math");
     createPreUser.setLastName("doe");
     createPreUser.setSociety("johnSociety");
-    createPreUser.setPhoneNumber("+33 54 234 234");
+    createPreUser.setPhone("+33 54 234 234");
     return createPreUser;
   }
 
@@ -84,7 +84,7 @@ class PreUserIT {
     preRegistration.setFirstName("Mathieu");
     preRegistration.setLastName("Dupont");
     preRegistration.setSociety("Dupont SARL");
-    preRegistration.setPhoneNumber("+33123456789");
+    preRegistration.setPhone("+33123456789");
     preRegistration.setEntranceDatetime(Instant.parse("2022-01-01T01:00:00.00Z"));
     return preRegistration;
   }
@@ -125,61 +125,19 @@ class PreUserIT {
   }
 
   @Test
-  void authenticated_read_pre_users_ok() throws ApiException {
-    ApiClient apiClient = anApiClient(TestUtils.USER1_TOKEN);
-    PreUsersApi api = new PreUsersApi(apiClient);
-
-    List<PreUser> actual = api.getPreUsers(1, 10, null, null, null, null, null);
-
-    assertTrue(actual.contains(preUser1()));
-  }
-
-
-  @Test
-  void authenticated_read_filtered_pre_users_ignore_case_ok() throws ApiException {
-    ApiClient apiClient = anApiClient(TestUtils.USER1_TOKEN);
-    PreUsersApi api = new PreUsersApi(apiClient);
-
-    List<PreUser> actual =
-        api.getPreUsers(1, 10, preUser1().getFirstName().toUpperCase(), preUser1().getLastName(),
-            preUser1().getEmail(), preUser1().getSociety().toUpperCase(),
-            preUser1().getPhoneNumber());
-
-    assertTrue(actual.contains(preUser1()));
-    assertEquals(1, actual.size());
-  }
-
-  @Test
-  void authenticated_read_pre_users_by_firstName_and_bad_mail_ko() throws ApiException {
-    ApiClient apiClient = anApiClient(TestUtils.USER1_TOKEN);
-    PreUsersApi api = new PreUsersApi(apiClient);
-
-    List<PreUser> actual3 =
-        api.getPreUsers(1, 10, preUser1().getFirstName(), preUser1().getLastName(),
-            validPreUser().getEmail(), preUser1().getSociety().toUpperCase(),
-            preUser1().getPhoneNumber());
-
-    assertFalse(actual3.contains(preUser1()));
-    assertEquals(0, actual3.size());
-  }
-
-  @Test
   void create_pre_users_ok() throws ApiException {
     ApiClient apiClient = anApiClient(TestUtils.USER1_TOKEN);
-    PreUsersApi api = new PreUsersApi(apiClient);
+    OnboardingApi api = new OnboardingApi(apiClient);
 
     List<PreUser> actual = api.createPreUsers(List.of(validPreUser()));
 
-    List<PreUser> actualList =
-        api.getPreUsers(1, 10, null, null, null, null,
-            null);
-    assertTrue(actualList.containsAll(actual));
+    assertTrue(actual.contains(validPreUser())); //TODO : GET /preUsers
   }
 
   @Test
   void create_pre_users_bad_email_ko() {
     ApiClient apiClient = anApiClient(TestUtils.USER1_TOKEN);
-    PreUsersApi api = new PreUsersApi(apiClient);
+    OnboardingApi api = new OnboardingApi(apiClient);
 
     TestUtils.assertThrowsApiException(
         "{\"type\":\"400 BAD_REQUEST\",\"message\":\"Invalid email\"}",

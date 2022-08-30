@@ -1,6 +1,6 @@
 package app.bpartners.api.repository.swan.response;
 
-import app.bpartners.api.repository.swan.schema.Transaction;
+import app.bpartners.api.repository.swan.model.Transaction;
 import java.util.List;
 
 public class TransactionResponse {

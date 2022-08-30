@@ -7,17 +7,17 @@ import java.util.List;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @AllArgsConstructor
 public class TransactionController {
-
   private final TransactionService service;
   private final TransactionRestMapper mapper;
 
-  @GetMapping(value = "/transactions")
-  public List<Transaction> getTransactions() {
+  @GetMapping(value = "/accounts/{id}/transactions")
+  public List<Transaction> getTransactions(@PathVariable(name = "id") String accountId) {
     return service.getTransactions().stream()
         .map(mapper::toRest)
         .collect(Collectors.toUnmodifiableList());

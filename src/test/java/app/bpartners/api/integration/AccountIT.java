@@ -1,7 +1,7 @@
 package app.bpartners.api.integration;
 
 import app.bpartners.api.SentryConf;
-import app.bpartners.api.endpoint.rest.api.AccountsApi;
+import app.bpartners.api.endpoint.rest.api.UserAccountsApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
 import app.bpartners.api.endpoint.rest.model.Account;
@@ -31,7 +31,7 @@ class AccountIT {
 
   Account joeDoeAccount() {
     return new Account()
-        .id("beed1765-5c16-472a-b3f4-5c376ce5db58")
+        .id(TestUtils.JOE_DOE_ACCOUNT_ID)
         .name("Numer Swan Account")
         .IBAN("FR7699999001001190346460988")
         .BIC("SWNBFR22");
@@ -44,9 +44,9 @@ class AccountIT {
   @Test
   void read_accounts_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient(bearerToken);
-    AccountsApi api = new AccountsApi(joeDoeClient);
+    UserAccountsApi api = new UserAccountsApi(joeDoeClient);
 
-    List<Account> actual = api.getAccounts();
+    List<Account> actual = api.getAccountsByUserId(joeDoeAccount().getId());
 
     assertTrue(actual.contains(joeDoeAccount()));
   }

@@ -1,4 +1,4 @@
-package app.bpartners.api.model.entity;
+package app.bpartners.api.repository.jpa.model;
 
 import app.bpartners.api.endpoint.rest.model.EnableStatus;
 import app.bpartners.api.repository.jpa.types.PostgresEnumType;

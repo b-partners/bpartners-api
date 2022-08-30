@@ -8,9 +8,9 @@ import org.springframework.stereotype.Component;
 public class PaymentUrlRestMapper {
 
   public PaymentRedirection toRest(app.bpartners.api.model.PaymentRedirection domain) {
-    RedirectionStatusUrls statusUrls = new RedirectionStatusUrls();
-    statusUrls.setSuccessUrl(domain.getSuccessUrl());
-    statusUrls.setFailureUrl(domain.getFailureUrl());
+    RedirectionStatusUrls statusUrls = new RedirectionStatusUrls()
+        .successUrl(domain.getSuccessUrl())
+        .failureUrl(domain.getFailureUrl());
     return new PaymentRedirection()
         .redirectionUrl(domain.getRedirectUrl())
         .redirectionStatusUrls(statusUrls);

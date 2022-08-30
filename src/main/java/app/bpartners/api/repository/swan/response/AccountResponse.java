@@ -1,7 +1,7 @@
 package app.bpartners.api.repository.swan.response;
 
 
-import app.bpartners.api.repository.swan.schema.SwanAccount;
+import app.bpartners.api.repository.swan.model.SwanAccount;
 import java.util.List;
 
 public class AccountResponse {

@@ -1,7 +1,7 @@
 package app.bpartners.api.integration;
 
 import app.bpartners.api.SentryConf;
-import app.bpartners.api.endpoint.rest.api.PaymentsApi;
+import app.bpartners.api.endpoint.rest.api.PayingApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
 import app.bpartners.api.endpoint.rest.model.Transaction;
@@ -19,6 +19,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
@@ -34,10 +35,9 @@ class TransactionIT {
 
   Transaction transaction1() {
     return new Transaction()
-        .swanTransactionId("bosci_0fe167566b234808a44aae415f057b6c")
+        .id("bosci_0fe167566b234808a44aae415f057b6c")
         .label("Premier virement")
         .reference("JOE-001")
-        .currency("EUR")
         .amount(BigDecimal.valueOf(500.0))
         .paymentDatetime(Instant.parse("2022-08-24T03:39:33.315Z"))
         .category(category1());
@@ -56,9 +56,9 @@ class TransactionIT {
   @Test
   void read_transactions_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient(bearerToken);
-    PaymentsApi api = new PaymentsApi(joeDoeClient);
+    PayingApi api = new PayingApi(joeDoeClient);
 
-    List<Transaction> actual = api.getTransactions();
+    List<Transaction> actual = api.getTransactions(JOE_DOE_ACCOUNT_ID);
 
     assertTrue(actual.contains(transaction1()));
   }

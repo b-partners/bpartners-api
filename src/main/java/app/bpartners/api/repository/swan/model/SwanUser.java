@@ -1,8 +1,7 @@
-package app.bpartners.api.repository.swan.schema;
+package app.bpartners.api.repository.swan.model;
 
 import java.time.LocalDate;
 
-//TODO: rename swan.schema to swan.model
 public class SwanUser {
   public String id;
   public String firstName;

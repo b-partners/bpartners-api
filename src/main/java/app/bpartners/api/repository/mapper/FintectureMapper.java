@@ -1,10 +1,11 @@
 package app.bpartners.api.repository.mapper;
 
 import app.bpartners.api.model.Account;
-import app.bpartners.api.model.User;
-import app.bpartners.api.repository.fintecture.schema.Beneficiary;
-import app.bpartners.api.repository.fintecture.schema.PaymentInitiation;
-import app.bpartners.api.repository.fintecture.schema.PaymentRedirection;
+import app.bpartners.api.model.AccountHolder;
+import app.bpartners.api.repository.fintecture.model.Beneficiary;
+import app.bpartners.api.repository.fintecture.model.PaymentInitiation;
+import app.bpartners.api.repository.fintecture.model.PaymentRedirection;
+import app.bpartners.api.service.AccountHolderService;
 import app.bpartners.api.service.AccountService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -13,21 +14,24 @@ import org.springframework.stereotype.Component;
 @AllArgsConstructor
 public class FintectureMapper {
   private final AccountService accountService;
+  private AccountHolderService accountHolderService;
 
-  public PaymentInitiation toFintecturePaymentReq(app.bpartners.api.model.PaymentInitiation domain) {
+  public PaymentInitiation toFintecturePaymentReq(
+      app.bpartners.api.model.PaymentInitiation domain) {
     Account authenticatedAccount = accountService.getAccounts().get(0);
-    User user = new User(); //TODO: retrieve from userService
+    AccountHolder authenticatedAccountHolder = accountHolderService.getAccountHolders().get(0);
 
+    //TODO : Create a private function that returns a new beneficiary when providing
+    //Account and AccountHolder
     Beneficiary beneficiary = new Beneficiary();
-    beneficiary.name = user.getSwanUser().getLastName();
+    beneficiary.name = authenticatedAccount.getName();
     beneficiary.iban = authenticatedAccount.getIban();
     beneficiary.swift_bic = authenticatedAccount.getBic();
-    /*TODO
+
     beneficiary.street = authenticatedAccountHolder.getAddress();
     beneficiary.city = authenticatedAccountHolder.getCity();
     beneficiary.country = authenticatedAccountHolder.getCountry().substring(0, 2);
     beneficiary.zip = authenticatedAccountHolder.getPostalCode();
-    */
 
     PaymentInitiation.Meta meta = new PaymentInitiation.Meta();
     meta.psu_name = domain.getPayerEmail();
@@ -35,7 +39,7 @@ public class FintectureMapper {
 
     PaymentInitiation.Attributes attributes = new PaymentInitiation.Attributes();
     attributes.communication = domain.getLabel();
-    attributes.amount = domain.getAmount().toString();
+    attributes.amount = String.valueOf(domain.getAmount());
     attributes.beneficiary = beneficiary;
 
     PaymentInitiation.Data data = new PaymentInitiation.Data();

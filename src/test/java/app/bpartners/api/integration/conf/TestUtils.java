@@ -4,7 +4,7 @@ import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
 import app.bpartners.api.repository.swan.UserSwanRepository;
-import app.bpartners.api.repository.swan.schema.SwanUser;
+import app.bpartners.api.repository.swan.model.SwanUser;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.time.LocalDate;
@@ -30,6 +30,7 @@ public class TestUtils {
   public static final String PRE_USER1_ID = "pre_user1_id";
   public static final String REDIRECT_URL = "https://dashboard-dev.bpartners.app";
   public static final String BAD_REDIRECT_URL = "bad_redirect_url";
+  public static final String JOE_DOE_ACCOUNT_ID = "beed1765-5c16-472a-b3f4-5c376ce5db58";
 
   public static SwanUser joeDoe() {
     SwanUser swanUser = new SwanUser();
@@ -74,8 +75,8 @@ public class TestUtils {
   }
 
   public static void setUpSwanRepository(UserSwanRepository swanRepository) {
-    app.bpartners.api.repository.swan.schema.SwanUser swanUserSchema =
-        new app.bpartners.api.repository.swan.schema.SwanUser();
+    app.bpartners.api.repository.swan.model.SwanUser swanUserSchema =
+        new app.bpartners.api.repository.swan.model.SwanUser();
     swanUserSchema.id = swanUser1().id;
     swanUserSchema.firstName = swanUser1().firstName;
     swanUserSchema.lastName = swanUser1().lastName;

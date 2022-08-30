@@ -60,9 +60,9 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
                 new OrRequestMatcher(
                     new AntPathRequestMatcher("/ping"),
                     new AntPathRequestMatcher("/preUsers", POST.name()),
-                    new AntPathRequestMatcher("/auth"),
+                    new AntPathRequestMatcher("/authInitiation"),
                     new AntPathRequestMatcher("/token"),
-                    new AntPathRequestMatcher("/onboarding", POST.name()),
+                    new AntPathRequestMatcher("/onboardingInitiation", POST.name()),
                     new AntPathRequestMatcher("/**", OPTIONS.toString())
                 )
             )),
@@ -73,15 +73,16 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
         .and()
         .authorizeRequests()
         .antMatchers("/ping").permitAll()
-        .antMatchers("/auth").permitAll()
+        .antMatchers("/authInitiation").permitAll()
         .antMatchers("/token").permitAll()
-        .antMatchers("/onboarding").permitAll()
+        .antMatchers("/onboardingInitiation").permitAll()
         .antMatchers(POST, "/preUsers").permitAll()
         .antMatchers(OPTIONS, "/**").permitAll()
-        .antMatchers(GET, "/transactions").authenticated()
-        .antMatchers(GET, "/accounts").authenticated()
+        .antMatchers(GET, "/accounts/*/transactions").authenticated()
+        .antMatchers(GET, "/users/*/accounts").authenticated()
         .antMatchers(GET, "/accountHolders").authenticated()
-        .antMatchers(POST, "/paymentRequests").authenticated()
+        .antMatchers(GET, "/users/*/accounts/*/accountHolders").authenticated()
+        .antMatchers(POST, "/accounts/*/paymentInitiations").authenticated()
         .antMatchers(GET, "/whoami").authenticated()
         .antMatchers(GET, "/preUsers").authenticated()
         .antMatchers(GET, "/whoami").authenticated()

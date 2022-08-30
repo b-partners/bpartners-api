@@ -1,4 +1,4 @@
-package app.bpartners.api.repository.swan.schema;
+package app.bpartners.api.repository.swan.model;
 
 import java.time.Instant;
 

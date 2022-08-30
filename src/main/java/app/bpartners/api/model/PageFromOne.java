@@ -1,9 +1,8 @@
-package app.bpartners.api.model.entity;
+package app.bpartners.api.model;
 
 import app.bpartners.api.model.exception.BadRequestException;
 import lombok.Getter;
 
-//TODO: should not be in this package
 public class PageFromOne {
 
   @Getter

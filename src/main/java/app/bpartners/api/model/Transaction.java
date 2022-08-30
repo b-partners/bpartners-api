@@ -17,7 +17,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @EqualsAndHashCode
 public class Transaction {
-  private String transactionId;
+  private String id;
   private Double amount;
   private String currency;
   private String label;

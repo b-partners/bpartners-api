@@ -1,9 +1,8 @@
-package app.bpartners.api.model.entity;
+package app.bpartners.api.model;
 
 import lombok.Getter;
 import app.bpartners.api.model.exception.BadRequestException;
 
-//TODO: should not be in this package
 public class BoundedPageSize {
 
   @Getter

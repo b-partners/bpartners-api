@@ -1,4 +1,4 @@
-package app.bpartners.api.repository.swan.schema;
+package app.bpartners.api.repository.swan.model;
 
 public class AccountHolder {
   public String id;

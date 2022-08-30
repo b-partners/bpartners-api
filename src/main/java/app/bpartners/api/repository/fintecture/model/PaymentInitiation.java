@@ -1,4 +1,4 @@
-package app.bpartners.api.repository.fintecture.schema;
+package app.bpartners.api.repository.fintecture.model;
 
 public class PaymentInitiation {
   public Meta meta;

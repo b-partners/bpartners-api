@@ -12,10 +12,10 @@ public class OnboardingRepositoryImpl implements OnboardingRepository {
   private final OnboardingSwanRepository swanRepository;
 
   @Override
-  public Onboarding generateOnboardingUrl(String successUrl) {
-    Onboarding newOnboarding = new Onboarding();
-    newOnboarding.setOnboardingUrl(swanRepository.getOnboardingUrl(successUrl));
-    newOnboarding.setSuccessUrl(successUrl);
-    return newOnboarding;
+  public Onboarding save(String successUrl) {
+    return Onboarding.builder()
+        .onboardingUrl(swanRepository.getOnboardingUrl(successUrl))
+        .successUrl(successUrl)
+        .build();
   }
 }

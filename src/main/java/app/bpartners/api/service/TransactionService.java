@@ -12,6 +12,6 @@ public class TransactionService {
   private final TransactionRepository repository;
 
   public List<Transaction> getTransactions() {
-    return repository.findAll();
+    return repository.findByAccountId(null);
   }
 }

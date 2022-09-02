@@ -6,6 +6,7 @@ import app.bpartners.api.endpoint.rest.model.Redirection;
 import app.bpartners.api.endpoint.rest.model.Token;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
 import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
+import app.bpartners.api.endpoint.rest.validator.AuthInitiationValidator;
 import app.bpartners.api.model.validator.TokenValidator;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -17,7 +18,10 @@ public class AuthService {
   private final SwanComponent swanComponent;
   private final TokenValidator tokenValidator;
 
+  private final AuthInitiationValidator authValidator;
+
   public Redirection generateAuthUrl(AuthInitiation authInitiation) {
+    authValidator.accept(authInitiation);
     Redirection redirection = new Redirection();
 
     redirection.setRedirectionUrl(

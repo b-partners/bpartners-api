@@ -1,9 +1,9 @@
 package app.bpartners.api.repository.swan.implementation;
 
-import app.bpartners.api.repository.api.swan.SwanApi;
 import app.bpartners.api.repository.swan.AccountHolderSwanRepository;
+import app.bpartners.api.repository.swan.SwanApi;
+import app.bpartners.api.repository.swan.model.SwanAccountHolder;
 import app.bpartners.api.repository.swan.response.AccountHolderResponse;
-import app.bpartners.api.repository.swan.schema.AccountHolder;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -11,7 +11,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 @AllArgsConstructor
 public class AccountHolderSwanRepositoryImpl implements AccountHolderSwanRepository {
-  private static String message =
+  private static final String query =
       "{ \"query\": \"" + "query AccountHolder { accountHolders { edges { node "
           + "{ id info { name } residencyAddress "
           + "{ addressLine1 city country postalCode } } } }}\"}";
@@ -19,7 +19,12 @@ public class AccountHolderSwanRepositoryImpl implements AccountHolderSwanReposit
   private final SwanApi<AccountHolderResponse> swanApi;
 
   @Override
-  public List<AccountHolder> getAccountHolders() {
-    return List.of(swanApi.getData(message, "").data.accountHolders.edges.get(0).node);
+  public List<SwanAccountHolder> getAccountHolders() {
+    try {
+      return List.of(swanApi.getData(AccountHolderResponse.class.getName(), query,
+          null).data.accountHolders.edges.get(0).node);
+    } catch (ClassNotFoundException e) {
+      throw new RuntimeException(e);
+    }
   }
 }

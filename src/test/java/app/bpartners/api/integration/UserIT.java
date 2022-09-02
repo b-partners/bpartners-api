@@ -38,7 +38,6 @@ class UserIT {
   @Value("${test.user.access.token}")
   private String bearerToken;
 
-
   private static ApiClient anApiClient(String token) {
     return TestUtils.anApiClient(token, ContextInitializer.SERVER_PORT);
   }
@@ -47,13 +46,10 @@ class UserIT {
     SwanUser joeDoe = joeDoe();
     User user = new User();
     user.setId(TestUtils.JOE_DOE_ID);
-    user.setFirstName(joeDoe.firstName);
-    user.setLastName(joeDoe.lastName);
-    user.setBirthDate(joeDoe.birthDate);
-    user.setIdVerified(joeDoe.idVerified);
-    user.setIdentificationStatus(joeDoe.identificationStatus);
-    user.setNationalityCCA3(joeDoe.nationalityCCA3);
-    user.setPhone(joeDoe.mobilePhoneNumber);
+    user.setFirstName(joeDoe.getFirstName());
+    user.setLastName(joeDoe.getLastName());
+    user.setNationalityCCA3(joeDoe.getNationalityCcA3());
+    user.setPhone(joeDoe.getMobilePhoneNumber());
     user.setMonthlySubscriptionAmount(5);
     user.setStatus(EnableStatus.ENABLED);
     return user;
@@ -71,10 +67,12 @@ class UserIT {
             .header("Content-Type", "application/json")
             .header("Accept", "application/json")
             .header("Origin", "http://localhost:3000")
-            .POST(HttpRequest.BodyPublishers.ofString("{\n"
-                + "  \"successUrl\": \"" + REDIRECT_URL + "\",\n"
-                + "  \"failureUrl\": \"failureUrl\"\n"
-                + "}"))
+            .POST(HttpRequest.BodyPublishers.ofString(
+                " { \"redirectionStatusUrls\": {\n"
+                    + "  \"successUrl\": \"" + REDIRECT_URL + "\",\n"
+                    + "  \"failureUrl\": \"" + REDIRECT_URL + "/error\"\n"
+                    + "}}"
+            ))
             .build(),
         HttpResponse.BodyHandlers.ofString());
 

@@ -9,7 +9,6 @@ import app.bpartners.api.endpoint.rest.model.PaymentRedirection;
 import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
 import app.bpartners.api.integration.conf.AbstractContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
-import java.math.BigDecimal;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Value;
@@ -35,7 +34,7 @@ class PaymentIT {
   PaymentInitiation paymentReq1() {
     return new PaymentInitiation()
         .id("uuid")
-        .amount(BigDecimal.valueOf(100))
+        .amount(100)
         .label("Payment label")
         .reference("Payment reference")
         .payerName("Payer")

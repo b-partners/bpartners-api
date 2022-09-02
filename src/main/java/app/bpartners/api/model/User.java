@@ -23,7 +23,7 @@ public class User {
 
   private String mobilePhoneNumber;
 
-  private String nationalityCCA3;
+  private String nationalityCca3;
 
   private int monthlySubscription;
 

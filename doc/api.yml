@@ -546,8 +546,13 @@ components:
       properties:
         id:
           type: string
+          example: "uuid"
         label:
           type: string
+          example: "Autre"
+        comment:
+          type: string
+          example: "Petite caisse"
     User:
       properties:
         id:
@@ -689,7 +694,14 @@ components:
           type: integer
         customer:
           $ref: '#/components/schemas/Customer'
+        paymentMode:
+          type: string
+          enum:
+            - CASH
         toPayAt:
+          type: string
+          format: date-time
+        date:
           type: string
           format: date-time
     Invoice:
@@ -723,7 +735,16 @@ components:
           type: string
         phone:
           type: string
-
+        address:
+          type: string
+        website:
+          type: string
+        zip_code:
+          type: string
+        city:
+          type: string
+        country:
+          type: string
     File:
       type: object
       properties:

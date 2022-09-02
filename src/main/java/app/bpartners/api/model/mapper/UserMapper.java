@@ -9,12 +9,14 @@ import org.springframework.stereotype.Component;
 @Component
 @AllArgsConstructor
 public class UserMapper {
-  private final SwanUserMapper swanUserMapper;
 
   public User toDomain(HUser entityUser, SwanUser swanUser) {
     return User.builder()
         .id(entityUser.getId())
-        .swanUser(swanUserMapper.toDomain(swanUser))
+        .firstName(swanUser.getFirstName())
+        .lastName(swanUser.getLastName())
+        .mobilePhoneNumber(swanUser.getMobilePhoneNumber())
+        .nationalityCca3(swanUser.getNationalityCcA3())
         .monthlySubscription(entityUser.getMonthlySubscription())
         .status(entityUser.getStatus())
         .build();

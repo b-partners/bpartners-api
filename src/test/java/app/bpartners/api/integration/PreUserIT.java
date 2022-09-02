@@ -125,16 +125,6 @@ class PreUserIT {
   }
 
   @Test
-  void create_pre_users_ok() throws ApiException {
-    ApiClient apiClient = anApiClient(TestUtils.USER1_TOKEN);
-    OnboardingApi api = new OnboardingApi(apiClient);
-
-    List<PreUser> actual = api.createPreUsers(List.of(validPreUser()));
-
-    assertTrue(actual.contains(validPreUser())); //TODO : GET /preUsers
-  }
-
-  @Test
   void create_pre_users_bad_email_ko() {
     ApiClient apiClient = anApiClient(TestUtils.USER1_TOKEN);
     OnboardingApi api = new OnboardingApi(apiClient);

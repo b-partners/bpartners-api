@@ -2,7 +2,7 @@ package app.bpartners.api.repository.swan.model;
 
 import java.time.Instant;
 
-public class Transaction {
+public class SwanTransaction {
   public Node node;
 
   public static class Amount {

@@ -4,5 +4,5 @@ import app.bpartners.api.repository.swan.model.SwanAccount;
 import java.util.List;
 
 public interface AccountSwanRepository {
-  List<SwanAccount> getAccounts();
+  List<SwanAccount> findAllByAuthenticatedUser();
 }

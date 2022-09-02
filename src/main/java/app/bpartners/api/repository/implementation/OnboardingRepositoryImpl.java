@@ -13,9 +13,9 @@ public class OnboardingRepositoryImpl implements OnboardingRepository {
 
   @Override
   public Onboarding save(String successUrl) {
-    Onboarding newOnboarding = new Onboarding();
-    newOnboarding.setOnboardingUrl(swanRepository.getOnboardingUrl(successUrl));
-    newOnboarding.setSuccessUrl(successUrl);
-    return newOnboarding;
+    Onboarding onboarding = new Onboarding();
+    onboarding.setOnboardingUrl(swanRepository.getOnboardingUrl(successUrl));
+    onboarding.setSuccessUrl(successUrl);
+    return onboarding;
   }
 }

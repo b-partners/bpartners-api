@@ -1,6 +1,6 @@
 package app.bpartners.api.repository.swan.response;
 
-import app.bpartners.api.repository.swan.model.AccountHolder;
+import app.bpartners.api.repository.swan.model.SwanAccountHolder;
 import java.util.List;
 
 public class AccountHolderResponse {
@@ -15,6 +15,6 @@ public class AccountHolderResponse {
   }
 
   public static class Edge {
-    public AccountHolder node;
+    public SwanAccountHolder node;
   }
 }

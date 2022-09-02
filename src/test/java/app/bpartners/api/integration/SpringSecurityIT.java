@@ -4,6 +4,7 @@ import app.bpartners.api.SentryConf;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
 import app.bpartners.api.integration.conf.AbstractContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
+import app.bpartners.api.model.exception.ApiException;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -22,7 +23,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_SWAN_USER_ID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpMethod.OPTIONS;
@@ -49,7 +50,8 @@ class SpringSecurityIT {
 
   @Test
   void unauthenticated_user_is_forbidden() {
-    assertNull(swanComponent.getSwanUserIdByToken(TestUtils.BAD_TOKEN));
+    assertThrows(ApiException.class,
+        () -> swanComponent.getSwanUserIdByToken(TestUtils.BAD_TOKEN));
   }
 
   @Test

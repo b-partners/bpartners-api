@@ -1,7 +1,7 @@
 package app.bpartners.api.repository.swan.model;
 
-public class AccountHolder {
-  public String id;
+public class SwanAccountHolder {
+  private String id;
   public Info info;
   public ResidencyAddress residencyAddress;
 

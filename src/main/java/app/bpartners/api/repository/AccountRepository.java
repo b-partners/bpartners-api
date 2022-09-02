@@ -4,5 +4,5 @@ import app.bpartners.api.model.Account;
 import java.util.List;
 
 public interface AccountRepository {
-  List<Account> findAll();
+  List<Account> findByUserId(String userId);
 }

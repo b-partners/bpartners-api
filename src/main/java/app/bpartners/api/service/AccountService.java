@@ -13,8 +13,8 @@ public class AccountService {
   private final AccountValidator validator;
   private final AccountRepository repository;
 
-  public List<Account> getAccounts() {
-    List<Account> accounts = repository.findAll();
+  public List<Account> findAccountsByUserId(String id) {
+    List<Account> accounts = repository.findByUserId(id);
     validator.accept(accounts);
     return accounts;
   }

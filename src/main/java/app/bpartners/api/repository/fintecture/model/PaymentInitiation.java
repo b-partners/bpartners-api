@@ -8,8 +8,6 @@ public class PaymentInitiation {
     public String psu_name;
     public String psu_email;
   }
-
-
   public static class Data {
     public final String type = "payments";
     public Attributes attributes;

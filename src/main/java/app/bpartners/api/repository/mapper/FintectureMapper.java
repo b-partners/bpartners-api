@@ -16,15 +16,14 @@ public class FintectureMapper {
 
   public PaymentInitiation toFintecturePaymentReq(
       app.bpartners.api.model.PaymentInitiation domain) {
-    //TODO: GET users/id/accounts
-    Account authenticatedAccount = accountService.getAccounts().get(0);
-    User user = new User(); //TODO: retrieve from userService
+    //TODO: GET accounts by userId with project token instead of user token
+    Account authenticatedAccount = accountService.findAccountsByUserId(null).get(0);
 
     Beneficiary beneficiary = new Beneficiary();
-    beneficiary.name = user.getName();
+    beneficiary.name = authenticatedAccount.getName();
     beneficiary.iban = authenticatedAccount.getIban();
     beneficiary.swift_bic = authenticatedAccount.getBic();
-    /*TODO
+    /*TODO : Put back the accountHolders
     beneficiary.street = authenticatedAccountHolder.getAddress();
     beneficiary.city = authenticatedAccountHolder.getCity();
     beneficiary.country = authenticatedAccountHolder.getCountry().substring(0, 2);

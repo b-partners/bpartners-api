@@ -3,8 +3,10 @@ package app.bpartners.api.repository.api.fintecture;
 import app.bpartners.api.endpoint.rest.client.ApiException;
 import app.bpartners.api.endpoint.rest.client.ApiResponse;
 import app.bpartners.api.repository.api.ApiClient;
-import app.bpartners.api.repository.fintecture.schema.PaymentReq;
-import app.bpartners.api.repository.fintecture.schema.PaymentUrl;
+import app.bpartners.api.repository.fintecture.model.PaymentInitiation;
+import app.bpartners.api.repository.fintecture.model.PaymentRedirection;
+import app.bpartners.api.repository.fintecture.schema.PaymentInitiation;
+import app.bpartners.api.repository.fintecture.schema.PaymentInitiation;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -55,8 +57,8 @@ public class FintectureApi {
     return operationId + " call failed with: " + statusCode + " - " + body;
   }
 
-  public ApiResponse<PaymentUrl> generatePaymentUrl(PaymentReq paymentReq) throws ApiException, JsonProcessingException {
-    HttpRequest.Builder localVarRequestBuilder = generatePaymentUrlRequestBuilder(paymentReq);
+  public ApiResponse<PaymentInitiation> generatePaymentInitiation(PaymentInitiation paymentReq) throws ApiException, JsonProcessingException {
+    HttpRequest.Builder localVarRequestBuilder = generatePaymentInitiationRequestBuilder(paymentReq);
     try {
       HttpResponse<InputStream> localVarResponse = memberVarHttpClient.send(
               localVarRequestBuilder.build(),
@@ -65,13 +67,12 @@ public class FintectureApi {
         memberVarResponseInterceptor.accept(localVarResponse);
       }
       if (localVarResponse.statusCode() / 100 != 2) {
-        throw getApiException("generatePaymentUrl", localVarResponse);
+        throw getApiException("generatePaymentInitiation", localVarResponse);
       }
-      return new ApiResponse<PaymentUrl>(
+      return new ApiResponse<PaymentRedirection>(
               localVarResponse.statusCode(),
               localVarResponse.headers().map(),
-              memberVarObjectMapper.readValue(localVarResponse.body(), new TypeReference<PaymentUrl>() {
-              })
+              memberVarObjectMapper.readValue(localVarResponse.body(), null)
       );
     } catch (IOException e) {
       throw new ApiException(e);
@@ -81,10 +82,10 @@ public class FintectureApi {
     }
   }
 
-  private HttpRequest.Builder generatePaymentUrlRequestBuilder(PaymentReq paymentReq) throws ApiException, JsonProcessingException {
+  private HttpRequest.Builder generatePaymentInitiationRequestBuilder(PaymentInitiation paymentReq) throws ApiException, JsonProcessingException {
 
     if (paymentReq == null) {
-      throw new ApiException(400, "Missing the required parameter 'payementUrlParams' when calling generatePaymentUrl");
+      throw new ApiException(400, "Missing the required parameter 'payementUrlParams' when calling generatePaymentInitiation");
     }
     HttpRequest.Builder localVarRequestBuilder = HttpRequest.newBuilder();
 

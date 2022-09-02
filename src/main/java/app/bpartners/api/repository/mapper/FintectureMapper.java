@@ -1,7 +1,6 @@
 package app.bpartners.api.repository.mapper;
 
 import app.bpartners.api.model.Account;
-import app.bpartners.api.model.User;
 import app.bpartners.api.repository.fintecture.model.Beneficiary;
 import app.bpartners.api.repository.fintecture.model.PaymentInitiation;
 import app.bpartners.api.repository.fintecture.model.PaymentRedirection;
@@ -18,12 +17,11 @@ public class FintectureMapper {
       app.bpartners.api.model.PaymentInitiation domain) {
     //TODO: GET users/id/accounts
     Account authenticatedAccount = accountService.getAccounts().get(0);
-    User user = new User(); //TODO: retrieve from userService
 
     Beneficiary beneficiary = new Beneficiary();
-    beneficiary.name = user.getName();
-    beneficiary.iban = authenticatedAccount.getIban();
-    beneficiary.swift_bic = authenticatedAccount.getBic();
+    beneficiary.setName(authenticatedAccount.getName());
+    beneficiary.setIban(authenticatedAccount.getIban());
+    beneficiary.setSwiftBic(authenticatedAccount.getBic());
     /*TODO
     beneficiary.street = authenticatedAccountHolder.getAddress();
     beneficiary.city = authenticatedAccountHolder.getCity();
@@ -32,28 +30,28 @@ public class FintectureMapper {
     */
 
     PaymentInitiation.Meta meta = new PaymentInitiation.Meta();
-    meta.psu_name = domain.getPayerEmail();
-    meta.psu_email = domain.getPayerEmail();
+    meta.setPsuName(domain.getPayerEmail());
+    meta.setPsuEmail(domain.getPayerEmail());
 
     PaymentInitiation.Attributes attributes = new PaymentInitiation.Attributes();
-    attributes.communication = domain.getLabel();
-    attributes.amount = domain.getAmount();
-    attributes.beneficiary = beneficiary;
+    attributes.setCommunication(domain.getLabel());
+    attributes.setAmount(domain.getAmount());
+    attributes.setBeneficiary(beneficiary);
 
     PaymentInitiation.Data data = new PaymentInitiation.Data();
-    data.attributes = attributes;
+    data.setAttributes(attributes);
 
     PaymentInitiation paymentReq = new PaymentInitiation();
-    paymentReq.meta = meta;
-    paymentReq.data = data;
+    paymentReq.setMeta(meta);
+    paymentReq.setData(data);
 
     return paymentReq;
   }
 
   public app.bpartners.api.model.PaymentRedirection toDomain(
-      PaymentRedirection fintecturePaymentUrl, String successUrl) {
+      PaymentRedirection paymentRedirection, String successUrl) {
     return app.bpartners.api.model.PaymentRedirection.builder()
-        .redirectUrl(fintecturePaymentUrl.meta.url)
+        .redirectUrl(paymentRedirection.getMeta().getUrl())
         .successUrl(successUrl)
         .build();
   }

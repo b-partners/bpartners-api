@@ -14,6 +14,6 @@ import lombok.Setter;
 @NoArgsConstructor
 @EqualsAndHashCode
 public class TransactionCategory {
-  String id;
-  String label;
+  private String id;
+  private String label;
 }

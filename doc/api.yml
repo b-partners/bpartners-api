@@ -249,6 +249,64 @@ paths:
           $ref: '#/components/responses/429'
         500:
           $ref: '#/components/responses/500'
+  /transactionCategories:
+    get:
+      tags:
+        - Paying
+      summary: Get transactions categories
+      operationId: getTransactionCategories
+      responses:
+        200:
+          description: List of transaction categories
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TransactionCategory'
+        400:
+          $ref: '#/components/responses/400'
+        403:
+          $ref: '#/components/responses/403'
+        404:
+          $ref: '#/components/responses/404'
+        429:
+          $ref: '#/components/responses/429'
+        500:
+          $ref: '#/components/responses/500'
+    post:
+      tags:
+        - Paying
+      security: [ ]
+      summary: Create transaction categories
+      operationId: createTransactionCategories
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/CreateTransactionCategory'
+      responses:
+        200:
+          description: List of transaction categories
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TransactionCategory'
+        400:
+          $ref: '#/components/responses/400'
+        403:
+          $ref: '#/components/responses/403'
+        404:
+          $ref: '#/components/responses/404'
+        429:
+          $ref: '#/components/responses/429'
+        500:
+          $ref: '#/components/responses/500'
   /accounts/{id}/transactions:
     get:
       tags:
@@ -261,6 +319,56 @@ paths:
           schema:
             type: string
           required: true
+      responses:
+        200:
+          description: List of transactions of the account
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Transaction'
+        400:
+          $ref: '#/components/responses/400'
+        403:
+          $ref: '#/components/responses/403'
+        404:
+          $ref: '#/components/responses/404'
+        429:
+          $ref: '#/components/responses/429'
+        500:
+          $ref: '#/components/responses/500'
+  /accounts/{aId}/transactions/{tId}:
+    patch:
+      tags:
+        - Paying
+      summary: Modify informations of a transaction
+      description: |
+        Possible changes on:
+        * Category : modify
+      operationId: getTransactions
+      parameters:
+        - in: path
+          name: aId
+          schema:
+            type: string
+          required: true
+        - in: path
+          name: tId
+          schema:
+            type: string
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Transaction'
+            examples:
+              changeCategory:
+                summary: Change category
+                value:
+                  transactionCategoryId: uuid
+                  comment: null
       responses:
         200:
           description: List of transactions of the account
@@ -651,7 +759,17 @@ components:
           type: string
           format: date-time
         category:
-          $ref: '#/components/schemas/TransactionCategory'
+          type: object
+          allOf:
+            - $ref: '#/components/schemas/TransactionCategory'
+          properties:
+            comment:
+              type: string
+    CreateTransactionCategory:
+      type: object
+      properties:
+        label:
+          type: string
     TransactionCategory:
       type: object
       properties:

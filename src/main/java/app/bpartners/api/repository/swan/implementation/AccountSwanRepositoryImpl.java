@@ -20,7 +20,7 @@ public class AccountSwanRepositoryImpl implements AccountSwanRepository {
     SwanAccount account = null;
     try {
       account =
-          swanApi.getData(AccountResponse.class.getName(), query, null).getData()
+          swanApi.getData(AccountResponse.class, query, null).getData()
               .getAccounts()
               .getEdges()
               .get(0)

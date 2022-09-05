@@ -1,10 +1,12 @@
 package app.bpartners.api.repository.swan;
 
+import static app.bpartners.api.endpoint.rest.security.swan.SwanConf.BEARER_PREFIX;
 import app.bpartners.api.endpoint.rest.security.model.Principal;
 import app.bpartners.api.endpoint.rest.security.principal.PrincipalProvider;
 import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
 import app.bpartners.api.model.exception.ApiException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -13,8 +15,6 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import javax.annotation.Nullable;
 import org.springframework.stereotype.Component;
-
-import static app.bpartners.api.endpoint.rest.security.swan.SwanConf.BEARER_PREFIX;
 
 /*
  *
@@ -33,10 +33,9 @@ public class SwanApi<T> {
     this.swanConf = swanConf;
   }
 
-  public T getData(String className, String query, @Nullable String customToken)
+  public T getData(Class<T> objectClass, String query, @Nullable String customToken)
       throws ClassNotFoundException {
     String token = bearerToken();
-    Class<T> objectClass = (Class<T>) Class.forName(className);
 
     if (customToken != null) {
       token = customToken;
@@ -49,7 +48,8 @@ public class SwanApi<T> {
           .POST(HttpRequest.BodyPublishers.ofString(query)).build();
       HttpResponse<String> response =
           httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-      return new ObjectMapper().readValue(response.body(), objectClass);
+      return new ObjectMapper().registerModule(new JavaTimeModule())
+          .readValue(response.body(), objectClass);
     } catch (IOException | InterruptedException | URISyntaxException e) {
       throw new ApiException(ApiException.ExceptionType.SERVER_EXCEPTION, e);
     }

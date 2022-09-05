@@ -1,5 +1,7 @@
 package app.bpartners.api.integration;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import app.bpartners.api.SentryConf;
 import app.bpartners.api.endpoint.rest.api.PayingApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
@@ -19,9 +21,6 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
-
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @Testcontainers
 @ContextConfiguration(initializers = TransactionIT.ContextInitializer.class)
@@ -32,8 +31,13 @@ class TransactionIT {
   @Value("${test.user.access.token}")
   private String bearerToken;
 
+  private static ApiClient anApiClient(String token) {
+    return TestUtils.anApiClient(token, TransactionIT.ContextInitializer.SERVER_PORT);
+  }
+
   Transaction transaction1() {
     return new Transaction()
+        .id("bosci_0fe167566b234808a44aae415f057b6c")
         .label("Premier virement")
         .reference("JOE-001")
         .amount(BigDecimal.valueOf(500.0))
@@ -44,11 +48,8 @@ class TransactionIT {
   TransactionCategory category1() {
     return new TransactionCategory()
         .id("category1_id")
-        .label("label1");
-  }
-
-  private static ApiClient anApiClient(String token) {
-    return TestUtils.anApiClient(token, TransactionIT.ContextInitializer.SERVER_PORT);
+        .label("label1")
+        .comment(null);
   }
 
   @Test

@@ -18,7 +18,7 @@ public class UserSwanRepositoryImpl implements UserSwanRepository {
   @Override
   public SwanUser whoami() {
     try {
-      return swanApi.getData(UserResponse.class.getName(), query, null)
+      return swanApi.getData(UserResponse.class, query, null)
           .getData()
           .getSwanUser();
     } catch (ClassNotFoundException e) {

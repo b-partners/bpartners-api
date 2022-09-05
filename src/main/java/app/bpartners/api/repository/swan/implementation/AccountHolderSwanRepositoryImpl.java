@@ -21,7 +21,7 @@ public class AccountHolderSwanRepositoryImpl implements AccountHolderSwanReposit
   @Override
   public List<SwanAccountHolder> getAccountHolders() {
     try {
-      return List.of(swanApi.getData(AccountHolderResponse.class.getName(), query,
+      return List.of(swanApi.getData(AccountHolderResponse.class, query,
           null).data.accountHolders.edges.get(0).node);
     } catch (ClassNotFoundException e) {
       throw new RuntimeException(e);

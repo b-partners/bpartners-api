@@ -16,31 +16,32 @@ public class FintectureMapper {
   private final AccountService accountService;
   private AccountHolderService accountHolderService;
 
+  private Beneficiary toBeneficiary(Account account, AccountHolder accountHolder) {
+    return Beneficiary.builder()
+        .name(account.getName())
+        .iban(account.getIban())
+        .swift_bic(account.getBic())
+        .street(accountHolder.getAddress())
+        .city(accountHolder.getCity())
+        .country(accountHolder.getCountry().substring(0, 2))
+        .zip(accountHolder.getPostalCode()).build();
+  }
+
   public PaymentInitiation toFintecturePaymentReq(
       app.bpartners.api.model.PaymentInitiation domain) {
     Account authenticatedAccount = accountService.getAccounts().get(0);
     AccountHolder authenticatedAccountHolder = accountHolderService.getAccountHolders().get(0);
 
-    //TODO : Create a private function that returns a new beneficiary when providing
-    //Account and AccountHolder
-    Beneficiary beneficiary = new Beneficiary();
-    beneficiary.name = authenticatedAccount.getName();
-    beneficiary.iban = authenticatedAccount.getIban();
-    beneficiary.swift_bic = authenticatedAccount.getBic();
-
-    beneficiary.street = authenticatedAccountHolder.getAddress();
-    beneficiary.city = authenticatedAccountHolder.getCity();
-    beneficiary.country = authenticatedAccountHolder.getCountry().substring(0, 2);
-    beneficiary.zip = authenticatedAccountHolder.getPostalCode();
-
-    PaymentInitiation.Meta meta = new PaymentInitiation.Meta();
-    meta.psu_name = domain.getPayerEmail();
-    meta.psu_email = domain.getPayerEmail();
+    Beneficiary beneficiary = toBeneficiary(authenticatedAccount, authenticatedAccountHolder);
 
     PaymentInitiation.Attributes attributes = new PaymentInitiation.Attributes();
     attributes.communication = domain.getLabel();
     attributes.amount = String.valueOf(domain.getAmount());
     attributes.beneficiary = beneficiary;
+
+    PaymentInitiation.Meta meta = new PaymentInitiation.Meta();
+    meta.psu_name = domain.getPayerEmail();
+    meta.psu_email = domain.getPayerEmail();
 
     PaymentInitiation.Data data = new PaymentInitiation.Data();
     data.attributes = attributes;
@@ -55,8 +56,6 @@ public class FintectureMapper {
   public app.bpartners.api.model.PaymentRedirection toDomain(
       PaymentRedirection fintecturePaymentUrl, String successUrl) {
     return app.bpartners.api.model.PaymentRedirection.builder()
-        .redirectUrl(fintecturePaymentUrl.meta.url)
-        .successUrl(successUrl)
-        .build();
+        .redirectUrl(fintecturePaymentUrl.meta.url).successUrl(successUrl).build();
   }
 }

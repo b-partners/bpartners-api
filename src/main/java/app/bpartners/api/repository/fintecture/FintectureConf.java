@@ -34,7 +34,7 @@ public class FintectureConf {
     return String.format(baseUrl + "/%s/%s/connect", service, apiVersion);
   }
 
-  public String getConnectPISUrl() {
+  public String getConnectPisUrl() {
     return getConnectEndpointUrl(pisService);
   }
 }

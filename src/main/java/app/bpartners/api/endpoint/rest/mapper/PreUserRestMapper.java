@@ -2,13 +2,19 @@ package app.bpartners.api.endpoint.rest.mapper;
 
 import app.bpartners.api.endpoint.rest.model.CreatePreUser;
 import app.bpartners.api.endpoint.rest.model.PreUser;
+import app.bpartners.api.endpoint.rest.validator.PreUserValidators;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
+@AllArgsConstructor
 public class PreUserRestMapper {
+
+  private final PreUserValidators preUserValidator;
 
   public app.bpartners.api.model.PreUser toDomain(
       CreatePreUser toCreate) {
+    preUserValidator.accept(toCreate);
     return app.bpartners.api.model.PreUser.builder()
         .firstname(toCreate.getFirstName())
         .lastname(toCreate.getFirstName())

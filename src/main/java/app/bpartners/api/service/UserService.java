@@ -13,4 +13,8 @@ public class UserService {
   public User getUserBySwanUserIdAndToken(String swanUserId, String accessToken) {
     return userRepository.getUserBySwanUserIdAndToken(swanUserId, accessToken);
   }
+
+  public User getUserByToken(String token) {
+    return userRepository.getUserByToken(token);
+  }
 }

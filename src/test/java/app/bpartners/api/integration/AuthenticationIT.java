@@ -24,6 +24,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 import static app.bpartners.api.integration.conf.TestUtils.REDIRECT_URL;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 

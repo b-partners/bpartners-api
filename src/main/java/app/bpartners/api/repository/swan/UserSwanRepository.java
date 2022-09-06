@@ -6,4 +6,6 @@ public interface UserSwanRepository {
 
   SwanUser whoami();
 
+  SwanUser getByToken(String token);
+
 }

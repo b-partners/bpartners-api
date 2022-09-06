@@ -18,7 +18,6 @@ import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
-
 import static javax.persistence.GenerationType.IDENTITY;
 
 @Entity

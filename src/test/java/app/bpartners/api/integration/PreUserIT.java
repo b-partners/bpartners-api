@@ -1,5 +1,9 @@
 package app.bpartners.api.integration;
 
+import static app.bpartners.api.integration.conf.TestUtils.setUpSwanComponent;
+import static app.bpartners.api.integration.conf.TestUtils.setUpSwanRepository;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import app.bpartners.api.SentryConf;
 import app.bpartners.api.endpoint.rest.model.CreatePreUser;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
@@ -21,11 +25,6 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
-
-import static app.bpartners.api.integration.conf.TestUtils.setUpSwanComponent;
-import static app.bpartners.api.integration.conf.TestUtils.setUpSwanRepository;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @Testcontainers

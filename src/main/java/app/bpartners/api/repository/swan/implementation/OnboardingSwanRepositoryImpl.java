@@ -13,9 +13,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
-
 import static app.bpartners.api.endpoint.rest.security.swan.SwanConf.BEARER_PREFIX;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 
@@ -46,7 +44,8 @@ public class OnboardingSwanRepositoryImpl implements OnboardingSwanRepository {
       OnboardingResponse onboardingResponse = new ObjectMapper()
           .findAndRegisterModules() //Load DateTime Module
           .readValue(response.body(), OnboardingResponse.class);
-      return onboardingResponse.data.onboardCompanyAccountHolder.onboarding.onboardingUrl;
+      return onboardingResponse.getData().getOnboardCompanyAccountHolder().getOnboarding()
+          .getOnboardingUrl();
     } catch (IOException | InterruptedException | URISyntaxException e) {
       throw new ApiException(SERVER_EXCEPTION, e);
     }

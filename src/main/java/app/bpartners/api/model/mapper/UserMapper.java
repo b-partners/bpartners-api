@@ -13,9 +13,9 @@ public class UserMapper {
   public User toDomain(HUser entityUser, SwanUser swanUser) {
     return User.builder()
         .id(entityUser.getId())
-        .firstName(swanUser.firstName)
-        .lastName(swanUser.lastName)
-        .mobilePhoneNumber(swanUser.mobilePhoneNumber)
+        .firstName(swanUser.getFirstName())
+        .lastName(swanUser.getLastName())
+        .mobilePhoneNumber(swanUser.getMobilePhoneNumber())
         .monthlySubscription(entityUser.getMonthlySubscription())
         .status(entityUser.getStatus())
         .build();

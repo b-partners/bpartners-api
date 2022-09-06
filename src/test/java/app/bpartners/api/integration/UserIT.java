@@ -1,5 +1,9 @@
 package app.bpartners.api.integration;
 
+import static app.bpartners.api.integration.conf.TestUtils.REDIRECT_URL;
+import static app.bpartners.api.integration.conf.TestUtils.joeDoe;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import app.bpartners.api.SentryConf;
 import app.bpartners.api.endpoint.rest.api.SecurityApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
@@ -23,11 +27,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import static app.bpartners.api.integration.conf.TestUtils.REDIRECT_URL;
-import static app.bpartners.api.integration.conf.TestUtils.joeDoe;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
-
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @Testcontainers
 @ContextConfiguration(initializers = UserIT.ContextInitializer.class)
@@ -47,9 +46,9 @@ class UserIT {
     SwanUser joeDoe = joeDoe();
     User user = new User();
     user.setId(TestUtils.JOE_DOE_ID);
-    user.setFirstName(joeDoe.firstName);
-    user.setLastName(joeDoe.lastName);
-    user.setPhone(joeDoe.mobilePhoneNumber);
+    user.setFirstName(joeDoe.getFirstName());
+    user.setLastName(joeDoe.getLastName());
+    user.setPhone(joeDoe.getMobilePhoneNumber());
     user.setMonthlySubscriptionAmount(5);
     user.setStatus(EnableStatus.ENABLED);
     return user;

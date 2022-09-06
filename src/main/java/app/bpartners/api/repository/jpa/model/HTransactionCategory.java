@@ -12,7 +12,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-
 import static javax.persistence.GenerationType.IDENTITY;
 
 @Entity

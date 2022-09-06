@@ -27,7 +27,7 @@ public class SwanComponent {
 
 
   public String getSwanUserIdByToken(String accessToken) {
-    return getSwanUserByToken(accessToken) != null ? getSwanUserByToken(accessToken).id :
+    return getSwanUserByToken(accessToken) != null ? getSwanUserByToken(accessToken).getId() :
         null;
   }
 
@@ -74,7 +74,7 @@ public class SwanComponent {
       UserResponse userResponse = new ObjectMapper()
           .findAndRegisterModules() //Load DateTime Module
           .readValue(response.body(), UserResponse.class);
-      return userResponse.data.user;
+      return userResponse.getData().getSwanUser();
     } catch (IOException | InterruptedException | URISyntaxException e) {
       return null;
     }

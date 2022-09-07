@@ -416,6 +416,74 @@ paths:
           $ref: '#/components/responses/429'
         500:
           $ref: '#/components/responses/500'
+  /accounts/{id}/customers:
+    get:
+      tags:
+        - Customers
+      summary: Get customers of an account
+      operationId: getCustomers
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description: List of customers of the specified account
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Customer'
+        400:
+          $ref: '#/components/responses/400'
+        403:
+          $ref: '#/components/responses/403'
+        404:
+          $ref: '#/components/responses/404'
+        429:
+          $ref: '#/components/responses/429'
+        500:
+          $ref: '#/components/responses/500'
+    post:
+      tags:
+        - Customers
+      summary: Create customers for an account
+      operationId: createCustomers
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/CreateCustomer'
+      responses:
+        200:
+          description: List of customers of the specified account
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Customer'
+        400:
+          $ref: '#/components/responses/400'
+        403:
+          $ref: '#/components/responses/403'
+        404:
+          $ref: '#/components/responses/404'
+        429:
+          $ref: '#/components/responses/429'
+        500:
+          $ref: '#/components/responses/500'
   /files/{id}/raw:
     get:
       tags:
@@ -543,6 +611,13 @@ components:
           schema:
             $ref: '#/components/schemas/InternalServerException'
   schemas:
+    Customer:
+      type: object
+      properties:
+        id:
+          type: string
+      allOf:
+        - $ref: '#/components/schemas/CreateCustomer'
     PaymentInitiation:
       type: object
       properties:
@@ -763,18 +838,17 @@ components:
       type: string
       enum:
         - CONFIRMED
-    Customer:
+    CreateCustomer:
       type: object
       properties:
-        firstName:
-          type: string
-        lastName:
+        name:
           type: string
         email:
           type: string
         phone:
           type: string
-
+        address:
+          type: string
     File:
       type: object
       properties:

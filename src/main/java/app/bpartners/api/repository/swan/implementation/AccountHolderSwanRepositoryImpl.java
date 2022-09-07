@@ -14,7 +14,7 @@ public class AccountHolderSwanRepositoryImpl implements AccountHolderSwanReposit
 
 
   private final SwanApi<AccountHolderResponse> swanApi;
-  private static final String query =
+  private static final String QUERY =
       "{ \"query\": \"" + "query AccountHolder { accountHolders { edges { node "
           + "{ id info { name } residencyAddress "
           + "{ addressLine1 city country postalCode } } } }}\"}";
@@ -22,6 +22,7 @@ public class AccountHolderSwanRepositoryImpl implements AccountHolderSwanReposit
   @Override
   public List<AccountHolder> getAccountHolders() {
     return List.of(
-        swanApi.getData(AccountHolderResponse.class, query).data.accountHolders.edges.get(0).node);
+        swanApi.getData(AccountHolderResponse.class, QUERY).getData().getAccountHolders().getEdges()
+            .get(0).getNode());
   }
 }

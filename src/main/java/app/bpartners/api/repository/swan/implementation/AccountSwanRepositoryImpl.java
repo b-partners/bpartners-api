@@ -11,14 +11,14 @@ import org.springframework.stereotype.Repository;
 @Repository
 @AllArgsConstructor
 public class AccountSwanRepositoryImpl implements AccountSwanRepository {
-  private static final String query =
+  private static final String QUERY =
       "{\"query\": \"query Account { accounts { edges { node { id name IBAN BIC } } } } \"}";
   private final SwanApi<AccountResponse> swanApi;
 
   @Override
   public List<SwanAccount> getAccounts() {
     return List.of(
-        swanApi.getData(AccountResponse.class, query).getData().getAccounts().getEdges().get(0)
+        swanApi.getData(AccountResponse.class, QUERY).getData().getAccounts().getEdges().get(0)
             .getNode());
   }
 }

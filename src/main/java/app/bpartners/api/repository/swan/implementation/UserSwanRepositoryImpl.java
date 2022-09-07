@@ -10,7 +10,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 @AllArgsConstructor
 public class UserSwanRepositoryImpl implements UserSwanRepository {
-  private static final String query = "{\"query\":\"query ProfilePage "
+  private static final String QUERY = "{\"query\":\"query ProfilePage "
       + "{user { id firstName lastName mobilePhoneNumber identificationStatus idVerified "
       + "birthDate "
       + "nationalityCCA3}}\"}";
@@ -19,6 +19,6 @@ public class UserSwanRepositoryImpl implements UserSwanRepository {
 
   @Override
   public SwanUser whoami() {
-    return swanApi.getData(UserResponse.class, query).getData().getUser();
+    return swanApi.getData(UserResponse.class, QUERY).getData().getUser();
   }
 }

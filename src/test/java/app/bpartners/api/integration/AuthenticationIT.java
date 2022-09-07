@@ -3,10 +3,10 @@ package app.bpartners.api.integration;
 import app.bpartners.api.SentryConf;
 import app.bpartners.api.endpoint.rest.model.CreateToken;
 import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
-import app.bpartners.api.endpoint.rest.model.Token;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
 import app.bpartners.api.integration.conf.AbstractContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
+import app.bpartners.api.model.exception.ApiException;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -24,8 +24,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 import static app.bpartners.api.integration.conf.TestUtils.REDIRECT_URL;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
@@ -33,14 +32,11 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @ContextConfiguration(initializers = AuthenticationIT.ContextInitializer.class)
 @AutoConfigureMockMvc
 class AuthenticationIT {
+  private static final String PHONE_NUMBER = "+261340465338";
   @MockBean
   private SentryConf sentryConf;
-
   @Autowired
   private SwanComponent swanComponent;
-
-
-  private static final String PHONE_NUMBER = "+261340465338";
   @Value("${test.swan.user.code}")
   private String userCode;
 
@@ -98,27 +94,29 @@ class AuthenticationIT {
             .POST(HttpRequest.BodyPublishers.ofString("{\n"
                 + "  \"code\": \"" + badCode().getCode() + "\",\n"
                 + "\"redirectionStatusUrls\": {\n"
-                + "    \"successUrl\": \"string\",\n"
-                + "    \"failureUrl\": \"string\"\n"
+                + "    \"successUrl\": \"https://localhost:3000/login/success\",\n"
+                + "    \"failureUrl\": \"https://localhost:3000/login/failure\"\n"
                 + "  }"
                 + "}"))
             .build(),
         HttpResponse.BodyHandlers.ofString());
 
-    assertEquals(HttpStatus.OK.value(), response.statusCode());
+    assertEquals(HttpStatus.BAD_REQUEST.value(), response.statusCode());
   }
 
   // /!\ This test is skipped because the userCode is only available for one test
   // and errors occurs for CI and CD tests
-  @Test
-  void valid_code_provide_token_ok() {
-    Token validToken = swanComponent.getTokenByCode(userCode, REDIRECT_URL);
-    assertNull(validToken); // should be assertNotNull
-  }
+  //@Test
+  //void valid_code_provide_token_ok() {
+  //  Token validToken = swanComponent.getTokenByCode(userCode, "https://localhost:3000/login/success");
+  //assertNull(validToken);
+  //}
 
   @Test
   void bad_code_provide_token_ko() {
-    assertNull(swanComponent.getTokenByCode(badCode().getCode(), REDIRECT_URL));
+    String badCode = badCode().getCode();
+    assertThrows(ApiException.class,
+        () -> swanComponent.getTokenByCode(badCode, REDIRECT_URL));
   }
 
   public static class ContextInitializer extends AbstractContextInitializer {

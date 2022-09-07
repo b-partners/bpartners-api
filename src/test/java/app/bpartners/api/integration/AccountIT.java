@@ -16,6 +16,8 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ID;
+import static app.bpartners.api.integration.conf.TestUtils.assertThrowsForbiddenException;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
@@ -24,6 +26,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @ContextConfiguration(initializers = AccountIT.ContextInitializer.class)
 @AutoConfigureMockMvc
 class AccountIT {
+  private static final String OTHER_USER_ID = "OTHER_USER_ID";
   @MockBean
   private SentryConf sentryConf;
   @Value("${test.user.access.token}")
@@ -46,9 +49,17 @@ class AccountIT {
     ApiClient joeDoeClient = anApiClient(bearerToken);
     UserAccountsApi api = new UserAccountsApi(joeDoeClient);
 
-    List<Account> actual = api.getAccountsByUserId(joeDoeAccount().getId());
+    List<Account> actual = api.getAccountsByUserId(JOE_DOE_ID);
 
     assertTrue(actual.contains(joeDoeAccount()));
+  }
+
+  @Test
+  void read_accounts_ko() {
+    ApiClient joeDoeClient = anApiClient(bearerToken);
+    UserAccountsApi api = new UserAccountsApi(joeDoeClient);
+
+    assertThrowsForbiddenException(() -> api.getAccountsByUserId(OTHER_USER_ID));
   }
 
   static class ContextInitializer extends AbstractContextInitializer {

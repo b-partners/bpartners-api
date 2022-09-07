@@ -2,12 +2,15 @@ package app.bpartners.api.repository.implementation;
 
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
 import app.bpartners.api.model.User;
+import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.mapper.UserMapper;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.jpa.UserJpaRepository;
 import app.bpartners.api.repository.jpa.model.HUser;
 import app.bpartners.api.repository.swan.UserSwanRepository;
 import app.bpartners.api.repository.swan.model.SwanUser;
+import java.io.IOException;
+import java.net.URISyntaxException;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -29,9 +32,11 @@ public class UserRepositoryImpl implements UserRepository {
 
   @Override
   public User getUserBySwanUserIdAndToken(String swanUserId, String token) {
-    SwanUser swanUser = swanComponent.getSwanUserByToken(token);
-    if (!swanUserId.equals(swanUser.id)) {
-      throw new RuntimeException();
+    SwanUser swanUser = null;
+    try {
+      swanUser = swanComponent.getSwanUserByToken(token);
+    } catch (URISyntaxException | IOException | InterruptedException e) {
+      throw new ApiException(ApiException.ExceptionType.CLIENT_EXCEPTION, e);
     }
     HUser entityUser = jpaRepository.getUserBySwanUserId(swanUserId);
     return userMapper.toDomain(entityUser, swanUser);

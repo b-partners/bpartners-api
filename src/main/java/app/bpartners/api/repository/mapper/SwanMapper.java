@@ -11,6 +11,7 @@ public class SwanMapper {
     Token token = new Token();
     token.setAccessToken(tokenResponse.getAccessToken());
     token.setRefreshToken(tokenResponse.getRefreshToken());
+    token.setExpiresIn(Integer.parseInt(tokenResponse.getExpiresIn()));
     return token;
   }
 }

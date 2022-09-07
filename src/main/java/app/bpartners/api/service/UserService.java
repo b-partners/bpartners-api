@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 public class UserService {
   private UserRepository userRepository;
 
+  //TODO: CHANGE to getBySwanUserId only
   public User getUserBySwanUserIdAndToken(String swanUserId, String accessToken) {
     return userRepository.getUserBySwanUserIdAndToken(swanUserId, accessToken);
   }

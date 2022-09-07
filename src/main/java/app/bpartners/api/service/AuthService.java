@@ -26,11 +26,11 @@ public class AuthService {
     Redirection redirection = new Redirection();
 
     redirection.setRedirectionUrl(
-      swanConf.getAuthProviderUrl() + "?response_type=code&client_id="
-        + swanConf.getClientId() + "&redirect_uri="
-        + authInitiation.getRedirectionStatusUrls().getSuccessUrl()
-        + "&scope=openid%20offline%20idverified&state=" + authInitiation.getState()
-        + "&phoneNumber=" + authInitiation.getPhone());
+        swanConf.getAuthProviderUrl() + "?response_type=code&client_id="
+            + swanConf.getClientId() + "&redirect_uri="
+            + authInitiation.getRedirectionStatusUrls().getSuccessUrl()
+            + "&scope=openid%20offline%20idverified&state=" + authInitiation.getState()
+            + "&phoneNumber=" + authInitiation.getPhone());
     redirection.setRedirectionStatusUrls(authInitiation.getRedirectionStatusUrls());
 
     return redirection;
@@ -41,7 +41,7 @@ public class AuthService {
     String redirectUrl = toCreate.getRedirectionStatusUrls().getSuccessUrl();
     Token createdToken = swanComponent.getTokenByCode(toCreate.getCode(), redirectUrl);
     Whoami whoami = new Whoami()
-      .user(userRestMapper.toRest(userService.getUserByToken(createdToken.getAccessToken())));
+        .user(userRestMapper.toRest(userService.getUserByToken(createdToken.getAccessToken())));
     createdToken.setWhoami(whoami);
     return createdToken;
   }

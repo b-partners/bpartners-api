@@ -7,12 +7,14 @@ import app.bpartners.api.repository.swan.UserSwanRepository;
 import app.bpartners.api.repository.swan.model.SwanUser;
 import java.io.IOException;
 import java.net.ServerSocket;
+import java.net.URISyntaxException;
 import java.time.LocalDate;
 import org.junit.jupiter.api.function.Executable;
 import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsRequest;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsResponse;
 
+import static app.bpartners.api.model.exception.ApiException.ExceptionType.CLIENT_EXCEPTION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -69,9 +71,13 @@ public class TestUtils {
   }
 
   public static void setUpSwanComponent(SwanComponent swanComponent) {
-    when(swanComponent.getSwanUserByToken(BAD_TOKEN)).thenReturn(null);
-    when(swanComponent.getSwanUserIdByToken(USER1_TOKEN)).thenReturn(swanUser1().id);
-    when(swanComponent.getSwanUserByToken(USER1_TOKEN)).thenReturn(swanUser1());
+    try {
+      when(swanComponent.getSwanUserByToken(BAD_TOKEN)).thenReturn(null);
+      when(swanComponent.getSwanUserIdByToken(USER1_TOKEN)).thenReturn(swanUser1().id);
+      when(swanComponent.getSwanUserByToken(USER1_TOKEN)).thenReturn(swanUser1());
+    } catch (URISyntaxException | IOException | InterruptedException e) {
+      throw new app.bpartners.api.model.exception.ApiException(CLIENT_EXCEPTION, e);
+    }
   }
 
   public static void setUpSwanRepository(UserSwanRepository swanRepository) {

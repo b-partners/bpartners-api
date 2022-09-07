@@ -18,7 +18,7 @@ public class AccountController {
 
   @GetMapping("/users/{id}/accounts")
   public List<Account> getAccounts(@PathVariable(name = "id") String userId) {
-    return service.getAccounts().stream()
+    return service.getAccountsByUserId(userId).stream()
         .map(mapper::toRest)
         .collect(Collectors.toUnmodifiableList());
   }

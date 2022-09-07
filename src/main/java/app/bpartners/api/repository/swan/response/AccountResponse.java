@@ -2,20 +2,50 @@ package app.bpartners.api.repository.swan.response;
 
 
 import app.bpartners.api.repository.swan.model.SwanAccount;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 
 public class AccountResponse {
-  public Data data;
+  private Data data;
+  private static final String JSON_PROPERTY_DATA = "data";
 
   public static class Data {
-    public Accounts accounts;
+    private Accounts accounts;
+    private static final String JSON_PROPERTY_ACCOUNTS = "accounts";
+
+    @JsonProperty(JSON_PROPERTY_ACCOUNTS)
+    @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+    public Accounts getAccounts() {
+      return accounts;
+    }
   }
 
   public static class Accounts {
-    public List<Edge> edges;
+    private List<Edge> edges;
+    private static final String JSON_PROPERTY_EDGES = "edges";
+
+    @JsonProperty(JSON_PROPERTY_EDGES)
+    @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+    public List<Edge> getEdges() {
+      return edges;
+    }
   }
 
   public static class Edge {
-    public SwanAccount node;
+    private SwanAccount node;
+    private static final String JSON_PROPERTY_SWAN_ACCOUNT = "node";
+
+    @JsonProperty(JSON_PROPERTY_SWAN_ACCOUNT)
+    @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+    public SwanAccount getNode() {
+      return node;
+    }
+  }
+
+  @JsonProperty(JSON_PROPERTY_DATA)
+  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+  public Data getData() {
+    return data;
   }
 }

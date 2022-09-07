@@ -9,8 +9,8 @@ public class SwanMapper {
 
   public Token toRest(TokenResponse tokenResponse) {
     Token token = new Token();
-    token.setAccessToken(tokenResponse.access_token);
-    token.setRefreshToken(tokenResponse.refresh_token);
+    token.setAccessToken(tokenResponse.getAccessToken());
+    token.setRefreshToken(tokenResponse.getRefreshToken());
     return token;
   }
 }

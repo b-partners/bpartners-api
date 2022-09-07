@@ -83,6 +83,8 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
         .antMatchers(GET, "/accountHolders").authenticated()
         .antMatchers(GET, "/users/*/accounts/*/accountHolders").authenticated()
         .antMatchers(POST, "/accounts/*/paymentInitiations").authenticated()
+        .antMatchers(GET, "/accounts/*/customers").authenticated()
+        .antMatchers(POST, "/accounts/*/customers").authenticated()
         .antMatchers(GET, "/whoami").authenticated()
         .antMatchers(GET, "/preUsers").authenticated()
         .antMatchers(GET, "/whoami").authenticated()

@@ -1,5 +1,6 @@
 package app.bpartners.api.model;
 
+import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -20,6 +21,5 @@ public class Account {
   private String name;
   private String iban;
   private String bic;
-
-  /* TODO(no-accountHolder): here, add users parameter of type Map<User,UserRole> */
+  private Map<User, User.UserRole> users;
 }

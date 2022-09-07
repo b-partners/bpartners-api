@@ -32,7 +32,7 @@ public class FinctecturePaymentInitiationRepositoryImpl implements
       String urlParams = String.format("?redirectUri=%s&state=1234", redirectUri);
       String data = new ObjectMapper().writeValueAsString(paymentReq);
       HttpRequest request = HttpRequest.newBuilder()
-          .uri(new URI(fintectureConf.getConnectPISUrl() + urlParams))
+          .uri(new URI(fintectureConf.getConnectPisUrl() + urlParams))
           .header("Content-Type", "application/json")
           .header("Accept", "application/json")
           .header("Authorization", BEARER_PREFIX + tokenManager.getFintectureProjectToken())

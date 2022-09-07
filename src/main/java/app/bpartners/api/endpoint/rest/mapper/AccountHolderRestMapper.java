@@ -1,5 +1,6 @@
 package app.bpartners.api.endpoint.rest.mapper;
 
+
 import app.bpartners.api.endpoint.rest.validator.AccountHolderValidator;
 import app.bpartners.api.model.AccountHolder;
 import lombok.AllArgsConstructor;

@@ -1,12 +1,12 @@
 package app.bpartners.api.repository.implementation;
 
 import app.bpartners.api.model.TransactionCategory;
+import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.mapper.TransactionCategoryMapper;
 import app.bpartners.api.repository.TransactionCategoryRepository;
 import app.bpartners.api.repository.jpa.TransactionCategoryJpaRepository;
 import app.bpartners.api.repository.jpa.model.HTransactionCategory;
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Optional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -17,19 +17,21 @@ public class TransactionCategoryRepositoryImpl implements TransactionCategoryRep
   private final TransactionCategoryMapper mapper;
 
   @Override
-  public List<TransactionCategory> findAll() {
-    return jpaRepository.findAll().stream()
-        .map(mapper::toDomain)
-        .collect(Collectors.toUnmodifiableList());
+  public TransactionCategory findByIdTransaction(String idTransaction) {
+    //TODO : Use Optional<HTransactionCategory> in JpaRepository instead
+    Optional<HTransactionCategory> entity =
+        jpaRepository.findHTransactionCategoryByIdTransaction(idTransaction);
+    if (entity.isEmpty()) {
+      throw new NotFoundException("Transaction." + idTransaction + "is not found");
+    }
+    return mapper.toDomain(entity.get());
   }
 
   @Override
-  public List<TransactionCategory> saveAll(List<TransactionCategory> toCreate) {
-    List<HTransactionCategory> entities = toCreate.stream()
-        .map(mapper::toEntity)
-        .collect(Collectors.toUnmodifiableList());
-    return jpaRepository.saveAll(entities).stream()
-        .map(mapper::toDomain)
-        .collect(Collectors.toUnmodifiableList());
+  public TransactionCategory save(String transactionId, TransactionCategory toCreate) {
+    //TODO : Check if transaction exists upper
+    HTransactionCategory entity = mapper.toEntity(toCreate);
+    entity.setIdTransaction(transactionId);
+    return mapper.toDomain(jpaRepository.save(entity));
   }
 }

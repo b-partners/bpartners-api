@@ -4,8 +4,8 @@ import app.bpartners.api.SentryConf;
 import app.bpartners.api.endpoint.rest.api.PayingApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
-import app.bpartners.api.endpoint.rest.model.CreateTransactionCategory;
-import app.bpartners.api.endpoint.rest.model.TransactionCategory;
+import app.bpartners.api.endpoint.rest.model.CreateTransactionCategoryType;
+import app.bpartners.api.endpoint.rest.model.TransactionCategoryType;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
 import app.bpartners.api.integration.conf.AbstractContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
@@ -24,9 +24,9 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @Testcontainers
-@ContextConfiguration(initializers = TransactionCategoryIT.ContextInitializer.class)
+@ContextConfiguration(initializers = TransactionCategoryTypeIT.ContextInitializer.class)
 @AutoConfigureMockMvc
-class TransactionCategoryIT {
+class TransactionCategoryTypeIT {
   @MockBean
   private SentryConf sentryConf;
 
@@ -38,14 +38,14 @@ class TransactionCategoryIT {
     setUpSwanComponent(swanComponentMock);
   }
 
-  TransactionCategory transactionCategory1() {
-    return new TransactionCategory()
+  TransactionCategoryType transactionCategory1() {
+    return new TransactionCategoryType()
         .id("category1_id")
         .label("label1");
   }
 
-  CreateTransactionCategory validTransactionCategory() {
-    return new CreateTransactionCategory()
+  CreateTransactionCategoryType validTransactionCategory() {
+    return new CreateTransactionCategoryType()
         .label("valid_label");
   }
 
@@ -58,7 +58,7 @@ class TransactionCategoryIT {
     ApiClient user1Client = anApiClient(TestUtils.USER1_TOKEN);
     PayingApi api = new PayingApi(user1Client);
 
-    List<TransactionCategory> actual = api.getTransactionCategories();
+    List<TransactionCategoryType> actual = api.getTransactionCategories();
 
     assertTrue(actual.contains(transactionCategory1()));
   }
@@ -68,10 +68,10 @@ class TransactionCategoryIT {
     ApiClient user1Client = anApiClient(TestUtils.USER1_TOKEN);
     PayingApi api = new PayingApi(user1Client);
 
-    List<TransactionCategory> actual =
+    List<TransactionCategoryType> actual =
         api.createTransactionCategories(List.of(validTransactionCategory()));
 
-    List<TransactionCategory> actualList = api.getTransactionCategories();
+    List<TransactionCategoryType> actualList = api.getTransactionCategories();
     assertTrue(actualList.containsAll(actual));
   }
 

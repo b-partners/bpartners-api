@@ -5,4 +5,6 @@ import java.util.List;
 
 public interface TransactionSwanRepository {
   List<Transaction> getTransactions();
+
+  Transaction findById(String id);
 }

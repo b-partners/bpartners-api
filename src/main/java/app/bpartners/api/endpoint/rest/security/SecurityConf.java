@@ -16,6 +16,7 @@ import org.springframework.web.servlet.HandlerExceptionResolver;
 
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpMethod.OPTIONS;
+import static org.springframework.http.HttpMethod.PATCH;
 import static org.springframework.http.HttpMethod.POST;
 
 @Configuration
@@ -82,9 +83,13 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
         .antMatchers(POST, "/accounts/*/customers").authenticated()
         .antMatchers(GET, "/accounts/*/transactions").authenticated()
         .antMatchers(GET, "/users/*/accounts").authenticated()
+        .antMatchers(GET, "/transactionCategoryTypes").authenticated()
+        .antMatchers(POST, "/transactionCategoryTypes").authenticated()
+        .antMatchers(POST, "/paymentRequests").authenticated()
         .antMatchers(GET, "/transactionCategories").authenticated()
         .antMatchers(POST, "/transactionCategories").authenticated()
         .antMatchers(GET, "/users/*/accounts/*/accountHolders").authenticated()
+        .antMatchers(PATCH, "/accounts/*/transactions/*").authenticated()
         .antMatchers(POST, "/accounts/*/paymentInitiations").authenticated()
         .antMatchers(GET, "/whoami").authenticated()
         .antMatchers(GET, "/preUsers").authenticated()

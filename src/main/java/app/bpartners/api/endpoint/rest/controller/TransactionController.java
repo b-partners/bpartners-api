@@ -7,7 +7,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -23,5 +25,12 @@ public class TransactionController {
         .collect(Collectors.toUnmodifiableList());
   }
 
-
+  @PatchMapping(value = "/accounts/{aId}/transactions/{tId}")
+  public Transaction modifyTransaction(
+      @PathVariable(name = "aId") String accountId,
+      @PathVariable(name = "tId") String transactionId,
+      @RequestBody Transaction newTransactionValue) {
+    return mapper.toRest(
+        service.modifyTransaction(transactionId, mapper.toDomain(newTransactionValue)));
+  }
 }

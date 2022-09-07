@@ -13,9 +13,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 @EqualsAndHashCode
-public class TransactionCategory {
+public class TransactionCategoryType {
   private String id;
-  private String comment;
-  private String idTransaction;
-  private TransactionCategoryType type;
+  private String label;
 }

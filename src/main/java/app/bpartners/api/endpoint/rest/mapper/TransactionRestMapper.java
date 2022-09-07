@@ -2,11 +2,15 @@ package app.bpartners.api.endpoint.rest.mapper;
 
 import app.bpartners.api.endpoint.rest.model.Transaction;
 import app.bpartners.api.endpoint.rest.model.TransactionCategory;
+import app.bpartners.api.service.TransactionCategoryTypeService;
 import java.math.BigDecimal;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
+@AllArgsConstructor
 public class TransactionRestMapper {
+  private final TransactionCategoryTypeService typeService;
 
   public Transaction toRest(app.bpartners.api.model.Transaction internal) {
     Transaction transaction = new Transaction();
@@ -20,9 +24,30 @@ public class TransactionRestMapper {
   }
 
   public TransactionCategory toRest(app.bpartners.api.model.TransactionCategory internal) {
-    TransactionCategory category = new TransactionCategory();
-    category.setId(internal.getId());
-    category.setLabel(internal.getLabel());
-    return category;
+    return new TransactionCategory()
+        .id(internal.getType().getId())
+        .label(internal.getType().getLabel())
+        .comment(internal.getComment());
+  }
+
+  public app.bpartners.api.model.Transaction toDomain(Transaction rest) {
+    return app.bpartners.api.model.Transaction.builder()
+        .id(rest.getId())
+        .label(rest.getLabel())
+        .reference(rest.getReference())
+        .paymentDatetime(rest.getPaymentDatetime())
+        .category(toDomain(rest.getId(), rest.getCategory()))
+        .amount(null) //TODO : change this into int
+        .build();
+  }
+
+  public app.bpartners.api.model.TransactionCategory toDomain(
+      String transactionId,
+      TransactionCategory rest) {
+    return app.bpartners.api.model.TransactionCategory.builder()
+        .idTransaction(transactionId)
+        .type(typeService.getCategoryById(rest.getId()))
+        .comment(rest.getComment())
+        .build();
   }
 }

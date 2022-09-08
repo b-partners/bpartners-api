@@ -56,6 +56,6 @@ public class FintectureMapper {
   public app.bpartners.api.model.PaymentRedirection toDomain(
       PaymentRedirection fintecturePaymentUrl, String successUrl) {
     return app.bpartners.api.model.PaymentRedirection.builder()
-        .redirectUrl(fintecturePaymentUrl.meta.url).successUrl(successUrl).build();
+        .redirectUrl(fintecturePaymentUrl.getMeta().getUrl()).successUrl(successUrl).build();
   }
 }

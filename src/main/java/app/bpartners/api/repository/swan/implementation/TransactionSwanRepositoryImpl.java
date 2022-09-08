@@ -56,7 +56,7 @@ public class TransactionSwanRepositoryImpl implements TransactionSwanRepository 
           .findAndRegisterModules() //Load DateTime Module
           .readValue(response.body(), OneTransactionResponse.class);
       Transaction mappedTransaction = new Transaction();
-      mappedTransaction.node = transactionResponse.getData().getTransaction();
+      mappedTransaction.setNode(transactionResponse.getData().getTransaction());
       return mappedTransaction;
     } catch (IOException | InterruptedException | URISyntaxException e) {
       throw new ApiException(ApiException.ExceptionType.SERVER_EXCEPTION, e);

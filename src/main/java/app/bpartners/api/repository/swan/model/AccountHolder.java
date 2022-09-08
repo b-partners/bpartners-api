@@ -1,18 +1,69 @@
 package app.bpartners.api.repository.swan.model;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class AccountHolder {
-  public String id;
-  public Info info;
-  public ResidencyAddress residencyAddress;
+  private String id;
+  private Info info;
+  private ResidencyAddress residencyAddress;
+
+  @JsonProperty("id")
+  @JsonInclude(JsonInclude.Include.USE_DEFAULTS)
+  public String getId() {
+    return id;
+  }
+
+  @JsonProperty("info")
+  @JsonInclude(JsonInclude.Include.USE_DEFAULTS)
+  public Info getInfo() {
+    return info;
+  }
+
+  @JsonProperty("residencyAddress")
+  @JsonInclude(JsonInclude.Include.USE_DEFAULTS)
+  public ResidencyAddress getResidencyAddress() {
+    return residencyAddress;
+  }
 
   public static class Info {
-    public String name;
+    private String name;
+
+    @JsonProperty("name")
+    @JsonInclude(JsonInclude.Include.USE_DEFAULTS)
+    public String getName() {
+      return name;
+    }
   }
 
   public static class ResidencyAddress {
-    public String addressLine1;
-    public String city;
-    public String country;
-    public String postalCode;
+    private String addressLine1;
+    private String city;
+    private String country;
+    private String postalCode;
+
+    @JsonProperty("addressLine1")
+    @JsonInclude(JsonInclude.Include.USE_DEFAULTS)
+    public String getAddressLine1() {
+      return addressLine1;
+    }
+
+    @JsonProperty("city")
+    @JsonInclude(JsonInclude.Include.USE_DEFAULTS)
+    public String getCity() {
+      return city;
+    }
+
+    @JsonProperty("country")
+    @JsonInclude(JsonInclude.Include.USE_DEFAULTS)
+    public String getCountry() {
+      return country;
+    }
+
+    @JsonProperty("postalCode")
+    @JsonInclude(JsonInclude.Include.USE_DEFAULTS)
+    public String getPostalCode() {
+      return postalCode;
+    }
   }
 }

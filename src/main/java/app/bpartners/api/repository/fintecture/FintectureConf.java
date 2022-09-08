@@ -11,8 +11,8 @@ public class FintectureConf {
   private String appSecret;
   private String baseUrl;
   private String apiVersion;
-  private final String pisService = "pis";
-  private final String aisService = "ais";
+  private static final String PIS_SERVICE = "pis";
+  private static final String AIS_SERVICE = "ais";
 
 
   public FintectureConf(
@@ -35,6 +35,6 @@ public class FintectureConf {
   }
 
   public String getConnectPisUrl() {
-    return getConnectEndpointUrl(pisService);
+    return getConnectEndpointUrl(PIS_SERVICE);
   }
 }

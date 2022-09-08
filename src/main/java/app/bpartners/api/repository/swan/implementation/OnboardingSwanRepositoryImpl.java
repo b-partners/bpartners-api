@@ -46,7 +46,8 @@ public class OnboardingSwanRepositoryImpl implements OnboardingSwanRepository {
       OnboardingResponse onboardingResponse = new ObjectMapper()
           .findAndRegisterModules() //Load DateTime Module
           .readValue(response.body(), OnboardingResponse.class);
-      return onboardingResponse.data.onboardCompanyAccountHolder.onboarding.onboardingUrl;
+      return onboardingResponse.getData().getOnboardCompanyAccountHolder().getOnboarding()
+          .getOnboardingUrl();
     } catch (IOException | InterruptedException | URISyntaxException e) {
       throw new ApiException(SERVER_EXCEPTION, e);
     }

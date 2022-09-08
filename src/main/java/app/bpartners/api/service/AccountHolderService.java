@@ -1,7 +1,7 @@
 package app.bpartners.api.service;
 
 import app.bpartners.api.model.AccountHolder;
-import app.bpartners.api.repository.implementation.AccountHolderRepositoryImpl;
+import app.bpartners.api.repository.AccountHolderRepository;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 @AllArgsConstructor
 public class AccountHolderService {
 
-  private final AccountHolderRepositoryImpl accountHolderRepository;
+  private final AccountHolderRepository accountHolderRepository;
 
   public List<AccountHolder> getAccountHolders() {
     return accountHolderRepository.getAccountHolders();

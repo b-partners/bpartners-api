@@ -74,7 +74,7 @@ public class SwanComponent {
       UserResponse userResponse = new ObjectMapper()
           .findAndRegisterModules() //Load DateTime Module
           .readValue(response.body(), UserResponse.class);
-      return userResponse.data.user;
+      return userResponse.getData().getUser();
     } catch (IOException | InterruptedException | URISyntaxException e) {
       return null;
     }

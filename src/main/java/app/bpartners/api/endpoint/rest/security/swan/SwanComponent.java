@@ -29,7 +29,7 @@ public class SwanComponent {
 
   public String getSwanUserIdByToken(String accessToken) {
     try {
-      return getSwanUserByToken(accessToken) != null ? getSwanUserByToken(accessToken).id :
+      return getSwanUserByToken(accessToken) != null ? getSwanUserByToken(accessToken).getId() :
           null;
     } catch (URISyntaxException | IOException | InterruptedException e) {
       return null;

@@ -23,7 +23,7 @@ public class TransactionRepositoryImpl implements TransactionRepository {
     //TODO : replace this with persisted ID of TransactionCategory
     return swanRepository.getTransactions().stream()
         .map(transaction -> mapper.toDomain(transaction,
-            categoryRepository.findByIdTransaction(transaction.node.id)))
+            categoryRepository.findByIdTransaction(transaction.getNode().getId())))
         .collect(Collectors.toUnmodifiableList());
   }
 
@@ -32,6 +32,6 @@ public class TransactionRepositoryImpl implements TransactionRepository {
     app.bpartners.api.repository.swan.model.Transaction swanTransaction =
         swanRepository.findById(id);
     return mapper.toDomain(swanTransaction,
-        categoryRepository.findByIdTransaction(swanTransaction.node.id));
+        categoryRepository.findByIdTransaction(swanTransaction.getNode().getId()));
   }
 }

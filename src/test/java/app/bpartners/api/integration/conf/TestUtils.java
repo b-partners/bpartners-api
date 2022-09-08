@@ -33,6 +33,8 @@ public class TestUtils {
   public static final String REDIRECT_URL = "https://dashboard-dev.bpartners.app";
   public static final String BAD_REDIRECT_URL = "bad_redirect_url";
   public static final String JOE_DOE_ACCOUNT_ID = "beed1765-5c16-472a-b3f4-5c376ce5db58";
+  public static final String USER1_ID = "user1_id";
+  public static final String BAD_USER_ID = "bad_user_id";
 
   public static SwanUser joeDoe() {
     SwanUser swanUser = new SwanUser();

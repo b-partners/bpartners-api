@@ -2,6 +2,7 @@ package app.bpartners.api.integration;
 
 import app.bpartners.api.SentryConf;
 import app.bpartners.api.endpoint.rest.api.SecurityApi;
+import app.bpartners.api.endpoint.rest.api.UserAccountsApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
 import app.bpartners.api.endpoint.rest.model.EnableStatus;
@@ -23,7 +24,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ID;
 import static app.bpartners.api.integration.conf.TestUtils.REDIRECT_URL;
+import static app.bpartners.api.integration.conf.TestUtils.assertThrowsApiException;
+import static app.bpartners.api.integration.conf.TestUtils.assertThrowsForbiddenException;
 import static app.bpartners.api.integration.conf.TestUtils.joeDoe;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
@@ -110,6 +114,27 @@ class UserIT {
     User actualUser = api.whoami().getUser();
 
     assertEquals(joeDoeUser(), actualUser);
+  }
+
+  @Test
+  void read_user_by_id_ok() throws ApiException {
+    ApiClient joeDoeClient = anApiClient(bearerToken);
+    UserAccountsApi api = new UserAccountsApi(joeDoeClient);
+
+    User actualUser = api.getUserById(JOE_DOE_ID);
+
+    assertEquals(joeDoeUser(), actualUser);
+  }
+
+  @Test
+  void read_user_by_id_ko() {
+    ApiClient joeDoeClient = anApiClient(bearerToken);
+    UserAccountsApi api = new UserAccountsApi(joeDoeClient);
+
+    assertThrowsForbiddenException(() -> api.getUserById(TestUtils.USER1_ID));
+    assertThrowsApiException(
+        "{\"type\":\"404 NOT_FOUND\",\"message\":\"User.bad_user_id does not exist\"}",
+        () -> api.getUserById(TestUtils.BAD_USER_ID));
   }
 
   static class ContextInitializer extends AbstractContextInitializer {

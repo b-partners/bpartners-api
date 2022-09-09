@@ -25,4 +25,15 @@ public class CustomerRestMapper {
         .address(rest.getAddress())
         .build();
   }
+
+  public app.bpartners.api.model.Customer toDomain(String accountId, Customer rest) {
+    return app.bpartners.api.model.Customer.builder()
+        .id(rest.getId())
+        .idAccount(accountId)
+        .name(rest.getName())
+        .phone(rest.getPhone())
+        .email(rest.getEmail())
+        .address(rest.getAddress())
+        .build();
+  }
 }

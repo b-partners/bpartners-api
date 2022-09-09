@@ -18,6 +18,7 @@ import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpMethod.OPTIONS;
 import static org.springframework.http.HttpMethod.PATCH;
 import static org.springframework.http.HttpMethod.POST;
+import static org.springframework.http.HttpMethod.PUT;
 
 @Configuration
 @Slf4j
@@ -90,6 +91,8 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
         .antMatchers(POST, "/transactionCategories").authenticated()
         .antMatchers(GET, "/users/*/accounts/*/accountHolders").authenticated()
         .antMatchers(PATCH, "/accounts/*/transactions/*").authenticated()
+        .antMatchers(GET, "/accounts/*/invoices/*").authenticated()
+        .antMatchers(PUT, "/accounts/*/invoices/*").authenticated()
         .antMatchers(POST, "/accounts/*/paymentInitiations").authenticated()
         .antMatchers(GET, "/whoami").authenticated()
         .antMatchers(GET, "/preUsers").authenticated()

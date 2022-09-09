@@ -5,7 +5,6 @@ import app.bpartners.api.endpoint.rest.api.PayingApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
 import app.bpartners.api.endpoint.rest.model.Transaction;
-import app.bpartners.api.endpoint.rest.model.TransactionCategory;
 import app.bpartners.api.integration.conf.AbstractContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
 import java.math.BigDecimal;
@@ -34,21 +33,12 @@ class TransactionIT {
   @Value("${test.user.access.token}")
   private String bearerToken;
 
-  Transaction transaction1() {
-    return new Transaction()
-        .id("bosci_0fe167566b234808a44aae415f057b6c")
-        .label("Premier virement")
-        .reference("JOE-001")
-        .amount(BigDecimal.valueOf(500.0))
-        .paymentDatetime(Instant.parse("2022-08-24T03:39:33.315Z"));
-  }
-
   Transaction transaction2() {
     return new Transaction()
         .id("bosci_f224704f2555a42303e302ffb8e69eef")
         .label("Création de site vitrine")
         .reference("REF_001")
-        .amount(BigDecimal.valueOf(500.0))
+        .amount(BigDecimal.valueOf(500))
         .paymentDatetime(Instant.parse("2022-08-26T06:33:50.595Z"));
   }
 

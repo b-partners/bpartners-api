@@ -12,7 +12,7 @@ public class FintectureConf {
   private String baseUrl;
   private String apiVersion;
   private static final String PIS_SERVICE = "pis";
-  private static final String AIS_SERVICE = "ais";
+  public static final String PIS_SCOPE = "PIS";
 
 
   public FintectureConf(
@@ -36,5 +36,9 @@ public class FintectureConf {
 
   public String getConnectPisUrl() {
     return getConnectEndpointUrl(PIS_SERVICE);
+  }
+
+  public String getOauthUrl() {
+    return baseUrl + "/oauth/accesstoken";
   }
 }

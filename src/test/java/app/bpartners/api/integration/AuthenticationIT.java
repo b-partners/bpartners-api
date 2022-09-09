@@ -6,8 +6,10 @@ import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
 import app.bpartners.api.integration.conf.AbstractContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
+import app.bpartners.api.manager.FinctectureTokenManager;
 import app.bpartners.api.manager.ProjectTokenManager;
 import app.bpartners.api.model.exception.ApiException;
+import app.bpartners.api.repository.fintecture.model.TokenResponse;
 import app.bpartners.api.repository.swan.SwanApi;
 import app.bpartners.api.repository.swan.response.ProjectTokenResponse;
 import java.io.IOException;
@@ -15,7 +17,6 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -45,6 +46,10 @@ class AuthenticationIT {
   private SwanComponent swanComponent;
 
   @Autowired
+  private FinctectureTokenManager finctectureTokenManager;
+
+
+  @Autowired
   private SwanApi<ProjectTokenResponse> swanApi;
 
   @Autowired
@@ -52,12 +57,6 @@ class AuthenticationIT {
 
   @Value("${test.swan.user.code}")
   private String userCode;
-
-  @Value("${swan.client.id}")
-  private String clientId;
-
-  @Value("${swan.client.secret}")
-  private String clientSecret;
 
   /*CreateToken validCode() {
     return new CreateToken().code(userCode);
@@ -125,6 +124,16 @@ class AuthenticationIT {
     assertEquals(HttpStatus.BAD_REQUEST.value(), response.statusCode());
   }
 
+  @Test
+  void get_fintecture_project_token_ok() {
+    TokenResponse actual = finctectureTokenManager.getProjectAccessToken();
+
+    assertNotNull(actual);
+    assertNotNull(actual.getTokenType());
+    assertNotNull(actual.getAccessToken());
+    assertNotNull(actual.getExpiresIn());
+  }
+
   // /!\ This test is skipped because the userCode is only available for one test
   // and errors occurs for CI and CD tests
   //@Test
@@ -144,13 +153,13 @@ class AuthenticationIT {
   void get_access_token_from_swan_ok() {
     ProjectTokenResponse tokenResponse = swanApi.getProjectToken();
 
-    Assertions.assertNotNull(tokenResponse);
-    Assertions.assertNotNull(tokenResponse.getAccessToken());
-    Assertions.assertTrue(
+    assertNotNull(tokenResponse);
+    assertNotNull(tokenResponse.getAccessToken());
+    assertTrue(
         !tokenResponse.getAccessToken().isBlank() && !tokenResponse.getAccessToken().isEmpty());
-    Assertions.assertNotNull(tokenResponse.getTokenType());
-    Assertions.assertNotNull(tokenResponse.getScope());
-    Assertions.assertNotNull(tokenResponse.getExpiresIn());
+    assertNotNull(tokenResponse.getTokenType());
+    assertNotNull(tokenResponse.getScope());
+    assertNotNull(tokenResponse.getExpiresIn());
   }
 
   @Test

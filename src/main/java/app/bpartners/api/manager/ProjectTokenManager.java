@@ -20,22 +20,20 @@ public class ProjectTokenManager {
   private final String swanProjectParamName;
   private final String fintectureProjectParamName;
   private final SwanApi<ProjectTokenResponse> swanApi;
-  private SsmClient ssmClient;
-  @Value("${swan.client.id}")
-  private String clientId;
-  @Value("${swan.client.secret}")
-  private String clientSecret;
+  private final FinctectureTokenManager finctectureTokenManager;
+  private final SsmClient ssmClient;
 
   public ProjectTokenManager(SsmClient ssmClient,
                              @Value("${aws.ssm.swan.project.param}")
                              String swanProjectParamName,
                              @Value("${fintecture.project.param.name}")
                              String fintectureProjectParamName,
-                             SwanApi<ProjectTokenResponse> swanApi
-  ) {
+                             SwanApi<ProjectTokenResponse> swanApi,
+                             FinctectureTokenManager finctectureTokenManager) {
     this.ssmClient = ssmClient;
     this.swanProjectParamName = swanProjectParamName;
     this.fintectureProjectParamName = fintectureProjectParamName;
+    this.finctectureTokenManager = finctectureTokenManager;
     this.swanApi = swanApi;
   }
 
@@ -73,5 +71,16 @@ public class ProjectTokenManager {
         .overwrite(true)
         .build()
     );
+  }
+
+  /*TODO: retry to get token after 10 secondes in case of server failure*/
+  @Scheduled(cron = "0 0 * * * ?")
+  public void setFintectureProjectToken() {
+    ssmClient.putParameter(PutParameterRequest.builder()
+        .name(fintectureProjectParamName)
+        .value(finctectureTokenManager.getProjectAccessToken().getAccessToken())
+        .type(SSM_STRING_PARAMETER_TYPE)
+        .overwrite(true)
+        .build());
   }
 }

@@ -933,15 +933,29 @@ components:
           type: string
         title:
           type: string
-        status:
-          $ref: '#/components/schemas/InvoiceStatus'
-        amount:
-          type: integer
         customer:
           $ref: '#/components/schemas/Customer'
+        status:
+          $ref: '#/components/schemas/InvoiceStatus'
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/InvoiceContent'
+        vat:
+          type: integer
+        globalReduction:
+          type: object
+          properties:
+            percentage:
+              type: integer
+            amount:
+              type: integer
+        invoiceDate:
+          type: string
+          format: date
         toPayAt:
           type: string
-          format: date-time
+          format: date
     Invoice:
       allOf:
         - $ref: '#/components/schemas/CrupdateInvoice'
@@ -949,19 +963,49 @@ components:
       properties:
         id:
           type: string
+        amount:
+          $ref: '#/components/schemas/InvoiceAmount'
         updatedAt:
           type: string
           format: date-time
         fileId:
           type: string
-          nullable: true
           description: |
             Identifier of the PDF file that is automatically generated for each crupdate.
             Its value is `null` when generation is not finished yet.
+    InvoiceAmount:
+      type: object
+      properties:
+        withoutVat:
+          type: integer
+        ttc:
+          type: integer
     InvoiceStatus:
       type: string
       enum:
         - CONFIRMED
+    InvoiceContent:
+      type: object
+      properties:
+        description:
+          type: string
+        quantity:
+          type: integer
+        price:
+          type: integer
+        reduction:
+          $ref: '#/components/schemas/PriceReduction'
+        totalPrice:
+          type: integer
+    PriceReduction:
+      type: object
+      properties:
+        description:
+          type: string
+          example: '0%'
+        value:
+          type: integer
+          example: 0
     CreateCustomer:
       type: object
       properties:

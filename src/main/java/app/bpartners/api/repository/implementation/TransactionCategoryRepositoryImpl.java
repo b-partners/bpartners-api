@@ -1,7 +1,6 @@
 package app.bpartners.api.repository.implementation;
 
 import app.bpartners.api.model.TransactionCategory;
-import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.mapper.TransactionCategoryMapper;
 import app.bpartners.api.repository.TransactionCategoryRepository;
 import app.bpartners.api.repository.jpa.TransactionCategoryJpaRepository;
@@ -18,11 +17,10 @@ public class TransactionCategoryRepositoryImpl implements TransactionCategoryRep
 
   @Override
   public TransactionCategory findByIdTransaction(String idTransaction) {
-    //TODO : Use Optional<HTransactionCategory> in JpaRepository instead
     Optional<HTransactionCategory> entity =
         jpaRepository.findHTransactionCategoryByIdTransaction(idTransaction);
     if (entity.isEmpty()) {
-      throw new NotFoundException("Transaction." + idTransaction + "is not found");
+      return null;
     }
     return mapper.toDomain(entity.get());
   }

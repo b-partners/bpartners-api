@@ -1,8 +1,6 @@
 package app.bpartners.api.endpoint.rest.validator;
 
 import app.bpartners.api.endpoint.rest.model.AuthInitiation;
-import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
-import app.bpartners.api.model.exception.BadRequestException;
 import java.util.function.Consumer;
 import org.springframework.stereotype.Component;
 
@@ -10,18 +8,14 @@ import org.springframework.stereotype.Component;
 public class AuthInitiationValidator implements Consumer<AuthInitiation> {
   @Override
   public void accept(AuthInitiation authInitiation) {
+    StringBuilder exceptionMessageBuilder = new StringBuilder();
     if (authInitiation.getPhone() == null) {
-      throw new BadRequestException("Phone is mandatory");
+      exceptionMessageBuilder.append("phone is missing. ");
     }
-    RedirectionStatusUrls statusUrls = authInitiation.getRedirectionStatusUrls();
-    if (statusUrls == null) {
-      throw new BadRequestException("RedirectionStatusUrls is mandatory");
+    if (authInitiation.getState() == null) {
+      exceptionMessageBuilder.append("state is missing. ");
     }
-    if (statusUrls.getSuccessUrl() == null) {
-      throw new BadRequestException("RedirectionStatusUrls.successUrl is mandatory");
-    }
-    if (statusUrls.getFailureUrl() == null) {
-      throw new BadRequestException("RedirectionStatusUrls.failureUrl is mandatory");
-    }
+    OnboardingInitiationValidator.verifyRedirectionStatusUrls(exceptionMessageBuilder,
+        authInitiation.getRedirectionStatusUrls());
   }
 }

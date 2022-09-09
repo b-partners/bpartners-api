@@ -21,7 +21,6 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
-
 import static app.bpartners.api.integration.conf.TestUtils.REDIRECT_URL;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -67,11 +66,12 @@ class AuthenticationIT {
             .header("Accept", "application/json")
             .header("Origin", "http://localhost:3000")
             .POST(HttpRequest.BodyPublishers.ofString("{\n"
-                + "  \"phoneNumber\": \"" + PHONE_NUMBER + "\",\n"
+                + "  \"phone\": \"" + PHONE_NUMBER + "\",\n"
                 + "\"redirectionStatusUrls\": {\n"
                 + "    \"successUrl\": \"" + REDIRECT_URL + "\",\n"
                 + "    \"failureUrl\": \"" + REDIRECT_URL + "/error\"\n"
-                + "  }"
+                + "  },"
+                + " \"state\": 1234"
                 + "}"))
             .build(),
         HttpResponse.BodyHandlers.ofString());

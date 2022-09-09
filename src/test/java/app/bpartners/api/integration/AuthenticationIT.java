@@ -67,7 +67,7 @@ class AuthenticationIT {
             .header("Accept", "application/json")
             .header("Origin", "http://localhost:3000")
             .POST(HttpRequest.BodyPublishers.ofString("{\n"
-                + "  \"phoneNumber\": \"" + PHONE_NUMBER + "\",\n"
+                + "  \"phone\": \"" + PHONE_NUMBER + "\",\n"
                 + "\"redirectionStatusUrls\": {\n"
                 + "    \"successUrl\": \"" + REDIRECT_URL + "\",\n"
                 + "    \"failureUrl\": \"" + REDIRECT_URL + "/error\"\n"

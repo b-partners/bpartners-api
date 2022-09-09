@@ -10,10 +10,10 @@ public class TokenValidator implements Consumer<CreateToken> {
   @Override
   public void accept(CreateToken createToken) {
     if (createToken.getCode() == null) {
-      throw new BadRequestException("Code is mandatory");
+      throw new BadRequestException("code is missing. ");
     }
     if (createToken.getRedirectionStatusUrls() == null) {
-      throw new BadRequestException("Redirection status urls are mandatory");
+      throw new BadRequestException("redirectionStatusUrls is missing. ");
     }
   }
 }

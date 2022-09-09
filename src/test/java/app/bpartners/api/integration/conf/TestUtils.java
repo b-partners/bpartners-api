@@ -1,8 +1,14 @@
 package app.bpartners.api.integration.conf;
 
+import static app.bpartners.api.model.exception.ApiException.ExceptionType.CLIENT_EXCEPTION;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
+import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.repository.swan.UserSwanRepository;
 import app.bpartners.api.repository.swan.model.SwanUser;
 import java.io.IOException;
@@ -13,12 +19,6 @@ import org.junit.jupiter.api.function.Executable;
 import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsRequest;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsResponse;
-
-import static app.bpartners.api.model.exception.ApiException.ExceptionType.CLIENT_EXCEPTION;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
 
 public class TestUtils {
   public static final String JOE_DOE_ID = "joe_doe_id";
@@ -105,6 +105,11 @@ public class TestUtils {
   public static void assertThrowsApiException(String expectedBody, Executable executable) {
     ApiException apiException = assertThrows(ApiException.class, executable);
     assertEquals(expectedBody, apiException.getResponseBody());
+  }
+
+  public static void assertThrowsBadRequestException(String expectedBody, Executable executable) {
+    BadRequestException badRequestException = assertThrows(BadRequestException.class, executable);
+    assertEquals(expectedBody, badRequestException.getMessage());
   }
 
   public static void assertThrowsForbiddenException(Executable executable) {

@@ -1,20 +1,16 @@
 package app.bpartners.api.endpoint.rest.validator;
 
-import app.bpartners.api.endpoint.rest.model.AuthInitiation;
+import app.bpartners.api.endpoint.rest.model.OnboardingInitiation;
 import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
 import app.bpartners.api.model.exception.BadRequestException;
-import java.util.function.Consumer;
 import org.springframework.stereotype.Component;
 
 @Component
-public class AuthInitiationValidator implements Consumer<AuthInitiation> {
-  @Override
-  public void accept(AuthInitiation authInitiation) {
+public class OnboardingInitiationValidator {
+
+  public void accept(OnboardingInitiation initiation) {
     StringBuilder exceptionMessageBuilder = new StringBuilder();
-    if (authInitiation.getPhone() == null) {
-      exceptionMessageBuilder.append("phone is missing. ");
-    }
-    RedirectionStatusUrls statusUrls = authInitiation.getRedirectionStatusUrls();
+    RedirectionStatusUrls statusUrls = initiation.getRedirectionStatusUrls();
     if (statusUrls == null) {
       exceptionMessageBuilder.append("redirectionStatusUrls is missing. ");
     }
@@ -31,4 +27,5 @@ public class AuthInitiationValidator implements Consumer<AuthInitiation> {
       throw new BadRequestException(exceptionMessage);
     }
   }
+
 }

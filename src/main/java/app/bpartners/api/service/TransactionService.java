@@ -18,8 +18,8 @@ public class TransactionService {
   private final TransactionCategoryService categoryService;
   private final TransactionCategoryTypeService categoryTypeService;
 
-  public List<Transaction> getTransactions() {
-    return repository.findByAccountId(null);
+  public List<Transaction> getTransactionsByAccountId(String accountId) {
+    return repository.findByAccountId(accountId);
   }
 
   public Transaction getTransactionById(String id) {

@@ -20,7 +20,7 @@ public class TransactionController {
 
   @GetMapping(value = "/accounts/{id}/transactions")
   public List<Transaction> getTransactions(@PathVariable(name = "id") String accountId) {
-    return service.getTransactions().stream()
+    return service.getTransactionsByAccountId(accountId).stream()
         .map(mapper::toRest)
         .collect(Collectors.toUnmodifiableList());
   }

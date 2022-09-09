@@ -18,7 +18,7 @@ import lombok.Setter;
 @EqualsAndHashCode
 public class Transaction {
   private String id;
-  private Double amount;
+  private int amount;
   private String currency;
   private String label;
   private String reference;

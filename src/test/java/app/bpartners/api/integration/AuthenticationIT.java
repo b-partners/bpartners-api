@@ -1,5 +1,10 @@
 package app.bpartners.api.integration;
 
+import static app.bpartners.api.integration.conf.TestUtils.REDIRECT_URL;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import app.bpartners.api.SentryConf;
 import app.bpartners.api.endpoint.rest.model.CreateToken;
 import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
@@ -21,12 +26,6 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
-
-import static app.bpartners.api.integration.conf.TestUtils.REDIRECT_URL;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @Testcontainers
@@ -107,6 +106,10 @@ class AuthenticationIT {
     assertEquals(HttpStatus.BAD_REQUEST.value(), response.statusCode());
   }
 
+  @Test
+  void authenticated_get_fintecture_token_ok() {
+    //
+  }
   // /!\ This test is skipped because the userCode is only available for one test
   // and errors occurs for CI and CD tests
   //@Test

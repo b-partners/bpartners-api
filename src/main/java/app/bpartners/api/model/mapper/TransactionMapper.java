@@ -10,7 +10,7 @@ public class TransactionMapper {
                               TransactionCategory category) {
     return Transaction.builder()
         .id(external.getNode().getId())
-        .amount(external.getNode().getAmount().getValue())
+        .amount(external.getNode().getAmount().getValue().intValue())
         .currency(external.getNode().getAmount().getCurrency())
         .label(external.getNode().getLabel())
         .reference(external.getNode().getReference())

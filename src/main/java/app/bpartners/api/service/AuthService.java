@@ -9,8 +9,11 @@ import app.bpartners.api.endpoint.rest.model.Whoami;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
 import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
 import app.bpartners.api.model.validator.TokenValidator;
+import java.net.URLEncoder;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 @Service
 @AllArgsConstructor
@@ -24,22 +27,21 @@ public class AuthService {
 
   public Redirection generateAuthUrl(AuthInitiation authInitiation) {
     Redirection redirection = new Redirection();
-
-    redirection.setRedirectionUrl(
+    String encodedRedirectionUrl =
         swanConf.getAuthProviderUrl() + "?response_type=code&client_id="
             + swanConf.getClientId() + "&redirect_uri="
             + authInitiation.getRedirectionStatusUrls().getSuccessUrl()
             + "&scope=openid%20offline%20idverified&state=" + authInitiation.getState()
-            + "&phoneNumber=" + authInitiation.getPhone());
+            + "&phoneNumber=" + URLEncoder.encode(authInitiation.getPhone(), UTF_8);
+    redirection.setRedirectionUrl(encodedRedirectionUrl);
     redirection.setRedirectionStatusUrls(authInitiation.getRedirectionStatusUrls());
-
     return redirection;
   }
 
   public Token generateTokenUrl(CreateToken toCreate) {
     tokenValidator.accept(toCreate);
-    String redirectUrl = toCreate.getRedirectionStatusUrls().getSuccessUrl();
-    Token createdToken = swanComponent.getTokenByCode(toCreate.getCode(), redirectUrl);
+    Token createdToken = swanComponent.getTokenByCode(toCreate.getCode(),
+        toCreate.getRedirectionStatusUrls().getSuccessUrl());
     Whoami whoami = new Whoami()
         .user(userRestMapper.toRest(userService.getUserByToken(createdToken.getAccessToken())));
     createdToken.setWhoami(whoami);

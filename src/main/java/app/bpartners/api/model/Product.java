@@ -20,5 +20,7 @@ public class Product {
   private int quantity;
   private int unitPrice;
   private int totalPriceWithVat;
+  private int grossAmount;
+  private int totalAmount;
   private PriceReduction reduction;
 }

@@ -23,6 +23,8 @@ public class Invoice {
   private int vat;
   private LocalDate sendingDate;
   private LocalDate toPayAt;
+  private int grossAmount;
+  private int totalAmount;
   private int percentageReduction;
   private int amountReduction;
   private Customer customer;

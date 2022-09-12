@@ -5,7 +5,6 @@ import app.bpartners.api.endpoint.rest.api.PayingApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
 import app.bpartners.api.endpoint.rest.model.CrupdateInvoice;
-import app.bpartners.api.endpoint.rest.model.CrupdateInvoiceGlobalReduction;
 import app.bpartners.api.endpoint.rest.model.Customer;
 import app.bpartners.api.endpoint.rest.model.Invoice;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
@@ -58,10 +57,7 @@ class InvoiceIT {
         .customer(customer1())
         .status(InvoiceStatus.CONFIRMED)
         .vat(20)
-        .globalReduction(new CrupdateInvoiceGlobalReduction()
-            .amount(0)
-            .percentage(0))
-        .invoiceDate(LocalDate.of(2022, 9, 10))
+        .sendingDate(LocalDate.of(2022, 9, 10))
         .toPayAt(LocalDate.of(2022, 9, 11));
   }
 
@@ -72,22 +68,10 @@ class InvoiceIT {
         .customer(validInvoice().getCustomer())
         .status(InvoiceStatus.CONFIRMED)
         .vat(validInvoice().getVat())
-        .globalReduction(validInvoice().getGlobalReduction())
-        .invoiceDate(validInvoice().getInvoiceDate())
+        .sendingDate(validInvoice().getSendingDate())
         .toPayAt(validInvoice().getToPayAt());
   }
 
-  Invoice invoice1() {
-    return new Invoice()
-        .id(INVOICE1_ID)
-        .ref("BP001")
-        .customer(customer1())
-        .status(validInvoice().getStatus())
-        .vat(19)
-        .globalReduction(new CrupdateInvoiceGlobalReduction())
-        .invoiceDate(LocalDate.of(2022, 9, 01))
-        .toPayAt(LocalDate.of(2022, 9, 10));
-  }
 
   @Test
   void crupdate_invoice_ok() throws ApiException {

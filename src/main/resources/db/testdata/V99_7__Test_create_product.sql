@@ -1,4 +1,4 @@
-insert into "invoice_content"
+insert into "product"
 (id, description, quantity, price, id_price_reduction,id_invoice)
 values ('content1_id', 'Tableau malgache', 1, 100, 'reduction1_id',
         'invoice1_id'),

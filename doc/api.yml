@@ -249,64 +249,6 @@ paths:
           $ref: '#/components/responses/429'
         500:
           $ref: '#/components/responses/500'
-  /transactionCategoryTypes:
-    get:
-      tags:
-        - Paying
-      summary: Get transactions categories
-      operationId: getTransactionCategories
-      responses:
-        200:
-          description: List of transaction categories
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/TransactionCategoryType'
-        400:
-          $ref: '#/components/responses/400'
-        403:
-          $ref: '#/components/responses/403'
-        404:
-          $ref: '#/components/responses/404'
-        429:
-          $ref: '#/components/responses/429'
-        500:
-          $ref: '#/components/responses/500'
-    post:
-      tags:
-        - Paying
-      security: [ ]
-      summary: Create transaction categories
-      operationId: createTransactionCategories
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: array
-              items:
-                $ref: '#/components/schemas/CreateTransactionCategoryType'
-      responses:
-        200:
-          description: List of transaction categories
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/TransactionCategoryType'
-        400:
-          $ref: '#/components/responses/400'
-        403:
-          $ref: '#/components/responses/403'
-        404:
-          $ref: '#/components/responses/404'
-        429:
-          $ref: '#/components/responses/429'
-        500:
-          $ref: '#/components/responses/500'
   /accounts/{id}/transactions:
     get:
       tags:
@@ -338,23 +280,66 @@ paths:
           $ref: '#/components/responses/429'
         500:
           $ref: '#/components/responses/500'
-  /accounts/{aId}/transactions/{tId}:
-    patch:
+  /accounts/{aId}/transactionCategories:
+    get:
       tags:
         - Paying
-      summary: Modify informations of a transaction
-      description: |
-        Possible changes on:
-        * Category : modify
-      operationId: modifyTransaction
+      summary: Get known transaction categories of an account
+      operationId: getTransactionCategories
       parameters:
         - in: path
           name: aId
+          description: Account identifier
+          schema:
+            type: string
+          required: true
+        - in: query
+          name: unique
+          description: If disabled, all transaction categories are given
+          schema:
+            type: boolean
+            default: true
+          required: true
+        - in: query
+          name: userDefined
+          schema:
+            type: boolean
+            default: false
+      responses:
+        200:
+          description: List of known transaction categories
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TransactionCategory'
+        400:
+          $ref: '#/components/responses/400'
+        403:
+          $ref: '#/components/responses/403'
+        404:
+          $ref: '#/components/responses/404'
+        429:
+          $ref: '#/components/responses/429'
+        500:
+          $ref: '#/components/responses/500'
+  /accounts/{aId}/transactions/{tId}/transactionCategories:
+    post:
+      tags:
+        - Paying
+      summary: Create transaction categories
+      operationId: createTransactionCategories
+      parameters:
+        - in: path
+          name: aId
+          description: Account identifier
           schema:
             type: string
           required: true
         - in: path
           name: tId
+          description: Transaction identifier
           schema:
             type: string
           required: true
@@ -362,27 +347,100 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Transaction'
-            examples:
-              changeCategory:
-                summary: Change category
-                value:
-                  id: null
-                  amount: null
-                  label: null
-                  reference: null
-                  paymentDatetime: null
-                  category:
-                    id: string
-                    label: string
-                    comment: string
+              type: array
+              items:
+                $ref: '#/components/schemas/CreateTransactionCategory'
       responses:
         200:
-          description: The modified transaction
+          description: List of created transaction categories
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Transaction'
+                type: array
+                items:
+                  $ref: '#/components/schemas/TransactionCategory'
+        400:
+          $ref: '#/components/responses/400'
+        403:
+          $ref: '#/components/responses/403'
+        404:
+          $ref: '#/components/responses/404'
+        429:
+          $ref: '#/components/responses/429'
+        500:
+          $ref: '#/components/responses/500'
+  /accounts/{id}/products:
+    get:
+      tags:
+        - Paying
+      summary: Get known products of the specified account
+      operationId: getProducts
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+        - in: query
+          name: unique
+          description: If disabled, all products are given
+          schema:
+            type: boolean
+            default: true
+          required: true
+      responses:
+        200:
+          description: List of known products of the account
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Product'
+        400:
+          $ref: '#/components/responses/400'
+        403:
+          $ref: '#/components/responses/403'
+        404:
+          $ref: '#/components/responses/404'
+        429:
+          $ref: '#/components/responses/429'
+        500:
+          $ref: '#/components/responses/500'
+  /accounts/{aId}/invoices/{iId}/products:
+    post:
+      tags:
+        - Paying
+      operationId: createProducts
+      summary: Create products of an invoice
+      parameters:
+        - in: path
+          name: aId
+          description: Account identifier
+          schema:
+            type: string
+          required: true
+        - in: path
+          name: iId
+          description: Invoice identifier
+          schema:
+            type: string
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/CreateProduct'
+      responses:
+        200:
+          description: The modified invoice
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Invoice'
         400:
           $ref: '#/components/responses/400'
         403:
@@ -425,6 +483,16 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Invoice'
+        400:
+          $ref: '#/components/responses/400'
+        403:
+          $ref: '#/components/responses/403'
+        404:
+          $ref: '#/components/responses/404'
+        429:
+          $ref: '#/components/responses/429'
+        500:
+          $ref: '#/components/responses/500'
     get:
       tags:
         - Paying
@@ -764,26 +832,24 @@ components:
           type: string
           format: date-time
         category:
-          $ref: '#/components/schemas/TransactionCategory'
+          type: array
+          items:
+            $ref: '#/components/schemas/TransactionCategory'
     TransactionCategory:
-      type: object
-      properties:
-        comment:
-          type: string
       allOf:
-        - $ref: '#/components/schemas/TransactionCategoryType'
-    CreateTransactionCategoryType:
-      type: object
-      properties:
-        label:
-          type: string
-    TransactionCategoryType:
-      type: object
+        - $ref: '#/components/schemas/CreateTransactionCategory'
       properties:
         id:
           type: string
-        label:
+        userDefined:
+          type: boolean
+    CreateTransactionCategory:
+      type: object
+      properties:
+        type:
           type: string
+        vat:
+          type: integer
     AccountHolder:
       type: object
       properties:
@@ -937,20 +1003,9 @@ components:
           $ref: '#/components/schemas/Customer'
         status:
           $ref: '#/components/schemas/InvoiceStatus'
-        content:
-          type: array
-          items:
-            $ref: '#/components/schemas/InvoiceContent'
         vat:
           type: integer
-        globalReduction:
-          type: object
-          properties:
-            percentage:
-              type: integer
-            amount:
-              type: integer
-        invoiceDate:
+        sendingDate:
           type: string
           format: date
         toPayAt:
@@ -959,12 +1014,17 @@ components:
     Invoice:
       allOf:
         - $ref: '#/components/schemas/CrupdateInvoice'
-      type: object
       properties:
         id:
           type: string
-        amount:
-          $ref: '#/components/schemas/InvoiceAmount'
+        products:
+          type: array
+          items:
+            $ref: '#/components/schemas/Product'
+        totalPriceWithoutVat:
+          type: integer
+        totalPriceWithVat:
+          type: integer
         updatedAt:
           type: string
           format: date-time
@@ -973,39 +1033,31 @@ components:
           description: |
             Identifier of the PDF file that is automatically generated for each crupdate.
             Its value is `null` when generation is not finished yet.
-    InvoiceAmount:
-      type: object
-      properties:
-        withoutVat:
-          type: integer
-        ttc:
-          type: integer
     InvoiceStatus:
       type: string
       enum:
         - CONFIRMED
-    InvoiceContent:
+    CreateProduct:
       type: object
       properties:
         description:
           type: string
         quantity:
           type: integer
-        price:
+        unitPrice:
           type: integer
-        reduction:
-          $ref: '#/components/schemas/PriceReduction'
-        totalPrice:
+        vatPercent:
           type: integer
-    PriceReduction:
-      type: object
+        totalVat:
+          type: integer
+        totalPriceWithVat:
+          type: integer
+    Product:
+      allOf:
+        - $ref: '#/components/schemas/CreateProduct'
       properties:
-        description:
+        id:
           type: string
-          example: '0%'
-        value:
-          type: integer
-          example: 0
     CreateCustomer:
       type: object
       properties:

@@ -21,12 +21,12 @@ public class Invoice {
   private String title;
   private String ref;
   private int vat;
-  private LocalDate invoiceDate;
+  private LocalDate sendingDate;
   private LocalDate toPayAt;
   private int percentageReduction;
   private int amountReduction;
   private Customer customer;
   private Account account;
-  private List<InvoiceContent> content;
+  private List<Product> products;
   private InvoiceStatus status;
 }

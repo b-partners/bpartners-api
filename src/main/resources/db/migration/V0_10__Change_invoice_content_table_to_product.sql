@@ -1,0 +1,1 @@
+alter table "invoice_content" RENAME TO "product";

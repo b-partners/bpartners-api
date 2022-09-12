@@ -8,7 +8,6 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
-import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
@@ -23,8 +22,6 @@ import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
-
-import static javax.persistence.GenerationType.IDENTITY;
 
 @Entity
 @Table(name = "\"invoice\"")
@@ -44,13 +41,11 @@ public class HInvoice {
   private String ref;
   private String idAccount;
   private int vat;
-  private LocalDate invoiceDate;
+  private LocalDate sendingDate;
   private LocalDate toPayAt;
-  private int percentageReduction;
-  private int amountReduction;
 
   @OneToMany(mappedBy = "invoice")
-  private List<HInvoiceContent> content;
+  private List<HProduct> products;
 
   @ManyToOne
   @JoinColumn(name = "id_customer")

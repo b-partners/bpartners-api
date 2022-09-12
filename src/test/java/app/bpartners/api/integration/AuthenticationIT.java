@@ -25,6 +25,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import static app.bpartners.api.integration.conf.TestUtils.REDIRECT_URL;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
@@ -67,7 +68,8 @@ class AuthenticationIT {
             .header("Accept", "application/json")
             .header("Origin", "http://localhost:3000")
             .POST(HttpRequest.BodyPublishers.ofString("{\n"
-                + "  \"phoneNumber\": \"" + PHONE_NUMBER + "\",\n"
+                + "  \"state\": \"12341234\",\n"
+                + "  \"phone\": \"" + PHONE_NUMBER + "\",\n"
                 + "\"redirectionStatusUrls\": {\n"
                 + "    \"successUrl\": \"" + REDIRECT_URL + "\",\n"
                 + "    \"failureUrl\": \"" + REDIRECT_URL + "/error\"\n"
@@ -77,6 +79,7 @@ class AuthenticationIT {
         HttpResponse.BodyHandlers.ofString());
 
     assertEquals(HttpStatus.OK.value(), response.statusCode());
+    assertTrue(response.body().contains("phoneNumber=%2B"));
   }
 
   @Test

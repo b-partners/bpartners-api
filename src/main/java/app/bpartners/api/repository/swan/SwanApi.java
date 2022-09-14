@@ -8,9 +8,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
+import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 import static app.bpartners.api.endpoint.rest.security.swan.SwanConf.BEARER_PREFIX;
@@ -26,6 +30,7 @@ import static app.bpartners.api.endpoint.rest.security.swan.SwanConf.BEARER_PREF
 @AllArgsConstructor
 @Component
 public class SwanApi<T> {
+  private static final String SWAN_TOKEN_URL = "https://oauth.swan.io/oauth2/token";
   private final PrincipalProvider auth;
   private SwanConf swanConf;
 
@@ -48,4 +53,31 @@ public class SwanApi<T> {
   private String bearerToken() {
     return ((Principal) auth.getAuthentication().getPrincipal()).getBearer();
   }
+
+  public T getProjectToken(Class<T> genericClass, Map<String, String> params) {
+    try {
+      HttpClient httpClient = HttpClient.newBuilder().build();
+      HttpRequest request = HttpRequest.newBuilder().uri(new URI(SWAN_TOKEN_URL))
+          .header("Content-Type", "application/x-www-form-urlencoded")
+          .POST(getParamsUrlEncoded(params)).build();
+      HttpResponse<String> response =
+          httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+      return new ObjectMapper().findAndRegisterModules()//Load DateTime Module
+          .readValue(response.body(), genericClass);
+    } catch (InterruptedException | IOException | URISyntaxException e) {
+      throw new ApiException(ApiException.ExceptionType.SERVER_EXCEPTION, e);
+    }
+  }
+  /*
+    TODO: if getProjectToken fails you should get a new Token
+   */
+
+  private HttpRequest.BodyPublisher getParamsUrlEncoded(Map<String, String> parameters) {
+    String urlEncoded = parameters.entrySet()
+        .stream()
+        .map(e -> e.getKey() + "=" + URLEncoder.encode(e.getValue(), StandardCharsets.UTF_8))
+        .collect(Collectors.joining("&"));
+    return HttpRequest.BodyPublishers.ofString(urlEncoded);
+  }
+
 }

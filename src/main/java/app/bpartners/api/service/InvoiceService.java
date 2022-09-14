@@ -48,9 +48,9 @@ public class InvoiceService {
         .products(products)
         .grossAmount(productService.computeGrossAmount(products))
         .totalAmount(computeTotalAmount(invoice, products))
-        .invoiceDate(invoice.getInvoiceDate())
+        .sendingDate(invoice.getSendingDate())
         .toPayAt(invoice.getToPayAt())
-        .invoiceDate(checkInvoiceDate(invoice.getInvoiceDate()))
+        .sendingDate(checkSendingDate(invoice.getSendingDate()))
         .build();
   }
 
@@ -73,12 +73,12 @@ public class InvoiceService {
     return taxableAmount - vatAmount;
   }
 
-  private LocalDate checkInvoiceDate(LocalDate invoiceDate) {
+  private LocalDate checkSendingDate(LocalDate sendingDate) {
     LocalDate today = LocalDate.now();
-    if (invoiceDate.isAfter(today)) {
+    if (sendingDate.isAfter(today)) {
       throw new BadRequestException(
           "Invoice date should be equals or before today " + today.toString());
     }
-    return invoiceDate;
+    return sendingDate;
   }
 }

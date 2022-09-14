@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 public class ProductService {
 
   public Product resetProductRelatedInfo(Product product) {
-    int grossAmount = (product.getPrice() * product.getQuantity());
+    int grossAmount = (product.getUnitPrice() * product.getQuantity());
     int totalAmount = grossAmount * (100 - product.getReduction().getValue());
     return Product.builder()
         .id(product.getId())
@@ -18,7 +18,7 @@ public class ProductService {
         .invoice(product.getInvoice())
         .reduction(product.getReduction())
         .quantity(product.getQuantity())
-        .price(product.getPrice())
+        .unitPrice(product.getUnitPrice())
         .grossAmount(grossAmount)
         .totalAmount(totalAmount)
         .build();

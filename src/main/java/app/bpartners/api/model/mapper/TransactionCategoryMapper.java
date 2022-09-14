@@ -12,6 +12,7 @@ public class TransactionCategoryMapper {
   public TransactionCategory toDomain(HTransactionCategory entity) {
     return TransactionCategory.builder()
         .id(entity.getId())
+        .idAccount(entity.getIdAccount())
         .type(entity.getType())
         .vat(entity.getVat())
         .userDefined(entity.isUserDefined())
@@ -21,6 +22,7 @@ public class TransactionCategoryMapper {
   public HTransactionCategory toEntity(TransactionCategory category) {
     return HTransactionCategory.builder()
         .id(category.getId())
+        .idAccount(category.getIdAccount())
         .type(category.getType())
         .idTransaction(category.getIdTransaction())
         .userDefined(category.isUserDefined())

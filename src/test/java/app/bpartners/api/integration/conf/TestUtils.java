@@ -38,7 +38,6 @@ public class TestUtils {
   public static final String INVOICE1_ID = "invoice1_id";
   public static final String INVOICE2_ID = "invoice2_id";
 
-
   public static SwanUser joeDoe() {
     SwanUser swanUser = new SwanUser();
     swanUser.setId(JOE_DOE_SWAN_USER_ID);

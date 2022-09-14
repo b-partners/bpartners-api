@@ -2,7 +2,6 @@ package app.bpartners.api.endpoint.rest.mapper;
 
 import app.bpartners.api.endpoint.rest.model.Transaction;
 import app.bpartners.api.endpoint.rest.model.TransactionCategory;
-import app.bpartners.api.service.TransactionCategoryTypeService;
 import java.math.BigDecimal;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -10,7 +9,6 @@ import org.springframework.stereotype.Component;
 @Component
 @AllArgsConstructor
 public class TransactionRestMapper {
-  private final TransactionCategoryTypeService typeService;
 
   public Transaction toRest(app.bpartners.api.model.Transaction internal) {
     Transaction transaction = new Transaction();
@@ -19,15 +17,16 @@ public class TransactionRestMapper {
     transaction.setLabel(internal.getLabel());
     transaction.setPaymentDatetime(internal.getPaymentDatetime());
     transaction.setReference(internal.getReference());
-    transaction.setCategory(toRest(internal.getCategory()));
     return transaction;
   }
 
   public TransactionCategory toRest(app.bpartners.api.model.TransactionCategory internal) {
+    //TODO: map Rest attributes with domain
     return new TransactionCategory()
-        .id(internal.getType().getId())
-        .label(internal.getType().getLabel())
-        .comment(internal.getComment());
+        .id(internal.getId())
+        .type(internal.getType())
+        .vat(internal.getVat())
+        .userDefined(internal.isUserDefined());
   }
 
   public app.bpartners.api.model.Transaction toDomain(Transaction rest) {
@@ -36,7 +35,6 @@ public class TransactionRestMapper {
         .label(rest.getLabel())
         .reference(rest.getReference())
         .paymentDatetime(rest.getPaymentDatetime())
-        .category(toDomain(rest.getId(), rest.getCategory()))
         .amount(null) //TODO : change this into int
         .build();
   }
@@ -44,10 +42,13 @@ public class TransactionRestMapper {
   public app.bpartners.api.model.TransactionCategory toDomain(
       String transactionId,
       TransactionCategory rest) {
+    //TODO: map Rest attributes with domain
     return app.bpartners.api.model.TransactionCategory.builder()
+        .id(rest.getId())
+        .userDefined(rest.getUserDefined())
+        .vat(rest.getVat())
+        .type(rest.getType())
         .idTransaction(transactionId)
-        .type(typeService.getCategoryById(rest.getId()))
-        .comment(rest.getComment())
         .build();
   }
 }

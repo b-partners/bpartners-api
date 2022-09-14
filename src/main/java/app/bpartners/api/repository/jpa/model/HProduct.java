@@ -17,7 +17,7 @@ import lombok.ToString;
 import static javax.persistence.GenerationType.IDENTITY;
 
 @Entity
-@Table(name = "\"invoice_content\"")
+@Table(name = "\"product\"")
 @Getter
 @Setter
 @ToString
@@ -25,7 +25,7 @@ import static javax.persistence.GenerationType.IDENTITY;
 @AllArgsConstructor
 @NoArgsConstructor
 @EqualsAndHashCode
-public class HInvoiceContent {
+public class HProduct {
   @Id
   @GeneratedValue(strategy = IDENTITY)
   private String id;

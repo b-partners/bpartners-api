@@ -1,9 +1,9 @@
 package app.bpartners.api.model.mapper;
 
 import app.bpartners.api.model.Invoice;
-import app.bpartners.api.model.InvoiceContent;
+import app.bpartners.api.model.Product;
 import app.bpartners.api.repository.jpa.model.HInvoice;
-import app.bpartners.api.repository.jpa.model.HInvoiceContent;
+import app.bpartners.api.repository.jpa.model.HProduct;
 import app.bpartners.api.service.AccountService;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -17,20 +17,20 @@ public class InvoiceMapper {
   private final AccountService accountService;
   private final PriceReductionMapper reductionMapper;
 
-  public InvoiceContent toDomain(HInvoiceContent entity) {
-    return InvoiceContent.builder()
+  public Product toDomain(HProduct entity) {
+    return Product.builder()
         .id(entity.getId())
         .invoice(toDomain(entity.getInvoice()))
         .description(entity.getDescription())
-        .price(entity.getPrice())
+        .unitPrice(entity.getPrice())
         .quantity(entity.getQuantity())
         .reduction(reductionMapper.toDomain(entity.getReduction()))
         .build();
   }
 
   public Invoice toDomain(HInvoice entity) {
-    List<HInvoiceContent> entityContent = entity.getContent();
-    List<InvoiceContent> domainContent = null;
+    List<HProduct> entityContent = entity.getProducts();
+    List<Product> domainContent = null;
     if (entityContent != null) {
       domainContent = entityContent.stream()
           .map(this::toDomain)
@@ -40,31 +40,29 @@ public class InvoiceMapper {
         .id(entity.getId())
         .ref(entity.getRef())
         .vat(entity.getVat())
-        .invoiceDate(entity.getInvoiceDate())
+        .sendingDate(entity.getSendingDate())
         .toPayAt(entity.getToPayAt())
-        .percentageReduction(entity.getPercentageReduction())
-        .amountReduction(entity.getAmountReduction())
         .customer(customerMapper.toDomain(entity.getCustomer()))
         .account(accountService.getAccounts().get(0))
-        .content(domainContent)
+        .products(domainContent)
         .status(entity.getStatus())
         .build();
   }
 
-  public HInvoiceContent toEntity(InvoiceContent domain) {
-    return HInvoiceContent.builder()
+  public HProduct toEntity(Product domain) {
+    return HProduct.builder()
         .id(domain.getId())
         .description(domain.getDescription())
         .quantity(domain.getQuantity())
-        .price(domain.getPrice())
+        .price(domain.getUnitPrice())
         .reduction(reductionMapper.toEntity(domain.getReduction()))
         .invoice(toEntity(domain.getInvoice()))
         .build();
   }
 
   public HInvoice toEntity(Invoice domain) {
-    List<InvoiceContent> domainContent = domain.getContent();
-    List<HInvoiceContent> entityContent = null;
+    List<Product> domainContent = domain.getProducts();
+    List<HProduct> entityContent = null;
     if (domainContent != null) {
       entityContent = domainContent.stream()
           .map(this::toEntity)
@@ -76,11 +74,9 @@ public class InvoiceMapper {
         .customer(customerMapper.toEntity(domain.getCustomer()))
         .idAccount(domain.getAccount().getId())
         .vat(domain.getVat())
-        .invoiceDate(domain.getInvoiceDate())
+        .sendingDate(domain.getSendingDate())
         .toPayAt(domain.getToPayAt())
-        .percentageReduction(domain.getPercentageReduction())
-        .amountReduction(domain.getAmountReduction())
-        .content(entityContent)
+        .products(entityContent)
         .status(domain.getStatus())
         .build();
   }

@@ -13,11 +13,12 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 @EqualsAndHashCode
-public class InvoiceContent {
+public class Product {
   private String id;
   private Invoice invoice;
   private String description;
   private int quantity;
-  private int price;
+  private int unitPrice;
+  private int totalPriceWithVat;
   private PriceReduction reduction;
 }

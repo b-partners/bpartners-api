@@ -3,7 +3,9 @@ package app.bpartners.api.repository.swan.response;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
+@NoArgsConstructor
 @AllArgsConstructor
 public class ProjectTokenResponse {
   protected static final String JSON_PROPERTY_EXPIRES_IN = "expires_in";

@@ -61,14 +61,14 @@ public class ProjectTokenManager {
     return getParameterValue(ssmClient, fintectureProjectParamName);
   }
 
-  @Scheduled(cron = "0 * * * * ?")
+  @Scheduled(cron = "0 0 * * * ?")
   public void refreshSwanProjectToken() {
     String accessToken =
         swanApi.getProjectToken().getAccessToken();
     ssmClient.putParameter(PutParameterRequest
         .builder()
-        .value(accessToken)
         .name(swanProjectParamName)
+        .value(accessToken)
         .type(SSM_STRING_PARAMETER_TYPE)
         .overwrite(true)
         .build()

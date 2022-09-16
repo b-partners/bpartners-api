@@ -6,12 +6,16 @@ import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
 import app.bpartners.api.integration.conf.AbstractContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
+import app.bpartners.api.manager.ProjectTokenManager;
 import app.bpartners.api.model.exception.ApiException;
+import app.bpartners.api.repository.swan.SwanApi;
+import app.bpartners.api.repository.swan.response.ProjectTokenResponse;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,6 +28,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 import static app.bpartners.api.integration.conf.TestUtils.REDIRECT_URL;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
@@ -38,8 +43,21 @@ class AuthenticationIT {
   private SentryConf sentryConf;
   @Autowired
   private SwanComponent swanComponent;
+
+  @Autowired
+  private SwanApi<ProjectTokenResponse> swanApi;
+
+  @Autowired
+  private ProjectTokenManager tokenManager;
+
   @Value("${test.swan.user.code}")
   private String userCode;
+
+  @Value("${swan.client.id}")
+  private String clientId;
+
+  @Value("${swan.client.secret}")
+  private String clientSecret;
 
   /*CreateToken validCode() {
     return new CreateToken().code(userCode);
@@ -120,6 +138,29 @@ class AuthenticationIT {
     String badCode = badCode().getCode();
     assertThrows(ApiException.class,
         () -> swanComponent.getTokenByCode(badCode, REDIRECT_URL));
+  }
+
+  @Test
+  void get_access_token_from_swan_ok() {
+    ProjectTokenResponse tokenResponse = swanApi.getProjectToken();
+
+    Assertions.assertNotNull(tokenResponse);
+    Assertions.assertNotNull(tokenResponse.getAccessToken());
+    Assertions.assertTrue(
+        !tokenResponse.getAccessToken().isBlank() && !tokenResponse.getAccessToken().isEmpty());
+    Assertions.assertNotNull(tokenResponse.getTokenType());
+    Assertions.assertNotNull(tokenResponse.getScope());
+    Assertions.assertNotNull(tokenResponse.getExpiresIn());
+  }
+
+  @Test
+  void get_swan_token_from_ssm_ok() {
+    assertNotNull(tokenManager.getSwanProjecToken());
+  }
+
+  @Test
+  void get_fintecture_project_from_ssm_ok() {
+    assertNotNull(tokenManager.getFintectureProjectToken());
   }
 
   public static class ContextInitializer extends AbstractContextInitializer {

@@ -569,13 +569,18 @@ paths:
         500:
           $ref: '#/components/responses/500'
 
-  /files/{id}:
+  /accounts/{aId}/files/{id}:
     get:
       tags:
         - Files
       summary: Get information of a file
       operationId: getFileById
       parameters:
+        - in: path
+          name: aId
+          schema:
+            type: string
+          required: true
         - in: path
           name: id
           schema:
@@ -587,7 +592,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/File'
+                $ref: '#/components/schemas/FileInfo'
         400:
           $ref: '#/components/responses/400'
         403:
@@ -670,13 +675,18 @@ paths:
           $ref: '#/components/responses/429'
         500:
           $ref: '#/components/responses/500'
-  /files/{id}/raw:
+  /accounts/{aId}/files/{id}/raw:
     get:
       tags:
         - Files
       summary: Download a file
       operationId: downloadFile
       parameters:
+        - in: path
+          name: aId
+          schema:
+            type: string
+          required: true
         - in: path
           name: id
           schema:
@@ -714,6 +724,11 @@ paths:
       summary: Upload a file. Fails if file already exists.
       operationId: uploadFile
       parameters:
+        - in: path
+          name: aId
+          schema:
+            type: string
+          required: true
         - in: path
           name: id
           schema:
@@ -1086,7 +1101,7 @@ components:
           type: string
         country:
           type: string
-    File:
+    FileInfo:
       type: object
       properties:
         id:
@@ -1094,9 +1109,9 @@ components:
         uploadedAt:
           type: string
           format: date-time
-        uploadedByUserId:
+        uploadedByAccountId:
           type: string
-          format: date-time
+          example: "uuid"
         sizeInKB:
           type: integer
         sha256:

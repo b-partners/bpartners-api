@@ -102,6 +102,9 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
         .antMatchers(GET, "/whoami").authenticated()
         .antMatchers(GET, "/users").authenticated()
         .antMatchers(GET, "/users/*").authenticated()
+        .requestMatchers(new SelfAccountMatcher(GET, "/accounts/*/files/*")).authenticated()
+        .requestMatchers(new SelfAccountMatcher(POST, "/accounts/*/files/*/raw")).authenticated()
+        .requestMatchers(new SelfAccountMatcher(GET, "/accounts/*/files/*/raw")).authenticated()
         .antMatchers("/**").denyAll()
 
         // disable superfluous protections

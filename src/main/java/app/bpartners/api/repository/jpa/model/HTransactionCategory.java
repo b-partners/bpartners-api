@@ -29,8 +29,18 @@ public class HTransactionCategory {
   @GeneratedValue(strategy = IDENTITY)
   private String id;
   private String idTransaction;
+  private String idAccount;
   @Column(name = "\"type\"")
   private String type;
   private int vat;
   private boolean userDefined;
+
+  public HTransactionCategory(String idTransaction, String idAccount, String type, int vat,
+                              boolean userDefined) {
+    this.idTransaction = idTransaction;
+    this.idAccount = idAccount;
+    this.type = type;
+    this.vat = vat;
+    this.userDefined = userDefined;
+  }
 }

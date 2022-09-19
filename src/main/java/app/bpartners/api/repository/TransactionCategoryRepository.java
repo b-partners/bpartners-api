@@ -1,10 +1,13 @@
 package app.bpartners.api.repository;
 
 import app.bpartners.api.model.TransactionCategory;
+import java.util.List;
 
 public interface TransactionCategoryRepository {
 
-  TransactionCategory findByIdTransaction(String idTransaction);
+  List<TransactionCategory> findByIdAccount(String idAccount, boolean unique, boolean userDefined);
 
-  TransactionCategory save(String transactionId, TransactionCategory toCreate);
+  List<TransactionCategory> saveAll(List<TransactionCategory> toCreate);
+
+  TransactionCategory findByIdTransaction(String idTransaction);
 }

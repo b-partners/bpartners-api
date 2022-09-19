@@ -15,6 +15,7 @@ import lombok.Setter;
 @EqualsAndHashCode
 public class TransactionCategory {
   private String id;
+  private String idAccount;
   private String type;
   private int vat;
   private String idTransaction;

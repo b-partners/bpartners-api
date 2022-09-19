@@ -33,7 +33,7 @@ class TransactionIT {
   @Value("${test.user.access.token}")
   private String bearerToken;
 
-  Transaction transaction2() {
+  public static Transaction transaction2() {
     return new Transaction()
         .id("bosci_f224704f2555a42303e302ffb8e69eef")
         .label("Création de site vitrine")

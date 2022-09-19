@@ -16,7 +16,6 @@ import org.springframework.web.servlet.HandlerExceptionResolver;
 
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpMethod.OPTIONS;
-import static org.springframework.http.HttpMethod.PATCH;
 import static org.springframework.http.HttpMethod.POST;
 import static org.springframework.http.HttpMethod.PUT;
 
@@ -97,6 +96,9 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
         .antMatchers(GET, "/whoami").authenticated()
         .antMatchers(GET, "/users").authenticated()
         .antMatchers(GET, "/users/*").authenticated()
+        .antMatchers(GET, "/files/*").authenticated()
+        .antMatchers(POST, "/files/*/raw").authenticated()
+        .antMatchers(GET, "/files/*/raw").authenticated()
         .antMatchers("/**").denyAll()
 
         // disable superfluous protections

@@ -587,7 +587,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/File'
+                $ref: '#/components/schemas/FileInfo'
         400:
           $ref: '#/components/responses/400'
         403:
@@ -1086,7 +1086,7 @@ components:
           type: string
         country:
           type: string
-    File:
+    FileInfo:
       type: object
       properties:
         id:
@@ -1096,7 +1096,7 @@ components:
           format: date-time
         uploadedByUserId:
           type: string
-          format: date-time
+          example: "uuid"
         sizeInKB:
           type: integer
         sha256:

@@ -37,4 +37,8 @@ public class AccountService {
       throw new ForbiddenException();
     }
   }
+
+  public Account getAuthenticatedAccount() {
+    return repository.findAll().get(0);
+  }
 }

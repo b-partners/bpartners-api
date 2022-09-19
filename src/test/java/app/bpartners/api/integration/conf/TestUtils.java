@@ -37,6 +37,9 @@ public class TestUtils {
   public static final String BAD_USER_ID = "bad_user_id";
   public static final String INVOICE1_ID = "invoice1_id";
   public static final String INVOICE2_ID = "invoice2_id";
+  public static final String FILE_ID = "301327722_738668533870624_6151351867004964160_n.jpeg";
+  public static final String CREATE_FILE_ID = "file_id";
+
 
   public static SwanUser joeDoe() {
     SwanUser swanUser = new SwanUser();

@@ -5,6 +5,7 @@ import app.bpartners.api.endpoint.rest.api.PayingApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
 import app.bpartners.api.endpoint.rest.model.Transaction;
+import app.bpartners.api.endpoint.rest.model.TransactionCategory;
 import app.bpartners.api.integration.conf.AbstractContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
 import java.math.BigDecimal;
@@ -33,6 +34,32 @@ class TransactionIT {
   @Value("${test.user.access.token}")
   private String bearerToken;
 
+  public static TransactionCategory transactionCategory1() {
+    return new TransactionCategory()
+        .id("transaction_category1_id")
+        .type("Recette TVA20%")
+        .vat(20)
+        .userDefined(false);
+  }
+
+  static TransactionCategory transactionCategory4() {
+    return new TransactionCategory()
+        .id("transaction_category4_id")
+        .type("Recette personnalisée")
+        .vat(10)
+        .userDefined(true);
+  }
+
+  public static Transaction transaction1() {
+    return new Transaction()
+        .id("bosci_0fe167566b234808a44aae415f057b6c")
+        .label("Premier virement")
+        .reference("JOE-001")
+        .amount(BigDecimal.valueOf(500))
+        .paymentDatetime(Instant.parse("2022-08-24T03:39:33.315Z"))
+        .category(List.of(transactionCategory1()));
+  }
+
   public static Transaction transaction2() {
     return new Transaction()
         .id("bosci_f224704f2555a42303e302ffb8e69eef")
@@ -40,6 +67,17 @@ class TransactionIT {
         .reference("REF_001")
         .amount(BigDecimal.valueOf(500))
         .paymentDatetime(Instant.parse("2022-08-26T06:33:50.595Z"));
+  }
+
+  public static Transaction transaction3() {
+    return new Transaction()
+        .id("bosci_28cb4daf35d3ab24cb775dcdefc8fdab")
+        .label("Test du virement")
+        .reference("TEST-001")
+        .amount(BigDecimal.valueOf(100))
+        .paymentDatetime(Instant.parse("2022-08-24T04:57:02.606Z"))
+        .category(List.of(transactionCategory4()));
+
   }
 
   private static ApiClient anApiClient(String token) {
@@ -54,7 +92,9 @@ class TransactionIT {
     List<Transaction> actual = api.getTransactions(JOE_DOE_ACCOUNT_ID);
 
     assertEquals(3, actual.size());
+    assertTrue(actual.contains(transaction1()));
     assertTrue(actual.contains(transaction2()));
+    assertTrue(actual.contains(transaction3()));
   }
 
   static class ContextInitializer extends AbstractContextInitializer {

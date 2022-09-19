@@ -5,6 +5,4 @@ import java.util.List;
 
 public interface TransactionRepository {
   List<Transaction> findByAccountId(String id);
-
-  Transaction findById(String id);
 }

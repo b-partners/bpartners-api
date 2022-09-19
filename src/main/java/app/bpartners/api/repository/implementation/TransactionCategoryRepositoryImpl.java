@@ -55,7 +55,7 @@ public class TransactionCategoryRepositoryImpl implements TransactionCategoryRep
   @Override
   public TransactionCategory findByIdTransaction(String idTransaction) {
     Optional<HTransactionCategory> entity =
-        jpaRepository.findFirstByOrderByTypeAndIdTransaction(idTransaction);
+        jpaRepository.findFirstByCreatedDatetimeAndIdTransaction(idTransaction);
     if (entity.isEmpty()) {
       return null;
     }

@@ -2,20 +2,25 @@ package app.bpartners.api.endpoint.rest.mapper;
 
 import app.bpartners.api.endpoint.rest.model.Transaction;
 import java.math.BigDecimal;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
 @AllArgsConstructor
 public class TransactionRestMapper {
+  private final TransactionCategoryRestMapper categoryRestMapper;
 
   public Transaction toRest(app.bpartners.api.model.Transaction internal) {
-    Transaction transaction = new Transaction();
-    transaction.setId(internal.getId());
-    transaction.setAmount(BigDecimal.valueOf(internal.getAmount()));
-    transaction.setLabel(internal.getLabel());
-    transaction.setPaymentDatetime(internal.getPaymentDatetime());
-    transaction.setReference(internal.getReference());
+    Transaction transaction = new Transaction()
+        .id(internal.getId())
+        .amount(BigDecimal.valueOf(internal.getAmount()))
+        .label(internal.getLabel())
+        .paymentDatetime(internal.getPaymentDatetime())
+        .reference(internal.getReference());
+    if (internal.getCategory() != null) {
+      transaction.setCategory(List.of(categoryRestMapper.toRest(internal.getCategory())));
+    }
     return transaction;
   }
 }

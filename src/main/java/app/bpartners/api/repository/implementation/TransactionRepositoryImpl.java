@@ -27,18 +27,10 @@ public class TransactionRepositoryImpl implements TransactionRepository {
     if (!id.equals(authenticatedAccount.getId())) {
       throw new ForbiddenException();
     }
-    //TODO : replace this with persisted ID of TransactionCategory
+    //TODO: replace this with persisted ID of TransactionCategory
     return swanRepository.getTransactions().stream()
         .map(transaction -> mapper.toDomain(transaction,
             categoryRepository.findByIdTransaction(transaction.getNode().getId())))
         .collect(Collectors.toUnmodifiableList());
-  }
-
-  @Override
-  public Transaction findById(String id) {
-    app.bpartners.api.repository.swan.model.Transaction swanTransaction =
-        swanRepository.findById(id);
-    return mapper.toDomain(swanTransaction,
-        categoryRepository.findByIdTransaction(swanTransaction.getNode().getId()));
   }
 }

@@ -30,16 +30,29 @@ public class HTransactionCategory {
   private String id;
   private String idTransaction;
   private String idAccount;
+  public static final String ID_ACCOUNT_ATTRIBUTE = "idAccount";
+
+  @Column(name = "id_transaction_category_tmpl")
+  private String idCategoryTemplate;
+  public static final String ID_CATEGORY_TMPL_ATTRIBUTE = "idCategoryTemplate";
+
   @Column(name = "\"type\"")
   private String type;
-  private int vat;
-  private boolean userDefined;
+  public static final String TYPE_ATTRIBUTE = "type";
 
-  public HTransactionCategory(String idAccount, String type, int vat,
-                              boolean userDefined) {
+  private Integer vat;
+  public static final String VAT_ATTRIBUTE = "vat";
+
+
+  public HTransactionCategory(
+      String idAccount, String idCategoryTemplate, String type, Integer vat) {
     this.idAccount = idAccount;
+    this.idCategoryTemplate = idCategoryTemplate;
     this.type = type;
     this.vat = vat;
-    this.userDefined = userDefined;
+  }
+
+  public boolean isUserDefined() {
+    return idCategoryTemplate == null;
   }
 }

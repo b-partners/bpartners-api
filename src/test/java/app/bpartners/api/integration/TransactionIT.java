@@ -37,16 +37,16 @@ class TransactionIT {
   public static TransactionCategory transactionCategory1() {
     return new TransactionCategory()
         .id("transaction_category1_id")
-        .type("Recette TVA20%")
-        .vat(20)
+        .type("Recette TVA 20%")
+        .vat(2000)
         .userDefined(false);
   }
 
   static TransactionCategory transactionCategory4() {
     return new TransactionCategory()
         .id("transaction_category4_id")
-        .type("Recette personnalisée")
-        .vat(10)
+        .type("Recette personnalisée TVA 1%")
+        .vat(100)
         .userDefined(true);
   }
 
@@ -77,7 +77,6 @@ class TransactionIT {
         .amount(BigDecimal.valueOf(100))
         .paymentDatetime(Instant.parse("2022-08-24T04:57:02.606Z"))
         .category(List.of(transactionCategory4()));
-
   }
 
   private static ApiClient anApiClient(String token) {

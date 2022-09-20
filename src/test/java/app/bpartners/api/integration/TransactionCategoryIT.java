@@ -37,39 +37,39 @@ class TransactionCategoryIT {
   TransactionCategory transactionCategory1() {
     return new TransactionCategory()
         .id("transaction_category1_id")
-        .type("Recette TVA20%")
+        .type("Recette TVA 20%")
         .userDefined(false)
-        .vat(20);
+        .vat(2000);
   }
 
   TransactionCategory transactionCategory2() {
     return new TransactionCategory()
         .id("transaction_category3_id")
-        .type("Recette TVA10%")
+        .type("Recette TVA 10%")
         .userDefined(false)
-        .vat(10);
+        .vat(1000);
   }
 
   TransactionCategory transactionCategory3() {
     return new TransactionCategory()
         .id("transaction_category3_id")
-        .type("Recette TVA10%")
+        .type("Recette TVA 10%")
         .userDefined(false)
-        .vat(10);
+        .vat(1000);
   }
 
   TransactionCategory transactionCategory4() {
     return new TransactionCategory()
         .id("transaction_category4_id")
-        .type("Recette personnalisée")
+        .type("Recette personnalisée TVA 1%")
         .userDefined(true)
-        .vat(10);
+        .vat(100);
   }
 
   CreateTransactionCategory createTransactionCategory() {
     return new CreateTransactionCategory()
-        .type("Recette TVA1%")
-        .vat(1);
+        .type("Recette TVA 1,5%")
+        .vat(150);
   }
 
   private static ApiClient anApiClient(String token) {
@@ -88,9 +88,9 @@ class TransactionCategoryIT {
     List<TransactionCategory> actualUserDefined =
         api.getTransactionCategories(JOE_DOE_ACCOUNT_ID, false, true);
 
-    assertEquals(3, actualUnique.size());
-    assertEquals(4, actualNotUnique.size());
-    assertEquals(1, actualUserDefined.size());
+    assertEquals(2, actualUnique.size());
+    assertEquals(3, actualNotUnique.size());
+    assertEquals(2, actualUserDefined.size());
     assertTrue(actualUnique.contains(transactionCategory1()));
     assertTrue(actualUnique.contains(transactionCategory3()));
     assertTrue(actualNotUnique.containsAll(actualUnique));

@@ -44,7 +44,7 @@ class TransactionCategoryIT {
 
   TransactionCategory transactionCategory2() {
     return new TransactionCategory()
-        .id("transaction_category2_id")
+        .id("transaction_category3_id")
         .type("Recette TVA10%")
         .userDefined(false)
         .vat(10);
@@ -91,10 +91,10 @@ class TransactionCategoryIT {
     assertEquals(3, actualUnique.size());
     assertEquals(4, actualNotUnique.size());
     assertEquals(1, actualUserDefined.size());
-    assertTrue(actualUnique.contains(transactionCategory1().id(null)));
-    assertTrue(actualUnique.contains(transactionCategory2().id(null)));
-    assertTrue(actualNotUnique.containsAll(
-        List.of(transactionCategory1(), transactionCategory2(), transactionCategory3())));
+    assertTrue(actualUnique.contains(transactionCategory1()));
+    assertTrue(actualUnique.contains(transactionCategory3()));
+    assertTrue(actualNotUnique.containsAll(actualUnique));
+    assertTrue(actualNotUnique.contains(transactionCategory2()));
     assertTrue(actualUserDefined.contains(transactionCategory4()));
   }
 

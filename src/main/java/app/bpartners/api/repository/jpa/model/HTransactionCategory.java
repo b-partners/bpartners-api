@@ -35,9 +35,8 @@ public class HTransactionCategory {
   private int vat;
   private boolean userDefined;
 
-  public HTransactionCategory(String idTransaction, String idAccount, String type, int vat,
+  public HTransactionCategory(String idAccount, String type, int vat,
                               boolean userDefined) {
-    this.idTransaction = idTransaction;
     this.idAccount = idAccount;
     this.type = type;
     this.vat = vat;

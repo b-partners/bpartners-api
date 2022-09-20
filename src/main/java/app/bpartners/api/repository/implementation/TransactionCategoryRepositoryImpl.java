@@ -30,7 +30,7 @@ public class TransactionCategoryRepositoryImpl implements TransactionCategoryRep
       boolean userDefined) {
     List<HTransactionCategory> entities;
     if (unique) {
-      entities = findDistinctByIdAccountAndUserDefined(idAccount, userDefined);
+      entities = findByCriteriaOrderByCreatedDatetime(idAccount, userDefined);
     } else {
       entities = jpaRepository.findAllByIdAccountAndUserDefined(idAccount, userDefined);
     }
@@ -62,7 +62,7 @@ public class TransactionCategoryRepositoryImpl implements TransactionCategoryRep
     return domainMapper.toDomain(entity.get());
   }
 
-  public List<HTransactionCategory> findDistinctByIdAccountAndUserDefined(
+  private List<HTransactionCategory> findDistinctByCriteria(
       String idAccount,
       boolean userDefined) {
     CriteriaBuilder builder = entityManager.getCriteriaBuilder();
@@ -77,8 +77,17 @@ public class TransactionCategoryRepositoryImpl implements TransactionCategoryRep
     return entityManager.createQuery(query).getResultList();
   }
 
+  public List<HTransactionCategory> findByCriteriaOrderByCreatedDatetime(
+      String idAccount,
+      boolean userDefined) {
+    return findDistinctByCriteria(idAccount, userDefined).stream()
+        .map(c -> jpaRepository.findByCriteriaOrderByCreatedDatetime(c.getIdAccount(),
+            c.getType(), c.getVat(), c.isUserDefined()))
+        .collect(Collectors.toUnmodifiableList());
+  }
+
   private List<Selection<?>> transactionCategorySelections(Root<HTransactionCategory> root) {
-    return List.of(root.get("idTransaction"), root.get("idAccount"), root.get("type"), root.get(
-        "vat"), root.get("userDefined"));
+    return List.of(root.get("idAccount"), root.get("type"), root.get("vat"),
+        root.get("userDefined"));
   }
 }

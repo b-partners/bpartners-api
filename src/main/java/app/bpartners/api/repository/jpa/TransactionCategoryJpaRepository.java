@@ -16,4 +16,10 @@ public interface TransactionCategoryJpaRepository
   List<HTransactionCategory> findAllByIdAccountAndUserDefined(
       String idAccount,
       boolean userDefined);
+
+  @Query(value = "select tc.* from \"transaction_category\" tc where tc.id_account = ?1 and tc"
+      + ".type = ?2 and tc.vat = ?3 and tc.user_defined = ?4 order by tc.created_datetime desc "
+      + "limit 1", nativeQuery = true)
+  HTransactionCategory findByCriteriaOrderByCreatedDatetime(String idAccount, String type,
+                                                            int vat, boolean userDefined);
 }

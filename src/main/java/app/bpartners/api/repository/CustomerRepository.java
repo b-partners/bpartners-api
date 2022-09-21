@@ -5,7 +5,9 @@ import java.util.List;
 
 public interface CustomerRepository {
 
-  List<Customer> findByAccountId(String accountId);
+  List<Customer> findByAccountIdAndName(String accountId, String name);
+
+  List<Customer> findByAccount(String accountId);
 
   List<Customer> save(String account, List<Customer> toCreate);
 }

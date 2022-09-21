@@ -23,6 +23,7 @@ import static app.bpartners.api.integration.conf.TestUtils.BAD_USER_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsApiException;
 import static app.bpartners.api.integration.conf.TestUtils.setUpSwanRepository;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
@@ -50,19 +51,19 @@ class CustomerIT {
   Customer customer1() {
     return new Customer()
         .id("customer1_id")
-        .name("Customer 1")
-        .email("customer1@email.com")
+        .name("Luc Artisan")
+        .email("luc@email.com")
         .phone("+33 12 34 56 78")
-        .address("Customer Address 1");
+        .address("15 rue Porte d'Orange, Montmorency");
   }
 
   Customer customer2() {
     return new Customer()
         .id("customer2_id")
-        .name("Customer 2")
-        .email("customer2@email.com")
+        .name("Jean Plombier")
+        .email("jean@email.com")
         .phone("+33 12 34 56 78")
-        .address("Customer Address 2");
+        .address("4 Avenue des Près, Montmorency");
   }
 
   CreateCustomer createCustomer1() {
@@ -78,8 +79,12 @@ class CustomerIT {
     ApiClient joeDoeClient = anApiClient(bearerToken);
     CustomersApi api = new CustomersApi(joeDoeClient);
 
-    List<Customer> actual = api.getCustomers(JOE_DOE_ACCOUNT_ID);
+    List<Customer> actual = api.getCustomers(JOE_DOE_ACCOUNT_ID, null);
+    List<Customer> actualFiltered = api.getCustomers(JOE_DOE_ACCOUNT_ID, "Jean");
 
+    assertEquals(2, actual.size());
+    assertEquals(1, actualFiltered.size());
+    assertTrue(actual.contains(customer2()));
     assertTrue(actual.contains(customer1()));
     assertTrue(actual.contains(customer2()));
   }
@@ -91,7 +96,7 @@ class CustomerIT {
 
     assertThrowsApiException(
         "{\"type\":\"403 FORBIDDEN\",\"message\":\"Access is denied\"}",
-        () -> api.getCustomers(BAD_USER_ID));
+        () -> api.getCustomers(BAD_USER_ID, null));
   }
 
   @Test
@@ -102,7 +107,7 @@ class CustomerIT {
     List<Customer> actual =
         api.createCustomers(JOE_DOE_ACCOUNT_ID, List.of(createCustomer1()));
 
-    List<Customer> actualList = api.getCustomers(JOE_DOE_ACCOUNT_ID);
+    List<Customer> actualList = api.getCustomers(JOE_DOE_ACCOUNT_ID, null);
     assertTrue(actualList.containsAll(actual));
   }
 

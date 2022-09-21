@@ -13,15 +13,8 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 @EqualsAndHashCode
-public class TransactionCategory {
+public class TransactionCategoryTemplate {
   private String id;
-  private String idAccount;
-  private String idTransactionCategoryTmpl;
   private String type;
-  private Integer vat;
-  private String idTransaction;
-
-  public boolean isUserDefined() {
-    return idTransactionCategoryTmpl == null;
-  }
+  private int vat;
 }

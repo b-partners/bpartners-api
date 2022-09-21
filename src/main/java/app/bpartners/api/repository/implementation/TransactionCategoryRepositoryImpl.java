@@ -30,7 +30,7 @@ public class TransactionCategoryRepositoryImpl implements TransactionCategoryRep
   private final EntityManager entityManager;
 
   @Override
-  public List<TransactionCategory> findByIdAccount(
+  public List<TransactionCategory> findByIdAccountAndUserDefined(
       String idAccount, boolean unique, boolean userDefined) {
     List<HTransactionCategory> entities;
     if (unique) {
@@ -47,6 +47,18 @@ public class TransactionCategoryRepositoryImpl implements TransactionCategoryRep
   }
 
   @Override
+  public List<TransactionCategory> findByAccount(String idAccount, boolean unique) {
+    if (unique) {
+      return findDistinctByAccount(idAccount).stream()
+          .map(domainMapper::toDomain)
+          .collect(Collectors.toUnmodifiableList());
+    }
+    return jpaRepository.findAllByIdAccount(idAccount).stream()
+        .map(domainMapper::toDomain)
+        .collect(Collectors.toUnmodifiableList());
+  }
+
+  @Override
   public List<TransactionCategory> saveAll(List<TransactionCategory> toCreate) {
     List<HTransactionCategory> entitiesToCreate = toCreate.stream()
         .map(domainMapper::toEntity)
@@ -55,6 +67,18 @@ public class TransactionCategoryRepositoryImpl implements TransactionCategoryRep
     return jpaRepository.saveAll(entitiesToCreate).stream()
         .map(domainMapper::toDomain)
         .collect(Collectors.toUnmodifiableList());
+  }
+
+  private List<HTransactionCategory> findDistinctByAccount(String idAccount) {
+    CriteriaBuilder builder = entityManager.getCriteriaBuilder();
+    CriteriaQuery<HTransactionCategory> query = builder.createQuery(HTransactionCategory.class);
+    Root<HTransactionCategory> root = query.from(HTransactionCategory.class);
+
+    Predicate hasIdAccount = builder.equal(root.get(ID_ACCOUNT_ATTRIBUTE), idAccount);
+    query.where(builder.and(hasIdAccount));
+    query.multiselect(transactionCategorySelections(root)).distinct(true);
+
+    return entityManager.createQuery(query).getResultList();
   }
 
   @Override

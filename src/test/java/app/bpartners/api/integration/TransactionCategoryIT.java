@@ -90,6 +90,11 @@ class TransactionCategoryIT {
     ApiClient joeDoeClient = anApiClient(bearerToken);
     PayingApi api = new PayingApi(joeDoeClient);
 
+    List<TransactionCategory> actualAll = api.getTransactionCategories(JOE_DOE_ACCOUNT_ID, false,
+        null);
+    List<TransactionCategory> actualAllUnique = api.getTransactionCategories(JOE_DOE_ACCOUNT_ID,
+        true,
+        null);
     List<TransactionCategory> actualUnique =
         api.getTransactionCategories(JOE_DOE_ACCOUNT_ID, true, false);
     List<TransactionCategory> actualNotUnique =
@@ -99,6 +104,8 @@ class TransactionCategoryIT {
     List<TransactionCategory> actualUniqueAndDefined =
         api.getTransactionCategories(JOE_DOE_ACCOUNT_ID, true, true);
 
+    assertEquals(7, actualAll.size());
+    assertEquals(5, actualAllUnique.size());
     assertEquals(2, actualUnique.size());
     assertEquals(3, actualNotUnique.size());
     assertEquals(4, actualUserDefined.size());

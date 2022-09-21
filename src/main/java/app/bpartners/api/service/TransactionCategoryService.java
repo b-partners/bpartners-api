@@ -12,11 +12,15 @@ public class TransactionCategoryService {
   private final TransactionCategoryRepository repository;
 
 
-  public List<TransactionCategory> getCategoriesByAccount(
+  public List<TransactionCategory> getCategoriesByAccountAndUserDefined(
       String idAccount, boolean unique,
       boolean userDefined) {
     //TODO : check if account is current user's account
-    return repository.findByIdAccount(idAccount, unique, userDefined);
+    return repository.findByIdAccountAndUserDefined(idAccount, unique, userDefined);
+  }
+
+  public List<TransactionCategory> getCategoriesByAccount(String idAccount, boolean unique) {
+    return repository.findByAccount(idAccount, unique);
   }
 
   public List<TransactionCategory> createCategories(

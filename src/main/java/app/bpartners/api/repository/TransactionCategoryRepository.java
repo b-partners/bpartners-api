@@ -5,7 +5,10 @@ import java.util.List;
 
 public interface TransactionCategoryRepository {
 
-  List<TransactionCategory> findByIdAccount(String idAccount, boolean unique, boolean userDefined);
+  List<TransactionCategory> findByIdAccountAndUserDefined(String idAccount, boolean unique,
+                                                          boolean userDefined);
+
+  List<TransactionCategory> findByAccount(String idAccount, boolean unique);
 
   List<TransactionCategory> saveAll(List<TransactionCategory> toCreate);
 

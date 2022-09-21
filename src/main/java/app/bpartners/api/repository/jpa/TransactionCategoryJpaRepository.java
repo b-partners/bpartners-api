@@ -1,6 +1,7 @@
 package app.bpartners.api.repository.jpa;
 
 import app.bpartners.api.repository.jpa.model.HTransactionCategory;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -23,5 +24,7 @@ public interface TransactionCategoryJpaRepository
       + " order by tc.created_datetime desc limit 1", nativeQuery = true)
   HTransactionCategory findByCriteriaOrderByCreatedDatetime(
       String idAccount, String type, Integer vat);
+
+  List<HTransactionCategory> findAllByIdAccount(String idAccount);
 
 }

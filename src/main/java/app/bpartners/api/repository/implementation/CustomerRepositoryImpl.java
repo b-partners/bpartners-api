@@ -1,10 +1,7 @@
 package app.bpartners.api.repository.implementation;
 
-import app.bpartners.api.endpoint.rest.security.model.Principal;
 import app.bpartners.api.endpoint.rest.security.principal.PrincipalProvider;
-import app.bpartners.api.model.Account;
 import app.bpartners.api.model.Customer;
-import app.bpartners.api.model.exception.ForbiddenException;
 import app.bpartners.api.model.mapper.CustomerMapper;
 import app.bpartners.api.repository.CustomerRepository;
 import app.bpartners.api.repository.jpa.CustomerJpaRepository;
@@ -25,22 +22,18 @@ public class CustomerRepositoryImpl implements CustomerRepository {
 
   private final AccountService accountService;
 
-  public Principal getPrincipal() {
-    return (Principal) provider.getAuthentication().getPrincipal();
+  @Override
+  public List<Customer> findByAccountIdAndName(String accountId, String name) {
+    return jpaRepository.findByIdAccountAndNameContainingIgnoreCase(accountId, name).stream()
+        .map(mapper::toDomain)
+        .collect(Collectors.toUnmodifiableList());
   }
 
   @Override
-  public List<Customer> findByAccountId(String accountId) {
-    String authenticatedUserId = getPrincipal().getUserId();
-    List<Account> authenticatedUserAccount =
-        accountService.getAccountsByUserId(authenticatedUserId);
-    if (authenticatedUserAccount.get(0).getId().equals(accountId)) {
-      return jpaRepository.findAllByIdAccount(accountId).stream()
-          .map(mapper::toDomain)
-          .collect(Collectors.toUnmodifiableList());
-    } else {
-      throw new ForbiddenException("Access is denied");
-    }
+  public List<Customer> findByAccount(String accountId) {
+    return jpaRepository.findAllByIdAccount(accountId).stream()
+        .map(mapper::toDomain)
+        .collect(Collectors.toUnmodifiableList());
   }
 
   @Override
@@ -48,15 +41,8 @@ public class CustomerRepositoryImpl implements CustomerRepository {
     List<HCustomer> entityToCreate = toCreate.stream()
         .map(mapper::toEntity)
         .collect(Collectors.toUnmodifiableList());
-    String authenticatedUserId = getPrincipal().getUserId();
-    List<Account> authenticatedUserAccount =
-        accountService.getAccountsByUserId(authenticatedUserId);
-    if (authenticatedUserAccount.get(0).getId().equals(accountId)) {
-      return jpaRepository.saveAll(entityToCreate).stream()
-          .map(mapper::toDomain)
-          .collect(Collectors.toUnmodifiableList());
-    } else {
-      throw new ForbiddenException("Access is denied");
-    }
+    return jpaRepository.saveAll(entityToCreate).stream()
+        .map(mapper::toDomain)
+        .collect(Collectors.toUnmodifiableList());
   }
 }

@@ -42,10 +42,10 @@ class InvoiceIT {
   Customer customer1() {
     return new Customer()
         .id("customer1_id")
-        .name("Customer 1")
-        .email("customer1@email.com")
+        .name("Luc Artisan")
+        .email("luc@email.com")
         .phone("+33 12 34 56 78")
-        .address("Customer Address 1");
+        .address("15 rue Porte d'Orange, Montmorency");
   }
 
   private static final String NEW_INVOICE_ID = "invoice_uuid";

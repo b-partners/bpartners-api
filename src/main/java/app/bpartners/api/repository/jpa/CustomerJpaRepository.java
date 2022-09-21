@@ -5,5 +5,7 @@ import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface CustomerJpaRepository extends JpaRepository<HCustomer, String> {
+  List<HCustomer> findByIdAccountAndNameContainingIgnoreCase(String idAccount, String name);
+
   List<HCustomer> findAllByIdAccount(String idAccount);
 }

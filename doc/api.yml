@@ -298,13 +298,11 @@ paths:
           description: If disabled, all transaction categories are given
           schema:
             type: boolean
-            default: true
           required: true
         - in: query
           name: userDefined
           schema:
             type: boolean
-            default: false
       responses:
         200:
           description: List of known transaction categories

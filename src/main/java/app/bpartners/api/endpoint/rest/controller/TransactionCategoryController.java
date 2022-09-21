@@ -5,6 +5,7 @@ import app.bpartners.api.endpoint.rest.model.CreateTransactionCategory;
 import app.bpartners.api.endpoint.rest.model.TransactionCategory;
 import app.bpartners.api.service.TransactionCategoryService;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,10 +25,16 @@ public class TransactionCategoryController {
   public List<TransactionCategory> getTransactionCategories(
       @PathVariable String accountId,
       @RequestParam boolean unique,
-      @RequestParam boolean userDefined) {
-    return service.getCategoriesByAccount(accountId, unique, userDefined).stream()
-        .map(mapper::toRest)
-        .collect(Collectors.toUnmodifiableList());
+      @RequestParam(required = false) Optional<Boolean> userDefined) {
+    return userDefined.map(
+            isUserDefined -> service.getCategoriesByAccountAndUserDefined(accountId, unique,
+                    isUserDefined)
+                .stream()
+                .map(mapper::toRest)
+                .collect(Collectors.toUnmodifiableList()))
+        .orElseGet(() -> service.getCategoriesByAccount(accountId, unique).stream()
+            .map(mapper::toRest)
+            .collect(Collectors.toUnmodifiableList()));
   }
 
   @PostMapping("/accounts/{accountId}/transactions/{transactionId}/transactionCategories")

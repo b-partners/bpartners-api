@@ -50,6 +50,7 @@ public class TransactionCategoryRepositoryImpl implements TransactionCategoryRep
   public List<TransactionCategory> saveAll(List<TransactionCategory> toCreate) {
     List<HTransactionCategory> entitiesToCreate = toCreate.stream()
         .map(domainMapper::toEntity)
+        .map(this::userDefinedCheck)
         .collect(Collectors.toUnmodifiableList());
     return jpaRepository.saveAll(entitiesToCreate).stream()
         .map(domainMapper::toDomain)
@@ -124,5 +125,13 @@ public class TransactionCategoryRepositoryImpl implements TransactionCategoryRep
     return List.of(root.get(ID_ACCOUNT_ATTRIBUTE), root.get(ID_CATEGORY_TMPL_ATTRIBUTE),
         root.get(TYPE_ATTRIBUTE),
         root.get(VAT_ATTRIBUTE));
+  }
+
+  private HTransactionCategory userDefinedCheck(HTransactionCategory toCheck) {
+    if (!toCheck.isUserDefined()) {
+      toCheck.setType(null);
+      toCheck.setVat(null);
+    }
+    return toCheck;
   }
 }

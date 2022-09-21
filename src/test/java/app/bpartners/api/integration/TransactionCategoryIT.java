@@ -66,6 +66,15 @@ class TransactionCategoryIT {
         .vat(100);
   }
 
+  TransactionCategory transactionCategory5() {
+    return new TransactionCategory()
+        .id("transaction_category5_id")
+        .type("Recette personnalisée TVA 1,2%")
+        .userDefined(true)
+        .vat(120);
+  }
+
+
   CreateTransactionCategory createTransactionCategory() {
     return new CreateTransactionCategory()
         .type("Recette TVA 1,5%")
@@ -87,15 +96,19 @@ class TransactionCategoryIT {
         api.getTransactionCategories(JOE_DOE_ACCOUNT_ID, false, false);
     List<TransactionCategory> actualUserDefined =
         api.getTransactionCategories(JOE_DOE_ACCOUNT_ID, false, true);
+    List<TransactionCategory> actualUniqueAndDefined =
+        api.getTransactionCategories(JOE_DOE_ACCOUNT_ID, true, true);
 
     assertEquals(2, actualUnique.size());
     assertEquals(3, actualNotUnique.size());
-    assertEquals(2, actualUserDefined.size());
+    assertEquals(4, actualUserDefined.size());
+    assertEquals(3, actualUniqueAndDefined.size());
     assertTrue(actualUnique.contains(transactionCategory1()));
     assertTrue(actualUnique.contains(transactionCategory3()));
     assertTrue(actualNotUnique.containsAll(actualUnique));
     assertTrue(actualNotUnique.contains(transactionCategory2()));
     assertTrue(actualUserDefined.contains(transactionCategory4()));
+    assertTrue(actualUserDefined.contains(transactionCategory5()));
   }
 
   @Test

@@ -42,11 +42,11 @@ class TransactionIT {
         .userDefined(false);
   }
 
-  static TransactionCategory transactionCategory4() {
+  static TransactionCategory transactionCategory6() {
     return new TransactionCategory()
-        .id("transaction_category4_id")
-        .type("Recette personnalisée TVA 1%")
-        .vat(100)
+        .id("transaction_category6_id")
+        .type("Recette personnalisée TVA 1,2%")
+        .vat(120)
         .userDefined(true);
   }
 
@@ -76,7 +76,7 @@ class TransactionIT {
         .reference("TEST-001")
         .amount(BigDecimal.valueOf(100))
         .paymentDatetime(Instant.parse("2022-08-24T04:57:02.606Z"))
-        .category(List.of(transactionCategory4()));
+        .category(List.of(transactionCategory6()));
   }
 
   private static ApiClient anApiClient(String token) {

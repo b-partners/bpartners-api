@@ -1,6 +1,7 @@
 package app.bpartners.api.model.mapper;
 
 import app.bpartners.api.model.TransactionCategory;
+import app.bpartners.api.model.TransactionCategoryTemplate;
 import app.bpartners.api.repository.jpa.TransactionCategoryTemplateJpaRepository;
 import app.bpartners.api.repository.jpa.model.HTransactionCategory;
 import app.bpartners.api.repository.jpa.model.HTransactionCategoryTemplate;
@@ -19,7 +20,6 @@ public class TransactionCategoryMapper {
         .type(entity.getType())
         .vat(entity.getVat())
         .idTransactionCategoryTmpl(entity.getIdCategoryTemplate())
-        .userDefined(entity.isUserDefined())
         .build();
     if (!entity.isUserDefined()) {
       HTransactionCategoryTemplate categoryTemplate =
@@ -28,6 +28,17 @@ public class TransactionCategoryMapper {
       domain.setVat(categoryTemplate.getVat());
     }
     return domain;
+  }
+
+  public TransactionCategoryTemplate toDomain(HTransactionCategoryTemplate entity) {
+    if (entity == null) {
+      return null;
+    }
+    return TransactionCategoryTemplate.builder()
+        .id(entity.getId())
+        .type(entity.getType())
+        .vat(entity.getVat())
+        .build();
   }
 
   public HTransactionCategory toEntity(TransactionCategory category) {

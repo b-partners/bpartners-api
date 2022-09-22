@@ -7,4 +7,6 @@ values ('product1_id', 'beed1765-5c16-472a-b3f4-5c376ce5db58', 'Tableau malgache
        ('product3_id', 'beed1765-5c16-472a-b3f4-5c376ce5db58', 'Plomberie', 3, 2000, 1000,
         'invoice1_id', '2022-01-01T03:00:00.00Z'),
        ('product4_id', 'beed1765-5c16-472a-b3f4-5c376ce5db58', 'Tableau malgache', 1, 2000, 1000,
-        'invoice1_id', '2022-01-01T04:00:00.00Z');
+        'invoice1_id', '2022-01-01T04:00:00.00Z'),
+       ('product5_id', 'beed1765-5c16-472a-b3f4-5c376ce5db58', 'Mon tableau', 1, 1000, 1000,
+        'invoice2_id', '2022-01-01T04:00:00.00Z');

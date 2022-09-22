@@ -17,6 +17,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import static app.bpartners.api.repository.jpa.model.HProduct.DESCRIPTION_ATTRIBUTE;
+import static app.bpartners.api.repository.jpa.model.HProduct.ID_INVOICE_ATTRIBUTE;
 import static app.bpartners.api.repository.jpa.model.HTransactionCategory.ID_ACCOUNT_ATTRIBUTE;
 
 @Repository
@@ -45,6 +46,42 @@ public class ProductRepositoryImpl implements ProductRepository {
         .collect(Collectors.toUnmodifiableList());
   }
 
+  @Override
+  public List<Product> saveAll(String idAccount, List<Product> toSave) {
+    List<HProduct> entitiesToSave = toSave.stream()
+        .map(product -> domainMapper.toEntity(idAccount, product))
+        .collect(Collectors.toUnmodifiableList());
+    return jpaRepository.saveAll(entitiesToSave).stream()
+        .map(domainMapper::toDomain)
+        .collect(Collectors.toUnmodifiableList());
+  }
+
+  @Override
+  public List<Product> findRecentByIdAccountAndInvoice(String idAccount, String idInvoice) {
+    return findRecentByIdAccountAndIdInvoice(idAccount, idInvoice).stream()
+        .map(domainMapper::toDomain)
+        .collect(Collectors.toUnmodifiableList());
+  }
+
+  private List<HProduct> findRecentByIdAccountAndIdInvoice(String idAccount, String idInvoice) {
+    return findDistinctByAccountAndInvoice(idAccount, idInvoice).stream()
+        .map(product -> jpaRepository.findDistinctByCriteriaOrderByDate(product.getDescription()))
+        .collect(Collectors.toUnmodifiableList());
+  }
+
+  private List<HProduct> findDistinctByAccountAndInvoice(String idAccount, String idInvoice) {
+    CriteriaBuilder builder = entityManager.getCriteriaBuilder();
+    CriteriaQuery<HProduct> query = builder.createQuery(HProduct.class);
+    Root<HProduct> root = query.from(HProduct.class);
+
+    Predicate hasIdAccount = builder.equal(root.get(ID_ACCOUNT_ATTRIBUTE), idAccount);
+    Predicate hasIdInvoice = builder.equal(root.get(ID_INVOICE_ATTRIBUTE), idInvoice);
+
+    query.where(builder.and(hasIdAccount, hasIdInvoice));
+    query.multiselect(productSelections(root)).distinct(true);
+
+    return entityManager.createQuery(query).getResultList();
+  }
 
   List<HProduct> findDistinctByAccountAndDescription(String idAccount, String description) {
     CriteriaBuilder builder = entityManager.getCriteriaBuilder();

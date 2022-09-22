@@ -7,4 +7,8 @@ public interface ProductRepository {
   List<Product> findByIdAccount(String idAccount, boolean unique);
 
   List<Product> findByIdAccountAndDescription(String idAccount, String description);
+
+  List<Product> saveAll(String idAccount, List<Product> toSave);
+
+  List<Product> findRecentByIdAccountAndInvoice(String idAccount, String idInvoice);
 }

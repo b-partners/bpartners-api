@@ -1,5 +1,6 @@
 package app.bpartners.api.service;
 
+import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.PaymentInitiation;
 import app.bpartners.api.model.PaymentRedirection;
 import app.bpartners.api.model.exception.NotImplementedException;
@@ -19,5 +20,21 @@ public class PaymentInitiationService {
     }
     PaymentInitiation paymentReq = paymentReqs.get(0);
     return repository.save(paymentReq);
+  }
+
+  public PaymentRedirection initiateInvoicePayment(Invoice invoice) {
+    if (invoice.getTotalPriceWithVat() == 0) {
+      return new PaymentRedirection();
+    }
+    PaymentInitiation paymentInitiation = PaymentInitiation.builder()
+        .reference(invoice.getRef())
+        .label(invoice.getTitle())
+        .amount(invoice.getTotalPriceWithVat() / 100)
+        .payerName(invoice.getCustomer().getName())
+        .payerEmail(invoice.getCustomer().getEmail())
+        .successUrl("https://dashboard-dev.bpartners.app") //TODO: to change
+        .failureUrl("https://dashboard-dev.bpartners.app") //TODO: to change
+        .build();
+    return repository.save(paymentInitiation).get(0);
   }
 }

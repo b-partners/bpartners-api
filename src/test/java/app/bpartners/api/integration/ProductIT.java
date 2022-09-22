@@ -39,7 +39,7 @@ class ProductIT {
     return TestUtils.anApiClient(token, ProductIT.ContextInitializer.SERVER_PORT);
   }
 
-  Product product1() {
+  public static Product product1() {
     return new Product()
         .id("product1_id")
         .description("Tableau malgache")
@@ -50,10 +50,10 @@ class ProductIT {
         .totalPriceWithVat(1200);
   }
 
-  Product product2() {
+  public static Product product2() {
     return new Product()
         .id("product2_id")
-        .description("Plomberie")
+        .description("Tableau baobab")
         .quantity(2)
         .unitPrice(2000)
         .vatPercent(1000)
@@ -61,10 +61,10 @@ class ProductIT {
         .totalPriceWithVat(4400);
   }
 
-  Product product3() {
+  public static Product product3() {
     return new Product()
         .id("product3_id")
-        .description("Plomberie")
+        .description("Tableau baobab")
         .quantity(3)
         .unitPrice(2000)
         .vatPercent(1000)
@@ -72,7 +72,7 @@ class ProductIT {
         .totalPriceWithVat(6600);
   }
 
-  Product product4() {
+  public static Product product4() {
     return new Product()
         .id("product4_id")
         .description("Tableau malgache")
@@ -81,6 +81,17 @@ class ProductIT {
         .vatPercent(1000)
         .totalVat(200)
         .totalPriceWithVat(2200);
+  }
+
+  public static Product product5() {
+    return new Product()
+        .id("product5_id")
+        .description("Mon tableau")
+        .quantity(1)
+        .unitPrice(1000)
+        .vatPercent(1000)
+        .totalVat(100)
+        .totalPriceWithVat(1100);
   }
 
   CreateProduct createProduct1() {

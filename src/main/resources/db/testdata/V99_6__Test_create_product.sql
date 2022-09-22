@@ -1,6 +1,10 @@
 insert into "product"
-(id, description, quantity, price, id_price_reduction,id_invoice)
-values ('content1_id', 'Tableau malgache', 1, 100, 'reduction1_id',
-        'invoice1_id'),
-       ('content2_id', 'Plomberie', 2, 10, 'reduction2_id',
-        'invoice1_id');
+(id, id_account, description, quantity, unit_price, vat_percent, id_invoice, created_datetime)
+values ('product1_id', 'beed1765-5c16-472a-b3f4-5c376ce5db58', 'Tableau malgache', 1, 1000, 2000,
+        'invoice1_id', '2022-01-01T01:00:00.00Z'),
+       ('product2_id', 'beed1765-5c16-472a-b3f4-5c376ce5db58', 'Plomberie', 2, 2000, 1000,
+        'invoice1_id', '2022-01-01T02:00:00.00Z'),
+       ('product3_id', 'beed1765-5c16-472a-b3f4-5c376ce5db58', 'Plomberie', 3, 2000, 1000,
+        'invoice1_id', '2022-01-01T03:00:00.00Z'),
+       ('product4_id', 'beed1765-5c16-472a-b3f4-5c376ce5db58', 'Tableau malgache', 1, 2000, 1000,
+        'invoice1_id', '2022-01-01T04:00:00.00Z');

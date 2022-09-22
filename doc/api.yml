@@ -1050,16 +1050,16 @@ components:
           type: integer
         vatPercent:
           type: integer
-        totalVat:
-          type: integer
-        totalPriceWithVat:
-          type: integer
     Product:
       allOf:
         - $ref: '#/components/schemas/CreateProduct'
       properties:
         id:
           type: string
+        totalVat:
+          type: integer
+        totalPriceWithVat:
+          type: integer
     CreateCustomer:
       type: object
       properties:

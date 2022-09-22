@@ -15,27 +15,18 @@ import org.springframework.stereotype.Component;
 public class InvoiceMapper {
   private final CustomerMapper customerMapper;
   private final AccountService accountService;
-  private final PriceReductionMapper reductionMapper;
 
   public Product toDomain(HProduct entity) {
     return Product.builder()
         .id(entity.getId())
         .invoice(toDomain(entity.getInvoice()))
         .description(entity.getDescription())
-        .unitPrice(entity.getPrice())
+        .unitPrice(entity.getUnitPrice())
         .quantity(entity.getQuantity())
-        .reduction(reductionMapper.toDomain(entity.getReduction()))
         .build();
   }
 
   public Invoice toDomain(HInvoice entity) {
-    List<HProduct> entityContent = entity.getProducts();
-    List<Product> domainContent = null;
-    if (entityContent != null) {
-      domainContent = entityContent.stream()
-          .map(this::toDomain)
-          .collect(Collectors.toUnmodifiableList());
-    }
     return Invoice.builder()
         .id(entity.getId())
         .ref(entity.getRef())
@@ -44,7 +35,7 @@ public class InvoiceMapper {
         .toPayAt(entity.getToPayAt())
         .customer(customerMapper.toDomain(entity.getCustomer()))
         .account(accountService.getAccounts().get(0))
-        .products(domainContent)
+        .products(getInvoiceProducts(entity))
         .status(entity.getStatus())
         .build();
   }
@@ -54,20 +45,12 @@ public class InvoiceMapper {
         .id(domain.getId())
         .description(domain.getDescription())
         .quantity(domain.getQuantity())
-        .price(domain.getUnitPrice())
-        .reduction(reductionMapper.toEntity(domain.getReduction()))
+        .unitPrice(domain.getUnitPrice())
         .invoice(toEntity(domain.getInvoice()))
         .build();
   }
 
   public HInvoice toEntity(Invoice domain) {
-    List<Product> domainContent = domain.getProducts();
-    List<HProduct> entityContent = null;
-    if (domainContent != null) {
-      entityContent = domainContent.stream()
-          .map(this::toEntity)
-          .collect(Collectors.toUnmodifiableList());
-    }
     return HInvoice.builder()
         .id(domain.getId())
         .ref(domain.getRef())
@@ -76,8 +59,30 @@ public class InvoiceMapper {
         .vat(domain.getVat())
         .sendingDate(domain.getSendingDate())
         .toPayAt(domain.getToPayAt())
-        .products(entityContent)
+        .products(getHInvoiceProducts(domain))
         .status(domain.getStatus())
         .build();
+  }
+
+  private List<HProduct> getHInvoiceProducts(Invoice invoice) {
+    List<Product> domains = invoice.getProducts();
+    List<HProduct> entities = null;
+    if (domains != null) {
+      entities = domains.stream()
+          .map(this::toEntity)
+          .collect(Collectors.toUnmodifiableList());
+    }
+    return entities;
+  }
+
+  private List<Product> getInvoiceProducts(HInvoice invoice) {
+    List<Product> domains = null;
+    List<HProduct> entities = invoice.getProducts();
+    if (entities != null) {
+      domains = entities.stream()
+          .map(this::toDomain)
+          .collect(Collectors.toUnmodifiableList());
+    }
+    return domains;
   }
 }

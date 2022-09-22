@@ -1,5 +1,6 @@
 package app.bpartners.api.model;
 
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -19,6 +20,21 @@ public class Product {
   private String description;
   private int quantity;
   private int unitPrice;
+  private int vatPercent;
+  @Getter(AccessLevel.NONE)
+  private int totalVat;
+  @Getter(AccessLevel.NONE)
   private int totalPriceWithVat;
-  private PriceReduction reduction;
+
+  public int getTotalVat() {
+    return getTotalWithoutVat() * vatPercent / 10000;
+  }
+
+  public int getTotalWithoutVat() {
+    return unitPrice * quantity;
+  }
+
+  public int getTotalPriceWithVat() {
+    return getTotalWithoutVat() + getTotalVat();
+  }
 }

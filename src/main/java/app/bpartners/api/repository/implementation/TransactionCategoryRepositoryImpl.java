@@ -49,7 +49,7 @@ public class TransactionCategoryRepositoryImpl implements TransactionCategoryRep
   @Override
   public List<TransactionCategory> findByAccount(String idAccount, boolean unique) {
     if (unique) {
-      return findDistinctByAccount(idAccount).stream()
+      return findByCriteriaOrderByCreatedDatetime(idAccount).stream()
           .map(domainMapper::toDomain)
           .collect(Collectors.toUnmodifiableList());
     }
@@ -136,6 +136,20 @@ public class TransactionCategoryRepositoryImpl implements TransactionCategoryRep
     return findDistinctByCriteria(idAccount, userDefined).stream()
         .map(c -> {
           if (!userDefined) {
+            return jpaRepository.findByCriteriaOrderByCreatedDatetime(c.getIdAccount(),
+                c.getIdCategoryTemplate());
+          }
+          return jpaRepository.findByCriteriaOrderByCreatedDatetime(idAccount, c.getType(),
+              c.getVat());
+        })
+        .collect(Collectors.toUnmodifiableList());
+  }
+
+  public List<HTransactionCategory> findByCriteriaOrderByCreatedDatetime(
+      String idAccount) {
+    return findDistinctByAccount(idAccount).stream()
+        .map(c -> {
+          if (!c.isUserDefined()) {
             return jpaRepository.findByCriteriaOrderByCreatedDatetime(c.getIdAccount(),
                 c.getIdCategoryTemplate());
           }

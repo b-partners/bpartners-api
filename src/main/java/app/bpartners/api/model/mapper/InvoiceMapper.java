@@ -16,15 +16,7 @@ public class InvoiceMapper {
   private final CustomerMapper customerMapper;
   private final AccountService accountService;
 
-  public Product toDomain(HProduct entity) {
-    return Product.builder()
-        .id(entity.getId())
-        .invoice(toDomain(entity.getInvoice()))
-        .description(entity.getDescription())
-        .unitPrice(entity.getUnitPrice())
-        .quantity(entity.getQuantity())
-        .build();
-  }
+  private final ProductMapper productMapper;
 
   public Invoice toDomain(HInvoice entity) {
     return Invoice.builder()
@@ -80,7 +72,7 @@ public class InvoiceMapper {
     List<HProduct> entities = invoice.getProducts();
     if (entities != null) {
       domains = entities.stream()
-          .map(this::toDomain)
+          .map(productMapper::toDomain)
           .collect(Collectors.toUnmodifiableList());
     }
     return domains;

@@ -20,8 +20,10 @@ public class ProductController {
   @GetMapping("/accounts/{id}/products")
   public List<Product> getProducts(
       @PathVariable String id,
-      @RequestParam boolean unique) {
-    return service.getProductsByAccount(id, unique).stream()
+      @RequestParam(required = false) Boolean unique,
+      @RequestParam(required = false) String description
+  ) {
+    return service.getProductsByAccount(id, description, unique).stream()
         .map(mapper::toRest)
         .collect(Collectors.toUnmodifiableList());
   }

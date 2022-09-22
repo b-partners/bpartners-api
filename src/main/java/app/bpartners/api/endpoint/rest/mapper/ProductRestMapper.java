@@ -1,6 +1,5 @@
 package app.bpartners.api.endpoint.rest.mapper;
 
-import app.bpartners.api.endpoint.rest.model.CreateProduct;
 import app.bpartners.api.endpoint.rest.model.Product;
 import org.springframework.stereotype.Component;
 
@@ -15,14 +14,5 @@ public class ProductRestMapper {
         .vatPercent(domain.getVatPercent())
         .totalVat(domain.getTotalVat())
         .totalPriceWithVat(domain.getTotalPriceWithVat());
-  }
-
-  public app.bpartners.api.model.Product toDomain(CreateProduct rest) {
-    return app.bpartners.api.model.Product.builder()
-        .description(rest.getDescription())
-        .quantity(rest.getQuantity())
-        .unitPrice(rest.getUnitPrice())
-        .vatPercent(rest.getVatPercent())
-        .build();
   }
 }

@@ -5,4 +5,6 @@ import java.util.List;
 
 public interface ProductRepository {
   List<Product> findByIdAccount(String idAccount, boolean unique);
+
+  List<Product> findByIdAccountAndDescription(String idAccount, String description);
 }

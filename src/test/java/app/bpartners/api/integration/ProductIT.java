@@ -17,6 +17,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
+import static app.bpartners.api.integration.conf.TestUtils.assertThrowsApiException;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
@@ -84,16 +85,30 @@ class ProductIT {
     ApiClient joeDoeClient = anApiClient(bearerToken);
     PayingApi api = new PayingApi(joeDoeClient);
 
-    List<Product> actualNotUnique = api.getProducts(JOE_DOE_ACCOUNT_ID, false);
-    List<Product> actualUnique = api.getProducts(JOE_DOE_ACCOUNT_ID, true);
+    List<Product> actualNotUnique = api.getProducts(JOE_DOE_ACCOUNT_ID, false, null);
+    List<Product> actualUnique = api.getProducts(JOE_DOE_ACCOUNT_ID, true, null);
+    List<Product> actualFilteredUnique = api.getProducts(JOE_DOE_ACCOUNT_ID, null, "tableau "
+        + "malgache");
 
     assertEquals(4, actualNotUnique.size());
     assertEquals(2, actualUnique.size());
+    assertEquals(1, actualFilteredUnique.size());
     assertTrue(actualUnique.contains(product4()));
     assertTrue(actualUnique.contains(product3()));
     assertTrue(actualNotUnique.containsAll(actualUnique));
     assertTrue(actualNotUnique.contains(product1()));
     assertTrue(actualNotUnique.contains(product2()));
+    assertTrue(actualFilteredUnique.contains(product4()));
+  }
+
+  @Test
+  void read_products_ko() {
+    ApiClient joeDoeClient = anApiClient(bearerToken);
+    PayingApi api = new PayingApi(joeDoeClient);
+
+    assertThrowsApiException(
+        "{\"type\":\"400 BAD_REQUEST\",\"message\":\"Query parameter `unique` is mandatory.\"}",
+        () -> api.getProducts(JOE_DOE_ACCOUNT_ID, null, null));
   }
 
   static class ContextInitializer extends AbstractContextInitializer {

@@ -33,6 +33,8 @@ public class HProduct {
   private String id;
   @Column(name = "id_account")
   private String idAccount;
+  public static final String ID_ACCOUNT_ATTRIBUTE = "idAccount";
+
   private String description;
   public static final String DESCRIPTION_ATTRIBUTE = "description";
   private int quantity;

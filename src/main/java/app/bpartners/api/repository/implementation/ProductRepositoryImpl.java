@@ -17,6 +17,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import static app.bpartners.api.repository.jpa.model.HProduct.DESCRIPTION_ATTRIBUTE;
+import static app.bpartners.api.repository.jpa.model.HTransactionCategory.ID_ACCOUNT_ATTRIBUTE;
 
 @Repository
 @AllArgsConstructor
@@ -37,12 +38,43 @@ public class ProductRepositoryImpl implements ProductRepository {
         .collect(Collectors.toUnmodifiableList());
   }
 
+  @Override
+  public List<Product> findByIdAccountAndDescription(String idAccount, String description) {
+    return findDistinctByCriteriaOrderByDate(idAccount, description).stream()
+        .map(domainMapper::toDomain)
+        .collect(Collectors.toUnmodifiableList());
+  }
+
+
+  List<HProduct> findDistinctByAccountAndDescription(String idAccount, String description) {
+    CriteriaBuilder builder = entityManager.getCriteriaBuilder();
+    CriteriaQuery<HProduct> query = builder.createQuery(HProduct.class);
+    Root<HProduct> root = query.from(HProduct.class);
+
+    Predicate hasIdAccount = builder.equal(root.get(ID_ACCOUNT_ATTRIBUTE), idAccount);
+    Predicate containsDescription =
+        builder.or(
+            builder.like(
+                root.get(DESCRIPTION_ATTRIBUTE), "%" + description + "%"
+            ),
+            builder.like(
+                builder.lower(
+                    root.get((DESCRIPTION_ATTRIBUTE)
+                    )
+                ), "%" + description + "%"
+            ));
+    query.where(builder.and(hasIdAccount, containsDescription));
+    query.multiselect(productSelections(root)).distinct(true);
+
+    return entityManager.createQuery(query).getResultList();
+  }
+
   private List<HProduct> findDistinctByAccount(String idAccount) {
     CriteriaBuilder builder = entityManager.getCriteriaBuilder();
     CriteriaQuery<HProduct> query = builder.createQuery(HProduct.class);
     Root<HProduct> root = query.from(HProduct.class);
 
-    Predicate hasIdAccount = builder.equal(root.get("idAccount"), idAccount);
+    Predicate hasIdAccount = builder.equal(root.get(ID_ACCOUNT_ATTRIBUTE), idAccount);
 
     query.where(builder.and(hasIdAccount));
     query.multiselect(productSelections(root)).distinct(true);
@@ -55,6 +87,13 @@ public class ProductRepositoryImpl implements ProductRepository {
         .map(product -> jpaRepository.findDistinctByCriteriaOrderByDate(product.getDescription()))
         .collect(Collectors.toUnmodifiableList());
   }
+
+  private List<HProduct> findDistinctByCriteriaOrderByDate(String idAccount, String description) {
+    return findDistinctByAccountAndDescription(idAccount, description).stream()
+        .map(product -> jpaRepository.findDistinctByCriteriaOrderByDate(product.getDescription()))
+        .collect(Collectors.toUnmodifiableList());
+  }
+
 
   private List<Selection<?>> productSelections(Root<HProduct> root) {
     return List.of(root.get(DESCRIPTION_ATTRIBUTE));

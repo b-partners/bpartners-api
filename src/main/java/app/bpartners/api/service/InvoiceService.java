@@ -4,6 +4,7 @@ import app.bpartners.api.model.Account;
 import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.exception.ForbiddenException;
 import app.bpartners.api.repository.InvoiceRepository;
+import app.bpartners.api.repository.ProductRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -11,23 +12,40 @@ import org.springframework.stereotype.Service;
 @AllArgsConstructor
 public class InvoiceService {
   private final InvoiceRepository repository;
-  private final AccountService accountService;
+  private final ProductRepository productRepository;
+  private final AccountService accountService;    //TODO: remove when SelfMatcher is set
 
   public Invoice getById(String accountId, String invoiceId) {
-    //TODO: put in validator
+    //TODO: remove when SelfMatcher is set
     Account authenticatedAccount = accountService.getAccounts().get(0);
     if (!authenticatedAccount.getId().equals(accountId)) {
       throw new ForbiddenException();
     }
-    return repository.getById(invoiceId);
+    return refreshValues(repository.getById(invoiceId));
   }
 
   public Invoice crupdateInvoice(String accountId, Invoice toCrupdate) {
-    //TODO: put in validator
+    //TODO: remove when SelfMatcher is set
     Account authenticatedAccount = accountService.getAccounts().get(0);
     if (!authenticatedAccount.getId().equals(accountId)) {
       throw new ForbiddenException();
     }
-    return repository.crupdate(toCrupdate);
+    return refreshValues(repository.crupdate(toCrupdate));
+  }
+
+  private Invoice refreshValues(Invoice invoice) {
+    return Invoice.builder()
+        .id(invoice.getId())
+        .customer(invoice.getCustomer())
+        .account(invoice.getAccount())
+        .status(invoice.getStatus())
+        .sendingDate(invoice.getSendingDate())
+        .vat(invoice.getVat())
+        .title(invoice.getTitle())
+        .toPayAt(invoice.getToPayAt())
+        .ref(invoice.getRef())
+        .products(productRepository.findRecentByIdAccountAndInvoice(invoice.getAccount().getId(),
+            invoice.getId()))
+        .build();
   }
 }

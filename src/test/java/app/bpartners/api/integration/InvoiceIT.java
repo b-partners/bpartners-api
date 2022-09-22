@@ -5,12 +5,12 @@ import app.bpartners.api.endpoint.rest.api.PayingApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
 import app.bpartners.api.endpoint.rest.model.CrupdateInvoice;
-import app.bpartners.api.endpoint.rest.model.Customer;
 import app.bpartners.api.endpoint.rest.model.Invoice;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.integration.conf.AbstractContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
 import java.time.LocalDate;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -19,7 +19,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import static app.bpartners.api.integration.conf.TestUtils.INVOICE1_ID;
+import static app.bpartners.api.integration.CustomerIT.customer1;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
@@ -36,16 +36,6 @@ class InvoiceIT {
 
   private static ApiClient anApiClient(String token) {
     return TestUtils.anApiClient(token, InvoiceIT.ContextInitializer.SERVER_PORT);
-  }
-
-  //TODO : put in testUtils and look for duplication in IT
-  Customer customer1() {
-    return new Customer()
-        .id("customer1_id")
-        .name("Luc Artisan")
-        .email("luc@email.com")
-        .phone("+33 12 34 56 78")
-        .address("15 rue Porte d'Orange, Montmorency");
   }
 
   private static final String NEW_INVOICE_ID = "invoice_uuid";
@@ -69,6 +59,7 @@ class InvoiceIT {
         .status(InvoiceStatus.CONFIRMED)
         .vat(validInvoice().getVat())
         .sendingDate(validInvoice().getSendingDate())
+        .products(List.of())
         .toPayAt(validInvoice().getToPayAt());
   }
 

@@ -88,6 +88,7 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
         .antMatchers(GET, "/accounts/*/invoices/*").authenticated()
         .antMatchers(PUT, "/accounts/*/invoices/*").authenticated()
         .antMatchers(GET, "/accounts/*/products").authenticated()
+        .antMatchers(POST, "/accounts/*/invoices/*/products").authenticated()
         .antMatchers(POST, "/accounts/*/paymentInitiations").authenticated()
         .antMatchers(GET, "/accounts/*/transactionCategories").authenticated()
         .antMatchers(POST, "/accounts/*/transactions/*/transactionCategories").authenticated()

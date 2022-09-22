@@ -48,7 +48,7 @@ class CustomerIT {
     setUpSwanRepository(swanRepositoryMock);
   }
 
-  Customer customer1() {
+  public static Customer customer1() {
     return new Customer()
         .id("customer1_id")
         .name("Luc Artisan")
@@ -57,7 +57,7 @@ class CustomerIT {
         .address("15 rue Porte d'Orange, Montmorency");
   }
 
-  Customer customer2() {
+  public static Customer customer2() {
     return new Customer()
         .id("customer2_id")
         .name("Jean Plombier")

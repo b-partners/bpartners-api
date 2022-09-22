@@ -4,6 +4,8 @@ import app.bpartners.api.SentryConf;
 import app.bpartners.api.endpoint.rest.api.PayingApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
+import app.bpartners.api.endpoint.rest.model.CreateProduct;
+import app.bpartners.api.endpoint.rest.model.Invoice;
 import app.bpartners.api.endpoint.rest.model.Product;
 import app.bpartners.api.integration.conf.AbstractContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
@@ -16,6 +18,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import static app.bpartners.api.integration.conf.TestUtils.INVOICE1_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsApiException;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -80,6 +83,14 @@ class ProductIT {
         .totalPriceWithVat(2200);
   }
 
+  CreateProduct createProduct1() {
+    return new CreateProduct()
+        .description("Nouveau produit")
+        .quantity(1)
+        .unitPrice(9000)
+        .vatPercent(1000);
+  }
+
   @Test
   void read_products_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient(bearerToken);
@@ -90,8 +101,8 @@ class ProductIT {
     List<Product> actualFilteredUnique = api.getProducts(JOE_DOE_ACCOUNT_ID, null, "tableau "
         + "malgache");
 
-    assertEquals(4, actualNotUnique.size());
-    assertEquals(2, actualUnique.size());
+    assertEquals(6, actualNotUnique.size());
+    assertEquals(4, actualUnique.size());
     assertEquals(1, actualFilteredUnique.size());
     assertTrue(actualUnique.contains(product4()));
     assertTrue(actualUnique.contains(product3()));
@@ -109,6 +120,17 @@ class ProductIT {
     assertThrowsApiException(
         "{\"type\":\"400 BAD_REQUEST\",\"message\":\"Query parameter `unique` is mandatory.\"}",
         () -> api.getProducts(JOE_DOE_ACCOUNT_ID, null, null));
+  }
+
+  @Test
+  void create_products_ok() throws ApiException {
+    ApiClient joeDoeClient = anApiClient(bearerToken);
+    PayingApi api = new PayingApi(joeDoeClient);
+
+    Invoice actual = api.createProducts(JOE_DOE_ACCOUNT_ID, INVOICE1_ID, List.of(createProduct1()));
+
+    List<Product> actualProducts = api.getProducts(JOE_DOE_ACCOUNT_ID, true, null);
+    assertTrue(actualProducts.containsAll(actual.getProducts()));
   }
 
   static class ContextInitializer extends AbstractContextInitializer {

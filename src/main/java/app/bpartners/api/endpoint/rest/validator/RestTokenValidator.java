@@ -1,22 +1,20 @@
 package app.bpartners.api.endpoint.rest.validator;
 
-import app.bpartners.api.endpoint.rest.model.CreateTransactionCategory;
+import app.bpartners.api.endpoint.rest.model.CreateToken;
 import app.bpartners.api.model.exception.BadRequestException;
 import java.util.function.Consumer;
 import org.springframework.stereotype.Component;
 
 @Component
-public class CreateTransactionCategoryValidator implements Consumer<CreateTransactionCategory> {
-
+public class RestTokenValidator implements Consumer<CreateToken> {
   @Override
-  public void accept(CreateTransactionCategory transactionCategory) {
+  public void accept(CreateToken createToken) {
     StringBuilder exceptionMessageBuilder = new StringBuilder();
-    if (transactionCategory.getType() == null) {
-      exceptionMessageBuilder.append("type is mandatory. ");
+    if (createToken.getCode() == null) {
+      exceptionMessageBuilder.append("code is mandatory. ");
     }
-    if (transactionCategory.getVat() == null) {
-      exceptionMessageBuilder.append("vat is mandatory. ");
-    }
+    OnboardingInitiationValidator.verifyRedirectionStatusUrls(exceptionMessageBuilder,
+        createToken.getRedirectionStatusUrls());
     String exceptionMessage = exceptionMessageBuilder.toString();
     if (!exceptionMessage.isEmpty()) {
       throw new BadRequestException(exceptionMessage);

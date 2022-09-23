@@ -8,7 +8,6 @@ import app.bpartners.api.endpoint.rest.model.Token;
 import app.bpartners.api.endpoint.rest.model.Whoami;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
 import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
-import app.bpartners.api.model.validator.TokenValidator;
 import java.net.URLEncoder;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -20,7 +19,6 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 public class AuthService {
   private final SwanConf swanConf;
   private final SwanComponent swanComponent;
-  private final TokenValidator tokenValidator;
   private final UserService userService;
 
   private final UserRestMapper userRestMapper;
@@ -39,7 +37,6 @@ public class AuthService {
   }
 
   public Token generateTokenUrl(CreateToken toCreate) {
-    tokenValidator.accept(toCreate);
     Token createdToken = swanComponent.getTokenByCode(toCreate.getCode(),
         toCreate.getRedirectionStatusUrls().getSuccessUrl());
     Whoami whoami = new Whoami()

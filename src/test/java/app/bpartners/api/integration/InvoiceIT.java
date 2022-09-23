@@ -20,6 +20,12 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import static app.bpartners.api.integration.CustomerIT.customer1;
+import static app.bpartners.api.integration.CustomerIT.customer2;
+import static app.bpartners.api.integration.ProductIT.product3;
+import static app.bpartners.api.integration.ProductIT.product4;
+import static app.bpartners.api.integration.ProductIT.product5;
+import static app.bpartners.api.integration.conf.TestUtils.INVOICE1_ID;
+import static app.bpartners.api.integration.conf.TestUtils.INVOICE2_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
@@ -43,26 +49,74 @@ class InvoiceIT {
   CrupdateInvoice validInvoice() {
     return new CrupdateInvoice()
         .ref("BP003")
-        .title("Valid Invoice")
+        .title("Facture sans produit")
         .customer(customer1())
         .status(InvoiceStatus.CONFIRMED)
-        .vat(20)
+        .vat(2000)
         .sendingDate(LocalDate.of(2022, 9, 10))
         .toPayAt(LocalDate.of(2022, 9, 11));
+  }
+
+  Invoice invoice1() {
+    return new Invoice()
+        .id(INVOICE1_ID)
+        .title("Facture tableau")
+        .customer(customer1())
+        .ref("BP001")
+        .vat(1000)
+        .sendingDate(LocalDate.of(2022, 9, 1))
+        .toPayAt(LocalDate.of(2022, 10, 1))
+        .status(InvoiceStatus.CONFIRMED)
+        .products(List.of(product3(), product4()))
+        .totalPriceWithVat(8800)
+        .totalVat(800)
+        .totalPriceWithoutVat(8000)
+        ;
+  }
+
+  Invoice invoice2() {
+    return new Invoice()
+        .id(INVOICE2_ID)
+        .title("Facture plomberie")
+        .customer(customer2())
+        .ref("BP002")
+        .vat(1000)
+        .sendingDate(LocalDate.of(2022, 9, 10))
+        .toPayAt(LocalDate.of(2022, 10, 10))
+        .status(InvoiceStatus.CONFIRMED)
+        .products(List.of(product5()))
+        .totalPriceWithVat(1100)
+        .totalVat(100)
+        .totalPriceWithoutVat(1000);
   }
 
   Invoice createdInvoice() {
     return new Invoice()
         .id(NEW_INVOICE_ID)
         .ref(validInvoice().getRef())
+        .title("Facture sans produit")
         .customer(validInvoice().getCustomer())
         .status(InvoiceStatus.CONFIRMED)
         .vat(validInvoice().getVat())
         .sendingDate(validInvoice().getSendingDate())
         .products(List.of())
-        .toPayAt(validInvoice().getToPayAt());
+        .toPayAt(validInvoice().getToPayAt())
+        .totalPriceWithVat(0)
+        .totalVat(0)
+        .totalPriceWithoutVat(0);
   }
 
+  @Test
+  void read_invoice_ok() throws ApiException {
+    ApiClient joeDoeClient = anApiClient(bearerToken);
+    PayingApi api = new PayingApi(joeDoeClient);
+
+    Invoice actual1 = api.getInvoiceById(JOE_DOE_ACCOUNT_ID, INVOICE1_ID);
+    Invoice actual2 = api.getInvoiceById(JOE_DOE_ACCOUNT_ID, INVOICE2_ID);
+
+    assertEquals(invoice1(), actual1.paymentUrl(null));
+    assertEquals(invoice2(), actual2.paymentUrl(null));
+  }
 
   @Test
   void crupdate_invoice_ok() throws ApiException {
@@ -71,7 +125,7 @@ class InvoiceIT {
 
     Invoice actual = api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, NEW_INVOICE_ID, validInvoice());
 
-    assertEquals(createdInvoice(), actual);
+    assertEquals(createdInvoice(), actual.paymentUrl(null));
   }
 
   static class ContextInitializer extends AbstractContextInitializer {

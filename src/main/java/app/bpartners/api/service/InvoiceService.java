@@ -2,9 +2,12 @@ package app.bpartners.api.service;
 
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.Invoice;
+import app.bpartners.api.model.PaymentRedirection;
+import app.bpartners.api.model.Product;
 import app.bpartners.api.model.exception.ForbiddenException;
 import app.bpartners.api.repository.InvoiceRepository;
 import app.bpartners.api.repository.ProductRepository;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -13,6 +16,7 @@ import org.springframework.stereotype.Service;
 public class InvoiceService {
   private final InvoiceRepository repository;
   private final ProductRepository productRepository;
+  private final PaymentInitiationService pis;
   private final AccountService accountService;    //TODO: remove when SelfMatcher is set
 
   public Invoice getById(String accountId, String invoiceId) {
@@ -34,18 +38,53 @@ public class InvoiceService {
   }
 
   private Invoice refreshValues(Invoice invoice) {
-    return Invoice.builder()
+    List<Product> products =
+        productRepository.findRecentByIdAccountAndInvoice(invoice.getAccount().getId(),
+            invoice.getId());
+    Invoice initializedInvoice = Invoice.builder()
         .id(invoice.getId())
+        .ref(invoice.getRef())
+        .title(invoice.getTitle())
         .customer(invoice.getCustomer())
         .account(invoice.getAccount())
         .status(invoice.getStatus())
-        .sendingDate(invoice.getSendingDate())
         .vat(invoice.getVat())
-        .title(invoice.getTitle())
+        .totalVat(computeTotalVat(products))
+        .totalPriceWithoutVat(computeTotalPriceWithoutVat(products))
+        .totalPriceWithVat(computeTotalPriceWithVat(products))
+        .products(products)
         .toPayAt(invoice.getToPayAt())
-        .ref(invoice.getRef())
-        .products(productRepository.findRecentByIdAccountAndInvoice(invoice.getAccount().getId(),
-            invoice.getId()))
+        .sendingDate(invoice.getSendingDate())
         .build();
+    PaymentRedirection paymentRedirection = pis.initiateInvoicePayment(initializedInvoice);
+    initializedInvoice.setPaymentUrl(paymentRedirection.getRedirectUrl());
+    return initializedInvoice;
+  }
+
+  private int computeTotalVat(List<Product> products) {
+    if (products == null) {
+      return 0;
+    }
+    return products.stream()
+        .mapToInt(Product::getTotalVat)
+        .sum();
+  }
+
+  private int computeTotalPriceWithoutVat(List<Product> products) {
+    if (products == null) {
+      return 0;
+    }
+    return products.stream()
+        .mapToInt(Product::getTotalWithoutVat)
+        .sum();
+  }
+
+  private int computeTotalPriceWithVat(List<Product> products) {
+    if (products == null) {
+      return 0;
+    }
+    return products.stream()
+        .mapToInt(Product::getTotalPriceWithVat)
+        .sum();
   }
 }

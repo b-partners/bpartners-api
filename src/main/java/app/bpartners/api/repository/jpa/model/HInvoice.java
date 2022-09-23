@@ -37,15 +37,14 @@ public class HInvoice {
 
   @Column(name = "\"ref\"")
   private String ref;
+  private String title;
   private String idAccount;
   private int vat;
   private LocalDate sendingDate;
   private LocalDate toPayAt;
-
   @ManyToOne
   @JoinColumn(name = "id_customer")
   private HCustomer customer;
-
   @Type(type = "pgsql_enum")
   @Enumerated(EnumType.STRING)
   private InvoiceStatus status;

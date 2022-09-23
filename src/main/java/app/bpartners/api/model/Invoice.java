@@ -23,8 +23,10 @@ public class Invoice {
   private int vat;
   private LocalDate sendingDate;
   private LocalDate toPayAt;
-  private int percentageReduction;
-  private int amountReduction;
+  private int totalVat;
+  private int totalPriceWithoutVat;
+  private int totalPriceWithVat;
+  private String paymentUrl;
   private Customer customer;
   private Account account;
   private List<Product> products;

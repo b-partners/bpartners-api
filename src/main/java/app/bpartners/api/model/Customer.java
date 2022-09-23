@@ -17,5 +17,9 @@ public class Customer {
   private String name;
   private String email;
   private String phone;
+  private String website;
   private String address;
+  private int zipCode;
+  private String city;
+  private String country;
 }

@@ -1076,7 +1076,15 @@ components:
           type: string
         phone:
           type: string
+        website:
+          type: string
         address:
+          type: string
+        zipCode:
+          type: integer
+        city:
+          type: string
+        country:
           type: string
     File:
       type: object

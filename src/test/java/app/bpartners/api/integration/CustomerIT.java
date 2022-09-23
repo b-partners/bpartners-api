@@ -54,7 +54,11 @@ class CustomerIT {
         .name("Luc Artisan")
         .email("luc@email.com")
         .phone("+33 12 34 56 78")
-        .address("15 rue Porte d'Orange, Montmorency");
+        .website("https://luc.website.com")
+        .address("15 rue Porte d'Orange")
+        .zipCode(95160)
+        .city("Montmorency")
+        .country("France");
   }
 
   public static Customer customer2() {
@@ -63,7 +67,11 @@ class CustomerIT {
         .name("Jean Plombier")
         .email("jean@email.com")
         .phone("+33 12 34 56 78")
-        .address("4 Avenue des Près, Montmorency");
+        .website("https://jean.website.com")
+        .address("4 Avenue des Près")
+        .zipCode(95160)
+        .city("Montmorency")
+        .country("France");
   }
 
   CreateCustomer createCustomer1() {
@@ -71,7 +79,11 @@ class CustomerIT {
         .name("Create customer 1")
         .phone("+33 12 34 56 78")
         .email("create@email.com")
-        .address("New address");
+        .website("https://customer.website.com")
+        .address("New address")
+        .zipCode(75001)
+        .city("Paris")
+        .country("France");
   }
 
   @Test

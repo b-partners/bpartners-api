@@ -13,7 +13,11 @@ public class CustomerMapper {
         .name(entity.getName())
         .email(entity.getEmail())
         .phone(entity.getPhone())
+        .website(entity.getWebsite())
         .address(entity.getAddress())
+        .zipCode(entity.getZipCode())
+        .city(entity.getCity())
+        .country(entity.getCountry())
         .build();
   }
 
@@ -24,7 +28,11 @@ public class CustomerMapper {
         .email(domain.getEmail())
         .name(domain.getName())
         .phone(domain.getPhone())
+        .website(domain.getWebsite())
         .address(domain.getAddress())
+        .zipCode(domain.getZipCode())
+        .city(domain.getCity())
+        .country(domain.getCountry())
         .build();
   }
 }

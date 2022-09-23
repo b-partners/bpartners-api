@@ -10,23 +10,28 @@ public class CreateCustomerValidator implements Consumer<CreateCustomer> {
 
   @Override
   public void accept(CreateCustomer createCustomer) {
+    StringBuilder exceptionMessageBuilder = new StringBuilder();
     if (createCustomer.getName() == null) {
-      throw new BadRequestException("Name is mandatory");
+      exceptionMessageBuilder.append("name is mandatory. ");
     }
     if (createCustomer.getPhone() == null) {
-      throw new BadRequestException("Phone is mandatory");
+      exceptionMessageBuilder.append("phone is mandatory. ");
     }
     if (createCustomer.getAddress() == null) {
-      throw new BadRequestException("Address is mandatory");
+      exceptionMessageBuilder.append("address is mandatory. ");
     }
     if (createCustomer.getZipCode() == null) {
-      throw new BadRequestException("Zip code is mandatory");
+      exceptionMessageBuilder.append("zipcode is mandatory. ");
     }
     if (createCustomer.getCity() == null) {
-      throw new BadRequestException("City is mandatory");
+      exceptionMessageBuilder.append("city is mandatory. ");
     }
     if (createCustomer.getCountry() == null) {
-      throw new BadRequestException("Country is mandatory");
+      exceptionMessageBuilder.append("country is mandatory. ");
+    }
+    String exceptionMessage = exceptionMessageBuilder.toString();
+    if (!exceptionMessage.isEmpty()) {
+      throw new BadRequestException(exceptionMessage);
     }
   }
 }

@@ -1,10 +1,8 @@
 package app.bpartners.api.service;
 
-import app.bpartners.api.model.Account;
 import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.Product;
 import app.bpartners.api.model.exception.BadRequestException;
-import app.bpartners.api.model.exception.ForbiddenException;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.repository.InvoiceRepository;
 import app.bpartners.api.repository.ProductRepository;
@@ -18,14 +16,8 @@ import org.springframework.stereotype.Service;
 public class ProductService {
   private final ProductRepository repository;
   private final InvoiceRepository invoiceRepository;
-  private final AccountService accountService;     //TODO: remove when SelfMatcher is set
 
   public List<Product> getProductsByAccount(String accountId, String description, Boolean unique) {
-    //TODO: remove when SelfMatcher is set
-    Account authenticatedAccount = accountService.getAccounts().get(0);
-    if (!authenticatedAccount.getId().equals(accountId)) {
-      throw new ForbiddenException();
-    }
     if (description != null) {
       return repository.findByIdAccountAndDescription(accountId, description);
     }
@@ -36,11 +28,6 @@ public class ProductService {
   }
 
   public List<Product> createProducts(String accountId, String invoiceId, List<Product> toCreate) {
-    //TODO: remove when SelfMatcher is set
-    Account authenticatedAccount = accountService.getAccounts().get(0);
-    if (!authenticatedAccount.getId().equals(accountId)) {
-      throw new ForbiddenException();
-    }
     Invoice associatedInvoice = invoiceRepository.getById(invoiceId);
     if (associatedInvoice == null) {
       throw new NotFoundException("Invoice." + invoiceId + " does not exist");

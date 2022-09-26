@@ -1,5 +1,6 @@
-package app.bpartners.api.endpoint.rest.security;
+package app.bpartners.api.endpoint.rest.security.matcher;
 
+import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -10,7 +11,7 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
 @AllArgsConstructor
-public class SelfMatcher implements RequestMatcher {
+public class SelfAccountMatcher implements RequestMatcher {
 
   private final HttpMethod method;
   private final String antPattern;
@@ -25,7 +26,8 @@ public class SelfMatcher implements RequestMatcher {
     if (!antMatcher.matches(request)) {
       return false;
     }
-    return Objects.equals(getSelfId(request), AuthProvider.getPrincipal().getUserId());
+    return Objects.equals(getSelfId(request),
+        AuthProvider.getPrincipal().getAccount().getId());
   }
 
   private String getSelfId(HttpServletRequest request) {

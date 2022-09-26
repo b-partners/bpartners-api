@@ -15,7 +15,6 @@ public class TransactionCategoryService {
   public List<TransactionCategory> getCategoriesByAccountAndUserDefined(
       String idAccount, boolean unique,
       boolean userDefined) {
-    //TODO : check if account is current user's account
     return repository.findByIdAccountAndUserDefined(idAccount, unique, userDefined);
   }
 
@@ -24,9 +23,7 @@ public class TransactionCategoryService {
   }
 
   public List<TransactionCategory> createCategories(
-      String idAccount,
       List<TransactionCategory> toCreate) {
-    //TODO : check if account is current user's account
     return repository.saveAll(toCreate);
   }
 }

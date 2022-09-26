@@ -12,12 +12,26 @@ import org.springframework.stereotype.Repository;
 @Repository
 @AllArgsConstructor
 public class AccountRepositoryImpl implements AccountRepository {
-  private AccountSwanRepository accountRepository;
+  private AccountSwanRepository swanRepository;
   private AccountMapper mapper;
 
   @Override
   public List<Account> findAll() {
-    return accountRepository.getAccounts().stream()
+    return swanRepository.findAll().stream()
+        .map(mapper::toDomain)
+        .collect(Collectors.toUnmodifiableList());
+  }
+
+  @Override
+  public List<Account> findByBearer(String bearer) {
+    return swanRepository.findByBearer(bearer).stream()
+        .map(mapper::toDomain)
+        .collect(Collectors.toUnmodifiableList());
+  }
+
+  @Override
+  public List<Account> findById(String userId) {
+    return swanRepository.findById(userId).stream()
         .map(mapper::toDomain)
         .collect(Collectors.toUnmodifiableList());
   }

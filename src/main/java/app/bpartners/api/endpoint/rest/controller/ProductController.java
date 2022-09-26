@@ -46,6 +46,6 @@ public class ProductController {
         .map(mapper::toDomain)
         .collect(Collectors.toUnmodifiableList());
     productService.createProducts(accountId, invoiceId, domainToCreate);
-    return invoiceMapper.toRest(invoiceService.getById(accountId, invoiceId));
+    return invoiceMapper.toRest(invoiceService.getById(invoiceId));
   }
 }

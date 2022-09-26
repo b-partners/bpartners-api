@@ -18,7 +18,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
-import static app.bpartners.api.endpoint.rest.security.swan.SwanConf.BEARER_PREFIX;
+
 import static app.bpartners.api.endpoint.rest.security.swan.SwanConf.SWAN_TOKEN_URL;
 
 /*
@@ -33,22 +33,11 @@ import static app.bpartners.api.endpoint.rest.security.swan.SwanConf.SWAN_TOKEN_
 @Component
 public class SwanApi<T> {
   private final PrincipalProvider auth;
-  private SwanConf swanConf;
+  private final SwanCustomApi<T> swanCustomApi;
+  private final SwanConf swanConf;
 
   public T getData(Class<T> genericClass, String message) {
-    try {
-      HttpClient httpClient = HttpClient.newBuilder().build();
-      HttpRequest request = HttpRequest.newBuilder().uri(new URI(swanConf.getApiUrl()))
-          .header("Content-Type", "application/json")
-          .header("Authorization", BEARER_PREFIX + bearerToken())
-          .POST(HttpRequest.BodyPublishers.ofString(message)).build();
-      HttpResponse<String> response =
-          httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-      return new ObjectMapper().findAndRegisterModules()//Load DateTime Module
-          .readValue(response.body(), genericClass);
-    } catch (IOException | InterruptedException | URISyntaxException e) {
-      throw new ApiException(ApiException.ExceptionType.SERVER_EXCEPTION, e);
-    }
+    return swanCustomApi.getData(genericClass, message, bearerToken());
   }
 
   private String bearerToken() {

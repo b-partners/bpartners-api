@@ -36,7 +36,7 @@ public class FileMapper {
         .uploadedAt(Instant.now())
         .uploadedBy(((Principal) provider.getAuthentication().getPrincipal()).getUserId())
         .sizeInKB(toUpload.length / 1024)
-        .sha256(objectResponse.checksumSHA256())
+        .sha256("some checksum")//TODO: checksum SHA256
         .build();
   }
 

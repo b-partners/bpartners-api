@@ -14,6 +14,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Instant;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,7 +26,6 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
-
 import static app.bpartners.api.integration.conf.TestUtils.FILE_ID;
 import static app.bpartners.api.integration.conf.TestUtils.USER1_ID;
 import static app.bpartners.api.integration.conf.TestUtils.setUpSwanRepository;
@@ -72,40 +72,49 @@ class FileIT {
     assertEquals(file1(), actual);
   }
 
-  /*
-    TODO: replace this by setting manually the HttpClient as below
   @Test
-  void upload_file_ok() throws ApiException, IOException {
+  void upload_file_ok() throws IOException, InterruptedException {
+    HttpClient unauthenticatedClient = HttpClient.newBuilder().build();
+    String basePath = "http://localhost:" + ContextInitializer.SERVER_PORT;
+    Resource toUpload = new ClassPathResource("files/upload.jpg");
+    String uuid = UUID.randomUUID() + ".jpg";
 
-    ApiClient joeDoeClient = anApiClient(bearerToken);
-    FilesApi api = new FilesApi(joeDoeClient);
-    Resource resource = new ClassPathResource(
-        "files/301327722_738668533870624_6151351867004964160_n.jpeg");
+    HttpResponse<byte[]> uploadResponse = unauthenticatedClient.send(
+        HttpRequest.newBuilder()
+            .uri(URI.create(basePath + "/files/" + uuid + "/raw"))
+            .header("Authorization", "Bearer " + bearerToken)
+            .method("POST", HttpRequest.BodyPublishers.ofFile(toUpload.getFile().toPath())).build(),
+        HttpResponse.BodyHandlers.ofByteArray());
+    HttpResponse<byte[]> downloadResponse = download(basePath, uuid);
 
-    File actual = api.uploadFile(CREATE_FILE_ID, resource.getFile());
-
-    assertEquals(resource.getInputStream().readAllBytes(), actual);
+    assertEquals(HttpStatus.OK.value(), uploadResponse.statusCode());
+    assertEquals(HttpStatus.OK.value(), downloadResponse.statusCode());
+    assertEquals(toUpload.getInputStream().readAllBytes().length, downloadResponse.body().length);
   }
-   */
 
   @Test
   void download_file_ok() throws IOException, InterruptedException {
-    HttpClient unauthenticatedClient = HttpClient.newBuilder().build();
     String basePath = "http://localhost:" + ContextInitializer.SERVER_PORT;
     Resource logoFileResource = new ClassPathResource(
         "files/301327722_738668533870624_6151351867004964160_n.jpeg");
 
-    HttpResponse<byte[]> response = unauthenticatedClient.send(
+    HttpResponse<byte[]> response = download(basePath, FILE_ID);
+
+    assertEquals(HttpStatus.OK.value(), response.statusCode());
+    assertEquals(logoFileResource.getInputStream().readAllBytes().length, response.body().length);
+  }
+
+  public HttpResponse<byte[]> download(String basePath, String fileId)
+      throws IOException, InterruptedException {
+    HttpClient unauthenticatedClient = HttpClient.newBuilder().build();
+    return unauthenticatedClient.send(
         HttpRequest.newBuilder()
-            .uri(URI.create(basePath + "/files/" + FILE_ID + "/raw"))
+            .uri(URI.create(basePath + "/files/" + fileId + "/raw"))
             .header("Access-Control-Request-Method", "GET")
             .header("Authorization", "Bearer " + bearerToken)
             .GET()
             .build(),
         HttpResponse.BodyHandlers.ofByteArray());
-
-    assertEquals(HttpStatus.OK.value(), response.statusCode());
-    assertEquals(logoFileResource.getInputStream().readAllBytes().length, response.body().length);
   }
 
   public static class ContextInitializer extends AbstractContextInitializer {

@@ -1,5 +1,6 @@
 package app.bpartners.api.service;
 
+import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 import app.bpartners.api.model.FileInfo;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.mapper.FileMapper;
@@ -8,9 +9,9 @@ import app.bpartners.api.service.aws.S3Service;
 import java.io.IOException;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import software.amazon.awssdk.core.ResponseBytes;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
-
-import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 
 @Service
 @AllArgsConstructor
@@ -26,7 +27,7 @@ public class FileService {
     return data;
   }
 
-  public byte[] downloadFile(String fileId) {
+  public ResponseBytes<GetObjectResponse> downloadFile(String fileId) {
     try {
       return s3Service.downloadFile(fileId);
     } catch (IOException e) {

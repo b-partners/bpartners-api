@@ -1,11 +1,11 @@
 package app.bpartners.api.service.aws;
 
 import app.bpartners.api.service.AccountService;
+import app.bpartners.api.service.utils.FileInfoUtils;
 import java.io.File;
 import java.io.IOException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -29,20 +29,20 @@ public class S3Service {
 
   public PutObjectResponse uploadFile(String fileId, byte[] toUpload) {
     PutObjectRequest request = PutObjectRequest.builder()
-        .bucket(getLogoBucketName(fileId))
+        .bucket(BUCKET_NAME)
         .key(fileId)
-        .contentType(MediaType.IMAGE_JPEG_VALUE)
+        .contentType(FileInfoUtils.parseMediaType(fileId).getType())
         .build();
     return s3Client.putObject(request, RequestBody.fromBytes(toUpload));
   }
 
-  public byte[] downloadFile(String fileId) throws IOException {
+  public ResponseBytes<GetObjectResponse> downloadFile(String fileId) throws IOException {
     GetObjectRequest objectRequest = GetObjectRequest.builder()
         .bucket(BUCKET_NAME)
         .key(getLogoBucketName(fileId))
         .build();
     ResponseBytes<GetObjectResponse> objectBytes = s3Client.getObjectAsBytes(objectRequest);
-    return objectBytes.asByteArray();
+    return objectBytes;
   }
 
   public void deleteFile(String fileId) {

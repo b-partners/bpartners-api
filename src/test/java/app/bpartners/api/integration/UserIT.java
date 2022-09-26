@@ -25,7 +25,8 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ID;
-import static app.bpartners.api.integration.conf.TestUtils.REDIRECT_URL;
+import static app.bpartners.api.integration.conf.TestUtils.REDIRECT_FAILURE_URL;
+import static app.bpartners.api.integration.conf.TestUtils.REDIRECT_SUCCESS_URL;
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsApiException;
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsForbiddenException;
 import static app.bpartners.api.integration.conf.TestUtils.joeDoe;
@@ -73,8 +74,8 @@ class UserIT {
             .header("Origin", "http://localhost:3000")
             .POST(HttpRequest.BodyPublishers.ofString("{\n"
                 + "\"redirectionStatusUrls\": {\n"
-                + "    \"successUrl\": \"" + REDIRECT_URL + "\",\n"
-                + "    \"failureUrl\": \"" + REDIRECT_URL + "/error\"\n"
+                + "    \"successUrl\": \"" + REDIRECT_SUCCESS_URL + "\",\n"
+                + "    \"failureUrl\": \"" + REDIRECT_FAILURE_URL + "/error\"\n"
                 + "  }"
                 + "}"))
             .build(),

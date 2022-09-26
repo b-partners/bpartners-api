@@ -1,0 +1,53 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Storage stack for BPartners
+
+Parameters:
+  Env:
+    Type: String
+  DBName:
+    Type: String
+    Default: bpartners
+  DBClass:
+    Default: db.t3.micro
+    Description: Database instance class
+    Type: String
+    ConstraintDescription: must select a valid database instance type.
+
+Resources:
+  Database:
+    Type: AWS::RDS::DBInstance
+    DeletionPolicy: Retain
+    Properties:
+      DBInstanceIdentifier: !Join [ '',  [!Ref Env , -bpartners ]]
+      DBName: !Ref DBName
+      AllocatedStorage: '5'
+      DBInstanceClass:
+        Ref: DBClass
+      Engine: postgres
+      MasterUsername: !Sub '{{resolve:ssm:/bpartners/${Env}/db/username}}'
+      MasterUserPassword: !Sub '{{resolve:ssm:/bpartners/${Env}/db/password}}'
+  S3Bucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    Properties:
+      BucketName: !Join [ '', [ !Ref Env, -bpartners ]]
+      VersioningConfiguration:
+        Status: Enabled
+
+Outputs:
+  JDBCConnectionString:
+    Value:
+      Fn::Join:
+      - ''
+      - - jdbc:postgresql://
+        - Fn::GetAtt:
+          - Database
+          - Endpoint.Address
+        - ':'
+        - Fn::GetAtt:
+          - Database
+          - Endpoint.Port
+        - '/'
+        - !Ref DBName
+  BucketName:
+    Value: !Ref S3Bucket

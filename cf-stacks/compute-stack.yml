@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: Compute stack for BPartners API
+Description: Compute stack for BPartners
 
 Parameters:
   Env:
@@ -58,6 +58,8 @@ Resources:
               Value: !Sub '{{resolve:ssm:/bpartners/${Env}/sqs/api-queue-url}}'
             - Name: SPRING_DATASOURCE_URL
               Value: !Sub '{{resolve:ssm:/bpartners/${Env}/db/url}}'
+            - Name: SPRING_DATASOURCE_USERNAME
+              Value: !Sub '{{resolve:ssm:/bpartners/${Env}/db/username}}'
             - Name: SPRING_DATASOURCE_PASSWORD
               Value: !Sub '{{resolve:ssm:/bpartners/${Env}/db/password}}'
             - Name: SWAN_CLIENT_ID

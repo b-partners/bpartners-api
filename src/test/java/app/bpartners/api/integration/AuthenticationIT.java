@@ -27,7 +27,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import static app.bpartners.api.integration.conf.TestUtils.REDIRECT_URL;
+import static app.bpartners.api.integration.conf.TestUtils.REDIRECT_FAILURE_URL;
+import static app.bpartners.api.integration.conf.TestUtils.REDIRECT_SUCCESS_URL;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -67,7 +68,7 @@ class AuthenticationIT {
         .code("bad_code")
         .redirectionStatusUrls(
             new RedirectionStatusUrls()
-                .successUrl(REDIRECT_URL)
+                .successUrl(REDIRECT_SUCCESS_URL)
                 .failureUrl("FailureUrl")
         );
   }
@@ -88,8 +89,8 @@ class AuthenticationIT {
                 + "  \"state\": \"12341234\",\n"
                 + "  \"phone\": \"" + PHONE_NUMBER + "\",\n"
                 + "\"redirectionStatusUrls\": {\n"
-                + "    \"successUrl\": \"" + REDIRECT_URL + "\",\n"
-                + "    \"failureUrl\": \"" + REDIRECT_URL + "/error\"\n"
+                + "    \"successUrl\": \"" + REDIRECT_SUCCESS_URL + "\",\n"
+                + "    \"failureUrl\": \"" + REDIRECT_FAILURE_URL + "/error\"\n"
                 + "  }"
                 + "}"))
             .build(),
@@ -146,7 +147,7 @@ class AuthenticationIT {
   void bad_code_provide_token_ko() {
     String badCode = badCode().getCode();
     assertThrows(ApiException.class,
-        () -> swanComponent.getTokenByCode(badCode, REDIRECT_URL));
+        () -> swanComponent.getTokenByCode(badCode, REDIRECT_SUCCESS_URL));
   }
 
   @Test

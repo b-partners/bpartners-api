@@ -1,5 +1,11 @@
 package app.bpartners.api.integration.conf;
 
+import app.bpartners.api.endpoint.rest.client.ApiClient;
+import app.bpartners.api.endpoint.rest.client.ApiException;
+import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
+import app.bpartners.api.model.exception.BadRequestException;
+import app.bpartners.api.repository.swan.UserSwanRepository;
+import app.bpartners.api.repository.swan.model.SwanUser;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.URISyntaxException;
@@ -8,12 +14,7 @@ import org.junit.jupiter.api.function.Executable;
 import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsRequest;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsResponse;
-import app.bpartners.api.endpoint.rest.client.ApiClient;
-import app.bpartners.api.endpoint.rest.client.ApiException;
-import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
-import app.bpartners.api.model.exception.BadRequestException;
-import app.bpartners.api.repository.swan.UserSwanRepository;
-import app.bpartners.api.repository.swan.model.SwanUser;
+
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.CLIENT_EXCEPTION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -30,7 +31,10 @@ public class TestUtils {
   public static final String VALID_EMAIL = "username@domain.com";
   public static final String INVALID_EMAIL = "username.@domain.com";
   public static final String PRE_USER1_ID = "pre_user1_id";
-  public static final String REDIRECT_URL = "https://dashboard-dev.bpartners.app";
+  public static final String REDIRECT_SUCCESS_URL =
+      "https://dashboard-dev.bpartners.app/login/success";
+  public static final String REDIRECT_FAILURE_URL =
+      "https://dashboard-dev.bpartners.app/login/failure";
   public static final String BAD_REDIRECT_URL = "bad_redirect_url";
   public static final String JOE_DOE_ACCOUNT_ID = "beed1765-5c16-472a-b3f4-5c376ce5db58";
   public static final String USER1_ID = "user1_id";

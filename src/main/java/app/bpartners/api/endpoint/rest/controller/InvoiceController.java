@@ -17,20 +17,20 @@ public class InvoiceController {
   private final InvoiceRestMapper mapper;
   private final InvoiceService service;
 
-  @PutMapping("/accounts/{aId}/invoices/{iId}")
+  @PutMapping("/accounts/{id}/invoices/{iId}")
   public Invoice crupdateInvoice(
-      @PathVariable("aId") String accountId,
+      @PathVariable("id") String accountId,
       @PathVariable("iId") String invoiceId,
       @RequestBody CrupdateInvoice crupdateInvoice) {
     app.bpartners.api.model.Invoice toCrupdate = mapper.toDomain(accountId, invoiceId,
         crupdateInvoice);
-    return mapper.toRest(service.crupdateInvoice(accountId, toCrupdate));
+    return mapper.toRest(service.crupdateInvoice(toCrupdate));
   }
 
-  @GetMapping("/accounts/{aId}/invoices/{iId}")
+  @GetMapping("/accounts/{id}/invoices/{iId}")
   public Invoice getInvoice(
-      @PathVariable("aId") String accountId,
+      @PathVariable("id") String accountId,
       @PathVariable("iId") String invoiceId) {
-    return mapper.toRest(service.getById(accountId, invoiceId));
+    return mapper.toRest(service.getById(invoiceId));
   }
 }

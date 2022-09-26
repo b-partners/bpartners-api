@@ -2,6 +2,7 @@ package app.bpartners.api.endpoint.rest.security;
 
 import app.bpartners.api.endpoint.rest.security.model.Principal;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
+import app.bpartners.api.service.AccountService;
 import app.bpartners.api.service.UserService;
 import lombok.AllArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -22,6 +23,8 @@ public class AuthProvider extends AbstractUserDetailsAuthenticationProvider {
   private final SwanComponent swanComponent;
   private final UserService userService;
 
+  private final AccountService accountService;
+
   @Override
   protected void additionalAuthenticationChecks(
       UserDetails userDetails, UsernamePasswordAuthenticationToken token) {
@@ -39,7 +42,8 @@ public class AuthProvider extends AbstractUserDetailsAuthenticationProvider {
     if (swanUserId == null) {
       throw new UsernameNotFoundException("Bad credentials"); // NOSONAR
     }
-    return new Principal(userService.getUserBySwanUserIdAndToken(swanUserId, bearer), bearer);
+    return new Principal(userService.getUserByIdAndBearer(swanUserId, bearer),
+        accountService.getAccountByBearer(bearer), bearer);
   }
 
   private String getBearer(

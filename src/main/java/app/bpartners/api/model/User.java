@@ -1,7 +1,6 @@
 package app.bpartners.api.model;
 
 import app.bpartners.api.endpoint.rest.model.EnableStatus;
-import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -17,7 +16,6 @@ import lombok.Setter;
 @EqualsAndHashCode
 public class User {
   private String id;
-
   private String firstName;
 
   private String lastName;
@@ -28,14 +26,8 @@ public class User {
 
   private EnableStatus status;
 
-  private Map<Account, UserRole> accounts;
-
   public String getName() {
     return firstName + " " + lastName;
-  }
-
-  public enum UserRole {
-    HOLDER, ACCOUNTANT
   }
 
 }

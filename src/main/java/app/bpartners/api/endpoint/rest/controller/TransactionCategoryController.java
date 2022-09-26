@@ -45,7 +45,7 @@ public class TransactionCategoryController {
     List<app.bpartners.api.model.TransactionCategory> domainToCreate = toCreate.stream()
         .map(category -> mapper.toDomain(transactionId, accountId, category))
         .collect(Collectors.toUnmodifiableList());
-    return service.createCategories(accountId, domainToCreate).stream()
+    return service.createCategories(domainToCreate).stream()
         .map(mapper::toRest)
         .collect(Collectors.toUnmodifiableList());
   }

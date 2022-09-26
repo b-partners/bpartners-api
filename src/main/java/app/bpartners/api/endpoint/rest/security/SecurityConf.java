@@ -1,5 +1,7 @@
 package app.bpartners.api.endpoint.rest.security;
 
+import app.bpartners.api.endpoint.rest.security.matcher.SelfAccountMatcher;
+import app.bpartners.api.endpoint.rest.security.matcher.SelfUserMatcher;
 import app.bpartners.api.model.exception.ForbiddenException;
 import javax.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -16,7 +18,6 @@ import org.springframework.web.servlet.HandlerExceptionResolver;
 
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpMethod.OPTIONS;
-import static org.springframework.http.HttpMethod.PATCH;
 import static org.springframework.http.HttpMethod.POST;
 import static org.springframework.http.HttpMethod.PUT;
 
@@ -80,18 +81,22 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
         .antMatchers("/onboardingInitiation").permitAll()
         .antMatchers(POST, "/preUsers").permitAll()
         .antMatchers(OPTIONS, "/**").permitAll()
-        .antMatchers(GET, "/accounts/*/customers").authenticated()
-        .antMatchers(POST, "/accounts/*/customers").authenticated()
+        .requestMatchers(new SelfAccountMatcher(GET, "/accounts/*/customers")).authenticated()
+        .requestMatchers(new SelfAccountMatcher(POST, "/accounts/*/customers")).authenticated()
         .antMatchers(GET, "/accounts/*/transactions").authenticated()
-        .antMatchers(GET, "/users/*/accounts").authenticated()
+        .requestMatchers(new SelfUserMatcher(GET, "/users/*/accounts")).authenticated()
         .antMatchers(GET, "/users/*/accounts/*/accountHolders").authenticated()
-        .antMatchers(GET, "/accounts/*/invoices/*").authenticated()
-        .antMatchers(PUT, "/accounts/*/invoices/*").authenticated()
-        .antMatchers(GET, "/accounts/*/products").authenticated()
-        .antMatchers(POST, "/accounts/*/invoices/*/products").authenticated()
-        .antMatchers(POST, "/accounts/*/paymentInitiations").authenticated()
-        .antMatchers(GET, "/accounts/*/transactionCategories").authenticated()
-        .antMatchers(POST, "/accounts/*/transactions/*/transactionCategories").authenticated()
+        .requestMatchers(new SelfAccountMatcher(GET, "/accounts/*/invoices/*")).authenticated()
+        .requestMatchers(new SelfAccountMatcher(PUT, "/accounts/*/invoices/*")).authenticated()
+        .requestMatchers(new SelfAccountMatcher(GET, "/accounts/*/products")).authenticated()
+        .requestMatchers(new SelfAccountMatcher(POST, "/accounts/*/invoices/*/products"))
+        .authenticated()
+        .requestMatchers(new SelfAccountMatcher(POST, "/accounts/*/paymentInitiations"))
+        .authenticated()
+        .requestMatchers(new SelfAccountMatcher(GET, "/accounts/*/transactionCategories"))
+        .authenticated()
+        .requestMatchers(new SelfAccountMatcher(POST,
+            "/accounts/*/transactions/*/transactionCategories")).authenticated()
         .antMatchers(GET, "/whoami").authenticated()
         .antMatchers(GET, "/preUsers").authenticated()
         .antMatchers(GET, "/whoami").authenticated()

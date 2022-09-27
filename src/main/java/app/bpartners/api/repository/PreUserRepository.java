@@ -7,7 +7,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface PreUserRepository {
-
   List<PreUser> saveAll(List<PreUser> toCreate);
 }
 

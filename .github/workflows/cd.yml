@@ -52,6 +52,8 @@ jobs:
           export FINTECTURE_APP_SECRET=${{ secrets.FINTECTURE_APP_SECRET }}
           export ENV=${{ secrets.ENV }}
           export AWS_BUCKET_NAME=${{ secrets.AWS_BUCKET_NAME }}
+          export SENDINBLUE_API_KEY=${{ secrets.SENDINBLUE_API_KEY }}
+          export LIST_ID=${{ secrets.LIST_ID }}
           ./gradlew build
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@13d241b293754004c80624b5567555c4a39ffbe3

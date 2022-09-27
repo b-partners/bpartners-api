@@ -1,11 +1,11 @@
 package app.bpartners.api.repository.jpa;
 
-import app.bpartners.api.repository.jpa.model.HCustomer;
+import app.bpartners.api.repository.jpa.model.HCustomerTemplate;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface CustomerJpaRepository extends JpaRepository<HCustomer, String> {
-  List<HCustomer> findByIdAccountAndNameContainingIgnoreCase(String idAccount, String name);
+public interface CustomerJpaRepository extends JpaRepository<HCustomerTemplate, String> {
+  List<HCustomerTemplate> findByIdAccountAndNameContainingIgnoreCase(String idAccount, String name);
 
-  List<HCustomer> findAllByIdAccount(String idAccount);
+  List<HCustomerTemplate> findAllByIdAccount(String idAccount);
 }

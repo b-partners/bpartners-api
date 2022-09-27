@@ -3,6 +3,7 @@ package app.bpartners.api.endpoint.rest.controller;
 import app.bpartners.api.endpoint.rest.mapper.CustomerRestMapper;
 import app.bpartners.api.endpoint.rest.model.CreateCustomer;
 import app.bpartners.api.endpoint.rest.model.Customer;
+import app.bpartners.api.model.CustomerTemplate;
 import app.bpartners.api.service.CustomerService;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -33,10 +34,10 @@ public class CustomerController {
   public List<Customer> createCustomers(
       @PathVariable String id,
       @RequestBody List<CreateCustomer> toCreate) {
-    List<app.bpartners.api.model.Customer> customers = toCreate.stream()
+    List<CustomerTemplate> customerTemplates = toCreate.stream()
         .map(createCustomer -> mapper.toDomain(id, createCustomer))
         .collect(Collectors.toUnmodifiableList());
-    return service.createCustomers(id, customers).stream()
+    return service.createCustomers(id, customerTemplates).stream()
         .map(mapper::toRest)
         .collect(Collectors.toUnmodifiableList());
   }

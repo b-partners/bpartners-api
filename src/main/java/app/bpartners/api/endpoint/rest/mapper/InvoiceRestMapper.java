@@ -31,10 +31,9 @@ public class InvoiceRestMapper {
         .id(domain.getId())
         .ref(domain.getRef())
         .title(domain.getTitle())
-        .customer(customerMapper.toRest(domain.getCustomer()))
+        .customer(customerMapper.toRest(domain.getInvoiceCustomer()))
         .status(domain.getStatus())
         .products(products)
-        .vat(domain.getVat())
         .totalVat(domain.getTotalVat())
         .paymentUrl(domain.getPaymentUrl())
         .totalPriceWithoutVat(domain.getTotalPriceWithoutVat())
@@ -46,15 +45,14 @@ public class InvoiceRestMapper {
   public app.bpartners.api.model.Invoice toDomain(
       String accountId, String id, CrupdateInvoice rest) {
     crupdateInvoiceValidator.accept(rest);
-    List<app.bpartners.api.model.Product> domain = null; //TODO: getProducts of
+    List<app.bpartners.api.model.Product> domain = null; //TODO: getProducts of the CrupdateInvoice
     return app.bpartners.api.model.Invoice.builder()
         .id(id)
         .title(rest.getTitle())
         .ref(rest.getRef())
-        .vat(rest.getVat())
         .sendingDate(rest.getSendingDate())
         .toPayAt(rest.getToPayAt())
-        .customer(customerMapper.toDomain(accountId, rest.getCustomer()))
+        .invoiceCustomer(customerMapper.toDomain(accountId, id, rest.getCustomer()))
         .account(accountService.getAccounts().get(0)) //TODO: change to getAccountById
         .products(domain)
         .status(rest.getStatus())

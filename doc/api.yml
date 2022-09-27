@@ -1023,8 +1023,6 @@ components:
           $ref: '#/components/schemas/Customer'
         status:
           $ref: '#/components/schemas/InvoiceStatus'
-        vat:
-          type: integer
         sendingDate:
           type: string
           format: date

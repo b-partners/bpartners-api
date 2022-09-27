@@ -20,7 +20,7 @@ import static javax.persistence.GenerationType.IDENTITY;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class HCustomer {
+public class HCustomerTemplate {
   @Id
   @GeneratedValue(strategy = IDENTITY)
   private String id;
@@ -31,7 +31,7 @@ public class HCustomer {
   private String phone;
   private String website;
   private String address;
-  private int zipCode;
+  private Integer zipCode;
   private String city;
   private String country;
 }

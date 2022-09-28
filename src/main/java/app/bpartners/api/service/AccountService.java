@@ -30,8 +30,4 @@ public class AccountService {
     validator.accept(accounts);
     return accounts;
   }
-
-  public Account getAuthenticatedAccount() {
-    return repository.findAll().get(0);
-  }
 }

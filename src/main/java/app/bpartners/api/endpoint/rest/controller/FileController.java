@@ -5,15 +5,12 @@ import app.bpartners.api.model.mapper.FileMapper;
 import app.bpartners.api.service.FileService;
 import app.bpartners.api.service.utils.FileInfoUtils;
 import lombok.AllArgsConstructor;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
-import software.amazon.awssdk.core.ResponseBytes;
-import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 
 @RestController
 @AllArgsConstructor

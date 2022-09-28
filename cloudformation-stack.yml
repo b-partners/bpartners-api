@@ -69,6 +69,8 @@ Resources:
               Value: !Sub '{{resolve:ssm:/bpartners/${Env}/fintecture/app-id}}'
             - Name: FINTECTURE_APP_SECRET
               Value: !Sub '{{resolve:ssm:/bpartners/${Env}/fintecture/app-secret}}'
+            - Name: AWS_BUCKET_NAME
+              Value: !Sub '{{resolve:ssm:/bpartners/s3/bucket-name}}'
           LogConfiguration:
             LogDriver: awslogs
             Options:

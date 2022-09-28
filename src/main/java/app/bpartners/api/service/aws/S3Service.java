@@ -2,7 +2,6 @@ package app.bpartners.api.service.aws;
 
 import app.bpartners.api.endpoint.event.S3Conf;
 import app.bpartners.api.service.utils.FileInfoUtils;
-import java.io.IOException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -47,12 +46,11 @@ public class S3Service {
                 .build())
         .matched()
         .response()
-        .ifPresent((response) -> log.info("response={}", response));
+        .ifPresent(response -> log.info("response={}", response));
     return objectResponse.checksumSHA256();
   }
 
-  public byte[] downloadFile(String accountId, String fileId)
-      throws IOException {
+  public byte[] downloadFile(String accountId, String fileId) {
     GetObjectRequest objectRequest = GetObjectRequest.builder()
         .bucket(s3Conf.getBucketName())
         .key(getLogoBucketName(accountId, fileId))

@@ -25,6 +25,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
+
 import static app.bpartners.api.integration.conf.TestUtils.FILE_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.TestUtils.TO_UPLOAD_FILE_ID;
@@ -82,8 +83,8 @@ class FileIT {
     HttpResponse<byte[]> uploadResponse = unauthenticatedClient.send(
         HttpRequest.newBuilder()
             .uri(URI.create(
-                basePath + "/accounts/" + JOE_DOE_ACCOUNT_ID + "/files/" + TO_UPLOAD_FILE_ID +
-                    "/raw"))
+                basePath + "/accounts/" + JOE_DOE_ACCOUNT_ID + "/files/" + TO_UPLOAD_FILE_ID
+                    + "/raw"))
             .header("Authorization", "Bearer " + bearerToken)
             .method("POST", HttpRequest.BodyPublishers.ofFile(toUpload.getFile().toPath())).build(),
         HttpResponse.BodyHandlers.ofByteArray());
@@ -96,7 +97,6 @@ class FileIT {
     assertEquals(HttpStatus.OK.value(), downloadResponse.statusCode());
     assertEquals(toUpload.getInputStream().readAllBytes().length, downloadResponse.body().length);
   }
-  //TODO: getFileInfo after file upload
 
   @Test
   void download_file_ok() throws IOException, InterruptedException {

@@ -569,18 +569,13 @@ paths:
         500:
           $ref: '#/components/responses/500'
 
-  /accounts/{aId}/files/{id}:
+  /files/{id}:
     get:
       tags:
         - Files
       summary: Get information of a file
       operationId: getFileById
       parameters:
-        - in: path
-          name: aId
-          schema:
-            type: string
-          required: true
         - in: path
           name: id
           schema:
@@ -592,7 +587,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/FileInfo'
+                $ref: '#/components/schemas/File'
         400:
           $ref: '#/components/responses/400'
         403:
@@ -675,18 +670,44 @@ paths:
           $ref: '#/components/responses/429'
         500:
           $ref: '#/components/responses/500'
-  /accounts/{aId}/files/{id}/raw:
+  /accounts/{id}/marketplaces:
+    get:
+      tags:
+        - Prospecting
+      summary: Get marketplaces for an account
+      operationId: getMarketplaces
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description: List of marketplaces where the account owner can find customers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Marketplace'
+        400:
+          $ref: '#/components/responses/400'
+        403:
+          $ref: '#/components/responses/403'
+        404:
+          $ref: '#/components/responses/404'
+        429:
+          $ref: '#/components/responses/429'
+        500:
+          $ref: '#/components/responses/500'
+  /files/{id}/raw:
     get:
       tags:
         - Files
       summary: Download a file
       operationId: downloadFile
       parameters:
-        - in: path
-          name: aId
-          schema:
-            type: string
-          required: true
         - in: path
           name: id
           schema:
@@ -724,11 +745,6 @@ paths:
       summary: Upload a file. Fails if file already exists.
       operationId: uploadFile
       parameters:
-        - in: path
-          name: aId
-          schema:
-            type: string
-          required: true
         - in: path
           name: id
           schema:
@@ -1099,7 +1115,7 @@ components:
           type: string
         country:
           type: string
-    FileInfo:
+    File:
       type: object
       properties:
         id:
@@ -1107,12 +1123,25 @@ components:
         uploadedAt:
           type: string
           format: date-time
-        uploadedByAccountId:
+        uploadedByUserId:
           type: string
-          example: "uuid"
+          format: date-time
         sizeInKB:
           type: integer
         sha256:
+          type: string
+    Marketplace:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        phoneNumber:
+          type: string
+        websiteUrl:
+          type: string
+        logoUrl:
           type: string
     Exception:
       type: object

@@ -19,8 +19,8 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import static app.bpartners.api.integration.CustomerIT.customer1;
-import static app.bpartners.api.integration.CustomerIT.customer2;
+import static app.bpartners.api.integration.CustomerTemplateIT.customer1;
+import static app.bpartners.api.integration.CustomerTemplateIT.customer2;
 import static app.bpartners.api.integration.ProductIT.product3;
 import static app.bpartners.api.integration.ProductIT.product4;
 import static app.bpartners.api.integration.ProductIT.product5;
@@ -52,7 +52,6 @@ class InvoiceIT {
         .title("Facture sans produit")
         .customer(customer1())
         .status(InvoiceStatus.CONFIRMED)
-        .vat(2000)
         .sendingDate(LocalDate.of(2022, 9, 10))
         .toPayAt(LocalDate.of(2022, 9, 11));
   }
@@ -63,7 +62,6 @@ class InvoiceIT {
         .title("Facture tableau")
         .customer(customer1())
         .ref("BP001")
-        .vat(1000)
         .sendingDate(LocalDate.of(2022, 9, 1))
         .toPayAt(LocalDate.of(2022, 10, 1))
         .status(InvoiceStatus.CONFIRMED)
@@ -78,9 +76,8 @@ class InvoiceIT {
     return new Invoice()
         .id(INVOICE2_ID)
         .title("Facture plomberie")
-        .customer(customer2())
+        .customer(customer2().address("Nouvelle adresse"))
         .ref("BP002")
-        .vat(1000)
         .sendingDate(LocalDate.of(2022, 9, 10))
         .toPayAt(LocalDate.of(2022, 10, 10))
         .status(InvoiceStatus.CONFIRMED)
@@ -97,7 +94,6 @@ class InvoiceIT {
         .title("Facture sans produit")
         .customer(validInvoice().getCustomer())
         .status(InvoiceStatus.CONFIRMED)
-        .vat(validInvoice().getVat())
         .sendingDate(validInvoice().getSendingDate())
         .products(List.of())
         .toPayAt(validInvoice().getToPayAt())

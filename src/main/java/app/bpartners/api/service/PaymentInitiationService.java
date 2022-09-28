@@ -30,8 +30,8 @@ public class PaymentInitiationService {
         .reference(invoice.getRef())
         .label(invoice.getTitle())
         .amount(invoice.getTotalPriceWithVat() / 100)
-        .payerName(invoice.getCustomer().getName())
-        .payerEmail(invoice.getCustomer().getEmail())
+        .payerName(invoice.getInvoiceCustomer().getName())
+        .payerEmail(invoice.getInvoiceCustomer().getEmail())
         .successUrl("https://dashboard-dev.bpartners.app") //TODO: to change
         .failureUrl("https://dashboard-dev.bpartners.app") //TODO: to change
         .build();

@@ -3,6 +3,8 @@ package app.bpartners.api.endpoint.rest.mapper;
 import app.bpartners.api.endpoint.rest.model.CreateCustomer;
 import app.bpartners.api.endpoint.rest.model.Customer;
 import app.bpartners.api.endpoint.rest.validator.CreateCustomerValidator;
+import app.bpartners.api.model.CustomerTemplate;
+import app.bpartners.api.model.InvoiceCustomer;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -11,9 +13,9 @@ import org.springframework.stereotype.Component;
 public class CustomerRestMapper {
   private final CreateCustomerValidator validator;
 
-  public Customer toRest(app.bpartners.api.model.Customer domain) {
+  public Customer toRest(CustomerTemplate domain) {
     return new Customer()
-        .id(domain.getId())
+        .id(domain.getCustomerId())
         .name(domain.getName())
         .phone(domain.getPhone())
         .website(domain.getWebsite())
@@ -25,10 +27,10 @@ public class CustomerRestMapper {
         .city(domain.getCity());
   }
 
-  public app.bpartners.api.model.Customer toDomain(String accountId, CreateCustomer rest) {
+  public CustomerTemplate toDomain(String accountId, CreateCustomer rest) {
     validator.accept(rest);
-    return app.bpartners.api.model.Customer.builder()
-        .id(null)
+    return InvoiceCustomer.customerTemplateBuilder()
+        .customerId(null)
         .idAccount(accountId)
         .name(rest.getName())
         .phone(rest.getPhone())
@@ -41,9 +43,9 @@ public class CustomerRestMapper {
         .build();
   }
 
-  public app.bpartners.api.model.Customer toDomain(String accountId, Customer rest) {
-    return app.bpartners.api.model.Customer.builder()
-        .id(rest.getId())
+  public InvoiceCustomer toDomain(String accountId, String idInvoice, Customer rest) {
+    InvoiceCustomer invoiceCustomer = InvoiceCustomer.customerTemplateBuilder()
+        .customerId(rest.getId())
         .idAccount(accountId)
         .name(rest.getName())
         .phone(rest.getPhone())
@@ -54,5 +56,7 @@ public class CustomerRestMapper {
         .city(rest.getCity())
         .country(rest.getCountry())
         .build();
+    invoiceCustomer.setIdInvoice(idInvoice);
+    return invoiceCustomer;
   }
 }

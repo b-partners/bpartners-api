@@ -8,8 +8,7 @@ import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -39,12 +38,10 @@ public class HInvoice {
   private String ref;
   private String title;
   private String idAccount;
-  private int vat;
   private LocalDate sendingDate;
   private LocalDate toPayAt;
-  @ManyToOne
-  @JoinColumn(name = "id_customer")
-  private HCustomer customer;
+  @OneToOne(mappedBy = "invoice")
+  private HInvoiceCustomer invoiceCustomer;
   @Type(type = "pgsql_enum")
   @Enumerated(EnumType.STRING)
   private InvoiceStatus status;

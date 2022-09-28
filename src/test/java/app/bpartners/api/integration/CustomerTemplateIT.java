@@ -29,9 +29,9 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @Testcontainers
-@ContextConfiguration(initializers = CustomerIT.ContextInitializer.class)
+@ContextConfiguration(initializers = CustomerTemplateIT.ContextInitializer.class)
 @AutoConfigureMockMvc
-class CustomerIT {
+class CustomerTemplateIT {
   @MockBean
   UserSwanRepository swanRepositoryMock;
   @Value("${test.user.access.token}")

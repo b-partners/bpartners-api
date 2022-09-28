@@ -18,9 +18,6 @@ public class CrupdateInvoiceValidator implements Consumer<CrupdateInvoice> {
     if (invoice.getRef() == null) {
       throw new BadRequestException("Reference is mandatory");
     }
-    if (invoice.getVat() == null) {
-      throw new BadRequestException("Vat is mandatory");
-    }
     if (invoice.getCustomer() == null) {
       throw new BadRequestException("Customer is mandatory");
     }

@@ -20,14 +20,13 @@ public class Invoice {
   private String id;
   private String title;
   private String ref;
-  private int vat;
   private LocalDate sendingDate;
   private LocalDate toPayAt;
   private int totalVat;
   private int totalPriceWithoutVat;
   private int totalPriceWithVat;
   private String paymentUrl;
-  private Customer customer;
+  private InvoiceCustomer invoiceCustomer;
   private Account account;
   private List<Product> products;
   private InvoiceStatus status;

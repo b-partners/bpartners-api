@@ -1,5 +1,6 @@
 package app.bpartners.api.service;
 
+import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.PaymentRedirection;
 import app.bpartners.api.model.Product;
@@ -21,13 +22,16 @@ public class InvoiceService {
   }
 
   public Invoice crupdateInvoice(Invoice toCrupdate) {
+    toCrupdate.setStatus(InvoiceStatus.CONFIRMED); //TODO: to be computed
     return refreshValues(repository.crupdate(toCrupdate));
   }
 
   private Invoice refreshValues(Invoice invoice) {
-    List<Product> products =
-        productRepository.findRecentByIdAccountAndInvoice(invoice.getAccount().getId(),
-            invoice.getId());
+    List<Product> products = invoice.getProducts();
+    if (products.isEmpty()) {
+      products =
+          productRepository.findByIdInvoice(invoice.getId());
+    }
     Invoice initializedInvoice = Invoice.builder()
         .id(invoice.getId())
         .ref(invoice.getRef())

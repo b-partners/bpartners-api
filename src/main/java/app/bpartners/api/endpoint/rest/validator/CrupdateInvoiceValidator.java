@@ -30,8 +30,11 @@ public class CrupdateInvoiceValidator implements Consumer<CrupdateInvoice> {
     if (invoice.getSendingDate().isAfter(today)) {
       throw new BadRequestException("Invoice can be sent by today");
     }
+    if (invoice.getProducts() == null) {
+      throw new BadRequestException("Products are mandatory");
+    }
     if (invoice.getToPayAt().isBefore(invoice.getSendingDate())) {
-      throw new BadRequestException("`To Pay At` date can not be after the sending date");
+      throw new BadRequestException("Payment date can not be after the sending date");
     }
   }
 }

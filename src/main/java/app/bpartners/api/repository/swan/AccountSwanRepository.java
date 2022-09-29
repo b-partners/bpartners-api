@@ -9,4 +9,6 @@ public interface AccountSwanRepository {
   List<SwanAccount> findByBearer(String bearer);
 
   List<SwanAccount> findById(String id);
+
+  List<SwanAccount> findByUserId(String userId);
 }

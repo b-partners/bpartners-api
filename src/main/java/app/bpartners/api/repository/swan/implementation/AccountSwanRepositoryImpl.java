@@ -38,4 +38,9 @@ public class AccountSwanRepositoryImpl implements AccountSwanRepository {
         swanApi.getData(AccountResponse.class, QUERY).getData().getAccounts().getEdges().get(0)
             .getNode());
   }
+
+  @Override
+  public List<SwanAccount> findByUserId(String userId) {
+    return findById(userId);
+  }
 }

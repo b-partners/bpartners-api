@@ -4,6 +4,8 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -39,10 +41,9 @@ public class HProduct {
   public static final String UNIT_PRICE_ATTRIBUTE = "unitPrice";
   private int vatPercent;
   public static final String VAT_PERCENT_ATTRIBUTE = "vatPercent";
-  @Column(name = "id_invoice")
-  private String idInvoice;
-  public static final String ID_INVOICE_ATTRIBUTE = "idInvoice";
-
+  @ManyToOne
+  @JoinColumn(name = "id_invoice_product")
+  private HInvoiceProduct invoiceProduct;
 
   public HProduct(String description) {
     this.description = description;

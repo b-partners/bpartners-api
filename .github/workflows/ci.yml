@@ -49,7 +49,7 @@ jobs:
           export ENV=${{ secrets.ENV }}
           export AWS_BUCKET_NAME=${{ secrets.AWS_BUCKET_NAME }}
           export SENDINBLUE_API_KEY=${{ secrets.SENDINBLUE_API_KEY }}
-          export SENDINBLUE_CONTACT_LIST_ID=${{ secrets.SENDINBLUE_CONTACT_LIST_ID }}
+          export SENDINBLUE_CONTACTLIST_ID=${{ secrets.SENDINBLUE_CONTACT_LIST_ID }}
           ./gradlew test
 
       - name: Checkstyle

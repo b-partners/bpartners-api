@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: Stack for BPartners API
+Description: Compute stack for BPartners API
 
 Parameters:
   Env:
@@ -25,6 +25,7 @@ Resources:
       ClusterName: !Join ['', [!Ref Env, -bpartners-api]]
   LogGroup:
     Type: AWS::Logs::LogGroup
+    DeletionPolicy: Retain
     Properties:
       LogGroupName: !Join ['', [/ecs/, !Ref Env, -bpartners-api]]
   TaskDefinition:
@@ -73,8 +74,8 @@ Resources:
               Value: !Sub '{{resolve:ssm:/bpartners/${Env}/s3/bucket-name}}'
             - Name: SENDINBLUE_API_KEY
               Value: !Sub '{{resolve:ssm:/bpartners/${Env}/sendinblue/api-key}}'
-            - Name: SENDINBLUE_CONTACT_LIST_ID
-              Value: !Sub '{{resolve:ssm:/bpartners/${Env}/sendinblue/contact/list-id}}'
+            - Name: SENDINBLUE_CONTACTLIST_ID
+              Value: !Sub '{{resolve:ssm/bpartners/${Env}/sendinblue/contactlist-id}}'
           LogConfiguration:
             LogDriver: awslogs
             Options:
@@ -98,12 +99,17 @@ Resources:
     Properties:
       RoleName: !Join ['', [!Ref Env, -bpartners-api, -TaskRole]]
       AssumeRolePolicyDocument:
+        Version: 2012-10-17
         Statement:
           - Effect: Allow
             Principal:
               Service: ecs-tasks.amazonaws.com
-            Action: 'sts:AssumeRole'
-
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - 'arn:aws:iam::aws:policy/AmazonS3FullAccess'
+        - 'arn:aws:iam::aws:policy/AmazonSQSFullAccess'
+        - 'arn:aws:iam::aws:policy/AmazonEventBridgeFullAccess'
+        - 'arn:aws:iam::aws:policy/AmazonSSMFullAccess'
   Service:
     Type: AWS::ECS::Service
     Properties:

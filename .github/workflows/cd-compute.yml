@@ -1,4 +1,4 @@
-name: CD
+name: CD compute
 
 on:
   push:
@@ -53,7 +53,7 @@ jobs:
           export ENV=${{ secrets.ENV }}
           export AWS_BUCKET_NAME=${{ secrets.AWS_BUCKET_NAME }}
           export SENDINBLUE_API_KEY=${{ secrets.SENDINBLUE_API_KEY }}
-          export SENDINBLUE_CONTACT_LIST_ID=${{ secrets.SENDINBLUE_CONTACT_LIST_ID }}
+          export SENDINBLUE_CONTACTLIST_ID=${{ secrets.SENDINBLUE_CONTACT_LIST_ID }}
           ./gradlew build
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@13d241b293754004c80624b5567555c4a39ffbe3
@@ -87,11 +87,11 @@ jobs:
             echo "branch_env=prod" >> $GITHUB_ENV
             echo "listenerRuleAvailablePriority=10" >> $GITHUB_ENV
           fi
-      - name: Deploy with AWS CloudFormation
+      - name: Deploy compute stack
         uses: aws-actions/aws-cloudformation-github-deploy@v1
         with:
           name: ${{ env.branch_env }}-bpartners-api
-          template: cloudformation-stack.yml
+          template: cf-stacks/compute-stack.yml
           tags: "[ { \"Key\": \"app\", \"Value\": \"api\" }, { \"Key\": \"env\", \"Value\": \"${{ env.branch_env }}\" } ]"
           capabilities: CAPABILITY_NAMED_IAM
           no-fail-on-empty-changeset: "1"

@@ -41,7 +41,7 @@ public class TestUtils {
   public static final String BAD_USER_ID = "bad_user_id";
   public static final String INVOICE1_ID = "invoice1_id";
   public static final String INVOICE2_ID = "invoice2_id";
-  public static final String FILE_ID = "301327722_738668533870624_6151351867004964160_n.jpeg";
+  public static final String FILE_ID = "logo.jpeg";
   public static final String TO_UPLOAD_FILE_ID = "to_upload_file_id";
 
 

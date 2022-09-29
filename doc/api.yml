@@ -280,6 +280,71 @@ paths:
           $ref: '#/components/responses/429'
         500:
           $ref: '#/components/responses/500'
+  /accounts/{aId}/invoiceRelaunch:
+    get:
+      tags:
+        - Paying
+      summary: Get the current relaunch configuration for invoice
+      operationId: getInvoiceRelaunch
+      parameters:
+        - in: path
+          name: aId
+          description: Account identifier
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description: The invoice relaunching configuration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvoiceRelaunch'
+        400:
+          $ref: '#/components/responses/400'
+        403:
+          $ref: '#/components/responses/403'
+        404:
+          $ref: '#/components/responses/404'
+        429:
+          $ref: '#/components/responses/429'
+        500:
+          $ref: '#/components/responses/500'
+    put:
+      tags:
+        - Paying
+      summary: Configure the automatic relaunch of all invoices of an account
+      operationId: relaunchInvoice
+      parameters:
+        - in: path
+          name: aId
+          description: Account identifier
+          schema:
+            type: string
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateInvoiceRelaunch'
+      responses:
+        200:
+          description: The invoice relaunch configuration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvoiceRelaunch'
+        400:
+          $ref: '#/components/responses/400'
+        403:
+          $ref: '#/components/responses/403'
+        404:
+          $ref: '#/components/responses/404'
+        429:
+          $ref: '#/components/responses/429'
+        500:
+          $ref: '#/components/responses/500'
   /accounts/{aId}/transactionCategories:
     get:
       tags:
@@ -1059,6 +1124,24 @@ components:
       type: string
       enum:
         - CONFIRMED
+    CreateInvoiceRelaunch:
+      type: object
+      properties:
+        unpaidRelaunch:
+          type: number
+          description: The frequency of sending the message in days
+        draftRelaunch:
+          type: number
+          description: The frequency of sending the message in days
+    InvoiceRelaunch:
+      allOf:
+        - $ref: '#/components/schemas/CreateInvoiceRelaunch'
+      properties:
+        id:
+          type: string
+        created_datetime:
+          type: string
+          format: date-time
     CreateProduct:
       type: object
       properties:

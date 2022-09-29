@@ -118,7 +118,7 @@ class FileIT {
             .uri(URI.create(
                 basePath + "/accounts/" + JOE_DOE_ACCOUNT_ID + "/files/" + fileId + "/raw"))
             .header("Access-Control-Request-Method", "GET")
-            .header("Authorization", "Bearer " + bearerToken)
+            // .header("Authorization", "Bearer " + bearerToken) TODO: uncomment when bearer is set in query params
             .GET()
             .build(),
         HttpResponse.BodyHandlers.ofByteArray());

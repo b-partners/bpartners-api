@@ -155,3 +155,11 @@ Resources:
       Actions:
         - Type: forward
           TargetGroupArn: !Ref TargetGroup
+  S3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: "b-partners"
+      VersioningConfiguration:
+        Status: Enabled
+      Tags:
+        - Key: !Join ['', [ !Ref Env, -bpartners-api ]]

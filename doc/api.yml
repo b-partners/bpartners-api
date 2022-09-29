@@ -677,6 +677,7 @@ paths:
           $ref: '#/components/responses/500'
   /accounts/{aId}/files/{id}/raw:
     get:
+      security: [ ]
       tags:
         - Files
       summary: Download a file
@@ -689,6 +690,11 @@ paths:
           required: true
         - in: path
           name: id
+          schema:
+            type: string
+          required: true
+        - name: bearer
+          in: query
           schema:
             type: string
           required: true

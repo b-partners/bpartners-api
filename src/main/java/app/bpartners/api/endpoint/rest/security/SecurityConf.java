@@ -63,7 +63,7 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
                 new OrRequestMatcher(
                     new AntPathRequestMatcher("/ping"),
                     new AntPathRequestMatcher("/preUsers", POST.name()),
-                    new AntPathRequestMatcher("/accounts/*/files/*/raw", GET.name()),  // TODO:remove when bearer is set as query params
+                    new AntPathRequestMatcher("/accounts/*/files/*/raw", GET.name()),
                     new AntPathRequestMatcher("/authInitiation"),
                     new AntPathRequestMatcher("/token"),
                     new AntPathRequestMatcher("/onboardingInitiation", POST.name()),
@@ -80,7 +80,7 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
         .antMatchers("/authInitiation").permitAll()
         .antMatchers("/token").permitAll()
         .antMatchers("/onboardingInitiation").permitAll()
-        .antMatchers("/accounts/*/files/*/raw").permitAll()   // TODO: remove when bearer is set as query params
+        .antMatchers(GET, "/accounts/*/files/*/raw").permitAll()
         .antMatchers(POST, "/preUsers").permitAll()
         .antMatchers(OPTIONS, "/**").permitAll()
         .requestMatchers(new SelfAccountMatcher(GET, "/accounts/*/customers")).authenticated()
@@ -106,8 +106,6 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
         .antMatchers(GET, "/users/*").authenticated()
         .requestMatchers(new SelfAccountMatcher(GET, "/accounts/*/files/*")).authenticated()
         .requestMatchers(new SelfAccountMatcher(POST, "/accounts/*/files/*/raw")).authenticated()
-        // TODO: uncomment when bearer is set as query params
-        //.requestMatchers(new SelfAccountMatcher(GET, "/accounts/*/files/*/raw")).authenticated()
         .antMatchers("/**").denyAll()
 
         // disable superfluous protections

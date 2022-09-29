@@ -13,7 +13,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
-
 import static app.bpartners.api.endpoint.rest.security.swan.SwanConf.BEARER_PREFIX;
 
 @Component
@@ -24,6 +23,12 @@ public class AuthProvider extends AbstractUserDetailsAuthenticationProvider {
   private final UserService userService;
 
   private final AccountService accountService;
+
+  public static Principal getPrincipal() {
+    SecurityContext context = SecurityContextHolder.getContext();
+    Authentication authentication = context.getAuthentication();
+    return (Principal) authentication.getPrincipal();
+  }
 
   @Override
   protected void additionalAuthenticationChecks(
@@ -38,12 +43,7 @@ public class AuthProvider extends AbstractUserDetailsAuthenticationProvider {
     if (bearer == null) {
       throw new UsernameNotFoundException("Bad credentials"); // NOSONAR
     }
-    String swanUserId = swanComponent.getSwanUserIdByToken(bearer);
-    if (swanUserId == null) {
-      throw new UsernameNotFoundException("Bad credentials"); // NOSONAR
-    }
-    return new Principal(userService.getUserByIdAndBearer(swanUserId, bearer),
-        accountService.getAccountByBearer(bearer), bearer);
+    return getPrincipalByBearer(sliceBearerPrefix(bearer));
   }
 
   private String getBearer(
@@ -52,12 +52,19 @@ public class AuthProvider extends AbstractUserDetailsAuthenticationProvider {
     if (!(tokenObject instanceof String) || !((String) tokenObject).startsWith(BEARER_PREFIX)) {
       return null;
     }
-    return ((String) tokenObject).substring(BEARER_PREFIX.length()).trim();
+    return (String) tokenObject;
   }
 
-  public static Principal getPrincipal() {
-    SecurityContext context = SecurityContextHolder.getContext();
-    Authentication authentication = context.getAuthentication();
-    return (Principal) authentication.getPrincipal();
+  public String sliceBearerPrefix(String prefixedBearer) {
+    return prefixedBearer.substring(BEARER_PREFIX.length()).trim();
+  }
+
+  public Principal getPrincipalByBearer(String bearer) {
+    String swanUserId = swanComponent.getSwanUserIdByToken(bearer);
+    if (swanUserId == null) {
+      throw new UsernameNotFoundException("Bad credentials"); // NOSONAR
+    }
+    return new Principal(userService.getUserByIdAndBearer(swanUserId, bearer),
+        accountService.getAccountByBearer(bearer), bearer);
   }
 }

@@ -25,7 +25,6 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
-
 import static app.bpartners.api.integration.conf.TestUtils.FILE_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.TestUtils.TO_UPLOAD_FILE_ID;
@@ -89,7 +88,8 @@ class FileIT {
             .method("POST", HttpRequest.BodyPublishers.ofFile(toUpload.getFile().toPath())).build(),
         HttpResponse.BodyHandlers.ofByteArray());
 
-    HttpResponse<byte[]> downloadResponse = download(basePath, TO_UPLOAD_FILE_ID);
+    HttpResponse<byte[]> downloadResponse =
+        download(basePath, JOE_DOE_ACCOUNT_ID, TO_UPLOAD_FILE_ID, bearerToken);
 
 
     assertEquals(HttpStatus.OK.value(), uploadResponse.statusCode());
@@ -104,21 +104,22 @@ class FileIT {
     Resource logoFileResource = new ClassPathResource(
         "files/downloaded.jpeg");
 
-    HttpResponse<byte[]> response = download(basePath, FILE_ID);
+    HttpResponse<byte[]> response = download(basePath, JOE_DOE_ACCOUNT_ID, FILE_ID, bearerToken);
 
     assertEquals(HttpStatus.OK.value(), response.statusCode());
     assertEquals(logoFileResource.getInputStream().readAllBytes().length, response.body().length);
   }
 
-  public HttpResponse<byte[]> download(String basePath, String fileId)
+  private HttpResponse<byte[]> download(String basePath, String accountId, String fileId,
+                                        String queryBearer)
       throws IOException, InterruptedException {
     HttpClient unauthenticatedClient = HttpClient.newBuilder().build();
     return unauthenticatedClient.send(
         HttpRequest.newBuilder()
             .uri(URI.create(
-                basePath + "/accounts/" + JOE_DOE_ACCOUNT_ID + "/files/" + fileId + "/raw"))
+                basePath + "/accounts/" + accountId + "/files/" + fileId + "/raw?bearer=" +
+                    queryBearer))
             .header("Access-Control-Request-Method", "GET")
-            // .header("Authorization", "Bearer " + bearerToken) TODO: uncomment when bearer is set in query params
             .GET()
             .build(),
         HttpResponse.BodyHandlers.ofByteArray());

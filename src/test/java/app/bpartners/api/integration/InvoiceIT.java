@@ -51,7 +51,7 @@ class InvoiceIT {
         .ref("BP003")
         .title("Facture sans produit")
         .customer(customer1())
-        .status(InvoiceStatus.CONFIRMED)
+        .products(List.of())
         .sendingDate(LocalDate.of(2022, 9, 10))
         .toPayAt(LocalDate.of(2022, 9, 11));
   }

@@ -8,5 +8,7 @@ public interface AccountRepository {
 
   List<Account> findByBearer(String bearer);
 
-  List<Account> findById(String userId);
+  Account findById(String id);
+
+  List<Account> findByUserId(String userId);
 }

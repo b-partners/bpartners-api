@@ -1021,8 +1021,10 @@ components:
           type: string
         customer:
           $ref: '#/components/schemas/Customer'
-        status:
-          $ref: '#/components/schemas/InvoiceStatus'
+        products:
+          type: array
+          items:
+            $ref: '#/components/schemas/Product'
         sendingDate:
           type: string
           format: date
@@ -1035,10 +1037,6 @@ components:
       properties:
         id:
           type: string
-        products:
-          type: array
-          items:
-            $ref: '#/components/schemas/Product'
         paymentUrl:
           type: string
         totalVat:
@@ -1047,6 +1045,8 @@ components:
           type: integer
         totalPriceWithVat:
           type: integer
+        status:
+          $ref: '#/components/schemas/InvoiceStatus'
         updatedAt:
           type: string
           format: date-time

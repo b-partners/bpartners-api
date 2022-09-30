@@ -10,5 +10,5 @@ public interface ProductRepository {
 
   List<Product> saveAll(String idAccount, List<Product> toSave);
 
-  List<Product> findRecentByIdAccountAndInvoice(String idAccount, String idInvoice);
+  List<Product> findByIdInvoice(String idInvoice);
 }

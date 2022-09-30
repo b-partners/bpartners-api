@@ -8,8 +8,6 @@ import org.springframework.stereotype.Component;
 @Component
 @AllArgsConstructor
 public class ProductMapper {
-  private final InvoiceMapper invoiceMapper;
-
   public Product toDomain(HProduct entity) {
     return Product.builder()
         .id(entity.getId())
@@ -23,7 +21,6 @@ public class ProductMapper {
   public HProduct toEntity(String idAccount, Product product) {
     return HProduct.builder()
         .idAccount(idAccount)
-        .idInvoice(product.getInvoice().getId())
         .description(product.getDescription())
         .unitPrice(product.getUnitPrice())
         .quantity(product.getQuantity())

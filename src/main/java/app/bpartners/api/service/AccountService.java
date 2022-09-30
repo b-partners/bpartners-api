@@ -25,8 +25,12 @@ public class AccountService {
     return accounts.get(0);
   }
 
+  public Account getAccountById(String id) {
+    return repository.findById(id);
+  }
+
   public List<Account> getAccountsByUserId(String userId) {
-    List<Account> accounts = repository.findById(userId);
+    List<Account> accounts = repository.findByUserId(userId);
     validator.accept(accounts);
     return accounts;
   }

@@ -45,6 +45,9 @@ public class TestUtils {
   public static final String TO_UPLOAD_FILE_ID = "to_upload_file_id";
   public static final String MARKETPLACE1_ID = "marketplace1_id";
   public static final String MARKETPLACE2_ID = "marketplace2_id";
+  public static final String BEARER_QUERY_PARAMETER_NAME = "accessToken";
+  public static final String BEARER_PREFIX = "Bearer ";
+
 
   public static SwanUser joeDoe() {
     SwanUser swanUser = new SwanUser();

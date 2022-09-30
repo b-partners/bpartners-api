@@ -25,7 +25,6 @@ import static org.springframework.http.HttpMethod.PUT;
 public class SecurityConf extends WebSecurityConfigurerAdapter {
 
   private static final String AUTHORIZATION_HEADER = "Authorization";
-
   private final AuthProvider authProvider;
   private final HandlerExceptionResolver exceptionResolver;
 
@@ -62,8 +61,7 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
                 new OrRequestMatcher(
                     new AntPathRequestMatcher("/ping"),
                     new AntPathRequestMatcher("/preUsers", POST.name()),
-                    new AntPathRequestMatcher("/accounts/*/files/*/raw", GET.name()),
-                    // TODO:remove when bearer is set as query params
+                    new AntPathRequestMatcher("/accounts/*/files/*/raw", GET.name()),  // TODO:remove when bearer is set as query params
                     new AntPathRequestMatcher("/authInitiation"),
                     new AntPathRequestMatcher("/token"),
                     new AntPathRequestMatcher("/onboardingInitiation", POST.name()),
@@ -80,8 +78,7 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
         .antMatchers("/authInitiation").permitAll()
         .antMatchers("/token").permitAll()
         .antMatchers("/onboardingInitiation").permitAll()
-        .antMatchers("/accounts/*/files/*/raw")
-        .permitAll()   // TODO: remove when bearer is set as query params
+        .antMatchers("/accounts/*/files/*/raw").permitAll()   // TODO: remove when bearer is set as query params
         .antMatchers(POST, "/preUsers").permitAll()
         .antMatchers(OPTIONS, "/**").permitAll()
         .requestMatchers(new SelfAccountMatcher(GET, "/accounts/*/customers")).authenticated()

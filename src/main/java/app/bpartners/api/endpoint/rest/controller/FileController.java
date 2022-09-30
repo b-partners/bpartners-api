@@ -40,9 +40,9 @@ public class FileController {
       @PathVariable(name = "accountId") String accountId,
       @PathVariable(name = "id") String fileId,
       @RequestBody byte[] toUpload) {
-    byte[] uploaded = service.uploadFile(accountId, fileId, toUpload);
+    service.uploadFile(accountId, fileId, toUpload);
     return ResponseEntity.ok()
         .contentType(FileInfoUtils.parseMediaTypeFromBytes(toUpload))
-        .body(uploaded);
+        .body(toUpload);
   }
 }

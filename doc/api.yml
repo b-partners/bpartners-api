@@ -757,6 +757,10 @@ paths:
           schema:
             type: string
           required: true
+        - in: query
+          name: accessToken
+          schema:
+            type: string
       responses:
         200:
           description: The file

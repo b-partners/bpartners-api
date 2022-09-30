@@ -25,7 +25,8 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
-
+import static app.bpartners.api.integration.conf.TestUtils.BEARER_PREFIX;
+import static app.bpartners.api.integration.conf.TestUtils.BEARER_QUERY_PARAMETER_NAME;
 import static app.bpartners.api.integration.conf.TestUtils.FILE_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.TestUtils.TO_UPLOAD_FILE_ID;
@@ -74,7 +75,7 @@ class FileIT {
   }
 
   @Test
-  void upload_and_read_created_file_ok() throws IOException, InterruptedException, ApiException {
+  void upload_and_read_created_file_ok() throws IOException, InterruptedException {
     HttpClient unauthenticatedClient = HttpClient.newBuilder().build();
     String basePath = "http://localhost:" + ContextInitializer.SERVER_PORT;
     Resource toUpload = new ClassPathResource("files/upload.jpg");
@@ -89,7 +90,8 @@ class FileIT {
             .method("POST", HttpRequest.BodyPublishers.ofFile(toUpload.getFile().toPath())).build(),
         HttpResponse.BodyHandlers.ofByteArray());
 
-    HttpResponse<byte[]> downloadResponse = download(basePath, TO_UPLOAD_FILE_ID);
+    HttpResponse<byte[]> downloadResponse =
+        download(basePath, bearerToken, null, TO_UPLOAD_FILE_ID);
 
 
     assertEquals(HttpStatus.OK.value(), uploadResponse.statusCode());
@@ -104,21 +106,46 @@ class FileIT {
     Resource logoFileResource = new ClassPathResource(
         "files/downloaded.jpeg");
 
-    HttpResponse<byte[]> response = download(basePath, FILE_ID);
+    HttpResponse<byte[]> responseBearerInHeader = download(basePath, bearerToken, null, FILE_ID);
+    HttpResponse<byte[]> responseBearerInBoth = download(basePath, bearerToken, bearerToken, FILE_ID);
+    HttpResponse<byte[]> responseBearerInQuery = download(basePath, bearerToken, FILE_ID);
 
-    assertEquals(HttpStatus.OK.value(), response.statusCode());
-    assertEquals(logoFileResource.getInputStream().readAllBytes().length, response.body().length);
+    assertEquals(HttpStatus.OK.value(), responseBearerInHeader.statusCode());
+    assertEquals(logoFileResource.getInputStream().readAllBytes().length, responseBearerInHeader.body().length);
+    assertEquals(HttpStatus.OK.value(), responseBearerInQuery.statusCode());
+    assertEquals(logoFileResource.getInputStream().readAllBytes().length,
+        responseBearerInQuery.body().length);
+    assertEquals(HttpStatus.OK.value(), responseBearerInBoth.statusCode());
+    assertEquals(logoFileResource.getInputStream().readAllBytes().length,
+        responseBearerInBoth.body().length);
   }
 
-  public HttpResponse<byte[]> download(String basePath, String fileId)
+  public HttpResponse<byte[]> download(String basePath, String bearerToken, String queryBearer,
+                                       String fileId)
       throws IOException, InterruptedException {
     HttpClient unauthenticatedClient = HttpClient.newBuilder().build();
     return unauthenticatedClient.send(
         HttpRequest.newBuilder()
             .uri(URI.create(
-                basePath + "/accounts/" + JOE_DOE_ACCOUNT_ID + "/files/" + fileId + "/raw"))
+                basePath + "/accounts/" + JOE_DOE_ACCOUNT_ID + "/files/" + fileId + "/raw?"
+                    + BEARER_QUERY_PARAMETER_NAME + "=" + queryBearer))
             .header("Access-Control-Request-Method", "GET")
-            // .header("Authorization", "Bearer " + bearerToken) TODO: uncomment when bearer is set in query params
+            .header("Authorization", BEARER_PREFIX + bearerToken)
+            .GET()
+            .build(),
+        HttpResponse.BodyHandlers.ofByteArray());
+  }
+
+  public HttpResponse<byte[]> download(String basePath, String queryBearer,
+                                       String fileId)
+      throws IOException, InterruptedException {
+    HttpClient unauthenticatedClient = HttpClient.newBuilder().build();
+    return unauthenticatedClient.send(
+        HttpRequest.newBuilder()
+            .uri(URI.create(
+                basePath + "/accounts/" + JOE_DOE_ACCOUNT_ID + "/files/" + fileId + "/raw?"
+                    + BEARER_QUERY_PARAMETER_NAME + "=" + queryBearer))
+            .header("Access-Control-Request-Method", "GET")
             .GET()
             .build(),
         HttpResponse.BodyHandlers.ofByteArray());

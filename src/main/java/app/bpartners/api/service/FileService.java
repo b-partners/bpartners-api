@@ -14,10 +14,9 @@ public class FileService {
   private final FileRepository repository;
   private final FileMapper mapper;
 
-  public byte[] uploadFile(String accountId, String fileId, byte[] toUpload) {
+  public void uploadFile(String accountId, String fileId, byte[] toUpload) {
     String checksum = s3Service.uploadFile(accountId, fileId, toUpload);
     repository.save(mapper.toDomain(fileId, toUpload, checksum));
-    return toUpload;
   }
 
   public byte[] downloadFile(String accountId, String fileId) {

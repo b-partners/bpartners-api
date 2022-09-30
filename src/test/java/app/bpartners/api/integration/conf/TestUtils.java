@@ -14,7 +14,6 @@ import org.junit.jupiter.api.function.Executable;
 import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsRequest;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsResponse;
-
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.CLIENT_EXCEPTION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -43,6 +42,8 @@ public class TestUtils {
   public static final String INVOICE2_ID = "invoice2_id";
   public static final String FILE_ID = "logo.jpeg";
   public static final String TO_UPLOAD_FILE_ID = "to_upload_file_id";
+  public static final String BEARER_QUERY_PARAMETER_NAME = "accessToken";
+  public static final String BEARER_PREFIX = "Bearer ";
 
 
   public static SwanUser joeDoe() {

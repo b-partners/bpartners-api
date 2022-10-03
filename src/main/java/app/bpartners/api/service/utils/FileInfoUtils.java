@@ -16,6 +16,8 @@ public class FileInfoUtils {
   public static final String PDF_EXTENSION = ".pdf";
   public static final String JPEG_EXTENSION = ".jpeg";
   public static final String JPG_EXTENSION = ".jpg";
+  public static final String JPG_FORMAT_NAME = "JPG";
+
 
   public static MediaType parseMediaTypeFromBytes(String fileId, byte[] bytes) {
     ByteArrayInputStream inputStream = new ByteArrayInputStream(bytes);

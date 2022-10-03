@@ -128,6 +128,11 @@ dependencies {
     implementation 'io.sentry:sentry-logback:5.5.3'
 
     implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.thymeleaf:thymeleaf:3.0.15.RELEASE'
+    implementation 'org.xhtmlrenderer:flying-saucer-pdf:9.1.22'
+
+    implementation 'com.google.zxing:core:3.5.0'
+    implementation 'com.google.zxing:javase:3.5.0'
 
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
     implementation 'software.amazon.awssdk:transfer:2.17.271'

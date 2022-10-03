@@ -9,9 +9,11 @@ import app.bpartners.api.endpoint.rest.model.Invoice;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.integration.conf.AbstractContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
+import app.bpartners.api.service.InvoiceService;
 import java.time.LocalDate;
 import java.util.List;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -26,6 +28,7 @@ import static app.bpartners.api.integration.ProductIT.product4;
 import static app.bpartners.api.integration.ProductIT.product5;
 import static app.bpartners.api.integration.conf.TestUtils.INVOICE1_ID;
 import static app.bpartners.api.integration.conf.TestUtils.INVOICE2_ID;
+import static app.bpartners.api.integration.conf.TestUtils.INVOICE1_FILE_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
@@ -40,6 +43,9 @@ class InvoiceIT {
   @Value("${test.user.access.token}")
   private String bearerToken;
 
+  @Autowired
+  private InvoiceService invoiceService;
+
   private static ApiClient anApiClient(String token) {
     return TestUtils.anApiClient(token, InvoiceIT.ContextInitializer.SERVER_PORT);
   }
@@ -51,7 +57,7 @@ class InvoiceIT {
         .ref("BP003")
         .title("Facture sans produit")
         .customer(customer1())
-        .products(List.of())
+        .products(List.of(product4(), product5()))
         .sendingDate(LocalDate.of(2022, 9, 10))
         .toPayAt(LocalDate.of(2022, 9, 11));
   }
@@ -59,6 +65,7 @@ class InvoiceIT {
   Invoice invoice1() {
     return new Invoice()
         .id(INVOICE1_ID)
+        .fileId(INVOICE1_FILE_ID)
         .title("Facture tableau")
         .customer(customer1())
         .ref("BP001")
@@ -76,6 +83,7 @@ class InvoiceIT {
     return new Invoice()
         .id(INVOICE2_ID)
         .title("Facture plomberie")
+        .fileId("BP002.pdf")
         .customer(customer2().address("Nouvelle adresse"))
         .ref("BP002")
         .sendingDate(LocalDate.of(2022, 9, 10))
@@ -90,16 +98,17 @@ class InvoiceIT {
   Invoice createdInvoice() {
     return new Invoice()
         .id(NEW_INVOICE_ID)
+        .fileId("BP003.pdf")
         .ref(validInvoice().getRef())
         .title("Facture sans produit")
         .customer(validInvoice().getCustomer())
         .status(InvoiceStatus.CONFIRMED)
         .sendingDate(validInvoice().getSendingDate())
-        .products(List.of())
+        .products(List.of(product4().id(null), product5().id(null)))
         .toPayAt(validInvoice().getToPayAt())
-        .totalPriceWithVat(0)
-        .totalVat(0)
-        .totalPriceWithoutVat(0);
+        .totalPriceWithVat(3300)
+        .totalVat(300)
+        .totalPriceWithoutVat(3000);
   }
 
   @Test
@@ -123,6 +132,17 @@ class InvoiceIT {
 
     assertEquals(createdInvoice(), actual.paymentUrl(null));
   }
+
+  /* /!\ Use for unit test only
+  @Test
+  void generate_invoice_pdf_ok() throws IOException {
+    byte[] data = invoiceService.generateInvoicePdf(INVOICE1_ID);
+    File generatedFile = new File("test.pdf");
+    OutputStream os = new FileOutputStream(generatedFile);
+    os.write(data);
+    os.close();
+  }
+*/
 
   static class ContextInitializer extends AbstractContextInitializer {
     public static final int SERVER_PORT = TestUtils.anAvailableRandomPort();

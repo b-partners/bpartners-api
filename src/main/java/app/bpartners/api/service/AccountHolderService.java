@@ -15,4 +15,8 @@ public class AccountHolderService {
   public List<AccountHolder> getAccountHolders() {
     return accountHolderRepository.getAccountHolders();
   }
+
+  public AccountHolder getAccountHolderByAccountId(String accountId) {
+    return accountHolderRepository.getAccountHolders().get(0); //TODO: configure the repository
+  }
 }

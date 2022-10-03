@@ -29,6 +29,7 @@ public class InvoiceRestMapper {
     }
     return new Invoice()
         .id(domain.getId())
+        .fileId(domain.getFileId())
         .ref(domain.getRef())
         .title(domain.getTitle())
         .customer(customerMapper.toRest(domain.getInvoiceCustomer()))

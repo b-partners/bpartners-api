@@ -1,0 +1,84 @@
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Invoice</title>
+    <link href="style/style.css" rel="stylesheet"/>
+</head>
+<body>
+<header>
+    <div class="flex-container">
+        <div class="flex-content">
+            <img class="logo" src="images/logo.png" alt="logo"/>
+            <div>
+                <h1>BPartners</h1>
+                <p>SIREN : XXXXXXXX</p>
+            </div>
+        </div>
+        <div class="flex-content">
+            <img class="code" src="images/code.png" alt="QR-code"/>
+            <div>
+                <a href="">Payez ici</a>
+                <p>Nom client : <span th:text="${invoice.invoiceCustomer.name}"></span>
+                </p>
+                <p>Addresse : <span th:text="${invoice.invoiceCustomer.address}"></span>
+                </p>
+                <p>Telephone : <span th:text="${invoice.invoiceCustomer.phone}"></span>
+                </p>
+                <p>Email : <span th:text="${invoice.invoiceCustomer.email}"></span>
+                </p>
+                <p>Website : <span th:text="${invoice.invoiceCustomer.website}"></span>
+                </p>
+                <p>IBAN : XXXXX</p>
+            </div>
+        </div>
+    </div>
+</header>
+<section>
+    <p>N Facture : REF XXXXX</p>
+    <p>Date : XX/XX/XXXX</p>
+    <table>
+        <thead>
+        <th>Description</th>
+        <th>Quantite</th>
+        <th>Prix unitaire</th>
+        <th>Remise</th>
+        <th>Montant HT</th>
+        <th>Montant TTC</th>
+        </thead>
+        <tbody>
+        <th:block th:each="product : ${invoice.products}">
+            <tr>
+                <td><span th:text="${product.description}"></span></td>
+                <td><span th:text="${product.quantity}"></span></td>
+                <td><span th:text="${product.unitPrice}"></span></td>
+                <td><span th:text="${null}"></span></td>
+                <td><span th:text="${product.totalWithoutVat}"></span></td>
+                <td><span th:text="${product.totalPriceWithVat}"></span></td>
+            </tr>
+        </th:block>
+        </tbody>
+    </table>
+    <div class="amount-section">
+        <div>
+            <p><strong>Total HT</strong> : 7500 </p>
+            <p><strong>Montant de TVA</strong> : 20%</p>
+            <p><strong>Total TTC</strong> : 8000</p>
+        </div>
+    </div>
+</section>
+<footer>
+    <p>Lorem ip sum dolor</p>
+    <hr/>
+    <p>BPartners SASU - Capital XXXXXXXXX</p>
+    <div class="footer-info">
+        <div>
+            <p>Siege : Rue XXX PARIS</p>
+            <p>Contact : + 33 05 12 456 78</p>
+        </div>
+        <div>
+            <p>Email : example@email.com</p>
+            <p>Website : www.website.com</p>
+        </div>
+    </div>
+</footer>
+</body>
+</html>

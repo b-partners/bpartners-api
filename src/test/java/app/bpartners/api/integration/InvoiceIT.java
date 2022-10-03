@@ -9,9 +9,15 @@ import app.bpartners.api.endpoint.rest.model.Invoice;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.integration.conf.AbstractContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
+import app.bpartners.api.service.InvoiceService;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.time.LocalDate;
 import java.util.List;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -39,6 +45,9 @@ class InvoiceIT {
   private SentryConf sentryConf;
   @Value("${test.user.access.token}")
   private String bearerToken;
+
+  @Autowired
+  private InvoiceService invoiceService;
 
   private static ApiClient anApiClient(String token) {
     return TestUtils.anApiClient(token, InvoiceIT.ContextInitializer.SERVER_PORT);
@@ -122,6 +131,15 @@ class InvoiceIT {
     Invoice actual = api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, NEW_INVOICE_ID, validInvoice());
 
     assertEquals(createdInvoice(), actual.paymentUrl(null));
+  }
+
+  @Test
+  void generate_invoice_pdf_ok() throws IOException {
+    byte[] data = invoiceService.generateInvoicePdf(INVOICE1_ID);
+    File generatedFile = new File("test.pdf");
+    OutputStream os = new FileOutputStream(generatedFile);
+    os.write(data);
+    os.close();
   }
 
   static class ContextInitializer extends AbstractContextInitializer {

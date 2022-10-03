@@ -18,6 +18,7 @@ import lombok.Setter;
 @EqualsAndHashCode
 public class Invoice {
   private String id;
+  private String fileId;
   private String title;
   private String ref;
   private LocalDate sendingDate;

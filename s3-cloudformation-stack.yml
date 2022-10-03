@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: Stack for BPartners API
+Description: S3 bucket stack for BPartners API
 
 Parameters:
   Env:
@@ -12,5 +12,3 @@ Resources:
       BucketName: !Join ['', [ !Ref Env, -bpartners]]
       VersioningConfiguration:
         Status: Enabled
-      Tags:
-        - Key: !Join [ '', [ !Ref Env, -bpartners-api ] ]

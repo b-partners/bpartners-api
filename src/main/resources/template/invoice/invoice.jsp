@@ -5,20 +5,20 @@
     <meta name="description" content="">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Invoice</title>
-    <link rel="stylesheet" href="./style/style.css">
+    <link rel="stylesheet" href="style/style.css">
 </head>
 <body>
 <header>
     <div class="flex-container">
         <div class="flex-content">
-            <img class="logo" src="./images/logo.png" alt="logo">
+            <img class="logo" src="images/logo.png" alt="logo">
             <div>
                 <h1>BPartners</h1>
                 <p>SIREN : XXXXXXXX</p>
             </div>
         </div>
         <div class="flex-content">
-            <img class="code" src="./images/code.png" alt="QR-code">
+            <img class="code" src="images/code.png" alt="QR-code">
             <div>
                 <a href="">Payez ici</a>
                 <p>Nom client : John Doe</p>

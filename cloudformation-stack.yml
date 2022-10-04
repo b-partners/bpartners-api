@@ -71,8 +71,8 @@ Resources:
               Value: !Sub '{{resolve:ssm:/bpartners/${Env}/fintecture/app-secret}}'
             - Name: SENDINBLUE_API_KEY
               Value: !Sub '{{resolve:ssm:/bpartners/${Env}/sendinblue/api-key}}'
-            - Name: SENDINBLUE_LIST_ID
-              Value: !Sub '{{resolve:ssm/bpartners/${Env}/sendinblue/list-id}}'
+            - Name: SENDINBLUE_CONTACTLIST_ID
+              Value: !Sub '{{resolve:ssm/bpartners/${Env}/sendinblue/contactlist-id}}'
           LogConfiguration:
             LogDriver: awslogs
             Options:

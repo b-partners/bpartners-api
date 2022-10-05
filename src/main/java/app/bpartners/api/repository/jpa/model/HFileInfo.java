@@ -26,6 +26,7 @@ public class HFileInfo {
   @GeneratedValue(strategy = IDENTITY)
   private String id;
   private Instant uploadedAt;
+  private String accountId;
   @Column(name = "size_in_kb")
   private int sizeInKB;
   private String sha256;

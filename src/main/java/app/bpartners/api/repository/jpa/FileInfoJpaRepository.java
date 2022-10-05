@@ -4,4 +4,5 @@ import app.bpartners.api.repository.jpa.model.HFileInfo;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface FileInfoJpaRepository extends JpaRepository<HFileInfo, String> {
+  HFileInfo getByAccountIdAndId(String accountId, String id);
 }

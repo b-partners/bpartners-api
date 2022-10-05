@@ -107,11 +107,13 @@ class FileIT {
         "files/downloaded.jpeg");
 
     HttpResponse<byte[]> responseBearerInHeader = download(basePath, bearerToken, null, FILE_ID);
-    HttpResponse<byte[]> responseBearerInBoth = download(basePath, bearerToken, bearerToken, FILE_ID);
     HttpResponse<byte[]> responseBearerInQuery = download(basePath, bearerToken, FILE_ID);
+    HttpResponse<byte[]> responseBearerInBoth =
+        download(basePath, bearerToken, bearerToken, FILE_ID);
 
     assertEquals(HttpStatus.OK.value(), responseBearerInHeader.statusCode());
-    assertEquals(logoFileResource.getInputStream().readAllBytes().length, responseBearerInHeader.body().length);
+    assertEquals(logoFileResource.getInputStream().readAllBytes().length,
+        responseBearerInHeader.body().length);
     assertEquals(HttpStatus.OK.value(), responseBearerInQuery.statusCode());
     assertEquals(logoFileResource.getInputStream().readAllBytes().length,
         responseBearerInQuery.body().length);

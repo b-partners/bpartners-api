@@ -16,12 +16,12 @@ public class FileInfoRepositoryImpl implements FileRepository {
 
   @Override
   public FileInfo getByAccountIdAndId(String accountId, String id) {
-    return mapper.toDomain(jpaRepository.getById(id), accountId);
+    return mapper.toDomain(jpaRepository.getByAccountIdAndId(accountId, id));
   }
 
   @Override
   public FileInfo save(FileInfo file) {
     HFileInfo toSave = mapper.toEntity(file);
-    return mapper.toDomain(jpaRepository.save(toSave), null);
+    return mapper.toDomain(jpaRepository.save(toSave));
   }
 }

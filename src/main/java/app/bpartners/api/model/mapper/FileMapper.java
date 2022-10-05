@@ -27,17 +27,17 @@ public class FileMapper {
     return FileInfo.builder()
         .id(fileId)
         .uploadedAt(Instant.now())
-        .uploadedBy(((Principal) provider.getAuthentication().getPrincipal()).getUserId())
+        .uploadedBy(((Principal) provider.getAuthentication().getPrincipal()).getAccount().getId())
         .sizeInKB(toUpload.length / 1024)
         .sha256(checksum)
         .build();
   }
 
-  public FileInfo toDomain(HFileInfo file, String accountId) {
+  public FileInfo toDomain(HFileInfo file) {
     return FileInfo.builder()
         .id(file.getId())
         .uploadedAt(file.getUploadedAt())
-        .uploadedBy(accountId)
+        .uploadedBy(file.getAccountId())
         .sizeInKB(file.getSizeInKB())
         .sha256(file.getSha256())
         .build();
@@ -49,6 +49,7 @@ public class FileMapper {
         .uploadedAt(file.getUploadedAt())
         .sizeInKB(file.getSizeInKB())
         .sha256(file.getSha256())
+        .accountId(file.getUploadedBy())
         .build();
   }
 

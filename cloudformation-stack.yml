@@ -70,9 +70,9 @@ Resources:
             - Name: FINTECTURE_APP_SECRET
               Value: !Sub '{{resolve:ssm:/bpartners/${Env}/fintecture/app-secret}}'
             - Name: AWS_BUCKET_NAME
-              Value: !Sub '{{resolve:ssm:/bpartners/s3/bucket-name}}'
+              Value: !Sub '{{resolve:ssm:/bpartners/${Env}/s3/bucket-name}}'
             - Name: SENDINBLUE_API_KEY
-              Value: !Sub '{{resolve:ssm:/bpartners/sendinblue/api-key}}'
+              Value: !Sub '{{resolve:ssm:/bpartners/${Env}/sendinblue/api-key}}'
           LogConfiguration:
             LogDriver: awslogs
             Options:

@@ -75,9 +75,9 @@ class PreUserIT {
                 new ObjectMapper().writeValueAsString(List.of(validPreUser()))))
             .build(),
         HttpResponse.BodyHandlers.ofString());
+    sendinblueApi.deleteContact(VALID_EMAIL); // Delete the recent sendinblue created contact
 
     assertEquals(HttpStatus.OK.value(), response.statusCode());
-    sendinblueApi.deleteContact(VALID_EMAIL);
   }
 
   public static class ContextInitializer extends AbstractContextInitializer {

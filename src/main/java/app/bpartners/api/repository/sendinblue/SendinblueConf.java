@@ -17,7 +17,7 @@ public class SendinblueConf {
   public SendinblueConf(
       @Value("${sendinblue.api.key}")
       String apiKey,
-      @Value("${sendinblue.list.id}")
+      @Value("${sendinblue.contact.list.id}")
       Long contactListId) {
     this.apiKey = apiKey;
     this.contactListId = contactListId;

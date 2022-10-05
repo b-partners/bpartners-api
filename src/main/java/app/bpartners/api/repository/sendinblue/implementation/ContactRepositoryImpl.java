@@ -22,9 +22,4 @@ public class ContactRepositoryImpl implements ContactRepository {
             .createContact(mapper.toExternalCreateContact(contact)))
         .collect(Collectors.toUnmodifiableList());
   }
-
-  @Override
-  public boolean delete(Contact contact) {
-    return sendinblueApi.deleteContact(contact.getEmail());
-  }
 }

@@ -45,12 +45,12 @@ public class SendinblueApi {
     }
   }
 
-  public boolean deleteContact(String identifier) {
+  public void deleteContact(String identifier) {
     try {
       contactsApi.deleteContact(identifier);
-      return true;
     } catch (ApiException e) {
-      return false;
+      throw new app.bpartners.api.model.exception.ApiException(SERVER_EXCEPTION,
+          e.getResponseBody());
     }
   }
 }

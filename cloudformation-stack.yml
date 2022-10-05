@@ -73,6 +73,8 @@ Resources:
               Value: !Sub '{{resolve:ssm:/bpartners/${Env}/s3/bucket-name}}'
             - Name: SENDINBLUE_API_KEY
               Value: !Sub '{{resolve:ssm:/bpartners/${Env}/sendinblue/api-key}}'
+            - Name: SENDINBLUE_CONTACT_LIST_ID
+              Value: !Sub '{{resolve:ssm:/bpartners/${Env}/sendinblue/contact/list-id}}'
           LogConfiguration:
             LogDriver: awslogs
             Options:

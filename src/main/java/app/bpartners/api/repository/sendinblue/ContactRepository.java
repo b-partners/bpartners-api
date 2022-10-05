@@ -5,6 +5,4 @@ import java.util.List;
 
 public interface ContactRepository {
   List<Contact> save(List<Contact> toCreate);
-
-  boolean delete(Contact toDelete);
 }

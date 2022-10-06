@@ -50,7 +50,7 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
     }
     HInvoice invoice = optionalInvoice.get();
     HInvoiceCustomer invoiceCustomer = invoice.getInvoiceCustomer();
-    return mapper.toDomain(invoice, invoiceCustomer, null);
+    return mapper.toDomain(invoice, invoiceCustomer, List.of());
   }
 
   private List<HProduct> computeHInvoices(Invoice invoice) {

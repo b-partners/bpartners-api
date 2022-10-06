@@ -15,8 +15,10 @@ body {
 
 table {
     width: 100%;
+    border-collapse: collapse;
     text-align: center;
     margin-top: 5%;
+    font-size: 12px;
 }
 
 .logo {
@@ -41,7 +43,9 @@ a {
 .amount-section p {
     border: 1px solid black;
     padding: 4px 8px;
-    text-align: justify;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
 }
 
 th {
@@ -50,10 +54,11 @@ th {
 }
 
 th, td {
-    padding: 8px;
+    padding: 4px;
 }
 
 .footer-info {
     display: flex;
+    flex-direction: row;
     justify-content: space-between;
 }

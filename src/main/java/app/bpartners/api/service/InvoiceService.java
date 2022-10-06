@@ -10,6 +10,8 @@ import app.bpartners.api.repository.ProductRepository;
 import app.bpartners.api.service.aws.S3Service;
 import com.lowagie.text.DocumentException;
 import java.io.ByteArrayOutputStream;
+import java.net.MalformedURLException;
+import java.nio.file.FileSystems;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -33,8 +35,9 @@ public class InvoiceService {
   }
 
   public Invoice crupdateInvoice(Invoice toCrupdate) {
-    toCrupdate.setStatus(InvoiceStatus.CONFIRMED); //TODO: to be computed
-    // s3Service.uploadFile(accountId, fileId, generateInvoicePdf(toCrupdate.getId()));
+    toCrupdate.setStatus(InvoiceStatus.CONFIRMED);
+    s3Service.uploadFile(toCrupdate.getAccount().getId(),
+        toCrupdate.getFileId(), generateInvoicePdf(toCrupdate.getId()));
     return refreshValues(repository.crupdate(toCrupdate));
   }
 
@@ -92,22 +95,14 @@ public class InvoiceService {
   }
 
   private String parseInvoiceTemplateToString(String idInvoice) {
-    //Invoice invoice = getById(idInvoice); TODO: use this with IT
+    //Invoice invoice = getById(idInvoice);
     Invoice invoice = Invoice.builder()
         .invoiceCustomer(InvoiceCustomer.customerTemplateBuilder()
             .name("Client")
             .address("Mon adresse, Paris, France")
             .build())
         .build();
-
-    ClassLoaderTemplateResolver templateResolver = new ClassLoaderTemplateResolver();
-    templateResolver.setPrefix("/templates/");
-    templateResolver.setSuffix(".html");
-    templateResolver.setTemplateMode(TemplateMode.HTML);
-
-    TemplateEngine templateEngine = new TemplateEngine();
-    templateEngine.setTemplateResolver(templateResolver);
-
+    TemplateEngine templateEngine = configureTemplate();
     Context context = new Context();
     context.setVariable("invoice", invoice);
 
@@ -116,7 +111,7 @@ public class InvoiceService {
 
   public byte[] generateInvoicePdf(String idInvoice) {
     ITextRenderer renderer = new ITextRenderer();
-    renderer.setDocumentFromString(parseInvoiceTemplateToString(idInvoice));
+    loadStyle(renderer, idInvoice);
     renderer.layout();
 
     ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
@@ -126,5 +121,30 @@ public class InvoiceService {
       throw new RuntimeException(e);
     }
     return outputStream.toByteArray();
+  }
+
+  private void loadStyle(ITextRenderer renderer, String identifier) {
+    try {
+      String baseUrl = FileSystems.getDefault()
+          .getPath("src/main", "resources", "templates")
+          .toUri()
+          .toURL()
+          .toString();
+      renderer.setDocumentFromString(parseInvoiceTemplateToString(identifier), baseUrl);
+    } catch (MalformedURLException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  private TemplateEngine configureTemplate() {
+    ClassLoaderTemplateResolver templateResolver = new ClassLoaderTemplateResolver();
+    templateResolver.setPrefix("/templates/");
+    templateResolver.setSuffix(".html");
+    templateResolver.setCharacterEncoding("UTF-8");
+    templateResolver.setTemplateMode(TemplateMode.HTML);
+
+    TemplateEngine templateEngine = new TemplateEngine();
+    templateEngine.setTemplateResolver(templateResolver);
+    return templateEngine;
   }
 }

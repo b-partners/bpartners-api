@@ -51,6 +51,7 @@ public class InvoiceRestMapper {
         .collect(Collectors.toUnmodifiableList());
     return app.bpartners.api.model.Invoice.builder()
         .id(id)
+        .fileId(null)
         .title(rest.getTitle())
         .ref(rest.getRef())
         .sendingDate(rest.getSendingDate())

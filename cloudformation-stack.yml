@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: Stack for BPartners API
+Description: Compute stack for BPartners API
 
 Parameters:
   Env:
@@ -25,6 +25,7 @@ Resources:
       ClusterName: !Join ['', [!Ref Env, -bpartners-api]]
   LogGroup:
     Type: AWS::Logs::LogGroup
+    DeletionPolicy: "Retain"
     Properties:
       LogGroupName: !Join ['', [/ecs/, !Ref Env, -bpartners-api]]
   TaskDefinition:

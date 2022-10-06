@@ -1,18 +1,26 @@
 package app.bpartners.api.service;
 
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
+import app.bpartners.api.model.Account;
 import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.InvoiceCustomer;
 import app.bpartners.api.model.PaymentRedirection;
 import app.bpartners.api.model.Product;
+import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.repository.InvoiceRepository;
 import app.bpartners.api.repository.ProductRepository;
-import app.bpartners.api.service.aws.S3Service;
+import com.google.zxing.WriterException;
+import com.google.zxing.client.j2se.MatrixToImageWriter;
+import com.google.zxing.common.BitMatrix;
+import com.google.zxing.qrcode.QRCodeWriter;
 import com.lowagie.text.DocumentException;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.nio.file.FileSystems;
+import java.util.Base64;
 import java.util.List;
+import javax.imageio.ImageIO;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
@@ -21,23 +29,27 @@ import org.thymeleaf.templatemode.TemplateMode;
 import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
 import org.xhtmlrenderer.pdf.ITextRenderer;
 
+import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
+import static com.google.zxing.BarcodeFormat.QR_CODE;
+
 @Service
 @AllArgsConstructor
 public class InvoiceService {
+  public static final String LOGO_JPEG = "logo.jpeg";
   private final InvoiceRepository repository;
   private final ProductRepository productRepository;
   private final PaymentInitiationService pis;
-
-  private final S3Service s3Service;
+  private final FileService fileService;
 
   public Invoice getById(String invoiceId) {
     return refreshValues(repository.getById(invoiceId));
   }
 
   public Invoice crupdateInvoice(Invoice toCrupdate) {
+    String fileId = toCrupdate.getRef() + ".pdf";
     toCrupdate.setStatus(InvoiceStatus.CONFIRMED);
-    s3Service.uploadFile(toCrupdate.getAccount().getId(),
-        toCrupdate.getFileId(), generateInvoicePdf(toCrupdate.getId()));
+    fileService.uploadFile(toCrupdate.getAccount().getId(),
+        fileId, generateInvoicePdf(toCrupdate.getId()));
     return refreshValues(repository.crupdate(toCrupdate));
   }
 
@@ -49,7 +61,7 @@ public class InvoiceService {
     }
     Invoice initializedInvoice = Invoice.builder()
         .id(invoice.getId())
-        //.fileId(TODO)
+        .fileId(invoice.getRef() + ".pdf")
         .ref(invoice.getRef())
         .title(invoice.getTitle())
         .invoiceCustomer(invoice.getInvoiceCustomer())
@@ -101,10 +113,18 @@ public class InvoiceService {
             .name("Client")
             .address("Mon adresse, Paris, France")
             .build())
+        .account(Account.builder()
+            .id("beed1765-5c16-472a-b3f4-5c376ce5db58")
+            .build())
+        .paymentUrl("https://dashboard-dev.bpartners.app")
         .build();
     TemplateEngine templateEngine = configureTemplate();
     Context context = new Context();
+    byte[] qrCodeBytes = generateQrCode(invoice.getPaymentUrl());
+    byte[] logoBytes = fileService.downloadFile(invoice.getAccount().getId(), LOGO_JPEG);
     context.setVariable("invoice", invoice);
+    context.setVariable("qrcode", base64Image(qrCodeBytes));
+    context.setVariable("logo", base64Image(logoBytes));
 
     return templateEngine.process("invoice", context);
   }
@@ -146,5 +166,23 @@ public class InvoiceService {
     TemplateEngine templateEngine = new TemplateEngine();
     templateEngine.setTemplateResolver(templateResolver);
     return templateEngine;
+  }
+
+  private byte[] generateQrCode(String link) {
+    int width = 1000; //TODO: make this size parameterizable
+    int height = 1000; //TODO: make this size parameterizable
+    try {
+      QRCodeWriter writer = new QRCodeWriter();
+      BitMatrix bitMatrix = writer.encode(link, QR_CODE, width, height);
+      ByteArrayOutputStream os = new ByteArrayOutputStream();
+      ImageIO.write(MatrixToImageWriter.toBufferedImage(bitMatrix), "JPG", os);
+      return os.toByteArray();
+    } catch (WriterException | IOException e) {
+      throw new ApiException(SERVER_EXCEPTION, e);
+    }
+  }
+
+  private String base64Image(byte[] image) {
+    return Base64.getEncoder().encodeToString(image);
   }
 }

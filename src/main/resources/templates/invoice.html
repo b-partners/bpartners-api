@@ -7,16 +7,16 @@
 <header>
     <div class="flex-container">
         <div class="flex-content">
-            <img class="logo" src="logo.png" alt="logo"/>
+            <img class="logo" th:src="${'data:image/jpeg;base64,' + logo}" alt="logo"/>
             <div>
                 <h1>BPartners</h1>
                 <p>SIREN : XXXXXXXX</p>
             </div>
         </div>
         <div class="flex-content">
-            <img class="code" src="code.png" alt="QR-code"/>
+            <img class="code" th:src="${'data:image/jpeg;base64,' + qrcode}" alt="QR-code"/>
             <div>
-                <a href="">Payez ici</a>
+                <a th:href="${invoice.paymentUrl}">Payez ici</a>
                 <p>Nom client : <span th:text="${invoice.invoiceCustomer.name}"></span>
                 </p>
                 <p>Addresse : <span th:text="${invoice.invoiceCustomer.address}"></span>

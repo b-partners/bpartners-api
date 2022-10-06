@@ -37,7 +37,6 @@ import static app.bpartners.api.integration.CustomerTemplateIT.customer2;
 import static app.bpartners.api.integration.ProductIT.product3;
 import static app.bpartners.api.integration.ProductIT.product4;
 import static app.bpartners.api.integration.ProductIT.product5;
-import static app.bpartners.api.integration.conf.TestUtils.FILE_ID;
 import static app.bpartners.api.integration.conf.TestUtils.INVOICE1_ID;
 import static app.bpartners.api.integration.conf.TestUtils.INVOICE2_ID;
 import static app.bpartners.api.integration.conf.TestUtils.INVOICE_FILE_ID;

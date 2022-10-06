@@ -8,6 +8,7 @@ import app.bpartners.api.endpoint.rest.model.FileInfo;
 import app.bpartners.api.integration.conf.AbstractContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
 import app.bpartners.api.repository.swan.UserSwanRepository;
+import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -25,6 +26,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
+
 import static app.bpartners.api.integration.conf.TestUtils.BEARER_PREFIX;
 import static app.bpartners.api.integration.conf.TestUtils.BEARER_QUERY_PARAMETER_NAME;
 import static app.bpartners.api.integration.conf.TestUtils.FILE_ID;
@@ -76,19 +78,10 @@ class FileIT {
 
   @Test
   void upload_and_read_created_file_ok() throws IOException, InterruptedException {
-    HttpClient unauthenticatedClient = HttpClient.newBuilder().build();
     String basePath = "http://localhost:" + ContextInitializer.SERVER_PORT;
     Resource toUpload = new ClassPathResource("files/upload.jpg");
 
-
-    HttpResponse<byte[]> uploadResponse = unauthenticatedClient.send(
-        HttpRequest.newBuilder()
-            .uri(URI.create(
-                basePath + "/accounts/" + JOE_DOE_ACCOUNT_ID + "/files/" + TO_UPLOAD_FILE_ID
-                    + "/raw"))
-            .header("Authorization", "Bearer " + bearerToken)
-            .method("POST", HttpRequest.BodyPublishers.ofFile(toUpload.getFile().toPath())).build(),
-        HttpResponse.BodyHandlers.ofByteArray());
+    HttpResponse<byte[]> uploadResponse = upload(TO_UPLOAD_FILE_ID, toUpload.getFile());
 
     HttpResponse<byte[]> downloadResponse =
         download(basePath, bearerToken, null, TO_UPLOAD_FILE_ID);
@@ -98,6 +91,21 @@ class FileIT {
     assertEquals(toUpload.getInputStream().readAllBytes().length, uploadResponse.body().length);
     assertEquals(HttpStatus.OK.value(), downloadResponse.statusCode());
     assertEquals(toUpload.getInputStream().readAllBytes().length, downloadResponse.body().length);
+  }
+
+  private HttpResponse<byte[]> upload(String fileId, File toUpload)
+      throws IOException, InterruptedException {
+    HttpClient unauthenticatedClient = HttpClient.newBuilder().build();
+    String basePath = "http://localhost:" + ContextInitializer.SERVER_PORT;
+
+    return unauthenticatedClient.send(
+        HttpRequest.newBuilder()
+            .uri(URI.create(
+                basePath + "/accounts/" + JOE_DOE_ACCOUNT_ID + "/files/" + fileId
+                    + "/raw"))
+            .header("Authorization", "Bearer " + bearerToken)
+            .method("POST", HttpRequest.BodyPublishers.ofFile(toUpload.toPath())).build(),
+        HttpResponse.BodyHandlers.ofByteArray());
   }
 
   @Test

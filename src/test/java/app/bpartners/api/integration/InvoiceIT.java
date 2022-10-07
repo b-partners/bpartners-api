@@ -10,14 +10,6 @@ import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.integration.conf.AbstractContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
 import app.bpartners.api.service.InvoiceService;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.time.LocalDate;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -26,9 +18,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.Resource;
-import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
@@ -39,7 +28,7 @@ import static app.bpartners.api.integration.ProductIT.product4;
 import static app.bpartners.api.integration.ProductIT.product5;
 import static app.bpartners.api.integration.conf.TestUtils.INVOICE1_ID;
 import static app.bpartners.api.integration.conf.TestUtils.INVOICE2_ID;
-import static app.bpartners.api.integration.conf.TestUtils.INVOICE_FILE_ID;
+import static app.bpartners.api.integration.conf.TestUtils.INVOICE1_FILE_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
@@ -76,7 +65,7 @@ class InvoiceIT {
   Invoice invoice1() {
     return new Invoice()
         .id(INVOICE1_ID)
-        .fileId(INVOICE_FILE_ID)
+        .fileId(INVOICE1_FILE_ID)
         .title("Facture tableau")
         .customer(customer1())
         .ref("BP001")
@@ -94,6 +83,7 @@ class InvoiceIT {
     return new Invoice()
         .id(INVOICE2_ID)
         .title("Facture plomberie")
+        .fileId("BP002.pdf")
         .customer(customer2().address("Nouvelle adresse"))
         .ref("BP002")
         .sendingDate(LocalDate.of(2022, 9, 10))
@@ -153,30 +143,6 @@ class InvoiceIT {
     os.close();
   }
 */
-  @Test
-  void download_invoice_file_ok() throws IOException, InterruptedException {
-    String basePath = "http://localhost:" + FileIT.ContextInitializer.SERVER_PORT;
-    Resource logoFileResource = new ClassPathResource(
-        "files/invoice_downloaded.jpeg");
-
-    HttpResponse<byte[]> response = download(basePath, INVOICE_FILE_ID);
-
-    assertEquals(HttpStatus.OK.value(), response.statusCode());
-    assertEquals(logoFileResource.getInputStream().readAllBytes().length, response.body().length);
-  }
-
-  public HttpResponse<byte[]> download(String basePath, String fileId)
-      throws IOException, InterruptedException {
-    HttpClient unauthenticatedClient = HttpClient.newBuilder().build();
-    return unauthenticatedClient.send(
-        HttpRequest.newBuilder()
-            .uri(URI.create(
-                basePath + "/accounts/" + JOE_DOE_ACCOUNT_ID + "/files/" + fileId + "/raw"))
-            .header("Access-Control-Request-Method", "GET")
-            .GET()
-            .build(),
-        HttpResponse.BodyHandlers.ofByteArray());
-  }
 
   static class ContextInitializer extends AbstractContextInitializer {
     public static final int SERVER_PORT = TestUtils.anAvailableRandomPort();

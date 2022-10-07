@@ -29,6 +29,7 @@ import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
 import org.xhtmlrenderer.pdf.ITextRenderer;
 
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
+import static app.bpartners.api.service.utils.FileInfoUtils.JPG_FORMAT_NAME;
 import static com.google.zxing.BarcodeFormat.QR_CODE;
 
 @Service
@@ -46,12 +47,11 @@ public class InvoiceService {
   }
 
   public Invoice crupdateInvoice(Invoice toCrupdate) {
-    String fileId = toCrupdate.getRef() + ".pdf";
     toCrupdate.setStatus(InvoiceStatus.CONFIRMED);
-    Invoice crupdated = refreshValues(repository.crupdate(toCrupdate));
-    fileService.uploadFile(crupdated.getAccount().getId(),
-        fileId, generateInvoicePdf(crupdated));
-    return crupdated;
+    Invoice refreshedInvoice = refreshValues(repository.crupdate(toCrupdate));
+    fileService.uploadFile(refreshedInvoice.getAccount().getId(),
+        refreshedInvoice.getFileId(), generateInvoicePdf(refreshedInvoice));
+    return refreshedInvoice;
   }
 
   private Invoice refreshValues(Invoice invoice) {
@@ -62,7 +62,6 @@ public class InvoiceService {
     }
     Invoice initializedInvoice = Invoice.builder()
         .id(invoice.getId())
-        .fileId(invoice.getRef() + ".pdf")
         .ref(invoice.getRef())
         .title(invoice.getTitle())
         .invoiceCustomer(invoice.getInvoiceCustomer())
@@ -108,52 +107,8 @@ public class InvoiceService {
   }
 
   private String parseInvoiceTemplateToString(Invoice invoice) {
-    Account account = invoice.getAccount();
-    AccountHolder accountHolder = holderService.getAccountHolderByAccountId(account.getId());
-    /* /!\ For the PDF generation unit test only
-
-    Product product = Product.builder()
-        .description("Product description")
-        .quantity(50)
-        .vatPercent(5)
-        .unitPrice(15)
-        .build();
-    Invoice invoice = Invoice.builder()
-        .toPayAt(LocalDate.now())
-        .invoiceCustomer(InvoiceCustomer.customerTemplateBuilder()
-            .name("Client")
-            .address("Mon adresse, Paris, France")
-            .email("example@email.com")
-            .phone("+33 6 24 15 48 45")
-            .website("www.website.com")
-            .build())
-        .products(List.of(product))
-        .account(Account.builder()
-            .id("beed1765-5c16-472a-b3f4-5c376ce5db58")
-            .name("Artisan")
-            .iban("FR7612548029989876543210917")
-            .build())
-        .paymentUrl("https://dashboard-dev.bpartners.app")
-        .sendingDate(LocalDate.of(2022, 10, 1))
-        .toPayAt(LocalDate.of(2022, 11, 1))
-        .build();
-        AccountHolder accountHolder = AccountHolder.builder()
-        .name("Luc Artisan SASU")
-        .address("3 rue Reine Elisabeth")
-        .city("Metz")
-        .postalCode(String.valueOf(57000))
-        .country("France")
-        .build();*/
     TemplateEngine templateEngine = configureTemplate();
-    Context context = new Context();
-    byte[] qrCodeBytes = generateQrCode(invoice.getPaymentUrl());
-    byte[] logoBytes = fileService.downloadFile(account.getId(), LOGO_JPEG);
-    context.setVariable("invoice", invoice);
-    context.setVariable("qrcode", base64Image(qrCodeBytes));
-    context.setVariable("logo", base64Image(logoBytes));
-    context.setVariable("account", account);
-    context.setVariable("accountHolder", accountHolder);
-
+    Context context = configureContext(invoice);
     return templateEngine.process("invoice", context);
   }
 
@@ -172,16 +127,25 @@ public class InvoiceService {
   }
 
   private void loadStyle(ITextRenderer renderer, Invoice invoice) {
-    try {
-      String baseUrl = FileSystems.getDefault()
-          .getPath("src/main", "resources", "templates")
-          .toUri()
-          .toURL()
-          .toString();
-      renderer.setDocumentFromString(parseInvoiceTemplateToString(invoice), baseUrl);
-    } catch (IOException e) {
-      throw new ApiException(SERVER_EXCEPTION, e);
-    }
+    String baseUrl = FileSystems.getDefault()
+        .getPath("src/main", "resources", "templates")
+        .toUri()
+        .toString();
+    renderer.setDocumentFromString(parseInvoiceTemplateToString(invoice), baseUrl);
+  }
+
+  private Context configureContext(Invoice invoice) {
+    Account account = invoice.getAccount();
+    AccountHolder accountHolder = holderService.getAccountHolderByAccountId(account.getId());
+    Context context = new Context();
+    byte[] qrCodeBytes = generateQrCode(invoice.getPaymentUrl());
+    byte[] logoBytes = fileService.downloadFile(account.getId(), LOGO_JPEG);
+    context.setVariable("invoice", invoice);
+    context.setVariable("qrcode", base64Image(qrCodeBytes));
+    context.setVariable("logo", base64Image(logoBytes));
+    context.setVariable("account", account);
+    context.setVariable("accountHolder", accountHolder);
+    return context;
   }
 
   private TemplateEngine configureTemplate() {
@@ -203,7 +167,7 @@ public class InvoiceService {
       QRCodeWriter writer = new QRCodeWriter();
       BitMatrix bitMatrix = writer.encode(link, QR_CODE, width, height);
       ByteArrayOutputStream os = new ByteArrayOutputStream();
-      ImageIO.write(MatrixToImageWriter.toBufferedImage(bitMatrix), "JPG", os);
+      ImageIO.write(MatrixToImageWriter.toBufferedImage(bitMatrix), JPG_FORMAT_NAME, os);
       return os.toByteArray();
     } catch (WriterException | IOException e) {
       throw new ApiException(SERVER_EXCEPTION, e);

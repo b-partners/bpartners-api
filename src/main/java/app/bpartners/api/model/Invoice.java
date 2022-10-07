@@ -12,6 +12,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import static app.bpartners.api.service.utils.FileInfoUtils.PDF_EXTENSION;
+
 @Getter
 @Setter
 @Builder
@@ -20,7 +22,6 @@ import lombok.Setter;
 @EqualsAndHashCode
 public class Invoice {
   private String id;
-  private String fileId;
   private String title;
   private String ref;
   private LocalDate sendingDate;
@@ -33,6 +34,10 @@ public class Invoice {
   private Account account;
   private List<Product> products;
   private InvoiceStatus status;
+
+  public String getFileId() {
+    return this.getRef() + PDF_EXTENSION;
+  }
 
   public Date getFormattedSendingDate() {
     return Date.from(sendingDate.atStartOfDay(ZoneId.systemDefault()).toInstant());

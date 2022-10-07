@@ -97,15 +97,166 @@ Resources:
     Properties:
       RoleName: !Join ['', [!Ref Env, -bpartners-api, -TaskRole]]
       AssumeRolePolicyDocument:
+        Version: 2012-10-17
         Statement:
           - Effect: Allow
             Principal:
               Service: ecs-tasks.amazonaws.com
-            Action: 'sts:AssumeRole'
+            Action: sts:AssumeRole
       ManagedPolicyArns:
         - 'arn:aws:iam::aws:policy/AmazonS3FullAccess'
         - 'arn:aws:iam::aws:policy/AmazonSQSFullAccess'
         - 'arn:aws:iam::aws:policy/AmazonEventBridgeFullAccess'
+      Policies:
+        - PolicyName: customPolicy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Action:
+                  - ssm:CancelCommand
+                  - ssm:SendCommand
+                  - ssm:ListCommands
+                  - ssm:SendAutomationSignal
+                  - ssm:CreateActivation
+                  - ssm:ListInstanceAssociations
+                  - ssm:UpdateAssociation
+                  - ssm:CreateOpsItem
+                  - ssm:UpdateAssociationStatus
+                  - ssm:StartSession
+                  - ssm:GetMaintenanceWindowTask
+                  - ssm:DescribeAutomationExecutions
+                  - ssm:RegisterPatchBaselineForPatchGroup
+                  - ssm:DescribeMaintenanceWindowExecutionTaskInvocations
+                  - ssm:DescribeAutomationStepExecutions
+                  - ssm:ListResourceDataSync
+                  - ssm:ListDocuments
+                  - ssm:UpdateDocument
+                  - ssm:DescribeMaintenanceWindowsForTarget
+                  - ssm:UpdateManagedInstanceRole
+                  - ssm:PutCalendar
+                  - ssm:UpdatePatchBaseline
+                  - ssm:ListComplianceItems
+                  - ssm:GetMaintenanceWindowExecutionTask
+                  - ssm:RegisterTaskWithMaintenanceWindow
+                  - ssm:GetMaintenanceWindowExecution
+                  - ssm:ListResourceComplianceSummaries
+                  - ssm:CreateDocument
+                  - ssm:DescribeOpsItems
+                  - ssm:GetOpsMetadata
+                  - ssm:UpdateMaintenanceWindow
+                  - ssm:StartAutomationExecution
+                  - ssm:DescribeMaintenanceWindows
+                  - ssm:CreateAssociation
+                  - ssm:CancelMaintenanceWindowExecution
+                  - ssm:DescribeEffectivePatchesForPatchBaseline
+                  - ssm:DescribeDocumentPermission
+                  - ssm:GetAutomationExecution
+                  - ssm:DescribePatchGroups
+                  - ssm:GetDefaultPatchBaseline
+                  - ssm:DescribeDocument
+                  - ssm:ListAssociationVersions
+                  - ssm:PutConfigurePackageResult
+                  - ssm:DescribePatchGroupState
+                  - ssm:UpdateMaintenanceWindowTask
+                  - ssm:ResetServiceSetting
+                  - ssm:CreatePatchBaseline
+                  - ssm:DeleteInventory
+                  - ssm:DescribeMaintenanceWindowExecutionTasks
+                  - ssm:DescribeInstancePatchStatesForPatchGroup
+                  - ssm:GetDocument
+                  - ssm:CreateResourceDataSync
+                  - ssm:GetInventorySchema
+                  - ssm:CreateMaintenanceWindow
+                  - ssm:GetMaintenanceWindow
+                  - ssm:GetParametersByPath
+                  - ssm:DescribeAssociationExecutionTargets
+                  - ssm:GetPatchBaseline
+                  - ssm:ListInventoryEntries
+                  - ssm:DescribeAssociation
+                  - ssm:ListOpsItemEvents
+                  - ssm:DescribeSessions
+                  - ssm:DisassociateOpsItemRelatedItem
+                  - ssm:DescribePatchBaselines
+                  - ssm:DeregisterPatchBaselineForPatchGroup
+                  - ssm:GetOpsSummary
+                  - ssm:DescribePatchProperties
+                  - ssm:StopAutomationExecution
+                  - ssm:UpdateOpsItem
+                  - ssm:UpdateServiceSetting
+                  - ssm:DescribeInstanceInformation
+                  - ssm:ListTagsForResource
+                  - ssm:CreateAssociationBatch
+                  - ssm:DescribeDocumentParameters
+                  - ssm:GetCalendar
+                  - ssm:RegisterDefaultPatchBaseline
+                  - ssm:GetCalendarState
+                  - ssm:UpdateInstanceAssociationStatus
+                  - ssm:LabelParameterVersion
+                  - ssm:ResumeSession
+                  - ssm:ListDocumentVersions
+                  - ssm:DeregisterTargetFromMaintenanceWindow
+                  - ssm:UpdateDocumentDefaultVersion
+                  - ssm:ListDocumentMetadataHistory
+                  - ssm:DescribeMaintenanceWindowSchedule
+                  - ssm:DescribeInstancePatches
+                  - ssm:UpdateMaintenanceWindowTarget
+                  - ssm:GetParameter
+                  - ssm:GetMaintenanceWindowExecutionTaskInvocation
+                  - ssm:DeleteActivation
+                  - ssm:DeleteParameter
+                  - ssm:StartAssociationsOnce
+                  - ssm:UnlabelParameterVersion
+                  - ssm:UpdateInstanceInformation
+                  - ssm:ListOpsMetadata
+                  - ssm:DescribeParameters
+                  - ssm:PutComplianceItems
+                  - ssm:GetConnectionStatus
+                  - ssm:GetOpsItem
+                  - ssm:DeleteOpsMetadata
+                  - ssm:RegisterTargetWithMaintenanceWindow
+                  - ssm:GetParameters
+                  - ssm:ListOpsItemRelatedItems
+                  - ssm:DeleteParameters
+                  - ssm:PutParameter
+                  - ssm:UpdateResourceDataSync
+                  - ssm:GetServiceSetting
+                  - ssm:StartChangeRequestExecution
+                  - ssm:DescribeAssociationExecutions
+                  - ssm:ListCommandInvocations
+                  - ssm:UpdateOpsMetadata
+                  - ssm:DescribeMaintenanceWindowTasks
+                  - ssm:GetPatchBaselineForPatchGroup
+                  - ssm:TerminateSession
+                  - ssm:AssociateOpsItemRelatedItem
+                  - ssm:DeletePatchBaseline
+                  - ssm:DescribeMaintenanceWindowExecutions
+                  - ssm:GetManifest
+                  - ssm:DescribeInstancePatchStates
+                  - ssm:DeleteResourceDataSync
+                  - ssm:RegisterManagedInstance
+                  - ssm:DeregisterTaskFromMaintenanceWindow
+                  - ssm:DescribeInstanceAssociationsStatus
+                  - ssm:DescribeInstanceProperties
+                  - ssm:GetDeployablePatchSnapshotForInstance
+                  - ssm:GetParameterHistory
+                  - ssm:DescribeMaintenanceWindowTargets
+                  - ssm:DeleteMaintenanceWindow
+                  - ssm:DescribeInventoryDeletions
+                  - ssm:DescribeEffectiveInstanceAssociations
+                  - ssm:GetInventory
+                  - ssm:DescribeActivations
+                  - ssm:GetCommandInvocation
+                  - ssm:DeregisterManagedInstance
+                  - ssm:CreateOpsMetadata
+                  - ssm:DeleteAssociation
+                  - ssm:UpdateDocumentMetadata
+                  - ssm:ListComplianceSummaries
+                  - ssm:PutInventory
+                  - ssm:ListAssociations
+                  - ssm:DeleteDocument
+                  - ssm:DescribeAvailablePatches
+                Resource: arn:aws:ssm:*:*:*
+                Effect: Allow
   Service:
     Type: AWS::ECS::Service
     Properties:

@@ -5,76 +5,104 @@
 </head>
 <body>
 <header>
-    <div class="flex-container">
-        <div class="flex-content">
-            <img class="logo" th:src="${'data:image/jpeg;base64,' + logo}" alt="logo"/>
-            <div>
-                <h1>BPartners</h1>
-                <p>SIREN : XXXXXXXX</p>
-            </div>
-        </div>
-        <div class="flex-content">
-            <img class="code" th:src="${'data:image/jpeg;base64,' + qrcode}" alt="QR-code"/>
-            <div>
-                <a th:href="${invoice.paymentUrl}">Payez ici</a>
-                <p>Nom client : <span th:text="${invoice.invoiceCustomer.name}"></span>
+    <table class="table-head">
+        <tr>
+            <td>
+                <img class="logo" th:src="${'data:image/jpeg;base64,' + logo}" alt="logo"/>
+                <div>
+                    <h1 th:text="${invoice.account.name}"></h1>
+                </div>
+            </td>
+            <td class="text-right">
+                <img class="code" th:src="${'data:image/jpeg;base64,' + qrcode}" alt="QR-code"/>
+                <div>
+                    <a th:href="${invoice.paymentUrl}">Payez ici</a>
+                    <p>Date limite de paiement : <span th:text="${invoice.toPayAt}"></span></p>
+                </div>
+            </td>
+        </tr>
+    </table>
+    <table class="table-head">
+        <tr>
+            <td>
+                <p><strong>Facture n° : REF XXXXX</strong></p>
+                <p class="muted">Date de facturation : XX/XX/XXXX</p>
+            </td>
+            <td class="text-right">
+                <p><strong
+                        th:text="${invoice.invoiceCustomer.name}"></strong>
                 </p>
-                <p>Addresse : <span th:text="${invoice.invoiceCustomer.address}"></span>
+                <p class="muted"><span
+                        th:text="${invoice.invoiceCustomer.address}"></span>
                 </p>
-                <p>Telephone : <span th:text="${invoice.invoiceCustomer.phone}"></span>
+                <p class="muted"><span
+                        th:text="${invoice.invoiceCustomer.phone}"></span>
                 </p>
-                <p>Email : <span th:text="${invoice.invoiceCustomer.email}"></span>
+                <p class="muted"><span
+                        th:text="${invoice.invoiceCustomer.email}"></span>
                 </p>
-                <p>Website : <span th:text="${invoice.invoiceCustomer.website}"></span>
+                <p class="muted"><span
+                        th:text="${invoice.invoiceCustomer.website}"></span>
                 </p>
-                <p>IBAN : XXXXX</p>
-            </div>
-        </div>
-    </div>
+            </td>
+        </tr>
+    </table>
 </header>
 <section>
-    <p>N Facture : REF XXXXX</p>
-    <p>Date : XX/XX/XXXX</p>
     <table>
-        <thead>
+        <thead class="text-center">
         <th>Description</th>
         <th>Quantite</th>
         <th>Prix unitaire</th>
-        <th>Remise</th>
+        <th>TVA</th>
         <th>Montant HT</th>
         <th>Montant TTC</th>
         </thead>
         <tbody>
         <th:block th:each="product : ${invoice.products}">
             <tr>
-                <td><span th:text="${product.description}"></span></td>
-                <td><span th:text="${product.quantity}"></span></td>
-                <td><span th:text="${product.unitPrice}"></span></td>
-                <td><span th:text="${null}"></span></td>
-                <td><span th:text="${product.totalWithoutVat}"></span></td>
-                <td><span th:text="${product.totalPriceWithVat}"></span></td>
+                <td class="text-left"><span th:text="${product.description}"></span></td>
+                <td class="text-center"><span th:text="${product.quantity}"></span></td>
+                <td class="text-center"><span th:text="${product.unitPrice}"></span></td>
+                <td class="text-center"><span th:text="${product.vatPercent}"></span></td>
+                <td class="text-center"><span th:text="${product.totalWithoutVat}"></span></td>
+                <td class="text-center"><span th:text="${product.totalPriceWithVat}"></span></td>
             </tr>
         </th:block>
         </tbody>
     </table>
     <div class="amount-section">
         <div>
-            <p><strong>Total HT</strong> : 7500 </p>
-            <p><strong>Montant de TVA</strong> : 20%</p>
-            <p><strong>Total TTC</strong> : 8000</p>
+            <p><strong>Total HT</strong> : <span th:text="${invoice.totalPriceWithoutVat}"></span> €
+            </p>
+            <p><strong>Total TVA</strong> : <span th:text="${invoice.totalVat}"></span> %</p>
+            <p><strong>Total TTC à régler</strong> : <span
+                    th:text="${invoice.totalPriceWithVat}"></span> €</p>
         </div>
     </div>
 </section>
 <footer>
-    <p>Lorem ip sum dolor</p>
+    <p><strong>Bien à vous et merci pour votre confiance.</strong>
+        <span class="muted">
+            La facture est payable à réception
+            Des pénalités correspondant à trois fois le taux de l’intérêt légal seront applicables en
+            l’absence ou en cas de retard de paiement. Les pénalités de
+            retard sont exigibles sans qu'un rappel soit nécessaire. Une indemnité forfaitaire de 40 €
+            pour frais de recouvrement sera appliquée en cas de
+            retard de paiement conformément aux articles L 441-3 et L 441-6 du code de commerce.
+            Pas d'escompte en cas de paiement anticipé
+        </span></p>
+    <div>
+        <p th:text="${invoice.account.iban}"></p>
+    </div>
     <hr/>
-    <p>BPartners SASU - Capital XXXXXXXXX</p>
+    <p class="muted">BPartners SASU - Capital XXXXXXXXX</p>
     <div class="footer-info">
-        <div>
-            <p>Siege : Rue XXX PARIS</p>
-            <p>Contact : + 33 05 12 456 78</p>
+        <div class="content-left muted">
+            <p>Siege social : Rue XXX PARIS</p>
+            <p>Tel : + 33 05 12 456 78</p>
         </div>
-        <div>
+        <div class="content-right muted">
             <p>Email : example@email.com</p>
             <p>Website : www.website.com</p>
         </div>

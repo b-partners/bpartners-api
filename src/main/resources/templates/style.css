@@ -1,28 +1,39 @@
-@import url('https://fonts.googleapis.com/css?family=Open+Sans&display=swap');
-
 body {
-    margin: 5%;
+    margin: 2% 5%;
     padding: 0;
     box-sizing: border-box;
-    font-family: "Open Sans";
     font-size: 12px;
 }
 
-.flex-container {
-    display: flex;
-    justify-content: space-between;
+.table-head {
+    width: 100%;
 }
+
+.text-right {
+    text-align: right;
+}
+
+.text-left {
+    text-align: left;
+}
+
+.text-center {
+    text-align: center;
+}
+
+.text-justify {
+    text-align: justify;
+}
+
 
 table {
     width: 100%;
     border-collapse: collapse;
-    text-align: center;
-    margin-top: 5%;
     font-size: 12px;
 }
 
 .logo {
-    width: 100px;
+    width: 50px;
     height: 50px;
 }
 
@@ -35,17 +46,12 @@ a {
     text-decoration: none;
 }
 
-.amount-section {
-    display: flex;
-    justify-content: flex-end;
-}
 
 .amount-section p {
     border: 1px solid black;
     padding: 4px 8px;
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
+    width: 150px;
+    margin-left: 73%;
 }
 
 th {
@@ -57,8 +63,14 @@ th, td {
     padding: 4px;
 }
 
-.footer-info {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
+.content-left {
+    float: left;
+}
+
+.content-right {
+    float: right;
+}
+
+.muted {
+    color: grey;
 }

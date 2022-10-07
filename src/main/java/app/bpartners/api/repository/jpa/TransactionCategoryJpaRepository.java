@@ -25,7 +25,7 @@ public interface TransactionCategoryJpaRepository
       + "and tc.type = ?2 and tc.vat = ?3 and tc.id_transaction_category_tmpl is null"
       + " order by tc.created_datetime desc limit 1", nativeQuery = true)
   HTransactionCategory findByCriteriaOrderByCreatedDatetime(
-      String idAccount, String type, Integer vat);
+      String idAccount, String type, String vat);
 
   List<HTransactionCategory> findAllByIdAccount(String idAccount);
 

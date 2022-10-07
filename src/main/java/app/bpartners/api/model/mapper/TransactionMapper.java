@@ -3,6 +3,7 @@ package app.bpartners.api.model.mapper;
 import app.bpartners.api.model.Transaction;
 import app.bpartners.api.model.TransactionCategory;
 import org.springframework.stereotype.Component;
+import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 
 @Component
 public class TransactionMapper {
@@ -10,7 +11,7 @@ public class TransactionMapper {
                               TransactionCategory category) {
     return Transaction.builder()
         .id(external.getNode().getId())
-        .amount(external.getNode().getAmount().getValue().intValue())
+        .amount(parseFraction(external.getNode().getAmount().getValue()))
         .currency(external.getNode().getAmount().getCurrency())
         .label(external.getNode().getLabel())
         .reference(external.getNode().getReference())

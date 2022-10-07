@@ -12,8 +12,6 @@ import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
 import app.bpartners.api.integration.conf.S3AbstractContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
 import app.bpartners.api.manager.ProjectTokenManager;
-import app.bpartners.api.model.Account;
-import app.bpartners.api.model.InvoiceCustomer;
 import app.bpartners.api.repository.fintecture.FintectureConf;
 import app.bpartners.api.repository.fintecture.FintecturePaymentInitiationRepository;
 import app.bpartners.api.repository.sendinblue.SendinblueConf;
@@ -22,10 +20,6 @@ import app.bpartners.api.repository.swan.AccountSwanRepository;
 import app.bpartners.api.repository.swan.UserSwanRepository;
 import app.bpartners.api.service.InvoiceService;
 import app.bpartners.api.service.aws.SesService;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -77,12 +71,11 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 class InvoiceIT {
   public static final String OTHER_ACCOUNT_ID = "other_account_id";
   public static final int MAX_PAGE_SIZE = 500;
+  public static final String RANDOM_INVOICE_ID = "random_invoice_id";
+  public static final String INVOICE5_ID = "invoice5_id";
   private static final String NEW_INVOICE_ID = "invoice_uuid";
   @Autowired
   private InvoiceService invoiceService;
-  public static final String RANDOM_INVOICE_ID = "random_invoice_id";
-  public static final String INVOICE5_ID = "invoice5_id";
-
   @MockBean
   private SentryConf sentryConf;
   @MockBean
@@ -176,9 +169,9 @@ class InvoiceIT {
         .toPayAt(LocalDate.of(2022, 10, 1))
         .status(CONFIRMED)
         .products(List.of(product3(), product4()))
-        .totalPriceWithVat(8800)
-        .totalVat(800)
-        .totalPriceWithoutVat(8000);
+        .totalPriceWithVat(8800.0)
+        .totalVat(800.0)
+        .totalPriceWithoutVat(8000.0);
   }
 
   Invoice invoice2() {
@@ -193,8 +186,8 @@ class InvoiceIT {
         .toPayAt(LocalDate.of(2022, 10, 10))
         .status(CONFIRMED)
         .products(List.of(product5()))
-        .totalPriceWithVat(1100)
-        .totalVat(100).totalPriceWithoutVat(1000);
+        .totalPriceWithVat(1100.0)
+        .totalVat(100.0).totalPriceWithoutVat(1000.0);
   }
 
   Invoice invoice6() {
@@ -210,9 +203,9 @@ class InvoiceIT {
         .sendingDate(LocalDate.of(2022, 10, 12))
         .products(List.of())
         .toPayAt(LocalDate.of(2022, 11, 10))
-        .totalPriceWithVat(0)
-        .totalVat(0)
-        .totalPriceWithoutVat(0);
+        .totalPriceWithVat(0.0)
+        .totalVat(0.0)
+        .totalPriceWithoutVat(0.0);
   }
 
   CrupdateInvoice validInvoice() {
@@ -239,9 +232,9 @@ class InvoiceIT {
         .sendingDate(validInvoice().getSendingDate())
         .products(List.of(product4().id(null), product5().id(null)))
         .toPayAt(validInvoice().getToPayAt())
-        .totalPriceWithVat(3300)
-        .totalVat(300)
-        .totalPriceWithoutVat(3000);
+        .totalPriceWithVat(3300.0)
+        .totalVat(300.0)
+        .totalPriceWithoutVat(3000.0);
   }
 
   Invoice expectedConfirmed() {
@@ -256,9 +249,9 @@ class InvoiceIT {
         .sendingDate(confirmedInvoice().getSendingDate())
         .products(List.of(product5().id(null)))
         .toPayAt(confirmedInvoice().getToPayAt())
-        .totalPriceWithVat(1100)
-        .totalVat(100)
-        .totalPriceWithoutVat(1000);
+        .totalPriceWithVat(1100.0)
+        .totalVat(100.0)
+        .totalPriceWithoutVat(1000.0);
   }
 
   Invoice expectedProposal() {
@@ -272,9 +265,9 @@ class InvoiceIT {
         .sendingDate(proposalInvoice().getSendingDate())
         .products(List.of(product4().id(null), product5().id(null)))
         .toPayAt(proposalInvoice().getToPayAt())
-        .totalPriceWithVat(3300)
-        .totalVat(300)
-        .totalPriceWithoutVat(3000);
+        .totalPriceWithVat(3300.0)
+        .totalVat(300.0)
+        .totalPriceWithoutVat(3000.0);
   }
 
   Invoice expectedPaid() {
@@ -289,9 +282,9 @@ class InvoiceIT {
         .sendingDate(paidInvoice().getSendingDate())
         .products(List.of(product5().id(null)))
         .toPayAt(paidInvoice().getToPayAt())
-        .totalPriceWithVat(1100)
-        .totalVat(100)
-        .totalPriceWithoutVat(1000);
+        .totalPriceWithVat(1100.0)
+        .totalVat(100.0)
+        .totalPriceWithoutVat(1000.0);
   }
 
   //TODO: create PaginationIT for pagination test and add filters.

@@ -17,7 +17,7 @@ public class PaymentInitiation {
   private String id;
   private String label;
   private String reference;
-  private int amount;
+  private Fraction amount;
   private String payerName;
   private String payerEmail;
   private String successUrl;

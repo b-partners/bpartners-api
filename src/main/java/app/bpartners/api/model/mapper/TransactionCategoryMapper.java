@@ -9,6 +9,7 @@ import app.bpartners.api.repository.jpa.model.HTransactionCategoryTemplate;
 import java.time.LocalDate;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
+import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 
 @Component
 @AllArgsConstructor
@@ -22,14 +23,14 @@ public class TransactionCategoryMapper {
         .id(entity.getId())
         .idAccount(entity.getIdAccount())
         .type(entity.getType())
-        .vat(entity.getVat())
+        .vat(parseFraction(entity.getVat()))
         .idTransactionCategoryTmpl(entity.getIdCategoryTemplate())
         .build();
     if (!entity.isUserDefined()) {
       HTransactionCategoryTemplate categoryTemplate =
           templateJpaRepository.getById(entity.getIdCategoryTemplate());
       domain.setType(categoryTemplate.getType());
-      domain.setVat(categoryTemplate.getVat());
+      domain.setVat(parseFraction(categoryTemplate.getVat()));
     }
     String typeOrIdCategoryTmpl =
         entity.getType() != null ? entity.getType() : entity.getIdCategoryTemplate();
@@ -47,7 +48,7 @@ public class TransactionCategoryMapper {
     return TransactionCategoryTemplate.builder()
         .id(entity.getId())
         .type(entity.getType())
-        .vat(entity.getVat())
+        .vat(parseFraction(entity.getVat()))
         .build();
   }
 
@@ -58,7 +59,7 @@ public class TransactionCategoryMapper {
         .type(category.getType())
         .idTransaction(category.getIdTransaction())
         .idCategoryTemplate(category.getIdTransactionCategoryTmpl())
-        .vat(category.getVat())
+        .vat(category.getVat().toString())
         .build();
   }
 }

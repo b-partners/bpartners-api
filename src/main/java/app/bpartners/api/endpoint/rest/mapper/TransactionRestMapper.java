@@ -1,7 +1,6 @@
 package app.bpartners.api.endpoint.rest.mapper;
 
 import app.bpartners.api.endpoint.rest.model.Transaction;
-import java.math.BigDecimal;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -14,7 +13,7 @@ public class TransactionRestMapper {
   public Transaction toRest(app.bpartners.api.model.Transaction internal) {
     Transaction transaction = new Transaction()
         .id(internal.getId())
-        .amount(BigDecimal.valueOf(internal.getAmount()))
+        .amount(internal.getAmount().getApproximatedValue())
         .label(internal.getLabel())
         .paymentDatetime(internal.getPaymentDatetime())
         .reference(internal.getReference());

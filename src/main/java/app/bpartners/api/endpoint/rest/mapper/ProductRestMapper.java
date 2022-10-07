@@ -6,6 +6,7 @@ import app.bpartners.api.endpoint.rest.validator.CreateProductValidator;
 import app.bpartners.api.endpoint.rest.validator.ProductValidator;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
+import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 
 @Component
 @AllArgsConstructor
@@ -18,19 +19,19 @@ public class ProductRestMapper {
         .id(domain.getId())
         .description(domain.getDescription())
         .quantity(domain.getQuantity())
-        .unitPrice(domain.getUnitPrice())
-        .vatPercent(domain.getVatPercent())
-        .totalVat(domain.getTotalVat())
-        .totalPriceWithVat(domain.getTotalPriceWithVat());
+        .unitPrice(domain.getUnitPrice().getApproximatedValue())
+        .vatPercent(domain.getVatPercent().getApproximatedValue())
+        .totalVat(domain.getTotalVat().getApproximatedValue())
+        .totalPriceWithVat(domain.getTotalPriceWithVat().getApproximatedValue());
   }
 
   public app.bpartners.api.model.Product toDomain(CreateProduct createProduct) {
     createProductValidator.accept(createProduct);
     return app.bpartners.api.model.Product.builder()
         .description(createProduct.getDescription())
-        .unitPrice(createProduct.getUnitPrice())
+        .unitPrice(parseFraction(createProduct.getUnitPrice()))
         .quantity(createProduct.getQuantity())
-        .vatPercent(createProduct.getVatPercent())
+        .vatPercent(parseFraction(createProduct.getVatPercent()))
         .build();
   }
 
@@ -39,9 +40,9 @@ public class ProductRestMapper {
     return app.bpartners.api.model.Product.builder()
         .id(product.getId())
         .description(product.getDescription())
-        .unitPrice(product.getUnitPrice())
+        .unitPrice(parseFraction(product.getUnitPrice()))
         .quantity(product.getQuantity())
-        .vatPercent(product.getVatPercent())
+        .vatPercent(parseFraction(product.getVatPercent()))
         .build();
   }
 }

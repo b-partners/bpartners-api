@@ -28,9 +28,9 @@ public class Invoice {
   private String ref;
   private LocalDate sendingDate;
   private LocalDate toPayAt;
-  private int totalVat;
-  private int totalPriceWithoutVat;
-  private int totalPriceWithVat;
+  private Fraction totalVat;
+  private Fraction totalPriceWithoutVat;
+  private Fraction totalPriceWithVat;
   private String paymentUrl;
   private InvoiceCustomer invoiceCustomer;
   private Account account;

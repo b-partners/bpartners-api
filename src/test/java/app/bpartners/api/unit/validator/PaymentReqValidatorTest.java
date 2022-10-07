@@ -17,7 +17,7 @@ class PaymentReqValidatorTest {
             .id("paymentId")
             .reference("payementRef")
             .label("paymentLabel")
-            .amount(1)
+            .amount(1.0)
             .redirectionStatusUrls(
                 new RedirectionStatusUrls()
                     .successUrl("success")
@@ -61,7 +61,7 @@ class PaymentReqValidatorTest {
                         .successUrl(null)
                         .failureUrl(null)
                 )
-                .amount(1)
+                .amount(1.0)
                 .payerName("payerName")
                 .payerEmail("payerEmail")
         ));

@@ -1,5 +1,6 @@
 package app.bpartners.api.repository.implementation;
 
+import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.TransactionCategoryTemplate;
 import app.bpartners.api.model.mapper.TransactionCategoryMapper;
 import app.bpartners.api.repository.TransactionCategoryTemplateRepository;
@@ -16,7 +17,7 @@ public class TransactionCategoryTemplateRepositoryImpl implements
   private final TransactionCategoryMapper mapper;
 
   @Override
-  public TransactionCategoryTemplate findByTypeAndVat(String type, int vat) {
-    return mapper.toDomain(jpaRepository.findByTypeAndVat(type, vat));
+  public TransactionCategoryTemplate findByTypeAndVat(String type, Fraction vat) {
+    return mapper.toDomain(jpaRepository.findByTypeAndVat(type, vat.toString()));
   }
 }

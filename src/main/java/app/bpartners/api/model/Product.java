@@ -1,5 +1,6 @@
 package app.bpartners.api.model;
 
+import java.math.BigInteger;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -7,6 +8,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.apfloat.Aprational;
 
 @Getter
 @Setter
@@ -19,22 +21,24 @@ public class Product {
   private Invoice invoice;
   private String description;
   private int quantity;
-  private int unitPrice;
-  private int vatPercent;
+  private Fraction unitPrice;
+  private Fraction vatPercent;
   @Getter(AccessLevel.NONE)
-  private int totalVat;
+  private Fraction totalVat;
   @Getter(AccessLevel.NONE)
-  private int totalPriceWithVat;
+  private Fraction totalPriceWithVat;
 
-  public int getTotalVat() {
-    return getTotalWithoutVat() * vatPercent / 10000;
+  public Fraction getTotalVat() {
+    return getTotalWithoutVat().operate(
+        vatPercent.operate(new Fraction(BigInteger.valueOf(10000)), Aprational::divide),
+        Aprational::multiply);
   }
 
-  public int getTotalWithoutVat() {
-    return unitPrice * quantity;
+  public Fraction getTotalWithoutVat() {
+    return unitPrice.operate(new Fraction(BigInteger.valueOf(quantity)), Aprational::multiply);
   }
 
-  public int getTotalPriceWithVat() {
-    return getTotalWithoutVat() + getTotalVat();
+  public Fraction getTotalPriceWithVat() {
+    return getTotalWithoutVat().operate(getTotalVat(), Aprational::add);
   }
 }

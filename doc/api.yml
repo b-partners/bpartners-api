@@ -1040,7 +1040,8 @@ components:
         reference:
           type: string
         amount:
-          type: integer
+          type: number
+          format: double
         payerName:
           type: string
         payerEmail:
@@ -1055,6 +1056,7 @@ components:
           example: 'uuid'
         amount:
           type: number
+          format: double
         label:
           type: string
         reference:
@@ -1083,7 +1085,8 @@ components:
         type:
           type: string
         vat:
-          type: integer
+          type: number
+          format: double
     User:
       properties:
         id:
@@ -1297,11 +1300,14 @@ components:
           items:
             $ref: '#/components/schemas/Product'
         totalVat:
-          type: integer
+          type: number
+          format: double
         totalPriceWithoutVat:
-          type: integer
+          type: number
+          format: double
         totalPriceWithVat:
-          type: integer
+          type: number
+          format: double
         status:
           $ref: '#/components/schemas/InvoiceStatus'
         updatedAt:
@@ -1345,9 +1351,11 @@ components:
         quantity:
           type: integer
         unitPrice:
-          type: integer
+          type: number
+          format: double
         vatPercent:
-          type: integer
+          type: number
+          format: double
     Product:
       allOf:
         - $ref: '#/components/schemas/CreateProduct'
@@ -1355,9 +1363,11 @@ components:
         id:
           type: string
         totalVat:
-          type: integer
+          type: number
+          format: double
         totalPriceWithVat:
-          type: integer
+          type: number
+          format: double
     CreateCustomer:
       type: object
       properties:

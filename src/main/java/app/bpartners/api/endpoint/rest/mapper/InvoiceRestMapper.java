@@ -37,10 +37,10 @@ public class InvoiceRestMapper {
         .customer(customerMapper.toRest(domain.getInvoiceCustomer()))
         .status(domain.getStatus())
         .products(products)
-        .totalVat(domain.getTotalVat())
+        .totalVat(domain.getTotalVat().getApproximatedValue())
         .paymentUrl(domain.getPaymentUrl())
-        .totalPriceWithoutVat(domain.getTotalPriceWithoutVat())
-        .totalPriceWithVat(domain.getTotalPriceWithVat())
+        .totalPriceWithoutVat(domain.getTotalPriceWithoutVat().getApproximatedValue())
+        .totalPriceWithVat(domain.getTotalPriceWithVat().getApproximatedValue())
         .sendingDate(domain.getSendingDate())
         .toPayAt(domain.getToPayAt());
   }

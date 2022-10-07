@@ -18,7 +18,7 @@ public class TransactionCategory {
   private String idAccount;
   private String idTransactionCategoryTmpl;
   private String type;
-  private Integer vat;
+  private Fraction vat;
   private String idTransaction;
   private Long typeCount;
 

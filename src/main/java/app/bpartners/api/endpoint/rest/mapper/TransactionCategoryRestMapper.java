@@ -7,6 +7,7 @@ import app.bpartners.api.model.TransactionCategoryTemplate;
 import app.bpartners.api.repository.TransactionCategoryTemplateRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
+import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 
 @Component
 @AllArgsConstructor
@@ -17,7 +18,7 @@ public class TransactionCategoryRestMapper {
   public TransactionCategory toRest(app.bpartners.api.model.TransactionCategory domain) {
     return new TransactionCategory()
         .id(domain.getId())
-        .vat(domain.getVat())
+        .vat(domain.getVat().getApproximatedValue())
         .type(domain.getType())
         .userDefined(domain.isUserDefined())
         .count(domain.getTypeCount());
@@ -29,14 +30,14 @@ public class TransactionCategoryRestMapper {
       CreateTransactionCategory rest) {
     validator.accept(rest);
     TransactionCategoryTemplate categoryTemplate = categoryTmplRepository.findByTypeAndVat(
-        rest.getType(), rest.getVat());
+            rest.getType(), parseFraction(rest.getVat()));
     app.bpartners.api.model.TransactionCategory category =
-        app.bpartners.api.model.TransactionCategory.builder()
-            .idTransaction(transactionId)
-            .idAccount(accountId)
-            .type(rest.getType())
-            .vat(rest.getVat())
-            .build();
+            app.bpartners.api.model.TransactionCategory.builder()
+                    .idTransaction(transactionId)
+                    .idAccount(accountId)
+                    .type(rest.getType())
+                    .vat(parseFraction(rest.getVat()))
+                    .build();
     if (categoryTemplate != null) {
       category.setIdTransactionCategoryTmpl(categoryTemplate.getId());
     }

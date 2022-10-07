@@ -12,17 +12,17 @@ values ('transaction_category1_id', 'beed1765-5c16-472a-b3f4-5c376ce5db58', 'tc_
        ('transaction_category4_id', 'beed1765-5c16-472a-b3f4-5c376ce5db58', null, 'Recette '
            ||
                                                                                   'personnalisée TVA 1%',
-        100,
+        '100/1',
         'bosci_28cb4daf35d3ab24cb775dcdefc8fdab', '2022-01-01T01:20:00.00Z'),
        ('transaction_category5_id', 'beed1765-5c16-472a-b3f4-5c376ce5db58', null, 'Recette '
            ||
                                                                                   'personnalisée ' ||
                                                                                   'TVA 1,2%',
-        120,
+        '120/1',
         'bosci_28cb4daf35d3ab24cb775dcdefc8fdab', '2022-01-01T01:20:00.00Z'),
        ('transaction_category6_id', 'beed1765-5c16-472a-b3f4-5c376ce5db58', null, 'Recette '
                                                                                       ||
                                                                                   'personnalisée ' ||
                                                                                   'TVA 1,2%',
-        120,
+        '120/1',
         'bosci_28cb4daf35d3ab24cb775dcdefc8fdab', '2022-01-01T01:30:00.00Z');

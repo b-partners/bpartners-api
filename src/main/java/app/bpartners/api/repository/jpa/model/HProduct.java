@@ -37,9 +37,9 @@ public class HProduct {
   public static final String DESCRIPTION_ATTRIBUTE = "description";
   private int quantity;
   public static final String QUANTITY_ATTRIBUTE = "quantity";
-  private int unitPrice;
+  private String unitPrice;
   public static final String UNIT_PRICE_ATTRIBUTE = "unitPrice";
-  private int vatPercent;
+  private String vatPercent;
   public static final String VAT_PERCENT_ATTRIBUTE = "vatPercent";
   @ManyToOne
   @JoinColumn(name = "id_invoice_product")

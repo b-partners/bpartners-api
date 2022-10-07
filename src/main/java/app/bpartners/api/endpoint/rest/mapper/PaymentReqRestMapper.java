@@ -5,6 +5,7 @@ import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
 import app.bpartners.api.endpoint.rest.validator.PaymentReqValidator;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
+import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 
 @Component
 @AllArgsConstructor
@@ -19,7 +20,7 @@ public class PaymentReqRestMapper {
         .id(rest.getId())
         .label(rest.getLabel())
         .reference(rest.getReference())
-        .amount(rest.getAmount())
+        .amount(parseFraction(rest.getAmount()))
         .payerEmail(rest.getPayerEmail())
         .payerName(rest.getPayerName())
         .successUrl(statusUrls.getSuccessUrl())

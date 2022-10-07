@@ -16,5 +16,5 @@ import lombok.Setter;
 public class TransactionCategoryTemplate {
   private String id;
   private String type;
-  private int vat;
+  private Fraction vat;
 }

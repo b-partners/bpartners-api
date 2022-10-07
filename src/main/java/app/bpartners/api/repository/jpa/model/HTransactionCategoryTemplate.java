@@ -12,7 +12,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-
 import static javax.persistence.GenerationType.IDENTITY;
 
 @Entity
@@ -30,5 +29,5 @@ public class HTransactionCategoryTemplate {
   private String id;
   @Column(name = "\"type\"")
   private String type;
-  private int vat;
+  private String vat;
 }

@@ -84,17 +84,17 @@
                 </td>
                 <td class="text-center"><span th:text="${product.quantity}"></span></td>
                 <td class="text-center space-letter"><span
-                        th:text="${#numbers.formatDecimal(product.unitPrice/100,1,2)}"></span> €
+                        th:text="${#numbers.formatDecimal(product.unitPrice.getApproximatedValue(),1,2)}"></span> €
                 </td>
                 <td class="text-center space-letter"><span
-                        th:text="${#numbers.formatDecimal(product.vatPercent/100,1,2)}"></span>%
+                        th:text="${#numbers.formatDecimal(product.vatPercent.getApproximatedValue(),1,2)}"></span>%
                 </td>
                 <td class="text-center space-letter"><span
-                        th:text="${#numbers.formatDecimal(product.totalWithoutVat/100,1,2)}"></span>
+                        th:text="${#numbers.formatDecimal(product.totalWithoutVat.getApproximatedValue(),1,2)}"></span>
                     €
                 </td>
                 <td class="text-center space-letter"><span
-                        th:text="${#numbers.formatDecimal(product.totalPriceWithVat/100,1,2)}"></span>
+                        th:text="${#numbers.formatDecimal(product.totalPriceWithVat.getApproximatedValue(),1,2)}"></span>
                     €
                 </td>
             </tr>
@@ -104,13 +104,13 @@
     <div class="amount-section">
         <div>
             <p><strong>Total HT</strong> : <span
-                    th:text="${#numbers.formatDecimal(invoice.totalPriceWithoutVat/100, 1,2)}"></span>
+                    th:text="${#numbers.formatDecimal(invoice.totalPriceWithoutVat.getApproximatedValue(), 1,2)}"></span>
                 €
             </p>
             <p><strong>Total TVA</strong> : <span
-                    th:text="${#numbers.formatDecimal(invoice.totalVat/100, 1,2)}"></span> €</p>
+                    th:text="${#numbers.formatDecimal(invoice.totalVat.getApproximatedValue(), 1,2)}"></span> €</p>
             <p><strong>Total TTC</strong> : <span
-                    th:text="${#numbers.formatDecimal(invoice.totalPriceWithVat/100,1,2)}"></span> €
+                    th:text="${#numbers.formatDecimal(invoice.totalPriceWithVat.getApproximatedValue(),1,2)}"></span> €
             </p>
         </div>
     </div>

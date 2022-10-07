@@ -146,6 +146,8 @@ dependencies {
     implementation 'jakarta.mail:jakarta.mail-api:2.1.0'
     implementation 'com.sun.mail:jakarta.mail:1.6.5'
 
+    implementation 'org.apfloat:apfloat:1.10.1'
+
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
     testCompileOnly 'org.projectlombok:lombok'

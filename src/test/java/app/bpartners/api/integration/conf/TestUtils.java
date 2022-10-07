@@ -177,10 +177,10 @@ public class TestUtils {
         .id("product1_id")
         .description("Tableau malgache")
         .quantity(1)
-        .unitPrice(1000)
-        .vatPercent(2000)
-        .totalVat(200)
-        .totalPriceWithVat(1200);
+        .unitPrice(1000.0)
+        .vatPercent(2000.0)
+        .totalVat(200.0)
+        .totalPriceWithVat(1200.0);
   }
 
   public static Product product2() {
@@ -188,10 +188,10 @@ public class TestUtils {
         .id("product2_id")
         .description("Tableau baobab")
         .quantity(2)
-        .unitPrice(2000)
-        .vatPercent(1000)
-        .totalVat(400)
-        .totalPriceWithVat(4400);
+        .unitPrice(2000.0)
+        .vatPercent(1000.0)
+        .totalVat(400.0)
+        .totalPriceWithVat(4400.0);
   }
 
   public static Product product3() {
@@ -199,10 +199,10 @@ public class TestUtils {
         .id("product3_id")
         .description("Tableau baobab")
         .quantity(3)
-        .unitPrice(2000)
-        .vatPercent(1000)
-        .totalVat(600)
-        .totalPriceWithVat(6600);
+        .unitPrice(2000.0)
+        .vatPercent(1000.0)
+        .totalVat(600.0)
+        .totalPriceWithVat(6600.0);
   }
 
   public static Product product4() {
@@ -210,10 +210,10 @@ public class TestUtils {
         .id("product4_id")
         .description("Tableau malgache")
         .quantity(1)
-        .unitPrice(2000)
-        .vatPercent(1000)
-        .totalVat(200)
-        .totalPriceWithVat(2200);
+        .unitPrice(2000.0)
+        .vatPercent(1000.0)
+        .totalVat(200.0)
+        .totalPriceWithVat(2200.0);
   }
 
   public static Product product5() {
@@ -221,10 +221,10 @@ public class TestUtils {
         .id("product5_id")
         .description("Mon tableau")
         .quantity(1)
-        .unitPrice(1000)
-        .vatPercent(1000)
-        .totalVat(100)
-        .totalPriceWithVat(1100);
+        .unitPrice(1000.0)
+        .vatPercent(1000.0)
+        .totalVat(100.0)
+        .totalPriceWithVat(1100.0);
   }
 
 
@@ -232,24 +232,24 @@ public class TestUtils {
     return new CreateProduct()
         .description("Tableau baobab")
         .quantity(3)
-        .unitPrice(2000)
-        .vatPercent(1000);
+        .unitPrice(2000.0)
+        .vatPercent(1000.0);
   }
 
   public static CreateProduct createProduct4() {
     return new CreateProduct()
         .description("Tableau malgache")
         .quantity(1)
-        .unitPrice(2000)
-        .vatPercent(1000);
+        .unitPrice(2000.0)
+        .vatPercent(1000.0);
   }
 
   public static CreateProduct createProduct5() {
     return new CreateProduct()
         .description("Mon tableau")
         .quantity(1)
-        .unitPrice(1000)
-        .vatPercent(1000);
+        .unitPrice(1000.0)
+        .vatPercent(1000.0);
   }
 
   public static TransactionCategory transactionCategory1() {
@@ -257,7 +257,7 @@ public class TestUtils {
         .id("transaction_category1_id")
         .type("Recette TVA 20%")
         .userDefined(false)
-        .vat(2000)
+        .vat(2000.0)
         .count(1L);
   }
 
@@ -266,7 +266,7 @@ public class TestUtils {
         .id("transaction_category2_id")
         .type("Recette TVA 10%")
         .userDefined(false)
-        .vat(1000)
+        .vat(1000.0)
         .count(2L);
   }
 
@@ -275,7 +275,7 @@ public class TestUtils {
         .id("transaction_category3_id")
         .type("Recette TVA 10%")
         .userDefined(false)
-        .vat(1000)
+        .vat(1000.0)
         .count(2L);
   }
 
@@ -284,7 +284,7 @@ public class TestUtils {
         .id("transaction_category4_id")
         .type("Recette personnalisée TVA 1%")
         .userDefined(true)
-        .vat(100)
+        .vat(100.0)
         .count(1L);
   }
 
@@ -293,7 +293,7 @@ public class TestUtils {
         .id("transaction_category5_id")
         .type("Recette personnalisée TVA 1,2%")
         .userDefined(true)
-        .vat(120)
+        .vat(120.0)
         .count(2L);
   }
 
@@ -301,7 +301,7 @@ public class TestUtils {
     return new TransactionCategory()
         .id("transaction_category6_id")
         .type("Recette personnalisée TVA 1,2%")
-        .vat(120)
+        .vat(120.0)
         .userDefined(true)
         .count(2L);
   }
@@ -357,7 +357,7 @@ public class TestUtils {
         .id("bosci_0fe167566b234808a44aae415f057b6c")
         .label("Premier virement")
         .reference("JOE-001")
-        .amount(BigDecimal.valueOf(500))
+        .amount(500.0)
         .paymentDatetime(Instant.parse("2022-08-24T03:39:33.315Z"))
         .category(List.of(transactionCategory1()));
   }
@@ -367,7 +367,7 @@ public class TestUtils {
         .id("bosci_f224704f2555a42303e302ffb8e69eef")
         .label("Création de site vitrine")
         .reference("REF_001")
-        .amount(BigDecimal.valueOf(500))
+        .amount(500.0)
         .paymentDatetime(Instant.parse("2022-08-26T06:33:50.595Z"));
   }
 
@@ -376,7 +376,7 @@ public class TestUtils {
         .id("bosci_28cb4daf35d3ab24cb775dcdefc8fdab")
         .label("Test du virement")
         .reference("TEST-001")
-        .amount(BigDecimal.valueOf(100))
+        .amount(100.0)
         .paymentDatetime(Instant.parse("2022-08-24T04:57:02.606Z"))
         .category(List.of(transactionCategory6()));
   }
@@ -392,9 +392,9 @@ public class TestUtils {
         .toPayAt(LocalDate.of(2022, 10, 1))
         .status(InvoiceStatus.CONFIRMED)
         .products(List.of(product3(), product4()))
-        .totalPriceWithVat(8800)
-        .totalVat(800)
-        .totalPriceWithoutVat(8000)
+        .totalPriceWithVat(8800.0)
+        .totalVat(800.0)
+        .totalPriceWithoutVat(8000.0)
         .paymentUrl("https://connect-v2-sbx.fintecture.com")
         ;
   }
@@ -410,9 +410,9 @@ public class TestUtils {
         .toPayAt(LocalDate.of(2022, 10, 10))
         .status(InvoiceStatus.CONFIRMED)
         .products(List.of(product5()))
-        .totalPriceWithVat(1100)
-        .totalVat(100)
-        .totalPriceWithoutVat(1000)
+        .totalPriceWithVat(1100.0)
+        .totalVat(100.0)
+        .totalPriceWithoutVat(1000.0)
         .paymentUrl("https://connect-v2-sbx.fintecture.com");
   }
 

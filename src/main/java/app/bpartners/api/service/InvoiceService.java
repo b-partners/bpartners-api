@@ -7,6 +7,7 @@ import app.bpartners.api.endpoint.rest.security.principal.PrincipalProvider;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.BoundedPageSize;
+import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.model.PaymentRedirection;
@@ -27,9 +28,11 @@ import java.nio.file.FileSystems;
 import java.util.Base64;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.imageio.ImageIO;
 import javax.mail.MessagingException;
 import lombok.AllArgsConstructor;
+import org.apfloat.Aprational;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
@@ -45,6 +48,8 @@ import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PROPOSAL;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 import static app.bpartners.api.service.utils.FileInfoUtils.JPG_FORMAT_NAME;
 import static app.bpartners.api.service.utils.FileInfoUtils.PDF_EXTENSION;
+import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
+import static app.bpartners.api.service.utils.FractionUtils.toAprational;
 import static com.google.zxing.BarcodeFormat.QR_CODE;
 
 @Service
@@ -145,31 +150,29 @@ public class InvoiceService {
     return initializedInvoice;
   }
 
-  private int computeTotalVat(List<Product> products) {
-    if (products == null) {
-      return 0;
-    }
-    return products.stream()
-        .mapToInt(Product::getTotalVat)
-        .sum();
+  private Fraction computeTotalVat(List<Product> products) {
+    return computeSum(products, products.stream()
+        .map(Product::getTotalVat));
   }
 
-  private int computeTotalPriceWithoutVat(List<Product> products) {
-    if (products == null) {
-      return 0;
-    }
-    return products.stream()
-        .mapToInt(Product::getTotalWithoutVat)
-        .sum();
+  private Fraction computeTotalPriceWithoutVat(List<Product> products) {
+    return computeSum(products, products.stream()
+        .map(Product::getTotalWithoutVat));
   }
 
-  private int computeTotalPriceWithVat(List<Product> products) {
+  private Fraction computeTotalPriceWithVat(List<Product> products) {
+    return computeSum(products, products.stream()
+        .map(Product::getTotalPriceWithVat));
+  }
+
+  private Fraction computeSum(List<Product> products, Stream<Fraction> fractionStream) {
     if (products == null) {
-      return 0;
+      return new Fraction();
     }
-    return products.stream()
-        .mapToInt(Product::getTotalPriceWithVat)
-        .sum();
+    Aprational aprational = fractionStream
+        .map(a -> toAprational(a.getNumerator(), a.getDenominator()))
+        .reduce(new Aprational(0), Aprational::add);
+    return parseFraction(aprational);
   }
 
   private String parseInvoiceTemplateToString(Invoice invoice, String template) {

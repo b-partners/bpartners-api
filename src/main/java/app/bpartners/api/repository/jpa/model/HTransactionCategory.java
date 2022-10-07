@@ -40,12 +40,12 @@ public class HTransactionCategory {
   private String type;
   public static final String TYPE_ATTRIBUTE = "type";
 
-  private Integer vat;
+  private String vat;
   public static final String VAT_ATTRIBUTE = "vat";
 
 
   public HTransactionCategory(
-      String idAccount, String idCategoryTemplate, String type, Integer vat) {
+      String idAccount, String idCategoryTemplate, String type, String vat) {
     this.idAccount = idAccount;
     this.idCategoryTemplate = idCategoryTemplate;
     this.type = type;

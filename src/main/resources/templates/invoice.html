@@ -10,14 +10,16 @@
             <td>
                 <img class="logo" th:src="${'data:image/jpeg;base64,' + logo}" alt="logo"/>
                 <div>
-                    <h1 th:text="${invoice.account.name}"></h1>
+                    <h1 th:text="${accountHolder.name}"></h1>
                 </div>
             </td>
             <td class="text-right">
-                <img class="code" th:src="${'data:image/jpeg;base64,' + qrcode}" alt="QR-code"/>
+                <img class="code" th:src="${'data:image/jpeg;base64,' + qrcode}" alt="qr-code"/>
                 <div>
                     <a th:href="${invoice.paymentUrl}">Payez ici</a>
-                    <p>Date limite de paiement : <span th:text="${invoice.toPayAt}"></span></p>
+                    <p>Date limite de paiement : <span
+                            th:text="${#dates.format(invoice.getFormattedPayingDate, 'dd-MM-yyyy')}"></span>
+                    </p>
                 </div>
             </td>
         </tr>
@@ -25,12 +27,15 @@
     <table class="table-head">
         <tr>
             <td>
-                <p><strong>Facture n° : REF XXXXX</strong></p>
-                <p class="muted">Date de facturation : XX/XX/XXXX</p>
+                <p><strong>Facture n° : <span
+                        th:text="${invoice.ref}"></span> </strong></p>
+                <p class="muted">Date de facturation : <span
+                        th:text="${#dates.format(invoice.getFormattedSendingDate, 'dd-MM-yyyy')}"></span>
+                </p>
             </td>
             <td class="text-right">
                 <p><strong
-                        th:text="${invoice.invoiceCustomer.name}"></strong>
+                        th:text="${#strings.toUpperCase(invoice.invoiceCustomer.name)}"></strong>
                 </p>
                 <p class="muted"><span
                         th:text="${invoice.invoiceCustomer.address}"></span>
@@ -52,7 +57,7 @@
     <table>
         <thead class="text-center">
         <th>Description</th>
-        <th>Quantite</th>
+        <th>Quantité</th>
         <th>Prix unitaire</th>
         <th>TVA</th>
         <th>Montant HT</th>
@@ -63,28 +68,44 @@
             <tr>
                 <td class="text-left"><span th:text="${product.description}"></span></td>
                 <td class="text-center"><span th:text="${product.quantity}"></span></td>
-                <td class="text-center"><span th:text="${product.unitPrice}"></span></td>
-                <td class="text-center"><span th:text="${product.vatPercent}"></span></td>
-                <td class="text-center"><span th:text="${product.totalWithoutVat}"></span></td>
-                <td class="text-center"><span th:text="${product.totalPriceWithVat}"></span></td>
+                <td class="text-center"><span
+                        th:text="${#numbers.formatDecimal(product.unitPrice/100,1,2)}"></span> €
+                </td>
+                <td class="text-center"><span
+                        th:text="${#numbers.formatDecimal(product.vatPercent/100,1,2)}"></span>%
+                </td>
+                <td class="text-center"><span
+                        th:text="${#numbers.formatDecimal(product.totalWithoutVat/100,1,2)}"></span>
+                    €
+                </td>
+                <td class="text-center"><span
+                        th:text="${#numbers.formatDecimal(product.totalPriceWithVat/100,1,2)}"></span>
+                    €
+                </td>
             </tr>
         </th:block>
         </tbody>
     </table>
     <div class="amount-section">
         <div>
-            <p><strong>Total HT</strong> : <span th:text="${invoice.totalPriceWithoutVat}"></span> €
+            <p><strong>Total HT</strong> : <span
+                    th:text="${#numbers.formatDecimal(invoice.totalPriceWithoutVat/100, 1,2)}"></span>
+                €
             </p>
-            <p><strong>Total TVA</strong> : <span th:text="${invoice.totalVat}"></span> %</p>
-            <p><strong>Total TTC à régler</strong> : <span
-                    th:text="${invoice.totalPriceWithVat}"></span> €</p>
+            <p><strong>Total TVA</strong> : <span
+                    th:text="${#numbers.formatDecimal(invoice.totalVat/100, 1,2)}"></span> €</p>
+            <p><strong>Total TTC</strong> : <span
+                    th:text="${#numbers.formatDecimal(invoice.totalPriceWithVat/100,1,2)}"></span> €
+            </p>
         </div>
     </div>
 </section>
 <footer>
-    <p><strong>Bien à vous et merci pour votre confiance.</strong>
-        <span class="muted">
-            La facture est payable à réception
+    <p><strong>Bien à vous et merci pour votre confiance.</strong></p>
+    <p><span class="muted">
+            La facture est payable à réception en scannant le QR code ou en cliquant sur le lien.
+           Sinon, vous avez la possibilité de faire un virement classique avec nos
+           coordonnées ci-dessous. <br/>
             Des pénalités correspondant à trois fois le taux de l’intérêt légal seront applicables en
             l’absence ou en cas de retard de paiement. Les pénalités de
             retard sont exigibles sans qu'un rappel soit nécessaire. Une indemnité forfaitaire de 40 €
@@ -93,18 +114,21 @@
             Pas d'escompte en cas de paiement anticipé
         </span></p>
     <div>
-        <p th:text="${invoice.account.iban}"></p>
+        <h3>Nos coordonnées bancaires</h3>
+        <ul style="margin: 10px">
+            <li>Nom du compte : <span th:text="${invoice.account.name}"></span></li>
+            <li>IBAN : <span th:text="${invoice.account.iban}"></span></li>
+            <li>BIC : <span th:text="${invoice.account.bic}"></span></li>
+        </ul>
     </div>
     <hr/>
-    <p class="muted">BPartners SASU - Capital XXXXXXXXX</p>
     <div class="footer-info">
         <div class="content-left muted">
-            <p>Siege social : Rue XXX PARIS</p>
-            <p>Tel : + 33 05 12 456 78</p>
-        </div>
-        <div class="content-right muted">
-            <p>Email : example@email.com</p>
-            <p>Website : www.website.com</p>
+            <p><span th:text="${accountHolder.name}"></span></p>
+            <p>Siège social :
+                <span
+                        th:text="${accountHolder.address} +', '+${accountHolder.postalCode}+' '+ ${accountHolder.city}+', '+ ${accountHolder.country}"></span>
+            </p>
         </div>
     </div>
 </footer>

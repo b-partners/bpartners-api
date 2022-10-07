@@ -68,7 +68,7 @@ class InvoiceIT {
         .ref("BP003")
         .title("Facture sans produit")
         .customer(customer1())
-        .products(List.of())
+        .products(List.of(product4(), product5()))
         .sendingDate(LocalDate.of(2022, 9, 10))
         .toPayAt(LocalDate.of(2022, 9, 11));
   }
@@ -108,16 +108,17 @@ class InvoiceIT {
   Invoice createdInvoice() {
     return new Invoice()
         .id(NEW_INVOICE_ID)
+        .fileId("BP003.pdf")
         .ref(validInvoice().getRef())
         .title("Facture sans produit")
         .customer(validInvoice().getCustomer())
         .status(InvoiceStatus.CONFIRMED)
         .sendingDate(validInvoice().getSendingDate())
-        .products(List.of())
+        .products(List.of(product4().id(null), product5().id(null)))
         .toPayAt(validInvoice().getToPayAt())
-        .totalPriceWithVat(0)
-        .totalVat(0)
-        .totalPriceWithoutVat(0);
+        .totalPriceWithVat(3300)
+        .totalVat(300)
+        .totalPriceWithoutVat(3000);
   }
 
   @Test
@@ -142,6 +143,7 @@ class InvoiceIT {
     assertEquals(createdInvoice(), actual.paymentUrl(null));
   }
 
+  /* /!\ Use for unit test only
   @Test
   void generate_invoice_pdf_ok() throws IOException {
     byte[] data = invoiceService.generateInvoicePdf(INVOICE1_ID);
@@ -150,7 +152,7 @@ class InvoiceIT {
     os.write(data);
     os.close();
   }
-
+*/
   @Test
   void download_invoice_file_ok() throws IOException, InterruptedException {
     String basePath = "http://localhost:" + FileIT.ContextInitializer.SERVER_PORT;

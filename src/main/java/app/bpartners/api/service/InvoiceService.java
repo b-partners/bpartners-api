@@ -2,8 +2,8 @@ package app.bpartners.api.service;
 
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.model.Account;
+import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.Invoice;
-import app.bpartners.api.model.InvoiceCustomer;
 import app.bpartners.api.model.PaymentRedirection;
 import app.bpartners.api.model.Product;
 import app.bpartners.api.model.exception.ApiException;
@@ -14,13 +14,9 @@ import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
 import com.lowagie.text.DocumentException;
-import com.lowagie.text.pdf.BaseFont;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.nio.file.FileSystems;
-import java.time.Instant;
-import java.time.LocalDate;
 import java.util.Base64;
 import java.util.List;
 import javax.imageio.ImageIO;
@@ -43,6 +39,7 @@ public class InvoiceService {
   private final ProductRepository productRepository;
   private final PaymentInitiationService pis;
   private final FileService fileService;
+  private final AccountHolderService holderService;
 
   public Invoice getById(String invoiceId) {
     return refreshValues(repository.getById(invoiceId));
@@ -51,9 +48,10 @@ public class InvoiceService {
   public Invoice crupdateInvoice(Invoice toCrupdate) {
     String fileId = toCrupdate.getRef() + ".pdf";
     toCrupdate.setStatus(InvoiceStatus.CONFIRMED);
-    fileService.uploadFile(toCrupdate.getAccount().getId(),
-        fileId, generateInvoicePdf(toCrupdate.getId()));
-    return refreshValues(repository.crupdate(toCrupdate));
+    Invoice crupdated = refreshValues(repository.crupdate(toCrupdate));
+    fileService.uploadFile(crupdated.getAccount().getId(),
+        fileId, generateInvoicePdf(crupdated));
+    return crupdated;
   }
 
   private Invoice refreshValues(Invoice invoice) {
@@ -109,8 +107,11 @@ public class InvoiceService {
         .sum();
   }
 
-  private String parseInvoiceTemplateToString(String idInvoice) {
-    //Invoice invoice = getById(idInvoice);
+  private String parseInvoiceTemplateToString(Invoice invoice) {
+    Account account = invoice.getAccount();
+    AccountHolder accountHolder = holderService.getAccountHolderByAccountId(account.getId());
+    /* /!\ For the PDF generation unit test only
+
     Product product = Product.builder()
         .description("Product description")
         .quantity(50)
@@ -133,9 +134,17 @@ public class InvoiceService {
             .iban("FR7612548029989876543210917")
             .build())
         .paymentUrl("https://dashboard-dev.bpartners.app")
+        .sendingDate(LocalDate.of(2022, 10, 1))
+        .toPayAt(LocalDate.of(2022, 11, 1))
         .build();
+        AccountHolder accountHolder = AccountHolder.builder()
+        .name("Luc Artisan SASU")
+        .address("3 rue Reine Elisabeth")
+        .city("Metz")
+        .postalCode(String.valueOf(57000))
+        .country("France")
+        .build();*/
     TemplateEngine templateEngine = configureTemplate();
-    Account account = invoice.getAccount();
     Context context = new Context();
     byte[] qrCodeBytes = generateQrCode(invoice.getPaymentUrl());
     byte[] logoBytes = fileService.downloadFile(account.getId(), LOGO_JPEG);
@@ -143,13 +152,14 @@ public class InvoiceService {
     context.setVariable("qrcode", base64Image(qrCodeBytes));
     context.setVariable("logo", base64Image(logoBytes));
     context.setVariable("account", account);
+    context.setVariable("accountHolder", accountHolder);
 
     return templateEngine.process("invoice", context);
   }
 
-  public byte[] generateInvoicePdf(String idInvoice) {
+  public byte[] generateInvoicePdf(Invoice invoice) {
     ITextRenderer renderer = new ITextRenderer();
-    loadStyle(renderer, idInvoice);
+    loadStyle(renderer, invoice);
     renderer.layout();
 
     ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
@@ -161,16 +171,15 @@ public class InvoiceService {
     return outputStream.toByteArray();
   }
 
-  private void loadStyle(ITextRenderer renderer, String identifier) {
+  private void loadStyle(ITextRenderer renderer, Invoice invoice) {
     try {
-      renderer.getFontResolver().addFont("templates/code39.ttf", BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
       String baseUrl = FileSystems.getDefault()
           .getPath("src/main", "resources", "templates")
           .toUri()
           .toURL()
           .toString();
-      renderer.setDocumentFromString(parseInvoiceTemplateToString(identifier), baseUrl);
-    } catch (DocumentException | IOException e) {
+      renderer.setDocumentFromString(parseInvoiceTemplateToString(invoice), baseUrl);
+    } catch (IOException e) {
       throw new ApiException(SERVER_EXCEPTION, e);
     }
   }

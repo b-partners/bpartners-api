@@ -3,6 +3,7 @@ body {
     padding: 0;
     box-sizing: border-box;
     font-size: 12px;
+    font-family: Helvetica, serif;
 }
 
 .table-head {
@@ -73,4 +74,8 @@ th, td {
 
 .muted {
     color: grey;
+}
+
+.unstyled {
+    list-style: none;
 }

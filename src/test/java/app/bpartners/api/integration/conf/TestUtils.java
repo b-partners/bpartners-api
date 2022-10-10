@@ -43,7 +43,7 @@ public class TestUtils {
   public static final String INVOICE2_ID = "invoice2_id";
 
   public static final String INVOICE1_FILE_ID = "BP001.pdf";
-  public static final String FILE_ID = "logo.jpeg";
+  public static final String FILE_ID = "test.jpeg";
   public static final String TO_UPLOAD_FILE_ID = "to_upload_file_id.jpeg";
   public static final String MARKETPLACE1_ID = "marketplace1_id";
   public static final String MARKETPLACE2_ID = "marketplace2_id";

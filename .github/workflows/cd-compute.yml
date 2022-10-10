@@ -90,7 +90,7 @@ jobs:
       - name: Deploy compute stack
         uses: aws-actions/aws-cloudformation-github-deploy@v1
         with:
-          name: ${{ env.branch_env }}-bpartners-api
+          name: ${{ env.branch_env }}-compute-bpartners
           template: cf-stacks/compute-stack.yml
           tags: "[ { \"Key\": \"app\", \"Value\": \"api\" }, { \"Key\": \"env\", \"Value\": \"${{ env.branch_env }}\" } ]"
           capabilities: CAPABILITY_NAMED_IAM

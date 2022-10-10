@@ -18,7 +18,6 @@ Resources:
     Type: AWS::RDS::DBInstance
     DeletionPolicy: Retain
     Properties:
-      DBInstanceIdentifier: !Join [ '',  [!Ref Env , -bpartners ]]
       DBName: !Ref DBName
       AllocatedStorage: '5'
       DBInstanceClass:
@@ -30,7 +29,6 @@ Resources:
     Type: AWS::S3::Bucket
     DeletionPolicy: Retain
     Properties:
-      BucketName: !Join [ '', [ !Ref Env, -bpartners ]]
       VersioningConfiguration:
         Status: Enabled
 

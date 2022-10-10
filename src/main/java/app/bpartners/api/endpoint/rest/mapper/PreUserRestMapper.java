@@ -17,7 +17,7 @@ public class PreUserRestMapper {
     preUserValidator.accept(toCreate);
     return app.bpartners.api.model.PreUser.builder()
         .firstname(toCreate.getFirstName())
-        .lastname(toCreate.getFirstName())
+        .lastname(toCreate.getLastName())
         .email(toCreate.getEmail())
         .society(toCreate.getSociety())
         .mobilePhoneNumber(toCreate.getPhone())
@@ -25,14 +25,13 @@ public class PreUserRestMapper {
   }
 
   public PreUser toRest(app.bpartners.api.model.PreUser preUser) {
-    PreUser restPreUser = new PreUser();
-    restPreUser.setId(preUser.getId());
-    restPreUser.setFirstName(preUser.getFirstname());
-    restPreUser.setLastName(preUser.getLastname());
-    restPreUser.setPhone(preUser.getMobilePhoneNumber());
-    restPreUser.setSociety(preUser.getSociety());
-    restPreUser.setEmail(preUser.getEmail());
-    restPreUser.setEntranceDatetime(preUser.getEntranceDateTime());
-    return restPreUser;
+    return new PreUser()
+        .id(preUser.getId())
+        .firstName(preUser.getFirstname())
+        .lastName(preUser.getLastname())
+        .phone(preUser.getMobilePhoneNumber())
+        .society(preUser.getSociety())
+        .email(preUser.getEmail())
+        .entranceDatetime(preUser.getEntranceDateTime());
   }
 }

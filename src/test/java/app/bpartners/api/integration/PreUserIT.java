@@ -5,6 +5,7 @@ import app.bpartners.api.endpoint.rest.model.CreatePreUser;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
 import app.bpartners.api.integration.conf.AbstractContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
+import app.bpartners.api.repository.sendinblue.SendinblueApi;
 import app.bpartners.api.repository.swan.UserSwanRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
@@ -15,6 +16,7 @@ import java.net.http.HttpResponse;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -22,6 +24,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import static app.bpartners.api.integration.conf.TestUtils.VALID_EMAIL;
 import static app.bpartners.api.integration.conf.TestUtils.setUpSwanComponent;
 import static app.bpartners.api.integration.conf.TestUtils.setUpSwanRepository;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -39,6 +42,9 @@ class PreUserIT {
   @MockBean
   private SwanComponent swanComponentMock;
 
+  @Autowired
+  private SendinblueApi sendinblueApi;
+
   @BeforeEach
   public void setUp() {
     setUpSwanComponent(swanComponentMock);
@@ -51,7 +57,7 @@ class PreUserIT {
     createPreUser.setFirstName("john");
     createPreUser.setLastName("doe");
     createPreUser.setSociety("johnSociety");
-    createPreUser.setPhone("+33 54 234 234");
+    createPreUser.setPhone("+33123345678");
     return createPreUser;
   }
 
@@ -69,6 +75,7 @@ class PreUserIT {
                 new ObjectMapper().writeValueAsString(List.of(validPreUser()))))
             .build(),
         HttpResponse.BodyHandlers.ofString());
+    sendinblueApi.deleteContact(VALID_EMAIL); // Delete the recent sendinblue created contact
 
     assertEquals(HttpStatus.OK.value(), response.statusCode());
   }

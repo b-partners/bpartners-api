@@ -1,0 +1,136 @@
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Invoice</title>
+    <link href="style.css" type="text/css" media="all" rel="stylesheet"/>
+</head>
+<body>
+<header>
+    <table class="table-head">
+        <tr>
+            <td>
+                <img class="logo" th:src="${'data:image/jpeg;base64,' + logo}" alt="logo"/>
+                <div>
+                    <h1 th:text="${accountHolder.name}"></h1>
+                </div>
+            </td>
+            <td class="text-right">
+                <img class="code" th:src="${'data:image/jpeg;base64,' + qrcode}" alt="qr-code"/>
+                <div>
+                    <a th:href="${invoice.paymentUrl}">Payez ici</a>
+                    <p>Date limite de paiement : <span
+                            th:text="${#dates.format(invoice.getFormattedPayingDate, 'dd-MM-yyyy')}"></span>
+                    </p>
+                </div>
+            </td>
+        </tr>
+    </table>
+    <table class="table-head">
+        <tr>
+            <td>
+                <p><strong>Facture n° : <span
+                        th:text="${invoice.ref}"></span> </strong></p>
+                <p class="muted">Date de facturation : <span
+                        th:text="${#dates.format(invoice.getFormattedSendingDate, 'dd-MM-yyyy')}"></span>
+                </p>
+            </td>
+            <td class="text-right">
+                <p><strong
+                        th:text="${#strings.toUpperCase(invoice.invoiceCustomer.name)}"></strong>
+                </p>
+                <p class="muted"><span
+                        th:text="${invoice.invoiceCustomer.address}"></span>
+                </p>
+                <p class="muted"><span
+                        th:text="${invoice.invoiceCustomer.phone}"></span>
+                </p>
+                <p class="muted"><span
+                        th:text="${invoice.invoiceCustomer.email}"></span>
+                </p>
+                <p class="muted"><span
+                        th:text="${invoice.invoiceCustomer.website}"></span>
+                </p>
+            </td>
+        </tr>
+    </table>
+</header>
+<section>
+    <table>
+        <thead class="text-center">
+        <th>Description</th>
+        <th>Quantité</th>
+        <th>Prix unitaire</th>
+        <th>TVA</th>
+        <th>Montant HT</th>
+        <th>Montant TTC</th>
+        </thead>
+        <tbody>
+        <th:block th:each="product : ${invoice.products}">
+            <tr>
+                <td class="text-left"><span th:text="${product.description}"></span></td>
+                <td class="text-center"><span th:text="${product.quantity}"></span></td>
+                <td class="text-center"><span
+                        th:text="${#numbers.formatDecimal(product.unitPrice/100,1,2)}"></span> €
+                </td>
+                <td class="text-center"><span
+                        th:text="${#numbers.formatDecimal(product.vatPercent/100,1,2)}"></span>%
+                </td>
+                <td class="text-center"><span
+                        th:text="${#numbers.formatDecimal(product.totalWithoutVat/100,1,2)}"></span>
+                    €
+                </td>
+                <td class="text-center"><span
+                        th:text="${#numbers.formatDecimal(product.totalPriceWithVat/100,1,2)}"></span>
+                    €
+                </td>
+            </tr>
+        </th:block>
+        </tbody>
+    </table>
+    <div class="amount-section">
+        <div>
+            <p><strong>Total HT</strong> : <span
+                    th:text="${#numbers.formatDecimal(invoice.totalPriceWithoutVat/100, 1,2)}"></span>
+                €
+            </p>
+            <p><strong>Total TVA</strong> : <span
+                    th:text="${#numbers.formatDecimal(invoice.totalVat/100, 1,2)}"></span> €</p>
+            <p><strong>Total TTC</strong> : <span
+                    th:text="${#numbers.formatDecimal(invoice.totalPriceWithVat/100,1,2)}"></span> €
+            </p>
+        </div>
+    </div>
+</section>
+<footer>
+    <p><strong>Bien à vous et merci pour votre confiance.</strong></p>
+    <p><span class="muted">
+            La facture est payable à réception en scannant le QR code ou en cliquant sur le lien.
+           Sinon, vous avez la possibilité de faire un virement classique avec nos
+           coordonnées ci-dessous. <br/>
+            Des pénalités correspondant à trois fois le taux de l’intérêt légal seront applicables en
+            l’absence ou en cas de retard de paiement. Les pénalités de
+            retard sont exigibles sans qu'un rappel soit nécessaire. Une indemnité forfaitaire de 40 €
+            pour frais de recouvrement sera appliquée en cas de
+            retard de paiement conformément aux articles L 441-3 et L 441-6 du code de commerce.
+            Pas d'escompte en cas de paiement anticipé
+        </span></p>
+    <div>
+        <h3>Nos coordonnées bancaires</h3>
+        <ul style="margin: 10px">
+            <li>Nom du compte : <span th:text="${invoice.account.name}"></span></li>
+            <li>IBAN : <span th:text="${invoice.account.iban}"></span></li>
+            <li>BIC : <span th:text="${invoice.account.bic}"></span></li>
+        </ul>
+    </div>
+    <hr/>
+    <div class="footer-info">
+        <div class="content-left muted">
+            <p><span th:text="${accountHolder.name}"></span></p>
+            <p>Siège social :
+                <span
+                        th:text="${accountHolder.address} +', '+${accountHolder.postalCode}+' '+ ${accountHolder.city}+', '+ ${accountHolder.country}"></span>
+            </p>
+        </div>
+    </div>
+</footer>
+</body>
+</html>

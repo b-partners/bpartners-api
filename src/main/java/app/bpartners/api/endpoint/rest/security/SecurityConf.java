@@ -15,7 +15,6 @@ import org.springframework.security.web.util.matcher.NegatedRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.servlet.HandlerExceptionResolver;
-
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpMethod.OPTIONS;
 import static org.springframework.http.HttpMethod.POST;
@@ -26,7 +25,6 @@ import static org.springframework.http.HttpMethod.PUT;
 public class SecurityConf extends WebSecurityConfigurerAdapter {
 
   private static final String AUTHORIZATION_HEADER = "Authorization";
-
   private final AuthProvider authProvider;
   private final HandlerExceptionResolver exceptionResolver;
 
@@ -108,6 +106,7 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
         .requestMatchers(new SelfAccountMatcher(POST, "/accounts/*/files/*/raw")).authenticated()
         // TODO: uncomment when bearer is set as query params
         //.requestMatchers(new SelfAccountMatcher(GET, "/accounts/*/files/*/raw")).authenticated()
+        .requestMatchers(new SelfAccountMatcher(GET, "/accounts/*/marketplaces")).authenticated()
         .antMatchers("/**").denyAll()
 
         // disable superfluous protections

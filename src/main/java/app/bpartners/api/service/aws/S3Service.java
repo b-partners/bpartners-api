@@ -30,7 +30,7 @@ public class S3Service {
     String computedFileId = getLogoBucketName(accountId, fileId);
     PutObjectRequest request = PutObjectRequest.builder()
         .bucket(s3Conf.getBucketName())
-        .contentType(FileInfoUtils.parseMediaTypeFromBytes(toUpload).toString())
+        .contentType(FileInfoUtils.parseMediaTypeFromBytes(fileId, toUpload).toString())
         .checksumAlgorithm(ChecksumAlgorithm.SHA256)
         .key(computedFileId)
         .build();

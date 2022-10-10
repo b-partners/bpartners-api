@@ -26,8 +26,6 @@ Resources:
   LogGroup:
     Type: AWS::Logs::LogGroup
     DeletionPolicy: Retain
-    Properties:
-      LogGroupName: !Join ['', [/ecs/, !Ref Env, -compute-bpartners]]
   TaskDefinition:
     Type: AWS::ECS::TaskDefinition
     DependsOn: LogGroup

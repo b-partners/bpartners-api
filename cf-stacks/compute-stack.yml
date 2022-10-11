@@ -25,7 +25,7 @@ Resources:
       ClusterName: !Join ['', [!Ref Env, -compute-bpartners]]
   LogGroup:
     Type: AWS::Logs::LogGroup
-    DeletionPolicy: Retain #TODO: no retention policy on deletion for log groups
+    DeletionPolicy: Retain
   TaskDefinition:
     Type: AWS::ECS::TaskDefinition
     DependsOn: LogGroup

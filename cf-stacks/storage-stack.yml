@@ -25,27 +25,45 @@ Resources:
       Engine: postgres
       MasterUsername: !Sub '{{resolve:ssm:/bpartners/${Env}/db/username}}'
       MasterUserPassword: !Sub '{{resolve:ssm:/bpartners/${Env}/db/password}}'
-  S3Bucket:
+  DatabaseSSM:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Join ['', [/bpartners/, !Ref Env, /db/url]]
+      Type: String
+      Value:
+        Fn::Join:
+          - ''
+          - - jdbc:postgresql://
+            - Fn::GetAtt:
+                - Database
+                - Endpoint.Address
+            - ':'
+            - Fn::GetAtt:
+                - Database
+                - Endpoint.Port
+            - '/'
+            - !Ref DBName
+
+  Bucket:
     Type: AWS::S3::Bucket
     DeletionPolicy: Retain
     Properties:
       VersioningConfiguration:
         Status: Enabled
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+  BucketSSM:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Join ['', [/bpartners/, !Ref Env, /s3/bucket-name]]
+      Type: String
+      Value: !Ref Bucket
 
 Outputs:
-  JDBCConnectionString:
-    Value:
-      Fn::Join:
-      - ''
-      - - jdbc:postgresql://
-        - Fn::GetAtt:
-          - Database
-          - Endpoint.Address
-        - ':'
-        - Fn::GetAtt:
-          - Database
-          - Endpoint.Port
-        - '/'
-        - !Ref DBName
-  BucketName:
-    Value: !Ref S3Bucket
+  DatabaseSSM:
+    Value: !Ref DatabaseSSM
+  BucketSSM:
+    Value: !Ref BucketSSM

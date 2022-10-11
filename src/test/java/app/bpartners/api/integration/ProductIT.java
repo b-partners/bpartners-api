@@ -1,17 +1,29 @@
 package app.bpartners.api.integration;
 
 import app.bpartners.api.SentryConf;
+import app.bpartners.api.endpoint.event.S3Conf;
 import app.bpartners.api.endpoint.rest.api.PayingApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
 import app.bpartners.api.endpoint.rest.model.CreateProduct;
 import app.bpartners.api.endpoint.rest.model.Invoice;
 import app.bpartners.api.endpoint.rest.model.Product;
+import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
+import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
 import app.bpartners.api.integration.conf.AbstractContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
+import app.bpartners.api.manager.ProjectTokenManager;
+import app.bpartners.api.repository.PaymentInitiationRepository;
+import app.bpartners.api.repository.fintecture.FintectureConf;
+import app.bpartners.api.repository.fintecture.FintecturePaymentInitiationRepository;
+import app.bpartners.api.repository.sendinblue.SendinblueConf;
+import app.bpartners.api.repository.swan.AccountHolderSwanRepository;
+import app.bpartners.api.repository.swan.AccountSwanRepository;
+import app.bpartners.api.repository.swan.UserSwanRepository;
 import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Value;
+import org.mockito.Mock;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -21,6 +33,15 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import static app.bpartners.api.integration.conf.TestUtils.INVOICE1_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsApiException;
+import static app.bpartners.api.integration.conf.TestUtils.product1;
+import static app.bpartners.api.integration.conf.TestUtils.product2;
+import static app.bpartners.api.integration.conf.TestUtils.product3;
+import static app.bpartners.api.integration.conf.TestUtils.product4;
+import static app.bpartners.api.integration.conf.TestUtils.setUpAccountHolderSwanRep;
+import static app.bpartners.api.integration.conf.TestUtils.setUpAccountSwanRepository;
+import static app.bpartners.api.integration.conf.TestUtils.setUpPaymentInitiationRep;
+import static app.bpartners.api.integration.conf.TestUtils.setUpSwanComponent;
+import static app.bpartners.api.integration.conf.TestUtils.setUpUserSwanRepository;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
@@ -32,66 +53,38 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 class ProductIT {
   @MockBean
   private SentryConf sentryConf;
-  @Value("${test.user.access.token}")
-  private String bearerToken;
+  @MockBean
+  private SendinblueConf sendinblueConf;
+  @MockBean
+  private S3Conf s3Conf;
+  @MockBean
+  private SwanConf swanConf;
+  @MockBean
+  private FintectureConf fintectureConf;
+  @MockBean
+  private ProjectTokenManager projectTokenManager;
+  @MockBean
+  private UserSwanRepository userSwanRepositoryMock;
+  @MockBean
+  private AccountSwanRepository accountSwanRepositoryMock;
+  @MockBean
+  private AccountHolderSwanRepository accountHolderRepositoryMock;
+  @MockBean
+  private SwanComponent swanComponentMock;
+  @MockBean
+  private FintecturePaymentInitiationRepository paymentInitiationRepositoryMock;
 
-  private static ApiClient anApiClient(String token) {
-    return TestUtils.anApiClient(token, ProductIT.ContextInitializer.SERVER_PORT);
+  @BeforeEach
+  public void setUp() {
+    setUpUserSwanRepository(userSwanRepositoryMock);
+    setUpAccountSwanRepository(accountSwanRepositoryMock);
+    setUpAccountHolderSwanRep(accountHolderRepositoryMock);
+    setUpSwanComponent(swanComponentMock);
+    setUpPaymentInitiationRep(paymentInitiationRepositoryMock);
   }
 
-  public static Product product1() {
-    return new Product()
-        .id("product1_id")
-        .description("Tableau malgache")
-        .quantity(1)
-        .unitPrice(1000)
-        .vatPercent(2000)
-        .totalVat(200)
-        .totalPriceWithVat(1200);
-  }
-
-  public static Product product2() {
-    return new Product()
-        .id("product2_id")
-        .description("Tableau baobab")
-        .quantity(2)
-        .unitPrice(2000)
-        .vatPercent(1000)
-        .totalVat(400)
-        .totalPriceWithVat(4400);
-  }
-
-  public static Product product3() {
-    return new Product()
-        .id("product3_id")
-        .description("Tableau baobab")
-        .quantity(3)
-        .unitPrice(2000)
-        .vatPercent(1000)
-        .totalVat(600)
-        .totalPriceWithVat(6600);
-  }
-
-  public static Product product4() {
-    return new Product()
-        .id("product4_id")
-        .description("Tableau malgache")
-        .quantity(1)
-        .unitPrice(2000)
-        .vatPercent(1000)
-        .totalVat(200)
-        .totalPriceWithVat(2200);
-  }
-
-  public static Product product5() {
-    return new Product()
-        .id("product5_id")
-        .description("Mon tableau")
-        .quantity(1)
-        .unitPrice(1000)
-        .vatPercent(1000)
-        .totalVat(100)
-        .totalPriceWithVat(1100);
+  private static ApiClient anApiClient() {
+    return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN, ProductIT.ContextInitializer.SERVER_PORT);
   }
 
   CreateProduct createProduct1() {
@@ -104,7 +97,7 @@ class ProductIT {
 
   @Test
   void read_products_ok() throws ApiException {
-    ApiClient joeDoeClient = anApiClient(bearerToken);
+    ApiClient joeDoeClient = anApiClient();
     PayingApi api = new PayingApi(joeDoeClient);
 
     List<Product> actualNotUnique = api.getProducts(JOE_DOE_ACCOUNT_ID, false, null);
@@ -125,7 +118,7 @@ class ProductIT {
 
   @Test
   void read_products_ko() {
-    ApiClient joeDoeClient = anApiClient(bearerToken);
+    ApiClient joeDoeClient = anApiClient();
     PayingApi api = new PayingApi(joeDoeClient);
 
     assertThrowsApiException(
@@ -135,7 +128,7 @@ class ProductIT {
 
   @Test
   void create_products_ok() throws ApiException {
-    ApiClient joeDoeClient = anApiClient(bearerToken);
+    ApiClient joeDoeClient = anApiClient();
     PayingApi api = new PayingApi(joeDoeClient);
 
     Invoice actual = api.createProducts(JOE_DOE_ACCOUNT_ID, INVOICE1_ID, List.of(createProduct1()));

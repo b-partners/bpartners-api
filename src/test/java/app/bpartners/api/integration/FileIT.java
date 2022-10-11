@@ -32,7 +32,7 @@ import static app.bpartners.api.integration.conf.TestUtils.BEARER_QUERY_PARAMETE
 import static app.bpartners.api.integration.conf.TestUtils.FILE_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.TestUtils.TO_UPLOAD_FILE_ID;
-import static app.bpartners.api.integration.conf.TestUtils.setUpSwanRepository;
+import static app.bpartners.api.integration.conf.TestUtils.setUpUserSwanRepository;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
@@ -54,7 +54,7 @@ class FileIT {
 
   @BeforeEach
   public void setUp() {
-    setUpSwanRepository(swanRepositoryMock);
+    setUpUserSwanRepository(swanRepositoryMock);
   }
 
   FileInfo file1() {

@@ -1,11 +1,16 @@
 package app.bpartners.api.integration;
 
 import app.bpartners.api.SentryConf;
+import app.bpartners.api.endpoint.event.S3Conf;
 import app.bpartners.api.endpoint.rest.model.CreatePreUser;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
+import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
 import app.bpartners.api.integration.conf.AbstractContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
+import app.bpartners.api.manager.ProjectTokenManager;
+import app.bpartners.api.repository.fintecture.FintectureConf;
 import app.bpartners.api.repository.sendinblue.SendinblueApi;
+import app.bpartners.api.repository.sendinblue.SendinblueConf;
 import app.bpartners.api.repository.swan.UserSwanRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
@@ -16,7 +21,6 @@ import java.net.http.HttpResponse;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -24,9 +28,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import static app.bpartners.api.integration.conf.TestUtils.VALID_EMAIL;
+import static app.bpartners.api.integration.conf.TestUtils.setUpSendiblueApi;
 import static app.bpartners.api.integration.conf.TestUtils.setUpSwanComponent;
-import static app.bpartners.api.integration.conf.TestUtils.setUpSwanRepository;
+import static app.bpartners.api.integration.conf.TestUtils.setUpUserSwanRepository;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
@@ -36,19 +40,29 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @AutoConfigureMockMvc
 class PreUserIT {
   @MockBean
-  UserSwanRepository swanRepositoryMock;
+  private UserSwanRepository swanRepositoryMock;
   @MockBean
   private SentryConf sentryConf;
   @MockBean
+  private SendinblueConf sendinblueConf;
+  @MockBean
+  private S3Conf s3Conf;
+  @MockBean
+  private SwanConf swanConf;
+  @MockBean
+  private FintectureConf fintectureConf;
+  @MockBean
+  private ProjectTokenManager projectTokenManager;
+  @MockBean
   private SwanComponent swanComponentMock;
-
-  @Autowired
+  @MockBean
   private SendinblueApi sendinblueApi;
 
   @BeforeEach
   public void setUp() {
     setUpSwanComponent(swanComponentMock);
-    setUpSwanRepository(swanRepositoryMock);
+    setUpUserSwanRepository(swanRepositoryMock);
+    setUpSendiblueApi(sendinblueApi);
   }
 
   CreatePreUser validPreUser() {
@@ -57,7 +71,7 @@ class PreUserIT {
     createPreUser.setFirstName("john");
     createPreUser.setLastName("doe");
     createPreUser.setSociety("johnSociety");
-    createPreUser.setPhone("+33123345678");
+    createPreUser.setPhone("+33611223344");
     return createPreUser;
   }
 
@@ -75,7 +89,6 @@ class PreUserIT {
                 new ObjectMapper().writeValueAsString(List.of(validPreUser()))))
             .build(),
         HttpResponse.BodyHandlers.ofString());
-    sendinblueApi.deleteContact(VALID_EMAIL); // Delete the recent sendinblue created contact
 
     assertEquals(HttpStatus.OK.value(), response.statusCode());
   }

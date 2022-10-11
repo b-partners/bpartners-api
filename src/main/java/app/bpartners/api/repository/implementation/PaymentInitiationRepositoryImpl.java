@@ -3,7 +3,7 @@ package app.bpartners.api.repository.implementation;
 import app.bpartners.api.model.PaymentInitiation;
 import app.bpartners.api.model.PaymentRedirection;
 import app.bpartners.api.repository.PaymentInitiationRepository;
-import app.bpartners.api.repository.fintecture.implementation.FinctecturePaymentInitiationRepositoryImpl;
+import app.bpartners.api.repository.fintecture.FintecturePaymentInitiationRepository;
 import app.bpartners.api.repository.mapper.FintectureMapper;
 import java.util.List;
 import lombok.AllArgsConstructor;
@@ -12,7 +12,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 @AllArgsConstructor
 public class PaymentInitiationRepositoryImpl implements PaymentInitiationRepository {
-  private final FinctecturePaymentInitiationRepositoryImpl
+  private final FintecturePaymentInitiationRepository
       fintectureRepository;
   private final FintectureMapper mapper;
 

@@ -3,8 +3,10 @@ package app.bpartners.api.repository.swan.model;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.LocalDate;
+import lombok.Builder;
 import lombok.Setter;
 
+@Builder
 @Setter
 public class SwanUser {
   private String id;

@@ -3,7 +3,9 @@ package app.bpartners.api.repository.swan.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Builder;
 
+@Builder
 public class SwanAccount {
   private String id;
   private String name;

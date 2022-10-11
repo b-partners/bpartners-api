@@ -1,24 +1,42 @@
 package app.bpartners.api.integration;
 
 import app.bpartners.api.SentryConf;
+import app.bpartners.api.endpoint.event.S3Conf;
 import app.bpartners.api.endpoint.rest.api.PayingApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
 import app.bpartners.api.endpoint.rest.model.CreateTransactionCategory;
 import app.bpartners.api.endpoint.rest.model.TransactionCategory;
+import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
+import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
 import app.bpartners.api.integration.conf.AbstractContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
+import app.bpartners.api.manager.ProjectTokenManager;
+import app.bpartners.api.repository.fintecture.FintectureConf;
+import app.bpartners.api.repository.sendinblue.SendinblueConf;
+import app.bpartners.api.repository.swan.AccountSwanRepository;
+import app.bpartners.api.repository.swan.TransactionSwanRepository;
+import app.bpartners.api.repository.swan.UserSwanRepository;
 import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import static app.bpartners.api.integration.TransactionIT.transaction2;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
+import static app.bpartners.api.integration.conf.TestUtils.restTransaction2;
+import static app.bpartners.api.integration.conf.TestUtils.setUpAccountSwanRepository;
+import static app.bpartners.api.integration.conf.TestUtils.setUpSwanComponent;
+import static app.bpartners.api.integration.conf.TestUtils.setUpTransactionRepository;
+import static app.bpartners.api.integration.conf.TestUtils.setUpUserSwanRepository;
+import static app.bpartners.api.integration.conf.TestUtils.transactionCategory1;
+import static app.bpartners.api.integration.conf.TestUtils.transactionCategory2;
+import static app.bpartners.api.integration.conf.TestUtils.transactionCategory3;
+import static app.bpartners.api.integration.conf.TestUtils.transactionCategory4;
+import static app.bpartners.api.integration.conf.TestUtils.transactionCategory5;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
@@ -30,50 +48,32 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 class TransactionCategoryIT {
   @MockBean
   private SentryConf sentryConf;
+  @MockBean
+  private SendinblueConf sendinblueConf;
+  @MockBean
+  private S3Conf s3Conf;
+  @MockBean
+  private SwanConf swanConf;
+  @MockBean
+  private FintectureConf fintectureConf;
+  @MockBean
+  private ProjectTokenManager projectTokenManager;
+  @MockBean
+  private UserSwanRepository userSwanRepositoryMock;
+  @MockBean
+  private AccountSwanRepository accountSwanRepositoryMock;
+  @MockBean
+  private SwanComponent swanComponentMock;
+  @MockBean
+  private TransactionSwanRepository transactionSwanRepositoryMock;
 
-  @Value("${test.user.access.token}")
-  private String bearerToken;
-
-  TransactionCategory transactionCategory1() {
-    return new TransactionCategory()
-        .id("transaction_category1_id")
-        .type("Recette TVA 20%")
-        .userDefined(false)
-        .vat(2000);
+  @BeforeEach
+  public void setUp() {
+    setUpSwanComponent(swanComponentMock);
+    setUpUserSwanRepository(userSwanRepositoryMock);
+    setUpAccountSwanRepository(accountSwanRepositoryMock);
+    setUpTransactionRepository(transactionSwanRepositoryMock);
   }
-
-  TransactionCategory transactionCategory2() {
-    return new TransactionCategory()
-        .id("transaction_category3_id")
-        .type("Recette TVA 10%")
-        .userDefined(false)
-        .vat(1000);
-  }
-
-  TransactionCategory transactionCategory3() {
-    return new TransactionCategory()
-        .id("transaction_category3_id")
-        .type("Recette TVA 10%")
-        .userDefined(false)
-        .vat(1000);
-  }
-
-  TransactionCategory transactionCategory4() {
-    return new TransactionCategory()
-        .id("transaction_category4_id")
-        .type("Recette personnalisée TVA 1%")
-        .userDefined(true)
-        .vat(100);
-  }
-
-  TransactionCategory transactionCategory5() {
-    return new TransactionCategory()
-        .id("transaction_category5_id")
-        .type("Recette personnalisée TVA 1,2%")
-        .userDefined(true)
-        .vat(120);
-  }
-
 
   CreateTransactionCategory createTransactionCategory() {
     return new CreateTransactionCategory()
@@ -81,13 +81,13 @@ class TransactionCategoryIT {
         .vat(150);
   }
 
-  private static ApiClient anApiClient(String token) {
-    return TestUtils.anApiClient(token, ContextInitializer.SERVER_PORT);
+  private static ApiClient anApiClient() {
+    return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN, ContextInitializer.SERVER_PORT);
   }
 
   @Test
   void read_transaction_categories_ok() throws ApiException {
-    ApiClient joeDoeClient = anApiClient(bearerToken);
+    ApiClient joeDoeClient = anApiClient();
     PayingApi api = new PayingApi(joeDoeClient);
 
     List<TransactionCategory> actualAll = api.getTransactionCategories(JOE_DOE_ACCOUNT_ID, false,
@@ -120,11 +120,11 @@ class TransactionCategoryIT {
 
   @Test
   void create_transaction_categories_ok() throws ApiException {
-    ApiClient joeDoeClient = anApiClient(bearerToken);
+    ApiClient joeDoeClient = anApiClient();
     PayingApi api = new PayingApi(joeDoeClient);
 
     List<TransactionCategory> actual = api.createTransactionCategories(JOE_DOE_ACCOUNT_ID,
-        transaction2().getId(),
+        restTransaction2().getId(),
         List.of(createTransactionCategory()));
 
     assertEquals(1, actual.size());

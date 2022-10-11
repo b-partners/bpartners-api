@@ -15,7 +15,6 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import software.amazon.awssdk.http.Header;
 
@@ -23,7 +22,6 @@ import static app.bpartners.api.endpoint.rest.security.swan.SwanConf.BEARER_PREF
 
 @Component
 @AllArgsConstructor
-@Slf4j
 public class SwanComponent {
   private final SwanMapper swanMapper;
   private final SwanConf swanConf;
@@ -59,7 +57,6 @@ public class SwanComponent {
           TokenResponse.class);
       return swanMapper.toRest(tokenResponse);
     } catch (IOException | InterruptedException | URISyntaxException e) {
-      log.info("Error", e);
       throw new BadRequestException("Code is invalid, expired, revoked or the redirectUrl "
           + redirectUrl + " does not match in the authorization request");
     }

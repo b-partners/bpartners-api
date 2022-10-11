@@ -1,35 +1,48 @@
 package app.bpartners.api.integration;
 
 import app.bpartners.api.SentryConf;
+import app.bpartners.api.endpoint.event.S3Conf;
 import app.bpartners.api.endpoint.rest.api.PayingApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
 import app.bpartners.api.endpoint.rest.model.CrupdateInvoice;
 import app.bpartners.api.endpoint.rest.model.Invoice;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
+import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
+import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
 import app.bpartners.api.integration.conf.AbstractContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
-import app.bpartners.api.service.InvoiceService;
+import app.bpartners.api.manager.ProjectTokenManager;
+import app.bpartners.api.repository.PaymentInitiationRepository;
+import app.bpartners.api.repository.fintecture.FintectureConf;
+import app.bpartners.api.repository.fintecture.FintecturePaymentInitiationRepository;
+import app.bpartners.api.repository.sendinblue.SendinblueConf;
+import app.bpartners.api.repository.swan.AccountHolderSwanRepository;
+import app.bpartners.api.repository.swan.AccountSwanRepository;
+import app.bpartners.api.repository.swan.UserSwanRepository;
 import java.time.LocalDate;
 import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import static app.bpartners.api.integration.CustomerTemplateIT.customer1;
-import static app.bpartners.api.integration.CustomerTemplateIT.customer2;
-import static app.bpartners.api.integration.ProductIT.product3;
-import static app.bpartners.api.integration.ProductIT.product4;
-import static app.bpartners.api.integration.ProductIT.product5;
 import static app.bpartners.api.integration.conf.TestUtils.INVOICE1_ID;
 import static app.bpartners.api.integration.conf.TestUtils.INVOICE2_ID;
-import static app.bpartners.api.integration.conf.TestUtils.INVOICE1_FILE_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
+import static app.bpartners.api.integration.conf.TestUtils.customer1;
+import static app.bpartners.api.integration.conf.TestUtils.invoice1;
+import static app.bpartners.api.integration.conf.TestUtils.invoice2;
+import static app.bpartners.api.integration.conf.TestUtils.product4;
+import static app.bpartners.api.integration.conf.TestUtils.product5;
+import static app.bpartners.api.integration.conf.TestUtils.setUpAccountHolderSwanRep;
+import static app.bpartners.api.integration.conf.TestUtils.setUpAccountSwanRepository;
+import static app.bpartners.api.integration.conf.TestUtils.setUpPaymentInitiationRep;
+import static app.bpartners.api.integration.conf.TestUtils.setUpSwanComponent;
+import static app.bpartners.api.integration.conf.TestUtils.setUpUserSwanRepository;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
@@ -40,14 +53,38 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 class InvoiceIT {
   @MockBean
   private SentryConf sentryConf;
-  @Value("${test.user.access.token}")
-  private String bearerToken;
+  @MockBean
+  private SendinblueConf sendinblueConf;
+  @MockBean
+  private S3Conf s3Conf;
+  @MockBean
+  private SwanConf swanConf;
+  @MockBean
+  private FintectureConf fintectureConf;
+  @MockBean
+  private ProjectTokenManager projectTokenManager;
+  @MockBean
+  private UserSwanRepository userSwanRepositoryMock;
+  @MockBean
+  private AccountSwanRepository accountSwanRepositoryMock;
+  @MockBean
+  private SwanComponent swanComponentMock;
+  @MockBean
+  private AccountHolderSwanRepository accountHolderRepositoryMock;
+  @MockBean
+  private FintecturePaymentInitiationRepository paymentInitiationRepositoryMock;
 
-  @Autowired
-  private InvoiceService invoiceService;
+  @BeforeEach
+  public void setUp() {
+    setUpSwanComponent(swanComponentMock);
+    setUpUserSwanRepository(userSwanRepositoryMock);
+    setUpAccountSwanRepository(accountSwanRepositoryMock);
+    setUpAccountHolderSwanRep(accountHolderRepositoryMock);
+    setUpPaymentInitiationRep(paymentInitiationRepositoryMock);
+  }
 
-  private static ApiClient anApiClient(String token) {
-    return TestUtils.anApiClient(token, InvoiceIT.ContextInitializer.SERVER_PORT);
+  private static ApiClient anApiClient() {
+    return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN, InvoiceIT.ContextInitializer.SERVER_PORT);
   }
 
   private static final String NEW_INVOICE_ID = "invoice_uuid";
@@ -60,39 +97,6 @@ class InvoiceIT {
         .products(List.of(product4(), product5()))
         .sendingDate(LocalDate.of(2022, 9, 10))
         .toPayAt(LocalDate.of(2022, 9, 11));
-  }
-
-  Invoice invoice1() {
-    return new Invoice()
-        .id(INVOICE1_ID)
-        .fileId(INVOICE1_FILE_ID)
-        .title("Facture tableau")
-        .customer(customer1())
-        .ref("BP001")
-        .sendingDate(LocalDate.of(2022, 9, 1))
-        .toPayAt(LocalDate.of(2022, 10, 1))
-        .status(InvoiceStatus.CONFIRMED)
-        .products(List.of(product3(), product4()))
-        .totalPriceWithVat(8800)
-        .totalVat(800)
-        .totalPriceWithoutVat(8000)
-        ;
-  }
-
-  Invoice invoice2() {
-    return new Invoice()
-        .id(INVOICE2_ID)
-        .title("Facture plomberie")
-        .fileId("BP002.pdf")
-        .customer(customer2().address("Nouvelle adresse"))
-        .ref("BP002")
-        .sendingDate(LocalDate.of(2022, 9, 10))
-        .toPayAt(LocalDate.of(2022, 10, 10))
-        .status(InvoiceStatus.CONFIRMED)
-        .products(List.of(product5()))
-        .totalPriceWithVat(1100)
-        .totalVat(100)
-        .totalPriceWithoutVat(1000);
   }
 
   Invoice createdInvoice() {
@@ -113,7 +117,7 @@ class InvoiceIT {
 
   @Test
   void read_invoice_ok() throws ApiException {
-    ApiClient joeDoeClient = anApiClient(bearerToken);
+    ApiClient joeDoeClient = anApiClient();
     PayingApi api = new PayingApi(joeDoeClient);
 
     Invoice actual1 = api.getInvoiceById(JOE_DOE_ACCOUNT_ID, INVOICE1_ID);
@@ -125,7 +129,7 @@ class InvoiceIT {
 
   @Test
   void crupdate_invoice_ok() throws ApiException {
-    ApiClient joeDoeClient = anApiClient(bearerToken);
+    ApiClient joeDoeClient = anApiClient();
     PayingApi api = new PayingApi(joeDoeClient);
 
     Invoice actual = api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, NEW_INVOICE_ID, validInvoice());

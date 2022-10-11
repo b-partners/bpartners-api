@@ -1,9 +1,14 @@
 package app.bpartners.api.integration;
 
 import app.bpartners.api.SentryConf;
+import app.bpartners.api.endpoint.event.S3Conf;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
+import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
 import app.bpartners.api.integration.conf.AbstractContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
+import app.bpartners.api.manager.ProjectTokenManager;
+import app.bpartners.api.repository.fintecture.FintectureConf;
+import app.bpartners.api.repository.sendinblue.SendinblueConf;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -32,10 +37,16 @@ import static org.springframework.http.HttpMethod.OPTIONS;
 @ContextConfiguration(initializers = SpringSecurityIT.ContextInitializer.class)
 @AutoConfigureMockMvc
 class SpringSecurityIT {
-
   @MockBean
   private SentryConf sentryConf;
-
+  @MockBean
+  private SendinblueConf sendinblueConf;
+  @MockBean
+  private S3Conf s3Conf;
+  @MockBean
+  private FintectureConf fintectureConf;
+  @MockBean
+  private ProjectTokenManager projectTokenManager;
   @Autowired
   private SwanComponent swanComponent;
   @Value("${test.user.access.token}")

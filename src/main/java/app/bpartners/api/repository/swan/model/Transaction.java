@@ -3,8 +3,10 @@ package app.bpartners.api.repository.swan.model;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.Instant;
+import lombok.Builder;
 import lombok.Setter;
 
+@Builder
 @Setter
 public class Transaction {
   private Node node;
@@ -15,6 +17,7 @@ public class Transaction {
     return node;
   }
 
+  @Builder
   public static class Amount {
     private String currency;
     private Double value;
@@ -32,6 +35,7 @@ public class Transaction {
     }
   }
 
+  @Builder
   public static class Node {
     private String id;
     private String label;

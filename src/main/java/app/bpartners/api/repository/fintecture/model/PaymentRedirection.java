@@ -2,7 +2,9 @@ package app.bpartners.api.repository.fintecture.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Builder;
 
+@Builder
 public class PaymentRedirection {
   private Meta meta;
 
@@ -12,6 +14,7 @@ public class PaymentRedirection {
     return meta;
   }
 
+  @Builder
   public static class Meta {
     private String sessionId;
     private String url;

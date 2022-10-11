@@ -12,7 +12,6 @@ import org.springframework.stereotype.Repository;
 @AllArgsConstructor
 public class AccountHolderSwanRepositoryImpl implements AccountHolderSwanRepository {
 
-
   private final SwanApi<AccountHolderResponse> swanApi;
   private static final String QUERY =
       "{ \"query\": \"" + "query AccountHolder { accountHolders { edges { node "

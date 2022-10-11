@@ -82,6 +82,17 @@ Resources:
               awslogs-region: !Ref AWS::Region
               awslogs-group: !Ref LogGroup
               awslogs-stream-prefix: ecs
+          HealthCheck:
+            Command:
+              - "CMD-SHELL"
+              - "curl -f http://localhost:8080/ping || exit 1"
+            StartPeriod: 120
+
+            # After 10 retries, each retry taking 0s min and 5s max, interval between retries being 6s:
+            # We consider a task unhealthy after (1try+10retries)*(5+0)=55s min and (10+1)*(5+6)=121s max
+            Retries: 10
+            Interval: 6
+            Timeout: 5
   ExecutionRole:
     Type: AWS::IAM::Role
     Properties:

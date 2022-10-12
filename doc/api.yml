@@ -351,6 +351,11 @@ paths:
         - Paying
       summary: Get known transaction categories of an account
       operationId: getTransactionCategories
+      description: |
+        get transaction categories of an account filtered by:
+        * unique
+        * userDefined
+        * from - to: date interval for type count.
       parameters:
         - in: path
           name: aId
@@ -368,6 +373,18 @@ paths:
           name: userDefined
           schema:
             type: boolean
+        - in: query
+          name: from
+          schema:
+            type: string
+            format: date
+          required: true
+        - in: query
+          name: to
+          schema:
+            type: string
+            format: date
+          required: true
       responses:
         200:
           description: List of known transaction categories
@@ -1002,6 +1019,9 @@ components:
           type: string
         userDefined:
           type: boolean
+        count:
+          type: integer
+          format: int64
     CreateTransactionCategory:
       type: object
       properties:

@@ -40,16 +40,6 @@ jobs:
           export TEST_USER_ACCESS_TOKEN=${{ secrets.TEST_USER_ACCESS_TOKEN }}
           export SWAN_CLIENT_ID=${{ secrets.SWAN_CLIENT_ID }}
           export SWAN_CLIENT_SECRET=${{ secrets.SWAN_CLIENT_SECRET }}
-          export TEST_SWAN_USER_CODE=${{ secrets.TEST_SWAN_USER_CODE }}
-          export AWS_SSM_SWAN_PROJECT_PARAM=${{ secrets.AWS_SSM_SWAN_PROJECT_PARAM }}
-          export AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
-          export AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          export FINTECTURE_APP_ID=${{ secrets.FINTECTURE_APP_ID }}
-          export FINTECTURE_APP_SECRET=${{ secrets.FINTECTURE_APP_SECRET }}
-          export ENV=${{ secrets.ENV }}
-          export AWS_BUCKET_NAME=${{ secrets.AWS_BUCKET_NAME }}
-          export SENDINBLUE_API_KEY=${{ secrets.SENDINBLUE_API_KEY }}
-          export SENDINBLUE_CONTACTLIST_ID=${{ secrets.SENDINBLUE_CONTACT_LIST_ID }}
           ./gradlew test
 
       - name: Checkstyle

@@ -28,14 +28,20 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
+import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.DRAFT;
+import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PROPOSAL;
+import static app.bpartners.api.integration.conf.TestUtils.INVOICE1_FILE_ID;
 import static app.bpartners.api.integration.conf.TestUtils.INVOICE1_ID;
 import static app.bpartners.api.integration.conf.TestUtils.INVOICE2_ID;
+import static app.bpartners.api.integration.conf.TestUtils.INVOICE3_ID;
+import static app.bpartners.api.integration.conf.TestUtils.INVOICE4_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsApiException;
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsForbiddenException;
 import static app.bpartners.api.integration.conf.TestUtils.customer1;
-import static app.bpartners.api.integration.conf.TestUtils.invoice1;
-import static app.bpartners.api.integration.conf.TestUtils.invoice2;
+import static app.bpartners.api.integration.conf.TestUtils.customer2;
+import static app.bpartners.api.integration.conf.TestUtils.product3;
 import static app.bpartners.api.integration.conf.TestUtils.product4;
 import static app.bpartners.api.integration.conf.TestUtils.product5;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountHolderSwanRep;
@@ -44,6 +50,10 @@ import static app.bpartners.api.integration.conf.TestUtils.setUpPaymentInitiatio
 import static app.bpartners.api.integration.conf.TestUtils.setUpSwanComponent;
 import static app.bpartners.api.integration.conf.TestUtils.setUpUserSwanRepository;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
@@ -55,6 +65,7 @@ class InvoiceIT {
   public static final String OTHER_ACCOUNT_ID = "other_account_id";
   public static final int MAX_PAGE_SIZE = 500;
   private static final String NEW_INVOICE_ID = "invoice_uuid";
+
   @MockBean
   private SentryConf sentryConf;
   @MockBean
@@ -95,8 +106,82 @@ class InvoiceIT {
         .title("Facture sans produit")
         .customer(customer1())
         .products(List.of(product4(), product5()))
+        .status(CONFIRMED)
         .sendingDate(LocalDate.of(2022, 9, 10))
         .toPayAt(LocalDate.of(2022, 9, 11));
+  }
+
+  CrupdateInvoice proposalInvoice() {
+    return new CrupdateInvoice()
+        .ref("BP004")
+        .title("Facture sans produit")
+        .customer(customer1())
+        .products(List.of(product4(), product5()))
+        .status(PROPOSAL)
+        .sendingDate(LocalDate.of(2022, 10, 12))
+        .toPayAt(LocalDate.of(2022, 10, 13));
+  }
+
+  CrupdateInvoice draftInvoice() {
+    return new CrupdateInvoice()
+        .ref("BP005")
+        .title("Facture sans produit")
+        .customer(customer1())
+        .products(List.of(product4(), product5()))
+        .status(DRAFT)
+        .sendingDate(LocalDate.of(2022, 10, 12))
+        .toPayAt(LocalDate.of(2022, 10, 13));
+  }
+
+  CrupdateInvoice confirmedInvoice() {
+    return new CrupdateInvoice()
+        .ref("BP006")
+        .title("Facture sans produit")
+        .customer(customer1())
+        .products(List.of(product4(), product5()))
+        .status(CONFIRMED)
+        .sendingDate(LocalDate.of(2022, 10, 12))
+        .toPayAt(LocalDate.of(2022, 10, 13));
+  }
+
+  CrupdateInvoice confirmedInvoice2() {
+    return new CrupdateInvoice()
+        .ref("BP007")
+        .title("Facture sans produit")
+        .customer(customer1())
+        .products(List.of(product4(), product5()))
+        .status(CONFIRMED)
+        .sendingDate(LocalDate.of(2022, 10, 12))
+        .toPayAt(LocalDate.of(2022, 10, 13));
+  }
+
+  Invoice invoice1() {
+    return new Invoice()
+        .id(INVOICE1_ID)
+        .fileId(INVOICE1_FILE_ID)
+        .title("Facture tableau")
+        .paymentUrl("https://connect-v2-sbx.fintecture.com")
+        .customer(customer1()).ref("BP001")
+        .sendingDate(LocalDate.of(2022, 9, 1))
+        .toPayAt(LocalDate.of(2022, 10, 1))
+        .status(CONFIRMED)
+        .products(List.of(product3(), product4())).totalPriceWithVat(8800).totalVat(800)
+        .totalPriceWithoutVat(8000);
+  }
+
+  Invoice invoice2() {
+    return new Invoice()
+        .id(INVOICE2_ID)
+        .title("Facture plomberie")
+        .paymentUrl("https://connect-v2-sbx.fintecture.com")
+        .fileId("BP002.pdf")
+        .customer(customer2().address("Nouvelle adresse"))
+        .ref("BP002")
+        .sendingDate(LocalDate.of(2022, 9, 10))
+        .toPayAt(LocalDate.of(2022, 10, 10))
+        .status(CONFIRMED).products(List.of(product5()))
+        .totalPriceWithVat(1100)
+        .totalVat(100).totalPriceWithoutVat(1000);
   }
 
   Invoice createdInvoice() {
@@ -110,6 +195,55 @@ class InvoiceIT {
         .sendingDate(validInvoice().getSendingDate())
         .products(List.of(product4(), product5()))
         .toPayAt(validInvoice().getToPayAt())
+        .totalPriceWithVat(3300)
+        .totalVat(300)
+        .totalPriceWithoutVat(3000);
+  }
+
+  Invoice updatedInvoice1() {
+    return new Invoice()
+        .id(INVOICE3_ID)
+        .fileId("BP006.pdf")
+        .ref(confirmedInvoice().getRef())
+        .paymentUrl("https://connect-v2-sbx.fintecture.com")
+        .title("Facture sans produit")
+        .customer(confirmedInvoice().getCustomer())
+        .status(CONFIRMED)
+        .sendingDate(confirmedInvoice().getSendingDate())
+        .products(List.of(product4(), product5()))
+        .toPayAt(confirmedInvoice().getToPayAt())
+        .totalPriceWithVat(3300)
+        .totalVat(300)
+        .totalPriceWithoutVat(3000);
+  }
+
+  Invoice updatedInvoice2() {
+    return new Invoice()
+        .id(INVOICE3_ID)
+        .fileId("BP004 TEMP.pdf")
+        .ref(proposalInvoice().getRef() + " TEMP")
+        .title("Facture sans produit")
+        .customer(proposalInvoice().getCustomer())
+        .status(PROPOSAL)
+        .sendingDate(proposalInvoice().getSendingDate())
+        .products(List.of(product4(), product5()))
+        .toPayAt(proposalInvoice().getToPayAt())
+        .totalPriceWithVat(3300)
+        .totalVat(300)
+        .totalPriceWithoutVat(3000);
+  }
+
+  Invoice updatedInvoice3() {
+    return new Invoice()
+        .id(INVOICE4_ID)
+        .fileId("BP007.pdf")
+        .ref(confirmedInvoice2().getRef())
+        .title("Facture sans produit")
+        .customer(confirmedInvoice2().getCustomer())
+        .status(CONFIRMED)
+        .sendingDate(confirmedInvoice2().getSendingDate())
+        .products(List.of(product4(), product5()))
+        .toPayAt(confirmedInvoice2().getToPayAt())
         .totalPriceWithVat(3300)
         .totalVat(300)
         .totalPriceWithoutVat(3000);
@@ -163,9 +297,69 @@ class InvoiceIT {
 
     Invoice actual = api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, NEW_INVOICE_ID, validInvoice());
 
-    assertEquals(createdInvoice(), actual.paymentUrl(null));
+    assertEquals(createdInvoice(), actual);
   }
 
+  @Test
+  void crupdate_invoice_draft_to_proposal_ok() throws ApiException {
+    ApiClient joeDoeClient = anApiClient();
+    PayingApi api = new PayingApi(joeDoeClient);
+
+    Invoice actual = api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, INVOICE3_ID, proposalInvoice());
+
+    assertEquals(updatedInvoice2(), actual);
+    assertTrue(actual.getRef().contains("TEMP"));
+  }
+
+  @Test
+  void crupdate_invoice_draft_to_confirmed_ok() throws ApiException {
+    ApiClient joeDoeClient = anApiClient();
+    PayingApi api = new PayingApi(joeDoeClient);
+
+    Invoice actual = api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, INVOICE3_ID, confirmedInvoice());
+
+    assertEquals(updatedInvoice1(), actual);
+    assertFalse(actual.getRef().contains("TEMP"));
+  }
+
+  @Test
+  void crupdate_invoice_proposal_to_confirmed_ok() throws ApiException {
+    ApiClient joeDoeClient = anApiClient();
+    PayingApi api = new PayingApi(joeDoeClient);
+
+    Invoice actual = api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, INVOICE4_ID, confirmedInvoice2());
+
+    assertNotNull(actual.getPaymentUrl());
+    assertEquals(updatedInvoice3(), actual);
+    assertFalse(actual.getRef().contains("TEMP"));
+  }
+
+  @Test
+  void crupdate_invoice_proposal_to_draft_ko() {
+    ApiClient joeDoeClient = anApiClient();
+    PayingApi api = new PayingApi(joeDoeClient);
+
+    assertThrows(ApiException.class,
+        () -> api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, INVOICE4_ID, draftInvoice()));
+  }
+
+  @Test
+  void crupdate_invoice_confirmed_to_draft_ko() {
+    ApiClient joeDoeClient = anApiClient();
+    PayingApi api = new PayingApi(joeDoeClient);
+
+    assertThrows(ApiException.class,
+        () -> api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, INVOICE1_ID, draftInvoice()));
+  }
+
+  @Test
+  void crupdate_invoice_confirmed_to_proposal_ko() {
+    ApiClient joeDoeClient = anApiClient();
+    PayingApi api = new PayingApi(joeDoeClient);
+
+    assertThrows(ApiException.class,
+        () -> api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, INVOICE1_ID, proposalInvoice()));
+  }
   /* /!\ Use for unit test only
   @Test
   void generate_invoice_pdf_ok() throws IOException {

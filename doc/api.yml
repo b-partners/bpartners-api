@@ -1168,6 +1168,8 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Product'
+        status:
+          $ref: '#/components/schemas/InvoiceStatus'
         sendingDate:
           type: string
           format: date
@@ -1201,6 +1203,8 @@ components:
     InvoiceStatus:
       type: string
       enum:
+        - DRAFT
+        - PROPOSAL
         - CONFIRMED
     CreateInvoiceRelaunch:
       type: object

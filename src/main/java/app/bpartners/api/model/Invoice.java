@@ -11,7 +11,6 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
 import static app.bpartners.api.service.utils.FileInfoUtils.PDF_EXTENSION;
 
 @Getter
@@ -46,4 +45,5 @@ public class Invoice {
   public Date getFormattedPayingDate() {
     return Date.from(toPayAt.atStartOfDay(ZoneId.systemDefault()).toInstant());
   }
+
 }

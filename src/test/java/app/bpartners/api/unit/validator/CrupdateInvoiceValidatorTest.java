@@ -1,0 +1,54 @@
+package app.bpartners.api.unit.validator;
+
+import app.bpartners.api.endpoint.rest.model.CrupdateInvoice;
+import app.bpartners.api.endpoint.rest.validator.CrupdateInvoiceValidator;
+import app.bpartners.api.model.exception.BadRequestException;
+import java.time.LocalDate;
+import java.util.List;
+import org.junit.jupiter.api.Test;
+
+import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PROPOSAL;
+import static app.bpartners.api.integration.conf.TestUtils.customer1;
+import static app.bpartners.api.integration.conf.TestUtils.product4;
+import static app.bpartners.api.integration.conf.TestUtils.product5;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+class CrupdateInvoiceValidatorTest {
+  private final CrupdateInvoiceValidator validator = new CrupdateInvoiceValidator();
+
+  CrupdateInvoice validInvoice() {
+    return new CrupdateInvoice()
+        .ref("BP004")
+        .title("Facture sans produit")
+        .customer(customer1())
+        .products(List.of(product4(), product5()))
+        .status(PROPOSAL)
+        .sendingDate(LocalDate.of(2022, 10, 12))
+        .toPayAt(LocalDate.of(2022, 10, 13));
+  }
+
+  CrupdateInvoice invalidInvoice() {
+    return new CrupdateInvoice()
+        .ref(null)
+        .title(null)
+        .customer(customer1())
+        .products(List.of(product4(), product5()))
+        .status(PROPOSAL)
+        .sendingDate(LocalDate.of(2022, 10, 12))
+        .toPayAt(LocalDate.of(2022, 10, 13));
+  }
+
+  @Test
+  void valid_invoice() {
+    CrupdateInvoice invoice = validInvoice();
+    assertDoesNotThrow(() -> validator.accept(invoice));
+  }
+
+  @Test
+  void invalid_invoice() {
+    CrupdateInvoice invoice = invalidInvoice();
+    assertThrows(BadRequestException.class, () -> validator.accept(invoice));
+  }
+
+}

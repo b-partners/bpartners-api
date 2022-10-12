@@ -1,7 +1,7 @@
 package app.bpartners.api.service;
 
+
 import app.bpartners.api.endpoint.rest.model.FileType;
-import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.endpoint.rest.security.model.Principal;
 import app.bpartners.api.endpoint.rest.security.principal.PrincipalProvider;
 import app.bpartners.api.model.Account;
@@ -12,6 +12,7 @@ import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.model.PaymentRedirection;
 import app.bpartners.api.model.Product;
 import app.bpartners.api.model.exception.ApiException;
+import app.bpartners.api.model.validator.InvoiceValidator;
 import app.bpartners.api.repository.InvoiceRepository;
 import app.bpartners.api.repository.ProductRepository;
 import com.google.zxing.WriterException;
@@ -34,6 +35,7 @@ import org.thymeleaf.templatemode.TemplateMode;
 import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
 import org.xhtmlrenderer.pdf.ITextRenderer;
 
+import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 import static app.bpartners.api.service.utils.FileInfoUtils.JPG_FORMAT_NAME;
 import static com.google.zxing.BarcodeFormat.QR_CODE;
@@ -58,16 +60,19 @@ public class InvoiceService {
         .collect(Collectors.toUnmodifiableList());
   }
 
+  private final InvoiceValidator validator;
+
   public Invoice getById(String invoiceId) {
     return refreshValues(repository.getById(invoiceId));
   }
 
   public Invoice crupdateInvoice(Invoice toCrupdate) {
-    toCrupdate.setStatus(InvoiceStatus.CONFIRMED);
-    Invoice refreshedInvoice = refreshValues(repository.crupdate(toCrupdate));
-    fileService.uploadFile(FileType.INVOICE, refreshedInvoice.getAccount().getId(),
-        refreshedInvoice.getFileId(), generateInvoicePdf(refreshedInvoice));
-    return refreshedInvoice;
+    validator.accept(toCrupdate);
+    //TODO: uncomment when localstak is set
+    //Invoice refreshedInvoice = refreshValues(repository.crupdate(toCrupdate));
+    //fileService.uploadFile(refreshedInvoice.getAccount().getId(),
+    //refreshedInvoice.getFileId(), generateInvoicePdf(refreshedInvoice));
+    return refreshValues(repository.crupdate(toCrupdate));
   }
 
   private Invoice refreshValues(Invoice invoice) {
@@ -78,7 +83,6 @@ public class InvoiceService {
     }
     Invoice initializedInvoice = Invoice.builder()
         .id(invoice.getId())
-        .ref(invoice.getRef())
         .title(invoice.getTitle())
         .invoiceCustomer(invoice.getInvoiceCustomer())
         .account(invoice.getAccount())
@@ -90,8 +94,14 @@ public class InvoiceService {
         .toPayAt(invoice.getToPayAt())
         .sendingDate(invoice.getSendingDate())
         .build();
-    PaymentRedirection paymentRedirection = pis.initiateInvoicePayment(initializedInvoice);
-    initializedInvoice.setPaymentUrl(paymentRedirection.getRedirectUrl());
+    if (!invoice.getStatus().equals(CONFIRMED)) {
+      initializedInvoice.setPaymentUrl(null);
+      initializedInvoice.setRef(invoice.getRef() + " TEMP");
+    } else {
+      PaymentRedirection paymentRedirection = pis.initiateInvoicePayment(initializedInvoice);
+      initializedInvoice.setPaymentUrl(paymentRedirection.getRedirectUrl());
+      initializedInvoice.setRef(invoice.getRef());
+    }
     return initializedInvoice;
   }
 

@@ -58,6 +58,11 @@ public class TestUtils {
   public static final String BAD_USER_ID = "bad_user_id";
   public static final String INVOICE1_ID = "invoice1_id";
   public static final String INVOICE2_ID = "invoice2_id";
+  public static final String INVOICE3_ID = "invoice3_id";
+  public static final String INVOICE4_ID = "invoice4_id";
+
+  public static final String INVOICE1_FILE_ID = "BP001.pdf";
+  public static final String FILE_ID = "test.jpeg";
   public static final String TEST_FILE_ID = "test.jpeg";
   public static final String TO_UPLOAD_FILE_ID = "to_upload_file_id.jpeg";
   public static final String MARKETPLACE1_ID = "marketplace1_id";

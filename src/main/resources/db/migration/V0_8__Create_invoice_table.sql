@@ -2,7 +2,7 @@ do
 $$
 begin
         if not exists(select from pg_type where typname = 'invoice_status') then
-create type "invoice_status" as enum ('CONFIRMED');
+create type "invoice_status" as enum ('DRAFT','PROPOSAL','CONFIRMED');
 end if;
 end
 $$;

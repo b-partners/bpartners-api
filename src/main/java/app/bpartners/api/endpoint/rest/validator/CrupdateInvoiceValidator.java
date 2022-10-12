@@ -12,29 +12,34 @@ public class CrupdateInvoiceValidator implements Consumer<CrupdateInvoice> {
 
   @Override
   public void accept(CrupdateInvoice invoice) {
+    StringBuilder message = new StringBuilder();
     if (invoice.getTitle() == null) {
-      throw new BadRequestException("Title is mandatory");
+      message.append("Title is mandatory. ");
     }
     if (invoice.getRef() == null) {
-      throw new BadRequestException("Reference is mandatory");
+      message.append("Reference is mandatory. ");
     }
     if (invoice.getCustomer() == null) {
-      throw new BadRequestException("Customer is mandatory");
+      message.append("Customer is mandatory. ");
     }
     if (invoice.getSendingDate() == null) {
-      throw new BadRequestException("Sending date is mandatory");
+      message.append("Sending date is mandatory. ");
     }
     if (invoice.getToPayAt() == null) {
-      throw new BadRequestException("`To Pay At` date is mandatory");
+      message.append("`To Pay At` date is mandatory. ");
     }
     if (invoice.getSendingDate().isAfter(today)) {
-      throw new BadRequestException("Invoice can be sent by today");
+      message.append("Invoice can be sent by today. ");
     }
     if (invoice.getProducts() == null) {
-      throw new BadRequestException("Products are mandatory");
+      message.append("Products are mandatory. ");
     }
     if (invoice.getToPayAt().isBefore(invoice.getSendingDate())) {
-      throw new BadRequestException("Payment date can not be after the sending date");
+      message.append("Payment date can not be after the sending date. ");
+    }
+    String exceptionMessage = message.toString();
+    if (!exceptionMessage.isEmpty()) {
+      throw new BadRequestException(exceptionMessage);
     }
   }
 }

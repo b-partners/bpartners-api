@@ -54,6 +54,7 @@ public class InvoiceRestMapper {
         .title(rest.getTitle())
         .ref(rest.getRef())
         .sendingDate(rest.getSendingDate())
+        .status(rest.getStatus())
         .toPayAt(rest.getToPayAt())
         .invoiceCustomer(customerMapper.toDomain(accountId, id, rest.getCustomer()))
         .account(accountService.getAccountById(accountId))

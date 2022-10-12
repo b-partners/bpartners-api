@@ -1,6 +1,7 @@
 package app.bpartners.api.repository.jpa;
 
 import app.bpartners.api.repository.jpa.model.HTransactionCategory;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -27,4 +28,12 @@ public interface TransactionCategoryJpaRepository
 
   List<HTransactionCategory> findAllByIdAccount(String idAccount);
 
+  @Query(value =
+      "select count(tc.*) from \"transaction_category\" tc "
+          + "where tc.id_account = ?1 "
+          + "and tc.type = ?2 "
+          + "and tc.created_datetime between ?3 and ?4 ",
+      nativeQuery = true)
+  Long countByCriteria(String idAccount, String type, LocalDateTime from, LocalDateTime to);
+  //TODO: add inner join on category template if !userdefined
 }

@@ -20,6 +20,7 @@ public class TransactionCategory {
   private String type;
   private Integer vat;
   private String idTransaction;
+  private Long typeCount;
 
   public boolean isUserDefined() {
     return idTransactionCategoryTmpl == null;

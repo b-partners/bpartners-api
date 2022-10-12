@@ -217,15 +217,17 @@ public class TestUtils {
         .id("transaction_category1_id")
         .type("Recette TVA 20%")
         .userDefined(false)
-        .vat(2000);
+        .vat(2000)
+        .count(1L);
   }
 
   public static TransactionCategory transactionCategory2() {
     return new TransactionCategory()
-        .id("transaction_category3_id")
+        .id("transaction_category2_id")
         .type("Recette TVA 10%")
         .userDefined(false)
-        .vat(1000);
+        .vat(1000)
+        .count(1L);
   }
 
   public static TransactionCategory transactionCategory3() {
@@ -233,7 +235,8 @@ public class TestUtils {
         .id("transaction_category3_id")
         .type("Recette TVA 10%")
         .userDefined(false)
-        .vat(1000);
+        .vat(1000)
+        .count(1L);
   }
 
   public static TransactionCategory transactionCategory4() {
@@ -241,7 +244,8 @@ public class TestUtils {
         .id("transaction_category4_id")
         .type("Recette personnalisée TVA 1%")
         .userDefined(true)
-        .vat(100);
+        .vat(100)
+        .count(1L);
   }
 
   public static TransactionCategory transactionCategory5() {
@@ -249,7 +253,8 @@ public class TestUtils {
         .id("transaction_category5_id")
         .type("Recette personnalisée TVA 1,2%")
         .userDefined(true)
-        .vat(120);
+        .vat(120)
+        .count(2L);
   }
 
   public static TransactionCategory transactionCategory6() {
@@ -257,7 +262,8 @@ public class TestUtils {
         .id("transaction_category6_id")
         .type("Recette personnalisée TVA 1,2%")
         .vat(120)
-        .userDefined(true);
+        .userDefined(true)
+        .count(2L);
   }
 
   static Transaction swanTransaction1() {

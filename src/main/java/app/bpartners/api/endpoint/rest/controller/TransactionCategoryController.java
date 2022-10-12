@@ -4,6 +4,7 @@ import app.bpartners.api.endpoint.rest.mapper.TransactionCategoryRestMapper;
 import app.bpartners.api.endpoint.rest.model.CreateTransactionCategory;
 import app.bpartners.api.endpoint.rest.model.TransactionCategory;
 import app.bpartners.api.service.TransactionCategoryService;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -25,14 +26,16 @@ public class TransactionCategoryController {
   public List<TransactionCategory> getTransactionCategories(
       @PathVariable String accountId,
       @RequestParam boolean unique,
-      @RequestParam(required = false) Optional<Boolean> userDefined) {
+      @RequestParam(required = false) Optional<Boolean> userDefined,
+      @RequestParam String from,
+      @RequestParam String to) {
     return userDefined.map(
             isUserDefined -> service.getCategoriesByAccountAndUserDefined(accountId, unique,
-                    isUserDefined)
+                    isUserDefined, from, to)
                 .stream()
                 .map(mapper::toRest)
                 .collect(Collectors.toUnmodifiableList()))
-        .orElseGet(() -> service.getCategoriesByAccount(accountId, unique).stream()
+        .orElseGet(() -> service.getCategoriesByAccount(accountId, unique, from, to).stream()
             .map(mapper::toRest)
             .collect(Collectors.toUnmodifiableList()));
   }

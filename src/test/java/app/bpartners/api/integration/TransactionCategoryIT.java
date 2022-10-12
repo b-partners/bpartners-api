@@ -17,6 +17,7 @@ import app.bpartners.api.repository.sendinblue.SendinblueConf;
 import app.bpartners.api.repository.swan.AccountSwanRepository;
 import app.bpartners.api.repository.swan.TransactionSwanRepository;
 import app.bpartners.api.repository.swan.UserSwanRepository;
+import java.time.LocalDate;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -25,7 +26,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
-
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.TestUtils.restTransaction2;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountSwanRepository;
@@ -67,6 +67,10 @@ class TransactionCategoryIT {
   @MockBean
   private TransactionSwanRepository transactionSwanRepositoryMock;
 
+  private static ApiClient anApiClient() {
+    return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN, ContextInitializer.SERVER_PORT);
+  }
+
   @BeforeEach
   public void setUp() {
     setUpSwanComponent(swanComponentMock);
@@ -81,28 +85,32 @@ class TransactionCategoryIT {
         .vat(150);
   }
 
-  private static ApiClient anApiClient() {
-    return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN, ContextInitializer.SERVER_PORT);
-  }
-
   @Test
   void read_transaction_categories_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
     PayingApi api = new PayingApi(joeDoeClient);
 
     List<TransactionCategory> actualAll = api.getTransactionCategories(JOE_DOE_ACCOUNT_ID, false,
-        null);
+        LocalDate.now(), LocalDate.now(), null);
     List<TransactionCategory> actualAllUnique = api.getTransactionCategories(JOE_DOE_ACCOUNT_ID,
-        true,
+        true, LocalDate.of(2022, 1, 1), LocalDate.of(2022, 1, 2),
         null);
     List<TransactionCategory> actualUnique =
-        api.getTransactionCategories(JOE_DOE_ACCOUNT_ID, true, false);
+        api.getTransactionCategories(JOE_DOE_ACCOUNT_ID, true, LocalDate.of(2022, 1, 1),
+            LocalDate.of(2022, 1, 2),
+            false);
     List<TransactionCategory> actualNotUnique =
-        api.getTransactionCategories(JOE_DOE_ACCOUNT_ID, false, false);
+        api.getTransactionCategories(JOE_DOE_ACCOUNT_ID, false, LocalDate.of(2022, 1, 1),
+            LocalDate.of(2022, 1, 2),
+            false);
     List<TransactionCategory> actualUserDefined =
-        api.getTransactionCategories(JOE_DOE_ACCOUNT_ID, false, true);
+        api.getTransactionCategories(JOE_DOE_ACCOUNT_ID, false, LocalDate.of(2022, 1, 1),
+            LocalDate.of(2022, 1, 2),
+            true);
     List<TransactionCategory> actualUniqueAndDefined =
-        api.getTransactionCategories(JOE_DOE_ACCOUNT_ID, true, true);
+        api.getTransactionCategories(JOE_DOE_ACCOUNT_ID, true, LocalDate.of(2022, 1, 1),
+            LocalDate.of(2022, 1, 2),
+            true);
 
     assertEquals(7, actualAll.size());
     assertEquals(5, actualAllUnique.size());

@@ -5,6 +5,7 @@ import app.bpartners.api.model.mapper.TransactionCategoryMapper;
 import app.bpartners.api.repository.TransactionCategoryRepository;
 import app.bpartners.api.repository.jpa.TransactionCategoryJpaRepository;
 import app.bpartners.api.repository.jpa.model.HTransactionCategory;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -25,13 +26,16 @@ import static app.bpartners.api.repository.jpa.model.HTransactionCategory.VAT_AT
 @Repository
 @AllArgsConstructor
 public class TransactionCategoryRepositoryImpl implements TransactionCategoryRepository {
+  private static final LocalDate INITIAL_DATE = LocalDate.of(2000, 1, 1);
   private final TransactionCategoryJpaRepository jpaRepository;
   private final TransactionCategoryMapper domainMapper;
   private final EntityManager entityManager;
 
+  //TODO: rename the from/to variables to be more explicit
   @Override
   public List<TransactionCategory> findByIdAccountAndUserDefined(
-      String idAccount, boolean unique, boolean userDefined) {
+      String idAccount, boolean unique, boolean userDefined, LocalDate from,
+      LocalDate to) {
     List<HTransactionCategory> entities;
     if (unique) {
       entities = findByCriteriaOrderByCreatedDatetime(idAccount, userDefined);
@@ -42,19 +46,20 @@ public class TransactionCategoryRepositoryImpl implements TransactionCategoryRep
       return List.of();
     }
     return entities.stream()
-        .map(domainMapper::toDomain)
+        .map(e -> domainMapper.toDomain(e, from, to))
         .collect(Collectors.toUnmodifiableList());
   }
 
   @Override
-  public List<TransactionCategory> findByAccount(String idAccount, boolean unique) {
+  public List<TransactionCategory> findByAccount(String idAccount, boolean unique, LocalDate from,
+                                                 LocalDate to) {
     if (unique) {
       return findByCriteriaOrderByCreatedDatetime(idAccount).stream()
-          .map(domainMapper::toDomain)
+          .map(e -> domainMapper.toDomain(e, from, to))
           .collect(Collectors.toUnmodifiableList());
     }
     return jpaRepository.findAllByIdAccount(idAccount).stream()
-        .map(domainMapper::toDomain)
+        .map(e -> domainMapper.toDomain(e, from, to))
         .collect(Collectors.toUnmodifiableList());
   }
 
@@ -65,7 +70,7 @@ public class TransactionCategoryRepositoryImpl implements TransactionCategoryRep
         .map(this::userDefinedCheck)
         .collect(Collectors.toUnmodifiableList());
     return jpaRepository.saveAll(entitiesToCreate).stream()
-        .map(domainMapper::toDomain)
+        .map(e -> domainMapper.toDomain(e, INITIAL_DATE, LocalDate.now()))
         .collect(Collectors.toUnmodifiableList());
   }
 
@@ -88,7 +93,7 @@ public class TransactionCategoryRepositoryImpl implements TransactionCategoryRep
     if (entity.isEmpty()) {
       return null;
     }
-    return domainMapper.toDomain(entity.get());
+    return domainMapper.toDomain(entity.get(), INITIAL_DATE, LocalDate.now());
   }
 
   private List<HTransactionCategory> findAllByIdAccountAndUserDefined(

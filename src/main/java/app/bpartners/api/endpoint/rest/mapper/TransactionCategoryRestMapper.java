@@ -16,26 +16,27 @@ public class TransactionCategoryRestMapper {
 
   public TransactionCategory toRest(app.bpartners.api.model.TransactionCategory domain) {
     return new TransactionCategory()
-            .id(domain.getId())
-            .vat(domain.getVat())
-            .type(domain.getType())
-            .userDefined(domain.isUserDefined());
+        .id(domain.getId())
+        .vat(domain.getVat())
+        .type(domain.getType())
+        .userDefined(domain.isUserDefined())
+        .count(domain.getTypeCount());
   }
 
   public app.bpartners.api.model.TransactionCategory toDomain(
-          String transactionId,
-          String accountId,
-          CreateTransactionCategory rest) {
+      String transactionId,
+      String accountId,
+      CreateTransactionCategory rest) {
     validator.accept(rest);
     TransactionCategoryTemplate categoryTemplate = categoryTmplRepository.findByTypeAndVat(
-            rest.getType(), rest.getVat());
+        rest.getType(), rest.getVat());
     app.bpartners.api.model.TransactionCategory category =
-            app.bpartners.api.model.TransactionCategory.builder()
-                    .idTransaction(transactionId)
-                    .idAccount(accountId)
-                    .type(rest.getType())
-                    .vat(rest.getVat())
-                    .build();
+        app.bpartners.api.model.TransactionCategory.builder()
+            .idTransaction(transactionId)
+            .idAccount(accountId)
+            .type(rest.getType())
+            .vat(rest.getVat())
+            .build();
     if (categoryTemplate != null) {
       category.setIdTransactionCategoryTmpl(categoryTemplate.getId());
     }

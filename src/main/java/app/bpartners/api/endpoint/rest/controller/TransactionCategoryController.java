@@ -25,14 +25,16 @@ public class TransactionCategoryController {
   public List<TransactionCategory> getTransactionCategories(
       @PathVariable String accountId,
       @RequestParam boolean unique,
-      @RequestParam(required = false) Optional<Boolean> userDefined) {
+      @RequestParam(required = false) Optional<Boolean> userDefined,
+      @RequestParam String from,
+      @RequestParam String to) {
     return userDefined.map(
             isUserDefined -> service.getCategoriesByAccountAndUserDefined(accountId, unique,
-                    isUserDefined)
+                    isUserDefined, from, to)
                 .stream()
                 .map(mapper::toRest)
                 .collect(Collectors.toUnmodifiableList()))
-        .orElseGet(() -> service.getCategoriesByAccount(accountId, unique).stream()
+        .orElseGet(() -> service.getCategoriesByAccount(accountId, unique, from, to).stream()
             .map(mapper::toRest)
             .collect(Collectors.toUnmodifiableList()));
   }

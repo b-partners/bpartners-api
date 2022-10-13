@@ -2,8 +2,12 @@ package app.bpartners.api.repository.swan.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.NoArgsConstructor;
 
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
 public class AccountHolder {
   private String id;
@@ -28,6 +32,8 @@ public class AccountHolder {
     return residencyAddress;
   }
 
+  @NoArgsConstructor
+  @AllArgsConstructor
   @Builder
   public static class Info {
     private String name;
@@ -39,6 +45,8 @@ public class AccountHolder {
     }
   }
 
+  @NoArgsConstructor
+  @AllArgsConstructor
   @Builder
   public static class ResidencyAddress {
     private String addressLine1;

@@ -18,6 +18,7 @@ public class UserMapper {
         .mobilePhoneNumber(swanUser.getMobilePhoneNumber())
         .monthlySubscription(entityUser.getMonthlySubscription())
         .status(entityUser.getStatus())
+        .logoFileId(entityUser.getLogoFileId())
         .build();
   }
 }

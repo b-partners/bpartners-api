@@ -76,8 +76,8 @@ public class TestUtils {
         .lastName(joeDoe().getLastName())
         .phone(joeDoe().getMobilePhoneNumber())
         .monthlySubscriptionAmount(5)
-        .status(ENABLED);
-
+        .status(ENABLED)
+        .logoFileId("logo_uuid.jpeg");
   }
 
   public static SwanUser joeDoe() {

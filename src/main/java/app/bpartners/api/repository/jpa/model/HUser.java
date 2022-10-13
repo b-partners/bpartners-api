@@ -35,13 +35,10 @@ public class HUser implements Serializable {
   @Id
   @GeneratedValue(strategy = IDENTITY)
   private String id;
-
   private String swanUserId;
-
   private String phoneNumber;
-
   private int monthlySubscription;
-
+  private String logoFileId;
   @Type(type = "pgsql_enum")
   @Enumerated(EnumType.STRING)
   private EnableStatus status;

@@ -32,7 +32,7 @@ public class S3Service {
     this.s3Conf = s3Conf;
   }
 
-  public String uploadFile(String key, String fileId, byte[] toUpload) {
+  private String uploadFile(String key, String fileId, byte[] toUpload) {
     PutObjectRequest request = PutObjectRequest.builder()
         .bucket(s3Conf.getBucketName())
         .contentType(FileInfoUtils.parseMediaTypeFromBytes(fileId, toUpload).toString())
@@ -55,11 +55,18 @@ public class S3Service {
     return objectResponse.checksumSHA256();
   }
 
-  public String uploadLogoFile(String accountId, String fileId, byte[] toUpload) {
-    return uploadFile(getLogoKey(accountId, fileId), fileId, toUpload);
+  public String uploadFile(FileType fileType, String accountId, String fileId, byte[] toUpload) {
+    switch (fileType) {
+      case LOGO:
+        return uploadFile(getLogoKey(accountId, fileId), fileId, toUpload);
+      case INVOICE:
+        return uploadFile(getInvoiceKey(accountId, fileId), fileId, toUpload);
+      default:
+        throw new BadRequestException("Unknown file type " + fileType);
+    }
   }
 
-  public byte[] downloadFile(String key) {
+  private byte[] downloadFile(String key) {
     GetObjectRequest objectRequest = GetObjectRequest.builder()
         .bucket(s3Conf.getBucketName())
         .key(key)
@@ -74,7 +81,7 @@ public class S3Service {
       case INVOICE:
         return downloadFile(getInvoiceKey(accountId, fileId));
       default:
-        throw new BadRequestException("Unrecognized file type");
+        throw new BadRequestException("Unknown file type " + fileType);
     }
   }
 

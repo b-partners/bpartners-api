@@ -26,7 +26,7 @@ public abstract class AbstractContextInitializer
         "aws.sqs.queueUrl=dummy",
         "aws.access.key.id=dummy",
         "aws.secret.access.key=dummy",
-        "aws.s3.endpoint.override=http://dummy",
+        "aws.endpoint.override=http://dummy.dummy",
         "aws.region=eu-west-3",
         "spring.datasource.url=" + postgresContainer.getJdbcUrl(),
         "spring.datasource.username=" + postgresContainer.getUsername(),

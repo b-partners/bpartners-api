@@ -11,6 +11,7 @@ import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.model.PaymentRedirection;
 import app.bpartners.api.model.Product;
+import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.validator.InvoiceValidator;
 import app.bpartners.api.repository.InvoiceRepository;
@@ -49,7 +50,7 @@ public class InvoiceService {
   private final FileService fileService;
   private final AccountHolderService holderService;
   private final PrincipalProvider auth;
-
+  private final InvoiceValidator validator;
 
   public List<Invoice> getInvoices(String accountId, PageFromOne page, BoundedPageSize pageSize) {
     int pageValue = page.getValue() - 1;
@@ -59,8 +60,6 @@ public class InvoiceService {
         .map(this::refreshValues)
         .collect(Collectors.toUnmodifiableList());
   }
-
-  private final InvoiceValidator validator;
 
   public Invoice getById(String invoiceId) {
     return refreshValues(repository.getById(invoiceId));
@@ -132,15 +131,15 @@ public class InvoiceService {
         .sum();
   }
 
-  private String parseInvoiceTemplateToString(Invoice invoice) {
+  private String parseInvoiceTemplateToString(Invoice invoice, String template) {
     TemplateEngine templateEngine = configureTemplate();
     Context context = configureContext(invoice);
-    return templateEngine.process("invoice", context);
+    return templateEngine.process(template, context);
   }
 
   public byte[] generateInvoicePdf(Invoice invoice) {
     ITextRenderer renderer = new ITextRenderer();
-    loadStyle(renderer, invoice);
+    loadStyle(renderer, invoice, "invoice");
     renderer.layout();
 
     ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
@@ -152,27 +151,48 @@ public class InvoiceService {
     return outputStream.toByteArray();
   }
 
-  private void loadStyle(ITextRenderer renderer, Invoice invoice) {
+  public byte[] generateDraftPdf(Invoice invoice) {
+    ITextRenderer renderer = new ITextRenderer();
+    loadStyle(renderer, invoice, "draft");
+    renderer.layout();
+
+    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+    try {
+      renderer.createPDF(outputStream);
+    } catch (DocumentException e) {
+      throw new ApiException(SERVER_EXCEPTION, e);
+    }
+    return outputStream.toByteArray();
+  }
+
+  private void loadStyle(ITextRenderer renderer, Invoice invoice, String template) {
     String baseUrl = FileSystems.getDefault()
         .getPath("src/main", "resources", "templates")
         .toUri()
         .toString();
-    renderer.setDocumentFromString(parseInvoiceTemplateToString(invoice), baseUrl);
+    renderer.setDocumentFromString(parseInvoiceTemplateToString(invoice, template), baseUrl);
   }
 
   private Context configureContext(Invoice invoice) {
     Context context = new Context();
     Account account = invoice.getAccount();
+    //User authenticatedUser = ((Principal) auth.getAuthentication().getPrincipal()).getUser();
+    User authenticatedUser = User.builder()
+        .firstName("John")
+        .lastName("Doe")
+        .mobilePhoneNumber("+33 5 14 56 89 15")
+        .build();
     AccountHolder accountHolder = holderService.getAccountHolderByAccountId(account.getId());
-    byte[] qrCodeBytes = generateQrCode(invoice.getPaymentUrl());
-    byte[] logoBytes =
-        fileService.downloadFile(FileType.LOGO, account.getId(), userLogoFileId());
+    //byte[] qrCodeBytes = generateQrCode(invoice.getPaymentUrl());
+    /*byte[] logoBytes =
+        fileService.downloadFile(FileType.LOGO, account.getId(), userLogoFileId());*/
 
     context.setVariable("invoice", invoice);
-    context.setVariable("qrcode", base64Image(qrCodeBytes));
-    context.setVariable("logo", base64Image(logoBytes));
+    /*context.setVariable("qrcode", base64Image(qrCodeBytes));
+    context.setVariable("logo", base64Image(logoBytes));*/
     context.setVariable("account", account);
     context.setVariable("accountHolder", accountHolder);
+    context.setVariable("user", authenticatedUser);
 
     return context;
   }

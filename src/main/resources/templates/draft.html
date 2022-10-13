@@ -1,35 +1,17 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Invoice</title>
-    <link href="style.css" type="text/css" media="all" rel="stylesheet"/>
+    <title>Draft</title>
+    <link href="draft.css" type="text/css" media="all" rel="stylesheet"/>
 </head>
 <body>
 <header>
-    <h2 class="text-center">FACTURE</h2>
+    <h2 class="text-center">DEVIS</h2>
     <table class="table-head">
         <tr>
             <td>
-                <!--<img class="logo" th:src="${'data:image/jpeg;base64,' + logo}" alt="logo"/>-->
-                <img class="logo" src="../files/downloaded.jpeg" alt="logo"/>
                 <div>
                     <h1 th:text="${accountHolder.name}"></h1>
                 </div>
-            </td>
-            <td class="text-right">
-                <!--<img class="code" th:src="${'data:image/jpeg;base64,' + qrcode}" alt="qr-code"/>-->
-                <img class="code" src="../files/upload.jpg" alt="qr-code"/>
-                <div>
-                    <a th:href="${invoice.paymentUrl}">Payez ici</a>
-                    <p>Date limite de paiement : <span
-                            th:text="${#dates.format(invoice.getFormattedPayingDate, 'dd-MM-yyyy')}"></span>
-                    </p>
-                </div>
-            </td>
-        </tr>
-    </table>
-    <table class="table-head">
-        <tr>
-            <td>
                 <p><strong
                         th:text="${#strings.toUpperCase(user.name)}"></strong>
                 </p>
@@ -72,9 +54,9 @@
     </table>
 </header>
 <section>
-    <p class="text-justify muted">Commentaires : </p>
-    <table style="margin: 10px 0px 20px 0px" class="main-table">
-        <thead class="text-center">
+    <p class="text-justify muted">Commentaires :</p>
+    <table style="margin: 10px 0px 20px 0px;" class="main-table">
+        <thead class="text-center" style="border: 1px solid black">
         <th style="width: 150px">Description</th>
         <th>Quantité</th>
         <th>Prix unitaire</th>
@@ -86,20 +68,19 @@
         <th:block th:each="product : ${invoice.products}">
             <tr>
                 <td class="text-left" style="width: 150px"><span
-                        th:text="${product.description}"></span>
-                </td>
+                        th:text="${product.description}"></span></td>
                 <td class="text-center"><span th:text="${product.quantity}"></span></td>
-                <td class="text-center space-letter"><span
+                <td class="text-center"><span
                         th:text="${#numbers.formatDecimal(product.unitPrice/100,1,2)}"></span> €
                 </td>
-                <td class="text-center space-letter"><span
+                <td class="text-center"><span
                         th:text="${#numbers.formatDecimal(product.vatPercent/100,1,2)}"></span>%
                 </td>
-                <td class="text-center space-letter"><span
+                <td class="text-center"><span
                         th:text="${#numbers.formatDecimal(product.totalWithoutVat/100,1,2)}"></span>
                     €
                 </td>
-                <td class="text-center space-letter"><span
+                <td class="text-center"><span
                         th:text="${#numbers.formatDecimal(product.totalPriceWithVat/100,1,2)}"></span>
                     €
                 </td>
@@ -122,27 +103,14 @@
     </div>
 </section>
 <footer>
-    <p><strong>Bien à vous et merci pour votre confiance.</strong></p>
-    <p><span class="muted">
-            La facture est payable à réception en scannant le QR code ou en cliquant sur le lien.
-           Sinon, vous avez la possibilité de faire un virement classique avec nos
-           coordonnées ci-dessous. <br/>
-            Des pénalités correspondant à trois fois le taux de l’intérêt légal seront applicables en
-            l’absence ou en cas de retard de paiement. Les pénalités de
-            retard sont exigibles sans qu'un rappel soit nécessaire. Une indemnité forfaitaire de 40 €
-            pour frais de recouvrement sera appliquée en cas de
-            retard de paiement conformément aux articles L 441-3 et L 441-6 du code de commerce.
-            Pas d'escompte en cas de paiement anticipé.
+    <p><span class="muted text-justify">
+            Après acceptation de ce devis, la facture correspondant devra être réglé sous XXXX jours après sa date d'émission.
+        Passé ce délai, vous vous exposez à des pénalités de retard de XXXXX% de la valeur de la facture HT.
         </span></p>
-    <div>
-        <h3>Nos coordonnées bancaires</h3>
-        <ul style="margin: 10px">
-            <li>Nom du compte : <span th:text="${invoice.account.name}"></span></li>
-            <li>IBAN : <span th:text="${invoice.account.iban}"></span></li>
-            <li>BIC : <span th:text="${invoice.account.bic}"></span></li>
-        </ul>
+    <div class="muted text-right " style="margin-bottom: 20%">
+        <p>Signature précédée de la mention "Bon pour accord".</p>
     </div>
-    <div style="border-bottom: 1px solid black"></div>
+    <div style="margin-top: 12%; border-bottom: 1px solid black"></div>
     <div class="footer-info" style="font-size: 9px">
         <div class="content-left">
             <p><span th:text="${accountHolder.name}"></span></p>

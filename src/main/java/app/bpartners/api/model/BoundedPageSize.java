@@ -1,7 +1,7 @@
 package app.bpartners.api.model;
 
-import lombok.Getter;
 import app.bpartners.api.model.exception.BadRequestException;
+import lombok.Getter;
 
 public class BoundedPageSize {
 
@@ -11,6 +11,9 @@ public class BoundedPageSize {
   private static final int MAX_SIZE = 500;
 
   public BoundedPageSize(int value) {
+    if (value < 1) {
+      throw new BadRequestException("page size must be >=1");
+    }
     if (value > MAX_SIZE) {
       throw new BadRequestException("page size must be <" + MAX_SIZE);
     }

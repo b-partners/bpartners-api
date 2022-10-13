@@ -18,6 +18,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.transaction.Transactional;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -51,6 +52,14 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
     HInvoice invoice = optionalInvoice.get();
     HInvoiceCustomer invoiceCustomer = invoice.getInvoiceCustomer();
     return mapper.toDomain(invoice, invoiceCustomer, List.of());
+  }
+
+  @Override
+  public List<Invoice> findAllByAccountId(String accountId, int page, int pageSize) {
+    return jpaRepository.findAllByIdAccount(accountId, PageRequest.of(page, pageSize)).stream()
+        .map(invoice ->
+            mapper.toDomain(invoice, invoice.getInvoiceCustomer(), List.of()))
+        .collect(Collectors.toUnmodifiableList());
   }
 
   private List<HProduct> computeHInvoices(Invoice invoice) {

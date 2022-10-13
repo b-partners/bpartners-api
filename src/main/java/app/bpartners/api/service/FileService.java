@@ -1,5 +1,6 @@
 package app.bpartners.api.service;
 
+import app.bpartners.api.endpoint.rest.model.FileType;
 import app.bpartners.api.model.FileInfo;
 import app.bpartners.api.model.mapper.FileMapper;
 import app.bpartners.api.repository.FileRepository;
@@ -19,8 +20,8 @@ public class FileService {
     repository.save(mapper.toDomain(fileId, toUpload, checksum));
   }
 
-  public byte[] downloadFile(String accountId, String fileId) {
-    return s3Service.downloadFile(accountId, fileId);
+  public byte[] downloadFile(FileType fileType, String accountId, String fileId) {
+    return s3Service.downloadFile(fileType, accountId, fileId);
   }
 
   public FileInfo getFileByAccountIdAndId(String accountId, String fileId) {

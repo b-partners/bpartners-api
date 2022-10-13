@@ -1,5 +1,6 @@
 package app.bpartners.api.service;
 
+import app.bpartners.api.endpoint.rest.model.FileType;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.AccountHolder;
@@ -148,16 +149,18 @@ public class InvoiceService {
   }
 
   private Context configureContext(Invoice invoice) {
+    Context context = new Context();
     Account account = invoice.getAccount();
     AccountHolder accountHolder = holderService.getAccountHolderByAccountId(account.getId());
-    Context context = new Context();
     byte[] qrCodeBytes = generateQrCode(invoice.getPaymentUrl());
-    byte[] logoBytes = fileService.downloadFile(account.getId(), LOGO_JPEG);
+    byte[] logoBytes = fileService.downloadFile(FileType.INVOICE, account.getId(), LOGO_JPEG);
+
     context.setVariable("invoice", invoice);
     context.setVariable("qrcode", base64Image(qrCodeBytes));
     context.setVariable("logo", base64Image(logoBytes));
     context.setVariable("account", account);
     context.setVariable("accountHolder", accountHolder);
+
     return context;
   }
 

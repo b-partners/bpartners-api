@@ -20,9 +20,4 @@ public class S3Conf {
     this.env = env;
   }
 
-  public enum S3FileType {
-    LOGO,
-    INVOICE
-  }
-
 }

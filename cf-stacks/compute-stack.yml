@@ -119,7 +119,7 @@ Resources:
       TaskDefinition: !Ref TaskDefinition
       LaunchType: 'FARGATE'
       NetworkConfiguration:
-        AwsvpcConfiguration:
+        AwsVpcConfiguration:
           AssignPublicIp: 'ENABLED'
           SecurityGroups:
             - !Sub '{{resolve:ssm:/bpartners/${Env}/sg-id}}'

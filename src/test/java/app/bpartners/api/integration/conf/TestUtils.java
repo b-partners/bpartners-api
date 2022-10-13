@@ -83,7 +83,7 @@ public class TestUtils {
         .phone(joeDoe().getMobilePhoneNumber())
         .monthlySubscriptionAmount(5)
         .status(ENABLED)
-        .logoFileId(TEST_FILE_ID);
+        .logoFileId("logo.jpeg");
   }
 
   public static SwanUser joeDoe() {
@@ -126,6 +126,9 @@ public class TestUtils {
         .id("b33e6eb0-e262-4596-a91f-20c6a7bfd343")
         .info(AccountHolder.Info.builder()
             .name("NUMER")
+            .businessActivity("businessAndRetail")
+            .businessActivityDescription("Phrase détaillée de mon activité")
+            .registrationNumber("899067250")
             .build())
         .residencyAddress(AccountHolder.ResidencyAddress.builder()
             .addressLine1("6 RUE PAUL LANGEVIN")

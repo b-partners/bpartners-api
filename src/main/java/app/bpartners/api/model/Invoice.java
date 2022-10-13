@@ -35,6 +35,7 @@ public class Invoice {
   private Account account;
   private List<Product> products;
   private InvoiceStatus status;
+  private String comment;
 
   public String getFileId() {
     return this.getRef() + PDF_EXTENSION;

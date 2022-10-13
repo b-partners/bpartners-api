@@ -97,6 +97,7 @@ ext {
 }
 test {
     exclude '**/FileIT.class'
+    exclude '**/InvoiceIT.class'
     useJUnitPlatform()
     finalizedBy jacocoTestReport
 }

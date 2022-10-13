@@ -1,6 +1,5 @@
 package app.bpartners.api.service;
 
-
 import app.bpartners.api.endpoint.rest.model.FileType;
 import app.bpartners.api.endpoint.rest.security.model.Principal;
 import app.bpartners.api.endpoint.rest.security.principal.PrincipalProvider;
@@ -49,7 +48,7 @@ public class InvoiceService {
   private final FileService fileService;
   private final AccountHolderService holderService;
   private final PrincipalProvider auth;
-
+  private final InvoiceValidator validator;
 
   public List<Invoice> getInvoices(String accountId, PageFromOne page, BoundedPageSize pageSize) {
     int pageValue = page.getValue() - 1;
@@ -60,19 +59,53 @@ public class InvoiceService {
         .collect(Collectors.toUnmodifiableList());
   }
 
-  private final InvoiceValidator validator;
-
   public Invoice getById(String invoiceId) {
     return refreshValues(repository.getById(invoiceId));
   }
 
   public Invoice crupdateInvoice(Invoice toCrupdate) {
     validator.accept(toCrupdate);
-    //TODO: uncomment when localstak is set
-    //Invoice refreshedInvoice = refreshValues(repository.crupdate(toCrupdate));
-    //fileService.uploadFile(refreshedInvoice.getAccount().getId(),
-    //refreshedInvoice.getFileId(), generateInvoicePdf(refreshedInvoice));
-    return refreshValues(repository.crupdate(toCrupdate));
+    Invoice refreshedInvoice = refreshValues(repository.crupdate(toCrupdate));
+    if (toCrupdate.getStatus().equals(CONFIRMED)) {
+      fileService.uploadFile(FileType.INVOICE, refreshedInvoice.getAccount().getId(),
+          refreshedInvoice.getFileId(), generateInvoicePdf(refreshedInvoice));
+      /*/!\ Only use for local test because localstack seems to not permit download after upload
+      FileOutputStream fos = null;
+      try {
+        fos = new FileOutputStream(refreshedInvoice.getFileId());
+        fos.write(generateInvoicePdf(refreshedInvoice));
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      } finally {
+        if (fos != null) {
+          try {
+            fos.close();
+          } catch (IOException e) {
+            throw new RuntimeException(e);
+          }
+        }
+      }*/
+    } else {
+      fileService.uploadFile(FileType.INVOICE, refreshedInvoice.getAccount().getId(),
+          refreshedInvoice.getFileId(), generateDraftPdf(refreshedInvoice));
+      /*/!\ Only use for local test because localstack seems to not permit download after upload
+      FileOutputStream fos = null;
+      try {
+        fos = new FileOutputStream(refreshedInvoice.getFileId());
+        fos.write(generateDraftPdf(refreshedInvoice));
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      } finally {
+        if (fos != null) {
+          try {
+            fos.close();
+          } catch (IOException e) {
+            throw new RuntimeException(e);
+          }
+        }
+      }*/
+    }
+    return refreshedInvoice;
   }
 
   private Invoice refreshValues(Invoice invoice) {
@@ -132,15 +165,15 @@ public class InvoiceService {
         .sum();
   }
 
-  private String parseInvoiceTemplateToString(Invoice invoice) {
+  private String parseInvoiceTemplateToString(Invoice invoice, String template) {
     TemplateEngine templateEngine = configureTemplate();
     Context context = configureContext(invoice);
-    return templateEngine.process("invoice", context);
+    return templateEngine.process(template, context);
   }
 
   public byte[] generateInvoicePdf(Invoice invoice) {
     ITextRenderer renderer = new ITextRenderer();
-    loadStyle(renderer, invoice);
+    loadStyle(renderer, invoice, "invoice");
     renderer.layout();
 
     ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
@@ -152,28 +185,48 @@ public class InvoiceService {
     return outputStream.toByteArray();
   }
 
-  private void loadStyle(ITextRenderer renderer, Invoice invoice) {
+  public byte[] generateDraftPdf(Invoice invoice) {
+    ITextRenderer renderer = new ITextRenderer();
+    loadStyle(renderer, invoice, "draft");
+    renderer.layout();
+
+    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+    try {
+      renderer.createPDF(outputStream);
+    } catch (DocumentException e) {
+      throw new ApiException(SERVER_EXCEPTION, e);
+    }
+    return outputStream.toByteArray();
+  }
+
+  private void loadStyle(ITextRenderer renderer, Invoice invoice, String template) {
     String baseUrl = FileSystems.getDefault()
         .getPath("src/main", "resources", "templates")
         .toUri()
         .toString();
-    renderer.setDocumentFromString(parseInvoiceTemplateToString(invoice), baseUrl);
+    renderer.setDocumentFromString(parseInvoiceTemplateToString(invoice, template), baseUrl);
   }
 
   private Context configureContext(Invoice invoice) {
     Context context = new Context();
     Account account = invoice.getAccount();
     AccountHolder accountHolder = holderService.getAccountHolderByAccountId(account.getId());
-    byte[] qrCodeBytes = generateQrCode(invoice.getPaymentUrl());
+    accountHolder.setTvaNumber("FR 32 123456789");  //TODO: make this persisted and then remove
+    accountHolder.setMobilePhoneNumber(
+        "+33 6 11 22 33 44"); //TODO: make this persisted and remove
+    accountHolder.setSocialCapital("40 000 €"); //TODO: make this persisted and remove
+    accountHolder.setEmail("numer@hei.school"); //TODO: make this persisted and remove
+    invoice.setComment("Ceci est un commentaire statique"); //TODO: make this persisted and remove
     byte[] logoBytes =
         fileService.downloadFile(FileType.LOGO, account.getId(), userLogoFileId());
-
     context.setVariable("invoice", invoice);
-    context.setVariable("qrcode", base64Image(qrCodeBytes));
     context.setVariable("logo", base64Image(logoBytes));
     context.setVariable("account", account);
     context.setVariable("accountHolder", accountHolder);
-
+    if (invoice.getPaymentUrl() != null) {
+      byte[] qrCodeBytes = generateQrCode(invoice.getPaymentUrl());
+      context.setVariable("qrcode", base64Image(qrCodeBytes));
+    }
     return context;
   }
 

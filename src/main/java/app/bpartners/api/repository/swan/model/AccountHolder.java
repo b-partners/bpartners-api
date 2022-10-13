@@ -37,11 +37,32 @@ public class AccountHolder {
   @Builder
   public static class Info {
     private String name;
+    private String registrationNumber;
+    private String businessActivity;
+    private String businessActivityDescription;
 
     @JsonProperty("name")
     @JsonInclude(JsonInclude.Include.USE_DEFAULTS)
     public String getName() {
       return name;
+    }
+
+    @JsonProperty("registrationNumber")
+    @JsonInclude(JsonInclude.Include.USE_DEFAULTS)
+    public String getRegistrationNumber() {
+      return registrationNumber;
+    }
+
+    @JsonProperty("businessActivity")
+    @JsonInclude(JsonInclude.Include.USE_DEFAULTS)
+    public String getBusinessActivity() {
+      return businessActivity;
+    }
+
+    @JsonProperty("businessActivityDescription")
+    @JsonInclude(JsonInclude.Include.USE_DEFAULTS)
+    public String getBusinessActivityDescription() {
+      return businessActivityDescription;
     }
   }
 

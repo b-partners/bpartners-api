@@ -1,8 +1,8 @@
 body {
-    margin: 2% 5%;
+    margin: 20px;
     padding: 0;
     box-sizing: border-box;
-    font-size: 12px;
+    font-size: 10px;
     font-family: Helvetica, serif;
 }
 
@@ -20,6 +20,10 @@ body {
 
 .text-center {
     text-align: center;
+}
+
+.text-underline {
+    text-decoration: underline;
 }
 
 .text-justify {
@@ -56,20 +60,25 @@ a {
 }
 
 th {
-    background-color: #901448;
+    background-color: grey;
     color: white;
 }
 
+.space-letter {
+    letter-spacing: 3px;
+}
+
 th, td {
-    padding: 4px;
+    padding: 6px;
+    font-size: 11px;
 }
 
-.content-left {
-    float: left;
+.main-table td {
+    border: 0.5px solid grey;
 }
 
-.content-right {
-    float: right;
+tbody table tr:nth-child(odd) {
+    background-color: #dddddd;
 }
 
 .muted {

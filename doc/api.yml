@@ -845,7 +845,7 @@ paths:
         - in: query
           name: fileType
           schema:
-            $ref: '#/components/schemas/FileType'
+            type: string
       requestBody:
         required: true
         content:

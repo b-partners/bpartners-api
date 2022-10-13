@@ -32,13 +32,12 @@ public class S3Service {
     this.s3Conf = s3Conf;
   }
 
-  public String uploadFile(String accountId, String fileId, byte[] toUpload) {
-    String computedFileId = getLogoKey(accountId, fileId);
+  public String uploadFile(String key, String fileId, byte[] toUpload) {
     PutObjectRequest request = PutObjectRequest.builder()
         .bucket(s3Conf.getBucketName())
         .contentType(FileInfoUtils.parseMediaTypeFromBytes(fileId, toUpload).toString())
         .checksumAlgorithm(ChecksumAlgorithm.SHA256)
-        .key(computedFileId)
+        .key(key)
         .build();
 
     PutObjectResponse objectResponse = s3Client.putObject(request, RequestBody.fromBytes(toUpload));
@@ -48,12 +47,16 @@ public class S3Service {
         .waitUntilObjectExists(
             HeadObjectRequest.builder()
                 .bucket(s3Conf.getBucketName())
-                .key(computedFileId)
+                .key(key)
                 .build())
         .matched()
         .response()
         .ifPresent(response -> log.info("response={}", response));
     return objectResponse.checksumSHA256();
+  }
+
+  public String uploadLogoFile(String accountId, String fileId, byte[] toUpload) {
+    return uploadFile(getLogoKey(accountId, fileId), fileId, toUpload);
   }
 
   public byte[] downloadFile(String key) {

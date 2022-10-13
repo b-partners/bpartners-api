@@ -96,7 +96,6 @@ ext {
     set('testcontainersVersion', "1.15.3")
 }
 test {
-    exclude '**/FileIT.class'
     useJUnitPlatform()
     finalizedBy jacocoTestReport
 }
@@ -146,6 +145,8 @@ dependencies {
     testCompileOnly 'org.projectlombok:lombok'
     testAnnotationProcessor 'org.projectlombok:lombok'
 
+    testImplementation 'com.amazonaws:aws-java-sdk-s3:1.12.315'
+    testImplementation 'org.testcontainers:localstack'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
     testImplementation 'org.testcontainers:junit-jupiter'

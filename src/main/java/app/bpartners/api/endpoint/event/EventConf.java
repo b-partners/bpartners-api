@@ -1,5 +1,6 @@
 package app.bpartners.api.endpoint.event;
 
+import app.bpartners.api.model.exception.ApiException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import org.springframework.beans.factory.annotation.Value;
@@ -12,6 +13,8 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.ssm.SsmClient;
 
+import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
+
 @Configuration
 public class EventConf {
   private final Region region;
@@ -22,7 +25,7 @@ public class EventConf {
   public EventConf(@Value("${aws.region}") String region,
                    @Value("${aws.access.key.id}") String awsKeyId,
                    @Value("${aws.secret.access.key}") String awsKeySecret,
-                   @Value("${aws.s3.endpoint.override}") String endpointOverride) {
+                   @Value("${aws.endpoint.override}") String endpointOverride) {
     this.region = Region.of(region);
     this.accessKeyId = awsKeyId;
     this.secretAccessKey = awsKeySecret;
@@ -57,7 +60,7 @@ public class EventConf {
           ))
           .region(region).build();
     } catch (URISyntaxException e) {
-      throw new RuntimeException(e);
+      throw new ApiException(SERVER_EXCEPTION, e);
     }
   }
 }

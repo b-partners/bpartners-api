@@ -18,7 +18,7 @@ public class FileService {
   private final FileMapper mapper;
 
   public void uploadFile(FileType fileType, String accountId, String fileId, byte[] toUpload) {
-    String checksum = s3Service.uploadLogoFile(accountId, fileId, toUpload);
+    String checksum = s3Service.uploadFile(fileType, accountId, fileId, toUpload);
     repository.save(mapper.toDomain(fileId, toUpload, checksum));
   }
 

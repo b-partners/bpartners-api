@@ -62,7 +62,7 @@ public class InvoiceService {
   public Invoice crupdateInvoice(Invoice toCrupdate) {
     toCrupdate.setStatus(InvoiceStatus.CONFIRMED);
     //TODO: uncomment when localstak is set
-    Invoice refreshedInvoice = refreshValues(repository.crupdate(toCrupdate));
+    //Invoice refreshedInvoice = refreshValues(repository.crupdate(toCrupdate));
     //fileService.uploadFile(refreshedInvoice.getAccount().getId(),
     //refreshedInvoice.getFileId(), generateInvoicePdf(refreshedInvoice));
     return refreshValues(repository.crupdate(toCrupdate));

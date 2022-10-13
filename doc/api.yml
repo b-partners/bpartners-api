@@ -842,6 +842,10 @@ paths:
           schema:
             type: string
           required: true
+        - in: query
+          name: fileType
+          schema:
+            $ref: '#/components/schemas/FileType'
       requestBody:
         required: true
         content:
@@ -1286,6 +1290,11 @@ components:
           type: string
         logoUrl:
           type: string
+    FileType:
+      type: string
+      enum:
+        - INVOICE
+        - LOGO
     Page:
       type: integer
       description: Start at `1`

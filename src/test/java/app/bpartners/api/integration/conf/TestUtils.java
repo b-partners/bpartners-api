@@ -349,6 +349,7 @@ public class TestUtils {
         .totalPriceWithVat(8800)
         .totalVat(800)
         .totalPriceWithoutVat(8000)
+        .paymentUrl("https://connect-v2-sbx.fintecture.com")
         ;
   }
 
@@ -365,7 +366,8 @@ public class TestUtils {
         .products(List.of(product5()))
         .totalPriceWithVat(1100)
         .totalVat(100)
-        .totalPriceWithoutVat(1000);
+        .totalPriceWithoutVat(1000)
+        .paymentUrl("https://connect-v2-sbx.fintecture.com");
   }
 
   public static ApiClient anApiClient(String token, int serverPort) {

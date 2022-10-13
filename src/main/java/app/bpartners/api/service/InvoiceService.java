@@ -3,7 +3,9 @@ package app.bpartners.api.service;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.AccountHolder;
+import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.Invoice;
+import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.model.PaymentRedirection;
 import app.bpartners.api.model.Product;
 import app.bpartners.api.model.exception.ApiException;
@@ -19,6 +21,7 @@ import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.util.Base64;
 import java.util.List;
+import java.util.stream.Collectors;
 import javax.imageio.ImageIO;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -41,6 +44,15 @@ public class InvoiceService {
   private final PaymentInitiationService pis;
   private final FileService fileService;
   private final AccountHolderService holderService;
+
+  public List<Invoice> getInvoices(String accountId, PageFromOne page, BoundedPageSize pageSize) {
+    int pageValue = page.getValue() - 1;
+    int pageSizeValue = pageSize.getValue();
+    return repository.findAllByAccountId(accountId, pageValue, pageSizeValue)
+        .stream()
+        .map(this::refreshValues)
+        .collect(Collectors.toUnmodifiableList());
+  }
 
   public Invoice getById(String invoiceId) {
     return refreshValues(repository.getById(invoiceId));

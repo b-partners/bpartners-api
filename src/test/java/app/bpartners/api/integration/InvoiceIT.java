@@ -13,7 +13,6 @@ import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
 import app.bpartners.api.integration.conf.AbstractContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
 import app.bpartners.api.manager.ProjectTokenManager;
-import app.bpartners.api.repository.PaymentInitiationRepository;
 import app.bpartners.api.repository.fintecture.FintectureConf;
 import app.bpartners.api.repository.fintecture.FintecturePaymentInitiationRepository;
 import app.bpartners.api.repository.sendinblue.SendinblueConf;
@@ -33,6 +32,8 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import static app.bpartners.api.integration.conf.TestUtils.INVOICE1_ID;
 import static app.bpartners.api.integration.conf.TestUtils.INVOICE2_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
+import static app.bpartners.api.integration.conf.TestUtils.assertThrowsApiException;
+import static app.bpartners.api.integration.conf.TestUtils.assertThrowsForbiddenException;
 import static app.bpartners.api.integration.conf.TestUtils.customer1;
 import static app.bpartners.api.integration.conf.TestUtils.invoice1;
 import static app.bpartners.api.integration.conf.TestUtils.invoice2;
@@ -44,6 +45,7 @@ import static app.bpartners.api.integration.conf.TestUtils.setUpPaymentInitiatio
 import static app.bpartners.api.integration.conf.TestUtils.setUpSwanComponent;
 import static app.bpartners.api.integration.conf.TestUtils.setUpUserSwanRepository;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
@@ -51,6 +53,8 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @ContextConfiguration(initializers = InvoiceIT.ContextInitializer.class)
 @AutoConfigureMockMvc
 class InvoiceIT {
+  public static final String OTHER_ACCOUNT_ID = "other_account_id";
+  public static final int MAX_PAGE_SIZE = 500;
   @MockBean
   private SentryConf sentryConf;
   @MockBean
@@ -122,9 +126,34 @@ class InvoiceIT {
 
     Invoice actual1 = api.getInvoiceById(JOE_DOE_ACCOUNT_ID, INVOICE1_ID);
     Invoice actual2 = api.getInvoiceById(JOE_DOE_ACCOUNT_ID, INVOICE2_ID);
+    List<Invoice> actual = api.getInvoices(JOE_DOE_ACCOUNT_ID, 1, 10);
 
-    assertEquals(invoice1(), actual1.paymentUrl(null));
-    assertEquals(invoice2(), actual2.paymentUrl(null));
+    assertEquals(invoice1(), actual1);
+    assertEquals(invoice2(), actual2);
+    assertEquals(3, actual.size());
+    assertTrue(actual.containsAll(List.of(actual1, actual2)));
+  }
+
+  @Test
+  void read_invoice_ko() {
+    ApiClient joeDoeClient = anApiClient();
+    PayingApi api = new PayingApi(joeDoeClient);
+
+    assertThrowsForbiddenException(() -> api.getInvoices(OTHER_ACCOUNT_ID, 1, 10));
+    assertThrowsApiException(
+        "{\"type\":\"400 BAD_REQUEST\",\"message\":\"page must be >=1\"}",
+        () -> api.getInvoices(JOE_DOE_ACCOUNT_ID, -1, 10));
+    assertThrowsApiException(
+        "{\"type\":\"400 BAD_REQUEST\",\"message\":\"page size must be >=1\"}",
+        () -> api.getInvoices(JOE_DOE_ACCOUNT_ID, 1, -10));
+    assertThrowsApiException(
+        "{\"type\":\"400 BAD_REQUEST\",\"message\":\"page size must be <" + MAX_PAGE_SIZE
+            + "\"}",
+        () -> api.getInvoices(JOE_DOE_ACCOUNT_ID, 1, MAX_PAGE_SIZE + 1));
+    assertThrowsApiException(
+        "{\"type\":\"400 BAD_REQUEST\",\"message\":\"page is mandatory. page_size is mandatory. "
+            + "\"}",
+        () -> api.getInvoices(JOE_DOE_ACCOUNT_ID, null, null));
   }
 
   @Test

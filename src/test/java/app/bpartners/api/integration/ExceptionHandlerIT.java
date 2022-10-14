@@ -22,8 +22,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import static app.bpartners.api.integration.conf.TestUtils.FILE_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
+import static app.bpartners.api.integration.conf.TestUtils.TEST_FILE_ID;
 import static app.bpartners.api.integration.conf.TestUtils.setUpUserSwanRepository;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
@@ -58,7 +58,7 @@ class ExceptionHandlerIT {
     HttpResponse<byte[]> response = unauthenticatedClient.send(
         HttpRequest.newBuilder()
             .uri(URI.create(
-                basePath + "/accounts/" + JOE_DOE_ACCOUNT_ID + "/files/" + FILE_ID
+                basePath + "/accounts/" + JOE_DOE_ACCOUNT_ID + "/files/" + TEST_FILE_ID
                     + "/raw"))
             .header("Authorization", "Bearer " + bearerToken)
             .method("PUT", HttpRequest.BodyPublishers.ofFile(toUpload.getFile().toPath())).build(),
@@ -76,7 +76,7 @@ class ExceptionHandlerIT {
     HttpResponse<byte[]> response = unauthenticatedClient.send(
         HttpRequest.newBuilder()
             .uri(URI.create(
-                basePath + "/accounts/" + JOE_DOE_ACCOUNT_ID + "/files/" + FILE_ID
+                basePath + "/accounts/" + JOE_DOE_ACCOUNT_ID + "/files/" + TEST_FILE_ID
                     + "/raw"))
             .header("Authorization", "Bearer " + bearerToken)
             .method("POST", HttpRequest.BodyPublishers.ofFile(toUpload.getFile().toPath())).build(),

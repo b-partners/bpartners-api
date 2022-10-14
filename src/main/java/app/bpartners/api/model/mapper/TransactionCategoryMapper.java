@@ -18,7 +18,6 @@ public class TransactionCategoryMapper {
 
   public TransactionCategory toDomain(HTransactionCategory entity, LocalDate from,
                                       LocalDate to) {
-    long typeCount;
     TransactionCategory domain = TransactionCategory.builder()
         .id(entity.getId())
         .idAccount(entity.getIdAccount())
@@ -32,12 +31,11 @@ public class TransactionCategoryMapper {
       domain.setType(categoryTemplate.getType());
       domain.setVat(categoryTemplate.getVat());
     }
-    typeCount = jpaRepository.countByCriteria(domain.getIdAccount(), domain.getType(),
+    String typeOrIdTmpl =
+        entity.getType() != null ? entity.getType() : entity.getIdCategoryTemplate();
+    Long typeCount = jpaRepository.countByCriteria(domain.getIdAccount(), typeOrIdTmpl,
         from.atStartOfDay(),
         to.plusDays(1).atStartOfDay().minusSeconds(1));
-    if (typeCount == 0L) {
-      typeCount = 1L;
-    }
     domain.setTypeCount(typeCount);
     return domain;
   }

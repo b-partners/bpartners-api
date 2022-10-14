@@ -227,7 +227,7 @@ public class TestUtils {
         .type("Recette TVA 10%")
         .userDefined(false)
         .vat(1000)
-        .count(1L);
+        .count(2L);
   }
 
   public static TransactionCategory transactionCategory3() {
@@ -236,7 +236,7 @@ public class TestUtils {
         .type("Recette TVA 10%")
         .userDefined(false)
         .vat(1000)
-        .count(1L);
+        .count(2L);
   }
 
   public static TransactionCategory transactionCategory4() {

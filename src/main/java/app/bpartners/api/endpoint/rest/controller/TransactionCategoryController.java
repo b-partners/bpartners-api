@@ -4,7 +4,6 @@ import app.bpartners.api.endpoint.rest.mapper.TransactionCategoryRestMapper;
 import app.bpartners.api.endpoint.rest.model.CreateTransactionCategory;
 import app.bpartners.api.endpoint.rest.model.TransactionCategory;
 import app.bpartners.api.service.TransactionCategoryService;
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;

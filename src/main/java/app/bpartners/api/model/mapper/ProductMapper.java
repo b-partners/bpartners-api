@@ -20,6 +20,7 @@ public class ProductMapper {
 
   public HProduct toEntity(String idAccount, Product product) {
     return HProduct.builder()
+        .id(product.getId())
         .idAccount(idAccount)
         .description(product.getDescription())
         .unitPrice(product.getUnitPrice())

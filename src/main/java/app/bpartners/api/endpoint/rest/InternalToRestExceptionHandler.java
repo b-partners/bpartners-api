@@ -1,22 +1,24 @@
 package app.bpartners.api.endpoint.rest;
 
+import app.bpartners.api.model.exception.BadRequestException;
+import app.bpartners.api.model.exception.ForbiddenException;
+import app.bpartners.api.model.exception.NotFoundException;
+import app.bpartners.api.model.exception.NotImplementedException;
+import app.bpartners.api.model.exception.TooManyRequestsException;
 import javax.persistence.OptimisticLockException;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.exception.LockAcquisitionException;
 import org.springframework.dao.CannotAcquireLockException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
-import app.bpartners.api.model.exception.BadRequestException;
-import app.bpartners.api.model.exception.ForbiddenException;
-import app.bpartners.api.model.exception.NotFoundException;
-import app.bpartners.api.model.exception.NotImplementedException;
-import app.bpartners.api.model.exception.TooManyRequestsException;
 
 
 @RestControllerAdvice
@@ -34,6 +36,20 @@ public class InternalToRestExceptionHandler {
   ResponseEntity<app.bpartners.api.endpoint.rest.model.Exception> handleBadRequest(
       MissingServletRequestParameterException e) {
     log.info("Missing parameter", e);
+    return handleBadRequest(new BadRequestException(e.getMessage()));
+  }
+
+  @ExceptionHandler(value = {HttpRequestMethodNotSupportedException.class})
+  ResponseEntity<app.bpartners.api.endpoint.rest.model.Exception> handleBadRequest(
+      HttpRequestMethodNotSupportedException e) {
+    log.info("Unsupported method for this endpoint", e);
+    return handleBadRequest(new BadRequestException(e.getMessage()));
+  }
+
+  @ExceptionHandler(value = {HttpMessageNotReadableException.class})
+  ResponseEntity<app.bpartners.api.endpoint.rest.model.Exception> handleBadRequest(
+      HttpMessageNotReadableException e) {
+    log.info("Missing required body", e);
     return handleBadRequest(new BadRequestException(e.getMessage()));
   }
 

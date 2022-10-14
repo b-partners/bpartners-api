@@ -2,8 +2,8 @@ package app.bpartners.api.integration.conf;
 
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
-import app.bpartners.api.endpoint.rest.model.CreateProduct;
 import app.bpartners.api.endpoint.rest.model.CreateInvoiceRelaunchConf;
+import app.bpartners.api.endpoint.rest.model.CreateProduct;
 import app.bpartners.api.endpoint.rest.model.Customer;
 import app.bpartners.api.endpoint.rest.model.Invoice;
 import app.bpartners.api.endpoint.rest.model.InvoiceRelaunchConf;
@@ -33,6 +33,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.net.ServerSocket;
 import java.net.URISyntaxException;
+import java.net.http.HttpResponse;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
@@ -80,6 +81,9 @@ public class TestUtils {
   public static final String BAD_CODE = "bad_code";
   public static final String SWAN_ONBOARDING_URL_FORMAT =
       "https://api.banking.sandbox.swan.io/projects/uuid/onboardings/uuid";
+  public static final String INVALID_LOGO_TYPE = "invalid_logo_type";
+
+  public static final String NOT_JOE_DOE_ACCOUNT_ID = "NOT_" + JOE_DOE_ACCOUNT_ID;
 
   public static User restJoeDoeUser() {
     return new User()
@@ -548,5 +552,18 @@ public class TestUtils {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  public static ApiException getApiException(String operationId, HttpResponse<byte[]> response) {
+    String body = response.body() == null ? null : new String(response.body());
+    String message = formatExceptionMessage(operationId, response.statusCode(), body);
+    return new ApiException(response.statusCode(), message, response.headers(), body);
+  }
+
+  private static String formatExceptionMessage(String operationId, int statusCode, String body) {
+    if (body == null || body.isEmpty()) {
+      body = "[no body]";
+    }
+    return operationId + " call failed with: " + statusCode + " - " + body;
   }
 }

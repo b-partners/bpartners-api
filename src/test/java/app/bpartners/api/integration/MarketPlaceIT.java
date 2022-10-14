@@ -24,9 +24,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
+
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.TestUtils.MARKETPLACE1_ID;
 import static app.bpartners.api.integration.conf.TestUtils.MARKETPLACE2_ID;
+import static app.bpartners.api.integration.conf.TestUtils.NOT_JOE_DOE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsForbiddenException;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountHolderSwanRep;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountSwanRepository;
@@ -40,7 +42,6 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @ContextConfiguration(initializers = MarketPlaceIT.ContextInitializer.class)
 @AutoConfigureMockMvc
 class MarketPlaceIT {
-  public static final String OTHER_ACCOUNT_ID = "other_account_id";
   @MockBean
   private SentryConf sentryConf;
   @MockBean
@@ -110,7 +111,7 @@ class MarketPlaceIT {
     ApiClient joeDoeClient = anApiClient();
     ProspectingApi api = new ProspectingApi(joeDoeClient);
 
-    assertThrowsForbiddenException(() -> api.getMarketplaces(OTHER_ACCOUNT_ID));
+    assertThrowsForbiddenException(() -> api.getMarketplaces(NOT_JOE_DOE_ACCOUNT_ID));
   }
 
   static class ContextInitializer extends AbstractContextInitializer {

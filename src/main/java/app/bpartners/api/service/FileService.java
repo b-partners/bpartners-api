@@ -23,6 +23,7 @@ public class FileService {
   }
 
   public byte[] downloadFile(FileType fileType, String accountId, String fileId) {
+    getFileByAccountIdAndId(accountId, fileId);
     return s3Service.downloadFile(fileType, accountId, fileId);
   }
 

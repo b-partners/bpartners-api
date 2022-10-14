@@ -36,10 +36,15 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 import static app.bpartners.api.integration.conf.TestUtils.BEARER_PREFIX;
 import static app.bpartners.api.integration.conf.TestUtils.BEARER_QUERY_PARAMETER_NAME;
+import static app.bpartners.api.integration.conf.TestUtils.INVALID_LOGO_TYPE;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_TOKEN;
+import static app.bpartners.api.integration.conf.TestUtils.NOT_JOE_DOE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.TestUtils.TEST_FILE_ID;
 import static app.bpartners.api.integration.conf.TestUtils.TO_UPLOAD_FILE_ID;
+import static app.bpartners.api.integration.conf.TestUtils.assertThrowsApiException;
+import static app.bpartners.api.integration.conf.TestUtils.assertThrowsForbiddenException;
+import static app.bpartners.api.integration.conf.TestUtils.getApiException;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountHolderSwanRep;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountSwanRepository;
 import static app.bpartners.api.integration.conf.TestUtils.setUpSwanComponent;
@@ -52,6 +57,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @ContextConfiguration(initializers = FileIT.ContextInitializer.class)
 @AutoConfigureMockMvc
 class FileIT {
+  public static final String NON_EXISTENT_FILE_ID = "NOT" + TEST_FILE_ID;
   @MockBean
   private SentryConf sentryConf;
   @MockBean
@@ -92,7 +98,6 @@ class FileIT {
         .sha256("2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824");
   }
 
-  //TODO: read_file_ko: does not exist or other account attemps to read it
   /* /!\ The upload seems to return null instead of the appropriate checksum with S3 localstack
   container so the persisted sha256 is set to null for the test */
   @Test
@@ -105,14 +110,26 @@ class FileIT {
     assertEquals(file1(), actual);
   }
 
-  //TODO: upload_file_ko, when fileType (INVOICE/LOGO) is unknown and the fileFormat is not
-  // supported (pdf, png, jpeg)
   @Test
-  void upload_and_read_created_file_ok() throws IOException, InterruptedException {
+  void read_file_info_ko() {
+    ApiClient joeDoeClient = anApiClient();
+    FilesApi api = new FilesApi(joeDoeClient);
+
+    assertThrowsForbiddenException(() -> api.getFileById(NOT_JOE_DOE_ACCOUNT_ID, TEST_FILE_ID));
+    assertThrowsApiException("{"
+            + "\"type\":\"404 NOT_FOUND\","
+            + "\"message\":\"File." + NON_EXISTENT_FILE_ID + " not found.\""
+            + "}",
+        () -> api.getFileById(JOE_DOE_ACCOUNT_ID, NON_EXISTENT_FILE_ID)
+    );
+  }
+
+  @Test
+  void upload_and_read_created_file_ok() throws IOException, InterruptedException, ApiException {
     String basePath = "http://localhost:" + ContextInitializer.SERVER_PORT;
     Resource toUpload = new ClassPathResource("files/upload.jpg");
 
-    HttpResponse<byte[]> uploadResponse = upload(FileType.LOGO, TO_UPLOAD_FILE_ID,
+    HttpResponse<byte[]> uploadResponse = upload(FileType.LOGO.getValue(), TO_UPLOAD_FILE_ID,
         toUpload.getFile());
 
     HttpResponse<byte[]> downloadResponse =
@@ -124,12 +141,29 @@ class FileIT {
     assertEquals(toUpload.getInputStream().readAllBytes().length, downloadResponse.body().length);*/
   }
 
-  private HttpResponse<byte[]> upload(FileType fileType, String fileId, File toUpload)
-      throws IOException, InterruptedException {
+  @Test
+  void upload_file_ko() {
+    Resource toUpload = new ClassPathResource("files/upload.jpg");
+
+    assertThrowsApiException(
+        "{\"type\":\"400 BAD_REQUEST\","
+            + "\"message\":\"Only pdf and jpeg/jpg files are allowed."
+            + "\"}",
+        () -> upload(FileType.LOGO.getValue(), "upload.exe", toUpload.getFile()));
+    assertThrowsApiException(
+        "{\"type\":\"400 BAD_REQUEST\","
+            + "\"message\":\"No enum constant app.bpartners.api.endpoint.rest"
+            + ".model.FileType.invalid_logo_type"
+            + "\"}",
+        () -> upload(INVALID_LOGO_TYPE, TO_UPLOAD_FILE_ID, toUpload.getFile()));
+  }
+
+  private HttpResponse<byte[]> upload(String fileType, String fileId, File toUpload)
+      throws IOException, InterruptedException, ApiException {
     HttpClient unauthenticatedClient = HttpClient.newBuilder().build();
     String basePath = "http://localhost:" + ContextInitializer.SERVER_PORT;
 
-    return unauthenticatedClient.send(
+    HttpResponse<byte[]> response = unauthenticatedClient.send(
         HttpRequest.newBuilder()
             .uri(URI.create(
                 basePath + "/accounts/" + JOE_DOE_ACCOUNT_ID + "/files/" + fileId
@@ -137,11 +171,14 @@ class FileIT {
             .header("Authorization", BEARER_PREFIX + JOE_DOE_TOKEN)
             .method("POST", HttpRequest.BodyPublishers.ofFile(toUpload.toPath())).build(),
         HttpResponse.BodyHandlers.ofByteArray());
+    if (response.statusCode() / 100 != 2) {
+      throw getApiException("downloadFile", response);
+    }
+    return response;
   }
 
-  //TODO: download_file_ko, when the file does not exist and when fileType is unknown
   @Test
-  void download_file_ok() throws IOException, InterruptedException {
+  void download_file_ok() throws IOException, InterruptedException, ApiException {
     String basePath = "http://localhost:" + ContextInitializer.SERVER_PORT;
 
     HttpResponse<byte[]> responseBearerInHeader = download(FileType.LOGO, basePath, JOE_DOE_TOKEN,
@@ -168,33 +205,45 @@ class FileIT {
   public HttpResponse<byte[]> download(FileType fileType, String basePath, String JOE_DOE_TOKEN,
                                        String queryBearer,
                                        String fileId)
-      throws IOException, InterruptedException {
+      throws IOException, InterruptedException, ApiException {
     HttpClient unauthenticatedClient = HttpClient.newBuilder().build();
-    return unauthenticatedClient.send(
+    HttpResponse<byte[]> response = unauthenticatedClient.send(
         HttpRequest.newBuilder()
             .uri(URI.create(
-                basePath + "/accounts/" + JOE_DOE_ACCOUNT_ID + "/files/" + fileId + "/raw?"
-                    + BEARER_QUERY_PARAMETER_NAME + "=" + queryBearer + "&fileType=" + fileType))
+                basePath + "/accounts/" + JOE_DOE_ACCOUNT_ID + "/files/" + fileId
+                    + "/raw?"
+                    + BEARER_QUERY_PARAMETER_NAME + "=" + queryBearer + "&fileType="
+                    + fileType))
             .header("Access-Control-Request-Method", "GET")
             .header("Authorization", BEARER_PREFIX + JOE_DOE_TOKEN)
             .GET()
             .build(),
         HttpResponse.BodyHandlers.ofByteArray());
+    if (response.statusCode() / 100 != 2) {
+      throw getApiException("downloadFile", response);
+    }
+    return response;
   }
 
   public HttpResponse<byte[]> download(FileType fileType, String basePath, String queryBearer,
                                        String fileId)
-      throws IOException, InterruptedException {
+      throws IOException, InterruptedException, ApiException {
     HttpClient unauthenticatedClient = HttpClient.newBuilder().build();
-    return unauthenticatedClient.send(
+    HttpResponse<byte[]> response = unauthenticatedClient.send(
         HttpRequest.newBuilder()
             .uri(URI.create(
-                basePath + "/accounts/" + JOE_DOE_ACCOUNT_ID + "/files/" + fileId + "/raw?"
-                    + BEARER_QUERY_PARAMETER_NAME + "=" + queryBearer + "&fileType=" + fileType))
+                basePath + "/accounts/" + JOE_DOE_ACCOUNT_ID + "/files/" + fileId
+                    + "/raw?"
+                    + BEARER_QUERY_PARAMETER_NAME + "=" + queryBearer + "&fileType="
+                    + fileType))
             .header("Access-Control-Request-Method", "GET")
             .GET()
             .build(),
         HttpResponse.BodyHandlers.ofByteArray());
+    if (response.statusCode() / 100 != 2) {
+      throw getApiException("downloadFile", response);
+    }
+    return response;
   }
 
   public static class ContextInitializer extends S3AbstractContextInitializer {

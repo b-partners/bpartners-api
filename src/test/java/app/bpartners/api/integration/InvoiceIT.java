@@ -28,7 +28,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
-
 import static app.bpartners.api.integration.conf.TestUtils.INVOICE1_ID;
 import static app.bpartners.api.integration.conf.TestUtils.INVOICE2_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
@@ -55,6 +54,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 class InvoiceIT {
   public static final String OTHER_ACCOUNT_ID = "other_account_id";
   public static final int MAX_PAGE_SIZE = 500;
+  private static final String NEW_INVOICE_ID = "invoice_uuid";
   @MockBean
   private SentryConf sentryConf;
   @MockBean
@@ -78,6 +78,10 @@ class InvoiceIT {
   @MockBean
   private FintecturePaymentInitiationRepository paymentInitiationRepositoryMock;
 
+  private static ApiClient anApiClient() {
+    return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN, InvoiceIT.ContextInitializer.SERVER_PORT);
+  }
+
   @BeforeEach
   public void setUp() {
     setUpSwanComponent(swanComponentMock);
@@ -86,12 +90,6 @@ class InvoiceIT {
     setUpAccountHolderSwanRep(accountHolderRepositoryMock);
     setUpPaymentInitiationRep(paymentInitiationRepositoryMock);
   }
-
-  private static ApiClient anApiClient() {
-    return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN, InvoiceIT.ContextInitializer.SERVER_PORT);
-  }
-
-  private static final String NEW_INVOICE_ID = "invoice_uuid";
 
   CrupdateInvoice validInvoice() {
     return new CrupdateInvoice()
@@ -112,7 +110,7 @@ class InvoiceIT {
         .customer(validInvoice().getCustomer())
         .status(InvoiceStatus.CONFIRMED)
         .sendingDate(validInvoice().getSendingDate())
-        .products(List.of(product4().id(null), product5().id(null)))
+        .products(List.of(product4(), product5()))
         .toPayAt(validInvoice().getToPayAt())
         .totalPriceWithVat(3300)
         .totalVat(300)

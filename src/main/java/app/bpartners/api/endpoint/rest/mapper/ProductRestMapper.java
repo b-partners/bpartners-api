@@ -37,6 +37,7 @@ public class ProductRestMapper {
   public app.bpartners.api.model.Product toDomain(Product product) {
     productValidator.accept(product);
     return app.bpartners.api.model.Product.builder()
+        .id(product.getId())
         .description(product.getDescription())
         .unitPrice(product.getUnitPrice())
         .quantity(product.getQuantity())

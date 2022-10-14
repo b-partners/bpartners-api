@@ -58,7 +58,7 @@ public class TestUtils {
   public static final String BAD_USER_ID = "bad_user_id";
   public static final String INVOICE1_ID = "invoice1_id";
   public static final String INVOICE2_ID = "invoice2_id";
-  public static final String FILE_ID = "test.jpeg";
+  public static final String TEST_FILE_ID = "test.jpeg";
   public static final String TO_UPLOAD_FILE_ID = "to_upload_file_id.jpeg";
   public static final String MARKETPLACE1_ID = "marketplace1_id";
   public static final String MARKETPLACE2_ID = "marketplace2_id";
@@ -77,7 +77,7 @@ public class TestUtils {
         .phone(joeDoe().getMobilePhoneNumber())
         .monthlySubscriptionAmount(5)
         .status(ENABLED)
-        .logoFileId("logo_uuid.jpeg");
+        .logoFileId(TEST_FILE_ID);
   }
 
   public static SwanUser joeDoe() {

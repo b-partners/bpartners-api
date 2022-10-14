@@ -2,6 +2,8 @@ package app.bpartners.api.service;
 
 import app.bpartners.api.endpoint.rest.model.FileType;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
+import app.bpartners.api.endpoint.rest.security.model.Principal;
+import app.bpartners.api.endpoint.rest.security.principal.PrincipalProvider;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.BoundedPageSize;
@@ -39,12 +41,13 @@ import static com.google.zxing.BarcodeFormat.QR_CODE;
 @Service
 @AllArgsConstructor
 public class InvoiceService {
-  public static final String LOGO_JPEG = "logo.jpeg";
   private final InvoiceRepository repository;
   private final ProductRepository productRepository;
   private final PaymentInitiationService pis;
   private final FileService fileService;
   private final AccountHolderService holderService;
+  private final PrincipalProvider auth;
+
 
   public List<Invoice> getInvoices(String accountId, PageFromOne page, BoundedPageSize pageSize) {
     int pageValue = page.getValue() - 1;
@@ -61,11 +64,10 @@ public class InvoiceService {
 
   public Invoice crupdateInvoice(Invoice toCrupdate) {
     toCrupdate.setStatus(InvoiceStatus.CONFIRMED);
-    //TODO: uncomment when localstak is set
-    //Invoice refreshedInvoice = refreshValues(repository.crupdate(toCrupdate));
-    //fileService.uploadFile(refreshedInvoice.getAccount().getId(),
-    //refreshedInvoice.getFileId(), generateInvoicePdf(refreshedInvoice));
-    return refreshValues(repository.crupdate(toCrupdate));
+    Invoice refreshedInvoice = refreshValues(repository.crupdate(toCrupdate));
+    fileService.uploadFile(FileType.INVOICE, refreshedInvoice.getAccount().getId(),
+        refreshedInvoice.getFileId(), generateInvoicePdf(refreshedInvoice));
+    return refreshedInvoice;
   }
 
   private Invoice refreshValues(Invoice invoice) {
@@ -153,7 +155,8 @@ public class InvoiceService {
     Account account = invoice.getAccount();
     AccountHolder accountHolder = holderService.getAccountHolderByAccountId(account.getId());
     byte[] qrCodeBytes = generateQrCode(invoice.getPaymentUrl());
-    byte[] logoBytes = fileService.downloadFile(FileType.INVOICE, account.getId(), LOGO_JPEG);
+    byte[] logoBytes =
+        fileService.downloadFile(FileType.LOGO, account.getId(), userLogoFileId());
 
     context.setVariable("invoice", invoice);
     context.setVariable("qrcode", base64Image(qrCodeBytes));
@@ -188,6 +191,10 @@ public class InvoiceService {
     } catch (WriterException | IOException e) {
       throw new ApiException(SERVER_EXCEPTION, e);
     }
+  }
+
+  private String userLogoFileId() {
+    return ((Principal) auth.getAuthentication().getPrincipal()).getUser().getLogoFileId();
   }
 
   private String base64Image(byte[] image) {

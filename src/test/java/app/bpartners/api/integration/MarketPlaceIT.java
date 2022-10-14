@@ -24,7 +24,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
-
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.TestUtils.MARKETPLACE1_ID;
 import static app.bpartners.api.integration.conf.TestUtils.MARKETPLACE2_ID;
@@ -63,6 +62,10 @@ class MarketPlaceIT {
   @MockBean
   private SwanComponent swanComponentMock;
 
+  private static ApiClient anApiClient() {
+    return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN, ContextInitializer.SERVER_PORT);
+  }
+
   @BeforeEach
   public void setUp() {
     setUpUserSwanRepository(userSwanRepositoryMock);
@@ -71,13 +74,10 @@ class MarketPlaceIT {
     setUpSwanComponent(swanComponentMock);
   }
 
-  private static ApiClient anApiClient() {
-    return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN, ContextInitializer.SERVER_PORT);
-  }
-
   Marketplace marketPlace1() {
     return new Marketplace()
         .id(MARKETPLACE1_ID)
+        .phoneNumber("+261340465338")
         .name("marketplace1_name")
         .description("marketplace1_description")
         .websiteUrl("website URL")
@@ -87,6 +87,7 @@ class MarketPlaceIT {
   Marketplace marketPlace2() {
     return new Marketplace()
         .id(MARKETPLACE2_ID)
+        .phoneNumber("+261340465338")
         .name("marketplace2_name")
         .description("marketplace2_description")
         .websiteUrl("website URL")

@@ -91,7 +91,7 @@ class FileIT {
         .sizeInKB(76)
         .sha256("2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824");
   }
-
+  //TODO: read_file_ko: does not exist or other account attemps to read it
   /* /!\ The upload seems to return null instead of the appropriate checksum with S3 localstack
   container so the persisted sha256 is set to null for the test */
   @Test
@@ -103,7 +103,8 @@ class FileIT {
 
     assertEquals(file1(), actual);
   }
-
+  //TODO: upload_file_ko, when fileType (INVOICE/LOGO) is unknown and the fileFormat is not
+  // supported (pdf, png, jpeg)
   @Test
   void upload_and_read_created_file_ok() throws IOException, InterruptedException {
     String basePath = "http://localhost:" + ContextInitializer.SERVER_PORT;
@@ -120,7 +121,6 @@ class FileIT {
     /* /!\ The file seems to get more bytes than initial with S3 localstack container
     assertEquals(toUpload.getInputStream().readAllBytes().length, downloadResponse.body().length);*/
   }
-
   private HttpResponse<byte[]> upload(FileType fileType, String fileId, File toUpload)
       throws IOException, InterruptedException {
     HttpClient unauthenticatedClient = HttpClient.newBuilder().build();
@@ -135,7 +135,7 @@ class FileIT {
             .method("POST", HttpRequest.BodyPublishers.ofFile(toUpload.toPath())).build(),
         HttpResponse.BodyHandlers.ofByteArray());
   }
-
+  //TODO: download_file_ko, when the file does not exist and when fileType is unknown
   @Test
   void download_file_ok() throws IOException, InterruptedException {
     String basePath = "http://localhost:" + ContextInitializer.SERVER_PORT;

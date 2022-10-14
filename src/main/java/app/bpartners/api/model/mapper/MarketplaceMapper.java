@@ -9,6 +9,7 @@ public class MarketplaceMapper {
   public Marketplace toDomain(HMarketplace entity) {
     return Marketplace.builder()
         .id(entity.getId())
+        .phoneNumber(entity.getPhoneNumber())
         .name(entity.getName())
         .description(entity.getDescription())
         .websiteUrl(entity.getWebsiteUrl())

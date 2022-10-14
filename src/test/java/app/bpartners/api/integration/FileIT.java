@@ -36,7 +36,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 import static app.bpartners.api.integration.conf.TestUtils.BEARER_PREFIX;
 import static app.bpartners.api.integration.conf.TestUtils.BEARER_QUERY_PARAMETER_NAME;
-import static app.bpartners.api.integration.conf.TestUtils.FILE_ID;
+import static app.bpartners.api.integration.conf.TestUtils.TEST_FILE_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_TOKEN;
 import static app.bpartners.api.integration.conf.TestUtils.TO_UPLOAD_FILE_ID;
@@ -85,7 +85,7 @@ class FileIT {
 
   FileInfo file1() {
     return new FileInfo()
-        .id(FILE_ID)
+        .id(TEST_FILE_ID)
         .uploadedAt(Instant.parse("2022-08-31T13:35:26.853Z"))
         .uploadedByAccountId(JOE_DOE_ACCOUNT_ID)
         .sizeInKB(76)
@@ -99,7 +99,7 @@ class FileIT {
     ApiClient joeDoeClient = anApiClient();
     FilesApi api = new FilesApi(joeDoeClient);
 
-    FileInfo actual = api.getFileById(JOE_DOE_ACCOUNT_ID, FILE_ID);
+    FileInfo actual = api.getFileById(JOE_DOE_ACCOUNT_ID, TEST_FILE_ID);
 
     assertEquals(file1(), actual);
   }
@@ -141,11 +141,11 @@ class FileIT {
     String basePath = "http://localhost:" + ContextInitializer.SERVER_PORT;
 
     HttpResponse<byte[]> responseBearerInHeader = download(FileType.LOGO, basePath, JOE_DOE_TOKEN,
-        null, FILE_ID);
+        null, TEST_FILE_ID);
     HttpResponse<byte[]> responseBearerInQuery = download(FileType.LOGO, basePath, JOE_DOE_TOKEN,
-        FILE_ID);
+        TEST_FILE_ID);
     HttpResponse<byte[]> responseBearerInBoth =
-        download(FileType.LOGO, basePath, JOE_DOE_TOKEN, JOE_DOE_TOKEN, FILE_ID);
+        download(FileType.LOGO, basePath, JOE_DOE_TOKEN, JOE_DOE_TOKEN, TEST_FILE_ID);
 
     assertEquals(HttpStatus.OK.value(), responseBearerInHeader.statusCode());
     assertEquals(HttpStatus.OK.value(), responseBearerInQuery.statusCode());

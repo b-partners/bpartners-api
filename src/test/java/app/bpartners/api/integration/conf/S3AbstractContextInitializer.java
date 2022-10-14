@@ -1,11 +1,7 @@
 package app.bpartners.api.integration.conf;
 
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import lombok.extern.slf4j.Slf4j;
-import org.postgresql.core.Field;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.http.MediaType;
@@ -20,7 +16,6 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.ChecksumAlgorithm;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
-import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.S3;
@@ -60,13 +55,13 @@ public abstract class S3AbstractContextInitializer
         .bucket(bucketName)
         .build());
 
-      s3.putObject(PutObjectRequest.builder()
-              .bucket(bucketName)
-              .contentType(MediaType.IMAGE_JPEG_VALUE)
-              .checksumAlgorithm(ChecksumAlgorithm.SHA256)
-              .key("dev/accounts/beed1765-5c16-472a-b3f4-5c376ce5db58/logo/test.jpeg")
-              .build(),
-          RequestBody.fromFile(new File(testFilePath())));
+    s3.putObject(PutObjectRequest.builder()
+            .bucket(bucketName)
+            .contentType(MediaType.IMAGE_JPEG_VALUE)
+            .checksumAlgorithm(ChecksumAlgorithm.SHA256)
+            .key("dev/accounts/beed1765-5c16-472a-b3f4-5c376ce5db58/logo/test.jpeg")
+            .build(),
+        RequestBody.fromFile(new File(testFilePath())));
 
     String flywayTestdataPath = "classpath:/db/testdata";
 

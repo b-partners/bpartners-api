@@ -10,7 +10,7 @@ import app.bpartners.api.endpoint.rest.model.Invoice;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
 import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
-import app.bpartners.api.integration.conf.AbstractContextInitializer;
+import app.bpartners.api.integration.conf.S3AbstractContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
 import app.bpartners.api.manager.ProjectTokenManager;
 import app.bpartners.api.repository.fintecture.FintectureConf;
@@ -58,8 +58,6 @@ class InvoiceIT {
   private SentryConf sentryConf;
   @MockBean
   private SendinblueConf sendinblueConf;
-  @MockBean
-  private S3Conf s3Conf;
   @MockBean
   private SwanConf swanConf;
   @MockBean
@@ -174,7 +172,7 @@ class InvoiceIT {
   }
 */
 
-  static class ContextInitializer extends AbstractContextInitializer {
+  static class ContextInitializer extends S3AbstractContextInitializer {
     public static final int SERVER_PORT = TestUtils.anAvailableRandomPort();
 
     @Override

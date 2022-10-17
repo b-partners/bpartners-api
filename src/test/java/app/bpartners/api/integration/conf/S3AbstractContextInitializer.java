@@ -79,7 +79,7 @@ public abstract class S3AbstractContextInitializer
         "aws.access.key.id=" + s3Container.getAccessKey(),
         "aws.secret.access.key=" + s3Container.getSecretKey(),
         "aws.region=" + s3Container.getRegion(),
-        "aws.endpoint.override=" + s3Container.getEndpointOverride(S3),
+        "aws.s3.endpoint=" + s3Container.getEndpointOverride(S3),
         "env=dev");
   }
 

@@ -20,16 +20,16 @@ public class EventConf {
   private final Region region;
   private final String accessKeyId;
   private final String secretAccessKey;
-  private final String endpointOverride;
+  private final String s3Endpoint;
 
   public EventConf(@Value("${aws.region}") String region,
                    @Value("${aws.access.key.id}") String awsKeyId,
                    @Value("${aws.secret.access.key}") String awsKeySecret,
-                   @Value("${aws.endpoint.override}") String endpointOverride) {
+                   @Value("${aws.s3.endpoint}") String s3Endpoint) {
     this.region = Region.of(region);
     this.accessKeyId = awsKeyId;
     this.secretAccessKey = awsKeySecret;
-    this.endpointOverride = endpointOverride;
+    this.s3Endpoint = s3Endpoint;
   }
 
   @Bean
@@ -54,7 +54,7 @@ public class EventConf {
   public S3Client getS3Client() {
     try {
       return S3Client.builder()
-          .endpointOverride(new URI(endpointOverride))
+          .endpointOverride(new URI(s3Endpoint))
           .credentialsProvider(StaticCredentialsProvider.create(
               AwsBasicCredentials.create(accessKeyId, secretAccessKey)
           ))

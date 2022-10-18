@@ -50,7 +50,6 @@ import static app.bpartners.api.integration.conf.TestUtils.setUpPaymentInitiatio
 import static app.bpartners.api.integration.conf.TestUtils.setUpSwanComponent;
 import static app.bpartners.api.integration.conf.TestUtils.setUpUserSwanRepository;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -189,6 +188,7 @@ class InvoiceIT {
         .id(NEW_INVOICE_ID)
         .fileId("BP003.pdf")
         .ref(validInvoice().getRef())
+        .paymentUrl("https://connect-v2-sbx.fintecture.com")
         .title("Facture sans produit")
         .customer(validInvoice().getCustomer())
         .status(InvoiceStatus.CONFIRMED)
@@ -238,6 +238,7 @@ class InvoiceIT {
         .id(INVOICE4_ID)
         .fileId("BP007.pdf")
         .ref(confirmedInvoice2().getRef())
+        .paymentUrl("https://connect-v2-sbx.fintecture.com")
         .title("Facture sans produit")
         .customer(confirmedInvoice2().getCustomer())
         .status(CONFIRMED)

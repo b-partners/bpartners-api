@@ -18,11 +18,13 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.transaction.Transactional;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Repository;
 
 @Repository
 @AllArgsConstructor
+@Slf4j
 public class InvoiceRepositoryImpl implements InvoiceRepository {
   private final InvoiceJpaRepository jpaRepository;
   private final InvoiceCustomerJpaRepository customerJpaRepository;
@@ -57,7 +59,11 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
 
   @Override
   public List<Invoice> findAllByAccountId(String accountId, int page, int pageSize) {
-    return jpaRepository.findAllByIdAccount(accountId, PageRequest.of(page, pageSize)).stream()
+    log.info("Count:" + jpaRepository.findHInvoicesByIdAccount(accountId,
+        PageRequest.of(page,
+            pageSize)).size());
+    return jpaRepository.findHInvoicesByIdAccount(accountId, PageRequest.of(page,
+            pageSize)).stream()
         .map(invoice -> {
           HInvoiceCustomer invoiceCustomer = customerJpaRepository
               .findTopByInvoice_IdOrderByCreatedDatetimeDesc(invoice.getId());

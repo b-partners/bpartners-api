@@ -6,5 +6,5 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface InvoiceJpaRepository extends JpaRepository<HInvoice, String> {
-  List<HInvoice> findAllByIdAccount(String idAccount, Pageable pageable);
+  List<HInvoice> findHInvoicesByIdAccount(String idAccount, Pageable pageable);
 }

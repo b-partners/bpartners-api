@@ -6,8 +6,6 @@ import java.net.URISyntaxException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
-import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.sqs.SqsClient;
@@ -18,36 +16,26 @@ import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVE
 @Configuration
 public class EventConf {
   private final Region region;
-  private final String accessKeyId;
-  private final String secretAccessKey;
   private final String s3Endpoint;
 
   public EventConf(@Value("${aws.region}") String region,
-                   @Value("${aws.access.key.id}") String awsKeyId,
-                   @Value("${aws.secret.access.key}") String awsKeySecret,
                    @Value("${aws.s3.endpoint}") String s3Endpoint) {
     this.region = Region.of(region);
-    this.accessKeyId = awsKeyId;
-    this.secretAccessKey = awsKeySecret;
     this.s3Endpoint = s3Endpoint;
   }
 
   @Bean
   public SqsClient getSqsClient() {
     return SqsClient.builder()
-        .credentialsProvider(StaticCredentialsProvider.create(
-            AwsBasicCredentials.create(accessKeyId, secretAccessKey)
-        ))
-        .region(region).build();
+        .region(region)
+        .build();
   }
 
   @Bean
   public SsmClient getSsmClient() {
     return SsmClient.builder()
-        .credentialsProvider(StaticCredentialsProvider.create(
-            AwsBasicCredentials.create(accessKeyId, secretAccessKey)
-        ))
-        .region(region).build();
+        .region(region)
+        .build();
   }
 
   @Bean
@@ -55,10 +43,8 @@ public class EventConf {
     try {
       return S3Client.builder()
           .endpointOverride(new URI(s3Endpoint))
-          .credentialsProvider(StaticCredentialsProvider.create(
-              AwsBasicCredentials.create(accessKeyId, secretAccessKey)
-          ))
-          .region(region).build();
+          .region(region)
+          .build();
     } catch (URISyntaxException e) {
       throw new ApiException(SERVER_EXCEPTION, e);
     }

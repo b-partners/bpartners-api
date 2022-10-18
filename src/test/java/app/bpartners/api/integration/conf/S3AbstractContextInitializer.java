@@ -1,22 +1,17 @@
 package app.bpartners.api.integration.conf;
 
+import com.amazonaws.client.builder.AwsClientBuilder;
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+import com.amazonaws.services.s3.model.PutObjectRequest;
 import java.io.File;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.http.MediaType;
 import org.springframework.test.context.support.TestPropertySourceUtils;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.containers.localstack.LocalStackContainer;
 import org.testcontainers.utility.DockerImageName;
-import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
-import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
-import software.amazon.awssdk.core.sync.RequestBody;
-import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.ChecksumAlgorithm;
-import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
-import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.S3;
 
@@ -26,6 +21,7 @@ public abstract class S3AbstractContextInitializer
 
   @Override
   public void initialize(ConfigurableApplicationContext applicationContext) {
+    String flywayTestdataPath = "classpath:/db/testdata";
     PostgreSQLContainer<?> postgresContainer =
         new PostgreSQLContainer<>("postgres:13.2")
             .withDatabaseName("it-db")
@@ -33,37 +29,27 @@ public abstract class S3AbstractContextInitializer
             .withPassword("sa");
     postgresContainer.start();
 
+    String bucketName = "bpartners";
     LocalStackContainer s3Container = new LocalStackContainer(DockerImageName.parse(
         "localstack/localstack:0.11.3"))
         .withServices(S3);
     s3Container.start();
 
-    S3Client s3 = S3Client
-        .builder()
-        .endpointOverride(s3Container.getEndpointOverride(S3))
-        .credentialsProvider(
-            StaticCredentialsProvider.create(
-                AwsBasicCredentials.create(s3Container.getAccessKey(), s3Container.getSecretKey())
+    AmazonS3 s3 = AmazonS3ClientBuilder
+        .standard()
+        .withEndpointConfiguration(
+            new AwsClientBuilder.EndpointConfiguration(
+                s3Container.getEndpointOverride(S3).toString(),
+                s3Container.getRegion()
             )
         )
-        .region(Region.of(s3Container.getRegion()))
+        .withCredentials(s3Container.getDefaultCredentialsProvider())
         .build();
 
-    String bucketName = "bpartners";
+    s3.createBucket(bucketName);
+    s3.putObject(new PutObjectRequest(bucketName, "dev/accounts/beed1765-5c16-472a-b3f4" +
+        "-5c376ce5db58/logo/test.jpeg", new File(testFilePath())));
 
-    s3.createBucket(CreateBucketRequest.builder()
-        .bucket(bucketName)
-        .build());
-
-    s3.putObject(PutObjectRequest.builder()
-            .bucket(bucketName)
-            .contentType(MediaType.IMAGE_JPEG_VALUE)
-            .checksumAlgorithm(ChecksumAlgorithm.SHA256)
-            .key("dev/accounts/beed1765-5c16-472a-b3f4-5c376ce5db58/logo/test.jpeg")
-            .build(),
-        RequestBody.fromFile(new File(testFilePath())));
-
-    String flywayTestdataPath = "classpath:/db/testdata";
 
     TestPropertySourceUtils.addInlinedPropertiesToEnvironment(
         applicationContext,
@@ -75,9 +61,7 @@ public abstract class S3AbstractContextInitializer
         "spring.datasource.username=" + postgresContainer.getUsername(),
         "spring.datasource.password=" + postgresContainer.getPassword(),
         "spring.flyway.locations=classpath:/db/migration," + flywayTestdataPath,
-        "aws.bucket.name=bpartners",
-        "aws.access.key.id=" + s3Container.getAccessKey(),
-        "aws.secret.access.key=" + s3Container.getSecretKey(),
+        "aws.bucket.name=" + bucketName,
         "aws.region=" + s3Container.getRegion(),
         "aws.s3.endpoint=" + s3Container.getEndpointOverride(S3),
         "env=dev");

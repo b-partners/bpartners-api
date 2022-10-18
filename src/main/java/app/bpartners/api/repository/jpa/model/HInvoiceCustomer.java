@@ -1,5 +1,6 @@
 package app.bpartners.api.repository.jpa.model;
 
+import java.time.Instant;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
@@ -33,7 +34,7 @@ public class HInvoiceCustomer {
   @ManyToOne
   @JoinColumn(name = "id_customer")
   private HCustomerTemplate customerTemplate;
-  @OneToOne
+  @ManyToOne
   @JoinColumn(name = "id_invoice")
   private HInvoice invoice;
   private String email;
@@ -43,4 +44,5 @@ public class HInvoiceCustomer {
   private Integer zipCode;
   private String city;
   private String country;
+  private Instant createdDatetime;
 }

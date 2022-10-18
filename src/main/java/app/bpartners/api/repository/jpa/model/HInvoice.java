@@ -3,12 +3,13 @@ package app.bpartners.api.repository.jpa.model;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.repository.jpa.types.PostgresEnumType;
 import java.time.LocalDate;
+import java.util.List;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.Id;
-import javax.persistence.OneToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -40,8 +41,8 @@ public class HInvoice {
   private String idAccount;
   private LocalDate sendingDate;
   private LocalDate toPayAt;
-  @OneToOne(mappedBy = "invoice")
-  private HInvoiceCustomer invoiceCustomer;
+  @OneToMany(mappedBy = "invoice")
+  private List<HInvoiceCustomer> invoiceCustomers;
   @Type(type = "pgsql_enum")
   @Enumerated(EnumType.STRING)
   private InvoiceStatus status;

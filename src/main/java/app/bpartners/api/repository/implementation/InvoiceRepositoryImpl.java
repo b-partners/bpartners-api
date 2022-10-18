@@ -50,15 +50,19 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
       throw new NotFoundException("Invoice." + invoiceId + " is not found");
     }
     HInvoice invoice = optionalInvoice.get();
-    HInvoiceCustomer invoiceCustomer = invoice.getInvoiceCustomer();
+    HInvoiceCustomer invoiceCustomer = customerJpaRepository
+        .findTopByInvoice_IdOrderByCreatedDatetimeDesc(invoice.getId());
     return mapper.toDomain(invoice, invoiceCustomer, List.of());
   }
 
   @Override
   public List<Invoice> findAllByAccountId(String accountId, int page, int pageSize) {
     return jpaRepository.findAllByIdAccount(accountId, PageRequest.of(page, pageSize)).stream()
-        .map(invoice ->
-            mapper.toDomain(invoice, invoice.getInvoiceCustomer(), List.of()))
+        .map(invoice -> {
+          HInvoiceCustomer invoiceCustomer = customerJpaRepository
+              .findTopByInvoice_IdOrderByCreatedDatetimeDesc(invoice.getId());
+          return mapper.toDomain(invoice, invoiceCustomer, List.of());
+        })
         .collect(Collectors.toUnmodifiableList());
   }
 

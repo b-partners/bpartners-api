@@ -63,7 +63,7 @@ public abstract class S3AbstractContextInitializer
         "spring.flyway.locations=classpath:/db/migration," + flywayTestdataPath,
         "aws.bucket.name=" + bucketName,
         "aws.region=" + s3Container.getRegion(),
-        "aws.s3.endpoint=" + s3Container.getEndpointOverride(S3),
+        "aws.endpoint=" + s3Container.getEndpointOverride(S3),
         "env=dev");
   }
 

@@ -19,7 +19,7 @@ public class EventConf {
   private final String s3Endpoint;
 
   public EventConf(@Value("${aws.region}") String region,
-                   @Value("${aws.s3.endpoint}") String s3Endpoint) {
+                   @Value("${aws.endpoint}") String s3Endpoint) {
     this.region = Region.of(region);
     this.s3Endpoint = s3Endpoint;
   }

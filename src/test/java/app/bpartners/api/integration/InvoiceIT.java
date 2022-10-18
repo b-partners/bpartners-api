@@ -1,7 +1,6 @@
 package app.bpartners.api.integration;
 
 import app.bpartners.api.SentryConf;
-import app.bpartners.api.endpoint.event.S3Conf;
 import app.bpartners.api.endpoint.rest.api.PayingApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
@@ -28,6 +27,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
+
 import static app.bpartners.api.integration.conf.TestUtils.INVOICE1_ID;
 import static app.bpartners.api.integration.conf.TestUtils.INVOICE2_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
@@ -44,6 +44,7 @@ import static app.bpartners.api.integration.conf.TestUtils.setUpPaymentInitiatio
 import static app.bpartners.api.integration.conf.TestUtils.setUpSwanComponent;
 import static app.bpartners.api.integration.conf.TestUtils.setUpUserSwanRepository;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
@@ -121,12 +122,11 @@ class InvoiceIT {
 
     Invoice actual1 = api.getInvoiceById(JOE_DOE_ACCOUNT_ID, INVOICE1_ID);
     Invoice actual2 = api.getInvoiceById(JOE_DOE_ACCOUNT_ID, INVOICE2_ID);
-    //TODO: debug duplicated entry on duplicated invoiceCustomer for crupdated invoice
-    // List<Invoice> actual = api.getInvoices(JOE_DOE_ACCOUNT_ID, 1, 10);
+    List<Invoice> actual = api.getInvoices(JOE_DOE_ACCOUNT_ID, 1, 10);
 
     assertEquals(invoice1(), actual1);
     assertEquals(invoice2(), actual2);
-    //assertTrue(actual.containsAll(List.of(actual1, actual2)));
+    assertTrue(actual.containsAll(List.of(actual1, actual2)));
   }
 
   @Test
@@ -146,9 +146,14 @@ class InvoiceIT {
             + "\"}",
         () -> api.getInvoices(JOE_DOE_ACCOUNT_ID, 1, MAX_PAGE_SIZE + 1));
     assertThrowsApiException(
-        "{\"type\":\"400 BAD_REQUEST\",\"message\":\"page is mandatory. page_size is mandatory. "
+        "{\"type\":\"400 BAD_REQUEST\",\"message\":\"Required request parameter 'page' for method"
+            + " parameter type PageFromOne is not present"
             + "\"}",
-        () -> api.getInvoices(JOE_DOE_ACCOUNT_ID, null, null));
+        () -> api.getInvoices(JOE_DOE_ACCOUNT_ID, null, 10));
+    assertThrowsApiException(
+        "{\"type\":\"400 BAD_REQUEST\",\"message\":\"Required request parameter 'pageSize' for "
+            + "method parameter type BoundedPageSize is not present\"}",
+        () -> api.getInvoices(JOE_DOE_ACCOUNT_ID, 1, null));
   }
 
   @Test

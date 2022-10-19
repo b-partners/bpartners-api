@@ -1,33 +1,58 @@
 package app.bpartners.api.model.validator;
 
 import app.bpartners.api.model.Invoice;
-import app.bpartners.api.model.exception.ForbiddenException;
-import app.bpartners.api.repository.jpa.InvoiceJpaRepository;
-import app.bpartners.api.repository.jpa.model.HInvoice;
+import app.bpartners.api.model.exception.BadRequestException;
+import app.bpartners.api.repository.InvoiceRepository;
 import java.util.Optional;
 import java.util.function.Consumer;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.DRAFT;
+import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PROPOSAL;
 
 @Component
 @AllArgsConstructor
+@Slf4j
 public class InvoiceValidator implements Consumer<Invoice> {
-  private final InvoiceJpaRepository repository;
+  private final InvoiceRepository repository;
 
   @Override
-  public void accept(Invoice invoice) {
-    Optional<HInvoice> actual = repository.findById(invoice.getId());
-    if (actual.isPresent()) {
-      if (!invoice.getStatus().equals(DRAFT)) {
-        if (actual.get().getStatus().equals(CONFIRMED)) {
-          throw new ForbiddenException("Action not permitted");
+  public void accept(Invoice actual) {
+    Optional<Invoice> persisted = repository.getOptionalById(actual.getId());
+    //TODO: refactor to reduce Cognitive complexity
+    if (persisted.isPresent()) {
+      Invoice persistedValue = persisted.get();
+      if (persistedValue.getStatus().equals(CONFIRMED)) {
+        throw new BadRequestException("Invoice." + actual.getId() + " was already confirmed");
+      } else {
+        if (persistedValue.getStatus().equals(DRAFT)
+            && !actual.getStatus().equals(PROPOSAL)) {
+          throw new BadRequestException("Invoice." + actual.getId() + " actual status is "
+              + persistedValue.getStatus() + " and can only become " + PROPOSAL);
         }
-      } else if (invoice.getStatus().equals(DRAFT)
-          && !actual.get().getStatus().equals(DRAFT)) {
-        throw new ForbiddenException("Action not permitted");
+        if (persistedValue.getStatus().equals(PROPOSAL)) {
+          if (!actual.getStatus().equals(CONFIRMED)) {
+            throw new BadRequestException("Invoice." + actual.getId() + " actual status is "
+                + persistedValue.getStatus() + " and can only become " + CONFIRMED);
+          } else {
+            //TODO: for customer and products, compare the content without the ID
+            log.info(actual.toString());
+            log.info(persistedValue.toString());
+            if (!actual.equals(persistedValue)) {
+              throw new BadRequestException("Invoice." + actual.getId() + " was already sent and "
+                  + "can not be modified anymore");
+            }
+          }
+        }
+      }
+    } else {
+      if (!actual.getStatus().equals(DRAFT)) {
+        throw new BadRequestException(
+            "Invoice." + actual.getId() + " does not exist yet and can only have " + DRAFT
+                + " status");
       }
     }
   }

@@ -58,6 +58,18 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
   }
 
   @Override
+  public Optional<Invoice> getOptionalById(String invoiceId) {
+    Optional<HInvoice> optionalInvoice = jpaRepository.findById(invoiceId);
+    if (optionalInvoice.isPresent()) {
+      HInvoice invoice = optionalInvoice.get();
+      HInvoiceCustomer invoiceCustomer = customerJpaRepository
+          .findTopByInvoice_IdOrderByCreatedDatetimeDesc(invoice.getId());
+      return Optional.of(mapper.toDomain(invoice, invoiceCustomer, List.of()));
+    }
+    return Optional.empty();
+  }
+
+  @Override
   public List<Invoice> findAllByAccountId(String accountId, int page, int pageSize) {
     log.info("Count:" + jpaRepository.findHInvoicesByIdAccount(accountId,
         PageRequest.of(page,

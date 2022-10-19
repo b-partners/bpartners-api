@@ -96,7 +96,7 @@ public class InvoiceService {
         .build();
     if (!invoice.getStatus().equals(CONFIRMED)) {
       initializedInvoice.setPaymentUrl(null);
-      initializedInvoice.setRef(invoice.getRef() + " TEMP");
+      initializedInvoice.setRef(invoice.getRef() + "-TMP");
     } else {
       PaymentRedirection paymentRedirection = pis.initiateInvoicePayment(initializedInvoice);
       initializedInvoice.setPaymentUrl(paymentRedirection.getRedirectUrl());

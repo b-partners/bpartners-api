@@ -15,4 +15,8 @@ values ('invoice1_id', 'beed1765-5c16-472a-b3f4-5c376ce5db58', 'Facture tableau'
        ('invoice4_id', 'beed1765-5c16-472a-b3f4-5c376ce5db58', 'Facture ' ||
                                                                'achat', 'BP005',
         '2022-10-12',
-        '2022-11-10', 'PROPOSAL');
+        '2022-11-13', 'PROPOSAL'),
+       ('invoice5_id', 'beed1765-5c16-472a-b3f4-5c376ce5db58', 'Facture ' ||
+                                                               'achat', 'BP006',
+        '2022-10-12',
+        '2022-11-13', 'PROPOSAL');

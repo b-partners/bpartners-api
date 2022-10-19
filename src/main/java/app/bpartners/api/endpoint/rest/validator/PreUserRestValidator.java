@@ -11,20 +11,8 @@ public class PreUserRestValidator implements Consumer<CreatePreUser> {
   @Override
   public void accept(CreatePreUser createPreUser) {
     StringBuilder exceptionMessageBuilder = new StringBuilder();
-    if (createPreUser.getFirstName() == null) {
-      exceptionMessageBuilder.append("firstName is missing. ");
-    }
-    if (createPreUser.getLastName() == null) {
-      exceptionMessageBuilder.append("lastName is missing. ");
-    }
-    if (createPreUser.getSociety() == null) {
-      exceptionMessageBuilder.append("society is missing. ");
-    }
     if (createPreUser.getEmail() == null) {
-      exceptionMessageBuilder.append("email is missing. ");
-    }
-    if (createPreUser.getPhone() == null) {
-      exceptionMessageBuilder.append("mobilePhoneNumber is missing. ");
+      exceptionMessageBuilder.append("Email is mandatory. ");
     }
     String exceptionMessage = exceptionMessageBuilder.toString();
     if (!exceptionMessage.isEmpty()) {

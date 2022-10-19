@@ -34,11 +34,15 @@ public class SendinblueMapper {
   }
 
   private LinkedTreeMap<String, String> mapAttributes(Attributes attributes) {
+    String phoneNumber = null;
+    if (attributes.getPhone() != null) {
+      phoneNumber = attributes.getPhone().toString();
+    }
     LinkedTreeMap<String, String> attributesMap = new LinkedTreeMap<>();
     attributesMap.put(Attributes.JSON_PROPERTY_ID, attributes.getId().toString());
     attributesMap.put(Attributes.JSON_PROPERTY_LASTNAME, attributes.getLastName());
     attributesMap.put(Attributes.JSON_PROPERTY_FIRSTNAME, attributes.getFirstName());
-    attributesMap.put(Attributes.JSON_PROPERTY_PHONE, attributes.getPhone().toString());
+    attributesMap.put(Attributes.JSON_PROPERTY_PHONE, phoneNumber);
     attributesMap.put(Attributes.JSON_PROPERTY_SMS, attributes.getSmsPhoneNumber());
     return attributesMap;
   }

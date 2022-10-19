@@ -3,6 +3,7 @@ package app.bpartners.api.unit.validator;
 import app.bpartners.api.endpoint.rest.model.CreatePreUser;
 import app.bpartners.api.endpoint.rest.validator.PreUserRestValidator;
 import org.junit.jupiter.api.Test;
+
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsBadRequestException;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
@@ -24,19 +25,9 @@ class PreUserRestValidatorTest {
 
   @Test
   void validator_validate_createPreUser_ko() {
-    assertThrowsBadRequestException(
-        "firstName is missing. "
-            + "lastName is missing. "
-            + "society is missing. "
-            + "email is missing. "
-            + "mobilePhoneNumber is missing. ",
+    assertThrowsBadRequestException("Email is mandatory. ",
         () -> preUserRestValidator.accept(
             new CreatePreUser()
-                .email(null)
-                .firstName(null)
-                .lastName(null)
-                .phone(null)
-                .society(null)
         )
     );
   }

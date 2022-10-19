@@ -33,18 +33,12 @@ public class HPreUser implements Serializable {
   @Id
   @GeneratedValue(strategy = IDENTITY)
   private String id;
-
   private String firstName;
-
   private String lastName;
-
   private String society;
-
   @NotBlank(message = "Email is mandatory")
   private String email;
-
   private String phoneNumber;
-
   @CreationTimestamp
   @Getter(AccessLevel.NONE)
   private Instant entranceDatetime;
@@ -52,5 +46,4 @@ public class HPreUser implements Serializable {
   public Instant getEntranceDatetime() {
     return entranceDatetime.truncatedTo(ChronoUnit.MILLIS);
   }
-
 }

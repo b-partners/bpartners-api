@@ -15,17 +15,10 @@ import lombok.Setter;
 @Builder
 public class PreUser implements Serializable {
   private String id;
-
   private String firstname;
-
   private String lastname;
-
   private String society;
-
   private String email;
-
   private String mobilePhoneNumber;
-
   private Instant entranceDateTime;
-
 }

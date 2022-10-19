@@ -28,10 +28,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import static app.bpartners.api.integration.conf.TestUtils.VALID_EMAIL;
 import static app.bpartners.api.integration.conf.TestUtils.setUpSendiblueApi;
 import static app.bpartners.api.integration.conf.TestUtils.setUpSwanComponent;
 import static app.bpartners.api.integration.conf.TestUtils.setUpUserSwanRepository;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
@@ -67,7 +69,7 @@ class PreUserIT {
 
   CreatePreUser validPreUser() {
     CreatePreUser createPreUser = new CreatePreUser();
-    createPreUser.setEmail(TestUtils.VALID_EMAIL);
+    createPreUser.setEmail(VALID_EMAIL);
     createPreUser.setFirstName("john");
     createPreUser.setLastName("doe");
     createPreUser.setSociety("johnSociety");
@@ -75,8 +77,44 @@ class PreUserIT {
     return createPreUser;
   }
 
+  CreatePreUser preUserWithEmailOnly() {
+    return new CreatePreUser().email(VALID_EMAIL);
+  }
+
+  CreatePreUser invalidPreUser() {
+    return new CreatePreUser();
+  }
+
   @Test
   void unauthenticated_create_pre_users_ok() throws IOException, InterruptedException {
+    HttpClient unauthenticatedClient = HttpClient.newBuilder().build();
+    String basePath = "http://localhost:" + PreUserIT.ContextInitializer.SERVER_PORT;
+
+    HttpResponse<String> responseWithAttributes = unauthenticatedClient.send(
+        HttpRequest.newBuilder()
+            .uri(URI.create(basePath + "/preUsers"))
+            .header("Access-Control-Request-Method", "POST")
+            .header("Content-Type", "application/json")
+            .POST(HttpRequest.BodyPublishers.ofString(
+                new ObjectMapper().writeValueAsString(List.of(validPreUser()))))
+            .build(),
+        HttpResponse.BodyHandlers.ofString());
+    HttpResponse<String> responseWithEmailOnly = unauthenticatedClient.send(
+        HttpRequest.newBuilder()
+            .uri(URI.create(basePath + "/preUsers"))
+            .header("Access-Control-Request-Method", "POST")
+            .header("Content-Type", "application/json")
+            .POST(HttpRequest.BodyPublishers.ofString(
+                new ObjectMapper().writeValueAsString(List.of(preUserWithEmailOnly()))))
+            .build(),
+        HttpResponse.BodyHandlers.ofString());
+
+    assertEquals(HttpStatus.OK.value(), responseWithAttributes.statusCode());
+    assertEquals(HttpStatus.OK.value(), responseWithEmailOnly.statusCode());
+  }
+
+  @Test
+  void unauthenticated_create_pre_users_ko() throws IOException, InterruptedException {
     HttpClient unauthenticatedClient = HttpClient.newBuilder().build();
     String basePath = "http://localhost:" + PreUserIT.ContextInitializer.SERVER_PORT;
 
@@ -86,11 +124,12 @@ class PreUserIT {
             .header("Access-Control-Request-Method", "POST")
             .header("Content-Type", "application/json")
             .POST(HttpRequest.BodyPublishers.ofString(
-                new ObjectMapper().writeValueAsString(List.of(validPreUser()))))
+                new ObjectMapper().writeValueAsString(List.of(invalidPreUser()))))
             .build(),
         HttpResponse.BodyHandlers.ofString());
 
-    assertEquals(HttpStatus.OK.value(), response.statusCode());
+    assertEquals(HttpStatus.BAD_REQUEST.value(), response.statusCode());
+    assertTrue(response.body().contains("Email is mandatory"));
   }
 
   public static class ContextInitializer extends AbstractContextInitializer {

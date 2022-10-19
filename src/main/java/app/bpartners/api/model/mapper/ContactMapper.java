@@ -70,6 +70,9 @@ public class ContactMapper {
   }
 
   private Double phoneDoubleValues(String phone) {
+    if (phone == null) {
+      return null;
+    }
     return Double.valueOf(phone.substring(1));
   }
 

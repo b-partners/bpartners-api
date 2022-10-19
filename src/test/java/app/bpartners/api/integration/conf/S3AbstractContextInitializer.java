@@ -47,8 +47,8 @@ public abstract class S3AbstractContextInitializer
         .build();
 
     s3.createBucket(bucketName);
-    s3.putObject(new PutObjectRequest(bucketName, "dev/accounts/beed1765-5c16-472a-b3f4" +
-        "-5c376ce5db58/logo/test.jpeg", new File(testFilePath())));
+    s3.putObject(new PutObjectRequest(bucketName, "dev/accounts/beed1765-5c16-472a-b3f4"
+        + "-5c376ce5db58/logo/test.jpeg", new File(testFilePath())));
 
 
     TestPropertySourceUtils.addInlinedPropertiesToEnvironment(

@@ -17,6 +17,23 @@ Resources:
         maxReceiveCount: 5
   DeadLetterQueue:
     Type: AWS::SQS::Queue
+  EventBridgeBus:
+    Type: AWS::Events::EventBus
+    Properties:
+      Name: !Join ['', [!Ref Env, -bpartners]]
+  EventBridgeArchive:
+    Type: AWS::Events::Archive
+    Properties:
+      ArchiveName: !Join ['', [!Ref Env, -bpartners, -archive]]
+      SourceArn: !GetAtt EventBridgeBus.Arn
+  EventBridgeRule:
+    Type: AWS::Event::Rule
+    Properties:
+      Name: !Join ['', [!Ref Env, -bpartners, -from-api-to-api]]
+      EventBusName: !GetAtt EventBridgeBus.Name
+      EventPattern:
+        Source:
+          - aws.ecs
 Outputs: 
   SourceQueueURL: 
     Description: "URL of source queue"

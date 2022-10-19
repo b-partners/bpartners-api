@@ -5,53 +5,55 @@ Parameters:
     Type: String 
 
 Resources: 
-  SourceQueue: 
+  MailboxQueue: 
     Type: AWS::SQS::Queue
     Properties: 
-      QueueName: !Join ['' , [!Ref Env , -bpartners-api]]
+      QueueName: !Join ['' , [!Ref Env , -bpartners]]
       RedrivePolicy: 
-        deadLetterTargetArn: 
-          Fn::GetAtt: 
-            - "DeadLetterQueue"
-            - "Arn"
+        deadLetterTargetArn: !GetAtt DeadLetterQueue.Arn
         maxReceiveCount: 5
+
   DeadLetterQueue:
     Type: AWS::SQS::Queue
+    Properties:
+      QueueName:  !Join ['' , [!Ref Env , -bpartners-dl]]
+
+  MailboxQueueSSM: 
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Join ['' , [/bpartners/ , !Ref Env , /sqs/mailbox-queue-url]]
+      Type: String
+      Value: !Ref MailboxQueue
+  
+  DeadLetterQueueSSM:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Join ['' , [/bpartners/ , !Ref Env , /sqs/dead-letter-queue-url]]
+      Type: String
+      Value: !Ref DeadLetterQueue
+
   EventBridgeBus:
     Type: AWS::Events::EventBus
     Properties:
       Name: !Join ['', [!Ref Env, -bpartners]]
+
   EventBridgeArchive:
     Type: AWS::Events::Archive
     Properties:
       ArchiveName: !Join ['', [!Ref Env, -bpartners, -archive]]
       SourceArn: !GetAtt EventBridgeBus.Arn
+      
   EventBridgeRule:
-    Type: AWS::Event::Rule
+    Type: AWS::Events::Rule
     Properties:
       Name: !Join ['', [!Ref Env, -bpartners, -from-api-to-api]]
       EventBusName: !GetAtt EventBridgeBus.Name
       EventPattern:
         Source:
           - aws.ecs
+
 Outputs: 
-  SourceQueueURL: 
-    Description: "URL of source queue"
-    Value: 
-      Ref: "SourceQueue"
-  SourceQueueARN: 
-    Description: "ARN of source queue"
-    Value: 
-      Fn::GetAtt: 
-        - "SourceQueue"
-        - "Arn"
+  MailboxQueueURL: 
+    Value: !Ref MailboxQueueSSM
   DeadLetterQueueURL: 
-    Description: "URL of dead-letter queue"
-    Value: 
-      Ref: "DeadLetterQueue"
-  DeadLetterQueueARN: 
-    Description: "ARN of dead-letter queue"
-    Value: 
-      Fn::GetAtt: 
-        - "DeadLetterQueue"
-        - "Arn"
+    Value: !Ref DeadLetterQueueSSM

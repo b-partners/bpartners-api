@@ -60,8 +60,8 @@ class ExceptionHandlerIT {
             .uri(URI.create(
                 basePath + "/accounts/" + JOE_DOE_ACCOUNT_ID + "/files/" + TEST_FILE_ID
                     + "/raw"))
-            .header("Authorization", "Bearer " + bearerToken)
-            .method("PUT", HttpRequest.BodyPublishers.ofFile(toUpload.getFile().toPath())).build(),
+            .PUT(HttpRequest.BodyPublishers.ofFile(toUpload.getFile().toPath()))
+            .header("Authorization", "Bearer " + bearerToken).build(),
         HttpResponse.BodyHandlers.ofByteArray());
 
     assertEquals(HttpStatus.BAD_REQUEST.value(), response.statusCode());

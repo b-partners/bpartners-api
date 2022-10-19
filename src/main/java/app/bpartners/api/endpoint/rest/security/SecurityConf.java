@@ -105,8 +105,7 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
         .requestMatchers(new SelfAccountMatcher(POST, "/accounts/*/files/*/raw")).authenticated()
         .requestMatchers(new SelfAccountMatcher(GET, "/accounts/*/files/*/raw")).authenticated()
         .requestMatchers(new SelfAccountMatcher(GET, "/accounts/*/marketplaces")).authenticated()
-        //TODO: check if security is still kept
-        //.antMatchers("/**").denyAll()
+        .antMatchers("/**").denyAll()
 
         // disable superfluous protections
         // Eg if all clients are non-browser then no csrf

@@ -1,6 +1,5 @@
 package app.bpartners.api.service;
 
-
 import app.bpartners.api.endpoint.rest.model.FileType;
 import app.bpartners.api.endpoint.rest.security.model.Principal;
 import app.bpartners.api.endpoint.rest.security.principal.PrincipalProvider;
@@ -67,11 +66,10 @@ public class InvoiceService {
 
   public Invoice crupdateInvoice(Invoice toCrupdate) {
     validator.accept(toCrupdate);
-    //TODO: uncomment when localstak is set
-    //Invoice refreshedInvoice = refreshValues(repository.crupdate(toCrupdate));
-    //fileService.uploadFile(refreshedInvoice.getAccount().getId(),
-    //refreshedInvoice.getFileId(), generateInvoicePdf(refreshedInvoice));
-    return refreshValues(repository.crupdate(toCrupdate));
+    Invoice refreshedInvoice = refreshValues(repository.crupdate(toCrupdate));
+    fileService.uploadFile(FileType.INVOICE, refreshedInvoice.getAccount().getId(),
+        refreshedInvoice.getFileId(), generateInvoicePdf(refreshedInvoice));
+    return refreshedInvoice;
   }
 
   private Invoice refreshValues(Invoice invoice) {

@@ -143,7 +143,7 @@ public class TestUtils {
     return new Customer()
         .id("customer1_id")
         .name("Luc Artisan")
-        .email("luc@email.com")
+        .email("bpartners.artisans@gmail.com")
         .phone("+33 12 34 56 78")
         .website("https://luc.website.com")
         .address("15 rue Porte d'Orange")

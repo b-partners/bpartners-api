@@ -14,6 +14,7 @@ import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.validator.InvoiceValidator;
 import app.bpartners.api.repository.InvoiceRepository;
 import app.bpartners.api.repository.ProductRepository;
+import app.bpartners.api.service.aws.SesService;
 import com.google.zxing.WriterException;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
@@ -26,6 +27,7 @@ import java.util.Base64;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.imageio.ImageIO;
+import javax.mail.MessagingException;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
@@ -35,8 +37,10 @@ import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
 import org.xhtmlrenderer.pdf.ITextRenderer;
 
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
+import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PROPOSAL;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 import static app.bpartners.api.service.utils.FileInfoUtils.JPG_FORMAT_NAME;
+import static app.bpartners.api.service.utils.FileInfoUtils.PDF_EXTENSION;
 import static com.google.zxing.BarcodeFormat.QR_CODE;
 
 @Service
@@ -49,6 +53,7 @@ public class InvoiceService {
   private final AccountHolderService holderService;
   private final PrincipalProvider auth;
   private final InvoiceValidator validator;
+  private final SesService mailService;
 
   public List<Invoice> getInvoices(String accountId, PageFromOne page, BoundedPageSize pageSize) {
     int pageValue = page.getValue() - 1;
@@ -104,6 +109,9 @@ public class InvoiceService {
           }
         }
       }*/
+    }
+    if (!sendInvoiceMail(refreshedInvoice, pdf)) {
+      throw new ApiException(SERVER_EXCEPTION, "Mail not send");
     }
     return refreshedInvoice;
   }
@@ -169,6 +177,13 @@ public class InvoiceService {
     TemplateEngine templateEngine = configureTemplate();
     Context context = configureContext(invoice);
     return templateEngine.process(template, context);
+  }
+
+  private String parseMailTemplateToString(String type) {
+    TemplateEngine templateEngine = configureTemplate();
+    Context context = new Context();
+    context.setVariable("type", type);
+    return templateEngine.process("mail", context);
   }
 
   public byte[] generateInvoicePdf(Invoice invoice) {
@@ -262,5 +277,30 @@ public class InvoiceService {
 
   private String base64Image(byte[] image) {
     return Base64.getEncoder().encodeToString(image);
+  }
+
+  private boolean sendInvoiceMail(Invoice refreshedInvoice, byte[] pdf) {
+    String type = "";
+    if (refreshedInvoice.getStatus().equals(PROPOSAL)) {
+      type = "Devis";
+    }
+    if (refreshedInvoice.getStatus().equals(CONFIRMED)) {
+      type = "Facture";
+    }
+    if (!type.isBlank()) {
+      String subject = type + " " + refreshedInvoice.getRef();
+      try {
+        mailService.sendEmail(
+            refreshedInvoice.getInvoiceCustomer().getEmail(),
+            subject,
+            parseMailTemplateToString(type.toLowerCase()),
+            subject + PDF_EXTENSION,
+            pdf
+        );
+      } catch (IOException | MessagingException e) {
+        throw new ApiException(SERVER_EXCEPTION, e);
+      }
+    }
+    return true;
   }
 }

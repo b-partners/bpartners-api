@@ -38,10 +38,4 @@ public class HInvoiceProduct {
   private List<HProduct> products;
   @CreationTimestamp
   private Instant createdDatetime;
-
-  public HInvoiceProduct(String idInvoice, List<HProduct> products) {
-    this.idInvoice = idInvoice;
-    this.products = products;
-  }
-
 }

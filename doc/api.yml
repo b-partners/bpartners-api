@@ -1176,7 +1176,7 @@ components:
           type: integer
         whoami:
           $ref: '#/components/schemas/Whoami'
-    CrupdateInvoice:
+    CrupdateInvoiceTemplate:
       type: object
       properties:
         ref:
@@ -1185,10 +1185,6 @@ components:
           type: string
         customer:
           $ref: '#/components/schemas/Customer'
-        products:
-          type: array
-          items:
-            $ref: '#/components/schemas/Product'
         status:
           $ref: '#/components/schemas/InvoiceStatus'
         sendingDate:
@@ -1197,14 +1193,26 @@ components:
         toPayAt:
           type: string
           format: date
+    CrupdateInvoice:
+      allOf:
+        - $ref: '#/components/schemas/CrupdateInvoiceTemplate'
+      properties:
+        products:
+          type: array
+          items:
+            $ref: '#/components/schemas/CreateProduct'
     Invoice:
       allOf:
-        - $ref: '#/components/schemas/CrupdateInvoice'
+        - $ref: '#/components/schemas/CrupdateInvoiceTemplate'
       properties:
         id:
           type: string
         paymentUrl:
           type: string
+        products:
+          type: array
+          items:
+            $ref: '#/components/schemas/Product'
         totalVat:
           type: integer
         totalPriceWithoutVat:

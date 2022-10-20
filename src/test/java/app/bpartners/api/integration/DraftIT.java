@@ -1,5 +1,7 @@
 package app.bpartners.api.integration;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import app.bpartners.api.SentryConf;
 import app.bpartners.api.endpoint.event.S3Conf;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
@@ -22,9 +24,6 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
-
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @Testcontainers
@@ -69,6 +68,7 @@ class DraftIT {
         + "<p>Retrouvez-ci joint votre " + type + ".</p>"
         + "<p>Bien à vous et merci pour votre confiance.</p>"
         + "</body></html>";
+    assertDoesNotThrow(() -> this.subject.addCustomer(recipient));
     assertDoesNotThrow(() -> this.subject.sendEmail(recipient, subject, htmlBody,
         attachmentName, attachmentAsBytes));
   }

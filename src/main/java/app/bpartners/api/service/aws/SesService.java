@@ -23,6 +23,7 @@ import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.ses.SesClient;
 import software.amazon.awssdk.services.ses.model.RawMessage;
 import software.amazon.awssdk.services.ses.model.SendRawEmailRequest;
+import software.amazon.awssdk.services.ses.model.VerifyEmailIdentityRequest;
 
 @Service
 @AllArgsConstructor
@@ -88,5 +89,13 @@ public class SesService {
     MimeBodyPart htmlPart = new MimeBodyPart();
     htmlPart.setContent(htmlBody, "text/html; charset=UTF-8");
     return htmlPart;
+  }
+
+  public void addCustomer(String email) {
+    client.verifyEmailIdentity(
+        VerifyEmailIdentityRequest.builder()
+            .emailAddress(email)
+            .build()
+    );
   }
 }

@@ -57,7 +57,7 @@ public class EventConf {
   @Bean
   public SesClient getSesClient() {
     return SesClient.builder()
-        .region(region)
+        .region(Region.EU_WEST_3)
         .build();
   }
 

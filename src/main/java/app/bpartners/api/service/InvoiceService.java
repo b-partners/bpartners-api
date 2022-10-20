@@ -15,6 +15,7 @@ import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.validator.InvoiceValidator;
 import app.bpartners.api.repository.InvoiceRepository;
 import app.bpartners.api.repository.ProductRepository;
+import app.bpartners.api.service.aws.SesService;
 import com.google.zxing.WriterException;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
@@ -27,6 +28,7 @@ import java.util.Base64;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.imageio.ImageIO;
+import javax.mail.MessagingException;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
@@ -34,10 +36,11 @@ import org.thymeleaf.context.Context;
 import org.thymeleaf.templatemode.TemplateMode;
 import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
 import org.xhtmlrenderer.pdf.ITextRenderer;
-
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
+import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PROPOSAL;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 import static app.bpartners.api.service.utils.FileInfoUtils.JPG_FORMAT_NAME;
+import static app.bpartners.api.service.utils.FileInfoUtils.PDF_EXTENSION;
 import static com.google.zxing.BarcodeFormat.QR_CODE;
 
 @Service
@@ -49,7 +52,8 @@ public class InvoiceService {
   private final FileService fileService;
   private final AccountHolderService holderService;
   private final PrincipalProvider auth;
-
+  private final InvoiceValidator validator;
+  private final SesService mailService;
 
   public List<Invoice> getInvoices(String accountId, PageFromOne page, BoundedPageSize pageSize) {
     int pageValue = page.getValue() - 1;
@@ -60,19 +64,39 @@ public class InvoiceService {
         .collect(Collectors.toUnmodifiableList());
   }
 
-  private final InvoiceValidator validator;
-
   public Invoice getById(String invoiceId) {
     return refreshValues(repository.getById(invoiceId));
   }
 
   public Invoice crupdateInvoice(Invoice toCrupdate) {
     validator.accept(toCrupdate);
+    Invoice refreshedInvoice = refreshValues(repository.crupdate(toCrupdate));
+    byte[] pdf = generateInvoicePdf(refreshedInvoice);
+    String type = "";
+    if (refreshedInvoice.getStatus().equals(PROPOSAL)) {
+      type = "Devis";
+    }
+    if (refreshedInvoice.getStatus().equals(CONFIRMED)) {
+      type = "Facture";
+    }
+    if (!type.isBlank()) {
+      String subject = type + " " + refreshedInvoice.getRef();
+      try {
+        mailService.sendEmail(
+            refreshedInvoice.getInvoiceCustomer().getEmail(),
+            subject,
+            parseMailTemplateToString(type),
+            subject + PDF_EXTENSION,
+            pdf
+        );
+      } catch (IOException | MessagingException e) {
+        throw new ApiException(SERVER_EXCEPTION, e);
+      }
+    }
     //TODO: uncomment when localstak is set
-    //Invoice refreshedInvoice = refreshValues(repository.crupdate(toCrupdate));
     //fileService.uploadFile(refreshedInvoice.getAccount().getId(),
     //refreshedInvoice.getFileId(), generateInvoicePdf(refreshedInvoice));
-    return refreshValues(repository.crupdate(toCrupdate));
+    return refreshedInvoice;
   }
 
   private Invoice refreshValues(Invoice invoice) {
@@ -138,6 +162,13 @@ public class InvoiceService {
     return templateEngine.process("invoice", context);
   }
 
+  private String parseMailTemplateToString(String type) {
+    TemplateEngine templateEngine = configureTemplate();
+    Context context = new Context();
+    context.setVariable("type", type);
+    return templateEngine.process("mail", context);
+  }
+
   public byte[] generateInvoicePdf(Invoice invoice) {
     ITextRenderer renderer = new ITextRenderer();
     loadStyle(renderer, invoice);
@@ -164,13 +195,13 @@ public class InvoiceService {
     Context context = new Context();
     Account account = invoice.getAccount();
     AccountHolder accountHolder = holderService.getAccountHolderByAccountId(account.getId());
-    byte[] qrCodeBytes = generateQrCode(invoice.getPaymentUrl());
-    byte[] logoBytes =
-        fileService.downloadFile(FileType.LOGO, account.getId(), userLogoFileId());
+    //byte[] qrCodeBytes = generateQrCode(invoice.getPaymentUrl());
+    //byte[] logoBytes =
+    fileService.downloadFile(FileType.LOGO, account.getId(), userLogoFileId());
 
     context.setVariable("invoice", invoice);
-    context.setVariable("qrcode", base64Image(qrCodeBytes));
-    context.setVariable("logo", base64Image(logoBytes));
+    //context.setVariable("qrcode", base64Image(qrCodeBytes));
+    //context.setVariable("logo", base64Image(logoBytes));
     context.setVariable("account", account);
     context.setVariable("accountHolder", accountHolder);
 

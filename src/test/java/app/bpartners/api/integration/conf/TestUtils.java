@@ -2,6 +2,7 @@ package app.bpartners.api.integration.conf;
 
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
+import app.bpartners.api.endpoint.rest.model.CreateProduct;
 import app.bpartners.api.endpoint.rest.model.Customer;
 import app.bpartners.api.endpoint.rest.model.Invoice;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
@@ -215,6 +216,31 @@ public class TestUtils {
         .vatPercent(1000)
         .totalVat(100)
         .totalPriceWithVat(1100);
+  }
+
+
+  public static CreateProduct createProduct3() {
+    return new CreateProduct()
+        .description("Tableau baobab")
+        .quantity(3)
+        .unitPrice(2000)
+        .vatPercent(1000);
+  }
+
+  public static CreateProduct createProduct4() {
+    return new CreateProduct()
+        .description("Tableau malgache")
+        .quantity(1)
+        .unitPrice(2000)
+        .vatPercent(1000);
+  }
+
+  public static CreateProduct createProduct5() {
+    return new CreateProduct()
+        .description("Mon tableau")
+        .quantity(1)
+        .unitPrice(1000)
+        .vatPercent(1000);
   }
 
   public static TransactionCategory transactionCategory1() {

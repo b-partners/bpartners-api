@@ -9,6 +9,7 @@ import app.bpartners.api.repository.InvoiceRepository;
 import app.bpartners.api.repository.jpa.InvoiceCustomerJpaRepository;
 import app.bpartners.api.repository.jpa.InvoiceJpaRepository;
 import app.bpartners.api.repository.jpa.InvoiceProductJpaRepository;
+import app.bpartners.api.repository.jpa.ProductJpaRepository;
 import app.bpartners.api.repository.jpa.model.HInvoice;
 import app.bpartners.api.repository.jpa.model.HInvoiceCustomer;
 import app.bpartners.api.repository.jpa.model.HInvoiceProduct;
@@ -27,6 +28,7 @@ import org.springframework.stereotype.Repository;
 @Slf4j
 public class InvoiceRepositoryImpl implements InvoiceRepository {
   private final InvoiceJpaRepository jpaRepository;
+  private final ProductJpaRepository productJpaRepository;
   private final InvoiceCustomerJpaRepository customerJpaRepository;
   private final InvoiceMapper mapper;
   private final InvoiceCustomerMapper invoiceCustomerMapper;
@@ -40,9 +42,15 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
     HInvoiceCustomer invoiceCustomer =
         customerJpaRepository.save(
             invoiceCustomerMapper.toEntity(toCrupdate.getInvoiceCustomer()));
-    HInvoiceProduct invoiceProduct = ipJpaRepository.save(new HInvoiceProduct(toCrupdate.getId(),
-        computeHInvoices(toCrupdate)));
-    return mapper.toDomain(entity, invoiceCustomer, invoiceProduct.getProducts());
+    HInvoiceProduct invoiceProduct =
+        ipJpaRepository.save(HInvoiceProduct.builder()
+            .idInvoice(toCrupdate.getId())
+            .build());
+    List<HProduct> createdProducts = productJpaRepository.saveAll(computeHInvoices(invoiceProduct,
+        toCrupdate));
+    invoiceProduct.setProducts(createdProducts);
+    ipJpaRepository.save(invoiceProduct);
+    return mapper.toDomain(entity, invoiceCustomer, createdProducts);
   }
 
   @Override
@@ -84,11 +92,11 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
         .collect(Collectors.toUnmodifiableList());
   }
 
-  private List<HProduct> computeHInvoices(Invoice invoice) {
+  private List<HProduct> computeHInvoices(HInvoiceProduct invoiceProduct, Invoice invoice) {
     return invoice.getProducts().stream()
         .map(product -> {
           String accountId = invoice.getAccount().getId();
-          return productMapper.toEntity(accountId, product);
+          return productMapper.toEntity(accountId, product, invoiceProduct);
         })
         .collect(Collectors.toUnmodifiableList());
   }

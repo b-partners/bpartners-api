@@ -6,6 +6,7 @@ import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
 import app.bpartners.api.endpoint.rest.model.CrupdateInvoice;
 import app.bpartners.api.endpoint.rest.model.Invoice;
+import app.bpartners.api.endpoint.rest.model.Product;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
 import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
 import app.bpartners.api.integration.conf.S3AbstractContextInitializer;
@@ -19,6 +20,7 @@ import app.bpartners.api.repository.swan.AccountSwanRepository;
 import app.bpartners.api.repository.swan.UserSwanRepository;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -38,6 +40,8 @@ import static app.bpartners.api.integration.conf.TestUtils.INVOICE4_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsApiException;
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsForbiddenException;
+import static app.bpartners.api.integration.conf.TestUtils.createProduct4;
+import static app.bpartners.api.integration.conf.TestUtils.createProduct5;
 import static app.bpartners.api.integration.conf.TestUtils.customer1;
 import static app.bpartners.api.integration.conf.TestUtils.customer2;
 import static app.bpartners.api.integration.conf.TestUtils.product3;
@@ -103,7 +107,7 @@ class InvoiceIT {
         .ref("BP004")
         .title("Facture sans produit")
         .customer(customer1())
-        .products(List.of(product4(), product5()))
+        .products(List.of(createProduct4(), createProduct5()))
         .status(PROPOSAL)
         .sendingDate(LocalDate.of(2022, 10, 12))
         .toPayAt(LocalDate.of(2022, 10, 13));
@@ -114,7 +118,7 @@ class InvoiceIT {
         .ref("BP005")
         .title("Facture achat")
         .customer(customer1())
-        .products(List.of(product4(), product5()))
+        .products(List.of(createProduct4(), createProduct5()))
         .status(DRAFT)
         .sendingDate(LocalDate.of(2022, 10, 12))
         .toPayAt(LocalDate.of(2022, 11, 13));
@@ -168,7 +172,7 @@ class InvoiceIT {
         .ref("BP003")
         .title("Facture sans produit")
         .customer(customer1())
-        .products(List.of(product4(), product5()))
+        .products(List.of(createProduct4(), createProduct5()))
         .status(DRAFT)
         .sendingDate(LocalDate.of(2022, 9, 10))
         .toPayAt(LocalDate.of(2022, 9, 11));
@@ -183,7 +187,7 @@ class InvoiceIT {
         .customer(validInvoice().getCustomer())
         .status(DRAFT)
         .sendingDate(validInvoice().getSendingDate())
-        .products(List.of(product4(), product5()))
+        .products(List.of(product4().id(null), product5().id(null)))
         .toPayAt(validInvoice().getToPayAt())
         .totalPriceWithVat(3300)
         .totalVat(300)
@@ -199,7 +203,7 @@ class InvoiceIT {
         .customer(confirmedInvoice().getCustomer())
         .status(CONFIRMED)
         .sendingDate(confirmedInvoice().getSendingDate())
-        .products(confirmedInvoice().getProducts())
+        .products(List.of())
         .toPayAt(confirmedInvoice().getToPayAt())
         .totalPriceWithVat(0)
         .totalVat(0)
@@ -215,7 +219,7 @@ class InvoiceIT {
         .customer(proposalInvoice().getCustomer())
         .status(PROPOSAL)
         .sendingDate(proposalInvoice().getSendingDate())
-        .products(List.of(product4(), product5()))
+        .products(List.of(product4().id(null), product5().id(null)))
         .toPayAt(proposalInvoice().getToPayAt())
         .totalPriceWithVat(3300)
         .totalVat(300)
@@ -269,10 +273,13 @@ class InvoiceIT {
     PayingApi api = new PayingApi(joeDoeClient);
 
     Invoice actualDraft = api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, NEW_INVOICE_ID, validInvoice());
+    actualDraft.setProducts(ignoreIdsOf(actualDraft.getProducts()));
     Invoice actualProposal =
         api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, INVOICE3_ID, proposalInvoice());
+    actualProposal.setProducts(ignoreIdsOf(actualProposal.getProducts()));
     Invoice actualConfirmed =
         api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, INVOICE4_ID, confirmedInvoice());
+    actualConfirmed.setProducts(ignoreIdsOf(actualConfirmed.getProducts()));
 
     assertEquals(expectedDraft(), actualDraft);
     assertEquals(expectedProposal(), actualProposal);
@@ -313,6 +320,11 @@ class InvoiceIT {
     os.close();
   }
 */
+  private List<Product> ignoreIdsOf(List<Product> actual) {
+    return actual.stream()
+        .peek(product -> product.setId(null))
+        .collect(Collectors.toUnmodifiableList());
+  }
 
   static class ContextInitializer extends S3AbstractContextInitializer {
     public static final int SERVER_PORT = TestUtils.anAvailableRandomPort();

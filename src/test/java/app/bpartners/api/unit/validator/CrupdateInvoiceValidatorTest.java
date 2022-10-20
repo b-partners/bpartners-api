@@ -9,8 +9,8 @@ import org.junit.jupiter.api.Test;
 
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PROPOSAL;
 import static app.bpartners.api.integration.conf.TestUtils.customer1;
-import static app.bpartners.api.integration.conf.TestUtils.product4;
-import static app.bpartners.api.integration.conf.TestUtils.product5;
+import static app.bpartners.api.integration.conf.TestUtils.createProduct4;
+import static app.bpartners.api.integration.conf.TestUtils.createProduct5;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -22,7 +22,7 @@ class CrupdateInvoiceValidatorTest {
         .ref("BP004")
         .title("Facture sans produit")
         .customer(customer1())
-        .products(List.of(product4(), product5()))
+        .products(List.of(createProduct4(), createProduct5()))
         .status(PROPOSAL)
         .sendingDate(LocalDate.of(2022, 10, 12))
         .toPayAt(LocalDate.of(2022, 10, 13));
@@ -33,7 +33,7 @@ class CrupdateInvoiceValidatorTest {
         .ref(null)
         .title(null)
         .customer(customer1())
-        .products(List.of(product4(), product5()))
+        .products(List.of(createProduct4(), createProduct5()))
         .status(PROPOSAL)
         .sendingDate(LocalDate.of(2022, 10, 12))
         .toPayAt(LocalDate.of(2022, 10, 13));

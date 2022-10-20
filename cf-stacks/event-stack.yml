@@ -51,9 +51,16 @@ Resources:
       EventPattern:
         Source:
           - aws.ecs
-
+  EventBridgeBusNameSSM:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Join ['',[/bpartners/ , !Ref Env , /eventbridge/bus-name]]
+      Type: String
+      Value: !GetAtt EventBridgeBus.Name
 Outputs: 
   MailboxQueueURL: 
     Value: !Ref MailboxQueueSSM
   DeadLetterQueueURL: 
     Value: !Ref DeadLetterQueueSSM
+  EventBridgeBusName:
+    Value: !Ref EventBridgeBusNameSSM

@@ -53,7 +53,7 @@ Resources:
             - Name: AWS_EVENTBRIDGE_BUS
               Value: !Sub '{{resolve:ssm:/bpartners/${Env}/eventbridge/bus-name}}'
             - Name: AWS_SQS_QUEUEURL
-              Value: !Sub '{{resolve:ssm:/bpartners/${Env}/sqs/compute-queue-url}}'
+              Value: !Sub '{{resolve:ssm:/bpartners/${Env}/sqs/mailbox-queue-url}}'
             - Name: SPRING_DATASOURCE_URL
               Value: !Sub '{{resolve:ssm:/bpartners/${Env}/db/url}}'
             - Name: SPRING_DATASOURCE_USERNAME

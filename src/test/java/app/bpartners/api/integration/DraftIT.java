@@ -12,11 +12,14 @@ import app.bpartners.api.repository.sendinblue.SendinblueConf;
 import app.bpartners.api.repository.swan.AccountSwanRepository;
 import app.bpartners.api.repository.swan.UserSwanRepository;
 import app.bpartners.api.service.aws.SesService;
+import java.io.IOException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
@@ -49,16 +52,25 @@ class DraftIT {
   @Autowired
   private SesService subject;
 
+  //TODO: use for local test only and set localstack for CI
   @Test
-  void send_mail_ok() {
-    String destination = "bpartners.artisans@gmail.com";
-    String subject = "Test mail API : Objet du mail";
-    String htmlBody = "<html><body><h1 style=\"color:red;\">Test du service mail depuis <u>notre " +
-        "API</u>" +
-        ".</h1>"
-        + "<p>Ce mail est envoyé automatiquement depuis notre API Bpartners et " +
-        "ne contient pas de pj pour le moment.</p></body></html>";
-    assertDoesNotThrow(() -> this.subject.sendEmail(destination, subject, htmlBody));
+  void send_mail_ok() throws IOException {
+    Resource attachmentResource = new ClassPathResource("files/modèle-facture.pdf");
+    byte[] attachmentAsBytes = attachmentResource.getInputStream().readAllBytes();
+    String attachmentName = "modèle-devis-v0.pdf";
+    String recipient = "bpartners.artisans@gmail.com";
+    String subject = "Facture depuis l'API";
+    String type = "facture";
+    String htmlBody = "<html>"
+        + "<body>"
+        + "<h2 style=\"color:#660033;\">BPartners</h2> <h3 style=\"color:#e4dee0;\">l'assistant " +
+        "bancaire qui accélère la croissance et les encaissements des artisans.</h3>"
+        + "<p>Bonjour,</p>"
+        + "<p>Retrouvez-ci joint votre " + type + ".</p>"
+        + "<p>Bien à vous et merci pour votre confiance.</p>"
+        + "</body></html>";
+    assertDoesNotThrow(() -> this.subject.sendEmail(recipient, subject, htmlBody,
+        attachmentName, attachmentAsBytes));
   }
 
   public static class ContextInitializer extends AbstractContextInitializer {

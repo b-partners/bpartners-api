@@ -25,6 +25,8 @@ import software.amazon.awssdk.services.ses.model.RawMessage;
 import software.amazon.awssdk.services.ses.model.SendRawEmailRequest;
 import software.amazon.awssdk.services.ses.model.VerifyEmailIdentityRequest;
 
+import static javax.mail.Message.RecipientType.TO;
+
 @Service
 @AllArgsConstructor
 public class SesService {
@@ -70,7 +72,7 @@ public class SesService {
     // Add subject, from and to lines.
     message.setSubject(subject, "UTF-8");
     message.setFrom(new InternetAddress(eventConf.getSesSource()));
-    message.setRecipients(MimeMessage.RecipientType.TO, InternetAddress.parse(recipient));
+    message.setRecipients(TO, InternetAddress.parse(recipient));
     return message;
   }
 

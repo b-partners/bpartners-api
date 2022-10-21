@@ -326,7 +326,7 @@ class InvoiceIT {
         () -> api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, INVOICE5_ID, confirmedInvoice()));
   }
 
-/* /!\ For local test only
+  /* /!\ For local test only
   @Test
   void generate_invoice_pdf_ok() throws IOException {
     app.bpartners.api.model.Invoice invoice = app.bpartners.api.model.Invoice.builder()

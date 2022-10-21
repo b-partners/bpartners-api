@@ -167,13 +167,6 @@ public class InvoiceService {
     return templateEngine.process(template, context);
   }
 
-  private String parseMailTemplateToString(String type) {
-    TemplateEngine templateEngine = configureTemplate();
-    Context context = new Context();
-    context.setVariable("type", type);
-    return templateEngine.process("mail", context);
-  }
-
   public byte[] generateInvoicePdf(Invoice invoice) {
     ITextRenderer renderer = new ITextRenderer();
     loadStyle(renderer, invoice, "invoice");
@@ -280,7 +273,7 @@ public class InvoiceService {
         mailService.sendEmail(
             refreshedInvoice.getInvoiceCustomer().getEmail(),
             subject,
-            parseMailTemplateToString(type.toLowerCase()),
+            emailBody(type.toLowerCase()),
             subject + PDF_EXTENSION,
             pdf
         );
@@ -290,5 +283,24 @@ public class InvoiceService {
       }
     }
     return true;
+  }
+
+  private String emailBody(String type) {
+    return "<html xmlns:th=\"http://www.thymeleaf.org\">\n"
+        + "    <body style=\"font-family: 'Gill Sans'\">\n"
+        + "        <h2 style=color:#8d2158;>BPartners</h2>\n"
+        + "        <h3 style=color:#424141;>\n"
+        + "            L'assistant bancaire qui accélère la croissance et les encaissements des "
+        + "artisans.\n"
+        + "        </h3>\n"
+        + "        <p>Bonjour,</p>\n"
+        + "        <p>\n"
+        + "            Retrouvez-ci joint votre\n"
+        + "            <span th:text=\"' " + type + ".'\">\n"
+        + "            </span>\n"
+        + "        </p>\n"
+        + "        <p>Bien à vous et merci pour votre confiance.</p>\n"
+        + "    </body>\n"
+        + "</html>";
   }
 }

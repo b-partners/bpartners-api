@@ -10,7 +10,6 @@ import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.model.PaymentRedirection;
 import app.bpartners.api.model.Product;
-import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.validator.InvoiceValidator;
 import app.bpartners.api.repository.InvoiceRepository;
@@ -67,8 +66,45 @@ public class InvoiceService {
   public Invoice crupdateInvoice(Invoice toCrupdate) {
     validator.accept(toCrupdate);
     Invoice refreshedInvoice = refreshValues(repository.crupdate(toCrupdate));
-    fileService.uploadFile(FileType.INVOICE, refreshedInvoice.getAccount().getId(),
-        refreshedInvoice.getFileId(), generateInvoicePdf(refreshedInvoice));
+    if (toCrupdate.getStatus().equals(CONFIRMED)) {
+      fileService.uploadFile(FileType.INVOICE, refreshedInvoice.getAccount().getId(),
+          refreshedInvoice.getFileId(), generateInvoicePdf(refreshedInvoice));
+      /*/!\ Only use for local test because localstack seems to not permit download after upload
+      FileOutputStream fos = null;
+      try {
+        fos = new FileOutputStream(refreshedInvoice.getFileId());
+        fos.write(generateInvoicePdf(refreshedInvoice));
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      } finally {
+        if (fos != null) {
+          try {
+            fos.close();
+          } catch (IOException e) {
+            throw new RuntimeException(e);
+          }
+        }
+      }*/
+    } else {
+      fileService.uploadFile(FileType.INVOICE, refreshedInvoice.getAccount().getId(),
+          refreshedInvoice.getFileId(), generateDraftPdf(refreshedInvoice));
+      /*/!\ Only use for local test because localstack seems to not permit download after upload
+      FileOutputStream fos = null;
+      try {
+        fos = new FileOutputStream(refreshedInvoice.getFileId());
+        fos.write(generateDraftPdf(refreshedInvoice));
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      } finally {
+        if (fos != null) {
+          try {
+            fos.close();
+          } catch (IOException e) {
+            throw new RuntimeException(e);
+          }
+        }
+      }*/
+    }
     return refreshedInvoice;
   }
 
@@ -174,24 +210,23 @@ public class InvoiceService {
   private Context configureContext(Invoice invoice) {
     Context context = new Context();
     Account account = invoice.getAccount();
-    //User authenticatedUser = ((Principal) auth.getAuthentication().getPrincipal()).getUser();
-    User authenticatedUser = User.builder()
-        .firstName("John")
-        .lastName("Doe")
-        .mobilePhoneNumber("+33 5 14 56 89 15")
-        .build();
     AccountHolder accountHolder = holderService.getAccountHolderByAccountId(account.getId());
-    //byte[] qrCodeBytes = generateQrCode(invoice.getPaymentUrl());
-    /*byte[] logoBytes =
-        fileService.downloadFile(FileType.LOGO, account.getId(), userLogoFileId());*/
-
+    accountHolder.setTvaNumber("FR 32 123456789");  //TODO: make this persisted and then remove
+    accountHolder.setMobilePhoneNumber(
+        "+33 6 11 22 33 44"); //TODO: make this persisted and remove
+    accountHolder.setSocialCapital("40 000 €"); //TODO: make this persisted and remove
+    accountHolder.setEmail("numer@hei.school"); //TODO: make this persisted and remove
+    invoice.setComment("Ceci est un commentaire statique"); //TODO: make this persisted and remove
+    byte[] logoBytes =
+        fileService.downloadFile(FileType.LOGO, account.getId(), userLogoFileId());
     context.setVariable("invoice", invoice);
-    /*context.setVariable("qrcode", base64Image(qrCodeBytes));
-    context.setVariable("logo", base64Image(logoBytes));*/
+    context.setVariable("logo", base64Image(logoBytes));
     context.setVariable("account", account);
     context.setVariable("accountHolder", accountHolder);
-    context.setVariable("user", authenticatedUser);
-
+    if (invoice.getPaymentUrl() != null) {
+      byte[] qrCodeBytes = generateQrCode(invoice.getPaymentUrl());
+      context.setVariable("qrcode", base64Image(qrCodeBytes));
+    }
     return context;
   }
 

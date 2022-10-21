@@ -9,11 +9,10 @@ import app.bpartners.api.endpoint.rest.model.Invoice;
 import app.bpartners.api.endpoint.rest.model.Product;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
 import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
+import app.bpartners.api.integration.conf.AbstractContextInitializer;
 import app.bpartners.api.integration.conf.S3AbstractContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
 import app.bpartners.api.manager.ProjectTokenManager;
-import app.bpartners.api.model.Account;
-import app.bpartners.api.model.InvoiceCustomer;
 import app.bpartners.api.repository.fintecture.FintectureConf;
 import app.bpartners.api.repository.fintecture.FintecturePaymentInitiationRepository;
 import app.bpartners.api.repository.sendinblue.SendinblueConf;
@@ -21,10 +20,7 @@ import app.bpartners.api.repository.swan.AccountHolderSwanRepository;
 import app.bpartners.api.repository.swan.AccountSwanRepository;
 import app.bpartners.api.repository.swan.UserSwanRepository;
 import app.bpartners.api.service.InvoiceService;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -46,6 +42,7 @@ import static app.bpartners.api.integration.conf.TestUtils.INVOICE2_ID;
 import static app.bpartners.api.integration.conf.TestUtils.INVOICE3_ID;
 import static app.bpartners.api.integration.conf.TestUtils.INVOICE4_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
+import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_TOKEN;
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsApiException;
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsForbiddenException;
 import static app.bpartners.api.integration.conf.TestUtils.createProduct4;
@@ -100,7 +97,7 @@ class InvoiceIT {
   private FintecturePaymentInitiationRepository paymentInitiationRepositoryMock;
 
   private static ApiClient anApiClient() {
-    return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN, InvoiceIT.ContextInitializer.SERVER_PORT);
+    return TestUtils.anApiClient(JOE_DOE_TOKEN, InvoiceIT.ContextInitializer.SERVER_PORT);
   }
 
   @BeforeEach
@@ -139,7 +136,7 @@ class InvoiceIT {
         .ref("BP005")
         .title("Facture achat")
         .customer(customer1())
-        .products(List.of())
+        .products(List.of(createProduct5()))
         .status(CONFIRMED)
         .sendingDate(LocalDate.of(2022, 10, 12))
         .toPayAt(LocalDate.of(2022, 11, 13));
@@ -208,16 +205,17 @@ class InvoiceIT {
     return new Invoice()
         .id(INVOICE4_ID)
         .fileId(confirmedInvoice().getRef() + ".pdf")
+        .paymentUrl("https://connect-v2-sbx.fintecture.com")
         .ref(confirmedInvoice().getRef())
         .title(confirmedInvoice().getTitle())
         .customer(confirmedInvoice().getCustomer())
         .status(CONFIRMED)
         .sendingDate(confirmedInvoice().getSendingDate())
-        .products(List.of())
+        .products(List.of(product5().id(null)))
         .toPayAt(confirmedInvoice().getToPayAt())
-        .totalPriceWithVat(0)
-        .totalVat(0)
-        .totalPriceWithoutVat(0);
+        .totalPriceWithVat(1100)
+        .totalVat(100)
+        .totalPriceWithoutVat(1000);
   }
 
   Invoice expectedProposal() {
@@ -320,7 +318,7 @@ class InvoiceIT {
         () -> api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, INVOICE5_ID, confirmedInvoice()));
   }
 
-
+/* /!\ For local test only
   @Test
   void generate_invoice_pdf_ok() throws IOException {
     app.bpartners.api.model.Invoice invoice = app.bpartners.api.model.Invoice.builder()
@@ -385,7 +383,7 @@ class InvoiceIT {
     OutputStream os = new FileOutputStream(generatedFile);
     os.write(data);
     os.close();
-  }
+  }*/
 
   private List<Product> ignoreIdsOf(List<Product> actual) {
     return actual.stream()

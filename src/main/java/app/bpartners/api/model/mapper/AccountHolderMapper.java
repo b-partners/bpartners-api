@@ -14,6 +14,9 @@ public class AccountHolderMapper {
         .city(accountHolder.getResidencyAddress().getCity())
         .country(accountHolder.getResidencyAddress().getCountry())
         .postalCode(accountHolder.getResidencyAddress().getPostalCode())
+        .siren(accountHolder.getInfo().getRegistrationNumber())
+        .secondaryBusinessActivity(accountHolder.getInfo().getBusinessActivity())
+        .businessActivityDescription(accountHolder.getInfo().getBusinessActivityDescription())
         .build();
   }
 }

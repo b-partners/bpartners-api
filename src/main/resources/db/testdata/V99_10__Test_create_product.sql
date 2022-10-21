@@ -10,4 +10,6 @@ values ('product1_id', 'beed1765-5c16-472a-b3f4-5c376ce5db58', 'Tableau malgache
        ('product4_id', 'beed1765-5c16-472a-b3f4-5c376ce5db58', 'Tableau malgache', 1, 2000, 1000,
         'invoice_product2_id', '2022-01-01T04:00:00.00Z'),
        ('product5_id', 'beed1765-5c16-472a-b3f4-5c376ce5db58', 'Mon tableau', 1, 1000, 1000,
-        'invoice_product3_id', '2022-01-01T04:00:00.00Z');
+        'invoice_product3_id', '2022-01-01T04:00:00.00Z'),
+       ('product6_id', 'beed1765-5c16-472a-b3f4-5c376ce5db58', 'Mon tableau', 1, 1000, 1000,
+        'invoice_product4_id', '2022-01-01T04:00:00.00Z');

@@ -1,5 +1,5 @@
 body {
-    margin: 2% 5%;
+    margin: 20px;
     padding: 0;
     box-sizing: border-box;
     font-size: 10px;
@@ -83,4 +83,9 @@ tbody table tr:nth-child(odd) {
 
 .unstyled {
     list-style: none;
+}
+
+li {
+    margin-top: 12px;
+    margin-bottom: 12px;
 }

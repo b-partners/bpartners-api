@@ -1183,6 +1183,8 @@ components:
           type: string
         title:
           type: string
+        comment:
+          type: string
         customer:
           $ref: '#/components/schemas/Customer'
         status:

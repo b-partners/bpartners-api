@@ -58,6 +58,7 @@ public class Invoice {
     //Note that the status is not take into account here
     return invoice != null && Objects.equals(id, invoice.getId())
         && Objects.equals(title, invoice.getTitle())
+        && Objects.equals(comment, invoice.getComment())
         && Objects.equals(ref, invoice.getRef())
         && sendingDate.compareTo(invoice.getSendingDate()) == 0
         && toPayAt.compareTo(invoice.getToPayAt()) == 0

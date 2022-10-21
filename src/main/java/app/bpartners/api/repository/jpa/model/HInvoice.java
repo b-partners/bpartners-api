@@ -41,6 +41,7 @@ public class HInvoice {
   private String idAccount;
   private LocalDate sendingDate;
   private LocalDate toPayAt;
+  private String comment;
   @OneToMany(mappedBy = "invoice")
   private List<HInvoiceCustomer> invoiceCustomers;
   @Type(type = "pgsql_enum")

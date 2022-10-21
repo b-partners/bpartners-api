@@ -149,6 +149,7 @@ class InvoiceIT {
     return new Invoice()
         .id(INVOICE1_ID)
         .fileId(INVOICE1_FILE_ID)
+        .comment("Tableau de Madagascar")
         .title("Facture tableau")
         .paymentUrl("https://connect-v2-sbx.fintecture.com")
         .customer(customer1()).ref("BP001")
@@ -181,6 +182,7 @@ class InvoiceIT {
     return new CrupdateInvoice()
         .ref("BP003")
         .title("Facture sans produit")
+        .comment("Nouveau commentaire")
         .customer(customer1())
         .products(List.of(createProduct4(), createProduct5()))
         .status(DRAFT)
@@ -191,6 +193,7 @@ class InvoiceIT {
   Invoice expectedDraft() {
     return new Invoice()
         .id(NEW_INVOICE_ID)
+        .comment(validInvoice().getComment())
         .fileId("BP003-TMP.pdf")
         .ref(validInvoice().getRef() + "-TMP")
         .title("Facture sans produit")

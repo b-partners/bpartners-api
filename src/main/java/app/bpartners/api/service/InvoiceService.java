@@ -111,6 +111,7 @@ public class InvoiceService {
     }
     Invoice initializedInvoice = Invoice.builder()
         .id(invoice.getId())
+        .comment(invoice.getComment())
         .title(invoice.getTitle())
         .invoiceCustomer(invoice.getInvoiceCustomer())
         .account(invoice.getAccount())
@@ -218,7 +219,6 @@ public class InvoiceService {
         "+33 6 11 22 33 44"); //TODO: make this persisted and remove
     accountHolder.setSocialCapital("40 000 €"); //TODO: make this persisted and remove
     accountHolder.setEmail("numer@hei.school"); //TODO: make this persisted and remove
-    invoice.setComment("Ceci est un commentaire statique"); //TODO: make this persisted and remove
     byte[] logoBytes =
         fileService.downloadFile(FileType.LOGO, account.getId(), userLogoFileId());
     context.setVariable("invoice", invoice);

@@ -57,7 +57,7 @@ public class EventConf {
   @Bean
   public SesClient getSesClient() {
     return SesClient.builder()
-        .region(Region.EU_WEST_3) //Override the localstack default region
+        .region(region) //Override the localstack default region for live test in localhost
         .build();
   }
 

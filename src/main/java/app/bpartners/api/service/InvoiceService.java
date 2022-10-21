@@ -29,6 +29,7 @@ import java.util.stream.Collectors;
 import javax.imageio.ImageIO;
 import javax.mail.MessagingException;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
@@ -45,6 +46,7 @@ import static com.google.zxing.BarcodeFormat.QR_CODE;
 
 @Service
 @AllArgsConstructor
+@Slf4j
 public class InvoiceService {
   private final InvoiceRepository repository;
   private final ProductRepository productRepository;
@@ -71,33 +73,19 @@ public class InvoiceService {
   public Invoice crupdateInvoice(Invoice toCrupdate) {
     validator.accept(toCrupdate);
     Invoice refreshedInvoice = refreshValues(repository.crupdate(toCrupdate));
+    byte[] pdfAsBytes;
     if (toCrupdate.getStatus().equals(CONFIRMED)) {
-      fileService.uploadFile(FileType.INVOICE, refreshedInvoice.getAccount().getId(),
-          refreshedInvoice.getFileId(), generateInvoicePdf(refreshedInvoice));
-      /*/!\ Only use for local test because localstack seems to not permit download after upload
-      FileOutputStream fos = null;
-      try {
-        fos = new FileOutputStream(refreshedInvoice.getFileId());
-        fos.write(generateInvoicePdf(refreshedInvoice));
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      } finally {
-        if (fos != null) {
-          try {
-            fos.close();
-          } catch (IOException e) {
-            throw new RuntimeException(e);
-          }
-        }
-      }*/
+      pdfAsBytes = generateInvoicePdf(refreshedInvoice);
     } else {
-      fileService.uploadFile(FileType.INVOICE, refreshedInvoice.getAccount().getId(),
-          refreshedInvoice.getFileId(), generateDraftPdf(refreshedInvoice));
-      /*/!\ Only use for local test because localstack seems to not permit download after upload
+      pdfAsBytes = generateDraftPdf(refreshedInvoice);
+    }
+    fileService.uploadFile(FileType.INVOICE, refreshedInvoice.getAccount().getId(),
+        refreshedInvoice.getFileId(), pdfAsBytes);
+    /*/!\ Only use for local test because localstack seems to not permit download after upload
       FileOutputStream fos = null;
       try {
         fos = new FileOutputStream(refreshedInvoice.getFileId());
-        fos.write(generateDraftPdf(refreshedInvoice));
+        fos.write(pdfAsBytes);
       } catch (IOException e) {
         throw new RuntimeException(e);
       } finally {
@@ -109,8 +97,7 @@ public class InvoiceService {
           }
         }
       }*/
-    }
-    if (!sendInvoiceMail(refreshedInvoice, pdf)) {
+    if (!sendInvoiceMail(refreshedInvoice, pdfAsBytes)) {
       throw new ApiException(SERVER_EXCEPTION, "Mail not send");
     }
     return refreshedInvoice;
@@ -298,7 +285,8 @@ public class InvoiceService {
             pdf
         );
       } catch (IOException | MessagingException e) {
-        throw new ApiException(SERVER_EXCEPTION, e);
+        log.info("response={}", e);
+        return false;
       }
     }
     return true;

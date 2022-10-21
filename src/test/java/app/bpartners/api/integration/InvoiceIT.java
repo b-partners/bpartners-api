@@ -9,7 +9,6 @@ import app.bpartners.api.endpoint.rest.model.Invoice;
 import app.bpartners.api.endpoint.rest.model.Product;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
 import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
-import app.bpartners.api.integration.conf.AbstractContextInitializer;
 import app.bpartners.api.integration.conf.S3AbstractContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
 import app.bpartners.api.manager.ProjectTokenManager;
@@ -20,7 +19,7 @@ import app.bpartners.api.repository.swan.AccountHolderSwanRepository;
 import app.bpartners.api.repository.swan.AccountSwanRepository;
 import app.bpartners.api.repository.swan.UserSwanRepository;
 import app.bpartners.api.service.InvoiceService;
-import java.io.IOException;
+import app.bpartners.api.service.aws.SesService;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -55,6 +54,7 @@ import static app.bpartners.api.integration.conf.TestUtils.product5;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountHolderSwanRep;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountSwanRepository;
 import static app.bpartners.api.integration.conf.TestUtils.setUpPaymentInitiationRep;
+import static app.bpartners.api.integration.conf.TestUtils.setUpSesService;
 import static app.bpartners.api.integration.conf.TestUtils.setUpSwanComponent;
 import static app.bpartners.api.integration.conf.TestUtils.setUpUserSwanRepository;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -95,6 +95,8 @@ class InvoiceIT {
   private AccountHolderSwanRepository accountHolderRepositoryMock;
   @MockBean
   private FintecturePaymentInitiationRepository paymentInitiationRepositoryMock;
+  @MockBean
+  private SesService sesServiceMock;
 
   private static ApiClient anApiClient() {
     return TestUtils.anApiClient(JOE_DOE_TOKEN, InvoiceIT.ContextInitializer.SERVER_PORT);
@@ -107,6 +109,7 @@ class InvoiceIT {
     setUpAccountSwanRepository(accountSwanRepositoryMock);
     setUpAccountHolderSwanRep(accountHolderRepositoryMock);
     setUpPaymentInitiationRep(paymentInitiationRepositoryMock);
+    setUpSesService(sesServiceMock);
   }
 
   CrupdateInvoice proposalInvoice() {
@@ -275,6 +278,8 @@ class InvoiceIT {
         () -> api.getInvoices(JOE_DOE_ACCOUNT_ID, 1, null));
   }
 
+  // /!\ It seems that the localstack does not support the SES service using the default credentials
+  // So note that SES service is mocked and do nothing for this test
   @Test
   void crupdate_invoice_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();

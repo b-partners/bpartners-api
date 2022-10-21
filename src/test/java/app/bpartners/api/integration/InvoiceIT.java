@@ -186,8 +186,8 @@ class InvoiceIT {
         .customer(customer1())
         .products(List.of(createProduct4(), createProduct5()))
         .status(DRAFT)
-        .sendingDate(LocalDate.of(2022, 9, 10))
-        .toPayAt(LocalDate.of(2022, 9, 11));
+        .sendingDate(LocalDate.now())
+        .toPayAt(LocalDate.now().plusDays(1L));
   }
 
   Invoice expectedDraft() {

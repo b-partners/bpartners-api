@@ -28,7 +28,7 @@ public class CrupdateInvoiceValidator implements Consumer<CrupdateInvoice> {
     if (invoice.getToPayAt() == null) {
       message.append("Payment date is mandatory. ");
     }
-    if (invoice.getSendingDate().isAfter(today)) {
+    if (!invoice.getSendingDate().isEqual(today) && invoice.getSendingDate().isAfter(today)) {
       message.append("Invoice can not be sent no later than today. ");
     }
     if (invoice.getProducts() == null) {

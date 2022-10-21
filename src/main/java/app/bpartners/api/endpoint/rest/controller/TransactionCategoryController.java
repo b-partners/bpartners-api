@@ -3,7 +3,9 @@ package app.bpartners.api.endpoint.rest.controller;
 import app.bpartners.api.endpoint.rest.mapper.TransactionCategoryRestMapper;
 import app.bpartners.api.endpoint.rest.model.CreateTransactionCategory;
 import app.bpartners.api.endpoint.rest.model.TransactionCategory;
+import app.bpartners.api.endpoint.rest.validator.DateFilterValidator;
 import app.bpartners.api.service.TransactionCategoryService;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -20,24 +22,28 @@ import org.springframework.web.bind.annotation.RestController;
 public class TransactionCategoryController {
   private final TransactionCategoryRestMapper mapper;
   private final TransactionCategoryService service;
-  //TODO: rename the from/to variables to be more explicit
+  private final DateFilterValidator dateValidator;
 
   @GetMapping("/accounts/{accountId}/transactionCategories")
   public List<TransactionCategory> getTransactionCategories(
       @PathVariable String accountId,
       @RequestParam boolean unique,
       @RequestParam(required = false) Optional<Boolean> userDefined,
-      @RequestParam String from,
-      @RequestParam String to) {
+      @RequestParam(name = "from") String startDateValue,
+      @RequestParam(name = "to") String endDateValue) {
+    LocalDate startDate = LocalDate.parse(startDateValue);
+    LocalDate endDate = LocalDate.parse(endDateValue);
+    dateValidator.accept(startDate, endDate);
     return userDefined.map(
             isUserDefined -> service.getCategoriesByAccountAndUserDefined(accountId, unique,
-                    isUserDefined, from, to)
+                    isUserDefined, startDate, endDate)
                 .stream()
                 .map(mapper::toRest)
                 .collect(Collectors.toUnmodifiableList()))
-        .orElseGet(() -> service.getCategoriesByAccount(accountId, unique, from, to).stream()
-            .map(mapper::toRest)
-            .collect(Collectors.toUnmodifiableList()));
+        .orElseGet(
+            () -> service.getCategoriesByAccount(accountId, unique, startDate, endDate).stream()
+                .map(mapper::toRest)
+                .collect(Collectors.toUnmodifiableList()));
   }
 
   @PostMapping("/accounts/{accountId}/transactions/{transactionId}/transactionCategories")

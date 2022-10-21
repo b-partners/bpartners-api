@@ -31,11 +31,10 @@ public class TransactionCategoryRepositoryImpl implements TransactionCategoryRep
   private final TransactionCategoryMapper domainMapper;
   private final EntityManager entityManager;
 
-  //TODO: rename the from/to variables to be more explicit
   @Override
   public List<TransactionCategory> findByIdAccountAndUserDefined(
-      String idAccount, boolean unique, boolean userDefined, LocalDate from,
-      LocalDate to) {
+      String idAccount, boolean unique, boolean userDefined, LocalDate startDate,
+      LocalDate endDate) {
     List<HTransactionCategory> entities;
     if (unique) {
       entities = findByCriteriaOrderByCreatedDatetime(idAccount, userDefined);
@@ -46,20 +45,21 @@ public class TransactionCategoryRepositoryImpl implements TransactionCategoryRep
       return List.of();
     }
     return entities.stream()
-        .map(e -> domainMapper.toDomain(e, from, to))
+        .map(entity -> domainMapper.toDomain(entity, startDate, endDate))
         .collect(Collectors.toUnmodifiableList());
   }
 
   @Override
-  public List<TransactionCategory> findByAccount(String idAccount, boolean unique, LocalDate from,
-                                                 LocalDate to) {
+  public List<TransactionCategory> findByAccount(String idAccount, boolean unique, LocalDate startDate,
+                                                 LocalDate endDate) {
     if (unique) {
       return findByCriteriaOrderByCreatedDatetime(idAccount).stream()
-          .map(e -> domainMapper.toDomain(e, from, to))
+          //TODO: try to get the category count in database instead of domain
+          .map(entity -> domainMapper.toDomain(entity, startDate, endDate))
           .collect(Collectors.toUnmodifiableList());
     }
     return jpaRepository.findAllByIdAccount(idAccount).stream()
-        .map(e -> domainMapper.toDomain(e, from, to))
+        .map(e -> domainMapper.toDomain(e, startDate, endDate))
         .collect(Collectors.toUnmodifiableList());
   }
 
@@ -70,7 +70,8 @@ public class TransactionCategoryRepositoryImpl implements TransactionCategoryRep
         .map(this::userDefinedCheck)
         .collect(Collectors.toUnmodifiableList());
     return jpaRepository.saveAll(entitiesToCreate).stream()
-        .map(e -> domainMapper.toDomain(e, INITIAL_DATE, LocalDate.now()))
+        //TODO: the default startDate and endDate should be configured later
+        .map(category -> domainMapper.toDomain(category, INITIAL_DATE, LocalDate.now()))
         .collect(Collectors.toUnmodifiableList());
   }
 
@@ -139,13 +140,13 @@ public class TransactionCategoryRepositoryImpl implements TransactionCategoryRep
   public List<HTransactionCategory> findByCriteriaOrderByCreatedDatetime(
       String idAccount, boolean userDefined) {
     return findDistinctByCriteria(idAccount, userDefined).stream()
-        .map(c -> {
+        .map(category -> {
           if (!userDefined) {
-            return jpaRepository.findByCriteriaOrderByCreatedDatetime(c.getIdAccount(),
-                c.getIdCategoryTemplate());
+            return jpaRepository.findByCriteriaOrderByCreatedDatetime(category.getIdAccount(),
+                category.getIdCategoryTemplate());
           }
-          return jpaRepository.findByCriteriaOrderByCreatedDatetime(idAccount, c.getType(),
-              c.getVat());
+          return jpaRepository.findByCriteriaOrderByCreatedDatetime(idAccount, category.getType(),
+              category.getVat());
         })
         .collect(Collectors.toUnmodifiableList());
   }

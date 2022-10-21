@@ -16,9 +16,8 @@ public class TransactionCategoryMapper {
   private final TransactionCategoryTemplateJpaRepository templateJpaRepository;
   private final TransactionCategoryJpaRepository jpaRepository;
 
-  //TODO: rename the from/to variables to be more explicit
-  public TransactionCategory toDomain(HTransactionCategory entity, LocalDate from,
-                                      LocalDate to) {
+  public TransactionCategory toDomain(HTransactionCategory entity, LocalDate startDate,
+                                      LocalDate endDate) {
     TransactionCategory domain = TransactionCategory.builder()
         .id(entity.getId())
         .idAccount(entity.getIdAccount())
@@ -32,11 +31,11 @@ public class TransactionCategoryMapper {
       domain.setType(categoryTemplate.getType());
       domain.setVat(categoryTemplate.getVat());
     }
-    String typeOrIdTmpl =
+    String typeOrIdCategoryTmpl =
         entity.getType() != null ? entity.getType() : entity.getIdCategoryTemplate();
-    Long typeCount = jpaRepository.countByCriteria(domain.getIdAccount(), typeOrIdTmpl,
-        from.atStartOfDay(),
-        to.plusDays(1).atStartOfDay().minusSeconds(1));
+    Long typeCount = jpaRepository.countByCriteria(domain.getIdAccount(), typeOrIdCategoryTmpl,
+        startDate.atStartOfDay(),
+        endDate.plusDays(1).atStartOfDay().minusSeconds(1));
     domain.setTypeCount(typeCount);
     return domain;
   }

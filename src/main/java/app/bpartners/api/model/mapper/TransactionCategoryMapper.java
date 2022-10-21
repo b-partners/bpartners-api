@@ -32,9 +32,8 @@ public class TransactionCategoryMapper {
       domain.setType(categoryTemplate.getType());
       domain.setVat(categoryTemplate.getVat());
     }
-    String typeOrIdTmpl =
-        entity.getType() != null ? entity.getType() : entity.getIdCategoryTemplate();
-    Long typeCount = jpaRepository.countByCriteria(domain.getIdAccount(), typeOrIdTmpl,
+    String type = domain.getType();
+    Long typeCount = jpaRepository.countByCriteria(domain.getIdAccount(), type,
         from.atStartOfDay(),
         to.plusDays(1).atStartOfDay().minusSeconds(1));
     domain.setTypeCount(typeCount);

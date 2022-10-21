@@ -35,11 +35,13 @@ public interface TransactionCategoryJpaRepository
    */
   @Query(value =
       "select count(tc.*) from \"transaction_category\" tc "
+          + "full outer join \"transaction_category_template\" tctmpl "
+          + "on tctmpl.id = tc.id_transaction_category_tmpl "
           + "where tc.id_account = ?1 "
           + "and (tc.id_transaction_category_tmpl is null "
           + "and tc.type = ?2 ) "
-          + "or (tc.type is null and tc.id_transaction_category_tmpl = ?2) "
+          + "or (tc.type is null and tctmpl.type = ?2) "
           + "and tc.created_datetime between ?3 and ?4 ",
       nativeQuery = true)
-  Long countByCriteria(String idAccount, String typeOrIdTmpl, LocalDateTime from, LocalDateTime to);
+  Long countByCriteria(String idAccount, String type, LocalDateTime from, LocalDateTime to);
 }

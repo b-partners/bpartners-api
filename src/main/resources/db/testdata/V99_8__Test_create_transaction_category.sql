@@ -25,4 +25,4 @@ values ('transaction_category1_id', 'beed1765-5c16-472a-b3f4-5c376ce5db58', 'tc_
                                                                                   'personnalisée ' ||
                                                                                   'TVA 1,2%',
         120,
-        'bosci_28cb4daf35d3ab24cb775dcdefc8fdab', '2022-01-01T01:30:00.00Z');
+        'bosci_28cb4daf35d3ab24cb775dcdefc8fdab', '2022-01-01T01:30:00.00Z')

@@ -105,7 +105,7 @@ class ProductIT {
     List<Product> actualFilteredUnique = api.getProducts(JOE_DOE_ACCOUNT_ID, null, "tableau "
         + "malgache");
 
-    assertEquals(6, actualNotUnique.size());
+    assertEquals(7, actualNotUnique.size());
     assertEquals(4, actualUnique.size());
     assertEquals(1, actualFilteredUnique.size());
     assertTrue(actualUnique.contains(product4()));

@@ -15,7 +15,8 @@ public class AccountHolderSwanRepositoryImpl implements AccountHolderSwanReposit
   private final SwanApi<AccountHolderResponse> swanApi;
   private static final String QUERY =
       "{ \"query\": \"" + "query AccountHolder { accountHolders { edges { node "
-          + "{ id info { name } residencyAddress "
+          + "{ id  info { ... on AccountHolderCompanyInfo { name registrationNumber "
+          + "businessActivity businessActivityDescription }} residencyAddress "
           + "{ addressLine1 city country postalCode } } } }}\"}";
 
   @Override

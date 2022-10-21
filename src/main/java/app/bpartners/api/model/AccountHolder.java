@@ -15,6 +15,7 @@ public class AccountHolder {
   private String address;
   private String city;
   private String country;
+  private String accountId;
   private String postalCode;
   private String socialCapital;
   private String tvaNumber;

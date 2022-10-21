@@ -211,22 +211,22 @@ public class InvoiceService {
     Context context = new Context();
     Account account = invoice.getAccount();
     AccountHolder accountHolder = holderService.getAccountHolderByAccountId(account.getId());
-    accountHolder.setTvaNumber("FR 32 123456789");  //TODO: make this persisted and then remove
+    /*accountHolder.setTvaNumber("FR 32 123456789");  //TODO: make this persisted and then remove
     accountHolder.setMobilePhoneNumber(
         "+33 6 11 22 33 44"); //TODO: make this persisted and remove
     accountHolder.setSocialCapital("40 000 €"); //TODO: make this persisted and remove
-    accountHolder.setEmail("numer@hei.school"); //TODO: make this persisted and remove
+    accountHolder.setEmail("numer@hei.school");*/ //TODO: make this persisted and remove
     invoice.setComment("Ceci est un commentaire statique"); //TODO: make this persisted and remove
-    byte[] logoBytes =
-        fileService.downloadFile(FileType.LOGO, account.getId(), userLogoFileId());
+    /*byte[] logoBytes =
+        fileService.downloadFile(FileType.LOGO, account.getId(), userLogoFileId());*/
     context.setVariable("invoice", invoice);
-    context.setVariable("logo", base64Image(logoBytes));
+    //context.setVariable("logo", base64Image(logoBytes));
     context.setVariable("account", account);
     context.setVariable("accountHolder", accountHolder);
-    if (invoice.getPaymentUrl() != null) {
+    /*if (invoice.getPaymentUrl() != null) {
       byte[] qrCodeBytes = generateQrCode(invoice.getPaymentUrl());
       context.setVariable("qrcode", base64Image(qrCodeBytes));
-    }
+    }*/
     return context;
   }
 

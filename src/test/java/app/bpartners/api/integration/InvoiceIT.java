@@ -1,38 +1,5 @@
 package app.bpartners.api.integration;
 
-import app.bpartners.api.SentryConf;
-import app.bpartners.api.endpoint.rest.api.PayingApi;
-import app.bpartners.api.endpoint.rest.client.ApiClient;
-import app.bpartners.api.endpoint.rest.client.ApiException;
-import app.bpartners.api.endpoint.rest.model.CrupdateInvoice;
-import app.bpartners.api.endpoint.rest.model.Invoice;
-import app.bpartners.api.endpoint.rest.model.Product;
-import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
-import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
-import app.bpartners.api.integration.conf.AbstractContextInitializer;
-import app.bpartners.api.integration.conf.S3AbstractContextInitializer;
-import app.bpartners.api.integration.conf.TestUtils;
-import app.bpartners.api.manager.ProjectTokenManager;
-import app.bpartners.api.repository.fintecture.FintectureConf;
-import app.bpartners.api.repository.fintecture.FintecturePaymentInitiationRepository;
-import app.bpartners.api.repository.sendinblue.SendinblueConf;
-import app.bpartners.api.repository.swan.AccountHolderSwanRepository;
-import app.bpartners.api.repository.swan.AccountSwanRepository;
-import app.bpartners.api.repository.swan.UserSwanRepository;
-import app.bpartners.api.service.InvoiceService;
-import java.io.IOException;
-import java.time.LocalDate;
-import java.util.List;
-import java.util.stream.Collectors;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.context.ContextConfiguration;
-import org.testcontainers.junit.jupiter.Testcontainers;
-
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.DRAFT;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PROPOSAL;
@@ -61,6 +28,42 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
+import app.bpartners.api.SentryConf;
+import app.bpartners.api.endpoint.rest.api.PayingApi;
+import app.bpartners.api.endpoint.rest.client.ApiClient;
+import app.bpartners.api.endpoint.rest.client.ApiException;
+import app.bpartners.api.endpoint.rest.model.CrupdateInvoice;
+import app.bpartners.api.endpoint.rest.model.Invoice;
+import app.bpartners.api.endpoint.rest.model.Product;
+import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
+import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
+import app.bpartners.api.integration.conf.S3AbstractContextInitializer;
+import app.bpartners.api.integration.conf.TestUtils;
+import app.bpartners.api.manager.ProjectTokenManager;
+import app.bpartners.api.model.Account;
+import app.bpartners.api.model.InvoiceCustomer;
+import app.bpartners.api.repository.fintecture.FintectureConf;
+import app.bpartners.api.repository.fintecture.FintecturePaymentInitiationRepository;
+import app.bpartners.api.repository.sendinblue.SendinblueConf;
+import app.bpartners.api.repository.swan.AccountHolderSwanRepository;
+import app.bpartners.api.repository.swan.AccountSwanRepository;
+import app.bpartners.api.repository.swan.UserSwanRepository;
+import app.bpartners.api.service.InvoiceService;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.stream.Collectors;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.ContextConfiguration;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @Testcontainers
@@ -69,12 +72,11 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 class InvoiceIT {
   public static final String OTHER_ACCOUNT_ID = "other_account_id";
   public static final int MAX_PAGE_SIZE = 500;
+  public static final String RANDOM_INVOICE_ID = "random_invoice_id";
+  public static final String INVOICE5_ID = "invoice5_id";
   private static final String NEW_INVOICE_ID = "invoice_uuid";
   @Autowired
   private InvoiceService invoiceService;
-  public static final String RANDOM_INVOICE_ID = "random_invoice_id";
-  public static final String INVOICE5_ID = "invoice5_id";
-
   @MockBean
   private SentryConf sentryConf;
   @MockBean
@@ -318,7 +320,7 @@ class InvoiceIT {
         () -> api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, INVOICE5_ID, confirmedInvoice()));
   }
 
-/* /!\ For local test only
+  /* /!\ For local test only*/
   @Test
   void generate_invoice_pdf_ok() throws IOException {
     app.bpartners.api.model.Invoice invoice = app.bpartners.api.model.Invoice.builder()
@@ -383,7 +385,7 @@ class InvoiceIT {
     OutputStream os = new FileOutputStream(generatedFile);
     os.write(data);
     os.close();
-  }*/
+  }
 
   private List<Product> ignoreIdsOf(List<Product> actual) {
     return actual.stream()

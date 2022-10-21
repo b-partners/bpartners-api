@@ -26,6 +26,7 @@ import app.bpartners.api.repository.swan.model.AccountHolder;
 import app.bpartners.api.repository.swan.model.SwanAccount;
 import app.bpartners.api.repository.swan.model.SwanUser;
 import app.bpartners.api.repository.swan.model.Transaction;
+import app.bpartners.api.service.aws.SesService;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.net.ServerSocket;
@@ -33,6 +34,7 @@ import java.net.URISyntaxException;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
+import javax.mail.MessagingException;
 import org.junit.jupiter.api.function.Executable;
 import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsRequest;
@@ -43,6 +45,7 @@ import static app.bpartners.api.model.exception.ApiException.ExceptionType.CLIEN
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 
 public class TestUtils {
@@ -470,6 +473,14 @@ public class TestUtils {
                 .url("https://connect-v2-sbx.fintecture.com")
                 .build())
             .build());
+  }
+
+  public static void setUpSesService(SesService service)  {
+    try {
+      doNothing().when(service).sendEmail(any(), any(), any(), any(), any());
+    } catch (IOException | MessagingException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   public static void setUpSendiblueApi(SendinblueApi sendinblueApi) {

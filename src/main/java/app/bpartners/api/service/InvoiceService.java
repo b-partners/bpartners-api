@@ -39,6 +39,7 @@ import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
 import org.xhtmlrenderer.pdf.ITextRenderer;
 
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
+import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.DRAFT;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PROPOSAL;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 import static app.bpartners.api.service.utils.FileInfoUtils.JPG_FORMAT_NAME;
@@ -104,7 +105,8 @@ public class InvoiceService {
           }
         }
       }*/
-    if (!sendInvoiceMail(refreshedInvoice, pdfAsBytes)) {
+    if (!sendInvoiceMail(refreshedInvoice, pdfAsBytes)
+        && !refreshedInvoice.getStatus().equals(DRAFT)) {
       throw new ApiException(SERVER_EXCEPTION, "Mail not send");
     }
     return refreshedInvoice;
@@ -268,6 +270,9 @@ public class InvoiceService {
   }
 
   private boolean sendInvoiceMail(Invoice refreshedInvoice, byte[] pdf) {
+    if (refreshedInvoice.getStatus().equals(DRAFT)) {
+      return false;
+    }
     String type = "";
     if (refreshedInvoice.getStatus().equals(PROPOSAL)) {
       type = "Devis";
@@ -293,19 +298,17 @@ public class InvoiceService {
     return true;
   }
 
+  //TODO: set it again in template resolver when the load style baseUrl is set
   private String emailBody(String type) {
     return "<html xmlns:th=\"http://www.thymeleaf.org\">\n"
         + "    <body style=\"font-family: 'Gill Sans'\">\n"
-        + "        <h2 style=color:#8d2158;>BPartners</h2>\n"
+        + "        <h2 style=color:#8d2158;>Nom de l'artisan</h2>\n"
         + "        <h3 style=color:#424141;>\n"
-        + "            L'assistant bancaire qui accélère la croissance et les encaissements des "
-        + "artisans.\n"
+        + "            Slogan de l'artisan\n"
         + "        </h3>\n"
         + "        <p>Bonjour,</p>\n"
         + "        <p>\n"
-        + "            Retrouvez-ci joint votre\n"
-        + "            <span th:text=\"' " + type + ".'\">\n"
-        + "            </span>\n"
+        + "            Retrouvez-ci joint votre " + type + " enregistré à la référence XXX\n"
         + "        </p>\n"
         + "        <p>Bien à vous et merci pour votre confiance.</p>\n"
         + "    </body>\n"

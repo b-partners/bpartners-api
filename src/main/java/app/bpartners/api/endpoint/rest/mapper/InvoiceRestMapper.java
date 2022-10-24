@@ -33,6 +33,7 @@ public class InvoiceRestMapper {
         .comment(domain.getComment())
         .ref(domain.getRef())
         .title(domain.getTitle())
+        .updatedAt(domain.getUpdatedAt())
         .customer(customerMapper.toRest(domain.getInvoiceCustomer()))
         .status(domain.getStatus())
         .products(products)

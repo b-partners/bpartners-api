@@ -1,6 +1,7 @@
 package app.bpartners.api.service;
 
 import app.bpartners.api.endpoint.rest.model.FileType;
+import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.endpoint.rest.security.model.Principal;
 import app.bpartners.api.endpoint.rest.security.principal.PrincipalProvider;
 import app.bpartners.api.model.Account;
@@ -57,11 +58,17 @@ public class InvoiceService {
   private final InvoiceValidator validator;
   private final SesService mailService;
 
-  public List<Invoice> getInvoices(String accountId, PageFromOne page, BoundedPageSize pageSize) {
+  public List<Invoice> getInvoices(String accountId, PageFromOne page, BoundedPageSize pageSize,
+                                   InvoiceStatus status) {
     int pageValue = page.getValue() - 1;
     int pageSizeValue = pageSize.getValue();
-    return repository.findAllByAccountId(accountId, pageValue, pageSizeValue)
-        .stream()
+    List<Invoice> invoices = repository.findAllByAccountId(accountId, pageValue, pageSizeValue);
+    if (status != null) {
+      invoices = repository.findAllByAccountIdAndStatus(accountId, status,
+          pageValue,
+          pageSizeValue);
+    }
+    return invoices.stream()
         .map(this::refreshValues)
         .collect(Collectors.toUnmodifiableList());
   }
@@ -112,6 +119,7 @@ public class InvoiceService {
     Invoice initializedInvoice = Invoice.builder()
         .id(invoice.getId())
         .comment(invoice.getComment())
+        .updatedAt(invoice.getUpdatedAt())
         .title(invoice.getTitle())
         .invoiceCustomer(invoice.getInvoiceCustomer())
         .account(invoice.getAccount())

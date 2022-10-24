@@ -3,6 +3,7 @@ package app.bpartners.api.endpoint.rest.controller;
 import app.bpartners.api.endpoint.rest.mapper.InvoiceRestMapper;
 import app.bpartners.api.endpoint.rest.model.CrupdateInvoice;
 import app.bpartners.api.endpoint.rest.model.Invoice;
+import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.service.InvoiceService;
@@ -43,8 +44,9 @@ public class InvoiceController {
   public List<Invoice> getInvoices(
       @PathVariable(name = "aId") String accountId,
       @RequestParam(name = "page") PageFromOne page,
-      @RequestParam(name = "pageSize") BoundedPageSize pageSize) {
-    return service.getInvoices(accountId, page, pageSize).stream()
+      @RequestParam(name = "pageSize") BoundedPageSize pageSize,
+      @RequestParam(name = "status", required = false) InvoiceStatus status) {
+    return service.getInvoices(accountId, page, pageSize, status).stream()
         .map(mapper::toRest)
         .collect(Collectors.toUnmodifiableList());
   }

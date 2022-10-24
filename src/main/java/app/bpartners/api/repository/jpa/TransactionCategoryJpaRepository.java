@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 
 public interface TransactionCategoryJpaRepository
     extends JpaRepository<HTransactionCategory, String> {
+  //TODO: For all, improve by using at least PSQL or better (EntityManager or JPA) instead of  native SQL
   @Query(value = "select tc.* from \"transaction_category\" tc where tc.id_transaction = ?1 order "
       + "by tc.created_datetime desc limit 1",
       nativeQuery = true)
@@ -36,9 +37,7 @@ public interface TransactionCategoryJpaRepository
   @Query(value =
       "select count(tc.*) from \"transaction_category\" tc "
           + "where tc.id_account = ?1 "
-          + "and (tc.id_transaction_category_tmpl is null "
-          + "and tc.type = ?2 ) "
-          + "or (tc.type is null and tc.id_transaction_category_tmpl = ?2) "
+          + "and (tc.type = ?2 or tc.id_transaction_category_tmpl = ?2)"
           + "and tc.created_datetime between ?3 and ?4 ",
       nativeQuery = true)
   Long countByCriteria(String idAccount, String typeOrIdTmpl, LocalDateTime from, LocalDateTime to);

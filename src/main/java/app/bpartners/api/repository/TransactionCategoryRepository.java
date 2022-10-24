@@ -5,10 +5,9 @@ import java.time.LocalDate;
 import java.util.List;
 
 public interface TransactionCategoryRepository {
-  //TODO: rename the from/to variables to be more explicit
   List<TransactionCategory> findByIdAccountAndUserDefined(String idAccount, boolean unique,
-                                                          boolean userDefined, LocalDate from,
-                                                          LocalDate to);
+                                                          boolean userDefined, LocalDate startDate,
+                                                          LocalDate endDate);
 
   List<TransactionCategory> findByAccount(String idAccount, boolean unique, LocalDate from,
                                           LocalDate to);

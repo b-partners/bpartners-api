@@ -127,6 +127,18 @@ class TransactionCategoryIT {
   }
 
   @Test
+  void count_transaction_categories_ok() throws ApiException {
+    ApiClient joeDoeClient = anApiClient();
+    PayingApi api = new PayingApi(joeDoeClient);
+
+    List<TransactionCategory> actualAll = api.getTransactionCategories(JOE_DOE_ACCOUNT_ID, false,
+        LocalDate.of(2021, 1, 1), LocalDate.of(2021, 12, 31), null);
+
+    assertEquals(7, actualAll.size());
+    assertTrue(actualAll.stream().noneMatch(e -> e.getCount() != 0L));
+  }
+
+  @Test
   void create_transaction_categories_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
     PayingApi api = new PayingApi(joeDoeClient);

@@ -1,6 +1,7 @@
 package app.bpartners.api.model;
 
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Date;
@@ -36,6 +37,7 @@ public class Invoice {
   private List<Product> products;
   private InvoiceStatus status;
   private String comment;
+  private Instant updatedAt;
 
   public String getFileId() {
     return this.getRef() + PDF_EXTENSION;

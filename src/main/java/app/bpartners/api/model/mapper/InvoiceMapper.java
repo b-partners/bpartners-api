@@ -35,6 +35,7 @@ public class InvoiceMapper {
         .comment(invoice.getComment())
         .products(actualProducts)
         .sendingDate(invoice.getSendingDate())
+        .updatedAt(invoice.getUpdatedAt())
         .toPayAt(invoice.getToPayAt())
         .invoiceCustomer(customerMapper.toDomain(invoiceCustomer))
         .account(accountService.getAccounts().get(0))

@@ -1,5 +1,6 @@
 package app.bpartners.api.repository.implementation;
 
+import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.mapper.InvoiceCustomerMapper;
@@ -78,12 +79,23 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
   }
 
   @Override
+  public List<Invoice> findAllByAccountIdAndStatus(String accountId, InvoiceStatus status, int page,
+                                                   int pageSize) {
+    return jpaRepository.findAllByIdAccountAndStatusOrderByCreatedDatetimeDesc(
+            accountId, status, PageRequest.of(page, pageSize)).stream()
+        .map(invoice -> {
+          HInvoiceCustomer invoiceCustomer = customerJpaRepository
+              .findTopByInvoice_IdOrderByCreatedDatetimeDesc(invoice.getId());
+          return mapper.toDomain(invoice, invoiceCustomer, List.of());
+        })
+        .collect(Collectors.toUnmodifiableList());
+  }
+
+  @Override
   public List<Invoice> findAllByAccountId(String accountId, int page, int pageSize) {
-    log.info("Count:" + jpaRepository.findHInvoicesByIdAccount(accountId,
-        PageRequest.of(page,
-            pageSize)).size());
-    return jpaRepository.findHInvoicesByIdAccount(accountId, PageRequest.of(page,
-            pageSize)).stream()
+    return jpaRepository.findAllByIdAccountOrderByCreatedDatetimeDesc(
+            accountId, PageRequest.of(page,
+                pageSize)).stream()
         .map(invoice -> {
           HInvoiceCustomer invoiceCustomer = customerJpaRepository
               .findTopByInvoice_IdOrderByCreatedDatetimeDesc(invoice.getId());

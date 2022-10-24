@@ -178,6 +178,24 @@ class InvoiceIT {
         .totalVat(100).totalPriceWithoutVat(1000);
   }
 
+  Invoice invoice6() {
+    return new Invoice()
+        .id("invoice6_id")
+        .paymentUrl(null)
+        .comment(null)
+        .fileId("BP007-TMP.pdf")
+        .ref("BP007-TMP")
+        .title("Facture transaction")
+        .customer(customer1())
+        .status(DRAFT)
+        .sendingDate(LocalDate.of(2022, 10, 12))
+        .products(List.of())
+        .toPayAt(LocalDate.of(2022, 11, 10))
+        .totalPriceWithVat(0)
+        .totalVat(0)
+        .totalPriceWithoutVat(0);
+  }
+
   CrupdateInvoice validInvoice() {
     return new CrupdateInvoice()
         .ref("BP003")
@@ -240,6 +258,8 @@ class InvoiceIT {
         .totalPriceWithoutVat(3000);
   }
 
+  //TODO: create PaginationIT for pagination test and add filters.
+  // In particular, check the date filters and the order filters (by created datetime desc)
   @Test
   void read_invoice_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
@@ -247,11 +267,16 @@ class InvoiceIT {
 
     Invoice actual1 = api.getInvoiceById(JOE_DOE_ACCOUNT_ID, INVOICE1_ID);
     Invoice actual2 = api.getInvoiceById(JOE_DOE_ACCOUNT_ID, INVOICE2_ID);
-    List<Invoice> actual = api.getInvoices(JOE_DOE_ACCOUNT_ID, 1, 10);
+    List<Invoice> actualDraft = api.getInvoices(JOE_DOE_ACCOUNT_ID, 1, 10, DRAFT);
+    List<Invoice> actualNotFiltered = api.getInvoices(JOE_DOE_ACCOUNT_ID, 1, 10, null);
 
-    assertEquals(invoice1(), actual1);
-    assertEquals(invoice2(), actual2);
-    assertTrue(actual.containsAll(List.of(actual1, actual2)));
+    assertEquals(invoice1(), actual1.updatedAt(null));
+    assertEquals(invoice2(), actual2.updatedAt(null));
+    assertTrue(ignoreUpdatedAt(actualDraft).contains(invoice6()));
+    assertTrue(ignoreUpdatedAt(actualNotFiltered).containsAll(
+        List.of(actual1.updatedAt(null),
+            actual2.updatedAt(null),
+            invoice6().updatedAt(null))));
   }
 
   @Test
@@ -259,26 +284,26 @@ class InvoiceIT {
     ApiClient joeDoeClient = anApiClient();
     PayingApi api = new PayingApi(joeDoeClient);
 
-    assertThrowsForbiddenException(() -> api.getInvoices(OTHER_ACCOUNT_ID, 1, 10));
+    assertThrowsForbiddenException(() -> api.getInvoices(OTHER_ACCOUNT_ID, 1, 10, null));
     assertThrowsApiException(
         "{\"type\":\"400 BAD_REQUEST\",\"message\":\"page must be >=1\"}",
-        () -> api.getInvoices(JOE_DOE_ACCOUNT_ID, -1, 10));
+        () -> api.getInvoices(JOE_DOE_ACCOUNT_ID, -1, 10, null));
     assertThrowsApiException(
         "{\"type\":\"400 BAD_REQUEST\",\"message\":\"page size must be >=1\"}",
-        () -> api.getInvoices(JOE_DOE_ACCOUNT_ID, 1, -10));
+        () -> api.getInvoices(JOE_DOE_ACCOUNT_ID, 1, -10, null));
     assertThrowsApiException(
         "{\"type\":\"400 BAD_REQUEST\",\"message\":\"page size must be <" + MAX_PAGE_SIZE
             + "\"}",
-        () -> api.getInvoices(JOE_DOE_ACCOUNT_ID, 1, MAX_PAGE_SIZE + 1));
+        () -> api.getInvoices(JOE_DOE_ACCOUNT_ID, 1, MAX_PAGE_SIZE + 1, null));
     assertThrowsApiException(
         "{\"type\":\"400 BAD_REQUEST\",\"message\":\"Required request parameter 'page' for method"
             + " parameter type PageFromOne is not present"
             + "\"}",
-        () -> api.getInvoices(JOE_DOE_ACCOUNT_ID, null, 10));
+        () -> api.getInvoices(JOE_DOE_ACCOUNT_ID, null, 10, null));
     assertThrowsApiException(
         "{\"type\":\"400 BAD_REQUEST\",\"message\":\"Required request parameter 'pageSize' for "
             + "method parameter type BoundedPageSize is not present\"}",
-        () -> api.getInvoices(JOE_DOE_ACCOUNT_ID, 1, null));
+        () -> api.getInvoices(JOE_DOE_ACCOUNT_ID, 1, null, null));
   }
 
   // /!\ It seems that the localstack does not support the SES service using the default credentials
@@ -396,6 +421,12 @@ class InvoiceIT {
   private List<Product> ignoreIdsOf(List<Product> actual) {
     return actual.stream()
         .peek(product -> product.setId(null))
+        .collect(Collectors.toUnmodifiableList());
+  }
+
+  private List<Invoice> ignoreUpdatedAt(List<Invoice> actual) {
+    return actual.stream()
+        .peek(invoice -> invoice.setUpdatedAt(null))
         .collect(Collectors.toUnmodifiableList());
   }
 

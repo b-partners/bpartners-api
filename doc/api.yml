@@ -541,6 +541,7 @@ paths:
         - Paying
       operationId: getInvoices
       summary: Get known invoices of the specified account
+      description: Returned invoices are ordered by created datetime desc.
       parameters:
         - in: path
           name: aId
@@ -555,6 +556,11 @@ paths:
           name: pageSize
           schema:
             $ref: '#/components/schemas/PageSize'
+        - in: query
+          name: status
+          description: 'Filter invoices by appropriate status. If null, returns all invoices'
+          schema:
+            $ref: '#/components/schemas/InvoiceStatus'
       responses:
         200:
           description: The list of invoices

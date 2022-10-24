@@ -2,6 +2,7 @@ package app.bpartners.api.repository.jpa.model;
 
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.repository.jpa.types.PostgresEnumType;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import javax.persistence.Column;
@@ -47,4 +48,6 @@ public class HInvoice {
   @Type(type = "pgsql_enum")
   @Enumerated(EnumType.STRING)
   private InvoiceStatus status;
+  private Instant createdDatetime;
+  private Instant updatedAt;
 }

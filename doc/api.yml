@@ -280,12 +280,12 @@ paths:
           $ref: '#/components/responses/429'
         500:
           $ref: '#/components/responses/500'
-  /accounts/{aId}/invoiceRelaunch:
+  /accounts/{aId}/invoiceRelaunchConf:
     get:
       tags:
         - Paying
       summary: Get the current relaunch configuration for invoice
-      operationId: getInvoiceRelaunch
+      operationId: getInvoiceRelaunchConf
       parameters:
         - in: path
           name: aId
@@ -299,7 +299,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/InvoiceRelaunch'
+                $ref: '#/components/schemas/InvoiceRelaunchConf'
         400:
           $ref: '#/components/responses/400'
         403:
@@ -314,7 +314,7 @@ paths:
       tags:
         - Paying
       summary: Configure the automatic relaunch of all invoices of an account
-      operationId: relaunchInvoice
+      operationId: configureRelaunch
       parameters:
         - in: path
           name: aId
@@ -327,14 +327,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateInvoiceRelaunch'
+              $ref: '#/components/schemas/CreateInvoiceRelaunchConf'
       responses:
         200:
           description: The invoice relaunch configuration
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/InvoiceRelaunch'
+                $ref: '#/components/schemas/InvoiceRelaunchConf'
         400:
           $ref: '#/components/responses/400'
         403:
@@ -1243,22 +1243,22 @@ components:
         - DRAFT
         - PROPOSAL
         - CONFIRMED
-    CreateInvoiceRelaunch:
+    CreateInvoiceRelaunchConf:
       type: object
       properties:
         unpaidRelaunch:
-          type: number
+          type: integer
           description: The frequency of sending the message in days
         draftRelaunch:
-          type: number
+          type: integer
           description: The frequency of sending the message in days
-    InvoiceRelaunch:
+    InvoiceRelaunchConf:
       allOf:
-        - $ref: '#/components/schemas/CreateInvoiceRelaunch'
+        - $ref: '#/components/schemas/CreateInvoiceRelaunchConf'
       properties:
         id:
           type: string
-        created_datetime:
+        updatedAt:
           type: string
           format: date-time
     CreateProduct:

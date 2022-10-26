@@ -24,7 +24,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
-
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsForbiddenException;
 import static app.bpartners.api.integration.conf.TestUtils.createInvoiceRelaunchConf;
@@ -38,9 +37,9 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @Testcontainers
-@ContextConfiguration(initializers = InvoiceRelaunchIT.ContextInitializer.class)
+@ContextConfiguration(initializers = InvoiceRelaunchConfIT.ContextInitializer.class)
 @AutoConfigureMockMvc
-class InvoiceRelaunchIT {
+class InvoiceRelaunchConfIT {
   @MockBean
   private SentryConf sentryConf;
   @MockBean
@@ -82,7 +81,7 @@ class InvoiceRelaunchIT {
   }
 
   @Test
-  void read_invoice_relaunch_ok() throws ApiException {
+  void read_invoice_relaunch_config_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
     PayingApi api = new PayingApi(joeDoeClient);
 
@@ -92,7 +91,7 @@ class InvoiceRelaunchIT {
   }
 
   @Test
-  void create_or_read_relaunch_ko() {
+  void create_or_read_relaunch_config_ko() {
     ApiClient joeDoeClient = anApiClient();
     PayingApi api = new PayingApi(joeDoeClient);
 

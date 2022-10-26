@@ -2,8 +2,8 @@ package app.bpartners.api.model.mapper;
 
 import app.bpartners.api.endpoint.rest.security.model.Principal;
 import app.bpartners.api.endpoint.rest.security.principal.PrincipalProvider;
-import app.bpartners.api.model.InvoiceRelaunch;
-import app.bpartners.api.repository.jpa.model.HInvoiceRelaunch;
+import app.bpartners.api.model.InvoiceRelaunchConf;
+import app.bpartners.api.repository.jpa.model.HInvoiceRelaunchConf;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -12,8 +12,8 @@ import org.springframework.stereotype.Component;
 public class InvoiceRelaunchMapper {
   private final PrincipalProvider provider;
 
-  public InvoiceRelaunch toDomain(HInvoiceRelaunch entity) {
-    return InvoiceRelaunch.builder()
+  public InvoiceRelaunchConf toDomain(HInvoiceRelaunchConf entity) {
+    return InvoiceRelaunchConf.builder()
         .id(entity.getId())
         .draftRelaunch(entity.getDraftRelaunch())
         .unpaidRelaunch(entity.getUnpaidRelaunch())
@@ -21,8 +21,8 @@ public class InvoiceRelaunchMapper {
         .build();
   }
 
-  public HInvoiceRelaunch toEntity(InvoiceRelaunch domain) {
-    return HInvoiceRelaunch.builder()
+  public HInvoiceRelaunchConf toEntity(InvoiceRelaunchConf domain) {
+    return HInvoiceRelaunchConf.builder()
         .id(domain.getId())
         .accountId(((Principal) provider.getAuthentication().getPrincipal()).getAccount().getId())
         .draftRelaunch(domain.getDraftRelaunch())

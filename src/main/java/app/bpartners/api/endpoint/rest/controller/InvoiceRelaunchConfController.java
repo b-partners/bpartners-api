@@ -13,16 +13,16 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @AllArgsConstructor
-public class InvoiceRelaunchController {
+public class InvoiceRelaunchConfController {
   private final InvoiceRelaunchService service;
   private final InvoiceRelaunchRestMapper mapper;
 
-  @GetMapping("/accounts/{aId}/invoiceRelaunch")
+  @GetMapping("/accounts/{aId}/invoiceRelaunchConf")
   public InvoiceRelaunchConf getInvoiceRelaunch(@PathVariable("aId") String accountId) {
     return mapper.toRest(service.getByAccountId(accountId));
   }
 
-  @PutMapping("/accounts/{aId}/invoiceRelaunch")
+  @PutMapping("/accounts/{aId}/invoiceRelaunchConf")
   public InvoiceRelaunchConf relaunchInvoice(
       @PathVariable("aId") String accountId,
       @RequestBody CreateInvoiceRelaunchConf toCreate) {

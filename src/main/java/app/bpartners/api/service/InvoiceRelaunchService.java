@@ -1,20 +1,20 @@
 package app.bpartners.api.service;
 
-import app.bpartners.api.model.InvoiceRelaunch;
-import app.bpartners.api.repository.InvoiceRelaunchRepository;
+import app.bpartners.api.model.InvoiceRelaunchConf;
+import app.bpartners.api.repository.InvoiceRelaunchConfRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 @Service
 @AllArgsConstructor
 public class InvoiceRelaunchService {
-  private final InvoiceRelaunchRepository repository;
+  private final InvoiceRelaunchConfRepository repository;
 
-  public InvoiceRelaunch getByAccountId(String accountId) {
+  public InvoiceRelaunchConf getByAccountId(String accountId) {
     return repository.getByAccountId(accountId);
   }
 
-  public InvoiceRelaunch save(InvoiceRelaunch invoiceRelaunch, String accountId) {
-    return repository.save(invoiceRelaunch, accountId);
+  public InvoiceRelaunchConf save(InvoiceRelaunchConf invoiceRelaunchConf, String accountId) {
+    return repository.save(invoiceRelaunchConf, accountId);
   }
 }

@@ -3,7 +3,7 @@ package app.bpartners.api.repository.implementation;
 import app.bpartners.api.model.InvoiceRelaunchConf;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.mapper.InvoiceRelaunchMapper;
-import app.bpartners.api.repository.InvoiceRelaunchRepository;
+import app.bpartners.api.repository.InvoiceRelaunchConfRepository;
 import app.bpartners.api.repository.jpa.InvoiceRelaunchJpaRepository;
 import app.bpartners.api.repository.jpa.model.HInvoiceRelaunchConf;
 import java.util.Optional;
@@ -12,19 +12,19 @@ import org.springframework.stereotype.Repository;
 
 @AllArgsConstructor
 @Repository
-public class InvoiceRelaunchRepositoryImpl implements InvoiceRelaunchRepository {
+public class InvoiceRelaunchConfRepositoryImpl implements InvoiceRelaunchConfRepository {
   private final InvoiceRelaunchJpaRepository jpaRepository;
   private final InvoiceRelaunchMapper mapper;
 
   @Override
-  public InvoiceRelaunchConf save(InvoiceRelaunchConf invoiceRelaunch, String accountId) {
-    Optional<HInvoiceRelaunchConf> optionalHInvoiceRelaunch =
+  public InvoiceRelaunchConf save(InvoiceRelaunchConf invoiceRelaunchConf, String accountId) {
+    Optional<HInvoiceRelaunchConf> optionalHInvoiceRelaunchConf =
         jpaRepository.getByAccountId(accountId);
-    if (optionalHInvoiceRelaunch.isPresent()) {
-      HInvoiceRelaunchConf persisted = optionalHInvoiceRelaunch.get();
-      invoiceRelaunch.setId(persisted.getId());
+    if (optionalHInvoiceRelaunchConf.isPresent()) {
+      HInvoiceRelaunchConf persisted = optionalHInvoiceRelaunchConf.get();
+      invoiceRelaunchConf.setId(persisted.getId());
     }
-    return mapper.toDomain(jpaRepository.save(mapper.toEntity(invoiceRelaunch)));
+    return mapper.toDomain(jpaRepository.save(mapper.toEntity(invoiceRelaunchConf)));
   }
 
   @Override
@@ -32,7 +32,7 @@ public class InvoiceRelaunchRepositoryImpl implements InvoiceRelaunchRepository 
     return mapper.toDomain(
         jpaRepository.getByAccountId(accountId).orElseThrow(
             () -> new NotFoundException(
-                "There is no existing invoice relaunch config for account." + accountId)
+                "There is no existing invoice relaunch config for account. " + accountId)
         )
     );
   }

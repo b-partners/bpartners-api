@@ -7,7 +7,7 @@ import static app.bpartners.api.integration.conf.TestUtils.assertThrowsBadReques
 import static app.bpartners.api.integration.conf.TestUtils.createInvoiceRelaunchConf;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
-class CreateInvoiceRelaunchValidatorTest {
+class CreateInvoiceRelaunchConfValidatorTest {
   private final CreateInvoiceRelaunchValidator validator = new CreateInvoiceRelaunchValidator();
 
   @Test
@@ -19,9 +19,16 @@ class CreateInvoiceRelaunchValidatorTest {
 
   @Test
   void validator_validate_invalid_relaunch_config_ko() {
-    assertThrowsBadRequestException(
-        "Draft relaunch is mandatory. Unpaid relaunch is mandatory. ",
+    assertThrowsBadRequestException("Draft relaunch is mandatory. "
+            + "Unpaid relaunch is mandatory. ",
         () -> validator.accept(new CreateInvoiceRelaunchConf())
+    );
+    assertThrowsBadRequestException("Draft relaunch must be higher than 0. "
+            + "Unpaid relaunch must be higher than 0. ",
+        () -> validator.accept(new CreateInvoiceRelaunchConf()
+            .draftRelaunch(-1)
+            .unpaidRelaunch(-1)
+        )
     );
   }
 }

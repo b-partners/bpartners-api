@@ -2,9 +2,11 @@ package app.bpartners.api.integration.conf;
 
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
+import app.bpartners.api.endpoint.rest.model.CreateInvoiceRelaunchConf;
 import app.bpartners.api.endpoint.rest.model.CreateProduct;
 import app.bpartners.api.endpoint.rest.model.Customer;
 import app.bpartners.api.endpoint.rest.model.Invoice;
+import app.bpartners.api.endpoint.rest.model.InvoiceRelaunchConf;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.endpoint.rest.model.Product;
 import app.bpartners.api.endpoint.rest.model.TransactionCategory;
@@ -39,7 +41,6 @@ import org.junit.jupiter.api.function.Executable;
 import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsRequest;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsResponse;
-
 import static app.bpartners.api.endpoint.rest.model.EnableStatus.ENABLED;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.CLIENT_EXCEPTION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -413,6 +414,20 @@ public class TestUtils {
         .paymentUrl("https://connect-v2-sbx.fintecture.com");
   }
 
+  public static InvoiceRelaunchConf invoiceRelaunchConf1() {
+    return new InvoiceRelaunchConf()
+        .id("relaunch1_id")
+        .updatedAt(Instant.parse("2022-01-01T04:00:00.00Z"))
+        .draftRelaunch(1)
+        .unpaidRelaunch(1);
+  }
+
+  public static CreateInvoiceRelaunchConf createInvoiceRelaunchConf() {
+    return new CreateInvoiceRelaunchConf()
+        .draftRelaunch(2)
+        .unpaidRelaunch(2);
+  }
+
   public static ApiClient anApiClient(String token, int serverPort) {
     ApiClient client = new ApiClient();
     client.setScheme("http");
@@ -475,7 +490,7 @@ public class TestUtils {
             .build());
   }
 
-  public static void setUpSesService(SesService service)  {
+  public static void setUpSesService(SesService service) {
     try {
       doNothing().when(service).sendEmail(any(), any(), any(), any(), any());
     } catch (IOException | MessagingException e) {

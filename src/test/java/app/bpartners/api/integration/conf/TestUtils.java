@@ -66,6 +66,7 @@ public class TestUtils {
   public static final String INVOICE2_ID = "invoice2_id";
   public static final String INVOICE3_ID = "invoice3_id";
   public static final String INVOICE4_ID = "invoice4_id";
+  public static final String INVOICE7_ID = "invoice7_id";
 
   public static final String INVOICE1_FILE_ID = "BP001.pdf";
   public static final String FILE_ID = "test.jpeg";

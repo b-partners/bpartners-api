@@ -40,6 +40,7 @@ import org.xhtmlrenderer.pdf.ITextRenderer;
 
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.DRAFT;
+import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PROPOSAL;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 import static app.bpartners.api.service.utils.FileInfoUtils.JPG_FORMAT_NAME;
@@ -133,13 +134,13 @@ public class InvoiceService {
         .toPayAt(invoice.getToPayAt())
         .sendingDate(invoice.getSendingDate())
         .build();
-    if (!invoice.getStatus().equals(CONFIRMED)) {
-      initializedInvoice.setPaymentUrl(null);
-      initializedInvoice.setRef(invoice.getRef() + "-TMP");
-    } else {
+    if (invoice.getStatus().equals(CONFIRMED) || invoice.getStatus().equals(PAID)) {
       PaymentRedirection paymentRedirection = pis.initiateInvoicePayment(initializedInvoice);
       initializedInvoice.setPaymentUrl(paymentRedirection.getRedirectUrl());
       initializedInvoice.setRef(invoice.getRef());
+    } else {
+      initializedInvoice.setPaymentUrl(null);
+      initializedInvoice.setRef(invoice.getRef() + "-TMP");
     }
     return initializedInvoice;
   }

@@ -11,4 +11,6 @@ values ('invoice_customer1_id', 'customer2_id', 'invoice1_id', null, '2022-01-01
        ('invoice_customer6_id', 'customer1_id', 'invoice5_id', null,
         '2022-01-01T01:00:00.00Z'),
        ('invoice_customer7_id', 'customer1_id', 'invoice6_id', null,
+        '2022-01-01T01:00:00.00Z'),
+       ('invoice_customer8_id', 'customer1_id', 'invoice7_id', null,
         '2022-01-01T01:00:00.00Z');

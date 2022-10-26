@@ -23,4 +23,8 @@ values ('invoice1_id', 'beed1765-5c16-472a-b3f4-5c376ce5db58', 'Facture tableau'
        ('invoice6_id', 'beed1765-5c16-472a-b3f4-5c376ce5db58', 'Facture ' ||
                                                                'transaction', 'BP007',
         '2022-10-12',
-        '2022-11-10', 'DRAFT', null);
+        '2022-11-10', 'DRAFT', null),
+       ('invoice7_id', 'beed1765-5c16-472a-b3f4-5c376ce5db58', 'Facture ' ||
+                                                               'transaction', 'BP008',
+        '2022-10-12',
+        '2022-11-10', 'PAID', null);

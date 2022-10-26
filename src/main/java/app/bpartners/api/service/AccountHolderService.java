@@ -12,11 +12,11 @@ public class AccountHolderService {
 
   private final AccountHolderRepository accountHolderRepository;
 
-  public List<AccountHolder> getAccountHolders() {
-    return accountHolderRepository.getAccountHolders();
+  public List<AccountHolder> getAccountHolders(String acccountId) {
+    return accountHolderRepository.getAccountHolders(acccountId);
   }
 
   public AccountHolder getAccountHolderByAccountId(String accountId) {
-    return accountHolderRepository.getAccountHolders().get(0); //TODO: configure the repository
+    return accountHolderRepository.getAccountHolders(accountId).get(0);
   }
 }

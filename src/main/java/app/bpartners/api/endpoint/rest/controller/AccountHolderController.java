@@ -21,7 +21,7 @@ public class AccountHolderController {
   public List<AccountHolder> getAccountHolders(
       @PathVariable String accountId,
       @PathVariable String userId) {
-    return accountHolderService.getAccountHolders().stream()
+    return accountHolderService.getAccountHolders(accountId).stream()
         .map(accountHolderMapper::toRest)
         .collect(Collectors.toUnmodifiableList());
   }

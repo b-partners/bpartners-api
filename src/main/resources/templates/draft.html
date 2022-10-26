@@ -120,7 +120,8 @@
             <p>Siège social :
                 <span th:text="${accountHolder.address} +', '+${accountHolder.postalCode}+' '+ ${accountHolder.city}+', '+ ${accountHolder.country}"></span>
             </p>
-            <p>Capital social : <span th:text="${accountHolder.socialCapital}"></span></p>
+            <p>Capital social : <span
+                    th:text="${#numbers.formatCurrency(accountHolder.socialCapital)}"></span></p>
             <p>SIREN : <span th:text="${accountHolder.siren}"></span></p>
             <p>Numéro TVA : <span th:text="${accountHolder.tvaNumber}"></span></p>
         </div>

@@ -16,9 +16,10 @@ public class AccountHolder {
   private String city;
   private String country;
   private String postalCode;
-  private String socialCapital;
+  private int socialCapital;
   private String tvaNumber;
   private String siren;
+  private String accountId;
   private String secondaryBusinessActivity;
   private String businessActivityDescription;
   private String mobilePhoneNumber;

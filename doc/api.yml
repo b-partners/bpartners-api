@@ -314,7 +314,7 @@ paths:
       tags:
         - Paying
       summary: Configure the automatic relaunch of all invoices of an account
-      operationId: relaunchInvoice
+      operationId: configureRelaunch
       parameters:
         - in: path
           name: aId
@@ -1247,10 +1247,10 @@ components:
       type: object
       properties:
         unpaidRelaunch:
-          type: number
+          type: integer
           description: The frequency of sending the message in days
         draftRelaunch:
-          type: number
+          type: integer
           description: The frequency of sending the message in days
     InvoiceRelaunch:
       allOf:

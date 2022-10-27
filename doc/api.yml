@@ -249,6 +249,37 @@ paths:
           $ref: '#/components/responses/429'
         500:
           $ref: '#/components/responses/500'
+    put:
+      tags:
+        - User Accounts
+      summary: Update some account holders for an account
+      operationId: updateAccountHolders
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/UpdateAccountHolder'
+      responses:
+        200:
+          description: List of account holders of an account
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AccountHolder'
+        400:
+          $ref: '#/components/responses/400'
+        403:
+          $ref: '#/components/responses/403'
+        404:
+          $ref: '#/components/responses/404'
+        429:
+          $ref: '#/components/responses/429'
+        500:
+          $ref: '#/components/responses/500'
   /accounts/{id}/transactions:
     get:
       tags:
@@ -1040,21 +1071,6 @@ components:
           type: string
         vat:
           type: integer
-    AccountHolder:
-      type: object
-      properties:
-        id:
-          type: string
-        name:
-          type: string
-        address:
-          type: string
-        city:
-          type: string
-        country:
-          type: string
-        postalCode:
-          type: string
     User:
       properties:
         id:
@@ -1086,6 +1102,67 @@ components:
           type: string
         status:
           $ref: '#/components/schemas/EnableStatus'
+    AccountHolder:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        siren:
+          type: string
+        officialActivityName:
+          type: string
+        contactAddress:
+          $ref: '#/components/schemas/ContactAddress'
+      allOf:
+        - $ref: '#/components/schemas/UpdateAccountHolderTemplate'
+    ContactDetails:
+      type: object
+      properties:
+        phone:
+          type: string
+        email:
+          type: string
+    ContactAddress:
+      type: object
+      properties:
+        address:
+          type: string
+        city:
+          type: string
+        country:
+          type: string
+        postalCode:
+          type: string
+    SocietyInfo:
+      type: object
+      properties:
+        socialCapital:
+          type: string
+        tvaNumber:
+          type: string
+    BusinessActivity:
+      type: object
+      properties:
+        primary:
+          type: string
+        secondary:
+          type: string
+    UpdateAccountHolderTemplate:
+      properties:
+        contactDetails:
+          $ref: '#/components/schemas/ContactDetails'
+        businessActivity:
+          $ref: '#/components/schemas/BusinessActivity'
+        societyInfo:
+          $ref: '#/components/schemas/SocietyInfo'
+    UpdateAccountHolder:
+      properties:
+        accountHolderId:
+          type: string
+      allOf:
+        - $ref: '#/components/schemas/UpdateAccountHolderTemplate'
     Account:
       properties:
         id:

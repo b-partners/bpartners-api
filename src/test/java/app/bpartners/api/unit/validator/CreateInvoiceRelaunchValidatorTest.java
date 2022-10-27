@@ -20,7 +20,7 @@ class CreateInvoiceRelaunchValidatorTest {
   @Test
   void validator_validate_invalid_relaunch_config_ko() {
     assertThrowsBadRequestException(
-        "draftRelaunch cannot be null or negative. unpaidRelaunch cannot be null or negative. ",
+        "Draft relaunch is mandatory. Unpaid relaunch is mandatory. ",
         () -> validator.accept(new CreateInvoiceRelaunch())
     );
   }

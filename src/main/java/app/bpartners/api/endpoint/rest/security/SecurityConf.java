@@ -15,6 +15,7 @@ import org.springframework.security.web.util.matcher.NegatedRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.servlet.HandlerExceptionResolver;
+
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpMethod.OPTIONS;
 import static org.springframework.http.HttpMethod.POST;
@@ -105,8 +106,7 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
         .requestMatchers(new SelfAccountMatcher(POST, "/accounts/*/files/*/raw")).authenticated()
         .requestMatchers(new SelfAccountMatcher(GET, "/accounts/*/files/*/raw")).authenticated()
         .requestMatchers(new SelfAccountMatcher(GET, "/accounts/*/marketplaces")).authenticated()
-        .requestMatchers(new SelfAccountMatcher(GET, "/accounts/*/invoiceRelaunch"))
-        .authenticated()
+        .requestMatchers(new SelfAccountMatcher(GET, "/accounts/*/invoiceRelaunch")).authenticated()
         .requestMatchers(new SelfAccountMatcher(PUT, "/accounts/*/invoiceRelaunch")).authenticated()
         .antMatchers("/**").denyAll()
 

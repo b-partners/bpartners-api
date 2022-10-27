@@ -31,7 +31,7 @@ public class InvoiceRelaunchRepositoryImpl implements InvoiceRelaunchRepository 
     return mapper.toDomain(
         jpaRepository.getByAccountId(accountId).orElseThrow(
             () -> new NotFoundException(
-                "There is no existing invoice relaunch config for account " + accountId)
+                "There is no existing invoice relaunch config for account." + accountId)
         )
     );
   }

@@ -10,11 +10,19 @@ public class CreateInvoiceRelaunchValidator implements Consumer<CreateInvoiceRel
   @Override
   public void accept(CreateInvoiceRelaunch invoiceRelaunch) {
     StringBuilder exceptionMessageBuilder = new StringBuilder();
-    if (invoiceRelaunch.getDraftRelaunch() == null || invoiceRelaunch.getDraftRelaunch() <= 0) {
-      exceptionMessageBuilder.append("draftRelaunch cannot be null or negative. ");
+    if (invoiceRelaunch.getDraftRelaunch() == null) {
+      exceptionMessageBuilder.append("Draft relaunch is mandatory. ");
+    } else {
+      if (invoiceRelaunch.getDraftRelaunch() <= 0) {
+        exceptionMessageBuilder.append("Draft relaunch must be higher than 0. ");
+      }
     }
-    if (invoiceRelaunch.getUnpaidRelaunch() == null || invoiceRelaunch.getUnpaidRelaunch() <= 0) {
-      exceptionMessageBuilder.append("unpaidRelaunch cannot be null or negative. ");
+    if (invoiceRelaunch.getUnpaidRelaunch() == null) {
+      exceptionMessageBuilder.append("Unpaid relaunch is mandatory. ");
+    } else {
+      if (invoiceRelaunch.getUnpaidRelaunch() <= 0) {
+        exceptionMessageBuilder.append("Unpaid relaunch must be higher than 0. ");
+      }
     }
     String exceptionMessage = exceptionMessageBuilder.toString();
     if (!exceptionMessage.isEmpty()) {

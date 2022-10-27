@@ -23,9 +23,10 @@ public class InvoiceRelaunchController {
   }
 
   @PutMapping("/accounts/{aId}/invoiceRelaunch")
-  public InvoiceRelaunch relaunchInvoice(@PathVariable("aId") String accountId,
-                                         @RequestBody CreateInvoiceRelaunch toCreate) {
-    return mapper.toRest(service.save(mapper.toDomain(toCreate), accountId));
+  public InvoiceRelaunch relaunchInvoice(
+      @PathVariable("aId") String accountId,
+      @RequestBody CreateInvoiceRelaunch toCreate) {
+    return mapper.toRest(
+        service.save(mapper.toDomain(toCreate), accountId));
   }
-
 }

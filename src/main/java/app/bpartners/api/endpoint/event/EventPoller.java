@@ -1,8 +1,12 @@
 package app.bpartners.api.endpoint.event;
 
+import app.bpartners.api.endpoint.event.EventConsumer.AcknowledgeableTypedEvent;
 import app.bpartners.api.endpoint.event.model.TypedEvent;
-import app.bpartners.api.endpoint.event.model.TypedUserUpserted;
-import app.bpartners.api.endpoint.event.model.gen.UserUpserted;
+import app.bpartners.api.endpoint.event.model.TypedFileUploaded;
+import app.bpartners.api.endpoint.event.model.TypedMailSent;
+import app.bpartners.api.endpoint.event.model.gen.FileUploaded;
+import app.bpartners.api.endpoint.event.model.gen.MailSent;
+import app.bpartners.api.model.exception.BadRequestException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -14,8 +18,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import app.bpartners.api.endpoint.event.EventConsumer.AcknowledgeableTypedEvent;
-import app.bpartners.api.model.exception.BadRequestException;
 import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.DeleteMessageRequest;
 import software.amazon.awssdk.services.sqs.model.Message;
@@ -90,9 +92,12 @@ public class EventPoller {
     };
     Map<String, Object> body = om.readValue(message.body(), typeRef);
     String typeName = body.get("detail-type").toString();
-    if (UserUpserted.class.getTypeName().equals(typeName)) {
-      UserUpserted userUpserted = om.convertValue(body.get("detail"), UserUpserted.class);
-      typedEvent = new TypedUserUpserted(userUpserted);
+    if (FileUploaded.class.getTypeName().equals(typeName)) {
+      FileUploaded fileUploaded = om.convertValue(body.get("detail"), FileUploaded.class);
+      typedEvent = new TypedFileUploaded(fileUploaded);
+    } else if (MailSent.class.getTypeName().equals(typeName)) {
+      MailSent mailSent = om.convertValue(body.get("detail"), MailSent.class);
+      typedEvent = new TypedMailSent(mailSent);
     } else {
       throw new BadRequestException("Unexpected message type for message=" + message);
     }

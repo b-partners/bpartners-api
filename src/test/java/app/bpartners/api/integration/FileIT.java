@@ -125,18 +125,14 @@ class FileIT {
   }
 
   @Test
-  void upload_and_read_created_file_ok() throws IOException, InterruptedException, ApiException {
-    String basePath = "http://localhost:" + ContextInitializer.SERVER_PORT;
+  void upload_file_ok() throws IOException, InterruptedException, ApiException {
     Resource toUpload = new ClassPathResource("files/upload.jpg");
 
     HttpResponse<byte[]> uploadResponse = upload(FileType.LOGO.getValue(), TO_UPLOAD_FILE_ID,
         toUpload.getFile());
 
-    HttpResponse<byte[]> downloadResponse =
-        download(FileType.LOGO, basePath, JOE_DOE_TOKEN, null, TO_UPLOAD_FILE_ID);
     assertEquals(HttpStatus.OK.value(), uploadResponse.statusCode());
     assertEquals(toUpload.getInputStream().readAllBytes().length, uploadResponse.body().length);
-    assertEquals(HttpStatus.OK.value(), downloadResponse.statusCode());
     /* /!\ The file seems to get more bytes than initial with S3 localstack container
     assertEquals(toUpload.getInputStream().readAllBytes().length, downloadResponse.body().length);*/
   }
@@ -246,6 +242,7 @@ class FileIT {
     return response;
   }
 
+  //TODO: write upload_triggers_event_ok as done in InvoiceIT
   public static class ContextInitializer extends S3AbstractContextInitializer {
     public static final int SERVER_PORT = TestUtils.anAvailableRandomPort();
 

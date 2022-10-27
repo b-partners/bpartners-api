@@ -14,8 +14,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
-import static app.bpartners.api.service.utils.FileInfoUtils.PDF_EXTENSION;
-
 @Getter
 @Setter
 @Builder
@@ -38,10 +36,7 @@ public class Invoice {
   private InvoiceStatus status;
   private String comment;
   private Instant updatedAt;
-
-  public String getFileId() {
-    return this.getRef() + PDF_EXTENSION;
-  }
+  private String fileId;
 
   public Date getFormattedSendingDate() {
     return Date.from(sendingDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
@@ -68,7 +63,8 @@ public class Invoice {
         && totalPriceWithoutVat == invoice.getTotalPriceWithoutVat()
         //&& Objects.equals(invoiceCustomer, invoice.invoiceCustomer)
         //&& Objects.equals(products, invoice.products)
-        && Objects.equals(account, invoice.getAccount());
+        && Objects.equals(account, invoice.getAccount())
+        && Objects.equals(fileId, invoice.fileId);
   }
 
   @Override

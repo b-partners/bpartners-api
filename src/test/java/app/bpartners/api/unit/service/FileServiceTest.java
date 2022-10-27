@@ -1,0 +1,61 @@
+package app.bpartners.api.unit.service;
+
+import app.bpartners.api.endpoint.event.EventProducer;
+import app.bpartners.api.endpoint.rest.model.FileType;
+import app.bpartners.api.model.FileInfo;
+import app.bpartners.api.model.mapper.FileMapper;
+import app.bpartners.api.repository.FileRepository;
+import app.bpartners.api.service.FileService;
+import app.bpartners.api.service.aws.S3Service;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import static app.bpartners.api.endpoint.rest.model.FileType.INVOICE;
+import static app.bpartners.api.integration.conf.TestUtils.FILE_ID;
+import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+class FileServiceTest {
+  public static final String RANDOM_CHECKSUM = "random_checksum";
+  FileService fileService;
+  S3Service s3Service;
+  FileRepository fileRepository;
+  FileMapper fileMapper;
+  EventProducer eventProducer;
+
+  @BeforeEach
+  void setUp() {
+    s3Service = mock(S3Service.class);
+    fileRepository = mock(FileRepository.class);
+    fileMapper = mock(FileMapper.class);
+    eventProducer = mock(EventProducer.class);
+    fileService = new FileService(s3Service, fileRepository, fileMapper, eventProducer);
+  }
+
+  @Test
+  void saveChecksum_ok() {
+    String fileId = FILE_ID;
+    FileType fileType = INVOICE;
+    String accountId = JOE_DOE_ACCOUNT_ID;
+    when(s3Service.uploadFile(fileType, accountId, fileId, null)).thenReturn(RANDOM_CHECKSUM);
+    when(fileRepository.getById(fileId)).thenReturn(fileInfo());
+    when(fileRepository.save(any())).thenAnswer(i -> i.getArguments()[0]);
+    FileInfo before = fileRepository.getById(fileId);
+
+    FileInfo actual = fileService.saveChecksum(fileId, fileType, accountId, null);
+
+    assertNotEquals(before.getSha256(), actual.getSha256());
+    assertEquals(RANDOM_CHECKSUM, actual.getSha256());
+  }
+
+  FileInfo fileInfo() {
+    return FileInfo.builder()
+        .id(FILE_ID)
+        .sha256(null)
+        .build();
+  }
+}

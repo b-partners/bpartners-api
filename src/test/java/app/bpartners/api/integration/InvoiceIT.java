@@ -19,24 +19,28 @@ import app.bpartners.api.repository.swan.AccountHolderSwanRepository;
 import app.bpartners.api.repository.swan.AccountSwanRepository;
 import app.bpartners.api.repository.swan.UserSwanRepository;
 import app.bpartners.api.service.InvoiceService;
-import app.bpartners.api.service.aws.SesService;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
+import software.amazon.awssdk.services.eventbridge.model.PutEventsRequest;
+import software.amazon.awssdk.services.eventbridge.model.PutEventsRequestEntry;
+import software.amazon.awssdk.services.eventbridge.model.PutEventsResponse;
+import software.amazon.awssdk.services.eventbridge.model.PutEventsResultEntry;
 
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.DRAFT;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PROPOSAL;
-import static app.bpartners.api.integration.conf.TestUtils.INVOICE1_FILE_ID;
 import static app.bpartners.api.integration.conf.TestUtils.INVOICE1_ID;
 import static app.bpartners.api.integration.conf.TestUtils.INVOICE2_ID;
 import static app.bpartners.api.integration.conf.TestUtils.INVOICE3_ID;
@@ -56,13 +60,18 @@ import static app.bpartners.api.integration.conf.TestUtils.product4;
 import static app.bpartners.api.integration.conf.TestUtils.product5;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountHolderSwanRep;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountSwanRepository;
+import static app.bpartners.api.integration.conf.TestUtils.setUpEventBridge;
 import static app.bpartners.api.integration.conf.TestUtils.setUpPaymentInitiationRep;
-import static app.bpartners.api.integration.conf.TestUtils.setUpSesService;
 import static app.bpartners.api.integration.conf.TestUtils.setUpSwanComponent;
 import static app.bpartners.api.integration.conf.TestUtils.setUpUserSwanRepository;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
@@ -97,7 +106,7 @@ class InvoiceIT {
   @MockBean
   private FintecturePaymentInitiationRepository paymentInitiationRepositoryMock;
   @MockBean
-  private SesService sesServiceMock;
+  private EventBridgeClient eventBridgeClientMock;
 
   private static ApiClient anApiClient() {
     return TestUtils.anApiClient(JOE_DOE_TOKEN, InvoiceIT.ContextInitializer.SERVER_PORT);
@@ -110,7 +119,7 @@ class InvoiceIT {
     setUpAccountSwanRepository(accountSwanRepositoryMock);
     setUpAccountHolderSwanRep(accountHolderRepositoryMock);
     setUpPaymentInitiationRep(paymentInitiationRepositoryMock);
-    setUpSesService(sesServiceMock);
+    setUpEventBridge(eventBridgeClientMock);
   }
 
   CrupdateInvoice proposalInvoice() {
@@ -160,7 +169,6 @@ class InvoiceIT {
   Invoice invoice1() {
     return new Invoice()
         .id(INVOICE1_ID)
-        .fileId(INVOICE1_FILE_ID)
         .comment("Tableau de Madagascar")
         .title("Facture tableau")
         .paymentUrl("https://connect-v2-sbx.fintecture.com")
@@ -179,7 +187,6 @@ class InvoiceIT {
         .id(INVOICE2_ID)
         .title("Facture plomberie")
         .paymentUrl("https://connect-v2-sbx.fintecture.com")
-        .fileId("BP002.pdf")
         .customer(customer2().address("Nouvelle adresse"))
         .ref("BP002")
         .sendingDate(LocalDate.of(2022, 9, 10))
@@ -195,7 +202,6 @@ class InvoiceIT {
         .id("invoice6_id")
         .paymentUrl(null)
         .comment(null)
-        .fileId("BP007-TMP.pdf")
         .ref("BP007-TMP")
         .title("Facture transaction")
         .customer(customer1())
@@ -224,7 +230,6 @@ class InvoiceIT {
     return new Invoice()
         .id(NEW_INVOICE_ID)
         .comment(validInvoice().getComment())
-        .fileId("BP003-TMP.pdf")
         .ref(validInvoice().getRef() + "-TMP")
         .title("Facture sans produit")
         .customer(validInvoice().getCustomer())
@@ -240,7 +245,6 @@ class InvoiceIT {
   Invoice expectedConfirmed() {
     return new Invoice()
         .id(INVOICE4_ID)
-        .fileId(confirmedInvoice().getRef() + ".pdf")
         .paymentUrl("https://connect-v2-sbx.fintecture.com")
         .ref(confirmedInvoice().getRef())
         .title(confirmedInvoice().getTitle())
@@ -257,7 +261,6 @@ class InvoiceIT {
   Invoice expectedProposal() {
     return new Invoice()
         .id(INVOICE3_ID)
-        .fileId("BP004-TMP.pdf")
         .ref(proposalInvoice().getRef() + "-TMP")
         .title("Facture sans produit")
         .customer(proposalInvoice().getCustomer())
@@ -273,7 +276,6 @@ class InvoiceIT {
   Invoice expectedPaid() {
     return new Invoice()
         .id(INVOICE4_ID)
-        .fileId(paidInvoice().getRef() + ".pdf")
         .paymentUrl("https://connect-v2-sbx.fintecture.com")
         .ref(paidInvoice().getRef())
         .title(paidInvoice().getTitle())
@@ -344,9 +346,7 @@ class InvoiceIT {
 
     Invoice actualDraft = api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, NEW_INVOICE_ID, validInvoice());
     actualDraft.setProducts(ignoreIdsOf(actualDraft.getProducts()));
-    Invoice actualProposal =
-        api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, INVOICE3_ID, proposalInvoice());
-    actualProposal.setProducts(ignoreIdsOf(actualProposal.getProducts()));
+
     Invoice actualConfirmed =
         api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, INVOICE4_ID, confirmedInvoice());
     actualConfirmed.setProducts(ignoreIdsOf(actualConfirmed.getProducts()));
@@ -354,12 +354,33 @@ class InvoiceIT {
     actualPaid.setProducts(ignoreIdsOf(actualPaid.getProducts()));
 
     assertEquals(expectedDraft(), actualDraft);
-    assertEquals(expectedProposal(), actualProposal);
     assertEquals(expectedConfirmed(), actualConfirmed);
     assertEquals(expectedPaid(), actualPaid);
     assertTrue(actualDraft.getRef().contains("TMP"));
-    assertTrue(actualProposal.getRef().contains("TMP"));
     assertFalse(actualConfirmed.getRef().contains("TMP"));
+  }
+
+  @Test
+  void crupdate_triggers_event_ok() throws ApiException {
+    ApiClient joeDoeClient = anApiClient();
+    PayingApi api = new PayingApi(joeDoeClient);
+    reset(eventBridgeClientMock);
+    when(eventBridgeClientMock.putEvents((PutEventsRequest) any())).thenReturn(
+        PutEventsResponse.builder().entries(
+                PutEventsResultEntry.builder().eventId("eventId1").build())
+            .build());
+
+    Invoice actualProposal =
+        api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, INVOICE3_ID, proposalInvoice());
+
+    ArgumentCaptor<PutEventsRequest> captor = ArgumentCaptor.forClass(PutEventsRequest.class);
+    verify(eventBridgeClientMock, times(1)).putEvents(captor.capture());
+    PutEventsRequest actualRequest = captor.getValue();
+    List<PutEventsRequestEntry> actualRequestEntries = actualRequest.entries();
+    assertEquals(1, actualRequestEntries.size());
+    PutEventsRequestEntry fileUploadEvent = actualRequestEntries.get(0);
+    assertTrue(fileUploadEvent.detail().contains(actualProposal.getId()));
+    assertTrue(fileUploadEvent.detail().contains(JOE_DOE_ACCOUNT_ID));
   }
 
   @Test
@@ -422,7 +443,6 @@ class InvoiceIT {
     os.write(data);
     os.close();
   }
-
 
   @Test
   void generate_draft_pdf_ok() throws IOException {

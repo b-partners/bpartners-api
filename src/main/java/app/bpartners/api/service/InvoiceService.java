@@ -1,5 +1,8 @@
 package app.bpartners.api.service;
 
+import app.bpartners.api.endpoint.event.EventProducer;
+import app.bpartners.api.endpoint.event.model.TypedFileUploaded;
+import app.bpartners.api.endpoint.event.model.TypedMailSent;
 import app.bpartners.api.endpoint.rest.model.FileType;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.endpoint.rest.security.model.Principal;
@@ -13,6 +16,7 @@ import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.model.PaymentRedirection;
 import app.bpartners.api.model.Product;
 import app.bpartners.api.model.exception.ApiException;
+import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.validator.InvoiceValidator;
 import app.bpartners.api.repository.InvoiceRepository;
 import app.bpartners.api.repository.ProductRepository;
@@ -30,10 +34,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.imageio.ImageIO;
-import javax.mail.MessagingException;
 import lombok.AllArgsConstructor;
 import org.apfloat.Aprational;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
@@ -41,6 +43,7 @@ import org.thymeleaf.templatemode.TemplateMode;
 import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
 import org.xhtmlrenderer.pdf.ITextRenderer;
 
+import static app.bpartners.api.endpoint.rest.model.FileType.INVOICE;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.DRAFT;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
@@ -54,7 +57,6 @@ import static com.google.zxing.BarcodeFormat.QR_CODE;
 
 @Service
 @AllArgsConstructor
-@Slf4j
 public class InvoiceService {
   private final InvoiceRepository repository;
   private final ProductRepository productRepository;
@@ -63,7 +65,8 @@ public class InvoiceService {
   private final AccountHolderService holderService;
   private final PrincipalProvider auth;
   private final InvoiceValidator validator;
-  private final SesService mailService;
+  private final SesService sesService;
+  private final EventProducer eventProducer;
 
   public List<Invoice> getInvoices(String accountId, PageFromOne page, BoundedPageSize pageSize,
                                    InvoiceStatus status) {
@@ -86,36 +89,39 @@ public class InvoiceService {
 
   public Invoice crupdateInvoice(Invoice toCrupdate) {
     validator.accept(toCrupdate);
+
     Invoice refreshedInvoice = refreshValues(repository.crupdate(toCrupdate));
+
     byte[] pdfAsBytes;
-    if (toCrupdate.getStatus().equals(CONFIRMED)) {
+    if (refreshedInvoice.getStatus().equals(CONFIRMED)) {
       pdfAsBytes = generateInvoicePdf(refreshedInvoice);
     } else {
       pdfAsBytes = generateDraftPdf(refreshedInvoice);
     }
-    fileService.uploadFile(FileType.INVOICE, refreshedInvoice.getAccount().getId(),
-        refreshedInvoice.getFileId(), pdfAsBytes);
-    /*/!\ Only use for local test because localstack seems to not permit download after upload
-      FileOutputStream fos = null;
-      try {
-        fos = new FileOutputStream(refreshedInvoice.getFileId());
-        fos.write(pdfAsBytes);
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      } finally {
-        if (fos != null) {
-          try {
-            fos.close();
-          } catch (IOException e) {
-            throw new RuntimeException(e);
-          }
-        }
-      }*/
-    if (!sendInvoiceMail(refreshedInvoice, pdfAsBytes)
-        && !refreshedInvoice.getStatus().equals(DRAFT)) {
-      throw new ApiException(SERVER_EXCEPTION, "Mail not send");
-    }
+
+    eventProducer.accept(List.of(getFileUploadedEvent(refreshedInvoice, pdfAsBytes)));
+
     return refreshedInvoice;
+  }
+
+  public void sendInvoice(
+      String invoiceId, String subject, String emailMessage) {
+    Invoice invoice = getById(invoiceId);
+    byte[] fileAsBytes = fileService.downloadFile(INVOICE, invoice.getAccount().getId(),
+        invoice.getFileId());
+    if (!invoice.getStatus().equals(DRAFT)) {
+      eventProducer.accept(List.of(getMailSentEvent(invoice, subject, emailMessage, fileAsBytes)));
+    } else {
+      throw new BadRequestException(
+          "Invoice." + invoiceId + " can not be sent because status is " + invoice.getStatus());
+    }
+  }
+
+  public Invoice persistFileId(String invoiceId) {
+    Invoice invoice = getById(invoiceId);
+    String fileId = invoice.getRef() + PDF_EXTENSION; //TODO: Other natural ID or UUID ?
+    invoice.setFileId(fileId);
+    return repository.crupdate(invoice);
   }
 
   private Invoice refreshValues(Invoice invoice) {
@@ -268,49 +274,64 @@ public class InvoiceService {
     return Base64.getEncoder().encodeToString(image);
   }
 
-  private boolean sendInvoiceMail(Invoice refreshedInvoice, byte[] pdf) {
-    if (refreshedInvoice.getStatus().equals(DRAFT)) {
-      return false;
+  private TypedMailSent getMailSentEvent(
+      Invoice invoice, String subject, String emailMessage, byte[] pdf) {
+    if (!invoice.getStatus().equals(DRAFT)) {
+      return toTypedEvent(invoice, subject, emailMessage, pdf);
     }
-    String type = "";
-    if (refreshedInvoice.getStatus().equals(PROPOSAL)) {
-      type = "Devis";
-    }
-    if (refreshedInvoice.getStatus().equals(CONFIRMED)) {
-      type = "Facture";
-    }
-    if (!type.isBlank()) {
-      String subject = type + " " + refreshedInvoice.getRef();
-      try {
-        mailService.sendEmail(
-            refreshedInvoice.getInvoiceCustomer().getEmail(),
-            subject,
-            emailBody(type.toLowerCase()),
-            subject + PDF_EXTENSION,
-            pdf
-        );
-      } catch (IOException | MessagingException e) {
-        log.info("response={}", e);
-        return false;
-      }
-    }
-    return true;
+    throw new BadRequestException("Invoice." + invoice.getId() + " can not be sent because "
+        + "status is " + invoice.getStatus());
+  }
+
+  private TypedFileUploaded getFileUploadedEvent(Invoice invoice, byte[] pdfAsBytes) {
+    return fileService.toTypedEvent(INVOICE, invoice.getAccount().getId(), invoice.getFileId(),
+        pdfAsBytes, invoice.getId());
   }
 
   //TODO: set it again in template resolver when the load style baseUrl is set
-  private String emailBody(String type) {
-    return "<html xmlns:th=\"http://www.thymeleaf.org\">\n"
+  private String emailBody(String emailMessage, Invoice invoice) {
+    AccountHolder accountHolder =
+        holderService.getAccountHolderByAccountId(invoice.getAccount().getId());
+    return "<html>\n"
         + "    <body style=\"font-family: 'Gill Sans'\">\n"
-        + "        <h2 style=color:#8d2158;>Nom de l'artisan</h2>\n"
-        + "        <h3 style=color:#424141;>\n"
-        + "            Slogan de l'artisan\n"
-        + "        </h3>\n"
-        + "        <p>Bonjour,</p>\n"
-        + "        <p>\n"
-        + "            Retrouvez-ci joint votre " + type + " enregistré à la référence XXX\n"
-        + "        </p>\n"
+        + "        <h2 style=color:#8d2158;>" + accountHolder.getName() + "</h2>\n"
+        + emailMessage
         + "        <p>Bien à vous et merci pour votre confiance.</p>\n"
         + "    </body>\n"
         + "</html>";
+  }
+
+  //TODO: persist the default email message and get it instead
+  private String defaultEmailMessage(String type, Invoice invoice) {
+    return "        <p>Bonjour,</p>\n"
+        + "        <p>\n"
+        + "            Retrouvez-ci joint votre " + type + " enregistré à la référence "
+        + invoice.getRef() + "\n"
+        + "        </p>\n";
+  }
+
+  private TypedMailSent toTypedEvent(Invoice invoice,
+                                     String subject, String emailMessage, byte[] pdf) {
+    String type = getStatusValue(invoice.getStatus());
+    if (subject == null) {
+      //TODO: check if the invoice has already been relaunched then change this
+      subject = type + " " + invoice.getRef();
+    }
+    if (emailMessage == null) {
+      emailMessage = defaultEmailMessage(type.toLowerCase(), invoice);
+    }
+    String recipient = invoice.getInvoiceCustomer().getEmail();
+    return sesService.toTypedEvent(
+        recipient, subject, emailBody(emailMessage, invoice), subject + PDF_EXTENSION, pdf);
+  }
+
+  private String getStatusValue(InvoiceStatus status) {
+    if (status.equals(PROPOSAL) || status.equals(DRAFT)) {
+      return "Devis";
+    }
+    if (status.equals(CONFIRMED) || status.equals(PAID)) {
+      return "Facture";
+    }
+    throw new BadRequestException("Unknown status " + status);
   }
 }

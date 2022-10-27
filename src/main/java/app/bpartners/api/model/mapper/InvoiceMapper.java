@@ -31,6 +31,7 @@ public class InvoiceMapper {
     return Invoice.builder()
         .id(invoice.getId())
         .ref(invoice.getRef())
+        .fileId(invoice.getFileId())
         .title(invoice.getTitle())
         .comment(invoice.getComment())
         .products(actualProducts)
@@ -46,6 +47,7 @@ public class InvoiceMapper {
   public HInvoice toEntity(Invoice domain) {
     return HInvoice.builder()
         .id(domain.getId())
+        .fileId(domain.getFileId())
         .comment(domain.getComment())
         .ref(domain.getRef())
         .title(domain.getTitle())

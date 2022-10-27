@@ -61,6 +61,7 @@ public class TestUtils {
   public static final String REDIRECT_FAILURE_URL =
       "https://dashboard-dev.bpartners.app/login/failure";
   public static final String JOE_DOE_ACCOUNT_ID = "beed1765-5c16-472a-b3f4-5c376ce5db58";
+  public static final String BAD_ACCOUNT_ID = "bad_account_id";
   public static final String USER1_ID = "user1_id";
   public static final String BAD_USER_ID = "bad_user_id";
   public static final String INVOICE1_ID = "invoice1_id";
@@ -81,6 +82,8 @@ public class TestUtils {
   public static final String BAD_CODE = "bad_code";
   public static final String SWAN_ONBOARDING_URL_FORMAT =
       "https://api.banking.sandbox.swan.io/projects/uuid/onboardings/uuid";
+  public static final String INVOICE_RELAUNCH1_ID = "invoice_relaunch1_id";
+  public static final String INVOICE_RELAUNCH2_ID = "invoice_relaunch2_id";
   public static final String INVALID_LOGO_TYPE = "invalid_logo_type";
 
   public static final String NOT_JOE_DOE_ACCOUNT_ID = "NOT_" + JOE_DOE_ACCOUNT_ID;
@@ -399,6 +402,7 @@ public class TestUtils {
         .totalPriceWithVat(8800.0)
         .totalVat(800.0)
         .totalPriceWithoutVat(8000.0)
+        .comment("Tableau de Madagascar")
         .paymentUrl("https://connect-v2-sbx.fintecture.com")
         ;
   }

@@ -1,9 +1,12 @@
 package app.bpartners.api.repository.jpa.model;
 
+import java.io.Serializable;
 import java.time.Instant;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -12,7 +15,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.annotations.CreationTimestamp;
+
 import static javax.persistence.GenerationType.IDENTITY;
 
 @Entity
@@ -24,13 +28,14 @@ import static javax.persistence.GenerationType.IDENTITY;
 @AllArgsConstructor
 @NoArgsConstructor
 @EqualsAndHashCode
-public class HInvoiceRelaunch {
+public class HInvoiceRelaunch implements Serializable {
   @Id
   @GeneratedValue(strategy = IDENTITY)
   private String id;
-  private String accountId;
-  private int draftRelaunch;
-  private int unpaidRelaunch;
-  @UpdateTimestamp
-  private Instant updatedAt;
+  @ManyToOne
+  @JoinColumn(name = "id_invoice")
+  private HInvoice invoice;
+  private boolean isUserRelaunched;
+  @CreationTimestamp
+  private Instant creationDatetime;
 }

@@ -1,39 +1,37 @@
 package app.bpartners.api.repository.implementation;
 
-import app.bpartners.api.model.InvoiceRelaunchConf;
-import app.bpartners.api.model.exception.NotFoundException;
+import app.bpartners.api.model.InvoiceRelaunch;
 import app.bpartners.api.model.mapper.InvoiceRelaunchMapper;
 import app.bpartners.api.repository.InvoiceRelaunchRepository;
 import app.bpartners.api.repository.jpa.InvoiceRelaunchJpaRepository;
-import app.bpartners.api.repository.jpa.model.HInvoiceRelaunchConf;
-import java.util.Optional;
+import app.bpartners.api.repository.jpa.model.HInvoiceRelaunch;
+import java.util.List;
+import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
-@AllArgsConstructor
 @Repository
+@AllArgsConstructor
+@Slf4j
 public class InvoiceRelaunchRepositoryImpl implements InvoiceRelaunchRepository {
-  private final InvoiceRelaunchJpaRepository jpaRepository;
-  private final InvoiceRelaunchMapper mapper;
+  private final InvoiceRelaunchJpaRepository invoiceRelaunchJpaRepository;
+  private final InvoiceRelaunchMapper invoiceRelaunchMapper;
 
   @Override
-  public InvoiceRelaunchConf save(InvoiceRelaunchConf invoiceRelaunch, String accountId) {
-    Optional<HInvoiceRelaunchConf> optionalHInvoiceRelaunch =
-        jpaRepository.getByAccountId(accountId);
-    if (optionalHInvoiceRelaunch.isPresent()) {
-      HInvoiceRelaunchConf persisted = optionalHInvoiceRelaunch.get();
-      invoiceRelaunch.setId(persisted.getId());
-    }
-    return mapper.toDomain(jpaRepository.save(mapper.toEntity(invoiceRelaunch)));
+  public List<InvoiceRelaunch> getInvoiceRelaunchesByInvoiceId(
+      String invoiceId, Pageable pageable) {
+    return invoiceRelaunchJpaRepository
+        .getHInvoiceRelaunchesByInvoiceId(invoiceId, pageable)
+        .stream().map(invoiceRelaunchMapper::toDomain)
+        .collect(Collectors.toUnmodifiableList());
   }
 
   @Override
-  public InvoiceRelaunchConf getByAccountId(String accountId) {
-    return mapper.toDomain(
-        jpaRepository.getByAccountId(accountId).orElseThrow(
-            () -> new NotFoundException(
-                "There is no existing invoice relaunch config for account." + accountId)
-        )
-    );
+  public InvoiceRelaunch save(String invoiceId) {
+    HInvoiceRelaunch toSave = invoiceRelaunchMapper.toEntity(invoiceId);
+    return invoiceRelaunchMapper
+        .toDomain(invoiceRelaunchJpaRepository.save(toSave));
   }
 }

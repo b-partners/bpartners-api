@@ -4,5 +4,5 @@ import app.bpartners.api.model.AccountHolder;
 import java.util.List;
 
 public interface AccountHolderRepository {
-  List<AccountHolder> getAccountHolders();
+  List<AccountHolder> getAccountHolders(String accountId);
 }

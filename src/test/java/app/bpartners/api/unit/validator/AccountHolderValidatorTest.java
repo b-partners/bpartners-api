@@ -1,8 +1,10 @@
 package app.bpartners.api.unit.validator;
 
 import app.bpartners.api.endpoint.rest.model.AccountHolder;
+import app.bpartners.api.endpoint.rest.model.ContactAddress;
 import app.bpartners.api.endpoint.rest.validator.AccountHolderValidator;
 import org.junit.jupiter.api.Test;
+
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsBadRequestException;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
@@ -14,10 +16,12 @@ class AccountHolderValidatorTest {
     AccountHolder validAccountHolder =
         new AccountHolder()
             .id("account1_ID")
-            .country("account1_Country")
-            .postalCode("account1_PostalCode")
-            .address("account1_Address")
-            .city("account1_city")
+            .contactAddress(new ContactAddress()
+                .country("account1_Country")
+                .postalCode("account1_PostalCode")
+                .address("account1_Address")
+                .city("account1_city")
+            )
             .name("account1_name");
 
     assertDoesNotThrow(() -> accountHolderValidator.accept(validAccountHolder));
@@ -29,10 +33,11 @@ class AccountHolderValidatorTest {
         () -> accountHolderValidator.accept(
             new AccountHolder()
                 .id(null)
-                .country("account1_Country")
-                .postalCode("account1_PostalCode")
-                .address("account1_Address")
-                .city("account1_city")
+                .contactAddress(new ContactAddress()
+                    .country("account1_Country")
+                    .postalCode("account1_PostalCode")
+                    .address("account1_Address")
+                    .city("account1_city"))
                 .name("account1_name"))
     );
 
@@ -46,10 +51,12 @@ class AccountHolderValidatorTest {
         () -> accountHolderValidator.accept(
             new AccountHolder()
                 .id(null)
-                .country(null)
-                .postalCode(null)
-                .address(null)
-                .city(null)
+                .contactAddress(new ContactAddress()
+                    .country(null)
+                    .postalCode(null)
+                    .address(null)
+                    .city(null)
+                )
                 .name(null))
     );
   }

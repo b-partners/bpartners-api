@@ -254,6 +254,17 @@ paths:
         - User Accounts
       summary: Update some account holders for an account
       operationId: updateAccountHolders
+      parameters:
+        - in: path
+          name: userId
+          schema:
+            type: string
+          required: true
+        - in: path
+          name: accountId
+          schema:
+            type: string
+          required: true
       requestBody:
         content:
           application/json:

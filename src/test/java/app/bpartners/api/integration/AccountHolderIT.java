@@ -6,6 +6,7 @@ import app.bpartners.api.endpoint.rest.api.UserAccountsApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
 import app.bpartners.api.endpoint.rest.model.AccountHolder;
+import app.bpartners.api.endpoint.rest.model.ContactAddress;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
 import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
 import app.bpartners.api.integration.conf.AbstractContextInitializer;
@@ -76,10 +77,12 @@ class AccountHolderIT {
     return new AccountHolder()
         .id(joeDoeSwanAccountHolder().getId())
         .name(joeDoeSwanAccountHolder().getInfo().getName())
-        .address(joeDoeSwanAccountHolder().getResidencyAddress().getAddressLine1())
-        .city(joeDoeSwanAccountHolder().getResidencyAddress().getCity())
-        .country(joeDoeSwanAccountHolder().getResidencyAddress().getCountry())
-        .postalCode(joeDoeSwanAccountHolder().getResidencyAddress().getPostalCode());
+        .contactAddress(new ContactAddress()
+            .address(joeDoeSwanAccountHolder().getResidencyAddress().getAddressLine1())
+            .city(joeDoeSwanAccountHolder().getResidencyAddress().getCity())
+            .country(joeDoeSwanAccountHolder().getResidencyAddress().getCountry())
+            .postalCode(joeDoeSwanAccountHolder().getResidencyAddress().getPostalCode())
+        );
   }
 
   @Test

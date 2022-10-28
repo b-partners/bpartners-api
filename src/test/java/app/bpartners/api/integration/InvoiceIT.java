@@ -40,12 +40,14 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.DRAFT;
+import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PROPOSAL;
 import static app.bpartners.api.integration.conf.TestUtils.INVOICE1_FILE_ID;
 import static app.bpartners.api.integration.conf.TestUtils.INVOICE1_ID;
 import static app.bpartners.api.integration.conf.TestUtils.INVOICE2_ID;
 import static app.bpartners.api.integration.conf.TestUtils.INVOICE3_ID;
 import static app.bpartners.api.integration.conf.TestUtils.INVOICE4_ID;
+import static app.bpartners.api.integration.conf.TestUtils.INVOICE7_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_TOKEN;
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsApiException;
@@ -149,6 +151,17 @@ class InvoiceIT {
         .status(CONFIRMED)
         .sendingDate(LocalDate.of(2022, 10, 12))
         .toPayAt(LocalDate.of(2022, 11, 13));
+  }
+
+  CrupdateInvoice paidInvoice() {
+    return new CrupdateInvoice()
+        .ref("BP009")
+        .title("Facture transaction")
+        .customer(customer1())
+        .products(List.of(createProduct5()))
+        .status(PAID)
+        .sendingDate(LocalDate.of(2022, 10, 12))
+        .toPayAt(LocalDate.of(2022, 11, 10));
   }
 
   Invoice invoice1() {
@@ -264,6 +277,23 @@ class InvoiceIT {
         .totalPriceWithoutVat(3000);
   }
 
+  Invoice expectedPaid() {
+    return new Invoice()
+        .id(INVOICE4_ID)
+        .fileId(paidInvoice().getRef() + ".pdf")
+        .paymentUrl("https://connect-v2-sbx.fintecture.com")
+        .ref(paidInvoice().getRef())
+        .title(paidInvoice().getTitle())
+        .customer(paidInvoice().getCustomer())
+        .status(PAID)
+        .sendingDate(paidInvoice().getSendingDate())
+        .products(List.of(product5().id(null)))
+        .toPayAt(paidInvoice().getToPayAt())
+        .totalPriceWithVat(1100)
+        .totalVat(100)
+        .totalPriceWithoutVat(1000);
+  }
+
   //TODO: create PaginationIT for pagination test and add filters.
   // In particular, check the date filters and the order filters (by created datetime desc)
   @Test
@@ -327,10 +357,13 @@ class InvoiceIT {
     Invoice actualConfirmed =
         api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, INVOICE4_ID, confirmedInvoice());
     actualConfirmed.setProducts(ignoreIdsOf(actualConfirmed.getProducts()));
+    Invoice actualPaid = api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, INVOICE4_ID, paidInvoice());
+    actualPaid.setProducts(ignoreIdsOf(actualPaid.getProducts()));
 
     assertEquals(expectedDraft(), actualDraft);
     assertEquals(expectedProposal(), actualProposal);
     assertEquals(expectedConfirmed(), actualConfirmed);
+    assertEquals(expectedPaid(), actualPaid);
     assertTrue(actualDraft.getRef().contains("TMP"));
     assertTrue(actualProposal.getRef().contains("TMP"));
     assertFalse(actualConfirmed.getRef().contains("TMP"));
@@ -346,11 +379,16 @@ class InvoiceIT {
             + " and can only have DRAFT status\"}",
         () -> api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, RANDOM_INVOICE_ID, proposalInvoice()));
     assertThrowsApiException(
-        "{\"type\":\"400 BAD_REQUEST\",\"message\":\"Invoice.invoice1_id was already confirmed\"}",
+        "{\"type\":\"400 BAD_REQUEST\",\"message\":\"Invoice.invoice1_id actual status is CONFIRMED"
+            + " and can only become PAID\"}",
         () -> api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, INVOICE1_ID, draftInvoice()));
     assertThrowsApiException(
-        "{\"type\":\"400 BAD_REQUEST\",\"message\":\"Invoice.invoice1_id was already confirmed\"}",
+        "{\"type\":\"400 BAD_REQUEST\",\"message\":\"Invoice.invoice1_id actual status is CONFIRMED"
+            + " and can only become PAID\"}",
         () -> api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, INVOICE1_ID, proposalInvoice()));
+    assertThrowsApiException(
+        "{\"type\":\"400 BAD_REQUEST\",\"message\":\"Invoice.invoice7_id was already paid\"}",
+        () -> api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, INVOICE7_ID, proposalInvoice()));
     assertThrowsApiException(
         "{\"type\":\"400 BAD_REQUEST\",\"message\":\"Invoice.invoice5_id was already sent and "
             + "can not be modified anymore\"}",

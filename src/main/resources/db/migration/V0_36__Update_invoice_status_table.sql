@@ -1,0 +1,1 @@
+alter type invoice_status add value 'PAID' after 'CONFIRMED';

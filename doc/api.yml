@@ -1318,6 +1318,7 @@ components:
         - DRAFT
         - PROPOSAL
         - CONFIRMED
+        - PAID
     CreateInvoiceRelaunchConf:
       type: object
       properties:

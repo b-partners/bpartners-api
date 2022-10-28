@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @AllArgsConstructor
-public class InvoiceRelaunchMapper {
+public class InvoiceRelaunchConfMapper {
   private final PrincipalProvider provider;
 
   public InvoiceRelaunchConf toDomain(HInvoiceRelaunchConf entity) {

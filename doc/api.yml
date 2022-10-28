@@ -249,10 +249,11 @@ paths:
           $ref: '#/components/responses/429'
         500:
           $ref: '#/components/responses/500'
+  /users/{userId}/accounts/{accountId}/accountHolders/{ahId}:
     put:
       tags:
         - User Accounts
-      summary: Update some account holders for an account
+      summary: Update company info of an account holder
       operationId: updateAccountHolders
       parameters:
         - in: path
@@ -265,22 +266,23 @@ paths:
           schema:
             type: string
           required: true
+        - in: path
+          name: ahId
+          schema:
+            type: string
+          required: true
       requestBody:
         content:
           application/json:
             schema:
-              type: array
-              items:
-                $ref: '#/components/schemas/UpdateAccountHolder'
+              $ref: '#/components/schemas/CompanyInfo'
       responses:
         200:
-          description: List of account holders of an account
+          description: The account holder with company information update
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/AccountHolder'
+                $ref: '#/components/schemas/AccountHolder'
         400:
           $ref: '#/components/responses/400'
         403:
@@ -1126,15 +1128,8 @@ components:
           type: string
         contactAddress:
           $ref: '#/components/schemas/ContactAddress'
-      allOf:
-        - $ref: '#/components/schemas/UpdateAccountHolderTemplate'
-    ContactDetails:
-      type: object
-      properties:
-        phone:
-          type: string
-        email:
-          type: string
+        companyInfo:
+          $ref: '#/components/schemas/CompanyInfo'
     ContactAddress:
       type: object
       properties:
@@ -1146,13 +1141,19 @@ components:
           type: string
         postalCode:
           type: string
-    SocietyInfo:
+    CompanyInfo:
       type: object
       properties:
+        phone:
+          type: string
+        email:
+          type: string
         socialCapital:
           type: string
         tvaNumber:
           type: string
+        businessActivity:
+          $ref: '#/components/schemas/BusinessActivity'
     BusinessActivity:
       type: object
       properties:
@@ -1160,20 +1161,6 @@ components:
           type: string
         secondary:
           type: string
-    UpdateAccountHolderTemplate:
-      properties:
-        contactDetails:
-          $ref: '#/components/schemas/ContactDetails'
-        businessActivity:
-          $ref: '#/components/schemas/BusinessActivity'
-        societyInfo:
-          $ref: '#/components/schemas/SocietyInfo'
-    UpdateAccountHolder:
-      properties:
-        accountHolderId:
-          type: string
-      allOf:
-        - $ref: '#/components/schemas/UpdateAccountHolderTemplate'
     Account:
       properties:
         id:

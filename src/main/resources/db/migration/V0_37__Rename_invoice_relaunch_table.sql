@@ -1,0 +1,1 @@
+alter table "invoice_relaunch" rename to "invoice_relaunch_conf";

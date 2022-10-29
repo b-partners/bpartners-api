@@ -335,6 +335,12 @@ class InvoiceIT {
         "{\"type\":\"400 BAD_REQUEST\",\"message\":\"Required request parameter 'pageSize' for "
             + "method parameter type BoundedPageSize is not present\"}",
         () -> api.getInvoices(JOE_DOE_ACCOUNT_ID, 1, null, null));
+    assertThrowsApiException(
+        "{"
+            + "\"type\":\"404 NOT_FOUND\","
+            + "\"message\":\"Invoice." + RANDOM_INVOICE_ID + " is not found\""
+            + "}",
+        () -> api.getInvoiceById(JOE_DOE_ACCOUNT_ID, RANDOM_INVOICE_ID));
   }
 
   // /!\ It seems that the localstack does not support the SES service using the default credentials

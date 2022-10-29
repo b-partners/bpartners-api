@@ -1,14 +1,15 @@
 package app.bpartners.api.integration;
 
 import app.bpartners.api.SentryConf;
-import app.bpartners.api.endpoint.event.S3Conf;
+import app.bpartners.api.endpoint.event.model.TypedMailSent;
+import app.bpartners.api.endpoint.event.model.gen.MailSent;
 import app.bpartners.api.endpoint.rest.api.PayingApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
 import app.bpartners.api.endpoint.rest.model.InvoiceRelaunch;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
 import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
-import app.bpartners.api.integration.conf.AbstractContextInitializer;
+import app.bpartners.api.integration.conf.S3AbstractContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
 import app.bpartners.api.manager.ProjectTokenManager;
 import app.bpartners.api.repository.fintecture.FintectureConf;
@@ -17,6 +18,7 @@ import app.bpartners.api.repository.sendinblue.SendinblueConf;
 import app.bpartners.api.repository.swan.AccountHolderSwanRepository;
 import app.bpartners.api.repository.swan.AccountSwanRepository;
 import app.bpartners.api.repository.swan.UserSwanRepository;
+import app.bpartners.api.service.aws.SesService;
 import java.time.Instant;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -30,19 +32,23 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 import static app.bpartners.api.integration.conf.TestUtils.BAD_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.TestUtils.INVOICE1_ID;
+import static app.bpartners.api.integration.conf.TestUtils.INVOICE3_ID;
 import static app.bpartners.api.integration.conf.TestUtils.INVOICE_RELAUNCH1_ID;
 import static app.bpartners.api.integration.conf.TestUtils.INVOICE_RELAUNCH2_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
+import static app.bpartners.api.integration.conf.TestUtils.assertThrowsApiException;
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsForbiddenException;
 import static app.bpartners.api.integration.conf.TestUtils.invoice1;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountHolderSwanRep;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountSwanRepository;
 import static app.bpartners.api.integration.conf.TestUtils.setUpPaymentInitiationRep;
+import static app.bpartners.api.integration.conf.TestUtils.setUpSesService;
 import static app.bpartners.api.integration.conf.TestUtils.setUpSwanComponent;
 import static app.bpartners.api.integration.conf.TestUtils.setUpUserSwanRepository;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
@@ -54,8 +60,6 @@ class InvoiceRelaunchIT {
   private SentryConf sentryConf;
   @MockBean
   private SendinblueConf sendinblueConf;
-  @MockBean
-  private S3Conf s3Conf;
   @MockBean
   private SwanConf swanConf;
   @MockBean
@@ -71,6 +75,8 @@ class InvoiceRelaunchIT {
   @MockBean
   private SwanComponent swanComponentMock;
   @MockBean
+  private SesService sesServiceMock;
+  @MockBean
   private FintecturePaymentInitiationRepository paymentInitiationRepositoryMock;
 
   private static ApiClient anApiClient() {
@@ -85,6 +91,7 @@ class InvoiceRelaunchIT {
     setUpAccountSwanRepository(accountSwanRepositoryMock);
     setUpAccountHolderSwanRep(accountHolderRepositoryMock);
     setUpPaymentInitiationRep(paymentInitiationRepositoryMock);
+    setUpSesService(sesServiceMock);
   }
 
   InvoiceRelaunch invoiceRelaunch1() {
@@ -117,11 +124,13 @@ class InvoiceRelaunchIT {
     ApiClient joeDoeClient = anApiClient();
     PayingApi api = new PayingApi(joeDoeClient);
     InvoiceRelaunch expected = expectedRelaunch();
+    when(sesServiceMock.toTypedEvent(any(), any(), any(), any(), any())).thenReturn(
+        typedMailSent());
 
-    InvoiceRelaunch actual = api.relaunchInvoice(JOE_DOE_ACCOUNT_ID, INVOICE1_ID);
+    InvoiceRelaunch actual = api.relaunchInvoice(JOE_DOE_ACCOUNT_ID, INVOICE1_ID, null);
     expected.setId(actual.getId());
     expected.setCreationDatetime(actual.getCreationDatetime());
-    actual.setInvoice(actual.getInvoice().updatedAt(null));
+    actual.getInvoice().setUpdatedAt(null);
 
     assertEquals(expected, actual);
   }
@@ -131,12 +140,20 @@ class InvoiceRelaunchIT {
     ApiClient joeDoeClient = anApiClient();
     PayingApi api = new PayingApi(joeDoeClient);
 
-    List<InvoiceRelaunch> actual =
-        api.getRelaunches(JOE_DOE_ACCOUNT_ID, INVOICE1_ID, 1, 20);
-    List<InvoiceRelaunch> actualWithoutUpdatedDate = ignoreUpdatedDate(actual);
+    List<InvoiceRelaunch> actualNotHandmade = ignoreUpdatedDate(
+        api.getRelaunches(JOE_DOE_ACCOUNT_ID, INVOICE1_ID, false, 1, 20)
+    );
+    List<InvoiceRelaunch> actualHandmade = ignoreUpdatedDate(
+        api.getRelaunches(JOE_DOE_ACCOUNT_ID, INVOICE1_ID, true, 1, 20)
+    );
+    List<InvoiceRelaunch> actualAll = ignoreUpdatedDate(
+        api.getRelaunches(JOE_DOE_ACCOUNT_ID, INVOICE1_ID, null, 1, 20)
+    );
 
-    assertTrue(actualWithoutUpdatedDate.contains(invoiceRelaunch1()));
-    assertTrue(actualWithoutUpdatedDate.contains(invoiceRelaunch2()));
+    assertTrue(actualHandmade.contains(invoiceRelaunch1()));
+    assertTrue(actualNotHandmade.contains(invoiceRelaunch2()));
+    assertTrue(actualAll.containsAll(actualHandmade));
+    assertTrue(actualAll.containsAll(actualNotHandmade));
   }
 
   @Test
@@ -145,9 +162,13 @@ class InvoiceRelaunchIT {
     PayingApi api = new PayingApi(joeDoeClient);
 
     assertThrowsForbiddenException(
-        () -> api.getRelaunches(BAD_ACCOUNT_ID, INVOICE1_ID, 1, 20));
+        () -> api.getRelaunches(BAD_ACCOUNT_ID, INVOICE1_ID, null, 1, 20));
     assertThrowsForbiddenException(
-        () -> api.relaunchInvoice(BAD_ACCOUNT_ID, INVOICE1_ID));
+        () -> api.relaunchInvoice(BAD_ACCOUNT_ID, INVOICE1_ID, null));
+    assertThrowsApiException(
+        "{\"type\":\"400 BAD_REQUEST\",\"message\":\"Invoice.invoice3_id can not be sent because status is DRAFT\"}",
+        () -> api.relaunchInvoice(JOE_DOE_ACCOUNT_ID, INVOICE3_ID, null)
+    );
   }
 
   private List<InvoiceRelaunch> ignoreUpdatedDate(List<InvoiceRelaunch> list) {
@@ -156,7 +177,17 @@ class InvoiceRelaunchIT {
         .collect(Collectors.toUnmodifiableList());
   }
 
-  static class ContextInitializer extends AbstractContextInitializer {
+  private TypedMailSent typedMailSent() {
+    return new TypedMailSent(MailSent.builder()
+        .subject("Mail subject")
+        .attachmentAsBytes(null)
+        .recipient("customer@bpartners.app")
+        .attachmentName("Mail attachment name")
+        .htmlBody("<html><body>Mail body</body></html>")
+        .build());
+  }
+
+  static class ContextInitializer extends S3AbstractContextInitializer {
     public static final int SERVER_PORT = TestUtils.anAvailableRandomPort();
 
     @Override

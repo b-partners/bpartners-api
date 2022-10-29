@@ -20,10 +20,20 @@ public class InvoiceRelaunchRepositoryImpl implements InvoiceRelaunchRepository 
   private final InvoiceRelaunchMapper invoiceRelaunchMapper;
 
   @Override
-  public List<InvoiceRelaunch> getInvoiceRelaunchesByInvoiceId(
-      String invoiceId, Pageable pageable) {
-    return invoiceRelaunchJpaRepository
-        .getHInvoiceRelaunchesByInvoiceId(invoiceId, pageable)
+  public List<InvoiceRelaunch> getInvoiceRelaunchesByInvoiceIdAndCriteria(
+      String invoiceId,
+      Boolean isUserRelaunched,
+      Pageable pageable
+  ) {
+    List<HInvoiceRelaunch> persistedList;
+    if (isUserRelaunched == null) {
+      persistedList = invoiceRelaunchJpaRepository
+          .findAllByInvoiceId(invoiceId, pageable);
+    } else {
+      persistedList = invoiceRelaunchJpaRepository
+          .findAllByInvoiceIdAndUserRelaunched(invoiceId, pageable, isUserRelaunched);
+    }
+    return persistedList
         .stream().map(invoiceRelaunchMapper::toDomain)
         .collect(Collectors.toUnmodifiableList());
   }

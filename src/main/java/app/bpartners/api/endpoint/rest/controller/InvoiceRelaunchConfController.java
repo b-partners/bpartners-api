@@ -27,6 +27,6 @@ public class InvoiceRelaunchConfController {
       @PathVariable("aId") String accountId,
       @RequestBody CreateInvoiceRelaunchConf toCreate) {
     return mapper.toRest(
-        service.save(mapper.toDomain(toCreate), accountId));
+        service.saveInvoiceRelaunchConf(mapper.toDomain(toCreate), accountId));
   }
 }

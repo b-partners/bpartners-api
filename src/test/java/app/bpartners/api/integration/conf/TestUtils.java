@@ -391,7 +391,6 @@ public class TestUtils {
   public static Invoice invoice1() {
     return new Invoice()
         .id(INVOICE1_ID)
-        .fileId("BP001.pdf")
         .title("Facture tableau")
         .customer(customer1())
         .ref("BP001")

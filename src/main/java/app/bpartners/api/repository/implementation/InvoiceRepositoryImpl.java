@@ -104,6 +104,18 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
         .collect(Collectors.toUnmodifiableList());
   }
 
+  @Override
+  public List<Invoice> findAll() {
+    return jpaRepository.findAll()
+        .stream()
+        .map(invoice -> {
+          HInvoiceCustomer invoiceCustomer = customerJpaRepository
+              .findTopByInvoice_IdOrderByCreatedDatetimeDesc(invoice.getId());
+          return mapper.toDomain(invoice, invoiceCustomer, List.of());
+        })
+        .collect(Collectors.toUnmodifiableList());
+  }
+
   private List<HProduct> computeHInvoices(HInvoiceProduct invoiceProduct, Invoice invoice) {
     return invoice.getProducts().stream()
         .map(product -> {

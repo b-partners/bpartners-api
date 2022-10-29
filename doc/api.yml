@@ -721,6 +721,10 @@ paths:
             type: string
           required: true
         - in: query
+          name: isUserRelaunched
+          schema:
+            type: boolean
+        - in: query
           name: page
           schema:
             $ref: '#/components/schemas/Page'
@@ -765,6 +769,12 @@ paths:
           schema:
             type: string
           required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomEmail'
+        required: false
       responses:
         200:
           description: The invoice relaunch
@@ -1446,6 +1456,13 @@ components:
         creationDatetime:
           type: string
           format: date-time
+    CustomEmail:
+      type: object
+      properties:
+        subject:
+          type: string
+        message:
+          type: string
     CreateProduct:
       type: object
       properties:

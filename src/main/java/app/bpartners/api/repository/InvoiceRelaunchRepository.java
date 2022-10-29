@@ -5,7 +5,10 @@ import java.util.List;
 import org.springframework.data.domain.Pageable;
 
 public interface InvoiceRelaunchRepository {
-  List<InvoiceRelaunch> getInvoiceRelaunchesByInvoiceId(String invoiceId, Pageable pageable);
+  List<InvoiceRelaunch> getInvoiceRelaunchesByInvoiceIdAndCriteria(
+      String invoiceId,
+      Boolean isUserRelaunched,
+      Pageable pageable);
 
   InvoiceRelaunch save(String invoiceId);
 }

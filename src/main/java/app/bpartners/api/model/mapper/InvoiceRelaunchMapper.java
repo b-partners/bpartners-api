@@ -30,7 +30,7 @@ public class InvoiceRelaunchMapper {
     HInvoice invoice = invoiceJpaRepository.getById(invoiceId);
     return HInvoiceRelaunch.builder()
         .invoice(invoice)
-        .isUserRelaunched(true)
+        .userRelaunched(true)
         .build();
   }
 

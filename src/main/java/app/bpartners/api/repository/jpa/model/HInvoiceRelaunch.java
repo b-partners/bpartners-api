@@ -35,7 +35,7 @@ public class HInvoiceRelaunch implements Serializable {
   @ManyToOne
   @JoinColumn(name = "id_invoice")
   private HInvoice invoice;
-  private boolean isUserRelaunched;
+  private boolean userRelaunched;
   @CreationTimestamp
   private Instant creationDatetime;
 }

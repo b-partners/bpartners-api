@@ -35,6 +35,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.imageio.ImageIO;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apfloat.Aprational;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
@@ -57,6 +58,7 @@ import static com.google.zxing.BarcodeFormat.QR_CODE;
 
 @Service
 @AllArgsConstructor
+@Slf4j
 public class InvoiceService {
   private final InvoiceRepository repository;
   private final ProductRepository productRepository;
@@ -107,8 +109,12 @@ public class InvoiceService {
   public void sendInvoice(
       String invoiceId, String subject, String emailMessage) {
     Invoice invoice = getById(invoiceId);
-    byte[] fileAsBytes = fileService.downloadFile(INVOICE, invoice.getAccount().getId(),
-        invoice.getFileId());
+    byte[] fileAsBytes;
+    if (invoice.getStatus().equals(CONFIRMED)) {
+      fileAsBytes = generateInvoicePdf(invoice);
+    } else {
+      fileAsBytes = generateDraftPdf(invoice);
+    }
     if (!invoice.getStatus().equals(DRAFT)) {
       eventProducer.accept(List.of(getMailSentEvent(invoice, subject, emailMessage, fileAsBytes)));
     } else {
@@ -154,6 +160,10 @@ public class InvoiceService {
       initializedInvoice.setRef(invoice.getRef() + "-TMP");
     }
     return initializedInvoice;
+  }
+
+  public List<Invoice> getAllInvoices() {
+    return repository.findAll();
   }
 
   private Fraction computeTotalVat(List<Product> products) {

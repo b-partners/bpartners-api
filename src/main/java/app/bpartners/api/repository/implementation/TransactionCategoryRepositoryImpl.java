@@ -12,14 +12,17 @@ import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Order;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.persistence.criteria.Selection;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import static app.bpartners.api.repository.jpa.model.HTransactionCategory.CREATED_DATETIME_ATTRIBUTE;
 import static app.bpartners.api.repository.jpa.model.HTransactionCategory.ID_ACCOUNT_ATTRIBUTE;
 import static app.bpartners.api.repository.jpa.model.HTransactionCategory.ID_CATEGORY_TMPL_ATTRIBUTE;
+import static app.bpartners.api.repository.jpa.model.HTransactionCategory.ID_TRANSACTION_ATTRIBUTE;
 import static app.bpartners.api.repository.jpa.model.HTransactionCategory.TYPE_ATTRIBUTE;
 import static app.bpartners.api.repository.jpa.model.HTransactionCategory.VAT_ATTRIBUTE;
 
@@ -50,7 +53,8 @@ public class TransactionCategoryRepositoryImpl implements TransactionCategoryRep
   }
 
   @Override
-  public List<TransactionCategory> findByAccount(String idAccount, boolean unique, LocalDate startDate,
+  public List<TransactionCategory> findByAccount(String idAccount, boolean unique,
+                                                 LocalDate startDate,
                                                  LocalDate endDate) {
     if (unique) {
       return findByCriteriaOrderByCreatedDatetime(idAccount).stream()
@@ -89,8 +93,17 @@ public class TransactionCategoryRepositoryImpl implements TransactionCategoryRep
 
   @Override
   public TransactionCategory findByIdTransaction(String idTransaction) {
-    Optional<HTransactionCategory> entity =
-        jpaRepository.findFirstByCreatedDatetimeAndIdTransaction(idTransaction);
+    CriteriaBuilder builder = entityManager.getCriteriaBuilder();
+    CriteriaQuery<HTransactionCategory> query = builder.createQuery(HTransactionCategory.class);
+    Root<HTransactionCategory> root = query.from(HTransactionCategory.class);
+    Order order = builder.desc(root.get(CREATED_DATETIME_ATTRIBUTE));
+    Predicate hasIdTransaction = builder.equal(root.get(ID_TRANSACTION_ATTRIBUTE), idTransaction);
+    query
+        .where(builder.and(hasIdTransaction))
+        .orderBy(order);
+    Optional<HTransactionCategory> entity = entityManager.createQuery(query)
+        .setMaxResults(1)
+        .getResultStream().findFirst();
     if (entity.isEmpty()) {
       return null;
     }
@@ -142,11 +155,19 @@ public class TransactionCategoryRepositoryImpl implements TransactionCategoryRep
     return findDistinctByCriteria(idAccount, userDefined).stream()
         .map(category -> {
           if (!userDefined) {
-            return jpaRepository.findByCriteriaOrderByCreatedDatetime(category.getIdAccount(),
-                category.getIdCategoryTemplate());
+            return findByCriteriaOrderByCreatedDatetime(
+                category.getIdAccount(),
+                null,
+                category.getIdCategoryTemplate(),
+                null
+            );
           }
-          return jpaRepository.findByCriteriaOrderByCreatedDatetime(idAccount, category.getType(),
-              category.getVat());
+          return findByCriteriaOrderByCreatedDatetime(
+              idAccount,
+              category.getType(),
+              null,
+              category.getVat()
+          );
         })
         .collect(Collectors.toUnmodifiableList());
   }
@@ -156,13 +177,55 @@ public class TransactionCategoryRepositoryImpl implements TransactionCategoryRep
     return findDistinctByAccount(idAccount).stream()
         .map(c -> {
           if (!c.isUserDefined()) {
-            return jpaRepository.findByCriteriaOrderByCreatedDatetime(c.getIdAccount(),
-                c.getIdCategoryTemplate());
+            return findByCriteriaOrderByCreatedDatetime(
+                c.getIdAccount(),
+                null,
+                c.getIdCategoryTemplate(),
+                null
+            );
           }
-          return jpaRepository.findByCriteriaOrderByCreatedDatetime(idAccount, c.getType(),
-              c.getVat());
+          return findByCriteriaOrderByCreatedDatetime(
+              idAccount,
+              c.getType(),
+              null,
+              c.getVat()
+          );
         })
         .collect(Collectors.toUnmodifiableList());
+  }
+
+  public HTransactionCategory findByCriteriaOrderByCreatedDatetime(
+      String idAccount,
+      String type,
+      String idCategoryTemplate,
+      Integer vat
+  ) {
+    CriteriaBuilder builder = entityManager.getCriteriaBuilder();
+    CriteriaQuery<HTransactionCategory> query = builder.createQuery(HTransactionCategory.class);
+    Root<HTransactionCategory> root = query.from(HTransactionCategory.class);
+    Order order = builder.desc(root.get(CREATED_DATETIME_ATTRIBUTE));
+
+    Predicate hasIdAccount = builder.equal(root.get(ID_ACCOUNT_ATTRIBUTE), idAccount);
+    if (vat == null) {
+      Predicate hasNullType = builder.isNull(root.get(TYPE_ATTRIBUTE));
+      Predicate hasNullVat = builder.isNull(root.get(VAT_ATTRIBUTE));
+      Predicate hasIdCategoryTemplate =
+          builder.equal(root.get(ID_CATEGORY_TMPL_ATTRIBUTE), idCategoryTemplate);
+      query.where(builder.and(hasIdAccount, hasNullType, hasNullVat, hasIdCategoryTemplate))
+          .orderBy(order);
+    } else {
+      Predicate hasType = builder.equal(root.get(TYPE_ATTRIBUTE), type);
+      Predicate hasVat =
+          builder.equal(root.get(VAT_ATTRIBUTE), vat);
+      Predicate hasNullIdCategoryTmpl = builder.isNull(root.get(ID_CATEGORY_TMPL_ATTRIBUTE));
+      query.where(builder.and(hasIdAccount, hasType, hasVat, hasNullIdCategoryTmpl))
+          .orderBy(order);
+    }
+    return entityManager
+        .createQuery(query)
+        .setMaxResults(1)
+        .getResultList()
+        .get(0);
   }
 
   private List<Selection<?>> transactionCategorySelections(Root<HTransactionCategory> root) {

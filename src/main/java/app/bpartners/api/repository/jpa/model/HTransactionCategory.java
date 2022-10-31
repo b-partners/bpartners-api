@@ -1,5 +1,6 @@
 package app.bpartners.api.repository.jpa.model;
 
+import java.time.Instant;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -12,6 +13,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import org.hibernate.annotations.CreationTimestamp;
 
 import static javax.persistence.GenerationType.IDENTITY;
 
@@ -28,6 +30,7 @@ public class HTransactionCategory {
   @Id
   @GeneratedValue(strategy = IDENTITY)
   private String id;
+  public static final String ID_TRANSACTION_ATTRIBUTE = "idTransaction";
   private String idTransaction;
   private String idAccount;
   public static final String ID_ACCOUNT_ATTRIBUTE = "idAccount";
@@ -42,7 +45,9 @@ public class HTransactionCategory {
 
   private String vat;
   public static final String VAT_ATTRIBUTE = "vat";
-
+  @CreationTimestamp
+  private Instant createdDatetime;
+  public static final String CREATED_DATETIME_ATTRIBUTE = "createdDatetime";
 
   public HTransactionCategory(
       String idAccount, String idCategoryTemplate, String type, String vat) {

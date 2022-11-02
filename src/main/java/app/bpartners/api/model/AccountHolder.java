@@ -20,8 +20,8 @@ public class AccountHolder {
   private String tvaNumber;
   private String siren;
   private String accountId;
-  private String secondaryBusinessActivity;
-  private String businessActivityDescription;
+  private String mainActivity;
+  private String mainActivityDescription;
   private String mobilePhoneNumber;
   private String email;
 }

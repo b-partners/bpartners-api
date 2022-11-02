@@ -6,6 +6,8 @@ import app.bpartners.api.endpoint.rest.api.UserAccountsApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
 import app.bpartners.api.endpoint.rest.model.AccountHolder;
+import app.bpartners.api.endpoint.rest.model.BusinessActivity;
+import app.bpartners.api.endpoint.rest.model.CompanyInfo;
 import app.bpartners.api.endpoint.rest.model.ContactAddress;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
 import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
@@ -77,12 +79,27 @@ class AccountHolderIT {
     return new AccountHolder()
         .id(joeDoeSwanAccountHolder().getId())
         .name(joeDoeSwanAccountHolder().getInfo().getName())
+        .siren(joeDoeSwanAccountHolder().getInfo().getRegistrationNumber())
+        .officialActivityName(joeDoeSwanAccountHolder().getInfo().getBusinessActivity())
+        .companyInfo(new CompanyInfo()
+            .phone("+33 6 11 22 33 44")
+            .email("numer@hei.school")
+            .socialCapital(String.valueOf(40000))
+            .tvaNumber("FR 32 123456789")
+            //TODO: remove when business activities are set
+            .businessActivity(new BusinessActivity()
+                .primary(null)
+                .secondary(null)))
         .contactAddress(new ContactAddress()
             .address(joeDoeSwanAccountHolder().getResidencyAddress().getAddressLine1())
             .city(joeDoeSwanAccountHolder().getResidencyAddress().getCity())
             .country(joeDoeSwanAccountHolder().getResidencyAddress().getCountry())
-            .postalCode(joeDoeSwanAccountHolder().getResidencyAddress().getPostalCode())
-        );
+            .postalCode(joeDoeSwanAccountHolder().getResidencyAddress().getPostalCode()))
+        // /!\ Deprecated : just use contactAddress
+        .address(joeDoeSwanAccountHolder().getResidencyAddress().getAddressLine1())
+        .city(joeDoeSwanAccountHolder().getResidencyAddress().getCity())
+        .country(joeDoeSwanAccountHolder().getResidencyAddress().getCountry())
+        .postalCode(joeDoeSwanAccountHolder().getResidencyAddress().getPostalCode());
   }
 
   @Test

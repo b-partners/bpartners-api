@@ -1125,6 +1125,14 @@ components:
           type: string
         name:
           type: string
+        address:
+          type: string
+        city:
+          type: string
+        country:
+          type: string
+        postalCode:
+          type: string
         siren:
           type: string
         officialActivityName:

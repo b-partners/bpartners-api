@@ -2,6 +2,7 @@ package app.bpartners.api.integration.conf;
 
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
+import app.bpartners.api.endpoint.rest.model.BusinessActivity;
 import app.bpartners.api.endpoint.rest.model.CreateInvoiceRelaunchConf;
 import app.bpartners.api.endpoint.rest.model.CreateProduct;
 import app.bpartners.api.endpoint.rest.model.Customer;
@@ -30,7 +31,6 @@ import app.bpartners.api.repository.swan.model.SwanUser;
 import app.bpartners.api.repository.swan.model.Transaction;
 import app.bpartners.api.service.aws.SesService;
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.net.ServerSocket;
 import java.net.URISyntaxException;
 import java.net.http.HttpResponse;
@@ -433,6 +433,19 @@ public class TestUtils {
         .draftRelaunch(2)
         .unpaidRelaunch(2);
   }
+
+  public static BusinessActivity businessActivity1() {
+    return new BusinessActivity()
+        .id("businessActivityTemplate1_id")
+        .name("IT");
+  }
+
+  public static BusinessActivity businessActivity2() {
+    return new BusinessActivity()
+        .id("businessActivityTemplate2_id")
+        .name("TECHNOLOGY");
+  }
+
 
   public static ApiClient anApiClient(String token, int serverPort) {
     ApiClient client = new ApiClient();

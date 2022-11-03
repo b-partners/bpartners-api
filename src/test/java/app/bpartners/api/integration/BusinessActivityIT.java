@@ -5,10 +5,7 @@ import app.bpartners.api.endpoint.event.S3Conf;
 import app.bpartners.api.endpoint.rest.api.UserAccountsApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
-import app.bpartners.api.endpoint.rest.model.AccountHolder;
-import app.bpartners.api.endpoint.rest.model.CompanyBusinessActivity;
-import app.bpartners.api.endpoint.rest.model.CompanyInfo;
-import app.bpartners.api.endpoint.rest.model.ContactAddress;
+import app.bpartners.api.endpoint.rest.model.BusinessActivity;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
 import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
 import app.bpartners.api.integration.conf.AbstractContextInitializer;
@@ -28,8 +25,8 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
-import static app.bpartners.api.integration.conf.TestUtils.joeDoeSwanAccountHolder;
+import static app.bpartners.api.integration.conf.TestUtils.businessActivity1;
+import static app.bpartners.api.integration.conf.TestUtils.businessActivity2;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountHolderSwanRep;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountSwanRepository;
 import static app.bpartners.api.integration.conf.TestUtils.setUpSwanComponent;
@@ -39,9 +36,9 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @Testcontainers
-@ContextConfiguration(initializers = AccountHolderIT.ContextInitializer.class)
+@ContextConfiguration(initializers = BusinessActivityIT.ContextInitializer.class)
 @AutoConfigureMockMvc
-class AccountHolderIT {
+class BusinessActivityIT {
   @MockBean
   private SentryConf sentryConf;
   @MockBean
@@ -75,41 +72,15 @@ class AccountHolderIT {
     return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN, ContextInitializer.SERVER_PORT);
   }
 
-  AccountHolder joeDoeAccountHolder() {
-    return new AccountHolder()
-        .id(joeDoeSwanAccountHolder().getId())
-        .name(joeDoeSwanAccountHolder().getInfo().getName())
-        .siren(joeDoeSwanAccountHolder().getInfo().getRegistrationNumber())
-        .officialActivityName(joeDoeSwanAccountHolder().getInfo().getBusinessActivity())
-        .companyInfo(new CompanyInfo()
-            .phone("+33 6 11 22 33 44")
-            .email("numer@hei.school")
-            .socialCapital(String.valueOf(40000))
-            .tvaNumber("FR 32 123456789")
-            //TODO: remove when business activities are set
-            .businessActivity(new CompanyBusinessActivity()
-                .primary(null)
-                .secondary(null)))
-        .contactAddress(new ContactAddress()
-            .address(joeDoeSwanAccountHolder().getResidencyAddress().getAddressLine1())
-            .city(joeDoeSwanAccountHolder().getResidencyAddress().getCity())
-            .country(joeDoeSwanAccountHolder().getResidencyAddress().getCountry())
-            .postalCode(joeDoeSwanAccountHolder().getResidencyAddress().getPostalCode()))
-        // /!\ Deprecated : just use contactAddress
-        .address(joeDoeSwanAccountHolder().getResidencyAddress().getAddressLine1())
-        .city(joeDoeSwanAccountHolder().getResidencyAddress().getCity())
-        .country(joeDoeSwanAccountHolder().getResidencyAddress().getCountry())
-        .postalCode(joeDoeSwanAccountHolder().getResidencyAddress().getPostalCode());
-  }
-
   @Test
-  void read_account_holders_ok() throws ApiException {
+  void read_business_activities_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
     UserAccountsApi api = new UserAccountsApi(joeDoeClient);
 
-    List<AccountHolder> actual = api.getAccountHolders(TestUtils.JOE_DOE_ID, JOE_DOE_ACCOUNT_ID);
+    List<BusinessActivity> actual = api.getBusinessActivities(1, 10);
 
-    assertTrue(actual.contains(joeDoeAccountHolder()));
+    assertTrue(actual.contains(businessActivity1()));
+    assertTrue(actual.contains(businessActivity2()));
   }
 
   static class ContextInitializer extends AbstractContextInitializer {

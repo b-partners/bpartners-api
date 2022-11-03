@@ -986,6 +986,41 @@ paths:
           $ref: '#/components/responses/429'
         500:
           $ref: '#/components/responses/500'
+  /businessActivities:
+    get:
+      summary: Get all business activities pre-inserted by admin.
+      tags:
+        - User Accounts
+      operationId: getBusinessActivities
+      parameters:
+        - in: query
+          name: page
+          schema:
+            $ref: '#/components/schemas/Page'
+        - in: query
+          name: pageSize
+          schema:
+            $ref: '#/components/schemas/PageSize'
+      responses:
+        200:
+          description: List of business activities
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BusinessActivity'
+        400:
+          $ref: '#/components/responses/400'
+        403:
+          $ref: '#/components/responses/403'
+        404:
+          $ref: '#/components/responses/404'
+        429:
+          $ref: '#/components/responses/429'
+        500:
+          $ref: '#/components/responses/500'
+
 components:
   securitySchemes:
     BearerAuth:
@@ -1164,13 +1199,20 @@ components:
         tvaNumber:
           type: string
         businessActivity:
-          $ref: '#/components/schemas/BusinessActivity'
-    BusinessActivity:
+          $ref: '#/components/schemas/CompanyBusinessActivity'
+    CompanyBusinessActivity:
       type: object
       properties:
         primary:
           type: string
         secondary:
+          type: string
+    BusinessActivity:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
           type: string
     Account:
       properties:

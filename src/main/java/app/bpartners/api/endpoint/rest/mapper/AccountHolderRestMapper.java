@@ -1,7 +1,7 @@
 package app.bpartners.api.endpoint.rest.mapper;
 
 
-import app.bpartners.api.endpoint.rest.model.BusinessActivity;
+import app.bpartners.api.endpoint.rest.model.CompanyBusinessActivity;
 import app.bpartners.api.endpoint.rest.model.CompanyInfo;
 import app.bpartners.api.endpoint.rest.model.ContactAddress;
 import app.bpartners.api.endpoint.rest.validator.AccountHolderValidator;
@@ -31,7 +31,7 @@ public class AccountHolderRestMapper {
         .tvaNumber(accountHolder.getTvaNumber())
         .socialCapital(String.valueOf(accountHolder.getSocialCapital()))
         //TODO: set business activities
-        .businessActivity(new BusinessActivity()
+        .businessActivity(new CompanyBusinessActivity()
             .primary(null)
             .secondary(null));
     restAccountHolder.setId(accountHolder.getId());

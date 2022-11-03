@@ -110,6 +110,7 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
             new SelfAccountMatcher(GET, "/accounts/*/invoiceRelaunchConf")).authenticated()
         .requestMatchers(
             new SelfAccountMatcher(PUT, "/accounts/*/invoiceRelaunchConf")).authenticated()
+        .antMatchers(GET, "/businessActivities").authenticated()
         .antMatchers("/**").denyAll()
 
         // disable superfluous protections

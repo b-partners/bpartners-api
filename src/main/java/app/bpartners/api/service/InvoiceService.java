@@ -115,6 +115,7 @@ public class InvoiceService {
     }
     Invoice initializedInvoice = Invoice.builder()
         .id(invoice.getId())
+        .fileId(invoice.getFileId())
         .comment(invoice.getComment())
         .updatedAt(invoice.getUpdatedAt())
         .title(invoice.getTitle())

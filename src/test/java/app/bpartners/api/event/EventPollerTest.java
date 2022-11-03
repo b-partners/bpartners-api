@@ -2,7 +2,7 @@ package app.bpartners.api.event;
 
 import app.bpartners.api.endpoint.event.EventConsumer;
 import app.bpartners.api.endpoint.event.EventPoller;
-import app.bpartners.api.endpoint.event.model.gen.FileUploaded;
+import app.bpartners.api.endpoint.event.model.gen.FileSaved;
 import app.bpartners.api.endpoint.event.model.gen.MailSent;
 import app.bpartners.api.endpoint.rest.model.FileType;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -61,7 +61,7 @@ class EventPollerTest {
   void non_empty_messages_triggers_eventConsumer() {
     ReceiveMessageResponse response = ReceiveMessageResponse.builder()
         .messages(
-            someMessage(FileUploaded.class),
+            someMessage(FileSaved.class),
             someMessage(Exception.class),
             someMessage(MailSent.class))
         .build();
@@ -77,12 +77,12 @@ class EventPollerTest {
     // First ackTypedEvent
     var ackTypedEvent0 = ackTypedEvents.get(0);
     var typeEvent0 = ackTypedEvent0.getTypedEvent();
-    assertEquals(FileUploaded.class.getTypeName(), typeEvent0.getTypeName());
-    FileUploaded fileUploaded = (FileUploaded) typeEvent0.getPayload();
-    assertFalse(fileUploaded.getAccountId().isEmpty());
-    assertFalse(fileUploaded.getFileId().isEmpty());
-    assertNotNull(fileUploaded.getFileType());
-    assertEquals(0, fileUploaded.getFileAsBytes().length);
+    assertEquals(FileSaved.class.getTypeName(), typeEvent0.getTypeName());
+    FileSaved fileSaved = (FileSaved) typeEvent0.getPayload();
+    assertFalse(fileSaved.getAccountId().isEmpty());
+    assertFalse(fileSaved.getFileId().isEmpty());
+    assertNotNull(fileSaved.getFileType());
+    assertEquals(0, fileSaved.getFileAsBytes().length);
     // Second ackTypedEvent
     var ackTypedEvent1 = ackTypedEvents.get(1);
     var typeEvent1 = ackTypedEvent1.getTypedEvent();
@@ -103,7 +103,7 @@ class EventPollerTest {
 
   private String messageBody(Class<?> clazz) {
     String eventId = randomUUID().toString();
-    if (clazz.getTypeName().equals(FileUploaded.class.getTypeName())) {
+    if (clazz.getTypeName().equals(FileSaved.class.getTypeName())) {
       return "{\n"
           + "    \"version\": \"0\",\n"
           + "    \"id\": \" " + eventId + "\",\n"
@@ -117,8 +117,7 @@ class EventPollerTest {
           + "        \"fileType\": \"" + FileType.INVOICE + "\",\n"
           + "        \"accountId\": \"" + JOE_DOE_ACCOUNT_ID + "\",\n"
           + "        \"fileId\": \"" + FILE_ID + "\",\n"
-          + "        \"fileAsBytes\": [],\n"
-          + "        \"invoiceId\": null\n"
+          + "        \"fileAsBytes\": []\n"
           + "    }\n"
           + "}";
     }

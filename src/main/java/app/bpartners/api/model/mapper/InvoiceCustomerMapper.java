@@ -3,9 +3,7 @@ package app.bpartners.api.model.mapper;
 import app.bpartners.api.model.CustomerTemplate;
 import app.bpartners.api.model.InvoiceCustomer;
 import app.bpartners.api.repository.CustomerRepository;
-import app.bpartners.api.repository.jpa.InvoiceJpaRepository;
 import app.bpartners.api.repository.jpa.model.HCustomerTemplate;
-import app.bpartners.api.repository.jpa.model.HInvoice;
 import app.bpartners.api.repository.jpa.model.HInvoiceCustomer;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -14,7 +12,6 @@ import org.springframework.stereotype.Component;
 @AllArgsConstructor
 public class InvoiceCustomerMapper {
   private final CustomerRepository customerRepository;
-  private final InvoiceJpaRepository invoiceJpaRepository;
   private final CustomerMapper customerMapper;
 
   public InvoiceCustomer toDomain(HInvoiceCustomer entity) {
@@ -32,17 +29,15 @@ public class InvoiceCustomerMapper {
         .country(customerTemplate.getCountry())
         .build();
     invoiceCustomer.setId(entity.getId());
-    invoiceCustomer.setIdInvoice(entity.getInvoice().getId());
     return refreshValues(invoiceCustomer, entity);
   }
 
   public HInvoiceCustomer toEntity(InvoiceCustomer domain) {
     CustomerTemplate customerTemplate = customerRepository.findById(domain.getCustomerId());
-    HInvoice invoice = invoiceJpaRepository.getById(domain.getIdInvoice());
     return HInvoiceCustomer.builder()
         .id(domain.getId())
         .customerTemplate(customerMapper.toEntity(customerTemplate))
-        .invoice(invoice)
+        .idInvoice(domain.getIdInvoice())
         .email(domain.getEmail())
         .phone(domain.getPhone())
         .website(domain.getWebsite())

@@ -2,9 +2,11 @@ package app.bpartners.api.endpoint.event;
 
 import app.bpartners.api.endpoint.event.EventConsumer.AcknowledgeableTypedEvent;
 import app.bpartners.api.endpoint.event.model.TypedEvent;
-import app.bpartners.api.endpoint.event.model.TypedFileUploaded;
+import app.bpartners.api.endpoint.event.model.TypedFileSaved;
+import app.bpartners.api.endpoint.event.model.TypedInvoiceCrupdated;
 import app.bpartners.api.endpoint.event.model.TypedMailSent;
-import app.bpartners.api.endpoint.event.model.gen.FileUploaded;
+import app.bpartners.api.endpoint.event.model.gen.FileSaved;
+import app.bpartners.api.endpoint.event.model.gen.InvoiceCrupdated;
 import app.bpartners.api.endpoint.event.model.gen.MailSent;
 import app.bpartners.api.model.exception.BadRequestException;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -27,6 +29,7 @@ import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
 @Slf4j
 public class EventPoller {
 
+  public static final String DETAIL_PROPERTY = "detail";
   private final String queueUrl;
   private final SqsClient sqsClient;
   private final ObjectMapper om;
@@ -92,12 +95,16 @@ public class EventPoller {
     };
     Map<String, Object> body = om.readValue(message.body(), typeRef);
     String typeName = body.get("detail-type").toString();
-    if (FileUploaded.class.getTypeName().equals(typeName)) {
-      FileUploaded fileUploaded = om.convertValue(body.get("detail"), FileUploaded.class);
-      typedEvent = new TypedFileUploaded(fileUploaded);
+    if (FileSaved.class.getTypeName().equals(typeName)) {
+      FileSaved fileSaved = om.convertValue(body.get(DETAIL_PROPERTY), FileSaved.class);
+      typedEvent = new TypedFileSaved(fileSaved);
     } else if (MailSent.class.getTypeName().equals(typeName)) {
-      MailSent mailSent = om.convertValue(body.get("detail"), MailSent.class);
+      MailSent mailSent = om.convertValue(body.get(DETAIL_PROPERTY), MailSent.class);
       typedEvent = new TypedMailSent(mailSent);
+    } else if (InvoiceCrupdated.class.getTypeName().equals(typeName)) {
+      InvoiceCrupdated invoiceCrupdated =
+          om.convertValue(body.get(DETAIL_PROPERTY), InvoiceCrupdated.class);
+      typedEvent = new TypedInvoiceCrupdated(invoiceCrupdated);
     } else {
       throw new BadRequestException("Unexpected message type for message=" + message);
     }

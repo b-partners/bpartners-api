@@ -2,9 +2,9 @@ package app.bpartners.api.event;
 
 import app.bpartners.api.endpoint.event.EventConsumer;
 import app.bpartners.api.endpoint.event.EventServiceInvoker;
-import app.bpartners.api.endpoint.event.model.TypedFileUploaded;
+import app.bpartners.api.endpoint.event.model.TypedFileSaved;
 import app.bpartners.api.endpoint.event.model.TypedMailSent;
-import app.bpartners.api.endpoint.event.model.gen.FileUploaded;
+import app.bpartners.api.endpoint.event.model.gen.FileSaved;
 import app.bpartners.api.endpoint.event.model.gen.MailSent;
 import app.bpartners.api.endpoint.rest.model.FileType;
 import java.time.Duration;
@@ -12,7 +12,6 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static app.bpartners.api.integration.conf.TestUtils.INVOICE1_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -33,10 +32,9 @@ class EventConsumerTest {
 
   @Test
   void file_upload_event_is_ack_if_eventServiceInvoker_succeeded() {
-    TypedFileUploaded fileUploaded = new TypedFileUploaded(FileUploaded.builder()
+    TypedFileSaved fileUploaded = new TypedFileSaved(FileSaved.builder()
         .fileId(null)
         .fileType(FileType.INVOICE)
-        .invoiceId(INVOICE1_ID)
         .fileAsBytes(null)
         .accountId(JOE_DOE_ACCOUNT_ID)
         .build());
@@ -52,10 +50,9 @@ class EventConsumerTest {
 
   @Test
   void file_upload_event_is_not_ack_if_eventServiceInvoker_failed() {
-    TypedFileUploaded fileUploaded = new TypedFileUploaded(FileUploaded.builder()
+    TypedFileSaved fileUploaded = new TypedFileSaved(FileSaved.builder()
         .fileId(null)
         .fileType(FileType.INVOICE)
-        .invoiceId(INVOICE1_ID)
         .fileAsBytes(null)
         .accountId(JOE_DOE_ACCOUNT_ID)
         .build());

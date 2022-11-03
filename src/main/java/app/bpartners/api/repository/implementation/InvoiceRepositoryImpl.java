@@ -18,15 +18,12 @@ import app.bpartners.api.repository.jpa.model.HProduct;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import javax.transaction.Transactional;
 import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Repository;
 
 @Repository
 @AllArgsConstructor
-@Slf4j
 public class InvoiceRepositoryImpl implements InvoiceRepository {
   private final InvoiceJpaRepository jpaRepository;
   private final ProductJpaRepository productJpaRepository;
@@ -36,7 +33,6 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
   private final InvoiceProductJpaRepository ipJpaRepository;
   private final ProductMapper productMapper;
 
-  @Transactional
   @Override
   public Invoice crupdate(Invoice toCrupdate) {
     HInvoice entity = jpaRepository.save(mapper.toEntity(toCrupdate));
@@ -62,7 +58,7 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
     }
     HInvoice invoice = optionalInvoice.get();
     HInvoiceCustomer invoiceCustomer = customerJpaRepository
-        .findTopByInvoice_IdOrderByCreatedDatetimeDesc(invoice.getId());
+        .findTopByIdInvoiceOrderByCreatedDatetimeDesc(invoice.getId());
     return mapper.toDomain(invoice, invoiceCustomer, List.of());
   }
 
@@ -72,7 +68,7 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
     if (optionalInvoice.isPresent()) {
       HInvoice invoice = optionalInvoice.get();
       HInvoiceCustomer invoiceCustomer = customerJpaRepository
-          .findTopByInvoice_IdOrderByCreatedDatetimeDesc(invoice.getId());
+          .findTopByIdInvoiceOrderByCreatedDatetimeDesc(invoice.getId());
       return Optional.of(mapper.toDomain(invoice, invoiceCustomer, List.of()));
     }
     return Optional.empty();
@@ -85,7 +81,7 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
             accountId, status, PageRequest.of(page, pageSize)).stream()
         .map(invoice -> {
           HInvoiceCustomer invoiceCustomer = customerJpaRepository
-              .findTopByInvoice_IdOrderByCreatedDatetimeDesc(invoice.getId());
+              .findTopByIdInvoiceOrderByCreatedDatetimeDesc(invoice.getId());
           return mapper.toDomain(invoice, invoiceCustomer, List.of());
         })
         .collect(Collectors.toUnmodifiableList());
@@ -98,7 +94,7 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
                 pageSize)).stream()
         .map(invoice -> {
           HInvoiceCustomer invoiceCustomer = customerJpaRepository
-              .findTopByInvoice_IdOrderByCreatedDatetimeDesc(invoice.getId());
+              .findTopByIdInvoiceOrderByCreatedDatetimeDesc(invoice.getId());
           return mapper.toDomain(invoice, invoiceCustomer, List.of());
         })
         .collect(Collectors.toUnmodifiableList());

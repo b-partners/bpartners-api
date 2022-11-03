@@ -10,7 +10,6 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
@@ -20,7 +19,6 @@ import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PROPOSAL;
 
 @Component
 @AllArgsConstructor
-@Slf4j
 public class InvoiceValidator implements Consumer<Invoice> {
   private final InvoiceRepository repository;
 

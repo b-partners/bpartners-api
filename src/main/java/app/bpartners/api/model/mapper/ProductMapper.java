@@ -3,12 +3,11 @@ package app.bpartners.api.model.mapper;
 import app.bpartners.api.model.Product;
 import app.bpartners.api.repository.jpa.model.HInvoiceProduct;
 import app.bpartners.api.repository.jpa.model.HProduct;
-import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
+
 import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 
 @Component
-@AllArgsConstructor
 public class ProductMapper {
   public Product toDomain(HProduct entity) {
     return Product.builder()

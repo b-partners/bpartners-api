@@ -31,6 +31,12 @@ public class FileInfoRepositoryImpl implements FileRepository {
   }
 
   @Override
+  public Optional<FileInfo> getOptionalById(String id) {
+    Optional<HFileInfo> optional = jpaRepository.findById(id);
+    return optional.map(mapper::toDomain);
+  }
+
+  @Override
   public FileInfo save(FileInfo file) {
     HFileInfo toSave = mapper.toEntity(file);
     return mapper.toDomain(jpaRepository.save(toSave));

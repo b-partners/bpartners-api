@@ -2,6 +2,7 @@ package app.bpartners.api.service;
 
 import app.bpartners.api.endpoint.event.model.gen.FileUploaded;
 import app.bpartners.api.endpoint.rest.model.FileType;
+import app.bpartners.api.model.Invoice;
 import java.util.function.Consumer;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +23,8 @@ public class FileUploadedService implements Consumer<FileUploaded> {
     String fileId = fileUploaded.getFileId();
     byte[] fileAsBytes = fileUploaded.getFileAsBytes();
     if (invoiceId != null) {
-      invoiceService.persistFileId(invoiceId);
+      Invoice actual = invoiceService.persistFileId(invoiceId);
+      fileId = actual.getFileId();
     }
     fileService.saveChecksum(fileId, fileType, accountId, fileAsBytes);
   }

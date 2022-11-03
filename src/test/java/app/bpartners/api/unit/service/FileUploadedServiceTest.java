@@ -41,9 +41,11 @@ class FileUploadedServiceTest {
     FileType fileType = INVOICE;
     String accountId = JOE_DOE_ACCOUNT_ID;
     String invoiceId = INVOICE1_ID;
+    when(invoiceService.persistFileId(invoiceId)).thenReturn(
+        Invoice.builder().fileId(fileId).build());
 
     fileUploadedService.accept(FileUploaded.builder()
-        .fileId(fileId)
+        .fileId(null)
         .fileType(fileType)
         .accountId(accountId)
         .invoiceId(invoiceId)

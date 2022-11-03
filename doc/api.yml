@@ -249,12 +249,12 @@ paths:
           $ref: '#/components/responses/429'
         500:
           $ref: '#/components/responses/500'
-  /users/{userId}/accounts/{accountId}/accountHolders/{ahId}:
+  /users/{userId}/accounts/{accountId}/accountHolders/{ahId}/companyInfo:
     put:
       tags:
         - User Accounts
       summary: Update company info of an account holder
-      operationId: updateAccountHolders
+      operationId: updateCompanyInfo
       parameters:
         - in: path
           name: userId
@@ -276,6 +276,50 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/CompanyInfo'
+      responses:
+        200:
+          description: The account holder with company information update
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountHolder'
+        400:
+          $ref: '#/components/responses/400'
+        403:
+          $ref: '#/components/responses/403'
+        404:
+          $ref: '#/components/responses/404'
+        429:
+          $ref: '#/components/responses/429'
+        500:
+          $ref: '#/components/responses/500'
+  /users/{userId}/accounts/{accountId}/accountHolders/{ahId}/businessActivities:
+    put:
+      tags:
+        - User Accounts
+      summary: Update business activities of an account holder
+      operationId: updateBusinessActivities
+      parameters:
+        - in: path
+          name: userId
+          schema:
+            type: string
+          required: true
+        - in: path
+          name: accountId
+          schema:
+            type: string
+          required: true
+        - in: path
+          name: ahId
+          schema:
+            type: string
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CompanyBusinessActivity'
       responses:
         200:
           description: The account holder with company information update
@@ -1176,6 +1220,8 @@ components:
           $ref: '#/components/schemas/ContactAddress'
         companyInfo:
           $ref: '#/components/schemas/CompanyInfo'
+        businessActivities:
+          $ref: '#/components/schemas/CompanyBusinessActivity'
     ContactAddress:
       type: object
       properties:
@@ -1195,11 +1241,9 @@ components:
         email:
           type: string
         socialCapital:
-          type: string
+          type: integer
         tvaNumber:
           type: string
-        businessActivity:
-          $ref: '#/components/schemas/CompanyBusinessActivity'
     CompanyBusinessActivity:
       type: object
       properties:

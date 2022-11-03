@@ -1,6 +1,6 @@
 package app.bpartners.api.endpoint.rest.controller;
 
-import app.bpartners.api.endpoint.rest.mapper.BusinessActivityTemplateRestMapper;
+import app.bpartners.api.endpoint.rest.mapper.BusinessActivityRestMapper;
 import app.bpartners.api.endpoint.rest.model.BusinessActivity;
 import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.PageFromOne;
@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @AllArgsConstructor
 public class BusinessActivityTemplateController {
-  private final BusinessActivityTemplateRestMapper mapper;
+  private final BusinessActivityRestMapper mapper;
   private final BusinessActivityTemplateService templateService;
 
   @GetMapping("/businessActivities")

@@ -3,6 +3,8 @@ package app.bpartners.api.integration.conf;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
 import app.bpartners.api.endpoint.rest.model.BusinessActivity;
+import app.bpartners.api.endpoint.rest.model.CompanyBusinessActivity;
+import app.bpartners.api.endpoint.rest.model.CompanyInfo;
 import app.bpartners.api.endpoint.rest.model.CreateInvoiceRelaunchConf;
 import app.bpartners.api.endpoint.rest.model.CreateProduct;
 import app.bpartners.api.endpoint.rest.model.Customer;
@@ -52,6 +54,7 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 
 public class TestUtils {
+  public static final String BAD_ACCOUNT_HOLDER_ID = "bad_account_holder_id";
   public static final String JOE_DOE_ID = "joe_doe_id";
   public static final String JOE_DOE_SWAN_USER_ID = "c15924bf-61f9-4381-8c9b-d34369bf91f7";
   public static final String BAD_TOKEN = "bad_token";
@@ -446,6 +449,19 @@ public class TestUtils {
         .name("TECHNOLOGY");
   }
 
+  public static CompanyBusinessActivity companyBusinessActivity() {
+    return new CompanyBusinessActivity()
+        .primary("TECHNOLOGY")
+        .secondary("IT");
+  }
+
+  public static CompanyInfo companyInfo() {
+    return new CompanyInfo()
+        .email("anotherEmail@gmail.com")
+        .phone("+33 5 13 3234")
+        .socialCapital(40000)
+        .tvaNumber("123");
+  }
 
   public static ApiClient anApiClient(String token, int serverPort) {
     ApiClient client = new ApiClient();

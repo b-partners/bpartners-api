@@ -28,12 +28,18 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import static app.bpartners.api.integration.conf.TestUtils.BAD_ACCOUNT_HOLDER_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
+import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_SWAN_USER_ID;
+import static app.bpartners.api.integration.conf.TestUtils.assertThrowsApiException;
+import static app.bpartners.api.integration.conf.TestUtils.companyBusinessActivity;
+import static app.bpartners.api.integration.conf.TestUtils.companyInfo;
 import static app.bpartners.api.integration.conf.TestUtils.joeDoeSwanAccountHolder;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountHolderSwanRep;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountSwanRepository;
 import static app.bpartners.api.integration.conf.TestUtils.setUpSwanComponent;
 import static app.bpartners.api.integration.conf.TestUtils.setUpUserSwanRepository;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
@@ -63,6 +69,10 @@ class AccountHolderIT {
   @MockBean
   private SwanComponent swanComponentMock;
 
+  private static ApiClient anApiClient() {
+    return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN, ContextInitializer.SERVER_PORT);
+  }
+
   @BeforeEach
   public void setUp() {
     setUpSwanComponent(swanComponentMock);
@@ -71,11 +81,7 @@ class AccountHolderIT {
     setUpAccountHolderSwanRep(accountHolderRepositoryMock);
   }
 
-  private static ApiClient anApiClient() {
-    return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN, ContextInitializer.SERVER_PORT);
-  }
-
-  AccountHolder joeDoeAccountHolder() {
+  private static AccountHolder joeDoeAccountHolder() {
     return new AccountHolder()
         .id(joeDoeSwanAccountHolder().getId())
         .name(joeDoeSwanAccountHolder().getInfo().getName())
@@ -84,12 +90,11 @@ class AccountHolderIT {
         .companyInfo(new CompanyInfo()
             .phone("+33 6 11 22 33 44")
             .email("numer@hei.school")
-            .socialCapital(String.valueOf(40000))
-            .tvaNumber("FR 32 123456789")
-            //TODO: remove when business activities are set
-            .businessActivity(new CompanyBusinessActivity()
-                .primary(null)
-                .secondary(null)))
+            .socialCapital(40000)
+            .tvaNumber("FR 32 123456789"))
+        .businessActivities(new CompanyBusinessActivity()
+            .primary("IT")
+            .secondary("TECHNOLOGY"))
         .contactAddress(new ContactAddress()
             .address(joeDoeSwanAccountHolder().getResidencyAddress().getAddressLine1())
             .city(joeDoeSwanAccountHolder().getResidencyAddress().getCity())
@@ -110,6 +115,71 @@ class AccountHolderIT {
     List<AccountHolder> actual = api.getAccountHolders(TestUtils.JOE_DOE_ID, JOE_DOE_ACCOUNT_ID);
 
     assertTrue(actual.contains(joeDoeAccountHolder()));
+  }
+
+  @Test
+  void update_company_info_ok() throws ApiException {
+    ApiClient joeDoeClient = anApiClient();
+    UserAccountsApi api = new UserAccountsApi(joeDoeClient);
+
+    AccountHolder actual = api.updateCompanyInfo(JOE_DOE_SWAN_USER_ID, JOE_DOE_ACCOUNT_ID,
+        joeDoeAccountHolder().getId(), companyInfo());
+
+    assertEquals(expected().businessActivities(businessActivityBeforeUpdate()), actual);
+  }
+
+  @Test
+  void update_company_info_ko() {
+    ApiClient joeDoeClient = anApiClient();
+    UserAccountsApi api = new UserAccountsApi(joeDoeClient);
+
+    assertThrowsApiException(
+        "{"
+            + "\"type\":\"404 NOT_FOUND\","
+            + "\"message\":\"AccountHolder." + BAD_ACCOUNT_HOLDER_ID + " not found\""
+            + "}",
+        () -> api.updateCompanyInfo(JOE_DOE_SWAN_USER_ID, JOE_DOE_ACCOUNT_ID,
+            BAD_ACCOUNT_HOLDER_ID, companyInfo())
+    );
+  }
+
+
+  @Test
+  void update_business_activities_ok() throws ApiException {
+    ApiClient joeDoeClient = anApiClient();
+    UserAccountsApi api = new UserAccountsApi(joeDoeClient);
+
+    AccountHolder actual = api.updateBusinessActivities(JOE_DOE_SWAN_USER_ID, JOE_DOE_ACCOUNT_ID,
+        joeDoeAccountHolder().getId(), companyBusinessActivity());
+
+    assertEquals(expected(), actual);
+  }
+
+  @Test
+  void update_business_activities_ko() {
+    ApiClient joeDoeClient = anApiClient();
+    UserAccountsApi api = new UserAccountsApi(joeDoeClient);
+
+    assertThrowsApiException(
+        "{"
+            + "\"type\":\"404 NOT_FOUND\","
+            + "\"message\":\"AccountHolder." + BAD_ACCOUNT_HOLDER_ID + " not found\""
+            + "}",
+        () -> api.updateCompanyInfo(JOE_DOE_SWAN_USER_ID, JOE_DOE_ACCOUNT_ID,
+            BAD_ACCOUNT_HOLDER_ID, companyInfo())
+    );
+  }
+
+  private static AccountHolder expected() {
+    return joeDoeAccountHolder()
+        .businessActivities(companyBusinessActivity())
+        .companyInfo(companyInfo());
+  }
+
+  private static CompanyBusinessActivity businessActivityBeforeUpdate() {
+    return new CompanyBusinessActivity()
+        .primary("IT")
+        .secondary("TECHNOLOGY");
   }
 
   static class ContextInitializer extends AbstractContextInitializer {

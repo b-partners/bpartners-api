@@ -111,6 +111,9 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
         .requestMatchers(
             new SelfAccountMatcher(PUT, "/accounts/*/invoiceRelaunchConf")).authenticated()
         .antMatchers(GET, "/businessActivities").authenticated()
+        .antMatchers(PUT, "/users/*/accounts/*/accountHolders/*/businessActivities").authenticated()
+        .antMatchers(PUT, "/users/*/accounts/*/accountHolders/*/companyInfo").authenticated()
+        //TODO: which SelfMatcher should I put here ?. And on line 87 ?
         .antMatchers("/**").denyAll()
 
         // disable superfluous protections

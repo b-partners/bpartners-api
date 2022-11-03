@@ -332,6 +332,6 @@ public class InvoiceService {
     if (status.equals(CONFIRMED) || status.equals(PAID)) {
       return "Facture";
     }
-    throw new BadRequestException("Unknown status " + status);
+    throw new BadRequestException("Unknown status : " + status);
   }
 }

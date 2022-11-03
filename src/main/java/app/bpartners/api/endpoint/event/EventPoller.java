@@ -46,7 +46,7 @@ public class EventPoller {
     this.eventConsumer = eventConsumer;
   }
 
-  @Scheduled(cron = "0 * * * * *")
+  @Scheduled(cron = "0/10 * * * * *")
   public void poll() {
     ReceiveMessageRequest receiveMessageRequest = ReceiveMessageRequest.builder()
         .queueUrl(queueUrl)

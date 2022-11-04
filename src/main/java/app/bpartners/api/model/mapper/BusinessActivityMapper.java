@@ -18,12 +18,9 @@ public class BusinessActivityMapper {
   public HBusinessActivity toEntity(BusinessActivity domain, String accountId) {
     HAccountHolder persistedAccountHolder =
         accountHolderJpaRepository.findByAccountId(accountId).get(0);
-
     return HBusinessActivity.builder()
         .id(domain.getId())
-        .accountHolder(
-            persistedAccountHolder
-        )
+        .accountHolder(persistedAccountHolder)
         .build();
   }
 
@@ -31,13 +28,19 @@ public class BusinessActivityMapper {
     AccountHolder authenticatedAccountHolder = accountHolderRepository.getByAccountId(
         entity.getAccountHolder().getAccountId()
     ).get(0);
-    return BusinessActivity.builder()
+
+    BusinessActivity activity = BusinessActivity.builder()
         .id(entity.getId())
+        .accountHolder(authenticatedAccountHolder)
         .primaryActivity(entity.getPrimaryActivity().getName())
         .secondaryActivity(entity.getSecondaryActivity().getName())
-        .accountHolder(
-            authenticatedAccountHolder
-        )
         .build();
+    if (entity.getOtherPrimaryActivity() != null) {
+      activity.setPrimaryActivity(entity.getOtherPrimaryActivity());
+    }
+    if (entity.getOtherSecondaryActivity() != null) {
+      activity.setSecondaryActivity(entity.getOtherSecondaryActivity());
+    }
+    return activity;
   }
 }

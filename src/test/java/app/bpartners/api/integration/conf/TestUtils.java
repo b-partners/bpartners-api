@@ -451,7 +451,7 @@ public class TestUtils {
 
   public static CompanyBusinessActivity companyBusinessActivity() {
     return new CompanyBusinessActivity()
-        .primary("TECHNOLOGY")
+        .primary("OTHER")
         .secondary("IT");
   }
 

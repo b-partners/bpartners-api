@@ -18,4 +18,6 @@ public class BusinessActivity {
   private AccountHolder accountHolder;
   private String primaryActivity;
   private String secondaryActivity;
+  private String otherPrimaryActivity;
+  private String otherSecondaryActivity;
 }

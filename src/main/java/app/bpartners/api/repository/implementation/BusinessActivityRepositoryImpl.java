@@ -33,8 +33,15 @@ public class BusinessActivityRepositoryImpl implements BusinessActivityRepositor
     Optional<HBusinessActivityTemplate> template2 =
         templateRepository.findByNameIgnoreCase(businessActivity.getSecondaryActivity());
 
-    template1.ifPresent(entity::setPrimaryActivity);
-    template2.ifPresent(entity::setSecondaryActivity);
+    template1.ifPresent(template -> {
+      entity.setPrimaryActivity(template);
+      entity.setOtherPrimaryActivity(null);
+    });
+
+    template2.ifPresent(template -> {
+      entity.setSecondaryActivity(template);
+      entity.setOtherSecondaryActivity(null);
+    });
 
     if (template1.isEmpty()) {
       entity.setOtherPrimaryActivity(businessActivity.getPrimaryActivity());
@@ -43,11 +50,7 @@ public class BusinessActivityRepositoryImpl implements BusinessActivityRepositor
       entity.setOtherSecondaryActivity(businessActivity.getSecondaryActivity());
     }
 
-    return domainMapper.toDomain(
-        jpaRepository.save(
-            entity
-        )
-    );
+    return domainMapper.toDomain(jpaRepository.save(entity));
   }
 
   @Override

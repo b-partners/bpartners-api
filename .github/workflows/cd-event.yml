@@ -38,10 +38,10 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
           
-      - name: Deploy storage stack
+      - name: Deploy event stack
         uses: aws-actions/aws-cloudformation-github-deploy@v1
         with:
-          name: ${{ env.branch_env }}-storage-bpartners
+          name: ${{ env.branch_env }}-event-bpartners
           template: cf-stacks/event-stack.yml
           tags: "[ { \"Key\": \"app\", \"Value\": \"bpartners\" }, { \"Key\": \"env\", \"Value\": \"${{ env.branch_env }}\" } ]"
           capabilities: CAPABILITY_NAMED_IAM

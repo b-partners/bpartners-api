@@ -57,7 +57,7 @@ public abstract class S3AbstractContextInitializer
         "server.port=" + this.getServerPort(),
         "aws.cognito.userPool.id=eu-west-3_vq2jlNjq7",
         "aws.eventBridge.bus=dummy",
-        "aws.sqs.queueUrl=dummy",
+        "aws.sqs.mailboxUrl=dummy",
         "spring.datasource.url=" + postgresContainer.getJdbcUrl(),
         "spring.datasource.username=" + postgresContainer.getUsername(),
         "spring.datasource.password=" + postgresContainer.getPassword(),

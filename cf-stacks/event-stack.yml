@@ -50,7 +50,10 @@ Resources:
       EventBusName: !GetAtt EventBridgeBus.Name
       EventPattern:
         Source:
-          - aws.ecs
+          - app.bpartners.api
+      Targets:
+        - Arn: !GetAtt MailboxQueue.Arn
+          Id: !Join ['', [!Ref Env, -bpartners, -api-mailbox]]
   EventBridgeBusNameSSM:
     Type: AWS::SSM::Parameter
     Properties:

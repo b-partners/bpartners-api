@@ -52,7 +52,7 @@ Resources:
               Value: !Sub '{{resolve:ssm:/bpartners/${Env}/cognito/userpool-id}}'
             - Name: AWS_EVENTBRIDGE_BUS
               Value: !Sub '{{resolve:ssm:/bpartners/${Env}/eventbridge/bus-name}}'
-            - Name: AWS_SQS_QUEUEURL
+            - Name: AWS_SQS_MAILBOXURL
               Value: !Sub '{{resolve:ssm:/bpartners/${Env}/sqs/mailbox-queue-url}}'
             - Name: SPRING_DATASOURCE_URL
               Value: !Sub '{{resolve:ssm:/bpartners/${Env}/db/url}}'

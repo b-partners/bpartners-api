@@ -53,7 +53,7 @@ Resources:
           - app.bpartners.api
       Targets:
         - Arn: !GetAtt MailboxQueue.Arn
-          Id: "BP001/22"
+          Id: !Join ['', [!Ref Env, -bpartners, -api-mailbox]]
   EventBridgeBusNameSSM:
     Type: AWS::SSM::Parameter
     Properties:

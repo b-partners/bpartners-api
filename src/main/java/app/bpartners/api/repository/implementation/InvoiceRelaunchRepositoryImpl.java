@@ -1,12 +1,12 @@
 package app.bpartners.api.repository.implementation;
 
 import app.bpartners.api.endpoint.rest.model.RelaunchType;
+import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.InvoiceRelaunch;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.mapper.InvoiceRelaunchMapper;
 import app.bpartners.api.repository.InvoiceRelaunchRepository;
 import app.bpartners.api.repository.jpa.InvoiceRelaunchJpaRepository;
-import app.bpartners.api.repository.jpa.model.HInvoice;
 import app.bpartners.api.repository.jpa.model.HInvoiceRelaunch;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -23,7 +23,7 @@ public class InvoiceRelaunchRepositoryImpl implements InvoiceRelaunchRepository 
   private final InvoiceRelaunchMapper invoiceRelaunchMapper;
 
   @Override
-  public List<InvoiceRelaunch> getInvoiceRelaunchesByInvoiceId(
+  public List<InvoiceRelaunch> getByInvoiceId(
       String invoiceId, String type, Pageable pageable) {
     if (type == null) {
       return invoiceRelaunchJpaRepository
@@ -45,7 +45,7 @@ public class InvoiceRelaunchRepositoryImpl implements InvoiceRelaunchRepository 
   }
 
   @Override
-  public InvoiceRelaunch save(HInvoice invoice) {
+  public InvoiceRelaunch save(Invoice invoice) {
     HInvoiceRelaunch toSave = invoiceRelaunchMapper.toEntity(invoice);
     return invoiceRelaunchMapper
         .toDomain(invoiceRelaunchJpaRepository.save(toSave));

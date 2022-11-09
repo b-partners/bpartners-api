@@ -796,6 +796,7 @@ paths:
           $ref: '#/components/responses/429'
         500:
           $ref: '#/components/responses/500'
+  /accounts/{aId}/invoices/{iId}/relaunch:
     post:
       tags:
         - Paying
@@ -814,6 +815,11 @@ paths:
           schema:
             type: string
           required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateInvoiceRelaunch'
       responses:
         200:
           description: The invoice relaunch
@@ -1524,6 +1530,13 @@ components:
         updatedAt:
           type: string
           format: date-time
+    CreateInvoiceRelaunch:
+      type: object
+      properties:
+        subject:
+          type: string
+        message:
+          type: string
     InvoiceRelaunch:
       type: object
       properties:

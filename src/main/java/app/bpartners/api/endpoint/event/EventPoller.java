@@ -4,10 +4,10 @@ import app.bpartners.api.endpoint.event.EventConsumer.AcknowledgeableTypedEvent;
 import app.bpartners.api.endpoint.event.model.TypedEvent;
 import app.bpartners.api.endpoint.event.model.TypedFileSaved;
 import app.bpartners.api.endpoint.event.model.TypedInvoiceCrupdated;
-import app.bpartners.api.endpoint.event.model.TypedMailSent;
+import app.bpartners.api.endpoint.event.model.TypedInvoiceRelaunchSaved;
 import app.bpartners.api.endpoint.event.model.gen.FileSaved;
 import app.bpartners.api.endpoint.event.model.gen.InvoiceCrupdated;
-import app.bpartners.api.endpoint.event.model.gen.MailSent;
+import app.bpartners.api.endpoint.event.model.gen.InvoiceRelaunchSaved;
 import app.bpartners.api.model.exception.BadRequestException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -49,7 +49,7 @@ public class EventPoller {
     this.eventConsumer = eventConsumer;
   }
 
-  @Scheduled(cron = "0/10 * * * * *")
+  @Scheduled(cron = "0/30 * * * * *")
   public void poll() {
     ReceiveMessageRequest receiveMessageRequest = ReceiveMessageRequest.builder()
         .queueUrl(queueUrl)
@@ -98,9 +98,11 @@ public class EventPoller {
     if (FileSaved.class.getTypeName().equals(typeName)) {
       FileSaved fileSaved = om.convertValue(body.get(DETAIL_PROPERTY), FileSaved.class);
       typedEvent = new TypedFileSaved(fileSaved);
-    } else if (MailSent.class.getTypeName().equals(typeName)) {
-      MailSent mailSent = om.convertValue(body.get(DETAIL_PROPERTY), MailSent.class);
-      typedEvent = new TypedMailSent(mailSent);
+    } else if (InvoiceRelaunchSaved.class.getTypeName().equals(typeName)) {
+      InvoiceRelaunchSaved
+          invoiceRelaunchSaved =
+          om.convertValue(body.get(DETAIL_PROPERTY), InvoiceRelaunchSaved.class);
+      typedEvent = new TypedInvoiceRelaunchSaved(invoiceRelaunchSaved);
     } else if (InvoiceCrupdated.class.getTypeName().equals(typeName)) {
       InvoiceCrupdated invoiceCrupdated =
           om.convertValue(body.get(DETAIL_PROPERTY), InvoiceCrupdated.class);

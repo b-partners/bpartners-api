@@ -9,5 +9,5 @@ public interface TransactionRepository {
 
   Transaction updateType(String swanTransactionId, TransactionTypeEnum type);
 
-  Transaction findBySwanId(String swanTransactionId);
+  Transaction findById(String swanTransactionId);
 }

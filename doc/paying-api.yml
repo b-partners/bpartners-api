@@ -50,16 +50,6 @@ operations:
             type: string
           required: true
         - in: query
-          name: unique
-          description: If disabled, all transaction categories are given
-          schema:
-            type: boolean
-          required: true
-        - in: query
-          name: userDefined
-          schema:
-            type: boolean
-        - in: query
           name: from
           schema:
             type: string
@@ -572,7 +562,47 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
-
+  updateTransactionType:
+    put:
+      tags:
+        - Paying
+      summary: Update a transaction type
+      operationId: updateTransactionType
+      parameters:
+        - in: path
+          name: id
+          description: Account Identifier
+          schema:
+            type: string
+          required: true
+        - in: path
+          name: tId
+          description: Transaction Identifier
+          schema:
+            type: string
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTransactionType'
+      responses:
+        200:
+          description: The updated transaction
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Transaction'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
 components:
   schemas:
     Transaction:
@@ -596,14 +626,24 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/TransactionCategory'
+        type:
+          $ref: '#/components/schemas/TransactionTypeEnum'
+    TransactionTypeEnum:
+      type: string
+      enum:
+        - INCOME
+        - OUTCOME
+    CreateTransactionType:
+      type: object
+      properties:
+        type:
+          $ref: '#/components/schemas/TransactionTypeEnum'
     TransactionCategory:
       allOf:
         - $ref: '#/components/schemas/CreateTransactionCategory'
       properties:
         id:
           type: string
-        userDefined:
-          type: boolean
         count:
           type: integer
           format: int64
@@ -612,10 +652,9 @@ components:
       properties:
         type:
           type: string
-        #todo: to change to integer - Format is cents
-        vat:
-          type: number
-          format: double
+        comment:
+          type: string
+          example: null
     TransactionsSummary:
       type: object
       properties:

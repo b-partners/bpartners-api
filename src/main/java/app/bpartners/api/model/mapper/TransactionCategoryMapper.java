@@ -7,8 +7,10 @@ import app.bpartners.api.repository.jpa.TransactionCategoryTemplateJpaRepository
 import app.bpartners.api.repository.jpa.model.HTransactionCategory;
 import app.bpartners.api.repository.jpa.model.HTransactionCategoryTemplate;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
+
 import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 
 @Component
@@ -19,24 +21,21 @@ public class TransactionCategoryMapper {
 
   public TransactionCategory toDomain(HTransactionCategory entity, LocalDate startDate,
                                       LocalDate endDate) {
+    if (entity == null) {
+      return null;
+    }
     TransactionCategory domain = TransactionCategory.builder()
         .id(entity.getId())
         .idAccount(entity.getIdAccount())
         .type(entity.getType())
-        .vat(parseFraction(entity.getVat()))
         .idTransactionCategoryTmpl(entity.getIdCategoryTemplate())
+        .comment(entity.getComment())
         .build();
-    if (!entity.isUserDefined()) {
-      HTransactionCategoryTemplate categoryTemplate =
-          templateJpaRepository.getById(entity.getIdCategoryTemplate());
-      domain.setType(categoryTemplate.getType());
-      domain.setVat(parseFraction(categoryTemplate.getVat()));
-    }
-    String typeOrIdCategoryTmpl =
-        entity.getType() != null ? entity.getType() : entity.getIdCategoryTemplate();
-    Long typeCount = jpaRepository.countByCriteria(domain.getIdAccount(), typeOrIdCategoryTmpl,
-        startDate.atStartOfDay(),
-        endDate.plusDays(1).atStartOfDay().minusSeconds(1));
+    //TODO: change the LocalDatetime to Instant because the Instant does not aware timezone
+    LocalDateTime startDatetime = startDate.atStartOfDay();
+    LocalDateTime endDatetime = endDate.plusDays(1).atStartOfDay().minusSeconds(1);
+    Long typeCount = jpaRepository.countByCriteria(domain.getIdAccount(), entity.getType(),
+        startDatetime, endDatetime);
     domain.setTypeCount(typeCount);
     return domain;
   }
@@ -48,7 +47,8 @@ public class TransactionCategoryMapper {
     return TransactionCategoryTemplate.builder()
         .id(entity.getId())
         .type(entity.getType())
-        .vat(parseFraction(entity.getVat()))
+        .isOther(entity.isOther())
+        .transactionType(entity.getTransactionType())
         .build();
   }
 
@@ -56,10 +56,10 @@ public class TransactionCategoryMapper {
     return HTransactionCategory.builder()
         .id(category.getId())
         .idAccount(category.getIdAccount())
-        .type(category.getType())
         .idTransaction(category.getIdTransaction())
         .idCategoryTemplate(category.getIdTransactionCategoryTmpl())
-        .vat(category.getVat().toString())
+        .type(category.getType())
+        .comment(category.getComment())
         .build();
   }
 }

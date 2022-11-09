@@ -13,6 +13,7 @@ public class TransactionMapper {
                               TransactionCategory category,
                               HTransaction entity) {
     return Transaction.builder()
+        .id(entity.getId())
         .swanId(entity.getSwanId())
         .amount(parseFraction(external.getNode().getAmount().getValue()))
         .currency(external.getNode().getAmount().getCurrency())

@@ -18,6 +18,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @EqualsAndHashCode
 public class Transaction {
+  private String id;
   private String swanId;
   private Fraction amount;
   private String currency;

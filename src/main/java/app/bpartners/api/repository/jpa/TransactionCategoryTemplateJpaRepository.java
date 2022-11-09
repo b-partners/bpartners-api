@@ -1,10 +1,11 @@
 package app.bpartners.api.repository.jpa;
 
 import app.bpartners.api.repository.jpa.model.HTransactionCategoryTemplate;
+import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface TransactionCategoryTemplateJpaRepository
     extends JpaRepository<HTransactionCategoryTemplate, String> {
 
-  HTransactionCategoryTemplate findByTypeAndVat(String type, String vat);
+  Optional<HTransactionCategoryTemplate> findByType(String type);
 }

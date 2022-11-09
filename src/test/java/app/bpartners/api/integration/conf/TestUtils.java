@@ -92,6 +92,7 @@ public class TestUtils {
   public static final String INVALID_LOGO_TYPE = "invalid_logo_type";
 
   public static final String NOT_JOE_DOE_ACCOUNT_ID = "NOT_" + JOE_DOE_ACCOUNT_ID;
+  public static final String TRANSACTION3_SWAN_ID = "bosci_28cb4daf35d3ab24cb775dcdefc8fdab";
 
   public static User restJoeDoeUser() {
     return new User()
@@ -268,8 +269,6 @@ public class TestUtils {
     return new TransactionCategory()
         .id("transaction_category1_id")
         .type("Recette TVA 20%")
-        .userDefined(false)
-        .vat(2000.0)
         .count(1L);
   }
 
@@ -277,8 +276,6 @@ public class TestUtils {
     return new TransactionCategory()
         .id("transaction_category2_id")
         .type("Recette TVA 10%")
-        .userDefined(false)
-        .vat(1000.0)
         .count(2L);
   }
 
@@ -286,8 +283,6 @@ public class TestUtils {
     return new TransactionCategory()
         .id("transaction_category3_id")
         .type("Recette TVA 10%")
-        .userDefined(false)
-        .vat(1000.0)
         .count(2L);
   }
 
@@ -295,8 +290,6 @@ public class TestUtils {
     return new TransactionCategory()
         .id("transaction_category4_id")
         .type("Recette personnalisée TVA 1%")
-        .userDefined(true)
-        .vat(100.0)
         .count(1L);
   }
 
@@ -304,18 +297,15 @@ public class TestUtils {
     return new TransactionCategory()
         .id("transaction_category5_id")
         .type("Recette personnalisée TVA 1,2%")
-        .userDefined(true)
-        .vat(120.0)
         .count(2L);
   }
 
   public static TransactionCategory transactionCategory6() {
     return new TransactionCategory()
         .id("transaction_category6_id")
-        .type("Recette personnalisée TVA 1,2%")
-        .vat(120.0)
-        .userDefined(true)
-        .count(2L);
+        .type("Autres produits")
+        .comment("Recette personnalisée TVA 1,2%")
+        .count(4L);
   }
 
   static Transaction swanTransaction1() {
@@ -387,7 +377,7 @@ public class TestUtils {
 
   public static app.bpartners.api.endpoint.rest.model.Transaction restTransaction3() {
     return new app.bpartners.api.endpoint.rest.model.Transaction()
-        .id("bosci_28cb4daf35d3ab24cb775dcdefc8fdab")
+        .id(TRANSACTION3_SWAN_ID)
         .label("Test du virement")
         .reference("TEST-001")
         .amount(100.0)

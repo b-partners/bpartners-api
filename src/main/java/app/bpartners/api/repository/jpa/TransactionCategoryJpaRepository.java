@@ -10,6 +10,8 @@ public interface TransactionCategoryJpaRepository
     extends JpaRepository<HTransactionCategory, String> {
   List<HTransactionCategory> findAllByIdAccount(String idAccount);
 
+  HTransactionCategory findTopByIdTransactionOrderByCreatedDatetimeDesc(String idTransaction);
+
   /*
    * TODO: use JPQL instead of native SQL
    * counts by type and idAccount
@@ -19,8 +21,8 @@ public interface TransactionCategoryJpaRepository
   @Query(value =
       "select count(tc.*) from \"transaction_category\" tc "
           + "where tc.id_account = ?1 "
-          + "and (tc.type = ?2 or tc.id_transaction_category_tmpl = ?2) "
+          + "and tc.type = ?2 "
           + "and tc.created_datetime between ?3 and ?4 ",
       nativeQuery = true)
-  Long countByCriteria(String idAccount, String typeOrIdTmpl, LocalDateTime from, LocalDateTime to);
+  Long countByCriteria(String idAccount, String type, LocalDateTime from, LocalDateTime to);
 }

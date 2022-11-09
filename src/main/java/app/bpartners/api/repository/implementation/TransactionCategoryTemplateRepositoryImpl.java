@@ -1,7 +1,7 @@
 package app.bpartners.api.repository.implementation;
 
-import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.TransactionCategoryTemplate;
+import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.mapper.TransactionCategoryMapper;
 import app.bpartners.api.repository.TransactionCategoryTemplateRepository;
 import app.bpartners.api.repository.jpa.TransactionCategoryTemplateJpaRepository;
@@ -17,7 +17,12 @@ public class TransactionCategoryTemplateRepositoryImpl implements
   private final TransactionCategoryMapper mapper;
 
   @Override
-  public TransactionCategoryTemplate findByTypeAndVat(String type, Fraction vat) {
-    return mapper.toDomain(jpaRepository.findByTypeAndVat(type, vat.toString()));
+  public TransactionCategoryTemplate findByType(String type) {
+    return mapper.toDomain(
+        jpaRepository.findByType(type)
+            .orElseThrow(
+                () -> new NotFoundException("Transaction category " + type + " not found. "
+                    + "Creation of a new one is not supported yet."))
+    );
   }
 }

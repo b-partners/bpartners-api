@@ -19,7 +19,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import static app.bpartners.api.repository.jpa.model.HProduct.DESCRIPTION_ATTRIBUTE;
-import static app.bpartners.api.repository.jpa.model.HTransactionCategory.ID_ACCOUNT_ATTRIBUTE;
+import static app.bpartners.api.repository.jpa.model.HProduct.ID_ACCOUNT_ATTRIBUTE;
 
 @Repository
 @AllArgsConstructor

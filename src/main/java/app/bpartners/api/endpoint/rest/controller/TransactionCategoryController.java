@@ -7,7 +7,6 @@ import app.bpartners.api.endpoint.rest.validator.DateFilterValidator;
 import app.bpartners.api.service.TransactionCategoryService;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,34 +26,25 @@ public class TransactionCategoryController {
   @GetMapping("/accounts/{accountId}/transactionCategories")
   public List<TransactionCategory> getTransactionCategories(
       @PathVariable String accountId,
-      @RequestParam boolean unique,
-      @RequestParam(required = false) Optional<Boolean> userDefined,
       @RequestParam(name = "from") String startDateValue,
       @RequestParam(name = "to") String endDateValue) {
     LocalDate startDate = LocalDate.parse(startDateValue);
     LocalDate endDate = LocalDate.parse(endDateValue);
     dateValidator.accept(startDate, endDate);
-    return userDefined.map(
-            isUserDefined -> service.getCategoriesByAccountAndUserDefined(accountId, unique,
-                    isUserDefined, startDate, endDate)
-                .stream()
-                .map(mapper::toRest)
-                .collect(Collectors.toUnmodifiableList()))
-        .orElseGet(
-            () -> service.getCategoriesByAccount(accountId, unique, startDate, endDate).stream()
-                .map(mapper::toRest)
-                .collect(Collectors.toUnmodifiableList()));
+    return service.getCategoriesByAccount(accountId, startDate, endDate).stream()
+        .map(mapper::toRest)
+        .collect(Collectors.toUnmodifiableList());
   }
 
   @PostMapping("/accounts/{accountId}/transactions/{transactionId}/transactionCategories")
   public List<TransactionCategory> createTransactionCategories(
       @PathVariable String accountId,
       @PathVariable String transactionId,
-      @RequestBody List<CreateTransactionCategory> toCreate) {
-    List<app.bpartners.api.model.TransactionCategory> domainToCreate = toCreate.stream()
+      @RequestBody List<CreateTransactionCategory> createCategories) {
+    List<app.bpartners.api.model.TransactionCategory> toCreate = createCategories.stream()
         .map(category -> mapper.toDomain(transactionId, accountId, category))
         .collect(Collectors.toUnmodifiableList());
-    return service.createCategories(domainToCreate).stream()
+    return service.createCategories(toCreate).stream()
         .map(mapper::toRest)
         .collect(Collectors.toUnmodifiableList());
   }

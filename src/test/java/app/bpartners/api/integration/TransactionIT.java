@@ -6,8 +6,10 @@ import app.bpartners.api.endpoint.rest.api.PayingApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
 import app.bpartners.api.endpoint.rest.model.MonthlyTransactionsSummary;
+import app.bpartners.api.endpoint.rest.model.CreateTransactionType;
 import app.bpartners.api.endpoint.rest.model.Transaction;
 import app.bpartners.api.endpoint.rest.model.TransactionsSummary;
+import app.bpartners.api.endpoint.rest.model.TransactionTypeEnum;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
 import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
 import app.bpartners.api.integration.conf.AbstractContextInitializer;
@@ -29,6 +31,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
+import static app.bpartners.api.integration.conf.TestUtils.TRANSACTION3_SWAN_ID;
 import static app.bpartners.api.integration.conf.TestUtils.restTransaction1;
 import static app.bpartners.api.integration.conf.TestUtils.restTransaction2;
 import static app.bpartners.api.integration.conf.TestUtils.restTransaction3;
@@ -68,6 +71,16 @@ class TransactionIT {
   @MockBean
   private TransactionSwanRepository transactionSwanRepositoryMock;
 
+  private static CreateTransactionType createTransactionType() {
+    return new CreateTransactionType()
+        .type(TransactionTypeEnum.INCOME);
+  }
+
+  private static ApiClient anApiClient() {
+    return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN,
+        TransactionIT.ContextInitializer.SERVER_PORT);
+  }
+
   MonthlyTransactionsSummary month1() {
     return new MonthlyTransactionsSummary()
         .id("monthly_transactions_summary1_id")
@@ -98,11 +111,6 @@ class TransactionIT {
     setUpUserSwanRepository(userSwanRepositoryMock);
     setUpAccountSwanRepository(accountSwanRepositoryMock);
     setUpTransactionRepository(transactionSwanRepositoryMock);
-  }
-
-  private static ApiClient anApiClient() {
-    return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN,
-        TransactionIT.ContextInitializer.SERVER_PORT);
   }
 
   @Test
@@ -140,6 +148,19 @@ class TransactionIT {
       monthlyTransactionsSummary.setUpdatedAt(null);
     });
     return actual;
+  }
+
+  @Test
+  void update_transaction_type() throws ApiException {
+    ApiClient joeDoeClient = anApiClient();
+    PayingApi api = new PayingApi(joeDoeClient);
+
+    Transaction actual = api.updateTransactionType(
+        JOE_DOE_ACCOUNT_ID,
+        TRANSACTION3_SWAN_ID,
+        createTransactionType()
+    );
+    assertEquals(restTransaction3().type(createTransactionType().getType()), actual);
   }
 
   static class ContextInitializer extends AbstractContextInitializer {

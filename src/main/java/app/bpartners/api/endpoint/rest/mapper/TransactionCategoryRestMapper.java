@@ -3,24 +3,26 @@ package app.bpartners.api.endpoint.rest.mapper;
 import app.bpartners.api.endpoint.rest.model.CreateTransactionCategory;
 import app.bpartners.api.endpoint.rest.model.TransactionCategory;
 import app.bpartners.api.endpoint.rest.validator.CreateTransactionCategoryValidator;
+import app.bpartners.api.model.Transaction;
 import app.bpartners.api.model.TransactionCategoryTemplate;
+import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.repository.TransactionCategoryTemplateRepository;
+import app.bpartners.api.repository.TransactionRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
-import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 
 @Component
 @AllArgsConstructor
 public class TransactionCategoryRestMapper {
   private final TransactionCategoryTemplateRepository categoryTmplRepository;
   private final CreateTransactionCategoryValidator validator;
+  private final TransactionRepository transactionRepository;
 
   public TransactionCategory toRest(app.bpartners.api.model.TransactionCategory domain) {
     return new TransactionCategory()
         .id(domain.getId())
-        .vat(domain.getVat().getApproximatedValue())
         .type(domain.getType())
-        .userDefined(domain.isUserDefined())
+        .comment(domain.getComment())
         .count(domain.getTypeCount());
   }
 
@@ -29,17 +31,28 @@ public class TransactionCategoryRestMapper {
       String accountId,
       CreateTransactionCategory rest) {
     validator.accept(rest);
-    TransactionCategoryTemplate categoryTemplate = categoryTmplRepository.findByTypeAndVat(
-            rest.getType(), parseFraction(rest.getVat()));
+    Transaction persisted = transactionRepository.findById(transactionId);
+    String categoryType = rest.getType();
+    TransactionCategoryTemplate categoryTemplate = categoryTmplRepository.findByType(categoryType);
     app.bpartners.api.model.TransactionCategory category =
-            app.bpartners.api.model.TransactionCategory.builder()
-                    .idTransaction(transactionId)
-                    .idAccount(accountId)
-                    .type(rest.getType())
-                    .vat(parseFraction(rest.getVat()))
-                    .build();
-    if (categoryTemplate != null) {
-      category.setIdTransactionCategoryTmpl(categoryTemplate.getId());
+        app.bpartners.api.model.TransactionCategory.builder()
+            .idTransaction(transactionId)
+            .idTransactionCategoryTmpl(categoryTemplate.getId())
+            .idAccount(accountId)
+            .type(categoryType)
+            .build();
+    if (categoryTemplate.isOther()) {
+      category.setComment(rest.getComment());
+    } else {
+      if (rest.getComment() != null) {
+        throw new BadRequestException(
+            "Transaction category of type " + categoryTemplate.getType() + " cannot have comment");
+      }
+    }
+    if (persisted.getType() != categoryTemplate.getTransactionType()) {
+      throw new BadRequestException(
+          "Transaction category of type " + categoryTemplate.getTransactionType()
+              + " cannot be added to transaction of type " + persisted.getType());
     }
     return category;
   }

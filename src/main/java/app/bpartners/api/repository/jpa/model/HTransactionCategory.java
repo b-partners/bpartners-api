@@ -30,34 +30,13 @@ public class HTransactionCategory {
   @Id
   @GeneratedValue(strategy = IDENTITY)
   private String id;
-  public static final String ID_TRANSACTION_ATTRIBUTE = "idTransaction";
   private String idTransaction;
   private String idAccount;
-  public static final String ID_ACCOUNT_ATTRIBUTE = "idAccount";
-
   @Column(name = "id_transaction_category_tmpl")
   private String idCategoryTemplate;
-  public static final String ID_CATEGORY_TMPL_ATTRIBUTE = "idCategoryTemplate";
-
   @Column(name = "\"type\"")
   private String type;
-  public static final String TYPE_ATTRIBUTE = "type";
-
-  private String vat;
-  public static final String VAT_ATTRIBUTE = "vat";
   @CreationTimestamp
   private Instant createdDatetime;
-  public static final String CREATED_DATETIME_ATTRIBUTE = "createdDatetime";
-
-  public HTransactionCategory(
-      String idAccount, String idCategoryTemplate, String type, String vat) {
-    this.idAccount = idAccount;
-    this.idCategoryTemplate = idCategoryTemplate;
-    this.type = type;
-    this.vat = vat;
-  }
-
-  public boolean isUserDefined() {
-    return idCategoryTemplate == null;
-  }
+  private String comment;
 }

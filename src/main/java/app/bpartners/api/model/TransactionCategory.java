@@ -16,13 +16,9 @@ import lombok.Setter;
 public class TransactionCategory {
   private String id;
   private String idAccount;
+  private String idTransaction;
   private String idTransactionCategoryTmpl;
   private String type;
-  private Fraction vat;
-  private String idTransaction;
   private Long typeCount;
-
-  public boolean isUserDefined() {
-    return idTransactionCategoryTmpl == null;
-  }
+  private String comment;
 }

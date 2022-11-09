@@ -122,6 +122,9 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
         .requestMatchers(new SelfUserMatcher(GET, "/users/*/legalFiles")).authenticated()
         .requestMatchers(new SelfUserMatcher(PUT, "/users/*/legalFiles/*")).authenticated()
         //TODO: which SelfMatcher should I put here ?. And on line 87 ?
+        .requestMatchers(
+            new SelfAccountMatcher(PUT, "/accounts/*/transactions/*/type")
+        ).authenticated()
         .antMatchers("/**").denyAll()
 
         // disable superfluous protections

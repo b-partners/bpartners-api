@@ -12,10 +12,7 @@ public class CreateTransactionCategoryValidator implements Consumer<CreateTransa
   public void accept(CreateTransactionCategory transactionCategory) {
     StringBuilder exceptionMessageBuilder = new StringBuilder();
     if (transactionCategory.getType() == null) {
-      exceptionMessageBuilder.append("type is mandatory. ");
-    }
-    if (transactionCategory.getVat() == null) {
-      exceptionMessageBuilder.append("vat is mandatory. ");
+      exceptionMessageBuilder.append("Type is mandatory. ");
     }
     String exceptionMessage = exceptionMessageBuilder.toString();
     if (!exceptionMessage.isEmpty()) {

@@ -5,6 +5,7 @@ import app.bpartners.api.endpoint.event.model.TypedFileSaved;
 import app.bpartners.api.endpoint.event.model.gen.FileSaved;
 import app.bpartners.api.endpoint.rest.model.FileType;
 import app.bpartners.api.model.FileInfo;
+import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.mapper.FileMapper;
 import app.bpartners.api.repository.FileRepository;
 import app.bpartners.api.service.aws.S3Service;
@@ -45,8 +46,14 @@ public class FileService {
   }
 
   public byte[] downloadFile(FileType fileType, String accountId, String fileId) {
-    getFileByAccountIdAndId(accountId, fileId);
+    checkFile(fileId);
     return s3Service.downloadFile(fileType, accountId, fileId);
+  }
+
+  public void checkFile(String fileId) {
+    if (repository.getById(fileId) == null) {
+      throw new BadRequestException("File." + fileId + " not found");
+    }
   }
 
   public FileInfo getFileByAccountIdAndId(String accountId, String fileId) {

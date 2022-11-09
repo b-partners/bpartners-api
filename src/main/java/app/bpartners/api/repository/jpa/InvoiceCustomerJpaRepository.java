@@ -4,5 +4,5 @@ import app.bpartners.api.repository.jpa.model.HInvoiceCustomer;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface InvoiceCustomerJpaRepository extends JpaRepository<HInvoiceCustomer, String> {
-  HInvoiceCustomer findTopByInvoice_IdOrderByCreatedDatetimeDesc(String invoiceId);
+  HInvoiceCustomer findTopByIdInvoiceOrderByCreatedDatetimeDesc(String invoiceId);
 }

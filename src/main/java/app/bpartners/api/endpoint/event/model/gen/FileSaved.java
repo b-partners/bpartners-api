@@ -17,7 +17,7 @@ import lombok.ToString;
 @Builder
 @Data
 @ToString
-public class FileUploaded implements Serializable {
+public class FileSaved implements Serializable {
   private static final long serialVersionUID = 1L;
 
   @JsonProperty("fileType")
@@ -29,9 +29,6 @@ public class FileUploaded implements Serializable {
   @JsonProperty("fileAsBytes")
   private byte[] fileAsBytes = null;
 
-  @JsonProperty("invoiceId")
-  private String invoiceId = null;
-
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -40,11 +37,11 @@ public class FileUploaded implements Serializable {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    FileUploaded fileUploaded = (FileUploaded) o;
-    return Objects.equals(this.fileType, fileUploaded.fileType)
-        && Objects.equals(this.accountId, fileUploaded.accountId)
-        && Objects.equals(this.fileId, fileUploaded.fileId)
-        && fileAsBytes.equals(fileUploaded.fileAsBytes);
+    FileSaved fileSaved = (FileSaved) o;
+    return Objects.equals(this.fileType, fileSaved.fileType)
+        && Objects.equals(this.accountId, fileSaved.accountId)
+        && Objects.equals(this.fileId, fileSaved.fileId)
+        && fileAsBytes.equals(fileSaved.fileAsBytes);
   }
 
   @Override

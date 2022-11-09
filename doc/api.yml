@@ -1416,6 +1416,7 @@ components:
       type: string
       enum:
         - DRAFT
+        - ACCEPTED
         - PROPOSAL
         - CONFIRMED
         - PAID

@@ -1,18 +1,12 @@
 package app.bpartners.api.model.mapper;
 
-import app.bpartners.api.endpoint.rest.security.model.Principal;
-import app.bpartners.api.endpoint.rest.security.principal.PrincipalProvider;
 import app.bpartners.api.model.FileInfo;
 import app.bpartners.api.repository.jpa.model.HFileInfo;
 import java.time.Instant;
-import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
-@AllArgsConstructor
 public class FileMapper {
-
-  private final PrincipalProvider provider;
 
   public app.bpartners.api.endpoint.rest.model.FileInfo toRest(FileInfo internal) {
     return new app.bpartners.api.endpoint.rest.model.FileInfo()
@@ -23,13 +17,13 @@ public class FileMapper {
         .sha256(internal.getSha256());
   }
 
-  public FileInfo toDomain(String fileId, byte[] toUpload, String checksum) {
+  public FileInfo toDomain(String fileId, byte[] toUpload, String sha256, String accountId) {
     return FileInfo.builder()
         .id(fileId)
         .uploadedAt(Instant.now())
-        .uploadedBy(((Principal) provider.getAuthentication().getPrincipal()).getAccount().getId())
+        .uploadedBy(accountId)
         .sizeInKB(toUpload.length / 1024)
-        .sha256(checksum)
+        .sha256(sha256)
         .build();
   }
 

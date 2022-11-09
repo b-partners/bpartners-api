@@ -4,13 +4,11 @@ import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.repository.jpa.types.PostgresEnumType;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.util.List;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.Id;
-import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -35,7 +33,6 @@ import org.hibernate.annotations.TypeDef;
 public class HInvoice {
   @Id
   private String id;
-
   @Column(name = "\"ref\"")
   private String ref;
   private String title;
@@ -44,8 +41,6 @@ public class HInvoice {
   private LocalDate toPayAt;
   private String comment;
   private String fileId;
-  @OneToMany(mappedBy = "invoice")
-  private List<HInvoiceCustomer> invoiceCustomers;
   @Type(type = "pgsql_enum")
   @Enumerated(EnumType.STRING)
   private InvoiceStatus status;

@@ -7,6 +7,7 @@ import app.bpartners.api.model.mapper.FileMapper;
 import app.bpartners.api.repository.FileRepository;
 import app.bpartners.api.service.FileService;
 import app.bpartners.api.service.aws.S3Service;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -37,16 +38,19 @@ class FileServiceTest {
   }
 
   @Test
-  void saveChecksum_ok() {
+  void upload_ok() {
     String fileId = FILE_ID;
     FileType fileType = INVOICE;
     String accountId = JOE_DOE_ACCOUNT_ID;
-    when(s3Service.uploadFile(fileType, accountId, fileId, null)).thenReturn(RANDOM_CHECKSUM);
+    byte[] fileAsBytes = new byte[0];
+    when(s3Service.uploadFile(fileType, accountId, fileId, fileAsBytes))
+        .thenReturn(RANDOM_CHECKSUM);
     when(fileRepository.getById(fileId)).thenReturn(fileInfo());
+    when(fileRepository.getOptionalById(fileId)).thenReturn(Optional.of(fileInfo()));
     when(fileRepository.save(any())).thenAnswer(i -> i.getArguments()[0]);
     FileInfo before = fileRepository.getById(fileId);
 
-    FileInfo actual = fileService.saveChecksum(fileId, fileType, accountId, null);
+    FileInfo actual = fileService.upload(fileId, fileType, accountId, fileAsBytes);
 
     assertNotEquals(before.getSha256(), actual.getSha256());
     assertEquals(RANDOM_CHECKSUM, actual.getSha256());
@@ -56,6 +60,7 @@ class FileServiceTest {
     return FileInfo.builder()
         .id(FILE_ID)
         .sha256(null)
+        .sizeInKB(0)
         .build();
   }
 }

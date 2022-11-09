@@ -1,9 +1,11 @@
 package app.bpartners.api.endpoint.event;
 
 import app.bpartners.api.endpoint.event.model.TypedEvent;
-import app.bpartners.api.endpoint.event.model.gen.FileUploaded;
+import app.bpartners.api.endpoint.event.model.gen.FileSaved;
+import app.bpartners.api.endpoint.event.model.gen.InvoiceCrupdated;
 import app.bpartners.api.endpoint.event.model.gen.MailSent;
-import app.bpartners.api.service.FileUploadedService;
+import app.bpartners.api.service.FileSavedService;
+import app.bpartners.api.service.InvoiceCrupdatedService;
 import app.bpartners.api.service.MailSentService;
 import java.io.Serializable;
 import java.util.function.Consumer;
@@ -16,15 +18,18 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class EventServiceInvoker implements Consumer<TypedEvent> {
   private final MailSentService mailSentService;
-  private final FileUploadedService fileUploadedService;
+  private final FileSavedService fileSavedService;
+  private final InvoiceCrupdatedService invoiceCrupdatedService;
 
   @Override
   public void accept(TypedEvent typedEvent) {
     Serializable payload = typedEvent.getPayload();
     if (MailSent.class.getTypeName().equals(typedEvent.getTypeName())) {
       mailSentService.accept((MailSent) payload);
-    } else if (FileUploaded.class.getTypeName().equals(typedEvent.getTypeName())) {
-      fileUploadedService.accept((FileUploaded) payload);
+    } else if (FileSaved.class.getTypeName().equals(typedEvent.getTypeName())) {
+      fileSavedService.accept((FileSaved) payload);
+    } else if (InvoiceCrupdated.class.getTypeName().equals(typedEvent.getTypeName())) {
+      invoiceCrupdatedService.accept((InvoiceCrupdated) payload);
     } else {
       log.error("Unexpected type for event={}", typedEvent);
     }

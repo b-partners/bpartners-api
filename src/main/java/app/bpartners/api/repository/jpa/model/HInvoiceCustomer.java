@@ -33,9 +33,7 @@ public class HInvoiceCustomer {
   @ManyToOne
   @JoinColumn(name = "id_customer")
   private HCustomerTemplate customerTemplate;
-  @ManyToOne
-  @JoinColumn(name = "id_invoice")
-  private HInvoice invoice;
+  private String idInvoice;
   private String email;
   private String phone;
   private String website;

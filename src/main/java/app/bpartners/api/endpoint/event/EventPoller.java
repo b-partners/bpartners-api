@@ -36,7 +36,7 @@ public class EventPoller {
   private static final int MAX_NUMBER_OF_MESSAGES = 10;
 
   public EventPoller(
-      @Value("${aws.sqs.queueUrl}") String queueUrl,
+      @Value("${aws.sqs.mailboxUrl}") String queueUrl,
       SqsClient sqsClient,
       ObjectMapper om,
       EventConsumer eventConsumer) {

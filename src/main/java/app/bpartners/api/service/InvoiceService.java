@@ -8,11 +8,13 @@ import app.bpartners.api.endpoint.rest.security.model.Principal;
 import app.bpartners.api.endpoint.rest.security.principal.PrincipalProvider;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.BoundedPageSize;
+import app.bpartners.api.model.EmailMessage;
 import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.model.PaymentRedirection;
 import app.bpartners.api.model.Product;
+import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.validator.InvoiceValidator;
 import app.bpartners.api.repository.InvoiceRepository;
 import app.bpartners.api.repository.ProductRepository;
@@ -25,7 +27,9 @@ import org.apfloat.Aprational;
 import org.springframework.stereotype.Service;
 
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
+import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.DRAFT;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
+import static app.bpartners.api.service.utils.FileInfoUtils.PDF_EXTENSION;
 import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 import static app.bpartners.api.service.utils.FractionUtils.toAprational;
 
@@ -40,6 +44,7 @@ public class InvoiceService {
   private final PrincipalProvider auth;
   private final InvoiceValidator validator;
   private final EventProducer eventProducer;
+  private final EmailMessageService emailMessageService;
 
   public List<Invoice> getInvoices(String accountId, PageFromOne page, BoundedPageSize pageSize,
                                    InvoiceStatus status) {
@@ -130,6 +135,56 @@ public class InvoiceService {
         .map(a -> toAprational(a.getNumerator(), a.getDenominator()))
         .reduce(new Aprational(0), Aprational::add);
     return parseFraction(aprational);
+  }
+
+  private TypedMailSent getMailSentEvent(
+      Invoice invoice, String subject, String emailMessage, byte[] pdf) {
+    if (!invoice.getStatus().equals(DRAFT)) {
+      return toTypedEvent(invoice, subject, emailMessage, pdf);
+    }
+    throw new BadRequestException("Invoice." + invoice.getId() + " can not be sent because "
+        + "status is " + invoice.getStatus());
+  }
+
+  //TODO: set it again in template resolver when the load style baseUrl is set
+  private String emailBody(String emailMessage, Invoice invoice) {
+    AccountHolder accountHolder =
+        holderService.getAccountHolderByAccountId(invoice.getAccount().getId());
+    return "<html>\n"
+        + "    <body style=\"font-family: 'Gill Sans'\">\n"
+        + "        <h2 style=color:#8d2158;>" + accountHolder.getName() + "</h2>\n"
+        + emailMessage
+        + "        <p>Bien à vous et merci pour votre confiance.</p>\n"
+        + "    </body>\n"
+        + "</html>";
+  }
+
+  public String defaultEmailMessage(String type, Invoice invoice) {
+    EmailMessage email;
+    try {
+      email = emailMessageService.getEmailMessage(invoice.getAccount().getId());
+      return String.format(email.getMessage(),
+          invoice.getInvoiceCustomer().getName(), type.toLowerCase(), invoice.getRef());
+    } catch (NullPointerException e) {
+      String defaultMessage = emailMessageService.getDefaultMessage().getMessage();
+      return String.format(defaultMessage, type.toLowerCase(), invoice.getRef());
+    }
+
+  }
+
+  private TypedMailSent toTypedEvent(Invoice invoice,
+                                     String subject, String emailMessage, byte[] pdf) {
+    String type = getStatusValue(invoice.getStatus());
+    if (subject == null) {
+      //TODO: check if the invoice has already been relaunched then change this
+      subject = type + " " + invoice.getRef();
+    }
+    if (emailMessage == null) {
+      emailMessage = defaultEmailMessage(type.toLowerCase(), invoice);
+    }
+    String recipient = invoice.getInvoiceCustomer().getEmail();
+    return sesService.toTypedEvent(
+        recipient, subject, emailBody(emailMessage, invoice), subject + PDF_EXTENSION, pdf);
   }
 
   private TypedInvoiceCrupdated toTypedEvent(Invoice invoice, AccountHolder accountHolder) {

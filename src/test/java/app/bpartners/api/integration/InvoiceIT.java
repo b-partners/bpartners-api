@@ -12,6 +12,9 @@ import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
 import app.bpartners.api.integration.conf.S3AbstractContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
 import app.bpartners.api.manager.ProjectTokenManager;
+import app.bpartners.api.model.Account;
+import app.bpartners.api.model.Fraction;
+import app.bpartners.api.model.InvoiceCustomer;
 import app.bpartners.api.repository.fintecture.FintectureConf;
 import app.bpartners.api.repository.fintecture.FintecturePaymentInitiationRepository;
 import app.bpartners.api.repository.sendinblue.SendinblueConf;
@@ -19,6 +22,7 @@ import app.bpartners.api.repository.swan.AccountHolderSwanRepository;
 import app.bpartners.api.repository.swan.AccountSwanRepository;
 import app.bpartners.api.repository.swan.UserSwanRepository;
 import app.bpartners.api.service.InvoiceService;
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -50,6 +54,7 @@ import static app.bpartners.api.integration.conf.TestUtils.INVOICE7_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_TOKEN;
 import static app.bpartners.api.integration.conf.TestUtils.NOT_JOE_DOE_ACCOUNT_ID;
+import static app.bpartners.api.integration.conf.TestUtils.OTHER_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsApiException;
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsForbiddenException;
 import static app.bpartners.api.integration.conf.TestUtils.createProduct4;
@@ -69,6 +74,7 @@ import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.reset;
@@ -497,6 +503,74 @@ class InvoiceIT {
     os.write(data);
     os.close();
   }*/
+
+  @Test
+  void read_default_email_message_ok() throws IOException {
+    app.bpartners.api.model.Invoice invoice = app.bpartners.api.model.Invoice.builder()
+        .id("draft_id")
+        .ref("draft_ref")
+        .title("draft_title")
+        .sendingDate(LocalDate.now())
+        .toPayAt(LocalDate.now())
+        .account(Account.builder()
+            .id(OTHER_ACCOUNT_ID)
+            .build())
+        .products(List.of(app.bpartners.api.model.Product.builder()
+            .id("product_id")
+            .quantity(50)
+            .description("product description")
+            .vatPercent(new Fraction())
+            .unitPrice(new Fraction())
+            .build()))
+        .invoiceCustomer(InvoiceCustomer.customerTemplateBuilder()
+            .name("Olivier Durant")
+            .phone("+33 6 12 45 89 76")
+            .email("exemple@email.com")
+            .address("Paris 745")
+            .build())
+        .build();
+
+    String actual = invoiceService.defaultEmailMessage("DEVIS", invoice);
+
+    assertNotNull(actual);
+    assertTrue(actual.contains("DEVIS".toLowerCase()));
+    assertTrue(actual.contains(invoice.getRef().toLowerCase()));
+    assertFalse(actual.contains(invoice.getInvoiceCustomer().getName()));
+  }
+
+  @Test
+  void read_custom_email_message_ok() throws IOException {
+    app.bpartners.api.model.Invoice invoice = app.bpartners.api.model.Invoice.builder()
+        .id("draft_id")
+        .ref("draft_ref")
+        .title("draft_title")
+        .sendingDate(LocalDate.now())
+        .toPayAt(LocalDate.now())
+        .account(Account.builder()
+            .id(JOE_DOE_ACCOUNT_ID)
+            .build())
+        .products(List.of(app.bpartners.api.model.Product.builder()
+            .id("product_id")
+            .quantity(50)
+            .description("product description")
+            .vatPercent(new Fraction())
+            .unitPrice(new Fraction())
+            .build()))
+        .invoiceCustomer(InvoiceCustomer.customerTemplateBuilder()
+            .name("Olivier Durant")
+            .phone("+33 6 12 45 89 76")
+            .email("exemple@email.com")
+            .address("Paris 745")
+            .build())
+        .build();
+
+    String actual = invoiceService.defaultEmailMessage("DEVIS", invoice);
+
+    assertNotNull(actual);
+    assertTrue(actual.contains("DEVIS".toLowerCase()));
+    assertTrue(actual.contains(invoice.getRef().toLowerCase()));
+    assertTrue(actual.contains(invoice.getInvoiceCustomer().getName()));
+  }
 
   private List<Product> ignoreIdsOf(List<Product> actual) {
     return actual.stream()

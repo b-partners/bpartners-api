@@ -368,6 +368,40 @@ paths:
           $ref: '#/components/responses/429'
         500:
           $ref: '#/components/responses/500'
+  /accounts/{aId}/transactionsSummary:
+    get:
+      tags:
+        - Paying
+      operationId: getTransactionsSummary
+      summary: Get the transactions summary of an account
+      parameters:
+        - in: path
+          name: aId
+          schema:
+            type: string
+          required: true
+        - in: query
+          name: year
+          schema:
+            type: string
+          description: Default value is current year
+      responses:
+        200:
+          description: The transactions summary of the chosen year
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionsSummary'
+        400:
+          $ref: '#/components/responses/400'
+        403:
+          $ref: '#/components/responses/403'
+        404:
+          $ref: '#/components/responses/404'
+        429:
+          $ref: '#/components/responses/429'
+        500:
+          $ref: '#/components/responses/500'
   /accounts/{aId}/invoiceRelaunchConf:
     get:
       tags:
@@ -1210,6 +1244,7 @@ components:
           type: string
         reference:
           type: string
+        #todo: to change to integer - Format is cents
         amount:
           type: number
           format: double
@@ -1225,6 +1260,7 @@ components:
         id:
           type: string
           example: 'uuid'
+        #todo: to change to integer - Format is cents
         amount:
           type: number
           format: double
@@ -1255,9 +1291,40 @@ components:
       properties:
         type:
           type: string
+        #todo: to change to integer - Format is cents
         vat:
           type: number
           format: double
+    TransactionsSummary:
+      type: object
+      properties:
+        year:
+          type: integer
+        updatedAt:
+          type: string
+          format: date-time
+          description: Note that the summary is updated every hour
+        summary:
+          type: array
+          items:
+            $ref: '#/components/schemas/MonthlyTransactionsSummary'
+    MonthlyTransactionsSummary:
+      type: object
+      properties:
+        month:
+          type: integer
+          description: |
+            Months are represented by numbers from 1 to 12 respectively. For example, January 
+            (1), etc.
+        income:
+          type: integer
+          description: Format is cents
+        outcome:
+          type: integer
+          description: Format is cents
+        cashFlow:
+          type: integer
+          description: Format is cents
     User:
       properties:
         id:
@@ -1486,6 +1553,7 @@ components:
           items:
             $ref: '#/components/schemas/Product'
         totalVat:
+          #todo: to change to integer - Format is cents
           type: number
           format: double
         totalPriceWithoutVat:
@@ -1565,6 +1633,7 @@ components:
           type: string
         quantity:
           type: integer
+        #todo: to change to integer - Format is cents
         unitPrice:
           type: number
           format: double
@@ -1577,6 +1646,7 @@ components:
       properties:
         id:
           type: string
+        #todo: to change to integer - Format is cents
         totalVat:
           type: number
           format: double

@@ -13,11 +13,13 @@ Resources:
       RedrivePolicy: 
         deadLetterTargetArn: !GetAtt DeadLetterQueue.Arn
         maxReceiveCount: 5
+      SqsManagedSseEnabled: false
 
   DeadLetterQueue:
     Type: AWS::SQS::Queue
     Properties:
       QueueName:  !Join ['' , [!Ref Env , -bpartners-dl]]
+      SqsManagedSseEnabled: false
 
   MailboxQueueSSM: 
     Type: AWS::SSM::Parameter
@@ -50,17 +52,24 @@ Resources:
       Name: !Join ['', [!Ref Env, -bpartners, -from-api-to-api]]
       EventBusName: !GetAtt EventBridgeBus.Name
       EventPattern:
-        Source:
+        source:
           - app.bpartners.api
       Targets:
         - Arn: !GetAtt MailboxQueue.Arn
           Id: !Join ['', [!Ref Env, -bpartners, -api-mailbox]]
+      Tags:
+        - Key: app
+          Value: api
+        - Key: env
+          Value: !Ref Env
+
   EventBridgeBusNameSSM:
     Type: AWS::SSM::Parameter
     Properties:
       Name: !Join ['',[/bpartners/ , !Ref Env , /eventbridge/bus-name]]
       Type: String
       Value: !GetAtt EventBridgeBus.Name
+
 Outputs: 
   MailboxQueueURL: 
     Value: !Ref MailboxQueueSSM

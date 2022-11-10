@@ -101,11 +101,6 @@ Resources:
       Targets:
         - Arn: !GetAtt MailboxQueue.Arn
           Id: !Join ['', [!Ref Env, -bpartners, -api-mailbox]]
-      Tags:
-        - Key: app
-          Value: api
-        - Key: env
-          Value: !Ref Env
 
   EventBridgeBusNameSSM:
     Type: AWS::SSM::Parameter

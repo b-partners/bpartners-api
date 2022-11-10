@@ -1,8 +1,6 @@
 package app.bpartners.api.service.aws;
 
 import app.bpartners.api.endpoint.event.EventConf;
-import app.bpartners.api.endpoint.event.model.TypedMailSent;
-import app.bpartners.api.endpoint.event.model.gen.MailSent;
 import app.bpartners.api.service.utils.FileInfoUtils;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -101,18 +99,5 @@ public class SesService {
             .emailAddress(email)
             .build()
     );
-  }
-
-  public TypedMailSent toTypedEvent(
-      String recipient, String subject, String emailBody,
-      String attachmentName, byte[] attachmentAsBytes) {
-    return new TypedMailSent(
-        MailSent.builder()
-            .recipient(recipient)
-            .subject(subject)
-            .htmlBody(emailBody)
-            .attachmentName(attachmentName)
-            .attachmentAsBytes(attachmentAsBytes)
-            .build());
   }
 }

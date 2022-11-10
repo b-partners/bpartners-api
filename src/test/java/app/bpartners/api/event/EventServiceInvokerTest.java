@@ -2,13 +2,13 @@ package app.bpartners.api.event;
 
 import app.bpartners.api.endpoint.event.EventServiceInvoker;
 import app.bpartners.api.endpoint.event.model.TypedFileSaved;
-import app.bpartners.api.endpoint.event.model.TypedMailSent;
+import app.bpartners.api.endpoint.event.model.TypedInvoiceRelaunchSaved;
 import app.bpartners.api.endpoint.event.model.gen.FileSaved;
-import app.bpartners.api.endpoint.event.model.gen.MailSent;
+import app.bpartners.api.endpoint.event.model.gen.InvoiceRelaunchSaved;
 import app.bpartners.api.endpoint.rest.model.FileType;
 import app.bpartners.api.service.FileSavedService;
 import app.bpartners.api.service.InvoiceCrupdatedService;
-import app.bpartners.api.service.MailSentService;
+import app.bpartners.api.service.InvoiceRelaunchSavedService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -19,31 +19,36 @@ import static org.mockito.Mockito.verify;
 
 class EventServiceInvokerTest {
   EventServiceInvoker eventServiceInvoker;
-  MailSentService mailSentService;
+  InvoiceRelaunchSavedService invoiceRelaunchSavedService;
   FileSavedService fileSavedService;
   InvoiceCrupdatedService invoiceCrupdatedService;
 
   @BeforeEach
   void setUp() {
-    mailSentService = mock(MailSentService.class);
+    invoiceRelaunchSavedService = mock(InvoiceRelaunchSavedService.class);
     fileSavedService = mock(FileSavedService.class);
     invoiceCrupdatedService = mock(InvoiceCrupdatedService.class);
     eventServiceInvoker =
-        new EventServiceInvoker(mailSentService, fileSavedService, invoiceCrupdatedService);
+        new EventServiceInvoker(invoiceRelaunchSavedService, fileSavedService,
+            invoiceCrupdatedService);
   }
 
   @Test
-  void mailSent_invokes_corresponding_service() {
-    TypedMailSent emailSent = new TypedMailSent(MailSent.builder()
-        .subject(null)
-        .recipient(null)
-        .attachmentAsBytes(null)
-        .htmlBody(null)
-        .attachmentName(null)
-        .build());
+  void invoiceRelaunchSaved_invokes_corresponding_service() {
+    TypedInvoiceRelaunchSaved emailSent =
+        new TypedInvoiceRelaunchSaved(InvoiceRelaunchSaved.builder()
+            .subject(null)
+            .recipient(null)
+            .htmlBody(null)
+            .attachmentName(null)
+            .invoice(null)
+            .accountHolder(null)
+            .logoFileId(null)
+            .build());
     eventServiceInvoker.accept(emailSent);
 
-    verify(mailSentService, times(1)).accept((MailSent) emailSent.getPayload());
+    verify(invoiceRelaunchSavedService, times(1)).accept(
+        (InvoiceRelaunchSaved) emailSent.getPayload());
   }
 
   @Test

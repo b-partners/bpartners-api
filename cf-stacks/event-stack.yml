@@ -2,15 +2,15 @@ AWSTemplateFormatVersion: "2010-09-09"
 Description: Event stack for BPartners
 
 Parameters:
-  Env: 
-    Type: String 
+  Env:
+    Type: String
 
-Resources: 
-  MailboxQueue: 
+Resources:
+  MailboxQueue:
     Type: AWS::SQS::Queue
-    Properties: 
+    Properties:
       QueueName: !Join ['' , [!Ref Env , -bpartners]]
-      RedrivePolicy: 
+      RedrivePolicy:
         deadLetterTargetArn: !GetAtt DeadLetterQueue.Arn
         maxReceiveCount: 5
       SqsManagedSseEnabled: false
@@ -21,13 +21,57 @@ Resources:
       QueueName:  !Join ['' , [!Ref Env , -bpartners-dl]]
       SqsManagedSseEnabled: false
 
-  MailboxQueueSSM: 
+  MailboxQueuePolicy:
+    Type: AWS::SQS::QueuePolicy
+    Properties:
+      Queues:
+        - !Ref MailboxQueue
+      PolicyDocument:
+        Version: "2008-10-17"
+        Id: "MailboxQueue_Policy"
+        Statement:
+          - Action:
+              - "SQS:*"
+            Effect: "Allow"
+            Resource: !GetAtt MailboxQueue.Arn
+            Principal:
+              AWS:
+                - !Sub arn:aws:iam::${AWS::AccountId}:root
+          - Action:
+              - "SQS:SendMessage"
+            Effect: "Allow"
+            Resource: !GetAtt MailboxQueue.Arn
+            Principal:
+              Service:
+                - "events.amazonaws.com"
+            Condition:
+              ArnEquals:
+                AWS:SourceArn: !GetAtt EventBridgeRule.Arn
+
+  DeadLetterQueuePolicy:
+    Type: AWS::SQS::QueuePolicy
+    Properties:
+      Queues:
+        - !Ref DeadLetterQueue
+      PolicyDocument:
+        Version: "2008-10-17"
+        Id: "DeadLetterQueue_Policy"
+        Statement:
+          - Action:
+              - "SQS:*"
+            Effect: "Allow"
+            Resource: !GetAtt DeadLetterQueue.Arn
+            Principal:
+              AWS:
+                - !Sub arn:aws:iam::${AWS::AccountId}:root
+
+  MailboxQueueSSM:
     Type: AWS::SSM::Parameter
     Properties:
       Name: !Join ['' , [/bpartners/ , !Ref Env , /sqs/mailbox-queue-url]]
       Type: String
       Value: !Ref MailboxQueue
-  
+
   DeadLetterQueueSSM:
     Type: AWS::SSM::Parameter
     Properties:
@@ -45,7 +89,7 @@ Resources:
     Properties:
       ArchiveName: !Join ['', [!Ref Env, -bpartners, -archive]]
       SourceArn: !GetAtt EventBridgeBus.Arn
-      
+
   EventBridgeRule:
     Type: AWS::Events::Rule
     Properties:
@@ -70,10 +114,10 @@ Resources:
       Type: String
       Value: !GetAtt EventBridgeBus.Name
 
-Outputs: 
-  MailboxQueueURL: 
+Outputs:
+  MailboxQueueURL:
     Value: !Ref MailboxQueueSSM
-  DeadLetterQueueURL: 
+  DeadLetterQueueURL:
     Value: !Ref DeadLetterQueueSSM
   EventBridgeBusName:
     Value: !Ref EventBridgeBusNameSSM

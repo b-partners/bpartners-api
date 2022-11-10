@@ -745,6 +745,98 @@ paths:
           $ref: '#/components/responses/429'
         500:
           $ref: '#/components/responses/500'
+  /accounts/{aId}/invoices/{iId}/relaunches:
+    get:
+      tags:
+        - Paying
+      summary: Get relaunches of a specified invoice
+      operationId: getRelaunches
+      parameters:
+        - in: path
+          name: aId
+          description: Account identifier
+          schema:
+            type: string
+          required: true
+        - in: path
+          name: iId
+          description: Invoice identifier
+          schema:
+            type: string
+          required: true
+        - in: query
+          name: page
+          schema:
+            $ref: '#/components/schemas/Page'
+        - in: query
+          name: pageSize
+          schema:
+            $ref: '#/components/schemas/PageSize'
+        - in: query
+          name: type
+          description: Filter relaunches by type
+          schema:
+            type: string
+      responses:
+        200:
+          description: List of relaunches
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/InvoiceRelaunch'
+        400:
+          $ref: '#/components/responses/400'
+        403:
+          $ref: '#/components/responses/403'
+        404:
+          $ref: '#/components/responses/404'
+        429:
+          $ref: '#/components/responses/429'
+        500:
+          $ref: '#/components/responses/500'
+  /accounts/{aId}/invoices/{iId}/relaunch:
+    post:
+      tags:
+        - Paying
+      summary: Relaunch an invoice
+      operationId: relaunchInvoice
+      parameters:
+        - in: path
+          name: aId
+          description: Account identifier
+          schema:
+            type: string
+          required: true
+        - in: path
+          name: iId
+          description: Invoice identifier
+          schema:
+            type: string
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateInvoiceRelaunch'
+      responses:
+        200:
+          description: The invoice relaunch
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvoiceRelaunch'
+        400:
+          $ref: '#/components/responses/400'
+        403:
+          $ref: '#/components/responses/403'
+        404:
+          $ref: '#/components/responses/404'
+        429:
+          $ref: '#/components/responses/429'
+        500:
+          $ref: '#/components/responses/500'
   /accounts/{id}/paymentInitiations:
     post:
       tags:
@@ -1438,6 +1530,34 @@ components:
         updatedAt:
           type: string
           format: date-time
+    CreateInvoiceRelaunch:
+      type: object
+      properties:
+        subject:
+          type: string
+        message:
+          type: string
+    InvoiceRelaunch:
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          $ref: '#/components/schemas/RelaunchType'
+        invoice:
+          $ref: '#/components/schemas/Invoice'
+        accountId:
+          type: string
+        isUserRelaunched:
+          type: boolean
+        creationDatetime:
+          type: string
+          format: date-time
+    RelaunchType:
+      type: string
+      enum:
+        - PROPOSAL
+        - CONFIRMED
     CreateProduct:
       type: object
       properties:

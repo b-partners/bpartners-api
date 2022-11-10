@@ -1,32 +1,44 @@
 package app.bpartners.api.model.mapper;
 
-import app.bpartners.api.endpoint.rest.security.model.Principal;
-import app.bpartners.api.endpoint.rest.security.principal.PrincipalProvider;
-import app.bpartners.api.model.InvoiceRelaunchConf;
-import app.bpartners.api.repository.jpa.model.HInvoiceRelaunchConf;
+import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
+import app.bpartners.api.model.Invoice;
+import app.bpartners.api.model.InvoiceRelaunch;
+import app.bpartners.api.repository.jpa.model.HInvoiceRelaunch;
+import app.bpartners.api.service.InvoiceService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
+
+import static app.bpartners.api.endpoint.rest.model.RelaunchType.CONFIRMED;
+import static app.bpartners.api.endpoint.rest.model.RelaunchType.PROPOSAL;
 
 @Component
 @AllArgsConstructor
 public class InvoiceRelaunchMapper {
-  private final PrincipalProvider provider;
+  private final InvoiceMapper invoiceMapper;
+  private final InvoiceService invoiceService;
 
-  public InvoiceRelaunchConf toDomain(HInvoiceRelaunchConf entity) {
-    return InvoiceRelaunchConf.builder()
+  public InvoiceRelaunch toDomain(HInvoiceRelaunch entity) {
+    Invoice invoice = invoiceService.getById(entity.getInvoice().getId());
+    return InvoiceRelaunch.builder()
         .id(entity.getId())
-        .draftRelaunch(entity.getDraftRelaunch())
-        .unpaidRelaunch(entity.getUnpaidRelaunch())
-        .updatedAt(entity.getUpdatedAt())
+        .type(entity.getType())
+        .invoice(invoice)
+        .accountId(entity.getInvoice().getIdAccount())
+        .isUserRelaunched(entity.isUserRelaunched())
+        .creationDatetime(entity.getCreationDatetime())
         .build();
   }
 
-  public HInvoiceRelaunchConf toEntity(InvoiceRelaunchConf domain) {
-    return HInvoiceRelaunchConf.builder()
-        .id(domain.getId())
-        .accountId(((Principal) provider.getAuthentication().getPrincipal()).getAccount().getId())
-        .draftRelaunch(domain.getDraftRelaunch())
-        .unpaidRelaunch(domain.getUnpaidRelaunch())
+  public HInvoiceRelaunch toEntity(Invoice invoice) {
+    HInvoiceRelaunch toSave = HInvoiceRelaunch.builder()
+        .invoice(invoiceMapper.toEntity(invoice))
+        .isUserRelaunched(true)
+        .type(PROPOSAL)
         .build();
+    if (invoice.getStatus().equals(InvoiceStatus.CONFIRMED)) {
+      toSave.setType(CONFIRMED);
+    }
+    return toSave;
   }
+
 }

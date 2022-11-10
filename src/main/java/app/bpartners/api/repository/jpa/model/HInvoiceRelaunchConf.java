@@ -16,7 +16,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 import static javax.persistence.GenerationType.IDENTITY;
 
 @Entity
-@Table(name = "\"invoice_relaunch\"")
+@Table(name = "\"invoice_relaunch_conf\"")
 @Getter
 @Setter
 @ToString

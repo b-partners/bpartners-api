@@ -2,9 +2,9 @@ package app.bpartners.api.repository.implementation;
 
 import app.bpartners.api.model.InvoiceRelaunchConf;
 import app.bpartners.api.model.exception.NotFoundException;
-import app.bpartners.api.model.mapper.InvoiceRelaunchMapper;
+import app.bpartners.api.model.mapper.InvoiceRelaunchConfMapper;
 import app.bpartners.api.repository.InvoiceRelaunchConfRepository;
-import app.bpartners.api.repository.jpa.InvoiceRelaunchJpaRepository;
+import app.bpartners.api.repository.jpa.InvoiceRelaunchConfJpaRepository;
 import app.bpartners.api.repository.jpa.model.HInvoiceRelaunchConf;
 import java.util.Optional;
 import lombok.AllArgsConstructor;
@@ -13,8 +13,8 @@ import org.springframework.stereotype.Repository;
 @AllArgsConstructor
 @Repository
 public class InvoiceRelaunchConfRepositoryImpl implements InvoiceRelaunchConfRepository {
-  private final InvoiceRelaunchJpaRepository jpaRepository;
-  private final InvoiceRelaunchMapper mapper;
+  private final InvoiceRelaunchConfJpaRepository jpaRepository;
+  private final InvoiceRelaunchConfMapper mapper;
 
   @Override
   public InvoiceRelaunchConf save(InvoiceRelaunchConf invoiceRelaunchConf, String accountId) {

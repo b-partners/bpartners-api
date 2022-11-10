@@ -2,6 +2,7 @@ package app.bpartners.api.repository.jpa.model;
 
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.repository.jpa.types.PostgresEnumType;
+import java.io.Serializable;
 import java.time.Instant;
 import java.time.LocalDate;
 import javax.persistence.Column;
@@ -30,7 +31,7 @@ import org.hibernate.annotations.TypeDef;
 @AllArgsConstructor
 @NoArgsConstructor
 @EqualsAndHashCode
-public class HInvoice {
+public class HInvoice implements Serializable {
   @Id
   private String id;
   @Column(name = "\"ref\"")

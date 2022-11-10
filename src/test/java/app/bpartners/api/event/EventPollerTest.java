@@ -3,7 +3,7 @@ package app.bpartners.api.event;
 import app.bpartners.api.endpoint.event.EventConsumer;
 import app.bpartners.api.endpoint.event.EventPoller;
 import app.bpartners.api.endpoint.event.model.gen.FileSaved;
-import app.bpartners.api.endpoint.event.model.gen.MailSent;
+import app.bpartners.api.endpoint.event.model.gen.InvoiceRelaunchSaved;
 import app.bpartners.api.endpoint.rest.model.FileType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
@@ -63,7 +63,7 @@ class EventPollerTest {
         .messages(
             someMessage(FileSaved.class),
             someMessage(Exception.class),
-            someMessage(MailSent.class))
+            someMessage(InvoiceRelaunchSaved.class))
         .build();
     when(sqsClient.receiveMessage((ReceiveMessageRequest) any())).thenReturn(response);
 
@@ -86,12 +86,12 @@ class EventPollerTest {
     // Second ackTypedEvent
     var ackTypedEvent1 = ackTypedEvents.get(1);
     var typeEvent1 = ackTypedEvent1.getTypedEvent();
-    assertEquals(MailSent.class.getTypeName(), typeEvent1.getTypeName());
-    MailSent mailSent = (MailSent) typeEvent1.getPayload();
-    assertFalse(mailSent.getSubject().isEmpty());
-    assertFalse(mailSent.getRecipient().isEmpty());
-    assertFalse(mailSent.getAttachmentName().isEmpty());
-    assertFalse(mailSent.getHtmlBody().isEmpty());
+    assertEquals(InvoiceRelaunchSaved.class.getTypeName(), typeEvent1.getTypeName());
+    InvoiceRelaunchSaved invoiceRelaunchSaved = (InvoiceRelaunchSaved) typeEvent1.getPayload();
+    assertFalse(invoiceRelaunchSaved.getSubject().isEmpty());
+    assertFalse(invoiceRelaunchSaved.getRecipient().isEmpty());
+    assertFalse(invoiceRelaunchSaved.getAttachmentName().isEmpty());
+    assertFalse(invoiceRelaunchSaved.getHtmlBody().isEmpty());
   }
 
   private Message someMessage(Class<?> clazz) {
@@ -134,8 +134,10 @@ class EventPollerTest {
         + "    \"detail\": {\n"
         + "        \"recipient\": \"test+" + userId + "@bpartners.app\",\n"
         + "        \"subject\": \"Objet du mail\",\n"
+        + "        \"invoice\": {},\n"
+        + "        \"accountHolder\": {},\n"
+        + "        \"logoFileId\": \"\",\n"
         + "        \"attachmentName\": \"Nom de la pièce jointe\",\n"
-        + "        \"attachmentAsBytes\": [],\n"
         + "        \"htmlBody\": \"<html><body>Corps du mail</body></html>\"\n"
         + "    }\n"
         + "}";

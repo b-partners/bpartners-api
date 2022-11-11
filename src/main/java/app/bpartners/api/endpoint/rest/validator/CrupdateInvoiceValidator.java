@@ -13,33 +13,28 @@ public class CrupdateInvoiceValidator implements Consumer<CrupdateInvoice> {
   @Override
   public void accept(CrupdateInvoice invoice) {
     StringBuilder message = new StringBuilder();
-    if (invoice.getTitle() == null) {
-      message.append("Title is mandatory. ");
+    if (invoice.getStatus() == null) {
+      message.append("Status is mandatory. ");
     }
-    if (invoice.getRef() == null) {
-      message.append("Reference is mandatory. ");
-    }
-    if (invoice.getCustomer() == null) {
-      message.append("Customer is mandatory. ");
-    }
-    if (invoice.getSendingDate() == null) {
-      message.append("Sending date is mandatory. ");
-    }
-    if (invoice.getToPayAt() == null) {
-      message.append("Payment date is mandatory. ");
-    }
-    if (!invoice.getSendingDate().isEqual(today) && invoice.getSendingDate().isAfter(today)) {
+    if (isBadSendingDate(invoice)) {
       message.append("Invoice can not be sent no later than today. ");
     }
-    if (invoice.getProducts() == null) {
-      message.append("Products are mandatory. ");
-    }
-    if (invoice.getToPayAt().isBefore(invoice.getSendingDate())) {
+    if (isBadPaymentAndSendingDate(invoice)) {
       message.append("Payment date can not be after the sending date. ");
     }
     String exceptionMessage = message.toString();
     if (!exceptionMessage.isEmpty()) {
       throw new BadRequestException(exceptionMessage);
     }
+  }
+
+  private boolean isBadSendingDate(CrupdateInvoice invoice) {
+    return invoice.getSendingDate() != null && !invoice.getSendingDate().isEqual(today)
+        && invoice.getSendingDate().isAfter(today);
+  }
+
+  private static boolean isBadPaymentAndSendingDate(CrupdateInvoice invoice) {
+    return invoice.getToPayAt() != null && invoice.getSendingDate() != null
+        && invoice.getToPayAt().isBefore(invoice.getSendingDate());
   }
 }

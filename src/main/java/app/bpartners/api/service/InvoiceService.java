@@ -100,7 +100,9 @@ public class InvoiceService {
       initializedInvoice.setRef(invoice.getRef());
     } else {
       initializedInvoice.setPaymentUrl(null);
-      initializedInvoice.setRef(invoice.getRef() + DRAFT_REF_SUFFIX);
+      if (invoice.getRef() != null) {
+        initializedInvoice.setRef(invoice.getRef() + DRAFT_REF_SUFFIX);
+      }
     }
     return initializedInvoice;
   }

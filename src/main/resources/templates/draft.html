@@ -21,7 +21,7 @@
                         th:text="${accountHolder.email}"></span>
                 </p>
             </td>
-            <td class="text-right">
+            <td class="text-right" th:if="${invoice.invoiceCustomer != null}">
                 <p><strong
                         th:text="${#strings.toUpperCase(invoice.invoiceCustomer.name)}"></strong>
                 </p>
@@ -67,14 +67,15 @@
         <th>Montant HT</th>
         <th>Montant TTC</th>
         </thead>
-        <tbody>
+        <tbody th:if="${invoice.products != null}">
         <th:block th:each="product : ${invoice.products}">
             <tr>
                 <td class="text-left" style="width: 150px"><span
                         th:text="${product.description}"></span></td>
                 <td class="text-center"><span th:text="${product.quantity}"></span></td>
                 <td class="text-center"><span
-                        th:text="${#numbers.formatDecimal(product.unitPrice.getApproximatedValue(),1,2)}"></span> €
+                        th:text="${#numbers.formatDecimal(product.unitPrice.getApproximatedValue(),1,2)}"></span>
+                    €
                 </td>
                 <td class="text-center"><span
                         th:text="${#numbers.formatDecimal(product.vatPercent.getApproximatedValue(),1,2)}"></span>%
@@ -98,9 +99,11 @@
                 €
             </p>
             <p><strong>Total TVA</strong> : <span
-                    th:text="${#numbers.formatDecimal(invoice.totalVat.getApproximatedValue(), 1,2)}"></span> €</p>
+                    th:text="${#numbers.formatDecimal(invoice.totalVat.getApproximatedValue(), 1,2)}"></span>
+                €</p>
             <p><strong>Total TTC</strong> : <span
-                    th:text="${#numbers.formatDecimal(invoice.totalPriceWithVat.getApproximatedValue(),1,2)}"></span> €
+                    th:text="${#numbers.formatDecimal(invoice.totalPriceWithVat.getApproximatedValue(),1,2)}"></span>
+                €
             </p>
         </div>
     </div>

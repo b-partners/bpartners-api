@@ -12,11 +12,12 @@ public class TransactionRestMapper {
 
   public Transaction toRest(app.bpartners.api.model.Transaction internal) {
     Transaction transaction = new Transaction()
-        .id(internal.getId())
+        .id(internal.getSwanId())
         .amount(internal.getAmount().getApproximatedValue())
         .label(internal.getLabel())
         .paymentDatetime(internal.getPaymentDatetime())
-        .reference(internal.getReference());
+        .reference(internal.getReference())
+        .type(internal.getType());
     if (internal.getCategory() != null) {
       transaction.setCategory(List.of(categoryRestMapper.toRest(internal.getCategory())));
     }

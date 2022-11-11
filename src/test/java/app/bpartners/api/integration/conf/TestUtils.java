@@ -14,6 +14,7 @@ import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.endpoint.rest.model.LegalFile;
 import app.bpartners.api.endpoint.rest.model.Product;
 import app.bpartners.api.endpoint.rest.model.TransactionCategory;
+import app.bpartners.api.endpoint.rest.model.TransactionTypeEnum;
 import app.bpartners.api.endpoint.rest.model.User;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
 import app.bpartners.api.model.exception.BadRequestException;
@@ -370,7 +371,8 @@ public class TestUtils {
         .reference("JOE-001")
         .amount(500.0)
         .paymentDatetime(Instant.parse("2022-08-24T03:39:33.315Z"))
-        .category(List.of(transactionCategory1()));
+        .category(List.of(transactionCategory1()))
+        .type(TransactionTypeEnum.INCOME);
   }
 
   public static app.bpartners.api.endpoint.rest.model.Transaction restTransaction2() {
@@ -379,7 +381,8 @@ public class TestUtils {
         .label("Création de site vitrine")
         .reference("REF_001")
         .amount(500.0)
-        .paymentDatetime(Instant.parse("2022-08-26T06:33:50.595Z"));
+        .paymentDatetime(Instant.parse("2022-08-26T06:33:50.595Z"))
+        .type(TransactionTypeEnum.INCOME);
   }
 
   public static app.bpartners.api.endpoint.rest.model.Transaction restTransaction3() {
@@ -389,7 +392,8 @@ public class TestUtils {
         .reference("TEST-001")
         .amount(100.0)
         .paymentDatetime(Instant.parse("2022-08-24T04:57:02.606Z"))
-        .category(List.of(transactionCategory6()));
+        .category(List.of(transactionCategory6()))
+        .type(null);
   }
 
   public static Invoice invoice1() {

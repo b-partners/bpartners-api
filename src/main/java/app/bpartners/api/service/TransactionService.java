@@ -1,5 +1,6 @@
 package app.bpartners.api.service;
 
+import app.bpartners.api.endpoint.rest.model.TransactionTypeEnum;
 import app.bpartners.api.model.Transaction;
 import app.bpartners.api.model.TransactionsSummary;
 import app.bpartners.api.repository.TransactionRepository;
@@ -18,6 +19,10 @@ public class TransactionService {
 
   public List<Transaction> getTransactionsByAccountId(String accountId) {
     return repository.findByAccountId(accountId);
+  }
+
+  public Transaction updateType(String swanTransactionId, TransactionTypeEnum type) {
+    return repository.updateType(swanTransactionId, type);
   }
 
   public TransactionsSummary getTransactionsSummary(Integer year) {

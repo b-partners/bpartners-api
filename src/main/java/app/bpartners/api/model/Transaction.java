@@ -1,5 +1,6 @@
 package app.bpartners.api.model;
 
+import app.bpartners.api.endpoint.rest.model.TransactionTypeEnum;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import lombok.AccessLevel;
@@ -17,14 +18,15 @@ import lombok.Setter;
 @NoArgsConstructor
 @EqualsAndHashCode
 public class Transaction {
-  private String id;
-  private Fraction amount; //f
+  private String swanId;
+  private Fraction amount;
   private String currency;
   private String label;
   private String reference;
   private TransactionCategory category;
   @Getter(AccessLevel.NONE)
   private Instant paymentDatetime;
+  private TransactionTypeEnum type;
 
   public Instant getPaymentDatetime() {
     return paymentDatetime.truncatedTo(ChronoUnit.MILLIS);

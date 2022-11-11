@@ -8,6 +8,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import org.apfloat.Aprational;
+
 import static app.bpartners.api.service.utils.FractionUtils.toAprational;
 
 @Getter
@@ -51,6 +52,11 @@ public class Fraction {
   public double getApproximatedValue() {
     return (numerator.doubleValue()) / (denominator.doubleValue());
   }
+
+  public int getCents() {
+    return (int) (Math.round(getApproximatedValue()) * 100);
+  }
+
 
   @Override
   public String toString() {

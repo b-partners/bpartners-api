@@ -383,7 +383,7 @@ paths:
         - in: query
           name: year
           schema:
-            type: string
+            type: integer
           description: Default value is current year
       responses:
         200:
@@ -1300,10 +1300,6 @@ components:
       properties:
         year:
           type: integer
-        updatedAt:
-          type: string
-          format: date-time
-          description: Note that the summary is updated every hour
         summary:
           type: array
           items:
@@ -1311,11 +1307,13 @@ components:
     MonthlyTransactionsSummary:
       type: object
       properties:
+        id:
+          type: string
         month:
           type: integer
           description: |
-            Months are represented by numbers from 1 to 12 respectively. For example, January 
-            (1), etc.
+            Months are represented by numbers from 0 to 11 respectively. For example, January 
+            (0), etc.
         income:
           type: integer
           description: Format is cents
@@ -1325,6 +1323,10 @@ components:
         cashFlow:
           type: integer
           description: Format is cents
+        updatedAt:
+          type: string
+          format: date-time
+          description: Note that the summary is updated every hour
     User:
       properties:
         id:

@@ -107,6 +107,8 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
         .requestMatchers(new SelfAccountMatcher(GET, "/accounts/*/files/*/raw")).authenticated()
         .requestMatchers(new SelfAccountMatcher(GET, "/accounts/*/marketplaces")).authenticated()
         .requestMatchers(
+            new SelfAccountMatcher(GET, "/accounts/*/transactionsSummary")).authenticated()
+        .requestMatchers(
             new SelfAccountMatcher(GET, "/accounts/*/invoiceRelaunchConf")).authenticated()
         .requestMatchers(
             new SelfAccountMatcher(PUT, "/accounts/*/invoiceRelaunchConf")).authenticated()

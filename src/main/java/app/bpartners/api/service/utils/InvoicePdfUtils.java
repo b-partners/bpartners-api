@@ -36,14 +36,8 @@ public class InvoicePdfUtils {
 
   private void loadStyle(ITextRenderer renderer, Invoice invoice, AccountHolder accountHolder,
                          byte[] logoAsBytes, String template) {
-    //TODO: the built apps is a JAR so this does not work, change it
-    String baseUrl = FileSystems.getDefault()
-        .getPath("src/main", "resources", "templates")
-        .toUri()
-        .toString();
     renderer.setDocumentFromString(parseInvoiceTemplateToString(invoice, accountHolder,
-            logoAsBytes, template),
-        baseUrl);
+            logoAsBytes, template));
   }
 
   private String parseInvoiceTemplateToString(

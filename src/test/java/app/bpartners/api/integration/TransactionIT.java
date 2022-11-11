@@ -5,7 +5,9 @@ import app.bpartners.api.endpoint.event.S3Conf;
 import app.bpartners.api.endpoint.rest.api.PayingApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
+import app.bpartners.api.endpoint.rest.model.MonthlyTransactionsSummary;
 import app.bpartners.api.endpoint.rest.model.Transaction;
+import app.bpartners.api.endpoint.rest.model.TransactionsSummary;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
 import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
 import app.bpartners.api.integration.conf.AbstractContextInitializer;
@@ -16,6 +18,7 @@ import app.bpartners.api.repository.sendinblue.SendinblueConf;
 import app.bpartners.api.repository.swan.AccountSwanRepository;
 import app.bpartners.api.repository.swan.TransactionSwanRepository;
 import app.bpartners.api.repository.swan.UserSwanRepository;
+import java.time.LocalDate;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -33,6 +36,8 @@ import static app.bpartners.api.integration.conf.TestUtils.setUpAccountSwanRepos
 import static app.bpartners.api.integration.conf.TestUtils.setUpSwanComponent;
 import static app.bpartners.api.integration.conf.TestUtils.setUpTransactionRepository;
 import static app.bpartners.api.integration.conf.TestUtils.setUpUserSwanRepository;
+import static java.util.Calendar.DECEMBER;
+import static java.util.Calendar.JANUARY;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
@@ -63,6 +68,30 @@ class TransactionIT {
   @MockBean
   private TransactionSwanRepository transactionSwanRepositoryMock;
 
+  MonthlyTransactionsSummary month1() {
+    return new MonthlyTransactionsSummary()
+        .id("monthly_transactions_summary1_id")
+        .month(JANUARY)
+        .income(1000000)
+        .outcome(0)
+        .cashFlow(1000000);
+  }
+
+  MonthlyTransactionsSummary month2() {
+    return new MonthlyTransactionsSummary()
+        .id("monthly_transactions_summary2_id")
+        .month(DECEMBER)
+        .income(0)
+        .outcome(0)
+        .cashFlow(1000000);
+  }
+
+  TransactionsSummary transactionsSummary1() {
+    return new TransactionsSummary()
+        .year(2022)
+        .summary(List.of(month1(), month2()));
+  }
+
   @BeforeEach
   public void setUp() {
     setUpSwanComponent(swanComponentMock);
@@ -87,6 +116,30 @@ class TransactionIT {
     assertTrue(actual.contains(restTransaction1()));
     assertTrue(actual.contains(restTransaction2()));
     assertTrue(actual.contains(restTransaction3()));
+  }
+
+  @Test
+  void read_transactions_summary_ok() throws ApiException {
+    ApiClient joeDoeClient = anApiClient();
+    PayingApi api = new PayingApi(joeDoeClient);
+    int currentYear = LocalDate.now().getYear();
+
+    TransactionsSummary actualDefaultYear = api.getTransactionsSummary(JOE_DOE_ACCOUNT_ID, null);
+    TransactionsSummary actualCustomYear = api.getTransactionsSummary(JOE_DOE_ACCOUNT_ID,
+        currentYear + 1);
+
+    assertEquals(2, actualDefaultYear.getSummary().size());
+    assertEquals(0, actualCustomYear.getSummary().size());
+    assertEquals(currentYear + 1, actualCustomYear.getYear());
+    assertEquals(transactionsSummary1(),
+        actualDefaultYear.summary(ignoreUpdatedAt(actualDefaultYear.getSummary())));
+  }
+
+  List<MonthlyTransactionsSummary> ignoreUpdatedAt(List<MonthlyTransactionsSummary> actual) {
+    actual.forEach(monthlyTransactionsSummary -> {
+      monthlyTransactionsSummary.setUpdatedAt(null);
+    });
+    return actual;
   }
 
   static class ContextInitializer extends AbstractContextInitializer {

@@ -15,6 +15,9 @@ public class InvoiceCustomerMapper {
   private final CustomerMapper customerMapper;
 
   public InvoiceCustomer toDomain(HInvoiceCustomer entity) {
+    if (entity == null) {
+      return null;
+    }
     HCustomerTemplate customerTemplate = entity.getCustomerTemplate();
     InvoiceCustomer invoiceCustomer = InvoiceCustomer.customerTemplateBuilder()
         .customerId(customerTemplate.getId())
@@ -33,6 +36,9 @@ public class InvoiceCustomerMapper {
   }
 
   public HInvoiceCustomer toEntity(InvoiceCustomer domain) {
+    if (domain == null) {
+      return null;
+    }
     CustomerTemplate customerTemplate = customerRepository.findById(domain.getCustomerId());
     return HInvoiceCustomer.builder()
         .id(domain.getId())

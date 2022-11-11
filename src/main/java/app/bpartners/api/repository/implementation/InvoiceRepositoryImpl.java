@@ -37,16 +37,21 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
   public Invoice crupdate(Invoice toCrupdate) {
     HInvoice entity = jpaRepository.save(mapper.toEntity(toCrupdate));
     HInvoiceCustomer invoiceCustomer =
-        customerJpaRepository.save(
-            invoiceCustomerMapper.toEntity(toCrupdate.getInvoiceCustomer()));
-    HInvoiceProduct invoiceProduct =
-        ipJpaRepository.save(HInvoiceProduct.builder()
-            .idInvoice(toCrupdate.getId())
-            .build());
-    List<HProduct> createdProducts = productJpaRepository.saveAll(computeHInvoices(invoiceProduct,
-        toCrupdate));
-    invoiceProduct.setProducts(createdProducts);
-    ipJpaRepository.save(invoiceProduct);
+        invoiceCustomerMapper.toEntity(toCrupdate.getInvoiceCustomer());
+    if (invoiceCustomer != null) {
+      invoiceCustomer = customerJpaRepository.save(invoiceCustomer
+      );
+    }
+    List<HProduct> createdProducts = null;
+    if (!toCrupdate.getProducts().isEmpty()) {
+      HInvoiceProduct invoiceProduct =
+          ipJpaRepository.save(HInvoiceProduct.builder()
+              .idInvoice(toCrupdate.getId())
+              .build());
+      createdProducts = productJpaRepository.saveAll(computeHInvoices(invoiceProduct, toCrupdate));
+      invoiceProduct.setProducts(createdProducts);
+      ipJpaRepository.save(invoiceProduct);
+    }
     return mapper.toDomain(entity, invoiceCustomer, createdProducts);
   }
 

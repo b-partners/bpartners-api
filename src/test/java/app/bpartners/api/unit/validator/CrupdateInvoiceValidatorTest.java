@@ -8,9 +8,9 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PROPOSAL;
-import static app.bpartners.api.integration.conf.TestUtils.customer1;
 import static app.bpartners.api.integration.conf.TestUtils.createProduct4;
 import static app.bpartners.api.integration.conf.TestUtils.createProduct5;
+import static app.bpartners.api.integration.conf.TestUtils.customer1;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -47,8 +47,9 @@ class CrupdateInvoiceValidatorTest {
 
   @Test
   void invalid_invoice() {
-    CrupdateInvoice invoice = invalidInvoice();
-    assertThrows(BadRequestException.class, () -> validator.accept(invoice));
+    CrupdateInvoice invoice = new CrupdateInvoice().status(null);
+    assertThrows(BadRequestException.class,
+        () -> validator.accept(invoice));
   }
 
 }

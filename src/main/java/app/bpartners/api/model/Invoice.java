@@ -39,10 +39,16 @@ public class Invoice {
   private String fileId;
 
   public Date getFormattedSendingDate() {
+    if (sendingDate == null) {
+      return null;
+    }
     return Date.from(sendingDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
   }
 
   public Date getFormattedPayingDate() {
+    if (toPayAt == null) {
+      return null;
+    }
     return Date.from(toPayAt.atStartOfDay(ZoneId.systemDefault()).toInstant());
   }
 

@@ -14,6 +14,9 @@ public class CustomerRestMapper {
   private final CreateCustomerValidator validator;
 
   public Customer toRest(CustomerTemplate domain) {
+    if (domain == null) {
+      return null;
+    }
     return new Customer()
         .id(domain.getCustomerId())
         .name(domain.getName())
@@ -44,6 +47,9 @@ public class CustomerRestMapper {
   }
 
   public InvoiceCustomer toDomain(String accountId, String idInvoice, Customer rest) {
+    if (rest == null) {
+      return null;
+    }
     InvoiceCustomer invoiceCustomer = InvoiceCustomer.customerTemplateBuilder()
         .customerId(rest.getId())
         .idAccount(accountId)

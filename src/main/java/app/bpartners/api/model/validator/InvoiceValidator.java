@@ -35,9 +35,9 @@ public class InvoiceValidator implements Consumer<Invoice> {
         throw new BadRequestException("Invoice." + actual.getId() + " was already paid");
       } else {
         if (persistedValue.getStatus().equals(DRAFT)
-            && !actual.getStatus().equals(PROPOSAL)) {
+            && !actual.getStatus().equals(PROPOSAL) && !actual.getStatus().equals(DRAFT)) {
           throw new BadRequestException("Invoice." + actual.getId() + " actual status is "
-              + persistedValue.getStatus() + " and can only become " + PROPOSAL);
+              + persistedValue.getStatus() + " and can only become " + PROPOSAL + " or " + DRAFT);
         }
         if (persistedValue.getStatus().equals(PROPOSAL)) {
           if (!actual.getStatus().equals(CONFIRMED)) {

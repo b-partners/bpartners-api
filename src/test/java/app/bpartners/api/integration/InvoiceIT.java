@@ -258,19 +258,14 @@ class InvoiceIT {
         .totalPriceWithoutVat(1000.0);
   }
 
-  Invoice expectedProposal() {
+  Invoice expectedInitializedDraft() {
     return new Invoice()
-        .id(INVOICE3_ID)
-        .ref(proposalInvoice().getRef() + "-TMP")
-        .title("Facture sans produit")
-        .customer(proposalInvoice().getCustomer())
-        .status(PROPOSAL)
-        .sendingDate(proposalInvoice().getSendingDate())
-        .products(List.of(product4().id(null), product5().id(null)))
-        .toPayAt(proposalInvoice().getToPayAt())
-        .totalPriceWithVat(3300.0)
-        .totalVat(300.0)
-        .totalPriceWithoutVat(3000.0);
+        .id(NEW_INVOICE_ID)
+        .products(List.of())
+        .totalVat(0.0)
+        .totalPriceWithoutVat(0.0)
+        .totalPriceWithVat(0.0)
+        .status(DRAFT);
   }
 
   Invoice expectedPaid() {
@@ -344,19 +339,22 @@ class InvoiceIT {
     ApiClient joeDoeClient = anApiClient();
     PayingApi api = new PayingApi(joeDoeClient);
 
-    Invoice actualDraft = api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, NEW_INVOICE_ID, validInvoice());
-    actualDraft.setProducts(ignoreIdsOf(actualDraft.getProducts()));
-
+    Invoice actualDraft = api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, NEW_INVOICE_ID,
+        initializeDraft());
+    Invoice actualUpdatedDraft = api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, NEW_INVOICE_ID,
+        validInvoice());
+    actualUpdatedDraft.setProducts(ignoreIdsOf(actualUpdatedDraft.getProducts()));
     Invoice actualConfirmed =
         api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, INVOICE4_ID, confirmedInvoice());
     actualConfirmed.setProducts(ignoreIdsOf(actualConfirmed.getProducts()));
     Invoice actualPaid = api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, INVOICE4_ID, paidInvoice());
     actualPaid.setProducts(ignoreIdsOf(actualPaid.getProducts()));
 
-    assertEquals(expectedDraft(), actualDraft);
+    assertEquals(expectedInitializedDraft(), actualDraft);
+    assertEquals(expectedDraft(), actualUpdatedDraft);
     assertEquals(expectedConfirmed(), actualConfirmed);
     assertEquals(expectedPaid(), actualPaid);
-    assertTrue(actualDraft.getRef().contains("TMP"));
+    assertTrue(actualUpdatedDraft.getRef().contains("TMP"));
     assertFalse(actualConfirmed.getRef().contains("TMP"));
   }
 
@@ -486,6 +484,11 @@ class InvoiceIT {
     return actual.stream()
         .peek(invoice -> invoice.setUpdatedAt(null))
         .collect(Collectors.toUnmodifiableList());
+  }
+
+  private CrupdateInvoice initializeDraft() {
+    return new CrupdateInvoice()
+        .status(DRAFT);
   }
 
   static class ContextInitializer extends S3AbstractContextInitializer {

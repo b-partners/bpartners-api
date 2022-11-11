@@ -48,9 +48,11 @@ public class InvoiceRestMapper {
   public app.bpartners.api.model.Invoice toDomain(
       String accountId, String id, CrupdateInvoice rest) {
     crupdateInvoiceValidator.accept(rest);
-    List<app.bpartners.api.model.Product> domain = rest.getProducts().stream()
-        .map(productRestMapper::toDomain)
-        .collect(Collectors.toUnmodifiableList());
+
+    List<app.bpartners.api.model.Product> domain =
+        rest.getProducts() == null ? List.of() : rest.getProducts().stream()
+            .map(productRestMapper::toDomain)
+            .collect(Collectors.toUnmodifiableList());
     return app.bpartners.api.model.Invoice.builder()
         .id(id)
         .title(rest.getTitle())

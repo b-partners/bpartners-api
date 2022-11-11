@@ -2,11 +2,13 @@ package app.bpartners.api.model.mapper;
 
 import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.Product;
+import app.bpartners.api.repository.jpa.InvoiceJpaRepository;
 import app.bpartners.api.repository.jpa.model.HInvoice;
 import app.bpartners.api.repository.jpa.model.HInvoiceCustomer;
 import app.bpartners.api.repository.jpa.model.HProduct;
 import app.bpartners.api.service.AccountService;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -15,6 +17,7 @@ import org.springframework.stereotype.Component;
 @AllArgsConstructor
 public class InvoiceMapper {
   private final InvoiceCustomerMapper customerMapper;
+  private final InvoiceJpaRepository jpaRepository;
   private final ProductMapper productMapper;
   private final AccountService accountService;
 
@@ -45,9 +48,11 @@ public class InvoiceMapper {
   }
 
   public HInvoice toEntity(Invoice domain) {
+    Optional<HInvoice> persisted = jpaRepository.findById(domain.getId());
+    String fileId = persisted.isPresent() ? persisted.get().getFileId() : domain.getFileId();
     return HInvoice.builder()
         .id(domain.getId())
-        .fileId(domain.getFileId())
+        .fileId(fileId)
         .comment(domain.getComment())
         .ref(domain.getRef())
         .title(domain.getTitle())

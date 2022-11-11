@@ -40,6 +40,7 @@
                 <p>Date d'émission : <span
                         th:text="${#dates.format(invoice.getFormattedSendingDate, 'dd-MM-yyyy')}"></span>
                 </p>
+                <p><strong th:text="${invoice.title}"></strong></p>
                 <p>Date limite de validité : <span
                         th:text="${#dates.format(invoice.getFormattedPayingDate, 'dd-MM-yyyy')}"></span>
                 </p>

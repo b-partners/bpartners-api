@@ -1,0 +1,89 @@
+operations:
+  initiateOnboarding:
+    post:
+      tags:
+        - Onboarding
+      summary: Initiate an onboarding process
+      operationId: initiateOnboarding
+      security: [ ]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OnboardingInitiation'
+        required: true
+      responses:
+        200:
+          description: A redirection component where to initiate onboarding
+          content:
+            application/json:
+              schema:
+                $ref: './api.yml#/components/schemas/Redirection'
+        500:
+          $ref: './api.yml#/components/responses/500'
+  createPreUsers:
+    post:
+      tags:
+        - Onboarding
+      security: [ ]
+      summary: Pre-onboard users
+      operationId: createPreUsers
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/CreatePreUser'
+      responses:
+        200:
+          description: User is pre-onboarded!
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PreUser'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
+
+components:
+  schemas:
+    OnboardingInitiation:
+      type: object
+      properties:
+        redirectionStatusUrls:
+          $ref: './api.yml#/components/schemas/RedirectionStatusUrls'
+    CreatePreUser:
+      type: object
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        society:
+          type: string
+        email:
+          type: string
+          example: username@domain.com
+        phone:
+          type: string
+    PreUser:
+      allOf:
+        - $ref: '#/components/schemas/CreatePreUser'
+      type: object
+      properties:
+        id:
+          type: string
+        entranceDatetime:
+          type: string
+          format: date-time

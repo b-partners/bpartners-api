@@ -2,6 +2,7 @@ package app.bpartners.api.repository.implementation;
 
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.model.Invoice;
+import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.mapper.InvoiceCustomerMapper;
 import app.bpartners.api.model.mapper.InvoiceMapper;
@@ -22,6 +23,8 @@ import lombok.AllArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Repository;
 
+import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.DRAFT;
+
 @Repository
 @AllArgsConstructor
 public class InvoiceRepositoryImpl implements InvoiceRepository {
@@ -35,6 +38,17 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
 
   @Override
   public Invoice crupdate(Invoice toCrupdate) {
+    Optional<HInvoice> existingInvoice = jpaRepository.findByIdAccountAndRef(
+        toCrupdate.getAccount().getId(), toCrupdate.getRef());
+    if (existingInvoice.isPresent()) {
+      String persistedId = existingInvoice.get().getId();
+      if (toCrupdate.getStatus().equals(DRAFT)
+          && !persistedId.equals(toCrupdate.getId())) {
+        throw new BadRequestException(
+            "The invoice reference must unique however the given reference [" + toCrupdate.getRef()
+                + "] is already used by invoice." + persistedId);
+      }
+    }
     HInvoice entity = jpaRepository.save(mapper.toEntity(toCrupdate));
     HInvoiceCustomer invoiceCustomer =
         invoiceCustomerMapper.toEntity(toCrupdate.getInvoiceCustomer());

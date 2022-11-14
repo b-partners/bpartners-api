@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.function.Executable;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -64,6 +65,8 @@ import static app.bpartners.api.integration.conf.TestUtils.setUpEventBridge;
 import static app.bpartners.api.integration.conf.TestUtils.setUpPaymentInitiationRep;
 import static app.bpartners.api.integration.conf.TestUtils.setUpSwanComponent;
 import static app.bpartners.api.integration.conf.TestUtils.setUpUserSwanRepository;
+import static java.util.UUID.randomUUID;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -330,6 +333,27 @@ class InvoiceIT {
         "{\"type\":\"400 BAD_REQUEST\",\"message\":\"Required request parameter 'pageSize' for "
             + "method parameter type BoundedPageSize is not present\"}",
         () -> api.getInvoices(JOE_DOE_ACCOUNT_ID, 1, null, null));
+  }
+
+  @Test
+  void crupdate_invoice_ko() {
+    ApiClient joeDoeClient = anApiClient();
+    PayingApi api = new PayingApi(joeDoeClient);
+    String firstInvoiceId = randomUUID().toString();
+    Executable firstCrupdateExecutable =
+        () -> api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, firstInvoiceId,
+            validInvoice().ref("unique_ref"));
+    Executable secondCrupdateExecutable =
+        () -> api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, randomUUID().toString(),
+            validInvoice().ref("unique_ref"));
+
+    assertDoesNotThrow(firstCrupdateExecutable);
+
+    assertThrowsApiException(
+        "{\"type\":\"400 BAD_REQUEST\",\"message\":\""
+            + "The invoice reference must unique however the given reference [unique_ref] is"
+            + " already used by invoice." + firstInvoiceId + "\"}",
+        secondCrupdateExecutable);
   }
 
   // /!\ It seems that the localstack does not support the SES service using the default credentials

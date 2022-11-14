@@ -58,6 +58,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @AutoConfigureMockMvc
 class FileIT {
   public static final String NON_EXISTENT_FILE_ID = "NOT" + TEST_FILE_ID;
+  public static final String NOT_EXISTING_FILE_ID = "not_existing_file_id.jpeg";
   @MockBean
   private SentryConf sentryConf;
   @MockBean
@@ -171,6 +172,20 @@ class FileIT {
       throw getApiException("downloadFile", response);
     }
     return response;
+  }
+
+  @Test
+  void download_file_ko() {
+    String basePath = "http://localhost:" + ContextInitializer.SERVER_PORT;
+
+    assertThrowsApiException(
+        "{\"type\":\"400 BAD_REQUEST\",\"message\":\"File.not_existing_file_id.jpeg not found\"}",
+        () -> download(FileType.LOGO, basePath, JOE_DOE_TOKEN,
+            null, NOT_EXISTING_FILE_ID));
+
+    assertThrowsApiException("{\"type\":\"400 BAD_REQUEST\",\"message\":\"File.null not found\"}",
+        () -> download(FileType.LOGO, basePath, JOE_DOE_TOKEN,
+            null, null));
   }
 
   @Test

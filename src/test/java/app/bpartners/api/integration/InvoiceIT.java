@@ -333,6 +333,9 @@ class InvoiceIT {
         "{\"type\":\"400 BAD_REQUEST\",\"message\":\"Required request parameter 'pageSize' for "
             + "method parameter type BoundedPageSize is not present\"}",
         () -> api.getInvoices(JOE_DOE_ACCOUNT_ID, 1, null, null));
+    assertThrowsApiException("{\"type\":\"404 NOT_FOUND\",\"message\":\""
+            + "Invoice.not_existing_invoice_id is not found\"}",
+        () -> api.getInvoiceById(JOE_DOE_ACCOUNT_ID, "not_existing_invoice_id"));
   }
 
   @Test

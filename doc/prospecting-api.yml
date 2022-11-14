@@ -1,0 +1,49 @@
+operations:
+  getMarketplaces:
+    get:
+      tags:
+        - Prospecting
+      summary: Get marketplaces for an account
+      operationId: getMarketplaces
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description: List of marketplaces where the account owner can find customers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Marketplace'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
+components:
+  schemas:
+    Marketplace:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        phoneNumber:
+          type: string
+        websiteUrl:
+          type: string
+        logoUrl:
+          type: string

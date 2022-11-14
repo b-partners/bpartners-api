@@ -1,0 +1,169 @@
+operations:
+  getFileById:
+    get:
+      tags:
+        - Files
+      summary: Get information of a file
+      operationId: getFileById
+      parameters:
+        - in: path
+          name: aId
+          schema:
+            type: string
+          required: true
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description: Information of the file
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileInfo'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
+  downloadOrUploadFile:
+    get:
+      tags:
+        - Files
+      summary: Download a file
+      operationId: downloadFile
+      parameters:
+        - in: path
+          name: aId
+          schema:
+            type: string
+          required: true
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+        - in: query
+          name: accessToken
+          schema:
+            type: string
+        - in: query
+          name: fileType
+          schema:
+            $ref: '#/components/schemas/FileType'
+      responses:
+        200:
+          description: The file
+          content:
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+            image/png:
+              schema:
+                type: string
+                format: binary
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
+    post:
+      tags:
+        - Files
+      summary: Upload a file. Fails if file already exists.
+      operationId: uploadFile
+      parameters:
+        - in: path
+          name: aId
+          schema:
+            type: string
+          required: true
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+        - in: query
+          name: fileType
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          image/jpeg:
+            schema:
+              type: string
+              format: binary
+          image/png:
+            schema:
+              type: string
+              format: binary
+          application/pdf:
+            schema:
+              type: string
+              format: binary
+      responses:
+        200:
+          description: The crupdated file
+          content:
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+            image/png:
+              schema:
+                type: string
+                format: binary
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
+components:
+  schemas:
+    FileInfo:
+      type: object
+      properties:
+        id:
+          type: string
+        uploadedAt:
+          type: string
+          format: date-time
+        uploadedByAccountId:
+          type: string
+          example: "uuid"
+        sizeInKB:
+          type: integer
+        sha256:
+          type: string
+    FileType:
+      type: string
+      enum:
+        - INVOICE
+        - LOGO

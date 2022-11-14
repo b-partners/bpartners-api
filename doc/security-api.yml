@@ -1,0 +1,124 @@
+operations:
+  ping:
+    get:
+      tags:
+        - Security
+      summary: pong
+      operationId: ping
+      security: [ ]
+      description: Check server health
+      responses:
+        200:
+          description: pong
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: pong
+        500:
+          $ref: './api.yml#/components/responses/500'
+  initiateAuth:
+    post:
+      tags:
+        - Security
+      summary: Initiate an authentication process
+      operationId: initiateAuth
+      security: [ ]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthInitiation'
+        required: true
+      responses:
+        200:
+          description: A redirection URL where to initiate authentication
+          content:
+            application/json:
+              schema:
+                $ref: './api.yml#/components/schemas/Redirection'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        500:
+          $ref: './api.yml#/components/responses/500'
+  createToken:
+    post:
+      tags:
+        - Security
+      summary: Create a new access token and corresponding refresh token
+      operationId: createToken
+      security: [ ]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateToken'
+        required: true
+      responses:
+        200:
+          description: The generated token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Token'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        500:
+          $ref: './api.yml#/components/responses/500'
+  whoami:
+    get:
+      tags:
+        - Security
+      summary: Who Am I? Tells you who you are
+      operationId: whoami
+      responses:
+        200:
+          description: Who you are
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Whoami'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
+
+components:
+  schemas:
+    AuthInitiation:
+      type: object
+      properties:
+        state:
+          type: string
+        phone:
+          type: string
+        redirectionStatusUrls:
+          $ref: './api.yml#/components/schemas/RedirectionStatusUrls'
+    CreateToken:
+      type: object
+      properties:
+        code:
+          type: string
+        redirectionStatusUrls:
+          $ref: './api.yml#/components/schemas/RedirectionStatusUrls'
+    Token:
+      type: object
+      properties:
+        accessToken:
+          type: string
+        refreshToken:
+          type: string
+        expiresIn:
+          type: integer
+        whoami:
+          $ref: '#/components/schemas/Whoami'
+    Whoami:
+      properties:
+        user:
+          $ref: './userAccounts-api.yml#/components/schemas/User'

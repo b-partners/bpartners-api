@@ -46,13 +46,10 @@ public class FileService {
   }
 
   public byte[] downloadFile(FileType fileType, String accountId, String fileId) {
-    checkFile(fileId);
-    return s3Service.downloadFile(fileType, accountId, fileId);
-  }
-
-  public void checkFile(String fileId) {
-    if (repository.getById(fileId) == null) {
+    if (repository.getOptionalById(fileId).isEmpty()) {
       throw new BadRequestException("File." + fileId + " not found");
+    } else {
+      return s3Service.downloadFile(fileType, accountId, fileId);
     }
   }
 

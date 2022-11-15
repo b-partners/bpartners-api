@@ -11,8 +11,6 @@ import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
-
 @Component
 @AllArgsConstructor
 public class TransactionCategoryMapper {
@@ -30,7 +28,10 @@ public class TransactionCategoryMapper {
         .type(entity.getType())
         .idTransactionCategoryTmpl(entity.getIdCategoryTemplate())
         .comment(entity.getComment())
+        .description(entity.getDescription())
         .build();
+    templateJpaRepository.findById(entity.getIdCategoryTemplate())
+        .ifPresent(template -> domain.setTransactionType(template.getTransactionType()));
     //TODO: change the LocalDatetime to Instant because the Instant does not aware timezone
     LocalDateTime startDatetime = startDate.atStartOfDay();
     LocalDateTime endDatetime = endDate.plusDays(1).atStartOfDay().minusSeconds(1);
@@ -60,6 +61,7 @@ public class TransactionCategoryMapper {
         .idCategoryTemplate(category.getIdTransactionCategoryTmpl())
         .type(category.getType())
         .comment(category.getComment())
+        .description(category.getDescription())
         .build();
   }
 }

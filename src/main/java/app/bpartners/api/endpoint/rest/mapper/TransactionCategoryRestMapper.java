@@ -23,7 +23,9 @@ public class TransactionCategoryRestMapper {
         .id(domain.getId())
         .type(domain.getType())
         .comment(domain.getComment())
-        .count(domain.getTypeCount());
+        .count(domain.getTypeCount())
+        .description(domain.getDescription())
+        .transactionType(domain.getTransactionType());
   }
 
   public app.bpartners.api.model.TransactionCategory toDomain(
@@ -40,6 +42,7 @@ public class TransactionCategoryRestMapper {
             .idTransactionCategoryTmpl(categoryTemplate.getId())
             .idAccount(accountId)
             .type(categoryType)
+            .description(rest.getDescription())
             .build();
     if (categoryTemplate.isOther()) {
       category.setComment(rest.getComment());

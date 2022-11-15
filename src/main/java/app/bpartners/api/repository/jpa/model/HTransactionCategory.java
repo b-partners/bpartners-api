@@ -39,4 +39,5 @@ public class HTransactionCategory {
   @CreationTimestamp
   private Instant createdDatetime;
   private String comment;
+  private String description;
 }

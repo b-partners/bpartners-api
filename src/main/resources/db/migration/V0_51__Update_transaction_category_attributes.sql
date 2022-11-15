@@ -4,3 +4,5 @@ alter table "transaction_category"
     add column "comment" varchar;
 alter table "transaction_category"
     drop column "vat";
+alter table "transaction_category"
+    add column "description" varchar;

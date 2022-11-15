@@ -269,14 +269,17 @@ public class TestUtils {
     return new TransactionCategory()
         .id("transaction_category1_id")
         .type("Recette TVA 20%")
-        .count(1L);
+        .count(1L)
+        .description("Prestations ou ventes soumises à 20% de TVA")
+        .transactionType(TransactionTypeEnum.INCOME);
   }
 
   public static TransactionCategory transactionCategory2() {
     return new TransactionCategory()
         .id("transaction_category2_id")
         .type("Recette TVA 10%")
-        .count(2L);
+        .count(2L)
+        .description("Prestations ou ventes soumises à 20% de TVA");
   }
 
   public static TransactionCategory transactionCategory3() {
@@ -305,7 +308,9 @@ public class TestUtils {
         .id("transaction_category6_id")
         .type("Autres produits")
         .comment("Recette personnalisée TVA 1,2%")
-        .count(4L);
+        .count(4L)
+        .description("Autres produits")
+        .transactionType(TransactionTypeEnum.INCOME);
   }
 
   static Transaction swanTransaction1() {

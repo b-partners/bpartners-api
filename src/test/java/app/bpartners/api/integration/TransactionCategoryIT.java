@@ -101,7 +101,7 @@ class TransactionCategoryIT {
     PayingApi api = new PayingApi(joeDoeClient);
 
     List<TransactionCategory> actualAll = api.getTransactionCategories(JOE_DOE_ACCOUNT_ID,
-        LocalDate.now(), LocalDate.now());
+        LocalDate.now(), LocalDate.now(), null);
     /*
     TODO:
     Expected should be at least 12 because all the categories template should be sent
@@ -120,9 +120,9 @@ class TransactionCategoryIT {
     LocalDate endOf2022 = LocalDate.of(2022, 12, 31);
 
     List<TransactionCategory> actualYear2021 =
-        api.getTransactionCategories(JOE_DOE_ACCOUNT_ID, startOf2021, endOf2021);
+        api.getTransactionCategories(JOE_DOE_ACCOUNT_ID, startOf2021, endOf2021, null);
     List<TransactionCategory> actualYear2022 =
-        api.getTransactionCategories(JOE_DOE_ACCOUNT_ID, startOf2022, endOf2022);
+        api.getTransactionCategories(JOE_DOE_ACCOUNT_ID, startOf2022, endOf2022, null);
 
     assertTrue(actualYear2021.stream()
         .allMatch(category -> category.getCount() == 0L));

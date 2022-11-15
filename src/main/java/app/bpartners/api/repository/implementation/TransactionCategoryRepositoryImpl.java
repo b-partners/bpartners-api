@@ -4,7 +4,9 @@ import app.bpartners.api.model.TransactionCategory;
 import app.bpartners.api.model.mapper.TransactionCategoryMapper;
 import app.bpartners.api.repository.TransactionCategoryRepository;
 import app.bpartners.api.repository.jpa.TransactionCategoryJpaRepository;
+import app.bpartners.api.repository.jpa.TransactionCategoryTemplateJpaRepository;
 import app.bpartners.api.repository.jpa.model.HTransactionCategory;
+import app.bpartners.api.repository.jpa.model.HTransactionCategoryTemplate;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -16,12 +18,14 @@ import org.springframework.stereotype.Repository;
 public class TransactionCategoryRepositoryImpl implements TransactionCategoryRepository {
   private static final LocalDate DEFAULT_START_DATE = LocalDate.of(2022, 1, 1);
   private final TransactionCategoryJpaRepository jpaRepository;
+  private final TransactionCategoryTemplateJpaRepository templateJpaRepository;
   private final TransactionCategoryMapper mapper;
 
   @Override
   public List<TransactionCategory> findAllByIdAccount(
       String idAccount,
       LocalDate startDate, LocalDate endDate) {
+    List<HTransactionCategoryTemplate> templates = templateJpaRepository.findAll();
     //TODO:
     //Expected should be at least 12 because all the categories template should be sent
     //Others categories templates should also be returned with their comment values

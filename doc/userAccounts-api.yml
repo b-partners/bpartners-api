@@ -217,9 +217,86 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
-
+  getLegalFiles:
+    get:
+      summary: Get legal files of a user
+      tags:
+        - User Accounts
+      operationId: getLegalFiles
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type:
+              string
+          required: true
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LegalFile'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
+  approveLegalFile:
+    put:
+      summary: Approve a user legal file
+      tags:
+        - User Accounts
+      operationId: approveLegalFile
+      parameters:
+        - in: path
+          name: uId
+          schema:
+            type:
+              string
+          required: true
+        - in: path
+          name: lId
+          schema:
+            type:
+              string
+          required: true
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LegalFile'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
 components:
   schemas:
+    LegalFile:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        fileUrl:
+          type: string
+        approvalDatetime:
+          type: string
+          format: date-time
     User:
       properties:
         id:

@@ -16,7 +16,10 @@ import app.bpartners.api.endpoint.rest.model.Product;
 import app.bpartners.api.endpoint.rest.model.TransactionCategory;
 import app.bpartners.api.endpoint.rest.model.TransactionStatus;
 import app.bpartners.api.endpoint.rest.model.User;
+import app.bpartners.api.endpoint.rest.security.model.Principal;
+import app.bpartners.api.endpoint.rest.security.principal.PrincipalProvider;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
+import app.bpartners.api.model.Account;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.repository.LegalFileRepository;
 import app.bpartners.api.repository.fintecture.FintecturePaymentInitiationRepository;
@@ -42,6 +45,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import org.junit.jupiter.api.function.Executable;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsRequest;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsResponse;
@@ -66,6 +70,7 @@ public class TestUtils {
   public static final String JOE_DOE_SWAN_USER_ID = "c15924bf-61f9-4381-8c9b-d34369bf91f7";
   public static final String BAD_TOKEN = "bad_token";
   public static final String VALID_EMAIL = "username@domain.com";
+  public static final String API_URL = "https://api.swan.io/sandbox-partner/graphql";
   public static final String REDIRECT_SUCCESS_URL =
       "https://dashboard-dev.bpartners.app/login/success";
   public static final String REDIRECT_FAILURE_URL =
@@ -97,6 +102,8 @@ public class TestUtils {
 
   public static final String NOT_JOE_DOE_ACCOUNT_ID = "NOT_" + JOE_DOE_ACCOUNT_ID;
   public static final String VERIFIED_STATUS = "Verified";
+  public static final String SWAN_TRANSACTION_ID = "bosci_f224704f2555a42303e302ffb8e69eef";
+  public static final String SWAN_ACCOUNTHOLDER_ID = "b33e6eb0-e262-4596-a91f-20c6a7bfd343";
   public static final String JANE_ACCOUNT_ID = "jane_account_id";
   public static final String JANE_DOE_TOKEN = "jane_doe_token";
   public static final String JANE_DOE_ID = "jane_doe_id";
@@ -119,10 +126,8 @@ public class TestUtils {
         .id(JOE_DOE_SWAN_USER_ID)
         .firstName("Joe")
         .lastName("Doe")
-        .birthDate(LocalDate.of(2022, 8, 9))
         .idVerified(true)
         .identificationStatus(VALID_IDENTITY_STATUS)
-        .nationalityCca3("FRA")
         .mobilePhoneNumber("+261340465338")
         .build();
   }
@@ -132,10 +137,8 @@ public class TestUtils {
         .id("jane_doe_user_id")
         .firstName("Jane")
         .lastName("Doe")
-        .birthDate(LocalDate.of(2022, 8, 9))
         .idVerified(true)
         .identificationStatus(VALID_IDENTITY_STATUS)
-        .nationalityCca3("FRA")
         .mobilePhoneNumber("+261340465338")
         .build();
   }
@@ -146,10 +149,8 @@ public class TestUtils {
         .firstName(joeDoe().getFirstName())
         .lastName(joeDoe().getLastName())
         .identificationStatus(joeDoe().getIdentificationStatus())
-        .birthDate(joeDoe().getBirthDate())
         .mobilePhoneNumber(joeDoe().getMobilePhoneNumber())
         .idVerified(joeDoe().isIdVerified())
-        .nationalityCca3(joeDoe().getNationalityCca3())
         .build();
   }
 
@@ -304,7 +305,7 @@ public class TestUtils {
         .count(1L);
   }
 
-  static Transaction swanTransaction1() {
+  public static Transaction swanTransaction1() {
     return Transaction.builder()
         .node(Transaction.Node.builder()
             .id("bosci_f224704f2555a42303e302ffb8e69eef")
@@ -321,7 +322,7 @@ public class TestUtils {
         .build();
   }
 
-  static Transaction swanTransaction2() {
+  public static Transaction swanTransaction2() {
     return Transaction.builder()
         .node(Transaction.Node.builder()
             .id("bosci_28cb4daf35d3ab24cb775dcdefc8fdab")
@@ -338,7 +339,7 @@ public class TestUtils {
         .build();
   }
 
-  static Transaction swanTransaction3() {
+  public static Transaction swanTransaction3() {
     return Transaction.builder()
         .node(Transaction.Node.builder()
             .id("bosci_0fe167566b234808a44aae415f057b6c")
@@ -509,6 +510,19 @@ public class TestUtils {
     client.setRequestInterceptor(httpRequestBuilder ->
         httpRequestBuilder.header("Authorization", BEARER_PREFIX + token));
     return client;
+  }
+
+  public static void setUpProvider(PrincipalProvider provider) {
+    when(provider.getAuthentication()).thenReturn(
+        new UsernamePasswordAuthenticationToken(
+            new Principal(
+                new app.bpartners.api.model.User(),
+                new Account(),
+                JOE_DOE_TOKEN
+            ),
+            new Object()
+        )
+    );
   }
 
   public static void setUpSwanComponent(SwanComponent swanComponent) {

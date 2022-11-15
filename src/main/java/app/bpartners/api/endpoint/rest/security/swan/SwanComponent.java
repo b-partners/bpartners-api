@@ -25,7 +25,7 @@ import static app.bpartners.api.endpoint.rest.security.swan.SwanConf.BEARER_PREF
 public class SwanComponent {
   public static final String QUERY = "{\"query\":\"query ProfilePage "
       + "{user { id firstName lastName mobilePhoneNumber identificationStatus idVerified "
-      + "birthDate nationalityCCA3 idVerified identificationStatus}}\"}";
+      + "idVerified identificationStatus}}\"}";
   private final SwanMapper swanMapper;
   private final SwanConf swanConf;
 

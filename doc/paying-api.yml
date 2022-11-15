@@ -42,6 +42,7 @@ operations:
         * userDefined : show transaction categories defined by the user
         * date intervals : give the count of transaction categories used by existing transactions 
         between two dates
+        * transactionType : INCOME or OUTCOME or null if both
       parameters:
         - in: path
           name: aId
@@ -61,6 +62,10 @@ operations:
             type: string
             format: date
           required: true
+        - in: query
+          name: transactionType
+          schema:
+            $ref: '#/components/schemas/TransactionTypeEnum'
       responses:
         200:
           description: List of known transaction categories
@@ -647,12 +652,17 @@ components:
         count:
           type: integer
           format: int64
+        transactionType:
+          $ref: '#/components/schemas/TransactionTypeEnum'
     CreateTransactionCategory:
       type: object
       properties:
         type:
           type: string
         comment:
+          type: string
+          example: null
+        description:
           type: string
           example: null
     TransactionsSummary:

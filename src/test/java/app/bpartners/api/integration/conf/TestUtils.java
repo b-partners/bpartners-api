@@ -278,29 +278,38 @@ public class TestUtils {
     return new TransactionCategory()
         .id("transaction_category2_id")
         .type("Recette TVA 10%")
-        .count(2L)
-        .description("Prestations ou ventes soumises à 20% de TVA");
+        .count(0L)
+        .description("Prestations ou ventes soumises à 10% de TVA")
+        .transactionType(TransactionTypeEnum.INCOME);
   }
 
   public static TransactionCategory transactionCategory3() {
     return new TransactionCategory()
         .id("transaction_category3_id")
         .type("Recette TVA 10%")
-        .count(2L);
+        .count(0L)
+        .description("Prestations ou ventes soumises à 10% de TVA")
+        .transactionType(TransactionTypeEnum.INCOME);
   }
 
   public static TransactionCategory transactionCategory4() {
     return new TransactionCategory()
         .id("transaction_category4_id")
-        .type("Recette personnalisée TVA 1%")
-        .count(1L);
+        .type("Autres produits")
+        .comment("Recette personnalisée TVA 1%")
+        .count(0L)
+        .description("Prestations ou ventes soumises à 1% de TVA")
+        .transactionType(TransactionTypeEnum.INCOME);
   }
 
   public static TransactionCategory transactionCategory5() {
     return new TransactionCategory()
         .id("transaction_category5_id")
-        .type("Recette personnalisée TVA 1,2%")
-        .count(2L);
+        .type("Autres produits")
+        .count(0L)
+        .description("Autres produits")
+        .comment("Recette personnalisée TVA 1,2%")
+        .transactionType(TransactionTypeEnum.INCOME);
   }
 
   public static TransactionCategory transactionCategory6() {
@@ -308,7 +317,7 @@ public class TestUtils {
         .id("transaction_category6_id")
         .type("Autres produits")
         .comment("Recette personnalisée TVA 1,2%")
-        .count(4L)
+        .count(2L)
         .description("Autres produits")
         .transactionType(TransactionTypeEnum.INCOME);
   }

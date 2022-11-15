@@ -19,6 +19,7 @@ import app.bpartners.api.repository.swan.TransactionSwanRepository;
 import app.bpartners.api.repository.swan.UserSwanRepository;
 import java.time.LocalDate;
 import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -36,6 +37,12 @@ import static app.bpartners.api.integration.conf.TestUtils.setUpAccountSwanRepos
 import static app.bpartners.api.integration.conf.TestUtils.setUpSwanComponent;
 import static app.bpartners.api.integration.conf.TestUtils.setUpTransactionRepository;
 import static app.bpartners.api.integration.conf.TestUtils.setUpUserSwanRepository;
+import static app.bpartners.api.integration.conf.TestUtils.transactionCategory1;
+import static app.bpartners.api.integration.conf.TestUtils.transactionCategory2;
+import static app.bpartners.api.integration.conf.TestUtils.transactionCategory3;
+import static app.bpartners.api.integration.conf.TestUtils.transactionCategory4;
+import static app.bpartners.api.integration.conf.TestUtils.transactionCategory5;
+import static app.bpartners.api.integration.conf.TestUtils.transactionCategory6;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
@@ -44,6 +51,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @Testcontainers
 @ContextConfiguration(initializers = TransactionCategoryIT.ContextInitializer.class)
 @AutoConfigureMockMvc
+@Slf4j
 class TransactionCategoryIT {
   private static final String UNKNOWN_CATEGORY_TYPE = "unknown_type";
   private static final String UNKNOWN_TRANSACTION_ID = "unknown_id";
@@ -102,12 +110,14 @@ class TransactionCategoryIT {
 
     List<TransactionCategory> actualAll = api.getTransactionCategories(JOE_DOE_ACCOUNT_ID,
         LocalDate.now(), LocalDate.now(), null);
-    /*
-    TODO:
-    Expected should be at least 12 because all the categories template should be sent
-    Others categories templates should also be returned with their comment values
-     */
-    assertEquals(8, actualAll.size());
+
+    assertTrue(actualAll.contains(transactionCategory1()));
+    assertTrue(actualAll.contains(transactionCategory2()));
+    assertTrue(actualAll.contains(transactionCategory3()));
+    assertTrue(actualAll.contains(transactionCategory4()));
+    assertTrue(actualAll.contains(transactionCategory5()));
+    assertTrue(actualAll.contains(transactionCategory6().count(0L)));
+    assertEquals(16, actualAll.size());
   }
 
   @Test

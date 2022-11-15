@@ -7,6 +7,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
 @Getter
 @Setter
@@ -14,13 +15,14 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 @EqualsAndHashCode
+@ToString
 public class TransactionCategory {
   private String id;
   private String idAccount;
   private String idTransaction;
   private String idTransactionCategoryTmpl;
   private String type;
-  private Long typeCount;
+  private long typeCount;
   private String comment;
   private String description;
   private TransactionTypeEnum transactionType;

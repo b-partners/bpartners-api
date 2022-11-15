@@ -6,12 +6,19 @@ import app.bpartners.api.repository.jpa.TransactionCategoryJpaRepository;
 import app.bpartners.api.repository.jpa.TransactionCategoryTemplateJpaRepository;
 import app.bpartners.api.repository.jpa.model.HTransactionCategory;
 import app.bpartners.api.repository.jpa.model.HTransactionCategoryTemplate;
+import java.time.Instant;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.temporal.ChronoUnit;
+import java.util.List;
+import java.util.logging.Logger;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 @Component
+@Slf4j
 @AllArgsConstructor
 public class TransactionCategoryMapper {
   private final TransactionCategoryTemplateJpaRepository templateJpaRepository;
@@ -32,11 +39,20 @@ public class TransactionCategoryMapper {
         .build();
     templateJpaRepository.findById(entity.getIdCategoryTemplate())
         .ifPresent(template -> domain.setTransactionType(template.getTransactionType()));
-    //TODO: change the LocalDatetime to Instant because the Instant does not aware timezone
-    LocalDateTime startDatetime = startDate.atStartOfDay();
-    LocalDateTime endDatetime = endDate.plusDays(1).atStartOfDay().minusSeconds(1);
-    Long typeCount = jpaRepository.countByCriteria(domain.getIdAccount(), entity.getType(),
-        startDatetime, endDatetime);
+    Instant startInstant =
+        startDate
+            .atStartOfDay()
+            .toInstant(ZoneOffset.UTC)
+            .truncatedTo(ChronoUnit.DAYS);
+    Instant endInstant = endDate
+        .atStartOfDay()
+        .toInstant(ZoneOffset.UTC)
+        .truncatedTo(ChronoUnit.DAYS)
+        .plus(1, ChronoUnit.DAYS).minusSeconds(1);
+    long typeCount =
+        jpaRepository.countByCriteria(domain.getIdAccount(),
+            entity.getType(), entity.getComment(), startInstant,
+            endInstant);
     domain.setTypeCount(typeCount);
     return domain;
   }

@@ -43,6 +43,11 @@ paths:
     $ref: './userAccounts-api.yml#/operations/getBusinessActivities'
   /users/{userId}/accounts/{accountId}/accountHolders/{ahId}/businessActivities:
     $ref: './userAccounts-api.yml#/operations/updateBusinessActivities'
+  /users/{id}/legalFiles:
+    $ref: './userAccounts-api.yml#/operations/getLegalFiles'
+  /users/{uId}/legalFiles/{lId}:
+    $ref: './userAccounts-api.yml#/operations/approveLegalFile'
+
 
   #############################################
   ################ Paying API #################

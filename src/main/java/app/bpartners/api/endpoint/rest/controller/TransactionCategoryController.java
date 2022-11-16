@@ -3,6 +3,7 @@ package app.bpartners.api.endpoint.rest.controller;
 import app.bpartners.api.endpoint.rest.mapper.TransactionCategoryRestMapper;
 import app.bpartners.api.endpoint.rest.model.CreateTransactionCategory;
 import app.bpartners.api.endpoint.rest.model.TransactionCategory;
+import app.bpartners.api.endpoint.rest.model.TransactionTypeEnum;
 import app.bpartners.api.endpoint.rest.validator.DateFilterValidator;
 import app.bpartners.api.service.TransactionCategoryService;
 import java.time.LocalDate;
@@ -24,14 +25,15 @@ public class TransactionCategoryController {
   private final DateFilterValidator dateValidator;
 
   @GetMapping("/accounts/{accountId}/transactionCategories")
-  public List<TransactionCategory> getTransactionCategories(
+  public List<TransactionCategory> getTransactionCategoriesAndType(
       @PathVariable String accountId,
       @RequestParam(name = "from") String startDateValue,
-      @RequestParam(name = "to") String endDateValue) {
+      @RequestParam(name = "to") String endDateValue,
+      @RequestParam(value = "transactionType", required = false) TransactionTypeEnum type) {
     LocalDate startDate = LocalDate.parse(startDateValue);
     LocalDate endDate = LocalDate.parse(endDateValue);
     dateValidator.accept(startDate, endDate);
-    return service.getCategoriesByAccount(accountId, startDate, endDate).stream()
+    return service.getCategoriesByAccountAndType(accountId, startDate, endDate, type).stream()
         .map(mapper::toRest)
         .collect(Collectors.toUnmodifiableList());
   }

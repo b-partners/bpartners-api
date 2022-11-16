@@ -1,5 +1,6 @@
 package app.bpartners.api.repository.jpa;
 
+import app.bpartners.api.endpoint.rest.model.TransactionTypeEnum;
 import app.bpartners.api.repository.jpa.model.HTransactionCategory;
 import java.time.Instant;
 import java.util.List;
@@ -20,10 +21,26 @@ public interface TransactionCategoryJpaRepository
       + "from HTransactionCategoryTemplate template "
       + "left join HTransactionCategory tc on "
       + "(template.id = tc.idCategoryTemplate) "
-      + "where tc.idAccount = ?1 "
-      + "or tc.idAccount is null")
+      + "where (tc.idAccount = ?1 "
+      + "or tc.idAccount is null) ")
   List<HTransactionCategory> findAllByIdAccount(String idAccount);
 
+  @Query(value = "select "
+      + "new HTransactionCategory(coalesce(tc.id, 'nullValue'),"
+      + "tc.idTransaction,"
+      + "coalesce(tc.idAccount, ?1),"
+      + "coalesce(tc.idCategoryTemplate, template.id),"
+      + "coalesce(tc.type, template.type),"
+      + "tc.createdDatetime,"
+      + "tc.comment,"
+      + "tc.description )"
+      + "from HTransactionCategoryTemplate template "
+      + "left join HTransactionCategory tc on "
+      + "(template.id = tc.idCategoryTemplate) "
+      + "where (tc.idAccount = ?1 "
+      + "or tc.idAccount is null) "
+      + "and template.transactionType = ?2")
+  List<HTransactionCategory> findAllByIdAccountAndType(String idAccount, TransactionTypeEnum type);
 
   HTransactionCategory findTopByIdTransactionOrderByCreatedDatetimeDesc(String idTransaction);
 

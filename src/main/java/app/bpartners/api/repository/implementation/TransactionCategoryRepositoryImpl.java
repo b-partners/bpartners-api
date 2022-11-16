@@ -1,5 +1,6 @@
 package app.bpartners.api.repository.implementation;
 
+import app.bpartners.api.endpoint.rest.model.TransactionTypeEnum;
 import app.bpartners.api.model.TransactionCategory;
 import app.bpartners.api.model.mapper.TransactionCategoryMapper;
 import app.bpartners.api.repository.TransactionCategoryRepository;
@@ -19,15 +20,21 @@ public class TransactionCategoryRepositoryImpl implements TransactionCategoryRep
   private final TransactionCategoryMapper mapper;
 
   @Override
-  public List<TransactionCategory> findAllByIdAccount(
+  public List<TransactionCategory> findAllByIdAccountAndType(
       String idAccount,
+      TransactionTypeEnum type,
       LocalDate startDate, LocalDate endDate) {
-    List<TransactionCategory> categories =
-        jpaRepository.findAllByIdAccount(idAccount)
-            .stream()
-            .map(category -> mapper.toDomain(category, startDate, endDate))
-            .collect(Collectors.toUnmodifiableList());
-    return categories;
+    List<HTransactionCategory> categories;
+    if (type == null) {
+      categories = jpaRepository.findAllByIdAccount(idAccount);
+    } else {
+      categories = jpaRepository.findAllByIdAccountAndType(idAccount, type);
+    }
+
+    return categories
+        .stream()
+        .map(category -> mapper.toDomain(category, startDate, endDate))
+        .collect(Collectors.toUnmodifiableList());
   }
 
   @Override

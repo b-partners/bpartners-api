@@ -124,7 +124,9 @@
             <td>
                 <p><strong>Devis n° : <span
                         th:text="${invoice.ref}"></span> </strong></p>
-                <p><strong th:text="${invoice.title}"></strong></p>
+                <p th:if="${invoice.title != null && !invoice.title.isBlank()}">Intitulé "<span
+                        th:text="${invoice.title}"></span>"
+                </p>
                 <p>Date d'émission : <span
                         th:text="${#dates.format(invoice.getFormattedSendingDate, 'dd-MM-yyyy')}"></span>
                 </p>
@@ -158,7 +160,7 @@
                     €
                 </td>
                 <td class="text-center"><span
-                        th:text="${#numbers.formatDecimal(product.vatPercent.getApproximatedValue(),1,2)}"></span>%
+                        th:text="${product.vatPercent.getCentsHalfUp()}"></span>%
                 </td>
                 <td class="text-center"><span
                         th:text="${#numbers.formatDecimal(product.totalWithoutVat.getApproximatedValue(),1,2)}"></span>

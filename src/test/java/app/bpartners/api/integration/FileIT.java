@@ -213,7 +213,7 @@ class FileIT {
       responseBearerInBoth.body().length);*/
   }
 
-  public HttpResponse<byte[]> download(FileType fileType, String basePath, String JOE_DOE_TOKEN,
+  public HttpResponse<byte[]> download(FileType fileType, String basePath, String token,
                                        String queryBearer,
                                        String fileId)
       throws IOException, InterruptedException, ApiException {
@@ -226,7 +226,7 @@ class FileIT {
                     + BEARER_QUERY_PARAMETER_NAME + "=" + queryBearer + "&fileType="
                     + fileType))
             .header("Access-Control-Request-Method", "GET")
-            .header("Authorization", BEARER_PREFIX + JOE_DOE_TOKEN)
+            .header("Authorization", BEARER_PREFIX + token)
             .GET()
             .build(),
         HttpResponse.BodyHandlers.ofByteArray());

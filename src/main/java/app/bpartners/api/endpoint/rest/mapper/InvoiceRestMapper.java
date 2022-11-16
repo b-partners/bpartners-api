@@ -18,7 +18,6 @@ public class InvoiceRestMapper {
   private final AccountService accountService;
   private final CrupdateInvoiceValidator crupdateInvoiceValidator;
 
-
   public Invoice toRest(app.bpartners.api.model.Invoice domain) {
     List<app.bpartners.api.model.Product> domainContent = domain.getProducts();
     List<Product> products = null;

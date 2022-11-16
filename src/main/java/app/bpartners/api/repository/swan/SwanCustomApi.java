@@ -31,7 +31,7 @@ public class SwanCustomApi<T> {
       return new ObjectMapper().findAndRegisterModules()//Load DateTime Module
           .readValue(response.body(), genericClass);
     } catch (IOException | InterruptedException | URISyntaxException e) {
-      throw new ApiException(ApiException.ExceptionType.SERVER_EXCEPTION, e);
+      throw new ApiException(ApiException.ExceptionType.SERVER_EXCEPTION, e.getMessage());
     }
   }
 }

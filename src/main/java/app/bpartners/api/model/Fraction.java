@@ -1,6 +1,8 @@
 package app.bpartners.api.model;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.math.RoundingMode;
 import java.util.function.BinaryOperator;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -51,6 +53,20 @@ public class Fraction {
 
   public double getApproximatedValue() {
     return (numerator.doubleValue()) / (denominator.doubleValue());
+  }
+
+  public String getCentsOfApproximatedValue() {
+    BigDecimal bigDecimal = BigDecimal
+        .valueOf(numerator.doubleValue() / denominator.doubleValue())
+        .setScale(2, RoundingMode.HALF_UP);
+    return String.valueOf(bigDecimal);
+  }
+
+  public String getCentsHalfUp() {
+    BigDecimal bigDecimal = BigDecimal
+        .valueOf(numerator.doubleValue() / denominator.doubleValue() / 100)
+        .setScale(2, RoundingMode.HALF_UP);
+    return String.valueOf(bigDecimal).replace(".", ",");
   }
 
   public int getCents() {

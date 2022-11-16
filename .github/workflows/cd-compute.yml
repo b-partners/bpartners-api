@@ -5,11 +5,13 @@ on:
     branches:
       - 'dev'
       - 'prod'
+      - 'preprod'
+
   workflow_dispatch:
 
 jobs:
   cd-compute:
-    if: github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/prod'
+    if: github.ref_name == 'dev' || github.ref_name == 'prod' || github.ref_name == 'preprod'
 
     runs-on: ubuntu-latest
     
@@ -22,6 +24,7 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+
       - name: Set up JDK 11
         uses: actions/setup-java@v2
         with:
@@ -32,6 +35,7 @@ jobs:
         run: |
           cp gradle.properties version.yml
           sed -i 's/=/: /g' version.yml
+
       - name: Read semantic version (needed by the docker image build)
         id: read-semver
         uses: CumulusDS/get-yaml-paths-action@v0.1.0
@@ -47,15 +51,18 @@ jobs:
           export AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
           export AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
           ./gradlew build
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@13d241b293754004c80624b5567555c4a39ffbe3
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
+
       - name: Set up crendetials for private ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@aaf69d68aa3fb14c1d5a6be9ac61fe15b48453a2
+
       - name: Build, tag and push Docker image to AWS private ECR (continue-on-error)
         # Assume dev and prod point to the same commit.
         # Assume dev finished publishing the (immutable) image.
@@ -72,13 +79,14 @@ jobs:
 
       - name: Put branch_env and listenerRuleAvailablePriority into GITHUB_ENV
         run: |
-          if ${{ github.ref == 'refs/heads/dev' }}; then
+          if ${{ github.ref_name == 'dev' }}; then
             echo "branch_env=dev" >> $GITHUB_ENV
             echo "listenerRuleAvailablePriority=1" >> $GITHUB_ENV
-          elif ${{ github.ref == 'refs/heads/prod' }}; then
-            echo "branch_env=prod" >> $GITHUB_ENV
+          elif [[ ${{ github.ref_name == 'prod' }} || ${{ github.ref_name == 'preprod' }} ]]; then
+            echo "branch_env=${{ github.ref_name }}" >> $GITHUB_ENV
             echo "listenerRuleAvailablePriority=10" >> $GITHUB_ENV
           fi
+
       - name: Deploy compute stack
         uses: aws-actions/aws-cloudformation-github-deploy@v1
         with:

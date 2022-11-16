@@ -79,11 +79,11 @@ jobs:
 
       - name: Put branch_env and listenerRuleAvailablePriority into GITHUB_ENV
         run: |
-          if ${{ github.ref == 'refs/heads/dev' }}; then
+          if ${{ github.ref_name == 'dev' }}; then
             echo "branch_env=dev" >> $GITHUB_ENV
             echo "listenerRuleAvailablePriority=1" >> $GITHUB_ENV
-          elif ${{ github.ref == 'refs/heads/prod' }}; then
-            echo "branch_env=prod" >> $GITHUB_ENV
+          elif [${{ github.ref_name == 'prod' }}] || [${{ github.ref_name == 'preprod' }}]; then
+            echo "branch_env=${{ github.ref_name" >> $GITHUB_ENV
             echo "listenerRuleAvailablePriority=10" >> $GITHUB_ENV
           fi
 

@@ -11,7 +11,7 @@ on:
 
 jobs:
   cd-compute:
-    if: github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/prod'
+    if: github.ref_name == 'dev' || github.ref_name == 'prod' || github.ref_name == 'preprod'
 
     runs-on: ubuntu-latest
     

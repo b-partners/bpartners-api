@@ -1,10 +1,10 @@
 package app.bpartners.api.model;
 
 import java.math.BigInteger;
+import java.util.Objects;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -15,7 +15,6 @@ import org.apfloat.Aprational;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@EqualsAndHashCode
 public class Product {
   private String id;
   private Invoice invoice;
@@ -40,5 +39,24 @@ public class Product {
 
   public Fraction getTotalPriceWithVat() {
     return getTotalWithoutVat().operate(getTotalVat(), Aprational::add);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o != null && getClass() != o.getClass()) {
+      return false;
+    }
+    Product product = (Product) o;
+    return product != null && Objects.equals(description, product.getDescription())
+        && Objects.equals(vatPercent, product.getVatPercent())
+        && Objects.equals(unitPrice, product.getUnitPrice()) && quantity == product.getQuantity();
+  }
+
+  @Override
+  public int hashCode() {
+    return getClass().hashCode();
   }
 }

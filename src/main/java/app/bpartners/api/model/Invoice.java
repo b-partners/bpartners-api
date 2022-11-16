@@ -14,6 +14,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
+import static app.bpartners.api.service.InvoiceService.DRAFT_REF_PREFIX;
+
 @Getter
 @Setter
 @Builder
@@ -38,6 +40,16 @@ public class Invoice {
   private Instant updatedAt;
   private String fileId;
 
+  public String getRealReference() {
+    if (getRef() == null) {
+      return null;
+    }
+    if (getRef().contains(DRAFT_REF_PREFIX)) {
+      return getRef().replace(DRAFT_REF_PREFIX, "");
+    }
+    return getRef();
+  }
+
   public Date getFormattedSendingDate() {
     if (sendingDate == null) {
       return null;
@@ -58,19 +70,15 @@ public class Invoice {
       return true;
     }
     Invoice invoice = (Invoice) o;
-    //Note that the status is not take into account here
     return invoice != null && Objects.equals(id, invoice.getId())
         && Objects.equals(title, invoice.getTitle())
         && Objects.equals(comment, invoice.getComment())
-        && Objects.equals(ref, invoice.getRef())
+        && Objects.equals(this.getRealReference(), invoice.getRealReference())
         && sendingDate.compareTo(invoice.getSendingDate()) == 0
         && toPayAt.compareTo(invoice.getToPayAt()) == 0
-        && totalVat == invoice.getTotalVat()
-        && totalPriceWithoutVat == invoice.getTotalPriceWithoutVat()
+        && Objects.equals(products, invoice.products)
         //&& Objects.equals(invoiceCustomer, invoice.invoiceCustomer)
-        //&& Objects.equals(products, invoice.products)
-        && Objects.equals(account, invoice.getAccount())
-        && Objects.equals(fileId, invoice.fileId);
+        && Objects.equals(account, invoice.getAccount());
   }
 
   @Override

@@ -13,19 +13,31 @@ public class CrupdateInvoiceValidator implements Consumer<CrupdateInvoice> {
   @Override
   public void accept(CrupdateInvoice invoice) {
     StringBuilder message = new StringBuilder();
+
     if (invoice.getStatus() == null) {
       message.append("Status is mandatory. ");
+    } else {
+      if (invoice.getRef() != null) {
+        String reference = invoice.getRef();
+        if (reference.isBlank()) {
+          invoice.setRef(null);
+        }
+      }
     }
     if (isBadSendingDate(invoice)) {
       message.append("Invoice can not be sent no later than today. ");
     }
-    if (isBadPaymentAndSendingDate(invoice)) {
+    if (
+
+        isBadPaymentAndSendingDate(invoice)) {
       message.append("Payment date can not be after the sending date. ");
     }
+
     String exceptionMessage = message.toString();
     if (!exceptionMessage.isEmpty()) {
       throw new BadRequestException(exceptionMessage);
     }
+
   }
 
   private boolean isBadSendingDate(CrupdateInvoice invoice) {

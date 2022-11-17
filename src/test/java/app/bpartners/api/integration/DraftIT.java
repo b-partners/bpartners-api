@@ -7,12 +7,15 @@ import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
 import app.bpartners.api.integration.conf.AbstractContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
 import app.bpartners.api.manager.ProjectTokenManager;
+import app.bpartners.api.model.LegalFile;
+import app.bpartners.api.repository.LegalFileRepository;
 import app.bpartners.api.repository.fintecture.FintectureConf;
 import app.bpartners.api.repository.sendinblue.SendinblueConf;
 import app.bpartners.api.repository.swan.AccountSwanRepository;
 import app.bpartners.api.repository.swan.UserSwanRepository;
 import app.bpartners.api.service.aws.SesService;
 import java.io.IOException;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -23,7 +26,9 @@ import org.springframework.core.io.Resource;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ID;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
@@ -51,6 +56,8 @@ class DraftIT {
   private SwanComponent swanComponentMock;
   @Autowired
   private SesService subject;
+  @Autowired
+  private LegalFileRepository legalFileRepository;
 
   //TODO: use for local test only and set localstack for CI
   @Test
@@ -72,6 +79,12 @@ class DraftIT {
     assertDoesNotThrow(() -> this.subject.verifyEmailIdentity(recipient));
     assertDoesNotThrow(() -> this.subject.sendEmail(recipient, subject, htmlBody,
         attachmentName, attachmentAsBytes));
+  }
+
+  @Test
+  void find_legal_files_ok() {
+    List<LegalFile> actual = legalFileRepository.findAllByUserId(JOE_DOE_ID);
+    assertEquals(3, actual.size());
   }
 
   public static class ContextInitializer extends AbstractContextInitializer {

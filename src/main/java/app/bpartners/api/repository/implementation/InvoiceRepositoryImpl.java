@@ -52,15 +52,18 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
 
   @Override
   public Invoice crupdate(Invoice toCrupdate) {
-    Optional<HInvoice> existingInvoice = jpaRepository.findByIdAccountAndRef(
-        toCrupdate.getAccount().getId(), toCrupdate.getRef());
-    if (existingInvoice.isPresent()) {
-      String persistedId = existingInvoice.get().getId();
-      if (toCrupdate.getStatus().equals(DRAFT)
-          && !persistedId.equals(toCrupdate.getId())) {
-        throw new BadRequestException(
-            "The invoice reference must unique however the given reference [" + toCrupdate.getRef()
-                + "] is already used by invoice." + persistedId);
+    if (toCrupdate.getRef() != null) {
+      Optional<HInvoice> existingInvoice = jpaRepository.findByIdAccountAndRef(
+          toCrupdate.getAccount().getId(), toCrupdate.getRef());
+      if (existingInvoice.isPresent()) {
+        String persistedId = existingInvoice.get().getId();
+        if (toCrupdate.getStatus().equals(DRAFT)
+            && !persistedId.equals(toCrupdate.getId())) {
+          throw new BadRequestException(
+              "The invoice reference must unique however the given reference ["
+                  + toCrupdate.getRef()
+                  + "] is already used by invoice." + persistedId);
+        }
       }
     }
     HInvoice entity = jpaRepository.save(mapper.toEntity(toCrupdate));

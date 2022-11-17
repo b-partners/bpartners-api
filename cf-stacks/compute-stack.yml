@@ -70,6 +70,8 @@ Resources:
               Value: !Sub '{{resolve:ssm:/bpartners/${Env}/fintecture/app-id}}'
             - Name: FINTECTURE_APP_SECRET
               Value: !Sub '{{resolve:ssm:/bpartners/${Env}/fintecture/app-secret}}'
+            - Name: AWS_SSM_FINTECTURE_PROJECT_PARAM
+              Value: !Sub '{{resolve:ssm:/bpartners/${Env}/fintecture/project-param-name}}'
             - Name: AWS_BUCKET_NAME
               Value: !Sub '{{resolve:ssm:/bpartners/${Env}/s3/bucket-name}}'
             - Name: SENDINBLUE_API_KEY

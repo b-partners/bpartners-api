@@ -26,7 +26,7 @@ public class ProjectTokenManager {
   public ProjectTokenManager(SsmClient ssmClient,
                              @Value("${aws.ssm.swan.project.param}")
                              String swanProjectParamName,
-                             @Value("${fintecture.project.param.name}")
+                             @Value("${aws.ssm.fintecture.project.param}")
                              String fintectureProjectParamName,
                              SwanApi<ProjectTokenResponse> swanApi,
                              FinctectureTokenManager finctectureTokenManager) {

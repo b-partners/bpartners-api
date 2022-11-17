@@ -11,6 +11,7 @@ import app.bpartners.api.endpoint.rest.model.Customer;
 import app.bpartners.api.endpoint.rest.model.Invoice;
 import app.bpartners.api.endpoint.rest.model.InvoiceRelaunchConf;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
+import app.bpartners.api.endpoint.rest.model.LegalFile;
 import app.bpartners.api.endpoint.rest.model.Product;
 import app.bpartners.api.endpoint.rest.model.TransactionCategory;
 import app.bpartners.api.endpoint.rest.model.User;
@@ -465,6 +466,30 @@ public class TestUtils {
         .phone("+33 5 13 3234")
         .socialCapital(40000)
         .tvaNumber("123");
+  }
+
+  public static LegalFile legalFile1() {
+    return new LegalFile()
+        .id("legal_file1_id")
+        .name("CGU-November-2022-version-1")
+        .fileUrl("https://s3.eu-west-3.amazonaws.com/legal.bpartners.app/cgu.pdf")
+        .approvalDatetime(Instant.parse("2022-01-01T00:00:00.00Z"));
+  }
+
+  public static LegalFile legalFile2() {
+    return new LegalFile()
+        .id("legal_file2_id")
+        .name("CGU-November-2022-version-2")
+        .fileUrl("https://s3.eu-west-3.amazonaws.com/legal.bpartners.app/cgu.pdf")
+        .approvalDatetime(Instant.parse("2022-01-02T00:00:00.00Z"));
+  }
+
+  public static LegalFile legalFile3() {
+    return new LegalFile()
+        .id("legal_file3_id")
+        .name("CGU-November-2022-version-3")
+        .fileUrl("https://s3.eu-west-3.amazonaws.com/legal.bpartners.app/cgu.pdf")
+        .approvalDatetime(null);
   }
 
   public static ApiClient anApiClient(String token, int serverPort) {

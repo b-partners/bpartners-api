@@ -119,6 +119,8 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
         .antMatchers(GET, "/businessActivities").authenticated()
         .antMatchers(PUT, "/users/*/accounts/*/accountHolders/*/businessActivities").authenticated()
         .antMatchers(PUT, "/users/*/accounts/*/accountHolders/*/companyInfo").authenticated()
+        .requestMatchers(new SelfUserMatcher(GET, "/users/*/legalFiles")).authenticated()
+        .requestMatchers(new SelfUserMatcher(PUT, "/users/*/legalFiles/*")).authenticated()
         //TODO: which SelfMatcher should I put here ?. And on line 87 ?
         .antMatchers("/**").denyAll()
 

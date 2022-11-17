@@ -125,10 +125,12 @@
             <td>
                 <p><strong>Facture n° : <span
                         th:text="${invoice.ref}"></span> </strong></p>
+                <p th:if="${invoice.title != null && !invoice.title.isBlank()}">Intitulé "<span
+                        th:text="${invoice.title}"></span>"
+                </p>
                 <p>Date d'émission : <span
                         th:text="${#dates.format(invoice.getFormattedSendingDate, 'dd-MM-yyyy')}"></span>
                 </p>
-                <p><strong th:text="${invoice.title}"></strong></p>
                 <p>Date limite de validité : <span
                         th:text="${#dates.format(invoice.getFormattedPayingDate, 'dd-MM-yyyy')}"></span>
                 </p>
@@ -177,7 +179,7 @@
                     €
                 </td>
                 <td class="text-center space-letter"><span
-                        th:text="${#numbers.formatDecimal(product.vatPercent.getApproximatedValue(),1,2)}"></span>%
+                        th:text="${product.vatPercent.getCentsHalfUp()}"></span>%
                 </td>
                 <td class="text-center space-letter"><span
                         th:text="${#numbers.formatDecimal(product.totalWithoutVat.getApproximatedValue(),1,2)}"></span>

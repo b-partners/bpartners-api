@@ -1,13 +1,17 @@
 package app.bpartners.api.repository.implementation;
 
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
+import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.Invoice;
+import app.bpartners.api.model.PaymentRedirection;
+import app.bpartners.api.model.Product;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.mapper.InvoiceCustomerMapper;
 import app.bpartners.api.model.mapper.InvoiceMapper;
 import app.bpartners.api.model.mapper.ProductMapper;
 import app.bpartners.api.repository.InvoiceRepository;
+import app.bpartners.api.repository.ProductRepository;
 import app.bpartners.api.repository.jpa.InvoiceCustomerJpaRepository;
 import app.bpartners.api.repository.jpa.InvoiceJpaRepository;
 import app.bpartners.api.repository.jpa.InvoiceProductJpaRepository;
@@ -16,20 +20,30 @@ import app.bpartners.api.repository.jpa.model.HInvoice;
 import app.bpartners.api.repository.jpa.model.HInvoiceCustomer;
 import app.bpartners.api.repository.jpa.model.HInvoiceProduct;
 import app.bpartners.api.repository.jpa.model.HProduct;
+import app.bpartners.api.service.PaymentInitiationService;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
+import org.apfloat.Aprational;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Repository;
 
+import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.DRAFT;
+import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
+import static app.bpartners.api.service.InvoiceService.DRAFT_REF_PREFIX;
+import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
+import static app.bpartners.api.service.utils.FractionUtils.toAprational;
 
 @Repository
 @AllArgsConstructor
 public class InvoiceRepositoryImpl implements InvoiceRepository {
   private final InvoiceJpaRepository jpaRepository;
   private final ProductJpaRepository productJpaRepository;
+  private final ProductRepository productRepository;
+  private final PaymentInitiationService pis;
   private final InvoiceCustomerJpaRepository customerJpaRepository;
   private final InvoiceMapper mapper;
   private final InvoiceCustomerMapper invoiceCustomerMapper;
@@ -53,8 +67,7 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
     HInvoiceCustomer invoiceCustomer =
         invoiceCustomerMapper.toEntity(toCrupdate.getInvoiceCustomer());
     if (invoiceCustomer != null) {
-      invoiceCustomer = customerJpaRepository.save(invoiceCustomer
-      );
+      invoiceCustomer = customerJpaRepository.save(invoiceCustomer);
     }
     List<HProduct> createdProducts = null;
     if (!toCrupdate.getProducts().isEmpty()) {
@@ -66,7 +79,7 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
       invoiceProduct.setProducts(createdProducts);
       ipJpaRepository.save(invoiceProduct);
     }
-    return mapper.toDomain(entity, invoiceCustomer, createdProducts);
+    return refreshValues(mapper.toDomain(entity, invoiceCustomer, createdProducts));
   }
 
   @Override
@@ -78,7 +91,7 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
     HInvoice invoice = optionalInvoice.get();
     HInvoiceCustomer invoiceCustomer = customerJpaRepository
         .findTopByIdInvoiceOrderByCreatedDatetimeDesc(invoice.getId());
-    return mapper.toDomain(invoice, invoiceCustomer, List.of());
+    return refreshValues(mapper.toDomain(invoice, invoiceCustomer, List.of()));
   }
 
   @Override
@@ -88,7 +101,7 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
       HInvoice invoice = optionalInvoice.get();
       HInvoiceCustomer invoiceCustomer = customerJpaRepository
           .findTopByIdInvoiceOrderByCreatedDatetimeDesc(invoice.getId());
-      return Optional.of(mapper.toDomain(invoice, invoiceCustomer, List.of()));
+      return Optional.of(refreshValues(mapper.toDomain(invoice, invoiceCustomer, List.of())));
     }
     return Optional.empty();
   }
@@ -101,7 +114,7 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
         .map(invoice -> {
           HInvoiceCustomer invoiceCustomer = customerJpaRepository
               .findTopByIdInvoiceOrderByCreatedDatetimeDesc(invoice.getId());
-          return mapper.toDomain(invoice, invoiceCustomer, List.of());
+          return refreshValues(mapper.toDomain(invoice, invoiceCustomer, List.of()));
         })
         .collect(Collectors.toUnmodifiableList());
   }
@@ -114,7 +127,7 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
         .map(invoice -> {
           HInvoiceCustomer invoiceCustomer = customerJpaRepository
               .findTopByIdInvoiceOrderByCreatedDatetimeDesc(invoice.getId());
-          return mapper.toDomain(invoice, invoiceCustomer, List.of());
+          return refreshValues(mapper.toDomain(invoice, invoiceCustomer, List.of()));
         })
         .collect(Collectors.toUnmodifiableList());
   }
@@ -127,4 +140,65 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
         })
         .collect(Collectors.toUnmodifiableList());
   }
+
+  private Invoice refreshValues(Invoice invoice) {
+    List<Product> products = invoice.getProducts();
+    if (products.isEmpty()) {
+      products =
+          productRepository.findByIdInvoice(invoice.getId());
+    }
+    Invoice initializedInvoice = Invoice.builder()
+        .id(invoice.getId())
+        .fileId(invoice.getFileId())
+        .comment(invoice.getComment())
+        .updatedAt(invoice.getUpdatedAt())
+        .title(invoice.getTitle())
+        .invoiceCustomer(invoice.getInvoiceCustomer())
+        .account(invoice.getAccount())
+        .status(invoice.getStatus())
+        .totalVat(computeTotalVat(products))
+        .totalPriceWithoutVat(computeTotalPriceWithoutVat(products))
+        .totalPriceWithVat(computeTotalPriceWithVat(products))
+        .products(products)
+        .toPayAt(invoice.getToPayAt())
+        .sendingDate(invoice.getSendingDate())
+        .build();
+    if (invoice.getStatus().equals(CONFIRMED) || invoice.getStatus().equals(PAID)) {
+      PaymentRedirection paymentRedirection = pis.initiateInvoicePayment(initializedInvoice);
+      initializedInvoice.setPaymentUrl(paymentRedirection.getRedirectUrl());
+      initializedInvoice.setRef(invoice.getRealReference());
+    } else {
+      initializedInvoice.setPaymentUrl(null);
+      if (invoice.getRef() != null && !invoice.getRef().isBlank()) {
+        initializedInvoice.setRef(DRAFT_REF_PREFIX + invoice.getRealReference());
+      }
+    }
+    return initializedInvoice;
+  }
+
+  private Fraction computeTotalVat(List<Product> products) {
+    return computeSum(products, products.stream()
+        .map(Product::getTotalVat));
+  }
+
+  private Fraction computeTotalPriceWithoutVat(List<Product> products) {
+    return computeSum(products, products.stream()
+        .map(Product::getTotalWithoutVat));
+  }
+
+  private Fraction computeTotalPriceWithVat(List<Product> products) {
+    return computeSum(products, products.stream()
+        .map(Product::getTotalPriceWithVat));
+  }
+
+  private Fraction computeSum(List<Product> products, Stream<Fraction> fractionStream) {
+    if (products == null) {
+      return new Fraction();
+    }
+    Aprational aprational = fractionStream
+        .map(a -> toAprational(a.getNumerator(), a.getDenominator()))
+        .reduce(new Aprational(0), Aprational::add);
+    return parseFraction(aprational);
+  }
+
 }

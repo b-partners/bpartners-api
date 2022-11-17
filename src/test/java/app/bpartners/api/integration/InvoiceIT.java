@@ -86,6 +86,7 @@ class InvoiceIT {
   public static final String RANDOM_INVOICE_ID = "random_invoice_id";
   public static final String INVOICE5_ID = "invoice5_id";
   private static final String NEW_INVOICE_ID = "invoice_uuid";
+  public static final String DRAFT_REF_PREFIX = "DRAFT-";
   @Autowired
   private InvoiceService invoiceService;
   @MockBean
@@ -160,13 +161,13 @@ class InvoiceIT {
 
   CrupdateInvoice paidInvoice() {
     return new CrupdateInvoice()
-        .ref("BP009")
-        .title("Facture transaction")
+        .ref("BP005")
+        .title("Facture achat")
         .customer(customer1())
         .products(List.of(createProduct5()))
         .status(PAID)
         .sendingDate(LocalDate.of(2022, 10, 12))
-        .toPayAt(LocalDate.of(2022, 11, 10));
+        .toPayAt(LocalDate.of(2022, 11, 13));
   }
 
   Invoice invoice1() {
@@ -205,7 +206,7 @@ class InvoiceIT {
         .id("invoice6_id")
         .paymentUrl(null)
         .comment(null)
-        .ref("BP007-TMP")
+        .ref(DRAFT_REF_PREFIX + "BP007")
         .title("Facture transaction")
         .customer(customer1())
         .status(DRAFT)
@@ -233,7 +234,7 @@ class InvoiceIT {
     return new Invoice()
         .id(NEW_INVOICE_ID)
         .comment(validInvoice().getComment())
-        .ref(validInvoice().getRef() + "-TMP")
+        .ref(DRAFT_REF_PREFIX + validInvoice().getRef())
         .title("Facture sans produit")
         .customer(validInvoice().getCustomer())
         .status(DRAFT)
@@ -381,8 +382,8 @@ class InvoiceIT {
     assertEquals(expectedDraft(), actualUpdatedDraft);
     assertEquals(expectedConfirmed(), actualConfirmed);
     assertEquals(expectedPaid(), actualPaid);
-    assertTrue(actualUpdatedDraft.getRef().contains("TMP"));
-    assertFalse(actualConfirmed.getRef().contains("TMP"));
+    assertTrue(actualUpdatedDraft.getRef().contains(DRAFT_REF_PREFIX));
+    assertFalse(actualConfirmed.getRef().contains(DRAFT_REF_PREFIX));
   }
 
   @Test

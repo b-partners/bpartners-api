@@ -2,13 +2,10 @@ package app.bpartners.api.model.validator;
 
 
 import app.bpartners.api.model.Invoice;
-import app.bpartners.api.model.Product;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.repository.InvoiceRepository;
-import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -24,46 +21,47 @@ public class InvoiceValidator implements Consumer<Invoice> {
 
   @Override
   public void accept(Invoice actual) {
-    Optional<Invoice> persisted = repository.getOptionalById(actual.getId());
-    if (persisted.isEmpty() && !actual.getStatus().equals(DRAFT)) {
-      throw new BadRequestException(
-          "Invoice." + actual.getId() + " does not exist yet and can only have " + DRAFT
-              + " status");
-    } else if (persisted.isPresent()) {
-      Invoice persistedValue = persisted.get();
-      if (persistedValue.getStatus().equals(PAID)) {
+    Optional<Invoice> optionalInvoice = repository.getOptionalById(actual.getId());
+
+    if (optionalInvoice.isEmpty()) {
+      if (!actual.getStatus().equals(DRAFT)) {
+        throw new BadRequestException(
+            "Invoice." + actual.getId() + " does not exist yet and can only have " + DRAFT
+                + " status");
+      }
+    } else {
+      Invoice persisted = optionalInvoice.get();
+      if (persisted.getStatus().equals(PAID)) {
         throw new BadRequestException("Invoice." + actual.getId() + " was already paid");
       } else {
-        if (persistedValue.getStatus().equals(DRAFT)
+        if (persisted.getStatus().equals(DRAFT)
             && !actual.getStatus().equals(PROPOSAL) && !actual.getStatus().equals(DRAFT)) {
           throw new BadRequestException("Invoice." + actual.getId() + " actual status is "
-              + persistedValue.getStatus() + " and can only become " + PROPOSAL + " or " + DRAFT);
+              + persisted.getStatus() + " and can only become " + PROPOSAL + " or " + DRAFT);
         }
-        if (persistedValue.getStatus().equals(PROPOSAL)) {
+        if (persisted.getStatus().equals(PROPOSAL)) {
           if (!actual.getStatus().equals(CONFIRMED)) {
             throw new BadRequestException("Invoice." + actual.getId() + " actual status is "
-                + persistedValue.getStatus() + " and can only become " + CONFIRMED);
+                + persisted.getStatus() + " and can only become " + CONFIRMED);
           } else {
-            persistedValue.setProducts(ignoreIds(persistedValue.getProducts()));
-            persistedValue.getInvoiceCustomer().setId(null);
-            if (!actual.equals(persistedValue)) {
+            if (!actual.equals(persisted)) {
               throw new BadRequestException("Invoice." + actual.getId() + " was already sent and "
                   + "can not be modified anymore");
             }
           }
         }
-        if (persistedValue.getStatus().equals(CONFIRMED)
-            && !actual.getStatus().equals(PAID)) {
-          throw new BadRequestException("Invoice." + actual.getId() + " actual status is "
-              + persistedValue.getStatus() + " and can only become " + PAID);
+        if (persisted.getStatus().equals(CONFIRMED)) {
+          if (!actual.getStatus().equals(PAID)) {
+            throw new BadRequestException("Invoice." + actual.getId() + " actual status is "
+                + persisted.getStatus() + " and can only become " + PAID);
+          } else {
+            if (!actual.equals(persisted)) {
+              throw new BadRequestException("Invoice." + actual.getId() + " was already confirmed"
+                  + " and can not be modified anymore");
+            }
+          }
         }
       }
     }
-  }
-
-  private List<Product> ignoreIds(List<Product> productList) {
-    return productList.stream()
-        .peek(product -> product.setId(null))
-        .collect(Collectors.toUnmodifiableList());
   }
 }

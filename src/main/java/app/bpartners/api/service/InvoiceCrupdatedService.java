@@ -49,7 +49,7 @@ public class InvoiceCrupdatedService implements Consumer<InvoiceCrupdated> {
         .id(invoice.getId())
         .fileId(fileInfo.getId())
         .comment(invoice.getComment())
-        .ref(invoice.getRef())
+        .ref(invoice.getRealReference())
         .title(invoice.getTitle())
         .idAccount(invoice.getAccount().getId())
         .sendingDate(invoice.getSendingDate())
@@ -57,5 +57,4 @@ public class InvoiceCrupdatedService implements Consumer<InvoiceCrupdated> {
         .status(invoice.getStatus())
         .build());
   }
-
 }

@@ -27,9 +27,9 @@ public class AccountHolderController {
 
   @GetMapping("/users/{userId}/accounts/{accountId}/accountHolders")
   public List<AccountHolder> getAccountHolders(
-      @PathVariable String accountId,
-      @PathVariable String userId) {
-    return accountHolderService.getAccountHolders(accountId).stream()
+      @PathVariable String userId,
+      @PathVariable String accountId) {
+    return accountHolderService.getAccountHoldersByAccountId(accountId).stream()
         .map(accountHolderMapper::toRest)
         .collect(Collectors.toUnmodifiableList());
   }
@@ -39,10 +39,9 @@ public class AccountHolderController {
       @RequestBody CompanyInfo companyInfo,
       @PathVariable("userId") String userId,
       @PathVariable("accountId") String accountId,
-      @PathVariable("ahId") String accountHolderId
-  ) {
+      @PathVariable("ahId") String accountHolderId) {
     return accountHolderMapper.toRest(
-        accountHolderService.updateCompanyInfo(accountHolderId,
+        accountHolderService.updateCompanyInfo(accountId, accountHolderId,
             companyInfoMapper.toDomain(companyInfo)
         )
     );
@@ -56,7 +55,7 @@ public class AccountHolderController {
       @PathVariable("ahId") String accountHolderId
   ) {
     return accountHolderMapper.toRest(
-        accountHolderService.updateBusinessActivities(accountHolderId,
+        accountHolderService.updateBusinessActivities(accountId, accountHolderId,
             businessActivityMapper.toDomain(businessActivity)
         )
     );

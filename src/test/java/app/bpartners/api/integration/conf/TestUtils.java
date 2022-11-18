@@ -541,7 +541,9 @@ public class TestUtils {
   }
 
   public static void setUpAccountHolderSwanRep(AccountHolderSwanRepository swanRepository) {
-    when(swanRepository.getAccountHolders()).thenReturn(List.of(joeDoeSwanAccountHolder()));
+    when(swanRepository.getById(any())).thenReturn(joeDoeSwanAccountHolder());
+    when(swanRepository.getAccountHoldersByAccountId(any()))
+        .thenReturn(List.of(joeDoeSwanAccountHolder()));
   }
 
   public static void setUpPaymentInitiationRep(FintecturePaymentInitiationRepository repository) {

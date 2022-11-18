@@ -5,9 +5,9 @@ import app.bpartners.api.model.CompanyInfo;
 import java.util.List;
 
 public interface AccountHolderRepository {
-  List<AccountHolder> getByAccountId(String accountId);
+  List<AccountHolder> findAllByAccountId(String accountId);
 
-  AccountHolder save(String accountHolderId, CompanyInfo companyInfo);
+  AccountHolder save(String accountId, String accountHolderId, CompanyInfo companyInfo);
 
-  AccountHolder getById(String id);
+  AccountHolder getByIdAndAccountId(String id, String accountId);
 }

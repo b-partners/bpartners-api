@@ -4,6 +4,7 @@ import app.bpartners.api.endpoint.rest.model.BusinessActivity;
 import app.bpartners.api.endpoint.rest.model.CompanyBusinessActivity;
 import app.bpartners.api.endpoint.rest.security.model.Principal;
 import app.bpartners.api.endpoint.rest.security.principal.PrincipalProvider;
+import app.bpartners.api.model.Account;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.repository.AccountHolderRepository;
 import lombok.AllArgsConstructor;
@@ -22,14 +23,16 @@ public class BusinessActivityRestMapper {
   }
 
   public app.bpartners.api.model.BusinessActivity toDomain(CompanyBusinessActivity rest) {
-    Principal principal = (Principal) provider.getAuthentication().getPrincipal();
-    AccountHolder authenticatedAccountHolder = accountHolderRepository.getByAccountId(
-        principal.getAccount().getId()
-    ).get(0);
+    AccountHolder authenticatedAccountHolder =
+        accountHolderRepository.findAllByAccountId(authenticatedAccount().getId()).get(0);
     return app.bpartners.api.model.BusinessActivity.builder()
         .accountHolder(authenticatedAccountHolder)
         .primaryActivity(rest.getPrimary())
         .secondaryActivity(rest.getSecondary())
         .build();
+  }
+
+  public Account authenticatedAccount() {
+    return ((Principal) provider.getAuthentication().getPrincipal()).getAccount();
   }
 }

@@ -15,20 +15,24 @@ public class AccountHolderService {
   private final AccountHolderRepository accountHolderRepository;
   private final BusinessActivityService businessActivityService;
 
-  public List<AccountHolder> getAccountHolders(String acccountId) {
-    return accountHolderRepository.getByAccountId(acccountId);
+  public List<AccountHolder> getAccountHoldersByAccountId(String accountId) {
+    return accountHolderRepository.findAllByAccountId(accountId);
   }
 
   public AccountHolder getAccountHolderByAccountId(String accountId) {
-    return accountHolderRepository.getByAccountId(accountId).get(0);
+    return accountHolderRepository.findAllByAccountId(accountId).get(0);
   }
 
-  public AccountHolder updateCompanyInfo(String id, CompanyInfo companyInfo) {
-    return accountHolderRepository.save(id, companyInfo);
+  public AccountHolder updateCompanyInfo(String accountId, String accountHolderId,
+                                         CompanyInfo companyInfo) {
+    return accountHolderRepository.save(accountId, accountHolderId, companyInfo);
   }
 
-  public AccountHolder updateBusinessActivities(String id, BusinessActivity businessActivity) {
+  public AccountHolder updateBusinessActivities(
+      String optionalAccountId,
+      String accountHolderId,
+      BusinessActivity businessActivity) {
     businessActivityService.save(businessActivity);
-    return accountHolderRepository.getById(id);
+    return accountHolderRepository.getByIdAndAccountId(accountHolderId, optionalAccountId);
   }
 }

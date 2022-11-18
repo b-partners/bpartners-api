@@ -22,11 +22,14 @@ public class AccountHolderRestMapper {
     app.bpartners.api.endpoint.rest.model.AccountHolder restAccountHolder =
         new app.bpartners.api.endpoint.rest.model.AccountHolder();
     BusinessActivity model = businessActivityService.findByAccountHolderId(accountHolder.getId());
+    String primaryActivity = model != null ? model.getPrimaryActivity() : null;
+    String secondaryActivity = model != null ? model.getSecondaryActivity() : null;
+
     restAccountHolder.setId(accountHolder.getId());
     restAccountHolder.setName(accountHolder.getName());
     restAccountHolder.setOfficialActivityName(accountHolder.getMainActivity());
     restAccountHolder.setSiren(accountHolder.getSiren());
-    
+
     restAccountHolder.setCompanyInfo(new CompanyInfo()
         .email(accountHolder.getEmail())
         .phone(accountHolder.getMobilePhoneNumber())
@@ -41,8 +44,8 @@ public class AccountHolderRestMapper {
 
     restAccountHolder.setBusinessActivities(
         new CompanyBusinessActivity()
-            .primary(model.getPrimaryActivity())
-            .secondary(model.getSecondaryActivity())
+            .primary(primaryActivity)
+            .secondary(secondaryActivity)
     );
 
     // /!\ Deprecated : use contactAddress instead

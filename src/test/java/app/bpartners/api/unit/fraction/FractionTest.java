@@ -1,13 +1,16 @@
 package app.bpartners.api.unit.fraction;
 
 import app.bpartners.api.model.Fraction;
+import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.service.utils.FractionUtils;
 import java.math.BigInteger;
 import lombok.AllArgsConstructor;
 import org.apfloat.Apint;
 import org.apfloat.Aprational;
 import org.junit.jupiter.api.Test;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @AllArgsConstructor
 class FractionTest {
@@ -24,5 +27,11 @@ class FractionTest {
     assertEquals(new Fraction(BigInteger.TWO, BigInteger.valueOf(3)), fromString);
     assertEquals(testInteger, fromInteger.getApproximatedValue());
     assertEquals(new Fraction(BigInteger.ONE, BigInteger.TEN), fromAprational);
+  }
+
+  @Test
+  void parseFraction_ko() {
+    assertThrows(ApiException.class, () -> FractionUtils.parseFraction("2"),
+        "Invalid fraction format");
   }
 }

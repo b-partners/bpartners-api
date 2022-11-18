@@ -22,6 +22,9 @@ public class TransactionsSummaryMapper {
 
 
   public MonthlyTransactionsSummary toDomain(HMonthlyTransactionsSummary entity) {
+    if (entity == null) {
+      return null;
+    }
     return MonthlyTransactionsSummary.builder()
         .id(entity.getId())
         .month(entity.getMonth())

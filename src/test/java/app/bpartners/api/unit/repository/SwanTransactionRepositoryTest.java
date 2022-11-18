@@ -3,7 +3,6 @@ package app.bpartners.api.unit.repository;
 import app.bpartners.api.endpoint.rest.security.principal.PrincipalProviderImpl;
 import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
 import app.bpartners.api.manager.ProjectTokenManager;
-import app.bpartners.api.repository.swan.SwanApi;
 import app.bpartners.api.repository.swan.SwanCustomApi;
 import app.bpartners.api.repository.swan.implementation.TransactionSwanRepositoryImpl;
 import app.bpartners.api.repository.swan.model.Transaction;
@@ -26,7 +25,6 @@ class SwanTransactionRepositoryTest {
   SwanConf swanConf;
   ProjectTokenManager projectTokenManager;
   SwanCustomApi<TransactionResponse> swanCustomApi;
-  SwanApi<TransactionResponse> swanApi;
   TransactionSwanRepositoryImpl transactionSwanRepository;
 
   @BeforeEach
@@ -36,11 +34,10 @@ class SwanTransactionRepositoryTest {
     projectTokenManager = mock(ProjectTokenManager.class);
     swanConf = mock(SwanConf.class);
     swanCustomApi = mock(SwanCustomApi.class);
-    swanApi = new SwanApi<>(provider, swanCustomApi, swanConf);
     when(swanConf.getApiUrl()).thenReturn(API_URL);
     when(swanCustomApi.getData(any(), any(), any())).thenReturn(transactionResponse());
     transactionSwanRepository =
-        new TransactionSwanRepositoryImpl(projectTokenManager, swanConf, swanApi);
+        new TransactionSwanRepositoryImpl(projectTokenManager, swanConf, swanCustomApi);
   }
 
   /*@Test
@@ -60,9 +57,15 @@ class SwanTransactionRepositoryTest {
 
   private TransactionResponse transactionResponse() {
     return TransactionResponse.builder()
-        .data(new TransactionResponse.Data(new TransactionResponse.Accounts(List.of(
-            new TransactionResponse.Edge(new TransactionResponse.Node(
-                new TransactionResponse.Transactions(List.of(swanTransaction1()))))))))
+        .data(
+            new TransactionResponse.Data(
+                new TransactionResponse.Account(
+                    new TransactionResponse.Transactions(
+                        List.of(swanTransaction1())
+                    )
+                )
+            )
+        )
         .build();
   }
 }

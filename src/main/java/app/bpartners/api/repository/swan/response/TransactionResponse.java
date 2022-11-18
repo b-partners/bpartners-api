@@ -25,52 +25,24 @@ public class TransactionResponse {
   @AllArgsConstructor
   @Builder
   public static class Data {
-    private static final String JSON_PROPERTY_ACCOUNTS = "accounts";
-    private Accounts accounts;
+    private static final String JSON_PROPERTY_ACCOUNT = "account";
+    private Account account;
 
-    @JsonProperty(JSON_PROPERTY_ACCOUNTS)
+    @JsonProperty(JSON_PROPERTY_ACCOUNT)
     @JsonInclude(JsonInclude.Include.USE_DEFAULTS)
-    public Accounts getAccounts() {
-      return accounts;
+    public Account getAccount() {
+      return account;
     }
   }
 
   @NoArgsConstructor
   @AllArgsConstructor
   @Builder
-  public static class Accounts {
-    private static final String JSON_PROPERTY_EDGES = "edges";
-    private List<Edge> edges;
-
-    @JsonProperty(JSON_PROPERTY_EDGES)
-    @JsonInclude(JsonInclude.Include.USE_DEFAULTS)
-    public List<Edge> getEdges() {
-      return edges;
-    }
-  }
-
-  @NoArgsConstructor
-  @AllArgsConstructor
-  @Builder
-  public static class Edge {
-    private static final String JSON_PROPERTY_NODE = "node";
-    private Node node;
-
-    @JsonProperty(JSON_PROPERTY_NODE)
-    @JsonInclude(JsonInclude.Include.USE_DEFAULTS)
-    public Node getNode() {
-      return node;
-    }
-  }
-
-  @NoArgsConstructor
-  @AllArgsConstructor
-  @Builder
-  public static class Node {
-    private static final String JSON_PROPERTY_TRANSACTION = "transactions";
+  public static class Account {
+    private static final String JSON_PROPERTY_TRANSACTIONS = "transactions";
     private Transactions transactions;
 
-    @JsonProperty(JSON_PROPERTY_TRANSACTION)
+    @JsonProperty(JSON_PROPERTY_TRANSACTIONS)
     @JsonInclude(JsonInclude.Include.USE_DEFAULTS)
     public Transactions getTransactions() {
       return transactions;

@@ -21,6 +21,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
+import static app.bpartners.api.endpoint.rest.model.FileType.INVOICE;
 import static app.bpartners.api.integration.conf.TestUtils.FILE_ID;
 import static app.bpartners.api.integration.conf.TestUtils.INVOICE1_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
@@ -42,6 +43,9 @@ class InvoiceCrupdatedServiceTest {
     fileService = mock(FileService.class);
     invoiceJpaRepository = mock(InvoiceJpaRepository.class);
     invoiceCrupdatedService = new InvoiceCrupdatedService(fileService, invoiceJpaRepository);
+
+    when(fileService.downloadFile(any(), any(), any())).thenReturn(logoAsBytes);
+    when(fileService.upload(any(), any(), any(), any())).thenReturn(fileInfo());
   }
 
   InvoiceCrupdated invoiceCrupdated() {
@@ -100,7 +104,7 @@ class InvoiceCrupdatedServiceTest {
         .build();
   }
 
-  HInvoice hInvoice() {
+  HInvoice invoiceEntity() {
     return HInvoice.builder()
         .id(invoiceCrupdated().getInvoice().getId())
         .fileId(fileInfo().getId())
@@ -116,27 +120,28 @@ class InvoiceCrupdatedServiceTest {
 
   @Test
   void accept_crupdated_invoice_ok() {
-    when(fileService.downloadFile(any(), any(), any())).thenReturn(logoAsBytes);
-    when(fileService.upload(any(), any(), any(), any())).thenReturn(fileInfo());
     ArgumentCaptor<String> fileIdCaptor = ArgumentCaptor.forClass(String.class);
     ArgumentCaptor<FileType> fileTypeArgumentCaptor = ArgumentCaptor.forClass(FileType.class);
     ArgumentCaptor<String> accountIdCaptor = ArgumentCaptor.forClass(String.class);
-    ArgumentCaptor<HInvoice> hInvoiceArgumentCaptor = ArgumentCaptor.forClass(HInvoice.class);
+    ArgumentCaptor<HInvoice> invoiceArgumentCaptor = ArgumentCaptor.forClass(HInvoice.class);
 
     invoiceCrupdatedService.accept(invoiceCrupdated());
-    verify(invoiceJpaRepository).save(hInvoiceArgumentCaptor.capture());
-    verify(fileService).upload(fileIdCaptor.capture(),
-        fileTypeArgumentCaptor.capture(),
+    verify(invoiceJpaRepository).save(invoiceArgumentCaptor.capture());
+    verify(fileService).upload(fileIdCaptor.capture(), fileTypeArgumentCaptor.capture(),
         accountIdCaptor.capture(), any());
-    String fileId = fileIdCaptor.getValue();
-    FileType fileType = fileTypeArgumentCaptor.getValue();
-    String accountId = accountIdCaptor.getValue();
-    HInvoice hInvoice = hInvoiceArgumentCaptor.getValue();
 
-    assertEquals(invoiceCrupdated().getInvoice().getFileId(), fileId);
-    assertEquals(FileType.INVOICE, fileType);
-    assertEquals(invoiceCrupdated().getInvoice().getAccount().getId(), accountId);
-    assertEquals(hInvoice(), hInvoice);
+    assertEquals(invoiceFileId(), fileIdCaptor.getValue());
+    assertEquals(INVOICE, fileTypeArgumentCaptor.getValue());
+    assertEquals(invoiceAccountId(), accountIdCaptor.getValue());
+    assertEquals(invoiceEntity(), invoiceArgumentCaptor.getValue());
+  }
+
+  private String invoiceAccountId() {
+    return invoiceCrupdated().getInvoice().getAccount().getId();
+  }
+
+  private String invoiceFileId() {
+    return invoiceCrupdated().getInvoice().getFileId();
   }
 
   FileInfo fileInfo() {
@@ -146,5 +151,4 @@ class InvoiceCrupdatedServiceTest {
         .sizeInKB(0)
         .build();
   }
-
 }

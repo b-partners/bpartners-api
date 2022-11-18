@@ -1,34 +1,33 @@
 package app.bpartners.api.model.validator;
 
-import app.bpartners.api.repository.jpa.model.HUser;
 import app.bpartners.api.model.exception.BadRequestException;
-import java.util.List;
-import java.util.Set;
+import app.bpartners.api.repository.jpa.model.HUser;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
-import javax.validation.ConstraintViolation;
-import javax.validation.Validator;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
 @AllArgsConstructor
 public class UserValidator implements Consumer<HUser> {
-  private final Validator validator;
-
-  public void accept(List<HUser> users) {
-    users.forEach(this);
-  }
 
   @Override
   public void accept(HUser user) {
-    Set<ConstraintViolation<HUser>> violations = validator.validate(user);
-    if (!violations.isEmpty()) {
-      String constraintMessages = violations
-          .stream()
-          .map(ConstraintViolation::getMessage)
-          .collect(Collectors.joining(". "));
-      throw new BadRequestException(constraintMessages);
+    StringBuilder message = new StringBuilder();
+    if (user.getSwanUserId() == null) {
+      message.append("SwanUser identifier is mandatory. ");
+    }
+    if (user.getLogoFileId() == null) {
+      message.append("Logo identifier is mandatory. ");
+    }
+    if (user.getPhoneNumber() == null) {
+      message.append("Phone number is mandatory. ");
+    }
+    if (user.getStatus() == null) {
+      message.append("Status is mandatory. ");
+    }
+    String exceptionMessage = message.toString();
+    if (!exceptionMessage.isEmpty()) {
+      throw new BadRequestException(exceptionMessage);
     }
   }
 }

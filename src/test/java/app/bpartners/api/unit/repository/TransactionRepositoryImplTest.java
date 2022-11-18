@@ -1,0 +1,79 @@
+package app.bpartners.api.unit.repository;
+
+import app.bpartners.api.endpoint.rest.model.TransactionStatus;
+import app.bpartners.api.model.Transaction;
+import app.bpartners.api.model.TransactionCategory;
+import app.bpartners.api.model.mapper.TransactionMapper;
+import app.bpartners.api.repository.TransactionCategoryRepository;
+import app.bpartners.api.repository.implementation.TransactionRepositoryImpl;
+import app.bpartners.api.repository.swan.TransactionSwanRepository;
+import java.util.List;
+import java.util.Objects;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
+import static app.bpartners.api.integration.conf.TestUtils.swanTransaction1;
+import static app.bpartners.api.integration.conf.TestUtils.swanTransaction2;
+import static app.bpartners.api.integration.conf.TestUtils.swanTransaction3;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+class TransactionRepositoryImplTest {
+  private TransactionRepositoryImpl transactionRepositoryImpl;
+  private TransactionSwanRepository swanRepository;
+  private TransactionMapper mapper;
+  private TransactionCategoryRepository categoryRepository;
+
+  @BeforeEach
+  void setUp() {
+    swanRepository = mock(TransactionSwanRepository.class);
+    mapper = new TransactionMapper();
+    categoryRepository = mock(TransactionCategoryRepository.class);
+    transactionRepositoryImpl = new TransactionRepositoryImpl(swanRepository, mapper,
+        categoryRepository);
+    when(swanRepository.getByIdAccount(JOE_DOE_ACCOUNT_ID))
+        .thenReturn(List.of(swanTransaction1(), swanTransaction2(), swanTransaction3()));
+    when(categoryRepository.findByIdTransaction(any(String.class))).thenAnswer(i -> {
+      String idTransaction = i.getArgument(0);
+      if (Objects.equals(idTransaction, swanTransaction1().getNode().getId())) {
+        return TransactionCategory.builder()
+            .type(swanTransaction1().getNode().getLabel())
+            .build();
+      } else if (Objects.equals(idTransaction, swanTransaction2().getNode().getId())) {
+        return TransactionCategory.builder()
+            .type(swanTransaction2().getNode().getLabel())
+            .build();
+      } else if (Objects.equals(idTransaction, swanTransaction3().getNode().getId())) {
+        return TransactionCategory.builder()
+            .type(swanTransaction3().getNode().getLabel())
+            .build();
+      }
+      return null;
+    });
+  }
+
+  @Test
+  void test() {
+
+    List<Transaction> booked =
+        transactionRepositoryImpl.findByAccountIdAndStatus(JOE_DOE_ACCOUNT_ID,
+            TransactionStatus.BOOKED);
+
+    List<Transaction> bookedBetweenInstants =
+        transactionRepositoryImpl.findByAccountIdAndStatusBetweenInstants(JOE_DOE_ACCOUNT_ID,
+            TransactionStatus.BOOKED, swanTransaction3().getNode().getCreatedAt(),
+            swanTransaction2().getNode().getCreatedAt());
+
+    assertTrue(booked.stream()
+        .allMatch(transaction -> transaction.getStatus().equals(TransactionStatus.BOOKED)));
+
+    assertTrue(bookedBetweenInstants.stream().allMatch(transaction ->
+        transaction.getPaymentDatetime().isAfter(swanTransaction3().getNode().getCreatedAt())
+            &&
+            transaction.getPaymentDatetime()
+                .isBefore(swanTransaction2().getNode().getCreatedAt())));
+  }
+}

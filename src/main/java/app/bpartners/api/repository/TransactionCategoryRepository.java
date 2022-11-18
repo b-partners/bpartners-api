@@ -12,5 +12,4 @@ public interface TransactionCategoryRepository {
   List<TransactionCategory> saveAll(List<TransactionCategory> toCreate);
 
   TransactionCategory findByIdTransaction(String idTransaction);
-
 }

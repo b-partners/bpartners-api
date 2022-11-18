@@ -7,11 +7,13 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 @Setter
+@ToString
 public class Transaction {
   private Node node;
 
@@ -44,6 +46,7 @@ public class Transaction {
   @NoArgsConstructor
   @AllArgsConstructor
   @Builder
+  @ToString
   public static class Node {
     private String id;
     private String label;

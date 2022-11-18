@@ -378,8 +378,7 @@ components:
         businessActivities:
           $ref: '#/components/schemas/CompanyBusinessActivity'
         initialCashflow:
-          #todo: change to integer, format is cents
-          type: double
+          type: integer
         verificationStatus:
           $ref: '#/components/schemas/VerificationStatus'
     VerificationStatus:

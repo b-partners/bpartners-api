@@ -57,7 +57,7 @@ public class UserRepositoryImpl implements UserRepository {
   @Override
   public User getUserByToken(String token) {
     SwanUser swanUser = swanRepository.getByToken(token);
-    Optional<HUser> optionalUser = jpaRepository.findById(swanUser.getId());
+    Optional<HUser> optionalUser = jpaRepository.findUserBySwanUserId(swanUser.getId());
     if (optionalUser.isPresent()) {
       return userMapper.toDomain(optionalUser.get(), swanUser);
     }

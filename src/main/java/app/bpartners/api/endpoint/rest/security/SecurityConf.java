@@ -1,6 +1,7 @@
 package app.bpartners.api.endpoint.rest.security;
 
 import app.bpartners.api.endpoint.rest.security.matcher.SelfAccountMatcher;
+import app.bpartners.api.endpoint.rest.security.matcher.SelfUserAccountMatcher;
 import app.bpartners.api.endpoint.rest.security.matcher.SelfUserMatcher;
 import app.bpartners.api.model.exception.ForbiddenException;
 import javax.servlet.http.HttpServletRequest;
@@ -84,7 +85,9 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
         .requestMatchers(new SelfAccountMatcher(POST, "/accounts/*/customers")).authenticated()
         .antMatchers(GET, "/accounts/*/transactions").authenticated()
         .requestMatchers(new SelfUserMatcher(GET, "/users/*/accounts")).authenticated()
-        .antMatchers(GET, "/users/*/accounts/*/accountHolders").authenticated()
+        .requestMatchers(
+            new SelfUserAccountMatcher(
+                GET, "/users/*/accounts/*/accountHolders")).authenticated()
         .requestMatchers(new SelfAccountMatcher(GET, "/accounts/*/invoices/*")).authenticated()
         .requestMatchers(new SelfAccountMatcher(PUT, "/accounts/*/invoices/*")).authenticated()
         .requestMatchers(new SelfAccountMatcher(GET, "/accounts/*/products")).authenticated()
@@ -117,11 +120,13 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
         .requestMatchers(
             new SelfAccountMatcher(POST, "/accounts/*/invoices/*/relaunch")).authenticated()
         .antMatchers(GET, "/businessActivities").authenticated()
-        .antMatchers(PUT, "/users/*/accounts/*/accountHolders/*/businessActivities").authenticated()
-        .antMatchers(PUT, "/users/*/accounts/*/accountHolders/*/companyInfo").authenticated()
+        //TODO: set SelfUserAccountHolderMatcher
+        .antMatchers(
+            PUT, "/users/*/accounts/*/accountHolders/*/businessActivities").authenticated()
+        .antMatchers(
+            PUT, "/users/*/accounts/*/accountHolders/*/companyInfo").authenticated()
         .requestMatchers(new SelfUserMatcher(GET, "/users/*/legalFiles")).authenticated()
         .requestMatchers(new SelfUserMatcher(PUT, "/users/*/legalFiles/*")).authenticated()
-        //TODO: which SelfMatcher should I put here ?. And on line 87 ?
         .antMatchers("/**").denyAll()
 
         // disable superfluous protections

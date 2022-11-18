@@ -129,22 +129,6 @@ class AccountHolderIT {
   }
 
   @Test
-  void update_company_info_ko() {
-    ApiClient joeDoeClient = anApiClient();
-    UserAccountsApi api = new UserAccountsApi(joeDoeClient);
-
-    assertThrowsApiException(
-        "{"
-            + "\"type\":\"404 NOT_FOUND\","
-            + "\"message\":\"AccountHolder." + BAD_ACCOUNT_HOLDER_ID + " not found\""
-            + "}",
-        () -> api.updateCompanyInfo(JOE_DOE_SWAN_USER_ID, JOE_DOE_ACCOUNT_ID,
-            BAD_ACCOUNT_HOLDER_ID, companyInfo())
-    );
-  }
-
-
-  @Test
   void update_business_activities_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
     UserAccountsApi api = new UserAccountsApi(joeDoeClient);
@@ -153,21 +137,6 @@ class AccountHolderIT {
         joeDoeAccountHolder().getId(), companyBusinessActivity());
 
     assertEquals(expected(), actual);
-  }
-
-  @Test
-  void update_business_activities_ko() {
-    ApiClient joeDoeClient = anApiClient();
-    UserAccountsApi api = new UserAccountsApi(joeDoeClient);
-
-    assertThrowsApiException(
-        "{"
-            + "\"type\":\"404 NOT_FOUND\","
-            + "\"message\":\"AccountHolder." + BAD_ACCOUNT_HOLDER_ID + " not found\""
-            + "}",
-        () -> api.updateCompanyInfo(JOE_DOE_SWAN_USER_ID, JOE_DOE_ACCOUNT_ID,
-            BAD_ACCOUNT_HOLDER_ID, companyInfo())
-    );
   }
 
   private static AccountHolder expected() {

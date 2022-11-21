@@ -6,11 +6,7 @@ import java.util.List;
 
 public interface TransactionCategoryRepository {
   List<TransactionCategory> findByIdAccountAndUserDefined(
-      String idAccount, boolean unique, boolean userDefined,
-      LocalDate startDate, LocalDate endDate);
-
-  List<TransactionCategory> findByAccount(
-      String idAccount, boolean unique,
+      String idAccount, Boolean userDefined,
       LocalDate startDate, LocalDate endDate);
 
   List<TransactionCategory> saveAll(List<TransactionCategory> toCreate);

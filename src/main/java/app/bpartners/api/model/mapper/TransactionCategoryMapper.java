@@ -9,6 +9,7 @@ import app.bpartners.api.repository.jpa.model.HTransactionCategoryTemplate;
 import java.time.LocalDate;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
+
 import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 
 @Component
@@ -29,6 +30,7 @@ public class TransactionCategoryMapper {
     if (!entity.isUserDefined()) {
       HTransactionCategoryTemplate categoryTemplate =
           templateJpaRepository.getById(entity.getIdCategoryTemplate());
+      domain.setTransactionType(categoryTemplate.getTransactionType());
       domain.setType(categoryTemplate.getType());
       domain.setVat(parseFraction(categoryTemplate.getVat()));
     }
@@ -39,6 +41,43 @@ public class TransactionCategoryMapper {
         endDate.plusDays(1).atStartOfDay().minusSeconds(1));
     domain.setTypeCount(typeCount);
     return domain;
+  }
+
+  public TransactionCategory toDomain(
+      String idAccount, HTransactionCategory entity,
+      LocalDate startDate, LocalDate endDate) {
+    String idCategoryTemplate = entity.getIdCategoryTemplate();
+    if (entity.isUserDefined()) {
+      return TransactionCategory.builder()
+          .id(entity.getId())
+          .idAccount(entity.getIdAccount())
+          .type(entity.getType())
+          .vat(parseFraction(entity.getVat()))
+          .idTransactionCategoryTmpl(entity.getIdCategoryTemplate())
+          .typeCount(
+              getCategoryCount(entity.getIdAccount(), startDate, endDate, entity.getType()))
+          //TODO: when it's a user defined category, user should give transaction type
+          .transactionType(null)
+          .build();
+    }
+    HTransactionCategoryTemplate categoryTemplate =
+        templateJpaRepository.getById(idCategoryTemplate);
+    return TransactionCategory.builder()
+        .id(entity.getId())
+        .idAccount(idAccount)
+        .type(categoryTemplate.getType())
+        .vat(parseFraction(categoryTemplate.getVat()))
+        .idTransactionCategoryTmpl(idCategoryTemplate)
+        .transactionType(categoryTemplate.getTransactionType())
+        .typeCount(getCategoryCount(idAccount, startDate, endDate, idCategoryTemplate))
+        .build();
+  }
+
+  private long getCategoryCount(String idAccount, LocalDate startDate, LocalDate endDate,
+                                String idCategoryTemplate) {
+    return jpaRepository.countByCriteria(idAccount, idCategoryTemplate,
+        startDate.atStartOfDay(),
+        endDate.plusDays(1).atStartOfDay().minusSeconds(1));
   }
 
   public TransactionCategoryTemplate toDomain(HTransactionCategoryTemplate entity) {
@@ -60,6 +99,17 @@ public class TransactionCategoryMapper {
         .idTransaction(category.getIdTransaction())
         .idCategoryTemplate(category.getIdTransactionCategoryTmpl())
         .vat(category.getVat().toString())
+        .build();
+  }
+
+  public HTransactionCategory toEntity(HTransactionCategoryTemplate template) {
+    return HTransactionCategory.builder()
+        .id(null)
+        .idTransaction(null)
+        .idAccount(null)
+        .idCategoryTemplate(template.getId())
+        .type(template.getType())
+        .vat(template.getVat())
         .build();
   }
 }

@@ -4,7 +4,7 @@ import app.bpartners.api.repository.swan.model.Transaction;
 import java.util.List;
 
 public interface TransactionSwanRepository {
-  List<Transaction> getTransactions();
+  List<Transaction> getByIdAccount(String idAccount);
 
   Transaction findById(String id);
 }

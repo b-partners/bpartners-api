@@ -3,6 +3,7 @@ package app.bpartners.api.model.mapper;
 import app.bpartners.api.model.Transaction;
 import app.bpartners.api.model.TransactionCategory;
 import org.springframework.stereotype.Component;
+
 import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 
 @Component
@@ -17,6 +18,7 @@ public class TransactionMapper {
         .reference(external.getNode().getReference())
         .paymentDatetime(external.getNode().getCreatedAt())
         .category(category)
+        .side(external.getNode().getSide())
         .build();
   }
 }

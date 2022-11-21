@@ -27,23 +27,18 @@ public class TransactionCategoryController {
   @GetMapping("/accounts/{accountId}/transactionCategories")
   public List<TransactionCategory> getTransactionCategories(
       @PathVariable String accountId,
-      @RequestParam boolean unique,
-      @RequestParam(required = false) Optional<Boolean> userDefined,
+      @RequestParam(required = false) Optional<Boolean> unique,
+      @RequestParam(required = false) Boolean userDefined,
       @RequestParam(name = "from") String startDateValue,
       @RequestParam(name = "to") String endDateValue) {
     LocalDate startDate = LocalDate.parse(startDateValue);
     LocalDate endDate = LocalDate.parse(endDateValue);
     dateValidator.accept(startDate, endDate);
-    return userDefined.map(
-            isUserDefined -> service.getCategoriesByAccountAndUserDefined(accountId, unique,
-                    isUserDefined, startDate, endDate)
-                .stream()
-                .map(mapper::toRest)
-                .collect(Collectors.toUnmodifiableList()))
-        .orElseGet(
-            () -> service.getCategoriesByAccount(accountId, unique, startDate, endDate).stream()
-                .map(mapper::toRest)
-                .collect(Collectors.toUnmodifiableList()));
+    return service.getCategoriesByAccountAndUserDefined(accountId,
+            userDefined, startDate, endDate)
+        .stream()
+        .map(mapper::toRest)
+        .collect(Collectors.toUnmodifiableList());
   }
 
   @PostMapping("/accounts/{accountId}/transactions/{transactionId}/transactionCategories")

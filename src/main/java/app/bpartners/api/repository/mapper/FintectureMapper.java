@@ -31,7 +31,7 @@ public class FintectureMapper {
       app.bpartners.api.model.PaymentInitiation domain) {
     Account authenticatedAccount = accountService.getAccounts().get(0);
     AccountHolder authenticatedAccountHolder = accountHolderService
-        .getAccountHolders(authenticatedAccount.getId()).get(0);
+        .getAccountHolderByAccountId(authenticatedAccount.getId());
 
     Beneficiary beneficiary = toBeneficiary(authenticatedAccount, authenticatedAccountHolder);
 

@@ -1,5 +1,6 @@
 package app.bpartners.api.repository.swan.implementation;
 
+import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.repository.swan.AccountHolderSwanRepository;
 import app.bpartners.api.repository.swan.SwanApi;
 import app.bpartners.api.repository.swan.model.AccountHolder;
@@ -7,6 +8,10 @@ import app.bpartners.api.repository.swan.response.AccountHolderResponse;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Repository;
+
+/*Note that there is security check in security layer, so that these requests are allowed only when
+ *accountId match with authenticated account_id
+ */
 
 @Repository
 @AllArgsConstructor
@@ -20,9 +25,20 @@ public class AccountHolderSwanRepositoryImpl implements AccountHolderSwanReposit
           + "{ addressLine1 city country postalCode } } } }}\"}";
 
   @Override
-  public List<AccountHolder> getAccountHolders() {
+  public List<AccountHolder> getAccountHoldersByAccountId(String accountId) {
     return List.of(
-        swanApi.getData(AccountHolderResponse.class, QUERY).getData().getAccountHolders().getEdges()
-            .get(0).getNode());
+        swanApi.getData(AccountHolderResponse.class, QUERY).getData().getAccountHolders()
+            .getEdges().get(0).getNode());
+  }
+
+  @Override
+  public AccountHolder getById(String id) {
+    AccountHolder accountHolder =
+        swanApi.getData(AccountHolderResponse.class, QUERY).getData().getAccountHolders()
+            .getEdges().get(0).getNode();
+    if (!accountHolder.getId().equals(id)) {
+      throw new NotFoundException("AccountHolder." + id + " not found");
+    }
+    return accountHolder;
   }
 }

@@ -17,6 +17,8 @@ import java.util.Optional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import static app.bpartners.api.endpoint.rest.model.EnableStatus.ENABLED;
+
 @Repository
 @AllArgsConstructor
 public class UserRepositoryImpl implements UserRepository {
@@ -42,7 +44,7 @@ public class UserRepositoryImpl implements UserRepository {
 
   @Override
   public User getUserBySwanUserIdAndToken(String swanUserId, String token) {
-    SwanUser swanUser = null;
+    SwanUser swanUser;
     try {
       swanUser = swanComponent.getSwanUserByToken(token);
     } catch (URISyntaxException | IOException | InterruptedException e) {
@@ -55,7 +57,16 @@ public class UserRepositoryImpl implements UserRepository {
   @Override
   public User getUserByToken(String token) {
     SwanUser swanUser = swanRepository.getByToken(token);
-    HUser entityUser = jpaRepository.getUserBySwanUserId(swanUser.getId());
-    return userMapper.toDomain(entityUser, swanUser);
+    Optional<HUser> optionalUser = jpaRepository.findUserBySwanUserId(swanUser.getId());
+    if (optionalUser.isPresent()) {
+      return userMapper.toDomain(optionalUser.get(), swanUser);
+    }
+    HUser newUser = jpaRepository.save(HUser.builder()
+        .swanUserId(swanUser.getId())
+        .status(ENABLED)
+        .monthlySubscription(5) //TODO: change or set default monthly subscription earlier
+        .phoneNumber(swanUser.getMobilePhoneNumber())
+        .build());
+    return userMapper.toDomain(newUser, swanUser);
   }
 }

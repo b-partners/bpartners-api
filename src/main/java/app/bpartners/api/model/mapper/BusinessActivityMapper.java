@@ -17,7 +17,7 @@ public class BusinessActivityMapper {
 
   public HBusinessActivity toEntity(BusinessActivity domain, String accountId) {
     HAccountHolder persistedAccountHolder =
-        accountHolderJpaRepository.findByAccountId(accountId).get(0);
+        accountHolderJpaRepository.findAllByAccountId(accountId).get(0);
     return HBusinessActivity.builder()
         .id(domain.getId())
         .accountHolder(persistedAccountHolder)
@@ -25,16 +25,22 @@ public class BusinessActivityMapper {
   }
 
   public BusinessActivity toDomain(HBusinessActivity entity) {
-    AccountHolder authenticatedAccountHolder = accountHolderRepository.getByAccountId(
-        entity.getAccountHolder().getAccountId()
-    ).get(0);
-
+    if (entity == null) {
+      return null;
+    }
+    AccountHolder authenticatedAccountHolder = accountHolderRepository.findAllByAccountId(
+        entity.getAccountHolder().getAccountId()).get(0);
+    String primaryActivity = entity.getPrimaryActivity() == null ? null :
+        entity.getPrimaryActivity().getName();
+    String secondaryActivity = entity.getSecondaryActivity() == null ? null :
+        entity.getSecondaryActivity().getName();
     BusinessActivity activity = BusinessActivity.builder()
         .id(entity.getId())
         .accountHolder(authenticatedAccountHolder)
-        .primaryActivity(entity.getPrimaryActivity().getName())
-        .secondaryActivity(entity.getSecondaryActivity().getName())
+        .primaryActivity(primaryActivity)
+        .secondaryActivity(secondaryActivity)
         .build();
+
     if (entity.getOtherPrimaryActivity() != null) {
       activity.setPrimaryActivity(entity.getOtherPrimaryActivity());
     }

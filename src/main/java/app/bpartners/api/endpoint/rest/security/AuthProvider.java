@@ -22,7 +22,6 @@ public class AuthProvider extends AbstractUserDetailsAuthenticationProvider {
 
   private final SwanComponent swanComponent;
   private final UserService userService;
-
   private final AccountService accountService;
 
   @Override

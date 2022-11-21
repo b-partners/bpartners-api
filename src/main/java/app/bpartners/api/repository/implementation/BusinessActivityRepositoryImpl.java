@@ -1,7 +1,6 @@
 package app.bpartners.api.repository.implementation;
 
 import app.bpartners.api.model.BusinessActivity;
-import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.mapper.BusinessActivityMapper;
 import app.bpartners.api.repository.BusinessActivityRepository;
 import app.bpartners.api.repository.jpa.BusinessActivityJpaRepository;
@@ -57,9 +56,7 @@ public class BusinessActivityRepositoryImpl implements BusinessActivityRepositor
   public BusinessActivity findByAccountHolderId(String accountHolderId) {
     return domainMapper.toDomain(
         jpaRepository.findByAccountHolder_Id(accountHolderId)
-            .orElseThrow(
-                () -> new NotFoundException(
-                    "No Business Activity found for AccountHolder." + accountHolderId))
+            .orElse(null)
     );
   }
 }

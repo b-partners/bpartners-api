@@ -1,5 +1,6 @@
 package app.bpartners.api.repository.swan.response;
 
+import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.repository.swan.model.AccountHolder;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -33,6 +34,10 @@ public class AccountHolderResponse {
     @JsonProperty(JSON_PROPERTY_EDGES)
     @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
     public List<Edge> getEdges() {
+      if (edges.size() > 1) {
+        throw new NotImplementedException("One account with one account holder is supported for "
+            + "now");
+      }
       return edges;
     }
   }

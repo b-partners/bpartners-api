@@ -1,11 +1,13 @@
 package app.bpartners.api.repository.swan.response;
 
+import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.repository.swan.model.AccountHolder;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.sun.jdi.InternalException;
 import java.util.List;
+
+import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 
 public class AccountHolderResponse {
   private static final String JSON_PROPERTY_DATA = "data";
@@ -38,8 +40,8 @@ public class AccountHolderResponse {
       if (edges.size() > 1) {
         throw new NotImplementedException("One account with one account holder is supported for "
             + "now");
-      } else if (edges.size() == 0) {
-        throw new InternalException("No account holder was fetched");
+      } else if (edges.isEmpty()) {
+        throw new ApiException(SERVER_EXCEPTION, "No account holder was fetched");
       }
       return edges;
     }

@@ -50,15 +50,10 @@ operations:
             type: string
           required: true
         - in: query
-          name: unique
-          description: If disabled, all transaction categories are given
-          schema:
-            type: boolean
-          required: true
-        - in: query
           name: userDefined
           schema:
             type: boolean
+            description: If null, returns user defined categories and default categories
         - in: query
           name: from
           schema:
@@ -594,6 +589,13 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/TransactionCategory'
+        type:
+          $ref: '#/components/schemas/TransactionTypeEnum'
+    TransactionTypeEnum:
+      type: string
+      enum:
+        - INCOME
+        - OUTCOME
     TransactionCategory:
       allOf:
         - $ref: '#/components/schemas/CreateTransactionCategory'
@@ -605,6 +607,8 @@ components:
         count:
           type: integer
           format: int64
+        transactionType:
+          $ref: '#/components/schemas/TransactionTypeEnum'
     CreateTransactionCategory:
       type: object
       properties:

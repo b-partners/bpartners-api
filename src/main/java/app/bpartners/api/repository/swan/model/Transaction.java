@@ -50,6 +50,7 @@ public class Transaction {
     private String reference;
     private Amount amount;
     private Instant createdAt;
+    private String side;
 
     @JsonProperty("id")
     @JsonInclude(JsonInclude.Include.USE_DEFAULTS)
@@ -79,6 +80,12 @@ public class Transaction {
     @JsonInclude(JsonInclude.Include.USE_DEFAULTS)
     public Instant getCreatedAt() {
       return createdAt;
+    }
+
+    @JsonProperty("side")
+    @JsonInclude(JsonInclude.Include.USE_DEFAULTS)
+    public String getSide() {
+      return side;
     }
   }
 }

@@ -18,8 +18,8 @@ public class TransactionRepositoryImpl implements TransactionRepository {
   private final TransactionCategoryRepository categoryRepository;
 
   @Override
-  public List<Transaction> findByAccountId(String id) {
-    return swanRepository.getTransactions().stream()
+  public List<Transaction> findByAccountId(String accountId) {
+    return swanRepository.getByIdAccount(accountId).stream()
         .map(transaction -> mapper.toDomain(transaction,
             categoryRepository.findByIdTransaction(transaction.getNode().getId())))
         .collect(Collectors.toUnmodifiableList());

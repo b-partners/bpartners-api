@@ -1,5 +1,6 @@
 package app.bpartners.api.model;
 
+import app.bpartners.api.endpoint.rest.model.TransactionTypeEnum;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -20,6 +21,7 @@ public class TransactionCategory {
   private String type;
   private Fraction vat;
   private String idTransaction;
+  private TransactionTypeEnum transactionType;
   private Long typeCount;
 
   public boolean isUserDefined() {

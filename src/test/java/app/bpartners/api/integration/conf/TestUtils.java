@@ -47,6 +47,8 @@ import software.amazon.awssdk.services.eventbridge.model.PutEventsRequest;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsResponse;
 
 import static app.bpartners.api.endpoint.rest.model.EnableStatus.ENABLED;
+import static app.bpartners.api.endpoint.rest.model.TransactionTypeEnum.INCOME;
+import static app.bpartners.api.endpoint.rest.model.TransactionTypeEnum.OUTCOME;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.CLIENT_EXCEPTION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -55,7 +57,8 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 
 public class TestUtils {
-  public static final String BAD_ACCOUNT_HOLDER_ID = "bad_account_holder_id";
+  public static final String CREDIT_SIDE = "Credit";
+  public static final String DEBIT_SIDE = "Debit";
   public static final String JOE_DOE_ID = "joe_doe_id";
   public static final String JOE_DOE_SWAN_USER_ID = "c15924bf-61f9-4381-8c9b-d34369bf91f7";
   public static final String BAD_TOKEN = "bad_token";
@@ -74,7 +77,6 @@ public class TestUtils {
   public static final String INVOICE4_ID = "invoice4_id";
   public static final String INVOICE7_ID = "invoice7_id";
 
-  public static final String INVOICE1_FILE_ID = "BP001.pdf";
   public static final String FILE_ID = "test.jpeg";
   public static final String TEST_FILE_ID = "test.jpeg";
   public static final String TO_UPLOAD_FILE_ID = "to_upload_file_id.jpeg";
@@ -268,6 +270,7 @@ public class TestUtils {
         .id("transaction_category1_id")
         .type("Recette TVA 20%")
         .userDefined(false)
+        .transactionType(INCOME)
         .vat(2000.0)
         .count(1L);
   }
@@ -328,6 +331,7 @@ public class TestUtils {
                 .currency("EUR")
                 .build())
             .createdAt(Instant.parse("2022-08-26T06:33:50.595Z"))
+            .side(CREDIT_SIDE)
             .build())
         .build();
   }
@@ -343,6 +347,7 @@ public class TestUtils {
                 .currency("EUR")
                 .build())
             .createdAt(Instant.parse("2022-08-24T04:57:02.606Z"))
+            .side(DEBIT_SIDE)
             .build())
         .build();
   }
@@ -358,6 +363,7 @@ public class TestUtils {
                 .currency("EUR")
                 .build())
             .createdAt(Instant.parse("2022-08-24T03:39:33.315Z"))
+            .side(CREDIT_SIDE)
             .build())
         .build();
   }
@@ -368,7 +374,8 @@ public class TestUtils {
         .id("bosci_0fe167566b234808a44aae415f057b6c")
         .label("Premier virement")
         .reference("JOE-001")
-        .amount(50000)
+        .amount(500.0)
+        .type(INCOME)
         .paymentDatetime(Instant.parse("2022-08-24T03:39:33.315Z"))
         .category(List.of(transactionCategory1()));
   }
@@ -378,7 +385,9 @@ public class TestUtils {
         .id("bosci_f224704f2555a42303e302ffb8e69eef")
         .label("Création de site vitrine")
         .reference("REF_001")
-        .amount(50000)
+        .amount(500.0)
+        .type(INCOME)
+        .category(null)
         .paymentDatetime(Instant.parse("2022-08-26T06:33:50.595Z"));
   }
 
@@ -387,9 +396,10 @@ public class TestUtils {
         .id("bosci_28cb4daf35d3ab24cb775dcdefc8fdab")
         .label("Test du virement")
         .reference("TEST-001")
-        .amount(10000)
+        .amount(100.0)
+        .type(OUTCOME)
         .paymentDatetime(Instant.parse("2022-08-24T04:57:02.606Z"))
-        .category(List.of(transactionCategory6()));
+        .category(null);
   }
 
   public static Invoice invoice1() {
@@ -529,8 +539,9 @@ public class TestUtils {
   }
 
   public static void setUpTransactionRepository(TransactionSwanRepository repository) {
-    when(repository.getTransactions()).thenReturn(List.of(swanTransaction1(), swanTransaction2(),
-        swanTransaction3()));
+    when(repository.getByIdAccount(any())).thenReturn(
+        List.of(swanTransaction1(), swanTransaction2(),
+            swanTransaction3()));
     when(repository.findById(swanTransaction1().getNode().getId())).thenReturn(swanTransaction1());
     when(repository.findById(swanTransaction2().getNode().getId())).thenReturn(swanTransaction2());
     when(repository.findById(swanTransaction3().getNode().getId())).thenReturn(swanTransaction3());

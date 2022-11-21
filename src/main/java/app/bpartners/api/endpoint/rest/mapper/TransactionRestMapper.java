@@ -16,7 +16,8 @@ public class TransactionRestMapper {
         .amount(internal.getAmount().getCents())
         .label(internal.getLabel())
         .paymentDatetime(internal.getPaymentDatetime())
-        .reference(internal.getReference());
+        .reference(internal.getReference())
+        .type(internal.getType());
     if (internal.getCategory() != null) {
       transaction.setCategory(List.of(categoryRestMapper.toRest(internal.getCategory())));
     }

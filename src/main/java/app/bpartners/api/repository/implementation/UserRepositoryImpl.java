@@ -45,12 +45,19 @@ public class UserRepositoryImpl implements UserRepository {
   @Override
   public User getUserBySwanUserIdAndToken(String swanUserId, String token) {
     SwanUser swanUser;
+    HUser entityUser;
     try {
       swanUser = swanComponent.getSwanUserByToken(token);
+      Optional<HUser> optionalUser = jpaRepository.findUserBySwanUserId(swanUser.getId());
+      entityUser = optionalUser.orElseGet(() -> jpaRepository.save(HUser.builder()
+          .swanUserId(swanUser.getId())
+          .status(ENABLED)
+          .monthlySubscription(5) //TODO: change or set default monthly subscription earlier
+          .phoneNumber(swanUser.getMobilePhoneNumber())
+          .build()));
     } catch (URISyntaxException | IOException | InterruptedException e) {
       throw new ApiException(ApiException.ExceptionType.CLIENT_EXCEPTION, e);
     }
-    HUser entityUser = jpaRepository.getUserBySwanUserId(swanUserId);
     return userMapper.toDomain(entityUser, swanUser);
   }
 

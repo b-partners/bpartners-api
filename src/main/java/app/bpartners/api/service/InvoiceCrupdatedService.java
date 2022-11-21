@@ -21,7 +21,6 @@ import static java.util.UUID.randomUUID;
 
 @Service
 @AllArgsConstructor
-//TODO: add InvoiceCrupdatedServiceTest
 public class InvoiceCrupdatedService implements Consumer<InvoiceCrupdated> {
   public static final String INVOICE_TEMPLATE = "invoice";
   public static final String DRAFT_TEMPLATE = "draft";

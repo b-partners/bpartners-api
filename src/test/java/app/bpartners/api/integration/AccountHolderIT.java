@@ -28,10 +28,8 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import static app.bpartners.api.integration.conf.TestUtils.BAD_ACCOUNT_HOLDER_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_SWAN_USER_ID;
-import static app.bpartners.api.integration.conf.TestUtils.assertThrowsApiException;
 import static app.bpartners.api.integration.conf.TestUtils.companyBusinessActivity;
 import static app.bpartners.api.integration.conf.TestUtils.companyInfo;
 import static app.bpartners.api.integration.conf.TestUtils.joeDoeSwanAccountHolder;

@@ -4,6 +4,7 @@ import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.repository.swan.model.AccountHolder;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.sun.jdi.InternalException;
 import java.util.List;
 
 public class AccountHolderResponse {
@@ -17,10 +18,10 @@ public class AccountHolderResponse {
   }
 
   public static class Data {
-    private static final String JSON_PROPERTY_ACCOUNTHOLDERS = "accountHolders";
+    private static final String JSON_PROPERTY_ACCOUNT_HOLDERS = "accountHolders";
     private AccountHolders accountHolders;
 
-    @JsonProperty(JSON_PROPERTY_ACCOUNTHOLDERS)
+    @JsonProperty(JSON_PROPERTY_ACCOUNT_HOLDERS)
     @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
     public AccountHolders getAccountHolders() {
       return accountHolders;
@@ -37,6 +38,8 @@ public class AccountHolderResponse {
       if (edges.size() > 1) {
         throw new NotImplementedException("One account with one account holder is supported for "
             + "now");
+      } else if (edges.size() == 0) {
+        throw new InternalException("No account holder was fetched");
       }
       return edges;
     }

@@ -1,12 +1,14 @@
 package app.bpartners.api.repository.swan.response;
 
 
+import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.repository.swan.model.SwanAccount;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.sun.jdi.InternalException;
 import java.util.List;
+
+import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 
 public class AccountResponse {
   private Data data;
@@ -33,8 +35,8 @@ public class AccountResponse {
       if (edges.size() > 1) {
         throw new NotImplementedException("One user with one account is supported for "
             + "now");
-      } else if (edges.size() == 0) {
-        throw new InternalException("No account was fetched");
+      } else if (edges.isEmpty()) {
+        throw new ApiException(SERVER_EXCEPTION, "No account was fetched");
       }
       return edges;
     }

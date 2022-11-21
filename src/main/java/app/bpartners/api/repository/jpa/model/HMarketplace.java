@@ -11,6 +11,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+
 import static javax.persistence.GenerationType.IDENTITY;
 
 @Entity
@@ -27,7 +28,6 @@ public class HMarketplace {
   @GeneratedValue(strategy = IDENTITY)
   private String id;
   private String name;
-  private String accountId;
   private String description;
   private String phoneNumber;
   private String websiteUrl;

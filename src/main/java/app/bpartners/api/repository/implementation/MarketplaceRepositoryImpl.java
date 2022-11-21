@@ -17,7 +17,8 @@ public class MarketplaceRepositoryImpl implements MarketplaceRepository {
 
   @Override
   public List<Marketplace> findAllByAccountId(String accountId) {
-    return jpaRepository.findAllByAccountId(accountId).stream().map(mapper::toDomain)
+    //TODO: change to findAllByAccountId when it's correctly set but for now return all marketplaces
+    return jpaRepository.findAll().stream().map(mapper::toDomain)
         .collect(Collectors.toUnmodifiableList());
   }
 }

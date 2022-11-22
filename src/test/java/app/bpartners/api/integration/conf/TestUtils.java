@@ -368,7 +368,7 @@ public class TestUtils {
         .id("bosci_0fe167566b234808a44aae415f057b6c")
         .label("Premier virement")
         .reference("JOE-001")
-        .amount(500.0)
+        .amount(50000)
         .paymentDatetime(Instant.parse("2022-08-24T03:39:33.315Z"))
         .category(List.of(transactionCategory1()));
   }
@@ -378,7 +378,7 @@ public class TestUtils {
         .id("bosci_f224704f2555a42303e302ffb8e69eef")
         .label("Création de site vitrine")
         .reference("REF_001")
-        .amount(500.0)
+        .amount(50000)
         .paymentDatetime(Instant.parse("2022-08-26T06:33:50.595Z"));
   }
 
@@ -387,7 +387,7 @@ public class TestUtils {
         .id("bosci_28cb4daf35d3ab24cb775dcdefc8fdab")
         .label("Test du virement")
         .reference("TEST-001")
-        .amount(100.0)
+        .amount(10000)
         .paymentDatetime(Instant.parse("2022-08-24T04:57:02.606Z"))
         .category(List.of(transactionCategory6()));
   }

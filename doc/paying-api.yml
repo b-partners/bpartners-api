@@ -581,10 +581,8 @@ components:
         id:
           type: string
           example: 'uuid'
-        #todo: to change to integer - Format is cents
         amount:
-          type: number
-          format: double
+          type: integer
         label:
           type: string
         reference:

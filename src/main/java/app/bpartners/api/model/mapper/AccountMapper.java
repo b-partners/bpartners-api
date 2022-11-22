@@ -4,6 +4,8 @@ import app.bpartners.api.model.Account;
 import app.bpartners.api.repository.swan.model.SwanAccount;
 import org.springframework.stereotype.Component;
 
+import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
+
 @Component
 public class AccountMapper {
   public Account toDomain(SwanAccount external) {
@@ -12,6 +14,7 @@ public class AccountMapper {
         .name(external.getName())
         .iban(external.getIban())
         .bic(external.getBic())
+        .availableBalance(parseFraction(external.getBalance().getAvailable().getValue()))
         .build();
   }
 }

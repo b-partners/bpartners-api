@@ -13,12 +13,6 @@ public class AccountService {
   private final AccountValidator validator;
   private final AccountRepository repository;
 
-  public List<Account> getAccounts() {
-    List<Account> accounts = repository.findAll();
-    validator.accept(accounts);
-    return accounts;
-  }
-
   public Account getAccountByBearer(String bearer) {
     List<Account> accounts = repository.findByBearer(bearer);
     validator.accept(accounts);

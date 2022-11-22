@@ -16,13 +16,6 @@ public class AccountRepositoryImpl implements AccountRepository {
   private AccountMapper mapper;
 
   @Override
-  public List<Account> findAll() {
-    return swanRepository.findAll().stream()
-        .map(mapper::toDomain)
-        .collect(Collectors.toUnmodifiableList());
-  }
-
-  @Override
   public List<Account> findByBearer(String bearer) {
     return swanRepository.findByBearer(bearer).stream()
         .map(mapper::toDomain)

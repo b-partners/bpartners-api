@@ -7,11 +7,14 @@ import org.springframework.stereotype.Component;
 @Component
 public class AccountRestMapper {
   public Account toRest(app.bpartners.api.model.Account internal) {
-    Account restAccount = new Account();
-    restAccount.setId(internal.getId());
-    restAccount.setName(internal.getName());
-    restAccount.setIBAN(internal.getIban());
-    restAccount.setBIC(internal.getBic());
-    return restAccount;
+    return new Account()
+        .id(internal.getId())
+        .name(internal.getName())
+        .iban(internal.getIban())
+        .bic(internal.getBic())
+        .availableBalance(internal.getAvailableBalance().getCents())
+        //Deprecated
+        .IBAN(internal.getIban())
+        .BIC(internal.getBic());
   }
 }

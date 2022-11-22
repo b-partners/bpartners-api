@@ -42,7 +42,7 @@ public class InvoiceMapper {
         .updatedAt(invoice.getUpdatedAt())
         .toPayAt(invoice.getToPayAt())
         .invoiceCustomer(customerMapper.toDomain(invoiceCustomer))
-        .account(accountService.getAccounts().get(0))
+        .account(accountService.getAccountById(invoice.getIdAccount()))
         .status(invoice.getStatus())
         .build();
   }

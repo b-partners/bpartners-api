@@ -140,6 +140,9 @@ public class TestUtils {
         .name("Numer Swan Account")
         .bic("SWNBFR22")
         .iban("FR7699999001001190346460988")
+        .balance(new SwanAccount.Balance(
+            new SwanAccount.Balance.Available(1000.0)
+        ))
         .build();
   }
 
@@ -485,7 +488,6 @@ public class TestUtils {
   }
 
   public static void setUpAccountSwanRepository(AccountSwanRepository swanRepository) {
-    when(swanRepository.findAll()).thenReturn(List.of(joeDoeSwanAccount()));
     when(swanRepository.findById(JOE_DOE_ACCOUNT_ID)).thenReturn(List.of(joeDoeSwanAccount()));
     //TODO: fix this as it should be : only accountId instead of userId
     when(swanRepository.findById(JOE_DOE_ID)).thenReturn(List.of(joeDoeSwanAccount()));

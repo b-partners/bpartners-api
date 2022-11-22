@@ -339,10 +339,18 @@ components:
           type: string
         name:
           type: string
+        iban:
+          type: string
+        bic:
+          type: string
+        availableBalance:
+          type: integer
+        #Deprecated
         IBAN:
           type: string
         BIC:
           type: string
+
     AccountHolder:
       type: object
       properties:

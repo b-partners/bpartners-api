@@ -15,6 +15,7 @@ public class SwanAccount {
   private String name;
   private String iban;
   private String bic;
+  private Balance balance;
 
   @JsonProperty("id")
   @JsonInclude(JsonInclude.Include.USE_DEFAULTS)
@@ -38,5 +39,37 @@ public class SwanAccount {
   @JsonInclude(JsonInclude.Include.USE_DEFAULTS)
   public String getBic() {
     return bic;
+  }
+
+  @JsonProperty("balance")
+  @JsonInclude(JsonInclude.Include.USE_DEFAULTS)
+  public Balance getBalance() {
+    return balance;
+  }
+
+  @NoArgsConstructor
+  @AllArgsConstructor
+  @Builder
+  public static class Balance {
+    private Available available;
+
+    @JsonProperty("available")
+    @JsonInclude(JsonInclude.Include.USE_DEFAULTS)
+    public Available getAvailable() {
+      return available;
+    }
+
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class Available {
+      private Double value;
+
+      @JsonProperty("value")
+      @JsonInclude(JsonInclude.Include.USE_DEFAULTS)
+      public Double getValue() {
+        return value;
+      }
+    }
   }
 }

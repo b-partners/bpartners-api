@@ -18,13 +18,6 @@ public class AccountSwanRepositoryImpl implements AccountSwanRepository {
   private final SwanCustomApi<AccountResponse> swanCustomApi;
 
   @Override
-  public List<SwanAccount> findAll() {
-    return List.of(
-        swanApi.getData(AccountResponse.class, QUERY).getData().getAccounts().getEdges().get(0)
-            .getNode());
-  }
-
-  @Override
   public List<SwanAccount> findByBearer(String bearer) {
     return List.of(
         swanCustomApi.getData(AccountResponse.class, QUERY, bearer)

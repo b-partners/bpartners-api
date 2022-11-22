@@ -71,8 +71,11 @@ class AccountIT {
     return new Account()
         .id(joeDoeSwanAccount().getId())
         .name(joeDoeSwanAccount().getName())
+        .iban(joeDoeSwanAccount().getIban())
+        .bic(joeDoeSwanAccount().getBic())
         .IBAN(joeDoeSwanAccount().getIban())
-        .BIC(joeDoeSwanAccount().getBic());
+        .BIC(joeDoeSwanAccount().getBic())
+        .availableBalance(100000);
   }
 
   private static ApiClient anApiClient() {

@@ -27,9 +27,8 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ID;
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsApiException;
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsForbiddenException;
+import static app.bpartners.api.integration.conf.TestUtils.defaultLegalFile;
 import static app.bpartners.api.integration.conf.TestUtils.legalFile1;
-import static app.bpartners.api.integration.conf.TestUtils.legalFile2;
-import static app.bpartners.api.integration.conf.TestUtils.legalFile3;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountSwanRepository;
 import static app.bpartners.api.integration.conf.TestUtils.setUpSwanComponent;
 import static app.bpartners.api.integration.conf.TestUtils.setUpUserSwanRepository;
@@ -90,8 +89,8 @@ class LegalFileIT {
 
     List<LegalFile> actual = api.getLegalFiles(JOE_DOE_ID);
 
-    assertEquals(4, actual.size());
-    assertTrue(actual.containsAll(List.of(legalFile1(), legalFile2())));
+    assertEquals(2, actual.size());
+    assertTrue(actual.contains(legalFile1()));
   }
 
   @Test
@@ -99,7 +98,7 @@ class LegalFileIT {
     ApiClient joeDoeClient = anApiClient();
     UserAccountsApi api = new UserAccountsApi(joeDoeClient);
 
-    LegalFile actual = api.approveLegalFile(JOE_DOE_ID, legalFile3().getId());
+    LegalFile actual = api.approveLegalFile(JOE_DOE_ID, defaultLegalFile().getId());
 
     assertNotNull(actual.getApprovalDatetime());
   }

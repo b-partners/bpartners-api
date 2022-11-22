@@ -14,6 +14,7 @@ import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.endpoint.rest.model.LegalFile;
 import app.bpartners.api.endpoint.rest.model.Product;
 import app.bpartners.api.endpoint.rest.model.TransactionCategory;
+import app.bpartners.api.endpoint.rest.model.TransactionStatus;
 import app.bpartners.api.endpoint.rest.model.User;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
 import app.bpartners.api.model.exception.BadRequestException;
@@ -59,6 +60,8 @@ import static org.mockito.Mockito.when;
 public class TestUtils {
   public static final String CREDIT_SIDE = "Credit";
   public static final String DEBIT_SIDE = "Debit";
+  public static final String BOOKED_STATUS = "Booked";
+  public static final String PENDING_STATUS = "Pending";
   public static final String JOE_DOE_ID = "joe_doe_id";
   public static final String JOE_DOE_SWAN_USER_ID = "c15924bf-61f9-4381-8c9b-d34369bf91f7";
   public static final String BAD_TOKEN = "bad_token";
@@ -240,15 +243,6 @@ public class TestUtils {
         .totalPriceWithVat(1100.0);
   }
 
-
-  public static CreateProduct createProduct3() {
-    return new CreateProduct()
-        .description("Tableau baobab")
-        .quantity(3)
-        .unitPrice(2000.0)
-        .vatPercent(1000.0);
-  }
-
   public static CreateProduct createProduct4() {
     return new CreateProduct()
         .description("Tableau malgache")
@@ -275,51 +269,6 @@ public class TestUtils {
         .count(1L);
   }
 
-  public static TransactionCategory transactionCategory2() {
-    return new TransactionCategory()
-        .id("transaction_category2_id")
-        .type("Recette TVA 10%")
-        .userDefined(false)
-        .vat(1000.0)
-        .count(2L);
-  }
-
-  public static TransactionCategory transactionCategory3() {
-    return new TransactionCategory()
-        .id("transaction_category3_id")
-        .type("Recette TVA 10%")
-        .userDefined(false)
-        .vat(1000.0)
-        .count(2L);
-  }
-
-  public static TransactionCategory transactionCategory4() {
-    return new TransactionCategory()
-        .id("transaction_category4_id")
-        .type("Recette personnalisée TVA 1%")
-        .userDefined(true)
-        .vat(100.0)
-        .count(1L);
-  }
-
-  public static TransactionCategory transactionCategory5() {
-    return new TransactionCategory()
-        .id("transaction_category5_id")
-        .type("Recette personnalisée TVA 1,2%")
-        .userDefined(true)
-        .vat(120.0)
-        .count(2L);
-  }
-
-  public static TransactionCategory transactionCategory6() {
-    return new TransactionCategory()
-        .id("transaction_category6_id")
-        .type("Recette personnalisée TVA 1,2%")
-        .vat(120.0)
-        .userDefined(true)
-        .count(2L);
-  }
-
   static Transaction swanTransaction1() {
     return Transaction.builder()
         .node(Transaction.Node.builder()
@@ -332,6 +281,7 @@ public class TestUtils {
                 .build())
             .createdAt(Instant.parse("2022-08-26T06:33:50.595Z"))
             .side(CREDIT_SIDE)
+            .statusInfo(new Transaction.Node.StatusInfo(PENDING_STATUS))
             .build())
         .build();
   }
@@ -348,6 +298,7 @@ public class TestUtils {
                 .build())
             .createdAt(Instant.parse("2022-08-24T04:57:02.606Z"))
             .side(DEBIT_SIDE)
+            .statusInfo(new Transaction.Node.StatusInfo(BOOKED_STATUS))
             .build())
         .build();
   }
@@ -364,6 +315,7 @@ public class TestUtils {
                 .build())
             .createdAt(Instant.parse("2022-08-24T03:39:33.315Z"))
             .side(CREDIT_SIDE)
+            .statusInfo(new Transaction.Node.StatusInfo(BOOKED_STATUS))
             .build())
         .build();
   }
@@ -374,8 +326,9 @@ public class TestUtils {
         .id("bosci_0fe167566b234808a44aae415f057b6c")
         .label("Premier virement")
         .reference("JOE-001")
-        .amount(500.0)
+        .amount(50000)
         .type(INCOME)
+        .status(TransactionStatus.BOOKED)
         .paymentDatetime(Instant.parse("2022-08-24T03:39:33.315Z"))
         .category(List.of(transactionCategory1()));
   }
@@ -385,8 +338,9 @@ public class TestUtils {
         .id("bosci_f224704f2555a42303e302ffb8e69eef")
         .label("Création de site vitrine")
         .reference("REF_001")
-        .amount(500.0)
+        .amount(50000)
         .type(INCOME)
+        .status(TransactionStatus.PENDING)
         .category(null)
         .paymentDatetime(Instant.parse("2022-08-26T06:33:50.595Z"));
   }
@@ -396,8 +350,9 @@ public class TestUtils {
         .id("bosci_28cb4daf35d3ab24cb775dcdefc8fdab")
         .label("Test du virement")
         .reference("TEST-001")
-        .amount(100.0)
+        .amount(10000)
         .type(OUTCOME)
+        .status(TransactionStatus.BOOKED)
         .paymentDatetime(Instant.parse("2022-08-24T04:57:02.606Z"))
         .category(null);
   }

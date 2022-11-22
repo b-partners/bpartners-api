@@ -73,13 +73,6 @@ public class TransactionCategoryMapper {
         .build();
   }
 
-  private long getCategoryCount(String idAccount, LocalDate startDate, LocalDate endDate,
-                                String idCategoryTemplate) {
-    return jpaRepository.countByCriteria(idAccount, idCategoryTemplate,
-        startDate.atStartOfDay(),
-        endDate.plusDays(1).atStartOfDay().minusSeconds(1));
-  }
-
   public TransactionCategoryTemplate toDomain(HTransactionCategoryTemplate entity) {
     if (entity == null) {
       return null;
@@ -89,6 +82,13 @@ public class TransactionCategoryMapper {
         .type(entity.getType())
         .vat(parseFraction(entity.getVat()))
         .build();
+  }
+
+  private long getCategoryCount(String idAccount, LocalDate startDate, LocalDate endDate,
+                                String idCategoryTemplate) {
+    return jpaRepository.countByCriteria(idAccount, idCategoryTemplate,
+        startDate.atStartOfDay(),
+        endDate.plusDays(1).atStartOfDay().minusSeconds(1));
   }
 
   public HTransactionCategory toEntity(TransactionCategory category) {

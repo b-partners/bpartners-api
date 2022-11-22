@@ -51,6 +51,7 @@ public class Transaction {
     private Amount amount;
     private Instant createdAt;
     private String side;
+    private StatusInfo statusInfo;
 
     @JsonProperty("id")
     @JsonInclude(JsonInclude.Include.USE_DEFAULTS)
@@ -86,6 +87,25 @@ public class Transaction {
     @JsonInclude(JsonInclude.Include.USE_DEFAULTS)
     public String getSide() {
       return side;
+    }
+
+    @JsonProperty("statusInfo")
+    @JsonInclude(JsonInclude.Include.USE_DEFAULTS)
+    public StatusInfo getStatusInfo() {
+      return statusInfo;
+    }
+
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class StatusInfo {
+      private String status;
+
+      @JsonProperty("status")
+      @JsonInclude(JsonInclude.Include.USE_DEFAULTS)
+      public String getStatus() {
+        return status;
+      }
     }
   }
 }

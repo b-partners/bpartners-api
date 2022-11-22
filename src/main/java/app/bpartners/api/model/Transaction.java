@@ -1,5 +1,6 @@
 package app.bpartners.api.model;
 
+import app.bpartners.api.endpoint.rest.model.TransactionStatus;
 import app.bpartners.api.endpoint.rest.model.TransactionTypeEnum;
 import app.bpartners.api.model.exception.ApiException;
 import java.time.Instant;
@@ -23,6 +24,8 @@ import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVE
 public class Transaction {
   public static final String CREDIT_SIDE = "Credit";
   public static final String DEBIT_SIDE = "Debit";
+  public static final String BOOKED_STATUS = "Booked";
+  public static final String PENDING_STATUS = "Pending";
   private String id;
   private Fraction amount;
   private String currency;
@@ -30,6 +33,7 @@ public class Transaction {
   private String reference;
   private String side;
   private TransactionCategory category;
+  private TransactionStatus status;
   @Getter(AccessLevel.NONE)
   private Instant paymentDatetime;
 

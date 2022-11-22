@@ -444,19 +444,11 @@ public class TestUtils {
         .approvalDatetime(Instant.parse("2022-01-01T00:00:00.00Z"));
   }
 
-  public static LegalFile legalFile2() {
+  public static LegalFile defaultLegalFile() {
     return new LegalFile()
-        .id("legal_file2_id")
-        .name("CGU-November-2022-version-2")
-        .fileUrl("https://s3.eu-west-3.amazonaws.com/legal.bpartners.app/cgu.pdf")
-        .approvalDatetime(Instant.parse("2022-01-02T00:00:00.00Z"));
-  }
-
-  public static LegalFile legalFile3() {
-    return new LegalFile()
-        .id("legal_file3_id")
-        .name("CGU-November-2022-version-3")
-        .fileUrl("https://s3.eu-west-3.amazonaws.com/legal.bpartners.app/cgu.pdf")
+        .id("e200a1fd-5bb7-4b7a-a521-4a6002dc1927")
+        .name("cgu_28-10-22.pdf")
+        .fileUrl("https://legal.bpartners.app/cgu_28-10-22.pdf")
         .approvalDatetime(null);
   }
 

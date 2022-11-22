@@ -14,7 +14,7 @@ public class AccountMapper {
         .name(external.getName())
         .iban(external.getIban())
         .bic(external.getBic())
-        .availableBalance(parseFraction(external.getBalance().getAvailable().getValue()))
+        .availableBalance(parseFraction(external.getBalances().getAvailable().getValue()))
         .build();
   }
 }

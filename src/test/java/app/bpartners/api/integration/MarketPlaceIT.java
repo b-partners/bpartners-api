@@ -95,15 +95,37 @@ class MarketPlaceIT {
         .logoUrl("logo URL");
   }
 
+  Marketplace defaultMarketPlace1() {
+    return new Marketplace()
+        .id("477d67e4-cfc7-4e36-96f7-f0b825e04214")
+        .name("Jobrapido")
+        .phoneNumber("+33611223344")
+        .websiteUrl("https://fr.jobrapido.com")
+        .logoUrl("https://public-logo-resources.s3.eu-west-3.amazonaws.com/jobrapido-logo.png");
+  }
+
+  Marketplace defaultMarketPlace2() {
+    return new Marketplace()
+        .id("1d562f1b-3e2b-48b6-8a95-5565ae1902e1")
+        .name("ARTISANS EMPLOI")
+        .description("Site d’emploi dédié aux secteurs de l’artisanat, a pour but de mettre "
+            + "en relation des entreprises et des professionnels en recherche d’emploi.")
+        .phoneNumber("+33612345678")
+        .websiteUrl("https://www.artisans-emploi.fr")
+        .logoUrl(
+            "https://public-logo-resources.s3.eu-west-3.amazonaws.com/artisans-emploi-logo.png");
+  }
+
   @Test
   void read_marketplaces_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
     ProspectingApi api = new ProspectingApi(joeDoeClient);
 
-    List<Marketplace> actual = api.getMarketplaces(JOE_DOE_ACCOUNT_ID);
+    List<Marketplace> actual =
+        ignoreDescription(api.getMarketplaces(JOE_DOE_ACCOUNT_ID));
 
-    assertTrue(actual.contains(marketPlace1()));
-    assertTrue(actual.contains(marketPlace2()));
+    assertTrue(actual.containsAll(List.of(marketPlace1(), marketPlace2(), defaultMarketPlace1(),
+        defaultMarketPlace2())));
   }
 
   @Test
@@ -112,6 +134,15 @@ class MarketPlaceIT {
     ProspectingApi api = new ProspectingApi(joeDoeClient);
 
     assertThrowsForbiddenException(() -> api.getMarketplaces(NOT_JOE_DOE_ACCOUNT_ID));
+  }
+
+  private List<Marketplace> ignoreDescription(List<Marketplace> marketplaces) {
+    marketplaces.forEach(marketplace -> {
+      if (marketplace.getId().equals(defaultMarketPlace1().getId())) {
+        marketplace.setDescription(null);
+      }
+    });
+    return marketplaces;
   }
 
   static class ContextInitializer extends AbstractContextInitializer {

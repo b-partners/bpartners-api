@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 @Builder
 public class AccountHolder {
   private String id;
+  private String verificationStatus;
   private Info info;
   private ResidencyAddress residencyAddress;
 
@@ -18,6 +19,12 @@ public class AccountHolder {
   @JsonInclude(JsonInclude.Include.USE_DEFAULTS)
   public String getId() {
     return id;
+  }
+
+  @JsonProperty("verificationStatus")
+  @JsonInclude(JsonInclude.Include.USE_DEFAULTS)
+  public String getVerificationStatus() {
+    return verificationStatus;
   }
 
   @JsonProperty("info")

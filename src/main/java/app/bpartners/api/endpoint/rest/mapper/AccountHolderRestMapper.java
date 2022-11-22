@@ -29,6 +29,7 @@ public class AccountHolderRestMapper {
     restAccountHolder.setName(accountHolder.getName());
     restAccountHolder.setOfficialActivityName(accountHolder.getMainActivity());
     restAccountHolder.setSiren(accountHolder.getSiren());
+    restAccountHolder.setVerificationStatus(accountHolder.getVerificationStatus());
 
     restAccountHolder.setCompanyInfo(new CompanyInfo()
         .email(accountHolder.getEmail())

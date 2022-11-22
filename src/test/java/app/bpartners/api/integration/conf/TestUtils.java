@@ -140,8 +140,8 @@ public class TestUtils {
         .name("Numer Swan Account")
         .bic("SWNBFR22")
         .iban("FR7699999001001190346460988")
-        .balance(new SwanAccount.Balance(
-            new SwanAccount.Balance.Available(1000.0)
+        .balances(new SwanAccount.Balances(
+            new SwanAccount.Balances.Available(1000.0)
         ))
         .build();
   }

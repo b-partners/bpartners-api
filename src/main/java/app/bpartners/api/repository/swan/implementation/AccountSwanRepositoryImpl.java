@@ -13,7 +13,8 @@ import org.springframework.stereotype.Repository;
 @AllArgsConstructor
 public class AccountSwanRepositoryImpl implements AccountSwanRepository {
   private static final String QUERY =
-      "{\"query\": \"query Account { accounts { edges { node { id name IBAN BIC } } } } \"}";
+      "{\"query\": \"query Account { accounts { edges { node { "
+          + "id name IBAN BIC balances { available { value } } } } } } \"}";
   private final SwanApi<AccountResponse> swanApi;
   private final SwanCustomApi<AccountResponse> swanCustomApi;
 

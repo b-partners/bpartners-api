@@ -31,6 +31,7 @@ public class AccountHolderRestMapper {
         .officialActivityName(domain.getMainActivity())
         .siren(domain.getSiren())
         .verificationStatus(domain.getVerificationStatus())
+        .initialCashflow(domain.getInitialCashflow().getCentsRoundUp())
         .companyInfo(new CompanyInfo()
             .email(domain.getEmail())
             .phone(domain.getMobilePhoneNumber())

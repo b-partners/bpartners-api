@@ -1,8 +1,13 @@
 package app.bpartners.api.endpoint.rest.security;
 
+import app.bpartners.api.endpoint.rest.security.exception.UnapprovedLegalFileException;
 import app.bpartners.api.endpoint.rest.security.model.Principal;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
+import app.bpartners.api.model.Account;
+import app.bpartners.api.model.LegalFile;
+import app.bpartners.api.model.User;
 import app.bpartners.api.service.AccountService;
+import app.bpartners.api.service.LegalFileService;
 import app.bpartners.api.service.UserService;
 import lombok.AllArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -23,6 +28,7 @@ public class AuthProvider extends AbstractUserDetailsAuthenticationProvider {
   private final SwanComponent swanComponent;
   private final UserService userService;
   private final AccountService accountService;
+  private final LegalFileService legalFileService;
 
   @Override
   protected void additionalAuthenticationChecks(
@@ -41,8 +47,14 @@ public class AuthProvider extends AbstractUserDetailsAuthenticationProvider {
     if (swanUserId == null) {
       throw new UsernameNotFoundException("Bad credentials"); // NOSONAR
     }
-    return new Principal(userService.getUserByIdAndBearer(swanUserId, bearer),
-        accountService.getAccountByBearer(bearer), bearer);
+    User user = userService.getUserByIdAndBearer(swanUserId, bearer);
+    LegalFile legalFile = legalFileService.getLatestLegalFileByUserId(user.getId());
+    if (!legalFile.isApproved()) {
+      throw new UnapprovedLegalFileException(
+          "User." + user.getId() + " has not approved the legal file " + legalFile.getName());
+    }
+    Account account = accountService.getAccountByBearer(bearer);
+    return new Principal(user, account, bearer);
   }
 
   private String getBearer(

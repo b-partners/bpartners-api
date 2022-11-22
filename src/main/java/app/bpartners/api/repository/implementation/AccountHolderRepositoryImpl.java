@@ -22,7 +22,14 @@ public class AccountHolderRepositoryImpl implements AccountHolderRepository {
 
   @Override
   public List<AccountHolder> findAllByAccountId(String accountId) {
-    return swanRepository.getAccountHoldersByAccountId(accountId).stream()
+    return swanRepository.findAllByAccountId(accountId).stream()
+        .map(swanAccountHolder -> getOrPersistAccountHolder(accountId, swanAccountHolder))
+        .collect(Collectors.toUnmodifiableList());
+  }
+
+  @Override
+  public List<AccountHolder> findAllByBearerAndAccountId(String bearer, String accountId) {
+    return swanRepository.findAllByBearerAndAccountId(bearer, accountId).stream()
         .map(swanAccountHolder -> getOrPersistAccountHolder(accountId, swanAccountHolder))
         .collect(Collectors.toUnmodifiableList());
   }

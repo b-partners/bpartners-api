@@ -3,6 +3,7 @@ package app.bpartners.api.repository.swan.implementation;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.repository.swan.AccountHolderSwanRepository;
 import app.bpartners.api.repository.swan.SwanApi;
+import app.bpartners.api.repository.swan.SwanCustomApi;
 import app.bpartners.api.repository.swan.model.AccountHolder;
 import app.bpartners.api.repository.swan.response.AccountHolderResponse;
 import java.util.List;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Repository;
 public class AccountHolderSwanRepositoryImpl implements AccountHolderSwanRepository {
 
   private final SwanApi<AccountHolderResponse> swanApi;
+  private final SwanCustomApi<AccountHolderResponse> swanCustomApi;
   private static final String QUERY =
       "{ \"query\": \"" + "query AccountHolder { accountHolders { edges { node "
           + "{ id  info { ... on AccountHolderCompanyInfo { name registrationNumber "
@@ -25,9 +27,17 @@ public class AccountHolderSwanRepositoryImpl implements AccountHolderSwanReposit
           + "{ addressLine1 city country postalCode } } } }}\"}";
 
   @Override
-  public List<AccountHolder> getAccountHoldersByAccountId(String accountId) {
+  public List<AccountHolder> findAllByAccountId(String accountId) {
     return List.of(
         swanApi.getData(AccountHolderResponse.class, QUERY).getData().getAccountHolders()
+            .getEdges().get(0).getNode());
+  }
+
+  @Override
+  public List<AccountHolder> findAllByBearerAndAccountId(String bearer, String accountId) {
+    return List.of(
+        swanCustomApi.getData(AccountHolderResponse.class, QUERY, bearer).getData()
+            .getAccountHolders()
             .getEdges().get(0).getNode());
   }
 

@@ -18,4 +18,8 @@ public class LegalFileService {
   public LegalFile approveLegalFile(String userId, String legalFileId) {
     return repository.save(userId, legalFileId);
   }
+
+  public LegalFile getLatestLegalFileByUserId(String userId) {
+    return repository.findTopByUserId(userId);
+  }
 }

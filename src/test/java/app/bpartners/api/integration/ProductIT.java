@@ -13,7 +13,7 @@ import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
 import app.bpartners.api.integration.conf.AbstractContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
 import app.bpartners.api.manager.ProjectTokenManager;
-import app.bpartners.api.repository.PaymentInitiationRepository;
+import app.bpartners.api.repository.LegalFileRepository;
 import app.bpartners.api.repository.fintecture.FintectureConf;
 import app.bpartners.api.repository.fintecture.FintecturePaymentInitiationRepository;
 import app.bpartners.api.repository.sendinblue.SendinblueConf;
@@ -23,7 +23,6 @@ import app.bpartners.api.repository.swan.UserSwanRepository;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -39,6 +38,7 @@ import static app.bpartners.api.integration.conf.TestUtils.product3;
 import static app.bpartners.api.integration.conf.TestUtils.product4;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountHolderSwanRep;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountSwanRepository;
+import static app.bpartners.api.integration.conf.TestUtils.setUpLegalFileRepository;
 import static app.bpartners.api.integration.conf.TestUtils.setUpPaymentInitiationRep;
 import static app.bpartners.api.integration.conf.TestUtils.setUpSwanComponent;
 import static app.bpartners.api.integration.conf.TestUtils.setUpUserSwanRepository;
@@ -73,6 +73,8 @@ class ProductIT {
   private SwanComponent swanComponentMock;
   @MockBean
   private FintecturePaymentInitiationRepository paymentInitiationRepositoryMock;
+  @MockBean
+  private LegalFileRepository legalFileRepositoryMock;
 
   @BeforeEach
   public void setUp() {
@@ -81,6 +83,7 @@ class ProductIT {
     setUpAccountHolderSwanRep(accountHolderRepositoryMock);
     setUpSwanComponent(swanComponentMock);
     setUpPaymentInitiationRep(paymentInitiationRepositoryMock);
+    setUpLegalFileRepository(legalFileRepositoryMock);
   }
 
   private static ApiClient anApiClient() {

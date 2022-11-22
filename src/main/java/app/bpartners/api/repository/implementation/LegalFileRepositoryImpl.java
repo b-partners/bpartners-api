@@ -59,4 +59,12 @@ public class LegalFileRepositoryImpl implements LegalFileRepository {
     );
     return legalFiles;
   }
+
+  @Override
+  public LegalFile findTopByUserId(String userId) {
+    HLegalFile latestLegalFile = jpaRepository.findTopByOrderByCreatedDatetimeDesc();
+    HUserLegalFile userLegalFile = userLegalJpaRepository.findByLegalFile_IdAndUser_Id(
+        latestLegalFile.getId(), userId);
+    return mapper.toDomain(latestLegalFile, userLegalFile);
+  }
 }

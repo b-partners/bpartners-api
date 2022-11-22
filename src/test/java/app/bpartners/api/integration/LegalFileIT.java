@@ -11,8 +11,10 @@ import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
 import app.bpartners.api.integration.conf.AbstractContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
 import app.bpartners.api.manager.ProjectTokenManager;
+import app.bpartners.api.repository.LegalFileRepository;
 import app.bpartners.api.repository.fintecture.FintectureConf;
 import app.bpartners.api.repository.sendinblue.SendinblueConf;
+import app.bpartners.api.repository.swan.AccountHolderSwanRepository;
 import app.bpartners.api.repository.swan.AccountSwanRepository;
 import app.bpartners.api.repository.swan.UserSwanRepository;
 import java.util.List;
@@ -29,6 +31,7 @@ import static app.bpartners.api.integration.conf.TestUtils.assertThrowsApiExcept
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsForbiddenException;
 import static app.bpartners.api.integration.conf.TestUtils.defaultLegalFile;
 import static app.bpartners.api.integration.conf.TestUtils.legalFile1;
+import static app.bpartners.api.integration.conf.TestUtils.setUpAccountHolderSwanRep;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountSwanRepository;
 import static app.bpartners.api.integration.conf.TestUtils.setUpSwanComponent;
 import static app.bpartners.api.integration.conf.TestUtils.setUpUserSwanRepository;
@@ -60,6 +63,8 @@ class LegalFileIT {
   @MockBean
   private AccountSwanRepository accountSwanRepositoryMock;
   @MockBean
+  private AccountHolderSwanRepository accountHolderMock;
+  @MockBean
   private SwanComponent swanComponentMock;
 
   @BeforeEach
@@ -67,6 +72,7 @@ class LegalFileIT {
     setUpSwanComponent(swanComponentMock);
     setUpUserSwanRepository(swanRepositoryMock);
     setUpAccountSwanRepository(accountSwanRepositoryMock);
+    setUpAccountHolderSwanRep(accountHolderMock);
 
   }
 

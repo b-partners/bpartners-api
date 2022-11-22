@@ -12,6 +12,7 @@ import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
 import app.bpartners.api.integration.conf.S3AbstractContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
 import app.bpartners.api.manager.ProjectTokenManager;
+import app.bpartners.api.repository.LegalFileRepository;
 import app.bpartners.api.repository.fintecture.FintectureConf;
 import app.bpartners.api.repository.fintecture.FintecturePaymentInitiationRepository;
 import app.bpartners.api.repository.sendinblue.SendinblueConf;
@@ -62,6 +63,7 @@ import static app.bpartners.api.integration.conf.TestUtils.product5;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountHolderSwanRep;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountSwanRepository;
 import static app.bpartners.api.integration.conf.TestUtils.setUpEventBridge;
+import static app.bpartners.api.integration.conf.TestUtils.setUpLegalFileRepository;
 import static app.bpartners.api.integration.conf.TestUtils.setUpPaymentInitiationRep;
 import static app.bpartners.api.integration.conf.TestUtils.setUpSwanComponent;
 import static app.bpartners.api.integration.conf.TestUtils.setUpUserSwanRepository;
@@ -111,6 +113,8 @@ class InvoiceIT {
   private FintecturePaymentInitiationRepository paymentInitiationRepositoryMock;
   @MockBean
   private EventBridgeClient eventBridgeClientMock;
+  @MockBean
+  private LegalFileRepository legalFileRepositoryMock;
 
   private static ApiClient anApiClient() {
     return TestUtils.anApiClient(JOE_DOE_TOKEN, InvoiceIT.ContextInitializer.SERVER_PORT);
@@ -124,6 +128,7 @@ class InvoiceIT {
     setUpAccountHolderSwanRep(accountHolderRepositoryMock);
     setUpPaymentInitiationRep(paymentInitiationRepositoryMock);
     setUpEventBridge(eventBridgeClientMock);
+    setUpLegalFileRepository(legalFileRepositoryMock);
   }
 
   CrupdateInvoice proposalInvoice() {

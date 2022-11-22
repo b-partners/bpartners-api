@@ -82,7 +82,7 @@ jobs:
           if ${{ github.ref_name == 'dev' }}; then
             echo "branch_env=dev" >> $GITHUB_ENV
             echo "listenerRuleAvailablePriority=1" >> $GITHUB_ENV
-          elif [${{ github.ref_name == 'prod' }}] || [${{ github.ref_name == 'preprod' }}]; then
+          elif [[ ${{ github.ref_name == 'prod' }} || ${{ github.ref_name == 'preprod' }} ]]; then
             echo "branch_env=${{ github.ref_name }}" >> $GITHUB_ENV
             echo "listenerRuleAvailablePriority=10" >> $GITHUB_ENV
           fi

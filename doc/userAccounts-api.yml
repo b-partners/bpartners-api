@@ -376,6 +376,15 @@ components:
           $ref: '#/components/schemas/CompanyInfo'
         businessActivities:
           $ref: '#/components/schemas/CompanyBusinessActivity'
+        verificationStatus:
+          $ref: '#/components/schemas/VerificationStatus'
+    VerificationStatus:
+      type: string
+      enum:
+        - VERIFIED
+        - NOT_STARTED
+        - PENDING
+        - WAITING_FOR_INFORMATION
     ContactAddress:
       type: object
       properties:

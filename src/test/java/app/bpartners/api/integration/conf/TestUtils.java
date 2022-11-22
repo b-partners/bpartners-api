@@ -96,6 +96,7 @@ public class TestUtils {
   public static final String INVALID_LOGO_TYPE = "invalid_logo_type";
 
   public static final String NOT_JOE_DOE_ACCOUNT_ID = "NOT_" + JOE_DOE_ACCOUNT_ID;
+  public static final String VERIFIED_STATUS = "Verified";
 
   public static User restJoeDoeUser() {
     return new User()
@@ -149,6 +150,7 @@ public class TestUtils {
   public static AccountHolder joeDoeSwanAccountHolder() {
     return AccountHolder.builder()
         .id("b33e6eb0-e262-4596-a91f-20c6a7bfd343")
+        .verificationStatus(VERIFIED_STATUS)
         .info(AccountHolder.Info.builder()
             .name("NUMER")
             .businessActivity("businessAndRetail")

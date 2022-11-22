@@ -9,6 +9,7 @@ import app.bpartners.api.endpoint.rest.model.AccountHolder;
 import app.bpartners.api.endpoint.rest.model.CompanyBusinessActivity;
 import app.bpartners.api.endpoint.rest.model.CompanyInfo;
 import app.bpartners.api.endpoint.rest.model.ContactAddress;
+import app.bpartners.api.endpoint.rest.model.VerificationStatus;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
 import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
 import app.bpartners.api.integration.conf.AbstractContextInitializer;
@@ -82,6 +83,7 @@ class AccountHolderIT {
   private static AccountHolder joeDoeAccountHolder() {
     return new AccountHolder()
         .id(joeDoeSwanAccountHolder().getId())
+        .verificationStatus(VerificationStatus.VERIFIED)
         .name(joeDoeSwanAccountHolder().getInfo().getName())
         .siren(joeDoeSwanAccountHolder().getInfo().getRegistrationNumber())
         .officialActivityName(joeDoeSwanAccountHolder().getInfo().getBusinessActivity())

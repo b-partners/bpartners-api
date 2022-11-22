@@ -29,5 +29,6 @@ public class AccountHolder {
   private String mainActivityDescription;
   private String mobilePhoneNumber;
   private String email;
+  private Fraction initialCashflow;
   private VerificationStatus verificationStatus;
 }

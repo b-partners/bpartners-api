@@ -7,6 +7,7 @@ import app.bpartners.api.repository.jpa.model.HAccountHolder;
 import org.springframework.stereotype.Component;
 
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
+import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 
 @Component
 public class AccountHolderMapper {
@@ -33,6 +34,7 @@ public class AccountHolderMapper {
         .siren(accountHolder.getInfo().getRegistrationNumber())
         .mainActivity(accountHolder.getInfo().getBusinessActivity())
         .mainActivityDescription(accountHolder.getInfo().getBusinessActivityDescription())
+        .initialCashflow(parseFraction(entity.getInitialCashflow()))
         .build();
   }
 

@@ -76,15 +76,6 @@ class AccountHolderIT {
     return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN, ContextInitializer.SERVER_PORT);
   }
 
-  @BeforeEach
-  public void setUp() {
-    setUpSwanComponent(swanComponentMock);
-    setUpUserSwanRepository(userSwanRepositoryMock);
-    setUpAccountSwanRepository(accountSwanRepositoryMock);
-    setUpAccountHolderSwanRep(accountHolderRepositoryMock);
-    setUpLegalFileRepository(legalFileRepositoryMock);
-  }
-
   private static AccountHolder joeDoeAccountHolder() {
     return new AccountHolder()
         .id(joeDoeSwanAccountHolder().getId())
@@ -92,6 +83,7 @@ class AccountHolderIT {
         .name(joeDoeSwanAccountHolder().getInfo().getName())
         .siren(joeDoeSwanAccountHolder().getInfo().getRegistrationNumber())
         .officialActivityName(joeDoeSwanAccountHolder().getInfo().getBusinessActivity())
+        .initialCashflow(6000)
         .companyInfo(new CompanyInfo()
             .phone("+33 6 11 22 33 44")
             .email("numer@hei.school")
@@ -110,6 +102,27 @@ class AccountHolderIT {
         .city(joeDoeSwanAccountHolder().getResidencyAddress().getCity())
         .country(joeDoeSwanAccountHolder().getResidencyAddress().getCountry())
         .postalCode(joeDoeSwanAccountHolder().getResidencyAddress().getPostalCode());
+  }
+
+  private static AccountHolder expected() {
+    return joeDoeAccountHolder()
+        .businessActivities(companyBusinessActivity())
+        .companyInfo(companyInfo());
+  }
+
+  private static CompanyBusinessActivity businessActivityBeforeUpdate() {
+    return new CompanyBusinessActivity()
+        .primary("IT")
+        .secondary("TECHNOLOGY");
+  }
+
+  @BeforeEach
+  public void setUp() {
+    setUpSwanComponent(swanComponentMock);
+    setUpUserSwanRepository(userSwanRepositoryMock);
+    setUpAccountSwanRepository(accountSwanRepositoryMock);
+    setUpAccountHolderSwanRep(accountHolderRepositoryMock);
+    setUpLegalFileRepository(legalFileRepositoryMock);
   }
 
   @Test
@@ -142,18 +155,6 @@ class AccountHolderIT {
         joeDoeAccountHolder().getId(), companyBusinessActivity());
 
     assertEquals(expected(), actual);
-  }
-
-  private static AccountHolder expected() {
-    return joeDoeAccountHolder()
-        .businessActivities(companyBusinessActivity())
-        .companyInfo(companyInfo());
-  }
-
-  private static CompanyBusinessActivity businessActivityBeforeUpdate() {
-    return new CompanyBusinessActivity()
-        .primary("IT")
-        .secondary("TECHNOLOGY");
   }
 
   static class ContextInitializer extends AbstractContextInitializer {

@@ -19,6 +19,10 @@ public class AccountHolderService {
     return accountHolderRepository.findAllByAccountId(accountId);
   }
 
+  public AccountHolder getByBearerAndAccountId(String bearer, String accountId) {
+    return accountHolderRepository.findAllByBearerAndAccountId(bearer, accountId).get(0);
+  }
+
   public AccountHolder getAccountHolderByAccountId(String accountId) {
     return accountHolderRepository.findAllByAccountId(accountId).get(0);
   }

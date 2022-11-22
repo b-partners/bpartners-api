@@ -18,6 +18,7 @@ import app.bpartners.api.endpoint.rest.model.TransactionStatus;
 import app.bpartners.api.endpoint.rest.model.User;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
 import app.bpartners.api.model.exception.BadRequestException;
+import app.bpartners.api.repository.LegalFileRepository;
 import app.bpartners.api.repository.fintecture.FintecturePaymentInitiationRepository;
 import app.bpartners.api.repository.fintecture.model.PaymentInitiation;
 import app.bpartners.api.repository.fintecture.model.PaymentRedirection;
@@ -33,7 +34,6 @@ import app.bpartners.api.repository.swan.model.AccountHolder;
 import app.bpartners.api.repository.swan.model.SwanAccount;
 import app.bpartners.api.repository.swan.model.SwanUser;
 import app.bpartners.api.repository.swan.model.Transaction;
-import app.bpartners.api.service.aws.SesService;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.URISyntaxException;
@@ -41,7 +41,6 @@ import java.net.http.HttpResponse;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
-import javax.mail.MessagingException;
 import org.junit.jupiter.api.function.Executable;
 import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsRequest;
@@ -54,7 +53,6 @@ import static app.bpartners.api.model.exception.ApiException.ExceptionType.CLIEN
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 
 public class TestUtils {
@@ -454,6 +452,23 @@ public class TestUtils {
         .approvalDatetime(null);
   }
 
+  public static app.bpartners.api.model.LegalFile domainLegalFile() {
+    return app.bpartners.api.model.LegalFile.builder()
+        .id(defaultLegalFile().getId())
+        .fileUrl(defaultLegalFile().getFileUrl())
+        .name(defaultLegalFile().getName())
+        .build();
+  }
+
+  public static app.bpartners.api.model.LegalFile domainApprovedLegalFile() {
+    return app.bpartners.api.model.LegalFile.builder()
+        .id(defaultLegalFile().getId())
+        .fileUrl(defaultLegalFile().getFileUrl())
+        .name(defaultLegalFile().getName())
+        .approvalDatetime(Instant.now())
+        .build();
+  }
+
   public static ApiClient anApiClient(String token, int serverPort) {
     ApiClient client = new ApiClient();
     client.setScheme("http");
@@ -504,7 +519,9 @@ public class TestUtils {
 
   public static void setUpAccountHolderSwanRep(AccountHolderSwanRepository swanRepository) {
     when(swanRepository.getById(any())).thenReturn(joeDoeSwanAccountHolder());
-    when(swanRepository.getAccountHoldersByAccountId(any()))
+    when(swanRepository.findAllByBearerAndAccountId(any(), any()))
+        .thenReturn(List.of(joeDoeSwanAccountHolder()));
+    when(swanRepository.findAllByAccountId(any()))
         .thenReturn(List.of(joeDoeSwanAccountHolder()));
   }
 
@@ -516,14 +533,6 @@ public class TestUtils {
                 .url("https://connect-v2-sbx.fintecture.com")
                 .build())
             .build());
-  }
-
-  public static void setUpSesService(SesService service) {
-    try {
-      doNothing().when(service).sendEmail(any(), any(), any(), any(), any());
-    } catch (IOException | MessagingException e) {
-      throw new RuntimeException(e);
-    }
   }
 
   public static void setUpSendiblueApi(SendinblueApi sendinblueApi) {
@@ -548,6 +557,10 @@ public class TestUtils {
     when(eventBridgeClient.putEvents((PutEventsRequest) any())).thenReturn(
         PutEventsResponse.builder().build()
     );
+  }
+
+  public static void setUpLegalFileRepository(LegalFileRepository legalFileRepositoryMock) {
+    when(legalFileRepositoryMock.findTopByUserId(JOE_DOE_ID)).thenReturn(domainApprovedLegalFile());
   }
 
   public static void assertThrowsApiException(String expectedBody, Executable executable) {

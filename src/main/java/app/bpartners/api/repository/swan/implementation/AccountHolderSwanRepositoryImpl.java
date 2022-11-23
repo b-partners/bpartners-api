@@ -24,7 +24,7 @@ public class AccountHolderSwanRepositoryImpl implements AccountHolderSwanReposit
       "{ \"query\": \"" + "query AccountHolder { accountHolders { edges { node "
           + "{ id  info { ... on AccountHolderCompanyInfo { name registrationNumber "
           + "businessActivity businessActivityDescription }} residencyAddress "
-          + "{ addressLine1 city country postalCode } } } }}\"}";
+          + "{ addressLine1 city country postalCode } verificationStatus } } }}\"}";
 
   @Override
   public List<AccountHolder> findAllByAccountId(String accountId) {

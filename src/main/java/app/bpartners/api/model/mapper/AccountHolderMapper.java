@@ -12,8 +12,8 @@ import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVE
 public class AccountHolderMapper {
   public static final String VERIFIED_STATUS = "Verified";
   public static final String PENDING_STATUS = "Pending";
-  public static final String NOT_STARTED_STATUS = "Not Started";
-  public static final String WAITING_FOR_INFORMATION_STATUS = "Waiting For Information";
+  public static final String NOT_STARTED_STATUS = "NotStarted";
+  public static final String WAITING_FOR_INFORMATION_STATUS = "WaitingForInformation";
 
   public AccountHolder toDomain(
       app.bpartners.api.repository.swan.model.AccountHolder accountHolder, HAccountHolder entity) {

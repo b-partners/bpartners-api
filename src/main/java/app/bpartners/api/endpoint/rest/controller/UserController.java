@@ -41,8 +41,7 @@ public class UserController {
       }
       //Check that the user is authorized
       app.bpartners.api.model.User user = service.getUserByIdAndBearer(swanUserId, bearer);
-      app.bpartners.api.model.User requestedUser = service.getUserById(userId);
-      if (!user.getId().equals(requestedUser.getId())) {
+      if (!user.getId().equals(userId)) {
         throw new ForbiddenException();
       }
       return user;

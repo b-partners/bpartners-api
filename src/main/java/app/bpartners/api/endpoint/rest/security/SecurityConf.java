@@ -65,6 +65,8 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
                     new AntPathRequestMatcher("/preUsers", POST.name()),
                     new AntPathRequestMatcher("/authInitiation"),
                     new AntPathRequestMatcher("/token"),
+                    new AntPathRequestMatcher("/whoami", GET.name()),
+                    new AntPathRequestMatcher("/users/*", GET.name()),
                     new AntPathRequestMatcher("/onboardingInitiation", POST.name()),
                     new AntPathRequestMatcher("/users/*/legalFiles", GET.name()),
                     new AntPathRequestMatcher("/users/*/legalFiles/*", PUT.name()),
@@ -80,6 +82,8 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
         .antMatchers("/ping").permitAll()
         .antMatchers("/authInitiation").permitAll()
         .antMatchers("/token").permitAll()
+        .antMatchers(GET, "/whoami").permitAll()
+        .antMatchers(GET, "/users/*").permitAll()
         .antMatchers("/onboardingInitiation").permitAll()
         .antMatchers(POST, "/preUsers").permitAll()
         //Authentication check done in controller for legalFiles
@@ -105,11 +109,8 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
         .authenticated()
         .requestMatchers(new SelfAccountMatcher(POST,
             "/accounts/*/transactions/*/transactionCategories")).authenticated()
-        .antMatchers(GET, "/whoami").authenticated()
         .antMatchers(GET, "/preUsers").authenticated()
-        .antMatchers(GET, "/whoami").authenticated()
         .antMatchers(GET, "/users").authenticated()
-        .antMatchers(GET, "/users/*").authenticated()
         .requestMatchers(new SelfAccountMatcher(GET, "/accounts/*/files/*")).authenticated()
         .requestMatchers(new SelfAccountMatcher(POST, "/accounts/*/files/*/raw")).authenticated()
         .requestMatchers(new SelfAccountMatcher(GET, "/accounts/*/files/*/raw")).authenticated()

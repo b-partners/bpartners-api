@@ -2,7 +2,7 @@ package app.bpartners.api.integration;
 
 import app.bpartners.api.SentryConf;
 import app.bpartners.api.endpoint.event.S3Conf;
-import app.bpartners.api.endpoint.rest.api.SecurityApi;
+import app.bpartners.api.endpoint.rest.api.UserAccountsApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.model.AuthInitiation;
 import app.bpartners.api.endpoint.rest.model.CreateToken;
@@ -18,7 +18,6 @@ import app.bpartners.api.repository.sendinblue.SendinblueConf;
 import app.bpartners.api.repository.swan.AccountHolderSwanRepository;
 import app.bpartners.api.repository.swan.AccountSwanRepository;
 import app.bpartners.api.repository.swan.UserSwanRepository;
-import app.bpartners.api.repository.swan.model.AccountHolder;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.net.URI;
@@ -35,6 +34,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import static app.bpartners.api.integration.conf.TestUtils.BAD_CODE;
+import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ID;
 import static app.bpartners.api.integration.conf.TestUtils.REDIRECT_FAILURE_URL;
 import static app.bpartners.api.integration.conf.TestUtils.REDIRECT_SUCCESS_URL;
@@ -44,7 +44,6 @@ import static app.bpartners.api.integration.conf.TestUtils.setUpAccountHolderSwa
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountSwanRepository;
 import static app.bpartners.api.integration.conf.TestUtils.setUpSwanComponent;
 import static app.bpartners.api.integration.conf.TestUtils.setUpUserSwanRepository;
-import static app.bpartners.api.model.mapper.AccountHolderMapper.NOT_STARTED_STATUS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
@@ -164,31 +163,12 @@ class AuthenticationIT {
     when(legalFileRepositoryMock.findTopByUserId(JOE_DOE_ID))
         .thenReturn(domainLegalFile());
     ApiClient joeDoeClient = anApiClient();
-    SecurityApi api = new SecurityApi(joeDoeClient);
+    UserAccountsApi api = new UserAccountsApi(joeDoeClient);
 
     assertThrowsApiException(
         "{\"type\":\"403 FORBIDDEN\",\"message\":\""
             + "User.joe_doe_id has not approved the legal file cgu_28-10-22.pdf\"}",
-        api::whoami);
-  }
-
-  public AccountHolder joeDoeAccountHolderNotVerified() {
-    return AccountHolder.builder()
-        .id("b33e6eb0-e262-4596-a91f-20c6a7bfd343")
-        .verificationStatus(NOT_STARTED_STATUS)
-        .info(AccountHolder.Info.builder()
-            .name("NUMER")
-            .businessActivity("businessAndRetail")
-            .businessActivityDescription("Phrase détaillée de mon activité")
-            .registrationNumber("899067250")
-            .build())
-        .residencyAddress(AccountHolder.ResidencyAddress.builder()
-            .addressLine1("6 RUE PAUL LANGEVIN")
-            .city("FONTENAY-SOUS-BOIS")
-            .country("FRA")
-            .postalCode("94120")
-            .build())
-        .build();
+        () -> api.getAccountHolders(JOE_DOE_ID, JOE_DOE_ACCOUNT_ID));
   }
 
   // /!\ This test is skipped because the userCode is only available for one test

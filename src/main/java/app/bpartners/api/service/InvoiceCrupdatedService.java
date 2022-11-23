@@ -43,7 +43,7 @@ public class InvoiceCrupdatedService implements Consumer<InvoiceCrupdated> {
             ? pdfUtils.generatePdf(invoice, accountHolder, logoAsBytes, INVOICE_TEMPLATE)
             : pdfUtils.generatePdf(invoice, accountHolder, logoAsBytes, DRAFT_TEMPLATE);
 
-    FileInfo fileInfo = fileService.upload(fileId, INVOICE, accountId, fileAsBytes);
+    FileInfo fileInfo = fileService.upload(fileId, INVOICE, accountId, fileAsBytes, null);
     invoiceJpaRepository.save(HInvoice.builder()
         .id(invoice.getId())
         .fileId(fileInfo.getId())

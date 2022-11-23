@@ -3,7 +3,9 @@ package app.bpartners.api.endpoint.event.model;
 import app.bpartners.api.endpoint.event.model.gen.FileSaved;
 import java.io.Serializable;
 import lombok.AllArgsConstructor;
+import lombok.ToString;
 
+@ToString
 @AllArgsConstructor
 public class TypedFileSaved implements TypedEvent {
 

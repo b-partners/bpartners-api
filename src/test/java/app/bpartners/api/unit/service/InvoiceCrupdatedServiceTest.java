@@ -45,7 +45,7 @@ class InvoiceCrupdatedServiceTest {
     invoiceCrupdatedService = new InvoiceCrupdatedService(fileService, invoiceJpaRepository);
 
     when(fileService.downloadFile(any(), any(), any())).thenReturn(logoAsBytes);
-    when(fileService.upload(any(), any(), any(), any())).thenReturn(fileInfo());
+    when(fileService.upload(any(), any(), any(), any(), any())).thenReturn(fileInfo());
   }
 
   InvoiceCrupdated invoiceCrupdated() {
@@ -128,7 +128,7 @@ class InvoiceCrupdatedServiceTest {
     invoiceCrupdatedService.accept(invoiceCrupdated());
     verify(invoiceJpaRepository).save(invoiceArgumentCaptor.capture());
     verify(fileService).upload(fileIdCaptor.capture(), fileTypeArgumentCaptor.capture(),
-        accountIdCaptor.capture(), any());
+        accountIdCaptor.capture(), any(), any());
 
     assertEquals(invoiceFileId(), fileIdCaptor.getValue());
     assertEquals(INVOICE, fileTypeArgumentCaptor.getValue());

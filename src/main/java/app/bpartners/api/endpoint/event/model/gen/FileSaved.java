@@ -28,6 +28,8 @@ public class FileSaved implements Serializable {
   private String fileId = null;
   @JsonProperty("fileAsBytes")
   private byte[] fileAsBytes = null;
+  @JsonProperty("userId")
+  private String userId = null;
 
   @Override
   public boolean equals(Object o) {
@@ -41,6 +43,7 @@ public class FileSaved implements Serializable {
     return Objects.equals(this.fileType, fileSaved.fileType)
         && Objects.equals(this.accountId, fileSaved.accountId)
         && Objects.equals(this.fileId, fileSaved.fileId)
+        && Objects.equals(this.userId, fileSaved.userId)
         && fileAsBytes.equals(fileSaved.fileAsBytes);
   }
 

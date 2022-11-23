@@ -10,4 +10,6 @@ public interface LegalFileRepository {
   LegalFile save(String userId, String legalFileId);
 
   List<LegalFile> findAllByUserId(String userId);
+
+  LegalFile findTopByUserId(String userId);
 }

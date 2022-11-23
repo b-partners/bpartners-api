@@ -11,6 +11,7 @@ import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
 import app.bpartners.api.integration.conf.S3AbstractContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
 import app.bpartners.api.manager.ProjectTokenManager;
+import app.bpartners.api.repository.LegalFileRepository;
 import app.bpartners.api.repository.fintecture.FintectureConf;
 import app.bpartners.api.repository.sendinblue.SendinblueConf;
 import app.bpartners.api.repository.swan.AccountHolderSwanRepository;
@@ -47,6 +48,7 @@ import static app.bpartners.api.integration.conf.TestUtils.assertThrowsForbidden
 import static app.bpartners.api.integration.conf.TestUtils.getApiException;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountHolderSwanRep;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountSwanRepository;
+import static app.bpartners.api.integration.conf.TestUtils.setUpLegalFileRepository;
 import static app.bpartners.api.integration.conf.TestUtils.setUpSwanComponent;
 import static app.bpartners.api.integration.conf.TestUtils.setUpUserSwanRepository;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -77,6 +79,8 @@ class FileIT {
   private AccountHolderSwanRepository accountHolderRepositoryMock;
   @MockBean
   private SwanComponent swanComponentMock;
+  @MockBean
+  private LegalFileRepository legalFileRepositoryMock;
 
   private static ApiClient anApiClient() {
     return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN, ContextInitializer.SERVER_PORT);
@@ -88,6 +92,7 @@ class FileIT {
     setUpSwanComponent(swanComponentMock);
     setUpAccountSwanRepository(accountSwanRepositoryMock);
     setUpAccountHolderSwanRep(accountHolderRepositoryMock);
+    setUpLegalFileRepository(legalFileRepositoryMock);
   }
 
   FileInfo file1() {

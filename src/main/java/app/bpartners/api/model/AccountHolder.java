@@ -1,5 +1,6 @@
 package app.bpartners.api.model;
 
+import app.bpartners.api.endpoint.rest.model.VerificationStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -28,4 +29,5 @@ public class AccountHolder {
   private String mainActivityDescription;
   private String mobilePhoneNumber;
   private String email;
+  private VerificationStatus verificationStatus;
 }

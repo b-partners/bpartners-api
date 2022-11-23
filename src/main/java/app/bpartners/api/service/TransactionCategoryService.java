@@ -13,18 +13,11 @@ public class TransactionCategoryService {
   private final TransactionCategoryRepository repository;
 
   public List<TransactionCategory> getCategoriesByAccountAndUserDefined(
-      String idAccount, boolean unique,
-      boolean userDefined,
+      String idAccount, Boolean userDefined,
       LocalDate startDate,
       LocalDate endDate) {
-    return repository.findByIdAccountAndUserDefined(idAccount, unique,
+    return repository.findByIdAccountAndUserDefined(idAccount,
         userDefined, startDate, endDate);
-  }
-
-  public List<TransactionCategory> getCategoriesByAccount(
-      String idAccount, boolean unique,
-      LocalDate startDate, LocalDate endDate) {
-    return repository.findByAccount(idAccount, unique, startDate, endDate);
   }
 
   public List<TransactionCategory> createCategories(

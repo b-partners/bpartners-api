@@ -29,10 +29,11 @@ public class TransactionSwanRepositoryImpl implements TransactionSwanRepository 
   private final SwanApi<TransactionResponse> swanApi;
   private static final String QUERY =
       "{\"query\": \"query Transactions { accounts { edges { node { transactions { edges { "
-          + "node { id label reference amount { value currency } createdAt } } } } } }}\"}";
+          + "node { id label reference amount { value currency }"
+          + " createdAt side statusInfo { status } } } } } } }}\"}";
 
   @Override
-  public List<Transaction> getTransactions() {
+  public List<Transaction> getByIdAccount(String idAccount) {
     return swanApi.getData(TransactionResponse.class, QUERY).getData().getAccounts().getEdges().get(
         0).getNode().getTransactions().getEdges();
   }
@@ -43,7 +44,8 @@ public class TransactionSwanRepositoryImpl implements TransactionSwanRepository 
       HttpClient httpClient = HttpClient.newBuilder().build();
       String query =
           "{\"query\": \"query TransactionById { transaction(id: \\\"" + id
-              + "\\\") { id label reference amount { value currency } createdAt }}\"}";
+              + "\\\") { id label reference amount { value currency } "
+              + "createdAt side statusInfo { status }}}\"}";
       HttpRequest request = HttpRequest.newBuilder()
           .uri(new URI(swanConf.getApiUrl()))
           .header("Content-Type", "application/json")

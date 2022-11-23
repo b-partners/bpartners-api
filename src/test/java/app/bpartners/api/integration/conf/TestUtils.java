@@ -14,9 +14,11 @@ import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.endpoint.rest.model.LegalFile;
 import app.bpartners.api.endpoint.rest.model.Product;
 import app.bpartners.api.endpoint.rest.model.TransactionCategory;
+import app.bpartners.api.endpoint.rest.model.TransactionStatus;
 import app.bpartners.api.endpoint.rest.model.User;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
 import app.bpartners.api.model.exception.BadRequestException;
+import app.bpartners.api.repository.LegalFileRepository;
 import app.bpartners.api.repository.fintecture.FintecturePaymentInitiationRepository;
 import app.bpartners.api.repository.fintecture.model.PaymentInitiation;
 import app.bpartners.api.repository.fintecture.model.PaymentRedirection;
@@ -32,7 +34,6 @@ import app.bpartners.api.repository.swan.model.AccountHolder;
 import app.bpartners.api.repository.swan.model.SwanAccount;
 import app.bpartners.api.repository.swan.model.SwanUser;
 import app.bpartners.api.repository.swan.model.Transaction;
-import app.bpartners.api.service.aws.SesService;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.URISyntaxException;
@@ -40,22 +41,25 @@ import java.net.http.HttpResponse;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
-import javax.mail.MessagingException;
 import org.junit.jupiter.api.function.Executable;
 import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsRequest;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsResponse;
 
 import static app.bpartners.api.endpoint.rest.model.EnableStatus.ENABLED;
+import static app.bpartners.api.endpoint.rest.model.TransactionTypeEnum.INCOME;
+import static app.bpartners.api.endpoint.rest.model.TransactionTypeEnum.OUTCOME;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.CLIENT_EXCEPTION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 
 public class TestUtils {
-  public static final String BAD_ACCOUNT_HOLDER_ID = "bad_account_holder_id";
+  public static final String CREDIT_SIDE = "Credit";
+  public static final String DEBIT_SIDE = "Debit";
+  public static final String BOOKED_STATUS = "Booked";
+  public static final String PENDING_STATUS = "Pending";
   public static final String JOE_DOE_ID = "joe_doe_id";
   public static final String JOE_DOE_SWAN_USER_ID = "c15924bf-61f9-4381-8c9b-d34369bf91f7";
   public static final String BAD_TOKEN = "bad_token";
@@ -74,7 +78,6 @@ public class TestUtils {
   public static final String INVOICE4_ID = "invoice4_id";
   public static final String INVOICE7_ID = "invoice7_id";
 
-  public static final String INVOICE1_FILE_ID = "BP001.pdf";
   public static final String FILE_ID = "test.jpeg";
   public static final String TEST_FILE_ID = "test.jpeg";
   public static final String TO_UPLOAD_FILE_ID = "to_upload_file_id.jpeg";
@@ -91,6 +94,7 @@ public class TestUtils {
   public static final String INVALID_LOGO_TYPE = "invalid_logo_type";
 
   public static final String NOT_JOE_DOE_ACCOUNT_ID = "NOT_" + JOE_DOE_ACCOUNT_ID;
+  public static final String VERIFIED_STATUS = "Verified";
 
   public static User restJoeDoeUser() {
     return new User()
@@ -135,12 +139,16 @@ public class TestUtils {
         .name("Numer Swan Account")
         .bic("SWNBFR22")
         .iban("FR7699999001001190346460988")
+        .balances(new SwanAccount.Balances(
+            new SwanAccount.Balances.Available(1000.0)
+        ))
         .build();
   }
 
   public static AccountHolder joeDoeSwanAccountHolder() {
     return AccountHolder.builder()
         .id("b33e6eb0-e262-4596-a91f-20c6a7bfd343")
+        .verificationStatus(VERIFIED_STATUS)
         .info(AccountHolder.Info.builder()
             .name("NUMER")
             .businessActivity("businessAndRetail")
@@ -238,15 +246,6 @@ public class TestUtils {
         .totalPriceWithVat(1100.0);
   }
 
-
-  public static CreateProduct createProduct3() {
-    return new CreateProduct()
-        .description("Tableau baobab")
-        .quantity(3)
-        .unitPrice(2000.0)
-        .vatPercent(1000.0);
-  }
-
   public static CreateProduct createProduct4() {
     return new CreateProduct()
         .description("Tableau malgache")
@@ -268,53 +267,9 @@ public class TestUtils {
         .id("transaction_category1_id")
         .type("Recette TVA 20%")
         .userDefined(false)
+        .transactionType(INCOME)
         .vat(2000.0)
         .count(1L);
-  }
-
-  public static TransactionCategory transactionCategory2() {
-    return new TransactionCategory()
-        .id("transaction_category2_id")
-        .type("Recette TVA 10%")
-        .userDefined(false)
-        .vat(1000.0)
-        .count(2L);
-  }
-
-  public static TransactionCategory transactionCategory3() {
-    return new TransactionCategory()
-        .id("transaction_category3_id")
-        .type("Recette TVA 10%")
-        .userDefined(false)
-        .vat(1000.0)
-        .count(2L);
-  }
-
-  public static TransactionCategory transactionCategory4() {
-    return new TransactionCategory()
-        .id("transaction_category4_id")
-        .type("Recette personnalisée TVA 1%")
-        .userDefined(true)
-        .vat(100.0)
-        .count(1L);
-  }
-
-  public static TransactionCategory transactionCategory5() {
-    return new TransactionCategory()
-        .id("transaction_category5_id")
-        .type("Recette personnalisée TVA 1,2%")
-        .userDefined(true)
-        .vat(120.0)
-        .count(2L);
-  }
-
-  public static TransactionCategory transactionCategory6() {
-    return new TransactionCategory()
-        .id("transaction_category6_id")
-        .type("Recette personnalisée TVA 1,2%")
-        .vat(120.0)
-        .userDefined(true)
-        .count(2L);
   }
 
   static Transaction swanTransaction1() {
@@ -328,6 +283,8 @@ public class TestUtils {
                 .currency("EUR")
                 .build())
             .createdAt(Instant.parse("2022-08-26T06:33:50.595Z"))
+            .side(CREDIT_SIDE)
+            .statusInfo(new Transaction.Node.StatusInfo(PENDING_STATUS))
             .build())
         .build();
   }
@@ -343,6 +300,8 @@ public class TestUtils {
                 .currency("EUR")
                 .build())
             .createdAt(Instant.parse("2022-08-24T04:57:02.606Z"))
+            .side(DEBIT_SIDE)
+            .statusInfo(new Transaction.Node.StatusInfo(BOOKED_STATUS))
             .build())
         .build();
   }
@@ -358,6 +317,8 @@ public class TestUtils {
                 .currency("EUR")
                 .build())
             .createdAt(Instant.parse("2022-08-24T03:39:33.315Z"))
+            .side(CREDIT_SIDE)
+            .statusInfo(new Transaction.Node.StatusInfo(BOOKED_STATUS))
             .build())
         .build();
   }
@@ -368,7 +329,9 @@ public class TestUtils {
         .id("bosci_0fe167566b234808a44aae415f057b6c")
         .label("Premier virement")
         .reference("JOE-001")
-        .amount(500.0)
+        .amount(50000)
+        .type(INCOME)
+        .status(TransactionStatus.BOOKED)
         .paymentDatetime(Instant.parse("2022-08-24T03:39:33.315Z"))
         .category(List.of(transactionCategory1()));
   }
@@ -378,7 +341,10 @@ public class TestUtils {
         .id("bosci_f224704f2555a42303e302ffb8e69eef")
         .label("Création de site vitrine")
         .reference("REF_001")
-        .amount(500.0)
+        .amount(50000)
+        .type(INCOME)
+        .status(TransactionStatus.PENDING)
+        .category(null)
         .paymentDatetime(Instant.parse("2022-08-26T06:33:50.595Z"));
   }
 
@@ -387,9 +353,11 @@ public class TestUtils {
         .id("bosci_28cb4daf35d3ab24cb775dcdefc8fdab")
         .label("Test du virement")
         .reference("TEST-001")
-        .amount(100.0)
+        .amount(10000)
+        .type(OUTCOME)
+        .status(TransactionStatus.BOOKED)
         .paymentDatetime(Instant.parse("2022-08-24T04:57:02.606Z"))
-        .category(List.of(transactionCategory6()));
+        .category(null);
   }
 
   public static Invoice invoice1() {
@@ -476,20 +444,29 @@ public class TestUtils {
         .approvalDatetime(Instant.parse("2022-01-01T00:00:00.00Z"));
   }
 
-  public static LegalFile legalFile2() {
+  public static LegalFile defaultLegalFile() {
     return new LegalFile()
-        .id("legal_file2_id")
-        .name("CGU-November-2022-version-2")
-        .fileUrl("https://s3.eu-west-3.amazonaws.com/legal.bpartners.app/cgu.pdf")
-        .approvalDatetime(Instant.parse("2022-01-02T00:00:00.00Z"));
+        .id("e200a1fd-5bb7-4b7a-a521-4a6002dc1927")
+        .name("cgu_28-10-22.pdf")
+        .fileUrl("https://legal.bpartners.app/cgu_28-10-22.pdf")
+        .approvalDatetime(null);
   }
 
-  public static LegalFile legalFile3() {
-    return new LegalFile()
-        .id("legal_file3_id")
-        .name("CGU-November-2022-version-3")
-        .fileUrl("https://s3.eu-west-3.amazonaws.com/legal.bpartners.app/cgu.pdf")
-        .approvalDatetime(null);
+  public static app.bpartners.api.model.LegalFile domainLegalFile() {
+    return app.bpartners.api.model.LegalFile.builder()
+        .id(defaultLegalFile().getId())
+        .fileUrl(defaultLegalFile().getFileUrl())
+        .name(defaultLegalFile().getName())
+        .build();
+  }
+
+  public static app.bpartners.api.model.LegalFile domainApprovedLegalFile() {
+    return app.bpartners.api.model.LegalFile.builder()
+        .id(defaultLegalFile().getId())
+        .fileUrl(defaultLegalFile().getFileUrl())
+        .name(defaultLegalFile().getName())
+        .approvalDatetime(Instant.now())
+        .build();
   }
 
   public static ApiClient anApiClient(String token, int serverPort) {
@@ -520,7 +497,6 @@ public class TestUtils {
   }
 
   public static void setUpAccountSwanRepository(AccountSwanRepository swanRepository) {
-    when(swanRepository.findAll()).thenReturn(List.of(joeDoeSwanAccount()));
     when(swanRepository.findById(JOE_DOE_ACCOUNT_ID)).thenReturn(List.of(joeDoeSwanAccount()));
     //TODO: fix this as it should be : only accountId instead of userId
     when(swanRepository.findById(JOE_DOE_ID)).thenReturn(List.of(joeDoeSwanAccount()));
@@ -529,8 +505,9 @@ public class TestUtils {
   }
 
   public static void setUpTransactionRepository(TransactionSwanRepository repository) {
-    when(repository.getTransactions()).thenReturn(List.of(swanTransaction1(), swanTransaction2(),
-        swanTransaction3()));
+    when(repository.getByIdAccount(any())).thenReturn(
+        List.of(swanTransaction1(), swanTransaction2(),
+            swanTransaction3()));
     when(repository.findById(swanTransaction1().getNode().getId())).thenReturn(swanTransaction1());
     when(repository.findById(swanTransaction2().getNode().getId())).thenReturn(swanTransaction2());
     when(repository.findById(swanTransaction3().getNode().getId())).thenReturn(swanTransaction3());
@@ -542,7 +519,9 @@ public class TestUtils {
 
   public static void setUpAccountHolderSwanRep(AccountHolderSwanRepository swanRepository) {
     when(swanRepository.getById(any())).thenReturn(joeDoeSwanAccountHolder());
-    when(swanRepository.getAccountHoldersByAccountId(any()))
+    when(swanRepository.findAllByBearerAndAccountId(any(), any()))
+        .thenReturn(List.of(joeDoeSwanAccountHolder()));
+    when(swanRepository.findAllByAccountId(any()))
         .thenReturn(List.of(joeDoeSwanAccountHolder()));
   }
 
@@ -554,14 +533,6 @@ public class TestUtils {
                 .url("https://connect-v2-sbx.fintecture.com")
                 .build())
             .build());
-  }
-
-  public static void setUpSesService(SesService service) {
-    try {
-      doNothing().when(service).sendEmail(any(), any(), any(), any(), any());
-    } catch (IOException | MessagingException e) {
-      throw new RuntimeException(e);
-    }
   }
 
   public static void setUpSendiblueApi(SendinblueApi sendinblueApi) {
@@ -586,6 +557,10 @@ public class TestUtils {
     when(eventBridgeClient.putEvents((PutEventsRequest) any())).thenReturn(
         PutEventsResponse.builder().build()
     );
+  }
+
+  public static void setUpLegalFileRepository(LegalFileRepository legalFileRepositoryMock) {
+    when(legalFileRepositoryMock.findTopByUserId(JOE_DOE_ID)).thenReturn(domainApprovedLegalFile());
   }
 
   public static void assertThrowsApiException(String expectedBody, Executable executable) {

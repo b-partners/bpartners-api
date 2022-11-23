@@ -12,8 +12,10 @@ import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
 import app.bpartners.api.integration.conf.AbstractContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
 import app.bpartners.api.manager.ProjectTokenManager;
+import app.bpartners.api.repository.LegalFileRepository;
 import app.bpartners.api.repository.fintecture.FintectureConf;
 import app.bpartners.api.repository.sendinblue.SendinblueConf;
+import app.bpartners.api.repository.swan.AccountHolderSwanRepository;
 import app.bpartners.api.repository.swan.AccountSwanRepository;
 import app.bpartners.api.repository.swan.OnboardingSwanRepository;
 import app.bpartners.api.repository.swan.UserSwanRepository;
@@ -34,10 +36,11 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ID;
 import static app.bpartners.api.integration.conf.TestUtils.REDIRECT_FAILURE_URL;
 import static app.bpartners.api.integration.conf.TestUtils.REDIRECT_SUCCESS_URL;
-import static app.bpartners.api.integration.conf.TestUtils.assertThrowsApiException;
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsForbiddenException;
 import static app.bpartners.api.integration.conf.TestUtils.restJoeDoeUser;
+import static app.bpartners.api.integration.conf.TestUtils.setUpAccountHolderSwanRep;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountSwanRepository;
+import static app.bpartners.api.integration.conf.TestUtils.setUpLegalFileRepository;
 import static app.bpartners.api.integration.conf.TestUtils.setUpOnboardingSwanRepositoryMock;
 import static app.bpartners.api.integration.conf.TestUtils.setUpSwanComponent;
 import static app.bpartners.api.integration.conf.TestUtils.setUpUserSwanRepository;
@@ -69,6 +72,10 @@ class UserIT {
   private SwanComponent swanComponentMock;
   @MockBean
   private OnboardingSwanRepository onboardingSwanRepositoryMock;
+  @MockBean
+  private AccountHolderSwanRepository accountHolderMock;
+  @MockBean
+  private LegalFileRepository legalFileRepositoryMock;
 
   @BeforeEach
   public void setUp() {
@@ -76,6 +83,8 @@ class UserIT {
     setUpUserSwanRepository(userSwanRepositoryMock);
     setUpAccountSwanRepository(accountSwanRepositoryMock);
     setUpOnboardingSwanRepositoryMock(onboardingSwanRepositoryMock);
+    setUpAccountHolderSwanRep(accountHolderMock);
+    setUpLegalFileRepository(legalFileRepositoryMock);
   }
 
   private static ApiClient anApiClient() {
@@ -156,9 +165,7 @@ class UserIT {
     UserAccountsApi api = new UserAccountsApi(joeDoeClient);
 
     assertThrowsForbiddenException(() -> api.getUserById(TestUtils.USER1_ID));
-    assertThrowsApiException(
-        "{\"type\":\"404 NOT_FOUND\",\"message\":\"User.bad_user_id does not exist\"}",
-        () -> api.getUserById(TestUtils.BAD_USER_ID));
+    assertThrowsForbiddenException(() -> api.getUserById(TestUtils.BAD_USER_ID));
   }
 
   static class ContextInitializer extends AbstractContextInitializer {

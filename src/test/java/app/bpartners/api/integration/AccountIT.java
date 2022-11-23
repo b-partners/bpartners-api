@@ -11,8 +11,10 @@ import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
 import app.bpartners.api.integration.conf.AbstractContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
 import app.bpartners.api.manager.ProjectTokenManager;
+import app.bpartners.api.repository.LegalFileRepository;
 import app.bpartners.api.repository.fintecture.FintectureConf;
 import app.bpartners.api.repository.sendinblue.SendinblueConf;
+import app.bpartners.api.repository.swan.AccountHolderSwanRepository;
 import app.bpartners.api.repository.swan.AccountSwanRepository;
 import app.bpartners.api.repository.swan.UserSwanRepository;
 import java.util.List;
@@ -28,7 +30,9 @@ import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_TOKEN;
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsForbiddenException;
 import static app.bpartners.api.integration.conf.TestUtils.joeDoeSwanAccount;
+import static app.bpartners.api.integration.conf.TestUtils.setUpAccountHolderSwanRep;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountSwanRepository;
+import static app.bpartners.api.integration.conf.TestUtils.setUpLegalFileRepository;
 import static app.bpartners.api.integration.conf.TestUtils.setUpSwanComponent;
 import static app.bpartners.api.integration.conf.TestUtils.setUpUserSwanRepository;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -52,27 +56,35 @@ class AccountIT {
   private FintectureConf fintectureConf;
   @MockBean
   private ProjectTokenManager projectTokenManager;
-
   @MockBean
   private UserSwanRepository userSwanRepositoryMock;
   @MockBean
   private AccountSwanRepository accountSwanRepositoryMock;
   @MockBean
   private SwanComponent swanComponentMock;
+  @MockBean
+  private AccountHolderSwanRepository accountHolderMock;
+  @MockBean
+  private LegalFileRepository legalFileRepositoryMock;
 
   @BeforeEach
   public void setUp() {
     setUpSwanComponent(swanComponentMock);
     setUpUserSwanRepository(userSwanRepositoryMock);
     setUpAccountSwanRepository(accountSwanRepositoryMock);
+    setUpAccountHolderSwanRep(accountHolderMock);
+    setUpLegalFileRepository(legalFileRepositoryMock);
   }
 
   Account joeDoeAccount() {
     return new Account()
         .id(joeDoeSwanAccount().getId())
         .name(joeDoeSwanAccount().getName())
+        .iban(joeDoeSwanAccount().getIban())
+        .bic(joeDoeSwanAccount().getBic())
         .IBAN(joeDoeSwanAccount().getIban())
-        .BIC(joeDoeSwanAccount().getBic());
+        .BIC(joeDoeSwanAccount().getBic())
+        .availableBalance(100000);
   }
 
   private static ApiClient anApiClient() {

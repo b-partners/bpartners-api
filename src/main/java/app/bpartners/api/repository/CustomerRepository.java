@@ -9,7 +9,7 @@ public interface CustomerRepository {
 
   List<CustomerTemplate> findByAccount(String accountId);
 
-  List<CustomerTemplate> save(String account, List<CustomerTemplate> toCreate);
+  List<CustomerTemplate> saveAll(String account, List<CustomerTemplate> toCreate);
 
   CustomerTemplate findById(String id);
 }

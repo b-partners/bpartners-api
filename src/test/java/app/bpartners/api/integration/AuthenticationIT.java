@@ -2,6 +2,8 @@ package app.bpartners.api.integration;
 
 import app.bpartners.api.SentryConf;
 import app.bpartners.api.endpoint.event.S3Conf;
+import app.bpartners.api.endpoint.rest.api.UserAccountsApi;
+import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.model.AuthInitiation;
 import app.bpartners.api.endpoint.rest.model.CreateToken;
 import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
@@ -10,8 +12,12 @@ import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
 import app.bpartners.api.integration.conf.AbstractContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
 import app.bpartners.api.manager.ProjectTokenManager;
+import app.bpartners.api.repository.LegalFileRepository;
 import app.bpartners.api.repository.fintecture.FintectureConf;
 import app.bpartners.api.repository.sendinblue.SendinblueConf;
+import app.bpartners.api.repository.swan.AccountHolderSwanRepository;
+import app.bpartners.api.repository.swan.AccountSwanRepository;
+import app.bpartners.api.repository.swan.UserSwanRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.net.URI;
@@ -28,10 +34,19 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import static app.bpartners.api.integration.conf.TestUtils.BAD_CODE;
+import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
+import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ID;
 import static app.bpartners.api.integration.conf.TestUtils.REDIRECT_FAILURE_URL;
 import static app.bpartners.api.integration.conf.TestUtils.REDIRECT_SUCCESS_URL;
+import static app.bpartners.api.integration.conf.TestUtils.assertThrowsApiException;
+import static app.bpartners.api.integration.conf.TestUtils.domainLegalFile;
+import static app.bpartners.api.integration.conf.TestUtils.setUpAccountHolderSwanRep;
+import static app.bpartners.api.integration.conf.TestUtils.setUpAccountSwanRepository;
 import static app.bpartners.api.integration.conf.TestUtils.setUpSwanComponent;
+import static app.bpartners.api.integration.conf.TestUtils.setUpUserSwanRepository;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
@@ -54,12 +69,28 @@ class AuthenticationIT {
   @MockBean
   private ProjectTokenManager projectTokenManager;
   @MockBean
+  private UserSwanRepository userSwanRepositoryMock;
+  @MockBean
+  private AccountSwanRepository accountSwanRepositoryMock;
+  @MockBean
+  private AccountHolderSwanRepository accountHolderRepositoryMock;
+  @MockBean
   private SwanComponent swanComponentMock;
+  @MockBean
+  private LegalFileRepository legalFileRepositoryMock;
+
+  private static ApiClient anApiClient() {
+    return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN, ContextInitializer.SERVER_PORT);
+  }
 
   @BeforeEach
   public void setUp() {
     setUpSwanComponent(swanComponentMock);
+    setUpUserSwanRepository(userSwanRepositoryMock);
+    setUpAccountSwanRepository(accountSwanRepositoryMock);
+    setUpAccountHolderSwanRep(accountHolderRepositoryMock);
   }
+
 
   //Uncomment to test the token provider
   //@Value("${test.swan.user.code}")
@@ -126,6 +157,19 @@ class AuthenticationIT {
     assertEquals(HttpStatus.BAD_REQUEST.value(), response.statusCode());
   }
 
+  @Test
+  void user_has_not_approved_legal_file_forbidden() {
+    reset(legalFileRepositoryMock);
+    when(legalFileRepositoryMock.findTopByUserId(JOE_DOE_ID))
+        .thenReturn(domainLegalFile());
+    ApiClient joeDoeClient = anApiClient();
+    UserAccountsApi api = new UserAccountsApi(joeDoeClient);
+
+    assertThrowsApiException(
+        "{\"type\":\"403 FORBIDDEN\",\"message\":\""
+            + "User.joe_doe_id has not approved the legal file cgu_28-10-22.pdf\"}",
+        () -> api.getAccountHolders(JOE_DOE_ID, JOE_DOE_ACCOUNT_ID));
+  }
 
   // /!\ This test is skipped because the userCode is only available for one test
   // and errors occurs for CI and CD tests

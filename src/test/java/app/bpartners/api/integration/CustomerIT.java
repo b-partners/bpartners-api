@@ -12,8 +12,10 @@ import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
 import app.bpartners.api.integration.conf.AbstractContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
 import app.bpartners.api.manager.ProjectTokenManager;
+import app.bpartners.api.repository.LegalFileRepository;
 import app.bpartners.api.repository.fintecture.FintectureConf;
 import app.bpartners.api.repository.sendinblue.SendinblueConf;
+import app.bpartners.api.repository.swan.AccountHolderSwanRepository;
 import app.bpartners.api.repository.swan.AccountSwanRepository;
 import app.bpartners.api.repository.swan.UserSwanRepository;
 import java.util.List;
@@ -31,7 +33,9 @@ import static app.bpartners.api.integration.conf.TestUtils.assertThrowsApiExcept
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsForbiddenException;
 import static app.bpartners.api.integration.conf.TestUtils.customer1;
 import static app.bpartners.api.integration.conf.TestUtils.customer2;
+import static app.bpartners.api.integration.conf.TestUtils.setUpAccountHolderSwanRep;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountSwanRepository;
+import static app.bpartners.api.integration.conf.TestUtils.setUpLegalFileRepository;
 import static app.bpartners.api.integration.conf.TestUtils.setUpSwanComponent;
 import static app.bpartners.api.integration.conf.TestUtils.setUpUserSwanRepository;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -60,7 +64,11 @@ class CustomerIT {
   @MockBean
   private AccountSwanRepository accountSwanRepositoryMock;
   @MockBean
+  private AccountHolderSwanRepository accountHolderMock;
+  @MockBean
   private SwanComponent swanComponentMock;
+  @MockBean
+  private LegalFileRepository legalFileRepositoryMock;
 
   private static ApiClient anApiClient() {
     return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN, ContextInitializer.SERVER_PORT);
@@ -71,6 +79,8 @@ class CustomerIT {
     setUpUserSwanRepository(userSwanRepositoryMock);
     setUpAccountSwanRepository(accountSwanRepositoryMock);
     setUpSwanComponent(swanComponentMock);
+    setUpAccountHolderSwanRep(accountHolderMock);
+    setUpLegalFileRepository(legalFileRepositoryMock);
   }
 
   CreateCustomer createCustomer1() {

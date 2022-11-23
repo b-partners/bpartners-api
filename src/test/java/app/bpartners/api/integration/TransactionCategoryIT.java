@@ -12,8 +12,10 @@ import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
 import app.bpartners.api.integration.conf.AbstractContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
 import app.bpartners.api.manager.ProjectTokenManager;
+import app.bpartners.api.repository.LegalFileRepository;
 import app.bpartners.api.repository.fintecture.FintectureConf;
 import app.bpartners.api.repository.sendinblue.SendinblueConf;
+import app.bpartners.api.repository.swan.AccountHolderSwanRepository;
 import app.bpartners.api.repository.swan.AccountSwanRepository;
 import app.bpartners.api.repository.swan.TransactionSwanRepository;
 import app.bpartners.api.repository.swan.UserSwanRepository;
@@ -29,15 +31,12 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.TestUtils.restTransaction2;
+import static app.bpartners.api.integration.conf.TestUtils.setUpAccountHolderSwanRep;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountSwanRepository;
+import static app.bpartners.api.integration.conf.TestUtils.setUpLegalFileRepository;
 import static app.bpartners.api.integration.conf.TestUtils.setUpSwanComponent;
 import static app.bpartners.api.integration.conf.TestUtils.setUpTransactionRepository;
 import static app.bpartners.api.integration.conf.TestUtils.setUpUserSwanRepository;
-import static app.bpartners.api.integration.conf.TestUtils.transactionCategory1;
-import static app.bpartners.api.integration.conf.TestUtils.transactionCategory2;
-import static app.bpartners.api.integration.conf.TestUtils.transactionCategory3;
-import static app.bpartners.api.integration.conf.TestUtils.transactionCategory4;
-import static app.bpartners.api.integration.conf.TestUtils.transactionCategory5;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
@@ -67,6 +66,10 @@ class TransactionCategoryIT {
   private SwanComponent swanComponentMock;
   @MockBean
   private TransactionSwanRepository transactionSwanRepositoryMock;
+  @MockBean
+  private AccountHolderSwanRepository accountHolderMock;
+  @MockBean
+  private LegalFileRepository legalFileRepositoryMock;
 
   private static ApiClient anApiClient() {
     return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN, ContextInitializer.SERVER_PORT);
@@ -78,6 +81,8 @@ class TransactionCategoryIT {
     setUpUserSwanRepository(userSwanRepositoryMock);
     setUpAccountSwanRepository(accountSwanRepositoryMock);
     setUpTransactionRepository(transactionSwanRepositoryMock);
+    setUpAccountHolderSwanRep(accountHolderMock);
+    setUpLegalFileRepository(legalFileRepositoryMock);
   }
 
   CreateTransactionCategory createTransactionCategory() {
@@ -91,40 +96,18 @@ class TransactionCategoryIT {
     ApiClient joeDoeClient = anApiClient();
     PayingApi api = new PayingApi(joeDoeClient);
 
-    List<TransactionCategory> actualAll = api.getTransactionCategories(JOE_DOE_ACCOUNT_ID, false,
+    List<TransactionCategory> actualAll = api.getTransactionCategories(JOE_DOE_ACCOUNT_ID,
         LocalDate.now(), LocalDate.now(), null);
-    List<TransactionCategory> actualAllUnique = api.getTransactionCategories(JOE_DOE_ACCOUNT_ID,
-        true, LocalDate.of(2022, 1, 1), LocalDate.of(2022, 1, 2),
-        null);
-    List<TransactionCategory> actualUnique =
-        api.getTransactionCategories(JOE_DOE_ACCOUNT_ID, true, LocalDate.of(2022, 1, 1),
-            LocalDate.of(2022, 1, 2),
-            false);
-    List<TransactionCategory> actualNotUnique =
-        api.getTransactionCategories(JOE_DOE_ACCOUNT_ID, false, LocalDate.of(2022, 1, 1),
-            LocalDate.of(2022, 1, 2),
-            false);
+    List<TransactionCategory> actualUserNotDefined =
+        api.getTransactionCategories(JOE_DOE_ACCOUNT_ID, LocalDate.of(2022, 1, 1),
+            LocalDate.of(2022, 1, 2), false);
     List<TransactionCategory> actualUserDefined =
-        api.getTransactionCategories(JOE_DOE_ACCOUNT_ID, false, LocalDate.of(2022, 1, 1),
-            LocalDate.of(2022, 1, 2),
-            true);
-    List<TransactionCategory> actualUniqueAndDefined =
-        api.getTransactionCategories(JOE_DOE_ACCOUNT_ID, true, LocalDate.of(2022, 1, 1),
-            LocalDate.of(2022, 1, 2),
-            true);
+        api.getTransactionCategories(JOE_DOE_ACCOUNT_ID, LocalDate.of(2022, 1, 1),
+            LocalDate.of(2022, 1, 2), true);
 
-    assertEquals(7, actualAll.size());
-    assertEquals(5, actualAllUnique.size());
-    assertEquals(2, actualUnique.size());
-    assertEquals(3, actualNotUnique.size());
-    assertEquals(4, actualUserDefined.size());
-    assertEquals(3, actualUniqueAndDefined.size());
-    assertTrue(actualUnique.contains(transactionCategory1()));
-    assertTrue(actualUnique.contains(transactionCategory3()));
-    assertTrue(actualNotUnique.containsAll(actualUnique));
-    assertTrue(actualNotUnique.contains(transactionCategory2()));
-    assertTrue(actualUserDefined.contains(transactionCategory4()));
-    assertTrue(actualUserDefined.contains(transactionCategory5()));
+    assertEquals(33, actualAll.size());
+    assertEquals(31, actualUserNotDefined.size());
+    assertEquals(2, actualUserDefined.size());
   }
 
   @Test
@@ -132,10 +115,10 @@ class TransactionCategoryIT {
     ApiClient joeDoeClient = anApiClient();
     PayingApi api = new PayingApi(joeDoeClient);
 
-    List<TransactionCategory> actualAll = api.getTransactionCategories(JOE_DOE_ACCOUNT_ID, false,
+    List<TransactionCategory> actualAll = api.getTransactionCategories(JOE_DOE_ACCOUNT_ID,
         LocalDate.of(2021, 1, 1), LocalDate.of(2021, 12, 31), null);
 
-    assertEquals(7, actualAll.size());
+    assertEquals(33, actualAll.size());
     assertTrue(actualAll.stream().noneMatch(e -> e.getCount() != 0L));
   }
 

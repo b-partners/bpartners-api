@@ -11,7 +11,7 @@ public class InvoiceCustomer extends CustomerTemplate {
   @Builder(builderMethodName = "customerTemplateBuilder")
   public InvoiceCustomer(
       String customerId, String idAccount, String name, String email,
-      String phone, String website, String address, int zipCode,
+      String phone, String website, String address, Integer zipCode,
       String city, String country, String id, String idInvoice) {
     super(customerId, idAccount, name, email, phone, website, address, zipCode, city, country);
     this.id = id;

@@ -26,7 +26,7 @@ import static org.springframework.http.HttpMethod.PUT;
 @Slf4j
 public class SecurityConf extends WebSecurityConfigurerAdapter {
 
-  private static final String AUTHORIZATION_HEADER = "Authorization";
+  public static final String AUTHORIZATION_HEADER = "Authorization";
   private final AuthProvider authProvider;
   private final HandlerExceptionResolver exceptionResolver;
 
@@ -49,11 +49,11 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
             // issues like when a user tries to access a resource
             // without appropriate authentication elements
             (req, res, e) -> exceptionResolver
-                .resolveException(req, res, null, forbiddenWithRemoteInfo(req)))
+                .resolveException(req, res, null, forbiddenWithRemoteInfo(e, req)))
         .accessDeniedHandler(
             // note(spring-exception): issues like when a user not having required roles
             (req, res, e) -> exceptionResolver
-                .resolveException(req, res, null, forbiddenWithRemoteInfo(req)))
+                .resolveException(req, res, null, forbiddenWithRemoteInfo(e, req)))
 
         // authenticate
         .and()
@@ -65,7 +65,11 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
                     new AntPathRequestMatcher("/preUsers", POST.name()),
                     new AntPathRequestMatcher("/authInitiation"),
                     new AntPathRequestMatcher("/token"),
+                    new AntPathRequestMatcher("/whoami", GET.name()),
+                    new AntPathRequestMatcher("/users/*", GET.name()),
                     new AntPathRequestMatcher("/onboardingInitiation", POST.name()),
+                    new AntPathRequestMatcher("/users/*/legalFiles", GET.name()),
+                    new AntPathRequestMatcher("/users/*/legalFiles/*", PUT.name()),
                     new AntPathRequestMatcher("/**", OPTIONS.toString())
                 )
             )),
@@ -78,8 +82,13 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
         .antMatchers("/ping").permitAll()
         .antMatchers("/authInitiation").permitAll()
         .antMatchers("/token").permitAll()
+        .antMatchers(GET, "/whoami").permitAll()
+        .antMatchers(GET, "/users/*").permitAll()
         .antMatchers("/onboardingInitiation").permitAll()
         .antMatchers(POST, "/preUsers").permitAll()
+        //Authentication check done in controller for legalFiles
+        .antMatchers(GET, "/users/*/legalFiles").permitAll()
+        .antMatchers(PUT, "/users/*/legalFiles/*").permitAll()
         .antMatchers(OPTIONS, "/**").permitAll()
         .requestMatchers(new SelfAccountMatcher(GET, "/accounts/*/customers")).authenticated()
         .requestMatchers(new SelfAccountMatcher(POST, "/accounts/*/customers")).authenticated()
@@ -100,11 +109,8 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
         .authenticated()
         .requestMatchers(new SelfAccountMatcher(POST,
             "/accounts/*/transactions/*/transactionCategories")).authenticated()
-        .antMatchers(GET, "/whoami").authenticated()
         .antMatchers(GET, "/preUsers").authenticated()
-        .antMatchers(GET, "/whoami").authenticated()
         .antMatchers(GET, "/users").authenticated()
-        .antMatchers(GET, "/users/*").authenticated()
         .requestMatchers(new SelfAccountMatcher(GET, "/accounts/*/files/*")).authenticated()
         .requestMatchers(new SelfAccountMatcher(POST, "/accounts/*/files/*/raw")).authenticated()
         .requestMatchers(new SelfAccountMatcher(GET, "/accounts/*/files/*/raw")).authenticated()
@@ -125,8 +131,6 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
             PUT, "/users/*/accounts/*/accountHolders/*/businessActivities").authenticated()
         .antMatchers(
             PUT, "/users/*/accounts/*/accountHolders/*/companyInfo").authenticated()
-        .requestMatchers(new SelfUserMatcher(GET, "/users/*/legalFiles")).authenticated()
-        .requestMatchers(new SelfUserMatcher(PUT, "/users/*/legalFiles/*")).authenticated()
         .antMatchers("/**").denyAll()
 
         // disable superfluous protections
@@ -140,11 +144,11 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
     // formatter:on
   }
 
-  private Exception forbiddenWithRemoteInfo(HttpServletRequest req) {
+  private Exception forbiddenWithRemoteInfo(Exception e, HttpServletRequest req) {
     log.info(String.format(
         "Access is denied for remote caller: address=%s, host=%s, port=%s",
         req.getRemoteAddr(), req.getRemoteHost(), req.getRemotePort()));
-    return new ForbiddenException("Access is denied");
+    return new ForbiddenException(e.getMessage());
   }
 
   private BearerAuthFilter bearerFilter(RequestMatcher requestMatcher) throws Exception {
@@ -160,7 +164,7 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
             // or other exceptions thrown inside authentication provider.
             // In fact, this handles other authentication exceptions that are
             // not handled by AccessDeniedException and AuthenticationEntryPoint
-            exceptionResolver.resolveException(req, res, null, forbiddenWithRemoteInfo(req)));
+            exceptionResolver.resolveException(req, res, null, forbiddenWithRemoteInfo(e, req)));
     return bearerFilter;
   }
 }

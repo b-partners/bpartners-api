@@ -1,20 +1,21 @@
 package app.bpartners.api.repository.mapper;
 
+import app.bpartners.api.endpoint.rest.security.model.Principal;
+import app.bpartners.api.endpoint.rest.security.principal.PrincipalProvider;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.repository.fintecture.model.Beneficiary;
 import app.bpartners.api.repository.fintecture.model.PaymentInitiation;
 import app.bpartners.api.repository.fintecture.model.PaymentRedirection;
 import app.bpartners.api.service.AccountHolderService;
-import app.bpartners.api.service.AccountService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
 @AllArgsConstructor
 public class FintectureMapper {
-  private final AccountService accountService;
   private final AccountHolderService accountHolderService;
+  private final PrincipalProvider auth;
 
   private Beneficiary toBeneficiary(Account account, AccountHolder accountHolder) {
     return Beneficiary.builder()
@@ -29,7 +30,7 @@ public class FintectureMapper {
 
   public PaymentInitiation toFintecturePaymentReq(
       app.bpartners.api.model.PaymentInitiation domain) {
-    Account authenticatedAccount = accountService.getAccounts().get(0);
+    Account authenticatedAccount = getAuthenticatedAccount();
     AccountHolder authenticatedAccountHolder = accountHolderService
         .getAccountHolderByAccountId(authenticatedAccount.getId());
 
@@ -59,4 +60,9 @@ public class FintectureMapper {
     return app.bpartners.api.model.PaymentRedirection.builder()
         .redirectUrl(fintecturePaymentUrl.getMeta().getUrl()).successUrl(successUrl).build();
   }
+
+  private Account getAuthenticatedAccount() {
+    return ((Principal) auth.getAuthentication().getPrincipal()).getAccount();
+  }
+
 }

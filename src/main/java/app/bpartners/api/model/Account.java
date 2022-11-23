@@ -20,4 +20,5 @@ public class Account {
   private String name;
   private String iban;
   private String bic;
+  private Fraction availableBalance;
 }

@@ -12,22 +12,16 @@ public class CreateCustomerValidator implements Consumer<CreateCustomer> {
   public void accept(CreateCustomer createCustomer) {
     StringBuilder exceptionMessageBuilder = new StringBuilder();
     if (createCustomer.getName() == null) {
-      exceptionMessageBuilder.append("name is mandatory. ");
+      exceptionMessageBuilder.append("Name is mandatory. ");
+    }
+    if (createCustomer.getEmail() == null) {
+      exceptionMessageBuilder.append("Email is mandatory. ");
     }
     if (createCustomer.getPhone() == null) {
-      exceptionMessageBuilder.append("phone is mandatory. ");
+      exceptionMessageBuilder.append("Phone is mandatory. ");
     }
     if (createCustomer.getAddress() == null) {
-      exceptionMessageBuilder.append("address is mandatory. ");
-    }
-    if (createCustomer.getZipCode() == null) {
-      exceptionMessageBuilder.append("zipcode is mandatory. ");
-    }
-    if (createCustomer.getCity() == null) {
-      exceptionMessageBuilder.append("city is mandatory. ");
-    }
-    if (createCustomer.getCountry() == null) {
-      exceptionMessageBuilder.append("country is mandatory. ");
+      exceptionMessageBuilder.append("Address is mandatory. ");
     }
     String exceptionMessage = exceptionMessageBuilder.toString();
     if (!exceptionMessage.isEmpty()) {

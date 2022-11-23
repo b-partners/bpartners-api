@@ -30,7 +30,7 @@ class CustomerValidatorTest {
   @Test
   void validator_validate_invalid_create_customer_ko() {
     assertThrowsBadRequestException(
-        "name is mandatory. "
+        "Name is mandatory. "
         ,
         () ->
             validator.accept(
@@ -46,12 +46,10 @@ class CustomerValidatorTest {
             )
     );
     assertThrowsBadRequestException(
-        "name is mandatory. "
-            + "phone is mandatory. "
-            + "address is mandatory. "
-            + "zipcode is mandatory. "
-            + "city is mandatory. "
-            + "country is mandatory. "
+        "Name is mandatory. "
+            + "Email is mandatory. "
+            + "Phone is mandatory. "
+            + "Address is mandatory. "
         ,
         () ->
             validator.accept(

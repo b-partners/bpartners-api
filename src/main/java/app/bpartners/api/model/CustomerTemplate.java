@@ -17,7 +17,7 @@ public class CustomerTemplate {
   protected String phone;
   protected String website;
   protected String address;
-  protected int zipCode;
+  protected Integer zipCode;
   protected String city;
   protected String country;
 }

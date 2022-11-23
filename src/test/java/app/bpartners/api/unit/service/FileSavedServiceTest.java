@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 
 import static app.bpartners.api.endpoint.rest.model.FileType.INVOICE;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
+import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ID;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
@@ -31,15 +32,17 @@ class FileSavedServiceTest {
     FileType fileType = INVOICE;
     String accountId = JOE_DOE_ACCOUNT_ID;
     byte[] fileAsBytes = new byte[0];
-    doNothing().when(fileService).uploadEvent(any(), any(), any(), any());
+    String userId = JOE_DOE_ID;
+    doNothing().when(fileService).uploadEvent(any(), any(), any(), any(), any());
 
     fileSavedService.accept(FileSaved.builder()
         .fileId(fileId)
         .fileType(fileType)
         .accountId(accountId)
         .fileAsBytes(fileAsBytes)
+        .userId(userId)
         .build());
 
-    verify(fileService, times(1)).upload(fileId, fileType, accountId, fileAsBytes);
+    verify(fileService, times(1)).upload(fileId, fileType, accountId, fileAsBytes, userId);
   }
 }

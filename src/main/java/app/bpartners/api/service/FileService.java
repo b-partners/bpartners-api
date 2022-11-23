@@ -8,6 +8,8 @@ import app.bpartners.api.model.FileInfo;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.mapper.FileMapper;
 import app.bpartners.api.repository.FileRepository;
+import app.bpartners.api.repository.jpa.UserJpaRepository;
+import app.bpartners.api.repository.jpa.model.HUser;
 import app.bpartners.api.service.aws.S3Service;
 import java.util.List;
 import java.util.Optional;
@@ -21,15 +23,21 @@ public class FileService {
   private final FileRepository repository;
   private final FileMapper mapper;
   private final EventProducer eventProducer;
+  private final UserJpaRepository userJpaRepository;
 
-  public void uploadEvent(FileType fileType, String accountId, String fileId, byte[] toUpload) {
+  public void uploadEvent(
+      FileType fileType, String accountId, String fileId, byte[] toUpload, String userId) {
     repository.save(mapper.toDomain(fileId, toUpload, null, accountId));
     eventProducer.accept(List.of(
-        toTypedEvent(fileType, accountId, fileId, toUpload)));
+        toTypedEvent(fileType, accountId, fileId, toUpload, userId)));
   }
 
-  public FileInfo upload(String fileId, FileType fileType, String accountId, byte[] fileAsBytes) {
+  public FileInfo upload(String fileId, FileType fileType, String accountId, byte[] fileAsBytes,
+                         String userId) {
     String sha256 = s3Service.uploadFile(fileType, accountId, fileId, fileAsBytes);
+    if (fileType.equals(FileType.LOGO)) {
+      saveUserFileId(fileId, userId);
+    }
     //TODO: add test for this
     Optional<FileInfo> optional = repository.getOptionalById(fileId);
     if (optional.isPresent()) {
@@ -58,14 +66,21 @@ public class FileService {
   }
 
   public TypedFileSaved toTypedEvent(
-      FileType fileType, String accountId, String fileId, byte[] toUpload) {
+      FileType fileType, String accountId, String fileId, byte[] toUpload, String userId) {
     return new TypedFileSaved(
         FileSaved.builder()
+            .userId(userId)
             .fileId(fileId)
             .accountId(accountId)
             .fileType(fileType)
             .fileAsBytes(toUpload)
             .build()
     );
+  }
+
+  private void saveUserFileId(String fileId, String userId) {
+    HUser entity = userJpaRepository.getById(userId);
+    entity.setLogoFileId(fileId);
+    userJpaRepository.save(entity);
   }
 }

@@ -2,24 +2,45 @@ package app.bpartners.api.endpoint.rest.controller;
 
 import app.bpartners.api.endpoint.rest.mapper.UserRestMapper;
 import app.bpartners.api.endpoint.rest.model.Whoami;
-import app.bpartners.api.endpoint.rest.security.model.Principal;
-import app.bpartners.api.repository.UserRepository;
+import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
+import app.bpartners.api.model.User;
+import app.bpartners.api.model.exception.ForbiddenException;
+import app.bpartners.api.service.UserService;
+import javax.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import static app.bpartners.api.endpoint.rest.security.SecurityConf.AUTHORIZATION_HEADER;
+import static app.bpartners.api.endpoint.rest.security.swan.SwanConf.BEARER_PREFIX;
 
 @RestController
 @AllArgsConstructor
 public class WhoamiController {
-  private final UserRepository userRepository;
   private final UserRestMapper userRestMapper;
+  private final SwanComponent swanComponent;
+  private final UserService userService;
 
   @GetMapping("/whoami")
-  public Whoami whoami(@AuthenticationPrincipal Principal principal) {
-    Whoami whoami = new Whoami();
-    whoami.setUser(
-        userRestMapper.toRest(userRepository.getUserById(principal.getUserId())));
-    return whoami;
+  public Whoami whoami(HttpServletRequest request) {
+    return new Whoami()
+        .user(userRestMapper.toRest(getAuthUser(request)));
+  }
+
+  //TODO: put into a customAuthProvider that does not needs legal file check
+  private User getAuthUser(HttpServletRequest request) {
+    String bearer = request.getHeader(AUTHORIZATION_HEADER);
+    //Check that the user is authenticated
+    if (bearer == null) {
+      throw new ForbiddenException();
+    } else {
+      bearer = bearer.substring(BEARER_PREFIX.length()).trim();
+      //Check that the user is authenticated
+      String swanUserId = swanComponent.getSwanUserIdByToken(bearer);
+      if (swanUserId == null) {
+        throw new ForbiddenException();
+      }
+      return userService.getUserByIdAndBearer(swanUserId, bearer);
+    }
   }
 }

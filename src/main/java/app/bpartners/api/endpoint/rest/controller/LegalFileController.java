@@ -49,6 +49,7 @@ public class LegalFileController {
     return mapper.toRest(service.approveLegalFile(userId, legalFileId));
   }
 
+  //TODO: put into a customAuthProvider that does not needs legal file check
   private void checkUserSelfMatcher(HttpServletRequest request, String userId) {
     String bearer = request.getHeader(AUTHORIZATION_HEADER);
     //Check that the user is authenticated

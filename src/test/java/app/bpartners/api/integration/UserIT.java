@@ -36,7 +36,6 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ID;
 import static app.bpartners.api.integration.conf.TestUtils.REDIRECT_FAILURE_URL;
 import static app.bpartners.api.integration.conf.TestUtils.REDIRECT_SUCCESS_URL;
-import static app.bpartners.api.integration.conf.TestUtils.assertThrowsApiException;
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsForbiddenException;
 import static app.bpartners.api.integration.conf.TestUtils.restJoeDoeUser;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountHolderSwanRep;
@@ -166,9 +165,7 @@ class UserIT {
     UserAccountsApi api = new UserAccountsApi(joeDoeClient);
 
     assertThrowsForbiddenException(() -> api.getUserById(TestUtils.USER1_ID));
-    assertThrowsApiException(
-        "{\"type\":\"404 NOT_FOUND\",\"message\":\"User.bad_user_id does not exist\"}",
-        () -> api.getUserById(TestUtils.BAD_USER_ID));
+    assertThrowsForbiddenException(() -> api.getUserById(TestUtils.BAD_USER_ID));
   }
 
   static class ContextInitializer extends AbstractContextInitializer {

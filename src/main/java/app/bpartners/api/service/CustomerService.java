@@ -4,6 +4,7 @@ import app.bpartners.api.model.CustomerTemplate;
 import app.bpartners.api.repository.CustomerRepository;
 import app.bpartners.api.service.aws.SesService;
 import java.util.List;
+import javax.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -20,12 +21,13 @@ public class CustomerService {
     return repository.findByAccountIdAndName(accountId, name);
   }
 
+  @Transactional
   public List<CustomerTemplate> createCustomers(
       String accountId,
       List<CustomerTemplate> customerTemplates) {
-    customerTemplates.stream()
-        .peek(customerTemplate -> mailService.verifyEmailIdentity(customerTemplate.getEmail()));
+    customerTemplates.forEach(
+        customerTemplate -> mailService.verifyEmailIdentity(customerTemplate.getEmail()));
     //TODO : update email on customer info update
-    return repository.save(accountId, customerTemplates);
+    return repository.saveAll(accountId, customerTemplates);
   }
 }

@@ -37,7 +37,7 @@ public class CustomerRepositoryImpl implements CustomerRepository {
   }
 
   @Override
-  public List<CustomerTemplate> save(String accountId, List<CustomerTemplate> toCreate) {
+  public List<CustomerTemplate> saveAll(String accountId, List<CustomerTemplate> toCreate) {
     List<HCustomerTemplate> entityToCreate = toCreate.stream()
         .map(mapper::toEntity)
         .collect(Collectors.toUnmodifiableList());

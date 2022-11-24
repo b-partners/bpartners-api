@@ -1,13 +1,9 @@
 package app.bpartners.api.service;
 
-import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.Product;
 import app.bpartners.api.model.exception.BadRequestException;
-import app.bpartners.api.model.exception.NotFoundException;
-import app.bpartners.api.repository.InvoiceRepository;
 import app.bpartners.api.repository.ProductRepository;
 import java.util.List;
-import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -15,7 +11,6 @@ import org.springframework.stereotype.Service;
 @AllArgsConstructor
 public class ProductService {
   private final ProductRepository repository;
-  private final InvoiceRepository invoiceRepository;
 
   public List<Product> getProductsByAccount(String accountId, String description, Boolean unique) {
     if (description != null) {
@@ -28,15 +23,6 @@ public class ProductService {
   }
 
   public List<Product> createProducts(String accountId, String invoiceId, List<Product> toCreate) {
-    Invoice associatedInvoice = invoiceRepository.getById(invoiceId);
-    if (associatedInvoice == null) {
-      throw new NotFoundException("Invoice." + invoiceId + " does not exist");
-    }
-    return repository.saveAll(accountId, toCreate.stream()
-        .map(product -> {
-          product.setInvoice(associatedInvoice);
-          return product;
-        })
-        .collect(Collectors.toUnmodifiableList()));
+    return repository.saveAll(accountId, toCreate);
   }
 }

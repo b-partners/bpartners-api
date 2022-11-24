@@ -45,7 +45,7 @@ public class LegalFileController {
       @PathVariable(name = "id") String userId,
       @PathVariable(name = "lId") String legalFileId) {
     checkUserSelfMatcher(request, userId);
-    validator.accept(legalFileId);
+    validator.accept(userId, legalFileId);
     return mapper.toRest(service.approveLegalFile(userId, legalFileId));
   }
 

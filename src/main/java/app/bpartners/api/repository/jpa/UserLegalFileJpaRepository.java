@@ -7,7 +7,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface UserLegalFileJpaRepository extends JpaRepository<HUserLegalFile, String> {
   List<HUserLegalFile> findAllByUser_Id(String userId);
 
-  HUserLegalFile findByLegalFile_Id(String legalFileId);
-
   HUserLegalFile findByLegalFile_IdAndUser_Id(String legalFileId, String userId);
 }

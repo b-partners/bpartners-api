@@ -5,7 +5,7 @@ import java.util.List;
 
 public interface LegalFileRepository {
 
-  LegalFile findById(String id);
+  LegalFile findByUserIdAndLegalFileId(String userId, String id);
 
   LegalFile save(String userId, String legalFileId);
 

@@ -24,13 +24,13 @@ public class LegalFileRepositoryImpl implements LegalFileRepository {
   private final UserLegalFileJpaRepository userLegalJpaRepository;
 
   @Override
-  public LegalFile findById(String id) {
+  public LegalFile findByUserIdAndLegalFileId(String userId, String id) {
     Optional<HLegalFile> optionalLegalFile = jpaRepository.findById(id);
     if (optionalLegalFile.isEmpty()) {
       throw new NotFoundException("LegalFile." + id + " is not found");
     }
     HLegalFile legalFile = optionalLegalFile.get();
-    HUserLegalFile userLegalFile = userLegalJpaRepository.findByLegalFile_Id(id);
+    HUserLegalFile userLegalFile = userLegalJpaRepository.findByLegalFile_IdAndUser_Id(id, userId);
     return mapper.toDomain(legalFile, userLegalFile);
   }
 

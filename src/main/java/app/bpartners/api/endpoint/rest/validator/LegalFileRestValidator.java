@@ -11,8 +11,8 @@ import org.springframework.stereotype.Component;
 public class LegalFileRestValidator {
   private final LegalFileRepository repository;
 
-  public void accept(String legalFileId) {
-    LegalFile legalFile = repository.findById(legalFileId);
+  public void accept(String userId, String legalFileId) {
+    LegalFile legalFile = repository.findByUserIdAndLegalFileId(userId, legalFileId);
     if (legalFile.isApproved()) {
       throw new BadRequestException("LegalFile." + legalFileId + " was already approved on "
           + legalFile.getApprovalDatetime());

@@ -37,6 +37,7 @@ public class ProductController {
         .collect(Collectors.toUnmodifiableList());
   }
 
+  //TODO: do not attach the products to an invoice
   @PostMapping("/accounts/{aId}/invoices/{iId}/products")
   public Invoice createProducts(
       @PathVariable(name = "aId") String accountId,
@@ -46,6 +47,6 @@ public class ProductController {
         .map(mapper::toDomain)
         .collect(Collectors.toUnmodifiableList());
     productService.createProducts(accountId, invoiceId, domainToCreate);
-    return invoiceMapper.toRest(invoiceService.getById(invoiceId));
+    return null; //to remove and return product instead
   }
 }

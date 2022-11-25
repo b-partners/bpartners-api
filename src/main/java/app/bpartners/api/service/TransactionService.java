@@ -20,10 +20,10 @@ public class TransactionService {
     return repository.findByAccountId(accountId);
   }
 
-  public TransactionsSummary getTransactionsSummary(Integer year) {
+  public TransactionsSummary getTransactionsSummary(String accountId, Integer year) {
     if (year == null) {
       year = LocalDate.now().getYear();
     }
-    return summaryRepository.getByYear(year);
+    return summaryRepository.getByAccountIdAndYear(accountId, year);
   }
 }

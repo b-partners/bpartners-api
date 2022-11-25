@@ -6,5 +6,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface TransactionsSummaryJpaRepository
     extends JpaRepository<HMonthlyTransactionsSummary, String> {
-  List<HMonthlyTransactionsSummary> getByYear(int year);
+  List<HMonthlyTransactionsSummary> getByIdAccountAndYear(String accountId, int year);
 }

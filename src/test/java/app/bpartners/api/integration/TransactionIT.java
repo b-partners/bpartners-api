@@ -30,6 +30,8 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import static app.bpartners.api.integration.conf.TestUtils.JANE_ACCOUNT_ID;
+import static app.bpartners.api.integration.conf.TestUtils.JANE_DOE_TOKEN;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.TestUtils.restTransaction1;
 import static app.bpartners.api.integration.conf.TestUtils.restTransaction2;
@@ -115,6 +117,10 @@ class TransactionIT {
         TransactionIT.ContextInitializer.SERVER_PORT);
   }
 
+  private static ApiClient anApiClient(String token) {
+    return TestUtils.anApiClient(token, ContextInitializer.SERVER_PORT);
+  }
+
   @Test
   void read_transactions_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
@@ -129,7 +135,7 @@ class TransactionIT {
   }
 
   @Test
-  void read_transactions_summary_ok() throws ApiException {
+  void john_read_transactions_summary_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
     PayingApi api = new PayingApi(joeDoeClient);
     int currentYear = LocalDate.now().getYear();
@@ -143,6 +149,20 @@ class TransactionIT {
     assertEquals(currentYear + 1, actualCustomYear.getYear());
     assertEquals(transactionsSummary1(),
         actualDefaultYear.summary(ignoreUpdatedAt(actualDefaultYear.getSummary())));
+  }
+
+  @Test
+  void jane_read_transactions_summary_ok() throws ApiException {
+    ApiClient janeDoeClient = anApiClient(JANE_DOE_TOKEN);
+    PayingApi api = new PayingApi(janeDoeClient);
+    int currentYear = LocalDate.now().getYear();
+
+    TransactionsSummary actualDefaultYear = api.getTransactionsSummary(JANE_ACCOUNT_ID, null);
+    TransactionsSummary actualCustomYear =
+        api.getTransactionsSummary(JANE_ACCOUNT_ID, currentYear + 1);
+
+    assertEquals(0, actualDefaultYear.getSummary().size());
+    assertEquals(0, actualCustomYear.getSummary().size());
   }
 
   List<MonthlyTransactionsSummary> ignoreUpdatedAt(List<MonthlyTransactionsSummary> actual) {

@@ -95,6 +95,9 @@ public class TestUtils {
 
   public static final String NOT_JOE_DOE_ACCOUNT_ID = "NOT_" + JOE_DOE_ACCOUNT_ID;
   public static final String VERIFIED_STATUS = "Verified";
+  public static final String JANE_ACCOUNT_ID = "jane_account_id";
+  public static final String JANE_DOE_TOKEN = "jane_doe_token";
+  public static final String JANE_DOE_ID = "jane_doe_id";
 
   public static User restJoeDoeUser() {
     return new User()
@@ -111,6 +114,19 @@ public class TestUtils {
     return SwanUser.builder()
         .id(JOE_DOE_SWAN_USER_ID)
         .firstName("Joe")
+        .lastName("Doe")
+        .birthDate(LocalDate.of(2022, 8, 9))
+        .idVerified(true)
+        .identificationStatus("ValidIdentity")
+        .nationalityCca3("FRA")
+        .mobilePhoneNumber("+261340465338")
+        .build();
+  }
+
+  public static SwanUser janeDoe() {
+    return SwanUser.builder()
+        .id("jane_doe_user_id")
+        .firstName("Jane")
         .lastName("Doe")
         .birthDate(LocalDate.of(2022, 8, 9))
         .idVerified(true)
@@ -137,6 +153,18 @@ public class TestUtils {
     return SwanAccount.builder()
         .id("beed1765-5c16-472a-b3f4-5c376ce5db58")
         .name("Numer Swan Account")
+        .bic("SWNBFR22")
+        .iban("FR7699999001001190346460988")
+        .balances(new SwanAccount.Balances(
+            new SwanAccount.Balances.Available(1000.0)
+        ))
+        .build();
+  }
+
+  public static SwanAccount janeSwanAccount() {
+    return SwanAccount.builder()
+        .id("jane_account_id")
+        .name("Jane Account")
         .bic("SWNBFR22")
         .iban("FR7699999001001190346460988")
         .balances(new SwanAccount.Balances(
@@ -484,6 +512,8 @@ public class TestUtils {
       when(swanComponent.getSwanUserByToken(BAD_TOKEN)).thenReturn(null);
       when(swanComponent.getSwanUserIdByToken(JOE_DOE_TOKEN)).thenReturn(joeDoe().getId());
       when(swanComponent.getSwanUserByToken(JOE_DOE_TOKEN)).thenReturn(joeDoe());
+      when(swanComponent.getSwanUserIdByToken(JANE_DOE_TOKEN)).thenReturn(janeDoe().getId());
+      when(swanComponent.getSwanUserByToken(JANE_DOE_TOKEN)).thenReturn(janeDoe());
       when(swanComponent.getTokenByCode(BAD_CODE, REDIRECT_SUCCESS_URL)).thenThrow(
           BadRequestException.class);
     } catch (URISyntaxException | IOException | InterruptedException e) {
@@ -498,10 +528,13 @@ public class TestUtils {
 
   public static void setUpAccountSwanRepository(AccountSwanRepository swanRepository) {
     when(swanRepository.findById(JOE_DOE_ACCOUNT_ID)).thenReturn(List.of(joeDoeSwanAccount()));
-    //TODO: fix this as it should be : only accountId instead of userId
     when(swanRepository.findById(JOE_DOE_ID)).thenReturn(List.of(joeDoeSwanAccount()));
     when(swanRepository.findByBearer(JOE_DOE_TOKEN)).thenReturn(List.of(joeDoeSwanAccount()));
     when(swanRepository.findByUserId(JOE_DOE_ID)).thenReturn(List.of(joeDoeSwanAccount()));
+
+    when(swanRepository.findById(JANE_ACCOUNT_ID)).thenReturn(List.of(janeSwanAccount()));
+    when(swanRepository.findByBearer(JANE_DOE_TOKEN)).thenReturn(List.of(janeSwanAccount()));
+    when(swanRepository.findByUserId(JANE_DOE_ID)).thenReturn(List.of(janeSwanAccount()));
   }
 
   public static void setUpTransactionRepository(TransactionSwanRepository repository) {
@@ -561,6 +594,8 @@ public class TestUtils {
 
   public static void setUpLegalFileRepository(LegalFileRepository legalFileRepositoryMock) {
     when(legalFileRepositoryMock.findTopByUserId(JOE_DOE_ID)).thenReturn(domainApprovedLegalFile());
+    when(legalFileRepositoryMock.findTopByUserId(JANE_DOE_ID))
+        .thenReturn(domainApprovedLegalFile());
   }
 
   public static void assertThrowsApiException(String expectedBody, Executable executable) {

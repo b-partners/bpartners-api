@@ -314,8 +314,7 @@ components:
         idVerified:
           type: boolean
         identificationStatus:
-          type: string
-          example: 'ValidIdentity'
+          $ref: '#/components/schemas/IdentificationStatus'
         nationalityCCA3:
           type: string
           example: 'FRA'
@@ -328,6 +327,14 @@ components:
           type: string
         status:
           $ref: '#/components/schemas/EnableStatus'
+    IdentificationStatus:
+      type: string
+      enum:
+        - VALID_IDENTITY
+        - PROCESSING
+        - INVALID_IDENTITY
+        - INSUFFICIENT_DOCUMENT_QUALITY
+        - UNINITIATED
     EnableStatus:
       type: string
       enum:

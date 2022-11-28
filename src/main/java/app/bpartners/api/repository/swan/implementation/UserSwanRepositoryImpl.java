@@ -1,6 +1,5 @@
 package app.bpartners.api.repository.swan.implementation;
 
-import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
 import app.bpartners.api.repository.swan.SwanApi;
 import app.bpartners.api.repository.swan.SwanCustomApi;
 import app.bpartners.api.repository.swan.UserSwanRepository;
@@ -12,11 +11,9 @@ import org.springframework.stereotype.Repository;
 @Repository
 @AllArgsConstructor
 public class UserSwanRepositoryImpl implements UserSwanRepository {
-  private final SwanConf swanConf;
-  private static final String QUERY = "{\"query\":\"query ProfilePage "
+  public static final String QUERY = "{\"query\":\"query ProfilePage "
       + "{user { id firstName lastName mobilePhoneNumber identificationStatus idVerified "
-      + "birthDate "
-      + "nationalityCCA3}}\"}";
+      + "birthDate nationalityCCA3 idVerified identificationStatus}}\"}";
 
   private final SwanApi<UserResponse> swanApi;
   private final SwanCustomApi<UserResponse> swanCustomApi;

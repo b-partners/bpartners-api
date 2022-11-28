@@ -22,6 +22,16 @@ public class SwanUser {
   private String nationalityCca3;
   private Boolean idVerified;
 
+  public SwanUser identificationStatus(String identificationStatus) {
+    this.identificationStatus = identificationStatus;
+    return this;
+  }
+
+  public SwanUser idVerified(Boolean idVerified) {
+    this.idVerified = idVerified;
+    return this;
+  }
+
   @JsonProperty("id")
   @JsonInclude(JsonInclude.Include.USE_DEFAULTS)
   public String getId() {
@@ -66,7 +76,7 @@ public class SwanUser {
 
   @JsonProperty("idVerified")
   @JsonInclude(JsonInclude.Include.USE_DEFAULTS)
-  public Boolean getIdVerified() {
+  public Boolean isIdVerified() {
     return idVerified;
   }
 }

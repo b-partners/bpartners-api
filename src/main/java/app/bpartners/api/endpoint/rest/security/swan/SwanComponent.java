@@ -23,6 +23,9 @@ import static app.bpartners.api.endpoint.rest.security.swan.SwanConf.BEARER_PREF
 @Component
 @AllArgsConstructor
 public class SwanComponent {
+  public static final String QUERY = "{\"query\":\"query ProfilePage "
+      + "{user { id firstName lastName mobilePhoneNumber identificationStatus idVerified "
+      + "birthDate nationalityCCA3 idVerified identificationStatus}}\"}";
   private final SwanMapper swanMapper;
   private final SwanConf swanConf;
 
@@ -65,15 +68,11 @@ public class SwanComponent {
   public SwanUser getSwanUserByToken(String accessToken)
       throws URISyntaxException, IOException, InterruptedException {
     HttpClient httpClient = HttpClient.newBuilder().build();
-    String message = "{\"query\":\"query ProfilePage "
-        + "{user { id firstName lastName mobilePhoneNumber identificationStatus idVerified "
-        + "birthDate "
-        + "nationalityCCA3}}\"}";
     HttpRequest request = HttpRequest.newBuilder()
         .uri(new URI(swanConf.getApiUrl()))
         .header("Content-Type", "application/json")
         .header("Authorization", BEARER_PREFIX + accessToken)
-        .POST(HttpRequest.BodyPublishers.ofString(message))
+        .POST(HttpRequest.BodyPublishers.ofString(QUERY))
         .build();
     HttpResponse<String> response =
         httpClient.send(request, HttpResponse.BodyHandlers.ofString());

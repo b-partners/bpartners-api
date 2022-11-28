@@ -47,9 +47,11 @@ import software.amazon.awssdk.services.eventbridge.model.PutEventsRequest;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsResponse;
 
 import static app.bpartners.api.endpoint.rest.model.EnableStatus.ENABLED;
+import static app.bpartners.api.endpoint.rest.model.IdentificationStatus.VALID_IDENTITY;
 import static app.bpartners.api.endpoint.rest.model.TransactionTypeEnum.INCOME;
 import static app.bpartners.api.endpoint.rest.model.TransactionTypeEnum.OUTCOME;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.CLIENT_EXCEPTION;
+import static app.bpartners.api.model.mapper.UserMapper.VALID_IDENTITY_STATUS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -107,6 +109,8 @@ public class TestUtils {
         .phone(joeDoe().getMobilePhoneNumber())
         .monthlySubscriptionAmount(5)
         .status(ENABLED)
+        .idVerified(true)
+        .identificationStatus(VALID_IDENTITY)
         .logoFileId("logo.jpeg");
   }
 
@@ -117,7 +121,7 @@ public class TestUtils {
         .lastName("Doe")
         .birthDate(LocalDate.of(2022, 8, 9))
         .idVerified(true)
-        .identificationStatus("ValidIdentity")
+        .identificationStatus(VALID_IDENTITY_STATUS)
         .nationalityCca3("FRA")
         .mobilePhoneNumber("+261340465338")
         .build();
@@ -130,7 +134,7 @@ public class TestUtils {
         .lastName("Doe")
         .birthDate(LocalDate.of(2022, 8, 9))
         .idVerified(true)
-        .identificationStatus("ValidIdentity")
+        .identificationStatus(VALID_IDENTITY_STATUS)
         .nationalityCca3("FRA")
         .mobilePhoneNumber("+261340465338")
         .build();
@@ -144,7 +148,7 @@ public class TestUtils {
         .identificationStatus(joeDoe().getIdentificationStatus())
         .birthDate(joeDoe().getBirthDate())
         .mobilePhoneNumber(joeDoe().getMobilePhoneNumber())
-        .idVerified(joeDoe().getIdVerified())
+        .idVerified(joeDoe().isIdVerified())
         .nationalityCca3(joeDoe().getNationalityCca3())
         .build();
   }

@@ -308,16 +308,10 @@ components:
         lastName:
           type: string
           example: 'Doe'
-        birthDate:
-          type: string
-          format: date
         idVerified:
           type: boolean
         identificationStatus:
           $ref: '#/components/schemas/IdentificationStatus'
-        nationalityCCA3:
-          type: string
-          example: 'FRA'
         phone:
           type: string
           example: "+33 1 23 45 67 89"

@@ -13,7 +13,7 @@ import org.springframework.stereotype.Repository;
 public class UserSwanRepositoryImpl implements UserSwanRepository {
   public static final String QUERY = "{\"query\":\"query ProfilePage "
       + "{user { id firstName lastName mobilePhoneNumber identificationStatus idVerified "
-      + "birthDate nationalityCCA3 idVerified identificationStatus}}\"}";
+      + "idVerified identificationStatus}}\"}";
 
   private final SwanApi<UserResponse> swanApi;
   private final SwanCustomApi<UserResponse> swanCustomApi;

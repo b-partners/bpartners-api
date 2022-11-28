@@ -6,9 +6,15 @@ import app.bpartners.api.repository.swan.model.AccountHolder;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.NoArgsConstructor;
 
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class AccountHolderResponse {
   private static final String JSON_PROPERTY_DATA = "data";
   private Data data;
@@ -19,6 +25,9 @@ public class AccountHolderResponse {
     return data;
   }
 
+  @NoArgsConstructor
+  @AllArgsConstructor
+  @Builder
   public static class Data {
     private static final String JSON_PROPERTY_ACCOUNT_HOLDERS = "accountHolders";
     private AccountHolders accountHolders;
@@ -30,6 +39,9 @@ public class AccountHolderResponse {
     }
   }
 
+  @NoArgsConstructor
+  @AllArgsConstructor
+  @Builder
   public static class AccountHolders {
     private static final String JSON_PROPERTY_EDGES = "edges";
     private List<Edge> edges;
@@ -47,6 +59,9 @@ public class AccountHolderResponse {
     }
   }
 
+  @NoArgsConstructor
+  @AllArgsConstructor
+  @Builder
   public static class Edge {
     private static final String JSON_PROPERTY_ACCOUNTHOLDER = "node";
     private AccountHolder node;

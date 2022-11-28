@@ -2,7 +2,6 @@ package app.bpartners.api.repository.swan.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.time.LocalDate;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
@@ -17,9 +16,7 @@ public class SwanUser {
   private String firstName;
   private String lastName;
   private String mobilePhoneNumber;
-  private LocalDate birthDate;
   private String identificationStatus;
-  private String nationalityCca3;
   private Boolean idVerified;
 
   public SwanUser identificationStatus(String identificationStatus) {
@@ -56,22 +53,10 @@ public class SwanUser {
     return mobilePhoneNumber;
   }
 
-  @JsonProperty("birthDate")
-  @JsonInclude(JsonInclude.Include.USE_DEFAULTS)
-  public LocalDate getBirthDate() {
-    return birthDate;
-  }
-
   @JsonProperty("identificationStatus")
   @JsonInclude(JsonInclude.Include.USE_DEFAULTS)
   public String getIdentificationStatus() {
     return identificationStatus;
-  }
-
-  @JsonProperty("nationalityCCA3")
-  @JsonInclude(JsonInclude.Include.USE_DEFAULTS)
-  public String getNationalityCca3() {
-    return nationalityCca3;
   }
 
   @JsonProperty("idVerified")

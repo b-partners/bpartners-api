@@ -36,10 +36,10 @@ public class InvoiceRestMapper {
         .customer(customerMapper.toRest(domain.getInvoiceCustomer()))
         .status(domain.getStatus())
         .products(products)
-        .totalVat(domain.getTotalVat().getApproximatedValue())
+        .totalVat(domain.getTotalVat().getCentsRoundUp())
         .paymentUrl(domain.getPaymentUrl())
-        .totalPriceWithoutVat(domain.getTotalPriceWithoutVat().getApproximatedValue())
-        .totalPriceWithVat(domain.getTotalPriceWithVat().getApproximatedValue())
+        .totalPriceWithoutVat(domain.getTotalPriceWithoutVat().getCentsRoundUp())
+        .totalPriceWithVat(domain.getTotalPriceWithVat().getCentsRoundUp())
         .sendingDate(domain.getSendingDate())
         .toPayAt(domain.getToPayAt());
   }
@@ -48,7 +48,7 @@ public class InvoiceRestMapper {
       String accountId, String id, CrupdateInvoice rest) {
     crupdateInvoiceValidator.accept(rest);
 
-    List<app.bpartners.api.model.Product> domain =
+    List<app.bpartners.api.model.Product> products =
         rest.getProducts() == null ? List.of() : rest.getProducts().stream()
             .map(productRestMapper::toDomain)
             .collect(Collectors.toUnmodifiableList());
@@ -62,7 +62,7 @@ public class InvoiceRestMapper {
         .toPayAt(rest.getToPayAt())
         .invoiceCustomer(customerMapper.toDomain(accountId, id, rest.getCustomer()))
         .account(accountService.getAccountById(accountId))
-        .products(domain)
+        .products(products)
         .build();
   }
 }

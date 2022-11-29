@@ -17,8 +17,8 @@ class ProductValidatorTest {
             new Product()
                 .description("Product description")
                 .quantity(50)
-                .unitPrice(10.0)
-                .vatPercent(20.0)
+                .unitPrice(10)
+                .vatPercent(20)
         ));
   }
 

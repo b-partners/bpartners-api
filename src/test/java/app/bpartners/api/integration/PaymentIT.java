@@ -82,7 +82,7 @@ class PaymentIT {
   PaymentInitiation paymentReq1() {
     return new PaymentInitiation()
         .id("uuid")
-        .amount(100.0)
+        .amount(100)
         .label("Payment label")
         .reference("Payment reference")
         .payerName("Payer")

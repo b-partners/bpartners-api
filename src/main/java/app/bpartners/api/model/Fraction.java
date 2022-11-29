@@ -56,24 +56,23 @@ public class Fraction implements Serializable {
     return (numerator.doubleValue()) / (denominator.doubleValue());
   }
 
-  public String getCentsOfApproximatedValue() {
-    BigDecimal bigDecimal = BigDecimal
-        .valueOf(numerator.doubleValue() / denominator.doubleValue())
-        .setScale(2, RoundingMode.HALF_UP);
-    return String.valueOf(bigDecimal);
+  public String getCentsUpAsString() {
+    return String.valueOf(getCentsRoundUp()).replace(".", ",");
   }
 
-  public String getCentsHalfUp() {
-    BigDecimal bigDecimal = BigDecimal
+  public Integer getCentsRoundUp() {
+    return (int) (getCentsAsDecimal() * 100);
+  }
+
+  public Double getCentsAsDecimal() {
+    return getRoundedBigDecimal(RoundingMode.HALF_UP).doubleValue();
+  }
+
+  private BigDecimal getRoundedBigDecimal(RoundingMode roundingMode) {
+    return BigDecimal
         .valueOf(numerator.doubleValue() / denominator.doubleValue() / 100)
-        .setScale(2, RoundingMode.HALF_UP);
-    return String.valueOf(bigDecimal).replace(".", ",");
+        .setScale(2, roundingMode);
   }
-
-  public int getCents() {
-    return (int) (Math.round(getApproximatedValue()) * 100);
-  }
-
 
   @Override
   public String toString() {

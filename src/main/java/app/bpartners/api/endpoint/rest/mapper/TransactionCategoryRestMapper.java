@@ -19,7 +19,7 @@ public class TransactionCategoryRestMapper {
   public TransactionCategory toRest(app.bpartners.api.model.TransactionCategory domain) {
     return new TransactionCategory()
         .id(domain.getId())
-        .vat(domain.getVat().getApproximatedValue())
+        .vat(domain.getVat().getCentsRoundUp())
         .type(domain.getType())
         .transactionType(domain.getTransactionType())
         .userDefined(domain.isUserDefined())

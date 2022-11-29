@@ -17,7 +17,7 @@ class CreateTransactionCategoryValidatorTest {
             validator.accept(
                 new CreateTransactionCategory()
                     .type("type")
-                    .vat(1.0)
+                    .vat(1)
             )
     );
   }

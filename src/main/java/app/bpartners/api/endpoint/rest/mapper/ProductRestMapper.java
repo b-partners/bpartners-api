@@ -19,10 +19,10 @@ public class ProductRestMapper {
         .id(domain.getId())
         .description(domain.getDescription())
         .quantity(domain.getQuantity())
-        .unitPrice(domain.getUnitPrice().getApproximatedValue())
-        .vatPercent(domain.getVatPercent().getApproximatedValue())
-        .totalVat(domain.getTotalVat().getApproximatedValue())
-        .totalPriceWithVat(domain.getTotalPriceWithVat().getApproximatedValue());
+        .unitPrice(domain.getUnitPrice().getCentsRoundUp())
+        .vatPercent(domain.getVatPercent().getCentsRoundUp())
+        .totalVat(domain.getTotalVat().getCentsRoundUp())
+        .totalPriceWithVat(domain.getTotalPriceWithVat().getCentsRoundUp());
   }
 
   public app.bpartners.api.model.Product toDomain(CreateProduct createProduct) {

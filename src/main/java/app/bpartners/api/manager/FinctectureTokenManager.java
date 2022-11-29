@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 import static app.bpartners.api.repository.fintecture.FintectureConf.PIS_SCOPE;
 
 @Component
@@ -45,8 +46,11 @@ public class FinctectureTokenManager {
       return new ObjectMapper()
           .findAndRegisterModules()
           .readValue(response.body(), TokenResponse.class);
-    } catch (IOException | InterruptedException | URISyntaxException e) {
+    } catch (IOException | URISyntaxException e) {
       throw new ApiException(ApiException.ExceptionType.SERVER_EXCEPTION, e);
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new ApiException(SERVER_EXCEPTION, e);
     }
   }
 

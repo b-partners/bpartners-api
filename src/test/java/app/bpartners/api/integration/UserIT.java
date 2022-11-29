@@ -260,7 +260,10 @@ class UserIT {
     try {
       when(swanComponentMock.getSwanUserByToken(JOE_DOE_TOKEN)).thenReturn(
           joeDoeInvalidIdentity(swanIdentificationStatus));
-    } catch (URISyntaxException | IOException | InterruptedException e) {
+    } catch (URISyntaxException | IOException e) {
+      throw new RuntimeException(e);
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
       throw new RuntimeException(e);
     }
   }

@@ -20,6 +20,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import static app.bpartners.api.endpoint.rest.security.swan.SwanConf.BEARER_PREFIX;
+import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 
 @Repository
 @AllArgsConstructor
@@ -60,8 +61,11 @@ public class TransactionSwanRepositoryImpl implements TransactionSwanRepository 
       return Transaction.builder()
           .node(transactionResponse.getData().getTransaction())
           .build();
-    } catch (IOException | InterruptedException | URISyntaxException e) {
+    } catch (IOException | URISyntaxException e) {
       throw new ApiException(ApiException.ExceptionType.SERVER_EXCEPTION, e);
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new ApiException(SERVER_EXCEPTION, e);
     }
   }
 }

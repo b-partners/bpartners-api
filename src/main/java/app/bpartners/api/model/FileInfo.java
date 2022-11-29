@@ -20,6 +20,6 @@ public class FileInfo {
   private String id;
   private Instant uploadedAt;
   private String uploadedBy;
-  private int sizeInKB;
+  private int sizeInKb;
   private String sha256;
 }

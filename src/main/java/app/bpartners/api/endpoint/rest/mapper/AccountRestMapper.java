@@ -12,7 +12,7 @@ public class AccountRestMapper {
         .name(internal.getName())
         .iban(internal.getIban())
         .bic(internal.getBic())
-        .availableBalance(internal.getAvailableBalance().getCents())
+        .availableBalance(internal.getAvailableBalance().getCentsRoundUp())
         //Deprecated
         .IBAN(internal.getIban())
         .BIC(internal.getBic());

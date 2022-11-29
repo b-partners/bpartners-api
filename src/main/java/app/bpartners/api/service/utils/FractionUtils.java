@@ -34,6 +34,11 @@ public class FractionUtils {
         aprational.denominator().toBigInteger());
   }
 
+  public static Fraction parseFraction(Integer number) {
+    Aprational aprational = new Aprational(number);
+    return parseFraction(aprational);
+  }
+
   public static Fraction parseFraction(Double number) {
     Aprational aprational = new Aprational(number);
     return parseFraction(aprational);

@@ -229,10 +229,10 @@ public class TestUtils {
         .id("product1_id")
         .description("Tableau malgache")
         .quantity(1)
-        .unitPrice(1000.0)
-        .vatPercent(2000.0)
-        .totalVat(200.0)
-        .totalPriceWithVat(1200.0);
+        .unitPrice(1000)
+        .vatPercent(2000)
+        .totalVat(200)
+        .totalPriceWithVat(1200);
   }
 
   public static Product product2() {
@@ -240,10 +240,10 @@ public class TestUtils {
         .id("product2_id")
         .description("Tableau baobab")
         .quantity(2)
-        .unitPrice(2000.0)
-        .vatPercent(1000.0)
-        .totalVat(400.0)
-        .totalPriceWithVat(4400.0);
+        .unitPrice(2000)
+        .vatPercent(1000)
+        .totalVat(400)
+        .totalPriceWithVat(4400);
   }
 
   public static Product product3() {
@@ -251,10 +251,10 @@ public class TestUtils {
         .id("product3_id")
         .description("Tableau baobab")
         .quantity(3)
-        .unitPrice(2000.0)
-        .vatPercent(1000.0)
-        .totalVat(600.0)
-        .totalPriceWithVat(6600.0);
+        .unitPrice(2000)
+        .vatPercent(1000)
+        .totalVat(600)
+        .totalPriceWithVat(6600);
   }
 
   public static Product product4() {
@@ -262,10 +262,10 @@ public class TestUtils {
         .id("product4_id")
         .description("Tableau malgache")
         .quantity(1)
-        .unitPrice(2000.0)
-        .vatPercent(1000.0)
-        .totalVat(200.0)
-        .totalPriceWithVat(2200.0);
+        .unitPrice(2000)
+        .vatPercent(1000)
+        .totalVat(200)
+        .totalPriceWithVat(2200);
   }
 
   public static Product product5() {
@@ -273,26 +273,26 @@ public class TestUtils {
         .id("product5_id")
         .description("Mon tableau")
         .quantity(1)
-        .unitPrice(1000.0)
-        .vatPercent(1000.0)
-        .totalVat(100.0)
-        .totalPriceWithVat(1100.0);
+        .unitPrice(1000)
+        .vatPercent(1000)
+        .totalVat(100)
+        .totalPriceWithVat(1100);
   }
 
   public static CreateProduct createProduct4() {
     return new CreateProduct()
         .description("Tableau malgache")
         .quantity(1)
-        .unitPrice(2000.0)
-        .vatPercent(1000.0);
+        .unitPrice(2000)
+        .vatPercent(1000);
   }
 
   public static CreateProduct createProduct5() {
     return new CreateProduct()
         .description("Mon tableau")
         .quantity(1)
-        .unitPrice(1000.0)
-        .vatPercent(1000.0);
+        .unitPrice(1000)
+        .vatPercent(1000);
   }
 
   public static TransactionCategory transactionCategory1() {
@@ -301,7 +301,7 @@ public class TestUtils {
         .type("Recette TVA 20%")
         .userDefined(false)
         .transactionType(INCOME)
-        .vat(2000.0)
+        .vat(2000)
         .count(1L);
   }
 
@@ -404,9 +404,9 @@ public class TestUtils {
         .toPayAt(LocalDate.of(2022, 10, 1))
         .status(InvoiceStatus.CONFIRMED)
         .products(List.of(product3(), product4()))
-        .totalPriceWithVat(8800.0)
-        .totalVat(800.0)
-        .totalPriceWithoutVat(8000.0)
+        .totalPriceWithVat(8800)
+        .totalVat(800)
+        .totalPriceWithoutVat(8000)
         .comment("Tableau de Madagascar")
         .paymentUrl("https://connect-v2-sbx.fintecture.com")
         ;
@@ -423,9 +423,9 @@ public class TestUtils {
         .toPayAt(LocalDate.of(2022, 10, 10))
         .status(InvoiceStatus.CONFIRMED)
         .products(List.of(product5()))
-        .totalPriceWithVat(1100.0)
-        .totalVat(100.0)
-        .totalPriceWithoutVat(1000.0)
+        .totalPriceWithVat(1100)
+        .totalVat(100)
+        .totalPriceWithoutVat(1000)
         .paymentUrl("https://connect-v2-sbx.fintecture.com");
   }
 

@@ -88,7 +88,7 @@ class TransactionCategoryIT {
   CreateTransactionCategory createTransactionCategory() {
     return new CreateTransactionCategory()
         .type("Recette TVA 1,5%")
-        .vat(150.0);
+        .vat(150);
   }
 
   @Test

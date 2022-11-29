@@ -18,7 +18,7 @@ public class TransactionMapper {
     String status = external.getNode().getStatusInfo().getStatus();
     return Transaction.builder()
         .id(external.getNode().getId())
-        .amount(parseFraction(external.getNode().getAmount().getValue()))
+        .amount(parseFraction(external.getNode().getAmount().getValue() * 100))
         .currency(external.getNode().getAmount().getCurrency())
         .label(external.getNode().getLabel())
         .reference(external.getNode().getReference())

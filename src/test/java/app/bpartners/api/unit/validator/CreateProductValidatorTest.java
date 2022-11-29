@@ -14,9 +14,9 @@ class CreateProductValidatorTest {
   CreateProduct validProduct() {
     return new CreateProduct()
         .description("Valid product")
-        .unitPrice(25000.0)
+        .unitPrice(25000)
         .quantity(10)
-        .vatPercent(75.0);
+        .vatPercent(75);
   }
 
   CreateProduct invalidProduct() {

@@ -92,8 +92,8 @@ class ProductIT {
     return new CreateProduct()
         .description("Nouveau produit")
         .quantity(1)
-        .unitPrice(9000.0)
-        .vatPercent(1000.0);
+        .unitPrice(9000)
+        .vatPercent(1000);
   }
 
   @Test

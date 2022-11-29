@@ -32,7 +32,7 @@ public class AccountRepositoryImpl implements AccountRepository {
 
   @Override
   public List<Account> findByUserId(String userId) {
-    return swanRepository.findById(userId).stream()
+    return swanRepository.findByUserId(userId).stream()
         .map(mapper::toDomain)
         .collect(Collectors.toUnmodifiableList());
   }

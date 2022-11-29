@@ -17,8 +17,4 @@ public class UserService {
   public User getUserByToken(String token) {
     return userRepository.getUserByToken(token);
   }
-
-  public User getUserById(String id) {
-    return userRepository.getUserById(id);
-  }
 }

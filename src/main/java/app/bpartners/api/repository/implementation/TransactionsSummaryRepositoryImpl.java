@@ -15,7 +15,7 @@ public class TransactionsSummaryRepositoryImpl implements TransactionsSummaryRep
   private final TransactionsSummaryMapper mapper;
 
   @Override
-  public TransactionsSummary getByYear(int year) {
-    return mapper.toDomain(year, jpaRepository.getByYear(year));
+  public TransactionsSummary getByAccountIdAndYear(String accountId, int year) {
+    return mapper.toDomain(year, jpaRepository.getByIdAccountAndYear(accountId, year));
   }
 }

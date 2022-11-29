@@ -6,6 +6,7 @@ import app.bpartners.api.endpoint.rest.api.SecurityApi;
 import app.bpartners.api.endpoint.rest.api.UserAccountsApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
+import app.bpartners.api.endpoint.rest.model.IdentificationStatus;
 import app.bpartners.api.endpoint.rest.model.User;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
 import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
@@ -19,8 +20,10 @@ import app.bpartners.api.repository.swan.AccountHolderSwanRepository;
 import app.bpartners.api.repository.swan.AccountSwanRepository;
 import app.bpartners.api.repository.swan.OnboardingSwanRepository;
 import app.bpartners.api.repository.swan.UserSwanRepository;
+import app.bpartners.api.repository.swan.model.SwanUser;
 import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -33,10 +36,17 @@ import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import static app.bpartners.api.endpoint.rest.model.IdentificationStatus.INSUFFICIENT_DOCUMENT_QUALITY;
+import static app.bpartners.api.endpoint.rest.model.IdentificationStatus.INVALID_IDENTITY;
+import static app.bpartners.api.endpoint.rest.model.IdentificationStatus.PROCESSING;
+import static app.bpartners.api.endpoint.rest.model.IdentificationStatus.UNINITIATED;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ID;
+import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_TOKEN;
 import static app.bpartners.api.integration.conf.TestUtils.REDIRECT_FAILURE_URL;
 import static app.bpartners.api.integration.conf.TestUtils.REDIRECT_SUCCESS_URL;
+import static app.bpartners.api.integration.conf.TestUtils.assertThrowsApiException;
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsForbiddenException;
+import static app.bpartners.api.integration.conf.TestUtils.joeDoe;
 import static app.bpartners.api.integration.conf.TestUtils.restJoeDoeUser;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountHolderSwanRep;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountSwanRepository;
@@ -44,7 +54,13 @@ import static app.bpartners.api.integration.conf.TestUtils.setUpLegalFileReposit
 import static app.bpartners.api.integration.conf.TestUtils.setUpOnboardingSwanRepositoryMock;
 import static app.bpartners.api.integration.conf.TestUtils.setUpSwanComponent;
 import static app.bpartners.api.integration.conf.TestUtils.setUpUserSwanRepository;
+import static app.bpartners.api.model.mapper.UserMapper.INSUFFICIENT_DOCUMENT_QUALITY_STATUS;
+import static app.bpartners.api.model.mapper.UserMapper.INVALID_IDENTITY_STATUS;
+import static app.bpartners.api.model.mapper.UserMapper.PROCESSING_STATUS;
+import static app.bpartners.api.model.mapper.UserMapper.UNINITIATED_STATUS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
@@ -52,6 +68,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @ContextConfiguration(initializers = UserIT.ContextInitializer.class)
 @AutoConfigureMockMvc
 class UserIT {
+  public static final String UNKNOWN_IDENTIFICATION_STATUS = "Unknown";
   @MockBean
   private SentryConf sentryConf;
   @MockBean
@@ -88,7 +105,7 @@ class UserIT {
   }
 
   private static ApiClient anApiClient() {
-    return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN, ContextInitializer.SERVER_PORT);
+    return TestUtils.anApiClient(JOE_DOE_TOKEN, ContextInitializer.SERVER_PORT);
   }
 
 
@@ -166,6 +183,95 @@ class UserIT {
 
     assertThrowsForbiddenException(() -> api.getUserById(TestUtils.USER1_ID));
     assertThrowsForbiddenException(() -> api.getUserById(TestUtils.BAD_USER_ID));
+  }
+
+  @Test
+  void user_has_invalid_identity_identificaiton_status() throws ApiException {
+    setUpInvalidSwanUserMock(INVALID_IDENTITY_STATUS);
+    ApiClient joeDoeClient = anApiClient();
+    UserAccountsApi api = new UserAccountsApi(joeDoeClient);
+
+    User actualUser = api.getUserById(JOE_DOE_ID);
+
+    assertEquals(restJoeDoeInvalidIdentity(INVALID_IDENTITY), actualUser);
+  }
+
+  @Test
+  void user_has_processing_identification_status() throws ApiException {
+    setUpInvalidSwanUserMock(PROCESSING_STATUS);
+    ApiClient joeDoeClient = anApiClient();
+    UserAccountsApi api = new UserAccountsApi(joeDoeClient);
+
+    User actualUser = api.getUserById(JOE_DOE_ID);
+
+    assertEquals(restJoeDoeInvalidIdentity(PROCESSING), actualUser);
+  }
+
+  @Test
+  void user_has_uninitiated_identification_status() throws ApiException {
+    setUpInvalidSwanUserMock(UNINITIATED_STATUS);
+    ApiClient joeDoeClient = anApiClient();
+    UserAccountsApi api = new UserAccountsApi(joeDoeClient);
+
+    User actualUser = api.getUserById(JOE_DOE_ID);
+
+    assertEquals(restJoeDoeInvalidIdentity(UNINITIATED), actualUser);
+  }
+
+
+  @Test
+  void user_has_insufficient_document_quality_identification_status() throws ApiException {
+    setUpInvalidSwanUserMock(INSUFFICIENT_DOCUMENT_QUALITY_STATUS);
+    ApiClient joeDoeClient = anApiClient();
+    UserAccountsApi api = new UserAccountsApi(joeDoeClient);
+
+    User actualUser = api.getUserById(JOE_DOE_ID);
+
+    assertEquals(restJoeDoeInvalidIdentity(INSUFFICIENT_DOCUMENT_QUALITY), actualUser);
+  }
+
+  @Test
+  void user_has_unknown_identification_status() {
+    setUpInvalidSwanUserMock(UNKNOWN_IDENTIFICATION_STATUS);
+    ApiClient joeDoeClient = anApiClient();
+    UserAccountsApi api = new UserAccountsApi(joeDoeClient);
+
+    assertThrowsApiException(
+        "{\"type\":\"500 INTERNAL_SERVER_ERROR\",\"message\":\""
+            + "Unknown identification status : Unknown\"}",
+        () -> api.getUserById(JOE_DOE_ID));
+  }
+
+  private static User restJoeDoeInvalidIdentity(IdentificationStatus identificationStatus) {
+    return restJoeDoeUser()
+        .idVerified(false)
+        .identificationStatus(identificationStatus);
+  }
+
+  private void setUpInvalidSwanUserMock(String swanIdentificationStatus) {
+    reset(swanComponentMock);
+    reset(userSwanRepositoryMock);
+    when(userSwanRepositoryMock.whoami()).thenReturn(
+        joeDoeInvalidIdentity(swanIdentificationStatus));
+    when(userSwanRepositoryMock.getByToken(JOE_DOE_TOKEN)).thenReturn(
+        joeDoeInvalidIdentity(swanIdentificationStatus));
+    when(swanComponentMock.getSwanUserIdByToken(JOE_DOE_TOKEN)).thenReturn(
+        joeDoeInvalidIdentity(swanIdentificationStatus).getId());
+    try {
+      when(swanComponentMock.getSwanUserByToken(JOE_DOE_TOKEN)).thenReturn(
+          joeDoeInvalidIdentity(swanIdentificationStatus));
+    } catch (URISyntaxException | IOException e) {
+      throw new RuntimeException(e);
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new RuntimeException(e);
+    }
+  }
+
+  private static SwanUser joeDoeInvalidIdentity(String swanIdentificationStatus) {
+    return joeDoe()
+        .idVerified(false)
+        .identificationStatus(swanIdentificationStatus);
   }
 
   static class ContextInitializer extends AbstractContextInitializer {

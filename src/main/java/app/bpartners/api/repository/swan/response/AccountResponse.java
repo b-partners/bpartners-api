@@ -7,13 +7,22 @@ import app.bpartners.api.repository.swan.model.SwanAccount;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.NoArgsConstructor;
 
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class AccountResponse {
   private Data data;
   private static final String JSON_PROPERTY_DATA = "data";
 
+  @NoArgsConstructor
+  @AllArgsConstructor
+  @Builder
   public static class Data {
     private Accounts accounts;
     private static final String JSON_PROPERTY_ACCOUNTS = "accounts";
@@ -25,6 +34,9 @@ public class AccountResponse {
     }
   }
 
+  @NoArgsConstructor
+  @AllArgsConstructor
+  @Builder
   public static class Accounts {
     private List<Edge> edges;
     private static final String JSON_PROPERTY_EDGES = "edges";
@@ -42,6 +54,9 @@ public class AccountResponse {
     }
   }
 
+  @NoArgsConstructor
+  @AllArgsConstructor
+  @Builder
   public static class Edge {
     private SwanAccount node;
     private static final String JSON_PROPERTY_SWAN_ACCOUNT = "node";

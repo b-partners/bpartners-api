@@ -109,7 +109,6 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
         .authenticated()
         .requestMatchers(new SelfAccountMatcher(POST,
             "/accounts/*/transactions/*/transactionCategories")).authenticated()
-        .antMatchers(GET, "/preUsers").authenticated()
         .antMatchers(GET, "/users").authenticated()
         .requestMatchers(new SelfAccountMatcher(GET, "/accounts/*/files/*")).authenticated()
         .requestMatchers(new SelfAccountMatcher(POST, "/accounts/*/files/*/raw")).authenticated()

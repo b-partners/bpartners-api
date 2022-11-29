@@ -4,7 +4,13 @@ import app.bpartners.api.repository.swan.model.Transaction;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.NoArgsConstructor;
 
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class TransactionResponse {
   private static final String JSON_PROPERTY_DATA = "data";
   private Data data;
@@ -15,6 +21,9 @@ public class TransactionResponse {
     return data;
   }
 
+  @NoArgsConstructor
+  @AllArgsConstructor
+  @Builder
   public static class Data {
     private static final String JSON_PROPERTY_ACCOUNTS = "accounts";
     private Accounts accounts;
@@ -26,6 +35,9 @@ public class TransactionResponse {
     }
   }
 
+  @NoArgsConstructor
+  @AllArgsConstructor
+  @Builder
   public static class Accounts {
     private static final String JSON_PROPERTY_EDGES = "edges";
     private List<Edge> edges;
@@ -37,6 +49,9 @@ public class TransactionResponse {
     }
   }
 
+  @NoArgsConstructor
+  @AllArgsConstructor
+  @Builder
   public static class Edge {
     private static final String JSON_PROPERTY_NODE = "node";
     private Node node;
@@ -48,6 +63,9 @@ public class TransactionResponse {
     }
   }
 
+  @NoArgsConstructor
+  @AllArgsConstructor
+  @Builder
   public static class Node {
     private static final String JSON_PROPERTY_TRANSACTION = "transactions";
     private Transactions transactions;
@@ -59,6 +77,9 @@ public class TransactionResponse {
     }
   }
 
+  @NoArgsConstructor
+  @AllArgsConstructor
+  @Builder
   public static class Transactions {
     private static final String JSON_PROPERTY_SWAN_TRANSACTION = "edges";
     private List<Transaction> edges;

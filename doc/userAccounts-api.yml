@@ -308,17 +308,10 @@ components:
         lastName:
           type: string
           example: 'Doe'
-        birthDate:
-          type: string
-          format: date
         idVerified:
           type: boolean
         identificationStatus:
-          type: string
-          example: 'ValidIdentity'
-        nationalityCCA3:
-          type: string
-          example: 'FRA'
+          $ref: '#/components/schemas/IdentificationStatus'
         phone:
           type: string
           example: "+33 1 23 45 67 89"
@@ -328,6 +321,14 @@ components:
           type: string
         status:
           $ref: '#/components/schemas/EnableStatus'
+    IdentificationStatus:
+      type: string
+      enum:
+        - VALID_IDENTITY
+        - PROCESSING
+        - INVALID_IDENTITY
+        - INSUFFICIENT_DOCUMENT_QUALITY
+        - UNINITIATED
     EnableStatus:
       type: string
       enum:

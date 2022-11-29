@@ -44,7 +44,7 @@ public class FileService {
       FileInfo persisted = optional.get();
       return repository.save(FileInfo.builder()
           .id(persisted.getId())
-          .sizeInKB(persisted.getSizeInKB())
+          .sizeInKb(persisted.getSizeInKb())
           .uploadedAt(persisted.getUploadedAt())
           .uploadedBy(persisted.getUploadedBy())
           .sha256(sha256)

@@ -31,6 +31,6 @@ public class TransactionController {
   public TransactionsSummary getTransactionsSummary(
       @PathVariable(name = "aId") String accountId,
       @RequestParam(required = false) Integer year) {
-    return summaryRestMapper.toRest(service.getTransactionsSummary(year));
+    return summaryRestMapper.toRest(service.getTransactionsSummary(accountId, year));
   }
 }

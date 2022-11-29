@@ -1,6 +1,7 @@
 package app.bpartners.api.endpoint.rest.security.swan;
 
 import app.bpartners.api.endpoint.rest.model.Token;
+import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.repository.mapper.SwanMapper;
 import app.bpartners.api.repository.swan.model.SwanUser;
@@ -19,10 +20,14 @@ import org.springframework.stereotype.Component;
 import software.amazon.awssdk.http.Header;
 
 import static app.bpartners.api.endpoint.rest.security.swan.SwanConf.BEARER_PREFIX;
+import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 
 @Component
 @AllArgsConstructor
 public class SwanComponent {
+  public static final String QUERY = "{\"query\":\"query ProfilePage "
+      + "{user { id firstName lastName mobilePhoneNumber identificationStatus idVerified "
+      + "idVerified identificationStatus}}\"}";
   private final SwanMapper swanMapper;
   private final SwanConf swanConf;
 
@@ -31,7 +36,10 @@ public class SwanComponent {
     try {
       return getSwanUserByToken(accessToken) != null ? getSwanUserByToken(accessToken).getId() :
           null;
-    } catch (URISyntaxException | IOException | InterruptedException e) {
+    } catch (URISyntaxException | IOException e) {
+      return null;
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
       return null;
     }
   }
@@ -56,24 +64,24 @@ public class SwanComponent {
       TokenResponse tokenResponse = new ObjectMapper().readValue(response.body(),
           TokenResponse.class);
       return swanMapper.toRest(tokenResponse);
-    } catch (IOException | InterruptedException | URISyntaxException e) {
+    } catch (IOException | URISyntaxException e) {
       throw new BadRequestException("Code is invalid, expired, revoked or the redirectUrl "
           + redirectUrl + " does not match in the authorization request");
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new ApiException(SERVER_EXCEPTION, e);
     }
   }
+
 
   public SwanUser getSwanUserByToken(String accessToken)
       throws URISyntaxException, IOException, InterruptedException {
     HttpClient httpClient = HttpClient.newBuilder().build();
-    String message = "{\"query\":\"query ProfilePage "
-        + "{user { id firstName lastName mobilePhoneNumber identificationStatus idVerified "
-        + "birthDate "
-        + "nationalityCCA3}}\"}";
     HttpRequest request = HttpRequest.newBuilder()
         .uri(new URI(swanConf.getApiUrl()))
         .header("Content-Type", "application/json")
         .header("Authorization", BEARER_PREFIX + accessToken)
-        .POST(HttpRequest.BodyPublishers.ofString(message))
+        .POST(HttpRequest.BodyPublishers.ofString(QUERY))
         .build();
     HttpResponse<String> response =
         httpClient.send(request, HttpResponse.BodyHandlers.ofString());

@@ -22,7 +22,7 @@ public class ProductService {
     return repository.findByIdAccount(accountId, unique);
   }
 
-  public List<Product> createProducts(String accountId, String invoiceId, List<Product> toCreate) {
+  public List<Product> createProducts(String accountId, List<Product> toCreate) {
     return repository.saveAll(accountId, toCreate);
   }
 }

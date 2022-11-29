@@ -97,7 +97,6 @@ ext {
 }
 test {
     exclude '**/DraftIT.class'
-    exclude '**/ProductIT.class'
     useJUnitPlatform()
     finalizedBy jacocoTestReport
 }

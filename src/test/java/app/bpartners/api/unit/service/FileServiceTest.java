@@ -69,7 +69,7 @@ class FileServiceTest {
     return FileInfo.builder()
         .id(FILE_ID)
         .sha256(null)
-        .sizeInKB(0)
+        .sizeInKb(0)
         .build();
   }
 }

@@ -19,9 +19,11 @@ import static org.testcontainers.containers.localstack.LocalStackContainer.Servi
 public abstract class S3AbstractContextInitializer
     implements ApplicationContextInitializer<ConfigurableApplicationContext> {
 
+  public static final String FLYWAY_TESTDATA_PATH = "classpath:/db/testdata";
+  public static final String BUCKET_NAME = "bpartners";
+
   @Override
   public void initialize(ConfigurableApplicationContext applicationContext) {
-    String flywayTestdataPath = "classpath:/db/testdata";
     PostgreSQLContainer<?> postgresContainer =
         new PostgreSQLContainer<>("postgres:13.2")
             .withDatabaseName("it-db")
@@ -29,7 +31,6 @@ public abstract class S3AbstractContextInitializer
             .withPassword("sa");
     postgresContainer.start();
 
-    String bucketName = "bpartners";
     LocalStackContainer s3Container = new LocalStackContainer(DockerImageName.parse(
         "localstack/localstack:0.11.3"))
         .withServices(S3);
@@ -46,10 +47,10 @@ public abstract class S3AbstractContextInitializer
         .withCredentials(s3Container.getDefaultCredentialsProvider())
         .build();
 
-    s3.createBucket(bucketName);
-    s3.putObject(new PutObjectRequest(bucketName, "dev/accounts/beed1765-5c16-472a-b3f4"
+    s3.createBucket(BUCKET_NAME);
+    s3.putObject(new PutObjectRequest(BUCKET_NAME, "dev/accounts/beed1765-5c16-472a-b3f4"
         + "-5c376ce5db58/logo/logo.jpeg", new File(testFilePath())));
-    s3.putObject(new PutObjectRequest(bucketName, "dev/accounts/beed1765-5c16-472a-b3f4"
+    s3.putObject(new PutObjectRequest(BUCKET_NAME, "dev/accounts/beed1765-5c16-472a-b3f4"
         + "-5c376ce5db58/logo/test.jpeg", new File(testFilePath())));
 
     TestPropertySourceUtils.addInlinedPropertiesToEnvironment(
@@ -61,8 +62,8 @@ public abstract class S3AbstractContextInitializer
         "spring.datasource.url=" + postgresContainer.getJdbcUrl(),
         "spring.datasource.username=" + postgresContainer.getUsername(),
         "spring.datasource.password=" + postgresContainer.getPassword(),
-        "spring.flyway.locations=classpath:/db/migration," + flywayTestdataPath,
-        "aws.bucket.name=" + bucketName,
+        "spring.flyway.locations=classpath:/db/migration," + FLYWAY_TESTDATA_PATH,
+        "aws.bucket.name=" + BUCKET_NAME,
         "aws.region=" + s3Container.getRegion(),
         "aws.endpoint=" + s3Container.getEndpointOverride(S3),
         "env=dev");

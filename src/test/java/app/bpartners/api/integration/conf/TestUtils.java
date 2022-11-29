@@ -534,8 +534,11 @@ public class TestUtils {
       when(swanComponent.getSwanUserByToken(JANE_DOE_TOKEN)).thenReturn(janeDoe());
       when(swanComponent.getTokenByCode(BAD_CODE, REDIRECT_SUCCESS_URL)).thenThrow(
           BadRequestException.class);
-    } catch (URISyntaxException | IOException | InterruptedException e) {
+    } catch (URISyntaxException | IOException e) {
       throw new app.bpartners.api.model.exception.ApiException(CLIENT_EXCEPTION, e);
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new RuntimeException(e);
     }
   }
 

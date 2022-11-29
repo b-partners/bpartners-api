@@ -6,7 +6,6 @@ import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.exception.ApiException;
 import com.lowagie.text.DocumentException;
 import java.io.ByteArrayOutputStream;
-import java.nio.file.FileSystems;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.templatemode.TemplateMode;
@@ -37,7 +36,7 @@ public class InvoicePdfUtils {
   private void loadStyle(ITextRenderer renderer, Invoice invoice, AccountHolder accountHolder,
                          byte[] logoAsBytes, String template) {
     renderer.setDocumentFromString(parseInvoiceTemplateToString(invoice, accountHolder,
-            logoAsBytes, template));
+        logoAsBytes, template));
   }
 
   private String parseInvoiceTemplateToString(

@@ -1,5 +1,6 @@
 package app.bpartners.api.model;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.RoundingMode;
@@ -18,7 +19,7 @@ import static app.bpartners.api.service.utils.FractionUtils.toAprational;
 @Builder
 @AllArgsConstructor
 @EqualsAndHashCode
-public class Fraction {
+public class Fraction implements Serializable {
   private BigInteger numerator;
   private BigInteger denominator;
 

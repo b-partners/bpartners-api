@@ -47,7 +47,10 @@ public class OnboardingSwanRepositoryImpl implements OnboardingSwanRepository {
           .readValue(response.body(), OnboardingResponse.class);
       return onboardingResponse.getData().getOnboardCompanyAccountHolder().getOnboarding()
           .getOnboardingUrl();
-    } catch (IOException | InterruptedException | URISyntaxException e) {
+    } catch (IOException | URISyntaxException e) {
+      throw new ApiException(SERVER_EXCEPTION, e);
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
       throw new ApiException(SERVER_EXCEPTION, e);
     }
   }

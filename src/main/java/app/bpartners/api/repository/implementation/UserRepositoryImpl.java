@@ -16,6 +16,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import static app.bpartners.api.endpoint.rest.model.EnableStatus.ENABLED;
+import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 
 @Repository
 @AllArgsConstructor
@@ -39,8 +40,11 @@ public class UserRepositoryImpl implements UserRepository {
           .monthlySubscription(5) //TODO: change or set default monthly subscription earlier
           .phoneNumber(swanUser.getMobilePhoneNumber())
           .build()));
-    } catch (URISyntaxException | IOException | InterruptedException e) {
+    } catch (URISyntaxException | IOException e) {
       throw new ApiException(ApiException.ExceptionType.CLIENT_EXCEPTION, e);
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new ApiException(SERVER_EXCEPTION, e);
     }
     return userMapper.toDomain(entityUser, swanUser);
   }

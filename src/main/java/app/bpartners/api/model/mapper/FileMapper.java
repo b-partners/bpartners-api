@@ -13,7 +13,7 @@ public class FileMapper {
         .id(internal.getId())
         .uploadedAt(internal.getUploadedAt())
         .uploadedByAccountId(internal.getUploadedBy())
-        .sizeInKB(internal.getSizeInKB())
+        .sizeInKB(internal.getSizeInKb())
         .sha256(internal.getSha256());
   }
 
@@ -22,7 +22,7 @@ public class FileMapper {
         .id(fileId)
         .uploadedAt(Instant.now())
         .uploadedBy(accountId)
-        .sizeInKB(toUpload.length / 1024)
+        .sizeInKb(toUpload.length / 1024)
         .sha256(sha256)
         .build();
   }
@@ -32,7 +32,7 @@ public class FileMapper {
         .id(file.getId())
         .uploadedAt(file.getUploadedAt())
         .uploadedBy(file.getAccountId())
-        .sizeInKB(file.getSizeInKB())
+        .sizeInKb(file.getSizeInKB())
         .sha256(file.getSha256())
         .build();
   }
@@ -41,7 +41,7 @@ public class FileMapper {
     return HFileInfo.builder()
         .id(file.getId())
         .uploadedAt(file.getUploadedAt())
-        .sizeInKB(file.getSizeInKB())
+        .sizeInKB(file.getSizeInKb())
         .sha256(file.getSha256())
         .accountId(file.getUploadedBy())
         .build();

@@ -20,6 +20,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import static app.bpartners.api.endpoint.rest.security.swan.SwanConf.SWAN_TOKEN_URL;
+import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 
 /*
  *
@@ -54,8 +55,11 @@ public class SwanApi<T> {
           httpClient.send(request, HttpResponse.BodyHandlers.ofString());
       return new ObjectMapper().findAndRegisterModules()//Load DateTime Module
           .readValue(response.body(), ProjectTokenResponse.class);
-    } catch (InterruptedException | IOException | URISyntaxException e) {
+    } catch (IOException | URISyntaxException e) {
       throw new ApiException(ApiException.ExceptionType.SERVER_EXCEPTION, e);
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new ApiException(SERVER_EXCEPTION, e);
     }
   }
   /*

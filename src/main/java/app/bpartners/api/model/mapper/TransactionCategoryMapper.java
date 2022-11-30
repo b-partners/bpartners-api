@@ -30,13 +30,11 @@ public class TransactionCategoryMapper {
         .vat(parseFraction(entity.getVat()))
         .idTransactionCategoryTmpl(entity.getIdCategoryTemplate())
         .build();
-    if (!entity.isUserDefined()) {
-      HTransactionCategoryTemplate categoryTemplate =
-          templateJpaRepository.getById(entity.getIdCategoryTemplate());
-      domain.setTransactionType(categoryTemplate.getTransactionType());
-      domain.setType(categoryTemplate.getType());
-      domain.setVat(parseFraction(categoryTemplate.getVat()));
-    }
+    HTransactionCategoryTemplate categoryTemplate =
+        templateJpaRepository.getById(entity.getIdCategoryTemplate());
+    domain.setTransactionType(categoryTemplate.getTransactionType());
+    domain.setType(categoryTemplate.getType());
+    domain.setVat(parseFraction(categoryTemplate.getVat()));
     String typeOrIdCategoryTmpl =
         entity.getType() != null ? entity.getType() : entity.getIdCategoryTemplate();
     Long typeCount = jpaRepository.countByCriteria(domain.getIdAccount(), typeOrIdCategoryTmpl,
@@ -50,19 +48,6 @@ public class TransactionCategoryMapper {
       String idAccount, HTransactionCategory entity,
       LocalDate startDate, LocalDate endDate) {
     String idCategoryTemplate = entity.getIdCategoryTemplate();
-    if (entity.isUserDefined()) {
-      return TransactionCategory.builder()
-          .id(entity.getId())
-          .idAccount(entity.getIdAccount())
-          .type(entity.getType())
-          .vat(parseFraction(entity.getVat()))
-          .idTransactionCategoryTmpl(entity.getIdCategoryTemplate())
-          .typeCount(
-              getCategoryCount(entity.getIdAccount(), startDate, endDate, entity.getType()))
-          //TODO: when it's a user defined category, user should give transaction type
-          .transactionType(null)
-          .build();
-    }
     HTransactionCategoryTemplate categoryTemplate =
         templateJpaRepository.getById(idCategoryTemplate);
     return TransactionCategory.builder()
@@ -84,6 +69,7 @@ public class TransactionCategoryMapper {
         .id(entity.getId())
         .type(entity.getType())
         .vat(parseFraction(entity.getVat()))
+        .transactionType(entity.getTransactionType())
         .build();
   }
 

@@ -22,9 +22,7 @@ public class TransactionCategory {
   private Fraction vat;
   private String idTransaction;
   private TransactionTypeEnum transactionType;
-  private Long typeCount;
-
-  public boolean isUserDefined() {
-    return idTransactionCategoryTmpl == null;
-  }
+  private long typeCount;
+  private String description;
+  private String comment;
 }

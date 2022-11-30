@@ -22,7 +22,6 @@ public class TransactionCategoryRestMapper {
         .vat(domain.getVat().getCentsRoundUp())
         .type(domain.getType())
         .transactionType(domain.getTransactionType())
-        .userDefined(domain.isUserDefined())
         .count(domain.getTypeCount());
   }
 
@@ -33,17 +32,13 @@ public class TransactionCategoryRestMapper {
     validator.accept(rest);
     TransactionCategoryTemplate categoryTemplate = categoryTmplRepository.findByTypeAndVat(
         rest.getType(), parseFraction(rest.getVat()));
-    app.bpartners.api.model.TransactionCategory category =
-        app.bpartners.api.model.TransactionCategory.builder()
-            .idTransaction(transactionId)
-            .idAccount(accountId)
-            .type(rest.getType())
-            .vat(parseFraction(rest.getVat()))
-            .build();
-    if (categoryTemplate != null) {
-      category.setIdTransactionCategoryTmpl(categoryTemplate.getId());
-      category.setTransactionType(categoryTemplate.getTransactionType());
-    }
-    return category;
+    return app.bpartners.api.model.TransactionCategory.builder()
+        .idTransaction(transactionId)
+        .idAccount(accountId)
+        .type(rest.getType())
+        .vat(parseFraction(rest.getVat()))
+        .idTransactionCategoryTmpl(categoryTemplate.getId())
+        .transactionType(categoryTemplate.getTransactionType())
+        .build();
   }
 }

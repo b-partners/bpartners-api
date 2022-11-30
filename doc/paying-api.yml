@@ -39,9 +39,9 @@ operations:
       description: |
         Can be filter by :
         * unique : show distinct transaction categories
-        * userDefined : show transaction categories defined by the user
         * date intervals : give the count of transaction categories used by existing transactions 
         between two dates
+        * transactionType : INCOME or OUTCOME or null if both
       parameters:
         - in: path
           name: aId
@@ -50,10 +50,9 @@ operations:
             type: string
           required: true
         - in: query
-          name: userDefined
+          name: transactionType
           schema:
-            type: boolean
-            description: If null, returns user defined categories and default categories
+            $ref: '#/components/schemas/TransactionTypeEnum'
         - in: query
           name: from
           schema:
@@ -599,18 +598,22 @@ components:
       properties:
         id:
           type: string
-        userDefined:
-          type: boolean
         count:
           type: integer
           format: int64
         transactionType:
           $ref: '#/components/schemas/TransactionTypeEnum'
+        description:
+          type: string
+          example: null
     CreateTransactionCategory:
       type: object
       properties:
         type:
           type: string
+        comment:
+          type: string
+          example: null
         vat:
           type: integer
     TransactionsSummary:

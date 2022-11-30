@@ -304,6 +304,7 @@ public class TestUtils {
         .type("Recette TVA 20%")
         .description("Prestations ou ventes soumises à 20% de TVA")
         .transactionType(INCOME)
+        .description("Prestations ou ventes soumises à 20% de TVA")
         .vat(2000)
         .count(1L);
   }

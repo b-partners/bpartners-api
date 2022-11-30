@@ -28,14 +28,13 @@ public class TransactionCategoryController {
   public List<TransactionCategory> getTransactionCategories(
       @PathVariable String accountId,
       @RequestParam(required = false) Optional<Boolean> unique,
-      @RequestParam(required = false) Boolean userDefined,
       @RequestParam(name = "from") String startDateValue,
       @RequestParam(name = "to") String endDateValue) {
     LocalDate startDate = LocalDate.parse(startDateValue);
     LocalDate endDate = LocalDate.parse(endDateValue);
     dateValidator.accept(startDate, endDate);
-    return service.getCategoriesByAccountAndUserDefined(accountId,
-            userDefined, startDate, endDate)
+    return service.getCategoriesByAccount(accountId,
+            startDate, endDate)
         .stream()
         .map(mapper::toRest)
         .collect(Collectors.toUnmodifiableList());

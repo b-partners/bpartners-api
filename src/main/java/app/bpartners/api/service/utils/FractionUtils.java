@@ -41,8 +41,7 @@ public class FractionUtils {
     if (number == null) {
       return new Fraction();
     }
-    Aprational aprational = new Aprational(number);
-    return parseFraction(aprational);
+    return new Fraction(BigInteger.valueOf(number));
   }
 
   public static Fraction parseFraction(Double number) {

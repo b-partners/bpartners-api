@@ -57,7 +57,4 @@ public class HTransactionCategory {
     this.vat = vat;
   }
 
-  public boolean isUserDefined() {
-    return idCategoryTemplate == null;
-  }
 }

@@ -31,6 +31,12 @@ public class TransactionRepositoryImpl implements TransactionRepository {
   }
 
   @Override
+  public Transaction findByAccountIdAndId(String accountId, String transactionId) {
+    return mapper.toDomain(swanRepository.findById(transactionId),
+        categoryRepository.findByIdTransaction(transactionId));
+  }
+
+  @Override
   public List<Transaction> findByAccountIdAndStatus(String id, TransactionStatus status) {
     return findByAccountId(id).stream()
         .filter(transaction -> transaction.getStatus().equals(status))

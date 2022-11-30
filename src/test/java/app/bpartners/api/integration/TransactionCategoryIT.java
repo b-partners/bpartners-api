@@ -98,16 +98,8 @@ class TransactionCategoryIT {
 
     List<TransactionCategory> actualAll = api.getTransactionCategories(JOE_DOE_ACCOUNT_ID,
         LocalDate.now(), LocalDate.now(), null);
-    List<TransactionCategory> actualUserNotDefined =
-        api.getTransactionCategories(JOE_DOE_ACCOUNT_ID, LocalDate.of(2022, 1, 1),
-            LocalDate.of(2022, 1, 2), false);
-    List<TransactionCategory> actualUserDefined =
-        api.getTransactionCategories(JOE_DOE_ACCOUNT_ID, LocalDate.of(2022, 1, 1),
-            LocalDate.of(2022, 1, 2), true);
 
-    assertEquals(33, actualAll.size());
-    assertEquals(31, actualUserNotDefined.size());
-    assertEquals(2, actualUserDefined.size());
+    assertEquals(35, actualAll.size());
   }
 
   @Test
@@ -118,7 +110,7 @@ class TransactionCategoryIT {
     List<TransactionCategory> actualAll = api.getTransactionCategories(JOE_DOE_ACCOUNT_ID,
         LocalDate.of(2021, 1, 1), LocalDate.of(2021, 12, 31), null);
 
-    assertEquals(33, actualAll.size());
+    assertEquals(35, actualAll.size());
     assertTrue(actualAll.stream().noneMatch(e -> e.getCount() != 0L));
   }
 

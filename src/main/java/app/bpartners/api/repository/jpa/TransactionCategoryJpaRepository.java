@@ -2,13 +2,13 @@ package app.bpartners.api.repository.jpa;
 
 import app.bpartners.api.repository.jpa.model.HTransactionCategory;
 import java.time.LocalDateTime;
-import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 public interface TransactionCategoryJpaRepository
     extends JpaRepository<HTransactionCategory, String> {
-  List<HTransactionCategory> findAllByIdAccount(String idAccount);
+
+  HTransactionCategory findTopByIdTransactionOrderByCreatedDatetimeDesc(String idTransaction);
 
   /*
    * TODO: use JPQL instead of native SQL

@@ -9,7 +9,6 @@ import app.bpartners.api.repository.jpa.model.HTransactionCategory;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -24,7 +23,6 @@ import org.springframework.stereotype.Repository;
 import static app.bpartners.api.repository.jpa.model.HTransactionCategory.CREATED_DATETIME_ATTRIBUTE;
 import static app.bpartners.api.repository.jpa.model.HTransactionCategory.ID_ACCOUNT_ATTRIBUTE;
 import static app.bpartners.api.repository.jpa.model.HTransactionCategory.ID_CATEGORY_TMPL_ATTRIBUTE;
-import static app.bpartners.api.repository.jpa.model.HTransactionCategory.ID_TRANSACTION_ATTRIBUTE;
 import static app.bpartners.api.repository.jpa.model.HTransactionCategory.TYPE_ATTRIBUTE;
 import static app.bpartners.api.repository.jpa.model.HTransactionCategory.VAT_ATTRIBUTE;
 
@@ -64,23 +62,9 @@ public class TransactionCategoryRepositoryImpl implements TransactionCategoryRep
 
   @Override
   public TransactionCategory findByIdTransaction(String idTransaction) {
-    CriteriaBuilder builder = entityManager.getCriteriaBuilder();
-    CriteriaQuery<HTransactionCategory> query = builder.createQuery(HTransactionCategory.class);
-    Root<HTransactionCategory> root = query.from(HTransactionCategory.class);
-    Order order = builder.desc(root.get(CREATED_DATETIME_ATTRIBUTE));
-
-    Predicate hasIdTransaction = builder.equal(root.get(ID_TRANSACTION_ATTRIBUTE), idTransaction);
-
-    query.where(builder.and(hasIdTransaction))
-        .orderBy(order);
-
-    Optional<HTransactionCategory> entity = entityManager.createQuery(query)
-        .setMaxResults(1)
-        .getResultStream().findFirst();
-    if (entity.isEmpty()) {
-      return null;
-    }
-    return domainMapper.toDomain(entity.get(), DEFAULT_START_DATE, LocalDate.now());
+    HTransactionCategory entity =
+        jpaRepository.findTopByIdTransactionOrderByCreatedDatetimeDesc(idTransaction);
+    return domainMapper.toDomain(entity, DEFAULT_START_DATE, LocalDate.now());
   }
 
 

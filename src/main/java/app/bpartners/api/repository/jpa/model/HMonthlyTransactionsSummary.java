@@ -13,6 +13,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import org.hibernate.annotations.CreationTimestamp;
 
 import static javax.persistence.GenerationType.IDENTITY;
 
@@ -37,5 +38,6 @@ public class HMonthlyTransactionsSummary {
   private String income;
   private String outcome;
   private String cashFlow;
+  @CreationTimestamp
   private Instant updatedAt;
 }

@@ -17,6 +17,7 @@ import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.stream.Collectors;
+import javax.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apfloat.Aprational;
@@ -82,6 +83,7 @@ public class TransactionService {
     return summaryRepository.getByAccountIdAndYear(accountId, year);
   }
 
+  @Transactional
   public void refreshCurrentYearSummary(
       String accountId,
       Fraction cashFlow) {

@@ -30,16 +30,25 @@ public class FractionUtils {
   }
 
   public static Fraction parseFraction(Aprational aprational) {
+    if (aprational == null) {
+      return new Fraction();
+    }
     return new Fraction(aprational.numerator().toBigInteger(),
         aprational.denominator().toBigInteger());
   }
 
   public static Fraction parseFraction(Integer number) {
+    if (number == null) {
+      return new Fraction();
+    }
     Aprational aprational = new Aprational(number);
     return parseFraction(aprational);
   }
 
   public static Fraction parseFraction(Double number) {
+    if (number == null) {
+      return new Fraction();
+    }
     Aprational aprational = new Aprational(number);
     return parseFraction(aprational);
   }

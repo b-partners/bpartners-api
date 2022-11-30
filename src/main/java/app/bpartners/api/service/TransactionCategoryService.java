@@ -12,12 +12,11 @@ import org.springframework.stereotype.Service;
 public class TransactionCategoryService {
   private final TransactionCategoryRepository repository;
 
-  public List<TransactionCategory> getCategoriesByAccountAndUserDefined(
-      String idAccount, Boolean userDefined,
+  public List<TransactionCategory> getCategoriesByAccount(
+      String idAccount,
       LocalDate startDate,
       LocalDate endDate) {
-    return repository.findByIdAccountAndUserDefined(idAccount,
-        userDefined, startDate, endDate);
+    return repository.findByIdAccount(idAccount, startDate, endDate);
   }
 
   public List<TransactionCategory> createCategories(

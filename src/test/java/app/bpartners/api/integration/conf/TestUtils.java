@@ -302,6 +302,7 @@ public class TestUtils {
     return new TransactionCategory()
         .id("transaction_category1_id")
         .type("Recette TVA 20%")
+        .description("Prestations ou ventes soumises à 20% de TVA")
         .transactionType(INCOME)
         .vat(2000)
         .count(1L);

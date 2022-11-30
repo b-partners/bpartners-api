@@ -6,6 +6,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -48,6 +49,9 @@ public class HTransactionCategory {
   @CreationTimestamp
   private Instant createdDatetime;
   public static final String CREATED_DATETIME_ATTRIBUTE = "createdDatetime";
+  private String comment;
+  @Transient
+  private String description;
 
   public HTransactionCategory(
       String idAccount, String idCategoryTemplate, String type, String vat) {

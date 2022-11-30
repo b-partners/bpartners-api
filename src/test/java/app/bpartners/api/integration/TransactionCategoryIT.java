@@ -87,8 +87,8 @@ class TransactionCategoryIT {
 
   CreateTransactionCategory createTransactionCategory() {
     return new CreateTransactionCategory()
-        .type("Recette TVA 1,5%")
-        .vat(150);
+        .type("Recette TVA 20%")
+        .vat(2000);
   }
 
   @Test
@@ -99,7 +99,7 @@ class TransactionCategoryIT {
     List<TransactionCategory> actualAll = api.getTransactionCategories(JOE_DOE_ACCOUNT_ID,
         LocalDate.now(), LocalDate.now(), null);
 
-    assertEquals(35, actualAll.size());
+    assertEquals(36, actualAll.size());
   }
 
   @Test
@@ -110,7 +110,7 @@ class TransactionCategoryIT {
     List<TransactionCategory> actualAll = api.getTransactionCategories(JOE_DOE_ACCOUNT_ID,
         LocalDate.of(2021, 1, 1), LocalDate.of(2021, 12, 31), null);
 
-    assertEquals(35, actualAll.size());
+    assertEquals(36, actualAll.size());
     assertTrue(actualAll.stream().noneMatch(e -> e.getCount() != 0L));
   }
 

@@ -12,6 +12,8 @@ import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
 import app.bpartners.api.integration.conf.AbstractContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
 import app.bpartners.api.manager.ProjectTokenManager;
+import app.bpartners.api.model.Fraction;
+import app.bpartners.api.model.TransactionCategoryTemplate;
 import app.bpartners.api.repository.LegalFileRepository;
 import app.bpartners.api.repository.fintecture.FintectureConf;
 import app.bpartners.api.repository.sendinblue.SendinblueConf;
@@ -19,8 +21,10 @@ import app.bpartners.api.repository.swan.AccountHolderSwanRepository;
 import app.bpartners.api.repository.swan.AccountSwanRepository;
 import app.bpartners.api.repository.swan.TransactionSwanRepository;
 import app.bpartners.api.repository.swan.UserSwanRepository;
+import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Objects;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -29,7 +33,10 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import static app.bpartners.api.endpoint.rest.model.TransactionTypeEnum.INCOME;
+import static app.bpartners.api.endpoint.rest.model.TransactionTypeEnum.OUTCOME;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
+import static app.bpartners.api.integration.conf.TestUtils.assertThrowsApiException;
 import static app.bpartners.api.integration.conf.TestUtils.restTransaction2;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountHolderSwanRep;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountSwanRepository;
@@ -85,11 +92,25 @@ class TransactionCategoryIT {
     setUpLegalFileRepository(legalFileRepositoryMock);
   }
 
-  CreateTransactionCategory createTransactionCategory() {
+  CreateTransactionCategory incomeTransactionCategory() {
     return new CreateTransactionCategory()
         .type("Recette TVA 20%")
         .vat(2000);
   }
+
+  CreateTransactionCategory outcomeTransactionCategory() {
+    return new CreateTransactionCategory()
+        .type("Achat TVA 20%")
+        .vat(2000);
+  }
+
+  CreateTransactionCategory otherIncomeTransactionCategory() {
+    return new CreateTransactionCategory()
+        .type("Autres produits")
+        .vat(0)
+        .comment("Don de l'Etat");
+  }
+
 
   @Test
   void read_transaction_categories_ok() throws ApiException {
@@ -98,8 +119,17 @@ class TransactionCategoryIT {
 
     List<TransactionCategory> actualAll = api.getTransactionCategories(JOE_DOE_ACCOUNT_ID,
         LocalDate.now(), LocalDate.now(), null);
+    List<TransactionCategory> actualIncome = api.getTransactionCategories(JOE_DOE_ACCOUNT_ID,
+        LocalDate.now(), LocalDate.now(), INCOME);
+    List<TransactionCategory> actualOutcome = api.getTransactionCategories(JOE_DOE_ACCOUNT_ID,
+        LocalDate.now(), LocalDate.now(), OUTCOME);
 
-    assertEquals(36, actualAll.size());
+    assertEquals(34, actualAll.size());
+    assertTrue(actualIncome.stream().allMatch(t -> Objects.equals(t.getTransactionType(), INCOME)));
+    assertTrue(actualOutcome.stream().allMatch(t -> Objects.equals(t.getTransactionType(),
+        OUTCOME)));
+    assertTrue(actualAll.containsAll(actualIncome));
+    assertTrue(actualAll.containsAll(actualOutcome));
   }
 
   @Test
@@ -110,7 +140,7 @@ class TransactionCategoryIT {
     List<TransactionCategory> actualAll = api.getTransactionCategories(JOE_DOE_ACCOUNT_ID,
         LocalDate.of(2021, 1, 1), LocalDate.of(2021, 12, 31), null);
 
-    assertEquals(36, actualAll.size());
+    assertEquals(34, actualAll.size());
     assertTrue(actualAll.stream().noneMatch(e -> e.getCount() != 0L));
   }
 
@@ -121,9 +151,44 @@ class TransactionCategoryIT {
 
     List<TransactionCategory> actual = api.createTransactionCategories(JOE_DOE_ACCOUNT_ID,
         restTransaction2().getId(),
-        List.of(createTransactionCategory()));
+        List.of(incomeTransactionCategory()));
+    List<TransactionCategory> actualOther = api.createTransactionCategories(
+        JOE_DOE_ACCOUNT_ID,
+        restTransaction2().getId(),
+        List.of(otherIncomeTransactionCategory())
+    );
 
     assertEquals(1, actual.size());
+    assertEquals(1, actualOther.size());
+    assertEquals(actualOther.get(0).getComment(), otherIncomeTransactionCategory().getComment());
+  }
+
+  @Test
+  void create_transaction_categories_ko() {
+    ApiClient joeDoeClient = anApiClient();
+    PayingApi api = new PayingApi(joeDoeClient);
+
+    assertThrowsApiException(
+        "{\"type\":\"400 BAD_REQUEST\",\"message\":\"Cannot add category."
+            + outcomeTransactionCategoryTmpl().getId() + " of type "
+            + outcomeTransactionCategoryTmpl().getTransactionType() + " to transaction."
+            + restTransaction2().getId()
+            + " of type " + restTransaction2().getType()
+            + "\"}",
+        () -> api.createTransactionCategories(JOE_DOE_ACCOUNT_ID,
+            restTransaction2().getId(),
+            List.of(outcomeTransactionCategory()))
+    );
+  }
+
+  private TransactionCategoryTemplate outcomeTransactionCategoryTmpl() {
+    return TransactionCategoryTemplate
+        .builder()
+        .id("6e1767d9-b35d-411a-8d23-b725ecd00921")
+        .type("Achat TVA 20%")
+        .vat(new Fraction(BigInteger.valueOf(2000)))
+        .transactionType(OUTCOME)
+        .build();
   }
 
   static class ContextInitializer extends AbstractContextInitializer {

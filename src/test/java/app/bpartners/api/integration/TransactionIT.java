@@ -22,6 +22,7 @@ import app.bpartners.api.repository.swan.TransactionSwanRepository;
 import app.bpartners.api.repository.swan.UserSwanRepository;
 import java.time.LocalDate;
 import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -78,6 +79,15 @@ class TransactionIT {
   @MockBean
   private LegalFileRepository legalFileRepositoryMock;
 
+  private static ApiClient anApiClient() {
+    return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN,
+        TransactionIT.ContextInitializer.SERVER_PORT);
+  }
+
+  private static ApiClient anApiClient(String token) {
+    return TestUtils.anApiClient(token, ContextInitializer.SERVER_PORT);
+  }
+
   MonthlyTransactionsSummary month1() {
     return new MonthlyTransactionsSummary()
         .id("monthly_transactions_summary1_id")
@@ -110,15 +120,6 @@ class TransactionIT {
     setUpTransactionRepository(transactionSwanRepositoryMock);
     setUpAccountHolderSwanRep(accountHolderMock);
     setUpLegalFileRepository(legalFileRepositoryMock);
-  }
-
-  private static ApiClient anApiClient() {
-    return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN,
-        TransactionIT.ContextInitializer.SERVER_PORT);
-  }
-
-  private static ApiClient anApiClient(String token) {
-    return TestUtils.anApiClient(token, ContextInitializer.SERVER_PORT);
   }
 
   @Test

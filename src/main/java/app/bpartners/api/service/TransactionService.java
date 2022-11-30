@@ -10,11 +10,15 @@ import app.bpartners.api.repository.TransactionsSummaryRepository;
 import app.bpartners.api.repository.jpa.AccountHolderJpaRepository;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.Month;
+import java.time.Year;
 import java.time.YearMonth;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apfloat.Aprational;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -24,10 +28,20 @@ import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 
 @Service
 @AllArgsConstructor
+@Slf4j
 public class TransactionService {
   private final TransactionRepository repository;
   private final AccountHolderJpaRepository holderJpaRepository;
   private final TransactionsSummaryRepository summaryRepository;
+
+  private static Instant getFirstDayOfYear(int year) {
+    return getFirstDayOfMonth(YearMonth.of(year, Month.JANUARY.getValue()));
+
+  }
+
+  private static Instant getLastDayOfYear(int year) {
+    return getLastDayOfMonth(YearMonth.of(year, Month.DECEMBER.getValue()));
+  }
 
   private static Instant getFirstDayOfMonth(YearMonth yearMonth) {
     return yearMonth
@@ -47,6 +61,16 @@ public class TransactionService {
         .minusSeconds(1);
   }
 
+  private static List<Transaction> filterByTwoInstants(
+      List<Transaction> transactions, Instant from, Instant to) {
+    return transactions.stream().filter(
+            transaction -> transaction.getPaymentDatetime().isAfter(from)
+                &&
+                transaction.getPaymentDatetime().isBefore(to)
+        )
+        .collect(Collectors.toUnmodifiableList());
+  }
+
   public List<Transaction> getTransactionsByAccountId(String accountId) {
     return repository.findByAccountId(accountId);
   }
@@ -58,12 +82,25 @@ public class TransactionService {
     return summaryRepository.getByAccountIdAndYear(accountId, year);
   }
 
-  public MonthlyTransactionsSummary refreshCurrentMonthSummary(
+  public void refreshCurrentYearSummary(
       String accountId,
       Fraction cashFlow) {
-    YearMonth yearMonth = YearMonth.now();
-    List<Transaction> transactions = repository.findByAccountIdAndStatusBetweenInstants(
-        accountId, BOOKED, getFirstDayOfMonth(yearMonth), getLastDayOfMonth(yearMonth));
+    int actualYear = Year.now().getValue();
+    List<Transaction> yearlyTransactions =
+        repository.findByAccountIdAndStatusBetweenInstants(accountId, BOOKED,
+            getFirstDayOfYear(actualYear), getLastDayOfYear(actualYear));
+    for (int i = Month.JANUARY.getValue(); i <= Month.DECEMBER.getValue(); i++) {
+      YearMonth yearMonth = YearMonth.of(actualYear, i);
+      List<Transaction> monthlyTransactions = filterByTwoInstants(yearlyTransactions,
+          getFirstDayOfMonth(yearMonth),
+          getLastDayOfMonth(yearMonth));
+      refreshMonthSummary(accountId, cashFlow, YearMonth.of(actualYear, i), monthlyTransactions);
+    }
+  }
+
+  public void refreshMonthSummary(
+      String accountId, Fraction cashFlow, YearMonth yearMonth,
+      List<Transaction> transactions) {
     Fraction[] summaryParameters = new Fraction[] {new Fraction(), new Fraction()};
     transactions.forEach(
         transaction -> {
@@ -76,47 +113,48 @@ public class TransactionService {
                 summaryParameters[1].operate(transaction.getAmount(), Aprational::add);
           }
         });
+    MonthlyTransactionsSummary previousSummary =
+        getByAccountIdAndYearMonth(accountId, yearMonth.minusMonths(1));
+    MonthlyTransactionsSummary actualSummary =
+        getByAccountIdAndYearMonth(accountId, yearMonth);
     Fraction actualBalance =
         summaryParameters[0].operate(summaryParameters[1], Aprational::subtract);
-    return saveSummariesByYearMonth(
+    Fraction previousCashFlow = previousSummary == null ? cashFlow :
+        previousSummary.getCashFlow();
+    String idMonthlyTransactionSummary = actualSummary == null ? null : actualSummary.getId();
+    saveSummariesByYearMonth(
         accountId,
         yearMonth.getYear(),
         MonthlyTransactionsSummary
             .builder()
+            .id(idMonthlyTransactionSummary)
             .income(summaryParameters[0])
             .outcome(summaryParameters[1])
-            .cashFlow(
-                getPreviousCashFlow(accountId, cashFlow, yearMonth)
-                    .operate(actualBalance, Aprational::add))
-            .month(yearMonth.getMonthValue())
+            .cashFlow(previousCashFlow.operate(actualBalance, Aprational::add))
+            .month(yearMonth.getMonthValue() - 1)
             .build());
   }
 
-  private Fraction getPreviousCashFlow(
-      String accountId, Fraction initialCashFlow, YearMonth yearMonth) {
-    initialCashFlow = initialCashFlow == null ? new Fraction() : initialCashFlow;
-    MonthlyTransactionsSummary monthlySummary =
-        getByAccountIdAndYearMonth(accountId, yearMonth.minusMonths(1));
-    return monthlySummary == null ? initialCashFlow : monthlySummary.getCashFlow();
-  }
-
-  public MonthlyTransactionsSummary saveSummariesByYearMonth(
+  public void saveSummariesByYearMonth(
       String accountId, Integer year,
       MonthlyTransactionsSummary monthlyTransactionsSummary) {
-    return summaryRepository.updateYearMonthSummary(accountId, year, monthlyTransactionsSummary);
+    summaryRepository.updateYearMonthSummary(accountId, year, monthlyTransactionsSummary);
   }
 
   public MonthlyTransactionsSummary getByAccountIdAndYearMonth(
       String accountId, YearMonth yearMonth) {
     return summaryRepository.getByAccountIdAndYearMonth(accountId, yearMonth.getYear(),
-        yearMonth.getMonthValue());
+        yearMonth.getMonthValue() - 1);
   }
 
-  @Scheduled(cron = "0 0 * * * ?")
+  @Scheduled(cron = "0/10 * * * * ?")
   public void refreshTransactionsSummaries() {
     holderJpaRepository.findAllGroupByAccountId().forEach(
-        accountHolder -> refreshCurrentMonthSummary(
-            accountHolder.getAccountId(), parseFraction(accountHolder.getInitialCashflow()))
+        accountHolder -> {
+          refreshCurrentYearSummary(
+              accountHolder.getAccountId(), parseFraction(accountHolder.getInitialCashflow()));
+          log.info("Transactions summaries refreshed for {}", accountHolder);
+        }
     );
   }
 }

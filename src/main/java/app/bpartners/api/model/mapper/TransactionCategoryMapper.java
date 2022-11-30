@@ -8,6 +8,8 @@ import app.bpartners.api.repository.jpa.model.HTransactionCategory;
 import app.bpartners.api.repository.jpa.model.HTransactionCategoryTemplate;
 import java.time.LocalDate;
 import lombok.AllArgsConstructor;
+import java.time.ZoneOffset;
+import java.time.temporal.ChronoUnit;
 import org.springframework.stereotype.Component;
 
 import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
@@ -37,11 +39,9 @@ public class TransactionCategoryMapper {
     domain.setType(categoryTemplate.getType());
     domain.setVat(parseFraction(categoryTemplate.getVat()));
     domain.setDescription(categoryTemplate.getDescription());
-    String typeOrIdCategoryTmpl =
-        entity.getType() != null ? entity.getType() : entity.getIdCategoryTemplate();
-    Long typeCount = jpaRepository.countByCriteria(domain.getIdAccount(), typeOrIdCategoryTmpl,
-        startDate.atStartOfDay(),
-        endDate.plusDays(1).atStartOfDay().minusSeconds(1));
+    long typeCount = getCategoryCount(
+        entity.getIdAccount(), startDate, endDate, domain.getType()
+    );
     domain.setTypeCount(typeCount);
     return domain;
   }
@@ -79,10 +79,21 @@ public class TransactionCategoryMapper {
   }
 
   private long getCategoryCount(String idAccount, LocalDate startDate, LocalDate endDate,
-                                String idCategoryTemplate) {
-    return jpaRepository.countByCriteria(idAccount, idCategoryTemplate,
-        startDate.atStartOfDay(),
-        endDate.plusDays(1).atStartOfDay().minusSeconds(1));
+                                String type) {
+    //TODO: a better count would consider type and comment
+    return jpaRepository.countByCriteria(
+        idAccount,
+        type,
+        startDate
+            .atStartOfDay()
+            .truncatedTo(ChronoUnit.DAYS)
+            .toInstant(ZoneOffset.UTC),
+        endDate
+            .atStartOfDay()
+            .truncatedTo(ChronoUnit.DAYS)
+            .toInstant(ZoneOffset.UTC)
+            .plus(1, ChronoUnit.DAYS)
+            .minusSeconds(1));
   }
 
   public HTransactionCategory toEntity(TransactionCategory category) {

@@ -3,19 +3,21 @@ package app.bpartners.api.endpoint.rest.mapper;
 import app.bpartners.api.endpoint.rest.model.CreateTransactionCategory;
 import app.bpartners.api.endpoint.rest.model.TransactionCategory;
 import app.bpartners.api.endpoint.rest.validator.CreateTransactionCategoryValidator;
+import app.bpartners.api.model.Transaction;
 import app.bpartners.api.model.TransactionCategoryTemplate;
+import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.repository.TransactionCategoryTemplateRepository;
+import app.bpartners.api.repository.TransactionRepository;
 import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 
 @Component
-@Slf4j
 @AllArgsConstructor
 public class TransactionCategoryRestMapper {
   private final TransactionCategoryTemplateRepository categoryTmplRepository;
+  private final TransactionRepository transactionRepository;
   private final CreateTransactionCategoryValidator validator;
 
   public TransactionCategory toRest(app.bpartners.api.model.TransactionCategory domain) {
@@ -34,8 +36,17 @@ public class TransactionCategoryRestMapper {
       String accountId,
       CreateTransactionCategory rest) {
     validator.accept(rest);
+    Transaction transaction = transactionRepository.findByAccountIdAndId(accountId, transactionId);
     TransactionCategoryTemplate categoryTemplate = categoryTmplRepository.findByTypeAndVat(
         rest.getType(), parseFraction(rest.getVat()));
+    if (!transaction.getType().equals(categoryTemplate.getTransactionType())) {
+      throw new BadRequestException(
+          "Cannot add category." + categoryTemplate.getId() + " of type "
+              + categoryTemplate.getTransactionType()
+              + " to transaction." + transactionId + " of type "
+              + transaction.getType()
+      );
+    }
     app.bpartners.api.model.TransactionCategory domain =
         app.bpartners.api.model.TransactionCategory.builder()
             .idTransaction(transactionId)

@@ -18,7 +18,7 @@ public class FractionUtils {
 
   public static Fraction parseFraction(String fraction) {
     if (fraction == null) {
-      return null;
+      return new Fraction();
     }
     if (!fraction.contains("/")) {
       throw new ApiException(ApiException.ExceptionType.SERVER_EXCEPTION,

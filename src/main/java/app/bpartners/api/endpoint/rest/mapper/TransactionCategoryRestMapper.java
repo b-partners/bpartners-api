@@ -6,11 +6,13 @@ import app.bpartners.api.endpoint.rest.validator.CreateTransactionCategoryValida
 import app.bpartners.api.model.TransactionCategoryTemplate;
 import app.bpartners.api.repository.TransactionCategoryTemplateRepository;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 
 @Component
+@Slf4j
 @AllArgsConstructor
 public class TransactionCategoryRestMapper {
   private final TransactionCategoryTemplateRepository categoryTmplRepository;
@@ -22,7 +24,9 @@ public class TransactionCategoryRestMapper {
         .vat(domain.getVat().getCentsRoundUp())
         .type(domain.getType())
         .transactionType(domain.getTransactionType())
-        .count(domain.getTypeCount());
+        .count(domain.getTypeCount())
+        .description(domain.getDescription())
+        .comment(domain.getComment());
   }
 
   public app.bpartners.api.model.TransactionCategory toDomain(
@@ -32,13 +36,18 @@ public class TransactionCategoryRestMapper {
     validator.accept(rest);
     TransactionCategoryTemplate categoryTemplate = categoryTmplRepository.findByTypeAndVat(
         rest.getType(), parseFraction(rest.getVat()));
-    return app.bpartners.api.model.TransactionCategory.builder()
-        .idTransaction(transactionId)
-        .idAccount(accountId)
-        .type(rest.getType())
-        .vat(parseFraction(rest.getVat()))
-        .idTransactionCategoryTmpl(categoryTemplate.getId())
-        .transactionType(categoryTemplate.getTransactionType())
-        .build();
+    app.bpartners.api.model.TransactionCategory domain =
+        app.bpartners.api.model.TransactionCategory.builder()
+            .idTransaction(transactionId)
+            .idAccount(accountId)
+            .type(rest.getType())
+            .vat(parseFraction(rest.getVat()))
+            .idTransactionCategoryTmpl(categoryTemplate.getId())
+            .transactionType(categoryTemplate.getTransactionType())
+            .build();
+    if (categoryTemplate.isOther()) {
+      domain.setComment(rest.getComment());
+    }
+    return domain;
   }
 }

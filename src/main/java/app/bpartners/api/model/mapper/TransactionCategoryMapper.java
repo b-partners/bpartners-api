@@ -29,12 +29,14 @@ public class TransactionCategoryMapper {
         .type(entity.getType())
         .vat(parseFraction(entity.getVat()))
         .idTransactionCategoryTmpl(entity.getIdCategoryTemplate())
+        .comment(entity.getComment())
         .build();
     HTransactionCategoryTemplate categoryTemplate =
         templateJpaRepository.getById(entity.getIdCategoryTemplate());
     domain.setTransactionType(categoryTemplate.getTransactionType());
     domain.setType(categoryTemplate.getType());
     domain.setVat(parseFraction(categoryTemplate.getVat()));
+    domain.setDescription(categoryTemplate.getDescription());
     String typeOrIdCategoryTmpl =
         entity.getType() != null ? entity.getType() : entity.getIdCategoryTemplate();
     Long typeCount = jpaRepository.countByCriteria(domain.getIdAccount(), typeOrIdCategoryTmpl,
@@ -58,6 +60,7 @@ public class TransactionCategoryMapper {
         .idTransactionCategoryTmpl(idCategoryTemplate)
         .transactionType(categoryTemplate.getTransactionType())
         .typeCount(getCategoryCount(idAccount, startDate, endDate, idCategoryTemplate))
+        .description(categoryTemplate.getDescription())
         .build();
   }
 
@@ -70,6 +73,8 @@ public class TransactionCategoryMapper {
         .type(entity.getType())
         .vat(parseFraction(entity.getVat()))
         .transactionType(entity.getTransactionType())
+        .other(entity.isOther())
+        .description(entity.getDescription())
         .build();
   }
 
@@ -88,6 +93,7 @@ public class TransactionCategoryMapper {
         .idTransaction(category.getIdTransaction())
         .idCategoryTemplate(category.getIdTransactionCategoryTmpl())
         .vat(category.getVat().toString())
+        .comment(category.getComment())
         .build();
   }
 
@@ -99,6 +105,8 @@ public class TransactionCategoryMapper {
         .idCategoryTemplate(template.getId())
         .type(template.getType())
         .vat(template.getVat())
+        .comment(null)
+        .description(template.getDescription())
         .build();
   }
 }

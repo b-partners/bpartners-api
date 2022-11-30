@@ -20,6 +20,9 @@ public class TransactionCategoryMapper {
 
   public TransactionCategory toDomain(HTransactionCategory entity, LocalDate startDate,
                                       LocalDate endDate) {
+    if (entity == null) {
+      return null;
+    }
     TransactionCategory domain = TransactionCategory.builder()
         .id(entity.getId())
         .idAccount(entity.getIdAccount())

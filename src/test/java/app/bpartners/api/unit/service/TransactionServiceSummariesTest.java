@@ -52,14 +52,15 @@ class TransactionServiceSummariesTest {
     when(transactionsSummaryRepository.getByAccountIdAndYearMonth(
         JOE_DOE_ACCOUNT_ID,
         lastMonth.getYear(),
-        lastMonth.getMonthValue()
+        lastMonth.getMonthValue() - 1
     )).thenReturn(lastMonthlySummary());
     ArgumentCaptor<String> accountCaptor = ArgumentCaptor.forClass(String.class);
     ArgumentCaptor<Integer> yearCaptor = ArgumentCaptor.forClass(Integer.class);
     ArgumentCaptor<MonthlyTransactionsSummary> summaryCaptor =
         ArgumentCaptor.forClass(MonthlyTransactionsSummary.class);
 
-    transactionService.refreshCurrentMonthSummary(JOE_DOE_ACCOUNT_ID, new Fraction());
+    transactionService.refreshMonthSummary(JOE_DOE_ACCOUNT_ID, new Fraction(), YearMonth.now(),
+        transactions());
     verify(transactionsSummaryRepository).updateYearMonthSummary(
         accountCaptor.capture(),
         yearCaptor.capture(),
@@ -77,14 +78,15 @@ class TransactionServiceSummariesTest {
     when(transactionsSummaryRepository.getByAccountIdAndYearMonth(
         JOE_DOE_ACCOUNT_ID,
         lastMonth.getYear(),
-        lastMonth.getMonthValue()
+        lastMonth.getMonthValue() - 1
     )).thenReturn(null);
     ArgumentCaptor<String> accountCaptor = ArgumentCaptor.forClass(String.class);
     ArgumentCaptor<Integer> yearCaptor = ArgumentCaptor.forClass(Integer.class);
     ArgumentCaptor<MonthlyTransactionsSummary> summaryCaptor =
         ArgumentCaptor.forClass(MonthlyTransactionsSummary.class);
 
-    transactionService.refreshCurrentMonthSummary(JOE_DOE_ACCOUNT_ID, new Fraction());
+    transactionService.refreshMonthSummary(JOE_DOE_ACCOUNT_ID, new Fraction(), YearMonth.now(),
+        transactions());
     verify(transactionsSummaryRepository).updateYearMonthSummary(
         accountCaptor.capture(),
         yearCaptor.capture(),
@@ -114,7 +116,7 @@ class TransactionServiceSummariesTest {
     return MonthlyTransactionsSummary
         .builder()
         .income(new Fraction(BigInteger.valueOf(100)))
-        .month(YearMonth.now().getMonthValue())
+        .month(YearMonth.now().getMonthValue() - 1)
         .outcome(new Fraction(BigInteger.valueOf(100)))
         .cashFlow(new Fraction(BigInteger.TWO))
         .build();
@@ -123,7 +125,7 @@ class TransactionServiceSummariesTest {
   private MonthlyTransactionsSummary refreshedSummary2() {
     return MonthlyTransactionsSummary
         .builder()
-        .month(YearMonth.now().getMonthValue())
+        .month(YearMonth.now().getMonthValue() - 1)
         .income(new Fraction(BigInteger.valueOf(100)))
         .outcome(new Fraction(BigInteger.valueOf(100)))
         .cashFlow(new Fraction())

@@ -766,6 +766,7 @@ components:
       enum:
         - PENDING
         - BOOKED
+        - UPCOMING
     CreateProduct:
       type: object
       properties:

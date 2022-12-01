@@ -1,5 +1,6 @@
 package app.bpartners.api.repository.fintecture.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
@@ -13,6 +14,7 @@ import lombok.ToString;
 @Builder
 @Setter
 @ToString
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class TokenResponse {
   private static final String JSON_PROPERTY_TOKEN_TYPE = "token_type";
   private static final String JSON_PROPERTY_ACCESS_TOKEN = "access_token";

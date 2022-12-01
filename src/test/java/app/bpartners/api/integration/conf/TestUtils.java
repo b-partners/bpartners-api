@@ -71,6 +71,8 @@ public class TestUtils {
   public static final String BAD_TOKEN = "bad_token";
   public static final String VALID_EMAIL = "username@domain.com";
   public static final String API_URL = "https://api.swan.io/sandbox-partner/graphql";
+  public static final String OAUTH_URL = "https://api-sandbox.fintecture.com/oauth/accesstoken";
+  public static final String PIS_URL = "https://api-sandbox.fintecture.com/pis/v2/";
   public static final String REDIRECT_SUCCESS_URL =
       "https://dashboard-dev.bpartners.app/login/success";
   public static final String REDIRECT_FAILURE_URL =
@@ -93,6 +95,7 @@ public class TestUtils {
   public static final String BEARER_QUERY_PARAMETER_NAME = "accessToken";
   public static final String BEARER_PREFIX = "Bearer ";
   public static final String JOE_DOE_TOKEN = "joe_doe_token";
+  public static final String PROJECT_TOKEN = "project_token";
   public static final String BAD_CODE = "bad_code";
   public static final String SWAN_ONBOARDING_URL_FORMAT =
       "https://api.banking.sandbox.swan.io/projects/uuid/onboardings/uuid";

@@ -16,7 +16,7 @@ import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.stream.Collectors;
-import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import static app.bpartners.api.endpoint.rest.security.swan.SwanConf.SWAN_TOKEN_URL;
@@ -30,12 +30,18 @@ import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVE
  * */
 
 
-@AllArgsConstructor
 @Component
+@Slf4j
 public class SwanApi<T> {
   private final PrincipalProvider auth;
   private final SwanCustomApi<T> swanCustomApi;
   private final SwanConf swanConf;
+
+  public SwanApi(PrincipalProvider auth, SwanCustomApi<T> swanCustomApi, SwanConf swanConf) {
+    this.auth = auth;
+    this.swanCustomApi = swanCustomApi;
+    this.swanConf = swanConf;
+  }
 
   public T getData(Class<T> genericClass, String message) {
     return swanCustomApi.getData(genericClass, message, bearerToken());
@@ -45,22 +51,27 @@ public class SwanApi<T> {
     return ((Principal) auth.getAuthentication().getPrincipal()).getBearer();
   }
 
-  public ProjectTokenResponse getProjectToken() {
+  public ProjectTokenResponse getProjectToken(int n, HttpClient httpClient, long ms) {
+    ProjectTokenResponse projectTokenResponse;
     try {
-      HttpClient httpClient = HttpClient.newBuilder().build();
       HttpRequest request = HttpRequest.newBuilder().uri(new URI(SWAN_TOKEN_URL))
           .header("Content-Type", "application/x-www-form-urlencoded")
           .POST(getParamsUrlEncoded(swanConf.getParams())).build();
       HttpResponse<String> response =
           httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-      return new ObjectMapper().findAndRegisterModules()//Load DateTime Module
+      projectTokenResponse = new ObjectMapper().findAndRegisterModules()//Load DateTime Module
           .readValue(response.body(), ProjectTokenResponse.class);
     } catch (IOException | URISyntaxException e) {
-      throw new ApiException(ApiException.ExceptionType.SERVER_EXCEPTION, e);
+      if (n == 3) {
+        throw new ApiException(SERVER_EXCEPTION, e);
+      }
+      makeThreadWait(Thread.currentThread(), ms, n);
+      return getProjectToken(++n, httpClient, ms);
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       throw new ApiException(SERVER_EXCEPTION, e);
     }
+    return projectTokenResponse;
   }
   /*
     TODO: if getProjectToken fails you should get a new Token
@@ -72,5 +83,16 @@ public class SwanApi<T> {
         .map(e -> e.getKey() + "=" + URLEncoder.encode(e.getValue(), StandardCharsets.UTF_8))
         .collect(Collectors.joining("&"));
     return HttpRequest.BodyPublishers.ofString(urlEncoded);
+  }
+
+  private void makeThreadWait(Thread current, long ms, int attempt) {
+    synchronized (current) {
+      try {
+        log.info("Attempt - " + attempt + " Thread." + current.getId()
+            + " - " + current.getName() + " is waiting.");
+        current.wait(ms);
+      } catch (InterruptedException ignored) {
+      }
+    }
   }
 }

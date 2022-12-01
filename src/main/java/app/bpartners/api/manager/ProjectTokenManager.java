@@ -3,6 +3,7 @@ package app.bpartners.api.manager;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.repository.swan.SwanApi;
 import app.bpartners.api.repository.swan.response.ProjectTokenResponse;
+import java.net.http.HttpClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -22,6 +23,7 @@ public class ProjectTokenManager {
   private final SwanApi<ProjectTokenResponse> swanApi;
   private final FinctectureTokenManager finctectureTokenManager;
   private final SsmClient ssmClient;
+  private final HttpClient httpClient;
 
   public ProjectTokenManager(SsmClient ssmClient,
                              @Value("${aws.ssm.swan.project.param}")
@@ -35,6 +37,7 @@ public class ProjectTokenManager {
     this.fintectureProjectParamName = fintectureProjectParamName;
     this.finctectureTokenManager = finctectureTokenManager;
     this.swanApi = swanApi;
+    this.httpClient = HttpClient.newBuilder().build();
   }
 
   private String getParameterValue(SsmClient ssmClient, String parameterName) {
@@ -62,7 +65,7 @@ public class ProjectTokenManager {
   @Scheduled(cron = "0 0 * * * ?")
   public void refreshSwanProjectToken() {
     String accessToken =
-        swanApi.getProjectToken().getAccessToken();
+        swanApi.getProjectToken(1, httpClient, 10_000).getAccessToken();
     ssmClient.putParameter(PutParameterRequest
         .builder()
         .name(swanProjectParamName)

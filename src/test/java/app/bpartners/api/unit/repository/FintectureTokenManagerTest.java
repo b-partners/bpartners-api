@@ -12,7 +12,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 class FintectureTokenManagerTest {
-  private static final String appId = "app_id";
+  private static final String APP_ID = "app_id";
   FintectureConf fintectureConf;
   FinctectureTokenManager fintectureTokenManager;
 
@@ -21,7 +21,7 @@ class FintectureTokenManagerTest {
     fintectureConf = mock(FintectureConf.class);
     fintectureTokenManager = new FinctectureTokenManager(fintectureConf);
 
-    when(fintectureConf.getAppId()).thenReturn(appId);
+    when(fintectureConf.getAppId()).thenReturn(APP_ID);
     when(fintectureConf.getOauthUrl()).thenReturn(OAUTH_URL);
   }
 
@@ -31,5 +31,4 @@ class FintectureTokenManagerTest {
 
     assertNotNull(actual);
   }
-
 }

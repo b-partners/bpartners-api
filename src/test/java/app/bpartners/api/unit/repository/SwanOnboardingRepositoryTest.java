@@ -34,15 +34,14 @@ class SwanOnboardingRepositoryTest {
 
   @Test
   void read_swan_onboarding_url_ok() {
-    try (MockedConstruction<OnboardingResponse> responseMockedConstruction =
-             mockConstruction(OnboardingResponse.class, (mock, context) -> {
-               when(mock.getData()).thenReturn(onboardingData());
-             })) {
-      String actual =
-          onboardingSwanRepository.getOnboardingUrl(REDIRECT_SUCCESS_URL);
+    MockedConstruction<OnboardingResponse> mockedConstruction =
+        mockConstruction(OnboardingResponse.class,
+            (mock, context) -> when(mock.getData()).thenReturn(onboardingData()));
+    String actual =
+        onboardingSwanRepository.getOnboardingUrl(REDIRECT_SUCCESS_URL);
 
-      assertNotNull(actual);
-    }
+    assertNotNull(actual);
+    mockedConstruction.close();
   }
 
   OnboardingResponse.Data onboardingData() {

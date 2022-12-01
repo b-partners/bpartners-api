@@ -349,12 +349,17 @@ class InvoiceIT {
     ApiClient joeDoeClient = anApiClient();
     PayingApi api = new PayingApi(joeDoeClient);
     String firstInvoiceId = randomUUID().toString();
+    CrupdateInvoice crupdateInvoiceWithNonExistentCustomer =
+        initializeDraft().customer(customer1().id("non-existent-customer"));
     Executable firstCrupdateExecutable =
         () -> api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, firstInvoiceId,
             validInvoice().ref("unique_ref"));
     Executable secondCrupdateExecutable =
         () -> api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, randomUUID().toString(),
             validInvoice().ref("unique_ref"));
+    Executable thirdCrupdateExecutable =
+        () -> api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, NEW_INVOICE_ID,
+            crupdateInvoiceWithNonExistentCustomer);
 
     assertDoesNotThrow(firstCrupdateExecutable);
 
@@ -363,6 +368,10 @@ class InvoiceIT {
             + "The invoice reference must unique however the given reference [unique_ref] is"
             + " already used by invoice." + firstInvoiceId + "\"}",
         secondCrupdateExecutable);
+    assertThrowsApiException("{\"type\":\"404 NOT_FOUND\",\"message\":\""
+            + "Customer." + crupdateInvoiceWithNonExistentCustomer.getCustomer().getId()
+            + " is not found.\"}",
+        thirdCrupdateExecutable);
   }
 
   // /!\ It seems that the localstack does not support the SES service using the default credentials

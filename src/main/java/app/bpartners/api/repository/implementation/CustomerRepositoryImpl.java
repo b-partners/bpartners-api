@@ -2,12 +2,14 @@ package app.bpartners.api.repository.implementation;
 
 import app.bpartners.api.endpoint.rest.security.principal.PrincipalProvider;
 import app.bpartners.api.model.CustomerTemplate;
+import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.mapper.CustomerMapper;
 import app.bpartners.api.repository.CustomerRepository;
 import app.bpartners.api.repository.jpa.CustomerJpaRepository;
 import app.bpartners.api.repository.jpa.model.HCustomerTemplate;
 import app.bpartners.api.service.AccountService;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -48,6 +50,11 @@ public class CustomerRepositoryImpl implements CustomerRepository {
 
   @Override
   public CustomerTemplate findById(String id) {
-    return mapper.toDomain(jpaRepository.getById(id));
+    Optional<HCustomerTemplate> customerTemplate = jpaRepository.findById(id);
+    if (customerTemplate.isPresent()) {
+      return mapper.toDomain(customerTemplate.get());
+    } else {
+      throw new NotFoundException("Customer." + id + " is not found.");
+    }
   }
 }

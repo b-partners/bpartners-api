@@ -9,8 +9,10 @@ import org.springframework.data.jpa.repository.Query;
 
 public interface TransactionCategoryJpaRepository
     extends JpaRepository<HTransactionCategory, String> {
+  String DEFAULT_START_TIMESTAMP = "'2021-01-01 00:00:00'";
+
   @Query(value = "select "
-      + "new HTransactionCategory(coalesce(tc.id, 'nullValue'),"
+      + "new HTransactionCategory(coalesce(tc.id,template.id),"
       + "tc.idTransaction,"
       + "coalesce(tc.idAccount, ?1),"
       + "coalesce(tc.idCategoryTemplate, template.id),"
@@ -27,7 +29,7 @@ public interface TransactionCategoryJpaRepository
   List<HTransactionCategory> findAllByIdAccount(String idAccount);
 
   @Query(value = "select "
-      + "new HTransactionCategory(coalesce(tc.id, 'nullValue'),"
+      + "new HTransactionCategory(coalesce(tc.id,template.id),"
       + "tc.idTransaction,"
       + "coalesce(tc.idAccount, ?1),"
       + "coalesce(tc.idCategoryTemplate, template.id),"
@@ -53,7 +55,7 @@ public interface TransactionCategoryJpaRepository
       + "(template.id = tc.idCategoryTemplate) "
       + " where (tc.idAccount = ?1 or tc.idAccount is null)"
       + "and (coalesce(tc.type, template.type) = ?2)"
-      + "and (CAST(coalesce(tc.createdDatetime, '2021-01-01 00:00:00') as timestamp) "
+      + "and (CAST(coalesce(tc.createdDatetime, " + DEFAULT_START_TIMESTAMP + ") as timestamp) "
       + "between CAST(?3 as timestamp ) and CAST(?4 as timestamp ))"
   )
   long countByCriteria(String idAccount, String type, Instant from,

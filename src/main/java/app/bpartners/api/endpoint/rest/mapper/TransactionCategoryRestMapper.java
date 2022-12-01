@@ -36,9 +36,9 @@ public class TransactionCategoryRestMapper {
       String accountId,
       CreateTransactionCategory rest) {
     validator.accept(rest);
+    TransactionCategoryTemplate categoryTemplate =
+        categoryTmplRepository.findByType(rest.getType());
     Transaction transaction = transactionRepository.findByAccountIdAndId(accountId, transactionId);
-    TransactionCategoryTemplate categoryTemplate = categoryTmplRepository.findByTypeAndVat(
-        rest.getType(), parseFraction(rest.getVat()));
     if (!transaction.getType().equals(categoryTemplate.getTransactionType())) {
       throw new BadRequestException(
           "Cannot add category." + categoryTemplate.getId() + " of type "

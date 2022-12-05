@@ -25,9 +25,6 @@ public class CustomerService {
   public List<CustomerTemplate> createCustomers(
       String accountId,
       List<CustomerTemplate> customerTemplates) {
-    customerTemplates.forEach(
-        customerTemplate -> mailService.verifyEmailIdentity(customerTemplate.getEmail()));
-    //TODO : update email on customer info update
     return repository.saveAll(accountId, customerTemplates);
   }
 }

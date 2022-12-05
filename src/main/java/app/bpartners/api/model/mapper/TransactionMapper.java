@@ -13,12 +13,15 @@ import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 
 @Component
 public class TransactionMapper {
+
+  public static final String UPCOMING_STATUS = "Upcoming";
+
   public Transaction toDomain(app.bpartners.api.repository.swan.model.Transaction external,
                               TransactionCategory category) {
     String status = external.getNode().getStatusInfo().getStatus();
     return Transaction.builder()
         .id(external.getNode().getId())
-        .amount(parseFraction(external.getNode().getAmount().getValue()))
+        .amount(parseFraction(external.getNode().getAmount().getValue() * 100))
         .currency(external.getNode().getAmount().getCurrency())
         .label(external.getNode().getLabel())
         .reference(external.getNode().getReference())
@@ -37,6 +40,9 @@ public class TransactionMapper {
         break;
       case BOOKED_STATUS:
         transactionStatus = TransactionStatus.BOOKED;
+        break;
+      case UPCOMING_STATUS:
+        transactionStatus = TransactionStatus.UPCOMING;
         break;
       default:
         throw new ApiException(SERVER_EXCEPTION, "Unknown transactions status " + status);

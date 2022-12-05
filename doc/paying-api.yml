@@ -39,9 +39,9 @@ operations:
       description: |
         Can be filter by :
         * unique : show distinct transaction categories
-        * userDefined : show transaction categories defined by the user
         * date intervals : give the count of transaction categories used by existing transactions 
         between two dates
+        * transactionType : INCOME or OUTCOME or null if both
       parameters:
         - in: path
           name: aId
@@ -50,10 +50,9 @@ operations:
             type: string
           required: true
         - in: query
-          name: userDefined
+          name: transactionType
           schema:
-            type: boolean
-            description: If null, returns user defined categories and default categories
+            $ref: '#/components/schemas/TransactionTypeEnum'
         - in: query
           name: from
           schema:
@@ -229,7 +228,7 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
-  getProducts:
+  getOrCreateProducts:
     get:
       tags:
         - Paying
@@ -270,22 +269,15 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
-  createProducts:
     post:
       tags:
         - Paying
       operationId: createProducts
-      summary: Create products of an invoice
+      summary: Create products of an account
       parameters:
         - in: path
-          name: aId
+          name: id
           description: Account identifier
-          schema:
-            type: string
-          required: true
-        - in: path
-          name: iId
-          description: Invoice identifier
           schema:
             type: string
           required: true
@@ -299,11 +291,13 @@ operations:
                 $ref: '#/components/schemas/CreateProduct'
       responses:
         200:
-          description: The modified invoice
+          description: The created products
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Invoice'
+                type: array
+                items:
+                  $ref: '#/components/schemas/Product'
         400:
           $ref: './api.yml#/components/responses/400'
         403:
@@ -604,22 +598,24 @@ components:
       properties:
         id:
           type: string
-        userDefined:
-          type: boolean
         count:
           type: integer
           format: int64
         transactionType:
           $ref: '#/components/schemas/TransactionTypeEnum'
+        description:
+          type: string
+          example: null
     CreateTransactionCategory:
       type: object
       properties:
         type:
           type: string
-        #todo: to change to integer - Format is cents
+        comment:
+          type: string
+          example: null
         vat:
-          type: number
-          format: double
+          type: integer
     TransactionsSummary:
       type: object
       properties:
@@ -745,15 +741,11 @@ components:
           items:
             $ref: '#/components/schemas/Product'
         totalVat:
-          #todo: to change to integer - Format is cents
-          type: number
-          format: double
+          type: integer
         totalPriceWithoutVat:
-          type: number
-          format: double
+          type: integer
         totalPriceWithVat:
-          type: number
-          format: double
+          type: integer
         status:
           $ref: '#/components/schemas/InvoiceStatus'
         updatedAt:
@@ -777,6 +769,7 @@ components:
       enum:
         - PENDING
         - BOOKED
+        - UPCOMING
     CreateProduct:
       type: object
       properties:
@@ -784,26 +777,20 @@ components:
           type: string
         quantity:
           type: integer
-        #TODO: to change to integer - Format is cents
         unitPrice:
-          type: number
-          format: double
+          type: integer
         vatPercent:
-          type: number
-          format: double
+          type: integer
     Product:
       allOf:
         - $ref: '#/components/schemas/CreateProduct'
       properties:
         id:
           type: string
-        #todo: to change to integer - Format is cents
         totalVat:
-          type: number
-          format: double
+          type: integer
         totalPriceWithVat:
-          type: number
-          format: double
+          type: integer
     PaymentInitiation:
       type: object
       properties:
@@ -813,10 +800,8 @@ components:
           type: string
         reference:
           type: string
-        #todo: to change to integer - Format is cents
         amount:
-          type: number
-          format: double
+          type: integer
         payerName:
           type: string
         payerEmail:

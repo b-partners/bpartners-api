@@ -19,4 +19,6 @@ public class TransactionCategoryTemplate {
   private String type;
   private TransactionTypeEnum transactionType;
   private Fraction vat;
+  private boolean other;
+  private String description;
 }

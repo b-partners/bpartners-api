@@ -21,8 +21,8 @@ public class TransactionsSummaryRestMapper {
         .id(domain.getId())
         .month(domain.getMonth())
         .updatedAt(domain.getUpdatedAt())
-        .income(domain.getIncome().getCents())
-        .outcome(domain.getOutcome().getCents())
-        .cashFlow(domain.getCashFlow().getCents());
+        .income(domain.getIncome().getCentsRoundUp())
+        .outcome(domain.getOutcome().getCentsRoundUp())
+        .cashFlow(domain.getCashFlow().getCentsRoundUp());
   }
 }

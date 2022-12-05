@@ -377,6 +377,8 @@ components:
           $ref: '#/components/schemas/CompanyInfo'
         businessActivities:
           $ref: '#/components/schemas/CompanyBusinessActivity'
+        initialCashflow:
+          type: integer
         verificationStatus:
           $ref: '#/components/schemas/VerificationStatus'
     VerificationStatus:

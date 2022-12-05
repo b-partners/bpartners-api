@@ -35,7 +35,7 @@ public class HProduct {
   public static final String ID_ACCOUNT_ATTRIBUTE = "idAccount";
   private String description;
   public static final String DESCRIPTION_ATTRIBUTE = "description";
-  private int quantity;
+  private Integer quantity;
   public static final String QUANTITY_ATTRIBUTE = "quantity";
   private String unitPrice;
   public static final String UNIT_PRICE_ATTRIBUTE = "unitPrice";

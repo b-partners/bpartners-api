@@ -186,9 +186,9 @@ class InvoiceIT {
         .toPayAt(LocalDate.of(2022, 10, 1))
         .status(CONFIRMED)
         .products(List.of(product3(), product4()))
-        .totalPriceWithVat(8800.0)
-        .totalVat(800.0)
-        .totalPriceWithoutVat(8000.0);
+        .totalPriceWithVat(8800)
+        .totalVat(800)
+        .totalPriceWithoutVat(8000);
   }
 
   Invoice invoice2() {
@@ -202,8 +202,8 @@ class InvoiceIT {
         .toPayAt(LocalDate.of(2022, 10, 10))
         .status(CONFIRMED)
         .products(List.of(product5()))
-        .totalPriceWithVat(1100.0)
-        .totalVat(100.0).totalPriceWithoutVat(1000.0);
+        .totalPriceWithVat(1100)
+        .totalVat(100).totalPriceWithoutVat(1000);
   }
 
   Invoice invoice6() {
@@ -218,9 +218,9 @@ class InvoiceIT {
         .sendingDate(LocalDate.of(2022, 10, 12))
         .products(List.of())
         .toPayAt(LocalDate.of(2022, 11, 10))
-        .totalPriceWithVat(0.0)
-        .totalVat(0.0)
-        .totalPriceWithoutVat(0.0);
+        .totalPriceWithVat(0)
+        .totalVat(0)
+        .totalPriceWithoutVat(0);
   }
 
   CrupdateInvoice validInvoice() {
@@ -246,9 +246,9 @@ class InvoiceIT {
         .sendingDate(validInvoice().getSendingDate())
         .products(List.of(product4().id(null), product5().id(null)))
         .toPayAt(validInvoice().getToPayAt())
-        .totalPriceWithVat(3300.0)
-        .totalVat(300.0)
-        .totalPriceWithoutVat(3000.0);
+        .totalPriceWithVat(3300)
+        .totalVat(300)
+        .totalPriceWithoutVat(3000);
   }
 
   Invoice expectedConfirmed() {
@@ -262,18 +262,18 @@ class InvoiceIT {
         .sendingDate(confirmedInvoice().getSendingDate())
         .products(List.of(product5().id(null)))
         .toPayAt(confirmedInvoice().getToPayAt())
-        .totalPriceWithVat(1100.0)
-        .totalVat(100.0)
-        .totalPriceWithoutVat(1000.0);
+        .totalPriceWithVat(1100)
+        .totalVat(100)
+        .totalPriceWithoutVat(1000);
   }
 
   Invoice expectedInitializedDraft() {
     return new Invoice()
         .id(NEW_INVOICE_ID)
         .products(List.of())
-        .totalVat(0.0)
-        .totalPriceWithoutVat(0.0)
-        .totalPriceWithVat(0.0)
+        .totalVat(0)
+        .totalPriceWithoutVat(0)
+        .totalPriceWithVat(0)
         .status(DRAFT);
   }
 
@@ -288,9 +288,9 @@ class InvoiceIT {
         .sendingDate(paidInvoice().getSendingDate())
         .products(List.of(product5().id(null)))
         .toPayAt(paidInvoice().getToPayAt())
-        .totalPriceWithVat(1100.0)
-        .totalVat(100.0)
-        .totalPriceWithoutVat(1000.0);
+        .totalPriceWithVat(1100)
+        .totalVat(100)
+        .totalPriceWithoutVat(1000);
   }
 
   //TODO: create PaginationIT for pagination test and add filters.
@@ -349,12 +349,17 @@ class InvoiceIT {
     ApiClient joeDoeClient = anApiClient();
     PayingApi api = new PayingApi(joeDoeClient);
     String firstInvoiceId = randomUUID().toString();
+    CrupdateInvoice crupdateInvoiceWithNonExistentCustomer =
+        initializeDraft().customer(customer1().id("non-existent-customer"));
     Executable firstCrupdateExecutable =
         () -> api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, firstInvoiceId,
             validInvoice().ref("unique_ref"));
     Executable secondCrupdateExecutable =
         () -> api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, randomUUID().toString(),
             validInvoice().ref("unique_ref"));
+    Executable thirdCrupdateExecutable =
+        () -> api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, NEW_INVOICE_ID,
+            crupdateInvoiceWithNonExistentCustomer);
 
     assertDoesNotThrow(firstCrupdateExecutable);
 
@@ -363,6 +368,10 @@ class InvoiceIT {
             + "The invoice reference must unique however the given reference [unique_ref] is"
             + " already used by invoice." + firstInvoiceId + "\"}",
         secondCrupdateExecutable);
+    assertThrowsApiException("{\"type\":\"404 NOT_FOUND\",\"message\":\""
+            + "Customer." + crupdateInvoiceWithNonExistentCustomer.getCustomer().getId()
+            + " is not found.\"}",
+        thirdCrupdateExecutable);
   }
 
   // /!\ It seems that the localstack does not support the SES service using the default credentials

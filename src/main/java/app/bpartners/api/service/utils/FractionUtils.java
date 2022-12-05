@@ -18,7 +18,7 @@ public class FractionUtils {
 
   public static Fraction parseFraction(String fraction) {
     if (fraction == null) {
-      return null;
+      return new Fraction();
     }
     if (!fraction.contains("/")) {
       throw new ApiException(ApiException.ExceptionType.SERVER_EXCEPTION,
@@ -30,11 +30,24 @@ public class FractionUtils {
   }
 
   public static Fraction parseFraction(Aprational aprational) {
+    if (aprational == null) {
+      return new Fraction();
+    }
     return new Fraction(aprational.numerator().toBigInteger(),
         aprational.denominator().toBigInteger());
   }
 
+  public static Fraction parseFraction(Integer number) {
+    if (number == null) {
+      return new Fraction();
+    }
+    return new Fraction(BigInteger.valueOf(number));
+  }
+
   public static Fraction parseFraction(Double number) {
+    if (number == null) {
+      return new Fraction();
+    }
     Aprational aprational = new Aprational(number);
     return parseFraction(aprational);
   }

@@ -5,6 +5,6 @@ values ('transaction_category1_id', 'beed1765-5c16-472a-b3f4-5c376ce5db58',
         null,
         'bosci_0fe167566b234808a44aae415f057b6c', '2022-01-01T01:00:00.00Z'),
        ('transaction_category2_id', 'beed1765-5c16-472a-b3f4-5c376ce5db58',
-        null, 'Sponsoring',
+        'aa66239c-2be3-4c04-b260-49b207951ecf', 'Sponsoring',
         '0/1',
         'bosci_0fe167566b234808a44aae415f057b6c', '2022-01-01T01:00:00.00Z');

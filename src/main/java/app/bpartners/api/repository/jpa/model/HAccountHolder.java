@@ -29,4 +29,5 @@ public class HAccountHolder implements Serializable {
   private String tvaNumber;
   private String mobilePhoneNumber;
   private String email;
+  private String initialCashflow;
 }

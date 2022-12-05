@@ -19,7 +19,7 @@ public class Product {
   private String id;
   private Invoice invoice;
   private String description;
-  private int quantity;
+  private Integer quantity;
   private Fraction unitPrice;
   private Fraction vatPercent;
   @Getter(AccessLevel.NONE)
@@ -34,6 +34,9 @@ public class Product {
   }
 
   public Fraction getTotalWithoutVat() {
+    if (quantity == null) {
+      return new Fraction();
+    }
     return unitPrice.operate(new Fraction(BigInteger.valueOf(quantity)), Aprational::multiply);
   }
 

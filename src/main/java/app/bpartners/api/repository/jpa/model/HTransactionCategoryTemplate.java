@@ -41,4 +41,6 @@ public class HTransactionCategoryTemplate {
   @Type(type = "pgsql_enum")
   @Enumerated(EnumType.STRING)
   private TransactionTypeEnum transactionType;
+  private boolean other;
+  private String description;
 }

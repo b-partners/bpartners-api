@@ -6,7 +6,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Table;
-import lombok.AllArgsConstructor;
+import javax.persistence.Transient;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -23,7 +23,6 @@ import static javax.persistence.GenerationType.IDENTITY;
 @Setter
 @ToString
 @Builder
-@AllArgsConstructor
 @NoArgsConstructor
 @EqualsAndHashCode
 public class HTransactionCategory {
@@ -48,16 +47,22 @@ public class HTransactionCategory {
   @CreationTimestamp
   private Instant createdDatetime;
   public static final String CREATED_DATETIME_ATTRIBUTE = "createdDatetime";
+  private String comment;
+  @Transient
+  private String description;
 
-  public HTransactionCategory(
-      String idAccount, String idCategoryTemplate, String type, String vat) {
+  public HTransactionCategory(String id, String idTransaction, String idAccount,
+                              String idCategoryTemplate, String type, String vat,
+                              Instant createdDatetime, String comment, String description) {
+    this.id = id;
+    this.idTransaction = idTransaction;
     this.idAccount = idAccount;
     this.idCategoryTemplate = idCategoryTemplate;
     this.type = type;
     this.vat = vat;
+    this.createdDatetime = createdDatetime;
+    this.comment = comment;
+    this.description = description;
   }
 
-  public boolean isUserDefined() {
-    return idCategoryTemplate == null;
-  }
 }

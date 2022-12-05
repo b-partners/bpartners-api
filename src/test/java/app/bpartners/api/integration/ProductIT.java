@@ -92,8 +92,8 @@ class ProductIT {
     return new CreateProduct()
         .description("Nouveau produit")
         .quantity(1)
-        .unitPrice(9000.0)
-        .vatPercent(1000.0);
+        .unitPrice(9000)
+        .vatPercent(1000);
   }
 
   @Test
@@ -126,18 +126,18 @@ class ProductIT {
         "{\"type\":\"400 BAD_REQUEST\",\"message\":\"Query parameter `unique` is mandatory.\"}",
         () -> api.getProducts(JOE_DOE_ACCOUNT_ID, null, null));
   }
-  //TODO : fix the create products endpoint before the test
-  //  @Test
-  //  void create_products_ok() throws ApiException {
-  //    ApiClient joeDoeClient = anApiClient();
-  //    PayingApi api = new PayingApi(joeDoeClient);
-  //
-  //    Invoice actual =
-  //      api.createProducts(JOE_DOE_ACCOUNT_ID, INVOICE1_ID, List.of(createProduct1()));
-  //
-  //    List<Product> actualProducts = api.getProducts(JOE_DOE_ACCOUNT_ID, true, null);
-  //    assertTrue(actualProducts.containsAll(actual.getProducts()));
-  //  }
+
+  @Test
+  void create_products_ok() throws ApiException {
+    ApiClient joeDoeClient = anApiClient();
+    PayingApi api = new PayingApi(joeDoeClient);
+
+    List<Product> actual =
+        api.createProducts(JOE_DOE_ACCOUNT_ID, List.of(createProduct1()));
+
+    List<Product> actualProducts = api.getProducts(JOE_DOE_ACCOUNT_ID, true, null);
+    assertTrue(actualProducts.containsAll(actual));
+  }
 
   static class ContextInitializer extends AbstractContextInitializer {
     public static final int SERVER_PORT = TestUtils.anAvailableRandomPort();

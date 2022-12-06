@@ -17,11 +17,13 @@ import app.bpartners.api.model.validator.InvoiceRelaunchValidator;
 import app.bpartners.api.repository.InvoiceRelaunchConfRepository;
 import app.bpartners.api.repository.InvoiceRelaunchRepository;
 import app.bpartners.api.repository.InvoiceRepository;
+import app.bpartners.api.service.utils.TemplateResolverUtils;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.thymeleaf.context.Context;
 
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.DRAFT;
@@ -32,6 +34,7 @@ import static app.bpartners.api.service.utils.FileInfoUtils.PDF_EXTENSION;
 @Service
 @AllArgsConstructor
 public class InvoiceRelaunchService {
+  public static final String MAIL_TEMPLATE = "mail";
   private final InvoiceRelaunchConfRepository repository;
   private final InvoiceRelaunchRepository invoiceRelaunchRepository;
   private final InvoiceRelaunchValidator invoiceRelaunchValidator;
@@ -68,39 +71,31 @@ public class InvoiceRelaunchService {
     return invoiceRelaunchRepository.getByInvoiceId(invoiceId, type, pageable);
   }
 
-  //TODO: set it again in template resolver when the load style baseUrl is set
-  private String emailBody(String emailMessage, AccountHolder accountHolder) {
-    return "<html>\n"
-        + "    <body style=\"font-family: 'Gill Sans'\">\n"
-        + "        <h2 style=color:#8d2158;>" + accountHolder.getName() + "</h2>\n"
-        + emailMessage //TODO: avoid the SQL injection
-        + "        <p>Bien à vous et merci pour votre confiance.</p>\n"
-        + "    </body>\n"
-        + "</html>";
-  }
-
-  //TODO: persist the default email message and get it instead
-  private String defaultEmailMessage(String type, Invoice invoice) {
-    return "        <p>Bonjour,</p>\n"
-        + "        <p>\n"
-        + "            Retrouvez-ci joint votre " + type + " enregistré à la référence "
-        + invoice.getRef() + "\n"
-        + "        </p>\n";
+  private String emailBody(String customEmailBody, Invoice invoice, AccountHolder accountHolder) {
+    return TemplateResolverUtils.parseTemplateResolver(MAIL_TEMPLATE,
+        configureContext(invoice, accountHolder, customEmailBody));
   }
 
   private TypedInvoiceRelaunchSaved getTypedInvoiceRelaunched(
-      Invoice invoice, AccountHolder accountHolder, String subject, String emailMessage) {
-    String type = getStatusValue(invoice.getStatus());
-    subject = subject == null
-        ? type + " " + invoice.getRef() :
-        subject;    //TODO: if invoice has already been relaunched then change this
-    emailMessage = emailMessage == null
-        ? defaultEmailMessage(type.toLowerCase(), invoice) : emailMessage;
+      Invoice invoice, AccountHolder accountHolder, String subject, String customEmailBody) {
+    //TODO: if invoice has already been relaunched then change this
+    subject = subject == null ? getSubject(accountHolder, getDefaultSubject(invoice)) :
+        getSubject(accountHolder, subject);
     String recipient = invoice.getInvoiceCustomer().getEmail();
 
     return toTypedEvent(
-        recipient, subject, emailBody(emailMessage, accountHolder), subject + PDF_EXTENSION,
-        invoice, accountHolder);
+        recipient, getSubject(accountHolder, subject),
+        emailBody(customEmailBody, invoice, accountHolder),
+        invoice.getRef() + PDF_EXTENSION, invoice, accountHolder);
+  }
+
+  private static String getDefaultSubject(Invoice invoice) {
+    return "Votre " + getStatusValue(invoice.getStatus()).toLowerCase()
+        + " portant la référence " + invoice.getRef() + " vient d'arriver";
+  }
+
+  private static String getSubject(AccountHolder accountHolder, String subject) {
+    return "[" + accountHolder.getName() + "] " + subject;
   }
 
   private TypedInvoiceRelaunchSaved toTypedEvent(String recipient, String subject, String emailBody,
@@ -117,7 +112,7 @@ public class InvoiceRelaunchService {
         .build());
   }
 
-  private String getStatusValue(InvoiceStatus status) {
+  private static String getStatusValue(InvoiceStatus status) {
     if (status.equals(PROPOSAL) || status.equals(DRAFT)) {
       return "Devis";
     }
@@ -129,5 +124,17 @@ public class InvoiceRelaunchService {
 
   private String userLogoFileId() {
     return ((Principal) auth.getAuthentication().getPrincipal()).getUser().getLogoFileId();
+  }
+
+  private Context configureContext(
+      Invoice invoice, AccountHolder accountHolder, String customEmailBody) {
+    Context context = new Context();
+
+    context.setVariable("invoice", invoice);
+    context.setVariable("type", getStatusValue(invoice.getStatus()));
+    context.setVariable("customEmailBody", customEmailBody);
+    context.setVariable("accountHolder", accountHolder);
+
+    return context;
   }
 }

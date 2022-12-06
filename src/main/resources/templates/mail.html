@@ -1,15 +1,27 @@
-<html xmlns:th="http://www.thymeleaf.org">
-    <body style="font-family: 'Gill Sans'">
-        <h2 style=color:#8d2158;>BPartners</h2>
-        <h3 style=color:#424141;>
-            L'assistant bancaire qui accélère la croissance et les encaissements des artisans.
-        </h3>
-        <p>Bonjour,</p>
+<html>
+<head>
+    <title>Email</title>
+    <style>
+        body {
+            font-family: Helvetica, serif;
+        }
+    </style>
+</head>
+<body>
+<section>
+    <h2>Luc Artisan</h2>
+    <p>Bonjour,</p>
+    <p>Ci-joint votre devis enregistré à la référence D2022_12_02.</p>
+    <p>Dans l'attente de vous lire,</p>
+    <p>Bien à vous</p>
+    <footer>
         <p>
-            Retrouvez-ci joint votre
-            <span th:text="' '+ ${type} +'.'">
-            </span>
+            <strong>Luc Artisan</strong><br>
+            Email: luc.artisan@gmail.com<br>
+            Tél: 06 12 34 56 78
         </p>
-        <p>Bien à vous et merci pour votre confiance.</p>
-    </body>
+    </footer>
+</section>
+
+</body>
 </html>

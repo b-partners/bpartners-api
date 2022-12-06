@@ -3,6 +3,7 @@ package app.bpartners.api.manager;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.repository.swan.SwanApi;
 import app.bpartners.api.repository.swan.response.ProjectTokenResponse;
+import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -60,6 +61,7 @@ public class ProjectTokenManager {
   }
 
   @Scheduled(cron = "0 0 * * * ?")
+  @PostConstruct
   public void refreshSwanProjectToken() {
     String accessToken =
         swanApi.getProjectToken().getAccessToken();
@@ -75,7 +77,8 @@ public class ProjectTokenManager {
 
   /*TODO: retry to get token after 10 secondes in case of server failure*/
   @Scheduled(cron = "0 0 * * * ?")
-  public void setFintectureProjectToken() {
+  @PostConstruct
+  public void refreshFintectureProjectToken() {
     ssmClient.putParameter(PutParameterRequest.builder()
         .name(fintectureProjectParamName)
         .value(finctectureTokenManager.getProjectAccessToken().getAccessToken())

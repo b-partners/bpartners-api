@@ -11,6 +11,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -37,7 +38,19 @@ public class CustomerController {
     List<CustomerTemplate> customerTemplates = toCreate.stream()
         .map(createCustomer -> mapper.toDomain(id, createCustomer))
         .collect(Collectors.toUnmodifiableList());
-    return service.createCustomers(id, customerTemplates).stream()
+    return service.crupdateCustomers(id, customerTemplates).stream()
+        .map(mapper::toRest)
+        .collect(Collectors.toUnmodifiableList());
+  }
+
+  @PutMapping("/accounts/{id}/customers")
+  public List<Customer> updateCustomers(
+      @PathVariable("id") String id,
+      @RequestBody List<Customer> toUpdate) {
+    List<CustomerTemplate> customerTemplates = toUpdate.stream()
+        .map(customer -> mapper.toDomain(id, customer))
+        .collect(Collectors.toUnmodifiableList());
+    return service.crupdateCustomers(id, customerTemplates).stream()
         .map(mapper::toRest)
         .collect(Collectors.toUnmodifiableList());
   }

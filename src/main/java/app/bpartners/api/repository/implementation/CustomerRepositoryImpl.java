@@ -41,6 +41,7 @@ public class CustomerRepositoryImpl implements CustomerRepository {
   @Override
   public List<CustomerTemplate> saveAll(String accountId, List<CustomerTemplate> toCreate) {
     List<HCustomerTemplate> entityToCreate = toCreate.stream()
+        .map(this::crupdate)
         .map(mapper::toEntity)
         .collect(Collectors.toUnmodifiableList());
     return jpaRepository.saveAll(entityToCreate).stream()
@@ -55,6 +56,28 @@ public class CustomerRepositoryImpl implements CustomerRepository {
       return mapper.toDomain(customerTemplate.get());
     } else {
       throw new NotFoundException("Customer." + id + " is not found.");
+    }
+  }
+
+  private CustomerTemplate crupdate(CustomerTemplate customer) {
+    if (customer.getCustomerId() != null) {
+      Optional<HCustomerTemplate> persisted = jpaRepository.findById(customer.getCustomerId());
+      if (persisted.isPresent()) {
+        persisted.get().setIdAccount(customer.getIdAccount());
+        persisted.get().setName(customer.getName());
+        persisted.get().setCity(customer.getCity());
+        persisted.get().setCountry(customer.getCountry());
+        persisted.get().setAddress(customer.getAddress());
+        persisted.get().setEmail(customer.getEmail());
+        persisted.get().setPhone(customer.getPhone());
+        persisted.get().setWebsite(customer.getWebsite());
+        persisted.get().setZipCode(customer.getZipCode());
+        return mapper.toDomain(persisted.get());
+      } else {
+        throw new NotFoundException("Customer." + customer.getCustomerId() + " is not found.");
+      }
+    } else {
+      return customer;
     }
   }
 }

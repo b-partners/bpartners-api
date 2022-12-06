@@ -22,9 +22,10 @@ public class CustomerService {
   }
 
   @Transactional
-  public List<CustomerTemplate> createCustomers(
+  public List<CustomerTemplate> crupdateCustomers(
       String accountId,
       List<CustomerTemplate> customerTemplates) {
     return repository.saveAll(accountId, customerTemplates);
   }
+
 }

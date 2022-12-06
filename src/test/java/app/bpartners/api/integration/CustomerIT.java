@@ -29,15 +29,20 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 import static app.bpartners.api.integration.conf.TestUtils.BAD_USER_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
+import static app.bpartners.api.integration.conf.TestUtils.OTHER_ACCOUNT_ID;
+import static app.bpartners.api.integration.conf.TestUtils.OTHER_CUSTOMER_ID;
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsApiException;
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsForbiddenException;
 import static app.bpartners.api.integration.conf.TestUtils.customer1;
+import static app.bpartners.api.integration.conf.TestUtils.customerUpdated;
 import static app.bpartners.api.integration.conf.TestUtils.customer2;
+import static app.bpartners.api.integration.conf.TestUtils.customerWithSomeNullAttributes;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountHolderSwanRep;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountSwanRepository;
 import static app.bpartners.api.integration.conf.TestUtils.setUpLegalFileRepository;
 import static app.bpartners.api.integration.conf.TestUtils.setUpSwanComponent;
 import static app.bpartners.api.integration.conf.TestUtils.setUpUserSwanRepository;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
@@ -103,9 +108,8 @@ class CustomerIT {
     List<Customer> actual = api.getCustomers(JOE_DOE_ACCOUNT_ID, null);
     List<Customer> actualFiltered = api.getCustomers(JOE_DOE_ACCOUNT_ID, "Jean");
 
-    assertEquals(2, actual.size());
+    assertEquals(3, actual.size());
     assertEquals(1, actualFiltered.size());
-    assertTrue(actual.contains(customer2()));
     assertTrue(actual.contains(customer1()));
     assertTrue(actual.contains(customer2()));
   }
@@ -139,6 +143,44 @@ class CustomerIT {
     assertThrowsApiException(
         "{\"type\":\"403 FORBIDDEN\",\"message\":\"Access is denied\"}",
         () -> api.createCustomers(BAD_USER_ID, List.of(createCustomer1())));
+  }
+
+  @Test
+  void update_customer_ok() throws ApiException {
+    ApiClient joeDoeClient = anApiClient();
+    CustomersApi api = new CustomersApi(joeDoeClient);
+
+    List<Customer> actual = api.updateCustomers(JOE_DOE_ACCOUNT_ID, List.of(customerUpdated()));
+    List<Customer> customers = api.getCustomers(JOE_DOE_ACCOUNT_ID, "Marc Montagnier");
+
+    assertEquals(customers.get(0), actual.get(0));
+  }
+
+  @Test
+  void update_customer_with_some_null_attributes_ok() throws ApiException {
+    ApiClient joeDoeClient = anApiClient();
+    CustomersApi api = new CustomersApi(joeDoeClient);
+
+    assertDoesNotThrow(
+        () -> api.updateCustomers(JOE_DOE_ACCOUNT_ID, List.of(customerWithSomeNullAttributes())));
+  }
+
+  @Test
+  void update_customer_ko() throws ApiException {
+    ApiClient joeDoeClient = anApiClient();
+    CustomersApi api = new CustomersApi(joeDoeClient);
+
+    assertThrowsApiException(
+        "{\"type\":\"404 NOT_FOUND\",\"message\":\"Customer." + OTHER_CUSTOMER_ID
+            + " is not found.\"}", () -> api.updateCustomers(JOE_DOE_ACCOUNT_ID,
+            List.of(customerUpdated().id(OTHER_CUSTOMER_ID))));
+    assertThrowsApiException(
+        "{\"type\":\"400 BAD_REQUEST\",\"message\":\"Identifier must not be null."
+            + " Name must not be null.\"}",
+        () -> api.updateCustomers(JOE_DOE_ACCOUNT_ID,
+            List.of(customerUpdated().id(null).name(null))));
+    assertThrowsForbiddenException(
+        () -> api.updateCustomers(OTHER_ACCOUNT_ID, List.of(customerUpdated())));
   }
 
   public static class ContextInitializer extends AbstractContextInitializer {

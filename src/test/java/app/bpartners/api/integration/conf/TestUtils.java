@@ -522,7 +522,6 @@ public class TestUtils {
         new UsernamePasswordAuthenticationToken(
             new Principal(
                 new app.bpartners.api.model.User(),
-                new Account(),
                 JOE_DOE_TOKEN
             ),
             new Object()

@@ -1,21 +1,21 @@
 package app.bpartners.api.service;
 
+import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.model.Account;
-import app.bpartners.api.model.validator.AccountValidator;
 import app.bpartners.api.repository.AccountRepository;
 import java.util.List;
 import lombok.AllArgsConstructor;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Service;
 
 @Service
+@Configuration
 @AllArgsConstructor
 public class AccountService {
-  private final AccountValidator validator;
   private final AccountRepository repository;
 
   public Account getAccountByBearer(String bearer) {
     List<Account> accounts = repository.findByBearer(bearer);
-    validator.accept(accounts);
     return accounts.get(0);
   }
 
@@ -24,8 +24,10 @@ public class AccountService {
   }
 
   public List<Account> getAccountsByUserId(String userId) {
-    List<Account> accounts = repository.findByUserId(userId);
-    validator.accept(accounts);
-    return accounts;
+    return repository.findByUserId(userId);
+  }
+
+  public Account getAuthenticatedAccount() {
+    return getAccountByBearer(AuthProvider.getPrincipal().getBearer());
   }
 }

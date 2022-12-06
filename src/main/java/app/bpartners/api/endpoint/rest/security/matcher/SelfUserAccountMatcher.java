@@ -1,6 +1,7 @@
 package app.bpartners.api.endpoint.rest.security.matcher;
 
 import app.bpartners.api.endpoint.rest.security.AuthProvider;
+import app.bpartners.api.service.AccountService;
 import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -15,6 +16,7 @@ public class SelfUserAccountMatcher implements RequestMatcher {
 
   private final HttpMethod method;
   private final String antPattern;
+  private final AccountService accountService;
 
   private static final Pattern SELFABLE_URI_PATTERN =
       // /user/id/account/id/...
@@ -28,7 +30,7 @@ public class SelfUserAccountMatcher implements RequestMatcher {
     }
     return Objects.equals(getSelfUserId(request), AuthProvider.getPrincipal().getUserId())
         &&
-        Objects.equals(getSelfAccountId(request), AuthProvider.getPrincipal().getAccount().getId());
+        Objects.equals(getSelfAccountId(request), accountService.getAuthenticatedAccount().getId());
   }
 
   private String getSelfUserId(HttpServletRequest request) {

@@ -179,6 +179,15 @@ class TransactionCategoryIT {
             restTransaction2().getId(),
             List.of(outcomeTransactionCategory()))
     );
+
+    assertThrowsApiException(
+        "{\"type\":\"404 NOT_FOUND\","
+            + "\"message\":\"Category unknown_type is not found"
+            + "\"}",
+        () -> api.createTransactionCategories(JOE_DOE_ACCOUNT_ID, restTransaction2().getId(),
+            List.of(bad_transaction_category_template()))
+    );
+
   }
 
   private TransactionCategoryTemplate outcomeTransactionCategoryTmpl() {
@@ -189,6 +198,12 @@ class TransactionCategoryIT {
         .vat(new Fraction(BigInteger.valueOf(2000)))
         .transactionType(OUTCOME)
         .build();
+  }
+
+  private CreateTransactionCategory bad_transaction_category_template() {
+    return new CreateTransactionCategory()
+        .type("unknown_type")
+        .vat(1);
   }
 
   static class ContextInitializer extends AbstractContextInitializer {

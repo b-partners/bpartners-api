@@ -18,7 +18,6 @@ public class TransactionCategoryTemplateRepositoryImpl implements
   private final TransactionCategoryTemplateJpaRepository jpaRepository;
   private final TransactionCategoryMapper mapper;
 
-  //TODO: add test where category is not found
   @Override
   public TransactionCategoryTemplate findByType(String type) {
     Optional<HTransactionCategoryTemplate> optional = jpaRepository.findByType(type);

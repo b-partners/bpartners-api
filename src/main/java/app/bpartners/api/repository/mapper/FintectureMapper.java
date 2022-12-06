@@ -1,21 +1,18 @@
 package app.bpartners.api.repository.mapper;
 
-import app.bpartners.api.endpoint.rest.security.model.Principal;
-import app.bpartners.api.endpoint.rest.security.principal.PrincipalProvider;
+import app.bpartners.api.endpoint.rest.security.AuthenticatedResourceProvider;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.repository.fintecture.model.Beneficiary;
 import app.bpartners.api.repository.fintecture.model.PaymentInitiation;
 import app.bpartners.api.repository.fintecture.model.PaymentRedirection;
-import app.bpartners.api.service.AccountHolderService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
 @AllArgsConstructor
 public class FintectureMapper {
-  private final AccountHolderService accountHolderService;
-  private final PrincipalProvider auth;
+  private final AuthenticatedResourceProvider authResourceProvider;
 
   private Beneficiary toBeneficiary(Account account, AccountHolder accountHolder) {
     return Beneficiary.builder()
@@ -30,9 +27,8 @@ public class FintectureMapper {
 
   public PaymentInitiation toFintecturePaymentReq(
       app.bpartners.api.model.PaymentInitiation domain) {
-    Account authenticatedAccount = getAuthenticatedAccount();
-    AccountHolder authenticatedAccountHolder = accountHolderService
-        .getAccountHolderByAccountId(authenticatedAccount.getId());
+    Account authenticatedAccount = authResourceProvider.getAccount();
+    AccountHolder authenticatedAccountHolder = authResourceProvider.getAccountHolder();
 
     Beneficiary beneficiary = toBeneficiary(authenticatedAccount, authenticatedAccountHolder);
 
@@ -60,9 +56,4 @@ public class FintectureMapper {
     return app.bpartners.api.model.PaymentRedirection.builder()
         .redirectUrl(fintecturePaymentUrl.getMeta().getUrl()).successUrl(successUrl).build();
   }
-
-  private Account getAuthenticatedAccount() {
-    return ((Principal) auth.getAuthentication().getPrincipal()).getAccount();
-  }
-
 }

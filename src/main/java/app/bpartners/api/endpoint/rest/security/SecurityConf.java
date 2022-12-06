@@ -29,13 +29,16 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
   public static final String AUTHORIZATION_HEADER = "Authorization";
   private final AuthProvider authProvider;
   private final HandlerExceptionResolver exceptionResolver;
+  private final AuthenticatedResourceProvider authResourceProvider;
 
   public SecurityConf(
       AuthProvider authProvider,
       // InternalToExternalErrorHandler behind
-      @Qualifier("handlerExceptionResolver") HandlerExceptionResolver exceptionResolver) {
+      @Qualifier("handlerExceptionResolver") HandlerExceptionResolver exceptionResolver,
+      AuthenticatedResourceProvider authResourceProvider) {
     this.authProvider = authProvider;
     this.exceptionResolver = exceptionResolver;
+    this.authResourceProvider = authResourceProvider;
   }
 
   @Override
@@ -90,39 +93,71 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
         .antMatchers(GET, "/users/*/legalFiles").permitAll()
         .antMatchers(PUT, "/users/*/legalFiles/*").permitAll()
         .antMatchers(OPTIONS, "/**").permitAll()
-        .requestMatchers(new SelfAccountMatcher(GET, "/accounts/*/customers")).authenticated()
-        .requestMatchers(new SelfAccountMatcher(POST, "/accounts/*/customers")).authenticated()
+        .requestMatchers(
+            new SelfAccountMatcher(GET, "/accounts/*/customers", authResourceProvider)
+        ).authenticated()
+        .requestMatchers(
+            new SelfAccountMatcher(POST, "/accounts/*/customers", authResourceProvider)
+        ).authenticated()
         .antMatchers(GET, "/accounts/*/transactions").authenticated()
         .requestMatchers(new SelfUserMatcher(GET, "/users/*/accounts")).authenticated()
         .requestMatchers(
-            new SelfUserAccountMatcher(
-                GET, "/users/*/accounts/*/accountHolders")).authenticated()
-        .requestMatchers(new SelfAccountMatcher(GET, "/accounts/*/invoices/*")).authenticated()
-        .requestMatchers(new SelfAccountMatcher(PUT, "/accounts/*/invoices/*")).authenticated()
-        .requestMatchers(new SelfAccountMatcher(GET, "/accounts/*/products")).authenticated()
-        .requestMatchers(new SelfAccountMatcher(POST, "/accounts/*/products")).authenticated()
-        .requestMatchers(new SelfAccountMatcher(GET, "/accounts/*/invoices")).authenticated()
-        .requestMatchers(new SelfAccountMatcher(POST, "/accounts/*/paymentInitiations"))
-        .authenticated()
-        .requestMatchers(new SelfAccountMatcher(GET, "/accounts/*/transactionCategories"))
-        .authenticated()
-        .requestMatchers(new SelfAccountMatcher(POST,
-            "/accounts/*/transactions/*/transactionCategories")).authenticated()
+            new SelfUserAccountMatcher(GET, "/users/*/accounts/*/accountHolders",
+                authResourceProvider)
+        ).authenticated()
+        .requestMatchers(
+            new SelfAccountMatcher(GET, "/accounts/*/invoices/*", authResourceProvider)
+        ).authenticated()
+        .requestMatchers(
+            new SelfAccountMatcher(PUT, "/accounts/*/invoices/*", authResourceProvider)
+        ).authenticated()
+        .requestMatchers(
+            new SelfAccountMatcher(GET, "/accounts/*/products", authResourceProvider)
+        ).authenticated()
+        .requestMatchers(
+            new SelfAccountMatcher(POST, "/accounts/*/products", authResourceProvider)
+        ).authenticated()
+        .requestMatchers(
+            new SelfAccountMatcher(GET, "/accounts/*/invoices", authResourceProvider)
+        ).authenticated()
+        .requestMatchers(
+            new SelfAccountMatcher(POST, "/accounts/*/paymentInitiations", authResourceProvider)
+        ).authenticated()
+        .requestMatchers(
+            new SelfAccountMatcher(GET, "/accounts/*/transactionCategories", authResourceProvider)
+        ).authenticated()
+        .requestMatchers(
+            new SelfAccountMatcher(POST, "/accounts/*/transactions/*/transactionCategories",
+                authResourceProvider)
+        ).authenticated()
         .antMatchers(GET, "/users").authenticated()
-        .requestMatchers(new SelfAccountMatcher(GET, "/accounts/*/files/*")).authenticated()
-        .requestMatchers(new SelfAccountMatcher(POST, "/accounts/*/files/*/raw")).authenticated()
-        .requestMatchers(new SelfAccountMatcher(GET, "/accounts/*/files/*/raw")).authenticated()
-        .requestMatchers(new SelfAccountMatcher(GET, "/accounts/*/marketplaces")).authenticated()
         .requestMatchers(
-            new SelfAccountMatcher(GET, "/accounts/*/transactionsSummary")).authenticated()
+            new SelfAccountMatcher(GET, "/accounts/*/files/*", authResourceProvider)
+        ).authenticated()
         .requestMatchers(
-            new SelfAccountMatcher(GET, "/accounts/*/invoiceRelaunchConf")).authenticated()
+            new SelfAccountMatcher(POST, "/accounts/*/files/*/raw", authResourceProvider)
+        ).authenticated()
         .requestMatchers(
-            new SelfAccountMatcher(PUT, "/accounts/*/invoiceRelaunchConf")).authenticated()
+            new SelfAccountMatcher(GET, "/accounts/*/files/*/raw", authResourceProvider)
+        ).authenticated()
         .requestMatchers(
-            new SelfAccountMatcher(GET, "/accounts/*/invoices/*/relaunches")).authenticated()
+            new SelfAccountMatcher(GET, "/accounts/*/marketplaces", authResourceProvider)
+        ).authenticated()
         .requestMatchers(
-            new SelfAccountMatcher(POST, "/accounts/*/invoices/*/relaunch")).authenticated()
+            new SelfAccountMatcher(GET, "/accounts/*/transactionsSummary", authResourceProvider)
+        ).authenticated()
+        .requestMatchers(
+            new SelfAccountMatcher(GET, "/accounts/*/invoiceRelaunchConf", authResourceProvider)
+        ).authenticated()
+        .requestMatchers(
+            new SelfAccountMatcher(PUT, "/accounts/*/invoiceRelaunchConf", authResourceProvider)
+        ).authenticated()
+        .requestMatchers(
+            new SelfAccountMatcher(GET, "/accounts/*/invoices/*/relaunches", authResourceProvider)
+        ).authenticated()
+        .requestMatchers(
+            new SelfAccountMatcher(POST, "/accounts/*/invoices/*/relaunch", authResourceProvider)
+        ).authenticated()
         .antMatchers(GET, "/businessActivities").authenticated()
         //TODO: set SelfUserAccountHolderMatcher
         .antMatchers(

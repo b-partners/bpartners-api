@@ -1,6 +1,5 @@
 package app.bpartners.api.endpoint.rest.security.model;
 
-import app.bpartners.api.model.Account;
 import app.bpartners.api.model.User;
 import java.util.Collection;
 import java.util.List;
@@ -15,7 +14,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 @ToString
 public class Principal implements UserDetails {
   private final User user;
-  private final Account account;
   private final String bearer;
 
   @Override
@@ -59,9 +57,5 @@ public class Principal implements UserDetails {
 
   public User getUser() {
     return user;
-  }
-
-  public Account getAccount() {
-    return account;
   }
 }

@@ -3,6 +3,7 @@ package app.bpartners.api.endpoint.rest.mapper;
 import app.bpartners.api.endpoint.rest.model.CreateCustomer;
 import app.bpartners.api.endpoint.rest.model.Customer;
 import app.bpartners.api.endpoint.rest.validator.CreateCustomerValidator;
+import app.bpartners.api.endpoint.rest.validator.CustomerRestValidator;
 import app.bpartners.api.endpoint.rest.validator.CustomerValidator;
 import app.bpartners.api.model.CustomerTemplate;
 import app.bpartners.api.model.InvoiceCustomer;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Component;
 public class CustomerRestMapper {
   private final CreateCustomerValidator createCustomerValidator;
   private final CustomerValidator customerValidator;
+  private final CustomerRestValidator restValidator;
 
   public Customer toRest(CustomerTemplate domain) {
     if (domain == null) {
@@ -69,6 +71,7 @@ public class CustomerRestMapper {
     if (rest == null) {
       return null;
     }
+    restValidator.accept(rest);
     InvoiceCustomer invoiceCustomer = InvoiceCustomer.customerTemplateBuilder()
         .customerId(rest.getId())
         .idAccount(accountId)

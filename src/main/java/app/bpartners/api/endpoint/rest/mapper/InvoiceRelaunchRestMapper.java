@@ -3,14 +3,14 @@ package app.bpartners.api.endpoint.rest.mapper;
 import app.bpartners.api.endpoint.rest.model.CreateInvoiceRelaunchConf;
 import app.bpartners.api.endpoint.rest.model.InvoiceRelaunch;
 import app.bpartners.api.endpoint.rest.model.InvoiceRelaunchConf;
-import app.bpartners.api.endpoint.rest.validator.CreateInvoiceRelaunchValidator;
+import app.bpartners.api.endpoint.rest.validator.CreateInvoiceRelaunchConfValidator;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
 @AllArgsConstructor
 public class InvoiceRelaunchRestMapper {
-  private final CreateInvoiceRelaunchValidator validator;
+  private final CreateInvoiceRelaunchConfValidator validator;
   private final InvoiceRestMapper invoiceRestMapper;
 
   public app.bpartners.api.model.InvoiceRelaunchConf toDomain(

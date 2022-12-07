@@ -12,6 +12,7 @@ import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.InvoiceRelaunch;
 import app.bpartners.api.model.InvoiceRelaunchConf;
 import app.bpartners.api.model.PageFromOne;
+import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.validator.InvoiceRelaunchValidator;
 import app.bpartners.api.repository.InvoiceRelaunchConfRepository;
@@ -51,15 +52,16 @@ public class InvoiceRelaunchService {
     return repository.save(invoiceRelaunchConf, accountId);
   }
 
-  public InvoiceRelaunch relaunchInvoice(String invoiceId, String subject, String message) {
+  public InvoiceRelaunch relaunchInvoice(String invoiceId, String emailSubject, String emailBody) {
     Invoice invoice = invoiceRepository.getById(invoiceId);
     invoiceRelaunchValidator.accept(invoice);
     InvoiceRelaunch invoiceRelaunch = invoiceRelaunchRepository.save(invoice);
     AccountHolder accountHolder =
         holderService.getAccountHolderByAccountId(invoice.getAccount().getId());
+
     eventProducer.accept(
         List.of(getTypedInvoiceRelaunched(
-            invoiceRelaunch.getInvoice(), accountHolder, subject, message)));
+            invoiceRelaunch.getInvoice(), accountHolder, emailSubject, emailBody)));
     return invoiceRelaunch;
   }
 
@@ -79,8 +81,7 @@ public class InvoiceRelaunchService {
   private TypedInvoiceRelaunchSaved getTypedInvoiceRelaunched(
       Invoice invoice, AccountHolder accountHolder, String subject, String customEmailBody) {
     //TODO: if invoice has already been relaunched then change this
-    subject = subject == null ? getSubject(accountHolder, getDefaultSubject(invoice)) :
-        getSubject(accountHolder, subject);
+    subject = subject == null ? getDefaultSubject(invoice) : subject;
     String recipient = invoice.getInvoiceCustomer().getEmail();
 
     return toTypedEvent(
@@ -90,8 +91,9 @@ public class InvoiceRelaunchService {
   }
 
   private static String getDefaultSubject(Invoice invoice) {
-    return "Votre " + getStatusValue(invoice.getStatus()).toLowerCase()
-        + " portant la référence " + invoice.getRef() + " vient d'arriver";
+    return "Votre " + getStatusValue(invoice.getStatus())
+        + ", portant la référence " + invoice.getRef() + ", au nom de "
+        + invoice.getInvoiceCustomer().getName().toUpperCase();
   }
 
   private static String getSubject(AccountHolder accountHolder, String subject) {
@@ -114,10 +116,10 @@ public class InvoiceRelaunchService {
 
   private static String getStatusValue(InvoiceStatus status) {
     if (status.equals(PROPOSAL) || status.equals(DRAFT)) {
-      return "Devis";
+      return "devis";
     }
     if (status.equals(CONFIRMED) || status.equals(PAID)) {
-      return "Facture";
+      return "facture";
     }
     throw new BadRequestException("Unknown status : " + status);
   }
@@ -126,11 +128,16 @@ public class InvoiceRelaunchService {
     return ((Principal) auth.getAuthentication().getPrincipal()).getUser().getLogoFileId();
   }
 
+  private User authenticatedUser() {
+    return ((Principal) auth.getAuthentication().getPrincipal()).getUser();
+  }
+
   private Context configureContext(
       Invoice invoice, AccountHolder accountHolder, String customEmailBody) {
     Context context = new Context();
 
     context.setVariable("invoice", invoice);
+    context.setVariable("user", authenticatedUser());
     context.setVariable("type", getStatusValue(invoice.getStatus()));
     context.setVariable("customEmailBody", customEmailBody);
     context.setVariable("accountHolder", accountHolder);

@@ -84,7 +84,7 @@ public class S3Service {
           .build();
       return s3Client.getObjectAsBytes(objectRequest).asByteArray();
     } catch (NoSuchKeyException e) {
-      throw new ApiException(SERVER_EXCEPTION, "File was deleted from our server");
+      throw new ApiException(SERVER_EXCEPTION, e);
     }
   }
 

@@ -5,7 +5,7 @@ import app.bpartners.api.endpoint.event.model.TypedFileSaved;
 import app.bpartners.api.endpoint.event.model.gen.FileSaved;
 import app.bpartners.api.endpoint.rest.model.FileType;
 import app.bpartners.api.model.FileInfo;
-import app.bpartners.api.model.exception.BadRequestException;
+import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.mapper.FileMapper;
 import app.bpartners.api.repository.FileRepository;
 import app.bpartners.api.repository.jpa.UserJpaRepository;
@@ -39,7 +39,7 @@ public class FileService {
       saveUserFileId(fileId, userId);
     }
     //TODO: add test for this
-    Optional<FileInfo> optional = repository.getOptionalById(fileId);
+    Optional<FileInfo> optional = repository.getOptionalByIdAndAccountId(fileId, accountId);
     if (optional.isPresent()) {
       FileInfo persisted = optional.get();
       return repository.save(FileInfo.builder()
@@ -54,8 +54,8 @@ public class FileService {
   }
 
   public byte[] downloadFile(FileType fileType, String accountId, String fileId) {
-    if (repository.getOptionalById(fileId).isEmpty()) {
-      throw new BadRequestException("File." + fileId + " not found");
+    if (repository.getOptionalByIdAndAccountId(fileId, accountId).isEmpty()) {
+      throw new NotFoundException("File." + fileId + " not found.");
     } else {
       return s3Service.downloadFile(fileType, accountId, fileId);
     }

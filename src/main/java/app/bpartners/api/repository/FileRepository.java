@@ -9,7 +9,7 @@ public interface FileRepository {
 
   FileInfo getById(String id);
 
-  Optional<FileInfo> getOptionalById(String id);
+  Optional<FileInfo> getOptionalByIdAndAccountId(String id, String accountId);
 
   FileInfo save(FileInfo file);
 }

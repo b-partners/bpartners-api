@@ -20,6 +20,7 @@ import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -55,7 +56,8 @@ class FileServiceTest {
     when(userJpaRepository.getById(userId)).thenReturn(HUser.builder().build());
     when(userJpaRepository.save(any())).thenReturn(HUser.builder().build());
     when(fileRepository.getById(fileId)).thenReturn(fileInfo());
-    when(fileRepository.getOptionalById(fileId)).thenReturn(Optional.of(fileInfo()));
+    when(fileRepository.getOptionalByIdAndAccountId(eq(fileId), any(String.class))).thenReturn(
+        Optional.of(fileInfo()));
     when(fileRepository.save(any())).thenAnswer(i -> i.getArguments()[0]);
     FileInfo before = fileRepository.getById(fileId);
 

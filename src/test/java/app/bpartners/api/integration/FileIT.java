@@ -41,6 +41,7 @@ import static app.bpartners.api.integration.conf.TestUtils.INVALID_LOGO_TYPE;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_TOKEN;
 import static app.bpartners.api.integration.conf.TestUtils.NOT_JOE_DOE_ACCOUNT_ID;
+import static app.bpartners.api.integration.conf.TestUtils.OTHER_TEST_FILE_ID;
 import static app.bpartners.api.integration.conf.TestUtils.TEST_FILE_ID;
 import static app.bpartners.api.integration.conf.TestUtils.TO_UPLOAD_FILE_ID;
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsApiException;
@@ -184,13 +185,26 @@ class FileIT {
     String basePath = "http://localhost:" + ContextInitializer.SERVER_PORT;
 
     assertThrowsApiException(
-        "{\"type\":\"400 BAD_REQUEST\",\"message\":\"File.not_existing_file_id.jpeg not found\"}",
+        "{\"type\":\"404 NOT_FOUND\",\"message\":\"File.not_existing_file_id.jpeg not found.\"}",
         () -> download(FileType.LOGO, basePath, JOE_DOE_TOKEN,
             null, NOT_EXISTING_FILE_ID));
 
-    assertThrowsApiException("{\"type\":\"400 BAD_REQUEST\",\"message\":\"File.null not found\"}",
+    assertThrowsApiException("{\"type\":\"404 NOT_FOUND\",\"message\":\"File.null not found.\"}",
         () -> download(FileType.LOGO, basePath, JOE_DOE_TOKEN,
             null, null));
+  }
+
+  @Test
+  void download_non_existent_file_ko() {
+    ApiClient joeDoeClient = anApiClient();
+    FilesApi api = new FilesApi(joeDoeClient);
+
+    assertThrowsApiException("{"
+            + "\"type\":\"404 NOT_FOUND\","
+            + "\"message\":\"File." + OTHER_TEST_FILE_ID + " not found.\""
+            + "}",
+        () -> api.downloadFile(JOE_DOE_ACCOUNT_ID, OTHER_TEST_FILE_ID, JOE_DOE_TOKEN,
+            FileType.LOGO));
   }
 
   @Test

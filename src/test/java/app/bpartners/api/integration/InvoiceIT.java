@@ -24,7 +24,10 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.api.function.Executable;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -83,12 +86,13 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @Testcontainers
 @ContextConfiguration(initializers = InvoiceIT.ContextInitializer.class)
 @AutoConfigureMockMvc
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class InvoiceIT {
   public static final int MAX_PAGE_SIZE = 500;
   public static final String RANDOM_INVOICE_ID = "random_invoice_id";
   public static final String INVOICE5_ID = "invoice5_id";
-  private static final String NEW_INVOICE_ID = "invoice_uuid";
   public static final String DRAFT_REF_PREFIX = "DRAFT-";
+  private static final String NEW_INVOICE_ID = "invoice_uuid";
   @Autowired
   private InvoiceService invoiceService;
   @MockBean
@@ -162,6 +166,25 @@ class InvoiceIT {
         .status(CONFIRMED)
         .sendingDate(LocalDate.of(2022, 10, 12))
         .toPayAt(LocalDate.of(2022, 11, 13));
+  }
+
+  CrupdateInvoice customerUpdatedInvoice() {
+    return new CrupdateInvoice()
+        .status(PROPOSAL)
+        .sendingDate(invoice6().getSendingDate())
+        .ref(invoice6().getRef())
+        .toPayAt(invoice6().getToPayAt())
+        .title(invoice6().getTitle())
+        .customer(
+            customer1()
+                .email("random_name")
+                .phone("random_phone")
+                .website("random_website")
+                .address("random_address")
+                .zipCode(12)
+                .city("random_city")
+                .country("random_country")
+        );
   }
 
   CrupdateInvoice paidInvoice() {
@@ -267,6 +290,14 @@ class InvoiceIT {
         .totalPriceWithoutVat(1000);
   }
 
+  Invoice expectedCustomerUpdatedInvoice() {
+    return invoice6()
+        .status(PROPOSAL)
+        .customer(
+            customerUpdatedInvoice().getCustomer()
+        );
+  }
+
   Invoice expectedInitializedDraft() {
     return new Invoice()
         .id(NEW_INVOICE_ID)
@@ -296,6 +327,7 @@ class InvoiceIT {
   //TODO: create PaginationIT for pagination test and add filters.
   // In particular, check the date filters and the order filters (by created datetime desc)
   @Test
+  @Order(1)
   void read_invoice_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
     PayingApi api = new PayingApi(joeDoeClient);
@@ -315,6 +347,7 @@ class InvoiceIT {
   }
 
   @Test
+  @Order(2)
   void read_invoice_ko() {
     ApiClient joeDoeClient = anApiClient();
     PayingApi api = new PayingApi(joeDoeClient);
@@ -345,6 +378,7 @@ class InvoiceIT {
   }
 
   @Test
+  @Order(3)
   void crupdate_invoice_ko() {
     ApiClient joeDoeClient = anApiClient();
     PayingApi api = new PayingApi(joeDoeClient);
@@ -377,6 +411,7 @@ class InvoiceIT {
   // /!\ It seems that the localstack does not support the SES service using the default credentials
   // So note that SES service is mocked and do nothing for this test
   @Test
+  @Order(4)
   void crupdate_invoice_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
     PayingApi api = new PayingApi(joeDoeClient);
@@ -401,6 +436,26 @@ class InvoiceIT {
   }
 
   @Test
+  @Order(5)
+  void update_invoice_customer_ok() throws ApiException {
+    ApiClient joeDoeClient = anApiClient();
+    PayingApi api = new PayingApi(joeDoeClient);
+
+    Invoice actualUpdated =
+        api.crupdateInvoice(JOE_DOE_ACCOUNT_ID,
+            invoice6().getId(),
+            customerUpdatedInvoice()
+        );
+    actualUpdated.setProducts(ignoreIdsOf(actualUpdated.getProducts()));
+    Invoice actual = api.getInvoiceById(JOE_DOE_ACCOUNT_ID, invoice6().getId());
+    actual.setProducts(ignoreIdsOf(actual.getProducts()));
+
+    assertEquals(expectedCustomerUpdatedInvoice(), actualUpdated.updatedAt(null));
+    assertEquals(expectedCustomerUpdatedInvoice(), actual.updatedAt(null));
+  }
+
+  @Test
+  @Order(6)
   void crupdate_triggers_event_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
     PayingApi api = new PayingApi(joeDoeClient);
@@ -424,6 +479,7 @@ class InvoiceIT {
   }
 
   @Test
+  @Order(7)
   void crupdate_invoice_proposal_to_draft_ko() {
     ApiClient joeDoeClient = anApiClient();
     PayingApi api = new PayingApi(joeDoeClient);

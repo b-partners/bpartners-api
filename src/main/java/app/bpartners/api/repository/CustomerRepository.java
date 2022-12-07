@@ -12,4 +12,5 @@ public interface CustomerRepository {
   List<CustomerTemplate> saveAll(String account, List<CustomerTemplate> toCreate);
 
   CustomerTemplate findById(String id);
+
 }

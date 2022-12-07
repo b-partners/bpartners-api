@@ -3,6 +3,7 @@ package app.bpartners.api.endpoint.rest.controller;
 import app.bpartners.api.endpoint.rest.mapper.InvoiceRelaunchRestMapper;
 import app.bpartners.api.endpoint.rest.model.CreateInvoiceRelaunch;
 import app.bpartners.api.endpoint.rest.model.InvoiceRelaunch;
+import app.bpartners.api.endpoint.rest.validator.CreateInvoiceRelaunchValidator;
 import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.service.InvoiceRelaunchService;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class InvoiceRelaunchController {
   private final InvoiceRelaunchService service;
   private final InvoiceRelaunchRestMapper mapper;
+  private final CreateInvoiceRelaunchValidator validator;
 
   @GetMapping(value = "/accounts/{aId}/invoices/{iId}/relaunches")
   public List<InvoiceRelaunch> getRelaunches(
@@ -40,6 +42,7 @@ public class InvoiceRelaunchController {
       @PathVariable("aId") String accountId,
       @PathVariable("iId") String invoiceId,
       @RequestBody CreateInvoiceRelaunch createInvoiceRelaunch) {
+    validator.accept(createInvoiceRelaunch);
     return mapper.toRest(
         service.relaunchInvoice(invoiceId, createInvoiceRelaunch.getSubject(),
             createInvoiceRelaunch.getMessage()));

@@ -6,6 +6,9 @@ import org.thymeleaf.templatemode.TemplateMode;
 import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
 
 public class TemplateResolverUtils {
+  private TemplateResolverUtils() {
+  }
+
   private static TemplateEngine initializeTemplateEngine() {
     ClassLoaderTemplateResolver templateResolver = new ClassLoaderTemplateResolver();
     templateResolver.setPrefix("/templates/");

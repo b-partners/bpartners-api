@@ -14,6 +14,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import org.hibernate.annotations.CreationTimestamp;
 
 import static javax.persistence.GenerationType.IDENTITY;
 
@@ -41,5 +42,6 @@ public class HInvoiceCustomer {
   private Integer zipCode;
   private String city;
   private String country;
+  @CreationTimestamp
   private Instant createdDatetime;
 }

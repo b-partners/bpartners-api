@@ -9,6 +9,7 @@ import app.bpartners.api.repository.jpa.model.HTransactionCategory;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
+import javax.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -44,6 +45,7 @@ public class TransactionCategoryRepositoryImpl implements TransactionCategoryRep
         .collect(Collectors.toUnmodifiableList());
   }
 
+  @Transactional
   @Override
   public TransactionCategory findByIdTransaction(String idTransaction) {
     HTransactionCategory persisted =

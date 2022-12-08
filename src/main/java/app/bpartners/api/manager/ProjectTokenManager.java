@@ -60,7 +60,7 @@ public class ProjectTokenManager {
     return getParameterValue(ssmClient, fintectureProjectParamName);
   }
 
-  @Scheduled(cron = "0 0 * * * ?")
+  @Scheduled(cron = "0 45 * * * ?")
   @PostConstruct
   public void refreshSwanProjectToken() {
     String accessToken =
@@ -76,7 +76,7 @@ public class ProjectTokenManager {
   }
 
   /*TODO: retry to get token after 10 secondes in case of server failure*/
-  @Scheduled(cron = "0 0 * * * ?")
+  @Scheduled(cron = "0 45 * * * ?")
   @PostConstruct
   public void refreshFintectureProjectToken() {
     ssmClient.putParameter(PutParameterRequest.builder()

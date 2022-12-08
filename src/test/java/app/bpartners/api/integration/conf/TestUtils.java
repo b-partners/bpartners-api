@@ -89,6 +89,7 @@ public class TestUtils {
 
   public static final String FILE_ID = "test.jpeg";
   public static final String TEST_FILE_ID = "test.jpeg";
+  public static final String OTHER_TEST_FILE_ID = "image.jpeg";
   public static final String TO_UPLOAD_FILE_ID = "to_upload_file_id.jpeg";
   public static final String MARKETPLACE1_ID = "marketplace1_id";
   public static final String MARKETPLACE2_ID = "marketplace2_id";
@@ -521,7 +522,6 @@ public class TestUtils {
         new UsernamePasswordAuthenticationToken(
             new Principal(
                 new app.bpartners.api.model.User(),
-                new Account(),
                 JOE_DOE_TOKEN
             ),
             new Object()

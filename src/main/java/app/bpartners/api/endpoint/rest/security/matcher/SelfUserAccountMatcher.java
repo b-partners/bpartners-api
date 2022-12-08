@@ -1,6 +1,7 @@
 package app.bpartners.api.endpoint.rest.security.matcher;
 
 import app.bpartners.api.endpoint.rest.security.AuthProvider;
+import app.bpartners.api.endpoint.rest.security.AuthenticatedResourceProvider;
 import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -13,12 +14,12 @@ import org.springframework.security.web.util.matcher.RequestMatcher;
 @AllArgsConstructor
 public class SelfUserAccountMatcher implements RequestMatcher {
 
-  private final HttpMethod method;
-  private final String antPattern;
-
   private static final Pattern SELFABLE_URI_PATTERN =
       // /user/id/account/id/...
       Pattern.compile("/[^/]+/(?<userId>[^/]+)/[^/]+/(?<accountId>[^/]+)(/.*)?");
+  private final HttpMethod method;
+  private final String antPattern;
+  private final AuthenticatedResourceProvider authResourceProvider;
 
   @Override
   public boolean matches(HttpServletRequest request) {
@@ -28,7 +29,7 @@ public class SelfUserAccountMatcher implements RequestMatcher {
     }
     return Objects.equals(getSelfUserId(request), AuthProvider.getPrincipal().getUserId())
         &&
-        Objects.equals(getSelfAccountId(request), AuthProvider.getPrincipal().getAccount().getId());
+        Objects.equals(getSelfAccountId(request), authResourceProvider.getAccount().getId());
   }
 
   private String getSelfUserId(HttpServletRequest request) {

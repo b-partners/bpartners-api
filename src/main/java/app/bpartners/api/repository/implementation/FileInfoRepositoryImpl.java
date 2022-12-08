@@ -31,8 +31,8 @@ public class FileInfoRepositoryImpl implements FileRepository {
   }
 
   @Override
-  public Optional<FileInfo> getOptionalById(String id) {
-    Optional<HFileInfo> optional = jpaRepository.findById(id);
+  public Optional<FileInfo> getOptionalByIdAndAccountId(String id, String accountId) {
+    Optional<HFileInfo> optional = jpaRepository.getByAccountIdAndId(accountId, id);
     return optional.map(mapper::toDomain);
   }
 

@@ -228,6 +228,83 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
+  invoiceRelaunchConfOperations:
+    get:
+      tags:
+        - Paying
+      summary: Get the current relaunch configuration for a specific invoice
+      operationId: getInvoiceRelaunchConf
+      parameters:
+        - in: path
+          name: aId
+          description: Account identifier
+          schema:
+            type: string
+          required: true
+        - in: path
+          name: iId
+          description: Invoice identifier
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description: The specified invoice's relaunching configuration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvoiceRelaunchConf'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
+    put:
+      tags:
+        - Paying
+      summary: Configure the automatic relaunch a specific invoice.
+      operationId: configureInvoiceRelaunch
+      parameters:
+        - in: path
+          name: aId
+          description: Account identifier
+          schema:
+            type: string
+          required: true
+        - in: path
+          name: iId
+          description: Invoice identifier
+          schema:
+            type: string
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InvoiceRelaunchConf'
+      responses:
+        200:
+          description: The specified invoice's relaunch configuration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvoiceRelaunchConf'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
   getOrCreateProducts:
     get:
       tags:
@@ -668,6 +745,16 @@ components:
         updatedAt:
           type: string
           format: date-time
+    InvoiceRelaunchConf:
+      properties:
+        id:
+          type: string
+        idInvoice:
+          type: string
+        delay:
+          type: integer
+        rehearsalNumber:
+          type: integer
     CreateInvoiceRelaunch:
       type: object
       properties:

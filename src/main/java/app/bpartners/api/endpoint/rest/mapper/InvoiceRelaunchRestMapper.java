@@ -4,6 +4,7 @@ import app.bpartners.api.endpoint.rest.model.EmailInfo;
 import app.bpartners.api.endpoint.rest.model.AccountInvoiceRelaunchConf;
 import app.bpartners.api.endpoint.rest.model.CreateAccountInvoiceRelaunchConf;
 import app.bpartners.api.endpoint.rest.model.InvoiceRelaunch;
+import app.bpartners.api.endpoint.rest.model.InvoiceRelaunchConf;
 import app.bpartners.api.endpoint.rest.validator.CreateInvoiceRelaunchConfValidator;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -20,6 +21,17 @@ public class InvoiceRelaunchRestMapper {
     return app.bpartners.api.model.AccountInvoiceRelaunchConf.builder()
         .draftRelaunch(createAccountInvoiceRelaunchConf.getDraftRelaunch())
         .unpaidRelaunch(createAccountInvoiceRelaunchConf.getUnpaidRelaunch())
+        .build();
+  }
+
+  public app.bpartners.api.model.InvoiceRelaunchConf toDomain(
+      InvoiceRelaunchConf rest, String invoiceId
+  ) {
+    return app.bpartners.api.model.InvoiceRelaunchConf.builder()
+        .id(rest.getId())
+        .idInvoice(invoiceId)
+        .delay(rest.getDelay())
+        .rehearsalNumber(rest.getRehearsalNumber())
         .build();
   }
 
@@ -44,5 +56,13 @@ public class InvoiceRelaunchRestMapper {
             .emailBody(domain.getEmailBody())
             .emailObject(domain.getEmailObject())
             .attachmentFileId(domain.getAttachmentFileId()));
+  }
+
+  public InvoiceRelaunchConf toRest(app.bpartners.api.model.InvoiceRelaunchConf domain) {
+    return new InvoiceRelaunchConf()
+        .id(domain.getId())
+        .idInvoice(domain.getIdInvoice())
+        .delay(domain.getDelay())
+        .rehearsalNumber(domain.getRehearsalNumber());
   }
 }

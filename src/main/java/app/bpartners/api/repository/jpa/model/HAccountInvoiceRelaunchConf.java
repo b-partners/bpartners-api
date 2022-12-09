@@ -16,7 +16,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 import static javax.persistence.GenerationType.IDENTITY;
 
 @Entity
-@Table(name = "\"invoice_relaunch_conf\"")
+@Table(name = "\"account_invoice_relaunch_conf\"")
 @Getter
 @Setter
 @ToString
@@ -24,7 +24,7 @@ import static javax.persistence.GenerationType.IDENTITY;
 @AllArgsConstructor
 @NoArgsConstructor
 @EqualsAndHashCode
-public class HInvoiceRelaunchConf {
+public class HAccountInvoiceRelaunchConf {
   @Id
   @GeneratedValue(strategy = IDENTITY)
   private String id;

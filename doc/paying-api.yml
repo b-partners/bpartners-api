@@ -671,7 +671,12 @@ components:
       properties:
         subject:
           type: string
+        object:
+          type: string
         message:
+          type: string
+          description: html is waited
+        emailBody:
           type: string
     InvoiceRelaunch:
       type: object

@@ -57,7 +57,7 @@ paths:
   /accounts/{aId}/transactionsSummary:
     $ref: './paying-api.yml#/operations/getTransactionsSummary'
   /accounts/{aId}/invoiceRelaunchConf:
-    $ref: './paying-api.yml#/operations/relaunchOperations'
+    $ref: './paying-api.yml#/operations/accountRelaunchOperations'
   /accounts/{aId}/transactionCategories:
     $ref: './paying-api.yml#/operations/getTransactionCategories'
   /accounts/{aId}/transactions/{tId}/transactionCategories:

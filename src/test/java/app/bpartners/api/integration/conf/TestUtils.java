@@ -2,14 +2,14 @@ package app.bpartners.api.integration.conf;
 
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
+import app.bpartners.api.endpoint.rest.model.AccountInvoiceRelaunchConf;
 import app.bpartners.api.endpoint.rest.model.BusinessActivity;
 import app.bpartners.api.endpoint.rest.model.CompanyBusinessActivity;
 import app.bpartners.api.endpoint.rest.model.CompanyInfo;
-import app.bpartners.api.endpoint.rest.model.CreateInvoiceRelaunchConf;
+import app.bpartners.api.endpoint.rest.model.CreateAccountInvoiceRelaunchConf;
 import app.bpartners.api.endpoint.rest.model.CreateProduct;
 import app.bpartners.api.endpoint.rest.model.Customer;
 import app.bpartners.api.endpoint.rest.model.Invoice;
-import app.bpartners.api.endpoint.rest.model.InvoiceRelaunchConf;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.endpoint.rest.model.LegalFile;
 import app.bpartners.api.endpoint.rest.model.Product;
@@ -460,16 +460,16 @@ public class TestUtils {
         .paymentUrl("https://connect-v2-sbx.fintecture.com");
   }
 
-  public static InvoiceRelaunchConf invoiceRelaunchConf1() {
-    return new InvoiceRelaunchConf()
+  public static AccountInvoiceRelaunchConf invoiceRelaunchConf1() {
+    return new AccountInvoiceRelaunchConf()
         .id("relaunch1_id")
         .updatedAt(Instant.parse("2022-01-01T04:00:00.00Z"))
         .draftRelaunch(1)
         .unpaidRelaunch(1);
   }
 
-  public static CreateInvoiceRelaunchConf createInvoiceRelaunchConf() {
-    return new CreateInvoiceRelaunchConf()
+  public static CreateAccountInvoiceRelaunchConf createInvoiceRelaunchConf() {
+    return new CreateAccountInvoiceRelaunchConf()
         .draftRelaunch(2)
         .unpaidRelaunch(2);
   }

@@ -5,8 +5,8 @@ import app.bpartners.api.endpoint.event.S3Conf;
 import app.bpartners.api.endpoint.rest.api.PayingApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
-import app.bpartners.api.endpoint.rest.model.CreateInvoiceRelaunchConf;
-import app.bpartners.api.endpoint.rest.model.InvoiceRelaunchConf;
+import app.bpartners.api.endpoint.rest.model.AccountInvoiceRelaunchConf;
+import app.bpartners.api.endpoint.rest.model.CreateAccountInvoiceRelaunchConf;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
 import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
 import app.bpartners.api.integration.conf.AbstractContextInitializer;
@@ -42,9 +42,9 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @Testcontainers
-@ContextConfiguration(initializers = InvoiceRelaunchConfIT.ContextInitializer.class)
+@ContextConfiguration(initializers = AccountInvoiceRelaunchConfIT.ContextInitializer.class)
 @AutoConfigureMockMvc
-class InvoiceRelaunchConfIT {
+class AccountInvoiceRelaunchConfIT {
   @MockBean
   private SentryConf sentryConf;
   @MockBean
@@ -74,9 +74,9 @@ class InvoiceRelaunchConfIT {
     return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN, ContextInitializer.SERVER_PORT);
   }
 
-  private static InvoiceRelaunchConf createdRelaunch() {
-    CreateInvoiceRelaunchConf toCreate = createInvoiceRelaunchConf();
-    return new InvoiceRelaunchConf()
+  private static AccountInvoiceRelaunchConf createdRelaunch() {
+    CreateAccountInvoiceRelaunchConf toCreate = createInvoiceRelaunchConf();
+    return new AccountInvoiceRelaunchConf()
         .unpaidRelaunch(toCreate.getUnpaidRelaunch())
         .draftRelaunch(toCreate.getDraftRelaunch());
   }
@@ -96,7 +96,7 @@ class InvoiceRelaunchConfIT {
     ApiClient joeDoeClient = anApiClient();
     PayingApi api = new PayingApi(joeDoeClient);
 
-    InvoiceRelaunchConf actual = api.getInvoiceRelaunchConf(JOE_DOE_ACCOUNT_ID);
+    AccountInvoiceRelaunchConf actual = api.getAccountInvoiceRelaunchConf(JOE_DOE_ACCOUNT_ID);
 
     assertEquals(invoiceRelaunchConf1(), actual);
   }
@@ -107,10 +107,11 @@ class InvoiceRelaunchConfIT {
     PayingApi api = new PayingApi(joeDoeClient);
 
     assertThrowsForbiddenException(
-        () -> api.getInvoiceRelaunchConf("not" + JOE_DOE_ACCOUNT_ID)
+        () -> api.getAccountInvoiceRelaunchConf("not" + JOE_DOE_ACCOUNT_ID)
     );
     assertThrowsForbiddenException(
-        () -> api.configureRelaunch("not" + JOE_DOE_ACCOUNT_ID, createInvoiceRelaunchConf())
+        () -> api.configureAccountInvoiceRelaunch("not" + JOE_DOE_ACCOUNT_ID,
+            createInvoiceRelaunchConf())
     );
   }
 
@@ -118,10 +119,10 @@ class InvoiceRelaunchConfIT {
   void create_invoice_relaunch_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
     PayingApi api = new PayingApi(joeDoeClient);
-    InvoiceRelaunchConf expected = createdRelaunch();
+    AccountInvoiceRelaunchConf expected = createdRelaunch();
 
-    InvoiceRelaunchConf actual =
-        api.configureRelaunch(JOE_DOE_ACCOUNT_ID, createInvoiceRelaunchConf());
+    AccountInvoiceRelaunchConf actual =
+        api.configureAccountInvoiceRelaunch(JOE_DOE_ACCOUNT_ID, createInvoiceRelaunchConf());
     expected.updatedAt(actual.getUpdatedAt())
         .id(actual.getId());
 

@@ -163,12 +163,12 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
-  relaunchOperations:
+  accountRelaunchOperations:
     get:
       tags:
         - Paying
       summary: Get the current relaunch configuration for invoice
-      operationId: getInvoiceRelaunchConf
+      operationId: getAccountInvoiceRelaunchConf
       parameters:
         - in: path
           name: aId
@@ -178,11 +178,11 @@ operations:
           required: true
       responses:
         200:
-          description: The invoice relaunching configuration
+          description: The account invoice relaunching configuration
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/InvoiceRelaunchConf'
+                $ref: '#/components/schemas/AccountInvoiceRelaunchConf'
         400:
           $ref: './api.yml#/components/responses/400'
         403:
@@ -197,7 +197,7 @@ operations:
       tags:
         - Paying
       summary: Configure the automatic relaunch of all invoices of an account
-      operationId: configureRelaunch
+      operationId: configureAccountInvoiceRelaunch
       parameters:
         - in: path
           name: aId
@@ -210,14 +210,14 @@ operations:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateInvoiceRelaunchConf'
+              $ref: '#/components/schemas/CreateAccountInvoiceRelaunchConf'
       responses:
         200:
-          description: The invoice relaunch configuration
+          description: The account invoice relaunch configuration
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/InvoiceRelaunchConf'
+                $ref: '#/components/schemas/AccountInvoiceRelaunchConf'
         400:
           $ref: './api.yml#/components/responses/400'
         403:
@@ -650,7 +650,7 @@ components:
           type: string
           format: date-time
           description: Note that the summary is updated every hour
-    CreateInvoiceRelaunchConf:
+    CreateAccountInvoiceRelaunchConf:
       type: object
       properties:
         unpaidRelaunch:
@@ -659,9 +659,9 @@ components:
         draftRelaunch:
           type: integer
           description: The frequency of sending the message in days
-    InvoiceRelaunchConf:
+    AccountInvoiceRelaunchConf:
       allOf:
-        - $ref: '#/components/schemas/CreateInvoiceRelaunchConf'
+        - $ref: '#/components/schemas/CreateAccountInvoiceRelaunchConf'
       properties:
         id:
           type: string

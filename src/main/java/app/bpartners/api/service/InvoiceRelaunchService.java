@@ -7,15 +7,15 @@ import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.endpoint.rest.security.model.Principal;
 import app.bpartners.api.endpoint.rest.security.principal.PrincipalProvider;
 import app.bpartners.api.model.AccountHolder;
+import app.bpartners.api.model.AccountInvoiceRelaunchConf;
 import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.InvoiceRelaunch;
-import app.bpartners.api.model.InvoiceRelaunchConf;
 import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.validator.InvoiceRelaunchValidator;
-import app.bpartners.api.repository.InvoiceRelaunchConfRepository;
+import app.bpartners.api.repository.AccountInvoiceRelaunchConfRepository;
 import app.bpartners.api.repository.InvoiceRelaunchRepository;
 import app.bpartners.api.repository.InvoiceRepository;
 import app.bpartners.api.service.utils.TemplateResolverUtils;
@@ -36,7 +36,7 @@ import static app.bpartners.api.service.utils.FileInfoUtils.PDF_EXTENSION;
 @AllArgsConstructor
 public class InvoiceRelaunchService {
   public static final String MAIL_TEMPLATE = "mail";
-  private final InvoiceRelaunchConfRepository repository;
+  private final AccountInvoiceRelaunchConfRepository repository;
   private final InvoiceRelaunchRepository invoiceRelaunchRepository;
   private final InvoiceRelaunchValidator invoiceRelaunchValidator;
   private final InvoiceRepository invoiceRepository;
@@ -64,17 +64,15 @@ public class InvoiceRelaunchService {
     throw new BadRequestException("Unknown status : " + status);
   }
 
-  //TODO: generalize this so the persist object is the really sent object
-  private static String getDefaultEmailPrefix(AccountHolder accountHolder) {
-    return "[" + accountHolder.getName() + "] ";
-  }
-
-  public InvoiceRelaunchConf getByAccountId(String accountId) {
+  public AccountInvoiceRelaunchConf getByAccountId(String accountId) {
     return repository.getByAccountId(accountId);
   }
 
-  public InvoiceRelaunchConf saveConf(String accountId, InvoiceRelaunchConf invoiceRelaunchConf) {
-    return repository.save(invoiceRelaunchConf, accountId);
+  public AccountInvoiceRelaunchConf saveConf(
+      String accountId,
+      AccountInvoiceRelaunchConf accountInvoiceRelaunchConf
+  ) {
+    return repository.save(accountInvoiceRelaunchConf, accountId);
   }
 
   public InvoiceRelaunch relaunchInvoiceManually(
@@ -161,5 +159,10 @@ public class InvoiceRelaunchService {
     context.setVariable("accountHolder", accountHolder);
 
     return context;
+  }
+
+  //TODO: generalize this so the persist object is the really sent object
+  private static String getDefaultEmailPrefix(AccountHolder accountHolder) {
+    return "[" + accountHolder.getName() + "] ";
   }
 }

@@ -47,4 +47,5 @@ public class HInvoice implements Serializable {
   private InvoiceStatus status;
   private Instant createdDatetime;
   private Instant updatedAt;
+  private boolean toBeRelaunched;
 }

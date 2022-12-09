@@ -1,9 +1,9 @@
 package app.bpartners.api.endpoint.rest.mapper;
 
-import app.bpartners.api.endpoint.rest.model.CreateInvoiceRelaunchConf;
 import app.bpartners.api.endpoint.rest.model.EmailInfo;
+import app.bpartners.api.endpoint.rest.model.AccountInvoiceRelaunchConf;
+import app.bpartners.api.endpoint.rest.model.CreateAccountInvoiceRelaunchConf;
 import app.bpartners.api.endpoint.rest.model.InvoiceRelaunch;
-import app.bpartners.api.endpoint.rest.model.InvoiceRelaunchConf;
 import app.bpartners.api.endpoint.rest.validator.CreateInvoiceRelaunchConfValidator;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -14,22 +14,22 @@ public class InvoiceRelaunchRestMapper {
   private final CreateInvoiceRelaunchConfValidator validator;
   private final InvoiceRestMapper invoiceRestMapper;
 
-  public app.bpartners.api.model.InvoiceRelaunchConf toDomain(
-      CreateInvoiceRelaunchConf createInvoiceRelaunchConf) {
-    validator.accept(createInvoiceRelaunchConf);
-    return app.bpartners.api.model.InvoiceRelaunchConf.builder()
-        .draftRelaunch(createInvoiceRelaunchConf.getDraftRelaunch())
-        .unpaidRelaunch(createInvoiceRelaunchConf.getUnpaidRelaunch())
+  public app.bpartners.api.model.AccountInvoiceRelaunchConf toDomain(
+      CreateAccountInvoiceRelaunchConf createAccountInvoiceRelaunchConf) {
+    validator.accept(createAccountInvoiceRelaunchConf);
+    return app.bpartners.api.model.AccountInvoiceRelaunchConf.builder()
+        .draftRelaunch(createAccountInvoiceRelaunchConf.getDraftRelaunch())
+        .unpaidRelaunch(createAccountInvoiceRelaunchConf.getUnpaidRelaunch())
         .build();
   }
 
-  public InvoiceRelaunchConf toRest(
-      app.bpartners.api.model.InvoiceRelaunchConf invoiceRelaunchConf) {
-    return new InvoiceRelaunchConf()
-        .id(invoiceRelaunchConf.getId())
-        .updatedAt(invoiceRelaunchConf.getUpdatedAt())
-        .unpaidRelaunch(invoiceRelaunchConf.getUnpaidRelaunch())
-        .draftRelaunch(invoiceRelaunchConf.getDraftRelaunch());
+  public AccountInvoiceRelaunchConf toRest(
+      app.bpartners.api.model.AccountInvoiceRelaunchConf accountInvoiceRelaunchConf) {
+    return new AccountInvoiceRelaunchConf()
+        .id(accountInvoiceRelaunchConf.getId())
+        .updatedAt(accountInvoiceRelaunchConf.getUpdatedAt())
+        .unpaidRelaunch(accountInvoiceRelaunchConf.getUnpaidRelaunch())
+        .draftRelaunch(accountInvoiceRelaunchConf.getDraftRelaunch());
   }
 
   public InvoiceRelaunch toRest(app.bpartners.api.model.InvoiceRelaunch domain) {

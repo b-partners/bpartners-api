@@ -47,6 +47,7 @@ public class InvoiceMapper {
         .invoiceCustomer(customerMapper.toDomain(invoiceCustomer))
         .account(accountService.getAccountById(invoice.getIdAccount()))
         .status(invoice.getStatus())
+        .toBeRelaunched(invoice.isToBeRelaunched())
         .build();
   }
 
@@ -69,6 +70,7 @@ public class InvoiceMapper {
         .sendingDate(domain.getSendingDate())
         .toPayAt(domain.getToPayAt())
         .status(domain.getStatus())
+        .toBeRelaunched(domain.isToBeRelaunched())
         .build();
   }
 }

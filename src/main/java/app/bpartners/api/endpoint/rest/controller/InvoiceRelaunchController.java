@@ -7,6 +7,7 @@ import app.bpartners.api.endpoint.rest.validator.CreateInvoiceRelaunchValidator;
 import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.service.InvoiceRelaunchService;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
@@ -43,8 +44,19 @@ public class InvoiceRelaunchController {
       @PathVariable("iId") String invoiceId,
       @RequestBody CreateInvoiceRelaunch createInvoiceRelaunch) {
     validator.accept(createInvoiceRelaunch);
+    ArrayList<String> emailObjectList = new ArrayList<>() {
+      {
+        add(createInvoiceRelaunch.getObject());
+        add(createInvoiceRelaunch.getSubject());
+      }
+    };
+    ArrayList<String> emailBodyList = new ArrayList<>() {
+      {
+        add(createInvoiceRelaunch.getEmailBody());
+        add(createInvoiceRelaunch.getMessage());
+      }
+    };
     return mapper.toRest(
-        service.relaunchInvoice(invoiceId, createInvoiceRelaunch.getSubject(),
-            createInvoiceRelaunch.getMessage()));
+        service.relaunchInvoiceManually(invoiceId, emailObjectList, emailBodyList));
   }
 }

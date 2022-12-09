@@ -687,6 +687,8 @@ components:
           $ref: '#/components/schemas/RelaunchType'
         invoice:
           $ref: '#/components/schemas/Invoice'
+        emailInfo:
+          $ref: '#/components/schemas/EmailInfo'
         accountId:
           type: string
         isUserRelaunched:
@@ -694,6 +696,15 @@ components:
         creationDatetime:
           type: string
           format: date-time
+    EmailInfo:
+      type: object
+      properties:
+        emailObject:
+          type: string
+        emailBody:
+          type: string
+          description: use HTML tags
+        #todo: add attachmentFileId
     RelaunchType:
       type: string
       enum:

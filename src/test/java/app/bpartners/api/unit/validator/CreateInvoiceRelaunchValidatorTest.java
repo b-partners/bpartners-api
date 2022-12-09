@@ -15,29 +15,23 @@ class CreateInvoiceRelaunchValidatorTest {
   private final CreateInvoiceRelaunchValidator subject = new CreateInvoiceRelaunchValidator();
 
   CreateInvoiceRelaunch messageWithTextPlain() {
-    return new CreateInvoiceRelaunch()
-        .message("Text plain")
-        .subject("Custom mail object");
+    return new CreateInvoiceRelaunch().emailBody("Text plain")._object("Custom mail object");
   }
 
   CreateInvoiceRelaunch messageCorrectlyFormed() {
-    return new CreateInvoiceRelaunch()
-        .message("<p><strong><i><em>Hello</em></i></strong></p>");
+    return new CreateInvoiceRelaunch().emailBody("<p><strong><i><em>Hello</em></i></strong></p>");
   }
 
   CreateInvoiceRelaunch messageWithNotClosedTags() {
-    return new CreateInvoiceRelaunch()
-        .message("<p><p><i><em>Hello</em></i></p>");
+    return new CreateInvoiceRelaunch().emailBody("<p><p><i><em>Hello</em></i></p>");
   }
 
   CreateInvoiceRelaunch messageMalFormed() {
-    return new CreateInvoiceRelaunch()
-        .message("<p Hello </p>");
+    return new CreateInvoiceRelaunch().emailBody("<p Hello </p>");
   }
 
   CreateInvoiceRelaunch messageWithBadTags() {
-    return new CreateInvoiceRelaunch()
-        .message("<img> Hello");
+    return new CreateInvoiceRelaunch().emailBody("<img> Hello");
   }
 
   @Test

@@ -45,8 +45,10 @@ public class InvoiceRelaunchRepositoryImpl implements InvoiceRelaunchRepository 
   }
 
   @Override
-  public InvoiceRelaunch save(Invoice invoice) {
-    HInvoiceRelaunch toSave = invoiceRelaunchMapper.toEntity(invoice);
+  public InvoiceRelaunch save(
+      Invoice invoice, String object, String htmlBody, boolean isUserRelaunched) {
+    HInvoiceRelaunch toSave =
+        invoiceRelaunchMapper.toEntity(invoice, object, htmlBody, isUserRelaunched);
     return invoiceRelaunchMapper
         .toDomain(invoiceRelaunchJpaRepository.save(toSave));
   }

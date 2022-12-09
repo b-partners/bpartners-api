@@ -6,6 +6,7 @@ import app.bpartners.api.endpoint.rest.api.PayingApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
 import app.bpartners.api.endpoint.rest.model.CreateInvoiceRelaunch;
+import app.bpartners.api.endpoint.rest.model.EmailInfo;
 import app.bpartners.api.endpoint.rest.model.InvoiceRelaunch;
 import app.bpartners.api.endpoint.rest.model.RelaunchType;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
@@ -104,6 +105,7 @@ class InvoiceRelaunchIT {
         .invoice(invoice1().fileId(null))
         .accountId(JOE_DOE_ACCOUNT_ID)
         .isUserRelaunched(true)
+        .emailInfo(new EmailInfo())
         .creationDatetime(Instant.parse("2022-01-01T01:00:00.00Z"));
   }
 
@@ -114,7 +116,14 @@ class InvoiceRelaunchIT {
         .invoice(invoice1().fileId(null))
         .accountId(JOE_DOE_ACCOUNT_ID)
         .isUserRelaunched(false)
+        .emailInfo(new EmailInfo())
         .creationDatetime(Instant.parse("2022-01-01T01:00:00.00Z"));
+  }
+
+  CreateInvoiceRelaunch createInvoiceRelaunch() {
+    return new CreateInvoiceRelaunch()
+        .subject("relaunch_object")
+        .message("<p>Email body</p>");
   }
 
   InvoiceRelaunch expectedRelaunch() {
@@ -122,6 +131,9 @@ class InvoiceRelaunchIT {
         .invoice(invoice1().fileId(null))
         .type(RelaunchType.CONFIRMED)
         .accountId(JOE_DOE_ACCOUNT_ID)
+        .emailInfo(new EmailInfo()
+            .emailObject("[NUMER] relaunch_object")
+            .emailBody("<p>Email body</p>"))
         .isUserRelaunched(true);
   }
 
@@ -131,7 +143,7 @@ class InvoiceRelaunchIT {
     PayingApi api = new PayingApi(joeDoeClient);
 
     InvoiceRelaunch actual =
-        api.relaunchInvoice(JOE_DOE_ACCOUNT_ID, INVOICE1_ID, new CreateInvoiceRelaunch());
+        api.relaunchInvoice(JOE_DOE_ACCOUNT_ID, INVOICE1_ID, createInvoiceRelaunch());
     actual.setInvoice(actual.getInvoice().updatedAt(null));
 
     assertEquals(
@@ -185,15 +197,15 @@ class InvoiceRelaunchIT {
     PayingApi api = new PayingApi(joeDoeClient);
 
     assertThrowsForbiddenException(
-        () -> api.relaunchInvoice(OTHER_ACCOUNT_ID, INVOICE1_ID, new CreateInvoiceRelaunch()));
+        () -> api.relaunchInvoice(OTHER_ACCOUNT_ID, INVOICE1_ID, createInvoiceRelaunch()));
     assertThrowsApiException(
         "{\"type\":\"400 BAD_REQUEST\",\"message\":\"Invoice.invoice3_id actual status is"
             + " DRAFT and it cannot be relaunched\"}",
-        () -> api.relaunchInvoice(JOE_DOE_ACCOUNT_ID, INVOICE3_ID, new CreateInvoiceRelaunch()));
+        () -> api.relaunchInvoice(JOE_DOE_ACCOUNT_ID, INVOICE3_ID, createInvoiceRelaunch()));
     assertThrowsApiException(
         "{\"type\":\"400 BAD_REQUEST\",\"message\":\"Invoice.invoice7_id actual status is"
             + " PAID and it cannot be relaunched\"}",
-        () -> api.relaunchInvoice(JOE_DOE_ACCOUNT_ID, INVOICE7_ID, new CreateInvoiceRelaunch()));
+        () -> api.relaunchInvoice(JOE_DOE_ACCOUNT_ID, INVOICE7_ID, createInvoiceRelaunch()));
   }
 
   private List<InvoiceRelaunch> ignoreUpdatedDate(List<InvoiceRelaunch> list) {

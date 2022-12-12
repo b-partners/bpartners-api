@@ -61,6 +61,15 @@ public class FileService {
     }
   }
 
+  //TODO: return empty array instead of null
+  public byte[] downloadOptionalFile(FileType fileType, String accountId, String fileId) {
+    if (repository.getOptionalByIdAndAccountId(fileId, accountId).isEmpty()) {
+      return null;
+    } else {
+      return s3Service.downloadFile(fileType, accountId, fileId);
+    }
+  }
+
   public FileInfo getFileByAccountIdAndId(String accountId, String fileId) {
     return repository.getByAccountIdAndId(accountId, fileId);
   }

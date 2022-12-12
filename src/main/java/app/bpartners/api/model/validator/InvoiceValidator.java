@@ -66,6 +66,8 @@ public class InvoiceValidator implements Consumer<Invoice> {
   private static void checkDraftInvoice(Invoice actual, Invoice persisted, String invoiceId) {
     if (persisted.getStatus().equals(DRAFT)) {
       if (actual.getStatus().equals(PROPOSAL)) {
+        //TODO: add test to this products and amount validator (DRAFT -> PROPOSAL)
+        validateProductsAmount(actual);
         validateAttributes(actual);
       }
       if (!actual.getStatus().equals(DRAFT) && !actual.getStatus().equals(PROPOSAL)) {
@@ -75,12 +77,34 @@ public class InvoiceValidator implements Consumer<Invoice> {
     }
   }
 
+  private static void validateProductsAmount(Invoice actual) {
+    StringBuilder builder = new StringBuilder();
+    if (actual.getProducts().isEmpty()) {
+      builder.append(actual.getStatus())
+          .append(" invoice with empty products can not be validated. ");
+    } else {
+      int totalPrice = actual.getProducts().stream()
+          .mapToInt(product -> product.getQuantity() * product.getUnitPrice().getCentsRoundUp())
+          .sum();
+      if (totalPrice == 0) {
+        builder.append(actual.getStatus())
+            .append(" invoice with zero amount can not be validated. ");
+      }
+    }
+    String messageException = builder.toString();
+    if (!messageException.isEmpty()) {
+      throw new BadRequestException(messageException);
+    }
+  }
+
   private static void checkProposalInvoice(Invoice actual, Invoice persisted, String invoiceId) {
     if (persisted.getStatus().equals(PROPOSAL)) {
       if (!actual.getStatus().equals(CONFIRMED)) {
         throw new BadRequestException(
             getStatusMessage(invoiceId, persisted.getStatus(), CONFIRMED));
       } else {
+        //TODO: add test to this products and amount validator (PROPOSAL -> CONFIRMED)
+        validateProductsAmount(actual);
         if (!actual.equals(persisted)) {
           throw new BadRequestException(invoiceId + " was already sent and "
               + "can not be modified anymore");

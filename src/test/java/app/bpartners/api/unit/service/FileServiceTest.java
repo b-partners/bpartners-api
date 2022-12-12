@@ -17,8 +17,10 @@ import static app.bpartners.api.endpoint.rest.model.FileType.INVOICE;
 import static app.bpartners.api.integration.conf.TestUtils.FILE_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ID;
+import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -66,6 +68,22 @@ class FileServiceTest {
     assertNotEquals(before.getSha256(), actual.getSha256());
     assertEquals(RANDOM_CHECKSUM, actual.getSha256());
   }
+
+  //TODO: change this test when downloadedFile is empty byte array
+  @Test
+  void download_optional_ko() {
+    when(fileRepository.getOptionalByIdAndAccountId(any(String.class),
+        any(String.class))).thenReturn(Optional.empty());
+
+    FileType anyFileType = FileType.LOGO;
+    String anyAccountId = String.valueOf(randomUUID());
+    String anyFileId = String.valueOf(randomUUID());
+    byte[] downloadedFile =
+        fileService.downloadOptionalFile(anyFileType, anyAccountId, anyFileId + ".jpeg");
+
+    assertNull(downloadedFile);
+  }
+
 
   FileInfo fileInfo() {
     return FileInfo.builder()

@@ -7,6 +7,9 @@ public class FileUtils {
   }
 
   public static String base64Image(byte[] image) {
+    if (image == null) {
+      return null;
+    }
     return Base64.getEncoder().encodeToString(image);
   }
 }

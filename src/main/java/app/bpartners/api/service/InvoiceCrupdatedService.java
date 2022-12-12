@@ -37,7 +37,7 @@ public class InvoiceCrupdatedService implements Consumer<InvoiceCrupdated> {
     String accountId = invoice.getAccount().getId();
     String fileId =
         invoice.getFileId() == null ? randomUUID() + PDF_EXTENSION : invoice.getFileId();
-    byte[] logoAsBytes = fileService.downloadFile(LOGO, accountId, logoFileId);
+    byte[] logoAsBytes = fileService.downloadOptionalFile(LOGO, accountId, logoFileId);
     byte[] fileAsBytes =
         invoice.getStatus().equals(CONFIRMED) || invoice.getStatus().equals(PAID)
             ? pdfUtils.generatePdf(invoice, accountHolder, logoAsBytes, INVOICE_TEMPLATE)

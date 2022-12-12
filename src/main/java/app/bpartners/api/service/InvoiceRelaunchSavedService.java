@@ -37,7 +37,8 @@ public class InvoiceRelaunchSavedService implements Consumer<InvoiceRelaunchSave
     Invoice invoice = invoiceRelaunchSaved.getInvoice();
     AccountHolder accountHolder = invoiceRelaunchSaved.getAccountHolder();
     String logoFileId = invoiceRelaunchSaved.getLogoFileId();
-    byte[] logoAsBytes = fileService.downloadFile(LOGO, invoice.getAccount().getId(), logoFileId);
+    byte[] logoAsBytes =
+        fileService.downloadOptionalFile(LOGO, invoice.getAccount().getId(), logoFileId);
 
     byte[] attachmentAsBytes =
         invoice.getStatus().equals(CONFIRMED) || invoice.getStatus().equals(PAID)

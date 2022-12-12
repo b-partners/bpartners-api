@@ -88,7 +88,8 @@
     <table class="table-head">
         <tr>
             <td>
-                <p><img class="logo" th:src="${'data:image/jpeg;base64,' + logo}" alt="logo"/>
+                <p th:if="${logo!=null}">
+                    <img class="logo" th:src="${'data:image/jpeg;base64,' + logo}" alt="logo"/>
                 </p>
                 <p><strong
                         th:text="${#strings.toUpperCase(accountHolder.name)}"></strong>

@@ -183,8 +183,8 @@ class InvoiceIT {
                 .address("random_address")
                 .zipCode(12)
                 .city("random_city")
-                .country("random_country")
-        );
+                .country("random_country"))
+        .products(List.of(createProduct5()));
   }
 
   CrupdateInvoice paidInvoice() {
@@ -239,11 +239,11 @@ class InvoiceIT {
         .customer(customer1())
         .status(DRAFT)
         .sendingDate(LocalDate.of(2022, 10, 12))
-        .products(List.of())
+        .products(List.of(product5().id(null)))
         .toPayAt(LocalDate.of(2022, 11, 10))
-        .totalPriceWithVat(0)
-        .totalVat(0)
-        .totalPriceWithoutVat(0);
+        .totalPriceWithVat(1100)
+        .totalVat(100)
+        .totalPriceWithoutVat(1000);
   }
 
   CrupdateInvoice validInvoice() {
@@ -339,11 +339,20 @@ class InvoiceIT {
 
     assertEquals(invoice1(), actual1.updatedAt(null));
     assertEquals(invoice2(), actual2.updatedAt(null));
-    assertTrue(ignoreUpdatedAt(actualDraft).contains(invoice6()));
+    assertTrue(ignoreUpdatedAt(actualDraft).contains(invoice6()
+        .products(List.of())
+        .totalPriceWithVat(0)
+        .totalPriceWithoutVat(0)
+        .totalVat(0)));
     assertTrue(ignoreUpdatedAt(actualNotFiltered).containsAll(
         List.of(actual1.updatedAt(null),
             actual2.updatedAt(null),
-            invoice6().updatedAt(null))));
+            invoice6()
+                .products(List.of())
+                .totalPriceWithVat(0)
+                .totalPriceWithoutVat(0)
+                .totalVat(0)
+                .updatedAt(null))));
   }
 
   @Test
@@ -442,10 +451,7 @@ class InvoiceIT {
     PayingApi api = new PayingApi(joeDoeClient);
 
     Invoice actualUpdated =
-        api.crupdateInvoice(JOE_DOE_ACCOUNT_ID,
-            invoice6().getId(),
-            customerUpdatedInvoice()
-        );
+        api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, invoice6().getId(), customerUpdatedInvoice());
     actualUpdated.setProducts(ignoreIdsOf(actualUpdated.getProducts()));
     Invoice actual = api.getInvoiceById(JOE_DOE_ACCOUNT_ID, invoice6().getId());
     actual.setProducts(ignoreIdsOf(actual.getProducts()));

@@ -52,4 +52,5 @@ public class HInvoiceRelaunch implements Serializable {
   private Instant creationDatetime;
   private String object;
   private String emailBody;
+  private String attachmentFileId;
 }

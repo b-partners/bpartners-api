@@ -22,4 +22,5 @@ public class InvoiceRelaunch {
   private String emailBody;
   private boolean isUserRelaunched;
   private Instant creationDatetime;
+  private String attachmentFileId;
 }

@@ -26,6 +26,7 @@ public class InvoiceRelaunchMapper {
         .creationDatetime(entity.getCreationDatetime())
         .emailObject(entity.getObject())
         .emailBody(entity.getEmailBody())
+        .attachmentFileId(entity.getAttachmentFileId())
         .build();
   }
 
@@ -37,6 +38,7 @@ public class InvoiceRelaunchMapper {
         .type(mapRelaunchType(invoice))
         .object(object)
         .emailBody(htmlBody)
+        .attachmentFileId(invoice.getFileId())
         .build();
   }
 

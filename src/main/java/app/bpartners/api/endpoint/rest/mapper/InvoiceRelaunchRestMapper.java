@@ -42,6 +42,7 @@ public class InvoiceRelaunchRestMapper {
         .creationDatetime(domain.getCreationDatetime())
         .emailInfo(new EmailInfo()
             .emailBody(domain.getEmailBody())
-            .emailObject(domain.getEmailObject()));
+            .emailObject(domain.getEmailObject())
+            .attachmentFileId(domain.getAttachmentFileId()));
   }
 }

@@ -44,6 +44,31 @@ public class InvoiceRelaunchService {
   private final EventProducer eventProducer;
   private final PrincipalProvider auth;
 
+  private static String getDefaultSubject(Invoice invoice) {
+    return "Votre " + getStatusValue(invoice.getStatus())
+        + ", portant la référence " + invoice.getRef() + ", au nom de "
+        + invoice.getInvoiceCustomer().getName().toUpperCase();
+  }
+
+  private static String getSubject(AccountHolder accountHolder, String subject) {
+    return "[" + accountHolder.getName() + "] " + subject;
+  }
+
+  private static String getStatusValue(InvoiceStatus status) {
+    if (status.equals(PROPOSAL) || status.equals(DRAFT)) {
+      return "devis";
+    }
+    if (status.equals(CONFIRMED) || status.equals(PAID)) {
+      return "facture";
+    }
+    throw new BadRequestException("Unknown status : " + status);
+  }
+
+  //TODO: generalize this so the persist object is the really sent object
+  private static String getDefaultEmailPrefix(AccountHolder accountHolder) {
+    return "[" + accountHolder.getName() + "] ";
+  }
+
   public InvoiceRelaunchConf getByAccountId(String accountId) {
     return repository.getByAccountId(accountId);
   }
@@ -103,16 +128,6 @@ public class InvoiceRelaunchService {
         invoice.getRef() + PDF_EXTENSION, invoice, accountHolder);
   }
 
-  private static String getDefaultSubject(Invoice invoice) {
-    return "Votre " + getStatusValue(invoice.getStatus())
-        + ", portant la référence " + invoice.getRef() + ", au nom de "
-        + invoice.getInvoiceCustomer().getName().toUpperCase();
-  }
-
-  private static String getSubject(AccountHolder accountHolder, String subject) {
-    return "[" + accountHolder.getName() + "] " + subject;
-  }
-
   private TypedInvoiceRelaunchSaved toTypedEvent(String recipient, String subject, String emailBody,
                                                  String attachmentName, Invoice invoice,
                                                  AccountHolder accountHolder) {
@@ -125,16 +140,6 @@ public class InvoiceRelaunchService {
         .accountHolder(accountHolder)
         .logoFileId(userLogoFileId())
         .build());
-  }
-
-  private static String getStatusValue(InvoiceStatus status) {
-    if (status.equals(PROPOSAL) || status.equals(DRAFT)) {
-      return "devis";
-    }
-    if (status.equals(CONFIRMED) || status.equals(PAID)) {
-      return "facture";
-    }
-    throw new BadRequestException("Unknown status : " + status);
   }
 
   private String userLogoFileId() {
@@ -156,10 +161,5 @@ public class InvoiceRelaunchService {
     context.setVariable("accountHolder", accountHolder);
 
     return context;
-  }
-
-  //TODO: generalize this so the persist object is the really sent object
-  private static String getDefaultEmailPrefix(AccountHolder accountHolder) {
-    return "[" + accountHolder.getName() + "] ";
   }
 }

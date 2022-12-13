@@ -706,7 +706,8 @@ components:
         emailBody:
           type: string
           description: use HTML tags
-        #todo: add attachmentFileId
+        attachmentFileId:
+          type: string
     RelaunchType:
       type: string
       enum:

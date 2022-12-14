@@ -1,6 +1,6 @@
 This project both specifies the
 [Bpartners API](./doc/api.yml)
-and implements it in Java.
+and implements it in Yes 
 
 Reach out to `lou@bpartners.app` for accessing technical diagrams in LucidChart.
 

@@ -22,6 +22,7 @@ import app.bpartners.api.repository.jpa.model.HInvoiceProduct;
 import app.bpartners.api.repository.jpa.model.HProduct;
 import app.bpartners.api.service.PaymentInitiationService;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -53,8 +54,8 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
   @Override
   public Invoice crupdate(Invoice toCrupdate) {
     if (toCrupdate.getRef() != null) {
-      Optional<HInvoice> existingInvoice = jpaRepository.findByIdAccountAndRef(
-          toCrupdate.getAccount().getId(), toCrupdate.getRef());
+      Optional<HInvoice> existingInvoice = jpaRepository.findByIdAccountAndRefAndStatus(
+          toCrupdate.getAccount().getId(), toCrupdate.getRef(), toCrupdate.getPreviousStatus());
       if (existingInvoice.isPresent()) {
         String persistedId = existingInvoice.get().getId();
         if (toCrupdate.getStatus().equals(DRAFT)
@@ -67,6 +68,16 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
       }
     }
     HInvoice entity = jpaRepository.save(mapper.toEntity(toCrupdate));
+    boolean entityHasBeenCloned =
+        !Objects.equals(toCrupdate.getId(), entity.getId());
+    if (entityHasBeenCloned) {
+      toCrupdate.setId(entity.getId());
+      if (toCrupdate.getInvoiceCustomer() != null) {
+        toCrupdate.getInvoiceCustomer().setId(null);
+        toCrupdate.getInvoiceCustomer().setIdInvoice(entity.getId());
+      }
+      cloneProducts(toCrupdate.getAccount().getId(), toCrupdate.getId());
+    }
     HInvoiceCustomer invoiceCustomer =
         invoiceCustomerMapper.toEntity(toCrupdate.getInvoiceCustomer());
     if (invoiceCustomer != null) {
@@ -204,4 +215,17 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
     return parseFraction(aprational);
   }
 
+  private List<Product> ignoreIdsOf(List<Product> actual) {
+    return actual.stream().map(product -> {
+      product.setId(null);
+      return product;
+    }).collect(Collectors.toUnmodifiableList());
+  }
+
+  private List<Product> cloneProducts(String accountId, String invoiceId) {
+    return productRepository.saveAll(
+        accountId,
+        ignoreIdsOf(productRepository.findByIdInvoice(invoiceId))
+    );
+  }
 }

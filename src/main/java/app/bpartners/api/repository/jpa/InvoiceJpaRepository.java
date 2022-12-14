@@ -20,5 +20,6 @@ public interface InvoiceJpaRepository extends JpaRepository<HInvoice, String> {
   List<HInvoice> findAllByIdAccountOrderByCreatedDatetimeDesc(
       String idAccount, Pageable pageable);
 
-  Optional<HInvoice> findByIdAccountAndRef(String idAccount, String ref);
+  Optional<HInvoice> findByIdAccountAndRefAndStatus(String idAccount, String ref,
+                                                    InvoiceStatus status);
 }

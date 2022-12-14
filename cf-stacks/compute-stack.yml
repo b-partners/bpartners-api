@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: Compute stack for BPartners
+Description: Compute stack for BPartners API
 
 Parameters:
   Env:

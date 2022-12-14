@@ -1,0 +1,332 @@
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Invoice</title>
+    <style>
+        body {
+            margin: 20px 1px 20px 20px;
+            padding: 0;
+            box-sizing: border-box;
+            font-size: 10px;
+            font-family: Helvetica, serif;
+        }
+
+        .table-head {
+            width: 100%;
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        .text-left {
+            text-align: left;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .text-justify {
+            text-align: justify;
+        }
+
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+
+        .logo {
+            width: 50px;
+            height: 50px;
+        }
+
+        .code {
+            width: 50px;
+            height: 50px;
+        }
+
+        a {
+            text-decoration: none;
+        }
+
+
+        .amount-section p {
+            border: 1px solid black;
+            padding: 4px 8px;
+            width: 150px;
+            margin-left: 73%;
+        }
+
+        th {
+            background-color: grey;
+            color: white;
+        }
+
+        .space-letter {
+            letter-spacing: 3px;
+        }
+
+        th, td {
+            padding: 6px;
+            font-size: 11px;
+        }
+
+        .main-table td {
+            border: 0.5px solid grey;
+        }
+
+        tbody table tr:nth-child(odd) {
+            background-color: #dddddd;
+        }
+
+        .muted {
+            color: grey;
+        }
+
+        li {
+            margin-top: 12px;
+            margin-bottom: 12px;
+        }
+    </style>
+</head>
+<body>
+<header>
+    <h1 class="text-center text-underline">FACTURE</h1>
+    <table class="table-head">
+        <tr>
+            <td>
+                <p th:if="${logo!=null}">
+                    <img class="logo" th:src="${'data:image/jpeg;base64,' + logo}" alt="logo"/>
+                </p>
+                <p><strong
+                        th:text="${#strings.toUpperCase(accountHolder.name)}"></strong>
+                </p>
+                <p class="muted"><span
+                        th:text="${accountHolder.mobilePhoneNumber}"></span>
+                </p>
+                <p class="muted"><span
+                        th:text="${accountHolder.email}"></span>
+                </p>
+            </td>
+            <td class="text-right">
+                <img class="code" th:src="${'data:image/jpeg;base64,' + qrcode}" alt="qr-code"/>
+                <div>
+                    <a th:href="${invoice.paymentUrl}">Payez ici</a>
+                    <p>Date limite de paiement : <span
+                            th:text="${#dates.format(invoice.getFormattedPayingDate, 'dd-MM-yyyy')}"></span>
+                    </p>
+                </div>
+            </td>
+        </tr>
+    </table>
+    <table class="table-head">
+        <tr>
+            <td>
+                <p><strong>Facture n° : <span
+                        th:text="${invoice.ref}"></span> </strong></p>
+                <p th:if="${invoice.title != null && !invoice.title.isBlank()}">Intitulé "<span
+                        th:text="${invoice.title}"></span>"
+                </p>
+                <p>Date d'émission : <span
+                        th:text="${#dates.format(invoice.getFormattedSendingDate, 'dd-MM-yyyy')}"></span>
+                </p>
+                <p>Date limite de validité : <span
+                        th:text="${#dates.format(invoice.getFormattedPayingDate, 'dd-MM-yyyy')}"></span>
+                </p>
+                <p class="text-justify"><strong>Commentaires :</strong></p>
+                <p th:text="${invoice.comment}"></p>
+            </td>
+            <td class="text-right" th:if="${invoice.invoiceCustomer != null}">
+                <p><strong
+                        th:text="${#strings.toUpperCase(invoice.invoiceCustomer.name)}"></strong>
+                </p>
+                <p class="muted"><span
+                        th:text="${invoice.invoiceCustomer.address}"></span>
+                </p>
+                <p class="muted"><span
+                        th:text="${invoice.invoiceCustomer.phone}"></span>
+                </p>
+                <p class="muted"><span
+                        th:text="${invoice.invoiceCustomer.email}"></span>
+                </p>
+                <p class="muted"><span
+                        th:text="${invoice.invoiceCustomer.website}"></span>
+                </p>
+            </td>
+        </tr>
+    </table>
+</header>
+<section th:if="${invoice.products != null && invoice.products.size()>19}">
+    <table style="margin: 10px 0px 20px 0px" class="main-table">
+        <thead class="text-center">
+        <th style="width: 150px">Description</th>
+        <th>Quantité</th>
+        <th>Prix unitaire</th>
+        <th>TVA</th>
+        <th>Montant HT</th>
+        <th>Montant TTC</th>
+        </thead>
+        <tbody>
+        <th:block th:each="product : ${invoice.products.subList(0, 18)}">
+            <tr>
+                <td class="text-left" style="width: 150px"><span
+                        th:text="${product.description}"></span>
+                </td>
+                <td class="text-center"><span th:text="${product.quantity}"></span></td>
+                <td class="text-center space-letter"><span
+                        th:text="${#numbers.formatDecimal(product.unitPrice.getCentsAsDecimal(),1,2)}"></span>
+                    €
+                </td>
+                <td class="text-center space-letter"><span
+                        th:text="${product.vatPercent.getCentsUpAsString()}"></span>%
+                </td>
+                <td class="text-center space-letter"><span
+                        th:text="${#numbers.formatDecimal(product.totalWithoutVat.getCentsAsDecimal(),1,2)}"></span>
+                    €
+                </td>
+                <td class="text-center space-letter"><span
+                        th:text="${#numbers.formatDecimal(product.totalPriceWithVat.getCentsAsDecimal(),1,2)}"></span>
+                    €
+                </td>
+            </tr>
+        </th:block>
+        </tbody>
+    </table>
+    <footer>
+        <div style="margin-top: 1%;border-bottom: 1px solid black"></div>
+        <div style="font-size: 9px">
+            <div class="content-left">
+                <p><span th:text="${accountHolder.name}"></span></p>
+                <p>Siège social :
+                    <span th:text="${accountHolder.address} +', '+${accountHolder.postalCode}+' '+ ${accountHolder.city}+', '+ ${accountHolder.country}"></span>
+                </p>
+                <p>Capital social : <span
+                        th:text="${#numbers.formatCurrency(accountHolder.socialCapital)}"></span>
+                </p>
+                <p>SIREN : <span th:text="${accountHolder.siren}"></span></p>
+                <p>Numéro TVA : <span th:text="${accountHolder.tvaNumber}"></span></p>
+            </div>
+        </div>
+    </footer>
+    <table style="margin: 10px 0px 20px 0px" class="main-table">
+        <tbody>
+        <th:block th:each="product : ${invoice.products.subList(18, invoice.products.size())}">
+            <tr>
+                <td class="text-left" style="width: 150px"><span
+                        th:text="${product.description}"></span>
+                </td>
+                <td class="text-center"><span th:text="${product.quantity}"></span></td>
+                <td class="text-center space-letter"><span
+                        th:text="${#numbers.formatDecimal(product.unitPrice.getCentsAsDecimal(),1,2)}"></span>
+                    €
+                </td>
+                <td class="text-center space-letter"><span
+                        th:text="${product.vatPercent.getCentsUpAsString()}"></span>%
+                </td>
+                <td class="text-center space-letter"><span
+                        th:text="${#numbers.formatDecimal(product.totalWithoutVat.getCentsAsDecimal(),1,2)}"></span>
+                    €
+                </td>
+                <td class="text-center space-letter"><span
+                        th:text="${#numbers.formatDecimal(product.totalPriceWithVat.getCentsAsDecimal(),1,2)}"></span>
+                    €
+                </td>
+            </tr>
+        </th:block>
+        </tbody>
+    </table>
+</section>
+<section th:if="${invoice.products != null && invoice.products.size()<=18}">
+    <table style="margin: 10px 0px 20px 0px" class="main-table">
+        <thead class="text-center">
+        <th style="width: 150px">Description</th>
+        <th>Quantité</th>
+        <th>Prix unitaire</th>
+        <th>TVA</th>
+        <th>Montant HT</th>
+        <th>Montant TTC</th>
+        </thead>
+        <tbody>
+        <th:block th:each="product : ${invoice.products}">
+            <tr>
+                <td class="text-left" style="width: 150px"><span
+                        th:text="${product.description}"></span>
+                </td>
+                <td class="text-center"><span th:text="${product.quantity}"></span></td>
+                <td class="text-center space-letter"><span
+                        th:text="${#numbers.formatDecimal(product.unitPrice.getCentsAsDecimal(),1,2)}"></span>
+                    €
+                </td>
+                <td class="text-center space-letter"><span
+                        th:text="${product.vatPercent.getCentsUpAsString()}"></span>%
+                </td>
+                <td class="text-center space-letter"><span
+                        th:text="${#numbers.formatDecimal(product.totalWithoutVat.getCentsAsDecimal(),1,2)}"></span>
+                    €
+                </td>
+                <td class="text-center space-letter"><span
+                        th:text="${#numbers.formatDecimal(product.totalPriceWithVat.getCentsAsDecimal(),1,2)}"></span>
+                    €
+                </td>
+            </tr>
+        </th:block>
+        </tbody>
+    </table>
+</section>
+<div class="amount-section">
+    <div>
+        <p><strong>Total HT</strong> : <span
+                th:text="${#numbers.formatDecimal(invoice.totalPriceWithoutVat.getCentsAsDecimal(), 1,2)}"></span>
+            €
+        </p>
+        <p><strong>Total TVA</strong> : <span
+                th:text="${#numbers.formatDecimal(invoice.totalVat.getCentsAsDecimal(), 1,2)}"></span>
+            €</p>
+        <p><strong>Total TTC</strong> : <span
+                th:text="${#numbers.formatDecimal(invoice.totalPriceWithVat.getCentsAsDecimal(),1,2)}"></span>
+            €
+        </p>
+    </div>
+</div>
+<div class="footer">
+    <p><strong>Bien à vous et merci pour votre confiance.</strong></p>
+    <p><span class="muted">
+            La facture est payable à réception en scannant le QR code ou en cliquant sur le lien.
+           Sinon, vous avez la possibilité de faire un virement classique avec nos
+           coordonnées ci-dessous. <br/>
+            Des pénalités correspondant à trois fois le taux de l’intérêt légal seront applicables en
+            l’absence ou en cas de retard de paiement. Les pénalités de
+            retard sont exigibles sans qu'un rappel soit nécessaire. Une indemnité forfaitaire de 40 €
+            pour frais de recouvrement sera appliquée en cas de
+            retard de paiement conformément aux articles L 441-3 et L 441-6 du code de commerce.
+            Pas d'escompte en cas de paiement anticipé.
+        </span></p>
+    <div>
+        <h3>Nos coordonnées bancaires</h3>
+        <ul style="margin: 10px">
+            <li>Nom du compte : <span th:text="${invoice.account.name}"></span></li>
+            <li>IBAN : <span th:text="${invoice.account.iban}"></span></li>
+            <li>BIC : <span th:text="${invoice.account.bic}"></span></li>
+        </ul>
+    </div>
+    <footer>
+        <div style="margin-top: 10% ; border-bottom: 1px solid black"></div>
+        <div style="font-size: 9px">
+            <div class="content-left">
+                <p><span th:text="${accountHolder.name}"></span></p>
+                <p>Siège social :
+                    <span th:text="${accountHolder.address} +', '+${accountHolder.postalCode}+' '+ ${accountHolder.city}+', '+ ${accountHolder.country}"></span>
+                </p>
+                <p>Capital social : <span
+                        th:text="${#numbers.formatCurrency(accountHolder.socialCapital)}"></span>
+                </p>
+                <p>SIREN : <span th:text="${accountHolder.siren}"></span></p>
+                <p>Numéro TVA : <span th:text="${accountHolder.tvaNumber}"></span></p>
+            </div>
+        </div>
+    </footer>
+</div>
+</body>
+</html>

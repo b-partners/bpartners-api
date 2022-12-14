@@ -12,6 +12,10 @@ import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
 import app.bpartners.api.integration.conf.S3AbstractContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
 import app.bpartners.api.manager.ProjectTokenManager;
+import app.bpartners.api.model.Account;
+import app.bpartners.api.model.AccountHolder;
+import app.bpartners.api.model.Fraction;
+import app.bpartners.api.model.InvoiceCustomer;
 import app.bpartners.api.repository.LegalFileRepository;
 import app.bpartners.api.repository.fintecture.FintectureConf;
 import app.bpartners.api.repository.fintecture.FintecturePaymentInitiationRepository;
@@ -20,6 +24,12 @@ import app.bpartners.api.repository.swan.AccountHolderSwanRepository;
 import app.bpartners.api.repository.swan.AccountSwanRepository;
 import app.bpartners.api.repository.swan.UserSwanRepository;
 import app.bpartners.api.service.InvoiceService;
+import app.bpartners.api.service.utils.InvoicePdfUtils;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -60,6 +70,7 @@ import static app.bpartners.api.integration.conf.TestUtils.createProduct4;
 import static app.bpartners.api.integration.conf.TestUtils.createProduct5;
 import static app.bpartners.api.integration.conf.TestUtils.customer1;
 import static app.bpartners.api.integration.conf.TestUtils.customer2;
+import static app.bpartners.api.integration.conf.TestUtils.joeDoeSwanAccountHolder;
 import static app.bpartners.api.integration.conf.TestUtils.product3;
 import static app.bpartners.api.integration.conf.TestUtils.product4;
 import static app.bpartners.api.integration.conf.TestUtils.product5;
@@ -119,6 +130,7 @@ class InvoiceIT {
   private EventBridgeClient eventBridgeClientMock;
   @MockBean
   private LegalFileRepository legalFileRepositoryMock;
+  InvoicePdfUtils invoicePdfUtils = new InvoicePdfUtils();
 
   private static ApiClient anApiClient() {
     return TestUtils.anApiClient(JOE_DOE_TOKEN, InvoiceIT.ContextInitializer.SERVER_PORT);
@@ -511,7 +523,6 @@ class InvoiceIT {
         () -> api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, INVOICE5_ID, confirmedInvoice()));
   }
 
-  /* /!\ For local test only
   @Test
   void generate_invoice_pdf_ok() throws IOException {
     app.bpartners.api.model.Invoice invoice = app.bpartners.api.model.Invoice.builder()
@@ -520,18 +531,171 @@ class InvoiceIT {
         .title("invoice_title")
         .sendingDate(LocalDate.now())
         .toPayAt(LocalDate.now())
+        .totalPriceWithoutVat(new Fraction(BigInteger.TWO, BigInteger.TEN))
+        .totalPriceWithVat(new Fraction(BigInteger.TWO, BigInteger.TEN))
+        .totalVat(new Fraction(BigInteger.TWO, BigInteger.TEN))
         .account(Account.builder()
             .id(JOE_DOE_ACCOUNT_ID)
             .iban("FR7630001007941234567890185")
             .bic("BPFRPP751")
             .build())
         .products(List.of(app.bpartners.api.model.Product.builder()
-            .id("product_id")
-            .quantity(50)
-            .description("product description")
-            .vatPercent(20)
-            .unitPrice(150)
-            .build()))
+                .id("product_id")
+                .quantity(50)
+                .description("product description")
+                .vatPercent(new Fraction(BigInteger.TWO, BigInteger.TEN))
+                .unitPrice(new Fraction(BigInteger.TWO, BigInteger.TEN))
+                .totalPriceWithVat(new Fraction(BigInteger.TWO, BigInteger.TEN))
+                .totalVat(new Fraction(BigInteger.TWO, BigInteger.TEN))
+                .build(),
+            app.bpartners.api.model.Product.builder()
+                .id("product_id")
+                .quantity(50)
+                .description("product description")
+                .vatPercent(new Fraction(BigInteger.TWO, BigInteger.TEN))
+                .unitPrice(new Fraction(BigInteger.TWO, BigInteger.TEN))
+                .totalPriceWithVat(new Fraction(BigInteger.TWO, BigInteger.TEN))
+                .totalVat(new Fraction(BigInteger.TWO, BigInteger.TEN))
+                .build(),
+            app.bpartners.api.model.Product.builder()
+                .id("product_id")
+                .quantity(50)
+                .description("product description")
+                .vatPercent(new Fraction(BigInteger.TWO, BigInteger.TEN))
+                .unitPrice(new Fraction(BigInteger.TWO, BigInteger.TEN))
+                .totalPriceWithVat(new Fraction(BigInteger.TWO, BigInteger.TEN))
+                .totalVat(new Fraction(BigInteger.TWO, BigInteger.TEN))
+                .build(),
+            app.bpartners.api.model.Product.builder()
+                .id("product_id")
+                .quantity(50)
+                .description("product description")
+                .vatPercent(new Fraction(BigInteger.TWO, BigInteger.TEN))
+                .unitPrice(new Fraction(BigInteger.TWO, BigInteger.TEN))
+                .totalPriceWithVat(new Fraction(BigInteger.TWO, BigInteger.TEN))
+                .totalVat(new Fraction(BigInteger.TWO, BigInteger.TEN))
+                .build(),
+            app.bpartners.api.model.Product.builder()
+                .id("product_id")
+                .quantity(50)
+                .description("product description")
+                .vatPercent(new Fraction(BigInteger.TWO, BigInteger.TEN))
+                .unitPrice(new Fraction(BigInteger.TWO, BigInteger.TEN))
+                .totalPriceWithVat(new Fraction(BigInteger.TWO, BigInteger.TEN))
+                .totalVat(new Fraction(BigInteger.TWO, BigInteger.TEN))
+                .build(),
+            app.bpartners.api.model.Product.builder()
+                .id("product_id")
+                .quantity(50)
+                .description("product description")
+                .vatPercent(new Fraction(BigInteger.TWO, BigInteger.TEN))
+                .unitPrice(new Fraction(BigInteger.TWO, BigInteger.TEN))
+                .totalPriceWithVat(new Fraction(BigInteger.TWO, BigInteger.TEN))
+                .totalVat(new Fraction(BigInteger.TWO, BigInteger.TEN))
+                .build(), app.bpartners.api.model.Product.builder()
+                .id("product_id")
+                .quantity(50)
+                .description("product description")
+                .vatPercent(new Fraction(BigInteger.TWO, BigInteger.TEN))
+                .unitPrice(new Fraction(BigInteger.TWO, BigInteger.TEN))
+                .totalPriceWithVat(new Fraction(BigInteger.TWO, BigInteger.TEN))
+                .totalVat(new Fraction(BigInteger.TWO, BigInteger.TEN))
+                .build()
+            , app.bpartners.api.model.Product.builder()
+                .id("product_id")
+                .quantity(50)
+                .description("product description")
+                .vatPercent(new Fraction(BigInteger.TWO, BigInteger.TEN))
+                .unitPrice(new Fraction(BigInteger.TWO, BigInteger.TEN))
+                .totalPriceWithVat(new Fraction(BigInteger.TWO, BigInteger.TEN))
+                .totalVat(new Fraction(BigInteger.TWO, BigInteger.TEN))
+                .build(), app.bpartners.api.model.Product.builder()
+                .id("product_id")
+                .quantity(50)
+                .description("product description")
+                .vatPercent(new Fraction(BigInteger.TWO, BigInteger.TEN))
+                .unitPrice(new Fraction(BigInteger.TWO, BigInteger.TEN))
+                .totalPriceWithVat(new Fraction(BigInteger.TWO, BigInteger.TEN))
+                .totalVat(new Fraction(BigInteger.TWO, BigInteger.TEN))
+                .build(), app.bpartners.api.model.Product.builder()
+                .id("product_id")
+                .quantity(50)
+                .description("product description")
+                .vatPercent(new Fraction(BigInteger.TWO, BigInteger.TEN))
+                .unitPrice(new Fraction(BigInteger.TWO, BigInteger.TEN))
+                .totalPriceWithVat(new Fraction(BigInteger.TWO, BigInteger.TEN))
+                .totalVat(new Fraction(BigInteger.TWO, BigInteger.TEN))
+                .build(), app.bpartners.api.model.Product.builder()
+                .id("product_id")
+                .quantity(50)
+                .description("product description")
+                .vatPercent(new Fraction(BigInteger.TWO, BigInteger.TEN))
+                .unitPrice(new Fraction(BigInteger.TWO, BigInteger.TEN))
+                .totalPriceWithVat(new Fraction(BigInteger.TWO, BigInteger.TEN))
+                .totalVat(new Fraction(BigInteger.TWO, BigInteger.TEN))
+                .build(), app.bpartners.api.model.Product.builder()
+                .id("product_id")
+                .quantity(50)
+                .description("product description")
+                .vatPercent(new Fraction(BigInteger.TWO, BigInteger.TEN))
+                .unitPrice(new Fraction(BigInteger.TWO, BigInteger.TEN))
+                .totalPriceWithVat(new Fraction(BigInteger.TWO, BigInteger.TEN))
+                .totalVat(new Fraction(BigInteger.TWO, BigInteger.TEN))
+                .build(),
+            app.bpartners.api.model.Product.builder()
+                .id("product_id")
+                .quantity(50)
+                .description("product description")
+                .vatPercent(new Fraction(BigInteger.TWO, BigInteger.TEN))
+                .unitPrice(new Fraction(BigInteger.TWO, BigInteger.TEN))
+                .totalPriceWithVat(new Fraction(BigInteger.TWO, BigInteger.TEN))
+                .totalVat(new Fraction(BigInteger.TWO, BigInteger.TEN))
+                .build(),
+            app.bpartners.api.model.Product.builder()
+                .id("product_id")
+                .quantity(50)
+                .description("product description")
+                .vatPercent(new Fraction(BigInteger.TWO, BigInteger.TEN))
+                .unitPrice(new Fraction(BigInteger.TWO, BigInteger.TEN))
+                .totalPriceWithVat(new Fraction(BigInteger.TWO, BigInteger.TEN))
+                .totalVat(new Fraction(BigInteger.TWO, BigInteger.TEN))
+                .build(),
+            app.bpartners.api.model.Product.builder()
+                .id("product_id")
+                .quantity(50)
+                .description("product description")
+                .vatPercent(new Fraction(BigInteger.TWO, BigInteger.TEN))
+                .unitPrice(new Fraction(BigInteger.TWO, BigInteger.TEN))
+                .totalPriceWithVat(new Fraction(BigInteger.TWO, BigInteger.TEN))
+                .totalVat(new Fraction(BigInteger.TWO, BigInteger.TEN))
+                .build(),
+            app.bpartners.api.model.Product.builder()
+                .id("product_id")
+                .quantity(50)
+                .description("product description")
+                .vatPercent(new Fraction(BigInteger.TWO, BigInteger.TEN))
+                .unitPrice(new Fraction(BigInteger.TWO, BigInteger.TEN))
+                .totalPriceWithVat(new Fraction(BigInteger.TWO, BigInteger.TEN))
+                .totalVat(new Fraction(BigInteger.TWO, BigInteger.TEN))
+                .build(),
+            app.bpartners.api.model.Product.builder()
+                .id("product_id")
+                .quantity(50)
+                .description("product description")
+                .vatPercent(new Fraction(BigInteger.TWO, BigInteger.TEN))
+                .unitPrice(new Fraction(BigInteger.TWO, BigInteger.TEN))
+                .totalPriceWithVat(new Fraction(BigInteger.TWO, BigInteger.TEN))
+                .totalVat(new Fraction(BigInteger.TWO, BigInteger.TEN))
+                .build(),
+            app.bpartners.api.model.Product.builder()
+                .id("product_id")
+                .quantity(50)
+                .description("product description")
+                .vatPercent(new Fraction(BigInteger.TWO, BigInteger.TEN))
+                .unitPrice(new Fraction(BigInteger.TWO, BigInteger.TEN))
+                .totalPriceWithVat(new Fraction(BigInteger.TWO, BigInteger.TEN))
+                .totalVat(new Fraction(BigInteger.TWO, BigInteger.TEN))
+                .build()))
         .invoiceCustomer(InvoiceCustomer.customerTemplateBuilder()
             .name("Olivier Durant")
             .phone("+33 6 12 45 89 76")
@@ -539,14 +703,76 @@ class InvoiceIT {
             .address("Paris 745")
             .build())
         .build();
-    byte[] data = invoiceService.generateInvoicePdf(invoice);
+    app.bpartners.api.model.Invoice invoice2 = app.bpartners.api.model.Invoice.builder()
+        .id(INVOICE1_ID)
+        .ref("invoice_ref")
+        .title("invoice_title")
+        .sendingDate(LocalDate.now())
+        .toPayAt(LocalDate.now())
+        .totalPriceWithoutVat(new Fraction(BigInteger.TWO, BigInteger.TEN))
+        .totalPriceWithVat(new Fraction(BigInteger.TWO, BigInteger.TEN))
+        .totalVat(new Fraction(BigInteger.TWO, BigInteger.TEN))
+        .account(Account.builder()
+            .id(JOE_DOE_ACCOUNT_ID)
+            .iban("FR7630001007941234567890185")
+            .bic("BPFRPP751")
+            .build())
+        .products(List.of(app.bpartners.api.model.Product.builder()
+                .id("product_id")
+                .quantity(50)
+                .description("product description")
+                .vatPercent(new Fraction(BigInteger.TWO, BigInteger.TEN))
+                .unitPrice(new Fraction(BigInteger.TWO, BigInteger.TEN))
+                .totalPriceWithVat(new Fraction(BigInteger.TWO, BigInteger.TEN))
+                .totalVat(new Fraction(BigInteger.TWO, BigInteger.TEN))
+                .build(),
+            app.bpartners.api.model.Product.builder()
+                .id("product_id")
+                .quantity(50)
+                .description("product description")
+                .vatPercent(new Fraction(BigInteger.TWO, BigInteger.TEN))
+                .unitPrice(new Fraction(BigInteger.TWO, BigInteger.TEN))
+                .totalPriceWithVat(new Fraction(BigInteger.TWO, BigInteger.TEN))
+                .totalVat(new Fraction(BigInteger.TWO, BigInteger.TEN))
+                .build(),
+            app.bpartners.api.model.Product.builder()
+                .id("product_id")
+                .quantity(50)
+                .description("product description")
+                .vatPercent(new Fraction(BigInteger.TWO, BigInteger.TEN))
+                .unitPrice(new Fraction(BigInteger.TWO, BigInteger.TEN))
+                .totalPriceWithVat(new Fraction(BigInteger.TWO, BigInteger.TEN))
+                .totalVat(new Fraction(BigInteger.TWO, BigInteger.TEN))
+                .build(),
+            app.bpartners.api.model.Product.builder()
+                .id("product_id")
+                .quantity(50)
+                .description("product description")
+                .vatPercent(new Fraction(BigInteger.TWO, BigInteger.TEN))
+                .unitPrice(new Fraction(BigInteger.TWO, BigInteger.TEN))
+                .totalPriceWithVat(new Fraction(BigInteger.TWO, BigInteger.TEN))
+                .totalVat(new Fraction(BigInteger.TWO, BigInteger.TEN))
+                .build()))
+        .invoiceCustomer(InvoiceCustomer.customerTemplateBuilder()
+            .name("Olivier Durant")
+            .phone("+33 6 12 45 89 76")
+            .email("exemple@email.com")
+            .address("Paris 745")
+            .build())
+        .build();
+    AccountHolder accountHolder = AccountHolder.builder()
+        .accountId(JOE_DOE_ACCOUNT_ID)
+        .name("Numer")
+        .siren("12345678")
+        .build();
+    byte[] data = invoicePdfUtils.generatePdf(invoice, accountHolder, null, "invoice.2");
     File generatedFile = new File("invoice.pdf");
     OutputStream os = new FileOutputStream(generatedFile);
     os.write(data);
     os.close();
   }
 
-  @Test
+  /*@Test
   void generate_draft_pdf_ok() throws IOException {
     app.bpartners.api.model.Invoice invoice = app.bpartners.api.model.Invoice.builder()
         .id("draft_id")

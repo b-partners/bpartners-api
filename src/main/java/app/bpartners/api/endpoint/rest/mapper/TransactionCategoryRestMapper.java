@@ -28,6 +28,7 @@ public class TransactionCategoryRestMapper {
         .transactionType(domain.getTransactionType())
         .count(domain.getTypeCount())
         .description(domain.getDescription())
+        .isOther(domain.isOther())
         .comment(domain.getComment());
   }
 
@@ -56,6 +57,7 @@ public class TransactionCategoryRestMapper {
             .vat(parseFraction(rest.getVat()))
             .idTransactionCategoryTmpl(categoryTemplate.getId())
             .transactionType(categoryTemplate.getTransactionType())
+            .other(categoryTemplate.isOther())
             .build();
     if (categoryTemplate.isOther()) {
       domain.setComment(rest.getComment());

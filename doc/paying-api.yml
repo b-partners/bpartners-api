@@ -606,6 +606,8 @@ components:
         description:
           type: string
           example: null
+        isOther:
+          type: boolean
     CreateTransactionCategory:
       type: object
       properties:

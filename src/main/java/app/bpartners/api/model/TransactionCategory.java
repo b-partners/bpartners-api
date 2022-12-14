@@ -25,4 +25,5 @@ public class TransactionCategory {
   private long typeCount;
   private String description;
   private String comment;
+  private boolean other;
 }

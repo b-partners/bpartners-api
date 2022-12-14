@@ -671,7 +671,12 @@ components:
       properties:
         subject:
           type: string
+        object:
+          type: string
         message:
+          type: string
+          description: html is waited
+        emailBody:
           type: string
     InvoiceRelaunch:
       type: object
@@ -682,6 +687,8 @@ components:
           $ref: '#/components/schemas/RelaunchType'
         invoice:
           $ref: '#/components/schemas/Invoice'
+        emailInfo:
+          $ref: '#/components/schemas/EmailInfo'
         accountId:
           type: string
         isUserRelaunched:
@@ -689,6 +696,15 @@ components:
         creationDatetime:
           type: string
           format: date-time
+    EmailInfo:
+      type: object
+      properties:
+        emailObject:
+          type: string
+        emailBody:
+          type: string
+          description: use HTML tags
+        #todo: add attachmentFileId
     RelaunchType:
       type: string
       enum:

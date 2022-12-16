@@ -27,7 +27,7 @@ class FintecturePaymentInitiationRepositoryTest {
     finctecturePaymentInitiationRepository =
         new FinctecturePaymentInitiationRepositoryImpl(fintectureConf, projectTokenManager);
 
-    when(fintectureConf.getConnectPisUrl()).thenReturn(PIS_URL);
+    when(fintectureConf.getRequestToPayUrl()).thenReturn(PIS_URL);
     when(projectTokenManager.getFintectureProjectToken()).thenReturn(PROJECT_TOKEN);
   }
 

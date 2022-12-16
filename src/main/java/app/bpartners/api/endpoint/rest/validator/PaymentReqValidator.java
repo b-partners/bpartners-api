@@ -8,27 +8,22 @@ import org.springframework.stereotype.Component;
 public class PaymentReqValidator implements Consumer<PaymentInitiation> {
   @Override
   public void accept(PaymentInitiation paymentInitiation) {
-    StringBuilder exceptionMessageBuilder = new StringBuilder();
+    StringBuilder builder = new StringBuilder();
     if (paymentInitiation.getId() == null) {
-      exceptionMessageBuilder.append("id is mandatory. ");
-    }
-    if (paymentInitiation.getLabel() == null) {
-      exceptionMessageBuilder.append("label is mandatory. ");
-    }
-    if (paymentInitiation.getReference() == null) {
-      exceptionMessageBuilder.append("reference is mandatory. ");
+      builder.append("id is mandatory. ");
     }
     if (paymentInitiation.getAmount() == null) {
-      exceptionMessageBuilder.append("amount is mandatory. ");
+      builder.append("amount is mandatory. ");
     }
     if (paymentInitiation.getPayerName() == null) {
-      exceptionMessageBuilder.append("payerName is mandatory. ");
+      builder.append("payerName is mandatory. ");
     }
     if (paymentInitiation.getPayerEmail() == null) {
-      exceptionMessageBuilder.append("payerEmail is mandatory. ");
+      builder.append("payerEmail is mandatory. ");
     }
 
-    OnboardingInitiationValidator.verifyRedirectionStatusUrls(exceptionMessageBuilder,
-        paymentInitiation.getRedirectionStatusUrls());
+    //TODO: put this verification method into the appropriate utils
+    OnboardingInitiationValidator
+        .verifyRedirectionStatusUrls(builder, paymentInitiation.getRedirectionStatusUrls());
   }
 }

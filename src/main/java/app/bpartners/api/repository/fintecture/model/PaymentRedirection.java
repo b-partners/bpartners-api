@@ -21,6 +21,7 @@ public class PaymentRedirection {
   }
 
   @Builder
+  @JsonIgnoreProperties(ignoreUnknown = true)
   public static class Meta {
     private String sessionId;
     private String url;

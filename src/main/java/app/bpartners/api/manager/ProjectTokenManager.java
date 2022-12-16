@@ -1,6 +1,6 @@
 package app.bpartners.api.manager;
 
-import app.bpartners.api.model.exception.ApiException;
+import app.bpartners.api.endpoint.event.SsmComponent;
 import app.bpartners.api.repository.swan.SwanApi;
 import app.bpartners.api.repository.swan.response.ProjectTokenResponse;
 import javax.annotation.PostConstruct;
@@ -9,73 +9,45 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import software.amazon.awssdk.services.ssm.SsmClient;
-import software.amazon.awssdk.services.ssm.model.GetParameterRequest;
-import software.amazon.awssdk.services.ssm.model.GetParameterResponse;
-import software.amazon.awssdk.services.ssm.model.PutParameterRequest;
-import software.amazon.awssdk.services.ssm.model.SsmException;
 
 @Component
 @EnableAsync
 public class ProjectTokenManager {
-  private static final String SSM_STRING_PARAMETER_TYPE = "String";
   public static final int FOURTY_FIVE_MINUTES_INTERVAL = 2700000;
   private final String swanProjectParamName;
   private final String fintectureProjectParamName;
   private final SwanApi<ProjectTokenResponse> swanApi;
   private final FinctectureTokenManager finctectureTokenManager;
-  private final SsmClient ssmClient;
+  private final SsmComponent ssmComponent;
 
-  public ProjectTokenManager(SsmClient ssmClient,
+  public ProjectTokenManager(SsmComponent ssmComponent,
                              @Value("${aws.ssm.swan.project.param}")
                              String swanProjectParamName,
                              @Value("${aws.ssm.fintecture.project.param}")
                              String fintectureProjectParamName,
                              SwanApi<ProjectTokenResponse> swanApi,
                              FinctectureTokenManager finctectureTokenManager) {
-    this.ssmClient = ssmClient;
+    this.ssmComponent = ssmComponent;
     this.swanProjectParamName = swanProjectParamName;
     this.fintectureProjectParamName = fintectureProjectParamName;
     this.finctectureTokenManager = finctectureTokenManager;
     this.swanApi = swanApi;
   }
 
-  private String getParameterValue(SsmClient ssmClient, String parameterName) {
-    try {
-      GetParameterRequest parameterRequest = GetParameterRequest.builder()
-          .name(parameterName)
-          .build();
-
-      GetParameterResponse parameterResponse = ssmClient.getParameter(parameterRequest);
-
-      return parameterResponse.parameter().value();
-    } catch (SsmException e) {
-      throw new ApiException(ApiException.ExceptionType.SERVER_EXCEPTION, e);
-    }
-  }
-
   public String getSwanProjecToken() {
-    return getParameterValue(ssmClient, swanProjectParamName);
+    return ssmComponent.getParameterValue(swanProjectParamName);
   }
 
   public String getFintectureProjectToken() {
-    return getParameterValue(ssmClient, fintectureProjectParamName);
+    return ssmComponent.getParameterValue(fintectureProjectParamName);
   }
 
   @Scheduled(fixedRate = FOURTY_FIVE_MINUTES_INTERVAL)
   @Async
   @PostConstruct
   public void refreshSwanProjectToken() {
-    String accessToken =
-        swanApi.getProjectToken().getAccessToken();
-    ssmClient.putParameter(PutParameterRequest
-        .builder()
-        .name(swanProjectParamName)
-        .value(accessToken)
-        .type(SSM_STRING_PARAMETER_TYPE)
-        .overwrite(true)
-        .build()
-    );
+    ssmComponent.setParameterStringValue(
+        swanProjectParamName, swanApi.getProjectToken().getAccessToken());
   }
 
   /*TODO: retry to get token after 10 secondes in case of server failure*/
@@ -83,11 +55,8 @@ public class ProjectTokenManager {
   @Async
   @PostConstruct
   public void refreshFintectureProjectToken() {
-    ssmClient.putParameter(PutParameterRequest.builder()
-        .name(fintectureProjectParamName)
-        .value(finctectureTokenManager.getProjectAccessToken().getAccessToken())
-        .type(SSM_STRING_PARAMETER_TYPE)
-        .overwrite(true)
-        .build());
+    ssmComponent.setParameterStringValue(
+        fintectureProjectParamName,
+        finctectureTokenManager.getProjectAccessToken().getAccessToken());
   }
 }

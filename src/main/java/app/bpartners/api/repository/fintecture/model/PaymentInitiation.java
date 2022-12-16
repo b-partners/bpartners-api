@@ -54,7 +54,7 @@ public class PaymentInitiation {
     @JsonProperty("type")
     @JsonInclude(JsonInclude.Include.USE_DEFAULTS)
     public String getType() {
-      return "payments";
+      return "request-to-pay";
     }
 
     @JsonProperty("attributes")
@@ -68,7 +68,6 @@ public class PaymentInitiation {
   public static class Attributes {
     private String currency;
     private String amount;
-    private String communication;
     private Beneficiary beneficiary;
 
     @JsonProperty("currency")
@@ -81,12 +80,6 @@ public class PaymentInitiation {
     @JsonInclude(JsonInclude.Include.USE_DEFAULTS)
     public String getAmount() {
       return amount;
-    }
-
-    @JsonProperty("communication")
-    @JsonInclude(JsonInclude.Include.USE_DEFAULTS)
-    public String getCommunication() {
-      return communication;
     }
 
     @JsonProperty("beneficiary")

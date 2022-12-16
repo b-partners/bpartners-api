@@ -12,6 +12,7 @@ public class PaymentUrlRestMapper {
         .successUrl(domain.getSuccessUrl())
         .failureUrl(domain.getFailureUrl());
     return new PaymentRedirection()
+        .id(domain.getId())
         .redirectionUrl(domain.getRedirectUrl())
         .redirectionStatusUrls(statusUrls);
   }

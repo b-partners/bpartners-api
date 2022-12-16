@@ -1,15 +1,13 @@
 package app.bpartners.api.model.mapper;
 
-import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
+import app.bpartners.api.endpoint.rest.model.RelaunchType;
 import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.InvoiceRelaunch;
+import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.repository.jpa.model.HInvoiceRelaunch;
 import app.bpartners.api.service.InvoiceService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
-
-import static app.bpartners.api.endpoint.rest.model.RelaunchType.CONFIRMED;
-import static app.bpartners.api.endpoint.rest.model.RelaunchType.PROPOSAL;
 
 @Component
 @AllArgsConstructor
@@ -26,19 +24,32 @@ public class InvoiceRelaunchMapper {
         .accountId(entity.getInvoice().getIdAccount())
         .isUserRelaunched(entity.isUserRelaunched())
         .creationDatetime(entity.getCreationDatetime())
+        .emailObject(entity.getObject())
+        .emailBody(entity.getEmailBody())
         .build();
   }
 
-  public HInvoiceRelaunch toEntity(Invoice invoice) {
-    HInvoiceRelaunch toSave = HInvoiceRelaunch.builder()
+  public HInvoiceRelaunch toEntity(
+      Invoice invoice, String object, String htmlBody, boolean userRelaunched) {
+    return HInvoiceRelaunch.builder()
         .invoice(invoiceMapper.toEntity(invoice))
-        .isUserRelaunched(true)
-        .type(PROPOSAL)
+        .isUserRelaunched(userRelaunched)
+        .type(mapRelaunchType(invoice))
+        .object(object)
+        .emailBody(htmlBody)
         .build();
-    if (invoice.getStatus().equals(InvoiceStatus.CONFIRMED)) {
-      toSave.setType(CONFIRMED);
-    }
-    return toSave;
   }
 
+  private RelaunchType mapRelaunchType(Invoice invoice) {
+    switch (invoice.getStatus()) {
+      case PROPOSAL:
+        return RelaunchType.PROPOSAL;
+      case CONFIRMED:
+        return RelaunchType.CONFIRMED;
+      default:
+        throw new BadRequestException(
+            "Invoice." + invoice.getId() + " with status " + invoice.getStatus() + "can not be "
+                + "relaunched");
+    }
+  }
 }

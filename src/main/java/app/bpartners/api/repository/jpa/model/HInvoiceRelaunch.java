@@ -50,4 +50,6 @@ public class HInvoiceRelaunch implements Serializable {
   private boolean isUserRelaunched;
   @CreationTimestamp
   private Instant creationDatetime;
+  private String object;
+  private String emailBody;
 }

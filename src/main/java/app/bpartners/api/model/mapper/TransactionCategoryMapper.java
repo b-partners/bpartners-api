@@ -58,6 +58,7 @@ public class TransactionCategoryMapper {
         .type(categoryTemplate.getType())
         .vat(parseFraction(categoryTemplate.getVat()))
         .idTransactionCategoryTmpl(idCategoryTemplate)
+        .other(categoryTemplate.isOther())
         .transactionType(categoryTemplate.getTransactionType())
         .typeCount(getCategoryCount(idAccount, startDate, endDate, idCategoryTemplate))
         .description(categoryTemplate.getDescription())

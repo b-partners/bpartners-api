@@ -11,6 +11,7 @@ public class CustomerMapper {
   public CustomerTemplate toDomain(HCustomerTemplate entity) {
     return InvoiceCustomer.customerTemplateBuilder()
         .customerId(entity.getId())
+        .idAccount(entity.getIdAccount())
         .name(entity.getName())
         .email(entity.getEmail())
         .phone(entity.getPhone())

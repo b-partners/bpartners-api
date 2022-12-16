@@ -19,7 +19,6 @@ import app.bpartners.api.endpoint.rest.model.User;
 import app.bpartners.api.endpoint.rest.security.model.Principal;
 import app.bpartners.api.endpoint.rest.security.principal.PrincipalProvider;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
-import app.bpartners.api.model.Account;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.repository.LegalFileRepository;
 import app.bpartners.api.repository.fintecture.FintecturePaymentInitiationRepository;
@@ -79,6 +78,7 @@ public class TestUtils {
       "https://dashboard-dev.bpartners.app/login/failure";
   public static final String JOE_DOE_ACCOUNT_ID = "beed1765-5c16-472a-b3f4-5c376ce5db58";
   public static final String OTHER_ACCOUNT_ID = "other_account_id";
+  public static final String OTHER_CUSTOMER_ID = "other_account_id";
   public static final String USER1_ID = "user1_id";
   public static final String BAD_USER_ID = "bad_user_id";
   public static final String INVOICE1_ID = "invoice1_id";
@@ -227,6 +227,31 @@ public class TestUtils {
         .country("France");
   }
 
+  public static Customer customerUpdated() {
+    return new Customer()
+        .id("customer3_id")
+        .name("Marc Montagnier")
+        .email("marcmontagnier@gmail.com")
+        .phone("+33 12 34 56 78")
+        .website("https://marc.website.com")
+        .address("15 rue Porte d'Orange")
+        .zipCode(95160)
+        .city("Montmorency")
+        .country("France");
+  }
+
+  public static Customer customerWithSomeNullAttributes() {
+    return new Customer()
+        .id("customer3_id")
+        .name("Marc Montagnier")
+        .email(null)
+        .phone(null)
+        .website(null)
+        .address(null)
+        .zipCode(95160)
+        .city(null)
+        .country(null);
+  }
 
   public static Product product1() {
     return new Product()
@@ -307,7 +332,8 @@ public class TestUtils {
         .transactionType(INCOME)
         .description("Prestations ou ventes soumises à 20% de TVA")
         .vat(2000)
-        .count(1L);
+        .count(1L)
+        .isOther(false);
   }
 
   public static Transaction swanTransaction1() {

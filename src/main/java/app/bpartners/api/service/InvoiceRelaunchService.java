@@ -52,16 +52,29 @@ public class InvoiceRelaunchService {
     return repository.save(invoiceRelaunchConf, accountId);
   }
 
-  public InvoiceRelaunch relaunchInvoice(String invoiceId, String emailSubject, String emailBody) {
+  public InvoiceRelaunch relaunchInvoiceManually(
+      String invoiceId, List<String> emailObjectList, List<String> emailBodyList) {
+    String emailObject =
+        emailObjectList.get(0) == null ? emailObjectList.get(1) : emailObjectList.get(0);
+    String emailBody =
+        emailBodyList.get(0) == null ? emailBodyList.get(1) : emailBodyList.get(0);
+
     Invoice invoice = invoiceRepository.getById(invoiceId);
     invoiceRelaunchValidator.accept(invoice);
-    InvoiceRelaunch invoiceRelaunch = invoiceRelaunchRepository.save(invoice);
+
+    boolean isUserRelaunched = true;
     AccountHolder accountHolder =
         holderService.getAccountHolderByAccountId(invoice.getAccount().getId());
 
+    InvoiceRelaunch invoiceRelaunch =
+        invoiceRelaunchRepository.save(
+            invoice, getDefaultEmailPrefix(accountHolder) + emailObject, emailBody,
+            isUserRelaunched);
+
     eventProducer.accept(
         List.of(getTypedInvoiceRelaunched(
-            invoiceRelaunch.getInvoice(), accountHolder, emailSubject, emailBody)));
+            invoiceRelaunch.getInvoice(), accountHolder, emailObject, emailBody)));
+
     return invoiceRelaunch;
   }
 
@@ -143,5 +156,10 @@ public class InvoiceRelaunchService {
     context.setVariable("accountHolder", accountHolder);
 
     return context;
+  }
+
+  //TODO: generalize this so the persist object is the really sent object
+  private static String getDefaultEmailPrefix(AccountHolder accountHolder) {
+    return "[" + accountHolder.getName() + "] ";
   }
 }

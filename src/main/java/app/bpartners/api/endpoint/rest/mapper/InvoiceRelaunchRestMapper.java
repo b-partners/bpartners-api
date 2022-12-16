@@ -1,6 +1,7 @@
 package app.bpartners.api.endpoint.rest.mapper;
 
 import app.bpartners.api.endpoint.rest.model.CreateInvoiceRelaunchConf;
+import app.bpartners.api.endpoint.rest.model.EmailInfo;
 import app.bpartners.api.endpoint.rest.model.InvoiceRelaunch;
 import app.bpartners.api.endpoint.rest.model.InvoiceRelaunchConf;
 import app.bpartners.api.endpoint.rest.validator.CreateInvoiceRelaunchConfValidator;
@@ -38,6 +39,9 @@ public class InvoiceRelaunchRestMapper {
         .invoice(invoiceRestMapper.toRest(domain.getInvoice()))
         .accountId(domain.getAccountId())
         .isUserRelaunched(domain.isUserRelaunched())
-        .creationDatetime(domain.getCreationDatetime());
+        .creationDatetime(domain.getCreationDatetime())
+        .emailInfo(new EmailInfo()
+            .emailBody(domain.getEmailBody())
+            .emailObject(domain.getEmailObject()));
   }
 }

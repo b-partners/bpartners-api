@@ -6,6 +6,7 @@ import app.bpartners.api.endpoint.rest.validator.CreateProductValidator;
 import app.bpartners.api.endpoint.rest.validator.ProductValidator;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
+
 import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 
 @Component
@@ -27,10 +28,11 @@ public class ProductRestMapper {
 
   public app.bpartners.api.model.Product toDomain(CreateProduct createProduct) {
     createProductValidator.accept(createProduct);
+    Integer quantity = createProduct.getQuantity() == null ? 0 : createProduct.getQuantity();
     return app.bpartners.api.model.Product.builder()
         .description(createProduct.getDescription())
         .unitPrice(parseFraction(createProduct.getUnitPrice()))
-        .quantity(createProduct.getQuantity())
+        .quantity(quantity)
         .vatPercent(parseFraction(createProduct.getVatPercent()))
         .build();
   }

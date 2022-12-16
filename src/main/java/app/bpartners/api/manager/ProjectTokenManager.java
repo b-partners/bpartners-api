@@ -5,7 +5,8 @@ import app.bpartners.api.repository.swan.SwanApi;
 import app.bpartners.api.repository.swan.response.ProjectTokenResponse;
 import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import software.amazon.awssdk.services.ssm.SsmClient;
@@ -15,9 +16,10 @@ import software.amazon.awssdk.services.ssm.model.PutParameterRequest;
 import software.amazon.awssdk.services.ssm.model.SsmException;
 
 @Component
-@EnableScheduling
+@EnableAsync
 public class ProjectTokenManager {
   private static final String SSM_STRING_PARAMETER_TYPE = "String";
+  public static final int FOURTY_FIVE_MINUTES_INTERVAL = 2700000;
   private final String swanProjectParamName;
   private final String fintectureProjectParamName;
   private final SwanApi<ProjectTokenResponse> swanApi;
@@ -60,7 +62,8 @@ public class ProjectTokenManager {
     return getParameterValue(ssmClient, fintectureProjectParamName);
   }
 
-  @Scheduled(cron = "0 0 * * * ?")
+  @Scheduled(fixedRate = FOURTY_FIVE_MINUTES_INTERVAL)
+  @Async
   @PostConstruct
   public void refreshSwanProjectToken() {
     String accessToken =
@@ -76,7 +79,8 @@ public class ProjectTokenManager {
   }
 
   /*TODO: retry to get token after 10 secondes in case of server failure*/
-  @Scheduled(cron = "0 0 * * * ?")
+  @Scheduled(fixedRate = FOURTY_FIVE_MINUTES_INTERVAL)
+  @Async
   @PostConstruct
   public void refreshFintectureProjectToken() {
     ssmClient.putParameter(PutParameterRequest.builder()

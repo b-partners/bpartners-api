@@ -3,6 +3,8 @@ package app.bpartners.api.endpoint.rest.mapper;
 import app.bpartners.api.endpoint.rest.model.CreateCustomer;
 import app.bpartners.api.endpoint.rest.model.Customer;
 import app.bpartners.api.endpoint.rest.validator.CreateCustomerValidator;
+import app.bpartners.api.endpoint.rest.validator.CustomerRestValidator;
+import app.bpartners.api.endpoint.rest.validator.CustomerValidator;
 import app.bpartners.api.model.CustomerTemplate;
 import app.bpartners.api.model.InvoiceCustomer;
 import lombok.AllArgsConstructor;
@@ -11,7 +13,9 @@ import org.springframework.stereotype.Component;
 @Component
 @AllArgsConstructor
 public class CustomerRestMapper {
-  private final CreateCustomerValidator validator;
+  private final CreateCustomerValidator createCustomerValidator;
+  private final CustomerValidator customerValidator;
+  private final CustomerRestValidator restValidator;
 
   public Customer toRest(CustomerTemplate domain) {
     if (domain == null) {
@@ -30,8 +34,25 @@ public class CustomerRestMapper {
         .city(domain.getCity());
   }
 
+  public CustomerTemplate toDomain(String accountId, Customer external) {
+    customerValidator.accept(external);
+    return CustomerTemplate.builder()
+        .customerId(external.getId())
+        .idAccount(accountId)
+        .name(external.getName())
+        .phone(external.getPhone())
+        .website(external.getWebsite())
+        .email(external.getEmail())
+        .address(external.getAddress())
+        .zipCode(external.getZipCode())
+        .city(external.getCity())
+        .country(external.getCountry())
+        .city(external.getCity())
+        .build();
+  }
+
   public CustomerTemplate toDomain(String accountId, CreateCustomer rest) {
-    validator.accept(rest);
+    createCustomerValidator.accept(rest);
     return InvoiceCustomer.customerTemplateBuilder()
         .customerId(null)
         .idAccount(accountId)
@@ -50,6 +71,7 @@ public class CustomerRestMapper {
     if (rest == null) {
       return null;
     }
+    restValidator.accept(rest);
     InvoiceCustomer invoiceCustomer = InvoiceCustomer.customerTemplateBuilder()
         .customerId(rest.getId())
         .idAccount(accountId)

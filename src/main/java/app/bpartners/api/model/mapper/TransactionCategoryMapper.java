@@ -7,9 +7,9 @@ import app.bpartners.api.repository.jpa.TransactionCategoryTemplateJpaRepository
 import app.bpartners.api.repository.jpa.model.HTransactionCategory;
 import app.bpartners.api.repository.jpa.model.HTransactionCategoryTemplate;
 import java.time.LocalDate;
-import lombok.AllArgsConstructor;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
@@ -39,6 +39,7 @@ public class TransactionCategoryMapper {
     domain.setType(categoryTemplate.getType());
     domain.setVat(parseFraction(categoryTemplate.getVat()));
     domain.setDescription(categoryTemplate.getDescription());
+    domain.setOther(categoryTemplate.isOther());
     long typeCount = getCategoryCount(
         entity.getIdAccount(), startDate, endDate, domain.getType()
     );
@@ -58,6 +59,7 @@ public class TransactionCategoryMapper {
         .type(categoryTemplate.getType())
         .vat(parseFraction(categoryTemplate.getVat()))
         .idTransactionCategoryTmpl(idCategoryTemplate)
+        .other(categoryTemplate.isOther())
         .transactionType(categoryTemplate.getTransactionType())
         .typeCount(getCategoryCount(idAccount, startDate, endDate, idCategoryTemplate))
         .description(categoryTemplate.getDescription())

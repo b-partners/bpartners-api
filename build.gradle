@@ -97,7 +97,6 @@ ext {
 }
 test {
     exclude '**/DraftIT.class'
-    exclude '**/FintecturePaymentInitiationRepositoryTest.class'
     useJUnitPlatform()
     finalizedBy jacocoTestReport
 }

@@ -6,6 +6,7 @@ import app.bpartners.api.repository.jpa.TransactionCategoryJpaRepository;
 import app.bpartners.api.repository.jpa.TransactionCategoryTemplateJpaRepository;
 import app.bpartners.api.repository.jpa.model.HTransactionCategory;
 import app.bpartners.api.repository.jpa.model.HTransactionCategoryTemplate;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
@@ -83,19 +84,16 @@ public class TransactionCategoryMapper {
   private long getCategoryCount(String idAccount, LocalDate startDate, LocalDate endDate,
                                 String type) {
     //TODO: a better count would consider type and comment
-    return jpaRepository.countByCriteria(
-        idAccount,
-        type,
-        startDate
-            .atStartOfDay()
-            .truncatedTo(ChronoUnit.DAYS)
-            .toInstant(ZoneOffset.UTC),
-        endDate
-            .atStartOfDay()
-            .truncatedTo(ChronoUnit.DAYS)
-            .toInstant(ZoneOffset.UTC)
-            .plus(1, ChronoUnit.DAYS)
-            .minusSeconds(1));
+    Instant start = startDate
+        .atStartOfDay()
+        .truncatedTo(ChronoUnit.DAYS)
+        .toInstant(ZoneOffset.UTC);
+    Instant end = endDate
+        .atStartOfDay()
+        .truncatedTo(ChronoUnit.DAYS)
+        .toInstant(ZoneOffset.UTC)
+        .minusSeconds(1);
+    return jpaRepository.countByCriteria(idAccount, type, start, end);
   }
 
   public HTransactionCategory toEntity(TransactionCategory category) {

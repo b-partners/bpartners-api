@@ -137,16 +137,13 @@ class TransactionCategoryIT {
     ApiClient joeDoeClient = anApiClient();
     PayingApi api = new PayingApi(joeDoeClient);
     LocalDate startDate = LocalDate.of(2021, 1, 1);
-    //TODO: there is a timezone problem because when set to 31/12/2021 it takes also the
-    // 01/01/2022 data
-    LocalDate endDate = LocalDate.of(2021, 12, 30);
+    LocalDate endDate = LocalDate.of(2021, 12, 31);
 
     List<TransactionCategory> actualAll = api.getTransactionCategories(
         JOE_DOE_ACCOUNT_ID, startDate, endDate, null);
 
     assertEquals(35, actualAll.size());
-    //TODO: uncomment when problem is fixed
-    // assertTrue(actualAll.stream().noneMatch(e -> e.getCount() != 0L));
+    assertTrue(actualAll.stream().noneMatch(e -> e.getCount() != 0L));
   }
 
   @Test

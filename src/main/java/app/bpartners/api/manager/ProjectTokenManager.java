@@ -14,32 +14,27 @@ import org.springframework.stereotype.Component;
 @EnableAsync
 public class ProjectTokenManager {
   public static final int FOURTY_FIVE_MINUTES_INTERVAL = 2700000;
-  private final String swanProjectParamName;
-  private final String fintectureProjectParamName;
   private final SwanApi<ProjectTokenResponse> swanApi;
   private final FinctectureTokenManager finctectureTokenManager;
   private final SsmComponent ssmComponent;
+  private final String env;
 
   public ProjectTokenManager(SsmComponent ssmComponent,
-                             @Value("${aws.ssm.swan.project.param}")
-                             String swanProjectParamName,
-                             @Value("${aws.ssm.fintecture.project.param}")
-                             String fintectureProjectParamName,
                              SwanApi<ProjectTokenResponse> swanApi,
-                             FinctectureTokenManager finctectureTokenManager) {
+                             FinctectureTokenManager finctectureTokenManager,
+                             @Value("${env}") String env) {
     this.ssmComponent = ssmComponent;
-    this.swanProjectParamName = swanProjectParamName;
-    this.fintectureProjectParamName = fintectureProjectParamName;
     this.finctectureTokenManager = finctectureTokenManager;
     this.swanApi = swanApi;
+    this.env = env;
   }
 
   public String getSwanProjecToken() {
-    return ssmComponent.getParameterValue(swanProjectParamName);
+    return ssmComponent.getParameterValue(getSwanTokenParameterName());
   }
 
   public String getFintectureProjectToken() {
-    return ssmComponent.getParameterValue(fintectureProjectParamName);
+    return ssmComponent.getParameterValue(getFintectureTokenParameterName());
   }
 
   @Scheduled(fixedRate = FOURTY_FIVE_MINUTES_INTERVAL)
@@ -47,7 +42,8 @@ public class ProjectTokenManager {
   @PostConstruct
   public void refreshSwanProjectToken() {
     ssmComponent.setParameterStringValue(
-        swanProjectParamName, swanApi.getProjectToken().getAccessToken());
+        getSwanTokenParameterName(),
+        swanApi.getProjectToken().getAccessToken());
   }
 
   /*TODO: retry to get token after 10 secondes in case of server failure*/
@@ -56,7 +52,15 @@ public class ProjectTokenManager {
   @PostConstruct
   public void refreshFintectureProjectToken() {
     ssmComponent.setParameterStringValue(
-        fintectureProjectParamName,
+        getFintectureTokenParameterName(),
         finctectureTokenManager.getProjectAccessToken().getAccessToken());
+  }
+
+  private String getFintectureTokenParameterName() {
+    return "/bpartners/" + env + "/fintecture/project-access-token";
+  }
+
+  private String getSwanTokenParameterName() {
+    return "/bpartners/" + env + "/swan/project-access-token";
   }
 }

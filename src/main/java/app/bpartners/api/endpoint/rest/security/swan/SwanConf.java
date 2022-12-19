@@ -9,14 +9,12 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @Getter
 public class SwanConf {
-  public static final String API_DOMAIN_URL = "https://api.swan.io/";
   public static final String BEARER_PREFIX = "Bearer ";
   public static final String SWAN_TOKEN_URL = "https://oauth.swan.io/oauth2/token";
   private String clientId;
   private String clientSecret;
+  private String baseUrl;
   private String oauthUrl;
-  private String swanEnv;
-
 
   public SwanConf(
       @Value("${swan.client.id}")
@@ -25,17 +23,17 @@ public class SwanConf {
       String clientSecret,
       @Value("${swan.oauth.url}")
       String oauthUrl,
-      @Value("${swan.env}")
-      String swanEnv
+      @Value("${swan.base.url}")
+      String baseUrl
   ) {
     this.clientId = clientId;
     this.clientSecret = clientSecret;
     this.oauthUrl = oauthUrl;
-    this.swanEnv = swanEnv;
+    this.baseUrl = baseUrl;
   }
 
   public String getApiUrl() {
-    return API_DOMAIN_URL + swanEnv + "/graphql";
+    return baseUrl + "/graphql";
   }
 
   public String getTokenProviderUrl() {

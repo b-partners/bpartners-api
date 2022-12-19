@@ -31,8 +31,6 @@ class PaymentReqValidatorTest {
   @Test
   void validate_invalid_paymentInitiation_ko() {
     assertThrowsBadRequestException("id is mandatory. "
-            + "label is mandatory. "
-            + "reference is mandatory. "
             + "amount is mandatory. "
             + "payerName is mandatory. "
             + "payerEmail is mandatory. "

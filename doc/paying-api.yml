@@ -814,10 +814,6 @@ components:
       properties:
         id:
           type: string
-        label:
-          type: string
-        reference:
-          type: string
         amount:
           type: integer
         payerName:
@@ -826,3 +822,8 @@ components:
           type: string
         redirectionStatusUrls:
           $ref: './api.yml#/components/schemas/RedirectionStatusUrls'
+        #todo: attributes are ignored until payment req are persisted
+        label:
+          type: string
+        reference:
+          type: string

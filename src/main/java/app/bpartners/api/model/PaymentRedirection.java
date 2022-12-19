@@ -14,6 +14,8 @@ import lombok.Setter;
 @NoArgsConstructor
 @EqualsAndHashCode
 public class PaymentRedirection {
+  private String id;
+  private String sessionId;
   private String redirectUrl;
   private String successUrl;
   private String failureUrl;

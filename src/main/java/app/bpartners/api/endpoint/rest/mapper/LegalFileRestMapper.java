@@ -10,6 +10,7 @@ public class LegalFileRestMapper {
         .id(domain.getId())
         .name(domain.getName())
         .fileUrl(domain.getFileUrl())
-        .approvalDatetime(domain.getApprovalDatetime());
+        .approvalDatetime(domain.getApprovalDatetime())
+        .toBeConfirmed(domain.isToBeConfirmed());
   }
 }

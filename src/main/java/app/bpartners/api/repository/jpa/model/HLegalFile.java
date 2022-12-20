@@ -31,4 +31,5 @@ public class HLegalFile {
   private String name;
   private String fileUrl;
   private Instant createdDatetime;
+  private boolean toBeConfirmed;
 }

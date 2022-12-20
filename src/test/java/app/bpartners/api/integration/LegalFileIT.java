@@ -11,7 +11,6 @@ import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
 import app.bpartners.api.integration.conf.AbstractContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
 import app.bpartners.api.manager.ProjectTokenManager;
-import app.bpartners.api.repository.LegalFileRepository;
 import app.bpartners.api.repository.fintecture.FintectureConf;
 import app.bpartners.api.repository.sendinblue.SendinblueConf;
 import app.bpartners.api.repository.swan.AccountHolderSwanRepository;
@@ -96,7 +95,7 @@ class LegalFileIT {
     List<LegalFile> actual = api.getLegalFiles(JOE_DOE_ID);
 
     assertEquals(2, actual.size());
-    assertTrue(actual.contains(legalFile1()));
+    assertTrue(actual.contains(legalFile1().toBeConfirmed(true)));
   }
 
   @Test

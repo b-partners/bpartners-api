@@ -20,6 +20,7 @@ public class LegalFile {
   private String name;
   private String fileUrl;
   private Instant approvalDatetime;
+  private boolean toBeConfirmed;
 
   public boolean isApproved() {
     return approvalDatetime != null;

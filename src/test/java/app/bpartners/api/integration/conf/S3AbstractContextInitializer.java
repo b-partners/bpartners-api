@@ -59,6 +59,8 @@ public abstract class S3AbstractContextInitializer
         "aws.cognito.userPool.id=eu-west-3_vq2jlNjq7",
         "aws.eventBridge.bus=dummy",
         "aws.sqs.mailboxUrl=dummy",
+        "fintecture.base.url=https://api-sandbox.fintecture.com",
+        "swan.base.url=https://api.swan.io/sandbox-partner",
         "spring.datasource.url=" + postgresContainer.getJdbcUrl(),
         "spring.datasource.username=" + postgresContainer.getUsername(),
         "spring.datasource.password=" + postgresContainer.getPassword(),

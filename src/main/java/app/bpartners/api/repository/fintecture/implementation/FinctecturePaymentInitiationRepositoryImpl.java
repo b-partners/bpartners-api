@@ -46,13 +46,13 @@ public class FinctecturePaymentInitiationRepositoryImpl implements
   public PaymentRedirection save(PaymentInitiation paymentReq, String redirectUri) {
     try {
       HttpClient httpClient = HttpClient.newBuilder().build();
-      String urlParams = String.format("?redirectUri=%s", redirectUri);
+      String urlParams = String.format("?redirectUri=%s&state=12341234", redirectUri);
       String data = new ObjectMapper().writeValueAsString(paymentReq);
       String requestId = String.valueOf(randomUUID());
       String digest = getDigest(data);
       String date = getParsedDate();
       HttpRequest request = HttpRequest.newBuilder()
-          .uri(new URI(fintectureConf.getRequestToPayUrl() + urlParams))
+          .uri(new URI(fintectureConf.getConnectUrl() + urlParams))
           .header("Content-Type", "application/json")
           .header("Accept", "application/json")
           .header("x-request-id", requestId)
@@ -99,7 +99,7 @@ public class FinctecturePaymentInitiationRepositoryImpl implements
   private String getSignature(String requestId, String digest, String date, String urlParams) {
     try {
       String signingString =
-          "(request-target): post /pis/v2/request-to-pay" + urlParams + "\n"
+          "(request-target): post /pis/v2/connect" + urlParams + "\n"
               + "date: " + date + "\n"
               + "digest: " + digest + "\n"
               + "x-request-id: " + requestId;

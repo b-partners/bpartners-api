@@ -50,8 +50,8 @@ public class FintectureConf {
         .replaceAll(spaceAndTabRegex, EMPTY);
   }
 
-  public String getRequestToPayUrl() {
-    return String.format("%s/%s/%s/request-to-pay", baseUrl, PIS_SERVICE, apiVersion);
+  public String getConnectUrl() {
+    return String.format("%s/%s/%s/connect", baseUrl, PIS_SERVICE, apiVersion);
   }
 
   public String getOauthUrl() {

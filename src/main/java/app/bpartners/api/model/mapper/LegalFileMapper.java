@@ -17,6 +17,7 @@ public class LegalFileMapper {
         .name(legalFile.getName())
         .userId(userId)
         .approvalDatetime(approvalDatetime)
+        .toBeConfirmed(legalFile.isToBeConfirmed())
         .build();
   }
 }

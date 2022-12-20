@@ -12,6 +12,7 @@ import app.bpartners.api.repository.jpa.model.HUserLegalFile;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -61,10 +62,10 @@ public class LegalFileRepositoryImpl implements LegalFileRepository {
   }
 
   @Override
-  public LegalFile findTopByUserId(String userId) {
-    HLegalFile latestLegalFile = jpaRepository.findTopByOrderByCreatedDatetimeDesc();
-    HUserLegalFile userLegalFile = userLegalJpaRepository.findByLegalFile_IdAndUser_Id(
-        latestLegalFile.getId(), userId);
-    return mapper.toDomain(latestLegalFile, userLegalFile);
+  public List<LegalFile> findAllToBeConfirmedLegalFilesByUserId(String userId) {
+    List<HLegalFile> legalFiles = jpaRepository.findAllByToBeConfirmedTrue();
+    return legalFiles.stream().map(legalFile -> mapper.toDomain(legalFile,
+            userLegalJpaRepository.findByLegalFile_IdAndUser_Id(legalFile.getId(), userId)))
+        .collect(Collectors.toUnmodifiableList());
   }
 }

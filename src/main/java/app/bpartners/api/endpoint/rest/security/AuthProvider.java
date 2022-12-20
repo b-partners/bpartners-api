@@ -7,6 +7,7 @@ import app.bpartners.api.model.LegalFile;
 import app.bpartners.api.model.User;
 import app.bpartners.api.service.LegalFileService;
 import app.bpartners.api.service.UserService;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.authentication.dao.AbstractUserDetailsAuthenticationProvider;
@@ -51,11 +52,9 @@ public class AuthProvider extends AbstractUserDetailsAuthenticationProvider {
       throw new UsernameNotFoundException("Bad credentials"); // NOSONAR
     }
     User user = userService.getUserByIdAndBearer(swanUserId, bearer);
-    LegalFile legalFile = legalFileService.getLatestLegalFileByUserId(user.getId());
-    if (!legalFile.isApproved()) {
-      throw new UnapprovedLegalFileException(
-          "User." + user.getId() + " has not approved the legal file " + legalFile.getName());
-    }
+    List<LegalFile> legalFilesList =
+        legalFileService.getAllToBeApprovedLegalFilesByUserId(user.getId());
+    checkLegalFiles(legalFilesList, user);
     return new Principal(user, bearer);
   }
 
@@ -66,5 +65,23 @@ public class AuthProvider extends AbstractUserDetailsAuthenticationProvider {
       return null;
     }
     return ((String) tokenObject).substring(BEARER_PREFIX.length()).trim();
+  }
+
+  private void checkLegalFiles(List<LegalFile> legalFiles, User user) {
+    if (!legalFiles.isEmpty()) {
+      String messagePrefix = "User." + user.getId() + " has not approved ";
+      StringBuilder exceptionMessageBuilder = new StringBuilder(messagePrefix);
+      legalFiles.forEach(legalFile -> {
+            if (!legalFile.isApproved()) {
+              exceptionMessageBuilder
+                  .append(legalFile.getName());
+            }
+          }
+      );
+      String exceptionMessage = exceptionMessageBuilder.toString();
+      if (!exceptionMessage.substring(messagePrefix.length() - 1).isEmpty()) {
+        throw new UnapprovedLegalFileException(exceptionMessage);
+      }
+    }
   }
 }

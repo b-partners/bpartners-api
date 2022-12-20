@@ -11,5 +11,5 @@ public interface LegalFileRepository {
 
   List<LegalFile> findAllByUserId(String userId);
 
-  LegalFile findTopByUserId(String userId);
+  List<LegalFile> findAllToBeConfirmedLegalFilesByUserId(String userId);
 }

@@ -24,6 +24,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -54,8 +55,8 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @ContextConfiguration(initializers = AuthenticationIT.ContextInitializer.class)
 @AutoConfigureMockMvc
 class AuthenticationIT {
-  private static final String PHONE_NUMBER = "+261340465338";
   public static final String DEFAULT_STATE = "12341234";
+  private static final String PHONE_NUMBER = "+261340465338";
   @MockBean
   private SentryConf sentryConf;
   @MockBean
@@ -160,8 +161,8 @@ class AuthenticationIT {
   @Test
   void user_has_not_approved_legal_file_forbidden() {
     reset(legalFileRepositoryMock);
-    when(legalFileRepositoryMock.findTopByUserId(JOE_DOE_ID))
-        .thenReturn(domainLegalFile());
+    when(legalFileRepositoryMock.findAllToBeConfirmedLegalFilesByUserId(JOE_DOE_ID))
+        .thenReturn(List.of(domainLegalFile()));
     ApiClient joeDoeClient = anApiClient();
     UserAccountsApi api = new UserAccountsApi(joeDoeClient);
 

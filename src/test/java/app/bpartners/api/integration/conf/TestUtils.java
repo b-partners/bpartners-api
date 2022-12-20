@@ -505,7 +505,8 @@ public class TestUtils {
         .id("legal_file1_id")
         .name("CGU-November-2022-version-1")
         .fileUrl("https://s3.eu-west-3.amazonaws.com/legal.bpartners.app/cgu.pdf")
-        .approvalDatetime(Instant.parse("2022-01-01T00:00:00.00Z"));
+        .approvalDatetime(Instant.parse("2022-01-01T00:00:00.00Z"))
+        .toBeConfirmed(true);
   }
 
   public static LegalFile defaultLegalFile() {
@@ -513,7 +514,8 @@ public class TestUtils {
         .id("e200a1fd-5bb7-4b7a-a521-4a6002dc1927")
         .name("cgu_28-10-22.pdf")
         .fileUrl("https://legal.bpartners.app/cgu_28-10-22.pdf")
-        .approvalDatetime(null);
+        .approvalDatetime(null)
+        .toBeConfirmed(true);
   }
 
   public static app.bpartners.api.model.LegalFile domainLegalFile() {
@@ -521,6 +523,7 @@ public class TestUtils {
         .id(defaultLegalFile().getId())
         .fileUrl(defaultLegalFile().getFileUrl())
         .name(defaultLegalFile().getName())
+        .toBeConfirmed(true)
         .build();
   }
 
@@ -530,6 +533,7 @@ public class TestUtils {
         .fileUrl(defaultLegalFile().getFileUrl())
         .name(defaultLegalFile().getName())
         .approvalDatetime(Instant.now())
+        .toBeConfirmed(true)
         .build();
   }
 
@@ -644,9 +648,11 @@ public class TestUtils {
   }
 
   public static void setUpLegalFileRepository(LegalFileRepository legalFileRepositoryMock) {
-    when(legalFileRepositoryMock.findTopByUserId(JOE_DOE_ID)).thenReturn(domainApprovedLegalFile());
-    when(legalFileRepositoryMock.findTopByUserId(JANE_DOE_ID))
-        .thenReturn(domainApprovedLegalFile());
+    when(legalFileRepositoryMock
+        .findAllToBeConfirmedLegalFilesByUserId(JOE_DOE_ID))
+        .thenReturn(List.of(domainApprovedLegalFile()));
+    when(legalFileRepositoryMock.findAllToBeConfirmedLegalFilesByUserId(JANE_DOE_ID))
+        .thenReturn(List.of(domainApprovedLegalFile()));
   }
 
   public static void assertThrowsApiException(String expectedBody, Executable executable) {

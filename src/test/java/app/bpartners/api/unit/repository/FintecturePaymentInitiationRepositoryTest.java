@@ -36,7 +36,7 @@ class FintecturePaymentInitiationRepositoryTest {
     String encodedKey = Base64.getEncoder().encodeToString(pair.getPrivate().getEncoded());
     when(fintectureConf.getPrivateKey()).thenReturn(encodedKey);
     when(projectTokenManager.getFintectureProjectToken()).thenReturn(PROJECT_TOKEN);
-    when(fintectureConf.getRequestToPayUrl()).thenReturn(PIS_URL);
+    when(fintectureConf.getConnectUrl()).thenReturn(PIS_URL);
   }
 
   PaymentInitiation paymentInitiation() {

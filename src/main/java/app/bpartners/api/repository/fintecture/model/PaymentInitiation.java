@@ -68,12 +68,19 @@ public class PaymentInitiation {
   public static class Attributes {
     private String currency;
     private String amount;
+    private String communication;
     private Beneficiary beneficiary;
 
     @JsonProperty("currency")
     @JsonInclude(JsonInclude.Include.USE_DEFAULTS)
     public String getCurrency() {
       return "EUR";
+    }
+
+    @JsonProperty("communication")
+    @JsonInclude(JsonInclude.Include.USE_DEFAULTS)
+    public String getCommunication() {
+      return communication;
     }
 
     @JsonProperty("amount")

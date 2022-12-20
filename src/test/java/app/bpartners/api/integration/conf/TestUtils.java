@@ -644,9 +644,10 @@ public class TestUtils {
   }
 
   public static void setUpLegalFileRepository(LegalFileRepository legalFileRepositoryMock) {
-    when(legalFileRepositoryMock.findTopByUserId(JOE_DOE_ID)).thenReturn(domainApprovedLegalFile());
-    when(legalFileRepositoryMock.findTopByUserId(JANE_DOE_ID))
-        .thenReturn(domainApprovedLegalFile());
+    when(legalFileRepositoryMock.findAllToBeApprovedLegalFilesByUserId(JOE_DOE_ID))
+        .thenReturn(List.of(domainApprovedLegalFile()));
+    when(legalFileRepositoryMock.findAllToBeApprovedLegalFilesByUserId(JANE_DOE_ID))
+        .thenReturn(List.of(domainApprovedLegalFile()));
   }
 
   public static void assertThrowsApiException(String expectedBody, Executable executable) {

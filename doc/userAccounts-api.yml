@@ -297,6 +297,8 @@ components:
         approvalDatetime:
           type: string
           format: date-time
+        toBeConfirmed:
+          type: boolean
     User:
       properties:
         id:

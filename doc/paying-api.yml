@@ -854,6 +854,9 @@ components:
           type: integer
         status:
           $ref: '#/components/schemas/InvoiceStatus'
+        createdAt:
+          type: string
+          format: date-time
         updatedAt:
           type: string
           format: date-time

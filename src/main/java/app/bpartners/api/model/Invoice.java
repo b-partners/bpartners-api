@@ -45,6 +45,7 @@ public class Invoice {
   private Instant updatedAt;
   private String fileId;
   private boolean toBeRelaunched;
+  private Instant createdAt;
 
   public String getRealReference() {
     if (getRef() == null) {

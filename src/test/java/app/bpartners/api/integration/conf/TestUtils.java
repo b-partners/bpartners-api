@@ -440,7 +440,7 @@ public class TestUtils {
         .totalPriceWithoutVat(8000)
         .comment("Tableau de Madagascar")
         .paymentUrl("https://connect-v2-sbx.fintecture.com")
-        ;
+        .createdAt(Instant.parse("2021-12-31T22:00:00Z"));
   }
 
   public static Invoice invoice2() {

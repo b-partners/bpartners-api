@@ -48,6 +48,7 @@ public class InvoiceMapper {
         .account(accountService.getAccountById(invoice.getIdAccount()))
         .status(invoice.getStatus())
         .toBeRelaunched(invoice.isToBeRelaunched())
+        .createdAt(invoice.getCreatedDatetime())
         .build();
   }
 

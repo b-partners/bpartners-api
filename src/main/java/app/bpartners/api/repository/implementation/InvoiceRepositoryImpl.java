@@ -29,6 +29,7 @@ import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
 import org.apfloat.Aprational;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Repository;
 
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
@@ -37,6 +38,7 @@ import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
 import static app.bpartners.api.service.InvoiceService.DRAFT_REF_PREFIX;
 import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 import static app.bpartners.api.service.utils.FractionUtils.toAprational;
+import static org.springframework.data.domain.Sort.Direction.DESC;
 
 @Repository
 @AllArgsConstructor
@@ -123,8 +125,8 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
   @Override
   public List<Invoice> findAllByAccountIdAndStatus(String accountId, InvoiceStatus status, int page,
                                                    int pageSize) {
-    return jpaRepository.findAllByIdAccountAndStatusOrderByCreatedDatetimeDesc(
-            accountId, status, PageRequest.of(page, pageSize)).stream()
+    return jpaRepository.findAllByIdAccountAndStatus(
+            accountId, status, PageRequest.of(page, pageSize, Sort.by(DESC, "createdDatetime"))).stream()
         .map(invoice -> {
           HInvoiceCustomer invoiceCustomer = customerJpaRepository
               .findTopByIdInvoiceOrderByCreatedDatetimeDesc(invoice.getId());
@@ -135,9 +137,9 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
 
   @Override
   public List<Invoice> findAllByAccountId(String accountId, int page, int pageSize) {
-    return jpaRepository.findAllByIdAccountOrderByCreatedDatetimeDesc(
+    return jpaRepository.findAllByIdAccount(
             accountId, PageRequest.of(page,
-                pageSize)).stream()
+                pageSize, Sort.by(DESC, "createdDatetime"))).stream()
         .map(invoice -> {
           HInvoiceCustomer invoiceCustomer = customerJpaRepository
               .findTopByIdInvoiceOrderByCreatedDatetimeDesc(invoice.getId());
@@ -176,6 +178,7 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
         .products(products)
         .toPayAt(invoice.getToPayAt())
         .sendingDate(invoice.getSendingDate())
+        .createdAt(invoice.getCreatedAt())
         .build();
     if (invoice.getStatus().equals(CONFIRMED) || invoice.getStatus().equals(PAID)) {
       PaymentRedirection paymentRedirection = pis.initiateInvoicePayment(initializedInvoice);

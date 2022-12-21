@@ -18,6 +18,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 
@@ -45,6 +46,7 @@ public class HInvoice implements Serializable {
   @Type(type = "pgsql_enum")
   @Enumerated(EnumType.STRING)
   private InvoiceStatus status;
+  @CreationTimestamp
   private Instant createdDatetime;
   private Instant updatedAt;
   private boolean toBeRelaunched;

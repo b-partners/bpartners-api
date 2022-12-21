@@ -336,14 +336,20 @@ class InvoiceIT {
     List<Invoice> actualDraft = api.getInvoices(JOE_DOE_ACCOUNT_ID, 1, 10, DRAFT);
     List<Invoice> actualNotFiltered = api.getInvoices(JOE_DOE_ACCOUNT_ID, 1, 10, null);
 
-    assertEquals(invoice1(), actual1.updatedAt(null));
-    assertEquals(invoice2(), actual2.updatedAt(null));
-    assertTrue(ignoreUpdatedAt(actualDraft).contains(invoice6()
+    assertEquals(invoice1(),
+        actual1
+            .updatedAt(null)
+            .createdAt(null));
+    assertEquals(invoice2(),
+        actual2
+            .updatedAt(null)
+            .createdAt(null));
+    assertTrue(ignoreInstantDate(actualDraft).contains(invoice6()
         .products(List.of())
         .totalPriceWithVat(0)
         .totalPriceWithoutVat(0)
         .totalVat(0)));
-    assertTrue(ignoreUpdatedAt(actualNotFiltered).containsAll(
+    assertTrue(ignoreInstantDate(actualNotFiltered).containsAll(
         List.of(actual1.updatedAt(null),
             actual2.updatedAt(null),
             invoice6()
@@ -438,7 +444,7 @@ class InvoiceIT {
 
     assertEquals(expectedInitializedDraft(), actualDraft);
     assertEquals(expectedDraft(), actualUpdatedDraft);
-    assertEquals(expectedConfirmed().id(actualConfirmed.getId()), actualConfirmed);
+    assertEquals(expectedConfirmed().id(actualConfirmed.getId()), actualConfirmed.createdAt(null));
     assertNotEquals(INVOICE4_ID, actualConfirmed.getId());
     assertEquals(expectedPaid().id(actualPaid.getId()), actualPaid);
     assertTrue(actualUpdatedDraft.getRef().contains(DRAFT_REF_PREFIX));
@@ -510,6 +516,25 @@ class InvoiceIT {
         "{\"type\":\"400 BAD_REQUEST\",\"message\":\"Invoice.invoice5_id was already sent and "
             + "can not be modified anymore\"}",
         () -> api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, INVOICE5_ID, confirmedInvoice()));
+  }
+
+  @Test
+  @Order(1)
+  void read_invoice_ordered_ok() throws ApiException {
+    ApiClient joeDoeClient = anApiClient();
+    PayingApi api = new PayingApi(joeDoeClient);
+
+    List<Invoice> actual1 = api.getInvoices(JOE_DOE_ACCOUNT_ID, 1, 5, null);
+    List<Invoice> actual2 = api.getInvoices(JOE_DOE_ACCOUNT_ID, 2, 5, null);
+
+    assertEquals(5, actual1.size());
+    assertEquals(2, actual2.size());
+    assertTrue(actual1.get(0).getCreatedAt().isAfter(actual1.get(1).getCreatedAt()));
+    assertTrue(actual1.get(1).getCreatedAt().isAfter(actual1.get(2).getCreatedAt()));
+    assertTrue(actual1.get(2).getCreatedAt().isAfter(actual1.get(3).getCreatedAt()));
+    assertTrue(actual1.get(3).getCreatedAt().isAfter(actual1.get(4).getCreatedAt()));
+    assertTrue(actual1.get(4).getCreatedAt().isAfter(actual2.get(0).getCreatedAt()));
+    assertTrue(actual2.get(0).getCreatedAt().isAfter(actual2.get(1).getCreatedAt()));
   }
 
   /* /!\ For local test only
@@ -585,10 +610,12 @@ class InvoiceIT {
         .collect(Collectors.toUnmodifiableList());
   }
 
-  private List<Invoice> ignoreUpdatedAt(List<Invoice> actual) {
-    return actual.stream()
-        .peek(invoice -> invoice.setUpdatedAt(null))
-        .collect(Collectors.toUnmodifiableList());
+  private List<Invoice> ignoreInstantDate(List<Invoice> actual) {
+    actual.forEach(invoice -> {
+      invoice.setUpdatedAt(null);
+      invoice.setCreatedAt(null);
+    });
+    return actual;
   }
 
   private CrupdateInvoice initializeDraft() {

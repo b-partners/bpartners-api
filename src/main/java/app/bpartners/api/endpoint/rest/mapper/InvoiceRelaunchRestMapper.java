@@ -1,7 +1,8 @@
 package app.bpartners.api.endpoint.rest.mapper;
 
-import app.bpartners.api.endpoint.rest.model.CreateInvoiceRelaunchConf;
 import app.bpartners.api.endpoint.rest.model.EmailInfo;
+import app.bpartners.api.endpoint.rest.model.AccountInvoiceRelaunchConf;
+import app.bpartners.api.endpoint.rest.model.CreateAccountInvoiceRelaunchConf;
 import app.bpartners.api.endpoint.rest.model.InvoiceRelaunch;
 import app.bpartners.api.endpoint.rest.model.InvoiceRelaunchConf;
 import app.bpartners.api.endpoint.rest.validator.CreateInvoiceRelaunchConfValidator;
@@ -14,22 +15,33 @@ public class InvoiceRelaunchRestMapper {
   private final CreateInvoiceRelaunchConfValidator validator;
   private final InvoiceRestMapper invoiceRestMapper;
 
-  public app.bpartners.api.model.InvoiceRelaunchConf toDomain(
-      CreateInvoiceRelaunchConf createInvoiceRelaunchConf) {
-    validator.accept(createInvoiceRelaunchConf);
-    return app.bpartners.api.model.InvoiceRelaunchConf.builder()
-        .draftRelaunch(createInvoiceRelaunchConf.getDraftRelaunch())
-        .unpaidRelaunch(createInvoiceRelaunchConf.getUnpaidRelaunch())
+  public app.bpartners.api.model.AccountInvoiceRelaunchConf toDomain(
+      CreateAccountInvoiceRelaunchConf createAccountInvoiceRelaunchConf) {
+    validator.accept(createAccountInvoiceRelaunchConf);
+    return app.bpartners.api.model.AccountInvoiceRelaunchConf.builder()
+        .draftRelaunch(createAccountInvoiceRelaunchConf.getDraftRelaunch())
+        .unpaidRelaunch(createAccountInvoiceRelaunchConf.getUnpaidRelaunch())
         .build();
   }
 
-  public InvoiceRelaunchConf toRest(
-      app.bpartners.api.model.InvoiceRelaunchConf invoiceRelaunchConf) {
-    return new InvoiceRelaunchConf()
-        .id(invoiceRelaunchConf.getId())
-        .updatedAt(invoiceRelaunchConf.getUpdatedAt())
-        .unpaidRelaunch(invoiceRelaunchConf.getUnpaidRelaunch())
-        .draftRelaunch(invoiceRelaunchConf.getDraftRelaunch());
+  public app.bpartners.api.model.InvoiceRelaunchConf toDomain(
+      InvoiceRelaunchConf rest, String invoiceId
+  ) {
+    return app.bpartners.api.model.InvoiceRelaunchConf.builder()
+        .id(rest.getId())
+        .idInvoice(invoiceId)
+        .delay(rest.getDelay())
+        .rehearsalNumber(rest.getRehearsalNumber())
+        .build();
+  }
+
+  public AccountInvoiceRelaunchConf toRest(
+      app.bpartners.api.model.AccountInvoiceRelaunchConf accountInvoiceRelaunchConf) {
+    return new AccountInvoiceRelaunchConf()
+        .id(accountInvoiceRelaunchConf.getId())
+        .updatedAt(accountInvoiceRelaunchConf.getUpdatedAt())
+        .unpaidRelaunch(accountInvoiceRelaunchConf.getUnpaidRelaunch())
+        .draftRelaunch(accountInvoiceRelaunchConf.getDraftRelaunch());
   }
 
   public InvoiceRelaunch toRest(app.bpartners.api.model.InvoiceRelaunch domain) {
@@ -42,6 +54,15 @@ public class InvoiceRelaunchRestMapper {
         .creationDatetime(domain.getCreationDatetime())
         .emailInfo(new EmailInfo()
             .emailBody(domain.getEmailBody())
-            .emailObject(domain.getEmailObject()));
+            .emailObject(domain.getEmailObject())
+            .attachmentFileId(domain.getAttachmentFileId()));
+  }
+
+  public InvoiceRelaunchConf toRest(app.bpartners.api.model.InvoiceRelaunchConf domain) {
+    return new InvoiceRelaunchConf()
+        .id(domain.getId())
+        .idInvoice(domain.getIdInvoice())
+        .delay(domain.getDelay())
+        .rehearsalNumber(domain.getRehearsalNumber());
   }
 }

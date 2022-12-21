@@ -48,7 +48,7 @@ class SpringSecurityIT {
   private ProjectTokenManager projectTokenManager;
   @Autowired
   private SwanComponent swanComponent;
-  @Value("${test.user.access.token}")
+  @Value("${dev.user.access.token}")
   private String bearer;
 
   @Test

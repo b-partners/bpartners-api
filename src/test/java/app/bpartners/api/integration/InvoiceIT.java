@@ -74,6 +74,7 @@ import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.reset;
@@ -276,7 +277,6 @@ class InvoiceIT {
 
   Invoice expectedConfirmed() {
     return new Invoice()
-        .id(INVOICE4_ID)
         .paymentUrl("https://connect-v2-sbx.fintecture.com")
         .ref(confirmedInvoice().getRef())
         .title(confirmedInvoice().getTitle())
@@ -310,7 +310,6 @@ class InvoiceIT {
 
   Invoice expectedPaid() {
     return new Invoice()
-        .id(INVOICE4_ID)
         .paymentUrl("https://connect-v2-sbx.fintecture.com")
         .ref(paidInvoice().getRef())
         .title(paidInvoice().getTitle())
@@ -433,13 +432,15 @@ class InvoiceIT {
     Invoice actualConfirmed =
         api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, INVOICE4_ID, confirmedInvoice());
     actualConfirmed.setProducts(ignoreIdsOf(actualConfirmed.getProducts()));
-    Invoice actualPaid = api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, INVOICE4_ID, paidInvoice());
+    Invoice actualPaid =
+        api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, actualConfirmed.getId(), paidInvoice());
     actualPaid.setProducts(ignoreIdsOf(actualPaid.getProducts()));
 
     assertEquals(expectedInitializedDraft(), actualDraft);
     assertEquals(expectedDraft(), actualUpdatedDraft);
-    assertEquals(expectedConfirmed(), actualConfirmed);
-    assertEquals(expectedPaid(), actualPaid);
+    assertEquals(expectedConfirmed().id(actualConfirmed.getId()), actualConfirmed);
+    assertNotEquals(INVOICE4_ID, actualConfirmed.getId());
+    assertEquals(expectedPaid().id(actualPaid.getId()), actualPaid);
     assertTrue(actualUpdatedDraft.getRef().contains(DRAFT_REF_PREFIX));
     assertFalse(actualConfirmed.getRef().contains(DRAFT_REF_PREFIX));
   }

@@ -5,6 +5,10 @@ import app.bpartners.api.repository.fintecture.FintectureConf;
 import app.bpartners.api.repository.fintecture.implementation.FinctecturePaymentInitiationRepositoryImpl;
 import app.bpartners.api.repository.fintecture.model.PaymentInitiation;
 import app.bpartners.api.repository.fintecture.model.PaymentRedirection;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.NoSuchAlgorithmException;
+import java.util.Base64;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -21,14 +25,18 @@ class FintecturePaymentInitiationRepositoryTest {
   FinctecturePaymentInitiationRepositoryImpl finctecturePaymentInitiationRepository;
 
   @BeforeEach
-  void setUp() {
+  void setUp() throws NoSuchAlgorithmException {
     fintectureConf = mock(FintectureConf.class);
     projectTokenManager = mock(ProjectTokenManager.class);
     finctecturePaymentInitiationRepository =
         new FinctecturePaymentInitiationRepositoryImpl(fintectureConf, projectTokenManager);
-
-    when(fintectureConf.getRequestToPayUrl()).thenReturn(PIS_URL);
+    KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
+    generator.initialize(2048);
+    KeyPair pair = generator.generateKeyPair();
+    String encodedKey = Base64.getEncoder().encodeToString(pair.getPrivate().getEncoded());
+    when(fintectureConf.getPrivateKey()).thenReturn(encodedKey);
     when(projectTokenManager.getFintectureProjectToken()).thenReturn(PROJECT_TOKEN);
+    when(fintectureConf.getConnectUrl()).thenReturn(PIS_URL);
   }
 
   PaymentInitiation paymentInitiation() {

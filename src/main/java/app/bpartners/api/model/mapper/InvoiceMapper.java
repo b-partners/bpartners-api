@@ -1,5 +1,6 @@
 package app.bpartners.api.model.mapper;
 
+import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.Product;
 import app.bpartners.api.repository.jpa.InvoiceJpaRepository;
@@ -12,6 +13,8 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
+
+import static java.util.UUID.randomUUID;
 
 @Component
 @AllArgsConstructor
@@ -44,14 +47,21 @@ public class InvoiceMapper {
         .invoiceCustomer(customerMapper.toDomain(invoiceCustomer))
         .account(accountService.getAccountById(invoice.getIdAccount()))
         .status(invoice.getStatus())
+        .toBeRelaunched(invoice.isToBeRelaunched())
         .build();
   }
 
   public HInvoice toEntity(Invoice domain) {
     Optional<HInvoice> persisted = jpaRepository.findById(domain.getId());
     String fileId = persisted.isPresent() ? persisted.get().getFileId() : domain.getFileId();
+    String id = domain.getId();
+    if (persisted.isPresent()
+        && persisted.get().getStatus() == InvoiceStatus.PROPOSAL
+        && domain.getStatus() == InvoiceStatus.CONFIRMED) {
+      id = randomUUID().toString();
+    }
     return HInvoice.builder()
-        .id(domain.getId())
+        .id(id)
         .fileId(fileId)
         .comment(domain.getComment())
         .ref(domain.getRef())
@@ -60,6 +70,7 @@ public class InvoiceMapper {
         .sendingDate(domain.getSendingDate())
         .toPayAt(domain.getToPayAt())
         .status(domain.getStatus())
+        .toBeRelaunched(domain.isToBeRelaunched())
         .build();
   }
 }

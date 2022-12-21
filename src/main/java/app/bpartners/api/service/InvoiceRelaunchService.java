@@ -7,6 +7,7 @@ import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.endpoint.rest.security.model.Principal;
 import app.bpartners.api.endpoint.rest.security.principal.PrincipalProvider;
 import app.bpartners.api.model.AccountHolder;
+import app.bpartners.api.model.AccountInvoiceRelaunchConf;
 import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.InvoiceRelaunch;
@@ -15,14 +16,17 @@ import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.validator.InvoiceRelaunchValidator;
-import app.bpartners.api.repository.InvoiceRelaunchConfRepository;
+import app.bpartners.api.repository.AccountInvoiceRelaunchConfRepository;
 import app.bpartners.api.repository.InvoiceRelaunchRepository;
 import app.bpartners.api.repository.InvoiceRepository;
+import app.bpartners.api.repository.jpa.InvoiceJpaRepository;
 import app.bpartners.api.service.utils.TemplateResolverUtils;
+import java.time.LocalDate;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.context.Context;
 
@@ -36,28 +40,63 @@ import static app.bpartners.api.service.utils.FileInfoUtils.PDF_EXTENSION;
 @AllArgsConstructor
 public class InvoiceRelaunchService {
   public static final String MAIL_TEMPLATE = "mail";
-  private final InvoiceRelaunchConfRepository repository;
+  private final AccountInvoiceRelaunchConfRepository repository;
   private final InvoiceRelaunchRepository invoiceRelaunchRepository;
   private final InvoiceRelaunchValidator invoiceRelaunchValidator;
   private final InvoiceRepository invoiceRepository;
+  private final InvoiceJpaRepository invoiceJpaRepository;
+  private final InvoiceRelaunchConfService relaunchConfService;
   private final AccountHolderService holderService;
   private final EventProducer eventProducer;
   private final PrincipalProvider auth;
 
-  public InvoiceRelaunchConf getByAccountId(String accountId) {
+  private static String getDefaultSubject(Invoice invoice) {
+    return "Votre " + getStatusValue(invoice.getStatus())
+        + ", portant la référence " + invoice.getRef() + ", au nom de "
+        + invoice.getInvoiceCustomer().getName().toUpperCase();
+  }
+
+  private static String getSubject(AccountHolder accountHolder, String subject) {
+    return "[" + accountHolder.getName() + "] " + subject;
+  }
+
+  private static String getStatusValue(InvoiceStatus status) {
+    if (status.equals(PROPOSAL) || status.equals(DRAFT)) {
+      return "devis";
+    }
+    if (status.equals(CONFIRMED) || status.equals(PAID)) {
+      return "facture";
+    }
+    throw new BadRequestException("Unknown status : " + status);
+  }
+
+  //TODO: generalize this so the persist object is the really sent object
+  private static String getDefaultEmailPrefix(AccountHolder accountHolder) {
+    return "[" + accountHolder.getName() + "] ";
+  }
+
+  public AccountInvoiceRelaunchConf getByAccountId(String accountId) {
     return repository.getByAccountId(accountId);
   }
 
-  public InvoiceRelaunchConf saveConf(String accountId, InvoiceRelaunchConf invoiceRelaunchConf) {
-    return repository.save(invoiceRelaunchConf, accountId);
+  public AccountInvoiceRelaunchConf saveConf(
+      String accountId,
+      AccountInvoiceRelaunchConf accountInvoiceRelaunchConf
+  ) {
+    return repository.save(accountInvoiceRelaunchConf, accountId);
   }
 
   public InvoiceRelaunch relaunchInvoiceManually(
       String invoiceId, List<String> emailObjectList, List<String> emailBodyList) {
-    String emailObject =
-        emailObjectList.get(0) == null ? emailObjectList.get(1) : emailObjectList.get(0);
-    String emailBody =
-        emailBodyList.get(0) == null ? emailBodyList.get(1) : emailBodyList.get(0);
+    String emailObject = null;
+    if (!emailObjectList.isEmpty()) {
+      emailObject = emailObjectList.get(0) == null ? emailObjectList.get(1) :
+          emailObjectList.get(0);
+    }
+    String emailBody = null;
+    if (!emailBodyList.isEmpty()) {
+      emailBody = emailBodyList.get(0) == null ? emailBodyList.get(1) : emailBodyList.get(0);
+    }
 
     Invoice invoice = invoiceRepository.getById(invoiceId);
     invoiceRelaunchValidator.accept(invoice);
@@ -76,6 +115,37 @@ public class InvoiceRelaunchService {
             invoiceRelaunch.getInvoice(), accountHolder, emailObject, emailBody)));
 
     return invoiceRelaunch;
+  }
+
+  @Scheduled(cron = "0 0 10 * * *")
+  public void relaunch() {
+    //TODO : Transactional
+    //TODO: next version will persist mailbody.
+    LocalDate now = LocalDate.now();
+    invoiceJpaRepository.findAllByToBeRelaunched(true).forEach(
+        invoice -> {
+          InvoiceRelaunchConf conf = relaunchConfService.findByIdInvoice(invoice.getId());
+          boolean equalDate =
+              now.isEqual(invoice.getSendingDate().plusDays(conf.getDelay()));
+          if (equalDate) {
+            int size =
+                getRelaunchesByInvoiceId(
+                    invoice.getId(),
+                    new PageFromOne(1),
+                    new BoundedPageSize(500),
+                    null
+                ).size();
+            boolean notReachedMaxRehearse = size < conf.getRehearsalNumber();
+            if (notReachedMaxRehearse) {
+              relaunchInvoiceManually(invoice.getId(), List.of(), List.of());
+              if (size + 1 == conf.getRehearsalNumber()) {
+                invoice.setToBeRelaunched(false);
+                invoiceJpaRepository.save(invoice);
+              }
+            }
+          }
+        }
+    );
   }
 
   public List<InvoiceRelaunch> getRelaunchesByInvoiceId(
@@ -103,16 +173,6 @@ public class InvoiceRelaunchService {
         invoice.getRef() + PDF_EXTENSION, invoice, accountHolder);
   }
 
-  private static String getDefaultSubject(Invoice invoice) {
-    return "Votre " + getStatusValue(invoice.getStatus())
-        + ", portant la référence " + invoice.getRef() + ", au nom de "
-        + invoice.getInvoiceCustomer().getName().toUpperCase();
-  }
-
-  private static String getSubject(AccountHolder accountHolder, String subject) {
-    return "[" + accountHolder.getName() + "] " + subject;
-  }
-
   private TypedInvoiceRelaunchSaved toTypedEvent(String recipient, String subject, String emailBody,
                                                  String attachmentName, Invoice invoice,
                                                  AccountHolder accountHolder) {
@@ -125,16 +185,6 @@ public class InvoiceRelaunchService {
         .accountHolder(accountHolder)
         .logoFileId(userLogoFileId())
         .build());
-  }
-
-  private static String getStatusValue(InvoiceStatus status) {
-    if (status.equals(PROPOSAL) || status.equals(DRAFT)) {
-      return "devis";
-    }
-    if (status.equals(CONFIRMED) || status.equals(PAID)) {
-      return "facture";
-    }
-    throw new BadRequestException("Unknown status : " + status);
   }
 
   private String userLogoFileId() {
@@ -156,10 +206,5 @@ public class InvoiceRelaunchService {
     context.setVariable("accountHolder", accountHolder);
 
     return context;
-  }
-
-  //TODO: generalize this so the persist object is the really sent object
-  private static String getDefaultEmailPrefix(AccountHolder accountHolder) {
-    return "[" + accountHolder.getName() + "] ";
   }
 }

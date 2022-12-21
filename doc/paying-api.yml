@@ -163,12 +163,12 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
-  relaunchOperations:
+  accountRelaunchOperations:
     get:
       tags:
         - Paying
       summary: Get the current relaunch configuration for invoice
-      operationId: getInvoiceRelaunchConf
+      operationId: getAccountInvoiceRelaunchConf
       parameters:
         - in: path
           name: aId
@@ -178,7 +178,78 @@ operations:
           required: true
       responses:
         200:
-          description: The invoice relaunching configuration
+          description: The account invoice relaunching configuration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountInvoiceRelaunchConf'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
+    put:
+      tags:
+        - Paying
+      summary: Configure the automatic relaunch of all invoices of an account
+      operationId: configureAccountInvoiceRelaunch
+      parameters:
+        - in: path
+          name: aId
+          description: Account identifier
+          schema:
+            type: string
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAccountInvoiceRelaunchConf'
+      responses:
+        200:
+          description: The account invoice relaunch configuration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountInvoiceRelaunchConf'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
+  invoiceRelaunchConfOperations:
+    get:
+      tags:
+        - Paying
+      summary: Get the current relaunch configuration for a specific invoice
+      operationId: getInvoiceRelaunchConf
+      parameters:
+        - in: path
+          name: aId
+          description: Account identifier
+          schema:
+            type: string
+          required: true
+        - in: path
+          name: iId
+          description: Invoice identifier
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description: The specified invoice's relaunching configuration
           content:
             application/json:
               schema:
@@ -196,12 +267,18 @@ operations:
     put:
       tags:
         - Paying
-      summary: Configure the automatic relaunch of all invoices of an account
-      operationId: configureRelaunch
+      summary: Configure the automatic relaunch a specific invoice.
+      operationId: configureInvoiceRelaunch
       parameters:
         - in: path
           name: aId
           description: Account identifier
+          schema:
+            type: string
+          required: true
+        - in: path
+          name: iId
+          description: Invoice identifier
           schema:
             type: string
           required: true
@@ -210,10 +287,10 @@ operations:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateInvoiceRelaunchConf'
+              $ref: '#/components/schemas/InvoiceRelaunchConf'
       responses:
         200:
-          description: The invoice relaunch configuration
+          description: The specified invoice's relaunch configuration
           content:
             application/json:
               schema:
@@ -650,7 +727,7 @@ components:
           type: string
           format: date-time
           description: Note that the summary is updated every hour
-    CreateInvoiceRelaunchConf:
+    CreateAccountInvoiceRelaunchConf:
       type: object
       properties:
         unpaidRelaunch:
@@ -659,15 +736,25 @@ components:
         draftRelaunch:
           type: integer
           description: The frequency of sending the message in days
-    InvoiceRelaunchConf:
+    AccountInvoiceRelaunchConf:
       allOf:
-        - $ref: '#/components/schemas/CreateInvoiceRelaunchConf'
+        - $ref: '#/components/schemas/CreateAccountInvoiceRelaunchConf'
       properties:
         id:
           type: string
         updatedAt:
           type: string
           format: date-time
+    InvoiceRelaunchConf:
+      properties:
+        id:
+          type: string
+        idInvoice:
+          type: string
+        delay:
+          type: integer
+        rehearsalNumber:
+          type: integer
     CreateInvoiceRelaunch:
       type: object
       properties:
@@ -706,7 +793,8 @@ components:
         emailBody:
           type: string
           description: use HTML tags
-        #todo: add attachmentFileId
+        attachmentFileId:
+          type: string
     RelaunchType:
       type: string
       enum:

@@ -120,10 +120,16 @@ class InvoiceRelaunchIT {
         .creationDatetime(Instant.parse("2022-01-01T01:00:00.00Z"));
   }
 
-  CreateInvoiceRelaunch createInvoiceRelaunch() {
+  CreateInvoiceRelaunch creatableInvoiceRelaunch() {
     return new CreateInvoiceRelaunch()
         .subject("relaunch_object")
         .message("<p>Email body</p>");
+  }
+
+  CreateInvoiceRelaunch otherCreatableInvoiceRelaunch() {
+    return new CreateInvoiceRelaunch()
+        ._object("relaunch_object")
+        .emailBody("<p>Email body</p>");
   }
 
   InvoiceRelaunch expectedRelaunch() {
@@ -143,14 +149,23 @@ class InvoiceRelaunchIT {
     PayingApi api = new PayingApi(joeDoeClient);
 
     InvoiceRelaunch actual =
-        api.relaunchInvoice(JOE_DOE_ACCOUNT_ID, INVOICE1_ID, createInvoiceRelaunch());
+        api.relaunchInvoice(JOE_DOE_ACCOUNT_ID, INVOICE1_ID, creatableInvoiceRelaunch());
     actual.setInvoice(actual.getInvoice().updatedAt(null));
+    InvoiceRelaunch otherActual =
+        api.relaunchInvoice(JOE_DOE_ACCOUNT_ID, INVOICE1_ID, otherCreatableInvoiceRelaunch());
+    otherActual.setInvoice(otherActual.getInvoice().updatedAt(null));
 
     assertEquals(
         expectedRelaunch()
             .id(actual.getId())
             .creationDatetime(actual.getCreationDatetime())
         , actual);
+    assertEquals(
+        expectedRelaunch()
+            .id(otherActual.getId())
+            .creationDatetime(otherActual.getCreationDatetime()),
+        otherActual
+    );
   }
 
   @Test
@@ -197,15 +212,15 @@ class InvoiceRelaunchIT {
     PayingApi api = new PayingApi(joeDoeClient);
 
     assertThrowsForbiddenException(
-        () -> api.relaunchInvoice(OTHER_ACCOUNT_ID, INVOICE1_ID, createInvoiceRelaunch()));
+        () -> api.relaunchInvoice(OTHER_ACCOUNT_ID, INVOICE1_ID, creatableInvoiceRelaunch()));
     assertThrowsApiException(
         "{\"type\":\"400 BAD_REQUEST\",\"message\":\"Invoice.invoice3_id actual status is"
             + " DRAFT and it cannot be relaunched\"}",
-        () -> api.relaunchInvoice(JOE_DOE_ACCOUNT_ID, INVOICE3_ID, createInvoiceRelaunch()));
+        () -> api.relaunchInvoice(JOE_DOE_ACCOUNT_ID, INVOICE3_ID, creatableInvoiceRelaunch()));
     assertThrowsApiException(
         "{\"type\":\"400 BAD_REQUEST\",\"message\":\"Invoice.invoice7_id actual status is"
             + " PAID and it cannot be relaunched\"}",
-        () -> api.relaunchInvoice(JOE_DOE_ACCOUNT_ID, INVOICE7_ID, createInvoiceRelaunch()));
+        () -> api.relaunchInvoice(JOE_DOE_ACCOUNT_ID, INVOICE7_ID, creatableInvoiceRelaunch()));
   }
 
   private List<InvoiceRelaunch> ignoreUpdatedDate(List<InvoiceRelaunch> list) {

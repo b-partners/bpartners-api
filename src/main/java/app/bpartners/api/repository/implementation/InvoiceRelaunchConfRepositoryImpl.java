@@ -10,30 +10,34 @@ import java.util.Optional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-@AllArgsConstructor
 @Repository
+@AllArgsConstructor
 public class InvoiceRelaunchConfRepositoryImpl implements InvoiceRelaunchConfRepository {
   private final InvoiceRelaunchConfJpaRepository jpaRepository;
   private final InvoiceRelaunchConfMapper mapper;
 
   @Override
-  public InvoiceRelaunchConf save(InvoiceRelaunchConf invoiceRelaunchConf, String accountId) {
-    Optional<HInvoiceRelaunchConf> optionalHInvoiceRelaunchConf =
-        jpaRepository.getByAccountId(accountId);
-    if (optionalHInvoiceRelaunchConf.isPresent()) {
-      HInvoiceRelaunchConf persisted = optionalHInvoiceRelaunchConf.get();
-      invoiceRelaunchConf.setId(persisted.getId());
-    }
-    return mapper.toDomain(jpaRepository.save(mapper.toEntity(invoiceRelaunchConf)));
+  public InvoiceRelaunchConf findByInvoiceId(String idInvoice) {
+    return mapper.toDomain(
+        jpaRepository.findByIdInvoice(idInvoice)
+            .orElseThrow(() -> new NotFoundException("No relaunch configuration found for"
+                + " Invoice." + idInvoice))
+    );
   }
 
   @Override
-  public InvoiceRelaunchConf getByAccountId(String accountId) {
+  public InvoiceRelaunchConf save(InvoiceRelaunchConf invoiceRelaunchConf) {
+    Optional<HInvoiceRelaunchConf> optionalPersisted = jpaRepository.findByIdInvoice(
+        invoiceRelaunchConf.getIdInvoice()
+    );
+    if (optionalPersisted.isPresent()) {
+      HInvoiceRelaunchConf persisted = optionalPersisted.get();
+      persisted.setDelay(invoiceRelaunchConf.getDelay());
+      persisted.setRehearsalNumber(invoiceRelaunchConf.getRehearsalNumber());
+      return mapper.toDomain(jpaRepository.save(persisted));
+    }
     return mapper.toDomain(
-        jpaRepository.getByAccountId(accountId).orElseThrow(
-            () -> new NotFoundException(
-                "There is no existing invoice relaunch config for account. " + accountId)
-        )
+        jpaRepository.save(mapper.toEntity(invoiceRelaunchConf))
     );
   }
 }

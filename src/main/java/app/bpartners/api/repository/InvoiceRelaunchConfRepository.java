@@ -3,7 +3,7 @@ package app.bpartners.api.repository;
 import app.bpartners.api.model.InvoiceRelaunchConf;
 
 public interface InvoiceRelaunchConfRepository {
-  InvoiceRelaunchConf save(InvoiceRelaunchConf invoiceRelaunchConf, String accountId);
+  InvoiceRelaunchConf findByInvoiceId(String idInvoice);
 
-  InvoiceRelaunchConf getByAccountId(String accountId);
+  InvoiceRelaunchConf save(InvoiceRelaunchConf invoiceRelaunchConf);
 }

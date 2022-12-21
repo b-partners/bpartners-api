@@ -19,7 +19,7 @@ public class LegalFileService {
     return repository.save(userId, legalFileId);
   }
 
-  public LegalFile getLatestLegalFileByUserId(String userId) {
-    return repository.findTopByUserId(userId);
+  public List<LegalFile> getAllToBeApprovedLegalFilesByUserId(String userId) {
+    return repository.findAllToBeApprovedLegalFilesByUserId(userId);
   }
 }

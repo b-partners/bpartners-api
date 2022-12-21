@@ -161,6 +161,20 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
         .requestMatchers(
             new SelfAccountMatcher(POST, "/accounts/*/invoices/*/relaunch", authResourceProvider)
         ).authenticated()
+        .requestMatchers(
+            new SelfAccountMatcher(
+                GET,
+                "/accounts/*/invoices/*/relaunchConf",
+                authResourceProvider
+            )
+        ).authenticated()
+        .requestMatchers(
+            new SelfAccountMatcher(
+                PUT,
+                "/accounts/*/invoices/*/relaunchConf",
+                authResourceProvider
+            )
+        ).authenticated()
         .antMatchers(GET, "/businessActivities").authenticated()
         //TODO: set SelfUserAccountHolderMatcher
         .antMatchers(

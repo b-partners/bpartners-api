@@ -10,19 +10,13 @@ import lombok.ToString;
 
 @Getter
 @Setter
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
-@Builder
-public class LegalFile {
+public class AccountInvoiceRelaunchConf {
   private String id;
-  private String userId;
-  private String name;
-  private String fileUrl;
-  private Instant approvalDatetime;
-  private boolean toBeConfirmed;
-
-  public boolean isApproved() {
-    return approvalDatetime != null;
-  }
+  private Instant updatedAt;
+  private int draftRelaunch;
+  private int unpaidRelaunch;
 }

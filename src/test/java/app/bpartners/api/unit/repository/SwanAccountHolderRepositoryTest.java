@@ -26,7 +26,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 class SwanAccountHolderRepositoryTest {
-  @Value("${test.user.access.token}")
+  @Value("${dev.user.access.token}")
   private static String bearer;
   PrincipalProviderImpl provider;
   SwanConf swanConf;

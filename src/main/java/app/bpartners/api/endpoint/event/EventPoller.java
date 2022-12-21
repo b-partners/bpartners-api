@@ -35,7 +35,7 @@ public class EventPoller {
   private final ObjectMapper om;
   private final EventConsumer eventConsumer;
 
-  private static final Duration WAIT_TIME = Duration.ofSeconds(1); // MUST be <= 20s
+  private static final Duration WAIT_TIME = Duration.ofSeconds(0); // MUST be if long-polling <= 20s
   private static final int MAX_NUMBER_OF_MESSAGES = 10;
 
   public EventPoller(
@@ -49,7 +49,7 @@ public class EventPoller {
     this.eventConsumer = eventConsumer;
   }
 
-  @Scheduled(fixedDelay = 1000)
+  @Scheduled(fixedRate = 200)
   public void poll() {
     ReceiveMessageRequest receiveMessageRequest = ReceiveMessageRequest.builder()
         .queueUrl(queueUrl)

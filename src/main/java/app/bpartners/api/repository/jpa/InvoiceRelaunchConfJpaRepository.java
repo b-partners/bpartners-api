@@ -6,5 +6,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface InvoiceRelaunchConfJpaRepository
     extends JpaRepository<HInvoiceRelaunchConf, String> {
-  Optional<HInvoiceRelaunchConf> getByAccountId(String accountId);
+  Optional<HInvoiceRelaunchConf> findByIdInvoice(String idInvoice);
 }

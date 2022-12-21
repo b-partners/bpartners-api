@@ -33,12 +33,12 @@ public class FintectureMapper {
     Beneficiary beneficiary = toBeneficiary(authenticatedAccount, authenticatedAccountHolder);
 
     PaymentInitiation.Attributes attributes = new PaymentInitiation.Attributes();
-    attributes.setCommunication(domain.getLabel());
     attributes.setAmount(String.valueOf(domain.getAmount().getCentsAsDecimal()));
     attributes.setBeneficiary(beneficiary);
+    attributes.setCommunication(domain.getLabel());
 
     PaymentInitiation.Meta meta = new PaymentInitiation.Meta();
-    meta.setPsuName(domain.getPayerEmail());
+    meta.setPsuName(domain.getPayerName());
     meta.setPsuEmail(domain.getPayerEmail());
 
     PaymentInitiation.Data data = new PaymentInitiation.Data();
@@ -52,8 +52,14 @@ public class FintectureMapper {
   }
 
   public app.bpartners.api.model.PaymentRedirection toDomain(
-      PaymentRedirection fintecturePaymentUrl, String successUrl) {
+      PaymentRedirection paymentRedirection,
+      app.bpartners.api.model.PaymentInitiation paymentInitiation) {
     return app.bpartners.api.model.PaymentRedirection.builder()
-        .redirectUrl(fintecturePaymentUrl.getMeta().getUrl()).successUrl(successUrl).build();
+        .id(paymentInitiation.getId())
+        .sessionId(paymentRedirection.getMeta().getSessionId())
+        .redirectUrl(paymentRedirection.getMeta().getUrl())
+        .successUrl(paymentInitiation.getSuccessUrl())
+        .failureUrl(paymentInitiation.getFailureUrl())
+        .build();
   }
 }

@@ -20,8 +20,7 @@ public class PaymentInitiationService {
     if (paymentReqs.size() > 1) {
       throw new NotImplementedException("Only one payment request is supported.");
     }
-    PaymentInitiation paymentReq = paymentReqs.get(0);
-    return repository.save(paymentReq);
+    return repository.save(paymentReqs.get(0));
   }
 
   public PaymentRedirection initiateInvoicePayment(Invoice invoice) {

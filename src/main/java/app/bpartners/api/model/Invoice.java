@@ -1,6 +1,7 @@
 package app.bpartners.api.model;
 
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
+import app.bpartners.api.model.exception.ApiException;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -14,6 +15,10 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
+import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
+import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.DRAFT;
+import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PROPOSAL;
+import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 import static app.bpartners.api.service.InvoiceService.DRAFT_REF_PREFIX;
 
 @Getter
@@ -39,6 +44,7 @@ public class Invoice {
   private String comment;
   private Instant updatedAt;
   private String fileId;
+  private boolean toBeRelaunched;
 
   public String getRealReference() {
     if (getRef() == null) {
@@ -84,5 +90,22 @@ public class Invoice {
   @Override
   public int hashCode() {
     return getClass().hashCode();
+  }
+
+  //TODO : test equals and hashcode
+  //TODO add accepted in database.
+  public InvoiceStatus getPreviousStatus() {
+    switch (status) {
+      case DRAFT:
+      case PROPOSAL:
+      case ACCEPTED:
+        return DRAFT;
+      case CONFIRMED:
+        return PROPOSAL;
+      case PAID:
+        return CONFIRMED;
+      default:
+        throw new ApiException(SERVER_EXCEPTION, "Unexpected status " + status);
+    }
   }
 }

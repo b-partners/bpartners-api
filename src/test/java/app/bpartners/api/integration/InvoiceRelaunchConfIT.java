@@ -5,7 +5,6 @@ import app.bpartners.api.endpoint.event.S3Conf;
 import app.bpartners.api.endpoint.rest.api.PayingApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
-import app.bpartners.api.endpoint.rest.model.CreateInvoiceRelaunchConf;
 import app.bpartners.api.endpoint.rest.model.InvoiceRelaunchConf;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
 import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
@@ -14,27 +13,29 @@ import app.bpartners.api.integration.conf.TestUtils;
 import app.bpartners.api.manager.ProjectTokenManager;
 import app.bpartners.api.repository.LegalFileRepository;
 import app.bpartners.api.repository.fintecture.FintectureConf;
+import app.bpartners.api.repository.fintecture.FintecturePaymentInitiationRepository;
 import app.bpartners.api.repository.sendinblue.SendinblueConf;
 import app.bpartners.api.repository.swan.AccountHolderSwanRepository;
 import app.bpartners.api.repository.swan.AccountSwanRepository;
-import app.bpartners.api.repository.swan.OnboardingSwanRepository;
 import app.bpartners.api.repository.swan.UserSwanRepository;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import static app.bpartners.api.integration.conf.TestUtils.INVOICE1_ID;
+import static app.bpartners.api.integration.conf.TestUtils.INVOICE2_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
-import static app.bpartners.api.integration.conf.TestUtils.assertThrowsForbiddenException;
-import static app.bpartners.api.integration.conf.TestUtils.createInvoiceRelaunchConf;
-import static app.bpartners.api.integration.conf.TestUtils.invoiceRelaunchConf1;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountHolderSwanRep;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountSwanRepository;
 import static app.bpartners.api.integration.conf.TestUtils.setUpLegalFileRepository;
-import static app.bpartners.api.integration.conf.TestUtils.setUpOnboardingSwanRepositoryMock;
+import static app.bpartners.api.integration.conf.TestUtils.setUpPaymentInitiationRep;
 import static app.bpartners.api.integration.conf.TestUtils.setUpSwanComponent;
 import static app.bpartners.api.integration.conf.TestUtils.setUpUserSwanRepository;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -44,7 +45,9 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @Testcontainers
 @ContextConfiguration(initializers = InvoiceRelaunchConfIT.ContextInitializer.class)
 @AutoConfigureMockMvc
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class InvoiceRelaunchConfIT {
+  private static final String RELAUNCH_CONF1_ID = "relaunchConf1_id";
   @MockBean
   private SentryConf sentryConf;
   @MockBean
@@ -54,9 +57,11 @@ class InvoiceRelaunchConfIT {
   @MockBean
   private SwanConf swanConf;
   @MockBean
+  private ProjectTokenManager projectTokenManager;
+  @MockBean
   private FintectureConf fintectureConf;
   @MockBean
-  private ProjectTokenManager projectTokenManager;
+  private AccountHolderSwanRepository accountHolderRepositoryMock;
   @MockBean
   private UserSwanRepository userSwanRepositoryMock;
   @MockBean
@@ -64,21 +69,13 @@ class InvoiceRelaunchConfIT {
   @MockBean
   private SwanComponent swanComponentMock;
   @MockBean
-  private OnboardingSwanRepository onboardingSwanRepositoryMock;
-  @MockBean
-  private AccountHolderSwanRepository accountHolderMock;
+  private FintecturePaymentInitiationRepository paymentInitiationRepositoryMock;
   @MockBean
   private LegalFileRepository legalFileRepositoryMock;
 
   private static ApiClient anApiClient() {
-    return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN, ContextInitializer.SERVER_PORT);
-  }
-
-  private static InvoiceRelaunchConf createdRelaunch() {
-    CreateInvoiceRelaunchConf toCreate = createInvoiceRelaunchConf();
-    return new InvoiceRelaunchConf()
-        .unpaidRelaunch(toCreate.getUnpaidRelaunch())
-        .draftRelaunch(toCreate.getDraftRelaunch());
+    return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN,
+        InvoiceRelaunchConfIT.ContextInitializer.SERVER_PORT);
   }
 
   @BeforeEach
@@ -86,46 +83,61 @@ class InvoiceRelaunchConfIT {
     setUpSwanComponent(swanComponentMock);
     setUpUserSwanRepository(userSwanRepositoryMock);
     setUpAccountSwanRepository(accountSwanRepositoryMock);
-    setUpOnboardingSwanRepositoryMock(onboardingSwanRepositoryMock);
-    setUpAccountHolderSwanRep(accountHolderMock);
+    setUpAccountHolderSwanRep(accountHolderRepositoryMock);
+    setUpPaymentInitiationRep(paymentInitiationRepositoryMock);
     setUpLegalFileRepository(legalFileRepositoryMock);
   }
 
   @Test
-  void read_invoice_relaunch_config_ok() throws ApiException {
+  @Order(1)
+  void read_conf_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
     PayingApi api = new PayingApi(joeDoeClient);
 
-    InvoiceRelaunchConf actual = api.getInvoiceRelaunchConf(JOE_DOE_ACCOUNT_ID);
+    InvoiceRelaunchConf actual = api.getInvoiceRelaunchConf(
+        JOE_DOE_ACCOUNT_ID, INVOICE2_ID
+    );
 
-    assertEquals(invoiceRelaunchConf1(), actual);
+    assertEquals(expectedRelaunchConf(), actual);
   }
 
   @Test
-  void create_or_read_relaunch_config_ko() {
+  @Order(2)
+  void crupdate_conf_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
     PayingApi api = new PayingApi(joeDoeClient);
 
-    assertThrowsForbiddenException(
-        () -> api.getInvoiceRelaunchConf("not" + JOE_DOE_ACCOUNT_ID)
+    InvoiceRelaunchConf actual = api.configureInvoiceRelaunch(
+        JOE_DOE_ACCOUNT_ID, INVOICE1_ID,
+        createInvoiceRelaunchConf()
     );
-    assertThrowsForbiddenException(
-        () -> api.configureRelaunch("not" + JOE_DOE_ACCOUNT_ID, createInvoiceRelaunchConf())
+    InvoiceRelaunchConf updated = api.configureInvoiceRelaunch(
+        JOE_DOE_ACCOUNT_ID, INVOICE1_ID, updateInvoiceRelaunchConf()
     );
+
+    assertEquals(createInvoiceRelaunchConf().id(actual.getId()), actual);
+    assertEquals(updateInvoiceRelaunchConf().id(actual.getId()), updated);
   }
 
-  @Test
-  void create_invoice_relaunch_ok() throws ApiException {
-    ApiClient joeDoeClient = anApiClient();
-    PayingApi api = new PayingApi(joeDoeClient);
-    InvoiceRelaunchConf expected = createdRelaunch();
+  InvoiceRelaunchConf expectedRelaunchConf() {
+    return new InvoiceRelaunchConf()
+        .id(RELAUNCH_CONF1_ID)
+        .idInvoice(INVOICE2_ID)
+        .delay(1)
+        .rehearsalNumber(1);
+  }
 
-    InvoiceRelaunchConf actual =
-        api.configureRelaunch(JOE_DOE_ACCOUNT_ID, createInvoiceRelaunchConf());
-    expected.updatedAt(actual.getUpdatedAt())
-        .id(actual.getId());
+  InvoiceRelaunchConf createInvoiceRelaunchConf() {
+    return new InvoiceRelaunchConf()
+        .idInvoice(INVOICE1_ID)
+        .delay(5)
+        .rehearsalNumber(5);
+  }
 
-    assertEquals(expected, actual);
+  InvoiceRelaunchConf updateInvoiceRelaunchConf() {
+    return createInvoiceRelaunchConf()
+        .delay(10)
+        .rehearsalNumber(15);
   }
 
   static class ContextInitializer extends AbstractContextInitializer {

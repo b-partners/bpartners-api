@@ -4,7 +4,9 @@ import app.bpartners.api.endpoint.rest.model.PaymentInitiation;
 import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
 import app.bpartners.api.endpoint.rest.validator.PaymentReqValidator;
 import org.junit.jupiter.api.Test;
+
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsBadRequestException;
+import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 class PaymentReqValidatorTest {
@@ -14,7 +16,7 @@ class PaymentReqValidatorTest {
   void validate_paymentInitiation_ok() {
     assertDoesNotThrow(() -> paymentReqValidator.accept(
         new PaymentInitiation()
-            .id("paymentId")
+            .id(randomUUID().toString())
             .reference("payementRef")
             .label("paymentLabel")
             .amount(1)
@@ -47,11 +49,12 @@ class PaymentReqValidatorTest {
                 .payerName(null)
                 .payerEmail(null)
         ));
-    assertThrowsBadRequestException("redirectionStatusUrls.successUrl is mandatory. "
+    assertThrowsBadRequestException("id must be a valid UUID."
+            + " redirectionStatusUrls.successUrl is mandatory. "
             + "redirectionStatusUrls.failureUrl is mandatory. ",
         () -> paymentReqValidator.accept(
             new PaymentInitiation()
-                .id("id")
+                .id("fake_id")
                 .reference("reference")
                 .label("label")
                 .redirectionStatusUrls(

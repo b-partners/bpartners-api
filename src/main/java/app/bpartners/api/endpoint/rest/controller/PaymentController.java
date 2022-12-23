@@ -4,13 +4,18 @@ import app.bpartners.api.endpoint.rest.mapper.PaymentReqRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.PaymentUrlRestMapper;
 import app.bpartners.api.endpoint.rest.model.PaymentInitiation;
 import app.bpartners.api.endpoint.rest.model.PaymentRedirection;
+import app.bpartners.api.endpoint.rest.model.PaymentRequest;
+import app.bpartners.api.model.BoundedPageSize;
+import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.service.PaymentInitiationService;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -29,6 +34,16 @@ public class PaymentController {
         .collect(Collectors.toUnmodifiableList());
     return service.createPaymentReq(domainPaymentReq).stream()
         .map(paymentUrlMapper::toRest)
+        .collect(Collectors.toUnmodifiableList());
+  }
+
+  @GetMapping("/accounts/{aId}/paymentRequests")
+  List<PaymentRequest> getPaymentRequests(
+      @PathVariable(name = "aId") String accountId,
+      @RequestParam(name = "page") PageFromOne page,
+      @RequestParam(name = "pageSize") BoundedPageSize pageSize) {
+    return service.getPaymentReqByAccountId(accountId, page, pageSize).stream()
+        .map(paymentReqMapper::toRest)
         .collect(Collectors.toUnmodifiableList());
   }
 }

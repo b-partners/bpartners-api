@@ -56,6 +56,7 @@ import static app.bpartners.api.endpoint.rest.model.TransactionTypeEnum.INCOME;
 import static app.bpartners.api.endpoint.rest.model.TransactionTypeEnum.OUTCOME;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.CLIENT_EXCEPTION;
 import static app.bpartners.api.model.mapper.UserMapper.VALID_IDENTITY_STATUS;
+import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -625,12 +626,14 @@ public class TestUtils {
 
   public static void setUpPaymentInitiationRep(FintecturePaymentInitiationRepository repository) {
     when(repository.save(any(PaymentInitiation.class), any()))
-        .thenReturn(PaymentRedirection.builder()
-            .meta(PaymentRedirection.Meta.builder()
-                .sessionId("uuid")
-                .url("https://connect-v2-sbx.fintecture.com")
-                .build())
-            .build());
+        .thenAnswer(invocation ->
+            PaymentRedirection.builder()
+                .meta(PaymentRedirection.Meta.builder()
+                    .sessionId(randomUUID().toString())
+                    .url("https://connect-v2-sbx.fintecture.com")
+                    .build())
+                .build()
+        );
   }
 
   public static void setUpSendiblueApi(SendinblueApi sendinblueApi) {

@@ -5,12 +5,12 @@ import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
 import app.bpartners.api.endpoint.rest.validator.PaymentReqValidator;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
+
 import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 
 @Component
 @AllArgsConstructor
 public class PaymentReqRestMapper {
-
   private final PaymentReqValidator paymentValidator;
 
   public app.bpartners.api.model.PaymentInitiation toDomain(PaymentInitiation rest) {

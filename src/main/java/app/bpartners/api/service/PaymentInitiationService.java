@@ -11,6 +11,8 @@ import java.util.Objects;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import static java.util.UUID.randomUUID;
+
 @Service
 @AllArgsConstructor
 public class PaymentInitiationService {
@@ -30,6 +32,7 @@ public class PaymentInitiationService {
     String customerName = invoice.getCustomer() == null ? null : invoice.getCustomer().getName();
     String customerEmail = invoice.getCustomer() == null ? null : invoice.getCustomer().getEmail();
     PaymentInitiation paymentInitiation = PaymentInitiation.builder()
+        .id(String.valueOf(randomUUID()))
         .reference(invoice.getRef())
         .label(invoice.getTitle())
         .amount(totalPriceWithVat)
@@ -39,6 +42,7 @@ public class PaymentInitiationService {
         .successUrl("https://dashboard-dev.bpartners.app") //TODO: to change
         .failureUrl("https://dashboard-dev.bpartners.app") //TODO: to change
         .build();
-    return repository.save(paymentInitiation).get(0);
+    return repository.save(paymentInitiation, invoice.getId()).get(0);
   }
+
 }

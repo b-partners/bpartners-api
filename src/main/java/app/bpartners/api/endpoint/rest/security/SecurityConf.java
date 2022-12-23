@@ -188,6 +188,9 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
             PUT, "/users/*/accounts/*/accountHolders/*/revenueTargets").authenticated()
         .antMatchers(
             PUT, "/users/*/accounts/*/accountHolders/*/companyInfo").authenticated()
+        .requestMatchers(
+            new SelfAccountMatcher(GET, "/accounts/*/paymentRequests", authResourceProvider)
+        ).authenticated()
         .antMatchers("/**").denyAll()
 
         // disable superfluous protections

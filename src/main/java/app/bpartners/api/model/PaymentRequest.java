@@ -1,5 +1,7 @@
 package app.bpartners.api.model;
 
+import app.bpartners.api.endpoint.rest.model.PaymentReqStatus;
+import app.bpartners.api.endpoint.rest.model.PaymentTransferState;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -12,9 +14,12 @@ import lombok.Setter;
 @NoArgsConstructor
 @Builder
 public class PaymentRequest {
-  //TODO: map with Fintecture responses
   private String id;
   private String sessionId;
+  private PaymentTransferState transferState;
+  private String paymentUrl;
+  private PaymentReqStatus status;
+  private String paymentScheme;
   private String invoiceId;
   private String accountId;
   private String label;

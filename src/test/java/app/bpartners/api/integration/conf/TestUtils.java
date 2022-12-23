@@ -73,6 +73,8 @@ import static app.bpartners.api.endpoint.rest.model.TransactionTypeEnum.OUTCOME;
 import static app.bpartners.api.model.Invoice.DEFAULT_DELAY_PENALTY_PERCENT;
 import static app.bpartners.api.model.Invoice.DEFAULT_TO_PAY_DELAY_DAYS;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.CLIENT_EXCEPTION;
+import static app.bpartners.api.model.mapper.PaymentRequestMapper.COMPLETED_STATE;
+import static app.bpartners.api.model.mapper.PaymentRequestMapper.PAYMENT_CREATED_STATUS;
 import static app.bpartners.api.model.mapper.UserMapper.VALID_IDENTITY_STATUS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -129,11 +131,11 @@ public class TestUtils {
   public static final String JANE_ACCOUNT_ID = "jane_account_id";
   public static final String JANE_DOE_TOKEN = "jane_doe_token";
   public static final String JANE_DOE_ID = "jane_doe_id";
+  public static final String SESSION_ID = "session_id";
   public static final String ACCOUNT_OPENED = "Opened";
   public static final String ACCOUNT_CLOSED = "Closed";
   public static final String ACCOUNT_CLOSING = "Closing";
   public static final String ACCOUNT_SUSPENDED = "Suspended";
-  public static final String SESSION_ID = "session_id";
   public static final String TRANSACTION1_ID = "transaction1_id";
   public static final String UNKNOWN_TRANSACTION_ID = "unknown_transaction_id";
   public static final String SESSION1_ID = "session1_id";
@@ -625,6 +627,23 @@ public class TestUtils {
         .build();
   }
 
+  public static Session fintectureSession() {
+    return Session.builder()
+        .meta(Session.Meta.builder()
+            .code("200")
+            .status(PAYMENT_CREATED_STATUS)
+            .build())
+        .data(Session.Data.builder()
+            .type("payments")
+            .attributes(Session.Attributes.builder()
+                .transferState(COMPLETED_STATE)
+                .paymentScheme("SEPA")
+                .endToEndId("end_to_end_id")
+                .build())
+            .build())
+        .build();
+  }
+
   public static HttpResponse<Object> httpResponseMock(Object body) {
     return new HttpResponse<>() {
       @Override
@@ -778,6 +797,11 @@ public class TestUtils {
                     .build())
                 .build()
         );
+  }
+
+  public static void setUpPaymentInfoRepository(FintecturePaymentInfoRepository repository) {
+    when(repository.getPaymentBySessionId(any(String.class)))
+        .thenReturn(fintectureSession());
   }
 
   public static void setUpSendiblueApi(SendinblueApi sendinblueApi) {

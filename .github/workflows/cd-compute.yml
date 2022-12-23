@@ -57,7 +57,7 @@ jobs:
           export AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
       - run: ./gradlew test
-        if: ${{ github.event.inputs.run_tests == 'true' }}
+        if: ${{ github.event.inputs.run_tests != 'false' }}
       
       - run: ./gradlew build -x test
 

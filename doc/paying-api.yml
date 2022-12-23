@@ -946,7 +946,6 @@ components:
           type: string
         redirectionStatusUrls:
           $ref: './api.yml#/components/schemas/RedirectionStatusUrls'
-        #todo: attributes are ignored until payment req are persisted
         label:
           type: string
         reference:

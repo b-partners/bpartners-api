@@ -22,7 +22,9 @@ import app.bpartners.api.repository.swan.AccountSwanRepository;
 import app.bpartners.api.repository.swan.UserSwanRepository;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -36,6 +38,7 @@ import static app.bpartners.api.integration.conf.TestUtils.setUpLegalFileReposit
 import static app.bpartners.api.integration.conf.TestUtils.setUpPaymentInitiationRep;
 import static app.bpartners.api.integration.conf.TestUtils.setUpSwanComponent;
 import static app.bpartners.api.integration.conf.TestUtils.setUpUserSwanRepository;
+import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
@@ -43,6 +46,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @Testcontainers
 @ContextConfiguration(initializers = PaymentIT.ContextInitializer.class)
 @AutoConfigureMockMvc
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class PaymentIT {
   @MockBean
   private SentryConf sentryConf;
@@ -69,6 +73,10 @@ class PaymentIT {
   @MockBean
   private LegalFileRepository legalFileRepositoryMock;
 
+  private static ApiClient anApiClient() {
+    return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN, PaymentIT.ContextInitializer.SERVER_PORT);
+  }
+
   @BeforeEach
   public void setUp() {
     setUpSwanComponent(swanComponentMock);
@@ -81,7 +89,7 @@ class PaymentIT {
 
   PaymentInitiation paymentReq1() {
     return new PaymentInitiation()
-        .id("uuid")
+        .id(String.valueOf(randomUUID()))
         .amount(100)
         .label("Payment label")
         .reference("Payment reference")
@@ -93,10 +101,6 @@ class PaymentIT {
                 .failureUrl("https://dashboard-dev.bpartners.app/error"));
   }
 
-  private static ApiClient anApiClient() {
-    return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN, PaymentIT.ContextInitializer.SERVER_PORT);
-  }
-
   @Test
   void initiate_payment_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
@@ -105,9 +109,9 @@ class PaymentIT {
     List<PaymentRedirection> actual = api.initiatePayments(JOE_DOE_ACCOUNT_ID,
         List.of(paymentReq1()));
 
-    PaymentRedirection actualPaymentUrl = actual.get(0);
+    PaymentRedirection actual1 = actual.get(0);
     assertTrue(
-        actualPaymentUrl.getRedirectionUrl().startsWith(
+        actual1.getRedirectionUrl().startsWith(
             "https://connect-v2-sbx.fintecture.com"));
   }
 

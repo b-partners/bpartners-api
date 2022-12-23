@@ -29,6 +29,7 @@ public class HPaymentRequest {
   private String accountId;
   private String idInvoice;
   private String label;
+  private String paymentUrl;
   private String reference;
   private String amount;
   private String payerName;

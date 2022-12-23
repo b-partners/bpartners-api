@@ -1017,3 +1017,48 @@ components:
       properties:
         fileId:
           type: string
+
+    PaymentRequest:
+      type: object
+      properties:
+        id:
+          type: string
+        endToEndId:
+          type: string
+        status:
+          $ref: '#/components/schemas/PaymentReqStatus'
+        paymentUrl:
+          type: string
+        transferState:
+          $ref: '#/components/schemas/PaymentTransferState'
+        paymentScheme:
+          type: string
+        amount:
+          type: integer
+        payerName:
+          type: string
+        payerEmail:
+          type: string
+        label:
+          type: string
+        reference:
+          type: string
+        invoice:
+          $ref: '#/components/schemas/Invoice'
+    PaymentReqStatus:
+      type: string
+      enum:
+        - INITIALIZED
+        - PROCESSING
+        - CANCELED
+        - ERROR #technical error
+        - CREATED
+        - REJECTED
+        - UNKNOWN
+    PaymentTransferState:
+      type: string
+      enum:
+        - PROCESSING
+        - COMPLETED
+        - REJECTED
+        - UNKNOWN

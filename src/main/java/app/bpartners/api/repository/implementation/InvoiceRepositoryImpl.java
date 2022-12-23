@@ -125,8 +125,9 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
   @Override
   public List<Invoice> findAllByAccountIdAndStatus(String accountId, InvoiceStatus status, int page,
                                                    int pageSize) {
+    PageRequest pageRequest = PageRequest.of(page, pageSize, Sort.by(DESC, "createdDatetime"));
     return jpaRepository.findAllByIdAccountAndStatus(
-            accountId, status, PageRequest.of(page, pageSize, Sort.by(DESC, "createdDatetime"))).stream()
+            accountId, status, pageRequest).stream()
         .map(invoice -> {
           HInvoiceCustomer invoiceCustomer = customerJpaRepository
               .findTopByIdInvoiceOrderByCreatedDatetimeDesc(invoice.getId());

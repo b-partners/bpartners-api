@@ -113,6 +113,8 @@ Resources:
         - 'arn:aws:iam::aws:policy/AmazonEventBridgeFullAccess'
         - 'arn:aws:iam::aws:policy/AmazonSSMFullAccess'
         - 'arn:aws:iam::aws:policy/AmazonCognitoPowerUser'
+        - 'arn:aws:iam::aws:policy/AmazonSESFullAccess'
+        
   Service:
     Type: AWS::ECS::Service
     Properties:

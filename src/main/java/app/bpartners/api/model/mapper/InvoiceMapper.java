@@ -88,10 +88,15 @@ public class InvoiceMapper {
       fileId = persisted.isPresent() ? persisted.get().getFileId() : domain.getFileId();
     }
     String id = domain.getId();
-    if (persisted.isPresent()
-        && persisted.get().getStatus() == InvoiceStatus.PROPOSAL
-        && domain.getStatus() == InvoiceStatus.CONFIRMED) {
-      id = randomUUID().toString();
+    if (persisted.isPresent()) {
+      HInvoice persistedValue = persisted.get();
+      if (persistedValue.getStatus() == InvoiceStatus.PROPOSAL
+          && domain.getStatus() == InvoiceStatus.CONFIRMED) {
+        id = randomUUID().toString();
+        //TODO: add test for this
+        persistedValue.setStatus(InvoiceStatus.CONFIRMED);
+        jpaRepository.save(persistedValue);
+      }
     }
     return HInvoice.builder()
         .id(id)

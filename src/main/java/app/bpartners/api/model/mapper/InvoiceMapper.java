@@ -52,9 +52,41 @@ public class InvoiceMapper {
         .build();
   }
 
-  public HInvoice toEntity(Invoice domain) {
+  public Invoice toDomain(
+      HInvoice invoice,
+      HInvoiceCustomer invoiceCustomer,
+      List<HProduct> products,
+      String fileId) {
+    List<Product> actualProducts = List.of();
+    if (products != null) {
+      actualProducts = products.stream()
+          .map(productMapper::toDomain)
+          .collect(Collectors.toUnmodifiableList());
+    }
+    return Invoice.builder()
+        .id(invoice.getId())
+        .ref(invoice.getRef())
+        .fileId(fileId)
+        .title(invoice.getTitle())
+        .comment(invoice.getComment())
+        .products(actualProducts)
+        .sendingDate(invoice.getSendingDate())
+        .updatedAt(invoice.getUpdatedAt())
+        .toPayAt(invoice.getToPayAt())
+        .invoiceCustomer(customerMapper.toDomain(invoiceCustomer))
+        .account(accountService.getAccountById(invoice.getIdAccount()))
+        .status(invoice.getStatus())
+        .toBeRelaunched(invoice.isToBeRelaunched())
+        .createdAt(invoice.getCreatedDatetime())
+        .build();
+  }
+
+  public HInvoice toEntity(Invoice domain, boolean toBeRelaunched) {
     Optional<HInvoice> persisted = jpaRepository.findById(domain.getId());
-    String fileId = persisted.isPresent() ? persisted.get().getFileId() : domain.getFileId();
+    String fileId = null;
+    if (toBeRelaunched) {
+      fileId = persisted.isPresent() ? persisted.get().getFileId() : domain.getFileId();
+    }
     String id = domain.getId();
     if (persisted.isPresent()
         && persisted.get().getStatus() == InvoiceStatus.PROPOSAL

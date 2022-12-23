@@ -52,6 +52,8 @@ public class InvoiceService {
     AccountHolder accountHolder =
         holderService.getAccountHolderByAccountId(refreshedInvoice.getAccount().getId());
     eventProducer.accept(List.of(toTypedEvent(refreshedInvoice, accountHolder)));
+    //existing file ID is sent to event earlier and is updated in the eventService
+    refreshedInvoice.setFileId(null);
 
     return refreshedInvoice;
   }

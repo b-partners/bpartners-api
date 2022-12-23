@@ -55,10 +55,12 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
 
   @Override
   public Invoice crupdate(Invoice toCrupdate) {
-    if (toCrupdate.getRef() != null) {
-      Optional<HInvoice> existingInvoice = jpaRepository.findByIdAccountAndRefAndStatus(
-          toCrupdate.getAccount().getId(), toCrupdate.getRef(), toCrupdate.getPreviousStatus());
-      if (existingInvoice.isPresent()) {
+    Optional<HInvoice> existingInvoice = jpaRepository.findByIdAccountAndRefAndStatus(
+        toCrupdate.getAccount().getId(), toCrupdate.getRef(), toCrupdate.getPreviousStatus());
+    String oldFileId = null;
+    if (existingInvoice.isPresent()) {
+      oldFileId = existingInvoice.get().getFileId();
+      if (toCrupdate.getRef() != null) {
         String persistedId = existingInvoice.get().getId();
         if (toCrupdate.getStatus().equals(DRAFT)
             && !persistedId.equals(toCrupdate.getId())) {
@@ -69,7 +71,7 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
         }
       }
     }
-    HInvoice entity = jpaRepository.save(mapper.toEntity(toCrupdate));
+    HInvoice entity = jpaRepository.save(mapper.toEntity(toCrupdate, false));
     boolean entityHasBeenCloned =
         !Objects.equals(toCrupdate.getId(), entity.getId());
     if (entityHasBeenCloned) {
@@ -95,7 +97,7 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
       invoiceProduct.setProducts(createdProducts);
       ipJpaRepository.save(invoiceProduct);
     }
-    return refreshValues(mapper.toDomain(entity, invoiceCustomer, createdProducts));
+    return refreshValues(mapper.toDomain(entity, invoiceCustomer, createdProducts, oldFileId));
   }
 
   @Override

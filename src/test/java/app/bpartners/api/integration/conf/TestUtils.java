@@ -260,6 +260,7 @@ public class TestUtils {
         .quantity(1)
         .unitPrice(1000)
         .vatPercent(2000)
+        .unitPriceWithVat(1200)
         .totalVat(200)
         .totalPriceWithVat(1200);
   }
@@ -271,6 +272,7 @@ public class TestUtils {
         .quantity(2)
         .unitPrice(2000)
         .vatPercent(1000)
+        .unitPriceWithVat(2200)
         .totalVat(400)
         .totalPriceWithVat(4400);
   }
@@ -282,6 +284,7 @@ public class TestUtils {
         .quantity(3)
         .unitPrice(2000)
         .vatPercent(1000)
+        .unitPriceWithVat(2200)
         .totalVat(600)
         .totalPriceWithVat(6600);
   }
@@ -293,6 +296,7 @@ public class TestUtils {
         .quantity(1)
         .unitPrice(2000)
         .vatPercent(1000)
+        .unitPriceWithVat(2200)
         .totalVat(200)
         .totalPriceWithVat(2200);
   }
@@ -304,6 +308,7 @@ public class TestUtils {
         .quantity(1)
         .unitPrice(1000)
         .vatPercent(1000)
+        .unitPriceWithVat(1100)
         .totalVat(100)
         .totalPriceWithVat(1100);
   }

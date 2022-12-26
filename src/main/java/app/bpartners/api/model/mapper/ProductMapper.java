@@ -1,21 +1,31 @@
 package app.bpartners.api.model.mapper;
 
+import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.Product;
 import app.bpartners.api.repository.jpa.model.HInvoiceProduct;
 import app.bpartners.api.repository.jpa.model.HProduct;
+import org.apfloat.Aprational;
 import org.springframework.stereotype.Component;
 
 import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
+import static org.apfloat.Apcomplex.ONE;
 
 @Component
 public class ProductMapper {
   public Product toDomain(HProduct entity) {
+    Fraction unitPrice = parseFraction(entity.getUnitPrice());
+    Fraction vatPercent = parseFraction(entity.getVatPercent());
     return Product.builder()
         .id(entity.getId())
         .description(entity.getDescription())
         .quantity(entity.getQuantity())
-        .unitPrice(parseFraction(entity.getUnitPrice()))
-        .vatPercent(parseFraction(entity.getVatPercent()))
+        .unitPrice(unitPrice)
+        .unitPriceWithVat(unitPrice.operate(vatPercent,
+            (price, vat) -> {
+              Aprational vatAprational = ONE.add(vat.divide(new Aprational(10000)));
+              return price.multiply(vatAprational);
+            }))
+        .vatPercent(vatPercent)
         .build();
   }
 

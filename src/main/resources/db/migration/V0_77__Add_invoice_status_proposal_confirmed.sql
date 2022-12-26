@@ -1,0 +1,1 @@
+alter type invoice_status add value 'PROPOSAL_CONFIRMED' after 'PROPOSAL';

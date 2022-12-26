@@ -897,6 +897,8 @@ components:
       properties:
         id:
           type: string
+        unitPriceWithVat:
+          type: integer
         totalVat:
           type: integer
         totalPriceWithVat:

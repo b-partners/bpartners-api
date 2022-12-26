@@ -20,6 +20,7 @@ import app.bpartners.api.repository.swan.AccountHolderSwanRepository;
 import app.bpartners.api.repository.swan.AccountSwanRepository;
 import app.bpartners.api.repository.swan.UserSwanRepository;
 import app.bpartners.api.service.InvoiceService;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -206,6 +207,7 @@ class InvoiceIT {
         .title("Facture tableau")
         .paymentUrl("https://connect-v2-sbx.fintecture.com")
         .customer(customer1()).ref("BP001")
+        .createdAt(Instant.parse("2022-01-01T01:00:00.00Z"))
         .sendingDate(LocalDate.of(2022, 9, 1))
         .toPayAt(LocalDate.of(2022, 10, 1))
         .status(CONFIRMED)
@@ -223,6 +225,7 @@ class InvoiceIT {
         .customer(customer2().address("Nouvelle adresse"))
         .ref("BP002")
         .sendingDate(LocalDate.of(2022, 9, 10))
+        .createdAt(Instant.parse("2022-01-01T03:00:00.00Z"))
         .toPayAt(LocalDate.of(2022, 10, 10))
         .status(CONFIRMED)
         .products(List.of(product5()))
@@ -239,6 +242,7 @@ class InvoiceIT {
         .title("Facture transaction")
         .customer(customer1())
         .status(DRAFT)
+        .createdAt(Instant.parse("2022-01-01T06:00:00Z"))
         .sendingDate(LocalDate.of(2022, 10, 12))
         .products(List.of(product5().id(null)))
         .toPayAt(LocalDate.of(2022, 11, 10))
@@ -336,20 +340,18 @@ class InvoiceIT {
     List<Invoice> actualDraft = api.getInvoices(JOE_DOE_ACCOUNT_ID, 1, 10, DRAFT);
     List<Invoice> actualNotFiltered = api.getInvoices(JOE_DOE_ACCOUNT_ID, 1, 10, null);
 
-    assertEquals(invoice1(),
-        actual1
-            .updatedAt(null)
-            .createdAt(null));
-    assertEquals(invoice2(),
-        actual2
-            .updatedAt(null)
-            .createdAt(null));
-    assertTrue(ignoreInstantDate(actualDraft).contains(invoice6()
+    assertEquals(invoice1()
+            .updatedAt(actual1.getUpdatedAt()),
+        actual1);
+    assertEquals(invoice2()
+            .updatedAt(actual2.getUpdatedAt()),
+        actual2);
+    assertTrue(ignoreUpdatedAt(actualDraft).contains(invoice6()
         .products(List.of())
         .totalPriceWithVat(0)
         .totalPriceWithoutVat(0)
         .totalVat(0)));
-    assertTrue(ignoreInstantDate(actualNotFiltered).containsAll(
+    assertTrue(ignoreUpdatedAt(actualNotFiltered).containsAll(
         List.of(actual1.updatedAt(null),
             actual2.updatedAt(null),
             invoice6()
@@ -442,11 +444,13 @@ class InvoiceIT {
         api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, actualConfirmed.getId(), paidInvoice());
     actualPaid.setProducts(ignoreIdsOf(actualPaid.getProducts()));
 
-    assertEquals(expectedInitializedDraft(), actualDraft);
-    assertEquals(expectedDraft(), actualUpdatedDraft);
+    assertEquals(expectedInitializedDraft().createdAt(actualDraft.getCreatedAt()), actualDraft);
+    assertEquals(expectedDraft().createdAt(actualUpdatedDraft.getCreatedAt()), actualUpdatedDraft);
     assertEquals(expectedConfirmed().id(actualConfirmed.getId()), actualConfirmed.createdAt(null));
     assertNotEquals(INVOICE4_ID, actualConfirmed.getId());
-    assertEquals(expectedPaid().id(actualPaid.getId()), actualPaid);
+    assertEquals(expectedPaid()
+        .id(actualPaid.getId())
+        .createdAt(actualPaid.getCreatedAt()), actualPaid);
     assertTrue(actualUpdatedDraft.getRef().contains(DRAFT_REF_PREFIX));
     assertFalse(actualConfirmed.getRef().contains(DRAFT_REF_PREFIX));
   }
@@ -463,8 +467,12 @@ class InvoiceIT {
     Invoice actual = api.getInvoiceById(JOE_DOE_ACCOUNT_ID, invoice6().getId());
     actual.setProducts(ignoreIdsOf(actual.getProducts()));
 
-    assertEquals(expectedCustomerUpdatedInvoice(), actualUpdated.updatedAt(null));
-    assertEquals(expectedCustomerUpdatedInvoice(), actual.updatedAt(null));
+    assertEquals(expectedCustomerUpdatedInvoice()
+        .updatedAt(actualUpdated.getUpdatedAt())
+        .createdAt(actualUpdated.getCreatedAt()), actualUpdated);
+    assertEquals(expectedCustomerUpdatedInvoice()
+        .updatedAt(actual.getUpdatedAt())
+        .createdAt(actual.getCreatedAt()), actual);
   }
 
   @Test
@@ -544,10 +552,9 @@ class InvoiceIT {
         .collect(Collectors.toUnmodifiableList());
   }
 
-  private List<Invoice> ignoreInstantDate(List<Invoice> actual) {
+  private List<Invoice> ignoreUpdatedAt(List<Invoice> actual) {
     actual.forEach(invoice -> {
       invoice.setUpdatedAt(null);
-      invoice.setCreatedAt(null);
     });
     return actual;
   }

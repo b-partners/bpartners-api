@@ -51,6 +51,7 @@ public class InvoiceCrupdatedService implements Consumer<InvoiceCrupdated> {
         .ref(invoice.getRealReference())
         .title(invoice.getTitle())
         .idAccount(invoice.getAccount().getId())
+        .createdDatetime(invoice.getCreatedAt())
         .sendingDate(invoice.getSendingDate())
         .toPayAt(invoice.getToPayAt())
         .status(invoice.getStatus())

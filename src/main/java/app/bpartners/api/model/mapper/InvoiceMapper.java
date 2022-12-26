@@ -8,6 +8,7 @@ import app.bpartners.api.repository.jpa.model.HInvoice;
 import app.bpartners.api.repository.jpa.model.HInvoiceCustomer;
 import app.bpartners.api.repository.jpa.model.HProduct;
 import app.bpartners.api.service.AccountService;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -88,6 +89,8 @@ public class InvoiceMapper {
       fileId = persisted.isPresent() ? persisted.get().getFileId() : domain.getFileId();
     }
     String id = domain.getId();
+    Instant createdDatetime =
+        persisted.map(HInvoice::getCreatedDatetime).orElse(domain.getCreatedAt());
     if (persisted.isPresent()) {
       HInvoice persistedValue = persisted.get();
       if (persistedValue.getStatus() == InvoiceStatus.PROPOSAL
@@ -107,6 +110,7 @@ public class InvoiceMapper {
         .idAccount(domain.getAccount().getId())
         .sendingDate(domain.getSendingDate())
         .toPayAt(domain.getToPayAt())
+        .createdDatetime(createdDatetime)
         .status(domain.getStatus())
         .toBeRelaunched(domain.isToBeRelaunched())
         .build();

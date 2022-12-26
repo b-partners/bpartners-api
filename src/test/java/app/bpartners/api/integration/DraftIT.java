@@ -87,6 +87,74 @@ class DraftIT {
     assertEquals(3, actual.size());
   }
 
+    /* /!\ For local test only
+  @Test
+  void generate_invoice_pdf_ok() throws IOException {
+    app.bpartners.api.model.Invoice invoice = app.bpartners.api.model.Invoice.builder()
+        .id(INVOICE1_ID)
+        .ref("invoice_ref")
+        .title("invoice_title")
+        .sendingDate(LocalDate.now())
+        .toPayAt(LocalDate.now())
+        .account(Account.builder()
+            .id(JOE_DOE_ACCOUNT_ID)
+            .iban("FR7630001007941234567890185")
+            .bic("BPFRPP751")
+            .build())
+        .products(List.of(app.bpartners.api.model.Product.builder()
+            .id("product_id")
+            .quantity(50)
+            .description("product description")
+            .vatPercent(20)
+            .unitPrice(150)
+            .build()))
+        .invoiceCustomer(InvoiceCustomer.customerTemplateBuilder()
+            .name("Olivier Durant")
+            .phone("+33 6 12 45 89 76")
+            .email("exemple@email.com")
+            .address("Paris 745")
+            .build())
+        .build();
+    byte[] data = invoiceService.generateInvoicePdf(invoice);
+    File generatedFile = new File("invoice.pdf");
+    OutputStream os = new FileOutputStream(generatedFile);
+    os.write(data);
+    os.close();
+  }
+
+  @Test
+  void generate_draft_pdf_ok() throws IOException {
+    app.bpartners.api.model.Invoice invoice = app.bpartners.api.model.Invoice.builder()
+        .id("draft_id")
+        .ref("draft_ref")
+        .title("draft_title")
+        .sendingDate(LocalDate.now())
+        .toPayAt(LocalDate.now())
+        .account(Account.builder()
+            .id(JOE_DOE_ACCOUNT_ID)
+            .build())
+        .products(List.of(app.bpartners.api.model.Product.builder()
+            .id("product_id")
+            .quantity(50)
+            .description("product description")
+            .vatPercent(20)
+            .unitPrice(150)
+            .build()))
+        .invoiceCustomer(InvoiceCustomer.customerTemplateBuilder()
+            .name("Olivier Durant")
+            .phone("+33 6 12 45 89 76")
+            .email("exemple@email.com")
+            .address("Paris 745")
+            .build())
+        .build();
+    byte[] data = invoiceService.generateDraftPdf(invoice);
+    File generatedFile = new File("draft.pdf");
+    OutputStream os = new FileOutputStream(generatedFile);
+    os.write(data);
+    os.close();
+  }*/
+
+
   public static class ContextInitializer extends AbstractContextInitializer {
     public static final int SERVER_PORT = TestUtils.anAvailableRandomPort();
 

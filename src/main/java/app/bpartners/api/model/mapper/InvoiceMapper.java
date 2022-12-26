@@ -94,7 +94,7 @@ public class InvoiceMapper {
           && domain.getStatus() == InvoiceStatus.CONFIRMED) {
         id = randomUUID().toString();
         //TODO: add test for this
-        persistedValue.setStatus(InvoiceStatus.CONFIRMED);
+        persistedValue.setStatus(InvoiceStatus.PROPOSAL_CONFIRMED);
         jpaRepository.save(persistedValue);
       }
     }

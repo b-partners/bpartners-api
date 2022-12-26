@@ -871,6 +871,7 @@ components:
         - DRAFT
         - ACCEPTED
         - PROPOSAL
+        - PROPOSAL_CONFIRMED
         - CONFIRMED
         - PAID
     TransactionStatus:

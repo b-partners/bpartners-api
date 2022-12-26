@@ -7,6 +7,10 @@ import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
 import app.bpartners.api.integration.conf.AbstractContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
 import app.bpartners.api.manager.ProjectTokenManager;
+import app.bpartners.api.model.Account;
+import app.bpartners.api.model.AccountHolder;
+import app.bpartners.api.model.Fraction;
+import app.bpartners.api.model.InvoiceCustomer;
 import app.bpartners.api.model.LegalFile;
 import app.bpartners.api.repository.LegalFileRepository;
 import app.bpartners.api.repository.fintecture.FintectureConf;
@@ -14,7 +18,13 @@ import app.bpartners.api.repository.sendinblue.SendinblueConf;
 import app.bpartners.api.repository.swan.AccountSwanRepository;
 import app.bpartners.api.repository.swan.UserSwanRepository;
 import app.bpartners.api.service.aws.SesService;
+import app.bpartners.api.service.utils.InvoicePdfUtils;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.math.BigInteger;
+import java.time.LocalDate;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,7 +36,10 @@ import org.springframework.core.io.Resource;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import static app.bpartners.api.integration.conf.TestUtils.INVOICE1_ID;
+import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ID;
+import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
@@ -87,9 +100,17 @@ class DraftIT {
     assertEquals(3, actual.size());
   }
 
-    /* /!\ For local test only
   @Test
   void generate_invoice_pdf_ok() throws IOException {
+    generatePdf("invoice");
+  }
+
+  @Test
+  void generate_draft_pdf_ok() throws IOException {
+    generatePdf("draft");
+  }
+
+  private static void generatePdf(String templateName) throws IOException {
     app.bpartners.api.model.Invoice invoice = app.bpartners.api.model.Invoice.builder()
         .id(INVOICE1_ID)
         .ref("invoice_ref")
@@ -105,8 +126,9 @@ class DraftIT {
             .id("product_id")
             .quantity(50)
             .description("product description")
-            .vatPercent(20)
-            .unitPrice(150)
+            .vatPercent(new Fraction(BigInteger.ONE))
+            .unitPrice(new Fraction(BigInteger.ONE))
+            .totalPriceWithVat(new Fraction(BigInteger.ONE))
             .build()))
         .invoiceCustomer(InvoiceCustomer.customerTemplateBuilder()
             .name("Olivier Durant")
@@ -114,45 +136,25 @@ class DraftIT {
             .email("exemple@email.com")
             .address("Paris 745")
             .build())
+        .totalPriceWithVat(new Fraction(BigInteger.ONE))
+        .totalPriceWithoutVat(new Fraction(BigInteger.ONE))
+        .totalVat(new Fraction(BigInteger.ONE))
+        .paymentUrl("text")
         .build();
-    byte[] data = invoiceService.generateInvoicePdf(invoice);
-    File generatedFile = new File("invoice.pdf");
+    InvoicePdfUtils pdfUtils = new InvoicePdfUtils();
+    byte[] logoAsBytes =
+        new ClassPathResource("files/downloaded.jpeg").getInputStream().readAllBytes();
+    AccountHolder accountHolder = AccountHolder.builder()
+        .name("Numer")
+        .mobilePhoneNumber("06 12 34 56 78")
+        .email("numer@hei.school")
+        .build();
+    byte[] data = pdfUtils.generatePdf(invoice, accountHolder, logoAsBytes, templateName);
+    File generatedFile = new File(randomUUID() + ".pdf");
     OutputStream os = new FileOutputStream(generatedFile);
     os.write(data);
     os.close();
   }
-
-  @Test
-  void generate_draft_pdf_ok() throws IOException {
-    app.bpartners.api.model.Invoice invoice = app.bpartners.api.model.Invoice.builder()
-        .id("draft_id")
-        .ref("draft_ref")
-        .title("draft_title")
-        .sendingDate(LocalDate.now())
-        .toPayAt(LocalDate.now())
-        .account(Account.builder()
-            .id(JOE_DOE_ACCOUNT_ID)
-            .build())
-        .products(List.of(app.bpartners.api.model.Product.builder()
-            .id("product_id")
-            .quantity(50)
-            .description("product description")
-            .vatPercent(20)
-            .unitPrice(150)
-            .build()))
-        .invoiceCustomer(InvoiceCustomer.customerTemplateBuilder()
-            .name("Olivier Durant")
-            .phone("+33 6 12 45 89 76")
-            .email("exemple@email.com")
-            .address("Paris 745")
-            .build())
-        .build();
-    byte[] data = invoiceService.generateDraftPdf(invoice);
-    File generatedFile = new File("draft.pdf");
-    OutputStream os = new FileOutputStream(generatedFile);
-    os.write(data);
-    os.close();
-  }*/
 
 
   public static class ContextInitializer extends AbstractContextInitializer {

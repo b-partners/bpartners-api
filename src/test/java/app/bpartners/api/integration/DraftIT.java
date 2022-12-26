@@ -42,6 +42,7 @@ import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ID;
 import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
@@ -102,15 +103,15 @@ class DraftIT {
 
   @Test
   void generate_invoice_pdf_ok() throws IOException {
-    generatePdf("invoice");
+    assertNotNull(generatePdf("invoice"));
   }
 
   @Test
   void generate_draft_pdf_ok() throws IOException {
-    generatePdf("draft");
+    assertNotNull(generatePdf("draft"));
   }
 
-  private static void generatePdf(String templateName) throws IOException {
+  private static File generatePdf(String templateName) throws IOException {
     app.bpartners.api.model.Invoice invoice = app.bpartners.api.model.Invoice.builder()
         .id(INVOICE1_ID)
         .ref("invoice_ref")
@@ -154,6 +155,7 @@ class DraftIT {
     OutputStream os = new FileOutputStream(generatedFile);
     os.write(data);
     os.close();
+    return generatedFile;
   }
 
 

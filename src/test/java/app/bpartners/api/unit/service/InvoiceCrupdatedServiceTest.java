@@ -14,9 +14,11 @@ import app.bpartners.api.repository.jpa.InvoiceJpaRepository;
 import app.bpartners.api.repository.jpa.model.HInvoice;
 import app.bpartners.api.service.FileService;
 import app.bpartners.api.service.InvoiceCrupdatedService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
+import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -104,6 +106,7 @@ class InvoiceCrupdatedServiceTest {
         .build();
   }
 
+  @SneakyThrows
   HInvoice invoiceEntity() {
     return HInvoice.builder()
         .id(invoiceCrupdated().getInvoice().getId())
@@ -115,6 +118,8 @@ class InvoiceCrupdatedServiceTest {
         .sendingDate(invoiceCrupdated().getInvoice().getSendingDate())
         .toPayAt(invoiceCrupdated().getInvoice().getToPayAt())
         .status(invoiceCrupdated().getInvoice().getStatus())
+        .metadataString(
+            new ObjectMapper().writeValueAsString(invoiceCrupdated().getInvoice().getMetadata()))
         .build();
   }
 

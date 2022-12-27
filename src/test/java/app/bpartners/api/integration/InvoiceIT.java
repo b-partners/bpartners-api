@@ -23,6 +23,7 @@ import app.bpartners.api.service.InvoiceService;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.MethodOrderer;
@@ -42,12 +43,6 @@ import software.amazon.awssdk.services.eventbridge.model.PutEventsRequest;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsRequestEntry;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsResponse;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsResultEntry;
-
-import java.time.Instant;
-import java.time.LocalDate;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.DRAFT;
@@ -457,9 +452,15 @@ class InvoiceIT {
         api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, actualConfirmed.getId(), paidInvoice());
     actualPaid.setProducts(ignoreIdsOf(actualPaid.getProducts()));
 
-    assertEquals(expectedInitializedDraft().createdAt(actualDraft.getCreatedAt()), actualDraft);
-    assertEquals(expectedDraft().createdAt(actualUpdatedDraft.getCreatedAt()), actualUpdatedDraft);
-    assertEquals(expectedConfirmed().id(actualConfirmed.getId()), actualConfirmed.createdAt(null));
+    assertEquals(expectedInitializedDraft()
+            .createdAt(actualDraft.getCreatedAt()),
+        actualDraft);
+    assertEquals(expectedDraft()
+            .createdAt(actualUpdatedDraft.getCreatedAt()),
+        actualUpdatedDraft);
+    assertEquals(expectedConfirmed()
+            .id(actualConfirmed.getId()),
+        actualConfirmed.createdAt(null));
     assertNotEquals(INVOICE4_ID, actualConfirmed.getId());
     assertEquals(expectedPaid()
         .id(actualPaid.getId())
@@ -477,7 +478,8 @@ class InvoiceIT {
     Map<String, String> submittedMetadata = Map.of("submittedAt", submittedAt.toString());
 
     Invoice actualUpdated = api.crupdateInvoice(
-        JOE_DOE_ACCOUNT_ID, invoice6().getId(), customerUpdatedInvoice().metadata(submittedMetadata));
+        JOE_DOE_ACCOUNT_ID, invoice6().getId(),
+        customerUpdatedInvoice().metadata(submittedMetadata));
     actualUpdated.setProducts(ignoreIdsOf(actualUpdated.getProducts()));
     Invoice actual = api.getInvoiceById(JOE_DOE_ACCOUNT_ID, invoice6().getId());
     actual.setProducts(ignoreIdsOf(actual.getProducts()));

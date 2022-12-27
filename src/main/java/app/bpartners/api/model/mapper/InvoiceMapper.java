@@ -71,6 +71,7 @@ public class InvoiceMapper {
           .map(productMapper::toDomain)
           .collect(Collectors.toUnmodifiableList());
     }
+    Map<String, String> metadata = toMetadataMap(invoice.getMetadataString());
     return Invoice.builder()
         .id(invoice.getId())
         .ref(invoice.getRef())
@@ -86,6 +87,7 @@ public class InvoiceMapper {
         .status(invoice.getStatus())
         .toBeRelaunched(invoice.isToBeRelaunched())
         .createdAt(invoice.getCreatedDatetime())
+        .metadata(metadata)
         .build();
   }
 
@@ -94,7 +96,6 @@ public class InvoiceMapper {
     if (metadataString == null) {
       return Map.of();
     }
-
     return objectMapper.readValue(metadataString, new TypeReference<>() {
     });
   }

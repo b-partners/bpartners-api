@@ -7,9 +7,11 @@ import app.bpartners.api.model.Invoice;
 import app.bpartners.api.repository.jpa.InvoiceJpaRepository;
 import app.bpartners.api.repository.jpa.model.HInvoice;
 import app.bpartners.api.service.utils.InvoicePdfUtils;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.function.Consumer;
 import javax.transaction.Transactional;
 import lombok.AllArgsConstructor;
+import lombok.SneakyThrows;
 import org.springframework.stereotype.Service;
 
 import static app.bpartners.api.endpoint.rest.model.FileType.INVOICE;
@@ -27,6 +29,7 @@ public class InvoiceCrupdatedService implements Consumer<InvoiceCrupdated> {
   private final FileService fileService;
   private final InvoiceJpaRepository invoiceJpaRepository;
 
+  @SneakyThrows
   @Transactional
   @Override
   public void accept(InvoiceCrupdated invoiceCrupdated) {
@@ -46,6 +49,7 @@ public class InvoiceCrupdatedService implements Consumer<InvoiceCrupdated> {
     FileInfo fileInfo = fileService.upload(fileId, INVOICE, accountId, fileAsBytes, null);
     invoiceJpaRepository.save(HInvoice.builder()
         .id(invoice.getId())
+        .metadataString(new ObjectMapper().writeValueAsString(invoice.getMetadata()))
         .fileId(fileInfo.getId())
         .comment(invoice.getComment())
         .ref(invoice.getRealReference())

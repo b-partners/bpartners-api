@@ -5,10 +5,12 @@ import app.bpartners.api.endpoint.rest.model.Invoice;
 import app.bpartners.api.endpoint.rest.model.Product;
 import app.bpartners.api.endpoint.rest.validator.CrupdateInvoiceValidator;
 import app.bpartners.api.service.AccountService;
-import java.util.List;
-import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Component
 @AllArgsConstructor
@@ -41,6 +43,7 @@ public class InvoiceRestMapper {
         .totalPriceWithoutVat(domain.getTotalPriceWithoutVat().getCentsRoundUp())
         .totalPriceWithVat(domain.getTotalPriceWithVat().getCentsRoundUp())
         .sendingDate(domain.getSendingDate())
+        .metadata(domain.getMetadata())
         .toPayAt(domain.getToPayAt());
   }
 
@@ -63,6 +66,7 @@ public class InvoiceRestMapper {
         .invoiceCustomer(customerMapper.toDomain(accountId, id, rest.getCustomer()))
         .account(accountService.getAccountById(accountId))
         .products(products)
+        .metadata(rest.getMetadata() == null ? Map.of() : rest.getMetadata())
         .build();
   }
 }

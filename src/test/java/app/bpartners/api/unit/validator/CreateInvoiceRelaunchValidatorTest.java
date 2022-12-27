@@ -18,7 +18,8 @@ class CreateInvoiceRelaunchValidatorTest {
   }
 
   CreateInvoiceRelaunch messageCorrectlyFormed() {
-    return new CreateInvoiceRelaunch().emailBody("<p><strong><i><em>Hello</em></i></strong></p>");
+    return new CreateInvoiceRelaunch().emailBody(
+        "<p><strong><i><em><del>Hello</del></em></i></strong></p>");
   }
 
   CreateInvoiceRelaunch messageWithNotClosedTags() {
@@ -74,6 +75,6 @@ class CreateInvoiceRelaunchValidatorTest {
     return "a, b, blockquote, br, caption, cite, code, col, colgroup, dd, "
         + "div, dl, dt, em, h1, h2, h3, h4, h5, h6, i, img, li, ol, p, pre, q, "
         + "small, span, strike, strong, sub, sup, table, tbody, td, tfoot, th, "
-        + "thead, tr, u, ul";
+        + "thead, tr, u, ul, del";
   }
 }

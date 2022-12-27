@@ -31,13 +31,15 @@ public class CreateInvoiceRelaunchValidator implements Consumer<CreateInvoiceRel
   }
 
   private static Safelist getCustomSafelist() {
-    return Safelist.relaxed().removeTags("img");
+    return Safelist.relaxed()
+        .addTags("del")
+        .removeTags("img");
   }
 
   private String allowedTags() {
     return "a, b, blockquote, br, caption, cite, code, col, colgroup, dd, "
         + "div, dl, dt, em, h1, h2, h3, h4, h5, h6, i, img, li, ol, p, pre, q, "
         + "small, span, strike, strong, sub, sup, table, tbody, td, tfoot, th, "
-        + "thead, tr, u, ul";
+        + "thead, tr, u, ul, del";
   }
 }

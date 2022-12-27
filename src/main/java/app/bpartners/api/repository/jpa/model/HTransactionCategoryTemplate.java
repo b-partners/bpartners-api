@@ -9,6 +9,7 @@ import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -43,4 +44,6 @@ public class HTransactionCategoryTemplate {
   private TransactionTypeEnum transactionType;
   private boolean other;
   private String description;
+  @Transient
+  private long count;
 }

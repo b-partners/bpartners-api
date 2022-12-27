@@ -339,7 +339,7 @@ public class TestUtils {
         .transactionType(INCOME)
         .description("Prestations ou ventes soumises à 20% de TVA")
         .vat(2000)
-        .count(1L)
+        .count(0L)
         .isOther(false);
   }
 

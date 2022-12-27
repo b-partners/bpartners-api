@@ -20,6 +20,7 @@ import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.DRAFT;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PROPOSAL;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 import static app.bpartners.api.service.InvoiceService.DRAFT_REF_PREFIX;
+import java.util.Map;
 
 @Getter
 @Setter
@@ -56,6 +57,8 @@ public class Invoice {
     }
     return getRef();
   }
+
+  private Map<String, String> metadata;
 
   public Date getFormattedSendingDate() {
     if (sendingDate == null) {

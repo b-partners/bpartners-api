@@ -43,6 +43,8 @@ import java.net.http.HttpResponse;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
+
 import org.junit.jupiter.api.function.Executable;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
@@ -445,7 +447,8 @@ public class TestUtils {
         .totalPriceWithoutVat(8000)
         .comment("Tableau de Madagascar")
         .paymentUrl("https://connect-v2-sbx.fintecture.com")
-        .createdAt(Instant.parse("2021-12-31T22:00:00Z"));
+        .createdAt(Instant.parse("2021-12-31T22:00:00Z"))
+        .metadata(Map.of());
   }
 
   public static Invoice invoice2() {
@@ -462,7 +465,8 @@ public class TestUtils {
         .totalPriceWithVat(1100)
         .totalVat(100)
         .totalPriceWithoutVat(1000)
-        .paymentUrl("https://connect-v2-sbx.fintecture.com");
+        .paymentUrl("https://connect-v2-sbx.fintecture.com")
+        .metadata(Map.of());
   }
 
   public static AccountInvoiceRelaunchConf invoiceRelaunchConf1() {

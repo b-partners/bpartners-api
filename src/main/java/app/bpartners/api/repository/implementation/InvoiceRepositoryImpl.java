@@ -182,6 +182,7 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
         .toPayAt(invoice.getToPayAt())
         .sendingDate(invoice.getSendingDate())
         .createdAt(invoice.getCreatedAt())
+        .metadata(invoice.getMetadata()) //TODO: refreshValues _seems_ bad, but this re-build _is definitely_ bad!
         .build();
     if (invoice.getStatus().equals(CONFIRMED) || invoice.getStatus().equals(PAID)) {
       PaymentRedirection paymentRedirection = pis.initiateInvoicePayment(initializedInvoice);

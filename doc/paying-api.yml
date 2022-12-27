@@ -826,6 +826,10 @@ components:
         toPayAt:
           type: string
           format: date
+        metadata:
+          type: object
+          additionalProperties:
+            type: string
     CrupdateInvoice:
       allOf:
         - $ref: '#/components/schemas/CrupdateInvoiceTemplate'

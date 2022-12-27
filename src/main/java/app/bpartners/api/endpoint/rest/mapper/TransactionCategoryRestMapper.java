@@ -20,6 +20,17 @@ public class TransactionCategoryRestMapper {
   private final TransactionRepository transactionRepository;
   private final CreateTransactionCategoryValidator validator;
 
+  public TransactionCategory toRest(app.bpartners.api.model.TransactionCategoryTemplate domain) {
+    return new TransactionCategory()
+        .id(domain.getId())
+        .vat(domain.getVat().getCentsRoundUp())
+        .type(domain.getType())
+        .transactionType(domain.getTransactionType())
+        .count(domain.getCount())
+        .description(domain.getDescription())
+        .isOther(domain.isOther());
+  }
+
   public TransactionCategory toRest(app.bpartners.api.model.TransactionCategory domain) {
     return new TransactionCategory()
         .id(domain.getId())
@@ -31,6 +42,7 @@ public class TransactionCategoryRestMapper {
         .isOther(domain.isOther())
         .comment(domain.getComment());
   }
+
 
   public app.bpartners.api.model.TransactionCategory toDomain(
       String transactionId,

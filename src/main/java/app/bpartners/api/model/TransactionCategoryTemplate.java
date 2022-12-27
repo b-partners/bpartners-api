@@ -21,4 +21,5 @@ public class TransactionCategoryTemplate {
   private Fraction vat;
   private boolean other;
   private String description;
+  private Long count;
 }

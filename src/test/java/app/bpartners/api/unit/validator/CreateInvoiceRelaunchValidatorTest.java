@@ -9,9 +9,8 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 class CreateInvoiceRelaunchValidatorTest {
   private static final String MAL_FORMED_HTML_EXCEPTION =
-      "Your HTML syntax is malformed or you use other tags than these allowed :"
-          + " a, b, blockquote, br, cite, code, dd, dl, dt, em, i, li, ol, p, pre, q, small, "
-          + "span, strike, strong, sub, sup, u, ul";
+      "Your HTML syntax is malformed or you use other tags than these allowed : "
+          + allowedTags();
   private final CreateInvoiceRelaunchValidator subject = new CreateInvoiceRelaunchValidator();
 
   CreateInvoiceRelaunch messageWithTextPlain() {
@@ -69,5 +68,12 @@ class CreateInvoiceRelaunchValidatorTest {
         MAL_FORMED_HTML_EXCEPTION,
         () -> subject.accept(messageWithBadTags())
     );
+  }
+
+  private static String allowedTags() {
+    return "a, b, blockquote, br, caption, cite, code, col, colgroup, dd, "
+        + "div, dl, dt, em, h1, h2, h3, h4, h5, h6, i, img, li, ol, p, pre, q, "
+        + "small, span, strike, strong, sub, sup, table, tbody, td, tfoot, th, "
+        + "thead, tr, u, ul";
   }
 }

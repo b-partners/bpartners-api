@@ -23,17 +23,21 @@ public class CreateInvoiceRelaunchValidator implements Consumer<CreateInvoiceRel
       throw new BadRequestException("Your HTML syntax is malformed or you use other tags "
           + "than these allowed : " + allowedTags());
     }
-    Jsoup.clean(Objects.requireNonNullElse(emailBody, message), Safelist.basic());
-
-
+    Jsoup.clean(Objects.requireNonNullElse(emailBody, message), getCustomSafelist());
   }
 
   private boolean hasMalformedTags(String htmlString) {
-    return !Jsoup.isValid(htmlString, Safelist.basic());
+    return !Jsoup.isValid(htmlString, getCustomSafelist());
+  }
+
+  private static Safelist getCustomSafelist() {
+    return Safelist.relaxed().removeTags("img");
   }
 
   private String allowedTags() {
-    return "a, b, blockquote, br, cite, code, dd, dl, dt, em, i, li, ol, p, pre, q, small, span,"
-        + " strike, strong, sub, sup, u, ul";
+    return "a, b, blockquote, br, caption, cite, code, col, colgroup, dd, "
+        + "div, dl, dt, em, h1, h2, h3, h4, h5, h6, i, img, li, ol, p, pre, q, "
+        + "small, span, strike, strong, sub, sup, table, tbody, td, tfoot, th, "
+        + "thead, tr, u, ul";
   }
 }

@@ -20,9 +20,6 @@ import app.bpartners.api.repository.swan.AccountHolderSwanRepository;
 import app.bpartners.api.repository.swan.AccountSwanRepository;
 import app.bpartners.api.repository.swan.UserSwanRepository;
 import app.bpartners.api.service.InvoiceService;
-import java.time.LocalDate;
-import java.util.List;
-import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
@@ -41,6 +38,12 @@ import software.amazon.awssdk.services.eventbridge.model.PutEventsRequest;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsRequestEntry;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsResponse;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsResultEntry;
+
+import java.time.Instant;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.DRAFT;
@@ -212,7 +215,8 @@ class InvoiceIT {
         .products(List.of(product3(), product4()))
         .totalPriceWithVat(8800)
         .totalVat(800)
-        .totalPriceWithoutVat(8000);
+        .totalPriceWithoutVat(8000)
+        .metadata(Map.of());
   }
 
   Invoice invoice2() {
@@ -227,7 +231,8 @@ class InvoiceIT {
         .status(CONFIRMED)
         .products(List.of(product5()))
         .totalPriceWithVat(1100)
-        .totalVat(100).totalPriceWithoutVat(1000);
+        .totalVat(100).totalPriceWithoutVat(1000)
+        .metadata(Map.of());
   }
 
   Invoice invoice6() {
@@ -244,7 +249,8 @@ class InvoiceIT {
         .toPayAt(LocalDate.of(2022, 11, 10))
         .totalPriceWithVat(1100)
         .totalVat(100)
-        .totalPriceWithoutVat(1000);
+        .totalPriceWithoutVat(1000)
+        .metadata(Map.of());
   }
 
   CrupdateInvoice validInvoice() {
@@ -272,7 +278,8 @@ class InvoiceIT {
         .toPayAt(validInvoice().getToPayAt())
         .totalPriceWithVat(3300)
         .totalVat(300)
-        .totalPriceWithoutVat(3000);
+        .totalPriceWithoutVat(3000)
+        .metadata(Map.of());
   }
 
   Invoice expectedConfirmed() {
@@ -287,7 +294,8 @@ class InvoiceIT {
         .toPayAt(confirmedInvoice().getToPayAt())
         .totalPriceWithVat(1100)
         .totalVat(100)
-        .totalPriceWithoutVat(1000);
+        .totalPriceWithoutVat(1000)
+        .metadata(Map.of());
   }
 
   Invoice expectedCustomerUpdatedInvoice() {
@@ -305,7 +313,8 @@ class InvoiceIT {
         .totalVat(0)
         .totalPriceWithoutVat(0)
         .totalPriceWithVat(0)
-        .status(DRAFT);
+        .status(DRAFT)
+        .metadata(Map.of());
   }
 
   Invoice expectedPaid() {
@@ -320,7 +329,8 @@ class InvoiceIT {
         .toPayAt(paidInvoice().getToPayAt())
         .totalPriceWithVat(1100)
         .totalVat(100)
-        .totalPriceWithoutVat(1000);
+        .totalPriceWithoutVat(1000)
+        .metadata(Map.of());
   }
 
   //TODO: create PaginationIT for pagination test and add filters.
@@ -450,15 +460,17 @@ class InvoiceIT {
   void update_invoice_customer_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
     PayingApi api = new PayingApi(joeDoeClient);
+    Instant submittedAt = Instant.now();
+    Map<String, String> submittedMetadata = Map.of("submittedAt", submittedAt.toString());
 
-    Invoice actualUpdated =
-        api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, invoice6().getId(), customerUpdatedInvoice());
+    Invoice actualUpdated = api.crupdateInvoice(
+        JOE_DOE_ACCOUNT_ID, invoice6().getId(), customerUpdatedInvoice().metadata(submittedMetadata));
     actualUpdated.setProducts(ignoreIdsOf(actualUpdated.getProducts()));
     Invoice actual = api.getInvoiceById(JOE_DOE_ACCOUNT_ID, invoice6().getId());
     actual.setProducts(ignoreIdsOf(actual.getProducts()));
 
-    assertEquals(expectedCustomerUpdatedInvoice(), actualUpdated.updatedAt(null));
-    assertEquals(expectedCustomerUpdatedInvoice(), actual.updatedAt(null));
+    assertEquals(expectedCustomerUpdatedInvoice().metadata(submittedMetadata), actualUpdated.updatedAt(null));
+    assertEquals(expectedCustomerUpdatedInvoice().metadata(submittedMetadata), actual.updatedAt(null));
   }
 
   @Test

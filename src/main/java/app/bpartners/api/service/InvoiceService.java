@@ -17,6 +17,11 @@ import javax.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
+import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
+import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
+import static app.bpartners.api.service.utils.FractionUtils.toAprational;
+
 @Service
 @AllArgsConstructor
 public class InvoiceService {

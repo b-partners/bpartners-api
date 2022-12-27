@@ -195,7 +195,7 @@
                     €
                 </td>
                 <td class="text-center space-letter"><span
-                        th:text="${product.vatPercent.getCentsUpAsString()}"></span>%
+                        th:text="${#numbers.formatDecimal(product.vatPercent.getCentsAsDecimal(),1,2)}"></span>%
                 </td>
                 <td class="text-center space-letter"><span
                         th:text="${#numbers.formatDecimal(product.totalWithoutVat.getCentsAsDecimal(),1,2)}"></span>

@@ -33,7 +33,7 @@ public class InvoiceRelaunchMapper {
   public HInvoiceRelaunch toEntity(
       Invoice invoice, String object, String htmlBody, boolean userRelaunched) {
     return HInvoiceRelaunch.builder()
-        .invoice(invoiceMapper.toEntity(invoice, true))
+        .invoice(invoiceMapper.toEntity(invoice))
         .isUserRelaunched(userRelaunched)
         .type(mapRelaunchType(invoice))
         .object(object)

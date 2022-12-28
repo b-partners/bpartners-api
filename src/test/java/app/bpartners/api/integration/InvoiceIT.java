@@ -257,13 +257,12 @@ class InvoiceIT {
   }
 
   CrupdateInvoice validInvoice() {
-    return new CrupdateInvoice()
+    return initializeDraft()
         .ref("BP003")
         .title("Facture sans produit")
         .comment("Nouveau commentaire")
         .customer(customer1())
         .products(List.of(createProduct4(), createProduct5()))
-        .status(DRAFT)
         .sendingDate(LocalDate.now())
         .toPayAt(LocalDate.now().plusDays(1L));
   }
@@ -454,20 +453,27 @@ class InvoiceIT {
     actualPaid.setProducts(ignoreIdsOf(actualPaid.getProducts()));
 
     assertEquals(expectedInitializedDraft()
+            .fileId(actualDraft.getFileId())
             .createdAt(actualDraft.getCreatedAt()),
         actualDraft);
+    assertNotNull(actualDraft.getFileId());
     assertEquals(expectedDraft()
+            .fileId(actualUpdatedDraft.getFileId())
             .createdAt(actualUpdatedDraft.getCreatedAt()),
         actualUpdatedDraft);
+    assertEquals(actualDraft.getFileId(), actualUpdatedDraft.getFileId());
     assertEquals(expectedConfirmed()
-            .id(actualConfirmed.getId()),
+            .id(actualConfirmed.getId())
+            .fileId(actualConfirmed.getFileId()),
         actualConfirmed.createdAt(null));
+    assertNotNull(actualConfirmed.getFileId());
     assertNotEquals(INVOICE4_ID, actualConfirmed.getId());
     assertEquals(expectedPaid()
         .fileId(actualPaid.getFileId())
         .id(actualPaid.getId())
         .createdAt(actualPaid.getCreatedAt()), actualPaid);
     assertNotNull(actualPaid.getFileId());
+    assertEquals(actualConfirmed.getFileId(), actualPaid.getFileId());
     assertTrue(actualUpdatedDraft.getRef().contains(DRAFT_REF_PREFIX));
     assertFalse(actualConfirmed.getRef().contains(DRAFT_REF_PREFIX));
   }
@@ -488,6 +494,7 @@ class InvoiceIT {
     actual.setProducts(ignoreIdsOf(actual.getProducts()));
 
     assertEquals(expectedCustomerUpdatedInvoice()
+        .fileId(actual.getFileId())
         .metadata(submittedMetadata)
         .updatedAt(actualUpdated.getUpdatedAt())
         .createdAt(actualUpdated.getCreatedAt()), actualUpdated);

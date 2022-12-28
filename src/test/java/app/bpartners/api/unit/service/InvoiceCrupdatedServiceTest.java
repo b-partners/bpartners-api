@@ -1,8 +1,10 @@
 package app.bpartners.api.unit.service;
 
+import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.endpoint.event.model.gen.InvoiceCrupdated;
 import app.bpartners.api.endpoint.rest.model.FileType;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
+import app.bpartners.api.endpoint.rest.security.principal.PrincipalProvider;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.FileInfo;
@@ -10,13 +12,20 @@ import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.InvoiceCustomer;
 import app.bpartners.api.model.Product;
+import app.bpartners.api.model.validator.InvoiceValidator;
+import app.bpartners.api.repository.InvoiceRepository;
 import app.bpartners.api.repository.jpa.InvoiceJpaRepository;
 import app.bpartners.api.repository.jpa.model.HInvoice;
+import app.bpartners.api.service.AccountHolderService;
 import app.bpartners.api.service.FileService;
 import app.bpartners.api.service.InvoiceCrupdatedService;
+import app.bpartners.api.service.InvoiceService;
+import app.bpartners.api.service.utils.InvoicePdfUtils;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
+import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -35,6 +44,14 @@ class InvoiceCrupdatedServiceTest {
   public static final byte[] logoAsBytes = new byte[0];
   FileService fileService;
   InvoiceJpaRepository invoiceJpaRepository;
+  InvoiceService invoiceService;
+  InvoiceRepository invoiceRepository;
+  AccountHolderService accountHolderService;
+  PrincipalProvider principalProvider;
+  InvoiceValidator validator;
+  EventProducer eventProducer;
+  InvoicePdfUtils pdfUtils;
+
   InvoiceCrupdatedService invoiceCrupdatedService;
 
 
@@ -42,7 +59,14 @@ class InvoiceCrupdatedServiceTest {
   void setUp() {
     fileService = mock(FileService.class);
     invoiceJpaRepository = mock(InvoiceJpaRepository.class);
-    invoiceCrupdatedService = new InvoiceCrupdatedService(fileService, invoiceJpaRepository);
+    accountHolderService = mock(AccountHolderService.class);
+    principalProvider = mock(PrincipalProvider.class);
+    validator = mock(InvoiceValidator.class);
+    eventProducer = mock(EventProducer.class);
+    pdfUtils = mock(InvoicePdfUtils.class);
+    invoiceService = new InvoiceService(invoiceRepository, invoiceJpaRepository,
+        accountHolderService, principalProvider, validator, eventProducer, fileService);
+    invoiceCrupdatedService = new InvoiceCrupdatedService(invoiceService);
 
     when(fileService.downloadFile(any(), any(), any())).thenReturn(logoAsBytes);
     when(fileService.upload(any(), any(), any(), any(), any())).thenReturn(fileInfo());
@@ -104,6 +128,7 @@ class InvoiceCrupdatedServiceTest {
         .build();
   }
 
+  @SneakyThrows
   HInvoice invoiceEntity() {
     return HInvoice.builder()
         .id(invoiceCrupdated().getInvoice().getId())
@@ -115,6 +140,8 @@ class InvoiceCrupdatedServiceTest {
         .sendingDate(invoiceCrupdated().getInvoice().getSendingDate())
         .toPayAt(invoiceCrupdated().getInvoice().getToPayAt())
         .status(invoiceCrupdated().getInvoice().getStatus())
+        .metadataString(
+            new ObjectMapper().writeValueAsString(invoiceCrupdated().getInvoice().getMetadata()))
         .build();
   }
 

@@ -20,6 +20,11 @@ import app.bpartners.api.repository.swan.AccountHolderSwanRepository;
 import app.bpartners.api.repository.swan.AccountSwanRepository;
 import app.bpartners.api.repository.swan.UserSwanRepository;
 import app.bpartners.api.service.InvoiceService;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
@@ -38,12 +43,6 @@ import software.amazon.awssdk.services.eventbridge.model.PutEventsRequest;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsRequestEntry;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsResponse;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsResultEntry;
-
-import java.time.Instant;
-import java.time.LocalDate;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.DRAFT;
@@ -78,6 +77,7 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.reset;
@@ -209,6 +209,7 @@ class InvoiceIT {
         .title("Facture tableau")
         .paymentUrl("https://connect-v2-sbx.fintecture.com")
         .customer(customer1()).ref("BP001")
+        .createdAt(Instant.parse("2022-01-01T01:00:00.00Z"))
         .sendingDate(LocalDate.of(2022, 9, 1))
         .toPayAt(LocalDate.of(2022, 10, 1))
         .status(CONFIRMED)
@@ -227,6 +228,7 @@ class InvoiceIT {
         .customer(customer2().address("Nouvelle adresse"))
         .ref("BP002")
         .sendingDate(LocalDate.of(2022, 9, 10))
+        .createdAt(Instant.parse("2022-01-01T03:00:00.00Z"))
         .toPayAt(LocalDate.of(2022, 10, 10))
         .status(CONFIRMED)
         .products(List.of(product5()))
@@ -244,6 +246,7 @@ class InvoiceIT {
         .title("Facture transaction")
         .customer(customer1())
         .status(DRAFT)
+        .createdAt(Instant.parse("2022-01-01T06:00:00Z"))
         .sendingDate(LocalDate.of(2022, 10, 12))
         .products(List.of(product5().id(null)))
         .toPayAt(LocalDate.of(2022, 11, 10))
@@ -254,13 +257,12 @@ class InvoiceIT {
   }
 
   CrupdateInvoice validInvoice() {
-    return new CrupdateInvoice()
+    return initializeDraft()
         .ref("BP003")
         .title("Facture sans produit")
         .comment("Nouveau commentaire")
         .customer(customer1())
         .products(List.of(createProduct4(), createProduct5()))
-        .status(DRAFT)
         .sendingDate(LocalDate.now())
         .toPayAt(LocalDate.now().plusDays(1L));
   }
@@ -346,8 +348,12 @@ class InvoiceIT {
     List<Invoice> actualDraft = api.getInvoices(JOE_DOE_ACCOUNT_ID, 1, 10, DRAFT);
     List<Invoice> actualNotFiltered = api.getInvoices(JOE_DOE_ACCOUNT_ID, 1, 10, null);
 
-    assertEquals(invoice1(), actual1.updatedAt(null));
-    assertEquals(invoice2(), actual2.updatedAt(null));
+    assertEquals(invoice1()
+            .updatedAt(actual1.getUpdatedAt()),
+        actual1);
+    assertEquals(invoice2()
+            .updatedAt(actual2.getUpdatedAt()),
+        actual2);
     assertTrue(ignoreUpdatedAt(actualDraft).contains(invoice6()
         .products(List.of())
         .totalPriceWithVat(0)
@@ -417,7 +423,7 @@ class InvoiceIT {
 
     assertThrowsApiException(
         "{\"type\":\"400 BAD_REQUEST\",\"message\":\""
-            + "The invoice reference must unique however the given reference [unique_ref] is"
+            + "The invoice reference must be unique however the given reference [unique_ref] is"
             + " already used by invoice." + firstInvoiceId + "\"}",
         secondCrupdateExecutable);
     assertThrowsApiException("{\"type\":\"404 NOT_FOUND\",\"message\":\""
@@ -446,11 +452,28 @@ class InvoiceIT {
         api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, actualConfirmed.getId(), paidInvoice());
     actualPaid.setProducts(ignoreIdsOf(actualPaid.getProducts()));
 
-    assertEquals(expectedInitializedDraft(), actualDraft);
-    assertEquals(expectedDraft(), actualUpdatedDraft);
-    assertEquals(expectedConfirmed().id(actualConfirmed.getId()), actualConfirmed);
+    assertEquals(expectedInitializedDraft()
+            .fileId(actualDraft.getFileId())
+            .createdAt(actualDraft.getCreatedAt()),
+        actualDraft);
+    assertNotNull(actualDraft.getFileId());
+    assertEquals(expectedDraft()
+            .fileId(actualUpdatedDraft.getFileId())
+            .createdAt(actualUpdatedDraft.getCreatedAt()),
+        actualUpdatedDraft);
+    assertEquals(actualDraft.getFileId(), actualUpdatedDraft.getFileId());
+    assertEquals(expectedConfirmed()
+            .id(actualConfirmed.getId())
+            .fileId(actualConfirmed.getFileId()),
+        actualConfirmed.createdAt(null));
+    assertNotNull(actualConfirmed.getFileId());
     assertNotEquals(INVOICE4_ID, actualConfirmed.getId());
-    assertEquals(expectedPaid().id(actualPaid.getId()), actualPaid);
+    assertEquals(expectedPaid()
+        .fileId(actualPaid.getFileId())
+        .id(actualPaid.getId())
+        .createdAt(actualPaid.getCreatedAt()), actualPaid);
+    assertNotNull(actualPaid.getFileId());
+    assertEquals(actualConfirmed.getFileId(), actualPaid.getFileId());
     assertTrue(actualUpdatedDraft.getRef().contains(DRAFT_REF_PREFIX));
     assertFalse(actualConfirmed.getRef().contains(DRAFT_REF_PREFIX));
   }
@@ -464,13 +487,23 @@ class InvoiceIT {
     Map<String, String> submittedMetadata = Map.of("submittedAt", submittedAt.toString());
 
     Invoice actualUpdated = api.crupdateInvoice(
-        JOE_DOE_ACCOUNT_ID, invoice6().getId(), customerUpdatedInvoice().metadata(submittedMetadata));
+        JOE_DOE_ACCOUNT_ID, invoice6().getId(),
+        customerUpdatedInvoice().metadata(submittedMetadata));
     actualUpdated.setProducts(ignoreIdsOf(actualUpdated.getProducts()));
     Invoice actual = api.getInvoiceById(JOE_DOE_ACCOUNT_ID, invoice6().getId());
     actual.setProducts(ignoreIdsOf(actual.getProducts()));
 
-    assertEquals(expectedCustomerUpdatedInvoice().metadata(submittedMetadata), actualUpdated.updatedAt(null));
-    assertEquals(expectedCustomerUpdatedInvoice().metadata(submittedMetadata), actual.updatedAt(null));
+    assertEquals(expectedCustomerUpdatedInvoice()
+        .fileId(actual.getFileId())
+        .metadata(submittedMetadata)
+        .updatedAt(actualUpdated.getUpdatedAt())
+        .createdAt(actualUpdated.getCreatedAt()), actualUpdated);
+    assertEquals(expectedCustomerUpdatedInvoice()
+        .fileId(actual.getFileId())
+        .metadata(submittedMetadata)
+        .updatedAt(actual.getUpdatedAt())
+        .createdAt(actual.getCreatedAt()), actual);
+    assertNotNull(actual.getFileId());
   }
 
   @Test
@@ -524,72 +557,25 @@ class InvoiceIT {
         () -> api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, INVOICE5_ID, confirmedInvoice()));
   }
 
-  /* /!\ For local test only
   @Test
-  void generate_invoice_pdf_ok() throws IOException {
-    app.bpartners.api.model.Invoice invoice = app.bpartners.api.model.Invoice.builder()
-        .id(INVOICE1_ID)
-        .ref("invoice_ref")
-        .title("invoice_title")
-        .sendingDate(LocalDate.now())
-        .toPayAt(LocalDate.now())
-        .account(Account.builder()
-            .id(JOE_DOE_ACCOUNT_ID)
-            .iban("FR7630001007941234567890185")
-            .bic("BPFRPP751")
-            .build())
-        .products(List.of(app.bpartners.api.model.Product.builder()
-            .id("product_id")
-            .quantity(50)
-            .description("product description")
-            .vatPercent(20)
-            .unitPrice(150)
-            .build()))
-        .invoiceCustomer(InvoiceCustomer.customerTemplateBuilder()
-            .name("Olivier Durant")
-            .phone("+33 6 12 45 89 76")
-            .email("exemple@email.com")
-            .address("Paris 745")
-            .build())
-        .build();
-    byte[] data = invoiceService.generateInvoicePdf(invoice);
-    File generatedFile = new File("invoice.pdf");
-    OutputStream os = new FileOutputStream(generatedFile);
-    os.write(data);
-    os.close();
+  @Order(1)
+  void read_invoice_ordered_ok() throws ApiException {
+    ApiClient joeDoeClient = anApiClient();
+    PayingApi api = new PayingApi(joeDoeClient);
+
+    List<Invoice> actual1 = api.getInvoices(JOE_DOE_ACCOUNT_ID, 1, 5, null);
+    List<Invoice> actual2 = api.getInvoices(JOE_DOE_ACCOUNT_ID, 2, 5, null);
+
+    assertEquals(5, actual1.size());
+    assertEquals(2, actual2.size());
+    assertTrue(actual1.get(0).getCreatedAt().isAfter(actual1.get(1).getCreatedAt()));
+    assertTrue(actual1.get(1).getCreatedAt().isAfter(actual1.get(2).getCreatedAt()));
+    assertTrue(actual1.get(2).getCreatedAt().isAfter(actual1.get(3).getCreatedAt()));
+    assertTrue(actual1.get(3).getCreatedAt().isAfter(actual1.get(4).getCreatedAt()));
+    assertTrue(actual1.get(4).getCreatedAt().isAfter(actual2.get(0).getCreatedAt()));
+    assertTrue(actual2.get(0).getCreatedAt().isAfter(actual2.get(1).getCreatedAt()));
   }
 
-  @Test
-  void generate_draft_pdf_ok() throws IOException {
-    app.bpartners.api.model.Invoice invoice = app.bpartners.api.model.Invoice.builder()
-        .id("draft_id")
-        .ref("draft_ref")
-        .title("draft_title")
-        .sendingDate(LocalDate.now())
-        .toPayAt(LocalDate.now())
-        .account(Account.builder()
-            .id(JOE_DOE_ACCOUNT_ID)
-            .build())
-        .products(List.of(app.bpartners.api.model.Product.builder()
-            .id("product_id")
-            .quantity(50)
-            .description("product description")
-            .vatPercent(20)
-            .unitPrice(150)
-            .build()))
-        .invoiceCustomer(InvoiceCustomer.customerTemplateBuilder()
-            .name("Olivier Durant")
-            .phone("+33 6 12 45 89 76")
-            .email("exemple@email.com")
-            .address("Paris 745")
-            .build())
-        .build();
-    byte[] data = invoiceService.generateDraftPdf(invoice);
-    File generatedFile = new File("draft.pdf");
-    OutputStream os = new FileOutputStream(generatedFile);
-    os.write(data);
-    os.close();
-  }*/
 
   private List<Product> ignoreIdsOf(List<Product> actual) {
     return actual.stream()
@@ -598,9 +584,10 @@ class InvoiceIT {
   }
 
   private List<Invoice> ignoreUpdatedAt(List<Invoice> actual) {
-    return actual.stream()
-        .peek(invoice -> invoice.setUpdatedAt(null))
-        .collect(Collectors.toUnmodifiableList());
+    actual.forEach(invoice -> {
+      invoice.setUpdatedAt(null);
+    });
+    return actual;
   }
 
   private CrupdateInvoice initializeDraft() {

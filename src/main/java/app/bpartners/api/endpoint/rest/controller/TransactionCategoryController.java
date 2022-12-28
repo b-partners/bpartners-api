@@ -8,7 +8,6 @@ import app.bpartners.api.endpoint.rest.validator.DateFilterValidator;
 import app.bpartners.api.service.TransactionCategoryService;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -28,7 +27,6 @@ public class TransactionCategoryController {
   @GetMapping("/accounts/{accountId}/transactionCategories")
   public List<TransactionCategory> getTransactionCategories(
       @PathVariable String accountId,
-      @RequestParam(required = false) Optional<Boolean> unique,
       @RequestParam(name = "from") String startDateValue,
       @RequestParam(name = "to") String endDateValue,
       @RequestParam(name = "transactionType", required = false)
@@ -36,7 +34,7 @@ public class TransactionCategoryController {
     LocalDate startDate = LocalDate.parse(startDateValue);
     LocalDate endDate = LocalDate.parse(endDateValue);
     dateValidator.accept(startDate, endDate);
-    return service.getCategoriesByAccountAndType(accountId,
+    return service.getCategoryTemplates(accountId,
             transactionType,
             startDate, endDate)
         .stream()

@@ -21,6 +21,7 @@ public class Product {
   private String description;
   private Integer quantity;
   private Fraction unitPrice;
+  private Fraction unitPriceWithVat;
   private Fraction vatPercent;
   @Getter(AccessLevel.NONE)
   private Fraction totalVat;

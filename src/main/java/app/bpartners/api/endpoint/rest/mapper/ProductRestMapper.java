@@ -21,6 +21,7 @@ public class ProductRestMapper {
         .description(domain.getDescription())
         .quantity(domain.getQuantity())
         .unitPrice(domain.getUnitPrice().getCentsRoundUp())
+        .unitPriceWithVat(domain.getUnitPriceWithVat().getCentsRoundUp())
         .vatPercent(domain.getVatPercent().getCentsRoundUp())
         .totalVat(domain.getTotalVat().getCentsRoundUp())
         .totalPriceWithVat(domain.getTotalPriceWithVat().getCentsRoundUp());

@@ -884,6 +884,7 @@ components:
         - PENDING
         - BOOKED
         - UPCOMING
+        - UNKNOWN
     CreateProduct:
       type: object
       properties:

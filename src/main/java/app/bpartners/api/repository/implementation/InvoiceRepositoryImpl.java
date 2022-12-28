@@ -27,6 +27,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apfloat.Aprational;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -39,6 +40,7 @@ import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 import static app.bpartners.api.service.utils.FractionUtils.toAprational;
 import static org.springframework.data.domain.Sort.Direction.DESC;
 
+@Slf4j
 @Repository
 @AllArgsConstructor
 public class InvoiceRepositoryImpl implements InvoiceRepository {
@@ -55,13 +57,10 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
   @Override
   public Invoice crupdate(Invoice toCrupdate) {
     Optional<HInvoice> optionalInvoice = jpaRepository.findByIdAccountAndRefAndStatus(
-        toCrupdate.getAccount().getId(), toCrupdate.getRealReference(),
-        toCrupdate.getPreviousStatus());
+        toCrupdate.getAccount().getId(), toCrupdate.getRealReference(), toCrupdate.getStatus());
     if (optionalInvoice.isPresent()) {
       HInvoice existingInvoice = optionalInvoice.get();
-      if (toCrupdate.getRef() != null
-          && existingInvoice.getStatus().equals(toCrupdate.getStatus())
-          && existingInvoice.getRef().equals(toCrupdate.getRealReference())) {
+      if (!toCrupdate.getId().equals(existingInvoice.getId())) {
         throw new BadRequestException(
             "The invoice reference must be unique however the given reference ["
                 + toCrupdate.getRef()

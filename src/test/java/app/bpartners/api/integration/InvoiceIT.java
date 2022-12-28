@@ -77,6 +77,7 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.reset;
@@ -423,7 +424,7 @@ class InvoiceIT {
 
     assertThrowsApiException(
         "{\"type\":\"400 BAD_REQUEST\",\"message\":\""
-            + "The invoice reference must unique however the given reference [unique_ref] is"
+            + "The invoice reference must be unique however the given reference [unique_ref] is"
             + " already used by invoice." + firstInvoiceId + "\"}",
         secondCrupdateExecutable);
     assertThrowsApiException("{\"type\":\"404 NOT_FOUND\",\"message\":\""
@@ -463,8 +464,10 @@ class InvoiceIT {
         actualConfirmed.createdAt(null));
     assertNotEquals(INVOICE4_ID, actualConfirmed.getId());
     assertEquals(expectedPaid()
+        .fileId(actualPaid.getFileId())
         .id(actualPaid.getId())
         .createdAt(actualPaid.getCreatedAt()), actualPaid);
+    assertNotNull(actualPaid.getFileId());
     assertTrue(actualUpdatedDraft.getRef().contains(DRAFT_REF_PREFIX));
     assertFalse(actualConfirmed.getRef().contains(DRAFT_REF_PREFIX));
   }
@@ -489,9 +492,11 @@ class InvoiceIT {
         .updatedAt(actualUpdated.getUpdatedAt())
         .createdAt(actualUpdated.getCreatedAt()), actualUpdated);
     assertEquals(expectedCustomerUpdatedInvoice()
+        .fileId(actual.getFileId())
         .metadata(submittedMetadata)
         .updatedAt(actual.getUpdatedAt())
         .createdAt(actual.getCreatedAt()), actual);
+    assertNotNull(actual.getFileId());
   }
 
   @Test

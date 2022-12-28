@@ -55,20 +55,19 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
 
   @Override
   public Invoice crupdate(Invoice toCrupdate) {
-    Optional<HInvoice> existingInvoice = jpaRepository.findByIdAccountAndRefAndStatus(
+    Optional<HInvoice> optionalInvoice = jpaRepository.findByIdAccountAndRefAndStatus(
         toCrupdate.getAccount().getId(), toCrupdate.getRef(), toCrupdate.getPreviousStatus());
     String oldFileId = null;
-    if (existingInvoice.isPresent()) {
-      oldFileId = existingInvoice.get().getFileId();
-      if (toCrupdate.getRef() != null) {
-        String persistedId = existingInvoice.get().getId();
-        if (toCrupdate.getStatus().equals(DRAFT)
-            && !persistedId.equals(toCrupdate.getId())) {
-          throw new BadRequestException(
-              "The invoice reference must unique however the given reference ["
-                  + toCrupdate.getRef()
-                  + "] is already used by invoice." + persistedId);
-        }
+    if (optionalInvoice.isPresent()) {
+      HInvoice existingInvoice = optionalInvoice.get();
+      oldFileId = existingInvoice.getFileId();
+      if (toCrupdate.getRef() != null
+          && toCrupdate.getStatus().equals(DRAFT)
+          && existingInvoice.getRef().equals(toCrupdate.getRealReference())) {
+        throw new BadRequestException(
+            "The invoice reference must be unique however the given reference ["
+                + toCrupdate.getRef()
+                + "] is already used by invoice." + existingInvoice.getId());
       }
     }
     HInvoice entity = jpaRepository.save(mapper.toEntity(toCrupdate, false));
@@ -82,13 +81,17 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
       }
       cloneProducts(toCrupdate.getAccount().getId(), toCrupdate.getId());
     }
+
     HInvoiceCustomer invoiceCustomer =
         invoiceCustomerMapper.toEntity(toCrupdate.getInvoiceCustomer());
     if (invoiceCustomer != null) {
       invoiceCustomer = customerJpaRepository.save(invoiceCustomer);
     }
+
     List<HProduct> createdProducts = null;
-    if (!toCrupdate.getProducts().isEmpty()) {
+    if (!toCrupdate.getProducts().
+
+        isEmpty()) {
       HInvoiceProduct invoiceProduct =
           ipJpaRepository.save(HInvoiceProduct.builder()
               .idInvoice(toCrupdate.getId())
@@ -97,7 +100,9 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
       invoiceProduct.setProducts(createdProducts);
       ipJpaRepository.save(invoiceProduct);
     }
-    return refreshValues(mapper.toDomain(entity, invoiceCustomer, createdProducts, oldFileId));
+    return
+
+        refreshValues(mapper.toDomain(entity, invoiceCustomer, createdProducts, oldFileId));
   }
 
   @Override
@@ -160,29 +165,18 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
         .collect(Collectors.toUnmodifiableList());
   }
 
+  //TODO: refreshValues _seems_ bad!
   private Invoice refreshValues(Invoice invoice) {
     List<Product> products = invoice.getProducts();
     if (products.isEmpty()) {
       products =
           productRepository.findByIdInvoice(invoice.getId());
     }
-    Invoice initializedInvoice = Invoice.builder()
-        .id(invoice.getId())
-        .fileId(invoice.getFileId())
-        .comment(invoice.getComment())
-        .updatedAt(invoice.getUpdatedAt())
-        .title(invoice.getTitle())
-        .invoiceCustomer(invoice.getInvoiceCustomer())
-        .account(invoice.getAccount())
-        .status(invoice.getStatus())
+    Invoice initializedInvoice = invoice.toBuilder()
         .totalVat(computeTotalVat(products))
         .totalPriceWithoutVat(computeTotalPriceWithoutVat(products))
         .totalPriceWithVat(computeTotalPriceWithVat(products))
         .products(products)
-        .toPayAt(invoice.getToPayAt())
-        .sendingDate(invoice.getSendingDate())
-        .createdAt(invoice.getCreatedAt())
-        .metadata(invoice.getMetadata()) //TODO: refreshValues _seems_ bad, but this re-build _is definitely_ bad!
         .build();
     if (invoice.getStatus().equals(CONFIRMED) || invoice.getStatus().equals(PAID)) {
       PaymentRedirection paymentRedirection = pis.initiateInvoicePayment(initializedInvoice);

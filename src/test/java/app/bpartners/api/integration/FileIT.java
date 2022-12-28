@@ -24,6 +24,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Instant;
+import org.apache.tika.Tika;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -32,6 +33,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
@@ -52,6 +54,7 @@ import static app.bpartners.api.integration.conf.TestUtils.setUpAccountSwanRepos
 import static app.bpartners.api.integration.conf.TestUtils.setUpLegalFileRepository;
 import static app.bpartners.api.integration.conf.TestUtils.setUpSwanComponent;
 import static app.bpartners.api.integration.conf.TestUtils.setUpUserSwanRepository;
+import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
@@ -82,6 +85,8 @@ class FileIT {
   private SwanComponent swanComponentMock;
   @MockBean
   private LegalFileRepository legalFileRepositoryMock;
+  private Tika typeGuesser = new Tika();
+
 
   private static ApiClient anApiClient() {
     return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN, ContextInitializer.SERVER_PORT);
@@ -133,26 +138,40 @@ class FileIT {
 
   @Test
   void upload_file_ok() throws IOException, InterruptedException, ApiException {
-    Resource toUpload = new ClassPathResource("files/upload.jpg");
+    Resource jpegFile = new ClassPathResource("files/upload.jpg");
+    Resource fakeExeFile = new ClassPathResource("files/jpeg-with-exe-extension.exe");
+    Resource pngFile = new ClassPathResource("files/png-file.png");
 
-    HttpResponse<byte[]> uploadResponse = upload(FileType.LOGO.getValue(), TO_UPLOAD_FILE_ID,
-        toUpload.getFile());
+    HttpResponse<byte[]> jpegResponse = upload(FileType.LOGO.getValue(), randomUUID().toString(),
+        jpegFile.getFile());
+    HttpResponse<byte[]> fakeExeResponse = upload(FileType.LOGO.getValue(), randomUUID().toString(),
+        fakeExeFile.getFile());
+    HttpResponse<byte[]> pngResponse = upload(FileType.LOGO.getValue(), randomUUID().toString(),
+        pngFile.getFile());
 
-    assertEquals(HttpStatus.OK.value(), uploadResponse.statusCode());
-    assertEquals(toUpload.getInputStream().readAllBytes().length, uploadResponse.body().length);
+    assertEquals(HttpStatus.OK.value(), jpegResponse.statusCode());
+    assertEquals(HttpStatus.OK.value(), fakeExeResponse.statusCode());
+    assertEquals(HttpStatus.OK.value(), pngResponse.statusCode());
+    assertEquals(jpegFile.getInputStream().readAllBytes().length, jpegResponse.body().length);
+    assertEquals(MediaType.IMAGE_JPEG_VALUE, typeGuesser.detect(jpegResponse.body()));
+    assertEquals(fakeExeFile.getInputStream().readAllBytes().length, fakeExeResponse.body().length);
+    assertEquals(MediaType.IMAGE_JPEG_VALUE, typeGuesser.detect(fakeExeResponse.body()));
+    assertEquals(pngFile.getInputStream().readAllBytes().length, pngResponse.body().length);
+    // /!\ it seems nor the file is a fake png nor the guessed mediaType is always jpeg
+    //assertEquals(MediaType.IMAGE_PNG_VALUE, typeGuesser.detect(pngResponse.body()));
     /* /!\ The file seems to get more bytes than initial with S3 localstack container
-    assertEquals(toUpload.getInputStream().readAllBytes().length, downloadResponse.body().length);*/
+    assertEquals(jpegFile.getInputStream().readAllBytes().length, downloadResponse.body().length);*/
   }
 
   @Test
   void upload_file_ko() {
-    Resource toUpload = new ClassPathResource("files/upload.jpg");
+    Resource toUpload = new ClassPathResource("files/real-exe-file.exe");
 
     assertThrowsApiException(
         "{\"type\":\"400 BAD_REQUEST\","
-            + "\"message\":\"Only pdf and jpeg/jpg files are allowed."
+            + "\"message\":\"Only pdf, png and jpeg/jpg files are allowed."
             + "\"}",
-        () -> upload(FileType.LOGO.getValue(), "upload.exe", toUpload.getFile()));
+        () -> upload(FileType.LOGO.getValue(), "test", toUpload.getFile()));
     assertThrowsApiException(
         "{\"type\":\"400 BAD_REQUEST\","
             + "\"message\":\"No enum constant app.bpartners.api.endpoint.rest"

@@ -137,6 +137,7 @@ dependencies {
     implementation 'io.sentry:sentry-spring-boot-starter:5.5.3'
     implementation 'io.sentry:sentry-logback:5.5.3'
 
+    implementation 'org.apache.tika:tika-core:1.18'
     implementation 'org.thymeleaf:thymeleaf:3.0.15.RELEASE'
     implementation 'org.xhtmlrenderer:flying-saucer-pdf:9.1.22'
 

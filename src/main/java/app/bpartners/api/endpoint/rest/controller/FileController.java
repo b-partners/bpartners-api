@@ -38,7 +38,7 @@ public class FileController {
       @RequestParam(name = "fileType") FileType fileType) {
     byte[] downloaded = service.downloadFile(fileType, accountId, fileId);
     return ResponseEntity.ok()
-        .contentType(FileInfoUtils.parseMediaTypeFromBytes(fileId, downloaded))
+        .contentType(FileInfoUtils.parseMediaTypeFromBytes(downloaded))
         .body(downloaded);
   }
 
@@ -51,7 +51,7 @@ public class FileController {
       @RequestBody byte[] toUpload) {
     service.uploadEvent(fileType, accountId, fileId, toUpload, principal.getUserId());
     return ResponseEntity.ok()
-        .contentType(FileInfoUtils.parseMediaTypeFromBytes(fileId, toUpload))
+        .contentType(FileInfoUtils.parseMediaTypeFromBytes(toUpload))
         .body(toUpload);
   }
 }

@@ -80,7 +80,7 @@ public class SesService {
       throws MessagingException {
     MimeBodyPart attachmentPart = new MimeBodyPart();
     String fileMediaType =
-        String.valueOf(FileInfoUtils.parseMediaTypeFromBytes(attachmentName, attachmentAsBytes));
+        String.valueOf(FileInfoUtils.parseMediaTypeFromBytes(attachmentAsBytes));
     DataSource fds = new ByteArrayDataSource(attachmentAsBytes, fileMediaType);
     attachmentPart.setDataHandler(new DataHandler(fds));
     attachmentPart.setFileName(attachmentName);

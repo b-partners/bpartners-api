@@ -101,12 +101,9 @@ public class InvoiceMapper {
   }
 
   @SneakyThrows
-  public HInvoice toEntity(Invoice domain, boolean toBeRelaunched) {
+  public HInvoice toEntity(Invoice domain) {
     Optional<HInvoice> persisted = jpaRepository.findById(domain.getId());
-    String fileId = null;
-    if (toBeRelaunched) {
-      fileId = persisted.isPresent() ? persisted.get().getFileId() : domain.getFileId();
-    }
+    String fileId = persisted.isPresent() ? persisted.get().getFileId() : domain.getFileId();
     String id = domain.getId();
     Instant createdDatetime =
         persisted.map(HInvoice::getCreatedDatetime).orElse(Instant.now());

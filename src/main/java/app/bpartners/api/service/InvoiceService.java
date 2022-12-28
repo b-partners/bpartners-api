@@ -105,7 +105,9 @@ public class InvoiceService {
             : pdfUtils.generatePdf(invoice, accountHolder, logoAsBytes, DRAFT_TEMPLATE);
     //upload generated pdf file
     FileInfo fileInfo = fileService.upload(fileId, INVOICE, accountId, fileAsBytes, null);
-    //persist new pdf file
+    //set new invoice fileID
+    invoice.setFileId(fileInfo.getId());
+    //persist new invoice fileID
     try {
       invoiceJpaRepository.save(HInvoice.builder()
           .id(invoice.getId())

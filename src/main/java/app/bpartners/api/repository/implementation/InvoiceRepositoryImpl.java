@@ -56,11 +56,10 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
   @Override
   public Invoice crupdate(Invoice toCrupdate) {
     Optional<HInvoice> optionalInvoice = jpaRepository.findByIdAccountAndRefAndStatus(
-        toCrupdate.getAccount().getId(), toCrupdate.getRef(), toCrupdate.getPreviousStatus());
-    String oldFileId = null;
+        toCrupdate.getAccount().getId(), toCrupdate.getRealReference(),
+        toCrupdate.getPreviousStatus());
     if (optionalInvoice.isPresent()) {
       HInvoice existingInvoice = optionalInvoice.get();
-      oldFileId = existingInvoice.getFileId();
       if (toCrupdate.getRef() != null
           && toCrupdate.getStatus().equals(DRAFT)
           && existingInvoice.getRef().equals(toCrupdate.getRealReference())) {
@@ -70,7 +69,7 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
                 + "] is already used by invoice." + existingInvoice.getId());
       }
     }
-    HInvoice entity = jpaRepository.save(mapper.toEntity(toCrupdate, false));
+    HInvoice entity = jpaRepository.save(mapper.toEntity(toCrupdate));
     boolean entityHasBeenCloned =
         !Objects.equals(toCrupdate.getId(), entity.getId());
     if (entityHasBeenCloned) {
@@ -89,9 +88,7 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
     }
 
     List<HProduct> createdProducts = null;
-    if (!toCrupdate.getProducts().
-
-        isEmpty()) {
+    if (!toCrupdate.getProducts().isEmpty()) {
       HInvoiceProduct invoiceProduct =
           ipJpaRepository.save(HInvoiceProduct.builder()
               .idInvoice(toCrupdate.getId())
@@ -100,9 +97,8 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
       invoiceProduct.setProducts(createdProducts);
       ipJpaRepository.save(invoiceProduct);
     }
-    return
-
-        refreshValues(mapper.toDomain(entity, invoiceCustomer, createdProducts, oldFileId));
+    return refreshValues(
+        mapper.toDomain(entity, invoiceCustomer, createdProducts, entity.getFileId()));
   }
 
   @Override

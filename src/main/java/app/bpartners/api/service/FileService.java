@@ -13,6 +13,7 @@ import app.bpartners.api.repository.jpa.model.HUser;
 import app.bpartners.api.service.aws.S3Service;
 import java.util.List;
 import java.util.Optional;
+import javax.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -25,6 +26,7 @@ public class FileService {
   private final EventProducer eventProducer;
   private final UserJpaRepository userJpaRepository;
 
+  @Transactional
   public void uploadEvent(
       FileType fileType, String accountId, String fileId, byte[] toUpload, String userId) {
     repository.save(mapper.toDomain(fileId, toUpload, null, accountId));

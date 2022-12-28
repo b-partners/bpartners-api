@@ -61,7 +61,7 @@ public class InvoiceMapper {
   }
 
   public Invoice toDomain(
-      HInvoice invoice,
+      HInvoice entity,
       HInvoiceCustomer invoiceCustomer,
       List<HProduct> products,
       String fileId) {
@@ -71,22 +71,22 @@ public class InvoiceMapper {
           .map(productMapper::toDomain)
           .collect(Collectors.toUnmodifiableList());
     }
-    Map<String, String> metadata = toMetadataMap(invoice.getMetadataString());
+    Map<String, String> metadata = toMetadataMap(entity.getMetadataString());
     return Invoice.builder()
-        .id(invoice.getId())
-        .ref(invoice.getRef())
+        .id(entity.getId())
+        .ref(entity.getRef())
         .fileId(fileId)
-        .title(invoice.getTitle())
-        .comment(invoice.getComment())
+        .title(entity.getTitle())
+        .comment(entity.getComment())
         .products(actualProducts)
-        .sendingDate(invoice.getSendingDate())
-        .updatedAt(invoice.getUpdatedAt())
-        .toPayAt(invoice.getToPayAt())
+        .sendingDate(entity.getSendingDate())
+        .updatedAt(entity.getUpdatedAt())
+        .toPayAt(entity.getToPayAt())
         .invoiceCustomer(customerMapper.toDomain(invoiceCustomer))
-        .account(accountService.getAccountById(invoice.getIdAccount()))
-        .status(invoice.getStatus())
-        .toBeRelaunched(invoice.isToBeRelaunched())
-        .createdAt(invoice.getCreatedDatetime())
+        .account(accountService.getAccountById(entity.getIdAccount()))
+        .status(entity.getStatus())
+        .toBeRelaunched(entity.isToBeRelaunched())
+        .createdAt(entity.getCreatedDatetime())
         .metadata(metadata)
         .build();
   }
@@ -109,7 +109,7 @@ public class InvoiceMapper {
     }
     String id = domain.getId();
     Instant createdDatetime =
-        persisted.map(HInvoice::getCreatedDatetime).orElse(domain.getCreatedAt());
+        persisted.map(HInvoice::getCreatedDatetime).orElse(Instant.now());
     if (persisted.isPresent()) {
       HInvoice persistedValue = persisted.get();
       if (persistedValue.getStatus() == InvoiceStatus.PROPOSAL
@@ -124,7 +124,7 @@ public class InvoiceMapper {
         .id(id)
         .fileId(fileId)
         .comment(domain.getComment())
-        .ref(domain.getRef())
+        .ref(domain.getRealReference())
         .title(domain.getTitle())
         .idAccount(domain.getAccount().getId())
         .sendingDate(domain.getSendingDate())

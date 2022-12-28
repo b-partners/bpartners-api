@@ -885,6 +885,7 @@ components:
         - BOOKED
         - UPCOMING
         - UNKNOWN
+        - REJECTED
     CreateProduct:
       type: object
       properties:

@@ -33,7 +33,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Repository;
 
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
-import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.DRAFT;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
 import static app.bpartners.api.service.InvoiceService.DRAFT_REF_PREFIX;
 import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
@@ -61,7 +60,7 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
     if (optionalInvoice.isPresent()) {
       HInvoice existingInvoice = optionalInvoice.get();
       if (toCrupdate.getRef() != null
-          && toCrupdate.getStatus().equals(DRAFT)
+          && existingInvoice.getStatus().equals(toCrupdate.getStatus())
           && existingInvoice.getRef().equals(toCrupdate.getRealReference())) {
         throw new BadRequestException(
             "The invoice reference must be unique however the given reference ["

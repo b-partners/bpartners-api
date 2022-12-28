@@ -409,12 +409,13 @@ class InvoiceIT {
     String firstInvoiceId = randomUUID().toString();
     CrupdateInvoice crupdateInvoiceWithNonExistentCustomer =
         initializeDraft().customer(customer1().id("non-existent-customer"));
+    String uniqueRef = "unique_ref";
     Executable firstCrupdateExecutable =
         () -> api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, firstInvoiceId,
-            validInvoice().ref("unique_ref"));
+            validInvoice().ref(uniqueRef));
     Executable secondCrupdateExecutable =
         () -> api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, randomUUID().toString(),
-            validInvoice().ref("unique_ref"));
+            validInvoice().ref(uniqueRef));
     Executable thirdCrupdateExecutable =
         () -> api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, NEW_INVOICE_ID,
             crupdateInvoiceWithNonExistentCustomer);
@@ -439,9 +440,10 @@ class InvoiceIT {
   void crupdate_invoice_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
     PayingApi api = new PayingApi(joeDoeClient);
+    String draftRef = "Some random ref " + randomUUID();
 
     Invoice actualDraft = api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, NEW_INVOICE_ID,
-        initializeDraft());
+        initializeDraft().ref(draftRef));
     Invoice actualUpdatedDraft = api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, NEW_INVOICE_ID,
         validInvoice());
     actualUpdatedDraft.setProducts(ignoreIdsOf(actualUpdatedDraft.getProducts()));
@@ -453,6 +455,7 @@ class InvoiceIT {
     actualPaid.setProducts(ignoreIdsOf(actualPaid.getProducts()));
 
     assertEquals(expectedInitializedDraft()
+            .ref("DRAFT-" + draftRef)
             .fileId(actualDraft.getFileId())
             .createdAt(actualDraft.getCreatedAt()),
         actualDraft);

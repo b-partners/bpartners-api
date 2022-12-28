@@ -10,14 +10,14 @@ import app.bpartners.api.repository.jpa.model.HProduct;
 import app.bpartners.api.service.AccountService;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.AllArgsConstructor;
-import lombok.SneakyThrows;
-import org.springframework.stereotype.Component;
-
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import lombok.AllArgsConstructor;
+import lombok.SneakyThrows;
+import org.springframework.stereotype.Component;
 
 import static java.util.UUID.randomUUID;
 
@@ -55,6 +55,38 @@ public class InvoiceMapper {
         .account(accountService.getAccountById(invoice.getIdAccount()))
         .status(invoice.getStatus())
         .toBeRelaunched(invoice.isToBeRelaunched())
+        .createdAt(invoice.getCreatedDatetime())
+        .metadata(metadata)
+        .build();
+  }
+
+  public Invoice toDomain(
+      HInvoice entity,
+      HInvoiceCustomer invoiceCustomer,
+      List<HProduct> products,
+      String fileId) {
+    List<Product> actualProducts = List.of();
+    if (products != null) {
+      actualProducts = products.stream()
+          .map(productMapper::toDomain)
+          .collect(Collectors.toUnmodifiableList());
+    }
+    Map<String, String> metadata = toMetadataMap(entity.getMetadataString());
+    return Invoice.builder()
+        .id(entity.getId())
+        .ref(entity.getRef())
+        .fileId(fileId)
+        .title(entity.getTitle())
+        .comment(entity.getComment())
+        .products(actualProducts)
+        .sendingDate(entity.getSendingDate())
+        .updatedAt(entity.getUpdatedAt())
+        .toPayAt(entity.getToPayAt())
+        .invoiceCustomer(customerMapper.toDomain(invoiceCustomer))
+        .account(accountService.getAccountById(entity.getIdAccount()))
+        .status(entity.getStatus())
+        .toBeRelaunched(entity.isToBeRelaunched())
+        .createdAt(entity.getCreatedDatetime())
         .metadata(metadata)
         .build();
   }
@@ -64,7 +96,6 @@ public class InvoiceMapper {
     if (metadataString == null) {
       return Map.of();
     }
-
     return objectMapper.readValue(metadataString, new TypeReference<>() {
     });
   }
@@ -74,20 +105,28 @@ public class InvoiceMapper {
     Optional<HInvoice> persisted = jpaRepository.findById(domain.getId());
     String fileId = persisted.isPresent() ? persisted.get().getFileId() : domain.getFileId();
     String id = domain.getId();
-    if (persisted.isPresent()
-        && persisted.get().getStatus() == InvoiceStatus.PROPOSAL
-        && domain.getStatus() == InvoiceStatus.CONFIRMED) {
-      id = randomUUID().toString();
+    Instant createdDatetime =
+        persisted.map(HInvoice::getCreatedDatetime).orElse(Instant.now());
+    if (persisted.isPresent()) {
+      HInvoice persistedValue = persisted.get();
+      if (persistedValue.getStatus() == InvoiceStatus.PROPOSAL
+          && domain.getStatus() == InvoiceStatus.CONFIRMED) {
+        id = randomUUID().toString();
+        //TODO: add test for this
+        persistedValue.setStatus(InvoiceStatus.PROPOSAL_CONFIRMED);
+        jpaRepository.save(persistedValue);
+      }
     }
     return HInvoice.builder()
         .id(id)
         .fileId(fileId)
         .comment(domain.getComment())
-        .ref(domain.getRef())
+        .ref(domain.getRealReference())
         .title(domain.getTitle())
         .idAccount(domain.getAccount().getId())
         .sendingDate(domain.getSendingDate())
         .toPayAt(domain.getToPayAt())
+        .createdDatetime(createdDatetime)
         .status(domain.getStatus())
         .toBeRelaunched(domain.isToBeRelaunched())
         .metadataString(objectMapper.writeValueAsString(domain.getMetadata()))

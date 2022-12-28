@@ -102,7 +102,11 @@ class InvoiceRelaunchIT {
     return new InvoiceRelaunch()
         .id(INVOICE_RELAUNCH1_ID)
         .type(RelaunchType.PROPOSAL)
-        .invoice(invoice1().fileId(null))
+        .invoice(invoice1()
+            .fileId(null)
+            .createdAt(null)
+            .updatedAt(null)
+        )
         .accountId(JOE_DOE_ACCOUNT_ID)
         .isUserRelaunched(true)
         .emailInfo(new EmailInfo())
@@ -113,7 +117,11 @@ class InvoiceRelaunchIT {
     return new InvoiceRelaunch()
         .id(INVOICE_RELAUNCH2_ID)
         .type(RelaunchType.CONFIRMED)
-        .invoice(invoice1().fileId(null))
+        .invoice(invoice1()
+            .fileId(null)
+            .createdAt(null)
+            .updatedAt(null)
+        )
         .accountId(JOE_DOE_ACCOUNT_ID)
         .isUserRelaunched(false)
         .emailInfo(new EmailInfo())
@@ -134,7 +142,11 @@ class InvoiceRelaunchIT {
 
   InvoiceRelaunch expectedRelaunch() {
     return new InvoiceRelaunch()
-        .invoice(invoice1().fileId(null))
+        .invoice(invoice1()
+            .fileId(null)
+            .createdAt(null)
+            .updatedAt(null)
+        )
         .type(RelaunchType.CONFIRMED)
         .accountId(JOE_DOE_ACCOUNT_ID)
         .emailInfo(new EmailInfo()
@@ -150,10 +162,14 @@ class InvoiceRelaunchIT {
 
     InvoiceRelaunch actual =
         api.relaunchInvoice(JOE_DOE_ACCOUNT_ID, INVOICE1_ID, creatableInvoiceRelaunch());
-    actual.setInvoice(actual.getInvoice().updatedAt(null));
+    actual.setInvoice(actual.getInvoice()
+        .createdAt(null)
+        .updatedAt(null));
     InvoiceRelaunch otherActual =
         api.relaunchInvoice(JOE_DOE_ACCOUNT_ID, INVOICE1_ID, otherCreatableInvoiceRelaunch());
-    otherActual.setInvoice(otherActual.getInvoice().updatedAt(null));
+    otherActual.setInvoice(otherActual.getInvoice()
+        .createdAt(null)
+        .updatedAt(null));
 
     assertEquals(
         expectedRelaunch()
@@ -181,9 +197,9 @@ class InvoiceRelaunchIT {
     List<InvoiceRelaunch> confirmed =
         api.getRelaunches(JOE_DOE_ACCOUNT_ID, INVOICE1_ID, 1, 20,
             RelaunchType.CONFIRMED.toString());
-    List<InvoiceRelaunch> actualWithoutUpdatedDate = ignoreUpdatedDate(actual);
-    List<InvoiceRelaunch> proposalsWithoutUpdatedDate = ignoreUpdatedDate(proposals);
-    List<InvoiceRelaunch> confirmedWithoutUpdatedDate = ignoreUpdatedDate(confirmed);
+    List<InvoiceRelaunch> actualWithoutUpdatedDate = ignoreDates(actual);
+    List<InvoiceRelaunch> proposalsWithoutUpdatedDate = ignoreDates(proposals);
+    List<InvoiceRelaunch> confirmedWithoutUpdatedDate = ignoreDates(confirmed);
 
     assertTrue(actualWithoutUpdatedDate.contains(invoiceRelaunch1()));
     assertFalse(confirmedWithoutUpdatedDate.contains(invoiceRelaunch1()));
@@ -223,9 +239,12 @@ class InvoiceRelaunchIT {
         () -> api.relaunchInvoice(JOE_DOE_ACCOUNT_ID, INVOICE7_ID, creatableInvoiceRelaunch()));
   }
 
-  private List<InvoiceRelaunch> ignoreUpdatedDate(List<InvoiceRelaunch> list) {
+  private List<InvoiceRelaunch> ignoreDates(List<InvoiceRelaunch> list) {
     return list.stream()
-        .peek(invoiceRelaunch -> invoiceRelaunch.getInvoice().setUpdatedAt(null))
+        .peek(invoiceRelaunch -> {
+          invoiceRelaunch.getInvoice().setUpdatedAt(null);
+          invoiceRelaunch.getInvoice().setCreatedAt(null);
+        })
         .collect(Collectors.toUnmodifiableList());
   }
 

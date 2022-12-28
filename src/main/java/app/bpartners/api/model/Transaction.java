@@ -26,6 +26,8 @@ public class Transaction {
   public static final String DEBIT_SIDE = "Debit";
   public static final String BOOKED_STATUS = "Booked";
   public static final String PENDING_STATUS = "Pending";
+  public static final String UPCOMING_STATUS = "Upcoming";
+  public static final String REJECTED_STATUS = "Rejected";
   private String id;
   private Fraction amount;
   private String currency;

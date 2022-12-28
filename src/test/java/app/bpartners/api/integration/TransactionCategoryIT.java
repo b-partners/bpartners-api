@@ -124,7 +124,7 @@ class TransactionCategoryIT {
     List<TransactionCategory> actualOutcome = api.getTransactionCategories(JOE_DOE_ACCOUNT_ID,
         LocalDate.now(), LocalDate.now(), OUTCOME);
 
-    assertEquals(34, actualAll.size());
+    assertEquals(32, actualAll.size());
     assertTrue(actualIncome.stream().allMatch(t -> Objects.equals(t.getTransactionType(), INCOME)));
     assertTrue(actualOutcome.stream().allMatch(t -> Objects.equals(t.getTransactionType(),
         OUTCOME)));
@@ -144,9 +144,8 @@ class TransactionCategoryIT {
     List<TransactionCategory> actualAll = api.getTransactionCategories(
         JOE_DOE_ACCOUNT_ID, startDate, endDate, null);
 
-    assertEquals(34, actualAll.size());
-    //TODO: uncomment when problem is fixed
-    // assertTrue(actualAll.stream().noneMatch(e -> e.getCount() != 0L));
+    assertEquals(32, actualAll.size());
+    assertTrue(actualAll.stream().noneMatch(e -> e.getCount() != 0L));
   }
 
   @Test

@@ -40,10 +40,11 @@ public class TransactionCategoryMapper {
     domain.setVat(parseFraction(categoryTemplate.getVat()));
     domain.setDescription(categoryTemplate.getDescription());
     domain.setOther(categoryTemplate.isOther());
-    long typeCount = getCategoryCount(
-        entity.getIdAccount(), startDate, endDate, domain.getType()
-    );
-    domain.setTypeCount(typeCount);
+    //Since the count is not used during the creation or in singleton, leave this comment
+    //    long typeCount = getCategoryCount(
+    //        entity.getIdAccount(), startDate, endDate, domain.getType()
+    //    );
+    //    domain.setTypeCount(typeCount);
     return domain;
   }
 
@@ -61,7 +62,8 @@ public class TransactionCategoryMapper {
         .idTransactionCategoryTmpl(idCategoryTemplate)
         .other(categoryTemplate.isOther())
         .transactionType(categoryTemplate.getTransactionType())
-        .typeCount(getCategoryCount(idAccount, startDate, endDate, entity.getType()))
+        //Since the count is not used during the creation or in singleton, leave this comment
+        //.typeCount(getCategoryCount(idAccount, startDate, endDate, entity.getType()))
         .description(categoryTemplate.getDescription())
         .build();
   }
@@ -77,6 +79,7 @@ public class TransactionCategoryMapper {
         .transactionType(entity.getTransactionType())
         .other(entity.isOther())
         .description(entity.getDescription())
+        .count(entity.getCount())
         .build();
   }
 

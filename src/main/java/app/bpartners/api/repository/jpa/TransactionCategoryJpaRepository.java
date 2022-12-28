@@ -12,7 +12,7 @@ public interface TransactionCategoryJpaRepository
   String DEFAULT_START_TIMESTAMP = "'2021-01-01 00:00:00'";
 
   @Query(value = "select "
-      + "new HTransactionCategory(coalesce(tc.id,template.id),"
+      + "new HTransactionCategory(template.id,"
       + "tc.idTransaction,"
       + "coalesce(tc.idAccount, ?1),"
       + "coalesce(tc.idCategoryTemplate, template.id),"

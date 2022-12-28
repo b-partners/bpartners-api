@@ -3,7 +3,7 @@
     <title>Invoice</title>
     <style>
         body {
-            margin: 20px;
+            margin: 0 20px;
             padding: 0;
             box-sizing: border-box;
             font-size: 10px;
@@ -37,14 +37,25 @@
             font-size: 12px;
         }
 
-        .logo {
-            width: 50px;
-            height: 50px;
+        .code {
+            width: 110px;
+            height: 110px;
         }
 
-        .code {
-            width: 50px;
-            height: 50px;
+        .logo {
+            width: 60px;
+            height: 60px;
+        }
+
+        div.image-text {
+            vertical-align: top;
+            display: inline-block;
+            text-align: center;
+            width: 120px;
+        }
+
+        .caption {
+            display: block;
         }
 
         a {
@@ -111,9 +122,13 @@
                 </p>
             </td>
             <td class="text-right">
-                <img class="code" th:src="${'data:image/jpeg;base64,' + qrcode}" alt="qr-code"/>
                 <div>
-                    <a th:href="${invoice.paymentUrl}">Payez ici</a>
+                    <div class="image-text">
+                        <img class="code" th:src="${'data:image/jpeg;base64,' + qrcode}"
+                             alt="qr-code"/>
+                        <span class="caption"><a
+                                th:href="${invoice.paymentUrl}">Payez ici</a></span>
+                    </div>
                     <p>Date limite de paiement : <span
                             th:text="${#dates.format(invoice.getFormattedPayingDate, 'dd-MM-yyyy')}"></span>
                     </p>
@@ -180,7 +195,7 @@
                     €
                 </td>
                 <td class="text-center space-letter"><span
-                        th:text="${product.vatPercent.getCentsUpAsString()}"></span>%
+                        th:text="${#numbers.formatDecimal(product.vatPercent.getCentsAsDecimal(),1,2)}"></span>%
                 </td>
                 <td class="text-center space-letter"><span
                         th:text="${#numbers.formatDecimal(product.totalWithoutVat.getCentsAsDecimal(),1,2)}"></span>

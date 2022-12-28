@@ -858,6 +858,9 @@ components:
           type: integer
         status:
           $ref: '#/components/schemas/InvoiceStatus'
+        createdAt:
+          type: string
+          format: date-time
         updatedAt:
           type: string
           format: date-time
@@ -872,6 +875,7 @@ components:
         - DRAFT
         - ACCEPTED
         - PROPOSAL
+        - PROPOSAL_CONFIRMED
         - CONFIRMED
         - PAID
     TransactionStatus:
@@ -880,6 +884,8 @@ components:
         - PENDING
         - BOOKED
         - UPCOMING
+        - UNKNOWN
+        - REJECTED
     CreateProduct:
       type: object
       properties:
@@ -897,6 +903,8 @@ components:
       properties:
         id:
           type: string
+        unitPriceWithVat:
+          type: integer
         totalVat:
           type: integer
         totalPriceWithVat:

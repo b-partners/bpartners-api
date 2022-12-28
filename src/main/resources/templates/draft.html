@@ -3,7 +3,7 @@
     <title>Draft</title>
     <style>
         body {
-            margin: 20px;
+            margin: 0 20px;
             padding: 0;
             box-sizing: border-box;
             font-size: 10px;
@@ -50,6 +50,10 @@
             text-decoration: none;
         }
 
+        .logo {
+            width: 60px;
+            height: 60px;
+        }
 
         .amount-section p {
             border: 1px solid black;
@@ -84,7 +88,7 @@
 </head>
 <body>
 <header>
-    <h1 class="text-center text-underline">DEVIS</h1>
+    <h1 class="text-center">DEVIS</h1>
     <table class="table-head">
         <tr>
             <td>
@@ -161,7 +165,7 @@
                     €
                 </td>
                 <td class="text-center"><span
-                        th:text="${product.vatPercent.getCentsUpAsString()}"></span>%
+                        th:text="${#numbers.formatDecimal(product.vatPercent.getCentsAsDecimal(),1,2)}"></span>%
                 </td>
                 <td class="text-center"><span
                         th:text="${#numbers.formatDecimal(product.totalWithoutVat.getCentsAsDecimal(),1,2)}"></span>

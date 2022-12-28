@@ -11,14 +11,13 @@ public interface InvoiceJpaRepository extends JpaRepository<HInvoice, String> {
 
   //TODO: change this to have a more readable function
   // The principal feats are : filter by account and status, ordered by created datetime desc
-  List<HInvoice> findAllByIdAccountAndStatusOrderByCreatedDatetimeDesc(
+  List<HInvoice> findAllByIdAccountAndStatus(
       String idAccount,
       InvoiceStatus status,
       Pageable pageable);
 
 
-  List<HInvoice> findAllByIdAccountOrderByCreatedDatetimeDesc(
-      String idAccount, Pageable pageable);
+  List<HInvoice> findAllByIdAccount(String idAccount, Pageable pageable);
 
   Optional<HInvoice> findByIdAccountAndRefAndStatus(
       String idAccount, String ref, InvoiceStatus status);

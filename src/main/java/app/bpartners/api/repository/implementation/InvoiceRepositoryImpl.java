@@ -29,14 +29,15 @@ import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
 import org.apfloat.Aprational;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Repository;
 
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
-import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.DRAFT;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
 import static app.bpartners.api.service.InvoiceService.DRAFT_REF_PREFIX;
 import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 import static app.bpartners.api.service.utils.FractionUtils.toAprational;
+import static org.springframework.data.domain.Sort.Direction.DESC;
 
 @Repository
 @AllArgsConstructor
@@ -53,18 +54,18 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
 
   @Override
   public Invoice crupdate(Invoice toCrupdate) {
-    if (toCrupdate.getRef() != null) {
-      Optional<HInvoice> existingInvoice = jpaRepository.findByIdAccountAndRefAndStatus(
-          toCrupdate.getAccount().getId(), toCrupdate.getRef(), toCrupdate.getPreviousStatus());
-      if (existingInvoice.isPresent()) {
-        String persistedId = existingInvoice.get().getId();
-        if (toCrupdate.getStatus().equals(DRAFT)
-            && !persistedId.equals(toCrupdate.getId())) {
-          throw new BadRequestException(
-              "The invoice reference must unique however the given reference ["
-                  + toCrupdate.getRef()
-                  + "] is already used by invoice." + persistedId);
-        }
+    Optional<HInvoice> optionalInvoice = jpaRepository.findByIdAccountAndRefAndStatus(
+        toCrupdate.getAccount().getId(), toCrupdate.getRealReference(),
+        toCrupdate.getPreviousStatus());
+    if (optionalInvoice.isPresent()) {
+      HInvoice existingInvoice = optionalInvoice.get();
+      if (toCrupdate.getRef() != null
+          && existingInvoice.getStatus().equals(toCrupdate.getStatus())
+          && existingInvoice.getRef().equals(toCrupdate.getRealReference())) {
+        throw new BadRequestException(
+            "The invoice reference must be unique however the given reference ["
+                + toCrupdate.getRef()
+                + "] is already used by invoice." + existingInvoice.getId());
       }
     }
     HInvoice entity = jpaRepository.save(mapper.toEntity(toCrupdate));
@@ -78,11 +79,13 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
       }
       cloneProducts(toCrupdate.getAccount().getId(), toCrupdate.getId());
     }
+
     HInvoiceCustomer invoiceCustomer =
         invoiceCustomerMapper.toEntity(toCrupdate.getInvoiceCustomer());
     if (invoiceCustomer != null) {
       invoiceCustomer = customerJpaRepository.save(invoiceCustomer);
     }
+
     List<HProduct> createdProducts = null;
     if (!toCrupdate.getProducts().isEmpty()) {
       HInvoiceProduct invoiceProduct =
@@ -93,7 +96,8 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
       invoiceProduct.setProducts(createdProducts);
       ipJpaRepository.save(invoiceProduct);
     }
-    return refreshValues(mapper.toDomain(entity, invoiceCustomer, createdProducts));
+    return refreshValues(
+        mapper.toDomain(entity, invoiceCustomer, createdProducts, entity.getFileId()));
   }
 
   @Override
@@ -123,8 +127,9 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
   @Override
   public List<Invoice> findAllByAccountIdAndStatus(String accountId, InvoiceStatus status, int page,
                                                    int pageSize) {
-    return jpaRepository.findAllByIdAccountAndStatusOrderByCreatedDatetimeDesc(
-            accountId, status, PageRequest.of(page, pageSize)).stream()
+    PageRequest pageRequest = PageRequest.of(page, pageSize, Sort.by(DESC, "createdDatetime"));
+    return jpaRepository.findAllByIdAccountAndStatus(
+            accountId, status, pageRequest).stream()
         .map(invoice -> {
           HInvoiceCustomer invoiceCustomer = customerJpaRepository
               .findTopByIdInvoiceOrderByCreatedDatetimeDesc(invoice.getId());
@@ -135,9 +140,9 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
 
   @Override
   public List<Invoice> findAllByAccountId(String accountId, int page, int pageSize) {
-    return jpaRepository.findAllByIdAccountOrderByCreatedDatetimeDesc(
+    return jpaRepository.findAllByIdAccount(
             accountId, PageRequest.of(page,
-                pageSize)).stream()
+                pageSize, Sort.by(DESC, "createdDatetime"))).stream()
         .map(invoice -> {
           HInvoiceCustomer invoiceCustomer = customerJpaRepository
               .findTopByIdInvoiceOrderByCreatedDatetimeDesc(invoice.getId());
@@ -155,28 +160,18 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
         .collect(Collectors.toUnmodifiableList());
   }
 
+  //TODO: refreshValues _seems_ bad!
   private Invoice refreshValues(Invoice invoice) {
     List<Product> products = invoice.getProducts();
     if (products.isEmpty()) {
       products =
           productRepository.findByIdInvoice(invoice.getId());
     }
-    Invoice initializedInvoice = Invoice.builder()
-        .id(invoice.getId())
-        .fileId(invoice.getFileId())
-        .comment(invoice.getComment())
-        .updatedAt(invoice.getUpdatedAt())
-        .title(invoice.getTitle())
-        .invoiceCustomer(invoice.getInvoiceCustomer())
-        .account(invoice.getAccount())
-        .status(invoice.getStatus())
+    Invoice initializedInvoice = invoice.toBuilder()
         .totalVat(computeTotalVat(products))
         .totalPriceWithoutVat(computeTotalPriceWithoutVat(products))
         .totalPriceWithVat(computeTotalPriceWithVat(products))
         .products(products)
-        .toPayAt(invoice.getToPayAt())
-        .sendingDate(invoice.getSendingDate())
-        .metadata(invoice.getMetadata()) //TODO: refreshValues _seems_ bad, but this re-build _is definitely_ bad!
         .build();
     if (invoice.getStatus().equals(CONFIRMED) || invoice.getStatus().equals(PAID)) {
       PaymentRedirection paymentRedirection = pis.initiateInvoicePayment(initializedInvoice);

@@ -262,6 +262,7 @@ public class TestUtils {
         .quantity(1)
         .unitPrice(1000)
         .vatPercent(2000)
+        .unitPriceWithVat(1200)
         .totalVat(200)
         .totalPriceWithVat(1200);
   }
@@ -273,6 +274,7 @@ public class TestUtils {
         .quantity(2)
         .unitPrice(2000)
         .vatPercent(1000)
+        .unitPriceWithVat(2200)
         .totalVat(400)
         .totalPriceWithVat(4400);
   }
@@ -284,6 +286,7 @@ public class TestUtils {
         .quantity(3)
         .unitPrice(2000)
         .vatPercent(1000)
+        .unitPriceWithVat(2200)
         .totalVat(600)
         .totalPriceWithVat(6600);
   }
@@ -295,6 +298,7 @@ public class TestUtils {
         .quantity(1)
         .unitPrice(2000)
         .vatPercent(1000)
+        .unitPriceWithVat(2200)
         .totalVat(200)
         .totalPriceWithVat(2200);
   }
@@ -306,6 +310,7 @@ public class TestUtils {
         .quantity(1)
         .unitPrice(1000)
         .vatPercent(1000)
+        .unitPriceWithVat(1100)
         .totalVat(100)
         .totalPriceWithVat(1100);
   }
@@ -334,7 +339,7 @@ public class TestUtils {
         .transactionType(INCOME)
         .description("Prestations ou ventes soumises à 20% de TVA")
         .vat(2000)
-        .count(1L)
+        .count(0L)
         .isOther(false);
   }
 
@@ -442,6 +447,7 @@ public class TestUtils {
         .totalPriceWithoutVat(8000)
         .comment("Tableau de Madagascar")
         .paymentUrl("https://connect-v2-sbx.fintecture.com")
+        .createdAt(Instant.parse("2021-12-31T22:00:00Z"))
         .metadata(Map.of());
   }
 

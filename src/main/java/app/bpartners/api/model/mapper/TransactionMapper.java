@@ -3,18 +3,18 @@ package app.bpartners.api.model.mapper;
 import app.bpartners.api.endpoint.rest.model.TransactionStatus;
 import app.bpartners.api.model.Transaction;
 import app.bpartners.api.model.TransactionCategory;
-import app.bpartners.api.model.exception.ApiException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import static app.bpartners.api.model.Transaction.BOOKED_STATUS;
 import static app.bpartners.api.model.Transaction.PENDING_STATUS;
-import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
+import static app.bpartners.api.model.Transaction.UPCOMING_STATUS;
 import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 
+@Slf4j
 @Component
 public class TransactionMapper {
 
-  public static final String UPCOMING_STATUS = "Upcoming";
 
   public Transaction toDomain(app.bpartners.api.repository.swan.model.Transaction external,
                               TransactionCategory category) {
@@ -33,20 +33,16 @@ public class TransactionMapper {
   }
 
   private static TransactionStatus getTransactionStatus(String status) {
-    TransactionStatus transactionStatus;
     switch (status) {
       case PENDING_STATUS:
-        transactionStatus = TransactionStatus.PENDING;
-        break;
+        return TransactionStatus.PENDING;
       case BOOKED_STATUS:
-        transactionStatus = TransactionStatus.BOOKED;
-        break;
+        return TransactionStatus.BOOKED;
       case UPCOMING_STATUS:
-        transactionStatus = TransactionStatus.UPCOMING;
-        break;
+        return TransactionStatus.UPCOMING;
       default:
-        throw new ApiException(SERVER_EXCEPTION, "Unknown transactions status " + status);
+        log.warn("Unknown transaction status : " + status);
+        return TransactionStatus.UNKNOWN;
     }
-    return transactionStatus;
   }
 }

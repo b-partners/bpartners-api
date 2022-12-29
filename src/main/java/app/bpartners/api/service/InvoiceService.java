@@ -19,6 +19,7 @@ import app.bpartners.api.repository.jpa.model.HInvoice;
 import app.bpartners.api.service.utils.InvoicePdfUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.time.Instant;
 import java.util.List;
 import javax.transaction.Transactional;
 import lombok.AllArgsConstructor;
@@ -117,6 +118,7 @@ public class InvoiceService {
           .title(invoice.getTitle())
           .idAccount(invoice.getAccount().getId())
           .sendingDate(invoice.getSendingDate())
+          .updatedAt(Instant.now())
           .toPayAt(invoice.getToPayAt())
           .createdDatetime(invoice.getCreatedAt())
           .status(invoice.getStatus())

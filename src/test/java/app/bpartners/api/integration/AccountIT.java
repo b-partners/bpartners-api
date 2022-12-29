@@ -6,6 +6,7 @@ import app.bpartners.api.endpoint.rest.api.UserAccountsApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
 import app.bpartners.api.endpoint.rest.model.Account;
+import app.bpartners.api.endpoint.rest.model.AccountStatus;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
 import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
 import app.bpartners.api.integration.conf.AbstractContextInitializer;
@@ -17,6 +18,7 @@ import app.bpartners.api.repository.sendinblue.SendinblueConf;
 import app.bpartners.api.repository.swan.AccountHolderSwanRepository;
 import app.bpartners.api.repository.swan.AccountSwanRepository;
 import app.bpartners.api.repository.swan.UserSwanRepository;
+import app.bpartners.api.repository.swan.model.SwanAccount;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,6 +28,10 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import static app.bpartners.api.integration.conf.TestUtils.ACCOUNT_CLOSED;
+import static app.bpartners.api.integration.conf.TestUtils.ACCOUNT_CLOSING;
+import static app.bpartners.api.integration.conf.TestUtils.ACCOUNT_OPENED;
+import static app.bpartners.api.integration.conf.TestUtils.ACCOUNT_SUSPENDED;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_TOKEN;
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsForbiddenException;
@@ -36,6 +42,7 @@ import static app.bpartners.api.integration.conf.TestUtils.setUpLegalFileReposit
 import static app.bpartners.api.integration.conf.TestUtils.setUpSwanComponent;
 import static app.bpartners.api.integration.conf.TestUtils.setUpUserSwanRepository;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
@@ -92,13 +99,73 @@ class AccountIT {
   }
 
   @Test
-  void read_accounts_ok() throws ApiException {
+  void read_opened_accounts_ok() throws ApiException {
+    when(accountSwanRepositoryMock.findByUserId(JOE_DOE_ID)).
+        thenReturn(List.of(joeDoeSwanAccount().toBuilder()
+            .statusInfo(new SwanAccount.StatusInfo(ACCOUNT_OPENED))
+            .build()));
     ApiClient joeDoeClient = anApiClient();
     UserAccountsApi api = new UserAccountsApi(joeDoeClient);
 
     List<Account> actual = api.getAccountsByUserId(JOE_DOE_ID);
 
-    assertTrue(actual.contains(joeDoeAccount()));
+    assertTrue(actual.contains(joeDoeAccount().status(AccountStatus.OPENED)));
+  }
+
+  @Test
+  void read_closed_accounts_ok() throws ApiException {
+    when(accountSwanRepositoryMock.findByUserId(JOE_DOE_ID)).
+        thenReturn(List.of(joeDoeSwanAccount().toBuilder()
+            .statusInfo(new SwanAccount.StatusInfo(ACCOUNT_CLOSED))
+            .build()));
+    ApiClient joeDoeClient = anApiClient();
+    UserAccountsApi api = new UserAccountsApi(joeDoeClient);
+
+    List<Account> actual = api.getAccountsByUserId(JOE_DOE_ID);
+
+    assertTrue(actual.contains(joeDoeAccount().status(AccountStatus.CLOSED)));
+  }
+
+  @Test
+  void read_suspended_accounts_ok() throws ApiException {
+    when(accountSwanRepositoryMock.findByUserId(JOE_DOE_ID)).
+        thenReturn(List.of(joeDoeSwanAccount().toBuilder()
+            .statusInfo(new SwanAccount.StatusInfo(ACCOUNT_SUSPENDED))
+            .build()));
+    ApiClient joeDoeClient = anApiClient();
+    UserAccountsApi api = new UserAccountsApi(joeDoeClient);
+
+    List<Account> actual = api.getAccountsByUserId(JOE_DOE_ID);
+
+    assertTrue(actual.contains(joeDoeAccount().status(AccountStatus.SUSPENDED)));
+  }
+
+  @Test
+  void read_closing_accounts_ok() throws ApiException {
+    when(accountSwanRepositoryMock.findByUserId(JOE_DOE_ID)).
+        thenReturn(List.of(joeDoeSwanAccount().toBuilder()
+            .statusInfo(new SwanAccount.StatusInfo(ACCOUNT_CLOSING))
+            .build()));
+    ApiClient joeDoeClient = anApiClient();
+    UserAccountsApi api = new UserAccountsApi(joeDoeClient);
+
+    List<Account> actual = api.getAccountsByUserId(JOE_DOE_ID);
+
+    assertTrue(actual.contains(joeDoeAccount().status(AccountStatus.CLOSING)));
+  }
+
+  @Test
+  void read_unknown_accounts_ok() throws ApiException {
+    when(accountSwanRepositoryMock.findByUserId(JOE_DOE_ID)).
+        thenReturn(List.of(joeDoeSwanAccount().toBuilder()
+            .statusInfo(new SwanAccount.StatusInfo("Unknown status"))
+            .build()));
+    ApiClient joeDoeClient = anApiClient();
+    UserAccountsApi api = new UserAccountsApi(joeDoeClient);
+
+    List<Account> actual = api.getAccountsByUserId(JOE_DOE_ID);
+
+    assertTrue(actual.contains(joeDoeAccount().status(AccountStatus.UNKNOWN)));
   }
 
   @Test

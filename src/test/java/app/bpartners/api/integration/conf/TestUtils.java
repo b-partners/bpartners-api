@@ -44,7 +44,6 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
-
 import org.junit.jupiter.api.function.Executable;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
@@ -113,6 +112,10 @@ public class TestUtils {
   public static final String JANE_ACCOUNT_ID = "jane_account_id";
   public static final String JANE_DOE_TOKEN = "jane_doe_token";
   public static final String JANE_DOE_ID = "jane_doe_id";
+  public static final String ACCOUNT_OPENED = "Opened";
+  public static final String ACCOUNT_CLOSED = "Closed";
+  public static final String ACCOUNT_CLOSING = "Closing";
+  public static final String ACCOUNT_SUSPENDED = "Suspended";
 
   public static User restJoeDoeUser() {
     return new User()
@@ -169,6 +172,7 @@ public class TestUtils {
         .balances(new SwanAccount.Balances(
             new SwanAccount.Balances.Available(1000.0)
         ))
+        .statusInfo(new SwanAccount.StatusInfo(ACCOUNT_OPENED))
         .build();
   }
 
@@ -181,6 +185,7 @@ public class TestUtils {
         .balances(new SwanAccount.Balances(
             new SwanAccount.Balances.Available(1000.0)
         ))
+        .statusInfo(new SwanAccount.StatusInfo(ACCOUNT_OPENED))
         .build();
   }
 

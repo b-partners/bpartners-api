@@ -3,10 +3,11 @@ package app.bpartners.api.service;
 import app.bpartners.api.endpoint.event.model.gen.FileSaved;
 import app.bpartners.api.endpoint.rest.model.FileType;
 import java.util.function.Consumer;
-import javax.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @AllArgsConstructor
@@ -14,7 +15,7 @@ import org.springframework.stereotype.Service;
 public class FileSavedService implements Consumer<FileSaved> {
   private final FileService fileService;
 
-  @Transactional
+  @Transactional(isolation = Isolation.SERIALIZABLE)
   @Override
   public void accept(FileSaved fileSaved) {
     FileType fileType = fileSaved.getFileType();

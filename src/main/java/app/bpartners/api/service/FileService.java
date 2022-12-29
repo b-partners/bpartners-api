@@ -13,9 +13,10 @@ import app.bpartners.api.repository.jpa.model.HUser;
 import app.bpartners.api.service.aws.S3Service;
 import java.util.List;
 import java.util.Optional;
-import javax.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @AllArgsConstructor
@@ -26,7 +27,7 @@ public class FileService {
   private final EventProducer eventProducer;
   private final UserJpaRepository userJpaRepository;
 
-  @Transactional
+  @Transactional(isolation = Isolation.SERIALIZABLE)
   public void uploadEvent(
       FileType fileType, String accountId, String fileId, byte[] toUpload, String userId) {
     repository.save(mapper.toDomain(fileId, toUpload, null, accountId));

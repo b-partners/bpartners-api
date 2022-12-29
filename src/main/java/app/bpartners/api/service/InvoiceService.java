@@ -21,9 +21,10 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Instant;
 import java.util.List;
-import javax.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 
 import static app.bpartners.api.endpoint.rest.model.FileType.INVOICE;
 import static app.bpartners.api.endpoint.rest.model.FileType.LOGO;
@@ -65,7 +66,7 @@ public class InvoiceService {
     return repository.getById(invoiceId);
   }
 
-  @Transactional
+  @Transactional(isolation = Isolation.SERIALIZABLE)
   public Invoice crupdateInvoice(Invoice toCrupdate) {
     validator.accept(toCrupdate);
 
@@ -91,7 +92,7 @@ public class InvoiceService {
     return ((Principal) auth.getAuthentication().getPrincipal()).getUser().getLogoFileId();
   }
 
-  @Transactional
+  @Transactional(isolation = Isolation.SERIALIZABLE)
   public void processPdfGeneration(
       InvoicePdfUtils pdfUtils, AccountHolder accountHolder, String logoFileId,
       Invoice invoice, String accountId) {

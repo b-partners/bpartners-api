@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.math.BigInteger;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -123,14 +124,7 @@ class DraftIT {
             .iban("FR7630001007941234567890185")
             .bic("BPFRPP751")
             .build())
-        .products(List.of(app.bpartners.api.model.Product.builder()
-            .id("product_id")
-            .quantity(50)
-            .description("product description")
-            .vatPercent(new Fraction(BigInteger.ONE))
-            .unitPrice(new Fraction(BigInteger.ONE))
-            .totalPriceWithVat(new Fraction(BigInteger.ONE))
-            .build()))
+        .products(creatableProds(50))
         .invoiceCustomer(InvoiceCustomer.customerTemplateBuilder()
             .name("Olivier Durant")
             .phone("+33 6 12 45 89 76")
@@ -158,6 +152,24 @@ class DraftIT {
     return generatedFile;
   }
 
+  private static List<app.bpartners.api.model.Product> creatableProds(int n) {
+    List<app.bpartners.api.model.Product> result = new ArrayList<>();
+    for (int i = 0; i < n; i++) {
+      result.add(prod());
+    }
+    return result;
+  }
+
+  private static app.bpartners.api.model.Product prod() {
+    return app.bpartners.api.model.Product.builder()
+        .id("product_id")
+        .quantity(50)
+        .description("product description")
+        .vatPercent(new Fraction(BigInteger.ONE))
+        .unitPrice(new Fraction(BigInteger.ONE))
+        .totalPriceWithVat(new Fraction(BigInteger.ONE))
+        .build();
+  }
 
   public static class ContextInitializer extends AbstractContextInitializer {
     public static final int SERVER_PORT = TestUtils.anAvailableRandomPort();

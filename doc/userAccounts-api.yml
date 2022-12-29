@@ -355,7 +355,16 @@ components:
           type: string
         BIC:
           type: string
-
+        status:
+          $ref: '#/components/schemas/AccountStatus'
+    AccountStatus:
+      type: string
+      enum:
+        - OPENED
+        - CLOSED
+        - CLOSING
+        - SUSPENDED
+        - UNKNOWN
     AccountHolder:
       type: object
       properties:

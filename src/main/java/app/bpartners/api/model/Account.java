@@ -1,5 +1,6 @@
 package app.bpartners.api.model;
 
+import app.bpartners.api.endpoint.rest.model.AccountStatus;
 import java.io.Serializable;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -22,4 +23,5 @@ public class Account implements Serializable {
   private String iban;
   private String bic;
   private Fraction availableBalance;
+  private AccountStatus status;
 }

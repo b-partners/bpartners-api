@@ -65,6 +65,13 @@ task generateTsClient(type: org.openapitools.generator.gradle.plugin.tasks.Gener
     generatorName = "typescript-axios"
     inputSpec = "$rootDir/doc/api.yml".toString()
     outputDir = "$buildDir/gen-ts".toString()
+    additionalProperties = [
+            withSeparateModelsAndApi : true,
+            apiPackage : "api",
+            modelPackage : "models",
+            npmName : "bpartners-client",
+            npmVersion: project.getProperty("args")
+    ]
 }
 task publishJavaClientToMavenLocal(type: Exec, dependsOn: generateJavaClient) {
     if (org.apache.tools.ant.taskdefs.condition.Os.isFamily(org.apache.tools.ant.taskdefs.condition.Os.FAMILY_WINDOWS)) {

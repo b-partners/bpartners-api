@@ -24,7 +24,7 @@ jobs:
         run: |
           if ${{ github.github.event.inputs.commitSHA != null }}; then
             echo "commitSHA=${{ github.event.inputs.commitSHA }}" >> $GITHUB_ENV
-          elif ${{ github.event.inputs.commitSHA == null }}; then
+          else
             echo "commitSHA=${{ github.sha }}" >> $GITHUB_ENV
           fi
 
@@ -47,6 +47,7 @@ jobs:
       - name: Prepare artifact to upload
         run: |
           cd build/gen-ts/
+          sed -i 's!"https://api-preprod.bpartners.app"!(process.env.REACT_APP_BPARTNERS_API_URL || '')!g' base.ts
           npm config set always-auth true
           npm install
           npm publish

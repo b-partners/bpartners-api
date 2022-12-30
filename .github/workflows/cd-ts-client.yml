@@ -40,9 +40,9 @@ jobs:
           rootdir: ''
           workdir: ''
 
-      - run: sh ./initAWS.sh ${{ secrets.AWS_ACCESS_KEY_ID }} ${{ secrets.AWS_SECRET_ACCESS_KEY }} ${{ secrets.AWS_REGION }}
+      - run: sh ./.shell/initAWS.sh ${{ secrets.AWS_ACCESS_KEY_ID }} ${{ secrets.AWS_SECRET_ACCESS_KEY }} ${{ secrets.AWS_REGION }}
 
-      - run: sh ./initNpmrc.sh bpartners-store npm-bpartners-app 688605879718 eu-west-3
+      - run: sh ./.shell/initNpmrc.sh bpartners-store npm-bpartners-app 688605879718 eu-west-3
 
       - name: Prepare artifact to upload
         run: |

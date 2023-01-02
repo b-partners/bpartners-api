@@ -54,6 +54,7 @@ public class SwanAccount {
     return statusInfo;
   }
 
+  @NoArgsConstructor
   @AllArgsConstructor
   @Builder
   public static class StatusInfo {

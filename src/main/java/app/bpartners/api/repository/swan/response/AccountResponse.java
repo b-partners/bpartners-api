@@ -1,17 +1,19 @@
 package app.bpartners.api.repository.swan.response;
 
 
-import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.repository.swan.model.SwanAccount;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
-import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
+import static app.bpartners.api.model.mapper.AccountMapper.OPENED_STATUS;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -24,8 +26,8 @@ public class AccountResponse {
   @AllArgsConstructor
   @Builder
   public static class Data {
-    private Accounts accounts;
     private static final String JSON_PROPERTY_ACCOUNTS = "accounts";
+    private Accounts accounts;
 
     @JsonProperty(JSON_PROPERTY_ACCOUNTS)
     @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
@@ -38,28 +40,44 @@ public class AccountResponse {
   @AllArgsConstructor
   @Builder
   public static class Accounts {
-    private List<Edge> edges;
     private static final String JSON_PROPERTY_EDGES = "edges";
+    private List<Edge> edges;
 
     @JsonProperty(JSON_PROPERTY_EDGES)
     @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
     public List<Edge> getEdges() {
-      if (edges.size() > 1) {
-        throw new NotImplementedException("One user with one account is supported for "
-            + "now");
-      } else if (edges.isEmpty()) {
-        throw new ApiException(SERVER_EXCEPTION, "No account was fetched");
+      List<Edge> edgeList = new ArrayList<>(edges);
+      if (edgeList.isEmpty()) {
+        throw new NotImplementedException("One user should have one active account");
       }
-      return edges;
+      Edge result = removeFirstActiveAccount(edgeList);
+      boolean otherAccountsClosed = edgeList.stream()
+          .noneMatch(edge -> edge.getNode().getStatusInfo().getStatus().equals(OPENED_STATUS));
+      if (!otherAccountsClosed) {
+        throw new NotImplementedException("One user with one active account is supported for now");
+      }
+      return List.of(result);
+    }
+
+    private Edge removeFirstActiveAccount(List<Edge> edgeList) {
+      Optional<Edge> optionalActiveAccount = edgeList.stream()
+          .filter(edge -> edge.getNode().getStatusInfo().getStatus().equals(OPENED_STATUS))
+          .findFirst();
+      if (optionalActiveAccount.isEmpty()) {
+        throw new NotImplementedException("One user should have one active account");
+      }
+      edgeList.remove(optionalActiveAccount.get());
+      return optionalActiveAccount.get();
     }
   }
 
   @NoArgsConstructor
   @AllArgsConstructor
   @Builder
+  @ToString
   public static class Edge {
-    private SwanAccount node;
     private static final String JSON_PROPERTY_SWAN_ACCOUNT = "node";
+    private SwanAccount node;
 
     @JsonProperty(JSON_PROPERTY_SWAN_ACCOUNT)
     @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)

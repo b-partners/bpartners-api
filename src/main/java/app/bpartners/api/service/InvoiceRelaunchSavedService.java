@@ -8,10 +8,11 @@ import app.bpartners.api.service.utils.InvoicePdfUtils;
 import java.io.IOException;
 import java.util.function.Consumer;
 import javax.mail.MessagingException;
-import javax.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 
 import static app.bpartners.api.endpoint.rest.model.FileType.LOGO;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
@@ -27,7 +28,7 @@ public class InvoiceRelaunchSavedService implements Consumer<InvoiceRelaunchSave
   private final FileService fileService;
   private final InvoicePdfUtils pdfUtils = new InvoicePdfUtils();
 
-  @Transactional
+  @Transactional(isolation = Isolation.SERIALIZABLE)
   @Override
   public void accept(InvoiceRelaunchSaved invoiceRelaunchSaved) {
     String recipient = invoiceRelaunchSaved.getRecipient();

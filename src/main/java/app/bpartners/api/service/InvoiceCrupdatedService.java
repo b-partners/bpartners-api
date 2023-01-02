@@ -5,9 +5,10 @@ import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.Invoice;
 import app.bpartners.api.service.utils.InvoicePdfUtils;
 import java.util.function.Consumer;
-import javax.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @AllArgsConstructor
@@ -16,7 +17,7 @@ public class InvoiceCrupdatedService implements Consumer<InvoiceCrupdated> {
   public static final String DRAFT_TEMPLATE = "draft";
   private final InvoiceService invoiceService;
 
-  @Transactional
+  @Transactional(isolation = Isolation.SERIALIZABLE)
   @Override
   public void accept(InvoiceCrupdated invoiceCrupdated) {
     InvoicePdfUtils pdfUtils = new InvoicePdfUtils();

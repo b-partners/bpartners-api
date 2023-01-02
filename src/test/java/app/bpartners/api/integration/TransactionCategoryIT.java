@@ -26,7 +26,10 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -52,6 +55,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @Testcontainers
 @ContextConfiguration(initializers = TransactionCategoryIT.ContextInitializer.class)
 @AutoConfigureMockMvc
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class TransactionCategoryIT {
   @MockBean
   private SentryConf sentryConf;
@@ -107,11 +111,11 @@ class TransactionCategoryIT {
   CreateTransactionCategory otherIncomeTransactionCategory() {
     return new CreateTransactionCategory()
         .type("Autres produits")
-        .vat(0)
+        .vat(1960)
         .comment("Don de l'Etat");
   }
 
-
+  @Order(3)
   @Test
   void read_transaction_categories_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
@@ -132,6 +136,7 @@ class TransactionCategoryIT {
     assertTrue(actualAll.containsAll(actualOutcome));
   }
 
+  @Order(4)
   @Test
   void count_transaction_categories_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
@@ -148,6 +153,7 @@ class TransactionCategoryIT {
     assertTrue(actualAll.stream().noneMatch(e -> e.getCount() != 0L));
   }
 
+  @Order(1)
   @Test
   void create_transaction_categories_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
@@ -167,6 +173,7 @@ class TransactionCategoryIT {
     assertEquals(actualOther.get(0).getComment(), otherIncomeTransactionCategory().getComment());
   }
 
+  @Order(2)
   @Test
   void create_transaction_categories_ko() {
     ApiClient joeDoeClient = anApiClient();

@@ -9,13 +9,14 @@ import lombok.NoArgsConstructor;
 
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@Builder(toBuilder = true)
 public class SwanAccount {
   private String id;
   private String name;
   private String iban;
   private String bic;
   private Balances balances;
+  private StatusInfo statusInfo;
 
   @JsonProperty("id")
   @JsonInclude(JsonInclude.Include.USE_DEFAULTS)
@@ -45,6 +46,24 @@ public class SwanAccount {
   @JsonInclude(JsonInclude.Include.USE_DEFAULTS)
   public Balances getBalances() {
     return balances;
+  }
+
+  @JsonProperty("statusInfo")
+  @JsonInclude(JsonInclude.Include.USE_DEFAULTS)
+  public StatusInfo getStatusInfo() {
+    return statusInfo;
+  }
+
+  @AllArgsConstructor
+  @Builder
+  public static class StatusInfo {
+    private String status;
+
+    @JsonProperty("status")
+    @JsonInclude(JsonInclude.Include.USE_DEFAULTS)
+    public String getStatus() {
+      return status;
+    }
   }
 
   @NoArgsConstructor

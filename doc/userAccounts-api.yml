@@ -232,6 +232,7 @@ operations:
           required: true
       responses:
         200:
+          description: The legal files
           content:
             application/json:
               schema:
@@ -269,6 +270,7 @@ operations:
           required: true
       responses:
         200:
+          description: The approved legal files
           content:
             application/json:
               schema:
@@ -353,7 +355,16 @@ components:
           type: string
         BIC:
           type: string
-
+        status:
+          $ref: '#/components/schemas/AccountStatus'
+    AccountStatus:
+      type: string
+      enum:
+        - OPENED
+        - CLOSED
+        - CLOSING
+        - SUSPENDED
+        - UNKNOWN
     AccountHolder:
       type: object
       properties:

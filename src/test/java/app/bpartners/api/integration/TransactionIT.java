@@ -107,7 +107,7 @@ class TransactionIT {
 
   TransactionsSummary transactionsSummary1() {
     return new TransactionsSummary()
-        .year(2022)
+        .year(LocalDate.now().getYear())
         .summary(List.of(month1(), month2()));
   }
 

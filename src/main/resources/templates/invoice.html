@@ -1,13 +1,14 @@
+<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>Invoice</title>
     <style>
         body {
-            margin: 0 20px;
-            padding: 0;
             box-sizing: border-box;
             font-size: 10px;
             font-family: Helvetica, serif;
+            padding: 0;
+            margin: 0;
         }
 
         .table-head {
@@ -100,6 +101,35 @@
             margin-top: 12px;
             margin-bottom: 12px;
         }
+
+        .main-table tbody > * {
+            page-break-after: auto;
+            page-break-before: auto;
+        }
+
+        .no-break-inside {
+            page-break-inside: avoid;
+        }
+    </style>
+    <style>
+        #footer {
+            display: block;
+            position: running(footer);
+            width: 100%;
+        }
+
+        #content {
+            page-break-inside: auto;
+        }
+
+        @page {
+            size: A4;
+            margin-top: 30px;
+            margin-bottom: 190px;
+            @bottom-center {
+                content: element(footer)
+            }
+        }
     </style>
 </head>
 <body>
@@ -173,79 +203,7 @@
         </tr>
     </table>
 </header>
-<section>
-    <table style="margin: 10px 0px 20px 0px" class="main-table">
-        <thead class="text-center">
-        <th style="width: 150px">Description</th>
-        <th>Quantité</th>
-        <th>Prix unitaire</th>
-        <th>TVA</th>
-        <th>Montant HT</th>
-        <th>Montant TTC</th>
-        </thead>
-        <tbody th:if="${invoice.products != null}">
-        <th:block th:each="product : ${invoice.products}">
-            <tr>
-                <td class="text-left" style="width: 150px"><span
-                        th:text="${product.description}"></span>
-                </td>
-                <td class="text-center"><span th:text="${product.quantity}"></span></td>
-                <td class="text-center space-letter"><span
-                        th:text="${#numbers.formatDecimal(product.unitPrice.getCentsAsDecimal(),1,2)}"></span>
-                    €
-                </td>
-                <td class="text-center space-letter"><span
-                        th:text="${#numbers.formatDecimal(product.vatPercent.getCentsAsDecimal(),1,2)}"></span>%
-                </td>
-                <td class="text-center space-letter"><span
-                        th:text="${#numbers.formatDecimal(product.totalWithoutVat.getCentsAsDecimal(),1,2)}"></span>
-                    €
-                </td>
-                <td class="text-center space-letter"><span
-                        th:text="${#numbers.formatDecimal(product.totalPriceWithVat.getCentsAsDecimal(),1,2)}"></span>
-                    €
-                </td>
-            </tr>
-        </th:block>
-        </tbody>
-    </table>
-    <div class="amount-section">
-        <div>
-            <p><strong>Total HT</strong> : <span
-                    th:text="${#numbers.formatDecimal(invoice.totalPriceWithoutVat.getCentsAsDecimal(), 1,2)}"></span>
-                €
-            </p>
-            <p><strong>Total TVA</strong> : <span
-                    th:text="${#numbers.formatDecimal(invoice.totalVat.getCentsAsDecimal(), 1,2)}"></span>
-                €</p>
-            <p><strong>Total TTC</strong> : <span
-                    th:text="${#numbers.formatDecimal(invoice.totalPriceWithVat.getCentsAsDecimal(),1,2)}"></span>
-                €
-            </p>
-        </div>
-    </div>
-</section>
-<footer>
-    <p><strong>Bien à vous et merci pour votre confiance.</strong></p>
-    <p><span class="muted">
-            La facture est payable à réception en scannant le QR code ou en cliquant sur le lien.
-           Sinon, vous avez la possibilité de faire un virement classique avec nos
-           coordonnées ci-dessous. <br/>
-            Des pénalités correspondant à trois fois le taux de l’intérêt légal seront applicables en
-            l’absence ou en cas de retard de paiement. Les pénalités de
-            retard sont exigibles sans qu'un rappel soit nécessaire. Une indemnité forfaitaire de 40 €
-            pour frais de recouvrement sera appliquée en cas de
-            retard de paiement conformément aux articles L 441-3 et L 441-6 du code de commerce.
-            Pas d'escompte en cas de paiement anticipé.
-        </span></p>
-    <div>
-        <h3>Nos coordonnées bancaires</h3>
-        <ul style="margin: 10px">
-            <li>Nom du compte : <span th:text="${invoice.account.name}"></span></li>
-            <li>IBAN : <span th:text="${invoice.account.iban}"></span></li>
-            <li>BIC : <span th:text="${invoice.account.bic}"></span></li>
-        </ul>
-    </div>
+<div id="footer">
     <div style="border-bottom: 1px solid black"></div>
     <div class="footer-info" style="font-size: 9px">
         <div class="content-left">
@@ -260,6 +218,82 @@
             <p>Numéro TVA : <span th:text="${accountHolder.tvaNumber}"></span></p>
         </div>
     </div>
-</footer>
+</div>
+<div id="content">
+    <section>
+        <table style="margin: 10px 0px 20px 0px; page-break-inside:auto;" class="main-table">
+            <thead class="text-center">
+            <th style="width: 150px">Description</th>
+            <th>Quantité</th>
+            <th>Prix unitaire</th>
+            <th>TVA</th>
+            <th>Montant HT</th>
+            <th>Montant TTC</th>
+            </thead>
+            <tbody th:if="${invoice.products != null}">
+            <th:block th:each="product : ${invoice.products}">
+                <tr>
+                    <td class="text-left" style="width: 150px"><span
+                            th:text="${product.description}"></span>
+                    </td>
+                    <td class="text-center"><span th:text="${product.quantity}"></span></td>
+                    <td class="text-center space-letter"><span
+                            th:text="${#numbers.formatDecimal(product.unitPrice.getCentsAsDecimal(),1,2)}"></span>
+                        €
+                    </td>
+                    <td class="text-center space-letter"><span
+                            th:text="${#numbers.formatDecimal(product.vatPercent.getCentsAsDecimal(),1,2)}"></span>%
+                    </td>
+                    <td class="text-center space-letter"><span
+                            th:text="${#numbers.formatDecimal(product.totalWithoutVat.getCentsAsDecimal(),1,2)}"></span>
+                        €
+                    </td>
+                    <td class="text-center space-letter"><span
+                            th:text="${#numbers.formatDecimal(product.totalPriceWithVat.getCentsAsDecimal(),1,2)}"></span>
+                        €
+                    </td>
+                </tr>
+            </th:block>
+            </tbody>
+        </table>
+        <div class="amount-section no-break-inside">
+            <div>
+                <p><strong>Total HT</strong> : <span
+                        th:text="${#numbers.formatDecimal(invoice.totalPriceWithoutVat.getCentsAsDecimal(), 1,2)}"></span>
+                    €
+                </p>
+                <p><strong>Total TVA</strong> : <span
+                        th:text="${#numbers.formatDecimal(invoice.totalVat.getCentsAsDecimal(), 1,2)}"></span>
+                    €</p>
+                <p><strong>Total TTC</strong> : <span
+                        th:text="${#numbers.formatDecimal(invoice.totalPriceWithVat.getCentsAsDecimal(),1,2)}"></span>
+                    €
+                </p>
+            </div>
+        </div>
+        <div style="width: 100%;" class="no-break-inside">
+            <p><strong>Bien à vous et merci pour votre confiance.</strong></p>
+            <p><span class="muted">
+            La facture est payable à réception en scannant le QR code ou en cliquant sur le lien.
+           Sinon, vous avez la possibilité de faire un virement classique avec nos
+           coordonnées ci-dessous. <br/>
+            Des pénalités correspondant à trois fois le taux de l’intérêt légal seront applicables en
+            l’absence ou en cas de retard de paiement. Les pénalités de
+            retard sont exigibles sans qu'un rappel soit nécessaire. Une indemnité forfaitaire de 40 €
+            pour frais de recouvrement sera appliquée en cas de
+            retard de paiement conformément aux articles L 441-3 et L 441-6 du code de commerce.
+            Pas d'escompte en cas de paiement anticipé.
+        </span></p>
+            <div>
+                <h3>Nos coordonnées bancaires</h3>
+                <ul style="margin: 10px">
+                    <li>Nom du compte : <span th:text="${invoice.account.name}"></span></li>
+                    <li>IBAN : <span th:text="${invoice.account.iban}"></span></li>
+                    <li>BIC : <span th:text="${invoice.account.bic}"></span></li>
+                </ul>
+            </div>
+        </div>
+    </section>
+</div>
 </body>
 </html>

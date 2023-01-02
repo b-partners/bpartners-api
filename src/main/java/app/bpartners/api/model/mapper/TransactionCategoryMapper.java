@@ -36,8 +36,10 @@ public class TransactionCategoryMapper {
     HTransactionCategoryTemplate categoryTemplate =
         templateJpaRepository.getById(entity.getIdCategoryTemplate());
     domain.setTransactionType(categoryTemplate.getTransactionType());
-    domain.setType(categoryTemplate.getType());
-    domain.setVat(parseFraction(categoryTemplate.getVat()));
+    if (!domain.isOther()) {
+      domain.setType(categoryTemplate.getType());
+      domain.setVat(parseFraction(categoryTemplate.getVat()));
+    }
     domain.setDescription(categoryTemplate.getDescription());
     domain.setOther(categoryTemplate.isOther());
     //Since the count is not used during the creation or in singleton, leave this comment

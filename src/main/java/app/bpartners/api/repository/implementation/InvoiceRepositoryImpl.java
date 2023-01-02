@@ -27,7 +27,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.apfloat.Aprational;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -40,7 +39,6 @@ import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 import static app.bpartners.api.service.utils.FractionUtils.toAprational;
 import static org.springframework.data.domain.Sort.Direction.DESC;
 
-@Slf4j
 @Repository
 @AllArgsConstructor
 public class InvoiceRepositoryImpl implements InvoiceRepository {

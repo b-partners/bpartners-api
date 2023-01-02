@@ -47,6 +47,7 @@ public class HInvoice implements Serializable {
   @Enumerated(EnumType.STRING)
   private InvoiceStatus status;
   @CreationTimestamp
+  @Column(updatable = false)
   private Instant createdDatetime;
   private Instant updatedAt;
   private boolean toBeRelaunched;

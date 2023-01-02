@@ -457,25 +457,32 @@ class InvoiceIT {
     assertEquals(expectedInitializedDraft()
             .ref("DRAFT-" + draftRef)
             .fileId(actualDraft.getFileId())
-            .createdAt(actualDraft.getCreatedAt()),
+            .createdAt(actualDraft.getCreatedAt())
+            .updatedAt(actualDraft.getUpdatedAt()),
         actualDraft);
     assertNotNull(actualDraft.getFileId());
     assertEquals(expectedDraft()
             .fileId(actualUpdatedDraft.getFileId())
-            .createdAt(actualUpdatedDraft.getCreatedAt()),
+            .createdAt(actualUpdatedDraft.getCreatedAt())
+            .updatedAt(actualUpdatedDraft.getUpdatedAt()),
         actualUpdatedDraft);
+    assertNotNull(actualUpdatedDraft.getUpdatedAt());
     assertEquals(actualDraft.getFileId(), actualUpdatedDraft.getFileId());
     assertEquals(expectedConfirmed()
             .id(actualConfirmed.getId())
-            .fileId(actualConfirmed.getFileId()),
+            .fileId(actualConfirmed.getFileId())
+            .updatedAt(actualConfirmed.getUpdatedAt()),
         actualConfirmed.createdAt(null));
     assertNotNull(actualConfirmed.getFileId());
     assertNotEquals(INVOICE4_ID, actualConfirmed.getId());
+    assertNotNull(actualConfirmed.getUpdatedAt());
     assertEquals(expectedPaid()
         .fileId(actualPaid.getFileId())
         .id(actualPaid.getId())
-        .createdAt(actualPaid.getCreatedAt()), actualPaid);
+        .createdAt(actualPaid.getCreatedAt())
+        .updatedAt(actualPaid.getUpdatedAt()), actualPaid);
     assertNotNull(actualPaid.getFileId());
+    assertNotNull(actualPaid.getUpdatedAt());
     assertEquals(actualConfirmed.getFileId(), actualPaid.getFileId());
     assertTrue(actualUpdatedDraft.getRef().contains(DRAFT_REF_PREFIX));
     assertFalse(actualConfirmed.getRef().contains(DRAFT_REF_PREFIX));

@@ -126,6 +126,7 @@ public class InvoiceMapper {
         .idAccount(domain.getAccount().getId())
         .sendingDate(domain.getSendingDate())
         .toPayAt(domain.getToPayAt())
+        .updatedAt(Instant.now())
         .createdDatetime(createdDatetime)
         .status(domain.getStatus())
         .toBeRelaunched(domain.isToBeRelaunched())

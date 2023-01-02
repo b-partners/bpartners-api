@@ -22,7 +22,6 @@ import app.bpartners.api.repository.swan.TransactionSwanRepository;
 import app.bpartners.api.repository.swan.UserSwanRepository;
 import java.time.LocalDate;
 import java.util.List;
-import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -127,8 +126,7 @@ class TransactionIT {
     ApiClient joeDoeClient = anApiClient();
     PayingApi api = new PayingApi(joeDoeClient);
 
-    List<Transaction> actual = api.getTransactions(JOE_DOE_ACCOUNT_ID);
-
+    List<Transaction> actual = api.getTransactions(JOE_DOE_ACCOUNT_ID, null, null);
     assertEquals(3, actual.size());
     assertTrue(actual.contains(restTransaction1()));
     assertTrue(actual.contains(restTransaction2()));

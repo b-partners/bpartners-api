@@ -1,0 +1,52 @@
+name: CD typescript client
+
+on:
+  push:
+    branches:
+      - 'dev'
+      - 'prod'
+      - 'preprod'
+  workflow_dispatch:
+    inputs:
+      commitSHA:
+        type: string
+        required: true
+
+jobs:
+  cd-ts-client:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Put commitSHA into GITHUB_ENV
+        run: |
+          if ${{ github.github.event.inputs.commitSHA != null }}; then
+            echo "commitSHA=${{ github.event.inputs.commitSHA }}" >> $GITHUB_ENV
+          elif ${{ github.event.inputs.commitSHA == null }}; then
+            echo "commitSHA=${{ github.sha }}" >> $GITHUB_ENV
+          fi
+
+      - name: Generate typescript client
+        run: ./gradlew generateTsClient -Pargs=${{ env.commitSHA }}
+
+      - name: install-aws-cli
+        uses: unfor19/install-aws-cli-action@v1.0.3
+        with:
+          version: 2
+          verbose: false
+          arch: amd64
+          rootdir: ''
+          workdir: ''
+
+      - run: sh ./.shell/initAWS.sh ${{ secrets.AWS_ACCESS_KEY_ID }} ${{ secrets.AWS_SECRET_ACCESS_KEY }} ${{ secrets.AWS_REGION }}
+
+      - run: sh ./.shell/initNpmrc.sh bpartners-store npm-bpartners-app 688605879718 eu-west-3
+
+      - name: Prepare artifact to upload
+        run: |
+          cd build/gen-ts/
+          npm config set always-auth true
+          npm install
+          npm publish

@@ -4,7 +4,7 @@ import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.repository.swan.AccountHolderSwanRepository;
 import app.bpartners.api.repository.swan.SwanApi;
 import app.bpartners.api.repository.swan.SwanCustomApi;
-import app.bpartners.api.repository.swan.model.AccountHolder;
+import app.bpartners.api.repository.swan.model.SwanAccountHolder;
 import app.bpartners.api.repository.swan.response.AccountHolderResponse;
 import java.util.List;
 import lombok.AllArgsConstructor;
@@ -27,14 +27,14 @@ public class AccountHolderSwanRepositoryImpl implements AccountHolderSwanReposit
           + "{ addressLine1 city country postalCode } verificationStatus } } }}\"}";
 
   @Override
-  public List<AccountHolder> findAllByAccountId(String accountId) {
+  public List<SwanAccountHolder> findAllByAccountId(String accountId) {
     return List.of(
         swanApi.getData(AccountHolderResponse.class, QUERY).getData().getAccountHolders()
             .getEdges().get(0).getNode());
   }
 
   @Override
-  public List<AccountHolder> findAllByBearerAndAccountId(String bearer, String accountId) {
+  public List<SwanAccountHolder> findAllByBearerAndAccountId(String bearer, String accountId) {
     return List.of(
         swanCustomApi.getData(AccountHolderResponse.class, QUERY, bearer).getData()
             .getAccountHolders()
@@ -42,8 +42,8 @@ public class AccountHolderSwanRepositoryImpl implements AccountHolderSwanReposit
   }
 
   @Override
-  public AccountHolder getById(String id) {
-    AccountHolder accountHolder =
+  public SwanAccountHolder getById(String id) {
+    SwanAccountHolder accountHolder =
         swanApi.getData(AccountHolderResponse.class, QUERY).getData().getAccountHolders()
             .getEdges().get(0).getNode();
     if (!accountHolder.getId().equals(id)) {

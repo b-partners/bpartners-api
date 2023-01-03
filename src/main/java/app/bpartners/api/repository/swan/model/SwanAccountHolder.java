@@ -8,8 +8,8 @@ import lombok.NoArgsConstructor;
 
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
-public class AccountHolder {
+@Builder(toBuilder = true)
+public class SwanAccountHolder {
   private String id;
   private String verificationStatus;
   private Info info;

@@ -32,7 +32,7 @@ import app.bpartners.api.repository.swan.AccountSwanRepository;
 import app.bpartners.api.repository.swan.OnboardingSwanRepository;
 import app.bpartners.api.repository.swan.TransactionSwanRepository;
 import app.bpartners.api.repository.swan.UserSwanRepository;
-import app.bpartners.api.repository.swan.model.AccountHolder;
+import app.bpartners.api.repository.swan.model.SwanAccountHolder;
 import app.bpartners.api.repository.swan.model.SwanAccount;
 import app.bpartners.api.repository.swan.model.SwanUser;
 import app.bpartners.api.repository.swan.model.Transaction;
@@ -189,17 +189,17 @@ public class TestUtils {
         .build();
   }
 
-  public static AccountHolder joeDoeSwanAccountHolder() {
-    return AccountHolder.builder()
+  public static SwanAccountHolder joeDoeSwanAccountHolder() {
+    return SwanAccountHolder.builder()
         .id("b33e6eb0-e262-4596-a91f-20c6a7bfd343")
         .verificationStatus(VERIFIED_STATUS)
-        .info(AccountHolder.Info.builder()
+        .info(SwanAccountHolder.Info.builder()
             .name("NUMER")
             .businessActivity("businessAndRetail")
             .businessActivityDescription("Phrase détaillée de mon activité")
             .registrationNumber("899067250")
             .build())
-        .residencyAddress(AccountHolder.ResidencyAddress.builder()
+        .residencyAddress(SwanAccountHolder.ResidencyAddress.builder()
             .addressLine1("6 RUE PAUL LANGEVIN")
             .city("FONTENAY-SOUS-BOIS")
             .country("FRA")

@@ -94,7 +94,7 @@ class LegalFileIT {
 
     List<LegalFile> actual = api.getLegalFiles(JOE_DOE_ID);
 
-    assertEquals(3, actual.size());
+    assertEquals(4, actual.size());
     assertTrue(actual.contains(legalFile1().toBeConfirmed(true)));
   }
 

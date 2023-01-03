@@ -5,7 +5,7 @@ import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
 import app.bpartners.api.repository.swan.SwanApi;
 import app.bpartners.api.repository.swan.SwanCustomApi;
 import app.bpartners.api.repository.swan.implementation.AccountHolderSwanRepositoryImpl;
-import app.bpartners.api.repository.swan.model.AccountHolder;
+import app.bpartners.api.repository.swan.model.SwanAccountHolder;
 import app.bpartners.api.repository.swan.response.AccountHolderResponse;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -47,7 +47,7 @@ class SwanAccountHolderRepositoryTest {
 
   @Test
   void read_swan_account_holder_by_identifier_ok() {
-    AccountHolder actual =
+    SwanAccountHolder actual =
         accountHolderSwanRepository.getById(SWAN_ACCOUNTHOLDER_ID);
 
     assertNotNull(actual);
@@ -55,7 +55,7 @@ class SwanAccountHolderRepositoryTest {
 
   @Test
   void read_swan_account_holder_by_bearer_and_accountId_ok() {
-    List<AccountHolder> actual =
+    List<SwanAccountHolder> actual =
         accountHolderSwanRepository.findAllByBearerAndAccountId(bearer, JOE_DOE_ACCOUNT_ID);
 
     assertNotNull(actual);
@@ -64,7 +64,7 @@ class SwanAccountHolderRepositoryTest {
 
   @Test
   void read_swan_account_holder_by_accountId_ok() {
-    List<AccountHolder> actual =
+    List<SwanAccountHolder> actual =
         accountHolderSwanRepository.findAllByAccountId(JOE_DOE_ACCOUNT_ID);
 
     assertNotNull(actual);

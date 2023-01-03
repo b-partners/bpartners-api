@@ -20,10 +20,19 @@ import app.bpartners.api.repository.fintecture.FintectureConf;
 import app.bpartners.api.repository.sendinblue.SendinblueConf;
 import app.bpartners.api.repository.swan.AccountHolderSwanRepository;
 import app.bpartners.api.repository.swan.AccountSwanRepository;
+import app.bpartners.api.repository.swan.SwanApi;
+import app.bpartners.api.repository.swan.SwanCustomApi;
 import app.bpartners.api.repository.swan.UserSwanRepository;
+import app.bpartners.api.repository.swan.implementation.AccountHolderSwanRepositoryImpl;
+import app.bpartners.api.repository.swan.model.SwanAccountHolder;
+import app.bpartners.api.repository.swan.response.AccountHolderResponse;
+import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -31,7 +40,10 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
+import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_SWAN_USER_ID;
+import static app.bpartners.api.integration.conf.TestUtils.VERIFIED_STATUS;
+import static app.bpartners.api.integration.conf.TestUtils.assertThrowsApiException;
 import static app.bpartners.api.integration.conf.TestUtils.companyBusinessActivity;
 import static app.bpartners.api.integration.conf.TestUtils.companyInfo;
 import static app.bpartners.api.integration.conf.TestUtils.joeDoeSwanAccountHolder;
@@ -40,14 +52,22 @@ import static app.bpartners.api.integration.conf.TestUtils.setUpAccountSwanRepos
 import static app.bpartners.api.integration.conf.TestUtils.setUpLegalFileRepository;
 import static app.bpartners.api.integration.conf.TestUtils.setUpSwanComponent;
 import static app.bpartners.api.integration.conf.TestUtils.setUpUserSwanRepository;
+import static app.bpartners.api.model.mapper.AccountHolderMapper.NOT_STARTED_STATUS;
+import static app.bpartners.api.model.mapper.AccountHolderMapper.PENDING_STATUS;
+import static app.bpartners.api.model.mapper.AccountHolderMapper.WAITING_FOR_INFORMATION_STATUS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @Testcontainers
 @ContextConfiguration(initializers = AccountHolderIT.ContextInitializer.class)
 @AutoConfigureMockMvc
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class AccountHolderIT {
   @MockBean
   private SentryConf sentryConf;
@@ -71,6 +91,9 @@ class AccountHolderIT {
   private SwanComponent swanComponentMock;
   @MockBean
   private LegalFileRepository legalFileRepositoryMock;
+  private SwanApi swanApiMock;
+  private SwanCustomApi swanCustomApiMock;
+  private AccountHolderSwanRepositoryImpl accountHolderRepository;
 
   private static ApiClient anApiClient() {
     return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN, ContextInitializer.SERVER_PORT);
@@ -104,6 +127,46 @@ class AccountHolderIT {
         .postalCode(joeDoeSwanAccountHolder().getResidencyAddress().getPostalCode());
   }
 
+  public static AccountHolderResponse.Edge verifiedAccountHolder() {
+    SwanAccountHolder swanAccountHolder =
+        joeDoeSwanAccountHolder().toBuilder()
+            .verificationStatus(VERIFIED_STATUS)
+            .build();
+    return AccountHolderResponse.Edge.builder()
+        .node(swanAccountHolder)
+        .build();
+  }
+
+  public static AccountHolderResponse.Edge notStartedAccountHolder() {
+    SwanAccountHolder swanAccountHolder =
+        joeDoeSwanAccountHolder().toBuilder()
+            .verificationStatus(NOT_STARTED_STATUS)
+            .build();
+    return AccountHolderResponse.Edge.builder()
+        .node(swanAccountHolder)
+        .build();
+  }
+
+  public static AccountHolderResponse.Edge pendingAccountHolder() {
+    SwanAccountHolder swanAccountHolder =
+        joeDoeSwanAccountHolder().toBuilder()
+            .verificationStatus(PENDING_STATUS)
+            .build();
+    return AccountHolderResponse.Edge.builder()
+        .node(swanAccountHolder)
+        .build();
+  }
+
+  public static AccountHolderResponse.Edge waitingAccountHolder() {
+    SwanAccountHolder swanAccountHolder =
+        joeDoeSwanAccountHolder().toBuilder()
+            .verificationStatus(WAITING_FOR_INFORMATION_STATUS)
+            .build();
+    return AccountHolderResponse.Edge.builder()
+        .node(swanAccountHolder)
+        .build();
+  }
+
   private static AccountHolder expected() {
     return joeDoeAccountHolder()
         .businessActivities(companyBusinessActivity())
@@ -123,10 +186,13 @@ class AccountHolderIT {
     setUpAccountSwanRepository(accountSwanRepositoryMock);
     setUpAccountHolderSwanRep(accountHolderRepositoryMock);
     setUpLegalFileRepository(legalFileRepositoryMock);
+    swanApiMock = mock(SwanApi.class);
+    accountHolderRepository = new AccountHolderSwanRepositoryImpl(swanApiMock, swanCustomApiMock);
   }
 
+  @Order(1)
   @Test
-  void read_account_holders_ok() throws ApiException {
+  void read_verified_account_holders_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
     UserAccountsApi api = new UserAccountsApi(joeDoeClient);
 
@@ -135,6 +201,78 @@ class AccountHolderIT {
     assertTrue(actual.contains(joeDoeAccountHolder()));
   }
 
+  @Order(1)
+  @Test
+  void read_unverified_account_holders_ko() {
+    setUpSwanApi(swanApiMock,
+        notStartedAccountHolder(),
+        waitingAccountHolder(),
+        pendingAccountHolder());
+    setUpRepositoryMock();
+    ApiClient joeDoeClient = anApiClient();
+    UserAccountsApi api = new UserAccountsApi(joeDoeClient);
+
+    assertThrowsApiException(
+        "{\"type\":\"501 NOT_IMPLEMENTED\","
+            + "\"message\":\"One account can have only one verified account holder\"}",
+        () -> api.getAccountHolders(JOE_DOE_ID, JOE_DOE_ACCOUNT_ID));
+
+  }
+
+  @Order(2)
+  @Test
+  void read_multiple_account_holders_ok() throws ApiException {
+    setUpSwanApi(swanApiMock,
+        verifiedAccountHolder(),
+        notStartedAccountHolder(),
+        pendingAccountHolder(),
+        waitingAccountHolder());
+    setUpRepositoryMock();
+    ApiClient joeDoeClient = anApiClient();
+    UserAccountsApi api = new UserAccountsApi(joeDoeClient);
+
+    List<AccountHolder> actual = api.getAccountHolders(JOE_DOE_ID, JOE_DOE_ACCOUNT_ID);
+
+    assertEquals(1, actual.size());
+    assertEquals(joeDoeAccountHolder(), actual.get(0));
+  }
+
+  @Order(6)
+  @Test
+  void read_multiple_account_holders_ko() {
+    setUpSwanApi(swanApiMock,
+        verifiedAccountHolder(),
+        verifiedAccountHolder(),
+        notStartedAccountHolder(),
+        pendingAccountHolder(),
+        waitingAccountHolder());
+    setUpRepositoryMock();
+    ApiClient joeDoeClient = anApiClient();
+    UserAccountsApi api = new UserAccountsApi(joeDoeClient);
+
+    assertThrowsApiException(
+        "{\"type\":\"501 NOT_IMPLEMENTED\",\"message\":"
+            + "\"One account with one verified account holder is supported for now\"}",
+        () -> api.getAccountHolders(JOE_DOE_ID, JOE_DOE_ACCOUNT_ID));
+
+  }
+
+  @Order(3)
+
+  @Test
+  void read_empty_account_holders_ko() {
+    setUpSwanApi(swanApiMock);
+    setUpRepositoryMock();
+    ApiClient joeDoeClient = anApiClient();
+    UserAccountsApi api = new UserAccountsApi(joeDoeClient);
+
+    assertThrowsApiException(
+        "{\"type\":\"500 INTERNAL_SERVER_ERROR\","
+            + "\"message\":\"One account should have at least one account holder\"}",
+        () -> api.getAccountHolders(JOE_DOE_ID, JOE_DOE_ACCOUNT_ID));
+  }
+
+  @Order(4)
   @Test
   void update_company_info_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
@@ -146,6 +284,7 @@ class AccountHolderIT {
     assertEquals(expected().businessActivities(businessActivityBeforeUpdate()), actual);
   }
 
+  @Order(5)
   @Test
   void update_business_activities_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
@@ -155,6 +294,43 @@ class AccountHolderIT {
         joeDoeAccountHolder().getId(), companyBusinessActivity());
 
     assertEquals(expected(), actual);
+  }
+
+  private void setUpSwanApi(SwanApi swanApi, AccountHolderResponse.Edge... edges) {
+    when(swanApi.getData(eq(AccountHolderResponse.class), any(String.class)))
+        .thenReturn(
+            AccountHolderResponse.builder()
+                .data(
+                    AccountHolderResponse.Data.builder()
+                        .accountHolders(
+                            AccountHolderResponse.AccountHolders.builder()
+                                .edges(new ArrayList<>() {
+                                  {
+                                    this.addAll(List.of(edges));
+                                  }
+                                }).build()
+                        ).build()
+                ).build()
+        );
+  }
+
+
+  private void setUpRepositoryMock() {
+    when(accountHolderRepositoryMock.findAllByBearerAndAccountId(any(String.class),
+        any(String.class)))
+        .thenAnswer(
+            invocation ->
+                accountHolderRepository
+                    .findAllByBearerAndAccountId(invocation.getArgument(0),
+                        invocation.getArgument(1))
+
+        );
+    when(accountHolderRepositoryMock.findAllByAccountId(any(String.class)))
+        .thenAnswer(
+            invocation ->
+                accountHolderRepository
+                    .findAllByAccountId(invocation.getArgument(0))
+        );
   }
 
   static class ContextInitializer extends AbstractContextInitializer {

@@ -12,9 +12,11 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
 
 import static app.bpartners.api.model.mapper.AccountMapper.OPENED_STATUS;
 
+@Slf4j
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -56,6 +58,11 @@ public class AccountResponse {
       if (!otherAccountsClosed) {
         throw new NotImplementedException("One user with one active account is supported for now");
       }
+      if (!edgeList.isEmpty()) {
+        log.warn("Only account." + result.getNode().getId() + " is active "
+            + "but following closed accounts are present : "
+            + otherAccountIds(edgeList));
+      }
       return List.of(result);
     }
 
@@ -68,6 +75,18 @@ public class AccountResponse {
       }
       edgeList.remove(optionalActiveAccount.get());
       return optionalActiveAccount.get();
+    }
+
+    private String otherAccountIds(List<Edge> edges) {
+      StringBuilder builder = new StringBuilder();
+      for (int i = 0; i < edges.size(); i++) {
+        builder.append("account.")
+            .append(edges.get(i).getNode().getId());
+        if (i != edges.size() - 1) {
+          builder.append(", ");
+        }
+      }
+      return builder.toString();
     }
   }
 

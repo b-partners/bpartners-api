@@ -2,16 +2,21 @@ package app.bpartners.api.repository.swan.response;
 
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.exception.NotImplementedException;
-import app.bpartners.api.repository.swan.model.AccountHolder;
+import app.bpartners.api.repository.swan.model.SwanAccountHolder;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
+import static app.bpartners.api.model.mapper.AccountHolderMapper.VERIFIED_STATUS;
 
+@Slf4j
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -49,13 +54,48 @@ public class AccountHolderResponse {
     @JsonProperty(JSON_PROPERTY_EDGES)
     @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
     public List<Edge> getEdges() {
-      if (edges.size() > 1) {
-        throw new NotImplementedException("One account with one account holder is supported for "
-            + "now");
-      } else if (edges.isEmpty()) {
-        throw new ApiException(SERVER_EXCEPTION, "No account holder was fetched");
+      List<Edge> edgeList = new ArrayList<>(edges);
+      if (edges.isEmpty()) {
+        throw new ApiException(SERVER_EXCEPTION,
+            "One account should have at least one account holder");
       }
-      return edges;
+      Edge result = removeFirstVerifiedAccount(edgeList);
+      boolean otherAccountsNotVerified = edgeList.stream()
+          .noneMatch(edge -> edge.getNode().getVerificationStatus().equals(VERIFIED_STATUS));
+      if (!otherAccountsNotVerified) {
+        throw new NotImplementedException(
+            "One account with one verified account holder is supported for now");
+      }
+      if (!edgeList.isEmpty()) {
+        log.warn("Only accountHolder." + result.getNode().getId() + " is verified "
+            + "but following unverified accountHolders are present : "
+            + otherAccountHolderIds(edgeList));
+      }
+      return List.of(result);
+    }
+
+    private Edge removeFirstVerifiedAccount(List<Edge> edgeList) {
+      Optional<Edge> optionalVerified = edgeList.stream()
+          .filter(edge -> edge.getNode().getVerificationStatus().equals(VERIFIED_STATUS))
+          .findFirst();
+      if (optionalVerified.isEmpty()) {
+        throw new NotImplementedException(
+            "One account can have only one verified account holder");
+      }
+      edgeList.remove(optionalVerified.get());
+      return optionalVerified.get();
+    }
+
+    private String otherAccountHolderIds(List<Edge> edges) {
+      StringBuilder builder = new StringBuilder();
+      for (int i = 0; i < edges.size(); i++) {
+        builder.append("accountHolder.")
+            .append(edges.get(i).getNode().getId());
+        if (i != edges.size() - 1) {
+          builder.append(", ");
+        }
+      }
+      return builder.toString();
     }
   }
 
@@ -64,11 +104,11 @@ public class AccountHolderResponse {
   @Builder
   public static class Edge {
     private static final String JSON_PROPERTY_ACCOUNTHOLDER = "node";
-    private AccountHolder node;
+    private SwanAccountHolder node;
 
     @JsonProperty(JSON_PROPERTY_ACCOUNTHOLDER)
     @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
-    public AccountHolder getNode() {
+    public SwanAccountHolder getNode() {
       return node;
     }
   }

@@ -4,6 +4,7 @@ import app.bpartners.api.endpoint.rest.model.VerificationStatus;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.repository.jpa.model.HAccountHolder;
+import app.bpartners.api.repository.swan.model.SwanAccountHolder;
 import org.springframework.stereotype.Component;
 
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
@@ -17,7 +18,7 @@ public class AccountHolderMapper {
   public static final String WAITING_FOR_INFORMATION_STATUS = "WaitingForInformation";
 
   public AccountHolder toDomain(
-      app.bpartners.api.repository.swan.model.AccountHolder accountHolder, HAccountHolder entity) {
+      SwanAccountHolder accountHolder, HAccountHolder entity) {
     return AccountHolder.builder()
         .id(accountHolder.getId())
         .verificationStatus(getVerificationStatus(accountHolder.getVerificationStatus()))

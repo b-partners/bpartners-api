@@ -1,12 +1,12 @@
 package app.bpartners.api.repository.swan;
 
-import app.bpartners.api.repository.swan.model.AccountHolder;
+import app.bpartners.api.repository.swan.model.SwanAccountHolder;
 import java.util.List;
 
 public interface AccountHolderSwanRepository {
-  List<AccountHolder> findAllByAccountId(String accountId);
+  List<SwanAccountHolder> findAllByAccountId(String accountId);
 
-  List<AccountHolder> findAllByBearerAndAccountId(String bearer, String accountId);
+  List<SwanAccountHolder> findAllByBearerAndAccountId(String bearer, String accountId);
 
-  AccountHolder getById(String id);
+  SwanAccountHolder getById(String id);
 }

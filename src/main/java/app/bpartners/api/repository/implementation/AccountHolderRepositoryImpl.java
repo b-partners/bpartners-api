@@ -7,6 +7,7 @@ import app.bpartners.api.repository.AccountHolderRepository;
 import app.bpartners.api.repository.jpa.AccountHolderJpaRepository;
 import app.bpartners.api.repository.jpa.model.HAccountHolder;
 import app.bpartners.api.repository.swan.AccountHolderSwanRepository;
+import app.bpartners.api.repository.swan.model.SwanAccountHolder;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -36,7 +37,7 @@ public class AccountHolderRepositoryImpl implements AccountHolderRepository {
 
   @Override
   public AccountHolder save(String accountId, String accountHolderId, CompanyInfo companyInfo) {
-    app.bpartners.api.repository.swan.model.AccountHolder swanAccountHolder =
+    SwanAccountHolder swanAccountHolder =
         swanRepository.getById(accountHolderId);
     HAccountHolder entity = getOrCreateAccountHolderEntity(accountId, swanAccountHolder);
     if (companyInfo.getPhone() != null) {
@@ -56,7 +57,7 @@ public class AccountHolderRepositoryImpl implements AccountHolderRepository {
 
   public HAccountHolder getOrCreateAccountHolderEntity(
       String accountId,
-      app.bpartners.api.repository.swan.model.AccountHolder swanAccountHolder) {
+      SwanAccountHolder swanAccountHolder) {
     Optional<HAccountHolder> optional = jpaRepository.findByAccountId(accountId);
     HAccountHolder entity;
     if (optional.isEmpty()) {
@@ -76,14 +77,13 @@ public class AccountHolderRepositoryImpl implements AccountHolderRepository {
 
   @Override
   public AccountHolder getByIdAndAccountId(String id, String accountId) {
-    app.bpartners.api.repository.swan.model.AccountHolder swanAccountHolder =
+    SwanAccountHolder swanAccountHolder =
         swanRepository.getById(id);
     return getOrPersistAccountHolder(accountId, swanAccountHolder);
   }
 
   public AccountHolder getOrPersistAccountHolder(
-      String accountId,
-      app.bpartners.api.repository.swan.model.AccountHolder swanAccountHolder) {
+      String accountId, SwanAccountHolder swanAccountHolder) {
     HAccountHolder entity = getOrCreateAccountHolderEntity(accountId, swanAccountHolder);
     return mapper.toDomain(swanAccountHolder, entity);
   }

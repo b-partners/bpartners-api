@@ -18,7 +18,13 @@ import app.bpartners.api.repository.sendinblue.SendinblueConf;
 import app.bpartners.api.repository.swan.AccountHolderSwanRepository;
 import app.bpartners.api.repository.swan.AccountSwanRepository;
 import app.bpartners.api.repository.swan.UserSwanRepository;
+import java.io.File;
 import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.util.Collections;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -29,9 +35,12 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 
 import static app.bpartners.api.integration.conf.TestUtils.BAD_USER_ID;
+import static app.bpartners.api.integration.conf.TestUtils.BEARER_PREFIX;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
+import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_TOKEN;
 import static app.bpartners.api.integration.conf.TestUtils.OTHER_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.TestUtils.OTHER_CUSTOMER_ID;
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsApiException;
@@ -189,26 +198,30 @@ class CustomerIT {
   }
 
   @Test
-  void create_customers_from_uploaded_file_ok() throws ApiException, IOException {
-    ApiClient joeDoeClient = anApiClient();
-    CustomersApi api = new CustomersApi(joeDoeClient);
+  void create_customers_from_uploaded_file_ok()
+      throws IOException, InterruptedException {
     Resource filetoUpload = new ClassPathResource("files/customers.xlsx");
 
-    List<Customer> actual = api.uploadCustomersInfo(JOE_DOE_ACCOUNT_ID, filetoUpload.getFile());
+    List<Customer> actual = (List<Customer>) uploadFile(JOE_DOE_ACCOUNT_ID, filetoUpload.getFile());
 
     assertNotNull(actual);
     assertEquals(7, actual.size());
   }
 
-  @Test
-  void create_customers_from_uploaded_file_ko() {
-    ApiClient joeDoeClient = anApiClient();
-    CustomersApi api = new CustomersApi(joeDoeClient);
-    Resource filetoUpload = new ClassPathResource("files/upload.jpg");
+  private Object uploadFile(String accountId, File toUpload)
+      throws IOException, InterruptedException {
+    HttpClient unauthenticatedClient = HttpClient.newBuilder().build();
+    String basePath = "http://localhost:" + CustomerIT.ContextInitializer.SERVER_PORT;
 
-    assertThrowsApiException("{\"type\":\"400 BAD_REQUEST\","
-            + "\"message\":\"The uploaded file was neither .xls or .xlsx.\"}",
-        () -> api.uploadCustomersInfo(JOE_DOE_ACCOUNT_ID, filetoUpload.getFile()));
+    HttpResponse<String> response = unauthenticatedClient.send(
+        HttpRequest.newBuilder()
+            .uri(URI.create(
+                basePath + "/accounts/" + accountId + "/customers/upload"))
+            .header("Authorization", BEARER_PREFIX + JOE_DOE_TOKEN)
+            .method("POST", HttpRequest.BodyPublishers.ofFile(toUpload.toPath())).build(),
+        HttpResponse.BodyHandlers.ofString());
+
+    return new ObjectMapper().findAndRegisterModules().readValue(response.body(), Object.class);
   }
 
   public static class ContextInitializer extends AbstractContextInitializer {

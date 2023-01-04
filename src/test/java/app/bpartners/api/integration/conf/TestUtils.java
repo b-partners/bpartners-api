@@ -32,10 +32,11 @@ import app.bpartners.api.repository.swan.AccountSwanRepository;
 import app.bpartners.api.repository.swan.OnboardingSwanRepository;
 import app.bpartners.api.repository.swan.TransactionSwanRepository;
 import app.bpartners.api.repository.swan.UserSwanRepository;
-import app.bpartners.api.repository.swan.model.SwanAccountHolder;
 import app.bpartners.api.repository.swan.model.SwanAccount;
+import app.bpartners.api.repository.swan.model.SwanAccountHolder;
 import app.bpartners.api.repository.swan.model.SwanUser;
 import app.bpartners.api.repository.swan.model.Transaction;
+import app.bpartners.api.repository.swan.response.AccountResponse;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.URISyntaxException;
@@ -204,6 +205,16 @@ public class TestUtils {
             .city("FONTENAY-SOUS-BOIS")
             .country("FRA")
             .postalCode("94120")
+            .build())
+        .accounts(SwanAccountHolder.Accounts.builder()
+            .edges(List.of(AccountResponse.Edge.builder()
+                .node(SwanAccount.builder()
+                    .id(joeDoeSwanAccount().getId())
+                    .statusInfo(SwanAccount.StatusInfo.builder()
+                        .status(ACCOUNT_OPENED)
+                        .build())
+                    .build())
+                .build()))
             .build())
         .build();
   }

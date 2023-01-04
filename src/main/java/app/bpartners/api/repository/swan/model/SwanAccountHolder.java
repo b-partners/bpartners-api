@@ -1,7 +1,10 @@
 package app.bpartners.api.repository.swan.model;
 
+import app.bpartners.api.model.exception.NotImplementedException;
+import app.bpartners.api.repository.swan.response.AccountResponse;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
@@ -14,6 +17,7 @@ public class SwanAccountHolder {
   private String verificationStatus;
   private Info info;
   private ResidencyAddress residencyAddress;
+  private Accounts accounts;
 
   @JsonProperty("id")
   @JsonInclude(JsonInclude.Include.USE_DEFAULTS)
@@ -25,6 +29,12 @@ public class SwanAccountHolder {
   @JsonInclude(JsonInclude.Include.USE_DEFAULTS)
   public String getVerificationStatus() {
     return verificationStatus;
+  }
+
+  @JsonProperty("accounts")
+  @JsonInclude(JsonInclude.Include.USE_DEFAULTS)
+  public Accounts getAccounts() {
+    return accounts;
   }
 
   @JsonProperty("info")
@@ -104,6 +114,26 @@ public class SwanAccountHolder {
     @JsonInclude(JsonInclude.Include.USE_DEFAULTS)
     public String getPostalCode() {
       return postalCode;
+    }
+  }
+
+  @NoArgsConstructor
+  @AllArgsConstructor
+  @Builder
+  public static class Accounts {
+    private static final String JSON_PROPERTY_EDGES = "edges";
+    private List<AccountResponse.Edge> edges;
+
+    @JsonProperty(JSON_PROPERTY_EDGES)
+    @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+    public List<AccountResponse.Edge> getEdges() {
+      if (edges.isEmpty()) {
+        throw new NotImplementedException("One account holder should own one account");
+      }
+      if (edges.size() > 1) {
+        throw new NotImplementedException("One account holder can only own one account");
+      }
+      return edges;
     }
   }
 }

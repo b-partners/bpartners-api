@@ -62,7 +62,8 @@ public class AccountHolderResponse {
       Edge result = removeFirstVerifiedAccount(edgeList);
       boolean otherAccountsNotVerified = edgeList.stream()
           .noneMatch(edge -> edge.getNode().getVerificationStatus().equals(VERIFIED_STATUS));
-      if (!otherAccountsNotVerified) {
+      if (!otherAccountsNotVerified
+          && result.getNode().getVerificationStatus().equals(VERIFIED_STATUS)) {
         throw new NotImplementedException(
             "One account with one verified account holder is supported for now");
       }
@@ -79,8 +80,12 @@ public class AccountHolderResponse {
           .filter(edge -> edge.getNode().getVerificationStatus().equals(VERIFIED_STATUS))
           .findFirst();
       if (optionalVerified.isEmpty()) {
-        throw new NotImplementedException(
-            "One account can have only one verified account holder");
+        if (edgeList.size() == 1) {
+          return edgeList.get(0);
+        } else {
+          throw new NotImplementedException("Only one unverified account holder is supported for "
+              + "now");
+        }
       }
       edgeList.remove(optionalVerified.get());
       return optionalVerified.get();

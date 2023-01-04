@@ -127,7 +127,7 @@ class AccountHolderIT {
         .postalCode(joeDoeSwanAccountHolder().getResidencyAddress().getPostalCode());
   }
 
-  public static AccountHolderResponse.Edge verifiedAccountHolder() {
+  public static AccountHolderResponse.Edge verifiedAccountholder() {
     SwanAccountHolder swanAccountHolder =
         joeDoeSwanAccountHolder().toBuilder()
             .verificationStatus(VERIFIED_STATUS)
@@ -220,7 +220,7 @@ class AccountHolderIT {
   @Test
   void read_multiple_account_holders_ok() throws ApiException {
     setUpSwanApi(swanApiMock,
-        verifiedAccountHolder(),
+        verifiedAccountholder(),
         notStartedAccountHolder(),
         pendingAccountHolder(),
         waitingAccountHolder());
@@ -238,8 +238,8 @@ class AccountHolderIT {
   @Test
   void read_multiple_account_holders_ko() {
     setUpSwanApi(swanApiMock,
-        verifiedAccountHolder(),
-        verifiedAccountHolder(),
+        verifiedAccountholder(),
+        verifiedAccountholder(),
         notStartedAccountHolder(),
         pendingAccountHolder(),
         waitingAccountHolder());
@@ -249,7 +249,9 @@ class AccountHolderIT {
 
     assertThrowsApiException(
         "{\"type\":\"501 NOT_IMPLEMENTED\",\"message\":"
-            + "\"One account with one verified account holder is supported for now\"}",
+            + "\"One account with one verified account holder is supported for now"
+            + " but following verified account holders are found : accountHolder." +
+            verifiedAccountholder().getNode().getId() + "\"}",
         () -> api.getAccountHolders(JOE_DOE_ID, JOE_DOE_ACCOUNT_ID));
 
   }
@@ -267,7 +269,11 @@ class AccountHolderIT {
 
     assertThrowsApiException(
         "{\"type\":\"501 NOT_IMPLEMENTED\",\"message\":"
-            + "\"Only one unverified account holder is supported for now\"}",
+            + "\"Only one unverified account holder is supported for now"
+            + " but following unverified accountHolders are present : "
+            + "accountHolder.b33e6eb0-e262-4596-a91f-20c6a7bfd343,"
+            + " accountHolder.b33e6eb0-e262-4596-a91f-20c6a7bfd343,"
+            + " accountHolder.b33e6eb0-e262-4596-a91f-20c6a7bfd343" + "\"}",
         () -> api.getAccountHolders(JOE_DOE_ID, JOE_DOE_ACCOUNT_ID));
 
   }

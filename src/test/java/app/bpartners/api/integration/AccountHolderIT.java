@@ -203,20 +203,17 @@ class AccountHolderIT {
 
   @Order(1)
   @Test
-  void read_unverified_account_holders_ko() {
+  void read_unique_unverified_account_holders_ok() throws ApiException {
     setUpSwanApi(swanApiMock,
-        notStartedAccountHolder(),
-        waitingAccountHolder(),
-        pendingAccountHolder());
+        notStartedAccountHolder());
     setUpRepositoryMock();
     ApiClient joeDoeClient = anApiClient();
     UserAccountsApi api = new UserAccountsApi(joeDoeClient);
 
-    assertThrowsApiException(
-        "{\"type\":\"501 NOT_IMPLEMENTED\","
-            + "\"message\":\"One account can have only one verified account holder\"}",
-        () -> api.getAccountHolders(JOE_DOE_ID, JOE_DOE_ACCOUNT_ID));
+    List<AccountHolder> actual = api.getAccountHolders(TestUtils.JOE_DOE_ID, JOE_DOE_ACCOUNT_ID);
 
+    assertTrue(actual.contains(
+        joeDoeAccountHolder().verificationStatus(VerificationStatus.NOT_STARTED)));
   }
 
   @Order(2)
@@ -253,6 +250,24 @@ class AccountHolderIT {
     assertThrowsApiException(
         "{\"type\":\"501 NOT_IMPLEMENTED\",\"message\":"
             + "\"One account with one verified account holder is supported for now\"}",
+        () -> api.getAccountHolders(JOE_DOE_ID, JOE_DOE_ACCOUNT_ID));
+
+  }
+
+  @Order(6)
+  @Test
+  void read_multiple_unverified_account_holders_ko() {
+    setUpSwanApi(swanApiMock,
+        notStartedAccountHolder(),
+        pendingAccountHolder(),
+        waitingAccountHolder());
+    setUpRepositoryMock();
+    ApiClient joeDoeClient = anApiClient();
+    UserAccountsApi api = new UserAccountsApi(joeDoeClient);
+
+    assertThrowsApiException(
+        "{\"type\":\"501 NOT_IMPLEMENTED\",\"message\":"
+            + "\"Only one unverified account holder is supported for now\"}",
         () -> api.getAccountHolders(JOE_DOE_ID, JOE_DOE_ACCOUNT_ID));
 
   }

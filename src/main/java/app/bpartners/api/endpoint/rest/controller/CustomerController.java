@@ -5,7 +5,6 @@ import app.bpartners.api.endpoint.rest.model.CreateCustomer;
 import app.bpartners.api.endpoint.rest.security.model.Principal;
 import app.bpartners.api.model.Customer;
 import app.bpartners.api.service.CustomerService;
-import java.io.File;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
@@ -61,7 +60,7 @@ public class CustomerController {
   public List<app.bpartners.api.endpoint.rest.model.Customer> uploadCustomersInfo(
       @AuthenticationPrincipal Principal principal,
       @PathVariable(name = "accountId") String accountId,
-      @RequestBody File toUpload) {
+      @RequestBody byte[] toUpload) {
     List<Customer> customerTemplates = service.getDataFromFile(toUpload)
         .stream().map(customer -> mapper.toDomain(accountId, customer))
         .collect(Collectors.toUnmodifiableList());
@@ -69,4 +68,5 @@ public class CustomerController {
         .stream().map(mapper::toRest)
         .collect(Collectors.toUnmodifiableList());
   }
+
 }

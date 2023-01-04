@@ -87,8 +87,12 @@ public class CustomerUtils {
           customer.setCity(currentCell.getStringCellValue());
           break;
 
-        default:
+        case 7:
           customer.setCountry(currentCell.getStringCellValue());
+          break;
+
+        default:
+          customer.setComment(currentCell.getStringCellValue());
           break;
       }
       cellIndex++;

@@ -8,6 +8,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
@@ -65,12 +66,16 @@ public class AccountHolderResponse {
       if (!otherAccountsNotVerified
           && result.getNode().getVerificationStatus().equals(VERIFIED_STATUS)) {
         throw new NotImplementedException(
-            "One account with one verified account holder is supported for now");
+            "One account with one verified account holder is supported for now"
+                + " but following verified account holders are found : "
+                + accountHoldersWithId(edgeList.stream()
+                .filter(edge -> edge.getNode().getVerificationStatus().equals(VERIFIED_STATUS))
+                .collect(Collectors.toUnmodifiableList())));
       }
       if (!edgeList.isEmpty()) {
         log.warn("Only accountHolder." + result.getNode().getId() + " is verified "
             + "but following unverified accountHolders are present : "
-            + otherAccountHolderIds(edgeList));
+            + accountHoldersWithId(edgeList));
       }
       return List.of(result);
     }
@@ -84,14 +89,15 @@ public class AccountHolderResponse {
           return edgeList.get(0);
         } else {
           throw new NotImplementedException("Only one unverified account holder is supported for "
-              + "now");
+              + "now but following unverified accountHolders are present : "
+              + accountHoldersWithId(edgeList));
         }
       }
       edgeList.remove(optionalVerified.get());
       return optionalVerified.get();
     }
 
-    private String otherAccountHolderIds(List<Edge> edges) {
+    private String accountHoldersWithId(List<Edge> edges) {
       StringBuilder builder = new StringBuilder();
       for (int i = 0; i < edges.size(); i++) {
         builder.append("accountHolder.")

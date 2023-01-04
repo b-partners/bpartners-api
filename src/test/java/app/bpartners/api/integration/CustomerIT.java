@@ -18,12 +18,15 @@ import app.bpartners.api.repository.sendinblue.SendinblueConf;
 import app.bpartners.api.repository.swan.AccountHolderSwanRepository;
 import app.bpartners.api.repository.swan.AccountSwanRepository;
 import app.bpartners.api.repository.swan.UserSwanRepository;
+import java.io.IOException;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
@@ -34,8 +37,8 @@ import static app.bpartners.api.integration.conf.TestUtils.OTHER_CUSTOMER_ID;
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsApiException;
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsForbiddenException;
 import static app.bpartners.api.integration.conf.TestUtils.customer1;
-import static app.bpartners.api.integration.conf.TestUtils.customerUpdated;
 import static app.bpartners.api.integration.conf.TestUtils.customer2;
+import static app.bpartners.api.integration.conf.TestUtils.customerUpdated;
 import static app.bpartners.api.integration.conf.TestUtils.customerWithSomeNullAttributes;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountHolderSwanRep;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountSwanRepository;
@@ -44,6 +47,7 @@ import static app.bpartners.api.integration.conf.TestUtils.setUpSwanComponent;
 import static app.bpartners.api.integration.conf.TestUtils.setUpUserSwanRepository;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
@@ -182,6 +186,29 @@ class CustomerIT {
             List.of(customerUpdated().id(null).name(null))));
     assertThrowsForbiddenException(
         () -> api.updateCustomers(OTHER_ACCOUNT_ID, List.of(customerUpdated())));
+  }
+
+  @Test
+  void create_customers_from_uploaded_file_ok() throws ApiException, IOException {
+    ApiClient joeDoeClient = anApiClient();
+    CustomersApi api = new CustomersApi(joeDoeClient);
+    Resource filetoUpload = new ClassPathResource("files/customers.xlsx");
+
+    List<Customer> actual = api.uploadCustomersInfo(JOE_DOE_ACCOUNT_ID, filetoUpload.getFile());
+
+    assertNotNull(actual);
+    assertEquals(7, actual.size());
+  }
+
+  @Test
+  void create_customers_from_uploaded_file_ko() {
+    ApiClient joeDoeClient = anApiClient();
+    CustomersApi api = new CustomersApi(joeDoeClient);
+    Resource filetoUpload = new ClassPathResource("files/upload.jpg");
+
+    assertThrowsApiException("{\"type\":\"400 BAD_REQUEST\","
+            + "\"message\":\"The uploaded file was neither .xls or .xlsx.\"}",
+        () -> api.uploadCustomersInfo(JOE_DOE_ACCOUNT_ID, filetoUpload.getFile()));
   }
 
   public static class ContextInitializer extends AbstractContextInitializer {

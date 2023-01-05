@@ -199,6 +199,7 @@ public class TestUtils {
             .businessActivity("businessAndRetail")
             .businessActivityDescription("Phrase détaillée de mon activité")
             .registrationNumber("899067250")
+            .vatNumber("FR32123456789")
             .build())
         .residencyAddress(SwanAccountHolder.ResidencyAddress.builder()
             .addressLine1("6 RUE PAUL LANGEVIN")
@@ -522,7 +523,7 @@ public class TestUtils {
         .email("anotherEmail@gmail.com")
         .phone("+33 5 13 3234")
         .socialCapital(40000)
-        .tvaNumber("123");
+        .tvaNumber("FR32123456789");
   }
 
   public static LegalFile legalFile1() {

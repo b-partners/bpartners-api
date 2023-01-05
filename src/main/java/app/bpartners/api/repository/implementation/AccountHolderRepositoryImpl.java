@@ -12,8 +12,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
 
+@Slf4j
 @Repository
 @AllArgsConstructor
 public class AccountHolderRepositoryImpl implements AccountHolderRepository {
@@ -46,9 +48,9 @@ public class AccountHolderRepositoryImpl implements AccountHolderRepository {
     if (companyInfo.getEmail() != null) {
       entity.setEmail(companyInfo.getEmail());
     }
-    if (companyInfo.getTvaNumber() != null) {
-      entity.setTvaNumber(companyInfo.getTvaNumber());
-    }
+    //if (companyInfo.getTvaNumber() != null) {
+    //entity.setVatNumber(companyInfo.getTvaNumber());
+    //}
     if (companyInfo.getSocialCapital() != null) {
       entity.setSocialCapital(companyInfo.getSocialCapital());
     }
@@ -67,7 +69,7 @@ public class AccountHolderRepositoryImpl implements AccountHolderRepository {
           .mobilePhoneNumber(null)
           .email(null)
           .socialCapital(0) //TODO : check default social capital 0 or null
-          .tvaNumber(null)
+          .vatNumber(swanAccountHolder.getInfo().getVatNumber())
           .build());
     } else {
       entity = optional.get();

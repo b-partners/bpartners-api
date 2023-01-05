@@ -31,7 +31,7 @@ public class AccountHolderSwanRepositoryImpl implements AccountHolderSwanReposit
   private final SwanCustomApi<AccountHolderResponse> swanCustomApi;
   private static final String QUERY =
       "{ \"query\": \"" + "query AccountHolder { accountHolders { edges { node "
-          + "{ id  info { ... on AccountHolderCompanyInfo { name registrationNumber "
+          + "{ id  info { ... on AccountHolderCompanyInfo { name vatNumber registrationNumber "
           + "businessActivity businessActivityDescription }} residencyAddress "
           + "{ addressLine1 city country postalCode } verificationStatus"
           + " accounts { edges { node { id name IBAN BIC balances { available { value } } "

@@ -215,7 +215,7 @@
                     th:text="${#numbers.formatCurrency(accountHolder.socialCapital)}"></span>
             </p>
             <p>SIREN : <span th:text="${accountHolder.siren}"></span></p>
-            <p>Numéro TVA : <span th:text="${accountHolder.tvaNumber}"></span></p>
+            <p>Numéro TVA : <span th:text="${accountHolder.getVatNumber}"></span></p>
         </div>
     </div>
 </div>

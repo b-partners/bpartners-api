@@ -22,7 +22,7 @@ public class AccountHolder {
   private String country;
   private String postalCode;
   private int socialCapital;
-  private String tvaNumber;
+  private String vatNumber;
   private String siren;
   private String accountId;
   private String mainActivity;

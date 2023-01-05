@@ -32,10 +32,11 @@ import app.bpartners.api.repository.swan.AccountSwanRepository;
 import app.bpartners.api.repository.swan.OnboardingSwanRepository;
 import app.bpartners.api.repository.swan.TransactionSwanRepository;
 import app.bpartners.api.repository.swan.UserSwanRepository;
-import app.bpartners.api.repository.swan.model.SwanAccountHolder;
 import app.bpartners.api.repository.swan.model.SwanAccount;
+import app.bpartners.api.repository.swan.model.SwanAccountHolder;
 import app.bpartners.api.repository.swan.model.SwanUser;
 import app.bpartners.api.repository.swan.model.Transaction;
+import app.bpartners.api.repository.swan.response.AccountResponse;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.URISyntaxException;
@@ -198,12 +199,23 @@ public class TestUtils {
             .businessActivity("businessAndRetail")
             .businessActivityDescription("Phrase détaillée de mon activité")
             .registrationNumber("899067250")
+            .vatNumber("FR32123456789")
             .build())
         .residencyAddress(SwanAccountHolder.ResidencyAddress.builder()
             .addressLine1("6 RUE PAUL LANGEVIN")
             .city("FONTENAY-SOUS-BOIS")
             .country("FRA")
             .postalCode("94120")
+            .build())
+        .accounts(SwanAccountHolder.Accounts.builder()
+            .edges(List.of(AccountResponse.Edge.builder()
+                .node(SwanAccount.builder()
+                    .id(joeDoeSwanAccount().getId())
+                    .statusInfo(SwanAccount.StatusInfo.builder()
+                        .status(ACCOUNT_OPENED)
+                        .build())
+                    .build())
+                .build()))
             .build())
         .build();
   }
@@ -511,7 +523,7 @@ public class TestUtils {
         .email("anotherEmail@gmail.com")
         .phone("+33 5 13 3234")
         .socialCapital(40000)
-        .tvaNumber("123");
+        .tvaNumber("FR32123456789");
   }
 
   public static LegalFile legalFile1() {

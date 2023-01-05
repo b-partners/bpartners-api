@@ -116,7 +116,7 @@ class InvoiceCrupdatedServiceTest {
             .mobilePhoneNumber("899067250")
             .address("6 RUE PAUL LANGEVIN")
             .accountId("account1_id")
-            .tvaNumber("20")
+            .vatNumber("20")
             .siren("siren")
             .socialCapital(400000)
             .email("exemple@email.com")

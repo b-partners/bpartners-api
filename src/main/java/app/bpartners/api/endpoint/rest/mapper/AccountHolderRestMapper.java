@@ -35,7 +35,7 @@ public class AccountHolderRestMapper {
         .companyInfo(new CompanyInfo()
             .email(domain.getEmail())
             .phone(domain.getMobilePhoneNumber())
-            .tvaNumber(domain.getTvaNumber())
+            .tvaNumber(domain.getVatNumber())
             .socialCapital(domain.getSocialCapital()))
         .contactAddress(new ContactAddress()
             .city(domain.getCity())

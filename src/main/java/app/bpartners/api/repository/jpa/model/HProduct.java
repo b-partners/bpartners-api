@@ -1,6 +1,5 @@
 package app.bpartners.api.repository.jpa.model;
 
-import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
@@ -30,7 +29,6 @@ public class HProduct {
   @Id
   @GeneratedValue(strategy = IDENTITY)
   private String id;
-  @Column(name = "id_account")
   private String idAccount;
   public static final String ID_ACCOUNT_ATTRIBUTE = "idAccount";
   private String description;

@@ -1,21 +1,23 @@
 package app.bpartners.api.endpoint.rest.mapper;
 
 import app.bpartners.api.endpoint.rest.model.CrupdateInvoice;
+import app.bpartners.api.endpoint.rest.model.Customer;
 import app.bpartners.api.endpoint.rest.model.Invoice;
 import app.bpartners.api.endpoint.rest.model.Product;
 import app.bpartners.api.endpoint.rest.validator.CrupdateInvoiceValidator;
+import app.bpartners.api.repository.CustomerRepository;
 import app.bpartners.api.service.AccountService;
-import lombok.AllArgsConstructor;
-import org.springframework.stereotype.Component;
-
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import lombok.AllArgsConstructor;
+import org.springframework.stereotype.Component;
 
 @Component
 @AllArgsConstructor
 public class InvoiceRestMapper {
   private final CustomerRestMapper customerMapper;
+  private final CustomerRepository customerRepository;
   private final ProductRestMapper productRestMapper;
   private final AccountService accountService;
   private final CrupdateInvoiceValidator crupdateInvoiceValidator;
@@ -36,7 +38,7 @@ public class InvoiceRestMapper {
         .title(domain.getTitle())
         .updatedAt(domain.getUpdatedAt())
         .createdAt(domain.getCreatedAt())
-        .customer(customerMapper.toRest(domain.getInvoiceCustomer()))
+        .customer(customerMapper.toRest(domain.getCustomer()))
         .status(domain.getStatus())
         .products(products)
         .totalVat(domain.getTotalVat().getCentsRoundUp())
@@ -51,12 +53,19 @@ public class InvoiceRestMapper {
   public app.bpartners.api.model.Invoice toDomain(
       String accountId, String id, CrupdateInvoice rest) {
     crupdateInvoiceValidator.accept(rest);
-
+    app.bpartners.api.model.Invoice.InvoiceBuilder invoiceBuilder =
+        app.bpartners.api.model.Invoice.builder();
     List<app.bpartners.api.model.Product> products =
         rest.getProducts() == null ? List.of() : rest.getProducts().stream()
             .map(productRestMapper::toDomain)
             .collect(Collectors.toUnmodifiableList());
-    return app.bpartners.api.model.Invoice.builder()
+    Customer restCustomer = rest.getCustomer();
+    if (restCustomer != null) {
+      app.bpartners.api.model.Customer existingCustomer =
+          customerRepository.findById(restCustomer.getId());
+      invoiceBuilder.customer(existingCustomer);
+    }
+    return invoiceBuilder
         .id(id)
         .title(rest.getTitle())
         .ref(rest.getRef())
@@ -64,7 +73,6 @@ public class InvoiceRestMapper {
         .sendingDate(rest.getSendingDate())
         .status(rest.getStatus())
         .toPayAt(rest.getToPayAt())
-        .invoiceCustomer(customerMapper.toDomain(accountId, id, rest.getCustomer()))
         .account(accountService.getAccountById(accountId))
         .products(products)
         .metadata(rest.getMetadata() == null ? Map.of() : rest.getMetadata())

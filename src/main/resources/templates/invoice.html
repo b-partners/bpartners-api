@@ -183,21 +183,21 @@
                 <p class="text-justify"><strong>Commentaires :</strong></p>
                 <p th:text="${invoice.comment}"></p>
             </td>
-            <td class="text-right" th:if="${invoice.invoiceCustomer != null}">
+            <td class="text-right" th:if="${invoice.customer != null}">
                 <p><strong
-                        th:text="${#strings.toUpperCase(invoice.invoiceCustomer.name)}"></strong>
+                        th:text="${#strings.toUpperCase(invoice.customer.name)}"></strong>
                 </p>
                 <p class="muted"><span
-                        th:text="${invoice.invoiceCustomer.address}"></span>
+                        th:text="${invoice.customer.address}"></span>
                 </p>
                 <p class="muted"><span
-                        th:text="${invoice.invoiceCustomer.phone}"></span>
+                        th:text="${invoice.customer.phone}"></span>
                 </p>
                 <p class="muted"><span
-                        th:text="${invoice.invoiceCustomer.email}"></span>
+                        th:text="${invoice.customer.email}"></span>
                 </p>
                 <p class="muted"><span
-                        th:text="${invoice.invoiceCustomer.website}"></span>
+                        th:text="${invoice.customer.website}"></span>
                 </p>
             </td>
         </tr>

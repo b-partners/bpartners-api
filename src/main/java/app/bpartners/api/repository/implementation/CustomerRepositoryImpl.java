@@ -1,12 +1,12 @@
 package app.bpartners.api.repository.implementation;
 
 import app.bpartners.api.endpoint.rest.security.principal.PrincipalProvider;
-import app.bpartners.api.model.CustomerTemplate;
+import app.bpartners.api.model.Customer;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.mapper.CustomerMapper;
 import app.bpartners.api.repository.CustomerRepository;
 import app.bpartners.api.repository.jpa.CustomerJpaRepository;
-import app.bpartners.api.repository.jpa.model.HCustomerTemplate;
+import app.bpartners.api.repository.jpa.model.HCustomer;
 import app.bpartners.api.service.AccountService;
 import java.util.List;
 import java.util.Optional;
@@ -25,22 +25,22 @@ public class CustomerRepositoryImpl implements CustomerRepository {
   private final AccountService accountService;
 
   @Override
-  public List<CustomerTemplate> findByAccountIdAndName(String accountId, String name) {
+  public List<Customer> findByAccountIdAndName(String accountId, String name) {
     return jpaRepository.findByIdAccountAndNameContainingIgnoreCase(accountId, name).stream()
         .map(mapper::toDomain)
         .collect(Collectors.toUnmodifiableList());
   }
 
   @Override
-  public List<CustomerTemplate> findByAccount(String accountId) {
+  public List<Customer> findByAccount(String accountId) {
     return jpaRepository.findAllByIdAccount(accountId).stream()
         .map(mapper::toDomain)
         .collect(Collectors.toUnmodifiableList());
   }
 
   @Override
-  public List<CustomerTemplate> saveAll(String accountId, List<CustomerTemplate> toCreate) {
-    List<HCustomerTemplate> entityToCreate = toCreate.stream()
+  public List<Customer> saveAll(String accountId, List<Customer> toCreate) {
+    List<HCustomer> entityToCreate = toCreate.stream()
         .map(this::crupdate)
         .map(mapper::toEntity)
         .collect(Collectors.toUnmodifiableList());
@@ -50,8 +50,8 @@ public class CustomerRepositoryImpl implements CustomerRepository {
   }
 
   @Override
-  public CustomerTemplate findById(String id) {
-    Optional<HCustomerTemplate> customerTemplate = jpaRepository.findById(id);
+  public Customer findById(String id) {
+    Optional<HCustomer> customerTemplate = jpaRepository.findById(id);
     if (customerTemplate.isPresent()) {
       return mapper.toDomain(customerTemplate.get());
     } else {
@@ -59,9 +59,9 @@ public class CustomerRepositoryImpl implements CustomerRepository {
     }
   }
 
-  private CustomerTemplate crupdate(CustomerTemplate customer) {
-    if (customer.getCustomerId() != null) {
-      Optional<HCustomerTemplate> persisted = jpaRepository.findById(customer.getCustomerId());
+  private Customer crupdate(Customer customer) {
+    if (customer.getId() != null) {
+      Optional<HCustomer> persisted = jpaRepository.findById(customer.getId());
       if (persisted.isPresent()) {
         persisted.get().setIdAccount(customer.getIdAccount());
         persisted.get().setName(customer.getName());
@@ -74,7 +74,7 @@ public class CustomerRepositoryImpl implements CustomerRepository {
         persisted.get().setZipCode(customer.getZipCode());
         return mapper.toDomain(persisted.get());
       } else {
-        throw new NotFoundException("Customer." + customer.getCustomerId() + " is not found.");
+        throw new NotFoundException("Customer." + customer.getId() + " is not found.");
       }
     } else {
       return customer;

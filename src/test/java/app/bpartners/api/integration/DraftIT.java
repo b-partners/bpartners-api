@@ -9,8 +9,8 @@ import app.bpartners.api.integration.conf.TestUtils;
 import app.bpartners.api.manager.ProjectTokenManager;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.AccountHolder;
+import app.bpartners.api.model.Customer;
 import app.bpartners.api.model.Fraction;
-import app.bpartners.api.model.InvoiceCustomer;
 import app.bpartners.api.model.LegalFile;
 import app.bpartners.api.repository.LegalFileRepository;
 import app.bpartners.api.repository.fintecture.FintectureConf;
@@ -125,7 +125,7 @@ class DraftIT {
             .bic("BPFRPP751")
             .build())
         .products(creatableProds(50))
-        .invoiceCustomer(InvoiceCustomer.customerTemplateBuilder()
+        .customer(Customer.builder()
             .name("Olivier Durant")
             .phone("+33 6 12 45 89 76")
             .email("exemple@email.com")

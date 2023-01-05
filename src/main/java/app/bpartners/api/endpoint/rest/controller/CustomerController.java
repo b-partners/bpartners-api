@@ -2,8 +2,7 @@ package app.bpartners.api.endpoint.rest.controller;
 
 import app.bpartners.api.endpoint.rest.mapper.CustomerRestMapper;
 import app.bpartners.api.endpoint.rest.model.CreateCustomer;
-import app.bpartners.api.endpoint.rest.model.Customer;
-import app.bpartners.api.model.CustomerTemplate;
+import app.bpartners.api.model.Customer;
 import app.bpartners.api.service.CustomerService;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -23,7 +22,7 @@ public class CustomerController {
   private final CustomerRestMapper mapper;
 
   @GetMapping("/accounts/{id}/customers")
-  public List<Customer> getCustomers(
+  public List<app.bpartners.api.endpoint.rest.model.Customer> getCustomers(
       @PathVariable String id,
       @RequestParam(required = false) String name) {
     return service.getCustomers(id, name).stream()
@@ -32,25 +31,25 @@ public class CustomerController {
   }
 
   @PostMapping("/accounts/{id}/customers")
-  public List<Customer> createCustomers(
+  public List<app.bpartners.api.endpoint.rest.model.Customer> createCustomers(
       @PathVariable String id,
       @RequestBody List<CreateCustomer> toCreate) {
-    List<CustomerTemplate> customerTemplates = toCreate.stream()
+    List<Customer> customers = toCreate.stream()
         .map(createCustomer -> mapper.toDomain(id, createCustomer))
         .collect(Collectors.toUnmodifiableList());
-    return service.crupdateCustomers(id, customerTemplates).stream()
+    return service.crupdateCustomers(id, customers).stream()
         .map(mapper::toRest)
         .collect(Collectors.toUnmodifiableList());
   }
 
   @PutMapping("/accounts/{id}/customers")
-  public List<Customer> updateCustomers(
+  public List<app.bpartners.api.endpoint.rest.model.Customer> updateCustomers(
       @PathVariable("id") String id,
-      @RequestBody List<Customer> toUpdate) {
-    List<CustomerTemplate> customerTemplates = toUpdate.stream()
+      @RequestBody List<app.bpartners.api.endpoint.rest.model.Customer> toUpdate) {
+    List<Customer> customers = toUpdate.stream()
         .map(customer -> mapper.toDomain(id, customer))
         .collect(Collectors.toUnmodifiableList());
-    return service.crupdateCustomers(id, customerTemplates).stream()
+    return service.crupdateCustomers(id, customers).stream()
         .map(mapper::toRest)
         .collect(Collectors.toUnmodifiableList());
   }

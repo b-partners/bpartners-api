@@ -1,8 +1,7 @@
 package app.bpartners.api.service;
 
-import app.bpartners.api.model.CustomerTemplate;
+import app.bpartners.api.model.Customer;
 import app.bpartners.api.repository.CustomerRepository;
-import app.bpartners.api.service.aws.SesService;
 import java.util.List;
 import javax.transaction.Transactional;
 import lombok.AllArgsConstructor;
@@ -12,9 +11,8 @@ import org.springframework.stereotype.Service;
 @AllArgsConstructor
 public class CustomerService {
   private final CustomerRepository repository;
-  private final SesService mailService;
 
-  public List<CustomerTemplate> getCustomers(String accountId, String name) {
+  public List<Customer> getCustomers(String accountId, String name) {
     if (name == null) {
       return repository.findByAccount(accountId);
     }
@@ -22,10 +20,10 @@ public class CustomerService {
   }
 
   @Transactional
-  public List<CustomerTemplate> crupdateCustomers(
+  public List<Customer> crupdateCustomers(
       String accountId,
-      List<CustomerTemplate> customerTemplates) {
-    return repository.saveAll(accountId, customerTemplates);
+      List<Customer> customers) {
+    return repository.saveAll(accountId, customers);
   }
 
 }

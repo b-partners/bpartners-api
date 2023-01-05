@@ -27,12 +27,15 @@ public class PaymentInitiationService {
     if (Objects.equals(invoice.getTotalPriceWithVat(), new Fraction())) {
       return new PaymentRedirection();
     }
+    String customerName = invoice.getCustomer() == null ? null : invoice.getCustomer().getName();
+    String customerEmail = invoice.getCustomer() == null ? null : invoice.getCustomer().getEmail();
     PaymentInitiation paymentInitiation = PaymentInitiation.builder()
         .reference(invoice.getRef())
         .label(invoice.getTitle())
         .amount(invoice.getTotalPriceWithVat())
-        .payerName(invoice.getInvoiceCustomer().getName())
-        .payerEmail(invoice.getInvoiceCustomer().getEmail())
+        //TODO: use customerName and customerEmail when overriding
+        .payerName(customerName)
+        .payerEmail(customerEmail)
         .successUrl("https://dashboard-dev.bpartners.app") //TODO: to change
         .failureUrl("https://dashboard-dev.bpartners.app") //TODO: to change
         .build();

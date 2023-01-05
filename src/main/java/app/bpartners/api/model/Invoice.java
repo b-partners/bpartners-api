@@ -38,7 +38,14 @@ public class Invoice {
   private Fraction totalPriceWithoutVat;
   private Fraction totalPriceWithVat;
   private String paymentUrl;
-  private InvoiceCustomer invoiceCustomer;
+  private Customer customer;
+  private String customerEmail;
+  private String customerPhone;
+  private String customerAddress;
+  private String customerWebsite;
+  private String customerCity;
+  private Integer customerZipCode;
+  private String customerCountry;
   private Account account;
   private List<Product> products;
   private InvoiceStatus status;
@@ -97,7 +104,6 @@ public class Invoice {
   }
 
   //TODO : test equals and hashcode
-  //TODO add accepted in database.
   public InvoiceStatus getPreviousStatus() {
     switch (status) {
       case DRAFT:

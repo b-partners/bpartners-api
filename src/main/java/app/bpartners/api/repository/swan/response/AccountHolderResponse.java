@@ -7,6 +7,7 @@ import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -51,6 +52,7 @@ public class AccountHolderResponse {
 
   @NoArgsConstructor
   @AllArgsConstructor
+  @ToString
   @Builder
   public static class Edge {
     private static final String JSON_PROPERTY_ACCOUNTHOLDER = "node";

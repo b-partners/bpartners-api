@@ -116,7 +116,7 @@ class AccountHolderIT {
             .phone("+33 6 11 22 33 44")
             .email("numer@hei.school")
             .socialCapital(40000)
-            .tvaNumber("FR 32 123456789"))
+            .tvaNumber("FR32123456789"))
         .businessActivities(new CompanyBusinessActivity()
             .primary("IT")
             .secondary("TECHNOLOGY"))

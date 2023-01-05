@@ -5,11 +5,13 @@ import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.repository.jpa.model.HAccountHolder;
 import app.bpartners.api.repository.swan.model.SwanAccountHolder;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 
+@Slf4j
 @Component
 public class AccountHolderMapper {
   public static final String VERIFIED_STATUS = "Verified";
@@ -27,7 +29,7 @@ public class AccountHolderMapper {
         .mobilePhoneNumber(entity.getMobilePhoneNumber())
         .accountId(entity.getAccountId())
         .socialCapital(entity.getSocialCapital())
-        .tvaNumber(entity.getTvaNumber())
+        .vatNumber(accountHolder.getInfo().getVatNumber())
         .address(accountHolder.getResidencyAddress().getAddressLine1())
         .city(accountHolder.getResidencyAddress().getCity())
         .country(accountHolder.getResidencyAddress().getCountry())

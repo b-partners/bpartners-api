@@ -8,9 +8,11 @@ import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString
 @Builder(toBuilder = true)
 public class SwanAccountHolder {
   private String id;
@@ -49,11 +51,13 @@ public class SwanAccountHolder {
     return residencyAddress;
   }
 
+  @ToString
   @NoArgsConstructor
   @AllArgsConstructor
   @Builder
   public static class Info {
     private String name;
+    private String vatNumber;
     private String registrationNumber;
     private String businessActivity;
     private String businessActivityDescription;
@@ -62,6 +66,12 @@ public class SwanAccountHolder {
     @JsonInclude(JsonInclude.Include.USE_DEFAULTS)
     public String getName() {
       return name;
+    }
+
+    @JsonProperty("vatNumber")
+    @JsonInclude(JsonInclude.Include.USE_DEFAULTS)
+    public String getVatNumber() {
+      return vatNumber;
     }
 
     @JsonProperty("registrationNumber")
@@ -85,6 +95,7 @@ public class SwanAccountHolder {
 
   @NoArgsConstructor
   @AllArgsConstructor
+  @ToString
   @Builder
   public static class ResidencyAddress {
     private String addressLine1;

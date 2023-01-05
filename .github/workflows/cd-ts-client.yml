@@ -10,6 +10,7 @@ on:
     inputs:
       commitSHA:
         type: string
+        description: 'commitSHA'
         required: true
 
 jobs:
@@ -22,7 +23,7 @@ jobs:
 
       - name: Put commitSHA into GITHUB_ENV
         run: |
-          if ${{ github.github.event.inputs.commitSHA != null }}; then
+          if ${{ github.event.inputs.commitSHA != null }}; then
             echo "commitSHA=${{ github.event.inputs.commitSHA }}" >> $GITHUB_ENV
           elif ${{ github.event.inputs.commitSHA == null }}; then
             echo "commitSHA=${{ github.sha }}" >> $GITHUB_ENV

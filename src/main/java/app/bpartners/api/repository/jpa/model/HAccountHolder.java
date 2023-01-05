@@ -1,6 +1,7 @@
 package app.bpartners.api.repository.jpa.model;
 
 import java.io.Serializable;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
@@ -26,7 +27,8 @@ public class HAccountHolder implements Serializable {
   private String id;
   private String accountId;
   private int socialCapital;
-  private String tvaNumber;
+  @Column(name = "tva_number")
+  private String vatNumber;
   private String mobilePhoneNumber;
   private String email;
   private String initialCashflow;

@@ -24,8 +24,10 @@ import app.bpartners.api.repository.swan.SwanApi;
 import app.bpartners.api.repository.swan.SwanCustomApi;
 import app.bpartners.api.repository.swan.UserSwanRepository;
 import app.bpartners.api.repository.swan.implementation.AccountHolderSwanRepositoryImpl;
+import app.bpartners.api.repository.swan.model.SwanAccount;
 import app.bpartners.api.repository.swan.model.SwanAccountHolder;
 import app.bpartners.api.repository.swan.response.AccountHolderResponse;
+import app.bpartners.api.repository.swan.response.AccountResponse;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -39,6 +41,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import static app.bpartners.api.integration.conf.TestUtils.ACCOUNT_OPENED;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_SWAN_USER_ID;
@@ -46,6 +49,8 @@ import static app.bpartners.api.integration.conf.TestUtils.VERIFIED_STATUS;
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsApiException;
 import static app.bpartners.api.integration.conf.TestUtils.companyBusinessActivity;
 import static app.bpartners.api.integration.conf.TestUtils.companyInfo;
+import static app.bpartners.api.integration.conf.TestUtils.janeSwanAccount;
+import static app.bpartners.api.integration.conf.TestUtils.joeDoeSwanAccount;
 import static app.bpartners.api.integration.conf.TestUtils.joeDoeSwanAccountHolder;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountHolderSwanRep;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountSwanRepository;
@@ -111,7 +116,7 @@ class AccountHolderIT {
             .phone("+33 6 11 22 33 44")
             .email("numer@hei.school")
             .socialCapital(40000)
-            .tvaNumber("FR 32 123456789"))
+            .tvaNumber("FR32123456789"))
         .businessActivities(new CompanyBusinessActivity()
             .primary("IT")
             .secondary("TECHNOLOGY"))
@@ -127,44 +132,49 @@ class AccountHolderIT {
         .postalCode(joeDoeSwanAccountHolder().getResidencyAddress().getPostalCode());
   }
 
-  public static AccountHolderResponse.Edge verifiedAccountHolder() {
+  public static AccountHolderResponse.Edge baseHolderResponse(
+      String verificationStatus, String accountId) {
     SwanAccountHolder swanAccountHolder =
         joeDoeSwanAccountHolder().toBuilder()
-            .verificationStatus(VERIFIED_STATUS)
+            .verificationStatus(verificationStatus)
+            .accounts(SwanAccountHolder.Accounts.builder()
+                .edges(List.of(AccountResponse.Edge.builder()
+                    .node(SwanAccount.builder()
+                        .id(accountId)
+                        .statusInfo(SwanAccount.StatusInfo.builder()
+                            .status(ACCOUNT_OPENED)
+                            .build())
+                        .build())
+                    .build()))
+                .build())
             .build();
     return AccountHolderResponse.Edge.builder()
         .node(swanAccountHolder)
         .build();
+  }
+
+  public static AccountHolderResponse.Edge verifiedAccountholder() {
+    return baseJoeHolder(VERIFIED_STATUS);
+  }
+
+  public static AccountHolderResponse.Edge baseJoeHolder(String verificationStatus) {
+    return baseHolderResponse(verificationStatus, joeDoeSwanAccount().getId());
   }
 
   public static AccountHolderResponse.Edge notStartedAccountHolder() {
-    SwanAccountHolder swanAccountHolder =
-        joeDoeSwanAccountHolder().toBuilder()
-            .verificationStatus(NOT_STARTED_STATUS)
-            .build();
-    return AccountHolderResponse.Edge.builder()
-        .node(swanAccountHolder)
-        .build();
+    return baseJoeHolder(NOT_STARTED_STATUS);
   }
 
   public static AccountHolderResponse.Edge pendingAccountHolder() {
-    SwanAccountHolder swanAccountHolder =
-        joeDoeSwanAccountHolder().toBuilder()
-            .verificationStatus(PENDING_STATUS)
-            .build();
-    return AccountHolderResponse.Edge.builder()
-        .node(swanAccountHolder)
-        .build();
+    return baseJoeHolder(PENDING_STATUS);
   }
 
   public static AccountHolderResponse.Edge waitingAccountHolder() {
-    SwanAccountHolder swanAccountHolder =
-        joeDoeSwanAccountHolder().toBuilder()
-            .verificationStatus(WAITING_FOR_INFORMATION_STATUS)
-            .build();
-    return AccountHolderResponse.Edge.builder()
-        .node(swanAccountHolder)
-        .build();
+    return baseJoeHolder(WAITING_FOR_INFORMATION_STATUS);
+  }
+
+  public static AccountHolderResponse.Edge baseJaneHolder(String verificationStatus) {
+    return baseHolderResponse(verificationStatus, janeSwanAccount().getId());
   }
 
   private static AccountHolder expected() {
@@ -203,6 +213,22 @@ class AccountHolderIT {
 
   @Order(1)
   @Test
+  void read_multiple_verified_account_holders_ok() throws ApiException {
+    setUpSwanApi(swanApiMock,
+        verifiedAccountholder(),
+        baseJaneHolder(VERIFIED_STATUS),
+        notStartedAccountHolder());
+    setUpRepositoryMock();
+    ApiClient joeDoeClient = anApiClient();
+    UserAccountsApi api = new UserAccountsApi(joeDoeClient);
+
+    List<AccountHolder> actual = api.getAccountHolders(TestUtils.JOE_DOE_ID, JOE_DOE_ACCOUNT_ID);
+
+    assertTrue(actual.contains(joeDoeAccountHolder()));
+  }
+
+  @Order(1)
+  @Test
   void read_unique_unverified_account_holders_ok() throws ApiException {
     setUpSwanApi(swanApiMock,
         notStartedAccountHolder());
@@ -220,7 +246,7 @@ class AccountHolderIT {
   @Test
   void read_multiple_account_holders_ok() throws ApiException {
     setUpSwanApi(swanApiMock,
-        verifiedAccountHolder(),
+        verifiedAccountholder(),
         notStartedAccountHolder(),
         pendingAccountHolder(),
         waitingAccountHolder());
@@ -238,8 +264,8 @@ class AccountHolderIT {
   @Test
   void read_multiple_account_holders_ko() {
     setUpSwanApi(swanApiMock,
-        verifiedAccountHolder(),
-        verifiedAccountHolder(),
+        verifiedAccountholder(),
+        verifiedAccountholder(),
         notStartedAccountHolder(),
         pendingAccountHolder(),
         waitingAccountHolder());
@@ -249,7 +275,9 @@ class AccountHolderIT {
 
     assertThrowsApiException(
         "{\"type\":\"501 NOT_IMPLEMENTED\",\"message\":"
-            + "\"One account with one verified account holder is supported for now\"}",
+            + "\"One account with one verified account holder is supported for now"
+            + " but following verified account holders are found : accountHolder."
+            + verifiedAccountholder().getNode().getId() + "\"}",
         () -> api.getAccountHolders(JOE_DOE_ID, JOE_DOE_ACCOUNT_ID));
 
   }
@@ -267,7 +295,11 @@ class AccountHolderIT {
 
     assertThrowsApiException(
         "{\"type\":\"501 NOT_IMPLEMENTED\",\"message\":"
-            + "\"Only one unverified account holder is supported for now\"}",
+            + "\"Only one unverified account holder is supported for now"
+            + " but following unverified accountHolders are present : "
+            + "accountHolder.b33e6eb0-e262-4596-a91f-20c6a7bfd343,"
+            + " accountHolder.b33e6eb0-e262-4596-a91f-20c6a7bfd343,"
+            + " accountHolder.b33e6eb0-e262-4596-a91f-20c6a7bfd343" + "\"}",
         () -> api.getAccountHolders(JOE_DOE_ID, JOE_DOE_ACCOUNT_ID));
 
   }

@@ -7,10 +7,10 @@ import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.endpoint.rest.security.principal.PrincipalProvider;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.AccountHolder;
+import app.bpartners.api.model.Customer;
 import app.bpartners.api.model.FileInfo;
 import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.Invoice;
-import app.bpartners.api.model.InvoiceCustomer;
 import app.bpartners.api.model.Product;
 import app.bpartners.api.model.validator.InvoiceValidator;
 import app.bpartners.api.repository.InvoiceRepository;
@@ -101,7 +101,7 @@ class InvoiceCrupdatedServiceTest {
                 .vatPercent(new Fraction())
                 .unitPrice(new Fraction())
                 .build()))
-            .invoiceCustomer(InvoiceCustomer.customerTemplateBuilder()
+            .customer(Customer.builder()
                 .name("Olivier Durant")
                 .phone("+33 6 12 45 89 76")
                 .email("exemple@email.com")

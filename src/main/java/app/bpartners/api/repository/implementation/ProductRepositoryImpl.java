@@ -5,7 +5,6 @@ import app.bpartners.api.model.mapper.ProductMapper;
 import app.bpartners.api.repository.ProductRepository;
 import app.bpartners.api.repository.jpa.InvoiceProductJpaRepository;
 import app.bpartners.api.repository.jpa.ProductJpaRepository;
-import app.bpartners.api.repository.jpa.model.HInvoiceProduct;
 import app.bpartners.api.repository.jpa.model.HProduct;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -57,19 +56,6 @@ public class ProductRepositoryImpl implements ProductRepository {
         .map(domainMapper::toDomain)
         .collect(Collectors.toUnmodifiableList());
   }
-
-  @Override
-  public List<Product> findByIdInvoice(String idInvoice) {
-    HInvoiceProduct invoiceProduct = ipJpaRepository
-        .findTopByIdInvoiceOrderByCreatedDatetimeDesc(idInvoice);
-    if (invoiceProduct == null) {
-      return List.of();
-    }
-    return invoiceProduct.getProducts().stream()
-        .map(domainMapper::toDomain)
-        .collect(Collectors.toUnmodifiableList());
-  }
-
 
   List<HProduct> findDistinctByAccountAndDescription(String idAccount, String description) {
     CriteriaBuilder builder = entityManager.getCriteriaBuilder();

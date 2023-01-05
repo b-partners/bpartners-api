@@ -1,16 +1,16 @@
 package app.bpartners.api.repository;
 
-import app.bpartners.api.model.CustomerTemplate;
+import app.bpartners.api.model.Customer;
 import java.util.List;
 
 public interface CustomerRepository {
 
-  List<CustomerTemplate> findByAccountIdAndName(String accountId, String name);
+  List<Customer> findByAccountIdAndName(String accountId, String name);
 
-  List<CustomerTemplate> findByAccount(String accountId);
+  List<Customer> findByAccount(String accountId);
 
-  List<CustomerTemplate> saveAll(String account, List<CustomerTemplate> toCreate);
+  List<Customer> saveAll(String account, List<Customer> toCreate);
 
-  CustomerTemplate findById(String id);
+  Customer findById(String id);
 
 }

@@ -5,8 +5,8 @@ import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.endpoint.rest.security.principal.PrincipalProvider;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.AccountHolder;
+import app.bpartners.api.model.Customer;
 import app.bpartners.api.model.Invoice;
-import app.bpartners.api.model.InvoiceCustomer;
 import app.bpartners.api.model.InvoiceRelaunch;
 import app.bpartners.api.model.InvoiceRelaunchConf;
 import app.bpartners.api.model.validator.InvoiceRelaunchValidator;
@@ -119,8 +119,8 @@ class InvoiceRelaunchServiceTest {
                     Invoice
                         .builder()
                         .status(InvoiceStatus.PROPOSAL)
-                        .invoiceCustomer(
-                            InvoiceCustomer.customerTemplateBuilder()
+                        .customer(
+                            Customer.builder()
                                 .name("someName")
                                 .build()
                         )

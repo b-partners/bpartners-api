@@ -12,7 +12,6 @@ import app.bpartners.api.model.FileInfo;
 import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.Product;
-import app.bpartners.api.model.validator.InvoiceValidator;
 import app.bpartners.api.repository.InvoiceRepository;
 import app.bpartners.api.repository.jpa.InvoiceJpaRepository;
 import app.bpartners.api.repository.jpa.model.HInvoice;
@@ -48,7 +47,6 @@ class InvoiceCrupdatedServiceTest {
   InvoiceRepository invoiceRepository;
   AccountHolderService accountHolderService;
   PrincipalProvider principalProvider;
-  InvoiceValidator validator;
   EventProducer eventProducer;
   InvoicePdfUtils pdfUtils;
 
@@ -61,11 +59,10 @@ class InvoiceCrupdatedServiceTest {
     invoiceJpaRepository = mock(InvoiceJpaRepository.class);
     accountHolderService = mock(AccountHolderService.class);
     principalProvider = mock(PrincipalProvider.class);
-    validator = mock(InvoiceValidator.class);
     eventProducer = mock(EventProducer.class);
     pdfUtils = mock(InvoicePdfUtils.class);
     invoiceService = new InvoiceService(invoiceRepository, invoiceJpaRepository,
-        accountHolderService, principalProvider, validator, eventProducer, fileService);
+        accountHolderService, principalProvider, eventProducer, fileService);
     invoiceCrupdatedService = new InvoiceCrupdatedService(invoiceService);
 
     when(fileService.downloadFile(any(), any(), any())).thenReturn(logoAsBytes);

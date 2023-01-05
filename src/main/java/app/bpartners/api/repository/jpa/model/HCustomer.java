@@ -1,6 +1,5 @@
 package app.bpartners.api.repository.jpa.model;
 
-import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
@@ -20,12 +19,11 @@ import static javax.persistence.GenerationType.IDENTITY;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class HCustomerTemplate {
+public class HCustomer {
   @Id
   @GeneratedValue(strategy = IDENTITY)
   private String id;
   private String idAccount;
-  @Column(name = "\"name\"")
   private String name;
   private String email;
   private String phone;

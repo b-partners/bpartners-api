@@ -9,6 +9,4 @@ public interface ProductRepository {
   List<Product> findByIdAccountAndDescription(String idAccount, String description);
 
   List<Product> saveAll(String idAccount, List<Product> toSave);
-
-  List<Product> findByIdInvoice(String idInvoice);
 }

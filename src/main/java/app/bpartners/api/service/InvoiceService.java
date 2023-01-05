@@ -12,7 +12,6 @@ import app.bpartners.api.model.FileInfo;
 import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.model.exception.ApiException;
-import app.bpartners.api.model.validator.InvoiceValidator;
 import app.bpartners.api.repository.InvoiceRepository;
 import app.bpartners.api.repository.jpa.InvoiceJpaRepository;
 import app.bpartners.api.repository.jpa.model.HInvoice;
@@ -44,7 +43,6 @@ public class InvoiceService {
   private final InvoiceJpaRepository invoiceJpaRepository;
   private final AccountHolderService holderService;
   private final PrincipalProvider auth;
-  private final InvoiceValidator validator;
   private final EventProducer eventProducer;
   private final InvoicePdfUtils pdfUtils = new InvoicePdfUtils();
   private final FileService fileService;
@@ -53,11 +51,13 @@ public class InvoiceService {
                                    InvoiceStatus status) {
     int pageValue = page.getValue() - 1;
     int pageSizeValue = pageSize.getValue();
-    List<Invoice> invoices = repository.findAllByAccountId(accountId, pageValue, pageSizeValue);
+    List<Invoice> invoices;
     if (status != null) {
       invoices = repository.findAllByAccountIdAndStatus(accountId, status,
           pageValue,
           pageSizeValue);
+    } else {
+      invoices = repository.findAllByAccountId(accountId, pageValue, pageSizeValue);
     }
     return invoices;
   }
@@ -68,8 +68,6 @@ public class InvoiceService {
 
   @Transactional(isolation = Isolation.SERIALIZABLE)
   public Invoice crupdateInvoice(Invoice toCrupdate) {
-    validator.accept(toCrupdate);
-
     Invoice invoice = repository.crupdate(toCrupdate);
     String accountId = invoice.getAccount().getId();
     AccountHolder accountHolder =

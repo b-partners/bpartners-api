@@ -53,7 +53,7 @@ public class InvoiceRelaunchService {
   private static String getDefaultSubject(Invoice invoice) {
     return "Votre " + getStatusValue(invoice.getStatus())
         + ", portant la référence " + invoice.getRef() + ", au nom de "
-        + invoice.getInvoiceCustomer().getName().toUpperCase();
+        + invoice.getCustomer().getName().toUpperCase();
   }
 
   private static String getSubject(AccountHolder accountHolder, String subject) {
@@ -165,7 +165,7 @@ public class InvoiceRelaunchService {
       Invoice invoice, AccountHolder accountHolder, String subject, String customEmailBody) {
     //TODO: if invoice has already been relaunched then change this
     subject = subject == null ? getDefaultSubject(invoice) : subject;
-    String recipient = invoice.getInvoiceCustomer().getEmail();
+    String recipient = invoice.getCustomer().getEmail();
 
     return toTypedEvent(
         recipient, getSubject(accountHolder, subject),

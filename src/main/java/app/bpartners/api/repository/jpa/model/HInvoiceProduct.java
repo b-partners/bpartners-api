@@ -1,8 +1,8 @@
 package app.bpartners.api.repository.jpa.model;
 
+import java.io.Serializable;
 import java.time.Instant;
 import java.util.List;
-import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
@@ -28,12 +28,10 @@ import static javax.persistence.GenerationType.IDENTITY;
 @AllArgsConstructor
 @NoArgsConstructor
 @EqualsAndHashCode
-public class HInvoiceProduct {
+public class HInvoiceProduct implements Serializable {
   @Id
   @GeneratedValue(strategy = IDENTITY)
   private String id;
-  @Column(name = "id_invoice")
-  private String idInvoice;
   @OneToMany(mappedBy = "invoiceProduct")
   private List<HProduct> products;
   @CreationTimestamp

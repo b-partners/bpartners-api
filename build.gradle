@@ -164,6 +164,9 @@ dependencies {
 
     implementation 'org.apfloat:apfloat:1.10.1'
 
+    implementation 'org.apache.poi:poi:3.12'
+    implementation 'org.apache.poi:poi-ooxml:3.12'
+
     implementation 'org.jsoup:jsoup:1.15.3'
 
     compileOnly 'org.projectlombok:lombok'

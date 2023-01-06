@@ -6,6 +6,7 @@ import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.Customer;
 import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.Invoice;
+import app.bpartners.api.model.InvoiceProduct;
 import app.bpartners.api.model.Product;
 import app.bpartners.api.service.FileService;
 import app.bpartners.api.service.InvoiceRelaunchSavedService;
@@ -71,7 +72,7 @@ class InvoiceRelaunchSavedServiceTest {
         .account(Account.builder()
             .id("account")
             .build())
-        .products(List.of(Product.builder()
+        .products(List.of(InvoiceProduct.builder()
             .id("product_id")
             .quantity(50)
             .description("product description")

@@ -4,22 +4,17 @@ import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.endpoint.event.model.gen.InvoiceCrupdated;
 import app.bpartners.api.endpoint.rest.model.FileType;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
-import app.bpartners.api.endpoint.rest.security.principal.PrincipalProvider;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.Customer;
 import app.bpartners.api.model.FileInfo;
 import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.Invoice;
-import app.bpartners.api.model.Product;
+import app.bpartners.api.model.InvoiceProduct;
 import app.bpartners.api.repository.InvoiceRepository;
-import app.bpartners.api.repository.jpa.InvoiceJpaRepository;
 import app.bpartners.api.repository.jpa.model.HInvoice;
-import app.bpartners.api.service.AccountHolderService;
-import app.bpartners.api.service.FileService;
 import app.bpartners.api.service.InvoiceCrupdatedService;
 import app.bpartners.api.service.InvoiceService;
-import app.bpartners.api.service.utils.InvoicePdfUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -37,36 +32,22 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 class InvoiceCrupdatedServiceTest {
-  public static final byte[] logoAsBytes = new byte[0];
-  FileService fileService;
-  InvoiceJpaRepository invoiceJpaRepository;
   InvoiceService invoiceService;
   InvoiceRepository invoiceRepository;
-  AccountHolderService accountHolderService;
-  PrincipalProvider principalProvider;
   EventProducer eventProducer;
-  InvoicePdfUtils pdfUtils;
-
   InvoiceCrupdatedService invoiceCrupdatedService;
 
 
   @BeforeEach
   void setUp() {
-    fileService = mock(FileService.class);
-    invoiceJpaRepository = mock(InvoiceJpaRepository.class);
-    accountHolderService = mock(AccountHolderService.class);
-    principalProvider = mock(PrincipalProvider.class);
     eventProducer = mock(EventProducer.class);
-    pdfUtils = mock(InvoicePdfUtils.class);
-    invoiceService = new InvoiceService(invoiceRepository, invoiceJpaRepository,
-        accountHolderService, principalProvider, eventProducer, fileService);
+    invoiceRepository = mock(InvoiceRepository.class);
+    invoiceService =
+        new InvoiceService(invoiceRepository, eventProducer);
     invoiceCrupdatedService = new InvoiceCrupdatedService(invoiceService);
 
-    when(fileService.downloadFile(any(), any(), any())).thenReturn(logoAsBytes);
-    when(fileService.upload(any(), any(), any(), any(), any())).thenReturn(fileInfo());
   }
 
   InvoiceCrupdated invoiceCrupdated() {
@@ -91,7 +72,7 @@ class InvoiceCrupdatedServiceTest {
                 .bic("bic")
                 .name("account_name")
                 .build())
-            .products(List.of(Product.builder()
+            .products(List.of(InvoiceProduct.builder()
                 .id("product_id")
                 .quantity(50)
                 .description("product description")
@@ -150,9 +131,6 @@ class InvoiceCrupdatedServiceTest {
     ArgumentCaptor<HInvoice> invoiceArgumentCaptor = ArgumentCaptor.forClass(HInvoice.class);
 
     invoiceCrupdatedService.accept(invoiceCrupdated());
-    verify(invoiceJpaRepository).save(invoiceArgumentCaptor.capture());
-    verify(fileService).upload(fileIdCaptor.capture(), fileTypeArgumentCaptor.capture(),
-        accountIdCaptor.capture(), any(), any());
 
     assertEquals(invoiceFileId(), fileIdCaptor.getValue());
     assertEquals(INVOICE, fileTypeArgumentCaptor.getValue());

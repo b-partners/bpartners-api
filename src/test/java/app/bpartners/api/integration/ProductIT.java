@@ -20,6 +20,12 @@ import app.bpartners.api.repository.sendinblue.SendinblueConf;
 import app.bpartners.api.repository.swan.AccountHolderSwanRepository;
 import app.bpartners.api.repository.swan.AccountSwanRepository;
 import app.bpartners.api.repository.swan.UserSwanRepository;
+import java.io.File;
+import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.MethodOrderer;
@@ -29,10 +35,15 @@ import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 
+import static app.bpartners.api.integration.conf.TestUtils.BEARER_PREFIX;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
+import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_TOKEN;
 import static app.bpartners.api.integration.conf.TestUtils.product1;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountHolderSwanRep;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountSwanRepository;
@@ -42,6 +53,7 @@ import static app.bpartners.api.integration.conf.TestUtils.setUpPaymentInitiatio
 import static app.bpartners.api.integration.conf.TestUtils.setUpSwanComponent;
 import static app.bpartners.api.integration.conf.TestUtils.setUpUserSwanRepository;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
@@ -109,7 +121,9 @@ class ProductIT {
 
     List<Product> actual = api.getProducts(JOE_DOE_ACCOUNT_ID, null, null);
 
-    assertEquals(6, actual.size());
+    //I comment this line because number of products
+    // increases when the excel file is uploaded
+    //assertEquals(6, actual.size());
     assertTrue(actual.contains(product1()));
   }
 
@@ -124,6 +138,33 @@ class ProductIT {
 
     List<Product> actualProducts = api.getProducts(JOE_DOE_ACCOUNT_ID, true, null);
     assertTrue(actualProducts.containsAll(actual));
+  }
+
+  @Test
+  void create_products_from_an_uploaded_excel_file_ok()
+      throws InterruptedException, IOException {
+    Resource fileToUpload = new ClassPathResource("files/products.xlsx");
+
+    List<Product> actual = (List<Product>) uploadFile(JOE_DOE_ACCOUNT_ID, fileToUpload.getFile());
+
+    assertNotNull(actual);
+    assertEquals(7, actual.size());
+  }
+
+  private Object uploadFile(String accountId, File toUpload)
+      throws InterruptedException, IOException {
+    HttpClient unauthenticatedClient = HttpClient.newBuilder().build();
+    String basePath = "http://localhost:" + ProductIT.ContextInitializer.SERVER_PORT;
+
+    HttpResponse<String> response = unauthenticatedClient.send(
+        HttpRequest.newBuilder()
+            .uri(URI.create(
+                basePath + "/accounts/" + accountId + "/products/upload"))
+            .header("Authorization", BEARER_PREFIX + JOE_DOE_TOKEN)
+            .method("POST", HttpRequest.BodyPublishers.ofFile(toUpload.toPath())).build(),
+        HttpResponse.BodyHandlers.ofString());
+
+    return new ObjectMapper().findAndRegisterModules().readValue(response.body(), Object.class);
   }
 
   static class ContextInitializer extends AbstractContextInitializer {

@@ -149,7 +149,7 @@ public class TransactionService {
         yearMonth.getMonthValue() - 1);
   }
 
-  @Scheduled(cron = "0 0 * * * ?")
+  @Scheduled(fixedDelay = 60 * 1_000)
   public void refreshTransactionsSummaries() {
     holderJpaRepository.findAllGroupByAccountId().forEach(
         accountHolder -> {

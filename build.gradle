@@ -75,6 +75,7 @@ task generateTsClient(type: org.openapitools.generator.gradle.plugin.tasks.Gener
             withSeparateModelsAndApi : true,
             apiPackage : "api",
             modelPackage : "models", */
+            enumPropertyNaming: "original",
             npmName : "bpartners-client",
             npmVersion:  project.properties["args"] ?: "latest"
     ]

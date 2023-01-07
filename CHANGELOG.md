@@ -1,3 +1,12 @@
+## [0.2.4](https://github.com/b-partners/bpartners-api/compare/v0.2.3...v0.2.4) (2023-01-07)
+
+
+### Bug Fixes
+
+* rename bpartners-client to bparnters-react-client with proper API_URL ([0ec9baa](https://github.com/b-partners/bpartners-api/commit/0ec9baaa278b806d2f6a1f54d1b251195c88382f))
+
+
+
 ## [0.2.3](https://github.com/b-partners/bpartners-api/compare/v0.2.2...v0.2.3) (2023-01-07)
 
 

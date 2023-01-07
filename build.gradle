@@ -5,7 +5,7 @@ buildscript {
         }
     }
     dependencies {
-        classpath "org.openapitools:openapi-generator-gradle-plugin:5.3.0"
+        classpath "org.openapitools:openapi-generator-gradle-plugin:5.4.0"
     }
 }
 
@@ -14,7 +14,7 @@ plugins {
     id 'org.springframework.boot' version '2.5.3'
     id 'io.spring.dependency-management' version '1.0.11.RELEASE'
 
-    id 'org.openapi.generator' version '5.3.0'
+    id 'org.openapi.generator' version '5.4.0'
 
     id 'org.sonarqube' version '3.3'
     id 'jacoco'
@@ -62,23 +62,18 @@ task generateJavaClient(type: org.openapitools.generator.gradle.plugin.tasks.Gen
     enablePostProcessFile = false
 }
 task generateTsClient(type: org.openapitools.generator.gradle.plugin.tasks.GenerateTask) {
-    if (project.hasProperty("args")){
-        generatorName = "typescript-axios"
-        inputSpec = "$rootDir/doc/api.yml".toString()
-        outputDir = "$buildDir/gen-ts".toString()
-        additionalProperties = [
-                withSeparateModelsAndApi : true,
-                apiPackage : "api",
-                modelPackage : "models",
-                npmName : "bpartners-client",
-                npmVersion: project.getProperty("args")
-        ]
-    }
-    else {
-        generatorName = "typescript-axios"
-        inputSpec = "$rootDir/doc/api.yml".toString()
-        outputDir = "$buildDir/gen-ts".toString()
-    }
+    generatorName = "typescript-axios"
+    inputSpec = "$rootDir/doc/api.yml".toString()
+    outputDir = "$buildDir/gen-ts".toString()
+    additionalProperties = [
+            /* // allOf is buggy when used withSeparateModelsAndApi
+               // https://github.com/OpenAPITools/openapi-generator/issues/9163
+            withSeparateModelsAndApi : true,
+            apiPackage : "api",
+            modelPackage : "models", */
+            npmName : "bpartners-client",
+            npmVersion:  project.properties["args"] ?: "latest"
+    ]
 }
 task publishJavaClientToMavenLocal(type: Exec, dependsOn: generateJavaClient) {
     if (org.apache.tools.ant.taskdefs.condition.Os.isFamily(org.apache.tools.ant.taskdefs.condition.Os.FAMILY_WINDOWS)) {
@@ -183,7 +178,6 @@ dependencies {
     testImplementation 'org.testcontainers:junit-jupiter'
     testImplementation 'org.testcontainers:postgresql'
     testImplementation 'org.testcontainers:localstack'
-
 }
 
 dependencyManagement {

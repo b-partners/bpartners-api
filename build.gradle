@@ -65,6 +65,10 @@ task generateTsClient(type: org.openapitools.generator.gradle.plugin.tasks.Gener
     generatorName = "typescript-axios"
     inputSpec = "$rootDir/doc/api.yml".toString()
     outputDir = "$buildDir/gen-ts".toString()
+    typeMappings = [
+            Date    : "Date",
+            DateTime: "Date",
+    ]
     additionalProperties = [
             /* // allOf is buggy when used withSeparateModelsAndApi
                // https://github.com/OpenAPITools/openapi-generator/issues/9163

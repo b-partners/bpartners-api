@@ -1,3 +1,12 @@
+## [0.2.2](https://github.com/b-partners/bpartners-api/compare/v0.2.1...v0.2.2) (2023-01-07)
+
+
+### Bug Fixes
+
+* map dates correctly in ts-client ([1b98dde](https://github.com/b-partners/bpartners-api/commit/1b98dde08caab7cacdc8d34fba66a7f1ae7f14e0))
+
+
+
 ## [0.2.1](https://github.com/b-partners/bpartners-api/compare/v0.2.0...v0.2.1) (2023-01-07)
 
 

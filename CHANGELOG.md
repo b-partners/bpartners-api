@@ -1,4 +1,13 @@
-# 0.2.0 (2023-01-06)
+## [0.2.1](https://github.com/b-partners/bpartners-api/compare/v0.2.0...v0.2.1) (2023-01-07)
+
+
+### Bug Fixes
+
+* ts-client generation withSeparateModelsAndApi is broken ([bf51b2e](https://github.com/b-partners/bpartners-api/commit/bf51b2e5de45e000d918798a293d2a3530847705))
+
+
+
+# [0.2.0](https://github.com/b-partners/bpartners-api/compare/da05902300b104b8ddbdc5669914d23102600953...v0.2.0) (2023-01-06)
 
 
 ### Bug Fixes

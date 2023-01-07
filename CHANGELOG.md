@@ -1,3 +1,12 @@
+## [0.2.3](https://github.com/b-partners/bpartners-api/compare/v0.2.2...v0.2.3) (2023-01-07)
+
+
+### Bug Fixes
+
+* do not change enum capitalization in ts-client ([f9f04d2](https://github.com/b-partners/bpartners-api/commit/f9f04d2d00f2ae4a4c0f64596980c11a90ecc89d))
+
+
+
 ## [0.2.2](https://github.com/b-partners/bpartners-api/compare/v0.2.1...v0.2.2) (2023-01-07)
 
 

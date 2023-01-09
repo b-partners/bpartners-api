@@ -14,7 +14,7 @@ Parameters:
     Default: 8080
   TasksDesiredCount:
     Type: Number
-    Default: 1
+    Default: 2
   ListenerRuleAvailablePriority:
     Type: Number
 

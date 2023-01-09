@@ -152,16 +152,16 @@ class DraftIT {
     return generatedFile;
   }
 
-  private static List<app.bpartners.api.model.Product> creatableProds(int n) {
-    List<app.bpartners.api.model.Product> result = new ArrayList<>();
+  private static List<app.bpartners.api.model.InvoiceProduct> creatableProds(int n) {
+    List<app.bpartners.api.model.InvoiceProduct> result = new ArrayList<>();
     for (int i = 0; i < n; i++) {
       result.add(prod());
     }
     return result;
   }
 
-  private static app.bpartners.api.model.Product prod() {
-    return app.bpartners.api.model.Product.builder()
+  private static app.bpartners.api.model.InvoiceProduct prod() {
+    return app.bpartners.api.model.InvoiceProduct.builder()
         .id("product_id")
         .quantity(50)
         .description("product description")

@@ -57,6 +57,7 @@ import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_TOKEN;
 import static app.bpartners.api.integration.conf.TestUtils.NOT_JOE_DOE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsApiException;
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsForbiddenException;
+import static app.bpartners.api.integration.conf.TestUtils.createProduct2;
 import static app.bpartners.api.integration.conf.TestUtils.createProduct4;
 import static app.bpartners.api.integration.conf.TestUtils.createProduct5;
 import static app.bpartners.api.integration.conf.TestUtils.customer1;
@@ -92,8 +93,6 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class InvoiceIT {
   public static final int MAX_PAGE_SIZE = 500;
-  public static final String RANDOM_INVOICE_ID = "random_invoice_id";
-  public static final String INVOICE5_ID = "invoice5_id";
   public static final String DRAFT_REF_PREFIX = "DRAFT-";
   private static final String NEW_INVOICE_ID = "invoice_uuid";
   @Autowired
@@ -171,25 +170,6 @@ class InvoiceIT {
         .toPayAt(LocalDate.of(2022, 11, 13));
   }
 
-  CrupdateInvoice customerUpdatedInvoice() {
-    return new CrupdateInvoice()
-        .status(PROPOSAL)
-        .sendingDate(invoice6().getSendingDate())
-        .ref(invoice6().getRef())
-        .toPayAt(invoice6().getToPayAt())
-        .title(invoice6().getTitle())
-        .customer(
-            customer1()
-                .email("random_name")
-                .phone("random_phone")
-                .website("random_website")
-                .address("random_address")
-                .zipCode(12)
-                .city("random_city")
-                .country("random_country"))
-        .products(List.of(createProduct5()));
-  }
-
   CrupdateInvoice paidInvoice() {
     return new CrupdateInvoice()
         .ref("BP005")
@@ -204,8 +184,8 @@ class InvoiceIT {
   Invoice invoice1() {
     return new Invoice()
         .id(INVOICE1_ID)
-        .comment("Tableau de Madagascar")
-        .title("Facture tableau")
+        .comment(null)
+        .title("Outils pour plomberie")
         .paymentUrl("https://connect-v2-sbx.fintecture.com")
         .customer(customer1()).ref("BP001")
         .createdAt(Instant.parse("2022-01-01T01:00:00.00Z"))
@@ -297,14 +277,6 @@ class InvoiceIT {
         .totalVat(100)
         .totalPriceWithoutVat(1000)
         .metadata(Map.of());
-  }
-
-  Invoice expectedCustomerUpdatedInvoice() {
-    return invoice6()
-        .status(PROPOSAL)
-        .customer(
-            customerUpdatedInvoice().getCustomer()
-        );
   }
 
   Invoice expectedInitializedDraft() {
@@ -486,6 +458,26 @@ class InvoiceIT {
     assertTrue(actualUpdatedDraft.getRef().contains(DRAFT_REF_PREFIX));
     assertFalse(actualConfirmed.getRef().contains(DRAFT_REF_PREFIX));
   }
+
+  @Test
+  @Order(5)
+  void update_invoice_product_ok() throws ApiException {
+    ApiClient joeDoeClient = anApiClient();
+    PayingApi api = new PayingApi(joeDoeClient);
+    String randomId = String.valueOf(randomUUID());
+
+    Invoice actualDraft = api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, randomId,
+        initializeDraft().products(List.of(createProduct4(), createProduct2())));
+    Invoice actualDraftUpdated = api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, actualDraft.getId(),
+        initializeDraft().products(List.of(createProduct5())));
+    actualDraftUpdated.setProducts(ignoreIdsOf(actualDraftUpdated.getProducts()));
+
+    assertEquals(2, actualDraft.getProducts().size());
+    assertEquals(1, actualDraftUpdated.getProducts().size());
+    assertEquals(actualDraft.getId(), actualDraftUpdated.getId());
+    assertTrue(actualDraftUpdated.getProducts().contains(product5().id(null)));
+  }
+
   //TODO: uncomment when consumer handles overriding attributes
   //  @Test
   //  @Order(5)

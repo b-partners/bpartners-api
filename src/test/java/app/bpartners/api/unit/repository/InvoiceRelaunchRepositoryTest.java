@@ -1,6 +1,7 @@
 package app.bpartners.api.unit.repository;
 
 import app.bpartners.api.model.Invoice;
+import app.bpartners.api.model.InvoiceProduct;
 import app.bpartners.api.model.Product;
 import app.bpartners.api.model.mapper.InvoiceRelaunchMapper;
 import app.bpartners.api.repository.implementation.InvoiceRelaunchRepositoryImpl;
@@ -74,7 +75,7 @@ class InvoiceRelaunchRepositoryTest {
         .comment("commment")
         .sendingDate(LocalDate.now())
         .toPayAt(LocalDate.now())
-        .products(List.of(new Product()))
+        .products(List.of(new InvoiceProduct()))
         .build();
   }
 

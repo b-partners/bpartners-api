@@ -21,7 +21,10 @@ import app.bpartners.api.repository.swan.AccountSwanRepository;
 import app.bpartners.api.repository.swan.UserSwanRepository;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -29,11 +32,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
-import static app.bpartners.api.integration.conf.TestUtils.assertThrowsApiException;
 import static app.bpartners.api.integration.conf.TestUtils.product1;
-import static app.bpartners.api.integration.conf.TestUtils.product2;
-import static app.bpartners.api.integration.conf.TestUtils.product3;
-import static app.bpartners.api.integration.conf.TestUtils.product4;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountHolderSwanRep;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountSwanRepository;
 import static app.bpartners.api.integration.conf.TestUtils.setUpLegalFileRepository;
@@ -48,6 +47,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @Testcontainers
 @ContextConfiguration(initializers = ProductIT.ContextInitializer.class)
 @AutoConfigureMockMvc
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class ProductIT {
   @MockBean
   private SentryConf sentryConf;
@@ -96,37 +96,19 @@ class ProductIT {
         .vatPercent(1000);
   }
 
+  @Order(1)
   @Test
   void read_products_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
     PayingApi api = new PayingApi(joeDoeClient);
 
-    List<Product> actualNotUnique = api.getProducts(JOE_DOE_ACCOUNT_ID, false, null);
-    List<Product> actualUnique = api.getProducts(JOE_DOE_ACCOUNT_ID, true, null);
-    List<Product> actualFilteredUnique = api.getProducts(JOE_DOE_ACCOUNT_ID, null, "tableau "
-        + "malgache");
+    List<Product> actual = api.getProducts(JOE_DOE_ACCOUNT_ID, null, null);
 
-    assertEquals(7, actualNotUnique.size());
-    assertEquals(4, actualUnique.size());
-    assertEquals(1, actualFilteredUnique.size());
-    assertTrue(actualUnique.contains(product4()));
-    assertTrue(actualUnique.contains(product3()));
-    assertTrue(actualNotUnique.containsAll(actualUnique));
-    assertTrue(actualNotUnique.contains(product1()));
-    assertTrue(actualNotUnique.contains(product2()));
-    assertTrue(actualFilteredUnique.contains(product4()));
+    assertEquals(6, actual.size());
+    assertTrue(actual.contains(product1()));
   }
 
-  @Test
-  void read_products_ko() {
-    ApiClient joeDoeClient = anApiClient();
-    PayingApi api = new PayingApi(joeDoeClient);
-
-    assertThrowsApiException(
-        "{\"type\":\"400 BAD_REQUEST\",\"message\":\"Query parameter `unique` is mandatory.\"}",
-        () -> api.getProducts(JOE_DOE_ACCOUNT_ID, null, null));
-  }
-
+  @Order(2)
   @Test
   void create_products_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();

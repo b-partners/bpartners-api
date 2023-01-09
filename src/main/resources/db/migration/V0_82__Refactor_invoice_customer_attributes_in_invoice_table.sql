@@ -19,10 +19,12 @@ set id_customer       = ic.id_customer,
     customer_zip_code = cast(ic.zip_code as integer),
     customer_country  = ic.country
 from (select ic.*
-      from invoice_customer ic
-               join invoice i on ic.id_invoice = i.id
-      where ic.id_invoice = i.id
-      order by created_datetime desc
-      limit 1) as ic;
+      from invoice_customer ic,
+           (select ic.id_invoice, max(ic.created_datetime) as created_datetime
+            from invoice_customer ic
+            group by(ic.id_invoice)) max_ic
+      where ic.id_invoice = max_ic.id_invoice
+        and ic.created_datetime = max_ic.created_datetime) as ic
+where invoice.id = ic.id_invoice;
 
 drop table if exists invoice_customer;

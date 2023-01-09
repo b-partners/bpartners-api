@@ -1,12 +1,14 @@
 package app.bpartners.api.repository;
 
+
 import app.bpartners.api.model.Product;
 import java.util.List;
+import org.springframework.stereotype.Repository;
 
+@Repository
 public interface ProductRepository {
-  List<Product> findByIdAccount(String idAccount, boolean unique);
+  List<Product> findAllByIdAccount(String idAccount, Integer page, Integer pageSize);
 
-  List<Product> findByIdAccountAndDescription(String idAccount, String description);
-
-  List<Product> saveAll(String idAccount, List<Product> toSave);
+  List<Product> saveAll(String accountId, List<Product> toCreate);
 }
+

@@ -178,9 +178,6 @@
                 <p>Date d'émission : <span
                         th:text="${#dates.format(invoice.getFormattedSendingDate, 'dd-MM-yyyy')}"></span>
                 </p>
-                <p>Date limite de validité : <span
-                        th:text="${#dates.format(invoice.getFormattedPayingDate, 'dd-MM-yyyy')}"></span>
-                </p>
                 <p class="text-justify"><strong>Commentaires :</strong></p>
                 <p th:text="${invoice.comment}"></p>
             </td>

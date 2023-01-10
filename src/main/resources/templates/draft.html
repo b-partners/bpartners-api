@@ -164,7 +164,7 @@
                         th:text="${#dates.format(invoice.getFormattedSendingDate, 'dd-MM-yyyy')}"></span>
                 </p>
                 <p>Date limite de validité : <span
-                        th:text="${#dates.format(invoice.getFormattedPayingDate, 'dd-MM-yyyy')}"></span>
+                        th:text="${#dates.format(invoice.getFormattedValidityDate(), 'dd-MM-yyyy')}"></span>
                 </p>
                 <p class="text-justify"><strong>Commentaires :</strong></p>
                 <p th:text="${invoice.comment}"></p>
@@ -239,7 +239,8 @@
     </div>
     <div class="section-end no-break-inside">
         <p><span class="muted text-justify">
-            Après acceptation de ce devis, la facture correspondante devra être réglée sous XXXX
+            Après acceptation de ce devis, la facture correspondante devra être réglée sous <span
+            th:text="${invoice.getTimeFrame()}"></span>
         jours après sa date d'émission.
         Passé ce délai, vous vous exposez à des pénalités de retard de XXXXX% de la valeur de la facture HT.
         </span></p>

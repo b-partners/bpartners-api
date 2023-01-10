@@ -46,6 +46,7 @@ public class InvoiceRestMapper {
         .totalPriceWithoutVat(domain.getTotalPriceWithoutVat().getCentsRoundUp())
         .totalPriceWithVat(domain.getTotalPriceWithVat().getCentsRoundUp())
         .sendingDate(domain.getSendingDate())
+        .validityDate(domain.getValidityDate())
         .metadata(domain.getMetadata())
         .toPayAt(domain.getToPayAt());
   }
@@ -71,6 +72,7 @@ public class InvoiceRestMapper {
         .ref(rest.getRef())
         .comment(rest.getComment())
         .sendingDate(rest.getSendingDate())
+        .validityDate(rest.getValidityDate())
         .status(rest.getStatus())
         .toPayAt(rest.getToPayAt())
         .account(accountService.getAccountById(accountId))

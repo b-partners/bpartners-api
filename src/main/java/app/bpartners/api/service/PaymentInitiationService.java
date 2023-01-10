@@ -23,16 +23,19 @@ public class PaymentInitiationService {
     return repository.save(paymentReqs.get(0));
   }
 
-  public PaymentRedirection initiateInvoicePayment(Invoice invoice) {
-    if (Objects.equals(invoice.getTotalPriceWithVat(), new Fraction())) {
+  public PaymentRedirection initiateInvoicePayment(Invoice invoice, Fraction totalPriceWithVat) {
+    if (Objects.equals(totalPriceWithVat, new Fraction())) {
       return new PaymentRedirection();
     }
+    String customerName = invoice.getCustomer() == null ? null : invoice.getCustomer().getName();
+    String customerEmail = invoice.getCustomer() == null ? null : invoice.getCustomer().getEmail();
     PaymentInitiation paymentInitiation = PaymentInitiation.builder()
         .reference(invoice.getRef())
         .label(invoice.getTitle())
-        .amount(invoice.getTotalPriceWithVat())
-        .payerName(invoice.getInvoiceCustomer().getName())
-        .payerEmail(invoice.getInvoiceCustomer().getEmail())
+        .amount(totalPriceWithVat)
+        //TODO: use customerName and customerEmail when overriding
+        .payerName(customerName)
+        .payerEmail(customerEmail)
         .successUrl("https://dashboard-dev.bpartners.app") //TODO: to change
         .failureUrl("https://dashboard-dev.bpartners.app") //TODO: to change
         .build();

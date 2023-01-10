@@ -3,9 +3,11 @@ package app.bpartners.api.unit.service;
 import app.bpartners.api.endpoint.event.model.gen.InvoiceRelaunchSaved;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.AccountHolder;
+import app.bpartners.api.model.Customer;
 import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.Invoice;
-import app.bpartners.api.model.InvoiceCustomer;
+import app.bpartners.api.model.InvoiceProduct;
+import app.bpartners.api.model.Product;
 import app.bpartners.api.service.FileService;
 import app.bpartners.api.service.InvoiceRelaunchSavedService;
 import app.bpartners.api.service.aws.SesService;
@@ -70,14 +72,14 @@ class InvoiceRelaunchSavedServiceTest {
         .account(Account.builder()
             .id("account")
             .build())
-        .products(List.of(app.bpartners.api.model.Product.builder()
+        .products(List.of(InvoiceProduct.builder()
             .id("product_id")
             .quantity(50)
             .description("product description")
             .vatPercent(new Fraction())
             .unitPrice(new Fraction())
             .build()))
-        .invoiceCustomer(InvoiceCustomer.customerTemplateBuilder()
+        .customer(Customer.builder()
             .name("Olivier Durant")
             .phone("+33 6 12 45 89 76")
             .email("exemple@email.com")

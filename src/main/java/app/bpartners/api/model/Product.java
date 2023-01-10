@@ -1,6 +1,5 @@
 package app.bpartners.api.model;
 
-import java.math.BigInteger;
 import java.util.Objects;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -10,6 +9,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.apfloat.Aprational;
 
+import static org.apfloat.Apcomplex.ONE;
+
 @Getter
 @Setter
 @Builder
@@ -17,32 +18,19 @@ import org.apfloat.Aprational;
 @NoArgsConstructor
 public class Product {
   private String id;
-  private Invoice invoice;
+  private String accountId;
   private String description;
-  private Integer quantity;
   private Fraction unitPrice;
+  @Getter(AccessLevel.NONE)
   private Fraction unitPriceWithVat;
   private Fraction vatPercent;
-  @Getter(AccessLevel.NONE)
-  private Fraction totalVat;
-  @Getter(AccessLevel.NONE)
-  private Fraction totalPriceWithVat;
 
-  public Fraction getTotalVat() {
-    return getTotalWithoutVat().operate(
-        vatPercent.operate(new Fraction(BigInteger.valueOf(10000)), Aprational::divide),
-        Aprational::multiply);
-  }
-
-  public Fraction getTotalWithoutVat() {
-    if (quantity == null) {
-      return new Fraction();
-    }
-    return unitPrice.operate(new Fraction(BigInteger.valueOf(quantity)), Aprational::multiply);
-  }
-
-  public Fraction getTotalPriceWithVat() {
-    return getTotalWithoutVat().operate(getTotalVat(), Aprational::add);
+  public Fraction getUnitPriceWithVat() {
+    return unitPrice.operate(vatPercent,
+        (price, vat) -> {
+          Aprational vatAprational = ONE.add(vat.divide(new Aprational(10000)));
+          return price.multiply(vatAprational);
+        });
   }
 
   @Override
@@ -56,7 +44,8 @@ public class Product {
     Product product = (Product) o;
     return product != null && Objects.equals(description, product.getDescription())
         && Objects.equals(vatPercent, product.getVatPercent())
-        && Objects.equals(unitPrice, product.getUnitPrice()) && quantity == product.getQuantity();
+        && Objects.equals(unitPrice, product.getUnitPrice())
+        && Objects.equals(unitPriceWithVat, product.getUnitPriceWithVat());
   }
 
   @Override

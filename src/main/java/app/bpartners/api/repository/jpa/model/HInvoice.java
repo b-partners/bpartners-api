@@ -5,11 +5,17 @@ import app.bpartners.api.repository.jpa.types.PostgresEnumType;
 import java.io.Serializable;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -28,7 +34,7 @@ import org.hibernate.annotations.TypeDef;
 @Getter
 @Setter
 @ToString
-@Builder
+@Builder(toBuilder = true)
 @AllArgsConstructor
 @NoArgsConstructor
 @EqualsAndHashCode
@@ -39,6 +45,7 @@ public class HInvoice implements Serializable {
   private String ref;
   private String title;
   private String idAccount;
+  private String paymentUrl;
   private LocalDate sendingDate;
   private LocalDate toPayAt;
   private String comment;
@@ -46,6 +53,22 @@ public class HInvoice implements Serializable {
   @Type(type = "pgsql_enum")
   @Enumerated(EnumType.STRING)
   private InvoiceStatus status;
+  @ManyToOne
+  @JoinColumn(name = "id_customer")
+  private HCustomer customer;
+  private String customerEmail;
+  private String customerPhone;
+  private String customerAddress;
+  private String customerWebsite;
+  private String customerCity;
+  private Integer customerZipCode;
+  private String customerCountry;
+  @OneToMany(
+      mappedBy = "invoice",
+      orphanRemoval = true,
+      cascade = CascadeType.ALL
+  )
+  private List<HInvoiceProduct> products = new ArrayList<>();
   @CreationTimestamp
   @Column(updatable = false)
   private Instant createdDatetime;

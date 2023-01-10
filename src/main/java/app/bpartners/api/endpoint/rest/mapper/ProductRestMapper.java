@@ -19,6 +19,15 @@ public class ProductRestMapper {
     return new Product()
         .id(domain.getId())
         .description(domain.getDescription())
+        .unitPrice(domain.getUnitPrice().getCentsRoundUp())
+        .unitPriceWithVat(domain.getUnitPriceWithVat().getCentsRoundUp())
+        .vatPercent(domain.getVatPercent().getCentsRoundUp());
+  }
+
+  public Product toRest(app.bpartners.api.model.InvoiceProduct domain) {
+    return new Product()
+        .id(domain.getId())
+        .description(domain.getDescription())
         .quantity(domain.getQuantity())
         .unitPrice(domain.getUnitPrice().getCentsRoundUp())
         .unitPriceWithVat(domain.getUnitPriceWithVat().getCentsRoundUp())
@@ -27,13 +36,22 @@ public class ProductRestMapper {
         .totalPriceWithVat(domain.getTotalPriceWithVat().getCentsRoundUp());
   }
 
-  public app.bpartners.api.model.Product toDomain(CreateProduct createProduct) {
+  public app.bpartners.api.model.InvoiceProduct toInvoiceDomain(CreateProduct createProduct) {
     createProductValidator.accept(createProduct);
     Integer quantity = createProduct.getQuantity() == null ? 0 : createProduct.getQuantity();
+    return app.bpartners.api.model.InvoiceProduct.builder()
+        .description(createProduct.getDescription())
+        .unitPrice(parseFraction(createProduct.getUnitPrice()))
+        .vatPercent(parseFraction(createProduct.getVatPercent()))
+        .quantity(quantity)
+        .build();
+  }
+
+  public app.bpartners.api.model.Product toDomain(CreateProduct createProduct) {
+    createProductValidator.accept(createProduct);
     return app.bpartners.api.model.Product.builder()
         .description(createProduct.getDescription())
         .unitPrice(parseFraction(createProduct.getUnitPrice()))
-        .quantity(quantity)
         .vatPercent(parseFraction(createProduct.getVatPercent()))
         .build();
   }
@@ -44,7 +62,6 @@ public class ProductRestMapper {
         .id(product.getId())
         .description(product.getDescription())
         .unitPrice(parseFraction(product.getUnitPrice()))
-        .quantity(product.getQuantity())
         .vatPercent(parseFraction(product.getVatPercent()))
         .build();
   }

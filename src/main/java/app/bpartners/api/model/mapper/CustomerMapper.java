@@ -1,16 +1,18 @@
 package app.bpartners.api.model.mapper;
 
-import app.bpartners.api.model.CustomerTemplate;
-import app.bpartners.api.model.InvoiceCustomer;
-import app.bpartners.api.repository.jpa.model.HCustomerTemplate;
+import app.bpartners.api.model.Customer;
+import app.bpartners.api.repository.jpa.model.HCustomer;
 import org.springframework.stereotype.Component;
 
 @Component
 public class CustomerMapper {
 
-  public CustomerTemplate toDomain(HCustomerTemplate entity) {
-    return InvoiceCustomer.customerTemplateBuilder()
-        .customerId(entity.getId())
+  public Customer toDomain(HCustomer entity) {
+    if (entity == null) {
+      return null;
+    }
+    return Customer.builder()
+        .id(entity.getId())
         .idAccount(entity.getIdAccount())
         .name(entity.getName())
         .email(entity.getEmail())
@@ -23,9 +25,12 @@ public class CustomerMapper {
         .build();
   }
 
-  public HCustomerTemplate toEntity(CustomerTemplate domain) {
-    return HCustomerTemplate.builder()
-        .id(domain.getCustomerId())
+  public HCustomer toEntity(Customer domain) {
+    if (domain == null) {
+      return null;
+    }
+    return HCustomer.builder()
+        .id(domain.getId())
         .idAccount(domain.getIdAccount())
         .email(domain.getEmail())
         .name(domain.getName())

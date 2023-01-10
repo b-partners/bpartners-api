@@ -3,6 +3,8 @@ package app.bpartners.api.endpoint.rest.controller;
 import app.bpartners.api.endpoint.rest.mapper.ProductRestMapper;
 import app.bpartners.api.endpoint.rest.model.CreateProduct;
 import app.bpartners.api.endpoint.rest.model.Product;
+import app.bpartners.api.model.BoundedPageSize;
+import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.service.ProductService;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -24,10 +26,13 @@ public class ProductController {
   @GetMapping("/accounts/{id}/products")
   public List<Product> getProducts(
       @PathVariable String id,
-      @RequestParam(required = false) Boolean unique,
-      @RequestParam(required = false) String description
-  ) {
-    return productService.getProductsByAccount(id, description, unique).stream()
+      @RequestParam(required = false) PageFromOne page,
+      @RequestParam(required = false) BoundedPageSize pageSize) {
+    int pageValue = page == null ? 0
+        : page.getValue() - 1;
+    int pageSizeValue = pageSize == null ? 50
+        : pageSize.getValue();
+    return productService.getProductsByAccount(id, pageValue, pageSizeValue).stream()
         .map(mapper::toRest)
         .collect(Collectors.toUnmodifiableList());
   }

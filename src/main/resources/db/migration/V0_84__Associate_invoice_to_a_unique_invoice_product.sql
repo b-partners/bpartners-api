@@ -12,6 +12,16 @@ from (select ip.*
         and ip.created_datetime = max_ip.created_datetime) as ip
 where invoice.id = ip.id_invoice;
 
+delete from product
+where id_invoice_product not in
+      (select ip.id
+       from invoice_product ip,
+            (select ip.id_invoice, max(ip.created_datetime) as created_datetime
+             from invoice_product ip
+             group by (ip.id_invoice)) max_ip
+       where ip.id_invoice = max_ip.id_invoice
+         and ip.created_datetime = max_ip.created_datetime);
+
 delete
 from invoice_product
 where id not in

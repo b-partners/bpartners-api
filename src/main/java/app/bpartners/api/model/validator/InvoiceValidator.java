@@ -45,7 +45,7 @@ public class InvoiceValidator implements Consumer<Invoice> {
 
   private static void validateAttributes(Invoice actual) {
     StringBuilder builder = new StringBuilder();
-    if (actual.getInvoiceCustomer() == null) {
+    if (actual.getCustomer() == null) {
       builder.append("Customer is mandatory. ");
     }
     if (actual.getSendingDate() == null) {

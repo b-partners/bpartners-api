@@ -11,8 +11,8 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class CustomerTemplate {
-  protected String customerId;
+public class Customer {
+  protected String id;
   protected String idAccount;
   protected String name;
   protected String email;

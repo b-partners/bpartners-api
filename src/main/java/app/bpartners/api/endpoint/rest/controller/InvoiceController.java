@@ -28,8 +28,8 @@ public class InvoiceController {
       @PathVariable("id") String accountId,
       @PathVariable("iId") String invoiceId,
       @RequestBody CrupdateInvoice crupdateInvoice) {
-    app.bpartners.api.model.Invoice toCrupdate = mapper.toDomain(accountId, invoiceId,
-        crupdateInvoice);
+    app.bpartners.api.model.Invoice toCrupdate =
+        mapper.toDomain(accountId, invoiceId, crupdateInvoice);
     return mapper.toRest(service.crupdateInvoice(toCrupdate));
   }
 

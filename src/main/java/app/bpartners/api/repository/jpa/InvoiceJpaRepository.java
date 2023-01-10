@@ -8,9 +8,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface InvoiceJpaRepository extends JpaRepository<HInvoice, String> {
-
-  //TODO: change this to have a more readable function
-  // The principal feats are : filter by account and status, ordered by created datetime desc
   List<HInvoice> findAllByIdAccountAndStatus(
       String idAccount,
       InvoiceStatus status,

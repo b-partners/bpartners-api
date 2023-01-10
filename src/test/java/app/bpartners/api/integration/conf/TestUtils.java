@@ -276,12 +276,12 @@ public class TestUtils {
     return new Product()
         .id("product1_id")
         .description("Tableau malgache")
-        .quantity(1)
         .unitPrice(1000)
         .vatPercent(2000)
         .unitPriceWithVat(1200)
-        .totalVat(200)
-        .totalPriceWithVat(1200);
+        .quantity(null)
+        .totalVat(null)
+        .totalPriceWithVat(null);
   }
 
   public static Product product2() {
@@ -299,7 +299,7 @@ public class TestUtils {
   public static Product product3() {
     return new Product()
         .id("product3_id")
-        .description("Tableau baobab")
+        .description("Tuyau 1m")
         .quantity(3)
         .unitPrice(2000)
         .vatPercent(1000)
@@ -311,7 +311,7 @@ public class TestUtils {
   public static Product product4() {
     return new Product()
         .id("product4_id")
-        .description("Tableau malgache")
+        .description("Coude et accessoires")
         .quantity(1)
         .unitPrice(2000)
         .vatPercent(1000)
@@ -323,7 +323,7 @@ public class TestUtils {
   public static Product product5() {
     return new Product()
         .id("product5_id")
-        .description("Mon tableau")
+        .description("Machine agro-alimentaire")
         .quantity(1)
         .unitPrice(1000)
         .vatPercent(1000)
@@ -332,9 +332,17 @@ public class TestUtils {
         .totalPriceWithVat(1100);
   }
 
+  public static CreateProduct createProduct2() {
+    return new CreateProduct()
+        .description("Tableau baobab")
+        .quantity(1)
+        .unitPrice(2000)
+        .vatPercent(1000);
+  }
+
   public static CreateProduct createProduct4() {
     return new CreateProduct()
-        .description("Tableau malgache")
+        .description("Coude et accessoires")
         .quantity(1)
         .unitPrice(2000)
         .vatPercent(1000);
@@ -342,7 +350,7 @@ public class TestUtils {
 
   public static CreateProduct createProduct5() {
     return new CreateProduct()
-        .description("Mon tableau")
+        .description("Machine agro-alimentaire")
         .quantity(1)
         .unitPrice(1000)
         .vatPercent(1000);
@@ -452,7 +460,7 @@ public class TestUtils {
     return new Invoice()
         .id(INVOICE1_ID)
         .fileId("BP001.pdf")
-        .title("Facture tableau")
+        .title("Outils pour plomberie")
         .customer(customer1())
         .ref("BP001")
         .sendingDate(LocalDate.of(2022, 9, 1))
@@ -462,7 +470,7 @@ public class TestUtils {
         .totalPriceWithVat(8800)
         .totalVat(800)
         .totalPriceWithoutVat(8000)
-        .comment("Tableau de Madagascar")
+        .comment(null)
         .paymentUrl("https://connect-v2-sbx.fintecture.com")
         .createdAt(Instant.parse("2021-12-31T22:00:00Z"))
         .metadata(Map.of());

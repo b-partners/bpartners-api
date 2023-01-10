@@ -14,7 +14,7 @@ Parameters:
     Default: 8080
   TasksDesiredCount:
     Type: Number
-    Default: 1
+    Default: 2
   ListenerRuleAvailablePriority:
     Type: Number
 
@@ -34,8 +34,8 @@ Resources:
       NetworkMode: awsvpc
       RequiresCompatibilities:
         - FARGATE
-      Cpu: 256
-      Memory: 0.5GB
+      Cpu: 1024
+      Memory: 2GB
       ExecutionRoleArn: !Ref ExecutionRole
       TaskRoleArn: !Ref TaskRole
       ContainerDefinitions:

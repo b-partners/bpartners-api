@@ -79,6 +79,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.reset;
@@ -148,18 +149,6 @@ class InvoiceIT {
         .sendingDate(LocalDate.of(2022, 10, 12))
         .validityDate(LocalDate.of(2022, 10, 14))
         .toPayAt(LocalDate.of(2022, 10, 13));
-  }
-
-  CrupdateInvoice draftInvoice() {
-    return new CrupdateInvoice()
-        .ref("BP005")
-        .title("Facture achat")
-        .customer(customer1())
-        .products(List.of(createProduct4(), createProduct5()))
-        .status(DRAFT)
-        .sendingDate(LocalDate.of(2022, 10, 12))
-        .validityDate(LocalDate.of(2022, 10, 14))
-        .toPayAt(LocalDate.of(2022, 11, 13));
   }
 
   CrupdateInvoice confirmedInvoice() {
@@ -472,17 +461,39 @@ class InvoiceIT {
     assertFalse(actualConfirmed.getRef().contains(DRAFT_REF_PREFIX));
   }
 
+  //TODO: delete this test when validityDate is correctly set for draft invoice
+  @Test
+  @Order(4)
+  void crupdate_with_null_validity_date_ok() throws ApiException {
+    ApiClient joeDoeClient = anApiClient();
+    PayingApi api = new PayingApi(joeDoeClient);
+    LocalDate today = LocalDate.now();
+
+    Invoice actual = api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, String.valueOf(randomUUID()),
+        initializeDraft()
+            .validityDate(null)
+            .toPayAt(today));
+
+    assertEquals(DRAFT, actual.getStatus());
+    assertEquals(today, actual.getValidityDate());
+    assertNull(actual.getToPayAt());
+  }
+
   @Test
   @Order(5)
   void update_invoice_product_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
     PayingApi api = new PayingApi(joeDoeClient);
-    String randomId = String.valueOf(randomUUID());
 
-    Invoice actualDraft = api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, randomId,
-        initializeDraft().products(List.of(createProduct4(), createProduct2())));
+    Invoice actualDraft = api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, String.valueOf(randomUUID()),
+        initializeDraft()
+            .ref(String.valueOf(randomUUID()))
+            .products(List.of(createProduct4(),
+                createProduct2())));
     Invoice actualDraftUpdated = api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, actualDraft.getId(),
-        initializeDraft().products(List.of(createProduct5())));
+        initializeDraft()
+            .ref(String.valueOf(randomUUID()))
+            .products(List.of(createProduct5())));
     actualDraftUpdated.setProducts(ignoreIdsOf(actualDraftUpdated.getProducts()));
 
     assertEquals(2, actualDraft.getProducts().size());

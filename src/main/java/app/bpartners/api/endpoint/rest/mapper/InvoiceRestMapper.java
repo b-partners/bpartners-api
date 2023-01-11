@@ -7,12 +7,18 @@ import app.bpartners.api.endpoint.rest.model.Product;
 import app.bpartners.api.endpoint.rest.validator.CrupdateInvoiceValidator;
 import app.bpartners.api.repository.CustomerRepository;
 import app.bpartners.api.service.AccountService;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
+import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
+
+@Slf4j
 @Component
 @AllArgsConstructor
 public class InvoiceRestMapper {
@@ -66,13 +72,20 @@ public class InvoiceRestMapper {
           customerRepository.findById(restCustomer.getId());
       invoiceBuilder.customer(existingCustomer);
     }
+    LocalDate validityDate = rest.getValidityDate();
+    if (rest.getStatus() != CONFIRMED && rest.getStatus() != PAID
+        && validityDate == null && rest.getToPayAt() != null) {
+      log.warn("DEPRECATED: DRAFT and PROPOSAL invoice must use validityDate"
+          + " instead of toPayAt attribute during crupdate");
+      validityDate = rest.getToPayAt();
+    }
     return invoiceBuilder
         .id(id)
         .title(rest.getTitle())
         .ref(rest.getRef())
         .comment(rest.getComment())
         .sendingDate(rest.getSendingDate())
-        .validityDate(rest.getValidityDate())
+        .validityDate(validityDate)
         .status(rest.getStatus())
         .toPayAt(rest.getToPayAt())
         .account(accountService.getAccountById(accountId))

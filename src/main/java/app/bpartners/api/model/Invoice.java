@@ -4,6 +4,7 @@ import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -15,6 +16,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
+import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
 import static app.bpartners.api.service.InvoiceService.DRAFT_REF_PREFIX;
 
 @Getter
@@ -25,10 +27,12 @@ import static app.bpartners.api.service.InvoiceService.DRAFT_REF_PREFIX;
 @EqualsAndHashCode
 @ToString
 public class Invoice {
+  public static final long DEFAULT_TO_PAY_DELAY_DAYS = 30L;
   private String id;
   private String title;
   private String ref;
   private LocalDate sendingDate;
+  private LocalDate validityDate;
   private LocalDate toPayAt;
   private Fraction totalVat;
   private Fraction totalPriceWithoutVat;
@@ -75,5 +79,16 @@ public class Invoice {
       return null;
     }
     return Date.from(toPayAt.atStartOfDay(ZoneId.systemDefault()).toInstant());
+  }
+
+  public Date getFormattedValidityDate() {
+    if (validityDate == null) {
+      return null;
+    }
+    return Date.from(validityDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
+  }
+
+  public long getTimeFrame() {
+    return DEFAULT_TO_PAY_DELAY_DAYS;
   }
 }

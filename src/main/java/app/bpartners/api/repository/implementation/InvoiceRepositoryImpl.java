@@ -51,6 +51,7 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
 
   @Override
   public Invoice crupdate(Invoice toCrupdate) {
+    //TODO: check case when ref is still null
     Optional<HInvoice> optionalInvoice = jpaRepository.findByIdAccountAndRefAndStatus(
         toCrupdate.getAccount().getId(), toCrupdate.getRealReference(), toCrupdate.getStatus());
     if (optionalInvoice.isPresent()) {

@@ -47,6 +47,7 @@ public class HInvoice implements Serializable {
   private String idAccount;
   private String paymentUrl;
   private LocalDate sendingDate;
+  private LocalDate validityDate;
   private LocalDate toPayAt;
   private String comment;
   private String fileId;

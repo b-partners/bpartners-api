@@ -72,6 +72,7 @@ import static app.bpartners.api.integration.conf.TestUtils.setUpLegalFileReposit
 import static app.bpartners.api.integration.conf.TestUtils.setUpPaymentInitiationRep;
 import static app.bpartners.api.integration.conf.TestUtils.setUpSwanComponent;
 import static app.bpartners.api.integration.conf.TestUtils.setUpUserSwanRepository;
+import static app.bpartners.api.model.Invoice.DEFAULT_TO_PAY_DELAY_DAYS;
 import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -145,6 +146,7 @@ class InvoiceIT {
         .products(List.of(createProduct4(), createProduct5()))
         .status(PROPOSAL)
         .sendingDate(LocalDate.of(2022, 10, 12))
+        .validityDate(LocalDate.of(2022, 10, 14))
         .toPayAt(LocalDate.of(2022, 10, 13));
   }
 
@@ -156,6 +158,7 @@ class InvoiceIT {
         .products(List.of(createProduct4(), createProduct5()))
         .status(DRAFT)
         .sendingDate(LocalDate.of(2022, 10, 12))
+        .validityDate(LocalDate.of(2022, 10, 14))
         .toPayAt(LocalDate.of(2022, 11, 13));
   }
 
@@ -167,6 +170,7 @@ class InvoiceIT {
         .products(List.of(createProduct5()))
         .status(CONFIRMED)
         .sendingDate(LocalDate.of(2022, 10, 12))
+        .validityDate(LocalDate.of(2022, 10, 14))
         .toPayAt(LocalDate.of(2022, 11, 13));
   }
 
@@ -178,6 +182,7 @@ class InvoiceIT {
         .products(List.of(createProduct5()))
         .status(PAID)
         .sendingDate(LocalDate.of(2022, 10, 12))
+        .validityDate(LocalDate.of(2022, 10, 14))
         .toPayAt(LocalDate.of(2022, 11, 13));
   }
 
@@ -190,6 +195,7 @@ class InvoiceIT {
         .customer(customer1()).ref("BP001")
         .createdAt(Instant.parse("2022-01-01T01:00:00.00Z"))
         .sendingDate(LocalDate.of(2022, 9, 1))
+        .validityDate(LocalDate.of(2022, 10, 3))
         .toPayAt(LocalDate.of(2022, 10, 1))
         .status(CONFIRMED)
         .products(List.of(product3(), product4()))
@@ -207,6 +213,7 @@ class InvoiceIT {
         .customer(customer2())
         .ref("BP002")
         .sendingDate(LocalDate.of(2022, 9, 10))
+        .validityDate(LocalDate.of(2022, 10, 14))
         .createdAt(Instant.parse("2022-01-01T03:00:00.00Z"))
         .toPayAt(LocalDate.of(2022, 10, 10))
         .status(CONFIRMED)
@@ -227,6 +234,7 @@ class InvoiceIT {
         .status(DRAFT)
         .createdAt(Instant.parse("2022-01-01T06:00:00Z"))
         .sendingDate(LocalDate.of(2022, 10, 12))
+        .validityDate(LocalDate.of(2022, 11, 12))
         .products(List.of(product5().id(null)))
         .toPayAt(LocalDate.of(2022, 11, 10))
         .totalPriceWithVat(1100)
@@ -243,6 +251,7 @@ class InvoiceIT {
         .customer(customer1())
         .products(List.of(createProduct4(), createProduct5()))
         .sendingDate(LocalDate.now())
+        .validityDate(LocalDate.now().plusDays(3L))
         .toPayAt(LocalDate.now().plusDays(1L));
   }
 
@@ -255,8 +264,8 @@ class InvoiceIT {
         .customer(validInvoice().getCustomer())
         .status(DRAFT)
         .sendingDate(validInvoice().getSendingDate())
+        .validityDate(validInvoice().getValidityDate())
         .products(List.of(product4().id(null), product5().id(null)))
-        .toPayAt(validInvoice().getToPayAt())
         .totalPriceWithVat(3300)
         .totalVat(300)
         .totalPriceWithoutVat(3000)
@@ -442,6 +451,8 @@ class InvoiceIT {
     assertEquals(expectedConfirmed()
             .id(actualConfirmed.getId())
             .fileId(actualConfirmed.getFileId())
+            .sendingDate(LocalDate.now())
+            .toPayAt(LocalDate.now().plusDays(DEFAULT_TO_PAY_DELAY_DAYS))
             .updatedAt(actualConfirmed.getUpdatedAt()),
         actualConfirmed.createdAt(null));
     assertNotNull(actualConfirmed.getFileId());
@@ -450,6 +461,8 @@ class InvoiceIT {
     assertEquals(expectedPaid()
         .fileId(actualPaid.getFileId())
         .id(actualPaid.getId())
+        .sendingDate(actualConfirmed.getSendingDate())
+        .toPayAt(actualConfirmed.getToPayAt())
         .createdAt(actualPaid.getCreatedAt())
         .updatedAt(actualPaid.getUpdatedAt()), actualPaid);
     assertNotNull(actualPaid.getFileId());

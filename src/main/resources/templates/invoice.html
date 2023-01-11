@@ -46,6 +46,7 @@
         .logo {
             width: 60px;
             height: 60px;
+            object-fit: contain;
         }
 
         div.image-text {
@@ -177,9 +178,6 @@
                 <p>Date d'émission : <span
                         th:text="${#dates.format(invoice.getFormattedSendingDate, 'dd-MM-yyyy')}"></span>
                 </p>
-                <p>Date limite de validité : <span
-                        th:text="${#dates.format(invoice.getFormattedPayingDate, 'dd-MM-yyyy')}"></span>
-                </p>
                 <p class="text-justify"><strong>Commentaires :</strong></p>
                 <p th:text="${invoice.comment}"></p>
             </td>
@@ -221,7 +219,8 @@
 </div>
 <div id="content">
     <section>
-        <table style="margin: 10px 0px 20px 0px; page-break-inside:auto;" class="main-table">
+        <table style="margin: 10px 0px 20px 0px; page-break-inside:auto; table-layout: fixed;"
+               class="main-table">
             <thead class="text-center">
             <th style="width: 150px">Description</th>
             <th>Quantité</th>
@@ -233,7 +232,7 @@
             <tbody th:if="${invoice.products != null}">
             <th:block th:each="product : ${invoice.products}">
                 <tr>
-                    <td class="text-left" style="width: 150px"><span
+                    <td class="text-left" style="width: 150px;word-wrap: break-word;"><span
                             th:text="${product.description}"></span>
                     </td>
                     <td class="text-center"><span th:text="${product.quantity}"></span></td>

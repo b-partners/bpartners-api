@@ -11,6 +11,7 @@ import app.bpartners.api.service.PaymentInitiationService;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -57,6 +58,7 @@ public class InvoiceMapper {
         .paymentUrl(entity.getPaymentUrl())
         .products(actualProducts)
         .sendingDate(entity.getSendingDate())
+        .validityDate(entity.getValidityDate())
         .updatedAt(entity.getUpdatedAt())
         .toPayAt(entity.getToPayAt())
         .customer(customerMapper.toDomain(entity.getCustomer()))
@@ -100,6 +102,9 @@ public class InvoiceMapper {
     String id = domain.getId();
     String fileId = domain.getFileId();
     String paymentUrl = domain.getPaymentUrl();
+    LocalDate sendingDate = domain.getSendingDate();
+    LocalDate toPayAt = null;
+    LocalDate validityDate = domain.getValidityDate();
     Fraction totalPriceWithVat = computeTotalPriceWithVat(domain.getProducts());
     Optional<HInvoice> persisted = jpaRepository.findById(id);
     List<HInvoiceProduct> actualProducts = List.of();
@@ -107,95 +112,52 @@ public class InvoiceMapper {
       HInvoice persistedValue = persisted.get();
       actualProducts = persistedValue.getProducts();
       fileId = persistedValue.getFileId();
+      //TODO: change when we can create a confirmed from scratch
       if (domain.getStatus() == CONFIRMED
           && persistedValue.getStatus() == PROPOSAL) {
         setIntermediateStatus(persistedValue);
         id = randomUUID().toString(); //Generate a new invoice
+        sendingDate = LocalDate.now(); //Confirmed invoice sending date is updated during crupdate
+        toPayAt = sendingDate.plusDays(domain.getTimeFrame());
+        validityDate = null;
         if (totalPriceWithVat.getCentsAsDecimal() != 0) {
           paymentUrl =
               pis.initiateInvoicePayment(domain, totalPriceWithVat).getRedirectUrl();
         }
       } else if (domain.getStatus() == PAID
           && persistedValue.getStatus() == CONFIRMED) {
+        validityDate = null;
+        sendingDate = persistedValue.getSendingDate();
         paymentUrl = persistedValue.getPaymentUrl();
+        toPayAt = sendingDate.plusDays(domain.getTimeFrame());
       }
     }
     return HInvoice.builder()
-            .
-
-        id(id)
-            .
-
-        fileId(fileId)
-            .
-
-        comment(domain.getComment())
-            .
-
-        paymentUrl(paymentUrl)
-            .
-
-        ref(domain.getRealReference())
-            .
-
-        title(domain.getTitle())
-            .
-
-        idAccount(domain.getAccount().
-
-            getId())
-            .
-
-        sendingDate(domain.getSendingDate())
-            .
-
-        customer(customerMapper.toEntity(domain.getCustomer()))
-            .
-
-        customerEmail(domain.getCustomerEmail())
-            .
-
-        customerAddress(domain.getCustomerAddress())
-            .
-
-        customerCity(domain.getCustomerCity())
-            .
-
-        customerPhone(domain.getCustomerPhone())
-            .
-
-        customerCountry(domain.getCustomerCountry())
-            .
-
-        customerWebsite(domain.getCustomerWebsite())
-            .
-
-        customerZipCode(domain.getCustomerZipCode())
-            .
-
-        toPayAt(domain.getToPayAt())
-            .
-
-        updatedAt(Instant.now())
-            .
-
-        createdDatetime(getCreatedDatetime(persisted))
-            .
-
-        status(domain.getStatus())
-            .
-
-        toBeRelaunched(domain.isToBeRelaunched())
-            .
-
-        products(actualProducts)
-            .
-
-        metadataString(objectMapper.writeValueAsString(domain.getMetadata()))
-            .
-
-        build();
-
+        .id(id)
+        .fileId(fileId)
+        .comment(domain.getComment())
+        .paymentUrl(paymentUrl)
+        .ref(domain.getRealReference())
+        .title(domain.getTitle())
+        .idAccount(domain.getAccount().getId())
+        .status(domain.getStatus())
+        .toBeRelaunched(domain.isToBeRelaunched())
+        .customer(customerMapper.toEntity(domain.getCustomer()))
+        .customerEmail(domain.getCustomerEmail())
+        .customerAddress(domain.getCustomerAddress())
+        .customerCity(domain.getCustomerCity())
+        .customerPhone(domain.getCustomerPhone())
+        .customerCountry(domain.getCustomerCountry())
+        .customerWebsite(domain.getCustomerWebsite())
+        .customerZipCode(domain.getCustomerZipCode())
+        .validityDate(validityDate)
+        .sendingDate(sendingDate)
+        .toPayAt(toPayAt)
+        .updatedAt(Instant.now())
+        .createdDatetime(getCreatedDatetime(persisted))
+        .products(actualProducts)
+        .metadataString(objectMapper.writeValueAsString(domain.getMetadata()))
+        .build();
   }
 
   public HInvoice toEntity(Invoice domain, String fileId) {

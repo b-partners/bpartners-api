@@ -831,6 +831,9 @@ components:
         sendingDate:
           type: string
           format: date
+        validityDate:
+          type: string
+          format: date
         toPayAt:
           type: string
           format: date

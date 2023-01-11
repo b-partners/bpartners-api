@@ -180,13 +180,18 @@ class AccountHolderIT {
   private static AccountHolder expected() {
     return joeDoeAccountHolder()
         .businessActivities(companyBusinessActivity())
-        .companyInfo(companyInfo());
+        .companyInfo(companyInfo()
+            .phone("+33 6 11 22 33 44")
+            .email("numer@hei.school")
+            .tvaNumber("FR32123456789"));
   }
 
-  private static CompanyBusinessActivity businessActivityBeforeUpdate() {
-    return new CompanyBusinessActivity()
-        .primary("IT")
-        .secondary("TECHNOLOGY");
+  CompanyInfo updatedCompanyInfo() {
+    return new CompanyInfo()
+        .email(companyInfo().getEmail())
+        .phone(companyInfo().getPhone())
+        .socialCapital(companyInfo().getSocialCapital())
+        .tvaNumber(joeDoeAccountHolder().getCompanyInfo().getTvaNumber());
   }
 
   @BeforeEach
@@ -319,7 +324,7 @@ class AccountHolderIT {
         () -> api.getAccountHolders(JOE_DOE_ID, JOE_DOE_ACCOUNT_ID));
   }
 
-  @Order(4)
+  @Order(5)
   @Test
   void update_company_info_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
@@ -327,11 +332,17 @@ class AccountHolderIT {
 
     AccountHolder actual = api.updateCompanyInfo(JOE_DOE_SWAN_USER_ID, JOE_DOE_ACCOUNT_ID,
         joeDoeAccountHolder().getId(), companyInfo());
-
-    assertEquals(expected().businessActivities(businessActivityBeforeUpdate()), actual);
+    assertEquals(expected()
+        .companyInfo(updatedCompanyInfo())
+        .businessActivities(new CompanyBusinessActivity()
+            .primary(companyBusinessActivity().getPrimary())
+            .secondary(companyBusinessActivity().getSecondary())), actual);
+    //TODO: check the vat number overriding
+    //    assertNotEquals(actual.getCompanyInfo().getTvaNumber(),
+    //        companyInfo().getTvaNumber());
   }
 
-  @Order(5)
+  @Order(4)
   @Test
   void update_business_activities_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();

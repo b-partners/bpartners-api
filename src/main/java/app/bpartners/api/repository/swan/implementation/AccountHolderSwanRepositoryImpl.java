@@ -59,13 +59,18 @@ public class AccountHolderSwanRepositoryImpl implements AccountHolderSwanReposit
 
   @Override
   public SwanAccountHolder getById(String id) {
-    SwanAccountHolder accountHolder =
-        swanApi.getData(AccountHolderResponse.class, QUERY).getData().getAccountHolders()
-            .getEdges().get(0).getNode();
-    if (!accountHolder.getId().equals(id)) {
-      throw new NotFoundException("AccountHolder." + id + " not found");
-    }
-    return accountHolder;
+    List<AccountHolderResponse.Edge> edges = new ArrayList<>(
+        swanApi.getData(AccountHolderResponse.class, QUERY)
+            .getData()
+            .getAccountHolders()
+            .getEdges());
+    Optional<AccountHolderResponse.Edge> optionalEdge =
+        edges.stream()
+            .filter(edge -> edge.getNode().getId().equals(id))
+            .findAny();
+    return optionalEdge.orElseThrow(
+            () -> new NotFoundException("AccountHolder." + id + " not found"))
+        .getNode();
   }
 
   private List<SwanAccountHolder> getSwanAccountHolders(List<AccountHolderResponse.Edge> edges,

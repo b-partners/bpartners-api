@@ -522,8 +522,8 @@ public class TestUtils {
 
   public static CompanyBusinessActivity companyBusinessActivity() {
     return new CompanyBusinessActivity()
-        .primary("OTHER")
-        .secondary("IT");
+        .primary("Boulanger")
+        .secondary("Fromager");
   }
 
   public static CompanyInfo companyInfo() {
@@ -531,7 +531,7 @@ public class TestUtils {
         .email("anotherEmail@gmail.com")
         .phone("+33 5 13 3234")
         .socialCapital(40000)
-        .tvaNumber("FR32123456789");
+        .tvaNumber("FR12323456789");
   }
 
   public static LegalFile legalFile1() {

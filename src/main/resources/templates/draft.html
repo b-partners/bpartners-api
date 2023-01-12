@@ -240,9 +240,10 @@
     <div class="section-end no-break-inside">
         <p><span class="muted text-justify">
             Après acceptation de ce devis, la facture correspondante devra être réglée sous <span
-            th:text="${invoice.getTimeFrame()}"></span>
+                th:text="${invoice.getDelayInPaymentAllowed()}"></span>
         jours après sa date d'émission.
-        Passé ce délai, vous vous exposez à des pénalités de retard de 10% de la valeur de la
+        Passé ce délai, vous vous exposez à des pénalités de retard de <span
+                th:text="${#numbers.formatDecimal(invoice.getDelayPenaltyPercent().getCentsAsDecimal(),1,2)}"></span>% de la valeur de la
             facture HT.
         </span></p>
         <div class="muted text-right" id="signature">

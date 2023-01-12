@@ -27,6 +27,7 @@ import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PROPOSAL;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PROPOSAL_CONFIRMED;
+import static app.bpartners.api.model.Invoice.DEFAULT_DELAY_PENALTY_PERCENT;
 import static app.bpartners.api.service.InvoiceService.DRAFT_REF_PREFIX;
 import static app.bpartners.api.service.InvoiceService.PROPOSAL_REF_PREFIX;
 import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
@@ -64,6 +65,10 @@ public class InvoiceMapper {
         .products(actualProducts)
         .sendingDate(entity.getSendingDate())
         .validityDate(entity.getValidityDate())
+        .delayInPaymentAllowed(entity.getDelayInPaymentAllowed())
+        .delayPenaltyPercent(entity.getDelayPenaltyPercent() == null
+            ? parseFraction(DEFAULT_DELAY_PENALTY_PERCENT)
+            : parseFraction(entity.getDelayPenaltyPercent()))
         .updatedAt(entity.getUpdatedAt())
         .toPayAt(entity.getToPayAt())
         .customer(customerMapper.toDomain(entity.getCustomer()))
@@ -127,7 +132,7 @@ public class InvoiceMapper {
         setIntermediateStatus(persistedValue);
         id = randomUUID().toString(); //Generate a new invoice
         sendingDate = LocalDate.now(); //Confirmed invoice sending date is updated during crupdate
-        toPayAt = sendingDate.plusDays(domain.getTimeFrame());
+        toPayAt = sendingDate.plusDays(domain.getDelayInPaymentAllowed());
         validityDate = null;
         if (totalPriceWithVat.getCentsAsDecimal() != 0) {
           paymentUrl =
@@ -138,7 +143,7 @@ public class InvoiceMapper {
         validityDate = null;
         sendingDate = persistedValue.getSendingDate();
         paymentUrl = persistedValue.getPaymentUrl();
-        toPayAt = sendingDate.plusDays(domain.getTimeFrame());
+        toPayAt = sendingDate.plusDays(domain.getDelayInPaymentAllowed());
       }
     }
     return HInvoice.builder()
@@ -164,6 +169,8 @@ public class InvoiceMapper {
         .toPayAt(toPayAt)
         .updatedAt(Instant.now())
         .createdDatetime(getCreatedDatetime(persisted))
+        .delayInPaymentAllowed(domain.getDelayInPaymentAllowed())
+        .delayPenaltyPercent(domain.getDelayPenaltyPercent().toString())
         .products(actualProducts)
         .metadataString(objectMapper.writeValueAsString(domain.getMetadata()))
         .build();

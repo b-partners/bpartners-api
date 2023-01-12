@@ -28,7 +28,6 @@ import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PROPOSAL;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PROPOSAL_CONFIRMED;
 import static app.bpartners.api.service.InvoiceService.DRAFT_REF_PREFIX;
-import static app.bpartners.api.service.InvoiceService.PROPOSAL_REF_PREFIX;
 import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 import static app.bpartners.api.service.utils.FractionUtils.toAprational;
 import static java.util.UUID.randomUUID;
@@ -43,10 +42,6 @@ public class InvoiceMapper {
   private final AccountService accountService;
   private final PaymentInitiationService pis;
   private final InvoiceProductMapper productMapper;
-
-  private static Instant getCreatedDatetime(Optional<HInvoice> persisted) {
-    return persisted.map(HInvoice::getCreatedDatetime).orElse(Instant.now());
-  }
 
   public Invoice toDomain(HInvoice entity) {
     List<InvoiceProduct> actualProducts = entity.getProducts() == null
@@ -87,11 +82,7 @@ public class InvoiceMapper {
       invoice.setRef(invoice.getRealReference());
     } else {
       if (invoice.getRef() != null && !invoice.getRef().isBlank()) {
-        if (invoice.getStatus().equals(PROPOSAL)) {
-          invoice.setRef(PROPOSAL_REF_PREFIX + invoice.getRealReference());
-        } else {
-          invoice.setRef(DRAFT_REF_PREFIX + invoice.getRealReference());
-        }
+        invoice.setRef(DRAFT_REF_PREFIX + invoice.getRealReference());
       }
     }
     return invoice;
@@ -178,6 +169,10 @@ public class InvoiceMapper {
   private void setIntermediateStatus(HInvoice persistedValue) {
     persistedValue.setStatus(PROPOSAL_CONFIRMED);
     jpaRepository.save(persistedValue);
+  }
+
+  private static Instant getCreatedDatetime(Optional<HInvoice> persisted) {
+    return persisted.map(HInvoice::getCreatedDatetime).orElse(Instant.now());
   }
 
   private Fraction computeTotalVat(List<InvoiceProduct> products) {

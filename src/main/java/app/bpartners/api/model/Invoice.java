@@ -4,6 +4,7 @@ import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -15,8 +16,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
+import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
 import static app.bpartners.api.service.InvoiceService.DRAFT_REF_PREFIX;
-import static app.bpartners.api.service.InvoiceService.PROPOSAL_REF_PREFIX;
 
 @Getter
 @Setter
@@ -53,7 +54,6 @@ public class Invoice {
   private String fileId;
   private boolean toBeRelaunched;
   private Instant createdAt;
-  private Map<String, String> metadata;
 
   public String getRealReference() {
     if (getRef() == null) {
@@ -61,11 +61,11 @@ public class Invoice {
     }
     if (getRef().contains(DRAFT_REF_PREFIX)) {
       return getRef().replace(DRAFT_REF_PREFIX, "");
-    } else if (getRef().contains(PROPOSAL_REF_PREFIX)) {
-      return getRef().replace(PROPOSAL_REF_PREFIX, "");
     }
     return getRef();
   }
+
+  private Map<String, String> metadata;
 
   public Date getFormattedSendingDate() {
     if (sendingDate == null) {

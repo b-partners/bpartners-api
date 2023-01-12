@@ -19,8 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class InvoiceService {
   public static final String INVOICE_TEMPLATE = "invoice";
   public static final String DRAFT_TEMPLATE = "draft";
-  public static final String DRAFT_REF_PREFIX = "BROUILLON-";
-  public static final String PROPOSAL_REF_PREFIX = "DEVIS-";
+  public static final String DRAFT_REF_PREFIX = "DRAFT-";
   private final InvoiceRepository repository;
   private final EventProducer eventProducer;
 

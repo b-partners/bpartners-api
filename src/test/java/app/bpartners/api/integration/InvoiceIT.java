@@ -95,8 +95,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class InvoiceIT {
   public static final int MAX_PAGE_SIZE = 500;
-  public static final String DRAFT_REF_PREFIX = "BROUILLON-";
-  public static String PROPOSAL_REF_PREFIX = "DEVIS-";
+  public static final String DRAFT_REF_PREFIX = "DRAFT-";
   private static final String NEW_INVOICE_ID = "invoice_uuid";
   @Autowired
   private InvoiceService invoiceService;
@@ -425,7 +424,7 @@ class InvoiceIT {
     actualPaid.setProducts(ignoreIdsOf(actualPaid.getProducts()));
 
     assertEquals(expectedInitializedDraft()
-            .ref(DRAFT_REF_PREFIX + draftRef)
+            .ref("DRAFT-" + draftRef)
             .fileId(actualDraft.getFileId())
             .createdAt(actualDraft.getCreatedAt())
             .updatedAt(actualDraft.getUpdatedAt()),
@@ -553,7 +552,6 @@ class InvoiceIT {
     assertEquals(1, actualRequestEntries.size());
     PutEventsRequestEntry fileUploadEvent = actualRequestEntries.get(0);
     assertTrue(fileUploadEvent.detail().contains(actualProposal.getId()));
-    assertTrue(actualProposal.getRef().contains(PROPOSAL_REF_PREFIX));
     assertTrue(fileUploadEvent.detail().contains(JOE_DOE_ACCOUNT_ID));
   }
 

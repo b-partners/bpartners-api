@@ -82,7 +82,7 @@ class BusinessActivityIT {
     ApiClient joeDoeClient = anApiClient();
     UserAccountsApi api = new UserAccountsApi(joeDoeClient);
 
-    List<BusinessActivity> actual = api.getBusinessActivities(1, 20);
+    List<BusinessActivity> actual = api.getBusinessActivities(1, 150);
 
     assertTrue(actual.contains(businessActivity1()));
     assertTrue(actual.contains(businessActivity2()));

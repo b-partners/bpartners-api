@@ -36,6 +36,7 @@ import static app.bpartners.api.integration.conf.TestUtils.setUpAccountSwanRepos
 import static app.bpartners.api.integration.conf.TestUtils.setUpLegalFileRepository;
 import static app.bpartners.api.integration.conf.TestUtils.setUpSwanComponent;
 import static app.bpartners.api.integration.conf.TestUtils.setUpUserSwanRepository;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
@@ -102,23 +103,24 @@ class MarketPlaceIT {
 
   Marketplace defaultMarketPlace1() {
     return new Marketplace()
-        .id("477d67e4-cfc7-4e36-96f7-f0b825e04214")
-        .name("Jobrapido")
-        .phoneNumber("+33611223344")
-        .websiteUrl("https://fr.jobrapido.com")
-        .logoUrl("https://public-logo-resources.s3.eu-west-3.amazonaws.com/jobrapido-logo.png");
+        .id("428473e5-f075-48b5-9b7f-60035e103db5")
+        .name("Marchés publics - Travaux")
+        .websiteUrl(
+            "https://www.marches-publics.gouv.fr/?page=Entreprise"
+                + ".EntrepriseAdvancedSearch&searchAnnCons&type=multicriteres")
+        .logoUrl(
+            "https://public-logo-resources.s3.eu-west-3.amazonaws.com/place-logo.png");
   }
 
   Marketplace defaultMarketPlace2() {
     return new Marketplace()
-        .id("1d562f1b-3e2b-48b6-8a95-5565ae1902e1")
-        .name("ARTISANS EMPLOI")
-        .description("Site d’emploi dédié aux secteurs de l’artisanat, a pour but de mettre "
-            + "en relation des entreprises et des professionnels en recherche d’emploi.")
-        .phoneNumber("+33612345678")
-        .websiteUrl("https://www.artisans-emploi.fr")
+        .id("e09290f0-34f9-40cd-b643-e8afd1a721b4")
+        .name("Marchés publics - Services")
+        .websiteUrl(
+            "https://www.marches-publics.gouv.fr/?page=Entreprise"
+                + ".EntrepriseAdvancedSearch&searchAnnCons&type=multicriteres")
         .logoUrl(
-            "https://public-logo-resources.s3.eu-west-3.amazonaws.com/artisans-emploi-logo.png");
+            "https://public-logo-resources.s3.eu-west-3.amazonaws.com/place-logo.png");
   }
 
   @Test
@@ -128,7 +130,6 @@ class MarketPlaceIT {
 
     List<Marketplace> actual =
         ignoreDescription(api.getMarketplaces(JOE_DOE_ACCOUNT_ID));
-
     assertTrue(actual.containsAll(List.of(marketPlace1(), marketPlace2(), defaultMarketPlace1(),
         defaultMarketPlace2())));
   }
@@ -143,7 +144,8 @@ class MarketPlaceIT {
 
   private List<Marketplace> ignoreDescription(List<Marketplace> marketplaces) {
     marketplaces.forEach(marketplace -> {
-      if (marketplace.getId().equals(defaultMarketPlace1().getId())) {
+      if (marketplace.getId().equals(defaultMarketPlace1().getId())
+          || marketplace.getId().equals(defaultMarketPlace2().getId())) {
         marketplace.setDescription(null);
       }
     });

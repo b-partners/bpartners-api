@@ -1,6 +1,6 @@
 alter table "business_activity"
-    drop constraint business_activity_template_fk1,
-    drop constraint business_activity_template_fk2;
+    drop constraint if exists business_activity_template_fk1,
+    drop constraint if exists business_activity_template_fk2;
 
 delete
 from "business_activity_template";

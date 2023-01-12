@@ -17,6 +17,7 @@ import lombok.ToString;
 
 import static app.bpartners.api.service.InvoiceService.DRAFT_REF_PREFIX;
 import static app.bpartners.api.service.InvoiceService.PROPOSAL_REF_PREFIX;
+import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 
 @Getter
 @Setter
@@ -26,13 +27,16 @@ import static app.bpartners.api.service.InvoiceService.PROPOSAL_REF_PREFIX;
 @EqualsAndHashCode
 @ToString
 public class Invoice {
-  public static final long DEFAULT_TO_PAY_DELAY_DAYS = 30L;
+  public static final int DEFAULT_TO_PAY_DELAY_DAYS = 30;
+  public static final int DEFAULT_DELAY_PENALTY_PERCENT = 1000;
   private String id;
   private String title;
   private String ref;
   private LocalDate sendingDate;
   private LocalDate validityDate;
   private LocalDate toPayAt;
+  private Integer delayInPaymentAllowed;
+  private Fraction delayPenaltyPercent;
   private Fraction totalVat;
   private Fraction totalPriceWithoutVat;
   private Fraction totalPriceWithVat;
@@ -88,7 +92,17 @@ public class Invoice {
     return Date.from(validityDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
   }
 
-  public long getTimeFrame() {
-    return DEFAULT_TO_PAY_DELAY_DAYS;
+  public Integer getDelayInPaymentAllowed() {
+    if (delayInPaymentAllowed == null) {
+      return DEFAULT_TO_PAY_DELAY_DAYS;
+    }
+    return delayInPaymentAllowed;
+  }
+
+  public Fraction getDelayPenaltyPercent() {
+    if (delayPenaltyPercent == null) {
+      return parseFraction(DEFAULT_DELAY_PENALTY_PERCENT);
+    }
+    return delayPenaltyPercent;
   }
 }

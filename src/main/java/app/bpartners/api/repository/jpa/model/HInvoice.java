@@ -48,6 +48,8 @@ public class HInvoice implements Serializable {
   private String paymentUrl;
   private LocalDate sendingDate;
   private LocalDate validityDate;
+  private Integer delayInPaymentAllowed;
+  private String delayPenaltyPercent;
   private LocalDate toPayAt;
   private String comment;
   private String fileId;

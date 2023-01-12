@@ -837,6 +837,10 @@ components:
         toPayAt:
           type: string
           format: date
+        delayInPaymentAllowed:
+          type: integer
+        delayPenaltyPercent:
+          type: integer
         metadata:
           type: object
           additionalProperties:

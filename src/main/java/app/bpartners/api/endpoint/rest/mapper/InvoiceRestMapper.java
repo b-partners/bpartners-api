@@ -17,6 +17,8 @@ import org.springframework.stereotype.Component;
 
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
+import static app.bpartners.api.model.Invoice.DEFAULT_DELAY_PENALTY_PERCENT;
+import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 
 @Slf4j
 @Component
@@ -53,6 +55,8 @@ public class InvoiceRestMapper {
         .totalPriceWithVat(domain.getTotalPriceWithVat().getCentsRoundUp())
         .sendingDate(domain.getSendingDate())
         .validityDate(domain.getValidityDate())
+        .delayInPaymentAllowed(domain.getDelayInPaymentAllowed())
+        .delayPenaltyPercent(domain.getDelayPenaltyPercent().getCentsRoundUp())
         .metadata(domain.getMetadata())
         .toPayAt(domain.getToPayAt());
   }
@@ -86,6 +90,11 @@ public class InvoiceRestMapper {
         .comment(rest.getComment())
         .sendingDate(rest.getSendingDate())
         .validityDate(validityDate)
+        .delayInPaymentAllowed(rest.getDelayInPaymentAllowed())
+        .delayPenaltyPercent(
+            rest.getDelayPenaltyPercent() == null
+                ? parseFraction(DEFAULT_DELAY_PENALTY_PERCENT)
+                : parseFraction(rest.getDelayPenaltyPercent()))
         .status(rest.getStatus())
         .toPayAt(rest.getToPayAt())
         .account(accountService.getAccountById(accountId))

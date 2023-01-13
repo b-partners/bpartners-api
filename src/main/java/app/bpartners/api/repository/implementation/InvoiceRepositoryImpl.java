@@ -52,15 +52,20 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
   @Override
   public Invoice crupdate(Invoice toCrupdate) {
     //TODO: check case when ref is still null
-    Optional<HInvoice> optionalInvoice = jpaRepository.findByIdAccountAndRefAndStatus(
+    //As ref is nullable, we might have a list of invoice with null ref
+    Optional<List<HInvoice>> optionalInvoice = jpaRepository.findByIdAccountAndRefAndStatus(
         toCrupdate.getAccount().getId(), toCrupdate.getRealReference(), toCrupdate.getStatus());
     if (optionalInvoice.isPresent()) {
-      HInvoice existingInvoice = optionalInvoice.get();
-      if (!toCrupdate.getId().equals(existingInvoice.getId())) {
-        throw new BadRequestException(
-            "The invoice reference must be unique however the given reference ["
-                + toCrupdate.getRef()
-                + "] is already used by invoice." + existingInvoice.getId());
+      List<HInvoice> existingInvoiceList = optionalInvoice.get();
+      if (!existingInvoiceList.isEmpty()) {
+        HInvoice invoice = existingInvoiceList.get(0);
+        if (toCrupdate.getRef() != null
+            && !toCrupdate.getId().equals(invoice.getId())) {
+          throw new BadRequestException(
+              "The invoice reference must be unique however the given reference ["
+                  + toCrupdate.getRef()
+                  + "] is already used by invoice." + invoice.getId());
+        }
       }
     }
     HInvoice entity = mapper.toEntity(toCrupdate, true);

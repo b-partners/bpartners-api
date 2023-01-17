@@ -38,22 +38,10 @@ public class AccountHolderRepositoryImpl implements AccountHolderRepository {
   }
 
   @Override
-  public AccountHolder save(String accountId, String accountHolderId, CompanyInfo companyInfo) {
+  public AccountHolder save(AccountHolder accountHolder) {
     SwanAccountHolder swanAccountHolder =
-        swanRepository.getById(accountHolderId);
-    HAccountHolder entity = getOrCreateAccountHolderEntity(accountId, swanAccountHolder);
-    if (companyInfo.getPhone() != null) {
-      entity.setMobilePhoneNumber(companyInfo.getPhone());
-    }
-    if (companyInfo.getEmail() != null) {
-      entity.setEmail(companyInfo.getEmail());
-    }
-    //if (companyInfo.getTvaNumber() != null) {
-    //entity.setVatNumber(companyInfo.getTvaNumber());
-    //}
-    if (companyInfo.getSocialCapital() != null) {
-      entity.setSocialCapital(companyInfo.getSocialCapital());
-    }
+        swanRepository.getById(accountHolder.getId());
+    HAccountHolder entity = mapper.toEntity(accountHolder);
     return mapper.toDomain(swanAccountHolder, jpaRepository.save(entity));
   }
 
@@ -66,6 +54,7 @@ public class AccountHolderRepositoryImpl implements AccountHolderRepository {
       entity = jpaRepository.save(HAccountHolder.builder()
           .id(swanAccountHolder.getId())
           .accountId(accountId)
+          .subjectToVat(false) //By default, an account holder is NOT a micro-business
           .mobilePhoneNumber(null)
           .email(null)
           .socialCapital(0) //TODO : check default social capital 0 or null

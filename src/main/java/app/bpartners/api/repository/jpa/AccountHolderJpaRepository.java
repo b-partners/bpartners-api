@@ -13,8 +13,9 @@ public interface AccountHolderJpaRepository extends JpaRepository<HAccountHolder
 
   @Query(value =
       "select new HAccountHolder(ac.id, ac.accountId, ac.socialCapital, ac.vatNumber,"
-          + "ac.mobilePhoneNumber, ac.email,"
-          + "ac.initialCashflow) from HAccountHolder ac group by ac.accountId, ac.id, "
-          + "ac.socialCapital, ac.vatNumber, ac.mobilePhoneNumber, ac.email, ac.initialCashflow")
+          + " ac.mobilePhoneNumber, ac.email,"
+          + " ac.subjectToVat,ac.initialCashflow)"
+          + " from HAccountHolder ac group by ac.accountId, ac.id,"
+          + " ac.socialCapital, ac.vatNumber, ac.mobilePhoneNumber, ac.email, ac.initialCashflow")
   List<HAccountHolder> findAllGroupByAccountId();
 }

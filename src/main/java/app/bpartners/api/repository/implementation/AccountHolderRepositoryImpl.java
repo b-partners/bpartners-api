@@ -30,13 +30,6 @@ public class AccountHolderRepositoryImpl implements AccountHolderRepository {
   }
 
   @Override
-  public List<AccountHolder> findAllByBearerAndAccountId(String bearer, String accountId) {
-    return swanRepository.findAllByBearerAndAccountId(bearer, accountId).stream()
-        .map(swanAccountHolder -> getOrPersistAccountHolder(accountId, swanAccountHolder))
-        .collect(Collectors.toUnmodifiableList());
-  }
-
-  @Override
   public AccountHolder save(AccountHolder accountHolder) {
     SwanAccountHolder swanAccountHolder =
         swanRepository.getById(accountHolder.getId());

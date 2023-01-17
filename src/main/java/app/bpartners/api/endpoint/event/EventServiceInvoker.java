@@ -1,10 +1,8 @@
 package app.bpartners.api.endpoint.event;
 
 import app.bpartners.api.endpoint.event.model.TypedEvent;
-import app.bpartners.api.endpoint.event.model.gen.FileSaved;
 import app.bpartners.api.endpoint.event.model.gen.InvoiceCrupdated;
 import app.bpartners.api.endpoint.event.model.gen.InvoiceRelaunchSaved;
-import app.bpartners.api.service.FileSavedService;
 import app.bpartners.api.service.InvoiceCrupdatedService;
 import app.bpartners.api.service.InvoiceRelaunchSavedService;
 import java.io.Serializable;
@@ -18,7 +16,6 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class EventServiceInvoker implements Consumer<TypedEvent> {
   private final InvoiceRelaunchSavedService invoiceRelaunchSavedService;
-  private final FileSavedService fileSavedService;
   private final InvoiceCrupdatedService invoiceCrupdatedService;
 
   @Override
@@ -26,8 +23,6 @@ public class EventServiceInvoker implements Consumer<TypedEvent> {
     Serializable payload = typedEvent.getPayload();
     if (InvoiceRelaunchSaved.class.getTypeName().equals(typedEvent.getTypeName())) {
       invoiceRelaunchSavedService.accept((InvoiceRelaunchSaved) payload);
-    } else if (FileSaved.class.getTypeName().equals(typedEvent.getTypeName())) {
-      fileSavedService.accept((FileSaved) payload);
     } else if (InvoiceCrupdated.class.getTypeName().equals(typedEvent.getTypeName())) {
       invoiceCrupdatedService.accept((InvoiceCrupdated) payload);
     } else {

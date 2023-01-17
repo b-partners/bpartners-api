@@ -31,5 +31,6 @@ public class HAccountHolder implements Serializable {
   private String vatNumber;
   private String mobilePhoneNumber;
   private String email;
+  private boolean subjectToVat = false;
   private String initialCashflow;
 }

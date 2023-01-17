@@ -14,6 +14,7 @@ import lombok.ToString;
 @NoArgsConstructor
 @ToString
 public class CompanyInfo {
+  private boolean subjectToVat;
   private String phone;
   private String email;
   private String tvaNumber;

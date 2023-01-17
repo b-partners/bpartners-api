@@ -11,7 +11,6 @@ import org.springframework.stereotype.Service;
 @Service
 @AllArgsConstructor
 public class AccountHolderService {
-
   private final AccountHolderRepository accountHolderRepository;
   private final BusinessActivityService businessActivityService;
 
@@ -29,14 +28,33 @@ public class AccountHolderService {
 
   public AccountHolder updateCompanyInfo(String accountId, String accountHolderId,
                                          CompanyInfo companyInfo) {
-    return accountHolderRepository.save(accountId, accountHolderId, companyInfo);
+    AccountHolder accountHolder = accountHolderRepository.getByIdAndAccountId(accountHolderId,
+        accountId);
+    return accountHolderRepository.save(accountHolder.toBuilder()
+        .socialCapital(companyInfo.getSocialCapital())
+        .email(companyInfo.getEmail())
+        .mobilePhoneNumber(companyInfo.getPhone())
+        .subjectToVat(companyInfo.isSubjectToVat())
+        .build());
   }
 
+  //TODO: map this update with the companyInfoUpdate and refactor to save method only
   public AccountHolder updateBusinessActivities(
       String optionalAccountId,
       String accountHolderId,
       BusinessActivity businessActivity) {
     businessActivityService.save(businessActivity);
     return accountHolderRepository.getByIdAndAccountId(accountHolderId, optionalAccountId);
+  }
+
+  public AccountHolder updateMicroBusiness(
+      String accountId,
+      String accountHolderId,
+      boolean microBusiness) {
+    AccountHolder accountHolder = accountHolderRepository.getByIdAndAccountId(accountHolderId,
+        accountId);
+    return accountHolderRepository.save(accountHolder.toBuilder()
+        .microBusiness(microBusiness)
+        .build());
   }
 }

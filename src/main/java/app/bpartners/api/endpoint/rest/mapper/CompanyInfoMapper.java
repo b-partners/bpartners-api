@@ -8,14 +8,14 @@ import org.springframework.stereotype.Component;
 @AllArgsConstructor
 public class CompanyInfoMapper {
 
-
-  public app.bpartners.api.model.CompanyInfo toDomain(
-      CompanyInfo companyInfo) {
+  public app.bpartners.api.model.CompanyInfo toDomain(CompanyInfo rest) {
     return app.bpartners.api.model.CompanyInfo.builder()
-        .email(companyInfo.getEmail())
-        .tvaNumber(companyInfo.getTvaNumber())
-        .phone(companyInfo.getPhone())
-        .socialCapital(companyInfo.getSocialCapital())
+        .email(rest.getEmail())
+        .tvaNumber(rest.getTvaNumber())
+        .phone(rest.getPhone())
+        .socialCapital(rest.getSocialCapital())
+        .subjectToVat(
+            rest.getIsSubjectToVat() != null && rest.getIsSubjectToVat())
         .build();
   }
 }

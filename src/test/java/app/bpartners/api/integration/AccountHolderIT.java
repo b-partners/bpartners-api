@@ -9,7 +9,6 @@ import app.bpartners.api.endpoint.rest.model.AccountHolder;
 import app.bpartners.api.endpoint.rest.model.CompanyBusinessActivity;
 import app.bpartners.api.endpoint.rest.model.CompanyInfo;
 import app.bpartners.api.endpoint.rest.model.ContactAddress;
-import app.bpartners.api.endpoint.rest.model.UpdateMicroBusiness;
 import app.bpartners.api.endpoint.rest.model.VerificationStatus;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
 import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
@@ -105,11 +104,6 @@ class AccountHolderIT {
     return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN, ContextInitializer.SERVER_PORT);
   }
 
-  private UpdateMicroBusiness updateMicroBusiness() {
-    return new UpdateMicroBusiness()
-        .isMicroBusiness(true);
-  }
-
   private static AccountHolder joeDoeAccountHolder() {
     return new AccountHolder()
         .id(joeDoeSwanAccountHolder().getId())
@@ -118,7 +112,6 @@ class AccountHolderIT {
         .siren(joeDoeSwanAccountHolder().getInfo().getRegistrationNumber())
         .officialActivityName(joeDoeSwanAccountHolder().getInfo().getBusinessActivity())
         .initialCashflow(6000)
-        .isMicroBusiness(false)
         .companyInfo(new CompanyInfo()
             .isSubjectToVat(false)
             .phone("+33 6 11 22 33 44")
@@ -341,7 +334,6 @@ class AccountHolderIT {
     AccountHolder actual = api.updateCompanyInfo(JOE_DOE_SWAN_USER_ID, JOE_DOE_ACCOUNT_ID,
         joeDoeAccountHolder().getId(), companyInfo());
     assertEquals(expected()
-        .isMicroBusiness(true)
         .companyInfo(updatedCompanyInfo())
         .businessActivities(new CompanyBusinessActivity()
             .primary(companyBusinessActivity().getPrimary())
@@ -365,19 +357,6 @@ class AccountHolderIT {
                 expected().getCompanyInfo()
                     .isSubjectToVat(false)),
         actual);
-  }
-
-  @Order(5)
-  @Test
-  void update_micro_business_status_ok() throws ApiException {
-    ApiClient joeDoeClient = anApiClient();
-    UserAccountsApi api = new UserAccountsApi(joeDoeClient);
-
-    AccountHolder actual = api.updateMicroBusiness(JOE_DOE_SWAN_USER_ID, JOE_DOE_ACCOUNT_ID,
-        joeDoeAccountHolder().getId(), updateMicroBusiness());
-
-    assertEquals(expected()
-        .isMicroBusiness(true), actual);
   }
 
   private void setUpSwanApi(SwanApi swanApi, AccountHolderResponse.Edge... edges) {

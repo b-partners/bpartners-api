@@ -39,6 +39,8 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import static app.bpartners.api.endpoint.rest.model.TransactionTypeEnum.INCOME;
 import static app.bpartners.api.endpoint.rest.model.TransactionTypeEnum.OUTCOME;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
+import static app.bpartners.api.integration.conf.TestUtils.TRANSACTION1_ID;
+import static app.bpartners.api.integration.conf.TestUtils.UNKNOWN_TRANSACTION_ID;
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsApiException;
 import static app.bpartners.api.integration.conf.TestUtils.restTransaction2;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountHolderSwanRep;
@@ -160,11 +162,11 @@ class TransactionCategoryIT {
     PayingApi api = new PayingApi(joeDoeClient);
 
     List<TransactionCategory> actual = api.createTransactionCategories(JOE_DOE_ACCOUNT_ID,
-        restTransaction2().getId(),
+        TRANSACTION1_ID,
         List.of(incomeTransactionCategory()));
     List<TransactionCategory> actualOther = api.createTransactionCategories(
         JOE_DOE_ACCOUNT_ID,
-        restTransaction2().getId(),
+        TRANSACTION1_ID,
         List.of(otherIncomeTransactionCategory())
     );
 
@@ -183,11 +185,17 @@ class TransactionCategoryIT {
         "{\"type\":\"400 BAD_REQUEST\",\"message\":\"Cannot add category."
             + outcomeTransactionCategoryTmpl().getId() + " of type "
             + outcomeTransactionCategoryTmpl().getTransactionType() + " to transaction."
-            + restTransaction2().getId()
+            + TRANSACTION1_ID
             + " of type " + restTransaction2().getType()
             + "\"}",
         () -> api.createTransactionCategories(JOE_DOE_ACCOUNT_ID,
-            restTransaction2().getId(),
+            TRANSACTION1_ID,
+            List.of(outcomeTransactionCategory()))
+    );
+    assertThrowsApiException(
+        "{\"type\":\"404 NOT_FOUND\",\"message\":\"Transaction." + UNKNOWN_TRANSACTION_ID
+            + " not found.\"}",
+        () -> api.createTransactionCategories(JOE_DOE_ACCOUNT_ID, UNKNOWN_TRANSACTION_ID,
             List.of(outcomeTransactionCategory()))
     );
   }

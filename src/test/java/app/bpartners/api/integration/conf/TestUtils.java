@@ -118,6 +118,8 @@ public class TestUtils {
   public static final String ACCOUNT_CLOSED = "Closed";
   public static final String ACCOUNT_CLOSING = "Closing";
   public static final String ACCOUNT_SUSPENDED = "Suspended";
+  public static final String TRANSACTION1_ID = "transaction1_id";
+  public static final String UNKNOWN_TRANSACTION_ID = "unknown_transaction_id";
 
   public static User restJoeDoeUser() {
     return new User()
@@ -423,7 +425,7 @@ public class TestUtils {
 
   public static app.bpartners.api.endpoint.rest.model.Transaction restTransaction1() {
     return new app.bpartners.api.endpoint.rest.model.Transaction()
-        .id("bosci_0fe167566b234808a44aae415f057b6c")
+        .id("transaction2_id")
         .label("Premier virement")
         .reference("JOE-001")
         .amount(50000)
@@ -435,7 +437,7 @@ public class TestUtils {
 
   public static app.bpartners.api.endpoint.rest.model.Transaction restTransaction2() {
     return new app.bpartners.api.endpoint.rest.model.Transaction()
-        .id("bosci_f224704f2555a42303e302ffb8e69eef")
+        .id(TRANSACTION1_ID)
         .label("Création de site vitrine")
         .reference("REF_001")
         .amount(50000)

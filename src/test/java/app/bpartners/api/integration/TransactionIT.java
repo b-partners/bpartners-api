@@ -133,9 +133,10 @@ class TransactionIT {
 
     List<Transaction> actual = api.getTransactions(JOE_DOE_ACCOUNT_ID, null, null);
     assertEquals(3, actual.size());
+
     assertTrue(actual.contains(restTransaction1()));
     assertTrue(actual.contains(restTransaction2()));
-    assertTrue(actual.contains(restTransaction3()));
+    assertTrue(ignoreIds(actual).contains(restTransaction3().id(null)));
   }
 
   @Test
@@ -173,6 +174,13 @@ class TransactionIT {
   List<MonthlyTransactionsSummary> ignoreUpdatedAt(List<MonthlyTransactionsSummary> actual) {
     actual.forEach(monthlyTransactionsSummary -> {
       monthlyTransactionsSummary.setUpdatedAt(null);
+    });
+    return actual;
+  }
+
+  List<Transaction> ignoreIds(List<Transaction> actual) {
+    actual.forEach(transaction -> {
+      transaction.setId(null);
     });
     return actual;
   }

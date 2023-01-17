@@ -119,10 +119,11 @@ class DraftIT {
         .toPayAt(LocalDate.now())
         .account(Account.builder()
             .id(JOE_DOE_ACCOUNT_ID)
+            .name("BPartners")
             .iban("FR7630001007941234567890185")
             .bic("BPFRPP751")
             .build())
-        .products(creatableProds(50))
+        .products(creatableProds(5))
         .customer(Customer.builder()
             .name("Olivier Durant")
             .phone("+33 6 12 45 89 76")
@@ -141,6 +142,7 @@ class DraftIT {
         .name("Numer")
         .mobilePhoneNumber("06 12 34 56 78")
         .email("numer@hei.school")
+        .subjectToVat(true)
         .build();
     byte[] data = pdfUtils.generatePdf(invoice, accountHolder, logoAsBytes, templateName);
     File generatedFile = new File(randomUUID() + ".pdf");

@@ -32,7 +32,6 @@ public class AccountHolderRestMapper {
         .siren(domain.getSiren())
         .verificationStatus(domain.getVerificationStatus())
         .initialCashflow(domain.getInitialCashflow().getCentsRoundUp())
-        .isMicroBusiness(domain.isMicroBusiness())
         .companyInfo(new CompanyInfo()
             .isSubjectToVat(domain.isSubjectToVat())
             .email(domain.getEmail())

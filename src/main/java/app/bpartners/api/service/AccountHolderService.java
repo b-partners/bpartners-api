@@ -46,15 +46,4 @@ public class AccountHolderService {
     businessActivityService.save(businessActivity);
     return accountHolderRepository.getByIdAndAccountId(accountHolderId, optionalAccountId);
   }
-
-  public AccountHolder updateMicroBusiness(
-      String accountId,
-      String accountHolderId,
-      boolean microBusiness) {
-    AccountHolder accountHolder = accountHolderRepository.getByIdAndAccountId(accountHolderId,
-        accountId);
-    return accountHolderRepository.save(accountHolder.toBuilder()
-        .microBusiness(microBusiness)
-        .build());
-  }
 }

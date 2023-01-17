@@ -10,7 +10,5 @@ public interface AccountHolderRepository {
 
   AccountHolder save(AccountHolder accountHolder);
 
-  AccountHolder save(AccountHolder accountHolder);
-
   AccountHolder getByIdAndAccountId(String id, String accountId);
 }

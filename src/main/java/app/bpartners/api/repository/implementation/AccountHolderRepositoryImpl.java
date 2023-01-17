@@ -1,7 +1,6 @@
 package app.bpartners.api.repository.implementation;
 
 import app.bpartners.api.model.AccountHolder;
-import app.bpartners.api.model.CompanyInfo;
 import app.bpartners.api.model.mapper.AccountHolderMapper;
 import app.bpartners.api.repository.AccountHolderRepository;
 import app.bpartners.api.repository.jpa.AccountHolderJpaRepository;
@@ -54,7 +53,7 @@ public class AccountHolderRepositoryImpl implements AccountHolderRepository {
       entity = jpaRepository.save(HAccountHolder.builder()
           .id(swanAccountHolder.getId())
           .accountId(accountId)
-          .subjectToVat(false) //By default, an account holder is NOT a micro-business
+          .subjectToVat(false) //By default, an account holder is NOT subject to vat
           .mobilePhoneNumber(null)
           .email(null)
           .socialCapital(0) //TODO : check default social capital 0 or null

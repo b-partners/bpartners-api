@@ -21,9 +21,12 @@ import app.bpartners.api.endpoint.rest.security.principal.PrincipalProvider;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.repository.LegalFileRepository;
+import app.bpartners.api.repository.fintecture.FintectureConf;
+import app.bpartners.api.repository.fintecture.FintecturePaymentInfoRepository;
 import app.bpartners.api.repository.fintecture.FintecturePaymentInitiationRepository;
 import app.bpartners.api.repository.fintecture.model.PaymentInitiation;
 import app.bpartners.api.repository.fintecture.model.PaymentRedirection;
+import app.bpartners.api.repository.fintecture.model.Session;
 import app.bpartners.api.repository.sendinblue.SendinblueApi;
 import app.bpartners.api.repository.sendinblue.model.Attributes;
 import app.bpartners.api.repository.sendinblue.model.Contact;
@@ -37,14 +40,26 @@ import app.bpartners.api.repository.swan.model.SwanAccountHolder;
 import app.bpartners.api.repository.swan.model.SwanUser;
 import app.bpartners.api.repository.swan.model.Transaction;
 import app.bpartners.api.repository.swan.response.AccountResponse;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.net.ServerSocket;
+import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.http.HttpClient;
+import java.net.http.HttpHeaders;
+import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import javax.net.ssl.SSLSession;
 import org.junit.jupiter.api.function.Executable;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
@@ -119,6 +134,7 @@ public class TestUtils {
   public static final String ACCOUNT_CLOSED = "Closed";
   public static final String ACCOUNT_CLOSING = "Closing";
   public static final String ACCOUNT_SUSPENDED = "Suspended";
+  public static final String SESSION_ID = "session_id";
   public static final String TRANSACTION1_ID = "transaction1_id";
   public static final String UNKNOWN_TRANSACTION_ID = "unknown_transaction_id";
 
@@ -578,6 +594,54 @@ public class TestUtils {
         .build();
   }
 
+  public static HttpResponse<Object> httpResponseMock(Object body) {
+    return new HttpResponse<>() {
+      @Override
+      public int statusCode() {
+        return 200;
+      }
+
+      @Override
+      public HttpRequest request() {
+        return null;
+      }
+
+      @Override
+      public Optional<HttpResponse<Object>> previousResponse() {
+        return Optional.empty();
+      }
+
+      @Override
+      public HttpHeaders headers() {
+        return null;
+      }
+
+      @Override
+      public Object body() {
+        try {
+          return new ObjectMapper().writeValueAsString(body);
+        } catch (JsonProcessingException e) {
+          return null;
+        }
+      }
+
+      @Override
+      public Optional<SSLSession> sslSession() {
+        return Optional.empty();
+      }
+
+      @Override
+      public URI uri() {
+        return null;
+      }
+
+      @Override
+      public HttpClient.Version version() {
+        return null;
+      }
+    };
+  }
+
   public static ApiClient anApiClient(String token, int serverPort) {
     ApiClient client = new ApiClient();
     client.setScheme("http");
@@ -598,6 +662,17 @@ public class TestUtils {
             new Object()
         )
     );
+  }
+
+  public static void setUpFintectureConf(FintectureConf fintectureConfMock)
+      throws NoSuchAlgorithmException {
+    KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
+    generator.initialize(2048);
+    KeyPair pair = generator.generateKeyPair();
+    String encodedKey = Base64.getEncoder().encodeToString(pair.getPrivate().getEncoded());
+    when(fintectureConfMock.getPrivateKey()).thenReturn(encodedKey);
+    when(fintectureConfMock.getRequestToPayUrl()).thenReturn(PIS_URL + "request-to-pay");
+    when(fintectureConfMock.getPaymentUrl()).thenReturn(PIS_URL + "payments");
   }
 
   public static void setUpSwanComponent(SwanComponent swanComponent) {
@@ -656,6 +731,14 @@ public class TestUtils {
 
   public static void setUpPaymentInitiationRep(FintecturePaymentInitiationRepository repository) {
     when(repository.save(any(PaymentInitiation.class), any()))
+        .thenAnswer(invocation ->
+            PaymentRedirection.builder()
+                .meta(PaymentRedirection.Meta.builder()
+                    .sessionId(randomUUID().toString())
+                    .url("https://connect-v2-sbx.fintecture.com")
+                    .build())
+                .build()
+        )
         .thenAnswer(invocation ->
             PaymentRedirection.builder()
                 .meta(PaymentRedirection.Meta.builder()

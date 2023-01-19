@@ -708,10 +708,19 @@ components:
       properties:
         year:
           type: integer
+        annualIncome:
+          type: integer
+        annualOutcome:
+          type: integer
+        annualCashFlow:
+          type: integer
         summary:
           type: array
           items:
             $ref: '#/components/schemas/MonthlyTransactionsSummary'
+        updatedAt:
+          type: string
+          format: date-time
     MonthlyTransactionsSummary:
       type: object
       properties:

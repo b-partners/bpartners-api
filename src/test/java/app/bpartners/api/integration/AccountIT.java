@@ -315,7 +315,7 @@ class AccountIT {
 
     assertThrowsApiException(
         "{\"type\":\"501 NOT_IMPLEMENTED\","
-            + "\"message\":\"One user should have one active account\"}",
+            + "\"message\":\"One user should have at least one account\"}",
         () -> api.getAccountsByUserId(JOE_DOE_ID)
     );
   }
@@ -335,7 +335,9 @@ class AccountIT {
 
     assertThrowsApiException(
         "{\"type\":\"501 NOT_IMPLEMENTED\","
-            + "\"message\":\"One user should have one active account\"}",
+            + "\"message\":\"One user should have one active account"
+            + " but following not active are present :"
+            + " account.beed1765-5c16-472a-b3f4-5c376ce5db58\"}",
         () -> api.getAccountsByUserId(JOE_DOE_ID)
     );
   }

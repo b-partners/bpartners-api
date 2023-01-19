@@ -126,7 +126,7 @@
         @page {
             size: A4;
             margin-top: 30px;
-            margin-bottom: 190px;
+            margin-bottom: 120px;
             @bottom-center {
                 content: element(footer)
             }
@@ -205,15 +205,18 @@
     <div style="border-bottom: 1px solid black"></div>
     <div class="footer-info" style="font-size: 9px">
         <div class="content-left">
-            <p><span th:text="${accountHolder.name}"></span></p>
-            <p>Siège social :
+            <p style="line-height: 1.8"><span th:text="${accountHolder.name}"></span>
+                <br/>
+                Siège social :
                 <span th:text="${accountHolder.address} +', '+${accountHolder.postalCode}+' '+ ${accountHolder.city}+', '+ ${accountHolder.country}"></span>
-            </p>
-            <p>Capital social : <span
-                    th:text="${#numbers.formatCurrency(accountHolder.socialCapital)}"></span>
-            </p>
-            <p>SIREN : <span th:text="${accountHolder.siren}"></span></p>
-            <p>Numéro TVA : <span th:text="${accountHolder.getVatNumber}"></span></p>
+                <br/>
+                <span th:if="${accountHolder.socialCapital > 0}">Capital social : <span
+                        th:text="${#numbers.formatInteger(accountHolder.socialCapital,1,'WHITESPACE')}"></span> €
+                    <br/>
+                </span>
+                SIREN : <span th:text="${accountHolder.siren}"></span>
+                <br/>
+                Numéro TVA : <span th:text="${accountHolder.getVatNumber}"></span></p>
         </div>
     </div>
 </div>
@@ -225,8 +228,8 @@
             <th style="width: 150px">Description</th>
             <th>Quantité</th>
             <th>Prix unitaire</th>
-            <th>TVA</th>
-            <th>Montant HT</th>
+            <th th:if="${!accountHolder.isSubjectToVat()}">TVA</th>
+            <th th:if="${!accountHolder.isSubjectToVat()}">Montant HT</th>
             <th>Montant TTC</th>
             </thead>
             <tbody th:if="${invoice.products != null}">
@@ -240,10 +243,12 @@
                             th:text="${#numbers.formatDecimal(product.unitPrice.getCentsAsDecimal(),1,2)}"></span>
                         €
                     </td>
-                    <td class="text-center space-letter"><span
+                    <td class="text-center space-letter"
+                        th:if="${!accountHolder.isSubjectToVat()}"><span
                             th:text="${#numbers.formatDecimal(product.vatPercent.getCentsAsDecimal(),1,2)}"></span>%
                     </td>
-                    <td class="text-center space-letter"><span
+                    <td class="text-center space-letter"
+                        th:if="${!accountHolder.isSubjectToVat()}"><span
                             th:text="${#numbers.formatDecimal(product.totalWithoutVat.getCentsAsDecimal(),1,2)}"></span>
                         €
                     </td>
@@ -257,16 +262,21 @@
         </table>
         <div class="amount-section no-break-inside">
             <div>
-                <p><strong>Total HT</strong> : <span
+                <p th:if="${!accountHolder.isSubjectToVat()}"><strong>Total HT</strong> : <span
                         th:text="${#numbers.formatDecimal(invoice.totalPriceWithoutVat.getCentsAsDecimal(), 1,2)}"></span>
                     €
                 </p>
-                <p><strong>Total TVA</strong> : <span
+                <p th:if="${!accountHolder.isSubjectToVat()}"><strong>Total TVA</strong> : <span
                         th:text="${#numbers.formatDecimal(invoice.totalVat.getCentsAsDecimal(), 1,2)}"></span>
                     €</p>
                 <p><strong>Total TTC</strong> : <span
                         th:text="${#numbers.formatDecimal(invoice.totalPriceWithVat.getCentsAsDecimal(),1,2)}"></span>
                     €
+                </p>
+                <p style="padding: 4px 8px; width: 150px; margin-left: 73%; border: 0px;
+             font-size: 0.9em; text-align: center; line-height: 1.8;"
+                   th:if="${accountHolder.isSubjectToVat()}">
+                    TVA non applicable article 293 B <br/> du code général des impôts (CGI).
                 </p>
             </div>
         </div>

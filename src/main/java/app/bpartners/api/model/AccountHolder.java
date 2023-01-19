@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
-@Builder
+@Builder(toBuilder = true)
 @Getter
 @Setter
 @ToString
@@ -30,5 +30,6 @@ public class AccountHolder {
   private String mobilePhoneNumber;
   private String email;
   private Fraction initialCashflow;
+  private boolean subjectToVat;
   private VerificationStatus verificationStatus;
 }

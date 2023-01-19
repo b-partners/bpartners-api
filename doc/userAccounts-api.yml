@@ -415,6 +415,8 @@ components:
     CompanyInfo:
       type: object
       properties:
+        isSubjectToVat:
+          type: boolean
         phone:
           type: string
         email:

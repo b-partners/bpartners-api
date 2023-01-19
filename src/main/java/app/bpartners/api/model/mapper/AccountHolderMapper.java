@@ -25,6 +25,7 @@ public class AccountHolderMapper {
         .id(accountHolder.getId())
         .verificationStatus(getVerificationStatus(accountHolder.getVerificationStatus()))
         .name(accountHolder.getInfo().getName())
+        .subjectToVat(entity.isSubjectToVat())
         .email(entity.getEmail())
         .mobilePhoneNumber(entity.getMobilePhoneNumber())
         .accountId(entity.getAccountId())
@@ -38,6 +39,19 @@ public class AccountHolderMapper {
         .mainActivity(accountHolder.getInfo().getBusinessActivity())
         .mainActivityDescription(accountHolder.getInfo().getBusinessActivityDescription())
         .initialCashflow(parseFraction(entity.getInitialCashflow()))
+        .build();
+  }
+
+  public HAccountHolder toEntity(AccountHolder domain) {
+    return HAccountHolder.builder()
+        .id(domain.getId())
+        .accountId(domain.getAccountId())
+        .email(domain.getEmail())
+        .subjectToVat(domain.isSubjectToVat())
+        .vatNumber(domain.getVatNumber())
+        .mobilePhoneNumber(domain.getMobilePhoneNumber())
+        .socialCapital(domain.getSocialCapital())
+        .initialCashflow(domain.getInitialCashflow().toString())
         .build();
   }
 

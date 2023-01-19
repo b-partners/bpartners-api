@@ -113,6 +113,7 @@ class AccountHolderIT {
         .officialActivityName(joeDoeSwanAccountHolder().getInfo().getBusinessActivity())
         .initialCashflow(6000)
         .companyInfo(new CompanyInfo()
+            .isSubjectToVat(false)
             .phone("+33 6 11 22 33 44")
             .email("numer@hei.school")
             .socialCapital(40000)
@@ -188,6 +189,7 @@ class AccountHolderIT {
 
   CompanyInfo updatedCompanyInfo() {
     return new CompanyInfo()
+        .isSubjectToVat(true)
         .email(companyInfo().getEmail())
         .phone(companyInfo().getPhone())
         .socialCapital(companyInfo().getSocialCapital())
@@ -310,7 +312,6 @@ class AccountHolderIT {
   }
 
   @Order(3)
-
   @Test
   void read_empty_account_holders_ko() {
     setUpSwanApi(swanApiMock);
@@ -324,7 +325,7 @@ class AccountHolderIT {
         () -> api.getAccountHolders(JOE_DOE_ID, JOE_DOE_ACCOUNT_ID));
   }
 
-  @Order(5)
+  @Order(6)
   @Test
   void update_company_info_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
@@ -351,7 +352,11 @@ class AccountHolderIT {
     AccountHolder actual = api.updateBusinessActivities(JOE_DOE_SWAN_USER_ID, JOE_DOE_ACCOUNT_ID,
         joeDoeAccountHolder().getId(), companyBusinessActivity());
 
-    assertEquals(expected(), actual);
+    assertEquals(expected()
+            .companyInfo(
+                expected().getCompanyInfo()
+                    .isSubjectToVat(false)),
+        actual);
   }
 
   private void setUpSwanApi(SwanApi swanApi, AccountHolderResponse.Edge... edges) {

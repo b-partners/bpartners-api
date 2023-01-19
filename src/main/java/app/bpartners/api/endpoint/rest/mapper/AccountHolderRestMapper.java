@@ -33,6 +33,7 @@ public class AccountHolderRestMapper {
         .verificationStatus(domain.getVerificationStatus())
         .initialCashflow(domain.getInitialCashflow().getCentsRoundUp())
         .companyInfo(new CompanyInfo()
+            .isSubjectToVat(domain.isSubjectToVat())
             .email(domain.getEmail())
             .phone(domain.getMobilePhoneNumber())
             .tvaNumber(domain.getVatNumber())

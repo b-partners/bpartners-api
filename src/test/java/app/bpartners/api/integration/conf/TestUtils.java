@@ -55,6 +55,8 @@ import static app.bpartners.api.endpoint.rest.model.EnableStatus.ENABLED;
 import static app.bpartners.api.endpoint.rest.model.IdentificationStatus.VALID_IDENTITY;
 import static app.bpartners.api.endpoint.rest.model.TransactionTypeEnum.INCOME;
 import static app.bpartners.api.endpoint.rest.model.TransactionTypeEnum.OUTCOME;
+import static app.bpartners.api.model.Invoice.DEFAULT_DELAY_PENALTY_PERCENT;
+import static app.bpartners.api.model.Invoice.DEFAULT_TO_PAY_DELAY_DAYS;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.CLIENT_EXCEPTION;
 import static app.bpartners.api.model.mapper.UserMapper.VALID_IDENTITY_STATUS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -88,7 +90,6 @@ public class TestUtils {
   public static final String INVOICE3_ID = "invoice3_id";
   public static final String INVOICE4_ID = "invoice4_id";
   public static final String INVOICE7_ID = "invoice7_id";
-
   public static final String FILE_ID = "test.jpeg";
   public static final String TEST_FILE_ID = "test.jpeg";
   public static final String OTHER_TEST_FILE_ID = "image.jpeg";
@@ -466,6 +467,8 @@ public class TestUtils {
         .sendingDate(LocalDate.of(2022, 9, 1))
         .validityDate(LocalDate.of(2022, 10, 3))
         .toPayAt(LocalDate.of(2022, 10, 1))
+        .delayInPaymentAllowed(DEFAULT_TO_PAY_DELAY_DAYS)
+        .delayPenaltyPercent(DEFAULT_DELAY_PENALTY_PERCENT)
         .status(InvoiceStatus.CONFIRMED)
         .products(List.of(product3(), product4()))
         .totalPriceWithVat(8800)
@@ -487,6 +490,8 @@ public class TestUtils {
         .sendingDate(LocalDate.of(2022, 9, 10))
         .validityDate(LocalDate.of(2022, 10, 14))
         .toPayAt(LocalDate.of(2022, 10, 10))
+        .delayInPaymentAllowed(DEFAULT_TO_PAY_DELAY_DAYS)
+        .delayPenaltyPercent(DEFAULT_DELAY_PENALTY_PERCENT)
         .status(InvoiceStatus.CONFIRMED)
         .products(List.of(product5()))
         .totalPriceWithVat(1100)
@@ -530,6 +535,7 @@ public class TestUtils {
 
   public static CompanyInfo companyInfo() {
     return new CompanyInfo()
+        .isSubjectToVat(true)
         .email("anotherEmail@gmail.com")
         .phone("+33 5 13 3234")
         .socialCapital(40000)

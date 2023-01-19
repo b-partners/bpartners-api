@@ -72,6 +72,7 @@ import static app.bpartners.api.integration.conf.TestUtils.setUpLegalFileReposit
 import static app.bpartners.api.integration.conf.TestUtils.setUpPaymentInitiationRep;
 import static app.bpartners.api.integration.conf.TestUtils.setUpSwanComponent;
 import static app.bpartners.api.integration.conf.TestUtils.setUpUserSwanRepository;
+import static app.bpartners.api.model.Invoice.DEFAULT_DELAY_PENALTY_PERCENT;
 import static app.bpartners.api.model.Invoice.DEFAULT_TO_PAY_DELAY_DAYS;
 import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
@@ -161,7 +162,9 @@ class InvoiceIT {
         .status(CONFIRMED)
         .sendingDate(LocalDate.of(2022, 10, 12))
         .validityDate(LocalDate.of(2022, 10, 14))
-        .toPayAt(LocalDate.of(2022, 11, 13));
+        .toPayAt(LocalDate.of(2022, 11, 13))
+        .delayInPaymentAllowed(15)
+        .delayPenaltyPercent(20);
   }
 
   CrupdateInvoice paidInvoice() {
@@ -173,7 +176,9 @@ class InvoiceIT {
         .status(PAID)
         .sendingDate(LocalDate.of(2022, 10, 12))
         .validityDate(LocalDate.of(2022, 10, 14))
-        .toPayAt(LocalDate.of(2022, 11, 13));
+        .toPayAt(LocalDate.of(2022, 11, 13))
+        .delayInPaymentAllowed(15)
+        .delayPenaltyPercent(20);
   }
 
   Invoice invoice1() {
@@ -187,6 +192,8 @@ class InvoiceIT {
         .sendingDate(LocalDate.of(2022, 9, 1))
         .validityDate(LocalDate.of(2022, 10, 3))
         .toPayAt(LocalDate.of(2022, 10, 1))
+        .delayInPaymentAllowed(DEFAULT_TO_PAY_DELAY_DAYS)
+        .delayPenaltyPercent(DEFAULT_DELAY_PENALTY_PERCENT)
         .status(CONFIRMED)
         .products(List.of(product3(), product4()))
         .totalPriceWithVat(8800)
@@ -206,6 +213,8 @@ class InvoiceIT {
         .validityDate(LocalDate.of(2022, 10, 14))
         .createdAt(Instant.parse("2022-01-01T03:00:00.00Z"))
         .toPayAt(LocalDate.of(2022, 10, 10))
+        .delayInPaymentAllowed(DEFAULT_TO_PAY_DELAY_DAYS)
+        .delayPenaltyPercent(DEFAULT_DELAY_PENALTY_PERCENT)
         .status(CONFIRMED)
         .products(List.of(product5()))
         .totalPriceWithVat(1100)
@@ -225,6 +234,8 @@ class InvoiceIT {
         .createdAt(Instant.parse("2022-01-01T06:00:00Z"))
         .sendingDate(LocalDate.of(2022, 10, 12))
         .validityDate(LocalDate.of(2022, 11, 12))
+        .delayInPaymentAllowed(DEFAULT_TO_PAY_DELAY_DAYS)
+        .delayPenaltyPercent(DEFAULT_DELAY_PENALTY_PERCENT)
         .products(List.of(product5().id(null)))
         .toPayAt(LocalDate.of(2022, 11, 10))
         .totalPriceWithVat(1100)
@@ -242,7 +253,9 @@ class InvoiceIT {
         .products(List.of(createProduct4(), createProduct5()))
         .sendingDate(LocalDate.now())
         .validityDate(LocalDate.now().plusDays(3L))
-        .toPayAt(LocalDate.now().plusDays(1L));
+        .toPayAt(LocalDate.now().plusDays(1L))
+        .delayInPaymentAllowed(null)
+        .delayPenaltyPercent(null);
   }
 
   Invoice expectedDraft() {
@@ -255,6 +268,8 @@ class InvoiceIT {
         .status(DRAFT)
         .sendingDate(validInvoice().getSendingDate())
         .validityDate(validInvoice().getValidityDate())
+        .delayInPaymentAllowed(DEFAULT_TO_PAY_DELAY_DAYS)
+        .delayPenaltyPercent(DEFAULT_DELAY_PENALTY_PERCENT)
         .products(List.of(product4().id(null), product5().id(null)))
         .totalPriceWithVat(3300)
         .totalVat(300)
@@ -272,6 +287,8 @@ class InvoiceIT {
         .sendingDate(confirmedInvoice().getSendingDate())
         .products(List.of(product5().id(null)))
         .toPayAt(confirmedInvoice().getToPayAt())
+        .delayInPaymentAllowed(confirmedInvoice().getDelayInPaymentAllowed())
+        .delayPenaltyPercent(confirmedInvoice().getDelayPenaltyPercent())
         .totalPriceWithVat(1100)
         .totalVat(100)
         .totalPriceWithoutVat(1000)
@@ -286,6 +303,8 @@ class InvoiceIT {
         .totalPriceWithoutVat(0)
         .totalPriceWithVat(0)
         .status(DRAFT)
+        .delayInPaymentAllowed(DEFAULT_TO_PAY_DELAY_DAYS)
+        .delayPenaltyPercent(DEFAULT_DELAY_PENALTY_PERCENT)
         .metadata(Map.of());
   }
 
@@ -299,6 +318,8 @@ class InvoiceIT {
         .sendingDate(paidInvoice().getSendingDate())
         .products(List.of(product5().id(null)))
         .toPayAt(paidInvoice().getToPayAt())
+        .delayInPaymentAllowed(paidInvoice().getDelayInPaymentAllowed())
+        .delayPenaltyPercent(paidInvoice().getDelayPenaltyPercent())
         .totalPriceWithVat(1100)
         .totalVat(100)
         .totalPriceWithoutVat(1000)
@@ -410,10 +431,11 @@ class InvoiceIT {
   void crupdate_invoice_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
     PayingApi api = new PayingApi(joeDoeClient);
-    String draftRef = "Some random ref " + randomUUID();
+    int customizePenalty = 1960;
 
     Invoice actualDraft = api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, NEW_INVOICE_ID,
-        initializeDraft().ref(draftRef));
+            initializeDraft().ref(null))
+        .delayPenaltyPercent(customizePenalty);
     Invoice actualUpdatedDraft = api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, NEW_INVOICE_ID,
         validInvoice());
     actualUpdatedDraft.setProducts(ignoreIdsOf(actualUpdatedDraft.getProducts()));
@@ -424,13 +446,14 @@ class InvoiceIT {
         api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, actualConfirmed.getId(), paidInvoice());
     actualPaid.setProducts(ignoreIdsOf(actualPaid.getProducts()));
 
-    assertEquals(expectedInitializedDraft()
-            .ref(DRAFT_REF_PREFIX + draftRef)
+    assertEquals(expectedInitializedDraft().ref(null)
             .fileId(actualDraft.getFileId())
+            .delayPenaltyPercent(customizePenalty)
             .createdAt(actualDraft.getCreatedAt())
             .updatedAt(actualDraft.getUpdatedAt()),
         actualDraft);
     assertNotNull(actualDraft.getFileId());
+    assertNotEquals(DEFAULT_DELAY_PENALTY_PERCENT, actualDraft.getDelayPenaltyPercent());
     assertEquals(expectedDraft()
             .fileId(actualUpdatedDraft.getFileId())
             .createdAt(actualUpdatedDraft.getCreatedAt())
@@ -442,7 +465,7 @@ class InvoiceIT {
             .id(actualConfirmed.getId())
             .fileId(actualConfirmed.getFileId())
             .sendingDate(LocalDate.now())
-            .toPayAt(LocalDate.now().plusDays(DEFAULT_TO_PAY_DELAY_DAYS))
+            .toPayAt(LocalDate.now().plusDays(actualConfirmed.getDelayInPaymentAllowed()))
             .updatedAt(actualConfirmed.getUpdatedAt()),
         actualConfirmed.createdAt(null));
     assertNotNull(actualConfirmed.getFileId());
@@ -487,13 +510,11 @@ class InvoiceIT {
     PayingApi api = new PayingApi(joeDoeClient);
 
     Invoice actualDraft = api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, String.valueOf(randomUUID()),
-        initializeDraft()
-            .ref(String.valueOf(randomUUID()))
+        initializeDraft().ref(null)
             .products(List.of(createProduct4(),
                 createProduct2())));
     Invoice actualDraftUpdated = api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, actualDraft.getId(),
-        initializeDraft()
-            .ref(String.valueOf(randomUUID()))
+        initializeDraft().ref(null)
             .products(List.of(createProduct5())));
     actualDraftUpdated.setProducts(ignoreIdsOf(actualDraftUpdated.getProducts()));
 

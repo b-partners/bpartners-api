@@ -50,7 +50,7 @@ public class AccountResponse {
     public List<Edge> getEdges() {
       List<Edge> edgeList = new ArrayList<>(edges);
       if (edgeList.isEmpty()) {
-        throw new NotImplementedException("One user should have one active account");
+        throw new NotImplementedException("One user should have at least one account");
       }
       Edge result = removeFirstActiveAccount(edgeList);
       boolean otherAccountsClosed = edgeList.stream()
@@ -71,7 +71,8 @@ public class AccountResponse {
           .filter(edge -> edge.getNode().getStatusInfo().getStatus().equals(OPENED_STATUS))
           .findFirst();
       if (optionalActiveAccount.isEmpty()) {
-        throw new NotImplementedException("One user should have one active account");
+        throw new NotImplementedException("One user should have one active account but following"
+            + " not active are present : " + otherAccountIds(edgeList));
       }
       edgeList.remove(optionalActiveAccount.get());
       return optionalActiveAccount.get();

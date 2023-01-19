@@ -2,10 +2,8 @@ package app.bpartners.api.endpoint.event;
 
 import app.bpartners.api.endpoint.event.EventConsumer.AcknowledgeableTypedEvent;
 import app.bpartners.api.endpoint.event.model.TypedEvent;
-import app.bpartners.api.endpoint.event.model.TypedFileSaved;
 import app.bpartners.api.endpoint.event.model.TypedInvoiceCrupdated;
 import app.bpartners.api.endpoint.event.model.TypedInvoiceRelaunchSaved;
-import app.bpartners.api.endpoint.event.model.gen.FileSaved;
 import app.bpartners.api.endpoint.event.model.gen.InvoiceCrupdated;
 import app.bpartners.api.endpoint.event.model.gen.InvoiceRelaunchSaved;
 import app.bpartners.api.model.exception.BadRequestException;
@@ -95,10 +93,7 @@ public class EventPoller {
     };
     Map<String, Object> body = om.readValue(message.body(), typeRef);
     String typeName = body.get("detail-type").toString();
-    if (FileSaved.class.getTypeName().equals(typeName)) {
-      FileSaved fileSaved = om.convertValue(body.get(DETAIL_PROPERTY), FileSaved.class);
-      typedEvent = new TypedFileSaved(fileSaved);
-    } else if (InvoiceRelaunchSaved.class.getTypeName().equals(typeName)) {
+    if (InvoiceRelaunchSaved.class.getTypeName().equals(typeName)) {
       InvoiceRelaunchSaved
           invoiceRelaunchSaved =
           om.convertValue(body.get(DETAIL_PROPERTY), InvoiceRelaunchSaved.class);

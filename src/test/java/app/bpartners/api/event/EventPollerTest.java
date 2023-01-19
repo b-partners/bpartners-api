@@ -21,7 +21,6 @@ import static java.time.Instant.now;
 import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -61,7 +60,6 @@ class EventPollerTest {
   void non_empty_messages_triggers_eventConsumer() {
     ReceiveMessageResponse response = ReceiveMessageResponse.builder()
         .messages(
-            someMessage(FileSaved.class),
             someMessage(Exception.class),
             someMessage(InvoiceRelaunchSaved.class))
         .build();
@@ -73,21 +71,12 @@ class EventPollerTest {
         ArgumentCaptor.forClass(List.class);
     verify(eventConsumer, times(1)).accept(captor.capture());
     var ackTypedEvents = captor.getValue();
-    assertEquals(2, ackTypedEvents.size());
-    // First ackTypedEvent
-    var ackTypedEvent0 = ackTypedEvents.get(0);
-    var typeEvent0 = ackTypedEvent0.getTypedEvent();
-    assertEquals(FileSaved.class.getTypeName(), typeEvent0.getTypeName());
-    FileSaved fileSaved = (FileSaved) typeEvent0.getPayload();
-    assertFalse(fileSaved.getAccountId().isEmpty());
-    assertFalse(fileSaved.getFileId().isEmpty());
-    assertNotNull(fileSaved.getFileType());
-    assertEquals(0, fileSaved.getFileAsBytes().length);
+    assertEquals(1, ackTypedEvents.size());
     // Second ackTypedEvent
-    var ackTypedEvent1 = ackTypedEvents.get(1);
-    var typeEvent1 = ackTypedEvent1.getTypedEvent();
-    assertEquals(InvoiceRelaunchSaved.class.getTypeName(), typeEvent1.getTypeName());
-    InvoiceRelaunchSaved invoiceRelaunchSaved = (InvoiceRelaunchSaved) typeEvent1.getPayload();
+    var ackTypedEvent = ackTypedEvents.get(0);
+    var typeEvent = ackTypedEvent.getTypedEvent();
+    assertEquals(InvoiceRelaunchSaved.class.getTypeName(), typeEvent.getTypeName());
+    InvoiceRelaunchSaved invoiceRelaunchSaved = (InvoiceRelaunchSaved) typeEvent.getPayload();
     assertFalse(invoiceRelaunchSaved.getSubject().isEmpty());
     assertFalse(invoiceRelaunchSaved.getRecipient().isEmpty());
     assertFalse(invoiceRelaunchSaved.getAttachmentName().isEmpty());

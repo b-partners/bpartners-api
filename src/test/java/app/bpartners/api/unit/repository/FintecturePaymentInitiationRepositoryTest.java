@@ -3,7 +3,7 @@ package app.bpartners.api.unit.repository;
 import app.bpartners.api.manager.ProjectTokenManager;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.repository.fintecture.FintectureConf;
-import app.bpartners.api.repository.fintecture.implementation.FinctecturePaymentInitiationRepositoryImpl;
+import app.bpartners.api.repository.fintecture.implementation.FintecturePaymentInitiationRepositoryImpl;
 import app.bpartners.api.repository.fintecture.model.PaymentInitiation;
 import app.bpartners.api.repository.fintecture.model.PaymentRedirection;
 import java.io.IOException;
@@ -38,7 +38,7 @@ class FintecturePaymentInitiationRepositoryTest {
     projectTokenManager = mock(ProjectTokenManager.class);
     httpClient = mock(HttpClient.class);
     fintecturePaymentInitiationRepository =
-        new FinctecturePaymentInitiationRepositoryImpl(fintectureConf,
+        new FintecturePaymentInitiationRepositoryImpl(fintectureConf,
             projectTokenManager).httpClient(httpClient);
     KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
     generator.initialize(2048);
@@ -46,7 +46,7 @@ class FintecturePaymentInitiationRepositoryTest {
     String encodedKey = Base64.getEncoder().encodeToString(pair.getPrivate().getEncoded());
     when(fintectureConf.getPrivateKey()).thenReturn(encodedKey);
     when(projectTokenManager.getFintectureProjectToken()).thenReturn(PROJECT_TOKEN);
-    when(fintectureConf.getConnectUrl()).thenReturn(PIS_URL);
+    when(fintectureConf.getRequestToPayUrl()).thenReturn(PIS_URL);
   }
 
   PaymentInitiation paymentInitiation() {

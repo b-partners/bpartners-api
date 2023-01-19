@@ -1,17 +1,17 @@
 package app.bpartners.api.repository.fintecture.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-@Builder
-@NoArgsConstructor
 @AllArgsConstructor
-@JsonIgnoreProperties(ignoreUnknown = true)
-public class PaymentRedirection {
+@NoArgsConstructor
+@Builder
+@Setter
+public class PaymentMeta {
   private Meta meta;
 
   @JsonProperty("meta")
@@ -20,29 +20,36 @@ public class PaymentRedirection {
     return meta;
   }
 
-  @Builder
-  @JsonIgnoreProperties(ignoreUnknown = true)
+  @Setter
   public static class Meta {
-    private Integer status;
-    private String sessionId;
-    private String url;
+    private String status;
+    private String transferReason;
+    private String reason;
 
     @JsonProperty("status")
     @JsonInclude(JsonInclude.Include.USE_DEFAULTS)
-    public Integer getStatus() {
+    public String getStatus() {
       return status;
     }
 
-    @JsonProperty("session_id")
+    @JsonProperty("origin")
     @JsonInclude(JsonInclude.Include.USE_DEFAULTS)
-    public String getSessionId() {
-      return sessionId;
+    public String getOrigin() {
+      return "api";
     }
 
-    @JsonProperty("url")
+    @JsonProperty("transfer_reason")
     @JsonInclude(JsonInclude.Include.USE_DEFAULTS)
-    public String getUrl() {
-      return url;
+    public String getTransferReason() {
+      return transferReason;
     }
+
+    @JsonProperty("reason")
+    @JsonInclude(JsonInclude.Include.USE_DEFAULTS)
+    public String getReason() {
+      return reason;
+    }
+
   }
+
 }

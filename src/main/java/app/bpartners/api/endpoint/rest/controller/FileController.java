@@ -49,7 +49,7 @@ public class FileController {
       @PathVariable(name = "id") String fileId,
       @RequestParam(name = "fileType") FileType fileType,
       @RequestBody byte[] toUpload) {
-    service.uploadEvent(fileType, accountId, fileId, toUpload, principal.getUserId());
+    service.upload(fileId, fileType, accountId, toUpload, principal.getUserId());
     return ResponseEntity.ok()
         .contentType(FileInfoUtils.parseMediaTypeFromBytes(toUpload))
         .body(toUpload);

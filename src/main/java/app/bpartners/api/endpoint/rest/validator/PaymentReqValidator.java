@@ -4,6 +4,8 @@ import app.bpartners.api.endpoint.rest.model.PaymentInitiation;
 import java.util.function.Consumer;
 import org.springframework.stereotype.Component;
 
+import static app.bpartners.api.endpoint.rest.validator.UUIDValidator.isValid;
+
 @Component
 public class PaymentReqValidator implements Consumer<PaymentInitiation> {
   @Override
@@ -11,6 +13,9 @@ public class PaymentReqValidator implements Consumer<PaymentInitiation> {
     StringBuilder builder = new StringBuilder();
     if (paymentInitiation.getId() == null) {
       builder.append("id is mandatory. ");
+    }
+    if (paymentInitiation.getId() != null && !isValid(paymentInitiation.getId())) {
+      builder.append("id must be a valid UUID. ");
     }
     if (paymentInitiation.getAmount() == null) {
       builder.append("amount is mandatory. ");

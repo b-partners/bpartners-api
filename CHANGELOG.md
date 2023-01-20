@@ -1,4 +1,4 @@
-# [0.3.0](https://github.com/b-partners/bpartners-api/compare/v0.2.4...v0.3.0) (2023-01-18)
+# [0.4.0](https://github.com/b-partners/bpartners-api/compare/v0.2.4...v0.4.0) (2023-01-20)
 
 
 ### Bug Fixes
@@ -8,6 +8,7 @@
 * draft invoice have validity date and only confirmed have payment limit date ([4ffd682](https://github.com/b-partners/bpartners-api/commit/4ffd682444fa56dfb82841d70b47f7d03f6d908d))
 * draft product description wraps if too long and footer page is repeated correctly ([e641492](https://github.com/b-partners/bpartners-api/commit/e6414924ab780dc0aa815d74a13b3a10879f0bb8))
 * drop business activity template fk constraint only if exists ([f0abc12](https://github.com/b-partners/bpartners-api/commit/f0abc1281b0f6b8f0e3654f0bf9649df451bf008))
+* file upload is synchronous to avoid event bridge file size limit exception ([ce577b3](https://github.com/b-partners/bpartners-api/commit/ce577b33c214b6483bc473b15137e2f21625f1fb))
 * fintecture and swan project token are refreshed automatically ([53e3036](https://github.com/b-partners/bpartners-api/commit/53e3036e584fe9dde590e929175c6ae7db6a56af))
 * improve invoice performance issue ([752a7c8](https://github.com/b-partners/bpartners-api/commit/752a7c88eb442a5c2cd25bb248a36d2cddf3afaa))
 * map sending date as validy date for draft and proposal invoice ([6f150a7](https://github.com/b-partners/bpartners-api/commit/6f150a7e9a33193382e8f9df03689899fa2d1422))
@@ -20,6 +21,7 @@
 ### Features
 
 * account holder may be suject to vat ([e3c21e2](https://github.com/b-partners/bpartners-api/commit/e3c21e2223695eb04386630214cba5f4d4f4f2ab))
+* add transactions annual summary ([ba2e527](https://github.com/b-partners/bpartners-api/commit/ba2e52779eea86166d141ae91953bd22622bffb4))
 
 
 

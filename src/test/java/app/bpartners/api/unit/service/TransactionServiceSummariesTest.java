@@ -101,7 +101,6 @@ class TransactionServiceSummariesTest {
   private Transaction.TransactionBuilder transactionWith100Value() {
     return Transaction
         .builder()
-        .id(String.valueOf(randomUUID()))
         .amount(new Fraction(BigInteger.valueOf(100)));
   }
 

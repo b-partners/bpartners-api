@@ -38,6 +38,12 @@ public class InvoiceRestMapper {
           .map(productRestMapper::toRest)
           .collect(Collectors.toUnmodifiableList());
     }
+    //TODO: deprecated use validityDate instead of toPayAt
+    LocalDate toPayAt = domain.getToPayAt();
+    if (domain.getStatus() != PAID && domain.getStatus() != CONFIRMED
+        && domain.getToPayAt() == null) {
+      toPayAt = domain.getValidityDate();
+    }
     return new Invoice()
         .id(domain.getId())
         .fileId(domain.getFileId())
@@ -58,7 +64,7 @@ public class InvoiceRestMapper {
         .delayInPaymentAllowed(domain.getDelayInPaymentAllowed())
         .delayPenaltyPercent(domain.getDelayPenaltyPercent().getCentsRoundUp())
         .metadata(domain.getMetadata())
-        .toPayAt(domain.getToPayAt());
+        .toPayAt(toPayAt);
   }
 
   public app.bpartners.api.model.Invoice toDomain(
@@ -77,12 +83,14 @@ public class InvoiceRestMapper {
       invoiceBuilder.customer(existingCustomer);
     }
     LocalDate validityDate = rest.getValidityDate();
+    //TODO : uncomment when validityDate is correctly set
     if (rest.getStatus() != CONFIRMED && rest.getStatus() != PAID
-        && validityDate == null && rest.getToPayAt() != null) {
+        /*&& validityDate == null*/ && rest.getToPayAt() != null) {
       log.warn("DEPRECATED: DRAFT and PROPOSAL invoice must use validityDate"
           + " instead of toPayAt attribute during crupdate");
       validityDate = rest.getToPayAt();
     }
+
     return invoiceBuilder
         .id(id)
         .title(rest.getTitle())

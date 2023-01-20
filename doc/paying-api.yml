@@ -708,10 +708,19 @@ components:
       properties:
         year:
           type: integer
+        annualIncome:
+          type: integer
+        annualOutcome:
+          type: integer
+        annualCashFlow:
+          type: integer
         summary:
           type: array
           items:
             $ref: '#/components/schemas/MonthlyTransactionsSummary'
+        updatedAt:
+          type: string
+          format: date-time
     MonthlyTransactionsSummary:
       type: object
       properties:
@@ -937,7 +946,6 @@ components:
           type: string
         redirectionStatusUrls:
           $ref: './api.yml#/components/schemas/RedirectionStatusUrls'
-        #todo: attributes are ignored until payment req are persisted
         label:
           type: string
         reference:

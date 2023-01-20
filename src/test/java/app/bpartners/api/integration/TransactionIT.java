@@ -92,8 +92,8 @@ class TransactionIT {
         .id("monthly_transactions_summary1_id")
         .month(JANUARY)
         .income(1000000)
-        .outcome(0)
-        .cashFlow(1000000);
+        .outcome(1050)
+        .cashFlow(998950);
   }
 
   MonthlyTransactionsSummary month2() {
@@ -102,12 +102,17 @@ class TransactionIT {
         .month(DECEMBER)
         .income(0)
         .outcome(0)
-        .cashFlow(1000000);
+        .cashFlow(998950);
   }
 
   TransactionsSummary transactionsSummary1() {
+    int month1CashFlow = month1().getIncome() - month1().getOutcome();
+    int month2CashFlow = month2().getIncome() - month2().getOutcome();
     return new TransactionsSummary()
         .year(LocalDate.now().getYear())
+        .annualIncome(month1().getIncome() + month2().getIncome())
+        .annualOutcome(month1().getOutcome() + month2().getOutcome())
+        .annualCashFlow(month1CashFlow + month2CashFlow)
         .summary(List.of(month1(), month2()));
   }
 
@@ -128,9 +133,10 @@ class TransactionIT {
 
     List<Transaction> actual = api.getTransactions(JOE_DOE_ACCOUNT_ID, null, null);
     assertEquals(3, actual.size());
+
     assertTrue(actual.contains(restTransaction1()));
     assertTrue(actual.contains(restTransaction2()));
-    assertTrue(actual.contains(restTransaction3()));
+    assertTrue(ignoreIds(actual).contains(restTransaction3().id(null)));
   }
 
   @Test
@@ -146,7 +152,8 @@ class TransactionIT {
     assertEquals(2, actualDefaultYear.getSummary().size());
     assertEquals(0, actualCustomYear.getSummary().size());
     assertEquals(currentYear + 1, actualCustomYear.getYear());
-    assertEquals(transactionsSummary1(),
+    assertEquals(transactionsSummary1()
+            .updatedAt(actualDefaultYear.getUpdatedAt()),
         actualDefaultYear.summary(ignoreUpdatedAt(actualDefaultYear.getSummary())));
   }
 
@@ -167,6 +174,13 @@ class TransactionIT {
   List<MonthlyTransactionsSummary> ignoreUpdatedAt(List<MonthlyTransactionsSummary> actual) {
     actual.forEach(monthlyTransactionsSummary -> {
       monthlyTransactionsSummary.setUpdatedAt(null);
+    });
+    return actual;
+  }
+
+  List<Transaction> ignoreIds(List<Transaction> actual) {
+    actual.forEach(transaction -> {
+      transaction.setId(null);
     });
     return actual;
   }

@@ -77,6 +77,16 @@ class PreUserIT {
     return createPreUser;
   }
 
+  CreatePreUser preUserWithInvalidPhoneNumber() {
+    CreatePreUser createPreUser = new CreatePreUser();
+    createPreUser.setEmail(VALID_EMAIL);
+    createPreUser.setFirstName("john");
+    createPreUser.setLastName("doe");
+    createPreUser.setSociety("johnSociety");
+    createPreUser.setPhone("0");
+    return createPreUser;
+  }
+
   CreatePreUser preUserWithEmailOnly() {
     return new CreatePreUser().email(VALID_EMAIL);
   }
@@ -128,8 +138,20 @@ class PreUserIT {
             .build(),
         HttpResponse.BodyHandlers.ofString());
 
+    HttpResponse<String> responseWithInvalidPhoneNumber = unauthenticatedClient.send(
+        HttpRequest.newBuilder()
+            .uri(URI.create(basePath + "/preUsers"))
+            .header("Access-Control-Request-Method", "POST")
+            .header("Content-Type", "application/json")
+            .POST(HttpRequest.BodyPublishers.ofString(
+                new ObjectMapper().writeValueAsString(List.of(preUserWithInvalidPhoneNumber()))))
+            .build(),
+        HttpResponse.BodyHandlers.ofString());
+
     assertEquals(HttpStatus.BAD_REQUEST.value(), response.statusCode());
     assertTrue(response.body().contains("Email is mandatory"));
+    assertEquals(HttpStatus.BAD_REQUEST.value(), responseWithInvalidPhoneNumber.statusCode());
+    assertTrue(responseWithInvalidPhoneNumber.body().contains("Invalid phone number"));
   }
 
   public static class ContextInitializer extends AbstractContextInitializer {

@@ -538,7 +538,7 @@ public class TestUtils {
 
   public static CompanyInfo companyInfo() {
     return new CompanyInfo()
-        .isSubjectToVat(true)
+        .isSubjectToVat(false)
         .email("anotherEmail@gmail.com")
         .phone("+33 5 13 3234")
         .socialCapital(40000)

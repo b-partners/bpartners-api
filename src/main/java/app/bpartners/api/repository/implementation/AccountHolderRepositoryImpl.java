@@ -11,10 +11,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
 
-@Slf4j
 @Repository
 @AllArgsConstructor
 public class AccountHolderRepositoryImpl implements AccountHolderRepository {
@@ -46,7 +44,7 @@ public class AccountHolderRepositoryImpl implements AccountHolderRepository {
       entity = jpaRepository.save(HAccountHolder.builder()
           .id(swanAccountHolder.getId())
           .accountId(accountId)
-          .subjectToVat(false) //By default, an account holder is NOT subject to vat
+          .subjectToVat(true) //By default, an account holder IS subject to vat
           .mobilePhoneNumber(null)
           .email(null)
           .socialCapital(0) //TODO : check default social capital 0 or null

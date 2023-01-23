@@ -15,6 +15,8 @@ import app.bpartners.api.manager.ProjectTokenManager;
 import app.bpartners.api.repository.LegalFileRepository;
 import app.bpartners.api.repository.fintecture.FintectureConf;
 import app.bpartners.api.repository.fintecture.FintecturePaymentInitiationRepository;
+import app.bpartners.api.repository.jpa.AccountHolderJpaRepository;
+import app.bpartners.api.repository.jpa.model.HAccountHolder;
 import app.bpartners.api.repository.sendinblue.SendinblueConf;
 import app.bpartners.api.repository.swan.AccountHolderSwanRepository;
 import app.bpartners.api.repository.swan.AccountSwanRepository;
@@ -24,6 +26,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.MethodOrderer;
@@ -55,6 +58,7 @@ import static app.bpartners.api.integration.conf.TestUtils.INVOICE4_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_TOKEN;
 import static app.bpartners.api.integration.conf.TestUtils.NOT_JOE_DOE_ACCOUNT_ID;
+import static app.bpartners.api.integration.conf.TestUtils.SWAN_ACCOUNTHOLDER_ID;
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsApiException;
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsForbiddenException;
 import static app.bpartners.api.integration.conf.TestUtils.createProduct2;
@@ -80,7 +84,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.reset;
@@ -125,6 +128,8 @@ class InvoiceIT {
   private EventBridgeClient eventBridgeClientMock;
   @MockBean
   private LegalFileRepository legalFileRepositoryMock;
+  @MockBean
+  private AccountHolderJpaRepository holderJpaRepository;
 
   private static ApiClient anApiClient() {
     return TestUtils.anApiClient(JOE_DOE_TOKEN, InvoiceIT.ContextInitializer.SERVER_PORT);
@@ -139,6 +144,21 @@ class InvoiceIT {
     setUpPaymentInitiationRep(paymentInitiationRepositoryMock);
     setUpEventBridge(eventBridgeClientMock);
     setUpLegalFileRepository(legalFileRepositoryMock);
+    when(holderJpaRepository.findByAccountId(JOE_DOE_ACCOUNT_ID))
+        .thenReturn(Optional.of(accountHolderEntity1()));
+  }
+
+  private HAccountHolder accountHolderEntity1() {
+    return HAccountHolder.builder()
+        .id(SWAN_ACCOUNTHOLDER_ID)
+        .accountId(JOE_DOE_ACCOUNT_ID)
+        .mobilePhoneNumber("+33 6 11 22 33 44")
+        .email("numer@hei.school")
+        .socialCapital(40000)
+        .vatNumber("FR 32 123456789")
+        .initialCashflow("6000/1")
+        .subjectToVat(true)
+        .build();
   }
 
   CrupdateInvoice proposalInvoice() {
@@ -484,6 +504,29 @@ class InvoiceIT {
     assertEquals(actualConfirmed.getFileId(), actualPaid.getFileId());
     assertTrue(actualUpdatedDraft.getRef().contains(DRAFT_REF_PREFIX));
     assertFalse(actualConfirmed.getRef().contains(DRAFT_REF_PREFIX));
+  }
+
+  @Test
+  @Order(4)
+  void crupdate_with_account_holder_not_subject_to_vat_ok() throws ApiException {
+    reset(holderJpaRepository);
+    when(holderJpaRepository.save(any()))
+        .thenReturn(accountHolderEntity1()
+            .toBuilder()
+            .subjectToVat(false)
+            .build());
+    ApiClient joeDoeClient = anApiClient();
+    PayingApi api = new PayingApi(joeDoeClient);
+
+    Invoice actual = api.crupdateInvoice(
+        JOE_DOE_ACCOUNT_ID, String.valueOf(randomUUID()),
+        initializeDraft()
+            .ref(String.valueOf(randomUUID()))
+            .products(List.of(createProduct4())));
+
+    assertEquals(0, actual.getTotalVat());
+    assertEquals(actual.getTotalPriceWithoutVat(), actual.getTotalPriceWithVat());
+    assertTrue(actual.getTotalPriceWithVat() > 0);
   }
 
   //TODO: delete this test when validityDate is correctly set for draft invoice

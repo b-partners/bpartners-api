@@ -5,6 +5,7 @@ import app.bpartners.api.endpoint.rest.security.model.Principal;
 import app.bpartners.api.endpoint.rest.security.principal.PrincipalProvider;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.FileInfo;
+import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.NotFoundException;
@@ -22,7 +23,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Repository;
@@ -36,7 +36,6 @@ import static app.bpartners.api.service.InvoiceService.INVOICE_TEMPLATE;
 import static java.util.UUID.randomUUID;
 import static org.springframework.data.domain.Sort.Direction.DESC;
 
-@Slf4j
 @Repository
 @AllArgsConstructor
 public class InvoiceRepositoryImpl implements InvoiceRepository {
@@ -67,6 +66,13 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
                   + "] is already used by invoice." + invoice.getId());
         }
       }
+    }
+    AccountHolder accountHolder =
+        holderService.getAccountHolderByAccountId(toCrupdate.getAccount().getId());
+    if (!accountHolder.isSubjectToVat()) {
+      toCrupdate.getProducts().forEach(
+          product -> product.setVatPercent(new Fraction())
+      );
     }
     HInvoice entity = mapper.toEntity(toCrupdate, true);
     if (!entity.getProducts().isEmpty()) {

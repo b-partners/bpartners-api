@@ -24,8 +24,8 @@ class CrupdateInvoiceValidatorTest {
         .customer(customer1())
         .products(List.of(createProduct4(), createProduct5()))
         .status(PROPOSAL)
-        .sendingDate(LocalDate.of(2022, 10, 12))
-        .toPayAt(LocalDate.of(2022, 10, 13));
+        .sendingDate(LocalDate.now())
+        .toPayAt(LocalDate.now().plusDays(1L));
   }
 
   CrupdateInvoice invalidInvoice() {

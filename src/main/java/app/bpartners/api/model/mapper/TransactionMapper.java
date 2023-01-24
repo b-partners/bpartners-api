@@ -1,7 +1,6 @@
 package app.bpartners.api.model.mapper;
 
 import app.bpartners.api.endpoint.rest.model.TransactionStatus;
-import app.bpartners.api.endpoint.rest.security.AuthenticatedResourceProvider;
 import app.bpartners.api.model.Transaction;
 import app.bpartners.api.model.TransactionCategory;
 import app.bpartners.api.repository.jpa.model.HTransaction;
@@ -17,9 +16,7 @@ import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 
 @Slf4j
 @Component
-@AllArgsConstructor
 public class TransactionMapper {
-  private AuthenticatedResourceProvider provider;
 
   private static TransactionStatus getTransactionStatus(String status) {
     switch (status) {
@@ -56,10 +53,11 @@ public class TransactionMapper {
   }
 
   public HTransaction toEntity(
+      String accountId,
       app.bpartners.api.repository.swan.model.Transaction swanTransaction) {
     return HTransaction.builder()
         .idSwan(swanTransaction.getNode().getId())
-        .idAccount(provider.getAccount().getId())
+        .idAccount(accountId)
         .build();
   }
 }

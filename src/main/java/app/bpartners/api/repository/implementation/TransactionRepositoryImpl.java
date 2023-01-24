@@ -31,9 +31,8 @@ public class TransactionRepositoryImpl implements TransactionRepository {
     return swanRepository.getByIdAccount(accountId)
         .stream()
         .map(transaction -> {
-          HTransaction entity = getOrCreateTransaction(transaction);
-          return mapper.toDomain(transaction,
-              entity,
+          HTransaction entity = getOrCreateTransaction(accountId, transaction);
+          return mapper.toDomain(transaction, entity,
               categoryRepository.findByIdTransaction(entity.getId()));
         })
         .collect(Collectors.toUnmodifiableList());
@@ -74,9 +73,10 @@ public class TransactionRepositoryImpl implements TransactionRepository {
   }
 
   private HTransaction getOrCreateTransaction(
+      String accountId,
       app.bpartners.api.repository.swan.model.Transaction transaction) {
     return jpaRepository
         .findByIdSwan(transaction.getNode().getId())
-        .orElseGet(() -> jpaRepository.save(mapper.toEntity(transaction)));
+        .orElseGet(() -> jpaRepository.save(mapper.toEntity(accountId, transaction)));
   }
 }

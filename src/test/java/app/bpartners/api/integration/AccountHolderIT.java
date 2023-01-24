@@ -113,7 +113,7 @@ class AccountHolderIT {
         .officialActivityName(joeDoeSwanAccountHolder().getInfo().getBusinessActivity())
         .initialCashflow(6000)
         .companyInfo(new CompanyInfo()
-            .isSubjectToVat(false)
+            .isSubjectToVat(true)
             .phone("+33 6 11 22 33 44")
             .email("numer@hei.school")
             .socialCapital(40000)
@@ -189,7 +189,7 @@ class AccountHolderIT {
 
   CompanyInfo updatedCompanyInfo() {
     return new CompanyInfo()
-        .isSubjectToVat(true)
+        .isSubjectToVat(false)
         .email(companyInfo().getEmail())
         .phone(companyInfo().getPhone())
         .socialCapital(companyInfo().getSocialCapital())
@@ -355,7 +355,7 @@ class AccountHolderIT {
     assertEquals(expected()
             .companyInfo(
                 expected().getCompanyInfo()
-                    .isSubjectToVat(false)),
+                    .isSubjectToVat(true)),
         actual);
   }
 

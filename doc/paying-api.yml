@@ -828,6 +828,10 @@ components:
           description: html is waited
         emailBody:
           type: string
+        attachments:
+          type: array
+          items:
+            $ref: '#/components/schemas/CreateAttachment'
     InvoiceRelaunch:
       type: object
       properties:
@@ -846,6 +850,11 @@ components:
         creationDatetime:
           type: string
           format: date-time
+        attachments:
+          type: array
+          description: attachments without content.
+          items:
+            $ref: '#/components/schemas/Attachment'
     EmailInfo:
       type: object
       properties:
@@ -994,3 +1003,17 @@ components:
           type: string
         reference:
           type: string
+    CreateAttachment:
+      type: object
+      properties:
+        name:
+          type: string
+        content:
+          type: string
+          format: byte
+    Attachment:
+      allOf:
+        - $ref: '#/components/schemas/CreateAttachment'
+      properties:
+        fileId:
+          type: String

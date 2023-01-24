@@ -2,7 +2,9 @@ package app.bpartners.api.endpoint.rest.validator;
 
 import app.bpartners.api.endpoint.rest.model.CrupdateInvoice;
 import app.bpartners.api.model.exception.BadRequestException;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.function.Consumer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -10,7 +12,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 public class CrupdateInvoiceValidator implements Consumer<CrupdateInvoice> {
-  private final LocalDate today = LocalDate.now();
+  private final LocalDate today = LocalDate.ofInstant(Instant.now(), ZoneId.systemDefault());
 
   @Override
   public void accept(CrupdateInvoice invoice) {
@@ -27,8 +29,8 @@ public class CrupdateInvoiceValidator implements Consumer<CrupdateInvoice> {
       }
     }
     if (isBadSendingDate(invoice)) {
-      log.warn("Bad sending date, actual = " + invoice.getSendingDate() + ", today=" + today);
-      //message.append("Invoice can not be sent no later than today. ");
+      log.info("Bad sending date, actual = " + invoice.getSendingDate() + ", today=" + today);
+      message.append("Invoice can not be sent no later than today. ");
     }
     if (isBadPaymentAndSendingDate(invoice)) {
       message.append("Payment date can not be after the sending date. ");

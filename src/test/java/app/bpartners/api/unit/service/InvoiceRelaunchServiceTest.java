@@ -16,6 +16,7 @@ import app.bpartners.api.repository.InvoiceRepository;
 import app.bpartners.api.repository.jpa.InvoiceJpaRepository;
 import app.bpartners.api.repository.jpa.model.HInvoice;
 import app.bpartners.api.service.AccountHolderService;
+import app.bpartners.api.service.FileService;
 import app.bpartners.api.service.InvoiceRelaunchConfService;
 import app.bpartners.api.service.InvoiceRelaunchService;
 import java.time.LocalDate;
@@ -48,6 +49,7 @@ class InvoiceRelaunchServiceTest {
   private AccountHolderService holderService;
   private EventProducer eventProducer;
   private PrincipalProvider auth;
+  private FileService fileService;
 
   @BeforeEach
   void setUp() {
@@ -59,6 +61,7 @@ class InvoiceRelaunchServiceTest {
     holderService = mock(AccountHolderService.class);
     eventProducer = mock(EventProducer.class);
     auth = mock(PrincipalProvider.class);
+    fileService = mock(FileService.class);
     setUpProvider(auth);
     invoiceRelaunchService = new InvoiceRelaunchService(
         accountInvoiceRelaunchRepository,
@@ -69,7 +72,8 @@ class InvoiceRelaunchServiceTest {
         relaunchConfService,
         holderService,
         eventProducer,
-        auth
+        auth,
+        fileService
     );
     when(invoiceJpaRepository.findAllByToBeRelaunched(true))
         .thenReturn(
@@ -132,6 +136,8 @@ class InvoiceRelaunchServiceTest {
         .thenReturn(
             AccountHolder.builder().build()
         );
+    when(fileService.downloadFile(any(), any(), any()))
+        .thenReturn(new byte[0]);
   }
 
   @Test

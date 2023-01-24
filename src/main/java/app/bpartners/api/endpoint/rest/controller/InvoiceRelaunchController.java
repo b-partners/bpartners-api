@@ -1,9 +1,11 @@
 package app.bpartners.api.endpoint.rest.controller;
 
+import app.bpartners.api.endpoint.rest.mapper.AttachmentRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.InvoiceRelaunchRestMapper;
 import app.bpartners.api.endpoint.rest.model.CreateInvoiceRelaunch;
 import app.bpartners.api.endpoint.rest.model.InvoiceRelaunch;
 import app.bpartners.api.endpoint.rest.validator.CreateInvoiceRelaunchValidator;
+import app.bpartners.api.model.Attachment;
 import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.service.InvoiceRelaunchService;
@@ -23,6 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class InvoiceRelaunchController {
   private final InvoiceRelaunchService service;
   private final InvoiceRelaunchRestMapper mapper;
+  private final AttachmentRestMapper attachmentRestMapper;
   private final CreateInvoiceRelaunchValidator validator;
 
   @GetMapping(value = "/accounts/{aId}/invoices/{iId}/relaunches")
@@ -56,7 +59,11 @@ public class InvoiceRelaunchController {
         add(createInvoiceRelaunch.getMessage());
       }
     };
+    List<Attachment> attachments =
+        createInvoiceRelaunch.getAttachments().stream()
+            .map(attachmentRestMapper::toDomain)
+            .collect(Collectors.toUnmodifiableList());
     return mapper.toRest(
-        service.relaunchInvoiceManually(invoiceId, emailObjectList, emailBodyList));
+        service.relaunchInvoiceManually(invoiceId, emailObjectList, emailBodyList, attachments));
   }
 }

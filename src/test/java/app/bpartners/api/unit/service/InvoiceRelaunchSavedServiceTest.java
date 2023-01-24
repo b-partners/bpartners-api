@@ -7,7 +7,6 @@ import app.bpartners.api.model.Customer;
 import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.InvoiceProduct;
-import app.bpartners.api.model.Product;
 import app.bpartners.api.service.FileService;
 import app.bpartners.api.service.InvoiceRelaunchSavedService;
 import app.bpartners.api.service.aws.SesService;
@@ -41,7 +40,7 @@ class InvoiceRelaunchSavedServiceTest {
     invoiceRelaunchSavedService =
         new InvoiceRelaunchSavedService(sesService, fileService);
 
-    doNothing().when(sesService).sendEmail(any(), any(), any(), any(), any());
+    doNothing().when(sesService).sendEmail(any(), any(), any(), any());
     when(fileService.downloadFile(any(), any(), any())).thenReturn(logoAsBytes);
   }
 
@@ -59,9 +58,10 @@ class InvoiceRelaunchSavedServiceTest {
         .invoice(invoice())
         .logoFileId(null)
         .accountHolder(new AccountHolder())
+        .attachments(List.of())
         .build());
 
-    verify(sesService, times(1)).sendEmail(eq(recipient), eq(subject), eq(htmlBody), any(), any());
+    verify(sesService, times(1)).sendEmail(eq(recipient), eq(subject), eq(htmlBody), any());
   }
 
   Invoice invoice() {

@@ -1,11 +1,14 @@
 package app.bpartners.api.endpoint.rest.mapper;
 
-import app.bpartners.api.endpoint.rest.model.EmailInfo;
 import app.bpartners.api.endpoint.rest.model.AccountInvoiceRelaunchConf;
+import app.bpartners.api.endpoint.rest.model.Attachment;
 import app.bpartners.api.endpoint.rest.model.CreateAccountInvoiceRelaunchConf;
+import app.bpartners.api.endpoint.rest.model.EmailInfo;
 import app.bpartners.api.endpoint.rest.model.InvoiceRelaunch;
 import app.bpartners.api.endpoint.rest.model.InvoiceRelaunchConf;
 import app.bpartners.api.endpoint.rest.validator.CreateInvoiceRelaunchConfValidator;
+import java.util.List;
+import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -14,6 +17,7 @@ import org.springframework.stereotype.Component;
 public class InvoiceRelaunchRestMapper {
   private final CreateInvoiceRelaunchConfValidator validator;
   private final InvoiceRestMapper invoiceRestMapper;
+  private final AttachmentRestMapper attachmentRestMapper;
 
   public app.bpartners.api.model.AccountInvoiceRelaunchConf toDomain(
       CreateAccountInvoiceRelaunchConf createAccountInvoiceRelaunchConf) {
@@ -45,6 +49,10 @@ public class InvoiceRelaunchRestMapper {
   }
 
   public InvoiceRelaunch toRest(app.bpartners.api.model.InvoiceRelaunch domain) {
+    List<Attachment> attachments =
+        domain.getAttachments().stream()
+            .map(attachmentRestMapper::toRest)
+            .collect(Collectors.toUnmodifiableList());
     return new InvoiceRelaunch()
         .id(domain.getId())
         .type(domain.getType())
@@ -55,7 +63,8 @@ public class InvoiceRelaunchRestMapper {
         .emailInfo(new EmailInfo()
             .emailBody(domain.getEmailBody())
             .emailObject(domain.getEmailObject())
-            .attachmentFileId(domain.getAttachmentFileId()));
+            .attachmentFileId(domain.getAttachmentFileId()))
+        .attachments(attachments);
   }
 
   public InvoiceRelaunchConf toRest(app.bpartners.api.model.InvoiceRelaunchConf domain) {

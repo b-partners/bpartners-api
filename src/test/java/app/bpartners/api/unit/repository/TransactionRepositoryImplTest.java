@@ -1,8 +1,6 @@
 package app.bpartners.api.unit.repository;
 
 import app.bpartners.api.endpoint.rest.model.TransactionStatus;
-import app.bpartners.api.endpoint.rest.security.AuthenticatedResourceProvider;
-import app.bpartners.api.model.Account;
 import app.bpartners.api.model.Transaction;
 import app.bpartners.api.model.TransactionCategory;
 import app.bpartners.api.model.mapper.TransactionMapper;
@@ -32,19 +30,16 @@ class TransactionRepositoryImplTest {
   private TransactionSwanRepository swanRepository;
   private TransactionMapper mapper;
   private TransactionCategoryRepository categoryRepository;
-  private AuthenticatedResourceProvider provider;
   private TransactionJpaRepository jpaRepository;
 
   @BeforeEach
   void setUp() {
     swanRepository = mock(TransactionSwanRepository.class);
-    provider = mock(AuthenticatedResourceProvider.class);
-    mapper = new TransactionMapper(provider);
+    mapper = new TransactionMapper();
     categoryRepository = mock(TransactionCategoryRepository.class);
     jpaRepository = mock(TransactionJpaRepository.class);
     transactionRepositoryImpl = new TransactionRepositoryImpl(swanRepository, mapper,
         categoryRepository, jpaRepository);
-    when(provider.getAccount()).thenReturn(Account.builder().id(JOE_DOE_ACCOUNT_ID).build());
     when(swanRepository.getByIdAccount(JOE_DOE_ACCOUNT_ID))
         .thenReturn(List.of(swanTransaction1(), swanTransaction2(), swanTransaction3()));
     when(jpaRepository.save(any(HTransaction.class)))

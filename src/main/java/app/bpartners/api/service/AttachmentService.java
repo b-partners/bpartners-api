@@ -14,4 +14,8 @@ public class AttachmentService {
   public List<Attachment> findAllByIdInvoiceRelaunch(String idInvoiceRelaunch) {
     return repository.findByIdInvoiceRelaunch(idInvoiceRelaunch);
   }
+
+  public List<Attachment> saveAll(List<Attachment> attachments, String idInvoiceRelaunch) {
+    return repository.saveAll(attachments, idInvoiceRelaunch);
+  }
 }

@@ -12,4 +12,12 @@ public class AttachmentMapper {
         .name(entity.getName())
         .build();
   }
+
+  public HAttachment toEntity(Attachment domain, String idInvoiceRelaunch) {
+    return HAttachment.builder()
+        .name(domain.getName())
+        .idInvoiceRelaunch(idInvoiceRelaunch)
+        .idFile(domain.getFileId())
+        .build();
+  }
 }

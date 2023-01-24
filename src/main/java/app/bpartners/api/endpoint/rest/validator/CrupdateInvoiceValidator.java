@@ -12,7 +12,8 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 public class CrupdateInvoiceValidator implements Consumer<CrupdateInvoice> {
-  private final LocalDate today = LocalDate.ofInstant(Instant.now(), ZoneId.systemDefault());
+  public static final String REGION_PARIS = "Europe/Paris";
+  private final LocalDate today = LocalDate.ofInstant(Instant.now(), ZoneId.of(REGION_PARIS));
 
   @Override
   public void accept(CrupdateInvoice invoice) {
@@ -29,8 +30,9 @@ public class CrupdateInvoiceValidator implements Consumer<CrupdateInvoice> {
       }
     }
     if (isBadSendingDate(invoice)) {
-      log.info("Bad sending date, actual = " + invoice.getSendingDate() + ", today=" + today);
-      message.append("Invoice can not be sent no later than today. ");
+      log.warn("Bad sending date, actual = " + invoice.getSendingDate() + ", today=" + today);
+      //TODO: uncomment if any warn message is logged anymore
+      //message.append("Invoice can not be sent no later than today. ");
     }
     if (isBadPaymentAndSendingDate(invoice)) {
       message.append("Payment date can not be after the sending date. ");

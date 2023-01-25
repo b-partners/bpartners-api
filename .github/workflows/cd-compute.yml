@@ -91,7 +91,7 @@ jobs:
 
       - name: Get configurations from ecs-conf.yml
         id: get-configuration
-        uses: CumulusDS/get-yaml-paths-action@v0.1.0
+        uses: CumulusDS/get-yaml-paths-action@v1.0.1
         with:
           file: ecs-conf.yml
           vCpu: envs.${{ env.branch_env }}.vCpu

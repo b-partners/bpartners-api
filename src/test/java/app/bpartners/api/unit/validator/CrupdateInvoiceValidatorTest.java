@@ -34,8 +34,8 @@ class CrupdateInvoiceValidatorTest {
         .title(null)
         .customer(customer1())
         .products(List.of(createProduct4(), createProduct5()))
-        .status(PROPOSAL)
-        .sendingDate(LocalDate.of(2022, 10, 12))
+        .status(null)
+        .sendingDate(LocalDate.of(2023, 10, 12))
         .toPayAt(LocalDate.of(2022, 10, 13));
   }
 
@@ -47,7 +47,7 @@ class CrupdateInvoiceValidatorTest {
 
   @Test
   void invalid_invoice() {
-    CrupdateInvoice invoice = new CrupdateInvoice().status(null);
+    CrupdateInvoice invoice = invalidInvoice();
     assertThrows(BadRequestException.class,
         () -> validator.accept(invoice));
   }

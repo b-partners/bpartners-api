@@ -102,6 +102,7 @@ class InvoiceIT {
   public static final String DRAFT_REF_PREFIX = "BROUILLON-";
   public static String PROPOSAL_REF_PREFIX = "DEVIS-";
   private static final String NEW_INVOICE_ID = "invoice_uuid";
+  private static LocalDate defaultDate = LocalDate.now();
   @Autowired
   private InvoiceService invoiceService;
   @MockBean
@@ -271,8 +272,8 @@ class InvoiceIT {
         .comment("Nouveau commentaire")
         .customer(customer1())
         .products(List.of(createProduct4(), createProduct5()))
-        .sendingDate(LocalDate.now())
-        .validityDate(LocalDate.now().plusDays(3L))
+        .sendingDate(defaultDate)
+        .validityDate(defaultDate.plusDays(3L))
         .delayInPaymentAllowed(null)
         .delayPenaltyPercent(null);
   }
@@ -418,7 +419,8 @@ class InvoiceIT {
     PayingApi api = new PayingApi(joeDoeClient);
     String firstInvoiceId = randomUUID().toString();
     CrupdateInvoice crupdateInvoiceWithNonExistentCustomer =
-        initializeDraft().customer(customer1().id("non-existent-customer"));
+        initializeDraft().customer(customer1().id("non-existent-customer"))
+            .validityDate(defaultDate.plusDays(30L));
     String uniqueRef = "unique_ref";
     Executable firstCrupdateExecutable =
         () -> api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, firstInvoiceId,
@@ -452,7 +454,7 @@ class InvoiceIT {
     int customizePenalty = 1960;
 
     Invoice actualDraft = api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, NEW_INVOICE_ID,
-            initializeDraft().ref(null))
+            initializeDraft().ref(null).sendingDate(defaultDate))
         .delayPenaltyPercent(customizePenalty);
     Invoice actualUpdatedDraft = api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, NEW_INVOICE_ID,
         validInvoice());
@@ -466,6 +468,7 @@ class InvoiceIT {
 
     assertEquals(expectedInitializedDraft().ref(null)
             .fileId(actualDraft.getFileId())
+            .sendingDate(defaultDate)
             .delayPenaltyPercent(customizePenalty)
             .createdAt(actualDraft.getCreatedAt())
             .updatedAt(actualDraft.getUpdatedAt()),
@@ -484,8 +487,8 @@ class InvoiceIT {
     assertEquals(expectedConfirmed()
             .id(actualConfirmed.getId())
             .fileId(actualConfirmed.getFileId())
-            .sendingDate(LocalDate.now())
-            .toPayAt(LocalDate.now().plusDays(actualConfirmed.getDelayInPaymentAllowed()))
+            .sendingDate(defaultDate)
+            .toPayAt(defaultDate.plusDays(actualConfirmed.getDelayInPaymentAllowed()))
             .updatedAt(actualConfirmed.getUpdatedAt()),
         actualConfirmed.createdAt(null));
     assertNotNull(actualConfirmed.getFileId());
@@ -521,6 +524,7 @@ class InvoiceIT {
         JOE_DOE_ACCOUNT_ID, String.valueOf(randomUUID()),
         initializeDraft()
             .ref(String.valueOf(randomUUID()))
+            .validityDate(defaultDate.plusDays(30L))
             .products(List.of(createProduct4())));
 
     assertEquals(0, actual.getTotalVat());
@@ -534,11 +538,12 @@ class InvoiceIT {
   void crupdate_with_null_validity_date_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
     PayingApi api = new PayingApi(joeDoeClient);
-    LocalDate today = LocalDate.now();
+    LocalDate today = defaultDate;
 
     Invoice actual = api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, String.valueOf(randomUUID()),
         initializeDraft()
             .validityDate(null)
+            .sendingDate(defaultDate)
             .toPayAt(today));
 
     assertEquals(DRAFT, actual.getStatus());
@@ -555,10 +560,12 @@ class InvoiceIT {
 
     Invoice actualDraft = api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, String.valueOf(randomUUID()),
         initializeDraft().ref(null)
+            .validityDate(defaultDate.plusDays(15L))
             .products(List.of(createProduct4(),
                 createProduct2())));
     Invoice actualDraftUpdated = api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, actualDraft.getId(),
         initializeDraft().ref(null)
+            .validityDate(defaultDate.plusDays(15L))
             .products(List.of(createProduct5())));
     actualDraftUpdated.setProducts(ignoreIdsOf(actualDraftUpdated.getProducts()));
 

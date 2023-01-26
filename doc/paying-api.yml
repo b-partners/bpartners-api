@@ -649,7 +649,46 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
-  initiatePayments:
+  paymentInitiationsOperations:
+    get:
+      tags:
+        - Paying
+      summary: Get all payment initiations of an account
+      operationId: getPaymentInitiations
+      parameters:
+        - in: path
+          name: aId
+          schema:
+            type: string
+          required: true
+        - in: query
+          name: page
+          schema:
+            $ref: './api.yml#/components/schemas/Page'
+        - in: query
+          name: pageSize
+          schema:
+            $ref: './api.yml#/components/schemas/PageSize'
+      responses:
+        200:
+          description: List of the account's payment requests ordered by creation datetime desc
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  #TODO: rename to paymentInitiation
+                  $ref: '#/components/schemas/PaymentRequest'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
     post:
       tags:
         - Paying
@@ -668,6 +707,7 @@ operations:
             schema:
               type: array
               items:
+                #TODO: rename to CreatePaymentInitiation
                 $ref: '#/components/schemas/PaymentInitiation'
       responses:
         200:
@@ -986,6 +1026,7 @@ components:
           type: integer
         totalPriceWithVat:
           type: integer
+    #TODO: rename to CreatePaymentInitiation
     PaymentInitiation:
       type: object
       properties:
@@ -1018,6 +1059,7 @@ components:
         fileId:
           type: string
 
+    #TODO: rename to paymentInitiation
     PaymentRequest:
       type: object
       properties:
@@ -1045,6 +1087,7 @@ components:
           type: string
         invoice:
           $ref: '#/components/schemas/Invoice'
+    #TODO: rename to PaymentInitiationStatus
     PaymentReqStatus:
       type: string
       enum:

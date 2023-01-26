@@ -1,3 +1,22 @@
+## [0.4.1](https://github.com/b-partners/bpartners-api/compare/v0.4.0...v0.4.1) (2023-01-26)
+
+
+### Bug Fixes
+
+* accept null phone number but validate if not null when creating preUsers ([63f1d93](https://github.com/b-partners/bpartners-api/commit/63f1d9313bd5e6bbf19e16457fcfb0209ffc4b34))
+* cpu configurations for ecs ([#427](https://github.com/b-partners/bpartners-api/issues/427)) ([257cd32](https://github.com/b-partners/bpartners-api/commit/257cd326dc112c8f8f807520e6e067630465b9ad))
+* delete redundant transactions and associated categories from database ([eb02d9f](https://github.com/b-partners/bpartners-api/commit/eb02d9fa78283e3989a24aa1bafaaaa96a2e032f))
+* ecs configurations ([#426](https://github.com/b-partners/bpartners-api/issues/426)) ([0247b79](https://github.com/b-partners/bpartners-api/commit/0247b79149bd03b70977f1c41572d75c9ee78853))
+* match invoice sending date and today's date ([466a980](https://github.com/b-partners/bpartners-api/commit/466a980b67da2467e7448358f19f04a1d480c695))
+* modify package.json, tsconfig.json and .npmignore before publishing react-client to codearifact ([#423](https://github.com/b-partners/bpartners-api/issues/423)) ([45cb68b](https://github.com/b-partners/bpartners-api/commit/45cb68b1de2700ffc3300ed8acabd3b6955e800b))
+* set vat to zero when account holder is not subject to vat ([5f605ff](https://github.com/b-partners/bpartners-api/commit/5f605ff50a289f07128c34a15d519ece58837c20))
+* tasksDesiredCount type ([#425](https://github.com/b-partners/bpartners-api/issues/425)) ([7194009](https://github.com/b-partners/bpartners-api/commit/7194009cacf4571f4daf07c64dfe34bc4af93328))
+* **to-drop:** toPayAt and validityDate have same values for draft invoice ([1fb0e55](https://github.com/b-partners/bpartners-api/commit/1fb0e552c64e24cb7d891c38f4feb76d6d11e4f1))
+* transaction mapper use the provided filtered account ID during mapping ([6129753](https://github.com/b-partners/bpartners-api/commit/612975348f167da1b285d86bd88eb37779612cbe))
+* update uses version in get-configuration in cd-compute.yml ([#424](https://github.com/b-partners/bpartners-api/issues/424)) ([ea528ef](https://github.com/b-partners/bpartners-api/commit/ea528efab83060206cdcc0b54e7a3b935e6921ee))
+
+
+
 # [0.4.0](https://github.com/b-partners/bpartners-api/compare/v0.2.4...v0.4.0) (2023-01-20)
 
 

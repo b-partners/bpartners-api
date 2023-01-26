@@ -1,0 +1,12 @@
+name: Scheduler to deploy the compute stack
+
+on:
+  schedule:
+    - cron: '0 6 * * 1,2,3,4,5'
+
+  workflow_dispatch:
+
+jobs:
+  deploy_compute_stack:
+    uses: ./github/workflows/cd-compute.yml
+    secrets: inherit

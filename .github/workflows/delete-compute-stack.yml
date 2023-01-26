@@ -1,15 +1,13 @@
-name: Compute stack scheduler
+name: Scheduler to delete the compute-stack
 
 on:
   schedule:
-    - cron: '0 6 * * 1,2,3,4,5'
     - cron: '59 23 * * 1,2,3,4,5'
 
   workflow_dispatch:
 
 jobs:
   delete_compute_stack:
-    if: github.event.schedule == '59 23 * * 1,2,3,4,5'
     runs-on: ubuntu-latest
     steps:
       - name: install-aws-cli
@@ -29,8 +27,3 @@ jobs:
 
       - name: delete compute stack
         run: aws cloudformation delete-stack --stack-name ${{ env.branch_env }}-compute-bpartners
-
-  deploy_compute_stack:
-    if: github.event.schedule == '0 6 * * 1,2,3,4,5'
-    uses: ./github/workflows/cd-compute.yml
-    secrets: inherit

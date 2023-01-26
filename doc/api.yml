@@ -54,6 +54,8 @@ paths:
   #############################################
   /accounts/{id}/transactions:
     $ref: './paying-api.yml#/operations/getTransactions'
+  /accounts/{aId}/transactions/{tId}/invoices/{iId}:
+    $ref: './paying-api.yml#/operations/justifyTransaction'
   /accounts/{aId}/transactionsSummary:
     $ref: './paying-api.yml#/operations/getTransactionsSummary'
   /accounts/{aId}/invoiceRelaunchConf:

@@ -1,3 +1,12 @@
+## [0.4.3](https://github.com/b-partners/bpartners-api/compare/v0.4.2...v0.4.3) (2023-01-26)
+
+
+### Bug Fixes
+
+* command pattern on the content to append to .npmignore ([#431](https://github.com/b-partners/bpartners-api/issues/431)) ([564d2b1](https://github.com/b-partners/bpartners-api/commit/564d2b12104555db0915dfff0b8ecf6faf02e696))
+
+
+
 ## [0.4.2](https://github.com/b-partners/bpartners-api/compare/v0.4.1...v0.4.2) (2023-01-26)
 
 

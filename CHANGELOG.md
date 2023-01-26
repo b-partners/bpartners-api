@@ -1,3 +1,12 @@
+## [0.4.4](https://github.com/b-partners/bpartners-api/compare/v0.4.3...v0.4.4) (2023-01-26)
+
+
+### Bug Fixes
+
+* ignore git_push.sh file when publishing the codeartifact client ([#432](https://github.com/b-partners/bpartners-api/issues/432)) ([dba71b2](https://github.com/b-partners/bpartners-api/commit/dba71b23bf1a212fab4c38f45a058ee0f12f952b))
+
+
+
 ## [0.4.3](https://github.com/b-partners/bpartners-api/compare/v0.4.2...v0.4.3) (2023-01-26)
 
 

@@ -201,7 +201,7 @@ class InvoiceIT {
         .delayPenaltyPercent(20);
   }
 
-  Invoice invoice1() {
+  public static Invoice invoice1() {
     return new Invoice()
         .id(INVOICE1_ID)
         .comment(null)

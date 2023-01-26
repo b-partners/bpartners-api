@@ -17,7 +17,7 @@ import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVE
 
 @Getter
 @Setter
-@Builder
+@Builder(toBuilder = true)
 @AllArgsConstructor
 @NoArgsConstructor
 @EqualsAndHashCode
@@ -29,6 +29,8 @@ public class Transaction {
   public static final String UPCOMING_STATUS = "Upcoming";
   public static final String REJECTED_STATUS = "Rejected";
   private String id;
+  private String idAccount;
+  private String idSwan;
   private Fraction amount;
   private String currency;
   private String label;
@@ -36,6 +38,7 @@ public class Transaction {
   private String side;
   private TransactionCategory category;
   private TransactionStatus status;
+  private Invoice invoice;
   @Getter(AccessLevel.NONE)
   private Instant paymentDatetime;
 

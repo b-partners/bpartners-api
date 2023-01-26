@@ -118,7 +118,7 @@ jobs:
           sed -i "s/\"https:\/\/api-dev.bpartners.app\"/\(process.env.REACT_APP_BPARTNERS_API_URL || \"\"\)/g" base.ts
           sed -i "s/\"dependencies\"/\"peerDependencies\"/g" package.json
           sed -i '11d' tsconfig.json && sed -i "s/\"es6\",/\"es6\"/g" tsconfig.json
-          echo -e "\n*.ts\nnode_module\n\!*.d.ts\n.idea\n.vscode\n.openapi-generator\n.openapi-generator-ignore" >> .npmignore
+          echo -e "\n*.ts\nnode_module\n!*.d.ts\n.idea\n.vscode\n.openapi-generator\n.openapi-generator-ignore" >> .npmignore
           npm config set always-auth true
           npm install
           npm publish

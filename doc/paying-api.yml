@@ -38,6 +38,47 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
+  justifyTransaction:
+    put:
+      tags:
+        - Paying
+      summary: Associate a transaction to an existing invoice
+      parameters:
+        - in: path
+          name: aId
+          description: Account identifier
+          schema:
+            type: string
+          required: true
+        - in: path
+          name: tId
+          description: Transaction identifier
+          schema:
+            type: string
+          required: true
+        - in: path
+          name: iId
+          description: Invoice identifier
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description: Transaction justified by associated invoice
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Transaction'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
   getTransactionCategories:
     get:
       tags:
@@ -672,6 +713,8 @@ components:
           $ref: '#/components/schemas/TransactionTypeEnum'
         status:
           $ref: '#/components/schemas/TransactionStatus'
+        invoice:
+          $ref: '#/components/schemas/Invoice'
     TransactionTypeEnum:
       type: string
       enum:

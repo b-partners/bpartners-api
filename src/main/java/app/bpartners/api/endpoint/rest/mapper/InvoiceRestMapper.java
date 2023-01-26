@@ -83,9 +83,8 @@ public class InvoiceRestMapper {
       invoiceBuilder.customer(existingCustomer);
     }
     LocalDate validityDate = rest.getValidityDate();
-    //TODO : uncomment when validityDate is correctly set
-    if (rest.getStatus() != CONFIRMED && rest.getStatus() != PAID
-        /*&& validityDate == null*/ && rest.getToPayAt() != null) {
+    if (validityDate == null && rest.getStatus() != CONFIRMED
+        && rest.getStatus() != PAID && rest.getToPayAt() != null) {
       log.warn("DEPRECATED: DRAFT and PROPOSAL invoice must use validityDate"
           + " instead of toPayAt attribute during crupdate");
       validityDate = rest.getToPayAt();

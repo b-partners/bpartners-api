@@ -1,4 +1,4 @@
-name: Scheduler to deploy the compute stack
+name: Sched Depl compute
 
 on:
   schedule:

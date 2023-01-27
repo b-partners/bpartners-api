@@ -1,4 +1,4 @@
-name: Scheduler to delete the compute-stack
+name: Sched Del compute
 
 on:
   schedule:

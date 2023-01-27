@@ -76,14 +76,7 @@ public class FPaymentInitiation {
   public static class Attributes {
     private String amount;
     private String communication;
-    //private String endToEndId;
     private Beneficiary beneficiary;
-
-    //    @JsonProperty("end_to_end_id")
-    //    @JsonInclude(JsonInclude.Include.USE_DEFAULTS)
-    //    public String getEndToEndId() {
-    //      return endToEndId;
-    //    }
 
     @JsonProperty("currency")
     @JsonInclude(JsonInclude.Include.USE_DEFAULTS)

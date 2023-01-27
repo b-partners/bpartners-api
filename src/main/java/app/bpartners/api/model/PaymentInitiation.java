@@ -1,11 +1,13 @@
 package app.bpartners.api.model;
 
+import java.time.LocalDate;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
 @Getter
 @Setter
@@ -13,6 +15,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 @EqualsAndHashCode
+@ToString
 public class PaymentInitiation {
   private String id;
   private String label;
@@ -22,4 +25,5 @@ public class PaymentInitiation {
   private String payerEmail;
   private String successUrl;
   private String failureUrl;
+  private LocalDate paymentDueDate;
 }

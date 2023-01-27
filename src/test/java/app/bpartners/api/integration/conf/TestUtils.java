@@ -11,9 +11,10 @@ import app.bpartners.api.endpoint.rest.model.CreateAccountInvoiceRelaunchConf;
 import app.bpartners.api.endpoint.rest.model.CreateAnnualRevenueTarget;
 import app.bpartners.api.endpoint.rest.model.CreateProduct;
 import app.bpartners.api.endpoint.rest.model.Customer;
+import app.bpartners.api.endpoint.rest.model.PaymentRegulation;
 import app.bpartners.api.endpoint.rest.model.Invoice;
-import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.endpoint.rest.model.LegalFile;
+import app.bpartners.api.endpoint.rest.model.PaymentRequest;
 import app.bpartners.api.endpoint.rest.model.Product;
 import app.bpartners.api.endpoint.rest.model.TransactionCategory;
 import app.bpartners.api.endpoint.rest.model.TransactionStatus;
@@ -24,9 +25,11 @@ import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.repository.LegalFileRepository;
 import app.bpartners.api.repository.fintecture.FintectureConf;
+import app.bpartners.api.repository.fintecture.FintecturePaymentInfoRepository;
 import app.bpartners.api.repository.fintecture.FintecturePaymentInitiationRepository;
 import app.bpartners.api.repository.fintecture.model.FPaymentInitiation;
 import app.bpartners.api.repository.fintecture.model.FPaymentRedirection;
+import app.bpartners.api.repository.fintecture.model.Session;
 import app.bpartners.api.repository.sendinblue.SendinblueApi;
 import app.bpartners.api.repository.sendinblue.model.Attributes;
 import app.bpartners.api.repository.sendinblue.model.Contact;
@@ -68,13 +71,12 @@ import software.amazon.awssdk.services.eventbridge.model.PutEventsResponse;
 
 import static app.bpartners.api.endpoint.rest.model.EnableStatus.ENABLED;
 import static app.bpartners.api.endpoint.rest.model.IdentificationStatus.VALID_IDENTITY;
+import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
 import static app.bpartners.api.endpoint.rest.model.TransactionTypeEnum.INCOME;
 import static app.bpartners.api.endpoint.rest.model.TransactionTypeEnum.OUTCOME;
 import static app.bpartners.api.model.Invoice.DEFAULT_DELAY_PENALTY_PERCENT;
 import static app.bpartners.api.model.Invoice.DEFAULT_TO_PAY_DELAY_DAYS;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.CLIENT_EXCEPTION;
-import static app.bpartners.api.model.mapper.PaymentRequestMapper.COMPLETED_STATE;
-import static app.bpartners.api.model.mapper.PaymentRequestMapper.PAYMENT_CREATED_STATUS;
 import static app.bpartners.api.model.mapper.UserMapper.VALID_IDENTITY_STATUS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -509,26 +511,54 @@ public class TestUtils {
         .category(null);
   }
 
+  public static PaymentRequest basePaymentRequest() {
+    return new PaymentRequest()
+        .paymentUrl("https://connect-v2-sbx.fintecture.com")
+        .amount(4400)
+        .payerName("Luc Artisan")
+        .payerEmail("bpartners.artisans@gmail.com");
+  }
+
+  public static PaymentRegulation datedPaymentRequest2() {
+    return new PaymentRegulation()
+        .maturityDate(LocalDate.of(2023, 2, 1))
+        .paymentRequest(basePaymentRequest()
+            .id("bab75c91-f275-4f68-b10a-0f30f96f7806")
+            .label("Reste 50%")
+            .reference("FAC2023ACT02")
+            .initiatedDatetime(Instant.parse("2023-01-02T00:00:00Z")));
+  }
+
+  public static PaymentRegulation datedPaymentRequest1() {
+    return new PaymentRegulation()
+        .maturityDate(LocalDate.of(2023, 2, 1))
+        .paymentRequest(basePaymentRequest()
+            .id("a1275c91-f275-4f68-b10a-0f30f96f7806")
+            .label("Acompte 50%")
+            .reference("FAC2023ACT01")
+            .initiatedDatetime(Instant.parse("2023-01-01T00:00:00Z")));
+  }
+
+
   public static Invoice invoice1() {
     return new Invoice()
         .id(INVOICE1_ID)
-        .fileId("BP001.pdf")
+        .comment(null)
         .title("Outils pour plomberie")
-        .customer(customer1())
-        .ref("BP001")
+        .paymentUrl("https://connect-v2-sbx.fintecture.com")
+        .customer(customer1()).ref("BP001")
+        .createdAt(Instant.parse("2022-01-01T01:00:00.00Z"))
         .sendingDate(LocalDate.of(2022, 9, 1))
         .validityDate(LocalDate.of(2022, 10, 3))
         .toPayAt(LocalDate.of(2022, 10, 1))
         .delayInPaymentAllowed(DEFAULT_TO_PAY_DELAY_DAYS)
         .delayPenaltyPercent(DEFAULT_DELAY_PENALTY_PERCENT)
-        .status(InvoiceStatus.CONFIRMED)
+        .status(CONFIRMED)
         .products(List.of(product3(), product4()))
         .totalPriceWithVat(8800)
         .totalVat(800)
         .totalPriceWithoutVat(8000)
-        .comment(null)
-        .paymentUrl("https://connect-v2-sbx.fintecture.com")
-        .createdAt(Instant.parse("2021-12-31T22:00:00Z"))
+        .paymentRegulations(List.of(datedPaymentRequest1(), datedPaymentRequest2()))
         .metadata(Map.of());
   }
 
@@ -536,20 +566,20 @@ public class TestUtils {
     return new Invoice()
         .id(INVOICE2_ID)
         .title("Facture plomberie")
-        .fileId("BP002.pdf")
-        .customer(customer2().address("Nouvelle adresse"))
+        .paymentUrl("https://connect-v2-sbx.fintecture.com")
+        .paymentRegulations(List.of())
+        .customer(customer2())
         .ref("BP002")
         .sendingDate(LocalDate.of(2022, 9, 10))
         .validityDate(LocalDate.of(2022, 10, 14))
+        .createdAt(Instant.parse("2022-01-01T03:00:00.00Z"))
         .toPayAt(LocalDate.of(2022, 10, 10))
         .delayInPaymentAllowed(DEFAULT_TO_PAY_DELAY_DAYS)
         .delayPenaltyPercent(DEFAULT_DELAY_PENALTY_PERCENT)
-        .status(InvoiceStatus.CONFIRMED)
+        .status(CONFIRMED)
         .products(List.of(product5()))
         .totalPriceWithVat(1100)
-        .totalVat(100)
-        .totalPriceWithoutVat(1000)
-        .paymentUrl("https://connect-v2-sbx.fintecture.com")
+        .totalVat(100).totalPriceWithoutVat(1000)
         .metadata(Map.of());
   }
 
@@ -631,12 +661,10 @@ public class TestUtils {
     return Session.builder()
         .meta(Session.Meta.builder()
             .code("200")
-            .status(PAYMENT_CREATED_STATUS)
             .build())
         .data(Session.Data.builder()
             .type("payments")
             .attributes(Session.Attributes.builder()
-                .transferState(COMPLETED_STATE)
                 .paymentScheme("SEPA")
                 .endToEndId("end_to_end_id")
                 .build())

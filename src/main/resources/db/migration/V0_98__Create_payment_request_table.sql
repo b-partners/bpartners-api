@@ -6,7 +6,6 @@ create table if not exists "payment_request"
     id_invoice       varchar,
     constraint fk_invoice_payment foreign key (id_invoice) references invoice ("id"),
     account_id       varchar not null,
-    payment_url      varchar,
     label            varchar,
     reference        varchar,
     amount           varchar,

@@ -39,6 +39,8 @@ paths:
     $ref: './userAccounts-api.yml#/operations/getAccountHolders'
   /users/{userId}/accounts/{accountId}/accountHolders/{ahId}/companyInfo:
     $ref: './userAccounts-api.yml#/operations/updateCompanyInfo'
+  /users/{userId}/accounts/{accountId}/accountHolders/{ahId}/revenueTargets:
+    $ref: './userAccounts-api.yml#/operations/updateRevenueTargets'
   /businessActivities:
     $ref: './userAccounts-api.yml#/operations/getBusinessActivities'
   /users/{userId}/accounts/{accountId}/accountHolders/{ahId}/businessActivities:

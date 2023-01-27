@@ -908,6 +908,15 @@ components:
           $ref: './customers-api.yml#/components/schemas/Customer'
         status:
           $ref: '#/components/schemas/InvoiceStatus'
+        paymentType:
+          type: string
+          enum:
+            - CASH
+            - IN_INSTALMENT #defered, delayed
+        paymentRegulations:
+          type: array
+          items:
+            $ref: '#/components/schemas/CreatePaymentRegulation'
         sendingDate:
           type: string
           format: date
@@ -964,6 +973,30 @@ components:
           description: |
             Identifier of the PDF file that is automatically generated for each crupdate.
             Its value is `null` when generation is not finished yet.
+        paymentRegulations:
+          type: array
+          items:
+            $ref: '#/components/schemas/PaymentRegulation'
+    CreatePaymentRegulation:
+      type: object
+      properties:
+        amount:
+          type: integer
+        percent:
+          type: integer
+        comment:
+          type: string
+        maturityDate:
+          type: string
+          format: date
+    PaymentRegulation:
+      type: object
+      properties:
+        paymentRequest:
+          $ref: '#/components/schemas/PaymentRequest'
+        maturityDate:
+          type: string
+          format: date
     InvoiceStatus:
       type: string
       enum:
@@ -997,9 +1030,6 @@ components:
           type: integer
         vatPercent:
           type: integer
-        createdAt:
-          type: string
-          format: date-time
     Product:
       allOf:
         - $ref: '#/components/schemas/CreateProduct'
@@ -1047,3 +1077,25 @@ components:
       properties:
         fileId:
           type: string
+
+    #TODO: rename to paymentInitiation
+    PaymentRequest:
+      type: object
+      properties:
+        id:
+          type: string
+        paymentUrl:
+          type: string
+        amount:
+          type: integer
+        payerName:
+          type: string
+        payerEmail:
+          type: string
+        label:
+          type: string
+        reference:
+          type: string
+        initiatedDatetime:
+          type: string
+          format: date-time

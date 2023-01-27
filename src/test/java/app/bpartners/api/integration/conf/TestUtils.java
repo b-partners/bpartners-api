@@ -11,8 +11,10 @@ import app.bpartners.api.endpoint.rest.model.CreateAccountInvoiceRelaunchConf;
 import app.bpartners.api.endpoint.rest.model.CreateAnnualRevenueTarget;
 import app.bpartners.api.endpoint.rest.model.CreateProduct;
 import app.bpartners.api.endpoint.rest.model.Customer;
+import app.bpartners.api.endpoint.rest.model.PaymentRegulation;
 import app.bpartners.api.endpoint.rest.model.Invoice;
 import app.bpartners.api.endpoint.rest.model.LegalFile;
+import app.bpartners.api.endpoint.rest.model.PaymentRequest;
 import app.bpartners.api.endpoint.rest.model.Product;
 import app.bpartners.api.endpoint.rest.model.TransactionCategory;
 import app.bpartners.api.endpoint.rest.model.TransactionStatus;
@@ -529,6 +531,35 @@ public class TestUtils {
         .category(null);
   }
 
+  public static PaymentRequest basePaymentRequest() {
+    return new PaymentRequest()
+        .paymentUrl("https://connect-v2-sbx.fintecture.com")
+        .amount(4400)
+        .payerName("Luc Artisan")
+        .payerEmail("bpartners.artisans@gmail.com");
+  }
+
+  public static PaymentRegulation datedPaymentRequest2() {
+    return new PaymentRegulation()
+        .maturityDate(LocalDate.of(2023, 2, 1))
+        .paymentRequest(basePaymentRequest()
+            .id("bab75c91-f275-4f68-b10a-0f30f96f7806")
+            .label("Reste 50%")
+            .reference("FAC2023ACT02")
+            .initiatedDatetime(Instant.parse("2023-01-02T00:00:00Z")));
+  }
+
+  public static PaymentRegulation datedPaymentRequest1() {
+    return new PaymentRegulation()
+        .maturityDate(LocalDate.of(2023, 2, 1))
+        .paymentRequest(basePaymentRequest()
+            .id("a1275c91-f275-4f68-b10a-0f30f96f7806")
+            .label("Acompte 50%")
+            .reference("FAC2023ACT01")
+            .initiatedDatetime(Instant.parse("2023-01-01T00:00:00Z")));
+  }
+
+
   public static Invoice invoice1() {
     return new Invoice()
         .id(INVOICE1_ID)
@@ -548,6 +579,7 @@ public class TestUtils {
         .totalPriceWithVat(8800)
         .totalVat(800)
         .totalPriceWithoutVat(8000)
+        .paymentRegulations(List.of(datedPaymentRequest1(), datedPaymentRequest2()))
         .metadata(Map.of());
   }
 
@@ -555,8 +587,9 @@ public class TestUtils {
     return new Invoice()
         .id(INVOICE2_ID)
         .title("Facture plomberie")
-        .fileId("BP002.pdf")
-        .customer(customer2().address("Nouvelle adresse"))
+        .paymentUrl("https://connect-v2-sbx.fintecture.com")
+        .paymentRegulations(List.of())
+        .customer(customer2())
         .ref("BP002")
         .sendingDate(LocalDate.of(2022, 9, 10))
         .validityDate(LocalDate.of(2022, 10, 14))
@@ -567,9 +600,7 @@ public class TestUtils {
         .status(CONFIRMED)
         .products(List.of(product5()))
         .totalPriceWithVat(1100)
-        .totalVat(100)
-        .totalPriceWithoutVat(1000)
-        .paymentUrl("https://connect-v2-sbx.fintecture.com")
+        .totalVat(100).totalPriceWithoutVat(1000)
         .metadata(Map.of());
   }
 

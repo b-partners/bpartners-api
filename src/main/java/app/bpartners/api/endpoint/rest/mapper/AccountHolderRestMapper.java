@@ -2,12 +2,16 @@ package app.bpartners.api.endpoint.rest.mapper;
 
 
 import app.bpartners.api.endpoint.rest.model.AccountHolder;
+import app.bpartners.api.endpoint.rest.model.AnnualRevenueTarget;
 import app.bpartners.api.endpoint.rest.model.CompanyBusinessActivity;
 import app.bpartners.api.endpoint.rest.model.CompanyInfo;
 import app.bpartners.api.endpoint.rest.model.ContactAddress;
 import app.bpartners.api.endpoint.rest.validator.AccountHolderValidator;
 import app.bpartners.api.model.BusinessActivity;
+import app.bpartners.api.service.AnnualRevenueTargetService;
 import app.bpartners.api.service.BusinessActivityService;
+import java.util.List;
+import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -17,8 +21,15 @@ public class AccountHolderRestMapper {
 
   private final AccountHolderValidator validator;
   private final BusinessActivityService businessActivityService;
+  private final AnnualRevenueTargetService annualRevenueTargetService;
+  private final AnnualRevenueTargetRestMapper annualRevenueTargetRestMapper;
 
   public AccountHolder toRest(app.bpartners.api.model.AccountHolder domain) {
+    List<AnnualRevenueTarget> annualRevenueTargets =
+        annualRevenueTargetService.getAnnualRevenueTargets(domain.getId()).stream()
+            .map(annualRevenueTargetRestMapper::toRest)
+            .collect(Collectors.toUnmodifiableList());
+
     BusinessActivity businessActivity =
         businessActivityService.findByAccountHolderId(domain.getId());
     String primaryActivity =
@@ -46,6 +57,7 @@ public class AccountHolderRestMapper {
         .businessActivities(new CompanyBusinessActivity()
             .primary(primaryActivity)
             .secondary(secondaryActivity))
+        .revenueTargets(annualRevenueTargets)
         // /!\ Deprecated : use contactAddress instead
         .address(domain.getAddress())
         .postalCode(domain.getPostalCode())

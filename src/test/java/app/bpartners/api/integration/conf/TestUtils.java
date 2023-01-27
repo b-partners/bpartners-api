@@ -138,7 +138,6 @@ public class TestUtils {
   public static final String UNKNOWN_TRANSACTION_ID = "unknown_transaction_id";
   public static final String SESSION1_ID = "session1_id";
   public static final String SESSION2_ID = "session2_id";
-  public static final int CURRENT_YEAR = 2023;
 
   public static User restJoeDoeUser() {
     return new User()
@@ -251,10 +250,25 @@ public class TestUtils {
         .amountAttemptedPercent(100);
   }
 
+  public static AnnualRevenueTarget annualRevenueTarget2() {
+    return new AnnualRevenueTarget()
+        .year(2024)
+        .updatedAt(Instant.parse("2022-01-08T01:00:00.00Z"))
+        .amountAttempted(0)
+        .amountTarget(1000000)
+        .amountAttemptedPercent(0);
+  }
+
   public static CreateAnnualRevenueTarget createAnnualRevenueTarget() {
     return new CreateAnnualRevenueTarget()
         .year(2025)
         .amountTarget(150000);
+  }
+
+  public static CreateAnnualRevenueTarget toUpdateAnnualRevenueTarget() {
+    return new CreateAnnualRevenueTarget()
+        .year(2023)
+        .amountTarget(2000000);
   }
 
   public static Customer customer1() {

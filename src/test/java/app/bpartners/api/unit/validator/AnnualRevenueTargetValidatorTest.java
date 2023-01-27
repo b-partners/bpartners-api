@@ -1,15 +1,14 @@
 package app.bpartners.api.unit.validator;
 
 import app.bpartners.api.endpoint.rest.model.CreateAnnualRevenueTarget;
+import app.bpartners.api.endpoint.rest.validator.CreateAnnualRevenueTargetValidator;
 import org.junit.jupiter.api.Test;
 
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsBadRequestException;
 
-public class AnnualRevenueTargetValidatorTest {
-  private final AnnualRevenueTargetRepository revenueRepositoryMock =
-      mock(AnnualRevenueTargetRepository.class);
-  private final AnnualRevenueTargetValidator validator =
-      new AnnualRevenueTargetValidator(revenueRepositoryMock);
+class AnnualRevenueTargetValidatorTest {
+  private final CreateAnnualRevenueTargetValidator validator =
+      new CreateAnnualRevenueTargetValidator();
 
   CreateAnnualRevenueTarget invalid() {
     return new CreateAnnualRevenueTarget()

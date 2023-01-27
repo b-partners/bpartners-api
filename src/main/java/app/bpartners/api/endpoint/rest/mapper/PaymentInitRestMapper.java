@@ -1,9 +1,7 @@
 package app.bpartners.api.endpoint.rest.mapper;
 
-import app.bpartners.api.endpoint.rest.model.Invoice;
 import app.bpartners.api.endpoint.rest.model.PaymentInitiation;
 import app.bpartners.api.endpoint.rest.model.PaymentRedirection;
-import app.bpartners.api.endpoint.rest.model.PaymentRequest;
 import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
 import app.bpartners.api.endpoint.rest.validator.PaymentInitValidator;
 import app.bpartners.api.repository.InvoiceRepository;
@@ -34,32 +32,12 @@ public class PaymentInitRestMapper {
         .build();
   }
 
-  public PaymentRequest toRest(app.bpartners.api.model.PaymentRequest domain) {
-    String invoiceId = domain.getInvoiceId();
-    Invoice invoice =
-        invoiceId == null ? null :
-            invoiceRestMapper.toRest(invoiceRepository.getById(invoiceId));
-    return new PaymentRequest()
-        .id(domain.getId())
-        .transferState(domain.getTransferState())
-        .paymentUrl(domain.getPaymentUrl())
-        .status(domain.getStatus())
-        .paymentScheme(domain.getPaymentScheme())
-        .label(domain.getLabel())
-        .invoice(invoice)
-        .endToEndId(domain.getSessionId())
-        .payerEmail(domain.getPayerEmail())
-        .payerName(domain.getPayerName())
-        .reference(domain.getReference())
-        .amount(domain.getAmount().getCentsRoundUp());
-  }
-
   public PaymentRedirection toRest(app.bpartners.api.model.PaymentRedirection domain) {
     RedirectionStatusUrls statusUrls = new RedirectionStatusUrls()
         .successUrl(domain.getSuccessUrl())
         .failureUrl(domain.getFailureUrl());
     return new PaymentRedirection()
-        .id(domain.getId())
+        .id(domain.getEndToEndId())
         .redirectionUrl(domain.getRedirectUrl())
         .redirectionStatusUrls(statusUrls);
   }

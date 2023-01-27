@@ -1,5 +1,6 @@
 package app.bpartners.api.model;
 
+import app.bpartners.api.endpoint.rest.model.CrupdateInvoice.PaymentTypeEnum;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -30,6 +31,7 @@ public class Invoice {
   public static final int DEFAULT_TO_PAY_DELAY_DAYS = 30;
   public static final int DEFAULT_DELAY_PENALTY_PERCENT = 1000;
   private String id;
+  private PaymentTypeEnum paymentType;
   private String title;
   private String ref;
   private LocalDate sendingDate;
@@ -58,6 +60,12 @@ public class Invoice {
   private boolean toBeRelaunched;
   private Instant createdAt;
   private Map<String, String> metadata;
+  private List<CreatePaymentRegulation> multiplePayments;
+
+  public Invoice multiplePayments(List<CreatePaymentRegulation> multiplePayments) {
+    this.multiplePayments = multiplePayments;
+    return this;
+  }
 
   public String getRealReference() {
     if (getRef() == null) {

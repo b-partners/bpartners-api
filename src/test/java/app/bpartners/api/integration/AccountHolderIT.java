@@ -9,6 +9,7 @@ import app.bpartners.api.endpoint.rest.model.AccountHolder;
 import app.bpartners.api.endpoint.rest.model.CompanyBusinessActivity;
 import app.bpartners.api.endpoint.rest.model.CompanyInfo;
 import app.bpartners.api.endpoint.rest.model.ContactAddress;
+import app.bpartners.api.endpoint.rest.model.CreateAnnualRevenueTarget;
 import app.bpartners.api.endpoint.rest.model.VerificationStatus;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
 import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
@@ -42,13 +43,16 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import static app.bpartners.api.integration.conf.TestUtils.ACCOUNT_OPENED;
+import static app.bpartners.api.integration.conf.TestUtils.CURRENT_YEAR;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_SWAN_USER_ID;
 import static app.bpartners.api.integration.conf.TestUtils.VERIFIED_STATUS;
+import static app.bpartners.api.integration.conf.TestUtils.annualRevenueTarget1;
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsApiException;
 import static app.bpartners.api.integration.conf.TestUtils.companyBusinessActivity;
 import static app.bpartners.api.integration.conf.TestUtils.companyInfo;
+import static app.bpartners.api.integration.conf.TestUtils.createAnnualRevenueTarget;
 import static app.bpartners.api.integration.conf.TestUtils.janeSwanAccount;
 import static app.bpartners.api.integration.conf.TestUtils.joeDoeSwanAccount;
 import static app.bpartners.api.integration.conf.TestUtils.joeDoeSwanAccountHolder;
@@ -126,6 +130,7 @@ class AccountHolderIT {
             .city(joeDoeSwanAccountHolder().getResidencyAddress().getCity())
             .country(joeDoeSwanAccountHolder().getResidencyAddress().getCountry())
             .postalCode(joeDoeSwanAccountHolder().getResidencyAddress().getPostalCode()))
+        .revenueTargets(List.of(annualRevenueTarget1()))
         // /!\ Deprecated : just use contactAddress
         .address(joeDoeSwanAccountHolder().getResidencyAddress().getAddressLine1())
         .city(joeDoeSwanAccountHolder().getResidencyAddress().getCity())
@@ -357,6 +362,32 @@ class AccountHolderIT {
                 expected().getCompanyInfo()
                     .isSubjectToVat(true)),
         actual);
+  }
+
+  @Order(8)
+  @Test
+  void update_annual_revenue_target_ok() throws ApiException {
+    ApiClient joeDoeClient = anApiClient();
+    UserAccountsApi api = new UserAccountsApi(joeDoeClient);
+
+    AccountHolder actual = api.updateRevenueTargets(JOE_DOE_SWAN_USER_ID, JOE_DOE_ACCOUNT_ID,
+        joeDoeAccountHolder().getId(), List.of(createAnnualRevenueTarget()));
+
+    assertEquals(2, actual.getRevenueTargets().size());
+  }
+
+  @Order(9)
+  @Test
+  void update_annual_revenue_target_ko() {
+    ApiClient joeDoeClient = anApiClient();
+    UserAccountsApi api = new UserAccountsApi(joeDoeClient);
+
+    assertThrowsApiException(
+        "{\"type\":\"501 NOT_IMPLEMENTED\",\"message\":\"Revenue target for " + CURRENT_YEAR
+            + " already defined.\"}",
+        () -> api.updateRevenueTargets(JOE_DOE_SWAN_USER_ID, JOE_DOE_ACCOUNT_ID,
+            joeDoeAccountHolder().getId(), List.of(new CreateAnnualRevenueTarget().year(2024)
+                .amountTarget(15000))));
   }
 
   private void setUpSwanApi(SwanApi swanApi, AccountHolderResponse.Edge... edges) {

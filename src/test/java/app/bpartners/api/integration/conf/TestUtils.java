@@ -3,10 +3,12 @@ package app.bpartners.api.integration.conf;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
 import app.bpartners.api.endpoint.rest.model.AccountInvoiceRelaunchConf;
+import app.bpartners.api.endpoint.rest.model.AnnualRevenueTarget;
 import app.bpartners.api.endpoint.rest.model.BusinessActivity;
 import app.bpartners.api.endpoint.rest.model.CompanyBusinessActivity;
 import app.bpartners.api.endpoint.rest.model.CompanyInfo;
 import app.bpartners.api.endpoint.rest.model.CreateAccountInvoiceRelaunchConf;
+import app.bpartners.api.endpoint.rest.model.CreateAnnualRevenueTarget;
 import app.bpartners.api.endpoint.rest.model.CreateProduct;
 import app.bpartners.api.endpoint.rest.model.Customer;
 import app.bpartners.api.endpoint.rest.model.Invoice;
@@ -136,6 +138,7 @@ public class TestUtils {
   public static final String UNKNOWN_TRANSACTION_ID = "unknown_transaction_id";
   public static final String SESSION1_ID = "session1_id";
   public static final String SESSION2_ID = "session2_id";
+  public static final int CURRENT_YEAR = 2023;
 
   public static User restJoeDoeUser() {
     return new User()
@@ -237,6 +240,21 @@ public class TestUtils {
                 .build()))
             .build())
         .build();
+  }
+
+  public static AnnualRevenueTarget annualRevenueTarget1() {
+    return new AnnualRevenueTarget()
+        .year(2023)
+        .updatedAt(Instant.parse("2022-01-01T01:00:00.00Z"))
+        .amountAttempted(1000000)
+        .amountTarget(1000000)
+        .amountAttemptedPercent(100);
+  }
+
+  public static CreateAnnualRevenueTarget createAnnualRevenueTarget() {
+    return new CreateAnnualRevenueTarget()
+        .year(2025)
+        .amountTarget(150000);
   }
 
   public static Customer customer1() {

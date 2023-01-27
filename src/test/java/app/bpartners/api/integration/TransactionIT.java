@@ -5,6 +5,7 @@ import app.bpartners.api.endpoint.event.S3Conf;
 import app.bpartners.api.endpoint.rest.api.PayingApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
+import app.bpartners.api.endpoint.rest.model.Invoice;
 import app.bpartners.api.endpoint.rest.model.MonthlyTransactionsSummary;
 import app.bpartners.api.endpoint.rest.model.Transaction;
 import app.bpartners.api.endpoint.rest.model.TransactionsSummary;
@@ -23,13 +24,17 @@ import app.bpartners.api.repository.swan.UserSwanRepository;
 import java.time.LocalDate;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import static app.bpartners.api.integration.InvoiceIT.invoice1;
 import static app.bpartners.api.integration.conf.TestUtils.JANE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JANE_DOE_TOKEN;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
@@ -52,6 +57,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @Testcontainers
 @ContextConfiguration(initializers = TransactionIT.ContextInitializer.class)
 @AutoConfigureMockMvc
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class TransactionIT {
   @MockBean
   private SentryConf sentryConf;
@@ -127,6 +133,7 @@ class TransactionIT {
   }
 
   @Test
+  @Order(1)
   void read_transactions_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
     PayingApi api = new PayingApi(joeDoeClient);
@@ -137,6 +144,24 @@ class TransactionIT {
     assertTrue(actual.contains(restTransaction1()));
     assertTrue(actual.contains(restTransaction2()));
     assertTrue(ignoreIds(actual).contains(restTransaction3().id(null)));
+  }
+
+  @Order(2)
+  @Test
+  void justify_transaction_ok() throws ApiException {
+    ApiClient joeDoeClient = anApiClient();
+    PayingApi api = new PayingApi(joeDoeClient);
+    Transaction transaction1 = restTransaction1();
+    Invoice invoice1 = invoice1();
+
+    Transaction actual = api.justifyTransaction(
+        JOE_DOE_ACCOUNT_ID, transaction1.getId(), invoice1.getId());
+
+    assertEquals(
+        transaction1
+            .invoice(invoice1
+                .updatedAt(actual.getInvoice().getUpdatedAt())),
+        actual);
   }
 
   @Test

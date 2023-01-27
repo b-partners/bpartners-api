@@ -12,8 +12,11 @@ public interface TransactionRepository {
 
   List<Transaction> findByAccountIdAndStatus(String id, TransactionStatus status);
 
+  Transaction save(Transaction toSave);
+
   List<Transaction> findByAccountIdAndStatusBetweenInstants(
       String id, TransactionStatus status,
       Instant from, Instant to);
 
+  Transaction getById(String idTransaction);
 }

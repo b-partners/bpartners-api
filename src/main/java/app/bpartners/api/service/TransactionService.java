@@ -2,9 +2,11 @@ package app.bpartners.api.service;
 
 import app.bpartners.api.endpoint.rest.model.TransactionTypeEnum;
 import app.bpartners.api.model.Fraction;
+import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.MonthlyTransactionsSummary;
 import app.bpartners.api.model.Transaction;
 import app.bpartners.api.model.TransactionsSummary;
+import app.bpartners.api.repository.InvoiceRepository;
 import app.bpartners.api.repository.TransactionRepository;
 import app.bpartners.api.repository.TransactionsSummaryRepository;
 import app.bpartners.api.repository.jpa.AccountHolderJpaRepository;
@@ -34,6 +36,7 @@ public class TransactionService {
   private final TransactionRepository repository;
   private final AccountHolderJpaRepository holderJpaRepository;
   private final TransactionsSummaryRepository summaryRepository;
+  private final InvoiceRepository invoiceRepository;
 
   private static Instant getFirstDayOfYear(int year) {
     return getFirstDayOfMonth(YearMonth.of(year, Month.JANUARY.getValue()));
@@ -81,6 +84,14 @@ public class TransactionService {
       year = LocalDate.now().getYear();
     }
     return summaryRepository.getByAccountIdAndYear(accountId, year);
+  }
+
+  public Transaction justifyTransaction(String idTransaction, String idInvoice) {
+    Transaction transaction = repository.getById(idTransaction);
+    Invoice invoice = invoiceRepository.getById(idInvoice);
+    return repository.save(transaction.toBuilder()
+        .invoice(invoice)
+        .build());
   }
 
   @Transactional

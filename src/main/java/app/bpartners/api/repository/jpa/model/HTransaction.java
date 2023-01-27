@@ -3,6 +3,8 @@ package app.bpartners.api.repository.jpa.model;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -27,4 +29,7 @@ public class HTransaction {
   private String id;
   private String idSwan;
   private String idAccount;
+  @ManyToOne
+  @JoinColumn(name = "id_invoice")
+  private HInvoice invoice;
 }

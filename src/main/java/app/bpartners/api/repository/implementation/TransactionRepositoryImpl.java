@@ -60,6 +60,15 @@ public class TransactionRepositoryImpl implements TransactionRepository {
   }
 
   @Override
+  public Transaction save(Transaction toSave) {
+    HTransaction entity = jpaRepository.save(mapper.toEntity(toSave));
+    app.bpartners.api.repository.swan.model.Transaction
+        swanTransaction = swanRepository.findById(entity.getIdSwan());
+    return mapper.toDomain(swanTransaction, entity,
+        categoryRepository.findByIdTransaction(entity.getId()));
+  }
+
+  @Override
   public List<Transaction> findByAccountIdAndStatusBetweenInstants(
       String id, TransactionStatus status,
       Instant from, Instant to) {
@@ -70,6 +79,17 @@ public class TransactionRepositoryImpl implements TransactionRepository {
                 transaction.getPaymentDatetime().isBefore(to)
         )
         .collect(Collectors.toUnmodifiableList());
+  }
+
+  @Override
+  public Transaction getById(String idTransaction) {
+    HTransaction entity = jpaRepository.findById(idTransaction)
+        .orElseThrow(() -> new NotFoundException(
+            "Transaction." + idTransaction + " not found"));
+    app.bpartners.api.repository.swan.model.Transaction
+        swanTransaction = swanRepository.findById(entity.getIdSwan());
+    return mapper.toDomain(swanTransaction, entity,
+        categoryRepository.findByIdTransaction(entity.getId()));
   }
 
   private HTransaction getOrCreateTransaction(

@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -32,5 +33,13 @@ public class TransactionController {
       @PathVariable(name = "aId") String accountId,
       @RequestParam(required = false) Integer year) {
     return summaryRestMapper.toRest(service.getTransactionsSummary(accountId, year));
+  }
+
+  @PutMapping(value = "/accounts/{accountId}/transactions/{transactionId}/invoices/{invoiceId}")
+  public Transaction justifyTransaction(
+      @PathVariable String accountId,
+      @PathVariable String transactionId,
+      @PathVariable String invoiceId) {
+    return mapper.toRest(service.justifyTransaction(transactionId, invoiceId));
   }
 }

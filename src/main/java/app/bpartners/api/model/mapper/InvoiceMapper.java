@@ -50,6 +50,9 @@ public class InvoiceMapper {
   }
 
   public Invoice toDomain(HInvoice entity) {
+    if (entity == null) {
+      return null;
+    }
     List<InvoiceProduct> actualProducts = entity.getProducts() == null
         ? List.of() : entity.getProducts().stream()
         .map(productMapper::toDomain)

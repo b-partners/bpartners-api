@@ -43,6 +43,7 @@ operations:
       tags:
         - Paying
       summary: Associate a transaction to an existing invoice
+      operationId: justifyTransaction
       parameters:
         - in: path
           name: aId

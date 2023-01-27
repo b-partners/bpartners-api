@@ -102,7 +102,12 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
         .requestMatchers(
             new SelfAccountMatcher(PUT, "/accounts/*/customers", authResourceProvider)
         ).authenticated()
-        .antMatchers(GET, "/accounts/*/transactions").authenticated()
+        .requestMatchers(
+            new SelfAccountMatcher(GET, "/accounts/*/transactions",
+                authResourceProvider)).authenticated()
+        .requestMatchers(
+            new SelfAccountMatcher(PUT, "/accounts/*/transactions/*/invoices/*",
+                authResourceProvider)).authenticated()
         .requestMatchers(new SelfUserMatcher(GET, "/users/*/accounts")).authenticated()
         .requestMatchers(
             new SelfUserAccountMatcher(GET, "/users/*/accounts/*/accountHolders",

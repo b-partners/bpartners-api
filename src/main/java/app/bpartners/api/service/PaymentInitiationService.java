@@ -28,20 +28,13 @@ public class PaymentInitiationService {
     if (Objects.equals(totalPriceWithVat, new Fraction())) {
       return new PaymentRedirection();
     }
-    PaymentInitiation paymentInitiation = PaymentInitiation.builder()
-        .id(String.valueOf(randomUUID()))
-        .reference(invoice.getRef())
-        .label(invoice.getTitle())
-        .amount(totalPriceWithVat)
-        //TODO: use customerName and customerEmail when overriding
-        .payerName(invoice.getCustomer() == null ? null
-            : invoice.getCustomer().getName())
-        .payerEmail(invoice.getCustomer() == null
-            ? null : invoice.getCustomer().getEmail())
-        .successUrl("https://dashboard-dev.bpartners.app") //TODO: to change
-        .failureUrl("https://dashboard-dev.bpartners.app") //TODO: to change
-        .build();
+    PaymentInitiation paymentInitiation = mapper.convertFromInvoice(
+        String.valueOf(randomUUID()), invoice, totalPriceWithVat, null);
     return repository.saveAll(List.of(paymentInitiation), invoice.getId()).get(0);
   }
 
+  public List<PaymentRedirection> initiateInvoicePayments(
+      List<PaymentInitiation> paymentInitiations, String invoiceId) {
+    return repository.saveAll(paymentInitiations, invoiceId);
+  }
 }

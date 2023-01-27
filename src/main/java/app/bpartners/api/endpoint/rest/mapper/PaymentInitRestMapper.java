@@ -34,7 +34,7 @@ public class PaymentInitRestMapper {
         .successUrl(domain.getSuccessUrl())
         .failureUrl(domain.getFailureUrl());
     return new PaymentRedirection()
-        .id(domain.getId())
+        .id(domain.getEndToEndId())
         .redirectionUrl(domain.getRedirectUrl())
         .redirectionStatusUrls(statusUrls);
   }

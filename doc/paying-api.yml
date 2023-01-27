@@ -650,45 +650,6 @@ operations:
         500:
           $ref: './api.yml#/components/responses/500'
   paymentInitiationsOperations:
-    get:
-      tags:
-        - Paying
-      summary: Get all payment initiations of an account
-      operationId: getPaymentInitiations
-      parameters:
-        - in: path
-          name: aId
-          schema:
-            type: string
-          required: true
-        - in: query
-          name: page
-          schema:
-            $ref: './api.yml#/components/schemas/Page'
-        - in: query
-          name: pageSize
-          schema:
-            $ref: './api.yml#/components/schemas/PageSize'
-      responses:
-        200:
-          description: List of the account's payment requests ordered by creation datetime desc
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  #TODO: rename to paymentInitiation
-                  $ref: '#/components/schemas/PaymentRequest'
-        400:
-          $ref: './api.yml#/components/responses/400'
-        403:
-          $ref: './api.yml#/components/responses/403'
-        404:
-          $ref: './api.yml#/components/responses/404'
-        429:
-          $ref: './api.yml#/components/responses/429'
-        500:
-          $ref: './api.yml#/components/responses/500'
     post:
       tags:
         - Paying
@@ -930,6 +891,15 @@ components:
           $ref: './customers-api.yml#/components/schemas/Customer'
         status:
           $ref: '#/components/schemas/InvoiceStatus'
+        paymentType:
+          type: string
+          enum:
+            - CASH
+            - IN_INSTALMENT #defered, delayed
+        paymentRegulations:
+          type: array
+          items:
+            $ref: '#/components/schemas/CreatePaymentRegulation'
         sendingDate:
           type: string
           format: date
@@ -986,6 +956,30 @@ components:
           description: |
             Identifier of the PDF file that is automatically generated for each crupdate.
             Its value is `null` when generation is not finished yet.
+        paymentRegulations:
+          type: array
+          items:
+            $ref: '#/components/schemas/PaymentRegulation'
+    CreatePaymentRegulation:
+      type: object
+      properties:
+        amount:
+          type: integer
+        percent:
+          type: integer
+        comment:
+          type: string
+        maturityDate:
+          type: string
+          format: date
+    PaymentRegulation:
+      type: object
+      properties:
+        paymentRequest:
+          $ref: '#/components/schemas/PaymentRequest'
+        maturityDate:
+          type: string
+          format: date
     InvoiceStatus:
       type: string
       enum:
@@ -1065,15 +1059,7 @@ components:
       properties:
         id:
           type: string
-        endToEndId:
-          type: string
-        status:
-          $ref: '#/components/schemas/PaymentReqStatus'
         paymentUrl:
-          type: string
-        transferState:
-          $ref: '#/components/schemas/PaymentTransferState'
-        paymentScheme:
           type: string
         amount:
           type: integer
@@ -1085,23 +1071,6 @@ components:
           type: string
         reference:
           type: string
-        invoice:
-          $ref: '#/components/schemas/Invoice'
-    #TODO: rename to PaymentInitiationStatus
-    PaymentReqStatus:
-      type: string
-      enum:
-        - INITIALIZED
-        - PROCESSING
-        - CANCELED
-        - ERROR #technical error
-        - CREATED
-        - REJECTED
-        - UNKNOWN
-    PaymentTransferState:
-      type: string
-      enum:
-        - PROCESSING
-        - COMPLETED
-        - REJECTED
-        - UNKNOWN
+        initiatedDatetime:
+          type: string
+          format: date-time

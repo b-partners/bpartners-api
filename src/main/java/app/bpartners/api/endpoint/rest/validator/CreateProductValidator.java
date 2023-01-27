@@ -17,6 +17,10 @@ public class CreateProductValidator implements Consumer<CreateProduct> {
     if (createProduct.getUnitPrice() == null) {
       message.append("Unit price is mandatory. ");
     }
+    //TODO: check test
+    if (createProduct.getVatPercent() == null) {
+      message.append("Vat percent is mandatory. ");
+    }
     String exceptionMessage = message.toString();
     if (!exceptionMessage.isEmpty()) {
       throw new BadRequestException(exceptionMessage);

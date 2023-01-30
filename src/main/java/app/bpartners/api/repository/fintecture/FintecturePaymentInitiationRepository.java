@@ -1,8 +1,8 @@
 package app.bpartners.api.repository.fintecture;
 
-import app.bpartners.api.repository.fintecture.model.PaymentInitiation;
-import app.bpartners.api.repository.fintecture.model.PaymentRedirection;
+import app.bpartners.api.repository.fintecture.model.FPaymentInitiation;
+import app.bpartners.api.repository.fintecture.model.FPaymentRedirection;
 
 public interface FintecturePaymentInitiationRepository {
-  PaymentRedirection save(PaymentInitiation paymentReq, String redirectUri);
+  FPaymentRedirection save(FPaymentInitiation paymentInitiation, String redirectUri);
 }

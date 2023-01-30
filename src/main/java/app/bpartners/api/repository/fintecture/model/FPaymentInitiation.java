@@ -11,7 +11,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @Builder
 @Setter
-public class PaymentInitiation {
+public class FPaymentInitiation {
   private Meta meta;
   private Data data;
 

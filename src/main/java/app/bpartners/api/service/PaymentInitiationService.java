@@ -18,7 +18,7 @@ import static java.util.UUID.randomUUID;
 public class PaymentInitiationService {
   private final PaymentInitiationRepository repository;
 
-  public List<PaymentRedirection> createPaymentReq(List<PaymentInitiation> paymentReqs) {
+  public List<PaymentRedirection> initiatePayments(List<PaymentInitiation> paymentReqs) {
     if (paymentReqs.size() > 1) {
       throw new NotImplementedException("Only one payment request is supported.");
     }

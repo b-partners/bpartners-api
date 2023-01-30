@@ -4,8 +4,8 @@ import app.bpartners.api.manager.ProjectTokenManager;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.repository.fintecture.FintectureConf;
 import app.bpartners.api.repository.fintecture.implementation.FintecturePaymentInitiationRepositoryImpl;
-import app.bpartners.api.repository.fintecture.model.PaymentInitiation;
-import app.bpartners.api.repository.fintecture.model.PaymentRedirection;
+import app.bpartners.api.repository.fintecture.model.FPaymentInitiation;
+import app.bpartners.api.repository.fintecture.model.FPaymentRedirection;
 import java.io.IOException;
 import java.net.http.HttpClient;
 import java.security.KeyPair;
@@ -26,7 +26,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-class FintecturePaymentInitiationRepositoryTest {
+class FintectureFPaymentInitiationRepositoryTest {
   FintectureConf fintectureConf;
   ProjectTokenManager projectTokenManager;
   FintecturePaymentInitiationRepositoryImpl fintecturePaymentInitiationRepository;
@@ -49,28 +49,28 @@ class FintecturePaymentInitiationRepositoryTest {
     when(fintectureConf.getRequestToPayUrl()).thenReturn(PIS_URL);
   }
 
-  PaymentInitiation paymentInitiation() {
-    return PaymentInitiation.builder()
-        .meta(new PaymentInitiation.Meta())
-        .data(new PaymentInitiation.Data())
+  FPaymentInitiation paymentInitiation() {
+    return FPaymentInitiation.builder()
+        .meta(new FPaymentInitiation.Meta())
+        .data(new FPaymentInitiation.Data())
         .build();
   }
 
-  PaymentRedirection invalidPaymentRedirection() {
-    return PaymentRedirection.builder().build();
+  FPaymentRedirection invalidPaymentRedirection() {
+    return FPaymentRedirection.builder().build();
   }
 
-  PaymentRedirection invalidPaymentRedirection2() {
-    return PaymentRedirection.builder()
-        .meta(PaymentRedirection.Meta.builder()
+  FPaymentRedirection invalidPaymentRedirection2() {
+    return FPaymentRedirection.builder()
+        .meta(FPaymentRedirection.Meta.builder()
             .status(400)
             .build())
         .build();
   }
 
-  PaymentRedirection validPaymentRedirection() {
-    return PaymentRedirection.builder()
-        .meta(PaymentRedirection.Meta.builder()
+  FPaymentRedirection validPaymentRedirection() {
+    return FPaymentRedirection.builder()
+        .meta(FPaymentRedirection.Meta.builder()
             .status(200)
             .build())
         .build();
@@ -80,7 +80,7 @@ class FintecturePaymentInitiationRepositoryTest {
   void save_payment_ok() throws IOException, InterruptedException {
     when(httpClient.send(any(), any())).thenReturn(httpResponseMock(validPaymentRedirection()));
 
-    PaymentRedirection actual =
+    FPaymentRedirection actual =
         fintecturePaymentInitiationRepository.save(paymentInitiation(), REDIRECT_SUCCESS_URL);
 
     assertNotNull(actual);
@@ -92,7 +92,7 @@ class FintecturePaymentInitiationRepositoryTest {
         httpResponseMock(invalidPaymentRedirection())
     );
 
-    PaymentRedirection actualResponse =
+    FPaymentRedirection actualResponse =
         fintecturePaymentInitiationRepository.save(paymentInitiation(),
             REDIRECT_SUCCESS_URL);
 
@@ -104,7 +104,7 @@ class FintecturePaymentInitiationRepositoryTest {
     when(httpClient.send(any(), any())).thenReturn(
         httpResponseMock(invalidPaymentRedirection2())
     );
-    PaymentRedirection actualResponse =
+    FPaymentRedirection actualResponse =
         fintecturePaymentInitiationRepository.save(paymentInitiation(),
             REDIRECT_SUCCESS_URL);
 
@@ -114,10 +114,10 @@ class FintecturePaymentInitiationRepositoryTest {
   @Test
   void save_payment_ko_with_exception() throws IOException, InterruptedException {
     when(httpClient.send(any(), any())).thenThrow(new IOException());
-    PaymentInitiation paymentInitiation = paymentInitiation();
+    FPaymentInitiation FPaymentInitiation = paymentInitiation();
 
     assertThrows(ApiException.class,
-        () -> fintecturePaymentInitiationRepository.save(paymentInitiation,
+        () -> fintecturePaymentInitiationRepository.save(FPaymentInitiation,
             REDIRECT_SUCCESS_URL));
   }
 }

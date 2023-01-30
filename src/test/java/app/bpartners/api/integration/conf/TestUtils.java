@@ -22,11 +22,9 @@ import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.repository.LegalFileRepository;
 import app.bpartners.api.repository.fintecture.FintectureConf;
-import app.bpartners.api.repository.fintecture.FintecturePaymentInfoRepository;
 import app.bpartners.api.repository.fintecture.FintecturePaymentInitiationRepository;
-import app.bpartners.api.repository.fintecture.model.PaymentInitiation;
-import app.bpartners.api.repository.fintecture.model.PaymentRedirection;
-import app.bpartners.api.repository.fintecture.model.Session;
+import app.bpartners.api.repository.fintecture.model.FPaymentInitiation;
+import app.bpartners.api.repository.fintecture.model.FPaymentRedirection;
 import app.bpartners.api.repository.sendinblue.SendinblueApi;
 import app.bpartners.api.repository.sendinblue.model.Attributes;
 import app.bpartners.api.repository.sendinblue.model.Contact;
@@ -730,18 +728,18 @@ public class TestUtils {
   }
 
   public static void setUpPaymentInitiationRep(FintecturePaymentInitiationRepository repository) {
-    when(repository.save(any(PaymentInitiation.class), any()))
+    when(repository.save(any(FPaymentInitiation.class), any()))
         .thenAnswer(invocation ->
-            PaymentRedirection.builder()
-                .meta(PaymentRedirection.Meta.builder()
+            FPaymentRedirection.builder()
+                .meta(FPaymentRedirection.Meta.builder()
                     .sessionId(randomUUID().toString())
                     .url("https://connect-v2-sbx.fintecture.com")
                     .build())
                 .build()
         )
         .thenAnswer(invocation ->
-            PaymentRedirection.builder()
-                .meta(PaymentRedirection.Meta.builder()
+            FPaymentRedirection.builder()
+                .meta(FPaymentRedirection.Meta.builder()
                     .sessionId(randomUUID().toString())
                     .url("https://connect-v2-sbx.fintecture.com")
                     .build())

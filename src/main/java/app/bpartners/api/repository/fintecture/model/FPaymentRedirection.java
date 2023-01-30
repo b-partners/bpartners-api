@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class PaymentRedirection {
+public class FPaymentRedirection {
   private Meta meta;
 
   @JsonProperty("meta")

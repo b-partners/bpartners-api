@@ -4,10 +4,7 @@ import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.endpoint.rest.security.model.Principal;
 import app.bpartners.api.endpoint.rest.security.principal.PrincipalProvider;
 import app.bpartners.api.model.AccountHolder;
-import app.bpartners.api.model.FileInfo;
-import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.Invoice;
-import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.mapper.InvoiceMapper;
 import app.bpartners.api.model.mapper.InvoiceProductMapper;
@@ -49,55 +46,33 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
   private final InvoicePdfUtils pdfUtils = new InvoicePdfUtils();
 
   @Override
-  public Invoice crupdate(Invoice toCrupdate) {
-    //TODO: check case when ref is still null
-    //As ref is nullable, we might have a list of invoice with null ref
-    Optional<List<HInvoice>> optionalInvoice = jpaRepository.findByIdAccountAndRefAndStatus(
-        toCrupdate.getAccount().getId(), toCrupdate.getRealReference(), toCrupdate.getStatus());
-    if (optionalInvoice.isPresent()) {
-      List<HInvoice> existingInvoiceList = optionalInvoice.get();
-      if (!existingInvoiceList.isEmpty()) {
-        HInvoice invoice = existingInvoiceList.get(0);
-        if (toCrupdate.getRef() != null
-            && !toCrupdate.getId().equals(invoice.getId())) {
-          throw new BadRequestException(
-              "The invoice reference must be unique however the given reference ["
-                  + toCrupdate.getRef()
-                  + "] is already used by invoice." + invoice.getId());
-        }
-      }
-    }
-    AccountHolder accountHolder =
-        holderService.getAccountHolderByAccountId(toCrupdate.getAccount().getId());
-    if (!accountHolder.isSubjectToVat()) {
-      toCrupdate.getProducts().forEach(
-          product -> product.setVatPercent(new Fraction())
-      );
-    }
-    HInvoice entity = mapper.toEntity(toCrupdate, true);
+  public Invoice crupdate(Invoice invoice) {
+    HInvoice entity = mapper.toEntity(invoice, true);
     if (!entity.getProducts().isEmpty()) {
       productJpaRepository.deleteAll(entity.getProducts());
     }
-    entity.setProducts(getProductEntities(toCrupdate, entity));
-    //TODO: put this in the appropriate event service when async is set
-    processPdfGeneration(mapper.toDomain(entity), entity);
-    HInvoice savedEntity = jpaRepository.save(entity);
-    return mapper.toDomain(savedEntity);
+
+    Invoice domain = mapper.toDomain(
+        entity.products(getProductEntities(invoice, entity)));
+    jpaRepository.save(entity
+        .fileId(processPdfGeneration(domain)));
+
+    return domain;
   }
 
-  private void processPdfGeneration(Invoice domain, HInvoice entity) {
-    String fileId = entity.getFileId() == null ? String.valueOf(randomUUID())
-        : entity.getFileId();
+  private String processPdfGeneration(Invoice domain) {
+    String fileId = domain.getFileId() == null
+        ? String.valueOf(randomUUID()) : domain.getFileId();
     String accountId = domain.getAccount().getId();
-    AccountHolder accountHolder =
-        holderService.getAccountHolderByAccountId(accountId);
+
     byte[] logoAsBytes = fileService.downloadOptionalFile(LOGO, accountId, userLogoFileId());
-    byte[] fileAsBytes =
-        domain.getStatus().equals(CONFIRMED) || domain.getStatus().equals(PAID)
-            ? pdfUtils.generatePdf(domain, accountHolder, logoAsBytes, INVOICE_TEMPLATE)
-            : pdfUtils.generatePdf(domain, accountHolder, logoAsBytes, DRAFT_TEMPLATE);
-    FileInfo fileInfo = fileService.upload(fileId, INVOICE, accountId, fileAsBytes, null);
-    entity.setFileId(fileInfo.getId());
+    byte[] fileAsBytes = domain.getStatus() == CONFIRMED || domain.getStatus() == PAID
+        ? pdfUtils.generatePdf(domain, accountHolder(domain), logoAsBytes, INVOICE_TEMPLATE)
+        : pdfUtils.generatePdf(domain, accountHolder(domain), logoAsBytes, DRAFT_TEMPLATE);
+    String id = fileService.upload(fileId, INVOICE, accountId, fileAsBytes, null).getId();
+    domain.setFileId(id);
+
+    return id;
   }
 
   @Override
@@ -108,16 +83,6 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
     }
     HInvoice invoice = optionalInvoice.get();
     return mapper.toDomain(invoice);
-  }
-
-  @Override
-  public Optional<Invoice> getOptionalById(String invoiceId) {
-    Optional<HInvoice> optionalInvoice = jpaRepository.findById(invoiceId);
-    if (optionalInvoice.isPresent()) {
-      HInvoice invoice = optionalInvoice.get();
-      return Optional.of(mapper.toDomain(invoice));
-    }
-    return Optional.empty();
   }
 
   @Override
@@ -145,5 +110,9 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
 
   private String userLogoFileId() {
     return ((Principal) auth.getAuthentication().getPrincipal()).getUser().getLogoFileId();
+  }
+
+  private AccountHolder accountHolder(Invoice toCrupdate) {
+    return holderService.getAccountHolderByAccountId(toCrupdate.getAccount().getId());
   }
 }

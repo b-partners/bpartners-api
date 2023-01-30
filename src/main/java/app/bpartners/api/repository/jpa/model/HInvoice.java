@@ -78,4 +78,19 @@ public class HInvoice implements Serializable {
   private Instant updatedAt;
   private boolean toBeRelaunched;
   private String metadataString;
+
+  public HInvoice products(List<HInvoiceProduct> products) {
+    this.products = products;
+    return this;
+  }
+
+  public HInvoice fileId(String fileId) {
+    this.fileId = fileId;
+    return this;
+  }
+
+  public HInvoice status(InvoiceStatus status) {
+    this.status = status;
+    return this;
+  }
 }

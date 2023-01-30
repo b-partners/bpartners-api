@@ -122,30 +122,27 @@ public class InvoiceMapper {
     LocalDate sendingDate = domain.getSendingDate();
     LocalDate toPayAt = null;
     LocalDate validityDate = domain.getValidityDate();
-    Fraction totalPriceWithVat = computeTotalPriceWithVat(domain.getProducts());
-    Optional<HInvoice> persisted = jpaRepository.findById(id);
     List<HInvoiceProduct> actualProducts = List.of();
-    if (isToBeCrupdated && persisted.isPresent()) {
-      HInvoice persistedValue = persisted.get();
-      actualProducts = persistedValue.getProducts();
-      fileId = persistedValue.getFileId();
+
+    Optional<HInvoice> optionalInvoice = jpaRepository.findById(id);
+    if (isToBeCrupdated && optionalInvoice.isPresent()) {
+      HInvoice entity = optionalInvoice.get();
+      actualProducts = entity.getProducts();
+      fileId = entity.getFileId();
       //TODO: change when we can create a confirmed from scratch
-      if (domain.getStatus() == CONFIRMED
-          && persistedValue.getStatus() == PROPOSAL) {
-        setIntermediateStatus(persistedValue);
-        id = randomUUID().toString(); //Generate a new invoice
-        sendingDate = LocalDate.now(); //Confirmed invoice sending date is updated during crupdate
+      if (domain.getStatus() == CONFIRMED && entity.getStatus() == PROPOSAL) {
+        id = String.valueOf(randomUUID());
+        sendingDate = LocalDate.now();
         toPayAt = sendingDate.plusDays(domain.getDelayInPaymentAllowed());
         validityDate = null;
-        if (totalPriceWithVat.getCentsAsDecimal() != 0) {
-          paymentUrl =
-              pis.initiateInvoicePayment(domain, totalPriceWithVat).getRedirectUrl();
-        }
-      } else if (domain.getStatus() == PAID
-          && persistedValue.getStatus() == CONFIRMED) {
+        paymentUrl =
+            getPaymentUrl(domain, paymentUrl, computeTotalPriceWithVat(domain.getProducts()));
+
+        jpaRepository.save(entity.status(PROPOSAL_CONFIRMED));
+      } else if (domain.getStatus() == PAID && entity.getStatus() == CONFIRMED) {
         validityDate = null;
-        sendingDate = persistedValue.getSendingDate();
-        paymentUrl = persistedValue.getPaymentUrl();
+        sendingDate = entity.getSendingDate();
+        paymentUrl = entity.getPaymentUrl();
         toPayAt = sendingDate.plusDays(domain.getDelayInPaymentAllowed());
       }
     }
@@ -171,7 +168,7 @@ public class InvoiceMapper {
         .sendingDate(sendingDate)
         .toPayAt(toPayAt)
         .updatedAt(Instant.now())
-        .createdDatetime(getCreatedDatetime(persisted))
+        .createdDatetime(getCreatedDatetime(optionalInvoice))
         .delayInPaymentAllowed(domain.getDelayInPaymentAllowed())
         .delayPenaltyPercent(domain.getDelayPenaltyPercent().toString())
         .products(actualProducts)
@@ -183,11 +180,6 @@ public class InvoiceMapper {
     return toEntity(domain, true).toBuilder()
         .fileId(fileId)
         .build();
-  }
-
-  private void setIntermediateStatus(HInvoice persistedValue) {
-    persistedValue.setStatus(PROPOSAL_CONFIRMED);
-    jpaRepository.save(persistedValue);
   }
 
   private Fraction computeTotalVat(List<InvoiceProduct> products) {
@@ -213,5 +205,11 @@ public class InvoiceMapper {
         .map(a -> toAprational(a.getNumerator(), a.getDenominator()))
         .reduce(new Aprational(0), Aprational::add);
     return parseFraction(aprational);
+  }
+
+  private String getPaymentUrl(Invoice domain, String paymentUrl, Fraction totalPriceWithVat) {
+    return totalPriceWithVat.getCentsAsDecimal() != 0
+        ? pis.initiateInvoicePayment(domain, totalPriceWithVat).getRedirectUrl()
+        : paymentUrl;
   }
 }

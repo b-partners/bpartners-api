@@ -4,8 +4,8 @@ import app.bpartners.api.manager.ProjectTokenManager;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.repository.fintecture.FintectureConf;
 import app.bpartners.api.repository.fintecture.FintecturePaymentInitiationRepository;
-import app.bpartners.api.repository.fintecture.model.PaymentInitiation;
-import app.bpartners.api.repository.fintecture.model.PaymentRedirection;
+import app.bpartners.api.repository.fintecture.model.FPaymentInitiation;
+import app.bpartners.api.repository.fintecture.model.FPaymentRedirection;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.net.URI;
@@ -52,10 +52,10 @@ public class FintecturePaymentInitiationRepositoryImpl implements
   }
 
   @Override
-  public PaymentRedirection save(PaymentInitiation paymentReq, String redirectUri) {
+  public FPaymentRedirection save(FPaymentInitiation paymentInitiation, String redirectUri) {
     try {
       String urlParams = String.format("?redirectUri=%s&state=12341234", redirectUri);
-      String data = new ObjectMapper().writeValueAsString(paymentReq);
+      String data = new ObjectMapper().writeValueAsString(paymentInitiation);
       String requestId = String.valueOf(randomUUID());
       String digest = getDigest(data);
       String date = getParsedDate();
@@ -74,9 +74,9 @@ public class FintecturePaymentInitiationRepositoryImpl implements
           .build();
       HttpResponse<String> response =
           httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-      PaymentRedirection redirectionResponse = new ObjectMapper()
+      FPaymentRedirection redirectionResponse = new ObjectMapper()
           .findAndRegisterModules() //Load DateTime Module
-          .readValue(response.body(), PaymentRedirection.class);
+          .readValue(response.body(), FPaymentRedirection.class);
       if (redirectionResponse.getMeta() == null
           || redirectionResponse.getMeta().getStatus() != 200
           && redirectionResponse.getMeta().getStatus() != 201) {

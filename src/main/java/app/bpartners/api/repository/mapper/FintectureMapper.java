@@ -3,6 +3,7 @@ package app.bpartners.api.repository.mapper;
 import app.bpartners.api.endpoint.rest.security.AuthenticatedResourceProvider;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.AccountHolder;
+import app.bpartners.api.model.PaymentInitiation;
 import app.bpartners.api.repository.fintecture.model.Beneficiary;
 import app.bpartners.api.repository.fintecture.model.FPaymentInitiation;
 import app.bpartners.api.repository.fintecture.model.FPaymentRedirection;
@@ -25,8 +26,7 @@ public class FintectureMapper {
         .zip(accountHolder.getPostalCode()).build();
   }
 
-  public FPaymentInitiation toFintecturePaymentReq(
-      app.bpartners.api.model.PaymentInitiation domain) {
+  public FPaymentInitiation toFintectureResource(PaymentInitiation domain) {
     Account authenticatedAccount = authResourceProvider.getAccount();
     AccountHolder authenticatedAccountHolder = authResourceProvider.getAccountHolder();
 
@@ -44,16 +44,11 @@ public class FintectureMapper {
     FPaymentInitiation.Data data = new FPaymentInitiation.Data();
     data.setAttributes(attributes);
 
-    FPaymentInitiation paymentReq = new FPaymentInitiation();
-    paymentReq.setMeta(meta);
-    paymentReq.setData(data);
-
-    return paymentReq;
+    return new FPaymentInitiation(meta, data);
   }
 
   public app.bpartners.api.model.PaymentRedirection toDomain(
-      FPaymentRedirection redirection,
-      app.bpartners.api.model.PaymentInitiation paymentInitiation) {
+      FPaymentRedirection redirection, PaymentInitiation paymentInitiation) {
     return app.bpartners.api.model.PaymentRedirection.builder()
         .id(paymentInitiation.getId())
         .sessionId(redirection.getMeta().getSessionId())

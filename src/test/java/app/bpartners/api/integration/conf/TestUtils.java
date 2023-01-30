@@ -72,7 +72,6 @@ import static app.bpartners.api.model.Invoice.DEFAULT_DELAY_PENALTY_PERCENT;
 import static app.bpartners.api.model.Invoice.DEFAULT_TO_PAY_DELAY_DAYS;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.CLIENT_EXCEPTION;
 import static app.bpartners.api.model.mapper.UserMapper.VALID_IDENTITY_STATUS;
-import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -135,6 +134,8 @@ public class TestUtils {
   public static final String SESSION_ID = "session_id";
   public static final String TRANSACTION1_ID = "transaction1_id";
   public static final String UNKNOWN_TRANSACTION_ID = "unknown_transaction_id";
+  public static final String SESSION1_ID = "session1_id";
+  public static final String SESSION2_ID = "session2_id";
 
   public static User restJoeDoeUser() {
     return new User()
@@ -732,7 +733,7 @@ public class TestUtils {
         .thenAnswer(invocation ->
             FPaymentRedirection.builder()
                 .meta(FPaymentRedirection.Meta.builder()
-                    .sessionId(randomUUID().toString())
+                    .sessionId(SESSION1_ID)
                     .url("https://connect-v2-sbx.fintecture.com")
                     .build())
                 .build()
@@ -740,7 +741,7 @@ public class TestUtils {
         .thenAnswer(invocation ->
             FPaymentRedirection.builder()
                 .meta(FPaymentRedirection.Meta.builder()
-                    .sessionId(randomUUID().toString())
+                    .sessionId(SESSION2_ID)
                     .url("https://connect-v2-sbx.fintecture.com")
                     .build())
                 .build()

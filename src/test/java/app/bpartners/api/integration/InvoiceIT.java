@@ -434,8 +434,7 @@ class InvoiceIT {
 
     assertThrowsApiException(
         "{\"type\":\"400 BAD_REQUEST\",\"message\":\""
-            + "The invoice reference must be unique however the given reference [unique_ref] is"
-            + " already used by invoice." + firstInvoiceId + "\"}",
+            + "Invoice.reference=unique_ref is already used" + "\"}",
         secondCrupdateExecutable);
     assertThrowsApiException("{\"type\":\"404 NOT_FOUND\",\"message\":\""
             + "Customer." + crupdateInvoiceWithNonExistentCustomer.getCustomer().getId()

@@ -8,8 +8,10 @@ import app.bpartners.api.repository.fintecture.FintecturePaymentInitiationReposi
 import app.bpartners.api.repository.fintecture.model.FPaymentInitiation;
 import app.bpartners.api.repository.fintecture.model.FPaymentRedirection;
 import app.bpartners.api.repository.jpa.PaymentRequestJpaRepository;
+import app.bpartners.api.repository.jpa.model.HPaymentRequest;
 import app.bpartners.api.repository.mapper.FintectureMapper;
 import java.util.List;
+import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -23,22 +25,21 @@ public class PaymentInitiationRepositoryImpl implements PaymentInitiationReposit
   private final PaymentRequestMapper paymentRequestMapper;
 
   @Override
-  public List<app.bpartners.api.model.PaymentRedirection> save(PaymentInitiation domain) {
-    FPaymentInitiation paymentInitiation = mapper.toFintecturePaymentReq(domain);
-    FPaymentRedirection paymentRedirection =
-        fintectureRepository.save(paymentInitiation, domain.getSuccessUrl());
-    paymentRequestRepository
-        .save(paymentRequestMapper.toEntity(paymentRedirection, domain, null));
-    return List.of(mapper.toDomain(paymentRedirection, domain));
+  public List<PaymentRedirection> saveAll(
+      List<PaymentInitiation> paymentInitiations, String invoice) {
+    return paymentInitiations.stream()
+        .map(domain -> {
+          FPaymentRedirection paymentRedirection = initiatePayment(domain, invoice);
+          return mapper.toDomain(paymentRedirection, domain);
+        }).collect(Collectors.toUnmodifiableList());
   }
 
-  @Override
-  public List<PaymentRedirection> save(PaymentInitiation domain, String idInvoice) {
-    FPaymentInitiation paymentInitiation = mapper.toFintecturePaymentReq(domain);
+  private FPaymentRedirection initiatePayment(PaymentInitiation domain, String invoice) {
+    FPaymentInitiation paymentInitiation = mapper.toFintectureResource(domain);
     FPaymentRedirection paymentRedirection =
         fintectureRepository.save(paymentInitiation, domain.getSuccessUrl());
-    paymentRequestRepository
-        .save(paymentRequestMapper.toEntity(paymentRedirection, domain, idInvoice));
-    return List.of(mapper.toDomain(paymentRedirection, domain));
+    HPaymentRequest entity = paymentRequestMapper.toEntity(paymentRedirection, domain, invoice);
+    paymentRequestRepository.save(entity);
+    return paymentRedirection;
   }
 }

@@ -1,7 +1,6 @@
 package app.bpartners.api.endpoint.rest.controller;
 
-import app.bpartners.api.endpoint.rest.mapper.PaymentReqRestMapper;
-import app.bpartners.api.endpoint.rest.mapper.PaymentUrlRestMapper;
+import app.bpartners.api.endpoint.rest.mapper.PaymentInitRestMapper;
 import app.bpartners.api.endpoint.rest.model.PaymentInitiation;
 import app.bpartners.api.endpoint.rest.model.PaymentRedirection;
 import app.bpartners.api.service.PaymentInitiationService;
@@ -16,19 +15,18 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @AllArgsConstructor
 public class PaymentController {
-  private final PaymentReqRestMapper paymentReqMapper;
-  private final PaymentUrlRestMapper paymentUrlMapper;
+  private final PaymentInitRestMapper mapper;
   private final PaymentInitiationService initiationService;
 
   @PostMapping(value = "/accounts/{id}/paymentInitiations")
-  List<PaymentRedirection> createPaymentReq(
+  List<PaymentRedirection> initiatePayments(
       @PathVariable(name = "id") String accountId,
       @RequestBody List<PaymentInitiation> paymentRequests) {
-    List<app.bpartners.api.model.PaymentInitiation> domainPaymentReq = paymentRequests.stream()
-        .map(paymentReqMapper::toDomain)
+    List<app.bpartners.api.model.PaymentInitiation> domain = paymentRequests.stream()
+        .map(mapper::toDomain)
         .collect(Collectors.toUnmodifiableList());
-    return initiationService.initiatePayments(domainPaymentReq).stream()
-        .map(paymentUrlMapper::toRest)
+    return initiationService.initiatePayments(domain).stream()
+        .map(mapper::toRest)
         .collect(Collectors.toUnmodifiableList());
   }
 }

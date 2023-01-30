@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 import static app.bpartners.api.endpoint.rest.validator.UUIDValidator.isValid;
 
 @Component
-public class PaymentReqValidator implements Consumer<PaymentInitiation> {
+public class PaymentInitValidator implements Consumer<PaymentInitiation> {
   @Override
   public void accept(PaymentInitiation paymentInitiation) {
     StringBuilder builder = new StringBuilder();

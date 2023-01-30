@@ -5,7 +5,5 @@ import app.bpartners.api.model.PaymentRedirection;
 import java.util.List;
 
 public interface PaymentInitiationRepository {
-  List<PaymentRedirection> save(PaymentInitiation paymentInitiation);
-
-  List<PaymentRedirection> save(PaymentInitiation paymentInitiation, String idInvoice);
+  List<PaymentRedirection> saveAll(List<PaymentInitiation> paymentInitiation, String invoice);
 }

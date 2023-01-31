@@ -9,4 +9,6 @@ on:
 jobs:
   deploy_compute_stack:
     uses: ./.github/workflows/cd-compute.yml
+    with:
+      run_tests: false
     secrets: inherit

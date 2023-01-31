@@ -2,7 +2,7 @@ name: Sched Del compute
 
 on:
   schedule:
-    - cron: '59 23 * * 1,2,3,4,5'
+    - cron: '59 20 * * 1,2,3,4,5'
 
   workflow_dispatch:
 

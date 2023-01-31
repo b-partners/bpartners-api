@@ -10,6 +10,9 @@ jobs:
   delete_compute_stack:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
       - name: install-aws-cli
         uses: unfor19/install-aws-cli-action@v1.0.3
         with:

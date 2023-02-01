@@ -2,10 +2,13 @@ package app.bpartners.api.service;
 
 import app.bpartners.api.endpoint.event.model.gen.InvoiceRelaunchSaved;
 import app.bpartners.api.model.AccountHolder;
+import app.bpartners.api.model.Attachment;
 import app.bpartners.api.model.Invoice;
 import app.bpartners.api.service.aws.SesService;
 import app.bpartners.api.service.utils.InvoicePdfUtils;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Consumer;
 import javax.mail.MessagingException;
 import lombok.AllArgsConstructor;
@@ -14,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
+import static app.bpartners.api.endpoint.rest.model.FileType.ATTACHMENT;
 import static app.bpartners.api.endpoint.rest.model.FileType.LOGO;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
@@ -47,10 +51,25 @@ public class InvoiceRelaunchSavedService implements Consumer<InvoiceRelaunchSave
             INVOICE_TEMPLATE)
             : pdfUtils.generatePdf(invoice, accountHolder, logoAsBytes,
             DRAFT_TEMPLATE);
+    Attachment attachment = Attachment.builder()
+        .name(attachmentName)
+        .content(attachmentAsBytes)
+        .build();
+    List<Attachment> attachments = new ArrayList<>(invoiceRelaunchSaved.getAttachments());
+    attachments.forEach(contentlessAttachment -> {
+      byte[] content = fileService.downloadFile(
+          ATTACHMENT,
+          invoice.getAccount().getId(),
+          contentlessAttachment.getFileId()
+      );
+      contentlessAttachment.setContent(content);
+    });
+    attachments.add(attachment);
+    invoiceRelaunchSaved.setAttachments(attachments);
     try {
-      service.sendEmail(recipient, subject, htmlBody, attachmentName, attachmentAsBytes);
+      service.sendEmail(recipient, subject, htmlBody, attachments);
     } catch (MessagingException | IOException e) {
-      log.error("Email not sent");
+      log.error("Email not sent : " + e.getMessage());
     }
   }
 }

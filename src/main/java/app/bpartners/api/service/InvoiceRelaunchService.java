@@ -8,7 +8,9 @@ import app.bpartners.api.endpoint.rest.security.model.Principal;
 import app.bpartners.api.endpoint.rest.security.principal.PrincipalProvider;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.AccountInvoiceRelaunchConf;
+import app.bpartners.api.model.Attachment;
 import app.bpartners.api.model.BoundedPageSize;
+import app.bpartners.api.model.FileInfo;
 import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.InvoiceRelaunch;
 import app.bpartners.api.model.InvoiceRelaunchConf;
@@ -23,6 +25,7 @@ import app.bpartners.api.repository.jpa.InvoiceJpaRepository;
 import app.bpartners.api.service.utils.TemplateResolverUtils;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -30,11 +33,13 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.context.Context;
 
+import static app.bpartners.api.endpoint.rest.model.FileType.ATTACHMENT;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.DRAFT;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PROPOSAL;
 import static app.bpartners.api.service.utils.FileInfoUtils.PDF_EXTENSION;
+import static java.util.UUID.randomUUID;
 
 @Service
 @AllArgsConstructor
@@ -49,6 +54,7 @@ public class InvoiceRelaunchService {
   private final AccountHolderService holderService;
   private final EventProducer eventProducer;
   private final PrincipalProvider auth;
+  private final FileService fileService;
 
   private static String getDefaultSubject(Invoice invoice) {
     return "Votre " + getStatusValue(invoice.getStatus())
@@ -87,7 +93,8 @@ public class InvoiceRelaunchService {
   }
 
   public InvoiceRelaunch relaunchInvoiceManually(
-      String invoiceId, List<String> emailObjectList, List<String> emailBodyList) {
+      String invoiceId, List<String> emailObjectList, List<String> emailBodyList,
+      List<Attachment> attachments) {
     String emailObject = null;
     if (!emailObjectList.isEmpty()) {
       emailObject = emailObjectList.get(0) == null ? emailObjectList.get(1) :
@@ -109,12 +116,33 @@ public class InvoiceRelaunchService {
         invoiceRelaunchRepository.save(
             invoice, getDefaultEmailPrefix(accountHolder) + emailObject, emailBody,
             isUserRelaunched);
-
+    attachments.forEach(attachment -> uploadAttachment(invoice.getAccount().getId(), attachment));
+    invoiceRelaunch.setAttachments(attachments);
     eventProducer.accept(
         List.of(getTypedInvoiceRelaunched(
-            invoiceRelaunch.getInvoice(), accountHolder, emailObject, emailBody)));
+            invoiceRelaunch.getInvoice(), accountHolder, emailObject, emailBody, attachments)));
 
     return invoiceRelaunch;
+  }
+
+  private void uploadAttachment(String idAccount, Attachment attachment) {
+    FileInfo fileInfo = fileService.upload(
+        randomUUID().toString(),
+        ATTACHMENT,
+        idAccount,
+        attachment.getContent(),
+        null
+    );
+    attachment.setFileId(fileInfo.getId());
+  }
+
+  private Attachment deleteAttachmentContent(Attachment attachment) {
+    //Clone attachment
+    return Attachment.builder()
+        .name(attachment.getName())
+        .fileId(attachment.getFileId())
+        .content(null)
+        .build();
   }
 
   @Scheduled(cron = "0 0 10 * * *")
@@ -137,7 +165,8 @@ public class InvoiceRelaunchService {
                 ).size();
             boolean notReachedMaxRehearse = size < conf.getRehearsalNumber();
             if (notReachedMaxRehearse) {
-              relaunchInvoiceManually(invoice.getId(), List.of(), List.of());
+              //TODO: relaunch invoice with attachments
+              relaunchInvoiceManually(invoice.getId(), List.of(), List.of(), List.of());
               if (size + 1 == conf.getRehearsalNumber()) {
                 invoice.setToBeRelaunched(false);
                 invoiceJpaRepository.save(invoice);
@@ -162,7 +191,8 @@ public class InvoiceRelaunchService {
   }
 
   private TypedInvoiceRelaunchSaved getTypedInvoiceRelaunched(
-      Invoice invoice, AccountHolder accountHolder, String subject, String customEmailBody) {
+      Invoice invoice, AccountHolder accountHolder, String subject, String customEmailBody,
+      List<Attachment> attachments) {
     //TODO: if invoice has already been relaunched then change this
     subject = subject == null ? getDefaultSubject(invoice) : subject;
     String recipient = invoice.getCustomer().getEmail();
@@ -170,12 +200,18 @@ public class InvoiceRelaunchService {
     return toTypedEvent(
         recipient, getSubject(accountHolder, subject),
         emailBody(customEmailBody, invoice, accountHolder),
-        invoice.getRef() + PDF_EXTENSION, invoice, accountHolder);
+        invoice.getRef() + PDF_EXTENSION,
+        invoice,
+        accountHolder,
+        attachments.stream().map(this::deleteAttachmentContent)
+            .collect(Collectors.toUnmodifiableList())
+    );
   }
 
   private TypedInvoiceRelaunchSaved toTypedEvent(String recipient, String subject, String emailBody,
                                                  String attachmentName, Invoice invoice,
-                                                 AccountHolder accountHolder) {
+                                                 AccountHolder accountHolder,
+                                                 List<Attachment> contentlessAttachments) {
     return new TypedInvoiceRelaunchSaved(InvoiceRelaunchSaved.builder()
         .subject(subject)
         .recipient(recipient)
@@ -184,6 +220,7 @@ public class InvoiceRelaunchService {
         .invoice(invoice)
         .accountHolder(accountHolder)
         .logoFileId(userLogoFileId())
+        .attachments(contentlessAttachments)
         .build());
   }
 

@@ -55,6 +55,7 @@ public class InvoiceRelaunchService {
   private final EventProducer eventProducer;
   private final PrincipalProvider auth;
   private final FileService fileService;
+  private final AttachmentService attachmentService;
 
   private static String getDefaultSubject(Invoice invoice) {
     return "Votre " + getStatusValue(invoice.getStatus())
@@ -117,7 +118,9 @@ public class InvoiceRelaunchService {
             invoice, getDefaultEmailPrefix(accountHolder) + emailObject, emailBody,
             isUserRelaunched);
     attachments.forEach(attachment -> uploadAttachment(invoice.getAccount().getId(), attachment));
-    invoiceRelaunch.setAttachments(attachments);
+    List<Attachment> attachmentList =
+        attachmentService.saveAll(attachments, invoiceRelaunch.getId());
+    invoiceRelaunch.setAttachments(attachmentList);
     eventProducer.accept(
         List.of(getTypedInvoiceRelaunched(
             invoiceRelaunch.getInvoice(), accountHolder, emailObject, emailBody, attachments)));

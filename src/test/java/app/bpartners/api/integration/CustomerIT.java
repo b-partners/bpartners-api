@@ -34,8 +34,8 @@ import static app.bpartners.api.integration.conf.TestUtils.OTHER_CUSTOMER_ID;
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsApiException;
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsForbiddenException;
 import static app.bpartners.api.integration.conf.TestUtils.customer1;
-import static app.bpartners.api.integration.conf.TestUtils.customerUpdated;
 import static app.bpartners.api.integration.conf.TestUtils.customer2;
+import static app.bpartners.api.integration.conf.TestUtils.customerUpdated;
 import static app.bpartners.api.integration.conf.TestUtils.customerWithSomeNullAttributes;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountHolderSwanRep;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountSwanRepository;
@@ -90,7 +90,8 @@ class CustomerIT {
 
   CreateCustomer createCustomer1() {
     return new CreateCustomer()
-        .name("Create customer 1")
+        .firstName("Create")
+        .lastName("customer 1")
         .phone("+33 12 34 56 78")
         .email("create@email.com")
         .website("https://customer.website.com")
@@ -129,11 +130,18 @@ class CustomerIT {
     ApiClient joeDoeClient = anApiClient();
     CustomersApi api = new CustomersApi(joeDoeClient);
 
-    List<Customer> actual =
+    List<Customer> actual1 =
         api.createCustomers(JOE_DOE_ACCOUNT_ID, List.of(createCustomer1()));
+    List<Customer> actual2 =
+        api.createCustomers(JOE_DOE_ACCOUNT_ID, List.of(createCustomer1().name("Jean Yves")));
+    List<Customer> actual3 =
+        api.createCustomers(JOE_DOE_ACCOUNT_ID,
+            List.of(createCustomer1().firstName(null).lastName(null)));
 
     List<Customer> actualList = api.getCustomers(JOE_DOE_ACCOUNT_ID, null);
-    assertTrue(actualList.containsAll(actual));
+    assertTrue(actualList.containsAll(actual1));
+    assertEquals(actual1.get(0).id(null), actual2.get(0).id(null));
+    assertEquals(actual1.get(0).id(null), actual3.get(0).id(null));
   }
 
   @Test
@@ -177,9 +185,9 @@ class CustomerIT {
             List.of(customerUpdated().id(OTHER_CUSTOMER_ID))));
     assertThrowsApiException(
         "{\"type\":\"400 BAD_REQUEST\",\"message\":\"Identifier must not be null."
-            + " Name must not be null.\"}",
+            + " firstName must not be null.\"}",
         () -> api.updateCustomers(JOE_DOE_ACCOUNT_ID,
-            List.of(customerUpdated().id(null).name(null))));
+            List.of(customerUpdated().id(null).firstName(null))));
     assertThrowsForbiddenException(
         () -> api.updateCustomers(OTHER_ACCOUNT_ID, List.of(customerUpdated())));
   }

@@ -17,7 +17,8 @@ class CustomerRestValidatorTest {
             validator.accept(
                 new Customer()
                     .id("some_id")
-                    .name("some_name")
+                    .firstName("first_name")
+                    .lastName("last_name")
             )
     );
   }
@@ -25,7 +26,7 @@ class CustomerRestValidatorTest {
   @Test
   void validate_ko() {
     assertThrowsBadRequestException(
-        "Id is mandatory. Name is mandatory. ",
+        "Id is mandatory. firstName is mandatory. lastName is mandatory. ",
         () ->
             validator.accept(
                 new Customer()

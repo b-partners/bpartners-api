@@ -1,6 +1,7 @@
 package app.bpartners.api.service;
 
 import app.bpartners.api.model.AccountHolder;
+import app.bpartners.api.model.AnnualRevenueTarget;
 import app.bpartners.api.model.BusinessActivity;
 import app.bpartners.api.model.CompanyInfo;
 import app.bpartners.api.repository.AccountHolderRepository;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Service;
 public class AccountHolderService {
   private final AccountHolderRepository accountHolderRepository;
   private final BusinessActivityService businessActivityService;
+  private final AnnualRevenueTargetService annualRevenueTargetService;
 
   public List<AccountHolder> getAccountHoldersByAccountId(String accountId) {
     return accountHolderRepository.findAllByAccountId(accountId);
@@ -40,6 +42,14 @@ public class AccountHolderService {
       String accountHolderId,
       BusinessActivity businessActivity) {
     businessActivityService.save(businessActivity);
+    return accountHolderRepository.getByIdAndAccountId(accountHolderId, optionalAccountId);
+  }
+
+  public AccountHolder updateAnnualRevenueTargets(
+      String optionalAccountId,
+      String accountHolderId,
+      List<AnnualRevenueTarget> annualRevenueTargets) {
+    annualRevenueTargetService.save(annualRevenueTargets);
     return accountHolderRepository.getByIdAndAccountId(accountHolderId, optionalAccountId);
   }
 }

@@ -3,10 +3,12 @@ package app.bpartners.api.integration.conf;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
 import app.bpartners.api.endpoint.rest.model.AccountInvoiceRelaunchConf;
+import app.bpartners.api.endpoint.rest.model.AnnualRevenueTarget;
 import app.bpartners.api.endpoint.rest.model.BusinessActivity;
 import app.bpartners.api.endpoint.rest.model.CompanyBusinessActivity;
 import app.bpartners.api.endpoint.rest.model.CompanyInfo;
 import app.bpartners.api.endpoint.rest.model.CreateAccountInvoiceRelaunchConf;
+import app.bpartners.api.endpoint.rest.model.CreateAnnualRevenueTarget;
 import app.bpartners.api.endpoint.rest.model.CreateProduct;
 import app.bpartners.api.endpoint.rest.model.Customer;
 import app.bpartners.api.endpoint.rest.model.Invoice;
@@ -237,6 +239,36 @@ public class TestUtils {
                 .build()))
             .build())
         .build();
+  }
+
+  public static AnnualRevenueTarget annualRevenueTarget1() {
+    return new AnnualRevenueTarget()
+        .year(2023)
+        .updatedAt(Instant.parse("2022-01-01T01:00:00.00Z"))
+        .amountAttempted(1000000)
+        .amountTarget(1000000)
+        .amountAttemptedPercent(100);
+  }
+
+  public static AnnualRevenueTarget annualRevenueTarget2() {
+    return new AnnualRevenueTarget()
+        .year(2024)
+        .updatedAt(Instant.parse("2022-01-08T01:00:00.00Z"))
+        .amountAttempted(0)
+        .amountTarget(1000000)
+        .amountAttemptedPercent(0);
+  }
+
+  public static CreateAnnualRevenueTarget createAnnualRevenueTarget() {
+    return new CreateAnnualRevenueTarget()
+        .year(2025)
+        .amountTarget(150000);
+  }
+
+  public static CreateAnnualRevenueTarget toUpdateAnnualRevenueTarget() {
+    return new CreateAnnualRevenueTarget()
+        .year(2023)
+        .amountTarget(2000000);
   }
 
   public static Customer customer1() {

@@ -1,11 +1,15 @@
 package app.bpartners.api.endpoint.rest.controller;
 
 import app.bpartners.api.endpoint.rest.mapper.AccountHolderRestMapper;
+import app.bpartners.api.endpoint.rest.mapper.AnnualRevenueTargetRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.BusinessActivityRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.CompanyInfoMapper;
 import app.bpartners.api.endpoint.rest.model.AccountHolder;
 import app.bpartners.api.endpoint.rest.model.CompanyBusinessActivity;
 import app.bpartners.api.endpoint.rest.model.CompanyInfo;
+import app.bpartners.api.endpoint.rest.model.CreateAnnualRevenueTarget;
+import app.bpartners.api.endpoint.rest.validator.CreateAnnualRevenueTargetValidator;
+import app.bpartners.api.model.AnnualRevenueTarget;
 import app.bpartners.api.service.AccountHolderService;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -24,6 +28,8 @@ public class AccountHolderController {
   private final AccountHolderRestMapper accountHolderMapper;
   private final CompanyInfoMapper companyInfoMapper;
   private final BusinessActivityRestMapper businessActivityMapper;
+  private final AnnualRevenueTargetRestMapper revenueTargetRestMapper;
+  private final CreateAnnualRevenueTargetValidator revenueTargetValidator;
 
   @GetMapping("/users/{userId}/accounts/{accountId}/accountHolders")
   public List<AccountHolder> getAccountHolders(
@@ -59,5 +65,23 @@ public class AccountHolderController {
             businessActivityMapper.toDomain(businessActivity)
         )
     );
+  }
+
+  @PutMapping("/users/{userId}/accounts/{accountId}/accountHolders/{ahId}/revenueTargets")
+  public AccountHolder updateAnnualRevenueTarget(
+      @PathVariable("userId") String userId,
+      @PathVariable("accountId") String accountId,
+      @PathVariable("ahId") String accountHolderId,
+      @RequestBody List<CreateAnnualRevenueTarget> toCreate
+  ) {
+    revenueTargetValidator.acceptList(toCreate);
+    List<AnnualRevenueTarget> toSave = toCreate.stream()
+        .map(revenueTarget -> revenueTargetRestMapper
+            .toDomain(accountId, revenueTarget))
+        .collect(Collectors.toUnmodifiableList());
+    return accountHolderMapper.toRest(
+        accountHolderService.updateAnnualRevenueTargets(accountId, accountHolderId, toSave)
+    );
+
   }
 }

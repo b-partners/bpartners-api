@@ -217,6 +217,52 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
+  updateRevenueTargets:
+    put:
+      tags:
+        - User Accounts
+      summary: Update revenue targets of an account holder
+      operationId: updateRevenueTargets
+      parameters:
+        - in: path
+          name: userId
+          schema:
+            type: string
+          required: true
+        - in: path
+          name: accountId
+          schema:
+            type: string
+          required: true
+        - in: path
+          name: ahId
+          schema:
+            type: string
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/CreateAnnualRevenueTarget'
+      responses:
+        200:
+          description: Account holder with updated revenue targets
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountHolder'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
   getLegalFiles:
     get:
       summary: Get legal files of a user
@@ -394,6 +440,29 @@ components:
           type: integer
         verificationStatus:
           $ref: '#/components/schemas/VerificationStatus'
+        revenueTargets:
+          type: array
+          items:
+            $ref: '#/components/schemas/AnnualRevenueTarget'
+    CreateAnnualRevenueTarget:
+      type: object
+      properties:
+        year:
+          type: integer
+        amountTarget:
+          type: integer
+          description: Format is cent
+    AnnualRevenueTarget:
+      allOf:
+        - $ref: '#/components/schemas/CreateAnnualRevenueTarget'
+      properties:
+        amountAttempted:
+          type: integer
+        amountAttemptedPercent:
+          type: integer
+        updatedAt:
+          type: string
+          format: date-time
     VerificationStatus:
       type: string
       enum:

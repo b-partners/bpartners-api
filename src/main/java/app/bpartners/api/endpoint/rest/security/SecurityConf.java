@@ -185,6 +185,8 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
         .antMatchers(
             PUT, "/users/*/accounts/*/accountHolders/*/businessActivities").authenticated()
         .antMatchers(
+            PUT, "/users/*/accounts/*/accountHolders/*/revenueTargets").authenticated()
+        .antMatchers(
             PUT, "/users/*/accounts/*/accountHolders/*/companyInfo").authenticated()
         .antMatchers("/**").denyAll()
 

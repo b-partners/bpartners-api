@@ -13,8 +13,11 @@ public class CustomerRestValidator implements Consumer<Customer> {
     if (customer.getId() == null) {
       exceptionMessageBuilder.append("Id is mandatory. ");
     }
-    if (customer.getName() == null) {
-      exceptionMessageBuilder.append("Name is mandatory. ");
+    if (customer.getFirstName() == null) {
+      exceptionMessageBuilder.append("firstName is mandatory. ");
+    }
+    if (customer.getLastName() == null) {
+      exceptionMessageBuilder.append("lastName is mandatory. ");
     }
     String exceptionMessage = exceptionMessageBuilder.toString();
     if (!exceptionMessage.isEmpty()) {

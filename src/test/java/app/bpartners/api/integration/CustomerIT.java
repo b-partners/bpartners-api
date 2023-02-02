@@ -152,7 +152,7 @@ class CustomerIT {
     CustomersApi api = new CustomersApi(joeDoeClient);
 
     List<Customer> actual = api.updateCustomers(JOE_DOE_ACCOUNT_ID, List.of(customerUpdated()));
-    List<Customer> customers = api.getCustomers(JOE_DOE_ACCOUNT_ID, "Marc Montagnier");
+    List<Customer> customers = api.getCustomers(JOE_DOE_ACCOUNT_ID, "Marc", "Montagnier");
 
     assertEquals(customers.get(0), actual.get(0));
   }

@@ -19,12 +19,13 @@ import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.stream.Collectors;
-import javax.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apfloat.Aprational;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 
 import static app.bpartners.api.endpoint.rest.model.TransactionStatus.BOOKED;
 import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
@@ -94,7 +95,7 @@ public class TransactionService {
         .build());
   }
 
-  @Transactional
+  @Transactional(isolation = Isolation.SERIALIZABLE)
   public void refreshCurrentYearSummary(
       String accountId,
       Fraction cashFlow) {

@@ -1016,4 +1016,4 @@ components:
         - $ref: '#/components/schemas/CreateAttachment'
       properties:
         fileId:
-          type: String
+          type: string

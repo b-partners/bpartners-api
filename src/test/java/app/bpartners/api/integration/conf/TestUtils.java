@@ -276,6 +276,7 @@ public class TestUtils {
   public static Customer customer1() {
     return new Customer()
         .id("customer1_id")
+        .name("Luc Artisan")
         .firstName("Luc")
         .lastName("Artisan")
         .email("bpartners.artisans@gmail.com")
@@ -291,6 +292,7 @@ public class TestUtils {
   public static Customer customer2() {
     return new Customer()
         .id("customer2_id")
+        .name("Jean Plombier")
         .firstName("Jean")
         .lastName("Plombier")
         .email("jean@email.com")
@@ -306,6 +308,7 @@ public class TestUtils {
   public static Customer customerUpdated() {
     return new Customer()
         .id("customer3_id")
+        .name("Marc Montagnier")
         .firstName("Marc")
         .lastName("Montagnier")
         .email("marcmontagnier@gmail.com")
@@ -321,6 +324,7 @@ public class TestUtils {
   public static Customer customerWithSomeNullAttributes() {
     return new Customer()
         .id("customer3_id")
+        .name("Marc Montagnier")
         .firstName("Marc")
         .lastName("Montagnier")
         .email(null)

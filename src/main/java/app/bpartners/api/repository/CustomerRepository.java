@@ -5,7 +5,7 @@ import java.util.List;
 
 public interface CustomerRepository {
 
-  List<Customer> findByAccountIdAndName(String accountId, String name);
+  List<Customer> findByAccountIdAndName(String accountId, String firstName, String lastName);
 
   List<Customer> findByAccount(String accountId);
 

@@ -90,6 +90,7 @@ class CustomerIT {
 
   CreateCustomer createCustomer1() {
     return new CreateCustomer()
+        .name("Create customer 1")
         .firstName("Create")
         .lastName("customer 1")
         .phone("+33 12 34 56 78")
@@ -107,11 +108,15 @@ class CustomerIT {
     ApiClient joeDoeClient = anApiClient();
     CustomersApi api = new CustomersApi(joeDoeClient);
 
-    List<Customer> actual = api.getCustomers(JOE_DOE_ACCOUNT_ID, null);
-    List<Customer> actualFiltered = api.getCustomers(JOE_DOE_ACCOUNT_ID, "Jean");
+    List<Customer> actual = api.getCustomers(
+        JOE_DOE_ACCOUNT_ID, null, null, null);
+    List<Customer> actualFilteredByName = api.getCustomers(
+        JOE_DOE_ACCOUNT_ID, "Jean Plombier", null, null);
+    List<Customer> actualFilteredByFirstAndLastName = api.getCustomers(
+        JOE_DOE_ACCOUNT_ID, null, "Jean", "Plombier");
 
     assertEquals(3, actual.size());
-    assertEquals(1, actualFiltered.size());
+    assertEquals(actualFilteredByName, actualFilteredByFirstAndLastName);
     assertTrue(actual.contains(customer1()));
     assertTrue(actual.contains(customer2()));
   }
@@ -122,7 +127,7 @@ class CustomerIT {
     CustomersApi api = new CustomersApi(joeDoeClient);
 
     assertThrowsForbiddenException(
-        () -> api.getCustomers(BAD_USER_ID, null));
+        () -> api.getCustomers(BAD_USER_ID, null, null, null));
   }
 
   @Test
@@ -136,12 +141,16 @@ class CustomerIT {
         api.createCustomers(JOE_DOE_ACCOUNT_ID, List.of(createCustomer1().name("Jean Yves")));
     List<Customer> actual3 =
         api.createCustomers(JOE_DOE_ACCOUNT_ID,
-            List.of(createCustomer1().firstName(null).lastName(null)));
+            List.of(createCustomer1().firstName("NotNullFirstName").lastName(null)));
 
-    List<Customer> actualList = api.getCustomers(JOE_DOE_ACCOUNT_ID, null);
+    List<Customer> actualList = api.getCustomers(JOE_DOE_ACCOUNT_ID, null, null, null);
     assertTrue(actualList.containsAll(actual1));
     assertEquals(actual1.get(0).id(null), actual2.get(0).id(null));
-    assertEquals(actual1.get(0).id(null), actual3.get(0).id(null));
+    assertEquals(actual1.get(0)
+        .id(null)
+        .name("NotNullFirstName")
+        .firstName("NotNullFirstName")
+        .lastName(null), actual3.get(0).id(null));
   }
 
   @Test
@@ -160,7 +169,8 @@ class CustomerIT {
     CustomersApi api = new CustomersApi(joeDoeClient);
 
     List<Customer> actual = api.updateCustomers(JOE_DOE_ACCOUNT_ID, List.of(customerUpdated()));
-    List<Customer> customers = api.getCustomers(JOE_DOE_ACCOUNT_ID, "Marc", "Montagnier");
+    List<Customer> customers = api.getCustomers(JOE_DOE_ACCOUNT_ID,
+        "Marc", "Marc", "Montagnier");
 
     assertEquals(customers.get(0), actual.get(0));
   }
@@ -185,7 +195,7 @@ class CustomerIT {
             List.of(customerUpdated().id(OTHER_CUSTOMER_ID))));
     assertThrowsApiException(
         "{\"type\":\"400 BAD_REQUEST\",\"message\":\"Identifier must not be null."
-            + " firstName must not be null.\"}",
+            + " firstName not be null.\"}",
         () -> api.updateCustomers(JOE_DOE_ACCOUNT_ID,
             List.of(customerUpdated().id(null).firstName(null))));
     assertThrowsForbiddenException(

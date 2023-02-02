@@ -16,6 +16,8 @@ import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 
 @Repository
 @Slf4j
@@ -26,6 +28,7 @@ public class TransactionRepositoryImpl implements TransactionRepository {
   private final TransactionCategoryRepository categoryRepository;
   private TransactionJpaRepository jpaRepository;
 
+  @Transactional(isolation = Isolation.SERIALIZABLE)
   @Override
   public List<Transaction> findByAccountId(String accountId) {
     return swanRepository.getByIdAccount(accountId)

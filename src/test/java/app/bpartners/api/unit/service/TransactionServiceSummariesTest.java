@@ -7,6 +7,7 @@ import app.bpartners.api.repository.InvoiceRepository;
 import app.bpartners.api.repository.TransactionRepository;
 import app.bpartners.api.repository.TransactionsSummaryRepository;
 import app.bpartners.api.repository.jpa.AccountHolderJpaRepository;
+import app.bpartners.api.repository.jpa.InvoiceJpaRepository;
 import app.bpartners.api.service.TransactionService;
 import java.math.BigInteger;
 import java.time.Instant;
@@ -30,14 +31,14 @@ class TransactionServiceSummariesTest {
   TransactionRepository transactionRepository;
   AccountHolderJpaRepository accountHolderJpaRepository;
   TransactionsSummaryRepository transactionsSummaryRepository;
-  InvoiceRepository invoiceRepositoryMock;
+  InvoiceJpaRepository invoiceRepositoryMock;
 
   @BeforeEach
   void setUp() {
     accountHolderJpaRepository = mock(AccountHolderJpaRepository.class);
     transactionsSummaryRepository = mock(TransactionsSummaryRepository.class);
     transactionRepository = mock(TransactionRepository.class);
-    invoiceRepositoryMock = mock(InvoiceRepository.class);
+    invoiceRepositoryMock = mock(InvoiceJpaRepository.class);
     transactionService = new TransactionService(
         transactionRepository,
         accountHolderJpaRepository,

@@ -5,7 +5,9 @@ import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.InvoiceProduct;
 import app.bpartners.api.model.PaymentInitiation;
+import app.bpartners.api.model.TransactionInvoice;
 import app.bpartners.api.model.exception.BadRequestException;
+import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.repository.jpa.InvoiceJpaRepository;
 import app.bpartners.api.repository.jpa.PaymentRequestJpaRepository;
 import app.bpartners.api.repository.jpa.model.HInvoice;
@@ -109,6 +111,14 @@ public class InvoiceMapper {
     return invoice;
   }
 
+  public TransactionInvoice toTransactionInvoice(HInvoice entity) {
+    return entity == null ? null
+        : TransactionInvoice.builder()
+        .invoiceId(entity.getId())
+        .fileId(entity.getFileId())
+        .build();
+  }
+
   public List<CreatePaymentRegulation> getMultiplePayments(HInvoice entity) {
     List<HPaymentRequest> paymentRequests = requestJpaRepository.findByIdInvoice(entity.getId());
     Fraction totalPrice = computeMultiplePaymentsAmount(paymentRequests);
@@ -144,6 +154,15 @@ public class InvoiceMapper {
     }
     return objectMapper.readValue(metadataString, new TypeReference<>() {
     });
+  }
+
+  public HInvoice toEntity(TransactionInvoice transactionInvoice) {
+    return transactionInvoice == null || transactionInvoice.getInvoiceId() == null ? null
+        : jpaRepository.findById(transactionInvoice.getInvoiceId())
+        .orElseThrow(
+            () -> new NotFoundException(
+                "Invoice." + transactionInvoice.getInvoiceId() + " is not found")
+        );
   }
 
   @SneakyThrows

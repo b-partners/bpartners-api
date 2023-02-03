@@ -549,6 +549,7 @@ public class TestUtils {
         .id(INVOICE1_ID)
         .comment(null)
         .title("Outils pour plomberie")
+        .fileId("file1_id")
         .paymentUrl("https://connect-v2-sbx.fintecture.com")
         .customer(customer1()).ref("BP001")
         .createdAt(Instant.parse("2022-01-01T01:00:00.00Z"))

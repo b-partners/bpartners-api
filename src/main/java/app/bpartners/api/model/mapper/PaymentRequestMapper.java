@@ -60,7 +60,7 @@ public class PaymentRequestMapper {
     return PaymentInitiation.builder()
         .id(paymentInitiationId)
         .reference(invoice.getRef())
-        .label(payment != null
+        .label(payment != null && payment.getComment() != null
             ? payment.getComment()
             : invoice.getTitle())
         .amount(

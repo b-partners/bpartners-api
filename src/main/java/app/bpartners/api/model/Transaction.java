@@ -12,6 +12,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 
@@ -21,6 +22,7 @@ import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVE
 @AllArgsConstructor
 @NoArgsConstructor
 @EqualsAndHashCode
+@ToString
 public class Transaction {
   public static final String CREDIT_SIDE = "Credit";
   public static final String DEBIT_SIDE = "Debit";

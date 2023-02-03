@@ -22,4 +22,5 @@ public class Customer {
   protected Integer zipCode;
   protected String city;
   protected String country;
+  protected String comment;
 }

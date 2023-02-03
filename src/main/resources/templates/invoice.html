@@ -269,7 +269,9 @@
                 <p th:if="${accountHolder.isSubjectToVat()}"><strong>Total TVA</strong> : <span
                         th:text="${#numbers.formatDecimal(invoice.totalVat.getCentsAsDecimal(), 1,2)}"></span>
                     €</p>
-                <p><strong>Total TTC</strong> : <span
+                <p>
+                    <strong th:if="${accountHolder.isSubjectToVat()}">Total TTC</strong>
+                    <strong th:unless="${accountHolder.isSubjectToVat()}">Total HT</strong> : <span
                         th:text="${#numbers.formatDecimal(invoice.totalPriceWithVat.getCentsAsDecimal(),1,2)}"></span>
                     €
                 </p>

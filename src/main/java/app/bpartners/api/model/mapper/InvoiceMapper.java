@@ -3,6 +3,8 @@ package app.bpartners.api.model.mapper;
 import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.InvoiceProduct;
+import app.bpartners.api.model.TransactionInvoice;
+import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.repository.jpa.InvoiceJpaRepository;
 import app.bpartners.api.repository.jpa.model.HInvoice;
 import app.bpartners.api.repository.jpa.model.HInvoiceProduct;
@@ -53,11 +55,7 @@ public class InvoiceMapper {
     if (entity == null) {
       return null;
     }
-    List<InvoiceProduct> actualProducts = entity.getProducts() == null
-        ? List.of() : entity.getProducts().stream()
-        .map(productMapper::toDomain)
-        .collect(Collectors.toUnmodifiableList());
-    Map<String, String> metadata = toMetadataMap(entity.getMetadataString());
+    List<InvoiceProduct> actualProducts = getActualProducts(entity);
     Invoice invoice = Invoice.builder()
         .id(entity.getId())
         .ref(entity.getRef())
@@ -86,7 +84,7 @@ public class InvoiceMapper {
         .status(entity.getStatus())
         .toBeRelaunched(entity.isToBeRelaunched())
         .createdAt(entity.getCreatedDatetime())
-        .metadata(metadata)
+        .metadata(toMetadataMap(entity.getMetadataString()))
         .totalVat(computeTotalVat(actualProducts))
         .totalPriceWithoutVat(computeTotalPriceWithoutVat(actualProducts))
         .totalPriceWithVat(computeTotalPriceWithVat(actualProducts))
@@ -105,6 +103,21 @@ public class InvoiceMapper {
     return invoice;
   }
 
+  public TransactionInvoice toTransactionInvoice(HInvoice entity) {
+    return entity == null ? null
+        : TransactionInvoice.builder()
+        .invoiceId(entity.getId())
+        .fileId(entity.getFileId())
+        .build();
+  }
+
+  private List<InvoiceProduct> getActualProducts(HInvoice entity) {
+    return entity.getProducts() == null
+        ? List.of() : entity.getProducts().stream()
+        .map(productMapper::toDomain)
+        .collect(Collectors.toUnmodifiableList());
+  }
+
   @SneakyThrows
   private Map<String, String> toMetadataMap(String metadataString) {
     if (metadataString == null) {
@@ -112,6 +125,15 @@ public class InvoiceMapper {
     }
     return objectMapper.readValue(metadataString, new TypeReference<>() {
     });
+  }
+
+  public HInvoice toEntity(TransactionInvoice transactionInvoice) {
+    return transactionInvoice == null || transactionInvoice.getInvoiceId() == null ? null
+        : jpaRepository.findById(transactionInvoice.getInvoiceId())
+        .orElseThrow(
+            () -> new NotFoundException(
+                "Invoice." + transactionInvoice.getInvoiceId() + " is not found")
+        );
   }
 
   @SneakyThrows

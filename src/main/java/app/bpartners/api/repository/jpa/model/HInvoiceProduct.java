@@ -1,5 +1,6 @@
 package app.bpartners.api.repository.jpa.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.io.Serializable;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -32,6 +33,7 @@ public class HInvoiceProduct implements Serializable {
   private String id;
   @ManyToOne
   @JoinColumn(name = "id_invoice")
+  @JsonIgnore
   private HInvoice invoice;
   private String description;
   private Integer quantity;

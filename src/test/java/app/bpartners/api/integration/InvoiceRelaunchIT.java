@@ -111,7 +111,6 @@ class InvoiceRelaunchIT {
         .id(INVOICE_RELAUNCH1_ID)
         .type(RelaunchType.PROPOSAL)
         .invoice(invoice1()
-            .fileId(null)
             .createdAt(null)
             .updatedAt(null))
         .accountId(JOE_DOE_ACCOUNT_ID)
@@ -138,7 +137,6 @@ class InvoiceRelaunchIT {
         .id(INVOICE_RELAUNCH2_ID)
         .type(RelaunchType.CONFIRMED)
         .invoice(invoice1()
-            .fileId(null)
             .createdAt(null)
             .updatedAt(null)
         )
@@ -166,7 +164,6 @@ class InvoiceRelaunchIT {
   InvoiceRelaunch expectedRelaunch() throws IOException {
     return new InvoiceRelaunch()
         .invoice(invoice1()
-            .fileId(null)
             .createdAt(null)
             .updatedAt(null)
         )
@@ -174,7 +171,8 @@ class InvoiceRelaunchIT {
         .accountId(JOE_DOE_ACCOUNT_ID)
         .emailInfo(new EmailInfo()
             .emailObject("[NUMER] relaunch_object")
-            .emailBody("<p>Email body</p>"))
+            .emailBody("<p>Email body</p>")
+            .attachmentFileId("file1_id"))
         .isUserRelaunched(true)
         .attachments(List.of(expectedAttachment()));
   }
@@ -188,7 +186,8 @@ class InvoiceRelaunchIT {
 
   Attachment expectedAttachment() throws IOException {
     return new Attachment()
-        .name(pngFileAttachment().getName());
+        .name(pngFileAttachment().getName())
+        .fileId("file1_id");
   }
 
   @Test
@@ -212,6 +211,7 @@ class InvoiceRelaunchIT {
         expectedRelaunch()
             .id(actual.getId())
             .creationDatetime(actual.getCreationDatetime())
+            .attachments(List.of(expectedAttachment().fileId(null)))
         , actual);
     assertEquals(
         expectedRelaunch()

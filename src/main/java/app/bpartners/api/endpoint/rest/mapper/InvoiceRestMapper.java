@@ -5,6 +5,7 @@ import app.bpartners.api.endpoint.rest.model.Invoice;
 import app.bpartners.api.endpoint.rest.model.PaymentRegulation;
 import app.bpartners.api.endpoint.rest.model.PaymentRequest;
 import app.bpartners.api.endpoint.rest.model.Product;
+import app.bpartners.api.endpoint.rest.model.TransactionInvoice;
 import app.bpartners.api.endpoint.rest.validator.CrupdateInvoiceValidator;
 import app.bpartners.api.model.InvoiceProduct;
 import app.bpartners.api.model.exception.BadRequestException;
@@ -83,6 +84,13 @@ public class InvoiceRestMapper {
                     .initiatedDatetime(payment.getInitiatedDatetime())))
             .collect(Collectors.toUnmodifiableList()))
         .toPayAt(toPayAt);
+  }
+
+  public TransactionInvoice toRest(app.bpartners.api.model.TransactionInvoice transactionInvoice) {
+    return transactionInvoice == null ? null
+        : new TransactionInvoice()
+        .invoiceId(transactionInvoice.getInvoiceId())
+        .fileId(transactionInvoice.getFileId());
   }
 
   public app.bpartners.api.model.Invoice toDomain(

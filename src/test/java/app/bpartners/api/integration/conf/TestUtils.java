@@ -286,7 +286,7 @@ public class TestUtils {
         .zipCode(95160)
         .city("Montmorency")
         .country("France")
-        .comment(null);
+        .comment("Rencontre avec Luc");
   }
 
   public static Customer customer2() {
@@ -300,7 +300,7 @@ public class TestUtils {
         .zipCode(95160)
         .city("Montmorency")
         .country("France")
-        .comment(null);
+        .comment("Rencontre avec le plombier");
   }
 
   public static Customer customerUpdated() {
@@ -313,7 +313,8 @@ public class TestUtils {
         .address("15 rue Porte d'Orange")
         .zipCode(95160)
         .city("Montmorency")
-        .country("France");
+        .country("France")
+        .comment("Rencontre avec Marc");
   }
 
   public static Customer customerWithSomeNullAttributes() {
@@ -326,7 +327,8 @@ public class TestUtils {
         .address(null)
         .zipCode(95160)
         .city(null)
-        .country(null);
+        .country(null)
+        .comment(null);
   }
 
   public static Product product1() {

@@ -12,7 +12,6 @@ import app.bpartners.api.endpoint.rest.model.CreateAnnualRevenueTarget;
 import app.bpartners.api.endpoint.rest.model.CreateProduct;
 import app.bpartners.api.endpoint.rest.model.Customer;
 import app.bpartners.api.endpoint.rest.model.Invoice;
-import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.endpoint.rest.model.LegalFile;
 import app.bpartners.api.endpoint.rest.model.Product;
 import app.bpartners.api.endpoint.rest.model.TransactionCategory;
@@ -68,13 +67,12 @@ import software.amazon.awssdk.services.eventbridge.model.PutEventsResponse;
 
 import static app.bpartners.api.endpoint.rest.model.EnableStatus.ENABLED;
 import static app.bpartners.api.endpoint.rest.model.IdentificationStatus.VALID_IDENTITY;
+import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
 import static app.bpartners.api.endpoint.rest.model.TransactionTypeEnum.INCOME;
 import static app.bpartners.api.endpoint.rest.model.TransactionTypeEnum.OUTCOME;
 import static app.bpartners.api.model.Invoice.DEFAULT_DELAY_PENALTY_PERCENT;
 import static app.bpartners.api.model.Invoice.DEFAULT_TO_PAY_DELAY_DAYS;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.CLIENT_EXCEPTION;
-import static app.bpartners.api.model.mapper.PaymentRequestMapper.COMPLETED_STATE;
-import static app.bpartners.api.model.mapper.PaymentRequestMapper.PAYMENT_CREATED_STATUS;
 import static app.bpartners.api.model.mapper.UserMapper.VALID_IDENTITY_STATUS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -516,23 +514,22 @@ public class TestUtils {
   public static Invoice invoice1() {
     return new Invoice()
         .id(INVOICE1_ID)
-        .fileId("BP001.pdf")
+        .comment(null)
         .title("Outils pour plomberie")
-        .customer(customer1())
-        .ref("BP001")
+        .fileId("file1_id")
+        .paymentUrl("https://connect-v2-sbx.fintecture.com")
+        .customer(customer1()).ref("BP001")
+        .createdAt(Instant.parse("2022-01-01T01:00:00.00Z"))
         .sendingDate(LocalDate.of(2022, 9, 1))
         .validityDate(LocalDate.of(2022, 10, 3))
         .toPayAt(LocalDate.of(2022, 10, 1))
         .delayInPaymentAllowed(DEFAULT_TO_PAY_DELAY_DAYS)
         .delayPenaltyPercent(DEFAULT_DELAY_PENALTY_PERCENT)
-        .status(InvoiceStatus.CONFIRMED)
+        .status(CONFIRMED)
         .products(List.of(product3(), product4()))
         .totalPriceWithVat(8800)
         .totalVat(800)
         .totalPriceWithoutVat(8000)
-        .comment(null)
-        .paymentUrl("https://connect-v2-sbx.fintecture.com")
-        .createdAt(Instant.parse("2021-12-31T22:00:00Z"))
         .metadata(Map.of());
   }
 
@@ -545,10 +542,11 @@ public class TestUtils {
         .ref("BP002")
         .sendingDate(LocalDate.of(2022, 9, 10))
         .validityDate(LocalDate.of(2022, 10, 14))
+        .createdAt(Instant.parse("2022-01-01T03:00:00.00Z"))
         .toPayAt(LocalDate.of(2022, 10, 10))
         .delayInPaymentAllowed(DEFAULT_TO_PAY_DELAY_DAYS)
         .delayPenaltyPercent(DEFAULT_DELAY_PENALTY_PERCENT)
-        .status(InvoiceStatus.CONFIRMED)
+        .status(CONFIRMED)
         .products(List.of(product5()))
         .totalPriceWithVat(1100)
         .totalVat(100)
@@ -635,12 +633,10 @@ public class TestUtils {
     return Session.builder()
         .meta(Session.Meta.builder()
             .code("200")
-            .status(PAYMENT_CREATED_STATUS)
             .build())
         .data(Session.Data.builder()
             .type("payments")
             .attributes(Session.Attributes.builder()
-                .transferState(COMPLETED_STATE)
                 .paymentScheme("SEPA")
                 .endToEndId("end_to_end_id")
                 .build())

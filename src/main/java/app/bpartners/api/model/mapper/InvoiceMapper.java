@@ -19,7 +19,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
 import org.apfloat.Aprational;
 import org.springframework.stereotype.Component;
 
@@ -34,7 +33,6 @@ import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 import static app.bpartners.api.service.utils.FractionUtils.toAprational;
 import static java.util.UUID.randomUUID;
 
-@Slf4j
 @Component
 @AllArgsConstructor
 public class InvoiceMapper {
@@ -53,11 +51,7 @@ public class InvoiceMapper {
     if (entity == null) {
       return null;
     }
-    List<InvoiceProduct> actualProducts = entity.getProducts() == null
-        ? List.of() : entity.getProducts().stream()
-        .map(productMapper::toDomain)
-        .collect(Collectors.toUnmodifiableList());
-    Map<String, String> metadata = toMetadataMap(entity.getMetadataString());
+    List<InvoiceProduct> actualProducts = getActualProducts(entity);
     Invoice invoice = Invoice.builder()
         .id(entity.getId())
         .ref(entity.getRef())
@@ -86,7 +80,7 @@ public class InvoiceMapper {
         .status(entity.getStatus())
         .toBeRelaunched(entity.isToBeRelaunched())
         .createdAt(entity.getCreatedDatetime())
-        .metadata(metadata)
+        .metadata(toMetadataMap(entity.getMetadataString()))
         .totalVat(computeTotalVat(actualProducts))
         .totalPriceWithoutVat(computeTotalPriceWithoutVat(actualProducts))
         .totalPriceWithVat(computeTotalPriceWithVat(actualProducts))
@@ -105,6 +99,21 @@ public class InvoiceMapper {
     return invoice;
   }
 
+  public TransactionInvoice toTransactionInvoice(HInvoice entity) {
+    return entity == null ? null
+        : TransactionInvoice.builder()
+        .invoiceId(entity.getId())
+        .fileId(entity.getFileId())
+        .build();
+  }
+
+  private List<InvoiceProduct> getActualProducts(HInvoice entity) {
+    return entity.getProducts() == null
+        ? List.of() : entity.getProducts().stream()
+        .map(productMapper::toDomain)
+        .collect(Collectors.toUnmodifiableList());
+  }
+
   @SneakyThrows
   private Map<String, String> toMetadataMap(String metadataString) {
     if (metadataString == null) {
@@ -112,6 +121,15 @@ public class InvoiceMapper {
     }
     return objectMapper.readValue(metadataString, new TypeReference<>() {
     });
+  }
+
+  public HInvoice toEntity(TransactionInvoice transactionInvoice) {
+    return transactionInvoice == null || transactionInvoice.getInvoiceId() == null ? null
+        : jpaRepository.findById(transactionInvoice.getInvoiceId())
+        .orElseThrow(
+            () -> new NotFoundException(
+                "Invoice." + transactionInvoice.getInvoiceId() + " is not found")
+        );
   }
 
   @SneakyThrows
@@ -173,12 +191,6 @@ public class InvoiceMapper {
         .delayPenaltyPercent(domain.getDelayPenaltyPercent().toString())
         .products(actualProducts)
         .metadataString(objectMapper.writeValueAsString(domain.getMetadata()))
-        .build();
-  }
-
-  public HInvoice toEntity(Invoice domain, String fileId) {
-    return toEntity(domain, true).toBuilder()
-        .fileId(fileId)
         .build();
   }
 

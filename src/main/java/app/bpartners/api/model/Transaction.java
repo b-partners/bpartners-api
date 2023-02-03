@@ -40,7 +40,7 @@ public class Transaction {
   private String side;
   private TransactionCategory category;
   private TransactionStatus status;
-  private Invoice invoice;
+  private TransactionInvoice transactionInvoice;
   @Getter(AccessLevel.NONE)
   private Instant paymentDatetime;
 

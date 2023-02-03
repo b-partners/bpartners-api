@@ -2,14 +2,16 @@ package app.bpartners.api.service;
 
 import app.bpartners.api.endpoint.rest.model.TransactionTypeEnum;
 import app.bpartners.api.model.Fraction;
-import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.MonthlyTransactionsSummary;
 import app.bpartners.api.model.Transaction;
+import app.bpartners.api.model.TransactionInvoice;
 import app.bpartners.api.model.TransactionsSummary;
-import app.bpartners.api.repository.InvoiceRepository;
+import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.repository.TransactionRepository;
 import app.bpartners.api.repository.TransactionsSummaryRepository;
 import app.bpartners.api.repository.jpa.AccountHolderJpaRepository;
+import app.bpartners.api.repository.jpa.InvoiceJpaRepository;
+import app.bpartners.api.repository.jpa.model.HInvoice;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.Month;
@@ -36,7 +38,7 @@ public class TransactionService {
   private final TransactionRepository repository;
   private final AccountHolderJpaRepository holderJpaRepository;
   private final TransactionsSummaryRepository summaryRepository;
-  private final InvoiceRepository invoiceRepository;
+  private final InvoiceJpaRepository invoiceRepository;
 
   private static Instant getFirstDayOfYear(int year) {
     return getFirstDayOfMonth(YearMonth.of(year, Month.JANUARY.getValue()));
@@ -86,11 +88,19 @@ public class TransactionService {
     return summaryRepository.getByAccountIdAndYear(accountId, year);
   }
 
+  //TODO: refactor invoice -> transactionInvoice to appropriate mapper
   public Transaction justifyTransaction(String idTransaction, String idInvoice) {
     Transaction transaction = repository.getById(idTransaction);
-    Invoice invoice = invoiceRepository.getById(idInvoice);
+    HInvoice invoice = invoiceRepository.findById(idInvoice).orElseThrow(
+        () -> new NotFoundException(
+            "Invoice." + idInvoice + " is not found")
+    );
+    log.info("Invoice=" + invoice.getId() + ", " + invoice.getFileId());
     return repository.save(transaction.toBuilder()
-        .invoice(invoice)
+        .transactionInvoice(TransactionInvoice.builder()
+            .invoiceId(invoice.getId())
+            .fileId(invoice.getFileId())
+            .build())
         .build());
   }
 

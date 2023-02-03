@@ -755,7 +755,7 @@ components:
         status:
           $ref: '#/components/schemas/TransactionStatus'
         invoice:
-          $ref: '#/components/schemas/Invoice'
+          $ref: '#/components/schemas/TransactionInvoice'
     TransactionTypeEnum:
       type: string
       enum:
@@ -787,6 +787,13 @@ components:
           example: null
         vat:
           type: integer
+    TransactionInvoice:
+      type: object
+      properties:
+        invoiceId:
+          type: string
+        fileId:
+          type: string
     TransactionsSummary:
       type: object
       properties:

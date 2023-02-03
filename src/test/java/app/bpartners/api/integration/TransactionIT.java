@@ -8,6 +8,7 @@ import app.bpartners.api.endpoint.rest.client.ApiException;
 import app.bpartners.api.endpoint.rest.model.Invoice;
 import app.bpartners.api.endpoint.rest.model.MonthlyTransactionsSummary;
 import app.bpartners.api.endpoint.rest.model.Transaction;
+import app.bpartners.api.endpoint.rest.model.TransactionInvoice;
 import app.bpartners.api.endpoint.rest.model.TransactionsSummary;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
 import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
@@ -159,8 +160,9 @@ class TransactionIT {
 
     assertEquals(
         transaction1
-            .invoice(invoice1
-                .updatedAt(actual.getInvoice().getUpdatedAt())),
+            .invoice(new TransactionInvoice()
+                .invoiceId(invoice1.getId())
+                .fileId(invoice1.getFileId())),
         actual);
   }
 

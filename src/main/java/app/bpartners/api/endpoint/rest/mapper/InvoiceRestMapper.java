@@ -3,6 +3,7 @@ package app.bpartners.api.endpoint.rest.mapper;
 import app.bpartners.api.endpoint.rest.model.CrupdateInvoice;
 import app.bpartners.api.endpoint.rest.model.Invoice;
 import app.bpartners.api.endpoint.rest.model.Product;
+import app.bpartners.api.endpoint.rest.model.TransactionInvoice;
 import app.bpartners.api.endpoint.rest.validator.CrupdateInvoiceValidator;
 import app.bpartners.api.model.InvoiceProduct;
 import app.bpartners.api.model.exception.BadRequestException;
@@ -66,6 +67,13 @@ public class InvoiceRestMapper {
         .delayPenaltyPercent(domain.getDelayPenaltyPercent().getCentsRoundUp())
         .metadata(domain.getMetadata())
         .toPayAt(toPayAt);
+  }
+
+  public TransactionInvoice toRest(app.bpartners.api.model.TransactionInvoice transactionInvoice) {
+    return transactionInvoice == null ? null
+        : new TransactionInvoice()
+        .invoiceId(transactionInvoice.getInvoiceId())
+        .fileId(transactionInvoice.getFileId());
   }
 
   public app.bpartners.api.model.Invoice toDomain(

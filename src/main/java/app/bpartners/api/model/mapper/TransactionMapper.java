@@ -45,7 +45,7 @@ public class TransactionMapper {
         .id(entity.getId())
         .idAccount(entity.getIdAccount())
         .idSwan(entity.getIdSwan())
-        .invoice(invoiceMapper.toDomain(entity.getInvoice()))
+        .transactionInvoice(invoiceMapper.toTransactionInvoice(entity.getInvoice()))
         .amount(parseFraction(external.getNode().getAmount().getValue() * 100))
         .currency(external.getNode().getAmount().getCurrency())
         .label(external.getNode().getLabel())
@@ -71,7 +71,7 @@ public class TransactionMapper {
         .id(domain.getId())
         .idSwan(domain.getIdSwan())
         .idAccount(domain.getIdAccount())
-        .invoice(invoiceMapper.toEntity(domain.getInvoice(), false))
+        .invoice(invoiceMapper.toEntity(domain.getTransactionInvoice()))
         .build();
   }
 }

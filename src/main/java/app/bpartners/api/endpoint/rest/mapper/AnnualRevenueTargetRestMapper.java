@@ -43,7 +43,7 @@ public class AnnualRevenueTargetRestMapper {
     Fraction amountTarget = domain.getAmountTarget();
     Fraction amountAttempted = parseFraction(transactions.getAnnualIncome());
     Fraction amountAttemptedPercent = parseFraction((amountAttempted.getApproximatedValue()
-        / amountTarget.getApproximatedValue()) * 100);
+        / amountTarget.getApproximatedValue()) * 10000);
     return new app.bpartners.api.endpoint.rest.model.AnnualRevenueTarget()
         .year(domain.getYear())
         .amountTarget(domain.getAmountTarget().getCentsRoundUp())

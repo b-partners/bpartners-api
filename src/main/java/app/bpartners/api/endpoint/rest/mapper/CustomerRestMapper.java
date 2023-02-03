@@ -27,7 +27,8 @@ public class CustomerRestMapper {
         .zipCode(domain.getZipCode())
         .city(domain.getCity())
         .country(domain.getCountry())
-        .city(domain.getCity());
+        .city(domain.getCity())
+        .comment(domain.getComment());
   }
 
   public Customer toDomain(String accountId,
@@ -45,6 +46,7 @@ public class CustomerRestMapper {
         .city(external.getCity())
         .country(external.getCountry())
         .city(external.getCity())
+        .comment(external.getComment())
         .build();
   }
 
@@ -61,6 +63,7 @@ public class CustomerRestMapper {
         .zipCode(rest.getZipCode())
         .city(rest.getCity())
         .country(rest.getCountry())
+        .comment(rest.getComment())
         .build();
   }
 }

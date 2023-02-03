@@ -22,6 +22,7 @@ public class CustomerMapper {
         .zipCode(entity.getZipCode())
         .city(entity.getCity())
         .country(entity.getCountry())
+        .comment(entity.getComment())
         .build();
   }
 
@@ -40,6 +41,7 @@ public class CustomerMapper {
         .zipCode(domain.getZipCode())
         .city(domain.getCity())
         .country(domain.getCountry())
+        .comment(domain.getComment())
         .build();
   }
 }

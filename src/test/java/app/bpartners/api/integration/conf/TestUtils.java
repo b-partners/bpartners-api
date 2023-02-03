@@ -249,7 +249,7 @@ public class TestUtils {
         .updatedAt(Instant.parse("2022-01-01T01:00:00.00Z"))
         .amountAttempted(1000000)
         .amountTarget(1000000)
-        .amountAttemptedPercent(100);
+        .amountAttemptedPercent(10000);
   }
 
   public static AnnualRevenueTarget annualRevenueTarget2() {

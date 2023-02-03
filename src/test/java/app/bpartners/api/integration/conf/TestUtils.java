@@ -285,7 +285,8 @@ public class TestUtils {
         .address("15 rue Porte d'Orange")
         .zipCode(95160)
         .city("Montmorency")
-        .country("France");
+        .country("France")
+        .comment(null);
   }
 
   public static Customer customer2() {
@@ -298,7 +299,8 @@ public class TestUtils {
         .address("4 Avenue des Près")
         .zipCode(95160)
         .city("Montmorency")
-        .country("France");
+        .country("France")
+        .comment(null);
   }
 
   public static Customer customerUpdated() {

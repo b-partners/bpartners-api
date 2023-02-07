@@ -182,7 +182,7 @@ class InvoiceRelaunchIT {
     Resource pngFile = new ClassPathResource("files/png-file.png");
     return new CreateAttachment()
         .name("attachment1")
-        .content(pngFile.getInputStream().readAllBytes());
+        .content(pngFile.getFile());
   }
 
   Attachment expectedAttachment() throws IOException {

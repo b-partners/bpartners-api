@@ -132,6 +132,7 @@ class PaymentIT {
         .payerEmail("payer@email.com")
         .label(label)
         .reference("Payment reference")
+        .paymentUrl("https://connect-v2-sbx.fintecture.com")
         .accountId(JOE_DOE_ACCOUNT_ID)
         .build();
   }

@@ -204,6 +204,7 @@ class InvoiceIT {
   public static Invoice invoice1() {
     return new Invoice()
         .id(INVOICE1_ID)
+        .fileId("file1_id")
         .comment(null)
         .title("Outils pour plomberie")
         .paymentUrl("https://connect-v2-sbx.fintecture.com")

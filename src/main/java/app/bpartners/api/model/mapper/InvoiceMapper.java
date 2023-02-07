@@ -3,6 +3,8 @@ package app.bpartners.api.model.mapper;
 import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.InvoiceProduct;
+import app.bpartners.api.model.TransactionInvoice;
+import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.repository.jpa.InvoiceJpaRepository;
 import app.bpartners.api.repository.jpa.model.HInvoice;
 import app.bpartners.api.repository.jpa.model.HInvoiceProduct;

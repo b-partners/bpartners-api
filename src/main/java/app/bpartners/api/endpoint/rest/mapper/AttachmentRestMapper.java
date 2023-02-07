@@ -2,14 +2,18 @@ package app.bpartners.api.endpoint.rest.mapper;
 
 import app.bpartners.api.endpoint.rest.model.Attachment;
 import app.bpartners.api.endpoint.rest.model.CreateAttachment;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import static app.bpartners.api.service.utils.FileUtils.toByteArray;
+
 @Component
+@Slf4j
 public class AttachmentRestMapper {
   public app.bpartners.api.model.Attachment toDomain(CreateAttachment createAttachment) {
     return app.bpartners.api.model.Attachment.builder()
         .name(createAttachment.getName())
-        .content(createAttachment.getContent())
+        .content(toByteArray(createAttachment.getContent()))
         .build();
   }
 

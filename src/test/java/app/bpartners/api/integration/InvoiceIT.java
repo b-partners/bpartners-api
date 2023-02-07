@@ -205,6 +205,7 @@ class InvoiceIT {
     return new Invoice()
         .id(INVOICE1_ID)
         .comment(null)
+        .fileId("file1_id")
         .title("Outils pour plomberie")
         .paymentUrl("https://connect-v2-sbx.fintecture.com")
         .customer(customer1()).ref("BP001")

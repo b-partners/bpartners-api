@@ -126,6 +126,7 @@ class PaymentIT {
   private static HPaymentRequest entityPaymentRequest(String sessionId, String label) {
     return HPaymentRequest.builder()
         .idInvoice(null)
+        .paymentUrl("https://connect-v2-sbx.fintecture.com")
         .sessionId(sessionId)
         .amount("100/1")
         .payerName("Payer")

@@ -167,3 +167,4 @@ components:
       enum:
         - INVOICE
         - LOGO
+        - ATTACHMENT

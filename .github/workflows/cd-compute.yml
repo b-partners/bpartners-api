@@ -14,6 +14,12 @@ on:
         required: false
         default: true
 
+  workflow_call:
+    inputs:
+      run_tests:
+        type: boolean
+        required: false
+        default: true
 jobs:
   cd-compute:
     if: github.ref_name == 'dev' || github.ref_name == 'prod' || github.ref_name == 'preprod'
@@ -56,7 +62,7 @@ jobs:
           export AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
           export AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
           ./gradlew test
-        if: ${{ github.event.inputs.run_tests != 'false' }}
+        if: ${{ github.event.inputs.run_tests != 'false' && github.event_name != 'schedule' }}
 
       - run: ./gradlew build -x test
 
@@ -85,18 +91,26 @@ jobs:
             -t $ECR_PRIVATE_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_PRIVATE_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
-      - name: Put branch_env and listenerRuleAvailablePriority into GITHUB_ENV
+      - name: Put branch_env into GITHUB_ENV
+        run: echo "branch_env=${{ github.ref_name }}" >> $GITHUB_ENV
+
+
+      - name: Get configurations from ecs-conf.yml
+        id: get-configuration
+        uses: CumulusDS/get-yaml-paths-action@v1.0.1
+        with:
+          file: ecs-conf.yml
+          vCpu: envs.${{ env.branch_env }}.vCpu
+          memory: envs.${{ env.branch_env }}.memory
+          tasksDesiredCount: envs.${{ env.branch_env }}.tasksDesiredCount
+          listenerRuleAvailablePriority: envs.${{ env.branch_env }}.listenerRuleAvailablePriority
+
+      - name: Put outputs from get-configuration step into GITHUB_ENV
         run: |
-          if ${{ github.ref_name == 'dev' }}; then
-            echo "branch_env=dev" >> $GITHUB_ENV
-            echo "listenerRuleAvailablePriority=1" >> $GITHUB_ENV
-          elif ${{ github.ref_name == 'preprod' }}; then
-            echo "branch_env=${{ github.ref_name }}" >> $GITHUB_ENV
-            echo "listenerRuleAvailablePriority=10" >> $GITHUB_ENV
-          elif ${{ github.ref_name == 'prod' }}; then
-            echo "branch_env=${{ github.ref_name }}" >> $GITHUB_ENV
-            echo "listenerRuleAvailablePriority=20" >> $GITHUB_ENV
-          fi
+          echo "vCpu=${{ steps.get-configuration.outputs.vCpu}}" >> $GITHUB_ENV
+          echo "memory=${{ steps.get-configuration.outputs.memory}}" >> $GITHUB_ENV
+          echo "tasksDesiredCount=${{ steps.get-configuration.outputs.tasksDesiredCount}}" >> $GITHUB_ENV
+          echo "listenerRuleAvailablePriority=${{ steps.get-configuration.outputs.listenerRuleAvailablePriority}}" >> $GITHUB_ENV
 
       - name: Deploy compute stack
         uses: aws-actions/aws-cloudformation-github-deploy@v1
@@ -109,4 +123,5 @@ jobs:
           parameter-overrides:
             "Env=${{ env.branch_env }},
             ListenerRuleAvailablePriority=${{ env.listenerRuleAvailablePriority }},
-            Image=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}"
+            Image=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }},
+            Cpu=${{ env.vCpu }}, Memory=${{ env.memory }}, TasksDesiredCount=${{ env.tasksDesiredCount }}"

@@ -12,15 +12,17 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 
 @Getter
 @Setter
-@Builder
+@Builder(toBuilder = true)
 @AllArgsConstructor
 @NoArgsConstructor
 @EqualsAndHashCode
+@ToString
 public class Transaction {
   public static final String CREDIT_SIDE = "Credit";
   public static final String DEBIT_SIDE = "Debit";
@@ -29,6 +31,8 @@ public class Transaction {
   public static final String UPCOMING_STATUS = "Upcoming";
   public static final String REJECTED_STATUS = "Rejected";
   private String id;
+  private String idAccount;
+  private String idSwan;
   private Fraction amount;
   private String currency;
   private String label;
@@ -36,6 +40,7 @@ public class Transaction {
   private String side;
   private TransactionCategory category;
   private TransactionStatus status;
+  private TransactionInvoice transactionInvoice;
   @Getter(AccessLevel.NONE)
   private Instant paymentDatetime;
 

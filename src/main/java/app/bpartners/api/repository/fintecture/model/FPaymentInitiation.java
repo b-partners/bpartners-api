@@ -11,7 +11,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @Builder
 @Setter
-public class PaymentInitiation {
+public class FPaymentInitiation {
   private Meta meta;
   private Data data;
 
@@ -27,7 +27,10 @@ public class PaymentInitiation {
     return data;
   }
 
+  @AllArgsConstructor
+  @NoArgsConstructor
   @Setter
+  @Builder
   public static class Meta {
     private String psuName;
     private String psuEmail;
@@ -47,8 +50,10 @@ public class PaymentInitiation {
   }
 
   @Setter
+  @AllArgsConstructor
+  @Builder
+  @NoArgsConstructor
   public static class Data {
-    private String type;
     private Attributes attributes;
 
     @JsonProperty("type")
@@ -65,16 +70,33 @@ public class PaymentInitiation {
   }
 
   @Setter
+  @Builder
+  @NoArgsConstructor
+  @AllArgsConstructor
   public static class Attributes {
-    private String currency;
     private String amount;
     private String communication;
+    //private String endToEndId;
     private Beneficiary beneficiary;
+
+    //    @JsonProperty("end_to_end_id")
+    //    @JsonInclude(JsonInclude.Include.USE_DEFAULTS)
+    //    public String getEndToEndId() {
+    //      return endToEndId;
+    //    }
 
     @JsonProperty("currency")
     @JsonInclude(JsonInclude.Include.USE_DEFAULTS)
     public String getCurrency() {
       return "EUR";
+    }
+
+    @JsonProperty("scheme")
+    @JsonInclude(JsonInclude.Include.USE_DEFAULTS)
+    public String getScheme() {
+      //TODO: change to SEPA or INSTANT_SEPA to force
+      //Since Fintecture force SEPA or INSTANT_SEPA, it _seems_ any changes is overrided
+      return "AUTO";
     }
 
     @JsonProperty("communication")

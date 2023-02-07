@@ -9,6 +9,7 @@ import app.bpartners.api.integration.conf.TestUtils;
 import app.bpartners.api.manager.ProjectTokenManager;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.AccountHolder;
+import app.bpartners.api.model.Attachment;
 import app.bpartners.api.model.Customer;
 import app.bpartners.api.model.Fraction;
 import app.bpartners.api.repository.LegalFileRepository;
@@ -71,44 +72,6 @@ class DraftIT {
   @Autowired
   private LegalFileRepository legalFileRepository;
 
-  //TODO: use for local test only and set localstack for CI
-  @Test
-  void send_mail_ok() throws IOException {
-    Resource attachmentResource = new ClassPathResource("files/modèle-facture.pdf");
-    byte[] attachmentAsBytes = attachmentResource.getInputStream().readAllBytes();
-    String attachmentName = "modèle-devis-v0.pdf";
-    String recipient = "bpartners.artisans@gmail.com";
-    String subject = "Facture depuis l'API";
-    String type = "facture";
-    String htmlBody = "<html>"
-        + "<body>"
-        + "<h2 style=\"color:#660033;\">BPartners</h2> <h3 style=\"color:#e4dee0;\">l'assistant " +
-        "bancaire qui accélère la croissance et les encaissements des artisans.</h3>"
-        + "<p>Bonjour,</p>"
-        + "<p>Retrouvez-ci joint votre " + type + ".</p>"
-        + "<p>Bien à vous et merci pour votre confiance.</p>"
-        + "</body></html>";
-    assertDoesNotThrow(() -> this.subject.verifyEmailIdentity(recipient));
-    assertDoesNotThrow(() -> this.subject.sendEmail(recipient, subject, htmlBody,
-        attachmentName, attachmentAsBytes));
-  }
-
-  /*@Test
-  void find_legal_files_ok() {
-    List<LegalFile> actual = legalFileRepository.findAllByUserId(JOE_DOE_ID);
-    assertEquals(3, actual.size());
-  }*/
-
-  @Test
-  void generate_invoice_pdf_ok() {
-    assertDoesNotThrow(() -> generatePdf("invoice"));
-  }
-
-  @Test
-  void generate_draft_pdf_ok() {
-    assertDoesNotThrow(() -> generatePdf("draft"));
-  }
-
   private static void generatePdf(String templateName) throws IOException {
     app.bpartners.api.model.Invoice invoice = app.bpartners.api.model.Invoice.builder()
         .id(INVOICE1_ID)
@@ -154,6 +117,12 @@ class DraftIT {
     os.close();
   }
 
+  /*@Test
+  void find_legal_files_ok() {
+    List<LegalFile> actual = legalFileRepository.findAllByUserId(JOE_DOE_ID);
+    assertEquals(3, actual.size());
+  }*/
+
   private static List<app.bpartners.api.model.InvoiceProduct> creatableProds(int n) {
     List<app.bpartners.api.model.InvoiceProduct> result = new ArrayList<>();
     for (int i = 0; i < n; i++) {
@@ -171,6 +140,47 @@ class DraftIT {
         .unitPrice(new Fraction(BigInteger.ONE))
         .totalPriceWithVat(new Fraction(BigInteger.ONE))
         .build();
+  }
+
+  //TODO: use for local test only and set localstack for CI
+  @Test
+  void send_mail_ok() throws IOException {
+    Resource attachmentResource = new ClassPathResource("files/modèle-facture.pdf");
+    byte[] attachmentAsBytes = attachmentResource.getInputStream().readAllBytes();
+    String attachmentName = "modèle-devis-v0.pdf";
+    String otherAttachmentName = "modèle-devis_2-v0.pdf";
+    Attachment attachment = Attachment.builder()
+        .name(attachmentName)
+        .content(attachmentAsBytes)
+        .build();
+    Attachment secondAttachment = Attachment.builder()
+        .name(otherAttachmentName)
+        .content(attachmentAsBytes)
+        .build();
+    String recipient = "bpartners.artisans@gmail.com";
+    String subject = "Facture depuis l'API";
+    String type = "facture";
+    String htmlBody = "<html>"
+        + "<body>"
+        + "<h2 style=\"color:#660033;\">BPartners</h2> <h3 style=\"color:#e4dee0;\">l'assistant " +
+        "bancaire qui accélère la croissance et les encaissements des artisans.</h3>"
+        + "<p>Bonjour,</p>"
+        + "<p>Retrouvez-ci joint votre " + type + ".</p>"
+        + "<p>Bien à vous et merci pour votre confiance.</p>"
+        + "</body></html>";
+    assertDoesNotThrow(() -> this.subject.verifyEmailIdentity(recipient));
+    assertDoesNotThrow(() -> this.subject.sendEmail(recipient, subject, htmlBody,
+        List.of(attachment, secondAttachment)));
+  }
+
+  @Test
+  void generate_invoice_pdf_ok() {
+    assertDoesNotThrow(() -> generatePdf("invoice"));
+  }
+
+  @Test
+  void generate_draft_pdf_ok() {
+    assertDoesNotThrow(() -> generatePdf("draft"));
   }
 
   public static class ContextInitializer extends AbstractContextInitializer {

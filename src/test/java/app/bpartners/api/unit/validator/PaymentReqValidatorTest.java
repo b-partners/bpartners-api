@@ -2,7 +2,7 @@ package app.bpartners.api.unit.validator;
 
 import app.bpartners.api.endpoint.rest.model.PaymentInitiation;
 import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
-import app.bpartners.api.endpoint.rest.validator.PaymentReqValidator;
+import app.bpartners.api.endpoint.rest.validator.PaymentInitValidator;
 import org.junit.jupiter.api.Test;
 
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsBadRequestException;
@@ -10,7 +10,7 @@ import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 class PaymentReqValidatorTest {
-  private final PaymentReqValidator paymentReqValidator = new PaymentReqValidator();
+  private final PaymentInitValidator paymentReqValidator = new PaymentInitValidator();
 
   @Test
   void validate_paymentInitiation_ok() {

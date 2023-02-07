@@ -3,6 +3,7 @@ package app.bpartners.api.unit.repository;
 import app.bpartners.api.endpoint.rest.model.TransactionStatus;
 import app.bpartners.api.model.Transaction;
 import app.bpartners.api.model.TransactionCategory;
+import app.bpartners.api.model.mapper.InvoiceMapper;
 import app.bpartners.api.model.mapper.TransactionMapper;
 import app.bpartners.api.repository.TransactionCategoryRepository;
 import app.bpartners.api.repository.implementation.TransactionRepositoryImpl;
@@ -31,11 +32,13 @@ class TransactionRepositoryImplTest {
   private TransactionMapper mapper;
   private TransactionCategoryRepository categoryRepository;
   private TransactionJpaRepository jpaRepository;
+  private InvoiceMapper invoiceMapperMock;
 
   @BeforeEach
   void setUp() {
     swanRepository = mock(TransactionSwanRepository.class);
-    mapper = new TransactionMapper();
+    invoiceMapperMock = mock(InvoiceMapper.class);
+    mapper = new TransactionMapper(invoiceMapperMock);
     categoryRepository = mock(TransactionCategoryRepository.class);
     jpaRepository = mock(TransactionJpaRepository.class);
     transactionRepositoryImpl = new TransactionRepositoryImpl(swanRepository, mapper,

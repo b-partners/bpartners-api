@@ -16,7 +16,9 @@ import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 
 @Slf4j
 @Component
+@AllArgsConstructor
 public class TransactionMapper {
+  private final InvoiceMapper invoiceMapper;
 
   private static TransactionStatus getTransactionStatus(String status) {
     switch (status) {
@@ -41,6 +43,9 @@ public class TransactionMapper {
     String status = external.getNode().getStatusInfo().getStatus();
     return Transaction.builder()
         .id(entity.getId())
+        .idAccount(entity.getIdAccount())
+        .idSwan(entity.getIdSwan())
+        .transactionInvoice(invoiceMapper.toTransactionInvoice(entity.getInvoice()))
         .amount(parseFraction(external.getNode().getAmount().getValue() * 100))
         .currency(external.getNode().getAmount().getCurrency())
         .label(external.getNode().getLabel())
@@ -58,6 +63,15 @@ public class TransactionMapper {
     return HTransaction.builder()
         .idSwan(swanTransaction.getNode().getId())
         .idAccount(accountId)
+        .build();
+  }
+
+  public HTransaction toEntity(Transaction domain) {
+    return HTransaction.builder()
+        .id(domain.getId())
+        .idSwan(domain.getIdSwan())
+        .idAccount(domain.getIdAccount())
+        .invoice(invoiceMapper.toEntity(domain.getTransactionInvoice()))
         .build();
   }
 }

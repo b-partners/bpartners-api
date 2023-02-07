@@ -199,7 +199,10 @@
         <th>Prix unitaire</th>
         <th th:if="${accountHolder.isSubjectToVat()}">TVA</th>
         <th th:if="${accountHolder.isSubjectToVat()}">Montant HT</th>
-        <th>Montant TTC</th>
+        <th>
+            <span th:if="${accountHolder.isSubjectToVat()}">Montant TTC</span>
+            <span th:unless="${accountHolder.isSubjectToVat()}">Montant HT</span>
+        </th>
         </thead>
         <tbody th:if="${invoice.products != null}">
         <th:block th:each="product : ${invoice.products}">
@@ -237,7 +240,9 @@
             <p th:if="${accountHolder.isSubjectToVat()}"><strong>Total TVA</strong> : <span
                     th:text="${#numbers.formatDecimal(invoice.totalVat.getCentsAsDecimal(), 1,2)}"></span>
                 €</p>
-            <p><strong>Total TTC</strong> : <span
+            <p>
+                <strong th:if="${accountHolder.isSubjectToVat()}">Total TTC</strong>
+                <strong th:unless="${accountHolder.isSubjectToVat()}">Total HT</strong> : <span
                     th:text="${#numbers.formatDecimal(invoice.totalPriceWithVat.getCentsAsDecimal(),1,2)}"></span>
                 €
             </p>

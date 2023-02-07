@@ -97,7 +97,8 @@ class CustomerIT {
         .address("New address")
         .zipCode(75001)
         .city("Paris")
-        .country("France");
+        .country("France")
+        .comment("Nouvelle rencontre");
   }
 
   @Test

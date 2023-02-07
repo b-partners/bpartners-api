@@ -12,9 +12,9 @@ import lombok.Setter;
 @NoArgsConstructor
 @Builder
 public class PaymentRequest {
-  //TODO: map with Fintecture responses
   private String id;
   private String sessionId;
+  private String paymentUrl;
   private String invoiceId;
   private String accountId;
   private String label;

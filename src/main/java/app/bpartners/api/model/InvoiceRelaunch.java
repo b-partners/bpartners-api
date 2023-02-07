@@ -2,6 +2,7 @@ package app.bpartners.api.model;
 
 import app.bpartners.api.endpoint.rest.model.RelaunchType;
 import java.time.Instant;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -23,4 +24,5 @@ public class InvoiceRelaunch {
   private boolean isUserRelaunched;
   private Instant creationDatetime;
   private String attachmentFileId;
+  private List<Attachment> attachments;
 }

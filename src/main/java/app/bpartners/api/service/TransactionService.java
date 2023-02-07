@@ -4,10 +4,14 @@ import app.bpartners.api.endpoint.rest.model.TransactionTypeEnum;
 import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.MonthlyTransactionsSummary;
 import app.bpartners.api.model.Transaction;
+import app.bpartners.api.model.TransactionInvoice;
 import app.bpartners.api.model.TransactionsSummary;
+import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.repository.TransactionRepository;
 import app.bpartners.api.repository.TransactionsSummaryRepository;
 import app.bpartners.api.repository.jpa.AccountHolderJpaRepository;
+import app.bpartners.api.repository.jpa.InvoiceJpaRepository;
+import app.bpartners.api.repository.jpa.model.HInvoice;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.Month;
@@ -17,15 +21,16 @@ import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.stream.Collectors;
-import javax.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apfloat.Aprational;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import static app.bpartners.api.endpoint.rest.model.TransactionStatus.BOOKED;
 import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
+import static org.springframework.transaction.annotation.Isolation.SERIALIZABLE;
 
 @Service
 @AllArgsConstructor
@@ -34,6 +39,7 @@ public class TransactionService {
   private final TransactionRepository repository;
   private final AccountHolderJpaRepository holderJpaRepository;
   private final TransactionsSummaryRepository summaryRepository;
+  private final InvoiceJpaRepository invoiceRepository;
 
   private static Instant getFirstDayOfYear(int year) {
     return getFirstDayOfMonth(YearMonth.of(year, Month.JANUARY.getValue()));
@@ -83,7 +89,23 @@ public class TransactionService {
     return summaryRepository.getByAccountIdAndYear(accountId, year);
   }
 
-  @Transactional
+  //TODO: refactor invoice -> transactionInvoice to appropriate mapper
+  public Transaction justifyTransaction(String idTransaction, String idInvoice) {
+    Transaction transaction = repository.getById(idTransaction);
+    HInvoice invoice = invoiceRepository.findById(idInvoice).orElseThrow(
+        () -> new NotFoundException(
+            "Invoice." + idInvoice + " is not found")
+    );
+    log.info("Invoice=" + invoice.getId() + ", " + invoice.getFileId());
+    return repository.save(transaction.toBuilder()
+        .transactionInvoice(TransactionInvoice.builder()
+            .invoiceId(invoice.getId())
+            .fileId(invoice.getFileId())
+            .build())
+        .build());
+  }
+
+  @Transactional(isolation = SERIALIZABLE)
   public void refreshCurrentYearSummary(
       String accountId,
       Fraction cashFlow) {
@@ -149,7 +171,7 @@ public class TransactionService {
         yearMonth.getMonthValue() - 1);
   }
 
-  @Scheduled(fixedDelay = 60 * 1_000)
+  @Scheduled(fixedDelay = 60 * 60 * 1_000)
   public void refreshTransactionsSummaries() {
     holderJpaRepository.findAllGroupByAccountId().forEach(
         accountHolder -> {

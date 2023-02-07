@@ -1,8 +1,9 @@
 package app.bpartners.api.endpoint.rest.mapper;
 
 import app.bpartners.api.endpoint.rest.model.PaymentInitiation;
+import app.bpartners.api.endpoint.rest.model.PaymentRedirection;
 import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
-import app.bpartners.api.endpoint.rest.validator.PaymentReqValidator;
+import app.bpartners.api.endpoint.rest.validator.PaymentInitValidator;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -10,8 +11,8 @@ import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 
 @Component
 @AllArgsConstructor
-public class PaymentReqRestMapper {
-  private final PaymentReqValidator paymentValidator;
+public class PaymentInitRestMapper {
+  private final PaymentInitValidator paymentValidator;
 
   public app.bpartners.api.model.PaymentInitiation toDomain(PaymentInitiation rest) {
     RedirectionStatusUrls statusUrls = rest.getRedirectionStatusUrls();
@@ -26,5 +27,15 @@ public class PaymentReqRestMapper {
         .successUrl(statusUrls.getSuccessUrl())
         .failureUrl(statusUrls.getFailureUrl())
         .build();
+  }
+
+  public PaymentRedirection toRest(app.bpartners.api.model.PaymentRedirection domain) {
+    RedirectionStatusUrls statusUrls = new RedirectionStatusUrls()
+        .successUrl(domain.getSuccessUrl())
+        .failureUrl(domain.getFailureUrl());
+    return new PaymentRedirection()
+        .id(domain.getId())
+        .redirectionUrl(domain.getRedirectUrl())
+        .redirectionStatusUrls(statusUrls);
   }
 }

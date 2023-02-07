@@ -3,14 +3,15 @@ package app.bpartners.api.integration.conf;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
 import app.bpartners.api.endpoint.rest.model.AccountInvoiceRelaunchConf;
+import app.bpartners.api.endpoint.rest.model.AnnualRevenueTarget;
 import app.bpartners.api.endpoint.rest.model.BusinessActivity;
 import app.bpartners.api.endpoint.rest.model.CompanyBusinessActivity;
 import app.bpartners.api.endpoint.rest.model.CompanyInfo;
 import app.bpartners.api.endpoint.rest.model.CreateAccountInvoiceRelaunchConf;
+import app.bpartners.api.endpoint.rest.model.CreateAnnualRevenueTarget;
 import app.bpartners.api.endpoint.rest.model.CreateProduct;
 import app.bpartners.api.endpoint.rest.model.Customer;
 import app.bpartners.api.endpoint.rest.model.Invoice;
-import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.endpoint.rest.model.LegalFile;
 import app.bpartners.api.endpoint.rest.model.Product;
 import app.bpartners.api.endpoint.rest.model.TransactionCategory;
@@ -21,9 +22,12 @@ import app.bpartners.api.endpoint.rest.security.principal.PrincipalProvider;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.repository.LegalFileRepository;
+import app.bpartners.api.repository.fintecture.FintectureConf;
+import app.bpartners.api.repository.fintecture.FintecturePaymentInfoRepository;
 import app.bpartners.api.repository.fintecture.FintecturePaymentInitiationRepository;
-import app.bpartners.api.repository.fintecture.model.PaymentInitiation;
-import app.bpartners.api.repository.fintecture.model.PaymentRedirection;
+import app.bpartners.api.repository.fintecture.model.FPaymentInitiation;
+import app.bpartners.api.repository.fintecture.model.FPaymentRedirection;
+import app.bpartners.api.repository.fintecture.model.Session;
 import app.bpartners.api.repository.sendinblue.SendinblueApi;
 import app.bpartners.api.repository.sendinblue.model.Attributes;
 import app.bpartners.api.repository.sendinblue.model.Contact;
@@ -37,14 +41,26 @@ import app.bpartners.api.repository.swan.model.SwanAccountHolder;
 import app.bpartners.api.repository.swan.model.SwanUser;
 import app.bpartners.api.repository.swan.model.Transaction;
 import app.bpartners.api.repository.swan.response.AccountResponse;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.net.ServerSocket;
+import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.http.HttpClient;
+import java.net.http.HttpHeaders;
+import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import javax.net.ssl.SSLSession;
 import org.junit.jupiter.api.function.Executable;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
@@ -53,13 +69,13 @@ import software.amazon.awssdk.services.eventbridge.model.PutEventsResponse;
 
 import static app.bpartners.api.endpoint.rest.model.EnableStatus.ENABLED;
 import static app.bpartners.api.endpoint.rest.model.IdentificationStatus.VALID_IDENTITY;
+import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
 import static app.bpartners.api.endpoint.rest.model.TransactionTypeEnum.INCOME;
 import static app.bpartners.api.endpoint.rest.model.TransactionTypeEnum.OUTCOME;
 import static app.bpartners.api.model.Invoice.DEFAULT_DELAY_PENALTY_PERCENT;
 import static app.bpartners.api.model.Invoice.DEFAULT_TO_PAY_DELAY_DAYS;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.CLIENT_EXCEPTION;
 import static app.bpartners.api.model.mapper.UserMapper.VALID_IDENTITY_STATUS;
-import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -115,12 +131,15 @@ public class TestUtils {
   public static final String JANE_ACCOUNT_ID = "jane_account_id";
   public static final String JANE_DOE_TOKEN = "jane_doe_token";
   public static final String JANE_DOE_ID = "jane_doe_id";
+  public static final String SESSION_ID = "session_id";
   public static final String ACCOUNT_OPENED = "Opened";
   public static final String ACCOUNT_CLOSED = "Closed";
   public static final String ACCOUNT_CLOSING = "Closing";
   public static final String ACCOUNT_SUSPENDED = "Suspended";
   public static final String TRANSACTION1_ID = "transaction1_id";
   public static final String UNKNOWN_TRANSACTION_ID = "unknown_transaction_id";
+  public static final String SESSION1_ID = "session1_id";
+  public static final String SESSION2_ID = "session2_id";
 
   public static User restJoeDoeUser() {
     return new User()
@@ -224,6 +243,36 @@ public class TestUtils {
         .build();
   }
 
+  public static AnnualRevenueTarget annualRevenueTarget1() {
+    return new AnnualRevenueTarget()
+        .year(2023)
+        .updatedAt(Instant.parse("2022-01-01T01:00:00.00Z"))
+        .amountAttempted(1000000)
+        .amountTarget(1000000)
+        .amountAttemptedPercent(100);
+  }
+
+  public static AnnualRevenueTarget annualRevenueTarget2() {
+    return new AnnualRevenueTarget()
+        .year(2024)
+        .updatedAt(Instant.parse("2022-01-08T01:00:00.00Z"))
+        .amountAttempted(0)
+        .amountTarget(1000000)
+        .amountAttemptedPercent(0);
+  }
+
+  public static CreateAnnualRevenueTarget createAnnualRevenueTarget() {
+    return new CreateAnnualRevenueTarget()
+        .year(2025)
+        .amountTarget(150000);
+  }
+
+  public static CreateAnnualRevenueTarget toUpdateAnnualRevenueTarget() {
+    return new CreateAnnualRevenueTarget()
+        .year(2023)
+        .amountTarget(2000000);
+  }
+
   public static Customer customer1() {
     return new Customer()
         .id("customer1_id")
@@ -234,7 +283,8 @@ public class TestUtils {
         .address("15 rue Porte d'Orange")
         .zipCode(95160)
         .city("Montmorency")
-        .country("France");
+        .country("France")
+        .comment("Rencontre avec Luc");
   }
 
   public static Customer customer2() {
@@ -247,7 +297,8 @@ public class TestUtils {
         .address("4 Avenue des Près")
         .zipCode(95160)
         .city("Montmorency")
-        .country("France");
+        .country("France")
+        .comment("Rencontre avec le plombier");
   }
 
   public static Customer customerUpdated() {
@@ -260,7 +311,8 @@ public class TestUtils {
         .address("15 rue Porte d'Orange")
         .zipCode(95160)
         .city("Montmorency")
-        .country("France");
+        .country("France")
+        .comment("Rencontre avec Marc");
   }
 
   public static Customer customerWithSomeNullAttributes() {
@@ -273,7 +325,8 @@ public class TestUtils {
         .address(null)
         .zipCode(95160)
         .city(null)
-        .country(null);
+        .country(null)
+        .comment(null);
   }
 
   public static Product product1() {
@@ -463,23 +516,22 @@ public class TestUtils {
   public static Invoice invoice1() {
     return new Invoice()
         .id(INVOICE1_ID)
-        .fileId("BP001.pdf")
+        .comment(null)
         .title("Outils pour plomberie")
-        .customer(customer1())
-        .ref("BP001")
+        .fileId("file1_id")
+        .paymentUrl("https://connect-v2-sbx.fintecture.com")
+        .customer(customer1()).ref("BP001")
+        .createdAt(Instant.parse("2022-01-01T01:00:00.00Z"))
         .sendingDate(LocalDate.of(2022, 9, 1))
         .validityDate(LocalDate.of(2022, 10, 3))
         .toPayAt(LocalDate.of(2022, 10, 1))
         .delayInPaymentAllowed(DEFAULT_TO_PAY_DELAY_DAYS)
         .delayPenaltyPercent(DEFAULT_DELAY_PENALTY_PERCENT)
-        .status(InvoiceStatus.CONFIRMED)
+        .status(CONFIRMED)
         .products(List.of(product3(), product4()))
         .totalPriceWithVat(8800)
         .totalVat(800)
         .totalPriceWithoutVat(8000)
-        .comment(null)
-        .paymentUrl("https://connect-v2-sbx.fintecture.com")
-        .createdAt(Instant.parse("2021-12-31T22:00:00Z"))
         .metadata(Map.of());
   }
 
@@ -492,10 +544,11 @@ public class TestUtils {
         .ref("BP002")
         .sendingDate(LocalDate.of(2022, 9, 10))
         .validityDate(LocalDate.of(2022, 10, 14))
+        .createdAt(Instant.parse("2022-01-01T03:00:00.00Z"))
         .toPayAt(LocalDate.of(2022, 10, 10))
         .delayInPaymentAllowed(DEFAULT_TO_PAY_DELAY_DAYS)
         .delayPenaltyPercent(DEFAULT_DELAY_PENALTY_PERCENT)
-        .status(InvoiceStatus.CONFIRMED)
+        .status(CONFIRMED)
         .products(List.of(product5()))
         .totalPriceWithVat(1100)
         .totalVat(100)
@@ -578,6 +631,69 @@ public class TestUtils {
         .build();
   }
 
+  public static Session fintectureSession() {
+    return Session.builder()
+        .meta(Session.Meta.builder()
+            .code("200")
+            .build())
+        .data(Session.Data.builder()
+            .type("payments")
+            .attributes(Session.Attributes.builder()
+                .paymentScheme("SEPA")
+                .endToEndId("end_to_end_id")
+                .build())
+            .build())
+        .build();
+  }
+
+  public static HttpResponse<Object> httpResponseMock(Object body) {
+    return new HttpResponse<>() {
+      @Override
+      public int statusCode() {
+        return 200;
+      }
+
+      @Override
+      public HttpRequest request() {
+        return null;
+      }
+
+      @Override
+      public Optional<HttpResponse<Object>> previousResponse() {
+        return Optional.empty();
+      }
+
+      @Override
+      public HttpHeaders headers() {
+        return null;
+      }
+
+      @Override
+      public Object body() {
+        try {
+          return new ObjectMapper().writeValueAsString(body);
+        } catch (JsonProcessingException e) {
+          return null;
+        }
+      }
+
+      @Override
+      public Optional<SSLSession> sslSession() {
+        return Optional.empty();
+      }
+
+      @Override
+      public URI uri() {
+        return null;
+      }
+
+      @Override
+      public HttpClient.Version version() {
+        return null;
+      }
+    };
+  }
+
   public static ApiClient anApiClient(String token, int serverPort) {
     ApiClient client = new ApiClient();
     client.setScheme("http");
@@ -598,6 +714,17 @@ public class TestUtils {
             new Object()
         )
     );
+  }
+
+  public static void setUpFintectureConf(FintectureConf fintectureConfMock)
+      throws NoSuchAlgorithmException {
+    KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
+    generator.initialize(2048);
+    KeyPair pair = generator.generateKeyPair();
+    String encodedKey = Base64.getEncoder().encodeToString(pair.getPrivate().getEncoded());
+    when(fintectureConfMock.getPrivateKey()).thenReturn(encodedKey);
+    when(fintectureConfMock.getRequestToPayUrl()).thenReturn(PIS_URL + "request-to-pay");
+    when(fintectureConfMock.getPaymentUrl()).thenReturn(PIS_URL + "payments");
   }
 
   public static void setUpSwanComponent(SwanComponent swanComponent) {
@@ -655,15 +782,28 @@ public class TestUtils {
   }
 
   public static void setUpPaymentInitiationRep(FintecturePaymentInitiationRepository repository) {
-    when(repository.save(any(PaymentInitiation.class), any()))
+    when(repository.save(any(FPaymentInitiation.class), any()))
         .thenAnswer(invocation ->
-            PaymentRedirection.builder()
-                .meta(PaymentRedirection.Meta.builder()
-                    .sessionId(randomUUID().toString())
+            FPaymentRedirection.builder()
+                .meta(FPaymentRedirection.Meta.builder()
+                    .sessionId(SESSION1_ID)
+                    .url("https://connect-v2-sbx.fintecture.com")
+                    .build())
+                .build()
+        )
+        .thenAnswer(invocation ->
+            FPaymentRedirection.builder()
+                .meta(FPaymentRedirection.Meta.builder()
+                    .sessionId(SESSION2_ID)
                     .url("https://connect-v2-sbx.fintecture.com")
                     .build())
                 .build()
         );
+  }
+
+  public static void setUpPaymentInfoRepository(FintecturePaymentInfoRepository repository) {
+    when(repository.getPaymentBySessionId(any(String.class)))
+        .thenReturn(fintectureSession());
   }
 
   public static void setUpSendiblueApi(SendinblueApi sendinblueApi) {

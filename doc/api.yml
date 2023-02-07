@@ -39,6 +39,8 @@ paths:
     $ref: './userAccounts-api.yml#/operations/getAccountHolders'
   /users/{userId}/accounts/{accountId}/accountHolders/{ahId}/companyInfo:
     $ref: './userAccounts-api.yml#/operations/updateCompanyInfo'
+  /users/{userId}/accounts/{accountId}/accountHolders/{ahId}/revenueTargets:
+    $ref: './userAccounts-api.yml#/operations/updateRevenueTargets'
   /businessActivities:
     $ref: './userAccounts-api.yml#/operations/getBusinessActivities'
   /users/{userId}/accounts/{accountId}/accountHolders/{ahId}/businessActivities:
@@ -54,6 +56,8 @@ paths:
   #############################################
   /accounts/{id}/transactions:
     $ref: './paying-api.yml#/operations/getTransactions'
+  /accounts/{aId}/transactions/{tId}/invoices/{iId}:
+    $ref: './paying-api.yml#/operations/justifyTransaction'
   /accounts/{aId}/transactionsSummary:
     $ref: './paying-api.yml#/operations/getTransactionsSummary'
   /accounts/{aId}/invoiceRelaunchConf:
@@ -75,7 +79,7 @@ paths:
   /accounts/{aId}/invoices/{iId}/relaunch:
     $ref: './paying-api.yml#/operations/relaunchInvoice'
   /accounts/{id}/paymentInitiations:
-    $ref: './paying-api.yml#/operations/initiatePayments'
+    $ref: './paying-api.yml#/operations/paymentInitiationsOperations'
 
   #############################################
   ################# Files API #################

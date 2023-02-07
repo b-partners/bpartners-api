@@ -1,13 +1,17 @@
 package app.bpartners.api.repository.implementation;
 
+import app.bpartners.api.model.PaymentInitiation;
+import app.bpartners.api.model.PaymentRedirection;
 import app.bpartners.api.model.mapper.PaymentRequestMapper;
 import app.bpartners.api.repository.PaymentInitiationRepository;
 import app.bpartners.api.repository.fintecture.FintecturePaymentInitiationRepository;
-import app.bpartners.api.repository.fintecture.model.PaymentInitiation;
-import app.bpartners.api.repository.fintecture.model.PaymentRedirection;
+import app.bpartners.api.repository.fintecture.model.FPaymentInitiation;
+import app.bpartners.api.repository.fintecture.model.FPaymentRedirection;
 import app.bpartners.api.repository.jpa.PaymentRequestJpaRepository;
+import app.bpartners.api.repository.jpa.model.HPaymentRequest;
 import app.bpartners.api.repository.mapper.FintectureMapper;
 import java.util.List;
+import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -17,28 +21,25 @@ public class PaymentInitiationRepositoryImpl implements PaymentInitiationReposit
   private final FintecturePaymentInitiationRepository
       fintectureRepository;
   private final FintectureMapper mapper;
-  private final PaymentRequestJpaRepository paymentReqJpaRepository;
-  private final PaymentRequestMapper paymentReqMapper;
+  private final PaymentRequestJpaRepository paymentRequestRepository;
+  private final PaymentRequestMapper paymentRequestMapper;
 
   @Override
-  public List<app.bpartners.api.model.PaymentRedirection> save(
-      app.bpartners.api.model.PaymentInitiation toCreate) {
-    PaymentInitiation paymentInitiation = mapper.toFintecturePaymentReq(toCreate);
-    PaymentRedirection paymentRedirection =
-        fintectureRepository.save(paymentInitiation, toCreate.getSuccessUrl());
-    paymentReqJpaRepository
-        .save(paymentReqMapper.toEntity(paymentRedirection, toCreate, null));
-    return List.of(mapper.toDomain(paymentRedirection, toCreate));
+  public List<PaymentRedirection> saveAll(
+      List<PaymentInitiation> paymentInitiations, String invoice) {
+    return paymentInitiations.stream()
+        .map(domain -> {
+          FPaymentRedirection paymentRedirection = initiatePayment(domain, invoice);
+          return mapper.toDomain(paymentRedirection, domain);
+        }).collect(Collectors.toUnmodifiableList());
   }
 
-  @Override
-  public List<app.bpartners.api.model.PaymentRedirection> save(
-      app.bpartners.api.model.PaymentInitiation toCreate, String idInvoice) {
-    PaymentInitiation paymentInitiation = mapper.toFintecturePaymentReq(toCreate);
-    PaymentRedirection paymentRedirection =
-        fintectureRepository.save(paymentInitiation, toCreate.getSuccessUrl());
-    paymentReqJpaRepository
-        .save(paymentReqMapper.toEntity(paymentRedirection, toCreate, idInvoice));
-    return List.of(mapper.toDomain(paymentRedirection, toCreate));
+  private FPaymentRedirection initiatePayment(PaymentInitiation domain, String invoice) {
+    FPaymentInitiation paymentInitiation = mapper.toFintectureResource(domain);
+    FPaymentRedirection paymentRedirection =
+        fintectureRepository.save(paymentInitiation, domain.getSuccessUrl());
+    HPaymentRequest entity = paymentRequestMapper.toEntity(paymentRedirection, domain, invoice);
+    paymentRequestRepository.save(entity);
+    return paymentRedirection;
   }
 }

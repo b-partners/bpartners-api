@@ -1,0 +1,1 @@
+alter table "customer" add column comment varchar;

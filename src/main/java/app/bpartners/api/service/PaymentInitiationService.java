@@ -4,7 +4,6 @@ import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.PaymentInitiation;
 import app.bpartners.api.model.PaymentRedirection;
-import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.repository.PaymentInitiationRepository;
 import java.util.List;
 import java.util.Objects;
@@ -18,31 +17,29 @@ import static java.util.UUID.randomUUID;
 public class PaymentInitiationService {
   private final PaymentInitiationRepository repository;
 
-  public List<PaymentRedirection> createPaymentReq(List<PaymentInitiation> paymentReqs) {
-    if (paymentReqs.size() > 1) {
-      throw new NotImplementedException("Only one payment request is supported.");
-    }
-    return repository.save(paymentReqs.get(0));
+  public List<PaymentRedirection> initiatePayments(List<PaymentInitiation> paymentInitiations) {
+    return repository.saveAll(paymentInitiations, null);
   }
 
-  public PaymentRedirection initiateInvoicePayment(Invoice invoice, Fraction totalPriceWithVat) {
+  public PaymentRedirection initiateInvoicePayment(
+      Invoice invoice, Fraction totalPriceWithVat) {
     if (Objects.equals(totalPriceWithVat, new Fraction())) {
       return new PaymentRedirection();
     }
-    String customerName = invoice.getCustomer() == null ? null : invoice.getCustomer().getName();
-    String customerEmail = invoice.getCustomer() == null ? null : invoice.getCustomer().getEmail();
     PaymentInitiation paymentInitiation = PaymentInitiation.builder()
         .id(String.valueOf(randomUUID()))
         .reference(invoice.getRef())
         .label(invoice.getTitle())
         .amount(totalPriceWithVat)
         //TODO: use customerName and customerEmail when overriding
-        .payerName(customerName)
-        .payerEmail(customerEmail)
+        .payerName(invoice.getCustomer() == null
+            ? null : invoice.getCustomer().getName())
+        .payerEmail(invoice.getCustomer() == null
+            ? null : invoice.getCustomer().getEmail())
         .successUrl("https://dashboard-dev.bpartners.app") //TODO: to change
         .failureUrl("https://dashboard-dev.bpartners.app") //TODO: to change
         .build();
-    return repository.save(paymentInitiation, invoice.getId()).get(0);
+    return repository.saveAll(List.of(paymentInitiation), invoice.getId()).get(0);
   }
 
 }

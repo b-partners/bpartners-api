@@ -38,6 +38,48 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
+  justifyTransaction:
+    put:
+      tags:
+        - Paying
+      summary: Associate a transaction to an existing invoice
+      operationId: justifyTransaction
+      parameters:
+        - in: path
+          name: aId
+          description: Account identifier
+          schema:
+            type: string
+          required: true
+        - in: path
+          name: tId
+          description: Transaction identifier
+          schema:
+            type: string
+          required: true
+        - in: path
+          name: iId
+          description: Invoice identifier
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description: Transaction justified by associated invoice
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Transaction'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
   getTransactionCategories:
     get:
       tags:
@@ -607,7 +649,7 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
-  initiatePayments:
+  paymentInitiationsOperations:
     post:
       tags:
         - Paying
@@ -626,6 +668,7 @@ operations:
             schema:
               type: array
               items:
+                #TODO: rename to CreatePaymentInitiation
                 $ref: '#/components/schemas/PaymentInitiation'
       responses:
         200:
@@ -672,6 +715,8 @@ components:
           $ref: '#/components/schemas/TransactionTypeEnum'
         status:
           $ref: '#/components/schemas/TransactionStatus'
+        invoice:
+          $ref: '#/components/schemas/TransactionInvoice'
     TransactionTypeEnum:
       type: string
       enum:
@@ -703,6 +748,13 @@ components:
           example: null
         vat:
           type: integer
+    TransactionInvoice:
+      type: object
+      properties:
+        invoiceId:
+          type: string
+        fileId:
+          type: string
     TransactionsSummary:
       type: object
       properties:
@@ -784,6 +836,10 @@ components:
           description: html is waited
         emailBody:
           type: string
+        attachments:
+          type: array
+          items:
+            $ref: '#/components/schemas/CreateAttachment'
     InvoiceRelaunch:
       type: object
       properties:
@@ -802,6 +858,11 @@ components:
         creationDatetime:
           type: string
           format: date-time
+        attachments:
+          type: array
+          description: attachments without content.
+          items:
+            $ref: '#/components/schemas/Attachment'
     EmailInfo:
       type: object
       properties:
@@ -933,6 +994,7 @@ components:
           type: integer
         totalPriceWithVat:
           type: integer
+    #TODO: rename to CreatePaymentInitiation
     PaymentInitiation:
       type: object
       properties:
@@ -949,4 +1011,18 @@ components:
         label:
           type: string
         reference:
+          type: string
+    CreateAttachment:
+      type: object
+      properties:
+        name:
+          type: string
+        content:
+          type: string
+          format: binary
+    Attachment:
+      allOf:
+        - $ref: '#/components/schemas/CreateAttachment'
+      properties:
+        fileId:
           type: string

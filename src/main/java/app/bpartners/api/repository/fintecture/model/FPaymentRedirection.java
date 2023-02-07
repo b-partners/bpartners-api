@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class PaymentRedirection {
+public class FPaymentRedirection {
   private Meta meta;
 
   @JsonProperty("meta")
@@ -23,8 +23,15 @@ public class PaymentRedirection {
   @Builder
   @JsonIgnoreProperties(ignoreUnknown = true)
   public static class Meta {
+    private Integer status;
     private String sessionId;
     private String url;
+
+    @JsonProperty("status")
+    @JsonInclude(JsonInclude.Include.USE_DEFAULTS)
+    public Integer getStatus() {
+      return status;
+    }
 
     @JsonProperty("session_id")
     @JsonInclude(JsonInclude.Include.USE_DEFAULTS)

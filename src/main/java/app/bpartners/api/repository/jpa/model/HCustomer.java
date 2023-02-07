@@ -32,4 +32,5 @@ public class HCustomer {
   private Integer zipCode;
   private String city;
   private String country;
+  private String comment;
 }

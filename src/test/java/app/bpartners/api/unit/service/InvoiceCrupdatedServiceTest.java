@@ -12,7 +12,9 @@ import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.InvoiceProduct;
 import app.bpartners.api.repository.InvoiceRepository;
+import app.bpartners.api.repository.jpa.InvoiceJpaRepository;
 import app.bpartners.api.repository.jpa.model.HInvoice;
+import app.bpartners.api.service.AccountHolderService;
 import app.bpartners.api.service.InvoiceCrupdatedService;
 import app.bpartners.api.service.InvoiceService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -29,25 +31,29 @@ import static app.bpartners.api.integration.conf.TestUtils.FILE_ID;
 import static app.bpartners.api.integration.conf.TestUtils.INVOICE1_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 
 class InvoiceCrupdatedServiceTest {
   InvoiceService invoiceService;
   InvoiceRepository invoiceRepository;
   EventProducer eventProducer;
   InvoiceCrupdatedService invoiceCrupdatedService;
-
+  AccountHolderService accountHolderService;
+  InvoiceJpaRepository invoiceJpaRepository;
 
   @BeforeEach
   void setUp() {
     eventProducer = mock(EventProducer.class);
     invoiceRepository = mock(InvoiceRepository.class);
+    invoiceJpaRepository = mock(InvoiceJpaRepository.class);
+    accountHolderService = mock(AccountHolderService.class);
     invoiceService =
-        new InvoiceService(invoiceRepository, eventProducer);
+        new InvoiceService(
+            invoiceRepository,
+            invoiceJpaRepository,
+            accountHolderService,
+            eventProducer);
     invoiceCrupdatedService = new InvoiceCrupdatedService(invoiceService);
-
   }
 
   InvoiceCrupdated invoiceCrupdated() {

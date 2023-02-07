@@ -102,7 +102,12 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
         .requestMatchers(
             new SelfAccountMatcher(PUT, "/accounts/*/customers", authResourceProvider)
         ).authenticated()
-        .antMatchers(GET, "/accounts/*/transactions").authenticated()
+        .requestMatchers(
+            new SelfAccountMatcher(GET, "/accounts/*/transactions",
+                authResourceProvider)).authenticated()
+        .requestMatchers(
+            new SelfAccountMatcher(PUT, "/accounts/*/transactions/*/invoices/*",
+                authResourceProvider)).authenticated()
         .requestMatchers(new SelfUserMatcher(GET, "/users/*/accounts")).authenticated()
         .requestMatchers(
             new SelfUserAccountMatcher(GET, "/users/*/accounts/*/accountHolders",
@@ -180,7 +185,12 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
         .antMatchers(
             PUT, "/users/*/accounts/*/accountHolders/*/businessActivities").authenticated()
         .antMatchers(
+            PUT, "/users/*/accounts/*/accountHolders/*/revenueTargets").authenticated()
+        .antMatchers(
             PUT, "/users/*/accounts/*/accountHolders/*/companyInfo").authenticated()
+        .requestMatchers(
+            new SelfAccountMatcher(GET, "/accounts/*/paymentRequests", authResourceProvider)
+        ).authenticated()
         .antMatchers("/**").denyAll()
 
         // disable superfluous protections

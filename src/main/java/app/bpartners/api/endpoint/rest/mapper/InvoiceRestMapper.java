@@ -1,12 +1,15 @@
 package app.bpartners.api.endpoint.rest.mapper;
 
 import app.bpartners.api.endpoint.rest.model.CrupdateInvoice;
-import app.bpartners.api.endpoint.rest.model.Customer;
 import app.bpartners.api.endpoint.rest.model.Invoice;
 import app.bpartners.api.endpoint.rest.model.Product;
+import app.bpartners.api.endpoint.rest.model.TransactionInvoice;
 import app.bpartners.api.endpoint.rest.validator.CrupdateInvoiceValidator;
+import app.bpartners.api.model.InvoiceProduct;
+import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.repository.CustomerRepository;
 import app.bpartners.api.service.AccountService;
+import app.bpartners.api.service.InvoiceService;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
@@ -29,21 +32,20 @@ public class InvoiceRestMapper {
   private final ProductRestMapper productRestMapper;
   private final AccountService accountService;
   private final CrupdateInvoiceValidator crupdateInvoiceValidator;
+  private final InvoiceService invoiceService;
 
   public Invoice toRest(app.bpartners.api.model.Invoice domain) {
-    List<app.bpartners.api.model.InvoiceProduct> domainContent = domain.getProducts();
-    List<Product> products = null;
-    if (domainContent != null) {
-      products = domainContent.stream()
-          .map(productRestMapper::toRest)
-          .collect(Collectors.toUnmodifiableList());
+    if (domain == null) {
+      return null;
     }
+
     //TODO: deprecated use validityDate instead of toPayAt
     LocalDate toPayAt = domain.getToPayAt();
     if (domain.getStatus() != PAID && domain.getStatus() != CONFIRMED
         && domain.getToPayAt() == null) {
       toPayAt = domain.getValidityDate();
     }
+
     return new Invoice()
         .id(domain.getId())
         .fileId(domain.getFileId())
@@ -54,7 +56,7 @@ public class InvoiceRestMapper {
         .createdAt(domain.getCreatedAt())
         .customer(customerMapper.toRest(domain.getCustomer()))
         .status(domain.getStatus())
-        .products(products)
+        .products(getProducts(domain))
         .totalVat(domain.getTotalVat().getCentsRoundUp())
         .paymentUrl(domain.getPaymentUrl())
         .totalPriceWithoutVat(domain.getTotalPriceWithoutVat().getCentsRoundUp())
@@ -67,35 +69,37 @@ public class InvoiceRestMapper {
         .toPayAt(toPayAt);
   }
 
+  public TransactionInvoice toRest(app.bpartners.api.model.TransactionInvoice transactionInvoice) {
+    return transactionInvoice == null ? null
+        : new TransactionInvoice()
+        .invoiceId(transactionInvoice.getInvoiceId())
+        .fileId(transactionInvoice.getFileId());
+  }
+
   public app.bpartners.api.model.Invoice toDomain(
       String accountId, String id, CrupdateInvoice rest) {
     crupdateInvoiceValidator.accept(rest);
-    app.bpartners.api.model.Invoice.InvoiceBuilder invoiceBuilder =
-        app.bpartners.api.model.Invoice.builder();
-    List<app.bpartners.api.model.InvoiceProduct> products =
-        rest.getProducts() == null ? List.of() : rest.getProducts().stream()
-            .map(productRestMapper::toInvoiceDomain)
-            .collect(Collectors.toUnmodifiableList());
-    Customer restCustomer = rest.getCustomer();
-    if (restCustomer != null) {
-      app.bpartners.api.model.Customer existingCustomer =
-          customerRepository.findById(restCustomer.getId());
-      invoiceBuilder.customer(existingCustomer);
+
+    if (!invoiceService.hasAvailableReference(accountId, rest.getRef(), rest.getStatus())) {
+      throw new BadRequestException("Invoice.reference=" + rest.getRef() + " is already used");
     }
+
+    //TODO: deprecated use validityDate instead of toPayAt
     LocalDate validityDate = rest.getValidityDate();
-    //TODO : uncomment when validityDate is correctly set
-    if (rest.getStatus() != CONFIRMED && rest.getStatus() != PAID
-        /*&& validityDate == null*/ && rest.getToPayAt() != null) {
+    if (validityDate == null && rest.getToPayAt() != null
+        && rest.getStatus() != CONFIRMED && rest.getStatus() != PAID) {
       log.warn("DEPRECATED: DRAFT and PROPOSAL invoice must use validityDate"
           + " instead of toPayAt attribute during crupdate");
       validityDate = rest.getToPayAt();
     }
 
-    return invoiceBuilder
+    return app.bpartners.api.model.Invoice.builder()
         .id(id)
         .title(rest.getTitle())
         .ref(rest.getRef())
         .comment(rest.getComment())
+        .customer(rest.getCustomer() != null
+            ? customerRepository.findById(rest.getCustomer().getId()) : null)
         .sendingDate(rest.getSendingDate())
         .validityDate(validityDate)
         .delayInPaymentAllowed(rest.getDelayInPaymentAllowed())
@@ -106,8 +110,21 @@ public class InvoiceRestMapper {
         .status(rest.getStatus())
         .toPayAt(rest.getToPayAt())
         .account(accountService.getAccountById(accountId))
-        .products(products)
+        .products(getProducts(rest))
         .metadata(rest.getMetadata() == null ? Map.of() : rest.getMetadata())
         .build();
+  }
+
+  private List<InvoiceProduct> getProducts(CrupdateInvoice rest) {
+    return rest.getProducts() == null ? List.of() : rest.getProducts().stream()
+        .map(productRestMapper::toInvoiceDomain)
+        .collect(Collectors.toUnmodifiableList());
+  }
+
+  private List<Product> getProducts(app.bpartners.api.model.Invoice domain) {
+    return domain.getProducts() == null
+        ? List.of() : domain.getProducts().stream()
+        .map(productRestMapper::toRest)
+        .collect(Collectors.toUnmodifiableList());
   }
 }

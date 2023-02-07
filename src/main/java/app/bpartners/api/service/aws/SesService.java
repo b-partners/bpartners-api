@@ -1,11 +1,15 @@
 package app.bpartners.api.service.aws;
 
 import app.bpartners.api.endpoint.event.EventConf;
+import app.bpartners.api.model.Attachment;
+import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.service.utils.FileInfoUtils;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.List;
 import java.util.Properties;
+import java.util.stream.Collectors;
 import javax.activation.DataHandler;
 import javax.activation.DataSource;
 import javax.mail.MessagingException;
@@ -25,6 +29,7 @@ import software.amazon.awssdk.services.ses.model.RawMessage;
 import software.amazon.awssdk.services.ses.model.SendRawEmailRequest;
 import software.amazon.awssdk.services.ses.model.VerifyEmailIdentityRequest;
 
+import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 import static javax.mail.Message.RecipientType.TO;
 
 @Service
@@ -33,18 +38,28 @@ public class SesService {
   private final EventConf eventConf;
   private final SesClient client;
 
-  public void sendEmail(String recipient, String subject, String htmlBody, String attachmentName,
-                        byte[] attachmentAsBytes)
+  private static void addBodyPart(MimeMultipart mimeMultipart, MimeBodyPart e) {
+    try {
+      mimeMultipart.addBodyPart(e);
+    } catch (MessagingException ex) {
+      throw new ApiException(SERVER_EXCEPTION, ex.getMessage());
+    }
+  }
+
+  public void sendEmail(String recipient, String subject, String htmlBody,
+                        List<Attachment> attachments)
       throws IOException, MessagingException {
 
     Session session = Session.getDefaultInstance(new Properties());
     MimeMessage mimeMessage = configureMimeMessage(session, subject, recipient);
     MimeBodyPart htmlPart = configureHtmlPart(htmlBody);
-    MimeBodyPart attachmentPart = configureAttachment(attachmentName, attachmentAsBytes);
+    List<MimeBodyPart> attachmentsAsMimeBodyPart = attachments.stream()
+        .map(this::toMimeBodyPart)
+        .collect(Collectors.toUnmodifiableList());
 
     MimeMultipart mimeMultipart = new MimeMultipart("mixed");
     mimeMultipart.addBodyPart(htmlPart);
-    mimeMultipart.addBodyPart(attachmentPart);
+    attachmentsAsMimeBodyPart.forEach(e -> addBodyPart(mimeMultipart, e));
     mimeMessage.setContent(mimeMultipart);
 
     try {
@@ -63,6 +78,14 @@ public class SesService {
       client.sendRawEmail(rawEmailRequest);
     } catch (IOException | MessagingException | AwsServiceException | SdkClientException e) {
       throw new RuntimeException(e);
+    }
+  }
+
+  private MimeBodyPart toMimeBodyPart(Attachment attachment) {
+    try {
+      return configureAttachment(attachment.getName(), attachment.getContent());
+    } catch (MessagingException e) {
+      throw new ApiException(SERVER_EXCEPTION, e);
     }
   }
 
@@ -100,4 +123,5 @@ public class SesService {
             .build()
     );
   }
+
 }

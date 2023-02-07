@@ -201,9 +201,10 @@ class InvoiceIT {
         .delayPenaltyPercent(20);
   }
 
-  Invoice invoice1() {
+  public static Invoice invoice1() {
     return new Invoice()
         .id(INVOICE1_ID)
+        .fileId("file1_id")
         .comment(null)
         .title("Outils pour plomberie")
         .paymentUrl("https://connect-v2-sbx.fintecture.com")
@@ -434,8 +435,7 @@ class InvoiceIT {
 
     assertThrowsApiException(
         "{\"type\":\"400 BAD_REQUEST\",\"message\":\""
-            + "The invoice reference must be unique however the given reference [unique_ref] is"
-            + " already used by invoice." + firstInvoiceId + "\"}",
+            + "Invoice.reference=unique_ref is already used" + "\"}",
         secondCrupdateExecutable);
     assertThrowsApiException("{\"type\":\"404 NOT_FOUND\",\"message\":\""
             + "Customer." + crupdateInvoiceWithNonExistentCustomer.getCustomer().getId()

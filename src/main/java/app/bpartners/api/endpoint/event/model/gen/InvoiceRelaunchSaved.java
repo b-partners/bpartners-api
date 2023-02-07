@@ -1,9 +1,11 @@
 package app.bpartners.api.endpoint.event.model.gen;
 
 import app.bpartners.api.model.AccountHolder;
+import app.bpartners.api.model.Attachment;
 import app.bpartners.api.model.Invoice;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;
+import java.util.List;
 import javax.annotation.processing.Generated;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -36,4 +38,7 @@ public class InvoiceRelaunchSaved implements Serializable {
   private AccountHolder accountHolder;
   @JsonProperty("logoFileId")
   private String logoFileId;
+
+  @JsonProperty("attachments")
+  private List<Attachment> attachments;
 }

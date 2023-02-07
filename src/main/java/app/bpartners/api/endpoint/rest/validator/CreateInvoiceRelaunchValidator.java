@@ -2,6 +2,7 @@ package app.bpartners.api.endpoint.rest.validator;
 
 import app.bpartners.api.endpoint.rest.model.CreateInvoiceRelaunch;
 import app.bpartners.api.model.exception.BadRequestException;
+import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 import org.jsoup.Jsoup;
@@ -22,6 +23,9 @@ public class CreateInvoiceRelaunchValidator implements Consumer<CreateInvoiceRel
         Objects.requireNonNullElse(emailBody, message))) {
       throw new BadRequestException("Your HTML syntax is malformed or you use other tags "
           + "than these allowed : " + allowedTags());
+    }
+    if (createInvoiceRelaunch.getAttachments() == null) {
+      createInvoiceRelaunch.setAttachments(List.of());
     }
     Jsoup.clean(Objects.requireNonNullElse(emailBody, message), getCustomSafelist());
   }

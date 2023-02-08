@@ -158,8 +158,7 @@ class CustomerIT {
     ApiClient joeDoeClient = anApiClient();
     CustomersApi api = new CustomersApi(joeDoeClient);
 
-    assertThrowsApiException(
-        "{\"type\":\"403 FORBIDDEN\",\"message\":\"Access is denied\"}",
+    assertThrowsForbiddenException(
         () -> api.createCustomers(BAD_USER_ID, List.of(createCustomer1())));
   }
 

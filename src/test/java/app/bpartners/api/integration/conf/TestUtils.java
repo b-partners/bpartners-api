@@ -349,6 +349,7 @@ public class TestUtils {
         .unitPriceWithVat(1200)
         .quantity(null)
         .totalVat(null)
+        .createdAt(Instant.parse("2022-01-01T01:00:00.00Z"))
         .totalPriceWithVat(null);
   }
 
@@ -361,6 +362,7 @@ public class TestUtils {
         .vatPercent(1000)
         .unitPriceWithVat(2200)
         .totalVat(400)
+        .createdAt(Instant.parse("2022-01-01T02:00:00.00Z"))
         .totalPriceWithVat(4400);
   }
 
@@ -373,6 +375,7 @@ public class TestUtils {
         .vatPercent(1000)
         .unitPriceWithVat(2200)
         .totalVat(600)
+        .createdAt(null)
         .totalPriceWithVat(6600);
   }
 
@@ -385,6 +388,7 @@ public class TestUtils {
         .vatPercent(1000)
         .unitPriceWithVat(2200)
         .totalVat(200)
+        .createdAt(null)
         .totalPriceWithVat(2200);
   }
 
@@ -397,6 +401,7 @@ public class TestUtils {
         .vatPercent(1000)
         .unitPriceWithVat(1100)
         .totalVat(100)
+        .createdAt(null)
         .totalPriceWithVat(1100);
   }
 

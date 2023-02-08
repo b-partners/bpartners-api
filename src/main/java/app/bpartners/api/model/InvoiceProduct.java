@@ -1,6 +1,7 @@
 package app.bpartners.api.model;
 
 import java.math.BigInteger;
+import java.time.Instant;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -23,6 +24,7 @@ public class InvoiceProduct {
   private String description;
   private Integer quantity;
   private Fraction unitPrice;
+  private Instant createdAt;
   private Fraction vatPercent;
   @Getter(AccessLevel.NONE)
   private Fraction unitPriceWithVat;

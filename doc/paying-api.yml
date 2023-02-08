@@ -971,6 +971,11 @@ components:
         - UPCOMING
         - UNKNOWN
         - REJECTED
+    OrderDirection:
+      type: string
+      enum:
+        - ASC
+        - DESC
     CreateProduct:
       type: object
       properties:
@@ -982,6 +987,9 @@ components:
           type: integer
         vatPercent:
           type: integer
+        createdAt:
+          type: string
+          format: date-time
     Product:
       allOf:
         - $ref: '#/components/schemas/CreateProduct'
@@ -994,6 +1002,9 @@ components:
           type: integer
         totalPriceWithVat:
           type: integer
+        createdAt:
+          type: string
+          format: date-time
     #TODO: rename to CreatePaymentInitiation
     PaymentInitiation:
       type: object

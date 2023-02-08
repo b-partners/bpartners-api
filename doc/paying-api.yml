@@ -982,6 +982,9 @@ components:
           type: integer
         vatPercent:
           type: integer
+        createdAt:
+          type: string
+          format: date-time
     Product:
       allOf:
         - $ref: '#/components/schemas/CreateProduct'

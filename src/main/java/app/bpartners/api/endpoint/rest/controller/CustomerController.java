@@ -2,7 +2,7 @@ package app.bpartners.api.endpoint.rest.controller;
 
 import app.bpartners.api.endpoint.rest.mapper.CustomerRestMapper;
 import app.bpartners.api.endpoint.rest.model.CreateCustomer;
-import app.bpartners.api.model.Customer;
+import app.bpartners.api.endpoint.rest.model.Customer;
 import app.bpartners.api.service.CustomerService;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -36,7 +36,7 @@ public class CustomerController {
   public List<app.bpartners.api.endpoint.rest.model.Customer> createCustomers(
       @PathVariable String id,
       @RequestBody List<CreateCustomer> toCreate) {
-    List<Customer> customers = toCreate.stream()
+    List<app.bpartners.api.model.Customer> customers = toCreate.stream()
         .map(createCustomer -> mapper.toDomain(id, createCustomer))
         .collect(Collectors.toUnmodifiableList());
     return service.crupdateCustomers(id, customers).stream()
@@ -47,12 +47,24 @@ public class CustomerController {
   @PutMapping("/accounts/{id}/customers")
   public List<app.bpartners.api.endpoint.rest.model.Customer> updateCustomers(
       @PathVariable("id") String id,
-      @RequestBody List<app.bpartners.api.endpoint.rest.model.Customer> toUpdate) {
-    List<Customer> customers = toUpdate.stream()
+      @RequestBody List<Customer> toUpdate) {
+    List<app.bpartners.api.model.Customer> customers = toUpdate.stream()
         .map(customer -> mapper.toDomain(id, customer))
         .collect(Collectors.toUnmodifiableList());
     return service.crupdateCustomers(id, customers).stream()
         .map(mapper::toRest)
         .collect(Collectors.toUnmodifiableList());
   }
+
+  @PostMapping(value = "/accounts/{accountId}/customers/upload")
+  public List<Customer> importCustomers(
+      @PathVariable(name = "accountId") String accountId,
+      @RequestBody byte[] toUpload) {
+    List<app.bpartners.api.model.Customer> customerTemplates =
+        service.getDataFromFile(accountId, toUpload);
+    return service.crupdateCustomers(accountId, customerTemplates)
+        .stream().map(mapper::toRest)
+        .collect(Collectors.toUnmodifiableList());
+  }
+
 }

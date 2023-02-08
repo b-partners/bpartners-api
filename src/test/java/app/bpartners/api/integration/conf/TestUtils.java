@@ -247,9 +247,9 @@ public class TestUtils {
     return new AnnualRevenueTarget()
         .year(2023)
         .updatedAt(Instant.parse("2022-01-01T01:00:00.00Z"))
-        .amountAttempted(1000000)
+        .amountAttempted(1356000)
         .amountTarget(1000000)
-        .amountAttemptedPercent(10000);
+        .amountAttemptedPercent(13560);
   }
 
   public static AnnualRevenueTarget annualRevenueTarget2() {

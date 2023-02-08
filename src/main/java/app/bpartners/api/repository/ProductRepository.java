@@ -10,5 +10,7 @@ public interface ProductRepository {
   List<Product> findAllByIdAccount(String idAccount, Integer page, Integer pageSize);
 
   List<Product> saveAll(String accountId, List<Product> toCreate);
+
+  List<Product> createProducts(String accountId, List<Product> toCreate);
 }
 

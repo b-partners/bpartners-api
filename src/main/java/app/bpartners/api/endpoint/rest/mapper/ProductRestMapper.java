@@ -52,6 +52,7 @@ public class ProductRestMapper {
   public app.bpartners.api.model.Product toDomain(CreateProduct createProduct) {
     createProductValidator.accept(createProduct);
     return app.bpartners.api.model.Product.builder()
+        .id(createProduct.getId() == null ? null : createProduct.getId())
         .description(createProduct.getDescription())
         .unitPrice(parseFraction(createProduct.getUnitPrice()))
         .vatPercent(parseFraction(createProduct.getVatPercent()))

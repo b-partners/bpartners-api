@@ -6,6 +6,7 @@ import app.bpartners.api.repository.ProductRepository;
 import app.bpartners.api.repository.jpa.ProductJpaRepository;
 import app.bpartners.api.repository.jpa.model.HProduct;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -26,8 +27,33 @@ public class ProductRepositoryImpl implements ProductRepository {
         .collect(Collectors.toUnmodifiableList());
   }
 
+
   @Override
   public List<Product> saveAll(String accountId, List<Product> toCreate) {
+    for (Product product : toCreate) {
+      HProduct entity = mapper.toEntity(accountId, product);
+      if (product.getId() != null) {
+        Optional<HProduct> existingProduct = jpaRepository.findById(product.getId());
+        if (existingProduct.isPresent()) {
+          existingProduct.get().setDescription(entity.getDescription());
+          existingProduct.get().setUnitPrice(entity.getUnitPrice());
+          existingProduct.get().setIdAccount(accountId);
+          existingProduct.get().setVatPercent(entity.getVatPercent());
+          mapper.toDomain(jpaRepository.save(existingProduct.get()));
+        }
+      } else {
+        mapper.toDomain(jpaRepository.save(entity));
+      }
+    }
+    List<HProduct> products = jpaRepository.findAllByIdAccount(accountId);
+
+    return products.stream()
+        .map(mapper::toDomain)
+        .collect(Collectors.toUnmodifiableList());
+  }
+
+  @Override
+  public List<Product> createProducts(String accountId, List<Product> toCreate) {
     List<HProduct> entities = jpaRepository.saveAll(toCreate.stream()
         .map(product -> mapper.toEntity(accountId, product))
         .collect(Collectors.toUnmodifiableList()));
@@ -35,4 +61,5 @@ public class ProductRepositoryImpl implements ProductRepository {
         .map(mapper::toDomain)
         .collect(Collectors.toUnmodifiableList());
   }
+
 }

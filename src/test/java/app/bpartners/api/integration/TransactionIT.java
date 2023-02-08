@@ -98,9 +98,9 @@ class TransactionIT {
     return new MonthlyTransactionsSummary()
         .id("monthly_transactions_summary1_id")
         .month(JANUARY)
-        .income(1000000)
+        .income(1356000)
         .outcome(1050)
-        .cashFlow(998950);
+        .cashFlow(1354950);
   }
 
   MonthlyTransactionsSummary month2() {
@@ -109,7 +109,7 @@ class TransactionIT {
         .month(DECEMBER)
         .income(0)
         .outcome(0)
-        .cashFlow(998950);
+        .cashFlow(1354950);
   }
 
   TransactionsSummary transactionsSummary1() {

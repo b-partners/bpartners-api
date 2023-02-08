@@ -24,6 +24,7 @@ public class ProductMapper {
               return price.multiply(vatAprational);
             }))
         .vatPercent(vatPercent)
+        .createdAt(entity.getCreatedAt())
         .build();
   }
 

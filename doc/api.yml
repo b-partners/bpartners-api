@@ -100,7 +100,10 @@ paths:
   #############################################
   /accounts/{id}/marketplaces:
     $ref: './prospecting-api.yml#/operations/getMarketplaces'
-
+  /accountHolders/{ahId}/prospects:
+    $ref: './prospecting-api.yml#/operations/prospectOperations'
+  /accountHolders/{ahId}/prospects/{id}/prospectConversion:
+    $ref: './prospecting-api.yml#/operations/convertProspect'
 components:
   securitySchemes:
     BearerAuth:

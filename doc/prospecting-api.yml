@@ -30,6 +30,119 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
+  prospectOperations:
+    get:
+      tags:
+        - Prospecting
+      summary: Get prospects for an accountHolder.
+      operationId: getProspects
+      parameters:
+        - in: path
+          name: ahId
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description: List of prospects for an accountHolder.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Prospect'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
+    post:
+      tags:
+        - Prospecting
+      summary: Get prospects for an accountHolder.
+      operationId: createProspects
+      parameters:
+        - in: path
+          name: ahId
+          schema:
+            type: string
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/CreateProspect'
+      responses:
+        200:
+          description: List of created prospects.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Prospect'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
+  convertProspect:
+    put:
+      tags:
+        - Prospecting
+      summary: Convert prospect of an accountHolder.
+      operationId: convertProspect
+      parameters:
+        - in: path
+          name: ahId
+          schema:
+            type: string
+          required: true
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/ProspectConversion'
+      responses:
+        200:
+          description: The converted prospect.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Prospect'
+      400:
+        $ref: './api.yml#/components/responses/400'
+      403:
+        $ref: './api.yml#/components/responses/403'
+      404:
+        $ref: './api.yml#/components/responses/404'
+      429:
+        $ref: './api.yml#/components/responses/429'
+      500:
+        $ref: './api.yml#/components/responses/500'
 components:
   schemas:
     Marketplace:
@@ -47,3 +160,37 @@ components:
           type: string
         logoUrl:
           type: string
+    ProspectStatus:
+      type: string
+      enum:
+        - TO_CONTACT
+        - CONTACTED
+        - CONVERTED
+    CreateProspect:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        location:
+          type: string
+        status:
+          $ref: '#/components/schemas/ProspectStatus'
+    Prospect:
+      allOf:
+        - $ref: '#/components/schemas/CreateProspect'
+      properties:
+        id:
+          type: string
+    ProspectConversion:
+      type: object
+      properties:
+        emailSentAt:
+          type: string
+          format: date-time
+        emailRepliedAt:
+          type: string
+          format: date-time

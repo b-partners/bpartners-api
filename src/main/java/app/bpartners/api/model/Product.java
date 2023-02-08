@@ -1,5 +1,6 @@
 package app.bpartners.api.model;
 
+import java.time.Instant;
 import java.util.Objects;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -24,6 +25,7 @@ public class Product {
   @Getter(AccessLevel.NONE)
   private Fraction unitPriceWithVat;
   private Fraction vatPercent;
+  private Instant createdAt;
 
   public Fraction getUnitPriceWithVat() {
     return unitPrice.operate(vatPercent,

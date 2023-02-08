@@ -80,7 +80,8 @@ public class InvoiceRestMapper {
       String accountId, String id, CrupdateInvoice rest) {
     crupdateInvoiceValidator.accept(rest);
 
-    if (!invoiceService.hasAvailableReference(accountId, rest.getRef(), rest.getStatus())) {
+    if (!invoiceService.hasAvailableReference(accountId, rest.getRef(), rest.getStatus())
+      && invoiceService.getByIdAndRefAndStatus(accountId, rest.getRef(), rest.getStatus()).contains(rest)) {
       throw new BadRequestException("Invoice.reference=" + rest.getRef() + " is already used");
     }
 

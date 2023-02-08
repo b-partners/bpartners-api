@@ -13,4 +13,8 @@ public interface InvoiceRepository {
       String accountId, InvoiceStatus status, int page, int pageSize);
 
   List<Invoice> findAllByAccountId(String accountId, int page, int pageSize);
+
+  List<Invoice> findAllByAccountIdAndRefAndStatus(
+      String accountId, String ref, InvoiceStatus status
+  );
 }

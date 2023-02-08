@@ -43,6 +43,10 @@ public class InvoiceService {
     return repository.getById(invoiceId);
   }
 
+  public List<Invoice> getByIdAndRefAndStatus(String accounId, String ref, InvoiceStatus status){
+    return repository.findAllByAccountIdAndRefAndStatus(accounId, ref, status);
+  }
+
   public boolean hasAvailableReference(String accountId, String reference, InvoiceStatus status) {
     if (reference == null) {
       return true;

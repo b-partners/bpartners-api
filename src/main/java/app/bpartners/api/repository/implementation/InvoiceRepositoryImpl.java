@@ -102,6 +102,13 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
         .collect(Collectors.toUnmodifiableList());
   }
 
+  @Override
+  public List<Invoice> findAllByAccountIdAndRefAndStatus(String accountId, String ref, InvoiceStatus status) {
+    return jpaRepository.findByIdAccountAndRefAndStatus(accountId, ref, status).stream()
+        .map(mapper::toDomain)
+        .collect(Collectors.toUnmodifiableList());
+  }
+
   private List<HInvoiceProduct> getProductEntities(Invoice toCrupdate, HInvoice invoice) {
     return toCrupdate.getProducts().stream()
         .map(product -> productMapper.toEntity(product, invoice))

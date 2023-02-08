@@ -32,6 +32,7 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
   private final HandlerExceptionResolver exceptionResolver;
   private final AuthenticatedResourceProvider authResourceProvider;
 
+
   public SecurityConf(
       AuthProvider authProvider,
       // InternalToExternalErrorHandler behind
@@ -123,6 +124,9 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
         ).authenticated()
         .requestMatchers(
             new SelfAccountMatcher(GET, "/accounts/*/products", authResourceProvider)
+        ).authenticated()
+        .requestMatchers(
+            new SelfAccountMatcher(PUT, "/accounts/*/products", authResourceProvider)
         ).authenticated()
         .requestMatchers(
             new SelfAccountMatcher(POST, "/accounts/*/products", authResourceProvider)

@@ -8,6 +8,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 import org.apfloat.Aprational;
 
 import static org.apfloat.Apcomplex.ONE;
@@ -17,6 +18,7 @@ import static org.apfloat.Apcomplex.ONE;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@ToString
 public class Product {
   private String id;
   private String accountId;

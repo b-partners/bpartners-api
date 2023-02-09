@@ -142,9 +142,6 @@ public class TestUtils {
   public static final String UNKNOWN_TRANSACTION_ID = "unknown_transaction_id";
   public static final String SESSION1_ID = "session1_id";
   public static final String SESSION2_ID = "session2_id";
-  public static final String NOT_JOE_DOE_ACCOUNT_HOLDER_ID = "NOT_" + SWAN_ACCOUNTHOLDER_ID;
-  public static final String ACCESS_DENIED_MESSAGE = "{\"type\":\"403 FORBIDDEN\","
-      + "\"message\":\"Access is denied\"}";
 
   public static User restJoeDoeUser() {
     return new User()
@@ -377,7 +374,7 @@ public class TestUtils {
         .vatPercent(1000)
         .unitPriceWithVat(2200)
         .totalVat(600)
-        .createdAt(null)
+        .createdAt(Instant.parse("2022-01-01T03:00:00.00Z"))
         .totalPriceWithVat(6600);
   }
 
@@ -390,7 +387,7 @@ public class TestUtils {
         .vatPercent(1000)
         .unitPriceWithVat(2200)
         .totalVat(200)
-        .createdAt(null)
+        .createdAt(Instant.parse("2022-01-01T04:00:00.00Z"))
         .totalPriceWithVat(2200);
   }
 
@@ -403,7 +400,7 @@ public class TestUtils {
         .vatPercent(1000)
         .unitPriceWithVat(1100)
         .totalVat(100)
-        .createdAt(null)
+        .createdAt(Instant.parse("2022-01-01T04:00:00.00Z"))
         .totalPriceWithVat(1100);
   }
 

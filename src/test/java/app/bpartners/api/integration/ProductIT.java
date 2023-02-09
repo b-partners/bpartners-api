@@ -20,7 +20,11 @@ import app.bpartners.api.repository.sendinblue.SendinblueConf;
 import app.bpartners.api.repository.swan.AccountHolderSwanRepository;
 import app.bpartners.api.repository.swan.AccountSwanRepository;
 import app.bpartners.api.repository.swan.UserSwanRepository;
+
+import java.time.Instant;
 import java.util.List;
+
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
@@ -98,7 +102,8 @@ class ProductIT {
         .description("Nouveau produit")
         .quantity(1)
         .unitPrice(9000)
-        .vatPercent(1000);
+        .vatPercent(1000)
+        .createdAt(Instant.parse("2023-01-01T04:00:00.00Z"));
   }
 
   @Order(1)

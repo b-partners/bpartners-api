@@ -338,6 +338,7 @@ public class TestUtils {
         .unitPriceWithVat(1200)
         .quantity(null)
         .totalVat(null)
+        .createdAt(Instant.parse("2022-01-01T01:00:00.00Z"))
         .totalPriceWithVat(null);
   }
 
@@ -350,6 +351,7 @@ public class TestUtils {
         .vatPercent(1000)
         .unitPriceWithVat(2200)
         .totalVat(400)
+        .createdAt(Instant.parse("2022-01-01T02:00:00.00Z"))
         .totalPriceWithVat(4400);
   }
 
@@ -362,6 +364,7 @@ public class TestUtils {
         .vatPercent(1000)
         .unitPriceWithVat(2200)
         .totalVat(600)
+        .createdAt(Instant.parse("2022-01-01T03:00:00.00Z"))
         .totalPriceWithVat(6600);
   }
 
@@ -374,6 +377,7 @@ public class TestUtils {
         .vatPercent(1000)
         .unitPriceWithVat(2200)
         .totalVat(200)
+        .createdAt(Instant.parse("2022-01-01T04:00:00.00Z"))
         .totalPriceWithVat(2200);
   }
 
@@ -386,6 +390,7 @@ public class TestUtils {
         .vatPercent(1000)
         .unitPriceWithVat(1100)
         .totalVat(100)
+        .createdAt(Instant.parse("2022-01-01T04:00:00.00Z"))
         .totalPriceWithVat(1100);
   }
 
@@ -394,7 +399,8 @@ public class TestUtils {
         .description("Tableau baobab")
         .quantity(1)
         .unitPrice(2000)
-        .vatPercent(1000);
+        .vatPercent(1000)
+        .createdAt(Instant.parse("2023-02-08T04:00:00.00Z"));
   }
 
   public static CreateProduct createProduct4() {
@@ -402,7 +408,8 @@ public class TestUtils {
         .description("Coude et accessoires")
         .quantity(1)
         .unitPrice(2000)
-        .vatPercent(1000);
+        .vatPercent(1000)
+        .createdAt(Instant.parse("2023-01-08T04:00:00.00Z"));
   }
 
   public static CreateProduct createProduct5() {
@@ -410,7 +417,8 @@ public class TestUtils {
         .description("Machine agro-alimentaire")
         .quantity(1)
         .unitPrice(1000)
-        .vatPercent(1000);
+        .vatPercent(1000)
+        .createdAt(Instant.parse("2023-02-09T04:00:00.00Z"));
   }
 
   public static TransactionCategory transactionCategory1() {

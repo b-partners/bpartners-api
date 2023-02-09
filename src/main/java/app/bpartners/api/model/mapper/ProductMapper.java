@@ -24,6 +24,7 @@ public class ProductMapper {
               return price.multiply(vatAprational);
             }))
         .vatPercent(vatPercent)
+        .createdAt(entity.getCreatedAt())
         .build();
   }
 
@@ -33,6 +34,7 @@ public class ProductMapper {
         .description(product.getDescription())
         .unitPrice(product.getUnitPrice().toString())
         .vatPercent(product.getVatPercent().toString())
+        .createdAt(product.getCreatedAt())
         .build();
   }
 }

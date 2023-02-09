@@ -1,5 +1,6 @@
 package app.bpartners.api.repository.jpa.model;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
@@ -12,6 +13,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
+import java.time.Instant;
 import static javax.persistence.GenerationType.IDENTITY;
 
 @Entity
@@ -31,4 +33,6 @@ public class HProduct {
   private String description;
   private String unitPrice;
   private String vatPercent;
+  @Column(name = "created_datetime")
+  private Instant createdAt;
 }

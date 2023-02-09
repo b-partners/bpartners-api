@@ -21,7 +21,8 @@ public class ProductRestMapper {
         .description(domain.getDescription())
         .unitPrice(domain.getUnitPrice().getCentsRoundUp())
         .unitPriceWithVat(domain.getUnitPriceWithVat().getCentsRoundUp())
-        .vatPercent(domain.getVatPercent().getCentsRoundUp());
+        .vatPercent(domain.getVatPercent().getCentsRoundUp())
+        .createdAt(domain.getCreatedAt());
   }
 
   public Product toRest(app.bpartners.api.model.InvoiceProduct domain) {
@@ -33,7 +34,8 @@ public class ProductRestMapper {
         .unitPriceWithVat(domain.getUnitPriceWithVat().getCentsRoundUp())
         .vatPercent(domain.getVatPercent().getCentsRoundUp())
         .totalVat(domain.getTotalVat().getCentsRoundUp())
-        .totalPriceWithVat(domain.getTotalPriceWithVat().getCentsRoundUp());
+        .totalPriceWithVat(domain.getTotalPriceWithVat().getCentsRoundUp())
+        .createdAt(domain.getCreatedAt());
   }
 
   public app.bpartners.api.model.InvoiceProduct toInvoiceDomain(CreateProduct createProduct) {
@@ -44,6 +46,7 @@ public class ProductRestMapper {
         .unitPrice(parseFraction(createProduct.getUnitPrice()))
         .vatPercent(parseFraction(createProduct.getVatPercent()))
         .quantity(quantity)
+        .createdAt(createProduct.getCreatedAt())
         .build();
   }
 
@@ -53,6 +56,7 @@ public class ProductRestMapper {
         .description(createProduct.getDescription())
         .unitPrice(parseFraction(createProduct.getUnitPrice()))
         .vatPercent(parseFraction(createProduct.getVatPercent()))
+        .createdAt(createProduct.getCreatedAt())
         .build();
   }
 
@@ -63,6 +67,7 @@ public class ProductRestMapper {
         .description(product.getDescription())
         .unitPrice(parseFraction(product.getUnitPrice()))
         .vatPercent(parseFraction(product.getVatPercent()))
+        .createdAt(product.getCreatedAt())
         .build();
   }
 }

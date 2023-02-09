@@ -1,5 +1,6 @@
 package app.bpartners.api.repository.jpa.model;
 
+import java.time.Instant;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -12,8 +13,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-
-import java.time.Instant;
 import org.hibernate.annotations.CreationTimestamp;
 
 import static javax.persistence.GenerationType.IDENTITY;

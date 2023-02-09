@@ -422,7 +422,7 @@ operations:
             $ref: '#/components/schemas/OrderDirection'
           description: Filter product by unit price
         - in: query
-          name: createdDate
+          name: createdAt
           schema:
             $ref: '#/components/schemas/OrderDirection'
           description: Filter product by created date

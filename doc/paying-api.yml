@@ -375,8 +375,18 @@ operations:
         - in: query
           name: description
           schema:
-            type: string
+            $ref: '#/components/schemas/OrderDirection'
           description: Filter product by description
+        - in: query
+          name: unitPrice
+          schema:
+            $ref: '#/components/schemas/OrderDirection'
+          description: Filter product by unit price
+        - in: query
+          name: createdAt
+          schema:
+            $ref: '#/components/schemas/OrderDirection'
+          description: Filter product by created date
       responses:
         200:
           description: List of known products of the account
@@ -971,6 +981,11 @@ components:
         - UPCOMING
         - UNKNOWN
         - REJECTED
+    OrderDirection:
+      type: string
+      enum:
+        - ASC
+        - DESC
     CreateProduct:
       type: object
       properties:

@@ -68,6 +68,8 @@ paths:
     $ref: './paying-api.yml#/operations/createTransactionCategories'
   /accounts/{id}/products:
     $ref: './paying-api.yml#/operations/productOperations'
+  /accounts/{aId}/products/status:
+    $ref: './paying-api.yml#/operations/updateProductsStatus'
   /accounts/{aId}/invoices:
     $ref: './paying-api.yml#/operations/getInvoices'
   /accounts/{aId}/invoices/{iId}:

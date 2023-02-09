@@ -142,6 +142,7 @@ public class TestUtils {
   public static final String UNKNOWN_TRANSACTION_ID = "unknown_transaction_id";
   public static final String SESSION1_ID = "session1_id";
   public static final String SESSION2_ID = "session2_id";
+  public static final String NOT_JOE_DOE_ACCOUNT_HOLDER_ID = "NOT_" + SWAN_ACCOUNTHOLDER_ID;
 
   public static User restJoeDoeUser() {
     return new User()

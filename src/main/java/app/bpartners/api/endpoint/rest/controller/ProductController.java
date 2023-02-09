@@ -70,4 +70,15 @@ public class ProductController {
         .map(mapper::toRest)
         .collect(Collectors.toUnmodifiableList());
   }
+
+  @PostMapping(value = "/accounts/{accountId}/products/upload")
+  public List<Product> uploadProductsList(
+      @PathVariable(name = "accountId") String accountId,
+      @RequestBody byte[] toUpload) {
+    List<app.bpartners.api.model.Product> products =
+        productService.getDataFromFile(accountId, toUpload);
+    return productService.crupdate(accountId, products)
+        .stream().map(mapper::toRest)
+        .collect(Collectors.toUnmodifiableList());
+  }
 }

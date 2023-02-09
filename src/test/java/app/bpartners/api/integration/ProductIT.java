@@ -21,6 +21,14 @@ import app.bpartners.api.repository.sendinblue.SendinblueConf;
 import app.bpartners.api.repository.swan.AccountHolderSwanRepository;
 import app.bpartners.api.repository.swan.AccountSwanRepository;
 import app.bpartners.api.repository.swan.UserSwanRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.type.CollectionType;
+import java.io.File;
+import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
@@ -31,10 +39,15 @@ import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import static app.bpartners.api.integration.conf.TestUtils.BEARER_PREFIX;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
+import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_TOKEN;
 import static app.bpartners.api.integration.conf.TestUtils.product1;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountHolderSwanRep;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountSwanRepository;
@@ -45,6 +58,7 @@ import static app.bpartners.api.integration.conf.TestUtils.setUpSwanComponent;
 import static app.bpartners.api.integration.conf.TestUtils.setUpUserSwanRepository;
 import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
@@ -86,25 +100,6 @@ class ProductIT {
     return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN, ProductIT.ContextInitializer.SERVER_PORT);
   }
 
-  @BeforeEach
-  public void setUp() {
-    setUpUserSwanRepository(userSwanRepositoryMock);
-    setUpAccountSwanRepository(accountSwanRepositoryMock);
-    setUpAccountHolderSwanRep(accountHolderRepositoryMock);
-    setUpSwanComponent(swanComponentMock);
-    setUpPaymentInitiationRep(paymentInitiationRepositoryMock);
-    setUpPaymentInfoRepository(paymentInfoRepositoryMock);
-    setUpLegalFileRepository(legalFileRepositoryMock);
-  }
-
-  CreateProduct createProduct1() {
-    return new CreateProduct()
-        .description("Nouveau produit")
-        .quantity(1)
-        .unitPrice(9000)
-        .vatPercent(1000);
-  }
-
   private static Product updatedProduct(Product product) {
     return new Product()
         .id(product.getId())
@@ -123,6 +118,25 @@ class ProductIT {
         .vatPercent(1000)
         .unitPrice(9000)
         .unitPriceWithVat(9900);
+  }
+
+  @BeforeEach
+  public void setUp() {
+    setUpUserSwanRepository(userSwanRepositoryMock);
+    setUpAccountSwanRepository(accountSwanRepositoryMock);
+    setUpAccountHolderSwanRep(accountHolderRepositoryMock);
+    setUpSwanComponent(swanComponentMock);
+    setUpPaymentInitiationRep(paymentInitiationRepositoryMock);
+    setUpPaymentInfoRepository(paymentInfoRepositoryMock);
+    setUpLegalFileRepository(legalFileRepositoryMock);
+  }
+
+  CreateProduct createProduct1() {
+    return new CreateProduct()
+        .description("Nouveau produit")
+        .quantity(1)
+        .unitPrice(9000)
+        .vatPercent(1000);
   }
 
   @Order(1)
@@ -206,6 +220,55 @@ class ProductIT {
     // Pay attention with multiple orders then
     assertTrue((actual3.get(0).getUnitPrice() >= actual3.get(1).getUnitPrice())
         && (actual3.get(0).getDescription().compareTo(actual3.get(1).getDescription()) <= 0));
+  }
+
+  @Test
+  void create_products_from_an_uploaded_excel_file_ok()
+      throws InterruptedException, IOException {
+    Resource fileToUpload = new ClassPathResource("files/products.xlsx");
+
+    HttpResponse<String> response = uploadFile(JOE_DOE_ACCOUNT_ID, fileToUpload.getFile());
+    CollectionType productListType = new ObjectMapper().getTypeFactory()
+        .constructCollectionType(List.class, Product.class);
+    List<Product> actual = new ObjectMapper().findAndRegisterModules()
+        .readValue(response.body(), productListType);
+
+    assertEquals(HttpStatus.OK.value(), response.statusCode());
+    assertNotNull(actual);
+    assertEquals(4, actual.size()); //All duplicate lines in the file are removed
+  }
+
+  @Test
+  void create_products_from_an_uploaded_excel_file_ko()
+      throws InterruptedException, IOException {
+    Resource fileToUpload = new ClassPathResource("files/wrong.xlsx");
+
+    HttpResponse<String> response = uploadFile(JOE_DOE_ACCOUNT_ID, fileToUpload.getFile());
+
+    assertEquals(HttpStatus.BAD_REQUEST.value(), response.statusCode());
+    assertEquals(
+        "{\"type\":\"400 BAD_REQUEST\",\"message\":\""
+            + "\"Description\" instead of \"Autres\" at column 1. "
+            + "\"Quantité\" instead of \"Quantity\" at column 2. "
+            + "\"Prix unitaire\" instead of \"unitPrice\" at column 3. "
+            + "\"TVA (%)\" instead of \"vatPercent\" at the last column.\"}"
+        , response.body().replace("\\", ""));
+  }
+
+  private HttpResponse<String> uploadFile(String accountId, File toUpload)
+      throws InterruptedException, IOException {
+    HttpClient unauthenticatedClient = HttpClient.newBuilder().build();
+    String basePath = "http://localhost:" + ProductIT.ContextInitializer.SERVER_PORT;
+
+    HttpResponse<String> response = unauthenticatedClient.send(
+        HttpRequest.newBuilder()
+            .uri(URI.create(
+                basePath + "/accounts/" + accountId + "/products/upload"))
+            .header("Authorization", BEARER_PREFIX + JOE_DOE_TOKEN)
+            .method("POST", HttpRequest.BodyPublishers.ofFile(toUpload.toPath())).build(),
+        HttpResponse.BodyHandlers.ofString());
+
+    return response;
   }
 
   static class ContextInitializer extends AbstractContextInitializer {

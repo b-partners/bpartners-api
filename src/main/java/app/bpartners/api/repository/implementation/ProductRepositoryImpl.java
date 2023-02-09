@@ -35,6 +35,13 @@ public class ProductRepositoryImpl implements ProductRepository {
         .collect(Collectors.toUnmodifiableList());
   }
 
+  @Override
+  public List<Product> findAllByIdAccount(String idAccount) {
+    return jpaRepository.findAllByIdAccount(idAccount).stream()
+        .map(mapper::toDomain)
+        .collect(Collectors.toUnmodifiableList());
+  }
+
   private List<Order> retrieveOrders(OrderDirection descriptionOrder,
                                      OrderDirection unitPriceOrder,
                                      OrderDirection createdAtOrder) {

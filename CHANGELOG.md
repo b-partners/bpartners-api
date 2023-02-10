@@ -1,3 +1,22 @@
+# [0.6.0](https://github.com/b-partners/bpartners-api/compare/v0.5.0...v0.6.0) (2023-02-09)
+
+
+### Bug Fixes
+
+* display HT instead of TTC when account holder is not subject to vat ([208521e](https://github.com/b-partners/bpartners-api/commit/208521eec25ed612dd32cb8f79bb27f0bfd3212e))
+* format revenue target amount attempted as cent ([e30ca7f](https://github.com/b-partners/bpartners-api/commit/e30ca7f28e98b71268f428db9676c5ed83a34bc1))
+* refresh transaction summary is invoked every hour ([d58e966](https://github.com/b-partners/bpartners-api/commit/d58e9663f7ae3db79d1d6e874e611212b8ba5c95))
+* set product vat percent to 0 by default ([429293d](https://github.com/b-partners/bpartners-api/commit/429293d1d3817b6fe9cadd7df9903bca36bc6955))
+* total without vat is shown in confirmed invoice when account holder not subject to vat ([64c1708](https://github.com/b-partners/bpartners-api/commit/64c1708af43e45bcf53e5bf2332f0ff759ab0473))
+* total without vat is shown in draft invoice when account holder not subject to vat ([89a96e1](https://github.com/b-partners/bpartners-api/commit/89a96e1690a9273b10096c4171f0e7975faaf04b))
+
+
+### Features
+
+* add comment field to customer ([a0e8beb](https://github.com/b-partners/bpartners-api/commit/a0e8beba9b089853e225c46e41e34efd04f75704))
+
+
+
 # [0.5.0](https://github.com/b-partners/bpartners-api/compare/v0.4.4...v0.5.0) (2023-02-02)
 
 
@@ -119,15 +138,6 @@
 ### Bug Fixes
 
 * map dates correctly in ts-client ([1b98dde](https://github.com/b-partners/bpartners-api/commit/1b98dde08caab7cacdc8d34fba66a7f1ae7f14e0))
-
-
-
-## [0.2.1](https://github.com/b-partners/bpartners-api/compare/v0.2.0...v0.2.1) (2023-01-07)
-
-
-### Bug Fixes
-
-* ts-client generation withSeparateModelsAndApi is broken ([bf51b2e](https://github.com/b-partners/bpartners-api/commit/bf51b2e5de45e000d918798a293d2a3530847705))
 
 
 

@@ -140,6 +140,9 @@ public class TestUtils {
   public static final String UNKNOWN_TRANSACTION_ID = "unknown_transaction_id";
   public static final String SESSION1_ID = "session1_id";
   public static final String SESSION2_ID = "session2_id";
+  public static final String NOT_JOE_DOE_ACCOUNT_HOLDER_ID = "NOT_" + SWAN_ACCOUNTHOLDER_ID;
+  public static final String ACCESS_DENIED_MESSAGE = "{\"type\":\"403 FORBIDDEN\","
+      + "\"message\":\"Access is denied\"}";
 
   public static User restJoeDoeUser() {
     return new User()
@@ -247,9 +250,9 @@ public class TestUtils {
     return new AnnualRevenueTarget()
         .year(2023)
         .updatedAt(Instant.parse("2022-01-01T01:00:00.00Z"))
-        .amountAttempted(1000000)
+        .amountAttempted(1356000)
         .amountTarget(1000000)
-        .amountAttemptedPercent(100);
+        .amountAttemptedPercent(13560);
   }
 
   public static AnnualRevenueTarget annualRevenueTarget2() {
@@ -277,6 +280,8 @@ public class TestUtils {
     return new Customer()
         .id("customer1_id")
         .name("Luc Artisan")
+        .firstName("Luc")
+        .lastName("Artisan")
         .email("bpartners.artisans@gmail.com")
         .phone("+33 12 34 56 78")
         .website("https://luc.website.com")
@@ -291,6 +296,8 @@ public class TestUtils {
     return new Customer()
         .id("customer2_id")
         .name("Jean Plombier")
+        .firstName("Jean")
+        .lastName("Plombier")
         .email("jean@email.com")
         .phone("+33 12 34 56 78")
         .website("https://jean.website.com")
@@ -305,6 +312,8 @@ public class TestUtils {
     return new Customer()
         .id("customer3_id")
         .name("Marc Montagnier")
+        .firstName("Marc")
+        .lastName("Montagnier")
         .email("marcmontagnier@gmail.com")
         .phone("+33 12 34 56 78")
         .website("https://marc.website.com")
@@ -319,6 +328,8 @@ public class TestUtils {
     return new Customer()
         .id("customer3_id")
         .name("Marc Montagnier")
+        .firstName("Marc")
+        .lastName("Montagnier")
         .email(null)
         .phone(null)
         .website(null)
@@ -338,6 +349,7 @@ public class TestUtils {
         .unitPriceWithVat(1200)
         .quantity(null)
         .totalVat(null)
+        .createdAt(Instant.parse("2022-01-01T01:00:00.00Z"))
         .totalPriceWithVat(null);
   }
 
@@ -350,6 +362,7 @@ public class TestUtils {
         .vatPercent(1000)
         .unitPriceWithVat(2200)
         .totalVat(400)
+        .createdAt(Instant.parse("2022-01-01T02:00:00.00Z"))
         .totalPriceWithVat(4400);
   }
 
@@ -362,6 +375,7 @@ public class TestUtils {
         .vatPercent(1000)
         .unitPriceWithVat(2200)
         .totalVat(600)
+        .createdAt(null)
         .totalPriceWithVat(6600);
   }
 
@@ -374,6 +388,7 @@ public class TestUtils {
         .vatPercent(1000)
         .unitPriceWithVat(2200)
         .totalVat(200)
+        .createdAt(null)
         .totalPriceWithVat(2200);
   }
 
@@ -386,6 +401,7 @@ public class TestUtils {
         .vatPercent(1000)
         .unitPriceWithVat(1100)
         .totalVat(100)
+        .createdAt(null)
         .totalPriceWithVat(1100);
   }
 

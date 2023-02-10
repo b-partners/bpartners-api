@@ -107,7 +107,7 @@ class ProductIT {
     ApiClient joeDoeClient = anApiClient();
     PayingApi api = new PayingApi(joeDoeClient);
 
-    List<Product> actual = api.getProducts(JOE_DOE_ACCOUNT_ID, null, null);
+    List<Product> actual = api.getProducts(JOE_DOE_ACCOUNT_ID, null, null, null, null);
 
     assertEquals(6, actual.size());
     assertTrue(actual.contains(product1()));
@@ -122,7 +122,9 @@ class ProductIT {
     List<Product> actual =
         api.createProducts(JOE_DOE_ACCOUNT_ID, List.of(createProduct1()));
 
-    List<Product> actualProducts = api.getProducts(JOE_DOE_ACCOUNT_ID, true, null);
+    List<Product> actualProducts = api.getProducts(JOE_DOE_ACCOUNT_ID, true, null, null, null);
+    assertTrue(actualProducts.stream()
+        .allMatch(product -> product.getCreatedAt() != null));
     assertTrue(actualProducts.containsAll(actual));
   }
 

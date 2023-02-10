@@ -60,7 +60,8 @@ public class InvoiceRelaunchService {
   private static String getDefaultSubject(Invoice invoice) {
     return "Votre " + getStatusValue(invoice.getStatus())
         + ", portant la référence " + invoice.getRef() + ", au nom de "
-        + invoice.getCustomer().getName().toUpperCase();
+        + invoice.getCustomer().getFirstName().toUpperCase() + " "
+        + invoice.getCustomer().getLastName().toUpperCase();
   }
 
   private static String getSubject(AccountHolder accountHolder, String subject) {

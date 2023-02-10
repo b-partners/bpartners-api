@@ -5,15 +5,13 @@ import app.bpartners.api.endpoint.rest.model.CreateAttachment;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import static app.bpartners.api.service.utils.FileUtils.toByteArray;
-
 @Component
 @Slf4j
 public class AttachmentRestMapper {
   public app.bpartners.api.model.Attachment toDomain(CreateAttachment createAttachment) {
     return app.bpartners.api.model.Attachment.builder()
         .name(createAttachment.getName())
-        .content(toByteArray(createAttachment.getContent()))
+        .content(createAttachment.getContent())
         .build();
   }
 

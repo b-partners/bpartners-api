@@ -1,6 +1,7 @@
 package app.bpartners.api.unit.validator;
 
 import app.bpartners.api.endpoint.rest.model.CrupdateInvoice;
+import app.bpartners.api.endpoint.rest.validator.CreateProductValidator;
 import app.bpartners.api.endpoint.rest.validator.CrupdateInvoiceValidator;
 import app.bpartners.api.model.exception.BadRequestException;
 import java.time.LocalDate;
@@ -13,8 +14,10 @@ import static app.bpartners.api.integration.conf.TestUtils.createProduct5;
 import static app.bpartners.api.integration.conf.TestUtils.customer1;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.mock;
 
 class CrupdateInvoiceValidatorTest {
+
   private final CrupdateInvoiceValidator validator = new CrupdateInvoiceValidator();
 
   CrupdateInvoice validInvoice() {

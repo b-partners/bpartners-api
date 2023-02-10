@@ -15,6 +15,14 @@ operations:
           name: name
           schema:
             type: string
+        - in: query
+          name: firstName
+          schema:
+            type: string
+        - in: query
+          name: lastName
+          schema:
+            type: string
       responses:
         200:
           description: List of customers of the specified account
@@ -115,6 +123,10 @@ components:
       type: object
       properties:
         name:
+          type: string
+        firstName:
+          type: string
+        lastName:
           type: string
         email:
           type: string

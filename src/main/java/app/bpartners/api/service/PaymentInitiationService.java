@@ -4,6 +4,7 @@ import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.PaymentInitiation;
 import app.bpartners.api.model.PaymentRedirection;
+import app.bpartners.api.model.mapper.PaymentRequestMapper;
 import app.bpartners.api.repository.PaymentInitiationRepository;
 import java.util.List;
 import java.util.Objects;
@@ -16,6 +17,7 @@ import static java.util.UUID.randomUUID;
 @AllArgsConstructor
 public class PaymentInitiationService {
   private final PaymentInitiationRepository repository;
+  private final PaymentRequestMapper mapper;
 
   public List<PaymentRedirection> initiatePayments(List<PaymentInitiation> paymentInitiations) {
     return repository.saveAll(paymentInitiations, null);
@@ -32,8 +34,8 @@ public class PaymentInitiationService {
         .label(invoice.getTitle())
         .amount(totalPriceWithVat)
         //TODO: use customerName and customerEmail when overriding
-        .payerName(invoice.getCustomer() == null
-            ? null : invoice.getCustomer().getName())
+        .payerName(invoice.getCustomer() == null ? null
+            : invoice.getCustomer().getName())
         .payerEmail(invoice.getCustomer() == null
             ? null : invoice.getCustomer().getEmail())
         .successUrl("https://dashboard-dev.bpartners.app") //TODO: to change

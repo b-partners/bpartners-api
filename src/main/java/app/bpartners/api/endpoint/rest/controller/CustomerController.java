@@ -24,8 +24,10 @@ public class CustomerController {
   @GetMapping("/accounts/{id}/customers")
   public List<app.bpartners.api.endpoint.rest.model.Customer> getCustomers(
       @PathVariable String id,
-      @RequestParam(required = false) String name) {
-    return service.getCustomers(id, name).stream()
+      @RequestParam(required = false) String name,
+      @RequestParam(required = false) String firstName,
+      @RequestParam(required = false) String lastName) {
+    return service.getCustomers(id, name, firstName, lastName).stream()
         .map(mapper::toRest)
         .collect(Collectors.toUnmodifiableList());
   }

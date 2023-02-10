@@ -1040,7 +1040,7 @@ components:
           type: string
         content:
           type: string
-          format: binary
+          format: byte
     Attachment:
       allOf:
         - $ref: '#/components/schemas/CreateAttachment'

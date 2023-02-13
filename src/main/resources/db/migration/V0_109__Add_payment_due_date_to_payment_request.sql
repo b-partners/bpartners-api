@@ -1,2 +1,2 @@
 alter table payment_request
-    add column payment_due_date date;
+    add column if not exists payment_due_date date;

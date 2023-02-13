@@ -1,2 +1,2 @@
 alter table payment_request
-    drop constraint fk_invoice_payment;
+    drop constraint if exists fk_invoice_payment;

@@ -355,6 +355,45 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
+  updateProductsStatus:
+    put:
+      tags:
+        - Paying
+      summary: Update products status for an account
+      operationId: updateProductsStatus
+      parameters:
+        - in: path
+          name: aId
+          schema:
+            type: string
+          description: Account identifier
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/UpdateProductStatus'
+      responses:
+        200:
+          description: List of products updated
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Product'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
   productOperations:
     get:
       tags:
@@ -485,7 +524,6 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
-
   getInvoices:
     get:
       tags:
@@ -1086,6 +1124,20 @@ components:
         createdAt:
           type: string
           format: date-time
+        status:
+          $ref: '#/components/schemas/ProductStatus'
+    ProductStatus:
+      type: string
+      enum:
+        - ENABLED
+        - DISABLED
+    UpdateProductStatus:
+      type: object
+      properties:
+        id:
+          type: string
+        status:
+          $ref: '#/components/schemas/ProductStatus'
     #TODO: rename to CreatePaymentInitiation
     PaymentInitiation:
       type: object

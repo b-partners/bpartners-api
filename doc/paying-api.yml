@@ -355,7 +355,7 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
-  getOrCreateProducts:
+  productOperations:
     get:
       tags:
         - Paying
@@ -406,6 +406,46 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
+    put:
+      tags:
+        - Paying
+      operationId: crupdateProducts
+      summary: Create or update products of an account
+      parameters:
+        - in: path
+          name: id
+          description: Account identifier
+          schema:
+            type: string
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/CreateProduct'
+      responses:
+        200:
+          description: The created products
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Product'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
+
     post:
       tags:
         - Paying
@@ -445,6 +485,7 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
+
   getInvoices:
     get:
       tags:
@@ -1022,6 +1063,8 @@ components:
     CreateProduct:
       type: object
       properties:
+        id:
+          type: string
         description:
           type: string
         quantity:
@@ -1034,8 +1077,6 @@ components:
       allOf:
         - $ref: '#/components/schemas/CreateProduct'
       properties:
-        id:
-          type: string
         unitPriceWithVat:
           type: integer
         totalVat:

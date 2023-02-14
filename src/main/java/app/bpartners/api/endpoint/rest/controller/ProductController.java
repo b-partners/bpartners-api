@@ -9,15 +9,18 @@ import app.bpartners.api.service.ProductService;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @AllArgsConstructor
+@Slf4j
 public class ProductController {
   private final ProductRestMapper mapper;
   private final ProductService productService;
@@ -37,14 +40,28 @@ public class ProductController {
         .collect(Collectors.toUnmodifiableList());
   }
 
+  @PutMapping("/accounts/{aId}/products")
+  public List<Product> crupdateProducts(
+      @PathVariable(name = "aId") String accountId,
+      @RequestBody List<CreateProduct> toCrupdate) {
+    List<app.bpartners.api.model.Product> domain = toCrupdate.stream()
+        .map(mapper::toDomain)
+        .collect(Collectors.toUnmodifiableList());
+    return productService.crupdate(accountId, domain).stream()
+        .map(mapper::toRest)
+        .collect(Collectors.toUnmodifiableList());
+  }
+
   @PostMapping("/accounts/{aId}/products")
   public List<Product> createProducts(
       @PathVariable(name = "aId") String accountId,
-      @RequestBody List<CreateProduct> toCreate) {
-    List<app.bpartners.api.model.Product> domainToCreate = toCreate.stream()
+      @RequestBody List<CreateProduct> toCrupdate) {
+    log.warn("DEPRECATED: POST method is still used for crupdating products."
+        + " Use PUT instead");
+    List<app.bpartners.api.model.Product> domain = toCrupdate.stream()
         .map(mapper::toDomain)
         .collect(Collectors.toUnmodifiableList());
-    return productService.createProducts(accountId, domainToCreate).stream()
+    return productService.crupdate(accountId, domain).stream()
         .map(mapper::toRest)
         .collect(Collectors.toUnmodifiableList());
   }

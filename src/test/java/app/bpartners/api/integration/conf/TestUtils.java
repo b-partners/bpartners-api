@@ -382,7 +382,7 @@ public class TestUtils {
   public static Product product4() {
     return new Product()
         .id("product4_id")
-        .description("Coude et accessoires")
+        .description("Autres produits")
         .quantity(1)
         .unitPrice(2000)
         .vatPercent(1000)
@@ -415,7 +415,7 @@ public class TestUtils {
 
   public static CreateProduct createProduct4() {
     return new CreateProduct()
-        .description("Coude et accessoires")
+        .description("Autres produits")
         .quantity(1)
         .unitPrice(2000)
         .vatPercent(1000);

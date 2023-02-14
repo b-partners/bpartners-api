@@ -14,8 +14,11 @@ public class CustomerValidator implements Consumer<Customer> {
     if (toUpdateCustomer.getId() == null) {
       exceptionMessageBuilder.append("Identifier must not be null. ");
     }
-    if (toUpdateCustomer.getName() == null) {
-      exceptionMessageBuilder.append("Name must not be null.");
+    if (toUpdateCustomer.getFirstName() == null) {
+      exceptionMessageBuilder.append("firstName not be null.");
+    }
+    if (toUpdateCustomer.getLastName() == null) {
+      exceptionMessageBuilder.append("lastName not be null.");
     }
     String exceptionMessage = exceptionMessageBuilder.toString();
     if (!exceptionMessage.isEmpty()) {

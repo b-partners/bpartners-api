@@ -15,7 +15,7 @@ public class ProductService {
     return repository.findAllByIdAccount(accountId, page, pageSize);
   }
 
-  public List<Product> createProducts(String accountId, List<Product> toCreate) {
+  public List<Product> crupdate(String accountId, List<Product> toCreate) {
     return repository.saveAll(accountId, toCreate);
   }
 }

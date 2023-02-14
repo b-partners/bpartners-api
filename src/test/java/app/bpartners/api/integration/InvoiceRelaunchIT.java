@@ -112,8 +112,7 @@ class InvoiceRelaunchIT {
         .type(RelaunchType.PROPOSAL)
         .invoice(invoice1()
             .createdAt(null)
-            .updatedAt(null)
-        )
+            .updatedAt(null))
         .accountId(JOE_DOE_ACCOUNT_ID)
         .isUserRelaunched(true)
         .emailInfo(new EmailInfo())
@@ -182,7 +181,7 @@ class InvoiceRelaunchIT {
     Resource pngFile = new ClassPathResource("files/png-file.png");
     return new CreateAttachment()
         .name("attachment1")
-        .content(pngFile.getFile());
+        .content(pngFile.getInputStream().readAllBytes());
   }
 
   Attachment expectedAttachment() throws IOException {

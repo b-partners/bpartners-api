@@ -67,7 +67,9 @@ paths:
   /accounts/{aId}/transactions/{tId}/transactionCategories:
     $ref: './paying-api.yml#/operations/createTransactionCategories'
   /accounts/{id}/products:
-    $ref: './paying-api.yml#/operations/getOrCreateProducts'
+    $ref: './paying-api.yml#/operations/productOperations'
+  /accounts/{aId}/products/status:
+    $ref: './paying-api.yml#/operations/updateProductsStatus'
   /accounts/{aId}/invoices:
     $ref: './paying-api.yml#/operations/getInvoices'
   /accounts/{aId}/invoices/{iId}:
@@ -100,7 +102,10 @@ paths:
   #############################################
   /accounts/{id}/marketplaces:
     $ref: './prospecting-api.yml#/operations/getMarketplaces'
-
+  /accountHolders/{ahId}/prospects:
+    $ref: './prospecting-api.yml#/operations/prospectOperations'
+  /accountHolders/{ahId}/prospects/{id}/prospectConversion:
+    $ref: './prospecting-api.yml#/operations/convertProspect'
 components:
   securitySchemes:
     BearerAuth:

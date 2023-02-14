@@ -1,6 +1,9 @@
 package app.bpartners.api.repository.jpa.model;
 
+import java.io.Serializable;
 import java.time.Instant;
+import java.time.LocalDate;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
@@ -22,11 +25,12 @@ import org.hibernate.annotations.CreationTimestamp;
 @Builder
 @NoArgsConstructor
 @EqualsAndHashCode
-public class HPaymentRequest {
+public class HPaymentRequest implements Serializable {
   @Id
   private String id;
   private String sessionId;
   private String accountId;
+  @Column(name = "id_invoice")
   private String idInvoice;
   private String label;
   private String paymentUrl;
@@ -34,6 +38,7 @@ public class HPaymentRequest {
   private String amount;
   private String payerName;
   private String payerEmail;
+  private LocalDate paymentDueDate;
   @CreationTimestamp
   private Instant createdDatetime;
 }

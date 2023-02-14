@@ -25,8 +25,10 @@ public class CustomerRepositoryImpl implements CustomerRepository {
   private final AccountService accountService;
 
   @Override
-  public List<Customer> findByAccountIdAndName(String accountId, String name) {
-    return jpaRepository.findByIdAccountAndNameContainingIgnoreCase(accountId, name).stream()
+  public List<Customer> findByAccountIdAndName(
+      String accountId, String firstName, String lastName) {
+    return jpaRepository.findByIdAccountAndFirstNameAndLastNameContainingIgnoreCase(
+            accountId, firstName, lastName).stream()
         .map(mapper::toDomain)
         .collect(Collectors.toUnmodifiableList());
   }
@@ -64,7 +66,8 @@ public class CustomerRepositoryImpl implements CustomerRepository {
       Optional<HCustomer> persisted = jpaRepository.findById(customer.getId());
       if (persisted.isPresent()) {
         persisted.get().setIdAccount(customer.getIdAccount());
-        persisted.get().setName(customer.getName());
+        persisted.get().setFirstName(customer.getFirstName());
+        persisted.get().setLastName(customer.getLastName());
         persisted.get().setCity(customer.getCity());
         persisted.get().setCountry(customer.getCountry());
         persisted.get().setAddress(customer.getAddress());

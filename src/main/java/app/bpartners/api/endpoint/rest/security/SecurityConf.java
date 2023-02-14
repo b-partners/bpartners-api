@@ -1,5 +1,6 @@
 package app.bpartners.api.endpoint.rest.security;
 
+import app.bpartners.api.endpoint.rest.security.matcher.SelfAccountHolderMatcher;
 import app.bpartners.api.endpoint.rest.security.matcher.SelfAccountMatcher;
 import app.bpartners.api.endpoint.rest.security.matcher.SelfUserAccountMatcher;
 import app.bpartners.api.endpoint.rest.security.matcher.SelfUserMatcher;
@@ -30,6 +31,7 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
   private final AuthProvider authProvider;
   private final HandlerExceptionResolver exceptionResolver;
   private final AuthenticatedResourceProvider authResourceProvider;
+
 
   public SecurityConf(
       AuthProvider authProvider,
@@ -108,7 +110,8 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
         .requestMatchers(
             new SelfAccountMatcher(PUT, "/accounts/*/transactions/*/invoices/*",
                 authResourceProvider)).authenticated()
-        .requestMatchers(new SelfUserMatcher(GET, "/users/*/accounts")).authenticated()
+        .requestMatchers(new SelfUserMatcher(GET, "/users/*/accounts", authResourceProvider))
+        .authenticated()
         .requestMatchers(
             new SelfUserAccountMatcher(GET, "/users/*/accounts/*/accountHolders",
                 authResourceProvider)
@@ -121,6 +124,9 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
         ).authenticated()
         .requestMatchers(
             new SelfAccountMatcher(GET, "/accounts/*/products", authResourceProvider)
+        ).authenticated()
+        .requestMatchers(
+            new SelfAccountMatcher(PUT, "/accounts/*/products", authResourceProvider)
         ).authenticated()
         .requestMatchers(
             new SelfAccountMatcher(POST, "/accounts/*/products", authResourceProvider)
@@ -191,6 +197,16 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
         .requestMatchers(
             new SelfAccountMatcher(GET, "/accounts/*/paymentRequests", authResourceProvider)
         ).authenticated()
+        .requestMatchers(
+            new SelfAccountHolderMatcher(GET, "/accountHolders/*/prospects", authResourceProvider))
+        .authenticated()
+        .requestMatchers(
+            new SelfAccountHolderMatcher(POST, "/accountHolders/*/prospects",
+                authResourceProvider))
+        .authenticated()
+        .requestMatchers(
+            new SelfAccountHolderMatcher(PUT, "/accountHolders/*/prospects/*/prospectConversion",
+                authResourceProvider)).authenticated()
         .antMatchers("/**").denyAll()
 
         // disable superfluous protections

@@ -355,7 +355,46 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
-  getOrCreateProducts:
+  updateProductsStatus:
+    put:
+      tags:
+        - Paying
+      summary: Update products status for an account
+      operationId: updateProductsStatus
+      parameters:
+        - in: path
+          name: aId
+          schema:
+            type: string
+          description: Account identifier
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/UpdateProductStatus'
+      responses:
+        200:
+          description: List of products updated
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Product'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
+  productOperations:
     get:
       tags:
         - Paying
@@ -406,6 +445,46 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
+    put:
+      tags:
+        - Paying
+      operationId: crupdateProducts
+      summary: Create or update products of an account
+      parameters:
+        - in: path
+          name: id
+          description: Account identifier
+          schema:
+            type: string
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/CreateProduct'
+      responses:
+        200:
+          description: The created products
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Product'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
+
     post:
       tags:
         - Paying
@@ -908,6 +987,15 @@ components:
           $ref: './customers-api.yml#/components/schemas/Customer'
         status:
           $ref: '#/components/schemas/InvoiceStatus'
+        paymentType:
+          type: string
+          enum:
+            - CASH
+            - IN_INSTALMENT #defered, delayed
+        paymentRegulations:
+          type: array
+          items:
+            $ref: '#/components/schemas/CreatePaymentRegulation'
         sendingDate:
           type: string
           format: date
@@ -964,6 +1052,30 @@ components:
           description: |
             Identifier of the PDF file that is automatically generated for each crupdate.
             Its value is `null` when generation is not finished yet.
+        paymentRegulations:
+          type: array
+          items:
+            $ref: '#/components/schemas/PaymentRegulation'
+    CreatePaymentRegulation:
+      type: object
+      properties:
+        amount:
+          type: integer
+        percent:
+          type: integer
+        comment:
+          type: string
+        maturityDate:
+          type: string
+          format: date
+    PaymentRegulation:
+      type: object
+      properties:
+        paymentRequest:
+          $ref: '#/components/schemas/PaymentRequest'
+        maturityDate:
+          type: string
+          format: date
     InvoiceStatus:
       type: string
       enum:
@@ -989,6 +1101,8 @@ components:
     CreateProduct:
       type: object
       properties:
+        id:
+          type: string
         description:
           type: string
         quantity:
@@ -1004,14 +1118,29 @@ components:
       allOf:
         - $ref: '#/components/schemas/CreateProduct'
       properties:
-        id:
-          type: string
         unitPriceWithVat:
           type: integer
         totalVat:
           type: integer
         totalPriceWithVat:
           type: integer
+        createdAt:
+          type: string
+          format: date-time
+        status:
+          $ref: '#/components/schemas/ProductStatus'
+    ProductStatus:
+      type: string
+      enum:
+        - ENABLED
+        - DISABLED
+    UpdateProductStatus:
+      type: object
+      properties:
+        id:
+          type: string
+        status:
+          $ref: '#/components/schemas/ProductStatus'
     #TODO: rename to CreatePaymentInitiation
     PaymentInitiation:
       type: object
@@ -1037,10 +1166,32 @@ components:
           type: string
         content:
           type: string
-          format: binary
+          format: byte
     Attachment:
       allOf:
         - $ref: '#/components/schemas/CreateAttachment'
       properties:
         fileId:
           type: string
+
+    #TODO: rename to paymentInitiation
+    PaymentRequest:
+      type: object
+      properties:
+        id:
+          type: string
+        paymentUrl:
+          type: string
+        amount:
+          type: integer
+        payerName:
+          type: string
+        payerEmail:
+          type: string
+        label:
+          type: string
+        reference:
+          type: string
+        initiatedDatetime:
+          type: string
+          format: date-time

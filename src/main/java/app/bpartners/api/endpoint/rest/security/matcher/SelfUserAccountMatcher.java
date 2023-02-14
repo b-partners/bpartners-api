@@ -13,7 +13,9 @@ import org.springframework.security.web.util.matcher.RequestMatcher;
 
 @AllArgsConstructor
 public class SelfUserAccountMatcher implements RequestMatcher {
-
+  //TODO: before setting up another selfMatcher with multiple group_names,
+  // create an abstract class like SelfMatcher
+  // to avoid duplicates
   private static final Pattern SELFABLE_URI_PATTERN =
       // /user/id/account/id/...
       Pattern.compile("/[^/]+/(?<userId>[^/]+)/[^/]+/(?<accountId>[^/]+)(/.*)?");

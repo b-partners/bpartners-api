@@ -129,7 +129,8 @@ class InvoiceRelaunchServiceTest {
                         .status(InvoiceStatus.PROPOSAL)
                         .customer(
                             Customer.builder()
-                                .name("someName")
+                                .firstName("someName")
+                                .lastName("lastName")
                                 .build()
                         )
                         .build()

@@ -2,6 +2,7 @@ package app.bpartners.api.endpoint.rest.security;
 
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.AccountHolder;
+import app.bpartners.api.model.User;
 import app.bpartners.api.service.AccountHolderService;
 import app.bpartners.api.service.AccountService;
 import lombok.AllArgsConstructor;
@@ -21,5 +22,9 @@ public class AuthenticatedResourceProvider {
     return accountHolderService.getAccountHolderByAccountId(
         getAccount().getId()
     );
+  }
+
+  public User getUser() {
+    return AuthProvider.getPrincipal().getUser();
   }
 }

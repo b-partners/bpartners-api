@@ -17,7 +17,8 @@ class CustomerValidatorTest {
             new CreateCustomer()
                 .address("address")
                 .city("city")
-                .name("name")
+                .firstName("firstname")
+                .lastName("lastname")
                 .country("country1")
                 .email("email1")
                 .phone("phone1")
@@ -30,12 +31,14 @@ class CustomerValidatorTest {
   @Test
   void validator_validate_invalid_create_customer_ko() {
     assertThrowsBadRequestException(
-        "Name is mandatory. "
+        "firstName is mandatory. lastName is mandatory. "
         ,
         () ->
             validator.accept(
                 new CreateCustomer()
                     .name(null)
+                    .firstName(null)
+                    .lastName(null)
                     .address("address")
                     .city("city")
                     .country("country1")
@@ -46,7 +49,8 @@ class CustomerValidatorTest {
             )
     );
     assertThrowsBadRequestException(
-        "Name is mandatory. "
+        "firstName is mandatory. "
+            + "lastName is mandatory. "
             + "Email is mandatory. "
             + "Phone is mandatory. "
             + "Address is mandatory. "
@@ -54,9 +58,11 @@ class CustomerValidatorTest {
         () ->
             validator.accept(
                 new CreateCustomer()
+                    .name(null)
                     .address(null)
                     .city(null)
-                    .name(null)
+                    .firstName(null)
+                    .lastName(null)
                     .country(null)
                     .email(null)
                     .phone(null)

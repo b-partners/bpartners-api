@@ -12,5 +12,5 @@ envs:
   prod:
     vCpu: 512
     memory: 1GB
-    tasksDesiredCount: 2
+    tasksDesiredCount: 1
     listenerRuleAvailablePriority: 20

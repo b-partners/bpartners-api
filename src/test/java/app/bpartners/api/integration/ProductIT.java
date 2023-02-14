@@ -6,6 +6,7 @@ import app.bpartners.api.endpoint.rest.api.PayingApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
 import app.bpartners.api.endpoint.rest.model.CreateProduct;
+import app.bpartners.api.endpoint.rest.model.OrderDirection;
 import app.bpartners.api.endpoint.rest.model.Product;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
 import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
@@ -21,6 +22,7 @@ import app.bpartners.api.repository.swan.AccountHolderSwanRepository;
 import app.bpartners.api.repository.swan.AccountSwanRepository;
 import app.bpartners.api.repository.swan.UserSwanRepository;
 import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
@@ -51,6 +53,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @ContextConfiguration(initializers = ProductIT.ContextInitializer.class)
 @AutoConfigureMockMvc
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+@Slf4j
 class ProductIT {
   @MockBean
   private SentryConf sentryConf;
@@ -176,6 +179,33 @@ class ProductIT {
     assertEquals(actualProduct.getCreatedAt(), actualUpdated.getCreatedAt());
     assertEquals(oldProduct, actualProduct);
     assertEquals(expectedProduct, actualUpdated);
+  }
+
+  @Test
+  void read_products_ordered_ok() throws ApiException {
+    ApiClient joeDoeClient = anApiClient();
+    PayingApi api = new PayingApi(joeDoeClient);
+
+    List<Product> actual1 = api.getProducts(
+        JOE_DOE_ACCOUNT_ID, null,
+        null, null, OrderDirection.DESC);
+    List<Product> actual2 = api.getProducts(
+        JOE_DOE_ACCOUNT_ID, null,
+        null, OrderDirection.ASC, null);
+    List<Product> actual3 = api.getProducts(
+        JOE_DOE_ACCOUNT_ID, null,
+        OrderDirection.ASC, OrderDirection.DESC, null);
+
+    assertTrue(actual1.size() > 2);
+    assertTrue(actual2.size() > 2);
+    assertTrue(actual3.size() > 2);
+    assertTrue(actual1.get(0).getCreatedAt().isAfter(actual1.get(1).getCreatedAt())
+        || actual1.get(0).getCreatedAt().equals(actual1.get(1).getCreatedAt()));
+    assertTrue(actual2.get(0).getUnitPrice() <= actual2.get(1).getUnitPrice());
+    // /!\ it seems by default, the description order ASC is taken before the unit price ASC
+    // Pay attention with multiple orders then
+    assertTrue((actual3.get(0).getUnitPrice() >= actual3.get(1).getUnitPrice())
+        && (actual3.get(0).getDescription().compareTo(actual3.get(1).getDescription()) <= 0));
   }
 
   static class ContextInitializer extends AbstractContextInitializer {

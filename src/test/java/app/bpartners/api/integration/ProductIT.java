@@ -102,21 +102,24 @@ class ProductIT {
         .vatPercent(1000);
   }
 
-  CreateProduct createProduct2() {
-    return new CreateProduct()
-        .description("test produit")
-        .quantity(1)
-        .unitPrice(9000)
-        .vatPercent(1000);
+  private static Product updatedProduct(Product product) {
+    return new Product()
+        .id(product.getId())
+        .createdAt(product.getCreatedAt())
+        .description("Other")
+        .unitPrice(5000)
+        .vatPercent(1000)
+        .unitPriceWithVat(5500);
   }
 
-  CreateProduct updateProduct2() {
-    return new CreateProduct()
-        .id("product6_id")
-        .description("last test")
-        .quantity(1)
-        .unitPrice(95000)
-        .vatPercent(1000);
+  private static Product oldProduct(Product product) {
+    return new Product()
+        .description("Nouveau produit")
+        .id(product.getId())
+        .createdAt(product.getCreatedAt())
+        .vatPercent(1000)
+        .unitPrice(9000)
+        .unitPriceWithVat(9900);
   }
 
   @Order(1)
@@ -173,26 +176,6 @@ class ProductIT {
     assertEquals(actualProduct.getCreatedAt(), actualUpdated.getCreatedAt());
     assertEquals(oldProduct, actualProduct);
     assertEquals(expectedProduct, actualUpdated);
-  }
-
-  private static Product updatedProduct(Product product) {
-    return new Product()
-        .id(product.getId())
-        .createdAt(product.getCreatedAt())
-        .description("Other")
-        .unitPrice(5000)
-        .vatPercent(1000)
-        .unitPriceWithVat(5500);
-  }
-
-  private static Product oldProduct(Product product) {
-    return new Product()
-        .description("Nouveau produit")
-        .id(product.getId())
-        .createdAt(product.getCreatedAt())
-        .vatPercent(1000)
-        .unitPrice(9000)
-        .unitPriceWithVat(9900);
   }
 
   static class ContextInitializer extends AbstractContextInitializer {

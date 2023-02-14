@@ -1,5 +1,6 @@
 package app.bpartners.api.model.mapper;
 
+import app.bpartners.api.endpoint.rest.model.ProductStatus;
 import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.Product;
 import app.bpartners.api.repository.jpa.ProductJpaRepository;
@@ -32,6 +33,7 @@ public class ProductMapper {
             }))
         .vatPercent(vatPercent)
         .createdAt(entity.getCreatedAt())
+        .status(entity.getStatus() == null ? ProductStatus.ENABLED : entity.getStatus())
         .build();
   }
 
@@ -48,6 +50,7 @@ public class ProductMapper {
         .unitPrice(product.getUnitPrice().toString())
         .vatPercent(product.getVatPercent().toString())
         .createdAt(createdDatetimeRef.get())
+        .status(product.getStatus() == null ? ProductStatus.ENABLED : product.getStatus())
         .build();
   }
 }

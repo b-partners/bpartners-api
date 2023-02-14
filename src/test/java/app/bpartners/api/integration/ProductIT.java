@@ -8,6 +8,8 @@ import app.bpartners.api.endpoint.rest.client.ApiException;
 import app.bpartners.api.endpoint.rest.model.CreateProduct;
 import app.bpartners.api.endpoint.rest.model.OrderDirection;
 import app.bpartners.api.endpoint.rest.model.Product;
+import app.bpartners.api.endpoint.rest.model.ProductStatus;
+import app.bpartners.api.endpoint.rest.model.UpdateProductStatus;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
 import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
 import app.bpartners.api.integration.conf.AbstractContextInitializer;
@@ -30,7 +32,6 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.List;
-import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
@@ -58,6 +59,7 @@ import static app.bpartners.api.integration.conf.TestUtils.setUpSwanComponent;
 import static app.bpartners.api.integration.conf.TestUtils.setUpUserSwanRepository;
 import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
@@ -67,7 +69,6 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @ContextConfiguration(initializers = ProductIT.ContextInitializer.class)
 @AutoConfigureMockMvc
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-@Slf4j
 class ProductIT {
   @MockBean
   private SentryConf sentryConf;
@@ -107,6 +108,7 @@ class ProductIT {
         .description("Other")
         .unitPrice(5000)
         .vatPercent(1000)
+        .status(ProductStatus.ENABLED)
         .unitPriceWithVat(5500);
   }
 
@@ -117,7 +119,14 @@ class ProductIT {
         .createdAt(product.getCreatedAt())
         .vatPercent(1000)
         .unitPrice(9000)
+        .status(ProductStatus.ENABLED)
         .unitPriceWithVat(9900);
+  }
+
+  private static UpdateProductStatus productDisabled() {
+    return new UpdateProductStatus()
+        .id("product1_id")
+        .status(ProductStatus.DISABLED);
   }
 
   @BeforeEach
@@ -148,6 +157,8 @@ class ProductIT {
     List<Product> actual = api.getProducts(JOE_DOE_ACCOUNT_ID, null, null, null, null);
 
     assertEquals(6, actual.size());
+    assertTrue(actual.stream()
+        .allMatch(product -> product.getStatus() == ProductStatus.ENABLED));
     assertTrue(actual.contains(product1()));
   }
 
@@ -159,11 +170,10 @@ class ProductIT {
 
     List<Product> actual =
         api.createProducts(JOE_DOE_ACCOUNT_ID, List.of(createProduct1()));
-
     List<Product> actualProducts = api.getProducts(JOE_DOE_ACCOUNT_ID, true, null, null, null);
     assertTrue(actualProducts.stream()
         .allMatch(product -> product.getCreatedAt() != null));
-    assertTrue(actualProducts.containsAll(actual));
+    assertTrue(ignoreCreatedAt(actualProducts).containsAll(ignoreCreatedAt(actual)));
   }
 
   @Order(3)
@@ -187,10 +197,12 @@ class ProductIT {
     Product actualUpdated = actual2.get(0);
     Product oldProduct = oldProduct(actualProduct);
     Product expectedProduct = updatedProduct(actualProduct);
-    assertTrue(allProducts1.containsAll(actual1));
-    assertTrue(allProducts2.containsAll(actual2));
+    assertTrue(ignoreCreatedAt(allProducts1).containsAll(ignoreCreatedAt(actual1)));
+    assertTrue(ignoreCreatedAt(allProducts2).containsAll(ignoreCreatedAt(actual2)));
     assertEquals(actualProduct.getId(), actualUpdated.getId());
     assertEquals(actualProduct.getCreatedAt(), actualUpdated.getCreatedAt());
+    oldProduct.setCreatedAt(null);
+    expectedProduct.setCreatedAt(null);
     assertEquals(oldProduct, actualProduct);
     assertEquals(expectedProduct, actualUpdated);
   }
@@ -269,6 +281,35 @@ class ProductIT {
         HttpResponse.BodyHandlers.ofString());
 
     return response;
+  }
+
+  @Order(4)
+  @Test
+  void product_status_is_disabled_ok() throws ApiException {
+    ApiClient joeDoeClient = anApiClient();
+    PayingApi api = new PayingApi(joeDoeClient);
+
+    List<Product> actual =
+        api.updateProductsStatus(JOE_DOE_ACCOUNT_ID, List.of(productDisabled()));
+
+    List<Product> allProducts = api.getProducts(
+        JOE_DOE_ACCOUNT_ID, null, null, null, null);
+
+    assertTrue(
+        allProducts.stream()
+            .allMatch(product -> product.getStatus() == ProductStatus.ENABLED));
+    assertTrue(
+        actual.stream()
+            .allMatch(product -> product.getStatus() == ProductStatus.DISABLED));
+    assertFalse(allProducts.containsAll(actual));
+
+  }
+
+  List<Product> ignoreCreatedAt(List<Product> actual) {
+    actual.forEach(product -> {
+      product.setCreatedAt(null);
+    });
+    return actual;
   }
 
   static class ContextInitializer extends AbstractContextInitializer {

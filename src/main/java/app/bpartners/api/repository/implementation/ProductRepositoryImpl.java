@@ -1,6 +1,7 @@
 package app.bpartners.api.repository.implementation;
 
 import app.bpartners.api.endpoint.rest.model.OrderDirection;
+import app.bpartners.api.endpoint.rest.model.UpdateProductStatus;
 import app.bpartners.api.model.Product;
 import app.bpartners.api.model.mapper.ProductMapper;
 import app.bpartners.api.repository.ProductRepository;
@@ -66,5 +67,28 @@ public class ProductRepositoryImpl implements ProductRepository {
     return entities.stream()
         .map(mapper::toDomain)
         .collect(Collectors.toUnmodifiableList());
+  }
+
+  @Override
+  public List<Product> findAllByIdAccountAndStatus(String idAccount, Integer page, Integer pageSize,
+                                                   OrderDirection descriptionOrder,
+                                                   OrderDirection unitPriceOrder,
+                                                   OrderDirection createdAtOrder) {
+    List<Order> orders = retrieveOrders(descriptionOrder, unitPriceOrder, createdAtOrder);
+    Pageable pageRequest = PageRequest.of(page, pageSize, Sort.by(orders));
+    return jpaRepository.findAllByIdAccountAndStatus(idAccount, pageRequest).stream()
+        .map(mapper::toDomain)
+        .collect(Collectors.toUnmodifiableList());
+  }
+
+  @Override
+  public List<Product> updateStatus(String accountId, List<UpdateProductStatus> toUpdate) {
+    List<Product> productUpdated = new ArrayList<>();
+    for (UpdateProductStatus product : toUpdate) {
+      HProduct existingProduct = jpaRepository.findByIdAccountAndId(accountId, product.getId());
+      existingProduct.setStatus(product.getStatus());
+      productUpdated.add(mapper.toDomain(jpaRepository.save(existingProduct)));
+    }
+    return productUpdated;
   }
 }

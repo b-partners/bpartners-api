@@ -4,6 +4,7 @@ import app.bpartners.api.endpoint.rest.mapper.ProductRestMapper;
 import app.bpartners.api.endpoint.rest.model.CreateProduct;
 import app.bpartners.api.endpoint.rest.model.OrderDirection;
 import app.bpartners.api.endpoint.rest.model.Product;
+import app.bpartners.api.endpoint.rest.model.UpdateProductStatus;
 import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.service.ProductService;
@@ -67,6 +68,15 @@ public class ProductController {
         .map(mapper::toDomain)
         .collect(Collectors.toUnmodifiableList());
     return productService.crupdate(accountId, domain).stream()
+        .map(mapper::toRest)
+        .collect(Collectors.toUnmodifiableList());
+  }
+
+  @PutMapping("/accounts/{aId}/products/status")
+  public List<Product> updateStatus(
+      @PathVariable(name = "aId") String accountId,
+      @RequestBody List<UpdateProductStatus> product) {
+    return productService.updateStatus(accountId, product).stream()
         .map(mapper::toRest)
         .collect(Collectors.toUnmodifiableList());
   }

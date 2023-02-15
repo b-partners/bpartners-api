@@ -1,3 +1,22 @@
+# [0.7.0](https://github.com/b-partners/bpartners-api/compare/v0.6.0...v0.7.0) (2023-02-15)
+
+
+### Bug Fixes
+
+* set attachment content as base64 format ([d48d7e8](https://github.com/b-partners/bpartners-api/commit/d48d7e81cc1c217a1aa86e13cb2bc09736a76de5))
+
+
+### Features
+
+* add product created datetime for account ([3964bd8](https://github.com/b-partners/bpartners-api/commit/3964bd82e4cb4c430830fb5ef4bb0e31e3e3c27b))
+* crupdate products ([a71fb1e](https://github.com/b-partners/bpartners-api/commit/a71fb1e545355bfc739fe3c1def4b1b59a41dd30))
+* import customers from excel file ([bbf1cbb](https://github.com/b-partners/bpartners-api/commit/bbf1cbb366f6a42b1ba28e7ecafea8a0d20a9c17))
+* import products from excel file ([6c742d9](https://github.com/b-partners/bpartners-api/commit/6c742d9cf59e3af0fab275ba2826aef669878852))
+* invoice handles multiple payments ([566aea5](https://github.com/b-partners/bpartners-api/commit/566aea59cc14f33d1bd4ac989aa2f97fb8f96283))
+* order products by criterias ([9176b78](https://github.com/b-partners/bpartners-api/commit/9176b785a1c58c3d2d285afe151d40cd5b0dcd84))
+
+
+
 # [0.6.0](https://github.com/b-partners/bpartners-api/compare/v0.5.0...v0.6.0) (2023-02-09)
 
 
@@ -129,15 +148,6 @@
 ### Bug Fixes
 
 * do not change enum capitalization in ts-client ([f9f04d2](https://github.com/b-partners/bpartners-api/commit/f9f04d2d00f2ae4a4c0f64596980c11a90ecc89d))
-
-
-
-## [0.2.2](https://github.com/b-partners/bpartners-api/compare/v0.2.1...v0.2.2) (2023-01-07)
-
-
-### Bug Fixes
-
-* map dates correctly in ts-client ([1b98dde](https://github.com/b-partners/bpartners-api/commit/1b98dde08caab7cacdc8d34fba66a7f1ae7f14e0))
 
 
 

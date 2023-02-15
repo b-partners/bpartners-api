@@ -108,8 +108,8 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 class InvoiceIT {
   public static final int MAX_PAGE_SIZE = 500;
   public static final String DRAFT_REF_PREFIX = "BROUILLON-";
-  public static String PROPOSAL_REF_PREFIX = "DEVIS-";
   private static final String NEW_INVOICE_ID = "invoice_uuid";
+  public static String PROPOSAL_REF_PREFIX = "DEVIS-";
   @Autowired
   private InvoiceService invoiceService;
   @MockBean
@@ -143,6 +143,64 @@ class InvoiceIT {
     return TestUtils.anApiClient(JOE_DOE_TOKEN, InvoiceIT.ContextInitializer.SERVER_PORT);
   }
 
+  private static PaymentRegulation expectedDated2() {
+    return new PaymentRegulation()
+        .maturityDate(LocalDate.of(2023, 2, 15))
+        .paymentRequest(new PaymentRequest()
+            .reference("BP005")
+            .payerName(customer1().getName())
+            .payerEmail(customer1().getEmail())
+            .paymentUrl("https://connect-v2-sbx.fintecture.com")
+            .amount(1000)
+            .label("Montant restant"));
+  }
+
+  private static PaymentRegulation expectedDated1() {
+    return new PaymentRegulation()
+        .maturityDate(LocalDate.of(2023, 2, 1))
+        .paymentRequest(new PaymentRequest()
+            .reference("BP005")
+            .payerName(customer1().getName())
+            .payerEmail(customer1().getEmail())
+            .paymentUrl("https://connect-v2-sbx.fintecture.com")
+            .amount(100)
+            .label("Un euro"));
+  }
+
+  public static Invoice invoice1() {
+    return new Invoice()
+        .id(INVOICE1_ID)
+        .fileId("file1_id")
+        .comment(null)
+        .title("Outils pour plomberie")
+        .paymentUrl("https://connect-v2-sbx.fintecture.com")
+        .paymentRegulations(List.of(datedPaymentRequest1(), datedPaymentRequest2()))
+        .customer(customer1()).ref("BP001")
+        .createdAt(Instant.parse("2022-01-01T01:00:00.00Z"))
+        .sendingDate(LocalDate.of(2022, 9, 1))
+        .validityDate(LocalDate.of(2022, 10, 3))
+        .toPayAt(LocalDate.of(2022, 10, 1))
+        .delayInPaymentAllowed(DEFAULT_TO_PAY_DELAY_DAYS)
+        .delayPenaltyPercent(DEFAULT_DELAY_PENALTY_PERCENT)
+        .status(CONFIRMED)
+        .products(List.of(product3(), product4()))
+        .totalPriceWithVat(8800)
+        .totalVat(800)
+        .totalPriceWithoutVat(8000)
+        .metadata(Map.of());
+  }
+
+  private static List<PaymentRegulation> ignoreIdsAndDatetime(Invoice actualConfirmed) {
+    List<PaymentRegulation> paymentRegulations =
+        new ArrayList<>(actualConfirmed.getPaymentRegulations());
+    paymentRegulations.forEach(
+        datedPaymentRequest -> datedPaymentRequest.setPaymentRequest(
+            datedPaymentRequest.getPaymentRequest()
+                .id(null)
+                .initiatedDatetime(null)));
+    return paymentRegulations;
+  }
+
   @BeforeEach
   public void setUp() {
     setUpSwanComponent(swanComponentMock);
@@ -168,32 +226,6 @@ class InvoiceIT {
         .subjectToVat(true)
         .build();
   }
-
-
-  private static PaymentRegulation expectedDated2() {
-    return new PaymentRegulation()
-        .maturityDate(LocalDate.of(2023, 2, 15))
-        .paymentRequest(new PaymentRequest()
-            .reference("BP005")
-            .payerName(customer1().getName())
-            .payerEmail(customer1().getEmail())
-            .paymentUrl("https://connect-v2-sbx.fintecture.com")
-            .amount(1000)
-            .label("Montant restant"));
-  }
-
-  private static PaymentRegulation expectedDated1() {
-    return new PaymentRegulation()
-        .maturityDate(LocalDate.of(2023, 2, 1))
-        .paymentRequest(new PaymentRequest()
-            .reference("BP005")
-            .payerName(customer1().getName())
-            .payerEmail(customer1().getEmail())
-            .paymentUrl("https://connect-v2-sbx.fintecture.com")
-            .amount(100)
-            .label("Un euro"));
-  }
-
 
   CrupdateInvoice proposalInvoice() {
     return new CrupdateInvoice()
@@ -245,29 +277,6 @@ class InvoiceIT {
         .toPayAt(LocalDate.of(2022, 11, 13))
         .delayInPaymentAllowed(15)
         .delayPenaltyPercent(20);
-  }
-
-  public static Invoice invoice1() {
-    return new Invoice()
-        .id(INVOICE1_ID)
-        .fileId("file1_id")
-        .comment(null)
-        .title("Outils pour plomberie")
-        .paymentUrl("https://connect-v2-sbx.fintecture.com")
-        .paymentRegulations(List.of(datedPaymentRequest1(), datedPaymentRequest2()))
-        .customer(customer1()).ref("BP001")
-        .createdAt(Instant.parse("2022-01-01T01:00:00.00Z"))
-        .sendingDate(LocalDate.of(2022, 9, 1))
-        .validityDate(LocalDate.of(2022, 10, 3))
-        .toPayAt(LocalDate.of(2022, 10, 1))
-        .delayInPaymentAllowed(DEFAULT_TO_PAY_DELAY_DAYS)
-        .delayPenaltyPercent(DEFAULT_DELAY_PENALTY_PERCENT)
-        .status(CONFIRMED)
-        .products(List.of(product3(), product4()))
-        .totalPriceWithVat(8800)
-        .totalVat(800)
-        .totalPriceWithoutVat(8000)
-        .metadata(Map.of());
   }
 
   Invoice invoice2() {
@@ -699,17 +708,6 @@ class InvoiceIT {
     assertEquals(actualConfirmed.getFileId(), actualPaid.getFileId());
     assertTrue(actualUpdatedDraft.getRef().contains(DRAFT_REF_PREFIX));
     assertFalse(actualConfirmed.getRef().contains(DRAFT_REF_PREFIX));
-  }
-
-  private static List<PaymentRegulation> ignoreIdsAndDatetime(Invoice actualConfirmed) {
-    List<PaymentRegulation> paymentRegulations =
-        new ArrayList<>(actualConfirmed.getPaymentRegulations());
-    paymentRegulations.forEach(
-        datedPaymentRequest -> datedPaymentRequest.setPaymentRequest(
-            datedPaymentRequest.getPaymentRequest()
-                .id(null)
-                .initiatedDatetime(null)));
-    return paymentRegulations;
   }
 
   @Test

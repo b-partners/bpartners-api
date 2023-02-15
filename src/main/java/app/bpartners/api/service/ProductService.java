@@ -2,6 +2,7 @@ package app.bpartners.api.service;
 
 import app.bpartners.api.endpoint.rest.model.CreateProduct;
 import app.bpartners.api.endpoint.rest.model.OrderDirection;
+import app.bpartners.api.endpoint.rest.model.UpdateProductStatus;
 import app.bpartners.api.model.Product;
 import app.bpartners.api.repository.ProductRepository;
 import java.io.ByteArrayInputStream;
@@ -25,12 +26,16 @@ public class ProductService {
       OrderDirection descriptionOrder,
       OrderDirection unitPriceOrder,
       OrderDirection createdAtOrder) {
-    return repository.findAllByIdAccount(accountId, page, pageSize,
+    return repository.findAllByIdAccountAndStatus(accountId, page, pageSize,
         descriptionOrder, unitPriceOrder, createdAtOrder);
   }
 
   public List<Product> crupdate(String accountId, List<Product> toCreate) {
     return repository.saveAll(accountId, toCreate);
+  }
+
+  public List<Product> updateStatus(String accountId, List<UpdateProductStatus> toUpdate) {
+    return repository.updateStatus(accountId, toUpdate);
   }
 
   public List<Product> getDataFromFile(String accountId, byte[] file) {

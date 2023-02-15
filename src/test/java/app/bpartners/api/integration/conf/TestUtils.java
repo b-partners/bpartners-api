@@ -11,11 +11,12 @@ import app.bpartners.api.endpoint.rest.model.CreateAccountInvoiceRelaunchConf;
 import app.bpartners.api.endpoint.rest.model.CreateAnnualRevenueTarget;
 import app.bpartners.api.endpoint.rest.model.CreateProduct;
 import app.bpartners.api.endpoint.rest.model.Customer;
-import app.bpartners.api.endpoint.rest.model.PaymentRegulation;
 import app.bpartners.api.endpoint.rest.model.Invoice;
 import app.bpartners.api.endpoint.rest.model.LegalFile;
+import app.bpartners.api.endpoint.rest.model.PaymentRegulation;
 import app.bpartners.api.endpoint.rest.model.PaymentRequest;
 import app.bpartners.api.endpoint.rest.model.Product;
+import app.bpartners.api.endpoint.rest.model.ProductStatus;
 import app.bpartners.api.endpoint.rest.model.TransactionCategory;
 import app.bpartners.api.endpoint.rest.model.TransactionStatus;
 import app.bpartners.api.endpoint.rest.model.User;
@@ -350,6 +351,7 @@ public class TestUtils {
         .quantity(null)
         .totalVat(null)
         .createdAt(Instant.parse("2022-01-01T01:00:00.00Z"))
+        .status(ProductStatus.ENABLED)
         .totalPriceWithVat(null);
   }
 
@@ -363,7 +365,8 @@ public class TestUtils {
         .unitPriceWithVat(2200)
         .totalVat(400)
         .createdAt(Instant.parse("2022-01-01T02:00:00.00Z"))
-        .totalPriceWithVat(4400);
+        .totalPriceWithVat(4400)
+        .status(ProductStatus.ENABLED);
   }
 
   public static Product product3() {
@@ -376,6 +379,7 @@ public class TestUtils {
         .unitPriceWithVat(2200)
         .totalVat(600)
         .createdAt(null)
+        .status(ProductStatus.ENABLED)
         .totalPriceWithVat(6600);
   }
 
@@ -389,7 +393,8 @@ public class TestUtils {
         .unitPriceWithVat(2200)
         .totalVat(200)
         .createdAt(null)
-        .totalPriceWithVat(2200);
+        .totalPriceWithVat(2200)
+        .status(ProductStatus.ENABLED);
   }
 
   public static Product product5() {
@@ -402,6 +407,7 @@ public class TestUtils {
         .unitPriceWithVat(1100)
         .totalVat(100)
         .createdAt(null)
+        .status(ProductStatus.ENABLED)
         .totalPriceWithVat(1100);
   }
 

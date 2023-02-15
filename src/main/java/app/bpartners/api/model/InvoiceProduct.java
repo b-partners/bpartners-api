@@ -1,5 +1,6 @@
 package app.bpartners.api.model;
 
+import app.bpartners.api.endpoint.rest.model.ProductStatus;
 import java.math.BigInteger;
 import java.time.Instant;
 import lombok.AccessLevel;
@@ -32,6 +33,7 @@ public class InvoiceProduct {
   private Fraction totalVat;
   @Getter(AccessLevel.NONE)
   private Fraction totalPriceWithVat;
+  private ProductStatus status;
 
   public Fraction getTotalVat() {
     if (vatPercent == null) {

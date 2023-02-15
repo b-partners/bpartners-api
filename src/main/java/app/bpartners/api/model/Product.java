@@ -1,5 +1,7 @@
 package app.bpartners.api.model;
 
+import app.bpartners.api.endpoint.rest.model.ProductStatus;
+import app.bpartners.api.endpoint.rest.model.TransactionTypeEnum;
 import java.time.Instant;
 import java.util.Objects;
 import lombok.AccessLevel;
@@ -28,6 +30,8 @@ public class Product {
   private Fraction unitPriceWithVat;
   private Fraction vatPercent;
   private Instant createdAt;
+
+  private ProductStatus status;
 
   public Fraction getUnitPriceWithVat() {
     return unitPrice.operate(vatPercent,

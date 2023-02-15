@@ -1,5 +1,6 @@
 package app.bpartners.api.model.mapper;
 
+import app.bpartners.api.endpoint.rest.model.ProductStatus;
 import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.InvoiceProduct;
 import app.bpartners.api.repository.jpa.model.HInvoice;
@@ -19,6 +20,7 @@ public class InvoiceProductMapper {
         .quantity(entity.getQuantity())
         .vatPercent(vatPercent)
         .unitPrice(unitPrice)
+        .status(entity.getStatus() == null ? ProductStatus.ENABLED : entity.getStatus())
         .build();
   }
 
@@ -30,6 +32,7 @@ public class InvoiceProductMapper {
         .quantity(domain.getQuantity())
         .unitPrice(domain.getUnitPrice().toString())
         .vatPercent(domain.getVatPercent().toString())
+        .status(domain.getStatus() == null ? ProductStatus.ENABLED : domain.getStatus())
         .build();
   }
 }

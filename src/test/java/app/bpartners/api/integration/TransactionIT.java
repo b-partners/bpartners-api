@@ -164,6 +164,7 @@ class TransactionIT {
                 .invoiceId(invoice1.getId())
                 .fileId(invoice1.getFileId())),
         actual);
+
   }
 
   @Test

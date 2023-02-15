@@ -57,12 +57,20 @@ public class TransactionMapper {
         .build();
   }
 
-  public HTransaction toEntity(
-      String accountId,
-      app.bpartners.api.repository.swan.model.Transaction swanTransaction) {
-    return HTransaction.builder()
-        .idSwan(swanTransaction.getNode().getId())
-        .idAccount(accountId)
+  public Transaction toDomain(HTransaction entity, TransactionCategory category) {
+    return Transaction.builder()
+        .id(entity.getId())
+        .idAccount(entity.getIdAccount())
+        .idSwan(entity.getIdSwan())
+        .transactionInvoice(invoiceMapper.toTransactionInvoice(entity.getInvoice()))
+        .amount(parseFraction(entity.getAmount()))
+        .currency(entity.getCurrency())
+        .label(entity.getLabel())
+        .reference(entity.getReference())
+        .paymentDatetime(entity.getPaymentDateTime())
+        .side(entity.getSide())
+        .status(entity.getStatus())
+        .category(category)
         .build();
   }
 
@@ -72,6 +80,30 @@ public class TransactionMapper {
         .idSwan(domain.getIdSwan())
         .idAccount(domain.getIdAccount())
         .invoice(invoiceMapper.toEntity(domain.getTransactionInvoice()))
+        .status(domain.getStatus())
+        .side(domain.getSide())
+        .label(domain.getLabel())
+        .reference(domain.getReference())
+        .paymentDateTime(domain.getPaymentDatetime())
+        .currency(domain.getCurrency())
+        .amount(domain.getAmount().getCentsRoundUp())
+        .type(domain.getType())
+        .build();
+  }
+
+  public HTransaction toEntity(
+      String accountId,
+      app.bpartners.api.repository.swan.model.Transaction swanTransaction) {
+    return HTransaction.builder()
+        .idSwan(swanTransaction.getNode().getId())
+        .idAccount(accountId)
+        .status(getTransactionStatus(swanTransaction.getNode().getStatusInfo().getStatus()))
+        .side(swanTransaction.getNode().getSide())
+        .label(swanTransaction.getNode().getLabel())
+        .reference(swanTransaction.getNode().getReference())
+        .paymentDateTime(swanTransaction.getNode().getCreatedAt())
+        .currency(swanTransaction.getNode().getAmount().getCurrency())
+        .amount((int) (swanTransaction.getNode().getAmount().getValue() * 100))
         .build();
   }
 }

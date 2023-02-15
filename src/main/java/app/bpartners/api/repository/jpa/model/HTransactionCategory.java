@@ -26,27 +26,24 @@ import static javax.persistence.GenerationType.IDENTITY;
 @NoArgsConstructor
 @EqualsAndHashCode
 public class HTransactionCategory {
+  public static final String ID_TRANSACTION_ATTRIBUTE = "idTransaction";
+  public static final String ID_ACCOUNT_ATTRIBUTE = "idAccount";
+  public static final String ID_CATEGORY_TMPL_ATTRIBUTE = "idCategoryTemplate";
+  public static final String TYPE_ATTRIBUTE = "type";
+  public static final String VAT_ATTRIBUTE = "vat";
+  public static final String CREATED_DATETIME_ATTRIBUTE = "createdDatetime";
   @Id
   @GeneratedValue(strategy = IDENTITY)
   private String id;
-  public static final String ID_TRANSACTION_ATTRIBUTE = "idTransaction";
   private String idTransaction;
   private String idAccount;
-  public static final String ID_ACCOUNT_ATTRIBUTE = "idAccount";
-
   @Column(name = "id_transaction_category_tmpl")
   private String idCategoryTemplate;
-  public static final String ID_CATEGORY_TMPL_ATTRIBUTE = "idCategoryTemplate";
-
   @Column(name = "\"type\"")
   private String type;
-  public static final String TYPE_ATTRIBUTE = "type";
-
   private String vat;
-  public static final String VAT_ATTRIBUTE = "vat";
   @CreationTimestamp
   private Instant createdDatetime;
-  public static final String CREATED_DATETIME_ATTRIBUTE = "createdDatetime";
   private String comment;
   @Transient
   private String description;

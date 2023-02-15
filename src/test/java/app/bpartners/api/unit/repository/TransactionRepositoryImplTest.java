@@ -99,4 +99,10 @@ class TransactionRepositoryImplTest {
             && transaction.getPaymentDatetime()
             .isBefore(swanTransaction2().getNode().getCreatedAt())));
   }
+
+  @Test
+  void find_by_account_id_ok(){
+
+  }
+
 }

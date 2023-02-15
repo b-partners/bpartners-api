@@ -98,6 +98,8 @@ paths:
   #############################################
   /accounts/{id}/customers:
     $ref: './customers-api.yml#/operations/getOrCreateCustomers'
+  /accounts/{id}/customers/upload:
+    $ref: './customers-api.yml#/operations/importCustomers'
 
   #############################################
   ############# Prospecting API ###############

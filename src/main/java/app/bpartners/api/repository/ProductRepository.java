@@ -13,6 +13,9 @@ public interface ProductRepository {
       OrderDirection descriptionOrder, OrderDirection unitPriceOrder, OrderDirection createdAtOrder
   );
 
+  List<Product> findAllByIdAccount(String idAccount);
+
   List<Product> saveAll(String accountId, List<Product> toCreate);
+
 }
 

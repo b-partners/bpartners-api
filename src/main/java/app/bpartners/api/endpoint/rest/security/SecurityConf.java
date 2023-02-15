@@ -132,6 +132,9 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
             new SelfAccountMatcher(POST, "/accounts/*/products", authResourceProvider)
         ).authenticated()
         .requestMatchers(
+            new SelfAccountMatcher(POST, "/accounts/*/products/upload", authResourceProvider)
+        ).authenticated()
+        .requestMatchers(
             new SelfAccountMatcher(GET, "/accounts/*/invoices", authResourceProvider)
         ).authenticated()
         .requestMatchers(

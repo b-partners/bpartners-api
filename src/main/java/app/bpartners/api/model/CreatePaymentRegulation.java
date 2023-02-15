@@ -1,13 +1,17 @@
 package app.bpartners.api.model;
 
+import app.bpartners.api.service.utils.QrCodeUtils;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.Date;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.apfloat.Aprational;
 
+import static app.bpartners.api.service.utils.FileUtils.base64Image;
 import static org.apfloat.Apcomplex.ZERO;
 
 @NoArgsConstructor
@@ -35,5 +39,13 @@ public class CreatePaymentRegulation {
           Aprational percentAprational = ZERO.add(percentValue.divide(new Aprational(10000)));
           return amountValue.multiply(percentAprational);
         });
+  }
+
+  public String getPaymentUrlAsQrCode() {
+    return base64Image(QrCodeUtils.generateQrCode(paymentUrl));
+  }
+
+  public Date getFormattedMaturityDate() {
+    return Date.from(maturityDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
   }
 }

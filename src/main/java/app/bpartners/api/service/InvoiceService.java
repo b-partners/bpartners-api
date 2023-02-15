@@ -12,6 +12,8 @@ import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.repository.InvoiceRepository;
 import app.bpartners.api.repository.jpa.InvoiceJpaRepository;
 import java.util.List;
+
+import app.bpartners.api.repository.jpa.model.HInvoice;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
@@ -43,11 +45,28 @@ public class InvoiceService {
     return repository.getById(invoiceId);
   }
 
-  public boolean hasAvailableReference(String accountId, String reference, InvoiceStatus status) {
+  public static String getRealReference(String ref) {
+    if (ref == null) {
+      return null;
+    }
+    if (ref.contains(DRAFT_REF_PREFIX)) {
+      return ref.replace(DRAFT_REF_PREFIX, "");
+    } else if (ref.contains(PROPOSAL_REF_PREFIX)) {
+      return ref.replace(PROPOSAL_REF_PREFIX, "");
+    }
+    return ref;
+  }
+  public boolean hasAvailableReference(String accountId, String invoiceId, String reference, InvoiceStatus status) {
     if (reference == null) {
       return true;
     }
-    return jpaRepository.findByIdAccountAndRefAndStatus(accountId, reference, status).isEmpty();
+    List<HInvoice> actual = jpaRepository.findByIdAccountAndRefAndStatus(
+        accountId, getRealReference(reference), status);
+    if(!actual.isEmpty() && !actual.get(0).getId().equals(invoiceId)){
+      return false;
+    }else {
+      return true;
+    }
   }
 
   @Transactional(isolation = Isolation.SERIALIZABLE)

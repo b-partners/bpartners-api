@@ -31,6 +31,7 @@ import org.apfloat.Aprational;
 import org.springframework.stereotype.Component;
 
 import static app.bpartners.api.endpoint.rest.model.CrupdateInvoice.PaymentTypeEnum.CASH;
+import static app.bpartners.api.endpoint.rest.model.CrupdateInvoice.PaymentTypeEnum.IN_INSTALMENT;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PROPOSAL;
@@ -69,6 +70,7 @@ public class InvoiceMapper {
         .fileId(entity.getFileId())
         .title(entity.getTitle())
         .comment(entity.getComment())
+        //.paymentType(entity.getPaymentType())
         .paymentUrl(entity.getPaymentUrl())
         .products(actualProducts)
         .sendingDate(entity.getSendingDate())

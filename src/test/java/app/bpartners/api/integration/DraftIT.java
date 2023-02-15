@@ -10,8 +10,10 @@ import app.bpartners.api.manager.ProjectTokenManager;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.Attachment;
+import app.bpartners.api.model.CreatePaymentRegulation;
 import app.bpartners.api.model.Customer;
 import app.bpartners.api.model.Fraction;
+import app.bpartners.api.model.Invoice;
 import app.bpartners.api.repository.LegalFileRepository;
 import app.bpartners.api.repository.fintecture.FintectureConf;
 import app.bpartners.api.repository.sendinblue.SendinblueConf;
@@ -37,6 +39,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import static app.bpartners.api.endpoint.rest.model.CrupdateInvoice.PaymentTypeEnum.IN_INSTALMENT;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PROPOSAL;
 import static app.bpartners.api.integration.conf.TestUtils.INVOICE1_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
@@ -73,7 +76,7 @@ class DraftIT {
   private LegalFileRepository legalFileRepository;
 
   private static void generatePdf(String templateName) throws IOException {
-    app.bpartners.api.model.Invoice invoice = app.bpartners.api.model.Invoice.builder()
+    app.bpartners.api.model.Invoice invoice = Invoice.builder()
         .id(INVOICE1_ID)
         .ref("invoice_ref")
         .title("invoice_title")
@@ -86,7 +89,21 @@ class DraftIT {
             .iban("FR7630001007941234567890185")
             .bic("BPFRPP751")
             .build())
-        .products(creatableProds(20))
+        .paymentType(IN_INSTALMENT)
+        .multiplePayments(List.of(
+            CreatePaymentRegulation.builder()
+                .comment(null)
+                .maturityDate(LocalDate.now().plusDays(1L))
+                .amount(new Fraction(BigInteger.valueOf(100)))
+                .paymentUrl("https://connect-v2-sbx.fintecture.com")
+                .build(),
+            CreatePaymentRegulation.builder()
+                .comment("Avec un assez long commentaire pour voir si ça descend automatiquement")
+                .maturityDate(LocalDate.now())
+                .amount(new Fraction(BigInteger.TEN))
+                .paymentUrl("https://connect-v2-sbx.fintecture.com")
+                .build()))
+        .products(creatableProds(3))
         .customer(Customer.builder()
             .firstName("Olivier")
             .lastName("Durant")

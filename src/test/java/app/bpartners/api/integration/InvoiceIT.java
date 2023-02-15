@@ -67,6 +67,7 @@ import static app.bpartners.api.integration.conf.TestUtils.createProduct4;
 import static app.bpartners.api.integration.conf.TestUtils.createProduct5;
 import static app.bpartners.api.integration.conf.TestUtils.customer1;
 import static app.bpartners.api.integration.conf.TestUtils.customer2;
+import static app.bpartners.api.integration.conf.TestUtils.product2;
 import static app.bpartners.api.integration.conf.TestUtils.product3;
 import static app.bpartners.api.integration.conf.TestUtils.product4;
 import static app.bpartners.api.integration.conf.TestUtils.product5;
@@ -85,6 +86,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.reset;
@@ -279,7 +281,6 @@ class InvoiceIT {
         .delayInPaymentAllowed(null)
         .delayPenaltyPercent(null);
   }
-
   Invoice expectedDraft() {
     return new Invoice()
         .id(NEW_INVOICE_ID)
@@ -506,6 +507,40 @@ class InvoiceIT {
     assertEquals(actualConfirmed.getFileId(), actualPaid.getFileId());
     assertTrue(actualUpdatedDraft.getRef().contains(DRAFT_REF_PREFIX));
     assertFalse(actualConfirmed.getRef().contains(DRAFT_REF_PREFIX));
+  }
+
+  @Test
+  @Order(4)
+  void second_update_invoice_ok() throws ApiException{
+    ApiClient joeDoeClient = anApiClient();
+    PayingApi api = new PayingApi(joeDoeClient);
+
+    Invoice invoice = api.getInvoiceById(JOE_DOE_ACCOUNT_ID, INVOICE1_ID);
+    CrupdateInvoice crupdateInvoice = new CrupdateInvoice()
+        .ref(invoice.getRef())
+        .title(invoice.getTitle())
+        .comment(invoice.getComment())
+        .products(List.of(createProduct4(), createProduct5()))
+        .status(invoice.getStatus())
+        .sendingDate(invoice.getSendingDate())
+        .validityDate(invoice.getValidityDate())
+        .toPayAt(null);
+    Invoice expected = TestUtils.invoice1()
+        .products(List.of(product4().id(null), product5().id(null)))
+        .toPayAt(null);
+    Invoice actual = api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, INVOICE1_ID, crupdateInvoice)
+        .paymentUrl(expected.getPaymentUrl())
+        .totalVat(expected.getTotalVat())
+        .totalPriceWithVat(expected.getTotalPriceWithVat())
+        .totalPriceWithoutVat(expected.getTotalPriceWithoutVat())
+        .updatedAt(null)
+        .customer(expected.getCustomer());
+
+    assertTrue(actual.getId().equals(INVOICE1_ID));
+    assertTrue(actual.getRef().equals(expected.getRef()));
+    assertTrue(actual.getStatus().equals(expected.getStatus()));
+    assertNotEquals(expected, invoice);
+    assertEquals(expected, actual);
   }
 
   @Test

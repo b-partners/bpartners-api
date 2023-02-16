@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ID;
+import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_TOKEN;
 import static app.bpartners.api.integration.conf.TestUtils.joeDoeSwanAccount;
 import static app.bpartners.api.integration.conf.TestUtils.setUpProvider;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -21,6 +22,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -43,9 +45,25 @@ class SwanAccountRepositoryTest {
   }
 
   @Test
+  void read_swan_account_by_bearer_ok() {
+    List<SwanAccount> actual = accountSwanRepository.findByBearer(JOE_DOE_TOKEN);
+
+    assertNotNull(actual);
+    assertThat(actual, is(not(empty())));
+  }
+
+  @Test
+  void read_swan_account_by_bearer_ko() {
+    when(swanCustomApi.getData(eq(AccountResponse.class), any(), any())).thenReturn(null);
+    List<SwanAccount> actual = accountSwanRepository.findByBearer(JOE_DOE_TOKEN);
+
+    assertNotNull(actual);
+    assertThat(actual, is(empty()));
+  }
+
+  @Test
   void read_swan_account_by_user_ok() {
-    List<SwanAccount> actual =
-        accountSwanRepository.findByUserId(JOE_DOE_ID);
+    List<SwanAccount> actual = accountSwanRepository.findByUserId(JOE_DOE_ID);
 
     assertNotNull(actual);
     assertThat(actual, is(not(empty())));

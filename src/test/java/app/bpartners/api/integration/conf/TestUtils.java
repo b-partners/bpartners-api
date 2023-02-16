@@ -206,6 +206,17 @@ public class TestUtils {
         .build();
   }
 
+  public static app.bpartners.api.repository.swan.model.SwanUser janeDoeModel() {
+    return app.bpartners.api.repository.swan.model.SwanUser.builder()
+        .id(janeDoe().getId())
+        .firstName(janeDoe().getFirstName())
+        .lastName(janeDoe().getLastName())
+        .identificationStatus(janeDoe().getIdentificationStatus())
+        .mobilePhoneNumber(janeDoe().getMobilePhoneNumber())
+        .idVerified(janeDoe().isIdVerified())
+        .build();
+  }
+
   public static SwanAccount joeDoeSwanAccount() {
     return SwanAccount.builder()
         .id("beed1765-5c16-472a-b3f4-5c376ce5db58")
@@ -818,6 +829,7 @@ public class TestUtils {
   public static void setUpUserSwanRepository(UserSwanRepository swanRepository) {
     when(swanRepository.whoami()).thenReturn(joeDoeModel());
     when(swanRepository.getByToken(JOE_DOE_TOKEN)).thenReturn(joeDoeModel());
+    when(swanRepository.getByToken(JANE_DOE_TOKEN)).thenReturn(janeDoeModel());
   }
 
   public static void setUpAccountSwanRepository(AccountSwanRepository swanRepository) {

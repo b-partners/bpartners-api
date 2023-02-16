@@ -28,6 +28,7 @@ public class User implements Serializable {
   private EnableStatus status;
   private Boolean idVerified;
   private IdentificationStatus identificationStatus;
+  private Account account;
 
   public String getName() {
     return firstName + " " + lastName;

@@ -19,8 +19,7 @@ public class AuthenticatedResourceProvider {
   }
 
   public AccountHolder getAccountHolder() {
-    return accountHolderService.getAccountHolderByAccountId(
-        getAccount().getId()
+    return accountHolderService.getAccountHolderByAccountId(getAccount().getId()
     );
   }
 

@@ -19,6 +19,7 @@ import lombok.ToString;
 @EqualsAndHashCode
 public class Account implements Serializable {
   private String id;
+  private String userId;
   private String name;
   private String iban;
   private String bic;

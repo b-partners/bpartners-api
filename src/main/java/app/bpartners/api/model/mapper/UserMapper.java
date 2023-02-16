@@ -13,7 +13,7 @@ import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVE
 @Component
 @AllArgsConstructor
 public class UserMapper {
-
+  private final AccountMapper accountMapper;
   public static final String VALID_IDENTITY_STATUS = "ValidIdentity";
   public static final String INSUFFICIENT_DOCUMENT_QUALITY_STATUS = "InsufficientDocumentQuality";
   public static final String INVALID_IDENTITY_STATUS = "InvalidIdentity";
@@ -34,6 +34,9 @@ public class UserMapper {
             swanUser == null ? entityUser.getIdentificationStatus()
                 : getIdentificationStatus(
                 swanUser.getIdentificationStatus()))
+        .account(entityUser.getAccounts().isEmpty() ? null
+            : accountMapper.toDomain(entityUser.getAccounts().get(0),
+            entityUser.getId()))
         .build();
   }
 

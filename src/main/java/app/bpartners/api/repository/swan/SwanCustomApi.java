@@ -10,6 +10,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import lombok.AllArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
 import static app.bpartners.api.endpoint.rest.security.swan.SwanConf.BEARER_PREFIX;
@@ -29,8 +30,12 @@ public class SwanCustomApi<T> {
           .POST(HttpRequest.BodyPublishers.ofString(message)).build();
       HttpResponse<String> response =
           httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-      return new ObjectMapper().findAndRegisterModules()//Load DateTime Module
-          .readValue(response.body(), genericClass);
+      if (response.statusCode() != HttpStatus.OK.value()) {
+        return null;
+      } else {
+        return new ObjectMapper().findAndRegisterModules()//Load DateTime Module
+            .readValue(response.body(), genericClass);
+      }
     } catch (IOException | URISyntaxException e) {
       throw new ApiException(ApiException.ExceptionType.SERVER_EXCEPTION, e.getMessage());
     } catch (InterruptedException e) {

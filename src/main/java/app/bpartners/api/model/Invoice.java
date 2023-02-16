@@ -37,8 +37,9 @@ public class Invoice {
   private LocalDate toPayAt;
   private Integer delayInPaymentAllowed;
   private Fraction delayPenaltyPercent;
-  private Fraction totalVat;
+  private Fraction totalPriceWithoutDiscount;
   private Fraction totalPriceWithoutVat;
+  private Fraction totalVat;
   private Fraction totalPriceWithVat;
   private String paymentUrl;
   private Customer customer;
@@ -58,6 +59,7 @@ public class Invoice {
   private boolean toBeRelaunched;
   private Instant createdAt;
   private Map<String, String> metadata;
+  private InvoiceDiscount discount;
 
   public String getRealReference() {
     if (getRef() == null) {

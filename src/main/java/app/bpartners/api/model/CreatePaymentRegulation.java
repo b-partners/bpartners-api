@@ -42,6 +42,9 @@ public class CreatePaymentRegulation {
   }
 
   public String getPaymentUrlAsQrCode() {
+    if (paymentUrl == null) {
+      return null;
+    }
     return base64Image(QrCodeUtils.generateQrCode(paymentUrl));
   }
 

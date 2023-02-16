@@ -31,6 +31,7 @@ import org.apfloat.Aprational;
 import org.springframework.stereotype.Component;
 
 import static app.bpartners.api.endpoint.rest.model.Invoice.PaymentTypeEnum.CASH;
+import static app.bpartners.api.endpoint.rest.model.Invoice.PaymentTypeEnum.IN_INSTALMENT;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PROPOSAL;
@@ -177,6 +178,14 @@ public class InvoiceMapper {
     List<HInvoiceProduct> actualProducts = List.of();
     Fraction totalPriceWithVat = computeTotalPriceWithVat(domain.getProducts());
 
+    if (domain.getStatus() != CONFIRMED && domain.getStatus() != PAID
+        && domain.getPaymentType() == IN_INSTALMENT) {
+      checkPaymentsTotalPrice(domain, totalPriceWithVat);
+      List<PaymentInitiation> paymentInitiations = getPaymentInitiations(domain, totalPriceWithVat);
+      requestJpaRepository.deleteAllByIdInvoice(id);
+      pis.savePayments(paymentInitiations, id, domain.getStatus());
+    }
+
     Optional<HInvoice> optionalInvoice = jpaRepository.findById(id);
     if (isToBeCrupdated && optionalInvoice.isPresent()) {
       HInvoice entity = optionalInvoice.get();
@@ -193,19 +202,9 @@ public class InvoiceMapper {
           paymentUrl =
               getPaymentUrl(domain, paymentUrl, totalPriceWithVat);
         } else {
-          if (computeMultiplePaymentsAmount(domain.getMultiplePayments(), totalPriceWithVat)
-              > totalPriceWithVat.getCentsRoundUp()) {
-            throw new BadRequestException("Multiple payments amount should not exceed total price"
-                + " with vat amount");
-          }
-          List<PaymentInitiation> paymentInitiations = domain.getMultiplePayments().stream()
-              .map(payment -> {
-                String randomId = String.valueOf(randomUUID());
-                payment.setEndToEndId(randomId);
-                return requestMapper.convertFromInvoice(
-                    randomId, domain, totalPriceWithVat, payment);
-              })
-              .collect(Collectors.toUnmodifiableList());
+          checkPaymentsTotalPrice(domain, totalPriceWithVat);
+          List<PaymentInitiation> paymentInitiations =
+              getPaymentInitiations(domain, totalPriceWithVat);
           requestJpaRepository.deleteAllByIdInvoice(id);
 
           pis.initiateInvoicePayments(paymentInitiations, id);
@@ -249,6 +248,26 @@ public class InvoiceMapper {
         .products(actualProducts)
         .metadataString(objectMapper.writeValueAsString(domain.getMetadata()))
         .build();
+  }
+
+  private List<PaymentInitiation> getPaymentInitiations(Invoice domain,
+                                                        Fraction totalPriceWithVat) {
+    return domain.getMultiplePayments().stream()
+        .map(payment -> {
+          String randomId = String.valueOf(randomUUID());
+          payment.setEndToEndId(randomId);
+          return requestMapper.convertFromInvoice(
+              randomId, domain, totalPriceWithVat, payment);
+        })
+        .collect(Collectors.toUnmodifiableList());
+  }
+
+  private static void checkPaymentsTotalPrice(Invoice domain, Fraction totalPriceWithVat) {
+    if (computeMultiplePaymentsAmount(domain.getMultiplePayments(), totalPriceWithVat)
+        > totalPriceWithVat.getCentsRoundUp()) {
+      throw new BadRequestException("Multiple payments amount should not exceed total price"
+          + " with vat amount");
+    }
   }
 
   private static int computeMultiplePaymentsAmount(

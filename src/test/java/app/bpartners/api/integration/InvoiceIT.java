@@ -414,6 +414,70 @@ class InvoiceIT {
         .metadata(Map.of());
   }
 
+
+  private static List<PaymentRegulation> initPaymentReg(String id) {
+    return List.of(new PaymentRegulation()
+            .maturityDate(LocalDate.of(2023, 1, 1))
+            .paymentRequest(new PaymentRequest()
+                .paymentUrl(null)
+                .reference(id)
+                .amount(552)
+                .payerName("Luc Artisan")
+                .payerEmail("bpartners.artisans@gmail.com")
+                .label("Acompte de 10%")),
+        new PaymentRegulation()
+            .maturityDate(LocalDate.of(2023, 1, 1))
+            .paymentRequest(new PaymentRequest()
+                .paymentUrl(null)
+                .amount(1648)
+                .reference(id)
+                .payerName("Luc Artisan")
+                .payerEmail("bpartners.artisans@gmail.com")
+                .label("Reste 90%")));
+  }
+
+  private static List<PaymentRegulation> updatedPaymentRegulations(String id) {
+    return List.of(new PaymentRegulation()
+            .maturityDate(LocalDate.of(2023, 1, 1))
+            .paymentRequest(new PaymentRequest()
+                .paymentUrl(null)
+                .reference(id)
+                .amount(225)
+                .payerName("Luc Artisan")
+                .payerEmail("bpartners.artisans@gmail.com")
+                .label("Acompte de 10%")),
+        new PaymentRegulation()
+            .maturityDate(LocalDate.of(2023, 1, 1))
+            .paymentRequest(new PaymentRequest()
+                .paymentUrl(null)
+                .amount(1975)
+                .reference(id)
+                .payerName("Luc Artisan")
+                .payerEmail("bpartners.artisans@gmail.com")
+                .label("Reste 90%")));
+  }
+
+  private static List<PaymentRegulation> confirmedPaymentRegulations(String id) {
+    return List.of(new PaymentRegulation()
+            .maturityDate(LocalDate.of(2023, 1, 1))
+            .paymentRequest(new PaymentRequest()
+                .paymentUrl("https://connect-v2-sbx.fintecture.com")
+                .reference(id)
+                .amount(225)
+                .payerName("Luc Artisan")
+                .payerEmail("bpartners.artisans@gmail.com")
+                .label("Acompte de 10%")),
+        new PaymentRegulation()
+            .maturityDate(LocalDate.of(2023, 1, 1))
+            .paymentRequest(new PaymentRequest()
+                .paymentUrl("https://connect-v2-sbx.fintecture.com")
+                .amount(1975)
+                .reference(id)
+                .payerName("Luc Artisan")
+                .payerEmail("bpartners.artisans@gmail.com")
+                .label("Reste 90%")));
+  }
+
   //TODO: create PaginationIT for pagination test and add filters.
   // In particular, check the date filters and the order filters (by created datetime desc)
   @Test
@@ -605,49 +669,59 @@ class InvoiceIT {
                 .comment("Reste 90%")
                 .amount(null)));
 
-    api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, id, crupdateInvoice.status(DRAFT));
-    api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, id, crupdateInvoice.status(PROPOSAL));
-    Invoice actual = api.crupdateInvoice(
+    Invoice actualDraft = api.crupdateInvoice(
+        JOE_DOE_ACCOUNT_ID, id, crupdateInvoice.status(DRAFT));
+    actualDraft.setPaymentRegulations(ignoreIdsAndDatetime(actualDraft));
+    Invoice actualProposal = api.crupdateInvoice(
+        JOE_DOE_ACCOUNT_ID, id, crupdateInvoice
+            .status(PROPOSAL)
+            .paymentRegulations(List.of(new CreatePaymentRegulation()
+                    .maturityDate(LocalDate.of(2023, 1, 1))
+                    .percent(1025)
+                    .comment("Acompte de 10%")
+                    .amount(null),
+                new CreatePaymentRegulation()
+                    .maturityDate(LocalDate.of(2023, 1, 1))
+                    .percent(10000 - 1025)
+                    .comment("Reste 90%")
+                    .amount(null))));
+    actualProposal.setPaymentRegulations(ignoreIdsAndDatetime(actualProposal));
+    Invoice actualConfirmed = api.crupdateInvoice(
         JOE_DOE_ACCOUNT_ID, id, crupdateInvoice.status(CONFIRMED));
-    actual.setPaymentRegulations(ignoreIdsAndDatetime(actual));
+    actualConfirmed.setPaymentRegulations(ignoreIdsAndDatetime(actualConfirmed));
 
+    assertEquals(initPaymentReg(id), actualDraft.getPaymentRegulations());
+    assertTrue(actualDraft.getPaymentRegulations().stream()
+        .allMatch(
+            paymentRegulation -> paymentRegulation.getPaymentRequest().getPaymentUrl() == null));
+    assertEquals(updatedPaymentRegulations(id), actualProposal.getPaymentRegulations());
+    assertTrue(actualProposal.getPaymentRegulations().stream()
+        .allMatch(
+            paymentRegulation -> paymentRegulation.getPaymentRequest().getPaymentUrl() == null));
     assertEquals(new Invoice()
-        .id(actual.getId())
-        .ref(actual.getRef())
-        .paymentType(actual.getPaymentType())
-        .createdAt(actual.getCreatedAt())
-        .updatedAt(actual.getUpdatedAt())
-        .fileId(actual.getFileId())
+        .id(actualConfirmed.getId())
+        .ref(actualConfirmed.getRef())
+        .paymentType(actualConfirmed.getPaymentType())
+        .createdAt(actualConfirmed.getCreatedAt())
+        .updatedAt(actualConfirmed.getUpdatedAt())
+        .fileId(actualConfirmed.getFileId())
         .products(List.of(product4().id(null)))
-        .totalVat(actual.getTotalVat())
-        .status(actual.getStatus())
-        .metadata(actual.getMetadata())
-        .toPayAt(actual.getToPayAt())
-        .sendingDate(actual.getSendingDate())
-        .totalPriceWithVat(actual.getTotalPriceWithVat())
-        .totalPriceWithoutVat(actual.getTotalPriceWithoutVat())
-        .customer(actual.getCustomer())
-        .delayPenaltyPercent(actual.getDelayPenaltyPercent())
-        .delayInPaymentAllowed(actual.getDelayInPaymentAllowed())
-        .paymentUrl(actual.getPaymentUrl())
-        .paymentRegulations(List.of(new PaymentRegulation()
-                .maturityDate(LocalDate.of(2023, 1, 1))
-                .paymentRequest(new PaymentRequest()
-                    .paymentUrl("https://connect-v2-sbx.fintecture.com")
-                    .reference(id)
-                    .amount(552)
-                    .payerName("Luc Artisan")
-                    .payerEmail("bpartners.artisans@gmail.com")
-                    .label("Acompte de 10%")),
-            new PaymentRegulation()
-                .maturityDate(LocalDate.of(2023, 1, 1))
-                .paymentRequest(new PaymentRequest()
-                    .paymentUrl("https://connect-v2-sbx.fintecture.com")
-                    .amount(1648)
-                    .reference(id)
-                    .payerName("Luc Artisan")
-                    .payerEmail("bpartners.artisans@gmail.com")
-                    .label("Reste 90%")))), actual);
+        .totalVat(actualConfirmed.getTotalVat())
+        .status(actualConfirmed.getStatus())
+        .metadata(actualConfirmed.getMetadata())
+        .toPayAt(actualConfirmed.getToPayAt())
+        .sendingDate(actualConfirmed.getSendingDate())
+        .totalPriceWithVat(actualConfirmed.getTotalPriceWithVat())
+        .totalPriceWithoutVat(actualConfirmed.getTotalPriceWithoutVat())
+        .customer(actualConfirmed.getCustomer())
+        .delayPenaltyPercent(actualConfirmed.getDelayPenaltyPercent())
+        .delayInPaymentAllowed(actualConfirmed.getDelayInPaymentAllowed())
+        .paymentUrl(actualConfirmed.getPaymentUrl())
+        .paymentRegulations(confirmedPaymentRegulations(id)), actualConfirmed);
+    assertTrue(actualConfirmed.getPaymentRegulations().stream()
+        .allMatch(
+            paymentRegulation -> paymentRegulation.getPaymentRequest().getPaymentUrl() != null));
+
   }
 
   // /!\ It seems that the localstack does not support the SES service using the default credentials

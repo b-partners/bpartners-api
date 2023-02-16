@@ -28,8 +28,10 @@ public class PaymentRequestMapper {
         .id(domain.getId())
         .idInvoice(idInvoice)
         .accountId(provider.getAccount().getId())
-        .sessionId(paymentRedirection.getMeta().getSessionId())
-        .paymentUrl(paymentRedirection.getMeta().getUrl())
+        .sessionId(paymentRedirection == null ? null
+            : paymentRedirection.getMeta().getSessionId())
+        .paymentUrl(paymentRedirection == null ? null
+            : paymentRedirection.getMeta().getUrl())
         .label(domain.getLabel())
         .payerEmail(domain.getPayerEmail())
         .payerName(domain.getPayerName())

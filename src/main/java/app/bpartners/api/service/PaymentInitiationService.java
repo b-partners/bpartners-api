@@ -1,5 +1,6 @@
 package app.bpartners.api.service;
 
+import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.PaymentInitiation;
@@ -36,5 +37,10 @@ public class PaymentInitiationService {
   public List<PaymentRedirection> initiateInvoicePayments(
       List<PaymentInitiation> paymentInitiations, String invoiceId) {
     return repository.saveAll(paymentInitiations, invoiceId);
+  }
+
+  public void savePayments(
+      List<PaymentInitiation> paymentInitiations, String invoiceId, InvoiceStatus status) {
+    repository.saveAll(paymentInitiations, invoiceId, status);
   }
 }

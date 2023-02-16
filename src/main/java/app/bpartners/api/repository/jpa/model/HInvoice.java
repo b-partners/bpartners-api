@@ -1,5 +1,6 @@
 package app.bpartners.api.repository.jpa.model;
 
+import app.bpartners.api.endpoint.rest.model.Invoice.PaymentTypeEnum;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.repository.jpa.types.PostgresEnumType;
 import java.io.Serializable;
@@ -52,6 +53,9 @@ public class HInvoice implements Serializable {
   private String delayPenaltyPercent;
   private LocalDate toPayAt;
   private String comment;
+  @Type(type = "pgsql_enum")
+  @Enumerated(EnumType.STRING)
+  private PaymentTypeEnum paymentType;
   private String fileId;
   @Type(type = "pgsql_enum")
   @Enumerated(EnumType.STRING)

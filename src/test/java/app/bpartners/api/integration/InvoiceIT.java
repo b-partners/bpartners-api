@@ -47,7 +47,6 @@ import software.amazon.awssdk.services.eventbridge.model.PutEventsRequest;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsRequestEntry;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsResponse;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsResultEntry;
-
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.DRAFT;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
@@ -506,6 +505,40 @@ class InvoiceIT {
     assertEquals(actualConfirmed.getFileId(), actualPaid.getFileId());
     assertTrue(actualUpdatedDraft.getRef().contains(DRAFT_REF_PREFIX));
     assertFalse(actualConfirmed.getRef().contains(DRAFT_REF_PREFIX));
+  }
+
+  @Test
+  @Order(4)
+  void second_update_invoice_ok() throws ApiException {
+    ApiClient joeDoeClient = anApiClient();
+    PayingApi api = new PayingApi(joeDoeClient);
+
+    Invoice invoice = api.getInvoiceById(JOE_DOE_ACCOUNT_ID, INVOICE1_ID);
+    CrupdateInvoice crupdateInvoice = new CrupdateInvoice()
+        .ref(invoice.getRef())
+        .title(invoice.getTitle())
+        .comment(invoice.getComment())
+        .products(List.of(createProduct4(), createProduct5()))
+        .status(invoice.getStatus())
+        .sendingDate(invoice.getSendingDate())
+        .validityDate(invoice.getValidityDate())
+        .toPayAt(null);
+    Invoice expected = TestUtils.invoice1()
+        .products(List.of(product4().id(null), product5().id(null)))
+        .toPayAt(null);
+    Invoice actual = api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, INVOICE1_ID, crupdateInvoice)
+        .paymentUrl(expected.getPaymentUrl())
+        .totalVat(expected.getTotalVat())
+        .totalPriceWithVat(expected.getTotalPriceWithVat())
+        .totalPriceWithoutVat(expected.getTotalPriceWithoutVat())
+        .updatedAt(null)
+        .customer(expected.getCustomer());
+
+    assertEquals(INVOICE1_ID, actual.getId());
+    assertEquals(expected.getRef(), actual.getRef());
+    assertEquals(expected.getStatus(), actual.getStatus());
+    assertNotEquals(expected, invoice);
+    assertEquals(expected, actual);
   }
 
   @Test

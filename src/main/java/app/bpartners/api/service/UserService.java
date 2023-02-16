@@ -14,6 +14,7 @@ import static org.springframework.transaction.annotation.Isolation.SERIALIZABLE;
 public class UserService {
   private UserRepository userRepository;
 
+  @Transactional(isolation = SERIALIZABLE)
   public User getUserByPhoneNumber(String phoneNumber) {
     return userRepository.getByPhoneNumber(phoneNumber);
   }

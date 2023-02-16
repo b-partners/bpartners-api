@@ -125,6 +125,7 @@ class ProductIT {
     List<Product> actualProducts = api.getProducts(JOE_DOE_ACCOUNT_ID, true, null, null, null);
     assertTrue(actualProducts.stream()
         .allMatch(product -> product.getCreatedAt() != null));
+    actual.get(0).createdAt(actualProducts.get(actualProducts.size() - 1).getCreatedAt());
     assertTrue(actualProducts.containsAll(actual));
   }
 

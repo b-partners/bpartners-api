@@ -47,7 +47,6 @@ import software.amazon.awssdk.services.eventbridge.model.PutEventsRequest;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsRequestEntry;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsResponse;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsResultEntry;
-
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.DRAFT;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
@@ -67,7 +66,6 @@ import static app.bpartners.api.integration.conf.TestUtils.createProduct4;
 import static app.bpartners.api.integration.conf.TestUtils.createProduct5;
 import static app.bpartners.api.integration.conf.TestUtils.customer1;
 import static app.bpartners.api.integration.conf.TestUtils.customer2;
-import static app.bpartners.api.integration.conf.TestUtils.product2;
 import static app.bpartners.api.integration.conf.TestUtils.product3;
 import static app.bpartners.api.integration.conf.TestUtils.product4;
 import static app.bpartners.api.integration.conf.TestUtils.product5;
@@ -86,7 +84,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.reset;
@@ -281,6 +278,7 @@ class InvoiceIT {
         .delayInPaymentAllowed(null)
         .delayPenaltyPercent(null);
   }
+
   Invoice expectedDraft() {
     return new Invoice()
         .id(NEW_INVOICE_ID)
@@ -511,7 +509,7 @@ class InvoiceIT {
 
   @Test
   @Order(4)
-  void second_update_invoice_ok() throws ApiException{
+  void second_update_invoice_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
     PayingApi api = new PayingApi(joeDoeClient);
 
@@ -536,9 +534,9 @@ class InvoiceIT {
         .updatedAt(null)
         .customer(expected.getCustomer());
 
-    assertTrue(actual.getId().equals(INVOICE1_ID));
-    assertTrue(actual.getRef().equals(expected.getRef()));
-    assertTrue(actual.getStatus().equals(expected.getStatus()));
+    assertEquals(INVOICE1_ID, actual.getId());
+    assertEquals(expected.getRef(), actual.getRef());
+    assertEquals(expected.getStatus(), actual.getStatus());
     assertNotEquals(expected, invoice);
     assertEquals(expected, actual);
   }

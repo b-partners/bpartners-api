@@ -8,6 +8,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
@@ -16,6 +17,8 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
+import static java.util.Objects.isNull;
+import static org.jsoup.internal.StringUtil.isBlank;
 
 public class ProductUtils {
   private ProductUtils() {
@@ -39,7 +42,9 @@ public class ProductUtils {
         }
       }
       workbook.close();
-      return createProducts;
+      return createProducts.stream()
+          .filter(createProduct -> !hasBlankFields(createProduct))
+          .collect(Collectors.toUnmodifiableList());
     } catch (InvalidFormatException | IOException e) {
       throw new ApiException(SERVER_EXCEPTION, "Failed to parse Excel file : " + e.getMessage());
     }
@@ -60,10 +65,10 @@ public class ProductUtils {
           product.setQuantity((int) currentCell.getNumericCellValue());
           break;
         case 2:
-          product.setUnitPrice((int) currentCell.getNumericCellValue());
+          product.setUnitPrice((int) (currentCell.getNumericCellValue() * 100));
           break;
         default:
-          product.setVatPercent((int) currentCell.getNumericCellValue());
+          product.setVatPercent((int) (currentCell.getNumericCellValue() * 100));
           break;
       }
       cellIndex++;
@@ -72,56 +77,67 @@ public class ProductUtils {
   }
 
   private static void checkColumnOrder(Iterator<Cell> cell) {
-    int cellIndex = 0;
-    StringBuilder message = new StringBuilder();
+    int index = 0;
+    StringBuilder messageBuilder = new StringBuilder();
     while (cell.hasNext()) {
-      Cell currentCell = cell.next();
-      switch (cellIndex) {
+      Cell current = cell.next();
+      switch (index) {
         case 0:
-          if (!currentCell.getStringCellValue().equalsIgnoreCase("description")) {
-            message.append("\"Description\" instead of ")
+          if (!current.getStringCellValue().trim()
+              .equalsIgnoreCase("description")) {
+            messageBuilder.append("\"Description\" instead of ")
                 .append("\"")
-                .append(currentCell.getStringCellValue())
+                .append(current.getStringCellValue())
                 .append("\"")
                 .append(" at column 1. ");
           }
           break;
 
         case 1:
-          if (!currentCell.getStringCellValue().equalsIgnoreCase("quantité")) {
-            message.append("\"Quantité\" instead of ")
+          if (!current.getStringCellValue().trim()
+              .equalsIgnoreCase("quantité")) {
+            messageBuilder.append("\"Quantité\" instead of ")
                 .append("\"")
-                .append(currentCell.getStringCellValue())
+                .append(current.getStringCellValue())
                 .append("\"")
                 .append(" at column 2. ");
           }
           break;
 
         case 2:
-          if (!currentCell.getStringCellValue().equalsIgnoreCase("prix unitaire")) {
-            message.append("\"Prix unitaire\" instead of ")
+          if (!current.getStringCellValue().trim()
+              .equalsIgnoreCase("prix unitaire (€)")) {
+            messageBuilder.append("\"Prix unitaire (€)\" instead of ")
                 .append("\"")
-                .append(currentCell.getStringCellValue())
+                .append(current.getStringCellValue())
                 .append("\"")
                 .append(" at column 3. ");
           }
           break;
 
         default:
-          if (!currentCell.getStringCellValue().equalsIgnoreCase("tva (%)")) {
-            message.append("\"TVA (%)\" instead of ")
+          if (!current.getStringCellValue().trim()
+              .equalsIgnoreCase("tva (%)")) {
+            messageBuilder.append("\"TVA (%)\" instead of ")
                 .append("\"")
-                .append(currentCell.getStringCellValue())
+                .append(current.getStringCellValue())
                 .append("\"")
                 .append(" at the last column.");
           }
           break;
       }
-      cellIndex++;
+      index++;
     }
-    String errorMessage = message.toString();
+    String errorMessage = messageBuilder.toString();
     if (!errorMessage.isEmpty()) {
       throw new BadRequestException(errorMessage);
     }
+  }
+
+  private static boolean hasBlankFields(CreateProduct createProduct) {
+    return isBlank(createProduct.getDescription())
+        && isNull(createProduct.getUnitPrice())
+        && isNull(createProduct.getVatPercent())
+        && isNull(createProduct.getQuantity());
   }
 }

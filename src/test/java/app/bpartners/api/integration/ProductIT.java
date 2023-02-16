@@ -264,7 +264,7 @@ class ProductIT {
         "{\"type\":\"400 BAD_REQUEST\",\"message\":\""
             + "\"Description\" instead of \"Autres\" at column 1. "
             + "\"Quantité\" instead of \"Quantity\" at column 2. "
-            + "\"Prix unitaire\" instead of \"unitPrice\" at column 3. "
+            + "\"Prix unitaire (€)\" instead of \"unitPrice\" at column 3. "
             + "\"TVA (%)\" instead of \"vatPercent\" at the last column.\"}"
         , response.body().replace("\\", ""));
   }

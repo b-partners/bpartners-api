@@ -2,6 +2,7 @@ package app.bpartners.api.model.mapper;
 
 import app.bpartners.api.endpoint.rest.model.AccountStatus;
 import app.bpartners.api.model.Account;
+import app.bpartners.api.repository.jpa.model.HAccount;
 import app.bpartners.api.repository.swan.model.SwanAccount;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -25,6 +26,38 @@ public class AccountMapper {
         .bic(external.getBic())
         .availableBalance(parseFraction(external.getBalances().getAvailable().getValue() * 100))
         .status(getStatus(external.getStatusInfo().getStatus()))
+        .build();
+  }
+
+  public Account toDomain(SwanAccount swanAccount, HAccount entity) {
+    Account entityToDomain = toDomain(entity);
+    Account swanToDomain = toDomain(swanAccount);
+    if (swanToDomain.equals(entityToDomain)) {
+      return entityToDomain;
+    } else {
+      return swanToDomain;
+    }
+  }
+
+  public Account toDomain(HAccount entity) {
+    return Account.builder()
+        .id(entity.getId())
+        .name(entity.getName())
+        .iban(entity.getIban())
+        .bic(entity.getBic())
+        .availableBalance(parseFraction(entity.getAvailableBalance()))
+        .status(entity.getStatus())
+        .build();
+  }
+
+  public HAccount toEntity(Account domain) {
+    return HAccount.builder()
+        .id(domain.getId())
+        .name(domain.getName())
+        .iban(domain.getIban())
+        .bic(domain.getBic())
+        .availableBalance(domain.getAvailableBalance().toString())
+        .status(domain.getStatus())
         .build();
   }
 

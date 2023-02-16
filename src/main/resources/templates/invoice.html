@@ -332,8 +332,14 @@
                 <tbody>
                 <th:block th:each="payment,i : ${invoice.multiplePayments}">
                     <tr>
-                        <td class="text-center">Acompte
-                            N°<span th:text="${i.index + 1}"></span></td>
+                        <td class="text-center">
+                            <span th:if="${i.count < i.size}">
+                                Acompte N°<span th:text="${i.count}"></span>
+                            </span>
+                            <span th:unless="${i.count <i.size}">
+                                Restant dû
+                            </span>
+                        </td>
                         <td class="text-center">
                             <span
                                     th:text="${#dates.format(payment.getFormattedMaturityDate(), 'dd-MM-yyyy')}"></span>
@@ -355,6 +361,8 @@
                             <img class="payment-code"
                                  th:src="${'data:image/jpeg;base64,' + payment.getPaymentUrlAsQrCode()}"
                                  alt="payment-code-qr"/>
+                            <span class="caption"><a
+                                    th:href="${payment.paymentUrl}">Payez ici</a></span>
                         </td>
                     </tr>
                 </th:block>

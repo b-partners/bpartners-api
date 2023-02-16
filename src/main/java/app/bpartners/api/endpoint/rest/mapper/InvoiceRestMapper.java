@@ -8,7 +8,7 @@ import app.bpartners.api.endpoint.rest.model.Product;
 import app.bpartners.api.endpoint.rest.model.TransactionInvoice;
 import app.bpartners.api.endpoint.rest.validator.CrupdateInvoiceValidator;
 import app.bpartners.api.model.InvoiceProduct;
-import app.bpartners.api.model.exception.BadRequestException;
+import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.repository.CustomerRepository;
 import app.bpartners.api.service.AccountService;
@@ -59,6 +59,7 @@ public class InvoiceRestMapper {
         .createdAt(domain.getCreatedAt())
         .customer(customerMapper.toRest(domain.getCustomer()))
         .status(domain.getStatus())
+        .paymentType(domain.getPaymentType())
         .products(getProducts(domain))
         .totalVat(domain.getTotalVat().getCentsRoundUp())
         .paymentUrl(domain.getPaymentUrl())
@@ -115,7 +116,7 @@ public class InvoiceRestMapper {
         .title(rest.getTitle())
         .ref(rest.getRef())
         .comment(rest.getComment())
-        .paymentType(rest.getPaymentType())
+        .paymentType(convertType(rest.getPaymentType()))
         .multiplePayments(getMultiplePayments(rest))
         .customer(rest.getCustomer() != null
             ? customerRepository.findById(rest.getCustomer().getId()) : null)
@@ -166,5 +167,21 @@ public class InvoiceRestMapper {
         ? List.of() : domain.getProducts().stream()
         .map(productRestMapper::toRest)
         .collect(Collectors.toUnmodifiableList());
+  }
+
+  private Invoice.PaymentTypeEnum convertType(
+      CrupdateInvoice.PaymentTypeEnum crupdateInvoiceType) {
+    if (crupdateInvoiceType == null) {
+      return null;
+    }
+    switch (crupdateInvoiceType.getValue()) {
+      case "CASH":
+        return Invoice.PaymentTypeEnum.CASH;
+      case "IN_INSTALMENT":
+        return Invoice.PaymentTypeEnum.IN_INSTALMENT;
+      default:
+        throw new ApiException(ApiException.ExceptionType.SERVER_EXCEPTION,
+            "Payment type " + crupdateInvoiceType.getValue() + " not found");
+    }
   }
 }

@@ -1,6 +1,6 @@
 package app.bpartners.api.model;
 
-import app.bpartners.api.endpoint.rest.model.CrupdateInvoice.PaymentTypeEnum;
+import app.bpartners.api.endpoint.rest.model.Invoice.PaymentTypeEnum;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import java.time.Instant;
 import java.time.LocalDate;

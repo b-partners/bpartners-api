@@ -53,6 +53,7 @@ import software.amazon.awssdk.services.eventbridge.model.PutEventsResponse;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsResultEntry;
 
 import static app.bpartners.api.endpoint.rest.model.CrupdateInvoice.PaymentTypeEnum.IN_INSTALMENT;
+import static app.bpartners.api.endpoint.rest.model.Invoice.PaymentTypeEnum.CASH;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.DRAFT;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
@@ -288,7 +289,7 @@ class InvoiceIT {
         .customer(customer2())
         .ref("BP002")
         .paymentRegulations(List.of())
-        .paymentType(Invoice.PaymentTypeEnum.CASH)
+        .paymentType(CASH)
         .sendingDate(LocalDate.of(2022, 9, 10))
         .validityDate(LocalDate.of(2022, 10, 14))
         .createdAt(Instant.parse("2022-01-01T03:00:00.00Z"))
@@ -318,7 +319,7 @@ class InvoiceIT {
         .delayPenaltyPercent(DEFAULT_DELAY_PENALTY_PERCENT)
         .products(List.of(product5().id(null)))
         .paymentRegulations(List.of())
-        .paymentType(Invoice.PaymentTypeEnum.CASH)
+        .paymentType(CASH)
         .toPayAt(LocalDate.of(2022, 11, 10))
         .totalPriceWithVat(1100)
         .totalVat(100)
@@ -353,7 +354,7 @@ class InvoiceIT {
         .delayPenaltyPercent(DEFAULT_DELAY_PENALTY_PERCENT)
         .products(List.of(product4().id(null), product5().id(null)))
         .paymentRegulations(List.of())
-        .paymentType(Invoice.PaymentTypeEnum.CASH)
+        .paymentType(CASH)
         .totalPriceWithVat(3300)
         .totalVat(300)
         .totalPriceWithoutVat(3000)
@@ -385,7 +386,7 @@ class InvoiceIT {
         .id(NEW_INVOICE_ID)
         .products(List.of())
         .paymentRegulations(List.of())
-        .paymentType(Invoice.PaymentTypeEnum.CASH)
+        .paymentType(CASH)
         .totalVat(0)
         .totalPriceWithoutVat(0)
         .totalPriceWithVat(0)
@@ -575,10 +576,10 @@ class InvoiceIT {
 
     assertDoesNotThrow(firstCrupdateExecutable);
 
-//    assertThrowsApiException(
-//        "{\"type\":\"400 BAD_REQUEST\",\"message\":\""
-//            + "Invoice.reference=unique_ref is already used" + "\"}",
-//        secondCrupdateExecutable);
+    assertThrowsApiException(
+        "{\"type\":\"400 BAD_REQUEST\",\"message\":\""
+            + "Invoice.reference=unique_ref is already used" + "\"}",
+        secondCrupdateExecutable);
     assertThrowsApiException("{\"type\":\"404 NOT_FOUND\",\"message\":\""
             + "Customer." + crupdateInvoiceWithNonExistentCustomer.getCustomer().getId()
             + " is not found.\"}",
@@ -808,6 +809,7 @@ class InvoiceIT {
         .toPayAt(null);
     Invoice expected = TestUtils.invoice1()
         .products(List.of(product4().id(null), product5().id(null)))
+        .paymentType(CASH)
         .toPayAt(null);
     Invoice actual = api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, INVOICE1_ID, crupdateInvoice)
         .paymentUrl(expected.getPaymentUrl())

@@ -72,6 +72,7 @@ import software.amazon.awssdk.services.eventbridge.model.PutEventsResponse;
 
 import static app.bpartners.api.endpoint.rest.model.EnableStatus.ENABLED;
 import static app.bpartners.api.endpoint.rest.model.IdentificationStatus.VALID_IDENTITY;
+import static app.bpartners.api.endpoint.rest.model.Invoice.PaymentTypeEnum.IN_INSTALMENT;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
 import static app.bpartners.api.endpoint.rest.model.TransactionTypeEnum.INCOME;
 import static app.bpartners.api.endpoint.rest.model.TransactionTypeEnum.OUTCOME;
@@ -583,6 +584,7 @@ public class TestUtils {
         .totalPriceWithVat(8800)
         .totalVat(800)
         .totalPriceWithoutVat(8000)
+        .paymentType(IN_INSTALMENT)
         .paymentRegulations(List.of(datedPaymentRequest1(), datedPaymentRequest2()))
         .metadata(Map.of());
   }

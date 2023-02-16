@@ -9,6 +9,7 @@ import app.bpartners.api.endpoint.rest.model.TransactionInvoice;
 import app.bpartners.api.endpoint.rest.validator.CrupdateInvoiceValidator;
 import app.bpartners.api.model.InvoiceProduct;
 import app.bpartners.api.model.exception.ApiException;
+import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.repository.CustomerRepository;
 import app.bpartners.api.service.AccountService;

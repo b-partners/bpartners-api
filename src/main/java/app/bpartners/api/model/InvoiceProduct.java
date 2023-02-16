@@ -36,6 +36,7 @@ public class InvoiceProduct {
   private Fraction totalPriceWithVat;
   private Fraction vatWithDiscount;
   private Fraction totalWithDiscount;
+  private Fraction priceNoVatWithDiscount;
 
   public Fraction getDiscountAmount(Fraction discount) {
     Fraction price =
@@ -81,12 +82,13 @@ public class InvoiceProduct {
     }
     Fraction price =
         unitPrice.operate(new Fraction(BigInteger.valueOf(quantity)), Aprational::multiply);
-    return price.operate(discount,
+    priceNoVatWithDiscount = price.operate(discount,
         (priceValue, discountValue) -> {
           Aprational discountRational =
               priceValue.multiply(discountValue.divide(new Aprational(10000)));
           return priceValue.subtract(discountRational);
         });
+    return priceNoVatWithDiscount;
   }
 
   public Fraction getPriceWithVatAndDiscount(Fraction discount) {

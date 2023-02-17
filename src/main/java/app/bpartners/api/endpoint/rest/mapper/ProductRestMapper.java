@@ -63,4 +63,14 @@ public class ProductRestMapper {
         .build();
   }
 
+  public app.bpartners.api.model.Product toDomainWithoutCheck(CreateProduct createProduct) {
+    return app.bpartners.api.model.Product.builder()
+        .id(createProduct.getId() == null
+            ? String.valueOf(randomUUID())
+            : createProduct.getId())
+        .description(createProduct.getDescription())
+        .unitPrice(parseFraction(createProduct.getUnitPrice()))
+        .vatPercent(parseFraction(createProduct.getVatPercent()))
+        .build();
+  }
 }

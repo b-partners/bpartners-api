@@ -1,5 +1,8 @@
 package app.bpartners.api.service;
 
+import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
+import static app.bpartners.api.service.utils.ProductUtils.getProductsFromFile;
+import app.bpartners.api.endpoint.rest.mapper.ProductRestMapper;
 import app.bpartners.api.endpoint.rest.model.CreateProduct;
 import app.bpartners.api.endpoint.rest.model.OrderDirection;
 import app.bpartners.api.endpoint.rest.model.UpdateProductStatus;
@@ -12,14 +15,11 @@ import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
-import static app.bpartners.api.service.utils.ProductUtils.getProductsFromFile;
-import static java.util.UUID.randomUUID;
-
 @Service
 @AllArgsConstructor
 public class ProductService {
   private final ProductRepository repository;
+  private final ProductRestMapper mapper;
 
   public List<Product> getProductsByAccount(
       String accountId, int page, int pageSize,
@@ -60,7 +60,7 @@ public class ProductService {
     }
     if (toUpdateList.isEmpty()) {
       toCreateList = createProducts.stream()
-          .map(this::toDomainWithoutCheck)
+          .map(mapper::toDomainWithoutCheck)
           .collect(Collectors.toUnmodifiableList());
     } else {
       List<String> toUpdateDescription =
@@ -68,22 +68,10 @@ public class ProductService {
               Collectors.toUnmodifiableList());
       toCreateList = createProducts.stream()
           .filter(createProduct -> !toUpdateDescription.contains(createProduct.getDescription()))
-          .map(this::toDomainWithoutCheck)
+          .map(mapper::toDomainWithoutCheck)
           .collect(Collectors.toUnmodifiableList());
     }
     toUpdateList.addAll(toCreateList);
     return toUpdateList;
-  }
-
-  //TODO: put this in the ProductRestMapper
-  private Product toDomainWithoutCheck(CreateProduct createProduct) {
-    return Product.builder()
-        .id(createProduct.getId() == null
-            ? String.valueOf(randomUUID())
-            : createProduct.getId())
-        .description(createProduct.getDescription())
-        .unitPrice(parseFraction(createProduct.getUnitPrice()))
-        .vatPercent(parseFraction(createProduct.getVatPercent()))
-        .build();
   }
 }

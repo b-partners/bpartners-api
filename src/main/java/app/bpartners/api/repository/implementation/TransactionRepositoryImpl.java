@@ -42,15 +42,18 @@ public class TransactionRepositoryImpl implements TransactionRepository {
         .stream()
         .map(mapper::toEntity).collect(Collectors.toUnmodifiableList());
 
-    return (!transactions.isEmpty() && transactions.containsAll(swanTransactionToEntity)) ?
-        transactions.stream().map(entity1 -> mapper.toDomain(entity1,
-                categoryRepository.findByIdTransaction(
-                    entity1.getId())))
-            .collect(Collectors.toUnmodifiableList()) :
-        jpaRepository.saveAll(swanTransactionToEntity).stream()
-            .map(entity -> mapper.toDomain(entity, categoryRepository.findByIdTransaction(
-                entity.getId()))).collect(
-                Collectors.toUnmodifiableList());
+
+    if (!transactions.isEmpty() && transactions.containsAll(swanTransactionToEntity)) {
+      return transactions.stream().map(entity1 -> mapper.toDomain(entity1,
+              categoryRepository.findByIdTransaction(
+                  entity1.getId())))
+          .collect(Collectors.toUnmodifiableList());
+    }
+
+    return jpaRepository.saveAll(swanTransactionToEntity).stream()
+        .map(entity -> mapper.toDomain(entity, categoryRepository.findByIdTransaction(
+            entity.getId()))).collect(
+            Collectors.toUnmodifiableList());
   }
 
   @Override

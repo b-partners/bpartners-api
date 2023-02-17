@@ -8,6 +8,7 @@ import app.bpartners.api.repository.jpa.UserJpaRepository;
 import app.bpartners.api.repository.jpa.model.HUser;
 import app.bpartners.api.service.FileService;
 import app.bpartners.api.service.aws.S3Service;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,7 +19,7 @@ import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ID;
 import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -61,7 +62,6 @@ class FileServiceTest {
     assertEquals(RANDOM_CHECKSUM, actual.getSha256());
   }
 
-  //TODO: change this test when downloadedFile is empty byte array
   @Test
   void download_optional_ko() {
     when(fileRepository.getOptionalByIdAndAccountId(any(String.class),
@@ -70,10 +70,10 @@ class FileServiceTest {
     FileType anyFileType = FileType.LOGO;
     String anyAccountId = String.valueOf(randomUUID());
     String anyFileId = String.valueOf(randomUUID());
-    byte[] downloadedFile =
+    List<byte[]> downloadedFile =
         fileService.downloadOptionalFile(anyFileType, anyAccountId, anyFileId + ".jpeg");
 
-    assertNull(downloadedFile);
+    assertTrue(downloadedFile.isEmpty());
   }
 
 

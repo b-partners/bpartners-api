@@ -3,6 +3,8 @@ package app.bpartners.api.endpoint.rest.controller;
 import app.bpartners.api.endpoint.rest.mapper.CustomerRestMapper;
 import app.bpartners.api.endpoint.rest.model.CreateCustomer;
 import app.bpartners.api.endpoint.rest.model.Customer;
+import app.bpartners.api.model.BoundedPageSize;
+import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.service.CustomerService;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -26,8 +28,10 @@ public class CustomerController {
       @PathVariable String id,
       @RequestParam(required = false) String name,
       @RequestParam(required = false) String firstName,
-      @RequestParam(required = false) String lastName) {
-    return service.getCustomers(id, name, firstName, lastName).stream()
+      @RequestParam(required = false) String lastName,
+      @RequestParam PageFromOne page,
+      @RequestParam BoundedPageSize pageSize) {
+    return service.getCustomers(id, name, firstName, lastName, page, pageSize).stream()
         .map(mapper::toRest)
         .collect(Collectors.toUnmodifiableList());
   }

@@ -28,7 +28,7 @@ public class TransactionRepositoryImpl implements TransactionRepository {
 
   @Override
   public List<Transaction> findByAccountId(String accountId) {
-    return swanRepository.getByIdAccount(accountId)
+    List<Transaction> swanTransaction = swanRepository.getByIdAccount(accountId)
         .stream()
         .map(transaction -> {
           HTransaction entity = getOrCreateTransaction(accountId, transaction);
@@ -36,6 +36,21 @@ public class TransactionRepositoryImpl implements TransactionRepository {
               categoryRepository.findByIdTransaction(entity.getId()));
         })
         .collect(Collectors.toUnmodifiableList());
+
+    List<HTransaction> transactions = jpaRepository.getHTransactionByIdAccount(accountId);
+    List<HTransaction> swanTransactionToEntity = swanTransaction
+        .stream()
+        .map(mapper::toEntity).collect(Collectors.toUnmodifiableList());
+
+    return (!transactions.isEmpty() && transactions.containsAll(swanTransactionToEntity)) ?
+        transactions.stream().map(entity1 -> mapper.toDomain(entity1,
+                categoryRepository.findByIdTransaction(
+                    entity1.getId())))
+            .collect(Collectors.toUnmodifiableList()) :
+        jpaRepository.saveAll(swanTransactionToEntity).stream()
+            .map(entity -> mapper.toDomain(entity, categoryRepository.findByIdTransaction(
+                entity.getId()))).collect(
+                Collectors.toUnmodifiableList());
   }
 
   @Override

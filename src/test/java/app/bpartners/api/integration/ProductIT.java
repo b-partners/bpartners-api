@@ -154,7 +154,8 @@ class ProductIT {
     ApiClient joeDoeClient = anApiClient();
     PayingApi api = new PayingApi(joeDoeClient);
 
-    List<Product> actual = api.getProducts(JOE_DOE_ACCOUNT_ID, null, null, null, null);
+    List<Product> actual = api.getProducts(
+        JOE_DOE_ACCOUNT_ID, null, null, null, null, 1, 20);
 
     assertEquals(6, actual.size());
     assertTrue(actual.stream()
@@ -170,7 +171,8 @@ class ProductIT {
 
     List<Product> actual =
         api.createProducts(JOE_DOE_ACCOUNT_ID, List.of(createProduct1()));
-    List<Product> actualProducts = api.getProducts(JOE_DOE_ACCOUNT_ID, true, null, null, null);
+    List<Product> actualProducts = api.getProducts(
+        JOE_DOE_ACCOUNT_ID, true, null, null, null, 1, 20);
     assertTrue(actualProducts.stream()
         .allMatch(product -> product.getCreatedAt() != null));
     actual.get(0).createdAt(actualProducts.get(actualProducts.size() - 1).getCreatedAt());
@@ -187,13 +189,13 @@ class ProductIT {
 
     List<Product> actual1 = api.crupdateProducts(JOE_DOE_ACCOUNT_ID, List.of(createProduct));
     List<Product> allProducts1 = api.getProducts(
-        JOE_DOE_ACCOUNT_ID, true, null, null, null);
+        JOE_DOE_ACCOUNT_ID, true, null, null, null, 1, 20);
     List<Product> actual2 = api.crupdateProducts(JOE_DOE_ACCOUNT_ID,
         List.of(createProduct
             .description("Other")
             .unitPrice(5000)));
     List<Product> allProducts2 = api.getProducts(
-        JOE_DOE_ACCOUNT_ID, true, null, null, null);
+        JOE_DOE_ACCOUNT_ID, true, null, null, null, 1, 20);
 
     Product actualProduct = actual1.get(0);
     Product actualUpdated = actual2.get(0);
@@ -216,13 +218,13 @@ class ProductIT {
 
     List<Product> actual1 = api.getProducts(
         JOE_DOE_ACCOUNT_ID, null,
-        null, null, OrderDirection.DESC);
+        null, null, OrderDirection.DESC, 1, 20);
     List<Product> actual2 = api.getProducts(
         JOE_DOE_ACCOUNT_ID, null,
-        null, OrderDirection.ASC, null);
+        null, OrderDirection.ASC, null, 1, 20);
     List<Product> actual3 = api.getProducts(
         JOE_DOE_ACCOUNT_ID, null,
-        OrderDirection.ASC, OrderDirection.DESC, null);
+        OrderDirection.ASC, OrderDirection.DESC, null, 1, 20);
 
     assertTrue(actual1.size() > 2);
     assertTrue(actual2.size() > 2);
@@ -295,7 +297,7 @@ class ProductIT {
         api.updateProductsStatus(JOE_DOE_ACCOUNT_ID, List.of(productDisabled()));
 
     List<Product> allProducts = api.getProducts(
-        JOE_DOE_ACCOUNT_ID, null, null, null, null);
+        JOE_DOE_ACCOUNT_ID, null, null, null, null, 1, 20);
 
     assertTrue(
         allProducts.stream()

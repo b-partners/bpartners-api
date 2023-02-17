@@ -2,7 +2,9 @@ package app.bpartners.api.service;
 
 import app.bpartners.api.endpoint.rest.mapper.CustomerRestMapper;
 import app.bpartners.api.endpoint.rest.model.CreateCustomer;
+import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.Customer;
+import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.repository.CustomerRepository;
 import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
@@ -23,18 +25,23 @@ public class CustomerService {
   private final CustomerRestMapper restMapper;
 
   public List<Customer> getCustomers(
-      String accountId, String name, String firstName, String lastName) {
+      String accountId, String name, String firstName,
+      String lastName, PageFromOne page, BoundedPageSize pageSize) {
+    int pageValue = page.getValue() - 1;
+    int pageSizeValue = pageSize.getValue();
     if (name == null && firstName == null && lastName == null) {
-      return repository.findByAccount(accountId);
+      return repository.findByAccount(accountId, pageValue, pageSizeValue);
     }
     if (name == null) {
-      return repository.findByAccountIdAndName(accountId, firstName, lastName);
+      return repository.findByAccountIdAndName(
+          accountId, firstName, lastName, pageValue, pageSizeValue);
     }
     String[] splitedName = Objects.requireNonNull(name).split(" ");
     String firstNameFromName = splitedName[0];
     String lastNameFromName =
         String.join(" ", Arrays.asList(splitedName).subList(1, splitedName.length));
-    return repository.findByAccountIdAndName(accountId, firstNameFromName, lastNameFromName);
+    return repository.findByAccountIdAndName(
+        accountId, firstNameFromName, lastNameFromName, pageValue, pageSizeValue);
   }
 
   @Transactional
@@ -55,7 +62,7 @@ public class CustomerService {
   private List<Customer> checkIfPersisted(String accountId, List<CreateCustomer> createCustomers) {
     List<Customer> toUpdateList = new ArrayList<>();
     List<Customer> toCreateList;
-    List<Customer> persisted = repository.findByAccount(accountId);
+    List<Customer> persisted = repository.findByAccount(accountId, 1, Integer.MAX_VALUE);
     for (Customer customer : persisted) {
       for (CreateCustomer toCreate : createCustomers) {
         if (customer.getFirstName().equals(toCreate.getFirstName())

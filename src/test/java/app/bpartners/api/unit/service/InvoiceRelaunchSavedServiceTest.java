@@ -42,7 +42,7 @@ class InvoiceRelaunchSavedServiceTest {
         new InvoiceRelaunchSavedService(sesService, fileService);
 
     doNothing().when(sesService).sendEmail(any(), any(), any(), any());
-    when(fileService.downloadFile(any(), any(), any())).thenReturn(logoAsBytes);
+    when(fileService.downloadOptionalFile(any(), any(), any())).thenReturn(List.of(logoAsBytes));
   }
 
   @Test

@@ -1,14 +1,10 @@
 package app.bpartners.api.model.mapper;
 
-import app.bpartners.api.endpoint.rest.model.VerificationStatus;
 import app.bpartners.api.model.AccountHolder;
-import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.repository.jpa.model.HAccountHolder;
-import app.bpartners.api.repository.swan.model.SwanAccountHolder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 
 @Slf4j
@@ -19,25 +15,24 @@ public class AccountHolderMapper {
   public static final String NOT_STARTED_STATUS = "NotStarted";
   public static final String WAITING_FOR_INFORMATION_STATUS = "WaitingForInformation";
 
-  public AccountHolder toDomain(
-      SwanAccountHolder accountHolder, HAccountHolder entity) {
+  public AccountHolder toDomain(HAccountHolder entity) {
     return AccountHolder.builder()
-        .id(accountHolder.getId())
-        .verificationStatus(getVerificationStatus(accountHolder.getVerificationStatus()))
-        .name(accountHolder.getInfo().getName())
+        .id(entity.getId())
+        .verificationStatus(entity.getVerificationStatus())
+        .name(entity.getName())
         .subjectToVat(entity.isSubjectToVat())
         .email(entity.getEmail())
         .mobilePhoneNumber(entity.getMobilePhoneNumber())
         .accountId(entity.getAccountId())
         .socialCapital(entity.getSocialCapital())
-        .vatNumber(accountHolder.getInfo().getVatNumber())
-        .address(accountHolder.getResidencyAddress().getAddressLine1())
-        .city(accountHolder.getResidencyAddress().getCity())
-        .country(accountHolder.getResidencyAddress().getCountry())
-        .postalCode(accountHolder.getResidencyAddress().getPostalCode())
-        .siren(accountHolder.getInfo().getRegistrationNumber())
-        .mainActivity(accountHolder.getInfo().getBusinessActivity())
-        .mainActivityDescription(accountHolder.getInfo().getBusinessActivityDescription())
+        .vatNumber(entity.getVatNumber())
+        .address(entity.getAddress())
+        .city(entity.getCity())
+        .country(entity.getCountry())
+        .postalCode(entity.getPostalCode())
+        .siren(entity.getRegistrationNumber())
+        .mainActivity(entity.getBusinessActivity())
+        .mainActivityDescription(entity.getBusinessActivityDescription())
         .initialCashflow(parseFraction(entity.getInitialCashflow()))
         .build();
   }
@@ -52,21 +47,15 @@ public class AccountHolderMapper {
         .mobilePhoneNumber(domain.getMobilePhoneNumber())
         .socialCapital(domain.getSocialCapital())
         .initialCashflow(domain.getInitialCashflow().toString())
+        .verificationStatus(domain.getVerificationStatus())
+        .name(domain.getName())
+        .registrationNumber(domain.getSiren())
+        .businessActivity(domain.getMainActivity())
+        .businessActivityDescription(domain.getMainActivityDescription())
+        .address(domain.getAddress())
+        .city(domain.getCity())
+        .country(domain.getCountry())
+        .postalCode(domain.getPostalCode())
         .build();
-  }
-
-  private VerificationStatus getVerificationStatus(String status) {
-    switch (status) {
-      case VERIFIED_STATUS:
-        return VerificationStatus.VERIFIED;
-      case PENDING_STATUS:
-        return VerificationStatus.PENDING;
-      case NOT_STARTED_STATUS:
-        return VerificationStatus.NOT_STARTED;
-      case WAITING_FOR_INFORMATION_STATUS:
-        return VerificationStatus.WAITING_FOR_INFORMATION;
-      default:
-        throw new ApiException(SERVER_EXCEPTION, "Unknown status " + status);
-    }
   }
 }

@@ -8,6 +8,7 @@ import app.bpartners.api.repository.FileRepository;
 import app.bpartners.api.repository.jpa.UserJpaRepository;
 import app.bpartners.api.repository.jpa.model.HUser;
 import app.bpartners.api.service.aws.S3Service;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -36,12 +37,11 @@ public class FileService {
     }
   }
 
-  //TODO: return empty array instead of null
-  public byte[] downloadOptionalFile(FileType fileType, String accountId, String fileId) {
+  public List<byte[]> downloadOptionalFile(FileType fileType, String accountId, String fileId) {
     if (repository.getOptionalByIdAndAccountId(fileId, accountId).isEmpty()) {
-      return null;
+      return List.of();
     } else {
-      return s3Service.downloadFile(fileType, accountId, fileId);
+      return List.of(s3Service.downloadFile(fileType, accountId, fileId));
     }
   }
 

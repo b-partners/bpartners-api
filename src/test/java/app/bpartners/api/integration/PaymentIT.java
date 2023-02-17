@@ -5,7 +5,7 @@ import app.bpartners.api.endpoint.event.S3Conf;
 import app.bpartners.api.endpoint.rest.api.PayingApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
-import app.bpartners.api.endpoint.rest.model.PaymentInitiation;
+import app.bpartners.api.endpoint.rest.model.CreatePaymentInitiation;
 import app.bpartners.api.endpoint.rest.model.PaymentRedirection;
 import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
@@ -95,8 +95,8 @@ class PaymentIT {
     setUpLegalFileRepository(legalFileRepositoryMock);
   }
 
-  PaymentInitiation paymentInitiation1() {
-    return new PaymentInitiation()
+  CreatePaymentInitiation paymentInitiation1() {
+    return new CreatePaymentInitiation()
         .id(String.valueOf(randomUUID()))
         .amount(100)
         .label("Payment label 1")
@@ -109,8 +109,8 @@ class PaymentIT {
                 .failureUrl("https://dashboard-dev.bpartners.app/error"));
   }
 
-  PaymentInitiation paymentInitiation2() {
-    return new PaymentInitiation()
+  CreatePaymentInitiation paymentInitiation2() {
+    return new CreatePaymentInitiation()
         .id(String.valueOf(randomUUID()))
         .amount(100)
         .label("Payment label 2")

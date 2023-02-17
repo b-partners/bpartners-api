@@ -1,6 +1,6 @@
 package app.bpartners.api.unit.validator;
 
-import app.bpartners.api.endpoint.rest.model.PaymentInitiation;
+import app.bpartners.api.endpoint.rest.model.CreatePaymentInitiation;
 import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
 import app.bpartners.api.endpoint.rest.validator.PaymentInitValidator;
 import org.junit.jupiter.api.Test;
@@ -15,7 +15,7 @@ class PaymentReqValidatorTest {
   @Test
   void validate_paymentInitiation_ok() {
     assertDoesNotThrow(() -> paymentReqValidator.accept(
-        new PaymentInitiation()
+        new CreatePaymentInitiation()
             .id(randomUUID().toString())
             .reference("payementRef")
             .label("paymentLabel")
@@ -38,7 +38,7 @@ class PaymentReqValidatorTest {
             + "payerEmail is mandatory. "
             + "redirectionStatusUrls is mandatory. ",
         () -> paymentReqValidator.accept(
-            new PaymentInitiation()
+            new CreatePaymentInitiation()
                 .id(null)
                 .reference(null)
                 .label(null)
@@ -53,7 +53,7 @@ class PaymentReqValidatorTest {
             + " redirectionStatusUrls.successUrl is mandatory. "
             + "redirectionStatusUrls.failureUrl is mandatory. ",
         () -> paymentReqValidator.accept(
-            new PaymentInitiation()
+            new CreatePaymentInitiation()
                 .id("fake_id")
                 .reference("reference")
                 .label("label")

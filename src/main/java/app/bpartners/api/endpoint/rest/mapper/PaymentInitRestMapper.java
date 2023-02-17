@@ -1,6 +1,6 @@
 package app.bpartners.api.endpoint.rest.mapper;
 
-import app.bpartners.api.endpoint.rest.model.PaymentInitiation;
+import app.bpartners.api.endpoint.rest.model.CreatePaymentInitiation;
 import app.bpartners.api.endpoint.rest.model.PaymentRedirection;
 import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
 import app.bpartners.api.endpoint.rest.validator.PaymentInitValidator;
@@ -14,7 +14,7 @@ import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 public class PaymentInitRestMapper {
   private final PaymentInitValidator paymentValidator;
 
-  public app.bpartners.api.model.PaymentInitiation toDomain(PaymentInitiation rest) {
+  public app.bpartners.api.model.PaymentInitiation toDomain(CreatePaymentInitiation rest) {
     RedirectionStatusUrls statusUrls = rest.getRedirectionStatusUrls();
     paymentValidator.accept(rest);
     return app.bpartners.api.model.PaymentInitiation.builder()

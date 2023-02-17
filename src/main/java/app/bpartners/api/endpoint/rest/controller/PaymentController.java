@@ -1,7 +1,7 @@
 package app.bpartners.api.endpoint.rest.controller;
 
 import app.bpartners.api.endpoint.rest.mapper.PaymentInitRestMapper;
-import app.bpartners.api.endpoint.rest.model.PaymentInitiation;
+import app.bpartners.api.endpoint.rest.model.CreatePaymentInitiation;
 import app.bpartners.api.endpoint.rest.model.PaymentRedirection;
 import app.bpartners.api.service.PaymentInitiationService;
 import java.util.List;
@@ -21,7 +21,7 @@ public class PaymentController {
   @PostMapping(value = "/accounts/{id}/paymentInitiations")
   List<PaymentRedirection> initiatePayments(
       @PathVariable(name = "id") String accountId,
-      @RequestBody List<PaymentInitiation> paymentRequests) {
+      @RequestBody List<CreatePaymentInitiation> paymentRequests) {
     List<app.bpartners.api.model.PaymentInitiation> domain = paymentRequests.stream()
         .map(mapper::toDomain)
         .collect(Collectors.toUnmodifiableList());

@@ -2,8 +2,8 @@ package app.bpartners.api.endpoint.rest.mapper;
 
 import app.bpartners.api.endpoint.rest.model.CrupdateInvoice;
 import app.bpartners.api.endpoint.rest.model.Invoice;
+import app.bpartners.api.endpoint.rest.model.PaymentInitiation;
 import app.bpartners.api.endpoint.rest.model.PaymentRegulation;
-import app.bpartners.api.endpoint.rest.model.PaymentRequest;
 import app.bpartners.api.endpoint.rest.model.Product;
 import app.bpartners.api.endpoint.rest.model.TransactionInvoice;
 import app.bpartners.api.endpoint.rest.validator.CrupdateInvoiceValidator;
@@ -74,7 +74,7 @@ public class InvoiceRestMapper {
         .paymentRegulations(domain.getMultiplePayments().stream()
             .map(payment -> new PaymentRegulation()
                 .maturityDate(payment.getMaturityDate())
-                .paymentRequest(new PaymentRequest()
+                .paymentInitiation(new PaymentInitiation()
                     .id(payment.getEndToEndId())
                     .reference(payment.getReference())
                     .paymentUrl(payment.getPaymentUrl())

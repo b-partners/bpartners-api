@@ -14,7 +14,7 @@ import app.bpartners.api.endpoint.rest.model.Customer;
 import app.bpartners.api.endpoint.rest.model.Invoice;
 import app.bpartners.api.endpoint.rest.model.LegalFile;
 import app.bpartners.api.endpoint.rest.model.PaymentRegulation;
-import app.bpartners.api.endpoint.rest.model.PaymentRequest;
+import app.bpartners.api.endpoint.rest.model.PaymentInitiation;
 import app.bpartners.api.endpoint.rest.model.Product;
 import app.bpartners.api.endpoint.rest.model.ProductStatus;
 import app.bpartners.api.endpoint.rest.model.TransactionCategory;
@@ -536,8 +536,8 @@ public class TestUtils {
         .category(null);
   }
 
-  public static PaymentRequest basePaymentRequest() {
-    return new PaymentRequest()
+  public static PaymentInitiation basePaymentRequest() {
+    return new PaymentInitiation()
         .paymentUrl("https://connect-v2-sbx.fintecture.com")
         .amount(4400)
         .payerName("Luc Artisan")
@@ -547,7 +547,7 @@ public class TestUtils {
   public static PaymentRegulation datedPaymentRequest2() {
     return new PaymentRegulation()
         .maturityDate(LocalDate.of(2023, 2, 1))
-        .paymentRequest(basePaymentRequest()
+        .paymentInitiation(basePaymentRequest()
             .id("bab75c91-f275-4f68-b10a-0f30f96f7806")
             .label("Reste 50%")
             .reference("FAC2023ACT02")
@@ -557,7 +557,7 @@ public class TestUtils {
   public static PaymentRegulation datedPaymentRequest1() {
     return new PaymentRegulation()
         .maturityDate(LocalDate.of(2023, 2, 1))
-        .paymentRequest(basePaymentRequest()
+        .paymentInitiation(basePaymentRequest()
             .id("a1275c91-f275-4f68-b10a-0f30f96f7806")
             .label("Acompte 50%")
             .reference("FAC2023ACT01")

@@ -8,8 +8,8 @@ import app.bpartners.api.endpoint.rest.model.CreatePaymentRegulation;
 import app.bpartners.api.endpoint.rest.model.CreateProduct;
 import app.bpartners.api.endpoint.rest.model.CrupdateInvoice;
 import app.bpartners.api.endpoint.rest.model.Invoice;
+import app.bpartners.api.endpoint.rest.model.PaymentInitiation;
 import app.bpartners.api.endpoint.rest.model.PaymentRegulation;
-import app.bpartners.api.endpoint.rest.model.PaymentRequest;
 import app.bpartners.api.endpoint.rest.model.Product;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
 import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
@@ -147,7 +147,7 @@ class InvoiceIT {
   private static PaymentRegulation expectedDated2() {
     return new PaymentRegulation()
         .maturityDate(LocalDate.of(2023, 2, 15))
-        .paymentRequest(new PaymentRequest()
+        .paymentInitiation(new PaymentInitiation()
             .reference("BP005")
             .payerName(customer1().getName())
             .payerEmail(customer1().getEmail())
@@ -159,7 +159,7 @@ class InvoiceIT {
   private static PaymentRegulation expectedDated1() {
     return new PaymentRegulation()
         .maturityDate(LocalDate.of(2023, 2, 1))
-        .paymentRequest(new PaymentRequest()
+        .paymentInitiation(new PaymentInitiation()
             .reference("BP005")
             .payerName(customer1().getName())
             .payerEmail(customer1().getEmail())
@@ -196,8 +196,8 @@ class InvoiceIT {
     List<PaymentRegulation> paymentRegulations =
         new ArrayList<>(actualConfirmed.getPaymentRegulations());
     paymentRegulations.forEach(
-        datedPaymentRequest -> datedPaymentRequest.setPaymentRequest(
-            datedPaymentRequest.getPaymentRequest()
+        datedPaymentRequest -> datedPaymentRequest.setPaymentInitiation(
+            datedPaymentRequest.getPaymentInitiation()
                 .id(null)
                 .initiatedDatetime(null)));
     return paymentRegulations;
@@ -419,7 +419,7 @@ class InvoiceIT {
   private static List<PaymentRegulation> initPaymentReg(String id) {
     return List.of(new PaymentRegulation()
             .maturityDate(LocalDate.of(2023, 1, 1))
-            .paymentRequest(new PaymentRequest()
+            .paymentInitiation(new PaymentInitiation()
                 .paymentUrl(null)
                 .reference(id)
                 .amount(552)
@@ -428,7 +428,7 @@ class InvoiceIT {
                 .label("Acompte de 10%")),
         new PaymentRegulation()
             .maturityDate(LocalDate.of(2023, 1, 1))
-            .paymentRequest(new PaymentRequest()
+            .paymentInitiation(new PaymentInitiation()
                 .paymentUrl(null)
                 .amount(1648)
                 .reference(id)
@@ -440,7 +440,7 @@ class InvoiceIT {
   private static List<PaymentRegulation> updatedPaymentRegulations(String id) {
     return List.of(new PaymentRegulation()
             .maturityDate(LocalDate.of(2023, 1, 1))
-            .paymentRequest(new PaymentRequest()
+            .paymentInitiation(new PaymentInitiation()
                 .paymentUrl(null)
                 .reference(id)
                 .amount(225)
@@ -449,7 +449,7 @@ class InvoiceIT {
                 .label("Acompte de 10%")),
         new PaymentRegulation()
             .maturityDate(LocalDate.of(2023, 1, 1))
-            .paymentRequest(new PaymentRequest()
+            .paymentInitiation(new PaymentInitiation()
                 .paymentUrl(null)
                 .amount(1975)
                 .reference(id)
@@ -461,7 +461,7 @@ class InvoiceIT {
   private static List<PaymentRegulation> confirmedPaymentRegulations(String id) {
     return List.of(new PaymentRegulation()
             .maturityDate(LocalDate.of(2023, 1, 1))
-            .paymentRequest(new PaymentRequest()
+            .paymentInitiation(new PaymentInitiation()
                 .paymentUrl("https://connect-v2-sbx.fintecture.com")
                 .reference(id)
                 .amount(225)
@@ -470,7 +470,7 @@ class InvoiceIT {
                 .label("Acompte de 10%")),
         new PaymentRegulation()
             .maturityDate(LocalDate.of(2023, 1, 1))
-            .paymentRequest(new PaymentRequest()
+            .paymentInitiation(new PaymentInitiation()
                 .paymentUrl("https://connect-v2-sbx.fintecture.com")
                 .amount(1975)
                 .reference(id)
@@ -694,11 +694,11 @@ class InvoiceIT {
     assertEquals(initPaymentReg(id), actualDraft.getPaymentRegulations());
     assertTrue(actualDraft.getPaymentRegulations().stream()
         .allMatch(
-            paymentRegulation -> paymentRegulation.getPaymentRequest().getPaymentUrl() == null));
+            paymentRegulation -> paymentRegulation.getPaymentInitiation().getPaymentUrl() == null));
     assertEquals(updatedPaymentRegulations(id), actualProposal.getPaymentRegulations());
     assertTrue(actualProposal.getPaymentRegulations().stream()
         .allMatch(
-            paymentRegulation -> paymentRegulation.getPaymentRequest().getPaymentUrl() == null));
+            paymentRegulation -> paymentRegulation.getPaymentInitiation().getPaymentUrl() == null));
     assertEquals(new Invoice()
         .id(actualConfirmed.getId())
         .ref(actualConfirmed.getRef())
@@ -721,7 +721,7 @@ class InvoiceIT {
         .paymentRegulations(confirmedPaymentRegulations(id)), actualConfirmed);
     assertTrue(actualConfirmed.getPaymentRegulations().stream()
         .allMatch(
-            paymentRegulation -> paymentRegulation.getPaymentRequest().getPaymentUrl() != null));
+            paymentRegulation -> paymentRegulation.getPaymentInitiation().getPaymentUrl() != null));
 
   }
 

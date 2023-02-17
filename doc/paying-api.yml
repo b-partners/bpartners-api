@@ -799,8 +799,7 @@ operations:
             schema:
               type: array
               items:
-                #TODO: rename to CreatePaymentInitiation
-                $ref: '#/components/schemas/PaymentInitiation'
+                $ref: '#/components/schemas/CreatePaymentInitiation'
       responses:
         200:
           description: List of redirections where to initiate payments to the account
@@ -1113,8 +1112,8 @@ components:
     PaymentRegulation:
       type: object
       properties:
-        paymentRequest:
-          $ref: '#/components/schemas/PaymentRequest'
+        paymentInitiation:
+          $ref: '#/components/schemas/PaymentInitiation'
         maturityDate:
           type: string
           format: date
@@ -1180,8 +1179,7 @@ components:
           type: string
         status:
           $ref: '#/components/schemas/ProductStatus'
-    #TODO: rename to CreatePaymentInitiation
-    PaymentInitiation:
+    CreatePaymentInitiation:
       type: object
       properties:
         id:
@@ -1213,8 +1211,7 @@ components:
         fileId:
           type: string
 
-    #TODO: rename to paymentInitiation
-    PaymentRequest:
+    PaymentInitiation:
       type: object
       properties:
         id:

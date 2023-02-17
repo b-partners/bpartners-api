@@ -97,6 +97,21 @@ public class CustomerRestMapper {
         .build();
   }
 
+  public Customer toDomainWithoutCheck(String accountId, CreateCustomer toCreate) {
+    return Customer.builder()
+        .idAccount(accountId)
+        .firstName(toCreate.getFirstName())
+        .lastName(toCreate.getLastName())
+        .email(toCreate.getEmail())
+        .address(toCreate.getAddress())
+        .phone(toCreate.getPhone())
+        .website(toCreate.getWebsite())
+        .city(toCreate.getCity())
+        .country(toCreate.getCountry())
+        .comment(toCreate.getComment())
+        .build();
+  }
+
   private String[] retrieveNames(String name, String firstName, String lastName) {
     if (firstName != null || lastName != null) {
       return new String[] {firstName, lastName};

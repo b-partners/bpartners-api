@@ -12,6 +12,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -26,16 +28,18 @@ public class CustomerRepositoryImpl implements CustomerRepository {
 
   @Override
   public List<Customer> findByAccountIdAndName(
-      String accountId, String firstName, String lastName) {
+      String accountId, String firstName, String lastName, int page, int pageSize) {
+    Pageable pageable = PageRequest.of(page, pageSize);
     return jpaRepository.findByIdAccountAndFirstNameAndLastNameContainingIgnoreCase(
-            accountId, firstName, lastName).stream()
+            accountId, firstName, lastName, pageable).stream()
         .map(mapper::toDomain)
         .collect(Collectors.toUnmodifiableList());
   }
 
   @Override
-  public List<Customer> findByAccount(String accountId) {
-    return jpaRepository.findAllByIdAccount(accountId).stream()
+  public List<Customer> findByAccount(String accountId, int page, int pageSize) {
+    Pageable pageable = PageRequest.of(page, pageSize);
+    return jpaRepository.findAllByIdAccount(accountId, pageable).stream()
         .map(mapper::toDomain)
         .collect(Collectors.toUnmodifiableList());
   }

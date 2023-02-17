@@ -36,7 +36,7 @@ public class TransactionRepositoryImpl implements TransactionRepository {
               categoryRepository.findByIdTransaction(entity.getId()));
         })
         .collect(Collectors.toUnmodifiableList());
-
+    
     List<HTransaction> transactions = jpaRepository.getHTransactionByIdAccount(accountId);
     List<HTransaction> swanTransactionToEntity = swanTransaction
         .stream()

@@ -33,8 +33,8 @@ public class ProductRestMapper {
         .unitPrice(domain.getUnitPrice().getCentsRoundUp())
         .unitPriceWithVat(domain.getUnitPriceWithVat().getCentsRoundUp())
         .vatPercent(domain.getVatPercent().getCentsRoundUp())
-        .totalVat(domain.getTotalVat().getCentsRoundUp())
-        .totalPriceWithVat(domain.getTotalPriceWithVat().getCentsRoundUp())
+        .totalVat(domain.getVatWithDiscount().getCentsRoundUp())
+        .totalPriceWithVat(domain.getTotalWithDiscount().getCentsRoundUp())
         .createdAt(domain.getCreatedAt());
   }
 

@@ -252,11 +252,11 @@
                     </td>
                     <td class="text-center space-letter"
                         th:if="${accountHolder.isSubjectToVat()}"><span
-                            th:text="${#numbers.formatDecimal(product.totalWithoutVat.getCentsAsDecimal(),1,2)}"></span>
+                            th:text="${#numbers.formatDecimal(product.priceWithoutVat.getCentsAsDecimal(),1,2)}"></span>
                         €
                     </td>
                     <td class="text-center space-letter"><span
-                            th:text="${#numbers.formatDecimal(product.totalPriceWithVat.getCentsAsDecimal(),1,2)}"></span>
+                            th:text="${#numbers.formatDecimal(product.priceWithVatNoDiscount.getCentsAsDecimal(),1,2)}"></span>
                         €
                     </td>
                 </tr>

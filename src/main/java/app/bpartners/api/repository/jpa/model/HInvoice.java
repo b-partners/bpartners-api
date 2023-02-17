@@ -78,6 +78,7 @@ public class HInvoice implements Serializable {
   private Instant updatedAt;
   private boolean toBeRelaunched;
   private String metadataString;
+  private String discountPercent;
 
   public HInvoice products(List<HInvoiceProduct> products) {
     this.products = products;

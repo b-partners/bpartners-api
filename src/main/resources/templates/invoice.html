@@ -222,22 +222,25 @@
 </div>
 <div id="content">
     <section>
-        <table style="margin: 10px 0px 20px 0px; page-break-inside:auto; table-layout: fixed;"
-               class="main-table">
-            <thead class="text-center">
+        <table style="margin: 10px 0px 20px 0px;table-layout: fixed;" class="main-table">
+            <thead class="text-center" style="border: 1px solid black">
             <th style="width: 150px">Description</th>
             <th>Quantité</th>
             <th>Prix unitaire</th>
-            <th>Sous-total</th>
-            <th>Remise<br/>en %</th>
-            <th th:if="${accountHolder.isSubjectToVat()}">Montant HT</th>
+            <th th:if="${invoice.discount.percentValue.getCentsAsDecimal() > 0}">Sous-total</th>
+            <th th:if="${invoice.discount.percentValue.getCentsAsDecimal() > 0}">Remise</th>
+            <th
+                    th:if="${accountHolder.isSubjectToVat()}">
+                Montant
+                HT
+            </th>
             <th th:if="${accountHolder.isSubjectToVat()}">TVA</th>
             <th>
                 <span th:if="${accountHolder.isSubjectToVat()}">Montant TTC</span>
                 <span th:unless="${accountHolder.isSubjectToVat()}">Montant HT</span>
             </th>
             </thead>
-            <tbody>
+            <tbody th:if="${invoice.products != null}">
             <th:block th:each="product : ${invoice.products}">
                 <tr>
                     <td class="text-left" style="width: 150px; word-wrap: break-word;"><span
@@ -247,15 +250,18 @@
                             th:text="${#numbers.formatDecimal(product.unitPrice.getCentsAsDecimal(),1,2)}"></span>
                         €
                     </td>
-                    <td class="text-center" th:if="${accountHolder.isSubjectToVat()}"><span
+                    <td class="text-center"
+                        th:if="${invoice.discount.percentValue.getCentsAsDecimal() > 0}"><span
                             th:text=" ${#numbers.formatDecimal(product.priceWithoutVat.getCentsAsDecimal(),1,2)}"></span>
                         €
                     </td>
-                    <td class="text-center">
+                    <td class="text-center"
+                        th:if="${invoice.discount.percentValue.getCentsAsDecimal() > 0}">
                     <span
                             th:text="${#numbers.formatDecimal(invoice.discount.percentValue.getCentsAsDecimal(),1,2)}"></span>%
                     </td>
-                    <td class="text-center">
+                    <td class="text-center"
+                        th:if="${accountHolder.isSubjectToVat()}">
                     <span
                             th:text="${#numbers.formatDecimal(product.priceNoVatWithDiscount.getCentsAsDecimal(),1,2)}"></span>
                         €
@@ -273,15 +279,14 @@
         </table>
         <div class="amount-section no-break-inside">
             <div>
-                <p><strong>Sous-Total</strong> :
+                <p th:if="${invoice.discount.percentValue.getCentsAsDecimal() > 0}"><strong>Sous-Total</strong> :
                     <span
                             th:text="${#numbers.formatDecimal(invoice.totalPriceWithoutDiscount.getCentsAsDecimal(), 1,2)}"></span>
                     €
                 </p>
-                <p>
+                <p th:if="${invoice.discount.percentValue.getCentsAsDecimal() > 0}">
                     <strong>
-                        Remise (<span
-                            th:text="${#numbers.formatDecimal(invoice.discount.percentValue.getCentsAsDecimal(), 1,2)}"></span>)%
+                        Remise
                     </strong> :
                     <span
                             th:text="${#numbers.formatDecimal(invoice.discount.amountValue.getCentsAsDecimal(), 1,2)}"></span>

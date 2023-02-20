@@ -42,16 +42,21 @@ import static app.bpartners.api.integration.conf.TestUtils.invoice1;
 import static app.bpartners.api.integration.conf.TestUtils.restTransaction1;
 import static app.bpartners.api.integration.conf.TestUtils.restTransaction2;
 import static app.bpartners.api.integration.conf.TestUtils.restTransaction3;
+import static app.bpartners.api.integration.conf.TestUtils.restUpdatedTransaction;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountHolderSwanRep;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountSwanRepository;
 import static app.bpartners.api.integration.conf.TestUtils.setUpLegalFileRepository;
 import static app.bpartners.api.integration.conf.TestUtils.setUpSwanComponent;
 import static app.bpartners.api.integration.conf.TestUtils.setUpTransactionRepository;
 import static app.bpartners.api.integration.conf.TestUtils.setUpUserSwanRepository;
+import static app.bpartners.api.integration.conf.TestUtils.updatedSwanTransaction;
 import static java.util.Calendar.DECEMBER;
 import static java.util.Calendar.JANUARY;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
@@ -142,9 +147,42 @@ class TransactionIT {
     List<Transaction> actual = api.getTransactions(JOE_DOE_ACCOUNT_ID, null, null);
     assertEquals(3, actual.size());
 
+    assertTrue(actual.contains(restTransaction2()));
+    assertTrue(actual.contains(restTransaction1()));
+    assertTrue(ignoreIds(actual).contains(restTransaction3().id(null)));
+  }
+
+  @Test
+  @Order(1)
+  void read_persisted_transactions_ok() throws ApiException {
+    reset(transactionSwanRepositoryMock);
+    when(transactionSwanRepositoryMock.findById(any())).thenReturn(null);
+    when(transactionSwanRepositoryMock.getByIdAccount(any())).thenReturn(List.of());
+    ApiClient joeDoeClient = anApiClient();
+    PayingApi api = new PayingApi(joeDoeClient);
+
+    List<Transaction> actual = api.getTransactions(JOE_DOE_ACCOUNT_ID, null, null);
+
+    assertEquals(2, actual.size());
     assertTrue(actual.contains(restTransaction1()));
     assertTrue(actual.contains(restTransaction2()));
-    assertTrue(ignoreIds(actual).contains(restTransaction3().id(null)));
+  }
+
+  @Test
+  @Order(1)
+  void read_override_transactions_ok() throws ApiException {
+    reset(transactionSwanRepositoryMock);
+    when(transactionSwanRepositoryMock.findById(any())).thenReturn(
+        updatedSwanTransaction());
+    when(transactionSwanRepositoryMock.getByIdAccount(any())).thenReturn(
+        List.of(updatedSwanTransaction()));
+    ApiClient joeDoeClient = anApiClient();
+    PayingApi api = new PayingApi(joeDoeClient);
+
+    List<Transaction> actual = api.getTransactions(JOE_DOE_ACCOUNT_ID, null, null);
+
+    assertEquals(1, actual.size());
+    assertTrue(actual.contains(restUpdatedTransaction()));
   }
 
   @Order(2)
@@ -152,7 +190,7 @@ class TransactionIT {
   void justify_transaction_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
     PayingApi api = new PayingApi(joeDoeClient);
-    Transaction transaction1 = restTransaction1();
+    Transaction transaction1 = restTransaction2();
     Invoice invoice1 = invoice1();
 
     Transaction actual = api.justifyTransaction(

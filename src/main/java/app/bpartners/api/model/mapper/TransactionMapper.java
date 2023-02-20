@@ -20,7 +20,7 @@ import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 public class TransactionMapper {
   private final InvoiceMapper invoiceMapper;
 
-  private static TransactionStatus getTransactionStatus(String status) {
+  public static TransactionStatus getTransactionStatus(String status) {
     switch (status) {
       case PENDING_STATUS:
         return TransactionStatus.PENDING;
@@ -57,12 +57,36 @@ public class TransactionMapper {
         .build();
   }
 
+  public Transaction toDomain(HTransaction entity, TransactionCategory category) {
+    return Transaction.builder()
+        .id(entity.getId())
+        .idAccount(entity.getIdAccount())
+        .idSwan(entity.getIdSwan())
+        .transactionInvoice(invoiceMapper.toTransactionInvoice(entity.getInvoice()))
+        .amount(parseFraction(entity.getAmount()))
+        .currency(entity.getCurrency())
+        .label(entity.getLabel())
+        .reference(entity.getReference())
+        .paymentDatetime(entity.getPaymentDateTime())
+        .side(entity.getSide())
+        .status(entity.getStatus())
+        .category(category)
+        .build();
+  }
+
   public HTransaction toEntity(
       String accountId,
       app.bpartners.api.repository.swan.model.Transaction swanTransaction) {
     return HTransaction.builder()
         .idSwan(swanTransaction.getNode().getId())
         .idAccount(accountId)
+        .amount(swanTransaction.getNode().getAmount().getValue())
+        .paymentDateTime(swanTransaction.getNode().getCreatedAt())
+        .side(swanTransaction.getNode().getSide())
+        .status(getTransactionStatus(swanTransaction.getNode().getStatusInfo().getStatus()))
+        .reference(swanTransaction.getNode().getReference())
+        .currency(swanTransaction.getNode().getAmount().getCurrency())
+        .label(swanTransaction.getNode().getLabel())
         .build();
   }
 
@@ -72,6 +96,13 @@ public class TransactionMapper {
         .idSwan(domain.getIdSwan())
         .idAccount(domain.getIdAccount())
         .invoice(invoiceMapper.toEntity(domain.getTransactionInvoice()))
+        .side(domain.getSide())
+        .paymentDateTime(domain.getPaymentDatetime())
+        .amount(Double.valueOf(domain.getAmount().getCentsRoundUp()))
+        .currency(domain.getCurrency())
+        .reference(domain.getReference())
+        .status(domain.getStatus())
+        .label(domain.getLabel())
         .build();
   }
 }

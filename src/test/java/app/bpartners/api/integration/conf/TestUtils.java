@@ -524,8 +524,24 @@ public class TestUtils {
         .build();
   }
 
+  public static Transaction updatedSwanTransaction() {
+    return Transaction.builder()
+        .node(Transaction.Node.builder()
+            .id("bosci_f224704f2555a42303e302ffb8e69eef")
+            .label("Label à jour")
+            .reference("NEW_REF")
+            .amount(Transaction.Amount.builder()
+                .value(111.1)
+                .currency("EUR")
+                .build())
+            .createdAt(Instant.parse("2022-08-26T01:00:00.00Z"))
+            .side(DEBIT_SIDE)
+            .statusInfo(new Transaction.Node.StatusInfo(BOOKED_STATUS))
+            .build())
+        .build();
+  }
 
-  public static app.bpartners.api.endpoint.rest.model.Transaction restTransaction1() {
+  public static app.bpartners.api.endpoint.rest.model.Transaction restTransaction2() {
     return new app.bpartners.api.endpoint.rest.model.Transaction()
         .id("transaction2_id")
         .label("Premier virement")
@@ -537,7 +553,7 @@ public class TestUtils {
         .category(List.of(transactionCategory1()));
   }
 
-  public static app.bpartners.api.endpoint.rest.model.Transaction restTransaction2() {
+  public static app.bpartners.api.endpoint.rest.model.Transaction restTransaction1() {
     return new app.bpartners.api.endpoint.rest.model.Transaction()
         .id(TRANSACTION1_ID)
         .label("Création de site vitrine")
@@ -547,6 +563,18 @@ public class TestUtils {
         .status(TransactionStatus.PENDING)
         .category(null)
         .paymentDatetime(Instant.parse("2022-08-26T06:33:50.595Z"));
+  }
+
+  public static app.bpartners.api.endpoint.rest.model.Transaction restUpdatedTransaction() {
+    return new app.bpartners.api.endpoint.rest.model.Transaction()
+        .id(TRANSACTION1_ID)
+        .label(updatedSwanTransaction().getNode().getLabel())
+        .reference(updatedSwanTransaction().getNode().getReference())
+        .amount(11110)
+        .type(OUTCOME)
+        .status(TransactionStatus.BOOKED)
+        .category(null)
+        .paymentDatetime(Instant.parse("2022-08-26T01:00:00.00Z"));
   }
 
   public static app.bpartners.api.endpoint.rest.model.Transaction restTransaction3() {

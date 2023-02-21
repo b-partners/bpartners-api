@@ -12,6 +12,8 @@ Parameters:
     Description: Database instance class
     Type: String
     ConstraintDescription: must select a valid database instance type.
+  DBSnapshot:
+    Type: String
 
 Resources:
   Database:
@@ -25,6 +27,7 @@ Resources:
       Engine: postgres
       MasterUsername: !Sub '{{resolve:ssm:/bpartners/${Env}/db/username}}'
       MasterUserPassword: !Sub '{{resolve:ssm:/bpartners/${Env}/db/password}}'
+      DBSnapshotIdentifier: !Ref DBSnapshot
   DatabaseSSM:
     Type: AWS::SSM::Parameter
     Properties:

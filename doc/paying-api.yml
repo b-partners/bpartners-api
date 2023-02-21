@@ -426,6 +426,16 @@ operations:
           schema:
             $ref: '#/components/schemas/OrderDirection'
           description: Filter product by created date
+        - in: query
+          name: page
+          required: false
+          schema:
+            $ref: './api.yml#/components/schemas/Page'
+        - in: query
+          name: pageSize
+          required: false
+          schema:
+            $ref: './api.yml#/components/schemas/PageSize'
       responses:
         200:
           description: List of known products of the account

@@ -8,10 +8,9 @@ import app.bpartners.api.endpoint.rest.model.CreatePaymentRegulation;
 import app.bpartners.api.endpoint.rest.model.CreateProduct;
 import app.bpartners.api.endpoint.rest.model.CrupdateInvoice;
 import app.bpartners.api.endpoint.rest.model.Invoice;
+import app.bpartners.api.endpoint.rest.model.InvoiceDiscount;
 import app.bpartners.api.endpoint.rest.model.PaymentRegulation;
 import app.bpartners.api.endpoint.rest.model.PaymentRequest;
-import app.bpartners.api.endpoint.rest.model.InvoiceDiscount;
-import app.bpartners.api.endpoint.rest.model.InvoiceDiscount;
 import app.bpartners.api.endpoint.rest.model.Product;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
 import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
@@ -170,30 +169,6 @@ class InvoiceIT {
             .label("Un euro"));
   }
 
-  public static Invoice invoice1() {
-    return new Invoice()
-        .id(INVOICE1_ID)
-        .fileId("file1_id")
-        .comment(null)
-        .title("Outils pour plomberie")
-        .paymentUrl("https://connect-v2-sbx.fintecture.com")
-        .paymentType(Invoice.PaymentTypeEnum.IN_INSTALMENT)
-        .paymentRegulations(List.of(datedPaymentRequest1(), datedPaymentRequest2()))
-        .customer(customer1()).ref("BP001")
-        .createdAt(Instant.parse("2022-01-01T01:00:00.00Z"))
-        .sendingDate(LocalDate.of(2022, 9, 1))
-        .validityDate(LocalDate.of(2022, 10, 3))
-        .toPayAt(LocalDate.of(2022, 10, 1))
-        .delayInPaymentAllowed(DEFAULT_TO_PAY_DELAY_DAYS)
-        .delayPenaltyPercent(DEFAULT_DELAY_PENALTY_PERCENT)
-        .status(CONFIRMED)
-        .products(List.of(product3(), product4()))
-        .totalPriceWithVat(8800)
-        .totalVat(800)
-        .totalPriceWithoutVat(8000)
-        .metadata(Map.of());
-  }
-
   private static List<PaymentRegulation> ignoreIdsAndDatetime(Invoice actualConfirmed) {
     List<PaymentRegulation> paymentRegulations =
         new ArrayList<>(actualConfirmed.getPaymentRegulations());
@@ -290,6 +265,8 @@ class InvoiceIT {
         .comment(null)
         .title("Outils pour plomberie")
         .paymentUrl("https://connect-v2-sbx.fintecture.com")
+        .paymentType(Invoice.PaymentTypeEnum.IN_INSTALMENT)
+        .paymentRegulations(List.of(datedPaymentRequest1(), datedPaymentRequest2()))
         .customer(customer1()).ref("BP001")
         .createdAt(Instant.parse("2022-01-01T01:00:00.00Z"))
         .sendingDate(LocalDate.of(2022, 9, 1))
@@ -308,6 +285,7 @@ class InvoiceIT {
             .percentValue(0))
         .metadata(Map.of());
   }
+
 
   Invoice invoice2() {
     return new Invoice()
@@ -424,7 +402,7 @@ class InvoiceIT {
         .products(List.of(product5().id(null)))
         .paymentRegulations(List.of(expectedDated1(), expectedDated2()))
         .paymentType(Invoice.PaymentTypeEnum.IN_INSTALMENT)
-        .toPayAt(confirmedInvoice().getToPayAt()) //TODO: set null if necessary
+        .toPayAt(null)
         .delayInPaymentAllowed(confirmedInvoice().getDelayInPaymentAllowed())
         .delayPenaltyPercent(confirmedInvoice().getDelayPenaltyPercent())
         .totalPriceWithVat(1100)
@@ -795,13 +773,18 @@ class InvoiceIT {
         .metadata(actualConfirmed.getMetadata())
         .toPayAt(actualConfirmed.getToPayAt())
         .sendingDate(actualConfirmed.getSendingDate())
+        .totalPriceWithoutDiscount(2000)
         .totalPriceWithVat(actualConfirmed.getTotalPriceWithVat())
         .totalPriceWithoutVat(actualConfirmed.getTotalPriceWithoutVat())
         .customer(actualConfirmed.getCustomer())
         .delayPenaltyPercent(actualConfirmed.getDelayPenaltyPercent())
         .delayInPaymentAllowed(actualConfirmed.getDelayInPaymentAllowed())
         .paymentUrl(actualConfirmed.getPaymentUrl())
-        .paymentRegulations(confirmedPaymentRegulations(id)), actualConfirmed);
+        .globalDiscount(new InvoiceDiscount()
+            .amountValue(0)
+            .percentValue(0))
+        .paymentRegulations(confirmedPaymentRegulations(id)), actualConfirmed)
+    ;
     assertTrue(actualConfirmed.getPaymentRegulations().stream()
         .allMatch(
             paymentRegulation -> paymentRegulation.getPaymentRequest().getPaymentUrl() != null));

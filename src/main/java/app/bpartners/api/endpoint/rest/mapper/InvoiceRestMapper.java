@@ -89,7 +89,7 @@ public class InvoiceRestMapper {
                     .initiatedDatetime(payment.getInitiatedDatetime())))
             .collect(Collectors.toUnmodifiableList()))
         .toPayAt(toPayAt)
-    globalDiscount(new InvoiceDiscount()
+        .globalDiscount(new InvoiceDiscount()
         .percentValue(
             domain.getDiscount().getPercent(domain.getTotalPriceWithVat()).getCentsRoundUp())
         .amountValue(

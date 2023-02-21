@@ -230,10 +230,9 @@
                     <span
                             th:text="${#numbers.formatDecimal(invoice.discount.percentValue.getCentsAsDecimal(),1,2)}"></span>%
                 </td>
-                <td class="text-center"
-                    th:if="${accountHolder.isSubjectToVat()}">
-                    <span
-                            th:text="${#numbers.formatDecimal(product.priceNoVatWithDiscount.getCentsAsDecimal(),1,2)}"></span>
+                <td class="text-center" th:if="${accountHolder.isSubjectToVat()}">
+                    <span th:text="${#numbers.formatDecimal(product.priceNoVatWithDiscount.getCentsAsDecimal(),1,2)}">
+                    </span>
                     €
                 </td>
                 <td class="text-center" th:if="${accountHolder.isSubjectToVat()}"><span
@@ -297,7 +296,6 @@
                         TVA non applicable article 293 B <br/> du code général des impôts
                         (CGI).
                     </p>
-                </div>
                 </div>
             </td>
         </tr>

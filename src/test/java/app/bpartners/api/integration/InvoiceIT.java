@@ -10,6 +10,8 @@ import app.bpartners.api.endpoint.rest.model.CrupdateInvoice;
 import app.bpartners.api.endpoint.rest.model.Invoice;
 import app.bpartners.api.endpoint.rest.model.PaymentRegulation;
 import app.bpartners.api.endpoint.rest.model.PaymentRequest;
+import app.bpartners.api.endpoint.rest.model.InvoiceDiscount;
+import app.bpartners.api.endpoint.rest.model.InvoiceDiscount;
 import app.bpartners.api.endpoint.rest.model.Product;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
 import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
@@ -88,11 +90,11 @@ import static app.bpartners.api.integration.conf.TestUtils.setUpUserSwanReposito
 import static app.bpartners.api.model.Invoice.DEFAULT_DELAY_PENALTY_PERCENT;
 import static app.bpartners.api.model.Invoice.DEFAULT_TO_PAY_DELAY_DAYS;
 import static java.util.UUID.randomUUID;
+import static org.hibernate.validator.internal.util.Contracts.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.reset;
@@ -281,6 +283,32 @@ class InvoiceIT {
         .delayPenaltyPercent(20);
   }
 
+  public static Invoice invoice1() {
+    return new Invoice()
+        .id(INVOICE1_ID)
+        .fileId("file1_id")
+        .comment(null)
+        .title("Outils pour plomberie")
+        .paymentUrl("https://connect-v2-sbx.fintecture.com")
+        .customer(customer1()).ref("BP001")
+        .createdAt(Instant.parse("2022-01-01T01:00:00.00Z"))
+        .sendingDate(LocalDate.of(2022, 9, 1))
+        .validityDate(LocalDate.of(2022, 10, 3))
+        .toPayAt(LocalDate.of(2022, 10, 1))
+        .delayInPaymentAllowed(DEFAULT_TO_PAY_DELAY_DAYS)
+        .delayPenaltyPercent(DEFAULT_DELAY_PENALTY_PERCENT)
+        .status(CONFIRMED)
+        .products(List.of(product3(), product4()))
+        .totalPriceWithVat(8800)
+        .totalVat(800)
+        .totalPriceWithoutVat(8000)
+        .totalPriceWithoutDiscount(8000)
+        .globalDiscount(new InvoiceDiscount()
+            .amountValue(0)
+            .percentValue(0))
+        .metadata(Map.of());
+  }
+
   Invoice invoice2() {
     return new Invoice()
         .id(INVOICE2_ID)
@@ -299,7 +327,12 @@ class InvoiceIT {
         .status(CONFIRMED)
         .products(List.of(product5()))
         .totalPriceWithVat(1100)
-        .totalVat(100).totalPriceWithoutVat(1000)
+        .totalVat(100)
+        .totalPriceWithoutVat(1000)
+        .totalPriceWithoutDiscount(1000)
+        .globalDiscount(new InvoiceDiscount()
+            .amountValue(0)
+            .percentValue(0))
         .metadata(Map.of());
   }
 
@@ -317,13 +350,17 @@ class InvoiceIT {
         .validityDate(LocalDate.of(2022, 11, 12))
         .delayInPaymentAllowed(DEFAULT_TO_PAY_DELAY_DAYS)
         .delayPenaltyPercent(DEFAULT_DELAY_PENALTY_PERCENT)
-        .products(List.of(product5().id(null)))
         .paymentRegulations(List.of())
         .paymentType(CASH)
         .toPayAt(LocalDate.of(2022, 11, 10))
-        .totalPriceWithVat(1100)
-        .totalVat(100)
-        .totalPriceWithoutVat(1000)
+        .products(List.of())
+        .totalPriceWithVat(0)
+        .totalPriceWithoutVat(0)
+        .totalPriceWithoutDiscount(0)
+        .totalVat(0)
+        .globalDiscount(new InvoiceDiscount()
+            .amountValue(0)
+            .percentValue(0))
         .metadata(Map.of());
   }
 
@@ -336,6 +373,9 @@ class InvoiceIT {
         .products(List.of(createProduct4(), createProduct5()))
         .sendingDate(LocalDate.now())
         .validityDate(LocalDate.now().plusDays(3L))
+        .globalDiscount(new InvoiceDiscount()
+            .amountValue(null)
+            .percentValue(1000))
         .delayInPaymentAllowed(null)
         .delayPenaltyPercent(null);
   }
@@ -352,12 +392,24 @@ class InvoiceIT {
         .validityDate(validInvoice().getValidityDate())
         .delayInPaymentAllowed(DEFAULT_TO_PAY_DELAY_DAYS)
         .delayPenaltyPercent(DEFAULT_DELAY_PENALTY_PERCENT)
-        .products(List.of(product4().id(null), product5().id(null)))
+        .products(List.of(
+            product4()
+                .id(null)
+                .totalVat(180)
+                .totalPriceWithVat(1980),
+            product5()
+                .id(null)
+                .totalVat(90)
+                .totalPriceWithVat(990)))
+        .totalPriceWithoutDiscount(3000)
+        .totalPriceWithoutVat(1800 + 900) //with discount without vat
+        .totalVat(180 + 90)
+        .totalPriceWithVat(1980 + 990) //or 2700 + 270 of vat
+        .globalDiscount(new InvoiceDiscount()
+            .amountValue(300)
+            .percentValue(1000))
         .paymentRegulations(List.of())
         .paymentType(CASH)
-        .totalPriceWithVat(3300)
-        .totalVat(300)
-        .totalPriceWithoutVat(3000)
         .metadata(Map.of());
   }
 
@@ -372,12 +424,16 @@ class InvoiceIT {
         .products(List.of(product5().id(null)))
         .paymentRegulations(List.of(expectedDated1(), expectedDated2()))
         .paymentType(Invoice.PaymentTypeEnum.IN_INSTALMENT)
-        .toPayAt(null)
+        .toPayAt(confirmedInvoice().getToPayAt()) //TODO: set null if necessary
         .delayInPaymentAllowed(confirmedInvoice().getDelayInPaymentAllowed())
         .delayPenaltyPercent(confirmedInvoice().getDelayPenaltyPercent())
         .totalPriceWithVat(1100)
         .totalVat(100)
         .totalPriceWithoutVat(1000)
+        .totalPriceWithoutDiscount(1000)
+        .globalDiscount(new InvoiceDiscount()
+            .amountValue(0)
+            .percentValue(0))
         .metadata(Map.of());
   }
 
@@ -389,10 +445,14 @@ class InvoiceIT {
         .paymentType(CASH)
         .totalVat(0)
         .totalPriceWithoutVat(0)
+        .totalPriceWithoutDiscount(0)
         .totalPriceWithVat(0)
         .status(DRAFT)
         .delayInPaymentAllowed(DEFAULT_TO_PAY_DELAY_DAYS)
         .delayPenaltyPercent(DEFAULT_DELAY_PENALTY_PERCENT)
+        .globalDiscount(new InvoiceDiscount()
+            .percentValue(0)
+            .amountValue(0))
         .metadata(Map.of());
   }
 
@@ -412,7 +472,11 @@ class InvoiceIT {
         .totalPriceWithVat(1100)
         .totalVat(100)
         .totalPriceWithoutVat(1000)
-        .metadata(Map.of());
+        .totalPriceWithoutDiscount(1000)
+        .metadata(Map.of())
+        .globalDiscount(new InvoiceDiscount()
+            .amountValue(0)
+            .percentValue(0));
   }
 
 
@@ -498,20 +562,12 @@ class InvoiceIT {
     assertEquals(invoice2()
             .updatedAt(actual2.getUpdatedAt()),
         actual2);
-    assertTrue(ignoreUpdatedAt(actualDraft).contains(invoice6()
-        .products(List.of())
-        .totalPriceWithVat(0)
-        .totalPriceWithoutVat(0)
-        .totalVat(0)));
+    assertTrue(ignoreUpdatedAt(actualDraft).contains(invoice6()));
     assertTrue(ignoreUpdatedAt(actualNotFiltered).containsAll(
-        List.of(actual1.updatedAt(null),
+        List.of(
+            actual1.updatedAt(null),
             actual2.updatedAt(null),
-            invoice6()
-                .products(List.of())
-                .totalPriceWithVat(0)
-                .totalPriceWithoutVat(0)
-                .totalVat(0)
-                .updatedAt(null))));
+            invoice6().updatedAt(null))));
   }
 
   @Test
@@ -573,6 +629,21 @@ class InvoiceIT {
     Executable thirdCrupdateExecutable =
         () -> api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, NEW_INVOICE_ID,
             crupdateInvoiceWithNonExistentCustomer);
+    Executable executable4 =
+        () -> api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, randomUUID().toString(),
+            validInvoice().globalDiscount(new InvoiceDiscount()
+                .amountValue(0)
+                .percentValue(null)));
+    Executable executable5 =
+        () -> api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, randomUUID().toString(),
+            validInvoice().globalDiscount(new InvoiceDiscount()
+                .percentValue(null)
+                .amountValue(null)));
+    Executable executable6 =
+        () -> api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, randomUUID().toString(),
+            validInvoice().globalDiscount(new InvoiceDiscount()
+                .percentValue(12000)
+                .amountValue(null)));
 
     assertDoesNotThrow(firstCrupdateExecutable);
 
@@ -584,6 +655,18 @@ class InvoiceIT {
             + "Customer." + crupdateInvoiceWithNonExistentCustomer.getCustomer().getId()
             + " is not found.\"}",
         thirdCrupdateExecutable);
+    assertThrowsApiException(
+        "{\"type\":\"501 NOT_IMPLEMENTED\",\"message\":\""
+            + "Only discount percent is supported for now" + "\"}", executable4);
+    assertThrowsApiException(
+        "{\"type\":\"400 BAD_REQUEST\",\"message\":\""
+            + "Discount percent is mandatory" + "\"}",
+        executable5);
+    assertThrowsApiException(
+        "{\"type\":\"400 BAD_REQUEST\",\"message\":\""
+            + "Discount percent 120.0% must be greater or equals to 0% and less or equals to 100%"
+            + "\"}",
+        executable6);
     assertThrowsApiException("{\"type\":\"400 BAD_REQUEST\","
             + "\"message\":\"Multiple payments request more than one payment\"}",
         () -> api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, String.valueOf(randomUUID()),
@@ -796,7 +879,6 @@ class InvoiceIT {
   void second_update_invoice_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
     PayingApi api = new PayingApi(joeDoeClient);
-
     Invoice invoice = api.getInvoiceById(JOE_DOE_ACCOUNT_ID, INVOICE1_ID);
     CrupdateInvoice crupdateInvoice = new CrupdateInvoice()
         .ref(invoice.getRef())
@@ -811,11 +893,13 @@ class InvoiceIT {
         .products(List.of(product4().id(null), product5().id(null)))
         .paymentType(CASH)
         .toPayAt(null);
+
     Invoice actual = api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, INVOICE1_ID, crupdateInvoice)
         .paymentUrl(expected.getPaymentUrl())
         .totalVat(expected.getTotalVat())
         .totalPriceWithVat(expected.getTotalPriceWithVat())
         .totalPriceWithoutVat(expected.getTotalPriceWithoutVat())
+        .totalPriceWithoutDiscount(expected.getTotalPriceWithoutDiscount())
         .updatedAt(null)
         .customer(expected.getCustomer());
 

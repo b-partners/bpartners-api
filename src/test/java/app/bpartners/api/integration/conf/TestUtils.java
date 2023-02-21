@@ -12,6 +12,7 @@ import app.bpartners.api.endpoint.rest.model.CreateAnnualRevenueTarget;
 import app.bpartners.api.endpoint.rest.model.CreateProduct;
 import app.bpartners.api.endpoint.rest.model.Customer;
 import app.bpartners.api.endpoint.rest.model.Invoice;
+import app.bpartners.api.endpoint.rest.model.InvoiceDiscount;
 import app.bpartners.api.endpoint.rest.model.LegalFile;
 import app.bpartners.api.endpoint.rest.model.PaymentRegulation;
 import app.bpartners.api.endpoint.rest.model.PaymentRequest;
@@ -586,6 +587,10 @@ public class TestUtils {
         .totalPriceWithoutVat(8000)
         .paymentType(IN_INSTALMENT)
         .paymentRegulations(List.of(datedPaymentRequest1(), datedPaymentRequest2()))
+        .totalPriceWithoutDiscount(8000)
+        .globalDiscount(new InvoiceDiscount()
+            .percentValue(0)
+            .amountValue(0))
         .metadata(Map.of());
   }
 

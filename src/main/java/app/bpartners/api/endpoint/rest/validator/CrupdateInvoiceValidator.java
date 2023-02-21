@@ -2,7 +2,9 @@ package app.bpartners.api.endpoint.rest.validator;
 
 import app.bpartners.api.endpoint.rest.model.CreateProduct;
 import app.bpartners.api.endpoint.rest.model.CrupdateInvoice;
+import app.bpartners.api.endpoint.rest.model.InvoiceDiscount;
 import app.bpartners.api.model.exception.BadRequestException;
+import app.bpartners.api.model.exception.NotImplementedException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Instant;
@@ -64,7 +66,21 @@ public class CrupdateInvoiceValidator implements Consumer<CrupdateInvoice> {
       //TODO: uncomment if any warn message is logged anymore
       //exceptionBuilder.append("Invoice can not be sent no later than today. ");
     }
-
+    if (invoice.getGlobalDiscount() != null) {
+      InvoiceDiscount discount = invoice.getGlobalDiscount();
+      if (discount.getAmountValue() != null && discount.getPercentValue() == null) {
+        throw new NotImplementedException("Only discount percent is supported for now");
+      }
+      if (discount.getPercentValue() == null) {
+        throw new BadRequestException("Discount percent is mandatory");
+      }
+      if (discount.getPercentValue() != null
+          && (discount.getPercentValue() < 0 || discount.getPercentValue() > 10000)) {
+        throw new BadRequestException(
+            "Discount percent " + discount.getPercentValue() / 100.00
+                + "% must be greater or equals to 0% and less or equals to 100%");
+      }
+    }
     String exceptionMessage = exceptionBuilder.toString();
     if (!exceptionMessage.isEmpty()) {
       throw new BadRequestException(exceptionMessage);

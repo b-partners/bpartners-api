@@ -3,7 +3,6 @@ package app.bpartners.api.endpoint.rest.mapper;
 import app.bpartners.api.endpoint.rest.model.CreateProduct;
 import app.bpartners.api.endpoint.rest.model.Product;
 import app.bpartners.api.endpoint.rest.validator.CreateProductValidator;
-import app.bpartners.api.repository.jpa.ProductJpaRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -14,7 +13,6 @@ import static java.util.UUID.randomUUID;
 @AllArgsConstructor
 public class ProductRestMapper {
   private final CreateProductValidator createProductValidator;
-  private final ProductJpaRepository repository;
 
   public Product toRest(app.bpartners.api.model.Product domain) {
     return new Product()
@@ -35,8 +33,8 @@ public class ProductRestMapper {
         .unitPrice(domain.getUnitPrice().getCentsRoundUp())
         .unitPriceWithVat(domain.getUnitPriceWithVat().getCentsRoundUp())
         .vatPercent(domain.getVatPercent().getCentsRoundUp())
-        .totalVat(domain.getTotalVat().getCentsRoundUp())
-        .totalPriceWithVat(domain.getTotalPriceWithVat().getCentsRoundUp())
+        .totalVat(domain.getVatWithDiscount().getCentsRoundUp())
+        .totalPriceWithVat(domain.getTotalWithDiscount().getCentsRoundUp())
         .status(domain.getStatus())
         .createdAt(domain.getCreatedAt());
   }

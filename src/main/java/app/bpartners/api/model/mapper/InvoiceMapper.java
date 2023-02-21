@@ -3,6 +3,7 @@ package app.bpartners.api.model.mapper;
 import app.bpartners.api.model.CreatePaymentRegulation;
 import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.Invoice;
+import app.bpartners.api.model.InvoiceDiscount;
 import app.bpartners.api.model.InvoiceProduct;
 import app.bpartners.api.model.PaymentInitiation;
 import app.bpartners.api.model.TransactionInvoice;
@@ -64,6 +65,8 @@ public class InvoiceMapper {
       return null;
     }
     List<InvoiceProduct> actualProducts = getActualProducts(entity);
+    Fraction discount = parseFraction(
+        entity.getDiscountPercent());
     Invoice invoice = Invoice.builder()
         .id(entity.getId())
         .ref(entity.getRef())
@@ -94,10 +97,20 @@ public class InvoiceMapper {
         .toBeRelaunched(entity.isToBeRelaunched())
         .createdAt(entity.getCreatedDatetime())
         .metadata(toMetadataMap(entity.getMetadataString()))
+        //total without vat and without discount
+        .totalPriceWithoutDiscount(computePriceWithoutDiscount(actualProducts))
+        //total without vat but with discount
+        .totalPriceWithoutVat(computePriceNoVatWithDiscount(discount, actualProducts))
+        //total vat with discount
+        .totalVat(computeTotalVatWithDiscount(discount, actualProducts))
+        //total with vat and with discount
+        .totalPriceWithVat(
+            computeTotalPriceWithVatAndDiscount(discount, actualProducts))
+        .discount(InvoiceDiscount.builder()
+            .percentValue(parseFraction(entity.getDiscountPercent()))
+            .amountValue(computeTotalDiscountAmount(discount, actualProducts))
+            .build())
         .multiplePayments(getMultiplePayments(entity))
-        .totalVat(computeTotalVat(actualProducts))
-        .totalPriceWithoutVat(computeTotalPriceWithoutVat(actualProducts))
-        .totalPriceWithVat(computeTotalPriceWithVat(actualProducts))
         .build();
     if (entity.getStatus().equals(CONFIRMED) || entity.getStatus().equals(PAID)) {
       invoice.setRef(invoice.getRealReference());
@@ -132,6 +145,13 @@ public class InvoiceMapper {
             .initiatedDatetime(payment.getCreatedDatetime())
             .build())
         .collect(Collectors.toUnmodifiableList());
+  }
+
+  private Fraction computePriceNoVatWithDiscount(Fraction discount,
+                                                 List<InvoiceProduct> actualProducts) {
+    return computeSum(actualProducts, actualProducts.stream()
+        .map(product ->
+            product.getPriceNoVatWithDiscount(discount)));
   }
 
   public TransactionInvoice toTransactionInvoice(HInvoice entity) {
@@ -176,7 +196,9 @@ public class InvoiceMapper {
     LocalDate toPayAt = null;
     LocalDate validityDate = domain.getValidityDate();
     List<HInvoiceProduct> actualProducts = List.of();
-    Fraction totalPriceWithVat = computeTotalPriceWithVat(domain.getProducts());
+    Fraction totalPriceWithVat =
+        computeTotalPriceWithVatAndDiscount(domain.getDiscount().getPercentValue(),
+            domain.getProducts());
 
     if (domain.getStatus() != CONFIRMED && domain.getStatus() != PAID
         && domain.getPaymentType() == IN_INSTALMENT) {
@@ -200,7 +222,8 @@ public class InvoiceMapper {
         if (domain.getPaymentType() == CASH) {
           toPayAt = sendingDate.plusDays(domain.getDelayInPaymentAllowed());
           paymentUrl =
-              getPaymentUrl(domain, paymentUrl, totalPriceWithVat);
+              getPaymentUrl(domain, paymentUrl, computeTotalPriceWithVatAndDiscount(
+                  domain.getDiscount().getPercentValue(), domain.getProducts()));
         } else {
           checkPaymentsTotalPrice(domain, totalPriceWithVat);
           List<PaymentInitiation> paymentInitiations =
@@ -247,6 +270,7 @@ public class InvoiceMapper {
         .delayPenaltyPercent(domain.getDelayPenaltyPercent().toString())
         .products(actualProducts)
         .metadataString(objectMapper.writeValueAsString(domain.getMetadata()))
+        .discountPercent(domain.getDiscount().getPercentValue().toString())
         .build();
   }
 
@@ -286,19 +310,28 @@ public class InvoiceMapper {
     return fraction.get();
   }
 
-  private Fraction computeTotalVat(List<InvoiceProduct> products) {
+  private Fraction computeTotalDiscountAmount(Fraction discount, List<InvoiceProduct> products) {
     return computeSum(products, products.stream()
-        .map(InvoiceProduct::getTotalVat));
+        .map(product ->
+            product.getDiscountAmount(discount)));
   }
 
-  private Fraction computeTotalPriceWithoutVat(List<InvoiceProduct> products) {
+  private Fraction computeTotalVatWithDiscount(Fraction discount, List<InvoiceProduct> products) {
     return computeSum(products, products.stream()
-        .map(InvoiceProduct::getTotalWithoutVat));
+        .map(product ->
+            product.getVatWithDiscount(discount)));
   }
 
-  private Fraction computeTotalPriceWithVat(List<InvoiceProduct> products) {
+  private Fraction computePriceWithoutDiscount(List<InvoiceProduct> products) {
     return computeSum(products, products.stream()
-        .map(InvoiceProduct::getTotalPriceWithVat));
+        .map(InvoiceProduct::getPriceWithoutVat));
+  }
+
+  private Fraction computeTotalPriceWithVatAndDiscount(
+      Fraction discount, List<InvoiceProduct> products) {
+    return computeSum(products, products.stream()
+        .map(product ->
+            product.getPriceWithVatAndDiscount(discount)));
   }
 
   private Fraction computeSum(List<InvoiceProduct> products, Stream<Fraction> fractionStream) {

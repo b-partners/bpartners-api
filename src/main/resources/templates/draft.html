@@ -262,7 +262,7 @@
                 </p>
             </td>
             <td class="text-center">
-                <div>
+                <div class="amount-section">
                     <p th:if="${invoice.discount.percentValue.getCentsAsDecimal() > 0}">
                         <strong>Sous-Total</strong> :
                         <span
@@ -290,9 +290,7 @@
                                 th:text="${#numbers.formatDecimal(invoice.totalPriceWithVat.getCentsAsDecimal(),1,2)}"></span>
                         €
                     </p>
-                    <p style="padding: 4px 8px; width: 150px; margin-left: 73%; border: 0px;
-             font-size: 0.9em; text-align: center; line-height: 1.8;"
-                       th:if="${!accountHolder.isSubjectToVat()}">
+                    <p th:if="${!accountHolder.isSubjectToVat()}" style="border: none">
                         TVA non applicable article 293 B <br/> du code général des impôts
                         (CGI).
                     </p>

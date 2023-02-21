@@ -6,6 +6,7 @@ import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.Customer;
 import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.Invoice;
+import app.bpartners.api.model.InvoiceDiscount;
 import app.bpartners.api.model.InvoiceProduct;
 import app.bpartners.api.service.FileService;
 import app.bpartners.api.service.InvoiceRelaunchSavedService;
@@ -78,6 +79,9 @@ class InvoiceRelaunchSavedServiceTest {
             .description("product description")
             .vatPercent(new Fraction())
             .unitPrice(new Fraction())
+            .priceNoVatWithDiscount(new Fraction())
+            .vatWithDiscount(new Fraction())
+            .totalWithDiscount(new Fraction())
             .build()))
         .customer(Customer.builder()
             .firstName("Olivier")
@@ -89,6 +93,11 @@ class InvoiceRelaunchSavedServiceTest {
         .totalVat(new Fraction())
         .totalPriceWithVat(new Fraction())
         .totalPriceWithoutVat(new Fraction())
+        .totalPriceWithoutDiscount(new Fraction())
+        .discount(InvoiceDiscount.builder()
+            .percentValue(new Fraction())
+            .amountValue(null)
+            .build())
         .build();
   }
 }

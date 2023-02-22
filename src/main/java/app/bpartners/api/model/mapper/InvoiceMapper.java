@@ -60,6 +60,30 @@ public class InvoiceMapper {
     return persisted.map(HInvoice::getCreatedDatetime).orElse(Instant.now());
   }
 
+  private static void checkPaymentsTotalPrice(Invoice domain, Fraction totalPriceWithVat) {
+    if (computeMultiplePaymentsAmount(domain.getMultiplePayments(), totalPriceWithVat)
+        > totalPriceWithVat.getCentsRoundUp()) {
+      throw new BadRequestException("Multiple payments amount should not exceed total price"
+          + " with vat amount");
+    }
+  }
+
+  private static int computeMultiplePaymentsAmount(
+      List<CreatePaymentRegulation> payments, Fraction totalPriceWithVat) {
+    return payments.stream()
+        .mapToInt(payment -> payment.getAmountOrPercent(totalPriceWithVat).getCentsRoundUp())
+        .sum();
+  }
+
+  private static Fraction computeMultiplePaymentsAmount(
+      List<HPaymentRequest> payments) {
+    AtomicReference<Fraction> fraction = new AtomicReference<>(new Fraction());
+    payments.forEach(
+        payment -> fraction.set(fraction.get()
+            .operate(parseFraction(payment.getAmount()), Aprational::add)));
+    return fraction.get();
+  }
+
   public Invoice toDomain(HInvoice entity) {
     if (entity == null) {
       return null;
@@ -212,7 +236,6 @@ public class InvoiceMapper {
     if (isToBeCrupdated && optionalInvoice.isPresent()) {
       HInvoice entity = optionalInvoice.get();
       actualProducts = entity.getProducts();
-      fileId = entity.getFileId();
       //TODO: change when we can create a confirmed from scratch
       if (domain.getStatus() == CONFIRMED && entity.getStatus() == PROPOSAL) {
         id = String.valueOf(randomUUID());
@@ -221,9 +244,8 @@ public class InvoiceMapper {
         //TODO: in pdf, remove the toPayAt label if toPay and paymentUrl are null
         if (domain.getPaymentType() == CASH) {
           toPayAt = sendingDate.plusDays(domain.getDelayInPaymentAllowed());
-          paymentUrl =
-              getPaymentUrl(domain, paymentUrl, computeTotalPriceWithVatAndDiscount(
-                  domain.getDiscount().getPercentValue(), domain.getProducts()));
+          paymentUrl = getPaymentUrl(domain, paymentUrl, computeTotalPriceWithVatAndDiscount(
+              domain.getDiscount().getPercentValue(), domain.getProducts()));
         } else {
           checkPaymentsTotalPrice(domain, totalPriceWithVat);
           List<PaymentInitiation> paymentInitiations =
@@ -284,30 +306,6 @@ public class InvoiceMapper {
               randomId, domain, totalPriceWithVat, payment);
         })
         .collect(Collectors.toUnmodifiableList());
-  }
-
-  private static void checkPaymentsTotalPrice(Invoice domain, Fraction totalPriceWithVat) {
-    if (computeMultiplePaymentsAmount(domain.getMultiplePayments(), totalPriceWithVat)
-        > totalPriceWithVat.getCentsRoundUp()) {
-      throw new BadRequestException("Multiple payments amount should not exceed total price"
-          + " with vat amount");
-    }
-  }
-
-  private static int computeMultiplePaymentsAmount(
-      List<CreatePaymentRegulation> payments, Fraction totalPriceWithVat) {
-    return payments.stream()
-        .mapToInt(payment -> payment.getAmountOrPercent(totalPriceWithVat).getCentsRoundUp())
-        .sum();
-  }
-
-  private static Fraction computeMultiplePaymentsAmount(
-      List<HPaymentRequest> payments) {
-    AtomicReference<Fraction> fraction = new AtomicReference<>(new Fraction());
-    payments.forEach(
-        payment -> fraction.set(fraction.get()
-            .operate(parseFraction(payment.getAmount()), Aprational::add)));
-    return fraction.get();
   }
 
   private Fraction computeTotalDiscountAmount(Fraction discount, List<InvoiceProduct> products) {

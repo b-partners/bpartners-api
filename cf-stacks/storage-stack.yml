@@ -17,7 +17,7 @@ Parameters:
 Conditions:
   NotCreatingDatabaseFromSnapshot: !Equals
     - !Ref DBSnapshot
-    - !Ref "AWS::NoValue"
+    - ''
 
 Resources:
   Database:

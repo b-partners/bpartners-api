@@ -612,11 +612,11 @@ class InvoiceIT {
             validInvoice().globalDiscount(new InvoiceDiscount()
                 .amountValue(0)
                 .percentValue(null)));
-    Executable executable5 =
-        () -> api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, randomUUID().toString(),
-            validInvoice().globalDiscount(new InvoiceDiscount()
-                .percentValue(null)
-                .amountValue(null)));
+//    Executable executable5 =
+//        () -> api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, randomUUID().toString(),
+//            validInvoice().globalDiscount(new InvoiceDiscount()
+//                .percentValue(null)
+//                .amountValue(null)));
     Executable executable6 =
         () -> api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, randomUUID().toString(),
             validInvoice().globalDiscount(new InvoiceDiscount()
@@ -636,10 +636,10 @@ class InvoiceIT {
     assertThrowsApiException(
         "{\"type\":\"501 NOT_IMPLEMENTED\",\"message\":\""
             + "Only discount percent is supported for now" + "\"}", executable4);
-    assertThrowsApiException(
-        "{\"type\":\"400 BAD_REQUEST\",\"message\":\""
-            + "Discount percent is mandatory" + "\"}",
-        executable5);
+//    assertThrowsApiException(
+//        "{\"type\":\"400 BAD_REQUEST\",\"message\":\""
+//            + "Discount percent is mandatory" + "\"}",
+//        executable5);
     assertThrowsApiException(
         "{\"type\":\"400 BAD_REQUEST\",\"message\":\""
             + "Discount percent 120.0% must be greater or equals to 0% and less or equals to 100%"
@@ -855,6 +855,44 @@ class InvoiceIT {
     assertEquals(actualConfirmed.getFileId(), actualPaid.getFileId());
     assertTrue(actualUpdatedDraft.getRef().contains(DRAFT_REF_PREFIX));
     assertFalse(actualConfirmed.getRef().contains(DRAFT_REF_PREFIX));
+  }
+
+  @Test
+  @Order(3)
+  void crupdate_with_null_discount_percent_ok() throws ApiException {
+    ApiClient joeDoeClient = anApiClient();
+    PayingApi api = new PayingApi(joeDoeClient);
+    String id = String.valueOf(randomUUID());
+
+    Invoice actual = api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, id,
+        new CrupdateInvoice()
+            .status(DRAFT)
+            .products(List.of(createProduct4()))
+            .globalDiscount(new InvoiceDiscount()
+                .percentValue(null)
+                .amountValue(null)));
+    actual.setProducts(ignoreIdsOf(actual.getProducts()));
+
+    assertEquals(new Invoice()
+            .id(id)
+            .status(DRAFT)
+            .products(List.of(product4().id(null)))
+            .paymentType(CASH)
+            .paymentRegulations(List.of())
+            .globalDiscount(new InvoiceDiscount()
+                .amountValue(0)
+                .percentValue(0))
+            .totalVat(actual.getTotalVat())
+            .totalPriceWithoutDiscount(actual.getTotalPriceWithoutDiscount())
+            .totalPriceWithVat(actual.getTotalPriceWithVat())
+            .totalPriceWithoutVat(actual.getTotalPriceWithoutVat())
+            .delayPenaltyPercent(actual.getDelayPenaltyPercent())
+            .delayInPaymentAllowed(actual.getDelayInPaymentAllowed())
+            .metadata(actual.getMetadata())
+            .fileId(actual.getFileId())
+            .updatedAt(actual.getUpdatedAt())
+            .createdAt(actual.getCreatedAt()),
+        actual);
   }
 
   @Test

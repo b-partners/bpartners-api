@@ -53,7 +53,7 @@ public class InvoiceService {
     }
     Invoice invoice = repository.crupdate(toCrupdate);
 
-    eventProducer.accept(List.of(toTypedEvent(invoice)));
+    //eventProducer.accept(List.of(toTypedEvent(invoice)));
 
     return invoice;
   }

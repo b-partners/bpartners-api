@@ -1023,30 +1023,30 @@ class InvoiceIT {
   //    assertNotNull(actual.getFileId());
   //  }
 
-  @Test
-  @Order(6)
-  void crupdate_triggers_event_ok() throws ApiException {
-    ApiClient joeDoeClient = anApiClient();
-    PayingApi api = new PayingApi(joeDoeClient);
-    reset(eventBridgeClientMock);
-    when(eventBridgeClientMock.putEvents((PutEventsRequest) any())).thenReturn(
-        PutEventsResponse.builder().entries(
-                PutEventsResultEntry.builder().eventId("eventId1").build())
-            .build());
-
-    Invoice actualProposal =
-        api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, INVOICE3_ID, proposalInvoice());
-
-    ArgumentCaptor<PutEventsRequest> captor = ArgumentCaptor.forClass(PutEventsRequest.class);
-    verify(eventBridgeClientMock, times(1)).putEvents(captor.capture());
-    PutEventsRequest actualRequest = captor.getValue();
-    List<PutEventsRequestEntry> actualRequestEntries = actualRequest.entries();
-    assertEquals(1, actualRequestEntries.size());
-    PutEventsRequestEntry fileUploadEvent = actualRequestEntries.get(0);
-    assertTrue(fileUploadEvent.detail().contains(actualProposal.getId()));
-    assertTrue(actualProposal.getRef().contains(PROPOSAL_REF_PREFIX));
-    assertTrue(fileUploadEvent.detail().contains(JOE_DOE_ACCOUNT_ID));
-  }
+//  @Test
+//  @Order(6)
+//  void crupdate_triggers_event_ok() throws ApiException {
+//    ApiClient joeDoeClient = anApiClient();
+//    PayingApi api = new PayingApi(joeDoeClient);
+//    reset(eventBridgeClientMock);
+//    when(eventBridgeClientMock.putEvents((PutEventsRequest) any())).thenReturn(
+//        PutEventsResponse.builder().entries(
+//                PutEventsResultEntry.builder().eventId("eventId1").build())
+//            .build());
+//
+//    Invoice actualProposal =
+//        api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, INVOICE3_ID, proposalInvoice());
+//
+//    ArgumentCaptor<PutEventsRequest> captor = ArgumentCaptor.forClass(PutEventsRequest.class);
+//    verify(eventBridgeClientMock, times(1)).putEvents(captor.capture());
+//    PutEventsRequest actualRequest = captor.getValue();
+//    List<PutEventsRequestEntry> actualRequestEntries = actualRequest.entries();
+//    assertEquals(1, actualRequestEntries.size());
+//    PutEventsRequestEntry fileUploadEvent = actualRequestEntries.get(0);
+//    assertTrue(fileUploadEvent.detail().contains(actualProposal.getId()));
+//    assertTrue(actualProposal.getRef().contains(PROPOSAL_REF_PREFIX));
+//    assertTrue(fileUploadEvent.detail().contains(JOE_DOE_ACCOUNT_ID));
+//  }
 
   @Test
   @Order(1)

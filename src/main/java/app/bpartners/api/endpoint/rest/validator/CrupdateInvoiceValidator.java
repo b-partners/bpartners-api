@@ -72,7 +72,9 @@ public class CrupdateInvoiceValidator implements Consumer<CrupdateInvoice> {
         throw new NotImplementedException("Only discount percent is supported for now");
       }
       if (discount.getPercentValue() == null) {
-        throw new BadRequestException("Discount percent is mandatory");
+        //throw new BadRequestException("Discount percent is mandatory");
+        log.warn("DEPRECATED: Discount percent is mandatory. Default value 0 is set");
+        discount.setPercentValue(0);
       }
       if (discount.getPercentValue() != null
           && (discount.getPercentValue() < 0 || discount.getPercentValue() > 10000)) {

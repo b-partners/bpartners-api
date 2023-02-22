@@ -14,20 +14,29 @@ Parameters:
     ConstraintDescription: must select a valid database instance type.
   DBSnapshot:
     Type: String
+Conditions:
+  NotCreatingDatabaseFromSnapshot: !Equals
+    - !Ref DBSnapshot
+    - ''
 
 Resources:
   Database:
     Type: AWS::RDS::DBInstance
     DeletionPolicy: Retain
     Properties:
-      DBName: !Ref DBName
-      AllocatedStorage: '5'
+      DBName:
+        !If [NotCreatingDatabaseFromSnapshot, !Ref DBName, !Ref "AWS::NoValue"]
+      DBSnapshotIdentifier:
+        !If [ NotCreatingDatabaseFromSnapshot, !Ref "AWS::NoValue", !Ref DBSnapshot ]
+      AllocatedStorage:
+        !If [ NotCreatingDatabaseFromSnapshot, '5', !Ref "AWS::NoValue" ]
       DBInstanceClass:
         Ref: DBClass
       Engine: postgres
-      MasterUsername: !Sub '{{resolve:ssm:/bpartners/${Env}/db/username}}'
-      MasterUserPassword: !Sub '{{resolve:ssm:/bpartners/${Env}/db/password}}'
-      DBSnapshotIdentifier: !Ref DBSnapshot
+      MasterUsername:
+        !If [NotCreatingDatabaseFromSnapshot, !Sub '{{resolve:ssm:/bpartners/${Env}/db/username}}', !Ref "AWS::NoValue" ]
+      MasterUserPassword:
+        !If [NotCreatingDatabaseFromSnapshot, !Sub '{{resolve:ssm:/bpartners/${Env}/db/password}}', !Ref "AWS::NoValue" ]
   DatabaseSSM:
     Type: AWS::SSM::Parameter
     Properties:

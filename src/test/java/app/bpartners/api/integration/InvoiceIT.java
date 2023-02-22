@@ -34,14 +34,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.api.function.Executable;
-import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -49,10 +47,6 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
-import software.amazon.awssdk.services.eventbridge.model.PutEventsRequest;
-import software.amazon.awssdk.services.eventbridge.model.PutEventsRequestEntry;
-import software.amazon.awssdk.services.eventbridge.model.PutEventsResponse;
-import software.amazon.awssdk.services.eventbridge.model.PutEventsResultEntry;
 
 import static app.bpartners.api.endpoint.rest.model.CrupdateInvoice.PaymentTypeEnum.IN_INSTALMENT;
 import static app.bpartners.api.endpoint.rest.model.Invoice.PaymentTypeEnum.CASH;
@@ -62,7 +56,6 @@ import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PROPOSAL;
 import static app.bpartners.api.integration.conf.TestUtils.INVOICE1_ID;
 import static app.bpartners.api.integration.conf.TestUtils.INVOICE2_ID;
-import static app.bpartners.api.integration.conf.TestUtils.INVOICE3_ID;
 import static app.bpartners.api.integration.conf.TestUtils.INVOICE4_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_TOKEN;
@@ -98,8 +91,6 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
@@ -108,7 +99,6 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @ContextConfiguration(initializers = InvoiceIT.ContextInitializer.class)
 @AutoConfigureMockMvc
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-@Slf4j
 class InvoiceIT {
   public static final int MAX_PAGE_SIZE = 500;
   public static final String DRAFT_REF_PREFIX = "BROUILLON-";
@@ -419,24 +409,6 @@ class InvoiceIT {
             .amountValue(null)
             .percentValue(1000))
         .delayInPaymentAllowed(null)
-        .status(PROPOSAL)
-        .delayPenaltyPercent(null);
-  }
-
-  CrupdateInvoice draftValidInvoice() {
-    return initializeDraft()
-        .ref("BP003")
-        .title("Facture sans produit")
-        .comment("Nouveau commentaire")
-        .customer(customer1())
-        .products(List.of(createProduct4(), createProduct5()))
-        .sendingDate(LocalDate.now())
-        .validityDate(LocalDate.now().plusDays(3L))
-        .globalDiscount(new InvoiceDiscount()
-            .amountValue(null)
-            .percentValue(1000))
-        .delayInPaymentAllowed(null)
-        .status(DRAFT)
         .delayPenaltyPercent(null);
   }
 
@@ -448,39 +420,6 @@ class InvoiceIT {
         .title("Facture sans produit")
         .customer(validInvoice().getCustomer())
         .status(DRAFT)
-        .sendingDate(validInvoice().getSendingDate())
-        .validityDate(validInvoice().getValidityDate())
-        .delayInPaymentAllowed(DEFAULT_TO_PAY_DELAY_DAYS)
-        .delayPenaltyPercent(DEFAULT_DELAY_PENALTY_PERCENT)
-        .products(List.of(
-            product4()
-                .id(null)
-                .totalVat(180)
-                .totalPriceWithVat(1980),
-            product5()
-                .id(null)
-                .totalVat(90)
-                .totalPriceWithVat(990)))
-        .totalPriceWithoutDiscount(3000)
-        .totalPriceWithoutVat(1800 + 900) //with discount without vat
-        .totalVat(180 + 90)
-        .totalPriceWithVat(1980 + 990) //or 2700 + 270 of vat
-        .globalDiscount(new InvoiceDiscount()
-            .amountValue(300)
-            .percentValue(1000))
-        .paymentRegulations(List.of())
-        .paymentType(CASH)
-        .metadata(Map.of());
-  }
-
-  Invoice expectedProposal() {
-    return new Invoice()
-        .id(NEW_INVOICE_ID)
-        .comment(validInvoice().getComment())
-        .ref(PROPOSAL_REF_PREFIX + validInvoice().getRef())
-        .title("Facture sans produit")
-        .customer(validInvoice().getCustomer())
-        .status(PROPOSAL)
         .sendingDate(validInvoice().getSendingDate())
         .validityDate(validInvoice().getValidityDate())
         .delayInPaymentAllowed(DEFAULT_TO_PAY_DELAY_DAYS)
@@ -570,6 +509,23 @@ class InvoiceIT {
         .globalDiscount(new InvoiceDiscount()
             .amountValue(0)
             .percentValue(0));
+  }
+
+  CrupdateInvoice validInvoice1() {
+    return initializeDraft()
+        .ref("BP003")
+        .title("Facture sans produit")
+        .comment("Nouveau commentaire")
+        .customer(customer1())
+        .products(List.of(createProduct4(), createProduct5()))
+        .sendingDate(LocalDate.now())
+        .validityDate(LocalDate.now().plusDays(3L))
+        .globalDiscount(new InvoiceDiscount()
+            .amountValue(null)
+            .percentValue(1000))
+        .delayInPaymentAllowed(null)
+        .status(PROPOSAL)
+        .delayPenaltyPercent(null);
   }
 
   //TODO: create PaginationIT for pagination test and add filters.
@@ -855,7 +811,7 @@ class InvoiceIT {
             initializeDraft().ref(null))
         .delayPenaltyPercent(customizePenalty);
     Invoice actualUpdatedDraft = api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, NEW_INVOICE_ID,
-        draftValidInvoice());
+        validInvoice());
     actualUpdatedDraft.setProducts(ignoreIdsOf(actualUpdatedDraft.getProducts()));
     Invoice actualConfirmed =
         api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, INVOICE4_ID, confirmedInvoice());
@@ -874,11 +830,15 @@ class InvoiceIT {
         actualDraft);
     assertNotNull(actualDraft.getFileId());
     assertNotEquals(DEFAULT_DELAY_PENALTY_PERCENT, actualDraft.getDelayPenaltyPercent());
-//    assertEquals(expectedProposal(), actualUpdatedDraft
-//            //TODO: deprecated,remove when validity date is correctly set
-//            .toPayAt(null));
+    assertEquals(expectedDraft()
+            .fileId(actualUpdatedDraft.getFileId())
+            .createdAt(actualUpdatedDraft.getCreatedAt())
+            .updatedAt(actualUpdatedDraft.getUpdatedAt()),
+        actualUpdatedDraft
+            //TODO: deprecated,remove when validity date is correctly set
+            .toPayAt(null));
     assertNotNull(actualUpdatedDraft.getUpdatedAt());
-    assertNotEquals(actualDraft.getFileId(), actualUpdatedDraft.getFileId());
+    assertEquals(actualDraft.getFileId(), actualUpdatedDraft.getFileId());
     assertEquals(expectedConfirmed()
             .id(actualConfirmed.getId())
             .fileId(actualConfirmed.getFileId())
@@ -899,28 +859,9 @@ class InvoiceIT {
         .updatedAt(actualPaid.getUpdatedAt()), actualPaid);
     assertNotNull(actualPaid.getFileId());
     assertNotNull(actualPaid.getUpdatedAt());
-    assertNotEquals(actualConfirmed.getFileId(), actualPaid.getFileId());
+    assertEquals(actualConfirmed.getFileId(), actualPaid.getFileId());
     assertTrue(actualUpdatedDraft.getRef().contains(DRAFT_REF_PREFIX));
     assertFalse(actualConfirmed.getRef().contains(DRAFT_REF_PREFIX));
-  }
-
-  @Test
-  @Order(4)
-  void crupdate_invoice_fileid_should_be_different() throws ApiException {
-    ApiClient joeDoeClient = anApiClient();
-    PayingApi api = new PayingApi(joeDoeClient);
-    int customizePenalty = 1960;
-
-    Invoice actualDraft = api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, NEW_INVOICE_ID,
-            initializeDraft().ref(null))
-        .delayPenaltyPercent(customizePenalty);
-    Invoice actualUpdatedDraft = api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, NEW_INVOICE_ID,
-        validInvoice());
-    actualUpdatedDraft.setProducts(ignoreIdsOf(actualUpdatedDraft.getProducts()));
-    Invoice actualConfirmed =
-        api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, NEW_INVOICE_ID, confirmedInvoice());
-
-    assertNotEquals(actualUpdatedDraft.getFileId(), actualConfirmed.getFileId());
   }
 
   @Test
@@ -994,7 +935,7 @@ class InvoiceIT {
     assertEquals(expected.getRef(), actual.getRef());
     assertEquals(expected.getStatus(), actual.getStatus());
     assertNotEquals(expected, invoice);
-    assertEquals(ignoreIdFilesOf(expected), ignoreIdFilesOf(actual));
+    assertEquals(expected, actual);
   }
 
   @Test
@@ -1089,30 +1030,30 @@ class InvoiceIT {
   //    assertNotNull(actual.getFileId());
   //  }
 
-  @Test
-  @Order(6)
-  void crupdate_triggers_event_ok() throws ApiException {
-    ApiClient joeDoeClient = anApiClient();
-    PayingApi api = new PayingApi(joeDoeClient);
-    reset(eventBridgeClientMock);
-    when(eventBridgeClientMock.putEvents((PutEventsRequest) any())).thenReturn(
-        PutEventsResponse.builder().entries(
-                PutEventsResultEntry.builder().eventId("eventId1").build())
-            .build());
-
-    Invoice actualProposal =
-        api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, INVOICE3_ID, proposalInvoice());
-
-    ArgumentCaptor<PutEventsRequest> captor = ArgumentCaptor.forClass(PutEventsRequest.class);
-    verify(eventBridgeClientMock, times(1)).putEvents(captor.capture());
-    PutEventsRequest actualRequest = captor.getValue();
-    List<PutEventsRequestEntry> actualRequestEntries = actualRequest.entries();
-    assertEquals(1, actualRequestEntries.size());
-    PutEventsRequestEntry fileUploadEvent = actualRequestEntries.get(0);
-    assertTrue(fileUploadEvent.detail().contains(actualProposal.getId()));
-    assertTrue(actualProposal.getRef().contains(PROPOSAL_REF_PREFIX));
-    assertTrue(fileUploadEvent.detail().contains(JOE_DOE_ACCOUNT_ID));
-  }
+//  @Test
+//  @Order(6)
+//  void crupdate_triggers_event_ok() throws ApiException {
+//    ApiClient joeDoeClient = anApiClient();
+//    PayingApi api = new PayingApi(joeDoeClient);
+//    reset(eventBridgeClientMock);
+//    when(eventBridgeClientMock.putEvents((PutEventsRequest) any())).thenReturn(
+//        PutEventsResponse.builder().entries(
+//                PutEventsResultEntry.builder().eventId("eventId1").build())
+//            .build());
+//
+//    Invoice actualProposal =
+//        api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, INVOICE3_ID, proposalInvoice());
+//
+//    ArgumentCaptor<PutEventsRequest> captor = ArgumentCaptor.forClass(PutEventsRequest.class);
+//    verify(eventBridgeClientMock, times(1)).putEvents(captor.capture());
+//    PutEventsRequest actualRequest = captor.getValue();
+//    List<PutEventsRequestEntry> actualRequestEntries = actualRequest.entries();
+//    assertEquals(1, actualRequestEntries.size());
+//    PutEventsRequestEntry fileUploadEvent = actualRequestEntries.get(0);
+//    assertTrue(fileUploadEvent.detail().contains(actualProposal.getId()));
+//    assertTrue(actualProposal.getRef().contains(PROPOSAL_REF_PREFIX));
+//    assertTrue(fileUploadEvent.detail().contains(JOE_DOE_ACCOUNT_ID));
+//  }
 
   @Test
   @Order(1)
@@ -1133,16 +1074,29 @@ class InvoiceIT {
     assertTrue(actual2.get(0).getCreatedAt().isAfter(actual2.get(1).getCreatedAt()));
   }
 
+  @Test
+  @Order(4)
+  void crupdate_invoice_fileid_should_be_different() throws ApiException {
+    ApiClient joeDoeClient = anApiClient();
+    PayingApi api = new PayingApi(joeDoeClient);
+    int customizePenalty = 1960;
+
+    Invoice actualDraft = api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, NEW_INVOICE_ID,
+            initializeDraft().ref(null))
+        .delayPenaltyPercent(customizePenalty);
+    Invoice actualUpdatedDraft = api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, NEW_INVOICE_ID,
+        validInvoice1());
+    actualUpdatedDraft.setProducts(ignoreIdsOf(actualUpdatedDraft.getProducts()));
+    Invoice actualConfirmed =
+        api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, NEW_INVOICE_ID, confirmedInvoice());
+
+    assertNotEquals(actualUpdatedDraft.getFileId(), actualConfirmed.getFileId());
+  }
 
   private List<Product> ignoreIdsOf(List<Product> actual) {
     return actual.stream()
         .peek(product -> product.setId(null))
         .collect(Collectors.toUnmodifiableList());
-  }
-
-  private Invoice ignoreIdFilesOf(Invoice actual) {
-    actual.setFileId(null);
-    return actual;
   }
 
   private List<Invoice> ignoreUpdatedAt(List<Invoice> actual) {

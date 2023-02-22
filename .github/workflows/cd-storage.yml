@@ -38,14 +38,6 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Set DBName to bpartners if not creating database from snapshot
-        if: ${{ github.event.inputs.db_snapshot_identifier == ''}}
-        run: echo "db_name=bpartners" >> $GITHUB_ENV
-
-      - name: Set DBName to null if creating database from snapshot
-        if: ${{ github.event.inputs.db_snapshot_identifier != ''}}
-        run: echo "db_name=''" >> $GITHUB_ENV
-
       - name: Deploy storage stack
         uses: aws-actions/aws-cloudformation-github-deploy@v1
         with:
@@ -56,5 +48,4 @@ jobs:
           no-fail-on-empty-changeset: "1"
           parameter-overrides:
             "Env=${{ env.branch_env }},
-             DBSnapshot=${{ github.event.inputs.db_snapshot_identifier }},
-             DBName=${{ env.db_name }}"
+             DBSnapshot=${{ github.event.inputs.db_snapshot_identifier }}"

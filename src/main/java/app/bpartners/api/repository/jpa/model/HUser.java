@@ -1,6 +1,7 @@
 package app.bpartners.api.repository.jpa.model;
 
 import app.bpartners.api.endpoint.rest.model.EnableStatus;
+import app.bpartners.api.endpoint.rest.model.IdentificationStatus;
 import app.bpartners.api.repository.jpa.types.PostgresEnumType;
 import java.io.Serializable;
 import javax.persistence.Entity;
@@ -35,6 +36,8 @@ public class HUser implements Serializable {
   @Id
   @GeneratedValue(strategy = IDENTITY)
   private String id;
+  private String firstName;
+  private String lastName;
   private String swanUserId;
   private String phoneNumber;
   private int monthlySubscription;
@@ -42,4 +45,8 @@ public class HUser implements Serializable {
   @Type(type = "pgsql_enum")
   @Enumerated(EnumType.STRING)
   private EnableStatus status;
+  private Boolean idVerified;
+  @Type(type = "pgsql_enum")
+  @Enumerated(EnumType.STRING)
+  private IdentificationStatus identificationStatus;
 }

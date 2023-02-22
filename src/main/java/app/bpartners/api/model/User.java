@@ -9,6 +9,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
 @Getter
 @Setter
@@ -16,6 +17,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 @EqualsAndHashCode
+@ToString
 public class User implements Serializable {
   private String id;
   private String logoFileId;
@@ -24,7 +26,7 @@ public class User implements Serializable {
   private String mobilePhoneNumber;
   private int monthlySubscription;
   private EnableStatus status;
-  private boolean idVerified;
+  private Boolean idVerified;
   private IdentificationStatus identificationStatus;
 
   public String getName() {

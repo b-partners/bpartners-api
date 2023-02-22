@@ -25,7 +25,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-class UserRepositoryImplTest {
+class UserRepositoryTest {
   UserSwanRepository userSwanRepository;
   UserJpaRepository userJpaRepository;
   UserMapper userMapper;
@@ -45,6 +45,7 @@ class UserRepositoryImplTest {
     setUpSwanComponent(swanComponent);
     when(userJpaRepository.findUserBySwanUserId(any(String.class))).thenReturn(
         Optional.of(user()));
+    when(userJpaRepository.save(any())).thenReturn(user());
     when(userMapper.toDomain(any(HUser.class), any(SwanUser.class))).thenReturn(expectedUser());
   }
 
@@ -52,7 +53,6 @@ class UserRepositoryImplTest {
   void read_user_by_swan_userId_and_token() {
     User actual = userRepository.getUserBySwanUserIdAndToken(JOE_DOE_SWAN_USER_ID, JOE_DOE_TOKEN);
 
-    assertNotNull(actual);
     assertEquals(expectedUser(), actual);
   }
 

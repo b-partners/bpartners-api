@@ -160,6 +160,19 @@ public class TestUtils {
         .logoFileId("logo.jpeg");
   }
 
+  public static User restJaneDoeUser() {
+    return new User()
+        .id(TestUtils.JANE_DOE_ID)
+        .firstName(janeDoe().getFirstName())
+        .lastName(janeDoe().getLastName())
+        .phone(janeDoe().getMobilePhoneNumber())
+        .monthlySubscriptionAmount(5)
+        .status(ENABLED)
+        .idVerified(true)
+        .identificationStatus(VALID_IDENTITY)
+        .logoFileId("logo.jpeg");
+  }
+
   public static SwanUser joeDoe() {
     return SwanUser.builder()
         .id(JOE_DOE_SWAN_USER_ID)
@@ -178,7 +191,7 @@ public class TestUtils {
         .lastName("Doe")
         .idVerified(true)
         .identificationStatus(VALID_IDENTITY_STATUS)
-        .mobilePhoneNumber("+261340465338")
+        .mobilePhoneNumber("+261341122334")
         .build();
   }
 

@@ -1,11 +1,11 @@
 package app.bpartners.api.endpoint.rest.security.cognito;
 
+import app.bpartners.api.model.exception.ApiException;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.proc.BadJOSEException;
 import com.nimbusds.jwt.JWTClaimsSet;
 import java.text.ParseException;
 import org.springframework.stereotype.Component;
-import app.bpartners.api.model.exception.ApiException;
 import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminCreateUserRequest;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminCreateUserResponse;
@@ -25,7 +25,7 @@ public class CognitoComponent {
     this.cognitoClient = cognitoClient;
   }
 
-  public String getEmailByIdToken(String idToken) {
+  public String getPhoneNumberByToken(String idToken) {
     JWTClaimsSet claims;
     try {
       claims = cognitoConf.getCognitoJwtProcessor().process(idToken, null);
@@ -37,15 +37,15 @@ public class CognitoComponent {
       return null;
     }
 
-    return isClaimsSetValid(claims) ? getEmail(claims) : null;
+    return isClaimsSetValid(claims) ? getPhoneNumber(claims) : null;
   }
 
   private boolean isClaimsSetValid(JWTClaimsSet claims) {
     return claims.getIssuer().equals(cognitoConf.getUserPoolUrl());
   }
 
-  private String getEmail(JWTClaimsSet claims) {
-    return claims.getClaims().get("email").toString();
+  private String getPhoneNumber(JWTClaimsSet claims) {
+    return claims.getClaims().get("phone_number").toString();
   }
 
   public String createUser(String email) {
@@ -60,6 +60,6 @@ public class CognitoComponent {
         || createResponse.user().username().isBlank()) {
       throw new ApiException(SERVER_EXCEPTION, "Cognito response: " + createResponse);
     }
-    return  createResponse.user().username();
+    return createResponse.user().username();
   }
 }

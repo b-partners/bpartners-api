@@ -2,20 +2,22 @@ package app.bpartners.api.endpoint.rest.mapper;
 
 import app.bpartners.api.endpoint.rest.model.CrupdateInvoice;
 import app.bpartners.api.endpoint.rest.model.Invoice;
+import app.bpartners.api.endpoint.rest.model.InvoiceDiscount;
+import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.endpoint.rest.model.PaymentRegulation;
 import app.bpartners.api.endpoint.rest.model.PaymentRequest;
-import app.bpartners.api.endpoint.rest.model.InvoiceDiscount;
-import app.bpartners.api.endpoint.rest.model.InvoiceDiscount;
 import app.bpartners.api.endpoint.rest.model.Product;
 import app.bpartners.api.endpoint.rest.model.TransactionInvoice;
 import app.bpartners.api.endpoint.rest.validator.CrupdateInvoiceValidator;
+import app.bpartners.api.model.CreatePaymentRegulation;
 import app.bpartners.api.model.InvoiceProduct;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.repository.CustomerRepository;
+import app.bpartners.api.repository.jpa.InvoiceJpaRepository;
+import app.bpartners.api.repository.jpa.model.HInvoice;
 import app.bpartners.api.service.AccountService;
-import app.bpartners.api.service.InvoiceService;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
@@ -38,7 +40,7 @@ public class InvoiceRestMapper {
   private final ProductRestMapper productRestMapper;
   private final AccountService accountService;
   private final CrupdateInvoiceValidator crupdateInvoiceValidator;
-  private final InvoiceService invoiceService;
+  private final InvoiceJpaRepository invoiceJpaRepository;
 
   public Invoice toRest(app.bpartners.api.model.Invoice domain) {
     if (domain == null) {
@@ -75,25 +77,14 @@ public class InvoiceRestMapper {
         .delayPenaltyPercent(domain.getDelayPenaltyPercent().getCentsRoundUp())
         .metadata(domain.getMetadata())
         .paymentRegulations(domain.getMultiplePayments().stream()
-            .map(payment -> new PaymentRegulation()
-                .maturityDate(payment.getMaturityDate())
-                .paymentRequest(new PaymentRequest()
-                    .id(payment.getEndToEndId())
-                    .reference(payment.getReference())
-                    .paymentUrl(payment.getPaymentUrl())
-                    .label(payment.getComment())
-                    .amount(payment.getAmount().getCentsRoundUp())
-                    .payerName(payment.getPayerName())
-                    .payerEmail(payment.getPayerEmail())
-                    .paymentUrl(payment.getPaymentUrl())
-                    .initiatedDatetime(payment.getInitiatedDatetime())))
+            .map(InvoiceRestMapper::getPaymentRegulation)
             .collect(Collectors.toUnmodifiableList()))
         .toPayAt(toPayAt)
         .globalDiscount(new InvoiceDiscount()
-        .percentValue(
-            domain.getDiscount().getPercent(domain.getTotalPriceWithVat()).getCentsRoundUp())
-        .amountValue(
-            domain.getDiscount().getAmount(domain.getTotalPriceWithVat()).getCentsRoundUp()));
+            .percentValue(
+                domain.getDiscount().getPercent(domain.getTotalPriceWithVat()).getCentsRoundUp())
+            .amountValue(
+                domain.getDiscount().getAmount(domain.getTotalPriceWithVat()).getCentsRoundUp()));
   }
 
   public TransactionInvoice toRest(app.bpartners.api.model.TransactionInvoice transactionInvoice) {
@@ -107,7 +98,7 @@ public class InvoiceRestMapper {
       String accountId, String id, CrupdateInvoice rest) {
     crupdateInvoiceValidator.accept(rest);
 
-    if (!invoiceService.hasAvailableReference(accountId, id, rest.getRef(), rest.getStatus())) {
+    if (!hasAvailableReference(accountId, id, rest.getRef(), rest.getStatus())) {
       throw new BadRequestException("Invoice.reference=" + rest.getRef() + " is already used");
     }
 
@@ -119,6 +110,7 @@ public class InvoiceRestMapper {
           + " instead of toPayAt attribute during crupdate");
       validityDate = rest.getToPayAt();
     }
+
     //TODO: deprecated ! discount must be mandatory
     InvoiceDiscount discount = rest.getGlobalDiscount();
     if (rest.getGlobalDiscount() == null
@@ -152,14 +144,7 @@ public class InvoiceRestMapper {
         .build();
   }
 
-  private app.bpartners.api.model.InvoiceDiscount getDiscount(
-      app.bpartners.api.endpoint.rest.model.InvoiceDiscount discount) {
-    return app.bpartners.api.model.InvoiceDiscount.builder()
-        .percentValue(parseFraction(discount.getPercentValue()))
-        .build();
-  }
-
-  public app.bpartners.api.model.CreatePaymentRegulation toDomain(
+  private app.bpartners.api.model.CreatePaymentRegulation toDomain(
       app.bpartners.api.endpoint.rest.model.CreatePaymentRegulation invoicePayment) {
     if (invoicePayment.getAmount() != null && invoicePayment.getPercent() != null) {
       throw new NotImplementedException("Only amount or percent payment method should be chosen");
@@ -169,6 +154,28 @@ public class InvoiceRestMapper {
         .percent(parseFraction(invoicePayment.getPercent()))
         .comment(invoicePayment.getComment())
         .maturityDate(invoicePayment.getMaturityDate())
+        .build();
+  }
+
+  private static PaymentRegulation getPaymentRegulation(CreatePaymentRegulation payment) {
+    return new PaymentRegulation()
+        .maturityDate(payment.getMaturityDate())
+        .paymentRequest(new PaymentRequest()
+            .id(payment.getEndToEndId())
+            .reference(payment.getReference())
+            .paymentUrl(payment.getPaymentUrl())
+            .label(payment.getComment())
+            .amount(payment.getAmount().getCentsRoundUp())
+            .payerName(payment.getPayerName())
+            .payerEmail(payment.getPayerEmail())
+            .paymentUrl(payment.getPaymentUrl())
+            .initiatedDatetime(payment.getInitiatedDatetime()));
+  }
+
+  private app.bpartners.api.model.InvoiceDiscount getDiscount(
+      app.bpartners.api.endpoint.rest.model.InvoiceDiscount discount) {
+    return app.bpartners.api.model.InvoiceDiscount.builder()
+        .percentValue(parseFraction(discount.getPercentValue()))
         .build();
   }
 
@@ -207,5 +214,15 @@ public class InvoiceRestMapper {
         throw new ApiException(ApiException.ExceptionType.SERVER_EXCEPTION,
             "Payment type " + crupdateInvoiceType.getValue() + " not found");
     }
+  }
+
+  private boolean hasAvailableReference(String accountId, String invoiceId, String reference,
+                                        InvoiceStatus status) {
+    if (reference == null) {
+      return true;
+    }
+    List<HInvoice> actual =
+        invoiceJpaRepository.findByIdAccountAndRefAndStatus(accountId, reference, status);
+    return actual.isEmpty() || actual.get(0).getId().equals(invoiceId);
   }
 }

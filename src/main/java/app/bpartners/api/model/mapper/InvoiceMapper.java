@@ -65,8 +65,7 @@ public class InvoiceMapper {
       return null;
     }
     List<InvoiceProduct> actualProducts = getActualProducts(entity);
-    Fraction discount = parseFraction(
-        entity.getDiscountPercent());
+    Fraction discount = parseFraction(entity.getDiscountPercent());
     Invoice invoice = Invoice.builder()
         .id(entity.getId())
         .ref(entity.getRef())
@@ -112,6 +111,10 @@ public class InvoiceMapper {
             .build())
         .multiplePayments(getMultiplePayments(entity))
         .build();
+    return updateInvoiceReference(entity, invoice);
+  }
+
+  private static Invoice updateInvoiceReference(HInvoice entity, Invoice invoice) {
     if (entity.getStatus().equals(CONFIRMED) || entity.getStatus().equals(PAID)) {
       invoice.setRef(invoice.getRealReference());
     } else {
@@ -200,8 +203,8 @@ public class InvoiceMapper {
         computeTotalPriceWithVatAndDiscount(domain.getDiscount().getPercentValue(),
             domain.getProducts());
 
-    if (domain.getStatus() != CONFIRMED && domain.getStatus() != PAID
-        && domain.getPaymentType() == IN_INSTALMENT) {
+    if (domain.getPaymentType() == IN_INSTALMENT
+        && domain.getStatus() != CONFIRMED && domain.getStatus() != PAID) {
       checkPaymentsTotalPrice(domain, totalPriceWithVat);
       List<PaymentInitiation> paymentInitiations = getPaymentInitiations(domain, totalPriceWithVat);
       requestJpaRepository.deleteAllByIdInvoice(id);
@@ -213,12 +216,12 @@ public class InvoiceMapper {
       HInvoice entity = optionalInvoice.get();
       actualProducts = entity.getProducts();
       fileId = entity.getFileId();
+
       //TODO: change when we can create a confirmed from scratch
       if (domain.getStatus() == CONFIRMED && entity.getStatus() == PROPOSAL) {
         id = String.valueOf(randomUUID());
         sendingDate = LocalDate.now();
         validityDate = null;
-        //TODO: in pdf, remove the toPayAt label if toPay and paymentUrl are null
         if (domain.getPaymentType() == CASH) {
           toPayAt = sendingDate.plusDays(domain.getDelayInPaymentAllowed());
           paymentUrl =

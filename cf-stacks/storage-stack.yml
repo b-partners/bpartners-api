@@ -28,7 +28,8 @@ Resources:
         !If [NotCreatingDatabaseFromSnapshot, !Ref DBName, !Ref "AWS::NoValue"]
       DBSnapshotIdentifier:
         !If [ NotCreatingDatabaseFromSnapshot, !Ref "AWS::NoValue", !Ref DBSnapshot ]
-      AllocatedStorage: '5'
+      AllocatedStorage:
+        !If [ NotCreatingDatabaseFromSnapshot, '5', !Ref "AWS::NoValue" ]
       DBInstanceClass:
         Ref: DBClass
       Engine: postgres

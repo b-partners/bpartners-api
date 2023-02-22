@@ -1,5 +1,6 @@
 package app.bpartners.api.model;
 
+import app.bpartners.api.endpoint.rest.model.ProductStatus;
 import java.math.BigInteger;
 import java.time.Instant;
 import lombok.AccessLevel;
@@ -45,6 +46,7 @@ public class InvoiceProduct {
         (priceValue, discountValue) ->
             priceValue.multiply(discountValue.divide(new Aprational(10000))));
   }
+  private ProductStatus status;
 
   public Fraction getVatWithDiscount(Fraction discountPercent) {
     if (vatPercent == null) {

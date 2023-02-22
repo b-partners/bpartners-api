@@ -43,6 +43,12 @@
             height: 110px;
         }
 
+        .payment-code {
+            width: 60px;
+            height: 60px;
+            object-fit: contain;
+        }
+
         .logo {
             width: 60px;
             height: 60px;
@@ -64,12 +70,11 @@
             text-decoration: none;
         }
 
-
         .amount-section p {
             border: 1px solid black;
             padding: 4px 8px;
+            margin-left: 250px;
             width: 150px;
-            margin-left: 73%;
         }
 
         th {
@@ -153,7 +158,8 @@
                 </p>
             </td>
             <td class="text-right">
-                <div>
+                <div
+                        th:if="${invoice.paymentType == null || (invoice.paymentType != null && invoice.paymentType.getValue() == 'CASH')}">
                     <div class="image-text">
                         <img class="code" th:src="${'data:image/jpeg;base64,' + qrcode}"
                              alt="qr-code"/>
@@ -277,62 +283,140 @@
             </th:block>
             </tbody>
         </table>
-        <div class="amount-section no-break-inside">
-            <div>
-                <p th:if="${invoice.discount.percentValue.getCentsAsDecimal() > 0}"><strong>Sous-Total</strong> :
-                    <span
-                            th:text="${#numbers.formatDecimal(invoice.totalPriceWithoutDiscount.getCentsAsDecimal(), 1,2)}"></span>
-                    €
-                </p>
-                <p th:if="${invoice.discount.percentValue.getCentsAsDecimal() > 0}">
-                    <strong>
-                        Remise
-                    </strong> :
-                    <span
-                            th:text="${#numbers.formatDecimal(invoice.discount.amountValue.getCentsAsDecimal(), 1,2)}"></span>
-                    €
-                </p>
-                <p th:if="${accountHolder.isSubjectToVat()}"><strong>Total HT</strong> : <span
-                        th:text="${#numbers.formatDecimal(invoice.totalPriceWithoutVat.getCentsAsDecimal(), 1,2)}"></span>
-                    €
-                </p>
-                <p th:if="${accountHolder.isSubjectToVat()}"><strong>Total TVA</strong> : <span
-                        th:text="${#numbers.formatDecimal(invoice.totalVat.getCentsAsDecimal(), 1,2)}"></span>
-                    €</p>
-                <p>
-                    <strong th:if="${accountHolder.isSubjectToVat()}">Total TTC</strong>
-                    <strong th:unless="${accountHolder.isSubjectToVat()}">Total HT</strong> : <span
-                        th:text="${#numbers.formatDecimal(invoice.totalPriceWithVat.getCentsAsDecimal(),1,2)}"></span>
-                    €
-                </p>
-                <p style="padding: 4px 8px; width: 150px; margin-left: 73%; border: 0px;
+        <table class="table-head">
+            <tr>
+                <td>
+                    <p style="margin-bottom: 90px">Mode de paiement :
+                        <strong
+                                th:if="${invoice.paymentType == null  ||
+                            (invoice.paymentType != null && invoice.paymentType.getValue() == 'CASH')}">
+                            AU COMPTANT
+                        </strong>
+                        <strong th:unless="${invoice.paymentType == null  ||
+                            (invoice.paymentType != null && invoice.paymentType.getValue() == 'CASH')}">
+                            EN PLUSIEURS FOIS
+                        </strong>
+                    </p>
+                </td>
+                <td class="text-center">
+                    <div class="amount-section">
+                        <div>
+                            <p th:if="${invoice.discount.percentValue.getCentsAsDecimal() > 0}"><strong>Sous-Total</strong> :
+                                <span
+                                        th:text="${#numbers.formatDecimal(invoice.totalPriceWithoutDiscount.getCentsAsDecimal(), 1,2)}"></span>
+                                €
+                            </p>
+                            <p th:if="${invoice.discount.percentValue.getCentsAsDecimal() > 0}">
+                                <strong>
+                                    Remise
+                                </strong> :
+                                <span
+                                        th:text="${#numbers.formatDecimal(invoice.discount.amountValue.getCentsAsDecimal(), 1,2)}"></span>
+                                €
+                            </p>
+                            <p th:if="${accountHolder.isSubjectToVat()}"><strong>Total HT</strong> : <span
+                                    th:text="${#numbers.formatDecimal(invoice.totalPriceWithoutVat.getCentsAsDecimal(), 1,2)}"></span>
+                                €
+                            </p>
+                            <p th:if="${accountHolder.isSubjectToVat()}"><strong>Total TVA</strong> : <span
+                                    th:text="${#numbers.formatDecimal(invoice.totalVat.getCentsAsDecimal(), 1,2)}"></span>
+                                €</p>
+                            <p>
+                                <strong th:if="${accountHolder.isSubjectToVat()}">Total TTC</strong>
+                                <strong th:unless="${accountHolder.isSubjectToVat()}">Total HT</strong> : <span
+                                    th:text="${#numbers.formatDecimal(invoice.totalPriceWithVat.getCentsAsDecimal(),1,2)}"></span>
+                                €
+                            </p>
+                            <p style="padding: 4px 8px; width: 150px; border: 0px;
              font-size: 0.9em; text-align: center; line-height: 1.8;"
                    th:if="${!accountHolder.isSubjectToVat()}">
-                    TVA non applicable article 293 B <br/> du code général des impôts (CGI).
-                </p>
-            </div>
+                                TVA non applicable article 293 B <br/> du code général des impôts
+                                (CGI).
+                            </p>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        </table>
+        <div th:if="${invoice.paymentType != null && invoice.paymentType.getValue() == 'IN_INSTALMENT'}"
+             class="no-break-inside">
+            <h3>Calendrier des échéances</h3>
+            <p></p>
+            <table style="margin: 10px 0px 20px 0px;table-layout: fixed;" class="main-table">
+                <thead class="text-center" style="border: 1px solid black">
+                <th>Designation</th>
+                <th>Date d'échéance</th>
+                <th>
+                    <span th:if="${accountHolder.isSubjectToVat()}">Montant TTC</span>
+                    <span th:unless="${accountHolder.isSubjectToVat()}">Montant HT</span>
+                </th>
+                <th style="width: 150px">Commentaire</th>
+                <th>Payer <br/>via le code</th>
+                </thead>
+                <tbody>
+                <th:block th:each="payment,i : ${invoice.multiplePayments}">
+                    <tr>
+                        <td class="text-center">
+                            <span th:if="${i.count < i.size}">
+                                Acompte N°<span th:text="${i.count}"></span>
+                            </span>
+                            <span th:unless="${i.count <i.size}">
+                                Restant dû
+                            </span>
+                        </td>
+                        <td class="text-center">
+                            <span
+                                    th:text="${#dates.format(payment.getFormattedMaturityDate(), 'dd-MM-yyyy')}"></span>
+                        </td>
+                        <td class="text-center">
+                            <span
+                                    th:text="${#numbers.formatDecimal(payment.getAmount().getCentsAsDecimal(),1,2)}"></span>€
+                        </td>
+                        <td class="text-center">
+                        <span th:if="${payment.getComment() != null}">
+                            <span th:text="${payment.getComment()}">
+                            </span>
+                        </span>
+                            <span th:unless="${payment.getComment() != null}">
+                           -
+                        </span>
+                        </td>
+                        <td class="text-center">
+                            <img class="payment-code"
+                                 th:src="${'data:image/jpeg;base64,' + payment.getPaymentUrlAsQrCode()}"
+                                 alt="payment-code-qr"/>
+                            <span class="caption"><a
+                                    th:href="${payment.paymentUrl}">Payez ici</a></span>
+                        </td>
+                    </tr>
+                </th:block>
+                </tbody>
+            </table>
         </div>
         <div style="width: 100%;" class="no-break-inside">
             <p><strong>Bien à vous et merci pour votre confiance.</strong></p>
-            <p><span class="muted">
-            La facture est payable à réception en scannant le QR code ou en cliquant sur le lien.
-           Sinon, vous avez la possibilité de faire un virement classique avec nos
-           coordonnées ci-dessous. <br/>
-            Des pénalités correspondant à trois fois le taux de l’intérêt légal seront applicables en
-            l’absence ou en cas de retard de paiement. Les pénalités de
-            retard sont exigibles sans qu'un rappel soit nécessaire. Une indemnité forfaitaire de 40 €
-            pour frais de recouvrement sera appliquée en cas de
-            retard de paiement conformément aux articles L 441-3 et L 441-6 du code de commerce.
-            Pas d'escompte en cas de paiement anticipé.
-        </span></p>
-            <div>
-                <h3>Nos coordonnées bancaires</h3>
-                <ul style="margin: 10px">
-                    <li>Nom du compte : <span th:text="${invoice.account.name}"></span></li>
-                    <li>IBAN : <span th:text="${invoice.account.iban}"></span></li>
-                    <li>BIC : <span th:text="${invoice.account.bic}"></span></li>
-                </ul>
-            </div>
+            <p class="muted">
+                La facture est payable à réception en scannant le QR code ou en cliquant sur le
+                lien.
+                Sinon, vous avez la possibilité de faire un virement classique avec nos
+                coordonnées ci-dessous. <br/>
+                Des pénalités correspondant à trois fois le taux de l’intérêt légal seront
+                applicables en
+                l’absence ou en cas de retard de paiement. Les pénalités de
+                retard sont exigibles sans qu'un rappel soit nécessaire. Une indemnité forfaitaire
+                de 40 €
+                pour frais de recouvrement sera appliquée en cas de
+                retard de paiement conformément aux articles L 441-3 et L 441-6 du code de commerce.
+                Pas d'escompte en cas de paiement anticipé.
+            </p>
+        </div>
+        <div style="width: 100%;" class="no-break-inside">
+            <h3>Nos coordonnées bancaires</h3>
+            <ul style="margin: 10px">
+                <li>Nom du compte : <span th:text="${invoice.account.name}"></span></li>
+                <li>IBAN : <span th:text="${invoice.account.iban}"></span></li>
+                <li>BIC : <span th:text="${invoice.account.bic}"></span></li>
+            </ul>
         </div>
     </section>
 </div>

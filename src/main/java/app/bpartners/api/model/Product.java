@@ -1,5 +1,7 @@
 package app.bpartners.api.model;
 
+import app.bpartners.api.endpoint.rest.model.ProductStatus;
+import app.bpartners.api.endpoint.rest.model.TransactionTypeEnum;
 import java.time.Instant;
 import java.util.Objects;
 import lombok.AccessLevel;
@@ -8,6 +10,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 import org.apfloat.Aprational;
 
 import static org.apfloat.Apcomplex.ONE;
@@ -17,6 +20,7 @@ import static org.apfloat.Apcomplex.ONE;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@ToString
 public class Product {
   private String id;
   private String accountId;
@@ -26,6 +30,8 @@ public class Product {
   private Fraction unitPriceWithVat;
   private Fraction vatPercent;
   private Instant createdAt;
+
+  private ProductStatus status;
 
   public Fraction getUnitPriceWithVat() {
     return unitPrice.operate(vatPercent,

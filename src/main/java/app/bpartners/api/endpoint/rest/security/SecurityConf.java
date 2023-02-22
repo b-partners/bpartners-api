@@ -32,6 +32,7 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
   private final HandlerExceptionResolver exceptionResolver;
   private final AuthenticatedResourceProvider authResourceProvider;
 
+
   public SecurityConf(
       AuthProvider authProvider,
       // InternalToExternalErrorHandler behind
@@ -104,6 +105,9 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
             new SelfAccountMatcher(PUT, "/accounts/*/customers", authResourceProvider)
         ).authenticated()
         .requestMatchers(
+            new SelfAccountMatcher(POST, "/accounts/*/customers/upload", authResourceProvider)
+        ).authenticated()
+        .requestMatchers(
             new SelfAccountMatcher(GET, "/accounts/*/transactions",
                 authResourceProvider)).authenticated()
         .requestMatchers(
@@ -125,7 +129,16 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
             new SelfAccountMatcher(GET, "/accounts/*/products", authResourceProvider)
         ).authenticated()
         .requestMatchers(
+            new SelfAccountMatcher(PUT, "/accounts/*/products", authResourceProvider)
+        ).authenticated()
+        .requestMatchers(
             new SelfAccountMatcher(POST, "/accounts/*/products", authResourceProvider)
+        ).authenticated()
+        .requestMatchers(
+            new SelfAccountMatcher(POST, "/accounts/*/products/upload", authResourceProvider)
+        ).authenticated()
+        .requestMatchers(
+            new SelfAccountMatcher(PUT, "/accounts/{aId}/products/status", authResourceProvider)
         ).authenticated()
         .requestMatchers(
             new SelfAccountMatcher(GET, "/accounts/*/invoices", authResourceProvider)

@@ -4,9 +4,13 @@ import app.bpartners.api.SentryConf;
 import app.bpartners.api.endpoint.rest.api.PayingApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
+import app.bpartners.api.endpoint.rest.model.CreatePaymentRegulation;
+import app.bpartners.api.endpoint.rest.model.CreateProduct;
 import app.bpartners.api.endpoint.rest.model.CrupdateInvoice;
 import app.bpartners.api.endpoint.rest.model.Invoice;
 import app.bpartners.api.endpoint.rest.model.InvoiceDiscount;
+import app.bpartners.api.endpoint.rest.model.PaymentRegulation;
+import app.bpartners.api.endpoint.rest.model.PaymentRequest;
 import app.bpartners.api.endpoint.rest.model.Product;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
 import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
@@ -25,11 +29,11 @@ import app.bpartners.api.repository.swan.UserSwanRepository;
 import app.bpartners.api.service.InvoiceService;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
@@ -49,6 +53,8 @@ import software.amazon.awssdk.services.eventbridge.model.PutEventsRequestEntry;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsResponse;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsResultEntry;
 
+import static app.bpartners.api.endpoint.rest.model.CrupdateInvoice.PaymentTypeEnum.IN_INSTALMENT;
+import static app.bpartners.api.endpoint.rest.model.Invoice.PaymentTypeEnum.CASH;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.DRAFT;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
@@ -68,6 +74,8 @@ import static app.bpartners.api.integration.conf.TestUtils.createProduct4;
 import static app.bpartners.api.integration.conf.TestUtils.createProduct5;
 import static app.bpartners.api.integration.conf.TestUtils.customer1;
 import static app.bpartners.api.integration.conf.TestUtils.customer2;
+import static app.bpartners.api.integration.conf.TestUtils.datedPaymentRequest1;
+import static app.bpartners.api.integration.conf.TestUtils.datedPaymentRequest2;
 import static app.bpartners.api.integration.conf.TestUtils.product3;
 import static app.bpartners.api.integration.conf.TestUtils.product4;
 import static app.bpartners.api.integration.conf.TestUtils.product5;
@@ -99,12 +107,11 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @ContextConfiguration(initializers = InvoiceIT.ContextInitializer.class)
 @AutoConfigureMockMvc
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-@Slf4j
 class InvoiceIT {
   public static final int MAX_PAGE_SIZE = 500;
   public static final String DRAFT_REF_PREFIX = "BROUILLON-";
-  public static String PROPOSAL_REF_PREFIX = "DEVIS-";
   private static final String NEW_INVOICE_ID = "invoice_uuid";
+  public static String PROPOSAL_REF_PREFIX = "DEVIS-";
   @Autowired
   private InvoiceService invoiceService;
   @MockBean
@@ -136,6 +143,41 @@ class InvoiceIT {
 
   private static ApiClient anApiClient() {
     return TestUtils.anApiClient(JOE_DOE_TOKEN, InvoiceIT.ContextInitializer.SERVER_PORT);
+  }
+
+  private static PaymentRegulation expectedDated2() {
+    return new PaymentRegulation()
+        .maturityDate(LocalDate.of(2023, 2, 15))
+        .paymentRequest(new PaymentRequest()
+            .reference("BP005")
+            .payerName(customer1().getName())
+            .payerEmail(customer1().getEmail())
+            .paymentUrl("https://connect-v2-sbx.fintecture.com")
+            .amount(1000)
+            .label("Montant restant"));
+  }
+
+  private static PaymentRegulation expectedDated1() {
+    return new PaymentRegulation()
+        .maturityDate(LocalDate.of(2023, 2, 1))
+        .paymentRequest(new PaymentRequest()
+            .reference("BP005")
+            .payerName(customer1().getName())
+            .payerEmail(customer1().getEmail())
+            .paymentUrl("https://connect-v2-sbx.fintecture.com")
+            .amount(100)
+            .label("Un euro"));
+  }
+
+  private static List<PaymentRegulation> ignoreIdsAndDatetime(Invoice actualConfirmed) {
+    List<PaymentRegulation> paymentRegulations =
+        new ArrayList<>(actualConfirmed.getPaymentRegulations());
+    paymentRegulations.forEach(
+        datedPaymentRequest -> datedPaymentRequest.setPaymentRequest(
+            datedPaymentRequest.getPaymentRequest()
+                .id(null)
+                .initiatedDatetime(null)));
+    return paymentRegulations;
   }
 
   @BeforeEach
@@ -182,6 +224,17 @@ class InvoiceIT {
         .title("Facture achat")
         .customer(customer1())
         .products(List.of(createProduct5()))
+        .paymentRegulations(List.of(new CreatePaymentRegulation()
+                .maturityDate(LocalDate.of(2023, 2, 1))
+                .amount(100)
+                .percent(null)
+                .comment("Un euro"),
+            new CreatePaymentRegulation()
+                .maturityDate(LocalDate.of(2023, 2, 15))
+                .amount(1000)
+                .percent(null)
+                .comment("Montant restant")))
+        .paymentType(IN_INSTALMENT)
         .status(CONFIRMED)
         .sendingDate(LocalDate.of(2022, 10, 12))
         .validityDate(LocalDate.of(2022, 10, 14))
@@ -196,6 +249,7 @@ class InvoiceIT {
         .title("Facture achat")
         .customer(customer1())
         .products(List.of(createProduct5()))
+        .paymentType(IN_INSTALMENT)
         .status(PAID)
         .sendingDate(LocalDate.of(2022, 10, 12))
         .validityDate(LocalDate.of(2022, 10, 14))
@@ -211,6 +265,8 @@ class InvoiceIT {
         .comment(null)
         .title("Outils pour plomberie")
         .paymentUrl("https://connect-v2-sbx.fintecture.com")
+        .paymentType(Invoice.PaymentTypeEnum.IN_INSTALMENT)
+        .paymentRegulations(List.of(datedPaymentRequest1(), datedPaymentRequest2()))
         .customer(customer1()).ref("BP001")
         .createdAt(Instant.parse("2022-01-01T01:00:00.00Z"))
         .sendingDate(LocalDate.of(2022, 9, 1))
@@ -230,6 +286,7 @@ class InvoiceIT {
         .metadata(Map.of());
   }
 
+
   Invoice invoice2() {
     return new Invoice()
         .id(INVOICE2_ID)
@@ -237,6 +294,8 @@ class InvoiceIT {
         .paymentUrl("https://connect-v2-sbx.fintecture.com")
         .customer(customer2())
         .ref("BP002")
+        .paymentRegulations(List.of())
+        .paymentType(CASH)
         .sendingDate(LocalDate.of(2022, 9, 10))
         .validityDate(LocalDate.of(2022, 10, 14))
         .createdAt(Instant.parse("2022-01-01T03:00:00.00Z"))
@@ -269,6 +328,8 @@ class InvoiceIT {
         .validityDate(LocalDate.of(2022, 11, 12))
         .delayInPaymentAllowed(DEFAULT_TO_PAY_DELAY_DAYS)
         .delayPenaltyPercent(DEFAULT_DELAY_PENALTY_PERCENT)
+        .paymentRegulations(List.of())
+        .paymentType(CASH)
         .toPayAt(LocalDate.of(2022, 11, 10))
         .products(List.of())
         .totalPriceWithVat(0)
@@ -325,19 +386,23 @@ class InvoiceIT {
         .globalDiscount(new InvoiceDiscount()
             .amountValue(300)
             .percentValue(1000))
+        .paymentRegulations(List.of())
+        .paymentType(CASH)
         .metadata(Map.of());
   }
 
   Invoice expectedConfirmed() {
     return new Invoice()
-        .paymentUrl("https://connect-v2-sbx.fintecture.com")
+        .paymentUrl(null)
         .ref(confirmedInvoice().getRef())
         .title(confirmedInvoice().getTitle())
         .customer(confirmedInvoice().getCustomer())
         .status(CONFIRMED)
         .sendingDate(confirmedInvoice().getSendingDate())
         .products(List.of(product5().id(null)))
-        .toPayAt(confirmedInvoice().getToPayAt())
+        .paymentRegulations(List.of(expectedDated1(), expectedDated2()))
+        .paymentType(Invoice.PaymentTypeEnum.IN_INSTALMENT)
+        .toPayAt(null)
         .delayInPaymentAllowed(confirmedInvoice().getDelayInPaymentAllowed())
         .delayPenaltyPercent(confirmedInvoice().getDelayPenaltyPercent())
         .totalPriceWithVat(1100)
@@ -354,6 +419,8 @@ class InvoiceIT {
     return new Invoice()
         .id(NEW_INVOICE_ID)
         .products(List.of())
+        .paymentRegulations(List.of())
+        .paymentType(CASH)
         .totalVat(0)
         .totalPriceWithoutVat(0)
         .totalPriceWithoutDiscount(0)
@@ -376,6 +443,7 @@ class InvoiceIT {
         .status(PAID)
         .sendingDate(paidInvoice().getSendingDate())
         .products(List.of(product5().id(null)))
+        .paymentType(Invoice.PaymentTypeEnum.IN_INSTALMENT)
         .toPayAt(paidInvoice().getToPayAt())
         .delayInPaymentAllowed(paidInvoice().getDelayInPaymentAllowed())
         .delayPenaltyPercent(paidInvoice().getDelayPenaltyPercent())
@@ -387,6 +455,70 @@ class InvoiceIT {
         .globalDiscount(new InvoiceDiscount()
             .amountValue(0)
             .percentValue(0));
+  }
+
+
+  private static List<PaymentRegulation> initPaymentReg(String id) {
+    return List.of(new PaymentRegulation()
+            .maturityDate(LocalDate.of(2023, 1, 1))
+            .paymentRequest(new PaymentRequest()
+                .paymentUrl(null)
+                .reference(id)
+                .amount(552)
+                .payerName("Luc Artisan")
+                .payerEmail("bpartners.artisans@gmail.com")
+                .label("Acompte de 10%")),
+        new PaymentRegulation()
+            .maturityDate(LocalDate.of(2023, 1, 1))
+            .paymentRequest(new PaymentRequest()
+                .paymentUrl(null)
+                .amount(1648)
+                .reference(id)
+                .payerName("Luc Artisan")
+                .payerEmail("bpartners.artisans@gmail.com")
+                .label("Reste 90%")));
+  }
+
+  private static List<PaymentRegulation> updatedPaymentRegulations(String id) {
+    return List.of(new PaymentRegulation()
+            .maturityDate(LocalDate.of(2023, 1, 1))
+            .paymentRequest(new PaymentRequest()
+                .paymentUrl(null)
+                .reference(id)
+                .amount(225)
+                .payerName("Luc Artisan")
+                .payerEmail("bpartners.artisans@gmail.com")
+                .label("Acompte de 10%")),
+        new PaymentRegulation()
+            .maturityDate(LocalDate.of(2023, 1, 1))
+            .paymentRequest(new PaymentRequest()
+                .paymentUrl(null)
+                .amount(1975)
+                .reference(id)
+                .payerName("Luc Artisan")
+                .payerEmail("bpartners.artisans@gmail.com")
+                .label("Reste 90%")));
+  }
+
+  private static List<PaymentRegulation> confirmedPaymentRegulations(String id) {
+    return List.of(new PaymentRegulation()
+            .maturityDate(LocalDate.of(2023, 1, 1))
+            .paymentRequest(new PaymentRequest()
+                .paymentUrl("https://connect-v2-sbx.fintecture.com")
+                .reference(id)
+                .amount(225)
+                .payerName("Luc Artisan")
+                .payerEmail("bpartners.artisans@gmail.com")
+                .label("Acompte de 10%")),
+        new PaymentRegulation()
+            .maturityDate(LocalDate.of(2023, 1, 1))
+            .paymentRequest(new PaymentRequest()
+                .paymentUrl("https://connect-v2-sbx.fintecture.com")
+                .amount(1975)
+                .reference(id)
+                .payerName("Luc Artisan")
+                .payerEmail("bpartners.artisans@gmail.com")
+                .label("Reste 90%")));
   }
 
   //TODO: create PaginationIT for pagination test and add filters.
@@ -456,6 +588,16 @@ class InvoiceIT {
     CrupdateInvoice crupdateInvoiceWithNonExistentCustomer =
         initializeDraft().customer(customer1().id("non-existent-customer"));
     String uniqueRef = "unique_ref";
+    List<CreateProduct> products = List.of(new CreateProduct()
+            .description("Produit 1")
+            .unitPrice(100)
+            .quantity(1)
+            .vatPercent(0),
+        new CreateProduct()
+            .description("Produit 2")
+            .unitPrice(200)
+            .quantity(1)
+            .vatPercent(1000));
     Executable firstCrupdateExecutable =
         () -> api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, firstInvoiceId,
             validInvoice().ref(uniqueRef));
@@ -503,6 +645,150 @@ class InvoiceIT {
             + "Discount percent 120.0% must be greater or equals to 0% and less or equals to 100%"
             + "\"}",
         executable6);
+    assertThrowsApiException("{\"type\":\"400 BAD_REQUEST\","
+            + "\"message\":\"Multiple payments request more than one payment\"}",
+        () -> api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, String.valueOf(randomUUID()),
+            new CrupdateInvoice()
+                .status(DRAFT)
+                .paymentType(IN_INSTALMENT)
+                .paymentRegulations(List.of(new CreatePaymentRegulation()))));
+    assertThrowsApiException("{\"type\":\"400 BAD_REQUEST\",\"message\":"
+            + "\"Multiple payments amount 321 is not equals to total price with vat 320\"}",
+        () -> api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, String.valueOf(randomUUID()),
+            new CrupdateInvoice()
+                .status(DRAFT)
+                .paymentType(IN_INSTALMENT)
+                .products(products)
+                .paymentRegulations(List.of(
+                    new CreatePaymentRegulation()
+                        .amount(261),
+                    new CreatePaymentRegulation()
+                        .amount(60)))));
+    assertThrowsApiException("{\"type\":\"400 BAD_REQUEST\",\"message\":"
+            + "\"Multiple payments percent 110.0% is not equals to 100%\"}",
+        () -> api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, String.valueOf(randomUUID()),
+            new CrupdateInvoice()
+                .status(DRAFT)
+                .paymentType(IN_INSTALMENT)
+                .products(products)
+                .paymentRegulations(List.of(
+                    new CreatePaymentRegulation()
+                        .amount(null)
+                        .percent(2000),
+                    new CreatePaymentRegulation()
+                        .amount(null)
+                        .percent(9000)))));
+    assertThrowsApiException("{\"type\":\"400 BAD_REQUEST\",\"message\":"
+            + "\"Multiple payments percent 95.12% is not equals to 100%\"}",
+        () -> api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, String.valueOf(randomUUID()),
+            new CrupdateInvoice()
+                .status(DRAFT)
+                .paymentType(IN_INSTALMENT)
+                .products(products)
+                .paymentRegulations(List.of(
+                    new CreatePaymentRegulation()
+                        .amount(null)
+                        .percent(512),
+                    new CreatePaymentRegulation()
+                        .amount(null)
+                        .percent(9000)))));
+    assertThrowsApiException("{\"type\":\"400 BAD_REQUEST\",\"message\":"
+            + "\"Multiple payments amount 20 is not equals to total price with vat 320\"}",
+        () -> api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, String.valueOf(randomUUID()),
+            new CrupdateInvoice()
+                .status(DRAFT)
+                .paymentType(IN_INSTALMENT)
+                .products(products)
+                .paymentRegulations(List.of(
+                    new CreatePaymentRegulation()
+                        .amount(10)
+                        .percent(null),
+                    new CreatePaymentRegulation()
+                        .amount(10)
+                        .percent(null)))));
+  }
+
+  @Test
+  @Order(4)
+  void crupdate_percent_mutiple_payments_ok() throws ApiException {
+    ApiClient joeDoeClient = anApiClient();
+    PayingApi api = new PayingApi(joeDoeClient);
+    String id = String.valueOf(randomUUID());
+    CrupdateInvoice crupdateInvoice = new CrupdateInvoice()
+        .ref(id)
+        .paymentType(IN_INSTALMENT)
+        .customer(customer1()) //TODO: could not be null before creating a payment link
+        .products(
+            List.of(createProduct4())) //TODO: could not be null before creating a payment link
+        .paymentRegulations(List.of(new CreatePaymentRegulation()
+                .maturityDate(LocalDate.of(2023, 1, 1))
+                .percent(2510)
+                .comment("Acompte de 10%")
+                .amount(null),
+            new CreatePaymentRegulation()
+                .maturityDate(LocalDate.of(2023, 1, 1))
+                .percent(10000 - 2510)
+                .comment("Reste 90%")
+                .amount(null)));
+
+    Invoice actualDraft = api.crupdateInvoice(
+        JOE_DOE_ACCOUNT_ID, id, crupdateInvoice.status(DRAFT));
+    actualDraft.setPaymentRegulations(ignoreIdsAndDatetime(actualDraft));
+    Invoice actualProposal = api.crupdateInvoice(
+        JOE_DOE_ACCOUNT_ID, id, crupdateInvoice
+            .status(PROPOSAL)
+            .paymentRegulations(List.of(new CreatePaymentRegulation()
+                    .maturityDate(LocalDate.of(2023, 1, 1))
+                    .percent(1025)
+                    .comment("Acompte de 10%")
+                    .amount(null),
+                new CreatePaymentRegulation()
+                    .maturityDate(LocalDate.of(2023, 1, 1))
+                    .percent(10000 - 1025)
+                    .comment("Reste 90%")
+                    .amount(null))));
+    actualProposal.setPaymentRegulations(ignoreIdsAndDatetime(actualProposal));
+    Invoice actualConfirmed = api.crupdateInvoice(
+        JOE_DOE_ACCOUNT_ID, id, crupdateInvoice.status(CONFIRMED));
+    actualConfirmed.setPaymentRegulations(ignoreIdsAndDatetime(actualConfirmed));
+
+    assertEquals(initPaymentReg(id), actualDraft.getPaymentRegulations());
+    assertTrue(actualDraft.getPaymentRegulations().stream()
+        .allMatch(
+            paymentRegulation -> paymentRegulation.getPaymentRequest().getPaymentUrl() == null));
+    assertEquals(updatedPaymentRegulations(id), actualProposal.getPaymentRegulations());
+    assertTrue(actualProposal.getPaymentRegulations().stream()
+        .allMatch(
+            paymentRegulation -> paymentRegulation.getPaymentRequest().getPaymentUrl() == null));
+    assertEquals(new Invoice()
+        .id(actualConfirmed.getId())
+        .ref(actualConfirmed.getRef())
+        .paymentType(actualConfirmed.getPaymentType())
+        .createdAt(actualConfirmed.getCreatedAt())
+        .updatedAt(actualConfirmed.getUpdatedAt())
+        .fileId(actualConfirmed.getFileId())
+        .products(List.of(product4().id(null)))
+        .totalVat(actualConfirmed.getTotalVat())
+        .status(actualConfirmed.getStatus())
+        .metadata(actualConfirmed.getMetadata())
+        .toPayAt(actualConfirmed.getToPayAt())
+        .sendingDate(actualConfirmed.getSendingDate())
+        .totalPriceWithoutDiscount(2000)
+        .totalPriceWithVat(actualConfirmed.getTotalPriceWithVat())
+        .totalPriceWithoutVat(actualConfirmed.getTotalPriceWithoutVat())
+        .customer(actualConfirmed.getCustomer())
+        .delayPenaltyPercent(actualConfirmed.getDelayPenaltyPercent())
+        .delayInPaymentAllowed(actualConfirmed.getDelayInPaymentAllowed())
+        .paymentUrl(actualConfirmed.getPaymentUrl())
+        .globalDiscount(new InvoiceDiscount()
+            .amountValue(0)
+            .percentValue(0))
+        .paymentRegulations(confirmedPaymentRegulations(id)), actualConfirmed)
+    ;
+    assertTrue(actualConfirmed.getPaymentRegulations().stream()
+        .allMatch(
+            paymentRegulation -> paymentRegulation.getPaymentRequest().getPaymentUrl() != null));
+
   }
 
   // /!\ It seems that the localstack does not support the SES service using the default credentials
@@ -523,9 +809,11 @@ class InvoiceIT {
     Invoice actualConfirmed =
         api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, INVOICE4_ID, confirmedInvoice());
     actualConfirmed.setProducts(ignoreIdsOf(actualConfirmed.getProducts()));
+    actualConfirmed.setPaymentRegulations(ignoreIdsAndDatetime(actualConfirmed));
     Invoice actualPaid =
         api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, actualConfirmed.getId(), paidInvoice());
     actualPaid.setProducts(ignoreIdsOf(actualPaid.getProducts()));
+    actualPaid.setPaymentRegulations(ignoreIdsAndDatetime(actualPaid));
 
     assertEquals(expectedInitializedDraft().ref(null)
             .fileId(actualDraft.getFileId())
@@ -548,7 +836,6 @@ class InvoiceIT {
             .id(actualConfirmed.getId())
             .fileId(actualConfirmed.getFileId())
             .sendingDate(LocalDate.now())
-            .toPayAt(LocalDate.now().plusDays(actualConfirmed.getDelayInPaymentAllowed()))
             .updatedAt(actualConfirmed.getUpdatedAt()),
         actualConfirmed.createdAt(null));
     assertNotNull(actualConfirmed.getFileId());
@@ -557,6 +844,8 @@ class InvoiceIT {
     assertEquals(expectedPaid()
         .fileId(actualPaid.getFileId())
         .id(actualPaid.getId())
+        .paymentUrl(actualConfirmed.getPaymentUrl())
+        .paymentRegulations(actualConfirmed.getPaymentRegulations())
         .sendingDate(actualConfirmed.getSendingDate())
         .toPayAt(actualConfirmed.getToPayAt())
         .createdAt(actualPaid.getCreatedAt())
@@ -585,6 +874,7 @@ class InvoiceIT {
         .toPayAt(null);
     Invoice expected = TestUtils.invoice1()
         .products(List.of(product4().id(null), product5().id(null)))
+        .paymentType(CASH)
         .toPayAt(null);
 
     Invoice actual = api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, INVOICE1_ID, crupdateInvoice)

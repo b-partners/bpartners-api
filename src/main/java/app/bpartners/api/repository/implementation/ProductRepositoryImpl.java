@@ -1,15 +1,21 @@
 package app.bpartners.api.repository.implementation;
 
+import app.bpartners.api.endpoint.rest.model.OrderDirection;
+import app.bpartners.api.endpoint.rest.model.UpdateProductStatus;
 import app.bpartners.api.model.Product;
 import app.bpartners.api.model.mapper.ProductMapper;
 import app.bpartners.api.repository.ProductRepository;
 import app.bpartners.api.repository.jpa.ProductJpaRepository;
 import app.bpartners.api.repository.jpa.model.HProduct;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Direction;
+import org.springframework.data.domain.Sort.Order;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -19,11 +25,38 @@ public class ProductRepositoryImpl implements ProductRepository {
   private final ProductMapper mapper;
 
   @Override
-  public List<Product> findAllByIdAccount(String idAccount, Integer page, Integer pageSize) {
-    Pageable pageRequest = PageRequest.of(page, pageSize);
+  public List<Product> findAllByIdAccount(
+      String idAccount, Integer page, Integer pageSize,
+      OrderDirection descriptionOrder, OrderDirection unitPriceOrder, OrderDirection createdAtOrder
+  ) {
+    List<Order> orders = retrieveOrders(descriptionOrder, unitPriceOrder, createdAtOrder);
+    Pageable pageRequest = PageRequest.of(page, pageSize, Sort.by(orders));
     return jpaRepository.findAllByIdAccount(idAccount, pageRequest).stream()
         .map(mapper::toDomain)
         .collect(Collectors.toUnmodifiableList());
+  }
+
+  @Override
+  public List<Product> findAllByIdAccount(String idAccount) {
+    return jpaRepository.findAllByIdAccount(idAccount).stream()
+        .map(mapper::toDomain)
+        .collect(Collectors.toUnmodifiableList());
+  }
+
+  private List<Order> retrieveOrders(OrderDirection descriptionOrder,
+                                     OrderDirection unitPriceOrder,
+                                     OrderDirection createdAtOrder) {
+    List<Order> orders = new ArrayList<>();
+    if (descriptionOrder != null) {
+      orders.add(new Order(Direction.valueOf(descriptionOrder.getValue()), "description"));
+    }
+    if (unitPriceOrder != null) {
+      orders.add(new Order(Direction.valueOf(unitPriceOrder.getValue()), "unitPrice"));
+    }
+    if (createdAtOrder != null) {
+      orders.add(new Order(Direction.valueOf(createdAtOrder.getValue()), "createdAt"));
+    }
+    return orders;
   }
 
   @Override
@@ -34,5 +67,28 @@ public class ProductRepositoryImpl implements ProductRepository {
     return entities.stream()
         .map(mapper::toDomain)
         .collect(Collectors.toUnmodifiableList());
+  }
+
+  @Override
+  public List<Product> findAllByIdAccountAndStatus(String idAccount, Integer page, Integer pageSize,
+                                                   OrderDirection descriptionOrder,
+                                                   OrderDirection unitPriceOrder,
+                                                   OrderDirection createdAtOrder) {
+    List<Order> orders = retrieveOrders(descriptionOrder, unitPriceOrder, createdAtOrder);
+    Pageable pageRequest = PageRequest.of(page, pageSize, Sort.by(orders));
+    return jpaRepository.findAllByIdAccountAndStatus(idAccount, pageRequest).stream()
+        .map(mapper::toDomain)
+        .collect(Collectors.toUnmodifiableList());
+  }
+
+  @Override
+  public List<Product> updateStatus(String accountId, List<UpdateProductStatus> toUpdate) {
+    List<Product> productUpdated = new ArrayList<>();
+    for (UpdateProductStatus product : toUpdate) {
+      HProduct existingProduct = jpaRepository.findByIdAccountAndId(accountId, product.getId());
+      existingProduct.setStatus(product.getStatus());
+      productUpdated.add(mapper.toDomain(jpaRepository.save(existingProduct)));
+    }
+    return productUpdated;
   }
 }

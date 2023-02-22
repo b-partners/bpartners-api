@@ -14,7 +14,10 @@ import app.bpartners.api.endpoint.rest.model.Customer;
 import app.bpartners.api.endpoint.rest.model.Invoice;
 import app.bpartners.api.endpoint.rest.model.InvoiceDiscount;
 import app.bpartners.api.endpoint.rest.model.LegalFile;
+import app.bpartners.api.endpoint.rest.model.PaymentRegulation;
+import app.bpartners.api.endpoint.rest.model.PaymentRequest;
 import app.bpartners.api.endpoint.rest.model.Product;
+import app.bpartners.api.endpoint.rest.model.ProductStatus;
 import app.bpartners.api.endpoint.rest.model.TransactionCategory;
 import app.bpartners.api.endpoint.rest.model.TransactionStatus;
 import app.bpartners.api.endpoint.rest.model.User;
@@ -70,6 +73,7 @@ import software.amazon.awssdk.services.eventbridge.model.PutEventsResponse;
 
 import static app.bpartners.api.endpoint.rest.model.EnableStatus.ENABLED;
 import static app.bpartners.api.endpoint.rest.model.IdentificationStatus.VALID_IDENTITY;
+import static app.bpartners.api.endpoint.rest.model.Invoice.PaymentTypeEnum.IN_INSTALMENT;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
 import static app.bpartners.api.endpoint.rest.model.TransactionTypeEnum.INCOME;
 import static app.bpartners.api.endpoint.rest.model.TransactionTypeEnum.OUTCOME;
@@ -142,8 +146,6 @@ public class TestUtils {
   public static final String SESSION1_ID = "session1_id";
   public static final String SESSION2_ID = "session2_id";
   public static final String NOT_JOE_DOE_ACCOUNT_HOLDER_ID = "NOT_" + SWAN_ACCOUNTHOLDER_ID;
-  public static final String ACCESS_DENIED_MESSAGE = "{\"type\":\"403 FORBIDDEN\","
-      + "\"message\":\"Access is denied\"}";
 
   public static User restJoeDoeUser() {
     return new User()
@@ -351,6 +353,7 @@ public class TestUtils {
         .quantity(null)
         .totalVat(null)
         .createdAt(Instant.parse("2022-01-01T01:00:00.00Z"))
+        .status(ProductStatus.ENABLED)
         .totalPriceWithVat(null);
   }
 
@@ -364,7 +367,8 @@ public class TestUtils {
         .unitPriceWithVat(2200)
         .totalVat(400)
         .createdAt(Instant.parse("2022-01-01T02:00:00.00Z"))
-        .totalPriceWithVat(4400);
+        .totalPriceWithVat(4400)
+        .status(ProductStatus.ENABLED);
   }
 
   public static Product product3() {
@@ -377,20 +381,22 @@ public class TestUtils {
         .unitPriceWithVat(2200)
         .totalVat(600)
         .createdAt(null)
+        .status(ProductStatus.ENABLED)
         .totalPriceWithVat(6600);
   }
 
   public static Product product4() {
     return new Product()
         .id("product4_id")
-        .description("Coude et accessoires")
+        .description("Autres produits")
         .quantity(1)
         .unitPrice(2000)
         .vatPercent(1000)
         .unitPriceWithVat(2200)
         .totalVat(200)
         .createdAt(null)
-        .totalPriceWithVat(2200);
+        .totalPriceWithVat(2200)
+        .status(ProductStatus.ENABLED);
   }
 
   public static Product product5() {
@@ -403,6 +409,7 @@ public class TestUtils {
         .unitPriceWithVat(1100)
         .totalVat(100)
         .createdAt(null)
+        .status(ProductStatus.ENABLED)
         .totalPriceWithVat(1100);
   }
 
@@ -416,7 +423,7 @@ public class TestUtils {
 
   public static CreateProduct createProduct4() {
     return new CreateProduct()
-        .description("Coude et accessoires")
+        .description("Autres produits")
         .quantity(1)
         .unitPrice(2000)
         .vatPercent(1000);
@@ -530,6 +537,35 @@ public class TestUtils {
         .category(null);
   }
 
+  public static PaymentRequest basePaymentRequest() {
+    return new PaymentRequest()
+        .paymentUrl("https://connect-v2-sbx.fintecture.com")
+        .amount(4400)
+        .payerName("Luc Artisan")
+        .payerEmail("bpartners.artisans@gmail.com");
+  }
+
+  public static PaymentRegulation datedPaymentRequest2() {
+    return new PaymentRegulation()
+        .maturityDate(LocalDate.of(2023, 2, 1))
+        .paymentRequest(basePaymentRequest()
+            .id("bab75c91-f275-4f68-b10a-0f30f96f7806")
+            .label("Reste 50%")
+            .reference("FAC2023ACT02")
+            .initiatedDatetime(Instant.parse("2023-01-02T00:00:00Z")));
+  }
+
+  public static PaymentRegulation datedPaymentRequest1() {
+    return new PaymentRegulation()
+        .maturityDate(LocalDate.of(2023, 2, 1))
+        .paymentRequest(basePaymentRequest()
+            .id("a1275c91-f275-4f68-b10a-0f30f96f7806")
+            .label("Acompte 50%")
+            .reference("FAC2023ACT01")
+            .initiatedDatetime(Instant.parse("2023-01-01T00:00:00Z")));
+  }
+
+
   public static Invoice invoice1() {
     return new Invoice()
         .id(INVOICE1_ID)
@@ -549,6 +585,8 @@ public class TestUtils {
         .totalPriceWithVat(8800)
         .totalVat(800)
         .totalPriceWithoutVat(8000)
+        .paymentType(IN_INSTALMENT)
+        .paymentRegulations(List.of(datedPaymentRequest1(), datedPaymentRequest2()))
         .totalPriceWithoutDiscount(8000)
         .globalDiscount(new InvoiceDiscount()
             .percentValue(0)
@@ -560,8 +598,9 @@ public class TestUtils {
     return new Invoice()
         .id(INVOICE2_ID)
         .title("Facture plomberie")
-        .fileId("BP002.pdf")
-        .customer(customer2().address("Nouvelle adresse"))
+        .paymentUrl("https://connect-v2-sbx.fintecture.com")
+        .paymentRegulations(List.of())
+        .customer(customer2())
         .ref("BP002")
         .sendingDate(LocalDate.of(2022, 9, 10))
         .validityDate(LocalDate.of(2022, 10, 14))
@@ -572,9 +611,7 @@ public class TestUtils {
         .status(CONFIRMED)
         .products(List.of(product5()))
         .totalPriceWithVat(1100)
-        .totalVat(100)
-        .totalPriceWithoutVat(1000)
-        .paymentUrl("https://connect-v2-sbx.fintecture.com")
+        .totalVat(100).totalPriceWithoutVat(1000)
         .metadata(Map.of());
   }
 

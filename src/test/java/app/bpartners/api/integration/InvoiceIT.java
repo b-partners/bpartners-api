@@ -1053,6 +1053,77 @@ class InvoiceIT {
     assertTrue(actual2.get(0).getCreatedAt().isAfter(actual2.get(1).getCreatedAt()));
   }
 
+  @Test
+  @Order(7)
+  void read_invoice_after_crupdate_ok() throws ApiException {
+    ApiClient joeDoeClient = anApiClient();
+    PayingApi api = new PayingApi(joeDoeClient);
+    String randomId = String.valueOf(randomUUID());
+
+    Invoice invoice = api.crupdateInvoice(
+        JOE_DOE_ACCOUNT_ID, randomId,
+        new CrupdateInvoice()
+            .ref(randomUUID().toString())
+            .status(DRAFT)
+            .paymentType(IN_INSTALMENT)
+            .customer(customer1())
+            .paymentRegulations(List.of(new CreatePaymentRegulation()
+                    .maturityDate(LocalDate.of(2023, 1, 1))
+                    .percent(1025)
+                    .comment("Test de 10%")
+                    .amount(null),
+                new CreatePaymentRegulation()
+                    .maturityDate(LocalDate.of(2023, 1, 1))
+                    .percent(10000 - 1025)
+                    .comment("Test 90%")
+                    .amount(null))));
+    //First get
+    Invoice persisted1 = api.getInvoiceById(JOE_DOE_ACCOUNT_ID, invoice.getId());
+
+    Invoice firstUpdate = api.crupdateInvoice(
+        JOE_DOE_ACCOUNT_ID, randomId,
+        new CrupdateInvoice()
+            .ref(randomUUID().toString())
+            .status(DRAFT)
+            .paymentType(IN_INSTALMENT)
+            .customer(customer1())
+            .paymentRegulations(List.of(new CreatePaymentRegulation()
+                    .maturityDate(LocalDate.of(2023, 1, 1))
+                    .percent(1025)
+                    .comment("Tests de 10%")
+                    .amount(null),
+                new CreatePaymentRegulation()
+                    .maturityDate(LocalDate.of(2023, 1, 1))
+                    .percent(10000 - 1025)
+                    .comment("Test 90%")
+                    .amount(null))));
+    //Second get
+    Invoice persisted2 = api.getInvoiceById(JOE_DOE_ACCOUNT_ID, invoice.getId());
+
+    Invoice secondUpdate = api.crupdateInvoice(
+        JOE_DOE_ACCOUNT_ID, invoice.getId(),
+        new CrupdateInvoice()
+            .ref(randomUUID().toString())
+            .status(PROPOSAL)
+            .paymentType(IN_INSTALMENT)
+            .customer(customer1())
+            .paymentRegulations(List.of(new CreatePaymentRegulation()
+                    .maturityDate(LocalDate.of(2023, 1, 1))
+                    .percent(1025)
+                    .comment("Test de 10%")
+                    .amount(null),
+                new CreatePaymentRegulation()
+                    .maturityDate(LocalDate.of(2023, 1, 1))
+                    .percent(10000 - 1025)
+                    .comment("Test 90%")
+                    .amount(null))));
+    //Third get
+    Invoice persisted3 = api.getInvoiceById(JOE_DOE_ACCOUNT_ID, invoice.getId());
+
+    assertEquals(persisted1.createdAt(null), invoice.createdAt(null));
+    assertEquals(ignoreIdsAndDatetime(secondUpdate), ignoreIdsAndDatetime(persisted3));
+  }
+
 
   private List<Product> ignoreIdsOf(List<Product> actual) {
     return actual.stream()
@@ -1063,6 +1134,13 @@ class InvoiceIT {
   private List<Invoice> ignoreUpdatedAt(List<Invoice> actual) {
     actual.forEach(invoice -> {
       invoice.setUpdatedAt(null);
+    });
+    return actual;
+  }
+
+  private List<Invoice> ignoreCreatedAt(List<Invoice> actual) {
+    actual.forEach(invoice -> {
+      invoice.setCreatedAt(null);
     });
     return actual;
   }

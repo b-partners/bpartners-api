@@ -47,4 +47,10 @@ public class ProspectController {
         .map(mapper::toRest)
         .collect(toUnmodifiableList());
   }
+  /*TODO
+   * get data from repository.prospecting.datasource package
+   * ( return value should be our domain model : Prospect)
+   * Process data with service.dataprocesser.ProspectDataProcesser
+   * return result in controller
+   */
 }

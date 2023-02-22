@@ -11,12 +11,16 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import static org.springframework.transaction.annotation.Isolation.SERIALIZABLE;
+
 @AllArgsConstructor
 @Repository
 
 public class ProspectRepositoryImpl implements ProspectRepository {
   private final ProspectJpaRepository jpaRepository;
   private final ProspectMapper mapper;
+  // TODO : use classes from prospecting.datasource package
+  //  to get prospects
 
   @Override
   public List<Prospect> findAllByIdAccountHolder(String idAccountHolder) {
@@ -26,7 +30,7 @@ public class ProspectRepositoryImpl implements ProspectRepository {
         .collect(Collectors.toUnmodifiableList());
   }
 
-  @Transactional
+  @Transactional(isolation = SERIALIZABLE)
   @Override
   public List<Prospect> saveAll(List<Prospect> prospects) {
     List<HProspect> entities = prospects

@@ -2,7 +2,7 @@ package app.bpartners.api.service;
 
 import app.bpartners.api.model.Prospect;
 import app.bpartners.api.repository.ProspectRepository;
-import app.bpartners.api.service.AI.ProspectDataProcesser;
+import app.bpartners.api.service.dataprocesser.ProspectDataProcesser;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;

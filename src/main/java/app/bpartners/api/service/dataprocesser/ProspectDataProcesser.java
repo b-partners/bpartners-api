@@ -1,4 +1,4 @@
-package app.bpartners.api.service.AI;
+package app.bpartners.api.service.dataprocesser;
 
 import app.bpartners.api.model.Prospect;
 import java.util.List;

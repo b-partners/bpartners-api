@@ -10,6 +10,10 @@ import org.springframework.stereotype.Service;
 public class UserService {
   private UserRepository userRepository;
 
+  public User getUserByPhoneNumber(String phoneNumber) {
+    return userRepository.getByPhoneNumber(phoneNumber);
+  }
+
   public User getUserByIdAndBearer(String swanUserId, String accessToken) {
     return userRepository.getUserBySwanUserIdAndToken(swanUserId, accessToken);
   }

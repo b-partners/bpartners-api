@@ -23,18 +23,21 @@ public class UserMapper {
   public User toDomain(HUser entityUser, SwanUser swanUser) {
     return User.builder()
         .id(entityUser.getId())
-        .firstName(swanUser.getFirstName())
-        .lastName(swanUser.getLastName())
-        .mobilePhoneNumber(swanUser.getMobilePhoneNumber())
+        .firstName(swanUser == null ? entityUser.getFirstName() : swanUser.getFirstName())
+        .lastName(swanUser == null ? entityUser.getLastName() : swanUser.getLastName())
+        .mobilePhoneNumber(entityUser.getPhoneNumber())
         .monthlySubscription(entityUser.getMonthlySubscription())
         .status(entityUser.getStatus())
         .logoFileId(entityUser.getLogoFileId())
-        .idVerified(swanUser.isIdVerified())
-        .identificationStatus(getIdentificationStatus(swanUser.getIdentificationStatus()))
+        .idVerified(swanUser == null ? entityUser.getIdVerified() : swanUser.isIdVerified())
+        .identificationStatus(
+            swanUser == null ? entityUser.getIdentificationStatus()
+                : getIdentificationStatus(
+                swanUser.getIdentificationStatus()))
         .build();
   }
 
-  private IdentificationStatus getIdentificationStatus(String value) {
+  public IdentificationStatus getIdentificationStatus(String value) {
     switch (value) {
       case VALID_IDENTITY_STATUS:
         return IdentificationStatus.VALID_IDENTITY;

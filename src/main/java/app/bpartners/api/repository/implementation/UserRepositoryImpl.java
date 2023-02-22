@@ -24,22 +24,15 @@ public class UserRepositoryImpl implements UserRepository {
   private final UserSwanRepository swanRepository;
   private final UserJpaRepository jpaRepository;
   private final UserMapper userMapper;
-
   private final SwanComponent swanComponent;
 
   @Override
   public User getUserBySwanUserIdAndToken(String swanUserId, String token) {
-    SwanUser swanUser;
     HUser entityUser;
+    SwanUser swanUser;
     try {
       swanUser = swanComponent.getSwanUserByToken(token);
-      Optional<HUser> optionalUser = jpaRepository.findUserBySwanUserId(swanUser.getId());
-      entityUser = optionalUser.orElseGet(() -> jpaRepository.save(HUser.builder()
-          .swanUserId(swanUser.getId())
-          .status(ENABLED)
-          .monthlySubscription(5) //TODO: change or set default monthly subscription earlier
-          .phoneNumber(swanUser.getMobilePhoneNumber())
-          .build()));
+      entityUser = getUpdatedUser(swanUser);
     } catch (URISyntaxException | IOException e) {
       throw new ApiException(ApiException.ExceptionType.CLIENT_EXCEPTION, e);
     } catch (InterruptedException e) {
@@ -52,16 +45,56 @@ public class UserRepositoryImpl implements UserRepository {
   @Override
   public User getUserByToken(String token) {
     SwanUser swanUser = swanRepository.getByToken(token);
+    HUser entityUser = getUpdatedUser(swanUser);
+    return userMapper.toDomain(entityUser, swanUser);
+  }
+
+  @Override
+  public User getByPhoneNumber(String phoneNumber) {
+    return userMapper.toDomain(jpaRepository.getByPhoneNumber(phoneNumber), null);
+  }
+
+  public HUser getUpdatedUser(SwanUser swanUser) {
+    HUser entityUser;
     Optional<HUser> optionalUser = jpaRepository.findUserBySwanUserId(swanUser.getId());
     if (optionalUser.isPresent()) {
-      return userMapper.toDomain(optionalUser.get(), swanUser);
+      HUser persisted = optionalUser.get();
+      if (persisted.getFirstName() == null
+          || (!persisted.getFirstName().equals(swanUser.getFirstName()))) {
+        persisted.setFirstName(swanUser.getFirstName());
+      }
+      if (persisted.getLastName() == null
+          || (!persisted.getLastName().equals(swanUser.getLastName()))) {
+        persisted.setLastName(swanUser.getLastName());
+      }
+      if (persisted.getIdVerified() == null
+          || (!persisted.getIdVerified().equals(swanUser.isIdVerified()))) {
+        persisted.setIdVerified(swanUser.isIdVerified());
+      }
+      if (persisted.getIdentificationStatus() == null
+          || (!persisted.getIdentificationStatus().getValue()
+          .equals(swanUser.getIdentificationStatus()))) {
+        persisted.setIdentificationStatus(
+            userMapper.getIdentificationStatus(swanUser.getIdentificationStatus()));
+      }
+      entityUser = jpaRepository.save(persisted);
+    } else {
+      entityUser = jpaRepository.save(retrieveUser(swanUser));
     }
-    HUser newUser = jpaRepository.save(HUser.builder()
+    return entityUser;
+  }
+
+  private HUser retrieveUser(SwanUser swanUser) {
+    return HUser.builder()
+        .firstName(swanUser.getFirstName())
+        .lastName(swanUser.getLastName())
         .swanUserId(swanUser.getId())
         .status(ENABLED)
         .monthlySubscription(5) //TODO: change or set default monthly subscription earlier
+        .idVerified(swanUser.isIdVerified())
+        .identificationStatus(
+            userMapper.getIdentificationStatus(swanUser.getIdentificationStatus()))
         .phoneNumber(swanUser.getMobilePhoneNumber())
-        .build());
-    return userMapper.toDomain(newUser, swanUser);
+        .build();
   }
 }

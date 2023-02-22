@@ -11,7 +11,6 @@ import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.repository.InvoiceRepository;
 import app.bpartners.api.repository.jpa.InvoiceJpaRepository;
-import app.bpartners.api.repository.jpa.model.HInvoice;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -32,8 +31,8 @@ public class InvoiceService {
 
   public List<Invoice> getInvoices(String accountId, PageFromOne page,
                                    BoundedPageSize pageSize, InvoiceStatus status) {
-    int pageValue = page.getValue() - 1;
-    int pageSizeValue = pageSize.getValue();
+    int pageValue = page != null ? page.getValue() - 1 : 0;
+    int pageSizeValue = pageSize != null ? pageSize.getValue() : 30;
     if (status != null) {
       return repository.findAllByAccountIdAndStatus(accountId, status, pageValue, pageSizeValue);
     }

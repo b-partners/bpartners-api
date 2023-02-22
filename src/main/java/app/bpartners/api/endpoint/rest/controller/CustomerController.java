@@ -29,8 +29,8 @@ public class CustomerController {
       @RequestParam(required = false) String name,
       @RequestParam(required = false) String firstName,
       @RequestParam(required = false) String lastName,
-      @RequestParam PageFromOne page,
-      @RequestParam BoundedPageSize pageSize) {
+      @RequestParam(required = false) PageFromOne page,
+      @RequestParam(required = false) BoundedPageSize pageSize) {
     return service.getCustomers(id, name, firstName, lastName, page, pageSize).stream()
         .map(mapper::toRest)
         .collect(Collectors.toUnmodifiableList());

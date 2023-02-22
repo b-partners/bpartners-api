@@ -6,7 +6,6 @@ Parameters:
     Type: String
   DBName:
     Type: String
-    Default: bpartners
   DBClass:
     Default: db.t3.micro
     Description: Database instance class

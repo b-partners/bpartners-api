@@ -17,7 +17,9 @@ public class BusinessActivityTemplateService {
 
   public List<BusinessActivityTemplate> getBusinessActivities(PageFromOne page,
                                                               BoundedPageSize pageSize) {
-    Pageable pageable = PageRequest.of(page.getValue() - 1, pageSize.getValue());
+    int pageValue = page != null ? page.getValue() - 1 : 0;
+    int pageSizeValue = pageSize != null ? pageSize.getValue() : 30;
+    Pageable pageable = PageRequest.of(pageValue, pageSizeValue);
     return repository.findAll(pageable);
   }
 }

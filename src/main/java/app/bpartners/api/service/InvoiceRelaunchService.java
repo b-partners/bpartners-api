@@ -185,7 +185,9 @@ public class InvoiceRelaunchService {
       String invoiceId,
       PageFromOne page,
       BoundedPageSize pageSize, String type) {
-    Pageable pageable = PageRequest.of(page.getValue() - 1, pageSize.getValue());
+    int pageValue = page != null ? page.getValue() - 1 : 0;
+    int pageSizeValue = pageSize != null ? pageSize.getValue() : 30;
+    Pageable pageable = PageRequest.of(pageValue, pageSizeValue);
     return invoiceRelaunchRepository.getByInvoiceId(invoiceId, type, pageable);
   }
 

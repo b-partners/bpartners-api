@@ -27,8 +27,8 @@ public class CustomerService {
   public List<Customer> getCustomers(
       String accountId, String name, String firstName,
       String lastName, PageFromOne page, BoundedPageSize pageSize) {
-    int pageValue = page.getValue() - 1;
-    int pageSizeValue = pageSize.getValue();
+    int pageValue = page != null ? page.getValue() - 1 : 0;
+    int pageSizeValue = pageSize != null ? pageSize.getValue() : 30;
     if (name == null && firstName == null && lastName == null) {
       return repository.findByAccount(accountId, pageValue, pageSizeValue);
     }

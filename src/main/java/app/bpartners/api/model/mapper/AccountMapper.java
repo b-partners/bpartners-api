@@ -18,9 +18,10 @@ public class AccountMapper {
   public static final String CLOSING_STATUS = "Closing";
   public static final String SUSPENDED_STATUS = "Suspended";
 
-  public Account toDomain(SwanAccount external) {
+  public Account toDomain(SwanAccount external, String userId) {
     return Account.builder()
         .id(external.getId())
+        .userId(userId)
         .name(external.getName())
         .iban(external.getIban())
         .bic(external.getBic())
@@ -29,9 +30,9 @@ public class AccountMapper {
         .build();
   }
 
-  public Account toDomain(SwanAccount swanAccount, HAccount entity) {
-    Account entityToDomain = toDomain(entity);
-    Account swanToDomain = toDomain(swanAccount);
+  public Account toDomain(SwanAccount swanAccount, HAccount entity, String userId) {
+    Account entityToDomain = toDomain(entity, userId);
+    Account swanToDomain = toDomain(swanAccount, userId);
     if (swanToDomain.equals(entityToDomain)) {
       return entityToDomain;
     } else {
@@ -39,9 +40,13 @@ public class AccountMapper {
     }
   }
 
-  public Account toDomain(HAccount entity) {
+  public Account toDomain(HAccount entity, String userId) {
+    if (entity == null) {
+      return null;
+    }
     return Account.builder()
         .id(entity.getId())
+        .userId(userId)
         .name(entity.getName())
         .iban(entity.getIban())
         .bic(entity.getBic())

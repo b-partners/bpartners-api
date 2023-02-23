@@ -7,6 +7,8 @@ import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -29,6 +31,9 @@ import org.hibernate.annotations.Type;
 public class HAccount implements Serializable {
   @Id
   private String id;
+  @ManyToOne
+  @JoinColumn(name = "id_user")
+  private HUser user;
   @Column(name = "\"name\"")
   private String name;
   private String iban;

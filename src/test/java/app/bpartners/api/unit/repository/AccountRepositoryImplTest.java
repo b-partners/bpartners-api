@@ -8,6 +8,7 @@ import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.implementation.AccountRepositoryImpl;
 import app.bpartners.api.repository.jpa.AccountJpaRepository;
 import app.bpartners.api.repository.jpa.model.HAccount;
+import app.bpartners.api.repository.jpa.model.HUser;
 import app.bpartners.api.repository.swan.AccountSwanRepository;
 import app.bpartners.api.repository.swan.model.SwanAccount;
 import java.util.List;
@@ -43,12 +44,19 @@ class AccountRepositoryImplTest {
     accountRepository =
         new AccountRepositoryImpl(accountSwanRepositoryMock, accountJpaRepositoryMock,
             userRepositoryMock, accountMapperMock);
-
-    when(accountMapperMock.toDomain(any(SwanAccount.class))).thenReturn(domain());
-    when(accountMapperMock.toDomain(any(HAccount.class))).thenReturn(domain());
-    when(accountMapperMock.toDomain(any(SwanAccount.class), any(HAccount.class)))
+    when(accountMapperMock.toDomain(any(SwanAccount.class), any())).thenReturn(domain());
+    when(accountMapperMock.toDomain(any(HAccount.class), any())).thenReturn(domain());
+    when(accountMapperMock.toDomain(any(SwanAccount.class), any(HAccount.class), any()))
         .thenReturn(domain());
     when(accountMapperMock.toEntity(any(Account.class))).thenReturn(new HAccount());
+    when(userRepositoryMock.getUserByToken(any())).thenReturn(User.builder()
+        .id("joe_doe_id")
+        .account(Account.builder()
+            .id("c15924bf-61f9-4381-8c9b-d34369bf91f7")
+            .name("Account name")
+            .userId("joe_doe_id")
+            .build())
+        .build());
   }
 
   @Test
@@ -73,16 +81,24 @@ class AccountRepositoryImplTest {
     when(accountSwanRepositoryMock.findByBearer(any(String.class)))
         .thenReturn(List.of());
     when(userRepositoryMock.getUserByToken(any(String.class))).thenReturn(authenticatedUser());
+    when(accountJpaRepositoryMock.findById(any(String.class))).thenReturn(
+        Optional.of(HAccount.builder()
+            .id("c15924bf-61f9-4381-8c9b-d34369bf91f7")
+            .name("Account name")
+            .user(HUser.builder()
+                .id("joe_doe_id")
+                .build())
+            .build()));
     ArgumentCaptor<String> bearerCaptor = ArgumentCaptor.forClass(String.class);
-    ArgumentCaptor<String> userIdCaptor = ArgumentCaptor.forClass(String.class);
+//    ArgumentCaptor<String> userIdCaptor = ArgumentCaptor.forClass(String.class);
 
     List<Account> actual = accountRepository.findByBearer(JOE_DOE_TOKEN);
     verify(userRepositoryMock).getUserByToken(bearerCaptor.capture());
-    verify(accountSwanRepositoryMock).findByUserId(userIdCaptor.capture());
+//    verify(accountSwanRepositoryMock).findByUserId(userIdCaptor.capture());
 
     assertNotNull(actual);
     assertEquals(JOE_DOE_TOKEN, bearerCaptor.getValue());
-    assertEquals(authenticatedUser().getId(), userIdCaptor.getValue());
+//    assertEquals(authenticatedUser().getId(), userIdCaptor.getValue());
   }
 
   @Test
@@ -96,7 +112,7 @@ class AccountRepositoryImplTest {
 
     Account actual = accountRepository.findById(JOE_DOE_ACCOUNT_ID);
     verify(accountJpaRepositoryMock).findById(accountIdCaptor.capture());
-    verify(accountMapperMock).toDomain(accountCaptor.capture());
+    verify(accountMapperMock).toDomain(accountCaptor.capture(), any());
 
     assertNotNull(actual);
     assertEquals(JOE_DOE_ACCOUNT_ID, accountIdCaptor.getValue());
@@ -117,10 +133,21 @@ class AccountRepositoryImplTest {
   User authenticatedUser() {
     return User.builder()
         .id("user_id")
+        .account(Account.builder()
+            .id("c15924bf-61f9-4381-8c9b-d34369bf91f7")
+            .name("Account name")
+            .userId("joe_doe_id")
+            .build())
         .build();
   }
 
   HAccount entity() {
-    return HAccount.builder().id("account_id").build();
+    return HAccount.builder()
+        .id("c15924bf-61f9-4381-8c9b-d34369bf91f7")
+        .name("Account name")
+        .user(HUser.builder()
+            .id("joe_doe_id")
+            .build())
+        .build();
   }
 }

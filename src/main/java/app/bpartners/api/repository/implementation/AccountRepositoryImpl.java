@@ -19,7 +19,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 @AllArgsConstructor
 public class AccountRepositoryImpl implements AccountRepository {
-  private static final String JOE_DOE_SWAN_USER_ID = "c15924bf-61f9-4381-8c9b-d34369bf91f7";
   private AccountSwanRepository swanRepository;
   private AccountJpaRepository accountJpaRepository;
   private UserRepository userRepository;
@@ -28,61 +27,62 @@ public class AccountRepositoryImpl implements AccountRepository {
   @Override
   public List<Account> findByBearer(String bearer) {
     List<SwanAccount> swanAccounts = swanRepository.findByBearer(bearer);
-    List<Account> persisted = getOrCreateAccounts(swanAccounts);
-    if (persisted.isEmpty()) {
-      User authenticatedUser = userRepository.getUserByToken(bearer);
-      if (authenticatedUser == null) {
-        return findByUserId(JOE_DOE_SWAN_USER_ID);
-      } else {
-        return findByUserId(authenticatedUser.getId());
-      }
+    User authenticatedUser = userRepository.getUserByToken(bearer);
+    if (!swanAccounts.isEmpty()) {
+      return getOrCreateAccounts(swanAccounts, authenticatedUser.getId());
     }
-    return persisted;
+    return List.of(authenticatedUser.getAccount());
   }
 
   @Override
   public Account findById(String accountId) {
-    List<SwanAccount> accounts = swanRepository.findById(accountId);
-    List<Account> persistedAccounts = getOrCreateAccounts(accounts);
-    if (persistedAccounts.isEmpty()) {
-      Optional<HAccount> optionalAccount = accountJpaRepository.findById(accountId);
-      if (optionalAccount.isPresent()) {
-        return mapper.toDomain(optionalAccount.get());
-      } else {
-        throw new NotFoundException("Account." + accountId + " not found.");
-      }
+    List<SwanAccount> swanAccounts = swanRepository.findById(accountId);
+    if (!swanAccounts.isEmpty()) {
+      return getOrCreateAccounts(swanAccounts, null).get(0);
     }
-    return persistedAccounts.get(0);
+    Optional<HAccount> optionalAccount = accountJpaRepository.findById(accountId);
+    if (optionalAccount.isPresent()) {
+      HAccount accountEntity = optionalAccount.get();
+      return mapper.toDomain(accountEntity, accountEntity.getUser().getId());
+    } else {
+      throw new NotFoundException("Account." + accountId + " not found.");
+    }
   }
 
   @Override
   public List<Account> findByUserId(String userId) {
-    List<SwanAccount> accounts = swanRepository.findByUserId(userId);
-    return getOrCreateAccounts(accounts);
+    List<SwanAccount> swanAccounts = swanRepository.findByUserId(userId);
+    if (!swanAccounts.isEmpty()) {
+      return getOrCreateAccounts(swanAccounts, userId);
+    }
+    Optional<HAccount> optionalAccount = accountJpaRepository.findByUser_Id(userId);
+    if (optionalAccount.isPresent()) {
+      return List.of(mapper.toDomain(optionalAccount.get(), userId));
+    } else {
+      throw new NotFoundException("User." + userId + " is not associated with any account");
+    }
   }
 
   @Override
-  public List<Account> saveAll(List<Account> toCreate) {
+  public List<Account> saveAll(List<Account> toCreate, String userId) {
     List<HAccount> toSave = toCreate.stream()
         .map(mapper::toEntity)
         .collect(Collectors.toUnmodifiableList());
     return accountJpaRepository.saveAll(toSave).stream()
-        .map(mapper::toDomain)
+        .map(account -> mapper.toDomain(account, userId))
         .collect(Collectors.toUnmodifiableList());
   }
 
-  private List<Account> getOrCreateAccounts(List<SwanAccount> swanAccounts) {
-    if (!swanAccounts.isEmpty()) {
-      Optional<HAccount> persisted = accountJpaRepository.findById(swanAccounts.get(0).getId());
-      if (persisted.isPresent()) {
-        return saveAll(List.of(mapper.toDomain(swanAccounts.get(0), persisted.get())));
-      } else {
-        List<Account> accounts = swanAccounts.stream()
-            .map(mapper::toDomain)
-            .collect(Collectors.toUnmodifiableList());
-        return saveAll(accounts);
-      }
+  private List<Account> getOrCreateAccounts(List<SwanAccount> swanAccounts, String userId) {
+    SwanAccount swanAccount = swanAccounts.get(0);
+    Optional<HAccount> persisted = accountJpaRepository.findById(swanAccount.getId());
+    if (persisted.isPresent()) {
+      return saveAll(List.of(mapper.toDomain(swanAccount, persisted.get(), userId)), userId);
+    } else {
+      List<Account> accounts = swanAccounts.stream()
+          .map(account -> mapper.toDomain(account, userId))
+          .collect(Collectors.toUnmodifiableList());
+      return saveAll(accounts, userId);
     }
-    return List.of();
   }
 }

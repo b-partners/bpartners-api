@@ -242,6 +242,7 @@ class UserIT {
         .lastName(null)
         .idVerified(null)
         .identificationStatus(null)
+        .accounts(beforeUpdate.getAccounts())
         .build(), beforeUpdate);
     assertEquals(restJaneDoeUser(), actual);
   }

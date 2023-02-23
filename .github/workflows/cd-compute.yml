@@ -121,6 +121,11 @@ jobs:
           echo "tasksDesiredCount=${{ steps.get-configuration.outputs.tasksDesiredCount}}" >> $GITHUB_ENV
           echo "listenerRuleAvailablePriority=${{ steps.get-configuration.outputs.listenerRuleAvailablePriority}}" >> $GITHUB_ENV
 
+      - name: Retrieve Database identifier from Parameter Store and set it as Env
+        run: |
+          aws configure set default.output text
+          echo "dbIdentifier=$(aws ssm get-parameter --name /bpartners/${{ env.branch_env }}/db/identifier --query "Parameter.Value" | grep -o '^[^.]*')" >> $GITHUB_ENV
+
       - name: Create snapshot for the actual version of the database
         run: aws rds create-db-snapshot --db-instance-identifier dev-storage-bpartners-database --db-snapshot-identifier ${{ env.branch_env }}-snapshot-pre-cd-compute-${{ github.sha }}
 

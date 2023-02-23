@@ -127,7 +127,7 @@ jobs:
           echo "dbIdentifier=$(aws ssm get-parameter --name /bpartners/${{ env.branch_env }}/db/identifier --query "Parameter.Value" | grep -o '^[^.]*')" >> $GITHUB_ENV
 
       - name: Create snapshot for the actual version of the database
-        run: aws rds create-db-snapshot --db-instance-identifier dev-storage-bpartners-database --db-snapshot-identifier ${{ env.branch_env }}-snapshot-pre-cd-compute-${{ github.sha }}
+        run: aws rds create-db-snapshot --db-instance-identifier ${{ env.dbIdentifier }} --db-snapshot-identifier ${{ env.branch_env }}-snapshot-pre-cd-compute-${{ github.sha }}
 
       - name: Deploy compute stack
         uses: aws-actions/aws-cloudformation-github-deploy@v1

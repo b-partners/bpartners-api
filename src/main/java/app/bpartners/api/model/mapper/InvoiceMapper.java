@@ -213,6 +213,10 @@ public class InvoiceMapper {
       HInvoice entity = optionalInvoice.get();
       actualProducts = entity.getProducts();
       fileId = entity.getFileId();
+      if (domain.getStatus() == CONFIRMED && entity.getStatus() == PROPOSAL) {
+        fileId = randomUUID().toString();
+        optionalInvoice.get().setFileId(fileId);
+      }
       //TODO: change when we can create a confirmed from scratch
       if (domain.getStatus() == CONFIRMED && entity.getStatus() == PROPOSAL) {
         id = String.valueOf(randomUUID());

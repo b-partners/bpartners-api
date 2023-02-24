@@ -358,6 +358,38 @@ class InvoiceIT {
         .delayPenaltyPercent(null);
   }
 
+  CrupdateInvoice validInvoice1() {
+    return initializeDraft()
+        .ref("BP003")
+        .title("Facture sans produit")
+        .comment("Nouveau commentaire")
+        .customer(customer1())
+        .products(List.of(createProduct4(), createProduct5()))
+        .sendingDate(LocalDate.now())
+        .validityDate(LocalDate.now().plusDays(3L))
+        .globalDiscount(new InvoiceDiscount()
+            .amountValue(null)
+            .percentValue(1000))
+        .delayInPaymentAllowed(null)
+        .status(PROPOSAL)
+        .delayPenaltyPercent(null);
+  }
+
+  CrupdateInvoice paidInvoice1() {
+    return new CrupdateInvoice()
+        .ref("BP006")
+        .title("Facture achat")
+        .customer(customer1())
+        .products(List.of(createProduct5()))
+        .paymentType(IN_INSTALMENT)
+        .status(PAID)
+        .sendingDate(LocalDate.of(2022, 10, 12))
+        .validityDate(LocalDate.of(2022, 10, 14))
+        .toPayAt(LocalDate.of(2022, 11, 13))
+        .delayInPaymentAllowed(15)
+        .delayPenaltyPercent(20);
+  }
+
   Invoice expectedDraft() {
     return new Invoice()
         .id(NEW_INVOICE_ID)
@@ -794,7 +826,7 @@ class InvoiceIT {
   // /!\ It seems that the localstack does not support the SES service using the default credentials
   // So note that SES service is mocked and do nothing for this test
   @Test
-  @Order(4)
+  @Order(1)
   void crupdate_invoice_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
     PayingApi api = new PayingApi(joeDoeClient);
@@ -1058,13 +1090,35 @@ class InvoiceIT {
     List<Invoice> actual2 = api.getInvoices(JOE_DOE_ACCOUNT_ID, 2, 5, null);
 
     assertEquals(5, actual1.size());
-    assertEquals(2, actual2.size());
+    assertEquals(4, actual2.size());
     assertTrue(actual1.get(0).getCreatedAt().isAfter(actual1.get(1).getCreatedAt()));
     assertTrue(actual1.get(1).getCreatedAt().isAfter(actual1.get(2).getCreatedAt()));
     assertTrue(actual1.get(2).getCreatedAt().isAfter(actual1.get(3).getCreatedAt()));
     assertTrue(actual1.get(3).getCreatedAt().isAfter(actual1.get(4).getCreatedAt()));
     assertTrue(actual1.get(4).getCreatedAt().isAfter(actual2.get(0).getCreatedAt()));
     assertTrue(actual2.get(0).getCreatedAt().isAfter(actual2.get(1).getCreatedAt()));
+  }
+
+  @Test
+  @Order(4)
+  void invoice_fileId_from_proposal_to_confirmed_should_be_different() throws ApiException {
+    ApiClient joeDoeClient = anApiClient();
+    PayingApi api = new PayingApi(joeDoeClient);
+    int customizePenalty = 1960;
+
+    Invoice actualDraft = api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, NEW_INVOICE_ID,
+            initializeDraft().ref(null))
+        .delayPenaltyPercent(customizePenalty);
+    Invoice actualUpdatedProposalDraft = api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, NEW_INVOICE_ID,
+        validInvoice1());
+    actualUpdatedProposalDraft.setProducts(ignoreIdsOf(actualUpdatedProposalDraft.getProducts()));
+    Invoice actualConfirmed =
+        api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, NEW_INVOICE_ID, confirmedInvoice());
+    Invoice actualPaid = api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, NEW_INVOICE_ID, paidInvoice1());
+
+    assertEquals(actualDraft.getFileId(), actualUpdatedProposalDraft.getFileId());
+    assertNotEquals(actualUpdatedProposalDraft.getFileId(), actualConfirmed.getFileId());
+    assertEquals(actualPaid.getFileId(), actualConfirmed.getFileId());
   }
 
 

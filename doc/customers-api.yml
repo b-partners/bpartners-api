@@ -23,6 +23,14 @@ operations:
           name: lastName
           schema:
             type: string
+        - in: query
+          name: page
+          schema:
+            $ref: './api.yml#/components/schemas/Page'
+        - in: query
+          name: pageSize
+          schema:
+            $ref: './api.yml#/components/schemas/PageSize'
       responses:
         200:
           description: List of customers of the specified account

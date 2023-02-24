@@ -17,7 +17,9 @@ public class CreateProductValidator implements Consumer<CreateProduct> {
       message.append("Description is mandatory. ");
     }
     if (createProduct.getUnitPrice() == null) {
-      message.append("Unit price is mandatory. ");
+      log.warn("DEPRECATED : Unit price is mandatory. 0€ by default is now attribute.");
+      createProduct.setUnitPrice(0);
+      //message.append("Unit price is mandatory. ");
     }
     if (createProduct.getVatPercent() == null) {
       log.warn("DEPRECATED : Vat percent is mandatory. 0% by default is now attribute.");

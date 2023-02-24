@@ -20,8 +20,8 @@ public class BusinessActivityTemplateController {
 
   @GetMapping("/businessActivities")
   public List<BusinessActivity> getBusinessActivities(
-      @RequestParam PageFromOne page,
-      @RequestParam BoundedPageSize pageSize) {
+      @RequestParam(required = false) PageFromOne page,
+      @RequestParam(required = false) BoundedPageSize pageSize) {
     return templateService.getBusinessActivities(page, pageSize).stream()
         .map(mapper::toRest).collect(Collectors.toUnmodifiableList());
   }

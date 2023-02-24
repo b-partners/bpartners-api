@@ -11,6 +11,14 @@ operations:
           schema:
             type: string
           required: true
+        - in: query
+          name: page
+          schema:
+            $ref: './api.yml#/components/schemas/Page'
+        - in: query
+          name: pageSize
+          schema:
+            $ref: './api.yml#/components/schemas/PageSize'
       responses:
         200:
           description: List of marketplaces where the account owner can find customers

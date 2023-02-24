@@ -43,8 +43,8 @@ public class InvoiceController {
   @GetMapping("/accounts/{aId}/invoices")
   public List<Invoice> getInvoices(
       @PathVariable(name = "aId") String accountId,
-      @RequestParam(name = "page") PageFromOne page,
-      @RequestParam(name = "pageSize") BoundedPageSize pageSize,
+      @RequestParam(name = "page", required = false) PageFromOne page,
+      @RequestParam(name = "pageSize", required = false) BoundedPageSize pageSize,
       @RequestParam(name = "status", required = false) InvoiceStatus status) {
     return service.getInvoices(accountId, page, pageSize, status).stream()
         .map(mapper::toRest)

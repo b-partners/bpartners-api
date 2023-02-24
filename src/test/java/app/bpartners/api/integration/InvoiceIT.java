@@ -40,7 +40,6 @@ import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.api.function.Executable;
-import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -48,10 +47,6 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
-import software.amazon.awssdk.services.eventbridge.model.PutEventsRequest;
-import software.amazon.awssdk.services.eventbridge.model.PutEventsRequestEntry;
-import software.amazon.awssdk.services.eventbridge.model.PutEventsResponse;
-import software.amazon.awssdk.services.eventbridge.model.PutEventsResultEntry;
 
 import static app.bpartners.api.endpoint.rest.model.CrupdateInvoice.PaymentTypeEnum.IN_INSTALMENT;
 import static app.bpartners.api.endpoint.rest.model.Invoice.PaymentTypeEnum.CASH;
@@ -61,7 +56,6 @@ import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PROPOSAL;
 import static app.bpartners.api.integration.conf.TestUtils.INVOICE1_ID;
 import static app.bpartners.api.integration.conf.TestUtils.INVOICE2_ID;
-import static app.bpartners.api.integration.conf.TestUtils.INVOICE3_ID;
 import static app.bpartners.api.integration.conf.TestUtils.INVOICE4_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_TOKEN;
@@ -97,8 +91,6 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
@@ -565,15 +557,6 @@ class InvoiceIT {
         "{\"type\":\"400 BAD_REQUEST\",\"message\":\"page size must be <" + MAX_PAGE_SIZE
             + "\"}",
         () -> api.getInvoices(JOE_DOE_ACCOUNT_ID, 1, MAX_PAGE_SIZE + 1, null));
-    assertThrowsApiException(
-        "{\"type\":\"400 BAD_REQUEST\",\"message\":\"Required request parameter 'page' for method"
-            + " parameter type PageFromOne is not present"
-            + "\"}",
-        () -> api.getInvoices(JOE_DOE_ACCOUNT_ID, null, 10, null));
-    assertThrowsApiException(
-        "{\"type\":\"400 BAD_REQUEST\",\"message\":\"Required request parameter 'pageSize' for "
-            + "method parameter type BoundedPageSize is not present\"}",
-        () -> api.getInvoices(JOE_DOE_ACCOUNT_ID, 1, null, null));
     assertThrowsApiException("{\"type\":\"404 NOT_FOUND\",\"message\":\""
             + "Invoice.not_existing_invoice_id is not found\"}",
         () -> api.getInvoiceById(JOE_DOE_ACCOUNT_ID, "not_existing_invoice_id"));

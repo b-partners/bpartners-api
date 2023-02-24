@@ -1,3 +1,23 @@
+# [0.8.0](https://github.com/b-partners/bpartners-api/compare/v0.7.0...v0.8.0) (2023-02-23)
+
+
+### Bug Fixes
+
+* ignore missing informations during import from file ([3c30def](https://github.com/b-partners/bpartners-api/commit/3c30deffb4cba6033e34ebee61a6bffbeee07884))
+* page and page size is optional and have default values ([108b3d7](https://github.com/b-partners/bpartners-api/commit/108b3d76f1b7958b2aa9c3021aa96bd6fa68df76))
+* payment regulation works for every invoice status ([858ea4a](https://github.com/b-partners/bpartners-api/commit/858ea4a183583c9d0924351b6268a87d55839d73))
+* payment type is mapped correctly ([081b6ad](https://github.com/b-partners/bpartners-api/commit/081b6ad040de3d0aa902c1dfc862bcecb915a702))
+* reference is still available during same invoice update ([123be66](https://github.com/b-partners/bpartners-api/commit/123be66098e30679ea9c4f1bce05fa939021ab1e))
+* **to-revert:** unit price is set to zero when null is provided during crupdate products ([630dee6](https://github.com/b-partners/bpartners-api/commit/630dee6efc21cf84bca7dc2a7bc3beab52193ad4))
+
+
+### Features
+
+* add discount to invoice PDF ([1e0684e](https://github.com/b-partners/bpartners-api/commit/1e0684e4d89bd985c9243438cf5ddbf4538f32bf))
+* add global discount to invoice ([75029fa](https://github.com/b-partners/bpartners-api/commit/75029fad7740b87b5df29fee8029858754c36b70))
+
+
+
 # [0.7.0](https://github.com/b-partners/bpartners-api/compare/v0.6.0...v0.7.0) (2023-02-15)
 
 
@@ -139,15 +159,6 @@
 ### Bug Fixes
 
 * rename bpartners-client to bparnters-react-client with proper API_URL ([0ec9baa](https://github.com/b-partners/bpartners-api/commit/0ec9baaa278b806d2f6a1f54d1b251195c88382f))
-
-
-
-## [0.2.3](https://github.com/b-partners/bpartners-api/compare/v0.2.2...v0.2.3) (2023-01-07)
-
-
-### Bug Fixes
-
-* do not change enum capitalization in ts-client ([f9f04d2](https://github.com/b-partners/bpartners-api/commit/f9f04d2d00f2ae4a4c0f64596980c11a90ecc89d))
 
 
 

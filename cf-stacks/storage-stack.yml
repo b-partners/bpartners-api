@@ -55,6 +55,12 @@ Resources:
                 - Endpoint.Port
             - '/'
             - !Ref DBName
+  DatabaseIdentifierSSM:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Join [ '', [ /bpartners/, !Ref Env, /db/identifier ] ]
+      Type: String
+      Value: !GetAtt Database.Endpoint.Address
 
   Bucket:
     Type: AWS::S3::Bucket

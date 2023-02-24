@@ -32,10 +32,9 @@ public class InvoiceRelaunchController {
   public List<InvoiceRelaunch> getRelaunches(
       @PathVariable("aId") String accountId,
       @PathVariable("iId") String invoiceId,
-      @RequestParam(name = "page", defaultValue = "1") PageFromOne page,
-      @RequestParam(value = "pageSize", defaultValue = "10") BoundedPageSize pageSize,
-      @RequestParam(name = "type", required = false) String type
-  ) {
+      @RequestParam(name = "page", required = false) PageFromOne page,
+      @RequestParam(value = "pageSize", required = false) BoundedPageSize pageSize,
+      @RequestParam(name = "type", required = false) String type) {
     return service.getRelaunchesByInvoiceId(invoiceId, page, pageSize, type)
         .stream().map(mapper::toRest)
         .collect(Collectors.toUnmodifiableList());

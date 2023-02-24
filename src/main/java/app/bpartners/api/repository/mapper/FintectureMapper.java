@@ -35,7 +35,8 @@ public class FintectureMapper {
     FPaymentInitiation.Attributes attributes = new FPaymentInitiation.Attributes();
     attributes.setAmount(String.valueOf(domain.getAmount().getCentsAsDecimal()));
     attributes.setBeneficiary(beneficiary);
-    attributes.setCommunication(domain.getLabel());
+    attributes.setCommunication(domain.getLabel() == null
+        ? "default_payment_label" : domain.getLabel());
 
     FPaymentInitiation.Meta meta = new FPaymentInitiation.Meta();
     meta.setPsuName(domain.getPayerName());
@@ -50,7 +51,7 @@ public class FintectureMapper {
   public app.bpartners.api.model.PaymentRedirection toDomain(
       FPaymentRedirection redirection, PaymentInitiation paymentInitiation) {
     return app.bpartners.api.model.PaymentRedirection.builder()
-        .id(paymentInitiation.getId())
+        .endToEndId(paymentInitiation.getId())
         .sessionId(redirection.getMeta().getSessionId())
         .redirectUrl(redirection.getMeta().getUrl())
         .successUrl(paymentInitiation.getSuccessUrl())

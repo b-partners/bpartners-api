@@ -66,6 +66,15 @@ jobs:
 
       - run: ./gradlew build -x test
 
+      - name: Install aws-cli
+        uses: unfor19/install-aws-cli-action@v1.0.3
+        with:
+          version: 2
+          verbose: false
+          arch: amd64
+          rootdir: ''
+          workdir: ''
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@13d241b293754004c80624b5567555c4a39ffbe3
         with:
@@ -111,6 +120,11 @@ jobs:
           echo "memory=${{ steps.get-configuration.outputs.memory}}" >> $GITHUB_ENV
           echo "tasksDesiredCount=${{ steps.get-configuration.outputs.tasksDesiredCount}}" >> $GITHUB_ENV
           echo "listenerRuleAvailablePriority=${{ steps.get-configuration.outputs.listenerRuleAvailablePriority}}" >> $GITHUB_ENV
+
+      - name: Retrieve Database identifier from Parameter Store and set it as Env
+        run: |
+          aws configure set default.output text
+          echo "dbIdentifier=$(aws ssm get-parameter --name /bpartners/${{ env.branch_env }}/db/identifier --query "Parameter.Value" | grep -o '^[^.]*')" >> $GITHUB_ENV
 
       - name: Deploy compute stack
         uses: aws-actions/aws-cloudformation-github-deploy@v1

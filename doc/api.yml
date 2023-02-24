@@ -67,7 +67,11 @@ paths:
   /accounts/{aId}/transactions/{tId}/transactionCategories:
     $ref: './paying-api.yml#/operations/createTransactionCategories'
   /accounts/{id}/products:
-    $ref: './paying-api.yml#/operations/getOrCreateProducts'
+    $ref: './paying-api.yml#/operations/productOperations'
+  /accounts/{aId}/products/status:
+    $ref: './paying-api.yml#/operations/updateProductsStatus'
+  /accounts/{id}/products/upload:
+    $ref: './paying-api.yml#/operations/importProducts'
   /accounts/{aId}/invoices:
     $ref: './paying-api.yml#/operations/getInvoices'
   /accounts/{aId}/invoices/{iId}:
@@ -94,6 +98,8 @@ paths:
   #############################################
   /accounts/{id}/customers:
     $ref: './customers-api.yml#/operations/getOrCreateCustomers'
+  /accounts/{id}/customers/upload:
+    $ref: './customers-api.yml#/operations/importCustomers'
 
   #############################################
   ############# Prospecting API ###############

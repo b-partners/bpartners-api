@@ -23,6 +23,14 @@ operations:
           name: lastName
           schema:
             type: string
+        - in: query
+          name: page
+          schema:
+            $ref: './api.yml#/components/schemas/Page'
+        - in: query
+          name: pageSize
+          schema:
+            $ref: './api.yml#/components/schemas/PageSize'
       responses:
         200:
           description: List of customers of the specified account
@@ -101,6 +109,48 @@ operations:
       responses:
         200:
           description: List of updated customers of the specified account
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Customer'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
+  importCustomers:
+    post:
+      tags:
+        - Customers
+      summary: Import customers for an account
+      operationId: importCustomers
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/xls:
+            schema:
+              type: string
+              format: binary
+          application/xlsx:
+            schema:
+              type: string
+              format: binary
+      responses:
+        200:
+          description: List of imported customers
           content:
             application/json:
               schema:

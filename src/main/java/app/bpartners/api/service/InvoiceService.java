@@ -12,7 +12,6 @@ import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.repository.InvoiceRepository;
 import app.bpartners.api.repository.jpa.InvoiceJpaRepository;
 import java.util.List;
-import app.bpartners.api.repository.jpa.model.HInvoice;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
@@ -32,8 +31,8 @@ public class InvoiceService {
 
   public List<Invoice> getInvoices(String accountId, PageFromOne page,
                                    BoundedPageSize pageSize, InvoiceStatus status) {
-    int pageValue = page.getValue() - 1;
-    int pageSizeValue = pageSize.getValue();
+    int pageValue = page != null ? page.getValue() - 1 : 0;
+    int pageSizeValue = pageSize != null ? pageSize.getValue() : 30;
     if (status != null) {
       return repository.findAllByAccountIdAndStatus(accountId, status, pageValue, pageSizeValue);
     }
@@ -42,16 +41,6 @@ public class InvoiceService {
 
   public Invoice getById(String invoiceId) {
     return repository.getById(invoiceId);
-  }
-
-  public boolean hasAvailableReference(String accountId, String invoiceId, String reference,
-                                       InvoiceStatus status) {
-    if (reference == null) {
-      return true;
-    }
-    List<HInvoice> actual = jpaRepository.findByIdAccountAndRefAndStatus(
-        accountId, reference, status);
-    return actual.isEmpty() || actual.get(0).getId().equals(invoiceId);
   }
 
   @Transactional(isolation = Isolation.SERIALIZABLE)
@@ -63,7 +52,7 @@ public class InvoiceService {
     }
     Invoice invoice = repository.crupdate(toCrupdate);
 
-    eventProducer.accept(List.of(toTypedEvent(invoice)));
+    //eventProducer.accept(List.of(toTypedEvent(invoice)));
 
     return invoice;
   }

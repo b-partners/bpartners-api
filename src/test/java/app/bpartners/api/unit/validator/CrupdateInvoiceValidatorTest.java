@@ -3,6 +3,7 @@ package app.bpartners.api.unit.validator;
 import app.bpartners.api.endpoint.rest.model.CrupdateInvoice;
 import app.bpartners.api.endpoint.rest.validator.CreateProductValidator;
 import app.bpartners.api.endpoint.rest.validator.CrupdateInvoiceValidator;
+import app.bpartners.api.endpoint.rest.validator.PaymentRegValidator;
 import app.bpartners.api.model.exception.BadRequestException;
 import java.time.LocalDate;
 import java.util.List;
@@ -18,7 +19,10 @@ import static org.mockito.Mockito.mock;
 
 class CrupdateInvoiceValidatorTest {
 
-  private final CrupdateInvoiceValidator validator = new CrupdateInvoiceValidator();
+  private final CrupdateInvoiceValidator validator =
+      new CrupdateInvoiceValidator(
+          mock(PaymentRegValidator.class),
+          mock(CreateProductValidator.class));
 
   CrupdateInvoice validInvoice() {
     return new CrupdateInvoice()

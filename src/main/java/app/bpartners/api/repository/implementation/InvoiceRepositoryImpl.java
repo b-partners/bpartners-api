@@ -55,7 +55,8 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
     Invoice domain = mapper.toDomain(
         entity.products(getProductEntities(invoice, entity)));
     jpaRepository.save(entity
-        .fileId(processPdfGeneration(domain)));
+        .fileId(processPdfGeneration(
+            domain.multiplePayments(mapper.getMultiplePayments(entity)))));
 
     return domain;
   }
@@ -65,7 +66,7 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
         ? String.valueOf(randomUUID()) : domain.getFileId();
     String accountId = domain.getAccount().getId();
 
-    byte[] logoAsBytes = fileService.downloadOptionalFile(LOGO, accountId, userLogoFileId());
+    byte[] logoAsBytes = fileService.downloadOptionalFile(LOGO, accountId, userLogoFileId()).get(0);
     byte[] fileAsBytes = domain.getStatus() == CONFIRMED || domain.getStatus() == PAID
         ? pdfUtils.generatePdf(domain, accountHolder(domain), logoAsBytes, INVOICE_TEMPLATE)
         : pdfUtils.generatePdf(domain, accountHolder(domain), logoAsBytes, DRAFT_TEMPLATE);

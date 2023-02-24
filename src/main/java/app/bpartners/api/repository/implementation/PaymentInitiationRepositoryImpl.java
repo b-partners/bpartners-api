@@ -1,5 +1,6 @@
 package app.bpartners.api.repository.implementation;
 
+import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.model.PaymentInitiation;
 import app.bpartners.api.model.PaymentRedirection;
 import app.bpartners.api.model.mapper.PaymentRequestMapper;
@@ -32,6 +33,17 @@ public class PaymentInitiationRepositoryImpl implements PaymentInitiationReposit
           FPaymentRedirection paymentRedirection = initiatePayment(domain, invoice);
           return mapper.toDomain(paymentRedirection, domain);
         }).collect(Collectors.toUnmodifiableList());
+  }
+
+  @Override
+  public void saveAll(
+      List<PaymentInitiation> paymentInitiations, String invoice, InvoiceStatus status) {
+    if (status != InvoiceStatus.CONFIRMED && status != InvoiceStatus.PAID) {
+      paymentInitiations.forEach(payment -> {
+        HPaymentRequest entity = paymentRequestMapper.toEntity(null, payment, invoice);
+        paymentRequestRepository.save(entity);
+      });
+    }
   }
 
   private FPaymentRedirection initiatePayment(PaymentInitiation domain, String invoice) {

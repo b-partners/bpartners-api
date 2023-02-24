@@ -55,7 +55,7 @@
             border: 1px solid black;
             padding: 4px 8px;
             width: 150px;
-            margin-left: 73%;
+            margin-left: 250px;
         }
 
         th {
@@ -197,8 +197,14 @@
         <th style="width: 150px">Description</th>
         <th>Quantité</th>
         <th>Prix unitaire</th>
+        <th th:if="${invoice.discount.percentValue.getCentsAsDecimal() > 0}">Sous-total</th>
+        <th th:if="${invoice.discount.percentValue.getCentsAsDecimal() > 0}">Remise</th>
+        <th
+                th:if="${accountHolder.isSubjectToVat()}">
+            Montant
+            HT
+        </th>
         <th th:if="${accountHolder.isSubjectToVat()}">TVA</th>
-        <th th:if="${accountHolder.isSubjectToVat()}">Montant HT</th>
         <th>
             <span th:if="${accountHolder.isSubjectToVat()}">Montant TTC</span>
             <span th:unless="${accountHolder.isSubjectToVat()}">Montant HT</span>
@@ -214,54 +220,141 @@
                         th:text="${#numbers.formatDecimal(product.unitPrice.getCentsAsDecimal(),1,2)}"></span>
                     €
                 </td>
+                <td class="text-center"
+                    th:if="${invoice.discount.percentValue.getCentsAsDecimal() > 0}"><span
+                        th:text=" ${#numbers.formatDecimal(product.priceWithoutVat.getCentsAsDecimal(),1,2)}"></span>
+                    €
+                </td>
+                <td class="text-center"
+                    th:if="${invoice.discount.percentValue.getCentsAsDecimal() > 0}">
+                    <span
+                            th:text="${#numbers.formatDecimal(invoice.discount.percentValue.getCentsAsDecimal(),1,2)}"></span>%
+                </td>
+                <td class="text-center" th:if="${accountHolder.isSubjectToVat()}">
+                    <span th:text="${#numbers.formatDecimal(product.priceNoVatWithDiscount.getCentsAsDecimal(),1,2)}">
+                    </span>
+                    €
+                </td>
                 <td class="text-center" th:if="${accountHolder.isSubjectToVat()}"><span
                         th:text="${#numbers.formatDecimal(product.vatPercent.getCentsAsDecimal(),1,2)}"></span>%
                 </td>
-                <td class="text-center" th:if="${accountHolder.isSubjectToVat()}"><span
-                        th:text="
-                    ${#numbers.formatDecimal(product.totalWithoutVat.getCentsAsDecimal(),1,2)}
-                "></span>
-                    €
-                </td>
-                <td class="text-center"><span
-                        th:text="${#numbers.formatDecimal(product.totalPriceWithVat.getCentsAsDecimal(),1,2)}"></span>
-                    €
+                <td class="text-center">
+                    <span th:text="${#numbers.formatDecimal(product.getTotalWithDiscount.getCentsAsDecimal(),1,2)}">
+                    </span> €
                 </td>
             </tr>
         </th:block>
         </tbody>
     </table>
-    <div class="amount-section no-break-inside">
-        <div>
-            <p th:if="${accountHolder.isSubjectToVat()}"><strong>Total HT</strong> : <span
-                    th:text="${#numbers.formatDecimal(invoice.totalPriceWithoutVat.getCentsAsDecimal(), 1,2)}"></span>
-                €
-            </p>
-            <p th:if="${accountHolder.isSubjectToVat()}"><strong>Total TVA</strong> : <span
-                    th:text="${#numbers.formatDecimal(invoice.totalVat.getCentsAsDecimal(), 1,2)}"></span>
-                €</p>
-            <p>
-                <strong th:if="${accountHolder.isSubjectToVat()}">Total TTC</strong>
-                <strong th:unless="${accountHolder.isSubjectToVat()}">Total HT</strong> : <span
-                    th:text="${#numbers.formatDecimal(invoice.totalPriceWithVat.getCentsAsDecimal(),1,2)}"></span>
-                €
-            </p>
-            <p style="padding: 4px 8px; width: 150px; margin-left: 73%; border: 0px;
-             font-size: 0.9em; text-align: center; line-height: 1.8;"
-               th:if="${!accountHolder.isSubjectToVat()}">
-                TVA non applicable article 293 B <br/> du code général des impôts (CGI).
-            </p>
-        </div>
+    <table class="table-head">
+        <tr>
+            <td>
+                <p style="margin-top: 90px">Mode de paiement :
+                    <strong
+                            th:if="${invoice.paymentType == null  ||
+                            (invoice.paymentType != null && invoice.paymentType.getValue() == 'CASH')}">
+                        AU COMPTANT
+                    </strong>
+                    <strong th:unless="${invoice.paymentType == null  ||
+                            (invoice.paymentType != null && invoice.paymentType.getValue() == 'CASH')}">
+                        EN PLUSIEURS FOIS
+                    </strong>
+                </p>
+            </td>
+            <td class="text-center">
+                <div class="amount-section">
+                    <p th:if="${invoice.discount.percentValue.getCentsAsDecimal() > 0}">
+                        <strong>Sous-Total</strong> :
+                        <span
+                                th:text="${#numbers.formatDecimal(invoice.totalPriceWithoutDiscount.getCentsAsDecimal(), 1,2)}"></span>
+                        €
+                    </p>
+                    <p th:if="${invoice.discount.percentValue.getCentsAsDecimal() > 0}">
+                        <strong>
+                            Remise </strong> :
+                        <span
+                                th:text="${#numbers.formatDecimal(invoice.discount.amountValue.getCentsAsDecimal(), 1,2)}"></span>
+                        €
+                    </p>
+                    <p th:if="${accountHolder.isSubjectToVat()}"><strong>Total HT</strong> : <span
+                            th:text="${#numbers.formatDecimal(invoice.totalPriceWithoutVat.getCentsAsDecimal(), 1,2)}"></span>
+                        €
+                    </p>
+                    <p th:if="${accountHolder.isSubjectToVat()}"><strong>Total TVA</strong> : <span
+                            th:text="${#numbers.formatDecimal(invoice.totalVat.getCentsAsDecimal(), 1,2)}"></span>
+                        €</p>
+                    <p>
+                        <strong th:if="${accountHolder.isSubjectToVat()}">Total TTC</strong>
+                        <strong th:unless="${accountHolder.isSubjectToVat()}">Total HT</strong> :
+                        <span
+                                th:text="${#numbers.formatDecimal(invoice.totalPriceWithVat.getCentsAsDecimal(),1,2)}"></span>
+                        €
+                    </p>
+                    <p th:if="${!accountHolder.isSubjectToVat()}" style="border: none">
+                        TVA non applicable article 293 B <br/> du code général des impôts
+                        (CGI).
+                    </p>
+                </div>
+            </td>
+        </tr>
+    </table>
+    <div th:if="${invoice.paymentType != null
+            && invoice.paymentType.getValue() == 'IN_INSTALMENT'}"
+         class="no-break-inside">
+        <h3>Calendrier des échéances</h3>
+        <p></p>
+        <table style="margin: 10px 0px 20px 0px;table-layout: fixed;" class="main-table">
+            <thead class="text-center" style="border: 1px solid black">
+            <th>Designation</th>
+            <th>Date d'échéance</th>
+            <th>
+                <span th:if="${accountHolder.isSubjectToVat()}">Montant TTC</span>
+                <span th:unless="${accountHolder.isSubjectToVat()}">Montant HT</span>
+            </th>
+            <th style="width: 150px">Commentaire</th>
+            </thead>
+            <tbody>
+            <th:block th:each="payment,i : ${invoice.multiplePayments}">
+                <tr>
+                    <td class="text-center">
+                            <span th:if="${i.count < i.size}">
+                                Acompte N°<span th:text="${i.count}"></span>
+                            </span>
+                        <span th:unless="${i.count <i.size}">
+                                Restant dû
+                            </span>
+                    </td>
+                    <td class="text-center">
+                            <span
+                                    th:text="${#dates.format(payment.getFormattedMaturityDate(), 'dd-MM-yyyy')}"></span>
+                    </td>
+                    <td class="text-center">
+                            <span
+                                    th:text="${#numbers.formatDecimal(payment.getAmount().getCentsAsDecimal(),1,2)}"></span>€
+                    </td>
+                    <td class="text-center">
+                        <span th:if="${payment.getComment() != null}">
+                            <span th:text="${payment.getComment()}">
+                            </span>
+                        </span>
+                        <span th:unless="${payment.getComment() != null}">
+                           -
+                        </span>
+                    </td>
+                </tr>
+            </th:block>
+            </tbody>
+        </table>
     </div>
-    <div class="section-end no-break-inside">
+    <div style="width: 100%;" class="no-break-inside">
         <p><span class="muted text-justify">
             Après acceptation de ce devis, la facture correspondante devra être réglée sous <span
                 th:text="${invoice.getDelayInPaymentAllowed()}"></span>
         jours après sa date d'émission.
         Passé ce délai, vous vous exposez à des pénalités de retard de <span
                 th:text="${#numbers.formatDecimal(invoice.getDelayPenaltyPercent().getCentsAsDecimal(),1,2)}"></span>% de la valeur de la
-            facture <span th:if="${!accountHolder.isSubjectToVat()}">TTC</span><span
-                th:unless="${!accountHolder.isSubjectToVat()}">HT</span>.
+            facture <span th:if="${accountHolder.isSubjectToVat()}">TTC</span><span
+                th:unless="${accountHolder.isSubjectToVat()}">HT</span>.
         </span></p>
         <div class="muted text-right" id="signature">
             <p>Signature précédée de la mention "Bon pour accord".</p>

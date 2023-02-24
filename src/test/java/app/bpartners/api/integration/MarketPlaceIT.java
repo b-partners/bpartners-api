@@ -36,7 +36,6 @@ import static app.bpartners.api.integration.conf.TestUtils.setUpAccountSwanRepos
 import static app.bpartners.api.integration.conf.TestUtils.setUpLegalFileRepository;
 import static app.bpartners.api.integration.conf.TestUtils.setUpSwanComponent;
 import static app.bpartners.api.integration.conf.TestUtils.setUpUserSwanRepository;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
@@ -129,7 +128,7 @@ class MarketPlaceIT {
     ProspectingApi api = new ProspectingApi(joeDoeClient);
 
     List<Marketplace> actual =
-        ignoreDescription(api.getMarketplaces(JOE_DOE_ACCOUNT_ID));
+        ignoreDescription(api.getMarketplaces(JOE_DOE_ACCOUNT_ID, 1, 20));
     assertTrue(actual.containsAll(List.of(marketPlace1(), marketPlace2(), defaultMarketPlace1(),
         defaultMarketPlace2())));
   }
@@ -139,7 +138,7 @@ class MarketPlaceIT {
     ApiClient joeDoeClient = anApiClient();
     ProspectingApi api = new ProspectingApi(joeDoeClient);
 
-    assertThrowsForbiddenException(() -> api.getMarketplaces(NOT_JOE_DOE_ACCOUNT_ID));
+    assertThrowsForbiddenException(() -> api.getMarketplaces(NOT_JOE_DOE_ACCOUNT_ID, 1, 20));
   }
 
   private List<Marketplace> ignoreDescription(List<Marketplace> marketplaces) {

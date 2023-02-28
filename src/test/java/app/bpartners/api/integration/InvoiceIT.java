@@ -54,6 +54,7 @@ import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.DRAFT;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PROPOSAL;
+import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PROPOSAL_CONFIRMED;
 import static app.bpartners.api.integration.conf.TestUtils.INVOICE1_ID;
 import static app.bpartners.api.integration.conf.TestUtils.INVOICE2_ID;
 import static app.bpartners.api.integration.conf.TestUtils.INVOICE4_ID;
@@ -91,6 +92,7 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
@@ -353,6 +355,51 @@ class InvoiceIT {
         .delayPenaltyPercent(null);
   }
 
+  CrupdateInvoice toCrupdate(){
+    return new CrupdateInvoice()
+        .status(PROPOSAL)
+        .ref("BP018")
+        .title("Nouvelle facture de produits")
+        .comment("Commentaire de facture")
+        .customer(customer1())
+        .products(List.of(createProduct4(), createProduct5()))
+        .sendingDate(LocalDate.now())
+        .validityDate(LocalDate.now().plusDays(3L))
+        .globalDiscount(new InvoiceDiscount()
+            .amountValue(300)
+            .percentValue(1000))
+        .delayInPaymentAllowed(null)
+        .delayPenaltyPercent(null);
+  }
+  Invoice expectedCrupdatedInvoice() {
+    return new Invoice()
+        .ref(PROPOSAL_REF_PREFIX + toCrupdate().getRef())
+        .title(toCrupdate().getTitle())
+        .comment(toCrupdate().getComment())
+        .customer(toCrupdate().getCustomer())
+        .status(PROPOSAL)
+        .sendingDate(toCrupdate().getSendingDate())
+        .validityDate(toCrupdate().getValidityDate())
+        .delayPenaltyPercent(toCrupdate().getDelayPenaltyPercent())
+        .delayInPaymentAllowed(toCrupdate().getDelayInPaymentAllowed())
+        .products(List.of(
+            product4()
+                .id(null)
+                .totalVat(180)
+                .totalPriceWithVat(1980),
+            product5()
+                .id(null)
+                .totalVat(90)
+                .totalPriceWithVat(990)))
+        .totalPriceWithoutDiscount(3000)
+        .totalPriceWithoutVat(1800 + 900)
+        .totalVat(180 + 90)
+        .totalPriceWithVat(1980 + 990)
+        .globalDiscount(toCrupdate().getGlobalDiscount())
+        .paymentRegulations(List.of())
+        .paymentType(CASH)
+        .metadata(Map.of());
+  }
   Invoice expectedDraft() {
     return new Invoice()
         .id(NEW_INVOICE_ID)
@@ -841,6 +888,69 @@ class InvoiceIT {
     assertEquals(actualConfirmed.getFileId(), actualPaid.getFileId());
     assertTrue(actualUpdatedDraft.getRef().contains(DRAFT_REF_PREFIX));
     assertFalse(actualConfirmed.getRef().contains(DRAFT_REF_PREFIX));
+  }
+
+  @Test
+  void crupdate_invoice_from_proposal_to_paid () throws ApiException {
+    ApiClient joeDoeClient = anApiClient();
+    PayingApi api = new PayingApi(joeDoeClient);
+    String id = String.valueOf(randomUUID());
+
+    Invoice actualProposal = api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, id, toCrupdate());
+    Invoice updatedActualProposalTitle = api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, id, toCrupdate()
+        .title("Nouveau titre"));
+    Invoice updatedActualComment = api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, id, toCrupdate()
+        .comment("Nouveau commentaire"));
+    Invoice actualConfirmed = api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, id, toCrupdate()
+        .status(CONFIRMED));
+    Invoice actualProposalConfirmed = api.getInvoiceById(JOE_DOE_ACCOUNT_ID, id);
+    Invoice actualPaid = api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, actualConfirmed.getId(), toCrupdate()
+        .status(PAID));
+
+
+    assertEquals(expectedCrupdatedInvoice()
+        .id(actualProposal.getId())
+        .createdAt(actualProposal.getCreatedAt())
+        .updatedAt(actualProposal.getUpdatedAt())
+        .fileId(actualProposal.getFileId())
+        .toPayAt(actualProposal.getToPayAt())
+        .delayInPaymentAllowed(actualProposal.getDelayInPaymentAllowed())
+        .delayPenaltyPercent(actualProposal.getDelayPenaltyPercent()), actualProposal);
+    assertNotNull(actualProposal.getFileId());
+    assertEquals(expectedCrupdatedInvoice()
+        .id(actualProposal.getId())
+        .createdAt(updatedActualProposalTitle.getCreatedAt())
+        .updatedAt(updatedActualProposalTitle.getUpdatedAt())
+        .fileId(actualProposal.getFileId())
+        .toPayAt(actualProposal.getToPayAt())
+        .delayInPaymentAllowed(actualProposal.getDelayInPaymentAllowed())
+        .delayPenaltyPercent(actualProposal.getDelayPenaltyPercent())
+        .title("Nouveau titre"), updatedActualProposalTitle);
+    assertEquals(expectedCrupdatedInvoice()
+        .id(actualProposal.getId())
+        .createdAt(updatedActualComment.getCreatedAt())
+        .updatedAt(updatedActualComment.getUpdatedAt())
+        .fileId(actualProposal.getFileId())
+        .toPayAt(actualProposal.getToPayAt())
+        .delayInPaymentAllowed(updatedActualComment.getDelayInPaymentAllowed())
+        .delayPenaltyPercent(updatedActualComment.getDelayPenaltyPercent())
+        .comment("Nouveau commentaire"), updatedActualComment);
+    assertTrue(actualProposalConfirmed.getId().equals(id));
+    assertTrue(actualProposalConfirmed.getStatus().equals(PROPOSAL_CONFIRMED));
+    assertTrue(actualProposalConfirmed.getFileId().equals(actualProposal.getFileId()));
+    assertNotEquals(actualConfirmed.getId(), id);
+    assertTrue(actualConfirmed.getStatus().equals(CONFIRMED));
+    assertNotNull(actualConfirmed.getPaymentUrl());
+    assertEquals(actualConfirmed
+        .createdAt(actualPaid.getCreatedAt())
+        .updatedAt(actualPaid.getUpdatedAt())
+        .status(PAID), actualPaid);
+    assertNotNull(actualPaid.getPaymentUrl());
+    assertThrowsApiException("{\"type\":\"400 BAD_REQUEST\",\"message\":"
+            + "\"Invoice id " + id + " is not valid\"}",
+        () -> api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, id, toCrupdate()
+            .ref("BP018-2")
+            .status(PAID)));
   }
 
   @Test

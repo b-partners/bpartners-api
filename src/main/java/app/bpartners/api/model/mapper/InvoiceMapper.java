@@ -243,6 +243,10 @@ public class InvoiceMapper {
           paymentUrl = entity.getPaymentUrl();
           toPayAt = sendingDate.plusDays(domain.getDelayInPaymentAllowed());
         }
+      } else if (domain.getStatus() == PAID && entity.getStatus() == PROPOSAL_CONFIRMED){
+        throw new BadRequestException(
+            "Invoice id " + id + " is not valid"
+        );
       }
     }
     return HInvoice.builder()

@@ -168,7 +168,6 @@ public class InvoiceRestMapper {
             .amount(payment.getAmount().getCentsRoundUp())
             .payerName(payment.getPayerName())
             .payerEmail(payment.getPayerEmail())
-            .paymentUrl(payment.getPaymentUrl())
             .initiatedDatetime(payment.getInitiatedDatetime()));
   }
 

@@ -45,16 +45,12 @@ public class InvoiceService {
 
   @Transactional(isolation = Isolation.SERIALIZABLE)
   public Invoice crupdateInvoice(Invoice toCrupdate) {
-    if (!accountHolder(toCrupdate).isSubjectToVat()) {
+    if (!getAccountHolder(toCrupdate).isSubjectToVat()) {
       toCrupdate.getProducts().forEach(
           product -> product.setVatPercent(new Fraction())
       );
     }
-    Invoice invoice = repository.crupdate(toCrupdate);
-
-    //eventProducer.accept(List.of(toTypedEvent(invoice)));
-
-    return invoice;
+    return repository.crupdate(toCrupdate);
   }
 
   private TypedInvoiceCrupdated toTypedEvent(Invoice invoice) {
@@ -65,7 +61,7 @@ public class InvoiceService {
         .build());
   }
 
-  private AccountHolder accountHolder(Invoice toCrupdate) {
+  private AccountHolder getAccountHolder(Invoice toCrupdate) {
     return holderService.getAccountHolderByAccountId(toCrupdate.getAccount().getId());
   }
 }

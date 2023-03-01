@@ -6,4 +6,6 @@ public interface UserRepository {
   User getUserBySwanUserIdAndToken(String swanUserId, String token);
 
   User getUserByToken(String token);
+
+  User getByPhoneNumber(String phoneNumber);
 }

@@ -8,6 +8,7 @@ import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
 import app.bpartners.api.endpoint.rest.model.IdentificationStatus;
 import app.bpartners.api.endpoint.rest.model.User;
+import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
 import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
 import app.bpartners.api.integration.conf.AbstractContextInitializer;
@@ -15,6 +16,8 @@ import app.bpartners.api.integration.conf.TestUtils;
 import app.bpartners.api.manager.ProjectTokenManager;
 import app.bpartners.api.repository.LegalFileRepository;
 import app.bpartners.api.repository.fintecture.FintectureConf;
+import app.bpartners.api.repository.jpa.UserJpaRepository;
+import app.bpartners.api.repository.jpa.model.HUser;
 import app.bpartners.api.repository.sendinblue.SendinblueConf;
 import app.bpartners.api.repository.swan.AccountHolderSwanRepository;
 import app.bpartners.api.repository.swan.AccountSwanRepository;
@@ -29,6 +32,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -40,13 +44,17 @@ import static app.bpartners.api.endpoint.rest.model.IdentificationStatus.INSUFFI
 import static app.bpartners.api.endpoint.rest.model.IdentificationStatus.INVALID_IDENTITY;
 import static app.bpartners.api.endpoint.rest.model.IdentificationStatus.PROCESSING;
 import static app.bpartners.api.endpoint.rest.model.IdentificationStatus.UNINITIATED;
+import static app.bpartners.api.integration.conf.TestUtils.JANE_DOE_ID;
+import static app.bpartners.api.integration.conf.TestUtils.JANE_DOE_TOKEN;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_TOKEN;
 import static app.bpartners.api.integration.conf.TestUtils.REDIRECT_FAILURE_URL;
 import static app.bpartners.api.integration.conf.TestUtils.REDIRECT_SUCCESS_URL;
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsApiException;
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsForbiddenException;
+import static app.bpartners.api.integration.conf.TestUtils.janeDoe;
 import static app.bpartners.api.integration.conf.TestUtils.joeDoe;
+import static app.bpartners.api.integration.conf.TestUtils.restJaneDoeUser;
 import static app.bpartners.api.integration.conf.TestUtils.restJoeDoeUser;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountHolderSwanRep;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountSwanRepository;
@@ -59,6 +67,7 @@ import static app.bpartners.api.model.mapper.UserMapper.INVALID_IDENTITY_STATUS;
 import static app.bpartners.api.model.mapper.UserMapper.PROCESSING_STATUS;
 import static app.bpartners.api.model.mapper.UserMapper.UNINITIATED_STATUS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
@@ -69,6 +78,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @AutoConfigureMockMvc
 class UserIT {
   public static final String UNKNOWN_IDENTIFICATION_STATUS = "Unknown";
+  public static final String JOE_DOE_COGNITO_TOKEN = "joe_doe_cognito_token";
   @MockBean
   private SentryConf sentryConf;
   @MockBean
@@ -93,6 +103,10 @@ class UserIT {
   private AccountHolderSwanRepository accountHolderMock;
   @MockBean
   private LegalFileRepository legalFileRepositoryMock;
+  @MockBean
+  private CognitoComponent cognitoComponent;
+  @Autowired
+  private UserJpaRepository userJpaRepository;
 
   @BeforeEach
   public void setUp() {
@@ -108,6 +122,9 @@ class UserIT {
     return TestUtils.anApiClient(JOE_DOE_TOKEN, ContextInitializer.SERVER_PORT);
   }
 
+  private static ApiClient anApiClient(String token) {
+    return TestUtils.anApiClient(token, ContextInitializer.SERVER_PORT);
+  }
 
   @Test
   void unauthenticated_get_onboarding_ok() throws IOException, InterruptedException {
@@ -164,6 +181,70 @@ class UserIT {
     User actualUser = api.whoami().getUser();
 
     assertEquals(restJoeDoeUser(), actualUser);
+  }
+
+  @Test
+  void read_user_using_cognito_ok()
+      throws ApiException, URISyntaxException, IOException, InterruptedException {
+    String phoneNumber = "+261340465338";
+    reset(swanComponentMock);
+    when(swanComponentMock.getSwanUserIdByToken(any())).thenReturn(null);
+    when(swanComponentMock.getSwanUserByToken(any())).thenReturn(null);
+    when(cognitoComponent.getPhoneNumberByToken(JOE_DOE_COGNITO_TOKEN))
+        .thenReturn(phoneNumber);
+    ApiClient joeDoeClient = anApiClient(JOE_DOE_COGNITO_TOKEN);
+    UserAccountsApi api = new UserAccountsApi(joeDoeClient);
+
+    User actualUser = api.getUserById(JOE_DOE_ID);
+
+    assertEquals(restJoeDoeUser()
+        .idVerified(false)
+        .identificationStatus(PROCESSING), actualUser);
+  }
+
+  @Test
+  void read_user_using_cognito_ko()
+      throws URISyntaxException, IOException, InterruptedException {
+    String phoneNumber = "+261341122334";
+    reset(swanComponentMock);
+    when(swanComponentMock.getSwanUserIdByToken(any())).thenReturn(null);
+    when(swanComponentMock.getSwanUserByToken(any())).thenReturn(null);
+    when(cognitoComponent.getPhoneNumberByToken(JOE_DOE_COGNITO_TOKEN))
+        .thenReturn(phoneNumber);
+    ApiClient joeDoeClient = anApiClient(JOE_DOE_COGNITO_TOKEN);
+
+    UserAccountsApi api = new UserAccountsApi(joeDoeClient);
+
+    assertThrowsForbiddenException(() -> api.getUserById(JOE_DOE_ID));
+  }
+
+  @Test
+  void persist_user_info_while_reading_ok()
+      throws URISyntaxException, IOException, InterruptedException, ApiException {
+    String phoneNumber = "+261341122334";
+    reset(swanComponentMock);
+    when(swanComponentMock.getSwanUserIdByToken(any())).thenReturn("jane_doe_user_id");
+    when(swanComponentMock.getSwanUserByToken(any())).thenReturn(janeDoe());
+    HUser beforeUpdate = userJpaRepository.getByPhoneNumber(phoneNumber);
+    ApiClient joeDoeClient = anApiClient(JANE_DOE_TOKEN);
+    UserAccountsApi api = new UserAccountsApi(joeDoeClient);
+
+    User actual = api.getUserById(JANE_DOE_ID);
+
+    assertEquals(HUser.builder()
+        .id("jane_doe_id")
+        .swanUserId(janeDoe().getId())
+        .status(beforeUpdate.getStatus())
+        .phoneNumber(beforeUpdate.getPhoneNumber())
+        .monthlySubscription(beforeUpdate.getMonthlySubscription())
+        .logoFileId(beforeUpdate.getLogoFileId())
+        .firstName(null)
+        .lastName(null)
+        .idVerified(null)
+        .identificationStatus(null)
+        .accounts(beforeUpdate.getAccounts())
+        .build(), beforeUpdate);
+    assertEquals(restJaneDoeUser(), actual);
   }
 
   @Test

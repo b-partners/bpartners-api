@@ -1,10 +1,6 @@
 package app.bpartners.api.repository.jpa.model;
 
-import app.bpartners.api.endpoint.rest.model.TransactionStatus;
-import java.time.Instant;
 import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
@@ -16,7 +12,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-import org.hibernate.annotations.Type;
 
 import static javax.persistence.GenerationType.IDENTITY;
 
@@ -37,13 +32,4 @@ public class HTransaction {
   @ManyToOne
   @JoinColumn(name = "id_invoice")
   private HInvoice invoice;
-  private Double amount;
-  private String currency;
-  private String label;
-  private String reference;
-  private String side;
-  @Type(type = "pgsql_enum")
-  @Enumerated(EnumType.STRING)
-  private TransactionStatus status;
-  private Instant paymentDateTime;
 }

@@ -30,8 +30,6 @@ public class Transaction {
   public static final String PENDING_STATUS = "Pending";
   public static final String UPCOMING_STATUS = "Upcoming";
   public static final String REJECTED_STATUS = "Rejected";
-  public static final String CREDIT_SIDE_VALUE = "CREDIT_SIDE";
-  public static final String DEBIT_SIDE_VALUE = "DEBIT_SIDE";
   private String id;
   private String idAccount;
   private String idSwan;
@@ -53,13 +51,10 @@ public class Transaction {
   public TransactionTypeEnum getType() {
     switch (side) {
       case CREDIT_SIDE:
-      case CREDIT_SIDE_VALUE:
         return TransactionTypeEnum.INCOME;
       case DEBIT_SIDE:
-      case DEBIT_SIDE_VALUE:
         return TransactionTypeEnum.OUTCOME;
       default:
-        //TODO: add unknown side
         throw new ApiException(SERVER_EXCEPTION, "Unexpected side " + side);
     }
   }

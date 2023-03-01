@@ -39,9 +39,9 @@ public class TransactionSwanRepositoryImpl implements TransactionSwanRepository 
   @Override
   public List<Transaction> getByIdAccount(String idAccount) {
     String query = String.format(QUERY, idAccount);
-    TransactionResponse data = swanCustomApi.getData(TransactionResponse.class, query,
-        tokenManager.getSwanProjecToken());
-    return data == null ? List.of() : data.getData().getAccount().getTransactions().getEdges();
+    return swanCustomApi.getData(TransactionResponse.class, query,
+            tokenManager.getSwanProjecToken())
+        .getData().getAccount().getTransactions().getEdges();
   }
 
   @Override
@@ -63,9 +63,6 @@ public class TransactionSwanRepositoryImpl implements TransactionSwanRepository 
       OneTransactionResponse transactionResponse = new ObjectMapper()
           .findAndRegisterModules() //Load DateTime Module
           .readValue(response.body(), OneTransactionResponse.class);
-      if (transactionResponse == null) {
-        return null;
-      }
       return Transaction.builder()
           .node(transactionResponse.getData().getTransaction())
           .build();

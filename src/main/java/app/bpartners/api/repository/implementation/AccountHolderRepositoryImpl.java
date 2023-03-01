@@ -22,21 +22,17 @@ public class AccountHolderRepositoryImpl implements AccountHolderRepository {
 
   @Override
   public List<AccountHolder> findAllByAccountId(String accountId) {
-    List<SwanAccountHolder> swanAccountHolders = swanRepository.findAllByAccountId(accountId);
-    if (!swanAccountHolders.isEmpty()) {
-      return swanAccountHolders.stream()
-          .map(swanAccountHolder -> getOrPersistAccountHolder(accountId, swanAccountHolder))
-          .collect(Collectors.toUnmodifiableList());
-    }
-    return jpaRepository.findAllByAccountId(accountId).stream()
-        .map(mapper::toDomain)
-        .collect(Collectors.toList());
+    return swanRepository.findAllByAccountId(accountId).stream()
+        .map(swanAccountHolder -> getOrPersistAccountHolder(accountId, swanAccountHolder))
+        .collect(Collectors.toUnmodifiableList());
   }
 
   @Override
   public AccountHolder save(AccountHolder accountHolder) {
+    SwanAccountHolder swanAccountHolder =
+        swanRepository.getById(accountHolder.getId());
     HAccountHolder entity = mapper.toEntity(accountHolder);
-    return mapper.toDomain(jpaRepository.save(entity));
+    return mapper.toDomain(swanAccountHolder, jpaRepository.save(entity));
   }
 
   public HAccountHolder getOrCreateAccountHolderEntity(
@@ -45,11 +41,17 @@ public class AccountHolderRepositoryImpl implements AccountHolderRepository {
     Optional<HAccountHolder> optional = jpaRepository.findByAccountId(accountId);
     HAccountHolder entity;
     if (optional.isEmpty()) {
-      entity = jpaRepository.save(mapper.toEntity(accountId, swanAccountHolder));
+      entity = jpaRepository.save(HAccountHolder.builder()
+          .id(swanAccountHolder.getId())
+          .accountId(accountId)
+          .subjectToVat(true) //By default, an account holder IS subject to vat
+          .mobilePhoneNumber(null)
+          .email(null)
+          .socialCapital(0) //TODO : check default social capital 0 or null
+          .vatNumber(swanAccountHolder.getInfo().getVatNumber())
+          .build());
     } else {
-      HAccountHolder optionalValue = optional.get();
-      checkAccountHolderUpdates(swanAccountHolder, optionalValue);
-      entity = jpaRepository.save(optionalValue);
+      entity = optional.get();
     }
     return entity;
   }
@@ -58,67 +60,12 @@ public class AccountHolderRepositoryImpl implements AccountHolderRepository {
   public AccountHolder getByIdAndAccountId(String id, String accountId) {
     SwanAccountHolder swanAccountHolder =
         swanRepository.getById(id);
-    Optional<HAccountHolder> accountHolder = jpaRepository.findByIdAndAccountId(id, accountId);
-    if (accountHolder.isEmpty()) {
-      return mapper.toDomain(
-          jpaRepository.save(getOrCreateAccountHolderEntity(accountId, swanAccountHolder)));
-    }
-    return mapper.toDomain(accountHolder.get());
+    return getOrPersistAccountHolder(accountId, swanAccountHolder);
   }
 
-  private AccountHolder getOrPersistAccountHolder(
+  public AccountHolder getOrPersistAccountHolder(
       String accountId, SwanAccountHolder swanAccountHolder) {
-    return mapper.toDomain(getOrCreateAccountHolderEntity(accountId, swanAccountHolder));
+    HAccountHolder entity = getOrCreateAccountHolderEntity(accountId, swanAccountHolder);
+    return mapper.toDomain(swanAccountHolder, entity);
   }
-
-  private void checkAccountHolderUpdates(SwanAccountHolder swanAccountHolder,
-                                         HAccountHolder optionalValue) {
-    if (optionalValue.getVerificationStatus() == null
-        || (!optionalValue.getVerificationStatus().getValue()
-        .equals(swanAccountHolder.getVerificationStatus()))) {
-      optionalValue.setVerificationStatus(
-          mapper.getStatus(swanAccountHolder.getVerificationStatus()));
-    }
-    if (optionalValue.getName() == null
-        || (!optionalValue.getName().equals(swanAccountHolder.getInfo().getName()))) {
-      optionalValue.setName(swanAccountHolder.getInfo().getName());
-    }
-    if (optionalValue.getRegistrationNumber() == null
-        || (!optionalValue.getRegistrationNumber()
-        .equals(swanAccountHolder.getInfo().getRegistrationNumber()))) {
-      optionalValue.setRegistrationNumber(swanAccountHolder.getInfo().getRegistrationNumber());
-    }
-    if (optionalValue.getBusinessActivity() == null
-        || (!optionalValue.getBusinessActivity()
-        .equals(swanAccountHolder.getInfo().getBusinessActivity()))) {
-      optionalValue.setBusinessActivity(swanAccountHolder.getInfo().getBusinessActivity());
-    }
-    if (optionalValue.getBusinessActivityDescription() == null
-        || (!optionalValue.getName()
-        .equals(swanAccountHolder.getInfo().getBusinessActivityDescription()))) {
-      optionalValue.setBusinessActivityDescription(
-          swanAccountHolder.getInfo().getBusinessActivityDescription());
-    }
-    if (optionalValue.getAddress() == null
-        || (!optionalValue.getAddress()
-        .equals(swanAccountHolder.getResidencyAddress().getAddressLine1()))) {
-      optionalValue.setAddress(swanAccountHolder.getResidencyAddress().getAddressLine1());
-    }
-    if (optionalValue.getCity() == null
-        || (!optionalValue.getCity().equals(swanAccountHolder.getResidencyAddress().getCity()))) {
-      optionalValue.setCity(swanAccountHolder.getResidencyAddress().getCity());
-    }
-    if (optionalValue.getCountry() == null
-        || (!optionalValue.getCountry()
-        .equals(swanAccountHolder.getResidencyAddress().getCountry()))) {
-      optionalValue.setCountry(swanAccountHolder.getResidencyAddress().getCountry());
-    }
-    if (optionalValue.getPostalCode() == null
-        || (!optionalValue.getPostalCode()
-        .equals(swanAccountHolder.getResidencyAddress().getPostalCode()))) {
-      optionalValue.setPostalCode(swanAccountHolder.getResidencyAddress().getPostalCode());
-    }
-  }
-
-
 }

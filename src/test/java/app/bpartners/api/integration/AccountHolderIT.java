@@ -245,7 +245,8 @@ class AccountHolderIT {
   @Order(1)
   @Test
   void read_unique_unverified_account_holders_ok() throws ApiException {
-    setUpSwanApi(swanApiMock, notStartedAccountHolder());
+    setUpSwanApi(swanApiMock,
+        notStartedAccountHolder());
     setUpRepositoryMock();
     ApiClient joeDoeClient = anApiClient();
     UserAccountsApi api = new UserAccountsApi(joeDoeClient);

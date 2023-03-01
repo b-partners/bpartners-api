@@ -13,7 +13,7 @@ public class UserRestMapper {
         .phone(domain.getMobilePhoneNumber())
         .monthlySubscriptionAmount(domain.getMonthlySubscription())
         .status(domain.getStatus())
-        .idVerified(domain.getIdVerified())
+        .idVerified(domain.isIdVerified())
         .identificationStatus(domain.getIdentificationStatus())
         .logoFileId(domain.getLogoFileId());
   }

@@ -1,6 +1,5 @@
 package app.bpartners.api.unit.repository;
 
-import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.mapper.UserMapper;
@@ -26,12 +25,11 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-class UserRepositoryTest {
+class UserRepositoryImplTest {
   UserSwanRepository userSwanRepository;
   UserJpaRepository userJpaRepository;
   UserMapper userMapper;
   SwanComponent swanComponent;
-  CognitoComponent cognitoComponent;
   UserRepositoryImpl userRepository;
 
   @BeforeEach
@@ -40,16 +38,13 @@ class UserRepositoryTest {
     userMapper = mock(UserMapper.class);
     userSwanRepository = mock(UserSwanRepository.class);
     swanComponent = mock(SwanComponent.class);
-    cognitoComponent = mock(CognitoComponent.class);
     userRepository =
-        new UserRepositoryImpl(userSwanRepository, userJpaRepository, userMapper, swanComponent,
-            cognitoComponent);
+        new UserRepositoryImpl(userSwanRepository, userJpaRepository, userMapper, swanComponent);
 
     setUpUserSwanRepository(userSwanRepository);
     setUpSwanComponent(swanComponent);
     when(userJpaRepository.findUserBySwanUserId(any(String.class))).thenReturn(
         Optional.of(user()));
-    when(userJpaRepository.save(any())).thenReturn(user());
     when(userMapper.toDomain(any(HUser.class), any(SwanUser.class))).thenReturn(expectedUser());
   }
 
@@ -57,6 +52,7 @@ class UserRepositoryTest {
   void read_user_by_swan_userId_and_token() {
     User actual = userRepository.getUserBySwanUserIdAndToken(JOE_DOE_SWAN_USER_ID, JOE_DOE_TOKEN);
 
+    assertNotNull(actual);
     assertEquals(expectedUser(), actual);
   }
 

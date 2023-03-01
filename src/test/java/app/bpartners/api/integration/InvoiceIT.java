@@ -183,8 +183,6 @@ class InvoiceIT {
     setUpLegalFileRepository(legalFileRepositoryMock);
     when(holderJpaRepository.findByAccountId(JOE_DOE_ACCOUNT_ID))
         .thenReturn(Optional.of(accountHolderEntity1()));
-    when(holderJpaRepository.save(any()))
-        .thenReturn(accountHolderEntity1());
   }
 
   private HAccountHolder accountHolderEntity1() {
@@ -197,7 +195,6 @@ class InvoiceIT {
         .vatNumber("FR 32 123456789")
         .initialCashflow("6000/1")
         .subjectToVat(true)
-        .country("FRA")
         .build();
   }
 

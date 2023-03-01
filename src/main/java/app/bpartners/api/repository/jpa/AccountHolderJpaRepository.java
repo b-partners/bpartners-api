@@ -8,16 +8,13 @@ import org.springframework.data.jpa.repository.Query;
 
 public interface AccountHolderJpaRepository extends JpaRepository<HAccountHolder, String> {
   List<HAccountHolder> findAllByAccountId(String accountId);
+
   Optional<HAccountHolder> findByAccountId(String accountId);
 
-  Optional<HAccountHolder> findByIdAndAccountId(String id, String accountId);
-
   @Query(value =
-      "select new HAccountHolder (ac.id, ac.accountId, ac.socialCapital, ac.vatNumber,"
+      "select new HAccountHolder(ac.id, ac.accountId, ac.socialCapital, ac.vatNumber,"
           + " ac.mobilePhoneNumber, ac.email,"
-          + " ac.subjectToVat,ac.initialCashflow, ac.verificationStatus,"
-          + "ac.name, ac.registrationNumber, ac.businessActivity,"
-          + "ac.businessActivityDescription, ac.address, ac.city, ac.country, ac.postalCode)"
+          + " ac.subjectToVat,ac.initialCashflow)"
           + " from HAccountHolder ac group by ac.accountId, ac.id,"
           + " ac.socialCapital, ac.vatNumber, ac.mobilePhoneNumber, ac.email, ac.initialCashflow")
   List<HAccountHolder> findAllGroupByAccountId();

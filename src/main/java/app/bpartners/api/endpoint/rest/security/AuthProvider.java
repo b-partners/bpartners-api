@@ -1,6 +1,5 @@
 package app.bpartners.api.endpoint.rest.security;
 
-import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.endpoint.rest.security.exception.UnapprovedLegalFileException;
 import app.bpartners.api.endpoint.rest.security.model.Principal;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
@@ -24,7 +23,7 @@ import static app.bpartners.api.endpoint.rest.security.swan.SwanConf.BEARER_PREF
 @Component
 @AllArgsConstructor
 public class AuthProvider extends AbstractUserDetailsAuthenticationProvider {
-  private final CognitoComponent cognitoComponent;
+
   private final SwanComponent swanComponent;
   private final UserService userService;
   private final LegalFileService legalFileService;
@@ -49,16 +48,10 @@ public class AuthProvider extends AbstractUserDetailsAuthenticationProvider {
       throw new UsernameNotFoundException("Bad credentials"); // NOSONAR
     }
     String swanUserId = swanComponent.getSwanUserIdByToken(bearer);
-    String phoneNumber = cognitoComponent.getPhoneNumberByToken(bearer);
-    if (swanUserId == null && phoneNumber == null) {
+    if (swanUserId == null) {
       throw new UsernameNotFoundException("Bad credentials"); // NOSONAR
     }
-    User user;
-    if (swanUserId != null) {
-      user = userService.getUserByIdAndBearer(swanUserId, bearer);
-    } else {
-      user = userService.getUserByPhoneNumber(phoneNumber);
-    }
+    User user = userService.getUserByIdAndBearer(swanUserId, bearer);
     List<LegalFile> legalFilesList =
         legalFileService.getAllToBeApprovedLegalFilesByUserId(user.getId());
     checkLegalFiles(legalFilesList, user);

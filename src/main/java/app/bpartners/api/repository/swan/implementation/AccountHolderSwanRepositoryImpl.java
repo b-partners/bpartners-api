@@ -39,12 +39,8 @@ public class AccountHolderSwanRepositoryImpl implements AccountHolderSwanReposit
 
   @Override
   public List<SwanAccountHolder> findAllByAccountId(String accountId) {
-    AccountHolderResponse data = swanApi.getData(AccountHolderResponse.class, QUERY);
-    if (data == null) {
-      return List.of();
-    }
     List<AccountHolderResponse.Edge> edges =
-        data
+        swanApi.getData(AccountHolderResponse.class, QUERY)
             .getData()
             .getAccountHolders()
             .getEdges();
@@ -53,22 +49,19 @@ public class AccountHolderSwanRepositoryImpl implements AccountHolderSwanReposit
 
   @Override
   public List<SwanAccountHolder> findAllByBearerAndAccountId(String bearer, String accountId) {
-    AccountHolderResponse data = swanCustomApi.getData(AccountHolderResponse.class, QUERY, bearer);
     List<AccountHolderResponse.Edge> edges =
-        data.getData()
+        swanCustomApi.getData(AccountHolderResponse.class, QUERY, bearer)
+            .getData()
             .getAccountHolders()
             .getEdges();
-    return data == null ? List.of() : getSwanAccountHolders(edges, accountId);
+    return getSwanAccountHolders(edges, accountId);
   }
 
   @Override
   public SwanAccountHolder getById(String id) {
-    AccountHolderResponse data = swanApi.getData(AccountHolderResponse.class, QUERY);
-    if (data == null) {
-      return null;
-    }
     List<AccountHolderResponse.Edge> edges = new ArrayList<>(
-        data.getData()
+        swanApi.getData(AccountHolderResponse.class, QUERY)
+            .getData()
             .getAccountHolders()
             .getEdges());
     Optional<AccountHolderResponse.Edge> optionalEdge =

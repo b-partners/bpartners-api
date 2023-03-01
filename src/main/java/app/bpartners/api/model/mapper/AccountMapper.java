@@ -2,7 +2,6 @@ package app.bpartners.api.model.mapper;
 
 import app.bpartners.api.endpoint.rest.model.AccountStatus;
 import app.bpartners.api.model.Account;
-import app.bpartners.api.repository.jpa.model.HAccount;
 import app.bpartners.api.repository.swan.model.SwanAccount;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -18,51 +17,14 @@ public class AccountMapper {
   public static final String CLOSING_STATUS = "Closing";
   public static final String SUSPENDED_STATUS = "Suspended";
 
-  public Account toDomain(SwanAccount external, String userId) {
+  public Account toDomain(SwanAccount external) {
     return Account.builder()
         .id(external.getId())
-        .userId(userId)
         .name(external.getName())
         .iban(external.getIban())
         .bic(external.getBic())
         .availableBalance(parseFraction(external.getBalances().getAvailable().getValue() * 100))
         .status(getStatus(external.getStatusInfo().getStatus()))
-        .build();
-  }
-
-  public Account toDomain(SwanAccount swanAccount, HAccount entity, String userId) {
-    Account entityToDomain = toDomain(entity, userId);
-    Account swanToDomain = toDomain(swanAccount, userId);
-    if (swanToDomain.equals(entityToDomain)) {
-      return entityToDomain;
-    } else {
-      return swanToDomain;
-    }
-  }
-
-  public Account toDomain(HAccount entity, String userId) {
-    if (entity == null) {
-      return null;
-    }
-    return Account.builder()
-        .id(entity.getId())
-        .userId(userId)
-        .name(entity.getName())
-        .iban(entity.getIban())
-        .bic(entity.getBic())
-        .availableBalance(parseFraction(entity.getAvailableBalance()))
-        .status(entity.getStatus())
-        .build();
-  }
-
-  public HAccount toEntity(Account domain) {
-    return HAccount.builder()
-        .id(domain.getId())
-        .name(domain.getName())
-        .iban(domain.getIban())
-        .bic(domain.getBic())
-        .availableBalance(domain.getAvailableBalance().toString())
-        .status(domain.getStatus())
         .build();
   }
 

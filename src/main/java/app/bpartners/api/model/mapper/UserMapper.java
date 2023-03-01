@@ -13,7 +13,7 @@ import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVE
 @Component
 @AllArgsConstructor
 public class UserMapper {
-  private final AccountMapper accountMapper;
+
   public static final String VALID_IDENTITY_STATUS = "ValidIdentity";
   public static final String INSUFFICIENT_DOCUMENT_QUALITY_STATUS = "InsufficientDocumentQuality";
   public static final String INVALID_IDENTITY_STATUS = "InvalidIdentity";
@@ -23,24 +23,18 @@ public class UserMapper {
   public User toDomain(HUser entityUser, SwanUser swanUser) {
     return User.builder()
         .id(entityUser.getId())
-        .firstName(swanUser == null ? entityUser.getFirstName() : swanUser.getFirstName())
-        .lastName(swanUser == null ? entityUser.getLastName() : swanUser.getLastName())
-        .mobilePhoneNumber(entityUser.getPhoneNumber())
+        .firstName(swanUser.getFirstName())
+        .lastName(swanUser.getLastName())
+        .mobilePhoneNumber(swanUser.getMobilePhoneNumber())
         .monthlySubscription(entityUser.getMonthlySubscription())
         .status(entityUser.getStatus())
         .logoFileId(entityUser.getLogoFileId())
-        .idVerified(swanUser == null ? entityUser.getIdVerified() : swanUser.isIdVerified())
-        .identificationStatus(
-            swanUser == null ? entityUser.getIdentificationStatus()
-                : getIdentificationStatus(
-                swanUser.getIdentificationStatus()))
-        .account(entityUser.getAccounts().isEmpty() ? null
-            : accountMapper.toDomain(entityUser.getAccounts().get(0),
-            entityUser.getId()))
+        .idVerified(swanUser.isIdVerified())
+        .identificationStatus(getIdentificationStatus(swanUser.getIdentificationStatus()))
         .build();
   }
 
-  public IdentificationStatus getIdentificationStatus(String value) {
+  private IdentificationStatus getIdentificationStatus(String value) {
     switch (value) {
       case VALID_IDENTITY_STATUS:
         return IdentificationStatus.VALID_IDENTITY;

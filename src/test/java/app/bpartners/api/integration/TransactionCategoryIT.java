@@ -42,7 +42,7 @@ import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.TestUtils.TRANSACTION1_ID;
 import static app.bpartners.api.integration.conf.TestUtils.UNKNOWN_TRANSACTION_ID;
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsApiException;
-import static app.bpartners.api.integration.conf.TestUtils.restTransaction1;
+import static app.bpartners.api.integration.conf.TestUtils.restTransaction2;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountHolderSwanRep;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountSwanRepository;
 import static app.bpartners.api.integration.conf.TestUtils.setUpLegalFileRepository;
@@ -186,7 +186,7 @@ class TransactionCategoryIT {
             + outcomeTransactionCategoryTmpl().getId() + " of type "
             + outcomeTransactionCategoryTmpl().getTransactionType() + " to transaction."
             + TRANSACTION1_ID
-            + " of type " + restTransaction1().getType()
+            + " of type " + restTransaction2().getType()
             + "\"}",
         () -> api.createTransactionCategories(JOE_DOE_ACCOUNT_ID,
             TRANSACTION1_ID,

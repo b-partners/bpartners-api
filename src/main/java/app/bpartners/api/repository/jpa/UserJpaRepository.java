@@ -8,8 +8,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface UserJpaRepository extends JpaRepository<HUser, String> {
-
-  HUser getByPhoneNumber(String phoneNumber);
+  HUser getUserBySwanUserId(String swanUserId);
 
   Optional<HUser> findUserBySwanUserId(String swanUserId);
 }

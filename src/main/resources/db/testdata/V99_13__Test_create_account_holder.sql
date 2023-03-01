@@ -9,4 +9,6 @@ values ('b33e6eb0-e262-4596-a91f-20c6a7bfd343', '+33 6 11 22 33 44',
         'FRA', '94120'),
        ('account_holder_id_2', '+33 6 13 22 33 44',
         'jane_account_id',
-        'jane@hei.school', 40000, 'FR 31 123456789', '5000/1', true);
+        'jane@hei.school', 40000, 'FR 31 123456789', '5000/1', true,
+        'VERIFIED', 'BPartners', '21904122', 'business', 'Menuisier', '6 RUE PAUL LANGEVIN', 'FONTENAY-SOUS-BOIS',
+        'FRA', '94120');

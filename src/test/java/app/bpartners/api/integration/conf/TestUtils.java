@@ -24,7 +24,9 @@ import app.bpartners.api.endpoint.rest.model.User;
 import app.bpartners.api.endpoint.rest.security.model.Principal;
 import app.bpartners.api.endpoint.rest.security.principal.PrincipalProvider;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
+import app.bpartners.api.model.Account;
 import app.bpartners.api.model.exception.BadRequestException;
+import app.bpartners.api.repository.AccountRepository;
 import app.bpartners.api.repository.LegalFileRepository;
 import app.bpartners.api.repository.fintecture.FintectureConf;
 import app.bpartners.api.repository.fintecture.FintecturePaymentInfoRepository;
@@ -73,6 +75,7 @@ import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsRequest;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsResponse;
 
+import static app.bpartners.api.endpoint.rest.model.AccountStatus.OPENED;
 import static app.bpartners.api.endpoint.rest.model.EnableStatus.ENABLED;
 import static app.bpartners.api.endpoint.rest.model.IdentificationStatus.VALID_IDENTITY;
 import static app.bpartners.api.endpoint.rest.model.Invoice.PaymentTypeEnum.IN_INSTALMENT;
@@ -83,9 +86,11 @@ import static app.bpartners.api.model.Invoice.DEFAULT_DELAY_PENALTY_PERCENT;
 import static app.bpartners.api.model.Invoice.DEFAULT_TO_PAY_DELAY_DAYS;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.CLIENT_EXCEPTION;
 import static app.bpartners.api.model.mapper.UserMapper.VALID_IDENTITY_STATUS;
+import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.when;
 
 public class TestUtils {
@@ -949,6 +954,26 @@ public class TestUtils {
         .thenReturn(List.of(domainApprovedLegalFile()));
     when(legalFileRepositoryMock.findAllToBeApprovedLegalFilesByUserId(JANE_DOE_ID))
         .thenReturn(List.of(domainApprovedLegalFile()));
+  }
+
+  public static void setUpAccountRepository(AccountRepository accountRepository) {
+    when(accountRepository.findById(any())).thenReturn(joeModelAccount());
+    when(accountRepository.findByBearer(any())).thenReturn(List.of(joeModelAccount()));
+    when(accountRepository.findByUserId(any())).thenReturn(List.of(joeModelAccount()));
+    when(accountRepository.saveAll(anyList(), any())).thenReturn(List.of(joeModelAccount()));
+  }
+
+  private static Account joeModelAccount() {
+    return Account.builder()
+        .id(joeDoeSwanAccount().getId())
+        .userId("joe_doe_id")
+        .name(joeDoeSwanAccount().getName())
+        .iban(joeDoeSwanAccount().getIban())
+        .bic(joeDoeSwanAccount().getBic())
+        .availableBalance(
+            parseFraction(joeDoeSwanAccount().getBalances().getAvailable().getValue()))
+        .status(OPENED)
+        .build();
   }
 
   public static void assertThrowsApiException(String expectedBody, Executable executable) {

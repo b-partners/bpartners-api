@@ -1,6 +1,7 @@
 package app.bpartners.api.repository.implementation;
 
 import app.bpartners.api.endpoint.rest.model.OrderDirection;
+import app.bpartners.api.endpoint.rest.model.ProductStatus;
 import app.bpartners.api.endpoint.rest.model.UpdateProductStatus;
 import app.bpartners.api.model.Product;
 import app.bpartners.api.model.mapper.ProductMapper;
@@ -70,13 +71,13 @@ public class ProductRepositoryImpl implements ProductRepository {
   }
 
   @Override
-  public List<Product> findAllByIdAccountAndStatus(String idAccount, Integer page, Integer pageSize,
+  public List<Product> findAllByIdAccountAndStatus(String idAccount, ProductStatus status, Integer page, Integer pageSize,
                                                    OrderDirection descriptionOrder,
                                                    OrderDirection unitPriceOrder,
                                                    OrderDirection createdAtOrder) {
     List<Order> orders = retrieveOrders(descriptionOrder, unitPriceOrder, createdAtOrder);
     Pageable pageRequest = PageRequest.of(page, pageSize, Sort.by(orders));
-    return jpaRepository.findAllByIdAccountAndStatus(idAccount, pageRequest).stream()
+    return jpaRepository.findAllByIdAccountAndStatus(idAccount, status, pageRequest).stream()
         .map(mapper::toDomain)
         .collect(Collectors.toUnmodifiableList());
   }

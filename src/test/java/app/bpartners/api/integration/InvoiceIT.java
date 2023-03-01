@@ -21,7 +21,7 @@ import app.bpartners.api.repository.LegalFileRepository;
 import app.bpartners.api.repository.fintecture.FintectureConf;
 import app.bpartners.api.repository.fintecture.FintecturePaymentInitiationRepository;
 import app.bpartners.api.repository.jpa.AccountHolderJpaRepository;
-import app.bpartners.api.repository.jpa.model.HAccountHolder;
+import app.bpartners.api.repository.jpa.UserJpaRepository;
 import app.bpartners.api.repository.sendinblue.SendinblueConf;
 import app.bpartners.api.repository.swan.AccountHolderSwanRepository;
 import app.bpartners.api.repository.swan.AccountSwanRepository;
@@ -31,7 +31,6 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.MethodOrderer;
@@ -59,7 +58,7 @@ import static app.bpartners.api.integration.conf.TestUtils.INVOICE4_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_TOKEN;
 import static app.bpartners.api.integration.conf.TestUtils.NOT_JOE_DOE_ACCOUNT_ID;
-import static app.bpartners.api.integration.conf.TestUtils.SWAN_ACCOUNTHOLDER_ID;
+import static app.bpartners.api.integration.conf.TestUtils.accountHolderEntity1;
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsApiException;
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsForbiddenException;
 import static app.bpartners.api.integration.conf.TestUtils.createProduct2;
@@ -75,9 +74,11 @@ import static app.bpartners.api.integration.conf.TestUtils.product5;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountHolderSwanRep;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountSwanRepository;
 import static app.bpartners.api.integration.conf.TestUtils.setUpEventBridge;
+import static app.bpartners.api.integration.conf.TestUtils.setUpHolderJpaRepository;
 import static app.bpartners.api.integration.conf.TestUtils.setUpLegalFileRepository;
 import static app.bpartners.api.integration.conf.TestUtils.setUpPaymentInitiationRep;
 import static app.bpartners.api.integration.conf.TestUtils.setUpSwanComponent;
+import static app.bpartners.api.integration.conf.TestUtils.setUpUserJpaRepository;
 import static app.bpartners.api.integration.conf.TestUtils.setUpUserSwanRepository;
 import static app.bpartners.api.model.Invoice.DEFAULT_DELAY_PENALTY_PERCENT;
 import static app.bpartners.api.model.Invoice.DEFAULT_TO_PAY_DELAY_DAYS;
@@ -128,6 +129,8 @@ class InvoiceIT {
   private LegalFileRepository legalFileRepositoryMock;
   @MockBean
   private AccountHolderJpaRepository holderJpaRepository;
+  @MockBean
+  private UserJpaRepository userJpaRepository;
 
   private static ApiClient anApiClient() {
     return TestUtils.anApiClient(JOE_DOE_TOKEN, InvoiceIT.ContextInitializer.SERVER_PORT);
@@ -179,24 +182,8 @@ class InvoiceIT {
     setUpPaymentInitiationRep(paymentInitiationRepositoryMock);
     setUpEventBridge(eventBridgeClientMock);
     setUpLegalFileRepository(legalFileRepositoryMock);
-    when(holderJpaRepository.findByAccountId(JOE_DOE_ACCOUNT_ID))
-        .thenReturn(Optional.of(accountHolderEntity1()));
-    when(holderJpaRepository.save(any()))
-        .thenReturn(accountHolderEntity1());
-  }
-
-  private HAccountHolder accountHolderEntity1() {
-    return HAccountHolder.builder()
-        .id(SWAN_ACCOUNTHOLDER_ID)
-        .accountId(JOE_DOE_ACCOUNT_ID)
-        .mobilePhoneNumber("+33 6 11 22 33 44")
-        .email("numer@hei.school")
-        .socialCapital(40000)
-        .vatNumber("FR 32 123456789")
-        .initialCashflow("6000/1")
-        .subjectToVat(true)
-        .country("FRA")
-        .build();
+    setUpHolderJpaRepository(holderJpaRepository);
+    setUpUserJpaRepository(userJpaRepository);
   }
 
   CrupdateInvoice proposalInvoice() {

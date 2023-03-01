@@ -32,6 +32,11 @@ import app.bpartners.api.repository.fintecture.FintecturePaymentInitiationReposi
 import app.bpartners.api.repository.fintecture.model.FPaymentInitiation;
 import app.bpartners.api.repository.fintecture.model.FPaymentRedirection;
 import app.bpartners.api.repository.fintecture.model.Session;
+import app.bpartners.api.repository.jpa.AccountHolderJpaRepository;
+import app.bpartners.api.repository.jpa.UserJpaRepository;
+import app.bpartners.api.repository.jpa.model.HAccount;
+import app.bpartners.api.repository.jpa.model.HAccountHolder;
+import app.bpartners.api.repository.jpa.model.HUser;
 import app.bpartners.api.repository.sendinblue.SendinblueApi;
 import app.bpartners.api.repository.sendinblue.model.Attributes;
 import app.bpartners.api.repository.sendinblue.model.Contact;
@@ -146,6 +151,22 @@ public class TestUtils {
   public static final String SESSION1_ID = "session1_id";
   public static final String SESSION2_ID = "session2_id";
   public static final String NOT_JOE_DOE_ACCOUNT_HOLDER_ID = "NOT_" + SWAN_ACCOUNTHOLDER_ID;
+
+  public static HUser persistedJoeDoeUser() {
+    return HUser.builder()
+        .id("joe_doe_id")
+        .swanUserId("c15924bf-61f9-4381-8c9b-d34369bf91f7")
+        .phoneNumber("+261340465338")
+        .monthlySubscription(5)
+        .status(ENABLED)
+        .firstName("Joe")
+        .lastName("Doe")
+        .identificationStatus(VALID_IDENTITY)
+        .idVerified(true)
+        .logoFileId("logo.jpeg")
+        .accounts(List.of(HAccount.builder().build())) //TODO
+        .build();
+  }
 
   public static User restJoeDoeUser() {
     return new User()
@@ -726,6 +747,20 @@ public class TestUtils {
         .approvalDatetime(null);
   }
 
+  public static HAccountHolder accountHolderEntity1() {
+    return HAccountHolder.builder()
+        .id(SWAN_ACCOUNTHOLDER_ID)
+        .accountId(JOE_DOE_ACCOUNT_ID)
+        .mobilePhoneNumber("+33 6 11 22 33 44")
+        .email("numer@hei.school")
+        .socialCapital(40000)
+        .vatNumber("FR 32 123456789")
+        .initialCashflow("6000/1")
+        .subjectToVat(true)
+        .country("FRA")
+        .build();
+  }
+
   public static app.bpartners.api.model.LegalFile domainLegalFile() {
     return app.bpartners.api.model.LegalFile.builder()
         .id(defaultLegalFile().getId())
@@ -948,6 +983,24 @@ public class TestUtils {
         .thenReturn(List.of(domainApprovedLegalFile()));
     when(legalFileRepositoryMock.findAllToBeApprovedLegalFilesByUserId(JANE_DOE_ID))
         .thenReturn(List.of(domainApprovedLegalFile()));
+  }
+
+  public static void setUpHolderJpaRepository(AccountHolderJpaRepository holderJpaRepository) {
+    when(holderJpaRepository.findByAccountId(JOE_DOE_ACCOUNT_ID))
+        .thenReturn(Optional.of(accountHolderEntity1()));
+    when(holderJpaRepository.save(any()))
+        .thenReturn(accountHolderEntity1());
+  }
+
+  public static void setUpUserJpaRepository(UserJpaRepository userJpaRepository) {
+    when(userJpaRepository.getByPhoneNumber(any()))
+        .thenReturn(persistedJoeDoeUser());
+    when(userJpaRepository.findUserBySwanUserId(any()))
+        .thenReturn(Optional.of(persistedJoeDoeUser()));
+    when(userJpaRepository.getById(any()))
+        .thenReturn(persistedJoeDoeUser());
+    when(userJpaRepository.save(any()))
+        .thenReturn(persistedJoeDoeUser());
   }
 
   public static void assertThrowsApiException(String expectedBody, Executable executable) {

@@ -19,6 +19,7 @@ import app.bpartners.api.repository.LegalFileRepository;
 import app.bpartners.api.repository.fintecture.FintectureConf;
 import app.bpartners.api.repository.fintecture.FintecturePaymentInfoRepository;
 import app.bpartners.api.repository.fintecture.FintecturePaymentInitiationRepository;
+import app.bpartners.api.repository.jpa.UserJpaRepository;
 import app.bpartners.api.repository.sendinblue.SendinblueConf;
 import app.bpartners.api.repository.swan.AccountHolderSwanRepository;
 import app.bpartners.api.repository.swan.AccountSwanRepository;
@@ -53,6 +54,7 @@ import static app.bpartners.api.integration.conf.TestUtils.setUpLegalFileReposit
 import static app.bpartners.api.integration.conf.TestUtils.setUpPaymentInfoRepository;
 import static app.bpartners.api.integration.conf.TestUtils.setUpPaymentInitiationRep;
 import static app.bpartners.api.integration.conf.TestUtils.setUpSwanComponent;
+import static app.bpartners.api.integration.conf.TestUtils.setUpUserJpaRepository;
 import static app.bpartners.api.integration.conf.TestUtils.setUpUserSwanRepository;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -88,6 +90,8 @@ class InvoiceRelaunchIT {
   private LegalFileRepository legalFileRepositoryMock;
   @MockBean
   private FintecturePaymentInfoRepository paymentInfoRepositoryMock;
+  @MockBean
+  private UserJpaRepository userJpaRepositoryMock;
 
   private static ApiClient anApiClient() {
     return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN,
@@ -102,7 +106,7 @@ class InvoiceRelaunchIT {
     setUpAccountHolderSwanRep(accountHolderRepositoryMock);
     setUpPaymentInitiationRep(paymentInitiationRepositoryMock);
     setUpPaymentInfoRepository(paymentInfoRepositoryMock);
-
+    setUpUserJpaRepository(userJpaRepositoryMock);
     setUpLegalFileRepository(legalFileRepositoryMock);
   }
 

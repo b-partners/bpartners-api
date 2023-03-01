@@ -3,6 +3,7 @@ package app.bpartners.api.service;
 import app.bpartners.api.endpoint.rest.mapper.ProductRestMapper;
 import app.bpartners.api.endpoint.rest.model.CreateProduct;
 import app.bpartners.api.endpoint.rest.model.OrderDirection;
+import app.bpartners.api.endpoint.rest.model.ProductStatus;
 import app.bpartners.api.endpoint.rest.model.UpdateProductStatus;
 import app.bpartners.api.model.Product;
 import app.bpartners.api.repository.ProductRepository;
@@ -23,11 +24,11 @@ public class ProductService {
   private final ProductRestMapper restMapper;
 
   public List<Product> getProductsByAccount(
-      String accountId, int page, int pageSize,
+      String accountId, ProductStatus status, int page, int pageSize,
       OrderDirection descriptionOrder,
       OrderDirection unitPriceOrder,
       OrderDirection createdAtOrder) {
-    return repository.findAllByIdAccountAndStatus(accountId, page, pageSize,
+    return repository.findAllByIdAccountAndStatus(accountId, status, page, pageSize,
         descriptionOrder, unitPriceOrder, createdAtOrder);
   }
 

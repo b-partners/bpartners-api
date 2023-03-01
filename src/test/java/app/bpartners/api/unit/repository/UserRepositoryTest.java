@@ -1,5 +1,6 @@
 package app.bpartners.api.unit.repository;
 
+import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.mapper.UserMapper;
@@ -30,6 +31,7 @@ class UserRepositoryTest {
   UserJpaRepository userJpaRepository;
   UserMapper userMapper;
   SwanComponent swanComponent;
+  CognitoComponent cognitoComponent;
   UserRepositoryImpl userRepository;
 
   @BeforeEach
@@ -38,8 +40,10 @@ class UserRepositoryTest {
     userMapper = mock(UserMapper.class);
     userSwanRepository = mock(UserSwanRepository.class);
     swanComponent = mock(SwanComponent.class);
+    cognitoComponent = mock(CognitoComponent.class);
     userRepository =
-        new UserRepositoryImpl(userSwanRepository, userJpaRepository, userMapper, swanComponent);
+        new UserRepositoryImpl(userSwanRepository, userJpaRepository, userMapper, swanComponent,
+            cognitoComponent);
 
     setUpUserSwanRepository(userSwanRepository);
     setUpSwanComponent(swanComponent);

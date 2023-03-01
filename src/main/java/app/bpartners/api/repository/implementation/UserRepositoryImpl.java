@@ -1,5 +1,6 @@
 package app.bpartners.api.repository.implementation;
 
+import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.ApiException;
@@ -25,6 +26,7 @@ public class UserRepositoryImpl implements UserRepository {
   private final UserJpaRepository jpaRepository;
   private final UserMapper userMapper;
   private final SwanComponent swanComponent;
+  private final CognitoComponent cognitoComponent;
 
   @Override
   public User getUserBySwanUserIdAndToken(String swanUserId, String token) {
@@ -32,7 +34,11 @@ public class UserRepositoryImpl implements UserRepository {
     SwanUser swanUser;
     try {
       swanUser = swanComponent.getSwanUserByToken(token);
-      entityUser = getUpdatedUser(swanUser);
+      if (swanUser != null) {
+        entityUser = getUpdatedUser(swanUser);
+      } else {
+        entityUser = jpaRepository.getByPhoneNumber(cognitoComponent.getPhoneNumberByToken(token));
+      }
     } catch (URISyntaxException | IOException e) {
       throw new ApiException(ApiException.ExceptionType.CLIENT_EXCEPTION, e);
     } catch (InterruptedException e) {
@@ -45,7 +51,12 @@ public class UserRepositoryImpl implements UserRepository {
   @Override
   public User getUserByToken(String token) {
     SwanUser swanUser = swanRepository.getByToken(token);
-    HUser entityUser = getUpdatedUser(swanUser);
+    HUser entityUser;
+    if (swanUser != null) {
+      entityUser = getUpdatedUser(swanUser);
+    } else {
+      entityUser = jpaRepository.getByPhoneNumber(cognitoComponent.getPhoneNumberByToken(token));
+    }
     return userMapper.toDomain(entityUser, swanUser);
   }
 

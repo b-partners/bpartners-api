@@ -621,6 +621,131 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
+  createInvoiceInformation:
+    put:
+      tags:
+        - Paying
+      summary: Crupdate invoice informations
+      operationId: cupdateInvoiceInfo
+      parameters:
+        - in: path
+          name: aId
+          description: Account Identifier
+          schema:
+            type: string
+          required: true
+        - in: path
+          name: iId
+          description: Invoice Identifier
+          schema:
+            type: string
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CrupdateInvoiceInfo'
+      responses:
+        200:
+          description: The crupdated invoice
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Invoice'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
+  createInvoicePaymentRegulation:
+    put:
+      tags:
+        - Paying
+      summary: Crupdate invoice paymentRegulation
+      operationId: crupdateInvoicePaymentRegulation
+      parameters:
+        - in: path
+          name: aId
+          description: Account Identifier
+          schema:
+            type: string
+          required: true
+        - in: path
+          name: iId
+          description: Invoice Identifier
+          schema:
+            type: string
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+                $ref: '#/components/schemas/CrupdatePaymentRegulation'
+      responses:
+        200:
+          description: The crupdated invoice
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Invoice'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
+  createInvoiceProduct:
+    put:
+      tags:
+        - Paying
+      summary: Crupdate invoice product
+      operationId: crupdateInvoiceProduct
+      parameters:
+        - in: path
+          name: aId
+          description: Account Identifier
+          schema:
+            type: string
+          required: true
+        - in: path
+          name: iId
+          description: Invoice Identifier
+          schema:
+            type: string
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CrupdateProduct'
+      responses:
+        200:
+          description: The crupdated invoice
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Invoice'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
   invoiceOperations:
     put:
       tags:
@@ -1026,6 +1151,45 @@ components:
       properties:
         id:
           type: string
+    CrupdateInvoiceInfo:
+      type: object
+      properties:
+        id:
+          type: string
+        ref:
+          type: string
+        title:
+          type: string
+        comment:
+          type: string
+        customer:
+          $ref: './customers-api.yml#/components/schemas/Customer'
+        status:
+          $ref: '#/components/schemas/InvoiceStatus'
+        paymentType:
+          type: string
+          enum:
+            - CASH
+            - IN_INSTALMENT #defered, delayed
+        sendingDate:
+          type: string
+          format: date
+        validityDate:
+          type: string
+          format: date
+        toPayAt:
+          type: string
+          format: date
+        delayInPaymentAllowed:
+          type: integer
+        delayPenaltyPercent:
+          type: integer
+        metadata:
+          type: object
+          additionalProperties:
+            type: string
+        globalDiscount:
+          $ref: '#/components/schemas/InvoiceDiscount'
     CrupdateInvoiceTemplate:
       type: object
       properties:
@@ -1090,7 +1254,7 @@ components:
         totalVat:
           type: integer
         totalPriceWithoutDiscount:
-            type: integer
+          type: integer
         totalPriceWithoutVat:
           type: integer
         totalPriceWithVat:
@@ -1132,6 +1296,14 @@ components:
         maturityDate:
           type: string
           format: date
+    CrupdatePaymentRegulation:
+      properties:
+        id:
+          type: string
+        paymentRegulation:
+          type: array
+          items:
+            $ref: '#/components/schemas/CreatePaymentRegulation'
     InvoiceStatus:
       type: string
       enum:
@@ -1161,6 +1333,14 @@ components:
       enum:
         - ASC
         - DESC
+    CrupdateProduct:
+      properties:
+        id:
+          type: string
+        products:
+          type: array
+          items:
+            $ref: '#/components/schemas/CreateProduct'
     CreateProduct:
       type: object
       properties:

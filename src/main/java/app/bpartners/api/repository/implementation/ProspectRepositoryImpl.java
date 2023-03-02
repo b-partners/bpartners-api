@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 @AllArgsConstructor
 @Repository
@@ -25,6 +26,7 @@ public class ProspectRepositoryImpl implements ProspectRepository {
         .collect(Collectors.toUnmodifiableList());
   }
 
+  @Transactional
   @Override
   public List<Prospect> saveAll(List<Prospect> prospects) {
     List<HProspect> entities = prospects

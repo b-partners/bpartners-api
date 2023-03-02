@@ -2,6 +2,7 @@ package app.bpartners.api.endpoint.rest.controller;
 
 import app.bpartners.api.endpoint.rest.mapper.UserRestMapper;
 import app.bpartners.api.endpoint.rest.model.User;
+import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
 import app.bpartners.api.model.exception.ForbiddenException;
 import app.bpartners.api.service.UserService;
@@ -19,6 +20,7 @@ import static app.bpartners.api.endpoint.rest.security.swan.SwanConf.BEARER_PREF
 public class UserController {
   private final UserRestMapper mapper;
   private final SwanComponent swanComponent;
+  private final CognitoComponent cognitoComponent;
   private final UserService service;
 
   @GetMapping(value = "/users/{id}")
@@ -36,11 +38,14 @@ public class UserController {
       bearer = bearer.substring(BEARER_PREFIX.length()).trim();
       //Check that the user is authenticated
       String swanUserId = swanComponent.getSwanUserIdByToken(bearer);
-      if (swanUserId == null) {
+      String phoneNumber = cognitoComponent.getPhoneNumberByToken(bearer);
+      if (swanUserId == null && phoneNumber == null) {
         throw new ForbiddenException();
       }
       //Check that the user is authorized
-      app.bpartners.api.model.User user = service.getUserByIdAndBearer(swanUserId, bearer);
+      app.bpartners.api.model.User user = swanUserId != null
+          ? service.getUserByIdAndBearer(swanUserId, bearer)
+          : service.getUserByPhoneNumber(phoneNumber);
       if (!user.getId().equals(userId)) {
         throw new ForbiddenException();
       }

@@ -1,3 +1,13 @@
+## [0.8.1](https://github.com/b-partners/bpartners-api/compare/v0.8.0...v0.8.1) (2023-03-02)
+
+
+### Bug Fixes
+
+* retrieve persisted user when swan is not provided ([cbd3a5b](https://github.com/b-partners/bpartners-api/commit/cbd3a5bacbcb9d7930d9813fba4b8aaef4e5fdb4))
+* set environment to run scheduled workflows for dev and preprod only ([#540](https://github.com/b-partners/bpartners-api/issues/540)) ([b529344](https://github.com/b-partners/bpartners-api/commit/b5293449e8dab6fec3569bf6ce33f6e6445ccb32))
+
+
+
 # [0.8.0](https://github.com/b-partners/bpartners-api/compare/v0.7.0...v0.8.0) (2023-02-23)
 
 
@@ -150,15 +160,6 @@
 
 * account holder may be suject to vat ([e3c21e2](https://github.com/b-partners/bpartners-api/commit/e3c21e2223695eb04386630214cba5f4d4f4f2ab))
 * add transactions annual summary ([ba2e527](https://github.com/b-partners/bpartners-api/commit/ba2e52779eea86166d141ae91953bd22622bffb4))
-
-
-
-## [0.2.4](https://github.com/b-partners/bpartners-api/compare/v0.2.3...v0.2.4) (2023-01-07)
-
-
-### Bug Fixes
-
-* rename bpartners-client to bparnters-react-client with proper API_URL ([0ec9baa](https://github.com/b-partners/bpartners-api/commit/0ec9baaa278b806d2f6a1f54d1b251195c88382f))
 
 
 

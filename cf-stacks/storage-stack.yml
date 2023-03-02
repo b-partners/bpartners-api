@@ -30,6 +30,7 @@ Resources:
         !If [ NotCreatingDatabaseFromSnapshot, !Ref "AWS::NoValue", !Ref DBSnapshot ]
       AllocatedStorage:
         !If [ NotCreatingDatabaseFromSnapshot, '5', !Ref "AWS::NoValue" ]
+      BackupRetentionPeriod: 35
       DBInstanceClass:
         Ref: DBClass
       Engine: postgres

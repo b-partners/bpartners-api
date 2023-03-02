@@ -71,7 +71,8 @@ public class ProductRepositoryImpl implements ProductRepository {
   }
 
   @Override
-  public List<Product> findAllByIdAccountAndStatus(String idAccount, ProductStatus status, Integer page, Integer pageSize,
+  public List<Product> findAllByIdAccountAndStatus(String idAccount, ProductStatus status,
+                                                   Integer page, Integer pageSize,
                                                    OrderDirection descriptionOrder,
                                                    OrderDirection unitPriceOrder,
                                                    OrderDirection createdAtOrder) {

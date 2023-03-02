@@ -19,7 +19,8 @@ public interface ProductRepository {
 
   List<Product> saveAll(String accountId, List<Product> toCreate);
 
-  List<Product> findAllByIdAccountAndStatus(String idAccount, ProductStatus status, Integer page, Integer pageSize,
+  List<Product> findAllByIdAccountAndStatus(String idAccount, ProductStatus status, Integer page,
+                                            Integer pageSize,
                                             OrderDirection descriptionOrder,
                                             OrderDirection unitPriceOrder,
                                             OrderDirection createdAtOrder);

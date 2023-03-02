@@ -20,11 +20,13 @@ public class UserSwanRepositoryImpl implements UserSwanRepository {
 
   @Override
   public SwanUser whoami() {
-    return swanApi.getData(UserResponse.class, QUERY).getData().getUser();
+    UserResponse data = swanApi.getData(UserResponse.class, QUERY);
+    return data == null ? null : data.getData().getUser();
   }
 
   @Override
   public SwanUser getByToken(String token) {
-    return swanCustomApi.getData(UserResponse.class, QUERY, token).getData().getUser();
+    UserResponse data = swanCustomApi.getData(UserResponse.class, QUERY, token);
+    return data == null ? null : data.getData().getUser();
   }
 }

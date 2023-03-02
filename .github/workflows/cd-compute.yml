@@ -126,6 +126,19 @@ jobs:
           aws configure set default.output text
           echo "dbIdentifier=$(aws ssm get-parameter --name /bpartners/${{ env.branch_env }}/db/identifier --query "Parameter.Value" | grep -o '^[^.]*')" >> $GITHUB_ENV
 
+      - name: Get Time
+        id: current-time
+        uses: nanzm/get-time-action@v1.1
+        with:
+          timeZone: 3
+          format: 'YYYY-MM-DD-HH-mm-ss'
+
+      - name: Set time as env
+        run: echo "time=${{ steps.current-time.outputs.time }}" >> $GITHUB_ENV
+
+      - name: Create snapshot for the actual version of the database
+        run: aws rds create-db-snapshot --db-instance-identifier ${{ env.dbIdentifier }} --db-snapshot-identifier ${{ env.branch_env }}-snapshot-pre-cd-compute-${{ github.sha }}-${{ env.time }}
+
       - name: Deploy compute stack
         uses: aws-actions/aws-cloudformation-github-deploy@v1
         with:

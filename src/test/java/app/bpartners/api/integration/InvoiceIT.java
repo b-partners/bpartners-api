@@ -21,7 +21,9 @@ import app.bpartners.api.repository.LegalFileRepository;
 import app.bpartners.api.repository.fintecture.FintectureConf;
 import app.bpartners.api.repository.fintecture.FintecturePaymentInitiationRepository;
 import app.bpartners.api.repository.jpa.AccountHolderJpaRepository;
+import app.bpartners.api.repository.jpa.InvoiceJpaRepository;
 import app.bpartners.api.repository.jpa.model.HAccountHolder;
+import app.bpartners.api.repository.jpa.model.HInvoice;
 import app.bpartners.api.repository.sendinblue.SendinblueConf;
 import app.bpartners.api.repository.swan.AccountHolderSwanRepository;
 import app.bpartners.api.repository.swan.AccountSwanRepository;
@@ -132,6 +134,8 @@ class InvoiceIT {
   private LegalFileRepository legalFileRepositoryMock;
   @MockBean
   private AccountHolderJpaRepository holderJpaRepository;
+  @Autowired
+  private InvoiceJpaRepository invoiceJpaRepository;
 
   private static ApiClient anApiClient() {
     return TestUtils.anApiClient(JOE_DOE_TOKEN, InvoiceIT.ContextInitializer.SERVER_PORT);
@@ -938,6 +942,13 @@ class InvoiceIT {
     assertEquals(0, actual.getTotalVat());
     assertEquals(actual.getTotalPriceWithoutVat(), actual.getTotalPriceWithVat());
     assertTrue(actual.getTotalPriceWithVat() > 0);
+  }
+
+  @Test
+  void read_invoice_with_jpa_ok(){
+    Optional<HInvoice> actual = invoiceJpaRepository.findById(INVOICE1_ID);
+
+    assertFalse(actual.get().getPaymentRequests().isEmpty());
   }
 
   //TODO: delete this test when validityDate is correctly set for draft invoice

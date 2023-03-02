@@ -17,12 +17,11 @@ import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ID;
 import static app.bpartners.api.integration.conf.TestUtils.OTHER_CUSTOMER_ID;
 import static java.util.UUID.randomUUID;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @SpringBootTest(classes = InvoiceJpaRepositoryTest.class)
 @AutoConfigureMockMvc
 class InvoiceJpaRepositoryTest {
-  @Autowired
-  MockMvc mockMvc;
   @Autowired
   InvoiceJpaRepository invoiceJpaRepository;
 
@@ -30,7 +29,7 @@ class InvoiceJpaRepositoryTest {
   void crupdate_invoice_ok() {
     HInvoice actual = invoiceJpaRepository.save(toBeCrupdated());
 
-
+    assertNotNull(actual);
   }
 
   HInvoice toBeCrupdated() {

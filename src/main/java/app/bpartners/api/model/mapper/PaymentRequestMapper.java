@@ -22,11 +22,9 @@ public class PaymentRequestMapper {
 
   public HPaymentRequest toEntity(
       FPaymentRedirection paymentRedirection,
-      PaymentInitiation domain,
-      String idInvoice) {
+      PaymentInitiation domain) {
     return HPaymentRequest.builder()
         .id(domain.getId())
-        .idInvoice(idInvoice)
         .accountId(provider.getAccount().getId())
         .sessionId(paymentRedirection == null ? null
             : paymentRedirection.getMeta().getSessionId())
@@ -45,7 +43,7 @@ public class PaymentRequestMapper {
     return PaymentRequest.builder()
         .id(entity.getId())
         .sessionId(entity.getSessionId())
-        .invoiceId(entity.getIdInvoice())
+        .invoiceId(entity.getInvoice().getId())
         .paymentUrl(entity.getPaymentUrl())
         .accountId(entity.getAccountId())
         .label(entity.getLabel())
@@ -53,6 +51,22 @@ public class PaymentRequestMapper {
         .payerName(entity.getPayerName())
         .payerEmail(entity.getPayerEmail())
         .amount(parseFraction(entity.getAmount()))
+        .build();
+  }
+
+  public HPaymentRequest toDomain(
+      String sessionId,
+      CreatePaymentRegulation regulation) {
+    return HPaymentRequest.builder()
+        .id(null)
+        .sessionId(sessionId)
+        .paymentUrl(regulation.getPaymentUrl())
+        .accountId(provider.getAccount().getId())
+        .label(regulation.getComment())
+        .reference(regulation.getReference())
+        .payerName(regulation.getPayerName())
+        .payerEmail(regulation.getPayerEmail())
+        .amount(regulation.getAmount().toString())
         .build();
   }
 

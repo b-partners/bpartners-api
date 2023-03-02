@@ -54,11 +54,9 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
 
     Invoice domain = mapper.toDomain(
         entity.products(getProductEntities(invoice, entity)));
-    jpaRepository.save(entity
+    return mapper.toDomain(jpaRepository.save(entity
         .fileId(processPdfGeneration(
-            domain.multiplePayments(mapper.getMultiplePayments(entity)))));
-
-    return domain;
+            domain.multiplePayments(mapper.getMultiplePayments(entity))))));
   }
 
   private String processPdfGeneration(Invoice domain) {

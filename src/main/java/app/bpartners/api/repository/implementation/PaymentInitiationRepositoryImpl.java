@@ -40,7 +40,7 @@ public class PaymentInitiationRepositoryImpl implements PaymentInitiationReposit
       List<PaymentInitiation> paymentInitiations, String invoice, InvoiceStatus status) {
     if (status != InvoiceStatus.CONFIRMED && status != InvoiceStatus.PAID) {
       paymentInitiations.forEach(payment -> {
-        HPaymentRequest entity = paymentRequestMapper.toEntity(null, payment, invoice);
+        HPaymentRequest entity = paymentRequestMapper.toEntity(null, payment);
         paymentRequestRepository.save(entity);
       });
     }
@@ -50,7 +50,7 @@ public class PaymentInitiationRepositoryImpl implements PaymentInitiationReposit
     FPaymentInitiation paymentInitiation = mapper.toFintectureResource(domain);
     FPaymentRedirection paymentRedirection =
         fintectureRepository.save(paymentInitiation, domain.getSuccessUrl());
-    HPaymentRequest entity = paymentRequestMapper.toEntity(paymentRedirection, domain, invoice);
+    HPaymentRequest entity = paymentRequestMapper.toEntity(paymentRedirection, domain);
     paymentRequestRepository.save(entity);
     return paymentRedirection;
   }

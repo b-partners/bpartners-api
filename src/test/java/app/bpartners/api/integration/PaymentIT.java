@@ -125,7 +125,7 @@ class PaymentIT {
 
   private static HPaymentRequest entityPaymentRequest(String sessionId, String label) {
     return HPaymentRequest.builder()
-        .idInvoice(null)
+        .invoice(null)
         .sessionId(sessionId)
         .amount("100/1")
         .payerName("Payer")

@@ -130,7 +130,7 @@ public class InvoiceMapper {
   }
 
   public List<CreatePaymentRegulation> getMultiplePayments(HInvoice entity) {
-    List<HPaymentRequest> paymentRequests = requestJpaRepository.findByIdInvoice(entity.getId());
+    List<HPaymentRequest> paymentRequests = entity.getPaymentRequests();
     Fraction totalPrice = computeMultiplePaymentsAmount(paymentRequests);
     return paymentRequests.stream()
         .map(payment -> CreatePaymentRegulation.builder()
@@ -207,7 +207,6 @@ public class InvoiceMapper {
         && domain.getStatus() != CONFIRMED && domain.getStatus() != PAID) {
       checkPaymentsTotalPrice(domain, totalPriceWithVat);
       List<PaymentInitiation> paymentInitiations = getPaymentInitiations(domain, totalPriceWithVat);
-      requestJpaRepository.deleteAllByIdInvoice(id);
       pis.savePayments(paymentInitiations, id, domain.getStatus());
     }
 
@@ -231,7 +230,6 @@ public class InvoiceMapper {
           checkPaymentsTotalPrice(domain, totalPriceWithVat);
           List<PaymentInitiation> paymentInitiations =
               getPaymentInitiations(domain, totalPriceWithVat);
-          requestJpaRepository.deleteAllByIdInvoice(id);
 
           pis.initiateInvoicePayments(paymentInitiations, id);
         }
@@ -271,10 +269,18 @@ public class InvoiceMapper {
         .createdDatetime(getCreatedDatetime(optionalInvoice))
         .delayInPaymentAllowed(domain.getDelayInPaymentAllowed())
         .delayPenaltyPercent(domain.getDelayPenaltyPercent().toString())
+        .paymentRequests(getPaymentRequests(domain.getMultiplePayments()))
         .products(actualProducts)
         .metadataString(objectMapper.writeValueAsString(domain.getMetadata()))
         .discountPercent(domain.getDiscount().getPercentValue().toString())
         .build();
+  }
+
+  private List<HPaymentRequest> getPaymentRequests(
+      List<CreatePaymentRegulation> paymentRegulations) {
+    return paymentRegulations.stream()
+        .map(payment -> requestMapper.toDomain(null,  payment))
+        .collect(Collectors.toUnmodifiableList());
   }
 
   private List<PaymentInitiation> getPaymentInitiations(Invoice domain,

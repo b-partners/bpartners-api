@@ -6,6 +6,8 @@ import java.time.LocalDate;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -30,8 +32,9 @@ public class HPaymentRequest implements Serializable {
   private String id;
   private String sessionId;
   private String accountId;
-  @Column(name = "id_invoice")
-  private String idInvoice;
+  @ManyToOne
+  @JoinColumn(name = "id_invoice")
+  private HInvoice idInvoice;
   private String label;
   private String paymentUrl;
   private String reference;

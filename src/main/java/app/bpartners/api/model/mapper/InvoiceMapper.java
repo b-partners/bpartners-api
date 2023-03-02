@@ -29,6 +29,7 @@ import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
 import org.apfloat.Aprational;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 
 import static app.bpartners.api.endpoint.rest.model.Invoice.PaymentTypeEnum.CASH;
@@ -130,7 +131,12 @@ public class InvoiceMapper {
   }
 
   public List<CreatePaymentRegulation> getMultiplePayments(HInvoice entity) {
-    List<HPaymentRequest> paymentRequests = requestJpaRepository.findByIdInvoice(entity.getId());
+    List<HPaymentRequest> paymentRequests =
+        requestJpaRepository.findByAccountId(entity.getIdAccount(),
+                PageRequest.of(0, Integer.MAX_VALUE)).stream()
+            .filter(paymentRequest -> paymentRequest.getIdInvoice() != null
+                && paymentRequest.getIdInvoice().getId().equals(entity.getId()))
+            .collect(Collectors.toUnmodifiableList());
     Fraction totalPrice = computeMultiplePaymentsAmount(paymentRequests);
     return paymentRequests.stream()
         .map(payment -> CreatePaymentRegulation.builder()
@@ -207,7 +213,7 @@ public class InvoiceMapper {
         && domain.getStatus() != CONFIRMED && domain.getStatus() != PAID) {
       checkPaymentsTotalPrice(domain, totalPriceWithVat);
       List<PaymentInitiation> paymentInitiations = getPaymentInitiations(domain, totalPriceWithVat);
-      requestJpaRepository.deleteAllByIdInvoice(id);
+      //requestJpaRepository.deleteAllByIdInvoice(id);
       pis.savePayments(paymentInitiations, id, domain.getStatus());
     }
 

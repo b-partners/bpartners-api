@@ -7,7 +7,10 @@ import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.PaymentInitiation;
 import app.bpartners.api.model.PaymentRequest;
 import app.bpartners.api.repository.fintecture.model.FPaymentRedirection;
+import app.bpartners.api.repository.jpa.InvoiceJpaRepository;
+import app.bpartners.api.repository.jpa.model.HInvoice;
 import app.bpartners.api.repository.jpa.model.HPaymentRequest;
+import java.util.Optional;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -19,14 +22,16 @@ import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 @AllArgsConstructor
 public class PaymentRequestMapper {
   private final AuthenticatedResourceProvider provider;
+  private final InvoiceJpaRepository invoiceRepository;
 
   public HPaymentRequest toEntity(
       FPaymentRedirection paymentRedirection,
       PaymentInitiation domain,
       String idInvoice) {
+    Optional<HInvoice> invoiceOptional = invoiceRepository.findById(idInvoice);
     return HPaymentRequest.builder()
         .id(domain.getId())
-        .idInvoice(idInvoice)
+        .idInvoice(invoiceOptional.isPresent() ? invoiceOptional.get() : null)
         .accountId(provider.getAccount().getId())
         .sessionId(paymentRedirection == null ? null
             : paymentRedirection.getMeta().getSessionId())
@@ -45,7 +50,7 @@ public class PaymentRequestMapper {
     return PaymentRequest.builder()
         .id(entity.getId())
         .sessionId(entity.getSessionId())
-        .invoiceId(entity.getIdInvoice())
+        .invoiceId(entity.getIdInvoice().getId())
         .paymentUrl(entity.getPaymentUrl())
         .accountId(entity.getAccountId())
         .label(entity.getLabel())

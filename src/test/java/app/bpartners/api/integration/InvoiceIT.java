@@ -26,7 +26,6 @@ import app.bpartners.api.repository.sendinblue.SendinblueConf;
 import app.bpartners.api.repository.swan.AccountHolderSwanRepository;
 import app.bpartners.api.repository.swan.AccountSwanRepository;
 import app.bpartners.api.repository.swan.UserSwanRepository;
-import app.bpartners.api.service.InvoiceService;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -40,7 +39,6 @@ import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.api.function.Executable;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -56,6 +54,7 @@ import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PROPOSAL;
 import static app.bpartners.api.integration.conf.TestUtils.INVOICE1_ID;
 import static app.bpartners.api.integration.conf.TestUtils.INVOICE2_ID;
+import static app.bpartners.api.integration.conf.TestUtils.INVOICE3_ID;
 import static app.bpartners.api.integration.conf.TestUtils.INVOICE4_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_TOKEN;
@@ -103,9 +102,6 @@ class InvoiceIT {
   public static final int MAX_PAGE_SIZE = 500;
   public static final String DRAFT_REF_PREFIX = "BROUILLON-";
   private static final String NEW_INVOICE_ID = "invoice_uuid";
-  public static String PROPOSAL_REF_PREFIX = "DEVIS-";
-  @Autowired
-  private InvoiceService invoiceService;
   @MockBean
   private SentryConf sentryConf;
   @MockBean
@@ -452,6 +448,32 @@ class InvoiceIT {
             .percentValue(0));
   }
 
+  private static Invoice expectedMultiplePayments(String id, Invoice actualConfirmed) {
+    return new Invoice()
+        .id(actualConfirmed.getId())
+        .ref(actualConfirmed.getRef())
+        .paymentType(actualConfirmed.getPaymentType())
+        .createdAt(actualConfirmed.getCreatedAt())
+        .updatedAt(actualConfirmed.getUpdatedAt())
+        .fileId(actualConfirmed.getFileId())
+        .products(List.of(product4().id(null)))
+        .totalVat(actualConfirmed.getTotalVat())
+        .status(actualConfirmed.getStatus())
+        .metadata(actualConfirmed.getMetadata())
+        .toPayAt(actualConfirmed.getToPayAt())
+        .sendingDate(actualConfirmed.getSendingDate())
+        .totalPriceWithoutDiscount(2000)
+        .totalPriceWithVat(actualConfirmed.getTotalPriceWithVat())
+        .totalPriceWithoutVat(actualConfirmed.getTotalPriceWithoutVat())
+        .customer(actualConfirmed.getCustomer())
+        .delayPenaltyPercent(actualConfirmed.getDelayPenaltyPercent())
+        .delayInPaymentAllowed(actualConfirmed.getDelayInPaymentAllowed())
+        .paymentUrl(actualConfirmed.getPaymentUrl())
+        .globalDiscount(new InvoiceDiscount()
+            .amountValue(0)
+            .percentValue(0))
+        .paymentRegulations(confirmedPaymentRegulations(id));
+  }
 
   private static List<PaymentRegulation> initPaymentReg(String id) {
     return List.of(new PaymentRegulation()
@@ -598,11 +620,6 @@ class InvoiceIT {
             validInvoice().globalDiscount(new InvoiceDiscount()
                 .amountValue(0)
                 .percentValue(null)));
-//    Executable executable5 =
-//        () -> api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, randomUUID().toString(),
-//            validInvoice().globalDiscount(new InvoiceDiscount()
-//                .percentValue(null)
-//                .amountValue(null)));
     Executable executable6 =
         () -> api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, randomUUID().toString(),
             validInvoice().globalDiscount(new InvoiceDiscount()
@@ -610,7 +627,6 @@ class InvoiceIT {
                 .amountValue(null)));
 
     assertDoesNotThrow(firstCrupdateExecutable);
-
     assertThrowsApiException(
         "{\"type\":\"400 BAD_REQUEST\",\"message\":\""
             + "Invoice.reference=unique_ref is already used" + "\"}",
@@ -737,6 +753,7 @@ class InvoiceIT {
     Invoice actualConfirmed = api.crupdateInvoice(
         JOE_DOE_ACCOUNT_ID, id, crupdateInvoice.status(CONFIRMED));
     actualConfirmed.setPaymentRegulations(ignoreIdsAndDatetime(actualConfirmed));
+    actualConfirmed.setProducts(ignoreIdsOf(actualConfirmed.getProducts()));
 
     assertEquals(initPaymentReg(id), actualDraft.getPaymentRegulations());
     assertTrue(actualDraft.getPaymentRegulations().stream()
@@ -746,42 +763,20 @@ class InvoiceIT {
     assertTrue(actualProposal.getPaymentRegulations().stream()
         .allMatch(
             paymentRegulation -> paymentRegulation.getPaymentRequest().getPaymentUrl() == null));
-    assertEquals(new Invoice()
-        .id(actualConfirmed.getId())
-        .ref(actualConfirmed.getRef())
-        .paymentType(actualConfirmed.getPaymentType())
-        .createdAt(actualConfirmed.getCreatedAt())
-        .updatedAt(actualConfirmed.getUpdatedAt())
-        .fileId(actualConfirmed.getFileId())
-        .products(List.of(product4().id(null)))
-        .totalVat(actualConfirmed.getTotalVat())
-        .status(actualConfirmed.getStatus())
-        .metadata(actualConfirmed.getMetadata())
-        .toPayAt(actualConfirmed.getToPayAt())
-        .sendingDate(actualConfirmed.getSendingDate())
-        .totalPriceWithoutDiscount(2000)
-        .totalPriceWithVat(actualConfirmed.getTotalPriceWithVat())
-        .totalPriceWithoutVat(actualConfirmed.getTotalPriceWithoutVat())
-        .customer(actualConfirmed.getCustomer())
-        .delayPenaltyPercent(actualConfirmed.getDelayPenaltyPercent())
-        .delayInPaymentAllowed(actualConfirmed.getDelayInPaymentAllowed())
-        .paymentUrl(actualConfirmed.getPaymentUrl())
-        .globalDiscount(new InvoiceDiscount()
-            .amountValue(0)
-            .percentValue(0))
-        .paymentRegulations(confirmedPaymentRegulations(id)), actualConfirmed)
-    ;
+    assertEquals(expectedMultiplePayments(id, actualConfirmed),
+        actualConfirmed);
     assertTrue(actualConfirmed.getPaymentRegulations().stream()
         .allMatch(
             paymentRegulation -> paymentRegulation.getPaymentRequest().getPaymentUrl() != null));
-
   }
 
-  // /!\ It seems that the localstack does not support the SES service using the default credentials
-  // So note that SES service is mocked and do nothing for this test
+  // note(no-ses):
+  // /!\ It seems that the localstack does not support the SES service using the default
+  // credentials. So note that SES service is mocked and do nothing for this test
   @Test
   @Order(4)
-  void crupdate_invoice_ok() throws ApiException {
+  //TODO: ordered tests are bad, use for example @DirtiesContext of SpringBootTest for resetting DB
+  void crupdate_draft_invoice_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
     PayingApi api = new PayingApi(joeDoeClient);
     int customizePenalty = 1960;
@@ -792,16 +787,9 @@ class InvoiceIT {
     Invoice actualUpdatedDraft = api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, NEW_INVOICE_ID,
         validInvoice());
     actualUpdatedDraft.setProducts(ignoreIdsOf(actualUpdatedDraft.getProducts()));
-    Invoice actualConfirmed =
-        api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, INVOICE4_ID, confirmedInvoice());
-    actualConfirmed.setProducts(ignoreIdsOf(actualConfirmed.getProducts()));
-    actualConfirmed.setPaymentRegulations(ignoreIdsAndDatetime(actualConfirmed));
-    Invoice actualPaid =
-        api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, actualConfirmed.getId(), paidInvoice());
-    actualPaid.setProducts(ignoreIdsOf(actualPaid.getProducts()));
-    actualPaid.setPaymentRegulations(ignoreIdsAndDatetime(actualPaid));
 
-    assertEquals(expectedInitializedDraft().ref(null)
+    assertEquals(expectedInitializedDraft()
+            .ref(null)
             .fileId(actualDraft.getFileId())
             .delayPenaltyPercent(customizePenalty)
             .createdAt(actualDraft.getCreatedAt())
@@ -818,6 +806,24 @@ class InvoiceIT {
             .toPayAt(null));
     assertNotNull(actualUpdatedDraft.getUpdatedAt());
     assertEquals(actualDraft.getFileId(), actualUpdatedDraft.getFileId());
+  }
+
+  // note(no-ses)
+  @Test
+  @Order(4)
+  void crupdate_confirmed_invoice_ok() throws ApiException {
+    ApiClient joeDoeClient = anApiClient();
+    PayingApi api = new PayingApi(joeDoeClient);
+
+    Invoice actualConfirmed =
+        api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, INVOICE4_ID, confirmedInvoice());
+    actualConfirmed.setProducts(ignoreIdsOf(actualConfirmed.getProducts()));
+    actualConfirmed.setPaymentRegulations(ignoreIdsAndDatetime(actualConfirmed));
+    Invoice actualPaid =
+        api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, actualConfirmed.getId(), paidInvoice());
+    actualPaid.setProducts(ignoreIdsOf(actualPaid.getProducts()));
+    actualPaid.setPaymentRegulations(ignoreIdsAndDatetime(actualPaid));
+
     assertEquals(expectedConfirmed()
             .id(actualConfirmed.getId())
             .fileId(actualConfirmed.getFileId())
@@ -839,7 +845,6 @@ class InvoiceIT {
     assertNotNull(actualPaid.getFileId());
     assertNotNull(actualPaid.getUpdatedAt());
     assertEquals(actualConfirmed.getFileId(), actualPaid.getFileId());
-    assertTrue(actualUpdatedDraft.getRef().contains(DRAFT_REF_PREFIX));
     assertFalse(actualConfirmed.getRef().contains(DRAFT_REF_PREFIX));
   }
 
@@ -883,38 +888,48 @@ class InvoiceIT {
 
   @Test
   @Order(4)
-  void second_update_invoice_ok() throws ApiException {
+  void get_invoice_after_update_twice_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
     PayingApi api = new PayingApi(joeDoeClient);
-    Invoice invoice = api.getInvoiceById(JOE_DOE_ACCOUNT_ID, INVOICE1_ID);
+    Invoice invoice = api.getInvoiceById(JOE_DOE_ACCOUNT_ID, INVOICE3_ID);
     CrupdateInvoice crupdateInvoice = new CrupdateInvoice()
         .ref(invoice.getRef())
         .title(invoice.getTitle())
         .comment(invoice.getComment())
         .products(List.of(createProduct4(), createProduct5()))
+        .customer(invoice.getCustomer())
         .status(invoice.getStatus())
         .sendingDate(invoice.getSendingDate())
         .validityDate(invoice.getValidityDate())
-        .toPayAt(null);
-    Invoice expected = TestUtils.invoice1()
-        .products(List.of(product4().id(null), product5().id(null)))
-        .paymentType(CASH)
+        .paymentType(IN_INSTALMENT)
+        .paymentRegulations(List.of(
+            new CreatePaymentRegulation().percent(9000),
+            new CreatePaymentRegulation().percent(1000)))
         .toPayAt(null);
 
-    Invoice actual = api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, INVOICE1_ID, crupdateInvoice)
-        .paymentUrl(expected.getPaymentUrl())
-        .totalVat(expected.getTotalVat())
-        .totalPriceWithVat(expected.getTotalPriceWithVat())
-        .totalPriceWithoutVat(expected.getTotalPriceWithoutVat())
-        .totalPriceWithoutDiscount(expected.getTotalPriceWithoutDiscount())
-        .updatedAt(null)
-        .customer(expected.getCustomer());
+    Invoice actual = api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, INVOICE3_ID, crupdateInvoice);
+    var paymentRegulations = actual.getPaymentRegulations();
+    assertEquals(2970, paymentRegulations.get(0).getPaymentRequest().getAmount());
+    assertEquals(330, paymentRegulations.get(1).getPaymentRequest().getAmount());
 
-    assertEquals(INVOICE1_ID, actual.getId());
-    assertEquals(expected.getRef(), actual.getRef());
-    assertEquals(expected.getStatus(), actual.getStatus());
-    assertNotEquals(expected, invoice);
-    assertEquals(expected, actual);
+    Invoice actualRefetched = api.getInvoiceById(JOE_DOE_ACCOUNT_ID, INVOICE3_ID);
+    var paymentRegulationsRefecthed = actualRefetched.getPaymentRegulations();
+    assertEquals(2970, paymentRegulationsRefecthed.get(0).getPaymentRequest().getAmount());
+    assertEquals(330, paymentRegulationsRefecthed.get(1).getPaymentRequest().getAmount());
+
+    Invoice actual2 = api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, INVOICE3_ID,
+        crupdateInvoice
+            .paymentRegulations(List.of(
+                new CreatePaymentRegulation().percent(5000),
+                new CreatePaymentRegulation().percent(5000))));
+    var paymentRegulations2 = actual2.getPaymentRegulations();
+    assertEquals(1650, paymentRegulations2.get(0).getPaymentRequest().getAmount());
+    assertEquals(1650, paymentRegulations2.get(1).getPaymentRequest().getAmount());
+
+    Invoice actualRefetched2 = api.getInvoiceById(JOE_DOE_ACCOUNT_ID, INVOICE3_ID);
+    var paymentRegulationsRefecthed2 = actualRefetched2.getPaymentRegulations();
+    assertEquals(1650, paymentRegulationsRefecthed2.get(0).getPaymentRequest().getAmount());
+    assertEquals(1650, paymentRegulationsRefecthed2.get(1).getPaymentRequest().getAmount());
   }
 
   @Test
@@ -1053,6 +1068,57 @@ class InvoiceIT {
     assertTrue(actual2.get(0).getCreatedAt().isAfter(actual2.get(1).getCreatedAt()));
   }
 
+  @Test
+  void read_invoice_after_some_update() throws ApiException {
+    ApiClient joeDoeClient = anApiClient();
+    PayingApi api = new PayingApi(joeDoeClient);
+    String randomId = String.valueOf(randomUUID());
+
+    Invoice invoice = api.crupdateInvoice(
+        JOE_DOE_ACCOUNT_ID, randomId,
+        new CrupdateInvoice()
+            .ref(randomUUID().toString())
+            .status(DRAFT)
+            .paymentType(IN_INSTALMENT)
+            .customer(customer1())
+            .paymentRegulations(List.of(new CreatePaymentRegulation()
+                    .maturityDate(LocalDate.of(2023, 1, 1))
+                    .percent(1025)
+                    .comment("Test de 10%")
+                    .amount(null),
+                new CreatePaymentRegulation()
+                    .maturityDate(LocalDate.of(2023, 1, 1))
+                    .percent(10000 - 1025)
+                    .comment("Test 90%")
+                    .amount(null))));
+    assertEquals(2, invoice.getPaymentRegulations().size());
+
+    //First get
+    Invoice persisted1 = api.getInvoiceById(JOE_DOE_ACCOUNT_ID, invoice.getId());
+    assertEquals(persisted1.createdAt(null), invoice.createdAt(null));
+
+    Invoice firstUpdate = api.crupdateInvoice(
+        JOE_DOE_ACCOUNT_ID, randomId,
+        new CrupdateInvoice()
+            .ref(randomUUID().toString())
+            .status(DRAFT)
+            .paymentType(IN_INSTALMENT)
+            .customer(customer1())
+            .paymentRegulations(List.of(new CreatePaymentRegulation()
+                    .maturityDate(LocalDate.of(2023, 1, 1))
+                    .percent(1025)
+                    .comment("Tests de 10%")
+                    .amount(null),
+                new CreatePaymentRegulation()
+                    .maturityDate(LocalDate.of(2023, 1, 1))
+                    .percent(10000 - 1025)
+                    .comment("Test 90%")
+                    .amount(null))));
+    assertEquals(2, firstUpdate.getPaymentRegulations().size());
+
+    Invoice peristed2 = api.getInvoiceById(JOE_DOE_ACCOUNT_ID, invoice.getId());
+    assertEquals(2, peristed2.getPaymentRegulations().size());
+  }
 
   private List<Product> ignoreIdsOf(List<Product> actual) {
     return actual.stream()

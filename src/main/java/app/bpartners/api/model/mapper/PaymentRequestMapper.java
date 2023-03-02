@@ -41,6 +41,25 @@ public class PaymentRequestMapper {
         .build();
   }
 
+  public PaymentRequest toDomain(
+      String invoiceId,
+      String accountId,
+      String sessionId,
+      CreatePaymentRegulation regulation) {
+    return PaymentRequest.builder()
+        .id(null)
+        .sessionId(sessionId)
+        .reference(regulation.getReference())
+        .label(regulation.getComment())
+        .accountId(accountId)
+        .invoiceId(invoiceId)
+        .amount(regulation.getAmount())
+        .payerName(regulation.getPayerName())
+        .payerEmail(regulation.getPayerEmail())
+        .paymentUrl(regulation.getPaymentUrl())
+        .build();
+  }
+
   public PaymentRequest toDomain(HPaymentRequest entity) {
     return PaymentRequest.builder()
         .id(entity.getId())

@@ -69,11 +69,11 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
-    post:
+    put:
       tags:
         - Prospecting
-      summary: Get prospects for an accountHolder.
-      operationId: createProspects
+      summary: update prospects of an accountHolder.
+      operationId: updateProspects
       parameters:
         - in: path
           name: ahId
@@ -87,10 +87,10 @@ operations:
             schema:
               type: array
               items:
-                $ref: '#/components/schemas/CreateProspect'
+                $ref: '#/components/schemas/UpdateProspect'
       responses:
         200:
-          description: List of created prospects.
+          description: List of updated prospects.
           content:
             application/json:
               schema:
@@ -174,25 +174,35 @@ components:
         - TO_CONTACT
         - CONTACTED
         - CONVERTED
-    CreateProspect:
-      type: object
+    UpdateProspect:
       properties:
+        id:
+          type: string
         name:
           type: string
         email:
           type: string
         phone:
           type: string
-        location:
+        address:
           type: string
         status:
           $ref: '#/components/schemas/ProspectStatus'
     Prospect:
       allOf:
-        - $ref: '#/components/schemas/CreateProspect'
+        - $ref: '#/components/schemas/UpdateProspect'
       properties:
-        id:
+        location:
+          $ref: '#/components/schemas/Geojson'
+    Geojson:
+      type: object
+      properties:
+        type:
           type: string
+        longitude:
+          type: double
+        latitude:
+          type: double
     ProspectConversion:
       type: object
       properties:

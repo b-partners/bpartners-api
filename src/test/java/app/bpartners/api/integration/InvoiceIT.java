@@ -1053,7 +1053,57 @@ class InvoiceIT {
     assertTrue(actual2.get(0).getCreatedAt().isAfter(actual2.get(1).getCreatedAt()));
   }
 
+  @Test
+  void read_invoice_after_some_update() throws ApiException {
+    ApiClient joeDoeClient = anApiClient();
+    PayingApi api = new PayingApi(joeDoeClient);
+    String randomId = String.valueOf(randomUUID());
 
+    Invoice invoice = api.crupdateInvoice(
+        JOE_DOE_ACCOUNT_ID, randomId,
+        new CrupdateInvoice()
+            .ref(randomUUID().toString())
+            .status(DRAFT)
+            .paymentType(IN_INSTALMENT)
+            .customer(customer1())
+            .paymentRegulations(List.of(new CreatePaymentRegulation()
+                    .maturityDate(LocalDate.of(2023, 1, 1))
+                    .percent(1025)
+                    .comment("Test de 10%")
+                    .amount(null),
+                new CreatePaymentRegulation()
+                    .maturityDate(LocalDate.of(2023, 1, 1))
+                    .percent(10000 - 1025)
+                    .comment("Test 90%")
+                    .amount(null))));
+    assertEquals(2, invoice.getPaymentRegulations().size());
+
+    //First get
+    Invoice persisted1 = api.getInvoiceById(JOE_DOE_ACCOUNT_ID, invoice.getId());
+    assertEquals(persisted1.createdAt(null), invoice.createdAt(null));
+
+    Invoice firstUpdate = api.crupdateInvoice(
+        JOE_DOE_ACCOUNT_ID, randomId,
+        new CrupdateInvoice()
+            .ref(randomUUID().toString())
+            .status(DRAFT)
+            .paymentType(IN_INSTALMENT)
+            .customer(customer1())
+            .paymentRegulations(List.of(new CreatePaymentRegulation()
+                    .maturityDate(LocalDate.of(2023, 1, 1))
+                    .percent(1025)
+                    .comment("Tests de 10%")
+                    .amount(null),
+                new CreatePaymentRegulation()
+                    .maturityDate(LocalDate.of(2023, 1, 1))
+                    .percent(10000 - 1025)
+                    .comment("Test 90%")
+                    .amount(null))));
+    assertEquals(2, firstUpdate.getPaymentRegulations().size());
+
+    Invoice peristed2 = api.getInvoiceById(JOE_DOE_ACCOUNT_ID, invoice.getId());
+    assertEquals(2, peristed2.getPaymentRegulations().size());
+  }
   private List<Product> ignoreIdsOf(List<Product> actual) {
     return actual.stream()
         .peek(product -> product.setId(null))

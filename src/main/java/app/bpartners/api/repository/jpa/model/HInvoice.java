@@ -76,9 +76,12 @@ public class HInvoice implements Serializable {
       cascade = CascadeType.ALL
   )
   private List<HInvoiceProduct> products = new ArrayList<>();
-  /*@OneToMany
-  @JoinColumn(name = "id_invoice")
-  private List<HPaymentRequest> paymentRequests;*/
+  @OneToMany(
+      mappedBy = "idInvoice",
+      orphanRemoval = true,
+      cascade = CascadeType.ALL
+  )
+  private List<HPaymentRequest> paymentRequests;
   @CreationTimestamp
   @Column(updatable = false)
   private Instant createdDatetime;

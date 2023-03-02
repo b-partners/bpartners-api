@@ -3,6 +3,7 @@ package app.bpartners.api.repository.jpa.model;
 import java.io.Serializable;
 import java.time.Instant;
 import java.time.LocalDate;
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -32,7 +33,9 @@ public class HPaymentRequest implements Serializable {
   private String id;
   private String sessionId;
   private String accountId;
-  @ManyToOne
+  @ManyToOne(
+      cascade = CascadeType.ALL
+  )
   @JoinColumn(name = "id_invoice")
   private HInvoice idInvoice;
   private String label;

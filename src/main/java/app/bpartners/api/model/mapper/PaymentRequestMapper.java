@@ -26,12 +26,9 @@ public class PaymentRequestMapper {
 
   public HPaymentRequest toEntity(
       FPaymentRedirection paymentRedirection,
-      PaymentInitiation domain,
-      String idInvoice) {
-    Optional<HInvoice> invoiceOptional = invoiceRepository.findById(idInvoice);
+      PaymentInitiation domain) {
     return HPaymentRequest.builder()
         .id(domain.getId())
-        .idInvoice(invoiceOptional.isPresent() ? invoiceOptional.get() : null)
         .accountId(provider.getAccount().getId())
         .sessionId(paymentRedirection == null ? null
             : paymentRedirection.getMeta().getSessionId())

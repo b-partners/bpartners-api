@@ -21,7 +21,7 @@ public class PaymentInitiationService {
   private final PaymentRequestMapper mapper;
 
   public List<PaymentRedirection> initiatePayments(List<PaymentInitiation> paymentInitiations) {
-    return repository.saveAll(paymentInitiations, null);
+    return repository.saveAll(paymentInitiations);
   }
 
   public PaymentRedirection initiateInvoicePayment(
@@ -31,12 +31,12 @@ public class PaymentInitiationService {
     }
     PaymentInitiation paymentInitiation = mapper.convertFromInvoice(
         String.valueOf(randomUUID()), invoice, totalPriceWithVat, null);
-    return repository.saveAll(List.of(paymentInitiation), invoice.getId()).get(0);
+    return repository.saveAll(List.of(paymentInitiation)).get(0);
   }
 
   public List<PaymentRedirection> initiateInvoicePayments(
-      List<PaymentInitiation> paymentInitiations, String invoiceId) {
-    return repository.saveAll(paymentInitiations, invoiceId);
+      List<PaymentInitiation> paymentInitiations) {
+    return repository.saveAll(paymentInitiations);
   }
 
   public void savePayments(

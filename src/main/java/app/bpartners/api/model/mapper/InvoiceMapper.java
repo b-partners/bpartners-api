@@ -131,12 +131,7 @@ public class InvoiceMapper {
   }
 
   public List<CreatePaymentRegulation> getMultiplePayments(HInvoice entity) {
-    List<HPaymentRequest> paymentRequests =
-        requestJpaRepository.findByAccountId(entity.getIdAccount(),
-                PageRequest.of(0, Integer.MAX_VALUE)).stream()
-            .filter(paymentRequest -> paymentRequest.getIdInvoice() != null
-                && paymentRequest.getIdInvoice().getId().equals(entity.getId()))
-            .collect(Collectors.toUnmodifiableList());
+    List<HPaymentRequest> paymentRequests = entity.getPaymentRequests();
     Fraction totalPrice = computeMultiplePaymentsAmount(paymentRequests);
     return paymentRequests.stream()
         .map(payment -> CreatePaymentRegulation.builder()
@@ -204,6 +199,7 @@ public class InvoiceMapper {
     LocalDate sendingDate = domain.getSendingDate();
     LocalDate toPayAt = null;
     LocalDate validityDate = domain.getValidityDate();
+    List<PaymentInitiation> paymentInitiations = List.of();
     List<HInvoiceProduct> actualProducts = List.of();
     Fraction totalPriceWithVat =
         computeTotalPriceWithVatAndDiscount(domain.getDiscount().getPercentValue(),
@@ -212,9 +208,7 @@ public class InvoiceMapper {
     if (domain.getPaymentType() == IN_INSTALMENT
         && domain.getStatus() != CONFIRMED && domain.getStatus() != PAID) {
       checkPaymentsTotalPrice(domain, totalPriceWithVat);
-      List<PaymentInitiation> paymentInitiations = getPaymentInitiations(domain, totalPriceWithVat);
-      //requestJpaRepository.deleteAllByIdInvoice(id);
-      pis.savePayments(paymentInitiations, id, domain.getStatus());
+      paymentInitiations = getPaymentInitiations(domain, totalPriceWithVat);
     }
 
     Optional<HInvoice> optionalInvoice = jpaRepository.findById(id);
@@ -235,11 +229,11 @@ public class InvoiceMapper {
                   domain.getDiscount().getPercentValue(), domain.getProducts()));
         } else {
           checkPaymentsTotalPrice(domain, totalPriceWithVat);
-          List<PaymentInitiation> paymentInitiations =
+          paymentInitiations =
               getPaymentInitiations(domain, totalPriceWithVat);
           requestJpaRepository.deleteAllByIdInvoice(id);
 
-          pis.initiateInvoicePayments(paymentInitiations, id);
+          pis.initiateInvoicePayments(paymentInitiations);
         }
         jpaRepository.save(entity.status(PROPOSAL_CONFIRMED));
       } else if (domain.getStatus() == PAID && entity.getStatus() == CONFIRMED) {
@@ -280,6 +274,9 @@ public class InvoiceMapper {
         .products(actualProducts)
         .metadataString(objectMapper.writeValueAsString(domain.getMetadata()))
         .discountPercent(domain.getDiscount().getPercentValue().toString())
+        .paymentRequests(paymentInitiations.stream()
+            .map(payment -> requestMapper.toEntity(null, payment))
+            .collect(Collectors.toUnmodifiableList()))
         .build();
   }
 

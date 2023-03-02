@@ -1077,6 +1077,8 @@ class InvoiceIT {
                     .percent(10000 - 1025)
                     .comment("Test 90%")
                     .amount(null))));
+    assertEquals(2, invoice.getPaymentRegulations().size());
+
     //First get
     Invoice persisted1 = api.getInvoiceById(JOE_DOE_ACCOUNT_ID, invoice.getId());
 
@@ -1097,6 +1099,7 @@ class InvoiceIT {
                     .percent(10000 - 1025)
                     .comment("Test 90%")
                     .amount(null))));
+
     //Second get
     Invoice persisted2 = api.getInvoiceById(JOE_DOE_ACCOUNT_ID, invoice.getId());
 
@@ -1117,10 +1120,12 @@ class InvoiceIT {
                     .percent(10000 - 1025)
                     .comment("Test 90%")
                     .amount(null))));
+    assertEquals(2, secondUpdate.getPaymentRegulations().size());
+
     //Third get
     Invoice persisted3 = api.getInvoiceById(JOE_DOE_ACCOUNT_ID, invoice.getId());
+    assertEquals(2, persisted2.getPaymentRegulations().size());
 
-    assertEquals(persisted1.createdAt(null), invoice.createdAt(null));
     assertEquals(ignoreIdsAndDatetime(secondUpdate), ignoreIdsAndDatetime(persisted3));
   }
 

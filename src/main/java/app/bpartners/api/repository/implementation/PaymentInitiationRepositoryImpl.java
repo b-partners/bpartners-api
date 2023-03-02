@@ -27,10 +27,10 @@ public class PaymentInitiationRepositoryImpl implements PaymentInitiationReposit
 
   @Override
   public List<PaymentRedirection> saveAll(
-      List<PaymentInitiation> paymentInitiations, String invoice) {
+      List<PaymentInitiation> paymentInitiations) {
     return paymentInitiations.stream()
         .map(domain -> {
-          FPaymentRedirection paymentRedirection = initiatePayment(domain, invoice);
+          FPaymentRedirection paymentRedirection = initiatePayment(domain);
           return mapper.toDomain(paymentRedirection, domain);
         }).collect(Collectors.toUnmodifiableList());
   }
@@ -40,17 +40,17 @@ public class PaymentInitiationRepositoryImpl implements PaymentInitiationReposit
       List<PaymentInitiation> paymentInitiations, String invoice, InvoiceStatus status) {
     if (status != InvoiceStatus.CONFIRMED && status != InvoiceStatus.PAID) {
       paymentInitiations.forEach(payment -> {
-        HPaymentRequest entity = paymentRequestMapper.toEntity(null, payment, invoice);
+        HPaymentRequest entity = paymentRequestMapper.toEntity(null, payment);
         paymentRequestRepository.save(entity);
       });
     }
   }
 
-  private FPaymentRedirection initiatePayment(PaymentInitiation domain, String invoice) {
+  private FPaymentRedirection initiatePayment(PaymentInitiation domain) {
     FPaymentInitiation paymentInitiation = mapper.toFintectureResource(domain);
     FPaymentRedirection paymentRedirection =
         fintectureRepository.save(paymentInitiation, domain.getSuccessUrl());
-    HPaymentRequest entity = paymentRequestMapper.toEntity(paymentRedirection, domain, invoice);
+    HPaymentRequest entity = paymentRequestMapper.toEntity(paymentRedirection, domain);
     paymentRequestRepository.save(entity);
     return paymentRedirection;
   }

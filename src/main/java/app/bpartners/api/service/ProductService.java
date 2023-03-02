@@ -5,6 +5,7 @@ import app.bpartners.api.endpoint.rest.model.CreateProduct;
 import app.bpartners.api.endpoint.rest.model.OrderDirection;
 import app.bpartners.api.endpoint.rest.model.ProductStatus;
 import app.bpartners.api.endpoint.rest.model.UpdateProductStatus;
+import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.Product;
 import app.bpartners.api.repository.ProductRepository;
 import java.io.ByteArrayInputStream;
@@ -25,11 +26,12 @@ public class ProductService {
 
   public List<Product> getProductsByAccount(
       String accountId, ProductStatus status, int page, int pageSize,
-      OrderDirection descriptionOrder,
-      OrderDirection unitPriceOrder,
-      OrderDirection createdAtOrder) {
-    return repository.findAllByIdAccountAndStatus(accountId, status, page, pageSize,
-        descriptionOrder, unitPriceOrder, createdAtOrder);
+      OrderDirection descriptionOrder, OrderDirection unitPriceOrder, OrderDirection createdAtOrder,
+      String description, Integer unitPrice) {
+    Fraction productUnitPrice = unitPrice == null ? null : parseFraction(unitPrice);
+    return repository.findAllByIdAccountAndStatusOrByDescriptionAndOrUnitPrice(accountId, status,
+        page, pageSize, descriptionOrder, unitPriceOrder, createdAtOrder, description,
+        productUnitPrice);
   }
 
   public List<Product> crupdate(String accountId, List<Product> toCreate) {
@@ -41,9 +43,9 @@ public class ProductService {
   }
 
   public List<Product> getDataFromFile(String accountId, byte[] file) {
-    List<CreateProduct> productsFromFile = getProductsFromFile(new ByteArrayInputStream(file))
-        .stream().distinct()
-        .collect(Collectors.toUnmodifiableList());
+    List<CreateProduct> productsFromFile =
+        getProductsFromFile(new ByteArrayInputStream(file)).stream().distinct()
+            .collect(Collectors.toUnmodifiableList());
     return checkPersistence(accountId, productsFromFile);
   }
 
@@ -61,17 +63,14 @@ public class ProductService {
       }
     }
     if (toUpdateList.isEmpty()) {
-      toCreateList = createProducts.stream()
-          .map(restMapper::toDomain)
+      toCreateList = createProducts.stream().map(restMapper::toDomain)
           .collect(Collectors.toUnmodifiableList());
     } else {
-      List<String> toUpdateDescription =
-          toUpdateList.stream().map(Product::getDescription).collect(
-              Collectors.toUnmodifiableList());
+      List<String> toUpdateDescription = toUpdateList.stream().map(Product::getDescription)
+          .collect(Collectors.toUnmodifiableList());
       toCreateList = createProducts.stream()
           .filter(createProduct -> !toUpdateDescription.contains(createProduct.getDescription()))
-          .map(restMapper::toDomain)
-          .collect(Collectors.toUnmodifiableList());
+          .map(restMapper::toDomain).collect(Collectors.toUnmodifiableList());
     }
     toUpdateList.addAll(toCreateList);
     return toUpdateList;

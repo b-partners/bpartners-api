@@ -15,4 +15,16 @@ public interface ProductJpaRepository extends JpaRepository<HProduct, String> {
 
   List<HProduct> findAllByIdAccountAndStatus(String idAccount, ProductStatus status,
                                              Pageable pageable);
+
+  List<HProduct> findAllByIdAccountAndStatusAndDescription(String idAccount, ProductStatus status,
+                                                           String description, Pageable pageable);
+
+  List<HProduct> findAllByIdAccountAndStatusAndUnitPrice(String idAccount, ProductStatus status,
+                                                         String unitPrice, Pageable pageable);
+
+  List<HProduct> findAllByIdAccountAndStatusAndDescriptionAndUnitPrice(String idAccount,
+                                                                       ProductStatus status,
+                                                                       String description,
+                                                                       String unitPrice,
+                                                                       Pageable pageable);
 }

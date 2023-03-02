@@ -412,20 +412,30 @@ operations:
           schema:
             type: boolean
         - in: query
-          name: description
+          name: descriptionOrder
           schema:
             $ref: '#/components/schemas/OrderDirection'
           description: Filter product by description
         - in: query
-          name: unitPrice
+          name: unitPriceOrder
           schema:
             $ref: '#/components/schemas/OrderDirection'
           description: Filter product by unit price
         - in: query
-          name: createdAt
+          name: createdAtOrder
           schema:
             $ref: '#/components/schemas/OrderDirection'
           description: Filter product by created date
+        - in: query
+          name: productDescription
+          schema:
+            type: string
+          description: If provided, search product by description
+        - in: query
+          name: productUnitPrice
+          schema:
+            type: integer
+          description: If provided, search product by unit price
         - in: query
           name: page
           required: false

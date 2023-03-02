@@ -3,6 +3,7 @@ package app.bpartners.api.repository.implementation;
 import app.bpartners.api.endpoint.rest.model.OrderDirection;
 import app.bpartners.api.endpoint.rest.model.ProductStatus;
 import app.bpartners.api.endpoint.rest.model.UpdateProductStatus;
+import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.Product;
 import app.bpartners.api.model.mapper.ProductMapper;
 import app.bpartners.api.repository.ProductRepository;
@@ -12,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -21,6 +23,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 @AllArgsConstructor
+@Slf4j
 public class ProductRepositoryImpl implements ProductRepository {
   private final ProductJpaRepository jpaRepository;
   private final ProductMapper mapper;
@@ -74,17 +77,39 @@ public class ProductRepositoryImpl implements ProductRepository {
   }
 
   @Override
-  public List<Product> findAllByIdAccountAndStatus(String idAccount, ProductStatus status,
-                                                   Integer page, Integer pageSize,
-                                                   OrderDirection descriptionOrder,
-                                                   OrderDirection unitPriceOrder,
-                                                   OrderDirection createdAtOrder) {
+  public List<Product> findAllByIdAccountAndStatusOrByDescriptionAndOrUnitPrice(
+       String idAccount, ProductStatus status, Integer page, Integer pageSize,
+       OrderDirection descriptionOrder, OrderDirection unitPriceOrder,
+       OrderDirection createdAtOrder,
+       String description, Fraction unitPrice) {
     List<Order> orders = retrieveOrders(descriptionOrder, unitPriceOrder, createdAtOrder);
     Pageable pageRequest = PageRequest.of(page, pageSize, Sort.by(orders));
-    return jpaRepository.findAllByIdAccountAndStatus(idAccount, status, pageRequest).stream()
+    // TODO : refactor using criteria
+    if (description != null && unitPrice != null) {
+      return jpaRepository.findAllByIdAccountAndStatusAndDescriptionAndUnitPrice(idAccount, status,
+              description, unitPrice.toString(), pageRequest)
+          .stream()
+          .map(mapper::toDomain)
+          .collect(Collectors.toUnmodifiableList());
+    } else if (description == null && unitPrice != null) {
+      return jpaRepository.findAllByIdAccountAndStatusAndUnitPrice(idAccount, status,
+              unitPrice.toString(), pageRequest)
+          .stream()
+          .map(mapper::toDomain)
+          .collect(Collectors.toUnmodifiableList());
+    } else if (description != null) {
+      return jpaRepository.findAllByIdAccountAndStatusAndDescription(idAccount, status, description,
+              pageRequest)
+          .stream()
+          .map(mapper::toDomain)
+          .collect(Collectors.toUnmodifiableList());
+    }
+    return jpaRepository.findAllByIdAccountAndStatus(idAccount, status, pageRequest)
+        .stream()
         .map(mapper::toDomain)
         .collect(Collectors.toUnmodifiableList());
   }
+
 
   @Override
   public List<Product> updateStatus(String accountId, List<UpdateProductStatus> toUpdate) {

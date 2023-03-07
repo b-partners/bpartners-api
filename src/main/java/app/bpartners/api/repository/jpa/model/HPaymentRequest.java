@@ -7,6 +7,8 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
+
+import app.bpartners.api.model.PaymentRequest;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -41,4 +43,8 @@ public class HPaymentRequest implements Serializable {
   private LocalDate paymentDueDate;
   @CreationTimestamp
   private Instant createdDatetime;
+
+  public HPaymentRequest(PaymentRequest p) {
+    //TODO
+  }
 }

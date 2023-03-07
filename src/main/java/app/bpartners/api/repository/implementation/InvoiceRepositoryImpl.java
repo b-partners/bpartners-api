@@ -11,6 +11,7 @@ import app.bpartners.api.model.mapper.InvoiceProductMapper;
 import app.bpartners.api.repository.InvoiceRepository;
 import app.bpartners.api.repository.jpa.InvoiceJpaRepository;
 import app.bpartners.api.repository.jpa.InvoiceProductJpaRepository;
+import app.bpartners.api.repository.jpa.PaymentRequestJpaRepository;
 import app.bpartners.api.repository.jpa.model.HInvoice;
 import app.bpartners.api.repository.jpa.model.HInvoiceProduct;
 import app.bpartners.api.service.AccountHolderService;
@@ -37,6 +38,7 @@ import static org.springframework.data.domain.Sort.Direction.DESC;
 @AllArgsConstructor
 public class InvoiceRepositoryImpl implements InvoiceRepository {
   private final InvoiceJpaRepository jpaRepository;
+  private final PaymentRequestJpaRepository requestJpaRepository;
   private final PrincipalProvider auth;
   private final InvoiceMapper mapper;
   private final InvoiceProductMapper productMapper;
@@ -48,17 +50,18 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
   @Override
   public Invoice crupdate(Invoice invoice) {
     HInvoice entity = mapper.toEntity(invoice, true);
+
     if (!entity.getProducts().isEmpty()) {
       productJpaRepository.deleteAll(entity.getProducts());
     }
+    if (!entity.getPaymentRequests().isEmpty()
+        && invoice.getStatus() != CONFIRMED && invoice.getStatus() != PAID) {
+      requestJpaRepository.deleteAllByIdInvoice(entity.getId());
+    }
 
-    Invoice domain = mapper.toDomain(
-        entity.products(getProductEntities(invoice, entity)));
-    jpaRepository.save(entity
-        .fileId(processPdfGeneration(
-            domain.multiplePayments(mapper.getMultiplePayments(entity)))));
-
-    return domain;
+    return mapper.toDomain(
+        jpaRepository.save(entity.fileId(processPdfGeneration(
+            mapper.toDomain(entity.products(getProductEntities(invoice, entity)))))));
   }
 
   private String processPdfGeneration(Invoice domain) {

@@ -1,8 +1,5 @@
 package app.bpartners.api.service;
 
-import app.bpartners.api.endpoint.event.EventProducer;
-import app.bpartners.api.endpoint.event.model.TypedInvoiceCrupdated;
-import app.bpartners.api.endpoint.event.model.gen.InvoiceCrupdated;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.BoundedPageSize;
@@ -10,7 +7,6 @@ import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.repository.InvoiceRepository;
-import app.bpartners.api.repository.jpa.InvoiceJpaRepository;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -25,12 +21,10 @@ public class InvoiceService {
   public static final String DRAFT_REF_PREFIX = "BROUILLON-";
   public static final String PROPOSAL_REF_PREFIX = "DEVIS-";
   private final InvoiceRepository repository;
-  private final InvoiceJpaRepository jpaRepository;
   private final AccountHolderService holderService;
-  private final EventProducer eventProducer;
 
-  public List<Invoice> getInvoices(String accountId, PageFromOne page,
-                                   BoundedPageSize pageSize, InvoiceStatus status) {
+  public List<Invoice> getInvoices(
+      String accountId, PageFromOne page, BoundedPageSize pageSize, InvoiceStatus status) {
     int pageValue = page != null ? page.getValue() - 1 : 0;
     int pageSizeValue = pageSize != null ? pageSize.getValue() : 30;
     if (status != null) {
@@ -51,14 +45,6 @@ public class InvoiceService {
       );
     }
     return repository.crupdate(toCrupdate);
-  }
-
-  private TypedInvoiceCrupdated toTypedEvent(Invoice invoice) {
-    return new TypedInvoiceCrupdated(InvoiceCrupdated.builder()
-        .invoice(invoice)
-        .accountHolder(null) //todo: use account holder service when async is set
-        .logoFileId(null) //todo: use principalProvider when async is set again
-        .build());
   }
 
   private AccountHolder getAccountHolder(Invoice toCrupdate) {

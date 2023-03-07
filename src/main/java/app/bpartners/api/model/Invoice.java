@@ -44,6 +44,7 @@ public class Invoice {
   private Fraction totalVat;
   private Fraction totalPriceWithVat;
   private String paymentUrl;
+
   private Customer customer;
   private String customerEmail;
   private String customerPhone;
@@ -52,6 +53,7 @@ public class Invoice {
   private String customerCity;
   private Integer customerZipCode;
   private String customerCountry;
+
   private Account account;
   private List<InvoiceProduct> products;
   private InvoiceStatus status;

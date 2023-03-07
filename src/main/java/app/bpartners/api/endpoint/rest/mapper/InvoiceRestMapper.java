@@ -81,9 +81,10 @@ public class InvoiceRestMapper {
         .delayInPaymentAllowed(domain.getDelayInPaymentAllowed())
         .delayPenaltyPercent(domain.getDelayPenaltyPercent().getCentsRoundUp())
         .metadata(domain.getMetadata())
-        .paymentRegulations(domain.getMultiplePayments().stream()
-            .map(payment -> getPaymentRegulation(domain.getTotalPriceWithVat(), payment))
-            .collect(Collectors.toUnmodifiableList()))
+        .paymentRegulations(
+            domain.getMultiplePayments() == null ? null : domain.getMultiplePayments().stream()
+                .map(payment -> getPaymentRegulation(domain.getTotalPriceWithVat(), payment))
+                .collect(Collectors.toUnmodifiableList()))
         .toPayAt(toPayAt)
         .globalDiscount(new InvoiceDiscount()
             .percentValue(
@@ -161,7 +162,7 @@ public class InvoiceRestMapper {
         .comment(rest.getComment())
         .customer(rest.getCustomer())
         .status(rest.getStatus())
-        .paymentType(rest.getPaymentType() == null ? null : converType(rest))
+        .paymentType(rest.getPaymentType() == null ? null : convertType(rest))
         .paymentRegulations(List.of())
         .sendingDate(rest.getSendingDate())
         .validityDate(rest.getValidityDate())
@@ -254,7 +255,7 @@ public class InvoiceRestMapper {
     }
   }
 
-  public CrupdateInvoice.PaymentTypeEnum converType(CrupdateInvoiceInfo rest){
+  public CrupdateInvoice.PaymentTypeEnum convertType(CrupdateInvoiceInfo rest){
     if (rest.getPaymentType().getValue() == null) {
       return null;
     }

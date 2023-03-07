@@ -626,7 +626,7 @@ operations:
       tags:
         - Paying
       summary: Crupdate invoice informations
-      operationId: cupdateInvoiceInfo
+      operationId: crupdateInvoiceInformations
       parameters:
         - in: path
           name: aId
@@ -1300,6 +1300,8 @@ components:
       properties:
         id:
           type: string
+        accountId:
+          type: string
         paymentRegulation:
           type: array
           items:
@@ -1336,6 +1338,8 @@ components:
     CrupdateProduct:
       properties:
         id:
+          type: string
+        accountId:
           type: string
         products:
           type: array

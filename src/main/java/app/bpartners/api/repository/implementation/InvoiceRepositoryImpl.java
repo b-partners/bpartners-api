@@ -5,7 +5,9 @@ import app.bpartners.api.endpoint.rest.security.model.Principal;
 import app.bpartners.api.endpoint.rest.security.principal.PrincipalProvider;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.Invoice;
+import app.bpartners.api.model.InvoiceDiscount;
 import app.bpartners.api.model.exception.NotFoundException;
+import app.bpartners.api.model.mapper.CustomerMapper;
 import app.bpartners.api.model.mapper.InvoiceMapper;
 import app.bpartners.api.model.mapper.InvoiceProductMapper;
 import app.bpartners.api.repository.InvoiceRepository;
@@ -33,6 +35,7 @@ import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
 import static app.bpartners.api.service.InvoiceService.DRAFT_TEMPLATE;
 import static app.bpartners.api.service.InvoiceService.INVOICE_TEMPLATE;
+import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 import static java.util.UUID.randomUUID;
 import static org.springframework.data.domain.Sort.Direction.DESC;
 
@@ -48,6 +51,9 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
   private final AccountHolderService holderService;
   private final FileService fileService;
   private final InvoicePdfUtils pdfUtils = new InvoicePdfUtils();
+
+  private final CustomerMapper customerMapper;
+
 
   @Override
   public Invoice crupdate(Invoice invoice) {
@@ -66,6 +72,29 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
     HInvoice persistedEntity = jpaRepository.save(entity
         .fileId(processPdfGeneration(mapper.toDomain(entityWithProdAndPay))));
     return mapper.toDomain(persistedEntity);
+  }
+
+  @Override
+  public Invoice crupdateInvoiceInfo(Invoice toCrupdate) {
+    HInvoice invoice = jpaRepository.findByIdAccountAndId(toCrupdate.getAccount().getId(), toCrupdate.getId());
+    if(invoice != null){
+      invoice.setRef(toCrupdate.getRef());
+      invoice.setTitle(toCrupdate.getTitle());
+      invoice.setComment(toCrupdate.getComment());
+      invoice.setToPayAt(toCrupdate.getToPayAt());
+      invoice.setCustomer(customerMapper.toEntity(toCrupdate.getCustomer()));
+      invoice.setSendingDate(toCrupdate.getSendingDate());
+      invoice.setPaymentType(toCrupdate.getPaymentType());
+      invoice.setStatus(toCrupdate.getStatus());
+      invoice.setValidityDate(toCrupdate.getValidityDate());
+      invoice.setDelayInPaymentAllowed(toCrupdate.getDelayInPaymentAllowed());
+      invoice.setDelayPenaltyPercent(toCrupdate.getDelayPenaltyPercent().toString());
+      invoice.setDiscountPercent(toCrupdate.getDiscount().getPercentValue().toString());
+      invoice.setMetadataString(toCrupdate.getMetadata().toString());
+      return mapper.toDomain(jpaRepository.save(invoice));
+    }
+    HInvoice entity = mapper.toEntity(toCrupdate, true);
+    return mapper.toDomain(jpaRepository.save(entity));
   }
 
   private String processPdfGeneration(Invoice domain) {

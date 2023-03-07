@@ -12,11 +12,12 @@ public interface InvoiceJpaRepository extends JpaRepository<HInvoice, String> {
       InvoiceStatus status,
       Pageable pageable);
 
-
   List<HInvoice> findAllByIdAccount(String idAccount, Pageable pageable);
 
   List<HInvoice> findByIdAccountAndRefAndStatus(
       String idAccount, String ref, InvoiceStatus status);
 
   List<HInvoice> findAllByToBeRelaunched(boolean toBeRelaunched);
+
+  HInvoice findByIdAccountAndId(String accountId, String id);
 }

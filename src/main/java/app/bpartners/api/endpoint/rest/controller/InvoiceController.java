@@ -2,6 +2,9 @@ package app.bpartners.api.endpoint.rest.controller;
 
 import app.bpartners.api.endpoint.rest.mapper.InvoiceRestMapper;
 import app.bpartners.api.endpoint.rest.model.CrupdateInvoice;
+import app.bpartners.api.endpoint.rest.model.CrupdateInvoiceInfo;
+import app.bpartners.api.endpoint.rest.model.CrupdatePaymentRegulation;
+import app.bpartners.api.endpoint.rest.model.CrupdateProduct;
 import app.bpartners.api.endpoint.rest.model.Invoice;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.model.BoundedPageSize;
@@ -10,6 +13,7 @@ import app.bpartners.api.service.InvoiceService;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
+import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -31,6 +35,16 @@ public class InvoiceController {
     app.bpartners.api.model.Invoice toCrupdate =
         mapper.toDomain(accountId, invoiceId, crupdateInvoice);
     return mapper.toRest(service.crupdateInvoice(toCrupdate));
+  }
+
+  @PutMapping("/accounts/{aId}/invoices/{iId}/information")
+  public Invoice crupdateInvoiceInformations(
+      @PathVariable("aId") String accountId,
+      @PathVariable("iId") String invoiceId,
+      @RequestBody CrupdateInvoiceInfo crupdateInvoice
+  ){
+    app.bpartners.api.model.Invoice invoice= mapper.toDomain(accountId, invoiceId, crupdateInvoice);
+    return mapper.toRest(service.crupdateInvoiceInfo(invoice));
   }
 
   @GetMapping("/accounts/{id}/invoices/{iId}")

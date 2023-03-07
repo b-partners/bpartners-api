@@ -71,7 +71,7 @@ public class InvoiceMapper {
         .comment(entity.getComment())
         .paymentType(entity.getPaymentType())
         .paymentUrl(entity.getPaymentUrl())
-        .products(actualProducts)
+        .products(actualProducts == null ? List.of() : actualProducts )
         .sendingDate(entity.getSendingDate())
         .validityDate(entity.getValidityDate())
         .delayInPaymentAllowed(entity.getDelayInPaymentAllowed())
@@ -94,15 +94,15 @@ public class InvoiceMapper {
         .createdAt(entity.getCreatedDatetime())
         .metadata(toMetadataMap(entity.getMetadataString()))
         //total without vat and without discount
-        .totalPriceWithoutDiscount(computePriceWithoutDiscount(actualProducts))
+        .totalPriceWithoutDiscount(actualProducts == null ? null : computePriceWithoutDiscount(actualProducts))
         //total without vat but with discount
-        .totalPriceWithoutVat(computePriceNoVatWithDiscount(discount, actualProducts))
+        .totalPriceWithoutVat(actualProducts == null ? null : computePriceNoVatWithDiscount(discount, actualProducts))
         //total vat with discount
-        .totalVat(computeTotalVatWithDiscount(discount, actualProducts))
+        .totalVat(actualProducts == null ? null : computeTotalVatWithDiscount(discount, actualProducts))
         //total with vat and with discount
-        .totalPriceWithVat(
+        .totalPriceWithVat( actualProducts == null ? null :
             computeTotalPriceWithVatAndDiscount(discount, actualProducts))
-        .discount(InvoiceDiscount.builder()
+        .discount(actualProducts == null ? null : InvoiceDiscount.builder()
             .percentValue(parseFraction(entity.getDiscountPercent()))
             .amountValue(computeTotalDiscountAmount(discount, actualProducts))
             .build())
@@ -198,10 +198,10 @@ public class InvoiceMapper {
     LocalDate toPayAt = null;
     LocalDate validityDate = domain.getValidityDate();
     List<HInvoiceProduct> actualProducts = List.of();
-    Fraction totalPriceWithVat =
+    Fraction totalPriceWithVat = domain.getProducts() == null ? null :
         computeTotalPriceWithVatAndDiscount(domain.getDiscount().getPercentValue(),
             domain.getProducts());
-    List<HPaymentRequest> paymentRequests = pis.retrievePaymentEntities(
+    List<HPaymentRequest> paymentRequests = domain.getMultiplePayments() == null || domain.getProducts() == null ? null : pis.retrievePaymentEntities(
         getPaymentInitiations(domain, totalPriceWithVat), id, domain.getStatus());
 
     //TODO: split this into specific layer - BEGIN
@@ -275,7 +275,7 @@ public class InvoiceMapper {
         .delayInPaymentAllowed(domain.getDelayInPaymentAllowed())
         .delayPenaltyPercent(domain.getDelayPenaltyPercent().toString())
         .paymentRequests(paymentRequests)
-        .products(actualProducts)
+        .products(actualProducts == null ? null : actualProducts)
         .metadataString(objectMapper.writeValueAsString(domain.getMetadata()))
         .discountPercent(domain.getDiscount().getPercentValue().toString())
         .build();

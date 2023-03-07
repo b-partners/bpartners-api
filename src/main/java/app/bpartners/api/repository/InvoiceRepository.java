@@ -7,6 +7,8 @@ import java.util.List;
 public interface InvoiceRepository {
   Invoice crupdate(Invoice toCrupdate);
 
+  Invoice crupdateInvoiceInfo(Invoice toCrupdate);
+
   Invoice getById(String invoiceId);
 
   List<Invoice> findAllByAccountIdAndStatus(

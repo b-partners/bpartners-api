@@ -47,6 +47,11 @@ public class InvoiceService {
     return repository.crupdate(toCrupdate);
   }
 
+  @Transactional(isolation = Isolation.SERIALIZABLE)
+  public Invoice crupdateInvoiceInfo(Invoice toCrupdate){
+    return repository.crupdateInvoiceInfo(toCrupdate);
+  }
+
   private AccountHolder getAccountHolder(Invoice toCrupdate) {
     return holderService.getAccountHolderByAccountId(toCrupdate.getAccount().getId());
   }

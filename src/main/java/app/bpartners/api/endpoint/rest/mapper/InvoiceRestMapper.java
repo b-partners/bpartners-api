@@ -1,6 +1,7 @@
 package app.bpartners.api.endpoint.rest.mapper;
 
 import app.bpartners.api.endpoint.rest.model.CrupdateInvoice;
+import app.bpartners.api.endpoint.rest.model.CrupdateInvoiceInfo;
 import app.bpartners.api.endpoint.rest.model.Invoice;
 import app.bpartners.api.endpoint.rest.model.InvoiceDiscount;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
@@ -44,6 +45,21 @@ public class InvoiceRestMapper {
   private final CrupdateInvoiceValidator crupdateInvoiceValidator;
   private final InvoiceJpaRepository invoiceJpaRepository;
 
+  private static PaymentRegulation getPaymentRegulation(CreatePaymentRegulation payment) {
+    return new PaymentRegulation()
+        .maturityDate(payment.getMaturityDate())
+        .paymentRequest(new PaymentRequest()
+            .id(payment.getEndToEndId())
+            .reference(payment.getReference())
+            .paymentUrl(payment.getPaymentUrl())
+            .label(payment.getComment())
+            .amount(payment.getAmount().getCentsRoundUp())
+            .payerName(payment.getPayerName())
+            .payerEmail(payment.getPayerEmail())
+            .paymentUrl(payment.getPaymentUrl())
+            .initiatedDatetime(payment.getInitiatedDatetime()));
+  }
+
   public Invoice toRest(app.bpartners.api.model.Invoice domain) {
     if (domain == null) {
       return null;
@@ -78,9 +94,10 @@ public class InvoiceRestMapper {
         .delayInPaymentAllowed(domain.getDelayInPaymentAllowed())
         .delayPenaltyPercent(domain.getDelayPenaltyPercent().getCentsRoundUp())
         .metadata(domain.getMetadata())
-        .paymentRegulations(domain.getMultiplePayments().stream()
-            .map(InvoiceRestMapper::getPaymentRegulation)
-            .collect(Collectors.toUnmodifiableList()))
+        .paymentRegulations(
+            domain.getMultiplePayments() == null ? null : domain.getMultiplePayments().stream()
+                .map(InvoiceRestMapper::getPaymentRegulation)
+                .collect(Collectors.toUnmodifiableList()))
         .toPayAt(toPayAt)
         .globalDiscount(new InvoiceDiscount()
             .percentValue(
@@ -94,6 +111,48 @@ public class InvoiceRestMapper {
         : new TransactionInvoice()
         .invoiceId(transactionInvoice.getInvoiceId())
         .fileId(transactionInvoice.getFileId());
+  }
+
+  public app.bpartners.api.model.Invoice toDomain(String accountId, String invoiceId,
+                                                  CrupdateInvoiceInfo rest) {
+    //TODO: deprecated use validityDate instead of toPayAt
+    LocalDate validityDate = rest.getValidityDate();
+    if (validityDate == null && rest.getToPayAt() != null
+        && rest.getStatus() != CONFIRMED && rest.getStatus() != PAID) {
+      log.warn("DEPRECATED: DRAFT and PROPOSAL invoice must use validityDate"
+          + " instead of toPayAt attribute during crupdate");
+      validityDate = rest.getToPayAt();
+    }
+
+    //TODO: deprecated ! discount must be mandatory
+    InvoiceDiscount discount = rest.getGlobalDiscount();
+    if (rest.getGlobalDiscount() == null
+        || (rest.getGlobalDiscount() != null
+        && rest.getGlobalDiscount().getPercentValue() == null)) {
+      discount = new InvoiceDiscount().percentValue(0);
+    }
+
+    return app.bpartners.api.model.Invoice.builder()
+        .id(invoiceId)
+        .ref(rest.getRef())
+        .title(rest.getTitle())
+        .comment(rest.getComment())
+        .toPayAt(rest.getToPayAt())
+        .customer(
+            rest.getCustomer() != null ? customerRepository.findById(rest.getCustomer().getId()) :
+                null)
+        .sendingDate(rest.getSendingDate())
+        .paymentType(convertType(rest.getPaymentType()))
+        .status(rest.getStatus())
+        .delayInPaymentAllowed(rest.getDelayInPaymentAllowed())
+        .account(accountService.getAccountById(accountId))
+        .delayPenaltyPercent(
+            rest.getDelayPenaltyPercent() == null ? parseFraction(DEFAULT_DELAY_PENALTY_PERCENT) :
+                parseFraction(rest.getDelayPenaltyPercent()))
+        .validityDate(validityDate)
+        .discount(getDiscount(discount))
+        .metadata(rest.getMetadata())
+        .build();
   }
 
   public app.bpartners.api.model.Invoice toDomain(
@@ -164,20 +223,6 @@ public class InvoiceRestMapper {
         .build();
   }
 
-  private static PaymentRegulation getPaymentRegulation(CreatePaymentRegulation payment) {
-    return new PaymentRegulation()
-        .maturityDate(payment.getMaturityDate())
-        .paymentRequest(new PaymentRequest()
-            .id(payment.getEndToEndId())
-            .reference(payment.getReference())
-            .paymentUrl(payment.getPaymentUrl())
-            .label(payment.getComment())
-            .amount(payment.getAmount().getCentsRoundUp())
-            .payerName(payment.getPayerName())
-            .payerEmail(payment.getPayerEmail())
-            .paymentUrl(payment.getPaymentUrl())
-            .initiatedDatetime(payment.getInitiatedDatetime()));
-  }
 
   private app.bpartners.api.model.InvoiceDiscount getDiscount(
       app.bpartners.api.endpoint.rest.model.InvoiceDiscount discount) {
@@ -220,6 +265,22 @@ public class InvoiceRestMapper {
       default:
         throw new ApiException(ApiException.ExceptionType.SERVER_EXCEPTION,
             "Payment type " + crupdateInvoiceType.getValue() + " not found");
+    }
+  }
+
+  private Invoice.PaymentTypeEnum convertType(
+      CrupdateInvoiceInfo.PaymentTypeEnum crupdateInvoiceInfoType) {
+    if (crupdateInvoiceInfoType == null) {
+      return null;
+    }
+    switch (crupdateInvoiceInfoType.getValue()) {
+      case "CASH":
+        return Invoice.PaymentTypeEnum.CASH;
+      case "IN_INSTALMENT":
+        return Invoice.PaymentTypeEnum.IN_INSTALMENT;
+      default:
+        throw new ApiException(ApiException.ExceptionType.SERVER_EXCEPTION,
+            "Payment type" + crupdateInvoiceInfoType.getValue() + " not found");
     }
   }
 

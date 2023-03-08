@@ -1,5 +1,8 @@
 package app.bpartners.api.repository.implementation;
 
+import app.bpartners.api.endpoint.rest.security.AuthenticatedResourceProvider;
+import app.bpartners.api.model.AccountHolder;
+import app.bpartners.api.model.BusinessActivity;
 import app.bpartners.api.model.Prospect;
 import app.bpartners.api.model.mapper.ProspectMapper;
 import app.bpartners.api.repository.ProspectRepository;
@@ -8,7 +11,9 @@ import app.bpartners.api.repository.jpa.ProspectJpaRepository;
 import app.bpartners.api.repository.jpa.model.HProspect;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitApi;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.model.SingleBuildingPermit;
+import app.bpartners.api.service.BusinessActivityService;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -20,16 +25,19 @@ import static org.springframework.transaction.annotation.Isolation.SERIALIZABLE;
 @Repository
 
 public class ProspectRepositoryImpl implements ProspectRepository {
+  public static final String TILE_LAYER = "carelleur";
+  public static final String ROOFER = "toiturier";
   private final ProspectJpaRepository jpaRepository;
   private final ProspectMapper mapper;
   private final BuildingPermitApi buildingPermitApi;
   private final SogefiBuildingPermitRepository sogefiBuildingPermitRepository;
+  private final BusinessActivityService businessActivityService;
+  private final AuthenticatedResourceProvider resourceProvider;
 
-  //todo: an accountholder should get new prospects if he prospects from sogefi and if he needs
-  // prospects
   @Override
   public List<Prospect> findAllByIdAccountHolder(String idAccountHolder) {
-    boolean isSogefiProspector = true;
+    boolean isSogefiProspector =
+        isSogefiProspector(idAccountHolder);
     if (isSogefiProspector) {
       buildingPermitApi.getData().getRecords()
           .forEach(
@@ -46,10 +54,24 @@ public class ProspectRepositoryImpl implements ProspectRepository {
         .collect(Collectors.toUnmodifiableList());
   }
 
+  private boolean isSogefiProspector(String idAccountHolder) {
+    BusinessActivity businessActivity =
+        businessActivityService.findByAccountHolderId(idAccountHolder);
+    return Objects.equals(businessActivity.getPrimaryActivity(), TILE_LAYER)
+        ||
+        Objects.equals(businessActivity.getPrimaryActivity(), ROOFER)
+        ||
+        Objects.equals(businessActivity.getSecondaryActivity(), TILE_LAYER)
+        || Objects.equals(businessActivity.getSecondaryActivity(), ROOFER);
+  }
+
   @Transactional(isolation = SERIALIZABLE)
   @Override
   public List<Prospect> saveAll(List<Prospect> prospects) {
-    boolean isSogefiProspector = true;
+    AccountHolder authenticatedAccount = resourceProvider.getAccountHolder();
+
+    boolean isSogefiProspector =
+        isSogefiProspector(authenticatedAccount.getId());
     List<HProspect> entities = prospects
         .stream()
         .map(mapper::toEntity)

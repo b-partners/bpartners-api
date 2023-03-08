@@ -1,5 +1,6 @@
 package app.bpartners.api.repository.jpa.model;
 
+import app.bpartners.api.model.PaymentRequest;
 import java.io.Serializable;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -7,8 +8,6 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
-
-import app.bpartners.api.model.PaymentRequest;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;

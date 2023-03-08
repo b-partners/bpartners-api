@@ -8,6 +8,7 @@ import app.bpartners.api.model.PaymentInitiation;
 import app.bpartners.api.model.PaymentRequest;
 import app.bpartners.api.repository.fintecture.model.FPaymentRedirection;
 import app.bpartners.api.repository.jpa.model.HPaymentRequest;
+import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -38,6 +39,7 @@ public class PaymentRequestMapper {
         .reference(domain.getReference())
         .paymentDueDate(domain.getPaymentDueDate())
         .amount(domain.getAmount().toString())
+        .createdDatetime(Instant.now())
         .build();
   }
 

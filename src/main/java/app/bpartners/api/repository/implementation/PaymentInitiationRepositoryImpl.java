@@ -37,14 +37,14 @@ public class PaymentInitiationRepositoryImpl implements PaymentInitiationReposit
 
   @Override
   public List<HPaymentRequest> retrievePaymentEntities(
-      List<PaymentInitiation> paymentInitiations, String invoice, InvoiceStatus status) {
+      List<PaymentInitiation> paymentInitiations, String invoice) {
     return paymentInitiations.stream()
         .map(payment -> paymentRequestMapper.toEntity(null, payment, invoice))
         .collect(Collectors.toList());
   }
 
   @Override
-  public List<HPaymentRequest> retrievePaymentEntities(
+  public List<HPaymentRequest> retrievePaymentEntitiesWithUrl(
       List<PaymentInitiation> paymentInitiations, String invoice) {
     return paymentInitiations.stream()
         .map(payment -> {

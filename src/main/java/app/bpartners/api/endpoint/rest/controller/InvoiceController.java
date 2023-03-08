@@ -3,8 +3,6 @@ package app.bpartners.api.endpoint.rest.controller;
 import app.bpartners.api.endpoint.rest.mapper.InvoiceRestMapper;
 import app.bpartners.api.endpoint.rest.model.CrupdateInvoice;
 import app.bpartners.api.endpoint.rest.model.CrupdateInvoiceInfo;
-import app.bpartners.api.endpoint.rest.model.CrupdatePaymentRegulation;
-import app.bpartners.api.endpoint.rest.model.CrupdateProduct;
 import app.bpartners.api.endpoint.rest.model.Invoice;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.model.BoundedPageSize;
@@ -37,7 +35,7 @@ public class InvoiceController {
     return mapper.toRest(service.crupdateInvoice(toCrupdate));
   }
 
-  @PutMapping("/accounts/{aId}/invoices/{iId}/information")
+  @PutMapping("/accounts/{aId}/invoices/{iId}/informations")
   public Invoice crupdateInvoiceInformations(
       @PathVariable("aId") String accountId,
       @PathVariable("iId") String invoiceId,

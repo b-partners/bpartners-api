@@ -10,6 +10,7 @@ import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.apfloat.Aprational;
 
 import static app.bpartners.api.service.utils.FractionUtils.toAprational;
@@ -19,6 +20,7 @@ import static app.bpartners.api.service.utils.FractionUtils.toAprational;
 @Builder
 @AllArgsConstructor
 @EqualsAndHashCode
+@Slf4j
 public class Fraction implements Serializable {
   private BigInteger numerator;
   private BigInteger denominator;

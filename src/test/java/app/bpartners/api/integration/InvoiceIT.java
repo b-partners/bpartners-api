@@ -141,6 +141,7 @@ class InvoiceIT {
             .payerName(customer1().getName())
             .payerEmail(customer1().getEmail())
             .paymentUrl("https://connect-v2-sbx.fintecture.com")
+            .percentValue(10000 - 909)
             .amount(1000)
             .label("Montant restant"));
   }
@@ -153,6 +154,7 @@ class InvoiceIT {
             .payerName(customer1().getName())
             .payerEmail(customer1().getEmail())
             .paymentUrl("https://connect-v2-sbx.fintecture.com")
+            .percentValue(909)
             .amount(100)
             .label("Un euro"));
   }
@@ -481,6 +483,7 @@ class InvoiceIT {
             .paymentRequest(new PaymentRequest()
                 .paymentUrl(null)
                 .reference(id)
+                .percentValue(2510)
                 .amount(552)
                 .payerName("Luc Artisan")
                 .payerEmail("bpartners.artisans@gmail.com")
@@ -489,6 +492,7 @@ class InvoiceIT {
             .maturityDate(LocalDate.of(2023, 1, 1))
             .paymentRequest(new PaymentRequest()
                 .paymentUrl(null)
+                .percentValue(10000 - 2510)
                 .amount(1648)
                 .reference(id)
                 .payerName("Luc Artisan")
@@ -502,6 +506,7 @@ class InvoiceIT {
             .paymentRequest(new PaymentRequest()
                 .paymentUrl(null)
                 .reference(id)
+                .percentValue(1025)
                 .amount(225)
                 .payerName("Luc Artisan")
                 .payerEmail("bpartners.artisans@gmail.com")
@@ -510,6 +515,7 @@ class InvoiceIT {
             .maturityDate(LocalDate.of(2023, 1, 1))
             .paymentRequest(new PaymentRequest()
                 .paymentUrl(null)
+                .percentValue(10000 - 1025)
                 .amount(1975)
                 .reference(id)
                 .payerName("Luc Artisan")
@@ -523,6 +529,7 @@ class InvoiceIT {
             .paymentRequest(new PaymentRequest()
                 .paymentUrl("https://connect-v2-sbx.fintecture.com")
                 .reference(id)
+                .percentValue(1025)
                 .amount(225)
                 .payerName("Luc Artisan")
                 .payerEmail("bpartners.artisans@gmail.com")
@@ -531,6 +538,7 @@ class InvoiceIT {
             .maturityDate(LocalDate.of(2023, 1, 1))
             .paymentRequest(new PaymentRequest()
                 .paymentUrl("https://connect-v2-sbx.fintecture.com")
+                .percentValue(10000 - 1025)
                 .amount(1975)
                 .reference(id)
                 .payerName("Luc Artisan")

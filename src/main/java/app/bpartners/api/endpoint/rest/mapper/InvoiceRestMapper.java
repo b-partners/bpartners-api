@@ -11,6 +11,7 @@ import app.bpartners.api.endpoint.rest.model.TransactionInvoice;
 import app.bpartners.api.endpoint.rest.validator.CrupdateInvoiceValidator;
 import app.bpartners.api.model.CreatePaymentRegulation;
 import app.bpartners.api.model.Customer;
+import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.InvoiceProduct;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.exception.BadRequestException;
@@ -26,6 +27,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apfloat.Aprational;
 import org.springframework.stereotype.Component;
 
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
@@ -79,7 +81,7 @@ public class InvoiceRestMapper {
         .delayPenaltyPercent(domain.getDelayPenaltyPercent().getCentsRoundUp())
         .metadata(domain.getMetadata())
         .paymentRegulations(domain.getMultiplePayments().stream()
-            .map(InvoiceRestMapper::getPaymentRegulation)
+            .map(payment -> getPaymentRegulation(domain.getTotalPriceWithVat(), payment))
             .collect(Collectors.toUnmodifiableList()))
         .toPayAt(toPayAt)
         .globalDiscount(new InvoiceDiscount()
@@ -164,7 +166,8 @@ public class InvoiceRestMapper {
         .build();
   }
 
-  private static PaymentRegulation getPaymentRegulation(CreatePaymentRegulation payment) {
+  private static PaymentRegulation getPaymentRegulation(
+      Fraction totalPrice, CreatePaymentRegulation payment) {
     return new PaymentRegulation()
         .maturityDate(payment.getMaturityDate())
         .paymentRequest(new PaymentRequest()
@@ -173,6 +176,15 @@ public class InvoiceRestMapper {
             .paymentUrl(payment.getPaymentUrl())
             .label(payment.getComment())
             .amount(payment.getAmount().getCentsRoundUp())
+            .percentValue(
+                totalPrice.getApproximatedValue() == 0
+                    ? 0 :
+                    payment.getAmount().operate(totalPrice,
+                        (amount, price) -> {
+                          amount = amount.divide(new Aprational(100));
+                          price = price.divide(new Aprational(100));
+                          return amount.divide(price).multiply(new Aprational(10000));
+                        }).getCentsRoundUp())
             .payerName(payment.getPayerName())
             .payerEmail(payment.getPayerEmail())
             .paymentUrl(payment.getPaymentUrl())

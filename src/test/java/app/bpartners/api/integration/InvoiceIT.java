@@ -12,6 +12,7 @@ import app.bpartners.api.endpoint.rest.model.InvoiceDiscount;
 import app.bpartners.api.endpoint.rest.model.PaymentRegulation;
 import app.bpartners.api.endpoint.rest.model.PaymentRequest;
 import app.bpartners.api.endpoint.rest.model.Product;
+import app.bpartners.api.endpoint.rest.model.ProductStatus;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
 import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
 import app.bpartners.api.integration.conf.S3AbstractContextInitializer;
@@ -555,8 +556,52 @@ class InvoiceIT {
                 .label(id + " - Restant dû")));
   }
 
+  Product expectedProduct(){
+    return new Product()
+        .description(createProduct2().getDescription())
+        .quantity(createProduct2().getQuantity())
+        .unitPrice(createProduct2().getUnitPrice())
+        .vatPercent(createProduct2().getVatPercent())
+        .totalVat(200)
+        .unitPriceWithVat(2200)
+        .totalPriceWithVat(2200)
+        .status(ProductStatus.ENABLED);
+  }
+
   //TODO: create PaginationIT for pagination test and add filters.
   // In particular, check the date filters and the order filters (by created datetime desc)
+  @Test
+  void crupdate_invoice_products_ok() throws ApiException {
+    ApiClient joeDoeClient = anApiClient();
+    PayingApi api = new PayingApi(joeDoeClient);
+    String randomId = String.valueOf(randomUUID());
+
+    Invoice actualCreated =
+        api.crupdateInvoiceProducts(JOE_DOE_ACCOUNT_ID, randomId, DRAFT, List.of(
+            createProduct2()
+        ));
+    Invoice actualUpdated =
+        api.crupdateInvoiceProducts(JOE_DOE_ACCOUNT_ID, INVOICE1_ID, CONFIRMED, List.of(
+            createProduct2(),
+            createProduct4()
+        ));
+
+    assertEquals(1, actualCreated.getProducts().size());
+    assertTrue(ignoreIdsOf(actualCreated.getProducts()).contains(expectedProduct()));
+    assertEquals(2, actualUpdated.getProducts().size());
+    assertTrue(ignoreIdsOf(actualUpdated.getProducts()).contains(expectedProduct()));
+  }
+
+  @Test
+  void crupdate_invoice_products_ko() {
+    ApiClient joeDoeClient = anApiClient();
+    PayingApi api = new PayingApi(joeDoeClient);
+
+    assertThrowsApiException(
+        "{\"type\":\"400 BAD_REQUEST\",\"message\":\"It should contain at least one product.\"}",
+        () -> api.crupdateInvoiceProducts(JOE_DOE_ACCOUNT_ID, INVOICE1_ID, CONFIRMED, List.of()));
+  }
+
   @Test
   @Order(1)
   void read_invoice_ok() throws ApiException {

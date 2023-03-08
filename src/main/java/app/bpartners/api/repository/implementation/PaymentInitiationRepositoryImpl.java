@@ -1,6 +1,5 @@
 package app.bpartners.api.repository.implementation;
 
-import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.model.PaymentInitiation;
 import app.bpartners.api.model.PaymentRedirection;
 import app.bpartners.api.model.mapper.PaymentRequestMapper;

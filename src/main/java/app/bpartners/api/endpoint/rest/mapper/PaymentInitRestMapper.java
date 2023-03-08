@@ -1,5 +1,6 @@
 package app.bpartners.api.endpoint.rest.mapper;
 
+import app.bpartners.api.endpoint.rest.model.CreatePaymentRegulation;
 import app.bpartners.api.endpoint.rest.model.PaymentInitiation;
 import app.bpartners.api.endpoint.rest.model.PaymentRedirection;
 import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
@@ -26,6 +27,19 @@ public class PaymentInitRestMapper {
         .payerName(rest.getPayerName())
         .successUrl(statusUrls.getSuccessUrl())
         .failureUrl(statusUrls.getFailureUrl())
+        .build();
+  }
+
+  public app.bpartners.api.model.CreatePaymentRegulation toDomain(
+      CreatePaymentRegulation payments) {
+    if (payments == null) {
+      return null;
+    }
+    return app.bpartners.api.model.CreatePaymentRegulation.builder()
+        .amount(parseFraction(payments.getAmount()))
+        .comment(payments.getComment())
+        .percent(parseFraction(payments.getPercent()))
+        .maturityDate(payments.getMaturityDate())
         .build();
   }
 

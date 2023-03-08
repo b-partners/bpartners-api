@@ -8,6 +8,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import org.springframework.stereotype.Component;
 
+import static app.bpartners.api.endpoint.rest.model.CrupdateInvoice.PaymentTypeEnum.IN_INSTALMENT;
+
 @Component
 public class PaymentRegValidator implements Consumer<CreatePaymentRegulation> {
 
@@ -15,6 +17,9 @@ public class PaymentRegValidator implements Consumer<CreatePaymentRegulation> {
     payments.forEach(this);
     AtomicReference<Integer> totalAmount = new AtomicReference<>(0);
     AtomicReference<Integer> totalPercent = new AtomicReference<>(0);
+    if (payments.size() < 2) {
+      throw new BadRequestException("Multiple payments request more than one payment");
+    }
     payments.forEach(payment -> {
       if (payment.getAmount() != null) {
         totalAmount.set(payment.getAmount() + totalAmount.get());

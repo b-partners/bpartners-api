@@ -4,10 +4,12 @@ import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.endpoint.rest.security.model.Principal;
 import app.bpartners.api.endpoint.rest.security.principal.PrincipalProvider;
 import app.bpartners.api.model.AccountHolder;
+import app.bpartners.api.model.CreatePaymentRegulation;
 import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.mapper.InvoiceMapper;
 import app.bpartners.api.model.mapper.InvoiceProductMapper;
+import app.bpartners.api.model.mapper.PaymentRequestMapper;
 import app.bpartners.api.repository.InvoiceRepository;
 import app.bpartners.api.repository.jpa.InvoiceJpaRepository;
 import app.bpartners.api.repository.jpa.InvoiceProductJpaRepository;
@@ -20,6 +22,7 @@ import app.bpartners.api.service.FileService;
 import app.bpartners.api.service.utils.InvoicePdfUtils;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
@@ -29,6 +32,7 @@ import org.springframework.stereotype.Repository;
 
 import static app.bpartners.api.endpoint.rest.model.FileType.INVOICE;
 import static app.bpartners.api.endpoint.rest.model.FileType.LOGO;
+import static app.bpartners.api.endpoint.rest.model.Invoice.PaymentTypeEnum.IN_INSTALMENT;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
 import static app.bpartners.api.service.InvoiceService.DRAFT_TEMPLATE;
@@ -48,6 +52,7 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
   private final AccountHolderService holderService;
   private final FileService fileService;
   private final InvoicePdfUtils pdfUtils = new InvoicePdfUtils();
+  private final PaymentRequestMapper paymentRequestMapper;
 
   @Override
   public Invoice crupdate(Invoice invoice) {
@@ -66,6 +71,20 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
     HInvoice persistedEntity = jpaRepository.save(entity
         .fileId(processPdfGeneration(mapper.toDomain(entityWithProdAndPay))));
     return mapper.toDomain(persistedEntity);
+  }
+
+  @Override
+  public Invoice crupdatePaymentRegulations(String accountId, String invoiceId,
+                                            InvoiceStatus status,
+                                            List<CreatePaymentRegulation> toCrupdate) {
+    Optional<HInvoice> optionalHInvoice = jpaRepository.findByIdAndStatus(invoiceId, status);
+    if (optionalHInvoice.isPresent()) {
+      HInvoice persisted = optionalHInvoice.get();
+      requestJpaRepository.deleteAll(persisted.getPaymentRequests());
+      return mapper.toDomain(persisted).multiplePayments(toCrupdate);
+    }
+    HInvoice toCreate = createInvoiceFrom(accountId, invoiceId, status, List.of());
+    return mapper.toDomain(toCreate).multiplePayments(toCrupdate);
   }
 
   private String processPdfGeneration(Invoice domain) {
@@ -109,6 +128,18 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
     return jpaRepository.findAllByIdAccount(accountId, pageable).stream()
         .map(mapper::toDomain)
         .collect(Collectors.toUnmodifiableList());
+  }
+
+  private HInvoice createInvoiceFrom(String accountId, String invoiceId, InvoiceStatus status,
+                                     List<HPaymentRequest> payments) {
+    return HInvoice.builder()
+        .id(invoiceId)
+        .status(status)
+        .idAccount(accountId)
+        .paymentType(IN_INSTALMENT)
+        .paymentRequests(payments)
+        .metadataString(String.valueOf(Map.of()))
+        .build();
   }
 
   private List<HInvoiceProduct> getProductEntities(Invoice toCrupdate, HInvoice invoice) {

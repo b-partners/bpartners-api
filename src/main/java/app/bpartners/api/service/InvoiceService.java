@@ -1,13 +1,17 @@
 package app.bpartners.api.service;
 
+import app.bpartners.api.endpoint.rest.mapper.PaymentInitRestMapper;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
+import app.bpartners.api.endpoint.rest.validator.PaymentRegValidator;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.BoundedPageSize;
+import app.bpartners.api.model.CreatePaymentRegulation;
 import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.repository.InvoiceRepository;
 import java.util.List;
+import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
@@ -22,6 +26,8 @@ public class InvoiceService {
   public static final String PROPOSAL_REF_PREFIX = "DEVIS-";
   private final InvoiceRepository repository;
   private final AccountHolderService holderService;
+  private final PaymentRegValidator paymentRegValidator;
+  private final PaymentInitRestMapper paymentMapper;
 
   public List<Invoice> getInvoices(
       String accountId, PageFromOne page, BoundedPageSize pageSize, InvoiceStatus status) {
@@ -44,6 +50,22 @@ public class InvoiceService {
           product -> product.setVatPercent(new Fraction())
       );
     }
+    return repository.crupdate(toCrupdate);
+  }
+
+  @Transactional(isolation = Isolation.SERIALIZABLE)
+  public Invoice crupdatePayments(
+      String accountId,
+      String invoiceId,
+      InvoiceStatus status,
+      List<app.bpartners.api.endpoint.rest.model.CreatePaymentRegulation> toCreate) {
+    toCreate.forEach(paymentRegValidator);
+    List<CreatePaymentRegulation> toSave = toCreate.stream()
+        .map(paymentMapper::toDomain)
+        .collect(Collectors.toUnmodifiableList());
+    Invoice toCrupdate = repository
+        .crupdatePaymentRegulations(accountId, invoiceId, status, toSave);
+    paymentRegValidator.accept(toCreate, toCrupdate.getTotalPriceWithVat().getCentsRoundUp());
     return repository.crupdate(toCrupdate);
   }
 

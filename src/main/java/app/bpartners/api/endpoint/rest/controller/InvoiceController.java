@@ -1,6 +1,7 @@
 package app.bpartners.api.endpoint.rest.controller;
 
 import app.bpartners.api.endpoint.rest.mapper.InvoiceRestMapper;
+import app.bpartners.api.endpoint.rest.model.CreatePaymentRegulation;
 import app.bpartners.api.endpoint.rest.model.CrupdateInvoice;
 import app.bpartners.api.endpoint.rest.model.Invoice;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
@@ -50,4 +51,16 @@ public class InvoiceController {
         .map(mapper::toRest)
         .collect(Collectors.toUnmodifiableList());
   }
+
+  @PutMapping("/accounts/{aId}/invoices/{iId}/paymentRegulations")
+  public Invoice crupdateInvoicePayments(
+      @PathVariable("aId") String accountId,
+      @PathVariable("iId") String invoiceId,
+      @RequestParam("status") InvoiceStatus status,
+      @RequestBody List<CreatePaymentRegulation> paymentRegulations
+  ) {
+    return mapper.toRest(service.crupdatePayments(accountId, invoiceId, status,
+        paymentRegulations));
+  }
+
 }

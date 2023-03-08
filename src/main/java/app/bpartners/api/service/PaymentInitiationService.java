@@ -36,12 +36,15 @@ public class PaymentInitiationService {
   }
 
   public List<HPaymentRequest> retrievePaymentEntities(
-      List<PaymentInitiation> paymentInitiations, String invoiceId) {
+      List<PaymentInitiation> paymentInitiations, String invoiceId, InvoiceStatus status) {
+    if (status == InvoiceStatus.CONFIRMED || status == InvoiceStatus.PAID) {
+      return List.of();
+    }
     return repository.retrievePaymentEntities(paymentInitiations, invoiceId);
   }
 
-  public List<HPaymentRequest> retrievePaymentEntities(
-      List<PaymentInitiation> paymentInitiations, String invoiceId, InvoiceStatus status) {
-   return repository.retrievePaymentEntities(paymentInitiations, invoiceId, status);
+  public List<HPaymentRequest> retrievePaymentEntitiesWithUrl(
+      List<PaymentInitiation> paymentInitiations, String invoiceId) {
+    return repository.retrievePaymentEntitiesWithUrl(paymentInitiations, invoiceId);
   }
 }

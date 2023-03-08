@@ -39,6 +39,9 @@ public class PaymentRegValidator implements Consumer<CreatePaymentRegulation> {
   public void accept(CreatePaymentRegulation invoicePayment) {
     StringBuilder exceptionBuilder = new StringBuilder();
     Integer percent = invoicePayment.getPercent();
+    if (invoicePayment.getMaturityDate() == null) {
+      exceptionBuilder.append("Maturity date is mandatory. ");
+    }
     if (percent == null && invoicePayment.getAmount() == null) {
       exceptionBuilder.append("Either percent or amount is mandatory");
     }

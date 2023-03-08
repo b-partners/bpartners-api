@@ -9,7 +9,6 @@ import app.bpartners.api.model.PaymentInitiation;
 import app.bpartners.api.model.TransactionInvoice;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.repository.jpa.InvoiceJpaRepository;
-import app.bpartners.api.repository.jpa.PaymentRequestJpaRepository;
 import app.bpartners.api.repository.jpa.model.HInvoice;
 import app.bpartners.api.repository.jpa.model.HInvoiceProduct;
 import app.bpartners.api.repository.jpa.model.HPaymentRequest;
@@ -52,7 +51,6 @@ public class InvoiceMapper {
   private final PaymentInitiationService pis;
   private final InvoiceProductMapper productMapper;
   private final PaymentRequestMapper requestMapper;
-  private final PaymentRequestJpaRepository requestJpaRepository;
 
   private static Instant getCreatedDatetime(Optional<HInvoice> persisted) {
     return persisted.map(HInvoice::getCreatedDatetime).orElse(Instant.now());
@@ -129,7 +127,7 @@ public class InvoiceMapper {
   }
 
   public List<CreatePaymentRegulation> getMultiplePayments(HInvoice entity) {
-    List<HPaymentRequest> paymentRequests = requestJpaRepository.findByIdInvoice(entity.getId());
+    List<HPaymentRequest> paymentRequests = entity.getPaymentRequests();
     Fraction totalPrice = computeMultiplePaymentsAmount(paymentRequests);
     return paymentRequests.stream()
         .map(payment -> CreatePaymentRegulation.builder()
@@ -218,17 +216,7 @@ public class InvoiceMapper {
         id = String.valueOf(randomUUID());
         sendingDate = LocalDate.now();
         validityDate = null;
-
-        if (domain.getPaymentType() == CASH) {
-          toPayAt = sendingDate.plusDays(domain.getDelayInPaymentAllowed());
-          paymentUrl =
-              getPaymentUrl(domain, paymentUrl, computeTotalPriceWithVatAndDiscount(
-                  domain.getDiscount().getPercentValue(), domain.getProducts()));
-        } else {
-          paymentRequests = pis.retrievePaymentEntities(getPaymentInitiations(domain,
-              totalPriceWithVat), id);
-          paymentUrl = null;
-        }
+        fileId = null;
 
         jpaRepository.save(entity.status(PROPOSAL_CONFIRMED));
       } else if (domain.getStatus() == PAID && entity.getStatus() == CONFIRMED) {
@@ -243,6 +231,22 @@ public class InvoiceMapper {
         }
       }
     }
+
+    if (domain.getStatus() == CONFIRMED) {
+      if (domain.getPaymentType() == CASH) {
+        toPayAt = sendingDate.plusDays(domain.getDelayInPaymentAllowed());
+        paymentUrl =
+            getPaymentUrl(domain, paymentUrl, computeTotalPriceWithVatAndDiscount(
+                domain.getDiscount().getPercentValue(), domain.getProducts()));
+      } else {
+        //TODO: check if amount changed or paymentRegulations changed and retrieve new else get
+        // persisted
+        paymentRequests = pis.retrievePaymentEntitiesWithUrl(
+            getPaymentInitiations(domain, totalPriceWithVat), id);
+        paymentUrl = null;
+      }
+    }
+
     //TODO: split this into specific layer - END
     return HInvoice.builder()
         .id(id)

@@ -92,6 +92,11 @@ public class HInvoice implements Serializable {
     return this;
   }
 
+  public HInvoice paymentRequests(List<HPaymentRequest> paymentRequests) {
+    this.paymentRequests = paymentRequests;
+    return this;
+  }
+
   public HInvoice fileId(String fileId) {
     this.fileId = fileId;
     return this;

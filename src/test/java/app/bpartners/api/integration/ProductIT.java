@@ -49,6 +49,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import static app.bpartners.api.integration.conf.TestUtils.BEARER_PREFIX;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_TOKEN;
+import static app.bpartners.api.integration.conf.TestUtils.isAfterOrEquals;
 import static app.bpartners.api.integration.conf.TestUtils.product1;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountHolderSwanRep;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountSwanRepository;
@@ -161,6 +162,10 @@ class ProductIT {
     assertTrue(actual.stream()
         .allMatch(product -> product.getStatus() == ProductStatus.ENABLED));
     assertTrue(actual.contains(product1()));
+    assertTrue(isAfterOrEquals(actual.get(0).getCreatedAt(), actual.get(1).getCreatedAt()));
+    assertTrue(isAfterOrEquals(actual.get(1).getCreatedAt(), actual.get(2).getCreatedAt()));
+    assertTrue(isAfterOrEquals(actual.get(3).getCreatedAt(), actual.get(4).getCreatedAt()));
+    assertTrue(isAfterOrEquals(actual.get(4).getCreatedAt(), actual.get(5).getCreatedAt()));
   }
 
   @Order(2)
@@ -175,7 +180,7 @@ class ProductIT {
         JOE_DOE_ACCOUNT_ID, true, null, null, null, 1, 20);
     assertTrue(actualProducts.stream()
         .allMatch(product -> product.getCreatedAt() != null));
-    actual.get(0).createdAt(actualProducts.get(actualProducts.size() - 1).getCreatedAt());
+    actual.get(0).createdAt(actualProducts.get(0).getCreatedAt());
     assertTrue(actualProducts.containsAll(actual));
     assertTrue(ignoreCreatedAt(actualProducts).containsAll(ignoreCreatedAt(actual)));
   }
@@ -223,8 +228,7 @@ class ProductIT {
         JOE_DOE_ACCOUNT_ID, null,
         null, OrderDirection.ASC, null, 1, 20);
     List<Product> actual3 = api.getProducts(
-        JOE_DOE_ACCOUNT_ID, null,
-        OrderDirection.ASC, OrderDirection.DESC, null, 1, 20);
+        JOE_DOE_ACCOUNT_ID, null, OrderDirection.ASC, OrderDirection.DESC, null, 1, 20);
 
     assertTrue(actual1.size() > 2);
     assertTrue(actual2.size() > 2);

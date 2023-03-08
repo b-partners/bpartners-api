@@ -10,6 +10,8 @@ import app.bpartners.api.endpoint.rest.model.Product;
 import app.bpartners.api.endpoint.rest.model.TransactionInvoice;
 import app.bpartners.api.endpoint.rest.validator.CrupdateInvoiceValidator;
 import app.bpartners.api.model.CreatePaymentRegulation;
+import app.bpartners.api.model.Customer;
+import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.InvoiceProduct;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.exception.BadRequestException;
@@ -21,9 +23,11 @@ import app.bpartners.api.service.AccountService;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apfloat.Aprational;
 import org.springframework.stereotype.Component;
 
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
@@ -77,7 +81,7 @@ public class InvoiceRestMapper {
         .delayPenaltyPercent(domain.getDelayPenaltyPercent().getCentsRoundUp())
         .metadata(domain.getMetadata())
         .paymentRegulations(domain.getMultiplePayments().stream()
-            .map(InvoiceRestMapper::getPaymentRegulation)
+            .map(payment -> getPaymentRegulation(domain.getTotalPriceWithVat(), payment))
             .collect(Collectors.toUnmodifiableList()))
         .toPayAt(toPayAt)
         .globalDiscount(new InvoiceDiscount()
@@ -119,6 +123,11 @@ public class InvoiceRestMapper {
       discount = new InvoiceDiscount().percentValue(0);
     }
 
+    //TODO: explicit the customer ID and the override customer infos
+    Optional<Customer> optionalCustomer =
+        rest.getCustomer() == null
+            ? Optional.empty()
+            : Optional.of(customerRepository.findById(rest.getCustomer().getId()));
     return app.bpartners.api.model.Invoice.builder()
         .id(id)
         .title(rest.getTitle())
@@ -126,8 +135,8 @@ public class InvoiceRestMapper {
         .comment(rest.getComment())
         .paymentType(convertType(rest.getPaymentType()))
         .multiplePayments(getMultiplePayments(rest))
-        .customer(rest.getCustomer() != null
-            ? customerRepository.findById(rest.getCustomer().getId()) : null)
+        //TODO: add invoice customer attributes
+        .customer(optionalCustomer.orElse(null))
         .sendingDate(rest.getSendingDate())
         .validityDate(validityDate)
         .delayInPaymentAllowed(rest.getDelayInPaymentAllowed())
@@ -157,7 +166,8 @@ public class InvoiceRestMapper {
         .build();
   }
 
-  private static PaymentRegulation getPaymentRegulation(CreatePaymentRegulation payment) {
+  private static PaymentRegulation getPaymentRegulation(
+      Fraction totalPrice, CreatePaymentRegulation payment) {
     return new PaymentRegulation()
         .maturityDate(payment.getMaturityDate())
         .paymentRequest(new PaymentRequest()
@@ -166,6 +176,15 @@ public class InvoiceRestMapper {
             .paymentUrl(payment.getPaymentUrl())
             .label(payment.getComment())
             .amount(payment.getAmount().getCentsRoundUp())
+            .percentValue(
+                totalPrice.getApproximatedValue() == 0
+                    ? 0 :
+                    payment.getAmount().operate(totalPrice,
+                        (amount, price) -> {
+                          amount = amount.divide(new Aprational(100));
+                          price = price.divide(new Aprational(100));
+                          return amount.divide(price).multiply(new Aprational(10000));
+                        }).getCentsRoundUp())
             .payerName(payment.getPayerName())
             .payerEmail(payment.getPayerEmail())
             .paymentUrl(payment.getPaymentUrl())
@@ -216,8 +235,8 @@ public class InvoiceRestMapper {
     }
   }
 
-  private boolean hasAvailableReference(String accountId, String invoiceId, String reference,
-                                        InvoiceStatus status) {
+  private boolean hasAvailableReference(
+      String accountId, String invoiceId, String reference, InvoiceStatus status) {
     if (reference == null) {
       return true;
     }

@@ -11,11 +11,14 @@ import app.bpartners.api.model.mapper.InvoiceProductMapper;
 import app.bpartners.api.repository.InvoiceRepository;
 import app.bpartners.api.repository.jpa.InvoiceJpaRepository;
 import app.bpartners.api.repository.jpa.InvoiceProductJpaRepository;
+import app.bpartners.api.repository.jpa.PaymentRequestJpaRepository;
 import app.bpartners.api.repository.jpa.model.HInvoice;
 import app.bpartners.api.repository.jpa.model.HInvoiceProduct;
+import app.bpartners.api.repository.jpa.model.HPaymentRequest;
 import app.bpartners.api.service.AccountHolderService;
 import app.bpartners.api.service.FileService;
 import app.bpartners.api.service.utils.InvoicePdfUtils;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -37,6 +40,7 @@ import static org.springframework.data.domain.Sort.Direction.DESC;
 @AllArgsConstructor
 public class InvoiceRepositoryImpl implements InvoiceRepository {
   private final InvoiceJpaRepository jpaRepository;
+  private final PaymentRequestJpaRepository requestJpaRepository;
   private final PrincipalProvider auth;
   private final InvoiceMapper mapper;
   private final InvoiceProductMapper productMapper;
@@ -48,17 +52,20 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
   @Override
   public Invoice crupdate(Invoice invoice) {
     HInvoice entity = mapper.toEntity(invoice, true);
+    List<HPaymentRequest> paymentRequests = new ArrayList<>(entity.getPaymentRequests());
     if (!entity.getProducts().isEmpty()) {
       productJpaRepository.deleteAll(entity.getProducts());
     }
-
-    Invoice domain = mapper.toDomain(
-        entity.products(getProductEntities(invoice, entity)));
-    jpaRepository.save(entity
-        .fileId(processPdfGeneration(
-            domain.multiplePayments(mapper.getMultiplePayments(entity)))));
-
-    return domain;
+    if (!entity.getPaymentRequests().isEmpty()
+        && invoice.getStatus() != CONFIRMED && invoice.getStatus() != PAID) {
+      requestJpaRepository.deleteAllByIdInvoice(entity.getId());
+    }
+    HInvoice entityWithProdAndPay = entity
+        .products(getProductEntities(invoice, entity))
+        .paymentRequests(paymentRequests);
+    HInvoice persistedEntity = jpaRepository.save(entity
+        .fileId(processPdfGeneration(mapper.toDomain(entityWithProdAndPay))));
+    return mapper.toDomain(persistedEntity);
   }
 
   private String processPdfGeneration(Invoice domain) {
@@ -66,7 +73,8 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
         ? String.valueOf(randomUUID()) : domain.getFileId();
     String accountId = domain.getAccount().getId();
 
-    byte[] logoAsBytes = fileService.downloadOptionalFile(LOGO, accountId, userLogoFileId()).get(0);
+    List<byte[]> logos = fileService.downloadOptionalFile(LOGO, accountId, userLogoFileId());
+    byte[] logoAsBytes = logos.isEmpty() ? null : logos.get(0);
     byte[] fileAsBytes = domain.getStatus() == CONFIRMED || domain.getStatus() == PAID
         ? pdfUtils.generatePdf(domain, accountHolder(domain), logoAsBytes, INVOICE_TEMPLATE)
         : pdfUtils.generatePdf(domain, accountHolder(domain), logoAsBytes, DRAFT_TEMPLATE);

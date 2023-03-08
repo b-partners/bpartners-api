@@ -604,6 +604,7 @@ public class TestUtils {
             .id("bab75c91-f275-4f68-b10a-0f30f96f7806")
             .label("Reste 50%")
             .reference("FAC2023ACT02")
+            .percentValue(5000)
             .initiatedDatetime(Instant.parse("2023-01-02T00:00:00Z")));
   }
 
@@ -614,6 +615,7 @@ public class TestUtils {
             .id("a1275c91-f275-4f68-b10a-0f30f96f7806")
             .label("Acompte 50%")
             .reference("FAC2023ACT01")
+            .percentValue(5000)
             .initiatedDatetime(Instant.parse("2023-01-01T00:00:00Z")));
   }
 
@@ -985,5 +987,9 @@ public class TestUtils {
       body = "[no body]";
     }
     return operationId + " call failed with: " + statusCode + " - " + body;
+  }
+
+  public static boolean isAfterOrEquals(Instant before, Instant after) {
+    return before.isAfter(after) || before.equals(after);
   }
 }

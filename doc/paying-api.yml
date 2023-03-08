@@ -1244,6 +1244,8 @@ components:
           type: string
         amount:
           type: integer
+        percentValue:
+          type: integer
         payerName:
           type: string
         payerEmail:

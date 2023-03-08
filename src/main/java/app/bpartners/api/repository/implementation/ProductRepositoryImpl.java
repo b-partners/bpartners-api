@@ -57,6 +57,9 @@ public class ProductRepositoryImpl implements ProductRepository {
     if (createdAtOrder != null) {
       orders.add(new Order(Direction.valueOf(createdAtOrder.getValue()), "createdAt"));
     }
+    if (orders.isEmpty()) {
+      orders.add(defaultOrder());
+    }
     return orders;
   }
 
@@ -92,5 +95,9 @@ public class ProductRepositoryImpl implements ProductRepository {
       productUpdated.add(mapper.toDomain(jpaRepository.save(existingProduct)));
     }
     return productUpdated;
+  }
+
+  private static Order defaultOrder() {
+    return new Order(Direction.DESC, "createdAt");
   }
 }

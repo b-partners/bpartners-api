@@ -76,7 +76,7 @@ public class HInvoice implements Serializable {
       cascade = CascadeType.ALL
   )
   private List<HInvoiceProduct> products = new ArrayList<>();
-  @OneToMany
+  @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
   @JoinColumn(name = "id_invoice")
   private List<HPaymentRequest> paymentRequests;
   @CreationTimestamp
@@ -89,6 +89,11 @@ public class HInvoice implements Serializable {
 
   public HInvoice products(List<HInvoiceProduct> products) {
     this.products = products;
+    return this;
+  }
+
+  public HInvoice paymentRequests(List<HPaymentRequest> paymentRequests) {
+    this.paymentRequests = paymentRequests;
     return this;
   }
 

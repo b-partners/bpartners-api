@@ -7,6 +7,7 @@ import app.bpartners.api.model.PaymentInitiation;
 import app.bpartners.api.model.PaymentRedirection;
 import app.bpartners.api.model.mapper.PaymentRequestMapper;
 import app.bpartners.api.repository.PaymentInitiationRepository;
+import app.bpartners.api.repository.jpa.model.HPaymentRequest;
 import java.util.List;
 import java.util.Objects;
 import lombok.AllArgsConstructor;
@@ -34,13 +35,16 @@ public class PaymentInitiationService {
     return repository.saveAll(List.of(paymentInitiation), invoice.getId()).get(0);
   }
 
-  public List<PaymentRedirection> initiateInvoicePayments(
-      List<PaymentInitiation> paymentInitiations, String invoiceId) {
-    return repository.saveAll(paymentInitiations, invoiceId);
+  public List<HPaymentRequest> retrievePaymentEntities(
+      List<PaymentInitiation> paymentInitiations, String invoiceId, InvoiceStatus status) {
+    if (status == InvoiceStatus.CONFIRMED || status == InvoiceStatus.PAID) {
+      return List.of();
+    }
+    return repository.retrievePaymentEntities(paymentInitiations, invoiceId);
   }
 
-  public void savePayments(
-      List<PaymentInitiation> paymentInitiations, String invoiceId, InvoiceStatus status) {
-    repository.saveAll(paymentInitiations, invoiceId, status);
+  public List<HPaymentRequest> retrievePaymentEntitiesWithUrl(
+      List<PaymentInitiation> paymentInitiations, String invoiceId) {
+    return repository.retrievePaymentEntitiesWithUrl(paymentInitiations, invoiceId);
   }
 }

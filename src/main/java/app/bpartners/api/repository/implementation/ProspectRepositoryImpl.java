@@ -9,6 +9,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
+
+import static org.springframework.transaction.annotation.Isolation.SERIALIZABLE;
 
 @AllArgsConstructor
 @Repository
@@ -16,6 +19,8 @@ import org.springframework.stereotype.Repository;
 public class ProspectRepositoryImpl implements ProspectRepository {
   private final ProspectJpaRepository jpaRepository;
   private final ProspectMapper mapper;
+  // TODO : use classes from prospecting.datasource package
+  //  to get prospects
 
   @Override
   public List<Prospect> findAllByIdAccountHolder(String idAccountHolder) {
@@ -25,6 +30,7 @@ public class ProspectRepositoryImpl implements ProspectRepository {
         .collect(Collectors.toUnmodifiableList());
   }
 
+  @Transactional(isolation = SERIALIZABLE)
   @Override
   public List<Prospect> saveAll(List<Prospect> prospects) {
     List<HProspect> entities = prospects

@@ -74,12 +74,8 @@ paths:
     $ref: './paying-api.yml#/operations/importProducts'
   /accounts/{aId}/invoices:
     $ref: './paying-api.yml#/operations/getInvoices'
-  /accounts/{aId}/invoices/{iId}/information:
+  /accounts/{aId}/invoices/{iId}/informations:
     $ref: './paying-api.yml#/operations/createInvoiceInformation'
-  /accounts/{aId}/invoices/{iId}/paymentRegulation:
-    $ref: './paying-api.yml#/operations/createInvoicePaymentRegulation'
-  /accounts/{aId}/invoices/{iId}/product:
-    $ref: './paying-api.yml#/operations/createInvoiceProduct'
   /accounts/{aId}/invoices/{iId}:
     $ref: './paying-api.yml#/operations/invoiceOperations'
   /accounts/{aId}/invoices/{iId}/relaunchConf:

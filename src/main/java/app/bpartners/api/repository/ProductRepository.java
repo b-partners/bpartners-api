@@ -20,7 +20,7 @@ public interface ProductRepository {
 
   List<Product> saveAll(String accountId, List<Product> toCreate);
 
-  List<Product> findAllByIdAccountAndStatusOrByDescriptionAndOrUnitPrice(
+  List<Product> findAllByIdAccountAndStatusAndOrByDescriptionAndOrUnitPrice(
       String idAccount,
        ProductStatus status,
        Integer page,

@@ -33,7 +33,6 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Instant;
 import java.util.List;
-import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
@@ -73,7 +72,6 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @ContextConfiguration(initializers = ProductIT.ContextInitializer.class)
 @AutoConfigureMockMvc
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-@Slf4j
 class ProductIT {
   @MockBean
   private SentryConf sentryConf;
@@ -181,19 +179,20 @@ class ProductIT {
 
     List<Product> actualSearchedByDescription = api.getProducts(
         JOE_DOE_ACCOUNT_ID, null, null, null, null,
-        "Tableau malgache", null, 1, 20);
+        "Tableau", null, 1, 20);
     List<Product> actualSearchedByUnitPrice = api.getProducts(
         JOE_DOE_ACCOUNT_ID, null, null, null, null,
         null, 1000, 1, 20);
     List<Product> actualSearchedByDescriptionAndUnitPrice = api.getProducts(
         JOE_DOE_ACCOUNT_ID, null, null, null, null,
-        "Autres produits", 2000, 1, 20);
+        "produits", 2000, 1, 20);
 
-    assertEquals(1, actualSearchedByDescription.size());
-    assertEquals("Tableau malgache", actualSearchedByDescription.get(0).getDescription());
+    assertEquals(2, actualSearchedByDescription.size());
     assertEquals(3, actualSearchedByUnitPrice.size());
-    assertTrue(actualSearchedByUnitPrice.contains(product1()));
     assertEquals(1, actualSearchedByDescriptionAndUnitPrice.size());
+    assertEquals("Tableau baobab", actualSearchedByDescription.get(0).getDescription());
+    assertEquals("Tableau malgache", actualSearchedByDescription.get(1).getDescription());
+    assertTrue(actualSearchedByUnitPrice.contains(product1()));
     assertEquals(product4()
             .quantity(null)
             .totalVat(null)

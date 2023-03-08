@@ -77,34 +77,17 @@ public class ProductRepositoryImpl implements ProductRepository {
   }
 
   @Override
-  public List<Product> findAllByIdAccountAndStatusOrByDescriptionAndOrUnitPrice(
-       String idAccount, ProductStatus status, Integer page, Integer pageSize,
-       OrderDirection descriptionOrder, OrderDirection unitPriceOrder,
-       OrderDirection createdAtOrder,
-       String description, Fraction unitPrice) {
+  public List<Product> findAllByIdAccountAndStatusAndOrByDescriptionAndOrUnitPrice(
+      String idAccount, ProductStatus status, Integer page, Integer pageSize,
+      OrderDirection descriptionOrder, OrderDirection unitPriceOrder,
+      OrderDirection createdAtOrder,
+      String description, Fraction unitPrice) {
     List<Order> orders = retrieveOrders(descriptionOrder, unitPriceOrder, createdAtOrder);
     Pageable pageRequest = PageRequest.of(page, pageSize, Sort.by(orders));
-    // TODO : refactor using criteria
-    if (description != null && unitPrice != null) {
-      return jpaRepository.findAllByIdAccountAndStatusAndDescriptionAndUnitPrice(idAccount, status,
-              description, unitPrice.toString(), pageRequest)
-          .stream()
-          .map(mapper::toDomain)
-          .collect(Collectors.toUnmodifiableList());
-    } else if (description == null && unitPrice != null) {
-      return jpaRepository.findAllByIdAccountAndStatusAndUnitPrice(idAccount, status,
-              unitPrice.toString(), pageRequest)
-          .stream()
-          .map(mapper::toDomain)
-          .collect(Collectors.toUnmodifiableList());
-    } else if (description != null) {
-      return jpaRepository.findAllByIdAccountAndStatusAndDescription(idAccount, status, description,
-              pageRequest)
-          .stream()
-          .map(mapper::toDomain)
-          .collect(Collectors.toUnmodifiableList());
-    }
-    return jpaRepository.findAllByIdAccountAndStatus(idAccount, status, pageRequest)
+    String productUnitPrice = unitPrice == null ? "" : unitPrice.toString();
+    String productDescription = description == null ? "" : description;
+    return jpaRepository.findAllByIdAccountAndStatusAndDescriptionContainingIgnoreCaseAndUnitPriceContainingIgnoreCase(
+            idAccount, status, productDescription, productUnitPrice, pageRequest)
         .stream()
         .map(mapper::toDomain)
         .collect(Collectors.toUnmodifiableList());

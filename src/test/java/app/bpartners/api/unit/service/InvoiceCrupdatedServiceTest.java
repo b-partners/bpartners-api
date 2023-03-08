@@ -1,8 +1,10 @@
 package app.bpartners.api.unit.service;
 
 import app.bpartners.api.endpoint.event.model.gen.InvoiceCrupdated;
+import app.bpartners.api.endpoint.rest.mapper.PaymentInitRestMapper;
 import app.bpartners.api.endpoint.rest.model.FileType;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
+import app.bpartners.api.endpoint.rest.validator.PaymentRegValidator;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.Customer;
@@ -36,15 +38,21 @@ class InvoiceCrupdatedServiceTest {
   InvoiceRepository invoiceRepository;
   InvoiceCrupdatedService invoiceCrupdatedService;
   AccountHolderService accountHolderService;
+  PaymentRegValidator paymentRegValidator;
+  PaymentInitRestMapper paymentMapper;
 
   @BeforeEach
   void setUp() {
     invoiceRepository = mock(InvoiceRepository.class);
     accountHolderService = mock(AccountHolderService.class);
+    paymentMapper = mock(PaymentInitRestMapper.class);
+    paymentRegValidator = mock(PaymentRegValidator.class);
     invoiceService =
         new InvoiceService(
             invoiceRepository,
-            accountHolderService);
+            accountHolderService,
+            paymentRegValidator,
+            paymentMapper);
     invoiceCrupdatedService = new InvoiceCrupdatedService(invoiceService);
   }
 

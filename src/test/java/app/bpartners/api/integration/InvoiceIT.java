@@ -140,6 +140,37 @@ class InvoiceIT {
     return TestUtils.anApiClient(JOE_DOE_TOKEN, InvoiceIT.ContextInitializer.SERVER_PORT);
   }
 
+  private static CreatePaymentRegulation paymentToCrupdated1() {
+    return new CreatePaymentRegulation()
+        .amount(null)
+        .comment("First payment")
+        .percent(9000)
+        .maturityDate(LocalDate.of(2023, 3, 7));
+  }
+
+  private static CreatePaymentRegulation paymentToCrupdated2() {
+    return new CreatePaymentRegulation()
+        .amount(null)
+        .comment("Second payment")
+        .percent(1000)
+        .maturityDate(LocalDate.of(2023, 3, 8));
+  }
+
+  private static PaymentRegulation expectedPayment() {
+    return new PaymentRegulation()
+        .maturityDate(paymentToCrupdated1().getMaturityDate())
+        .paymentRequest(new PaymentRequest()
+            .reference("BP001")
+            .payerName(customer1().getFirstName() + " " + customer1().getLastName())
+            .payerEmail(customer1().getEmail())
+            .paymentUrl("https://connect-v2-sbx.fintecture.com")
+            .initiatedDatetime(null)
+            .amount(7920)
+            .percentValue(paymentToCrupdated1().getPercent())
+            .label("BP001 - Acompte N°1"));
+  }
+
+
   private static PaymentRegulation expectedDated2() {
     return new PaymentRegulation()
         .maturityDate(LocalDate.of(2023, 2, 15))
@@ -553,6 +584,22 @@ class InvoiceIT {
                 .payerName("Luc Artisan")
                 .payerEmail("bpartners.artisans@gmail.com")
                 .label(id + " - Restant dû")));
+  }
+
+  @Test
+  void crupdate_invoice_payments_ok() throws ApiException {
+    ApiClient joeDoeClient = anApiClient();
+    PayingApi api = new PayingApi(joeDoeClient);
+
+    Invoice actual = api.crupdateInvoicePaymentRegulation(
+        JOE_DOE_ACCOUNT_ID, INVOICE1_ID, List.of(
+            paymentToCrupdated1(),
+            paymentToCrupdated2()
+        ), CONFIRMED);
+
+    assertTrue(actual.getPaymentRegulations().size() >= 2);
+    assertEquals(IN_INSTALMENT.toString(), actual.getPaymentType().toString());
+    assertTrue(ignoreIdsAndDatetime(actual).contains(expectedPayment()));
   }
 
   //TODO: create PaginationIT for pagination test and add filters.

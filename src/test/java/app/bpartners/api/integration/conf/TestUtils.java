@@ -120,6 +120,7 @@ public class TestUtils {
   public static final String INVOICE3_ID = "invoice3_id";
   public static final String INVOICE4_ID = "invoice4_id";
   public static final String INVOICE7_ID = "invoice7_id";
+  public static final String RANDOM_INVOICE_ID = "new_invoice_id";
   public static final String FILE_ID = "test.jpeg";
   public static final String TEST_FILE_ID = "test.jpeg";
   public static final String OTHER_TEST_FILE_ID = "image.jpeg";

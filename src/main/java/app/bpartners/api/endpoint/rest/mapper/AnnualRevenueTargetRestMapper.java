@@ -2,10 +2,7 @@ package app.bpartners.api.endpoint.rest.mapper;
 
 import app.bpartners.api.endpoint.rest.model.CreateAnnualRevenueTarget;
 import app.bpartners.api.model.AnnualRevenueTarget;
-import app.bpartners.api.model.Fraction;
-import app.bpartners.api.model.TransactionsSummary;
 import app.bpartners.api.model.exception.NotFoundException;
-import app.bpartners.api.repository.TransactionsSummaryRepository;
 import app.bpartners.api.repository.jpa.AccountHolderJpaRepository;
 import app.bpartners.api.repository.jpa.model.HAccountHolder;
 import java.util.Optional;
@@ -17,7 +14,6 @@ import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 @Component
 @AllArgsConstructor
 public class AnnualRevenueTargetRestMapper {
-  private final TransactionsSummaryRepository transactionRepository;
   private final AccountHolderJpaRepository accountHolderJpaRepository;
 
   public AnnualRevenueTarget toDomain(
@@ -36,19 +32,11 @@ public class AnnualRevenueTargetRestMapper {
 
   public app.bpartners.api.endpoint.rest.model.AnnualRevenueTarget toRest(
       AnnualRevenueTarget domain) {
-    TransactionsSummary transactions =
-        transactionRepository.getByAccountIdAndYear(
-            domain.getAccountHolder().getAccountId(), domain.getYear());
-
-    Fraction amountTarget = domain.getAmountTarget();
-    Fraction amountAttempted = parseFraction(transactions.getAnnualIncome());
-    Fraction amountAttemptedPercent = parseFraction((amountAttempted.getApproximatedValue()
-        / amountTarget.getApproximatedValue()) * 10000);
     return new app.bpartners.api.endpoint.rest.model.AnnualRevenueTarget()
         .year(domain.getYear())
         .amountTarget(domain.getAmountTarget().getCentsRoundUp())
-        .amountAttemptedPercent(amountAttemptedPercent.getCentsRoundUp())
-        .amountAttempted(amountAttempted.getCentsRoundUp())
+        .amountAttemptedPercent(domain.getAmountAttemptedPercent().getCentsRoundUp())
+        .amountAttempted(domain.getAmountAttempted().getCentsRoundUp())
         .updatedAt(domain.getUpdatedAt());
   }
 

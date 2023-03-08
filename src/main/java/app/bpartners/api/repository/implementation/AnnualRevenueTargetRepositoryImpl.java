@@ -33,6 +33,12 @@ public class AnnualRevenueTargetRepositoryImpl implements AnnualRevenueTargetRep
         .collect(Collectors.toUnmodifiableList());
   }
 
+  @Override
+  public Optional<AnnualRevenueTarget> getByYear(String accountHolderId, int year) {
+    return annualRevenueTargetJpaRepository.findByAccountHolderIdAndYear(accountHolderId, year)
+        .map(annualRevenueTargetMapper::toDomain);
+  }
+
   private List<HAnnualRevenueTarget> crupdate(List<AnnualRevenueTarget> toCrupdate) {
     List<HAnnualRevenueTarget> revenueTargets = new ArrayList<>();
     for (AnnualRevenueTarget revenue : toCrupdate) {

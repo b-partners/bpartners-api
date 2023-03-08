@@ -82,7 +82,7 @@ Resources:
             - Name: SENDINBLUE_CONTACTLIST_ID
               Value: !Sub '{{resolve:ssm:/bpartners/${Env}/sendinblue/contactlist-id}}'
             - Name: ADS_BASEURL
-              Value: !Sub '{{resolve:ssm:/bpartners/${Env}/sogefi/ads-baseUrl}}'
+              Value: !Sub '{{resolve:ssm:/bpartners/${Env}/sogefi/ads-base-url}}'
             - Name: ADS_BEARER
               Value: !Sub '{{resolve:ssm:/bpartners/${Env}/sogefi/ads-bearer}}'
             - Name: ADS_INSEE

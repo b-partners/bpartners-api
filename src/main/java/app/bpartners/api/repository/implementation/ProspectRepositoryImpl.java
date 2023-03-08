@@ -2,7 +2,9 @@ package app.bpartners.api.repository.implementation;
 
 import app.bpartners.api.endpoint.rest.security.AuthenticatedResourceProvider;
 import app.bpartners.api.model.AccountHolder;
+import app.bpartners.api.model.AnnualRevenueTarget;
 import app.bpartners.api.model.BusinessActivity;
+import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.Prospect;
 import app.bpartners.api.model.mapper.ProspectMapper;
 import app.bpartners.api.repository.ProspectRepository;
@@ -11,14 +13,19 @@ import app.bpartners.api.repository.jpa.ProspectJpaRepository;
 import app.bpartners.api.repository.jpa.model.HProspect;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitApi;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.model.SingleBuildingPermit;
+import app.bpartners.api.service.AnnualRevenueTargetService;
 import app.bpartners.api.service.BusinessActivityService;
+import java.time.Year;
+import java.time.YearMonth;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 import static org.springframework.transaction.annotation.Isolation.SERIALIZABLE;
 
 @AllArgsConstructor
@@ -33,6 +40,7 @@ public class ProspectRepositoryImpl implements ProspectRepository {
   private final SogefiBuildingPermitRepository sogefiBuildingPermitRepository;
   private final BusinessActivityService businessActivityService;
   private final AuthenticatedResourceProvider resourceProvider;
+  private final AnnualRevenueTargetService revenueTargetService;
 
   @Override
   public List<Prospect> findAllByIdAccountHolder(String idAccountHolder) {
@@ -50,7 +58,21 @@ public class ProspectRepositoryImpl implements ProspectRepository {
         .collect(Collectors.toUnmodifiableList());
   }
 
-  private boolean isSogefiProspector(String idAccountHolder) {
+  @Override
+  public boolean needsProspects(String idAccountHolder) {
+    Optional<AnnualRevenueTarget> revenueTarget =
+        revenueTargetService.getByYear(idAccountHolder, Year.now().getValue());
+    if (revenueTarget.isEmpty()) {
+      return true;
+    }
+    Fraction expectedAttemptedAmountAtCurrentMonth =
+        parseFraction((YearMonth.now().getMonthValue() / 12) * 10000);
+    return revenueTarget.get().getAmountAttemptedPercent().getCentsRoundUp()
+        < expectedAttemptedAmountAtCurrentMonth.getCentsRoundUp();
+  }
+
+  @Override
+  public boolean isSogefiProspector(String idAccountHolder) {
     BusinessActivity businessActivity =
         businessActivityService.findByAccountHolderId(idAccountHolder);
     return Objects.equals(0, TILE_LAYER.compareToIgnoreCase(businessActivity.getPrimaryActivity()))

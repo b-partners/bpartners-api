@@ -7,4 +7,8 @@ public interface ProspectRepository {
   List<Prospect> findAllByIdAccountHolder(String idAccountHolder);
 
   List<Prospect> saveAll(List<Prospect> prospects);
+
+  boolean needsProspects(String idAccountHolder);
+
+  boolean isSogefiProspector(String idAccountHolder);
 }

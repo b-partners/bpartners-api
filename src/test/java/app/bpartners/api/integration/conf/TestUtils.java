@@ -988,4 +988,8 @@ public class TestUtils {
     }
     return operationId + " call failed with: " + statusCode + " - " + body;
   }
+
+  public static boolean isAfterOrEquals(Instant before, Instant after) {
+    return before.isAfter(after) || before.equals(after);
+  }
 }

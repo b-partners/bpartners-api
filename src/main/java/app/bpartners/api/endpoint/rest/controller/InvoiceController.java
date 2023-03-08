@@ -11,7 +11,6 @@ import app.bpartners.api.service.InvoiceService;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
-import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -40,8 +39,9 @@ public class InvoiceController {
       @PathVariable("aId") String accountId,
       @PathVariable("iId") String invoiceId,
       @RequestBody CrupdateInvoiceInfo crupdateInvoice
-  ){
-    app.bpartners.api.model.Invoice invoice= mapper.toDomain(accountId, invoiceId, crupdateInvoice);
+  ) {
+    app.bpartners.api.model.Invoice invoice =
+        mapper.toDomain(accountId, invoiceId, crupdateInvoice);
     return mapper.toRest(service.crupdateInvoiceInfo(invoice));
   }
 

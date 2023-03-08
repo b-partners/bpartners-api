@@ -117,15 +117,6 @@ public class InvoiceRestMapper {
 
   public app.bpartners.api.model.Invoice toDomain(String accountId, String invoiceId,
                                                   CrupdateInvoiceInfo rest) {
-    //TODO: deprecated use validityDate instead of toPayAt
-    LocalDate validityDate = rest.getValidityDate();
-    if (validityDate == null && rest.getToPayAt() != null
-        && rest.getStatus() != CONFIRMED && rest.getStatus() != PAID) {
-      log.warn("DEPRECATED: DRAFT and PROPOSAL invoice must use validityDate"
-          + " instead of toPayAt attribute during crupdate");
-      validityDate = rest.getToPayAt();
-    }
-
     //TODO: deprecated ! discount must be mandatory
     InvoiceDiscount discount = rest.getGlobalDiscount();
     if (rest.getGlobalDiscount() == null
@@ -151,12 +142,12 @@ public class InvoiceRestMapper {
         .delayPenaltyPercent(
             rest.getDelayPenaltyPercent() == null ? parseFraction(DEFAULT_DELAY_PENALTY_PERCENT) :
                 parseFraction(rest.getDelayPenaltyPercent()))
-        .validityDate(validityDate)
+        .validityDate(rest.getValidityDate() == null && rest.getToPayAt() != null
+            && rest.getStatus() != CONFIRMED && rest.getStatus() != PAID ? rest.getToPayAt() : rest.getValidityDate())
         .discount(getDiscount(discount))
         .metadata(rest.getMetadata())
         .build();
   }
-
   public app.bpartners.api.model.Invoice toDomain(
       String accountId, String id, CrupdateInvoice rest) {
     crupdateInvoiceValidator.accept(rest);

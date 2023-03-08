@@ -48,7 +48,7 @@ public class InvoiceService {
   }
 
   @Transactional(isolation = Isolation.SERIALIZABLE)
-  public Invoice crupdateInvoiceInfo(Invoice toCrupdate){
+  public Invoice crupdateInvoiceInfo(Invoice toCrupdate) {
     return repository.crupdateInvoiceInfo(toCrupdate);
   }
 

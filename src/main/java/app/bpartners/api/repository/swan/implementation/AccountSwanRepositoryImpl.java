@@ -21,15 +21,16 @@ public class AccountSwanRepositoryImpl implements AccountSwanRepository {
 
   @Override
   public List<SwanAccount> findByBearer(String bearer) {
-    return swanCustomApi.getData(AccountResponse.class, QUERY, bearer)
-        .getData().getAccounts().getEdges().stream()
+    AccountResponse data = swanCustomApi.getData(AccountResponse.class, QUERY, bearer);
+    return data == null ? List.of() : data.getData().getAccounts().getEdges().stream()
         .map(AccountResponse.Edge::getNode)
         .collect(Collectors.toUnmodifiableList());
   }
 
   @Override
   public List<SwanAccount> findById(String id) {
-    return swanApi.getData(AccountResponse.class, QUERY).getData().getAccounts().getEdges().stream()
+    AccountResponse data = swanApi.getData(AccountResponse.class, QUERY);
+    return data == null ? List.of() : data.getData().getAccounts().getEdges().stream()
         .map(AccountResponse.Edge::getNode)
         .collect(Collectors.toUnmodifiableList());
   }

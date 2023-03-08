@@ -38,7 +38,7 @@ public class HProspect {
   private String name;
   private String email;
   private String phone;
-  private String location;
+  private String address;
   @Type(type = "pgsql_enum")
   @Enumerated(EnumType.STRING)
   private ProspectStatus status;

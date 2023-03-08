@@ -5,8 +5,8 @@ import app.bpartners.api.endpoint.event.S3Conf;
 import app.bpartners.api.endpoint.rest.api.ProspectingApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
-import app.bpartners.api.endpoint.rest.model.CreateProspect;
 import app.bpartners.api.endpoint.rest.model.Prospect;
+import app.bpartners.api.endpoint.rest.model.UpdateProspect;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
 import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
 import app.bpartners.api.integration.conf.AbstractContextInitializer;
@@ -21,7 +21,10 @@ import app.bpartners.api.repository.swan.UserSwanRepository;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -46,7 +49,9 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @Testcontainers
 @ContextConfiguration(initializers = ProspectIT.ContextInitializer.class)
 @AutoConfigureMockMvc
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class ProspectIT {
+  private static final String UNKNOWN_PROSPECT_ID = "unknown_prospect_id";
   @MockBean
   private SentryConf sentryConf;
   @MockBean
@@ -86,52 +91,58 @@ class ProspectIT {
   Prospect prospect1() {
     return new Prospect()
         .id("prospect1_id")
-        .name("john doe")
-        .location("paris")
+        .name(null)
+        .location(null)
         .status(TO_CONTACT)
-        .email("johnDoe@gmail.com")
-        .phone("+261340465338");
+        .email(null)
+        .phone(null)
+        .address(null);
   }
 
   Prospect prospect2() {
     return new Prospect()
         .id("prospect2_id")
         .name("jane doe")
-        .location("paris")
+        .location(null)
         .status(TO_CONTACT)
         .email("janeDoe@gmail.com")
-        .phone("+261340465339");
+        .phone("+261340465339")
+        .address("30 Rue de la Montagne Sainte-Genevieve");
   }
 
   Prospect prospect3() {
     return new Prospect()
         .id("prospect3_id")
         .name("markus adams")
-        .location("paris")
+        .location(null)
         .status(TO_CONTACT)
         .email("markusAdams@gmail.com")
-        .phone("+261340465340");
+        .phone("+261340465340")
+        .address("30 Rue de la Montagne Sainte-Genevieve");
   }
 
-  CreateProspect creatableProspect() {
-    return new CreateProspect()
+  UpdateProspect updateProspect() {
+    return new UpdateProspect()
+        .id("prospect1_id")
         .name("paul adams")
-        .location("paris")
         .status(TO_CONTACT)
         .email("paulAdams@gmail.com")
-        .phone("+261340465341");
+        .phone("+261340465341")
+        .address("30 Rue de la Montagne Sainte-Genevieve");
   }
 
   Prospect expectedProspect() {
     return new Prospect()
         .name("paul adams")
-        .location("paris")
+        .location(null)
         .status(TO_CONTACT)
         .email("paulAdams@gmail.com")
-        .phone("+261340465341");
+        .phone("+261340465341")
+        .address("30 Rue de la Montagne Sainte-Genevieve");
   }
 
   @Test
+  @Order(1)
   void read_prospects_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
     ProspectingApi api = new ProspectingApi(joeDoeClient);
@@ -144,14 +155,27 @@ class ProspectIT {
   }
 
   @Test
-  void create_prospects_ok() throws ApiException {
+  @Order(2)
+  void update_prospects_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
     ProspectingApi api = new ProspectingApi(joeDoeClient);
 
-    List<Prospect> actual = api.createProspects(SWAN_ACCOUNTHOLDER_ID,
-        List.of(creatableProspect()));
+    List<Prospect> actual = api.updateProspects(SWAN_ACCOUNTHOLDER_ID,
+        List.of(updateProspect()));
 
     assertEquals(List.of(expectedProspect()), ignoreIdsOf(actual));
+  }
+
+  @Test
+  void update_prospects_ko() throws ApiException {
+    ApiClient joeDoeClient = anApiClient();
+    ProspectingApi api = new ProspectingApi(joeDoeClient);
+
+    assertThrowsApiException(
+        "{\"type\":\"404 NOT_FOUND\",\"message\":\"Prospect." + UNKNOWN_PROSPECT_ID
+            + " not found. \"}",
+        () -> api.updateProspects(SWAN_ACCOUNTHOLDER_ID,
+            List.of(updateProspect().id(UNKNOWN_PROSPECT_ID))));
   }
 
   @Test
@@ -171,7 +195,7 @@ class ProspectIT {
     ProspectingApi api = new ProspectingApi(joeDoeClient);
 
     assertThrowsForbiddenException(
-        () -> api.createProspects(NOT_JOE_DOE_ACCOUNT_HOLDER_ID, List.of()));
+        () -> api.updateProspects(NOT_JOE_DOE_ACCOUNT_HOLDER_ID, List.of()));
     assertThrowsForbiddenException(() -> api.getProspects(NOT_JOE_DOE_ACCOUNT_HOLDER_ID));
     assertThrowsForbiddenException(
         () -> api.convertProspect(NOT_JOE_DOE_ACCOUNT_HOLDER_ID, prospect1().getId(), List.of()));

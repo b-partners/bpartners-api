@@ -1,6 +1,5 @@
 package app.bpartners.api.unit.service;
 
-import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.endpoint.event.model.gen.InvoiceCrupdated;
 import app.bpartners.api.endpoint.rest.model.FileType;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
@@ -12,7 +11,6 @@ import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.InvoiceProduct;
 import app.bpartners.api.repository.InvoiceRepository;
-import app.bpartners.api.repository.jpa.InvoiceJpaRepository;
 import app.bpartners.api.repository.jpa.model.HInvoice;
 import app.bpartners.api.service.AccountHolderService;
 import app.bpartners.api.service.InvoiceCrupdatedService;
@@ -36,23 +34,17 @@ import static org.mockito.Mockito.mock;
 class InvoiceCrupdatedServiceTest {
   InvoiceService invoiceService;
   InvoiceRepository invoiceRepository;
-  EventProducer eventProducer;
   InvoiceCrupdatedService invoiceCrupdatedService;
   AccountHolderService accountHolderService;
-  InvoiceJpaRepository invoiceJpaRepository;
 
   @BeforeEach
   void setUp() {
-    eventProducer = mock(EventProducer.class);
     invoiceRepository = mock(InvoiceRepository.class);
-    invoiceJpaRepository = mock(InvoiceJpaRepository.class);
     accountHolderService = mock(AccountHolderService.class);
     invoiceService =
         new InvoiceService(
             invoiceRepository,
-            invoiceJpaRepository,
-            accountHolderService,
-            eventProducer);
+            accountHolderService);
     invoiceCrupdatedService = new InvoiceCrupdatedService(invoiceService);
   }
 

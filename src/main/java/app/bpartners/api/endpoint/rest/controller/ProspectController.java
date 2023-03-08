@@ -3,13 +3,13 @@ package app.bpartners.api.endpoint.rest.controller;
 import app.bpartners.api.endpoint.rest.mapper.ProspectRestMapper;
 import app.bpartners.api.endpoint.rest.model.Prospect;
 import app.bpartners.api.endpoint.rest.model.ProspectConversion;
+import app.bpartners.api.endpoint.rest.model.UpdateProspect;
 import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.service.ProspectService;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -20,7 +20,7 @@ import static java.util.stream.Collectors.toUnmodifiableList;
 @AllArgsConstructor
 public class ProspectController {
   private final ProspectService service;
-  private ProspectRestMapper mapper;
+  private final ProspectRestMapper mapper;
 
   @PutMapping("/accountHolders/{ahId}/prospects/{id}/prospectConversion")
   public List<ProspectConversion> convertProspect(
@@ -37,9 +37,9 @@ public class ProspectController {
         .collect(toUnmodifiableList());
   }
 
-  @PostMapping("/accountHolders/{ahId}/prospects")
-  public List<Prospect> createProspects(@PathVariable("ahId") String accountHolderId,
-                                        @RequestBody List<Prospect> prospects) {
+  @PutMapping("/accountHolders/{ahId}/prospects")
+  public List<Prospect> updateProspects(@PathVariable("ahId") String accountHolderId,
+                                        @RequestBody List<UpdateProspect> prospects) {
     List<app.bpartners.api.model.Prospect> prospectList = prospects.stream()
         .map(mapper::toDomain)
         .collect(toUnmodifiableList());
@@ -47,4 +47,10 @@ public class ProspectController {
         .map(mapper::toRest)
         .collect(toUnmodifiableList());
   }
+  /*TODO
+   * get data from repository.prospecting.datasource package
+   * ( return value should be our domain model : Prospect)
+   * Process data with service.dataprocesser.ProspectDataProcesser
+   * return result in controller
+   */
 }

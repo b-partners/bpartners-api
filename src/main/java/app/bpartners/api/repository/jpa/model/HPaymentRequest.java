@@ -1,5 +1,6 @@
 package app.bpartners.api.repository.jpa.model;
 
+import app.bpartners.api.model.PaymentRequest;
 import java.io.Serializable;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -41,4 +42,8 @@ public class HPaymentRequest implements Serializable {
   private LocalDate paymentDueDate;
   @CreationTimestamp
   private Instant createdDatetime;
+
+  public HPaymentRequest(PaymentRequest p) {
+    //TODO
+  }
 }

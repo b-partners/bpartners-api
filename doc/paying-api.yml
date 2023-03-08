@@ -1242,16 +1242,6 @@ components:
       enum:
         - ASC
         - DESC
-    CrupdateProduct:
-      properties:
-        id:
-          type: string
-        accountId:
-          type: string
-        products:
-          type: array
-          items:
-            $ref: '#/components/schemas/CreateProduct'
     CreateProduct:
       type: object
       properties:

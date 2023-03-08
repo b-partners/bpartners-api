@@ -5,7 +5,6 @@ import app.bpartners.api.endpoint.rest.security.model.Principal;
 import app.bpartners.api.endpoint.rest.security.principal.PrincipalProvider;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.Invoice;
-import app.bpartners.api.model.InvoiceDiscount;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.mapper.CustomerMapper;
 import app.bpartners.api.model.mapper.InvoiceMapper;
@@ -16,7 +15,6 @@ import app.bpartners.api.repository.jpa.InvoiceProductJpaRepository;
 import app.bpartners.api.repository.jpa.PaymentRequestJpaRepository;
 import app.bpartners.api.repository.jpa.model.HInvoice;
 import app.bpartners.api.repository.jpa.model.HInvoiceProduct;
-import app.bpartners.api.repository.jpa.model.HPaymentRequest;
 import app.bpartners.api.service.AccountHolderService;
 import app.bpartners.api.service.FileService;
 import app.bpartners.api.service.utils.InvoicePdfUtils;
@@ -34,7 +32,6 @@ import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
 import static app.bpartners.api.service.InvoiceService.DRAFT_TEMPLATE;
 import static app.bpartners.api.service.InvoiceService.INVOICE_TEMPLATE;
-import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 import static java.util.UUID.randomUUID;
 import static org.springframework.data.domain.Sort.Direction.DESC;
 
@@ -73,8 +70,9 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
 
   @Override
   public Invoice crupdateInvoiceInfo(Invoice toCrupdate) {
-    HInvoice invoice = jpaRepository.findByIdAccountAndId(toCrupdate.getAccount().getId(), toCrupdate.getId());
-    if(invoice != null){
+    HInvoice invoice =
+        jpaRepository.findByIdAccountAndId(toCrupdate.getAccount().getId(), toCrupdate.getId());
+    if (invoice != null) {
       invoice.setRef(toCrupdate.getRef());
       invoice.setTitle(toCrupdate.getTitle());
       invoice.setComment(toCrupdate.getComment());

@@ -708,6 +708,53 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
+  crupdateInvoiceProducts:
+    put:
+      tags:
+        - Paying
+      summary: Crupdate products of an invoice
+      operationId: crupdateInvoiceProducts
+      parameters:
+        - in: path
+          name: aId
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: iId
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: status
+          required: true
+          schema:
+            $ref: '#/components/schemas/InvoiceStatus'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/CreateProduct'
+      responses:
+        200:
+          description: The invoice
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Invoice'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
   getRelaunches:
     get:
       tags:

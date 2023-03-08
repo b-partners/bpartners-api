@@ -76,6 +76,8 @@ paths:
     $ref: './paying-api.yml#/operations/getInvoices'
   /accounts/{aId}/invoices/{iId}:
     $ref: './paying-api.yml#/operations/invoiceOperations'
+  /accounts/{aId}/invoices/{iId}/products:
+    $ref: './paying-api.yml#/operations/crupdateInvoiceProducts'
   /accounts/{aId}/invoices/{iId}/relaunchConf:
     $ref: './paying-api.yml#/operations/invoiceRelaunchConfOperations'
   /accounts/{aId}/invoices/{iId}/relaunches:

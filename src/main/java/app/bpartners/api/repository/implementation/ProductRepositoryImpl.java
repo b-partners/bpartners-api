@@ -3,6 +3,7 @@ package app.bpartners.api.repository.implementation;
 import app.bpartners.api.endpoint.rest.model.OrderDirection;
 import app.bpartners.api.endpoint.rest.model.ProductStatus;
 import app.bpartners.api.endpoint.rest.model.UpdateProductStatus;
+import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.Product;
 import app.bpartners.api.model.mapper.ProductMapper;
 import app.bpartners.api.repository.ProductRepository;
@@ -12,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -21,9 +23,14 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 @AllArgsConstructor
+@Slf4j
 public class ProductRepositoryImpl implements ProductRepository {
   private final ProductJpaRepository jpaRepository;
   private final ProductMapper mapper;
+
+  private static Order defaultOrder() {
+    return new Order(Direction.DESC, "createdAt");
+  }
 
   @Override
   public List<Product> findAllByIdAccount(
@@ -74,14 +81,22 @@ public class ProductRepositoryImpl implements ProductRepository {
   }
 
   @Override
-  public List<Product> findAllByIdAccountAndStatus(String idAccount, ProductStatus status,
-                                                   Integer page, Integer pageSize,
-                                                   OrderDirection descriptionOrder,
-                                                   OrderDirection unitPriceOrder,
-                                                   OrderDirection createdAtOrder) {
+  public List<Product> findAllByIdAccountAndStatusAndOrByDescriptionAndOrUnitPrice(
+      String idAccount, ProductStatus status, Integer page, Integer pageSize,
+      OrderDirection descriptionOrder, OrderDirection unitPriceOrder,
+      OrderDirection createdAtOrder,
+      String description, Fraction unitPrice) {
     List<Order> orders = retrieveOrders(descriptionOrder, unitPriceOrder, createdAtOrder);
     Pageable pageRequest = PageRequest.of(page, pageSize, Sort.by(orders));
-    return jpaRepository.findAllByIdAccountAndStatus(idAccount, status, pageRequest).stream()
+    String descriptionFilter = description == null ? "" : description;
+    String priceFilter = unitPrice == null ? "" : String.valueOf(unitPrice);
+    List<HProduct> products = unitPrice == null
+        ? jpaRepository.findAllByIdAccountAndStatusAndDescriptionContainingIgnoreCase(
+        idAccount, status, descriptionFilter, pageRequest)
+        : jpaRepository.findAllByIdAccountAndStatusAndUnitPriceAndDescriptionContainingIgnoreCase(
+        idAccount, status, priceFilter, descriptionFilter, pageRequest);
+
+    return products.stream()
         .map(mapper::toDomain)
         .collect(Collectors.toUnmodifiableList());
   }
@@ -95,9 +110,5 @@ public class ProductRepositoryImpl implements ProductRepository {
       productUpdated.add(mapper.toDomain(jpaRepository.save(existingProduct)));
     }
     return productUpdated;
-  }
-
-  private static Order defaultOrder() {
-    return new Order(Direction.DESC, "createdAt");
   }
 }

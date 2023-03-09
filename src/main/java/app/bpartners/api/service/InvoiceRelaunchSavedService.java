@@ -67,7 +67,7 @@ public class InvoiceRelaunchSavedService implements Consumer<InvoiceRelaunchSave
     attachments.add(attachment);
     invoiceRelaunchSaved.setAttachments(attachments);
     try {
-      service.sendEmail(recipient, subject, htmlBody, attachments);
+      service.sendEmail(recipient, subject, htmlBody, attachments, accountHolder.getEmail());
     } catch (MessagingException | IOException e) {
       log.error("Email not sent : " + e.getMessage());
     }

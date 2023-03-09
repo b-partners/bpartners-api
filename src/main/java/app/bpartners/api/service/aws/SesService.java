@@ -47,12 +47,12 @@ public class SesService {
   }
 
   public void sendEmail(String recipient, String subject, String htmlBody,
-                        List<Attachment> attachments)
+                        List<Attachment> attachments, String accountHolder)
       throws IOException, MessagingException {
 
     Session session = Session.getDefaultInstance(new Properties());
     MimeMessage mimeMessage = configureMimeMessage(session, subject, recipient);
-    MimeBodyPart htmlPart = configureHtmlPart(htmlBody);
+    MimeBodyPart htmlPart = configureHtmlPart(htmlBody, accountHolder);
     List<MimeBodyPart> attachmentsAsMimeBodyPart = attachments.stream()
         .map(this::toMimeBodyPart)
         .collect(Collectors.toUnmodifiableList());
@@ -89,7 +89,8 @@ public class SesService {
     }
   }
 
-  private MimeMessage configureMimeMessage(Session session, String subject, String recipient)
+  private MimeMessage configureMimeMessage(
+      Session session, String subject, String recipient)
       throws MessagingException {
     MimeMessage message = new MimeMessage(session);
     // Add subject, from and to lines.
@@ -110,9 +111,11 @@ public class SesService {
     return attachmentPart;
   }
 
-  private MimeBodyPart configureHtmlPart(String htmlBody) throws MessagingException {
+  private MimeBodyPart configureHtmlPart(String htmlBody, String emailAsSignature)
+      throws MessagingException {
     MimeBodyPart htmlPart = new MimeBodyPart();
-    htmlPart.setContent(htmlBody, "text/html; charset=UTF-8");
+    htmlPart.setContent(String.format(htmlBody + "</br></br></br></br><strong>%s</strong>",
+        emailAsSignature), "text/html; charset=UTF-8");
     return htmlPart;
   }
 

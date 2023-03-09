@@ -47,21 +47,6 @@ public class InvoiceRestMapper {
   private final CrupdateInvoiceValidator crupdateInvoiceValidator;
   private final InvoiceJpaRepository invoiceJpaRepository;
 
-  private static PaymentRegulation getPaymentRegulation(CreatePaymentRegulation payment) {
-    return new PaymentRegulation()
-        .maturityDate(payment.getMaturityDate())
-        .paymentRequest(new PaymentRequest()
-            .id(payment.getEndToEndId())
-            .reference(payment.getReference())
-            .paymentUrl(payment.getPaymentUrl())
-            .label(payment.getComment())
-            .amount(payment.getAmount().getCentsRoundUp())
-            .payerName(payment.getPayerName())
-            .payerEmail(payment.getPayerEmail())
-            .paymentUrl(payment.getPaymentUrl())
-            .initiatedDatetime(payment.getInitiatedDatetime()));
-  }
-
   public Invoice toRest(app.bpartners.api.model.Invoice domain) {
     if (domain == null) {
       return null;
@@ -96,10 +81,9 @@ public class InvoiceRestMapper {
         .delayInPaymentAllowed(domain.getDelayInPaymentAllowed())
         .delayPenaltyPercent(domain.getDelayPenaltyPercent().getCentsRoundUp())
         .metadata(domain.getMetadata())
-        .paymentRegulations(
-            domain.getMultiplePayments() == null ? null : domain.getMultiplePayments().stream()
-                .map(payment -> getPaymentRegulation(domain.getTotalPriceWithVat(), payment))
-                .collect(Collectors.toUnmodifiableList()))
+        .paymentRegulations(domain.getMultiplePayments().stream()
+            .map(payment -> getPaymentRegulation(domain.getTotalPriceWithVat(), payment))
+            .collect(Collectors.toUnmodifiableList()))
         .toPayAt(toPayAt)
         .globalDiscount(new InvoiceDiscount()
             .percentValue(
@@ -115,58 +99,6 @@ public class InvoiceRestMapper {
         .fileId(transactionInvoice.getFileId());
   }
 
-  public CrupdateInvoice convertCrupdateInvoiceInfo(CrupdateInvoiceInfo rest){
-    return new CrupdateInvoice()
-        .ref(rest.getRef())
-        .status(rest.getStatus())
-        .comment(rest.getComment())
-        .metadata(rest.getMetadata())
-        .delayInPaymentAllowed(rest.getDelayInPaymentAllowed())
-        .validityDate(rest.getValidityDate())
-        .title(rest.getTitle())
-        .toPayAt(rest.getToPayAt())
-        .customer(rest.getCustomer())
-        .globalDiscount(rest.getGlobalDiscount())
-        .paymentRegulations(List.of())
-        .sendingDate(rest.getSendingDate())
-        .addProductsItem(null)
-        .delayPenaltyPercent(rest.getDelayPenaltyPercent())
-        .products(List.of());
-  }
-
-  public app.bpartners.api.model.Invoice toDomain(String accountId, String invoiceId,
-                                                  CrupdateInvoiceInfo rest) {
-    //TODO: deprecated ! discount must be mandatory
-    InvoiceDiscount discount = rest.getGlobalDiscount();
-    if (rest.getGlobalDiscount() == null
-        || (rest.getGlobalDiscount() != null
-        && rest.getGlobalDiscount().getPercentValue() == null)) {
-      discount = new InvoiceDiscount().percentValue(0);
-    }
-
-    return app.bpartners.api.model.Invoice.builder()
-        .id(invoiceId)
-        .ref(rest.getRef())
-        .title(rest.getTitle())
-        .comment(rest.getComment())
-        .toPayAt(rest.getToPayAt())
-        .customer(
-            rest.getCustomer() != null ? customerRepository.findById(rest.getCustomer().getId()) :
-                null)
-        .sendingDate(rest.getSendingDate())
-        .paymentType(convertType(rest.getPaymentType()))
-        .status(rest.getStatus())
-        .delayInPaymentAllowed(rest.getDelayInPaymentAllowed())
-        .account(accountService.getAccountById(accountId))
-        .delayPenaltyPercent(
-            rest.getDelayPenaltyPercent() == null ? parseFraction(DEFAULT_DELAY_PENALTY_PERCENT) :
-                parseFraction(rest.getDelayPenaltyPercent()))
-        .validityDate(rest.getValidityDate() == null && rest.getToPayAt() != null
-            && rest.getStatus() != CONFIRMED && rest.getStatus() != PAID ? rest.getToPayAt() : rest.getValidityDate())
-        .discount(getDiscount(discount))
-        .metadata(rest.getMetadata())
-        .build();
-  }
   public app.bpartners.api.model.Invoice toDomain(
       String accountId, String id, CrupdateInvoice rest) {
     crupdateInvoiceValidator.accept(rest);
@@ -222,6 +154,24 @@ public class InvoiceRestMapper {
         .build();
   }
 
+  public CrupdateInvoice convertCrupdateInvoiceInfo(CrupdateInvoiceInfo rest){
+    return new CrupdateInvoice()
+        .ref(rest.getRef())
+        .title(rest.getTitle())
+        .comment(rest.getComment())
+        .customer(rest.getCustomer())
+        .status(rest.getStatus())
+        .paymentType(rest.getPaymentType() == null ? null : converType(rest))
+        .paymentRegulations(List.of())
+        .sendingDate(rest.getSendingDate())
+        .validityDate(rest.getValidityDate())
+        .toPayAt(rest.getToPayAt())
+        .delayInPaymentAllowed(rest.getDelayInPaymentAllowed())
+        .delayPenaltyPercent(rest.getDelayPenaltyPercent())
+        .metadata(rest.getMetadata())
+        .globalDiscount(rest.getGlobalDiscount())
+        .products(List.of());
+  }
   private app.bpartners.api.model.CreatePaymentRegulation toDomain(
       app.bpartners.api.endpoint.rest.model.CreatePaymentRegulation invoicePayment) {
     if (invoicePayment.getAmount() != null && invoicePayment.getPercent() != null) {
@@ -304,22 +254,20 @@ public class InvoiceRestMapper {
     }
   }
 
-  private Invoice.PaymentTypeEnum convertType(
-      CrupdateInvoiceInfo.PaymentTypeEnum crupdateInvoiceInfoType) {
-    if (crupdateInvoiceInfoType == null) {
+  public CrupdateInvoice.PaymentTypeEnum converType(CrupdateInvoiceInfo rest){
+    if (rest.getPaymentType().getValue() == null) {
       return null;
     }
-    switch (crupdateInvoiceInfoType.getValue()) {
+    switch (rest.getPaymentType().getValue()) {
       case "CASH":
-        return Invoice.PaymentTypeEnum.CASH;
+        return CrupdateInvoice.PaymentTypeEnum.CASH;
       case "IN_INSTALMENT":
-        return Invoice.PaymentTypeEnum.IN_INSTALMENT;
+        return CrupdateInvoice.PaymentTypeEnum.IN_INSTALMENT;
       default:
         throw new ApiException(ApiException.ExceptionType.SERVER_EXCEPTION,
-            "Payment type" + crupdateInvoiceInfoType.getValue() + " not found");
+            "Payment type " + rest.getPaymentType().getValue() + " not found");
     }
   }
-
   private boolean hasAvailableReference(
       String accountId, String invoiceId, String reference, InvoiceStatus status) {
     if (reference == null) {

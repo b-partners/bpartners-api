@@ -588,6 +588,25 @@ class InvoiceIT {
             .percentValue(0));
   }
 
+  CrupdateInvoiceInfo invoiceInfo1() {
+    return new CrupdateInvoiceInfo()
+        .id("new_invoice_1")
+        .ref("BP0029")
+        .title("New invoice")
+        .comment("Test de création")
+        .customer(customer1())
+        .status(DRAFT)
+        .paymentType(null)
+        .sendingDate(LocalDate.now())
+        .validityDate(LocalDate.now().plusDays(3L))
+        .toPayAt(LocalDate.now())
+        .delayInPaymentAllowed(15)
+        .delayPenaltyPercent(20)
+        .metadata(Map.of())
+        .globalDiscount(new InvoiceDiscount()
+            .amountValue(0)
+            .percentValue(0));
+  }
   //TODO: create PaginationIT for pagination test and add filters.
   // In particular, check the date filters and the order filters (by created datetime desc)
   @Test
@@ -1205,12 +1224,11 @@ class InvoiceIT {
     Invoice newInvoice =
         api.crupdateInvoiceInformations(JOE_DOE_ACCOUNT_ID, "new_invoice", newInvoiceInfo());
     List<Invoice> actualInvoices = api.getInvoices(JOE_DOE_ACCOUNT_ID, null, null, null);
+    Invoice invoice1 = api.crupdateInvoiceInformations(JOE_DOE_ACCOUNT_ID, invoiceInfo1().getId(), invoiceInfo1());
 
+    assertEquals(CASH, invoice1.getPaymentType());
     assertTrue(ignoreUpdatedAt(actualInvoices).contains(actual.updatedAt(null)));
-    log.info("acutalInvoices: {}", ignoreUpdatedAt(actualInvoices.stream().map(invoice -> invoice.createdAt(null)).collect(
-        Collectors.toUnmodifiableList())));
-    log.info("newInvoice: {}", newInvoice.createdAt(null).updatedAt(null));
-    assertEquals(actualInvoices.get(0) , newInvoice);
+    assertEquals(actualInvoices.get(0).createdAt(null) , newInvoice.createdAt(null).updatedAt(null));
     assertTrue(
         ignoreUpdatedAt(actualInvoices.stream().map(invoice -> invoice.createdAt(null)).collect(
             Collectors.toUnmodifiableList())).contains(newInvoice.createdAt(null).updatedAt(null)));

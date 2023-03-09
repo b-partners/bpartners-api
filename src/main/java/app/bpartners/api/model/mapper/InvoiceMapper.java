@@ -14,7 +14,6 @@ import app.bpartners.api.repository.jpa.model.HInvoiceProduct;
 import app.bpartners.api.repository.jpa.model.HPaymentRequest;
 import app.bpartners.api.service.AccountService;
 import app.bpartners.api.service.PaymentInitiationService;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Instant;
@@ -96,7 +95,7 @@ public class InvoiceMapper {
         .comment(entity.getComment())
         .paymentType(entity.getPaymentType())
         .paymentUrl(entity.getPaymentUrl())
-        .products(actualProducts == null ? List.of() : actualProducts)
+        .products(actualProducts)
         .sendingDate(entity.getSendingDate())
         .validityDate(entity.getValidityDate())
         .delayInPaymentAllowed(entity.getDelayInPaymentAllowed())
@@ -119,18 +118,15 @@ public class InvoiceMapper {
         .createdAt(entity.getCreatedDatetime())
         .metadata(toMetadataMap(entity.getMetadataString()))
         //total without vat and without discount
-        .totalPriceWithoutDiscount(
-            actualProducts == null ? null : computePriceWithoutDiscount(actualProducts))
+        .totalPriceWithoutDiscount(computePriceWithoutDiscount(actualProducts))
         //total without vat but with discount
-        .totalPriceWithoutVat(
-            actualProducts == null ? null : computePriceNoVatWithDiscount(discount, actualProducts))
+        .totalPriceWithoutVat(computePriceNoVatWithDiscount(discount, actualProducts))
         //total vat with discount
-        .totalVat(
-            actualProducts == null ? null : computeTotalVatWithDiscount(discount, actualProducts))
+        .totalVat(computeTotalVatWithDiscount(discount, actualProducts))
         //total with vat and with discount
-        .totalPriceWithVat(actualProducts == null ? null :
+        .totalPriceWithVat(
             computeTotalPriceWithVatAndDiscount(discount, actualProducts))
-        .discount(actualProducts == null ? null : InvoiceDiscount.builder()
+        .discount(InvoiceDiscount.builder()
             .percentValue(parseFraction(entity.getDiscountPercent()))
             .amountValue(computeTotalDiscountAmount(discount, actualProducts))
             .build())
@@ -141,8 +137,8 @@ public class InvoiceMapper {
 
   public List<CreatePaymentRegulation> getMultiplePayments(HInvoice entity) {
     List<HPaymentRequest> paymentRequests = entity.getPaymentRequests();
-    Fraction totalPrice = paymentRequests != null ? computeMultiplePaymentsAmount(paymentRequests) : null;
-    return paymentRequests != null ? paymentRequests.stream()
+    Fraction totalPrice = computeMultiplePaymentsAmount(paymentRequests);
+    return paymentRequests.stream()
         .map(payment -> CreatePaymentRegulation.builder()
             .endToEndId(payment.getId())
             .percent(totalPrice.getCentsRoundUp() == 0 ? new Fraction()
@@ -157,7 +153,7 @@ public class InvoiceMapper {
             .maturityDate(payment.getPaymentDueDate())
             .initiatedDatetime(payment.getCreatedDatetime())
             .build())
-        .collect(Collectors.toUnmodifiableList()) : List.of();
+        .collect(Collectors.toUnmodifiableList());
   }
 
   private Fraction computePriceNoVatWithDiscount(Fraction discount,
@@ -211,13 +207,11 @@ public class InvoiceMapper {
     LocalDate toPayAt = null;
     LocalDate validityDate = domain.getValidityDate();
     List<HInvoiceProduct> actualProducts = List.of();
-    Fraction totalPriceWithVat = domain.getProducts() == null ? null :
+    Fraction totalPriceWithVat =
         computeTotalPriceWithVatAndDiscount(domain.getDiscount().getPercentValue(),
             domain.getProducts());
-    List<HPaymentRequest> paymentRequests =
-        domain.getMultiplePayments() == null || domain.getProducts() == null ? null :
-            pis.retrievePaymentEntities(
-                getPaymentInitiations(domain, totalPriceWithVat), id, domain.getStatus());
+    List<HPaymentRequest> paymentRequests = pis.retrievePaymentEntities(
+        getPaymentInitiations(domain, totalPriceWithVat), id, domain.getStatus());
 
     //TODO: split this into specific layer - BEGIN
     Optional<HInvoice> optionalInvoice = jpaRepository.findById(id);
@@ -296,7 +290,8 @@ public class InvoiceMapper {
         .build();
   }
 
-  public HInvoice toEntity(Invoice domain) throws JsonProcessingException {
+  @SneakyThrows
+  public HInvoice toEntity(Invoice domain) {
     Optional<HInvoice> optionalInvoice = jpaRepository.findById(domain.getId());
     return HInvoice.builder()
         .id(domain.getId())
@@ -330,6 +325,7 @@ public class InvoiceMapper {
         .discountPercent(domain.getDiscount().getPercentValue().toString())
         .build();
   }
+
   private List<PaymentInitiation> getPaymentInitiations(Invoice domain,
                                                         Fraction totalPriceWithVat) {
     return domain.getMultiplePayments().stream()

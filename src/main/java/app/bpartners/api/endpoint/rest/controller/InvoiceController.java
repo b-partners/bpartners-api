@@ -40,8 +40,9 @@ public class InvoiceController {
       @PathVariable("iId") String invoiceId,
       @RequestBody CrupdateInvoiceInfo crupdateInvoice
   ) {
+    CrupdateInvoice toCrupdateInvoice = mapper.convertCrupdateInvoiceInfo(crupdateInvoice);
     app.bpartners.api.model.Invoice invoice =
-        mapper.toDomain(accountId, invoiceId, crupdateInvoice);
+        mapper.toDomain(accountId, invoiceId, toCrupdateInvoice);
     return mapper.toRest(service.crupdateInvoiceInfo(invoice));
   }
 

@@ -5,6 +5,7 @@ import app.bpartners.api.endpoint.rest.security.model.Principal;
 import app.bpartners.api.endpoint.rest.security.principal.PrincipalProvider;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.Invoice;
+import app.bpartners.api.model.InvoiceProduct;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.mapper.InvoiceMapper;
 import app.bpartners.api.model.mapper.InvoiceProductMapper;
@@ -20,15 +21,18 @@ import app.bpartners.api.service.FileService;
 import app.bpartners.api.service.utils.InvoicePdfUtils;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Repository;
 
 import static app.bpartners.api.endpoint.rest.model.FileType.INVOICE;
 import static app.bpartners.api.endpoint.rest.model.FileType.LOGO;
+import static app.bpartners.api.endpoint.rest.model.Invoice.PaymentTypeEnum.CASH;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
 import static app.bpartners.api.service.InvoiceService.DRAFT_TEMPLATE;
@@ -38,6 +42,7 @@ import static org.springframework.data.domain.Sort.Direction.DESC;
 
 @Repository
 @AllArgsConstructor
+@Slf4j
 public class InvoiceRepositoryImpl implements InvoiceRepository {
   private final InvoiceJpaRepository jpaRepository;
   private final PaymentRequestJpaRepository requestJpaRepository;
@@ -68,6 +73,24 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
     return mapper.toDomain(persistedEntity);
   }
 
+  @Override
+  public Invoice crupdateInvoiceProducts(String accountId, String invoiceId, InvoiceStatus status,
+                                         List<InvoiceProduct> products) {
+    Optional<HInvoice> optionalHInvoice = jpaRepository.findByIdAndStatus(invoiceId, status);
+    if (optionalHInvoice.isPresent()) {
+      HInvoice persisted = optionalHInvoice.get();
+      productJpaRepository.deleteAll(persisted.getProducts());
+      List<HInvoiceProduct> updatedProducts = products.stream()
+          .map(product -> productMapper.toEntity(product, persisted))
+          .collect(Collectors.toUnmodifiableList());
+      persisted.getProducts().clear();
+      persisted.getProducts().addAll(updatedProducts);
+      return mapper.toDomain(persisted);
+    }
+    HInvoice toCrupdate = createInvoiceFrom(accountId, invoiceId, status, products);
+    return mapper.toDomain(toCrupdate);
+  }
+
   private String processPdfGeneration(Invoice domain) {
     String fileId = domain.getFileId() == null
         ? String.valueOf(randomUUID()) : domain.getFileId();
@@ -80,7 +103,6 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
         : pdfUtils.generatePdf(domain, accountHolder(domain), logoAsBytes, DRAFT_TEMPLATE);
     String id = fileService.upload(fileId, INVOICE, accountId, fileAsBytes, null).getId();
     domain.setFileId(id);
-
     return id;
   }
 
@@ -115,6 +137,29 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
     return toCrupdate.getProducts().stream()
         .map(product -> productMapper.toEntity(product, invoice))
         .collect(Collectors.toUnmodifiableList());
+  }
+
+  private HInvoice createInvoiceFrom(String accountId, String invoiceId, InvoiceStatus status,
+                                     List<InvoiceProduct> products) {
+    Invoice domain = Invoice.builder()
+        .id(invoiceId)
+        .status(status)
+        .products(products)
+        .build();
+    HInvoice entity = HInvoice.builder()
+        .id(invoiceId)
+        .status(status)
+        .build();
+    HInvoice toCrupdate = HInvoice.builder()
+        .id(invoiceId)
+        .status(status)
+        .idAccount(accountId)
+        .paymentType(CASH)
+        .paymentRequests(List.of())
+        .products(getProductEntities(domain, entity))
+        .metadataString(String.valueOf(Map.of()))
+        .build();
+    return toCrupdate;
   }
 
   private String userLogoFileId() {

@@ -1,10 +1,13 @@
 package app.bpartners.api.endpoint.rest.controller;
 
 import app.bpartners.api.endpoint.rest.mapper.InvoiceRestMapper;
+import app.bpartners.api.endpoint.rest.mapper.ProductRestMapper;
+import app.bpartners.api.endpoint.rest.model.CreateProduct;
 import app.bpartners.api.endpoint.rest.model.CrupdateInvoice;
 import app.bpartners.api.endpoint.rest.model.Invoice;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.model.BoundedPageSize;
+import app.bpartners.api.model.InvoiceProduct;
 import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.service.InvoiceService;
 import java.util.List;
@@ -22,6 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class InvoiceController {
   private final InvoiceRestMapper mapper;
   private final InvoiceService service;
+  private final ProductRestMapper productMapper;
 
   @PutMapping("/accounts/{id}/invoices/{iId}")
   public Invoice crupdateInvoice(
@@ -49,5 +53,17 @@ public class InvoiceController {
     return service.getInvoices(accountId, page, pageSize, status).stream()
         .map(mapper::toRest)
         .collect(Collectors.toUnmodifiableList());
+  }
+
+  @PutMapping("/accounts/{id}/invoices/{iId}/products")
+  public Invoice crupdateInvoiceProducts(
+      @PathVariable("id") String accountId,
+      @PathVariable("iId") String invoiceId,
+      @RequestParam("status") InvoiceStatus status,
+      @RequestBody List<CreateProduct> crupdateInvoice) {
+    List<InvoiceProduct> toSave = crupdateInvoice.stream()
+        .map(productMapper::toInvoiceDomain)
+        .collect(Collectors.toUnmodifiableList());
+    return mapper.toRest(service.crupdateInvoiceProducts(accountId, invoiceId, status, toSave));
   }
 }

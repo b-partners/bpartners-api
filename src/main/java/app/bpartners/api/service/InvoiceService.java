@@ -5,7 +5,9 @@ import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.Invoice;
+import app.bpartners.api.model.InvoiceProduct;
 import app.bpartners.api.model.PageFromOne;
+import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.repository.InvoiceRepository;
 import java.util.List;
 import lombok.AllArgsConstructor;
@@ -39,15 +41,28 @@ public class InvoiceService {
 
   @Transactional(isolation = Isolation.SERIALIZABLE)
   public Invoice crupdateInvoice(Invoice toCrupdate) {
-    if (!getAccountHolder(toCrupdate).isSubjectToVat()) {
-      toCrupdate.getProducts().forEach(
-          product -> product.setVatPercent(new Fraction())
-      );
-    }
+    subjectToVat(toCrupdate);
     return repository.crupdate(toCrupdate);
   }
 
-  private AccountHolder getAccountHolder(Invoice toCrupdate) {
-    return holderService.getAccountHolderByAccountId(toCrupdate.getAccount().getId());
+  @Transactional(isolation = Isolation.SERIALIZABLE)
+  public Invoice crupdateInvoiceProducts(String accountId, String invoiceId, InvoiceStatus status,
+                                         List<InvoiceProduct> products) {
+    if (products.isEmpty()) {
+      throw new BadRequestException("It should contain at least one product.");
+    }
+    Invoice toBeCrupdated = repository.crupdateInvoiceProducts(accountId, invoiceId, status,
+        products);
+    subjectToVat(toBeCrupdated);
+    return repository.crupdate(toBeCrupdated);
+  }
+
+  private void subjectToVat(Invoice toCrupdate) {
+    AccountHolder accountHolder =
+        holderService.getAccountHolderByAccountId(toCrupdate.getAccount().getId());
+    if (!accountHolder.isSubjectToVat()) {
+      toCrupdate.getProducts().forEach(
+          product -> product.setVatPercent(new Fraction()));
+    }
   }
 }

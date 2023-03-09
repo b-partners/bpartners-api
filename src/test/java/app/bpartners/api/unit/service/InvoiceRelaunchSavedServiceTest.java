@@ -41,12 +41,13 @@ class InvoiceRelaunchSavedServiceTest {
     invoiceRelaunchSavedService =
         new InvoiceRelaunchSavedService(sesService, fileService);
 
-    doNothing().when(sesService).sendEmail(any(), any(), any(), any());
+    doNothing().when(sesService).sendEmail(any(), any(), any(), any(), any());
     when(fileService.downloadOptionalFile(any(), any(), any())).thenReturn(List.of(logoAsBytes));
   }
 
   @Test
   void sendEmail_triggers() throws MessagingException, IOException {
+    String sender = "sender" + randomUUID() + "@bpartners.app";
     String recipient = "test" + randomUUID() + "@bpartners.app";
     String subject = "Objet du mail";
     String htmlBody = "<html><body>Corps du mail</body></html>";
@@ -58,11 +59,14 @@ class InvoiceRelaunchSavedServiceTest {
         .attachmentName(null)
         .invoice(invoice())
         .logoFileId(null)
-        .accountHolder(new AccountHolder())
+        .accountHolder(AccountHolder.builder()
+            .email(sender)
+            .build())
         .attachments(List.of())
         .build());
 
-    verify(sesService, times(1)).sendEmail(eq(recipient), eq(subject), eq(htmlBody), any());
+    verify(sesService, times(1)).sendEmail(eq(recipient), eq(subject), eq(htmlBody), any(),
+        eq(sender));
   }
 
   Invoice invoice() {

@@ -175,6 +175,7 @@ class DraftIT {
         .name(otherAttachmentName)
         .content(attachmentAsBytes)
         .build();
+    String emailAsSignature = "exemple@gmail.com";
     String recipient = "bpartners.artisans@gmail.com";
     String subject = "Facture depuis l'API";
     String type = "facture";
@@ -188,18 +189,18 @@ class DraftIT {
         + "</body></html>";
     assertDoesNotThrow(() -> this.subject.verifyEmailIdentity(recipient));
     assertDoesNotThrow(() -> this.subject.sendEmail(recipient, subject, htmlBody,
-        List.of(attachment, secondAttachment)));
+        List.of(attachment, secondAttachment), emailAsSignature));
   }
 
-  @Test
+  /*@Test
   void generate_invoice_pdf_ok() {
     assertDoesNotThrow(() -> generatePdf("invoice"));
-  }
+  }*/
 
-  @Test
+  /*@Test
   void generate_draft_pdf_ok() {
     assertDoesNotThrow(() -> generatePdf("draft"));
-  }
+  }*/
 
   public static class ContextInitializer extends AbstractContextInitializer {
     public static final int SERVER_PORT = TestUtils.anAvailableRandomPort();

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <style>
@@ -8,24 +8,40 @@
             color: black;
         }
 
-        .title {
-            font-size: 1.5em;
+        h1, section, footer {
+            margin: 2vh 2vw;
         }
 
-        .link {
+        h1 {
+            font-size: 1.2em;
+            font-weight: 500;
+        }
+
+        .bpartners-color {
             color: #7A003D !important;
-            font-size: 15px;
+        }
+
+        .underline {
+            text-decoration: underline;
         }
     </style>
 </head>
 <body>
-<h1 class="title">Cher Artisan</h1>
-<p> À partir de vos transactions de cette année,
-    nous avons remarqués que vous pourriez être en retard par rapport au revenu annuel que vous vous
-    êtes fixés.<br/>
-    Ainsi, nous vous proposons certains prospects sur notre application.<br/>
-    Connectez-vous au plus vite à
-    <a href="https://bpartners.app" class="link">Bpartners</a> pour en savoir plus!
-</p>
+<main>
+    <h1>
+        Bonjour
+        <span th:text="${accountHolderEntity.name}"></span> ,
+    </h1>
+    <section>
+        Nous avons quelques prospects qu'il faudrait contacter au plus vite.<br/>
+        Ils vous attendent sur votre espace
+        <a href="https://bpartners.app" class="link bpartners-color">B.Partners</a>
+    </section>
+</main>
+<footer>
+    <span class="bpartners-color">B.Partners</span> ,<br/>
+    L'assistant intelligent qui <b>accélère la croissance des artisans et indépendants
+    français.</b>
+</footer>
 </body>
 </html>

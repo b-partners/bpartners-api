@@ -4,6 +4,7 @@ import app.bpartners.api.model.Prospect;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.repository.ProspectRepository;
 import app.bpartners.api.repository.jpa.AccountHolderJpaRepository;
+import app.bpartners.api.repository.jpa.model.HAccountHolder;
 import app.bpartners.api.service.aws.SesService;
 import app.bpartners.api.service.dataprocesser.ProspectDataProcesser;
 import java.io.IOException;
@@ -34,13 +35,14 @@ public class ProspectService {
     return repository.saveAll(toCreate);
   }
 
-  @Scheduled(cron = "0 0 8 * * *")
+  @Scheduled(cron = "0 0 10 * * *")
   public void prospect() {
     accountHolderJpaRepository.findAll().forEach(accountHolder -> {
-      if (repository.needsProspects(accountHolder.getId())
-          && repository.isSogefiProspector(accountHolder.getId())) {
+      if (repository.needsProspects(accountHolder.getId()) && repository.isSogefiProspector(
+          accountHolder.getId())) {
         final String subject = "Avez-vous besoin de nouveaux clients ?";
-        final String htmlbody = parseTemplateResolver(PROSPECT_MAIL_TEMPLATE, new Context());
+        final String htmlbody =
+            parseTemplateResolver(PROSPECT_MAIL_TEMPLATE, configureProspectContext(accountHolder));
         try {
           sesService.sendEmail(accountHolder.getEmail(), subject, htmlbody, List.of());
         } catch (IOException | MessagingException e) {
@@ -49,4 +51,11 @@ public class ProspectService {
       }
     });
   }
+
+  private Context configureProspectContext(HAccountHolder accountHolder) {
+    Context context = new Context();
+    context.setVariable("accountHolderEntity", accountHolder);
+    return context;
+  }
+
 }

@@ -34,16 +34,19 @@ public class ProductController {
       @PathVariable String id,
       @RequestParam(required = false) PageFromOne page,
       @RequestParam(required = false) BoundedPageSize pageSize,
-      @RequestParam(required = false, name = "description") OrderDirection descriptionOrder,
-      @RequestParam(required = false, name = "unitPrice") OrderDirection unitPriceOrder,
-      @RequestParam(required = false, name = "createdAt") OrderDirection createdDateOrder) {
+      @RequestParam(required = false, name = "descriptionOrder") OrderDirection descriptionOrder,
+      @RequestParam(required = false, name = "unitPriceOrder") OrderDirection unitPriceOrder,
+      @RequestParam(required = false, name = "createdAtOrder") OrderDirection createdDateOrder,
+      @RequestParam(required = false, name = "descriptionFilter") String description,
+      @RequestParam(required = false, name = "priceFilter") Integer unitPrice) {
     ProductStatus status = ProductStatus.ENABLED; // TODO Add to docs
     int pageValue = page == null ? 0
         : page.getValue() - 1;
     int pageSizeValue = pageSize == null ? 50
         : pageSize.getValue();
     return productService.getProductsByAccount(id, status, pageValue, pageSizeValue,
-            descriptionOrder, unitPriceOrder, createdDateOrder).stream()
+            descriptionOrder, unitPriceOrder, createdDateOrder, description, unitPrice)
+        .stream()
         .map(mapper::toRest)
         .collect(Collectors.toUnmodifiableList());
   }

@@ -44,7 +44,8 @@ public class ProductService {
 
   public List<Product> getDataFromFile(String accountId, byte[] file) {
     List<CreateProduct> productsFromFile =
-        getProductsFromFile(new ByteArrayInputStream(file)).stream().distinct()
+        getProductsFromFile(new ByteArrayInputStream(file)).stream()
+            .distinct()
             .collect(Collectors.toUnmodifiableList());
     return checkPersistence(accountId, productsFromFile);
   }

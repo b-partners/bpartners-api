@@ -13,7 +13,11 @@ public interface ProductJpaRepository extends JpaRepository<HProduct, String> {
 
   HProduct findByIdAccountAndId(String idAccount, String id);
 
-  List<HProduct> findAllByIdAccountAndStatusAndDescriptionContainingIgnoreCaseAndUnitPriceContainingIgnoreCase(
-      String idAccount, ProductStatus status, String description, String unitPrice,
+  List<HProduct> findAllByIdAccountAndStatusAndUnitPriceAndDescriptionContainingIgnoreCase(
+      String idAccount, ProductStatus status, String unitPrice, String description,
       Pageable pageable);
+
+  List<HProduct> findAllByIdAccountAndStatusAndDescriptionContainingIgnoreCase(
+      String idAccount, ProductStatus status, String description, Pageable pageable
+  );
 }

@@ -427,12 +427,12 @@ operations:
             $ref: '#/components/schemas/OrderDirection'
           description: Filter product by created date
         - in: query
-          name: productDescription
+          name: descriptionFilter
           schema:
             type: string
           description: If provided, search product by description
         - in: query
-          name: productUnitPrice
+          name: priceFilter
           schema:
             type: integer
           description: If provided, search product by unit price

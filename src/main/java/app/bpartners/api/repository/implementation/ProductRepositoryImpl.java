@@ -28,6 +28,10 @@ public class ProductRepositoryImpl implements ProductRepository {
   private final ProductJpaRepository jpaRepository;
   private final ProductMapper mapper;
 
+  private static Order defaultOrder() {
+    return new Order(Direction.DESC, "createdAt");
+  }
+
   @Override
   public List<Product> findAllByIdAccount(
       String idAccount, Integer page, Integer pageSize,
@@ -84,15 +88,18 @@ public class ProductRepositoryImpl implements ProductRepository {
       String description, Fraction unitPrice) {
     List<Order> orders = retrieveOrders(descriptionOrder, unitPriceOrder, createdAtOrder);
     Pageable pageRequest = PageRequest.of(page, pageSize, Sort.by(orders));
-    String productUnitPrice = unitPrice == null ? "" : unitPrice.toString();
-    String productDescription = description == null ? "" : description;
-    return jpaRepository.findAllByIdAccountAndStatusAndDescriptionContainingIgnoreCaseAndUnitPriceContainingIgnoreCase(
-            idAccount, status, productDescription, productUnitPrice, pageRequest)
-        .stream()
+    String descriptionFilter = description == null ? "" : description;
+    String priceFilter = unitPrice == null ? "" : String.valueOf(unitPrice);
+    List<HProduct> products = unitPrice == null
+        ? jpaRepository.findAllByIdAccountAndStatusAndDescriptionContainingIgnoreCase(
+        idAccount, status, descriptionFilter, pageRequest)
+        : jpaRepository.findAllByIdAccountAndStatusAndUnitPriceAndDescriptionContainingIgnoreCase(
+        idAccount, status, priceFilter, descriptionFilter, pageRequest);
+
+    return products.stream()
         .map(mapper::toDomain)
         .collect(Collectors.toUnmodifiableList());
   }
-
 
   @Override
   public List<Product> updateStatus(String accountId, List<UpdateProductStatus> toUpdate) {
@@ -103,9 +110,5 @@ public class ProductRepositoryImpl implements ProductRepository {
       productUpdated.add(mapper.toDomain(jpaRepository.save(existingProduct)));
     }
     return productUpdated;
-  }
-
-  private static Order defaultOrder() {
-    return new Order(Direction.DESC, "createdAt");
   }
 }

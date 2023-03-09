@@ -173,7 +173,7 @@ class ProductIT {
 
   @Order(1)
   @Test
-  void search_product_ok() throws ApiException {
+  void filter_product_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
     PayingApi api = new PayingApi(joeDoeClient);
 
@@ -186,10 +186,14 @@ class ProductIT {
     List<Product> actualSearchedByDescriptionAndUnitPrice = api.getProducts(
         JOE_DOE_ACCOUNT_ID, null, null, null, null,
         "produits", 2000, 1, 20);
+    List<Product> actualSearchEmpty = api.getProducts(
+        JOE_DOE_ACCOUNT_ID, null, null, null, null,
+        null, 210, 1, 20);
 
     assertEquals(2, actualSearchedByDescription.size());
     assertEquals(3, actualSearchedByUnitPrice.size());
     assertEquals(1, actualSearchedByDescriptionAndUnitPrice.size());
+    assertEquals(0, actualSearchEmpty.size());
     assertEquals("Tableau baobab", actualSearchedByDescription.get(0).getDescription());
     assertEquals("Tableau malgache", actualSearchedByDescription.get(1).getDescription());
     assertTrue(actualSearchedByUnitPrice.contains(product1()));
@@ -199,7 +203,6 @@ class ProductIT {
             .totalPriceWithVat(null)
             .createdAt(Instant.parse("2022-01-01T04:00:00.00Z")),
         actualSearchedByDescriptionAndUnitPrice.get(0));
-
   }
 
   @Order(2)

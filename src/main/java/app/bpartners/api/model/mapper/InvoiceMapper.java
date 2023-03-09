@@ -14,6 +14,7 @@ import app.bpartners.api.repository.jpa.model.HInvoiceProduct;
 import app.bpartners.api.repository.jpa.model.HPaymentRequest;
 import app.bpartners.api.service.AccountService;
 import app.bpartners.api.service.PaymentInitiationService;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Instant;
@@ -140,8 +141,8 @@ public class InvoiceMapper {
 
   public List<CreatePaymentRegulation> getMultiplePayments(HInvoice entity) {
     List<HPaymentRequest> paymentRequests = entity.getPaymentRequests();
-    Fraction totalPrice = computeMultiplePaymentsAmount(paymentRequests);
-    return paymentRequests.stream()
+    Fraction totalPrice = paymentRequests != null ? computeMultiplePaymentsAmount(paymentRequests) : null;
+    return paymentRequests != null ? paymentRequests.stream()
         .map(payment -> CreatePaymentRegulation.builder()
             .endToEndId(payment.getId())
             .percent(totalPrice.getCentsRoundUp() == 0 ? new Fraction()
@@ -156,7 +157,7 @@ public class InvoiceMapper {
             .maturityDate(payment.getPaymentDueDate())
             .initiatedDatetime(payment.getCreatedDatetime())
             .build())
-        .collect(Collectors.toUnmodifiableList());
+        .collect(Collectors.toUnmodifiableList()) : List.of();
   }
 
   private Fraction computePriceNoVatWithDiscount(Fraction discount,
@@ -295,6 +296,40 @@ public class InvoiceMapper {
         .build();
   }
 
+  public HInvoice toEntity(Invoice domain) throws JsonProcessingException {
+    Optional<HInvoice> optionalInvoice = jpaRepository.findById(domain.getId());
+    return HInvoice.builder()
+        .id(domain.getId())
+        .fileId(null)
+        .comment(domain.getComment())
+        .paymentUrl(null)
+        .ref(domain.getRealReference())
+        .title(domain.getTitle())
+        .idAccount(domain.getAccount().getId())
+        .status(domain.getStatus())
+        .toBeRelaunched(domain.isToBeRelaunched())
+        .customer(customerMapper.toEntity(domain.getCustomer()))
+        .customerEmail(domain.getCustomerEmail())
+        .customerAddress(domain.getCustomerAddress())
+        .customerCity(domain.getCustomerCity())
+        .customerPhone(domain.getCustomerPhone())
+        .customerCountry(domain.getCustomerCountry())
+        .customerWebsite(domain.getCustomerWebsite())
+        .customerZipCode(domain.getCustomerZipCode())
+        .paymentType(domain.getPaymentType())
+        .validityDate(domain.getValidityDate())
+        .sendingDate(LocalDate.now())
+        .toPayAt(null)
+        .updatedAt(Instant.now())
+        .createdDatetime(getCreatedDatetime(optionalInvoice))
+        .delayInPaymentAllowed(domain.getDelayInPaymentAllowed())
+        .delayPenaltyPercent(domain.getDelayPenaltyPercent().toString())
+        .paymentRequests(List.of())
+        .products(List.of())
+        .metadataString(objectMapper.writeValueAsString(domain.getMetadata()))
+        .discountPercent(domain.getDiscount().getPercentValue().toString())
+        .build();
+  }
   private List<PaymentInitiation> getPaymentInitiations(Invoice domain,
                                                         Fraction totalPriceWithVat) {
     return domain.getMultiplePayments().stream()

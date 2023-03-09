@@ -235,6 +235,7 @@ class InvoiceIT {
                 .paymentUrl(null)
                 .reference(id)
                 .amount(552)
+                .percentValue(2510)
                 .payerName("Luc Artisan")
                 .payerEmail("bpartners.artisans@gmail.com")
                 .label("Acompte de 10%")),
@@ -243,6 +244,7 @@ class InvoiceIT {
             .paymentRequest(new PaymentRequest()
                 .paymentUrl(null)
                 .amount(1648)
+                .percentValue(7490)
                 .reference(id)
                 .payerName("Luc Artisan")
                 .payerEmail("bpartners.artisans@gmail.com")
@@ -255,6 +257,7 @@ class InvoiceIT {
             .paymentRequest(new PaymentRequest()
                 .paymentUrl(null)
                 .reference(id)
+                .percentValue(1025)
                 .amount(225)
                 .payerName("Luc Artisan")
                 .payerEmail("bpartners.artisans@gmail.com")
@@ -265,6 +268,7 @@ class InvoiceIT {
                 .paymentUrl(null)
                 .amount(1975)
                 .reference(id)
+                .percentValue(8975)
                 .payerName("Luc Artisan")
                 .payerEmail("bpartners.artisans@gmail.com")
                 .label("Reste 90%")));
@@ -277,6 +281,7 @@ class InvoiceIT {
                 .paymentUrl("https://connect-v2-sbx.fintecture.com")
                 .reference(id)
                 .amount(225)
+                .percentValue(1025)
                 .payerName("Luc Artisan")
                 .payerEmail("bpartners.artisans@gmail.com")
                 .label("Acompte de 10%")),
@@ -286,6 +291,7 @@ class InvoiceIT {
                 .paymentUrl("https://connect-v2-sbx.fintecture.com")
                 .amount(1975)
                 .reference(id)
+                .percentValue(8975)
                 .payerName("Luc Artisan")
                 .payerEmail("bpartners.artisans@gmail.com")
                 .label("Reste 90%")));
@@ -1201,6 +1207,10 @@ class InvoiceIT {
     List<Invoice> actualInvoices = api.getInvoices(JOE_DOE_ACCOUNT_ID, null, null, null);
 
     assertTrue(ignoreUpdatedAt(actualInvoices).contains(actual.updatedAt(null)));
+    log.info("acutalInvoices: {}", ignoreUpdatedAt(actualInvoices.stream().map(invoice -> invoice.createdAt(null)).collect(
+        Collectors.toUnmodifiableList())));
+    log.info("newInvoice: {}", newInvoice.createdAt(null).updatedAt(null));
+    assertEquals(actualInvoices.get(0) , newInvoice);
     assertTrue(
         ignoreUpdatedAt(actualInvoices.stream().map(invoice -> invoice.createdAt(null)).collect(
             Collectors.toUnmodifiableList())).contains(newInvoice.createdAt(null).updatedAt(null)));

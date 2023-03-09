@@ -15,6 +15,7 @@ import app.bpartners.api.repository.jpa.InvoiceProductJpaRepository;
 import app.bpartners.api.repository.jpa.PaymentRequestJpaRepository;
 import app.bpartners.api.repository.jpa.model.HInvoice;
 import app.bpartners.api.repository.jpa.model.HInvoiceProduct;
+import app.bpartners.api.repository.jpa.model.HPaymentRequest;
 import app.bpartners.api.service.AccountHolderService;
 import app.bpartners.api.service.FileService;
 import app.bpartners.api.service.utils.InvoicePdfUtils;
@@ -23,6 +24,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
+import lombok.SneakyThrows;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Repository;
@@ -71,6 +73,7 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
     return mapper.toDomain(persistedEntity);
   }
 
+  @SneakyThrows
   @Override
   public Invoice crupdateInvoiceInfo(Invoice toCrupdate) {
     HInvoice invoice =
@@ -91,7 +94,7 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
       invoice.setMetadataString(toCrupdate.getMetadata().toString());
       return mapper.toDomain(jpaRepository.save(invoice));
     }
-    HInvoice entity = mapper.toEntity(toCrupdate, true);
+    HInvoice entity = mapper.toEntity(toCrupdate);
     return mapper.toDomain(jpaRepository.save(entity));
   }
 

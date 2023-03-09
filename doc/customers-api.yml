@@ -19,10 +19,32 @@ operations:
           name: firstName
           schema:
             type: string
+          description: Filter customer list by first name
         - in: query
           name: lastName
           schema:
             type: string
+          description: Filter customer list by last name
+        - in: query
+          name: email
+          schema:
+            type: string
+          description: Filter customer list by email
+        - in: query
+          name: phoneNumber
+          schema:
+            type: string
+          description: Filter customer list by phone number
+        - in: query
+          name: city
+          schema:
+            type: string
+          description: Filter customer list by city
+        - in: query
+          name: country
+          schema:
+            type: string
+          description: Filter customer list by country
         - in: query
           name: page
           schema:

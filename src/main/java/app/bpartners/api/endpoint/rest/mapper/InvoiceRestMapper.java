@@ -115,6 +115,25 @@ public class InvoiceRestMapper {
         .fileId(transactionInvoice.getFileId());
   }
 
+  public CrupdateInvoice convertCrupdateInvoiceInfo(CrupdateInvoiceInfo rest){
+    return new CrupdateInvoice()
+        .ref(rest.getRef())
+        .status(rest.getStatus())
+        .comment(rest.getComment())
+        .metadata(rest.getMetadata())
+        .delayInPaymentAllowed(rest.getDelayInPaymentAllowed())
+        .validityDate(rest.getValidityDate())
+        .title(rest.getTitle())
+        .toPayAt(rest.getToPayAt())
+        .customer(rest.getCustomer())
+        .globalDiscount(rest.getGlobalDiscount())
+        .paymentRegulations(List.of())
+        .sendingDate(rest.getSendingDate())
+        .addProductsItem(null)
+        .delayPenaltyPercent(rest.getDelayPenaltyPercent())
+        .products(List.of());
+  }
+
   public app.bpartners.api.model.Invoice toDomain(String accountId, String invoiceId,
                                                   CrupdateInvoiceInfo rest) {
     //TODO: deprecated ! discount must be mandatory

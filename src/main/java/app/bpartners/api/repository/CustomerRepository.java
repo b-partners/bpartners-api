@@ -14,4 +14,7 @@ public interface CustomerRepository {
 
   Customer findById(String id);
 
+  List<Customer> findByAccountIdFiltered(
+      String accountId, String firstname, String lastname, String email, String phoneNumber,
+      String city, String country, int page, int pageSize);
 }

@@ -8,14 +8,11 @@ import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.repository.CustomerRepository;
 import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 import javax.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
-
 import static app.bpartners.api.service.utils.CustomerUtils.getCustomersInfoFromFile;
 
 @Service
@@ -25,23 +22,13 @@ public class CustomerService {
   private final CustomerRestMapper restMapper;
 
   public List<Customer> getCustomers(
-      String accountId, String name, String firstName,
-      String lastName, PageFromOne page, BoundedPageSize pageSize) {
+      String accountId, String firstName,
+      String lastName, String email, String phoneNumber, String city, String country,
+      PageFromOne page, BoundedPageSize pageSize) {
     int pageValue = page != null ? page.getValue() - 1 : 0;
     int pageSizeValue = pageSize != null ? pageSize.getValue() : 30;
-    if (name == null && firstName == null && lastName == null) {
-      return repository.findByAccount(accountId, pageValue, pageSizeValue);
-    }
-    if (name == null) {
-      return repository.findByAccountIdAndName(
-          accountId, firstName, lastName, pageValue, pageSizeValue);
-    }
-    String[] splitedName = Objects.requireNonNull(name).split(" ");
-    String firstNameFromName = splitedName[0];
-    String lastNameFromName =
-        String.join(" ", Arrays.asList(splitedName).subList(1, splitedName.length));
-    return repository.findByAccountIdAndName(
-        accountId, firstNameFromName, lastNameFromName, pageValue, pageSizeValue);
+    return repository.findByAccountIdFiltered(accountId, firstName, lastName, email,
+        phoneNumber, city, country, pageValue, pageSizeValue);
   }
 
   @Transactional

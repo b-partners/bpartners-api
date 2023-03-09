@@ -26,12 +26,16 @@ public class CustomerController {
   @GetMapping("/accounts/{id}/customers")
   public List<app.bpartners.api.endpoint.rest.model.Customer> getCustomers(
       @PathVariable String id,
-      @RequestParam(required = false) String name,
       @RequestParam(required = false) String firstName,
       @RequestParam(required = false) String lastName,
+      @RequestParam(required = false) String email,
+      @RequestParam(required = false) String phoneNumber,
+      @RequestParam(required = false) String city,
+      @RequestParam(required = false) String country,
       @RequestParam(required = false) PageFromOne page,
       @RequestParam(required = false) BoundedPageSize pageSize) {
-    return service.getCustomers(id, name, firstName, lastName, page, pageSize).stream()
+    return service.getCustomers(id, firstName, lastName, email, phoneNumber, city, country, page,
+            pageSize).stream()
         .map(mapper::toRest)
         .collect(Collectors.toUnmodifiableList());
   }

@@ -11,10 +11,10 @@ public class CreateCustomerValidator implements Consumer<CreateCustomer> {
   @Override
   public void accept(CreateCustomer createCustomer) {
     StringBuilder exceptionMessageBuilder = new StringBuilder();
-    if (createCustomer.getName() == null && createCustomer.getFirstName() == null) {
+    if (createCustomer.getFirstName() == null) {
       exceptionMessageBuilder.append("firstName is mandatory. ");
     }
-    if (createCustomer.getName() == null && createCustomer.getLastName() == null) {
+    if (createCustomer.getLastName() == null) {
       exceptionMessageBuilder.append("lastName is mandatory. ");
     }
     if (createCustomer.getEmail() == null) {

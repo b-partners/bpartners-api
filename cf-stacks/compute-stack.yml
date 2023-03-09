@@ -81,6 +81,14 @@ Resources:
               Value: !Sub '{{resolve:ssm:/bpartners/${Env}/sendinblue/api-key}}'
             - Name: SENDINBLUE_CONTACTLIST_ID
               Value: !Sub '{{resolve:ssm:/bpartners/${Env}/sendinblue/contactlist-id}}'
+            - Name: ADS_BASEURL
+              Value: !Sub '{{resolve:ssm:/bpartners/${Env}/sogefi/ads-baseUrl}}'
+            - Name: ADS_BEARER
+              Value: !Sub '{{resolve:ssm:/bpartners/${Env}/sogefi/ads-bearer}}'
+            - Name: ADS_INSEE
+              Value: !Sub '{{resolve:ssm:/bpartners/${Env}/sogefi/ads-insee}}'
+            - Name: ADS_DENOM_CHAR
+              Value: !Sub '{{resolve:ssm:/bpartners/${Env}/sogefi/ads-denom-char}}'
           LogConfiguration:
             LogDriver: awslogs
             Options:
@@ -117,7 +125,7 @@ Resources:
         - 'arn:aws:iam::aws:policy/AmazonSSMFullAccess'
         - 'arn:aws:iam::aws:policy/AmazonCognitoPowerUser'
         - 'arn:aws:iam::aws:policy/AmazonSESFullAccess'
-        
+
   Service:
     Type: AWS::ECS::Service
     Properties:
@@ -139,7 +147,7 @@ Resources:
           TargetGroupArn: !Ref TargetGroup
   TargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
-    Properties: 
+    Properties:
       Name: !Join ['', [!Ref Env, -compute-bpartners, -tg]]
       Protocol: HTTP
       Port: !Ref ContainerPort

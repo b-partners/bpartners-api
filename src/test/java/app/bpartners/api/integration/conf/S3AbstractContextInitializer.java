@@ -68,6 +68,10 @@ public abstract class S3AbstractContextInitializer
         "aws.bucket.name=" + BUCKET_NAME,
         "aws.region=" + s3Container.getRegion(),
         "aws.endpoint=" + s3Container.getEndpointOverride(S3),
+        "bridge.client.id=dummy",
+        "bridge.client.secret=dummy",
+        "bridge.base.url=dummy",
+        "bridge.version=dummy",
         "env=dev");
   }
 

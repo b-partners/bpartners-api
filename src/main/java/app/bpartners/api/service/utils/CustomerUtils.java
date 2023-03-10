@@ -207,7 +207,6 @@ public class CustomerUtils {
         && isBlank(customer.getCity())
         && isBlank(customer.getCountry())
         && isBlank(customer.getEmail())
-        && isBlank(customer.getName())
         && isBlank(customer.getWebsite())
         && isNull(customer.getZipCode())
         && isBlank(customer.getComment());

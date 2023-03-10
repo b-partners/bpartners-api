@@ -36,7 +36,6 @@ class CustomerValidatorTest {
         () ->
             validator.accept(
                 new CreateCustomer()
-                    .name(null)
                     .firstName(null)
                     .lastName(null)
                     .address("address")
@@ -58,7 +57,6 @@ class CustomerValidatorTest {
         () ->
             validator.accept(
                 new CreateCustomer()
-                    .name(null)
                     .address(null)
                     .city(null)
                     .firstName(null)

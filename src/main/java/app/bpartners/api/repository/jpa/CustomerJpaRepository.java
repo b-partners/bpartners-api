@@ -12,4 +12,8 @@ public interface CustomerJpaRepository extends JpaRepository<HCustomer, String> 
                                                                              Pageable pageable);
 
   List<HCustomer> findAllByIdAccount(String idAccount, Pageable pageable);
+
+  List<HCustomer> findByIdAccountAndFirstNameContainingIgnoreCaseAndLastNameContainingIgnoreCaseAndEmailContainingIgnoreCaseAndPhoneContainingIgnoreCaseAndCityContainingIgnoreCaseAndCountryContainingIgnoreCase(
+      String idAccount, String firstName, String lastName, String email, String phone, String city,
+      String country, Pageable pageable);
 }

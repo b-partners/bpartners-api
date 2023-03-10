@@ -14,6 +14,7 @@ import app.bpartners.api.integration.conf.TestUtils;
 import app.bpartners.api.manager.ProjectTokenManager;
 import app.bpartners.api.repository.LegalFileRepository;
 import app.bpartners.api.repository.fintecture.FintectureConf;
+import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitConf;
 import app.bpartners.api.repository.sendinblue.SendinblueConf;
 import app.bpartners.api.repository.swan.AccountHolderSwanRepository;
 import app.bpartners.api.repository.swan.AccountSwanRepository;
@@ -26,9 +27,13 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -37,7 +42,6 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
-
 import static app.bpartners.api.integration.conf.TestUtils.BAD_USER_ID;
 import static app.bpartners.api.integration.conf.TestUtils.BEARER_PREFIX;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
@@ -64,8 +68,11 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @Testcontainers
 @ContextConfiguration(initializers = CustomerIT.ContextInitializer.class)
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @AutoConfigureMockMvc
 class CustomerIT {
+  @MockBean
+  private BuildingPermitConf buildingPermitConf;
   @MockBean
   private SentryConf sentryConf;
   @MockBean
@@ -104,7 +111,6 @@ class CustomerIT {
 
   CreateCustomer createCustomer1() {
     return new CreateCustomer()
-        .name("Create customer 1")
         .firstName("Create")
         .lastName("customer 1")
         .phone("+33 12 34 56 78")
@@ -117,33 +123,63 @@ class CustomerIT {
         .comment("Nouvelle rencontre");
   }
 
+  @Order(1)
   @Test
-  void read_customers_ok() throws ApiException {
+  void read_and_filter_customers_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
     CustomersApi api = new CustomersApi(joeDoeClient);
 
-    List<Customer> actual = api.getCustomers(
-        JOE_DOE_ACCOUNT_ID, null, null, null, 1, 20);
-    List<Customer> actualFilteredByName = api.getCustomers(
-        JOE_DOE_ACCOUNT_ID, "Jean Plombier", null, null, 1, 20);
+    List<Customer> actualNoFilter = api.getCustomers(
+        JOE_DOE_ACCOUNT_ID, null, null, null, null, null, null, 1, 20);
     List<Customer> actualFilteredByFirstAndLastName = api.getCustomers(
-        JOE_DOE_ACCOUNT_ID, null, "Jean", "Plombier", 1, 20);
+        JOE_DOE_ACCOUNT_ID, "Jean", "Plombier", null, null, null, null, 1, 20);
+    List<Customer> actualFilteredByEmail = api.getCustomers(
+        JOE_DOE_ACCOUNT_ID, null, null, "jean@email", null, null, null, 1, 20);
+    List<Customer> actualFilteredByPhoneNumber = api.getCustomers(
+        JOE_DOE_ACCOUNT_ID, null, null, null, "+33 12 34 56 78", null, null, 1, 20);
+    List<Customer> actualFilteredByCity = api.getCustomers(
+        JOE_DOE_ACCOUNT_ID, null, null, null, null, "Metz", null, 1, 20);
+    List<Customer> actualFilteredByCountry = api.getCustomers(
+        JOE_DOE_ACCOUNT_ID, null, null, null, null, null, "Allemagne", 1, 20);
+    List<Customer> actualFilteredByFirstNameAndCity = api.getCustomers(
+        JOE_DOE_ACCOUNT_ID, "Jean", null, null, null, "Montmorency", null, 1, 20);
+    List<Customer> allFilteredResults = new ArrayList<>();
+    allFilteredResults.addAll(actualFilteredByFirstAndLastName);
+    allFilteredResults.addAll(actualFilteredByEmail);
+    allFilteredResults.addAll(actualFilteredByPhoneNumber);
+    allFilteredResults.addAll(actualFilteredByCity);
+    allFilteredResults.addAll(actualFilteredByCountry);
+    allFilteredResults.addAll(actualFilteredByFirstNameAndCity);
 
-    assertEquals(3, actual.size());
-    assertEquals(actualFilteredByName, actualFilteredByFirstAndLastName);
-    assertTrue(actual.contains(customer1()));
-    assertTrue(actual.contains(customer2()));
+    assertEquals(4, actualNoFilter.size());
+    assertEquals(1, actualFilteredByFirstAndLastName.size());
+    assertEquals(2, actualFilteredByEmail.size());
+    assertEquals(2, actualFilteredByPhoneNumber.size());
+    assertEquals(1, actualFilteredByCity.size());
+    assertEquals(1, actualFilteredByCountry.size());
+    assertEquals(1, actualFilteredByFirstNameAndCity.size());
+    assertTrue(actualNoFilter.contains(customer1()));
+    assertTrue(actualNoFilter.contains(customer2()));
+    assertTrue(actualFilteredByFirstAndLastName.contains(customer2()));
+    assertTrue(actualFilteredByEmail.contains(customer2()));
+    assertTrue(actualFilteredByPhoneNumber.contains(customer1()));
+    assertTrue(actualFilteredByPhoneNumber.contains(customer2()));
+    assertTrue(actualFilteredByCity.contains(customer1()));
+    assertEquals("Jean Olivier", actualFilteredByCountry.get(0).getFirstName());
+    assertTrue(actualNoFilter.containsAll(allFilteredResults));
   }
 
+  @Order(1)
   @Test
   void read_customers_ko() {
     ApiClient joeDoeClient = anApiClient();
     CustomersApi api = new CustomersApi(joeDoeClient);
 
     assertThrowsForbiddenException(
-        () -> api.getCustomers(BAD_USER_ID, null, null, null, null, null));
+        () -> api.getCustomers(BAD_USER_ID, null, null, null, null, null, null, null, null));
   }
 
+  @Order(2)
   @Test
   void create_customers_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
@@ -152,22 +188,22 @@ class CustomerIT {
     List<Customer> actual1 =
         api.createCustomers(JOE_DOE_ACCOUNT_ID, List.of(createCustomer1()));
     List<Customer> actual2 =
-        api.createCustomers(JOE_DOE_ACCOUNT_ID, List.of(createCustomer1().name("Jean Yves")));
+        api.createCustomers(JOE_DOE_ACCOUNT_ID, List.of(createCustomer1().firstName("Create")));
     List<Customer> actual3 =
         api.createCustomers(JOE_DOE_ACCOUNT_ID,
-            List.of(createCustomer1().firstName("NotNullFirstName").lastName(null)));
+            List.of(createCustomer1().firstName("NotNullFirstName").lastName("NotNullLastName")));
 
     List<Customer> actualList = api.getCustomers(
-        JOE_DOE_ACCOUNT_ID, null, null, null, 1, 20);
+        JOE_DOE_ACCOUNT_ID, null, null, null, null, null, null, 1, 20);
     assertTrue(actualList.containsAll(actual1));
     assertEquals(actual1.get(0).id(null), actual2.get(0).id(null));
     assertEquals(actual1.get(0)
         .id(null)
-        .name("NotNullFirstName")
         .firstName("NotNullFirstName")
-        .lastName(null), actual3.get(0).id(null));
+        .lastName("NotNullLastName"), actual3.get(0).id(null));
   }
 
+  @Order(2)
   @Test
   void create_customers_ko() {
     ApiClient joeDoeClient = anApiClient();
@@ -177,6 +213,7 @@ class CustomerIT {
         () -> api.createCustomers(BAD_USER_ID, List.of(createCustomer1())));
   }
 
+  @Order(3)
   @Test
   void update_customer_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
@@ -184,11 +221,12 @@ class CustomerIT {
 
     List<Customer> actual = api.updateCustomers(JOE_DOE_ACCOUNT_ID, List.of(customerUpdated()));
     List<Customer> customers = api.getCustomers(JOE_DOE_ACCOUNT_ID,
-        "Marc", "Marc", "Montagnier", 1, 20);
+        "Marc", "Montagnier", null, null, null, null, 1, 20);
 
     assertEquals(customers.get(0), actual.get(0));
   }
 
+  @Order(4)
   @Test
   void update_customer_with_some_null_attributes_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
@@ -198,6 +236,7 @@ class CustomerIT {
         () -> api.updateCustomers(JOE_DOE_ACCOUNT_ID, List.of(customerWithSomeNullAttributes())));
   }
 
+  @Order(4)
   @Test
   void update_customer_ko() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
@@ -215,6 +254,7 @@ class CustomerIT {
         () -> api.updateCustomers(OTHER_ACCOUNT_ID, List.of(customerUpdated())));
   }
 
+  @Order(5)
   @Test
   void create_customers_from_uploaded_file_ok() throws IOException, InterruptedException {
     Resource filetoUpload = new ClassPathResource("files/customers.xlsx");
@@ -229,6 +269,7 @@ class CustomerIT {
     assertEquals(6, actual.size());
   }
 
+  @Order(5)
   @Test
   void create_customers_from_uploaded_file_ko() throws IOException, InterruptedException {
     Resource file = new ClassPathResource("files/wrong-customers.xlsx");

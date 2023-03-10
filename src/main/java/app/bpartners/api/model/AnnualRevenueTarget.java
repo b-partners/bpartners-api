@@ -23,4 +23,6 @@ public class AnnualRevenueTarget {
   private HAccountHolder accountHolder;
   private Fraction amountTarget;
   private Instant updatedAt;
+  private Fraction amountAttemptedPercent;
+  private Fraction amountAttempted;
 }

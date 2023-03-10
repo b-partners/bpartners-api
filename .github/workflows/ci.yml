@@ -9,6 +9,9 @@ on:
       - '*'
   workflow_dispatch:
 
+env:
+  ADS_DENOM_CHAR: e
+
 jobs:
   quality:
 
@@ -45,6 +48,14 @@ jobs:
           export SWAN_CLIENT_SECRET=${{ secrets.SWAN_CLIENT_SECRET }}
           export AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
           export AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          export ADS_BASEURL=${{ secrets.ADS_BASEURL}}
+          export ADS_BEARER=${{ secrets.ADS_BEARER }}
+          export ADS_INSEE=${{ secrets.ADS_INSEE}}
+          export ADS_DENOM_CHAR=${{ env.ADS_DENOM_CHAR }}
+          export BRIDGE_CLIENT_ID=${{ secrets.BRIDGE_CLIENT_ID }}
+          export BRIDGE_CLIENT_SECRET=${{ secrets.BRIDGE_CLIENT_SECRET }}
+          export BRIDGE_BASE_URL=${{ secrets.BRIDGE_BASE_URL }}
+          export BRIDGE_VERSION=${{ secrets.BRIDGE_VERSION }}
           ./gradlew test
 
       - name: Checkstyle

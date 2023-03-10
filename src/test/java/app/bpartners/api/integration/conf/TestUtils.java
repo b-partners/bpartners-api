@@ -60,7 +60,9 @@ import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.Year;
 import java.util.Base64;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -306,7 +308,6 @@ public class TestUtils {
   public static Customer customer1() {
     return new Customer()
         .id("customer1_id")
-        .name("Luc Artisan")
         .firstName("Luc")
         .lastName("Artisan")
         .email("bpartners.artisans@gmail.com")
@@ -314,7 +315,7 @@ public class TestUtils {
         .website("https://luc.website.com")
         .address("15 rue Porte d'Orange")
         .zipCode(95160)
-        .city("Montmorency")
+        .city("Metz")
         .country("France")
         .comment("Rencontre avec Luc");
   }
@@ -322,7 +323,6 @@ public class TestUtils {
   public static Customer customer2() {
     return new Customer()
         .id("customer2_id")
-        .name("Jean Plombier")
         .firstName("Jean")
         .lastName("Plombier")
         .email("jean@email.com")
@@ -338,7 +338,6 @@ public class TestUtils {
   public static Customer customerUpdated() {
     return new Customer()
         .id("customer3_id")
-        .name("Marc Montagnier")
         .firstName("Marc")
         .lastName("Montagnier")
         .email("marcmontagnier@gmail.com")
@@ -354,7 +353,6 @@ public class TestUtils {
   public static Customer customerWithSomeNullAttributes() {
     return new Customer()
         .id("customer3_id")
-        .name("Marc Montagnier")
         .firstName("Marc")
         .lastName("Montagnier")
         .email(null)
@@ -782,6 +780,9 @@ public class TestUtils {
 
       @Override
       public Object body() {
+        if (body.getClass() == String.class) {
+          return body;
+        }
         try {
           return new ObjectMapper().writeValueAsString(body);
         } catch (JsonProcessingException e) {
@@ -987,6 +988,14 @@ public class TestUtils {
       body = "[no body]";
     }
     return operationId + " call failed with: " + statusCode + " - " + body;
+  }
+
+  public static Map<String, String> adsFilter() {
+    Map<String, String> filter = new HashMap<>();
+    filter.put("insee[like]", "8");
+    filter.put("annee[gte]", String.valueOf(Year.now().minusYears(1).getValue()));
+    filter.put("type[in]", "PC,PA");
+    return filter;
   }
 
   public static boolean isAfterOrEquals(Instant before, Instant after) {

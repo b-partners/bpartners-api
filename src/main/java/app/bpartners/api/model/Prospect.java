@@ -1,5 +1,6 @@
 package app.bpartners.api.model;
 
+import app.bpartners.api.endpoint.rest.model.Geojson;
 import app.bpartners.api.endpoint.rest.model.ProspectStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -21,6 +22,7 @@ public class Prospect {
   private String name;
   private String email;
   private String phone;
+  private Geojson location;
   private String address;
   private ProspectStatus status;
 }

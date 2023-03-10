@@ -12,6 +12,7 @@ import app.bpartners.api.integration.conf.AbstractContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
 import app.bpartners.api.manager.ProjectTokenManager;
 import app.bpartners.api.repository.fintecture.FintectureConf;
+import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitConf;
 import app.bpartners.api.repository.sendinblue.SendinblueConf;
 import app.bpartners.api.repository.swan.AccountHolderSwanRepository;
 import app.bpartners.api.repository.swan.AccountSwanRepository;
@@ -44,6 +45,8 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @ContextConfiguration(initializers = LegalFileIT.ContextInitializer.class)
 @AutoConfigureMockMvc
 class LegalFileIT {
+  @MockBean
+  private BuildingPermitConf buildingPermitConf;
   public static final String NOT_EXISTING_LEGAL_FILE = "not_existing_legal_file";
   @MockBean
   private UserSwanRepository swanRepositoryMock;

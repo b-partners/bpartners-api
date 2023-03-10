@@ -4,7 +4,6 @@ import app.bpartners.api.endpoint.rest.model.CreateCustomer;
 import app.bpartners.api.endpoint.rest.validator.CreateCustomerValidator;
 import app.bpartners.api.endpoint.rest.validator.CustomerValidator;
 import app.bpartners.api.model.Customer;
-import java.util.Arrays;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -21,15 +20,9 @@ public class CustomerRestMapper {
     if (domain == null) {
       return null;
     }
-    String name = domain.getFirstName() + " " + domain.getLastName();
-    if (domain.getFirstName() == null) {
-      name = domain.getLastName();
-    } else if (domain.getLastName() == null) {
-      name = domain.getFirstName();
-    }
+    
     return new app.bpartners.api.endpoint.rest.model.Customer()
         .id(domain.getId())
-        .name(name)
         .firstName(domain.getFirstName())
         .lastName(domain.getLastName())
         .phone(domain.getPhone())
@@ -47,7 +40,7 @@ public class CustomerRestMapper {
                            app.bpartners.api.endpoint.rest.model.Customer external) {
     customerValidator.accept(external);
     String[] names =
-        retrieveNames(external.getName(), external.getFirstName(), external.getLastName());
+        retrieveNames(external.getFirstName(), external.getLastName());
     String firstName = names.length != 0 ? names[0] : null;
     String lastName =
         names.length == 0 || (names.length == 2
@@ -74,7 +67,7 @@ public class CustomerRestMapper {
 
   public Customer toDomain(String accountId, CreateCustomer rest) {
     createCustomerValidator.accept(rest);
-    String[] names = retrieveNames(rest.getName(), rest.getFirstName(), rest.getLastName());
+    String[] names = retrieveNames(rest.getFirstName(), rest.getLastName());
     String firstName = names.length != 0 ? names[0] : null;
     String lastName =
         names.length == 0
@@ -97,17 +90,9 @@ public class CustomerRestMapper {
         .build();
   }
 
-  private String[] retrieveNames(String name, String firstName, String lastName) {
+  private String[] retrieveNames(String firstName, String lastName) {
     if (firstName != null || lastName != null) {
       return new String[] {firstName, lastName};
-    }
-    if (name != null) {
-      log.warn("DEPRECATED : Customer.name is deprecated. "
-          + "Use Customer.firstName and Customer.lastName instead");
-      String[] names = name.split(EMPTY_SPACE);
-      return new String[] {
-          names[0], String.join(" ",
-          Arrays.asList(names).subList(1, names.length))};
     }
     return new String[0];
   }

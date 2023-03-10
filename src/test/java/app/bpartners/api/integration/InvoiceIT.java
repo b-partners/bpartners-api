@@ -22,6 +22,7 @@ import app.bpartners.api.repository.fintecture.FintectureConf;
 import app.bpartners.api.repository.fintecture.FintecturePaymentInitiationRepository;
 import app.bpartners.api.repository.jpa.AccountHolderJpaRepository;
 import app.bpartners.api.repository.jpa.model.HAccountHolder;
+import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitConf;
 import app.bpartners.api.repository.sendinblue.SendinblueConf;
 import app.bpartners.api.repository.swan.AccountHolderSwanRepository;
 import app.bpartners.api.repository.swan.AccountSwanRepository;
@@ -99,6 +100,8 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @AutoConfigureMockMvc
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class InvoiceIT {
+  @MockBean
+  private BuildingPermitConf buildingPermitConf;
   public static final int MAX_PAGE_SIZE = 500;
   public static final String DRAFT_REF_PREFIX = "BROUILLON-";
   private static final String NEW_INVOICE_ID = "invoice_uuid";
@@ -138,7 +141,7 @@ class InvoiceIT {
         .maturityDate(LocalDate.of(2023, 2, 15))
         .paymentRequest(new PaymentRequest()
             .reference("BP005")
-            .payerName(customer1().getName())
+            .payerName(customer1().getFirstName() + " " + customer1().getLastName())
             .payerEmail(customer1().getEmail())
             .paymentUrl("https://connect-v2-sbx.fintecture.com")
             .percentValue(10000 - 909)
@@ -151,7 +154,7 @@ class InvoiceIT {
         .maturityDate(LocalDate.of(2023, 2, 1))
         .paymentRequest(new PaymentRequest()
             .reference("BP005")
-            .payerName(customer1().getName())
+            .payerName(customer1().getFirstName() + " " + customer1().getLastName())
             .payerEmail(customer1().getEmail())
             .paymentUrl("https://connect-v2-sbx.fintecture.com")
             .percentValue(909)

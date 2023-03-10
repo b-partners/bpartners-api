@@ -14,12 +14,18 @@ import app.bpartners.api.integration.conf.TestUtils;
 import app.bpartners.api.manager.ProjectTokenManager;
 import app.bpartners.api.repository.LegalFileRepository;
 import app.bpartners.api.repository.fintecture.FintectureConf;
+import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitApi;
+import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitConf;
+import app.bpartners.api.repository.prospecting.datasource.buildingpermit.model.BuildingPermit;
+import app.bpartners.api.repository.prospecting.datasource.buildingpermit.model.BuildingPermitList;
+import app.bpartners.api.repository.prospecting.datasource.buildingpermit.model.GeoJson;
 import app.bpartners.api.repository.sendinblue.SendinblueConf;
 import app.bpartners.api.repository.swan.AccountHolderSwanRepository;
 import app.bpartners.api.repository.swan.AccountSwanRepository;
 import app.bpartners.api.repository.swan.UserSwanRepository;
 import java.util.List;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
@@ -43,6 +49,7 @@ import static app.bpartners.api.integration.conf.TestUtils.setUpSwanComponent;
 import static app.bpartners.api.integration.conf.TestUtils.setUpUserSwanRepository;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
@@ -50,6 +57,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @ContextConfiguration(initializers = ProspectIT.ContextInitializer.class)
 @AutoConfigureMockMvc
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+@Slf4j
 class ProspectIT {
   private static final String UNKNOWN_PROSPECT_ID = "unknown_prospect_id";
   @MockBean
@@ -74,6 +82,10 @@ class ProspectIT {
   private SwanComponent swanComponentMock;
   @MockBean
   private LegalFileRepository legalFileRepositoryMock;
+  @MockBean
+  private BuildingPermitApi buildingPermitApiMock;
+  @MockBean
+  private BuildingPermitConf buildingPermitConfMock;
 
   private static ApiClient anApiClient() {
     return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN, ContextInitializer.SERVER_PORT);
@@ -86,6 +98,33 @@ class ProspectIT {
     setUpAccountHolderSwanRep(accountHolderRepositoryMock);
     setUpSwanComponent(swanComponentMock);
     setUpLegalFileRepository(legalFileRepositoryMock);
+    when(buildingPermitApiMock.getData()).thenReturn(buildingPermitList());
+  }
+
+  BuildingPermit buildingPermit() {
+    return BuildingPermit.builder()
+        .insee("123456")
+        .ref("ref")
+        .fileId(123456)
+        .fileRef("fileRef")
+        .sitadel(true)
+        .type("PC")
+        .longType("Permis de construire")
+        .centroidGeoJson(
+            GeoJson.<List<Object>>builder()
+                .coordinates(List.of(1.0, 2.0))
+                .type("Point")
+                .build()
+        )
+        .build();
+  }
+
+  BuildingPermitList buildingPermitList() {
+    return BuildingPermitList.builder()
+        .total(1000)
+        .limit(1000)
+        .records(List.of(buildingPermit()))
+        .build();
   }
 
   Prospect prospect1() {

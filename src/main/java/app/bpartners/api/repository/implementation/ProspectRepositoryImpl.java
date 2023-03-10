@@ -25,7 +25,7 @@ import static org.springframework.transaction.annotation.Isolation.SERIALIZABLE;
 @Repository
 
 public class ProspectRepositoryImpl implements ProspectRepository {
-  public static final String TILE_LAYER = "carelleur";
+  public static final String TILE_LAYER = "carreleur";
   public static final String ROOFER = "toiturier";
   private final ProspectJpaRepository jpaRepository;
   private final ProspectMapper mapper;

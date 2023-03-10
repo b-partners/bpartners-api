@@ -89,6 +89,14 @@ Resources:
               Value: !Sub '{{resolve:ssm:/bpartners/${Env}/sogefi/ads-insee}}'
             - Name: ADS_DENOM_CHAR
               Value: !Sub '{{resolve:ssm:/bpartners/${Env}/sogefi/ads-denom-char}}'
+            - Name: BRIDGE_CLIENT_ID
+              Value: !Sub '{{resolve:ssm:/bpartners/${Env}/bridge/client-id}}'
+            - Name: BRIDGE_CLIENT_SECRET
+              Value: !Sub '{{resolve:ssm:/bpartners/${Env}/bridge/client-secret}}'
+            - Name: BRIDGE_BASE_URL
+              Value: !Sub '{{resolve:ssm:/bpartners/${Env}/bridge/base-url}}'
+            - Name: BRIDGE_VERSION
+              Value: !Sub '{{resolve:ssm:/bpartners/${Env}/bridge/version}}'
           LogConfiguration:
             LogDriver: awslogs
             Options:

@@ -3,7 +3,9 @@ package app.bpartners.api.repository.bridge;
 import app.bpartners.api.endpoint.rest.security.swan.BridgeConf;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.repository.bridge.model.BridgeUser;
-import app.bpartners.api.repository.bridge.response.BridgeUserResponse;
+import app.bpartners.api.repository.bridge.model.CreateBridgeUser;
+import app.bpartners.api.repository.bridge.response.BridgeUserListResponse;
+import app.bpartners.api.repository.bridge.response.BridgeUserToken;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
@@ -49,7 +51,7 @@ public class BridgeApi {
         log.warn("BridgeApi errors : {}", httpResponse.body());
         return List.of();
       }
-      BridgeUserResponse response = objectMapper.readValue(httpResponse.body(),
+      BridgeUserListResponse response = objectMapper.readValue(httpResponse.body(),
           new TypeReference<>() {
           });
       return response.getUsers();
@@ -60,4 +62,59 @@ public class BridgeApi {
       throw new ApiException(SERVER_EXCEPTION, e);
     }
   }
+
+  public BridgeUser createUser(CreateBridgeUser createBridgeUser) {
+    try {
+      HttpRequest request = HttpRequest.newBuilder()
+          .uri(new URI(conf.getUserUrl()))
+          .headers(
+              "Content-Type", "application/json",
+              "Client-Id", conf.getClientId(),
+              "Client-Secret", conf.getClientSecret(),
+              "Bridge-Version", conf.getBridgeVersion())
+          .POST(HttpRequest.BodyPublishers.ofString(
+              objectMapper.writeValueAsString(createBridgeUser)))
+          .build();
+      HttpResponse<String> httpResponse =
+          httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+      if (httpResponse.statusCode() != 200 && httpResponse.statusCode() != 201) {
+        log.warn("BridgeApi errors : {}", httpResponse.body());
+        return null;
+      }
+      return objectMapper.readValue(httpResponse.body(), BridgeUser.class);
+    } catch (URISyntaxException | IOException e) {
+      throw new ApiException(SERVER_EXCEPTION, e);
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new ApiException(SERVER_EXCEPTION, e);
+    }
+  }
+
+  public BridgeUserToken authenticateUser(CreateBridgeUser user) {
+    try {
+      HttpRequest request = HttpRequest.newBuilder()
+          .uri(new URI(conf.getAuthUrl()))
+          .headers(
+              "Content-Type", "application/json",
+              "Client-Id", conf.getClientId(),
+              "Client-Secret", conf.getClientSecret(),
+              "Bridge-Version", conf.getBridgeVersion())
+          .POST(HttpRequest.BodyPublishers.ofString(
+              objectMapper.writeValueAsString(user)))
+          .build();
+      HttpResponse<String> httpResponse =
+          httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+      if (httpResponse.statusCode() != 200 && httpResponse.statusCode() != 201) {
+        log.warn("BridgeApi errors : {}", httpResponse.body());
+        return null;
+      }
+      return objectMapper.readValue(httpResponse.body(), BridgeUserToken.class);
+    } catch (URISyntaxException | IOException e) {
+      throw new ApiException(SERVER_EXCEPTION, e);
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new ApiException(SERVER_EXCEPTION, e);
+    }
+  }
+
 }

@@ -3,6 +3,7 @@ package app.bpartners.api.repository.prospecting.datasource.buildingpermit;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.model.BuildingPermitList;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.model.SingleBuildingPermit;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.net.URI;
@@ -13,11 +14,13 @@ import java.net.http.HttpResponse;
 import org.springframework.stereotype.Component;
 
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
+import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
 
 @Component
 public class BuildingPermitApi {
   private final ObjectMapper objectMapper = new ObjectMapper()
-      .findAndRegisterModules();
+      .findAndRegisterModules()
+      .configure(FAIL_ON_UNKNOWN_PROPERTIES, false);
   private final BuildingPermitConf buildingPermitConf;
   private HttpClient httpClient;
 

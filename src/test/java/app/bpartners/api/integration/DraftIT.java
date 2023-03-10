@@ -16,6 +16,7 @@ import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.Invoice;
 import app.bpartners.api.repository.LegalFileRepository;
 import app.bpartners.api.repository.fintecture.FintectureConf;
+import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitConf;
 import app.bpartners.api.repository.sendinblue.SendinblueConf;
 import app.bpartners.api.repository.swan.AccountSwanRepository;
 import app.bpartners.api.repository.swan.UserSwanRepository;
@@ -52,6 +53,8 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @ContextConfiguration(initializers = DraftIT.ContextInitializer.class)
 @AutoConfigureMockMvc
 class DraftIT {
+  @MockBean
+  private BuildingPermitConf buildingPermitConf;
   @MockBean
   private SentryConf sentryConf;
   @MockBean

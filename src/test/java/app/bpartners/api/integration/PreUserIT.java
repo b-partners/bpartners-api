@@ -9,6 +9,7 @@ import app.bpartners.api.integration.conf.AbstractContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
 import app.bpartners.api.manager.ProjectTokenManager;
 import app.bpartners.api.repository.fintecture.FintectureConf;
+import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitConf;
 import app.bpartners.api.repository.sendinblue.SendinblueApi;
 import app.bpartners.api.repository.sendinblue.SendinblueConf;
 import app.bpartners.api.repository.swan.UserSwanRepository;
@@ -41,6 +42,8 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @ContextConfiguration(initializers = PreUserIT.ContextInitializer.class)
 @AutoConfigureMockMvc
 class PreUserIT {
+  @MockBean
+  private BuildingPermitConf buildingPermitConf;
   @MockBean
   private UserSwanRepository swanRepositoryMock;
   @MockBean

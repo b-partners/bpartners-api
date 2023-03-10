@@ -16,6 +16,7 @@ import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.TransactionCategoryTemplate;
 import app.bpartners.api.repository.LegalFileRepository;
 import app.bpartners.api.repository.fintecture.FintectureConf;
+import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitConf;
 import app.bpartners.api.repository.sendinblue.SendinblueConf;
 import app.bpartners.api.repository.swan.AccountHolderSwanRepository;
 import app.bpartners.api.repository.swan.AccountSwanRepository;
@@ -59,6 +60,8 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @AutoConfigureMockMvc
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class TransactionCategoryIT {
+  @MockBean
+  private BuildingPermitConf buildingPermitConf;
   @MockBean
   private SentryConf sentryConf;
   @MockBean

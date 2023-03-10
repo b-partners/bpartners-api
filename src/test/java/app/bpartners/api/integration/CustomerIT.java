@@ -26,6 +26,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.MethodOrderer;
@@ -125,7 +126,7 @@ class CustomerIT {
     ApiClient joeDoeClient = anApiClient();
     CustomersApi api = new CustomersApi(joeDoeClient);
 
-    List<Customer> actual = api.getCustomers(
+    List<Customer> actualNoFilter = api.getCustomers(
         JOE_DOE_ACCOUNT_ID, null, null, null, null, null, null, 1, 20);
     List<Customer> actualFilteredByFirstAndLastName = api.getCustomers(
         JOE_DOE_ACCOUNT_ID, "Jean", "Plombier", null, null, null, null, 1, 20);
@@ -139,22 +140,30 @@ class CustomerIT {
         JOE_DOE_ACCOUNT_ID, null, null, null, null, null, "Allemagne", 1, 20);
     List<Customer> actualFilteredByFirstNameAndCity = api.getCustomers(
         JOE_DOE_ACCOUNT_ID, "Jean", null, null, null, "Montmorency", null, 1, 20);
+    List<Customer> allFilteredResults = new ArrayList<>();
+    allFilteredResults.addAll(actualFilteredByFirstAndLastName);
+    allFilteredResults.addAll(actualFilteredByEmail);
+    allFilteredResults.addAll(actualFilteredByPhoneNumber);
+    allFilteredResults.addAll(actualFilteredByCity);
+    allFilteredResults.addAll(actualFilteredByCountry);
+    allFilteredResults.addAll(actualFilteredByFirstNameAndCity);
 
-    assertEquals(4, actual.size());
+    assertEquals(4, actualNoFilter.size());
     assertEquals(1, actualFilteredByFirstAndLastName.size());
     assertEquals(2, actualFilteredByEmail.size());
     assertEquals(2, actualFilteredByPhoneNumber.size());
     assertEquals(1, actualFilteredByCity.size());
     assertEquals(1, actualFilteredByCountry.size());
     assertEquals(1, actualFilteredByFirstNameAndCity.size());
-    assertTrue(actual.contains(customer1()));
-    assertTrue(actual.contains(customer2()));
+    assertTrue(actualNoFilter.contains(customer1()));
+    assertTrue(actualNoFilter.contains(customer2()));
     assertTrue(actualFilteredByFirstAndLastName.contains(customer2()));
     assertTrue(actualFilteredByEmail.contains(customer2()));
     assertTrue(actualFilteredByPhoneNumber.contains(customer1()));
     assertTrue(actualFilteredByPhoneNumber.contains(customer2()));
     assertTrue(actualFilteredByCity.contains(customer1()));
     assertEquals("Jean Olivier", actualFilteredByCountry.get(0).getFirstName());
+    assertTrue(actualNoFilter.containsAll(allFilteredResults));
   }
 
   @Order(1)

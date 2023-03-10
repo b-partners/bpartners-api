@@ -41,11 +41,12 @@ public class CustomerRepositoryImpl implements CustomerRepository {
   }
 
   @Override
-  public List<Customer> findByAccountIdFiltered(String accountId, String firstname,
+  public List<Customer> findByAccountIdAndCriteria(String accountId, String firstname,
                                                 String lastname, String email,
                                                 String phoneNumber, String city,
                                                 String country, int page, int pageSize) {
     Pageable pageable = PageRequest.of(page, pageSize);
+    //TODO : use API Criteria instead
     return jpaRepository.findByIdAccountAndFirstNameContainingIgnoreCaseAndLastNameContainingIgnoreCaseAndEmailContainingIgnoreCaseAndPhoneContainingIgnoreCaseAndCityContainingIgnoreCaseAndCountryContainingIgnoreCase(
             accountId, convertNullToEmptyString(firstname), convertNullToEmptyString(lastname),
             convertNullToEmptyString(email), convertNullToEmptyString(phoneNumber),

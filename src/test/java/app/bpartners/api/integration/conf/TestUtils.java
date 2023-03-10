@@ -60,7 +60,9 @@ import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.Year;
 import java.util.Base64;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -782,6 +784,9 @@ public class TestUtils {
 
       @Override
       public Object body() {
+        if (body.getClass() == String.class) {
+          return body;
+        }
         try {
           return new ObjectMapper().writeValueAsString(body);
         } catch (JsonProcessingException e) {
@@ -987,6 +992,14 @@ public class TestUtils {
       body = "[no body]";
     }
     return operationId + " call failed with: " + statusCode + " - " + body;
+  }
+
+  public static Map<String, String> adsFilter() {
+    Map<String, String> filter = new HashMap<>();
+    filter.put("insee[like]", "8");
+    filter.put("annee[gte]", String.valueOf(Year.now().minusYears(1).getValue()));
+    filter.put("type[in]", "PC,PA");
+    return filter;
   }
 
   public static boolean isAfterOrEquals(Instant before, Instant after) {

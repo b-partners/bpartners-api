@@ -18,6 +18,7 @@ public class ProspectRestMapper {
         .name(domain.getName())
         .phone(domain.getPhone())
         .address(domain.getAddress())
+        .location(domain.getLocation())
         .status(domain.getStatus());
   }
 

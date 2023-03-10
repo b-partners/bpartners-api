@@ -3,6 +3,7 @@ package app.bpartners.api.service;
 import app.bpartners.api.model.AnnualRevenueTarget;
 import app.bpartners.api.repository.AnnualRevenueTargetRepository;
 import java.util.List;
+import java.util.Optional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -19,4 +20,7 @@ public class AnnualRevenueTargetService {
     return repository.getAnnualRevenueTargets(accountHolderId);
   }
 
+  public Optional<AnnualRevenueTarget> getByYear(String accountHolderId, int year) {
+    return repository.getByYear(accountHolderId, year);
+  }
 }

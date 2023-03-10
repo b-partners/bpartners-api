@@ -18,6 +18,7 @@ import app.bpartners.api.repository.LegalFileRepository;
 import app.bpartners.api.repository.fintecture.FintectureConf;
 import app.bpartners.api.repository.jpa.UserJpaRepository;
 import app.bpartners.api.repository.jpa.model.HUser;
+import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitConf;
 import app.bpartners.api.repository.sendinblue.SendinblueConf;
 import app.bpartners.api.repository.swan.AccountHolderSwanRepository;
 import app.bpartners.api.repository.swan.AccountSwanRepository;
@@ -79,6 +80,8 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 class UserIT {
   public static final String UNKNOWN_IDENTIFICATION_STATUS = "Unknown";
   public static final String JOE_DOE_COGNITO_TOKEN = "joe_doe_cognito_token";
+  @MockBean
+  private BuildingPermitConf buildingPermitConf;
   @MockBean
   private SentryConf sentryConf;
   @MockBean

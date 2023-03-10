@@ -23,6 +23,7 @@ import app.bpartners.api.repository.fintecture.FintectureConf;
 import app.bpartners.api.repository.fintecture.FintecturePaymentInitiationRepository;
 import app.bpartners.api.repository.jpa.AccountHolderJpaRepository;
 import app.bpartners.api.repository.jpa.model.HAccountHolder;
+import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitConf;
 import app.bpartners.api.repository.sendinblue.SendinblueConf;
 import app.bpartners.api.repository.swan.AccountHolderSwanRepository;
 import app.bpartners.api.repository.swan.AccountSwanRepository;
@@ -102,6 +103,8 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @Slf4j
 class InvoiceIT {
+  @MockBean
+  private BuildingPermitConf buildingPermitConf;
   public static final int MAX_PAGE_SIZE = 500;
   public static final String DRAFT_REF_PREFIX = "BROUILLON-";
   private static final String NEW_INVOICE_ID = "invoice_uuid";

@@ -36,20 +36,16 @@ public class ProspectRepositoryImpl implements ProspectRepository {
 
   @Override
   public List<Prospect> findAllByIdAccountHolder(String idAccountHolder) {
-    boolean isSogefiProspector =
-        isSogefiProspector(idAccountHolder);
+    boolean isSogefiProspector = isSogefiProspector(idAccountHolder);
     if (isSogefiProspector) {
-      buildingPermitApi.getData().getRecords()
-          .forEach(
-              buildingPermit -> {
-                SingleBuildingPermit singleBuildingPermit =
-                    buildingPermitApi.getOne(String.valueOf(buildingPermit.getFileId()));
-                sogefiBuildingPermitRepository.saveByBuildingPermit(idAccountHolder,
-                    buildingPermit, singleBuildingPermit);
-              });
+      buildingPermitApi.getData().getRecords().forEach(buildingPermit -> {
+        SingleBuildingPermit singleBuildingPermit =
+            buildingPermitApi.getOne(String.valueOf(buildingPermit.getFileId()));
+        sogefiBuildingPermitRepository.saveByBuildingPermit(idAccountHolder, buildingPermit,
+            singleBuildingPermit);
+      });
     }
-    return jpaRepository.findAllByIdAccountHolder(idAccountHolder)
-        .stream()
+    return jpaRepository.findAllByIdAccountHolder(idAccountHolder).stream()
         .map(prospect -> mapper.toDomain(prospect, isSogefiProspector))
         .collect(Collectors.toUnmodifiableList());
   }
@@ -57,12 +53,11 @@ public class ProspectRepositoryImpl implements ProspectRepository {
   private boolean isSogefiProspector(String idAccountHolder) {
     BusinessActivity businessActivity =
         businessActivityService.findByAccountHolderId(idAccountHolder);
-    return Objects.equals(businessActivity.getPrimaryActivity(), TILE_LAYER)
-        ||
-        Objects.equals(businessActivity.getPrimaryActivity(), ROOFER)
-        ||
-        Objects.equals(businessActivity.getSecondaryActivity(), TILE_LAYER)
-        || Objects.equals(businessActivity.getSecondaryActivity(), ROOFER);
+    return Objects.equals(0, TILE_LAYER.compareToIgnoreCase(businessActivity.getPrimaryActivity()))
+        || Objects.equals(0,
+        TILE_LAYER.compareToIgnoreCase(businessActivity.getSecondaryActivity())) || Objects.equals(
+        0, ROOFER.compareToIgnoreCase(businessActivity.getPrimaryActivity())) || Objects.equals(0,
+        ROOFER.compareToIgnoreCase(businessActivity.getSecondaryActivity()));
   }
 
   @Transactional(isolation = SERIALIZABLE)
@@ -70,14 +65,10 @@ public class ProspectRepositoryImpl implements ProspectRepository {
   public List<Prospect> saveAll(List<Prospect> prospects) {
     AccountHolder authenticatedAccount = resourceProvider.getAccountHolder();
 
-    boolean isSogefiProspector =
-        isSogefiProspector(authenticatedAccount.getId());
-    List<HProspect> entities = prospects
-        .stream()
-        .map(mapper::toEntity)
-        .collect(Collectors.toUnmodifiableList());
-    return jpaRepository.saveAll(entities)
-        .stream()
+    boolean isSogefiProspector = isSogefiProspector(authenticatedAccount.getId());
+    List<HProspect> entities =
+        prospects.stream().map(mapper::toEntity).collect(Collectors.toUnmodifiableList());
+    return jpaRepository.saveAll(entities).stream()
         .map(entity -> mapper.toDomain(entity, isSogefiProspector))
         .collect(Collectors.toUnmodifiableList());
   }

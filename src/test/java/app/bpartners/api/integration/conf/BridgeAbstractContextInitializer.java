@@ -5,7 +5,7 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.test.context.support.TestPropertySourceUtils;
 import org.testcontainers.containers.PostgreSQLContainer;
 
-public abstract class AbstractContextInitializer
+public abstract class BridgeAbstractContextInitializer
     implements ApplicationContextInitializer<ConfigurableApplicationContext> {
 
   @Override
@@ -21,10 +21,6 @@ public abstract class AbstractContextInitializer
     TestPropertySourceUtils.addInlinedPropertiesToEnvironment(
         applicationContext,
         "server.port=" + this.getServerPort(),
-        "bridge.client.id=dummy",
-        "bridge.client.secret=dummy",
-        "bridge.base.url=dummy",
-        "bridge.version=dummy",
         "aws.cognito.userPool.id=eu-west-3_vq2jlNjq7",
         "aws.eventBridge.bus=dummy",
         "aws.sqs.mailboxUrl=dummy",

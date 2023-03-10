@@ -9,6 +9,9 @@ on:
       - '*'
   workflow_dispatch:
 
+env:
+  ADS_DENOM_CHAR: e
+
 jobs:
   quality:
 
@@ -48,7 +51,7 @@ jobs:
           export ADS_BASEURL=${{ secrets.ADS_BASEURL}}
           export ADS_BEARER=${{ secrets.ADS_BEARER }}
           export ADS_INSEE=${{ secrets.ADS_INSEE}}
-          export ADS_DENOM_CHAR=${{ secrets.ADS_DENOM_CHAR}}
+          export ADS_DENOM_CHAR=${{ env.ADS_DENOM_CHAR }}
           ./gradlew test
 
       - name: Checkstyle

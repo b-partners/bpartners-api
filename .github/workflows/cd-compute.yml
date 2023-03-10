@@ -20,6 +20,10 @@ on:
         type: boolean
         required: false
         default: true
+
+env:
+  ADS_DENOM_CHAR: e
+
 jobs:
   cd-compute:
     if: github.ref_name == 'dev' || github.ref_name == 'prod' || github.ref_name == 'preprod'
@@ -64,7 +68,7 @@ jobs:
           export ADS_BASEURL=${{ secrets.ADS_BASEURL}}
           export ADS_BEARER=${{ secrets.ADS_BEARER}}
           export ADS_INSEE=${{ secrets.ADS_INSEE}}
-          export ADS_DENOM_CHAR=${{ secrets.ADS_DENOM_CHAR}}
+          export ADS_DENOM_CHAR=${{ env.ADS_DENOM_CHAR }}
           ./gradlew test
         if: ${{ github.event.inputs.run_tests != 'false' && github.event_name != 'schedule' }}
 

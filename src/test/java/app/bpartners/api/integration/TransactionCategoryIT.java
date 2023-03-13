@@ -26,6 +26,7 @@ import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
@@ -59,6 +60,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @ContextConfiguration(initializers = TransactionCategoryIT.ContextInitializer.class)
 @AutoConfigureMockMvc
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+@Slf4j
 class TransactionCategoryIT {
   @MockBean
   private BuildingPermitConf buildingPermitConf;
@@ -89,6 +91,30 @@ class TransactionCategoryIT {
 
   private static ApiClient anApiClient() {
     return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN, ContextInitializer.SERVER_PORT);
+  }
+
+  TransactionCategory fraisDeboursIncome() {
+    return new TransactionCategory()
+        .id("784f5f33-78bc-41c0-9782-0c8dd7de5956")
+        .type("Frais débours")
+        .transactionType(INCOME)
+        .description("Encaisser frais débours")
+        .count(0L)
+        .isOther(false)
+        .comment(null)
+        .vat(0);
+  }
+
+  TransactionCategory fraisDeboursOutcome() {
+    return new TransactionCategory()
+        .id("564f5f33-78bc-41d0-9782-0c8dd7de8514")
+        .type("Frais débours")
+        .transactionType(OUTCOME)
+        .description("Decaisser frais débours")
+        .count(0L)
+        .isOther(false)
+        .comment(null)
+        .vat(0);
   }
 
   @BeforeEach
@@ -133,7 +159,10 @@ class TransactionCategoryIT {
     List<TransactionCategory> actualOutcome = api.getTransactionCategories(JOE_DOE_ACCOUNT_ID,
         LocalDate.now(), LocalDate.now(), OUTCOME);
 
-    assertEquals(34, actualAll.size());
+    assertEquals(36, actualAll.size());
+    assertEquals(actualIncome.get(13), fraisDeboursIncome());
+    assertTrue(actualIncome.contains(fraisDeboursIncome()));
+    assertTrue(actualOutcome.contains(fraisDeboursOutcome()));
     assertTrue(actualIncome.stream().allMatch(t -> Objects.equals(t.getTransactionType(), INCOME)));
     assertTrue(actualOutcome.stream().allMatch(t -> Objects.equals(t.getTransactionType(),
         OUTCOME)));
@@ -154,7 +183,7 @@ class TransactionCategoryIT {
     List<TransactionCategory> actualAll = api.getTransactionCategories(
         JOE_DOE_ACCOUNT_ID, startDate, endDate, null);
 
-    assertEquals(34, actualAll.size());
+    assertEquals(36, actualAll.size());
     assertTrue(actualAll.stream().noneMatch(e -> e.getCount() != 0L));
   }
 

@@ -35,7 +35,7 @@ public class FintectureMapper {
     FPaymentInitiation.Attributes attributes = new FPaymentInitiation.Attributes();
     attributes.setAmount(String.valueOf(domain.getAmount().getCentsAsDecimal()));
     attributes.setBeneficiary(beneficiary);
-    attributes.setCommunication("payment_initiation_id_" + domain.getId());
+    attributes.setCommunication(domain.getLabel());
 
     FPaymentInitiation.Meta meta = new FPaymentInitiation.Meta();
     meta.setPsuName(domain.getPayerName());

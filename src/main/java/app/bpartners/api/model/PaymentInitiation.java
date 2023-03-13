@@ -19,6 +19,7 @@ import lombok.ToString;
 public class PaymentInitiation {
   private String id;
   private String label;
+  private String comment;
   private String reference;
   private Fraction amount;
   private String payerName;

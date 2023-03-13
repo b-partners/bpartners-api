@@ -2,6 +2,7 @@ package app.bpartners.api.endpoint.rest.controller;
 
 import app.bpartners.api.endpoint.rest.mapper.UserRestMapper;
 import app.bpartners.api.endpoint.rest.model.Whoami;
+import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.ForbiddenException;
@@ -20,6 +21,8 @@ public class WhoamiController {
   private final UserRestMapper userRestMapper;
   private final SwanComponent swanComponent;
   private final UserService userService;
+  private final CognitoComponent cognitoComponent;
+
 
   @GetMapping("/whoami")
   public Whoami whoami(HttpServletRequest request) {
@@ -37,10 +40,14 @@ public class WhoamiController {
       bearer = bearer.substring(BEARER_PREFIX.length()).trim();
       //Check that the user is authenticated
       String swanUserId = swanComponent.getSwanUserIdByToken(bearer);
-      if (swanUserId == null) {
+      String phoneNumber = cognitoComponent.getPhoneNumberByToken(bearer);
+      if (swanUserId == null && phoneNumber == null) {
         throw new ForbiddenException();
       }
-      return userService.getUserByIdAndBearer(swanUserId, bearer);
+      if (swanUserId != null) {
+        return userService.getUserByIdAndBearer(swanUserId, bearer);
+      }
+      return userService.getUserByPhoneNumber(phoneNumber);
     }
   }
 }

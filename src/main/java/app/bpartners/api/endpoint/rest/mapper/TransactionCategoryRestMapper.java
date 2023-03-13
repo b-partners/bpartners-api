@@ -8,6 +8,7 @@ import app.bpartners.api.model.TransactionCategoryTemplate;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.repository.TransactionCategoryTemplateRepository;
 import app.bpartners.api.repository.TransactionRepository;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -49,9 +50,17 @@ public class TransactionCategoryRestMapper {
       String accountId,
       CreateTransactionCategory rest) {
     validator.accept(rest);
-    TransactionCategoryTemplate categoryTemplate =
+    List<TransactionCategoryTemplate> categories =
         categoryTmplRepository.findByType(rest.getType());
     Transaction transaction = transactionRepository.findByAccountIdAndId(accountId, transactionId);
+    TransactionCategoryTemplate categoryTemplate;
+    if (categories.size() == 1) {
+      categoryTemplate = categories.get(0);
+    } else {
+      categoryTemplate =
+          categoryTmplRepository.findByTypeAndTransactionType(
+              rest.getType(), transaction.getType());
+    }
     if (categoryTemplate.getTransactionType() != null
         && !transaction.getType().equals(categoryTemplate.getTransactionType())) {
       throw new BadRequestException(

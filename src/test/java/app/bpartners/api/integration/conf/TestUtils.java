@@ -81,6 +81,7 @@ import static app.bpartners.api.endpoint.rest.model.TransactionTypeEnum.INCOME;
 import static app.bpartners.api.endpoint.rest.model.TransactionTypeEnum.OUTCOME;
 import static app.bpartners.api.model.Invoice.DEFAULT_DELAY_PENALTY_PERCENT;
 import static app.bpartners.api.model.Invoice.DEFAULT_TO_PAY_DELAY_DAYS;
+import static app.bpartners.api.model.Transaction.RELEASED_STATUS;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.CLIENT_EXCEPTION;
 import static app.bpartners.api.model.mapper.UserMapper.VALID_IDENTITY_STATUS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -522,6 +523,23 @@ public class TestUtils {
         .build();
   }
 
+  public static Transaction swanTransaction4() {
+    return Transaction.builder()
+        .node(Transaction.Node.builder()
+            .id("bosci_12azgrb712gzf057b6c")
+            .label("Transaction avec nouveau statut")
+            .reference("123456")
+            .amount(Transaction.Amount.builder()
+                .value(400.0)
+                .currency("EUR")
+                .build())
+            .createdAt(Instant.parse("2023-01-01T00:00:00.00Z"))
+            .side(CREDIT_SIDE)
+            .statusInfo(new Transaction.Node.StatusInfo(RELEASED_STATUS))
+            .build())
+        .build();
+  }
+
   public static Transaction updatedSwanTransaction() {
     return Transaction.builder()
         .node(Transaction.Node.builder()
@@ -573,6 +591,18 @@ public class TestUtils {
         .status(TransactionStatus.BOOKED)
         .category(null)
         .paymentDatetime(Instant.parse("2022-08-26T01:00:00.00Z"));
+  }
+
+  public static app.bpartners.api.endpoint.rest.model.Transaction restTransaction4() {
+    return new app.bpartners.api.endpoint.rest.model.Transaction()
+        .id(swanTransaction4().getNode().getId())
+        .label(swanTransaction4().getNode().getLabel())
+        .reference(swanTransaction4().getNode().getReference())
+        .amount(40000)
+        .type(INCOME)
+        .status(TransactionStatus.RELEASED)
+        .paymentDatetime(Instant.parse("2023-01-01T00:00:00.00Z"))
+        .category(null);
   }
 
   public static app.bpartners.api.endpoint.rest.model.Transaction restTransaction3() {
@@ -876,11 +906,15 @@ public class TestUtils {
 
   public static void setUpTransactionRepository(TransactionSwanRepository repository) {
     when(repository.getByIdAccount(any())).thenReturn(
-        List.of(swanTransaction1(), swanTransaction2(),
-            swanTransaction3()));
+        List.of(
+            swanTransaction1(),
+            swanTransaction2(),
+            swanTransaction3(),
+            swanTransaction4()));
     when(repository.findById(swanTransaction1().getNode().getId())).thenReturn(swanTransaction1());
     when(repository.findById(swanTransaction2().getNode().getId())).thenReturn(swanTransaction2());
     when(repository.findById(swanTransaction3().getNode().getId())).thenReturn(swanTransaction3());
+    when(repository.findById(swanTransaction4().getNode().getId())).thenReturn(swanTransaction4());
   }
 
   public static void setUpOnboardingSwanRepositoryMock(OnboardingSwanRepository repository) {

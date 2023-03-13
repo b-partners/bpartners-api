@@ -40,6 +40,8 @@ public class HPaymentRequest implements Serializable {
   private String payerName;
   private String payerEmail;
   private LocalDate paymentDueDate;
+  @Column(name = "\"comment\"")
+  private String comment;
   @CreationTimestamp
   private Instant createdDatetime;
 

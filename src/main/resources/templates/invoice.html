@@ -301,7 +301,8 @@
                 <td class="text-center">
                     <div class="amount-section">
                         <div>
-                            <p th:if="${invoice.discount.percentValue.getCentsAsDecimal() > 0}"><strong>Sous-Total</strong> :
+                            <p th:if="${invoice.discount.percentValue.getCentsAsDecimal() > 0}">
+                                <strong>Sous-Total</strong> :
                                 <span
                                         th:text="${#numbers.formatDecimal(invoice.totalPriceWithoutDiscount.getCentsAsDecimal(), 1,2)}"></span>
                                 €
@@ -314,22 +315,25 @@
                                         th:text="${#numbers.formatDecimal(invoice.discount.amountValue.getCentsAsDecimal(), 1,2)}"></span>
                                 €
                             </p>
-                            <p th:if="${accountHolder.isSubjectToVat()}"><strong>Total HT</strong> : <span
-                                    th:text="${#numbers.formatDecimal(invoice.totalPriceWithoutVat.getCentsAsDecimal(), 1,2)}"></span>
+                            <p th:if="${accountHolder.isSubjectToVat()}"><strong>Total HT</strong> :
+                                <span
+                                        th:text="${#numbers.formatDecimal(invoice.totalPriceWithoutVat.getCentsAsDecimal(), 1,2)}"></span>
                                 €
                             </p>
-                            <p th:if="${accountHolder.isSubjectToVat()}"><strong>Total TVA</strong> : <span
-                                    th:text="${#numbers.formatDecimal(invoice.totalVat.getCentsAsDecimal(), 1,2)}"></span>
+                            <p th:if="${accountHolder.isSubjectToVat()}"><strong>Total TVA</strong>
+                                : <span
+                                        th:text="${#numbers.formatDecimal(invoice.totalVat.getCentsAsDecimal(), 1,2)}"></span>
                                 €</p>
                             <p>
                                 <strong th:if="${accountHolder.isSubjectToVat()}">Total TTC</strong>
-                                <strong th:unless="${accountHolder.isSubjectToVat()}">Total HT</strong> : <span
+                                <strong th:unless="${accountHolder.isSubjectToVat()}">Total
+                                    HT</strong> : <span
                                     th:text="${#numbers.formatDecimal(invoice.totalPriceWithVat.getCentsAsDecimal(),1,2)}"></span>
                                 €
                             </p>
                             <p style="padding: 4px 8px; width: 150px; border: 0px;
              font-size: 0.9em; text-align: center; line-height: 1.8;"
-                   th:if="${!accountHolder.isSubjectToVat()}">
+                               th:if="${!accountHolder.isSubjectToVat()}">
                                 TVA non applicable article 293 B <br/> du code général des impôts
                                 (CGI).
                             </p>
@@ -354,7 +358,7 @@
                 <th>Payer <br/>via le code</th>
                 </thead>
                 <tbody>
-                <th:block th:each="payment,i : ${invoice.multiplePayments}">
+                <th:block th:each="payment,i : ${invoice.getSortedMultiplePayments()}">
                     <tr>
                         <td class="text-center">
                             <span th:if="${i.count < i.size}">

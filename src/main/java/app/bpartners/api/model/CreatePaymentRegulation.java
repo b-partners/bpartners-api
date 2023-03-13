@@ -27,6 +27,7 @@ public class CreatePaymentRegulation {
   private Fraction amount;
   private Fraction percent;
   private LocalDate maturityDate;
+  private String label;
   private String comment;
   private Instant initiatedDatetime;
 

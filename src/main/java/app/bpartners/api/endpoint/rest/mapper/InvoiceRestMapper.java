@@ -174,7 +174,7 @@ public class InvoiceRestMapper {
             .id(payment.getEndToEndId())
             .reference(payment.getReference())
             .paymentUrl(payment.getPaymentUrl())
-            .label(payment.getComment())
+            .label(payment.getLabel())
             .amount(payment.getAmount().getCentsRoundUp())
             .percentValue(
                 totalPrice.getApproximatedValue() == 0

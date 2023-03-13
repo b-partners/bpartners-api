@@ -5,9 +5,11 @@ import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -69,6 +71,7 @@ public class Invoice {
     this.multiplePayments = multiplePayments;
     return this;
   }
+
   private InvoiceDiscount discount;
 
   public String getRealReference() {
@@ -116,5 +119,11 @@ public class Invoice {
       return parseFraction(DEFAULT_DELAY_PENALTY_PERCENT);
     }
     return delayPenaltyPercent;
+  }
+
+  public List<CreatePaymentRegulation> getSortedMultiplePayments() {
+    return multiplePayments.stream()
+        .sorted(Comparator.comparing(CreatePaymentRegulation::getMaturityDate))
+        .collect(Collectors.toList());
   }
 }

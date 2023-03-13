@@ -18,6 +18,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -135,7 +136,8 @@ public class InvoiceMapper {
             .percent(totalPrice.getCentsRoundUp() == 0 ? new Fraction()
                 : parseFraction(payment.getAmount()).operate(totalPrice,
                 Aprational::divide))
-            .comment(payment.getLabel())
+            .label(payment.getLabel())
+            .comment(payment.getComment())
             .amount(parseFraction(payment.getAmount()))
             .paymentUrl(payment.getPaymentUrl())
             .reference(payment.getReference())
@@ -201,8 +203,9 @@ public class InvoiceMapper {
     Fraction totalPriceWithVat =
         computeTotalPriceWithVatAndDiscount(domain.getDiscount().getPercentValue(),
             domain.getProducts());
-    List<HPaymentRequest> paymentRequests = pis.retrievePaymentEntities(
-        getPaymentInitiations(domain, totalPriceWithVat), id, domain.getStatus());
+    List<PaymentInitiation> paymentInitiations = getPaymentInitiations(domain, totalPriceWithVat);
+    List<HPaymentRequest> paymentRequests =
+        pis.retrievePaymentEntities(paymentInitiations, id, domain.getStatus());
 
     //TODO: split this into specific layer - BEGIN
     Optional<HInvoice> optionalInvoice = jpaRepository.findById(id);
@@ -242,11 +245,10 @@ public class InvoiceMapper {
         //TODO: check if amount changed or paymentRegulations changed and retrieve new else get
         // persisted
         paymentRequests = pis.retrievePaymentEntitiesWithUrl(
-            getPaymentInitiations(domain, totalPriceWithVat), id);
+            paymentInitiations, id);
         paymentUrl = null;
       }
     }
-
     //TODO: split this into specific layer - END
     return HInvoice.builder()
         .id(id)
@@ -281,16 +283,26 @@ public class InvoiceMapper {
         .build();
   }
 
-  private List<PaymentInitiation> getPaymentInitiations(Invoice domain,
-                                                        Fraction totalPriceWithVat) {
-    return domain.getMultiplePayments().stream()
+  private List<PaymentInitiation> getPaymentInitiations(
+      Invoice domain,
+      Fraction totalPriceWithVat) {
+    List<PaymentInitiation> payments = domain.getMultiplePayments().stream()
         .map(payment -> {
           String randomId = String.valueOf(randomUUID());
           payment.setEndToEndId(randomId);
           return requestMapper.convertFromInvoice(
               randomId, domain, totalPriceWithVat, payment);
         })
+        .sorted(Comparator.comparing(PaymentInitiation::getPaymentDueDate))
         .collect(Collectors.toUnmodifiableList());
+    for (int i = 0; i < payments.size(); i++) {
+      if (i != payments.size() - 1) {
+        payments.get(i).setLabel(domain.getRef() + " - Acompte N°" + (i + 1));
+      } else {
+        payments.get(i).setLabel(domain.getRef() + " - Restant dû");
+      }
+    }
+    return payments;
   }
 
   private static Fraction computeMultiplePaymentsAmount(

@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 import javax.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+
 import static app.bpartners.api.service.utils.CustomerUtils.getCustomersInfoFromFile;
 
 @Service
@@ -27,8 +28,9 @@ public class CustomerService {
       PageFromOne page, BoundedPageSize pageSize) {
     int pageValue = page != null ? page.getValue() - 1 : 0;
     int pageSizeValue = pageSize != null ? pageSize.getValue() : 30;
-    return repository.findByAccountIdAndCriteria(accountId, firstName, lastName, email,
-        phoneNumber, city, country, pageValue, pageSizeValue);
+    return repository.findByAccount(accountId, pageValue, pageSizeValue);
+//    return repository.findByAccountIdAndCriteria(accountId, firstName, lastName, email,
+//        phoneNumber, city, country, pageValue, pageSizeValue);
   }
 
   @Transactional

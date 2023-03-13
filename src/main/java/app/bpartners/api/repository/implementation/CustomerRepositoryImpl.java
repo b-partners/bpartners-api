@@ -26,12 +26,31 @@ public class CustomerRepositoryImpl implements CustomerRepository {
 
   private final AccountService accountService;
 
+  public static String convertNullToEmptyString(String input) {
+    return input == null ? "" : input;
+  }
+
   @Override
   public List<Customer> findByAccountIdAndName(
       String accountId, String firstName, String lastName, int page, int pageSize) {
     Pageable pageable = PageRequest.of(page, pageSize);
     return jpaRepository.findByIdAccountAndFirstNameAndLastNameContainingIgnoreCase(
             accountId, firstName, lastName, pageable).stream()
+        .map(mapper::toDomain)
+        .collect(Collectors.toUnmodifiableList());
+  }
+
+  @Override
+  public List<Customer> findByAccountIdAndCriteria(String accountId, String firstname,
+                                                String lastname, String email,
+                                                String phoneNumber, String city,
+                                                String country, int page, int pageSize) {
+    Pageable pageable = PageRequest.of(page, pageSize);
+    //TODO : use API Criteria instead
+    return jpaRepository.findByIdAccountAndFirstNameContainingIgnoreCaseAndLastNameContainingIgnoreCaseAndEmailContainingIgnoreCaseAndPhoneContainingIgnoreCaseAndCityContainingIgnoreCaseAndCountryContainingIgnoreCase(
+            accountId, convertNullToEmptyString(firstname), convertNullToEmptyString(lastname),
+            convertNullToEmptyString(email), convertNullToEmptyString(phoneNumber),
+            convertNullToEmptyString(city), convertNullToEmptyString(country), pageable).stream()
         .map(mapper::toDomain)
         .collect(Collectors.toUnmodifiableList());
   }

@@ -10,4 +10,6 @@ public interface AnnualRevenueTargetJpaRepository
   List<HAnnualRevenueTarget> findByAccountHolderId(String accountHolderId);
 
   Optional<HAnnualRevenueTarget> findByYear(Integer year);
+
+  Optional<HAnnualRevenueTarget> findByAccountHolderIdAndYear(String accountHolderId, int year);
 }

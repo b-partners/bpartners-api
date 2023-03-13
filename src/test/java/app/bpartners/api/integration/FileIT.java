@@ -13,6 +13,7 @@ import app.bpartners.api.integration.conf.TestUtils;
 import app.bpartners.api.manager.ProjectTokenManager;
 import app.bpartners.api.repository.LegalFileRepository;
 import app.bpartners.api.repository.fintecture.FintectureConf;
+import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitConf;
 import app.bpartners.api.repository.sendinblue.SendinblueConf;
 import app.bpartners.api.repository.swan.AccountHolderSwanRepository;
 import app.bpartners.api.repository.swan.AccountSwanRepository;
@@ -63,6 +64,8 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @ContextConfiguration(initializers = FileIT.ContextInitializer.class)
 @AutoConfigureMockMvc
 class FileIT {
+  @MockBean
+  private BuildingPermitConf buildingPermitConf;
   public static final String NON_EXISTENT_FILE_ID = "NOT" + TEST_FILE_ID;
   public static final String NOT_EXISTING_FILE_ID = "not_existing_file_id.jpeg";
   @MockBean

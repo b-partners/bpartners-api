@@ -19,6 +19,7 @@ import app.bpartners.api.repository.LegalFileRepository;
 import app.bpartners.api.repository.fintecture.FintectureConf;
 import app.bpartners.api.repository.fintecture.FintecturePaymentInfoRepository;
 import app.bpartners.api.repository.fintecture.FintecturePaymentInitiationRepository;
+import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitConf;
 import app.bpartners.api.repository.sendinblue.SendinblueConf;
 import app.bpartners.api.repository.swan.AccountHolderSwanRepository;
 import app.bpartners.api.repository.swan.AccountSwanRepository;
@@ -31,6 +32,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.MethodOrderer;
@@ -51,6 +53,7 @@ import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_TOKEN;
 import static app.bpartners.api.integration.conf.TestUtils.isAfterOrEquals;
 import static app.bpartners.api.integration.conf.TestUtils.product1;
+import static app.bpartners.api.integration.conf.TestUtils.product4;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountHolderSwanRep;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountSwanRepository;
 import static app.bpartners.api.integration.conf.TestUtils.setUpLegalFileRepository;
@@ -71,6 +74,8 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @AutoConfigureMockMvc
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class ProductIT {
+  @MockBean
+  private BuildingPermitConf buildingPermitConf;
   @MockBean
   private SentryConf sentryConf;
   @MockBean
@@ -156,7 +161,8 @@ class ProductIT {
     PayingApi api = new PayingApi(joeDoeClient);
 
     List<Product> actual = api.getProducts(
-        JOE_DOE_ACCOUNT_ID, null, null, null, null, 1, 20);
+        JOE_DOE_ACCOUNT_ID, null, null, null, null,
+        null, null, 1, 20);
 
     assertEquals(6, actual.size());
     assertTrue(actual.stream()
@@ -168,6 +174,40 @@ class ProductIT {
     assertTrue(isAfterOrEquals(actual.get(4).getCreatedAt(), actual.get(5).getCreatedAt()));
   }
 
+  @Order(1)
+  @Test
+  void filter_product_ok() throws ApiException {
+    ApiClient joeDoeClient = anApiClient();
+    PayingApi api = new PayingApi(joeDoeClient);
+
+    List<Product> actualSearchedByDescription = api.getProducts(
+        JOE_DOE_ACCOUNT_ID, null, null, null, null,
+        "Tableau", null, 1, 20);
+    List<Product> actualSearchedByUnitPrice = api.getProducts(
+        JOE_DOE_ACCOUNT_ID, null, null, null, null,
+        null, 1000, 1, 20);
+    List<Product> actualSearchedByDescriptionAndUnitPrice = api.getProducts(
+        JOE_DOE_ACCOUNT_ID, null, null, null, null,
+        "produits", 2000, 1, 20);
+    List<Product> actualSearchEmpty = api.getProducts(
+        JOE_DOE_ACCOUNT_ID, null, null, null, null,
+        null, 210, 1, 20);
+
+    assertEquals(2, actualSearchedByDescription.size());
+    assertEquals(3, actualSearchedByUnitPrice.size());
+    assertEquals(1, actualSearchedByDescriptionAndUnitPrice.size());
+    assertEquals(0, actualSearchEmpty.size());
+    assertEquals("Tableau baobab", actualSearchedByDescription.get(0).getDescription());
+    assertEquals("Tableau malgache", actualSearchedByDescription.get(1).getDescription());
+    assertTrue(actualSearchedByUnitPrice.contains(product1()));
+    assertEquals(product4()
+            .quantity(null)
+            .totalVat(null)
+            .totalPriceWithVat(null)
+            .createdAt(Instant.parse("2022-01-01T04:00:00.00Z")),
+        actualSearchedByDescriptionAndUnitPrice.get(0));
+  }
+
   @Order(2)
   @Test
   void create_products_ok() throws ApiException {
@@ -177,7 +217,8 @@ class ProductIT {
     List<Product> actual =
         api.createProducts(JOE_DOE_ACCOUNT_ID, List.of(createProduct1()));
     List<Product> actualProducts = api.getProducts(
-        JOE_DOE_ACCOUNT_ID, true, null, null, null, 1, 20);
+        JOE_DOE_ACCOUNT_ID, true, null, null, null,
+        null, null, 1, 20);
     assertTrue(actualProducts.stream()
         .allMatch(product -> product.getCreatedAt() != null));
     actual.get(0).createdAt(actualProducts.get(0).getCreatedAt());
@@ -194,13 +235,15 @@ class ProductIT {
 
     List<Product> actual1 = api.crupdateProducts(JOE_DOE_ACCOUNT_ID, List.of(createProduct));
     List<Product> allProducts1 = api.getProducts(
-        JOE_DOE_ACCOUNT_ID, true, null, null, null, 1, 20);
+        JOE_DOE_ACCOUNT_ID, true, null, null, null,
+        null, null, 1, 20);
     List<Product> actual2 = api.crupdateProducts(JOE_DOE_ACCOUNT_ID,
         List.of(createProduct
             .description("Other")
             .unitPrice(5000)));
     List<Product> allProducts2 = api.getProducts(
-        JOE_DOE_ACCOUNT_ID, true, null, null, null, 1, 20);
+        JOE_DOE_ACCOUNT_ID, true, null, null, null,
+        null, null, 1, 20);
 
     Product actualProduct = actual1.get(0);
     Product actualUpdated = actual2.get(0);
@@ -222,24 +265,32 @@ class ProductIT {
     PayingApi api = new PayingApi(joeDoeClient);
 
     List<Product> actual1 = api.getProducts(
-        JOE_DOE_ACCOUNT_ID, null,
-        null, null, OrderDirection.DESC, 1, 20);
+        JOE_DOE_ACCOUNT_ID, null, null, null, OrderDirection.DESC,
+        null, null, 1, 20);
     List<Product> actual2 = api.getProducts(
         JOE_DOE_ACCOUNT_ID, null,
-        null, OrderDirection.ASC, null, 1, 20);
+        null, OrderDirection.ASC, null,
+        null, null, 1, 20);
     List<Product> actual3 = api.getProducts(
-        JOE_DOE_ACCOUNT_ID, null, OrderDirection.ASC, OrderDirection.DESC, null, 1, 20);
+        JOE_DOE_ACCOUNT_ID, null, OrderDirection.ASC, OrderDirection.DESC, null,
+        null, null, 1, 20);
 
     assertTrue(actual1.size() > 2);
     assertTrue(actual2.size() > 2);
     assertTrue(actual3.size() > 2);
-    assertTrue(actual1.get(0).getCreatedAt().isAfter(actual1.get(1).getCreatedAt())
-        || actual1.get(0).getCreatedAt().equals(actual1.get(1).getCreatedAt()));
-    assertTrue(actual2.get(0).getUnitPrice() <= actual2.get(1).getUnitPrice());
+    Product product1 = actual1.get(0);
+    Product product2 = actual1.get(1);
+    Product product3 = actual2.get(0);
+    Product product4 = actual2.get(1);
+    Product product5 = actual3.get(0);
+    Product product6 = actual3.get(1);
+    assertTrue(product1.getCreatedAt().isAfter(product2.getCreatedAt())
+        || product1.getCreatedAt().equals(product2.getCreatedAt()));
+    assertTrue(product3.getUnitPrice() <= product4.getUnitPrice());
     // /!\ it seems by default, the description order ASC is taken before the unit price ASC
     // Pay attention with multiple orders then
-    assertTrue((actual3.get(0).getUnitPrice() >= actual3.get(1).getUnitPrice())
-        && (actual3.get(0).getDescription().compareTo(actual3.get(1).getDescription()) <= 0));
+    assertTrue((product5.getUnitPrice() >= product6.getUnitPrice())
+        && (product5.getDescription().compareTo(product6.getDescription()) <= 0));
   }
 
   @Test
@@ -301,7 +352,8 @@ class ProductIT {
         api.updateProductsStatus(JOE_DOE_ACCOUNT_ID, List.of(productDisabled()));
 
     List<Product> allProducts = api.getProducts(
-        JOE_DOE_ACCOUNT_ID, null, null, null, null, 1, 20);
+        JOE_DOE_ACCOUNT_ID, null, null, null, null,
+        null, null, 1, 20);
 
     assertTrue(
         allProducts.stream()

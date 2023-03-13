@@ -6,7 +6,11 @@ import java.time.LocalDate;
 import java.util.List;
 
 public interface TransactionCategoryTemplateRepository {
-  TransactionCategoryTemplate findByType(String type);
+  List<TransactionCategoryTemplate> findByType(String type);
+
+  TransactionCategoryTemplate findByTypeAndTransactionType(
+      String type,
+      TransactionTypeEnum transactionType);
 
   List<TransactionCategoryTemplate> findAllByIdAccount(
       String idAccount, LocalDate begin, LocalDate end);

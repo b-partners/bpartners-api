@@ -9,7 +9,6 @@ import app.bpartners.api.repository.jpa.TransactionCategoryTemplateJpaRepository
 import app.bpartners.api.repository.jpa.model.HTransactionCategoryTemplate;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -23,11 +22,21 @@ public class TransactionCategoryTemplateRepositoryImpl implements
   private final TransactionCategoryMapper mapper;
 
   @Override
-  public TransactionCategoryTemplate findByType(String type) {
-    Optional<HTransactionCategoryTemplate> optional = jpaRepository.findByType(type);
-    return mapper.toDomain(
-        optional.orElseThrow(
-            () -> new NotFoundException("Category " + type + " is not found")));
+  public List<TransactionCategoryTemplate> findByType(String type) {
+    List<HTransactionCategoryTemplate> categories = jpaRepository.findAllByType(type);
+    if (categories.isEmpty()) {
+      throw new NotFoundException("Category " + type + " is not found");
+    }
+    return categories.stream()
+        .map(mapper::toDomain)
+        .collect(Collectors.toList());
+  }
+
+  @Override
+  public TransactionCategoryTemplate findByTypeAndTransactionType(
+      String type,
+      TransactionTypeEnum transactionType) {
+    return mapper.toDomain(jpaRepository.findByTypeAndTransactionType(type, transactionType));
   }
 
   @Override

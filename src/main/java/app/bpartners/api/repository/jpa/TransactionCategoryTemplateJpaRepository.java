@@ -1,16 +1,19 @@
 package app.bpartners.api.repository.jpa;
 
+import app.bpartners.api.endpoint.rest.model.TransactionTypeEnum;
 import app.bpartners.api.repository.jpa.model.HTransactionCategoryTemplate;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 public interface TransactionCategoryTemplateJpaRepository
     extends JpaRepository<HTransactionCategoryTemplate, String> {
+  List<HTransactionCategoryTemplate> findAllByType(String type);
 
-  Optional<HTransactionCategoryTemplate> findByType(String type);
+  HTransactionCategoryTemplate findByTypeAndTransactionType(
+      String type,
+      TransactionTypeEnum transactionType);
 
   @Query(value =
       "select template.*, case when count is null then 0 else count end"

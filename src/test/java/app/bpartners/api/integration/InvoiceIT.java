@@ -146,7 +146,7 @@ class InvoiceIT {
             .paymentUrl("https://connect-v2-sbx.fintecture.com")
             .percentValue(10000 - 909)
             .amount(1000)
-            .label("Montant restant"));
+            .label("BP005 - Restant dû"));
   }
 
   private static PaymentRegulation expectedDated1() {
@@ -159,7 +159,7 @@ class InvoiceIT {
             .paymentUrl("https://connect-v2-sbx.fintecture.com")
             .percentValue(909)
             .amount(100)
-            .label("Un euro"));
+            .label("BP005 - Acompte N°1"));
   }
 
   private static List<PaymentRegulation> ignoreIdsAndDatetime(Invoice actualConfirmed) {
@@ -490,7 +490,7 @@ class InvoiceIT {
                 .amount(552)
                 .payerName("Luc Artisan")
                 .payerEmail("bpartners.artisans@gmail.com")
-                .label("Acompte de 10%")),
+                .label(id + " - Acompte N°1")),
         new PaymentRegulation()
             .maturityDate(LocalDate.of(2023, 1, 1))
             .paymentRequest(new PaymentRequest()
@@ -500,7 +500,7 @@ class InvoiceIT {
                 .reference(id)
                 .payerName("Luc Artisan")
                 .payerEmail("bpartners.artisans@gmail.com")
-                .label("Reste 90%")));
+                .label(id + " - Restant dû")));
   }
 
   private static List<PaymentRegulation> updatedPaymentRegulations(String id) {
@@ -513,7 +513,7 @@ class InvoiceIT {
                 .amount(225)
                 .payerName("Luc Artisan")
                 .payerEmail("bpartners.artisans@gmail.com")
-                .label("Acompte de 10%")),
+                .label(id + " - Acompte N°1")),
         new PaymentRegulation()
             .maturityDate(LocalDate.of(2023, 1, 1))
             .paymentRequest(new PaymentRequest()
@@ -523,7 +523,7 @@ class InvoiceIT {
                 .reference(id)
                 .payerName("Luc Artisan")
                 .payerEmail("bpartners.artisans@gmail.com")
-                .label("Reste 90%")));
+                .label(id + " - Restant dû")));
   }
 
   private static List<PaymentRegulation> confirmedPaymentRegulations(String id) {
@@ -536,7 +536,8 @@ class InvoiceIT {
                 .amount(225)
                 .payerName("Luc Artisan")
                 .payerEmail("bpartners.artisans@gmail.com")
-                .label("Acompte de 10%")),
+                .label("Acompte de 10%")
+                .label(id + " - Acompte N°1")),
         new PaymentRegulation()
             .maturityDate(LocalDate.of(2023, 1, 1))
             .paymentRequest(new PaymentRequest()
@@ -546,7 +547,7 @@ class InvoiceIT {
                 .reference(id)
                 .payerName("Luc Artisan")
                 .payerEmail("bpartners.artisans@gmail.com")
-                .label("Reste 90%")));
+                .label(id + " - Restant dû")));
   }
 
   //TODO: create PaginationIT for pagination test and add filters.

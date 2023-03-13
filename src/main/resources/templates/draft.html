@@ -314,7 +314,7 @@
             <th style="width: 150px">Commentaire</th>
             </thead>
             <tbody>
-            <th:block th:each="payment,i : ${invoice.multiplePayments}">
+            <th:block th:each="payment,i : ${invoice.getSortedMultiplePayments()}">
                 <tr>
                     <td class="text-center">
                             <span th:if="${i.count < i.size}">

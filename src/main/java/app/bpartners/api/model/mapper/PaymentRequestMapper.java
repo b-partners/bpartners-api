@@ -34,6 +34,7 @@ public class PaymentRequestMapper {
         .paymentUrl(paymentRedirection == null ? null
             : paymentRedirection.getMeta().getUrl())
         .label(domain.getLabel())
+        .comment(domain.getComment())
         .payerEmail(domain.getPayerEmail())
         .payerName(domain.getPayerName())
         .reference(domain.getReference())
@@ -83,14 +84,13 @@ public class PaymentRequestMapper {
     return PaymentInitiation.builder()
         .id(paymentInitiationId)
         .reference(invoice.getRef())
-        .label(payment != null
-            ? payment.getComment()
-            : invoice.getTitle())
         .amount(
             payment != null
                 ? payment.getAmountOrPercent(totalPriceWithVat)
                 : totalPriceWithVat)
         //TODO: use customerName and customerEmail when overriding
+        .comment(payment != null ? payment.getComment()
+            : null)
         .payerName(invoice.getCustomer() == null
             ? null : invoice.getCustomer().getName())
         .payerEmail(invoice.getCustomer() == null

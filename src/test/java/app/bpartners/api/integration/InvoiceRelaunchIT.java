@@ -37,6 +37,7 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
 
 import static app.bpartners.api.integration.conf.TestUtils.INVOICE1_ID;
 import static app.bpartners.api.integration.conf.TestUtils.INVOICE3_ID;
@@ -50,6 +51,7 @@ import static app.bpartners.api.integration.conf.TestUtils.assertThrowsForbidden
 import static app.bpartners.api.integration.conf.TestUtils.invoice1;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountHolderSwanRep;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountSwanRepository;
+import static app.bpartners.api.integration.conf.TestUtils.setUpEventBridge;
 import static app.bpartners.api.integration.conf.TestUtils.setUpLegalFileRepository;
 import static app.bpartners.api.integration.conf.TestUtils.setUpPaymentInfoRepository;
 import static app.bpartners.api.integration.conf.TestUtils.setUpPaymentInitiationRep;
@@ -91,6 +93,8 @@ class InvoiceRelaunchIT {
   private LegalFileRepository legalFileRepositoryMock;
   @MockBean
   private FintecturePaymentInfoRepository paymentInfoRepositoryMock;
+  @MockBean
+  private EventBridgeClient eventBridgeClientMock;
 
   private static ApiClient anApiClient() {
     return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN,
@@ -105,7 +109,7 @@ class InvoiceRelaunchIT {
     setUpAccountHolderSwanRep(accountHolderRepositoryMock);
     setUpPaymentInitiationRep(paymentInitiationRepositoryMock);
     setUpPaymentInfoRepository(paymentInfoRepositoryMock);
-
+    setUpEventBridge(eventBridgeClientMock);
     setUpLegalFileRepository(legalFileRepositoryMock);
   }
 

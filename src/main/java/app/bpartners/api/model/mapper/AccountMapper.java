@@ -2,8 +2,8 @@ package app.bpartners.api.model.mapper;
 
 import app.bpartners.api.endpoint.rest.model.AccountStatus;
 import app.bpartners.api.model.Account;
-import app.bpartners.api.repository.jpa.UserJpaRepository;
 import app.bpartners.api.repository.jpa.model.HAccount;
+import app.bpartners.api.repository.jpa.model.HUser;
 import app.bpartners.api.repository.swan.model.SwanAccount;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,7 +20,6 @@ public class AccountMapper {
   public static final String CLOSED_STATUS = "Closed";
   public static final String CLOSING_STATUS = "Closing";
   public static final String SUSPENDED_STATUS = "Suspended";
-  private final UserJpaRepository userJpaRepository;
 
   public Account toDomain(SwanAccount external, String userId) {
     return Account.builder()
@@ -59,10 +58,10 @@ public class AccountMapper {
         .build();
   }
 
-  public HAccount toEntity(Account domain) {
+  public HAccount toEntity(Account domain, HUser user) {
     return HAccount.builder()
         .id(domain.getId())
-        .user(userJpaRepository.getById(domain.getUserId()))
+        .user(user)
         .name(domain.getName())
         .iban(domain.getIban())
         .bic(domain.getBic())

@@ -37,7 +37,7 @@ public class HTransaction {
   @ManyToOne
   @JoinColumn(name = "id_invoice")
   private HInvoice invoice;
-  private Double amount;
+  private String amount;
   private String currency;
   private String label;
   private String reference;

@@ -19,6 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
 
 import static app.bpartners.api.model.mapper.TransactionMapper.getTransactionStatus;
+import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 
 @Repository
 @Slf4j
@@ -118,8 +119,10 @@ public class TransactionRepositoryImpl implements TransactionRepository {
 
   private static void checkTransactionUpdates(Node transactionNode, HTransaction optionalValue) {
     if (optionalValue.getAmount() != null
-        && !optionalValue.getAmount().equals(transactionNode.getAmount().getValue())) {
-      optionalValue.setAmount(transactionNode.getAmount().getValue());
+        && parseFraction(optionalValue.getAmount()).getApproximatedValue() / 100
+        != transactionNode.getAmount().getValue()) {
+      optionalValue.setAmount(
+          String.valueOf(parseFraction(transactionNode.getAmount().getValue() * 100)));
     }
     if (optionalValue.getCurrency() != null
         && !optionalValue.getCurrency().equals(transactionNode.getAmount().getCurrency())) {

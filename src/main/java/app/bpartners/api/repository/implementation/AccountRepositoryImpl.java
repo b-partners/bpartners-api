@@ -92,10 +92,11 @@ public class AccountRepositoryImpl implements AccountRepository {
     SwanAccount swanAccount = swanAccounts.get(0);
     Optional<HAccount> persisted = accountJpaRepository.findById(swanAccount.getId());
     if (persisted.isPresent()) {
-      String persistedUserId = persisted.get().getUser().getId();
+      String persistedUserId = persisted.get().getUser() == null ? null
+          : persisted.get().getUser().getId();
       List<Account> accounts =
           List.of(mapper.toDomain(swanAccount, persisted.get(), persistedUserId));
-      if (userId == null) {
+      if (userId == null || persistedUserId == null) {
         return accounts;
       }
       return saveAll(accounts, persistedUserId);

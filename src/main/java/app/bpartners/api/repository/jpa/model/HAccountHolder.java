@@ -31,7 +31,7 @@ public class HAccountHolder implements Serializable {
   private String id;
   // TODO : replace String type by Account for accountId
   private String accountId;
-  private int socialCapital;
+  private String socialCapital;
   @Column(name = "tva_number")
   private String vatNumber;
   private String mobilePhoneNumber;

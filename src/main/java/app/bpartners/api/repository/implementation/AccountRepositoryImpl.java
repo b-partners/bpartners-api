@@ -77,8 +77,6 @@ public class AccountRepositoryImpl implements AccountRepository {
   }
 
   public List<Account> saveAll(List<Account> toCreate, HUser user) {
-    log.info("User={}", user);
-    log.info("Accounts={}", toCreate);
     List<HAccount> toSave = toCreate.stream()
         .map(account -> mapper.toEntity(account, user))
         .collect(Collectors.toList());

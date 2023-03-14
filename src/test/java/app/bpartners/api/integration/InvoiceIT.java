@@ -75,13 +75,13 @@ import static app.bpartners.api.integration.conf.TestUtils.product3;
 import static app.bpartners.api.integration.conf.TestUtils.product4;
 import static app.bpartners.api.integration.conf.TestUtils.product5;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountHolderSwanRep;
+import static app.bpartners.api.integration.conf.TestUtils.setUpAccountRepository;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountSwanRepository;
 import static app.bpartners.api.integration.conf.TestUtils.setUpEventBridge;
 import static app.bpartners.api.integration.conf.TestUtils.setUpLegalFileRepository;
 import static app.bpartners.api.integration.conf.TestUtils.setUpPaymentInitiationRep;
 import static app.bpartners.api.integration.conf.TestUtils.setUpSwanComponent;
 import static app.bpartners.api.integration.conf.TestUtils.setUpUserSwanRepository;
-import static app.bpartners.api.integration.conf.TestUtils.setUpAccountRepository;
 import static app.bpartners.api.model.Invoice.DEFAULT_DELAY_PENALTY_PERCENT;
 import static app.bpartners.api.model.Invoice.DEFAULT_TO_PAY_DELAY_DAYS;
 import static java.util.UUID.randomUUID;
@@ -199,7 +199,7 @@ class InvoiceIT {
         .accountId(JOE_DOE_ACCOUNT_ID)
         .mobilePhoneNumber("+33 6 11 22 33 44")
         .email("numer@hei.school")
-        .socialCapital(40000)
+        .socialCapital("40000/1")
         .vatNumber("FR 32 123456789")
         .initialCashflow("6000/1")
         .subjectToVat(true)

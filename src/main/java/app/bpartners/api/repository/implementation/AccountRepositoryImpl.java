@@ -7,22 +7,27 @@ import app.bpartners.api.model.mapper.AccountMapper;
 import app.bpartners.api.repository.AccountRepository;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.jpa.AccountJpaRepository;
+import app.bpartners.api.repository.jpa.UserJpaRepository;
 import app.bpartners.api.repository.jpa.model.HAccount;
+import app.bpartners.api.repository.jpa.model.HUser;
 import app.bpartners.api.repository.swan.AccountSwanRepository;
 import app.bpartners.api.repository.swan.model.SwanAccount;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
 
 @Repository
 @AllArgsConstructor
+@Slf4j
 public class AccountRepositoryImpl implements AccountRepository {
   private AccountSwanRepository swanRepository;
   private AccountJpaRepository accountJpaRepository;
   private UserRepository userRepository;
   private AccountMapper mapper;
+  private UserJpaRepository userJpaRepository;
 
   @Override
   public List<Account> findByBearer(String bearer) {
@@ -65,23 +70,40 @@ public class AccountRepositoryImpl implements AccountRepository {
 
   @Override
   public List<Account> saveAll(List<Account> toCreate, String userId) {
-    List<HAccount> toSave = toCreate.stream()
-        .map(mapper::toEntity)
-        .collect(Collectors.toUnmodifiableList());
-    return accountJpaRepository.saveAll(toSave).stream()
-        .map(account -> mapper.toDomain(account, userId))
-        .collect(Collectors.toUnmodifiableList());
+    HUser user = userJpaRepository.findById(userId).orElseThrow(
+        () -> new NotFoundException("User." + userId + " not found")
+    );
+    return saveAll(toCreate, user);
   }
 
+  public List<Account> saveAll(List<Account> toCreate, HUser user) {
+    log.info("User={}", user);
+    log.info("Accounts={}", toCreate);
+    List<HAccount> toSave = toCreate.stream()
+        .map(account -> mapper.toEntity(account, user))
+        .collect(Collectors.toList());
+    return accountJpaRepository.saveAll(toSave).stream()
+        .map(account -> mapper.toDomain(account, user.getId()))
+        .collect(Collectors.toList());
+  }
+
+  //TODO: simplify the cognitive complexity
   private List<Account> getOrCreateAccounts(List<SwanAccount> swanAccounts, String userId) {
     SwanAccount swanAccount = swanAccounts.get(0);
     Optional<HAccount> persisted = accountJpaRepository.findById(swanAccount.getId());
     if (persisted.isPresent()) {
-      return saveAll(List.of(mapper.toDomain(swanAccount, persisted.get(), userId)), userId);
+      String persistedUserId = persisted.get().getUser().getId();
+      List<Account> accounts =
+          List.of(mapper.toDomain(swanAccount, persisted.get(), persistedUserId));
+      if (userId == null) {
+        return accounts;
+      }
+      return saveAll(accounts, persistedUserId);
     } else {
-      List<Account> accounts = swanAccounts.stream()
-          .map(account -> mapper.toDomain(account, userId))
-          .collect(Collectors.toUnmodifiableList());
+      List<Account> accounts = List.of(mapper.toDomain(swanAccount, userId));
+      if (userId == null) {
+        return accounts;
+      }
       return saveAll(accounts, userId);
     }
   }

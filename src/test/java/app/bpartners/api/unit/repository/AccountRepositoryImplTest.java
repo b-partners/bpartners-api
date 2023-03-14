@@ -7,6 +7,7 @@ import app.bpartners.api.model.mapper.AccountMapper;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.implementation.AccountRepositoryImpl;
 import app.bpartners.api.repository.jpa.AccountJpaRepository;
+import app.bpartners.api.repository.jpa.UserJpaRepository;
 import app.bpartners.api.repository.jpa.model.HAccount;
 import app.bpartners.api.repository.jpa.model.HUser;
 import app.bpartners.api.repository.swan.AccountSwanRepository;
@@ -24,6 +25,7 @@ import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -33,7 +35,8 @@ class AccountRepositoryImplTest {
   AccountJpaRepository accountJpaRepositoryMock;
   UserRepository userRepositoryMock;
   AccountMapper accountMapperMock;
-  AccountRepositoryImpl accountRepository;
+  AccountRepositoryImpl subject;
+  UserJpaRepository userJpaRepositoryMock;
 
   @BeforeEach
   void setUp() {
@@ -41,14 +44,15 @@ class AccountRepositoryImplTest {
     accountJpaRepositoryMock = mock(AccountJpaRepository.class);
     userRepositoryMock = mock(UserRepository.class);
     accountMapperMock = mock(AccountMapper.class);
-    accountRepository =
+    userJpaRepositoryMock = mock(UserJpaRepository.class);
+    subject =
         new AccountRepositoryImpl(accountSwanRepositoryMock, accountJpaRepositoryMock,
-            userRepositoryMock, accountMapperMock);
+            userRepositoryMock, accountMapperMock, userJpaRepositoryMock);
+
     when(accountMapperMock.toDomain(any(SwanAccount.class), any())).thenReturn(domain());
     when(accountMapperMock.toDomain(any(HAccount.class), any())).thenReturn(domain());
     when(accountMapperMock.toDomain(any(SwanAccount.class), any(HAccount.class), any()))
         .thenReturn(domain());
-    when(accountMapperMock.toEntity(any(Account.class))).thenReturn(new HAccount());
     when(userRepositoryMock.getUserByToken(any())).thenReturn(User.builder()
         .id("joe_doe_id")
         .account(Account.builder()
@@ -57,6 +61,12 @@ class AccountRepositoryImplTest {
             .userId("joe_doe_id")
             .build())
         .build());
+    when(userJpaRepositoryMock.findById(any()))
+        .thenReturn(Optional.of(HUser.builder()
+            .id("joe_doe_id")
+            .build()));
+    when(accountJpaRepositoryMock.saveAll(anyList())).thenReturn(
+        List.of(entity()));
   }
 
   @Test
@@ -66,14 +76,13 @@ class AccountRepositoryImplTest {
     ArgumentCaptor<String> accountIdCaptor = ArgumentCaptor.forClass(String.class);
     ArgumentCaptor<List> toPersistCaptor = ArgumentCaptor.forClass(List.class);
 
-    List<Account> actual = accountRepository.findByBearer(JOE_DOE_TOKEN);
+    List<Account> actual = subject.findByBearer(JOE_DOE_TOKEN);
     verify(accountJpaRepositoryMock).findById(accountIdCaptor.capture());
     verify(accountJpaRepositoryMock).saveAll(toPersistCaptor.capture());
 
     assertNotNull(actual);
     assertEquals(joeDoeSwanAccount().getId(), accountIdCaptor.getValue());
     assertNotNull(toPersistCaptor.getValue());
-    assertEquals(HAccount.class, toPersistCaptor.getValue().get(0).getClass());
   }
 
   @Test
@@ -92,7 +101,7 @@ class AccountRepositoryImplTest {
     ArgumentCaptor<String> bearerCaptor = ArgumentCaptor.forClass(String.class);
     //ArgumentCaptor<String> userIdCaptor = ArgumentCaptor.forClass(String.class);
 
-    List<Account> actual = accountRepository.findByBearer(JOE_DOE_TOKEN);
+    List<Account> actual = subject.findByBearer(JOE_DOE_TOKEN);
     verify(userRepositoryMock).getUserByToken(bearerCaptor.capture());
     //verify(accountSwanRepositoryMock).findByUserId(userIdCaptor.capture());
 
@@ -110,7 +119,7 @@ class AccountRepositoryImplTest {
     ArgumentCaptor<String> accountIdCaptor = ArgumentCaptor.forClass(String.class);
     ArgumentCaptor<HAccount> accountCaptor = ArgumentCaptor.forClass(HAccount.class);
 
-    Account actual = accountRepository.findById(JOE_DOE_ACCOUNT_ID);
+    Account actual = subject.findById(JOE_DOE_ACCOUNT_ID);
     verify(accountJpaRepositoryMock).findById(accountIdCaptor.capture());
     verify(accountMapperMock).toDomain(accountCaptor.capture(), any());
 

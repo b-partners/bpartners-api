@@ -83,8 +83,8 @@ public class PaymentRequestMapper {
       Fraction totalPriceWithVat, CreatePaymentRegulation payment) {
     return PaymentInitiation.builder()
         .id(paymentInitiationId)
-        .reference(invoice.getRef())
-        .label(invoice.getRef())
+        .reference(invoice.getRealReference())
+        .label(invoice.getRealReference())
         .amount(
             payment != null
                 ? payment.getAmountOrPercent(totalPriceWithVat)

@@ -84,6 +84,7 @@ public class PaymentRequestMapper {
     return PaymentInitiation.builder()
         .id(paymentInitiationId)
         .reference(invoice.getRef())
+        .label(invoice.getRef())
         .amount(
             payment != null
                 ? payment.getAmountOrPercent(totalPriceWithVat)
@@ -98,6 +99,7 @@ public class PaymentRequestMapper {
         .paymentDueDate(payment != null
             ? payment.getMaturityDate()
             : null)
+        .comment(invoice.getRef())
         .successUrl("https://dashboard-dev.bpartners.app") //TODO: to change
         .failureUrl("https://dashboard-dev.bpartners.app") //TODO: to change
         .build();

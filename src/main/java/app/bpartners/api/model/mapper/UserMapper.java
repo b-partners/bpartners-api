@@ -34,7 +34,7 @@ public class UserMapper {
             swanUser == null ? entityUser.getIdentificationStatus()
                 : getIdentificationStatus(
                 swanUser.getIdentificationStatus()))
-        .account(entityUser.getAccounts().isEmpty() ? null
+        .account(entityUser.getAccounts() == null || entityUser.getAccounts().isEmpty() ? null
             : accountMapper.toDomain(entityUser.getAccounts().get(0),
             entityUser.getId()))
         .build();

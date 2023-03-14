@@ -272,7 +272,6 @@ class AccountHolderIT {
     UserAccountsApi api = new UserAccountsApi(joeDoeClient);
 
     List<AccountHolder> actual = api.getAccountHolders(JOE_DOE_ID, JOE_DOE_ACCOUNT_ID);
-
     assertEquals(1, actual.size());
     assertEquals(joeDoeAccountHolder(), actual.get(0));
   }

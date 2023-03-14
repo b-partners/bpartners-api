@@ -13,8 +13,10 @@ import app.bpartners.api.repository.jpa.ProspectJpaRepository;
 import app.bpartners.api.repository.jpa.model.HProspect;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitApi;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.model.SingleBuildingPermit;
+import app.bpartners.api.service.AccountHolderService;
 import app.bpartners.api.service.AnnualRevenueTargetService;
 import app.bpartners.api.service.BusinessActivityService;
+import java.time.Instant;
 import java.time.Year;
 import java.time.YearMonth;
 import java.util.List;
@@ -42,6 +44,8 @@ public class ProspectRepositoryImpl implements ProspectRepository {
   private final AuthenticatedResourceProvider resourceProvider;
   private final AnnualRevenueTargetService revenueTargetService;
 
+  private final AccountHolderService accountHolder;
+
   @Override
   public List<Prospect> findAllByIdAccountHolder(String idAccountHolder) {
     boolean isSogefiProspector = isSogefiProspector(idAccountHolder);
@@ -60,15 +64,16 @@ public class ProspectRepositoryImpl implements ProspectRepository {
 
   @Override
   public boolean needsProspects(String idAccountHolder) {
-    Optional<AnnualRevenueTarget> revenueTarget =
+    Optional<AnnualRevenueTarget> revenueTargets =
         revenueTargetService.getByYear(idAccountHolder, Year.now().getValue());
-    if (revenueTarget.isEmpty()) {
-      return true;
+    if (revenueTargets.isEmpty()) {
+      return false;
     }
-    Fraction expectedAttemptedAmountAtCurrentMonth =
-        parseFraction((YearMonth.now().getMonthValue() / 12) * 10000);
-    return revenueTarget.get().getAmountAttemptedPercent().getCentsRoundUp()
-        < expectedAttemptedAmountAtCurrentMonth.getCentsRoundUp();
+    Fraction expectedAmountAttemptedInADay =
+        parseFraction(revenueTargets.get().getAmountTarget().getCentsRoundUp() / 365);
+
+    return revenueTargets.get().getAmountAttempted().getCentsRoundUp() * 100 <
+        expectedAmountAttemptedInADay.getCentsRoundUp();
   }
 
   @Override

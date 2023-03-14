@@ -99,7 +99,6 @@ public class PaymentRequestMapper {
         .paymentDueDate(payment != null
             ? payment.getMaturityDate()
             : null)
-        .comment(invoice.getRef())
         .successUrl("https://dashboard-dev.bpartners.app") //TODO: to change
         .failureUrl("https://dashboard-dev.bpartners.app") //TODO: to change
         .build();

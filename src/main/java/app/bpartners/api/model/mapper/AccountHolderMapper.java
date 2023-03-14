@@ -2,6 +2,7 @@ package app.bpartners.api.model.mapper;
 
 import app.bpartners.api.endpoint.rest.model.VerificationStatus;
 import app.bpartners.api.model.AccountHolder;
+import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.repository.jpa.model.HAccountHolder;
 import app.bpartners.api.repository.swan.model.SwanAccountHolder;
@@ -27,7 +28,7 @@ public class AccountHolderMapper {
         .email(entity.getEmail())
         .mobilePhoneNumber(entity.getMobilePhoneNumber())
         .accountId(entity.getAccountId())
-        .socialCapital(entity.getSocialCapital())
+        .socialCapital(parseFraction(entity.getSocialCapital()).getCentsRoundUp())
         .vatNumber(entity.getVatNumber())
         .address(entity.getAddress())
         .city(entity.getCity())
@@ -48,7 +49,7 @@ public class AccountHolderMapper {
         .subjectToVat(domain.isSubjectToVat())
         .vatNumber(domain.getVatNumber())
         .mobilePhoneNumber(domain.getMobilePhoneNumber())
-        .socialCapital(domain.getSocialCapital())
+        .socialCapital(String.valueOf(parseFraction(domain.getSocialCapital())))
         .initialCashflow(domain.getInitialCashflow().toString())
         .verificationStatus(domain.getVerificationStatus())
         .name(domain.getName())
@@ -70,7 +71,8 @@ public class AccountHolderMapper {
         .mobilePhoneNumber(null)
         .email(null)
         .verificationStatus(getStatus(swanAccountHolder.getVerificationStatus()))
-        .socialCapital(0) //TODO : check default social capital 0 or null
+        .socialCapital(
+            String.valueOf(new Fraction())) //TODO : check default social capital 0 or null
         .vatNumber(swanAccountHolder.getInfo().getVatNumber())
         .name(swanAccountHolder.getInfo().getName())
         .businessActivity(swanAccountHolder.getInfo().getBusinessActivity())

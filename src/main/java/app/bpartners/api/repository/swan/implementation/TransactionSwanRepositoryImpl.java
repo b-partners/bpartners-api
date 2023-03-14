@@ -41,7 +41,11 @@ public class TransactionSwanRepositoryImpl implements TransactionSwanRepository 
     String query = String.format(QUERY, idAccount);
     TransactionResponse data = swanCustomApi.getData(TransactionResponse.class, query,
         tokenManager.getSwanProjecToken());
-    return data == null ? List.of() : data.getData().getAccount().getTransactions().getEdges();
+    return data == null || (
+        data.getData() == null
+            || (data.getData().getAccount() == null
+            || (data.getData().getAccount().getTransactions() == null))) ? List.of() :
+        data.getData().getAccount().getTransactions().getEdges();
   }
 
   @Override

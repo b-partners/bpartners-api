@@ -3,7 +3,9 @@ package app.bpartners.api.model.mapper;
 import app.bpartners.api.endpoint.rest.model.AccountStatus;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.repository.jpa.model.HAccount;
+import app.bpartners.api.repository.jpa.model.HUser;
 import app.bpartners.api.repository.swan.model.SwanAccount;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -11,6 +13,7 @@ import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 
 @Slf4j
 @Component
+@AllArgsConstructor
 public class AccountMapper {
 
   public static final String OPENED_STATUS = "Opened";
@@ -55,9 +58,10 @@ public class AccountMapper {
         .build();
   }
 
-  public HAccount toEntity(Account domain) {
+  public HAccount toEntity(Account domain, HUser user) {
     return HAccount.builder()
         .id(domain.getId())
+        .user(user)
         .name(domain.getName())
         .iban(domain.getIban())
         .bic(domain.getBic())

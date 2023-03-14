@@ -32,6 +32,7 @@ public class Transaction {
   public static final String REJECTED_STATUS = "Rejected";
   public static final String CREDIT_SIDE_VALUE = "CREDIT_SIDE";
   public static final String DEBIT_SIDE_VALUE = "DEBIT_SIDE";
+  public static final String RELEASED_STATUS = "Released";
   private String id;
   private String idAccount;
   private String idSwan;

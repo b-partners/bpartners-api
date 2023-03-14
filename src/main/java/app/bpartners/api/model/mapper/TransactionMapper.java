@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 import static app.bpartners.api.model.Transaction.BOOKED_STATUS;
 import static app.bpartners.api.model.Transaction.PENDING_STATUS;
 import static app.bpartners.api.model.Transaction.REJECTED_STATUS;
+import static app.bpartners.api.model.Transaction.RELEASED_STATUS;
 import static app.bpartners.api.model.Transaction.UPCOMING_STATUS;
 import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 
@@ -18,6 +19,7 @@ import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 @Component
 @AllArgsConstructor
 public class TransactionMapper {
+
   private final InvoiceMapper invoiceMapper;
 
   public static TransactionStatus getTransactionStatus(String status) {
@@ -30,6 +32,8 @@ public class TransactionMapper {
         return TransactionStatus.UPCOMING;
       case REJECTED_STATUS:
         return TransactionStatus.REJECTED;
+      case RELEASED_STATUS:
+        return TransactionStatus.RELEASED;
       default:
         log.warn("Unknown transaction status : " + status);
         return TransactionStatus.UNKNOWN;

@@ -15,6 +15,7 @@ import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
 import app.bpartners.api.integration.conf.S3AbstractContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
 import app.bpartners.api.manager.ProjectTokenManager;
+import app.bpartners.api.repository.AccountRepository;
 import app.bpartners.api.repository.LegalFileRepository;
 import app.bpartners.api.repository.fintecture.FintectureConf;
 import app.bpartners.api.repository.fintecture.FintecturePaymentInfoRepository;
@@ -50,6 +51,7 @@ import static app.bpartners.api.integration.conf.TestUtils.assertThrowsApiExcept
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsForbiddenException;
 import static app.bpartners.api.integration.conf.TestUtils.invoice1;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountHolderSwanRep;
+import static app.bpartners.api.integration.conf.TestUtils.setUpAccountRepository;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountSwanRepository;
 import static app.bpartners.api.integration.conf.TestUtils.setUpEventBridge;
 import static app.bpartners.api.integration.conf.TestUtils.setUpLegalFileRepository;
@@ -95,6 +97,8 @@ class InvoiceRelaunchIT {
   private FintecturePaymentInfoRepository paymentInfoRepositoryMock;
   @MockBean
   private EventBridgeClient eventBridgeClientMock;
+  @MockBean
+  private AccountRepository accountRepositoryMock;
 
   private static ApiClient anApiClient() {
     return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN,
@@ -111,6 +115,7 @@ class InvoiceRelaunchIT {
     setUpPaymentInfoRepository(paymentInfoRepositoryMock);
     setUpEventBridge(eventBridgeClientMock);
     setUpLegalFileRepository(legalFileRepositoryMock);
+    setUpAccountRepository(accountRepositoryMock);
   }
 
   InvoiceRelaunch invoiceRelaunch1() {

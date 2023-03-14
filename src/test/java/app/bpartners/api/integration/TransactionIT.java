@@ -43,6 +43,7 @@ import static app.bpartners.api.integration.conf.TestUtils.invoice1;
 import static app.bpartners.api.integration.conf.TestUtils.restTransaction1;
 import static app.bpartners.api.integration.conf.TestUtils.restTransaction2;
 import static app.bpartners.api.integration.conf.TestUtils.restTransaction3;
+import static app.bpartners.api.integration.conf.TestUtils.restTransaction4;
 import static app.bpartners.api.integration.conf.TestUtils.restUpdatedTransaction;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountHolderSwanRep;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountSwanRepository;
@@ -148,11 +149,12 @@ class TransactionIT {
     PayingApi api = new PayingApi(joeDoeClient);
 
     List<Transaction> actual = api.getTransactions(JOE_DOE_ACCOUNT_ID, null, null);
-    assertEquals(3, actual.size());
+    assertEquals(4, actual.size());
 
     assertTrue(actual.contains(restTransaction2()));
     assertTrue(actual.contains(restTransaction1()));
     assertTrue(ignoreIds(actual).contains(restTransaction3().id(null)));
+    assertTrue(ignoreIds(actual).contains(restTransaction4().id(null)));
   }
 
   @Test

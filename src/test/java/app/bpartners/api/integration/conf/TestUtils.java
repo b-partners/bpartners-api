@@ -24,7 +24,9 @@ import app.bpartners.api.endpoint.rest.model.User;
 import app.bpartners.api.endpoint.rest.security.model.Principal;
 import app.bpartners.api.endpoint.rest.security.principal.PrincipalProvider;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
+import app.bpartners.api.model.Account;
 import app.bpartners.api.model.exception.BadRequestException;
+import app.bpartners.api.repository.AccountRepository;
 import app.bpartners.api.repository.LegalFileRepository;
 import app.bpartners.api.repository.fintecture.FintectureConf;
 import app.bpartners.api.repository.fintecture.FintecturePaymentInfoRepository;
@@ -73,6 +75,7 @@ import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsRequest;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsResponse;
 
+import static app.bpartners.api.endpoint.rest.model.AccountStatus.OPENED;
 import static app.bpartners.api.endpoint.rest.model.EnableStatus.ENABLED;
 import static app.bpartners.api.endpoint.rest.model.IdentificationStatus.VALID_IDENTITY;
 import static app.bpartners.api.endpoint.rest.model.Invoice.PaymentTypeEnum.IN_INSTALMENT;
@@ -81,11 +84,14 @@ import static app.bpartners.api.endpoint.rest.model.TransactionTypeEnum.INCOME;
 import static app.bpartners.api.endpoint.rest.model.TransactionTypeEnum.OUTCOME;
 import static app.bpartners.api.model.Invoice.DEFAULT_DELAY_PENALTY_PERCENT;
 import static app.bpartners.api.model.Invoice.DEFAULT_TO_PAY_DELAY_DAYS;
+import static app.bpartners.api.model.Transaction.RELEASED_STATUS;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.CLIENT_EXCEPTION;
 import static app.bpartners.api.model.mapper.UserMapper.VALID_IDENTITY_STATUS;
+import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.when;
 
 public class TestUtils {
@@ -522,6 +528,23 @@ public class TestUtils {
         .build();
   }
 
+  public static Transaction swanTransaction4() {
+    return Transaction.builder()
+        .node(Transaction.Node.builder()
+            .id("bosci_12azgrb712gzf057b6c")
+            .label("Transaction avec nouveau statut")
+            .reference("123456")
+            .amount(Transaction.Amount.builder()
+                .value(400.0)
+                .currency("EUR")
+                .build())
+            .createdAt(Instant.parse("2023-01-01T00:00:00.00Z"))
+            .side(CREDIT_SIDE)
+            .statusInfo(new Transaction.Node.StatusInfo(RELEASED_STATUS))
+            .build())
+        .build();
+  }
+
   public static Transaction updatedSwanTransaction() {
     return Transaction.builder()
         .node(Transaction.Node.builder()
@@ -573,6 +596,18 @@ public class TestUtils {
         .status(TransactionStatus.BOOKED)
         .category(null)
         .paymentDatetime(Instant.parse("2022-08-26T01:00:00.00Z"));
+  }
+
+  public static app.bpartners.api.endpoint.rest.model.Transaction restTransaction4() {
+    return new app.bpartners.api.endpoint.rest.model.Transaction()
+        .id(swanTransaction4().getNode().getId())
+        .label(swanTransaction4().getNode().getLabel())
+        .reference(swanTransaction4().getNode().getReference())
+        .amount(40000)
+        .type(INCOME)
+        .status(TransactionStatus.RELEASED)
+        .paymentDatetime(Instant.parse("2023-01-01T00:00:00.00Z"))
+        .category(null);
   }
 
   public static app.bpartners.api.endpoint.rest.model.Transaction restTransaction3() {
@@ -876,11 +911,15 @@ public class TestUtils {
 
   public static void setUpTransactionRepository(TransactionSwanRepository repository) {
     when(repository.getByIdAccount(any())).thenReturn(
-        List.of(swanTransaction1(), swanTransaction2(),
-            swanTransaction3()));
+        List.of(
+            swanTransaction1(),
+            swanTransaction2(),
+            swanTransaction3(),
+            swanTransaction4()));
     when(repository.findById(swanTransaction1().getNode().getId())).thenReturn(swanTransaction1());
     when(repository.findById(swanTransaction2().getNode().getId())).thenReturn(swanTransaction2());
     when(repository.findById(swanTransaction3().getNode().getId())).thenReturn(swanTransaction3());
+    when(repository.findById(swanTransaction4().getNode().getId())).thenReturn(swanTransaction4());
   }
 
   public static void setUpOnboardingSwanRepositoryMock(OnboardingSwanRepository repository) {
@@ -949,6 +988,26 @@ public class TestUtils {
         .thenReturn(List.of(domainApprovedLegalFile()));
     when(legalFileRepositoryMock.findAllToBeApprovedLegalFilesByUserId(JANE_DOE_ID))
         .thenReturn(List.of(domainApprovedLegalFile()));
+  }
+
+  public static void setUpAccountRepository(AccountRepository accountRepository) {
+    when(accountRepository.findById(any())).thenReturn(joeModelAccount());
+    when(accountRepository.findByBearer(any())).thenReturn(List.of(joeModelAccount()));
+    when(accountRepository.findByUserId(any())).thenReturn(List.of(joeModelAccount()));
+    when(accountRepository.saveAll(anyList(), any())).thenReturn(List.of(joeModelAccount()));
+  }
+
+  private static Account joeModelAccount() {
+    return Account.builder()
+        .id(joeDoeSwanAccount().getId())
+        .userId("joe_doe_id")
+        .name(joeDoeSwanAccount().getName())
+        .iban(joeDoeSwanAccount().getIban())
+        .bic(joeDoeSwanAccount().getBic())
+        .availableBalance(
+            parseFraction(joeDoeSwanAccount().getBalances().getAvailable().getValue()))
+        .status(OPENED)
+        .build();
   }
 
   public static void assertThrowsApiException(String expectedBody, Executable executable) {

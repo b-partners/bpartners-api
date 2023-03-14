@@ -1166,6 +1166,7 @@ components:
         - UPCOMING
         - UNKNOWN
         - REJECTED
+        - RELEASED
     OrderDirection:
       type: string
       enum:

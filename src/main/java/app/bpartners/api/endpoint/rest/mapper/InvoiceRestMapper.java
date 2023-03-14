@@ -42,7 +42,7 @@ public class InvoiceRestMapper {
   private final CustomerRestMapper customerMapper;
   private final CustomerRepository customerRepository;
   private final ProductRestMapper productRestMapper;
-  private final AccountService accountService;
+  private final AccountService accountService; //TODO: change to authResourceProvider
   private final CrupdateInvoiceValidator crupdateInvoiceValidator;
   private final InvoiceJpaRepository invoiceJpaRepository;
 

@@ -17,6 +17,7 @@ import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
 import app.bpartners.api.integration.conf.S3AbstractContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
 import app.bpartners.api.manager.ProjectTokenManager;
+import app.bpartners.api.repository.AccountRepository;
 import app.bpartners.api.repository.LegalFileRepository;
 import app.bpartners.api.repository.fintecture.FintectureConf;
 import app.bpartners.api.repository.fintecture.FintecturePaymentInitiationRepository;
@@ -80,6 +81,7 @@ import static app.bpartners.api.integration.conf.TestUtils.setUpLegalFileReposit
 import static app.bpartners.api.integration.conf.TestUtils.setUpPaymentInitiationRep;
 import static app.bpartners.api.integration.conf.TestUtils.setUpSwanComponent;
 import static app.bpartners.api.integration.conf.TestUtils.setUpUserSwanRepository;
+import static app.bpartners.api.integration.conf.TestUtils.setUpAccountRepository;
 import static app.bpartners.api.model.Invoice.DEFAULT_DELAY_PENALTY_PERCENT;
 import static app.bpartners.api.model.Invoice.DEFAULT_TO_PAY_DELAY_DAYS;
 import static java.util.UUID.randomUUID;
@@ -131,6 +133,8 @@ class InvoiceIT {
   private LegalFileRepository legalFileRepositoryMock;
   @MockBean
   private AccountHolderJpaRepository holderJpaRepository;
+  @MockBean
+  private AccountRepository accountRepository;
 
   private static ApiClient anApiClient() {
     return TestUtils.anApiClient(JOE_DOE_TOKEN, InvoiceIT.ContextInitializer.SERVER_PORT);
@@ -186,6 +190,7 @@ class InvoiceIT {
         .thenReturn(Optional.of(accountHolderEntity1()));
     when(holderJpaRepository.save(any()))
         .thenReturn(accountHolderEntity1());
+    setUpAccountRepository(accountRepository);
   }
 
   private HAccountHolder accountHolderEntity1() {

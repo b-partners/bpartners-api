@@ -40,4 +40,7 @@ public class BridgeConf {
   public String getAddItemUrl() {
     return baseUrl + "/connect/items/add";
   }
+  public String getGetItemUrl() {
+    return baseUrl + "/items";
+  }
 }

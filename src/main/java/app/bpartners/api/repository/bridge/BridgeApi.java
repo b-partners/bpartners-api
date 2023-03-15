@@ -34,15 +34,33 @@ public class BridgeApi {
     this.conf = conf;
   }
 
+  public BridgeUser findById(String uuid) {
+    try {
+      HttpRequest request = HttpRequest.newBuilder()
+          .uri(new URI(conf.getUserUrl() + "/" + uuid))
+          .headers(defaultHeaders())
+          .GET()
+          .build();
+      HttpResponse<String> httpResponse =
+          httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+      if (httpResponse.statusCode() != 200 && httpResponse.statusCode() != 201) {
+        log.warn("BridgeApi errors : {}", httpResponse.body());
+        return null;
+      }
+      return objectMapper.readValue(httpResponse.body(), BridgeUser.class);
+    } catch (URISyntaxException | IOException e) {
+      throw new ApiException(SERVER_EXCEPTION, e);
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new ApiException(SERVER_EXCEPTION, e);
+    }
+  }
+
   public List<BridgeUser> findAllUsers() {
     try {
       HttpRequest request = HttpRequest.newBuilder()
           .uri(new URI(conf.getUserUrl()))
-          .headers(
-              "Content-Type", "application/json",
-              "Client-Id", conf.getClientId(),
-              "Client-Secret", conf.getClientSecret(),
-              "Bridge-Version", conf.getBridgeVersion())
+          .headers(defaultHeadersWithJsonContentType())
           .GET()
           .build();
       HttpResponse<String> httpResponse =
@@ -67,11 +85,7 @@ public class BridgeApi {
     try {
       HttpRequest request = HttpRequest.newBuilder()
           .uri(new URI(conf.getUserUrl()))
-          .headers(
-              "Content-Type", "application/json",
-              "Client-Id", conf.getClientId(),
-              "Client-Secret", conf.getClientSecret(),
-              "Bridge-Version", conf.getBridgeVersion())
+          .headers(defaultHeadersWithJsonContentType())
           .POST(HttpRequest.BodyPublishers.ofString(
               objectMapper.writeValueAsString(createBridgeUser)))
           .build();
@@ -94,11 +108,7 @@ public class BridgeApi {
     try {
       HttpRequest request = HttpRequest.newBuilder()
           .uri(new URI(conf.getAuthUrl()))
-          .headers(
-              "Content-Type", "application/json",
-              "Client-Id", conf.getClientId(),
-              "Client-Secret", conf.getClientSecret(),
-              "Bridge-Version", conf.getBridgeVersion())
+          .headers(defaultHeadersWithJsonContentType())
           .POST(HttpRequest.BodyPublishers.ofString(
               objectMapper.writeValueAsString(user)))
           .build();
@@ -117,4 +127,25 @@ public class BridgeApi {
     }
   }
 
+  public String[] defaultHeaders() {
+    return new String[] {
+        "Client-Id", conf.getClientId(),
+        "Client-Secret", conf.getClientSecret(),
+        "Bridge-Version", conf.getBridgeVersion()
+    };
+  }
+
+  public String[] defaultHeadersWithJsonContentType() {
+    return new String[] {
+        "Content-Type", "application/json",
+        "Client-Id", conf.getClientId(),
+        "Client-Secret", conf.getClientSecret(),
+        "Bridge-Version", conf.getBridgeVersion()};
+  }
+
+  List<String> addParams(List<String> headers, String paramName, String paramValue) {
+    headers.add(paramName);
+    headers.add(paramValue);
+    return headers;
+  }
 }

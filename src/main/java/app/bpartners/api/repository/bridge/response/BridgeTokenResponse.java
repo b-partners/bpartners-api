@@ -1,6 +1,6 @@
 package app.bpartners.api.repository.bridge.response;
 
-import app.bpartners.api.repository.bridge.model.BridgeUser;
+import app.bpartners.api.repository.bridge.model.User.BridgeUser;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.Instant;
 import lombok.AllArgsConstructor;
@@ -16,7 +16,7 @@ import lombok.ToString;
 @EqualsAndHashCode
 @Data
 @ToString
-public class BridgeUserToken {
+public class BridgeTokenResponse {
   @JsonProperty("user")
   private BridgeUser user;
   @JsonProperty("access_token")

@@ -15,6 +15,7 @@ import app.bpartners.api.repository.sendinblue.SendinblueConf;
 import app.bpartners.api.repository.swan.AccountSwanRepository;
 import app.bpartners.api.repository.swan.UserSwanRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -22,6 +23,8 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
@@ -59,7 +62,17 @@ public class BridgeIT {
         .email("bpartners.artisans@mail.com")
         .build();
   }
-//TODO: do not skip this test
+
+  //TODO: do not run this test
+//  @Test
+//  void read_user_by_id_ok() {
+//    BridgeUser actual = subject.findById(bridgeUser().getUuid());
+//
+//    assertNotNull(actual);
+//    assertEquals(bridgeUser(), actual);
+//  }
+
+  //TODO: do not skip this test
 //  @Test
 //  void read_users_ok() {
 //    List<BridgeUser> actual = subject.findAllUsers();

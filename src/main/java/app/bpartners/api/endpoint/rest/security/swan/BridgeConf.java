@@ -52,4 +52,8 @@ public class BridgeConf {
   public String getTransactionUpdatedUrl() {
     return baseUrl + "/transactions/updated";
   }
+
+  public String getTransactionUrl() {
+    return baseUrl + "/transactions";
+  }
 }

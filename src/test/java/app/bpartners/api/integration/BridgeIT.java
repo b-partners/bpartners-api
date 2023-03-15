@@ -31,6 +31,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @Slf4j
 public class BridgeIT {
   public static final String ITEM_ID = "7686392";
+  public static final String TRANSACTION_ID = "36000023191568";
   @MockBean
   private BuildingPermitConf buildingPermitConf;
   @MockBean
@@ -140,6 +141,15 @@ public class BridgeIT {
 //
 //    log.info("BridgeTransactions={}", actual);
 //    assertFalse(actual.isEmpty());
+//  }
+
+  //  TODO: do not run this test
+//  @Test
+//  void read_transaction_by_id_ok() {
+//    BridgeTransaction actual = subject.findTransactionByIdAndToken(TRANSACTION_ID, userToken());
+//
+//    log.info("BridgeTransaction={}", actual);
+//    assertNotNull(actual);
 //  }
 
   private String userToken() {

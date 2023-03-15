@@ -8,13 +8,19 @@ import app.bpartners.api.integration.conf.BridgeAbstractContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
 import app.bpartners.api.manager.ProjectTokenManager;
 import app.bpartners.api.repository.bridge.BridgeApi;
+import app.bpartners.api.repository.bridge.model.Item.BridgeItem;
+import app.bpartners.api.repository.bridge.model.Transaction.BridgeTransaction;
 import app.bpartners.api.repository.bridge.model.User.BridgeUser;
+import app.bpartners.api.repository.bridge.model.User.CreateBridgeUser;
+import app.bpartners.api.repository.bridge.response.BridgeTokenResponse;
 import app.bpartners.api.repository.fintecture.FintectureConf;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitConf;
 import app.bpartners.api.repository.sendinblue.SendinblueConf;
 import app.bpartners.api.repository.swan.AccountSwanRepository;
 import app.bpartners.api.repository.swan.UserSwanRepository;
+import java.util.List;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -22,6 +28,10 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import static org.hibernate.validator.internal.util.Contracts.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
@@ -29,6 +39,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @ContextConfiguration(initializers = BridgeIT.ContextInitializer.class)
 @AutoConfigureMockMvc
 @Slf4j
+//TODO: WARNING ! run these tests locally only
 public class BridgeIT {
   public static final String ITEM_ID = "7686392";
   public static final String TRANSACTION_ID = "36000023191568";
@@ -62,37 +73,34 @@ public class BridgeIT {
         .build();
   }
 
-  //TODO: do not run this test
-//  @Test
-//  void read_user_by_id_ok() {
-//    BridgeUser actual = subject.findById(bridgeUser().getUuid());
-//
-//    assertNotNull(actual);
-//    assertEquals(bridgeUser(), actual);
-//  }
+  @Test
+  void read_user_by_id_ok() {
+    BridgeUser actual = subject.findById(bridgeUser().getUuid());
 
-  //TODO: do not skip this test
-//  @Test
-//  void read_users_ok() {
-//    List<BridgeUser> actual = subject.findAllUsers();
-//
-//    assertFalse(actual.isEmpty());
-//    assertTrue(actual.contains(bridgeUser()));
-//  }
+    assertNotNull(actual);
+    assertEquals(bridgeUser(), actual);
+  }
 
-  //TODO: do not run this test
-//  @Test
-//  void authenticate_user_ok() {
-//    BridgeUserToken accessToken = subject.authenticateUser(CreateBridgeUser.builder()
-//        .email(bridgeUser().getEmail())
-//        .password("12345678") //TODO
-//        .build());
-//
-//    log.info("Token={}", accessToken);
-//    assertNotNull(accessToken);
-//  }
+  @Test
+  void read_users_ok() {
+    List<BridgeUser> actual = subject.findAllUsers();
 
-  //TODO: do not run this test
+    assertFalse(actual.isEmpty());
+    assertTrue(actual.contains(bridgeUser()));
+  }
+
+  @Test
+  void authenticate_user_ok() {
+    BridgeTokenResponse accessToken = subject.authenticateUser(CreateBridgeUser.builder()
+        .email(bridgeUser().getEmail())
+        .password("12345678") //TODO
+        .build());
+
+    log.info("Token={}", accessToken);
+    assertNotNull(accessToken);
+  }
+
+  //  TODO: do not run this test
 //  @Test
 //  void create_users_ok() {
 //    BridgeUser actual = subject.createUser(CreateBridgeUser.builder()
@@ -103,7 +111,7 @@ public class BridgeIT {
 //    assertNotNull(actual);
 //  }
 
-  //TODO: do not run this test
+  //  TODO: do not run this test
 //  @Test
 //  void initiate_user_bank_connection() {
 //    String token = "3581737fcda23c123af74298b46cd688dd231f8d-2b277aff-2fe5-46a7-a615-1adeb4d3b56c";
@@ -116,41 +124,37 @@ public class BridgeIT {
 //    assertNotNull(actual);
 //  }
 
-//  TODO: do not run this test
-//  @Test
-//  void read_items_ok() {
-//    List<BridgeItem> actual = subject.findItemsByToken(userToken());
-//
-//    log.info("BridgeItems={}", actual);
-//    assertFalse(actual.isEmpty());
-//  }
+  @Test
+  void read_items_ok() {
+    List<BridgeItem> actual = subject.findItemsByToken(userToken());
 
-  //  TODO: do not run this test
-//  @Test
-//  void read_item_by_id_ok() {
-//    BridgeItem actual = subject.findItemByIdAndToken(ITEM_ID, userToken());
-//
-//    log.info("BridgeItem={}", actual);
-//    assertNotNull(actual);
-//  }
+    log.info("BridgeItems={}", actual);
+    assertFalse(actual.isEmpty());
+  }
 
-  //  TODO: do not run this test
-//  @Test
-//  void read_transactions_ok() {
-//    List<BridgeTransaction> actual = subject.findTransactionsUpdatedByToken(userToken());
-//
-//    log.info("BridgeTransactions={}", actual);
-//    assertFalse(actual.isEmpty());
-//  }
+  @Test
+  void read_item_by_id_ok() {
+    BridgeItem actual = subject.findItemByIdAndToken(ITEM_ID, userToken());
 
-  //  TODO: do not run this test
-//  @Test
-//  void read_transaction_by_id_ok() {
-//    BridgeTransaction actual = subject.findTransactionByIdAndToken(TRANSACTION_ID, userToken());
-//
-//    log.info("BridgeTransaction={}", actual);
-//    assertNotNull(actual);
-//  }
+    log.info("BridgeItem={}", actual);
+    assertNotNull(actual);
+  }
+
+  @Test
+  void read_transactions_ok() {
+    List<BridgeTransaction> actual = subject.findTransactionsUpdatedByToken(userToken());
+
+    log.info("BridgeTransactions={}", actual);
+    assertFalse(actual.isEmpty());
+  }
+
+  @Test
+  void read_transaction_by_id_ok() {
+    BridgeTransaction actual = subject.findTransactionByIdAndToken(TRANSACTION_ID, userToken());
+
+    log.info("BridgeTransaction={}", actual);
+    assertNotNull(actual);
+  }
 
   private String userToken() {
     return "dd8c23a8b8dcbffed9cef7a179724c52cb0c5e5c-03ecb5e1-bed6-4a14-89ee-9bfbaff7780e";

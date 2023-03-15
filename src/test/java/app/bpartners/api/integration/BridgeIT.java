@@ -15,7 +15,6 @@ import app.bpartners.api.repository.sendinblue.SendinblueConf;
 import app.bpartners.api.repository.swan.AccountSwanRepository;
 import app.bpartners.api.repository.swan.UserSwanRepository;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -23,8 +22,6 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
@@ -89,6 +86,7 @@ public class BridgeIT {
 //        .password("12345678") //TODO
 //        .build());
 //
+//    log.info("Token={}", accessToken);
 //    assertNotNull(accessToken);
 //  }
 
@@ -100,6 +98,19 @@ public class BridgeIT {
 //        .password("password")
 //        .build());
 //
+//    assertNotNull(actual);
+//  }
+
+  //TODO: do not run this test
+//  @Test
+//  void initiate_user_bank_connection() {
+//    String token = "3581737fcda23c123af74298b46cd688dd231f8d-2b277aff-2fe5-46a7-a615-1adeb4d3b56c";
+//    String actual = subject.initiateBankConnection(
+//        CreateBridgeItem.builder()
+//            .prefillEmail(bridgeUser().getEmail())
+//            .build(), token);
+//
+//    log.info("Connect redirect url={}", actual);
 //    assertNotNull(actual);
 //  }
 

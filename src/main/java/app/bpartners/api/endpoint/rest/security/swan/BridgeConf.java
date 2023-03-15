@@ -11,6 +11,7 @@ public class BridgeConf {
   private String clientSecret;
   private String baseUrl;
   private String bridgeVersion;
+  public static final String FRANCE_BANK_COUNTRY_CODE = "fr";
 
   public BridgeConf(
       @Value("${bridge.client.id}")
@@ -34,5 +35,9 @@ public class BridgeConf {
 
   public String getAuthUrl() {
     return baseUrl + "/authenticate";
+  }
+
+  public String getAddItemUrl() {
+    return baseUrl + "/connect/items/add";
   }
 }

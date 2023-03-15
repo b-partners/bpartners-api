@@ -30,6 +30,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @AutoConfigureMockMvc
 @Slf4j
 public class BridgeIT {
+  public static final String ITEM_ID = "7686392";
   @MockBean
   private BuildingPermitConf buildingPermitConf;
   @MockBean
@@ -121,6 +122,15 @@ public class BridgeIT {
 //
 //    log.info("BridgeItems={}", actual);
 //    assertFalse(actual.isEmpty());
+//  }
+
+  //  TODO: do not run this test
+//  @Test
+//  void read_item_by_id_ok() {
+//    BridgeItem actual = subject.findItemByIdAndToken(ITEM_ID, userToken());
+//
+//    log.info("BridgeItem={}", actual);
+//    assertNotNull(actual);
 //  }
 
   private String userToken() {

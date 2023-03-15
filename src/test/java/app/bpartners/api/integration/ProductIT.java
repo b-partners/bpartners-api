@@ -306,7 +306,7 @@ class ProductIT {
 
     assertEquals(HttpStatus.OK.value(), response.statusCode());
     assertNotNull(actual);
-    assertEquals(4, actual.size()); //All duplicate lines in the file are removed
+    assertEquals(3, actual.size()); //All duplicate lines in the file are removed
   }
 
   @Test

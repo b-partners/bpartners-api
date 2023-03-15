@@ -48,4 +48,8 @@ public class BridgeConf {
   public String getItemByIdUrl(String id) {
     return baseUrl + "/items/" + id;
   }
+
+  public String getTransactionUpdatedUrl() {
+    return baseUrl + "/transactions/updated";
+  }
 }

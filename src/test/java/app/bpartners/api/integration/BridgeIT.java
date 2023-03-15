@@ -133,6 +133,15 @@ public class BridgeIT {
 //    assertNotNull(actual);
 //  }
 
+  //  TODO: do not run this test
+//  @Test
+//  void read_transactions_ok() {
+//    List<BridgeTransaction> actual = subject.findTransactionsUpdatedByToken(userToken());
+//
+//    log.info("BridgeTransactions={}", actual);
+//    assertFalse(actual.isEmpty());
+//  }
+
   private String userToken() {
     return "dd8c23a8b8dcbffed9cef7a179724c52cb0c5e5c-03ecb5e1-bed6-4a14-89ee-9bfbaff7780e";
   }

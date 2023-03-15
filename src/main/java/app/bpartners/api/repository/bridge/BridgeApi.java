@@ -2,12 +2,12 @@ package app.bpartners.api.repository.bridge;
 
 import app.bpartners.api.endpoint.rest.security.swan.BridgeConf;
 import app.bpartners.api.model.exception.ApiException;
-import app.bpartners.api.repository.bridge.model.BridgeItem;
-import app.bpartners.api.repository.bridge.model.BridgeUser;
-import app.bpartners.api.repository.bridge.model.CreateBridgeItem;
-import app.bpartners.api.repository.bridge.model.CreateBridgeUser;
+import app.bpartners.api.repository.bridge.model.Item.BridgeItem;
+import app.bpartners.api.repository.bridge.model.User.BridgeUser;
+import app.bpartners.api.repository.bridge.model.Item.CreateBridgeItem;
+import app.bpartners.api.repository.bridge.model.User.CreateBridgeUser;
 import app.bpartners.api.repository.bridge.response.BridgeListResponse;
-import app.bpartners.api.repository.bridge.response.BridgeUserToken;
+import app.bpartners.api.repository.bridge.response.BridgeTokenResponse;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
@@ -109,7 +109,7 @@ public class BridgeApi {
     }
   }
 
-  public BridgeUserToken authenticateUser(CreateBridgeUser user) {
+  public BridgeTokenResponse authenticateUser(CreateBridgeUser user) {
     try {
       HttpRequest request = HttpRequest.newBuilder()
           .uri(new URI(conf.getAuthUrl()))
@@ -123,7 +123,7 @@ public class BridgeApi {
         log.warn("BridgeApi errors : {}", httpResponse.body());
         return null;
       }
-      return objectMapper.readValue(httpResponse.body(), BridgeUserToken.class);
+      return objectMapper.readValue(httpResponse.body(), BridgeTokenResponse.class);
     } catch (URISyntaxException | IOException e) {
       throw new ApiException(SERVER_EXCEPTION, e);
     } catch (InterruptedException e) {

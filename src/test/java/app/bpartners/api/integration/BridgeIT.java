@@ -8,7 +8,7 @@ import app.bpartners.api.integration.conf.BridgeAbstractContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
 import app.bpartners.api.manager.ProjectTokenManager;
 import app.bpartners.api.repository.bridge.BridgeApi;
-import app.bpartners.api.repository.bridge.model.BridgeUser;
+import app.bpartners.api.repository.bridge.model.User.BridgeUser;
 import app.bpartners.api.repository.fintecture.FintectureConf;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitConf;
 import app.bpartners.api.repository.sendinblue.SendinblueConf;

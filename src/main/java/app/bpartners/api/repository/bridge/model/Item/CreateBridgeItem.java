@@ -1,4 +1,4 @@
-package app.bpartners.api.repository.bridge.model;
+package app.bpartners.api.repository.bridge.model.Item;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;

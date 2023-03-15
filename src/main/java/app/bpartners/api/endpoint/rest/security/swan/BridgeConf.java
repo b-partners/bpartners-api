@@ -31,4 +31,8 @@ public class BridgeConf {
   public String getUserUrl() {
     return baseUrl + "/users";
   }
+
+  public String getAuthUrl() {
+    return baseUrl + "/authenticate";
+  }
 }

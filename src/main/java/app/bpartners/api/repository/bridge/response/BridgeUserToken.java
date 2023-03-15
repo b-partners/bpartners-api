@@ -2,7 +2,7 @@ package app.bpartners.api.repository.bridge.response;
 
 import app.bpartners.api.repository.bridge.model.BridgeUser;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.List;
+import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -16,18 +16,12 @@ import lombok.ToString;
 @EqualsAndHashCode
 @Data
 @ToString
-public class BridgeUserResponse {
-  @JsonProperty("resources")
-  private List<BridgeUser> users;
-  @JsonProperty("pagination")
-  private Pagination pagination;
+public class BridgeUserToken {
+  @JsonProperty("user")
+  private BridgeUser user;
+  @JsonProperty("access_token")
+  private String accessToken;
+  @JsonProperty("expires_at")
+  private Instant expirationDate;
 
-  @AllArgsConstructor
-  @NoArgsConstructor
-  @Builder
-  @Data
-  public static class Pagination {
-    @JsonProperty("next_uri")
-    private String nextUri;
-  }
 }

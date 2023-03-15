@@ -68,6 +68,28 @@ public class BridgeIT {
 //    assertTrue(actual.contains(bridgeUser()));
 //  }
 
+  //TODO: do not run this test
+//  @Test
+//  void authenticate_user_ok() {
+//    BridgeUserToken accessToken = subject.authenticateUser(CreateBridgeUser.builder()
+//        .email(bridgeUser().getEmail())
+//        .password("12345678") //TODO
+//        .build());
+//
+//    assertNotNull(accessToken);
+//  }
+
+  //TODO: do not run this test
+//  @Test
+//  void create_users_ok() {
+//    BridgeUser actual = subject.createUser(CreateBridgeUser.builder()
+//        .email("dummy." + randomUUID() + "@email.com")
+//        .password("password")
+//        .build());
+//
+//    assertNotNull(actual);
+//  }
+
   public static class ContextInitializer extends BridgeAbstractContextInitializer {
     public static final int SERVER_PORT = TestUtils.anAvailableRandomPort();
 

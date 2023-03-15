@@ -8,7 +8,7 @@ on:
 
 jobs:
   deploy_compute_stack:
-    if: github.ref_name == 'dev' || github.ref_name == 'preprod'
+    if: github.ref_name == 'preprod'
     uses: ./.github/workflows/cd-compute.yml
     with:
       run_tests: false

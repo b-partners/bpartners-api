@@ -3,6 +3,7 @@ package app.bpartners.api.repository.bridge;
 import app.bpartners.api.endpoint.rest.security.swan.BridgeConf;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.repository.bridge.model.BridgeUser;
+import app.bpartners.api.repository.bridge.model.CreateBridgeItem;
 import app.bpartners.api.repository.bridge.model.CreateBridgeUser;
 import app.bpartners.api.repository.bridge.response.BridgeUserListResponse;
 import app.bpartners.api.repository.bridge.response.BridgeUserToken;
@@ -14,11 +15,14 @@ import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import static app.bpartners.api.endpoint.rest.security.swan.SwanConf.BEARER_PREFIX;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 
 @Component
@@ -127,6 +131,33 @@ public class BridgeApi {
     }
   }
 
+  public String initiateBankConnection(CreateBridgeItem item, String token) {
+    try {
+      ArrayList<String> requestHeaders =
+          new ArrayList<>(Arrays.asList(defaultHeadersWithToken(token)));
+      addParams(requestHeaders, "Content-Type", "application/json");
+      String[] headers = new String[requestHeaders.size()];
+      HttpRequest request = HttpRequest.newBuilder()
+          .uri(new URI(conf.getAddItemUrl()))
+          .headers(requestHeaders.toArray(headers))
+          .POST(HttpRequest.BodyPublishers.ofString(
+              objectMapper.writeValueAsString(item)))
+          .build();
+      HttpResponse<String> httpResponse =
+          httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+      if (httpResponse.statusCode() != 200 && httpResponse.statusCode() != 201) {
+        log.warn("BridgeApi errors : {}", httpResponse.body());
+        return null;
+      }
+      return httpResponse.body();
+    } catch (URISyntaxException | IOException e) {
+      throw new ApiException(SERVER_EXCEPTION, e);
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new ApiException(SERVER_EXCEPTION, e);
+    }
+  }
+
   public String[] defaultHeaders() {
     return new String[] {
         "Client-Id", conf.getClientId(),
@@ -143,7 +174,15 @@ public class BridgeApi {
         "Bridge-Version", conf.getBridgeVersion()};
   }
 
-  List<String> addParams(List<String> headers, String paramName, String paramValue) {
+  public String[] defaultHeadersWithToken(String token) {
+    return new String[] {
+        "Authorization", BEARER_PREFIX + token,
+        "Client-Id", conf.getClientId(),
+        "Client-Secret", conf.getClientSecret(),
+        "Bridge-Version", conf.getBridgeVersion()};
+  }
+
+  List<String> addParams(ArrayList<String> headers, String paramName, String paramValue) {
     headers.add(paramName);
     headers.add(paramValue);
     return headers;

@@ -2,10 +2,11 @@ package app.bpartners.api.repository.bridge;
 
 import app.bpartners.api.endpoint.rest.security.swan.BridgeConf;
 import app.bpartners.api.model.exception.ApiException;
+import app.bpartners.api.repository.bridge.model.BridgeItem;
 import app.bpartners.api.repository.bridge.model.BridgeUser;
 import app.bpartners.api.repository.bridge.model.CreateBridgeItem;
 import app.bpartners.api.repository.bridge.model.CreateBridgeUser;
-import app.bpartners.api.repository.bridge.response.BridgeUserListResponse;
+import app.bpartners.api.repository.bridge.response.BridgeListResponse;
 import app.bpartners.api.repository.bridge.response.BridgeUserToken;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -73,10 +74,10 @@ public class BridgeApi {
         log.warn("BridgeApi errors : {}", httpResponse.body());
         return List.of();
       }
-      BridgeUserListResponse response = objectMapper.readValue(httpResponse.body(),
+      BridgeListResponse<BridgeUser> response = objectMapper.readValue(httpResponse.body(),
           new TypeReference<>() {
           });
-      return response.getUsers();
+      return response.getResources();
     } catch (URISyntaxException | IOException e) {
       throw new ApiException(SERVER_EXCEPTION, e);
     } catch (InterruptedException e) {
@@ -150,6 +151,31 @@ public class BridgeApi {
         return null;
       }
       return httpResponse.body();
+    } catch (URISyntaxException | IOException e) {
+      throw new ApiException(SERVER_EXCEPTION, e);
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new ApiException(SERVER_EXCEPTION, e);
+    }
+  }
+
+  public List<BridgeItem> findItemsByToken(String token) {
+    try {
+      HttpRequest request = HttpRequest.newBuilder()
+          .uri(new URI(conf.getGetItemUrl()))
+          .headers(defaultHeadersWithToken(token))
+          .GET()
+          .build();
+      HttpResponse<String> httpResponse =
+          httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+      if (httpResponse.statusCode() != 200) {
+        log.warn("BridgeApi errors : {}", httpResponse.body());
+        return List.of();
+      }
+      BridgeListResponse<BridgeItem> response = objectMapper.readValue(httpResponse.body(),
+          new TypeReference<>() {
+          });
+      return response.getResources();
     } catch (URISyntaxException | IOException e) {
       throw new ApiException(SERVER_EXCEPTION, e);
     } catch (InterruptedException e) {

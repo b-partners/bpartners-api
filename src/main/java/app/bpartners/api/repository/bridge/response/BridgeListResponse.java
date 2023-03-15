@@ -1,6 +1,5 @@
 package app.bpartners.api.repository.bridge.response;
 
-import app.bpartners.api.repository.bridge.model.BridgeUser;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 import lombok.AllArgsConstructor;
@@ -16,9 +15,9 @@ import lombok.ToString;
 @EqualsAndHashCode
 @Data
 @ToString
-public class BridgeUserListResponse {
+public class BridgeListResponse<T> {
   @JsonProperty("resources")
-  private List<BridgeUser> users;
+  private List<T> resources;
   @JsonProperty("pagination")
   private Pagination pagination;
 

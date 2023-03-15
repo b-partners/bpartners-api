@@ -3,9 +3,9 @@ package app.bpartners.api.repository.bridge;
 import app.bpartners.api.endpoint.rest.security.swan.BridgeConf;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.repository.bridge.model.Item.BridgeItem;
+import app.bpartners.api.repository.bridge.model.Item.CreateBridgeItem;
 import app.bpartners.api.repository.bridge.model.Transaction.BridgeTransaction;
 import app.bpartners.api.repository.bridge.model.User.BridgeUser;
-import app.bpartners.api.repository.bridge.model.Item.CreateBridgeItem;
 import app.bpartners.api.repository.bridge.model.User.CreateBridgeUser;
 import app.bpartners.api.repository.bridge.response.BridgeListResponse;
 import app.bpartners.api.repository.bridge.response.BridgeTokenResponse;
@@ -232,6 +232,27 @@ public class BridgeApi {
     }
   }
 
+  public BridgeTransaction findTransactionByIdAndToken(String id, String userToken) {
+    try {
+      HttpRequest request = HttpRequest.newBuilder()
+          .uri(new URI(conf.getTransactionUrl() + "/" + id))
+          .headers(defaultHeadersWithToken(userToken))
+          .GET()
+          .build();
+      HttpResponse<String> httpResponse =
+          httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+      if (httpResponse.statusCode() != 200) {
+        log.warn("BridgeApi errors : {}", httpResponse.body());
+        return null;
+      }
+      return objectMapper.readValue(httpResponse.body(), BridgeTransaction.class);
+    } catch (URISyntaxException | IOException e) {
+      throw new ApiException(SERVER_EXCEPTION, e);
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new ApiException(SERVER_EXCEPTION, e);
+    }
+  }
 
   public String[] defaultHeaders() {
     return new String[] {

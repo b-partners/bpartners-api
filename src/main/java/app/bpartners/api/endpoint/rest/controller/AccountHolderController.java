@@ -62,7 +62,7 @@ public class AccountHolderController {
   ) {
     return accountHolderMapper.toRest(
         accountHolderService.updateBusinessActivities(accountId, accountHolderId,
-            businessActivityMapper.toDomain(businessActivity)
+            businessActivityMapper.toDomain(accountId, businessActivity)
         )
     );
   }

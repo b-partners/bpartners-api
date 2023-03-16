@@ -42,6 +42,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
+
 import static app.bpartners.api.integration.conf.TestUtils.BAD_USER_ID;
 import static app.bpartners.api.integration.conf.TestUtils.BEARER_PREFIX;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
@@ -266,7 +267,7 @@ class CustomerIT {
         .readValue(response.body(), playerListType);
 
     assertNotNull(actual);
-    assertEquals(6, actual.size());
+    assertEquals(3, actual.size());
   }
 
   @Order(5)

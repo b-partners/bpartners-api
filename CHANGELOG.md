@@ -1,14 +1,29 @@
-## [0.8.3](https://github.com/b-partners/bpartners-api/compare/v0.8.2...v0.8.3) (2023-03-08)
+# [0.9.0](https://github.com/b-partners/bpartners-api/compare/v0.8.2...v0.9.0) (2023-03-16)
 
 
 ### Bug Fixes
 
+* account is not updated when user is not associated ([46d9aa9](https://github.com/b-partners/bpartners-api/commit/46d9aa95d9f7e634849d6f34617138d160e98512))
 * add percent value on each invoice payment regulation ([6ded317](https://github.com/b-partners/bpartners-api/commit/6ded317e5f3f04f18fa3ab600776d9aa8603d9c8))
+* associate accounts to user during mapping   ([2809561](https://github.com/b-partners/bpartners-api/commit/28095611cbe188e7494ca482a1121d8238c5e202))
+* ignore unknown properties with sogefi api ([cae33ee](https://github.com/b-partners/bpartners-api/commit/cae33ee7ddf90f20d551abae1e09ca9a6a01400e))
+* payment initiation reference is correctly computed ([2946fc9](https://github.com/b-partners/bpartners-api/commit/2946fc9037558d39190d08e79e04f135b07852ad))
 * payments regulations are correctly persisted ([b5edd73](https://github.com/b-partners/bpartners-api/commit/b5edd73482a8521e160cdf79223588a8a52b9c23))
-* persisted account is associated to persisted user during mapping ([dabe933](https://github.com/b-partners/bpartners-api/commit/dabe933607456131ec972977ca9d8084dee80a5c))
-* return empty list when swan transactions is empty ([aff9cbf](https://github.com/b-partners/bpartners-api/commit/aff9cbfbadff064cc0b527d250a8097dadf47b88))
+* products are ordered by created date time descending by default ([7ba7c9f](https://github.com/b-partners/bpartners-api/commit/7ba7c9f4ecb0208daa301e2a0e0f269ac0a91798))
+* repair minor bugs ([f99fe90](https://github.com/b-partners/bpartners-api/commit/f99fe90829062474b42d8ce01e8d53d948a08f55))
+* returns persisted user during whoami if swan token not provided ([095fa77](https://github.com/b-partners/bpartners-api/commit/095fa77abcda848bb06a6b3336de4960eebd9ffe))
+* same transaction category type handles multiples transaction type ([b41f1ab](https://github.com/b-partners/bpartners-api/commit/b41f1ab13403704c415e02c7e4af4ed00949ce96))
 * show payment regulation in invoice generated pdf ([bb848bb](https://github.com/b-partners/bpartners-api/commit/bb848bbf45225ec0ad9f99913db25350031fd6ae))
-* whoami returns persisted user if cognito token is provided ([2fb908f](https://github.com/b-partners/bpartners-api/commit/2fb908fdf3d0084344ba334a648825ffff33b8dc))
+* typo in tile_layer and roofer ([585a4b3](https://github.com/b-partners/bpartners-api/commit/585a4b35ee6a63c92a4cc5c5818270669997834f))
+* unique invoice payment label is invoice reference ([1812541](https://github.com/b-partners/bpartners-api/commit/181254113264999a07f4a1ed84354a8e4a43f865))
+* use invoice real reference in payment initiation ([e25e647](https://github.com/b-partners/bpartners-api/commit/e25e64757a483f4eb1a44c398fa286e4f5bc699c))
+
+
+### Features
+
+* filter customers by criteria ([37506da](https://github.com/b-partners/bpartners-api/commit/37506da2e0f786731b0d35672b79834411b637fa))
+* filter products by criteria ([730a148](https://github.com/b-partners/bpartners-api/commit/730a1481c79608b7fab185297232a049a0c4c7e1))
+* prospects are fetched from sogefi buildingpermit ([#510](https://github.com/b-partners/bpartners-api/issues/510)) ([444ecc9](https://github.com/b-partners/bpartners-api/commit/444ecc976937cc1f6a8be3d81944e3312a63349e))
 
 
 

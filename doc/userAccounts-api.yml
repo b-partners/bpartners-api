@@ -494,6 +494,9 @@ components:
           type: integer
         tvaNumber:
           type: string
+        #should be moved to ContactAddress ASAP
+        location:
+          $ref: './prospecting-api.yml/#/components/schemas/Geojson'
     CompanyBusinessActivity:
       type: object
       properties:

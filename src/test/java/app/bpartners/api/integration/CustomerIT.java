@@ -27,6 +27,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.MethodOrderer;
@@ -41,7 +42,6 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
-
 import static app.bpartners.api.integration.conf.TestUtils.BAD_USER_ID;
 import static app.bpartners.api.integration.conf.TestUtils.BEARER_PREFIX;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
@@ -131,42 +131,42 @@ class CustomerIT {
 
     List<Customer> actualNoFilter = api.getCustomers(
         JOE_DOE_ACCOUNT_ID, null, null, null, null, null, null, 1, 20);
-//    List<Customer> actualFilteredByFirstAndLastName = api.getCustomers(
-//        JOE_DOE_ACCOUNT_ID, "Jean", "Plombier", null, null, null, null, 1, 20);
-//    List<Customer> actualFilteredByEmail = api.getCustomers(
-//        JOE_DOE_ACCOUNT_ID, null, null, "jean@email", null, null, null, 1, 20);
-//    List<Customer> actualFilteredByPhoneNumber = api.getCustomers(
-//        JOE_DOE_ACCOUNT_ID, null, null, null, "+33 12 34 56 78", null, null, 1, 20);
-//    List<Customer> actualFilteredByCity = api.getCustomers(
-//        JOE_DOE_ACCOUNT_ID, null, null, null, null, "Metz", null, 1, 20);
-//    List<Customer> actualFilteredByCountry = api.getCustomers(
-//        JOE_DOE_ACCOUNT_ID, null, null, null, null, null, "Allemagne", 1, 20);
-//    List<Customer> actualFilteredByFirstNameAndCity = api.getCustomers(
-//        JOE_DOE_ACCOUNT_ID, "Jean", null, null, null, "Montmorency", null, 1, 20);
-//    List<Customer> allFilteredResults = new ArrayList<>();
-//    allFilteredResults.addAll(actualFilteredByFirstAndLastName);
-//    allFilteredResults.addAll(actualFilteredByEmail);
-//    allFilteredResults.addAll(actualFilteredByPhoneNumber);
-//    allFilteredResults.addAll(actualFilteredByCity);
-//    allFilteredResults.addAll(actualFilteredByCountry);
-//    allFilteredResults.addAll(actualFilteredByFirstNameAndCity);
+    List<Customer> actualFilteredByFirstAndLastName = api.getCustomers(
+        JOE_DOE_ACCOUNT_ID, "Jean", "Plombier", null, null, null, null, 1, 20);
+    List<Customer> actualFilteredByEmail = api.getCustomers(
+        JOE_DOE_ACCOUNT_ID, null, null, "jean@email", null, null, null, 1, 20);
+    List<Customer> actualFilteredByPhoneNumber = api.getCustomers(
+        JOE_DOE_ACCOUNT_ID, null, null, null, "+33 12 34 56 78", null, null, 1, 20);
+    List<Customer> actualFilteredByCity = api.getCustomers(
+        JOE_DOE_ACCOUNT_ID, null, null, null, null, "Metz", null, 1, 20);
+    List<Customer> actualFilteredByCountry = api.getCustomers(
+        JOE_DOE_ACCOUNT_ID, null, null, null, null, null, "Allemagne", 1, 20);
+    List<Customer> actualFilteredByFirstNameAndCity = api.getCustomers(
+        JOE_DOE_ACCOUNT_ID, "Jean", null, null, null, "Montmorency", null, 1, 20);
+    List<Customer> allFilteredResults = new ArrayList<>();
+    allFilteredResults.addAll(actualFilteredByFirstAndLastName);
+    allFilteredResults.addAll(actualFilteredByEmail);
+    allFilteredResults.addAll(actualFilteredByPhoneNumber);
+    allFilteredResults.addAll(actualFilteredByCity);
+    allFilteredResults.addAll(actualFilteredByCountry);
+    allFilteredResults.addAll(actualFilteredByFirstNameAndCity);
 
     assertEquals(4, actualNoFilter.size());
-//    assertEquals(1, actualFilteredByFirstAndLastName.size());
-//    assertEquals(2, actualFilteredByEmail.size());
-//    assertEquals(2, actualFilteredByPhoneNumber.size());
-//    assertEquals(1, actualFilteredByCity.size());
-//    assertEquals(1, actualFilteredByCountry.size());
-//    assertEquals(1, actualFilteredByFirstNameAndCity.size());
+    assertEquals(1, actualFilteredByFirstAndLastName.size());
+    assertEquals(2, actualFilteredByEmail.size());
+    assertEquals(2, actualFilteredByPhoneNumber.size());
+    assertEquals(1, actualFilteredByCity.size());
+    assertEquals(1, actualFilteredByCountry.size());
+    assertEquals(1, actualFilteredByFirstNameAndCity.size());
     assertTrue(actualNoFilter.contains(customer1()));
     assertTrue(actualNoFilter.contains(customer2()));
-//    assertTrue(actualFilteredByFirstAndLastName.contains(customer2()));
-//    assertTrue(actualFilteredByEmail.contains(customer2()));
-//    assertTrue(actualFilteredByPhoneNumber.contains(customer1()));
-//    assertTrue(actualFilteredByPhoneNumber.contains(customer2()));
-//    assertTrue(actualFilteredByCity.contains(customer1()));
-//    assertEquals("Jean Olivier", actualFilteredByCountry.get(0).getFirstName());
-//    assertTrue(actualNoFilter.containsAll(allFilteredResults));
+    assertTrue(actualFilteredByFirstAndLastName.contains(customer2()));
+    assertTrue(actualFilteredByEmail.contains(customer2()));
+    assertTrue(actualFilteredByPhoneNumber.contains(customer1()));
+    assertTrue(actualFilteredByPhoneNumber.contains(customer2()));
+    assertTrue(actualFilteredByCity.contains(customer1()));
+    assertEquals("Jean Olivier", actualFilteredByCountry.get(0).getFirstName());
+    assertTrue(actualNoFilter.containsAll(allFilteredResults));
   }
 
   @Order(1)

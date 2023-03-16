@@ -1,6 +1,7 @@
 package app.bpartners.api.service.utils;
 
 import app.bpartners.api.endpoint.rest.model.CreateCustomer;
+import app.bpartners.api.model.Customer;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.exception.BadRequestException;
 import java.io.IOException;
@@ -102,6 +103,22 @@ public class CustomerUtils {
       cellIndex++;
     }
     return customer;
+  }
+
+  //TODO: Should be improved because it costs too much complexity
+  public static List<Customer> removeDuplicate(List<Customer> list) {
+    for (int i = 0; i < list.size() - 1; i++) {
+      Customer currentCustomer = list.get(i);
+      for (int j = 0; j < list.size(); j++) {
+        Customer nextCustomer = list.get(j);
+        if (currentCustomer.getFirstName().equals(nextCustomer.getFirstName())
+            && currentCustomer.getLastName().equals(nextCustomer.getLastName())
+            && currentCustomer.getEmail().equals(nextCustomer.getEmail())) {
+          list.remove(currentCustomer);
+        }
+      }
+    }
+    return list;
   }
 
   private static void verifyColumnOrder(Iterator<Cell> cell) {

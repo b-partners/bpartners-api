@@ -3,7 +3,6 @@ name: CD storage
 on:
   push:
     branches:
-      - 'dev'
       - 'prod'
       - 'preprod'
   workflow_dispatch:
@@ -15,7 +14,7 @@ on:
 
 jobs:
   cd-storage:
-    if: github.ref_name == 'dev' || github.ref_name == 'prod' || github.ref_name == 'preprod'
+    if: github.ref_name == 'prod' || github.ref_name == 'preprod'
 
     runs-on: ubuntu-latest
     

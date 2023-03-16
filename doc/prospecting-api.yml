@@ -192,8 +192,18 @@ components:
       allOf:
         - $ref: '#/components/schemas/UpdateProspect'
       properties:
+        area:
+          $ref: '#/components/schemas/Area'
+        #deprecated, will be replaced by area
         location:
           $ref: '#/components/schemas/Geojson'
+    Area:
+      type: object
+      properties:
+        geojson:
+          $ref: '#/components/schemas/Geojson'
+        image:
+          $ref: './files-api.yml/#/components/schemas/FileInfo'
     Geojson:
       type: object
       properties:

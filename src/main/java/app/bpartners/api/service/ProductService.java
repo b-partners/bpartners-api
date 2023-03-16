@@ -50,18 +50,19 @@ public class ProductService {
     return checkPersistence(accountId, productsFromFile);
   }
 
-  public List<Product> removeDuplicatedProducts(List<Product> list){
+  public List<Product> removeDuplicatedProducts(List<Product> list) {
     for (int i = 0; i < list.size() - 1; i++) {
       Product currentProduct = list.get(i);
-      for (int j = i+1; j < list.size(); j++) {
+      for (int j = i + 1; j < list.size(); j++) {
         Product nextProduct = list.get(j);
-        if(currentProduct.getDescription().equals(nextProduct.getDescription())){
+        if (currentProduct.getDescription().equals(nextProduct.getDescription())) {
           list.remove(j);
         }
       }
     }
     return list;
   }
+
   private List<Product> checkPersistence(String accountId, List<CreateProduct> createProducts) {
     List<Product> toUpdateList = new ArrayList<>();
     List<Product> toCreateList;

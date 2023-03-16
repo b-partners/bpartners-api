@@ -1,4 +1,4 @@
-package app.bpartners.api.repository.bridge.model;
+package app.bpartners.api.repository.bridge.model.User;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
@@ -14,9 +14,9 @@ import lombok.ToString;
 @EqualsAndHashCode
 @Data
 @ToString
-public class BridgeUser {
-  @JsonProperty("uuid")
-  private String uuid;
+public class CreateBridgeUser {
   @JsonProperty("email")
   private String email;
+  @JsonProperty("password")
+  private String password;
 }

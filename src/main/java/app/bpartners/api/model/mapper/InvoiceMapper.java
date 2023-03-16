@@ -297,9 +297,9 @@ public class InvoiceMapper {
         .collect(Collectors.toUnmodifiableList());
     for (int i = 0; i < payments.size(); i++) {
       if (i != payments.size() - 1) {
-        payments.get(i).setLabel(domain.getRef() + " - Acompte N°" + (i + 1));
+        payments.get(i).setLabel(domain.getTitle() + " - Acompte N°" + (i + 1));
       } else {
-        payments.get(i).setLabel(domain.getRef() + " - Restant dû");
+        payments.get(i).setLabel(domain.getTitle() + " - Restant dû");
       }
     }
     return payments;

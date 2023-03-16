@@ -84,7 +84,7 @@ public class PaymentRequestMapper {
     return PaymentInitiation.builder()
         .id(paymentInitiationId)
         .reference(invoice.getRealReference())
-        .label(invoice.getRealReference())
+        .label(invoice.getTitle())
         .amount(
             payment != null
                 ? payment.getAmountOrPercent(totalPriceWithVat)

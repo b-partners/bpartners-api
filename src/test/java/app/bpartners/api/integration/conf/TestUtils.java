@@ -101,6 +101,7 @@ public class TestUtils {
   public static final String PENDING_STATUS = "Pending";
   public static final String JOE_DOE_ID = "joe_doe_id";
   public static final String JOE_DOE_SWAN_USER_ID = "c15924bf-61f9-4381-8c9b-d34369bf91f7";
+  public static final String JANE_DOE_SWAN_USER_ID = "jane_doe_user_id";
   public static final String BAD_TOKEN = "bad_token";
   public static final String VALID_EMAIL = "username@domain.com";
   public static final String API_URL = "https://api.swan.io/sandbox-partner/graphql";
@@ -141,6 +142,7 @@ public class TestUtils {
   public static final String VERIFIED_STATUS = "Verified";
   public static final String SWAN_TRANSACTION_ID = "bosci_f224704f2555a42303e302ffb8e69eef";
   public static final String SWAN_ACCOUNTHOLDER_ID = "b33e6eb0-e262-4596-a91f-20c6a7bfd343";
+  public static final String ACCOUNTHOLDER2_ID = "account_holder_id_2";
   public static final String JANE_ACCOUNT_ID = "jane_account_id";
   public static final String JANE_DOE_TOKEN = "jane_doe_token";
   public static final String JANE_DOE_ID = "jane_doe_id";

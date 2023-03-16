@@ -1,3 +1,13 @@
+## [0.9.1](https://github.com/b-partners/bpartners-api/compare/v0.9.0...v0.9.1) (2023-03-16)
+
+
+### Bug Fixes
+
+* convert paymentRegulation to empty array when null is provided ([8b5756d](https://github.com/b-partners/bpartners-api/commit/8b5756de3017e52abfbe6b7fea3ca6c03030337f))
+* filter customers ([e8673b6](https://github.com/b-partners/bpartners-api/commit/e8673b6819da0816d672ef96b7a67cc4e6b6281b))
+
+
+
 # [0.9.0](https://github.com/b-partners/bpartners-api/compare/v0.8.2...v0.9.0) (2023-03-16)
 
 
@@ -143,15 +153,6 @@
 ### Bug Fixes
 
 * command pattern on the content to append to .npmignore ([#431](https://github.com/b-partners/bpartners-api/issues/431)) ([564d2b1](https://github.com/b-partners/bpartners-api/commit/564d2b12104555db0915dfff0b8ecf6faf02e696))
-
-
-
-## [0.4.2](https://github.com/b-partners/bpartners-api/compare/v0.4.1...v0.4.2) (2023-01-26)
-
-
-### Bug Fixes
-
-* echo command to append to .npmignore file ([#430](https://github.com/b-partners/bpartners-api/issues/430)) ([f192f24](https://github.com/b-partners/bpartners-api/commit/f192f2493c883fe9384b37f5e8dca2acbe658815))
 
 
 

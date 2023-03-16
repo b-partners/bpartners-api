@@ -61,6 +61,9 @@ public class CrupdateInvoiceValidator implements Consumer<CrupdateInvoice> {
       exceptionBuilder.append(
           "Only invoice with payment type IN_INSTALMENT handles multiple payments");
     }
+    if (invoice.getPaymentType() == CASH && invoice.getPaymentRegulations() == null) {
+      invoice.setPaymentRegulations(List.of());
+    }
     if (isBadSendingDate(invoice)) {
       log.warn("Bad sending date, actual = " + invoice.getSendingDate() + ", today=" + today);
       //TODO: uncomment if any warn message is logged anymore

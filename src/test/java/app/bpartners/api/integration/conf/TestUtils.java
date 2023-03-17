@@ -322,7 +322,7 @@ public class TestUtils {
         .address("15 rue Porte d'Orange")
         .zipCode(95160)
         .city("Metz")
-        .country("France")
+        .country(null)
         .comment("Rencontre avec Luc");
   }
 
@@ -331,7 +331,7 @@ public class TestUtils {
         .id("customer2_id")
         .firstName("Jean")
         .lastName("Plombier")
-        .email("jean@email.com")
+        .email(null)
         .phone("+33 12 34 56 78")
         .website("https://jean.website.com")
         .address("4 Avenue des Près")

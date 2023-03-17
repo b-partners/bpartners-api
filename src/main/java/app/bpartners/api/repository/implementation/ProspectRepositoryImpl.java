@@ -17,19 +17,18 @@ import app.bpartners.api.repository.prospecting.datasource.buildingpermit.Buildi
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.model.SingleBuildingPermit;
 import app.bpartners.api.service.AnnualRevenueTargetService;
 import app.bpartners.api.service.BusinessActivityService;
-import java.time.Instant;
-import java.time.LocalDateTime;
+import java.math.BigInteger;
+import java.time.LocalDate;
 import java.time.Year;
-import java.time.ZoneId;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
+import org.apfloat.Aprational;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 import static org.springframework.transaction.annotation.Isolation.SERIALIZABLE;
 
 @AllArgsConstructor
@@ -93,24 +92,23 @@ public class ProspectRepositoryImpl implements ProspectRepository {
   }
 
   @Override
-  public boolean needsProspects(String idAccountHolder) {
-    Optional<AnnualRevenueTarget> revenueTargetsInAYear =
+  public boolean needsProspects(String idAccountHolder, LocalDate date) {
+    Optional<AnnualRevenueTarget> revenueTargetsInAyear =
         revenueTargetService.getByYear(idAccountHolder, Year.now().getValue());
 
-    if (revenueTargetsInAYear.isEmpty()) {
+    if (revenueTargetsInAyear.isEmpty()) {
       return false;
     }
 
-    Instant instant = revenueTargetsInAYear.get().getUpdatedAt();
-    LocalDateTime localDateTime = LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
-    int currentDayNumber = localDateTime.getDayOfYear();
-
-    Fraction expectedAmountAttemptedAtCurrentDay = parseFraction(
-        revenueTargetsInAYear.get().getAmountTarget().getCentsRoundUp() * currentDayNumber / 365);
-    Fraction amountAttemptedActual =
-        parseFraction(revenueTargetsInAYear.get().getAmountAttempted().getCentsRoundUp());
-
-    return amountAttemptedActual.getCentsRoundUp()
-        < expectedAmountAttemptedAtCurrentDay.getCentsRoundUp();
+    Fraction year = new Fraction(BigInteger.valueOf(365));
+    Fraction expectedAmountAttemptedPerDay =
+        revenueTargetsInAyear.get().getAmountTarget().operate(year, Aprational::divide);
+    Fraction todayAsFraction =
+        date == null ? new Fraction(BigInteger.valueOf(LocalDate.now().getDayOfYear())) :
+            new Fraction(BigInteger.valueOf(date.getDayOfYear()));
+    Fraction expectedAmountAttemptedToday =
+        expectedAmountAttemptedPerDay.operate(todayAsFraction, Aprational::multiply);
+    return revenueTargetsInAyear.get().getAmountAttempted().compareTo(expectedAmountAttemptedToday)
+        == -1;
   }
 }

@@ -8,11 +8,10 @@ import app.bpartners.api.repository.jpa.model.HAccountHolder;
 import app.bpartners.api.service.aws.SesService;
 import app.bpartners.api.service.dataprocesser.ProspectDataProcesser;
 import java.io.IOException;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.List;
 import javax.mail.MessagingException;
 import lombok.AllArgsConstructor;
-import lombok.Setter;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.context.Context;
@@ -39,17 +38,19 @@ public class ProspectService {
 
   @Scheduled(cron = "0 0 10 * * *")
   public void prospect() {
-      accountHolderJpaRepository.findAll().forEach(accountHolder -> {
-        if (repository.needsProspects(accountHolder.getId()) && repository.isSogefiProspector(accountHolder.getId())) {
-          final String subject = "Avez-vous besoin de nouveaux clients ?";
-          final String htmlbody = parseTemplateResolver(PROSPECT_MAIL_TEMPLATE, configureProspectContext(accountHolder));
-          try {
-            sesService.sendEmail(accountHolder.getEmail(), subject, htmlbody, List.of());
-          } catch (IOException | MessagingException e) {
-            throw new ApiException(SERVER_EXCEPTION, e);
-          }
+    accountHolderJpaRepository.findAll().forEach(accountHolder -> {
+      if (repository.needsProspects(accountHolder.getId(), LocalDate.now())
+          && repository.isSogefiProspector(accountHolder.getId())) {
+        final String subject = "Avez-vous besoin de nouveaux clients ?";
+        final String htmlbody =
+            parseTemplateResolver(PROSPECT_MAIL_TEMPLATE, configureProspectContext(accountHolder));
+        try {
+          sesService.sendEmail(accountHolder.getEmail(), subject, htmlbody, List.of());
+        } catch (IOException | MessagingException e) {
+          throw new ApiException(SERVER_EXCEPTION, e);
         }
-      });
+      }
+    });
   }
 
   private Context configureProspectContext(HAccountHolder accountHolder) {

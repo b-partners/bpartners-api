@@ -12,8 +12,6 @@ import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
 import app.bpartners.api.integration.conf.AbstractContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
 import app.bpartners.api.manager.ProjectTokenManager;
-import app.bpartners.api.model.AnnualRevenueTarget;
-import app.bpartners.api.model.Fraction;
 import app.bpartners.api.repository.LegalFileRepository;
 import app.bpartners.api.repository.fintecture.FintectureConf;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitApi;
@@ -49,7 +47,6 @@ import static app.bpartners.api.integration.conf.TestUtils.setUpAccountSwanRepos
 import static app.bpartners.api.integration.conf.TestUtils.setUpLegalFileRepository;
 import static app.bpartners.api.integration.conf.TestUtils.setUpSwanComponent;
 import static app.bpartners.api.integration.conf.TestUtils.setUpUserSwanRepository;
-import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -184,12 +181,6 @@ class ProspectIT {
         .address("30 Rue de la Montagne Sainte-Genevieve");
   }
 
-  AnnualRevenueTarget annualRevenueTarget(){
-    return AnnualRevenueTarget.builder()
-        .amountTarget(parseFraction(150000))
-        .amountAttempted(parseFraction(31536.456))
-        .build();
-  }
   @Test
   @Order(1)
   void read_prospects_ok() throws ApiException {

@@ -6,7 +6,7 @@ import app.bpartners.api.endpoint.rest.model.AnnualRevenueTarget;
 import app.bpartners.api.endpoint.rest.model.CompanyBusinessActivity;
 import app.bpartners.api.endpoint.rest.model.CompanyInfo;
 import app.bpartners.api.endpoint.rest.model.ContactAddress;
-import app.bpartners.api.endpoint.rest.validator.AccountHolderValidator;
+import app.bpartners.api.endpoint.rest.validator.AccountHolderRestValidator;
 import app.bpartners.api.model.BusinessActivity;
 import app.bpartners.api.service.AnnualRevenueTargetService;
 import app.bpartners.api.service.BusinessActivityService;
@@ -19,7 +19,7 @@ import org.springframework.stereotype.Component;
 @AllArgsConstructor
 public class AccountHolderRestMapper {
 
-  private final AccountHolderValidator validator;
+  private final AccountHolderRestValidator validator;
   private final BusinessActivityService businessActivityService;
   private final AnnualRevenueTargetService annualRevenueTargetService;
   private final AnnualRevenueTargetRestMapper annualRevenueTargetRestMapper;
@@ -48,7 +48,8 @@ public class AccountHolderRestMapper {
             .email(domain.getEmail())
             .phone(domain.getMobilePhoneNumber())
             .tvaNumber(domain.getVatNumber())
-            .socialCapital(domain.getSocialCapital()))
+            .socialCapital(domain.getSocialCapital())
+            .location(domain.getLocation()))
         .contactAddress(new ContactAddress()
             .city(domain.getCity())
             .address(domain.getAddress())

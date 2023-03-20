@@ -2,8 +2,7 @@ name: CD event
 
 on:
   push:
-    branches: 
-      - 'dev'
+    branches:
       - 'prod'
       - 'preprod'
   
@@ -11,7 +10,7 @@ on:
 
 jobs: 
   cd-event: 
-    if: github.ref_name == 'dev' || github.ref_name == 'prod' || github.ref_name == 'preprod'
+    if: github.ref_name == 'prod' || github.ref_name == 'preprod'
 
     runs-on: ubuntu-latest
 

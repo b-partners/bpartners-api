@@ -15,6 +15,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import static app.bpartners.api.service.utils.CustomerUtils.getCustomersInfoFromFile;
+import static app.bpartners.api.service.utils.CustomerUtils.removeDuplicate;
 
 @Service
 @AllArgsConstructor
@@ -28,9 +29,8 @@ public class CustomerService {
       PageFromOne page, BoundedPageSize pageSize) {
     int pageValue = page != null ? page.getValue() - 1 : 0;
     int pageSizeValue = pageSize != null ? pageSize.getValue() : 30;
-    return repository.findByAccount(accountId, pageValue, pageSizeValue);
-//    return repository.findByAccountIdAndCriteria(accountId, firstName, lastName, email,
-//        phoneNumber, city, country, pageValue, pageSizeValue);
+    return repository.findByAccountIdAndCriteria(accountId, firstName, lastName, email,
+        phoneNumber, city, country, pageValue, pageSizeValue);
   }
 
   @Transactional
@@ -82,7 +82,7 @@ public class CustomerService {
           .collect(Collectors.toUnmodifiableList());
     }
     toUpdateList.addAll(toCreateList);
-    return toUpdateList;
+    return removeDuplicate(toUpdateList);
   }
 
 }

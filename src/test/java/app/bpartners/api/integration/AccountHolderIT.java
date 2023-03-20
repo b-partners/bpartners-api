@@ -43,7 +43,10 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import static app.bpartners.api.integration.conf.TestUtils.ACCOUNTHOLDER2_ID;
 import static app.bpartners.api.integration.conf.TestUtils.ACCOUNT_OPENED;
+import static app.bpartners.api.integration.conf.TestUtils.JANE_ACCOUNT_ID;
+import static app.bpartners.api.integration.conf.TestUtils.JANE_DOE_SWAN_USER_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_SWAN_USER_ID;
@@ -361,7 +364,11 @@ class AccountHolderIT {
 
     AccountHolder actual = api.updateBusinessActivities(JOE_DOE_SWAN_USER_ID, JOE_DOE_ACCOUNT_ID,
         joeDoeAccountHolder().getId(), companyBusinessActivity());
+    AccountHolder actual1 = api.updateBusinessActivities(JANE_DOE_SWAN_USER_ID, JANE_ACCOUNT_ID,
+        ACCOUNTHOLDER2_ID, new CompanyBusinessActivity()
+            .primary("IT"));
 
+    assertEquals("IT", actual1.getBusinessActivities().getPrimary());
     assertEquals(expected()
             .companyInfo(
                 expected().getCompanyInfo()

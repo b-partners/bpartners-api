@@ -1,6 +1,5 @@
 package app.bpartners.api.repository.implementation;
 
-import app.bpartners.api.endpoint.rest.model.Geojson;
 import app.bpartners.api.repository.SogefiBuildingPermitRepository;
 import app.bpartners.api.repository.jpa.ProspectJpaRepository;
 import app.bpartners.api.repository.jpa.SogefiBuildingPermitJpaRepository;
@@ -60,13 +59,9 @@ public class SogefiBuildingPermitRepositoryImpl implements SogefiBuildingPermitR
   }
 
   @Override
-  public Geojson findLocationByIdProspect(String idProspect) {
+  public HSogefiBuildingPermitProspect findByIdProspect(String idProspect) {
     Optional<HSogefiBuildingPermitProspect> sogefi =
         jpaRepository.findByIdProspect(idProspect);
-    return sogefi.map(sogefiProspect -> new Geojson()
-            .type(sogefiProspect.getGeojsonType())
-            .longitude(sogefiProspect.getGeojsonLongitude())
-            .latitude(sogefiProspect.getGeojsonLatitude()))
-        .orElse(null);
+    return sogefi.orElse(null);
   }
 }

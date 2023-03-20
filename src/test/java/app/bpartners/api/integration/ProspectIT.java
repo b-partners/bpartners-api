@@ -5,6 +5,8 @@ import app.bpartners.api.endpoint.event.S3Conf;
 import app.bpartners.api.endpoint.rest.api.ProspectingApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
+import app.bpartners.api.endpoint.rest.model.Area;
+import app.bpartners.api.endpoint.rest.model.Geojson;
 import app.bpartners.api.endpoint.rest.model.Prospect;
 import app.bpartners.api.endpoint.rest.model.UpdateProspect;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
@@ -12,6 +14,8 @@ import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
 import app.bpartners.api.integration.conf.AbstractContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
 import app.bpartners.api.manager.ProjectTokenManager;
+import app.bpartners.api.model.AccountHolder;
+import app.bpartners.api.model.BusinessActivity;
 import app.bpartners.api.repository.LegalFileRepository;
 import app.bpartners.api.repository.fintecture.FintectureConf;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitApi;
@@ -23,6 +27,7 @@ import app.bpartners.api.repository.sendinblue.SendinblueConf;
 import app.bpartners.api.repository.swan.AccountHolderSwanRepository;
 import app.bpartners.api.repository.swan.AccountSwanRepository;
 import app.bpartners.api.repository.swan.UserSwanRepository;
+import app.bpartners.api.service.BusinessActivityService;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
@@ -38,18 +43,24 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import static app.bpartners.api.endpoint.rest.model.ProspectStatus.TO_CONTACT;
+import static app.bpartners.api.integration.conf.TestUtils.ID_SOGEFI;
 import static app.bpartners.api.integration.conf.TestUtils.NOT_JOE_DOE_ACCOUNT_HOLDER_ID;
+import static app.bpartners.api.integration.conf.TestUtils.ROOFER;
 import static app.bpartners.api.integration.conf.TestUtils.SWAN_ACCOUNTHOLDER_ID;
+import static app.bpartners.api.integration.conf.TestUtils.TILE_LAYER;
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsApiException;
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsForbiddenException;
+import static app.bpartners.api.integration.conf.TestUtils.file1;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountHolderSwanRep;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountSwanRepository;
 import static app.bpartners.api.integration.conf.TestUtils.setUpLegalFileRepository;
 import static app.bpartners.api.integration.conf.TestUtils.setUpSwanComponent;
 import static app.bpartners.api.integration.conf.TestUtils.setUpUserSwanRepository;
+import static app.bpartners.api.integration.conf.TestUtils.singleBuildingPermit;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
@@ -87,6 +98,8 @@ class ProspectIT {
   private BuildingPermitApi buildingPermitApiMock;
   @MockBean
   private BuildingPermitConf buildingPermitConfMock;
+  @MockBean
+  private BusinessActivityService businessActivityServiceMock;
 
   private static ApiClient anApiClient() {
     return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN, ContextInitializer.SERVER_PORT);
@@ -100,13 +113,17 @@ class ProspectIT {
     setUpSwanComponent(swanComponentMock);
     setUpLegalFileRepository(legalFileRepositoryMock);
     when(buildingPermitApiMock.getData(any())).thenReturn(buildingPermitList());
+    when(buildingPermitApiMock.getOne(String.valueOf(ID_SOGEFI)))
+        .thenReturn(singleBuildingPermit());
+    when(businessActivityServiceMock.findByAccountHolderId(SWAN_ACCOUNTHOLDER_ID))
+        .thenReturn(null);
   }
 
   BuildingPermit buildingPermit() {
     return BuildingPermit.builder()
         .insee("123456")
         .ref("ref")
-        .fileId(123456)
+        .fileId(ID_SOGEFI)
         .fileRef("fileRef")
         .sitadel(true)
         .type("PC")
@@ -132,11 +149,21 @@ class ProspectIT {
     return new Prospect()
         .id("prospect1_id")
         .name(null)
-        .location(null)
+        .location(geojson())
         .status(TO_CONTACT)
         .email(null)
         .phone(null)
-        .address(null);
+        .address(null)
+        .area(new Area()
+            .geojson(geojson())
+            .image(file1()));
+  }
+
+  Geojson geojson() {
+    return new Geojson()
+        .type("Point")
+        .longitude(2.6249715936056646)
+        .latitude(47.82333624900505);
   }
 
   Prospect prospect2() {
@@ -181,9 +208,20 @@ class ProspectIT {
         .address("30 Rue de la Montagne Sainte-Genevieve");
   }
 
+  BusinessActivity sogefiProspectorBusinessActivity() {
+    return BusinessActivity.builder()
+        .accountHolder(AccountHolder.builder().build())
+        .primaryActivity(TILE_LAYER)
+        .secondaryActivity(ROOFER)
+        .build();
+  }
+
   @Test
   @Order(1)
-  void read_prospects_ok() throws ApiException {
+  void sogefi_prospector_read_prospects_ok() throws ApiException {
+    reset(businessActivityServiceMock);
+    when(businessActivityServiceMock.findByAccountHolderId(SWAN_ACCOUNTHOLDER_ID))
+        .thenReturn(sogefiProspectorBusinessActivity());
     ApiClient joeDoeClient = anApiClient();
     ProspectingApi api = new ProspectingApi(joeDoeClient);
 
@@ -196,6 +234,19 @@ class ProspectIT {
 
   @Test
   @Order(2)
+  void non_sogefi_prospector_read_prospects_ok() throws ApiException {
+    ApiClient joeDoeClient = anApiClient();
+    ProspectingApi api = new ProspectingApi(joeDoeClient);
+
+    List<Prospect> actual = api.getProspects(SWAN_ACCOUNTHOLDER_ID);
+
+    assertTrue(actual.contains(prospect1().location(null).area(null)));
+    assertTrue(actual.contains(prospect2()));
+    assertTrue(actual.contains(prospect3()));
+  }
+
+  @Test
+  @Order(3)
   void update_prospects_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
     ProspectingApi api = new ProspectingApi(joeDoeClient);

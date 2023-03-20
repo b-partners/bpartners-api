@@ -49,6 +49,7 @@ import static app.bpartners.api.integration.conf.TestUtils.TEST_FILE_ID;
 import static app.bpartners.api.integration.conf.TestUtils.TO_UPLOAD_FILE_ID;
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsApiException;
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsForbiddenException;
+import static app.bpartners.api.integration.conf.TestUtils.file1;
 import static app.bpartners.api.integration.conf.TestUtils.getApiException;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountHolderSwanRep;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountSwanRepository;
@@ -104,14 +105,7 @@ class FileIT {
     setUpLegalFileRepository(legalFileRepositoryMock);
   }
 
-  FileInfo file1() {
-    return new FileInfo()
-        .id(TEST_FILE_ID)
-        .uploadedAt(Instant.parse("2022-08-31T13:35:26.853Z"))
-        .uploadedByAccountId(JOE_DOE_ACCOUNT_ID)
-        .sizeInKB(76)
-        .sha256("2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824");
-  }
+
 
   /* /!\ The upload seems to return null instead of the appropriate checksum with S3 localstack
   container so the persisted sha256 is set to null for the test */

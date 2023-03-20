@@ -9,6 +9,9 @@ import org.springframework.stereotype.Component;
 public class FileMapper {
 
   public app.bpartners.api.endpoint.rest.model.FileInfo toRest(FileInfo internal) {
+    if (internal == null) {
+      return null;
+    }
     return new app.bpartners.api.endpoint.rest.model.FileInfo()
         .id(internal.getId())
         .uploadedAt(internal.getUploadedAt())

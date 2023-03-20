@@ -1,8 +1,10 @@
 package app.bpartners.api.endpoint.rest.mapper;
 
+import app.bpartners.api.endpoint.rest.model.Area;
 import app.bpartners.api.endpoint.rest.model.Prospect;
 import app.bpartners.api.endpoint.rest.model.UpdateProspect;
 import app.bpartners.api.endpoint.rest.validator.ProspectRestValidator;
+import app.bpartners.api.model.mapper.FileMapper;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -10,16 +12,22 @@ import org.springframework.stereotype.Component;
 @AllArgsConstructor
 public class ProspectRestMapper {
   private final ProspectRestValidator validator;
+  private final FileMapper fileMapper;
 
   public Prospect toRest(app.bpartners.api.model.Prospect domain) {
+    Area area = domain.getLocation() == null ? null :
+        new Area()
+            .geojson(domain.getLocation())
+            .image(fileMapper.toRest(domain.getImage()));
     return new Prospect()
         .id(domain.getId())
         .email(domain.getEmail())
         .name(domain.getName())
         .phone(domain.getPhone())
         .address(domain.getAddress())
-        .location(domain.getLocation())
-        .status(domain.getStatus());
+        .status(domain.getStatus())
+        .area(area)
+        .location(domain.getLocation());
   }
 
   public app.bpartners.api.model.Prospect toDomain(UpdateProspect rest) {

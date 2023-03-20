@@ -11,6 +11,7 @@ import app.bpartners.api.endpoint.rest.model.CreateAccountInvoiceRelaunchConf;
 import app.bpartners.api.endpoint.rest.model.CreateAnnualRevenueTarget;
 import app.bpartners.api.endpoint.rest.model.CreateProduct;
 import app.bpartners.api.endpoint.rest.model.Customer;
+import app.bpartners.api.endpoint.rest.model.FileInfo;
 import app.bpartners.api.endpoint.rest.model.Geojson;
 import app.bpartners.api.endpoint.rest.model.Invoice;
 import app.bpartners.api.endpoint.rest.model.InvoiceDiscount;
@@ -35,6 +36,9 @@ import app.bpartners.api.repository.fintecture.FintecturePaymentInitiationReposi
 import app.bpartners.api.repository.fintecture.model.FPaymentInitiation;
 import app.bpartners.api.repository.fintecture.model.FPaymentRedirection;
 import app.bpartners.api.repository.fintecture.model.Session;
+import app.bpartners.api.repository.prospecting.datasource.buildingpermit.model.Applicant;
+import app.bpartners.api.repository.prospecting.datasource.buildingpermit.model.SingleBuildingPermit;
+import app.bpartners.api.repository.prospecting.datasource.buildingpermit.model.SogefiInformation;
 import app.bpartners.api.repository.sendinblue.SendinblueApi;
 import app.bpartners.api.repository.sendinblue.model.Attributes;
 import app.bpartners.api.repository.sendinblue.model.Contact;
@@ -158,6 +162,13 @@ public class TestUtils {
   public static final String SESSION2_ID = "session2_id";
   public static final String NOT_JOE_DOE_ACCOUNT_HOLDER_ID = "NOT_" + SWAN_ACCOUNTHOLDER_ID;
   public static final String GEOJSON_TYPE_POINT = "Point";
+  public static final long ID_SOGEFI = 1000;
+  public static final String PROSPECT_NAME = "name";
+  public static final String PROSPECT_ADDRESS = "address";
+  public static final String PROSPECT1_ID = "prospect1_id";
+  public static final String NOT_PROSPECT1_ID = "not_" + PROSPECT1_ID;
+  public static final String TILE_LAYER = "carreleur";
+  public static final String ROOFER = "toiturier";
 
   public static User restJoeDoeUser() {
     return new User()
@@ -793,6 +804,34 @@ public class TestUtils {
                 .build())
             .build())
         .build();
+  }
+
+  public static Applicant applicant() {
+    return Applicant.builder()
+        .name(PROSPECT_NAME)
+        .address(PROSPECT_ADDRESS)
+        .build();
+  }
+
+  public static SogefiInformation sogefiInformation() {
+    return SogefiInformation.builder()
+        .permitApplicant(applicant())
+        .build();
+  }
+
+  public static SingleBuildingPermit singleBuildingPermit() {
+    return SingleBuildingPermit.singleBuildingPermitBuilder()
+        .sogefiInformation(sogefiInformation())
+        .build();
+  }
+
+  public static FileInfo file1() {
+    return new FileInfo()
+        .id(TEST_FILE_ID)
+        .uploadedAt(Instant.parse("2022-08-31T13:35:26.853Z"))
+        .uploadedByAccountId(JOE_DOE_ACCOUNT_ID)
+        .sizeInKB(76)
+        .sha256("2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824");
   }
 
   public static HttpResponse<Object> httpResponseMock(Object body) {

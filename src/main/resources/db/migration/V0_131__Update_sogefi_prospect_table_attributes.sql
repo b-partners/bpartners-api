@@ -1,0 +1,2 @@
+alter table "sogefi_building_permit_prospect" add column image_file_id varchar;
+alter table "sogefi_building_permit_prospect" add constraint fk_prospect_image foreign key (image_file_id) references file_info(id);

@@ -32,4 +32,5 @@ public class HSogefiBuildingPermitProspect {
   private String geojsonType;
   private double geojsonLongitude;
   private double geojsonLatitude;
+  private String imageFileId;
 }

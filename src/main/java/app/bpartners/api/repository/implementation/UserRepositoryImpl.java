@@ -54,12 +54,19 @@ public class UserRepositoryImpl implements UserRepository {
 
   @Override
   public User getUserByToken(String token) {
-    SwanUser swanUser = swanRepository.getByToken(token);
+    String swanToken = token;
+    SwanUser swanUser = swanRepository.getByToken(swanToken);
     HUser entityUser;
     if (swanUser != null) {
       entityUser = getUpdatedUser(swanUser);
     } else {
-      String email = cognitoComponent.getEmailByToken(token);
+      String bridgeToken = token;
+      HUser entityFromToken = jpaRepository.findByToken(bridgeToken);
+      if (entityFromToken != null) {
+        return userMapper.toDomain(entityFromToken, null);
+      }
+      String cognitoToken = token;
+      String email = cognitoComponent.getEmailByToken(cognitoToken);
       entityUser = jpaRepository.findByEmail(email).orElseThrow(
           () -> new NotFoundException(
               "No user with the email " + email + " was found"));

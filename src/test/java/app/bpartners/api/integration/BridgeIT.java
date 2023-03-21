@@ -8,6 +8,7 @@ import app.bpartners.api.integration.conf.BridgeAbstractContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
 import app.bpartners.api.manager.ProjectTokenManager;
 import app.bpartners.api.repository.bridge.BridgeApi;
+import app.bpartners.api.repository.bridge.model.Account.BridgeAccount;
 import app.bpartners.api.repository.bridge.model.Item.BridgeItem;
 import app.bpartners.api.repository.bridge.model.Transaction.BridgeTransaction;
 import app.bpartners.api.repository.bridge.model.User.BridgeUser;
@@ -123,6 +124,22 @@ public class BridgeIT {
 //    log.info("Connect redirect url={}", actual);
 //    assertNotNull(actual);
 //  }
+
+  /*@Test
+  void read_account_by_id_ok() {
+    BridgeAccount actual = subject.findByAccountById("", userToken());
+
+    log.info("BridgeAccount ={}", actual);
+    assertNotNull(actual);
+  }*/
+
+  @Test
+  void read_accounts_ok() {
+    List<BridgeAccount> actual = subject.findAllAccounts(userToken());
+
+    log.info("BridgeAccounts ={}", actual);
+    assertFalse(actual.isEmpty());
+  }
 
   @Test
   void read_items_ok() {

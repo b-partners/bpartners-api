@@ -37,8 +37,8 @@ import static org.springframework.transaction.annotation.Isolation.SERIALIZABLE;
 @AllArgsConstructor
 @Repository
 public class ProspectRepositoryImpl implements ProspectRepository {
-  public static final String TILE_LAYER = "carreleur";
-  public static final String ROOFER = "toiturier";
+  private static final String TILE_LAYER = "carreleur";
+  private static final String ROOFER = "toiturier";
   private final ProspectJpaRepository jpaRepository;
   private final ProspectMapper mapper;
   private final BuildingPermitApi buildingPermitApi;
@@ -55,8 +55,7 @@ public class ProspectRepositoryImpl implements ProspectRepository {
     AccountHolder accountHolder = accountHolderRepository.findById(idAccountHolder);
     if (accountHolder.getTownCode() == null) {
       throw new BadRequestException(
-          "AccountHolder.id=" + idAccountHolder + " is missing the " + "required property town "
-              + "code");
+          "AccountHolder.id=" + idAccountHolder + " is missing the required property town code");
     }
     List<HMunicipality> municipalities =
         municipalityJpaRepository.findMunicipalitiesWithinDistance(
@@ -87,11 +86,26 @@ public class ProspectRepositoryImpl implements ProspectRepository {
   public boolean isSogefiProspector(String idAccountHolder) {
     BusinessActivity businessActivity =
         businessActivityService.findByAccountHolderId(idAccountHolder);
-    return Objects.equals(0, TILE_LAYER.compareToIgnoreCase(businessActivity.getPrimaryActivity()))
-        || Objects.equals(0,
-        TILE_LAYER.compareToIgnoreCase(businessActivity.getSecondaryActivity())) || Objects.equals(
-        0, ROOFER.compareToIgnoreCase(businessActivity.getPrimaryActivity())) || Objects.equals(0,
-        ROOFER.compareToIgnoreCase(businessActivity.getSecondaryActivity()));
+    if (businessActivity != null) {
+      boolean isPrimaryActivityEqual = false;
+      if (businessActivity.getPrimaryActivity() != null) {
+        isPrimaryActivityEqual =
+            Objects.equals(0,
+                TILE_LAYER.compareToIgnoreCase(businessActivity.getPrimaryActivity()))
+                || Objects.equals(
+                0, ROOFER.compareToIgnoreCase(businessActivity.getPrimaryActivity()));
+      }
+      boolean isSecondaryActivityEqual = false;
+      if (businessActivity.getSecondaryActivity() != null) {
+        isSecondaryActivityEqual =
+            Objects
+                .equals(0, TILE_LAYER.compareToIgnoreCase(businessActivity.getSecondaryActivity()))
+                || Objects.equals(0,
+                ROOFER.compareToIgnoreCase(businessActivity.getSecondaryActivity()));
+      }
+      return isPrimaryActivityEqual || isSecondaryActivityEqual;
+    }
+    return false;
   }
 
   @Transactional(isolation = SERIALIZABLE)

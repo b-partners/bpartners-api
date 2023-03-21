@@ -19,6 +19,7 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 
 import static app.bpartners.api.endpoint.rest.model.FileType.ATTACHMENT;
+import static app.bpartners.api.endpoint.rest.model.FileType.IMAGE;
 import static app.bpartners.api.endpoint.rest.model.FileType.INVOICE;
 import static app.bpartners.api.endpoint.rest.model.FileType.LOGO;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
@@ -99,6 +100,8 @@ public class S3Service {
         return downloadFile(getInvoiceKey(accountId, fileId));
       case ATTACHMENT:
         return downloadFile(getAttachmentKey(accountId, fileId));
+      case IMAGE:
+        return downloadFile(getImageKey(accountId, fileId));
       default:
         throw new BadRequestException("Unknown file type " + fileType);
     }
@@ -121,5 +124,10 @@ public class S3Service {
   private String getAttachmentKey(String accountId, String fileId) {
     return getBucketName(s3Conf.getEnv(), accountId, fileId,
         ATTACHMENT.name().toLowerCase());
+  }
+
+  private String getImageKey(String accountId, String fileId) {
+    return getBucketName(s3Conf.getEnv(), accountId, fileId,
+        IMAGE.name().toLowerCase());
   }
 }

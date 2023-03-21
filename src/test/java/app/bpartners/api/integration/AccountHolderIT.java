@@ -60,6 +60,7 @@ import static app.bpartners.api.integration.conf.TestUtils.createAnnualRevenueTa
 import static app.bpartners.api.integration.conf.TestUtils.janeSwanAccount;
 import static app.bpartners.api.integration.conf.TestUtils.joeDoeSwanAccount;
 import static app.bpartners.api.integration.conf.TestUtils.joeDoeSwanAccountHolder;
+import static app.bpartners.api.integration.conf.TestUtils.location;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountHolderSwanRep;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountSwanRepository;
 import static app.bpartners.api.integration.conf.TestUtils.setUpLegalFileRepository;
@@ -128,7 +129,8 @@ class AccountHolderIT {
             .phone("+33 6 11 22 33 44")
             .email("numer@hei.school")
             .socialCapital(40000)
-            .tvaNumber("FR32123456789"))
+            .tvaNumber("FR32123456789")
+            .location(location()))
         .businessActivities(new CompanyBusinessActivity()
             .primary("IT")
             .secondary("TECHNOLOGY"))
@@ -198,7 +200,8 @@ class AccountHolderIT {
         .companyInfo(companyInfo()
             .phone("+33 6 11 22 33 44")
             .email("numer@hei.school")
-            .tvaNumber("FR32123456789"));
+            .tvaNumber("FR32123456789")
+            .location(location()));
   }
 
   CompanyInfo updatedCompanyInfo() {
@@ -207,7 +210,10 @@ class AccountHolderIT {
         .email(companyInfo().getEmail())
         .phone(companyInfo().getPhone())
         .socialCapital(companyInfo().getSocialCapital())
-        .tvaNumber(joeDoeAccountHolder().getCompanyInfo().getTvaNumber());
+        .tvaNumber(joeDoeAccountHolder().getCompanyInfo().getTvaNumber())
+        .location(location()
+            .latitude(43.5)
+            .longitude(2.5));
   }
 
   @BeforeEach
@@ -345,7 +351,11 @@ class AccountHolderIT {
     UserAccountsApi api = new UserAccountsApi(joeDoeClient);
 
     AccountHolder actual = api.updateCompanyInfo(JOE_DOE_SWAN_USER_ID, JOE_DOE_ACCOUNT_ID,
-        joeDoeAccountHolder().getId(), companyInfo());
+        joeDoeAccountHolder().getId(), companyInfo()
+            .location(location()
+                .latitude(43.5)
+                .longitude(2.5)));
+
     assertEquals(expected()
         .companyInfo(updatedCompanyInfo())
         .businessActivities(new CompanyBusinessActivity()

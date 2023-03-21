@@ -11,6 +11,7 @@ import app.bpartners.api.endpoint.rest.model.CreateAccountInvoiceRelaunchConf;
 import app.bpartners.api.endpoint.rest.model.CreateAnnualRevenueTarget;
 import app.bpartners.api.endpoint.rest.model.CreateProduct;
 import app.bpartners.api.endpoint.rest.model.Customer;
+import app.bpartners.api.endpoint.rest.model.Geojson;
 import app.bpartners.api.endpoint.rest.model.Invoice;
 import app.bpartners.api.endpoint.rest.model.InvoiceDiscount;
 import app.bpartners.api.endpoint.rest.model.LegalFile;
@@ -156,6 +157,7 @@ public class TestUtils {
   public static final String SESSION1_ID = "session1_id";
   public static final String SESSION2_ID = "session2_id";
   public static final String NOT_JOE_DOE_ACCOUNT_HOLDER_ID = "NOT_" + SWAN_ACCOUNTHOLDER_ID;
+  public static final String GEOJSON_TYPE_POINT = "Point";
 
   public static User restJoeDoeUser() {
     return new User()
@@ -842,6 +844,13 @@ public class TestUtils {
         return null;
       }
     };
+  }
+
+  public static Geojson location() {
+    return new Geojson()
+        .type(GEOJSON_TYPE_POINT)
+        .longitude(1.0)
+        .latitude(23.5);
   }
 
   public static ApiClient anApiClient(String token, int serverPort) {

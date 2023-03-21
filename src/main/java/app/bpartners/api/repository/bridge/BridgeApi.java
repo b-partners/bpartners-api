@@ -2,6 +2,7 @@ package app.bpartners.api.repository.bridge;
 
 import app.bpartners.api.endpoint.rest.security.swan.BridgeConf;
 import app.bpartners.api.model.exception.ApiException;
+import app.bpartners.api.repository.bridge.model.Account.BridgeAccount;
 import app.bpartners.api.repository.bridge.model.Item.BridgeItem;
 import app.bpartners.api.repository.bridge.model.Item.CreateBridgeItem;
 import app.bpartners.api.repository.bridge.model.Transaction.BridgeTransaction;
@@ -76,6 +77,53 @@ public class BridgeApi {
         return List.of();
       }
       BridgeListResponse<BridgeUser> response = objectMapper.readValue(httpResponse.body(),
+          new TypeReference<>() {
+          });
+      return response.getResources();
+    } catch (URISyntaxException | IOException e) {
+      throw new ApiException(SERVER_EXCEPTION, e);
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new ApiException(SERVER_EXCEPTION, e);
+    }
+  }
+
+  public BridgeAccount findByAccountById(String uuid, String token) {
+    try {
+      HttpRequest request = HttpRequest.newBuilder()
+          .uri(new URI(conf.getAccountUrl() + "/" + uuid))
+          .headers(defaultHeadersWithToken(token))
+          .GET()
+          .build();
+      HttpResponse<String> httpResponse =
+          httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+      if (httpResponse.statusCode() != 200 && httpResponse.statusCode() != 201) {
+        log.warn("BridgeApi errors : {}", httpResponse.body());
+        return null;
+      }
+      return objectMapper.readValue(httpResponse.body(), BridgeAccount.class);
+    } catch (URISyntaxException | IOException e) {
+      throw new ApiException(SERVER_EXCEPTION, e);
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new ApiException(SERVER_EXCEPTION, e);
+    }
+  }
+
+  public List<BridgeAccount> findAccountsByToken(String token) {
+    try {
+      HttpRequest request = HttpRequest.newBuilder()
+          .uri(new URI(conf.getAccountUrl()))
+          .headers(defaultHeadersWithToken(token))
+          .GET()
+          .build();
+      HttpResponse<String> httpResponse =
+          httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+      if (httpResponse.statusCode() != 200) {
+        log.warn("BridgeApi errors : {}", httpResponse.body());
+        return List.of();
+      }
+      BridgeListResponse<BridgeAccount> response = objectMapper.readValue(httpResponse.body(),
           new TypeReference<>() {
           });
       return response.getResources();

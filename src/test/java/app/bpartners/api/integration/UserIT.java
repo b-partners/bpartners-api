@@ -230,6 +230,7 @@ class UserIT {
     when(swanComponentMock.getSwanUserByToken(any())).thenReturn(janeDoe());
     HUser beforeUpdate = userJpaRepository.findByEmail(email).get();
     beforeUpdate.setAccounts(List.of());
+
     ApiClient joeDoeClient = anApiClient(JANE_DOE_TOKEN);
     UserAccountsApi api = new UserAccountsApi(joeDoeClient);
 
@@ -247,7 +248,7 @@ class UserIT {
         .email("jane@email.com")
         .idVerified(null)
         .identificationStatus(null)
-        .accounts(beforeUpdate.getAccounts())
+        .accounts(List.of())
         .build(), beforeUpdate);
     assertEquals(restJaneDoeUser(), actual);
   }

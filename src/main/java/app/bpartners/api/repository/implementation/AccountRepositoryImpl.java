@@ -6,6 +6,8 @@ import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.mapper.AccountMapper;
 import app.bpartners.api.repository.AccountRepository;
 import app.bpartners.api.repository.UserRepository;
+import app.bpartners.api.repository.bridge.model.Account.BridgeAccount;
+import app.bpartners.api.repository.bridge.repository.BridgeAccountRepository;
 import app.bpartners.api.repository.jpa.AccountJpaRepository;
 import app.bpartners.api.repository.jpa.UserJpaRepository;
 import app.bpartners.api.repository.jpa.model.HAccount;
@@ -23,11 +25,12 @@ import org.springframework.stereotype.Repository;
 @AllArgsConstructor
 @Slf4j
 public class AccountRepositoryImpl implements AccountRepository {
-  private AccountSwanRepository swanRepository;
-  private AccountJpaRepository accountJpaRepository;
-  private UserRepository userRepository;
-  private AccountMapper mapper;
-  private UserJpaRepository userJpaRepository;
+  private final AccountSwanRepository swanRepository;
+  private final AccountJpaRepository accountJpaRepository;
+  private final UserRepository userRepository;
+  private final AccountMapper mapper;
+  private final UserJpaRepository userJpaRepository;
+  private final BridgeAccountRepository bridgeRepository;
 
   @Override
   public List<Account> findByBearer(String bearer) {
@@ -35,6 +38,13 @@ public class AccountRepositoryImpl implements AccountRepository {
     User authenticatedUser = userRepository.getUserByToken(bearer);
     if (!swanAccounts.isEmpty()) {
       return getOrCreateAccounts(swanAccounts, authenticatedUser.getId());
+    }
+    List<BridgeAccount> bridgeAccounts = bridgeRepository.findByBearer(bearer);
+    if (!bridgeAccounts.isEmpty()) {
+      //TODO: getOrUpdate accounts
+      return bridgeAccounts.stream()
+          .map(bridgeAccount -> mapper.toDomain(bridgeAccount, authenticatedUser.getId()))
+          .collect(Collectors.toList());
     }
     return List.of(authenticatedUser.getAccount());
   }
@@ -45,10 +55,14 @@ public class AccountRepositoryImpl implements AccountRepository {
     if (!swanAccounts.isEmpty()) {
       return getOrCreateAccounts(swanAccounts, null).get(0);
     }
+    BridgeAccount bridgeAccount = bridgeRepository.findById(accountId);
+    if (bridgeAccount != null) {
+      //TODO: getOrUpdate accounts
+      return mapper.toDomain(bridgeAccount, null);
+    }
     Optional<HAccount> optionalAccount = accountJpaRepository.findById(accountId);
     if (optionalAccount.isPresent()) {
-      HAccount accountEntity = optionalAccount.get();
-      return mapper.toDomain(accountEntity, accountEntity.getUser().getId());
+      return mapper.toDomain(optionalAccount.get(), optionalAccount.get().getUser().getId());
     } else {
       throw new NotFoundException("Account." + accountId + " not found.");
     }
@@ -59,6 +73,13 @@ public class AccountRepositoryImpl implements AccountRepository {
     List<SwanAccount> swanAccounts = swanRepository.findByUserId(userId);
     if (!swanAccounts.isEmpty()) {
       return getOrCreateAccounts(swanAccounts, userId);
+    }
+    List<BridgeAccount> bridgeAccounts = bridgeRepository.findAllByAuthenticatedUser();
+    if (!bridgeAccounts.isEmpty()) {
+      //TODO: getOrUpdate accounts
+      return bridgeAccounts.stream()
+          .map(bridgeAccount -> mapper.toDomain(bridgeAccount, userId))
+          .collect(Collectors.toList());
     }
     Optional<HAccount> optionalAccount = accountJpaRepository.findByUser_Id(userId);
     if (optionalAccount.isPresent()) {

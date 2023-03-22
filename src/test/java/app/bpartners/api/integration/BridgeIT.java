@@ -9,6 +9,7 @@ import app.bpartners.api.integration.conf.TestUtils;
 import app.bpartners.api.manager.ProjectTokenManager;
 import app.bpartners.api.repository.bridge.BridgeApi;
 import app.bpartners.api.repository.bridge.model.Account.BridgeAccount;
+import app.bpartners.api.repository.bridge.model.Bank.BridgeBank;
 import app.bpartners.api.repository.bridge.model.Item.BridgeItem;
 import app.bpartners.api.repository.bridge.model.Transaction.BridgeTransaction;
 import app.bpartners.api.repository.bridge.model.User.BridgeUser;
@@ -170,6 +171,22 @@ public class BridgeIT {
     BridgeTransaction actual = subject.findTransactionByIdAndToken(TRANSACTION_ID, userToken());
 
     log.info("BridgeTransaction={}", actual);
+    assertNotNull(actual);
+  }
+
+  @Test
+  void read_banks_ok() {
+    List<BridgeBank> actual = subject.findAllBanks();
+
+    log.info("BridgeBanks={}", actual);
+    assertFalse(actual.isEmpty());
+  }
+
+  @Test
+  void read_bank_by_id_ok() {
+    BridgeBank actual = subject.findBankById(579);
+
+    log.info("BridgeBank={}", actual);
     assertNotNull(actual);
   }
 

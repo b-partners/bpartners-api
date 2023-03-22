@@ -44,6 +44,8 @@ public class HUser implements Serializable {
   private String lastName;
   private String email;
   private String swanUserId;
+  private String bridgeUserId; //TODO: persist this when creating new users
+  private String bridgePassword; //TODO: persist this when creating new users
   private String phoneNumber;
   private int monthlySubscription;
   private String logoFileId;

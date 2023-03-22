@@ -40,14 +40,14 @@ public class WhoamiController {
       bearer = bearer.substring(BEARER_PREFIX.length()).trim();
       //Check that the user is authenticated
       String swanUserId = swanComponent.getSwanUserIdByToken(bearer);
-      String phoneNumber = cognitoComponent.getPhoneNumberByToken(bearer);
-      if (swanUserId == null && phoneNumber == null) {
+      String email = cognitoComponent.getEmailByToken(bearer);
+      if (swanUserId == null && email == null) {
         throw new ForbiddenException();
       }
       if (swanUserId != null) {
         return userService.getUserByIdAndBearer(swanUserId, bearer);
       }
-      return userService.getUserByPhoneNumber(phoneNumber);
+      return userService.getUserByEmail(email);
     }
   }
 }

@@ -15,8 +15,8 @@ public class UserService {
   private UserRepository userRepository;
 
   @Transactional(isolation = SERIALIZABLE)
-  public User getUserByPhoneNumber(String phoneNumber) {
-    return userRepository.getByPhoneNumber(phoneNumber);
+  public User getUserByEmail(String email) {
+    return userRepository.getByEmail(email);
   }
 
   @Transactional(isolation = SERIALIZABLE)

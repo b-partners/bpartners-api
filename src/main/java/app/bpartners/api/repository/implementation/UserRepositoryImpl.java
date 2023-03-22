@@ -4,6 +4,7 @@ import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.ApiException;
+import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.mapper.UserMapper;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.jpa.UserJpaRepository;
@@ -37,7 +38,10 @@ public class UserRepositoryImpl implements UserRepository {
       if (swanUser != null) {
         entityUser = getUpdatedUser(swanUser);
       } else {
-        entityUser = jpaRepository.getByPhoneNumber(cognitoComponent.getPhoneNumberByToken(token));
+        String email = cognitoComponent.getEmailByToken(token);
+        entityUser = jpaRepository.findByEmail(email).orElseThrow(
+            () -> new NotFoundException(
+                "No user with the email " + email + " was found"));
       }
     } catch (URISyntaxException | IOException e) {
       throw new ApiException(ApiException.ExceptionType.CLIENT_EXCEPTION, e);
@@ -55,14 +59,20 @@ public class UserRepositoryImpl implements UserRepository {
     if (swanUser != null) {
       entityUser = getUpdatedUser(swanUser);
     } else {
-      entityUser = jpaRepository.getByPhoneNumber(cognitoComponent.getPhoneNumberByToken(token));
+      String email = cognitoComponent.getEmailByToken(token);
+      entityUser = jpaRepository.findByEmail(email).orElseThrow(
+          () -> new NotFoundException(
+              "No user with the email " + email + " was found"));
     }
     return userMapper.toDomain(entityUser, swanUser);
   }
 
   @Override
-  public User getByPhoneNumber(String phoneNumber) {
-    return userMapper.toDomain(jpaRepository.getByPhoneNumber(phoneNumber), null);
+  public User getByEmail(String email) {
+    return userMapper.toDomain(
+        jpaRepository.findByEmail(email).orElseThrow(
+            () -> new NotFoundException(
+                "No user with the email " + email + " was found")), null);
   }
 
   public HUser getUpdatedUser(SwanUser swanUser) {

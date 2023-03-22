@@ -38,14 +38,14 @@ public class UserController {
       bearer = bearer.substring(BEARER_PREFIX.length()).trim();
       //Check that the user is authenticated
       String swanUserId = swanComponent.getSwanUserIdByToken(bearer);
-      String phoneNumber = cognitoComponent.getPhoneNumberByToken(bearer);
-      if (swanUserId == null && phoneNumber == null) {
+      String email = cognitoComponent.getEmailByToken(bearer);
+      if (swanUserId == null && email == null) {
         throw new ForbiddenException();
       }
       //Check that the user is authorized
       app.bpartners.api.model.User user = swanUserId != null
           ? service.getUserByIdAndBearer(swanUserId, bearer)
-          : service.getUserByPhoneNumber(phoneNumber);
+          : service.getUserByEmail(email);
       if (!user.getId().equals(userId)) {
         throw new ForbiddenException();
       }

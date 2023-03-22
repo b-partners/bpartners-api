@@ -49,15 +49,15 @@ public class AuthProvider extends AbstractUserDetailsAuthenticationProvider {
       throw new UsernameNotFoundException("Bad credentials"); // NOSONAR
     }
     String swanUserId = swanComponent.getSwanUserIdByToken(bearer);
-    String phoneNumber = cognitoComponent.getPhoneNumberByToken(bearer);
-    if (swanUserId == null && phoneNumber == null) {
+    String email = cognitoComponent.getEmailByToken(bearer);
+    if (swanUserId == null && email == null) {
       throw new UsernameNotFoundException("Bad credentials"); // NOSONAR
     }
     User user;
     if (swanUserId != null) {
       user = userService.getUserByIdAndBearer(swanUserId, bearer);
     } else {
-      user = userService.getUserByPhoneNumber(phoneNumber);
+      user = userService.getUserByEmail(email);
     }
     List<LegalFile> legalFilesList =
         legalFileService.getAllToBeApprovedLegalFilesByUserId(user.getId());

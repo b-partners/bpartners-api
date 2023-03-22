@@ -42,6 +42,7 @@ public class HUser implements Serializable {
   private List<HAccount> accounts;
   private String firstName;
   private String lastName;
+  private String email;
   private String swanUserId;
   private String phoneNumber;
   private int monthlySubscription;

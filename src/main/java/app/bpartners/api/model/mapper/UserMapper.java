@@ -26,6 +26,7 @@ public class UserMapper {
         .firstName(swanUser == null ? entityUser.getFirstName() : swanUser.getFirstName())
         .lastName(swanUser == null ? entityUser.getLastName() : swanUser.getLastName())
         .mobilePhoneNumber(entityUser.getPhoneNumber())
+        .email(entityUser.getEmail())
         .monthlySubscription(entityUser.getMonthlySubscription())
         .status(entityUser.getStatus())
         .logoFileId(entityUser.getLogoFileId())

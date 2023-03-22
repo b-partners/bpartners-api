@@ -93,6 +93,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 public class TestUtils {
@@ -155,6 +156,7 @@ public class TestUtils {
   public static final String TRANSACTION1_ID = "transaction1_id";
   public static final String UNKNOWN_TRANSACTION_ID = "unknown_transaction_id";
   public static final String SESSION1_ID = "session1_id";
+  public static final int DEFAULT_PAGE_SIZE = 50;
   public static final String SESSION2_ID = "session2_id";
   public static final String NOT_JOE_DOE_ACCOUNT_HOLDER_ID = "NOT_" + SWAN_ACCOUNTHOLDER_ID;
   public static final String GEOJSON_TYPE_POINT = "Point";
@@ -921,7 +923,7 @@ public class TestUtils {
   }
 
   public static void setUpTransactionRepository(TransactionSwanRepository repository) {
-    when(repository.getByIdAccount(any())).thenReturn(
+    when(repository.getByIdAccount(any(), eq(DEFAULT_PAGE_SIZE))).thenReturn(
         List.of(
             swanTransaction1(),
             swanTransaction2(),

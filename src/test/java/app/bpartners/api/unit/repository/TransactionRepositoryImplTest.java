@@ -16,6 +16,7 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import static app.bpartners.api.integration.conf.TestUtils.DEFAULT_PAGE_SIZE;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.TestUtils.swanTransaction1;
 import static app.bpartners.api.integration.conf.TestUtils.swanTransaction2;
@@ -43,7 +44,7 @@ class TransactionRepositoryImplTest {
     jpaRepository = mock(TransactionJpaRepository.class);
     transactionRepositoryImpl = new TransactionRepositoryImpl(swanRepository, mapper,
         categoryRepository, jpaRepository);
-    when(swanRepository.getByIdAccount(JOE_DOE_ACCOUNT_ID))
+    when(swanRepository.getByIdAccount(JOE_DOE_ACCOUNT_ID, DEFAULT_PAGE_SIZE))
         .thenReturn(List.of(swanTransaction1(), swanTransaction2(), swanTransaction3()));
     when(jpaRepository.save(any(HTransaction.class)))
         .thenAnswer(i -> {
@@ -86,11 +87,11 @@ class TransactionRepositoryImplTest {
   void read_filtered_by_status_ok() {
     List<Transaction> booked =
         transactionRepositoryImpl.findByAccountIdAndStatus(JOE_DOE_ACCOUNT_ID,
-            TransactionStatus.BOOKED);
+            TransactionStatus.BOOKED, 0, 20);
     List<Transaction> bookedBetweenInstants =
         transactionRepositoryImpl.findByAccountIdAndStatusBetweenInstants(JOE_DOE_ACCOUNT_ID,
             TransactionStatus.BOOKED, swanTransaction3().getNode().getCreatedAt(),
-            swanTransaction2().getNode().getCreatedAt());
+            swanTransaction2().getNode().getCreatedAt(), 0, 20);
 
     assertTrue(booked.stream()
         .allMatch(transaction -> transaction.getStatus().equals(TransactionStatus.BOOKED)));

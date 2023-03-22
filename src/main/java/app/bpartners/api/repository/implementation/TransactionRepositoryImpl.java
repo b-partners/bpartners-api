@@ -16,6 +16,8 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import static app.bpartners.api.model.mapper.TransactionMapper.getTransactionStatus;
@@ -29,93 +31,6 @@ public class TransactionRepositoryImpl implements TransactionRepository {
   private final TransactionMapper mapper;
   private final TransactionCategoryRepository categoryRepository;
   private TransactionJpaRepository jpaRepository;
-
-  @Override
-  public List<Transaction> findByAccountId(String accountId) {
-    List<Transaction> transactionsFromSwan = swanRepository.getByIdAccount(accountId)
-        .stream()
-        .map(transaction -> {
-          HTransaction entity = getOrCreateTransaction(accountId, transaction);
-          return mapper.toDomain(transaction, entity,
-              categoryRepository.findByIdTransaction(entity.getId()));
-        })
-        .collect(Collectors.toUnmodifiableList());
-    if (transactionsFromSwan.isEmpty()) {
-      List<HTransaction> transactions = jpaRepository.findAllByIdAccount(accountId);
-      return transactions.stream()
-          .map(transaction ->
-              mapper.toDomain(transaction,
-                  categoryRepository.findByIdTransaction(transaction.getId())))
-          .collect(Collectors.toList());
-    }
-    return transactionsFromSwan;
-  }
-
-  @Override
-  public Transaction findByAccountIdAndId(String accountId, String transactionId) {
-    Optional<HTransaction> optionalEntity = jpaRepository.findById(transactionId);
-    if (optionalEntity.isEmpty()) {
-      throw new NotFoundException("Transaction." + transactionId + " not found.");
-    }
-    HTransaction persisted = optionalEntity.get();
-    return mapper.toDomain(
-        swanRepository.findById(persisted.getIdSwan()),
-        persisted,
-        categoryRepository.findByIdTransaction(transactionId)
-    );
-  }
-
-  @Override
-  public List<Transaction> findByAccountIdAndStatus(String id, TransactionStatus status) {
-    return findByAccountId(id).stream()
-        .filter(transaction -> transaction.getStatus().equals(status))
-        .collect(Collectors.toUnmodifiableList());
-  }
-
-  @Override
-  public Transaction save(Transaction toSave) {
-    HTransaction entity = jpaRepository.save(mapper.toEntity(toSave));
-    app.bpartners.api.repository.swan.model.Transaction
-        swanTransaction = swanRepository.findById(entity.getIdSwan());
-    return mapper.toDomain(swanTransaction, entity,
-        categoryRepository.findByIdTransaction(entity.getId()));
-  }
-
-  @Override
-  public List<Transaction> findByAccountIdAndStatusBetweenInstants(
-      String id, TransactionStatus status,
-      Instant from, Instant to) {
-    return findByAccountIdAndStatus(id, status).stream()
-        .filter(
-            transaction -> transaction.getPaymentDatetime().isAfter(from)
-                &&
-                transaction.getPaymentDatetime().isBefore(to)
-        )
-        .collect(Collectors.toUnmodifiableList());
-  }
-
-  @Override
-  public Transaction getById(String idTransaction) {
-    HTransaction entity = jpaRepository.findById(idTransaction)
-        .orElseThrow(() -> new NotFoundException(
-            "Transaction." + idTransaction + " not found"));
-    app.bpartners.api.repository.swan.model.Transaction
-        swanTransaction = swanRepository.findById(entity.getIdSwan());
-    return mapper.toDomain(swanTransaction, entity,
-        categoryRepository.findByIdTransaction(entity.getId()));
-  }
-
-  private HTransaction getOrCreateTransaction(
-      String accountId,
-      app.bpartners.api.repository.swan.model.Transaction transaction) {
-    Optional<HTransaction> optional = jpaRepository.findByIdSwan(transaction.getNode().getId());
-    if (optional.isPresent()) {
-      HTransaction optionalValue = optional.get();
-      checkTransactionUpdates(transaction.getNode(), optionalValue);
-      return jpaRepository.save(optionalValue);
-    }
-    return jpaRepository.save(mapper.toEntity(accountId, transaction));
-  }
 
   private static void checkTransactionUpdates(Node transactionNode, HTransaction optionalValue) {
     if (optionalValue.getAmount() != null
@@ -149,5 +64,94 @@ public class TransactionRepositoryImpl implements TransactionRepository {
         && !optionalValue.getSide().equals(transactionNode.getSide())) {
       optionalValue.setSide(transactionNode.getSide());
     }
+  }
+
+  @Override
+  public List<Transaction> findByAccountId(String accountId, int page, int pageSize) {
+    Pageable pageable = PageRequest.of(page, pageSize);
+    List<Transaction> transactionsFromSwan = swanRepository.getByIdAccount(accountId, pageSize)
+        .stream()
+        .map(transaction -> {
+          HTransaction entity = getOrCreateTransaction(accountId, transaction);
+          return mapper.toDomain(transaction, entity,
+              categoryRepository.findByIdTransaction(entity.getId()));
+        })
+        .collect(Collectors.toUnmodifiableList());
+    if (transactionsFromSwan.isEmpty()) {
+      List<HTransaction> transactions = jpaRepository.findAllByIdAccount(accountId, pageable);
+      return transactions.stream()
+          .map(transaction ->
+              mapper.toDomain(transaction,
+                  categoryRepository.findByIdTransaction(transaction.getId())))
+          .collect(Collectors.toList());
+    }
+    return transactionsFromSwan;
+  }
+
+  @Override
+  public Transaction findByAccountIdAndId(String accountId, String transactionId) {
+    Optional<HTransaction> optionalEntity = jpaRepository.findById(transactionId);
+    if (optionalEntity.isEmpty()) {
+      throw new NotFoundException("Transaction." + transactionId + " not found.");
+    }
+    HTransaction persisted = optionalEntity.get();
+    return mapper.toDomain(
+        swanRepository.findById(persisted.getIdSwan()),
+        persisted,
+        categoryRepository.findByIdTransaction(transactionId)
+    );
+  }
+
+  @Override
+  public List<Transaction> findByAccountIdAndStatus(String id, TransactionStatus status, int page
+      , int pageSize) {
+    return findByAccountId(id, page, pageSize).stream()
+        .filter(transaction -> transaction.getStatus().equals(status))
+        .collect(Collectors.toUnmodifiableList());
+  }
+
+  @Override
+  public Transaction save(Transaction toSave) {
+    HTransaction entity = jpaRepository.save(mapper.toEntity(toSave));
+    app.bpartners.api.repository.swan.model.Transaction
+        swanTransaction = swanRepository.findById(entity.getIdSwan());
+    return mapper.toDomain(swanTransaction, entity,
+        categoryRepository.findByIdTransaction(entity.getId()));
+  }
+
+  @Override
+  public List<Transaction> findByAccountIdAndStatusBetweenInstants(
+      String id, TransactionStatus status,
+      Instant from, Instant to, int page, int pageSize) {
+    return findByAccountIdAndStatus(id, status, page, pageSize).stream()
+        .filter(
+            transaction -> transaction.getPaymentDatetime().isAfter(from)
+                &&
+                transaction.getPaymentDatetime().isBefore(to)
+        )
+        .collect(Collectors.toUnmodifiableList());
+  }
+
+  @Override
+  public Transaction getById(String idTransaction) {
+    HTransaction entity = jpaRepository.findById(idTransaction)
+        .orElseThrow(() -> new NotFoundException(
+            "Transaction." + idTransaction + " not found"));
+    app.bpartners.api.repository.swan.model.Transaction
+        swanTransaction = swanRepository.findById(entity.getIdSwan());
+    return mapper.toDomain(swanTransaction, entity,
+        categoryRepository.findByIdTransaction(entity.getId()));
+  }
+
+  private HTransaction getOrCreateTransaction(
+      String accountId,
+      app.bpartners.api.repository.swan.model.Transaction transaction) {
+    Optional<HTransaction> optional = jpaRepository.findByIdSwan(transaction.getNode().getId());
+    if (optional.isPresent()) {
+      HTransaction optionalValue = optional.get();
+      checkTransactionUpdates(transaction.getNode(), optionalValue);
+      return jpaRepository.save(optionalValue);
+    }
+    return jpaRepository.save(mapper.toEntity(accountId, transaction));
   }
 }

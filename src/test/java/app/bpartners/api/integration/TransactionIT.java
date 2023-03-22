@@ -36,6 +36,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import static app.bpartners.api.integration.conf.TestUtils.DEFAULT_PAGE_SIZE;
 import static app.bpartners.api.integration.conf.TestUtils.JANE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JANE_DOE_TOKEN;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
@@ -57,6 +58,7 @@ import static java.util.Calendar.JANUARY;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
@@ -148,7 +150,7 @@ class TransactionIT {
     ApiClient joeDoeClient = anApiClient();
     PayingApi api = new PayingApi(joeDoeClient);
 
-    List<Transaction> actual = api.getTransactions(JOE_DOE_ACCOUNT_ID, null, null);
+    List<Transaction> actual = api.getTransactions(JOE_DOE_ACCOUNT_ID, 1, 50);
     assertEquals(4, actual.size());
 
     assertTrue(actual.contains(restTransaction2()));
@@ -162,7 +164,8 @@ class TransactionIT {
   void read_persisted_transactions_ok() throws ApiException {
     reset(transactionSwanRepositoryMock);
     when(transactionSwanRepositoryMock.findById(any())).thenReturn(null);
-    when(transactionSwanRepositoryMock.getByIdAccount(any())).thenReturn(List.of());
+    when(transactionSwanRepositoryMock.getByIdAccount(any(), eq(DEFAULT_PAGE_SIZE)))
+        .thenReturn(List.of());
     ApiClient joeDoeClient = anApiClient();
     PayingApi api = new PayingApi(joeDoeClient);
 
@@ -179,7 +182,7 @@ class TransactionIT {
     reset(transactionSwanRepositoryMock);
     when(transactionSwanRepositoryMock.findById(any())).thenReturn(
         updatedSwanTransaction());
-    when(transactionSwanRepositoryMock.getByIdAccount(any())).thenReturn(
+    when(transactionSwanRepositoryMock.getByIdAccount(any(), eq(DEFAULT_PAGE_SIZE))).thenReturn(
         List.of(updatedSwanTransaction()));
     ApiClient joeDoeClient = anApiClient();
     PayingApi api = new PayingApi(joeDoeClient);

@@ -22,6 +22,7 @@ import static app.bpartners.api.integration.conf.TestUtils.DEBIT_SIDE;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -46,7 +47,8 @@ class TransactionServiceSummariesTest {
         invoiceRepositoryMock
     );
 
-    when(transactionRepository.findByAccountIdAndStatusBetweenInstants(any(), any(), any(), any()))
+    when(transactionRepository.findByAccountIdAndStatusBetweenInstants(any(), any(), any(), any()
+        , eq(0), eq(20)))
         .thenReturn(transactions());
   }
 

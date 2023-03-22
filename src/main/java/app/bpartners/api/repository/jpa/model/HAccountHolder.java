@@ -50,4 +50,6 @@ public class HAccountHolder implements Serializable {
   private String city;
   private String country;
   private String postalCode;
+  private Double longitude;
+  private Double latitude;
 }

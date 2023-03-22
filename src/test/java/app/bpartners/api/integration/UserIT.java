@@ -31,6 +31,7 @@ import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -189,12 +190,12 @@ class UserIT {
   @Test
   void read_user_using_cognito_ok()
       throws ApiException, URISyntaxException, IOException, InterruptedException {
-    String phoneNumber = "+261340465338";
+    String email = "joe@email.com";
     reset(swanComponentMock);
     when(swanComponentMock.getSwanUserIdByToken(any())).thenReturn(null);
     when(swanComponentMock.getSwanUserByToken(any())).thenReturn(null);
-    when(cognitoComponent.getPhoneNumberByToken(JOE_DOE_COGNITO_TOKEN))
-        .thenReturn(phoneNumber);
+    when(cognitoComponent.getEmailByToken(JOE_DOE_COGNITO_TOKEN))
+        .thenReturn(email);
     ApiClient joeDoeClient = anApiClient(JOE_DOE_COGNITO_TOKEN);
     UserAccountsApi api = new UserAccountsApi(joeDoeClient);
 
@@ -208,12 +209,11 @@ class UserIT {
   @Test
   void read_user_using_cognito_ko()
       throws URISyntaxException, IOException, InterruptedException {
-    String phoneNumber = "+261341122334";
     reset(swanComponentMock);
     when(swanComponentMock.getSwanUserIdByToken(any())).thenReturn(null);
     when(swanComponentMock.getSwanUserByToken(any())).thenReturn(null);
-    when(cognitoComponent.getPhoneNumberByToken(JOE_DOE_COGNITO_TOKEN))
-        .thenReturn(phoneNumber);
+    when(cognitoComponent.getEmailByToken(JOE_DOE_COGNITO_TOKEN))
+        .thenReturn("jane@email.com");
     ApiClient joeDoeClient = anApiClient(JOE_DOE_COGNITO_TOKEN);
 
     UserAccountsApi api = new UserAccountsApi(joeDoeClient);
@@ -224,11 +224,12 @@ class UserIT {
   @Test
   void persist_user_info_while_reading_ok()
       throws URISyntaxException, IOException, InterruptedException, ApiException {
-    String phoneNumber = "+261341122334";
+    String email = "jane@email.com";
     reset(swanComponentMock);
     when(swanComponentMock.getSwanUserIdByToken(any())).thenReturn("jane_doe_user_id");
     when(swanComponentMock.getSwanUserByToken(any())).thenReturn(janeDoe());
-    HUser beforeUpdate = userJpaRepository.getByPhoneNumber(phoneNumber);
+    HUser beforeUpdate = userJpaRepository.findByEmail(email).get();
+    beforeUpdate.setAccounts(List.of());
     ApiClient joeDoeClient = anApiClient(JANE_DOE_TOKEN);
     UserAccountsApi api = new UserAccountsApi(joeDoeClient);
 
@@ -243,6 +244,7 @@ class UserIT {
         .logoFileId(beforeUpdate.getLogoFileId())
         .firstName(null)
         .lastName(null)
+        .email("jane@email.com")
         .idVerified(null)
         .identificationStatus(null)
         .accounts(beforeUpdate.getAccounts())

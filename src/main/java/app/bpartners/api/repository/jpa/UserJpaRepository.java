@@ -11,5 +11,7 @@ public interface UserJpaRepository extends JpaRepository<HUser, String> {
 
   HUser getByPhoneNumber(String phoneNumber);
 
+  Optional<HUser> findByEmail(String email);
+
   Optional<HUser> findUserBySwanUserId(String swanUserId);
 }

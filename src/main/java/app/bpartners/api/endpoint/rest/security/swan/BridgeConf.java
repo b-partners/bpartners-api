@@ -56,4 +56,13 @@ public class BridgeConf {
   public String getTransactionUrl() {
     return baseUrl + "/transactions";
   }
+
+  public String getAccountUrl() {
+    return baseUrl + "/accounts";
+  }
+
+  public String getBankUrl() {
+    return baseUrl + "/banks";
+  }
+
 }

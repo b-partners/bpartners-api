@@ -7,7 +7,7 @@ import java.util.function.Consumer;
 import org.springframework.stereotype.Component;
 
 @Component
-public class AccountHolderValidator implements Consumer<AccountHolder> {
+public class AccountHolderRestValidator implements Consumer<AccountHolder> {
   @Override
   public void accept(AccountHolder accountHolder) {
     StringBuilder exceptionMessageBuilder = new StringBuilder();

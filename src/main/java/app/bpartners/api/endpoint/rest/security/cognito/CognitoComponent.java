@@ -25,7 +25,7 @@ public class CognitoComponent {
     this.cognitoClient = cognitoClient;
   }
 
-  public String getPhoneNumberByToken(String idToken) {
+  public String getEmailByToken(String idToken) {
     JWTClaimsSet claims;
     try {
       claims = cognitoConf.getCognitoJwtProcessor().process(idToken, null);
@@ -37,16 +37,17 @@ public class CognitoComponent {
       return null;
     }
 
-    return isClaimsSetValid(claims) ? getPhoneNumber(claims) : null;
+    return isClaimsSetValid(claims) ? getEmail(claims) : null;
   }
 
   private boolean isClaimsSetValid(JWTClaimsSet claims) {
     return claims.getIssuer().equals(cognitoConf.getUserPoolUrl());
   }
 
-  private String getPhoneNumber(JWTClaimsSet claims) {
-    return claims.getClaims().get("phone_number").toString();
+  private String getEmail(JWTClaimsSet claims) {
+    return claims.getClaims().get("email").toString();
   }
+
 
   public String createUser(String email) {
     AdminCreateUserRequest createRequest = AdminCreateUserRequest.builder()

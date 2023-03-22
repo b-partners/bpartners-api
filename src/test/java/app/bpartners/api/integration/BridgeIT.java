@@ -8,6 +8,8 @@ import app.bpartners.api.integration.conf.BridgeAbstractContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
 import app.bpartners.api.manager.ProjectTokenManager;
 import app.bpartners.api.repository.bridge.BridgeApi;
+import app.bpartners.api.repository.bridge.model.Account.BridgeAccount;
+import app.bpartners.api.repository.bridge.model.Bank.BridgeBank;
 import app.bpartners.api.repository.bridge.model.Item.BridgeItem;
 import app.bpartners.api.repository.bridge.model.Transaction.BridgeTransaction;
 import app.bpartners.api.repository.bridge.model.User.BridgeUser;
@@ -125,6 +127,22 @@ public class BridgeIT {
 //  }
 
   @Test
+  void read_account_by_id_ok() {
+    BridgeAccount actual = subject.findByAccountById("", userToken());
+
+    log.info("BridgeAccount ={}", actual);
+    assertNotNull(actual);
+  }
+
+  @Test
+  void read_accounts_ok() {
+    List<BridgeAccount> actual = subject.findAccountsByToken(userToken());
+
+    log.info("BridgeAccounts ={}", actual);
+    assertFalse(actual.isEmpty());
+  }
+
+  @Test
   void read_items_ok() {
     List<BridgeItem> actual = subject.findItemsByToken(userToken());
 
@@ -156,8 +174,24 @@ public class BridgeIT {
     assertNotNull(actual);
   }
 
+  @Test
+  void read_banks_ok() {
+    List<BridgeBank> actual = subject.findAllBanks();
+
+    log.info("BridgeBanks={}", actual);
+    assertFalse(actual.isEmpty());
+  }
+
+  @Test
+  void read_bank_by_id_ok() {
+    BridgeBank actual = subject.findBankById(579);
+
+    log.info("BridgeBank={}", actual);
+    assertNotNull(actual);
+  }
+
   private String userToken() {
-    return "dd8c23a8b8dcbffed9cef7a179724c52cb0c5e5c-03ecb5e1-bed6-4a14-89ee-9bfbaff7780e";
+    return "1c6e244bcd0a52d785f8e7306556fb63070e169b-e0688560-f18c-40ad-b0b5-fb610b1957d7";
   }
 
 

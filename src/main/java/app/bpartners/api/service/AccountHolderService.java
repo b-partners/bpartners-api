@@ -33,6 +33,7 @@ public class AccountHolderService {
         .email(companyInfo.getEmail())
         .mobilePhoneNumber(companyInfo.getPhone())
         .subjectToVat(companyInfo.isSubjectToVat())
+        .location(companyInfo.getLocation())
         .build());
   }
 

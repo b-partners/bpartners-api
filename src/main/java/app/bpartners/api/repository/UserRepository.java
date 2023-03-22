@@ -7,5 +7,5 @@ public interface UserRepository {
 
   User getUserByToken(String token);
 
-  User getByPhoneNumber(String phoneNumber);
+  User getByEmail(String email);
 }

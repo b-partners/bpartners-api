@@ -3,6 +3,7 @@ package app.bpartners.api.repository.bridge;
 import app.bpartners.api.endpoint.rest.security.swan.BridgeConf;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.repository.bridge.model.Account.BridgeAccount;
+import app.bpartners.api.repository.bridge.model.Bank.BridgeBank;
 import app.bpartners.api.repository.bridge.model.Item.BridgeItem;
 import app.bpartners.api.repository.bridge.model.Item.CreateBridgeItem;
 import app.bpartners.api.repository.bridge.model.Transaction.BridgeTransaction;
@@ -294,6 +295,53 @@ public class BridgeApi {
         return null;
       }
       return objectMapper.readValue(httpResponse.body(), BridgeTransaction.class);
+    } catch (URISyntaxException | IOException e) {
+      throw new ApiException(SERVER_EXCEPTION, e);
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new ApiException(SERVER_EXCEPTION, e);
+    }
+  }
+
+  public List<BridgeBank> findAllBanks() {
+    try {
+      HttpRequest request = HttpRequest.newBuilder()
+          .uri(new URI(conf.getBankUrl()))
+          .headers(defaultHeadersWithJsonContentType())
+          .GET()
+          .build();
+      HttpResponse<String> httpResponse =
+          httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+      if (httpResponse.statusCode() != 200) {
+        log.warn("BridgeApi errors : {}", httpResponse.body());
+        return List.of();
+      }
+      BridgeListResponse<BridgeBank> response = objectMapper.readValue(httpResponse.body(),
+          new TypeReference<>() {
+          });
+      return response.getResources();
+    } catch (URISyntaxException | IOException e) {
+      throw new ApiException(SERVER_EXCEPTION, e);
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new ApiException(SERVER_EXCEPTION, e);
+    }
+  }
+
+  public BridgeBank findBankById(Integer id) {
+    try {
+      HttpRequest request = HttpRequest.newBuilder()
+          .uri(new URI(conf.getBankUrl() + "/" + id))
+          .headers(defaultHeadersWithJsonContentType())
+          .GET()
+          .build();
+      HttpResponse<String> httpResponse =
+          httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+      if (httpResponse.statusCode() != 200) {
+        log.warn("BridgeApi errors : {}", httpResponse.body());
+        return null;
+      }
+      return objectMapper.readValue(httpResponse.body(), BridgeBank.class);
     } catch (URISyntaxException | IOException e) {
       throw new ApiException(SERVER_EXCEPTION, e);
     } catch (InterruptedException e) {

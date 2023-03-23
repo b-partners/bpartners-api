@@ -6,18 +6,16 @@ import app.bpartners.api.model.BusinessActivity;
 import app.bpartners.api.model.Prospect;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.mapper.ProspectMapper;
+import app.bpartners.api.repository.AccountHolderRepository;
 import app.bpartners.api.repository.ProspectRepository;
 import app.bpartners.api.repository.SogefiBuildingPermitRepository;
-import app.bpartners.api.repository.jpa.AccountHolderJpaRepository;
 import app.bpartners.api.repository.jpa.ProspectJpaRepository;
-import app.bpartners.api.repository.jpa.model.HAccountHolder;
 import app.bpartners.api.repository.jpa.model.HProspect;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitApi;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.model.SingleBuildingPermit;
 import app.bpartners.api.service.BusinessActivityService;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -37,19 +35,18 @@ public class ProspectRepositoryImpl implements ProspectRepository {
   private final SogefiBuildingPermitRepository sogefiBuildingPermitRepository;
   private final BusinessActivityService businessActivityService;
   private final AuthenticatedResourceProvider resourceProvider;
-  private final AccountHolderJpaRepository accountHolderJpaRepository;
+  private final AccountHolderRepository accountHolderRepository;
 
   @Override
   public List<Prospect> findAllByIdAccountHolder(String idAccountHolder) {
     boolean isSogefiProspector = isSogefiProspector(idAccountHolder);
-    Optional<HAccountHolder> optionalAccountHolderEntity =
-        accountHolderJpaRepository.findById(idAccountHolder);
-    if (optionalAccountHolderEntity.isEmpty()
-        || optionalAccountHolderEntity.get().getTownCode() == null) {
+    AccountHolder accountHolder = accountHolderRepository.findById(idAccountHolder);
+    if (accountHolder.getTownCode() == null) {
       throw new BadRequestException(
-          "AccountHolder." + idAccountHolder + " is missing the " + "required property town code");
+          "AccountHolder.id=" + idAccountHolder + " is missing the " + "required property town "
+              + "code");
     }
-    String townCode = String.valueOf(optionalAccountHolderEntity.get().getTownCode());
+    String townCode = String.valueOf(accountHolder.getTownCode());
     if (isSogefiProspector) {
       buildingPermitApi.getData(townCode).getRecords().forEach(buildingPermit -> {
         SingleBuildingPermit singleBuildingPermit =

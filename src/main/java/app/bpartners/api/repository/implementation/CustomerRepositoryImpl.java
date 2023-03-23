@@ -1,5 +1,7 @@
 package app.bpartners.api.repository.implementation;
 
+import app.bpartners.api.endpoint.rest.model.CustomerStatus;
+import app.bpartners.api.endpoint.rest.model.UpdateCustomerStatus;
 import app.bpartners.api.endpoint.rest.security.principal.PrincipalProvider;
 import app.bpartners.api.model.Customer;
 import app.bpartners.api.model.exception.NotFoundException;
@@ -18,7 +20,6 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.query.QueryUtils;
@@ -26,7 +27,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 @AllArgsConstructor
-@Slf4j
 public class CustomerRepositoryImpl implements CustomerRepository {
   private final CustomerJpaRepository jpaRepository;
   private final CustomerMapper mapper;
@@ -37,50 +37,10 @@ public class CustomerRepositoryImpl implements CustomerRepository {
 
   private final EntityManager entityManager;
 
-
-  @Override
-  public List<Customer> findByAccountIdAndName(
-      String accountId, String firstName, String lastName, int page, int pageSize) {
-    Pageable pageable = PageRequest.of(page, pageSize);
-    return jpaRepository.findByIdAccountAndFirstNameAndLastNameContainingIgnoreCase(
-            accountId, firstName, lastName, pageable).stream()
-        .map(mapper::toDomain)
-        .collect(Collectors.toUnmodifiableList());
-  }
-
-  @Override
-  public List<Customer> findByAccountIdAndCriteria(String accountId, String firstname,
-                                                   String lastname, String email,
-                                                   String phoneNumber, String city,
-                                                   String country, int page, int pageSize) {
-    Pageable pageable = PageRequest.of(page, pageSize);
-    CriteriaBuilder builder = entityManager.getCriteriaBuilder();
-    CriteriaQuery<HCustomer> query = builder.createQuery(HCustomer.class);
-    Root<HCustomer> root = query.from(HCustomer.class);
-    List<Predicate> predicates = new ArrayList<>();
-    Predicate[] arrays =
-        retrieveNotNullPredicates(
-            accountId, firstname, lastname,
-            email, phoneNumber, city,
-            country, builder, root, predicates);
-
-    query
-        .where(builder.and(predicates.toArray(arrays)))
-        .orderBy(QueryUtils.toOrders(pageable.getSort(), root, builder));
-
-    return entityManager.createQuery(query)
-        .setFirstResult((pageable.getPageNumber()) * pageable.getPageSize())
-        .setMaxResults(pageable.getPageSize())
-        .getResultList()
-        .stream()
-        .map(mapper::toDomain)
-        .collect(Collectors.toUnmodifiableList());
-  }
-
   private static Predicate[] retrieveNotNullPredicates(
       String accountId, String firstname, String lastname,
       String email, String phoneNumber, String city,
-      String country, CriteriaBuilder builder,
+      String country, CustomerStatus status, CriteriaBuilder builder,
       Root<HCustomer> root, List<Predicate> predicates) {
 
     predicates.add(
@@ -125,7 +85,68 @@ public class CustomerRepositoryImpl implements CustomerRepository {
           builder.like(root.get("country"), "%" + country + "%")
       ));
     }
+    if (status != null) {
+      predicates.add(
+          builder.equal(root.get("status"), status)
+      );
+    } else {
+      predicates.add(
+          builder.equal(root.get("status"), CustomerStatus.ENABLED)
+      );
+    }
     return new Predicate[predicates.size()];
+  }
+
+  @Override
+  public List<Customer> findByAccountIdAndName(
+      String accountId, String firstName, String lastName, int page, int pageSize) {
+    Pageable pageable = PageRequest.of(page, pageSize);
+    return jpaRepository.findByIdAccountAndFirstNameAndLastNameContainingIgnoreCase(
+            accountId, firstName, lastName, pageable).stream()
+        .map(mapper::toDomain)
+        .collect(Collectors.toUnmodifiableList());
+  }
+
+  @Override
+  public List<Customer> findByAccountIdAndCriteria(String accountId, String firstname,
+                                                   String lastname, String email,
+                                                   String phoneNumber, String city,
+                                                   String country, CustomerStatus status, int page,
+                                                   int pageSize) {
+    Pageable pageable = PageRequest.of(page, pageSize);
+    CriteriaBuilder builder = entityManager.getCriteriaBuilder();
+    CriteriaQuery<HCustomer> query = builder.createQuery(HCustomer.class);
+    Root<HCustomer> root = query.from(HCustomer.class);
+    List<Predicate> predicates = new ArrayList<>();
+    Predicate[] arrays =
+        retrieveNotNullPredicates(
+            accountId, firstname, lastname,
+            email, phoneNumber, city,
+            country, status, builder, root, predicates);
+
+    query
+        .where(builder.and(predicates.toArray(arrays)))
+        .orderBy(QueryUtils.toOrders(pageable.getSort(), root, builder));
+
+    return entityManager.createQuery(query)
+        .setFirstResult((pageable.getPageNumber()) * pageable.getPageSize())
+        .setMaxResults(pageable.getPageSize())
+        .getResultList()
+        .stream()
+        .map(mapper::toDomain)
+        .collect(Collectors.toUnmodifiableList());
+  }
+
+  @Override
+  public List<Customer> updateStatus(String accountId, List<UpdateCustomerStatus> toUpdate) {
+    List<Customer> updatedCustomers = new ArrayList<>();
+    for (UpdateCustomerStatus customer : toUpdate) {
+      HCustomer customerToUpdate = jpaRepository.findByIdAccountAndId(accountId,
+          customer.getId());
+      customerToUpdate.setStatus(customer.getStatus());
+      updatedCustomers.add(mapper.toDomain(customerToUpdate));
+    }
+    return updatedCustomers;
   }
 
   @Override

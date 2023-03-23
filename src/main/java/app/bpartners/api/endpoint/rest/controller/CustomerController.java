@@ -3,6 +3,8 @@ package app.bpartners.api.endpoint.rest.controller;
 import app.bpartners.api.endpoint.rest.mapper.CustomerRestMapper;
 import app.bpartners.api.endpoint.rest.model.CreateCustomer;
 import app.bpartners.api.endpoint.rest.model.Customer;
+import app.bpartners.api.endpoint.rest.model.CustomerStatus;
+import app.bpartners.api.endpoint.rest.model.UpdateCustomerStatus;
 import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.service.CustomerService;
@@ -32,10 +34,11 @@ public class CustomerController {
       @RequestParam(required = false) String phoneNumber,
       @RequestParam(required = false) String city,
       @RequestParam(required = false) String country,
+      @RequestParam(required = false) CustomerStatus status,
       @RequestParam(required = false) PageFromOne page,
       @RequestParam(required = false) BoundedPageSize pageSize) {
-    return service.getCustomers(id, firstName, lastName, email, phoneNumber, city, country, page,
-            pageSize).stream()
+    return service.getCustomers(id, firstName, lastName, email, phoneNumber, city, country, status,
+            page, pageSize).stream()
         .map(mapper::toRest)
         .collect(Collectors.toUnmodifiableList());
   }
@@ -72,6 +75,15 @@ public class CustomerController {
         service.getDataFromFile(accountId, toUpload);
     return service.crupdateCustomers(accountId, customerTemplates)
         .stream().map(mapper::toRest)
+        .collect(Collectors.toUnmodifiableList());
+  }
+
+  @PutMapping(value = "/accounts/{id}/customers/status")
+  public List<Customer> updateCustomerStatus(
+      @PathVariable(name = "id") String accountId,
+      @RequestBody List<UpdateCustomerStatus> toUpdate) {
+    return service.updateStatus(accountId, toUpdate).stream()
+        .map(mapper::toRest)
         .collect(Collectors.toUnmodifiableList());
   }
 

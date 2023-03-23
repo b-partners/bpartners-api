@@ -24,6 +24,7 @@ public class CustomerMapper {
         .city(entity.getCity())
         .country(entity.getCountry())
         .comment(entity.getComment())
+        .status(entity.getStatus())
         .build();
   }
 
@@ -44,6 +45,7 @@ public class CustomerMapper {
         .city(domain.getCity())
         .country(domain.getCountry())
         .comment(domain.getComment())
+        .status(domain.getStatus())
         .build();
   }
 }

@@ -42,6 +42,11 @@ operations:
             type: string
           description: Filter customer list by country
         - in: query
+          name: status
+          schema:
+            type: string
+          description: Filter customer list by status
+        - in: query
           name: page
           schema:
             $ref: './api.yml#/components/schemas/Page'
@@ -185,6 +190,45 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
+  updateCustomerStatus:
+    put:
+      tags:
+        - Customers
+      summary: Update customer status for an account
+      operationId: updateCustomerStatus
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          description: Account Identifier
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/UpdateCustomerStatus'
+      responses:
+        200:
+          description: List of customers updated
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Customer'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
 components:
   schemas:
     CreateCustomer:
@@ -215,5 +259,19 @@ components:
       properties:
         id:
           type: string
+        status:
+          $ref: '#/components/schemas/CustomerStatus'
       allOf:
         - $ref: '#/components/schemas/CreateCustomer'
+    CustomerStatus:
+      type: string
+      enum:
+        - ENABLED
+        - DISABLED
+    UpdateCustomerStatus:
+      type: object
+      properties:
+        id:
+          type: string
+        status:
+          $ref: '#/components/schemas/CustomerStatus'

@@ -1,6 +1,7 @@
 package app.bpartners.api.endpoint.rest.mapper;
 
 import app.bpartners.api.endpoint.rest.model.CreateCustomer;
+import app.bpartners.api.endpoint.rest.model.CustomerStatus;
 import app.bpartners.api.endpoint.rest.validator.CreateCustomerValidator;
 import app.bpartners.api.endpoint.rest.validator.CustomerValidator;
 import app.bpartners.api.model.Customer;
@@ -33,7 +34,8 @@ public class CustomerRestMapper {
         .city(domain.getCity())
         .country(domain.getCountry())
         .city(domain.getCity())
-        .comment(domain.getComment());
+        .comment(domain.getComment())
+        .status(domain.getStatus());
   }
 
   public Customer toDomain(String accountId,
@@ -62,6 +64,7 @@ public class CustomerRestMapper {
         .country(external.getCountry())
         .city(external.getCity())
         .comment(external.getComment())
+        .status(external.getStatus())
         .build();
   }
 
@@ -87,6 +90,7 @@ public class CustomerRestMapper {
         .city(rest.getCity())
         .country(rest.getCountry())
         .comment(rest.getComment())
+        .status(CustomerStatus.ENABLED) // set to enabled by default
         .build();
   }
 

@@ -102,6 +102,8 @@ paths:
     $ref: './customers-api.yml#/operations/getOrCreateCustomers'
   /accounts/{id}/customers/upload:
     $ref: './customers-api.yml#/operations/importCustomers'
+  /accounts/{id}/customers/status:
+    $ref: './customers-api.yml#/operations/updateCustomerStatus'
 
   #############################################
   ############# Prospecting API ###############

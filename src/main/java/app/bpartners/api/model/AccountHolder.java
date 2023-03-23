@@ -34,4 +34,5 @@ public class AccountHolder {
   private boolean subjectToVat;
   private VerificationStatus verificationStatus;
   private Geojson location;
+  private Integer townCode;
 }

@@ -34,6 +34,7 @@ public class AccountHolderService {
         .mobilePhoneNumber(companyInfo.getPhone())
         .subjectToVat(companyInfo.isSubjectToVat())
         .location(companyInfo.getLocation())
+        .townCode(companyInfo.getTownCode())
         .build());
   }
 

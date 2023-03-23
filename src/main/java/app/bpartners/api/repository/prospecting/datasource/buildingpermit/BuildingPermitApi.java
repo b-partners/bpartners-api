@@ -31,12 +31,12 @@ public class BuildingPermitApi {
     this.httpClient = HttpClient.newBuilder().build();
   }
 
-  public BuildingPermitList getData() {
+  public BuildingPermitList getData(String townCode) {
     UUID requestId = randomUUID();
     try {
       HttpRequest request =
-          HttpRequest.newBuilder().uri(new URI(buildingPermitConf.getApiWithFilterUrl())).GET()
-              .build();
+          HttpRequest.newBuilder().uri(new URI(buildingPermitConf.getApiWithFilterUrl(townCode)))
+              .GET().build();
       log.info("SOGEFI CALL - id={}, url={}", requestId, request.uri());
       HttpResponse<String> response =
           httpClient.send(request, HttpResponse.BodyHandlers.ofString());

@@ -96,12 +96,12 @@ class BuildingPermitApiTest {
   private static final ObjectMapper om = new ObjectMapper().findAndRegisterModules();
   private static final String ENDPOINT = "audrso/v2/open/dossiers/filter";
   private static final String API_URL = "%s/%s/%s?%s";
-  private static final String INSEE = "";
+  private static final String INSEE = "123456";
   private static final String AUTHORIZED_STATE = "autorisé";
   private static final String STARTED_STATE = "commencé";
   private static final String ID_SOGEFI = "id_sogefi";
   private static final String COMMON_DENOM_CHAR = "e";
-  BuildingPermitConf conf = new BuildingPermitConf(BASE_URL, BEARER, INSEE, COMMON_DENOM_CHAR);
+  BuildingPermitConf conf = new BuildingPermitConf(BASE_URL, BEARER, COMMON_DENOM_CHAR);
   HttpClient mockHttpClient = mock(HttpClient.class);
   BuildingPermitApi api = new BuildingPermitApi(conf).httpClient(mockHttpClient);
 
@@ -116,18 +116,18 @@ class BuildingPermitApiTest {
   @Test
   void conf_values_ok() {
     String expectedString =
-        String.format(API_URL, BASE_URL, BEARER, ENDPOINT, URLEncodeMap(conf.getFilter()));
+        String.format(API_URL, BASE_URL, BEARER, ENDPOINT, URLEncodeMap(conf.getFilter(INSEE)));
 
-    assertEquals(expectedFilter(), conf.getFilter());
+    assertEquals(expectedFilter(), conf.getFilter(INSEE));
     assertEquals(expectedFields(), conf.getFields());
-    assertEquals(expectedString, conf.getApiWithFilterUrl());
+    assertEquals(expectedString, conf.getApiWithFilterUrl(INSEE));
   }
 
   @Test
   void read_list_ok() throws IOException, InterruptedException {
     when(mockHttpClient.send(any(), any())).thenReturn(httpResponseMock(BUILDING_PERMIT_LIST_JSON));
 
-    BuildingPermitList permits = api.getData();
+    BuildingPermitList permits = api.getData(INSEE);
 
     assertEquals(expectedPermits(), permits);
   }
@@ -145,18 +145,18 @@ class BuildingPermitApiTest {
   @Test
   void read_from_sogefi_ko() throws IOException, InterruptedException {
     when(mockHttpClient.send(any(), any())).thenThrow(new IOException());
-    assertThrows(ApiException.class, () -> api.getData());
+    assertThrows(ApiException.class, () -> api.getData(INSEE));
     assertThrows(ApiException.class, () -> api.getOne(ID_SOGEFI));
 
     reset(mockHttpClient);
     when(mockHttpClient.send(any(), any())).thenThrow(new InterruptedException());
-    assertThrows(ApiException.class, () -> api.getData());
+    assertThrows(ApiException.class, () -> api.getData(INSEE));
     assertThrows(ApiException.class, () -> api.getOne(ID_SOGEFI));
   }
 
   Map<String, String> expectedFilter() {
     Map<String, String> filter = new HashMap<>();
-    filter.put("insee[in]", conf.getInsee());
+    filter.put("insee[in]", INSEE);
     filter.put("annee[gte]", String.valueOf(Year.now().minusYears(1).getValue()));
     filter.put("type[eq]", "PC");
     filter.put("sitadel_etat[in]", AUTHORIZED_STATE + "," + STARTED_STATE);

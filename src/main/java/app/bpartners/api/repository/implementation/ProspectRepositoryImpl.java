@@ -11,7 +11,9 @@ import app.bpartners.api.model.mapper.ProspectMapper;
 import app.bpartners.api.repository.AccountHolderRepository;
 import app.bpartners.api.repository.ProspectRepository;
 import app.bpartners.api.repository.SogefiBuildingPermitRepository;
+import app.bpartners.api.repository.jpa.MunicipalityJpaRepository;
 import app.bpartners.api.repository.jpa.ProspectJpaRepository;
+import app.bpartners.api.repository.jpa.model.HMunicipality;
 import app.bpartners.api.repository.jpa.model.HProspect;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitApi;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.model.SingleBuildingPermit;
@@ -45,6 +47,7 @@ public class ProspectRepositoryImpl implements ProspectRepository {
   private final AuthenticatedResourceProvider resourceProvider;
   private final AnnualRevenueTargetService revenueTargetService;
   private final AccountHolderRepository accountHolderRepository;
+  private final MunicipalityJpaRepository municipalityJpaRepository;
 
   @Override
   public List<Prospect> findAllByIdAccountHolder(String idAccountHolder) {
@@ -55,17 +58,28 @@ public class ProspectRepositoryImpl implements ProspectRepository {
           "AccountHolder.id=" + idAccountHolder + " is missing the " + "required property town "
               + "code");
     }
-    String townCode = String.valueOf(accountHolder.getTownCode());
+    List<HMunicipality> municipalities =
+        municipalityJpaRepository.findMunicipalitiesWithinDistance(
+            String.valueOf(accountHolder.getTownCode()), accountHolder.getProspectingPerimeter());
+    String townCodes =
+        municipalities.stream()
+            .map(HMunicipality::getCode)
+            .collect(Collectors.joining(","));
+    List<Integer> townCodesAsInt = municipalities.stream()
+        .map(HMunicipality::getCode)
+        .mapToInt(Integer::parseInt)
+        .boxed()
+        .collect(toUnmodifiableList());
     if (isSogefiProspector) {
-      buildingPermitApi.getData(townCode).getRecords().forEach(buildingPermit -> {
+      buildingPermitApi.getData(townCodes).getRecords().forEach(buildingPermit -> {
         SingleBuildingPermit singleBuildingPermit =
             buildingPermitApi.getOne(String.valueOf(buildingPermit.getFileId()));
         sogefiBuildingPermitRepository.saveByBuildingPermit(idAccountHolder, buildingPermit,
             singleBuildingPermit);
       });
     }
-    return jpaRepository.findAllByIdAccountHolderAndTownCode(idAccountHolder,
-            accountHolder.getTownCode()).stream()
+    return jpaRepository
+        .findAllByIdAccountHolderAndTownCodeIsIn(idAccountHolder, townCodesAsInt).stream()
         .map(prospect -> mapper.toDomain(prospect, isSogefiProspector))
         .collect(toUnmodifiableList());
   }

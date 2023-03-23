@@ -5,5 +5,8 @@ import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface ProspectJpaRepository extends JpaRepository<HProspect, String> {
-  List<HProspect> findAllByIdAccountHolderAndTownCode(String idAccountHolder, Integer townCode);
+  List<HProspect> findAllByIdAccountHolderAndTownCodeIsIn(
+      String idAccountHolder,
+      List<Integer> townCode
+  );
 }

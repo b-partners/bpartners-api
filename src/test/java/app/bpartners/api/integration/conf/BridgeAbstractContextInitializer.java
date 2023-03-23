@@ -3,6 +3,8 @@ package app.bpartners.api.integration.conf;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.test.context.support.TestPropertySourceUtils;
+import org.testcontainers.containers.JdbcDatabaseContainer;
+import org.testcontainers.containers.PostgisContainerProvider;
 import org.testcontainers.containers.PostgreSQLContainer;
 
 public abstract class BridgeAbstractContextInitializer
@@ -10,8 +12,9 @@ public abstract class BridgeAbstractContextInitializer
 
   @Override
   public void initialize(ConfigurableApplicationContext applicationContext) {
-    PostgreSQLContainer<?> postgresContainer =
-        new PostgreSQLContainer<>("postgres:13.2")
+    JdbcDatabaseContainer postgresContainer =
+        new PostgisContainerProvider()
+            .newInstance()
             .withDatabaseName("it-db")
             .withUsername("sa")
             .withPassword("sa");

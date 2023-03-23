@@ -14,6 +14,8 @@ import app.bpartners.api.integration.conf.TestUtils;
 import app.bpartners.api.manager.ProjectTokenManager;
 import app.bpartners.api.repository.LegalFileRepository;
 import app.bpartners.api.repository.fintecture.FintectureConf;
+import app.bpartners.api.repository.jpa.MunicipalityJpaRepository;
+import app.bpartners.api.repository.jpa.model.HMunicipality;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitApi;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitConf;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.model.BuildingPermit;
@@ -31,6 +33,7 @@ import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -88,6 +91,8 @@ class ProspectIT {
   private BuildingPermitApi buildingPermitApiMock;
   @MockBean
   private BuildingPermitConf buildingPermitConfMock;
+  @Autowired
+  private MunicipalityJpaRepository municipalityJpaRepository;
 
   private static ApiClient anApiClient() {
     return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN, ContextInitializer.SERVER_PORT);
@@ -185,6 +190,14 @@ class ProspectIT {
         .address("30 Rue de la Montagne Sainte-Genevieve");
   }
 
+  HMunicipality antony() {
+    return HMunicipality.builder()
+        .id("43c152ed-89f2-43c5-a3d2-d5cb1fb59f62")
+        .name("Antony")
+        .code("92002")
+        .build();
+  }
+
   @Test
   @Order(1)
   void read_prospects_ok() throws ApiException {
@@ -205,8 +218,7 @@ class ProspectIT {
     ApiClient joeDoeClient = anApiClient();
     ProspectingApi api = new ProspectingApi(joeDoeClient);
 
-    List<Prospect> actual = api.updateProspects(SWAN_ACCOUNTHOLDER_ID,
-        List.of(updateProspect()));
+    List<Prospect> actual = api.updateProspects(SWAN_ACCOUNTHOLDER_ID, List.of(updateProspect()));
 
     assertEquals(List.of(expectedProspect()), ignoreIdsOf(actual));
   }
@@ -230,8 +242,7 @@ class ProspectIT {
 
     assertThrowsApiException("{\"type\":\"501 NOT_IMPLEMENTED\","
             + "\"message\":\"prospect conversion not implemented yet\"}",
-        () -> api.convertProspect(SWAN_ACCOUNTHOLDER_ID,
-            prospect1().getId(), List.of()));
+        () -> api.convertProspect(SWAN_ACCOUNTHOLDER_ID, prospect1().getId(), List.of()));
   }
 
   @Test
@@ -244,6 +255,22 @@ class ProspectIT {
     assertThrowsForbiddenException(() -> api.getProspects(NOT_JOE_DOE_ACCOUNT_HOLDER_ID));
     assertThrowsForbiddenException(
         () -> api.convertProspect(NOT_JOE_DOE_ACCOUNT_HOLDER_ID, prospect1().getId(), List.of()));
+  }
+
+  @Test
+  void find_municipalities_within_distance_from_point_coordinates_ok() {
+    String prospectingMunicipalityCode = "92002";
+    List<HMunicipality> within0km =
+        municipalityJpaRepository.findMunicipalitiesWithinDistance(prospectingMunicipalityCode, 0);
+    List<HMunicipality> within2km =
+        municipalityJpaRepository.findMunicipalitiesWithinDistance(prospectingMunicipalityCode, 2);
+    List<HMunicipality> within5km =
+        municipalityJpaRepository.findMunicipalitiesWithinDistance(prospectingMunicipalityCode, 5);
+
+    assertTrue(within0km.contains(antony()));
+    assertTrue(within2km.contains(antony()));
+    assertTrue(within5km.contains(antony()));
+    assertEquals(15, within5km.size());
   }
 
   private List<Prospect> ignoreIdsOf(List<Prospect> prospects) {

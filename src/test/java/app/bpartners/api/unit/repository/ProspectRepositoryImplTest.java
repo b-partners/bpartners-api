@@ -6,6 +6,7 @@ import app.bpartners.api.model.mapper.ProspectMapper;
 import app.bpartners.api.repository.AccountHolderRepository;
 import app.bpartners.api.repository.SogefiBuildingPermitRepository;
 import app.bpartners.api.repository.implementation.ProspectRepositoryImpl;
+import app.bpartners.api.repository.jpa.MunicipalityJpaRepository;
 import app.bpartners.api.repository.jpa.ProspectJpaRepository;
 import app.bpartners.api.repository.jpa.model.HAccountHolder;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitApi;
@@ -35,6 +36,7 @@ class ProspectRepositoryImplTest {
   AuthenticatedResourceProvider resourceProviderMock;
   AnnualRevenueTargetService revenueTargetServiceMock;
   AccountHolderRepository accountHolderRepositoryMock;
+  MunicipalityJpaRepository municipalityJpaRepositoryMock;
 
   @BeforeEach
   void setUp() {
@@ -47,10 +49,11 @@ class ProspectRepositoryImplTest {
     resourceProviderMock = mock(AuthenticatedResourceProvider.class);
     revenueTargetServiceMock = mock(AnnualRevenueTargetService.class);
     accountHolderRepositoryMock = mock(AccountHolderRepository.class);
+    municipalityJpaRepositoryMock = mock(MunicipalityJpaRepository.class);
     subject =
         new ProspectRepositoryImpl(prospectJpaRepositoryMock, prospectMapper, buildingPermitApiMock,
             sogefiBuildingPermitRepositoryMock, businessActivityServiceMock, resourceProviderMock,
-            revenueTargetServiceMock, accountHolderRepositoryMock);
+            revenueTargetServiceMock, accountHolderRepositoryMock, municipalityJpaRepositoryMock);
     when(revenueTargetServiceMock.getByYear(JOE_DOE_ACCOUNT_ID, 2023)).thenReturn(
         Optional.ofNullable(
             AnnualRevenueTarget.builder()

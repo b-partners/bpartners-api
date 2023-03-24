@@ -149,8 +149,8 @@ jobs:
 
       - name: Delete the oldest snapshot and then create snapshot for the actual version of the database
         run: |
+          aws rds delete-db-snapshot --region eu-west-3 --db-snapshot-identifier $(aws rds describe-db-snapshots --region eu-west-3 --query 'sort_by(DBSnapshots[?SnapshotType==`manual`], &SnapshotCreateTime)[0].DBSnapshotIdentifier' | sed 's/"\(.*\)"/\1/')
           aws rds create-db-snapshot --db-instance-identifier ${{ env.dbIdentifier }} --db-snapshot-identifier ${{ env.branch_env }}-snapshot-pre-cd-compute-${{ github.sha }}-${{ env.time }}
-          aws rds delete-db-snapshot --region eu-west-3 --db-snapshot-identifier $(aws rds describe-db-snapshots --profile bpartners --region eu-west-3 --query 'sort_by(DBSnapshots[?SnapshotType==`manual`], &SnapshotCreateTime)[0].DBSnapshotIdentifier' | sed 's/"\(.*\)"/\1/')
 
       - name: Deploy compute stack
         uses: aws-actions/aws-cloudformation-github-deploy@v1

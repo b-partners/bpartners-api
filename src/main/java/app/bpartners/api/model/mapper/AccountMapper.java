@@ -2,6 +2,7 @@ package app.bpartners.api.model.mapper;
 
 import app.bpartners.api.endpoint.rest.model.AccountStatus;
 import app.bpartners.api.model.Account;
+import app.bpartners.api.model.Bank;
 import app.bpartners.api.repository.bridge.model.Account.BridgeAccount;
 import app.bpartners.api.repository.jpa.model.HAccount;
 import app.bpartners.api.repository.jpa.model.HUser;
@@ -59,7 +60,7 @@ public class AccountMapper {
         .build();
   }
 
-  public Account toDomain(BridgeAccount bridgeAccount, String userId) {
+  public Account toDomain(BridgeAccount bridgeAccount, Bank bank, String userId) {
     return Account.builder()
         .id(null) //TODO : set persisted ID
         .bic(null) //TODO: set persisted BIC
@@ -68,6 +69,7 @@ public class AccountMapper {
         .name(bridgeAccount.getName())
         .iban(bridgeAccount.getIban())
         .availableBalance(parseFraction(bridgeAccount.getBalance()))
+        .bank(bank)
         .build();
   }
 

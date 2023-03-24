@@ -384,6 +384,15 @@ components:
       enum:
         - ENABLED
         - DISABLED
+    Bank:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        logoUrl:
+          type: string
     Account:
       properties:
         id:
@@ -396,6 +405,8 @@ components:
           type: string
         availableBalance:
           type: integer
+        bank:
+          $ref: '#/components/schemas/Bank'
         #Deprecated
         IBAN:
           type: string

@@ -4,7 +4,9 @@ import app.bpartners.api.endpoint.rest.security.AuthenticatedResourceProvider;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.BusinessActivity;
 import app.bpartners.api.model.Prospect;
+import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.mapper.ProspectMapper;
+import app.bpartners.api.repository.AccountHolderRepository;
 import app.bpartners.api.repository.ProspectRepository;
 import app.bpartners.api.repository.SogefiBuildingPermitRepository;
 import app.bpartners.api.repository.jpa.ProspectJpaRepository;
@@ -33,12 +35,20 @@ public class ProspectRepositoryImpl implements ProspectRepository {
   private final SogefiBuildingPermitRepository sogefiBuildingPermitRepository;
   private final BusinessActivityService businessActivityService;
   private final AuthenticatedResourceProvider resourceProvider;
+  private final AccountHolderRepository accountHolderRepository;
 
   @Override
   public List<Prospect> findAllByIdAccountHolder(String idAccountHolder) {
     boolean isSogefiProspector = isSogefiProspector(idAccountHolder);
+    AccountHolder accountHolder = accountHolderRepository.findById(idAccountHolder);
+    if (accountHolder.getTownCode() == null) {
+      throw new BadRequestException(
+          "AccountHolder.id=" + idAccountHolder + " is missing the " + "required property town "
+              + "code");
+    }
+    String townCode = String.valueOf(accountHolder.getTownCode());
     if (isSogefiProspector) {
-      buildingPermitApi.getData().getRecords().forEach(buildingPermit -> {
+      buildingPermitApi.getData(townCode).getRecords().forEach(buildingPermit -> {
         SingleBuildingPermit singleBuildingPermit =
             buildingPermitApi.getOne(String.valueOf(buildingPermit.getFileId()));
         sogefiBuildingPermitRepository.saveByBuildingPermit(idAccountHolder, buildingPermit,

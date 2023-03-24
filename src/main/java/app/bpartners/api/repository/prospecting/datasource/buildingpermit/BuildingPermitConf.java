@@ -22,21 +22,18 @@ public class BuildingPermitConf {
   private static final String SINGLE_PERMIT_ENDPOINT = "audrso/v2/open/dossiers/%s";
   private String baseUrl;
   private String bearer;
-  private String insee;
   private String denomChar;
 
   public BuildingPermitConf(@Value("${ads.baseUrl}") String baseUrl,
                             @Value("${ads.bearer}") String bearer,
-                            @Value("${ads.insee}") String insee,
                             @Value("${ads.denom.char}") String denomChar) {
     this.baseUrl = baseUrl;
     this.bearer = bearer;
-    this.insee = insee;
     this.denomChar = denomChar;
   }
 
-  public String getApiWithFilterUrl() {
-    return String.format(API_URL, baseUrl, bearer, LIST_ENDPOINT, URLEncodeMap(getFilter()));
+  public String getApiWithFilterUrl(String insee) {
+    return String.format(API_URL, baseUrl, bearer, LIST_ENDPOINT, URLEncodeMap(getFilter(insee)));
   }
 
   public String getSinglePermitUrl(String idFile) {
@@ -44,7 +41,7 @@ public class BuildingPermitConf {
     return String.format(API_URL, baseUrl, bearer, permitEndpoint, URLEncodeMap(getFields()));
   }
 
-  public Map<String, String> getFilter() {
+  public Map<String, String> getFilter(String insee) {
     Map<String, String> filter = new HashMap<>();
     filter.put("insee[in]", insee);
     filter.put("annee[gte]", String.valueOf(Year.now().minusYears(1).getValue()));

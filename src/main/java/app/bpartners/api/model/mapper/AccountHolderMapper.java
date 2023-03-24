@@ -49,7 +49,9 @@ public class AccountHolderMapper {
         .mainActivity(entity.getBusinessActivity())
         .mainActivityDescription(entity.getBusinessActivityDescription())
         .initialCashflow(parseFraction(entity.getInitialCashflow()))
-        .location(location).build();
+        .location(location)
+        .townCode(entity.getTownCode())
+        .build();
   }
 
   public HAccountHolder toEntity(AccountHolder domain) {
@@ -82,6 +84,7 @@ public class AccountHolderMapper {
         .postalCode(domain.getPostalCode())
         .longitude(longitude)
         .latitude(latitude)
+        .townCode(domain.getTownCode())
         .build();
   }
 

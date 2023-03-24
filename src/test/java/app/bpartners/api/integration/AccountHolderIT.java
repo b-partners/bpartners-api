@@ -130,7 +130,8 @@ class AccountHolderIT {
             .email("numer@hei.school")
             .socialCapital(40000)
             .tvaNumber("FR32123456789")
-            .location(location()))
+            .location(location())
+            .townCode(92001))
         .businessActivities(new CompanyBusinessActivity()
             .primary("IT")
             .secondary("TECHNOLOGY"))
@@ -201,7 +202,8 @@ class AccountHolderIT {
             .phone("+33 6 11 22 33 44")
             .email("numer@hei.school")
             .tvaNumber("FR32123456789")
-            .location(location()));
+            .location(location())
+            .townCode(92001));
   }
 
   CompanyInfo updatedCompanyInfo() {
@@ -213,7 +215,8 @@ class AccountHolderIT {
         .tvaNumber(joeDoeAccountHolder().getCompanyInfo().getTvaNumber())
         .location(location()
             .latitude(43.5)
-            .longitude(2.5));
+            .longitude(2.5))
+        .townCode(92002);
   }
 
   @BeforeEach
@@ -354,7 +357,8 @@ class AccountHolderIT {
         joeDoeAccountHolder().getId(), companyInfo()
             .location(location()
                 .latitude(43.5)
-                .longitude(2.5)));
+                .longitude(2.5))
+            .townCode(92002));
 
     assertEquals(expected()
         .companyInfo(updatedCompanyInfo())

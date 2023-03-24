@@ -149,7 +149,7 @@ jobs:
 
       - name: Delete the oldest snapshot
         run: |
-          oldest_snapshot=$(aws rds describe-db-snapshots --profile bpartners --region eu-west-3 --snapshot-type manual | jq -r '.DBSnapshots | sort_by(.SnapshotCreateTime)[0].DBSnapshotIdentifier')
+          oldest_snapshot=$(aws rds describe-db-snapshots --region eu-west-3 --snapshot-type manual | jq -r '.DBSnapshots | sort_by(.SnapshotCreateTime)[0].DBSnapshotIdentifier')
           aws rds delete-db-snapshot --db-snapshot-identifier $oldest_snapshot
 
       - name: Create snapshot for the actual version of the database

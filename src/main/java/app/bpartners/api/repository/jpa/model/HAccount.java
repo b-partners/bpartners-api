@@ -36,6 +36,9 @@ public class HAccount implements Serializable {
   @JoinColumn(name = "id_user")
   @JsonIgnore
   private HUser user;
+  @ManyToOne
+  @JoinColumn(name = "id_bank")
+  private HBank bank;
   @Column(name = "\"name\"")
   private String name;
   private String iban;

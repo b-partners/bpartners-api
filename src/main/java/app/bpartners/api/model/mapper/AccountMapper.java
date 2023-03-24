@@ -60,9 +60,10 @@ public class AccountMapper {
         .build();
   }
 
-  public Account toDomain(BridgeAccount bridgeAccount, Bank bank, String userId) {
+  public Account toDomain(BridgeAccount bridgeAccount, Bank bank,
+                          String accountEntityId, String userId) {
     return Account.builder()
-        .id(null) //TODO : set persisted ID
+        .id(accountEntityId) //TODO : set persisted ID
         .bic(null) //TODO: set persisted BIC
         .status(null) //TODO: map status correctly
         .userId(userId)
@@ -77,6 +78,7 @@ public class AccountMapper {
     return HAccount.builder()
         .id(domain.getId())
         .user(user)
+        .bank(null) //TODO: map bank if bridge token is not null or expired
         .name(domain.getName())
         .iban(domain.getIban())
         .bic(domain.getBic())

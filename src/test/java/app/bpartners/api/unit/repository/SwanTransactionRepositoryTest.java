@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.MockedConstruction;
 
 import static app.bpartners.api.integration.conf.TestUtils.API_URL;
+import static app.bpartners.api.integration.conf.TestUtils.DEFAULT_PAGE_SIZE;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.TestUtils.SWAN_TRANSACTION_ID;
 import static app.bpartners.api.integration.conf.TestUtils.setUpProvider;
@@ -58,7 +59,8 @@ class SwanTransactionRepositoryTest {
 
   @Test
   void read_swan_transaction_by_accountId_ok() {
-    List<Transaction> actual = transactionSwanRepository.getByIdAccount(JOE_DOE_ACCOUNT_ID);
+    List<Transaction> actual = transactionSwanRepository.getByIdAccount(
+        JOE_DOE_ACCOUNT_ID, DEFAULT_PAGE_SIZE);
 
     assertNotNull(actual);
   }

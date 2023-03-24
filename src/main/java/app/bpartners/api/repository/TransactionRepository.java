@@ -6,17 +6,18 @@ import java.time.Instant;
 import java.util.List;
 
 public interface TransactionRepository {
-  List<Transaction> findByAccountId(String id);
+  List<Transaction> findByAccountId(String id, int page, int pageSize);
 
   Transaction findByAccountIdAndId(String accountId, String transactionId);
 
-  List<Transaction> findByAccountIdAndStatus(String id, TransactionStatus status);
+  List<Transaction> findByAccountIdAndStatus(
+      String id, TransactionStatus status, int page, int pageSize);
 
   Transaction save(Transaction toSave);
 
   List<Transaction> findByAccountIdAndStatusBetweenInstants(
       String id, TransactionStatus status,
-      Instant from, Instant to);
+      Instant from, Instant to, int page, int pageSize);
 
   Transaction getById(String idTransaction);
 }

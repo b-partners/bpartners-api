@@ -28,17 +28,18 @@ import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVE
 @AllArgsConstructor
 public class TransactionSwanRepositoryImpl implements TransactionSwanRepository {
   public static final String QUERY = "{"
-      + "  \"query\": \"query TransactionAccount { account(accountId: \\\"%s\\\") { transactions { "
-      + "edges { node { id label reference amount { currency value }"
-      + " createdAt side statusInfo { status } } } } }}\"}";
+      + "  \"query\": \"query TransactionAccount(first:%s, after: \"cursor\") "
+      + "{ account(accountId: \\\"%s\\\") { transactions { "
+      + "edges { node { id label reference amount { currency value } createdAt side statusInfo { "
+      + "status } } cursor } pageInfo { endCursor hasNextPage } } }}\"}";
 
   private final ProjectTokenManager tokenManager;
   private final SwanConf swanConf;
   private final SwanCustomApi<TransactionResponse> swanCustomApi;
 
   @Override
-  public List<Transaction> getByIdAccount(String idAccount) {
-    String query = String.format(QUERY, idAccount);
+  public List<Transaction> getByIdAccount(String idAccount, int pageSize) {
+    String query = String.format(QUERY, pageSize, idAccount);
     TransactionResponse data = swanCustomApi.getData(TransactionResponse.class, query,
         tokenManager.getSwanProjecToken());
     return data == null || (

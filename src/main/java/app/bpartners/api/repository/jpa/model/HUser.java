@@ -4,6 +4,7 @@ import app.bpartners.api.endpoint.rest.model.EnableStatus;
 import app.bpartners.api.endpoint.rest.model.IdentificationStatus;
 import app.bpartners.api.repository.jpa.types.PostgresEnumType;
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.List;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -30,7 +31,7 @@ import static javax.persistence.GenerationType.IDENTITY;
 @Getter
 @Setter
 @ToString
-@Builder
+@Builder(toBuilder = true)
 @AllArgsConstructor
 @NoArgsConstructor
 @EqualsAndHashCode
@@ -47,6 +48,9 @@ public class HUser implements Serializable {
   private String bridgeUserId; //TODO: persist this when creating new users
   private String bridgePassword; //TODO: persist this when creating new users
   private String phoneNumber;
+  private String accessToken;
+  private Instant tokenExpirationDatetime;
+  private Instant tokenCreationDatetime;
   private int monthlySubscription;
   private String logoFileId;
   @Type(type = "pgsql_enum")

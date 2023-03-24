@@ -1,6 +1,7 @@
 package app.bpartners.api.repository.implementation;
 
 import app.bpartners.api.model.AccountHolder;
+import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.mapper.AccountHolderMapper;
 import app.bpartners.api.repository.AccountHolderRepository;
 import app.bpartners.api.repository.jpa.AccountHolderJpaRepository;
@@ -56,8 +57,7 @@ public class AccountHolderRepositoryImpl implements AccountHolderRepository {
 
   @Override
   public AccountHolder getByIdAndAccountId(String id, String accountId) {
-    SwanAccountHolder swanAccountHolder =
-        swanRepository.getById(id);
+    SwanAccountHolder swanAccountHolder = swanRepository.getById(id);
     Optional<HAccountHolder> accountHolder = jpaRepository.findByIdAndAccountId(id, accountId);
     if (accountHolder.isEmpty()) {
       return mapper.toDomain(
@@ -66,55 +66,57 @@ public class AccountHolderRepositoryImpl implements AccountHolderRepository {
     return mapper.toDomain(accountHolder.get());
   }
 
-  private AccountHolder getOrPersistAccountHolder(
-      String accountId, SwanAccountHolder swanAccountHolder) {
+  @Override
+  public AccountHolder findById(String idAccountHolder) {
+    Optional<HAccountHolder> accountHolder = jpaRepository.findById(idAccountHolder);
+    if (accountHolder.isEmpty()) {
+      throw new NotFoundException("Accountholder.id=" + idAccountHolder + " not found.");
+    }
+    return mapper.toDomain(accountHolder.get());
+  }
+
+  private AccountHolder getOrPersistAccountHolder(String accountId,
+                                                  SwanAccountHolder swanAccountHolder) {
     return mapper.toDomain(getOrCreateAccountHolderEntity(accountId, swanAccountHolder));
   }
 
   private void checkAccountHolderUpdates(SwanAccountHolder swanAccountHolder,
                                          HAccountHolder optionalValue) {
-    if (optionalValue.getVerificationStatus() == null
-        || (!optionalValue.getVerificationStatus().getValue()
-        .equals(swanAccountHolder.getVerificationStatus()))) {
+    if (optionalValue.getVerificationStatus() == null || (!optionalValue.getVerificationStatus()
+        .getValue().equals(swanAccountHolder.getVerificationStatus()))) {
       optionalValue.setVerificationStatus(
           mapper.getStatus(swanAccountHolder.getVerificationStatus()));
     }
-    if (optionalValue.getName() == null
-        || (!optionalValue.getName().equals(swanAccountHolder.getInfo().getName()))) {
+    if (optionalValue.getName() == null || (!optionalValue.getName()
+        .equals(swanAccountHolder.getInfo().getName()))) {
       optionalValue.setName(swanAccountHolder.getInfo().getName());
     }
-    if (optionalValue.getRegistrationNumber() == null
-        || (!optionalValue.getRegistrationNumber()
+    if (optionalValue.getRegistrationNumber() == null || (!optionalValue.getRegistrationNumber()
         .equals(swanAccountHolder.getInfo().getRegistrationNumber()))) {
       optionalValue.setRegistrationNumber(swanAccountHolder.getInfo().getRegistrationNumber());
     }
-    if (optionalValue.getBusinessActivity() == null
-        || (!optionalValue.getBusinessActivity()
+    if (optionalValue.getBusinessActivity() == null || (!optionalValue.getBusinessActivity()
         .equals(swanAccountHolder.getInfo().getBusinessActivity()))) {
       optionalValue.setBusinessActivity(swanAccountHolder.getInfo().getBusinessActivity());
     }
-    if (optionalValue.getBusinessActivityDescription() == null
-        || (!optionalValue.getName()
+    if (optionalValue.getBusinessActivityDescription() == null || (!optionalValue.getName()
         .equals(swanAccountHolder.getInfo().getBusinessActivityDescription()))) {
       optionalValue.setBusinessActivityDescription(
           swanAccountHolder.getInfo().getBusinessActivityDescription());
     }
-    if (optionalValue.getAddress() == null
-        || (!optionalValue.getAddress()
+    if (optionalValue.getAddress() == null || (!optionalValue.getAddress()
         .equals(swanAccountHolder.getResidencyAddress().getAddressLine1()))) {
       optionalValue.setAddress(swanAccountHolder.getResidencyAddress().getAddressLine1());
     }
-    if (optionalValue.getCity() == null
-        || (!optionalValue.getCity().equals(swanAccountHolder.getResidencyAddress().getCity()))) {
+    if (optionalValue.getCity() == null || (!optionalValue.getCity()
+        .equals(swanAccountHolder.getResidencyAddress().getCity()))) {
       optionalValue.setCity(swanAccountHolder.getResidencyAddress().getCity());
     }
-    if (optionalValue.getCountry() == null
-        || (!optionalValue.getCountry()
+    if (optionalValue.getCountry() == null || (!optionalValue.getCountry()
         .equals(swanAccountHolder.getResidencyAddress().getCountry()))) {
       optionalValue.setCountry(swanAccountHolder.getResidencyAddress().getCountry());
     }
-    if (optionalValue.getPostalCode() == null
-        || (!optionalValue.getPostalCode()
+    if (optionalValue.getPostalCode() == null || (!optionalValue.getPostalCode()
         .equals(swanAccountHolder.getResidencyAddress().getPostalCode()))) {
       optionalValue.setPostalCode(swanAccountHolder.getResidencyAddress().getPostalCode());
     }

@@ -22,4 +22,5 @@ public class CompanyInfo {
   private Integer socialCapital;
   private BusinessActivity businessActivity;
   private Geojson location;
+  private Integer townCode;
 }

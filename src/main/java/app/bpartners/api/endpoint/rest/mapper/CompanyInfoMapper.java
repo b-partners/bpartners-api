@@ -18,6 +18,8 @@ public class CompanyInfoMapper {
         .phone(rest.getPhone())
         .socialCapital(rest.getSocialCapital())
         .subjectToVat(rest.getIsSubjectToVat() != null && rest.getIsSubjectToVat())
-        .location(rest.getLocation()).build();
+        .location(rest.getLocation())
+        .townCode(rest.getTownCode())
+        .build();
   }
 }

@@ -1,10 +1,20 @@
-## [0.9.1](https://github.com/b-partners/bpartners-api/compare/v0.9.0...v0.9.1) (2023-03-16)
+# [0.10.0](https://github.com/b-partners/bpartners-api/compare/v0.9.0...v0.10.0) (2023-03-23)
 
 
 ### Bug Fixes
 
 * convert paymentRegulation to empty array when null is provided ([8b5756d](https://github.com/b-partners/bpartners-api/commit/8b5756de3017e52abfbe6b7fea3ca6c03030337f))
-* filter customers ([e8673b6](https://github.com/b-partners/bpartners-api/commit/e8673b6819da0816d672ef96b7a67cc4e6b6281b))
+* delete blank products and customers ([ec4ba9d](https://github.com/b-partners/bpartners-api/commit/ec4ba9d6fd2cc74ad6082db95d82a615961d5e91))
+* remove duplicate customer ([ae7e98b](https://github.com/b-partners/bpartners-api/commit/ae7e98b3e61b30420edc9a0da6eae0e5017f88ac))
+* remove duplicated customers in the file ([363763a](https://github.com/b-partners/bpartners-api/commit/363763a74bd2417604043ed5b3c8f5e51bd61fb8))
+* remove duplicated product when create product by uploading excel file ([3e9b8e9](https://github.com/b-partners/bpartners-api/commit/3e9b8e995c40e9bb71bfa3d6e709a61e85c50a3d))
+* remove unique constraint on primary business activity ([3a7d8da](https://github.com/b-partners/bpartners-api/commit/3a7d8da58c01b3603ef246dde25bbc142860d9d0))
+* user domain authentication is based on email ([991bc3b](https://github.com/b-partners/bpartners-api/commit/991bc3ba638dc2c65235d7b06eaa49532d0eaf10))
+
+
+### Features
+
+* add location to accountholder ([#615](https://github.com/b-partners/bpartners-api/issues/615)) ([36bd6cd](https://github.com/b-partners/bpartners-api/commit/36bd6cd8bb86582d77c390bc7f978934322efaf5))
 
 
 

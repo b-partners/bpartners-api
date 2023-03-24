@@ -6,7 +6,6 @@ import app.bpartners.api.endpoint.rest.security.model.Principal;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
 import app.bpartners.api.model.LegalFile;
 import app.bpartners.api.model.User;
-import app.bpartners.api.repository.UserTokenRepository;
 import app.bpartners.api.service.LegalFileService;
 import app.bpartners.api.service.UserService;
 import java.util.List;
@@ -28,7 +27,6 @@ public class AuthProvider extends AbstractUserDetailsAuthenticationProvider {
   private final CognitoComponent cognitoComponent;
   private final SwanComponent swanComponent;
   private final UserService userService;
-  private final UserTokenRepository bridgeTokenRepository;
   private final LegalFileService legalFileService;
 
   public static Principal getPrincipal() {
@@ -60,8 +58,7 @@ public class AuthProvider extends AbstractUserDetailsAuthenticationProvider {
       user = userService.getUserByIdAndBearer(swanUserId, bearer);
     } else {
       user = userService.getUserByEmail(email);
-      //TODO: uncomment to allow bridge connection
-      //bearer = bridgeTokenRepository.getLatestTokenByUser(user).getAccessToken();
+      bearer = userService.getLatestToken(user).getAccessToken();
     }
     List<LegalFile> legalFilesList =
         legalFileService.getAllToBeApprovedLegalFilesByUserId(user.getId());

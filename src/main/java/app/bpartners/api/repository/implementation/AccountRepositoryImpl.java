@@ -48,7 +48,9 @@ public class AccountRepositoryImpl implements AccountRepository {
       return bridgeAccounts.stream()
           .map(bridgeAccount -> {
             Bank bank = bankRepository.findById(bridgeAccount.getBankId());
-            return mapper.toDomain(bridgeAccount, bank, authenticatedUser.getId());
+            return mapper.toDomain(bridgeAccount, bank,
+                authenticatedUser.getAccount().getId(),
+                authenticatedUser.getId());
           })
           .collect(Collectors.toList());
     }
@@ -66,7 +68,7 @@ public class AccountRepositoryImpl implements AccountRepository {
     if (bridgeAccount != null) {
       //TODO: getOrUpdate accounts
       Bank bank = bankRepository.findById(bridgeAccount.getBankId());
-      return mapper.toDomain(bridgeAccount, bank, null);
+      return mapper.toDomain(bridgeAccount, bank, accountId, null);
     }
     Optional<HAccount> optionalAccount = accountJpaRepository.findById(accountId);
     if (optionalAccount.isPresent()) {
@@ -78,6 +80,7 @@ public class AccountRepositoryImpl implements AccountRepository {
 
   @Override
   public List<Account> findByUserId(String userId) {
+    HUser user = userJpaRepository.getById(userId);
     List<SwanAccount> swanAccounts = swanRepository.findByUserId(userId);
     if (!swanAccounts.isEmpty()) {
       return getOrCreateAccounts(swanAccounts, userId);
@@ -85,13 +88,14 @@ public class AccountRepositoryImpl implements AccountRepository {
     List<BridgeAccount> bridgeAccounts = bridgeRepository.findAllByAuthenticatedUser();
     if (!bridgeAccounts.isEmpty()) {
       //TODO: getOrUpdate accounts
-      return bridgeAccounts.stream()
+      return List.of(bridgeAccounts.stream()
           .map(bridgeAccount -> {
                 Bank bank = bankRepository.findById(bridgeAccount.getBankId());
-                return mapper.toDomain(bridgeAccount, bank, userId);
+                return mapper.toDomain(
+                    bridgeAccount, bank, user.getAccounts().get(0).getId(), userId);
               }
           )
-          .collect(Collectors.toList());
+          .collect(Collectors.toList()).get(0));
     }
     Optional<HAccount> optionalAccount = accountJpaRepository.findByUser_Id(userId);
     if (optionalAccount.isPresent()) {

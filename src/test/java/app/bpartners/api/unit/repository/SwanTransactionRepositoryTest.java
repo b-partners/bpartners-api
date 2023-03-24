@@ -2,7 +2,6 @@ package app.bpartners.api.unit.repository;
 
 import app.bpartners.api.endpoint.rest.security.principal.PrincipalProviderImpl;
 import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
-import app.bpartners.api.manager.ProjectTokenManager;
 import app.bpartners.api.repository.swan.SwanCustomApi;
 import app.bpartners.api.repository.swan.implementation.TransactionSwanRepositoryImpl;
 import app.bpartners.api.repository.swan.model.Transaction;
@@ -25,9 +24,9 @@ import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.when;
 
 class SwanTransactionRepositoryTest {
+  public static final String ANY_BEARER_TOKEN = "any_bearer_token";
   PrincipalProviderImpl provider;
   SwanConf swanConf;
-  ProjectTokenManager projectTokenManager;
   SwanCustomApi<TransactionResponse> swanCustomApi;
   TransactionSwanRepositoryImpl transactionSwanRepository;
 
@@ -35,13 +34,12 @@ class SwanTransactionRepositoryTest {
   void setUp() {
     provider = mock(PrincipalProviderImpl.class);
     setUpProvider(provider);
-    projectTokenManager = mock(ProjectTokenManager.class);
     swanConf = mock(SwanConf.class);
     swanCustomApi = mock(SwanCustomApi.class);
     when(swanConf.getApiUrl()).thenReturn(API_URL);
     when(swanCustomApi.getData(any(), any(), any())).thenReturn(transactionResponse());
     transactionSwanRepository =
-        new TransactionSwanRepositoryImpl(projectTokenManager, swanConf, swanCustomApi);
+        new TransactionSwanRepositoryImpl(swanConf, swanCustomApi);
   }
 
   @Test
@@ -50,7 +48,8 @@ class SwanTransactionRepositoryTest {
         OneTransactionResponse.class, (mock, context) -> {
           when(mock.getData()).thenReturn(oneTransactionResponse().getData());
         });
-    Transaction actual = transactionSwanRepository.findById(SWAN_TRANSACTION_ID);
+    Transaction actual = transactionSwanRepository.findById(
+        SWAN_TRANSACTION_ID, ANY_BEARER_TOKEN);
 
     assertNotNull(actual);
     mockedConstruction.close();
@@ -58,7 +57,8 @@ class SwanTransactionRepositoryTest {
 
   @Test
   void read_swan_transaction_by_accountId_ok() {
-    List<Transaction> actual = transactionSwanRepository.getByIdAccount(JOE_DOE_ACCOUNT_ID);
+    List<Transaction> actual =
+        transactionSwanRepository.getByIdAccount(JOE_DOE_ACCOUNT_ID, ANY_BEARER_TOKEN);
 
     assertNotNull(actual);
   }

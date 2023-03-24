@@ -61,7 +61,7 @@ public class UserRepositoryImpl implements UserRepository {
       entityUser = getUpdatedUser(swanUser);
     } else {
       String bridgeToken = token;
-      HUser entityFromToken = jpaRepository.findByToken(bridgeToken);
+      HUser entityFromToken = jpaRepository.findByAccessToken(bridgeToken);
       if (entityFromToken != null) {
         return userMapper.toDomain(entityFromToken, null);
       }

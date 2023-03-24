@@ -3,7 +3,9 @@ package app.bpartners.api.model.mapper;
 import app.bpartners.api.endpoint.rest.model.TransactionStatus;
 import app.bpartners.api.model.Transaction;
 import app.bpartners.api.model.TransactionCategory;
+import app.bpartners.api.repository.bridge.model.Transaction.BridgeTransaction;
 import app.bpartners.api.repository.jpa.model.HTransaction;
+import java.time.ZoneId;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -40,6 +42,13 @@ public class TransactionMapper {
     }
   }
 
+  public static TransactionStatus getStatusFromBridge(BridgeTransaction bridgeTransaction) {
+    //TODO: add DELETED status
+    return !bridgeTransaction.getIsFuture()
+        ? TransactionStatus.BOOKED :
+        TransactionStatus.UPCOMING;
+  }
+
   public Transaction toDomain(
       app.bpartners.api.repository.swan.model.Transaction external,
       HTransaction entity,
@@ -58,6 +67,27 @@ public class TransactionMapper {
         .category(category)
         .side(external.getNode().getSide())
         .status(getTransactionStatus(status))
+        .build();
+  }
+
+  public Transaction toDomain(
+      BridgeTransaction bridgeTransaction,
+      HTransaction entity,
+      TransactionCategory category) {
+    return Transaction.builder()
+        .id(entity.getId())
+        .idAccount(entity.getIdAccount())
+        .idSwan(entity.getIdSwan())
+        .idBridge(entity.getIdBridge())
+        .transactionInvoice(invoiceMapper.toTransactionInvoice(entity.getInvoice()))
+        .amount(parseFraction(bridgeTransaction.getAmount() * 100))
+        .currency(bridgeTransaction.getCurrency())
+        .label(bridgeTransaction.getLabel())
+        .reference(entity.getReference())
+        .paymentDatetime(bridgeTransaction.getCreatedDatetime())
+        .category(category)
+        .side(bridgeTransaction.getSide())
+        .status(getStatusFromBridge(bridgeTransaction))
         .build();
   }
 
@@ -93,6 +123,26 @@ public class TransactionMapper {
         .label(swanTransaction.getNode().getLabel())
         .build();
   }
+
+  public HTransaction toEntity(
+      String accountId,
+      BridgeTransaction bridgeTransaction) {
+    return HTransaction.builder()
+        .idBridge(bridgeTransaction.getId())
+        .idAccount(accountId)
+        .amount(String.valueOf(parseFraction(bridgeTransaction.getAmount())))
+        .paymentDateTime(bridgeTransaction
+            .getTransactionDate()
+            .atStartOfDay(ZoneId.systemDefault())
+            .toInstant())
+        .side(bridgeTransaction.getSide())
+        .status(getStatusFromBridge(bridgeTransaction))
+        .reference(null)
+        .currency(bridgeTransaction.getCurrency())
+        .label(bridgeTransaction.getLabel())
+        .build();
+  }
+
 
   public HTransaction toEntity(Transaction domain) {
     return HTransaction.builder()

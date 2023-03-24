@@ -1,7 +1,6 @@
 package app.bpartners.api.repository.swan.implementation;
 
 import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
-import app.bpartners.api.manager.ProjectTokenManager;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.repository.swan.SwanCustomApi;
 import app.bpartners.api.repository.swan.TransactionSwanRepository;
@@ -32,15 +31,13 @@ public class TransactionSwanRepositoryImpl implements TransactionSwanRepository 
       + "edges { node { id label reference amount { currency value }"
       + " createdAt side statusInfo { status } } } } }}\"}";
 
-  private final ProjectTokenManager tokenManager;
   private final SwanConf swanConf;
   private final SwanCustomApi<TransactionResponse> swanCustomApi;
 
   @Override
-  public List<Transaction> getByIdAccount(String idAccount) {
+  public List<Transaction> getByIdAccount(String idAccount, String bearer) {
     String query = String.format(QUERY, idAccount);
-    TransactionResponse data = swanCustomApi.getData(TransactionResponse.class, query,
-        tokenManager.getSwanProjecToken());
+    TransactionResponse data = swanCustomApi.getData(TransactionResponse.class, query, bearer);
     return data == null || (
         data.getData() == null
             || (data.getData().getAccount() == null
@@ -49,7 +46,7 @@ public class TransactionSwanRepositoryImpl implements TransactionSwanRepository 
   }
 
   @Override
-  public Transaction findById(String id) {
+  public Transaction findById(String id, String bearer) {
     try {
       HttpClient httpClient = HttpClient.newBuilder().build();
       String query =
@@ -59,7 +56,7 @@ public class TransactionSwanRepositoryImpl implements TransactionSwanRepository 
       HttpRequest request = HttpRequest.newBuilder()
           .uri(new URI(swanConf.getApiUrl()))
           .header("Content-Type", "application/json")
-          .header("Authorization", BEARER_PREFIX + tokenManager.getSwanProjecToken())
+          .header("Authorization", BEARER_PREFIX + bearer)
           .POST(HttpRequest.BodyPublishers.ofString(query))
           .build();
       HttpResponse<String> response =

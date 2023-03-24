@@ -27,6 +27,7 @@ public class UserMapper {
         .lastName(swanUser == null ? entityUser.getLastName() : swanUser.getLastName())
         .mobilePhoneNumber(entityUser.getPhoneNumber())
         .email(entityUser.getEmail())
+        .accessToken(entityUser.getAccessToken())
         .bridgePassword(entityUser.getBridgePassword())
         .monthlySubscription(entityUser.getMonthlySubscription())
         .status(entityUser.getStatus())

@@ -93,6 +93,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 public class TestUtils {
@@ -921,16 +922,20 @@ public class TestUtils {
   }
 
   public static void setUpTransactionRepository(TransactionSwanRepository repository) {
-    when(repository.getByIdAccount(any())).thenReturn(
+    when(repository.getByIdAccount(any(), any())).thenReturn(
         List.of(
             swanTransaction1(),
             swanTransaction2(),
             swanTransaction3(),
             swanTransaction4()));
-    when(repository.findById(swanTransaction1().getNode().getId())).thenReturn(swanTransaction1());
-    when(repository.findById(swanTransaction2().getNode().getId())).thenReturn(swanTransaction2());
-    when(repository.findById(swanTransaction3().getNode().getId())).thenReturn(swanTransaction3());
-    when(repository.findById(swanTransaction4().getNode().getId())).thenReturn(swanTransaction4());
+    when(repository.findById(eq(swanTransaction1().getNode().getId()), any()))
+        .thenReturn(swanTransaction1());
+    when(repository.findById(eq(swanTransaction2().getNode().getId()), any()))
+        .thenReturn(swanTransaction2());
+    when(repository.findById(eq(swanTransaction3().getNode().getId()), any()))
+        .thenReturn(swanTransaction3());
+    when(repository.findById(eq(swanTransaction4().getNode().getId()), any()))
+        .thenReturn(swanTransaction4());
   }
 
   public static void setUpOnboardingSwanRepositoryMock(OnboardingSwanRepository repository) {

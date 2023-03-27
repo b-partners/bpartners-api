@@ -5,6 +5,7 @@ import java.util.List;
 
 public interface BridgeAccountRepository {
   List<BridgeAccount> findByBearer(String bearer);
+
   List<BridgeAccount> findAllByAuthenticatedUser();
 
   BridgeAccount findById(String id);

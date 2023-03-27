@@ -2,10 +2,12 @@ package app.bpartners.api.endpoint.rest.controller;
 
 import app.bpartners.api.endpoint.rest.mapper.LegalFileRestMapper;
 import app.bpartners.api.endpoint.rest.model.LegalFile;
+import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
 import app.bpartners.api.endpoint.rest.validator.LegalFileRestValidator;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.ForbiddenException;
+import app.bpartners.api.repository.UserTokenRepository;
 import app.bpartners.api.service.LegalFileService;
 import app.bpartners.api.service.UserService;
 import java.util.List;
@@ -24,7 +26,9 @@ import static app.bpartners.api.endpoint.rest.security.swan.SwanConf.BEARER_PREF
 @AllArgsConstructor
 public class LegalFileController {
   private final SwanComponent swanComponent;
+  private final CognitoComponent cognitoComponent;
   private final UserService userService;
+  private final UserTokenRepository bridgeRepository;
   private final LegalFileService service;
   private final LegalFileRestMapper mapper;
   private final LegalFileRestValidator validator;
@@ -52,18 +56,17 @@ public class LegalFileController {
   //TODO: put into a customAuthProvider that does not needs legal file check
   private void checkUserSelfMatcher(HttpServletRequest request, String userId) {
     String bearer = request.getHeader(AUTHORIZATION_HEADER);
-    //Check that the user is authenticated
     if (bearer == null) {
       throw new ForbiddenException();
     } else {
       bearer = bearer.substring(BEARER_PREFIX.length()).trim();
-      //Check that the user is authenticated
       String swanUserId = swanComponent.getSwanUserIdByToken(bearer);
-      if (swanUserId == null) {
+      String email = cognitoComponent.getEmailByToken(bearer);
+      if (swanUserId == null && email == null) {
         throw new ForbiddenException();
       }
-      //Check that the user is authorized
-      User user = userService.getUserByIdAndBearer(swanUserId, bearer);
+      User user = swanUserId != null ? userService.getUserByIdAndBearer(swanUserId, bearer) :
+          userService.getUserByEmail(email);
       if (!userId.equals(user.getId())) {
         throw new ForbiddenException();
       }

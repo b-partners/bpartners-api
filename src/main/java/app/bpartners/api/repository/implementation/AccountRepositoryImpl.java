@@ -1,5 +1,6 @@
 package app.bpartners.api.repository.implementation;
 
+import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.Bank;
 import app.bpartners.api.model.User;
@@ -21,6 +22,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -37,83 +39,73 @@ public class AccountRepositoryImpl implements AccountRepository {
 
   @Override
   public List<Account> findByBearer(String bearer) {
-    List<SwanAccount> swanAccounts = swanRepository.findByBearer(bearer);
     User authenticatedUser = userRepository.getUserByToken(bearer);
-    if (!swanAccounts.isEmpty()) {
-      return getOrCreateAccounts(swanAccounts, authenticatedUser.getId());
-    }
-    List<BridgeAccount> bridgeAccounts = bridgeRepository.findByBearer(bearer);
-    if (!bridgeAccounts.isEmpty()) {
-      //TODO: getOrUpdate accounts
+
+    List<SwanAccount> swanAccounts = swanRepository.findByBearer(bearer);
+    if (swanAccounts.isEmpty()) {
+      List<BridgeAccount> bridgeAccounts = bridgeRepository.findByBearer(bearer);
+      if (bridgeAccounts.isEmpty()) {
+        return List.of(authenticatedUser.getAccount());
+      }
       return bridgeAccounts.stream()
-          .map(bridgeAccount -> {
-            Bank bank = bankRepository.findById(bridgeAccount.getBankId());
-            return mapper.toDomain(bridgeAccount, bank,
-                authenticatedUser.getAccount().getId(),
-                authenticatedUser.getId());
-          })
+          .map(bridgeAccount -> getUpdatedAccount(authenticatedUser, bridgeAccount))
           .collect(Collectors.toList());
     }
-    return List.of(authenticatedUser.getAccount());
+    return getUpdatedAccounts(swanAccounts, authenticatedUser.getId());
   }
 
-  //TODO: get authenticated user here to get userId
   @Override
   public Account findById(String accountId) {
+    User authenticatedUser = userIsAuthenticated()
+        ? AuthProvider.getPrincipal().getUser() : null;
+
     List<SwanAccount> swanAccounts = swanRepository.findById(accountId);
-    if (!swanAccounts.isEmpty()) {
-      return getOrCreateAccounts(swanAccounts, null).get(0);
+    if (swanAccounts.isEmpty()) {
+      BridgeAccount bridgeAccount = bridgeRepository.findById(accountId);
+      if (bridgeAccount == null) {
+        Optional<HAccount> optionalAccount = accountJpaRepository.findById(accountId);
+        if (optionalAccount.isPresent()) {
+          return mapper.toDomain(optionalAccount.get(), optionalAccount.get().getUser().getId());
+        } else {
+          throw new NotFoundException("Account." + accountId + " not found.");
+        }
+      }
+      return getUpdatedAccount(authenticatedUser, bridgeAccount);
     }
-    BridgeAccount bridgeAccount = bridgeRepository.findById(accountId);
-    if (bridgeAccount != null) {
-      //TODO: getOrUpdate accounts
-      Bank bank = bankRepository.findById(bridgeAccount.getBankId());
-      return mapper.toDomain(bridgeAccount, bank, accountId, null);
-    }
-    Optional<HAccount> optionalAccount = accountJpaRepository.findById(accountId);
-    if (optionalAccount.isPresent()) {
-      return mapper.toDomain(optionalAccount.get(), optionalAccount.get().getUser().getId());
-    } else {
-      throw new NotFoundException("Account." + accountId + " not found.");
-    }
+    return getUpdatedAccounts(swanAccounts, null).get(0);
   }
 
   @Override
   public List<Account> findByUserId(String userId) {
-    HUser user = userJpaRepository.getById(userId);
+    User authenticatedUser = userIsAuthenticated()
+        ? AuthProvider.getPrincipal().getUser() : null;
+
     List<SwanAccount> swanAccounts = swanRepository.findByUserId(userId);
-    if (!swanAccounts.isEmpty()) {
-      return getOrCreateAccounts(swanAccounts, userId);
-    }
-    List<BridgeAccount> bridgeAccounts = bridgeRepository.findAllByAuthenticatedUser();
-    if (!bridgeAccounts.isEmpty()) {
-      //TODO: getOrUpdate accounts
+    if (swanAccounts.isEmpty()) {
+      List<BridgeAccount> bridgeAccounts = bridgeRepository.findAllByAuthenticatedUser();
+      if (bridgeAccounts.isEmpty()) {
+        Optional<HAccount> optionalAccount = accountJpaRepository.findByUser_Id(userId);
+        if (optionalAccount.isPresent()) {
+          return List.of(mapper.toDomain(optionalAccount.get(), userId));
+        } else {
+          throw new NotFoundException("User." + userId + " is not associated with any account");
+        }
+      }
       return List.of(bridgeAccounts.stream()
-          .map(bridgeAccount -> {
-                Bank bank = bankRepository.findById(bridgeAccount.getBankId());
-                return mapper.toDomain(
-                    bridgeAccount, bank, user.getAccounts().get(0).getId(), userId);
-              }
-          )
+          .map(bridgeAccount -> getUpdatedAccount(authenticatedUser, bridgeAccount))
           .collect(Collectors.toList()).get(0));
     }
-    Optional<HAccount> optionalAccount = accountJpaRepository.findByUser_Id(userId);
-    if (optionalAccount.isPresent()) {
-      return List.of(mapper.toDomain(optionalAccount.get(), userId));
-    } else {
-      throw new NotFoundException("User." + userId + " is not associated with any account");
-    }
+    return getUpdatedAccounts(swanAccounts, userId);
   }
 
   @Override
   public List<Account> saveAll(List<Account> toCreate, String userId) {
     HUser user = userJpaRepository.findById(userId).orElseThrow(
-        () -> new NotFoundException("User." + userId + " not found")
-    );
+        () -> new NotFoundException("User." + userId + " not found"));
     return saveAll(toCreate, user);
   }
 
-  public List<Account> saveAll(List<Account> toCreate, HUser user) {
+  private List<Account> saveAll(List<Account> toCreate, HUser user) {
     List<HAccount> toSave = toCreate.stream()
         .map(account -> mapper.toEntity(account, user))
         .collect(Collectors.toList());
@@ -122,8 +114,30 @@ public class AccountRepositoryImpl implements AccountRepository {
         .collect(Collectors.toList());
   }
 
+  @Override
+  public Account save(Account domain, String userId) {
+    HUser userEntity = userJpaRepository.findById(userId).orElseThrow(
+        () -> new NotFoundException("User." + userId + " not found"));
+    return save(domain, userEntity);
+  }
+
+  private Account save(Account domain, HUser user) {
+    HAccount entity = mapper.toEntity(domain, user);
+    return mapper.toDomain(accountJpaRepository.save(entity), user.getId());
+  }
+
+  private Account getUpdatedAccount(User authenticatedUser, BridgeAccount bridgeAccount) {
+    Bank bank = bankRepository.findById(bridgeAccount.getBankId());
+
+    return authenticatedUser == null
+        ? mapper.toDomain(bridgeAccount, bank, null, null)
+        : save(mapper.toDomain(bridgeAccount, bank,
+        authenticatedUser.getAccount().getId(),
+        authenticatedUser.getId()), authenticatedUser.getId());
+  }
+
   //TODO: simplify the cognitive complexity
-  private List<Account> getOrCreateAccounts(List<SwanAccount> swanAccounts, String userId) {
+  private List<Account> getUpdatedAccounts(List<SwanAccount> swanAccounts, String userId) {
     SwanAccount swanAccount = swanAccounts.get(0);
     Optional<HAccount> persisted = accountJpaRepository.findById(swanAccount.getId());
     if (persisted.isPresent()) {
@@ -142,5 +156,9 @@ public class AccountRepositoryImpl implements AccountRepository {
       }
       return saveAll(accounts, userId);
     }
+  }
+
+  private boolean userIsAuthenticated() {
+    return SecurityContextHolder.getContext().getAuthentication() != null;
   }
 }

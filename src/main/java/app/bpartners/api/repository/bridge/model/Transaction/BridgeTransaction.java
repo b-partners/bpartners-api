@@ -38,7 +38,7 @@ public class BridgeTransaction {
   @JsonProperty("currency_code")
   private String currency;
   @JsonProperty("is_future")
-  private Boolean isFuture;
+  private boolean isFuture;
 
   public Instant getCreatedDatetime() {
     return transactionDate.atStartOfDay(ZoneId.systemDefault()).toInstant();

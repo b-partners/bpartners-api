@@ -44,7 +44,7 @@ public class TransactionMapper {
 
   public static TransactionStatus getStatusFromBridge(BridgeTransaction bridgeTransaction) {
     //TODO: add DELETED status
-    return !bridgeTransaction.getIsFuture()
+    return !bridgeTransaction.isFuture()
         ? TransactionStatus.BOOKED :
         TransactionStatus.UPCOMING;
   }

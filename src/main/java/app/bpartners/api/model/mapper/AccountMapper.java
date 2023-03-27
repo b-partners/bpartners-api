@@ -78,7 +78,9 @@ public class AccountMapper {
     return HAccount.builder()
         .id(domain.getId())
         .user(user)
-        .bank(null) //TODO: map bank if bridge token is not null or expired
+        .idBank(domain.getBank() != null
+            ? domain.getBank().getId()
+            : null)
         .name(domain.getName())
         .iban(domain.getIban())
         .bic(domain.getBic())

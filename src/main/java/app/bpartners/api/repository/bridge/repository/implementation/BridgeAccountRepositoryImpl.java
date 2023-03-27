@@ -16,6 +16,11 @@ public class BridgeAccountRepositoryImpl implements BridgeAccountRepository {
   @Override
   public List<BridgeAccount> findByBearer(String bearer) {
     List<BridgeAccount> accounts = bridgeApi.findAccountsByToken(bearer);
+    //TODO: uncomment when testing in prod
+    //if (accounts.size() >= 2) {
+    //log.warn("Only one supported account for now");
+    //return List.of();
+    //}
     return accounts.isEmpty() ? List.of() : List.of(accounts.get(0));
   }
 

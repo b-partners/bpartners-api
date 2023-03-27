@@ -36,9 +36,7 @@ public class HAccount implements Serializable {
   @JoinColumn(name = "id_user")
   @JsonIgnore
   private HUser user;
-  @ManyToOne
-  @JoinColumn(name = "id_bank")
-  private HBank bank;
+  private String idBank;
   @Column(name = "\"name\"")
   private String name;
   private String iban;
@@ -48,4 +46,9 @@ public class HAccount implements Serializable {
   @Type(type = "pgsql_enum")
   @Enumerated(EnumType.STRING)
   private AccountStatus status;
+
+  public HAccount idBank(String idBank) {
+    this.idBank = idBank;
+    return this;
+  }
 }

@@ -31,22 +31,19 @@ public class UserController {
   //TODO: put into a customAuthProvider that does not needs legal file check
   private app.bpartners.api.model.User getAuthUser(HttpServletRequest request, String userId) {
     String bearer = request.getHeader(AUTHORIZATION_HEADER);
-    //Check that the user is authenticated
     if (bearer == null) {
       throw new ForbiddenException();
     } else {
       bearer = bearer.substring(BEARER_PREFIX.length()).trim();
-      //Check that the user is authenticated
       String swanUserId = swanComponent.getSwanUserIdByToken(bearer);
       String email = cognitoComponent.getEmailByToken(bearer);
       if (swanUserId == null && email == null) {
         throw new ForbiddenException();
       }
-      //Check that the user is authorized
-      app.bpartners.api.model.User user = swanUserId != null
-          ? service.getUserByIdAndBearer(swanUserId, bearer)
-          : service.getUserByEmail(email);
-      if (!user.getId().equals(userId)) {
+      app.bpartners.api.model.User
+          user = swanUserId != null ? service.getUserByIdAndBearer(swanUserId, bearer) :
+          service.getUserByEmail(email);
+      if (!userId.equals(user.getId())) {
         throw new ForbiddenException();
       }
       return user;

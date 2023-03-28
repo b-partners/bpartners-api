@@ -48,17 +48,20 @@ public class AuthProvider extends AbstractUserDetailsAuthenticationProvider {
     if (bearer == null) {
       throw new UsernameNotFoundException("Bad credentials"); // NOSONAR
     }
-    String swanUserId = swanComponent.getSwanUserIdByToken(bearer);
-    String email = cognitoComponent.getEmailByToken(bearer);
+    String swanBearer = bearer;
+    String cognitoBearer = bearer;
+    String swanUserId = swanComponent.getSwanUserIdByToken(swanBearer);
+    String email = cognitoComponent.getEmailByToken(cognitoBearer);
     if (swanUserId == null && email == null) {
       throw new UsernameNotFoundException("Bad credentials"); // NOSONAR
     }
     User user;
     if (swanUserId != null) {
-      user = userService.getUserByIdAndBearer(swanUserId, bearer);
+      user = userService.getUserByIdAndBearer(swanUserId, swanBearer);
     } else {
       user = userService.getUserByEmail(email);
-      bearer = userService.getLatestToken(user).getAccessToken();
+      String bridgeBearer = userService.getLatestToken(user).getAccessToken();
+      bearer = bridgeBearer == null ? cognitoBearer : bridgeBearer;
     }
     List<LegalFile> legalFilesList =
         legalFileService.getAllToBeApprovedLegalFilesByUserId(user.getId());

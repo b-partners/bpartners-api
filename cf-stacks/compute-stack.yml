@@ -98,9 +98,9 @@ Resources:
             - Name: AWS_COGNITO_USERPOOL_DOMAIN
               Value: !Sub '{{resolve:ssm:/bpartners/${Env}/cognito/userpool-domain}}'
             - Name: AWS_COGNITO_USERPOOL_CLIENTID
-              Value: '{{resolve:ssm:/bpartners/${Env}/cognito/userpool-client-id}}'
+              Value: !Sub '{{resolve:ssm:/bpartners/${Env}/cognito/userpool-client-id}}'
             - Name: AWS_COGNITO_USERPOOL_CLIENTSECRET
-              Value: '{{resolve:ssm:/bpartners/${Env}/cognito/userpool-client-secret}}'
+              Value: !Sub '{{resolve:ssm:/bpartners/${Env}/cognito/userpool-client-secret}}'
           LogConfiguration:
             LogDriver: awslogs
             Options:

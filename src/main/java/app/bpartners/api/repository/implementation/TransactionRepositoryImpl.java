@@ -21,6 +21,8 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Repository;
 
@@ -42,13 +44,15 @@ public class TransactionRepositoryImpl implements TransactionRepository {
   private final ProjectTokenManager tokenManager;
 
   @Override
-  public List<Transaction> findByAccountId(String accountId) {
+  public List<Transaction> findByAccountId(String accountId, int page, int pageSize) {
+    Pageable pageable = PageRequest.of(page, pageSize);
     List<app.bpartners.api.repository.swan.model.Transaction> swanTransactions =
         swanRepository.getByIdAccount(accountId, swanBearerToken());
     if (swanTransactions.isEmpty() && userIsAuthenticated()) {
       List<BridgeTransaction> bridgeTransactions = bridgeRepository.findAuthTransactions();
       if (bridgeTransactions.isEmpty()) {
-        List<HTransaction> persistedTransactions = jpaRepository.findAllByIdAccount(accountId);
+        List<HTransaction> persistedTransactions =
+            jpaRepository.findAllByIdAccount(accountId, pageable);
         return persistedTransactions.stream()
             .map(transaction ->
                 mapper.toDomain(transaction,
@@ -89,8 +93,9 @@ public class TransactionRepositoryImpl implements TransactionRepository {
   }
 
   @Override
-  public List<Transaction> findByAccountIdAndStatus(String id, TransactionStatus status) {
-    return findByAccountId(id).stream()
+  public List<Transaction> findByAccountIdAndStatus(
+      String id, TransactionStatus status, int page, int pageSize) {
+    return findByAccountId(id, page, pageSize).stream()
         .filter(transaction -> transaction.getStatus().equals(status))
         .collect(Collectors.toUnmodifiableList());
   }
@@ -107,8 +112,8 @@ public class TransactionRepositoryImpl implements TransactionRepository {
   @Override
   public List<Transaction> findByAccountIdAndStatusBetweenInstants(
       String id, TransactionStatus status,
-      Instant from, Instant to) {
-    return findByAccountIdAndStatus(id, status).stream()
+      Instant from, Instant to, int page, int pageSize) {
+    return findByAccountIdAndStatus(id, status, page, pageSize).stream()
         .filter(
             transaction -> transaction.getPaymentDatetime().isAfter(from)
                 &&

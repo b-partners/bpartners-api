@@ -4,6 +4,8 @@ import app.bpartners.api.endpoint.rest.mapper.TransactionRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.TransactionsSummaryRestMapper;
 import app.bpartners.api.endpoint.rest.model.Transaction;
 import app.bpartners.api.endpoint.rest.model.TransactionsSummary;
+import app.bpartners.api.model.BoundedPageSize;
+import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.service.TransactionService;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -22,8 +24,12 @@ public class TransactionController {
   private final TransactionsSummaryRestMapper summaryRestMapper;
 
   @GetMapping(value = "/accounts/{id}/transactions")
-  public List<Transaction> getTransactions(@PathVariable(name = "id") String accountId) {
-    return service.getTransactionsByAccountId(accountId).stream()
+  public List<Transaction> getTransactions(
+      @PathVariable(name = "id") String accountId,
+      @RequestParam(name = "page", required = false) PageFromOne page,
+      @RequestParam(name = "pageSize", required = false) BoundedPageSize pageSize
+  ) {
+    return service.getTransactionsByAccountId(accountId, page, pageSize).stream()
         .map(mapper::toRest)
         .collect(Collectors.toUnmodifiableList());
   }

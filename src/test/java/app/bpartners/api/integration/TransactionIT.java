@@ -158,7 +158,7 @@ class TransactionIT {
     ApiClient joeDoeClient = anApiClient();
     PayingApi api = new PayingApi(joeDoeClient);
 
-    List<Transaction> actual = api.getTransactions(JOE_DOE_ACCOUNT_ID, null, null);
+    List<Transaction> actual = api.getTransactions(JOE_DOE_ACCOUNT_ID, 1, 20);
     assertEquals(4, actual.size());
 
     assertTrue(actual.contains(restTransaction2()));
@@ -176,7 +176,7 @@ class TransactionIT {
     ApiClient joeDoeClient = anApiClient();
     PayingApi api = new PayingApi(joeDoeClient);
 
-    List<Transaction> actual = api.getTransactions(JOE_DOE_ACCOUNT_ID, null, null);
+    List<Transaction> actual = api.getTransactions(JOE_DOE_ACCOUNT_ID, 1, 20);
 
     assertEquals(2, actual.size());
     assertTrue(actual.contains(restTransaction1()));

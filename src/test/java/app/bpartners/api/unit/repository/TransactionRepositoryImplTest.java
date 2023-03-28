@@ -96,11 +96,11 @@ class TransactionRepositoryImplTest {
   void read_filtered_by_status_ok() {
     List<Transaction> booked =
         subject.findByAccountIdAndStatus(JOE_DOE_ACCOUNT_ID,
-            TransactionStatus.BOOKED);
+            TransactionStatus.BOOKED, 1, 20);
     List<Transaction> bookedBetweenInstants =
         subject.findByAccountIdAndStatusBetweenInstants(JOE_DOE_ACCOUNT_ID,
             TransactionStatus.BOOKED, swanTransaction3().getNode().getCreatedAt(),
-            swanTransaction2().getNode().getCreatedAt());
+            swanTransaction2().getNode().getCreatedAt(), 1, 20);
 
     assertTrue(booked.stream()
         .allMatch(transaction -> transaction.getStatus().equals(TransactionStatus.BOOKED)));

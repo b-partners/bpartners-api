@@ -3,7 +3,6 @@ package app.bpartners.api.unit.service;
 import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.MonthlyTransactionsSummary;
 import app.bpartners.api.model.Transaction;
-import app.bpartners.api.repository.InvoiceRepository;
 import app.bpartners.api.repository.TransactionRepository;
 import app.bpartners.api.repository.TransactionsSummaryRepository;
 import app.bpartners.api.repository.jpa.AccountHolderJpaRepository;
@@ -22,6 +21,7 @@ import static app.bpartners.api.integration.conf.TestUtils.DEBIT_SIDE;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -46,7 +46,8 @@ class TransactionServiceSummariesTest {
         invoiceRepositoryMock
     );
 
-    when(transactionRepository.findByAccountIdAndStatusBetweenInstants(any(), any(), any(), any()))
+    when(transactionRepository.findByAccountIdAndStatusBetweenInstants(
+        any(), any(), any(), any(), eq(1), eq(20)))
         .thenReturn(transactions());
   }
 

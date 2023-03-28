@@ -1,8 +1,10 @@
 package app.bpartners.api.service;
 
 import app.bpartners.api.endpoint.rest.model.TransactionTypeEnum;
+import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.MonthlyTransactionsSummary;
+import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.model.Transaction;
 import app.bpartners.api.model.TransactionInvoice;
 import app.bpartners.api.model.TransactionsSummary;
@@ -36,6 +38,8 @@ import static org.springframework.transaction.annotation.Isolation.SERIALIZABLE;
 @AllArgsConstructor
 @Slf4j
 public class TransactionService {
+  private static final int DEFAULT_PAGE = 0;
+  private static final int DEFAULT_PAGE_SIZE = 30;
   private final TransactionRepository repository;
   private final AccountHolderJpaRepository holderJpaRepository;
   private final TransactionsSummaryRepository summaryRepository;
@@ -78,8 +82,11 @@ public class TransactionService {
         .collect(Collectors.toUnmodifiableList());
   }
 
-  public List<Transaction> getTransactionsByAccountId(String accountId) {
-    return repository.findByAccountId(accountId);
+  public List<Transaction> getTransactionsByAccountId(
+      String accountId, PageFromOne page, BoundedPageSize pageSize) {
+    int pageValue = page != null ? page.getValue() - 1 : 0;
+    int pageSizeValue = pageSize != null ? pageSize.getValue() : 30;
+    return repository.findByAccountId(accountId, pageValue, pageSizeValue);
   }
 
   public TransactionsSummary getTransactionsSummary(String accountId, Integer year) {
@@ -108,11 +115,11 @@ public class TransactionService {
   @Transactional(isolation = SERIALIZABLE)
   public void refreshCurrentYearSummary(
       String accountId,
-      Fraction cashFlow) {
+      Fraction cashFlow, int page, int pageSize) {
     int actualYear = Year.now().getValue();
     List<Transaction> yearlyTransactions =
         repository.findByAccountIdAndStatusBetweenInstants(accountId, BOOKED,
-            getFirstDayOfYear(actualYear), getLastDayOfYear(actualYear));
+            getFirstDayOfYear(actualYear), getLastDayOfYear(actualYear), page, pageSize);
     for (int i = Month.JANUARY.getValue(); i <= Month.DECEMBER.getValue(); i++) {
       YearMonth yearMonth = YearMonth.of(actualYear, i);
       List<Transaction> monthlyTransactions = filterByTwoInstants(yearlyTransactions,
@@ -172,11 +179,12 @@ public class TransactionService {
   }
 
   @Scheduled(fixedDelay = 60 * 60 * 1_000)
+  @Transactional(isolation = SERIALIZABLE)
   public void refreshTransactionsSummaries() {
     holderJpaRepository.findAllGroupByAccountId().forEach(
         accountHolder -> {
-          refreshCurrentYearSummary(
-              accountHolder.getAccountId(), parseFraction(accountHolder.getInitialCashflow()));
+          refreshCurrentYearSummary(accountHolder.getAccountId(),
+              parseFraction(accountHolder.getInitialCashflow()), DEFAULT_PAGE, DEFAULT_PAGE_SIZE);
           log.info("Transactions summaries refreshed for {}", accountHolder);
         }
     );

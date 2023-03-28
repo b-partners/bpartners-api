@@ -85,8 +85,6 @@ Resources:
               Value: !Sub '{{resolve:ssm:/bpartners/${Env}/sogefi/ads-base-url}}'
             - Name: ADS_BEARER
               Value: !Sub '{{resolve:ssm:/bpartners/${Env}/sogefi/ads-bearer}}'
-            - Name: ADS_INSEE
-              Value: !Sub '{{resolve:ssm:/bpartners/${Env}/sogefi/ads-insee}}'
             - Name: ADS_DENOM_CHAR
               Value: !Sub '{{resolve:ssm:/bpartners/${Env}/sogefi/ads-denom-char}}'
             - Name: BRIDGE_CLIENT_ID

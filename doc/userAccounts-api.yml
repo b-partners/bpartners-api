@@ -217,6 +217,50 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
+  updateAccountHolderInfo:
+    put:
+      tags:
+        - User Accounts
+      summary: Update global information of an account holder
+      operationId: updateAccountHolderInfo
+      parameters:
+        - in: path
+          name: userId
+          schema:
+            type: string
+          required: true
+        - in: path
+          name: accountId
+          schema:
+            type: string
+          required: true
+        - in: path
+          name: ahId
+          schema:
+            type: string
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+                $ref : '#/components/schemas/UpdateAccountHolder'
+      responses:
+        200:
+          description: Account holder with updated global info
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountHolder'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
   updateRevenueTargets:
     put:
       tags:
@@ -422,6 +466,19 @@ components:
         - CLOSING
         - SUSPENDED
         - UNKNOWN
+    UpdateAccountHolder:
+      type: object
+      properties:
+        name:
+          type: string
+        siren:
+          type: string
+        initialCashFlow:
+          type: integer
+        officialActivityName:
+          type: string
+        contactAddress:
+          $ref: '#/components/schemas/ContactAddress'
     AccountHolder:
       type: object
       properties:

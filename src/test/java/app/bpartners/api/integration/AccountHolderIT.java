@@ -10,6 +10,7 @@ import app.bpartners.api.endpoint.rest.model.CompanyBusinessActivity;
 import app.bpartners.api.endpoint.rest.model.CompanyInfo;
 import app.bpartners.api.endpoint.rest.model.ContactAddress;
 import app.bpartners.api.endpoint.rest.model.CreateAnnualRevenueTarget;
+import app.bpartners.api.endpoint.rest.model.UpdateAccountHolder;
 import app.bpartners.api.endpoint.rest.model.VerificationStatus;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
 import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
@@ -50,6 +51,7 @@ import static app.bpartners.api.integration.conf.TestUtils.JANE_DOE_SWAN_USER_ID
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_SWAN_USER_ID;
+import static app.bpartners.api.integration.conf.TestUtils.SWAN_ACCOUNTHOLDER_ID;
 import static app.bpartners.api.integration.conf.TestUtils.VERIFIED_STATUS;
 import static app.bpartners.api.integration.conf.TestUtils.annualRevenueTarget1;
 import static app.bpartners.api.integration.conf.TestUtils.annualRevenueTarget2;
@@ -70,6 +72,7 @@ import static app.bpartners.api.integration.conf.TestUtils.toUpdateAnnualRevenue
 import static app.bpartners.api.model.mapper.AccountHolderMapper.NOT_STARTED_STATUS;
 import static app.bpartners.api.model.mapper.AccountHolderMapper.PENDING_STATUS;
 import static app.bpartners.api.model.mapper.AccountHolderMapper.WAITING_FOR_INFORMATION_STATUS;
+import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -217,6 +220,20 @@ class AccountHolderIT {
             .latitude(43.5)
             .longitude(2.5))
         .townCode(92002);
+  }
+
+  UpdateAccountHolder globalInfo() {
+    return new UpdateAccountHolder()
+        .name(joeDoeSwanAccountHolder().getInfo().getName())
+        .siren("FR123456789")
+        .initialCashFlow(5000)
+        .officialActivityName(joeDoeSwanAccountHolder().getInfo().getBusinessActivity())
+        .contactAddress(new ContactAddress()
+            .address("Rue 91, Charles de Gaulle")
+            .city("Paris")
+            .postalCode("9100")
+            .country("France")
+        );
   }
 
   @BeforeEach
@@ -430,6 +447,27 @@ class AccountHolderIT {
                 new CreateAnnualRevenueTarget()
                     .year(2024)
                     .amountTarget(11000))));
+  }
+
+  @Order(11)
+  @Test
+  void update_global_info_ok() throws ApiException {
+    ApiClient joeDoeClient = anApiClient();
+    UserAccountsApi api = new UserAccountsApi(joeDoeClient);
+    String ramdomId = String.valueOf(randomUUID());
+    UpdateAccountHolder toCreate = globalInfo()
+        .name("random_name")
+        .siren("random_siren");
+
+    AccountHolder actualUpdated = api.updateAccountHolderInfo(JOE_DOE_SWAN_USER_ID,
+        JOE_DOE_ACCOUNT_ID, SWAN_ACCOUNTHOLDER_ID, globalInfo());
+    AccountHolder actualCreated = api.updateAccountHolderInfo(JOE_DOE_SWAN_USER_ID,
+        JOE_DOE_ACCOUNT_ID, ramdomId, toCreate);
+
+    assertEquals(SWAN_ACCOUNTHOLDER_ID, actualUpdated.getId());
+    assertEquals(globalInfo().getContactAddress(), actualUpdated.getContactAddress());
+    assertEquals(toCreate.getName(), actualCreated.getName());
+    assertEquals(toCreate.getSiren(), actualCreated.getSiren());
   }
 
   private void setUpSwanApi(SwanApi swanApi, AccountHolderResponse.Edge... edges) {

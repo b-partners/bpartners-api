@@ -4,7 +4,7 @@ import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.repository.swan.SwanCustomApi;
 import app.bpartners.api.repository.swan.TransactionSwanRepository;
-import app.bpartners.api.repository.swan.model.Transaction;
+import app.bpartners.api.repository.swan.model.SwanTransaction;
 import app.bpartners.api.repository.swan.response.OneTransactionResponse;
 import app.bpartners.api.repository.swan.response.TransactionResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -35,7 +35,7 @@ public class TransactionSwanRepositoryImpl implements TransactionSwanRepository 
   private final SwanCustomApi<TransactionResponse> swanCustomApi;
 
   @Override
-  public List<Transaction> getByIdAccount(String idAccount, String bearer) {
+  public List<SwanTransaction> getByIdAccount(String idAccount, String bearer) {
     String query = String.format(QUERY, idAccount);
     TransactionResponse data = swanCustomApi.getData(TransactionResponse.class, query, bearer);
     return data == null || (
@@ -46,7 +46,7 @@ public class TransactionSwanRepositoryImpl implements TransactionSwanRepository 
   }
 
   @Override
-  public Transaction findById(String id, String bearer) {
+  public SwanTransaction findById(String id, String bearer) {
     try {
       HttpClient httpClient = HttpClient.newBuilder().build();
       String query =
@@ -67,7 +67,7 @@ public class TransactionSwanRepositoryImpl implements TransactionSwanRepository 
       if (transactionResponse == null) {
         return null;
       }
-      return Transaction.builder()
+      return SwanTransaction.builder()
           .node(transactionResponse.getData().getTransaction())
           .build();
     } catch (IOException | URISyntaxException e) {

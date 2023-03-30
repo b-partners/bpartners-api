@@ -1,10 +1,10 @@
 package app.bpartners.api.repository.swan;
 
-import app.bpartners.api.repository.swan.model.Transaction;
+import app.bpartners.api.repository.swan.model.SwanTransaction;
 import java.util.List;
 
 public interface TransactionSwanRepository {
-  List<Transaction> getByIdAccount(String idAccount, String bearer);
+  List<SwanTransaction> getByIdAccount(String idAccount, String bearer);
 
-  Transaction findById(String id, String bearer);
+  SwanTransaction findById(String id, String bearer);
 }

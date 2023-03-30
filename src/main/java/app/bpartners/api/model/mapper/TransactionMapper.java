@@ -5,6 +5,7 @@ import app.bpartners.api.model.Transaction;
 import app.bpartners.api.model.TransactionCategory;
 import app.bpartners.api.repository.bridge.model.Transaction.BridgeTransaction;
 import app.bpartners.api.repository.jpa.model.HTransaction;
+import app.bpartners.api.repository.swan.model.SwanTransaction;
 import java.time.ZoneId;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -50,7 +51,7 @@ public class TransactionMapper {
   }
 
   public Transaction toDomain(
-      app.bpartners.api.repository.swan.model.Transaction external,
+      SwanTransaction external,
       HTransaction entity,
       TransactionCategory category) {
     String status = external.getNode().getStatusInfo().getStatus();
@@ -110,7 +111,7 @@ public class TransactionMapper {
 
   public HTransaction toEntity(
       String accountId,
-      app.bpartners.api.repository.swan.model.Transaction swanTransaction) {
+      SwanTransaction swanTransaction) {
     return HTransaction.builder()
         .idSwan(swanTransaction.getNode().getId())
         .idAccount(accountId)

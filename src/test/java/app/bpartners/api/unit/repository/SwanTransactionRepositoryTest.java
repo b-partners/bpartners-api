@@ -4,7 +4,7 @@ import app.bpartners.api.endpoint.rest.security.principal.PrincipalProviderImpl;
 import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
 import app.bpartners.api.repository.swan.SwanCustomApi;
 import app.bpartners.api.repository.swan.implementation.TransactionSwanRepositoryImpl;
-import app.bpartners.api.repository.swan.model.Transaction;
+import app.bpartners.api.repository.swan.model.SwanTransaction;
 import app.bpartners.api.repository.swan.response.OneTransactionResponse;
 import app.bpartners.api.repository.swan.response.TransactionResponse;
 import java.util.List;
@@ -48,7 +48,7 @@ class SwanTransactionRepositoryTest {
         OneTransactionResponse.class, (mock, context) -> {
           when(mock.getData()).thenReturn(oneTransactionResponse().getData());
         });
-    Transaction actual = transactionSwanRepository.findById(
+    SwanTransaction actual = transactionSwanRepository.findById(
         SWAN_TRANSACTION_ID, ANY_BEARER_TOKEN);
 
     assertNotNull(actual);
@@ -57,7 +57,7 @@ class SwanTransactionRepositoryTest {
 
   @Test
   void read_swan_transaction_by_accountId_ok() {
-    List<Transaction> actual =
+    List<SwanTransaction> actual =
         transactionSwanRepository.getByIdAccount(JOE_DOE_ACCOUNT_ID, ANY_BEARER_TOKEN);
 
     assertNotNull(actual);
@@ -79,7 +79,7 @@ class SwanTransactionRepositoryTest {
 
   private OneTransactionResponse oneTransactionResponse() {
     return OneTransactionResponse.builder()
-        .data(new OneTransactionResponse.Data(new Transaction.Node()))
+        .data(new OneTransactionResponse.Data(new SwanTransaction.Node()))
         .build();
   }
 }

@@ -13,7 +13,8 @@ import app.bpartners.api.repository.bridge.repository.BridgeTransactionRepositor
 import app.bpartners.api.repository.jpa.TransactionJpaRepository;
 import app.bpartners.api.repository.jpa.model.HTransaction;
 import app.bpartners.api.repository.swan.TransactionSwanRepository;
-import app.bpartners.api.repository.swan.model.Transaction.Node;
+import app.bpartners.api.repository.swan.model.SwanTransaction;
+import app.bpartners.api.repository.swan.model.SwanTransaction.Node;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.List;
@@ -43,7 +44,7 @@ public class TransactionRepositoryImpl implements TransactionRepository {
 
   @Override
   public List<Transaction> findByAccountId(String accountId) {
-    List<app.bpartners.api.repository.swan.model.Transaction> swanTransactions =
+    List<SwanTransaction> swanTransactions =
         swanRepository.getByIdAccount(accountId, swanBearerToken());
     if (swanTransactions.isEmpty() && userIsAuthenticated()) {
       List<BridgeTransaction> bridgeTransactions = bridgeRepository.findAuthTransactions();
@@ -58,7 +59,7 @@ public class TransactionRepositoryImpl implements TransactionRepository {
       return bridgeTransactions.stream()
           .map(
               transaction -> {
-                HTransaction entity = getOrCreateTransaction(accountId, transaction);
+                HTransaction entity = getUpdatedTransaction(accountId, transaction);
                 return mapper.toDomain(transaction, entity,
                     categoryRepository.findByIdTransaction(entity.getId()));
               })
@@ -66,7 +67,7 @@ public class TransactionRepositoryImpl implements TransactionRepository {
     }
     return swanTransactions.stream()
         .map(transaction -> {
-          HTransaction entity = getOrCreateTransaction(accountId, transaction);
+          HTransaction entity = getUpdatedTransaction(accountId, transaction);
           return mapper.toDomain(transaction, entity,
               categoryRepository.findByIdTransaction(entity.getId()));
         })
@@ -98,7 +99,7 @@ public class TransactionRepositoryImpl implements TransactionRepository {
   @Override
   public Transaction save(Transaction toSave) {
     HTransaction entity = jpaRepository.save(mapper.toEntity(toSave));
-    app.bpartners.api.repository.swan.model.Transaction
+    SwanTransaction
         swanTransaction = swanRepository.findById(entity.getIdSwan(), swanBearerToken());
     return mapper.toDomain(swanTransaction, entity,
         categoryRepository.findByIdTransaction(entity.getId()));
@@ -122,15 +123,15 @@ public class TransactionRepositoryImpl implements TransactionRepository {
     HTransaction entity = jpaRepository.findById(idTransaction)
         .orElseThrow(() -> new NotFoundException(
             "Transaction." + idTransaction + " not found"));
-    app.bpartners.api.repository.swan.model.Transaction
+    SwanTransaction
         swanTransaction = swanRepository.findById(entity.getIdSwan(), swanBearerToken());
     return mapper.toDomain(swanTransaction, entity,
         categoryRepository.findByIdTransaction(entity.getId()));
   }
 
-  private HTransaction getOrCreateTransaction(
+  private HTransaction getUpdatedTransaction(
       String accountId,
-      app.bpartners.api.repository.swan.model.Transaction transaction) {
+      SwanTransaction transaction) {
     Optional<HTransaction> optional = jpaRepository.findByIdSwan(transaction.getNode().getId());
     if (optional.isPresent()) {
       HTransaction optionalValue = optional.get();
@@ -140,7 +141,7 @@ public class TransactionRepositoryImpl implements TransactionRepository {
     return jpaRepository.save(mapper.toEntity(accountId, transaction));
   }
 
-  private HTransaction getOrCreateTransaction(
+  private HTransaction getUpdatedTransaction(
       String accountId,
       BridgeTransaction transaction) {
     Optional<HTransaction> optional = jpaRepository.findByIdBridge(transaction.getId());

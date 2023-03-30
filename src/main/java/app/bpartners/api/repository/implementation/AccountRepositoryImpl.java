@@ -72,7 +72,8 @@ public class AccountRepositoryImpl implements AccountRepository {
       }
       return getUpdatedAccount(authenticatedUser, bridgeAccount);
     }
-    return getUpdatedAccounts(swanAccounts, null).get(0);
+    return getUpdatedAccounts(swanAccounts,
+        userIsAuthenticated() ? authenticatedUser.getId() : null).get(0);
   }
 
   @Override
@@ -141,14 +142,15 @@ public class AccountRepositoryImpl implements AccountRepository {
     SwanAccount swanAccount = swanAccounts.get(0);
     Optional<HAccount> persisted = accountJpaRepository.findById(swanAccount.getId());
     if (persisted.isPresent()) {
-      String persistedUserId = persisted.get().getUser() == null ? null
+      String actualUserId = persisted.get().getUser() == null
+          ? userId
           : persisted.get().getUser().getId();
       List<Account> accounts =
-          List.of(mapper.toDomain(swanAccount, persisted.get(), persistedUserId));
-      if (userId == null || persistedUserId == null) {
+          List.of(mapper.toDomain(swanAccount, persisted.get(), actualUserId));
+      if (userId == null || actualUserId == null) {
         return accounts;
       }
-      return saveAll(accounts, persistedUserId);
+      return saveAll(accounts, actualUserId);
     } else {
       List<Account> accounts = List.of(mapper.toDomain(swanAccount, userId));
       if (userId == null) {

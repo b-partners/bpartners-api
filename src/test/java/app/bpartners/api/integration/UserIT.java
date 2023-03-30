@@ -81,6 +81,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 class UserIT {
   public static final String UNKNOWN_IDENTIFICATION_STATUS = "Unknown";
   public static final String JOE_DOE_COGNITO_TOKEN = "joe_doe_cognito_token";
+  public static final String BRIDGE_USER_ACCESS_TOKEN = "bridge_access_token";
   @MockBean
   private BuildingPermitConf buildingPermitConf;
   @MockBean

@@ -11,4 +11,6 @@ public interface AccountRepository {
   List<Account> findByUserId(String userId);
 
   List<Account> saveAll(List<Account> toSave, String userId);
+
+  Account save(Account toSave, String userId);
 }

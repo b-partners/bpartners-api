@@ -8,8 +8,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface UserJpaRepository extends JpaRepository<HUser, String> {
-
-  HUser getByPhoneNumber(String phoneNumber);
+  HUser findByAccessToken(String token);
 
   Optional<HUser> findByEmail(String email);
 

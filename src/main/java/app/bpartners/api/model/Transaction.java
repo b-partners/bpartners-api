@@ -36,6 +36,7 @@ public class Transaction {
   private String id;
   private String idAccount;
   private String idSwan;
+  private Long idBridge;
   private Fraction amount;
   private String currency;
   private String label;

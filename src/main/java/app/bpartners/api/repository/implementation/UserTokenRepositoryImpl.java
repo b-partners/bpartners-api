@@ -38,8 +38,10 @@ public class UserTokenRepositoryImpl implements UserTokenRepository {
   @Override
   public UserToken getLatestTokenByUser(User user) {
     HUser entity = userJpaRepository.getById(user.getId());
-    //TODO: when null then retry 3 times with one second of intervals between
-    if (entity.getAccessToken() == null) {
+    //TODO: when null or expired then retry 3 times with one second of intervals between
+    if (entity.getAccessToken() == null
+        || (entity.getTokenExpirationDatetime() != null
+        && entity.getTokenExpirationDatetime().isBefore(Instant.now()))) {
       return updateUserToken(user);
     }
     //Note that tokens are ordered by expiration datetime desc

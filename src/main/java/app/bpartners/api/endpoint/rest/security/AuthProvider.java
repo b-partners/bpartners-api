@@ -6,7 +6,7 @@ import app.bpartners.api.endpoint.rest.security.model.Principal;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
 import app.bpartners.api.model.LegalFile;
 import app.bpartners.api.model.User;
-import app.bpartners.api.repository.UserTokenRepository;
+import app.bpartners.api.model.UserToken;
 import app.bpartners.api.service.LegalFileService;
 import app.bpartners.api.service.UserService;
 import java.util.List;
@@ -28,7 +28,6 @@ public class AuthProvider extends AbstractUserDetailsAuthenticationProvider {
   private final CognitoComponent cognitoComponent;
   private final SwanComponent swanComponent;
   private final UserService userService;
-  private final UserTokenRepository bridgeTokenRepository;
   private final LegalFileService legalFileService;
 
   public static Principal getPrincipal() {
@@ -50,18 +49,20 @@ public class AuthProvider extends AbstractUserDetailsAuthenticationProvider {
     if (bearer == null) {
       throw new UsernameNotFoundException("Bad credentials"); // NOSONAR
     }
-    String swanUserId = swanComponent.getSwanUserIdByToken(bearer);
-    String email = cognitoComponent.getEmailByToken(bearer);
+    String swanBearer = bearer;
+    String cognitoBearer = bearer;
+    String swanUserId = swanComponent.getSwanUserIdByToken(swanBearer);
+    String email = cognitoComponent.getEmailByToken(cognitoBearer);
     if (swanUserId == null && email == null) {
       throw new UsernameNotFoundException("Bad credentials"); // NOSONAR
     }
     User user;
     if (swanUserId != null) {
-      user = userService.getUserByIdAndBearer(swanUserId, bearer);
+      user = userService.getUserByIdAndBearer(swanUserId, swanBearer);
     } else {
       user = userService.getUserByEmail(email);
-      //TODO: uncomment to allow bridge connection
-      //bearer = bridgeTokenRepository.getLatestTokenByUser(user).getAccessToken();
+      UserToken bridgeUserToken = userService.getLatestToken(user);
+      bearer = bridgeUserToken == null ? cognitoBearer : bridgeUserToken.getAccessToken();
     }
     List<LegalFile> legalFilesList =
         legalFileService.getAllToBeApprovedLegalFilesByUserId(user.getId());

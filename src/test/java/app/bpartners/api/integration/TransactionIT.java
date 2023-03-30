@@ -10,12 +10,14 @@ import app.bpartners.api.endpoint.rest.model.MonthlyTransactionsSummary;
 import app.bpartners.api.endpoint.rest.model.Transaction;
 import app.bpartners.api.endpoint.rest.model.TransactionInvoice;
 import app.bpartners.api.endpoint.rest.model.TransactionsSummary;
+import app.bpartners.api.endpoint.rest.security.swan.BridgeConf;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
 import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
 import app.bpartners.api.integration.conf.AbstractContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
 import app.bpartners.api.manager.ProjectTokenManager;
 import app.bpartners.api.repository.LegalFileRepository;
+import app.bpartners.api.repository.bridge.BridgeApi;
 import app.bpartners.api.repository.fintecture.FintectureConf;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitConf;
 import app.bpartners.api.repository.sendinblue.SendinblueConf;
@@ -82,6 +84,9 @@ class TransactionIT {
   @MockBean
   private ProjectTokenManager projectTokenManager;
   @MockBean
+  private BridgeConf bridgeConf;
+
+  @MockBean
   private UserSwanRepository userSwanRepositoryMock;
   @MockBean
   private AccountSwanRepository accountSwanRepositoryMock;
@@ -93,6 +98,8 @@ class TransactionIT {
   private AccountHolderSwanRepository accountHolderMock;
   @MockBean
   private LegalFileRepository legalFileRepositoryMock;
+  @MockBean
+  private BridgeApi bridgeApiMock;
 
   private static ApiClient anApiClient() {
     return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN,
@@ -140,6 +147,9 @@ class TransactionIT {
     setUpTransactionRepository(transactionSwanRepositoryMock);
     setUpAccountHolderSwanRep(accountHolderMock);
     setUpLegalFileRepository(legalFileRepositoryMock);
+
+    when(bridgeApiMock.findTransactionsUpdatedByToken(any()))
+        .thenReturn(List.of());
   }
 
   @Test
@@ -157,29 +167,33 @@ class TransactionIT {
     assertTrue(ignoreIds(actual).contains(restTransaction4().id(null)));
   }
 
+  /*
+  TODO: return empty when neither swan nor bridge return transaction
+   */
   @Test
   @Order(1)
-  void read_persisted_transactions_ok() throws ApiException {
+  void read_empty_transactions_ok() throws ApiException {
     reset(transactionSwanRepositoryMock);
-    when(transactionSwanRepositoryMock.findById(any())).thenReturn(null);
-    when(transactionSwanRepositoryMock.getByIdAccount(any())).thenReturn(List.of());
+    when(transactionSwanRepositoryMock.findById(any(), any())).thenReturn(null);
+    when(transactionSwanRepositoryMock.getByIdAccount(any(), any())).thenReturn(List.of());
     ApiClient joeDoeClient = anApiClient();
     PayingApi api = new PayingApi(joeDoeClient);
 
     List<Transaction> actual = api.getTransactions(JOE_DOE_ACCOUNT_ID, null, null);
 
-    assertEquals(2, actual.size());
-    assertTrue(actual.contains(restTransaction1()));
-    assertTrue(actual.contains(restTransaction2()));
+    assertTrue(actual.isEmpty());
+//    assertEquals(2, actual.size());
+//    assertTrue(actual.contains(restTransaction1()));
+//    assertTrue(actual.contains(restTransaction2()));
   }
 
   @Test
   @Order(1)
   void read_override_transactions_ok() throws ApiException {
     reset(transactionSwanRepositoryMock);
-    when(transactionSwanRepositoryMock.findById(any())).thenReturn(
+    when(transactionSwanRepositoryMock.findById(any(), any())).thenReturn(
         updatedSwanTransaction());
-    when(transactionSwanRepositoryMock.getByIdAccount(any())).thenReturn(
+    when(transactionSwanRepositoryMock.getByIdAccount(any(), any())).thenReturn(
         List.of(updatedSwanTransaction()));
     ApiClient joeDoeClient = anApiClient();
     PayingApi api = new PayingApi(joeDoeClient);

@@ -1,23 +1,30 @@
 package app.bpartners.api.repository.implementation;
 
 import app.bpartners.api.endpoint.rest.model.TransactionStatus;
+import app.bpartners.api.endpoint.rest.security.AuthProvider;
+import app.bpartners.api.manager.ProjectTokenManager;
 import app.bpartners.api.model.Transaction;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.mapper.TransactionMapper;
 import app.bpartners.api.repository.TransactionCategoryRepository;
 import app.bpartners.api.repository.TransactionRepository;
+import app.bpartners.api.repository.bridge.model.Transaction.BridgeTransaction;
+import app.bpartners.api.repository.bridge.repository.BridgeTransactionRepository;
 import app.bpartners.api.repository.jpa.TransactionJpaRepository;
 import app.bpartners.api.repository.jpa.model.HTransaction;
 import app.bpartners.api.repository.swan.TransactionSwanRepository;
-import app.bpartners.api.repository.swan.model.Transaction.Node;
+import app.bpartners.api.repository.swan.model.SwanTransaction;
+import app.bpartners.api.repository.swan.model.SwanTransaction.Node;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Repository;
 
+import static app.bpartners.api.model.mapper.TransactionMapper.getStatusFromBridge;
 import static app.bpartners.api.model.mapper.TransactionMapper.getTransactionStatus;
 import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 
@@ -28,28 +35,44 @@ public class TransactionRepositoryImpl implements TransactionRepository {
   private final TransactionSwanRepository swanRepository;
   private final TransactionMapper mapper;
   private final TransactionCategoryRepository categoryRepository;
-  private TransactionJpaRepository jpaRepository;
+  private final TransactionJpaRepository jpaRepository;
+  private final BridgeTransactionRepository bridgeRepository;
+  private final ProjectTokenManager tokenManager;
 
   @Override
   public List<Transaction> findByAccountId(String accountId) {
-    List<Transaction> transactionsFromSwan = swanRepository.getByIdAccount(accountId)
-        .stream()
+    List<SwanTransaction> swanTransactions =
+        swanRepository.getByIdAccount(accountId, swanBearerToken());
+    if (swanTransactions.isEmpty() && userIsAuthenticated()) {
+      List<BridgeTransaction> bridgeTransactions = bridgeRepository.findAuthTransactions();
+      if (bridgeTransactions.isEmpty()) {
+        return List.of(); //No transactions neither bridge nor swan return transactions
+        //TODO: uncomment if necessary
+        //        List<HTransaction> persistedTransactions = jpaRepository.findAllByIdAccount(accountId);
+        //        return persistedTransactions.stream()
+        //            .map(transaction ->
+        //                mapper.toDomain(transaction,
+        //                    categoryRepository.findByIdTransaction(transaction.getId())))
+        //            .collect(Collectors.toList());
+      }
+      return bridgeTransactions.stream()
+          .map(
+              transaction -> {
+                HTransaction entity = getUpdatedTransaction(accountId, transaction);
+                return mapper.toDomain(transaction, entity,
+                    categoryRepository.findByIdTransaction(entity.getId()));
+              })
+          .collect(Collectors.toList());
+    }
+    return swanTransactions.stream()
         .map(transaction -> {
-          HTransaction entity = getOrCreateTransaction(accountId, transaction);
+          HTransaction entity = getUpdatedTransaction(accountId, transaction);
           return mapper.toDomain(transaction, entity,
               categoryRepository.findByIdTransaction(entity.getId()));
         })
         .collect(Collectors.toUnmodifiableList());
-    if (transactionsFromSwan.isEmpty()) {
-      List<HTransaction> transactions = jpaRepository.findAllByIdAccount(accountId);
-      return transactions.stream()
-          .map(transaction ->
-              mapper.toDomain(transaction,
-                  categoryRepository.findByIdTransaction(transaction.getId())))
-          .collect(Collectors.toList());
-    }
-    return transactionsFromSwan;
   }
+
 
   @Override
   public Transaction findByAccountIdAndId(String accountId, String transactionId) {
@@ -59,7 +82,7 @@ public class TransactionRepositoryImpl implements TransactionRepository {
     }
     HTransaction persisted = optionalEntity.get();
     return mapper.toDomain(
-        swanRepository.findById(persisted.getIdSwan()),
+        swanRepository.findById(persisted.getIdSwan(), swanBearerToken()),
         persisted,
         categoryRepository.findByIdTransaction(transactionId)
     );
@@ -75,8 +98,8 @@ public class TransactionRepositoryImpl implements TransactionRepository {
   @Override
   public Transaction save(Transaction toSave) {
     HTransaction entity = jpaRepository.save(mapper.toEntity(toSave));
-    app.bpartners.api.repository.swan.model.Transaction
-        swanTransaction = swanRepository.findById(entity.getIdSwan());
+    SwanTransaction
+        swanTransaction = swanRepository.findById(entity.getIdSwan(), swanBearerToken());
     return mapper.toDomain(swanTransaction, entity,
         categoryRepository.findByIdTransaction(entity.getId()));
   }
@@ -99,15 +122,15 @@ public class TransactionRepositoryImpl implements TransactionRepository {
     HTransaction entity = jpaRepository.findById(idTransaction)
         .orElseThrow(() -> new NotFoundException(
             "Transaction." + idTransaction + " not found"));
-    app.bpartners.api.repository.swan.model.Transaction
-        swanTransaction = swanRepository.findById(entity.getIdSwan());
+    SwanTransaction
+        swanTransaction = swanRepository.findById(entity.getIdSwan(), swanBearerToken());
     return mapper.toDomain(swanTransaction, entity,
         categoryRepository.findByIdTransaction(entity.getId()));
   }
 
-  private HTransaction getOrCreateTransaction(
+  private HTransaction getUpdatedTransaction(
       String accountId,
-      app.bpartners.api.repository.swan.model.Transaction transaction) {
+      SwanTransaction transaction) {
     Optional<HTransaction> optional = jpaRepository.findByIdSwan(transaction.getNode().getId());
     if (optional.isPresent()) {
       HTransaction optionalValue = optional.get();
@@ -117,37 +140,104 @@ public class TransactionRepositoryImpl implements TransactionRepository {
     return jpaRepository.save(mapper.toEntity(accountId, transaction));
   }
 
-  private static void checkTransactionUpdates(Node transactionNode, HTransaction optionalValue) {
-    if (optionalValue.getAmount() != null
-        && parseFraction(optionalValue.getAmount()).getApproximatedValue() / 100
-        != transactionNode.getAmount().getValue()) {
-      optionalValue.setAmount(
-          String.valueOf(parseFraction(transactionNode.getAmount().getValue() * 100)));
+  private HTransaction getUpdatedTransaction(
+      String accountId,
+      BridgeTransaction transaction) {
+    Optional<HTransaction> optional = jpaRepository.findByIdBridge(transaction.getId());
+    if (optional.isPresent()) {
+      HTransaction optionalValue = optional.get();
+      checkTransactionUpdates(transaction, optionalValue);
+      return jpaRepository.save(optionalValue);
     }
-    if (optionalValue.getCurrency() != null
-        && !optionalValue.getCurrency().equals(transactionNode.getAmount().getCurrency())) {
-      optionalValue.setCurrency(transactionNode.getAmount().getCurrency());
+    return jpaRepository.save(mapper.toEntity(accountId, transaction));
+  }
+
+  private static void checkTransactionUpdates(
+      BridgeTransaction bridgeTransaction,
+      HTransaction entity) {
+    if (entity.getAmount() == null
+        || (entity.getAmount() != null
+        && parseFraction(entity.getAmount()).getApproximatedValue() / 100
+        != bridgeTransaction.getAmount())) {
+      entity.setAmount(
+          String.valueOf(parseFraction(bridgeTransaction.getAmount() * 100)));
     }
-    if (optionalValue.getStatus() != null
-        && !optionalValue.getStatus().getValue()
-        .equals(transactionNode.getStatusInfo().getStatus())) {
-      optionalValue.setStatus(getTransactionStatus(transactionNode.getStatusInfo().getStatus()));
+    if (entity.getCurrency() == null
+        || (entity.getCurrency() != null
+        && !entity.getCurrency().equals(bridgeTransaction.getCurrency()))) {
+      entity.setCurrency(bridgeTransaction.getCurrency());
     }
-    if (optionalValue.getPaymentDateTime() != null
-        && !optionalValue.getPaymentDateTime().equals(transactionNode.getCreatedAt())) {
-      optionalValue.setPaymentDateTime(transactionNode.getCreatedAt());
+    if (entity.getStatus() == null
+        || (entity.getStatus() != null
+        && !entity.getStatus().getValue()
+        .equals(getStatusFromBridge(bridgeTransaction).getValue()))) {
+      entity.setStatus(getStatusFromBridge(bridgeTransaction));
     }
-    if (optionalValue.getLabel() != null
-        && !optionalValue.getLabel().equals((transactionNode.getLabel()))) {
-      optionalValue.setLabel(transactionNode.getLabel());
+    if (entity.getPaymentDateTime() == null
+        || (entity.getPaymentDateTime() != null
+        && !entity.getPaymentDateTime().equals(bridgeTransaction.getCreatedDatetime()))) {
+      entity.setPaymentDateTime(
+          bridgeTransaction.getCreatedDatetime());
     }
-    if (optionalValue.getReference() != null
-        && !optionalValue.getReference().equals(transactionNode.getReference())) {
-      optionalValue.setReference(transactionNode.getReference());
+    if (entity.getLabel() == null
+        || (entity.getLabel() != null
+        && !entity.getLabel().equals((bridgeTransaction.getLabel())))) {
+      entity.setLabel(bridgeTransaction.getLabel());
     }
-    if (optionalValue.getSide() != null
-        && !optionalValue.getSide().equals(transactionNode.getSide())) {
-      optionalValue.setSide(transactionNode.getSide());
+    if (entity.getSide() == null
+        || (entity.getSide() != null
+        && !entity.getSide().equals(bridgeTransaction.getSide()))) {
+      entity.setSide(bridgeTransaction.getSide());
     }
+  }
+
+  private static void checkTransactionUpdates(Node swanTransaction, HTransaction entity) {
+    if (entity.getAmount() == null
+        || (entity.getAmount() != null
+        && parseFraction(entity.getAmount()).getApproximatedValue() / 100
+        != swanTransaction.getAmount().getValue())) {
+      entity.setAmount(
+          String.valueOf(parseFraction(swanTransaction.getAmount().getValue() * 100)));
+    }
+    if (entity.getCurrency() == null
+        || (entity.getCurrency() != null
+        && !entity.getCurrency().equals(swanTransaction.getAmount().getCurrency()))) {
+      entity.setCurrency(swanTransaction.getAmount().getCurrency());
+    }
+    if (entity.getStatus() == null
+        || (entity.getStatus() != null
+        && !entity.getStatus().getValue()
+        .equals(swanTransaction.getStatusInfo().getStatus()))) {
+      entity.setStatus(getTransactionStatus(swanTransaction.getStatusInfo().getStatus()));
+    }
+    if (entity.getPaymentDateTime() == null
+        || (entity.getPaymentDateTime() != null
+        && !entity.getPaymentDateTime().equals(swanTransaction.getCreatedAt()))) {
+      entity.setPaymentDateTime(swanTransaction.getCreatedAt());
+    }
+    if (entity.getLabel() == null
+        || (entity.getLabel() != null
+        && !entity.getLabel().equals((swanTransaction.getLabel())))) {
+      entity.setLabel(swanTransaction.getLabel());
+    }
+    if (entity.getReference() == null
+        || (entity.getReference() != null
+        && !entity.getReference().equals(swanTransaction.getReference()))) {
+      entity.setReference(swanTransaction.getReference());
+    }
+    if (entity.getSide() == null
+        || (entity.getSide() != null
+        && !entity.getSide().equals(swanTransaction.getSide()))) {
+      entity.setSide(swanTransaction.getSide());
+    }
+  }
+
+  private boolean userIsAuthenticated() {
+    return SecurityContextHolder.getContext().getAuthentication() != null;
+  }
+
+  private String swanBearerToken() {
+    return userIsAuthenticated() ? AuthProvider.getPrincipal().getBearer() :
+        tokenManager.getSwanProjecToken();
   }
 }

@@ -19,7 +19,7 @@ public class BridgeAccount {
   @JsonProperty("id")
   private String id;
   @JsonProperty("bank_id")
-  private String bankId;
+  private Integer bankId;
   @JsonProperty("name")
   private String name;
   @JsonProperty("balance")

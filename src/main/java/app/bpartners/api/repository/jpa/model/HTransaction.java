@@ -34,6 +34,7 @@ public class HTransaction {
   private String id;
   private String idSwan;
   private String idAccount;
+  private Long idBridge;
   @ManyToOne
   @JoinColumn(name = "id_invoice")
   private HInvoice invoice;

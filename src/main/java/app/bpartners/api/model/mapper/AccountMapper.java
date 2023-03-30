@@ -2,6 +2,8 @@ package app.bpartners.api.model.mapper;
 
 import app.bpartners.api.endpoint.rest.model.AccountStatus;
 import app.bpartners.api.model.Account;
+import app.bpartners.api.model.Bank;
+import app.bpartners.api.repository.bridge.model.Account.BridgeAccount;
 import app.bpartners.api.repository.jpa.model.HAccount;
 import app.bpartners.api.repository.jpa.model.HUser;
 import app.bpartners.api.repository.swan.model.SwanAccount;
@@ -58,10 +60,27 @@ public class AccountMapper {
         .build();
   }
 
+  public Account toDomain(BridgeAccount bridgeAccount, Bank bank,
+                          String accountEntityId, String userId) {
+    return Account.builder()
+        .id(accountEntityId) //TODO : set persisted ID
+        .bic(null) //TODO: set persisted BIC
+        .status(null) //TODO: map status correctly
+        .userId(userId)
+        .name(bridgeAccount.getName())
+        .iban(bridgeAccount.getIban())
+        .availableBalance(parseFraction(bridgeAccount.getBalance()))
+        .bank(bank)
+        .build();
+  }
+
   public HAccount toEntity(Account domain, HUser user) {
     return HAccount.builder()
         .id(domain.getId())
         .user(user)
+        .idBank(domain.getBank() != null
+            ? domain.getBank().getId()
+            : null)
         .name(domain.getName())
         .iban(domain.getIban())
         .bic(domain.getBic())
@@ -69,6 +88,7 @@ public class AccountMapper {
         .status(domain.getStatus())
         .build();
   }
+
 
   public AccountStatus getStatus(String status) {
     switch (status) {

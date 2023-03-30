@@ -46,7 +46,7 @@ import app.bpartners.api.repository.swan.UserSwanRepository;
 import app.bpartners.api.repository.swan.model.SwanAccount;
 import app.bpartners.api.repository.swan.model.SwanAccountHolder;
 import app.bpartners.api.repository.swan.model.SwanUser;
-import app.bpartners.api.repository.swan.model.Transaction;
+import app.bpartners.api.repository.swan.model.SwanTransaction;
 import app.bpartners.api.repository.swan.response.AccountResponse;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -93,6 +93,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 public class TestUtils {
@@ -481,87 +482,87 @@ public class TestUtils {
         .isOther(false);
   }
 
-  public static Transaction swanTransaction1() {
-    return Transaction.builder()
-        .node(Transaction.Node.builder()
+  public static SwanTransaction swanTransaction1() {
+    return SwanTransaction.builder()
+        .node(SwanTransaction.Node.builder()
             .id("bosci_f224704f2555a42303e302ffb8e69eef")
             .label("Création de site vitrine")
             .reference("REF_001")
-            .amount(Transaction.Amount.builder()
+            .amount(SwanTransaction.Amount.builder()
                 .value(500.0)
                 .currency("EUR")
                 .build())
             .createdAt(Instant.parse("2022-08-26T06:33:50.595Z"))
             .side(CREDIT_SIDE)
-            .statusInfo(new Transaction.Node.StatusInfo(PENDING_STATUS))
+            .statusInfo(new SwanTransaction.Node.StatusInfo(PENDING_STATUS))
             .build())
         .build();
   }
 
-  public static Transaction swanTransaction2() {
-    return Transaction.builder()
-        .node(Transaction.Node.builder()
+  public static SwanTransaction swanTransaction2() {
+    return SwanTransaction.builder()
+        .node(SwanTransaction.Node.builder()
             .id("bosci_28cb4daf35d3ab24cb775dcdefc8fdab")
             .label("Test du virement")
             .reference("TEST-001")
-            .amount(Transaction.Amount.builder()
+            .amount(SwanTransaction.Amount.builder()
                 .value(100.0)
                 .currency("EUR")
                 .build())
             .createdAt(Instant.parse("2022-08-24T04:57:02.606Z"))
             .side(DEBIT_SIDE)
-            .statusInfo(new Transaction.Node.StatusInfo(BOOKED_STATUS))
+            .statusInfo(new SwanTransaction.Node.StatusInfo(BOOKED_STATUS))
             .build())
         .build();
   }
 
-  public static Transaction swanTransaction3() {
-    return Transaction.builder()
-        .node(Transaction.Node.builder()
+  public static SwanTransaction swanTransaction3() {
+    return SwanTransaction.builder()
+        .node(SwanTransaction.Node.builder()
             .id("bosci_0fe167566b234808a44aae415f057b6c")
             .label("Premier virement")
             .reference("JOE-001")
-            .amount(Transaction.Amount.builder()
+            .amount(SwanTransaction.Amount.builder()
                 .value(500.0)
                 .currency("EUR")
                 .build())
             .createdAt(Instant.parse("2022-08-24T03:39:33.315Z"))
             .side(CREDIT_SIDE)
-            .statusInfo(new Transaction.Node.StatusInfo(BOOKED_STATUS))
+            .statusInfo(new SwanTransaction.Node.StatusInfo(BOOKED_STATUS))
             .build())
         .build();
   }
 
-  public static Transaction swanTransaction4() {
-    return Transaction.builder()
-        .node(Transaction.Node.builder()
+  public static SwanTransaction swanTransaction4() {
+    return SwanTransaction.builder()
+        .node(SwanTransaction.Node.builder()
             .id("bosci_12azgrb712gzf057b6c")
             .label("Transaction avec nouveau statut")
             .reference("123456")
-            .amount(Transaction.Amount.builder()
+            .amount(SwanTransaction.Amount.builder()
                 .value(400.0)
                 .currency("EUR")
                 .build())
             .createdAt(Instant.parse("2023-01-01T00:00:00.00Z"))
             .side(CREDIT_SIDE)
-            .statusInfo(new Transaction.Node.StatusInfo(RELEASED_STATUS))
+            .statusInfo(new SwanTransaction.Node.StatusInfo(RELEASED_STATUS))
             .build())
         .build();
   }
 
-  public static Transaction updatedSwanTransaction() {
-    return Transaction.builder()
-        .node(Transaction.Node.builder()
+  public static SwanTransaction updatedSwanTransaction() {
+    return SwanTransaction.builder()
+        .node(SwanTransaction.Node.builder()
             .id("bosci_f224704f2555a42303e302ffb8e69eef")
             .label("Label à jour")
             .reference("NEW_REF")
-            .amount(Transaction.Amount.builder()
+            .amount(SwanTransaction.Amount.builder()
                 .value(111.1)
                 .currency("EUR")
                 .build())
             .createdAt(Instant.parse("2022-08-26T01:00:00.00Z"))
             .side(DEBIT_SIDE)
-            .statusInfo(new Transaction.Node.StatusInfo(BOOKED_STATUS))
+            .statusInfo(new SwanTransaction.Node.StatusInfo(BOOKED_STATUS))
             .build())
         .build();
   }
@@ -921,16 +922,20 @@ public class TestUtils {
   }
 
   public static void setUpTransactionRepository(TransactionSwanRepository repository) {
-    when(repository.getByIdAccount(any())).thenReturn(
+    when(repository.getByIdAccount(any(), any())).thenReturn(
         List.of(
             swanTransaction1(),
             swanTransaction2(),
             swanTransaction3(),
             swanTransaction4()));
-    when(repository.findById(swanTransaction1().getNode().getId())).thenReturn(swanTransaction1());
-    when(repository.findById(swanTransaction2().getNode().getId())).thenReturn(swanTransaction2());
-    when(repository.findById(swanTransaction3().getNode().getId())).thenReturn(swanTransaction3());
-    when(repository.findById(swanTransaction4().getNode().getId())).thenReturn(swanTransaction4());
+    when(repository.findById(eq(swanTransaction1().getNode().getId()), any()))
+        .thenReturn(swanTransaction1());
+    when(repository.findById(eq(swanTransaction2().getNode().getId()), any()))
+        .thenReturn(swanTransaction2());
+    when(repository.findById(eq(swanTransaction3().getNode().getId()), any()))
+        .thenReturn(swanTransaction3());
+    when(repository.findById(eq(swanTransaction4().getNode().getId()), any()))
+        .thenReturn(swanTransaction4());
   }
 
   public static void setUpOnboardingSwanRepositoryMock(OnboardingSwanRepository repository) {

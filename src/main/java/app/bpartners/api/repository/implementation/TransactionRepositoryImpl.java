@@ -16,7 +16,6 @@ import app.bpartners.api.repository.swan.TransactionSwanRepository;
 import app.bpartners.api.repository.swan.model.SwanTransaction;
 import app.bpartners.api.repository.swan.model.SwanTransaction.Node;
 import java.time.Instant;
-import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -25,8 +24,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Repository;
 
-import static app.bpartners.api.model.Transaction.CREDIT_SIDE;
-import static app.bpartners.api.model.Transaction.DEBIT_SIDE;
 import static app.bpartners.api.model.mapper.TransactionMapper.getStatusFromBridge;
 import static app.bpartners.api.model.mapper.TransactionMapper.getTransactionStatus;
 import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
@@ -153,71 +150,82 @@ public class TransactionRepositoryImpl implements TransactionRepository {
     return jpaRepository.save(mapper.toEntity(accountId, transaction));
   }
 
-  private static void checkTransactionUpdates(BridgeTransaction bridgeTransaction,
-                                              HTransaction entity) {
-    if (entity.getAmount() != null
+  private static void checkTransactionUpdates(
+      BridgeTransaction bridgeTransaction,
+      HTransaction entity) {
+    if (entity.getAmount() == null
+        || (entity.getAmount() != null
         && parseFraction(entity.getAmount()).getApproximatedValue() / 100
-        != bridgeTransaction.getAmount()) {
+        != bridgeTransaction.getAmount())) {
       entity.setAmount(
           String.valueOf(parseFraction(bridgeTransaction.getAmount() * 100)));
     }
-    if (entity.getCurrency() != null
-        && !entity.getCurrency().equals(bridgeTransaction.getCurrency())) {
+    if (entity.getCurrency() == null
+        || (entity.getCurrency() != null
+        && !entity.getCurrency().equals(bridgeTransaction.getCurrency()))) {
       entity.setCurrency(bridgeTransaction.getCurrency());
     }
-    if (entity.getStatus() != null
+    if (entity.getStatus() == null
+        || (entity.getStatus() != null
         && !entity.getStatus().getValue()
-        .equals(getStatusFromBridge(bridgeTransaction).getValue())) {
+        .equals(getStatusFromBridge(bridgeTransaction).getValue()))) {
       entity.setStatus(getStatusFromBridge(bridgeTransaction));
     }
-    if (entity.getPaymentDateTime() != null
-        && !entity.getPaymentDateTime()
-        .equals(bridgeTransaction.getTransactionDate().atStartOfDay(ZoneId.systemDefault())
-            .toInstant())) {
+    if (entity.getPaymentDateTime() == null
+        || (entity.getPaymentDateTime() != null
+        && !entity.getPaymentDateTime().equals(bridgeTransaction.getCreatedDatetime()))) {
       entity.setPaymentDateTime(
-          bridgeTransaction.getTransactionDate().atStartOfDay(ZoneId.systemDefault()).toInstant());
+          bridgeTransaction.getCreatedDatetime());
     }
-    if (entity.getLabel() != null
-        && !entity.getLabel().equals((bridgeTransaction.getLabel()))) {
+    if (entity.getLabel() == null
+        || (entity.getLabel() != null
+        && !entity.getLabel().equals((bridgeTransaction.getLabel())))) {
       entity.setLabel(bridgeTransaction.getLabel());
     }
-    if (entity.getSide() != null
-        && !entity.getSide()
-        .equals(bridgeTransaction.getAmount() > 0 ? CREDIT_SIDE : DEBIT_SIDE)) {
-      entity.setSide(bridgeTransaction.getAmount() > 0 ? CREDIT_SIDE : DEBIT_SIDE);
+    if (entity.getSide() == null
+        || (entity.getSide() != null
+        && !entity.getSide().equals(bridgeTransaction.getSide()))) {
+      entity.setSide(bridgeTransaction.getSide());
     }
   }
 
   private static void checkTransactionUpdates(Node swanTransaction, HTransaction entity) {
-    if (entity.getAmount() != null
+    if (entity.getAmount() == null
+        || (entity.getAmount() != null
         && parseFraction(entity.getAmount()).getApproximatedValue() / 100
-        != swanTransaction.getAmount().getValue()) {
+        != swanTransaction.getAmount().getValue())) {
       entity.setAmount(
           String.valueOf(parseFraction(swanTransaction.getAmount().getValue() * 100)));
     }
-    if (entity.getCurrency() != null
-        && !entity.getCurrency().equals(swanTransaction.getAmount().getCurrency())) {
+    if (entity.getCurrency() == null
+        || (entity.getCurrency() != null
+        && !entity.getCurrency().equals(swanTransaction.getAmount().getCurrency()))) {
       entity.setCurrency(swanTransaction.getAmount().getCurrency());
     }
-    if (entity.getStatus() != null
+    if (entity.getStatus() == null
+        || (entity.getStatus() != null
         && !entity.getStatus().getValue()
-        .equals(swanTransaction.getStatusInfo().getStatus())) {
+        .equals(swanTransaction.getStatusInfo().getStatus()))) {
       entity.setStatus(getTransactionStatus(swanTransaction.getStatusInfo().getStatus()));
     }
-    if (entity.getPaymentDateTime() != null
-        && !entity.getPaymentDateTime().equals(swanTransaction.getCreatedAt())) {
+    if (entity.getPaymentDateTime() == null
+        || (entity.getPaymentDateTime() != null
+        && !entity.getPaymentDateTime().equals(swanTransaction.getCreatedAt()))) {
       entity.setPaymentDateTime(swanTransaction.getCreatedAt());
     }
-    if (entity.getLabel() != null
-        && !entity.getLabel().equals((swanTransaction.getLabel()))) {
+    if (entity.getLabel() == null
+        || (entity.getLabel() != null
+        && !entity.getLabel().equals((swanTransaction.getLabel())))) {
       entity.setLabel(swanTransaction.getLabel());
     }
-    if (entity.getReference() != null
-        && !entity.getReference().equals(swanTransaction.getReference())) {
+    if (entity.getReference() == null
+        || (entity.getReference() != null
+        && !entity.getReference().equals(swanTransaction.getReference()))) {
       entity.setReference(swanTransaction.getReference());
     }
-    if (entity.getSide() != null
-        && !entity.getSide().equals(swanTransaction.getSide())) {
+    if (entity.getSide() == null
+        || (entity.getSide() != null
+        && !entity.getSide().equals(swanTransaction.getSide()))) {
       entity.setSide(swanTransaction.getSide());
     }
   }

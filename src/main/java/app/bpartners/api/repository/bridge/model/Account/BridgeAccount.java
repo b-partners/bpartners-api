@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.Instant;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -16,13 +17,14 @@ import static app.bpartners.api.endpoint.rest.model.AccountStatus.UNKNOWN;
 @NoArgsConstructor
 @Data
 @ToString
+@Builder
 @EqualsAndHashCode
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class BridgeAccount {
   @JsonProperty("id")
   private Long id;
   @JsonProperty("bank_id")
-  private Integer bankId;
+  private Long bankId;
   @JsonProperty("name")
   private String name;
   @JsonProperty("balance")

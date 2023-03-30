@@ -21,6 +21,9 @@ public class UserTokenRepositoryImpl implements UserTokenRepository {
 
   @Override
   public UserToken updateUserToken(User user) {
+    if (user.getEmail() == null || user.getBridgePassword() == null) {
+      return null;
+    }
     BridgeTokenResponse response = bridgeApi.authenticateUser(mapper.toBridgeAuthUser(user));
     //TODO: do something as retry
     if (response == null

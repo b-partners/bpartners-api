@@ -15,7 +15,7 @@ import lombok.ToString;
 @Data
 @ToString
 public class BridgeItem {
-  public static final Integer ITEM_STATUS_OK = 0;
+
   @JsonProperty("id")
   private Long id;
   @JsonProperty("status")

@@ -184,7 +184,7 @@ public class BridgeIT {
 
   @Test
   void read_bank_by_id_ok() {
-    BridgeBank actual = subject.findBankById(579);
+    BridgeBank actual = subject.findBankById(579L);
 
     log.info("BridgeBank={}", actual);
     assertNotNull(actual);

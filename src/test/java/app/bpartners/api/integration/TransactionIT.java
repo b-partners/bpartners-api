@@ -167,9 +167,12 @@ class TransactionIT {
     assertTrue(ignoreIds(actual).contains(restTransaction4().id(null)));
   }
 
+  /*
+  TODO: return empty when neither swan nor bridge return transaction
+   */
   @Test
   @Order(1)
-  void read_persisted_transactions_ok() throws ApiException {
+  void read_empty_transactions_ok() throws ApiException {
     reset(transactionSwanRepositoryMock);
     when(transactionSwanRepositoryMock.findById(any(), any())).thenReturn(null);
     when(transactionSwanRepositoryMock.getByIdAccount(any(), any())).thenReturn(List.of());
@@ -178,9 +181,10 @@ class TransactionIT {
 
     List<Transaction> actual = api.getTransactions(JOE_DOE_ACCOUNT_ID, null, null);
 
-    assertEquals(2, actual.size());
-    assertTrue(actual.contains(restTransaction1()));
-    assertTrue(actual.contains(restTransaction2()));
+    assertTrue(actual.isEmpty());
+//    assertEquals(2, actual.size());
+//    assertTrue(actual.contains(restTransaction1()));
+//    assertTrue(actual.contains(restTransaction2()));
   }
 
   @Test

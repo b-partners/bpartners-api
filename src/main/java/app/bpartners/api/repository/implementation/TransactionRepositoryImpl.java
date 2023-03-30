@@ -46,12 +46,14 @@ public class TransactionRepositoryImpl implements TransactionRepository {
     if (swanTransactions.isEmpty() && userIsAuthenticated()) {
       List<BridgeTransaction> bridgeTransactions = bridgeRepository.findAuthTransactions();
       if (bridgeTransactions.isEmpty()) {
-        List<HTransaction> persistedTransactions = jpaRepository.findAllByIdAccount(accountId);
-        return persistedTransactions.stream()
-            .map(transaction ->
-                mapper.toDomain(transaction,
-                    categoryRepository.findByIdTransaction(transaction.getId())))
-            .collect(Collectors.toList());
+        return List.of(); //No transactions neither bridge nor swan return transactions
+        //TODO: uncomment if necessary
+        //        List<HTransaction> persistedTransactions = jpaRepository.findAllByIdAccount(accountId);
+        //        return persistedTransactions.stream()
+        //            .map(transaction ->
+        //                mapper.toDomain(transaction,
+        //                    categoryRepository.findByIdTransaction(transaction.getId())))
+        //            .collect(Collectors.toList());
       }
       return bridgeTransactions.stream()
           .map(

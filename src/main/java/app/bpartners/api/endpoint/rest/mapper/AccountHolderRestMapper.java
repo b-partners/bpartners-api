@@ -57,6 +57,7 @@ public class AccountHolderRestMapper {
             .location(domain.getLocation())
             .townCode(domain.getTownCode()))
         .contactAddress(new ContactAddress()
+            .prospectingPerimeter(domain.getProspectingPerimeter())
             .city(domain.getCity())
             .address(domain.getAddress())
             .postalCode(domain.getPostalCode())

@@ -50,6 +50,7 @@ public class AccountHolderMapper {
         .mainActivityDescription(entity.getBusinessActivityDescription())
         .initialCashflow(parseFraction(entity.getInitialCashflow()))
         .location(location)
+        .prospectingPerimeter(entity.getProspectingPerimeter())
         .townCode(entity.getTownCode())
         .build();
   }
@@ -84,6 +85,7 @@ public class AccountHolderMapper {
         .postalCode(domain.getPostalCode())
         .longitude(longitude)
         .latitude(latitude)
+        .prospectingPerimeter(domain.getProspectingPerimeter())
         .townCode(domain.getTownCode())
         .build();
   }

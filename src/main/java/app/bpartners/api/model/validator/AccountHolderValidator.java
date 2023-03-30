@@ -11,6 +11,12 @@ public class AccountHolderValidator implements Consumer<AccountHolder> {
   @Override
   public void accept(AccountHolder accountHolder) {
     StringBuilder exceptionMessageBuilder = new StringBuilder();
+    if (accountHolder.getProspectingPerimeter() < 0) {
+      exceptionMessageBuilder.append("prospecting perimeter should be positive. ");
+    }
+    if (accountHolder.getProspectingPerimeter() > 50) {
+      exceptionMessageBuilder.append("prospecting perimeter should be under 50. ");
+    }
     if (accountHolder.getLocation() != null) {
       if (accountHolder.getLocation().getLongitude() == null) {
         exceptionMessageBuilder.append("Longitude is mandatory. ");

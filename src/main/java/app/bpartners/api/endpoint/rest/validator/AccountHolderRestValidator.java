@@ -31,6 +31,12 @@ public class AccountHolderRestValidator implements Consumer<AccountHolder> {
     if (contactAddress.getPostalCode() == null) {
       exceptionMessageBuilder.append("postalCode is mandatory. ");
     }
+    if (accountHolder.getContactAddress().getProspectingPerimeter() < 0) {
+      exceptionMessageBuilder.append("prospecting perimeter should be positive. ");
+    }
+    if (accountHolder.getContactAddress().getProspectingPerimeter() > 50) {
+      exceptionMessageBuilder.append("prospecting perimeter should be under 50. ");
+    }
     String exceptionMessage = exceptionMessageBuilder.toString();
     if (!exceptionMessage.isEmpty()) {
       throw new BadRequestException(exceptionMessage);

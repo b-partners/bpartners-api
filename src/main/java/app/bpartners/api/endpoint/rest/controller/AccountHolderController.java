@@ -8,6 +8,7 @@ import app.bpartners.api.endpoint.rest.model.AccountHolder;
 import app.bpartners.api.endpoint.rest.model.CompanyBusinessActivity;
 import app.bpartners.api.endpoint.rest.model.CompanyInfo;
 import app.bpartners.api.endpoint.rest.model.CreateAnnualRevenueTarget;
+import app.bpartners.api.endpoint.rest.model.UpdateAccountHolder;
 import app.bpartners.api.endpoint.rest.validator.CreateAnnualRevenueTargetValidator;
 import app.bpartners.api.model.AnnualRevenueTarget;
 import app.bpartners.api.service.AccountHolderService;
@@ -50,6 +51,17 @@ public class AccountHolderController {
         accountHolderService.updateCompanyInfo(accountId, accountHolderId,
             companyInfoMapper.toDomain(companyInfo)
         )
+    );
+  }
+
+  @PutMapping("/users/{userId}/accounts/{accountId}/accountHolders/{ahId}/globalInfo")
+  public AccountHolder updateGlobalInfo(
+      @RequestBody UpdateAccountHolder globalInfo,
+      @PathVariable("userId") String userId,
+      @PathVariable("accountId") String accountId,
+      @PathVariable("ahId") String accountHolderId) {
+    return accountHolderMapper.toRest(
+        accountHolderService.updateGlobalInfo(accountId, accountHolderId, globalInfo)
     );
   }
 

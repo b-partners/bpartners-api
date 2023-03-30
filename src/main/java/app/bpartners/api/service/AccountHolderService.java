@@ -1,5 +1,6 @@
 package app.bpartners.api.service;
 
+import app.bpartners.api.endpoint.rest.model.UpdateAccountHolder;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.AnnualRevenueTarget;
 import app.bpartners.api.model.BusinessActivity;
@@ -8,6 +9,8 @@ import app.bpartners.api.repository.AccountHolderRepository;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 
 @Service
 @AllArgsConstructor
@@ -35,6 +38,22 @@ public class AccountHolderService {
         .subjectToVat(companyInfo.isSubjectToVat())
         .location(companyInfo.getLocation())
         .townCode(companyInfo.getTownCode())
+        .build());
+  }
+
+  public AccountHolder updateGlobalInfo(String accountId, String accountHolderId,
+                                        UpdateAccountHolder global) {
+    AccountHolder accountHolder = accountHolderRepository.getByIdAndAccountId(accountHolderId,
+        accountId);
+    return accountHolderRepository.save(accountHolder.toBuilder()
+        .name(global.getName())
+        .siren(global.getSiren())
+        .initialCashflow(parseFraction(global.getInitialCashFlow()))
+        .mainActivity(global.getOfficialActivityName())
+        .address(global.getContactAddress().getAddress())
+        .city(global.getContactAddress().getCity())
+        .postalCode(global.getContactAddress().getPostalCode())
+        .country(global.getContactAddress().getCountry())
         .build());
   }
 

@@ -30,10 +30,7 @@ class ProspectRestValidatorTest {
 
   @Test
   void subject_reject_invalid_prospect_ko() {
-    assertThrowsBadRequestException("Id is mandatory. "
-            + "Name is mandatory. "
-            + "Status is mandatory. "
-            + "Prospect should at least have a phone number or an email. ",
+    assertThrowsBadRequestException("Id is mandatory. " + "Status is mandatory. ",
         () -> subject.accept(new UpdateProspect()));
   }
 }

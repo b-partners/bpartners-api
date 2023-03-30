@@ -14,14 +14,8 @@ public class ProspectRestValidator implements Consumer<UpdateProspect> {
     if (prospect.getId() == null) {
       exceptionMessageBuilder.append("Id is mandatory. ");
     }
-    if (prospect.getName() == null) {
-      exceptionMessageBuilder.append("Name is mandatory. ");
-    }
     if (prospect.getStatus() == null) {
       exceptionMessageBuilder.append("Status is mandatory. ");
-    }
-    if (prospect.getEmail() == null && prospect.getPhone() == null) {
-      exceptionMessageBuilder.append("Prospect should at least have a phone number or an email. ");
     }
     String exceptionMessage = exceptionMessageBuilder.toString();
     if (!exceptionMessage.isEmpty()) {

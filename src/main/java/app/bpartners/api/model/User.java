@@ -3,6 +3,7 @@ package app.bpartners.api.model;
 import app.bpartners.api.endpoint.rest.model.EnableStatus;
 import app.bpartners.api.endpoint.rest.model.IdentificationStatus;
 import java.io.Serializable;
+import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -26,6 +27,9 @@ public class User implements Serializable {
   private String email;
   private String bridgePassword;
   private String mobilePhoneNumber;
+  private Long bridgeItemId;
+  private Instant bridgeItemUpdatedAt;
+  private Instant bridgeItemLastRefresh;
   private String accessToken;
   private int monthlySubscription;
   private EnableStatus status;

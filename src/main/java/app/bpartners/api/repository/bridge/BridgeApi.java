@@ -5,8 +5,9 @@ import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.repository.bridge.model.Account.BridgeAccount;
 import app.bpartners.api.repository.bridge.model.Bank.BridgeBank;
 import app.bpartners.api.repository.bridge.model.Item.BridgeConnectItem;
-import app.bpartners.api.repository.bridge.model.Item.BridgeItem;
 import app.bpartners.api.repository.bridge.model.Item.BridgeCreateItem;
+import app.bpartners.api.repository.bridge.model.Item.BridgeItem;
+import app.bpartners.api.repository.bridge.model.Item.BridgeItemStatus;
 import app.bpartners.api.repository.bridge.model.Transaction.BridgeTransaction;
 import app.bpartners.api.repository.bridge.model.User.BridgeUser;
 import app.bpartners.api.repository.bridge.model.User.CreateBridgeUser;
@@ -20,6 +21,8 @@ import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -57,6 +60,52 @@ public class BridgeApi {
         return null;
       }
       return objectMapper.readValue(httpResponse.body(), BridgeUser.class);
+    } catch (URISyntaxException | IOException e) {
+      throw new ApiException(SERVER_EXCEPTION, e);
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new ApiException(SERVER_EXCEPTION, e);
+    }
+  }
+
+  public Instant getItemStatusRefreshedAt(Long id, String token) {
+    try {
+      HttpRequest request = HttpRequest.newBuilder()
+          .uri(new URI(conf.getItemStatusUrl(id)))
+          .headers(defaultHeadersWithToken(token))
+          .GET()
+          .build();
+      HttpResponse<String> httpResponse =
+          httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+      if (httpResponse.statusCode() != 200 && httpResponse.statusCode() != 201) {
+        log.warn("BridgeApi errors : {}", httpResponse.body());
+        return null;
+      }
+      return objectMapper.readValue(httpResponse.body(), BridgeItemStatus.class)
+          .getRefreshedAt()
+          .truncatedTo(ChronoUnit.MILLIS);
+    } catch (URISyntaxException | IOException e) {
+      throw new ApiException(SERVER_EXCEPTION, e);
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new ApiException(SERVER_EXCEPTION, e);
+    }
+  }
+
+  public String refreshBankConnection(Long itemId, String token) {
+    try {
+      HttpRequest request = HttpRequest.newBuilder()
+          .uri(new URI(conf.getRefreshUrl(itemId)))
+          .headers(defaultHeadersWithToken(token))
+          .POST(HttpRequest.BodyPublishers.noBody())
+          .build();
+      HttpResponse<String> httpResponse =
+          httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+      if (httpResponse.statusCode() != 200 && httpResponse.statusCode() != 201) {
+        log.warn("BridgeApi errors : {}", httpResponse.body());
+        return null;
+      }
+      return objectMapper.readValue(httpResponse.body(), String.class);
     } catch (URISyntaxException | IOException e) {
       throw new ApiException(SERVER_EXCEPTION, e);
     } catch (InterruptedException e) {
@@ -329,7 +378,7 @@ public class BridgeApi {
     }
   }
 
-  public BridgeBank findBankById(Integer id) {
+  public BridgeBank findBankById(Long id) {
     try {
       HttpRequest request = HttpRequest.newBuilder()
           .uri(new URI(conf.getBankUrl() + "/" + id))

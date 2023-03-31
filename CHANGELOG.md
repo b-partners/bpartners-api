@@ -1,3 +1,26 @@
+# [0.11.0](https://github.com/b-partners/bpartners-api/compare/v0.10.0...v0.11.0) (2023-03-31)
+
+
+### Bug Fixes
+
+* duplicate V0_133 ([#637](https://github.com/b-partners/bpartners-api/issues/637)) ([bbbe6d5](https://github.com/b-partners/bpartners-api/commit/bbbe6d524da971d809fe1386b07ed28fcfa51da9))
+* leave user token as cognito bearer when bridge bearer not retrieved ([8c788ed](https://github.com/b-partners/bpartners-api/commit/8c788ed22008bab1a0036dead9ae2b8e373f389a))
+* persist provided user ID during updating persisted account ([e88236a](https://github.com/b-partners/bpartners-api/commit/e88236afc18d076f4b568389ddd07835b4e168c9))
+* persisted transactions are updated when null are actual values ([4603d75](https://github.com/b-partners/bpartners-api/commit/4603d75ebb67196b30a90f1ac0f7176da87c13e3))
+* properly resolve ssm variables for cognito ([cca423f](https://github.com/b-partners/bpartners-api/commit/cca423f139f6a7a434ae8ca65ece9b3a5d8dad69))
+* remove profile arg in cd-compute ([1b09c46](https://github.com/b-partners/bpartners-api/commit/1b09c46c4d9863319ae8186dbbebe646ef97b4aa))
+* retrieve user from cognito token in legal file controller ([c5b482f](https://github.com/b-partners/bpartners-api/commit/c5b482fd8165618ea02f03a589389b7ba323db58))
+* retrieve user from cognito token in user controller ([fb5e0fa](https://github.com/b-partners/bpartners-api/commit/fb5e0fa788bcd52be18a5dd88162d8b2fb44b25e))
+* return empty list when any transaction retrieved ([545832c](https://github.com/b-partners/bpartners-api/commit/545832c12cfb326c25f058752b7188a68eb001e4))
+
+
+### Features
+
+* add town code to accountholder ([#634](https://github.com/b-partners/bpartners-api/issues/634)) ([634a2df](https://github.com/b-partners/bpartners-api/commit/634a2df914a43fb7eb1d66745d3152069efbd3a1))
+* exchange cognito authorization code to cognito token ([0461793](https://github.com/b-partners/bpartners-api/commit/04617932874efb62c9f9e8b7b0467627f8007adc))
+
+
+
 # [0.10.0](https://github.com/b-partners/bpartners-api/compare/v0.9.0...v0.10.0) (2023-03-23)
 
 
@@ -154,15 +177,6 @@
 ### Bug Fixes
 
 * ignore git_push.sh file when publishing the codeartifact client ([#432](https://github.com/b-partners/bpartners-api/issues/432)) ([dba71b2](https://github.com/b-partners/bpartners-api/commit/dba71b23bf1a212fab4c38f45a058ee0f12f952b))
-
-
-
-## [0.4.3](https://github.com/b-partners/bpartners-api/compare/v0.4.2...v0.4.3) (2023-01-26)
-
-
-### Bug Fixes
-
-* command pattern on the content to append to .npmignore ([#431](https://github.com/b-partners/bpartners-api/issues/431)) ([564d2b1](https://github.com/b-partners/bpartners-api/commit/564d2b12104555db0915dfff0b8ecf6faf02e696))
 
 
 

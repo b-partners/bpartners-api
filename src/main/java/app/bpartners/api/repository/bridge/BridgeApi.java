@@ -4,8 +4,9 @@ import app.bpartners.api.endpoint.rest.security.swan.BridgeConf;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.repository.bridge.model.Account.BridgeAccount;
 import app.bpartners.api.repository.bridge.model.Bank.BridgeBank;
+import app.bpartners.api.repository.bridge.model.Item.BridgeConnectItem;
 import app.bpartners.api.repository.bridge.model.Item.BridgeItem;
-import app.bpartners.api.repository.bridge.model.Item.CreateBridgeItem;
+import app.bpartners.api.repository.bridge.model.Item.BridgeCreateItem;
 import app.bpartners.api.repository.bridge.model.Transaction.BridgeTransaction;
 import app.bpartners.api.repository.bridge.model.User.BridgeUser;
 import app.bpartners.api.repository.bridge.model.User.CreateBridgeUser;
@@ -182,7 +183,7 @@ public class BridgeApi {
     }
   }
 
-  public String initiateBankConnection(CreateBridgeItem item, String token) {
+  public String initiateBankConnection(BridgeCreateItem item, String token) {
     try {
       ArrayList<String> requestHeaders =
           new ArrayList<>(Arrays.asList(defaultHeadersWithToken(token)));
@@ -200,7 +201,7 @@ public class BridgeApi {
         log.warn("BridgeApi errors : {}", httpResponse.body());
         return null;
       }
-      return httpResponse.body();
+      return objectMapper.readValue(httpResponse.body(), BridgeConnectItem.class).getRedirectUrl();
     } catch (URISyntaxException | IOException e) {
       throw new ApiException(SERVER_EXCEPTION, e);
     } catch (InterruptedException e) {

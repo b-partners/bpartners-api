@@ -4,6 +4,8 @@ import app.bpartners.api.endpoint.rest.model.AuthInitiation;
 import java.util.function.Consumer;
 import org.springframework.stereotype.Component;
 
+import static app.bpartners.api.endpoint.rest.validator.RedirectionValidator.verifyRedirectionStatusUrls;
+
 @Component
 public class AuthInitiationValidator implements Consumer<AuthInitiation> {
   @Override
@@ -15,7 +17,6 @@ public class AuthInitiationValidator implements Consumer<AuthInitiation> {
     if (authInitiation.getState() == null) {
       exceptionMessageBuilder.append("state is mandatory. ");
     }
-    OnboardingInitiationValidator.verifyRedirectionStatusUrls(exceptionMessageBuilder,
-        authInitiation.getRedirectionStatusUrls());
+    verifyRedirectionStatusUrls(exceptionMessageBuilder, authInitiation.getRedirectionStatusUrls());
   }
 }

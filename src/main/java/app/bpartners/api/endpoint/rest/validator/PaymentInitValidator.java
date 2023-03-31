@@ -4,6 +4,7 @@ import app.bpartners.api.endpoint.rest.model.PaymentInitiation;
 import java.util.function.Consumer;
 import org.springframework.stereotype.Component;
 
+import static app.bpartners.api.endpoint.rest.validator.RedirectionValidator.verifyRedirectionStatusUrls;
 import static app.bpartners.api.endpoint.rest.validator.UUIDValidator.isValid;
 
 @Component
@@ -26,9 +27,6 @@ public class PaymentInitValidator implements Consumer<PaymentInitiation> {
     if (paymentInitiation.getPayerEmail() == null) {
       builder.append("payerEmail is mandatory. ");
     }
-
-    //TODO: put this verification method into the appropriate utils
-    OnboardingInitiationValidator
-        .verifyRedirectionStatusUrls(builder, paymentInitiation.getRedirectionStatusUrls());
+    verifyRedirectionStatusUrls(builder, paymentInitiation.getRedirectionStatusUrls());
   }
 }

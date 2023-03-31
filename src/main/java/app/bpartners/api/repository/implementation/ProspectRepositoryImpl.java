@@ -37,8 +37,8 @@ import static org.springframework.transaction.annotation.Isolation.SERIALIZABLE;
 @AllArgsConstructor
 @Repository
 public class ProspectRepositoryImpl implements ProspectRepository {
-  private static final String TILE_LAYER = "carreleur";
-  private static final String ROOFER = "toiturier";
+  public static final String TILE_LAYER = "carreleur";
+  public static final String ROOFER = "toiturier";
   private final ProspectJpaRepository jpaRepository;
   private final ProspectMapper mapper;
   private final BuildingPermitApi buildingPermitApi;

@@ -59,6 +59,45 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
+  initiateBankConnection:
+    post:
+      tags:
+        - User Accounts
+      summary: Initiate a bank connection to an user's account
+      operationId: initiateBankConnection
+      parameters:
+        - in: path
+          name: userId
+          schema:
+            type: string
+          required: true
+        - in: path
+          name: accountId
+          schema:
+            type: string
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: './api.yml#/components/schemas/RedirectionStatusUrls'
+      responses:
+        200:
+          description: Bank connection redirection urls
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BankConnectionRedirection'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
   updateCompanyInfo:
     put:
       tags:
@@ -524,3 +563,6 @@ components:
           type: string
         name:
           type: string
+    BankConnectionRedirection:
+      allOf:
+        - $ref: './api.yml#/components/schemas/Redirection'

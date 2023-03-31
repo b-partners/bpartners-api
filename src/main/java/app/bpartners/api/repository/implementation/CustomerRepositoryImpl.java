@@ -139,14 +139,16 @@ public class CustomerRepositoryImpl implements CustomerRepository {
 
   @Override
   public List<Customer> updateStatus(String accountId, List<UpdateCustomerStatus> toUpdate) {
-    List<Customer> updatedCustomers = new ArrayList<>();
-    for (UpdateCustomerStatus customer : toUpdate) {
-      HCustomer customerToUpdate = jpaRepository.findByIdAccountAndId(accountId,
-          customer.getId());
-      customerToUpdate.setStatus(customer.getStatus());
-      updatedCustomers.add(mapper.toDomain(customerToUpdate));
-    }
-    return updatedCustomers;
+    List<HCustomer> customersToUpdate = toUpdate.stream()
+            .map(CustomerToUpdate -> {
+              HCustomer actualCustomer = jpaRepository.findById(CustomerToUpdate.getId()).get();
+              actualCustomer.setStatus(CustomerToUpdate.getStatus());
+              return actualCustomer;
+            })
+            .collect(Collectors.toList());
+    return jpaRepository.saveAll(customersToUpdate).stream()
+            .map(mapper::toDomain)
+            .collect(Collectors.toUnmodifiableList());
   }
 
   @Override

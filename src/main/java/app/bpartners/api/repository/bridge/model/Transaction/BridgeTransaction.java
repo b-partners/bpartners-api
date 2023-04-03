@@ -44,6 +44,10 @@ public class BridgeTransaction {
     return transactionDate.atStartOfDay(ZoneId.systemDefault()).toInstant();
   }
 
+  public Double getAbsAmount() {
+    return amount == null ? 0 : Math.abs(amount);
+  }
+
   public String getSide() {
     return getAmount() > 0 ? CREDIT_SIDE : DEBIT_SIDE;
   }

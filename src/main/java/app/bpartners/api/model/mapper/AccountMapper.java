@@ -11,6 +11,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import static app.bpartners.api.endpoint.rest.model.AccountStatus.UNKNOWN;
 import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 
 @Slf4j
@@ -52,6 +53,7 @@ public class AccountMapper {
     return Account.builder()
         .id(entity.getId())
         .userId(userId)
+        .bridgeAccountId(entity.getBridgeAccountId())
         .name(entity.getName())
         .iban(entity.getIban())
         .bic(entity.getBic())
@@ -65,8 +67,9 @@ public class AccountMapper {
     return Account.builder()
         .id(accountEntityId) //TODO : set persisted ID
         .bic(null) //TODO: set persisted BIC
-        .status(null) //TODO: map status correctly
+        .status(bridgeAccount.getDomainStatus())
         .userId(userId)
+        .bridgeAccountId(bridgeAccount.getId())
         .name(bridgeAccount.getName())
         .iban(bridgeAccount.getIban())
         .availableBalance(parseFraction(bridgeAccount.getBalance()))
@@ -77,6 +80,7 @@ public class AccountMapper {
   public HAccount toEntity(Account domain, HUser user) {
     return HAccount.builder()
         .id(domain.getId())
+        .bridgeAccountId(domain.getBridgeAccountId())
         .user(user)
         .idBank(domain.getBank() != null
             ? domain.getBank().getId()
@@ -102,7 +106,7 @@ public class AccountMapper {
         return AccountStatus.SUSPENDED;
       default:
         log.warn("Unknown account status " + status);
-        return AccountStatus.UNKNOWN;
+        return UNKNOWN;
     }
   }
 }

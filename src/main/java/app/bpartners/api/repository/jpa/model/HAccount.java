@@ -37,6 +37,7 @@ public class HAccount implements Serializable {
   @JsonIgnore
   private HUser user;
   private String idBank;
+  private Long bridgeAccountId;
   @Column(name = "\"name\"")
   private String name;
   private String iban;

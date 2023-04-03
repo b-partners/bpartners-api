@@ -8,5 +8,5 @@ public interface BridgeAccountRepository {
 
   List<BridgeAccount> findAllByAuthenticatedUser();
 
-  BridgeAccount findById(String id);
+  BridgeAccount findById(Long id);
 }

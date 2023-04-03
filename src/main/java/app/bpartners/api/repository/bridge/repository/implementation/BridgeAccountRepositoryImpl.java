@@ -30,7 +30,7 @@ public class BridgeAccountRepositoryImpl implements BridgeAccountRepository {
   }
 
   @Override
-  public BridgeAccount findById(String id) {
+  public BridgeAccount findById(Long id) {
     return bridgeApi.findByAccountById(id, AuthProvider.getPrincipal().getBearer());
   }
 }

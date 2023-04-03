@@ -90,10 +90,10 @@ public class BridgeApi {
     }
   }
 
-  public BridgeAccount findByAccountById(String uuid, String token) {
+  public BridgeAccount findByAccountById(Long id, String token) {
     try {
       HttpRequest request = HttpRequest.newBuilder()
-          .uri(new URI(conf.getAccountUrl() + "/" + uuid))
+          .uri(new URI(conf.getAccountUrl() + "/" + id))
           .headers(defaultHeadersWithToken(token))
           .GET()
           .build();

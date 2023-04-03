@@ -128,7 +128,7 @@ public class BridgeIT {
 
   @Test
   void read_account_by_id_ok() {
-    BridgeAccount actual = subject.findByAccountById("", userToken());
+    BridgeAccount actual = subject.findByAccountById(0L, userToken());
 
     log.info("BridgeAccount ={}", actual);
     assertNotNull(actual);

@@ -20,6 +20,7 @@ import lombok.ToString;
 public class Account implements Serializable {
   private String id;
   private String userId;
+  private Long bridgeAccountId;
   private String name;
   private String iban;
   private String bic;

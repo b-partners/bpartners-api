@@ -13,6 +13,7 @@ import app.bpartners.api.repository.swan.UserSwanRepository;
 import app.bpartners.api.repository.swan.model.SwanUser;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.List;
 import java.util.Optional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -23,6 +24,7 @@ import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVE
 @Repository
 @AllArgsConstructor
 public class UserRepositoryImpl implements UserRepository {
+  public static final int UNIQUE_BRIDGE_SIZE = 1;
   private final UserSwanRepository swanRepository;
   private final UserJpaRepository jpaRepository;
   private final UserMapper userMapper;
@@ -61,15 +63,16 @@ public class UserRepositoryImpl implements UserRepository {
       entityUser = getUpdatedUser(swanUser);
     } else {
       String bridgeToken = token;
-      HUser entityFromToken = jpaRepository.findByAccessToken(bridgeToken);
-      if (entityFromToken != null) {
-        return userMapper.toDomain(entityFromToken, null);
+      List<HUser> entitiesFromBridge = jpaRepository.findByAccessToken(bridgeToken);
+      if (entitiesFromBridge.size() == UNIQUE_BRIDGE_SIZE) {
+        entityUser = entitiesFromBridge.get(0);
+      } else {
+        String cognitoToken = token;
+        String email = cognitoComponent.getEmailByToken(cognitoToken);
+        entityUser = jpaRepository.findByEmail(email).orElseThrow(
+            () -> new NotFoundException(
+                "No user with the email " + email + " was found"));
       }
-      String cognitoToken = token;
-      String email = cognitoComponent.getEmailByToken(cognitoToken);
-      entityUser = jpaRepository.findByEmail(email).orElseThrow(
-          () -> new NotFoundException(
-              "No user with the email " + email + " was found"));
     }
     return userMapper.toDomain(entityUser, swanUser);
   }

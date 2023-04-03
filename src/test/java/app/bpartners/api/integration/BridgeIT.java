@@ -191,7 +191,7 @@ public class BridgeIT {
   }
 
   private String userToken() {
-    return "1c6e244bcd0a52d785f8e7306556fb63070e169b-e0688560-f18c-40ad-b0b5-fb610b1957d7";
+    return "408a85a75bfae1b21b4818565e2c2c77ca8935a2-b7b93ec7-2e5d-45b7-93f5-da5fdb0fb00b";
   }
 
 

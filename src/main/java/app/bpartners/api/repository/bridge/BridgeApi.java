@@ -282,7 +282,7 @@ public class BridgeApi {
     }
   }
 
-  public BridgeTransaction findTransactionByIdAndToken(String id, String userToken) {
+  public BridgeTransaction findTransactionByIdAndToken(Long id, String userToken) {
     try {
       HttpRequest request = HttpRequest.newBuilder()
           .uri(new URI(conf.getTransactionUrl() + "/" + id))

@@ -44,7 +44,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 //TODO: WARNING ! run these tests locally only
 public class BridgeIT {
   public static final String ITEM_ID = "7686392";
-  public static final String TRANSACTION_ID = "36000023191568";
+  public static final Long TRANSACTION_ID = 36000023191568L;
   @MockBean
   private BuildingPermitConf buildingPermitConf;
   @MockBean

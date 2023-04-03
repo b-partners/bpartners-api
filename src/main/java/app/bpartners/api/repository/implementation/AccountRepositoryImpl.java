@@ -37,6 +37,7 @@ public class AccountRepositoryImpl implements AccountRepository {
   private final BridgeAccountRepository bridgeRepository;
   private final BankRepository bankRepository;
 
+  //TODO: delete bridge item if persisted account has bank_id before mapping new values
   @Override
   public List<Account> findByBearer(String bearer) {
     User authenticatedUser = userRepository.getUserByToken(bearer);
@@ -54,6 +55,7 @@ public class AccountRepositoryImpl implements AccountRepository {
     return getUpdatedAccounts(swanAccounts, authenticatedUser.getId());
   }
 
+  //TODO: delete bridge item if persisted account has bank_id before mapping new values
   @Override
   public Account findById(String accountId) {
     User authenticatedUser = userIsAuthenticated()

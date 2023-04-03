@@ -120,6 +120,10 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
                 authResourceProvider)
         ).authenticated()
         .requestMatchers(
+            new SelfUserAccountMatcher(POST, "/users/*/accounts/*/initiateBankConnection",
+                authResourceProvider)
+        ).authenticated()
+        .requestMatchers(
             new SelfAccountMatcher(GET, "/accounts/*/invoices/*", authResourceProvider)
         ).authenticated()
         .requestMatchers(

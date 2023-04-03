@@ -16,7 +16,7 @@ import static app.bpartners.api.endpoint.rest.security.swan.BridgeConf.FRANCE_BA
 @EqualsAndHashCode
 @Data
 @ToString
-public class CreateBridgeItem {
+public class BridgeCreateItem {
   @JsonProperty("prefill_email")
   private String prefillEmail;
   @JsonProperty

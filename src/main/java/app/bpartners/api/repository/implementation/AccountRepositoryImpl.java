@@ -63,19 +63,21 @@ public class AccountRepositoryImpl implements AccountRepository {
 
     List<SwanAccount> swanAccounts = swanRepository.findById(accountId);
     if (swanAccounts.isEmpty()) {
-      BridgeAccount bridgeAccount = bridgeRepository.findById(accountId);
-      if (bridgeAccount == null) {
-        Optional<HAccount> optionalAccount = accountJpaRepository.findById(accountId);
-        if (optionalAccount.isPresent()) {
-          return mapper.toDomain(optionalAccount.get(), optionalAccount.get().getUser().getId());
+      Optional<HAccount> optionalAccount = accountJpaRepository.findById(accountId);
+      if (optionalAccount.isPresent()) {
+        HAccount accountEntity = optionalAccount.get();
+        BridgeAccount bridgeAccount = bridgeRepository.findById(accountEntity.getBridgeAccountId());
+        if (bridgeAccount == null) {
+          return mapper.toDomain(accountEntity, accountEntity.getUser().getId());
         } else {
-          throw new NotFoundException("Account." + accountId + " not found.");
+          return getUpdatedAccount(authenticatedUser, bridgeAccount);
         }
+      } else {
+        throw new NotFoundException("Account." + accountId + " not found.");
       }
-      return getUpdatedAccount(authenticatedUser, bridgeAccount);
     }
-    return getUpdatedAccounts(swanAccounts,
-        userIsAuthenticated() ? authenticatedUser.getId() : null).get(0);
+    return getUpdatedAccounts(
+        swanAccounts, userIsAuthenticated() ? authenticatedUser.getId() : null).get(0);
   }
 
   @Override
@@ -132,11 +134,14 @@ public class AccountRepositoryImpl implements AccountRepository {
   private Account getUpdatedAccount(User authenticatedUser, BridgeAccount bridgeAccount) {
     Bank bank = bankRepository.findById(bridgeAccount.getBankId());
 
-    return authenticatedUser == null
-        ? mapper.toDomain(bridgeAccount, bank, null, null)
-        : save(mapper.toDomain(bridgeAccount, bank,
-        authenticatedUser.getAccount().getId(),
-        authenticatedUser.getId()), authenticatedUser.getId());
+    if (authenticatedUser == null) {
+      return mapper.toDomain(bridgeAccount, bank, null, null);
+    } else {
+      String userId = authenticatedUser.getId();
+      return save(
+          mapper.toDomain(
+              bridgeAccount, bank, authenticatedUser.getAccount(), userId), userId);
+    }
   }
 
   //TODO: simplify the cognitive complexity

@@ -5,4 +5,6 @@ import java.util.List;
 
 public interface BridgeTransactionRepository {
   List<BridgeTransaction> findAuthTransactions();
+
+  BridgeTransaction findById(Long id);
 }

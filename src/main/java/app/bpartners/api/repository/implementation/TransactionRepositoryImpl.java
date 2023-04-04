@@ -4,6 +4,7 @@ import app.bpartners.api.endpoint.rest.model.TransactionStatus;
 import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.manager.ProjectTokenManager;
 import app.bpartners.api.model.Transaction;
+import app.bpartners.api.model.TransactionCategory;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.mapper.TransactionMapper;
 import app.bpartners.api.repository.TransactionCategoryRepository;
@@ -75,17 +76,25 @@ public class TransactionRepositoryImpl implements TransactionRepository {
 
 
   @Override
-  public Transaction findByAccountIdAndId(String accountId, String transactionId) {
+  public Transaction findById(String transactionId) {
     Optional<HTransaction> optionalEntity = jpaRepository.findById(transactionId);
-    if (optionalEntity.isEmpty()) {
-      throw new NotFoundException("Transaction." + transactionId + " not found.");
+    if (optionalEntity.isPresent()) {
+      HTransaction transactionEntity = optionalEntity.get();
+      TransactionCategory category = categoryRepository.findByIdTransaction(transactionId);
+
+      SwanTransaction swanTransaction =
+          swanRepository.findById(transactionEntity.getIdSwan(), swanBearerToken());
+      if (swanTransaction == null) {
+        BridgeTransaction bridgeTransaction =
+            bridgeRepository.findById(transactionEntity.getIdBridge());
+        if (bridgeTransaction == null) {
+          return mapper.toDomain(transactionEntity, category);
+        }
+        return mapper.toDomain(bridgeTransaction, transactionEntity, category);
+      }
+      return mapper.toDomain(swanTransaction, transactionEntity, category);
     }
-    HTransaction persisted = optionalEntity.get();
-    return mapper.toDomain(
-        swanRepository.findById(persisted.getIdSwan(), swanBearerToken()),
-        persisted,
-        categoryRepository.findByIdTransaction(transactionId)
-    );
+    throw new NotFoundException("Transaction." + transactionId + " not found.");
   }
 
   @Override

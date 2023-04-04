@@ -44,7 +44,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 //TODO: WARNING ! run these tests locally only
 public class BridgeIT {
   public static final String ITEM_ID = "7686392";
-  public static final String TRANSACTION_ID = "36000023191568";
+  public static final Long TRANSACTION_ID = 36000023191568L;
   @MockBean
   private BuildingPermitConf buildingPermitConf;
   @MockBean
@@ -128,7 +128,7 @@ public class BridgeIT {
 
   @Test
   void read_account_by_id_ok() {
-    BridgeAccount actual = subject.findByAccountById("", userToken());
+    BridgeAccount actual = subject.findByAccountById(0L, userToken());
 
     log.info("BridgeAccount ={}", actual);
     assertNotNull(actual);
@@ -191,7 +191,7 @@ public class BridgeIT {
   }
 
   private String userToken() {
-    return "1c6e244bcd0a52d785f8e7306556fb63070e169b-e0688560-f18c-40ad-b0b5-fb610b1957d7";
+    return "408a85a75bfae1b21b4818565e2c2c77ca8935a2-b7b93ec7-2e5d-45b7-93f5-da5fdb0fb00b";
   }
 
 

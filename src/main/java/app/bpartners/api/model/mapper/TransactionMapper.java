@@ -81,7 +81,7 @@ public class TransactionMapper {
         .idSwan(entity.getIdSwan())
         .idBridge(entity.getIdBridge())
         .transactionInvoice(invoiceMapper.toTransactionInvoice(entity.getInvoice()))
-        .amount(parseFraction(bridgeTransaction.getAmount() * 100))
+        .amount(parseFraction(bridgeTransaction.getAbsAmount() * 100))
         .currency(bridgeTransaction.getCurrency())
         .label(bridgeTransaction.getLabel())
         .reference(entity.getReference())
@@ -131,7 +131,7 @@ public class TransactionMapper {
     return HTransaction.builder()
         .idBridge(bridgeTransaction.getId())
         .idAccount(accountId)
-        .amount(String.valueOf(parseFraction(bridgeTransaction.getAmount())))
+        .amount(String.valueOf(parseFraction(bridgeTransaction.getAbsAmount())))
         .paymentDateTime(bridgeTransaction
             .getTransactionDate()
             .atStartOfDay(ZoneId.systemDefault())

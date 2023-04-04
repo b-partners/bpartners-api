@@ -2,8 +2,8 @@ package app.bpartners.api.endpoint.rest.mapper;
 
 import app.bpartners.api.endpoint.rest.model.CreateTransactionCategory;
 import app.bpartners.api.endpoint.rest.model.TransactionCategory;
+import app.bpartners.api.endpoint.rest.model.TransactionTypeEnum;
 import app.bpartners.api.endpoint.rest.validator.CreateTransactionCategoryValidator;
-import app.bpartners.api.model.Transaction;
 import app.bpartners.api.model.TransactionCategoryTemplate;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.repository.TransactionCategoryTemplateRepository;
@@ -17,7 +17,7 @@ import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 @Component
 @AllArgsConstructor
 public class TransactionCategoryRestMapper {
-  private final TransactionCategoryTemplateRepository categoryTmplRepository;
+  private final TransactionCategoryTemplateRepository categoryTemplateRep;
   private final TransactionRepository transactionRepository;
   private final CreateTransactionCategoryValidator validator;
 
@@ -46,43 +46,34 @@ public class TransactionCategoryRestMapper {
 
 
   public app.bpartners.api.model.TransactionCategory toDomain(
-      String transactionId,
-      String accountId,
-      CreateTransactionCategory rest) {
+      String transactionId, String accountId, CreateTransactionCategory rest) {
     validator.accept(rest);
-    List<TransactionCategoryTemplate> categories =
-        categoryTmplRepository.findByType(rest.getType());
-    Transaction transaction = transactionRepository.findByAccountIdAndId(accountId, transactionId);
-    TransactionCategoryTemplate categoryTemplate;
-    if (categories.size() == 1) {
-      categoryTemplate = categories.get(0);
-    } else {
-      categoryTemplate =
-          categoryTmplRepository.findByTypeAndTransactionType(
-              rest.getType(), transaction.getType());
-    }
+    List<TransactionCategoryTemplate> categories = categoryTemplateRep.findByType(rest.getType());
+    TransactionTypeEnum transactionType = transactionRepository.findById(transactionId).getType();
+    TransactionCategoryTemplate categoryTemplate =
+        categories.size() == 1
+            ? categories.get(0)
+            : categoryTemplateRep.findByTypeAndTransactionType(rest.getType(), transactionType);
+
     if (categoryTemplate.getTransactionType() != null
-        && !transaction.getType().equals(categoryTemplate.getTransactionType())) {
+        && !transactionType.equals(categoryTemplate.getTransactionType())) {
       throw new BadRequestException(
           "Cannot add category." + categoryTemplate.getId() + " of type "
               + categoryTemplate.getTransactionType()
               + " to transaction." + transactionId + " of type "
-              + transaction.getType()
+              + transactionType
       );
     }
-    app.bpartners.api.model.TransactionCategory domain =
-        app.bpartners.api.model.TransactionCategory.builder()
-            .idTransaction(transactionId)
-            .idAccount(accountId)
-            .type(rest.getType())
-            .vat(parseFraction(rest.getVat()))
-            .idTransactionCategoryTmpl(categoryTemplate.getId())
-            .transactionType(categoryTemplate.getTransactionType())
-            .other(categoryTemplate.isOther())
-            .build();
-    if (categoryTemplate.isOther()) {
-      domain.setComment(rest.getComment());
-    }
-    return domain;
+
+    return app.bpartners.api.model.TransactionCategory.builder()
+        .idTransaction(transactionId)
+        .idAccount(accountId)
+        .type(rest.getType())
+        .vat(parseFraction(rest.getVat()))
+        .idTransactionCategoryTmpl(categoryTemplate.getId())
+        .transactionType(categoryTemplate.getTransactionType())
+        .other(categoryTemplate.isOther())
+        .comment(categoryTemplate.isOther() ? rest.getComment() : null)
+        .build();
   }
 }

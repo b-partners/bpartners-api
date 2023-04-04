@@ -64,7 +64,7 @@ public class TransactionSwanRepositoryImpl implements TransactionSwanRepository 
       OneTransactionResponse transactionResponse = new ObjectMapper()
           .findAndRegisterModules() //Load DateTime Module
           .readValue(response.body(), OneTransactionResponse.class);
-      if (transactionResponse == null) {
+      if (transactionResponse == null || transactionResponse.getData() == null) {
         return null;
       }
       return SwanTransaction.builder()

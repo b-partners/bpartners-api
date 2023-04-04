@@ -14,7 +14,7 @@ import lombok.ToString;
 @NoArgsConstructor
 @Getter
 @Setter
-@Builder
+@Builder(toBuilder = true)
 @ToString
 @EqualsAndHashCode
 public class Account implements Serializable {

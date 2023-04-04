@@ -160,8 +160,6 @@ class AccountIT {
         .name(joeDoeSwanAccount().getName())
         .iban(joeDoeSwanAccount().getIban())
         .bic(joeDoeSwanAccount().getBic())
-        .IBAN(joeDoeSwanAccount().getIban())
-        .BIC(joeDoeSwanAccount().getBic())
         .availableBalance(100000);
   }
 

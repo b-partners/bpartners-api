@@ -59,6 +59,45 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
+  updateAccountIdentity:
+    put:
+      tags:
+        - User Accounts
+      summary: Update an account's name, iban or bic
+      operationId: updateAccountIdentity
+      parameters:
+        - name: userId
+          in: path
+          schema:
+            type: string
+          required: true
+        - name: accountId
+          in: path
+          schema:
+            type: string
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateAccountIdentity'
+      responses:
+        200:
+          description: Account with updated information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Account'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
   initiateBankConnection:
     post:
       tags:
@@ -282,7 +321,7 @@ operations:
         content:
           application/json:
             schema:
-                $ref : '#/components/schemas/UpdateAccountHolder'
+              $ref: '#/components/schemas/UpdateAccountHolder'
       responses:
         200:
           description: Account holder with updated global info
@@ -476,25 +515,24 @@ components:
           type: string
         logoUrl:
           type: string
-    Account:
+    UpdateAccountIdentity:
       properties:
-        id:
-          type: string
         name:
           type: string
         iban:
           type: string
         bic:
           type: string
+    Account:
+      allOf:
+        - $ref: '#/components/schemas/UpdateAccountIdentity'
+      properties:
+        id:
+          type: string
         availableBalance:
           type: integer
         bank:
           $ref: '#/components/schemas/Bank'
-        #Deprecated
-        IBAN:
-          type: string
-        BIC:
-          type: string
         status:
           $ref: '#/components/schemas/AccountStatus'
     AccountStatus:

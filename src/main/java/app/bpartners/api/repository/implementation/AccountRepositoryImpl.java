@@ -96,9 +96,9 @@ public class AccountRepositoryImpl implements AccountRepository {
           throw new NotFoundException("User." + userId + " is not associated with any account");
         }
       }
-      return List.of(bridgeAccounts.stream()
+      return bridgeAccounts.stream()
           .map(bridgeAccount -> getUpdatedAccount(authenticatedUser, bridgeAccount))
-          .collect(Collectors.toList()).get(0));
+          .collect(Collectors.toList());
     }
     return getUpdatedAccounts(swanAccounts, userId);
   }

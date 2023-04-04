@@ -6,14 +6,18 @@ import app.bpartners.api.endpoint.rest.model.AnnualRevenueTarget;
 import app.bpartners.api.endpoint.rest.model.CompanyBusinessActivity;
 import app.bpartners.api.endpoint.rest.model.CompanyInfo;
 import app.bpartners.api.endpoint.rest.model.ContactAddress;
+import app.bpartners.api.endpoint.rest.model.UpdateAccountHolder;
 import app.bpartners.api.endpoint.rest.validator.AccountHolderRestValidator;
 import app.bpartners.api.model.BusinessActivity;
+import app.bpartners.api.repository.AccountHolderRepository;
 import app.bpartners.api.service.AnnualRevenueTargetService;
 import app.bpartners.api.service.BusinessActivityService;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
+
+import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 
 @Component
 @AllArgsConstructor
@@ -23,6 +27,7 @@ public class AccountHolderRestMapper {
   private final BusinessActivityService businessActivityService;
   private final AnnualRevenueTargetService annualRevenueTargetService;
   private final AnnualRevenueTargetRestMapper annualRevenueTargetRestMapper;
+  private final AccountHolderRepository accountHolderRepository;
 
   public AccountHolder toRest(app.bpartners.api.model.AccountHolder domain) {
     List<AnnualRevenueTarget> annualRevenueTargets =
@@ -65,5 +70,21 @@ public class AccountHolderRestMapper {
         .postalCode(domain.getPostalCode())
         .city(domain.getCity())
         .country(domain.getCountry());
+  }
+
+  public app.bpartners.api.model.AccountHolder toDomain(
+      String accountHolderId, String accountId, UpdateAccountHolder global) {
+    app.bpartners.api.model.AccountHolder accountHolder =
+        accountHolderRepository.getByIdAndAccountId(accountHolderId, accountId);
+    return accountHolder.toBuilder()
+        .name(global.getName())
+        .siren(global.getSiren())
+        .initialCashflow(parseFraction(global.getInitialCashFlow()))
+        .mainActivity(global.getOfficialActivityName())
+        .address(global.getContactAddress().getAddress())
+        .city(global.getContactAddress().getCity())
+        .postalCode(global.getContactAddress().getPostalCode())
+        .country(global.getContactAddress().getCountry())
+        .build();
   }
 }

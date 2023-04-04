@@ -2,6 +2,8 @@ package app.bpartners.api.service;
 
 import app.bpartners.api.endpoint.rest.mapper.CustomerRestMapper;
 import app.bpartners.api.endpoint.rest.model.CreateCustomer;
+import app.bpartners.api.endpoint.rest.model.CustomerStatus;
+import app.bpartners.api.endpoint.rest.model.UpdateCustomerStatus;
 import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.Customer;
 import app.bpartners.api.model.PageFromOne;
@@ -26,11 +28,12 @@ public class CustomerService {
   public List<Customer> getCustomers(
       String accountId, String firstName,
       String lastName, String email, String phoneNumber, String city, String country,
+      CustomerStatus status,
       PageFromOne page, BoundedPageSize pageSize) {
     int pageValue = page != null ? page.getValue() - 1 : 0;
     int pageSizeValue = pageSize != null ? pageSize.getValue() : 30;
     return repository.findByAccountIdAndCriteria(accountId, firstName, lastName, email,
-        phoneNumber, city, country, pageValue, pageSizeValue);
+        phoneNumber, city, country, status, pageValue, pageSizeValue);
   }
 
   @Transactional
@@ -38,6 +41,10 @@ public class CustomerService {
       String accountId,
       List<Customer> customers) {
     return repository.saveAll(accountId, customers);
+  }
+
+  public List<Customer> updateStatus(String accountId, List<UpdateCustomerStatus> toUpdate) {
+    return repository.updateStatus(accountId, toUpdate);
   }
 
   public List<Customer> getDataFromFile(String accountId, byte[] file) {

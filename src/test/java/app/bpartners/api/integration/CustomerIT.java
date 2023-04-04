@@ -44,6 +44,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import static app.bpartners.api.endpoint.rest.model.CustomerStatus.DISABLED;
+import static app.bpartners.api.endpoint.rest.model.CustomerStatus.ENABLED;
 import static app.bpartners.api.integration.conf.TestUtils.BAD_USER_ID;
 import static app.bpartners.api.integration.conf.TestUtils.BEARER_PREFIX;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
@@ -134,21 +136,27 @@ class CustomerIT {
     CustomersApi api = new CustomersApi(joeDoeClient);
 
     List<Customer> actualNoFilter = api.getCustomers(
-        JOE_DOE_ACCOUNT_ID, null, null, null, null, null, null, null, 1, 20);
+        JOE_DOE_ACCOUNT_ID, null, null, null, null, null, null,
+        null, 1, 20);
     List<Customer> actualFilteredByFirstAndLastName = api.getCustomers(
-        JOE_DOE_ACCOUNT_ID, "Jean", "Plombier", null, null, null, null, null, 1, 20);
+        JOE_DOE_ACCOUNT_ID, "Jean", "Plombier", null, null, null, null,
+        null, 1, 20);
     List<Customer> actualFilteredByEmail = api.getCustomers(
         JOE_DOE_ACCOUNT_ID, null, null,
-        "bpartners.artisans@gmail.com", null, null,
-        null, null, 1, 20);
+        "bpartners.artisans@gmail.com", null, null, null,
+        null, 1, 20);
     List<Customer> actualFilteredByPhoneNumber = api.getCustomers(
-        JOE_DOE_ACCOUNT_ID, null, null, null, "+33 12 34 56 78", null, null, null, 1, 20);
+        JOE_DOE_ACCOUNT_ID, null, null, null, "+33 12 34 56 78", null, null,
+        null, 1, 20);
     List<Customer> actualFilteredByCity = api.getCustomers(
-        JOE_DOE_ACCOUNT_ID, null, null, null, null, "Metz", null, null, 1, 20);
+        JOE_DOE_ACCOUNT_ID, null, null, null, null, "Metz", null,
+        null, 1, 20);
     List<Customer> actualFilteredByCountry = api.getCustomers(
-        JOE_DOE_ACCOUNT_ID, null, null, null, null, null, "Allemagne", null, 1, 20);
+        JOE_DOE_ACCOUNT_ID, null, null, null, null, null, "Allemagne",
+        null, 1, 20);
     List<Customer> actualFilteredByFirstNameAndCity = api.getCustomers(
-        JOE_DOE_ACCOUNT_ID, "Jean", null, null, null, "Montmorency", null, null, 1, 20);
+        JOE_DOE_ACCOUNT_ID, "Jean", null, null, null, "Montmorency", null,
+        null, 1, 20);
     List<Customer> allFilteredResults = new ArrayList<>();
     allFilteredResults.addAll(actualFilteredByFirstAndLastName);
     allFilteredResults.addAll(actualFilteredByEmail);
@@ -301,20 +309,25 @@ class CustomerIT {
 
   @Order(6)
   @Test
-  void customer_status_is_disabled_ok() throws ApiException {
+  void read_and_update_disabled_customers_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
     CustomersApi api = new CustomersApi(joeDoeClient);
 
-    List<Customer> actual = api.updateCustomerStatus(JOE_DOE_ACCOUNT_ID,
-        List.of(customerDisabled()));
-    List<Customer> allCustomers = api.getCustomers(
-        JOE_DOE_ACCOUNT_ID, null, null, null, null, null, null, null, 1, 20);
+    List<Customer> actual =
+        api.updateCustomerStatus(JOE_DOE_ACCOUNT_ID, List.of(customerDisabled()));
+    List<Customer> enabledCustomers = api.getCustomers(
+        JOE_DOE_ACCOUNT_ID, null, null, null, null, null, null,
+        ENABLED, 1, 20);
+    List<Customer> disabledCustomers = api.getCustomers(
+        JOE_DOE_ACCOUNT_ID, null, null, null, null, null, null,
+        DISABLED, 1, 20);
 
-    assertTrue(allCustomers.stream()
-        .allMatch(customer -> customer.getStatus() == CustomerStatus.ENABLED));
-    assertTrue(actual.stream()
+    assertTrue(disabledCustomers.containsAll(actual));
+    assertTrue(enabledCustomers.stream()
+        .allMatch(customer -> customer.getStatus() == ENABLED));
+    assertTrue(disabledCustomers.stream()
         .allMatch(customer -> customer.getStatus() == CustomerStatus.DISABLED));
-    assertFalse(allCustomers.containsAll(actual));
+    assertFalse(enabledCustomers.containsAll(disabledCustomers));
   }
 
   private HttpResponse<String> uploadFile(String accountId, File toUpload)

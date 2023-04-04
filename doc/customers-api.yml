@@ -44,7 +44,7 @@ operations:
         - in: query
           name: status
           schema:
-            type: string
+            $ref: '#/components/schemas/CustomerStatus'
           description: Filter customer list by status
         - in: query
           name: page

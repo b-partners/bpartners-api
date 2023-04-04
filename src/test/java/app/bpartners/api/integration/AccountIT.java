@@ -144,7 +144,7 @@ class AccountIT {
         .build();
   }
 
-  public static UpdateAccountIdentity accountIdentity(){
+  public static UpdateAccountIdentity accountIdentity() {
     return new UpdateAccountIdentity()
         .name(null)
         .bic("SWNBFR23")

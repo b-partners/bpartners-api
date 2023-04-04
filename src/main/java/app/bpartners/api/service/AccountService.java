@@ -30,6 +30,10 @@ public class AccountService {
     return repository.findById(id);
   }
 
+  public Account updateAccountIdentity(String userId, Account account) {
+    return repository.save(account, userId);
+  }
+
   public List<Account> getAccountsByUserId(String userId) {
     return repository.findByUserId(userId);
   }

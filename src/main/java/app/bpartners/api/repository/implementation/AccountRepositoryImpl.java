@@ -76,8 +76,8 @@ public class AccountRepositoryImpl implements AccountRepository {
         throw new NotFoundException("Account." + accountId + " not found.");
       }
     }
-    return getUpdatedAccounts(swanAccounts,
-        userIsAuthenticated() ? authenticatedUser.getId() : null).get(0);
+    return getUpdatedAccounts(
+        swanAccounts, userIsAuthenticated() ? authenticatedUser.getId() : null).get(0);
   }
 
   @Override
@@ -134,11 +134,14 @@ public class AccountRepositoryImpl implements AccountRepository {
   private Account getUpdatedAccount(User authenticatedUser, BridgeAccount bridgeAccount) {
     Bank bank = bankRepository.findById(bridgeAccount.getBankId());
 
-    return authenticatedUser == null
-        ? mapper.toDomain(bridgeAccount, bank, null, null)
-        : save(mapper.toDomain(bridgeAccount, bank,
-        authenticatedUser.getAccount().getId(),
-        authenticatedUser.getId()), authenticatedUser.getId());
+    if (authenticatedUser == null) {
+      return mapper.toDomain(bridgeAccount, bank, null, null);
+    } else {
+      String userId = authenticatedUser.getId();
+      return save(
+          mapper.toDomain(
+              bridgeAccount, bank, authenticatedUser.getAccount(), userId), userId);
+    }
   }
 
   //TODO: simplify the cognitive complexity

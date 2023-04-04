@@ -63,10 +63,10 @@ public class AccountMapper {
   }
 
   public Account toDomain(BridgeAccount bridgeAccount, Bank bank,
-                          String accountEntityId, String userId) {
+                          Account domainAccount, String userId) {
     return Account.builder()
-        .id(accountEntityId) //TODO : set persisted ID
-        .bic(null) //TODO: set persisted BIC
+        .id(domainAccount == null ? null : domainAccount.getId())
+        .bic(domainAccount == null ? null : domainAccount.getBic())
         .status(bridgeAccount.getDomainStatus())
         .userId(userId)
         .bridgeAccountId(bridgeAccount.getId())

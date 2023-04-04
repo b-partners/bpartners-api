@@ -18,6 +18,9 @@ public class AccountRestMapper {
         .bic(internal.getBic())
         .availableBalance(internal.getAvailableBalance().getCentsRoundUp())
         .bank(bankRestMapper.toRest(internal.getBank()))
+        //Deprecated
+        .iban(internal.getIban())
+        .bic(internal.getBic())
         .status(internal.getStatus());
   }
 }

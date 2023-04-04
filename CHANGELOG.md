@@ -1,3 +1,23 @@
+# [0.12.0](https://github.com/b-partners/bpartners-api/compare/v0.11.0...v0.12.0) (2023-04-04)
+
+
+### Bug Fixes
+
+* account bic is not override when transaction is from bridge ([0a018f9](https://github.com/b-partners/bpartners-api/commit/0a018f997f8cfe8d2040c015c9e4e7c23b428048))
+* avoid NPE when retrieving transaction by ID from Swan ([1efb756](https://github.com/b-partners/bpartners-api/commit/1efb756a80f605cf43af84b8803de6470402a9e9))
+* avoid null values when retrieving user by token ([9dd3720](https://github.com/b-partners/bpartners-api/commit/9dd3720eda0f0116fb45ecf849cf01dec2730aab))
+* retrieve bridge account from persisted account ID ([1b957c4](https://github.com/b-partners/bpartners-api/commit/1b957c48193ed9b6eef332938fb88c39d69e48a5))
+* retrieve transaction from bridge and database when swan not provided ([9733e1d](https://github.com/b-partners/bpartners-api/commit/9733e1deacb9c8d29b7f3693d9e3c6be5113c2ae))
+* return bridge transaction absolute amount value ([0670778](https://github.com/b-partners/bpartners-api/commit/067077849a5e4d4d7b8e08a2ad7fe4837b5e6ebb))
+
+
+### Features
+
+* archive customers ([8f9d169](https://github.com/b-partners/bpartners-api/commit/8f9d169cc3bee418e3cf06f330b9777d12714525))
+* update account holder global info ([0b68661](https://github.com/b-partners/bpartners-api/commit/0b686613febdcd82dbffa7a771dd9ebf57b97f7e))
+
+
+
 # [0.11.0](https://github.com/b-partners/bpartners-api/compare/v0.10.0...v0.11.0) (2023-03-31)
 
 
@@ -168,15 +188,6 @@
 * add attachments to mail ([2f94cb0](https://github.com/b-partners/bpartners-api/commit/2f94cb0ec3014e91f5db3f68f9a9b8ed656a9f27))
 * add revenue targets to account holder ([dd23285](https://github.com/b-partners/bpartners-api/commit/dd23285596bc3e8e7ade46eaf779d42c5bdbf292))
 * handle multiple payments initiation ([b2c5e94](https://github.com/b-partners/bpartners-api/commit/b2c5e94a083b07fd08ad9c4ca4e3f8e99d189e8b))
-
-
-
-## [0.4.4](https://github.com/b-partners/bpartners-api/compare/v0.4.3...v0.4.4) (2023-01-26)
-
-
-### Bug Fixes
-
-* ignore git_push.sh file when publishing the codeartifact client ([#432](https://github.com/b-partners/bpartners-api/issues/432)) ([dba71b2](https://github.com/b-partners/bpartners-api/commit/dba71b23bf1a212fab4c38f45a058ee0f12f952b))
 
 
 

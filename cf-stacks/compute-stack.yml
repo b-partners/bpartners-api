@@ -148,7 +148,7 @@ Resources:
       LaunchType: 'FARGATE'
       NetworkConfiguration:
         AwsvpcConfiguration:
-          AssignPublicIp: 'ENABLED'
+          AssignPublicIp: 'DISABLED'
           SecurityGroups:
             - !Sub '{{resolve:ssm:/bpartners/${Env}/sg-id}}'
           Subnets:

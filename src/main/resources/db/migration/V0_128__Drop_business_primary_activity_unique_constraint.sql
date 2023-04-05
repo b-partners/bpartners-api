@@ -1,0 +1,1 @@
+alter table business_activity drop constraint business_activity_primary_activity_key;

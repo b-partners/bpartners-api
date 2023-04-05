@@ -1,11 +1,13 @@
 package app.bpartners.api.unit.repository;
 
 import app.bpartners.api.endpoint.rest.model.TransactionStatus;
+import app.bpartners.api.manager.ProjectTokenManager;
 import app.bpartners.api.model.Transaction;
 import app.bpartners.api.model.TransactionCategory;
 import app.bpartners.api.model.mapper.InvoiceMapper;
 import app.bpartners.api.model.mapper.TransactionMapper;
 import app.bpartners.api.repository.TransactionCategoryRepository;
+import app.bpartners.api.repository.bridge.repository.BridgeTransactionRepository;
 import app.bpartners.api.repository.implementation.TransactionRepositoryImpl;
 import app.bpartners.api.repository.jpa.TransactionJpaRepository;
 import app.bpartners.api.repository.jpa.model.HTransaction;
@@ -23,36 +25,44 @@ import static app.bpartners.api.integration.conf.TestUtils.swanTransaction3;
 import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 class TransactionRepositoryImplTest {
-  private TransactionRepositoryImpl transactionRepositoryImpl;
-  private TransactionSwanRepository swanRepository;
-  private TransactionMapper mapper;
-  private TransactionCategoryRepository categoryRepository;
-  private TransactionJpaRepository jpaRepository;
-  private InvoiceMapper invoiceMapperMock;
+  TransactionRepositoryImpl subject;
+  TransactionSwanRepository swanRepositoryMock;
+  TransactionMapper transactionMapperMock;
+  TransactionCategoryRepository categoryRepositoryMock;
+  TransactionJpaRepository transactionJpaRepositoryMock;
+  InvoiceMapper invoiceMapperMock;
+  BridgeTransactionRepository bridgeTransactionRepositoryMock;
+  ProjectTokenManager tokenManagerMock;
 
   @BeforeEach
   void setUp() {
-    swanRepository = mock(TransactionSwanRepository.class);
+    swanRepositoryMock = mock(TransactionSwanRepository.class);
     invoiceMapperMock = mock(InvoiceMapper.class);
-    mapper = new TransactionMapper(invoiceMapperMock);
-    categoryRepository = mock(TransactionCategoryRepository.class);
-    jpaRepository = mock(TransactionJpaRepository.class);
-    transactionRepositoryImpl = new TransactionRepositoryImpl(swanRepository, mapper,
-        categoryRepository, jpaRepository);
-    when(swanRepository.getByIdAccount(JOE_DOE_ACCOUNT_ID))
+    transactionMapperMock = new TransactionMapper(invoiceMapperMock);
+    categoryRepositoryMock = mock(TransactionCategoryRepository.class);
+    transactionJpaRepositoryMock = mock(TransactionJpaRepository.class);
+    bridgeTransactionRepositoryMock = mock(BridgeTransactionRepository.class);
+    tokenManagerMock = mock(ProjectTokenManager.class);
+    subject = new TransactionRepositoryImpl(
+        swanRepositoryMock, transactionMapperMock, categoryRepositoryMock,
+        transactionJpaRepositoryMock, bridgeTransactionRepositoryMock,
+        tokenManagerMock);
+
+    when(swanRepositoryMock.getByIdAccount(eq(JOE_DOE_ACCOUNT_ID), any(String.class)))
         .thenReturn(List.of(swanTransaction1(), swanTransaction2(), swanTransaction3()));
-    when(jpaRepository.save(any(HTransaction.class)))
+    when(transactionJpaRepositoryMock.save(any(HTransaction.class)))
         .thenAnswer(i -> {
           HTransaction argument = i.getArgument(0);
           argument.setId(String.valueOf(randomUUID()));
           argument.setIdAccount(JOE_DOE_ACCOUNT_ID);
           return argument;
         });
-    when(jpaRepository.findByIdSwan(any(String.class)))
+    when(transactionJpaRepositoryMock.findByIdSwan(any(String.class)))
         .thenAnswer(i -> {
           if (Objects.equals(i.getArgument(0), swanTransaction1().getNode().getId())) {
             return Optional.empty();
@@ -63,7 +73,7 @@ class TransactionRepositoryImplTest {
               .idAccount(JOE_DOE_ACCOUNT_ID)
               .build());
         });
-    when(categoryRepository.findByIdTransaction(any(String.class))).thenAnswer(i -> {
+    when(categoryRepositoryMock.findByIdTransaction(any(String.class))).thenAnswer(i -> {
       String idTransaction = i.getArgument(0);
       if (Objects.equals(idTransaction, swanTransaction1().getNode().getId())) {
         return TransactionCategory.builder()
@@ -85,10 +95,10 @@ class TransactionRepositoryImplTest {
   @Test
   void read_filtered_by_status_ok() {
     List<Transaction> booked =
-        transactionRepositoryImpl.findByAccountIdAndStatus(JOE_DOE_ACCOUNT_ID,
+        subject.findByAccountIdAndStatus(JOE_DOE_ACCOUNT_ID,
             TransactionStatus.BOOKED);
     List<Transaction> bookedBetweenInstants =
-        transactionRepositoryImpl.findByAccountIdAndStatusBetweenInstants(JOE_DOE_ACCOUNT_ID,
+        subject.findByAccountIdAndStatusBetweenInstants(JOE_DOE_ACCOUNT_ID,
             TransactionStatus.BOOKED, swanTransaction3().getNode().getCreatedAt(),
             swanTransaction2().getNode().getCreatedAt());
 

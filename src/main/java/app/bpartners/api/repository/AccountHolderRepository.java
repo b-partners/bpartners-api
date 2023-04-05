@@ -9,4 +9,6 @@ public interface AccountHolderRepository {
   AccountHolder save(AccountHolder accountHolder);
 
   AccountHolder getByIdAndAccountId(String id, String accountId);
+
+  AccountHolder findById(String id);
 }

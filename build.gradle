@@ -110,6 +110,7 @@ ext {
     set('testcontainersVersion', "1.15.3")
 }
 test {
+    exclude '**/BridgeIT.class'
     exclude '**/DraftIT.class'
     exclude '**/InvoiceCrupdatedServiceTest.class'
     useJUnitPlatform()

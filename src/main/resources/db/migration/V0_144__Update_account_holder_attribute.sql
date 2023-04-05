@@ -1,0 +1,1 @@
+alter table account_holder add column prospecting_perimeter integer check ( prospecting_perimeter >= 0 ) not null default 0;

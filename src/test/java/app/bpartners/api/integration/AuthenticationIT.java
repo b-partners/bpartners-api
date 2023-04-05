@@ -7,6 +7,8 @@ import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.model.AuthInitiation;
 import app.bpartners.api.endpoint.rest.model.CreateToken;
 import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
+import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
+import app.bpartners.api.endpoint.rest.security.cognito.CognitoConf;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
 import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
 import app.bpartners.api.integration.conf.AbstractContextInitializer;
@@ -68,6 +70,10 @@ class AuthenticationIT {
   private S3Conf s3Conf;
   @MockBean
   private SwanConf swanConf;
+  @MockBean
+  private CognitoConf cognitoConf;
+  @MockBean
+  private CognitoComponent cognitoComponent;
   @MockBean
   private FintectureConf fintectureConf;
   @MockBean
@@ -141,6 +147,7 @@ class AuthenticationIT {
     assertEquals(HttpStatus.OK.value(), response.statusCode());
   }
 
+  //TODO: add cognito get token ko and ok
   @Test
   void unauthenticated_get_token_ko() throws IOException, InterruptedException {
     HttpClient unauthenticatedClient = HttpClient.newBuilder().build();

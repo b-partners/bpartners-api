@@ -1,0 +1,1 @@
+alter table "account_holder" add column town_code integer;

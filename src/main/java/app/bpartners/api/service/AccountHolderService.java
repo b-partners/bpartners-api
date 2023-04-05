@@ -33,7 +33,13 @@ public class AccountHolderService {
         .email(companyInfo.getEmail())
         .mobilePhoneNumber(companyInfo.getPhone())
         .subjectToVat(companyInfo.isSubjectToVat())
+        .location(companyInfo.getLocation())
+        .townCode(companyInfo.getTownCode())
         .build());
+  }
+
+  public AccountHolder updateGlobalInfo(AccountHolder accountHolder) {
+    return accountHolderRepository.save(accountHolder);
   }
 
   //TODO: map this update with the companyInfoUpdate and refactor to save method only

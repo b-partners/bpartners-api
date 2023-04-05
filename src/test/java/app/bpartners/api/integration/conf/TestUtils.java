@@ -11,6 +11,8 @@ import app.bpartners.api.endpoint.rest.model.CreateAccountInvoiceRelaunchConf;
 import app.bpartners.api.endpoint.rest.model.CreateAnnualRevenueTarget;
 import app.bpartners.api.endpoint.rest.model.CreateProduct;
 import app.bpartners.api.endpoint.rest.model.Customer;
+import app.bpartners.api.endpoint.rest.model.CustomerStatus;
+import app.bpartners.api.endpoint.rest.model.Geojson;
 import app.bpartners.api.endpoint.rest.model.Invoice;
 import app.bpartners.api.endpoint.rest.model.InvoiceDiscount;
 import app.bpartners.api.endpoint.rest.model.LegalFile;
@@ -20,6 +22,7 @@ import app.bpartners.api.endpoint.rest.model.Product;
 import app.bpartners.api.endpoint.rest.model.ProductStatus;
 import app.bpartners.api.endpoint.rest.model.TransactionCategory;
 import app.bpartners.api.endpoint.rest.model.TransactionStatus;
+import app.bpartners.api.endpoint.rest.model.UpdateCustomerStatus;
 import app.bpartners.api.endpoint.rest.model.User;
 import app.bpartners.api.endpoint.rest.security.model.Principal;
 import app.bpartners.api.endpoint.rest.security.principal.PrincipalProvider;
@@ -45,7 +48,7 @@ import app.bpartners.api.repository.swan.UserSwanRepository;
 import app.bpartners.api.repository.swan.model.SwanAccount;
 import app.bpartners.api.repository.swan.model.SwanAccountHolder;
 import app.bpartners.api.repository.swan.model.SwanUser;
-import app.bpartners.api.repository.swan.model.Transaction;
+import app.bpartners.api.repository.swan.model.SwanTransaction;
 import app.bpartners.api.repository.swan.response.AccountResponse;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -92,6 +95,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 public class TestUtils {
@@ -101,6 +105,7 @@ public class TestUtils {
   public static final String PENDING_STATUS = "Pending";
   public static final String JOE_DOE_ID = "joe_doe_id";
   public static final String JOE_DOE_SWAN_USER_ID = "c15924bf-61f9-4381-8c9b-d34369bf91f7";
+  public static final String JANE_DOE_SWAN_USER_ID = "jane_doe_user_id";
   public static final String BAD_TOKEN = "bad_token";
   public static final String VALID_EMAIL = "username@domain.com";
   public static final String API_URL = "https://api.swan.io/sandbox-partner/graphql";
@@ -141,6 +146,7 @@ public class TestUtils {
   public static final String VERIFIED_STATUS = "Verified";
   public static final String SWAN_TRANSACTION_ID = "bosci_f224704f2555a42303e302ffb8e69eef";
   public static final String SWAN_ACCOUNTHOLDER_ID = "b33e6eb0-e262-4596-a91f-20c6a7bfd343";
+  public static final String ACCOUNTHOLDER2_ID = "account_holder_id_2";
   public static final String JANE_ACCOUNT_ID = "jane_account_id";
   public static final String JANE_DOE_TOKEN = "jane_doe_token";
   public static final String JANE_DOE_ID = "jane_doe_id";
@@ -154,6 +160,7 @@ public class TestUtils {
   public static final String SESSION1_ID = "session1_id";
   public static final String SESSION2_ID = "session2_id";
   public static final String NOT_JOE_DOE_ACCOUNT_HOLDER_ID = "NOT_" + SWAN_ACCOUNTHOLDER_ID;
+  public static final String GEOJSON_TYPE_POINT = "Point";
 
   public static User restJoeDoeUser() {
     return new User()
@@ -322,8 +329,9 @@ public class TestUtils {
         .address("15 rue Porte d'Orange")
         .zipCode(95160)
         .city("Metz")
-        .country("France")
-        .comment("Rencontre avec Luc");
+        .country(null)
+        .comment("Rencontre avec Luc")
+        .status(CustomerStatus.ENABLED);
   }
 
   public static Customer customer2() {
@@ -331,14 +339,15 @@ public class TestUtils {
         .id("customer2_id")
         .firstName("Jean")
         .lastName("Plombier")
-        .email("jean@email.com")
+        .email(null)
         .phone("+33 12 34 56 78")
         .website("https://jean.website.com")
         .address("4 Avenue des Près")
         .zipCode(95160)
         .city("Montmorency")
         .country("France")
-        .comment("Rencontre avec le plombier");
+        .comment("Rencontre avec le plombier")
+        .status(CustomerStatus.ENABLED);
   }
 
   public static Customer customerUpdated() {
@@ -353,7 +362,8 @@ public class TestUtils {
         .zipCode(95160)
         .city("Montmorency")
         .country("France")
-        .comment("Rencontre avec Marc");
+        .comment("Rencontre avec Marc")
+        .status(CustomerStatus.ENABLED);
   }
 
   public static Customer customerWithSomeNullAttributes() {
@@ -368,7 +378,14 @@ public class TestUtils {
         .zipCode(95160)
         .city(null)
         .country(null)
-        .comment(null);
+        .comment(null)
+        .status(CustomerStatus.ENABLED);
+  }
+
+  public static UpdateCustomerStatus customerDisabled() {
+    return new UpdateCustomerStatus()
+        .id("customer3_id")
+        .status(CustomerStatus.DISABLED);
   }
 
   public static Product product1() {
@@ -477,87 +494,87 @@ public class TestUtils {
         .isOther(false);
   }
 
-  public static Transaction swanTransaction1() {
-    return Transaction.builder()
-        .node(Transaction.Node.builder()
+  public static SwanTransaction swanTransaction1() {
+    return SwanTransaction.builder()
+        .node(SwanTransaction.Node.builder()
             .id("bosci_f224704f2555a42303e302ffb8e69eef")
             .label("Création de site vitrine")
             .reference("REF_001")
-            .amount(Transaction.Amount.builder()
+            .amount(SwanTransaction.Amount.builder()
                 .value(500.0)
                 .currency("EUR")
                 .build())
             .createdAt(Instant.parse("2022-08-26T06:33:50.595Z"))
             .side(CREDIT_SIDE)
-            .statusInfo(new Transaction.Node.StatusInfo(PENDING_STATUS))
+            .statusInfo(new SwanTransaction.Node.StatusInfo(PENDING_STATUS))
             .build())
         .build();
   }
 
-  public static Transaction swanTransaction2() {
-    return Transaction.builder()
-        .node(Transaction.Node.builder()
+  public static SwanTransaction swanTransaction2() {
+    return SwanTransaction.builder()
+        .node(SwanTransaction.Node.builder()
             .id("bosci_28cb4daf35d3ab24cb775dcdefc8fdab")
             .label("Test du virement")
             .reference("TEST-001")
-            .amount(Transaction.Amount.builder()
+            .amount(SwanTransaction.Amount.builder()
                 .value(100.0)
                 .currency("EUR")
                 .build())
             .createdAt(Instant.parse("2022-08-24T04:57:02.606Z"))
             .side(DEBIT_SIDE)
-            .statusInfo(new Transaction.Node.StatusInfo(BOOKED_STATUS))
+            .statusInfo(new SwanTransaction.Node.StatusInfo(BOOKED_STATUS))
             .build())
         .build();
   }
 
-  public static Transaction swanTransaction3() {
-    return Transaction.builder()
-        .node(Transaction.Node.builder()
+  public static SwanTransaction swanTransaction3() {
+    return SwanTransaction.builder()
+        .node(SwanTransaction.Node.builder()
             .id("bosci_0fe167566b234808a44aae415f057b6c")
             .label("Premier virement")
             .reference("JOE-001")
-            .amount(Transaction.Amount.builder()
+            .amount(SwanTransaction.Amount.builder()
                 .value(500.0)
                 .currency("EUR")
                 .build())
             .createdAt(Instant.parse("2022-08-24T03:39:33.315Z"))
             .side(CREDIT_SIDE)
-            .statusInfo(new Transaction.Node.StatusInfo(BOOKED_STATUS))
+            .statusInfo(new SwanTransaction.Node.StatusInfo(BOOKED_STATUS))
             .build())
         .build();
   }
 
-  public static Transaction swanTransaction4() {
-    return Transaction.builder()
-        .node(Transaction.Node.builder()
+  public static SwanTransaction swanTransaction4() {
+    return SwanTransaction.builder()
+        .node(SwanTransaction.Node.builder()
             .id("bosci_12azgrb712gzf057b6c")
             .label("Transaction avec nouveau statut")
             .reference("123456")
-            .amount(Transaction.Amount.builder()
+            .amount(SwanTransaction.Amount.builder()
                 .value(400.0)
                 .currency("EUR")
                 .build())
             .createdAt(Instant.parse("2023-01-01T00:00:00.00Z"))
             .side(CREDIT_SIDE)
-            .statusInfo(new Transaction.Node.StatusInfo(RELEASED_STATUS))
+            .statusInfo(new SwanTransaction.Node.StatusInfo(RELEASED_STATUS))
             .build())
         .build();
   }
 
-  public static Transaction updatedSwanTransaction() {
-    return Transaction.builder()
-        .node(Transaction.Node.builder()
+  public static SwanTransaction updatedSwanTransaction() {
+    return SwanTransaction.builder()
+        .node(SwanTransaction.Node.builder()
             .id("bosci_f224704f2555a42303e302ffb8e69eef")
             .label("Label à jour")
             .reference("NEW_REF")
-            .amount(Transaction.Amount.builder()
+            .amount(SwanTransaction.Amount.builder()
                 .value(111.1)
                 .currency("EUR")
                 .build())
             .createdAt(Instant.parse("2022-08-26T01:00:00.00Z"))
             .side(DEBIT_SIDE)
-            .statusInfo(new Transaction.Node.StatusInfo(BOOKED_STATUS))
+            .statusInfo(new SwanTransaction.Node.StatusInfo(BOOKED_STATUS))
             .build())
         .build();
   }
@@ -842,6 +859,13 @@ public class TestUtils {
     };
   }
 
+  public static Geojson location() {
+    return new Geojson()
+        .type(GEOJSON_TYPE_POINT)
+        .longitude(1.0)
+        .latitude(23.5);
+  }
+
   public static ApiClient anApiClient(String token, int serverPort) {
     ApiClient client = new ApiClient();
     client.setScheme("http");
@@ -910,16 +934,20 @@ public class TestUtils {
   }
 
   public static void setUpTransactionRepository(TransactionSwanRepository repository) {
-    when(repository.getByIdAccount(any())).thenReturn(
+    when(repository.getByIdAccount(any(), any())).thenReturn(
         List.of(
             swanTransaction1(),
             swanTransaction2(),
             swanTransaction3(),
             swanTransaction4()));
-    when(repository.findById(swanTransaction1().getNode().getId())).thenReturn(swanTransaction1());
-    when(repository.findById(swanTransaction2().getNode().getId())).thenReturn(swanTransaction2());
-    when(repository.findById(swanTransaction3().getNode().getId())).thenReturn(swanTransaction3());
-    when(repository.findById(swanTransaction4().getNode().getId())).thenReturn(swanTransaction4());
+    when(repository.findById(eq(swanTransaction1().getNode().getId()), any()))
+        .thenReturn(swanTransaction1());
+    when(repository.findById(eq(swanTransaction2().getNode().getId()), any()))
+        .thenReturn(swanTransaction2());
+    when(repository.findById(eq(swanTransaction3().getNode().getId()), any()))
+        .thenReturn(swanTransaction3());
+    when(repository.findById(eq(swanTransaction4().getNode().getId()), any()))
+        .thenReturn(swanTransaction4());
   }
 
   public static void setUpOnboardingSwanRepositoryMock(OnboardingSwanRepository repository) {

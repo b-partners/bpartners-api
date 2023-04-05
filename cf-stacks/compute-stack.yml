@@ -85,8 +85,6 @@ Resources:
               Value: !Sub '{{resolve:ssm:/bpartners/${Env}/sogefi/ads-base-url}}'
             - Name: ADS_BEARER
               Value: !Sub '{{resolve:ssm:/bpartners/${Env}/sogefi/ads-bearer}}'
-            - Name: ADS_INSEE
-              Value: !Sub '{{resolve:ssm:/bpartners/${Env}/sogefi/ads-insee}}'
             - Name: ADS_DENOM_CHAR
               Value: !Sub '{{resolve:ssm:/bpartners/${Env}/sogefi/ads-denom-char}}'
             - Name: BRIDGE_CLIENT_ID
@@ -97,6 +95,12 @@ Resources:
               Value: !Sub '{{resolve:ssm:/bpartners/${Env}/bridge/base-url}}'
             - Name: BRIDGE_VERSION
               Value: !Sub '{{resolve:ssm:/bpartners/${Env}/bridge/version}}'
+            - Name: AWS_COGNITO_USERPOOL_DOMAIN
+              Value: !Sub '{{resolve:ssm:/bpartners/${Env}/cognito/userpool-domain}}'
+            - Name: AWS_COGNITO_USERPOOL_CLIENTID
+              Value: !Sub '{{resolve:ssm:/bpartners/${Env}/cognito/userpool-client-id}}'
+            - Name: AWS_COGNITO_USERPOOL_CLIENTSECRET
+              Value: !Sub '{{resolve:ssm:/bpartners/${Env}/cognito/userpool-client-secret}}'
           LogConfiguration:
             LogDriver: awslogs
             Options:

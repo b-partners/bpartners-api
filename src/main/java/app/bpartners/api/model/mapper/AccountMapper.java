@@ -2,6 +2,8 @@ package app.bpartners.api.model.mapper;
 
 import app.bpartners.api.endpoint.rest.model.AccountStatus;
 import app.bpartners.api.model.Account;
+import app.bpartners.api.model.Bank;
+import app.bpartners.api.repository.bridge.model.Account.BridgeAccount;
 import app.bpartners.api.repository.jpa.model.HAccount;
 import app.bpartners.api.repository.jpa.model.HUser;
 import app.bpartners.api.repository.swan.model.SwanAccount;
@@ -9,6 +11,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import static app.bpartners.api.endpoint.rest.model.AccountStatus.UNKNOWN;
 import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 
 @Slf4j
@@ -50,6 +53,7 @@ public class AccountMapper {
     return Account.builder()
         .id(entity.getId())
         .userId(userId)
+        .bridgeAccountId(entity.getBridgeAccountId())
         .name(entity.getName())
         .iban(entity.getIban())
         .bic(entity.getBic())
@@ -58,10 +62,29 @@ public class AccountMapper {
         .build();
   }
 
+  public Account toDomain(BridgeAccount bridgeAccount, Bank bank,
+                          Account domainAccount, String userId) {
+    return Account.builder()
+        .id(domainAccount == null ? null : domainAccount.getId())
+        .bic(domainAccount == null ? null : domainAccount.getBic())
+        .status(bridgeAccount.getDomainStatus())
+        .userId(userId)
+        .bridgeAccountId(bridgeAccount.getId())
+        .name(bridgeAccount.getName())
+        .iban(bridgeAccount.getIban())
+        .availableBalance(parseFraction(bridgeAccount.getBalance()))
+        .bank(bank)
+        .build();
+  }
+
   public HAccount toEntity(Account domain, HUser user) {
     return HAccount.builder()
         .id(domain.getId())
+        .bridgeAccountId(domain.getBridgeAccountId())
         .user(user)
+        .idBank(domain.getBank() != null
+            ? domain.getBank().getId()
+            : null)
         .name(domain.getName())
         .iban(domain.getIban())
         .bic(domain.getBic())
@@ -69,6 +92,7 @@ public class AccountMapper {
         .status(domain.getStatus())
         .build();
   }
+
 
   public AccountStatus getStatus(String status) {
     switch (status) {
@@ -82,7 +106,7 @@ public class AccountMapper {
         return AccountStatus.SUSPENDED;
       default:
         log.warn("Unknown account status " + status);
-        return AccountStatus.UNKNOWN;
+        return UNKNOWN;
     }
   }
 }

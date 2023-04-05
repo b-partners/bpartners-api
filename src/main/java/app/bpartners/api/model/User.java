@@ -23,7 +23,10 @@ public class User implements Serializable {
   private String logoFileId;
   private String firstName;
   private String lastName;
+  private String email;
+  private String bridgePassword;
   private String mobilePhoneNumber;
+  private String accessToken;
   private int monthlySubscription;
   private EnableStatus status;
   private Boolean idVerified;

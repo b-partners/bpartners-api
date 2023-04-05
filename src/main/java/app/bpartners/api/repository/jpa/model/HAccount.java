@@ -1,6 +1,7 @@
 package app.bpartners.api.repository.jpa.model;
 
 import app.bpartners.api.endpoint.rest.model.AccountStatus;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.io.Serializable;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -33,7 +34,10 @@ public class HAccount implements Serializable {
   private String id;
   @ManyToOne
   @JoinColumn(name = "id_user")
+  @JsonIgnore
   private HUser user;
+  private String idBank;
+  private Long bridgeAccountId;
   @Column(name = "\"name\"")
   private String name;
   private String iban;
@@ -43,4 +47,9 @@ public class HAccount implements Serializable {
   @Type(type = "pgsql_enum")
   @Enumerated(EnumType.STRING)
   private AccountStatus status;
+
+  public HAccount idBank(String idBank) {
+    this.idBank = idBank;
+    return this;
+  }
 }

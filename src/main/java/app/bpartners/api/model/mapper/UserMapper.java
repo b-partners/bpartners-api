@@ -26,6 +26,9 @@ public class UserMapper {
         .firstName(swanUser == null ? entityUser.getFirstName() : swanUser.getFirstName())
         .lastName(swanUser == null ? entityUser.getLastName() : swanUser.getLastName())
         .mobilePhoneNumber(entityUser.getPhoneNumber())
+        .email(entityUser.getEmail())
+        .accessToken(entityUser.getAccessToken())
+        .bridgePassword(entityUser.getBridgePassword())
         .monthlySubscription(entityUser.getMonthlySubscription())
         .status(entityUser.getStatus())
         .logoFileId(entityUser.getLogoFileId())
@@ -34,7 +37,7 @@ public class UserMapper {
             swanUser == null ? entityUser.getIdentificationStatus()
                 : getIdentificationStatus(
                 swanUser.getIdentificationStatus()))
-        .account(entityUser.getAccounts().isEmpty() ? null
+        .account(entityUser.getAccounts() == null || entityUser.getAccounts().isEmpty() ? null
             : accountMapper.toDomain(entityUser.getAccounts().get(0),
             entityUser.getId()))
         .build();

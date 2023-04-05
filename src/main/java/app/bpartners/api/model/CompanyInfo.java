@@ -1,5 +1,6 @@
 package app.bpartners.api.model;
 
+import app.bpartners.api.endpoint.rest.model.Geojson;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -20,4 +21,6 @@ public class CompanyInfo {
   private String tvaNumber;
   private Integer socialCapital;
   private BusinessActivity businessActivity;
+  private Geojson location;
+  private Integer townCode;
 }

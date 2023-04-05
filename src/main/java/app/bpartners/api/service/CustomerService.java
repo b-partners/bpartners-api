@@ -2,6 +2,8 @@ package app.bpartners.api.service;
 
 import app.bpartners.api.endpoint.rest.mapper.CustomerRestMapper;
 import app.bpartners.api.endpoint.rest.model.CreateCustomer;
+import app.bpartners.api.endpoint.rest.model.CustomerStatus;
+import app.bpartners.api.endpoint.rest.model.UpdateCustomerStatus;
 import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.Customer;
 import app.bpartners.api.model.PageFromOne;
@@ -15,6 +17,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import static app.bpartners.api.service.utils.CustomerUtils.getCustomersInfoFromFile;
+import static app.bpartners.api.service.utils.CustomerUtils.removeDuplicate;
 
 @Service
 @AllArgsConstructor
@@ -25,12 +28,12 @@ public class CustomerService {
   public List<Customer> getCustomers(
       String accountId, String firstName,
       String lastName, String email, String phoneNumber, String city, String country,
+      CustomerStatus status,
       PageFromOne page, BoundedPageSize pageSize) {
     int pageValue = page != null ? page.getValue() - 1 : 0;
     int pageSizeValue = pageSize != null ? pageSize.getValue() : 30;
-    return repository.findByAccount(accountId, pageValue, pageSizeValue);
-//    return repository.findByAccountIdAndCriteria(accountId, firstName, lastName, email,
-//        phoneNumber, city, country, pageValue, pageSizeValue);
+    return repository.findByAccountIdAndCriteria(accountId, firstName, lastName, email,
+        phoneNumber, city, country, status, pageValue, pageSizeValue);
   }
 
   @Transactional
@@ -38,6 +41,10 @@ public class CustomerService {
       String accountId,
       List<Customer> customers) {
     return repository.saveAll(accountId, customers);
+  }
+
+  public List<Customer> updateStatus(String accountId, List<UpdateCustomerStatus> toUpdate) {
+    return repository.updateStatus(accountId, toUpdate);
   }
 
   public List<Customer> getDataFromFile(String accountId, byte[] file) {
@@ -82,7 +89,7 @@ public class CustomerService {
           .collect(Collectors.toUnmodifiableList());
     }
     toUpdateList.addAll(toCreateList);
-    return toUpdateList;
+    return removeDuplicate(toUpdateList);
   }
 
 }

@@ -1,24 +1,36 @@
 package app.bpartners.api.model.mapper;
 
+import app.bpartners.api.endpoint.rest.model.Geojson;
 import app.bpartners.api.endpoint.rest.model.VerificationStatus;
 import app.bpartners.api.model.AccountHolder;
+import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.exception.NotFoundException;
+import app.bpartners.api.model.validator.AccountHolderValidator;
 import app.bpartners.api.repository.jpa.model.HAccountHolder;
 import app.bpartners.api.repository.swan.model.SwanAccountHolder;
-import lombok.extern.slf4j.Slf4j;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 
-@Slf4j
+@AllArgsConstructor
 @Component
 public class AccountHolderMapper {
   public static final String VERIFIED_STATUS = "Verified";
   public static final String PENDING_STATUS = "Pending";
   public static final String NOT_STARTED_STATUS = "NotStarted";
   public static final String WAITING_FOR_INFORMATION_STATUS = "WaitingForInformation";
+  public static final String GEOJSON_TYPE_POINT = "Point";
+  private final AccountHolderValidator accountHolderValidator;
 
   public AccountHolder toDomain(HAccountHolder entity) {
+    Geojson location = null;
+    if (entity.getLongitude() != null && entity.getLatitude() != null) {
+      location = new Geojson()
+          .type(GEOJSON_TYPE_POINT)
+          .longitude(entity.getLongitude())
+          .latitude(entity.getLatitude());
+    }
     return AccountHolder.builder()
         .id(entity.getId())
         .verificationStatus(entity.getVerificationStatus())
@@ -27,7 +39,7 @@ public class AccountHolderMapper {
         .email(entity.getEmail())
         .mobilePhoneNumber(entity.getMobilePhoneNumber())
         .accountId(entity.getAccountId())
-        .socialCapital(entity.getSocialCapital())
+        .socialCapital(parseFraction(entity.getSocialCapital()).getCentsRoundUp())
         .vatNumber(entity.getVatNumber())
         .address(entity.getAddress())
         .city(entity.getCity())
@@ -37,10 +49,22 @@ public class AccountHolderMapper {
         .mainActivity(entity.getBusinessActivity())
         .mainActivityDescription(entity.getBusinessActivityDescription())
         .initialCashflow(parseFraction(entity.getInitialCashflow()))
+        .location(location)
+        .prospectingPerimeter(entity.getProspectingPerimeter())
+        .townCode(entity.getTownCode())
         .build();
   }
 
   public HAccountHolder toEntity(AccountHolder domain) {
+    accountHolderValidator.accept(domain);
+    Double longitude = null;
+    Double latitude = null;
+    if (domain.getLocation() != null
+        && domain.getLocation().getLongitude() != null
+        && domain.getLocation().getLatitude() != null) {
+      longitude = domain.getLocation().getLongitude();
+      latitude = domain.getLocation().getLatitude();
+    }
     return HAccountHolder.builder()
         .id(domain.getId())
         .accountId(domain.getAccountId())
@@ -48,7 +72,7 @@ public class AccountHolderMapper {
         .subjectToVat(domain.isSubjectToVat())
         .vatNumber(domain.getVatNumber())
         .mobilePhoneNumber(domain.getMobilePhoneNumber())
-        .socialCapital(domain.getSocialCapital())
+        .socialCapital(String.valueOf(parseFraction(domain.getSocialCapital())))
         .initialCashflow(domain.getInitialCashflow().toString())
         .verificationStatus(domain.getVerificationStatus())
         .name(domain.getName())
@@ -59,6 +83,10 @@ public class AccountHolderMapper {
         .city(domain.getCity())
         .country(domain.getCountry())
         .postalCode(domain.getPostalCode())
+        .longitude(longitude)
+        .latitude(latitude)
+        .prospectingPerimeter(domain.getProspectingPerimeter())
+        .townCode(domain.getTownCode())
         .build();
   }
 
@@ -70,12 +98,12 @@ public class AccountHolderMapper {
         .mobilePhoneNumber(null)
         .email(null)
         .verificationStatus(getStatus(swanAccountHolder.getVerificationStatus()))
-        .socialCapital(0) //TODO : check default social capital 0 or null
+        .socialCapital(
+            String.valueOf(new Fraction())) //TODO : check default social capital 0 or null
         .vatNumber(swanAccountHolder.getInfo().getVatNumber())
         .name(swanAccountHolder.getInfo().getName())
         .businessActivity(swanAccountHolder.getInfo().getBusinessActivity())
-        .businessActivityDescription(
-            swanAccountHolder.getInfo().getBusinessActivityDescription())
+        .businessActivityDescription(swanAccountHolder.getInfo().getBusinessActivityDescription())
         .registrationNumber(swanAccountHolder.getInfo().getRegistrationNumber())
         .address(swanAccountHolder.getResidencyAddress().getAddressLine1())
         .city(swanAccountHolder.getResidencyAddress().getCity())

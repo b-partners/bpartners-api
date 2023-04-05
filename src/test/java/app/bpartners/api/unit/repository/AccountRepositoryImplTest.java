@@ -4,7 +4,9 @@ import app.bpartners.api.endpoint.rest.model.AccountStatus;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.mapper.AccountMapper;
+import app.bpartners.api.repository.BankRepository;
 import app.bpartners.api.repository.UserRepository;
+import app.bpartners.api.repository.bridge.repository.BridgeAccountRepository;
 import app.bpartners.api.repository.implementation.AccountRepositoryImpl;
 import app.bpartners.api.repository.jpa.AccountJpaRepository;
 import app.bpartners.api.repository.jpa.UserJpaRepository;
@@ -37,6 +39,8 @@ class AccountRepositoryImplTest {
   AccountMapper accountMapperMock;
   AccountRepositoryImpl subject;
   UserJpaRepository userJpaRepositoryMock;
+  BridgeAccountRepository bridgeAccountRepositoryMock;
+  BankRepository bankRepositoryMock;
 
   @BeforeEach
   void setUp() {
@@ -45,9 +49,13 @@ class AccountRepositoryImplTest {
     userRepositoryMock = mock(UserRepository.class);
     accountMapperMock = mock(AccountMapper.class);
     userJpaRepositoryMock = mock(UserJpaRepository.class);
+    bridgeAccountRepositoryMock = mock(BridgeAccountRepository.class);
+    bankRepositoryMock = mock(BankRepository.class);
     subject =
-        new AccountRepositoryImpl(accountSwanRepositoryMock, accountJpaRepositoryMock,
-            userRepositoryMock, accountMapperMock, userJpaRepositoryMock);
+        new AccountRepositoryImpl(
+            accountSwanRepositoryMock, accountJpaRepositoryMock,
+            userRepositoryMock, accountMapperMock, userJpaRepositoryMock,
+            bridgeAccountRepositoryMock, bankRepositoryMock);
 
     when(accountMapperMock.toDomain(any(SwanAccount.class), any())).thenReturn(domain());
     when(accountMapperMock.toDomain(any(HAccount.class), any())).thenReturn(domain());

@@ -14,7 +14,7 @@ import lombok.ToString;
 @Builder
 @Setter
 @ToString
-public class Transaction {
+public class SwanTransaction {
   private Node node;
 
   @JsonProperty("node")

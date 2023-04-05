@@ -1,6 +1,6 @@
 package app.bpartners.api.repository.swan.response;
 
-import app.bpartners.api.repository.swan.model.Transaction;
+import app.bpartners.api.repository.swan.model.SwanTransaction;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
@@ -54,11 +54,11 @@ public class TransactionResponse {
   @Builder
   public static class Transactions {
     private static final String JSON_PROPERTY_SWAN_TRANSACTION = "edges";
-    private List<Transaction> edges;
+    private List<SwanTransaction> edges;
 
     @JsonProperty(JSON_PROPERTY_SWAN_TRANSACTION)
     @JsonInclude(JsonInclude.Include.USE_DEFAULTS)
-    public List<Transaction> getEdges() {
+    public List<SwanTransaction> getEdges() {
       return edges;
     }
   }

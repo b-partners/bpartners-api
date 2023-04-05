@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface TransactionJpaRepository extends JpaRepository<HTransaction, String> {
   Optional<HTransaction> findByIdSwan(String idSwan);
 
+  Optional<HTransaction> findByIdBridge(Long idBridge);
+
   List<HTransaction> findAllByIdAccount(String idAccount);
 
 }

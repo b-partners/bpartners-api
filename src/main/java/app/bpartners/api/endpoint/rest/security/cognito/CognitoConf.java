@@ -8,6 +8,7 @@ import com.nimbusds.jose.util.ResourceRetriever;
 import com.nimbusds.jwt.proc.ConfigurableJWTProcessor;
 import java.net.MalformedURLException;
 import java.net.URL;
+import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,19 +19,29 @@ import static app.bpartners.api.endpoint.rest.security.JWTConf.getContextConfigu
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 
 @Configuration
+@Getter
 public class CognitoConf {
 
   private final String region;
   private final String userPoolId;
   private final JWTConf jwtConf;
+  private final String domain;
+  private final String clientId;
+  private final String clientSecret;
 
   public CognitoConf(
       @Value("${aws.region}") String region,
       @Value("${aws.cognito.userPool.id}") String userPoolId,
+      @Value("${aws.cognito.userPool.domain}") String domain,
+      @Value("${aws.cognito.userPool.clientId}") String clientId,
+      @Value("${aws.cognito.userPool.clientSecret}") String clientSecret,
       JWTConf jwtConf) {
     this.region = region;
     this.userPoolId = userPoolId;
     this.jwtConf = jwtConf;
+    this.domain = domain;
+    this.clientId = clientId;
+    this.clientSecret = clientSecret;
   }
 
   @Bean
@@ -59,8 +70,8 @@ public class CognitoConf {
     }
   }
 
-  public String getUserPoolId() {
-    return userPoolId;
+  public String getOauthUrl() {
+    return domain + "/oauth2/token";
   }
 }
 

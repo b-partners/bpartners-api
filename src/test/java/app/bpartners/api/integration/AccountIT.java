@@ -7,12 +7,16 @@ import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
 import app.bpartners.api.endpoint.rest.model.Account;
 import app.bpartners.api.endpoint.rest.model.AccountStatus;
+import app.bpartners.api.endpoint.rest.model.BankConnectionRedirection;
+import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
+import app.bpartners.api.endpoint.rest.model.UpdateAccountIdentity;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
 import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
 import app.bpartners.api.integration.conf.AbstractContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
 import app.bpartners.api.manager.ProjectTokenManager;
 import app.bpartners.api.repository.LegalFileRepository;
+import app.bpartners.api.repository.bridge.repository.BridgeBankRepository;
 import app.bpartners.api.repository.fintecture.FintectureConf;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitConf;
 import app.bpartners.api.repository.sendinblue.SendinblueConf;
@@ -39,6 +43,7 @@ import static app.bpartners.api.integration.conf.TestUtils.ACCOUNT_CLOSING;
 import static app.bpartners.api.integration.conf.TestUtils.ACCOUNT_OPENED;
 import static app.bpartners.api.integration.conf.TestUtils.ACCOUNT_SUSPENDED;
 import static app.bpartners.api.integration.conf.TestUtils.JANE_DOE_ID;
+import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_TOKEN;
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsApiException;
@@ -50,6 +55,8 @@ import static app.bpartners.api.integration.conf.TestUtils.setUpLegalFileReposit
 import static app.bpartners.api.integration.conf.TestUtils.setUpSwanComponent;
 import static app.bpartners.api.integration.conf.TestUtils.setUpUserSwanRepository;
 import static java.util.UUID.randomUUID;
+import static org.hibernate.validator.internal.util.Contracts.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -87,6 +94,8 @@ class AccountIT {
   private AccountHolderSwanRepository accountHolderMock;
   @MockBean
   private LegalFileRepository legalFileRepositoryMock;
+  @MockBean
+  private BridgeBankRepository bridgeBankRepositoryMock;
   private AccountSwanRepositoryImpl accountSwanRepositoryImpl;
   private SwanApi swanApiMock;
   private SwanCustomApi swanCustomApiMock;
@@ -135,6 +144,13 @@ class AccountIT {
         .build();
   }
 
+  public static UpdateAccountIdentity accountIdentity() {
+    return new UpdateAccountIdentity()
+        .name(null)
+        .bic("SWNBFR23")
+        .iban(null);
+  }
+
   @BeforeEach
   public void setUp() {
     setUpSwanComponent(swanComponentMock);
@@ -152,8 +168,8 @@ class AccountIT {
         .name(joeDoeSwanAccount().getName())
         .iban(joeDoeSwanAccount().getIban())
         .bic(joeDoeSwanAccount().getBic())
-        .IBAN(joeDoeSwanAccount().getIban())
-        .BIC(joeDoeSwanAccount().getBic())
+        .iban(joeDoeSwanAccount().getIban())
+        .bic(joeDoeSwanAccount().getBic())
         .availableBalance(100000);
   }
 
@@ -173,6 +189,27 @@ class AccountIT {
     List<Account> actual = api.getAccountsByUserId(JOE_DOE_ID);
 
     assertTrue(actual.contains(joeDoeAccount().status(AccountStatus.OPENED)));
+  }
+
+  @Test
+  void initiate_bank_connection_ok() throws ApiException {
+    when(bridgeBankRepositoryMock.initiateBankConnection("joe@email.com"))
+        .thenReturn("https://connect.bridgeapi.io");
+    ApiClient joeDoeClient = anApiClient();
+    UserAccountsApi api = new UserAccountsApi(joeDoeClient);
+    String failureUrl = "failure_url";
+    String successUrl = "success_url";
+    RedirectionStatusUrls redirectionStatusUrls = new RedirectionStatusUrls()
+        .failureUrl(failureUrl)
+        .successUrl(successUrl);
+
+    BankConnectionRedirection actual =
+        api.initiateBankConnection(JOE_DOE_ID, JOE_DOE_ACCOUNT_ID, redirectionStatusUrls);
+
+    assertNotNull(actual);
+    assertTrue(actual.getRedirectionUrl().contains("https://connect.bridgeapi.io"));
+    assertEquals(successUrl, actual.getRedirectionStatusUrls().getSuccessUrl());
+    assertEquals(failureUrl, actual.getRedirectionStatusUrls().getFailureUrl());
   }
 
   @Test
@@ -351,6 +388,31 @@ class AccountIT {
     UserAccountsApi api = new UserAccountsApi(joeDoeClient);
 
     assertThrowsForbiddenException(() -> api.getAccountsByUserId(OTHER_USER_ID));
+  }
+
+  @Test
+  void update_account_identity_ok() throws ApiException {
+    ApiClient joeDoeClient = anApiClient();
+    UserAccountsApi api = new UserAccountsApi(joeDoeClient);
+
+    Account actual = api.updateAccountIdentity(
+        JOE_DOE_ID, JOE_DOE_ACCOUNT_ID, accountIdentity());
+
+    assertEquals(joeDoeAccount().getId(), actual.getId());
+    assertEquals(accountIdentity().getBic(), actual.getBic());
+    assertEquals(joeDoeAccount().getIban(), actual.getIban());
+    assertEquals(joeDoeAccount().getName(), actual.getName());
+  }
+
+  @Test
+  void update_account_identity_ko() throws ApiException {
+    ApiClient joeDoeClient = anApiClient();
+    UserAccountsApi api = new UserAccountsApi(joeDoeClient);
+
+    assertThrowsApiException(
+        "{\"type\":\"400 BAD_REQUEST\",\"message\":\"bic is mandatory.\"}"
+        , () -> api.updateAccountIdentity(JOE_DOE_ID, JOE_DOE_ACCOUNT_ID,
+            accountIdentity().bic(null)));
   }
 
   static class ContextInitializer extends AbstractContextInitializer {

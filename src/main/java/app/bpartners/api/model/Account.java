@@ -14,15 +14,17 @@ import lombok.ToString;
 @NoArgsConstructor
 @Getter
 @Setter
-@Builder
+@Builder(toBuilder = true)
 @ToString
 @EqualsAndHashCode
 public class Account implements Serializable {
   private String id;
   private String userId;
+  private Long bridgeAccountId;
   private String name;
   private String iban;
   private String bic;
   private Fraction availableBalance;
+  private Bank bank;
   private AccountStatus status;
 }

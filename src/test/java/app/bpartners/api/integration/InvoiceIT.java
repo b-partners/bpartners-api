@@ -75,13 +75,13 @@ import static app.bpartners.api.integration.conf.TestUtils.product3;
 import static app.bpartners.api.integration.conf.TestUtils.product4;
 import static app.bpartners.api.integration.conf.TestUtils.product5;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountHolderSwanRep;
+import static app.bpartners.api.integration.conf.TestUtils.setUpAccountRepository;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountSwanRepository;
 import static app.bpartners.api.integration.conf.TestUtils.setUpEventBridge;
 import static app.bpartners.api.integration.conf.TestUtils.setUpLegalFileRepository;
 import static app.bpartners.api.integration.conf.TestUtils.setUpPaymentInitiationRep;
 import static app.bpartners.api.integration.conf.TestUtils.setUpSwanComponent;
 import static app.bpartners.api.integration.conf.TestUtils.setUpUserSwanRepository;
-import static app.bpartners.api.integration.conf.TestUtils.setUpAccountRepository;
 import static app.bpartners.api.model.Invoice.DEFAULT_DELAY_PENALTY_PERCENT;
 import static app.bpartners.api.model.Invoice.DEFAULT_TO_PAY_DELAY_DAYS;
 import static java.util.UUID.randomUUID;
@@ -150,7 +150,7 @@ class InvoiceIT {
             .paymentUrl("https://connect-v2-sbx.fintecture.com")
             .percentValue(10000 - 909)
             .amount(1000)
-            .label("BP005 - Restant dû"));
+            .label("Facture achat - Restant dû"));
   }
 
   private static PaymentRegulation expectedDated1() {
@@ -163,7 +163,7 @@ class InvoiceIT {
             .paymentUrl("https://connect-v2-sbx.fintecture.com")
             .percentValue(909)
             .amount(100)
-            .label("BP005 - Acompte N°1"));
+            .label("Facture achat - Acompte N°1"));
   }
 
   private static List<PaymentRegulation> ignoreIdsAndDatetime(Invoice actualConfirmed) {
@@ -199,7 +199,7 @@ class InvoiceIT {
         .accountId(JOE_DOE_ACCOUNT_ID)
         .mobilePhoneNumber("+33 6 11 22 33 44")
         .email("numer@hei.school")
-        .socialCapital(40000)
+        .socialCapital("40000/1")
         .vatNumber("FR 32 123456789")
         .initialCashflow("6000/1")
         .subjectToVat(true)
@@ -461,6 +461,7 @@ class InvoiceIT {
   private static Invoice expectedMultiplePayments(String id, Invoice actualConfirmed) {
     return new Invoice()
         .id(actualConfirmed.getId())
+        .title(actualConfirmed.getTitle())
         .ref(actualConfirmed.getRef())
         .paymentType(actualConfirmed.getPaymentType())
         .createdAt(actualConfirmed.getCreatedAt())
@@ -495,7 +496,7 @@ class InvoiceIT {
                 .amount(552)
                 .payerName("Luc Artisan")
                 .payerEmail("bpartners.artisans@gmail.com")
-                .label(id + " - Acompte N°1")),
+                .label("Fabrication Jean" + " - Acompte N°1")),
         new PaymentRegulation()
             .maturityDate(LocalDate.of(2023, 1, 1))
             .paymentRequest(new PaymentRequest()
@@ -505,7 +506,7 @@ class InvoiceIT {
                 .reference(id)
                 .payerName("Luc Artisan")
                 .payerEmail("bpartners.artisans@gmail.com")
-                .label(id + " - Restant dû")));
+                .label("Fabrication Jean" + " - Restant dû")));
   }
 
   private static List<PaymentRegulation> updatedPaymentRegulations(String id) {
@@ -518,7 +519,7 @@ class InvoiceIT {
                 .amount(225)
                 .payerName("Luc Artisan")
                 .payerEmail("bpartners.artisans@gmail.com")
-                .label(id + " - Acompte N°1")),
+                .label("Fabrication Jean" + " - Acompte N°1")),
         new PaymentRegulation()
             .maturityDate(LocalDate.of(2023, 1, 1))
             .paymentRequest(new PaymentRequest()
@@ -528,7 +529,7 @@ class InvoiceIT {
                 .reference(id)
                 .payerName("Luc Artisan")
                 .payerEmail("bpartners.artisans@gmail.com")
-                .label(id + " - Restant dû")));
+                .label("Fabrication Jean" + " - Restant dû")));
   }
 
   private static List<PaymentRegulation> confirmedPaymentRegulations(String id) {
@@ -542,7 +543,7 @@ class InvoiceIT {
                 .payerName("Luc Artisan")
                 .payerEmail("bpartners.artisans@gmail.com")
                 .label("Acompte de 10%")
-                .label(id + " - Acompte N°1")),
+                .label("Fabrication Jean" + " - Acompte N°1")),
         new PaymentRegulation()
             .maturityDate(LocalDate.of(2023, 1, 1))
             .paymentRequest(new PaymentRequest()
@@ -552,7 +553,7 @@ class InvoiceIT {
                 .reference(id)
                 .payerName("Luc Artisan")
                 .payerEmail("bpartners.artisans@gmail.com")
-                .label(id + " - Restant dû")));
+                .label("Fabrication Jean" + " - Restant dû")));
   }
 
   //TODO: create PaginationIT for pagination test and add filters.
@@ -742,6 +743,7 @@ class InvoiceIT {
     PayingApi api = new PayingApi(joeDoeClient);
     String id = String.valueOf(randomUUID());
     CrupdateInvoice crupdateInvoice = new CrupdateInvoice()
+        .title("Fabrication Jean")
         .ref(id)
         .paymentType(IN_INSTALMENT)
         .customer(customer1()) //TODO: could not be null before creating a payment link

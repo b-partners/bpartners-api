@@ -6,6 +6,7 @@ import app.bpartners.api.endpoint.rest.security.model.Principal;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
 import app.bpartners.api.model.LegalFile;
 import app.bpartners.api.model.User;
+import app.bpartners.api.model.UserToken;
 import app.bpartners.api.service.LegalFileService;
 import app.bpartners.api.service.UserService;
 import java.util.List;
@@ -48,16 +49,20 @@ public class AuthProvider extends AbstractUserDetailsAuthenticationProvider {
     if (bearer == null) {
       throw new UsernameNotFoundException("Bad credentials"); // NOSONAR
     }
-    String swanUserId = swanComponent.getSwanUserIdByToken(bearer);
-    String phoneNumber = cognitoComponent.getPhoneNumberByToken(bearer);
-    if (swanUserId == null && phoneNumber == null) {
+    String swanBearer = bearer;
+    String cognitoBearer = bearer;
+    String swanUserId = swanComponent.getSwanUserIdByToken(swanBearer);
+    String email = cognitoComponent.getEmailByToken(cognitoBearer);
+    if (swanUserId == null && email == null) {
       throw new UsernameNotFoundException("Bad credentials"); // NOSONAR
     }
     User user;
     if (swanUserId != null) {
-      user = userService.getUserByIdAndBearer(swanUserId, bearer);
+      user = userService.getUserByIdAndBearer(swanUserId, swanBearer);
     } else {
-      user = userService.getUserByPhoneNumber(phoneNumber);
+      user = userService.getUserByEmail(email);
+      UserToken bridgeUserToken = userService.getLatestToken(user);
+      bearer = bridgeUserToken == null ? cognitoBearer : bridgeUserToken.getAccessToken();
     }
     List<LegalFile> legalFilesList =
         legalFileService.getAllToBeApprovedLegalFilesByUserId(user.getId());

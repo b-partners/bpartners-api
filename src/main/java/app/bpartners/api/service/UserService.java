@@ -1,7 +1,9 @@
 package app.bpartners.api.service;
 
 import app.bpartners.api.model.User;
+import app.bpartners.api.model.UserToken;
 import app.bpartners.api.repository.UserRepository;
+import app.bpartners.api.repository.UserTokenRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,11 +14,12 @@ import static org.springframework.transaction.annotation.Isolation.SERIALIZABLE;
 @Service
 @AllArgsConstructor
 public class UserService {
-  private UserRepository userRepository;
+  private final UserRepository userRepository;
+  private final UserTokenRepository userTokenRepository;
 
   @Transactional(isolation = SERIALIZABLE)
-  public User getUserByPhoneNumber(String phoneNumber) {
-    return userRepository.getByPhoneNumber(phoneNumber);
+  public User getUserByEmail(String email) {
+    return userRepository.getByEmail(email);
   }
 
   @Transactional(isolation = SERIALIZABLE)
@@ -28,4 +31,10 @@ public class UserService {
   public User getUserByToken(String token) {
     return userRepository.getUserByToken(token);
   }
+
+  @Transactional(isolation = SERIALIZABLE)
+  public UserToken getLatestToken(User user) {
+    return userTokenRepository.getLatestTokenByUser(user);
+  }
+
 }

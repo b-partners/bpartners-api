@@ -1,5 +1,7 @@
 package app.bpartners.api.repository.implementation;
 
+import app.bpartners.api.endpoint.rest.model.CustomerStatus;
+import app.bpartners.api.endpoint.rest.model.UpdateCustomerStatus;
 import app.bpartners.api.endpoint.rest.security.principal.PrincipalProvider;
 import app.bpartners.api.model.Customer;
 import app.bpartners.api.model.exception.NotFoundException;
@@ -8,12 +10,19 @@ import app.bpartners.api.repository.CustomerRepository;
 import app.bpartners.api.repository.jpa.CustomerJpaRepository;
 import app.bpartners.api.repository.jpa.model.HCustomer;
 import app.bpartners.api.service.AccountService;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import javax.persistence.EntityManager;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.query.QueryUtils;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -26,8 +35,66 @@ public class CustomerRepositoryImpl implements CustomerRepository {
 
   private final AccountService accountService;
 
-  public static String convertNullToEmptyString(String input) {
-    return input == null ? "" : input;
+  private final EntityManager entityManager;
+
+  private static Predicate[] retrieveNotNullPredicates(
+      String accountId, String firstname, String lastname,
+      String email, String phoneNumber, String city,
+      String country, CustomerStatus status, CriteriaBuilder builder,
+      Root<HCustomer> root, List<Predicate> predicates) {
+
+    predicates.add(
+        builder.equal(root.get("idAccount"), accountId)
+    );
+    if (firstname != null) {
+      predicates.add(builder.or(
+          builder.like(root.get("firstName"), "%" + firstname + "%"),
+          builder.like(builder.lower(root.get("firstName")),
+              "%" + firstname + "%")
+      ));
+    }
+    if (lastname != null) {
+      predicates.add(builder.or(
+          builder.like(builder.lower(root.get("lastName")), "%" + lastname + "%"),
+          builder.like(root.get("lastName"), "%" + lastname + "%")
+      ));
+    }
+
+    if (email != null) {
+      predicates.add(builder.or(
+          builder.like(builder.lower(root.get("email")), "%" + email + "%"),
+          builder.like(root.get("email"), "%" + email + "%")
+      ));
+    }
+    if (phoneNumber != null) {
+      predicates.add(builder.or(
+          builder.like(builder.lower(root.get("phone")), "%" + phoneNumber + "%"),
+          builder.like(root.get("phone"), "%" + phoneNumber + "%")
+      ));
+    }
+    if (city != null) {
+      predicates.add(
+          builder.or(
+              builder.like(builder.lower(root.get("city")), "%" + city + "%"),
+              builder.like(root.get("city"), "%" + city + "%")
+          ));
+    }
+    if (country != null) {
+      predicates.add(builder.or(
+          builder.like(builder.lower(root.get("country")), "%" + country + "%"),
+          builder.like(root.get("country"), "%" + country + "%")
+      ));
+    }
+    if (status != null) {
+      predicates.add(
+          builder.equal(root.get("status"), status)
+      );
+    } else {
+      predicates.add(
+          builder.equal(root.get("status"), CustomerStatus.ENABLED)
+      );
+    }
+    return new Predicate[predicates.size()];
   }
 
   @Override
@@ -42,17 +109,46 @@ public class CustomerRepositoryImpl implements CustomerRepository {
 
   @Override
   public List<Customer> findByAccountIdAndCriteria(String accountId, String firstname,
-                                                String lastname, String email,
-                                                String phoneNumber, String city,
-                                                String country, int page, int pageSize) {
+                                                   String lastname, String email,
+                                                   String phoneNumber, String city,
+                                                   String country, CustomerStatus status, int page,
+                                                   int pageSize) {
     Pageable pageable = PageRequest.of(page, pageSize);
-    //TODO : use API Criteria instead
-    return jpaRepository.findByIdAccountAndFirstNameContainingIgnoreCaseAndLastNameContainingIgnoreCaseAndEmailContainingIgnoreCaseAndPhoneContainingIgnoreCaseAndCityContainingIgnoreCaseAndCountryContainingIgnoreCase(
-            accountId, convertNullToEmptyString(firstname), convertNullToEmptyString(lastname),
-            convertNullToEmptyString(email), convertNullToEmptyString(phoneNumber),
-            convertNullToEmptyString(city), convertNullToEmptyString(country), pageable).stream()
+    CriteriaBuilder builder = entityManager.getCriteriaBuilder();
+    CriteriaQuery<HCustomer> query = builder.createQuery(HCustomer.class);
+    Root<HCustomer> root = query.from(HCustomer.class);
+    List<Predicate> predicates = new ArrayList<>();
+    Predicate[] arrays =
+        retrieveNotNullPredicates(
+            accountId, firstname, lastname,
+            email, phoneNumber, city,
+            country, status, builder, root, predicates);
+
+    query
+        .where(builder.and(predicates.toArray(arrays)))
+        .orderBy(QueryUtils.toOrders(pageable.getSort(), root, builder));
+
+    return entityManager.createQuery(query)
+        .setFirstResult((pageable.getPageNumber()) * pageable.getPageSize())
+        .setMaxResults(pageable.getPageSize())
+        .getResultList()
+        .stream()
         .map(mapper::toDomain)
         .collect(Collectors.toUnmodifiableList());
+  }
+
+  @Override
+  public List<Customer> updateStatus(String accountId, List<UpdateCustomerStatus> toUpdate) {
+    List<HCustomer> customersToUpdate = toUpdate.stream()
+            .map(CustomerToUpdate -> {
+              HCustomer actualCustomer = jpaRepository.findById(CustomerToUpdate.getId()).get();
+              actualCustomer.setStatus(CustomerToUpdate.getStatus());
+              return actualCustomer;
+            })
+            .collect(Collectors.toList());
+    return jpaRepository.saveAll(customersToUpdate).stream()
+            .map(mapper::toDomain)
+            .collect(Collectors.toUnmodifiableList());
   }
 
   @Override

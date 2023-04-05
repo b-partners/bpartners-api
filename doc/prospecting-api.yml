@@ -189,7 +189,7 @@ components:
         status:
           $ref: '#/components/schemas/ProspectStatus'
         townCode:
-          type: string
+          type: integer
     Prospect:
       allOf:
         - $ref: '#/components/schemas/UpdateProspect'

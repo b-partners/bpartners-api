@@ -4,6 +4,7 @@ import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
 import app.bpartners.api.endpoint.rest.model.AccountInvoiceRelaunchConf;
 import app.bpartners.api.endpoint.rest.model.AnnualRevenueTarget;
+import app.bpartners.api.endpoint.rest.model.ArchiveStatus;
 import app.bpartners.api.endpoint.rest.model.BusinessActivity;
 import app.bpartners.api.endpoint.rest.model.CompanyBusinessActivity;
 import app.bpartners.api.endpoint.rest.model.CompanyInfo;
@@ -24,7 +25,6 @@ import app.bpartners.api.endpoint.rest.model.TransactionCategory;
 import app.bpartners.api.endpoint.rest.model.TransactionStatus;
 import app.bpartners.api.endpoint.rest.model.UpdateCustomerStatus;
 import app.bpartners.api.endpoint.rest.model.User;
-import app.bpartners.api.endpoint.rest.model.ValidityStatus;
 import app.bpartners.api.endpoint.rest.security.model.Principal;
 import app.bpartners.api.endpoint.rest.security.principal.PrincipalProvider;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
@@ -815,7 +815,7 @@ public class TestUtils {
         .delayInPaymentAllowed(null)
         .delayPenaltyPercent(DEFAULT_DELAY_PENALTY_PERCENT)
         .status(CONFIRMED)
-        .validityStatus(ValidityStatus.ENABLED)
+        .archiveStatus(ArchiveStatus.ENABLED)
         .products(List.of(product3(), product4()))
         .totalPriceWithVat(8800)
         .totalVat(800)
@@ -844,7 +844,7 @@ public class TestUtils {
         .delayInPaymentAllowed(DEFAULT_TO_PAY_DELAY_DAYS)
         .delayPenaltyPercent(DEFAULT_DELAY_PENALTY_PERCENT)
         .status(CONFIRMED)
-        .validityStatus(ValidityStatus.ENABLED)
+        .archiveStatus(ArchiveStatus.ENABLED)
         .products(List.of(product5()))
         .totalPriceWithVat(1100)
         .totalVat(100).totalPriceWithoutVat(1000)

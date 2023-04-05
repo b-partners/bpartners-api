@@ -1,5 +1,6 @@
 package app.bpartners.api.model.mapper;
 
+import app.bpartners.api.endpoint.rest.model.ArchiveStatus;
 import app.bpartners.api.model.CreatePaymentRegulation;
 import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.Invoice;
@@ -92,6 +93,7 @@ public class InvoiceMapper {
         .customerZipCode(entity.getCustomerZipCode())
         .account(accountService.getAccountById(entity.getIdAccount()))
         .status(entity.getStatus())
+        .archiveStatus(entity.getArchiveStatus())
         .toBeRelaunched(entity.isToBeRelaunched())
         .createdAt(entity.getCreatedDatetime())
         .metadata(toMetadataMap(entity.getMetadataString()))
@@ -267,6 +269,8 @@ public class InvoiceMapper {
         .title(domain.getTitle())
         .idAccount(domain.getAccount().getId())
         .status(domain.getStatus())
+        .archiveStatus(
+            domain.getArchiveStatus() == null ? ArchiveStatus.ENABLED : domain.getArchiveStatus())
         .toBeRelaunched(domain.isToBeRelaunched())
         .customer(domain.getCustomer() == null ? null
             : customerMapper.toEntity(domain.getCustomer()))

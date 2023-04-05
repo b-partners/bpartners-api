@@ -2,7 +2,6 @@ package app.bpartners.api.unit.service;
 
 import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
-import app.bpartners.api.endpoint.rest.model.ValidityStatus;
 import app.bpartners.api.endpoint.rest.security.principal.PrincipalProvider;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.AccountHolder;
@@ -28,6 +27,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.data.domain.PageRequest;
 
+import static app.bpartners.api.endpoint.rest.model.ArchiveStatus.ENABLED;
 import static app.bpartners.api.integration.conf.TestUtils.INVOICE1_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.TestUtils.setUpProvider;
@@ -86,7 +86,7 @@ class InvoiceRelaunchServiceTest {
                 HInvoice.builder()
                     .id(INVOICE1_ID)
                     .toBeRelaunched(true)
-                    .validityStatus(ValidityStatus.ENABLED)
+                    .archiveStatus(ENABLED)
                     .sendingDate(LocalDate.now().minusDays(10))
                     .build()
             )
@@ -111,7 +111,7 @@ class InvoiceRelaunchServiceTest {
                         .build()
                 )
                 .status(InvoiceStatus.PROPOSAL)
-                .validityStatus(ValidityStatus.ENABLED)
+                .archiveStatus(ENABLED)
                 .build()
         );
     when(invoiceRelaunchRepository.getByInvoiceId(
@@ -130,7 +130,7 @@ class InvoiceRelaunchServiceTest {
                     Invoice
                         .builder()
                         .status(InvoiceStatus.PROPOSAL)
-                        .validityStatus(ValidityStatus.ENABLED)
+                        .archiveStatus(ENABLED)
                         .customer(
                             Customer.builder()
                                 .firstName("someName")

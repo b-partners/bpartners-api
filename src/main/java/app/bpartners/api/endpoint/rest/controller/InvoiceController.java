@@ -4,6 +4,7 @@ import app.bpartners.api.endpoint.rest.mapper.InvoiceRestMapper;
 import app.bpartners.api.endpoint.rest.model.CrupdateInvoice;
 import app.bpartners.api.endpoint.rest.model.Invoice;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
+import app.bpartners.api.endpoint.rest.model.UpdateInvoiceArchivedStatus;
 import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.service.InvoiceService;
@@ -47,6 +48,18 @@ public class InvoiceController {
       @RequestParam(name = "pageSize", required = false) BoundedPageSize pageSize,
       @RequestParam(name = "status", required = false) InvoiceStatus status) {
     return service.getInvoices(accountId, page, pageSize, status).stream()
+        .map(mapper::toRest)
+        .collect(Collectors.toUnmodifiableList());
+  }
+
+  @PutMapping("/accounts/{aId}/invoices/archive")
+  public List<Invoice> archiveInvoices(
+      @PathVariable(name = "aId") String accountId,
+      @RequestBody List<UpdateInvoiceArchivedStatus> toArchive) {
+    List<app.bpartners.api.model.Invoice> toUpdate = toArchive.stream()
+        .map(mapper::toDomain)
+        .collect(Collectors.toUnmodifiableList());
+    return service.archiveInvoices(toUpdate).stream()
         .map(mapper::toRest)
         .collect(Collectors.toUnmodifiableList());
   }

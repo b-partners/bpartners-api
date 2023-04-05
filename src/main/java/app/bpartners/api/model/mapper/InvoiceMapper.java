@@ -27,6 +27,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.apfloat.Aprational;
 import org.springframework.stereotype.Component;
 
@@ -35,7 +36,6 @@ import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PROPOSAL;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PROPOSAL_CONFIRMED;
-import static app.bpartners.api.model.Invoice.DEFAULT_DELAY_PENALTY_PERCENT;
 import static app.bpartners.api.service.InvoiceService.DRAFT_REF_PREFIX;
 import static app.bpartners.api.service.InvoiceService.PROPOSAL_REF_PREFIX;
 import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
@@ -62,6 +62,12 @@ public class InvoiceMapper {
     if (entity == null) {
       return null;
     }
+    Integer delayInPaymentAllowed = entity.getDelayInPaymentAllowed();
+    String delayPenaltyPercent = entity.getDelayPenaltyPercent();
+    if (delayInPaymentAllowed == null || delayPenaltyPercent == null || delayPenaltyPercent.equals("0/1")) {
+      delayInPaymentAllowed = null;
+      delayPenaltyPercent = "0/1";
+    }
     List<InvoiceProduct> actualProducts = getActualProducts(entity);
     Fraction discount = parseFraction(entity.getDiscountPercent());
     Invoice invoice = Invoice.builder()
@@ -75,10 +81,8 @@ public class InvoiceMapper {
         .products(actualProducts)
         .sendingDate(entity.getSendingDate())
         .validityDate(entity.getValidityDate())
-        .delayInPaymentAllowed(entity.getDelayInPaymentAllowed())
-        .delayPenaltyPercent(entity.getDelayPenaltyPercent() == null
-            ? parseFraction(DEFAULT_DELAY_PENALTY_PERCENT)
-            : parseFraction(entity.getDelayPenaltyPercent()))
+        .delayInPaymentAllowed(delayInPaymentAllowed)
+        .delayPenaltyPercent(parseFraction(delayPenaltyPercent))
         .updatedAt(entity.getUpdatedAt())
         .toPayAt(entity.getToPayAt())
         .customer(customerMapper.toDomain(entity.getCustomer()))

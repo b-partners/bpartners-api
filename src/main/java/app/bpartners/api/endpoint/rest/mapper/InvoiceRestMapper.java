@@ -57,7 +57,6 @@ public class InvoiceRestMapper {
         && domain.getToPayAt() == null) {
       toPayAt = domain.getValidityDate();
     }
-
     return new Invoice()
         .id(domain.getId())
         .fileId(domain.getFileId())
@@ -101,7 +100,6 @@ public class InvoiceRestMapper {
   public app.bpartners.api.model.Invoice toDomain(
       String accountId, String id, CrupdateInvoice rest) {
     crupdateInvoiceValidator.accept(rest);
-
     if (!hasAvailableReference(accountId, id, rest.getRef(), rest.getStatus())) {
       throw new BadRequestException("Invoice.reference=" + rest.getRef() + " is already used");
     }
@@ -128,6 +126,12 @@ public class InvoiceRestMapper {
         rest.getCustomer() == null
             ? Optional.empty()
             : Optional.of(customerRepository.findById(rest.getCustomer().getId()));
+    Integer delayInPaymentAllowed = rest.getDelayInPaymentAllowed();
+    Integer delayPenaltyPercent = rest.getDelayPenaltyPercent();
+    if (delayInPaymentAllowed == null || delayPenaltyPercent == null) {
+      delayPenaltyPercent = null;
+      delayInPaymentAllowed = null;
+    }
     return app.bpartners.api.model.Invoice.builder()
         .id(id)
         .title(rest.getTitle())
@@ -139,11 +143,8 @@ public class InvoiceRestMapper {
         .customer(optionalCustomer.orElse(null))
         .sendingDate(rest.getSendingDate())
         .validityDate(validityDate)
-        .delayInPaymentAllowed(rest.getDelayInPaymentAllowed())
-        .delayPenaltyPercent(
-            rest.getDelayPenaltyPercent() == null
-                ? parseFraction(DEFAULT_DELAY_PENALTY_PERCENT)
-                : parseFraction(rest.getDelayPenaltyPercent()))
+        .delayInPaymentAllowed(delayInPaymentAllowed)
+        .delayPenaltyPercent(parseFraction(delayPenaltyPercent))
         .status(rest.getStatus())
         .toPayAt(rest.getToPayAt())
         .account(accountService.getAccountById(accountId))

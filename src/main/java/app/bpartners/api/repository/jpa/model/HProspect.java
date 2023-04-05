@@ -42,4 +42,5 @@ public class HProspect {
   @Type(type = "pgsql_enum")
   @Enumerated(EnumType.STRING)
   private ProspectStatus status;
+  private Integer townCode;
 }

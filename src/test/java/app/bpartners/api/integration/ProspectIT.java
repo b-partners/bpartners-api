@@ -48,6 +48,7 @@ import static app.bpartners.api.integration.conf.TestUtils.setUpLegalFileReposit
 import static app.bpartners.api.integration.conf.TestUtils.setUpSwanComponent;
 import static app.bpartners.api.integration.conf.TestUtils.setUpUserSwanRepository;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -136,7 +137,8 @@ class ProspectIT {
         .status(TO_CONTACT)
         .email(null)
         .phone(null)
-        .address(null);
+        .address(null)
+        .townCode(92001);
   }
 
   Prospect prospect2() {
@@ -147,7 +149,8 @@ class ProspectIT {
         .status(TO_CONTACT)
         .email("janeDoe@gmail.com")
         .phone("+261340465339")
-        .address("30 Rue de la Montagne Sainte-Genevieve");
+        .address("30 Rue de la Montagne Sainte-Genevieve")
+        .townCode(92001);
   }
 
   Prospect prospect3() {
@@ -158,7 +161,8 @@ class ProspectIT {
         .status(TO_CONTACT)
         .email("markusAdams@gmail.com")
         .phone("+261340465340")
-        .address("30 Rue de la Montagne Sainte-Genevieve");
+        .address("30 Rue de la Montagne Sainte-Genevieve")
+        .townCode(92002);
   }
 
   UpdateProspect updateProspect() {
@@ -189,9 +193,10 @@ class ProspectIT {
 
     List<Prospect> actual = api.getProspects(SWAN_ACCOUNTHOLDER_ID);
 
+    assertEquals(2, actual.size());
     assertTrue(actual.contains(prospect1()));
     assertTrue(actual.contains(prospect2()));
-    assertTrue(actual.contains(prospect3()));
+    assertFalse(actual.contains(prospect3()));
   }
 
   @Test

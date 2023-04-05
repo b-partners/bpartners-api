@@ -25,4 +25,5 @@ public class Prospect {
   private Geojson location;
   private String address;
   private ProspectStatus status;
+  private Integer townCode;
 }

@@ -29,6 +29,7 @@ import org.apfloat.Aprational;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import static java.util.stream.Collectors.toUnmodifiableList;
 import static org.springframework.transaction.annotation.Isolation.SERIALIZABLE;
 
 @AllArgsConstructor
@@ -63,9 +64,10 @@ public class ProspectRepositoryImpl implements ProspectRepository {
             singleBuildingPermit);
       });
     }
-    return jpaRepository.findAllByIdAccountHolder(idAccountHolder).stream()
+    return jpaRepository.findAllByIdAccountHolderAndTownCode(idAccountHolder,
+            accountHolder.getTownCode()).stream()
         .map(prospect -> mapper.toDomain(prospect, isSogefiProspector))
-        .collect(Collectors.toUnmodifiableList());
+        .collect(toUnmodifiableList());
   }
 
   public boolean isSogefiProspector(String idAccountHolder) {
@@ -85,10 +87,10 @@ public class ProspectRepositoryImpl implements ProspectRepository {
 
     boolean isSogefiProspector = isSogefiProspector(authenticatedAccount.getId());
     List<HProspect> entities =
-        prospects.stream().map(mapper::toEntity).collect(Collectors.toUnmodifiableList());
+        prospects.stream().map(mapper::toEntity).collect(toUnmodifiableList());
     return jpaRepository.saveAll(entities).stream()
         .map(entity -> mapper.toDomain(entity, isSogefiProspector))
-        .collect(Collectors.toUnmodifiableList());
+        .collect(toUnmodifiableList());
   }
 
   @Override

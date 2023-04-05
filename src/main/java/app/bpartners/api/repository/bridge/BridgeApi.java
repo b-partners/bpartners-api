@@ -329,7 +329,7 @@ public class BridgeApi {
     }
   }
 
-  public BridgeBank findBankById(Integer id) {
+  public BridgeBank findBankById(Long id) {
     try {
       HttpRequest request = HttpRequest.newBuilder()
           .uri(new URI(conf.getBankUrl() + "/" + id))

@@ -22,7 +22,7 @@ public class BridgeAccount {
   @JsonProperty("id")
   private Long id;
   @JsonProperty("bank_id")
-  private Integer bankId;
+  private Long bankId;
   @JsonProperty("name")
   private String name;
   @JsonProperty("balance")

@@ -44,6 +44,7 @@ public class AccountRepositoryImpl implements AccountRepository {
 
     List<SwanAccount> swanAccounts = swanRepository.findByBearer(bearer);
     if (swanAccounts.isEmpty()) {
+      bankRepository.selfUpdateBankConnection();
       List<BridgeAccount> bridgeAccounts = bridgeRepository.findByBearer(bearer);
       if (bridgeAccounts.isEmpty()) {
         return List.of(authenticatedUser.getAccount());
@@ -63,6 +64,7 @@ public class AccountRepositoryImpl implements AccountRepository {
 
     List<SwanAccount> swanAccounts = swanRepository.findById(accountId);
     if (swanAccounts.isEmpty()) {
+      bankRepository.selfUpdateBankConnection();
       Optional<HAccount> optionalAccount = accountJpaRepository.findById(accountId);
       if (optionalAccount.isPresent()) {
         HAccount accountEntity = optionalAccount.get();
@@ -87,6 +89,7 @@ public class AccountRepositoryImpl implements AccountRepository {
 
     List<SwanAccount> swanAccounts = swanRepository.findByUserId(userId);
     if (swanAccounts.isEmpty()) {
+      bankRepository.selfUpdateBankConnection();
       List<BridgeAccount> bridgeAccounts = bridgeRepository.findAllByAuthenticatedUser();
       if (bridgeAccounts.isEmpty()) {
         Optional<HAccount> optionalAccount = accountJpaRepository.findByUser_Id(userId);

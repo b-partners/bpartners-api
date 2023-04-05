@@ -2,6 +2,7 @@ package app.bpartners.api.repository.jpa.model;
 
 import app.bpartners.api.endpoint.rest.model.EnableStatus;
 import app.bpartners.api.endpoint.rest.model.IdentificationStatus;
+import app.bpartners.api.model.BankConnection;
 import app.bpartners.api.repository.jpa.types.PostgresEnumType;
 import java.io.Serializable;
 import java.time.Instant;
@@ -52,6 +53,10 @@ public class HUser implements Serializable {
   private Instant tokenExpirationDatetime;
   private Instant tokenCreationDatetime;
   private int monthlySubscription;
+  private Long bridgeItemId;
+  private Instant bridgeItemUpdatedAt;
+  private Instant bridgeItemLastRefresh;
+  private BankConnection.BankConnectionStatus bankConnectionStatus;
   private String logoFileId;
   @Type(type = "pgsql_enum")
   @Enumerated(EnumType.STRING)

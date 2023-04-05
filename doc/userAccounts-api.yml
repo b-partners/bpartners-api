@@ -626,6 +626,9 @@ components:
           type: string
         postalCode:
           type: string
+        prospectingPerimeter:
+          type: integer
+          description: prospectingPerimeter unit is kilometer
     CompanyInfo:
       type: object
       properties:

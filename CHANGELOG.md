@@ -1,3 +1,18 @@
+# [0.13.0](https://github.com/b-partners/bpartners-api/compare/v0.12.0...v0.13.0) (2023-04-05)
+
+
+### Bug Fixes
+
+* choose unique default account from bridge when multiples are provided ([4be75cd](https://github.com/b-partners/bpartners-api/commit/4be75cd49880b2af7bb0f7e85e9870a83c4e88ae))
+* refactor account holder repository and avoid NPE when swan not provided ([dc37b00](https://github.com/b-partners/bpartners-api/commit/dc37b0096cd0c8b7ad0a3dc24a27f0acf2015966))
+
+
+### Features
+
+* accountHolder has custom prospecting perimeter ([a3eb1ce](https://github.com/b-partners/bpartners-api/commit/a3eb1ceb21e32b92d4724bb9da3b3dabc5517aa6))
+
+
+
 # [0.12.0](https://github.com/b-partners/bpartners-api/compare/v0.11.0...v0.12.0) (2023-04-04)
 
 
@@ -164,30 +179,6 @@
 ### Features
 
 * add comment field to customer ([a0e8beb](https://github.com/b-partners/bpartners-api/commit/a0e8beba9b089853e225c46e41e34efd04f75704))
-
-
-
-# [0.5.0](https://github.com/b-partners/bpartners-api/compare/v0.4.4...v0.5.0) (2023-02-02)
-
-
-### Bug Fixes
-
-* add input in Sched Depl compute ([#444](https://github.com/b-partners/bpartners-api/issues/444)) ([a746e1d](https://github.com/b-partners/bpartners-api/commit/a746e1dc6d03496367b0c9b157f4ad37b08371e8))
-* attachments are persisted ([a424f5f](https://github.com/b-partners/bpartners-api/commit/a424f5fd5711fa30f9482304735c2da52b09196c))
-* condition to run tests in cd-compute ([#446](https://github.com/b-partners/bpartners-api/issues/446)) ([f483ec4](https://github.com/b-partners/bpartners-api/commit/f483ec4df0b622a984ba336f725f2a4f16df1b6b))
-* cron to run GHA on Madagascar Timezone ([#443](https://github.com/b-partners/bpartners-api/issues/443)) ([11b321a](https://github.com/b-partners/bpartners-api/commit/11b321a7c1aad2df270e6bd7e3a4adb1e2431ebd))
-* event to trigger test step in cd-compute.yml ([#439](https://github.com/b-partners/bpartners-api/issues/439)) ([dee247a](https://github.com/b-partners/bpartners-api/commit/dee247a57782bc3b66beb8c816eccb7c9e465949))
-* reference input in workflow_call ([#445](https://github.com/b-partners/bpartners-api/issues/445)) ([9a6ff8f](https://github.com/b-partners/bpartners-api/commit/9a6ff8f0ec00e22d8115a7a8f8def87ee6596dbc))
-* run tests when trigger is not 'schedule' and run_test different from false ([#448](https://github.com/b-partners/bpartners-api/issues/448)) ([11380c2](https://github.com/b-partners/bpartners-api/commit/11380c23851a6caad0892c9a8a0de56e30bde0d0))
-* Sched Depl compute workflow path ([#438](https://github.com/b-partners/bpartners-api/issues/438)) ([5dfd629](https://github.com/b-partners/bpartners-api/commit/5dfd6299df6760baba1f7f3ece7e5280b5842c9b))
-* validity date attribute compatibility is transitional during invoice crudpate ([f649991](https://github.com/b-partners/bpartners-api/commit/f649991be3f068035e6136301eeae261181d70cc))
-
-
-### Features
-
-* add attachments to mail ([2f94cb0](https://github.com/b-partners/bpartners-api/commit/2f94cb0ec3014e91f5db3f68f9a9b8ed656a9f27))
-* add revenue targets to account holder ([dd23285](https://github.com/b-partners/bpartners-api/commit/dd23285596bc3e8e7ade46eaf779d42c5bdbf292))
-* handle multiple payments initiation ([b2c5e94](https://github.com/b-partners/bpartners-api/commit/b2c5e94a083b07fd08ad9c4ca4e3f8e99d189e8b))
 
 
 

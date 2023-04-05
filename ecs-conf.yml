@@ -3,7 +3,7 @@ envs:
     vCpu: 256
     memory: 0.5GB
     tasksDesiredCount: 2
-    listenerRuleAvailablePriority: 1
+    listenerRuleAvailablePriority: 30
   preprod:
     vCpu: 256
     memory: 0.5GB

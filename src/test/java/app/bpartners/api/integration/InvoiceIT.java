@@ -12,6 +12,7 @@ import app.bpartners.api.endpoint.rest.model.InvoiceDiscount;
 import app.bpartners.api.endpoint.rest.model.PaymentRegulation;
 import app.bpartners.api.endpoint.rest.model.PaymentRequest;
 import app.bpartners.api.endpoint.rest.model.Product;
+import app.bpartners.api.endpoint.rest.model.UpdateInvoiceArchivedStatus;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
 import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
 import app.bpartners.api.integration.conf.S3AbstractContextInitializer;
@@ -49,6 +50,8 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
 
+import static app.bpartners.api.endpoint.rest.model.ArchiveStatus.DISABLED;
+import static app.bpartners.api.endpoint.rest.model.ArchiveStatus.ENABLED;
 import static app.bpartners.api.endpoint.rest.model.CrupdateInvoice.PaymentTypeEnum.IN_INSTALMENT;
 import static app.bpartners.api.endpoint.rest.model.Invoice.PaymentTypeEnum.CASH;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
@@ -279,6 +282,7 @@ class InvoiceIT {
         .delayInPaymentAllowed(null)
         .delayPenaltyPercent(0)
         .status(CONFIRMED)
+        .archiveStatus(ENABLED)
         .products(List.of(product3(), product4()))
         .totalPriceWithVat(8800)
         .totalVat(800)
@@ -290,6 +294,34 @@ class InvoiceIT {
         .metadata(Map.of());
   }
 
+  private static Invoice expectedMultiplePayments(String id, Invoice actualConfirmed) {
+    return new Invoice()
+        .id(actualConfirmed.getId())
+        .title(actualConfirmed.getTitle())
+        .ref(actualConfirmed.getRef())
+        .archiveStatus(actualConfirmed.getArchiveStatus())
+        .paymentType(actualConfirmed.getPaymentType())
+        .createdAt(actualConfirmed.getCreatedAt())
+        .updatedAt(actualConfirmed.getUpdatedAt())
+        .fileId(actualConfirmed.getFileId())
+        .products(List.of(product4().id(null)))
+        .totalVat(actualConfirmed.getTotalVat())
+        .status(actualConfirmed.getStatus())
+        .metadata(actualConfirmed.getMetadata())
+        .toPayAt(actualConfirmed.getToPayAt())
+        .sendingDate(actualConfirmed.getSendingDate())
+        .totalPriceWithoutDiscount(2000)
+        .totalPriceWithVat(actualConfirmed.getTotalPriceWithVat())
+        .totalPriceWithoutVat(actualConfirmed.getTotalPriceWithoutVat())
+        .customer(actualConfirmed.getCustomer())
+        .delayPenaltyPercent(actualConfirmed.getDelayPenaltyPercent())
+        .delayInPaymentAllowed(actualConfirmed.getDelayInPaymentAllowed())
+        .paymentUrl(actualConfirmed.getPaymentUrl())
+        .globalDiscount(new InvoiceDiscount()
+            .amountValue(0)
+            .percentValue(0))
+        .paymentRegulations(confirmedPaymentRegulations(id));
+  }
 
   Invoice invoice2() {
     return new Invoice()
@@ -307,39 +339,12 @@ class InvoiceIT {
         .delayInPaymentAllowed(null)
         .delayPenaltyPercent(0)
         .status(CONFIRMED)
+        .archiveStatus(ENABLED)
         .products(List.of(product5()))
         .totalPriceWithVat(1100)
         .totalVat(100)
         .totalPriceWithoutVat(1000)
         .totalPriceWithoutDiscount(1000)
-        .globalDiscount(new InvoiceDiscount()
-            .amountValue(0)
-            .percentValue(0))
-        .metadata(Map.of());
-  }
-
-  Invoice invoice6() {
-    return new Invoice()
-        .id("invoice6_id")
-        .paymentUrl(null)
-        .comment(null)
-        .ref(DRAFT_REF_PREFIX + "BP007")
-        .title("Facture transaction")
-        .customer(customer1())
-        .status(DRAFT)
-        .createdAt(Instant.parse("2022-01-01T06:00:00Z"))
-        .sendingDate(LocalDate.of(2022, 10, 12))
-        .validityDate(LocalDate.of(2022, 11, 12))
-        .delayInPaymentAllowed(null)
-        .delayPenaltyPercent(0)
-        .paymentRegulations(List.of())
-        .paymentType(CASH)
-        .toPayAt(LocalDate.of(2022, 11, 10))
-        .products(List.of())
-        .totalPriceWithVat(0)
-        .totalPriceWithoutVat(0)
-        .totalPriceWithoutDiscount(0)
-        .totalVat(0)
         .globalDiscount(new InvoiceDiscount()
             .amountValue(0)
             .percentValue(0))
@@ -395,6 +400,35 @@ class InvoiceIT {
         .metadata(Map.of());
   }
 
+  Invoice invoice6() {
+    return new Invoice()
+        .id("invoice6_id")
+        .paymentUrl(null)
+        .comment(null)
+        .ref(DRAFT_REF_PREFIX + "BP007")
+        .title("Facture transaction")
+        .customer(customer1())
+        .status(DRAFT)
+        .archiveStatus(ENABLED)
+        .createdAt(Instant.parse("2022-01-01T06:00:00Z"))
+        .sendingDate(LocalDate.of(2022, 10, 12))
+        .validityDate(LocalDate.of(2022, 11, 12))
+        .delayInPaymentAllowed(null)
+        .delayPenaltyPercent(0)
+        .paymentRegulations(List.of())
+        .paymentType(CASH)
+        .toPayAt(LocalDate.of(2022, 11, 10))
+        .products(List.of())
+        .totalPriceWithVat(0)
+        .totalPriceWithoutVat(0)
+        .totalPriceWithoutDiscount(0)
+        .totalVat(0)
+        .globalDiscount(new InvoiceDiscount()
+            .amountValue(0)
+            .percentValue(0))
+        .metadata(Map.of());
+  }
+
   Invoice expectedConfirmed() {
     return new Invoice()
         .paymentUrl(null)
@@ -402,6 +436,7 @@ class InvoiceIT {
         .title(confirmedInvoice().getTitle())
         .customer(confirmedInvoice().getCustomer())
         .status(CONFIRMED)
+        .archiveStatus(ENABLED)
         .sendingDate(confirmedInvoice().getSendingDate())
         .products(List.of(product5().id(null)))
         .paymentRegulations(List.of(expectedDated1(), expectedDated2()))
@@ -430,6 +465,7 @@ class InvoiceIT {
         .totalPriceWithoutDiscount(0)
         .totalPriceWithVat(0)
         .status(DRAFT)
+        .archiveStatus(ENABLED)
         .delayInPaymentAllowed(DEFAULT_TO_PAY_DELAY_DAYS)
         .delayPenaltyPercent(DEFAULT_DELAY_PENALTY_PERCENT)
         .globalDiscount(new InvoiceDiscount()
@@ -445,6 +481,7 @@ class InvoiceIT {
         .title(paidInvoice().getTitle())
         .customer(paidInvoice().getCustomer())
         .status(PAID)
+        .archiveStatus(ENABLED)
         .sendingDate(paidInvoice().getSendingDate())
         .products(List.of(product5().id(null)))
         .paymentType(Invoice.PaymentTypeEnum.IN_INSTALMENT)
@@ -459,34 +496,6 @@ class InvoiceIT {
         .globalDiscount(new InvoiceDiscount()
             .amountValue(0)
             .percentValue(0));
-  }
-
-  private static Invoice expectedMultiplePayments(String id, Invoice actualConfirmed) {
-    return new Invoice()
-        .id(actualConfirmed.getId())
-        .title(actualConfirmed.getTitle())
-        .ref(actualConfirmed.getRef())
-        .paymentType(actualConfirmed.getPaymentType())
-        .createdAt(actualConfirmed.getCreatedAt())
-        .updatedAt(actualConfirmed.getUpdatedAt())
-        .fileId(actualConfirmed.getFileId())
-        .products(List.of(product4().id(null)))
-        .totalVat(actualConfirmed.getTotalVat())
-        .status(actualConfirmed.getStatus())
-        .metadata(actualConfirmed.getMetadata())
-        .toPayAt(actualConfirmed.getToPayAt())
-        .sendingDate(actualConfirmed.getSendingDate())
-        .totalPriceWithoutDiscount(2000)
-        .totalPriceWithVat(actualConfirmed.getTotalPriceWithVat())
-        .totalPriceWithoutVat(actualConfirmed.getTotalPriceWithoutVat())
-        .customer(actualConfirmed.getCustomer())
-        .delayPenaltyPercent(actualConfirmed.getDelayPenaltyPercent())
-        .delayInPaymentAllowed(actualConfirmed.getDelayInPaymentAllowed())
-        .paymentUrl(actualConfirmed.getPaymentUrl())
-        .globalDiscount(new InvoiceDiscount()
-            .amountValue(0)
-            .percentValue(0))
-        .paymentRegulations(confirmedPaymentRegulations(id));
   }
 
   private static List<PaymentRegulation> initPaymentReg(String id) {
@@ -829,6 +838,7 @@ class InvoiceIT {
     assertEquals(expectedDraft()
             .delayInPaymentAllowed(30)
             .fileId(actualUpdatedDraft.getFileId())
+            .archiveStatus(ENABLED)
             .createdAt(actualUpdatedDraft.getCreatedAt())
             .updatedAt(actualUpdatedDraft.getUpdatedAt()),
         actualUpdatedDraft
@@ -857,6 +867,7 @@ class InvoiceIT {
     assertEquals(expectedConfirmed()
             .id(actualConfirmed.getId())
             .fileId(actualConfirmed.getFileId())
+            .archiveStatus(ENABLED)
             .sendingDate(LocalDate.now())
             .updatedAt(actualConfirmed.getUpdatedAt()),
         actualConfirmed.createdAt(null));
@@ -897,6 +908,7 @@ class InvoiceIT {
     assertEquals(new Invoice()
             .id(id)
             .status(DRAFT)
+            .archiveStatus(ENABLED)
             .products(List.of(product4().id(null)))
             .paymentType(CASH)
             .paymentRegulations(List.of())
@@ -1097,7 +1109,7 @@ class InvoiceIT {
     List<Invoice> actual2 = api.getInvoices(JOE_DOE_ACCOUNT_ID, 2, 5, null);
 
     assertEquals(5, actual1.size());
-    assertEquals(2, actual2.size());
+    assertEquals(3, actual2.size());
     assertTrue(actual1.get(0).getCreatedAt().isAfter(actual1.get(1).getCreatedAt()));
     assertTrue(actual1.get(1).getCreatedAt().isAfter(actual1.get(2).getCreatedAt()));
     assertTrue(actual1.get(2).getCreatedAt().isAfter(actual1.get(3).getCreatedAt()));
@@ -1162,6 +1174,21 @@ class InvoiceIT {
 
     Invoice peristed2 = api.getInvoiceById(JOE_DOE_ACCOUNT_ID, invoice.getId());
     assertEquals(2, peristed2.getPaymentRegulations().size());
+  }
+
+  @Test
+  void archive_invoice_ok() throws ApiException {
+    ApiClient joeDoeClient = anApiClient();
+    PayingApi api = new PayingApi(joeDoeClient);
+
+    Invoice beforeChange = api.getInvoiceById(JOE_DOE_ACCOUNT_ID, INVOICE1_ID);
+    List<Invoice> actual =
+        api.archiveInvoices(JOE_DOE_ACCOUNT_ID, List.of(new UpdateInvoiceArchivedStatus()
+            .id(INVOICE1_ID)
+            .archiveStatus(DISABLED)));
+
+    assertNotEquals(beforeChange.getArchiveStatus(), actual.get(0).getArchiveStatus());
+    assertEquals(DISABLED, actual.get(0).getArchiveStatus());
   }
 
   private List<Product> ignoreIdsOf(List<Product> actual) {

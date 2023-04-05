@@ -24,6 +24,7 @@ import app.bpartners.api.endpoint.rest.model.TransactionCategory;
 import app.bpartners.api.endpoint.rest.model.TransactionStatus;
 import app.bpartners.api.endpoint.rest.model.UpdateCustomerStatus;
 import app.bpartners.api.endpoint.rest.model.User;
+import app.bpartners.api.endpoint.rest.model.ValidityStatus;
 import app.bpartners.api.endpoint.rest.security.model.Principal;
 import app.bpartners.api.endpoint.rest.security.principal.PrincipalProvider;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
@@ -137,6 +138,7 @@ public class TestUtils {
   public static final String INVOICE3_ID = "invoice3_id";
   public static final String INVOICE4_ID = "invoice4_id";
   public static final String INVOICE7_ID = "invoice7_id";
+  public static final String INVOICE8_ID = "invoice8_id";
   public static final String FILE_ID = "test.jpeg";
   public static final String TEST_FILE_ID = "test.jpeg";
   public static final String OTHER_TEST_FILE_ID = "image.jpeg";
@@ -813,6 +815,7 @@ public class TestUtils {
         .delayInPaymentAllowed(null)
         .delayPenaltyPercent(DEFAULT_DELAY_PENALTY_PERCENT)
         .status(CONFIRMED)
+        .validityStatus(ValidityStatus.ENABLED)
         .products(List.of(product3(), product4()))
         .totalPriceWithVat(8800)
         .totalVat(800)
@@ -841,6 +844,7 @@ public class TestUtils {
         .delayInPaymentAllowed(DEFAULT_TO_PAY_DELAY_DAYS)
         .delayPenaltyPercent(DEFAULT_DELAY_PENALTY_PERCENT)
         .status(CONFIRMED)
+        .validityStatus(ValidityStatus.ENABLED)
         .products(List.of(product5()))
         .totalPriceWithVat(1100)
         .totalVat(100).totalPriceWithoutVat(1000)

@@ -2,6 +2,7 @@ package app.bpartners.api.unit.service;
 
 import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
+import app.bpartners.api.endpoint.rest.model.ValidityStatus;
 import app.bpartners.api.endpoint.rest.security.principal.PrincipalProvider;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.AccountHolder;
@@ -85,6 +86,7 @@ class InvoiceRelaunchServiceTest {
                 HInvoice.builder()
                     .id(INVOICE1_ID)
                     .toBeRelaunched(true)
+                    .validityStatus(ValidityStatus.ENABLED)
                     .sendingDate(LocalDate.now().minusDays(10))
                     .build()
             )
@@ -109,6 +111,7 @@ class InvoiceRelaunchServiceTest {
                         .build()
                 )
                 .status(InvoiceStatus.PROPOSAL)
+                .validityStatus(ValidityStatus.ENABLED)
                 .build()
         );
     when(invoiceRelaunchRepository.getByInvoiceId(
@@ -127,6 +130,7 @@ class InvoiceRelaunchServiceTest {
                     Invoice
                         .builder()
                         .status(InvoiceStatus.PROPOSAL)
+                        .validityStatus(ValidityStatus.ENABLED)
                         .customer(
                             Customer.builder()
                                 .firstName("someName")

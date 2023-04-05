@@ -44,6 +44,7 @@ import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
 import static app.bpartners.api.integration.conf.TestUtils.INVOICE1_ID;
 import static app.bpartners.api.integration.conf.TestUtils.INVOICE3_ID;
 import static app.bpartners.api.integration.conf.TestUtils.INVOICE7_ID;
+import static app.bpartners.api.integration.conf.TestUtils.INVOICE8_ID;
 import static app.bpartners.api.integration.conf.TestUtils.INVOICE_RELAUNCH1_ID;
 import static app.bpartners.api.integration.conf.TestUtils.INVOICE_RELAUNCH2_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
@@ -290,6 +291,11 @@ class InvoiceRelaunchIT {
         "{\"type\":\"400 BAD_REQUEST\",\"message\":\"Invoice.invoice7_id actual status is"
             + " PAID and it cannot be relaunched\"}",
         () -> api.relaunchInvoice(JOE_DOE_ACCOUNT_ID, INVOICE7_ID, creatableInvoiceRelaunch()));
+    assertThrowsApiException(
+        "{\"type\":\"400 BAD_REQUEST\",\"message\":\""
+            + "Invoice.invoice8_id is already DISABLED."
+            + "\"}",
+        () -> api.relaunchInvoice(JOE_DOE_ACCOUNT_ID, INVOICE8_ID, creatableInvoiceRelaunch()));
   }
 
   private List<InvoiceRelaunch> ignoreDates(List<InvoiceRelaunch> list) {

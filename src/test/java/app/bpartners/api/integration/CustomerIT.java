@@ -7,6 +7,7 @@ import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
 import app.bpartners.api.endpoint.rest.model.CreateCustomer;
 import app.bpartners.api.endpoint.rest.model.Customer;
+import app.bpartners.api.endpoint.rest.model.CustomerStatus;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
 import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
 import app.bpartners.api.integration.conf.AbstractContextInitializer;
@@ -43,6 +44,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import static app.bpartners.api.endpoint.rest.model.CustomerStatus.DISABLED;
+import static app.bpartners.api.endpoint.rest.model.CustomerStatus.ENABLED;
 import static app.bpartners.api.integration.conf.TestUtils.BAD_USER_ID;
 import static app.bpartners.api.integration.conf.TestUtils.BEARER_PREFIX;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
@@ -53,6 +56,7 @@ import static app.bpartners.api.integration.conf.TestUtils.assertThrowsApiExcept
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsForbiddenException;
 import static app.bpartners.api.integration.conf.TestUtils.customer1;
 import static app.bpartners.api.integration.conf.TestUtils.customer2;
+import static app.bpartners.api.integration.conf.TestUtils.customerDisabled;
 import static app.bpartners.api.integration.conf.TestUtils.customerUpdated;
 import static app.bpartners.api.integration.conf.TestUtils.customerWithSomeNullAttributes;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountHolderSwanRep;
@@ -62,6 +66,7 @@ import static app.bpartners.api.integration.conf.TestUtils.setUpSwanComponent;
 import static app.bpartners.api.integration.conf.TestUtils.setUpUserSwanRepository;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
@@ -131,19 +136,27 @@ class CustomerIT {
     CustomersApi api = new CustomersApi(joeDoeClient);
 
     List<Customer> actualNoFilter = api.getCustomers(
-        JOE_DOE_ACCOUNT_ID, null, null, null, null, null, null, 1, 20);
+        JOE_DOE_ACCOUNT_ID, null, null, null, null, null, null,
+        null, 1, 20);
     List<Customer> actualFilteredByFirstAndLastName = api.getCustomers(
-        JOE_DOE_ACCOUNT_ID, "Jean", "Plombier", null, null, null, null, 1, 20);
+        JOE_DOE_ACCOUNT_ID, "Jean", "Plombier", null, null, null, null,
+        null, 1, 20);
     List<Customer> actualFilteredByEmail = api.getCustomers(
-        JOE_DOE_ACCOUNT_ID, null, null, "bpartners.artisans@gmail.com", null, null, null, 1, 20);
+        JOE_DOE_ACCOUNT_ID, null, null,
+        "bpartners.artisans@gmail.com", null, null, null,
+        null, 1, 20);
     List<Customer> actualFilteredByPhoneNumber = api.getCustomers(
-        JOE_DOE_ACCOUNT_ID, null, null, null, "+33 12 34 56 78", null, null, 1, 20);
+        JOE_DOE_ACCOUNT_ID, null, null, null, "+33 12 34 56 78", null, null,
+        null, 1, 20);
     List<Customer> actualFilteredByCity = api.getCustomers(
-        JOE_DOE_ACCOUNT_ID, null, null, null, null, "Metz", null, 1, 20);
+        JOE_DOE_ACCOUNT_ID, null, null, null, null, "Metz", null,
+        null, 1, 20);
     List<Customer> actualFilteredByCountry = api.getCustomers(
-        JOE_DOE_ACCOUNT_ID, null, null, null, null, null, "Allemagne", 1, 20);
+        JOE_DOE_ACCOUNT_ID, null, null, null, null, null, "Allemagne",
+        null, 1, 20);
     List<Customer> actualFilteredByFirstNameAndCity = api.getCustomers(
-        JOE_DOE_ACCOUNT_ID, "Jean", null, null, null, "Montmorency", null, 1, 20);
+        JOE_DOE_ACCOUNT_ID, "Jean", null, null, null, "Montmorency", null,
+        null, 1, 20);
     List<Customer> allFilteredResults = new ArrayList<>();
     allFilteredResults.addAll(actualFilteredByFirstAndLastName);
     allFilteredResults.addAll(actualFilteredByEmail);
@@ -177,7 +190,7 @@ class CustomerIT {
     CustomersApi api = new CustomersApi(joeDoeClient);
 
     assertThrowsForbiddenException(
-        () -> api.getCustomers(BAD_USER_ID, null, null, null, null, null, null, null, null));
+        () -> api.getCustomers(BAD_USER_ID, null, null, null, null, null, null, null, null, null));
   }
 
   @Order(2)
@@ -195,7 +208,7 @@ class CustomerIT {
             List.of(createCustomer1().firstName("NotNullFirstName").lastName("NotNullLastName")));
 
     List<Customer> actualList = api.getCustomers(
-        JOE_DOE_ACCOUNT_ID, null, null, null, null, null, null, 1, 20);
+        JOE_DOE_ACCOUNT_ID, null, null, null, null, null, null, null, 1, 20);
     assertTrue(actualList.containsAll(actual1));
     assertEquals(actual1.get(0).id(null), actual2.get(0).id(null));
     assertEquals(actual1.get(0)
@@ -222,7 +235,7 @@ class CustomerIT {
 
     List<Customer> actual = api.updateCustomers(JOE_DOE_ACCOUNT_ID, List.of(customerUpdated()));
     List<Customer> existingCustomers = api.getCustomers(JOE_DOE_ACCOUNT_ID,
-        "Marc", "Montagnier", null, null, null, null, 1, 20);
+        "Marc", "Montagnier", null, null, null, null, null, 1, 20);
 
     assertTrue(existingCustomers.containsAll(actual));
   }
@@ -292,6 +305,29 @@ class CustomerIT {
             + "\"Commentaires\" instead of \"comments\" at the last column."
             + "\"}", response.body().replace("\\", "")
     );
+  }
+
+  @Order(6)
+  @Test
+  void read_and_update_disabled_customers_ok() throws ApiException {
+    ApiClient joeDoeClient = anApiClient();
+    CustomersApi api = new CustomersApi(joeDoeClient);
+
+    List<Customer> actual =
+        api.updateCustomerStatus(JOE_DOE_ACCOUNT_ID, List.of(customerDisabled()));
+    List<Customer> enabledCustomers = api.getCustomers(
+        JOE_DOE_ACCOUNT_ID, null, null, null, null, null, null,
+        ENABLED, 1, 20);
+    List<Customer> disabledCustomers = api.getCustomers(
+        JOE_DOE_ACCOUNT_ID, null, null, null, null, null, null,
+        DISABLED, 1, 20);
+
+    assertTrue(disabledCustomers.containsAll(actual));
+    assertTrue(enabledCustomers.stream()
+        .allMatch(customer -> customer.getStatus() == ENABLED));
+    assertTrue(disabledCustomers.stream()
+        .allMatch(customer -> customer.getStatus() == CustomerStatus.DISABLED));
+    assertFalse(enabledCustomers.containsAll(disabledCustomers));
   }
 
   private HttpResponse<String> uploadFile(String accountId, File toUpload)

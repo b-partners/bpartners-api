@@ -38,6 +38,10 @@ public class AccountHolderService {
         .build());
   }
 
+  public AccountHolder updateGlobalInfo(AccountHolder accountHolder) {
+    return accountHolderRepository.save(accountHolder);
+  }
+
   //TODO: map this update with the companyInfoUpdate and refactor to save method only
   public AccountHolder updateBusinessActivities(
       String optionalAccountId,

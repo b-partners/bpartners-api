@@ -9,6 +9,7 @@ import app.bpartners.api.endpoint.rest.model.Account;
 import app.bpartners.api.endpoint.rest.model.AccountStatus;
 import app.bpartners.api.endpoint.rest.model.BankConnectionRedirection;
 import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
+import app.bpartners.api.endpoint.rest.model.UpdateAccountIdentity;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
 import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
 import app.bpartners.api.integration.conf.AbstractContextInitializer;
@@ -143,6 +144,13 @@ class AccountIT {
         .build();
   }
 
+  public static UpdateAccountIdentity accountIdentity() {
+    return new UpdateAccountIdentity()
+        .name(null)
+        .bic("SWNBFR23")
+        .iban(null);
+  }
+
   @BeforeEach
   public void setUp() {
     setUpSwanComponent(swanComponentMock);
@@ -160,8 +168,8 @@ class AccountIT {
         .name(joeDoeSwanAccount().getName())
         .iban(joeDoeSwanAccount().getIban())
         .bic(joeDoeSwanAccount().getBic())
-        .IBAN(joeDoeSwanAccount().getIban())
-        .BIC(joeDoeSwanAccount().getBic())
+        .iban(joeDoeSwanAccount().getIban())
+        .bic(joeDoeSwanAccount().getBic())
         .availableBalance(100000);
   }
 
@@ -380,6 +388,31 @@ class AccountIT {
     UserAccountsApi api = new UserAccountsApi(joeDoeClient);
 
     assertThrowsForbiddenException(() -> api.getAccountsByUserId(OTHER_USER_ID));
+  }
+
+  @Test
+  void update_account_identity_ok() throws ApiException {
+    ApiClient joeDoeClient = anApiClient();
+    UserAccountsApi api = new UserAccountsApi(joeDoeClient);
+
+    Account actual = api.updateAccountIdentity(
+        JOE_DOE_ID, JOE_DOE_ACCOUNT_ID, accountIdentity());
+
+    assertEquals(joeDoeAccount().getId(), actual.getId());
+    assertEquals(accountIdentity().getBic(), actual.getBic());
+    assertEquals(joeDoeAccount().getIban(), actual.getIban());
+    assertEquals(joeDoeAccount().getName(), actual.getName());
+  }
+
+  @Test
+  void update_account_identity_ko() throws ApiException {
+    ApiClient joeDoeClient = anApiClient();
+    UserAccountsApi api = new UserAccountsApi(joeDoeClient);
+
+    assertThrowsApiException(
+        "{\"type\":\"400 BAD_REQUEST\",\"message\":\"bic is mandatory.\"}"
+        , () -> api.updateAccountIdentity(JOE_DOE_ID, JOE_DOE_ACCOUNT_ID,
+            accountIdentity().bic(null)));
   }
 
   static class ContextInitializer extends AbstractContextInitializer {

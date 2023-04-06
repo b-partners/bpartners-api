@@ -1,5 +1,6 @@
 package app.bpartners.api.model;
 
+import app.bpartners.api.endpoint.rest.model.CustomerStatus;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -29,6 +30,7 @@ public class Customer {
   protected String city;
   protected String country;
   protected String comment;
+  protected CustomerStatus status;
 
   public String getFirstName() {
     return firstName;

@@ -53,4 +53,5 @@ public class HAccountHolder implements Serializable {
   private Double longitude;
   private Double latitude;
   private Integer townCode;
+  private int prospectingPerimeter;
 }

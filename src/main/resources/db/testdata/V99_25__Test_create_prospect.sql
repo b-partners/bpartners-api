@@ -1,20 +1,20 @@
-insert into prospect (id, name, phone, email, address, status, id_account_holder)
+insert into prospect (id, name, phone, email, address, status, id_account_holder, town_code)
 values ('prospect1_id', null, null, null, null, 'TO_CONTACT',
-        'b33e6eb0-e262-4596-a91f-20c6a7bfd343'),
+        'b33e6eb0-e262-4596-a91f-20c6a7bfd343', 92001),
        ('prospect2_id', 'jane doe', '+261340465339', 'janeDoe@gmail.com', '30 Rue de la Montagne Sainte-Genevieve', 'TO_CONTACT',
-        'b33e6eb0-e262-4596-a91f-20c6a7bfd343'),
+        'b33e6eb0-e262-4596-a91f-20c6a7bfd343', 92001),
        ('prospect3_id', 'markus adams', '+261340465340', 'markusAdams@gmail.com', '30 Rue de la Montagne Sainte-Genevieve',
         'TO_CONTACT',
-        'b33e6eb0-e262-4596-a91f-20c6a7bfd343'),
+        'b33e6eb0-e262-4596-a91f-20c6a7bfd343', 92002),
        ('prospect4_id', 'Alyssa Hain', '+261340465341', 'alyssaHain@gmail.com', '30 Rue de la Montagne Sainte-Genevieve',
         'CONTACTED',
-        'b33e6eb0-e262-4596-a91f-20c6a7bfd343'),
+        'b33e6eb0-e262-4596-a91f-20c6a7bfd343', null),
        ('prospect5_id', 'Michele Klaffs', '+261340465342', 'micheleKlaffs@gmail.com', '30 Rue de la Montagne Sainte-Genevieve',
         'CONTACTED',
-        'b33e6eb0-e262-4596-a91f-20c6a7bfd343'),
+        'b33e6eb0-e262-4596-a91f-20c6a7bfd343', null),
        ('prospect6_id', 'Timmie	Accombe', '+261340465343', 'timmieAccombe@gmail.com', '30 Rue de la Montagne Sainte-Genevieve',
         'CONVERTED',
-        'b33e6eb0-e262-4596-a91f-20c6a7bfd343'),
+        'b33e6eb0-e262-4596-a91f-20c6a7bfd343', null),
        ('prospect7_id', 'Killy	Waddilove', '+261340465344', 'killyWaddilove@gmail.com', '30 Rue de la Montagne Sainte-Genevieve',
         'CONVERTED',
-        'b33e6eb0-e262-4596-a91f-20c6a7bfd343');
+        'b33e6eb0-e262-4596-a91f-20c6a7bfd343', null);

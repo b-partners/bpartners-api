@@ -35,10 +35,14 @@ paths:
     $ref: './userAccounts-api.yml#/operations/getUserById'
   /users/{id}/accounts:
     $ref: './userAccounts-api.yml#/operations/getAccountsByUserId'
+  /users/{userId}/accounts/{accountId}/identity:
+    $ref: './userAccounts-api.yml#/operations/updateAccountIdentity'
   /users/{userId}/accounts/{accountId}/initiateBankConnection:
     $ref: './userAccounts-api.yml#/operations/initiateBankConnection'
   /users/{userId}/accounts/{accountId}/accountHolders:
     $ref: './userAccounts-api.yml#/operations/getAccountHolders'
+  /users/{userId}/accounts/{accountId}/accountHolders/{ahId}/globalInfo:
+    $ref: './userAccounts-api.yml#/operations/updateAccountHolderInfo'
   /users/{userId}/accounts/{accountId}/accountHolders/{ahId}/companyInfo:
     $ref: './userAccounts-api.yml#/operations/updateCompanyInfo'
   /users/{userId}/accounts/{accountId}/accountHolders/{ahId}/revenueTargets:
@@ -102,6 +106,8 @@ paths:
     $ref: './customers-api.yml#/operations/getOrCreateCustomers'
   /accounts/{id}/customers/upload:
     $ref: './customers-api.yml#/operations/importCustomers'
+  /accounts/{id}/customers/status:
+    $ref: './customers-api.yml#/operations/updateCustomerStatus'
 
   #############################################
   ############# Prospecting API ###############

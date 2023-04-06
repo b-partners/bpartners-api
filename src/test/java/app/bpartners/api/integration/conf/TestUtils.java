@@ -11,6 +11,7 @@ import app.bpartners.api.endpoint.rest.model.CreateAccountInvoiceRelaunchConf;
 import app.bpartners.api.endpoint.rest.model.CreateAnnualRevenueTarget;
 import app.bpartners.api.endpoint.rest.model.CreateProduct;
 import app.bpartners.api.endpoint.rest.model.Customer;
+import app.bpartners.api.endpoint.rest.model.CustomerStatus;
 import app.bpartners.api.endpoint.rest.model.Geojson;
 import app.bpartners.api.endpoint.rest.model.Invoice;
 import app.bpartners.api.endpoint.rest.model.InvoiceDiscount;
@@ -21,6 +22,7 @@ import app.bpartners.api.endpoint.rest.model.Product;
 import app.bpartners.api.endpoint.rest.model.ProductStatus;
 import app.bpartners.api.endpoint.rest.model.TransactionCategory;
 import app.bpartners.api.endpoint.rest.model.TransactionStatus;
+import app.bpartners.api.endpoint.rest.model.UpdateCustomerStatus;
 import app.bpartners.api.endpoint.rest.model.User;
 import app.bpartners.api.endpoint.rest.security.model.Principal;
 import app.bpartners.api.endpoint.rest.security.principal.PrincipalProvider;
@@ -328,7 +330,8 @@ public class TestUtils {
         .zipCode(95160)
         .city("Metz")
         .country(null)
-        .comment("Rencontre avec Luc");
+        .comment("Rencontre avec Luc")
+        .status(CustomerStatus.ENABLED);
   }
 
   public static Customer customer2() {
@@ -343,7 +346,8 @@ public class TestUtils {
         .zipCode(95160)
         .city("Montmorency")
         .country("France")
-        .comment("Rencontre avec le plombier");
+        .comment("Rencontre avec le plombier")
+        .status(CustomerStatus.ENABLED);
   }
 
   public static Customer customerUpdated() {
@@ -358,7 +362,8 @@ public class TestUtils {
         .zipCode(95160)
         .city("Montmorency")
         .country("France")
-        .comment("Rencontre avec Marc");
+        .comment("Rencontre avec Marc")
+        .status(CustomerStatus.ENABLED);
   }
 
   public static Customer customerWithSomeNullAttributes() {
@@ -373,7 +378,14 @@ public class TestUtils {
         .zipCode(95160)
         .city(null)
         .country(null)
-        .comment(null);
+        .comment(null)
+        .status(CustomerStatus.ENABLED);
+  }
+
+  public static UpdateCustomerStatus customerDisabled() {
+    return new UpdateCustomerStatus()
+        .id("customer3_id")
+        .status(CustomerStatus.DISABLED);
   }
 
   public static Product product1() {
@@ -670,7 +682,7 @@ public class TestUtils {
         .sendingDate(LocalDate.of(2022, 9, 1))
         .validityDate(LocalDate.of(2022, 10, 3))
         .toPayAt(LocalDate.of(2022, 10, 1))
-        .delayInPaymentAllowed(DEFAULT_TO_PAY_DELAY_DAYS)
+        .delayInPaymentAllowed(null)
         .delayPenaltyPercent(DEFAULT_DELAY_PENALTY_PERCENT)
         .status(CONFIRMED)
         .products(List.of(product3(), product4()))

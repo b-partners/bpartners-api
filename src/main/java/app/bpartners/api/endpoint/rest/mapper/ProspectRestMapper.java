@@ -19,6 +19,7 @@ public class ProspectRestMapper {
         .phone(domain.getPhone())
         .address(domain.getAddress())
         .location(domain.getLocation())
+        .townCode(domain.getTownCode())
         .status(domain.getStatus());
   }
 
@@ -31,6 +32,7 @@ public class ProspectRestMapper {
         .phone(rest.getPhone())
         .address(rest.getAddress())
         .status(rest.getStatus())
+        .townCode(rest.getTownCode())
         .build();
   }
 }

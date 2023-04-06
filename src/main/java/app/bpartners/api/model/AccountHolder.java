@@ -35,4 +35,5 @@ public class AccountHolder {
   private VerificationStatus verificationStatus;
   private Geojson location;
   private Integer townCode;
+  private int prospectingPerimeter;
 }

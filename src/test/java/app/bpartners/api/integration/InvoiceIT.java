@@ -273,8 +273,8 @@ class InvoiceIT {
         .sendingDate(LocalDate.of(2022, 9, 1))
         .validityDate(LocalDate.of(2022, 10, 3))
         .toPayAt(LocalDate.of(2022, 10, 1))
-        .delayInPaymentAllowed(DEFAULT_TO_PAY_DELAY_DAYS)
-        .delayPenaltyPercent(DEFAULT_DELAY_PENALTY_PERCENT)
+        .delayInPaymentAllowed(null)
+        .delayPenaltyPercent(0)
         .status(CONFIRMED)
         .products(List.of(product3(), product4()))
         .totalPriceWithVat(8800)
@@ -301,8 +301,8 @@ class InvoiceIT {
         .validityDate(LocalDate.of(2022, 10, 14))
         .createdAt(Instant.parse("2022-01-01T03:00:00.00Z"))
         .toPayAt(LocalDate.of(2022, 10, 10))
-        .delayInPaymentAllowed(DEFAULT_TO_PAY_DELAY_DAYS)
-        .delayPenaltyPercent(DEFAULT_DELAY_PENALTY_PERCENT)
+        .delayInPaymentAllowed(null)
+        .delayPenaltyPercent(0)
         .status(CONFIRMED)
         .products(List.of(product5()))
         .totalPriceWithVat(1100)
@@ -327,8 +327,8 @@ class InvoiceIT {
         .createdAt(Instant.parse("2022-01-01T06:00:00Z"))
         .sendingDate(LocalDate.of(2022, 10, 12))
         .validityDate(LocalDate.of(2022, 11, 12))
-        .delayInPaymentAllowed(DEFAULT_TO_PAY_DELAY_DAYS)
-        .delayPenaltyPercent(DEFAULT_DELAY_PENALTY_PERCENT)
+        .delayInPaymentAllowed(null)
+        .delayPenaltyPercent(0)
         .paymentRegulations(List.of())
         .paymentType(CASH)
         .toPayAt(LocalDate.of(2022, 11, 10))
@@ -369,7 +369,7 @@ class InvoiceIT {
         .status(DRAFT)
         .sendingDate(validInvoice().getSendingDate())
         .validityDate(validInvoice().getValidityDate())
-        .delayInPaymentAllowed(DEFAULT_TO_PAY_DELAY_DAYS)
+        .delayInPaymentAllowed(null)
         .delayPenaltyPercent(DEFAULT_DELAY_PENALTY_PERCENT)
         .products(List.of(
             product4()
@@ -809,8 +809,7 @@ class InvoiceIT {
     int customizePenalty = 1960;
 
     Invoice actualDraft = api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, NEW_INVOICE_ID,
-            initializeDraft().ref(null))
-        .delayPenaltyPercent(customizePenalty);
+            initializeDraft().ref(null));
     Invoice actualUpdatedDraft = api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, NEW_INVOICE_ID,
         validInvoice());
     actualUpdatedDraft.setProducts(ignoreIdsOf(actualUpdatedDraft.getProducts()));
@@ -818,12 +817,13 @@ class InvoiceIT {
     assertEquals(expectedInitializedDraft()
             .ref(null)
             .fileId(actualDraft.getFileId())
-            .delayPenaltyPercent(customizePenalty)
+            .delayPenaltyPercent(0)
             .createdAt(actualDraft.getCreatedAt())
-            .updatedAt(actualDraft.getUpdatedAt()),
+            .updatedAt(actualDraft.getUpdatedAt())
+            .delayInPaymentAllowed(null),
         actualDraft);
     assertNotNull(actualDraft.getFileId());
-    assertNotEquals(DEFAULT_DELAY_PENALTY_PERCENT, actualDraft.getDelayPenaltyPercent());
+    assertEquals(DEFAULT_DELAY_PENALTY_PERCENT, actualDraft.getDelayPenaltyPercent());
     assertEquals(expectedDraft()
             .fileId(actualUpdatedDraft.getFileId())
             .createdAt(actualUpdatedDraft.getCreatedAt())
@@ -1133,7 +1133,10 @@ class InvoiceIT {
     //TODO: check why payment request createdDatetime is not the same
     invoice.setPaymentRegulations(ignoreIdsAndDatetime(invoice));
     persisted1.setPaymentRegulations(ignoreIdsAndDatetime(persisted1));
-    assertEquals(persisted1.createdAt(null), invoice.createdAt(null));
+    assertEquals(persisted1
+        .createdAt(null)
+        .updatedAt(invoice.getUpdatedAt()),
+        invoice.createdAt(null));
 
     Invoice firstUpdate = api.crupdateInvoice(
         JOE_DOE_ACCOUNT_ID, randomId,

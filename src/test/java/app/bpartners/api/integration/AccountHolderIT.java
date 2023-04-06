@@ -10,6 +10,7 @@ import app.bpartners.api.endpoint.rest.model.CompanyBusinessActivity;
 import app.bpartners.api.endpoint.rest.model.CompanyInfo;
 import app.bpartners.api.endpoint.rest.model.ContactAddress;
 import app.bpartners.api.endpoint.rest.model.CreateAnnualRevenueTarget;
+import app.bpartners.api.endpoint.rest.model.UpdateAccountHolder;
 import app.bpartners.api.endpoint.rest.model.VerificationStatus;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
 import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
@@ -50,6 +51,7 @@ import static app.bpartners.api.integration.conf.TestUtils.JANE_DOE_SWAN_USER_ID
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_SWAN_USER_ID;
+import static app.bpartners.api.integration.conf.TestUtils.SWAN_ACCOUNTHOLDER_ID;
 import static app.bpartners.api.integration.conf.TestUtils.VERIFIED_STATUS;
 import static app.bpartners.api.integration.conf.TestUtils.annualRevenueTarget1;
 import static app.bpartners.api.integration.conf.TestUtils.annualRevenueTarget2;
@@ -136,6 +138,7 @@ class AccountHolderIT {
             .primary("IT")
             .secondary("TECHNOLOGY"))
         .contactAddress(new ContactAddress()
+            .prospectingPerimeter(0)
             .address(joeDoeSwanAccountHolder().getResidencyAddress().getAddressLine1())
             .city(joeDoeSwanAccountHolder().getResidencyAddress().getCity())
             .country(joeDoeSwanAccountHolder().getResidencyAddress().getCountry())
@@ -198,6 +201,12 @@ class AccountHolderIT {
   private static AccountHolder expected() {
     return joeDoeAccountHolder()
         .businessActivities(companyBusinessActivity())
+        .contactAddress(new ContactAddress()
+            .address("6 RUE PAUL LANGEVIN")
+            .city("FONTENAY-SOUS-BOIS")
+            .country("FRA")
+            .postalCode("94120")
+            .prospectingPerimeter(0))
         .companyInfo(companyInfo()
             .phone("+33 6 11 22 33 44")
             .email("numer@hei.school")
@@ -218,6 +227,37 @@ class AccountHolderIT {
             .longitude(2.5))
         .townCode(92002);
   }
+
+  UpdateAccountHolder globalInfo() {
+    return new UpdateAccountHolder()
+        .name(joeDoeSwanAccountHolder().getInfo().getName())
+        .siren("FR123456789")
+        .initialCashFlow(5000)
+        .officialActivityName(joeDoeSwanAccountHolder().getInfo().getBusinessActivity())
+        .contactAddress(new ContactAddress()
+            .address("Rue 91, Charles de Gaulle")
+            .city("Paris")
+            .postalCode("9100")
+            .country("France")
+            .prospectingPerimeter(null)
+        );
+  }
+
+  UpdateAccountHolder expectedGlobalInfo() {
+    return new UpdateAccountHolder()
+        .name(joeDoeSwanAccountHolder().getInfo().getName())
+        .siren("FR123456789")
+        .initialCashFlow(5000)
+        .officialActivityName(joeDoeSwanAccountHolder().getInfo().getBusinessActivity())
+        .contactAddress(new ContactAddress()
+            .address("Rue 91, Charles de Gaulle")
+            .city("Paris")
+            .postalCode("9100")
+            .country("France")
+            .prospectingPerimeter(0)
+        );
+  }
+
 
   @BeforeEach
   public void setUp() {
@@ -330,7 +370,6 @@ class AccountHolderIT {
             + " accountHolder.b33e6eb0-e262-4596-a91f-20c6a7bfd343,"
             + " accountHolder.b33e6eb0-e262-4596-a91f-20c6a7bfd343" + "\"}",
         () -> api.getAccountHolders(JOE_DOE_ID, JOE_DOE_ACCOUNT_ID));
-
   }
 
   @Order(3)
@@ -430,6 +469,19 @@ class AccountHolderIT {
                 new CreateAnnualRevenueTarget()
                     .year(2024)
                     .amountTarget(11000))));
+  }
+
+  @Order(11)
+  @Test
+  void update_global_info_ok() throws ApiException {
+    ApiClient joeDoeClient = anApiClient();
+    UserAccountsApi api = new UserAccountsApi(joeDoeClient);
+
+    AccountHolder actualUpdated = api.updateAccountHolderInfo(JOE_DOE_SWAN_USER_ID,
+        JOE_DOE_ACCOUNT_ID, SWAN_ACCOUNTHOLDER_ID, globalInfo());
+
+    assertEquals(SWAN_ACCOUNTHOLDER_ID, actualUpdated.getId());
+    assertEquals(expectedGlobalInfo().getContactAddress(), actualUpdated.getContactAddress());
   }
 
   private void setUpSwanApi(SwanApi swanApi, AccountHolderResponse.Edge... edges) {

@@ -32,6 +32,7 @@ public class ProspectMapper {
         .status(domain.getStatus())
         .address(domain.getAddress())
         .idAccountHolder(provider.getAccountHolder().getId())
+        .townCode(domain.getTownCode())
         .build();
   }
 
@@ -51,6 +52,7 @@ public class ProspectMapper {
         .phone(entity.getPhone())
         .location(location)
         .status(entity.getStatus())
+        .townCode(entity.getTownCode())
         .build();
   }
 }

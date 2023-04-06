@@ -71,9 +71,14 @@ public class Fraction implements Serializable {
   }
 
   private BigDecimal getRoundedBigDecimal(RoundingMode roundingMode) {
-    return BigDecimal
-        .valueOf(numerator.doubleValue() / denominator.doubleValue() / 100)
+    return BigDecimal.valueOf(numerator.doubleValue() / denominator.doubleValue() / 100)
         .setScale(2, roundingMode);
+  }
+
+  public int compareTo(Fraction fraction) {
+    Aprational thisFraction = toAprational(getNumerator(), getDenominator());
+    Aprational other = toAprational(fraction.getNumerator(), fraction.getDenominator());
+    return thisFraction.compareTo(other);
   }
 
   @Override

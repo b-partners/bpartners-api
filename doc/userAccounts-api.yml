@@ -59,6 +59,45 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
+  updateAccountIdentity:
+    put:
+      tags:
+        - User Accounts
+      summary: Update an account's name, iban or bic
+      operationId: updateAccountIdentity
+      parameters:
+        - name: userId
+          in: path
+          schema:
+            type: string
+          required: true
+        - name: accountId
+          in: path
+          schema:
+            type: string
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateAccountIdentity'
+      responses:
+        200:
+          description: Account with updated information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Account'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
   initiateBankConnection:
     post:
       tags:
@@ -256,6 +295,50 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
+  updateAccountHolderInfo:
+    put:
+      tags:
+        - User Accounts
+      summary: Update global information of an account holder
+      operationId: updateAccountHolderInfo
+      parameters:
+        - in: path
+          name: userId
+          schema:
+            type: string
+          required: true
+        - in: path
+          name: accountId
+          schema:
+            type: string
+          required: true
+        - in: path
+          name: ahId
+          schema:
+            type: string
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateAccountHolder'
+      responses:
+        200:
+          description: Account holder with updated global info
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountHolder'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
   updateRevenueTargets:
     put:
       tags:
@@ -432,25 +515,24 @@ components:
           type: string
         logoUrl:
           type: string
-    Account:
+    UpdateAccountIdentity:
       properties:
-        id:
-          type: string
         name:
           type: string
         iban:
           type: string
         bic:
           type: string
+    Account:
+      allOf:
+        - $ref: '#/components/schemas/UpdateAccountIdentity'
+      properties:
+        id:
+          type: string
         availableBalance:
           type: integer
         bank:
           $ref: '#/components/schemas/Bank'
-        #Deprecated
-        IBAN:
-          type: string
-        BIC:
-          type: string
         status:
           $ref: '#/components/schemas/AccountStatus'
     AccountStatus:
@@ -461,6 +543,19 @@ components:
         - CLOSING
         - SUSPENDED
         - UNKNOWN
+    UpdateAccountHolder:
+      type: object
+      properties:
+        name:
+          type: string
+        siren:
+          type: string
+        initialCashFlow:
+          type: integer
+        officialActivityName:
+          type: string
+        contactAddress:
+          $ref: '#/components/schemas/ContactAddress'
     AccountHolder:
       type: object
       properties:
@@ -531,6 +626,9 @@ components:
           type: string
         postalCode:
           type: string
+        prospectingPerimeter:
+          type: integer
+          description: prospectingPerimeter unit is kilometer
     CompanyInfo:
       type: object
       properties:

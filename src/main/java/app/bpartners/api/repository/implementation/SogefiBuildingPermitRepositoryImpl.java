@@ -1,6 +1,7 @@
 package app.bpartners.api.repository.implementation;
 
 import app.bpartners.api.endpoint.rest.model.Geojson;
+import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.repository.SogefiBuildingPermitRepository;
 import app.bpartners.api.repository.jpa.ProspectJpaRepository;
 import app.bpartners.api.repository.jpa.SogefiBuildingPermitJpaRepository;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import static app.bpartners.api.endpoint.rest.model.ProspectStatus.TO_CONTACT;
+import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 
 @Repository
 @AllArgsConstructor
@@ -30,32 +32,46 @@ public class SogefiBuildingPermitRepositoryImpl implements SogefiBuildingPermitR
   @Override
   public void saveByBuildingPermit(String idAccountHolder, BuildingPermit buildingPermit,
                                    SingleBuildingPermit singleBuildingPermit) {
-    //todo: handle updates from sogefi's database
-    Optional<HSogefiBuildingPermitProspect> sogefi =
+    Optional<HSogefiBuildingPermitProspect> persisted =
         jpaRepository.findByIdSogefi(buildingPermit.getFileId());
-    if (sogefi.isEmpty()) {
-      List<Object> coordinates = buildingPermit.getCentroidGeoJson() == null ? List.of() :
-          buildingPermit.getCentroidGeoJson().getCoordinates();
-      //we only save prospect data with coordinates because either way we would have invalid
-      // prospects
-      if (coordinates.size() == COORDINATES_LENGTH) {
-        Applicant applicant = singleBuildingPermit.getSogefiInformation().getPermitApplicant();
-        HProspect prospectEntity = prospectJpaRepository.save(
-            HProspect.builder()
-                .name(applicant.getName())
-                .address(applicant.getAddress())
-                .status(TO_CONTACT)
-                .idAccountHolder(idAccountHolder)
-                .build()
-        );
-        jpaRepository.save(HSogefiBuildingPermitProspect.builder()
-            .idSogefi(buildingPermit.getFileId())
-            .idProspect(prospectEntity.getId())
-            .geojsonType(buildingPermit.getCentroidGeoJson().getType())
-            .geojsonLongitude((Double) coordinates.get(LONGITUDE_INDEX))
-            .geojsonLatitude((Double) coordinates.get(LATITUDE_INDEX))
-            .build());
+    List<Object> coordinates = buildingPermit.getCentroidGeoJson() == null ? List.of() :
+        buildingPermit.getCentroidGeoJson().getCoordinates();
+    //we only save prospect data with coordinates because either way we would have invalid
+    // prospects
+    if (coordinates.size() == COORDINATES_LENGTH) {
+      Applicant applicant = singleBuildingPermit.getSogefiInformation().getPermitApplicant();
+      HProspect prospectEntityToSave = HProspect.builder()
+          .name(applicant.getName())
+          .address(applicant.getAddress())
+          .idAccountHolder(idAccountHolder)
+          .townCode(Integer.parseInt(singleBuildingPermit.getInsee()))
+          .build();
+      if (persisted.isEmpty()) {
+        prospectEntityToSave.setStatus(TO_CONTACT);
+      } else {
+        Optional<HProspect> persistedProspectEntity =
+            prospectJpaRepository.findById(persisted.get().getIdProspect());
+        if (persistedProspectEntity.isPresent()) {
+          prospectEntityToSave.setId(persistedProspectEntity.get().getId());
+          prospectEntityToSave.setStatus(persistedProspectEntity.get().getStatus());
+          prospectEntityToSave.setPhone(persistedProspectEntity.get().getPhone());
+          prospectEntityToSave.setEmail(persistedProspectEntity.get().getEmail());
+        } else {
+          throw new ApiException(SERVER_EXCEPTION,
+              "HProspect.id=" + persisted.get().getIdProspect()
+                  + " was not found but it was linked with HSogefiBuildingPermitProspect.id="
+                  + persisted.get().getId());
+        }
       }
+      HProspect savedProspectEntity = prospectJpaRepository.save(prospectEntityToSave);
+      jpaRepository.save(HSogefiBuildingPermitProspect.builder()
+          .id(persisted.map(HSogefiBuildingPermitProspect::getId).orElse(null))
+          .idSogefi(buildingPermit.getFileId())
+          .idProspect(savedProspectEntity.getId())
+          .geojsonType(buildingPermit.getCentroidGeoJson().getType())
+          .geojsonLongitude((Double) coordinates.get(LONGITUDE_INDEX))
+          .geojsonLatitude((Double) coordinates.get(LATITUDE_INDEX))
+          .build());
     }
   }
 

@@ -24,14 +24,14 @@ public class AccountHolderRepositoryImpl implements AccountHolderRepository {
   @Override
   public List<AccountHolder> findAllByAccountId(String accountId) {
     List<SwanAccountHolder> swanAccountHolders = swanRepository.findAllByAccountId(accountId);
-    if (!swanAccountHolders.isEmpty()) {
-      return swanAccountHolders.stream()
-          .map(swanAccountHolder -> getOrPersistAccountHolder(accountId, swanAccountHolder))
-          .collect(Collectors.toUnmodifiableList());
+    if (swanAccountHolders.isEmpty()) {
+      return jpaRepository.findAllByAccountId(accountId).stream()
+          .map(mapper::toDomain)
+          .collect(Collectors.toList());
     }
-    return jpaRepository.findAllByAccountId(accountId).stream()
-        .map(mapper::toDomain)
-        .collect(Collectors.toList());
+    return swanAccountHolders.stream()
+        .map(swanAccountHolder -> getUpdatedAccountHolder(accountId, swanAccountHolder))
+        .collect(Collectors.toUnmodifiableList());
   }
 
   @Override
@@ -40,87 +40,87 @@ public class AccountHolderRepositoryImpl implements AccountHolderRepository {
     return mapper.toDomain(jpaRepository.save(entity));
   }
 
-  public HAccountHolder getOrCreateAccountHolderEntity(
-      String accountId,
-      SwanAccountHolder swanAccountHolder) {
-    Optional<HAccountHolder> optional = jpaRepository.findByAccountId(accountId);
-    HAccountHolder entity;
-    if (optional.isEmpty()) {
-      entity = jpaRepository.save(mapper.toEntity(accountId, swanAccountHolder));
-    } else {
-      HAccountHolder optionalValue = optional.get();
-      checkAccountHolderUpdates(swanAccountHolder, optionalValue);
-      entity = jpaRepository.save(optionalValue);
-    }
-    return entity;
-  }
-
+  //TODO: check why by ID and account ID
   @Override
   public AccountHolder getByIdAndAccountId(String id, String accountId) {
     SwanAccountHolder swanAccountHolder = swanRepository.getById(id);
-    Optional<HAccountHolder> accountHolder = jpaRepository.findByIdAndAccountId(id, accountId);
-    if (accountHolder.isEmpty()) {
-      return mapper.toDomain(
-          jpaRepository.save(getOrCreateAccountHolderEntity(accountId, swanAccountHolder)));
+    Optional<HAccountHolder> optionalAccountHolder =
+        jpaRepository.findByIdAndAccountId(id, accountId);
+    if (optionalAccountHolder.isEmpty()) {
+      if (swanAccountHolder != null) {
+        return mapper.toDomain(
+            jpaRepository.save(getUpdatedEntity(accountId, swanAccountHolder)));
+      }
+    } else {
+      return mapper.toDomain(optionalAccountHolder.get());
     }
-    return mapper.toDomain(accountHolder.get());
+    throw new NotFoundException("AccountHolder.id=" + id + " not found.");
   }
 
   @Override
   public AccountHolder findById(String idAccountHolder) {
-    Optional<HAccountHolder> accountHolder = jpaRepository.findById(idAccountHolder);
-    if (accountHolder.isEmpty()) {
-      throw new NotFoundException("Accountholder.id=" + idAccountHolder + " not found.");
+    return mapper.toDomain(
+        jpaRepository.findById(idAccountHolder)
+            .orElseThrow(
+                () -> new NotFoundException("AccountHolder.id=" + idAccountHolder + " not found.")
+            ));
+  }
+
+  //TODO: when multiple accounts are supported, we should handle n<acHold> ... n<ac>
+  public HAccountHolder getUpdatedEntity(String accountId, SwanAccountHolder swanAccountHolder) {
+    Optional<HAccountHolder> optionalAccountHolder = jpaRepository.findByAccountId(accountId);
+    if (optionalAccountHolder.isEmpty()) {
+      return jpaRepository.save(mapper.toEntity(accountId, swanAccountHolder));
     }
-    return mapper.toDomain(accountHolder.get());
+    HAccountHolder entity = optionalAccountHolder.get();
+    checkAccountHolderUpdates(swanAccountHolder, entity);
+    return jpaRepository.save(entity);
   }
 
-  private AccountHolder getOrPersistAccountHolder(String accountId,
-                                                  SwanAccountHolder swanAccountHolder) {
-    return mapper.toDomain(getOrCreateAccountHolderEntity(accountId, swanAccountHolder));
+  private AccountHolder getUpdatedAccountHolder(
+      String accountId, SwanAccountHolder swanAccountHolder) {
+    return mapper.toDomain(getUpdatedEntity(accountId, swanAccountHolder));
   }
 
-  private void checkAccountHolderUpdates(SwanAccountHolder swanAccountHolder,
-                                         HAccountHolder optionalValue) {
-    if (optionalValue.getVerificationStatus() == null || (!optionalValue.getVerificationStatus()
+  private void checkAccountHolderUpdates(
+      SwanAccountHolder swanAccountHolder, HAccountHolder entity) {
+    if (entity.getVerificationStatus() == null || (!entity.getVerificationStatus()
         .getValue().equals(swanAccountHolder.getVerificationStatus()))) {
-      optionalValue.setVerificationStatus(
+      entity.setVerificationStatus(
           mapper.getStatus(swanAccountHolder.getVerificationStatus()));
     }
-    if (optionalValue.getName() == null || (!optionalValue.getName()
+    if (entity.getName() == null || (!entity.getName()
         .equals(swanAccountHolder.getInfo().getName()))) {
-      optionalValue.setName(swanAccountHolder.getInfo().getName());
+      entity.setName(swanAccountHolder.getInfo().getName());
     }
-    if (optionalValue.getRegistrationNumber() == null || (!optionalValue.getRegistrationNumber()
+    if (entity.getRegistrationNumber() == null || (!entity.getRegistrationNumber()
         .equals(swanAccountHolder.getInfo().getRegistrationNumber()))) {
-      optionalValue.setRegistrationNumber(swanAccountHolder.getInfo().getRegistrationNumber());
+      entity.setRegistrationNumber(swanAccountHolder.getInfo().getRegistrationNumber());
     }
-    if (optionalValue.getBusinessActivity() == null || (!optionalValue.getBusinessActivity()
+    if (entity.getBusinessActivity() == null || (!entity.getBusinessActivity()
         .equals(swanAccountHolder.getInfo().getBusinessActivity()))) {
-      optionalValue.setBusinessActivity(swanAccountHolder.getInfo().getBusinessActivity());
+      entity.setBusinessActivity(swanAccountHolder.getInfo().getBusinessActivity());
     }
-    if (optionalValue.getBusinessActivityDescription() == null || (!optionalValue.getName()
+    if (entity.getBusinessActivityDescription() == null || (!entity.getName()
         .equals(swanAccountHolder.getInfo().getBusinessActivityDescription()))) {
-      optionalValue.setBusinessActivityDescription(
+      entity.setBusinessActivityDescription(
           swanAccountHolder.getInfo().getBusinessActivityDescription());
     }
-    if (optionalValue.getAddress() == null || (!optionalValue.getAddress()
+    if (entity.getAddress() == null || (!entity.getAddress()
         .equals(swanAccountHolder.getResidencyAddress().getAddressLine1()))) {
-      optionalValue.setAddress(swanAccountHolder.getResidencyAddress().getAddressLine1());
+      entity.setAddress(swanAccountHolder.getResidencyAddress().getAddressLine1());
     }
-    if (optionalValue.getCity() == null || (!optionalValue.getCity()
+    if (entity.getCity() == null || (!entity.getCity()
         .equals(swanAccountHolder.getResidencyAddress().getCity()))) {
-      optionalValue.setCity(swanAccountHolder.getResidencyAddress().getCity());
+      entity.setCity(swanAccountHolder.getResidencyAddress().getCity());
     }
-    if (optionalValue.getCountry() == null || (!optionalValue.getCountry()
+    if (entity.getCountry() == null || (!entity.getCountry()
         .equals(swanAccountHolder.getResidencyAddress().getCountry()))) {
-      optionalValue.setCountry(swanAccountHolder.getResidencyAddress().getCountry());
+      entity.setCountry(swanAccountHolder.getResidencyAddress().getCountry());
     }
-    if (optionalValue.getPostalCode() == null || (!optionalValue.getPostalCode()
+    if (entity.getPostalCode() == null || (!entity.getPostalCode()
         .equals(swanAccountHolder.getResidencyAddress().getPostalCode()))) {
-      optionalValue.setPostalCode(swanAccountHolder.getResidencyAddress().getPostalCode());
+      entity.setPostalCode(swanAccountHolder.getResidencyAddress().getPostalCode());
     }
   }
-
-
 }

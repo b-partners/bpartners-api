@@ -10,7 +10,7 @@ on:
 
 jobs: 
   cd-event: 
-    if: github.ref_name == 'prod' || github.ref_name == 'preprod'
+    if: github.ref_name == 'prod' || github.ref_name == 'preprod' || github.ref_name == 'dev'
 
     runs-on: ubuntu-latest
 

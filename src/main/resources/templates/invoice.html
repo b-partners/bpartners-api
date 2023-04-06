@@ -404,7 +404,7 @@
                 lien.
                 Sinon, vous avez la possibilité de faire un virement classique avec nos
                 coordonnées ci-dessous. <br/>
-                <span th:if="${invoice.delayInPaymentAllowed != null && invoice.delayPenaltyPercent != '0/1'}">
+                <span th:if="${invoice.delayInPaymentAllowed != null && invoice.delayPenaltyPercent.getApproximatedValue() != 0}">
                     Des pénalités correspondant à trois fois le taux de l’intérêt légal seront
                 applicables en
                 l’absence ou en cas de retard de paiement. Les pénalités de

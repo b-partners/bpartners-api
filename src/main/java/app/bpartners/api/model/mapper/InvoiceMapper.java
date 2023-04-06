@@ -66,7 +66,7 @@ public class InvoiceMapper {
     if (delayInPaymentAllowed == null || delayPenaltyPercent == null
         || delayPenaltyPercent.equals("0/1")) {
       delayInPaymentAllowed = null;
-      delayPenaltyPercent = "0/1";
+      delayPenaltyPercent = null;
     }
     List<InvoiceProduct> actualProducts = getActualProducts(entity);
     Fraction discount = parseFraction(entity.getDiscountPercent());

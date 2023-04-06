@@ -31,7 +31,7 @@ import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 @ToString
 public class Invoice {
   public static final int DEFAULT_TO_PAY_DELAY_DAYS = 30;
-  public static final int DEFAULT_DELAY_PENALTY_PERCENT = 1000;
+  public static final int DEFAULT_DELAY_PENALTY_PERCENT = 0;
   private String id;
   private PaymentTypeEnum paymentType;
   private String title;
@@ -108,9 +108,6 @@ public class Invoice {
   }
 
   public Integer getDelayInPaymentAllowed() {
-    if (delayInPaymentAllowed == null) {
-      return DEFAULT_TO_PAY_DELAY_DAYS;
-    }
     return delayInPaymentAllowed;
   }
 

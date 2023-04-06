@@ -14,6 +14,7 @@ import app.bpartners.api.model.CreatePaymentRegulation;
 import app.bpartners.api.model.Customer;
 import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.Invoice;
+import app.bpartners.api.model.InvoiceDiscount;
 import app.bpartners.api.repository.LegalFileRepository;
 import app.bpartners.api.repository.fintecture.FintectureConf;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitConf;
@@ -86,6 +87,13 @@ class DraftIT {
         .status(PROPOSAL)
         .sendingDate(LocalDate.now())
         .toPayAt(LocalDate.now())
+        .delayInPaymentAllowed(2)
+        .delayPenaltyPercent(new Fraction(BigInteger.TEN, BigInteger.ONE))
+        .discount(new InvoiceDiscount()
+            .toBuilder()
+            .percentValue(new Fraction())
+            .amountValue(new Fraction())
+            .build())
         .account(Account.builder()
             .id(JOE_DOE_ACCOUNT_ID)
             .name("BPartners")
@@ -159,7 +167,9 @@ class DraftIT {
         .description("product description")
         .vatPercent(new Fraction(BigInteger.ONE))
         .unitPrice(new Fraction(BigInteger.ONE))
+        .priceNoVatWithDiscount(new Fraction())
         .totalPriceWithVat(new Fraction(BigInteger.ONE))
+        .totalWithDiscount(new Fraction())
         .build();
   }
 

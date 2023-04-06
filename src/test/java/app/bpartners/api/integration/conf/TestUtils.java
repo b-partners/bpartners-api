@@ -682,7 +682,7 @@ public class TestUtils {
         .sendingDate(LocalDate.of(2022, 9, 1))
         .validityDate(LocalDate.of(2022, 10, 3))
         .toPayAt(LocalDate.of(2022, 10, 1))
-        .delayInPaymentAllowed(DEFAULT_TO_PAY_DELAY_DAYS)
+        .delayInPaymentAllowed(null)
         .delayPenaltyPercent(DEFAULT_DELAY_PENALTY_PERCENT)
         .status(CONFIRMED)
         .products(List.of(product3(), product4()))

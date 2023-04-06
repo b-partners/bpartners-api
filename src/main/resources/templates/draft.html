@@ -347,7 +347,7 @@
         </table>
     </div>
     <div style="width: 100%;" class="no-break-inside">
-        <p><span class="muted text-justify">
+        <p><span class="muted text-justify" th:if="${invoice.delayInPaymentAllowed != null && invoice.delayPenaltyPercent.getApproximatedValue() != 0}">
             Après acceptation de ce devis, la facture correspondante devra être réglée sous <span
                 th:text="${invoice.getDelayInPaymentAllowed()}"></span>
         jours après sa date d'émission.

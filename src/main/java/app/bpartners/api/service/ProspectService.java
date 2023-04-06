@@ -36,7 +36,7 @@ public class ProspectService {
     return repository.saveAll(toCreate);
   }
 
-  @Scheduled(cron = "0 0 10 * * *")
+  @Scheduled(cron = "0 0 10 * * *", zone = "Europe/Paris")
   public void prospect() {
     accountHolderJpaRepository.findAll().forEach(accountHolder -> {
       if (repository.needsProspects(accountHolder.getId(), LocalDate.now())

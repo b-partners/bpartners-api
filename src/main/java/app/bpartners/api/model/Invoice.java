@@ -108,9 +108,6 @@ public class Invoice {
   }
 
   public Integer getDelayInPaymentAllowed() {
-    if (delayInPaymentAllowed == null) {
-      return null;
-    }
     return delayInPaymentAllowed;
   }
 

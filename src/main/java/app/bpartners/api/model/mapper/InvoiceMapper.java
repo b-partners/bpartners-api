@@ -27,7 +27,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
 import org.apfloat.Aprational;
 import org.springframework.stereotype.Component;
 
@@ -64,7 +63,8 @@ public class InvoiceMapper {
     }
     Integer delayInPaymentAllowed = entity.getDelayInPaymentAllowed();
     String delayPenaltyPercent = entity.getDelayPenaltyPercent();
-    if (delayInPaymentAllowed == null || delayPenaltyPercent == null || delayPenaltyPercent.equals("0/1")) {
+    if (delayInPaymentAllowed == null || delayPenaltyPercent == null
+        || delayPenaltyPercent.equals("0/1")) {
       delayInPaymentAllowed = null;
       delayPenaltyPercent = "0/1";
     }

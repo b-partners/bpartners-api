@@ -404,7 +404,8 @@
                 lien.
                 Sinon, vous avez la possibilité de faire un virement classique avec nos
                 coordonnées ci-dessous. <br/>
-                Des pénalités correspondant à trois fois le taux de l’intérêt légal seront
+                <span th:if="${invoice.delayInPaymentAllowed != null && invoice.delayPenaltyPercent != '0/1'}">
+                    Des pénalités correspondant à trois fois le taux de l’intérêt légal seront
                 applicables en
                 l’absence ou en cas de retard de paiement. Les pénalités de
                 retard sont exigibles sans qu'un rappel soit nécessaire. Une indemnité forfaitaire
@@ -412,6 +413,7 @@
                 pour frais de recouvrement sera appliquée en cas de
                 retard de paiement conformément aux articles L 441-3 et L 441-6 du code de commerce.
                 Pas d'escompte en cas de paiement anticipé.
+                </span>
             </p>
         </div>
         <div style="width: 100%;" class="no-break-inside">

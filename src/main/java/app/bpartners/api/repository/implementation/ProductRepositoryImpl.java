@@ -2,9 +2,9 @@ package app.bpartners.api.repository.implementation;
 
 import app.bpartners.api.endpoint.rest.model.OrderDirection;
 import app.bpartners.api.endpoint.rest.model.ProductStatus;
-import app.bpartners.api.endpoint.rest.model.UpdateProductStatus;
 import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.Product;
+import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.mapper.ProductMapper;
 import app.bpartners.api.repository.ProductRepository;
 import app.bpartners.api.repository.jpa.ProductJpaRepository;
@@ -30,6 +30,13 @@ public class ProductRepositoryImpl implements ProductRepository {
 
   private static Order defaultOrder() {
     return new Order(Direction.DESC, "createdAt");
+  }
+
+  @Override
+  public Product getById(String id) {
+    return mapper.toDomain(jpaRepository.findById(id).orElseThrow(
+        () -> new NotFoundException("Product(id=" + id + ") not found"))
+    );
   }
 
   @Override
@@ -99,16 +106,5 @@ public class ProductRepositoryImpl implements ProductRepository {
     return products.stream()
         .map(mapper::toDomain)
         .collect(Collectors.toUnmodifiableList());
-  }
-
-  @Override
-  public List<Product> updateStatus(String accountId, List<UpdateProductStatus> toUpdate) {
-    List<Product> productUpdated = new ArrayList<>();
-    for (UpdateProductStatus product : toUpdate) {
-      HProduct existingProduct = jpaRepository.findByIdAccountAndId(accountId, product.getId());
-      existingProduct.setStatus(product.getStatus());
-      productUpdated.add(mapper.toDomain(jpaRepository.save(existingProduct)));
-    }
-    return productUpdated;
   }
 }

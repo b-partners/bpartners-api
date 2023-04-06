@@ -4,7 +4,6 @@ import app.bpartners.api.endpoint.rest.mapper.ProductRestMapper;
 import app.bpartners.api.endpoint.rest.model.CreateProduct;
 import app.bpartners.api.endpoint.rest.model.OrderDirection;
 import app.bpartners.api.endpoint.rest.model.ProductStatus;
-import app.bpartners.api.endpoint.rest.model.UpdateProductStatus;
 import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.Product;
 import app.bpartners.api.repository.ProductRepository;
@@ -36,10 +35,6 @@ public class ProductService {
 
   public List<Product> crupdate(String accountId, List<Product> toCreate) {
     return repository.saveAll(accountId, removeDuplicatedProducts(toCreate));
-  }
-
-  public List<Product> updateStatus(String accountId, List<UpdateProductStatus> toUpdate) {
-    return repository.updateStatus(accountId, toUpdate);
   }
 
   public List<Product> getDataFromFile(String accountId, byte[] file) {
@@ -90,4 +85,7 @@ public class ProductService {
     return toUpdateList;
   }
 
+  public List<Product> saveAll(String accountId, List<Product> toSave) {
+    return repository.saveAll(accountId, toSave);
+  }
 }

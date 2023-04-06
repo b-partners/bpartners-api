@@ -2,7 +2,11 @@ package app.bpartners.api.endpoint.rest.mapper;
 
 import app.bpartners.api.endpoint.rest.model.CreateProduct;
 import app.bpartners.api.endpoint.rest.model.Product;
+import app.bpartners.api.endpoint.rest.model.UpdateProductStatus;
 import app.bpartners.api.endpoint.rest.validator.CreateProductValidator;
+import app.bpartners.api.repository.ProductRepository;
+import java.util.List;
+import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -13,6 +17,18 @@ import static java.util.UUID.randomUUID;
 @AllArgsConstructor
 public class ProductRestMapper {
   private final CreateProductValidator createProductValidator;
+  private final ProductRepository productRepository;
+
+  public List<app.bpartners.api.model.Product> toDomain(
+      List<UpdateProductStatus> updateProductStatuses) {
+    return updateProductStatuses.stream()
+        .map(updateProductStatus ->
+            productRepository.getById(updateProductStatus.getId()).toBuilder()
+                .status(updateProductStatus.getStatus())
+                .build()
+        )
+        .collect(Collectors.toList());
+  }
 
   public Product toRest(app.bpartners.api.model.Product domain) {
     return new Product()

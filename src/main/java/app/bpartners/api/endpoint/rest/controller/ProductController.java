@@ -80,8 +80,8 @@ public class ProductController {
   @PutMapping("/accounts/{aId}/products/status")
   public List<Product> updateStatus(
       @PathVariable(name = "aId") String accountId,
-      @RequestBody List<UpdateProductStatus> product) {
-    return productService.updateStatus(accountId, product).stream()
+      @RequestBody List<UpdateProductStatus> updateProductStatuses) {
+    return productService.saveAll(accountId, mapper.toDomain(updateProductStatuses)).stream()
         .map(mapper::toRest)
         .collect(Collectors.toUnmodifiableList());
   }

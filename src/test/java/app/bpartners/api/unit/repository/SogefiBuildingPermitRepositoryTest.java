@@ -1,6 +1,6 @@
 package app.bpartners.api.unit.repository;
 
-import app.bpartners.api.endpoint.rest.model.ProspectStatus;
+import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.repository.implementation.SogefiBuildingPermitRepositoryImpl;
 import app.bpartners.api.repository.jpa.ProspectJpaRepository;
 import app.bpartners.api.repository.jpa.SogefiBuildingPermitJpaRepository;
@@ -17,11 +17,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
+import static app.bpartners.api.endpoint.rest.model.ProspectStatus.CONTACTED;
+import static app.bpartners.api.endpoint.rest.model.ProspectStatus.TO_CONTACT;
 import static app.bpartners.api.integration.conf.TestUtils.SWAN_ACCOUNTHOLDER_ID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -32,6 +34,7 @@ class SogefiBuildingPermitRepositoryTest {
   public static final String PROSPECT_ADDRESS = "address";
   private static final long ID_SOGEFI = 1000;
   private static final String PROSPECT1_ID = "prospect1_id";
+  private static final String SOGEFI_PROSPECT_ID = "sogefi_prospect_id";
   private SogefiBuildingPermitRepositoryImpl subject;
   private SogefiBuildingPermitJpaRepository jpaRepositoryMock;
   private ProspectJpaRepository prospectJpaRepositoryMock;
@@ -54,10 +57,18 @@ class SogefiBuildingPermitRepositoryTest {
     jpaRepositoryMock = mock(SogefiBuildingPermitJpaRepository.class);
     prospectJpaRepositoryMock = mock(ProspectJpaRepository.class);
     subject = new SogefiBuildingPermitRepositoryImpl(jpaRepositoryMock, prospectJpaRepositoryMock);
+    reset(jpaRepositoryMock);
+    reset(prospectJpaRepositoryMock);
+    when(prospectJpaRepositoryMock.save(any())).thenAnswer(i -> {
+      HProspect entity = i.getArgument(0);
+      entity.setId(PROSPECT1_ID);
+      return entity;
+    });
   }
 
   HSogefiBuildingPermitProspect sogefiBuildingPermitProspect() {
     return HSogefiBuildingPermitProspect.builder()
+        .id(SOGEFI_PROSPECT_ID)
         .idProspect(PROSPECT1_ID)
         .idSogefi(ID_SOGEFI)
         .geojsonType("Point")
@@ -87,11 +98,13 @@ class SogefiBuildingPermitRepositoryTest {
   SingleBuildingPermit singleBuildingPermit() {
     return SingleBuildingPermit.singleBuildingPermitBuilder()
         .sogefiInformation(sogefiInformation())
+        .insee("92001")
         .build();
   }
 
   HSogefiBuildingPermitProspect expectedSavedSogefiProspect() {
     return HSogefiBuildingPermitProspect.builder()
+        .id(SOGEFI_PROSPECT_ID)
         .idSogefi(buildingPermit().getFileId())
         .idProspect(PROSPECT1_ID)
         .geojsonType(buildingPermit().getCentroidGeoJson().getType())
@@ -105,20 +118,28 @@ class SogefiBuildingPermitRepositoryTest {
         .id(PROSPECT1_ID)
         .name(PROSPECT_NAME)
         .address(PROSPECT_ADDRESS)
-        .status(ProspectStatus.TO_CONTACT)
+        .status(TO_CONTACT)
         .idAccountHolder(SWAN_ACCOUNTHOLDER_ID)
+        .townCode(92001)
+        .build();
+  }
+
+  HProspect toUpdateProspect() {
+    return HProspect.builder()
+        .id(PROSPECT1_ID)
+        .name("some name")
+        .address("some address")
+        .status(CONTACTED)
+        .idAccountHolder(SWAN_ACCOUNTHOLDER_ID)
+        .townCode(92002)
         .build();
   }
 
   @Test
-  void save_by_building_permit_ok() {
-    reset(jpaRepositoryMock);
+  void save_by_building_permit_creates_new_prospect_ok() {
     when(jpaRepositoryMock.findByIdSogefi(ID_SOGEFI)).thenReturn(Optional.empty());
-    when(prospectJpaRepositoryMock.save(any())).thenAnswer(i -> {
-      HProspect entity = i.getArgument(0);
-      entity.setId(PROSPECT1_ID);
-      return entity;
-    });
+    HSogefiBuildingPermitProspect expected = expectedSavedSogefiProspect();
+    expected.setId(null);
     ArgumentCaptor<HSogefiBuildingPermitProspect> sogefiProspectEntityCaptor =
         ArgumentCaptor.forClass(HSogefiBuildingPermitProspect.class);
     ArgumentCaptor<HProspect> prospectEntityArgumentCaptor =
@@ -131,19 +152,44 @@ class SogefiBuildingPermitRepositoryTest {
     verify(jpaRepositoryMock, times(1)).save(sogefiProspectEntityCaptor.capture());
 
     assertEquals(expectedSavedProspect(), prospectEntityArgumentCaptor.getValue());
+    assertEquals(expected, sogefiProspectEntityCaptor.getValue());
+  }
+
+  @Test
+  void save_by_building_permit_updates_existing_prospect_ok() {
+    when(jpaRepositoryMock.findByIdSogefi(ID_SOGEFI)).thenReturn(
+        Optional.of(sogefiBuildingPermitProspect()));
+    when(prospectJpaRepositoryMock.findById(PROSPECT1_ID)).thenReturn(
+        Optional.of(toUpdateProspect()));
+    HProspect expectedProspect = expectedSavedProspect();
+    expectedProspect.setStatus(toUpdateProspect().getStatus());
+    ArgumentCaptor<HSogefiBuildingPermitProspect> sogefiProspectEntityCaptor =
+        ArgumentCaptor.forClass(HSogefiBuildingPermitProspect.class);
+    ArgumentCaptor<HProspect> prospectEntityArgumentCaptor =
+        ArgumentCaptor.forClass(HProspect.class);
+
+    subject.saveByBuildingPermit(SWAN_ACCOUNTHOLDER_ID, buildingPermit(),
+        singleBuildingPermit());
+
+    verify(prospectJpaRepositoryMock, times(1)).save(prospectEntityArgumentCaptor.capture());
+    verify(jpaRepositoryMock, times(1)).save(sogefiProspectEntityCaptor.capture());
+
+    assertEquals(expectedProspect, prospectEntityArgumentCaptor.getValue());
     assertEquals(expectedSavedSogefiProspect(), sogefiProspectEntityCaptor.getValue());
   }
 
   @Test
-  void save_by_building_permit_do_nothing() {
-    reset(jpaRepositoryMock);
-    when(jpaRepositoryMock.findByIdSogefi(ID_SOGEFI)).thenReturn(Optional.of(
-        sogefiBuildingPermitProspect()));
+  void save_by_building_permit_ko() {
+    when(prospectJpaRepositoryMock.findById(any())).thenReturn(Optional.empty());
+    when(jpaRepositoryMock.findByIdSogefi(ID_SOGEFI)).thenReturn(
+        Optional.of(sogefiBuildingPermitProspect()));
+    BuildingPermit buildingPermit = buildingPermit();
+    SingleBuildingPermit singleBuildingPermit = singleBuildingPermit();
 
-    subject.saveByBuildingPermit(SWAN_ACCOUNTHOLDER_ID,
-        buildingPermit(), singleBuildingPermit());
-
-    verify(jpaRepositoryMock, never()).save(any());
-    verify(prospectJpaRepositoryMock, never()).save(any());
+    assertThrows(ApiException.class,
+        () -> subject.saveByBuildingPermit(SWAN_ACCOUNTHOLDER_ID, buildingPermit,
+            singleBuildingPermit),
+        "HProspect.id=" + PROSPECT1_ID + " was not found but it was linked with "
+            + "HSogefiBuildingPermitProspect.id=" + SOGEFI_PROSPECT_ID);
   }
 }

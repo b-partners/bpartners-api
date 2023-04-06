@@ -131,6 +131,16 @@ jobs:
           echo "tasksDesiredCount=${{ steps.get-configuration.outputs.tasksDesiredCount}}" >> $GITHUB_ENV
           echo "listenerRuleAvailablePriority=${{ steps.get-configuration.outputs.listenerRuleAvailablePriority}}" >> $GITHUB_ENV
 
+      - name: Get oldest RDS snapshot
+        id: oldestSnapshot
+        run: |
+          oldest_snapshot=$(aws rds describe-db-snapshots --region eu-west-3 --snapshot-type manual | jq -r '.DBSnapshots | sort_by(.SnapshotCreateTime)[0].DBSnapshotIdentifier')
+          echo "::set-output name=oldest_snapshot::$oldest_snapshot"
+
+      - name: Delete RDS snapshot
+        run: |
+          aws rds delete-db-snapshot --db-snapshot-identifier ${{ steps.oldestSnapshot.outputs.oldest_snapshot }}
+
       - name: Retrieve Database identifier from Parameter Store and set it as Env
         run: |
           aws configure set default.output text

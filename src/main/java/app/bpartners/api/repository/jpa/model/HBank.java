@@ -28,7 +28,7 @@ public class HBank implements Serializable {
   @Id
   @GeneratedValue(strategy = IDENTITY)
   private String id;
-  private String bridgeId;
+  private Long bridgeId;
   private String name;
   private String logoUrl;
 }

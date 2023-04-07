@@ -18,7 +18,7 @@ import lombok.ToString;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class BridgeBank {
   @JsonProperty("id")
-  private Integer id;
+  private Long id;
   @JsonProperty("name")
   private String name;
   @JsonProperty("parent_name")

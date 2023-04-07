@@ -68,7 +68,7 @@ class BridgeBankRepositoryImplTest {
 
   BridgeBank bridgeBank() {
     return BridgeBank.builder()
-        .id(1)
+        .id(1L)
         .name("bridge bank")
         .build();
   }

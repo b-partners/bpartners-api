@@ -23,13 +23,16 @@ public class BuildingPermitConf {
   private String baseUrl;
   private String bearer;
   private String denomChar;
+  private String limit;
 
   public BuildingPermitConf(@Value("${ads.baseUrl}") String baseUrl,
                             @Value("${ads.bearer}") String bearer,
-                            @Value("${ads.denom.char}") String denomChar) {
+                            @Value("${ads.denom.char}") String denomChar,
+                            @Value("${ads.limit}") String limit) {
     this.baseUrl = baseUrl;
     this.bearer = bearer;
     this.denomChar = denomChar;
+    this.limit = limit;
   }
 
   public String getApiWithFilterUrl(String insee) {
@@ -48,6 +51,8 @@ public class BuildingPermitConf {
     filter.put("type[eq]", "PC");
     filter.put("sitadel_etat[in]", AUTHORIZED_STATE + "," + STARTED_STATE);
     filter.put("sitadel_demandeur_denom[like]", denomChar);
+    filter.put("limit", limit);
+    filter.put("onlytotal", String.valueOf(true));
     return filter;
   }
 

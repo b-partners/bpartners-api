@@ -101,7 +101,8 @@ class BuildingPermitApiTest {
   private static final String STARTED_STATE = "commencé";
   private static final String ID_SOGEFI = "id_sogefi";
   private static final String COMMON_DENOM_CHAR = "e";
-  BuildingPermitConf conf = new BuildingPermitConf(BASE_URL, BEARER, COMMON_DENOM_CHAR);
+  private static final String LIMIT = "5";
+  BuildingPermitConf conf = new BuildingPermitConf(BASE_URL, BEARER, COMMON_DENOM_CHAR, LIMIT);
   HttpClient mockHttpClient = mock(HttpClient.class);
   BuildingPermitApi api = new BuildingPermitApi(conf).httpClient(mockHttpClient);
 
@@ -161,6 +162,8 @@ class BuildingPermitApiTest {
     filter.put("type[eq]", "PC");
     filter.put("sitadel_etat[in]", AUTHORIZED_STATE + "," + STARTED_STATE);
     filter.put("sitadel_demandeur_denom[like]", COMMON_DENOM_CHAR);
+    filter.put("limit", LIMIT);
+    filter.put("onlytotal", String.valueOf(true));
     return filter;
   }
 

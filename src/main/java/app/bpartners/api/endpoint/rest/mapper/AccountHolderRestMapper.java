@@ -86,6 +86,7 @@ public class AccountHolderRestMapper {
         .city(global.getContactAddress().getCity())
         .postalCode(global.getContactAddress().getPostalCode())
         .country(global.getContactAddress().getCountry())
+        .prospectingPerimeter(global.getContactAddress().getProspectingPerimeter())
         .build();
   }
 }

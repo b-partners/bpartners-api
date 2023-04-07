@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -30,6 +31,13 @@ public class UserRepositoryImpl implements UserRepository {
   private final UserMapper userMapper;
   private final SwanComponent swanComponent;
   private final CognitoComponent cognitoComponent;
+
+  @Override
+  public List<User> findAll() {
+    return jpaRepository.findAll().stream()
+        .map(user -> userMapper.toDomain(user, null))
+        .collect(Collectors.toList());
+  }
 
   @Override
   public User getUserBySwanUserIdAndToken(String swanUserId, String token) {

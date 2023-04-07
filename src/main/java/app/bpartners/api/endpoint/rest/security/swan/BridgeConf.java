@@ -49,12 +49,20 @@ public class BridgeConf {
     return baseUrl + "/items/" + id;
   }
 
+  public String getRefreshUrl(Long itemId) {
+    return baseUrl + "/items/" + itemId + "/refresh";
+  }
+
   public String getTransactionUpdatedUrl() {
     return baseUrl + "/transactions/updated";
   }
 
   public String getTransactionUrl() {
     return baseUrl + "/transactions";
+  }
+
+  public String getItemStatusUrl(Long id) {
+    return baseUrl + "/items/" + id + "/refresh/status";
   }
 
   public String getAccountUrl() {

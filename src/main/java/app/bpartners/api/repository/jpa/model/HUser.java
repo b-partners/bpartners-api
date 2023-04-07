@@ -2,9 +2,11 @@ package app.bpartners.api.repository.jpa.model;
 
 import app.bpartners.api.endpoint.rest.model.EnableStatus;
 import app.bpartners.api.endpoint.rest.model.IdentificationStatus;
+import app.bpartners.api.model.BankConnection;
 import app.bpartners.api.repository.jpa.types.PostgresEnumType;
 import java.io.Serializable;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -13,6 +15,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -20,6 +23,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 
@@ -52,6 +56,15 @@ public class HUser implements Serializable {
   private Instant tokenExpirationDatetime;
   private Instant tokenCreationDatetime;
   private int monthlySubscription;
+  private Long bridgeItemId;
+  @CreationTimestamp
+  private Instant bridgeItemUpdatedAt;
+  @CreationTimestamp
+  @Getter(AccessLevel.NONE)
+  private Instant bridgeItemLastRefresh;
+  @Type(type = "pgsql_enum")
+  @Enumerated(EnumType.STRING)
+  private BankConnection.BankConnectionStatus bankConnectionStatus;
   private String logoFileId;
   @Type(type = "pgsql_enum")
   @Enumerated(EnumType.STRING)
@@ -60,4 +73,9 @@ public class HUser implements Serializable {
   @Type(type = "pgsql_enum")
   @Enumerated(EnumType.STRING)
   private IdentificationStatus identificationStatus;
+
+  public Instant getBridgeItemLastRefresh() {
+    return bridgeItemLastRefresh == null ? null
+        : bridgeItemLastRefresh.truncatedTo(ChronoUnit.MILLIS);
+  }
 }

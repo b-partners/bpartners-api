@@ -17,6 +17,7 @@ import app.bpartners.api.repository.swan.TransactionSwanRepository;
 import app.bpartners.api.repository.swan.model.SwanTransaction;
 import app.bpartners.api.repository.swan.model.SwanTransaction.Node;
 import java.time.Instant;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -48,13 +49,6 @@ public class TransactionRepositoryImpl implements TransactionRepository {
       List<BridgeTransaction> bridgeTransactions = bridgeRepository.findAuthTransactions();
       if (bridgeTransactions.isEmpty()) {
         return List.of(); //No transactions neither bridge nor swan return transactions
-        //TODO: uncomment if necessary
-        //        List<HTransaction> persistedTransactions = jpaRepository.findAllByIdAccount(accountId);
-        //        return persistedTransactions.stream()
-        //            .map(transaction ->
-        //                mapper.toDomain(transaction,
-        //                    categoryRepository.findByIdTransaction(transaction.getId())))
-        //            .collect(Collectors.toList());
       }
       return bridgeTransactions.stream()
           .map(
@@ -63,6 +57,7 @@ public class TransactionRepositoryImpl implements TransactionRepository {
                 return mapper.toDomain(transaction, entity,
                     categoryRepository.findByIdTransaction(entity.getId()));
               })
+          .sorted(Comparator.comparing(Transaction::getPaymentDatetime).reversed())
           .collect(Collectors.toList());
     }
     return swanTransactions.stream()
@@ -71,6 +66,7 @@ public class TransactionRepositoryImpl implements TransactionRepository {
           return mapper.toDomain(transaction, entity,
               categoryRepository.findByIdTransaction(entity.getId()));
         })
+        .sorted(Comparator.comparing(Transaction::getPaymentDatetime).reversed())
         .collect(Collectors.toUnmodifiableList());
   }
 

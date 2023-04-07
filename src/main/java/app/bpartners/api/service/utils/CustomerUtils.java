@@ -221,9 +221,9 @@ public class CustomerUtils {
   }
 
   private static Object getCellValue(Cell cell) {
-    if (cell.getCellType() == Cell.CELL_TYPE_STRING) {
-      return cell.getStringCellValue();
+    if (cell.getCellType() == Cell.CELL_TYPE_NUMERIC) {
+      return cell.getNumericCellValue();
     }
-    return cell.getNumericCellValue();
+    return cell.getStringCellValue();
   }
 }

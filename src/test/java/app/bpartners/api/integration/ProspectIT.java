@@ -138,7 +138,7 @@ class ProspectIT {
         .email(null)
         .phone(null)
         .address(null)
-        .townCode(92001);
+        .townCode(92002);
   }
 
   Prospect prospect2() {
@@ -150,7 +150,7 @@ class ProspectIT {
         .email("janeDoe@gmail.com")
         .phone("+261340465339")
         .address("30 Rue de la Montagne Sainte-Genevieve")
-        .townCode(92001);
+        .townCode(92002);
   }
 
   Prospect prospect3() {
@@ -162,7 +162,7 @@ class ProspectIT {
         .email("markusAdams@gmail.com")
         .phone("+261340465340")
         .address("30 Rue de la Montagne Sainte-Genevieve")
-        .townCode(92002);
+        .townCode(92001);
   }
 
   UpdateProspect updateProspect() {

@@ -64,16 +64,17 @@ public class AccountRepositoryImpl implements AccountRepository {
 
     List<SwanAccount> swanAccounts = swanRepository.findById(accountId);
     if (swanAccounts.isEmpty()) {
-      bankRepository.selfUpdateBankConnection();
+      //bankRepository.selfUpdateBankConnection();
       Optional<HAccount> optionalAccount = accountJpaRepository.findById(accountId);
       if (optionalAccount.isPresent()) {
         HAccount accountEntity = optionalAccount.get();
-        BridgeAccount bridgeAccount = bridgeRepository.findById(accountEntity.getBridgeAccountId());
-        if (bridgeAccount == null) {
-          return mapper.toDomain(accountEntity, accountEntity.getUser().getId());
-        } else {
-          return getUpdatedAccount(authenticatedUser, bridgeAccount);
-        }
+        //TODO: do not update when finding by ID
+        //BridgeAccount bridgeAccount = bridgeRepository.findById(accountEntity.getBridgeAccountId());
+        //if (bridgeAccount == null) {
+        return mapper.toDomain(accountEntity, accountEntity.getUser().getId());
+        //} else {
+        //return getUpdatedAccount(authenticatedUser, bridgeAccount);
+        //}
       } else {
         throw new NotFoundException("Account." + accountId + " not found.");
       }

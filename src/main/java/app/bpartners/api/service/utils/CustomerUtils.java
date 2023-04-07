@@ -18,7 +18,6 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
-import static java.util.Objects.isNull;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
 public class CustomerUtils {
@@ -61,43 +60,43 @@ public class CustomerUtils {
 
       switch (cellIndex) {
         case 0:
-          customer.setLastName(currentCell.getStringCellValue());
+          customer.setLastName((String) getCellValue(currentCell));
           break;
 
         case 1:
-          customer.setFirstName(currentCell.getStringCellValue());
+          customer.setFirstName((String) getCellValue(currentCell));
           break;
 
         case 2:
-          customer.setEmail(currentCell.getStringCellValue());
+          customer.setEmail((String) getCellValue(currentCell));
           break;
 
         case 3:
-          customer.setPhone(currentCell.getStringCellValue());
+          customer.setPhone((String) getCellValue(currentCell));
           break;
 
         case 4:
-          customer.setWebsite(currentCell.getStringCellValue());
+          customer.setWebsite((String) getCellValue(currentCell));
           break;
 
         case 5:
-          customer.setAddress(currentCell.getStringCellValue());
+          customer.setAddress((String) getCellValue(currentCell));
           break;
 
         case 6:
-          customer.setZipCode((int) (currentCell.getNumericCellValue() * 100));
+          customer.setZipCode((int) (double) getCellValue(currentCell));
           break;
 
         case 7:
-          customer.setCity(currentCell.getStringCellValue());
+          customer.setCity((String) getCellValue(currentCell));
           break;
 
         case 8:
-          customer.setCountry(currentCell.getStringCellValue());
+          customer.setCountry((String) getCellValue(currentCell));
           break;
 
         default:
-          customer.setComment(currentCell.getStringCellValue());
+          customer.setComment((String) getCellValue(currentCell));
           break;
       }
       cellIndex++;
@@ -218,14 +217,13 @@ public class CustomerUtils {
 
   private static boolean hasBlankFields(CreateCustomer customer) {
     return isBlank(customer.getFirstName())
-        && isBlank(customer.getLastName())
-        && isBlank(customer.getAddress())
-        && isBlank(customer.getPhone())
-        && isBlank(customer.getCity())
-        && isBlank(customer.getCountry())
-        && isBlank(customer.getEmail())
-        && isBlank(customer.getWebsite())
-        && isNull(customer.getZipCode())
-        && isBlank(customer.getComment());
+        && isBlank(customer.getLastName());
+  }
+
+  private static Object getCellValue(Cell cell) {
+    if (cell.getCellType() == Cell.CELL_TYPE_STRING) {
+      return cell.getStringCellValue();
+    }
+    return cell.getNumericCellValue();
   }
 }

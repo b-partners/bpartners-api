@@ -4,12 +4,16 @@ import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.model.Bank;
 import app.bpartners.api.model.BankConnection;
 import app.bpartners.api.model.UserToken;
+import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.mapper.BankMapper;
 import app.bpartners.api.model.mapper.UserMapper;
 import app.bpartners.api.repository.BankRepository;
+import app.bpartners.api.repository.bridge.model.Bank.BridgeBank;
 import app.bpartners.api.repository.bridge.model.Item.BridgeItem;
 import app.bpartners.api.repository.bridge.repository.BridgeBankRepository;
+import app.bpartners.api.repository.jpa.BankJpaRepository;
 import app.bpartners.api.repository.jpa.UserJpaRepository;
+import app.bpartners.api.repository.jpa.model.HBank;
 import app.bpartners.api.repository.jpa.model.HUser;
 import java.time.Instant;
 import java.util.List;
@@ -33,10 +37,33 @@ public class BankRepositoryImpl implements BankRepository {
   private final UserJpaRepository userJpaRepository;
   private final UserMapper userMapper;
   private final BankMapper mapper;
+  private final BankJpaRepository jpaRepository;
 
+  //TODO: check why bank is persisted twice and turn back to optional
   @Override
-  public Bank findById(Long id) {
-    return mapper.toDomain(bridgeRepository.findById(id));
+  public Bank findByBridgeId(Long id) {
+    BridgeBank bridgeBank = bridgeRepository.findById(id);
+    if (bridgeBank != null) {
+      List<HBank> entities = jpaRepository.findAllByBridgeId(bridgeBank.getId());
+      HBank entity;
+      if (entities.isEmpty()) {
+        entity = jpaRepository.save(mapper.toEntity(bridgeBank));
+      } else {
+        entity = entities.get(0);
+      }
+      return mapper.toDomain(entity, bridgeBank);
+    }
+    throw new NotFoundException("Bank(bridgeId=" + id + " is not found");
+  }
+
+  //TODO: improve this
+  @Override
+  public Bank findById(String id) {
+    if (id == null) {
+      return null;
+    }
+    return mapper.toDomain(
+        jpaRepository.findById(id).orElse(null), null);
   }
 
   @Override
@@ -60,7 +87,7 @@ public class BankRepositoryImpl implements BankRepository {
     return BankConnection.builder()
         .bridgeId(savedEntity.getBridgeItemId())
         .user(userMapper.toDomain(savedEntity, null))
-        .bank(findById(connectionChosen.getBankId()))
+        .bank(findByBridgeId(connectionChosen.getBankId()))
         .status(savedEntity.getBankConnectionStatus())
         .build();
   }

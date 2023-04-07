@@ -130,13 +130,14 @@ public class AccountRepositoryImpl implements AccountRepository {
   }
 
   private Account save(Account domain, HUser user) {
-    HAccount entity = mapper.toEntity(domain, user);
-    return mapper.toDomain(accountJpaRepository.save(entity), user.getId());
+    HAccount entityToSave = mapper.toEntity(domain, user);
+    HAccount savedEntity = accountJpaRepository.save(entityToSave);
+    return mapper.toDomain(
+        savedEntity, bankRepository.findById(savedEntity.getIdBank()), user.getId());
   }
 
   private Account getUpdatedAccount(User authenticatedUser, BridgeAccount bridgeAccount) {
-    Bank bank = bankRepository.findById(bridgeAccount.getBankId());
-
+    Bank bank = bankRepository.findByBridgeId(bridgeAccount.getBankId());
     if (authenticatedUser == null) {
       return mapper.toDomain(bridgeAccount, bank, null, null);
     } else {

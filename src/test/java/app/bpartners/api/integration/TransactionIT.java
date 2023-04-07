@@ -42,6 +42,7 @@ import static app.bpartners.api.integration.conf.TestUtils.JANE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JANE_DOE_TOKEN;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.TestUtils.invoice1;
+import static app.bpartners.api.integration.conf.TestUtils.isAfterOrEquals;
 import static app.bpartners.api.integration.conf.TestUtils.restTransaction1;
 import static app.bpartners.api.integration.conf.TestUtils.restTransaction2;
 import static app.bpartners.api.integration.conf.TestUtils.restTransaction3;
@@ -159,12 +160,16 @@ class TransactionIT {
     PayingApi api = new PayingApi(joeDoeClient);
 
     List<Transaction> actual = api.getTransactions(JOE_DOE_ACCOUNT_ID, null, null);
-    assertEquals(4, actual.size());
 
+    assertEquals(4, actual.size());
     assertTrue(actual.contains(restTransaction2()));
     assertTrue(actual.contains(restTransaction1()));
     assertTrue(ignoreIds(actual).contains(restTransaction3().id(null)));
     assertTrue(ignoreIds(actual).contains(restTransaction4().id(null)));
+    assertTrue(isAfterOrEquals(
+        actual.get(0).getPaymentDatetime(), actual.get(1).getPaymentDatetime()));
+    assertTrue(isAfterOrEquals(
+        actual.get(1).getPaymentDatetime(), actual.get(2).getPaymentDatetime()));
   }
 
   /*

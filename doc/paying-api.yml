@@ -437,6 +437,11 @@ operations:
             type: integer
           description: If provided, search product by unit price
         - in: query
+          name: status
+          schema:
+            $ref: '#/components/schemas/ProductStatus'
+          description: Filter products by status
+        - in: query
           name: page
           required: false
           schema:

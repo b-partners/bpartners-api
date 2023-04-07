@@ -171,7 +171,8 @@ public class TransactionService {
         yearMonth.getMonthValue() - 1);
   }
 
-  @Scheduled(fixedDelay = 60 * 1_000)
+  //TODO: check if 5 minutes of refresh is enough or too much
+  @Scheduled(fixedDelay = 5 * 60 * 1_000)
   public void refreshTransactionsSummaries() {
     holderJpaRepository.findAllGroupByAccountId().forEach(
         accountHolder -> {

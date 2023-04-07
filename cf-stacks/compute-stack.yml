@@ -87,6 +87,8 @@ Resources:
               Value: !Sub '{{resolve:ssm:/bpartners/${Env}/sogefi/ads-bearer}}'
             - Name: ADS_DENOM_CHAR
               Value: !Sub '{{resolve:ssm:/bpartners/${Env}/sogefi/ads-denom-char}}'
+            - Name: ADS_LIMIT
+              Value: !Sub '{{resolve:ssm:/bpartners/${Env}/sogefi/ads-limit}}'
             - Name: BRIDGE_CLIENT_ID
               Value: !Sub '{{resolve:ssm:/bpartners/${Env}/bridge/client-id}}'
             - Name: BRIDGE_CLIENT_SECRET

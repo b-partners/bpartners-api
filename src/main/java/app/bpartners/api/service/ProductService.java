@@ -28,8 +28,10 @@ public class ProductService {
       String accountId, ProductStatus status, int page, int pageSize,
       OrderDirection descriptionOrder, OrderDirection unitPriceOrder, OrderDirection createdAtOrder,
       String description, Integer unitPrice) {
+    ProductStatus status1 = status == null ? ProductStatus.ENABLED : status;
     Fraction productUnitPrice = unitPrice == null ? null : parseFraction(unitPrice);
-    return repository.findAllByIdAccountAndStatusAndOrByDescriptionAndOrUnitPrice(accountId, status,
+    return repository.findAllByIdAccountAndStatusAndOrByDescriptionAndOrUnitPrice(accountId,
+        status1,
         page, pageSize, descriptionOrder, unitPriceOrder, createdAtOrder, description,
         productUnitPrice);
   }

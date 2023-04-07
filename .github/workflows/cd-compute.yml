@@ -22,6 +22,7 @@ on:
 
 env:
   ADS_DENOM_CHAR: e
+  ADS_LIMIT: 5
 
 jobs:
   cd-compute:
@@ -67,7 +68,7 @@ jobs:
           export ADS_BASEURL=${{ secrets.ADS_BASEURL}}
           export ADS_BEARER=${{ secrets.ADS_BEARER}}
           export ADS_DENOM_CHAR=${{ env.ADS_DENOM_CHAR }}
-          export ADS_LIMIT=${{ secrets.ADS_LIMIT}}
+          export ADS_LIMIT=${{ env.ADS_LIMIT}}
           export BRIDGE_CLIENT_ID=${{ secrets.BRIDGE_CLIENT_ID }}
           export BRIDGE_CLIENT_SECRET=${{ secrets.BRIDGE_CLIENT_SECRET }}
           export BRIDGE_BASE_URL=${{ secrets.BRIDGE_BASE_URL }}

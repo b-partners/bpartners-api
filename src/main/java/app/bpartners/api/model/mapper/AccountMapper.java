@@ -62,6 +62,12 @@ public class AccountMapper {
         .build();
   }
 
+  public Account toDomain(HAccount entity, Bank bank, String userId) {
+    return toDomain(entity, userId).toBuilder()
+        .bank(bank)
+        .build();
+  }
+
   public Account toDomain(BridgeAccount bridgeAccount, Bank bank,
                           Account domainAccount, String userId) {
     return Account.builder()

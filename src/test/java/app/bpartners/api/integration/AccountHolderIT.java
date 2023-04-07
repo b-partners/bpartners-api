@@ -239,7 +239,7 @@ class AccountHolderIT {
             .city("Paris")
             .postalCode("9100")
             .country("France")
-            .prospectingPerimeter(null)
+            .prospectingPerimeter(28)
         );
   }
 
@@ -254,7 +254,7 @@ class AccountHolderIT {
             .city("Paris")
             .postalCode("9100")
             .country("France")
-            .prospectingPerimeter(0)
+            .prospectingPerimeter(28)
         );
   }
 

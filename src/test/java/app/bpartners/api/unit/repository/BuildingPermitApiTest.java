@@ -163,7 +163,7 @@ class BuildingPermitApiTest {
     filter.put("sitadel_etat[in]", AUTHORIZED_STATE + "," + STARTED_STATE);
     filter.put("sitadel_demandeur_denom[like]", COMMON_DENOM_CHAR);
     filter.put("limit", LIMIT);
-    filter.put("onlytotal", String.valueOf(true));
+    filter.put("onlytotal", String.valueOf(false));
     return filter;
   }
 

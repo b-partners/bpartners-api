@@ -51,6 +51,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import static app.bpartners.api.integration.conf.TestUtils.BEARER_PREFIX;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_TOKEN;
+import static app.bpartners.api.integration.conf.TestUtils.disabledProduct;
 import static app.bpartners.api.integration.conf.TestUtils.isAfterOrEquals;
 import static app.bpartners.api.integration.conf.TestUtils.product1;
 import static app.bpartners.api.integration.conf.TestUtils.product4;
@@ -160,18 +161,29 @@ class ProductIT {
     ApiClient joeDoeClient = anApiClient();
     PayingApi api = new PayingApi(joeDoeClient);
 
-    List<Product> actual = api.getProducts(
+    List<Product> actualEnabledProducts = api.getProducts(
         JOE_DOE_ACCOUNT_ID, null, null, null, null,
-        null, null, 1, 20);
+        null, null, null, 1, 20);
+    List<Product> actualDisabledProducts = api.getProducts(
+        JOE_DOE_ACCOUNT_ID, null, null, null, null,
+        null, null, ProductStatus.DISABLED, 1, 20);
 
-    assertEquals(6, actual.size());
-    assertTrue(actual.stream()
+    assertEquals(6, actualEnabledProducts.size());
+    assertEquals(1, actualDisabledProducts.size());
+    assertTrue(actualEnabledProducts.stream()
         .allMatch(product -> product.getStatus() == ProductStatus.ENABLED));
-    assertTrue(actual.contains(product1()));
-    assertTrue(isAfterOrEquals(actual.get(0).getCreatedAt(), actual.get(1).getCreatedAt()));
-    assertTrue(isAfterOrEquals(actual.get(1).getCreatedAt(), actual.get(2).getCreatedAt()));
-    assertTrue(isAfterOrEquals(actual.get(3).getCreatedAt(), actual.get(4).getCreatedAt()));
-    assertTrue(isAfterOrEquals(actual.get(4).getCreatedAt(), actual.get(5).getCreatedAt()));
+    assertTrue(actualEnabledProducts.contains(product1()));
+    assertTrue(isAfterOrEquals(actualEnabledProducts.get(0).getCreatedAt(),
+        actualEnabledProducts.get(1).getCreatedAt()));
+    assertTrue(isAfterOrEquals(actualEnabledProducts.get(1).getCreatedAt(),
+        actualEnabledProducts.get(2).getCreatedAt()));
+    assertTrue(isAfterOrEquals(actualEnabledProducts.get(3).getCreatedAt(),
+        actualEnabledProducts.get(4).getCreatedAt()));
+    assertTrue(isAfterOrEquals(actualEnabledProducts.get(4).getCreatedAt(),
+        actualEnabledProducts.get(5).getCreatedAt()));
+    assertTrue(actualDisabledProducts.stream()
+        .allMatch(disabledProducts -> disabledProducts.getStatus() == ProductStatus.DISABLED));
+    assertTrue(actualDisabledProducts.contains(disabledProduct()));
   }
 
   @Order(1)
@@ -182,16 +194,16 @@ class ProductIT {
 
     List<Product> actualSearchedByDescription = api.getProducts(
         JOE_DOE_ACCOUNT_ID, null, null, null, null,
-        "Tableau", null, 1, 20);
+        "Tableau", null, null, 1, 20);
     List<Product> actualSearchedByUnitPrice = api.getProducts(
         JOE_DOE_ACCOUNT_ID, null, null, null, null,
-        null, 1000, 1, 20);
+        null, 1000, null, 1, 20);
     List<Product> actualSearchedByDescriptionAndUnitPrice = api.getProducts(
         JOE_DOE_ACCOUNT_ID, null, null, null, null,
-        "produits", 2000, 1, 20);
+        "produits", 2000, null, 1, 20);
     List<Product> actualSearchEmpty = api.getProducts(
         JOE_DOE_ACCOUNT_ID, null, null, null, null,
-        null, 210, 1, 20);
+        null, 210, null, 1, 20);
 
     assertEquals(2, actualSearchedByDescription.size());
     assertEquals(3, actualSearchedByUnitPrice.size());
@@ -218,7 +230,7 @@ class ProductIT {
         api.createProducts(JOE_DOE_ACCOUNT_ID, List.of(createProduct1()));
     List<Product> actualProducts = api.getProducts(
         JOE_DOE_ACCOUNT_ID, true, null, null, null,
-        null, null, 1, 20);
+        null, null, null, 1, 20);
     assertTrue(actualProducts.stream()
         .allMatch(product -> product.getCreatedAt() != null));
     actual.get(0).createdAt(actualProducts.get(0).getCreatedAt());
@@ -236,14 +248,14 @@ class ProductIT {
     List<Product> actual1 = api.crupdateProducts(JOE_DOE_ACCOUNT_ID, List.of(createProduct));
     List<Product> allProducts1 = api.getProducts(
         JOE_DOE_ACCOUNT_ID, true, null, null, null,
-        null, null, 1, 20);
+        null, null, null, 1, 20);
     List<Product> actual2 = api.crupdateProducts(JOE_DOE_ACCOUNT_ID,
         List.of(createProduct
             .description("Other")
             .unitPrice(5000)));
     List<Product> allProducts2 = api.getProducts(
         JOE_DOE_ACCOUNT_ID, true, null, null, null,
-        null, null, 1, 20);
+        null, null, null, 1, 20);
 
     Product actualProduct = actual1.get(0);
     Product actualUpdated = actual2.get(0);
@@ -266,14 +278,14 @@ class ProductIT {
 
     List<Product> actual1 = api.getProducts(
         JOE_DOE_ACCOUNT_ID, null, null, null, OrderDirection.DESC,
-        null, null, 1, 20);
+        null, null, null, 1, 20);
     List<Product> actual2 = api.getProducts(
         JOE_DOE_ACCOUNT_ID, null,
         null, OrderDirection.ASC, null,
-        null, null, 1, 20);
+        null, null, null, 1, 20);
     List<Product> actual3 = api.getProducts(
         JOE_DOE_ACCOUNT_ID, null, OrderDirection.ASC, OrderDirection.DESC, null,
-        null, null, 1, 20);
+        null, null, null, 1, 20);
 
     assertTrue(actual1.size() > 2);
     assertTrue(actual2.size() > 2);
@@ -353,7 +365,7 @@ class ProductIT {
 
     List<Product> allProducts = api.getProducts(
         JOE_DOE_ACCOUNT_ID, null, null, null, null,
-        null, null, 1, 20);
+        null, null, null, 1, 20);
 
     assertTrue(
         allProducts.stream()

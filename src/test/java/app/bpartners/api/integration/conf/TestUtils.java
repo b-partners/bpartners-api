@@ -47,8 +47,8 @@ import app.bpartners.api.repository.swan.TransactionSwanRepository;
 import app.bpartners.api.repository.swan.UserSwanRepository;
 import app.bpartners.api.repository.swan.model.SwanAccount;
 import app.bpartners.api.repository.swan.model.SwanAccountHolder;
-import app.bpartners.api.repository.swan.model.SwanUser;
 import app.bpartners.api.repository.swan.model.SwanTransaction;
+import app.bpartners.api.repository.swan.model.SwanUser;
 import app.bpartners.api.repository.swan.response.AccountResponse;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -456,6 +456,17 @@ public class TestUtils {
         .createdAt(null)
         .status(ProductStatus.ENABLED)
         .totalPriceWithVat(1100);
+  }
+
+  public static Product disabledProduct() {
+    return new Product()
+        .id("product8_id")
+        .description("Cartable")
+        .unitPrice(1200)
+        .vatPercent(1000)
+        .unitPriceWithVat(1320)
+        .createdAt(Instant.parse("2022-01-01T04:00:00.00Z"))
+        .status(ProductStatus.DISABLED);
   }
 
   public static CreateProduct createProduct2() {

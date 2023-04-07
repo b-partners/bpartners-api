@@ -133,7 +133,7 @@ class AccountHolderIT {
             .socialCapital(40000)
             .tvaNumber("FR32123456789")
             .location(location())
-            .townCode(92001))
+            .townCode(92002))
         .businessActivities(new CompanyBusinessActivity()
             .primary("IT")
             .secondary("TECHNOLOGY"))
@@ -212,7 +212,7 @@ class AccountHolderIT {
             .email("numer@hei.school")
             .tvaNumber("FR32123456789")
             .location(location())
-            .townCode(92001));
+            .townCode(92002));
   }
 
   CompanyInfo updatedCompanyInfo() {

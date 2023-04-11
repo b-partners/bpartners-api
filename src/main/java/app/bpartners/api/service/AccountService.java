@@ -26,10 +26,10 @@ public class AccountService {
   private final BankRepository bankRepository;
 
 
-  @Transactional(isolation = SERIALIZABLE)
+  @Transactional
   public Account getAccountByBearer(String bearer) {
     List<Account> accounts = repository.findByBearer(bearer);
-    return accounts.get(0);
+    return accounts.get(0); //TODO: do NOT get(0) like this without warning
   }
 
   public Account getAccountById(String id) {

@@ -138,6 +138,7 @@ public class TestUtils {
   public static final String BEARER_QUERY_PARAMETER_NAME = "accessToken";
   public static final String BEARER_PREFIX = "Bearer ";
   public static final String JOE_DOE_TOKEN = "joe_doe_token";
+  public static final String JOE_DOE_COGNITO_TOKEN = JOE_DOE_TOKEN; //TODO(distinct-cognito): should be diff from Swan
   public static final String PROJECT_TOKEN = "project_token";
   public static final String BAD_CODE = "bad_code";
   public static final String SWAN_ONBOARDING_URL_FORMAT =
@@ -1103,7 +1104,11 @@ public class TestUtils {
   }
 
   @SneakyThrows
-  public static <T> T getFutureResult(Future<T> future) {
-    return future.get();
+  public static <T> Optional<T> getOptionalFutureResult(Future<T> future) {
+    try {
+      return Optional.of(future.get());
+    } catch (Exception e) {
+      return Optional.empty();
+    }
   }
 }

@@ -53,6 +53,7 @@ public class AccountRepositoryImpl implements AccountRepository {
       bankRepository.selfUpdateBankConnection();
       List<BridgeAccount> bridgeAccounts = bridgeRepository.findByBearer(bearer);
       if (bridgeAccounts.isEmpty()) {
+        //TODO: this if-statement is super dubious: it has nothing to do with the input bearer!!!
         return List.of(authenticatedUser.getAccount());
       }
       return bridgeAccounts.stream()

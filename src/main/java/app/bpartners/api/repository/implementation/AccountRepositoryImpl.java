@@ -34,6 +34,12 @@ public class AccountRepositoryImpl implements AccountRepository {
   private final UserRepository userRepository;
   private final AccountMapper mapper;
   private final UserJpaRepository userJpaRepository;
+
+  /* TODO: BAD! You should NOT have Swan and Bridge implemented in the same class!
+   *   Instead, you should have a SwanAccountRepositoryImpl,
+   *   and a BridgeAccountRepositoryImpl.
+   *   As is, with the two implementations mixed in a same class,
+   *   the AccountRepository interface is completely useless! */
   private final BridgeAccountRepository bridgeRepository;
   private final BankRepository bankRepository;
 

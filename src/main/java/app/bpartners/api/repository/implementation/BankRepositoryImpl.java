@@ -43,6 +43,9 @@ public class BankRepositoryImpl implements BankRepository {
   @Override
   public Bank findByBridgeId(Long id) {
     BridgeBank bridgeBank = bridgeRepository.findById(id);
+
+    /* TODO: pre-condition check first, nominal execution afterwards
+     *   That is: if (bridgeBank == null) {throw} first */
     if (bridgeBank != null) {
       List<HBank> entities = jpaRepository.findAllByBridgeId(bridgeBank.getId());
       HBank entity;

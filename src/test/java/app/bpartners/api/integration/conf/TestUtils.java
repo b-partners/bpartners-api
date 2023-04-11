@@ -31,6 +31,7 @@ import app.bpartners.api.model.Account;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.repository.AccountRepository;
 import app.bpartners.api.repository.LegalFileRepository;
+import app.bpartners.api.repository.bridge.model.Account.BridgeAccount;
 import app.bpartners.api.repository.fintecture.FintectureConf;
 import app.bpartners.api.repository.fintecture.FintecturePaymentInfoRepository;
 import app.bpartners.api.repository.fintecture.FintecturePaymentInitiationRepository;
@@ -47,11 +48,19 @@ import app.bpartners.api.repository.swan.TransactionSwanRepository;
 import app.bpartners.api.repository.swan.UserSwanRepository;
 import app.bpartners.api.repository.swan.model.SwanAccount;
 import app.bpartners.api.repository.swan.model.SwanAccountHolder;
-import app.bpartners.api.repository.swan.model.SwanUser;
 import app.bpartners.api.repository.swan.model.SwanTransaction;
+import app.bpartners.api.repository.swan.model.SwanUser;
 import app.bpartners.api.repository.swan.response.AccountResponse;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.SneakyThrows;
+import org.junit.jupiter.api.function.Executable;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
+import software.amazon.awssdk.services.eventbridge.model.PutEventsRequest;
+import software.amazon.awssdk.services.eventbridge.model.PutEventsResponse;
+
+import javax.net.ssl.SSLSession;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.URI;
@@ -71,12 +80,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import javax.net.ssl.SSLSession;
-import org.junit.jupiter.api.function.Executable;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
-import software.amazon.awssdk.services.eventbridge.model.PutEventsRequest;
-import software.amazon.awssdk.services.eventbridge.model.PutEventsResponse;
+import java.util.concurrent.Future;
 
 import static app.bpartners.api.endpoint.rest.model.AccountStatus.OPENED;
 import static app.bpartners.api.endpoint.rest.model.EnableStatus.ENABLED;
@@ -229,6 +233,15 @@ public class TestUtils {
         .identificationStatus(janeDoe().getIdentificationStatus())
         .mobilePhoneNumber(janeDoe().getMobilePhoneNumber())
         .idVerified(janeDoe().isIdVerified())
+        .build();
+  }
+
+  public static BridgeAccount joeDoeBridgeAccount() {
+    return BridgeAccount.builder()
+        .bankId(1234L)
+        .name("Numer Bridge Account")
+        .iban("FR7699999001001190346460988")
+        .status(0)
         .build();
   }
 
@@ -1087,5 +1100,10 @@ public class TestUtils {
 
   public static boolean isAfterOrEquals(Instant before, Instant after) {
     return before.isAfter(after) || before.equals(after);
+  }
+
+  @SneakyThrows
+  public static <T> T getFutureResult(Future<T> future) {
+    return future.get();
   }
 }

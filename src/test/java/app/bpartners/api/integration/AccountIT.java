@@ -15,9 +15,12 @@ import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
 import app.bpartners.api.integration.conf.AbstractContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
 import app.bpartners.api.manager.ProjectTokenManager;
+import app.bpartners.api.model.Bank;
 import app.bpartners.api.repository.LegalFileRepository;
+import app.bpartners.api.repository.bridge.repository.BridgeAccountRepository;
 import app.bpartners.api.repository.bridge.repository.BridgeBankRepository;
 import app.bpartners.api.repository.fintecture.FintectureConf;
+import app.bpartners.api.repository.implementation.BankRepositoryImpl;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitConf;
 import app.bpartners.api.repository.sendinblue.SendinblueConf;
 import app.bpartners.api.repository.swan.AccountHolderSwanRepository;
@@ -28,8 +31,7 @@ import app.bpartners.api.repository.swan.UserSwanRepository;
 import app.bpartners.api.repository.swan.implementation.AccountSwanRepositoryImpl;
 import app.bpartners.api.repository.swan.model.SwanAccount;
 import app.bpartners.api.repository.swan.response.AccountResponse;
-import java.util.ArrayList;
-import java.util.List;
+import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -37,6 +39,12 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import static app.bpartners.api.integration.conf.TestUtils.ACCOUNT_CLOSED;
 import static app.bpartners.api.integration.conf.TestUtils.ACCOUNT_CLOSING;
@@ -48,6 +56,8 @@ import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_TOKEN;
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsApiException;
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsForbiddenException;
+import static app.bpartners.api.integration.conf.TestUtils.getFutureResult;
+import static app.bpartners.api.integration.conf.TestUtils.joeDoeBridgeAccount;
 import static app.bpartners.api.integration.conf.TestUtils.joeDoeSwanAccount;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountHolderSwanRep;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountSwanRepository;
@@ -55,6 +65,7 @@ import static app.bpartners.api.integration.conf.TestUtils.setUpLegalFileReposit
 import static app.bpartners.api.integration.conf.TestUtils.setUpSwanComponent;
 import static app.bpartners.api.integration.conf.TestUtils.setUpUserSwanRepository;
 import static java.util.UUID.randomUUID;
+import static java.util.stream.Collectors.toUnmodifiableList;
 import static org.hibernate.validator.internal.util.Contracts.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -96,6 +107,10 @@ class AccountIT {
   private LegalFileRepository legalFileRepositoryMock;
   @MockBean
   private BridgeBankRepository bridgeBankRepositoryMock;
+  @MockBean
+  private BankRepositoryImpl bankRepositoryImplMock;
+  @MockBean
+  private BridgeAccountRepository bridgeAccountRepositoryMock;
   private AccountSwanRepositoryImpl accountSwanRepositoryImpl;
   private SwanApi swanApiMock;
   private SwanCustomApi swanCustomApiMock;
@@ -105,7 +120,6 @@ class AccountIT {
   }
 
   public static AccountResponse.Edge joeDoeEdge() {
-
     SwanAccount swanAccount2 = joeDoeSwanAccount().toBuilder()
         .statusInfo(new SwanAccount.StatusInfo(ACCOUNT_OPENED))
         .build();
@@ -115,7 +129,6 @@ class AccountIT {
   }
 
   public static AccountResponse.Edge openedStatusEdge() {
-
     SwanAccount swanAccount2 = joeDoeSwanAccount().toBuilder()
         .id(randomUUID().toString())
         .statusInfo(new SwanAccount.StatusInfo(ACCOUNT_OPENED))
@@ -135,7 +148,6 @@ class AccountIT {
   }
 
   public static AccountResponse.Edge suspendedStatusEdge() {
-
     SwanAccount swanAccount4 = joeDoeSwanAccount().toBuilder()
         .statusInfo(new SwanAccount.StatusInfo(ACCOUNT_SUSPENDED))
         .build();
@@ -214,12 +226,7 @@ class AccountIT {
 
   @Test
   void read_closed_accounts_ok() throws ApiException {
-    when(accountSwanRepositoryMock.findByUserId(JOE_DOE_ID)).
-        thenReturn(List.of(joeDoeSwanAccount().toBuilder()
-            .statusInfo(new SwanAccount.StatusInfo(ACCOUNT_CLOSED))
-            .build()));
-    ApiClient joeDoeClient = anApiClient();
-    UserAccountsApi api = new UserAccountsApi(joeDoeClient);
+    UserAccountsApi api = configureSwanUserAccountsApi(ACCOUNT_CLOSED);
 
     List<Account> actual = api.getAccountsByUserId(JOE_DOE_ID);
 
@@ -228,12 +235,7 @@ class AccountIT {
 
   @Test
   void read_suspended_accounts_ok() throws ApiException {
-    when(accountSwanRepositoryMock.findByUserId(JOE_DOE_ID)).
-        thenReturn(List.of(joeDoeSwanAccount().toBuilder()
-            .statusInfo(new SwanAccount.StatusInfo(ACCOUNT_SUSPENDED))
-            .build()));
-    ApiClient joeDoeClient = anApiClient();
-    UserAccountsApi api = new UserAccountsApi(joeDoeClient);
+    UserAccountsApi api = configureSwanUserAccountsApi(ACCOUNT_SUSPENDED);
 
     List<Account> actual = api.getAccountsByUserId(JOE_DOE_ID);
 
@@ -241,13 +243,49 @@ class AccountIT {
   }
 
   @Test
-  void read_closing_accounts_ok() throws ApiException {
+  public void concurrently_get_bridge_accounts() {
+    when(accountSwanRepositoryMock.findByUserId(JOE_DOE_ID)).thenReturn(List.of());
+    when(bridgeAccountRepositoryMock.findAllByAuthenticatedUser()).thenReturn(List.of(joeDoeBridgeAccount()));
+    when(bankRepositoryImplMock.findByBridgeId(joeDoeBridgeAccount().getBankId())).thenReturn(
+        Bank.builder().build());
+    ApiClient client = anApiClient();
+    UserAccountsApi api = new UserAccountsApi(client);
+    var executor = Executors.newFixedThreadPool(10);
+    var callerNb = 50;
+
+    var latch = new CountDownLatch(1);
+    var futureGetAccounts = new ArrayList<Future<List<Account>>>();
+    for (var callerIdx = 0; callerIdx < callerNb; callerIdx++) {
+      futureGetAccounts.add(executor.submit(() -> getAccountsByUserId(api, JOE_DOE_ID, latch)));
+    }
+    latch.countDown();
+
+    List<Account> retrievedAccounts = futureGetAccounts.stream()
+        .flatMap(future -> getFutureResult(future).stream())
+        .peek(account -> assertEquals("Numer Bridge Account", account.getName()))
+        .collect(toUnmodifiableList());
+    assertTrue(retrievedAccounts.size() == callerNb);
+  }
+
+  @SneakyThrows
+  private static List<Account> getAccountsByUserId(UserAccountsApi api, String userId, CountDownLatch latch) {
+    latch.await();
+    return api.getAccountsByUserId(userId);
+  }
+
+  private UserAccountsApi configureSwanUserAccountsApi(String statusInfo) {
     when(accountSwanRepositoryMock.findByUserId(JOE_DOE_ID)).
         thenReturn(List.of(joeDoeSwanAccount().toBuilder()
-            .statusInfo(new SwanAccount.StatusInfo(ACCOUNT_CLOSING))
+            .statusInfo(new SwanAccount.StatusInfo(statusInfo))
             .build()));
     ApiClient joeDoeClient = anApiClient();
     UserAccountsApi api = new UserAccountsApi(joeDoeClient);
+    return api;
+  }
+
+  @Test
+  void read_closing_accounts_ok() throws ApiException {
+    UserAccountsApi api = configureSwanUserAccountsApi(ACCOUNT_CLOSING);
 
     List<Account> actual = api.getAccountsByUserId(JOE_DOE_ID);
 
@@ -256,12 +294,7 @@ class AccountIT {
 
   @Test
   void read_unknown_accounts_ok() throws ApiException {
-    when(accountSwanRepositoryMock.findByUserId(JOE_DOE_ID)).
-        thenReturn(List.of(joeDoeSwanAccount().toBuilder()
-            .statusInfo(new SwanAccount.StatusInfo("Unknown status"))
-            .build()));
-    ApiClient joeDoeClient = anApiClient();
-    UserAccountsApi api = new UserAccountsApi(joeDoeClient);
+    UserAccountsApi api = configureSwanUserAccountsApi("Unknown status");
 
     List<Account> actual = api.getAccountsByUserId(JOE_DOE_ID);
 

@@ -49,6 +49,9 @@ public class FintectureMapper {
 
   public app.bpartners.api.model.PaymentRedirection toDomain(
       FPaymentRedirection redirection, PaymentInitiation paymentInitiation) {
+    if (redirection == null) {
+      return null;
+    }
     return app.bpartners.api.model.PaymentRedirection.builder()
         .endToEndId(paymentInitiation.getId())
         .sessionId(redirection.getMeta().getSessionId())

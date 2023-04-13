@@ -4,6 +4,7 @@ import app.bpartners.api.endpoint.rest.security.AuthenticatedResourceProvider;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.PaymentInitiation;
+import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.repository.fintecture.model.Beneficiary;
 import app.bpartners.api.repository.fintecture.model.FPaymentInitiation;
 import app.bpartners.api.repository.fintecture.model.FPaymentRedirection;
@@ -26,10 +27,24 @@ public class FintectureMapper {
         .zip(accountHolder.getPostalCode()).build();
   }
 
+  //TODO: put these checks properly
   public FPaymentInitiation toFintectureResource(PaymentInitiation domain) {
     Account authenticatedAccount = authResourceProvider.getAccount();
     AccountHolder authenticatedAccountHolder = authResourceProvider.getAccountHolder();
-
+    if (authenticatedAccount.getIban() == null) {
+      throw new BadRequestException(
+          "Account("
+              + "id=" + authenticatedAccount.getId()
+              + ", name=" + authenticatedAccount.getName() + ") "
+              + "does not have iban. Iban is mandatory to initiate payment");
+    }
+    if (authenticatedAccount.getBic() == null) {
+      throw new BadRequestException(
+          "Account("
+              + "id=" + authenticatedAccount.getId()
+              + ", name=" + authenticatedAccount.getName() + ") "
+              + "does not have bic. Bic is mandatory to initiate payment");
+    }
     Beneficiary beneficiary = toBeneficiary(authenticatedAccount, authenticatedAccountHolder);
 
     FPaymentInitiation.Attributes attributes = new FPaymentInitiation.Attributes();
@@ -49,6 +64,9 @@ public class FintectureMapper {
 
   public app.bpartners.api.model.PaymentRedirection toDomain(
       FPaymentRedirection redirection, PaymentInitiation paymentInitiation) {
+    if (redirection == null) {
+      return null;
+    }
     return app.bpartners.api.model.PaymentRedirection.builder()
         .endToEndId(paymentInitiation.getId())
         .sessionId(redirection.getMeta().getSessionId())

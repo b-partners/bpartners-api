@@ -27,6 +27,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.apfloat.Aprational;
 import org.springframework.stereotype.Component;
 
@@ -43,6 +44,7 @@ import static java.util.UUID.randomUUID;
 
 @Component
 @AllArgsConstructor
+@Slf4j
 public class InvoiceMapper {
   private final ObjectMapper objectMapper;
   private final CustomerMapper customerMapper;
@@ -241,7 +243,14 @@ public class InvoiceMapper {
 
     if (domain.getStatus() == CONFIRMED) {
       if (domain.getPaymentType() == CASH) {
-        toPayAt = sendingDate.plusDays(domain.getDelayInPaymentAllowed());
+        Integer delayInPaymentAllowed = domain.getDelayInPaymentAllowed();
+        if (delayInPaymentAllowed == null) {
+          log.warn(
+              "Delay in payment allowed is mandatory to retrieve invoice payment date limit."
+                  + " 30 days are given by default");
+          delayInPaymentAllowed = 30;
+        }
+        toPayAt = sendingDate.plusDays(delayInPaymentAllowed);
         paymentUrl =
             getPaymentUrl(domain, paymentUrl, computeTotalPriceWithVatAndDiscount(
                 domain.getDiscount().getPercentValue(), domain.getProducts()));

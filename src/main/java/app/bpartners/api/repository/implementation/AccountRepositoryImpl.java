@@ -2,173 +2,116 @@ package app.bpartners.api.repository.implementation;
 
 import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.model.Account;
-import app.bpartners.api.model.Bank;
-import app.bpartners.api.model.User;
+import app.bpartners.api.model.UpdateAccountIdentity;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.mapper.AccountMapper;
+import app.bpartners.api.repository.AccountConnectorRepository;
 import app.bpartners.api.repository.AccountRepository;
 import app.bpartners.api.repository.BankRepository;
-import app.bpartners.api.repository.UserRepository;
-import app.bpartners.api.repository.bridge.model.Account.BridgeAccount;
-import app.bpartners.api.repository.bridge.repository.BridgeAccountRepository;
 import app.bpartners.api.repository.jpa.AccountJpaRepository;
 import app.bpartners.api.repository.jpa.UserJpaRepository;
 import app.bpartners.api.repository.jpa.model.HAccount;
 import app.bpartners.api.repository.jpa.model.HUser;
-import app.bpartners.api.repository.swan.AccountSwanRepository;
-import app.bpartners.api.repository.swan.model.SwanAccount;
+import app.bpartners.api.repository.model.AccountConnector;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Repository;
 
 @Repository
 @AllArgsConstructor
 @Slf4j
 public class AccountRepositoryImpl implements AccountRepository {
-  private final AccountSwanRepository swanRepository;
-  private final AccountJpaRepository accountJpaRepository;
-  private final UserRepository userRepository;
   private final AccountMapper mapper;
+  private final AccountConnectorRepository connectorRepository;
+  private final AccountJpaRepository jpaRepository;
   private final UserJpaRepository userJpaRepository;
-
-  /* TODO: BAD! You should NOT have Swan and Bridge implemented in the same class!
-   *   Instead, you should have a SwanAccountRepositoryImpl,
-   *   and a BridgeAccountRepositoryImpl.
-   *   As is, with the two implementations mixed in a same class,
-   *   the AccountRepository interface is completely useless! */
-  private final BridgeAccountRepository bridgeRepository;
   private final BankRepository bankRepository;
 
-  //TODO: delete bridge item if persisted account has bank_id before mapping new values
+
+  /*
+  TODO:
+  /!\ IMPORTANT NOTE !
+  To respect Facade pattern abstraction, JPA Repository must be a connector as Swan or Bridge.
+  So the entities must be return through AccountConnector first, then convert into Account
+  through JPA inside this class AccountRepositoryImpl.
+  Meanwhile, to avoid two database requests, we broke the abstraction here.
+   */
   @Override
   public List<Account> findByBearer(String bearer) {
-    User authenticatedUser = userRepository.getUserByToken(bearer);
-
-    List<SwanAccount> swanAccounts = swanRepository.findByBearer(bearer);
-    if (swanAccounts.isEmpty()) {
-      List<BridgeAccount> bridgeAccounts = bridgeRepository.findByBearer(bearer);
-      if (bridgeAccounts.isEmpty()) {
-        //TODO: this if-statement is super dubious: it has nothing to do with the input bearer!!!
-        return List.of(authenticatedUser.getAccount());
-      }
-      return bridgeAccounts.stream()
-          .map(bridgeAccount -> getUpdatedAccount(authenticatedUser, bridgeAccount))
-          .collect(Collectors.toList());
+    List<AccountConnector> accountConnectors = connectorRepository.findByBearer(bearer);
+    if (accountConnectors.isEmpty()) {
+      return getJpaAccounts(AuthProvider.getAuthenticatedUserId());
     }
-    return getUpdatedAccounts(swanAccounts, authenticatedUser.getId());
+    return accountConnectors.stream()
+        .map(this::convertConnector)
+        .collect(Collectors.toList());
   }
 
   @Override
-  public Account findById(String accountId) {
-    User authenticatedUser = userIsAuthenticated()
-        ? AuthProvider.getPrincipal().getUser() : null;
-
-    List<SwanAccount> swanAccounts = userIsAuthenticated()
-        ? swanRepository.findById(accountId)
-        : List.of();
-    if (swanAccounts.isEmpty()) {
-      HAccount account = accountJpaRepository.findById(accountId).orElseThrow(
-          () -> new NotFoundException("Account." + accountId + " not found.")
-      );
-      return mapper.toDomain(account, account.getUser().getId());
+  public Account findById(String id) {
+    HAccount entity = jpaRepository.findById(id).orElseThrow(
+        () -> new NotFoundException("Account(id=" + id + ") not found"));
+    String externalId = entity.getExternalId() == null
+        ? entity.getId() //case when external ID equals ID (Default for Swan)
+        : entity.getExternalId(); // Default for Bridge
+    AccountConnector accountConnector = connectorRepository.findById(externalId);
+    if (accountConnector == null) {
+      return mapper.toDomain(entity, bankRepository.findById(entity.getIdBank()));
     }
-    return getUpdatedAccounts(
-        swanAccounts, userIsAuthenticated() ? authenticatedUser.getId() : null).get(0);
+    return convertConnector(accountConnector);
   }
 
   @Override
   public List<Account> findByUserId(String userId) {
-    User authenticatedUser = userIsAuthenticated()
-        ? AuthProvider.getPrincipal().getUser() : null;
-
-    List<SwanAccount> swanAccounts = swanRepository.findByUserId(userId);
-    if (swanAccounts.isEmpty()) {
-      bankRepository.selfUpdateBankConnection();
-      List<BridgeAccount> bridgeAccounts = bridgeRepository.findAllByAuthenticatedUser();
-      if (bridgeAccounts.isEmpty()) {
-        return List.of(mapper.toDomain(accountJpaRepository.findByUser_Id(userId).orElseThrow(
-                () -> new NotFoundException("User." + userId + " is not associated with any account")),
-            userId
-        ));
-      }
-      return bridgeAccounts.stream()
-          .map(bridgeAccount -> getUpdatedAccount(authenticatedUser, bridgeAccount))
-          .collect(Collectors.toList());
+    List<AccountConnector> accountConnectors = connectorRepository.findByUserId(userId);
+    if (accountConnectors.isEmpty()) {
+      return getJpaAccounts(userId);
     }
-    return getUpdatedAccounts(swanAccounts, userId);
-  }
-
-  @Override
-  public List<Account> saveAll(List<Account> toCreate, String userId) {
-    HUser user = userJpaRepository.findById(userId).orElseThrow(
-        () -> new NotFoundException("User." + userId + " not found"));
-    return saveAll(toCreate, user);
-  }
-
-  private List<Account> saveAll(List<Account> toCreate, HUser user) {
-    List<HAccount> toSave = toCreate.stream()
-        .map(account -> mapper.toEntity(account, user))
-        .collect(Collectors.toList());
-    return accountJpaRepository.saveAll(toSave).stream()
-        .map(account -> mapper.toDomain(account, user.getId()))
+    return accountConnectors.stream()
+        .map(this::convertConnector)
         .collect(Collectors.toList());
   }
 
   @Override
-  public Account save(Account domain, String userId) {
-    HUser userEntity = userJpaRepository.findById(userId).orElseThrow(
-        () -> new NotFoundException("User." + userId + " not found"));
-    return save(domain, userEntity);
+  public Account save(UpdateAccountIdentity updateAccount) {
+    HAccount existing = jpaRepository.findById(updateAccount.getAccountId())
+        .orElseThrow(
+            () -> new NotFoundException(
+                "Account(id=" + updateAccount.getAccountId() + ") not found"));
+    HAccount saved = jpaRepository.save(existing.toBuilder()
+        .name(updateAccount.getName() == null ? existing.getName() : updateAccount.getName())
+        .iban(updateAccount.getIban() == null ? existing.getIban() : updateAccount.getIban())
+        .bic(updateAccount.getBic())
+        .build());
+    return mapper.toDomain(saved,
+        saved.getIdBank() == null ? null : bankRepository.findById(saved.getIdBank()));
   }
 
-
-  private Account save(Account domain, HUser user) {
-    HAccount entityToSave = mapper.toEntity(domain, user);
-    HAccount savedEntity = accountJpaRepository.save(entityToSave);
-    return mapper.toDomain(
-        savedEntity, bankRepository.findById(savedEntity.getIdBank()), user.getId());
+  @Override
+  public Account save(Account toSave) {
+    HUser user = userJpaRepository.findById(toSave.getUserId())
+        .orElseThrow(() -> new NotFoundException(
+            "User(id=" + toSave.getUserId() + " not found"));
+    HAccount entity = mapper.toEntity(toSave, user);
+    HAccount saved = jpaRepository.save(entity);
+    return mapper.toDomain(saved,
+        saved.getIdBank() == null ? null : bankRepository.findById(saved.getIdBank()));
   }
 
-  private Account getUpdatedAccount(User authenticatedUser, BridgeAccount bridgeAccount) {
-    Bank bank = bankRepository.findByBridgeId(bridgeAccount.getBankId());
-    if (authenticatedUser == null) {
-      return mapper.toDomain(bridgeAccount, bank, null, null);
-    } else {
-      String userId = authenticatedUser.getId();
-      return save(
-          mapper.toDomain(
-              bridgeAccount, bank, authenticatedUser.getAccount(), userId), userId);
-    }
+  private Account convertConnector(AccountConnector accountConnector) {
+    String accountConnectorId = accountConnector.getId();
+    HAccount entity = jpaRepository.findByExternalId(accountConnectorId)
+        .orElseThrow(() -> new NotFoundException(
+            "Account(externalId=" + accountConnectorId + ") not found"));
+    return mapper.toDomain(accountConnector, entity,
+        bankRepository.findByExternalId(accountConnector.getBankId()));
   }
 
-  //TODO: simplify the cognitive complexity
-  private List<Account> getUpdatedAccounts(List<SwanAccount> swanAccounts, String userId) {
-    SwanAccount swanAccount = swanAccounts.get(0);
-    Optional<HAccount> persisted = accountJpaRepository.findById(swanAccount.getId());
-    if (persisted.isPresent()) {
-      String actualUserId = persisted.get().getUser() == null
-          ? userId
-          : persisted.get().getUser().getId();
-      List<Account> accounts =
-          List.of(mapper.toDomain(swanAccount, persisted.get(), actualUserId));
-      if (userId == null || actualUserId == null) {
-        return accounts;
-      }
-      return saveAll(accounts, actualUserId);
-    } else {
-      List<Account> accounts = List.of(mapper.toDomain(swanAccount, userId));
-      if (userId == null) {
-        return accounts;
-      }
-      return saveAll(accounts, userId);
-    }
-  }
-
-  private boolean userIsAuthenticated() {
-    return SecurityContextHolder.getContext().getAuthentication() != null;
+  private List<Account> getJpaAccounts(String userId) {
+    return jpaRepository.findByUser_Id(userId).stream()
+        .map(entity -> mapper.toDomain(entity, bankRepository.findById(entity.getIdBank())))
+        .collect(Collectors.toList());
   }
 }

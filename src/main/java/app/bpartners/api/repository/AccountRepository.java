@@ -1,6 +1,7 @@
 package app.bpartners.api.repository;
 
 import app.bpartners.api.model.Account;
+import app.bpartners.api.model.UpdateAccountIdentity;
 import java.util.List;
 
 public interface AccountRepository {
@@ -10,7 +11,7 @@ public interface AccountRepository {
 
   List<Account> findByUserId(String userId);
 
-  List<Account> saveAll(List<Account> toSave, String userId);
+  Account save(UpdateAccountIdentity toSave);
 
-  Account save(Account toSave, String userId);
+  Account save(Account toSave);
 }

@@ -14,6 +14,7 @@ import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
 import app.bpartners.api.integration.conf.AbstractContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
 import app.bpartners.api.manager.ProjectTokenManager;
+import app.bpartners.api.repository.AccountConnectorRepository;
 import app.bpartners.api.repository.LegalFileRepository;
 import app.bpartners.api.repository.fintecture.FintectureConf;
 import app.bpartners.api.repository.fintecture.FintecturePaymentInitiationRepository;
@@ -22,7 +23,6 @@ import app.bpartners.api.repository.jpa.model.HPaymentRequest;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitConf;
 import app.bpartners.api.repository.sendinblue.SendinblueConf;
 import app.bpartners.api.repository.swan.AccountHolderSwanRepository;
-import app.bpartners.api.repository.swan.AccountSwanRepository;
 import app.bpartners.api.repository.swan.UserSwanRepository;
 import app.bpartners.api.repository.swan.model.SwanAccount;
 import app.bpartners.api.service.PaymentScheduleService;
@@ -43,12 +43,13 @@ import static app.bpartners.api.integration.conf.TestUtils.SESSION1_ID;
 import static app.bpartners.api.integration.conf.TestUtils.SESSION2_ID;
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsApiException;
 import static app.bpartners.api.integration.conf.TestUtils.joeDoeSwanAccount;
+import static app.bpartners.api.integration.conf.TestUtils.setUpAccountConnectorSwanRepository;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountHolderSwanRep;
-import static app.bpartners.api.integration.conf.TestUtils.setUpAccountSwanRepository;
 import static app.bpartners.api.integration.conf.TestUtils.setUpLegalFileRepository;
 import static app.bpartners.api.integration.conf.TestUtils.setUpPaymentInitiationRep;
 import static app.bpartners.api.integration.conf.TestUtils.setUpSwanComponent;
 import static app.bpartners.api.integration.conf.TestUtils.setUpUserSwanRepository;
+import static app.bpartners.api.integration.conf.TestUtils.toConnector;
 import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -86,7 +87,7 @@ class PaymentIT {
   @MockBean
   private UserSwanRepository userSwanRepositoryMock;
   @MockBean
-  private AccountSwanRepository accountSwanRepositoryMock;
+  private AccountConnectorRepository accountConnectorRepositoryMock;
   @MockBean
   private SwanComponent swanComponentMock;
   @MockBean
@@ -102,7 +103,7 @@ class PaymentIT {
   public void setUp() {
     setUpSwanComponent(swanComponentMock);
     setUpUserSwanRepository(userSwanRepositoryMock);
-    setUpAccountSwanRepository(accountSwanRepositoryMock);
+    setUpAccountConnectorSwanRepository(accountConnectorRepositoryMock);
     setUpAccountHolderSwanRep(accountHolderRepositoryMock);
     setUpPaymentInitiationRep(paymentInitiationRepositoryMock);
     setUpLegalFileRepository(legalFileRepositoryMock);
@@ -192,18 +193,17 @@ class PaymentIT {
         .iban(null)
         .bic(null)
         .build();
-    reset(accountSwanRepositoryMock);
-    when(accountSwanRepositoryMock.findByBearer(any()))
-        .thenReturn(List.of(accountNoIban));
-    when(accountSwanRepositoryMock.findById(any()))
-        .thenReturn(
-            List.of(accountNoIban));
+    reset(accountConnectorRepositoryMock);
+    when(accountConnectorRepositoryMock.findByBearer(any()))
+        .thenReturn(List.of(toConnector(accountNoIban)));
+    when(accountConnectorRepositoryMock.findById(any()))
+        .thenReturn(toConnector(accountNoIban));
 
     ApiClient joeDoeClient = anApiClient();
     PayingApi api = new PayingApi(joeDoeClient);
 
     assertThrowsApiException("{\"type\":\"400 BAD_REQUEST\","
-            + "\"message\":\"Bic is mandatory for initiating payments. "
+            + "\"message\":\""
             + "Iban is mandatory for initiating payments. \"}",
         () -> api.initiatePayments(JOE_DOE_ACCOUNT_ID,
             List.of(paymentInitiation1())));

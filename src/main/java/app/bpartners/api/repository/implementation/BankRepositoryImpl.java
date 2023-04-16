@@ -6,7 +6,6 @@ import app.bpartners.api.model.Bank;
 import app.bpartners.api.model.BankConnection;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.UserToken;
-import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.mapper.BankMapper;
 import app.bpartners.api.model.mapper.UserMapper;
 import app.bpartners.api.repository.BankRepository;
@@ -51,22 +50,19 @@ public class BankRepositoryImpl implements BankRepository {
 
   //TODO: check why bank is persisted twice and turn back to optional
   @Override
-  public Bank findByBridgeId(Long id) {
-    BridgeBank bridgeBank = bridgeRepository.findById(id);
-
-    /* TODO: pre-condition check first, nominal execution afterwards
-     *   That is: if (bridgeBank == null) {throw} first */
-    if (bridgeBank != null) {
-      List<HBank> entities = jpaRepository.findAllByBridgeId(bridgeBank.getId());
-      HBank entity;
-      if (entities.isEmpty()) {
-        entity = jpaRepository.save(mapper.toEntity(bridgeBank));
-      } else {
-        entity = entities.get(0);
-      }
-      return mapper.toDomain(entity, bridgeBank);
+  public Bank findByExternalId(String id) {
+    if (id == null || bridgeRepository.findById(Long.valueOf(id)) == null) {
+      return null;
     }
-    throw new NotFoundException("Bank(bridgeId=" + id + " is not found");
+    BridgeBank bridgeBank = bridgeRepository.findById(Long.valueOf(id));
+    List<HBank> entities = jpaRepository.findAllByExternalId(bridgeBank.getId());
+    HBank entity;
+    if (entities.isEmpty()) {
+      entity = jpaRepository.save(mapper.toEntity(bridgeBank));
+    } else {
+      entity = entities.get(0);
+    }
+    return mapper.toDomain(entity, bridgeBank);
   }
 
   //TODO: improve this
@@ -100,7 +96,7 @@ public class BankRepositoryImpl implements BankRepository {
     return BankConnection.builder()
         .bridgeId(savedEntity.getBridgeItemId())
         .user(userMapper.toDomain(savedEntity))
-        .bank(findByBridgeId(connectionChosen.getBankId()))
+        .bank(findByExternalId(String.valueOf(connectionChosen.getBankId())))
         .status(savedEntity.getBankConnectionStatus())
         .build();
   }

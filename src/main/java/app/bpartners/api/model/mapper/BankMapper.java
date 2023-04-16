@@ -13,7 +13,7 @@ public class BankMapper {
     }
     return Bank.builder()
         .id(entity.getId())
-        .bridgeBankId(bridgeBank != null ? bridgeBank.getId() : entity.getBridgeId())
+        .externalId(bridgeBank != null ? bridgeBank.getId() : entity.getExternalId())
         .name(bridgeBank != null ? bridgeBank.getName() : entity.getName())
         .logoUrl(bridgeBank != null ? bridgeBank.getLogoUrl() : entity.getLogoUrl())
         .build();
@@ -22,7 +22,7 @@ public class BankMapper {
   public HBank toEntity(BridgeBank bridgeBank) {
     return HBank.builder()
         .name(bridgeBank.getName())
-        .bridgeId(bridgeBank.getId())
+        .externalId(bridgeBank.getId())
         .logoUrl(bridgeBank.getLogoUrl())
         .build();
   }

@@ -71,7 +71,8 @@ public class AccountController {
       @PathVariable String accountId,
       @RequestBody UpdateAccountIdentity accountIdentity) {
     validator.accept(accountIdentity);
-    app.bpartners.api.model.Account toSave = mapper.toDomain(accountId, accountIdentity);
-    return mapper.toRest(service.updateAccountIdentity(userId, toSave));
+    app.bpartners.api.model.UpdateAccountIdentity toSave =
+        mapper.toDomain(accountId, accountIdentity);
+    return mapper.toRest(service.updateAccountIdentity(toSave));
   }
 }

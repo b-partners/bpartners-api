@@ -20,6 +20,6 @@ public class BridgeTransactionRepositoryImpl implements BridgeTransactionReposit
 
   @Override
   public BridgeTransaction findById(Long id) {
-    return bridgeApi.findTransactionByIdAndToken(id, AuthProvider.getPrincipal().getBearer());
+    return bridgeApi.findTransactionByIdAndToken(id, AuthProvider.getBearer());
   }
 }

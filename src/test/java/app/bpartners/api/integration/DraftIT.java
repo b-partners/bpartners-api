@@ -15,11 +15,11 @@ import app.bpartners.api.model.Customer;
 import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.InvoiceDiscount;
+import app.bpartners.api.repository.AccountConnectorRepository;
 import app.bpartners.api.repository.LegalFileRepository;
 import app.bpartners.api.repository.fintecture.FintectureConf;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitConf;
 import app.bpartners.api.repository.sendinblue.SendinblueConf;
-import app.bpartners.api.repository.swan.AccountSwanRepository;
 import app.bpartners.api.repository.swan.UserSwanRepository;
 import app.bpartners.api.service.PaymentScheduleService;
 import app.bpartners.api.service.aws.SesService;
@@ -74,7 +74,7 @@ class DraftIT {
   @MockBean
   private UserSwanRepository userSwanRepositoryMock;
   @MockBean
-  private AccountSwanRepository accountSwanRepositoryMock;
+  private AccountConnectorRepository accountConnectorRepositoryMock;
   @MockBean
   private SwanComponent swanComponentMock;
   @Autowired

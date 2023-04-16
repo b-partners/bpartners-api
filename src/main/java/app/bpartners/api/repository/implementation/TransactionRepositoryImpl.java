@@ -24,9 +24,9 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Repository;
 
+import static app.bpartners.api.endpoint.rest.security.AuthProvider.userIsAuthenticated;
 import static app.bpartners.api.model.mapper.TransactionMapper.getStatusFromBridge;
 import static app.bpartners.api.model.mapper.TransactionMapper.getTransactionStatus;
 import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
@@ -45,11 +45,11 @@ public class TransactionRepositoryImpl implements TransactionRepository {
   @Override
   public List<Transaction> findByAccountId(String accountId) {
     List<SwanTransaction> swanTransactions =
-        swanRepository.getByIdAccount(accountId, swanBearerToken());
+        swanRepository.getByIdAccount(accountId, swanUserToken());
     if (swanTransactions.isEmpty()) {
       List<BridgeTransaction> bridgeTransactions =
           userIsAuthenticated()
-              ? bridgeRepository.findByBearer(AuthProvider.getPrincipal().getBearer())
+              ? bridgeRepository.findByBearer(AuthProvider.getBearer())
               : bridgeRepository.findByBearer(bridgeAccessToken(accountId));
       if (bridgeTransactions.isEmpty()) {
         return List.of(); //No transactions neither bridge nor swan return transactions
@@ -86,7 +86,7 @@ public class TransactionRepositoryImpl implements TransactionRepository {
   public Transaction save(Transaction toSave) {
     HTransaction entity = jpaRepository.save(mapper.toEntity(toSave));
     SwanTransaction swanTransaction =
-        swanRepository.findById(entity.getIdSwan(), swanBearerToken());
+        swanRepository.findById(entity.getIdSwan(), swanUserToken());
     BridgeTransaction bridgeTransaction =
         bridgeRepository.findById(entity.getIdBridge());
     TransactionCategory category = categoryRepository.findByIdTransaction(entity.getId());
@@ -114,7 +114,7 @@ public class TransactionRepositoryImpl implements TransactionRepository {
         .orElseThrow(() -> new NotFoundException(
             "Transaction." + idTransaction + " not found"));
     SwanTransaction swanTransaction =
-        swanRepository.findById(entity.getIdSwan(), swanBearerToken());
+        swanRepository.findById(entity.getIdSwan(), swanUserToken());
     BridgeTransaction bridgeTransaction =
         bridgeRepository.findById(entity.getIdBridge());
     TransactionCategory category = categoryRepository.findByIdTransaction(entity.getId());
@@ -227,13 +227,8 @@ public class TransactionRepositoryImpl implements TransactionRepository {
     }
   }
 
-  private boolean userIsAuthenticated() {
-    return SecurityContextHolder.getContext().getAuthentication() != null;
-  }
-
-  private String swanBearerToken() {
-    return userIsAuthenticated() ? AuthProvider.getPrincipal().getBearer() :
-        null;
+  private String swanUserToken() {
+    return userIsAuthenticated() ? AuthProvider.getBearer() : null;
   }
 
   private String bridgeAccessToken(String accountId) {

@@ -29,6 +29,7 @@ import app.bpartners.api.endpoint.rest.security.principal.PrincipalProvider;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.exception.BadRequestException;
+import app.bpartners.api.repository.AccountConnectorRepository;
 import app.bpartners.api.repository.AccountRepository;
 import app.bpartners.api.repository.LegalFileRepository;
 import app.bpartners.api.repository.bridge.model.Account.BridgeAccount;
@@ -38,14 +39,15 @@ import app.bpartners.api.repository.fintecture.FintecturePaymentInitiationReposi
 import app.bpartners.api.repository.fintecture.model.FPaymentInitiation;
 import app.bpartners.api.repository.fintecture.model.FPaymentRedirection;
 import app.bpartners.api.repository.fintecture.model.Session;
+import app.bpartners.api.repository.model.AccountConnector;
 import app.bpartners.api.repository.sendinblue.SendinblueApi;
 import app.bpartners.api.repository.sendinblue.model.Attributes;
 import app.bpartners.api.repository.sendinblue.model.Contact;
 import app.bpartners.api.repository.swan.AccountHolderSwanRepository;
-import app.bpartners.api.repository.swan.AccountSwanRepository;
 import app.bpartners.api.repository.swan.OnboardingSwanRepository;
 import app.bpartners.api.repository.swan.TransactionSwanRepository;
 import app.bpartners.api.repository.swan.UserSwanRepository;
+import app.bpartners.api.repository.swan.implementation.SwanAccountConnectorRepository;
 import app.bpartners.api.repository.swan.model.SwanAccount;
 import app.bpartners.api.repository.swan.model.SwanAccountHolder;
 import app.bpartners.api.repository.swan.model.SwanTransaction;
@@ -92,12 +94,12 @@ import static app.bpartners.api.model.Invoice.DEFAULT_DELAY_PENALTY_PERCENT;
 import static app.bpartners.api.model.Invoice.DEFAULT_TO_PAY_DELAY_DAYS;
 import static app.bpartners.api.model.Transaction.RELEASED_STATUS;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.CLIENT_EXCEPTION;
+import static app.bpartners.api.model.mapper.AccountMapper.getStatus;
 import static app.bpartners.api.model.mapper.UserMapper.VALID_IDENTITY_STATUS;
 import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
@@ -120,8 +122,12 @@ public class TestUtils {
       "https://dashboard-dev.bpartners.app/login/success";
   public static final String REDIRECT_FAILURE_URL =
       "https://dashboard-dev.bpartners.app/login/failure";
+
+  //  /*TODO: verify the correct JOE_DOE_ACCOUNT*/
   public static final String JOE_DOE_ACCOUNT_ID = "beed1765-5c16-472a-b3f4-5c376ce5db58";
+
   public static final String BERNARD_DOE_ACCOUNT_ID = "account_pro_id";
+  //  public static final String JOE_DOE_ACCOUNT_ID = "c15924bf-61f9-4381-8c9b-d34369bf91f7";
   public static final String OTHER_ACCOUNT_ID = "other_account_id";
   public static final String OTHER_CUSTOMER_ID = "other_customer_id";
   public static final String USER1_ID = "user1_id";
@@ -142,6 +148,7 @@ public class TestUtils {
   public static final String JOE_DOE_TOKEN = "joe_doe_token";
   public static final String BERNARD_DOE_TOKEN = "bernard_doe_token";
   public static final String JOE_DOE_COGNITO_TOKEN = "joe_doe_token";
+  //TODO(distinct-cognito): should be diff from Swan
   public static final String BERNARD_DOE_COGNITO_TOKEN = "bernard_doe_token";
   //TODO(distinct-cognito): should be diff from Swan
   public static final String PROJECT_TOKEN = "project_token";
@@ -166,6 +173,7 @@ public class TestUtils {
   public static final String ACCOUNT_CLOSED = "Closed";
   public static final String ACCOUNT_CLOSING = "Closing";
   public static final String ACCOUNT_SUSPENDED = "Suspended";
+  public static final String ACCOUNT_UNKNOWN_STATUS = "Unknown status";
   public static final String TRANSACTION1_ID = "transaction1_id";
   public static final String UNKNOWN_TRANSACTION_ID = "unknown_transaction_id";
   public static final String SESSION1_ID = "session1_id";
@@ -267,18 +275,19 @@ public class TestUtils {
 
   public static BridgeAccount joeDoeBridgeAccount() {
     return BridgeAccount.builder()
-        .id(123L)
+        .id(String.valueOf(123L))
         .bankId(1234L)
         .name("Numer Bridge Account")
         .iban("FR7699999001001190346460988")
         .status(0)
-        .balance(0.0)
+        .balance(1000.0)
         .build();
   }
 
   public static BridgeAccount otherBridgeAccount() {
     return BridgeAccount.builder()
-        .id(456L)
+        // /!\ this should be a long value but to pass test we use same ID with different bodies
+        .id("beed1765-5c16-472a-b3f4-5c376ce5db58")
         .bankId(456L)
         .name("Other")
         .iban("FR12349001001190346460988")
@@ -302,7 +311,7 @@ public class TestUtils {
 
   public static SwanAccount bernardDoeSwanAccount() {
     return SwanAccount.builder()
-        .id("account_pro_id")
+        .id("account_pro_external_id")
         .name("Numer Swan Account")
         .bic("SWNBFR22")
         .iban("FR7699999001001190346460988")
@@ -1045,27 +1054,65 @@ public class TestUtils {
     when(swanRepository.getByToken(JANE_DOE_TOKEN)).thenReturn(janeDoeModel());
   }
 
+  public static void setUpAccountConnectorSwanRepository(
+      AccountConnectorRepository accountConnectorRepository) {
+    AccountConnector swanAccountConnector = toConnector((joeDoeSwanAccount()));
+    List<AccountConnector> accountConnectors = List.of(swanAccountConnector);
+    when(accountConnectorRepository.findById(JOE_DOE_ACCOUNT_ID)).thenReturn(swanAccountConnector);
+    when(accountConnectorRepository.findById(JOE_DOE_ID)).thenReturn(swanAccountConnector);
+    when(accountConnectorRepository.findByBearer(JOE_DOE_TOKEN)).thenReturn(accountConnectors);
+    when(accountConnectorRepository.findByUserId(JOE_DOE_ID)).thenReturn(accountConnectors);
+    when(accountConnectorRepository.save(swanAccountConnector)).thenReturn(swanAccountConnector);
+    when(accountConnectorRepository.saveAll(accountConnectors)).thenReturn(accountConnectors);
+
+    when(accountConnectorRepository.findById(JANE_ACCOUNT_ID)).thenReturn(
+        toConnector(janeSwanAccount()));
+    when(accountConnectorRepository.findByBearer(JANE_DOE_TOKEN)).thenReturn(
+        List.of(toConnector(janeSwanAccount())));
+    when(accountConnectorRepository.findByUserId(JANE_DOE_ID)).thenReturn(
+        List.of(toConnector(janeSwanAccount())));
+
+    when(accountConnectorRepository.findByBearer(BERNARD_DOE_TOKEN)).thenReturn(
+        List.of(toConnector(bernardDoeSwanAccount())));
+    when(accountConnectorRepository.findById(BERNARD_DOE_ACCOUNT_ID)).thenReturn(
+        toConnector(bernardDoeSwanAccount()));
+    when(accountConnectorRepository.findByUserId(BERNARD_DOE_ID)).thenReturn(
+        List.of(toConnector(bernardDoeSwanAccount())));
+
+
+  }
+
   public static void setUpBernardUserSwanRepository(UserSwanRepository swanRepository) {
     when(swanRepository.whoami()).thenReturn(bernardDoeModel());
     when(swanRepository.getByToken(BERNARD_DOE_TOKEN)).thenReturn(bernardDoeModel());
   }
 
-  public static void setUpAccountSwanRepository(AccountSwanRepository swanRepository) {
-    when(swanRepository.findById(JOE_DOE_ACCOUNT_ID)).thenReturn(List.of(joeDoeSwanAccount()));
-    when(swanRepository.findById(JOE_DOE_ID)).thenReturn(List.of(joeDoeSwanAccount()));
-    when(swanRepository.findByBearer(JOE_DOE_TOKEN)).thenReturn(List.of(joeDoeSwanAccount()));
-    when(swanRepository.findByUserId(JOE_DOE_ID)).thenReturn(List.of(joeDoeSwanAccount()));
+  public static void setUpAccountSwanRepository(SwanAccountConnectorRepository swanRepository) {
+    when(swanRepository.findById(JOE_DOE_ACCOUNT_ID)).thenReturn(toConnector(joeDoeSwanAccount()));
+    when(swanRepository.findById(JOE_DOE_ID)).thenReturn(toConnector(joeDoeSwanAccount()));
+    when(swanRepository.findByBearer(JOE_DOE_TOKEN)).thenReturn(
+        List.of(toConnector(joeDoeSwanAccount())));
+    when(swanRepository.findByUserId(any())).thenReturn(
+        List.of(toConnector(joeDoeSwanAccount())));
 
+    when(swanRepository.findById(JANE_ACCOUNT_ID)).thenReturn(toConnector(janeSwanAccount()));
+    when(swanRepository.findByBearer(JANE_DOE_TOKEN)).thenReturn(
+        List.of(toConnector(janeSwanAccount())));
+    when(swanRepository.findByUserId(JANE_DOE_ID)).thenReturn(
+        List.of(toConnector(janeSwanAccount())));
     when(swanRepository.findById(BERNARD_DOE_ACCOUNT_ID)).thenReturn(
-        List.of(bernardDoeSwanAccount()));
-    when(swanRepository.findById(BERNARD_DOE_ID)).thenReturn(List.of(bernardDoeSwanAccount()));
+        toConnector(bernardDoeSwanAccount()));
+    when(swanRepository.findById(BERNARD_DOE_ID)).thenReturn(toConnector(bernardDoeSwanAccount()));
     when(swanRepository.findByBearer(BERNARD_DOE_TOKEN)).thenReturn(
-        List.of(bernardDoeSwanAccount()));
-    when(swanRepository.findByUserId(BERNARD_DOE_ID)).thenReturn(List.of(bernardDoeSwanAccount()));
+        List.of(toConnector(bernardDoeSwanAccount())));
+    when(swanRepository.findByUserId(BERNARD_DOE_ID)).thenReturn(
+        List.of(toConnector(bernardDoeSwanAccount())));
 
-    when(swanRepository.findById(JANE_ACCOUNT_ID)).thenReturn(List.of(janeSwanAccount()));
-    when(swanRepository.findByBearer(JANE_DOE_TOKEN)).thenReturn(List.of(janeSwanAccount()));
-    when(swanRepository.findByUserId(JANE_DOE_ID)).thenReturn(List.of(janeSwanAccount()));
+    when(swanRepository.findById(JANE_ACCOUNT_ID)).thenReturn(toConnector(janeSwanAccount()));
+    when(swanRepository.findByBearer(JANE_DOE_TOKEN)).thenReturn(
+        List.of(toConnector(janeSwanAccount())));
+    when(swanRepository.findByUserId(JANE_DOE_ID)).thenReturn(
+        List.of(toConnector(janeSwanAccount())));
   }
 
   public static void setUpTransactionRepository(TransactionSwanRepository repository) {
@@ -1165,7 +1212,6 @@ public class TestUtils {
     when(accountRepository.findById(any())).thenReturn(joeModelAccount());
     when(accountRepository.findByBearer(any())).thenReturn(List.of(joeModelAccount()));
     when(accountRepository.findByUserId(any())).thenReturn(List.of(joeModelAccount()));
-    when(accountRepository.saveAll(anyList(), any())).thenReturn(List.of(joeModelAccount()));
   }
 
   private static Account joeModelAccount() {
@@ -1218,6 +1264,26 @@ public class TestUtils {
       body = "[no body]";
     }
     return operationId + " call failed with: " + statusCode + " - " + body;
+  }
+
+  public static AccountConnector toConnector(SwanAccount swanAccount) {
+    return AccountConnector.builder()
+        .id(swanAccount.getId())
+        .name(swanAccount.getName())
+        .balance(swanAccount.getBalances().getAvailable().getValue())
+        .iban(swanAccount.getIban())
+        .status(getStatus(swanAccount.getStatusInfo().getStatus()))
+        .build();
+  }
+
+  public static AccountConnector toConnector(BridgeAccount bridgeAccount) {
+    return AccountConnector.builder()
+        .id(String.valueOf(bridgeAccount.getId()))
+        .name(bridgeAccount.getName())
+        .balance(bridgeAccount.getBalance())
+        .iban(bridgeAccount.getIban())
+        .status(bridgeAccount.getDomainStatus())
+        .build();
   }
 
   public static Map<String, String> adsFilter() {

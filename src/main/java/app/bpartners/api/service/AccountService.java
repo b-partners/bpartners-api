@@ -4,6 +4,7 @@ import app.bpartners.api.endpoint.rest.model.BankConnectionRedirection;
 import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.Fraction;
+import app.bpartners.api.model.UpdateAccountIdentity;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.UserToken;
 import app.bpartners.api.model.exception.ApiException;
@@ -14,6 +15,7 @@ import app.bpartners.api.repository.UserRepository;
 import java.time.Instant;
 import java.util.List;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,6 +24,7 @@ import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVE
 
 @Service
 @AllArgsConstructor
+@Slf4j
 public class AccountService {
   private final AccountRepository repository;
   private final BankRepository bankRepository;
@@ -32,15 +35,18 @@ public class AccountService {
   @Transactional
   public Account getAccountByBearer(String bearer) {
     List<Account> accounts = repository.findByBearer(bearer);
-    return accounts.get(0); //TODO: do NOT get(0) like this without warning
+    if (accounts.size() > 2) {
+      log.warn("Only one account is supported for now. Several are found : {}", accounts);
+    }
+    return accounts.get(0);
   }
 
   public Account getAccountById(String id) {
     return repository.findById(id);
   }
-
-  public Account updateAccountIdentity(String userId, Account account) {
-    return repository.save(account, userId);
+  
+  public Account updateAccountIdentity(UpdateAccountIdentity account) {
+    return repository.save(account);
   }
 
   public List<Account> getAccountsByUserId(String userId) {
@@ -90,7 +96,7 @@ public class AccountService {
           .bic(null)
           .iban(null)
           .bank(null)
-          .build(), userId);
+          .build());
       return saved;
     }
     throw new ApiException(SERVER_EXCEPTION,
@@ -100,14 +106,14 @@ public class AccountService {
 
   private void resetDefaultAccount(String userId, User user, Account account) {
     Account defaultAccount = account.toBuilder()
+        .userId(userId)
         .name(user.getName())
-        .bridgeAccountId(null)
         .availableBalance(new Fraction())
         .bank(null)
         .bic(null)
         .iban(null)
         .build();
-    repository.save(defaultAccount, userId);
+    repository.save(defaultAccount);
   }
 
   @Transactional(isolation = Isolation.SERIALIZABLE)

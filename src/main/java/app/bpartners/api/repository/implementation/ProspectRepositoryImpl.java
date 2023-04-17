@@ -16,6 +16,7 @@ import app.bpartners.api.repository.jpa.ProspectJpaRepository;
 import app.bpartners.api.repository.jpa.model.HMunicipality;
 import app.bpartners.api.repository.jpa.model.HProspect;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitApi;
+import app.bpartners.api.repository.prospecting.datasource.buildingpermit.model.BuildingPermitList;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.model.SingleBuildingPermit;
 import app.bpartners.api.service.AnnualRevenueTargetService;
 import app.bpartners.api.service.BusinessActivityService;
@@ -71,12 +72,17 @@ public class ProspectRepositoryImpl implements ProspectRepository {
         .boxed()
         .collect(toUnmodifiableList());
     if (isSogefiProspector) {
-      buildingPermitApi.getBuildingPermitList(townCodes).getRecords().forEach(buildingPermit -> {
-        SingleBuildingPermit singleBuildingPermit =
-            buildingPermitApi.getSingleBuildingPermit(String.valueOf(buildingPermit.getFileId()));
-        sogefiBuildingPermitRepository.saveByBuildingPermit(idAccountHolder, buildingPermit,
-            singleBuildingPermit);
-      });
+      BuildingPermitList buildingPermitList = buildingPermitApi.getBuildingPermitList(townCodes);
+      if (buildingPermitList != null) {
+        buildingPermitList.getRecords().forEach(buildingPermit -> {
+          SingleBuildingPermit singleBuildingPermit =
+              buildingPermitApi.getSingleBuildingPermit(String.valueOf(buildingPermit.getFileId()));
+          if (singleBuildingPermit != null) {
+            sogefiBuildingPermitRepository.saveByBuildingPermit(idAccountHolder, buildingPermit,
+                singleBuildingPermit);
+          }
+        });
+      }
     }
     return jpaRepository
         .findAllByIdAccountHolderAndTownCodeIsIn(idAccountHolder, townCodesAsInt).stream()

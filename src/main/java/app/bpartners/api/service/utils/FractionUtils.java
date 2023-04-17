@@ -25,8 +25,7 @@ public class FractionUtils {
           "Invalid fraction format");
     }
     String[] array = fraction.split("/");
-    return new Fraction(BigInteger.valueOf(Long.parseLong(array[0])),
-        BigInteger.valueOf(Long.parseLong(array[1])));
+    return new Fraction(new BigInteger(array[0]), new BigInteger(array[1]));
   }
 
   public static Fraction parseFraction(Aprational aprational) {

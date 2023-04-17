@@ -128,7 +128,7 @@ class BuildingPermitApiTest {
   void read_list_ok() throws IOException, InterruptedException {
     when(mockHttpClient.send(any(), any())).thenReturn(httpResponseMock(BUILDING_PERMIT_LIST_JSON));
 
-    BuildingPermitList permits = api.getData(INSEE);
+    BuildingPermitList permits = api.getBuildingPermitList(INSEE);
 
     assertEquals(expectedPermits(), permits);
   }
@@ -138,7 +138,7 @@ class BuildingPermitApiTest {
     when(mockHttpClient.send(any(), any())).thenReturn(
         httpResponseMock(SINGLE_BUILDING_PERMIT_JSON));
 
-    SingleBuildingPermit singleBuildingPermit = api.getOne(ID_SOGEFI);
+    SingleBuildingPermit singleBuildingPermit = api.getSingleBuildingPermit(ID_SOGEFI);
 
     assertEquals(expectedPermit(), singleBuildingPermit);
   }
@@ -146,13 +146,13 @@ class BuildingPermitApiTest {
   @Test
   void read_from_sogefi_ko() throws IOException, InterruptedException {
     when(mockHttpClient.send(any(), any())).thenThrow(new IOException());
-    assertThrows(ApiException.class, () -> api.getData(INSEE));
-    assertThrows(ApiException.class, () -> api.getOne(ID_SOGEFI));
+    assertThrows(ApiException.class, () -> api.getBuildingPermitList(INSEE));
+    assertThrows(ApiException.class, () -> api.getSingleBuildingPermit(ID_SOGEFI));
 
     reset(mockHttpClient);
     when(mockHttpClient.send(any(), any())).thenThrow(new InterruptedException());
-    assertThrows(ApiException.class, () -> api.getData(INSEE));
-    assertThrows(ApiException.class, () -> api.getOne(ID_SOGEFI));
+    assertThrows(ApiException.class, () -> api.getBuildingPermitList(INSEE));
+    assertThrows(ApiException.class, () -> api.getSingleBuildingPermit(ID_SOGEFI));
   }
 
   Map<String, String> expectedFilter() {

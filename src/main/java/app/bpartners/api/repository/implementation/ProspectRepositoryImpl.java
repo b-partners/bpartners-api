@@ -71,9 +71,9 @@ public class ProspectRepositoryImpl implements ProspectRepository {
         .boxed()
         .collect(toUnmodifiableList());
     if (isSogefiProspector) {
-      buildingPermitApi.getData(townCodes).getRecords().forEach(buildingPermit -> {
+      buildingPermitApi.getBuildingPermitList(townCodes).getRecords().forEach(buildingPermit -> {
         SingleBuildingPermit singleBuildingPermit =
-            buildingPermitApi.getOne(String.valueOf(buildingPermit.getFileId()));
+            buildingPermitApi.getSingleBuildingPermit(String.valueOf(buildingPermit.getFileId()));
         sogefiBuildingPermitRepository.saveByBuildingPermit(idAccountHolder, buildingPermit,
             singleBuildingPermit);
       });

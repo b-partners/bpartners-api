@@ -108,7 +108,7 @@ class ProspectIT {
     setUpAccountHolderSwanRep(accountHolderRepositoryMock);
     setUpSwanComponent(swanComponentMock);
     setUpLegalFileRepository(legalFileRepositoryMock);
-    when(buildingPermitApiMock.getData(any())).thenReturn(buildingPermitList());
+    when(buildingPermitApiMock.getBuildingPermitList(any())).thenReturn(buildingPermitList());
   }
 
   BuildingPermit buildingPermit() {

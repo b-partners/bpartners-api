@@ -31,51 +31,39 @@ public class BuildingPermitApi {
     this.httpClient = HttpClient.newBuilder().build();
   }
 
-  public BuildingPermitList getData(String townCode) {
-    UUID requestId = randomUUID();
-    try {
-      HttpRequest request =
-          HttpRequest.newBuilder().uri(new URI(buildingPermitConf.getApiWithFilterUrl(townCode)))
-              .GET().build();
-      log.info("SOGEFI CALL - id={}, url={}", requestId, request.uri());
-      HttpResponse<String> response =
-          httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-      log.info("SOGEFI CALL - id={}, httpStatusCode={}", requestId, response.statusCode());
-      return objectMapper.readValue(response.body(), BuildingPermitList.class);
-    } catch (URISyntaxException e) {
-      log.info("SOGEFI CALL - id={}, httpStatusCode={}", requestId, 400);
-      throw new ApiException(SERVER_EXCEPTION, e.getMessage());
-    } catch (InterruptedException e) {
-      log.info("SOGEFI CALL - id={}, InterruptedException", requestId);
-      Thread.currentThread().interrupt();
-      throw new ApiException(SERVER_EXCEPTION, e);
-    } catch (IOException e) {
-      log.info("SOGEFI CALL - id={}, IOException", requestId);
-      throw new ApiException(SERVER_EXCEPTION, e.getMessage());
-    }
+  public BuildingPermitList getBuildingPermitList(String townCode) {
+    return getData(buildingPermitConf.getApiWithFilterUrl(townCode),
+        BuildingPermitList.class);
   }
 
-  public SingleBuildingPermit getOne(String sogefiFileId) {
+  public SingleBuildingPermit getSingleBuildingPermit(String sogefiFileId) {
+    return getData(buildingPermitConf.getSinglePermitUrl(sogefiFileId),
+        SingleBuildingPermit.class);
+  }
+
+  private <T> T getData(String url, Class<T> valueType) {
     UUID requestId = randomUUID();
     try {
       HttpRequest request =
-          HttpRequest.newBuilder().uri(new URI(buildingPermitConf.getSinglePermitUrl(sogefiFileId)))
-              .GET().build();
+          HttpRequest.newBuilder()
+              .uri(new URI(url))
+              .GET()
+              .build();
       log.info("SOGEFI CALL - id={}, url={}", requestId, request.uri());
       HttpResponse<String> response =
           httpClient.send(request, HttpResponse.BodyHandlers.ofString());
       log.info("SOGEFI CALL - id={}, httpStatusCode={}", requestId, response.statusCode());
-      return objectMapper.readValue(response.body(), SingleBuildingPermit.class);
+      return objectMapper.readValue(response.body(), valueType);
     } catch (URISyntaxException e) {
       log.info("SOGEFI CALL - id={}, httpStatusCode={}", requestId, 400);
-      throw new ApiException(SERVER_EXCEPTION, e.getMessage());
-    } catch (IOException e) {
-      log.info("SOGEFI CALL - id={}, IOException", requestId);
       throw new ApiException(SERVER_EXCEPTION, e.getMessage());
     } catch (InterruptedException e) {
       log.info("SOGEFI CALL - id={}, InterruptedException", requestId);
       Thread.currentThread().interrupt();
       throw new ApiException(SERVER_EXCEPTION, e);
+    } catch (IOException e) {
+      log.info("SOGEFI CALL - id={}, IOException", requestId);
+      throw new ApiException(SERVER_EXCEPTION, e.getMessage());
     }
   }
 

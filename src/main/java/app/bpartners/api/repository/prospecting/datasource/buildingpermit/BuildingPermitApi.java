@@ -1,8 +1,10 @@
 package app.bpartners.api.repository.prospecting.datasource.buildingpermit;
 
 import app.bpartners.api.model.exception.ApiException;
+import app.bpartners.api.model.exception.TooManyRequestsException;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.model.BuildingPermitList;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.model.SingleBuildingPermit;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.net.URI;
@@ -61,8 +63,16 @@ public class BuildingPermitApi {
       log.info("SOGEFI CALL - id={}, InterruptedException", requestId);
       Thread.currentThread().interrupt();
       throw new ApiException(SERVER_EXCEPTION, e);
+    } catch (JsonProcessingException e) {
+      log.info("SOGEFI CALL - id={}, MappingException at url={}", requestId, url);
+      //TODO: retry
+      throw new TooManyRequestsException("too many. ");
     } catch (IOException e) {
       log.info("SOGEFI CALL - id={}, IOException", requestId);
+      if (e.getMessage().contains("<!doctype html>")) {
+        log.info("SOGEFI CALL - id={}, IOException-SOGEFI-429", requestId);
+        return null;
+      }
       throw new ApiException(SERVER_EXCEPTION, e.getMessage());
     }
   }

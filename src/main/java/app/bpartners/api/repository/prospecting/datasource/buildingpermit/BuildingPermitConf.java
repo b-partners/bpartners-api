@@ -7,12 +7,14 @@ import lombok.Getter;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.retry.annotation.EnableRetry;
 
 import static app.bpartners.api.service.utils.URLUtils.URLEncodeMap;
 
 @Configuration
 @Getter
 @Setter
+@EnableRetry
 public class BuildingPermitConf {
   // apiURL objects baseURL/bearer/endpoint/filter
   private static final String API_URL = "%s/%s/%s?%s";

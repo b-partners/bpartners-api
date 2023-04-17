@@ -1,6 +1,7 @@
 package app.bpartners.api.repository.prospecting.datasource.buildingpermit;
 
 import app.bpartners.api.model.exception.ApiException;
+import app.bpartners.api.model.exception.TooManyRequestsException;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.model.BuildingPermitList;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.model.SingleBuildingPermit;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -13,6 +14,8 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Component;
 
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
@@ -42,6 +45,9 @@ public class BuildingPermitApi {
         SingleBuildingPermit.class);
   }
 
+  @Retryable(retryFor = TooManyRequestsException.class,
+      backoff = @Backoff(random = true, multiplier = 2, delay = 1_000)
+  )
   private <T> T getData(String url, Class<T> valueType) {
     UUID requestId = randomUUID();
     try {
@@ -65,7 +71,7 @@ public class BuildingPermitApi {
     } catch (JsonProcessingException e) {
       log.info("SOGEFI CALL - id={}, MappingException", requestId);
       //TODO: retry
-      return null;
+      throw new TooManyRequestsException(e);
     } catch (IOException e) {
       log.info("SOGEFI CALL - id={}, IOException", requestId);
       throw new ApiException(SERVER_EXCEPTION, e.getMessage());

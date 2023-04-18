@@ -12,6 +12,7 @@ import java.time.LocalDate;
 import java.util.List;
 import javax.mail.MessagingException;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.context.Context;
@@ -21,6 +22,7 @@ import static app.bpartners.api.service.utils.TemplateResolverUtils.parseTemplat
 
 @Service
 @AllArgsConstructor
+@Slf4j
 public class ProspectService {
   public static final String PROSPECT_MAIL_TEMPLATE = "prospect_mail";
   private final ProspectRepository repository;
@@ -45,6 +47,7 @@ public class ProspectService {
         final String htmlbody =
             parseTemplateResolver(PROSPECT_MAIL_TEMPLATE, configureProspectContext(accountHolder));
         try {
+          log.info("The email should be sent to: " + accountHolder.getEmail());
           sesService.sendEmail(accountHolder.getEmail(), subject, htmlbody, List.of());
         } catch (IOException | MessagingException e) {
           throw new ApiException(SERVER_EXCEPTION, e);

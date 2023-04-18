@@ -22,6 +22,8 @@ public class UserMapper {
 
   public User toDomain(HUser entityUser, SwanUser swanUser) {
     return User.builder()
+        //TODO: check this later
+        .preferredAccountId(entityUser.getPreferredAccountExternalId())
         .id(entityUser.getId())
         .firstName(swanUser == null ? entityUser.getFirstName() : swanUser.getFirstName())
         .lastName(swanUser == null ? entityUser.getLastName() : swanUser.getLastName())

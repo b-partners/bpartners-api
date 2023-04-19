@@ -36,8 +36,9 @@ public class AccountHolderRepositoryImpl implements AccountHolderRepository {
 
   @Override
   public AccountHolder save(AccountHolder accountHolder) {
-    HAccountHolder entity = mapper.toEntity(accountHolder);
-    return mapper.toDomain(jpaRepository.save(entity));
+    HAccountHolder toSave = mapper.toEntity(accountHolder);
+    HAccountHolder savedAccountHolder = jpaRepository.save(toSave);
+    return mapper.toDomain(savedAccountHolder);
   }
 
   //TODO: check why by ID and account ID

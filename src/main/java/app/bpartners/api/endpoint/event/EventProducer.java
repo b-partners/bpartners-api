@@ -65,6 +65,7 @@ public class EventProducer implements Consumer<List<TypedEvent>> {
    */
   @Override
   public void accept(List<TypedEvent> events) {
+    log.info("Events to send {}", events);
     PutEventsResponse response = sendRequest(events);
     checkResponse(response);
   }

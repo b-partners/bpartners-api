@@ -7,6 +7,7 @@ import app.bpartners.api.endpoint.rest.api.UserAccountsApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
 import app.bpartners.api.endpoint.rest.model.IdentificationStatus;
+import app.bpartners.api.endpoint.rest.model.OnboardUser;
 import app.bpartners.api.endpoint.rest.model.User;
 import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
@@ -15,6 +16,7 @@ import app.bpartners.api.integration.conf.AbstractContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
 import app.bpartners.api.manager.ProjectTokenManager;
 import app.bpartners.api.repository.LegalFileRepository;
+import app.bpartners.api.repository.bridge.repository.BridgeUserRepository;
 import app.bpartners.api.repository.fintecture.FintectureConf;
 import app.bpartners.api.repository.jpa.UserJpaRepository;
 import app.bpartners.api.repository.jpa.model.HUser;
@@ -41,11 +43,15 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
+import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
 
 import static app.bpartners.api.endpoint.rest.model.IdentificationStatus.INSUFFICIENT_DOCUMENT_QUALITY;
 import static app.bpartners.api.endpoint.rest.model.IdentificationStatus.INVALID_IDENTITY;
 import static app.bpartners.api.endpoint.rest.model.IdentificationStatus.PROCESSING;
 import static app.bpartners.api.endpoint.rest.model.IdentificationStatus.UNINITIATED;
+import static app.bpartners.api.integration.UserServiceIT.bridgeUser;
+import static app.bpartners.api.integration.conf.TestUtils.BEARER_PREFIX;
 import static app.bpartners.api.integration.conf.TestUtils.JANE_DOE_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JANE_DOE_TOKEN;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ID;
@@ -60,6 +66,7 @@ import static app.bpartners.api.integration.conf.TestUtils.restJaneDoeUser;
 import static app.bpartners.api.integration.conf.TestUtils.restJoeDoeUser;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountHolderSwanRep;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountSwanRepository;
+import static app.bpartners.api.integration.conf.TestUtils.setUpEventBridge;
 import static app.bpartners.api.integration.conf.TestUtils.setUpLegalFileRepository;
 import static app.bpartners.api.integration.conf.TestUtils.setUpOnboardingSwanRepositoryMock;
 import static app.bpartners.api.integration.conf.TestUtils.setUpSwanComponent;
@@ -110,6 +117,10 @@ class UserIT {
   private LegalFileRepository legalFileRepositoryMock;
   @MockBean
   private CognitoComponent cognitoComponent;
+  @MockBean
+  private EventBridgeClient eventBridgeClientMock;
+  @MockBean
+  private BridgeUserRepository bridgeUserRepositoryMock;
   @Autowired
   private UserJpaRepository userJpaRepository;
 
@@ -117,6 +128,7 @@ class UserIT {
   public void setUp() {
     setUpSwanComponent(swanComponentMock);
     setUpUserSwanRepository(userSwanRepositoryMock);
+    setUpEventBridge(eventBridgeClientMock);
     setUpAccountSwanRepository(accountSwanRepositoryMock);
     setUpOnboardingSwanRepositoryMock(onboardingSwanRepositoryMock);
     setUpAccountHolderSwanRep(accountHolderMock);
@@ -360,6 +372,36 @@ class UserIT {
     return joeDoe()
         .idVerified(false)
         .identificationStatus(swanIdentificationStatus);
+  }
+
+  public OnboardUser onboardUser() {
+    return new OnboardUser()
+        .firstName("Bernard")
+        .lastName("Germain")
+        .email("bernardgermain@email.com")
+        .phoneNumber("+33123456789")
+        .companyName("BG Company");
+  }
+
+  @Test
+  void onboard_user_ok() throws IOException, InterruptedException {
+    when(bridgeUserRepositoryMock.createUser(any())).thenReturn(bridgeUser());
+
+    HttpClient unauthenticatedClient = HttpClient.newBuilder().build();
+    String basePath = "http://localhost:" + UserIT.ContextInitializer.SERVER_PORT;
+
+    HttpResponse<String> response = unauthenticatedClient.send(
+        HttpRequest.newBuilder()
+            .uri(URI.create(basePath + "/onboarding"))
+            .header("Authorization", BEARER_PREFIX + JOE_DOE_TOKEN)
+            .headers("Content-Type", "application/json")
+            .headers("Accept", "text/plain")
+            .POST(HttpRequest.BodyPublishers.ofString(
+                new ObjectMapper().writeValueAsString(onboardUser())))
+            .build(), HttpResponse.BodyHandlers.ofString());
+
+    assertEquals(HttpStatus.OK.value(), response.statusCode());
+    assertEquals("User is created", response.body());
   }
 
   static class ContextInitializer extends AbstractContextInitializer {

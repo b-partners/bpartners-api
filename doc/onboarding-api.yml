@@ -55,6 +55,37 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
+  onboardUser:
+    post:
+      tags:
+        - Onboarding
+      security: [ ]
+      summary: Onboard user
+      operationId: onboardUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OnboardUser'
+      responses:
+        200:
+          description: User is onboarded!
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: User is created!
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
 
 components:
   schemas:
@@ -87,3 +118,18 @@ components:
         entranceDatetime:
           type: string
           format: date-time
+    OnboardUser:
+      type: object
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        companyName:
+          type: string
+        email:
+          type: string
+          example: username@domain.com
+        phoneNumber:
+          type: string
+          example: "+33 12 34 56 78"

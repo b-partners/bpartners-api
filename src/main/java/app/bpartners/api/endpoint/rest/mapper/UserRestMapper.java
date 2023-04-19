@@ -1,5 +1,6 @@
 package app.bpartners.api.endpoint.rest.mapper;
 
+import app.bpartners.api.endpoint.rest.model.OnboardUser;
 import app.bpartners.api.endpoint.rest.model.User;
 import org.springframework.stereotype.Component;
 
@@ -16,5 +17,14 @@ public class UserRestMapper {
         .idVerified(domain.getIdVerified())
         .identificationStatus(domain.getIdentificationStatus())
         .logoFileId(domain.getLogoFileId());
+  }
+
+  public app.bpartners.api.model.User toDomain(OnboardUser toCreateUser) {
+    return app.bpartners.api.model.User.builder()
+        .firstName(toCreateUser.getFirstName())
+        .lastName(toCreateUser.getLastName())
+        .email(toCreateUser.getEmail())
+        .mobilePhoneNumber(toCreateUser.getPhoneNumber())
+        .build();
   }
 }

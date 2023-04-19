@@ -91,6 +91,7 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
         .antMatchers(GET, "/users/*").permitAll()
         .antMatchers("/onboardingInitiation").permitAll()
         .antMatchers(POST, "/preUsers").permitAll()
+        .antMatchers(POST, "/onboarding").permitAll()
         //Authentication check done in controller for legalFiles
         .antMatchers(GET, "/users/*/legalFiles").permitAll()
         .antMatchers(PUT, "/users/*/legalFiles/*").permitAll()

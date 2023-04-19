@@ -107,6 +107,7 @@ public class AccountRepositoryImpl implements AccountRepository {
           throw new NotFoundException("User." + userId + " is not associated with any account");
         }
       }
+      log.info("Bridge found={}", bridgeAccounts);
       return bridgeAccounts.stream()
           .map(bridgeAccount -> getUpdatedAccount(authenticatedUser, bridgeAccount))
           .collect(Collectors.toList());

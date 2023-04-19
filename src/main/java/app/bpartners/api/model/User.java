@@ -14,7 +14,7 @@ import lombok.ToString;
 
 @Getter
 @Setter
-@Builder
+@Builder(toBuilder = true)
 @AllArgsConstructor
 @NoArgsConstructor
 @EqualsAndHashCode
@@ -36,6 +36,8 @@ public class User implements Serializable {
   private Boolean idVerified;
   private IdentificationStatus identificationStatus;
   private Account account;
+  //TODO: do not expose here
+  private String preferredAccountId;
 
   public String getName() {
     return firstName + " " + lastName;

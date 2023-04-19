@@ -1,6 +1,7 @@
 package app.bpartners.api.repository.bridge.repository.implementation;
 
 import app.bpartners.api.endpoint.rest.security.AuthProvider;
+import app.bpartners.api.model.User;
 import app.bpartners.api.repository.bridge.BridgeApi;
 import app.bpartners.api.repository.bridge.model.Account.BridgeAccount;
 import app.bpartners.api.repository.bridge.repository.BridgeAccountRepository;
@@ -18,14 +19,31 @@ public class BridgeAccountRepositoryImpl implements BridgeAccountRepository {
   @Override
   public List<BridgeAccount> findByBearer(String bearer) {
     List<BridgeAccount> accounts = bridgeApi.findAccountsByToken(bearer);
-    //TODO: choose what account should be used
+    if (accounts.isEmpty()) {
+      return List.of();
+    }
+    User authenticatedUser = AuthProvider.getPrincipal().getUser();
+    if (authenticatedUser.getPreferredAccountId() != null) {
+      return List.of(accounts.stream()
+          .filter(bridgeAccount ->
+              String.valueOf(bridgeAccount.getId())
+                  .equals(authenticatedUser.getPreferredAccountId()))
+          .findAny()
+          .orElseGet(() -> {
+            log.warn("User(id=" + authenticatedUser.getId() + ", preferred_account_external_id="
+                + authenticatedUser.getPreferredAccountId() + ") has bad account external ID."
+                + getDefaultAccountMessage(accounts, authenticatedUser));
+            return accounts.get(0);
+          }));
+    }
     if (accounts.size() > 1) {
       StringBuilder builder = getAccountMessageBuilder(accounts);
       log.warn(
           "[Bridge] Only one account is supported for now. "
               + "Therefore, these accounts were found :" + builder);
     }
-    return accounts.isEmpty() ? List.of() : List.of(accounts.get(0));
+    log.warn(getDefaultAccountMessage(accounts, authenticatedUser));
+    return List.of(accounts.get(0));
   }
 
   @Override
@@ -54,5 +72,12 @@ public class BridgeAccountRepositoryImpl implements BridgeAccountRepository {
       }
     }
     return builder;
+  }
+
+  private static String getDefaultAccountMessage(List<BridgeAccount> accounts, User user) {
+    return "Any preferred account found for user(id=" + user.getId() + ")."
+        + " BridgeAccount(id=" + accounts.get(0).getId()
+        + ",name=" + accounts.get(0).getName()
+        + ", iban=" + accounts.get(0).getIban() + ") was chosen.";
   }
 }

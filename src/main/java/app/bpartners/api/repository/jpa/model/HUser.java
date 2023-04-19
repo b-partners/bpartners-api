@@ -8,6 +8,7 @@ import java.io.Serializable;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
@@ -47,6 +48,8 @@ public class HUser implements Serializable {
   private List<HAccount> accounts;
   private String firstName;
   private String lastName;
+  @Column(name = "preferred_account_external_id")
+  private String preferredAccountExternalId;
   private String email;
   private String swanUserId;
   private String bridgeUserId; //TODO: persist this when creating new users

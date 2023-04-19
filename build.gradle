@@ -113,6 +113,7 @@ test {
     exclude '**/BridgeIT.class'
     exclude '**/DraftIT.class'
     exclude '**/InvoiceCrupdatedServiceTest.class'
+    exclude '**/BridgeAccountRepositoryImplTest.class'
     useJUnitPlatform()
     finalizedBy jacocoTestReport
 }

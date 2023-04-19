@@ -14,10 +14,12 @@ insert into payment_request (id, account_id, payer_name, payer_email, created_da
 values ('67575c91-f275-4f68-b10a-0f30f96f7806', 'beed1765-5c16-472a-b3f4-5c376ce5db58', 'Chadd',
         'ctesto2r@blinklist.com', '2022-01-01T04:10:00.00Z');
 insert into payment_request(id, account_id, id_invoice, payer_name, payer_email, amount,
-                            label, reference, payment_due_date, payment_url, created_datetime)
+                            label, reference, payment_due_date, payment_url, created_datetime, payment_status)
 values ('a1275c91-f275-4f68-b10a-0f30f96f7806', 'beed1765-5c16-472a-b3f4-5c376ce5db58',
         'invoice1_id', 'Luc Artisan', 'bpartners.artisans@gmail.com', '4400/1', 'Acompte 50%',
-        'FAC2023ACT01', '2023-02-01', 'https://connect-v2-sbx.fintecture.com', '2023-01-01T00:00:00.00Z'),
+        'FAC2023ACT01', '2023-02-01', 'https://connect-v2-sbx.fintecture.com',
+        '2023-01-01T00:00:00.00Z', 'UNPAID'),
        ('bab75c91-f275-4f68-b10a-0f30f96f7806', 'beed1765-5c16-472a-b3f4-5c376ce5db58',
         'invoice1_id', 'Luc Artisan', 'bpartners.artisans@gmail.com', '4400/1',
-        'Reste 50%', 'FAC2023ACT02', '2023-02-01','https://connect-v2-sbx.fintecture.com','2023-01-02T00:00:00.00Z')
+        'Reste 50%', 'FAC2023ACT02', '2023-02-01', 'https://connect-v2-sbx.fintecture.com', '2023-01-02T00:00:00.00Z',
+        'PAID');

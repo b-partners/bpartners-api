@@ -1250,7 +1250,6 @@ components:
       enum:
         - PAID
         - UNPAID
-        - CANCELED
     #TODO: rename to paymentInitiation
     PaymentRequest:
       type: object

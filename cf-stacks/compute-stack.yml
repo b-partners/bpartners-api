@@ -4,6 +4,8 @@ Description: Compute stack for BPartners
 Parameters:
   Env:
     Type: String
+  ClusterNamePrefix:
+    Type: String
   Image:
     Type: String
   ContainerName:
@@ -30,7 +32,7 @@ Resources:
   Cluster:
     Type: AWS::ECS::Cluster
     Properties:
-      ClusterName: !Join ['', [!Ref Env, -compute-bpartners]]
+      ClusterName: !Join ['', [!Ref ClusterNamePrefix, '-', !Ref Env, -compute-bpartners]]
   LogGroup:
     Type: AWS::Logs::LogGroup
     DeletionPolicy: Retain

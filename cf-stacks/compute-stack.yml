@@ -10,7 +10,7 @@ Parameters:
     Type: String
   ContainerName:
     Type: String
-    Default: compute-bpartners
+    Default: compute-bp
   ContainerPort:
     Type: Number
     Default: 8080
@@ -119,7 +119,7 @@ Resources:
   ExecutionRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: !Join ['', [!Ref NamePrefix, !Ref Env, -compute-bpartners, -er]]
+      RoleName: !Join ['', [!Ref NamePrefix, !Ref Env, -compute-bpartners, -ExecutionRole]]
       AssumeRolePolicyDocument:
         Statement:
           - Effect: Allow
@@ -131,7 +131,7 @@ Resources:
   TaskRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: !Join ['', [!Ref NamePrefix, !Ref Env, -compute-bpartners, -tr]]
+      RoleName: !Join ['', [!Ref NamePrefix, !Ref Env, -compute-bpartners, -TaskRole]]
       AssumeRolePolicyDocument:
         Version: 2012-10-17
         Statement:
@@ -169,7 +169,7 @@ Resources:
   TargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
-      Name: !Join ['', [!Ref NamePrefix, !Ref Env, -compute-bpartners, -tg]]
+      Name: !Join ['', [!Ref NamePrefix, !Ref Env, -compute-bp, -tg]]
       Protocol: HTTP
       Port: !Ref ContainerPort
       # TargetType must be ip with Fargate: targets are (de-)registered on container creation/destruction

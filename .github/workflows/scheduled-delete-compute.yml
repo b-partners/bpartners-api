@@ -3,12 +3,14 @@ name: Sched Del compute
 on:
   schedule:
     - cron: '59 20 * * 1,2,3,4,5'
+      branches:
+        - preprod
+        - preprod-private-url
 
   workflow_dispatch:
 
 jobs:
   delete_compute_stack:
-    if: github.ref_name == 'preprod'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout

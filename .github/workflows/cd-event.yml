@@ -9,8 +9,8 @@ on:
   workflow_dispatch:
 
 jobs: 
-  cd-event: 
-    if: github.ref_name == 'prod' || github.ref_name == 'preprod' || github.ref_name == 'dev'
+  cd-event:
+    if: github.ref_name == 'prod' || github.ref_name == 'preprod' || github.ref_name == 'preprod-private-url'
 
     runs-on: ubuntu-latest
 

@@ -14,7 +14,7 @@ on:
 
 jobs:
   cd-storage:
-    if: github.ref_name == 'prod' || github.ref_name == 'preprod'
+    if: github.ref_name == 'prod' || github.ref_name == 'preprod' || github.ref_name == 'preprod-private-url'
 
     runs-on: ubuntu-latest
     

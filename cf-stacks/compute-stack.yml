@@ -4,7 +4,7 @@ Description: Compute stack for BPartners
 Parameters:
   Env:
     Type: String
-  ClusterNamePrefix:
+  NamePrefix:
     Type: String
   Image:
     Type: String
@@ -32,7 +32,7 @@ Resources:
   Cluster:
     Type: AWS::ECS::Cluster
     Properties:
-      ClusterName: !Join ['', [!Ref ClusterNamePrefix, '-', !Ref Env, -compute-bpartners]]
+      ClusterName: !Join ['', [!Ref NamePrefix, !Ref Env, -compute-bpartners]]
   LogGroup:
     Type: AWS::Logs::LogGroup
     DeletionPolicy: Retain
@@ -40,7 +40,7 @@ Resources:
     Type: AWS::ECS::TaskDefinition
     DependsOn: LogGroup
     Properties:
-      Family: !Join ['', [!Ref Env, -compute-bpartners]]
+      Family: !Join ['', [!Ref NamePrefix, !Ref Env, -compute-bpartners]]
       NetworkMode: awsvpc
       RequiresCompatibilities:
         - FARGATE
@@ -119,7 +119,7 @@ Resources:
   ExecutionRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: !Join ['', [!Ref Env, -compute-bpartners, -ExecutionRole]]
+      RoleName: !Join ['', [!Ref NamePrefix, !Ref Env, -compute-bpartners, -er]]
       AssumeRolePolicyDocument:
         Statement:
           - Effect: Allow
@@ -131,7 +131,7 @@ Resources:
   TaskRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: !Join ['', [!Ref Env, -compute-bpartners, -TaskRole]]
+      RoleName: !Join ['', [!Ref NamePrefix, !Ref Env, -compute-bpartners, -tr]]
       AssumeRolePolicyDocument:
         Version: 2012-10-17
         Statement:
@@ -169,7 +169,7 @@ Resources:
   TargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
-      Name: !Join ['', [!Ref Env, -compute-bpartners, -tg]]
+      Name: !Join ['', [!Ref NamePrefix, !Ref Env, -compute-bpartners, -tg]]
       Protocol: HTTP
       Port: !Ref ContainerPort
       # TargetType must be ip with Fargate: targets are (de-)registered on container creation/destruction
@@ -196,7 +196,7 @@ Resources:
         - Field: host-header
           HostHeaderConfig:
             Values:
-              - !If [IsPrivatePreprod,  !Join ['', [private-api-, !Ref Env, .bpartners.app]], !Join ['', [api-, !Ref Env, .bpartners.app]]]
+              - !Join ['', [!Ref NamePrefix, api-, !Ref Env, .bpartners.app]]
       Actions:
         - Type: forward
           TargetGroupArn: !Ref TargetGroup

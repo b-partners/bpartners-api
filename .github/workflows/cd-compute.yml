@@ -192,7 +192,7 @@ jobs:
           no-fail-on-empty-changeset: "1"
           parameter-overrides:
             "Env=${{ env.branch_env }},
-            ClusterNamePrefix=private-,
+            NamePrefix=private-,
             ListenerRuleAvailablePriority=12,
             Image=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }},
             Cpu=${{ env.vCpu }}, Memory=${{ env.memory }}, TasksDesiredCount=${{ env.tasksDesiredCount }}"

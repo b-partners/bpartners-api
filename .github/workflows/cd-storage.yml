@@ -5,7 +5,6 @@ on:
     branches:
       - 'prod'
       - 'preprod'
-      - 'preprod-private-url'
 
   workflow_dispatch:
     inputs:

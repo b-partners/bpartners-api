@@ -4,6 +4,7 @@ import app.bpartners.api.manager.ProjectTokenManager;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.repository.fintecture.FintectureConf;
 import app.bpartners.api.repository.fintecture.FintecturePaymentInfoRepository;
+import app.bpartners.api.repository.fintecture.model.MultipleSessionResponse;
 import app.bpartners.api.repository.fintecture.model.PaymentMeta;
 import app.bpartners.api.repository.fintecture.model.Session;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -14,7 +15,9 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.security.NoSuchAlgorithmException;
+import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
 
@@ -32,6 +35,7 @@ import static app.bpartners.api.repository.fintecture.implementation.utils.Finte
 import static app.bpartners.api.repository.fintecture.implementation.utils.FintecturePaymentUtils.getHeaderSignatureWithDigest;
 import static app.bpartners.api.repository.fintecture.implementation.utils.FintecturePaymentUtils.getParsedDate;
 import static java.util.UUID.randomUUID;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 
 @Slf4j
 @Repository
@@ -51,6 +55,40 @@ public class FintecturePaymentInfoRepositoryImpl implements FintecturePaymentInf
   public FintecturePaymentInfoRepositoryImpl httpClient(HttpClient httpClient) {
     this.httpClient = httpClient;
     return this;
+  }
+
+  @Override
+  public List<Session> getAllPayments() {
+    String requestId = String.valueOf(randomUUID());
+    String date = getParsedDate();
+    try {
+      HttpRequest request = HttpRequest.newBuilder()
+          .uri(new URI(fintectureConf.getPaymentUrl()))
+          .header(ACCEPT, APPLICATION_JSON)
+          .header(REQUEST_ID, requestId)
+          .header(LANGUAGE, "fr")
+          .header(DATE, date)
+          .header(SIGNATURE, getHeaderSignature(fintectureConf, requestId, date, EMPTY))
+          .header(AUTHORIZATION, BEARER_PREFIX + tokenManager.getFintectureProjectToken())
+          .GET().build();
+      HttpResponse<String> response =
+          httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+      MultipleSessionResponse multipleSessionResponse = objectMapper.readValue(response.body(),
+          MultipleSessionResponse.class);
+      return multipleSessionResponse.getData().stream()
+          .map(session -> Session.builder()
+              .meta(Session.Meta.builder()
+                  .sessionId(session.getMeta().getSessionId())
+                  .status(session.getMeta().getStatus())
+                  .build())
+              .build())
+          .collect(Collectors.toList());
+    } catch (IOException | URISyntaxException e) {
+      throw new ApiException(SERVER_EXCEPTION, e);
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new ApiException(SERVER_EXCEPTION, e);
+    }
   }
 
   @Override

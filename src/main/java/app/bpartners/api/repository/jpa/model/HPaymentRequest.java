@@ -1,11 +1,14 @@
 package app.bpartners.api.repository.jpa.model;
 
+import app.bpartners.api.endpoint.rest.model.PaymentStatus;
 import app.bpartners.api.model.PaymentRequest;
 import java.io.Serializable;
 import java.time.Instant;
 import java.time.LocalDate;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.Id;
 import javax.persistence.Table;
 import lombok.AllArgsConstructor;
@@ -16,6 +19,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.Type;
 
 @Entity
 @Table(name = "\"payment_request\"")
@@ -40,6 +44,9 @@ public class HPaymentRequest implements Serializable {
   private String payerName;
   private String payerEmail;
   private LocalDate paymentDueDate;
+  @Type(type = "pgsql_enum")
+  @Enumerated(EnumType.STRING)
+  private PaymentStatus status;
   @Column(name = "\"comment\"")
   private String comment;
   @CreationTimestamp

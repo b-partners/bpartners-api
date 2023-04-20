@@ -26,7 +26,7 @@ env:
 
 jobs:
   cd-compute:
-    if: github.ref_name == 'prod' || github.ref_name == 'preprod' || github.ref_name == 'dev'
+    if: github.ref_name == 'prod' || github.ref_name == 'preprod' || github.ref_name == 'preprod-private-url'
 
     runs-on: ubuntu-latest
     
@@ -113,8 +113,12 @@ jobs:
           docker push $ECR_PRIVATE_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
       - name: Put branch_env into GITHUB_ENV
-        run: echo "branch_env=${{ github.ref_name }}" >> $GITHUB_ENV
-
+        run: |
+          if ${{ github.ref_name == 'preprod' || github.ref_name == 'preprod-private-url' }}; then
+            echo "branch_env=preprod" >> $GITHUB_ENV
+          else
+            echo "branch_env=${{ github.ref_name }}" >> $GITHUB_ENV
+          fi
 
       - name: Get configurations from ecs-conf.yml
         id: get-configuration

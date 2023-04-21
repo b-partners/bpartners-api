@@ -6,6 +6,7 @@ Parameters:
     Type: String
   NamePrefix:
     Type: String
+    Default: ""
   Image:
     Type: String
   ContainerName:

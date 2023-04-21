@@ -23,11 +23,6 @@ Parameters:
   Cpu:
     Type: String
 
-Conditions:
-  IsPrivatePreprod: !Equals
-    - !Ref Env
-    - preprod-private-url
-
 Resources:
   Cluster:
     Type: AWS::ECS::Cluster

@@ -118,8 +118,7 @@ jobs:
         run: |
           if ${{ github.ref_name == 'preprod' || github.ref_name == 'preprod-private-url' }}; then
             echo "branch_env=preprod" >> $GITHUB_ENV
-          else
-          if ${{ github.ref_name == 'prod' || github.ref_name == 'prod-private-url' }}; then
+          elif ${{ github.ref_name == 'prod' || github.ref_name == 'prod-private-url' }}; then
             echo "branch_env=prod" >> $GITHUB_ENV
           else
             echo "branch_env=${{ github.ref_name }}" >> $GITHUB_ENV
@@ -172,7 +171,7 @@ jobs:
 
       - name: Deploy compute stack
         uses: aws-actions/aws-cloudformation-github-deploy@v1
-        if: github.ref_name != 'preprod-private-url'
+        if: github.ref_name != 'prod-private-url' && github.ref_name != 'preprod-private-url'
         with:
           name: ${{ env.branch_env }}-compute-bpartners
           template: cf-stacks/compute-stack.yml
@@ -185,7 +184,7 @@ jobs:
             Image=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }},
             Cpu=${{ env.vCpu }}, Memory=${{ env.memory }}, TasksDesiredCount=${{ env.tasksDesiredCount }}"
 
-      - name: Deploy compute stack
+      - name: Deploy compute stack (preprod-private-url)
         uses: aws-actions/aws-cloudformation-github-deploy@v1
         if: github.ref_name == 'preprod-private-url'
         with:
@@ -198,5 +197,21 @@ jobs:
             "Env=${{ env.branch_env }},
             NamePrefix=private-,
             ListenerRuleAvailablePriority=12,
+            Image=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }},
+            Cpu=${{ env.vCpu }}, Memory=${{ env.memory }}, TasksDesiredCount=${{ env.tasksDesiredCount }}"
+
+      - name: Deploy compute stack (prod-private-url)
+        uses: aws-actions/aws-cloudformation-github-deploy@v1
+        if: github.ref_name == 'prod-private-url'
+        with:
+          name: prod-private-url-compute-bpartners
+          template: cf-stacks/compute-stack.yml
+          tags: "[ { \"Key\": \"app\", \"Value\": \"bpartners\" }, { \"Key\": \"env\", \"Value\": \"${{ env.branch_env }}\" } ]"
+          capabilities: CAPABILITY_NAMED_IAM
+          no-fail-on-empty-changeset: "1"
+          parameter-overrides:
+            "Env=${{ env.branch_env }},
+            NamePrefix=private-,
+            ListenerRuleAvailablePriority=22,
             Image=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }},
             Cpu=${{ env.vCpu }}, Memory=${{ env.memory }}, TasksDesiredCount=${{ env.tasksDesiredCount }}"

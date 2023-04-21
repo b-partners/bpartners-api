@@ -5,6 +5,7 @@ on:
     branches:
       - 'prod'
       - 'preprod'
+      - 'prod-private-url'
       - 'preprod-private-url'
 
   workflow_dispatch:
@@ -27,7 +28,7 @@ env:
 
 jobs:
   cd-compute:
-    if: github.ref_name == 'prod' || github.ref_name == 'preprod' || github.ref_name == 'preprod-private-url'
+    if: github.ref_name == 'prod' || github.ref_name == 'prod-private-url' || github.ref_name == 'preprod' || github.ref_name == 'preprod-private-url'
 
     runs-on: ubuntu-latest
     
@@ -117,6 +118,9 @@ jobs:
         run: |
           if ${{ github.ref_name == 'preprod' || github.ref_name == 'preprod-private-url' }}; then
             echo "branch_env=preprod" >> $GITHUB_ENV
+          else
+          if ${{ github.ref_name == 'prod' || github.ref_name == 'prod-private-url' }}; then
+            echo "branch_env=prod" >> $GITHUB_ENV
           else
             echo "branch_env=${{ github.ref_name }}" >> $GITHUB_ENV
           fi

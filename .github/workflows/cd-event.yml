@@ -5,13 +5,12 @@ on:
     branches:
       - 'prod'
       - 'preprod'
-      - 'preprod-private-url'
-  
+
   workflow_dispatch:
 
 jobs: 
   cd-event:
-    if: github.ref_name == 'prod' || github.ref_name == 'preprod' || github.ref_name == 'preprod-private-url'
+    if: github.ref_name == 'prod' || github.ref_name == 'preprod'
 
     runs-on: ubuntu-latest
 
@@ -26,11 +25,7 @@ jobs:
 
       - name: Put branch_env into GITHUB_ENV
         run: |
-            if ${{ github.ref_name == 'preprod' || github.ref_name == 'preprod-private-url' }}; then
-              echo "branch_env=preprod" >> $GITHUB_ENV
-            else
-              echo "branch_env=${{ github.ref_name }}" >> $GITHUB_ENV
-            fi
+          echo "branch_env=${{ github.ref_name }}" >> $GITHUB_ENV
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@13d241b293754004c80624b5567555c4a39ffbe3
@@ -40,7 +35,6 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
           
       - name: Deploy event stack
-        if: github.ref_name != 'preprod-private-url'
         uses: aws-actions/aws-cloudformation-github-deploy@v1
         with:
           name: ${{ env.branch_env }}-event-bpartners
@@ -50,15 +44,3 @@ jobs:
           no-fail-on-empty-changeset: "1"
           parameter-overrides:
             "Env=${{ env.branch_env }}" 
-
-      - name: Deploy event stack
-        if: github.ref_name == 'preprod-private-url'
-        uses: aws-actions/aws-cloudformation-github-deploy@v1
-        with:
-          name: preprod-private-url-event-bpartners
-          template: cf-stacks/event-stack.yml
-          tags: "[ { \"Key\": \"app\", \"Value\": \"api\" }, { \"Key\": \"env\", \"Value\": \"${{ env.branch_env }}\" } ]"
-          capabilities: CAPABILITY_NAMED_IAM
-          no-fail-on-empty-changeset: "1"
-          parameter-overrides:
-            "Env=${{ env.branch_env }}"

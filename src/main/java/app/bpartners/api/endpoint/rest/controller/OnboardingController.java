@@ -30,7 +30,7 @@ public class OnboardingController {
             params.getRedirectionStatusUrls().getFailureUrl()));
   }
 
-  @PostMapping(value = "/onboarding", produces = "text/plain")
+  @PostMapping(value = "/onboarding")
   public String onboardUser(@RequestBody OnboardUser toCreateUser) {
     onboardingValidator.accept(toCreateUser);
     app.bpartners.api.model.User toSave = userMapper.toDomain(toCreateUser);

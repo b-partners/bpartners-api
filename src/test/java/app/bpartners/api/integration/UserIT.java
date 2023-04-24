@@ -51,7 +51,6 @@ import static app.bpartners.api.endpoint.rest.model.IdentificationStatus.INVALID
 import static app.bpartners.api.endpoint.rest.model.IdentificationStatus.PROCESSING;
 import static app.bpartners.api.endpoint.rest.model.IdentificationStatus.UNINITIATED;
 import static app.bpartners.api.integration.UserServiceIT.bridgeUser;
-import static app.bpartners.api.integration.conf.TestUtils.BEARER_PREFIX;
 import static app.bpartners.api.integration.conf.TestUtils.JANE_DOE_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JANE_DOE_TOKEN;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ID;
@@ -88,7 +87,6 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 class UserIT {
   public static final String UNKNOWN_IDENTIFICATION_STATUS = "Unknown";
   public static final String JOE_DOE_COGNITO_TOKEN = "joe_doe_cognito_token";
-  public static final String BRIDGE_USER_ACCESS_TOKEN = "bridge_access_token";
   @MockBean
   private BuildingPermitConf buildingPermitConf;
   @MockBean
@@ -386,6 +384,7 @@ class UserIT {
   @Test
   void onboard_user_ok() throws IOException, InterruptedException {
     when(bridgeUserRepositoryMock.createUser(any())).thenReturn(bridgeUser());
+    reset(swanComponentMock);
 
     HttpClient unauthenticatedClient = HttpClient.newBuilder().build();
     String basePath = "http://localhost:" + UserIT.ContextInitializer.SERVER_PORT;
@@ -393,9 +392,8 @@ class UserIT {
     HttpResponse<String> response = unauthenticatedClient.send(
         HttpRequest.newBuilder()
             .uri(URI.create(basePath + "/onboarding"))
-            .header("Authorization", BEARER_PREFIX + JOE_DOE_TOKEN)
             .headers("Content-Type", "application/json")
-            .headers("Accept", "text/plain")
+            .headers("Accept", "*/*")
             .POST(HttpRequest.BodyPublishers.ofString(
                 new ObjectMapper().writeValueAsString(onboardUser())))
             .build(), HttpResponse.BodyHandlers.ofString());

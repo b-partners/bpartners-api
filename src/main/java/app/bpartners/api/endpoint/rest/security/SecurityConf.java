@@ -70,6 +70,7 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
                     new AntPathRequestMatcher("/preUsers", POST.name()),
                     new AntPathRequestMatcher("/authInitiation"),
                     new AntPathRequestMatcher("/token"),
+                    new AntPathRequestMatcher("/onboarding"),
                     new AntPathRequestMatcher("/whoami", GET.name()),
                     new AntPathRequestMatcher("/users/*", GET.name()),
                     new AntPathRequestMatcher("/onboardingInitiation", POST.name()),
@@ -88,10 +89,10 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
         .antMatchers("/authInitiation").permitAll()
         .antMatchers("/token").permitAll()
         .antMatchers(GET, "/whoami").permitAll()
+        .antMatchers("/onboarding").permitAll()
         .antMatchers(GET, "/users/*").permitAll()
         .antMatchers("/onboardingInitiation").permitAll()
         .antMatchers(POST, "/preUsers").permitAll()
-        .antMatchers(POST, "/onboarding").permitAll()
         //Authentication check done in controller for legalFiles
         .antMatchers(GET, "/users/*/legalFiles").permitAll()
         .antMatchers(PUT, "/users/*/legalFiles/*").permitAll()

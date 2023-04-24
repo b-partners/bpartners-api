@@ -172,7 +172,7 @@ public class TransactionService {
   }
 
   //TODO: check if 60 minutes of refresh is enough or too much
-  @Scheduled(fixedDelay = 60 * 60 * 1_000)
+  @Scheduled(fixedRate = 60 * 60 * 1_000)
   public void refreshTransactionsSummaries() {
     holderJpaRepository.findAllGroupByAccountId().forEach(
         accountHolder -> {

@@ -8,6 +8,7 @@ import java.util.List;
 import javax.annotation.PostConstruct;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import static app.bpartners.api.endpoint.rest.model.PaymentStatus.PAID;
@@ -21,14 +22,16 @@ public class PaymentScheduleService {
   private final FintecturePaymentInfoRepository infoRepository;
   private final PaymentRequestJpaRepository jpaRepository;
 
-  //TODO: remove when payment status are correctly set
+  //TODO: check if 60 minutes of refresh is enough or too much
+  @Scheduled(fixedRate = 60 * 60 * 1_000)
   @PostConstruct
   public void updatePaymentStatus() {
     List<HPaymentRequest> unpaidPayments = jpaRepository.findAllByStatus(UNPAID);
     List<Session> externalPayments = infoRepository.getAllPayments();
     for (HPaymentRequest payment : unpaidPayments) {
       for (Session externalPayment : externalPayments) {
-        if (payment.getSessionId().equals(externalPayment.getMeta().getSessionId())
+        if (payment.getSessionId() != null
+            && payment.getSessionId().equals(externalPayment.getMeta().getSessionId())
             && externalPayment.getMeta().getStatus().equals(PAYMENT_CREATED)) {
           payment.setStatus(PAID);
           break;

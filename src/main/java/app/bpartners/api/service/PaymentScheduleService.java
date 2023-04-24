@@ -4,6 +4,7 @@ import app.bpartners.api.repository.fintecture.FintecturePaymentInfoRepository;
 import app.bpartners.api.repository.fintecture.model.Session;
 import app.bpartners.api.repository.jpa.PaymentRequestJpaRepository;
 import app.bpartners.api.repository.jpa.model.HPaymentRequest;
+import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.PostConstruct;
 import lombok.AllArgsConstructor;
@@ -28,18 +29,23 @@ public class PaymentScheduleService {
   public void updatePaymentStatus() {
     List<HPaymentRequest> unpaidPayments = jpaRepository.findAllByStatus(UNPAID);
     List<Session> externalPayments = infoRepository.getAllPayments();
+    List<HPaymentRequest> paidPayments = new ArrayList<>();
     for (HPaymentRequest payment : unpaidPayments) {
       for (Session externalPayment : externalPayments) {
         if (payment.getSessionId() != null
             && payment.getSessionId().equals(externalPayment.getMeta().getSessionId())
             && externalPayment.getMeta().getStatus().equals(PAYMENT_CREATED)) {
-          payment.setStatus(PAID);
+          paidPayments.add(payment.toBuilder()
+              .status(PAID)
+              .build());
           break;
         }
       }
     }
-    List<HPaymentRequest> paidPayments = jpaRepository.saveAll(unpaidPayments);
-    log.info("Payment requests " + paymentMessage(paidPayments) + " updated successfully");
+    List<HPaymentRequest> savedPaidPayments = jpaRepository.saveAll(paidPayments);
+    if (!savedPaidPayments.isEmpty()) {
+      log.info("Payment requests " + paymentMessage(savedPaidPayments) + " updated successfully");
+    }
   }
 
   String paymentMessage(List<HPaymentRequest> paymentRequests) {

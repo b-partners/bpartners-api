@@ -27,7 +27,7 @@ import org.hibernate.annotations.Type;
 @Getter
 @ToString
 @AllArgsConstructor
-@Builder
+@Builder(toBuilder = true)
 @NoArgsConstructor
 @EqualsAndHashCode
 public class HPaymentRequest implements Serializable {

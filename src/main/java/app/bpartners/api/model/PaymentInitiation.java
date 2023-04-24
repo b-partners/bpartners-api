@@ -1,5 +1,6 @@
 package app.bpartners.api.model;
 
+import app.bpartners.api.endpoint.rest.model.PaymentStatus;
 import java.time.LocalDate;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -22,6 +23,7 @@ public class PaymentInitiation {
   private String comment;
   private String reference;
   private Fraction amount;
+  private PaymentStatus status;
   private String payerName;
   private String payerEmail;
   private String successUrl;

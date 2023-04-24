@@ -3,6 +3,8 @@ package app.bpartners.api.model.mapper;
 import app.bpartners.api.endpoint.rest.model.IdentificationStatus;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.ApiException;
+import app.bpartners.api.repository.bridge.model.User.BridgeUser;
+import app.bpartners.api.repository.bridge.model.User.CreateBridgeUser;
 import app.bpartners.api.repository.jpa.model.HUser;
 import app.bpartners.api.repository.swan.model.SwanUser;
 import lombok.AllArgsConstructor;
@@ -13,12 +15,12 @@ import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVE
 @Component
 @AllArgsConstructor
 public class UserMapper {
-  private final AccountMapper accountMapper;
   public static final String VALID_IDENTITY_STATUS = "ValidIdentity";
   public static final String INSUFFICIENT_DOCUMENT_QUALITY_STATUS = "InsufficientDocumentQuality";
   public static final String INVALID_IDENTITY_STATUS = "InvalidIdentity";
   public static final String PROCESSING_STATUS = "Processing";
   public static final String UNINITIATED_STATUS = "Uninitiated";
+  private final AccountMapper accountMapper;
 
   public User toDomain(HUser entityUser, SwanUser swanUser) {
     return User.builder()
@@ -63,5 +65,33 @@ public class UserMapper {
       default:
         throw new ApiException(SERVER_EXCEPTION, "Unknown identification status : " + value);
     }
+  }
+
+  public HUser toEntity(User toSave) {
+    return HUser.builder()
+        .id(toSave.getId())
+        .firstName(toSave.getFirstName())
+        .lastName(toSave.getLastName())
+        .email(toSave.getEmail())
+        .phoneNumber(toSave.getMobilePhoneNumber())
+        .bridgePassword(toSave.getBridgePassword())
+        .identificationStatus(toSave.getIdentificationStatus())
+        .status(toSave.getStatus())
+        .idVerified(toSave.getIdVerified())
+        .build();
+  }
+
+  public HUser toEntity(User toSave, BridgeUser bridgeUser) {
+    return toEntity(toSave).toBuilder()
+        .bridgeUserId(bridgeUser.getUuid())
+        .email(bridgeUser.getEmail())
+        .build();
+  }
+
+  public CreateBridgeUser toBridgeUser(User user) {
+    return CreateBridgeUser.builder()
+        .email(user.getEmail())
+        .password(user.getBridgePassword())
+        .build();
   }
 }

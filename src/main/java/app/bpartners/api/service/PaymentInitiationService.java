@@ -7,6 +7,8 @@ import app.bpartners.api.model.PaymentInitiation;
 import app.bpartners.api.model.PaymentRedirection;
 import app.bpartners.api.model.mapper.PaymentRequestMapper;
 import app.bpartners.api.repository.PaymentInitiationRepository;
+import app.bpartners.api.repository.fintecture.FintecturePaymentInfoRepository;
+import app.bpartners.api.repository.jpa.PaymentRequestJpaRepository;
 import app.bpartners.api.repository.jpa.model.HPaymentRequest;
 import java.util.List;
 import java.util.Objects;

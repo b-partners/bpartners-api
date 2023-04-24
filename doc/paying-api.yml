@@ -1245,6 +1245,11 @@ components:
         fileId:
           type: string
 
+    PaymentStatus:
+      type: string
+      enum:
+        - PAID
+        - UNPAID
     #TODO: rename to paymentInitiation
     PaymentRequest:
       type: object
@@ -1268,3 +1273,5 @@ components:
         initiatedDatetime:
           type: string
           format: date-time
+        paymentStatus:
+          $ref: '#/components/schemas/PaymentStatus'

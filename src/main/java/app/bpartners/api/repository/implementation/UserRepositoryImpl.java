@@ -7,6 +7,8 @@ import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.mapper.UserMapper;
 import app.bpartners.api.repository.UserRepository;
+import app.bpartners.api.repository.bridge.model.User.BridgeUser;
+import app.bpartners.api.repository.bridge.repository.BridgeUserRepository;
 import app.bpartners.api.repository.jpa.UserJpaRepository;
 import app.bpartners.api.repository.jpa.model.HUser;
 import app.bpartners.api.repository.swan.UserSwanRepository;
@@ -31,6 +33,7 @@ public class UserRepositoryImpl implements UserRepository {
   private final UserMapper userMapper;
   private final SwanComponent swanComponent;
   private final CognitoComponent cognitoComponent;
+  private final BridgeUserRepository bridgeUserRepository;
 
   @Override
   public List<User> findAll() {
@@ -91,6 +94,14 @@ public class UserRepositoryImpl implements UserRepository {
         jpaRepository.findByEmail(email).orElseThrow(
             () -> new NotFoundException(
                 "No user with the email " + email + " was found")), null);
+  }
+
+  @Override
+  public User save(User toSave) {
+    BridgeUser bridgeUser = bridgeUserRepository.createUser(userMapper.toBridgeUser(toSave));
+    HUser entityToSave = userMapper.toEntity(toSave, bridgeUser);
+    HUser savedUser = jpaRepository.save(entityToSave);
+    return userMapper.toDomain(savedUser, null);
   }
 
   public HUser getUpdatedUser(SwanUser swanUser) {

@@ -11,4 +11,6 @@ public interface UserRepository {
   User getUserByToken(String token);
 
   User getByEmail(String email);
+
+  User save(User toSave);
 }

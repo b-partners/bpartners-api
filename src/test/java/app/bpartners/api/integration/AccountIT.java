@@ -39,6 +39,7 @@ import app.bpartners.api.repository.swan.UserSwanRepository;
 import app.bpartners.api.repository.swan.implementation.AccountSwanRepositoryImpl;
 import app.bpartners.api.repository.swan.model.SwanAccount;
 import app.bpartners.api.repository.swan.response.AccountResponse;
+import app.bpartners.api.service.PaymentScheduleService;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -97,6 +98,8 @@ import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER
 @ContextConfiguration(initializers = AccountIT.ContextInitializer.class)
 @AutoConfigureMockMvc
 class AccountIT {
+  @MockBean
+  private PaymentScheduleService paymentScheduleService;
   private static final String OTHER_USER_ID = "OTHER_USER_ID";
   @MockBean
   private BuildingPermitConf buildingPermitConf;

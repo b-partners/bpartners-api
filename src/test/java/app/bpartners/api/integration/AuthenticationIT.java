@@ -21,6 +21,7 @@ import app.bpartners.api.repository.sendinblue.SendinblueConf;
 import app.bpartners.api.repository.swan.AccountHolderSwanRepository;
 import app.bpartners.api.repository.swan.AccountSwanRepository;
 import app.bpartners.api.repository.swan.UserSwanRepository;
+import app.bpartners.api.service.PaymentScheduleService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.net.URI;
@@ -58,6 +59,8 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @ContextConfiguration(initializers = AuthenticationIT.ContextInitializer.class)
 @AutoConfigureMockMvc
 class AuthenticationIT {
+  @MockBean
+  private PaymentScheduleService paymentScheduleService;
   public static final String DEFAULT_STATE = "12341234";
   private static final String PHONE_NUMBER = "+261340465338";
   @MockBean

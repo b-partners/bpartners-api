@@ -2,7 +2,6 @@ package app.bpartners.api.service;
 
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.UserToken;
-import app.bpartners.api.repository.BankRepository;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.UserTokenRepository;
 import java.util.List;

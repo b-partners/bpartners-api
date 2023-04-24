@@ -1,5 +1,6 @@
 package app.bpartners.api.model.mapper;
 
+import app.bpartners.api.endpoint.rest.model.PaymentStatus;
 import app.bpartners.api.endpoint.rest.security.AuthenticatedResourceProvider;
 import app.bpartners.api.model.CreatePaymentRegulation;
 import app.bpartners.api.model.Fraction;
@@ -41,6 +42,7 @@ public class PaymentRequestMapper {
         .paymentDueDate(domain.getPaymentDueDate())
         .amount(domain.getAmount().toString())
         .createdDatetime(Instant.now())
+        .status(domain.getStatus() == null ? PaymentStatus.UNPAID : domain.getStatus())
         .build();
   }
 

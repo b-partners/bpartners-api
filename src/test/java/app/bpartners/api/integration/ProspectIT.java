@@ -25,6 +25,7 @@ import app.bpartners.api.repository.sendinblue.SendinblueConf;
 import app.bpartners.api.repository.swan.AccountHolderSwanRepository;
 import app.bpartners.api.repository.swan.AccountSwanRepository;
 import app.bpartners.api.repository.swan.UserSwanRepository;
+import app.bpartners.api.service.PaymentScheduleService;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
@@ -65,6 +66,8 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @Slf4j
 class ProspectIT {
   private static final String UNKNOWN_PROSPECT_ID = "unknown_prospect_id";
+  @MockBean
+  private PaymentScheduleService paymentScheduleService;
   @MockBean
   private SentryConf sentryConf;
   @MockBean

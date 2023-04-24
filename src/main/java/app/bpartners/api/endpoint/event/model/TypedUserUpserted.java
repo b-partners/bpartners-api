@@ -1,10 +1,12 @@
 package app.bpartners.api.endpoint.event.model;
 
+import app.bpartners.api.endpoint.event.model.gen.UserUpserted;
 import java.io.Serializable;
 import lombok.AllArgsConstructor;
-import app.bpartners.api.endpoint.event.model.gen.UserUpserted;
+import lombok.ToString;
 
 @AllArgsConstructor
+@ToString
 public class TypedUserUpserted implements TypedEvent {
 
   private final UserUpserted userUpserted;

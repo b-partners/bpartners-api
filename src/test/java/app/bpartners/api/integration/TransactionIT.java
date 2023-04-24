@@ -25,6 +25,7 @@ import app.bpartners.api.repository.swan.AccountHolderSwanRepository;
 import app.bpartners.api.repository.swan.AccountSwanRepository;
 import app.bpartners.api.repository.swan.TransactionSwanRepository;
 import app.bpartners.api.repository.swan.UserSwanRepository;
+import app.bpartners.api.service.PaymentScheduleService;
 import java.time.LocalDate;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -70,6 +71,8 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @AutoConfigureMockMvc
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class TransactionIT {
+  @MockBean
+  private PaymentScheduleService paymentScheduleService;
   @MockBean
   private BuildingPermitConf buildingPermitConf;
   @MockBean

@@ -9,6 +9,7 @@ import app.bpartners.api.manager.ProjectTokenManager;
 import app.bpartners.api.repository.fintecture.FintectureConf;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitConf;
 import app.bpartners.api.repository.sendinblue.SendinblueConf;
+import app.bpartners.api.service.PaymentScheduleService;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -36,6 +37,8 @@ import static org.springframework.http.HttpMethod.OPTIONS;
 @ContextConfiguration(initializers = SpringSecurityIT.ContextInitializer.class)
 @AutoConfigureMockMvc
 class SpringSecurityIT {
+  @MockBean
+  private PaymentScheduleService paymentScheduleService;
   @MockBean
   private BuildingPermitConf buildingPermitConf;
   @MockBean

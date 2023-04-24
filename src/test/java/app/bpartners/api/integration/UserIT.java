@@ -27,6 +27,7 @@ import app.bpartners.api.repository.swan.AccountSwanRepository;
 import app.bpartners.api.repository.swan.OnboardingSwanRepository;
 import app.bpartners.api.repository.swan.UserSwanRepository;
 import app.bpartners.api.repository.swan.model.SwanUser;
+import app.bpartners.api.service.PaymentScheduleService;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -101,6 +102,8 @@ class UserIT {
   private FintectureConf fintectureConf;
   @MockBean
   private ProjectTokenManager projectTokenManager;
+  @MockBean
+  private PaymentScheduleService paymentScheduleService;
   @MockBean
   private UserSwanRepository userSwanRepositoryMock;
   @MockBean

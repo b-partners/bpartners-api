@@ -20,6 +20,7 @@ import app.bpartners.api.repository.prospecting.datasource.buildingpermit.Buildi
 import app.bpartners.api.repository.sendinblue.SendinblueConf;
 import app.bpartners.api.repository.swan.AccountSwanRepository;
 import app.bpartners.api.repository.swan.UserSwanRepository;
+import app.bpartners.api.service.PaymentScheduleService;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
@@ -43,6 +44,8 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @Slf4j
 //TODO: WARNING ! run these tests locally only
 public class BridgeIT {
+  @MockBean
+  private PaymentScheduleService paymentScheduleService;
   public static final String ITEM_ID = "7686392";
   public static final Long TRANSACTION_ID = 36000023191568L;
   @MockBean

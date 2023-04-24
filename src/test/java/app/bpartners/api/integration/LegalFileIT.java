@@ -17,6 +17,7 @@ import app.bpartners.api.repository.sendinblue.SendinblueConf;
 import app.bpartners.api.repository.swan.AccountHolderSwanRepository;
 import app.bpartners.api.repository.swan.AccountSwanRepository;
 import app.bpartners.api.repository.swan.UserSwanRepository;
+import app.bpartners.api.service.PaymentScheduleService;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -45,6 +46,8 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @ContextConfiguration(initializers = LegalFileIT.ContextInitializer.class)
 @AutoConfigureMockMvc
 class LegalFileIT {
+  @MockBean
+  private PaymentScheduleService paymentScheduleService;
   @MockBean
   private BuildingPermitConf buildingPermitConf;
   public static final String NOT_EXISTING_LEGAL_FILE = "not_existing_legal_file";

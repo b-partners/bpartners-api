@@ -29,6 +29,7 @@ import app.bpartners.api.repository.swan.UserSwanRepository;
 import app.bpartners.api.service.AccountHolderService;
 import app.bpartners.api.service.AccountService;
 import app.bpartners.api.service.OnboardingService;
+import app.bpartners.api.service.PaymentScheduleService;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -59,6 +60,8 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @ContextConfiguration(initializers = UserServiceIT.ContextInitializer.class)
 class UserServiceIT {
   private static final String COMPANY_NAME = "user company name";
+  @MockBean
+  private PaymentScheduleService paymentScheduleService;
   @MockBean
   private BuildingPermitConf buildingPermitConf;
   @MockBean

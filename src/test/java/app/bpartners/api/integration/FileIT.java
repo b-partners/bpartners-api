@@ -18,6 +18,7 @@ import app.bpartners.api.repository.sendinblue.SendinblueConf;
 import app.bpartners.api.repository.swan.AccountHolderSwanRepository;
 import app.bpartners.api.repository.swan.AccountSwanRepository;
 import app.bpartners.api.repository.swan.UserSwanRepository;
+import app.bpartners.api.service.PaymentScheduleService;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -64,6 +65,8 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @ContextConfiguration(initializers = FileIT.ContextInitializer.class)
 @AutoConfigureMockMvc
 class FileIT {
+  @MockBean
+  private PaymentScheduleService paymentScheduleService;
   @MockBean
   private BuildingPermitConf buildingPermitConf;
   public static final String NON_EXISTENT_FILE_ID = "NOT" + TEST_FILE_ID;

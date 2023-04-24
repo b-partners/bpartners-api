@@ -71,24 +71,54 @@ public class FintecturePaymentInfoRepositoryImpl implements FintecturePaymentInf
           .header(SIGNATURE, getHeaderSignature(fintectureConf, requestId, date, EMPTY))
           .header(AUTHORIZATION, BEARER_PREFIX + tokenManager.getFintectureProjectToken())
           .GET().build();
-      HttpResponse<String> response =
-          httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-      MultipleSessionResponse multipleSessionResponse = objectMapper.readValue(response.body(),
-          MultipleSessionResponse.class);
-      return multipleSessionResponse.getData().stream()
-          .map(session -> Session.builder()
-              .meta(Session.Meta.builder()
-                  .sessionId(session.getMeta().getSessionId())
-                  .status(session.getMeta().getStatus())
-                  .build())
-              .build())
-          .collect(Collectors.toList());
+      return getPaymentsList(request);
     } catch (IOException | URISyntaxException e) {
       throw new ApiException(SERVER_EXCEPTION, e);
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       throw new ApiException(SERVER_EXCEPTION, e);
     }
+  }
+
+  //TODO: when list has multiple pages, check for next link data
+  @Override
+  public List<Session> getAllPaymentsByStatus(String status) {
+    String requestId = String.valueOf(randomUUID());
+    String date = getParsedDate();
+    String urlParams = "?filter[status]=" + status;
+    try {
+      HttpRequest request = HttpRequest.newBuilder()
+          .uri(new URI(fintectureConf.getPaymentUrl() + urlParams))
+          .header(ACCEPT, APPLICATION_JSON)
+          .header(REQUEST_ID, requestId)
+          .header(LANGUAGE, "fr")
+          .header(DATE, date)
+          .header(SIGNATURE, getHeaderSignature(fintectureConf, requestId, date, urlParams))
+          .header(AUTHORIZATION, BEARER_PREFIX + tokenManager.getFintectureProjectToken())
+          .GET().build();
+      return getPaymentsList(request);
+    } catch (IOException | URISyntaxException e) {
+      throw new ApiException(SERVER_EXCEPTION, e);
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new ApiException(SERVER_EXCEPTION, e);
+    }
+  }
+
+  public List<Session> getPaymentsList(HttpRequest request)
+      throws IOException, InterruptedException {
+    HttpResponse<String> response =
+        httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+    MultipleSessionResponse multipleSessionResponse = objectMapper.readValue(response.body(),
+        MultipleSessionResponse.class);
+    return multipleSessionResponse.getData().stream()
+        .map(session -> Session.builder()
+            .meta(Session.Meta.builder()
+                .sessionId(session.getMeta().getSessionId())
+                .status(session.getMeta().getStatus())
+                .build())
+            .build())
+        .collect(Collectors.toList());
   }
 
   @Override

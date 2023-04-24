@@ -28,7 +28,7 @@ public class PaymentScheduleService {
   @PostConstruct
   public void updatePaymentStatus() {
     List<HPaymentRequest> unpaidPayments = jpaRepository.findAllByStatus(UNPAID);
-    List<Session> externalPayments = infoRepository.getAllPayments();
+    List<Session> externalPayments = infoRepository.getAllPaymentsByStatus(PAYMENT_CREATED);
     List<HPaymentRequest> paidPayments = new ArrayList<>();
     for (HPaymentRequest payment : unpaidPayments) {
       for (Session externalPayment : externalPayments) {

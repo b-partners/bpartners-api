@@ -19,12 +19,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Repository;
 
 import static app.bpartners.api.endpoint.rest.model.EnableStatus.ENABLED;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
-import static java.util.UUID.randomUUID;
 
 @Repository
 @AllArgsConstructor
@@ -36,8 +34,6 @@ public class UserRepositoryImpl implements UserRepository {
   private final SwanComponent swanComponent;
   private final CognitoComponent cognitoComponent;
   private final BridgeUserRepository bridgeUserRepository;
-  private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
-
 
   @Override
   public List<User> findAll() {
@@ -101,15 +97,7 @@ public class UserRepositoryImpl implements UserRepository {
   }
 
   @Override
-  public User save(User user) {
-    String id = String.valueOf(randomUUID());
-    String bridgePassword = encryptSequence(id);
-    User toSave = user.toBuilder()
-        .id(user.getId() == null ? id : user.getId())
-        .bridgePassword(
-            user.getBridgePassword() == null
-                ? bridgePassword : user.getBridgePassword())
-        .build();
+  public User save(User toSave) {
     BridgeUser bridgeUser = bridgeUserRepository.createUser(userMapper.toBridgeUser(toSave));
     HUser entityToSave = userMapper.toEntity(toSave, bridgeUser);
     HUser savedUser = jpaRepository.save(entityToSave);
@@ -158,9 +146,5 @@ public class UserRepositoryImpl implements UserRepository {
             userMapper.getIdentificationStatus(swanUser.getIdentificationStatus()))
         .phoneNumber(swanUser.getMobilePhoneNumber())
         .build();
-  }
-
-  private String encryptSequence(String sequence) {
-    return encoder.encode(sequence);
   }
 }

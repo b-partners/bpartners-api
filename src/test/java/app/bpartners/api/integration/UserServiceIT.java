@@ -48,6 +48,14 @@ import static app.bpartners.api.integration.conf.TestUtils.setUpEventBridge;
 import static app.bpartners.api.integration.conf.TestUtils.setUpLegalFileRepository;
 import static app.bpartners.api.integration.conf.TestUtils.setUpSwanComponent;
 import static app.bpartners.api.integration.conf.TestUtils.setUpUserSwanRepository;
+import static app.bpartners.api.service.OnboardingService.DEFAULT_BALANCE;
+import static app.bpartners.api.service.OnboardingService.DEFAULT_CASH_FLOW;
+import static app.bpartners.api.service.OnboardingService.DEFAULT_STATUS;
+import static app.bpartners.api.service.OnboardingService.DEFAULT_SUBJECT_TO_VAT;
+import static app.bpartners.api.service.OnboardingService.DEFAULT_USER_IDENTIFICATION;
+import static app.bpartners.api.service.OnboardingService.DEFAULT_USER_STATUS;
+import static app.bpartners.api.service.OnboardingService.DEFAULT_VERIFICATION_STATUS;
+import static app.bpartners.api.service.OnboardingService.DEFAULT_VERIFIED;
 import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -135,33 +143,53 @@ class UserServiceIT {
   @Test
   void onboard_user_ok() {
     MockedStatic<AuthProvider> authProviderMockedStatic = Mockito.mockStatic(AuthProvider.class);
+    User userToOnboard = toOnboard();
     authProviderMockedStatic.when(AuthProvider::getPrincipal)
-        .thenReturn(new Principal(toOnboard(), JOE_DOE_TOKEN));
+        .thenReturn(new Principal(userToOnboard, JOE_DOE_TOKEN));
     when(bridgeApi.findItemsByToken(any())).thenReturn(List.of(new BridgeItem()));
     when(bridgeBankRepositoryMock.refreshBankConnection(any(), any())).thenReturn("success");
     when(bridgeUserRepositoryMock.createUser(any())).thenReturn(bridgeUser());
 
-    User actual = onboardingService.onboardUser(toOnboard(), COMPANY_NAME);
+    User actual = onboardingService.onboardUser(userToOnboard, COMPANY_NAME);
     List<Account> accounts =
         accountService.getAccountsByUserId(actual.getId());
     List<AccountHolder> accountHolders =
         accountHolderService.getAccountHoldersByAccountId(accounts.get(0).getId());
 
-    assertNotNull(actual.getBridgePassword());
-    assertNotNull(actual.getId());
-    assertEquals(toOnboard().getFirstName(), actual.getFirstName());
-    assertEquals(toOnboard().getLastName(), actual.getLastName());
-    assertEquals(toOnboard().getEmail(), actual.getEmail());
-    assertEquals(toOnboard().getMobilePhoneNumber(), actual.getMobilePhoneNumber());
     assertEquals(1, accounts.size());
     assertEquals(1, accountHolders.size());
+    verifyUserValues(userToOnboard, actual);
+    verifyAccountValues(actual, accounts);
+    verifyAccountHolderValues(actual, accountHolders);
+  }
+
+  private static void verifyUserValues(User userToOnboard, User actual) {
+    assertNotNull(actual.getBridgePassword());
+    assertNotNull(actual.getId());
+    assertEquals(userToOnboard.getFirstName(), actual.getFirstName());
+    assertEquals(userToOnboard.getLastName(), actual.getLastName());
+    assertEquals(userToOnboard.getEmail(), actual.getEmail());
+    assertEquals(DEFAULT_USER_IDENTIFICATION, actual.getIdentificationStatus());
+    assertEquals(DEFAULT_USER_STATUS, actual.getStatus());
+    assertEquals(DEFAULT_VERIFIED, actual.getIdVerified());
+    assertEquals(userToOnboard.getMobilePhoneNumber(), actual.getMobilePhoneNumber());
+  }
+
+  private static void verifyAccountValues(User actual, List<Account> accounts) {
     Account account = accounts.get(0);
-    AccountHolder accountHolder = accountHolders.get(0);
     assertEquals(actual.getName(), account.getName());
-    assertEquals(COMPANY_NAME, accountHolder.getName());
+    assertEquals(DEFAULT_BALANCE, account.getAvailableBalance());
+    assertEquals(DEFAULT_STATUS, account.getStatus());
+  }
+
+  private static void verifyAccountHolderValues(User actual, List<AccountHolder> accountHolders) {
+    AccountHolder accountHolder = accountHolders.get(0);
     assertEquals(actual.getEmail(), accountHolder.getEmail());
     assertEquals(actual.getMobilePhoneNumber(), accountHolder.getMobilePhoneNumber());
-
+    assertEquals(DEFAULT_CASH_FLOW, accountHolder.getInitialCashflow());
+    assertEquals(COMPANY_NAME, accountHolder.getName());
+    assertEquals(DEFAULT_SUBJECT_TO_VAT, accountHolder.isSubjectToVat());
+    assertEquals(DEFAULT_VERIFICATION_STATUS, accountHolder.getVerificationStatus());
   }
 
   static class ContextInitializer extends AbstractContextInitializer {

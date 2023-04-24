@@ -75,6 +75,9 @@ public class UserMapper {
         .email(toSave.getEmail())
         .phoneNumber(toSave.getMobilePhoneNumber())
         .bridgePassword(toSave.getBridgePassword())
+        .identificationStatus(toSave.getIdentificationStatus())
+        .status(toSave.getStatus())
+        .idVerified(toSave.getIdVerified())
         .build();
   }
 

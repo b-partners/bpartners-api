@@ -4,8 +4,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;
 import java.util.Objects;
 import javax.annotation.processing.Generated;
+import lombok.ToString;
 
 @Generated("EventBridge")
+@ToString
 public class UserUpserted implements Serializable {
   private static final long serialVersionUID = 1L;
 

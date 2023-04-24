@@ -4,8 +4,10 @@ import app.bpartners.api.endpoint.event.EventConsumer.AcknowledgeableTypedEvent;
 import app.bpartners.api.endpoint.event.model.TypedEvent;
 import app.bpartners.api.endpoint.event.model.TypedInvoiceCrupdated;
 import app.bpartners.api.endpoint.event.model.TypedInvoiceRelaunchSaved;
+import app.bpartners.api.endpoint.event.model.TypedUserUpserted;
 import app.bpartners.api.endpoint.event.model.gen.InvoiceCrupdated;
 import app.bpartners.api.endpoint.event.model.gen.InvoiceRelaunchSaved;
+import app.bpartners.api.endpoint.event.model.gen.UserUpserted;
 import app.bpartners.api.model.exception.BadRequestException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -102,6 +104,10 @@ public class EventPoller {
       InvoiceCrupdated invoiceCrupdated =
           om.convertValue(body.get(DETAIL_PROPERTY), InvoiceCrupdated.class);
       typedEvent = new TypedInvoiceCrupdated(invoiceCrupdated);
+    } else if (UserUpserted.class.getTypeName().equals(typeName)) {
+      UserUpserted userUpserted =
+          om.convertValue(body.get(DETAIL_PROPERTY), UserUpserted.class);
+      typedEvent = new TypedUserUpserted(userUpserted);
     } else {
       throw new BadRequestException("Unexpected message type for message=" + message);
     }

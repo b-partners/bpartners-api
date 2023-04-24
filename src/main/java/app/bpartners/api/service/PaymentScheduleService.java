@@ -7,6 +7,7 @@ import app.bpartners.api.repository.jpa.model.HPaymentRequest;
 import java.util.List;
 import javax.annotation.PostConstruct;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import static app.bpartners.api.endpoint.rest.model.PaymentStatus.PAID;
@@ -14,6 +15,7 @@ import static app.bpartners.api.endpoint.rest.model.PaymentStatus.UNPAID;
 
 @Service
 @AllArgsConstructor
+@Slf4j
 public class PaymentScheduleService {
   public static final String PAYMENT_CREATED = "payment_created";
   private final FintecturePaymentInfoRepository infoRepository;
@@ -33,6 +35,25 @@ public class PaymentScheduleService {
         }
       }
     }
-    jpaRepository.saveAll(unpaidPayments);
+    List<HPaymentRequest> paidPayments = jpaRepository.saveAll(unpaidPayments);
+    log.info("Payment requests " + paymentMessage(paidPayments) + " updated successfully");
+  }
+
+  String paymentMessage(List<HPaymentRequest> paymentRequests) {
+    StringBuilder builder = new StringBuilder();
+    for (HPaymentRequest payment : paymentRequests) {
+      builder.append("(id=")
+          .append(payment.getId())
+          .append(", sessionId=")
+          .append(payment.getSessionId())
+          .append(", status=")
+          .append(payment.getStatus())
+          .append(")")
+          .append(", ");
+    }
+    if (!builder.toString().isEmpty()) {
+      return builder.toString();
+    }
+    return null;
   }
 }

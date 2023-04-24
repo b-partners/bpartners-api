@@ -7,6 +7,7 @@ import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
 import app.bpartners.api.endpoint.rest.model.PaymentInitiation;
 import app.bpartners.api.endpoint.rest.model.PaymentRedirection;
+import app.bpartners.api.endpoint.rest.model.PaymentStatus;
 import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
 import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
@@ -141,6 +142,7 @@ class PaymentIT {
         .reference("Payment reference")
         .paymentUrl("https://connect-v2-sbx.fintecture.com")
         .accountId(JOE_DOE_ACCOUNT_ID)
+        .status(PaymentStatus.UNPAID)
         .build();
   }
 

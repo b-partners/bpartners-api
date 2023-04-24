@@ -5,6 +5,7 @@ import app.bpartners.api.endpoint.event.model.TypedInvoiceRelaunchSaved;
 import app.bpartners.api.endpoint.event.model.gen.InvoiceRelaunchSaved;
 import app.bpartners.api.service.InvoiceCrupdatedService;
 import app.bpartners.api.service.InvoiceRelaunchSavedService;
+import app.bpartners.api.service.UserUpsertedService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -16,13 +17,16 @@ class EventServiceInvokerTest {
   EventServiceInvoker eventServiceInvoker;
   InvoiceRelaunchSavedService invoiceRelaunchSavedService;
   InvoiceCrupdatedService invoiceCrupdatedService;
+  UserUpsertedService userUpsertedService;
 
   @BeforeEach
   void setUp() {
     invoiceRelaunchSavedService = mock(InvoiceRelaunchSavedService.class);
     invoiceCrupdatedService = mock(InvoiceCrupdatedService.class);
-    eventServiceInvoker =
-        new EventServiceInvoker(invoiceRelaunchSavedService, invoiceCrupdatedService);
+    userUpsertedService = mock(UserUpsertedService.class);
+
+    eventServiceInvoker = new EventServiceInvoker(
+        invoiceRelaunchSavedService, invoiceCrupdatedService, userUpsertedService);
   }
 
   @Test

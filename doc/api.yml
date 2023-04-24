@@ -27,6 +27,8 @@ paths:
     $ref: './onboarding-api.yml#/operations/initiateOnboarding'
   /preUsers:
     $ref: './onboarding-api.yml#/operations/createPreUsers'
+  /onboarding:
+    $ref: './onboarding-api.yml#/operations/onboardUser'
 
   #############################################
   ############ User Accounts API ##############

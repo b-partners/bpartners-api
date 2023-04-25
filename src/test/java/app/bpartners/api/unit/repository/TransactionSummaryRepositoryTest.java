@@ -6,7 +6,9 @@ import app.bpartners.api.model.mapper.TransactionsSummaryMapper;
 import app.bpartners.api.repository.implementation.TransactionsSummaryRepositoryImpl;
 import app.bpartners.api.repository.jpa.TransactionsSummaryJpaRepository;
 import app.bpartners.api.repository.jpa.model.HMonthlyTransactionsSummary;
+import java.time.Instant;
 import java.time.YearMonth;
+import java.time.temporal.ChronoUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -52,19 +54,20 @@ class TransactionSummaryRepositoryTest {
 
   @Test
   void crupdate_yearmonth_summary_ok() {
+    Instant now = Instant.now().truncatedTo(ChronoUnit.MILLIS);
     MonthlyTransactionsSummary actual = summaryRepository.updateYearMonthSummary(
         JOE_DOE_ACCOUNT_ID,
         YearMonth.now().getYear(),
-        updated()
+        updated(null)
     );
     MonthlyTransactionsSummary actual2 = summaryRepository.updateYearMonthSummary(
         JOE_DOE_ACCOUNT_ID,
         2021,
-        updated()
+        updated(null)
     );
 
-    assertEquals(updated(), actual);
-    assertEquals(updated(), actual2);
+    assertEquals(updated(actual.getUpdatedAt()), actual);
+    assertEquals(updated(actual2.getUpdatedAt()), actual2);
   }
 
   @Test
@@ -77,7 +80,7 @@ class TransactionSummaryRepositoryTest {
     MonthlyTransactionsSummary nullSummary =
         summaryRepository.getByAccountIdAndYearMonth(JOE_DOE_ACCOUNT_ID, 2021, 2);
 
-    assertEquals(domain(), actual);
+    assertEquals(domain().toBuilder().updatedAt(actual.getUpdatedAt()).build(), actual);
     assertNull(nullSummary);
   }
 
@@ -90,6 +93,7 @@ class TransactionSummaryRepositoryTest {
         .outcome("0/1")
         .cashFlow("0/1")
         .idAccount("")
+        .updatedAt(Instant.now().truncatedTo(ChronoUnit.MILLIS))
         .build();
   }
 
@@ -103,14 +107,14 @@ class TransactionSummaryRepositoryTest {
         .build();
   }
 
-  private MonthlyTransactionsSummary updated() {
-    return MonthlyTransactionsSummary
-        .builder()
+  private MonthlyTransactionsSummary updated(Instant updatedAt) {
+    return MonthlyTransactionsSummary.builder()
         .id("random_id")
         .outcome(new Fraction())
         .income(new Fraction())
         .cashFlow(new Fraction())
         .month(YearMonth.now().getMonthValue())
+        .updatedAt(updatedAt)
         .build();
   }
 }

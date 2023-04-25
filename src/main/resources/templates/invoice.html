@@ -217,7 +217,7 @@
                 <span th:text="${accountHolder.address} +', '+${accountHolder.postalCode}+' '+ ${accountHolder.city}+', '+ ${accountHolder.country}"></span>
                 <br/>
                 <span th:if="${accountHolder.socialCapital > 0}">Capital social : <span
-                        th:text="${#numbers.formatInteger(accountHolder.socialCapital,1,'WHITESPACE')}"></span> €
+                        th:text="${#numbers.formatInteger(accountHolder.socialCapital/100,1,'WHITESPACE')}"></span> €
                     <br/>
                 </span>
                 SIREN : <span th:text="${accountHolder.siren}"></span>

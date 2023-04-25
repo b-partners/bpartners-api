@@ -10,6 +10,8 @@ import app.bpartners.api.endpoint.rest.model.VerificationStatus;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.Fraction;
+import app.bpartners.api.model.OnboardUser;
+import app.bpartners.api.model.OnboardedUser;
 import app.bpartners.api.model.Onboarding;
 import app.bpartners.api.model.User;
 import app.bpartners.api.repository.AccountHolderRepository;
@@ -17,6 +19,7 @@ import app.bpartners.api.repository.AccountRepository;
 import app.bpartners.api.repository.OnboardingRepository;
 import app.bpartners.api.repository.UserRepository;
 import java.util.List;
+import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -52,7 +55,7 @@ public class OnboardingService {
   }
 
   @Transactional(isolation = SERIALIZABLE)
-  public User onboardUser(User toSave, String companyName) {
+  public OnboardedUser onboardUser(User toSave, String companyName) {
     String id = String.valueOf(randomUUID());
     String bridgePassword = encryptSequence(id);
     User savedUser = userRepository.save(userDefaultValues(toSave, id, bridgePassword));
@@ -60,10 +63,16 @@ public class OnboardingService {
     Account accountToSave = fromNewUser(savedUser);
     Account savedAccount = accountRepository.save(accountToSave, savedUser.getId());
     AccountHolder accountHolderToSave = fromNewAccountAndUser(companyName, savedAccount, savedUser);
-    accountHolderRepository.save(accountHolderToSave);
-    return savedUser;
+    AccountHolder savedAccountHolder = accountHolderRepository.save(accountHolderToSave);
+    return new OnboardedUser(savedUser, savedAccount, savedAccountHolder);
   }
 
+  @Transactional(isolation = SERIALIZABLE)
+  public List<OnboardedUser> onboardUsers(List<OnboardUser> toSave) {
+    return toSave.stream()
+        .map(onboardUser -> onboardUser(onboardUser.getUser(), onboardUser.getCompanyName()))
+        .collect(Collectors.toList());
+  }
 
   private TypedUserUpserted toTypedUser(User user) {
     return new TypedUserUpserted(

@@ -2,11 +2,16 @@ package app.bpartners.api.endpoint.rest.validator;
 
 import app.bpartners.api.endpoint.rest.model.OnboardUser;
 import app.bpartners.api.model.exception.BadRequestException;
+import java.util.List;
 import java.util.function.Consumer;
 import org.springframework.stereotype.Component;
 
 @Component
 public class OnboardingValidator implements Consumer<OnboardUser> {
+  public void accept(List<OnboardUser> onboardUsers) {
+    onboardUsers.forEach(this::accept);
+  }
+
   @Override
   public void accept(OnboardUser onboardUser) {
     StringBuilder exceptionMessageBuilder = new StringBuilder();

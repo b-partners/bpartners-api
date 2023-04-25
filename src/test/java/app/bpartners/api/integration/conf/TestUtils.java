@@ -244,6 +244,7 @@ public class TestUtils {
         .name("Numer Bridge Account")
         .iban("FR7699999001001190346460988")
         .status(0)
+        .balance(0.0)
         .build();
   }
 
@@ -254,6 +255,7 @@ public class TestUtils {
         .name("Other")
         .iban("FR12349001001190346460988")
         .status(0)
+        .balance(0.0)
         .build();
   }
 

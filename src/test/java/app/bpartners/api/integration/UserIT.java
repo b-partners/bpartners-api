@@ -8,6 +8,7 @@ import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
 import app.bpartners.api.endpoint.rest.model.IdentificationStatus;
 import app.bpartners.api.endpoint.rest.model.OnboardUser;
+import app.bpartners.api.endpoint.rest.model.OnboardedUser;
 import app.bpartners.api.endpoint.rest.model.User;
 import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
@@ -28,6 +29,9 @@ import app.bpartners.api.repository.swan.OnboardingSwanRepository;
 import app.bpartners.api.repository.swan.UserSwanRepository;
 import app.bpartners.api.repository.swan.model.SwanUser;
 import app.bpartners.api.service.PaymentScheduleService;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.type.CollectionType;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -35,6 +39,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,7 +49,6 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
 
 import static app.bpartners.api.endpoint.rest.model.IdentificationStatus.INSUFFICIENT_DOCUMENT_QUALITY;
@@ -85,6 +89,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @Testcontainers
 @ContextConfiguration(initializers = UserIT.ContextInitializer.class)
 @AutoConfigureMockMvc
+@Slf4j
 class UserIT {
   public static final String UNKNOWN_IDENTIFICATION_STATUS = "Unknown";
   public static final String JOE_DOE_COGNITO_TOKEN = "joe_doe_cognito_token";
@@ -124,6 +129,7 @@ class UserIT {
   private BridgeUserRepository bridgeUserRepositoryMock;
   @Autowired
   private UserJpaRepository userJpaRepository;
+  private final ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
 
   @BeforeEach
   public void setUp() {
@@ -385,24 +391,44 @@ class UserIT {
   }
 
   @Test
-  void onboard_user_ok() throws IOException, InterruptedException {
+  void onboard_users_ok() throws IOException, InterruptedException {
     when(bridgeUserRepositoryMock.createUser(any())).thenReturn(bridgeUser());
     reset(swanComponentMock);
 
     HttpClient unauthenticatedClient = HttpClient.newBuilder().build();
     String basePath = "http://localhost:" + UserIT.ContextInitializer.SERVER_PORT;
 
+    OnboardUser toOnboard = onboardUser();
     HttpResponse<String> response = unauthenticatedClient.send(
         HttpRequest.newBuilder()
             .uri(URI.create(basePath + "/onboarding"))
             .headers("Content-Type", "application/json")
             .headers("Accept", "*/*")
             .POST(HttpRequest.BodyPublishers.ofString(
-                new ObjectMapper().writeValueAsString(onboardUser())))
+                new ObjectMapper().writeValueAsString(List.of(toOnboard))))
             .build(), HttpResponse.BodyHandlers.ofString());
+    var actual = convertBody(response.body());
+    OnboardedUser onboardedUser = actual.get(0);
 
-    assertEquals(HttpStatus.OK.value(), response.statusCode());
-    assertEquals("User is created", response.body());
+    assertEquals(List.of(new OnboardedUser()
+        .user(onboardedUser.getUser()
+            .firstName(toOnboard.getFirstName())
+            .lastName(toOnboard.getLastName())
+            .phone(toOnboard.getPhoneNumber()))
+        .account(onboardedUser.getAccount()
+            .name(toOnboard.getFirstName() + " " + toOnboard.getLastName()))
+        .accountHolder(onboardedUser.getAccountHolder()
+            .name(toOnboard.getCompanyName())
+            .companyInfo(onboardedUser.getAccountHolder().getCompanyInfo()
+                .email(toOnboard.getEmail())
+                .phone(toOnboard.getPhoneNumber()))
+            .name(toOnboard.getCompanyName()))), actual);
+  }
+
+  private List<OnboardedUser> convertBody(String responseBody) throws JsonProcessingException {
+    CollectionType collectionType = objectMapper.getTypeFactory()
+        .constructCollectionType(List.class, OnboardedUser.class);
+    return objectMapper.readValue(responseBody, collectionType);
   }
 
   static class ContextInitializer extends AbstractContextInitializer {

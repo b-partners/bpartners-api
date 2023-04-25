@@ -60,22 +60,25 @@ operations:
       tags:
         - Onboarding
       security: [ ]
-      summary: Onboard user
-      operationId: onboardUser
+      summary: Onboard new users
+      operationId: onboardUsers
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/OnboardUser'
+              type: array
+              items:
+                $ref: '#/components/schemas/OnboardUser'
       responses:
         200:
-          description: User is onboarded!
+          description: The created users with associated accounts and account holders
           content:
-            text/plain:
+            application/json:
               schema:
-                type: string
-                example: User is created!
+                type: array
+                items:
+                  $ref: '#/components/schemas/OnboardedUser'
         400:
           $ref: './api.yml#/components/responses/400'
         403:
@@ -133,3 +136,12 @@ components:
         phoneNumber:
           type: string
           example: "+33 12 34 56 78"
+    OnboardedUser:
+      type: object
+      properties:
+        user:
+          $ref: './userAccounts-api.yml#/components/schemas/User'
+        account:
+          $ref: './userAccounts-api.yml#/components/schemas/Account'
+        accountHolder:
+          $ref: './userAccounts-api.yml#/components/schemas/AccountHolder'

@@ -38,8 +38,8 @@ public class ProductController {
       @RequestParam(required = false, name = "unitPriceOrder") OrderDirection unitPriceOrder,
       @RequestParam(required = false, name = "createdAtOrder") OrderDirection createdDateOrder,
       @RequestParam(required = false, name = "descriptionFilter") String description,
-      @RequestParam(required = false, name = "priceFilter") Integer unitPrice) {
-    ProductStatus status = ProductStatus.ENABLED; // TODO Add to docs
+      @RequestParam(required = false, name = "priceFilter") Integer unitPrice,
+      @RequestParam(required = false, name = "status") ProductStatus status) {
     int pageValue = page == null ? 0
         : page.getValue() - 1;
     int pageSizeValue = pageSize == null ? 50

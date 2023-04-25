@@ -485,6 +485,17 @@ public class TestUtils {
         .totalPriceWithVat(1100);
   }
 
+  public static Product disabledProduct() {
+    return new Product()
+        .id("product8_id")
+        .description("Cartable")
+        .unitPrice(1200)
+        .vatPercent(1000)
+        .unitPriceWithVat(1320)
+        .createdAt(Instant.parse("2022-01-01T04:00:00.00Z"))
+        .status(ProductStatus.DISABLED);
+  }
+
   public static CreateProduct createProduct2() {
     return new CreateProduct()
         .description("Tableau baobab")

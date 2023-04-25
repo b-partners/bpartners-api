@@ -29,9 +29,9 @@ public class ProductService {
       OrderDirection descriptionOrder, OrderDirection unitPriceOrder, OrderDirection createdAtOrder,
       String description, Integer unitPrice) {
     Fraction productUnitPrice = unitPrice == null ? null : parseFraction(unitPrice);
-    return repository.findAllByIdAccountAndStatusAndOrByDescriptionAndOrUnitPrice(accountId, status,
-        page, pageSize, descriptionOrder, unitPriceOrder, createdAtOrder, description,
-        productUnitPrice);
+    return repository.findAllByIdAccountAndStatusAndOrByDescriptionAndOrUnitPrice(accountId,
+        status == null ? ProductStatus.ENABLED : status, page, pageSize, descriptionOrder,
+        unitPriceOrder, createdAtOrder, description, productUnitPrice);
   }
 
   public List<Product> crupdate(String accountId, List<Product> toCreate) {

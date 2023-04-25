@@ -9,5 +9,7 @@ public interface FintecturePaymentInfoRepository {
 
   List<Session> getAllPayments();
 
+  List<Session> getAllPaymentsByStatus(String status);
+
   Session cancelPayment(PaymentMeta requestBody, String sessionId);
 }

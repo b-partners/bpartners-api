@@ -13,4 +13,6 @@ values ('product1_id', 'Tableau malgache', '1000/1', '2000/1',
        ('product6_id', 'Autres produits', '1000/1', '1000/1',
         'beed1765-5c16-472a-b3f4-5c376ce5db58', '2022-01-01T04:00:00.00Z', 'ENABLED'),
        ('product7_id', 'Shampooing', '100/1', '100/1',
-        'jane_account_id', '2022-01-01T04:00:00.00Z', 'ENABLED');
+        'jane_account_id', '2022-01-01T04:00:00.00Z', 'ENABLED'),
+       ('product8_id', 'Cartable', '1200/1', '1000/1',
+        'beed1765-5c16-472a-b3f4-5c376ce5db58', '2022-01-01T04:00:00.00Z', 'DISABLED')

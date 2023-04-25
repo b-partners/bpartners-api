@@ -78,7 +78,7 @@ public class AccountMapper {
         .bridgeAccountId(bridgeAccount.getId())
         .name(bridgeAccount.getName())
         .iban(bridgeAccount.getIban())
-        .availableBalance(parseFraction(bridgeAccount.getBalance()))
+        .availableBalance(parseFraction(bridgeAccount.getBalance() * 100))
         .bank(bank)
         .build();
   }

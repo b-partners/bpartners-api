@@ -12,15 +12,15 @@ import java.util.HashMap;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
-import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import static app.bpartners.api.integration.conf.TestUtils.httpResponseMock;
 import static app.bpartners.api.service.utils.URLUtils.URLEncodeMap;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
 @Slf4j
@@ -102,9 +102,11 @@ class BuildingPermitApiTest {
   private static final String ID_SOGEFI = "id_sogefi";
   private static final String COMMON_DENOM_CHAR = "e";
   private static final String LIMIT = "5";
+  private static final String SOGEFI_EXCEPTION_MESSAGE_KEYWORD = "<!doctype html>";
   BuildingPermitConf conf = new BuildingPermitConf(BASE_URL, BEARER, COMMON_DENOM_CHAR, LIMIT);
   HttpClient mockHttpClient = mock(HttpClient.class);
-  BuildingPermitApi api = new BuildingPermitApi(conf).httpClient(mockHttpClient);
+  BuildingPermitApi api = new BuildingPermitApi(conf)
+      .httpClient(mockHttpClient);
 
   BuildingPermitList expectedPermits() throws IOException {
     return om.readValue(BUILDING_PERMIT_LIST_JSON, BuildingPermitList.class);
@@ -126,9 +128,10 @@ class BuildingPermitApiTest {
 
   @Test
   void read_list_ok() throws IOException, InterruptedException {
+
     when(mockHttpClient.send(any(), any())).thenReturn(httpResponseMock(BUILDING_PERMIT_LIST_JSON));
 
-    BuildingPermitList permits = api.getData(INSEE);
+    BuildingPermitList permits = api.getBuildingPermitList(INSEE);
 
     assertEquals(expectedPermits(), permits);
   }
@@ -138,21 +141,28 @@ class BuildingPermitApiTest {
     when(mockHttpClient.send(any(), any())).thenReturn(
         httpResponseMock(SINGLE_BUILDING_PERMIT_JSON));
 
-    SingleBuildingPermit singleBuildingPermit = api.getOne(ID_SOGEFI);
+    SingleBuildingPermit singleBuildingPermit = api.getSingleBuildingPermit(ID_SOGEFI);
 
     assertEquals(expectedPermit(), singleBuildingPermit);
   }
 
   @Test
-  void read_from_sogefi_ko() throws IOException, InterruptedException {
-    when(mockHttpClient.send(any(), any())).thenThrow(new IOException());
-    assertThrows(ApiException.class, () -> api.getData(INSEE));
-    assertThrows(ApiException.class, () -> api.getOne(ID_SOGEFI));
+  void handle_jsonProcessingException() throws IOException, InterruptedException {
+    when(mockHttpClient.send(any(), any())).thenThrow(
+        new IOException(SOGEFI_EXCEPTION_MESSAGE_KEYWORD));
 
-    reset(mockHttpClient);
+    SingleBuildingPermit actual = api.getSingleBuildingPermit(ID_SOGEFI);
+
+    assertNull(actual);
+  }
+
+  @Test
+  void read_from_sogefi_ko() throws IOException, InterruptedException {
+//    TODO: add test for the retrier
     when(mockHttpClient.send(any(), any())).thenThrow(new InterruptedException());
-    assertThrows(ApiException.class, () -> api.getData(INSEE));
-    assertThrows(ApiException.class, () -> api.getOne(ID_SOGEFI));
+
+    assertThrows(ApiException.class, () -> api.getBuildingPermitList(INSEE));
+    assertThrows(ApiException.class, () -> api.getSingleBuildingPermit(ID_SOGEFI));
   }
 
   Map<String, String> expectedFilter() {

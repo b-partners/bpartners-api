@@ -12,6 +12,7 @@ import app.bpartners.api.integration.conf.TestUtils;
 import app.bpartners.api.manager.ProjectTokenManager;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.AccountHolder;
+import app.bpartners.api.model.OnboardedUser;
 import app.bpartners.api.model.User;
 import app.bpartners.api.repository.LegalFileRepository;
 import app.bpartners.api.repository.bridge.BridgeApi;
@@ -150,17 +151,20 @@ class UserServiceIT {
     when(bridgeBankRepositoryMock.refreshBankConnection(any(), any())).thenReturn("success");
     when(bridgeUserRepositoryMock.createUser(any())).thenReturn(bridgeUser());
 
-    User actual = onboardingService.onboardUser(userToOnboard, COMPANY_NAME);
+    OnboardedUser actual = onboardingService.onboardUser(userToOnboard, COMPANY_NAME);
+    User actualUser = actual.getOnboardedUser();
     List<Account> accounts =
-        accountService.getAccountsByUserId(actual.getId());
+        accountService.getAccountsByUserId(actualUser.getId());
     List<AccountHolder> accountHolders =
         accountHolderService.getAccountHoldersByAccountId(accounts.get(0).getId());
 
     assertEquals(1, accounts.size());
     assertEquals(1, accountHolders.size());
-    verifyUserValues(userToOnboard, actual);
-    verifyAccountValues(actual, accounts);
-    verifyAccountHolderValues(actual, accountHolders);
+    assertEquals(actual.getOnboardedAccount(), accounts.get(0));
+    assertEquals(actual.getOnboardedAccountHolder(), accountHolders.get(0));
+    verifyUserValues(userToOnboard, actualUser);
+    verifyAccountValues(actualUser, accounts);
+    verifyAccountHolderValues(actualUser, accountHolders);
   }
 
   private static void verifyUserValues(User userToOnboard, User actual) {

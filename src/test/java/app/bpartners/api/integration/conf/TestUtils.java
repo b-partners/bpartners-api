@@ -244,6 +244,7 @@ public class TestUtils {
         .name("Numer Bridge Account")
         .iban("FR7699999001001190346460988")
         .status(0)
+        .balance(0.0)
         .build();
   }
 
@@ -254,6 +255,7 @@ public class TestUtils {
         .name("Other")
         .iban("FR12349001001190346460988")
         .status(0)
+        .balance(0.0)
         .build();
   }
 
@@ -481,6 +483,17 @@ public class TestUtils {
         .createdAt(null)
         .status(ProductStatus.ENABLED)
         .totalPriceWithVat(1100);
+  }
+
+  public static Product disabledProduct() {
+    return new Product()
+        .id("product8_id")
+        .description("Cartable")
+        .unitPrice(1200)
+        .vatPercent(1000)
+        .unitPriceWithVat(1320)
+        .createdAt(Instant.parse("2022-01-01T04:00:00.00Z"))
+        .status(ProductStatus.DISABLED);
   }
 
   public static CreateProduct createProduct2() {

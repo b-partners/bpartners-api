@@ -6,6 +6,7 @@ import app.bpartners.api.model.mapper.TransactionsSummaryMapper;
 import app.bpartners.api.repository.TransactionsSummaryRepository;
 import app.bpartners.api.repository.jpa.TransactionsSummaryJpaRepository;
 import app.bpartners.api.repository.jpa.model.HMonthlyTransactionsSummary;
+import java.time.Instant;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -35,6 +36,7 @@ public class TransactionsSummaryRepositoryImpl implements TransactionsSummaryRep
     persisted.setIncome(monthlySummary.getIncome().toString());
     persisted.setCashFlow(monthlySummary.getCashFlow().toString());
     persisted.setOutcome(monthlySummary.getOutcome().toString());
+    persisted.setUpdatedAt(Instant.now());
 
     return mapper.toDomain(jpaRepository.save(persisted));
   }

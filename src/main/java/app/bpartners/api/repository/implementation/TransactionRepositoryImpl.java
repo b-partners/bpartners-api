@@ -39,7 +39,6 @@ public class TransactionRepositoryImpl implements TransactionRepository {
   private final TransactionCategoryRepository categoryRepository;
   private final TransactionJpaRepository jpaRepository;
   private final BridgeTransactionRepository bridgeRepository;
-  private final ProjectTokenManager tokenManager;
 
   @Override
   public List<Transaction> findByAccountId(String accountId) {
@@ -243,6 +242,6 @@ public class TransactionRepositoryImpl implements TransactionRepository {
 
   private String swanBearerToken() {
     return userIsAuthenticated() ? AuthProvider.getPrincipal().getBearer() :
-        tokenManager.getSwanProjecToken();
+        null;
   }
 }

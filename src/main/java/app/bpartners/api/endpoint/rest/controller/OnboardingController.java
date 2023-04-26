@@ -2,7 +2,6 @@ package app.bpartners.api.endpoint.rest.controller;
 
 import app.bpartners.api.endpoint.rest.mapper.OnboardingRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.RedirectionMapper;
-import app.bpartners.api.endpoint.rest.mapper.UserRestMapper;
 import app.bpartners.api.endpoint.rest.model.OnboardUser;
 import app.bpartners.api.endpoint.rest.model.OnboardedUser;
 import app.bpartners.api.endpoint.rest.model.OnboardingInitiation;
@@ -23,7 +22,6 @@ public class OnboardingController {
   private final OnboardingService onboardingService;
   private final RedirectionMapper redirectionMapper;
   private final OnboardingInitiationValidator initiationValidator;
-  private final UserRestMapper userMapper;
   private final OnboardingValidator onboardingValidator;
   private final OnboardingRestMapper onboardingMapper;
 

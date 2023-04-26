@@ -97,6 +97,13 @@ public class UserRepositoryImpl implements UserRepository {
   }
 
   @Override
+  public Optional<User> findByEmail(String email) {
+    return jpaRepository.getByEmail(email) != null
+        ? Optional.of(userMapper.toDomain(jpaRepository.getByEmail(email), null))
+        : Optional.empty();
+  }
+
+  @Override
   public User save(User toSave) {
     BridgeUser bridgeUser = bridgeUserRepository.createUser(userMapper.toBridgeUser(toSave));
     HUser entityToSave = userMapper.toEntity(toSave, bridgeUser);

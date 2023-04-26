@@ -644,6 +644,8 @@ components:
         - CLOSED
         - CLOSING
         - SUSPENDED
+        - VALIDATION_REQUIRED
+        - INVALID_CREDENTIALS
         - UNKNOWN
     UpdateAccountHolder:
       type: object

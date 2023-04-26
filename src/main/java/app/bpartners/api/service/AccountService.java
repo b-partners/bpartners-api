@@ -8,6 +8,7 @@ import app.bpartners.api.model.User;
 import app.bpartners.api.model.UserToken;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.exception.BadRequestException;
+import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.repository.AccountRepository;
 import app.bpartners.api.repository.BankRepository;
 import app.bpartners.api.repository.UserRepository;
@@ -17,7 +18,9 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.servlet.view.RedirectView;
 
+import static app.bpartners.api.model.mapper.AccountMapper.VALIDATION_REQUIRED;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 
 @Service
@@ -46,6 +49,17 @@ public class AccountService {
     return repository.findByUserId(userId);
   }
 
+  public RedirectView validateBankConnection(String accountId) {
+    Account persistedAccount = getAccountById(accountId);
+    if (persistedAccount != null
+        && persistedAccount.getStatus().equals(VALIDATION_REQUIRED)) {
+      return bankRepository.validateProItems();
+    } else {
+      throw new BadRequestException("Account." + accountId + " does not require validation.");
+    }
+  }
+
+  //TODO: use bank repository and do not expose BridgeBankRepository
   public BankConnectionRedirection getBankConnectionInitUrl(
       String userId, RedirectionStatusUrls urls) {
     User user = userRepository.getById(userId);

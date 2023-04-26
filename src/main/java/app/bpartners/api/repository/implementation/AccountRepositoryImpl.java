@@ -24,6 +24,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Repository;
+import org.springframework.web.servlet.view.RedirectView;
 
 @Repository
 @AllArgsConstructor
@@ -123,6 +124,11 @@ public class AccountRepositoryImpl implements AccountRepository {
     HUser userEntity = userJpaRepository.findById(userId).orElseThrow(
         () -> new NotFoundException("User." + userId + " not found"));
     return save(domain, userEntity);
+  }
+
+  @Override
+  public RedirectView validateConnection() {
+    return bankRepository.validateProItems();
   }
 
   private Account save(Account domain, HUser user) {

@@ -5,6 +5,8 @@ import app.bpartners.api.model.BankConnection;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.UserToken;
 import java.time.Instant;
+import java.util.Optional;
+import org.springframework.web.servlet.view.RedirectView;
 
 public interface BankRepository {
   String initiateConnection(User user);
@@ -18,4 +20,6 @@ public interface BankRepository {
   Instant refreshBankConnection(UserToken user);
 
   boolean disconnectBank(User user);
+
+  RedirectView validateProItems();
 }

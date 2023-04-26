@@ -5,6 +5,7 @@ import app.bpartners.api.model.UserToken;
 import app.bpartners.api.repository.UserTokenRepository;
 import app.bpartners.api.repository.bridge.BridgeApi;
 import app.bpartners.api.repository.bridge.model.Bank.BridgeBank;
+import app.bpartners.api.repository.bridge.model.Item.BridgeConnectItem;
 import app.bpartners.api.repository.bridge.model.Item.BridgeCreateItem;
 import app.bpartners.api.repository.bridge.model.Item.BridgeItem;
 import app.bpartners.api.repository.bridge.repository.BridgeBankRepository;
@@ -48,6 +49,11 @@ public class BridgeBankRepositoryImpl implements BridgeBankRepository {
   @Override
   public String refreshBankConnection(Long itemId, String token) {
     return bridgeApi.refreshBankConnection(itemId, token);
+  }
+
+  @Override
+  public BridgeConnectItem validateProItems(String bearer) {
+    return bridgeApi.validateProItems(bearer);
   }
 
   @Override

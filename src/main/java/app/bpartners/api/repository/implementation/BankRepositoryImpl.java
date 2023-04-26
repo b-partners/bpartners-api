@@ -10,6 +10,7 @@ import app.bpartners.api.model.mapper.BankMapper;
 import app.bpartners.api.model.mapper.UserMapper;
 import app.bpartners.api.repository.BankRepository;
 import app.bpartners.api.repository.bridge.model.Bank.BridgeBank;
+import app.bpartners.api.repository.bridge.model.Item.BridgeConnectItem;
 import app.bpartners.api.repository.bridge.model.Item.BridgeItem;
 import app.bpartners.api.repository.bridge.repository.BridgeBankRepository;
 import app.bpartners.api.repository.jpa.BankJpaRepository;
@@ -21,6 +22,7 @@ import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
+import org.springframework.web.servlet.view.RedirectView;
 
 import static app.bpartners.api.model.BankConnection.BankConnectionStatus.NOT_SUPPORTED;
 import static app.bpartners.api.model.BankConnection.BankConnectionStatus.OK;
@@ -126,6 +128,15 @@ public class BankRepositoryImpl implements BankRepository {
           .getBridgeItemLastRefresh();
     }
     return null;
+  }
+
+  @Override
+  public RedirectView validateProItems() {
+    String bearer = AuthProvider.getPrincipal().getBearer();
+    BridgeConnectItem connectItem = bridgeRepository.validateProItems(bearer);
+    RedirectView redirectionPage = new RedirectView();
+    redirectionPage.setUrl(connectItem.getRedirectUrl());
+    return redirectionPage;
   }
 
   @Override

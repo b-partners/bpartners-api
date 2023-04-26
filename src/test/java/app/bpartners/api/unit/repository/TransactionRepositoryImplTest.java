@@ -3,14 +3,17 @@ package app.bpartners.api.unit.repository;
 import app.bpartners.api.endpoint.rest.model.TransactionStatus;
 import app.bpartners.api.model.Transaction;
 import app.bpartners.api.model.TransactionCategory;
+import app.bpartners.api.model.UserToken;
 import app.bpartners.api.model.mapper.InvoiceMapper;
 import app.bpartners.api.model.mapper.TransactionMapper;
 import app.bpartners.api.repository.TransactionCategoryRepository;
+import app.bpartners.api.repository.UserTokenRepository;
 import app.bpartners.api.repository.bridge.repository.BridgeTransactionRepository;
 import app.bpartners.api.repository.implementation.TransactionRepositoryImpl;
 import app.bpartners.api.repository.jpa.TransactionJpaRepository;
 import app.bpartners.api.repository.jpa.model.HTransaction;
 import app.bpartners.api.repository.swan.TransactionSwanRepository;
+import app.bpartners.api.service.UserService;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -36,6 +39,7 @@ class TransactionRepositoryImplTest {
   TransactionJpaRepository transactionJpaRepositoryMock;
   InvoiceMapper invoiceMapperMock;
   BridgeTransactionRepository bridgeTransactionRepositoryMock;
+  UserService userServiceMock;
 
   @BeforeEach
   void setUp() {
@@ -45,9 +49,10 @@ class TransactionRepositoryImplTest {
     categoryRepositoryMock = mock(TransactionCategoryRepository.class);
     transactionJpaRepositoryMock = mock(TransactionJpaRepository.class);
     bridgeTransactionRepositoryMock = mock(BridgeTransactionRepository.class);
+    userServiceMock = mock(UserService.class);
     subject = new TransactionRepositoryImpl(
         swanRepositoryMock, transactionMapperMock, categoryRepositoryMock,
-        transactionJpaRepositoryMock, bridgeTransactionRepositoryMock);
+        transactionJpaRepositoryMock, bridgeTransactionRepositoryMock, userServiceMock);
 
     when(swanRepositoryMock.getByIdAccount(eq(JOE_DOE_ACCOUNT_ID), any(String.class)))
         .thenReturn(List.of(swanTransaction1(), swanTransaction2(), swanTransaction3()));
@@ -86,6 +91,8 @@ class TransactionRepositoryImplTest {
       }
       return null;
     });
+    when(userServiceMock.getLatestTokenByAccount(any())).thenReturn(
+        UserToken.builder().build());
   }
 
   @Test

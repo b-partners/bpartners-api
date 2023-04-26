@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import static javax.persistence.LockModeType.PESSIMISTIC_WRITE;
@@ -20,4 +21,10 @@ public interface UserJpaRepository extends JpaRepository<HUser, String> {
   HUser getByEmail(String email);
 
   Optional<HUser> findUserBySwanUserId(String swanUserId);
+
+  @Query(
+      "select u from HUser u join HAccount a"
+          + " on u.id = a.user.id"
+          + " where a.id = ?1")
+  HUser getByAccountId(String accountId);
 }

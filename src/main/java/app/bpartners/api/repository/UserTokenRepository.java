@@ -7,4 +7,6 @@ public interface UserTokenRepository {
   UserToken updateUserToken(User user);
 
   UserToken getLatestTokenByUser(User user);
+
+  UserToken getLatestTokenByAccount(String accountId);
 }

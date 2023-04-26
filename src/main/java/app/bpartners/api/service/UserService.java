@@ -42,4 +42,9 @@ public class UserService {
   public List<User> findAll() {
     return userRepository.findAll();
   }
+
+  @Transactional(isolation = SERIALIZABLE)
+  public UserToken getLatestTokenByAccount(String accountId) {
+    return userTokenRepository.getLatestTokenByAccount(accountId);
+  }
 }

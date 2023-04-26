@@ -4,7 +4,8 @@ import app.bpartners.api.repository.bridge.model.Transaction.BridgeTransaction;
 import java.util.List;
 
 public interface BridgeTransactionRepository {
-  List<BridgeTransaction> findAuthTransactions();
+
+  List<BridgeTransaction> findByBearer(String bearer);
 
   BridgeTransaction findById(Long id);
 }

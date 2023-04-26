@@ -80,6 +80,7 @@ import static app.bpartners.api.model.mapper.UserMapper.INVALID_IDENTITY_STATUS;
 import static app.bpartners.api.model.mapper.UserMapper.PROCESSING_STATUS;
 import static app.bpartners.api.model.mapper.UserMapper.UNINITIATED_STATUS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
@@ -248,7 +249,7 @@ class UserIT {
     reset(swanComponentMock);
     when(swanComponentMock.getSwanUserIdByToken(any())).thenReturn("jane_doe_user_id");
     when(swanComponentMock.getSwanUserByToken(any())).thenReturn(janeDoe());
-    HUser beforeUpdate = userJpaRepository.findByEmail(email).get();
+    HUser beforeUpdate = userJpaRepository.getByEmail(email);
     beforeUpdate.setAccounts(List.of());
 
     ApiClient joeDoeClient = anApiClient(JANE_DOE_TOKEN);
@@ -423,6 +424,40 @@ class UserIT {
                 .email(toOnboard.getEmail())
                 .phone(toOnboard.getPhoneNumber()))
             .name(toOnboard.getCompanyName()))), actual);
+  }
+
+  //TODO: check why two attempts with same email are all OK
+  @Test
+  void onboard_users_ko() throws IOException, InterruptedException {
+    when(bridgeUserRepositoryMock.createUser(any())).thenReturn(bridgeUser());
+    reset(swanComponentMock);
+
+    HttpClient unauthenticatedClient = HttpClient.newBuilder().build();
+    String basePath = "http://localhost:" + UserIT.ContextInitializer.SERVER_PORT;
+
+    OnboardUser toOnboard = onboardUser();
+    HttpResponse<String> firstAttempt = unauthenticatedClient.send(
+        HttpRequest.newBuilder()
+            .uri(URI.create(basePath + "/onboarding"))
+            .headers("Content-Type", "application/json")
+            .headers("Accept", "*/*")
+            .POST(HttpRequest.BodyPublishers.ofString(
+                new ObjectMapper().writeValueAsString(List.of(toOnboard))))
+            .build(), HttpResponse.BodyHandlers.ofString());
+    assertEquals(HttpStatus.OK.value(), firstAttempt.statusCode());
+
+    HttpResponse<String> secondAttempt = unauthenticatedClient.send(
+        HttpRequest.newBuilder()
+            .uri(URI.create(basePath + "/onboarding"))
+            .headers("Content-Type", "application/json")
+            .headers("Accept", "*/*")
+            .POST(HttpRequest.BodyPublishers.ofString(
+                new ObjectMapper().writeValueAsString(List.of(toOnboard.email("joe@email.com")))))
+            .build(), HttpResponse.BodyHandlers.ofString());
+    assertEquals(HttpStatus.BAD_REQUEST.value(), secondAttempt.statusCode());
+    assertTrue(secondAttempt.body().contains(
+        "User with email " + toOnboard.getEmail() + " already exists."
+            + " Choose another email address"));
   }
 
   private List<OnboardedUser> convertBody(String responseBody) throws JsonProcessingException {

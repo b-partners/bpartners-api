@@ -16,8 +16,8 @@ public class BankService {
   private final UserService userService;
   private final AccountService accountService;
 
-  //TODO: check if 2 hours of interval is enough or too much
-  @Scheduled(fixedRate = 2 * 60 * 60 * 1_000)
+  //TODO: check if 8 hours of interval is enough or too much
+  @Scheduled(fixedRate = 8 * 60 * 60 * 1_000)
   public void refreshUsersBankConnection() {
     List<User> users = userService.findAll();
     users.forEach(user -> {

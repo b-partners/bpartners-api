@@ -1,7 +1,6 @@
 package app.bpartners.api.unit.repository;
 
 import app.bpartners.api.endpoint.rest.model.TransactionStatus;
-import app.bpartners.api.manager.ProjectTokenManager;
 import app.bpartners.api.model.Transaction;
 import app.bpartners.api.model.TransactionCategory;
 import app.bpartners.api.model.mapper.InvoiceMapper;
@@ -37,7 +36,6 @@ class TransactionRepositoryImplTest {
   TransactionJpaRepository transactionJpaRepositoryMock;
   InvoiceMapper invoiceMapperMock;
   BridgeTransactionRepository bridgeTransactionRepositoryMock;
-  ProjectTokenManager tokenManagerMock;
 
   @BeforeEach
   void setUp() {
@@ -47,11 +45,9 @@ class TransactionRepositoryImplTest {
     categoryRepositoryMock = mock(TransactionCategoryRepository.class);
     transactionJpaRepositoryMock = mock(TransactionJpaRepository.class);
     bridgeTransactionRepositoryMock = mock(BridgeTransactionRepository.class);
-    tokenManagerMock = mock(ProjectTokenManager.class);
     subject = new TransactionRepositoryImpl(
         swanRepositoryMock, transactionMapperMock, categoryRepositoryMock,
-        transactionJpaRepositoryMock, bridgeTransactionRepositoryMock,
-        tokenManagerMock);
+        transactionJpaRepositoryMock, bridgeTransactionRepositoryMock);
 
     when(swanRepositoryMock.getByIdAccount(eq(JOE_DOE_ACCOUNT_ID), any(String.class)))
         .thenReturn(List.of(swanTransaction1(), swanTransaction2(), swanTransaction3()));

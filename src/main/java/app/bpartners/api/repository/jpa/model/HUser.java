@@ -4,6 +4,7 @@ import app.bpartners.api.endpoint.rest.model.EnableStatus;
 import app.bpartners.api.endpoint.rest.model.IdentificationStatus;
 import app.bpartners.api.model.BankConnection;
 import app.bpartners.api.repository.jpa.types.PostgresEnumType;
+import com.nimbusds.jose.shaded.json.annotate.JsonIgnore;
 import java.io.Serializable;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;

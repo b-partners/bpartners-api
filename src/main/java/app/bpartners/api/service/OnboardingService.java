@@ -26,6 +26,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import static app.bpartners.api.endpoint.rest.model.AccountStatus.OPENED;
+import static app.bpartners.api.endpoint.rest.model.IdentificationStatus.VALID_IDENTITY;
 import static java.util.UUID.randomUUID;
 import static org.springframework.transaction.annotation.Isolation.SERIALIZABLE;
 
@@ -39,8 +40,7 @@ public class OnboardingService {
   public static final Fraction DEFAULT_CASH_FLOW = new Fraction();
   public static final boolean DEFAULT_VERIFIED = true;
   public static final EnableStatus DEFAULT_USER_STATUS = EnableStatus.ENABLED;
-  public static final IdentificationStatus DEFAULT_USER_IDENTIFICATION =
-      IdentificationStatus.VALID_IDENTITY;
+  public static final IdentificationStatus DEFAULT_USER_IDENTIFICATION = VALID_IDENTITY;
   private final OnboardingRepository repository;
   private final UserRepository userRepository;
   private final AccountRepository accountRepository;

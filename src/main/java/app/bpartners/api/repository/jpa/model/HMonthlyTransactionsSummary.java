@@ -23,7 +23,7 @@ import static javax.persistence.GenerationType.IDENTITY;
 @Setter
 @ToString
 @AllArgsConstructor
-@Builder
+@Builder(toBuilder = true)
 @NoArgsConstructor
 @EqualsAndHashCode
 public class HMonthlyTransactionsSummary {

@@ -2,7 +2,6 @@ package app.bpartners.api.repository.implementation;
 
 import app.bpartners.api.endpoint.rest.model.TransactionStatus;
 import app.bpartners.api.endpoint.rest.security.AuthProvider;
-import app.bpartners.api.manager.ProjectTokenManager;
 import app.bpartners.api.model.Transaction;
 import app.bpartners.api.model.TransactionCategory;
 import app.bpartners.api.model.exception.NotFoundException;
@@ -16,6 +15,7 @@ import app.bpartners.api.repository.jpa.model.HTransaction;
 import app.bpartners.api.repository.swan.TransactionSwanRepository;
 import app.bpartners.api.repository.swan.model.SwanTransaction;
 import app.bpartners.api.repository.swan.model.SwanTransaction.Node;
+import app.bpartners.api.service.UserService;
 import java.time.Instant;
 import java.util.Comparator;
 import java.util.List;
@@ -39,13 +39,17 @@ public class TransactionRepositoryImpl implements TransactionRepository {
   private final TransactionCategoryRepository categoryRepository;
   private final TransactionJpaRepository jpaRepository;
   private final BridgeTransactionRepository bridgeRepository;
+  private final UserService userService;
 
   @Override
   public List<Transaction> findByAccountId(String accountId) {
     List<SwanTransaction> swanTransactions =
         swanRepository.getByIdAccount(accountId, swanBearerToken());
-    if (swanTransactions.isEmpty() && userIsAuthenticated()) {
-      List<BridgeTransaction> bridgeTransactions = bridgeRepository.findAuthTransactions();
+    if (swanTransactions.isEmpty()) {
+      List<BridgeTransaction> bridgeTransactions =
+          userIsAuthenticated()
+              ? bridgeRepository.findByBearer(AuthProvider.getPrincipal().getBearer())
+              : bridgeRepository.findByBearer(bridgeAccessToken(accountId));
       if (bridgeTransactions.isEmpty()) {
         return List.of(); //No transactions neither bridge nor swan return transactions
       }
@@ -58,6 +62,7 @@ public class TransactionRepositoryImpl implements TransactionRepository {
               })
           .sorted(Comparator.comparing(Transaction::getPaymentDatetime).reversed())
           .collect(Collectors.toList());
+
     }
     return swanTransactions.stream()
         .map(transaction -> {
@@ -68,7 +73,6 @@ public class TransactionRepositoryImpl implements TransactionRepository {
         .sorted(Comparator.comparing(Transaction::getPaymentDatetime).reversed())
         .collect(Collectors.toUnmodifiableList());
   }
-
 
   @Override
   public Transaction findById(String transactionId) {
@@ -243,5 +247,9 @@ public class TransactionRepositoryImpl implements TransactionRepository {
   private String swanBearerToken() {
     return userIsAuthenticated() ? AuthProvider.getPrincipal().getBearer() :
         null;
+  }
+
+  private String bridgeAccessToken(String accountId) {
+    return userService.getLatestTokenByAccount(accountId).getAccessToken();
   }
 }

@@ -14,8 +14,8 @@ public class BridgeTransactionRepositoryImpl implements BridgeTransactionReposit
   private final BridgeApi bridgeApi;
 
   @Override
-  public List<BridgeTransaction> findAuthTransactions() {
-    return bridgeApi.findTransactionsUpdatedByToken(AuthProvider.getPrincipal().getBearer());
+  public List<BridgeTransaction> findByBearer(String bearer) {
+    return bridgeApi.findTransactionsUpdatedByToken(bearer);
   }
 
   @Override

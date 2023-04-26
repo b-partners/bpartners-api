@@ -2,6 +2,7 @@ package app.bpartners.api.unit.repository;
 
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.UserToken;
+import app.bpartners.api.model.mapper.UserMapper;
 import app.bpartners.api.model.mapper.UserTokenMapper;
 import app.bpartners.api.repository.bridge.BridgeApi;
 import app.bpartners.api.repository.bridge.model.User.BridgeUser;
@@ -27,14 +28,16 @@ class UserTokenRepositoryImplTest {
   private UserJpaRepository userJpaRepository;
   private UserTokenMapper userTokenMapper;
   private BridgeApi bridgeApi;
+  UserMapper userMapper;
 
   @BeforeEach
   void setUp() {
     userJpaRepository = mock(UserJpaRepository.class);
     userTokenMapper = mock(UserTokenMapper.class);
     bridgeApi = mock(BridgeApi.class);
+    userMapper = mock(UserMapper.class);
     userTokenRepository = new UserTokenRepositoryImpl(
-        userJpaRepository, userTokenMapper, bridgeApi);
+        userJpaRepository, userTokenMapper, bridgeApi, userMapper);
 
     when(userTokenMapper.toBridgeAuthUser(any())).thenReturn(bridgeUser());
     when(bridgeApi.authenticateUser(any())).thenReturn(

@@ -3,6 +3,7 @@ package app.bpartners.api.repository.implementation;
 import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.model.Bank;
 import app.bpartners.api.model.BankConnection;
+import app.bpartners.api.model.User;
 import app.bpartners.api.model.UserToken;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.mapper.BankMapper;
@@ -96,25 +97,29 @@ public class BankRepositoryImpl implements BankRepository {
   }
 
   @Override
-  public Instant refreshBankConnection(UserToken user) {
-    if (user == null || user.getUser().getBridgeItemId() == null) {
+  public Instant refreshBankConnection(UserToken userToken) {
+    if (userToken == null || userToken.getUser().getBridgeItemId() == null) {
       return null;
     }
-    bridgeRepository.refreshBankConnection(
-        user.getUser().getBridgeItemId(), user.getAccessToken());
-    Instant refreshedAt =
-        bridgeRepository.getItemStatusRefreshedAt(
-            user.getUser().getBridgeItemId(), user.getAccessToken());
-    HUser userEntity = userJpaRepository.getById(user.getUser().getId());
-    if (userEntity.getBridgeItemLastRefresh().equals(refreshedAt)) {
-      //Do not update item last refresh instant
-      return null;
+    User user = userToken.getUser();
+    if (bridgeRepository.refreshBankConnection(
+        user.getBridgeItemId(), userToken.getAccessToken()) != null) {
+      Instant refreshedAt =
+          bridgeRepository.getItemStatusRefreshedAt(
+              user.getBridgeItemId(), userToken.getAccessToken());
+      HUser userEntity = userJpaRepository.getById(user.getId());
+      if (userEntity.getBridgeItemLastRefresh() != null
+          && userEntity.getBridgeItemLastRefresh().equals(refreshedAt)) {
+        //Do not update item last refresh instant
+        return null;
+      }
+      return userJpaRepository.save(
+              userEntity.toBuilder()
+                  .bridgeItemLastRefresh(refreshedAt)
+                  .build())
+          .getBridgeItemLastRefresh();
     }
-    return userJpaRepository.save(
-            userEntity.toBuilder()
-                .bridgeItemLastRefresh(refreshedAt)
-                .build())
-        .getBridgeItemLastRefresh();
+    return null;
   }
 
   public static BankConnection.BankConnectionStatus getStatus(Integer statusValue) {

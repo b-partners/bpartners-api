@@ -37,6 +37,7 @@ import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVE
 @Slf4j
 @Data
 public class BridgeApi {
+  public static final String MAX_DAILY_REFRESHES_REACHED = "max_daily_refreshes_reached";
   private final HttpClient httpClient = HttpClient.newBuilder().build();
 
   private final ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
@@ -101,6 +102,9 @@ public class BridgeApi {
           .build();
       HttpResponse<String> httpResponse =
           httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+      if (itemHasReachMaxDailyRefresh(httpResponse)) {
+        return null;
+      }
       if (httpResponse.statusCode() != 200 && httpResponse.statusCode() != 201) {
         log.warn("BridgeApi errors : {}", httpResponse.body());
         return null;
@@ -112,6 +116,10 @@ public class BridgeApi {
       Thread.currentThread().interrupt();
       throw new ApiException(SERVER_EXCEPTION, e);
     }
+  }
+
+  private boolean itemHasReachMaxDailyRefresh(HttpResponse<String> httpResponse) {
+    return httpResponse.body().contains(MAX_DAILY_REFRESHES_REACHED);
   }
 
   public List<BridgeUser> findAllUsers() {

@@ -182,7 +182,7 @@
                 <span th:text="${accountHolder.address} +', '+${accountHolder.postalCode}+' '+ ${accountHolder.city}+', '+ ${accountHolder.country}"></span>
                 <br/>
                 <span th:if="${accountHolder.socialCapital > 0}">Capital social : <span
-                        th:text="${#numbers.formatInteger(accountHolder.socialCapital,1,'WHITESPACE')}"></span> €
+                        th:text="${#numbers.formatInteger(accountHolder.socialCapital/100,1,'WHITESPACE')}"></span> €
                     <br/>
                 </span>
                 SIREN : <span th:text="${accountHolder.siren}"></span>
@@ -347,7 +347,8 @@
         </table>
     </div>
     <div style="width: 100%;" class="no-break-inside">
-        <p><span class="muted text-justify" th:if="${invoice.delayInPaymentAllowed != null && invoice.delayPenaltyPercent.getApproximatedValue() != 0}">
+        <p><span class="muted text-justify"
+                 th:if="${invoice.delayInPaymentAllowed != null && invoice.delayPenaltyPercent.getApproximatedValue() != 0}">
             Après acceptation de ce devis, la facture correspondante devra être réglée sous <span
                 th:text="${invoice.getDelayInPaymentAllowed()}"></span>
         jours après sa date d'émission.

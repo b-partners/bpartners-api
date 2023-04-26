@@ -3,7 +3,6 @@ package app.bpartners.api.unit.service;
 import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.MonthlyTransactionsSummary;
 import app.bpartners.api.model.Transaction;
-import app.bpartners.api.repository.InvoiceRepository;
 import app.bpartners.api.repository.TransactionRepository;
 import app.bpartners.api.repository.TransactionsSummaryRepository;
 import app.bpartners.api.repository.jpa.AccountHolderJpaRepository;
@@ -53,11 +52,12 @@ class TransactionServiceSummariesTest {
   @Test
   void refresh_summaries_with_last_month_summary() {
     YearMonth lastMonth = YearMonth.now().minusMonths(1);
+    Instant now = Instant.now();
     when(transactionsSummaryRepository.getByAccountIdAndYearMonth(
         JOE_DOE_ACCOUNT_ID,
         lastMonth.getYear(),
         lastMonth.getMonthValue() - 1
-    )).thenReturn(lastMonthlySummary());
+    )).thenReturn(lastMonthlySummary(now));
     ArgumentCaptor<String> accountCaptor = ArgumentCaptor.forClass(String.class);
     ArgumentCaptor<Integer> yearCaptor = ArgumentCaptor.forClass(Integer.class);
     ArgumentCaptor<MonthlyTransactionsSummary> summaryCaptor =
@@ -70,10 +70,10 @@ class TransactionServiceSummariesTest {
         yearCaptor.capture(),
         summaryCaptor.capture()
     );
-
     assertEquals(JOE_DOE_ACCOUNT_ID, accountCaptor.getValue());
     assertEquals(YearMonth.now().getYear(), yearCaptor.getValue());
-    assertEquals(refreshedSummary1(), summaryCaptor.getValue());
+    assertEquals(refreshedSummary1(summaryCaptor.getValue().getUpdatedAt()),
+        summaryCaptor.getValue());
   }
 
   @Test
@@ -96,10 +96,10 @@ class TransactionServiceSummariesTest {
         yearCaptor.capture(),
         summaryCaptor.capture()
     );
-
     assertEquals(JOE_DOE_ACCOUNT_ID, accountCaptor.getValue());
     assertEquals(YearMonth.now().getYear(), yearCaptor.getValue());
-    assertEquals(refreshedSummary2(), summaryCaptor.getValue());
+    assertEquals(refreshedSummary2(summaryCaptor.getValue().getUpdatedAt()),
+        summaryCaptor.getValue());
   }
 
   private Transaction.TransactionBuilder transactionWith100Value() {
@@ -108,30 +108,33 @@ class TransactionServiceSummariesTest {
         .amount(new Fraction(BigInteger.valueOf(100)));
   }
 
-  private MonthlyTransactionsSummary lastMonthlySummary() {
+  private MonthlyTransactionsSummary lastMonthlySummary(Instant updatedAt) {
     return MonthlyTransactionsSummary
         .builder()
         .cashFlow(new Fraction(BigInteger.TWO))
+        .updatedAt(updatedAt)
         .build();
   }
 
-  private MonthlyTransactionsSummary refreshedSummary1() {
+  private MonthlyTransactionsSummary refreshedSummary1(Instant updatedAt) {
     return MonthlyTransactionsSummary
         .builder()
         .income(new Fraction(BigInteger.valueOf(100)))
         .month(YearMonth.now().getMonthValue() - 1)
         .outcome(new Fraction(BigInteger.valueOf(100)))
         .cashFlow(new Fraction(BigInteger.TWO))
+        .updatedAt(updatedAt)
         .build();
   }
 
-  private MonthlyTransactionsSummary refreshedSummary2() {
+  private MonthlyTransactionsSummary refreshedSummary2(Instant updatedAt) {
     return MonthlyTransactionsSummary
         .builder()
         .month(YearMonth.now().getMonthValue() - 1)
         .income(new Fraction(BigInteger.valueOf(100)))
         .outcome(new Fraction(BigInteger.valueOf(100)))
         .cashFlow(new Fraction())
+        .updatedAt(updatedAt)
         .build();
   }
 

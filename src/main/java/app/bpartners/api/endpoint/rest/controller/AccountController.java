@@ -32,11 +32,11 @@ public class AccountController {
         .collect(Collectors.toUnmodifiableList());
   }
 
-  @GetMapping("/users/{userId}/accounts/{accountId}/validation")
+  @GetMapping("/users/{userId}/accounts/{accountId}/connection")
   public RedirectView validateBankConnection(
       @PathVariable(name = "userId") String userId,
       @PathVariable(name = "accountId") String accountId) {
-    return service.validateBankConnection(accountId);
+    return service.validateOrEditBankConnection(accountId);
   }
 
   @PostMapping("/users/{userId}/accounts/{accountId}/initiateBankConnection")

@@ -140,6 +140,14 @@ public class BankRepositoryImpl implements BankRepository {
   }
 
   @Override
+  public RedirectView editItems() {
+    BridgeConnectItem connectItem = bridgeRepository.editItem();
+    RedirectView redirectionPage = new RedirectView();
+    redirectionPage.setUrl(connectItem.getRedirectUrl());
+    return redirectionPage;
+  }
+
+  @Override
   public boolean disconnectBank(User user) {
     return bridgeRepository.deleteItem(user.getBridgeItemId(), user.getAccessToken());
   }

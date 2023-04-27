@@ -69,6 +69,10 @@ public class BridgeConf {
     return baseUrl + "/connect/items/pro/confirmation";
   }
 
+  public String getEditItemsUrl() {
+    return baseUrl + "/connect/items/edit?item_id=";
+  }
+
   public String getAccountUrl() {
     return baseUrl + "/accounts";
   }

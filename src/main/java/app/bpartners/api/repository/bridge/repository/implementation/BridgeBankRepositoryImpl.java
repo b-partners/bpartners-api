@@ -57,6 +57,13 @@ public class BridgeBankRepositoryImpl implements BridgeBankRepository {
   }
 
   @Override
+  public BridgeConnectItem editItem() {
+    BridgeItem currentItem = getBridgeItems().get(0);
+    return bridgeApi.editItem(AuthProvider.getPrincipal().getBearer(), currentItem.getId());
+  }
+
+
+  @Override
   public boolean deleteItem(Long itemId, String token) {
     return bridgeApi.deleteItem(itemId, AuthProvider.getPrincipal().getBearer());
   }

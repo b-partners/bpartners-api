@@ -8,7 +8,6 @@ import app.bpartners.api.model.User;
 import app.bpartners.api.model.UserToken;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.exception.BadRequestException;
-import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.repository.AccountRepository;
 import app.bpartners.api.repository.BankRepository;
 import app.bpartners.api.repository.UserRepository;
@@ -20,7 +19,8 @@ import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.view.RedirectView;
 
-import static app.bpartners.api.model.mapper.AccountMapper.VALIDATION_REQUIRED;
+import static app.bpartners.api.endpoint.rest.model.AccountStatus.INVALID_CREDENTIALS;
+import static app.bpartners.api.endpoint.rest.model.AccountStatus.VALIDATION_REQUIRED;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 
 @Service
@@ -49,13 +49,18 @@ public class AccountService {
     return repository.findByUserId(userId);
   }
 
-  public RedirectView validateBankConnection(String accountId) {
+  public RedirectView validateOrEditBankConnection(String accountId) {
     Account persistedAccount = getAccountById(accountId);
     if (persistedAccount != null
         && persistedAccount.getStatus().equals(VALIDATION_REQUIRED)) {
       return bankRepository.validateProItems();
+    }
+    if (persistedAccount != null
+        && persistedAccount.getStatus().equals(INVALID_CREDENTIALS)) {
+      return bankRepository.editItems();
     } else {
-      throw new BadRequestException("Account." + accountId + " does not require validation.");
+      throw new BadRequestException("Account." + accountId + " does not require "
+          + "validation or edition.");
     }
   }
 

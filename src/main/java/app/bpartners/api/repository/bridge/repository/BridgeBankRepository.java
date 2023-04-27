@@ -20,4 +20,6 @@ public interface BridgeBankRepository {
   boolean deleteItem(Long itemId, String token);
 
   BridgeConnectItem validateProItems(String bearer);
+
+  BridgeConnectItem editItem();
 }

@@ -1,6 +1,5 @@
 package app.bpartners.api.model;
 
-import app.bpartners.api.repository.jpa.model.HAccountHolder;
 import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -20,7 +19,7 @@ import lombok.ToString;
 public class AnnualRevenueTarget {
   private String id;
   private Integer year;
-  private HAccountHolder accountHolder;
+  private String idAccountHolder;
   private Fraction amountTarget;
   private Instant updatedAt;
   private Fraction amountAttemptedPercent;

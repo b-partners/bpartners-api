@@ -2,10 +2,7 @@ package app.bpartners.api.endpoint.rest.mapper;
 
 import app.bpartners.api.endpoint.rest.model.CreateAnnualRevenueTarget;
 import app.bpartners.api.model.AnnualRevenueTarget;
-import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.repository.jpa.AccountHolderJpaRepository;
-import app.bpartners.api.repository.jpa.model.HAccountHolder;
-import java.util.Optional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -17,18 +14,15 @@ public class AnnualRevenueTargetRestMapper {
   private final AccountHolderJpaRepository accountHolderJpaRepository;
 
   public AnnualRevenueTarget toDomain(
-      String accountId, CreateAnnualRevenueTarget toCreate) {
-    Optional<HAccountHolder> accountHolders = accountHolderJpaRepository.findByAccountId(accountId);
-    if (accountHolders.isPresent()) {
-      return AnnualRevenueTarget.builder()
-          .id(null)
-          .year(toCreate.getYear())
-          .amountTarget(parseFraction(toCreate.getAmountTarget()))
-          .accountHolder(accountHolders.get())
-          .build();
-    }
-    throw new NotFoundException("Accountholder not found.");
+      String accountHolderId, CreateAnnualRevenueTarget toCreate) {
+    return AnnualRevenueTarget.builder()
+        .id(null) //Generated auto
+        .year(toCreate.getYear())
+        .amountTarget(parseFraction(toCreate.getAmountTarget()))
+        .idAccountHolder(accountHolderId)
+        .build();
   }
+
 
   public app.bpartners.api.endpoint.rest.model.AnnualRevenueTarget toRest(
       AnnualRevenueTarget domain) {

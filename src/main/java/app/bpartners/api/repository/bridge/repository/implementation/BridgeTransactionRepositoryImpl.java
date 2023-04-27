@@ -15,7 +15,7 @@ public class BridgeTransactionRepositoryImpl implements BridgeTransactionReposit
 
   @Override
   public List<BridgeTransaction> findByBearer(String bearer) {
-    return bridgeApi.findTransactionsUpdatedByToken(bearer);
+    return bearer == null ? List.of() : bridgeApi.findTransactionsUpdatedByToken(bearer);
   }
 
   @Override

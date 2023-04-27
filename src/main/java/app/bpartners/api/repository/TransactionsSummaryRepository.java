@@ -6,6 +6,8 @@ import app.bpartners.api.model.TransactionsSummary;
 public interface TransactionsSummaryRepository {
   TransactionsSummary getByAccountIdAndYear(String accountId, int year);
 
+  TransactionsSummary getByAccountHolderIdAndYear(String accountHolderId, int year);
+
   MonthlyTransactionsSummary updateYearMonthSummary(
       String accountId, int year,
       MonthlyTransactionsSummary monthlyTransactionsSummary);

@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 public class AnnualRevenueTargetService {
   private final AnnualRevenueTargetRepository repository;
 
-  public List<AnnualRevenueTarget> save(List<AnnualRevenueTarget> toCreate) {
+  public List<AnnualRevenueTarget> saveAll(List<AnnualRevenueTarget> toCreate) {
     return repository.saveAll(toCreate);
   }
 

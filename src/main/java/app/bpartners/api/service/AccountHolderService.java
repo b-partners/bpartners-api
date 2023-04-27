@@ -52,10 +52,8 @@ public class AccountHolderService {
   }
 
   public AccountHolder updateAnnualRevenueTargets(
-      String optionalAccountId,
-      String accountHolderId,
-      List<AnnualRevenueTarget> annualRevenueTargets) {
-    annualRevenueTargetService.save(annualRevenueTargets);
-    return accountHolderRepository.getByIdAndAccountId(accountHolderId, optionalAccountId);
+      String accountId, String accountHolderId, List<AnnualRevenueTarget> annualRevenueTargets) {
+    annualRevenueTargetService.saveAll(annualRevenueTargets);
+    return accountHolderRepository.getByIdAndAccountId(accountHolderId, accountId);
   }
 }

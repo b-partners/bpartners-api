@@ -14,6 +14,11 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
+import org.springframework.retry.backoff.ExponentialBackOffPolicy;
+import org.springframework.retry.policy.SimpleRetryPolicy;
+import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Component;
 
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
@@ -43,6 +48,8 @@ public class BuildingPermitApi {
         SingleBuildingPermit.class);
   }
 
+  @Retryable(exceptionExpression = "#{exception.message.contains('<!doctype html>')}",
+      backoff = @Backoff(random = true, multiplier = 2, delay = 1_000))
   private <T> T getData(String url, Class<T> valueType) {
     UUID requestId = randomUUID();
     try {

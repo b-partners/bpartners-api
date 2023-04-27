@@ -34,6 +34,7 @@ import app.bpartners.api.repository.swan.response.AccountResponse;
 import app.bpartners.api.service.PaymentScheduleService;
 import java.util.ArrayList;
 import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
@@ -86,6 +87,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @ContextConfiguration(initializers = AccountHolderIT.ContextInitializer.class)
 @AutoConfigureMockMvc
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+@Slf4j
 class AccountHolderIT {
   @MockBean
   private PaymentScheduleService paymentScheduleService;
@@ -453,6 +455,7 @@ class AccountHolderIT {
     AccountHolder actual = api.updateRevenueTargets(JOE_DOE_SWAN_USER_ID, JOE_DOE_ACCOUNT_ID,
         joeDoeAccountHolder().getId(), List.of(toUpdateAnnualRevenueTarget()));
 
+    log.info("Revenue {}", actual.getRevenueTargets());
     assertEquals(3, actual.getRevenueTargets().size());
   }
 

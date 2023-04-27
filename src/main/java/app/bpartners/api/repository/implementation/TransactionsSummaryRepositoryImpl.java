@@ -7,6 +7,7 @@ import app.bpartners.api.repository.TransactionsSummaryRepository;
 import app.bpartners.api.repository.jpa.TransactionsSummaryJpaRepository;
 import app.bpartners.api.repository.jpa.model.HMonthlyTransactionsSummary;
 import java.time.Instant;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -18,7 +19,16 @@ public class TransactionsSummaryRepositoryImpl implements TransactionsSummaryRep
 
   @Override
   public TransactionsSummary getByAccountIdAndYear(String accountId, int year) {
-    return mapper.toDomain(year, jpaRepository.getByIdAccountAndYear(accountId, year));
+    List<HMonthlyTransactionsSummary> monthlySummaries =
+        jpaRepository.getByIdAccountAndYear(accountId, year);
+    return mapper.toDomain(year, monthlySummaries);
+  }
+
+  @Override
+  public TransactionsSummary getByAccountHolderIdAndYear(String accountHolderId, int year) {
+    List<HMonthlyTransactionsSummary> monthlySummaries =
+        jpaRepository.getByIdAccountHolderIdAndYear(accountHolderId, year);
+    return mapper.toDomain(year, monthlySummaries);
   }
 
   public MonthlyTransactionsSummary updateYearMonthSummary(

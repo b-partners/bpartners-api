@@ -89,14 +89,12 @@ public class AccountHolderController {
       @PathVariable("ahId") String accountHolderId,
       @RequestBody List<CreateAnnualRevenueTarget> toCreate
   ) {
-    revenueTargetValidator.acceptList(toCreate);
+    revenueTargetValidator.accept(toCreate);
     List<AnnualRevenueTarget> toSave = toCreate.stream()
-        .map(revenueTarget -> revenueTargetRestMapper
-            .toDomain(accountId, revenueTarget))
+        .map(revenueTarget ->
+            revenueTargetRestMapper.toDomain(accountHolderId, revenueTarget))
         .collect(Collectors.toUnmodifiableList());
     return accountHolderMapper.toRest(
-        accountHolderService.updateAnnualRevenueTargets(accountId, accountHolderId, toSave)
-    );
-
+        accountHolderService.updateAnnualRevenueTargets(accountId, accountHolderId, toSave));
   }
 }

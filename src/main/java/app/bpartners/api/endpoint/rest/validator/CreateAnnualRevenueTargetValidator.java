@@ -29,12 +29,12 @@ public class CreateAnnualRevenueTargetValidator implements Consumer<CreateAnnual
     }
   }
 
-  public void acceptList(List<CreateAnnualRevenueTarget> createAnnualRevenueTargets) {
+  public void accept(List<CreateAnnualRevenueTarget> createAnnualRevenueTargets) {
     createAnnualRevenueTargets.forEach(this);
-    duplicateRevenue(createAnnualRevenueTargets);
+    checkDuplicatedRevenues(createAnnualRevenueTargets);
   }
 
-  private void duplicateRevenue(
+  private void checkDuplicatedRevenues(
       List<CreateAnnualRevenueTarget> createAnnualRevenueTargets) {
     for (CreateAnnualRevenueTarget revenue : createAnnualRevenueTargets) {
       List<CreateAnnualRevenueTarget> target = createAnnualRevenueTargets.stream()

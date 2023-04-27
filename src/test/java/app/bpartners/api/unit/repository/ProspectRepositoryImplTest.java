@@ -20,6 +20,7 @@ import org.junit.jupiter.api.Test;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.TestUtils.OTHER_ACCOUNT_ID;
 import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
@@ -59,15 +60,13 @@ class ProspectRepositoryImplTest {
             AnnualRevenueTarget.builder()
                 .amountTarget(parseFraction(150000))
                 .amountAttempted(parseFraction(32000))
-                .accountHolder(HAccountHolder.builder().build())
+                .idAccountHolder(EMPTY)
                 .build()));
     when(revenueTargetServiceMock.getByYear(OTHER_ACCOUNT_ID, 2023))
         .thenReturn(Optional.ofNullable(AnnualRevenueTarget.builder()
             .amountTarget(parseFraction(150000))
             .amountAttempted(parseFraction(30000))
-            .accountHolder(HAccountHolder
-                .builder()
-                .build())
+            .idAccountHolder(EMPTY)
             .build()));
   }
 

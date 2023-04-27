@@ -7,9 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface AnnualRevenueTargetJpaRepository
     extends JpaRepository<HAnnualRevenueTarget, String> {
-  List<HAnnualRevenueTarget> findByAccountHolderId(String accountHolderId);
+  List<HAnnualRevenueTarget> findByIdAccountHolder(String accountHolderId);
 
-  Optional<HAnnualRevenueTarget> findByYear(Integer year);
-
-  Optional<HAnnualRevenueTarget> findByAccountHolderIdAndYear(String accountHolderId, int year);
+  Optional<HAnnualRevenueTarget> findByIdAccountHolderAndYear(String accountHolderId, int year);
 }

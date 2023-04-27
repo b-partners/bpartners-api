@@ -1,12 +1,14 @@
 package app.bpartners.api.service;
 
 import app.bpartners.api.endpoint.rest.model.TransactionTypeEnum;
+import app.bpartners.api.model.Account;
 import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.MonthlyTransactionsSummary;
 import app.bpartners.api.model.Transaction;
 import app.bpartners.api.model.TransactionInvoice;
 import app.bpartners.api.model.TransactionsSummary;
 import app.bpartners.api.model.exception.NotFoundException;
+import app.bpartners.api.repository.AccountRepository;
 import app.bpartners.api.repository.TransactionRepository;
 import app.bpartners.api.repository.TransactionsSummaryRepository;
 import app.bpartners.api.repository.jpa.AccountHolderJpaRepository;
@@ -20,6 +22,7 @@ import java.time.YearMonth;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,6 +43,7 @@ public class TransactionService {
   private final AccountHolderJpaRepository holderJpaRepository;
   private final TransactionsSummaryRepository summaryRepository;
   private final InvoiceJpaRepository invoiceRepository;
+  private final AccountRepository accountRepository;
 
   private static Instant getFirstDayOfYear(int year) {
     return getFirstDayOfMonth(YearMonth.of(year, Month.JANUARY.getValue()));
@@ -122,39 +126,37 @@ public class TransactionService {
     }
   }
 
+  //TODO: remove initial cash flow from account holder
   public void refreshMonthSummary(
-      String accountId, Fraction cashFlow, YearMonth yearMonth,
-      List<Transaction> transactions) {
-    Fraction[] summaryParameters = new Fraction[] {new Fraction(), new Fraction()};
+      String accountId, Fraction cashFlow, YearMonth yearMonth, List<Transaction> transactions) {
+    AtomicReference<Fraction> incomeReference = new AtomicReference<>(new Fraction());
+    AtomicReference<Fraction> outcomeReference = new AtomicReference<>(new Fraction());
     transactions.forEach(
         transaction -> {
           if (transaction.getType().equals(TransactionTypeEnum.INCOME)) {
-            summaryParameters[0] =
-                summaryParameters[0].operate(transaction.getAmount(), Aprational::add);
+            incomeReference.set(
+                incomeReference.get().operate(transaction.getAmount(), Aprational::add));
           }
           if (transaction.getType().equals(TransactionTypeEnum.OUTCOME)) {
-            summaryParameters[1] =
-                summaryParameters[1].operate(transaction.getAmount(), Aprational::add);
+            outcomeReference.set(
+                outcomeReference.get().operate(transaction.getAmount(), Aprational::add));
           }
         });
-    MonthlyTransactionsSummary previousSummary =
-        getByAccountIdAndYearMonth(accountId, yearMonth.minusMonths(1));
-    MonthlyTransactionsSummary actualSummary =
-        getByAccountIdAndYearMonth(accountId, yearMonth);
-    Fraction actualBalance =
-        summaryParameters[0].operate(summaryParameters[1], Aprational::subtract);
-    Fraction previousCashFlow = previousSummary == null ? cashFlow :
-        previousSummary.getCashFlow();
-    String idMonthlyTransactionSummary = actualSummary == null ? null : actualSummary.getId();
+
+    Fraction incomeValue = incomeReference.get();
+    Fraction outcomeValue = outcomeReference.get();
+    MonthlyTransactionsSummary actualSummary = getByAccountIdAndYearMonth(accountId, yearMonth);
+    Account account = accountRepository.findById(accountId);
+
     saveSummariesByYearMonth(
         accountId,
         yearMonth.getYear(),
         MonthlyTransactionsSummary
             .builder()
-            .id(idMonthlyTransactionSummary)
-            .income(summaryParameters[0])
-            .outcome(summaryParameters[1])
-            .cashFlow(previousCashFlow.operate(actualBalance, Aprational::add))
+            .id(actualSummary == null ? null : actualSummary.getId())
+            .income(incomeValue)
+            .outcome(outcomeValue)
+            .cashFlow(account.getAvailableBalance())
             .month(yearMonth.getMonthValue() - 1)
             .build());
   }

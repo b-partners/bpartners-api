@@ -1,8 +1,10 @@
 package app.bpartners.api.unit.service;
 
+import app.bpartners.api.model.Account;
 import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.MonthlyTransactionsSummary;
 import app.bpartners.api.model.Transaction;
+import app.bpartners.api.repository.AccountRepository;
 import app.bpartners.api.repository.TransactionRepository;
 import app.bpartners.api.repository.TransactionsSummaryRepository;
 import app.bpartners.api.repository.jpa.AccountHolderJpaRepository;
@@ -31,6 +33,7 @@ class TransactionServiceSummariesTest {
   AccountHolderJpaRepository accountHolderJpaRepository;
   TransactionsSummaryRepository transactionsSummaryRepository;
   InvoiceJpaRepository invoiceRepositoryMock;
+  AccountRepository accountRepositoryMock;
 
   @BeforeEach
   void setUp() {
@@ -38,15 +41,20 @@ class TransactionServiceSummariesTest {
     transactionsSummaryRepository = mock(TransactionsSummaryRepository.class);
     transactionRepository = mock(TransactionRepository.class);
     invoiceRepositoryMock = mock(InvoiceJpaRepository.class);
+    accountRepositoryMock = mock(AccountRepository.class);
     transactionService = new TransactionService(
         transactionRepository,
         accountHolderJpaRepository,
         transactionsSummaryRepository,
-        invoiceRepositoryMock
+        invoiceRepositoryMock,
+        accountRepositoryMock
     );
 
     when(transactionRepository.findByAccountIdAndStatusBetweenInstants(any(), any(), any(), any()))
         .thenReturn(transactions());
+    when(accountRepositoryMock.findById(any())).thenReturn(Account.builder()
+        .availableBalance(new Fraction())
+        .build());
   }
 
   @Test
@@ -122,7 +130,7 @@ class TransactionServiceSummariesTest {
         .income(new Fraction(BigInteger.valueOf(100)))
         .month(YearMonth.now().getMonthValue() - 1)
         .outcome(new Fraction(BigInteger.valueOf(100)))
-        .cashFlow(new Fraction(BigInteger.TWO))
+        .cashFlow(new Fraction())
         .updatedAt(updatedAt)
         .build();
   }

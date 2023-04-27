@@ -63,28 +63,19 @@ public class AccountRepositoryImpl implements AccountRepository {
     return getUpdatedAccounts(swanAccounts, authenticatedUser.getId());
   }
 
-  //TODO: delete bridge item if persisted account has bank_id before mapping new values
   @Override
   public Account findById(String accountId) {
     User authenticatedUser = userIsAuthenticated()
         ? AuthProvider.getPrincipal().getUser() : null;
 
-    List<SwanAccount> swanAccounts = swanRepository.findById(accountId);
+    List<SwanAccount> swanAccounts = userIsAuthenticated()
+        ? swanRepository.findById(accountId)
+        : List.of();
     if (swanAccounts.isEmpty()) {
-      //bankRepository.selfUpdateBankConnection();
-      Optional<HAccount> optionalAccount = accountJpaRepository.findById(accountId);
-      if (optionalAccount.isPresent()) {
-        HAccount accountEntity = optionalAccount.get();
-        //TODO: do not update when finding by ID
-        //BridgeAccount bridgeAccount = bridgeRepository.findById(accountEntity.getBridgeAccountId());
-        //if (bridgeAccount == null) {
-        return mapper.toDomain(accountEntity, accountEntity.getUser().getId());
-        //} else {
-        //return getUpdatedAccount(authenticatedUser, bridgeAccount);
-        //}
-      } else {
-        throw new NotFoundException("Account." + accountId + " not found.");
-      }
+      HAccount account = accountJpaRepository.findById(accountId).orElseThrow(
+          () -> new NotFoundException("Account." + accountId + " not found.")
+      );
+      return mapper.toDomain(account, account.getUser().getId());
     }
     return getUpdatedAccounts(
         swanAccounts, userIsAuthenticated() ? authenticatedUser.getId() : null).get(0);

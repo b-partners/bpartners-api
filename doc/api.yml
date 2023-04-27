@@ -37,6 +37,8 @@ paths:
     $ref: './userAccounts-api.yml#/operations/getUserById'
   /users/{id}/accounts:
     $ref: './userAccounts-api.yml#/operations/getAccountsByUserId'
+  /users/{userId}/accounts/{accountId}/connection:
+    $ref: './userAccounts-api.yml#/operations/validateOrEditBankConnection'
   /users/{userId}/accounts/{accountId}/identity:
     $ref: './userAccounts-api.yml#/operations/updateAccountIdentity'
   /users/{userId}/accounts/{accountId}/initiateBankConnection:

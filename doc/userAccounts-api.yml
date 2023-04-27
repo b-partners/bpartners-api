@@ -59,6 +59,45 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
+  validateOrEditBankConnection:
+    get:
+      tags:
+        - User Accounts
+      summary: Validate or edit pro bank connection
+      operationId: validateOrEditBankConnection
+      parameters:
+        - name: userId
+          in: path
+          schema:
+            type: string
+          required: true
+        - name: accountId
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        302:
+          description: Redirect to bank validation or edition page
+          content:
+            application/json:
+              schema:
+                type: object
+          headers:
+            location:
+              description: URL of the bank validation or edition page
+              schema:
+                type: string
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
   updateAccountIdentity:
     put:
       tags:

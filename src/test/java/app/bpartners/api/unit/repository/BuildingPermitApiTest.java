@@ -21,6 +21,8 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @Slf4j
@@ -162,6 +164,18 @@ class BuildingPermitApiTest {
 
     assertThrows(ApiException.class, () -> api.getBuildingPermitList(INSEE));
     assertThrows(ApiException.class, () -> api.getSingleBuildingPermit(ID_SOGEFI));
+  }
+
+  @Test
+  void test_retryer() throws IOException, InterruptedException{
+    when(mockHttpClient.send(any(),any())).thenThrow(new IOException("<!doctype html>"));
+
+    try {
+      api.getBuildingPermitList(INSEE);
+    } catch (ApiException e){
+      assertThrows(ApiException.class, () -> api.getBuildingPermitList(INSEE));
+      verify(mockHttpClient, times(3)).send(any(), any());
+    }
   }
 
   Map<String, String> expectedFilter() {

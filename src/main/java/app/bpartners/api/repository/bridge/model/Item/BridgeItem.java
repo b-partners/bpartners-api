@@ -6,14 +6,12 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import lombok.ToString;
 
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
 @EqualsAndHashCode
 @Data
-@ToString
 public class BridgeItem {
 
   @JsonProperty("id")
@@ -26,4 +24,9 @@ public class BridgeItem {
   private String statusCodeDescription;
   @JsonProperty("bank_id")
   private Long bankId;
+
+  @Override
+  public String toString() {
+    return "Item(id=" + id + ",bankId=" + bankId + ",status=" + status + ")";
+  }
 }

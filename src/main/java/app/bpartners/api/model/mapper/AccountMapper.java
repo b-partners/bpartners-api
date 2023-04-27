@@ -23,6 +23,8 @@ public class AccountMapper {
   public static final String CLOSED_STATUS = "Closed";
   public static final String CLOSING_STATUS = "Closing";
   public static final String SUSPENDED_STATUS = "Suspended";
+  public static final String VALIDATION_REQUIRED = "Validation Required";
+  public static final String INVALID_CREDENTIALS = "Invalid Credentials";
 
   public Account toDomain(SwanAccount external, String userId) {
     return Account.builder()
@@ -110,6 +112,10 @@ public class AccountMapper {
         return AccountStatus.CLOSING;
       case SUSPENDED_STATUS:
         return AccountStatus.SUSPENDED;
+      case VALIDATION_REQUIRED:
+        return AccountStatus.VALIDATION_REQUIRED;
+      case INVALID_CREDENTIALS:
+        return AccountStatus.INVALID_CREDENTIALS;
       default:
         log.warn("Unknown account status " + status);
         return UNKNOWN;

@@ -4,6 +4,7 @@ import app.bpartners.api.endpoint.rest.model.TransactionStatus;
 import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.model.Transaction;
 import app.bpartners.api.model.TransactionCategory;
+import app.bpartners.api.model.UserToken;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.mapper.TransactionMapper;
 import app.bpartners.api.repository.TransactionCategoryRepository;
@@ -250,6 +251,7 @@ public class TransactionRepositoryImpl implements TransactionRepository {
   }
 
   private String bridgeAccessToken(String accountId) {
-    return userService.getLatestTokenByAccount(accountId).getAccessToken();
+    UserToken userToken = userService.getLatestTokenByAccount(accountId);
+    return userToken == null ? null : userToken.getAccessToken();
   }
 }

@@ -119,6 +119,7 @@ public class TestUtils {
   public static final String REDIRECT_FAILURE_URL =
       "https://dashboard-dev.bpartners.app/login/failure";
   public static final String JOE_DOE_ACCOUNT_ID = "beed1765-5c16-472a-b3f4-5c376ce5db58";
+  public static final String ACCOUNT_TO_VALIDATE_ID = "account_to_validate_id";
   public static final String OTHER_ACCOUNT_ID = "other_account_id";
   public static final String OTHER_CUSTOMER_ID = "other_customer_id";
   public static final String USER1_ID = "user1_id";

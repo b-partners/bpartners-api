@@ -25,6 +25,7 @@ import app.bpartners.api.repository.LegalFileRepository;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.bridge.BridgeApi;
 import app.bpartners.api.repository.bridge.model.Account.BridgeAccount;
+import app.bpartners.api.repository.bridge.model.Item.BridgeConnectItem;
 import app.bpartners.api.repository.bridge.repository.BridgeBankRepository;
 import app.bpartners.api.repository.bridge.repository.implementation.BridgeAccountRepositoryImpl;
 import app.bpartners.api.repository.fintecture.FintectureConf;
@@ -40,6 +41,12 @@ import app.bpartners.api.repository.swan.implementation.AccountSwanRepositoryImp
 import app.bpartners.api.repository.swan.model.SwanAccount;
 import app.bpartners.api.repository.swan.response.AccountResponse;
 import app.bpartners.api.service.PaymentScheduleService;
+import java.io.File;
+import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -56,14 +63,17 @@ import org.mockito.Mockito;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.HttpStatus;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.web.servlet.view.RedirectView;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import static app.bpartners.api.integration.conf.TestUtils.ACCOUNT_CLOSED;
 import static app.bpartners.api.integration.conf.TestUtils.ACCOUNT_CLOSING;
 import static app.bpartners.api.integration.conf.TestUtils.ACCOUNT_OPENED;
 import static app.bpartners.api.integration.conf.TestUtils.ACCOUNT_SUSPENDED;
+import static app.bpartners.api.integration.conf.TestUtils.BEARER_PREFIX;
 import static app.bpartners.api.integration.conf.TestUtils.JANE_DOE_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_COGNITO_TOKEN;
@@ -71,6 +81,7 @@ import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_TOKEN;
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsApiException;
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsForbiddenException;
+import static app.bpartners.api.integration.conf.TestUtils.getApiException;
 import static app.bpartners.api.integration.conf.TestUtils.joeDoeBridgeAccount;
 import static app.bpartners.api.integration.conf.TestUtils.joeDoeSwanAccount;
 import static app.bpartners.api.integration.conf.TestUtils.otherBridgeAccount;
@@ -675,6 +686,58 @@ class AccountIT {
     assertEquals(1, actual.size());
     assertEquals(otherBridgeAccount().getName(), actual.get(0).getName());
     assertEquals(otherBridgeAccount().getIban(), actual.get(0).getIban());
+  }
+
+  @Test
+  void validate_bank_connection() throws IOException, InterruptedException {
+    final String redirectUrl = "https://connect.bridge.io";
+
+    when(bridgeBankRepositoryMock.validateProItems(JOE_DOE_TOKEN))
+        .thenReturn(BridgeConnectItem.builder().redirectUrl(redirectUrl).build());
+    when(bankRepositoryImplMock.validateProItems())
+        .thenReturn(new RedirectView(redirectUrl));
+
+    HttpClient unauthenticatedClient = HttpClient.newBuilder().build();
+    String basePath = "http://localhost:" + ContextInitializer.SERVER_PORT;
+
+    HttpResponse<Void> response = unauthenticatedClient.send(
+        HttpRequest.newBuilder()
+            .GET()
+            .uri(URI.create(
+                basePath + "/users/" + JOE_DOE_ID + "/accounts/" + JOE_DOE_ACCOUNT_ID
+                    + "/validation"))
+            .header("Authorization", BEARER_PREFIX + JOE_DOE_TOKEN).build(),
+        HttpResponse.BodyHandlers.discarding());
+
+    assertEquals(HttpStatus.MOVED_TEMPORARILY.value(), response.statusCode());
+    assertTrue(response.headers().firstValue("Location").isPresent());
+    assertTrue(response.headers().firstValue("Location").get().contains(redirectUrl));
+  }
+
+  @Test
+  void edit_bank_connection() throws IOException, InterruptedException {
+    final String redirectUrl = "https://connect.bridge.io";
+
+    when(bridgeBankRepositoryMock.editItem())
+        .thenReturn(BridgeConnectItem.builder().redirectUrl(redirectUrl).build());
+    when(bankRepositoryImplMock.editItems())
+        .thenReturn(new RedirectView(redirectUrl));
+
+    HttpClient unauthenticatedClient = HttpClient.newBuilder().build();
+    String basePath = "http://localhost:" + ContextInitializer.SERVER_PORT;
+
+    HttpResponse<Void> response = unauthenticatedClient.send(
+        HttpRequest.newBuilder()
+            .GET()
+            .uri(URI.create(
+                basePath + "/users/" + JOE_DOE_ID + "/accounts/" + JOE_DOE_ACCOUNT_ID
+                    + "/connection/edit"))
+            .header("Authorization", BEARER_PREFIX + JOE_DOE_TOKEN).build(),
+        HttpResponse.BodyHandlers.discarding());
+
+    assertEquals(HttpStatus.MOVED_TEMPORARILY.value(), response.statusCode());
+    assertTrue(response.headers().firstValue("Location").isPresent());
+    assertTrue(response.headers().firstValue("Location").get().contains(redirectUrl));
   }
 
   static class ContextInitializer extends AbstractContextInitializer {

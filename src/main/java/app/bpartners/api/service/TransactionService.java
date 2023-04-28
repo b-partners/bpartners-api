@@ -13,6 +13,7 @@ import app.bpartners.api.repository.TransactionRepository;
 import app.bpartners.api.repository.TransactionsSummaryRepository;
 import app.bpartners.api.repository.jpa.AccountHolderJpaRepository;
 import app.bpartners.api.repository.jpa.InvoiceJpaRepository;
+import app.bpartners.api.repository.jpa.model.HAccountHolder;
 import app.bpartners.api.repository.jpa.model.HInvoice;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -179,8 +180,14 @@ public class TransactionService {
         accountHolder -> {
           refreshCurrentYearSummary(
               accountHolder.getAccountId(), parseFraction(accountHolder.getInitialCashflow()));
-          log.info("Transactions summaries refreshed for {}", accountHolder);
+          log.info("Transactions summaries refreshed for {}", getAccountHolderInfo(accountHolder));
         }
     );
+  }
+
+  private String getAccountHolderInfo(HAccountHolder accountHolder) {
+    return "AccountHolder(id=" + accountHolder.getId()
+        + ",name=" + accountHolder.getName()
+        + ",email=" + accountHolder.getEmail() + ")";
   }
 }

@@ -812,7 +812,7 @@ class InvoiceIT {
     int customizePenalty = 1960;
 
     Invoice actualDraft = api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, NEW_INVOICE_ID,
-            initializeDraft().ref(null));
+        initializeDraft().ref(null));
     Invoice actualUpdatedDraft = api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, NEW_INVOICE_ID,
         validInvoice());
     actualUpdatedDraft.setProducts(ignoreIdsOf(actualUpdatedDraft.getProducts()));
@@ -822,12 +822,12 @@ class InvoiceIT {
             .fileId(actualDraft.getFileId())
             .delayPenaltyPercent(0)
             .createdAt(actualDraft.getCreatedAt())
-            .updatedAt(actualDraft.getUpdatedAt())
-            .delayInPaymentAllowed(null),
+            .updatedAt(actualDraft.getUpdatedAt()),
         actualDraft);
     assertNotNull(actualDraft.getFileId());
     assertEquals(DEFAULT_DELAY_PENALTY_PERCENT, actualDraft.getDelayPenaltyPercent());
     assertEquals(expectedDraft()
+            .delayInPaymentAllowed(30)
             .fileId(actualUpdatedDraft.getFileId())
             .createdAt(actualUpdatedDraft.getCreatedAt())
             .updatedAt(actualUpdatedDraft.getUpdatedAt()),
@@ -1137,8 +1137,8 @@ class InvoiceIT {
     invoice.setPaymentRegulations(ignoreIdsAndDatetime(invoice));
     persisted1.setPaymentRegulations(ignoreIdsAndDatetime(persisted1));
     assertEquals(persisted1
-        .createdAt(null)
-        .updatedAt(invoice.getUpdatedAt()),
+            .createdAt(null)
+            .updatedAt(invoice.getUpdatedAt()),
         invoice.createdAt(null));
 
     Invoice firstUpdate = api.crupdateInvoice(

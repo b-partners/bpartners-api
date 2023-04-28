@@ -6,13 +6,22 @@ import java.util.Map;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.retry.RetryCallback;
+import org.springframework.retry.RetryContext;
+import org.springframework.retry.annotation.EnableRetry;
+import org.springframework.retry.backoff.ExponentialBackOffPolicy;
+import org.springframework.retry.listener.RetryListenerSupport;
+import org.springframework.retry.policy.SimpleRetryPolicy;
+import org.springframework.retry.support.RetryTemplate;
 
 import static app.bpartners.api.service.utils.URLUtils.URLEncodeMap;
 
 @Configuration
 @Getter
 @Setter
+@EnableRetry
 public class BuildingPermitConf {
   // apiURL objects baseURL/bearer/endpoint/filter
   private static final String API_URL = "%s/%s/%s?%s";

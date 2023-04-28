@@ -13,6 +13,7 @@ import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.retry.support.RetryTemplate;
 
 import static app.bpartners.api.integration.conf.TestUtils.httpResponseMock;
 import static app.bpartners.api.service.utils.URLUtils.URLEncodeMap;
@@ -20,6 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -106,8 +108,10 @@ class BuildingPermitApiTest {
   private static final String SOGEFI_EXCEPTION_MESSAGE_KEYWORD = "<!doctype html>";
   BuildingPermitConf conf = new BuildingPermitConf(BASE_URL, BEARER, COMMON_DENOM_CHAR);
   HttpClient mockHttpClient = mock(HttpClient.class);
+  RetryTemplate retryTemplate = new RetryTemplate();
   BuildingPermitApi api = new BuildingPermitApi(conf)
-      .httpClient(mockHttpClient);
+      .httpClient(mockHttpClient)
+      .retryTemplate(retryTemplate);
 
   BuildingPermitList expectedPermits() throws IOException {
     return om.readValue(BUILDING_PERMIT_LIST_JSON, BuildingPermitList.class);
@@ -148,15 +152,15 @@ class BuildingPermitApiTest {
   }
 
   @Test
-  void handle_jsonProcessingException() throws IOException, InterruptedException {
+  void handle_sogefi_429() throws IOException, InterruptedException {
     when(mockHttpClient.send(any(), any())).thenThrow(
         new IOException(SOGEFI_EXCEPTION_MESSAGE_KEYWORD));
 
     try {
-      api.getData(BASE_URL, SingleBuildingPermit.class);
+      log.info("Get data: {}", api.getData(BASE_URL, SingleBuildingPermit.class));
     } catch (ApiException e) {
-      assertThrows(ApiException.class , () -> api.getSingleBuildingPermit(ID_SOGEFI));
       verify(mockHttpClient, times(3)).send(any(), any());
+      assertThrows(ApiException.class , () -> api.getData(BASE_URL, SingleBuildingPermit.class));
     }
   }
 

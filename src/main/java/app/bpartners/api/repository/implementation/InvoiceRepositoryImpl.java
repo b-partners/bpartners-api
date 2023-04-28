@@ -20,7 +20,6 @@ import app.bpartners.api.service.FileService;
 import app.bpartners.api.service.utils.InvoicePdfUtils;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -86,12 +85,9 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
 
   @Override
   public Invoice getById(String invoiceId) {
-    Optional<HInvoice> optionalInvoice = jpaRepository.findById(invoiceId);
-    if (optionalInvoice.isEmpty()) {
-      throw new NotFoundException("Invoice." + invoiceId + " is not found");
-    }
-    HInvoice invoice = optionalInvoice.get();
-    return mapper.toDomain(invoice);
+    return mapper.toDomain(jpaRepository.findById(invoiceId).orElseThrow(
+        () -> new NotFoundException("Invoice." + invoiceId + " is not found")
+    ));
   }
 
   @Override

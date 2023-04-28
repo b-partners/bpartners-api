@@ -100,7 +100,6 @@ public class TransactionService {
         () -> new NotFoundException(
             "Invoice." + idInvoice + " is not found")
     );
-    log.info("Invoice=" + invoice.getId() + ", " + invoice.getFileId());
     return repository.save(transaction.toBuilder()
         .transactionInvoice(TransactionInvoice.builder()
             .invoiceId(invoice.getId())

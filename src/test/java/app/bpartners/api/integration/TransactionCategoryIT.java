@@ -15,6 +15,8 @@ import app.bpartners.api.manager.ProjectTokenManager;
 import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.TransactionCategoryTemplate;
 import app.bpartners.api.repository.LegalFileRepository;
+import app.bpartners.api.repository.bridge.model.Transaction.BridgeTransaction;
+import app.bpartners.api.repository.bridge.repository.BridgeTransactionRepository;
 import app.bpartners.api.repository.fintecture.FintectureConf;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitConf;
 import app.bpartners.api.repository.sendinblue.SendinblueConf;
@@ -54,6 +56,8 @@ import static app.bpartners.api.integration.conf.TestUtils.setUpTransactionRepos
 import static app.bpartners.api.integration.conf.TestUtils.setUpUserSwanRepository;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
@@ -89,6 +93,8 @@ class TransactionCategoryIT {
   private TransactionSwanRepository transactionSwanRepositoryMock;
   @MockBean
   private AccountHolderSwanRepository accountHolderMock;
+  @MockBean
+  private BridgeTransactionRepository bridgeTransactionRepositoryMock;
   @MockBean
   private LegalFileRepository legalFileRepositoryMock;
 
@@ -128,6 +134,9 @@ class TransactionCategoryIT {
     setUpTransactionRepository(transactionSwanRepositoryMock);
     setUpAccountHolderSwanRep(accountHolderMock);
     setUpLegalFileRepository(legalFileRepositoryMock);
+
+    when(bridgeTransactionRepositoryMock.findById(any()))
+        .thenReturn(BridgeTransaction.builder().build());
   }
 
   CreateTransactionCategory incomeTransactionCategory() {
@@ -229,7 +238,7 @@ class TransactionCategoryIT {
     );
     assertThrowsApiException(
         "{\"type\":\"404 NOT_FOUND\",\"message\":\"Transaction." + UNKNOWN_TRANSACTION_ID
-            + " not found.\"}",
+            + " not found\"}",
         () -> api.createTransactionCategories(JOE_DOE_ACCOUNT_ID, UNKNOWN_TRANSACTION_ID,
             List.of(outcomeTransactionCategory()))
     );

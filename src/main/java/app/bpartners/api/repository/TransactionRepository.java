@@ -8,8 +8,6 @@ import java.util.List;
 public interface TransactionRepository {
   List<Transaction> findByAccountId(String id);
 
-  Transaction findById(String transactionId);
-
   List<Transaction> findByAccountIdAndStatus(String id, TransactionStatus status);
 
   Transaction save(Transaction toSave);

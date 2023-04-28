@@ -14,6 +14,10 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.retry.RetryCallback;
+import org.springframework.retry.RetryContext;
+import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Component;
 
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
@@ -22,16 +26,18 @@ import static java.util.UUID.randomUUID;
 
 @Component
 @Slf4j
-public class BuildingPermitApi implements BuildingPermitApiInterface{
+public class BuildingPermitApi {
   private final ObjectMapper objectMapper =
       new ObjectMapper().findAndRegisterModules().configure(FAIL_ON_UNKNOWN_PROPERTIES, false);
-  private final BuildingPermitConf buildingPermitConf;
+  private BuildingPermitConf buildingPermitConf;
   private HttpClient httpClient;
-  int count = 0;
+  @Autowired
+  public RetryTemplate retryTemplate;
 
   public BuildingPermitApi(BuildingPermitConf buildingPermitConf) {
     this.buildingPermitConf = buildingPermitConf;
     this.httpClient = HttpClient.newBuilder().build();
+    this.retryTemplate = retryTemplate;
   }
 
   public BuildingPermitList getBuildingPermitList(String townCode) {
@@ -45,41 +51,47 @@ public class BuildingPermitApi implements BuildingPermitApiInterface{
   }
 
   public <T> T getData(String url, Class<T> valueType) {
-    UUID requestId = randomUUID();
-    try {
-      HttpRequest request =
-          HttpRequest.newBuilder()
-              .uri(new URI(url))
-              .GET()
-              .build();
-      log.info("SOGEFI CALL - id={}, url={}", requestId, request.uri());
-      HttpResponse<String> response =
-          httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-      log.info("SOGEFI CALL - id={}, httpStatusCode={}", requestId, response.statusCode());
-      return objectMapper.readValue(response.body(), valueType);
-    } catch (URISyntaxException e) {
-      log.info("SOGEFI CALL - id={}, httpStatusCode={}", requestId, 400);
-      throw new ApiException(SERVER_EXCEPTION, e.getMessage());
-    } catch (InterruptedException e) {
-      log.info("SOGEFI CALL - id={}, InterruptedException", requestId);
-      Thread.currentThread().interrupt();
-      throw new ApiException(SERVER_EXCEPTION, e);
-    } catch (JsonProcessingException e) {
-      log.info("SOGEFI CALL - id={}, MappingException at url={}", requestId, url);
-      //TODO: retry
-      throw new TooManyRequestsException("too many. ");
-    } catch (IOException e) {
-      log.info("SOGEFI CALL - id={}, IOException", requestId, count);
-      if (e.getMessage().contains("<!doctype html>")) {
-        log.info("SOGEFI CALL - id={}, IOException-SOGEFI-429", requestId, count);
-        count++;
+    return retryTemplate.execute( context -> {
+      UUID requestId = randomUUID();
+      try {
+        HttpRequest request =
+            HttpRequest.newBuilder()
+                .uri(new URI(url))
+                .GET()
+                .build();
+        log.info("SOGEFI CALL - id={}, url={}", requestId, request.uri());
+        HttpResponse<String> response =
+            httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        log.info("SOGEFI CALL - id={}, httpStatusCode={}", requestId, response.statusCode());
+        return objectMapper.readValue(response.body(), valueType);
+      } catch (URISyntaxException e) {
+        log.info("SOGEFI CALL - id={}, httpStatusCode={}", requestId, 400);
+        throw new ApiException(SERVER_EXCEPTION, e.getMessage());
+      } catch (InterruptedException e) {
+        log.info("SOGEFI CALL - id={}, InterruptedException", requestId);
+        Thread.currentThread().interrupt();
+        throw new ApiException(SERVER_EXCEPTION, e);
+      } catch (JsonProcessingException e) {
+        log.info("SOGEFI CALL - id={}, MappingException at url={}", requestId, url);
+        //TODO: retry
+        throw new TooManyRequestsException("too many. ");
+      } catch (IOException e) {
+        log.info("SOGEFI CALL - id={}, IOException", requestId);
+        if (e.getMessage().contains("<!doctype html>")) {
+          log.info("SOGEFI CALL - id={}, IOException-SOGEFI-429", requestId);
+        }
+        throw new ApiException(SERVER_EXCEPTION, e.getMessage());
       }
-      throw new ApiException(SERVER_EXCEPTION, e.getMessage());
-    }
+    });
   }
 
   public BuildingPermitApi httpClient(HttpClient httpClient) {
     this.httpClient = httpClient;
+    return this;
+  }
+
+  public BuildingPermitApi retryTemplate(RetryTemplate retryTemplate) {
+    this.retryTemplate = retryTemplate;
     return this;
   }
 }

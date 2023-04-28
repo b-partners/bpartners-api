@@ -85,10 +85,14 @@ public class TransactionRepositoryImpl implements TransactionRepository {
   @Override
   public Transaction save(Transaction toSave) {
     HTransaction entity = jpaRepository.save(mapper.toEntity(toSave));
-    SwanTransaction
-        swanTransaction = swanRepository.findById(entity.getIdSwan(), swanBearerToken());
-    return mapper.toDomain(swanTransaction, entity,
-        categoryRepository.findByIdTransaction(entity.getId()));
+    SwanTransaction swanTransaction =
+        swanRepository.findById(entity.getIdSwan(), swanBearerToken());
+    BridgeTransaction bridgeTransaction =
+        bridgeRepository.findById(entity.getIdBridge());
+    TransactionCategory category = categoryRepository.findByIdTransaction(entity.getId());
+    return swanTransaction == null
+        ? mapper.toDomain(bridgeTransaction, entity, category)
+        : mapper.toDomain(swanTransaction, entity, category);
   }
 
   @Override

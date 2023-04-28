@@ -1,76 +1,3 @@
-create or replace function get_invoicing_info(date_from varchar, date_to varchar)
-    returns table
-            (
-                account_id     varchar,
-                name           varchar,
-                iban           varchar,
-                bic            varchar,
-                amount_value   numeric,
-                average        numeric,
-                median         double precision,
-                minimum_amount numeric,
-                maximum_amount numeric
-            )
-as
-$$
-begin
-    return query
-        select pr.account_id               as account_id,
-               a.name                      as name,
-               a.iban                      as iban,
-               a.bic                       as bic,
-               (sum((cast(split_part(pr.amount, '/', 1) as numeric)
-                   / cast(split_part(pr.amount, '/', 2) as
-                         numeric))) / 100) as amount_value,
-               (avg((cast(split_part(pr.amount, '/', 1) as numeric)
-                   / cast(split_part(pr.amount, '/', 2) as
-                         numeric))) / 100) as average,
-               percentile_cont(0.5) WITHIN GROUP ( ORDER BY ((cast(split_part(pr.amount, '/', 1) as numeric)
-                   / cast(split_part(pr.amount, '/', 2) as numeric))) / 100 )
-                                           as median,
-               min((cast(split_part(amount, '/', 1) as numeric)
-                   / cast(split_part(amount, '/', 2) as numeric)) / 100)
-                                           as minimum_amount,
-               max((cast(split_part(amount, '/', 1) as numeric) / cast(split_part(amount, '/', 2) as numeric)) / 100)
-                                           as maximum_amount
-        from payment_request pr
-                 inner join account a on a.id = pr.account_id
-        where pr.status = 'PAID'
-          and pr.created_datetime between to_timestamp(date_from, 'YYYY-MM-DD HH:MI:SS') and to_timestamp(date_to, 'YYYY-MM-DD HH:MI:SS')
-        group by pr.account_id, a.name, a.bic, a.iban;
-end ;
-$$
-    language plpgsql;
-
-create or replace function get_invoicing_info_by_year_and_month(year integer, month integer)
-    returns table
-            (
-                account_id   varchar,
-                name         varchar,
-                iban         varchar,
-                bic          varchar,
-                amount_value numeric
-            )
-as
-$$
-BEGIN
-    return query
-        select pr.account_id,
-               a.name,
-               a.iban,
-               a.bic,
-               (sum((cast(split_part(pr.amount, '/', 1) as numeric)
-                   / cast(split_part(pr.amount, '/', 2) as
-                         numeric))) / 100) as amount_value
-        from (select * from payment_request where status = 'PAID' and extract(year from created_datetime) = year)
-                 as pr
-                 inner join account a on a.id = pr.account_id
-        where extract(month from pr.created_datetime) = month
-        group by pr.account_id, a.name, a.iban, a.bic;
-end;
-$$
-    language plpgsql;
-
 create or replace function get_annual_invoicing_info(year integer)
     returns table
             (
@@ -96,29 +23,8 @@ $$
 DECLARE
     rec RECORD;
 BEGIN
-    create temporary table annual_invoicing_info
-    (
-        account_id varchar,
-        name       varchar,
-        bic        varchar,
-        iban       varchar,
-        january    numeric default 0,
-        february   numeric default 0,
-        march      numeric default 0,
-        april      numeric default 0,
-        may        numeric default 0,
-        june       numeric default 0,
-        july       numeric default 0,
-        august     numeric default 0,
-        september  numeric default 0,
-        october    numeric default 0,
-        november   numeric default 0,
-        december   numeric default 0
-    );
-    insert into annual_invoicing_info (account_id, name, bic, iban)
-    select distinct pr.account_id, a.name, a.bic, a.iban
-    from payment_request pr
-             inner join account a on a.id = pr.account_id;
+    perform create_annual_invoicing_info_table();
+    perform insert_account_info_in_temp_table();
     FOR rec in select * from get_invoicing_info_by_year_and_month(year, 1)
         LOOP
             UPDATE annual_invoicing_info as a
@@ -231,4 +137,4 @@ BEGIN
     drop table annual_invoicing_info;
 end;
 $$
-    language plpgsql;
+language plpgsql;

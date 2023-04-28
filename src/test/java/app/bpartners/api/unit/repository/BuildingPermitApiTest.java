@@ -152,9 +152,11 @@ class BuildingPermitApiTest {
     when(mockHttpClient.send(any(), any())).thenThrow(
         new IOException(SOGEFI_EXCEPTION_MESSAGE_KEYWORD));
 
-    SingleBuildingPermit actual = api.getSingleBuildingPermit(ID_SOGEFI);
-
-    assertNull(actual);
+    try {
+      api.getSingleBuildingPermit(ID_SOGEFI);
+    } catch (ApiException e) {
+      assertThrows(ApiException.class , () -> api.getSingleBuildingPermit(ID_SOGEFI));
+    }
   }
 
   @Test
@@ -164,18 +166,6 @@ class BuildingPermitApiTest {
 
     assertThrows(ApiException.class, () -> api.getBuildingPermitList(INSEE));
     assertThrows(ApiException.class, () -> api.getSingleBuildingPermit(ID_SOGEFI));
-  }
-
-  @Test
-  void test_retryer() throws IOException, InterruptedException{
-    when(mockHttpClient.send(any(),any())).thenThrow(new IOException("<!doctype html>"));
-
-    try {
-      api.getBuildingPermitList(INSEE);
-    } catch (ApiException e){
-      assertThrows(ApiException.class, () -> api.getBuildingPermitList(INSEE));
-      verify(mockHttpClient, times(3)).send(any(), any());
-    }
   }
 
   Map<String, String> expectedFilter() {

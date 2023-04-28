@@ -32,6 +32,7 @@ public class BuildingPermitApi {
       new ObjectMapper().findAndRegisterModules().configure(FAIL_ON_UNKNOWN_PROPERTIES, false);
   private final BuildingPermitConf buildingPermitConf;
   private HttpClient httpClient;
+  int count = 0;
 
   public BuildingPermitApi(BuildingPermitConf buildingPermitConf) {
     this.buildingPermitConf = buildingPermitConf;
@@ -75,10 +76,10 @@ public class BuildingPermitApi {
       //TODO: retry
       throw new TooManyRequestsException("too many. ");
     } catch (IOException e) {
-      log.info("SOGEFI CALL - id={}, IOException", requestId);
+      log.info("SOGEFI CALL - id={}, IOException", requestId, count);
       if (e.getMessage().contains("<!doctype html>")) {
-        log.info("SOGEFI CALL - id={}, IOException-SOGEFI-429", requestId);
-        return null;
+        log.info("SOGEFI CALL - id={}, IOException-SOGEFI-429", requestId, count);
+        count++;
       }
       throw new ApiException(SERVER_EXCEPTION, e.getMessage());
     }

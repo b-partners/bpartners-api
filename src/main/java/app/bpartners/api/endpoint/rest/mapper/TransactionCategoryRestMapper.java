@@ -49,7 +49,7 @@ public class TransactionCategoryRestMapper {
       String transactionId, String accountId, CreateTransactionCategory rest) {
     validator.accept(rest);
     List<TransactionCategoryTemplate> categories = categoryTemplateRep.findByType(rest.getType());
-    TransactionTypeEnum transactionType = transactionRepository.findById(transactionId).getType();
+    TransactionTypeEnum transactionType = transactionRepository.getById(transactionId).getType();
     TransactionCategoryTemplate categoryTemplate =
         categories.size() == 1
             ? categories.get(0)

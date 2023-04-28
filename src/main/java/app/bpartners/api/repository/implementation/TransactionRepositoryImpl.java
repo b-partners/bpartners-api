@@ -76,28 +76,6 @@ public class TransactionRepositoryImpl implements TransactionRepository {
   }
 
   @Override
-  public Transaction findById(String transactionId) {
-    Optional<HTransaction> optionalEntity = jpaRepository.findById(transactionId);
-    if (optionalEntity.isPresent()) {
-      HTransaction transactionEntity = optionalEntity.get();
-      TransactionCategory category = categoryRepository.findByIdTransaction(transactionId);
-
-      SwanTransaction swanTransaction =
-          swanRepository.findById(transactionEntity.getIdSwan(), swanBearerToken());
-      if (swanTransaction == null) {
-        BridgeTransaction bridgeTransaction =
-            bridgeRepository.findById(transactionEntity.getIdBridge());
-        if (bridgeTransaction == null) {
-          return mapper.toDomain(transactionEntity, category);
-        }
-        return mapper.toDomain(bridgeTransaction, transactionEntity, category);
-      }
-      return mapper.toDomain(swanTransaction, transactionEntity, category);
-    }
-    throw new NotFoundException("Transaction." + transactionId + " not found.");
-  }
-
-  @Override
   public List<Transaction> findByAccountIdAndStatus(String id, TransactionStatus status) {
     return findByAccountId(id).stream()
         .filter(transaction -> transaction.getStatus().equals(status))
@@ -131,10 +109,14 @@ public class TransactionRepositoryImpl implements TransactionRepository {
     HTransaction entity = jpaRepository.findById(idTransaction)
         .orElseThrow(() -> new NotFoundException(
             "Transaction." + idTransaction + " not found"));
-    SwanTransaction
-        swanTransaction = swanRepository.findById(entity.getIdSwan(), swanBearerToken());
-    return mapper.toDomain(swanTransaction, entity,
-        categoryRepository.findByIdTransaction(entity.getId()));
+    SwanTransaction swanTransaction =
+        swanRepository.findById(entity.getIdSwan(), swanBearerToken());
+    BridgeTransaction bridgeTransaction =
+        bridgeRepository.findById(entity.getIdBridge());
+    TransactionCategory category = categoryRepository.findByIdTransaction(entity.getId());
+    return swanTransaction == null
+        ? mapper.toDomain(bridgeTransaction, entity, category)
+        : mapper.toDomain(swanTransaction, entity, category);
   }
 
   private HTransaction getUpdatedTransaction(

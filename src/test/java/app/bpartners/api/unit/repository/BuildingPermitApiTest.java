@@ -153,9 +153,10 @@ class BuildingPermitApiTest {
         new IOException(SOGEFI_EXCEPTION_MESSAGE_KEYWORD));
 
     try {
-      api.getSingleBuildingPermit(ID_SOGEFI);
+      api.getData(BASE_URL, SingleBuildingPermit.class);
     } catch (ApiException e) {
       assertThrows(ApiException.class , () -> api.getSingleBuildingPermit(ID_SOGEFI));
+      verify(mockHttpClient, times(3)).send(any(), any());
     }
   }
 

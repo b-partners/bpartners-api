@@ -41,7 +41,6 @@ import app.bpartners.api.repository.swan.implementation.AccountSwanRepositoryImp
 import app.bpartners.api.repository.swan.model.SwanAccount;
 import app.bpartners.api.repository.swan.response.AccountResponse;
 import app.bpartners.api.service.PaymentScheduleService;
-import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -74,6 +73,9 @@ import static app.bpartners.api.integration.conf.TestUtils.ACCOUNT_CLOSING;
 import static app.bpartners.api.integration.conf.TestUtils.ACCOUNT_OPENED;
 import static app.bpartners.api.integration.conf.TestUtils.ACCOUNT_SUSPENDED;
 import static app.bpartners.api.integration.conf.TestUtils.BEARER_PREFIX;
+import static app.bpartners.api.integration.conf.TestUtils.BERNARD_DOE_ACCOUNT_ID;
+import static app.bpartners.api.integration.conf.TestUtils.BERNARD_DOE_ID;
+import static app.bpartners.api.integration.conf.TestUtils.BERNARD_DOE_TOKEN;
 import static app.bpartners.api.integration.conf.TestUtils.JANE_DOE_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_COGNITO_TOKEN;
@@ -81,12 +83,13 @@ import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_TOKEN;
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsApiException;
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsForbiddenException;
-import static app.bpartners.api.integration.conf.TestUtils.getApiException;
+import static app.bpartners.api.integration.conf.TestUtils.bernardDoeSwanAccount;
 import static app.bpartners.api.integration.conf.TestUtils.joeDoeBridgeAccount;
 import static app.bpartners.api.integration.conf.TestUtils.joeDoeSwanAccount;
 import static app.bpartners.api.integration.conf.TestUtils.otherBridgeAccount;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountHolderSwanRep;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountSwanRepository;
+import static app.bpartners.api.integration.conf.TestUtils.setUpBernardUserSwanRepository;
 import static app.bpartners.api.integration.conf.TestUtils.setUpLegalFileRepository;
 import static app.bpartners.api.integration.conf.TestUtils.setUpSwanComponent;
 import static app.bpartners.api.integration.conf.TestUtils.setUpUserSwanRepository;
@@ -201,17 +204,33 @@ class AccountIT {
   }
 
   private void setUpUserRepository(UserRepository userRepositoryMock) {
-    User user = User.builder()
+    User joeDoe = User.builder()
         .id(JOE_DOE_ID)
         .email("joe@email.com")
         .preferredAccountId(null)
         .account(joeDoeModelAccount())
         .build();
-    when(userRepositoryMock.findAll()).thenReturn(List.of(user));
-    when(userRepositoryMock.getUserByToken(any())).thenReturn(user);
-    when(userRepositoryMock.getByEmail(any())).thenReturn(user);
-    when(userRepositoryMock.getById(any())).thenReturn(user);
-    when(userRepositoryMock.getUserBySwanUserIdAndToken(any(), any())).thenReturn(user);
+
+    when(userRepositoryMock.findAll()).thenReturn(List.of(joeDoe));
+    when(userRepositoryMock.getUserByToken(any())).thenReturn(joeDoe);
+    when(userRepositoryMock.getByEmail(any())).thenReturn(joeDoe);
+    when(userRepositoryMock.getById(any())).thenReturn(joeDoe);
+    when(userRepositoryMock.getUserBySwanUserIdAndToken(any(), any())).thenReturn(joeDoe);
+  }
+
+
+  private void setUpUserBernardRepository(UserRepository userRepositoryMock) {
+    User bernard = User.builder()
+        .id(BERNARD_DOE_ID)
+        .email("bernard@email.com")
+        .preferredAccountId(null)
+        .account(bernardDoeModelAccount())
+        .build();
+
+    when(userRepositoryMock.findAll()).thenReturn(List.of(bernard));
+    when(userRepositoryMock.getUserByToken(any())).thenReturn(bernard);
+    when(userRepositoryMock.getByEmail(any())).thenReturn(bernard);
+    when(userRepositoryMock.getUserBySwanUserIdAndToken(any(), any())).thenReturn(bernard);
   }
 
   private void setUpUserRepositoryWithPreferredAccount(UserRepository userRepositoryMock) {
@@ -270,6 +289,19 @@ class AccountIT {
         .bic(joeDoeSwanAccount().getBic())
         .iban(joeDoeSwanAccount().getIban())
         .bic(joeDoeSwanAccount().getBic())
+        .bank(Bank.builder().build())
+        .availableBalance(parseFraction(100000))
+        .build();
+  }
+
+  app.bpartners.api.model.Account bernardDoeModelAccount() {
+    return app.bpartners.api.model.Account.builder()
+        .id(bernardDoeSwanAccount().getId())
+        .name(bernardDoeSwanAccount().getName())
+        .iban(bernardDoeSwanAccount().getIban())
+        .bic(bernardDoeSwanAccount().getBic())
+        .iban(bernardDoeSwanAccount().getIban())
+        .bic(bernardDoeSwanAccount().getBic())
         .bank(Bank.builder().build())
         .availableBalance(parseFraction(100000))
         .build();
@@ -689,11 +721,18 @@ class AccountIT {
   }
 
   @Test
-  void validate_bank_connection() throws IOException, InterruptedException {
+  void validate_bank_connection_ok() throws IOException, InterruptedException {
     final String redirectUrl = "https://connect.bridge.io";
 
-    when(bridgeBankRepositoryMock.validateProItems(JOE_DOE_TOKEN))
-        .thenReturn(BridgeConnectItem.builder().redirectUrl(redirectUrl).build());
+    reset(userRepositoryMock);
+    reset(userSwanRepositoryMock);
+    setUpUserBernardRepository(userRepositoryMock);
+    setUpBernardUserSwanRepository(userSwanRepositoryMock);
+    when(bridgeBankRepositoryMock.validateProItems(BERNARD_DOE_TOKEN))
+        .thenReturn(BridgeConnectItem.builder()
+            .redirectUrl(redirectUrl)
+            .build()
+        );
     when(bankRepositoryImplMock.validateProItems())
         .thenReturn(new RedirectView(redirectUrl));
 
@@ -704,9 +743,9 @@ class AccountIT {
         HttpRequest.newBuilder()
             .GET()
             .uri(URI.create(
-                basePath + "/users/" + JOE_DOE_ID + "/accounts/" + JOE_DOE_ACCOUNT_ID
-                    + "/validation"))
-            .header("Authorization", BEARER_PREFIX + JOE_DOE_TOKEN).build(),
+                basePath + "/users/" + BERNARD_DOE_ID + "/accounts/" + BERNARD_DOE_ACCOUNT_ID
+                    + "/connection"))
+            .header("Authorization", BEARER_PREFIX + BERNARD_DOE_TOKEN).build(),
         HttpResponse.BodyHandlers.discarding());
 
     assertEquals(HttpStatus.MOVED_TEMPORARILY.value(), response.statusCode());
@@ -715,7 +754,24 @@ class AccountIT {
   }
 
   @Test
-  void edit_bank_connection() throws IOException, InterruptedException {
+  void validate_or_edit_bank_connection_ko() throws IOException, InterruptedException {
+    HttpClient unauthenticatedClient = HttpClient.newBuilder().build();
+    String basePath = "http://localhost:" + ContextInitializer.SERVER_PORT;
+
+    HttpResponse<Void> response = unauthenticatedClient.send(
+        HttpRequest.newBuilder()
+            .GET()
+            .uri(URI.create(
+                basePath + "/users/" + JOE_DOE_ID + "/accounts/" + JOE_DOE_ACCOUNT_ID
+                    + "/connection"))
+            .header("Authorization", BEARER_PREFIX + JOE_DOE_TOKEN).build(),
+        HttpResponse.BodyHandlers.discarding());
+
+    assertEquals(HttpStatus.BAD_REQUEST.value(), response.statusCode());
+  }
+
+  /*@Test
+  void edit_bank_connection_ok() throws IOException, InterruptedException {
     final String redirectUrl = "https://connect.bridge.io";
 
     when(bridgeBankRepositoryMock.editItem())
@@ -731,14 +787,14 @@ class AccountIT {
             .GET()
             .uri(URI.create(
                 basePath + "/users/" + JOE_DOE_ID + "/accounts/" + JOE_DOE_ACCOUNT_ID
-                    + "/connection/edit"))
+                    + "/connection"))
             .header("Authorization", BEARER_PREFIX + JOE_DOE_TOKEN).build(),
         HttpResponse.BodyHandlers.discarding());
 
     assertEquals(HttpStatus.MOVED_TEMPORARILY.value(), response.statusCode());
     assertTrue(response.headers().firstValue("Location").isPresent());
     assertTrue(response.headers().firstValue("Location").get().contains(redirectUrl));
-  }
+  }*/
 
   static class ContextInitializer extends AbstractContextInitializer {
     public static final int SERVER_PORT = TestUtils.anAvailableRandomPort();

@@ -33,7 +33,7 @@ public class AccountController {
   }
 
   @GetMapping("/users/{userId}/accounts/{accountId}/connection")
-  public RedirectView validateBankConnection(
+  public RedirectView validateOrEditBankConnection(
       @PathVariable(name = "userId") String userId,
       @PathVariable(name = "accountId") String accountId) {
     return service.validateOrEditBankConnection(accountId);

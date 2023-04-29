@@ -268,7 +268,8 @@ public class InvoiceMapper {
         .idAccount(domain.getAccount().getId())
         .status(domain.getStatus())
         .toBeRelaunched(domain.isToBeRelaunched())
-        .customer(customerMapper.toEntity(domain.getCustomer()))
+        .customer(domain.getCustomer() == null ? null
+            : customerMapper.toEntity(domain.getCustomer()))
         .customerEmail(domain.getCustomerEmail())
         .customerAddress(domain.getCustomerAddress())
         .customerCity(domain.getCustomerCity())

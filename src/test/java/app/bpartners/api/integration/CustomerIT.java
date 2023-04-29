@@ -208,7 +208,10 @@ class CustomerIT {
         api.createCustomers(JOE_DOE_ACCOUNT_ID, List.of(createCustomer1().firstName("Create")));
     List<Customer> actual3 =
         api.createCustomers(JOE_DOE_ACCOUNT_ID,
-            List.of(createCustomer1().firstName("NotNullFirstName").lastName("NotNullLastName")));
+            List.of(createCustomer1()
+                .firstName("NotNullFirstName")
+                .lastName("NotNullLastName")
+                .email("notnull@email.com")));
 
     List<Customer> actualList = api.getCustomers(
         JOE_DOE_ACCOUNT_ID, null, null, null, null, null, null, null, 1, 20);
@@ -217,7 +220,8 @@ class CustomerIT {
     assertEquals(actual1.get(0)
         .id(null)
         .firstName("NotNullFirstName")
-        .lastName("NotNullLastName"), actual3.get(0).id(null));
+        .lastName("NotNullLastName")
+        .email("notnull@email.com"), actual3.get(0).id(null));
   }
 
   @Order(2)
@@ -255,7 +259,7 @@ class CustomerIT {
 
   @Order(4)
   @Test
-  void update_customer_ko() throws ApiException {
+  void update_customer_ko() {
     ApiClient joeDoeClient = anApiClient();
     CustomersApi api = new CustomersApi(joeDoeClient);
 
@@ -283,7 +287,7 @@ class CustomerIT {
         .readValue(response.body(), playerListType);
 
     assertNotNull(actual);
-    assertEquals(3, actual.size());
+    assertEquals(6, actual.size());
   }
 
   @Order(5)

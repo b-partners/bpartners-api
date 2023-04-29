@@ -54,6 +54,7 @@ class UserRepositoryTest {
         Optional.of(user()));
     when(userJpaRepository.save(any())).thenReturn(user());
     when(userMapper.toDomain(any(HUser.class), any(SwanUser.class))).thenReturn(expectedUser());
+    when(userMapper.toDomain(any(HUser.class))).thenReturn(expectedUser());
   }
 
   @Test

@@ -44,11 +44,11 @@ public class AccountHolderService {
 
   //TODO: map this update with the companyInfoUpdate and refactor to save method only
   public AccountHolder updateBusinessActivities(
-      String optionalAccountId,
+      String accountId,
       String accountHolderId,
       BusinessActivity businessActivity) {
     businessActivityService.save(businessActivity);
-    return accountHolderRepository.getByIdAndAccountId(accountHolderId, optionalAccountId);
+    return accountHolderRepository.getByIdAndAccountId(accountHolderId, accountId);
   }
 
   public AccountHolder updateAnnualRevenueTargets(

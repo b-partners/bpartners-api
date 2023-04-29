@@ -90,7 +90,7 @@ public class BankRepositoryImpl implements BankRepository {
     HUser savedEntity = userJpaRepository.save(userToUpdate);
     return BankConnection.builder()
         .bridgeId(savedEntity.getBridgeItemId())
-        .user(userMapper.toDomain(savedEntity, null))
+        .user(userMapper.toDomain(savedEntity))
         .bank(findByBridgeId(connectionChosen.getBankId()))
         .status(savedEntity.getBankConnectionStatus())
         .build();

@@ -50,7 +50,6 @@ public class AccountRepositoryImpl implements AccountRepository {
 
     List<SwanAccount> swanAccounts = swanRepository.findByBearer(bearer);
     if (swanAccounts.isEmpty()) {
-      bankRepository.selfUpdateBankConnection();
       List<BridgeAccount> bridgeAccounts = bridgeRepository.findByBearer(bearer);
       if (bridgeAccounts.isEmpty()) {
         //TODO: this if-statement is super dubious: it has nothing to do with the input bearer!!!

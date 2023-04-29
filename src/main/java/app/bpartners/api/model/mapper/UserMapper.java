@@ -24,9 +24,8 @@ public class UserMapper {
 
   public User toDomain(HUser entityUser, SwanUser swanUser) {
     return User.builder()
-        //TODO: check this later
-        .preferredAccountId(entityUser.getPreferredAccountExternalId())
         .id(entityUser.getId())
+        .preferredAccountId(entityUser.getPreferredAccountExternalId())
         .firstName(swanUser == null ? entityUser.getFirstName() : swanUser.getFirstName())
         .lastName(swanUser == null ? entityUser.getLastName() : swanUser.getLastName())
         .mobilePhoneNumber(entityUser.getPhoneNumber())
@@ -44,6 +43,30 @@ public class UserMapper {
             swanUser == null ? entityUser.getIdentificationStatus()
                 : getIdentificationStatus(
                 swanUser.getIdentificationStatus()))
+        .account(entityUser.getAccounts() == null || entityUser.getAccounts().isEmpty() ? null
+            : accountMapper.toDomain(entityUser.getAccounts().get(0),
+            entityUser.getId()))
+        .build();
+  }
+
+  public User toDomain(HUser entityUser) {
+    return User.builder()
+        .id(entityUser.getId())
+        .preferredAccountId(entityUser.getPreferredAccountExternalId())
+        .firstName(entityUser.getFirstName())
+        .lastName(entityUser.getLastName())
+        .mobilePhoneNumber(entityUser.getPhoneNumber())
+        .email(entityUser.getEmail())
+        .accessToken(entityUser.getAccessToken())
+        .bridgePassword(entityUser.getBridgePassword())
+        .bridgeItemId(entityUser.getBridgeItemId())
+        .bridgeItemUpdatedAt(entityUser.getBridgeItemUpdatedAt())
+        .bridgeItemLastRefresh(entityUser.getBridgeItemLastRefresh())
+        .monthlySubscription(entityUser.getMonthlySubscription())
+        .status(entityUser.getStatus())
+        .logoFileId(entityUser.getLogoFileId())
+        .idVerified(entityUser.getIdVerified())
+        .identificationStatus(entityUser.getIdentificationStatus())
         .account(entityUser.getAccounts() == null || entityUser.getAccounts().isEmpty() ? null
             : accountMapper.toDomain(entityUser.getAccounts().get(0),
             entityUser.getId()))

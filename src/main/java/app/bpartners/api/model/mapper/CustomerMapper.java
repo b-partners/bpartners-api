@@ -29,9 +29,6 @@ public class CustomerMapper {
   }
 
   public HCustomer toEntity(Customer domain) {
-    if (domain == null) {
-      return null;
-    }
     return HCustomer.builder()
         .id(domain.getId())
         .idAccount(domain.getIdAccount())

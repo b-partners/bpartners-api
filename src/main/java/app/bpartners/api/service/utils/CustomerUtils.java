@@ -1,14 +1,19 @@
 package app.bpartners.api.service.utils;
 
 import app.bpartners.api.endpoint.rest.model.CreateCustomer;
-import app.bpartners.api.model.Customer;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.exception.BadRequestException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.Cell;
@@ -19,6 +24,7 @@ import org.apache.poi.ss.usermodel.WorkbookFactory;
 
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 public class CustomerUtils {
   private CustomerUtils() {
@@ -44,7 +50,13 @@ public class CustomerUtils {
       }
       workbook.close();
       return customerTemplates.stream()
+          //Remove blank fields
           .filter(createCustomer -> !hasBlankFields(createCustomer))
+          //Remove duplicated customer
+          .filter(distinctByKeys(
+              CreateCustomer::getFirstName,
+              CreateCustomer::getLastName,
+              CreateCustomer::getEmail))
           .collect(Collectors.toUnmodifiableList());
     } catch (InvalidFormatException | IOException e) {
       throw new ApiException(SERVER_EXCEPTION, "Failed to parse Excel file : " + e.getMessage());
@@ -60,43 +72,43 @@ public class CustomerUtils {
 
       switch (cellIndex) {
         case 0:
-          customer.setLastName((String) getCellValue(currentCell));
+          customer.setLastName(getStringValue(currentCell));
           break;
 
         case 1:
-          customer.setFirstName((String) getCellValue(currentCell));
+          customer.setFirstName(getStringValue(currentCell));
           break;
 
         case 2:
-          customer.setEmail((String) getCellValue(currentCell));
+          customer.setEmail(getStringValue(currentCell));
           break;
 
         case 3:
-          customer.setPhone((String) getCellValue(currentCell));
+          customer.setPhone(getStringValue(currentCell));
           break;
 
         case 4:
-          customer.setWebsite((String) getCellValue(currentCell));
+          customer.setWebsite(getStringValue(currentCell));
           break;
 
         case 5:
-          customer.setAddress((String) getCellValue(currentCell));
+          customer.setAddress(getStringValue(currentCell));
           break;
 
         case 6:
-          customer.setZipCode((int) (double) getCellValue(currentCell));
+          customer.setZipCode(getIntValue(currentCell));
           break;
 
         case 7:
-          customer.setCity((String) getCellValue(currentCell));
+          customer.setCity(getStringValue(currentCell));
           break;
 
         case 8:
-          customer.setCountry((String) getCellValue(currentCell));
+          customer.setCountry(getStringValue(currentCell));
           break;
 
         default:
-          customer.setComment((String) getCellValue(currentCell));
+          customer.setComment(getStringValue(currentCell));
           break;
       }
       cellIndex++;
@@ -199,31 +211,53 @@ public class CustomerUtils {
     }
   }
 
-  //TODO: Should be improved because it costs too much complexity
-  public static List<Customer> removeDuplicate(List<Customer> list) {
-    for (int i = 0; i < list.size() - 1; i++) {
-      Customer currentCustomer = list.get(i);
-      for (int j = 0; j < list.size(); j++) {
-        Customer nextCustomer = list.get(j);
-        if (currentCustomer.getFirstName().equals(nextCustomer.getFirstName())
-            && currentCustomer.getLastName().equals(nextCustomer.getLastName())
-            && currentCustomer.getEmail().equals(nextCustomer.getEmail())) {
-          list.remove(currentCustomer);
-        }
-      }
-    }
-    return list;
-  }
-
   private static boolean hasBlankFields(CreateCustomer customer) {
     return isBlank(customer.getFirstName())
-        && isBlank(customer.getLastName());
+        && isBlank(customer.getLastName())
+        && isEmpty(customer.getFirstName())
+        && isEmpty(customer.getLastName());
   }
 
-  private static Object getCellValue(Cell cell) {
+  private static String getStringValue(Cell cell) {
     if (cell.getCellType() == Cell.CELL_TYPE_NUMERIC) {
-      return cell.getNumericCellValue();
+      return doubleValue(cell) == null
+          ? null
+          : String.valueOf(Objects.requireNonNullElse(doubleValue(cell), 0).intValue());
     }
-    return cell.getStringCellValue();
+    return cell.getStringCellValue().isEmpty() || cell.getStringCellValue().isBlank()
+        ? null
+        : cell.getStringCellValue();
+  }
+
+  private static Integer getIntValue(Cell cell) {
+    if (cell.getCellType() == Cell.CELL_TYPE_NUMERIC) {
+      return doubleValue(cell) == null
+          ? null
+          : Objects.requireNonNullElse(doubleValue(cell), 0).intValue();
+    }
+    try {
+      return Integer.parseInt(cell.getStringCellValue());
+    } catch (NumberFormatException e) {
+      return null;
+    }
+  }
+
+  private static Double doubleValue(Cell cell) {
+    try {
+      return cell.getNumericCellValue();
+    } catch (NumberFormatException e) {
+      return null;
+    }
+  }
+
+  @SafeVarargs
+  private static <T> Predicate<T> distinctByKeys(final Function<? super T, ?>... keyExtractors) {
+    final Map<List<?>, Boolean> seen = new ConcurrentHashMap<>();
+    return elt -> {
+      final List<?> keys = Arrays.stream(keyExtractors)
+          .map(key -> key.apply(elt))
+          .collect(Collectors.toList());
+      return seen.putIfAbsent(keys, Boolean.TRUE) == null;
+    };
   }
 }

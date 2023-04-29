@@ -18,8 +18,8 @@ public class BusinessActivityRestMapper {
         .name(domain.getName());
   }
 
-  public app.bpartners.api.model.BusinessActivity toDomain(String accountId,
-                                                           CompanyBusinessActivity rest) {
+  public app.bpartners.api.model.BusinessActivity toDomain(
+      String accountId, CompanyBusinessActivity rest) {
     AccountHolder authenticatedAccountHolder =
         accountHolderService.getAccountHolderByAccountId(accountId);
     return app.bpartners.api.model.BusinessActivity.builder()

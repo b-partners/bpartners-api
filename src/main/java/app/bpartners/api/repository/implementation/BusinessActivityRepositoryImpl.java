@@ -1,6 +1,7 @@
 package app.bpartners.api.repository.implementation;
 
 import app.bpartners.api.model.BusinessActivity;
+import app.bpartners.api.model.mapper.AccountHolderMapper;
 import app.bpartners.api.model.mapper.BusinessActivityMapper;
 import app.bpartners.api.repository.BusinessActivityRepository;
 import app.bpartners.api.repository.jpa.BusinessActivityJpaRepository;
@@ -16,47 +17,52 @@ import org.springframework.stereotype.Repository;
 public class BusinessActivityRepositoryImpl implements BusinessActivityRepository {
   private final BusinessActivityJpaRepository jpaRepository;
   private final BusinessActivityTemplateJpaRepository templateRepository;
-  private final BusinessActivityMapper domainMapper;
+  private final BusinessActivityMapper mapper;
+  private final AccountHolderMapper accountHolderMapper;
 
   @Override
   public BusinessActivity save(BusinessActivity businessActivity) {
     HBusinessActivity entity =
         jpaRepository.findByAccountHolder_Id(businessActivity.getAccountHolder().getId())
-            .orElseGet(
-                () -> domainMapper.toEntity(businessActivity,
-                    businessActivity.getAccountHolder().getAccountId())
-            );
+            .orElse(mapper.toEntity(
+                businessActivity,
+                accountHolderMapper.toEntity(businessActivity.getAccountHolder())));
 
-    Optional<HBusinessActivityTemplate> template1 =
+    Optional<HBusinessActivityTemplate> optionalPrimary =
         templateRepository.findByNameIgnoreCase(businessActivity.getPrimaryActivity());
-    Optional<HBusinessActivityTemplate> template2 =
+    Optional<HBusinessActivityTemplate> optionalSecondary =
         templateRepository.findByNameIgnoreCase(businessActivity.getSecondaryActivity());
 
-    template1.ifPresent(template -> {
-      entity.setPrimaryActivity(template);
+    optionalPrimary.ifPresent(activity -> {
+      entity.setPrimaryActivity(activity);
       entity.setOtherPrimaryActivity(null);
     });
 
-    template2.ifPresent(template -> {
+    optionalSecondary.ifPresent(template -> {
       entity.setSecondaryActivity(template);
       entity.setOtherSecondaryActivity(null);
     });
 
-    if (template1.isEmpty()) {
+    if (optionalPrimary.isEmpty()) {
       entity.setOtherPrimaryActivity(businessActivity.getPrimaryActivity());
     }
-    if (template2.isEmpty()) {
+    if (optionalSecondary.isEmpty()) {
       entity.setOtherSecondaryActivity(businessActivity.getSecondaryActivity());
     }
 
-    return domainMapper.toDomain(jpaRepository.save(entity));
+    HBusinessActivity savedBusinessActivity = jpaRepository.save(entity);
+
+    return mapper.toDomain(
+        savedBusinessActivity,
+        accountHolderMapper.toDomain(savedBusinessActivity.getAccountHolder()));
   }
 
   @Override
   public BusinessActivity findByAccountHolderId(String accountHolderId) {
-    return domainMapper.toDomain(
-        jpaRepository.findByAccountHolder_Id(accountHolderId)
-            .orElse(null)
-    );
+    Optional<HBusinessActivity> optionalActivity =
+        jpaRepository.findByAccountHolder_Id(accountHolderId);
+    return optionalActivity.isEmpty() ? null
+        : mapper.toDomain(optionalActivity.get(),
+        accountHolderMapper.toDomain(optionalActivity.get().getAccountHolder()));
   }
 }

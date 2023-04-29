@@ -30,9 +30,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.apfloat.Aprational;
 import org.springframework.stereotype.Component;
 
+import static app.bpartners.api.endpoint.rest.model.CrupdateInvoice.PaymentTypeEnum.CASH;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
-import static app.bpartners.api.model.Invoice.DEFAULT_DELAY_PENALTY_PERCENT;
 import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 
 @Slf4j
@@ -128,9 +128,11 @@ public class InvoiceRestMapper {
             : Optional.of(customerRepository.findById(rest.getCustomer().getId()));
     Integer delayInPaymentAllowed = rest.getDelayInPaymentAllowed();
     Integer delayPenaltyPercent = rest.getDelayPenaltyPercent();
-    if (delayInPaymentAllowed == null || delayPenaltyPercent == null) {
-      delayPenaltyPercent = null;
-      delayInPaymentAllowed = null;
+    //TODO: check default value if necessary
+    if (delayInPaymentAllowed == null && rest.getPaymentType() == CASH) {
+      log.warn(
+          "Delay in payment allowed is mandatory for CASH Payment type. 30 is given by default");
+      delayInPaymentAllowed = 30;
     }
     return app.bpartners.api.model.Invoice.builder()
         .id(id)

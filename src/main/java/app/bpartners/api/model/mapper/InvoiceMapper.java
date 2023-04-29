@@ -65,11 +65,6 @@ public class InvoiceMapper {
     }
     Integer delayInPaymentAllowed = entity.getDelayInPaymentAllowed();
     String delayPenaltyPercent = entity.getDelayPenaltyPercent();
-    if (delayInPaymentAllowed == null || delayPenaltyPercent == null
-        || delayPenaltyPercent.equals("0/1")) {
-      delayInPaymentAllowed = null;
-      delayPenaltyPercent = null;
-    }
     List<InvoiceProduct> actualProducts = getActualProducts(entity);
     Fraction discount = parseFraction(entity.getDiscountPercent());
     Invoice invoice = Invoice.builder()

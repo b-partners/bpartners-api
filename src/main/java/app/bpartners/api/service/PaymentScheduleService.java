@@ -23,8 +23,8 @@ public class PaymentScheduleService {
   private final FintecturePaymentInfoRepository infoRepository;
   private final PaymentRequestJpaRepository jpaRepository;
 
-  //TODO: check if 60 minutes of refresh is enough or too much
-  @Scheduled(fixedRate = 60 * 60 * 1_000)
+  //TODO: check if 12 hours of refresh is enough or too much
+  @Scheduled(fixedRate = 12 * 60 * 60 * 1_000)
   @PostConstruct
   public void updatePaymentStatus() {
     List<HPaymentRequest> unpaidPayments = jpaRepository.findAllByStatus(UNPAID);

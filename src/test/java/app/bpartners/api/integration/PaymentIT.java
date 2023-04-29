@@ -24,6 +24,7 @@ import app.bpartners.api.repository.sendinblue.SendinblueConf;
 import app.bpartners.api.repository.swan.AccountHolderSwanRepository;
 import app.bpartners.api.repository.swan.AccountSwanRepository;
 import app.bpartners.api.repository.swan.UserSwanRepository;
+import app.bpartners.api.repository.swan.model.SwanAccount;
 import app.bpartners.api.service.PaymentScheduleService;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -40,6 +41,8 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.TestUtils.SESSION1_ID;
 import static app.bpartners.api.integration.conf.TestUtils.SESSION2_ID;
+import static app.bpartners.api.integration.conf.TestUtils.assertThrowsApiException;
+import static app.bpartners.api.integration.conf.TestUtils.joeDoeSwanAccount;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountHolderSwanRep;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountSwanRepository;
 import static app.bpartners.api.integration.conf.TestUtils.setUpLegalFileRepository;
@@ -49,6 +52,9 @@ import static app.bpartners.api.integration.conf.TestUtils.setUpUserSwanReposito
 import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
@@ -178,6 +184,29 @@ class PaymentIT {
             entityPaymentRequest(
                 SESSION2_ID,
                 paymentInitiation2().getLabel()))));
+  }
+
+  @Test
+  void initiate_payment_ko() {
+    SwanAccount accountNoIban = joeDoeSwanAccount().toBuilder()
+        .iban(null)
+        .bic(null)
+        .build();
+    reset(accountSwanRepositoryMock);
+    when(accountSwanRepositoryMock.findByBearer(any()))
+        .thenReturn(List.of(accountNoIban));
+    when(accountSwanRepositoryMock.findById(any()))
+        .thenReturn(
+            List.of(accountNoIban));
+
+    ApiClient joeDoeClient = anApiClient();
+    PayingApi api = new PayingApi(joeDoeClient);
+
+    assertThrowsApiException("{\"type\":\"400 BAD_REQUEST\","
+            + "\"message\":\"Bic is mandatory for initiating payments. "
+            + "Iban is mandatory for initiating payments. \"}",
+        () -> api.initiatePayments(JOE_DOE_ACCOUNT_ID,
+            List.of(paymentInitiation1())));
   }
 
   static class ContextInitializer extends AbstractContextInitializer {

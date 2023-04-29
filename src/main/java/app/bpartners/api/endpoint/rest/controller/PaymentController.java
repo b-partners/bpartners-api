@@ -25,7 +25,7 @@ public class PaymentController {
     List<app.bpartners.api.model.PaymentInitiation> domain = paymentRequests.stream()
         .map(mapper::toDomain)
         .collect(Collectors.toUnmodifiableList());
-    return initiationService.initiatePayments(domain).stream()
+    return initiationService.initiatePayments(accountId, domain).stream()
         .map(mapper::toRest)
         .collect(Collectors.toUnmodifiableList());
   }

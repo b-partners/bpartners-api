@@ -14,7 +14,7 @@ public class UserTokenMapper {
 
   public UserToken toDomain(HUser user) {
     return UserToken.builder()
-        .user(userMapper.toDomain(user, null))
+        .user(userMapper.toDomain(user))
         .accessToken(user.getAccessToken())
         .expirationDatetime(user.getTokenExpirationDatetime())
         .creationDatetime(user.getTokenCreationDatetime())

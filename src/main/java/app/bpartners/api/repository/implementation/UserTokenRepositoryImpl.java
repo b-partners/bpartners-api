@@ -56,6 +56,6 @@ public class UserTokenRepositoryImpl implements UserTokenRepository {
   @Override
   public UserToken getLatestTokenByAccount(String accountId) {
     HUser entity = userJpaRepository.getByAccountId(accountId);
-    return getLatestTokenByUser(userMapper.toDomain(entity, null));
+    return getLatestTokenByUser(userMapper.toDomain(entity));
   }
 }

@@ -38,7 +38,7 @@ public class UserRepositoryImpl implements UserRepository {
   @Override
   public List<User> findAll() {
     return jpaRepository.findAll().stream()
-        .map(user -> userMapper.toDomain(user, null))
+        .map(userMapper::toDomain)
         .collect(Collectors.toList());
   }
 
@@ -93,13 +93,13 @@ public class UserRepositoryImpl implements UserRepository {
     return userMapper.toDomain(
         jpaRepository.findByEmail(email).orElseThrow(
             () -> new NotFoundException(
-                "No user with the email " + email + " was found")), null);
+                "No user with the email " + email + " was found")));
   }
 
   @Override
   public Optional<User> findByEmail(String email) {
     return jpaRepository.getByEmail(email) != null
-        ? Optional.of(userMapper.toDomain(jpaRepository.getByEmail(email), null))
+        ? Optional.of(userMapper.toDomain(jpaRepository.getByEmail(email)))
         : Optional.empty();
   }
 
@@ -108,7 +108,7 @@ public class UserRepositoryImpl implements UserRepository {
     BridgeUser bridgeUser = bridgeUserRepository.createUser(userMapper.toBridgeUser(toSave));
     HUser entityToSave = userMapper.toEntity(toSave, bridgeUser);
     HUser savedUser = jpaRepository.save(entityToSave);
-    return userMapper.toDomain(savedUser, null);
+    return userMapper.toDomain(savedUser);
   }
 
   public HUser getUpdatedUser(SwanUser swanUser) {

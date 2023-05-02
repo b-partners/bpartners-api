@@ -11,6 +11,7 @@ import app.bpartners.api.service.CustomerService;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @AllArgsConstructor
+@Slf4j
 public class CustomerController {
   private final CustomerService service;
   private final CustomerRestMapper mapper;
@@ -44,9 +46,10 @@ public class CustomerController {
   }
 
   @PostMapping("/accounts/{id}/customers")
-  public List<app.bpartners.api.endpoint.rest.model.Customer> createCustomers(
+  public List<Customer> createCustomers(
       @PathVariable String id,
       @RequestBody List<CreateCustomer> toCreate) {
+    log.warn("POST /accounts/{id}/customers is deprecated. Use PUT instead");
     List<app.bpartners.api.model.Customer> customers = toCreate.stream()
         .map(createCustomer -> mapper.toDomain(id, createCustomer))
         .collect(Collectors.toUnmodifiableList());
@@ -56,7 +59,7 @@ public class CustomerController {
   }
 
   @PutMapping("/accounts/{id}/customers")
-  public List<app.bpartners.api.endpoint.rest.model.Customer> updateCustomers(
+  public List<Customer> crupdateCustomers(
       @PathVariable("id") String id,
       @RequestBody List<Customer> toUpdate) {
     List<app.bpartners.api.model.Customer> customers = toUpdate.stream()
@@ -86,5 +89,4 @@ public class CustomerController {
         .map(mapper::toRest)
         .collect(Collectors.toUnmodifiableList());
   }
-
 }

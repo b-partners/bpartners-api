@@ -30,6 +30,7 @@ import static app.bpartners.api.repository.fintecture.implementation.utils.Finte
 import static app.bpartners.api.repository.fintecture.implementation.utils.FintecturePaymentUtils.getHeaderSignatureWithDigest;
 import static app.bpartners.api.repository.fintecture.implementation.utils.FintecturePaymentUtils.getParsedDate;
 import static java.util.UUID.randomUUID;
+import static org.apache.tika.metadata.HttpHeaders.CONTENT_TYPE;
 
 @Slf4j
 @Repository
@@ -37,6 +38,7 @@ public class FintecturePaymentInitiationRepositoryImpl implements
     FintecturePaymentInitiationRepository {
   private final FintectureConf fintectureConf;
   private final ProjectTokenManager tokenManager;
+  private final ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
   private HttpClient httpClient;
 
   public FintecturePaymentInitiationRepositoryImpl(FintectureConf fintectureConf,
@@ -55,13 +57,13 @@ public class FintecturePaymentInitiationRepositoryImpl implements
   public FPaymentRedirection save(FPaymentInitiation paymentInitiation, String redirectUri) {
     try {
       String urlParams = String.format("?redirectUri=%s&state=12341234", redirectUri);
-      String data = new ObjectMapper().writeValueAsString(paymentInitiation);
+      String payload = objectMapper.writeValueAsString(paymentInitiation);
       String requestId = String.valueOf(randomUUID());
-      String digest = getDigest(data);
+      String digest = getDigest(payload);
       String date = getParsedDate();
-      HttpRequest request = HttpRequest.newBuilder()
+      var request = HttpRequest.newBuilder()
           .uri(new URI(fintectureConf.getRequestToPayUrl() + urlParams))
-          .header("Content-Type", APPLICATION_JSON)
+          .header(CONTENT_TYPE, APPLICATION_JSON)
           .header(ACCEPT, APPLICATION_JSON)
           .header(REQUEST_ID, requestId)
           .header(LANGUAGE, "fr")
@@ -69,26 +71,27 @@ public class FintecturePaymentInitiationRepositoryImpl implements
           .header(DATE, date)
           .header(SIGNATURE,
               getHeaderSignatureWithDigest(fintectureConf, requestId, digest, date, urlParams))
-          .header(AUTHORIZATION, BEARER_PREFIX + tokenManager.getFintectureProjectToken())
-          .POST(HttpRequest.BodyPublishers.ofString(data))
+          .header(AUTHORIZATION, getProjectBearer())
+          .POST(HttpRequest.BodyPublishers.ofString(payload))
           .build();
-      HttpResponse<String> response =
-          httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-      FPaymentRedirection redirectionResponse = new ObjectMapper()
-          .findAndRegisterModules() //Load DateTime Module
-          .readValue(response.body(), FPaymentRedirection.class);
-      if (redirectionResponse.getMeta() == null
-          || redirectionResponse.getMeta().getStatus() != 200
-          && redirectionResponse.getMeta().getStatus() != 201) {
-        log.warn("Error from Fintecture occured={}", response.body());
+      var response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+      var redirectionObj = objectMapper.readValue(response.body(), FPaymentRedirection.class);
+      if (redirectionObj.getMeta() == null
+          || redirectionObj.getMeta().getStatus() != 200
+          && redirectionObj.getMeta().getStatus() != 201) {
+        log.warn("Error from Fintecture : {}", response.body());
         return null;
       }
-      return redirectionResponse;
+      return redirectionObj;
     } catch (IOException | URISyntaxException | NoSuchAlgorithmException e) {
       throw new ApiException(ApiException.ExceptionType.SERVER_EXCEPTION, e);
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       throw new ApiException(SERVER_EXCEPTION, e);
     }
+  }
+
+  private String getProjectBearer() {
+    return BEARER_PREFIX + tokenManager.getFintectureProjectToken();
   }
 }

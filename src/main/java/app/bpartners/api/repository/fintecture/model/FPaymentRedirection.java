@@ -1,48 +1,30 @@
 package app.bpartners.api.repository.fintecture.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
+@Data
 public class FPaymentRedirection {
+  @JsonProperty("meta")
   private Meta meta;
 
-  @JsonProperty("meta")
-  @JsonInclude(JsonInclude.Include.USE_DEFAULTS)
-  public Meta getMeta() {
-    return meta;
-  }
-
   @Builder
+  @Data
   @JsonIgnoreProperties(ignoreUnknown = true)
   public static class Meta {
-    private Integer status;
-    private String sessionId;
-    private String url;
-
     @JsonProperty("status")
-    @JsonInclude(JsonInclude.Include.USE_DEFAULTS)
-    public Integer getStatus() {
-      return status;
-    }
-
+    private Integer status;
     @JsonProperty("session_id")
-    @JsonInclude(JsonInclude.Include.USE_DEFAULTS)
-    public String getSessionId() {
-      return sessionId;
-    }
-
+    private String sessionId;
     @JsonProperty("url")
-    @JsonInclude(JsonInclude.Include.USE_DEFAULTS)
-    public String getUrl() {
-      return url;
-    }
+    private String url;
   }
 }

@@ -25,7 +25,7 @@ import static javax.persistence.GenerationType.IDENTITY;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
+@Builder(toBuilder = true)
 public class HCustomer {
   @Id
   @GeneratedValue(strategy = IDENTITY)

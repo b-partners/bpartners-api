@@ -314,6 +314,28 @@ public class BridgeApi {
     }
   }
 
+  public boolean deleteItem(Long id, String token) {
+    try {
+      HttpRequest request = HttpRequest.newBuilder()
+          .uri(new URI(conf.getItemByIdUrl(String.valueOf(id))))
+          .headers(defaultHeadersWithToken(token))
+          .DELETE()
+          .build();
+      HttpResponse<String> httpResponse =
+          httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+      if (httpResponse.statusCode() != 200 && httpResponse.statusCode() != 204) {
+        log.warn("BridgeApi errors : {}", httpResponse.body());
+        return false;
+      }
+      return true;
+    } catch (URISyntaxException | IOException e) {
+      throw new ApiException(SERVER_EXCEPTION, e);
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new ApiException(SERVER_EXCEPTION, e);
+    }
+  }
+
   public List<BridgeTransaction> findTransactionsUpdatedByToken(String userToken) {
     try {
       HttpRequest request = HttpRequest.newBuilder()

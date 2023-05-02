@@ -128,6 +128,11 @@ public class BankRepositoryImpl implements BankRepository {
     return null;
   }
 
+  @Override
+  public boolean disconnectBank(User user) {
+    return bridgeRepository.deleteItem(user.getBridgeItemId(), user.getAccessToken());
+  }
+
   public static BankConnection.BankConnectionStatus getStatus(Integer statusValue) {
     switch (statusValue) {
       case ITEM_STATUS_OK:

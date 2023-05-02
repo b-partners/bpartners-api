@@ -90,14 +90,11 @@ public class AccountRepositoryImpl implements AccountRepository {
       bankRepository.selfUpdateBankConnection();
       List<BridgeAccount> bridgeAccounts = bridgeRepository.findAllByAuthenticatedUser();
       if (bridgeAccounts.isEmpty()) {
-        Optional<HAccount> optionalAccount = accountJpaRepository.findByUser_Id(userId);
-        if (optionalAccount.isPresent()) {
-          return List.of(mapper.toDomain(optionalAccount.get(), userId));
-        } else {
-          throw new NotFoundException("User." + userId + " is not associated with any account");
-        }
+        return List.of(mapper.toDomain(accountJpaRepository.findByUser_Id(userId).orElseThrow(
+                () -> new NotFoundException("User." + userId + " is not associated with any account")),
+            userId
+        ));
       }
-      log.info("Bridge found={}", bridgeAccounts);
       return bridgeAccounts.stream()
           .map(bridgeAccount -> getUpdatedAccount(authenticatedUser, bridgeAccount))
           .collect(Collectors.toList());

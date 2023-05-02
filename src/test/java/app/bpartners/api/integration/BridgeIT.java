@@ -194,9 +194,13 @@ public class BridgeIT {
   }
 
   private String userToken() {
-    return "408a85a75bfae1b21b4818565e2c2c77ca8935a2-b7b93ec7-2e5d-45b7-93f5-da5fdb0fb00b";
+    return "7aeb445c2f48a9eb7a9e1d3d81105558c00d0488-fd723599-f559-40a6-a7ea-4d9dd24dc650";
   }
 
+  @Test
+  void delete_item_ok() {
+    assertTrue(subject.deleteItem(7838784L, userToken()));
+  }
 
   public static class ContextInitializer extends BridgeAbstractContextInitializer {
     public static final int SERVER_PORT = TestUtils.anAvailableRandomPort();

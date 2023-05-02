@@ -2,13 +2,12 @@ package app.bpartners.api.service;
 
 import app.bpartners.api.endpoint.rest.model.BankConnectionRedirection;
 import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
-import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.UserToken;
 import app.bpartners.api.repository.AccountRepository;
 import app.bpartners.api.repository.BankRepository;
-import app.bpartners.api.repository.bridge.repository.BridgeBankRepository;
+import app.bpartners.api.repository.UserRepository;
 import java.time.Instant;
 import java.util.List;
 import lombok.AllArgsConstructor;
@@ -16,14 +15,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
-import static org.springframework.transaction.annotation.Isolation.SERIALIZABLE;
-
 @Service
 @AllArgsConstructor
 public class AccountService {
   private final AccountRepository repository;
-  private final BridgeBankRepository bridgeBankRepository;
   private final BankRepository bankRepository;
+  private final UserRepository userRepository;
 
 
   @Transactional
@@ -44,12 +41,11 @@ public class AccountService {
     return repository.findByUserId(userId);
   }
 
-  //TODO: use bank repository and do not expose BridgeBankRepository
   public BankConnectionRedirection getBankConnectionInitUrl(
-      String userId, String accountId, RedirectionStatusUrls urls) {
-    User authenticatedUser = AuthProvider.getPrincipal().getUser();
+      String userId, RedirectionStatusUrls urls) {
+    User user = userRepository.getById(userId);
     return new BankConnectionRedirection()
-        .redirectionUrl(bridgeBankRepository.initiateBankConnection(authenticatedUser.getEmail()))
+        .redirectionUrl(bankRepository.initiateConnection(user))
         .redirectionStatusUrls(urls);
   }
 

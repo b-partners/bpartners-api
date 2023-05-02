@@ -104,6 +104,12 @@ public class UserRepositoryImpl implements UserRepository {
   }
 
   @Override
+  public User getById(String id) {
+    return userMapper.toDomain(jpaRepository.findById(id)
+        .orElseThrow(() -> new NotFoundException("User(id=" + id + " not found)")));
+  }
+
+  @Override
   public User save(User toSave) {
     BridgeUser bridgeUser = bridgeUserRepository.createUser(userMapper.toBridgeUser(toSave));
     HUser entityToSave = userMapper.toEntity(toSave, bridgeUser);

@@ -3,6 +3,7 @@ package app.bpartners.api.unit.repository;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitApi;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitConf;
+import app.bpartners.api.repository.prospecting.datasource.buildingpermit.RetryerConfig;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.model.BuildingPermitList;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.model.SingleBuildingPermit;
 import java.io.IOException;
@@ -108,10 +109,9 @@ class BuildingPermitApiTest {
   private static final String SOGEFI_EXCEPTION_MESSAGE_KEYWORD = "<!doctype html>";
   BuildingPermitConf conf = new BuildingPermitConf(BASE_URL, BEARER, COMMON_DENOM_CHAR);
   HttpClient mockHttpClient = mock(HttpClient.class);
-  RetryTemplate retryTemplate = new RetryTemplate();
-  BuildingPermitApi api = new BuildingPermitApi(conf)
-      .httpClient(mockHttpClient)
-      .retryTemplate(retryTemplate);
+  RetryerConfig retryerConfig = new RetryerConfig();
+  BuildingPermitApi api = new BuildingPermitApi(conf, retryerConfig)
+      .httpClient(mockHttpClient);
 
   BuildingPermitList expectedPermits() throws IOException {
     return om.readValue(BUILDING_PERMIT_LIST_JSON, BuildingPermitList.class);
@@ -152,15 +152,15 @@ class BuildingPermitApiTest {
   }
 
   @Test
-  void handle_sogefi_429() throws IOException, InterruptedException {
+  void handle_sogefi_429_retryer() throws IOException, InterruptedException {
     when(mockHttpClient.send(any(), any())).thenThrow(
         new IOException(SOGEFI_EXCEPTION_MESSAGE_KEYWORD));
 
     try {
-      log.info("Get data: {}", api.getData(BASE_URL, SingleBuildingPermit.class));
+      api.getData(BASE_URL, SingleBuildingPermit.class);
     } catch (ApiException e) {
-      verify(mockHttpClient, times(3)).send(any(), any());
-      assertThrows(ApiException.class , () -> api.getData(BASE_URL, SingleBuildingPermit.class));
+      verify(mockHttpClient, times(4)).send(any(), any());
+      assertThrows(ApiException.class, () -> api.getData(BASE_URL, SingleBuildingPermit.class));
     }
   }
 

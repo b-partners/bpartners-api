@@ -12,17 +12,15 @@ import lombok.Setter;
 @Builder
 @Setter
 public class FPaymentInitiation {
+  @JsonProperty("meta")
   private Meta meta;
+  @JsonProperty("data")
   private Data data;
 
-  @JsonProperty("meta")
-  @JsonInclude(JsonInclude.Include.USE_DEFAULTS)
   public Meta getMeta() {
     return meta;
   }
 
-  @JsonProperty("data")
-  @JsonInclude(JsonInclude.Include.USE_DEFAULTS)
   public Data getData() {
     return data;
   }
@@ -32,21 +30,10 @@ public class FPaymentInitiation {
   @Setter
   @Builder
   public static class Meta {
-    private String psuName;
-    private String psuEmail;
-
     @JsonProperty("psu_name")
-    @JsonInclude(JsonInclude.Include.USE_DEFAULTS)
-    public String getPsuName() {
-      return psuName;
-    }
-
+    private String psuName;
     @JsonProperty("psu_email")
-    @JsonInclude(JsonInclude.Include.USE_DEFAULTS)
-    public String getPsuEmail() {
-      return psuEmail;
-    }
-
+    private String psuEmail;
   }
 
   @Setter
@@ -54,18 +41,13 @@ public class FPaymentInitiation {
   @Builder
   @NoArgsConstructor
   public static class Data {
+    @JsonProperty("attributes")
     private Attributes attributes;
 
     @JsonProperty("type")
     @JsonInclude(JsonInclude.Include.USE_DEFAULTS)
     public String getType() {
       return "request-to-pay";
-    }
-
-    @JsonProperty("attributes")
-    @JsonInclude(JsonInclude.Include.USE_DEFAULTS)
-    public Attributes getAttributes() {
-      return attributes;
     }
   }
 
@@ -74,8 +56,11 @@ public class FPaymentInitiation {
   @NoArgsConstructor
   @AllArgsConstructor
   public static class Attributes {
+    @JsonProperty("amount")
     private String amount;
+    @JsonProperty("communication")
     private String communication;
+    @JsonProperty("beneficiary")
     private Beneficiary beneficiary;
 
     @JsonProperty("currency")
@@ -87,27 +72,7 @@ public class FPaymentInitiation {
     @JsonProperty("scheme")
     @JsonInclude(JsonInclude.Include.USE_DEFAULTS)
     public String getScheme() {
-      //TODO: change to SEPA or INSTANT_SEPA to force
-      //Since Fintecture force SEPA or INSTANT_SEPA, it _seems_ any changes is overrided
       return "AUTO";
-    }
-
-    @JsonProperty("communication")
-    @JsonInclude(JsonInclude.Include.USE_DEFAULTS)
-    public String getCommunication() {
-      return communication;
-    }
-
-    @JsonProperty("amount")
-    @JsonInclude(JsonInclude.Include.USE_DEFAULTS)
-    public String getAmount() {
-      return amount;
-    }
-
-    @JsonProperty("beneficiary")
-    @JsonInclude(JsonInclude.Include.USE_DEFAULTS)
-    public Beneficiary getBeneficiary() {
-      return beneficiary;
     }
   }
 }

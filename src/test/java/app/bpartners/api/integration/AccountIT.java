@@ -48,6 +48,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
@@ -91,12 +92,12 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
-import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @Testcontainers
 @ContextConfiguration(initializers = AccountIT.ContextInitializer.class)
 @AutoConfigureMockMvc
+@Slf4j
 class AccountIT {
   @MockBean
   private PaymentScheduleService paymentScheduleService;
@@ -281,7 +282,7 @@ class AccountIT {
 
   @Test
   void initiate_bank_connection_ok() throws ApiException {
-    when(bridgeBankRepositoryMock.initiateBankConnection("joe@email.com"))
+    when(bankRepositoryImplMock.initiateConnection(any()))
         .thenReturn("https://connect.bridgeapi.io");
     ApiClient joeDoeClient = anApiClient();
     UserAccountsApi api = new UserAccountsApi(joeDoeClient);
@@ -291,13 +292,20 @@ class AccountIT {
         .failureUrl(failureUrl)
         .successUrl(successUrl);
 
-    BankConnectionRedirection actual =
+    BankConnectionRedirection actual1 =
         api.initiateBankConnection(JOE_DOE_ID, JOE_DOE_ACCOUNT_ID, redirectionStatusUrls);
+    BankConnectionRedirection actual2 =
+        api.initiateBankConnectionWithoutAccount(JOE_DOE_ID, redirectionStatusUrls);
 
-    assertNotNull(actual);
-    assertTrue(actual.getRedirectionUrl().contains("https://connect.bridgeapi.io"));
-    assertEquals(successUrl, actual.getRedirectionStatusUrls().getSuccessUrl());
-    assertEquals(failureUrl, actual.getRedirectionStatusUrls().getFailureUrl());
+    assertNotNull(actual1);
+    assertTrue(actual1.getRedirectionUrl().contains("https://connect.bridgeapi.io"));
+    assertEquals(successUrl, actual1.getRedirectionStatusUrls().getSuccessUrl());
+    assertEquals(failureUrl, actual1.getRedirectionStatusUrls().getFailureUrl());
+
+    assertNotNull(actual2);
+    assertTrue(actual2.getRedirectionUrl().contains("https://connect.bridgeapi.io"));
+    assertEquals(successUrl, actual2.getRedirectionStatusUrls().getSuccessUrl());
+    assertEquals(failureUrl, actual2.getRedirectionStatusUrls().getFailureUrl());
   }
 
   @Test

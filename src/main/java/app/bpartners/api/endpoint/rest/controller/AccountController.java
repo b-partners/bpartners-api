@@ -46,6 +46,11 @@ public class AccountController {
     return service.getBankConnectionInitUrl(userId, urls);
   }
 
+  @PostMapping("/users/{userId}/disconnectBank")
+  public Account disconnectBank(@PathVariable String userId) {
+    return mapper.toRest(service.disconnectBank(userId));
+  }
+
   @PutMapping("/users/{userId}/accounts/{accountId}/identity")
   public Account updateAccountIdentity(
       @PathVariable String userId,

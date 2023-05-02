@@ -15,4 +15,6 @@ public interface BridgeBankRepository {
   List<BridgeItem> getBridgeItems();
 
   String refreshBankConnection(Long itemId, String token);
+
+  boolean deleteItem(Long itemId, String token);
 }

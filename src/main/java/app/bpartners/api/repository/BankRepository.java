@@ -16,4 +16,6 @@ public interface BankRepository {
   BankConnection selfUpdateBankConnection();
 
   Instant refreshBankConnection(UserToken user);
+
+  boolean disconnectBank(User user);
 }

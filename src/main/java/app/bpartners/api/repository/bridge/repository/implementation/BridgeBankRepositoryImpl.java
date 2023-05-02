@@ -49,4 +49,9 @@ public class BridgeBankRepositoryImpl implements BridgeBankRepository {
   public String refreshBankConnection(Long itemId, String token) {
     return bridgeApi.refreshBankConnection(itemId, token);
   }
+
+  @Override
+  public boolean deleteItem(Long itemId, String token) {
+    return bridgeApi.deleteItem(itemId, AuthProvider.getPrincipal().getBearer());
+  }
 }

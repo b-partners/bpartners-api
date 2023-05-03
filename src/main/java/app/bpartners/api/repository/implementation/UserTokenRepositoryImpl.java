@@ -53,9 +53,10 @@ public class UserTokenRepositoryImpl implements UserTokenRepository {
     return mapper.toDomain(entity);
   }
 
+  //TODO: check why some accounts are not associated to users
   @Override
   public UserToken getLatestTokenByAccount(String accountId) {
     HUser entity = userJpaRepository.getByAccountId(accountId);
-    return getLatestTokenByUser(userMapper.toDomain(entity));
+    return entity == null ? null : getLatestTokenByUser(userMapper.toDomain(entity));
   }
 }

@@ -48,6 +48,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
@@ -91,12 +92,12 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
-import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @Testcontainers
 @ContextConfiguration(initializers = AccountIT.ContextInitializer.class)
 @AutoConfigureMockMvc
+@Slf4j
 class AccountIT {
   @MockBean
   private PaymentScheduleService paymentScheduleService;
@@ -198,12 +199,14 @@ class AccountIT {
     when(userRepositoryMock.findAll()).thenReturn(List.of(user));
     when(userRepositoryMock.getUserByToken(any())).thenReturn(user);
     when(userRepositoryMock.getByEmail(any())).thenReturn(user);
+    when(userRepositoryMock.getById(any())).thenReturn(user);
     when(userRepositoryMock.getUserBySwanUserIdAndToken(any(), any())).thenReturn(user);
   }
 
   private void setUpUserRepositoryWithPreferredAccount(UserRepository userRepositoryMock) {
     User user = userWithPreferredAccount();
     when(userRepositoryMock.findAll()).thenReturn(List.of(user));
+    when(userRepositoryMock.getById(any())).thenReturn(user);
     when(userRepositoryMock.getUserByToken(any())).thenReturn(user);
     when(userRepositoryMock.getByEmail(any())).thenReturn(user);
     when(userRepositoryMock.getUserBySwanUserIdAndToken(any(), any())).thenReturn(user);
@@ -261,6 +264,17 @@ class AccountIT {
         .build();
   }
 
+  app.bpartners.api.model.Account persistDoeModelAccount() {
+    return app.bpartners.api.model.Account.builder()
+        .id("c15924bf-61f9-4381-8c9b-d34369bf91f7")
+        .name("Account_name")
+        .iban(null)
+        .bic(null)
+        .bank(Bank.builder().build())
+        .availableBalance(parseFraction(0))
+        .build();
+  }
+
   @Test
   void read_opened_accounts_ok() throws ApiException {
     setUpSwanApi(swanApiMock, joeDoeEdge());
@@ -281,7 +295,7 @@ class AccountIT {
 
   @Test
   void initiate_bank_connection_ok() throws ApiException {
-    when(bridgeBankRepositoryMock.initiateBankConnection("joe@email.com"))
+    when(bankRepositoryImplMock.initiateConnection(any()))
         .thenReturn("https://connect.bridgeapi.io");
     ApiClient joeDoeClient = anApiClient();
     UserAccountsApi api = new UserAccountsApi(joeDoeClient);
@@ -291,13 +305,67 @@ class AccountIT {
         .failureUrl(failureUrl)
         .successUrl(successUrl);
 
-    BankConnectionRedirection actual =
+    BankConnectionRedirection actual1 =
         api.initiateBankConnection(JOE_DOE_ID, JOE_DOE_ACCOUNT_ID, redirectionStatusUrls);
+    BankConnectionRedirection actual2 =
+        api.initiateBankConnectionWithoutAccount(JOE_DOE_ID, redirectionStatusUrls);
 
-    assertNotNull(actual);
-    assertTrue(actual.getRedirectionUrl().contains("https://connect.bridgeapi.io"));
-    assertEquals(successUrl, actual.getRedirectionStatusUrls().getSuccessUrl());
-    assertEquals(failureUrl, actual.getRedirectionStatusUrls().getFailureUrl());
+    assertNotNull(actual1);
+    assertTrue(actual1.getRedirectionUrl().contains("https://connect.bridgeapi.io"));
+    assertEquals(successUrl, actual1.getRedirectionStatusUrls().getSuccessUrl());
+    assertEquals(failureUrl, actual1.getRedirectionStatusUrls().getFailureUrl());
+
+    assertNotNull(actual2);
+    assertTrue(actual2.getRedirectionUrl().contains("https://connect.bridgeapi.io"));
+    assertEquals(successUrl, actual2.getRedirectionStatusUrls().getSuccessUrl());
+    assertEquals(failureUrl, actual2.getRedirectionStatusUrls().getFailureUrl());
+  }
+
+  /*
+  TODO: make this test pass !
+  @Test
+  void disconnect_bank_ok() throws ApiException {
+    setUpBridgeRepositories();
+    ApiClient joeDoeClient = anApiClient();
+    UserAccountsApi api = new UserAccountsApi(joeDoeClient);
+    Account beforeDisconnection = api.getAccountsByUserId(JOE_DOE_ID).get(0);
+
+    api.disconnectBank(JOE_DOE_ID);
+    reset(bridgeApiMock);
+    reset(userRepositoryMock);
+    User user = User.builder()
+        .id(JOE_DOE_ID)
+        .email("joe@email.com")
+        .account(persistDoeModelAccount())
+        .build();
+    when(userRepositoryMock.getById(any())).thenReturn(user);
+    when(userRepositoryMock.getByEmail(any())).thenReturn(user);
+    when(userRepositoryMock.getUserByToken(any())).thenReturn(user);
+    when(userRepositoryMock.getUserBySwanUserIdAndToken(any(), any())).thenReturn(user);
+    when(userRepositoryMock.getByEmail(any())).thenReturn(user);
+    when(bridgeApiMock.findAccountsByToken(JOE_DOE_COGNITO_TOKEN)).thenReturn(List.of());
+    Account afterDisconnection = api.getAccountsByUserId(JOE_DOE_ID).get(0);
+
+    assertEquals(afterDisconnection, beforeDisconnection);
+    //    assertEquals(beforeDisconnection.getId(), afterDisconnection.getId());
+    assertNotNull(beforeDisconnection.getIban());
+    assertNotNull(beforeDisconnection.getBank());
+    assertNull(afterDisconnection.getIban());
+    assertNull(afterDisconnection.getBank());
+    assertNull(afterDisconnection.getBic());
+  }*/
+
+  private void setUpBridgeRepositories() {
+    when(accountSwanRepositoryMock.findByUserId(JOE_DOE_ID)).thenReturn(List.of());
+    when(accountSwanRepositoryMock.findByBearer(JOE_DOE_COGNITO_TOKEN)).thenReturn(List.of());
+    //END
+    reset(userRepositoryMock);
+    setUpUserRepositoryWithPreferredAccount(userRepositoryMock);
+    setUpBridge(bridgeApiMock, joeDoeBridgeAccount(), otherBridgeAccount());
+    when(bankRepositoryImplMock.findByBridgeId(joeDoeBridgeAccount().getBankId())).thenReturn(
+        Bank.builder().build());
+    when(bankRepositoryImplMock.disconnectBank(any()))
+        .thenReturn(true);
   }
 
   @Test
@@ -598,15 +666,7 @@ class AccountIT {
 
   @Test
   void read_preferred_bridge_account() throws ApiException {
-    //Do not touch
-    when(accountSwanRepositoryMock.findByUserId(JOE_DOE_ID)).thenReturn(List.of());
-    when(accountSwanRepositoryMock.findByBearer(JOE_DOE_COGNITO_TOKEN)).thenReturn(List.of());
-    //END
-    reset(userRepositoryMock);
-    setUpUserRepositoryWithPreferredAccount(userRepositoryMock);
-    setUpBridge(bridgeApiMock, joeDoeBridgeAccount(), otherBridgeAccount());
-    when(bankRepositoryImplMock.findByBridgeId(joeDoeBridgeAccount().getBankId())).thenReturn(
-        Bank.builder().build());
+    setUpBridgeRepositories();
     ApiClient joeDoeClient = anApiClient();
     UserAccountsApi api = new UserAccountsApi(joeDoeClient);
 

@@ -41,6 +41,10 @@ paths:
     $ref: './userAccounts-api.yml#/operations/updateAccountIdentity'
   /users/{userId}/accounts/{accountId}/initiateBankConnection:
     $ref: './userAccounts-api.yml#/operations/initiateBankConnection'
+  /users/{userId}/initiateBankConnection:
+    $ref: './userAccounts-api.yml#/operations/initiateBankConnectionWithoutAccount'
+  /users/{userId}/disconnectBank:
+    $ref: './userAccounts-api.yml#/operations/disconnectBank'
   /users/{userId}/accounts/{accountId}/accountHolders:
     $ref: './userAccounts-api.yml#/operations/getAccountHolders'
   /users/{userId}/accounts/{accountId}/accountHolders/{ahId}/globalInfo:

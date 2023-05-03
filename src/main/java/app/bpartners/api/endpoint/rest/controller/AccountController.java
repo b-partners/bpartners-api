@@ -36,7 +36,19 @@ public class AccountController {
       @PathVariable String userId,
       @PathVariable String accountId,
       @RequestBody(required = false) RedirectionStatusUrls urls) {
-    return service.getBankConnectionInitUrl(userId, accountId, urls);
+    return service.getBankConnectionInitUrl(userId, urls);
+  }
+
+  @PostMapping("/users/{userId}/initiateBankConnection")
+  public BankConnectionRedirection initiateBankConnectionWithoutAccount(
+      @PathVariable String userId,
+      @RequestBody(required = false) RedirectionStatusUrls urls) {
+    return service.getBankConnectionInitUrl(userId, urls);
+  }
+
+  @PostMapping("/users/{userId}/disconnectBank")
+  public Account disconnectBank(@PathVariable String userId) {
+    return mapper.toRest(service.disconnectBank(userId));
   }
 
   @PutMapping("/users/{userId}/accounts/{accountId}/identity")

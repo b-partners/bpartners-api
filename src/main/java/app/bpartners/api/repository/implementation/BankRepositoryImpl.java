@@ -40,6 +40,12 @@ public class BankRepositoryImpl implements BankRepository {
   private final BankMapper mapper;
   private final BankJpaRepository jpaRepository;
 
+  //TODO: check if it is necessary to persist values
+  @Override
+  public String initiateConnection(User user) {
+    return bridgeRepository.initiateBankConnection(user.getEmail());
+  }
+
   //TODO: check why bank is persisted twice and turn back to optional
   @Override
   public Bank findByBridgeId(Long id) {
@@ -120,6 +126,11 @@ public class BankRepositoryImpl implements BankRepository {
           .getBridgeItemLastRefresh();
     }
     return null;
+  }
+
+  @Override
+  public boolean disconnectBank(User user) {
+    return bridgeRepository.deleteItem(user.getBridgeItemId(), user.getAccessToken());
   }
 
   public static BankConnection.BankConnectionStatus getStatus(Integer statusValue) {

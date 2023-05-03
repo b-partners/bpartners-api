@@ -1,3 +1,27 @@
+## [0.14.1](https://github.com/b-partners/bpartners-api/compare/v0.14.0...v0.14.1) (2023-05-03)
+
+
+### Bug Fixes
+
+* account holder from business activity is mapped from database ([d43788d](https://github.com/b-partners/bpartners-api/commit/d43788d6d010e0967f683ba44fd6e151c0c05c69))
+* account holder revenue target update ([7978229](https://github.com/b-partners/bpartners-api/commit/7978229fa5d975b70ca9e02b818f8cb5d7b40a4a))
+* check account bic and bic before payment initiation ([a1a9577](https://github.com/b-partners/bpartners-api/commit/a1a95771b5431828600db5fa26645a9dabe4f969))
+* check bridge transaction when trying to save transaction ([ac67c04](https://github.com/b-partners/bpartners-api/commit/ac67c044a8657a9e701c5472223fb5f49706821d))
+* delay in payment allowed can not be null for CASH payment type invoice ([d537f8f](https://github.com/b-partners/bpartners-api/commit/d537f8fdeb9113c46f668dfe06d8c4f36c00dc9e))
+* disable ProspectService.prospect cron ([bd36333](https://github.com/b-partners/bpartners-api/commit/bd363332c93dd8a2b8d1273b0642382317a89e52))
+* get bridge transaction when swan not provided when retrieving by ID ([d2fb1e5](https://github.com/b-partners/bpartners-api/commit/d2fb1e5289b7b3bd548f488e3dc349652e65902f))
+* get bridge transactions through dynamic bearer ([6388cc1](https://github.com/b-partners/bpartners-api/commit/6388cc194d6b36ab5297be5e36110080cb5f0bda))
+* import customers ([fe0bf1e](https://github.com/b-partners/bpartners-api/commit/fe0bf1e261d2b1a73c839f793788e01e403d3594))
+* refresh transactions summary from swan transactions only with user access token ([ec4faed](https://github.com/b-partners/bpartners-api/commit/ec4faed199146eff2d0cedcc780036784a63dbd4))
+* return account available balance as cash flow in transaction summary ([3931d57](https://github.com/b-partners/bpartners-api/commit/3931d57466cadadbc4b146a5cabbcd3c367d893d))
+* return empty transaction list for users not connected to bridge ([99133fc](https://github.com/b-partners/bpartners-api/commit/99133fc5c8d2682a91f800afaaf6a69a139a1a70))
+* set bic as null when iniating bank connection ([08636d9](https://github.com/b-partners/bpartners-api/commit/08636d9d180fbb04427917717374f54728b4f42d))
+* set users bank connection refresh into 8 hours and avoid max daily refresh exception ([22c9af8](https://github.com/b-partners/bpartners-api/commit/22c9af82ff5e505b8f66984b30ad1c163bc13ec3))
+* throw exception when provided email during onboarding is already used ([9a15651](https://github.com/b-partners/bpartners-api/commit/9a15651b8cbc5773354b237971a0b8eff4e1250c))
+* update transaction summary updated instant and display decimal social capital ([fda5f76](https://github.com/b-partners/bpartners-api/commit/fda5f76bf28d09b8aafe6912b4a4e03b898c4624))
+
+
+
 # [0.14.0](https://github.com/b-partners/bpartners-api/compare/v0.13.0...v0.14.0) (2023-04-25)
 
 
@@ -180,25 +204,6 @@
 
 * add discount to invoice PDF ([1e0684e](https://github.com/b-partners/bpartners-api/commit/1e0684e4d89bd985c9243438cf5ddbf4538f32bf))
 * add global discount to invoice ([75029fa](https://github.com/b-partners/bpartners-api/commit/75029fad7740b87b5df29fee8029858754c36b70))
-
-
-
-# [0.7.0](https://github.com/b-partners/bpartners-api/compare/v0.6.0...v0.7.0) (2023-02-15)
-
-
-### Bug Fixes
-
-* set attachment content as base64 format ([d48d7e8](https://github.com/b-partners/bpartners-api/commit/d48d7e81cc1c217a1aa86e13cb2bc09736a76de5))
-
-
-### Features
-
-* add product created datetime for account ([3964bd8](https://github.com/b-partners/bpartners-api/commit/3964bd82e4cb4c430830fb5ef4bb0e31e3e3c27b))
-* crupdate products ([a71fb1e](https://github.com/b-partners/bpartners-api/commit/a71fb1e545355bfc739fe3c1def4b1b59a41dd30))
-* import customers from excel file ([bbf1cbb](https://github.com/b-partners/bpartners-api/commit/bbf1cbb366f6a42b1ba28e7ecafea8a0d20a9c17))
-* import products from excel file ([6c742d9](https://github.com/b-partners/bpartners-api/commit/6c742d9cf59e3af0fab275ba2826aef669878852))
-* invoice handles multiple payments ([566aea5](https://github.com/b-partners/bpartners-api/commit/566aea59cc14f33d1bd4ac989aa2f97fb8f96283))
-* order products by criterias ([9176b78](https://github.com/b-partners/bpartners-api/commit/9176b785a1c58c3d2d285afe151d40cd5b0dcd84))
 
 
 

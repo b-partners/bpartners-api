@@ -21,8 +21,7 @@ begin
                a.bic                       as bic,
                (sum(convert_fraction_to_numeric(pr.amount))) as amount_value,
                (avg(convert_fraction_to_numeric(pr.amount))) as average,
-               percentile_cont(0.5) WITHIN GROUP ( ORDER BY ((cast(split_part(pr.amount, '/', 1) as numeric)
-                   / cast(split_part(pr.amount, '/', 2) as numeric))) / 100 )
+               percentile_cont(0.5) WITHIN GROUP ( ORDER BY convert_fraction_to_numeric(pr.amount))
                    as median,
                min(convert_fraction_to_numeric(pr.amount))
                    as minimum_amount,

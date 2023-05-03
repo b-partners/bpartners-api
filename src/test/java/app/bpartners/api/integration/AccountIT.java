@@ -84,7 +84,6 @@ import static java.util.UUID.randomUUID;
 import static java.util.stream.Collectors.toUnmodifiableList;
 import static org.hibernate.validator.internal.util.Contracts.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -200,6 +199,7 @@ class AccountIT {
     when(userRepositoryMock.findAll()).thenReturn(List.of(user));
     when(userRepositoryMock.getUserByToken(any())).thenReturn(user);
     when(userRepositoryMock.getByEmail(any())).thenReturn(user);
+    when(userRepositoryMock.getById(any())).thenReturn(user);
     when(userRepositoryMock.getUserBySwanUserIdAndToken(any(), any())).thenReturn(user);
   }
 

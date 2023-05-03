@@ -1,4 +1,4 @@
-create or replace function get_invoicing_info_by_year_and_month(year integer, month integer)
+create or replace function get_billing_info_by_year_and_month(year integer, month integer)
     returns table
             (
                 account_id   varchar,

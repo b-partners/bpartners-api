@@ -1,8 +1,8 @@
-create or replace function create_annual_invoicing_info_table()
+create or replace function create_annual_billing_info_table()
     returns void
 as
 $$BEGIN
-    create temporary table annual_invoicing_info
+    create temporary table annual_billing_info
     (
         account_id varchar,
         name       varchar,

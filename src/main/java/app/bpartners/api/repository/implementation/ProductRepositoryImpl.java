@@ -5,12 +5,14 @@ import app.bpartners.api.endpoint.rest.model.ProductStatus;
 import app.bpartners.api.endpoint.rest.model.UpdateProductStatus;
 import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.Product;
+import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.mapper.ProductMapper;
 import app.bpartners.api.repository.ProductRepository;
 import app.bpartners.api.repository.jpa.ProductJpaRepository;
 import app.bpartners.api.repository.jpa.model.HProduct;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -72,10 +74,11 @@ public class ProductRepositoryImpl implements ProductRepository {
 
   @Override
   public List<Product> saveAll(String accountId, List<Product> toCreate) {
-    List<HProduct> entities = jpaRepository.saveAll(toCreate.stream()
-        .map(product -> mapper.toEntity(accountId, product))
-        .collect(Collectors.toUnmodifiableList()));
-    return entities.stream()
+    List<HProduct> entityToCreate = toCreate.stream()
+        .map(customer -> checkExisting(accountId, customer))
+        .map(customer -> mapper.toEntity(accountId, customer))
+        .collect(Collectors.toList());
+    return jpaRepository.saveAll(entityToCreate).stream()
         .map(mapper::toDomain)
         .collect(Collectors.toUnmodifiableList());
   }
@@ -110,5 +113,20 @@ public class ProductRepositoryImpl implements ProductRepository {
       productUpdated.add(mapper.toDomain(jpaRepository.save(existingProduct)));
     }
     return productUpdated;
+  }
+
+  private Product checkExisting(String accountId, Product domain) {
+    String id = domain.getId();
+    if (id != null) {
+      jpaRepository.findById(id)
+          .orElseThrow(()
+              -> new NotFoundException(
+              "Product(id=" + id + ") not found for Account(id=" + accountId + ")"));
+    }
+    Optional<HProduct> optionalProduct = jpaRepository.findByIdAccountAndDescription(
+        accountId, domain.getDescription());
+    return optionalProduct.isEmpty() ? domain : domain.toBuilder()
+        .id(optionalProduct.get().getId())
+        .build();
   }
 }

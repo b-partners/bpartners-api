@@ -3,6 +3,7 @@ package app.bpartners.api.service;
 import app.bpartners.api.endpoint.rest.model.BankConnectionRedirection;
 import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
 import app.bpartners.api.model.Account;
+import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.UserToken;
 import app.bpartners.api.model.exception.ApiException;
@@ -48,11 +49,8 @@ public class AccountService {
   public BankConnectionRedirection getBankConnectionInitUrl(
       String userId, RedirectionStatusUrls urls) {
     User user = userRepository.getById(userId);
-    Account account = user.getAccount();
     String redirectionUrl = bankRepository.initiateConnection(user);
-    repository.save(account.toBuilder()
-        .bic(null)
-        .build(), userId);
+    resetDefaultAccount(userId, user, user.getAccount());
     return new BankConnectionRedirection()
         .redirectionUrl(redirectionUrl)
         .redirectionStatusUrls(urls);
@@ -79,6 +77,18 @@ public class AccountService {
     throw new ApiException(SERVER_EXCEPTION,
         "Account(id=" + account.getId() + ",name=" + account.getName() + "iban="
             + account.getIban() + ") was not disconnected");
+  }
+
+  private void resetDefaultAccount(String userId, User user, Account account) {
+    Account defaultAccount = account.toBuilder()
+        .name(user.getName())
+        .bridgeAccountId(null)
+        .availableBalance(new Fraction())
+        .bank(null)
+        .bic(null)
+        .iban(null)
+        .build();
+    repository.save(defaultAccount, userId);
   }
 
   @Transactional(isolation = Isolation.SERIALIZABLE)

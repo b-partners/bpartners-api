@@ -48,8 +48,13 @@ public class AccountService {
   public BankConnectionRedirection getBankConnectionInitUrl(
       String userId, RedirectionStatusUrls urls) {
     User user = userRepository.getById(userId);
+    Account account = user.getAccount();
+    String redirectionUrl = bankRepository.initiateConnection(user);
+    repository.save(account.toBuilder()
+        .bic(null)
+        .build(), userId);
     return new BankConnectionRedirection()
-        .redirectionUrl(bankRepository.initiateConnection(user))
+        .redirectionUrl(redirectionUrl)
         .redirectionStatusUrls(urls);
   }
 

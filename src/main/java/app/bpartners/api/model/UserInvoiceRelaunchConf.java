@@ -14,7 +14,7 @@ import lombok.ToString;
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
-public class AccountInvoiceRelaunchConf {
+public class UserInvoiceRelaunchConf {
   private String id;
   private Instant updatedAt;
   private int draftRelaunch;

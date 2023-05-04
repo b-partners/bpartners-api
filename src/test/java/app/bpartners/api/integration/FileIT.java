@@ -43,6 +43,7 @@ import static app.bpartners.api.integration.conf.TestUtils.BEARER_PREFIX;
 import static app.bpartners.api.integration.conf.TestUtils.BEARER_QUERY_PARAMETER_NAME;
 import static app.bpartners.api.integration.conf.TestUtils.INVALID_LOGO_TYPE;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
+import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_TOKEN;
 import static app.bpartners.api.integration.conf.TestUtils.NOT_JOE_DOE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.TestUtils.OTHER_TEST_FILE_ID;
@@ -111,7 +112,7 @@ class FileIT {
     return new FileInfo()
         .id(TEST_FILE_ID)
         .uploadedAt(Instant.parse("2022-08-31T13:35:26.853Z"))
-        .uploadedByAccountId(JOE_DOE_ACCOUNT_ID)
+        .uploadedByAccountId(JOE_DOE_ID)
         .sizeInKB(76)
         .sha256("2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824");
   }

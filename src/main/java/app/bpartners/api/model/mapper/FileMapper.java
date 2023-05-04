@@ -12,7 +12,7 @@ public class FileMapper {
     return new app.bpartners.api.endpoint.rest.model.FileInfo()
         .id(internal.getId())
         .uploadedAt(internal.getUploadedAt())
-        .uploadedByAccountId(internal.getUploadedBy())
+        .uploadedByAccountId(internal.getUserUploaderId())
         .sizeInKB(internal.getSizeInKb())
         .sha256(internal.getSha256());
   }
@@ -21,7 +21,7 @@ public class FileMapper {
     return FileInfo.builder()
         .id(fileId)
         .uploadedAt(Instant.now())
-        .uploadedBy(accountId)
+        .userUploaderId(accountId)
         .sizeInKb(toUpload.length / 1024)
         .sha256(sha256)
         .build();
@@ -31,7 +31,7 @@ public class FileMapper {
     return FileInfo.builder()
         .id(file.getId())
         .uploadedAt(file.getUploadedAt())
-        .uploadedBy(file.getAccountId())
+        .userUploaderId(file.getIdUser())
         .sizeInKb(file.getSizeInKB())
         .sha256(file.getSha256())
         .build();
@@ -43,7 +43,7 @@ public class FileMapper {
         .uploadedAt(file.getUploadedAt())
         .sizeInKB(file.getSizeInKb())
         .sha256(file.getSha256())
-        .accountId(file.getUploadedBy())
+        .idUser(file.getUserUploaderId())
         .build();
   }
 

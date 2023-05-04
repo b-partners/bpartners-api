@@ -1,5 +1,6 @@
 package app.bpartners.api.unit.repository;
 
+import app.bpartners.api.model.Account;
 import app.bpartners.api.model.Bank;
 import app.bpartners.api.model.BankConnection;
 import app.bpartners.api.model.User;
@@ -12,6 +13,7 @@ import app.bpartners.api.repository.bridge.model.Item.BridgeConnectItem;
 import app.bpartners.api.repository.bridge.model.Item.BridgeItem;
 import app.bpartners.api.repository.bridge.repository.BridgeBankRepository;
 import app.bpartners.api.repository.implementation.BankRepositoryImpl;
+import app.bpartners.api.repository.jpa.AccountHolderJpaRepository;
 import app.bpartners.api.repository.jpa.BankJpaRepository;
 import app.bpartners.api.repository.jpa.UserJpaRepository;
 import app.bpartners.api.repository.jpa.model.HBank;
@@ -40,6 +42,7 @@ class BankRepositoryImplTest {
   BankMapper bankMapperMock;
   BankJpaRepository bankJpaRepositoryMock;
   UserTokenRepository userTokenRepositoryMock;
+  AccountHolderJpaRepository holderJpaRepositoryMock;
   BankRepositoryImpl subject;
 
   @BeforeEach
@@ -50,9 +53,10 @@ class BankRepositoryImplTest {
     bankMapperMock = mock(BankMapper.class);
     bankJpaRepositoryMock = mock(BankJpaRepository.class);
     userTokenRepositoryMock = mock(UserTokenRepository.class);
+    holderJpaRepositoryMock = mock(AccountHolderJpaRepository.class);
     subject = new BankRepositoryImpl(
         bridgeBankRepositoryMock, userJpaRepositoryMock, userMapperMock, bankMapperMock,
-        bankJpaRepositoryMock, userTokenRepositoryMock);
+        bankJpaRepositoryMock, userTokenRepositoryMock, holderJpaRepositoryMock);
 
     when(bridgeBankRepositoryMock.findById(any()))
         .thenReturn(BridgeBank.builder()
@@ -109,7 +113,8 @@ class BankRepositoryImplTest {
     return User.builder()
         .id(JOE_DOE_ID)
         .email("user@email.com")
-        .bridgeItemId(bridgeItem().getId())
+        .bankConnectionId(bridgeItem().getId())
+        .accounts(List.of(Account.builder().build()))
         .build();
   }
 
@@ -173,15 +178,15 @@ class BankRepositoryImplTest {
   }
 
   @Test
-  void initiate_bank_bonnection_edition() {
-    String actual = subject.initiateBankConnectionEdition(user().getAccount());
+  void initiate_bank_connection_edition() {
+    String actual = subject.initiateBankConnectionEdition(user().getDefaultAccount());
 
     assertEquals(REDIRECT_URL, actual);
   }
 
   @Test
   void manage_strong_authentication() {
-    String actual = subject.initiateScaSync(user().getAccount());
+    String actual = subject.initiateScaSync(user().getDefaultAccount());
 
     assertEquals(REDIRECT_URL, actual);
   }

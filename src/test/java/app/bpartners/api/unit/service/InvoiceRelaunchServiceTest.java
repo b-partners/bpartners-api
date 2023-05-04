@@ -9,8 +9,9 @@ import app.bpartners.api.model.Customer;
 import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.InvoiceRelaunch;
 import app.bpartners.api.model.InvoiceRelaunchConf;
+import app.bpartners.api.model.User;
 import app.bpartners.api.model.validator.InvoiceRelaunchValidator;
-import app.bpartners.api.repository.AccountInvoiceRelaunchConfRepository;
+import app.bpartners.api.repository.UserInvoiceRelaunchConfRepository;
 import app.bpartners.api.repository.InvoiceRelaunchRepository;
 import app.bpartners.api.repository.InvoiceRepository;
 import app.bpartners.api.repository.jpa.InvoiceJpaRepository;
@@ -42,7 +43,7 @@ import static org.mockito.Mockito.when;
 class InvoiceRelaunchServiceTest {
   private static final String RANDOM_CONF_ID = "random conf id";
   private InvoiceRelaunchService invoiceRelaunchService;
-  private AccountInvoiceRelaunchConfRepository accountInvoiceRelaunchRepository;
+  private UserInvoiceRelaunchConfRepository accountInvoiceRelaunchRepository;
   private InvoiceRelaunchRepository invoiceRelaunchRepository;
   private InvoiceRelaunchValidator invoiceRelaunchValidator = new InvoiceRelaunchValidator();
   private InvoiceRepository invoiceRepository;
@@ -56,7 +57,7 @@ class InvoiceRelaunchServiceTest {
 
   @BeforeEach
   void setUp() {
-    accountInvoiceRelaunchRepository = mock(AccountInvoiceRelaunchConfRepository.class);
+    accountInvoiceRelaunchRepository = mock(UserInvoiceRelaunchConfRepository.class);
     invoiceRelaunchRepository = mock(InvoiceRelaunchRepository.class);
     invoiceRepository = mock(InvoiceRepository.class);
     invoiceJpaRepository = mock(InvoiceJpaRepository.class);
@@ -105,10 +106,12 @@ class InvoiceRelaunchServiceTest {
             Invoice
                 .builder()
                 .id(INVOICE1_ID)
-                .account(
-                    Account.builder()
-                        .id(JOE_DOE_ACCOUNT_ID)
-                        .build()
+                .user(User.builder()
+                    .accounts(List.of(
+                        Account.builder()
+                            .id(JOE_DOE_ACCOUNT_ID)
+                            .build()))
+                    .build()
                 )
                 .status(InvoiceStatus.PROPOSAL)
                 .archiveStatus(ENABLED)
@@ -141,7 +144,7 @@ class InvoiceRelaunchServiceTest {
                 )
                 .build()
         );
-    when(holderService.getAccountHolderByAccountId(JOE_DOE_ACCOUNT_ID))
+    when(holderService.getDefaultByAccountId(JOE_DOE_ACCOUNT_ID))
         .thenReturn(
             AccountHolder.builder().build()
         );

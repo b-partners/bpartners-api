@@ -18,7 +18,6 @@ public class InvoiceRelaunch {
   private String id;
   private RelaunchType type;
   private Invoice invoice;
-  private String accountId;
   private String emailObject;
   private String emailBody;
   private boolean isUserRelaunched;

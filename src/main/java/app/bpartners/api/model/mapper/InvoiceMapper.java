@@ -8,6 +8,7 @@ import app.bpartners.api.model.InvoiceDiscount;
 import app.bpartners.api.model.InvoiceProduct;
 import app.bpartners.api.model.PaymentInitiation;
 import app.bpartners.api.model.TransactionInvoice;
+import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.repository.jpa.InvoiceJpaRepository;
 import app.bpartners.api.repository.jpa.model.HInvoice;
@@ -59,6 +60,12 @@ public class InvoiceMapper {
     return persisted.map(HInvoice::getCreatedDatetime).orElse(Instant.now());
   }
 
+  public Invoice toDomain(HInvoice entity, User user) {
+    return toDomain(entity).toBuilder()
+        .user(user)
+        .build();
+  }
+
   //TODO: split to specific sub-mapper
   public Invoice toDomain(HInvoice entity) {
     if (entity == null) {
@@ -91,7 +98,7 @@ public class InvoiceMapper {
         .customerCountry(entity.getCustomerCountry())
         .customerWebsite(entity.getCustomerWebsite())
         .customerZipCode(entity.getCustomerZipCode())
-        .account(accountService.getAccountById(entity.getIdAccount()))
+        //TODO: add user
         .status(entity.getStatus())
         .archiveStatus(entity.getArchiveStatus())
         .toBeRelaunched(entity.isToBeRelaunched())
@@ -267,7 +274,7 @@ public class InvoiceMapper {
         .paymentUrl(paymentUrl)
         .ref(domain.getRealReference())
         .title(domain.getTitle())
-        .idAccount(domain.getAccount().getId())
+        .idUser(domain.getUser().getId())
         .status(domain.getStatus())
         .archiveStatus(
             domain.getArchiveStatus() == null ? ArchiveStatus.ENABLED : domain.getArchiveStatus())

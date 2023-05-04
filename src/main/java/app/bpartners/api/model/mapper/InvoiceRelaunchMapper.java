@@ -14,16 +14,13 @@ import org.springframework.stereotype.Component;
 @AllArgsConstructor
 public class InvoiceRelaunchMapper {
   private final InvoiceMapper invoiceMapper;
-  private final InvoiceService invoiceService;
   private final AttachmentService attachmentService;
 
-  public InvoiceRelaunch toDomain(HInvoiceRelaunch entity) {
-    Invoice invoice = invoiceService.getById(entity.getInvoice().getId());
+  public InvoiceRelaunch toDomain(HInvoiceRelaunch entity, Invoice invoice) {
     return InvoiceRelaunch.builder()
         .id(entity.getId())
         .type(entity.getType())
         .invoice(invoice)
-        .accountId(entity.getInvoice().getIdAccount())
         .isUserRelaunched(entity.isUserRelaunched())
         .creationDatetime(entity.getCreationDatetime())
         .emailObject(entity.getObject())

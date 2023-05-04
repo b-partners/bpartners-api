@@ -8,6 +8,7 @@ import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.InvoiceDiscount;
 import app.bpartners.api.model.InvoiceProduct;
+import app.bpartners.api.model.User;
 import app.bpartners.api.service.FileService;
 import app.bpartners.api.service.InvoiceRelaunchSavedService;
 import app.bpartners.api.service.aws.SesService;
@@ -19,6 +20,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PROPOSAL;
+import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ID;
 import static java.util.UUID.randomUUID;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -66,13 +68,18 @@ class InvoiceRelaunchSavedServiceTest {
   }
 
   Invoice invoice() {
+    Account account = Account.builder()
+        .id("account")
+        .build();
+    User user = User.builder()
+        .id(JOE_DOE_ID)
+        .accounts(List.of(account))
+        .build();
     return Invoice.builder()
         .status(PROPOSAL)
         .sendingDate(LocalDate.now())
         .toPayAt(LocalDate.now())
-        .account(Account.builder()
-            .id("account")
-            .build())
+        .user(user)
         .products(List.of(InvoiceProduct.builder()
             .id("product_id")
             .quantity(50)

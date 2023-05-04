@@ -24,7 +24,7 @@ import org.hibernate.annotations.Type;
 @Getter
 @Setter
 @ToString
-@Builder
+@Builder(toBuilder = true)
 @AllArgsConstructor
 @NoArgsConstructor
 @EqualsAndHashCode
@@ -32,7 +32,7 @@ public class HProduct {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private String id;
-  private String idAccount;
+  private String idUser;
   private String description;
   private String unitPrice;
   private String vatPercent;

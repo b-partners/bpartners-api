@@ -1,6 +1,5 @@
 package app.bpartners.api.repository.implementation;
 
-import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.Bank;
 import app.bpartners.api.model.BankConnection;
@@ -9,12 +8,15 @@ import app.bpartners.api.model.UserToken;
 import app.bpartners.api.model.mapper.BankMapper;
 import app.bpartners.api.model.mapper.UserMapper;
 import app.bpartners.api.repository.BankRepository;
+import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.UserTokenRepository;
 import app.bpartners.api.repository.bridge.model.Bank.BridgeBank;
 import app.bpartners.api.repository.bridge.model.Item.BridgeItem;
 import app.bpartners.api.repository.bridge.repository.BridgeBankRepository;
+import app.bpartners.api.repository.jpa.AccountHolderJpaRepository;
 import app.bpartners.api.repository.jpa.BankJpaRepository;
 import app.bpartners.api.repository.jpa.UserJpaRepository;
+import app.bpartners.api.repository.jpa.model.HAccountHolder;
 import app.bpartners.api.repository.jpa.model.HBank;
 import app.bpartners.api.repository.jpa.model.HUser;
 import java.time.Instant;
@@ -45,6 +47,7 @@ public class BankRepositoryImpl implements BankRepository {
   private final BankMapper mapper;
   private final BankJpaRepository jpaRepository;
   private final UserTokenRepository userTokenRepository;
+  private final AccountHolderJpaRepository holderJpaRepository;
 
   public static BankConnection.BankConnectionStatus getBankConnectionStatus(Integer statusValue) {
     switch (statusValue) {
@@ -98,23 +101,25 @@ public class BankRepositoryImpl implements BankRepository {
   }
 
   @Override
-  public BankConnection selfUpdateBankConnection() {
+  public BankConnection updateBankConnection(User user) {
     List<BridgeItem> bridgeItems = bridgeRepository.getBridgeItems();
     if (bridgeItems.isEmpty()) {
       return null;
     }
-    BridgeItem connectionChosen = bridgeRepository.getBridgeItems().get(0);
-    if (bridgeItems.size() > 2) {
+    BridgeItem connectionChosen = bridgeItems.get(0);
+    if (bridgeItems.size() > 1) {
       log.warn("[Bridge] Only one bank connection supported for now. "
           + "Therefore these connections are found :" + bridgeItems);
     }
-    HUser userToUpdate =
-        userJpaRepository.getById(AuthProvider.getPrincipal().getUser().getId()).toBuilder()
-            .bridgeItemId(connectionChosen.getId())
-            .bankConnectionStatus(getBankConnectionStatus(connectionChosen.getStatus()))
-            .bridgeItemUpdatedAt(Instant.now())
-            .build();
-    HUser savedEntity = userJpaRepository.save(userToUpdate);
+    List<HAccountHolder> associatedHolders =
+        holderJpaRepository.findAllByIdUser(user.getId());
+    HUser entityToSave = userMapper.toEntity(user, associatedHolders).toBuilder()
+        .bridgeItemId(connectionChosen.getId())
+        .bankConnectionStatus(getBankConnectionStatus(connectionChosen.getStatus()))
+        .bridgeItemUpdatedAt(Instant.now())
+        .build();
+    HUser savedEntity = userJpaRepository.save(entityToSave);
+
     return BankConnection.builder()
         .bridgeId(savedEntity.getBridgeItemId())
         .user(userMapper.toDomain(savedEntity))
@@ -125,15 +130,15 @@ public class BankRepositoryImpl implements BankRepository {
 
   @Override
   public Instant refreshBankConnection(UserToken userToken) {
-    if (userToken == null || userToken.getUser().getBridgeItemId() == null) {
+    if (userToken == null || userToken.getUser().getBankConnectionId() == null) {
       return null;
     }
     User user = userToken.getUser();
     if (bridgeRepository.refreshBankConnection(
-        user.getBridgeItemId(), userToken.getAccessToken()) != null) {
+        user.getBankConnectionId(), userToken.getAccessToken()) != null) {
       Instant refreshedAt =
           bridgeRepository.getItemStatusRefreshedAt(
-              user.getBridgeItemId(), userToken.getAccessToken());
+              user.getBankConnectionId(), userToken.getAccessToken());
       HUser userEntity = userJpaRepository.getById(user.getId());
       if (userEntity.getBridgeItemLastRefresh() != null
           && userEntity.getBridgeItemLastRefresh().equals(refreshedAt)) {
@@ -170,7 +175,7 @@ public class BankRepositoryImpl implements BankRepository {
 
   @Override
   public boolean disconnectBank(User user) {
-    return bridgeRepository.deleteItem(user.getBridgeItemId(), user.getAccessToken());
+    return bridgeRepository.deleteItem(user.getBankConnectionId(), user.getAccessToken());
   }
 
   private BridgeItem getDefaultItem(Account account) {

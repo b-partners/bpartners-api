@@ -9,8 +9,8 @@ public interface InvoiceRepository {
 
   Invoice getById(String invoiceId);
 
-  List<Invoice> findAllByAccountIdAndStatus(
-      String accountId, InvoiceStatus status, int page, int pageSize);
+  List<Invoice> findAllByIdUserAndStatus(
+      String idUser, InvoiceStatus status, int page, int pageSize);
 
-  List<Invoice> findAllByAccountId(String accountId, int page, int pageSize);
+  List<Invoice> findAllByIdUser(String idUser, int page, int pageSize);
 }

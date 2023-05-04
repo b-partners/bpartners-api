@@ -44,9 +44,9 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @Testcontainers
-@ContextConfiguration(initializers = AccountInvoiceRelaunchConfIT.ContextInitializer.class)
+@ContextConfiguration(initializers = UserInvoiceRelaunchConfIT.ContextInitializer.class)
 @AutoConfigureMockMvc
-class AccountInvoiceRelaunchConfIT {
+class UserInvoiceRelaunchConfIT {
   @MockBean
   private PaymentScheduleService paymentScheduleService;
   @MockBean

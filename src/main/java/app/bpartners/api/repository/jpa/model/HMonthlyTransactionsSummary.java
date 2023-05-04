@@ -31,6 +31,7 @@ public class HMonthlyTransactionsSummary {
   @GeneratedValue(strategy = IDENTITY)
   private String id;
   private String idAccount;
+  private String idUser;
   @Column(name = "\"year\"")
   private int year;
   @Column(name = "\"month\"")

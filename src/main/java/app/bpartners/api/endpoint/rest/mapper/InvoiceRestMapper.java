@@ -9,6 +9,7 @@ import app.bpartners.api.endpoint.rest.model.PaymentRequest;
 import app.bpartners.api.endpoint.rest.model.Product;
 import app.bpartners.api.endpoint.rest.model.TransactionInvoice;
 import app.bpartners.api.endpoint.rest.model.UpdateInvoiceArchivedStatus;
+import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.endpoint.rest.validator.CrupdateInvoiceValidator;
 import app.bpartners.api.model.CreatePaymentRegulation;
 import app.bpartners.api.model.Customer;
@@ -21,7 +22,6 @@ import app.bpartners.api.repository.CustomerRepository;
 import app.bpartners.api.repository.InvoiceRepository;
 import app.bpartners.api.repository.jpa.InvoiceJpaRepository;
 import app.bpartners.api.repository.jpa.model.HInvoice;
-import app.bpartners.api.service.AccountService;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
@@ -44,7 +44,6 @@ public class InvoiceRestMapper {
   private final CustomerRestMapper customerMapper;
   private final CustomerRepository customerRepository;
   private final ProductRestMapper productRestMapper;
-  private final AccountService accountService; //TODO: change to authResourceProvider
   private final CrupdateInvoiceValidator crupdateInvoiceValidator;
   private final InvoiceJpaRepository invoiceJpaRepository;
   private final InvoiceRepository invoiceRepository;
@@ -101,10 +100,9 @@ public class InvoiceRestMapper {
         .fileId(transactionInvoice.getFileId());
   }
 
-  public app.bpartners.api.model.Invoice toDomain(
-      String accountId, String id, CrupdateInvoice rest) {
+  public app.bpartners.api.model.Invoice toDomain(String idUser, String id, CrupdateInvoice rest) {
     crupdateInvoiceValidator.accept(rest);
-    if (!hasAvailableReference(accountId, id, rest.getRef(), rest.getStatus())) {
+    if (!hasAvailableReference(idUser, id, rest.getRef(), rest.getStatus())) {
       throw new BadRequestException("Invoice.reference=" + rest.getRef() + " is already used");
     }
     //TODO: deprecated use validityDate instead of toPayAt
@@ -153,7 +151,7 @@ public class InvoiceRestMapper {
         .status(rest.getStatus())
         .archiveStatus(rest.getArchiveStatus())
         .toPayAt(rest.getToPayAt())
-        .account(accountService.getAccountById(accountId))
+        .user(AuthProvider.getAuthenticatedUser())
         .products(getProducts(rest))
         .metadata(rest.getMetadata() == null ? Map.of() : rest.getMetadata())
         .discount(getDiscount(discount))
@@ -165,6 +163,7 @@ public class InvoiceRestMapper {
     app.bpartners.api.model.Invoice persisted = invoiceRepository.getById(toUpdate.getId());
     return persisted.toBuilder()
         .archiveStatus(toUpdate.getArchiveStatus())
+        .user(AuthProvider.getAuthenticatedUser())
         .build();
   }
 
@@ -251,12 +250,12 @@ public class InvoiceRestMapper {
   }
 
   private boolean hasAvailableReference(
-      String accountId, String invoiceId, String reference, InvoiceStatus status) {
+      String idUser, String invoiceId, String reference, InvoiceStatus status) {
     if (reference == null) {
       return true;
     }
     List<HInvoice> actual =
-        invoiceJpaRepository.findByIdAccountAndRefAndStatus(accountId, reference, status);
+        invoiceJpaRepository.findByIdUserAndRefAndStatus(idUser, reference, status);
     return actual.isEmpty() || actual.get(0).getId().equals(invoiceId);
   }
 }

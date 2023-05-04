@@ -29,8 +29,8 @@ import org.hibernate.annotations.Type;
 public class HAccountHolder implements Serializable {
   @Id
   private String id;
-  // TODO : replace String type by Account for accountId
-  private String accountId;
+  @Column(name = "id_user")
+  private String idUser;
   private String socialCapital;
   @Column(name = "tva_number")
   private String vatNumber;

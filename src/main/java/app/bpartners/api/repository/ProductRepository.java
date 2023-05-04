@@ -11,26 +11,19 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface ProductRepository {
-  List<Product> findAllByIdAccount(
-      String idAccount, Integer page, Integer pageSize,
-      OrderDirection descriptionOrder, OrderDirection unitPriceOrder, OrderDirection createdAtOrder
-  );
+  List<Product> saveAll(String idUser, List<Product> toCreate);
 
-  List<Product> findAllByIdAccount(String idAccount);
+  List<Product> findByIdUserAndCriteria(
+      String idUser,
+      ProductStatus status,
+      Integer page,
+      Integer pageSize,
+      OrderDirection descriptionOrder,
+      OrderDirection unitPriceOrder,
+      OrderDirection createdAtOrder,
+      String description,
+      Fraction unitPrice);
 
-  List<Product> saveAll(String accountId, List<Product> toCreate);
-
-  List<Product> findAllByIdAccountAndStatusAndOrByDescriptionAndOrUnitPrice(
-      String idAccount,
-       ProductStatus status,
-       Integer page,
-       Integer pageSize,
-       OrderDirection descriptionOrder,
-       OrderDirection unitPriceOrder,
-       OrderDirection createdAtOrder,
-       String description,
-       Fraction unitPrice);
-
-  List<Product> updateStatus(String accountId, List<UpdateProductStatus> toUpdate);
+  List<Product> updateStatuses(List<UpdateProductStatus> toUpdate);
 }
 

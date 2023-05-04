@@ -15,6 +15,7 @@ import app.bpartners.api.model.Customer;
 import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.InvoiceDiscount;
+import app.bpartners.api.model.User;
 import app.bpartners.api.repository.AccountConnectorRepository;
 import app.bpartners.api.repository.LegalFileRepository;
 import app.bpartners.api.repository.fintecture.FintectureConf;
@@ -46,6 +47,7 @@ import static app.bpartners.api.endpoint.rest.model.Invoice.PaymentTypeEnum.IN_I
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PROPOSAL;
 import static app.bpartners.api.integration.conf.TestUtils.INVOICE1_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
+import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ID;
 import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
@@ -97,11 +99,14 @@ class DraftIT {
             .percentValue(new Fraction())
             .amountValue(new Fraction())
             .build())
-        .account(Account.builder()
-            .id(JOE_DOE_ACCOUNT_ID)
-            .name("BPartners")
-            .iban("FR7630001007941234567890185")
-            .bic("BPFRPP751")
+        .user(User.builder()
+            .id(JOE_DOE_ID)
+            .accounts(List.of(Account.builder()
+                .id(JOE_DOE_ACCOUNT_ID)
+                .name("BPartners")
+                .iban("FR7630001007941234567890185")
+                .bic("BPFRPP751")
+                .build()))
             .build())
         .paymentType(IN_INSTALMENT)
         .multiplePayments(List.of(

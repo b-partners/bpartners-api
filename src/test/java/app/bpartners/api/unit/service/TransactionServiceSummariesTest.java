@@ -7,8 +7,8 @@ import app.bpartners.api.model.Transaction;
 import app.bpartners.api.repository.AccountRepository;
 import app.bpartners.api.repository.TransactionRepository;
 import app.bpartners.api.repository.TransactionsSummaryRepository;
-import app.bpartners.api.repository.jpa.AccountHolderJpaRepository;
 import app.bpartners.api.repository.jpa.InvoiceJpaRepository;
+import app.bpartners.api.service.AccountService;
 import app.bpartners.api.service.TransactionService;
 import java.math.BigInteger;
 import java.time.Instant;
@@ -30,31 +30,32 @@ import static org.mockito.Mockito.when;
 class TransactionServiceSummariesTest {
   TransactionService transactionService;
   TransactionRepository transactionRepository;
-  AccountHolderJpaRepository accountHolderJpaRepository;
   TransactionsSummaryRepository transactionsSummaryRepository;
   InvoiceJpaRepository invoiceRepositoryMock;
-  AccountRepository accountRepositoryMock;
+  AccountService accountServiceMock;
+
+  private static Account joeDoeAccount() {
+    return Account.builder()
+        .id(JOE_DOE_ACCOUNT_ID)
+        .availableBalance(new Fraction())
+        .build();
+  }
 
   @BeforeEach
   void setUp() {
-    accountHolderJpaRepository = mock(AccountHolderJpaRepository.class);
     transactionsSummaryRepository = mock(TransactionsSummaryRepository.class);
     transactionRepository = mock(TransactionRepository.class);
     invoiceRepositoryMock = mock(InvoiceJpaRepository.class);
-    accountRepositoryMock = mock(AccountRepository.class);
+    accountServiceMock = mock(AccountService.class);
     transactionService = new TransactionService(
         transactionRepository,
-        accountHolderJpaRepository,
         transactionsSummaryRepository,
         invoiceRepositoryMock,
-        accountRepositoryMock
+        accountServiceMock
     );
 
     when(transactionRepository.findByAccountIdAndStatusBetweenInstants(any(), any(), any(), any()))
         .thenReturn(transactions());
-    when(accountRepositoryMock.findById(any())).thenReturn(Account.builder()
-        .availableBalance(new Fraction())
-        .build());
   }
 
   @Test
@@ -71,7 +72,8 @@ class TransactionServiceSummariesTest {
     ArgumentCaptor<MonthlyTransactionsSummary> summaryCaptor =
         ArgumentCaptor.forClass(MonthlyTransactionsSummary.class);
 
-    transactionService.refreshMonthSummary(JOE_DOE_ACCOUNT_ID, new Fraction(), YearMonth.now(),
+    transactionService.refreshMonthSummary(joeDoeAccount(),
+        YearMonth.now(),
         transactions());
     verify(transactionsSummaryRepository).updateYearMonthSummary(
         accountCaptor.capture(),
@@ -97,8 +99,7 @@ class TransactionServiceSummariesTest {
     ArgumentCaptor<MonthlyTransactionsSummary> summaryCaptor =
         ArgumentCaptor.forClass(MonthlyTransactionsSummary.class);
 
-    transactionService.refreshMonthSummary(JOE_DOE_ACCOUNT_ID, new Fraction(), YearMonth.now(),
-        transactions());
+    transactionService.refreshMonthSummary(joeDoeAccount(), YearMonth.now(), transactions());
     verify(transactionsSummaryRepository).updateYearMonthSummary(
         accountCaptor.capture(),
         yearCaptor.capture(),

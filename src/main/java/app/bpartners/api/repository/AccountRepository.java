@@ -14,4 +14,8 @@ public interface AccountRepository {
   Account save(UpdateAccountIdentity toSave);
 
   Account save(Account toSave);
+
+  void removeAll(List<Account> toRemove);
+
+  List<Account> findAll();
 }

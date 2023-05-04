@@ -18,6 +18,7 @@ import lombok.ToString;
 public class Customer {
   protected String id;
   protected String idAccount;
+  protected String idUser;
   @Getter(AccessLevel.NONE)
   protected String firstName;
   @Getter(AccessLevel.NONE)

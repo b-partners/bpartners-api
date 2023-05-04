@@ -16,7 +16,6 @@ import lombok.ToString;
 @EqualsAndHashCode
 public class AccountConnector {
   private String id;
-  private String accountId;
   private String name;
   private Double balance;
   private AccountStatus status;

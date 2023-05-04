@@ -1231,6 +1231,7 @@ public class TestUtils {
         .availableBalance(
             parseFraction(joeDoeSwanAccount().getBalances().getAvailable().getValue()))
         .status(OPENED)
+        .active(true)
         .build();
   }
 

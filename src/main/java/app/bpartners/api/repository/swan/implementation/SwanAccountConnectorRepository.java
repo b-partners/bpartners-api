@@ -1,8 +1,6 @@
 package app.bpartners.api.repository.swan.implementation;
 
 import app.bpartners.api.endpoint.rest.security.AuthProvider;
-import app.bpartners.api.model.exception.ApiException;
-import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.mapper.AccountMapper;
 import app.bpartners.api.repository.AccountConnectorRepository;
 import app.bpartners.api.repository.implementation.SavableAccountConnectorRepository;
@@ -17,7 +15,6 @@ import org.springframework.stereotype.Repository;
 
 import static app.bpartners.api.endpoint.rest.security.AuthProvider.getAuthenticatedUserId;
 import static app.bpartners.api.endpoint.rest.security.AuthProvider.userIsAuthenticated;
-import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 import static java.util.stream.Collectors.toUnmodifiableList;
 
 //TODO: add unit test
@@ -47,14 +44,10 @@ public class SwanAccountConnectorRepository implements AccountConnectorRepositor
         data == null ? List.of() : data.getData().getAccounts().getEdges().stream()
             .map(AccountResponse.Edge::getNode)
             .collect(toUnmodifiableList());
-    if (accounts.isEmpty()) {
-      throw new NotFoundException("No swan account found for id: " + accountId);
-    }
-    if (accounts.size() > 1) {
-      throw new ApiException(SERVER_EXCEPTION,
-          "Only one account expected but received: " + accounts);
-    }
-    return accountMapper.toConnector(accounts.get(0));
+    SwanAccount filtered = accounts.stream()
+        .filter(swanAccount -> swanAccount.getId().equals(accountId))
+        .findAny().orElse(null);
+    return filtered == null ? null : accountMapper.toConnector(filtered);
   }
 
 

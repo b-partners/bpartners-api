@@ -8,10 +8,12 @@ import org.springframework.data.jpa.repository.Query;
 
 public interface TransactionsSummaryJpaRepository
     extends JpaRepository<HMonthlyTransactionsSummary, String> {
+  List<HMonthlyTransactionsSummary> getByIdUser(String accountId);
+
   List<HMonthlyTransactionsSummary> getByIdAccountAndYear(String accountId, int year);
 
-  @Query("select m from HMonthlyTransactionsSummary m, HAccount a, HAccountHolder ah"
-      + " where m.idAccount = a.id and a.id = ah.accountId and ah.id = ?1 and m.year = ?2 ")
+  @Query("select m from HMonthlyTransactionsSummary m, HAccount a, HAccountHolder ah "
+      + " where m.idAccount = a.id and a.user.id = ah.idUser and ah.id = ?1 and m.year = ?2 ")
   List<HMonthlyTransactionsSummary> getByIdAccountHolderIdAndYear(String accountHolderId, int year);
 
   HMonthlyTransactionsSummary getByIdAccountAndYearAndMonth(String accountId, int year, int month);

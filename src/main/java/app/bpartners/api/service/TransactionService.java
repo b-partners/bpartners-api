@@ -8,10 +8,8 @@ import app.bpartners.api.model.Transaction;
 import app.bpartners.api.model.TransactionInvoice;
 import app.bpartners.api.model.TransactionsSummary;
 import app.bpartners.api.model.exception.NotFoundException;
-import app.bpartners.api.repository.AccountRepository;
 import app.bpartners.api.repository.TransactionRepository;
 import app.bpartners.api.repository.TransactionsSummaryRepository;
-import app.bpartners.api.repository.jpa.AccountHolderJpaRepository;
 import app.bpartners.api.repository.jpa.InvoiceJpaRepository;
 import app.bpartners.api.repository.jpa.model.HInvoice;
 import java.time.Instant;
@@ -29,21 +27,17 @@ import lombok.extern.slf4j.Slf4j;
 import org.apfloat.Aprational;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import static app.bpartners.api.endpoint.rest.model.TransactionStatus.BOOKED;
-import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
-import static org.springframework.transaction.annotation.Isolation.SERIALIZABLE;
 
 @Service
 @AllArgsConstructor
 @Slf4j
 public class TransactionService {
   private final TransactionRepository repository;
-  private final AccountHolderJpaRepository holderJpaRepository;
   private final TransactionsSummaryRepository summaryRepository;
   private final InvoiceJpaRepository invoiceRepository;
-  private final AccountRepository accountRepository;
+  private final AccountService accountService;
 
   private static Instant getFirstDayOfYear(int year) {
     return getFirstDayOfMonth(YearMonth.of(year, Month.JANUARY.getValue()));
@@ -108,26 +102,22 @@ public class TransactionService {
         .build());
   }
 
-  @Transactional(isolation = SERIALIZABLE)
-  public void refreshCurrentYearSummary(
-      String accountId,
-      Fraction cashFlow) {
+  public void refreshCurrentYearSummary(Account account) {
     int actualYear = Year.now().getValue();
     List<Transaction> yearlyTransactions =
-        repository.findByAccountIdAndStatusBetweenInstants(accountId, BOOKED,
-            getFirstDayOfYear(actualYear), getLastDayOfYear(actualYear));
+        repository.findByAccountIdAndStatusBetweenInstants(
+            account.getId(), BOOKED, getFirstDayOfYear(actualYear), getLastDayOfYear(actualYear));
     for (int i = Month.JANUARY.getValue(); i <= Month.DECEMBER.getValue(); i++) {
       YearMonth yearMonth = YearMonth.of(actualYear, i);
       List<Transaction> monthlyTransactions = filterByTwoInstants(yearlyTransactions,
           getFirstDayOfMonth(yearMonth),
           getLastDayOfMonth(yearMonth));
-      refreshMonthSummary(accountId, cashFlow, YearMonth.of(actualYear, i), monthlyTransactions);
+      refreshMonthSummary(account, YearMonth.of(actualYear, i), monthlyTransactions);
     }
   }
 
-  //TODO: remove initial cash flow from account holder
   public void refreshMonthSummary(
-      String accountId, Fraction cashFlow, YearMonth yearMonth, List<Transaction> transactions) {
+      Account account, YearMonth yearMonth, List<Transaction> transactions) {
     AtomicReference<Fraction> incomeReference = new AtomicReference<>(new Fraction());
     AtomicReference<Fraction> outcomeReference = new AtomicReference<>(new Fraction());
     transactions.forEach(
@@ -144,11 +134,11 @@ public class TransactionService {
 
     Fraction incomeValue = incomeReference.get();
     Fraction outcomeValue = outcomeReference.get();
-    MonthlyTransactionsSummary actualSummary = getByAccountIdAndYearMonth(accountId, yearMonth);
-    Account account = accountRepository.findById(accountId);
+    MonthlyTransactionsSummary actualSummary =
+        getByAccountIdAndYearMonth(account.getId(), yearMonth);
 
     saveSummariesByYearMonth(
-        accountId,
+        account.getId(),
         yearMonth.getYear(),
         MonthlyTransactionsSummary
             .builder()
@@ -173,13 +163,14 @@ public class TransactionService {
   }
 
   //TODO: check if 5 minutes of refresh is enough or too much
+  //TODO: note that account (balance) is _NOT_ updated by this scheduled task anymore
   @Scheduled(fixedRate = 5 * 60 * 1_000)
   public void refreshTransactionsSummaries() {
-    holderJpaRepository.findAllGroupByAccountId().forEach(
-        accountHolder -> {
-          refreshCurrentYearSummary(
-              accountHolder.getAccountId(), parseFraction(accountHolder.getInitialCashflow()));
-          log.info("Transactions summaries refreshed for {}", accountHolder.describeInfos());
+    List<Account> activeAccounts = accountService.findAllByActive(true);
+    activeAccounts.forEach(
+        account -> {
+          refreshCurrentYearSummary(account);
+          log.info("Transactions summaries refreshed for {}", account.describeInfos());
         }
     );
   }

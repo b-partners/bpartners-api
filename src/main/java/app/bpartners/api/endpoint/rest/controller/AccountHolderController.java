@@ -56,7 +56,7 @@ public class AccountHolderController {
       @PathVariable("accountId") String accountId,
       @PathVariable("ahId") String accountHolderId) {
     return accountHolderMapper.toRest(
-        accountHolderService.updateCompanyInfo(accountId, accountHolderId,
+        accountHolderService.updateCompanyInfo(accountHolderId,
             companyInfoMapper.toDomain(companyInfo)
         )
     );

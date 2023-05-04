@@ -50,7 +50,7 @@ public class InvoicePdfUtils {
   private Context configureContext(Invoice invoice, AccountHolder accountHolder,
                                    byte[] logoAsBytes) {
     Context context = new Context();
-    Account account = invoice.getAccount();
+    Account account = invoice.getActualAccount();
 
     context.setVariable("invoice", invoice);
     context.setVariable("logo", base64Image(logoAsBytes));

@@ -22,25 +22,25 @@ public class ProductService {
   private final ProductRepository repository;
   private final ProductRestMapper restMapper;
 
-  public List<Product> getProductsByAccount(
-      String accountId, ProductStatus status, int page, int pageSize,
+  public List<Product> getByIdUserAndCriteria(
+      String idUser, ProductStatus status, int page, int pageSize,
       OrderDirection descriptionOrder, OrderDirection unitPriceOrder, OrderDirection createdAtOrder,
       String description, Integer unitPrice) {
     Fraction productUnitPrice = unitPrice == null ? null : parseFraction(unitPrice);
-    return repository.findAllByIdAccountAndStatusAndOrByDescriptionAndOrUnitPrice(accountId,
+    return repository.findByIdUserAndCriteria(idUser,
         status == null ? ProductStatus.ENABLED : status, page, pageSize, descriptionOrder,
         unitPriceOrder, createdAtOrder, description, productUnitPrice);
   }
 
-  public List<Product> crupdate(String accountId, List<Product> toCreate) {
-    return repository.saveAll(accountId, toCreate);
+  public List<Product> crupdate(String idUser, List<Product> toCreate) {
+    return repository.saveAll(idUser, toCreate);
   }
 
-  public List<Product> updateStatus(String accountId, List<UpdateProductStatus> toUpdate) {
-    return repository.updateStatus(accountId, toUpdate);
+  public List<Product> updateStatuses(List<UpdateProductStatus> toUpdate) {
+    return repository.updateStatuses(toUpdate);
   }
 
-  public List<Product> getDataFromFile(String accountId, byte[] file) {
+  public List<Product> getDataFromFile(byte[] file) {
     return getProductsFromFile(new ByteArrayInputStream(file)).stream()
         .map(restMapper::toDomain)
         .collect(Collectors.toList());

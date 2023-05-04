@@ -13,4 +13,6 @@ public interface TransactionsSummaryRepository {
       MonthlyTransactionsSummary monthlyTransactionsSummary);
 
   MonthlyTransactionsSummary getByAccountIdAndYearMonth(String accountId, int year, int month);
+
+  void removeAll(String userId);
 }

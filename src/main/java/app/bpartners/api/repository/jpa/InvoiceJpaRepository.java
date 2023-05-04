@@ -7,15 +7,14 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface InvoiceJpaRepository extends JpaRepository<HInvoice, String> {
-  List<HInvoice> findAllByIdAccountAndStatus(
-      String idAccount,
+  List<HInvoice> findAllByIdUserAndStatus(
+      String idUser,
       InvoiceStatus status,
       Pageable pageable);
 
+  List<HInvoice> findAllByIdUser(String idUser, Pageable pageable);
 
-  List<HInvoice> findAllByIdAccount(String idAccount, Pageable pageable);
-
-  List<HInvoice> findByIdAccountAndRefAndStatus(
+  List<HInvoice> findByIdUserAndRefAndStatus(
       String idAccount, String ref, InvoiceStatus status);
 
   List<HInvoice> findAllByToBeRelaunched(boolean toBeRelaunched);

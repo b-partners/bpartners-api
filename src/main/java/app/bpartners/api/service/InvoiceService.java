@@ -1,7 +1,6 @@
 package app.bpartners.api.service;
 
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
-import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.Invoice;
@@ -21,16 +20,15 @@ public class InvoiceService {
   public static final String DRAFT_REF_PREFIX = "BROUILLON-";
   public static final String PROPOSAL_REF_PREFIX = "DEVIS-";
   private final InvoiceRepository repository;
-  private final AccountHolderService holderService;
 
   public List<Invoice> getInvoices(
-      String accountId, PageFromOne page, BoundedPageSize pageSize, InvoiceStatus status) {
+      String idUser, PageFromOne page, BoundedPageSize pageSize, InvoiceStatus status) {
     int pageValue = page != null ? page.getValue() - 1 : 0;
     int pageSizeValue = pageSize != null ? pageSize.getValue() : 30;
     if (status != null) {
-      return repository.findAllByAccountIdAndStatus(accountId, status, pageValue, pageSizeValue);
+      return repository.findAllByIdUserAndStatus(idUser, status, pageValue, pageSizeValue);
     }
-    return repository.findAllByAccountId(accountId, pageValue, pageSizeValue);
+    return repository.findAllByIdUser(idUser, pageValue, pageSizeValue);
   }
 
   public Invoice getById(String invoiceId) {
@@ -38,21 +36,17 @@ public class InvoiceService {
   }
 
   @Transactional(isolation = Isolation.SERIALIZABLE)
-  public Invoice crupdateInvoice(Invoice toCrupdate) {
-    if (!getAccountHolder(toCrupdate).isSubjectToVat()) {
-      toCrupdate.getProducts().forEach(
+  public Invoice crupdateInvoice(Invoice invoice) {
+    if (!invoice.getActualHolder().isSubjectToVat()) {
+      invoice.getProducts().forEach(
           product -> product.setVatPercent(new Fraction())
       );
     }
-    return repository.crupdate(toCrupdate);
+    return repository.crupdate(invoice);
   }
 
   public List<Invoice> archiveInvoices(List<Invoice> toUpdate) {
     toUpdate.forEach(repository::crupdate);
     return toUpdate;
-  }
-
-  private AccountHolder getAccountHolder(Invoice toCrupdate) {
-    return holderService.getAccountHolderByAccountId(toCrupdate.getAccount().getId());
   }
 }

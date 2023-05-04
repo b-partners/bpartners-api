@@ -31,13 +31,13 @@ public class CustomerRepositoryImpl implements CustomerRepository {
   private final EntityManager entityManager;
 
   private static Predicate[] retrieveNotNullPredicates(
-      String accountId, String firstname, String lastname,
+      String idUser, String firstname, String lastname,
       String email, String phoneNumber, String city,
       String country, CustomerStatus status, CriteriaBuilder builder,
       Root<HCustomer> root, List<Predicate> predicates) {
 
     predicates.add(
-        builder.equal(root.get("idAccount"), accountId)
+        builder.equal(root.get("idUser"), idUser)
     );
     if (firstname != null) {
       predicates.add(builder.or(
@@ -91,21 +91,11 @@ public class CustomerRepositoryImpl implements CustomerRepository {
   }
 
   @Override
-  public List<Customer> findByAccountIdAndName(
-      String accountId, String firstName, String lastName, int page, int pageSize) {
-    Pageable pageable = PageRequest.of(page, pageSize);
-    return jpaRepository.findByIdAccountAndFirstNameAndLastNameContainingIgnoreCase(
-            accountId, firstName, lastName, pageable).stream()
-        .map(mapper::toDomain)
-        .collect(Collectors.toUnmodifiableList());
-  }
-
-  @Override
-  public List<Customer> findByAccountIdAndCriteria(String accountId, String firstname,
-                                                   String lastname, String email,
-                                                   String phoneNumber, String city,
-                                                   String country, CustomerStatus status, int page,
-                                                   int pageSize) {
+  public List<Customer> findByIdUserAndCriteria(String idUser, String firstname,
+                                                String lastname, String email,
+                                                String phoneNumber, String city,
+                                                String country, CustomerStatus status, int page,
+                                                int pageSize) {
     Pageable pageable = PageRequest.of(page, pageSize);
     CriteriaBuilder builder = entityManager.getCriteriaBuilder();
     CriteriaQuery<HCustomer> query = builder.createQuery(HCustomer.class);
@@ -113,7 +103,7 @@ public class CustomerRepositoryImpl implements CustomerRepository {
     List<Predicate> predicates = new ArrayList<>();
     Predicate[] arrays =
         retrieveNotNullPredicates(
-            accountId, firstname, lastname,
+            idUser, firstname, lastname,
             email, phoneNumber, city,
             country, status, builder, root, predicates);
 
@@ -131,13 +121,14 @@ public class CustomerRepositoryImpl implements CustomerRepository {
   }
 
   @Override
-  public List<Customer> updateStatus(String accountId, List<UpdateCustomerStatus> toUpdate) {
-    List<HCustomer> customersToUpdate = toUpdate.stream()
-        .map(CustomerToUpdate -> {
-          HCustomer actualCustomer = jpaRepository.findById(CustomerToUpdate.getId()).get();
-          actualCustomer.setStatus(CustomerToUpdate.getStatus());
-          return actualCustomer;
-        })
+  public List<Customer> updateCustomersStatuses(List<UpdateCustomerStatus> customerStatusList) {
+    List<HCustomer> customersToUpdate = customerStatusList.stream()
+        .map(customerStatus ->
+            jpaRepository.findById(customerStatus.getId()).orElseThrow(
+                    () -> new NotFoundException("Customer(id=" + customerStatus.getId() + " not found"))
+                .toBuilder()
+                .status(customerStatus.getStatus())
+                .build())
         .collect(Collectors.toList());
     return jpaRepository.saveAll(customersToUpdate).stream()
         .map(mapper::toDomain)
@@ -145,15 +136,7 @@ public class CustomerRepositoryImpl implements CustomerRepository {
   }
 
   @Override
-  public List<Customer> findByAccount(String accountId, int page, int pageSize) {
-    Pageable pageable = PageRequest.of(page, pageSize);
-    return jpaRepository.findAllByIdAccount(accountId, pageable).stream()
-        .map(mapper::toDomain)
-        .collect(Collectors.toUnmodifiableList());
-  }
-
-  @Override
-  public List<Customer> saveAll(String accountId, List<Customer> toCreate) {
+  public List<Customer> saveAll(List<Customer> toCreate) {
     List<HCustomer> entityToCreate = toCreate.stream()
         .map(this::checkExisting)
         .map(mapper::toEntity)
@@ -177,11 +160,11 @@ public class CustomerRepositoryImpl implements CustomerRepository {
       jpaRepository.findById(id)
           .orElseThrow(() ->
               new NotFoundException(
-                  "Customer." + id + " is not found for Account(id=" + domain.getIdAccount()
+                  "Customer." + id + " is not found for User(id=" + domain.getIdUser()
                       + ")"));
     }
     Optional<HCustomer> optionalCustomer =
-        jpaRepository.findByIdAccountAndEmail(domain.getIdAccount(), domain.getEmail());
+        jpaRepository.findByIdUserAndEmail(domain.getIdUser(), domain.getEmail());
     return optionalCustomer.isEmpty() ? domain : domain.toBuilder()
         .id(optionalCustomer.get().getId())
         .build();

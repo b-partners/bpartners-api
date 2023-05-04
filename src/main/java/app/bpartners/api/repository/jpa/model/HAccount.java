@@ -50,6 +50,7 @@ public class HAccount implements Serializable {
   @Type(type = "pgsql_enum")
   @Enumerated(EnumType.STRING)
   private AccountStatus status;
+  private boolean active;
 
   public HAccount idBank(String idBank) {
     this.idBank = idBank;

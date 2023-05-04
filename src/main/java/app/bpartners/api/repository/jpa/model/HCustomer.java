@@ -30,7 +30,7 @@ public class HCustomer {
   @Id
   @GeneratedValue(strategy = IDENTITY)
   private String id;
-  private String idAccount;
+  private String idUser;
   private String firstName;
   private String lastName;
   private String email;

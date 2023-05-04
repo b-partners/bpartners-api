@@ -26,7 +26,7 @@ public class AccountController {
   private final UpdateAccountIdentityRestValidator validator;
 
   @GetMapping("/users/{id}/accounts")
-  public List<Account> getAccounts(@PathVariable(name = "id") String userId) {
+  public List<Account> getAccountsByUserId(@PathVariable(name = "id") String userId) {
     return service.getAccountsByUserId(userId).stream()
         .map(mapper::toRest)
         .collect(Collectors.toUnmodifiableList());
@@ -50,14 +50,14 @@ public class AccountController {
       @PathVariable String userId,
       @PathVariable String accountId,
       @RequestBody(required = false) RedirectionStatusUrls urls) {
-    return service.getBankConnectionInitUrl(userId, urls);
+    return service.initiateBankConnection(userId, urls);
   }
 
   @PostMapping("/users/{userId}/initiateBankConnection")
   public BankConnectionRedirection initiateBankConnectionWithoutAccount(
       @PathVariable String userId,
       @RequestBody(required = false) RedirectionStatusUrls urls) {
-    return service.getBankConnectionInitUrl(userId, urls);
+    return service.initiateBankConnection(userId, urls);
   }
 
   @PostMapping("/users/{userId}/disconnectBank")

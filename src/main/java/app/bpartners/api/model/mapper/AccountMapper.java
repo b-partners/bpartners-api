@@ -78,6 +78,7 @@ public class AccountMapper {
         entity.getId(), accountConnector.getBalance());
     return Account.builder()
         .id(entity.getId())
+        .userId(entity.getUser().getId())
         .bic(entity.getBic())
         .bank(bank)
         .name(accountConnector.getName())

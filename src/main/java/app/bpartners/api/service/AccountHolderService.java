@@ -7,9 +7,11 @@ import app.bpartners.api.model.CompanyInfo;
 import app.bpartners.api.repository.AccountHolderRepository;
 import java.util.List;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 @Service
+@Slf4j
 @AllArgsConstructor
 public class AccountHolderService {
   private final AccountHolderRepository accountHolderRepository;
@@ -20,14 +22,19 @@ public class AccountHolderService {
     return accountHolderRepository.findAllByAccountId(accountId);
   }
 
-  public AccountHolder getAccountHolderByAccountId(String accountId) {
-    return accountHolderRepository.findAllByAccountId(accountId).get(0);
+  public AccountHolder getDefaultByAccountId(String accountId) {
+    List<AccountHolder> accountHolders = accountHolderRepository.findAllByAccountId(accountId);
+    AccountHolder defaultAccountHolder = accountHolders.get(0);
+    if (accountHolders.size() > 1) {
+      log.warn("Multiple account holders not supported. "
+          + defaultAccountHolder.describe() + " chosen by default.");
+    }
+    return defaultAccountHolder;
   }
 
-  public AccountHolder updateCompanyInfo(String accountId, String accountHolderId,
+  public AccountHolder updateCompanyInfo(String accountHolderId,
                                          CompanyInfo companyInfo) {
-    AccountHolder accountHolder = accountHolderRepository.getByIdAndAccountId(accountHolderId,
-        accountId);
+    AccountHolder accountHolder = accountHolderRepository.findById(accountHolderId);
     return accountHolderRepository.save(accountHolder.toBuilder()
         .socialCapital(companyInfo.getSocialCapital())
         .email(companyInfo.getEmail())
@@ -48,13 +55,13 @@ public class AccountHolderService {
       String accountHolderId,
       BusinessActivity businessActivity) {
     businessActivityService.save(businessActivity);
-    return accountHolderRepository.getByIdAndAccountId(accountHolderId, accountId);
+    return accountHolderRepository.findById(accountHolderId);
   }
 
   public AccountHolder updateAnnualRevenueTargets(
       String accountId, String accountHolderId, List<AnnualRevenueTarget> annualRevenueTargets) {
     annualRevenueTargetService.saveAll(annualRevenueTargets);
-    return accountHolderRepository.getByIdAndAccountId(accountHolderId, accountId);
+    return accountHolderRepository.findById(accountHolderId);
   }
 
   public AccountHolder updateFeedBackConfiguration(AccountHolder accountHolder) {

@@ -19,7 +19,7 @@ import java.time.Instant;
 public class FileInfo {
   private String id;
   private Instant uploadedAt;
-  private String uploadedBy;
+  private String userUploaderId;
   private int sizeInKb;
   private String sha256;
 }

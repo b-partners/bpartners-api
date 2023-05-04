@@ -31,7 +31,7 @@ public class ProspectMapper {
         .email(domain.getEmail())
         .status(domain.getStatus())
         .address(domain.getAddress())
-        .idAccountHolder(provider.getAccountHolder().getId())
+        .idAccountHolder(provider.getDefaultAccountHolder().getId())
         .townCode(domain.getTownCode())
         .build();
   }

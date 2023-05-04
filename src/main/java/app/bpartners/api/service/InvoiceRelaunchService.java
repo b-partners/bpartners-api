@@ -7,7 +7,7 @@ import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.endpoint.rest.security.model.Principal;
 import app.bpartners.api.endpoint.rest.security.principal.PrincipalProvider;
 import app.bpartners.api.model.AccountHolder;
-import app.bpartners.api.model.AccountInvoiceRelaunchConf;
+import app.bpartners.api.model.UserInvoiceRelaunchConf;
 import app.bpartners.api.model.Attachment;
 import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.FileInfo;
@@ -18,7 +18,7 @@ import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.validator.InvoiceRelaunchValidator;
-import app.bpartners.api.repository.AccountInvoiceRelaunchConfRepository;
+import app.bpartners.api.repository.UserInvoiceRelaunchConfRepository;
 import app.bpartners.api.repository.InvoiceRelaunchRepository;
 import app.bpartners.api.repository.InvoiceRepository;
 import app.bpartners.api.repository.jpa.InvoiceJpaRepository;
@@ -39,6 +39,7 @@ import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.DRAFT;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PROPOSAL;
+import static app.bpartners.api.model.BoundedPageSize.MAX_SIZE;
 import static app.bpartners.api.service.utils.FileInfoUtils.PDF_EXTENSION;
 import static java.util.UUID.randomUUID;
 
@@ -46,7 +47,7 @@ import static java.util.UUID.randomUUID;
 @AllArgsConstructor
 public class InvoiceRelaunchService {
   public static final String MAIL_TEMPLATE = "mail";
-  private final AccountInvoiceRelaunchConfRepository repository;
+  private final UserInvoiceRelaunchConfRepository repository;
   private final InvoiceRelaunchRepository invoiceRelaunchRepository;
   private final InvoiceRelaunchValidator invoiceRelaunchValidator;
   private final InvoiceRepository invoiceRepository;
@@ -84,15 +85,13 @@ public class InvoiceRelaunchService {
     return "[" + accountHolder.getName() + "] ";
   }
 
-  public AccountInvoiceRelaunchConf getByAccountId(String accountId) {
-    return repository.getByAccountId(accountId);
+  public UserInvoiceRelaunchConf getByIdUser(String idUser) {
+    return repository.getByIdUser(idUser);
   }
 
-  public AccountInvoiceRelaunchConf saveConf(
-      String accountId,
-      AccountInvoiceRelaunchConf accountInvoiceRelaunchConf
-  ) {
-    return repository.save(accountInvoiceRelaunchConf, accountId);
+  public UserInvoiceRelaunchConf saveConf(
+      String idUser, UserInvoiceRelaunchConf relaunchConf) {
+    return repository.save(idUser, relaunchConf);
   }
 
   public InvoiceRelaunch relaunchInvoiceManually(
@@ -116,13 +115,13 @@ public class InvoiceRelaunchService {
 
     boolean isUserRelaunched = true;
     AccountHolder accountHolder =
-        holderService.getAccountHolderByAccountId(invoice.getAccount().getId());
+        holderService.getDefaultByAccountId(invoice.getActualAccount().getId());
 
     InvoiceRelaunch invoiceRelaunch =
         invoiceRelaunchRepository.save(
             invoice, getDefaultEmailPrefix(accountHolder) + emailObject, emailBody,
             isUserRelaunched);
-    attachments.forEach(attachment -> uploadAttachment(invoice.getAccount().getId(), attachment));
+    attachments.forEach(attachment -> uploadAttachment(null, attachment)); //TODO
     List<Attachment> attachmentList =
         attachmentService.saveAll(attachments, invoiceRelaunch.getId());
     invoiceRelaunch.setAttachments(attachmentList);
@@ -133,13 +132,12 @@ public class InvoiceRelaunchService {
     return invoiceRelaunch;
   }
 
-  private void uploadAttachment(String idAccount, Attachment attachment) {
+  private void uploadAttachment(String idUser, Attachment attachment) {
     FileInfo fileInfo = fileService.upload(
         randomUUID().toString(),
         ATTACHMENT,
-        idAccount,
-        attachment.getContent(),
-        null
+        idUser,
+        attachment.getContent()
     );
     attachment.setFileId(fileInfo.getId());
   }
@@ -164,13 +162,11 @@ public class InvoiceRelaunchService {
           boolean equalDate =
               now.isEqual(invoice.getSendingDate().plusDays(conf.getDelay()));
           if (equalDate) {
-            int size =
-                getRelaunchesByInvoiceId(
-                    invoice.getId(),
+            List<InvoiceRelaunch> invoiceRelaunches =
+                getRelaunchesByInvoiceId(invoice.getId(), null,
                     new PageFromOne(1),
-                    new BoundedPageSize(500),
-                    null
-                ).size();
+                    new BoundedPageSize(MAX_SIZE));
+            int size = invoiceRelaunches.size();
             boolean notReachedMaxRehearse = size < conf.getRehearsalNumber();
             if (notReachedMaxRehearse) {
               //TODO: relaunch invoice with attachments
@@ -186,9 +182,8 @@ public class InvoiceRelaunchService {
   }
 
   public List<InvoiceRelaunch> getRelaunchesByInvoiceId(
-      String invoiceId,
-      PageFromOne page,
-      BoundedPageSize pageSize, String type) {
+      String invoiceId, String type,
+      PageFromOne page, BoundedPageSize pageSize) {
     int pageValue = page != null ? page.getValue() - 1 : 0;
     int pageSizeValue = pageSize != null ? pageSize.getValue() : 30;
     Pageable pageable = PageRequest.of(pageValue, pageSizeValue);

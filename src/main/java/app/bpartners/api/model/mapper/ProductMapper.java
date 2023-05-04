@@ -37,7 +37,7 @@ public class ProductMapper {
         .build();
   }
 
-  public HProduct toEntity(String idAccount, Product product) {
+  public HProduct toEntity(String idUser, Product product) {
     AtomicReference<Instant> createdDatetimeRef = new AtomicReference<>(Instant.now());
     if (product.getId() != null) {
       jpaRepository.findById(product.getId())
@@ -45,7 +45,7 @@ public class ProductMapper {
     }
     return HProduct.builder()
         .id(product.getId())
-        .idAccount(idAccount)
+        .idUser(idUser)
         .description(product.getDescription())
         .unitPrice(product.getUnitPrice().toString())
         .vatPercent(product.getVatPercent().toString())

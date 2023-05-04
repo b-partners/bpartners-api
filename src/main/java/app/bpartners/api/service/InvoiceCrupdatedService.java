@@ -24,7 +24,7 @@ public class InvoiceCrupdatedService implements Consumer<InvoiceCrupdated> {
     AccountHolder accountHolder = invoiceCrupdated.getAccountHolder();
     String logoFileId = invoiceCrupdated.getLogoFileId();
     Invoice invoice = invoiceCrupdated.getInvoice();
-    String accountId = invoice.getAccount().getId();
+    String accountId = invoice.getActualAccount().getId();
 
     //invoiceService.processPdfGeneration(pdfUtils, accountHolder, logoFileId, invoice, accountId);
   }

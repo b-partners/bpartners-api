@@ -5,6 +5,7 @@ import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.User;
 import app.bpartners.api.service.AccountHolderService;
 import app.bpartners.api.service.AccountService;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -14,13 +15,21 @@ public class AuthenticatedResourceProvider {
   private final AccountService accountService;
   private final AccountHolderService accountHolderService;
 
-  public Account getAccount() {
-    return accountService.getAccountByBearer(AuthProvider.getBearer());
+  public List<Account> getAccounts() {
+    return accountService.getAccountsByBearer(AuthProvider.getBearer());
   }
 
-  public AccountHolder getAccountHolder() {
-    return accountHolderService.getAccountHolderByAccountId(getAccount().getId()
+  public Account getAccount() {
+    return accountService.getActiveByBearer(AuthProvider.getBearer());
+  }
+
+  public AccountHolder getDefaultAccountHolder() {
+    return accountHolderService.getDefaultByAccountId(getAccount().getId()
     );
+  }
+
+  public List<AccountHolder> getAccountHolders() {
+    return accountHolderService.getAccountHoldersByAccountId(getAccount().getId());
   }
 
   public User getUser() {

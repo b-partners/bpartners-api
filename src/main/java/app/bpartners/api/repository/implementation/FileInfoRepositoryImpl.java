@@ -17,22 +17,15 @@ public class FileInfoRepositoryImpl implements FileRepository {
   private final FileMapper mapper;
 
   @Override
-  public FileInfo getByAccountIdAndId(String accountId, String id) {
-    Optional<HFileInfo> entity = jpaRepository.getByAccountIdAndId(accountId, id);
-    return mapper.toDomain(entity
+  public FileInfo findById(String id) {
+    return mapper.toDomain(jpaRepository.findById(id)
         .orElseThrow(
             () -> new NotFoundException("File." + id + " not found.")
         ));
   }
 
-  @Override
-  public FileInfo getById(String id) {
-    return mapper.toDomain(jpaRepository.getById(id));
-  }
-
-  @Override
-  public Optional<FileInfo> getOptionalByIdAndAccountId(String id, String accountId) {
-    Optional<HFileInfo> optional = jpaRepository.getByAccountIdAndId(accountId, id);
+  public Optional<FileInfo> findOptionalById(String id) {
+    Optional<HFileInfo> optional = jpaRepository.findById(id);
     return optional.map(mapper::toDomain);
   }
 

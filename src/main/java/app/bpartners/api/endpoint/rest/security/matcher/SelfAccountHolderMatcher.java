@@ -1,7 +1,6 @@
 package app.bpartners.api.endpoint.rest.security.matcher;
 
 import app.bpartners.api.endpoint.rest.security.AuthenticatedResourceProvider;
-import java.util.Objects;
 import javax.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
@@ -18,7 +17,7 @@ public class SelfAccountHolderMatcher extends SelfMatcher {
     if (!antMatcher.matches(request)) {
       return false;
     }
-    return Objects.equals(getId(request),
-        authResourceProvider.getAccountHolder().getId());
+    return authResourceProvider.getAccountHolders().stream()
+        .anyMatch(accountHolder -> accountHolder.getId().equals(getId(request)));
   }
 }

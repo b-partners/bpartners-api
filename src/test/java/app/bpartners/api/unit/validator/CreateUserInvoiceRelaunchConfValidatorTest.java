@@ -7,7 +7,7 @@ import static app.bpartners.api.integration.conf.TestUtils.assertThrowsBadReques
 import static app.bpartners.api.integration.conf.TestUtils.createInvoiceRelaunchConf;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
-class CreateAccountInvoiceRelaunchConfValidatorTest {
+class CreateUserInvoiceRelaunchConfValidatorTest {
   private final CreateInvoiceRelaunchConfValidator
       validator = new CreateInvoiceRelaunchConfValidator();
 

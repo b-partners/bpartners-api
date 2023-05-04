@@ -1,20 +1,15 @@
 package app.bpartners.api.model.mapper;
 
-import app.bpartners.api.endpoint.rest.security.AuthenticatedResourceProvider;
-import app.bpartners.api.model.AccountInvoiceRelaunchConf;
+import app.bpartners.api.model.UserInvoiceRelaunchConf;
 import app.bpartners.api.model.InvoiceRelaunchConf;
-import app.bpartners.api.repository.jpa.model.HAccountInvoiceRelaunchConf;
 import app.bpartners.api.repository.jpa.model.HInvoiceRelaunchConf;
-import lombok.AllArgsConstructor;
+import app.bpartners.api.repository.jpa.model.HUserInvoiceRelaunchConf;
 import org.springframework.stereotype.Component;
 
 @Component
-@AllArgsConstructor
 public class InvoiceRelaunchConfMapper {
-  private final AuthenticatedResourceProvider authResourceProvider;
-
-  public AccountInvoiceRelaunchConf toDomain(HAccountInvoiceRelaunchConf entity) {
-    return AccountInvoiceRelaunchConf.builder()
+  public UserInvoiceRelaunchConf toDomain(HUserInvoiceRelaunchConf entity) {
+    return UserInvoiceRelaunchConf.builder()
         .id(entity.getId())
         .draftRelaunch(entity.getDraftRelaunch())
         .unpaidRelaunch(entity.getUnpaidRelaunch())
@@ -32,10 +27,10 @@ public class InvoiceRelaunchConfMapper {
         .build();
   }
 
-  public HAccountInvoiceRelaunchConf toEntity(AccountInvoiceRelaunchConf domain) {
-    return HAccountInvoiceRelaunchConf.builder()
+  public HUserInvoiceRelaunchConf toEntity(String idUser, UserInvoiceRelaunchConf domain) {
+    return HUserInvoiceRelaunchConf.builder()
         .id(domain.getId())
-        .accountId(authResourceProvider.getAccount().getId())
+        .idUser(idUser)
         .draftRelaunch(domain.getDraftRelaunch())
         .unpaidRelaunch(domain.getUnpaidRelaunch())
         .build();

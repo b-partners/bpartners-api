@@ -6,6 +6,7 @@ import app.bpartners.api.model.User;
 import app.bpartners.api.model.mapper.UserMapper;
 import app.bpartners.api.repository.bridge.repository.BridgeUserRepository;
 import app.bpartners.api.repository.implementation.UserRepositoryImpl;
+import app.bpartners.api.repository.jpa.AccountHolderJpaRepository;
 import app.bpartners.api.repository.jpa.UserJpaRepository;
 import app.bpartners.api.repository.jpa.model.HUser;
 import app.bpartners.api.repository.swan.UserSwanRepository;
@@ -28,45 +29,48 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 class UserRepositoryTest {
-  UserSwanRepository userSwanRepository;
-  UserJpaRepository userJpaRepository;
-  UserMapper userMapper;
-  SwanComponent swanComponent;
-  CognitoComponent cognitoComponent;
-  UserRepositoryImpl userRepository;
-  BridgeUserRepository bridgeUserRepository;
+  UserSwanRepository userSwanRepositoryMock;
+  UserJpaRepository userJpaRepositoryMock;
+  UserMapper userMapperMock;
+  SwanComponent swanComponentMock;
+  CognitoComponent cognitoComponentMock;
+  UserRepositoryImpl subject;
+  BridgeUserRepository bridgeUserRepositoryMock;
+  AccountHolderJpaRepository accountHolderJpaRepositoryMock;
 
   @BeforeEach
   void setUp() {
-    userJpaRepository = mock(UserJpaRepository.class);
-    userMapper = mock(UserMapper.class);
-    userSwanRepository = mock(UserSwanRepository.class);
-    swanComponent = mock(SwanComponent.class);
-    cognitoComponent = mock(CognitoComponent.class);
-    bridgeUserRepository = mock(BridgeUserRepository.class);
-    userRepository =
-        new UserRepositoryImpl(userSwanRepository, userJpaRepository, userMapper, swanComponent,
-            cognitoComponent, bridgeUserRepository);
+    userJpaRepositoryMock = mock(UserJpaRepository.class);
+    userMapperMock = mock(UserMapper.class);
+    userSwanRepositoryMock = mock(UserSwanRepository.class);
+    swanComponentMock = mock(SwanComponent.class);
+    cognitoComponentMock = mock(CognitoComponent.class);
+    bridgeUserRepositoryMock = mock(BridgeUserRepository.class);
+    accountHolderJpaRepositoryMock = mock(AccountHolderJpaRepository.class);
+    subject =
+        new UserRepositoryImpl(userSwanRepositoryMock, userJpaRepositoryMock, userMapperMock,
+            swanComponentMock,
+            cognitoComponentMock, bridgeUserRepositoryMock, accountHolderJpaRepositoryMock);
 
-    setUpUserSwanRepository(userSwanRepository);
-    setUpSwanComponent(swanComponent);
-    when(userJpaRepository.findUserBySwanUserId(any(String.class))).thenReturn(
+    setUpUserSwanRepository(userSwanRepositoryMock);
+    setUpSwanComponent(swanComponentMock);
+    when(userJpaRepositoryMock.findUserBySwanUserId(any(String.class))).thenReturn(
         Optional.of(user()));
-    when(userJpaRepository.save(any())).thenReturn(user());
-    when(userMapper.toDomain(any(HUser.class), any(SwanUser.class))).thenReturn(expectedUser());
-    when(userMapper.toDomain(any(HUser.class))).thenReturn(expectedUser());
+    when(userJpaRepositoryMock.save(any())).thenReturn(user());
+    when(userMapperMock.toDomain(any(HUser.class), any(SwanUser.class))).thenReturn(expectedUser());
+    when(userMapperMock.toDomain(any(HUser.class))).thenReturn(expectedUser());
   }
 
   @Test
   void read_user_by_swan_userId_and_token() {
-    User actual = userRepository.getUserBySwanUserIdAndToken(JOE_DOE_SWAN_USER_ID, JOE_DOE_TOKEN);
+    User actual = subject.getUserBySwanUserIdAndToken(JOE_DOE_SWAN_USER_ID, JOE_DOE_TOKEN);
 
     assertEquals(expectedUser(), actual);
   }
 
   @Test
   void read_user_by_token() {
-    User actual = userRepository.getUserByToken(JOE_DOE_TOKEN);
+    User actual = subject.getUserByToken(JOE_DOE_TOKEN);
 
     assertNotNull(actual);
     assertEquals(expectedUser(), actual);

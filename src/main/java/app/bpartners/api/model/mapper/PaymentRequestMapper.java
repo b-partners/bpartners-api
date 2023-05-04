@@ -1,12 +1,11 @@
 package app.bpartners.api.model.mapper;
 
 import app.bpartners.api.endpoint.rest.model.PaymentStatus;
-import app.bpartners.api.endpoint.rest.security.AuthenticatedResourceProvider;
+import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.model.CreatePaymentRegulation;
 import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.PaymentInitiation;
-import app.bpartners.api.model.PaymentRequest;
 import app.bpartners.api.repository.fintecture.model.FPaymentRedirection;
 import app.bpartners.api.repository.jpa.model.HPaymentRequest;
 import java.time.Instant;
@@ -14,22 +13,17 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
-
 @Slf4j
 @Component
 @AllArgsConstructor
 public class PaymentRequestMapper {
-  private final AuthenticatedResourceProvider provider;
 
   public HPaymentRequest toEntity(
-      FPaymentRedirection paymentRedirection,
-      PaymentInitiation domain,
-      String idInvoice) {
+      FPaymentRedirection paymentRedirection, PaymentInitiation domain, String idInvoice) {
     return HPaymentRequest.builder()
         .id(domain.getId())
         .idInvoice(idInvoice)
-        .accountId(provider.getAccount().getId())
+        .idUser(AuthProvider.getAuthenticatedUserId())
         .sessionId(paymentRedirection == null ? null
             : paymentRedirection.getMeta().getSessionId())
         .paymentUrl(paymentRedirection == null ? null
@@ -43,40 +37,6 @@ public class PaymentRequestMapper {
         .amount(domain.getAmount().toString())
         .createdDatetime(Instant.now())
         .status(domain.getStatus() == null ? PaymentStatus.UNPAID : domain.getStatus())
-        .build();
-  }
-
-  public PaymentRequest toDomain(
-      String invoiceId,
-      String accountId,
-      String sessionId,
-      CreatePaymentRegulation regulation) {
-    return PaymentRequest.builder()
-        .id(null)
-        .sessionId(sessionId)
-        .reference(regulation.getReference())
-        .label(regulation.getComment())
-        .accountId(accountId)
-        .invoiceId(invoiceId)
-        .amount(regulation.getAmount())
-        .payerName(regulation.getPayerName())
-        .payerEmail(regulation.getPayerEmail())
-        .paymentUrl(regulation.getPaymentUrl())
-        .build();
-  }
-
-  public PaymentRequest toDomain(HPaymentRequest entity) {
-    return PaymentRequest.builder()
-        .id(entity.getId())
-        .sessionId(entity.getSessionId())
-        .invoiceId(entity.getIdInvoice())
-        .paymentUrl(entity.getPaymentUrl())
-        .accountId(entity.getAccountId())
-        .label(entity.getLabel())
-        .reference(entity.getReference())
-        .payerName(entity.getPayerName())
-        .payerEmail(entity.getPayerEmail())
-        .amount(parseFraction(entity.getAmount()))
         .build();
   }
 

@@ -6,6 +6,7 @@ import app.bpartners.api.model.InvoiceRelaunch;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.mapper.InvoiceRelaunchMapper;
 import app.bpartners.api.repository.InvoiceRelaunchRepository;
+import app.bpartners.api.repository.InvoiceRepository;
 import app.bpartners.api.repository.jpa.InvoiceRelaunchJpaRepository;
 import app.bpartners.api.repository.jpa.model.HInvoiceRelaunch;
 import java.util.List;
@@ -19,16 +20,17 @@ import org.springframework.stereotype.Repository;
 @AllArgsConstructor
 @Slf4j
 public class InvoiceRelaunchRepositoryImpl implements InvoiceRelaunchRepository {
-  private final InvoiceRelaunchJpaRepository invoiceRelaunchJpaRepository;
-  private final InvoiceRelaunchMapper invoiceRelaunchMapper;
+  private final InvoiceRelaunchJpaRepository jpaRepository;
+  private final InvoiceRelaunchMapper mapper;
+  private final InvoiceRepository invoiceRepository;
 
   @Override
   public List<InvoiceRelaunch> getByInvoiceId(
       String invoiceId, String type, Pageable pageable) {
     if (type == null) {
-      return invoiceRelaunchJpaRepository
-          .getByInvoiceId(invoiceId, pageable)
-          .stream().map(invoiceRelaunchMapper::toDomain)
+      return jpaRepository.getByInvoiceId(invoiceId, pageable).stream()
+          .map(invoiceRelaunch -> mapper.toDomain(
+              invoiceRelaunch, invoiceRepository.getById(invoiceId)))
           .collect(Collectors.toUnmodifiableList());
     } else {
       RelaunchType enumType;
@@ -37,28 +39,19 @@ public class InvoiceRelaunchRepositoryImpl implements InvoiceRelaunchRepository 
       } catch (IllegalArgumentException e) {
         throw new BadRequestException("Type value should be PROPOSAL or CONFIRMED");
       }
-      return invoiceRelaunchJpaRepository
-          .getByInvoiceIdAndType(invoiceId, enumType, pageable)
-          .stream().map(invoiceRelaunchMapper::toDomain)
+      return jpaRepository.getByInvoiceIdAndType(invoiceId, enumType, pageable).stream()
+          .map(invoiceRelaunch -> mapper.toDomain(
+              invoiceRelaunch, invoiceRepository.getById(invoiceId)))
           .collect(Collectors.toUnmodifiableList());
     }
   }
 
   @Override
   public InvoiceRelaunch save(
-      Invoice invoice,
-      String object,
-      String htmlBody,
-      boolean isUserRelaunched
-  ) {
+      Invoice invoice, String object, String htmlBody, boolean isUserRelaunched) {
     HInvoiceRelaunch toSave =
-        invoiceRelaunchMapper.toEntity(
-            invoice,
-            object,
-            htmlBody,
-            isUserRelaunched
-        );
-    return invoiceRelaunchMapper
-        .toDomain(invoiceRelaunchJpaRepository.save(toSave));
+        mapper.toEntity(invoice, object, htmlBody, isUserRelaunched);
+    HInvoiceRelaunch savedRelaunch = jpaRepository.save(toSave);
+    return mapper.toDomain(savedRelaunch, invoiceRepository.getById(invoice.getId()));
   }
 }

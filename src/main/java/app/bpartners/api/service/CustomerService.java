@@ -26,30 +26,30 @@ public class CustomerService {
   private final CustomerRestMapper restMapper;
 
   public List<Customer> getCustomers(
-      String accountId, String firstName,
+      String idUser, String firstName,
       String lastName, String email, String phoneNumber, String city, String country,
       CustomerStatus status,
       PageFromOne page, BoundedPageSize pageSize) {
     int pageValue = page != null ? page.getValue() - 1 : 0;
     int pageSizeValue = pageSize != null ? pageSize.getValue() : 30;
-    return repository.findByAccountIdAndCriteria(accountId, firstName, lastName, email,
+    return repository.findByIdUserAndCriteria(idUser, firstName, lastName, email,
         phoneNumber, city, country, status, pageValue, pageSizeValue);
   }
 
   @Transactional
-  public List<Customer> crupdateCustomers(String accountId, List<Customer> customers) {
-    return repository.saveAll(accountId, customers);
+  public List<Customer> crupdateCustomers(List<Customer> customers) {
+    return repository.saveAll(customers);
   }
 
-  public List<Customer> updateStatus(String accountId, List<UpdateCustomerStatus> toUpdate) {
-    return repository.updateStatus(accountId, toUpdate);
+  public List<Customer> updateStatuses(List<UpdateCustomerStatus> customerStatusList) {
+    return repository.updateCustomersStatuses(customerStatusList);
   }
 
-  public List<Customer> getDataFromFile(String accountId, byte[] file) {
+  public List<Customer> getDataFromFile(String idUser, byte[] file) {
     List<CreateCustomer> customersFromFile =
         getCustomersInfoFromFile(new ByteArrayInputStream(file));
     return customersFromFile.stream()
-        .map(customer -> restMapper.toDomain(accountId, customer))
+        .map(customer -> restMapper.toDomain(idUser, customer))
         .collect(Collectors.toList());
   }
 }

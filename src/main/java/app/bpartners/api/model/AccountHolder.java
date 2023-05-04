@@ -2,6 +2,7 @@ package app.bpartners.api.model;
 
 import app.bpartners.api.endpoint.rest.model.Geojson;
 import app.bpartners.api.endpoint.rest.model.VerificationStatus;
+import java.io.Serializable;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -17,8 +18,9 @@ import lombok.ToString;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode
-public class AccountHolder {
+public class AccountHolder implements Serializable {
   private String id;
+  private String userId;
   private String name;
   private String address;
   private String city;
@@ -27,7 +29,6 @@ public class AccountHolder {
   private int socialCapital;
   private String vatNumber;
   private String siren;
-  private String accountId;
   private String mainActivity;
   private String mainActivityDescription;
   private String mobilePhoneNumber;
@@ -41,10 +42,10 @@ public class AccountHolder {
   private int prospectingPerimeter;
 
   public String describe() {
-    return "AccountHolder{"
-        + "id='" + id + '\''
-        + ", name='" + name + '\''
-        + ", email='" + email + '\''
-        + '}';
+    return "AccountHolder("
+        + "id=" + id
+        + "name=" + name
+        + "siren=" + siren
+        + ")";
   }
 }

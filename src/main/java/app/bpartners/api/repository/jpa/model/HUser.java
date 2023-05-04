@@ -4,17 +4,19 @@ import app.bpartners.api.endpoint.rest.model.EnableStatus;
 import app.bpartners.api.endpoint.rest.model.IdentificationStatus;
 import app.bpartners.api.model.BankConnection;
 import app.bpartners.api.repository.jpa.types.PostgresEnumType;
-import com.nimbusds.jose.shaded.json.annotate.JsonIgnore;
 import java.io.Serializable;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import lombok.AccessLevel;
@@ -47,10 +49,13 @@ public class HUser implements Serializable {
   private String id;
   @OneToMany(mappedBy = "user")
   private List<HAccount> accounts;
+  @OneToMany(cascade = CascadeType.ALL)
+  @JoinColumn(name = "id_user")
+  private List<HAccountHolder> accountHolders = new ArrayList<>();
   private String firstName;
   private String lastName;
-  @Column(name = "preferred_account_external_id")
-  private String preferredAccountExternalId;
+  @Column(name = "preferred_account_id")
+  private String preferredAccountId;
   private String email;
   private String swanUserId;
   private String bridgeUserId; //TODO: persist this when creating new users
@@ -77,6 +82,8 @@ public class HUser implements Serializable {
   @Type(type = "pgsql_enum")
   @Enumerated(EnumType.STRING)
   private IdentificationStatus identificationStatus;
+  @Column(name = "old_s3_id_account")
+  private String oldS3AccountKey;
 
   public Instant getBridgeItemLastRefresh() {
     return bridgeItemLastRefresh == null ? null

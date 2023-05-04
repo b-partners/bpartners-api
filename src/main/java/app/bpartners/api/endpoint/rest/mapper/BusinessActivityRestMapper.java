@@ -21,7 +21,7 @@ public class BusinessActivityRestMapper {
   public app.bpartners.api.model.BusinessActivity toDomain(
       String accountId, CompanyBusinessActivity rest) {
     AccountHolder authenticatedAccountHolder =
-        accountHolderService.getAccountHolderByAccountId(accountId);
+        accountHolderService.getDefaultByAccountId(accountId);
     return app.bpartners.api.model.BusinessActivity.builder()
         .accountHolder(authenticatedAccountHolder)
         .primaryActivity(rest.getPrimary())

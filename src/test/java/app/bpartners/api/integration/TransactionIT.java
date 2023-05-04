@@ -29,13 +29,11 @@ import app.bpartners.api.service.PaymentScheduleService;
 import java.time.LocalDate;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
@@ -69,7 +67,6 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @Testcontainers
 @ContextConfiguration(initializers = TransactionIT.ContextInitializer.class)
 @AutoConfigureMockMvc
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class TransactionIT {
   @MockBean
   private PaymentScheduleService paymentScheduleService;
@@ -157,7 +154,6 @@ class TransactionIT {
   }
 
   @Test
-  @Order(1)
   void read_transactions_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
     PayingApi api = new PayingApi(joeDoeClient);
@@ -179,7 +175,6 @@ class TransactionIT {
   TODO: return empty when neither swan nor bridge return transaction
    */
   @Test
-  @Order(1)
   void read_empty_transactions_ok() throws ApiException {
     reset(transactionSwanRepositoryMock);
     when(transactionSwanRepositoryMock.findById(any(), any())).thenReturn(null);
@@ -196,7 +191,6 @@ class TransactionIT {
   }
 
   @Test
-  @Order(1)
   void read_override_transactions_ok() throws ApiException {
     reset(transactionSwanRepositoryMock);
     when(transactionSwanRepositoryMock.findById(any(), any())).thenReturn(
@@ -212,8 +206,8 @@ class TransactionIT {
     assertTrue(actual.contains(restUpdatedTransaction()));
   }
 
-  @Order(2)
   @Test
+  @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
   void justify_transaction_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
     PayingApi api = new PayingApi(joeDoeClient);

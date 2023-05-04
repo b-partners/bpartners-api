@@ -35,8 +35,8 @@ public class InvoiceRelaunchController {
       @RequestParam(name = "page", required = false) PageFromOne page,
       @RequestParam(value = "pageSize", required = false) BoundedPageSize pageSize,
       @RequestParam(name = "type", required = false) String type) {
-    return service.getRelaunchesByInvoiceId(invoiceId, page, pageSize, type)
-        .stream().map(mapper::toRest)
+    return service.getRelaunchesByInvoiceId(invoiceId, type, page, pageSize).stream()
+        .map(invoiceRelaunch -> mapper.toRest(invoiceRelaunch, accountId))
         .collect(Collectors.toUnmodifiableList());
   }
 
@@ -62,7 +62,8 @@ public class InvoiceRelaunchController {
         createInvoiceRelaunch.getAttachments().stream()
             .map(attachmentRestMapper::toDomain)
             .collect(Collectors.toUnmodifiableList());
-    return mapper.toRest(
-        service.relaunchInvoiceManually(invoiceId, emailObjectList, emailBodyList, attachments));
+    app.bpartners.api.model.InvoiceRelaunch invoiceRelaunch =
+        service.relaunchInvoiceManually(invoiceId, emailObjectList, emailBodyList, attachments);
+    return mapper.toRest(invoiceRelaunch, accountId);
   }
 }

@@ -34,7 +34,7 @@ public class HPaymentRequest implements Serializable {
   @Id
   private String id;
   private String sessionId;
-  private String accountId;
+  private String idUser;
   @Column(name = "id_invoice")
   private String idInvoice;
   private String label;

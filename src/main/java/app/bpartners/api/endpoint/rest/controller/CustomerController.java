@@ -5,6 +5,8 @@ import app.bpartners.api.endpoint.rest.model.CreateCustomer;
 import app.bpartners.api.endpoint.rest.model.Customer;
 import app.bpartners.api.endpoint.rest.model.CustomerStatus;
 import app.bpartners.api.endpoint.rest.model.UpdateCustomerStatus;
+import app.bpartners.api.endpoint.rest.security.AuthProvider;
+import app.bpartners.api.endpoint.rest.validator.UpdateCustomerStatusValidator;
 import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.service.CustomerService;
@@ -26,6 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class CustomerController {
   private final CustomerService service;
   private final CustomerRestMapper mapper;
+  private final UpdateCustomerStatusValidator validator;
 
   @GetMapping("/accounts/{id}/customers")
   public List<app.bpartners.api.endpoint.rest.model.Customer> getCustomers(
@@ -39,21 +42,26 @@ public class CustomerController {
       @RequestParam(required = false) CustomerStatus status,
       @RequestParam(required = false) PageFromOne page,
       @RequestParam(required = false) BoundedPageSize pageSize) {
-    return service.getCustomers(id, firstName, lastName, email, phoneNumber, city, country, status,
-            page, pageSize).stream()
+    String idUser =
+        AuthProvider.getAuthenticatedUserId(); //TODO: should be changed when endpoint changed
+    return service.getCustomers(
+            idUser, firstName, lastName, email, phoneNumber,
+            city, country, status, page, pageSize).stream()
         .map(mapper::toRest)
         .collect(Collectors.toUnmodifiableList());
   }
 
   @PostMapping("/accounts/{id}/customers")
   public List<Customer> createCustomers(
-      @PathVariable String id,
+      @PathVariable(name = "id") String idAccount,
       @RequestBody List<CreateCustomer> toCreate) {
     log.warn("POST /accounts/{id}/customers is deprecated. Use PUT instead");
+    String idUser =
+        AuthProvider.getAuthenticatedUserId(); //TODO: should be changed when endpoint changed
     List<app.bpartners.api.model.Customer> customers = toCreate.stream()
-        .map(createCustomer -> mapper.toDomain(id, createCustomer))
+        .map(createCustomer -> mapper.toDomain(idUser, createCustomer))
         .collect(Collectors.toUnmodifiableList());
-    return service.crupdateCustomers(id, customers).stream()
+    return service.crupdateCustomers(customers).stream()
         .map(mapper::toRest)
         .collect(Collectors.toUnmodifiableList());
   }
@@ -62,10 +70,12 @@ public class CustomerController {
   public List<Customer> crupdateCustomers(
       @PathVariable("id") String id,
       @RequestBody List<Customer> toUpdate) {
+    String idUser =
+        AuthProvider.getAuthenticatedUserId(); //TODO: should be changed when endpoint changed
     List<app.bpartners.api.model.Customer> customers = toUpdate.stream()
-        .map(customer -> mapper.toDomain(id, customer))
+        .map(customer -> mapper.toDomain(idUser, customer))
         .collect(Collectors.toUnmodifiableList());
-    return service.crupdateCustomers(id, customers).stream()
+    return service.crupdateCustomers(customers).stream()
         .map(mapper::toRest)
         .collect(Collectors.toUnmodifiableList());
   }
@@ -74,9 +84,11 @@ public class CustomerController {
   public List<Customer> importCustomers(
       @PathVariable(name = "accountId") String accountId,
       @RequestBody byte[] toUpload) {
+    String idUser =
+        AuthProvider.getAuthenticatedUserId(); //TODO: should be changed when endpoint changed
     List<app.bpartners.api.model.Customer> customerTemplates =
-        service.getDataFromFile(accountId, toUpload);
-    return service.crupdateCustomers(accountId, customerTemplates)
+        service.getDataFromFile(idUser, toUpload);
+    return service.crupdateCustomers(customerTemplates)
         .stream().map(mapper::toRest)
         .collect(Collectors.toUnmodifiableList());
   }
@@ -84,8 +96,9 @@ public class CustomerController {
   @PutMapping(value = "/accounts/{id}/customers/status")
   public List<Customer> updateCustomerStatus(
       @PathVariable(name = "id") String accountId,
-      @RequestBody List<UpdateCustomerStatus> toUpdate) {
-    return service.updateStatus(accountId, toUpdate).stream()
+      @RequestBody List<UpdateCustomerStatus> customerStatuses) {
+    validator.accept(customerStatuses);
+    return service.updateStatuses(customerStatuses).stream()
         .map(mapper::toRest)
         .collect(Collectors.toUnmodifiableList());
   }

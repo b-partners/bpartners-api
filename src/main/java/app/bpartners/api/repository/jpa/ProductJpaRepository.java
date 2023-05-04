@@ -8,19 +8,14 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface ProductJpaRepository extends JpaRepository<HProduct, String> {
-  List<HProduct> findAllByIdAccount(String idAccount, Pageable pageable);
+  Optional<HProduct> findByIdUserAndDescription(String idUser, String description);
 
-  List<HProduct> findAllByIdAccount(String idAccount);
-
-  Optional<HProduct> findByIdAccountAndDescription(String idAccount, String description);
-
-  HProduct findByIdAccountAndId(String idAccount, String id);
-
-  List<HProduct> findAllByIdAccountAndStatusAndUnitPriceAndDescriptionContainingIgnoreCase(
-      String idAccount, ProductStatus status, String unitPrice, String description,
+  //TODO: replace this with criteria builder
+  List<HProduct> findAllByIdUserAndStatusAndUnitPriceAndDescriptionContainingIgnoreCase(
+      String idUser, ProductStatus status, String unitPrice, String description,
       Pageable pageable);
 
-  List<HProduct> findAllByIdAccountAndStatusAndDescriptionContainingIgnoreCase(
-      String idAccount, ProductStatus status, String description, Pageable pageable
+  List<HProduct> findAllByIdUserAndStatusAndDescriptionContainingIgnoreCase(
+      String idUser, ProductStatus status, String description, Pageable pageable
   );
 }

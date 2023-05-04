@@ -16,7 +16,6 @@ public class PaymentRequest {
   private String sessionId;
   private String paymentUrl;
   private String invoiceId;
-  private String accountId;
   private String label;
   private String reference;
   private String payerName;

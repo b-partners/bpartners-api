@@ -21,7 +21,6 @@ public class CustomerRestMapper {
     if (domain == null) {
       return null;
     }
-
     return new Customer()
         .id(domain.getId())
         .firstName(domain.getFirstName())
@@ -38,7 +37,7 @@ public class CustomerRestMapper {
         .status(domain.getStatus());
   }
 
-  public app.bpartners.api.model.Customer toDomain(String accountId, Customer rest) {
+  public app.bpartners.api.model.Customer toDomain(String idUser, Customer rest) {
     customerValidator.accept(rest);
     String[] names =
         retrieveNames(rest.getFirstName(), rest.getLastName());
@@ -51,7 +50,7 @@ public class CustomerRestMapper {
             : names[1];
     return app.bpartners.api.model.Customer.builder()
         .id(rest.getId())
-        .idAccount(accountId)
+        .idUser(idUser)
         .firstName(firstName)
         .lastName(lastName)
         .phone(rest.getPhone())
@@ -67,7 +66,7 @@ public class CustomerRestMapper {
         .build();
   }
 
-  public app.bpartners.api.model.Customer toDomain(String accountId, CreateCustomer rest) {
+  public app.bpartners.api.model.Customer toDomain(String userId, CreateCustomer rest) {
     createCustomerValidator.accept(rest);
     String[] names = retrieveNames(rest.getFirstName(), rest.getLastName());
     String firstName = names.length != 0 ? names[0] : null;
@@ -78,7 +77,7 @@ public class CustomerRestMapper {
             : names[1];
     return app.bpartners.api.model.Customer.builder()
         .id(null) //generated automatically
-        .idAccount(accountId)
+        .idUser(userId)
         .firstName(firstName)
         .lastName(lastName)
         .phone(rest.getPhone())

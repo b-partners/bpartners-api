@@ -8,10 +8,5 @@ import org.springframework.data.domain.Pageable;
 public interface InvoiceRelaunchRepository {
   List<InvoiceRelaunch> getByInvoiceId(String invoiceId, String type, Pageable pageable);
 
-  InvoiceRelaunch save(
-      Invoice invoice,
-      String object,
-      String htmlBody,
-      boolean isUserRelaunched
-  );
+  InvoiceRelaunch save(Invoice invoice, String object, String htmlBody, boolean isUserRelaunched);
 }

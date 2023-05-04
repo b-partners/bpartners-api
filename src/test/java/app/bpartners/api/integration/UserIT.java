@@ -47,6 +47,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
@@ -251,6 +252,7 @@ class UserIT {
     when(swanComponentMock.getSwanUserByToken(any())).thenReturn(janeDoe());
     HUser beforeUpdate = userJpaRepository.getByEmail(email);
     beforeUpdate.setAccounts(List.of());
+    beforeUpdate.setAccountHolders(List.of());
 
     ApiClient joeDoeClient = anApiClient(JANE_DOE_TOKEN);
     UserAccountsApi api = new UserAccountsApi(joeDoeClient);
@@ -270,6 +272,7 @@ class UserIT {
         .idVerified(null)
         .identificationStatus(null)
         .accounts(List.of())
+        .accountHolders(List.of())
         .build(), beforeUpdate);
     assertEquals(restJaneDoeUser(), actual);
   }
@@ -392,6 +395,7 @@ class UserIT {
   }
 
   @Test
+  @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
   void onboard_users_ok() throws IOException, InterruptedException {
     when(bridgeUserRepositoryMock.createUser(any())).thenReturn(bridgeUser());
     reset(swanComponentMock);

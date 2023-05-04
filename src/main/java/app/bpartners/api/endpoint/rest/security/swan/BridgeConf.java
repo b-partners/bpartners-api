@@ -65,6 +65,14 @@ public class BridgeConf {
     return baseUrl + "/items/" + id + "/refresh/status";
   }
 
+  public String getProItemsValidationUrl() {
+    return baseUrl + "/connect/items/pro/confirmation";
+  }
+
+  public String getEditItemsUrl() {
+    return baseUrl + "/connect/items/edit?item_id=";
+  }
+
   public String getAccountUrl() {
     return baseUrl + "/accounts";
   }

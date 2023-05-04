@@ -8,6 +8,7 @@ import app.bpartners.api.endpoint.rest.client.ApiException;
 import app.bpartners.api.endpoint.rest.model.Account;
 import app.bpartners.api.endpoint.rest.model.AccountHolder;
 import app.bpartners.api.endpoint.rest.model.AccountStatus;
+import app.bpartners.api.endpoint.rest.model.AccountValidationRedirection;
 import app.bpartners.api.endpoint.rest.model.BankConnectionRedirection;
 import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
 import app.bpartners.api.endpoint.rest.model.UpdateAccountIdentity;
@@ -21,10 +22,13 @@ import app.bpartners.api.integration.conf.TestUtils;
 import app.bpartners.api.manager.ProjectTokenManager;
 import app.bpartners.api.model.Bank;
 import app.bpartners.api.model.User;
+import app.bpartners.api.model.UserToken;
 import app.bpartners.api.repository.LegalFileRepository;
 import app.bpartners.api.repository.UserRepository;
+import app.bpartners.api.repository.UserTokenRepository;
 import app.bpartners.api.repository.bridge.BridgeApi;
 import app.bpartners.api.repository.bridge.model.Account.BridgeAccount;
+import app.bpartners.api.repository.bridge.model.Item.BridgeConnectItem;
 import app.bpartners.api.repository.bridge.repository.BridgeBankRepository;
 import app.bpartners.api.repository.bridge.repository.implementation.BridgeAccountRepositoryImpl;
 import app.bpartners.api.repository.fintecture.FintectureConf;
@@ -40,6 +44,8 @@ import app.bpartners.api.repository.swan.implementation.AccountSwanRepositoryImp
 import app.bpartners.api.repository.swan.model.SwanAccount;
 import app.bpartners.api.repository.swan.response.AccountResponse;
 import app.bpartners.api.service.PaymentScheduleService;
+import app.bpartners.api.service.UserService;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -53,6 +59,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -64,18 +71,25 @@ import static app.bpartners.api.integration.conf.TestUtils.ACCOUNT_CLOSED;
 import static app.bpartners.api.integration.conf.TestUtils.ACCOUNT_CLOSING;
 import static app.bpartners.api.integration.conf.TestUtils.ACCOUNT_OPENED;
 import static app.bpartners.api.integration.conf.TestUtils.ACCOUNT_SUSPENDED;
+import static app.bpartners.api.integration.conf.TestUtils.BERNARD_DOE_ACCOUNT_ID;
+import static app.bpartners.api.integration.conf.TestUtils.BERNARD_DOE_ID;
+import static app.bpartners.api.integration.conf.TestUtils.BERNARD_DOE_TOKEN;
 import static app.bpartners.api.integration.conf.TestUtils.JANE_DOE_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_COGNITO_TOKEN;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_TOKEN;
+import static app.bpartners.api.integration.conf.TestUtils.REDIRECT_FAILURE_URL;
+import static app.bpartners.api.integration.conf.TestUtils.REDIRECT_SUCCESS_URL;
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsApiException;
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsForbiddenException;
+import static app.bpartners.api.integration.conf.TestUtils.bernardDoeSwanAccount;
 import static app.bpartners.api.integration.conf.TestUtils.joeDoeBridgeAccount;
 import static app.bpartners.api.integration.conf.TestUtils.joeDoeSwanAccount;
 import static app.bpartners.api.integration.conf.TestUtils.otherBridgeAccount;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountHolderSwanRep;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountSwanRepository;
+import static app.bpartners.api.integration.conf.TestUtils.setUpBernardUserSwanRepository;
 import static app.bpartners.api.integration.conf.TestUtils.setUpLegalFileRepository;
 import static app.bpartners.api.integration.conf.TestUtils.setUpSwanComponent;
 import static app.bpartners.api.integration.conf.TestUtils.setUpUserSwanRepository;
@@ -99,9 +113,9 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @AutoConfigureMockMvc
 @Slf4j
 class AccountIT {
+  private static final String OTHER_USER_ID = "OTHER_USER_ID";
   @MockBean
   private PaymentScheduleService paymentScheduleService;
-  private static final String OTHER_USER_ID = "OTHER_USER_ID";
   @MockBean
   private BuildingPermitConf buildingPermitConf;
   @MockBean
@@ -136,13 +150,23 @@ class AccountIT {
   @MockBean
   private UserRepository userRepositoryMock;
   @MockBean
+  private UserTokenRepository userTokenRepositoryMock;
+  @MockBean
   private BridgeApi bridgeApiMock;
   @MockBean
   private BridgeConf bridgeConfMock;
+
+  @Autowired
+  private UserService userService;
+
   private BridgeAccountRepositoryImpl bridgeAccountRepositoryMock;
 
-  private static ApiClient anApiClient() {
+  private static ApiClient joeDoeClient() {
     return TestUtils.anApiClient(JOE_DOE_TOKEN, ContextInitializer.SERVER_PORT);
+  }
+
+  private static ApiClient bernardDoeClient() {
+    return TestUtils.anApiClient(BERNARD_DOE_TOKEN, ContextInitializer.SERVER_PORT);
   }
 
   public static AccountResponse.Edge joeDoeEdge() {
@@ -189,18 +213,51 @@ class AccountIT {
         .iban(null);
   }
 
-  private void setUpUserRepository(UserRepository userRepositoryMock) {
-    User user = User.builder()
+  @SneakyThrows
+  private static List<Account> getAccountsByUserId(UserAccountsApi api, String userId,
+                                                   CountDownLatch latch) {
+    latch.await();
+    return api.getAccountsByUserId(userId);
+  }
+
+  @SneakyThrows
+  private static List<AccountHolder> getAccountHolders(UserAccountsApi api, String userId,
+                                                       String accountId, CountDownLatch latch) {
+    latch.await();
+    return api.getAccountHolders(userId, accountId);
+  }
+
+  User joeDoe() {
+    return User.builder()
         .id(JOE_DOE_ID)
         .email("joe@email.com")
         .preferredAccountId(null)
         .account(joeDoeModelAccount())
         .build();
-    when(userRepositoryMock.findAll()).thenReturn(List.of(user));
-    when(userRepositoryMock.getUserByToken(any())).thenReturn(user);
-    when(userRepositoryMock.getByEmail(any())).thenReturn(user);
-    when(userRepositoryMock.getById(any())).thenReturn(user);
-    when(userRepositoryMock.getUserBySwanUserIdAndToken(any(), any())).thenReturn(user);
+  }
+
+  private void setUpUserRepository(UserRepository userRepositoryMock) {
+    when(userRepositoryMock.findAll()).thenReturn(List.of(joeDoe()));
+    when(userRepositoryMock.getUserByToken(any())).thenReturn(joeDoe());
+    when(userRepositoryMock.getByEmail(any())).thenReturn(joeDoe());
+    when(userRepositoryMock.getById(any())).thenReturn(joeDoe());
+    when(userRepositoryMock.getUserBySwanUserIdAndToken(any(), any())).thenReturn(joeDoe());
+  }
+
+  User bernard() {
+    return User.builder()
+        .id(BERNARD_DOE_ID)
+        .email("bernard@email.com")
+        .preferredAccountId(null)
+        .account(bernardDoeModelAccount())
+        .build();
+  }
+
+  private void setUpUserBernardRepository(UserRepository userRepositoryMock) {
+    when(userRepositoryMock.findAll()).thenReturn(List.of(bernard()));
+    when(userRepositoryMock.getUserByToken(any())).thenReturn(bernard());
+    when(userRepositoryMock.getByEmail(any())).thenReturn(bernard());
+    when(userRepositoryMock.getUserBySwanUserIdAndToken(any(), any())).thenReturn(bernard());
   }
 
   private void setUpUserRepositoryWithPreferredAccount(UserRepository userRepositoryMock) {
@@ -257,8 +314,19 @@ class AccountIT {
         .name(joeDoeSwanAccount().getName())
         .iban(joeDoeSwanAccount().getIban())
         .bic(joeDoeSwanAccount().getBic())
-        .iban(joeDoeSwanAccount().getIban())
-        .bic(joeDoeSwanAccount().getBic())
+        .status(AccountStatus.OPENED)
+        .bank(Bank.builder().build())
+        .availableBalance(parseFraction(100000))
+        .build();
+  }
+
+  app.bpartners.api.model.Account bernardDoeModelAccount() {
+    return app.bpartners.api.model.Account.builder()
+        .id(bernardDoeSwanAccount().getId())
+        .name(bernardDoeSwanAccount().getName())
+        .iban(bernardDoeSwanAccount().getIban())
+        .bic(bernardDoeSwanAccount().getBic())
+        .status(AccountStatus.VALIDATION_REQUIRED)
         .bank(Bank.builder().build())
         .availableBalance(parseFraction(100000))
         .build();
@@ -273,52 +341,6 @@ class AccountIT {
         .bank(Bank.builder().build())
         .availableBalance(parseFraction(0))
         .build();
-  }
-
-  @Test
-  void read_opened_accounts_ok() throws ApiException {
-    setUpSwanApi(swanApiMock, joeDoeEdge());
-    when(accountSwanRepositoryMock.findByUserId(JOE_DOE_ID))
-        .thenAnswer(
-            invocation ->
-                accountSwanRepositoryImpl
-                    .findByUserId(invocation.getArgument(0))
-        );
-
-    ApiClient joeDoeClient = anApiClient();
-    UserAccountsApi api = new UserAccountsApi(joeDoeClient);
-
-    List<Account> actual = api.getAccountsByUserId(JOE_DOE_ID);
-
-    assertTrue(actual.contains(joeDoeRestAccount().status(AccountStatus.OPENED)));
-  }
-
-  @Test
-  void initiate_bank_connection_ok() throws ApiException {
-    when(bankRepositoryImplMock.initiateConnection(any()))
-        .thenReturn("https://connect.bridgeapi.io");
-    ApiClient joeDoeClient = anApiClient();
-    UserAccountsApi api = new UserAccountsApi(joeDoeClient);
-    String failureUrl = "failure_url";
-    String successUrl = "success_url";
-    RedirectionStatusUrls redirectionStatusUrls = new RedirectionStatusUrls()
-        .failureUrl(failureUrl)
-        .successUrl(successUrl);
-
-    BankConnectionRedirection actual1 =
-        api.initiateBankConnection(JOE_DOE_ID, JOE_DOE_ACCOUNT_ID, redirectionStatusUrls);
-    BankConnectionRedirection actual2 =
-        api.initiateBankConnectionWithoutAccount(JOE_DOE_ID, redirectionStatusUrls);
-
-    assertNotNull(actual1);
-    assertTrue(actual1.getRedirectionUrl().contains("https://connect.bridgeapi.io"));
-    assertEquals(successUrl, actual1.getRedirectionStatusUrls().getSuccessUrl());
-    assertEquals(failureUrl, actual1.getRedirectionStatusUrls().getFailureUrl());
-
-    assertNotNull(actual2);
-    assertTrue(actual2.getRedirectionUrl().contains("https://connect.bridgeapi.io"));
-    assertEquals(successUrl, actual2.getRedirectionStatusUrls().getSuccessUrl());
-    assertEquals(failureUrl, actual2.getRedirectionStatusUrls().getFailureUrl());
   }
 
   /*
@@ -354,6 +376,52 @@ class AccountIT {
     assertNull(afterDisconnection.getBank());
     assertNull(afterDisconnection.getBic());
   }*/
+
+  @Test
+  void read_opened_accounts_ok() throws ApiException {
+    setUpSwanApi(swanApiMock, joeDoeEdge());
+    when(accountSwanRepositoryMock.findByUserId(JOE_DOE_ID))
+        .thenAnswer(
+            invocation ->
+                accountSwanRepositoryImpl
+                    .findByUserId(invocation.getArgument(0))
+        );
+
+    ApiClient joeDoeClient = joeDoeClient();
+    UserAccountsApi api = new UserAccountsApi(joeDoeClient);
+
+    List<Account> actual = api.getAccountsByUserId(JOE_DOE_ID);
+
+    assertTrue(actual.contains(joeDoeRestAccount().status(AccountStatus.OPENED)));
+  }
+
+  @Test
+  void initiate_bank_connection_ok() throws ApiException {
+    when(bankRepositoryImplMock.initiateConnection(any()))
+        .thenReturn("https://connect.bridgeapi.io");
+    ApiClient joeDoeClient = joeDoeClient();
+    UserAccountsApi api = new UserAccountsApi(joeDoeClient);
+    String failureUrl = "failure_url";
+    String successUrl = "success_url";
+    RedirectionStatusUrls redirectionStatusUrls = new RedirectionStatusUrls()
+        .failureUrl(failureUrl)
+        .successUrl(successUrl);
+
+    BankConnectionRedirection actual1 =
+        api.initiateBankConnection(JOE_DOE_ID, JOE_DOE_ACCOUNT_ID, redirectionStatusUrls);
+    BankConnectionRedirection actual2 =
+        api.initiateBankConnectionWithoutAccount(JOE_DOE_ID, redirectionStatusUrls);
+
+    assertNotNull(actual1);
+    assertTrue(actual1.getRedirectionUrl().contains("https://connect.bridgeapi.io"));
+    assertEquals(successUrl, actual1.getRedirectionStatusUrls().getSuccessUrl());
+    assertEquals(failureUrl, actual1.getRedirectionStatusUrls().getFailureUrl());
+
+    assertNotNull(actual2);
+    assertTrue(actual2.getRedirectionUrl().contains("https://connect.bridgeapi.io"));
+    assertEquals(successUrl, actual2.getRedirectionStatusUrls().getSuccessUrl());
+    assertEquals(failureUrl, actual2.getRedirectionStatusUrls().getFailureUrl());
+  }
 
   private void setUpBridgeRepositories() {
     when(accountSwanRepositoryMock.findByUserId(JOE_DOE_ID)).thenReturn(List.of());
@@ -436,26 +504,12 @@ class AccountIT {
     assertEquals(retrieved.size(), callerNb);
   }
 
-  @SneakyThrows
-  private static List<Account> getAccountsByUserId(UserAccountsApi api, String userId,
-                                                   CountDownLatch latch) {
-    latch.await();
-    return api.getAccountsByUserId(userId);
-  }
-
-  @SneakyThrows
-  private static List<AccountHolder> getAccountHolders(UserAccountsApi api, String userId,
-                                                       String accountId, CountDownLatch latch) {
-    latch.await();
-    return api.getAccountHolders(userId, accountId);
-  }
-
   private UserAccountsApi configureSwanUserAccountsApi(String statusInfo) {
     when(accountSwanRepositoryMock.findByUserId(JOE_DOE_ID)).
         thenReturn(List.of(joeDoeSwanAccount().toBuilder()
             .statusInfo(new SwanAccount.StatusInfo(statusInfo))
             .build()));
-    ApiClient joeDoeClient = anApiClient();
+    ApiClient joeDoeClient = joeDoeClient();
     UserAccountsApi api = new UserAccountsApi(joeDoeClient);
     return api;
   }
@@ -510,7 +564,7 @@ class AccountIT {
 
   @Test
   void joe_read_jane_accounts_ko() {
-    ApiClient joeDoeClient = anApiClient();
+    ApiClient joeDoeClient = joeDoeClient();
     UserAccountsApi api = new UserAccountsApi(joeDoeClient);
 
     assertThrowsForbiddenException(() -> api.getAccountsByUserId(JANE_DOE_ID));
@@ -526,7 +580,7 @@ class AccountIT {
                     .findByUserId(invocation.getArgument(0))
         );
 
-    ApiClient joeDoeClient = anApiClient();
+    ApiClient joeDoeClient = joeDoeClient();
     UserAccountsApi api = new UserAccountsApi(joeDoeClient);
 
     List<Account> actual = api.getAccountsByUserId(JOE_DOE_ID);
@@ -579,7 +633,7 @@ class AccountIT {
                     .findByUserId(invocation.getArgument(0))
         );
 
-    ApiClient joeDoeClient = anApiClient();
+    ApiClient joeDoeClient = joeDoeClient();
     UserAccountsApi api = new UserAccountsApi(joeDoeClient);
 
     assertThrowsApiException(
@@ -599,7 +653,7 @@ class AccountIT {
                     .findByUserId(invocation.getArgument(0))
         );
 
-    ApiClient joeDoeClient = anApiClient();
+    ApiClient joeDoeClient = joeDoeClient();
     UserAccountsApi api = new UserAccountsApi(joeDoeClient);
 
     assertThrowsApiException(
@@ -619,7 +673,7 @@ class AccountIT {
                     .findByUserId(invocation.getArgument(0))
         );
 
-    ApiClient joeDoeClient = anApiClient();
+    ApiClient joeDoeClient = joeDoeClient();
     UserAccountsApi api = new UserAccountsApi(joeDoeClient);
 
     assertThrowsApiException(
@@ -633,7 +687,7 @@ class AccountIT {
 
   @Test
   void read_other_accounts_ko() {
-    ApiClient joeDoeClient = anApiClient();
+    ApiClient joeDoeClient = joeDoeClient();
     UserAccountsApi api = new UserAccountsApi(joeDoeClient);
 
     assertThrowsForbiddenException(() -> api.getAccountsByUserId(OTHER_USER_ID));
@@ -641,7 +695,7 @@ class AccountIT {
 
   @Test
   void update_account_identity_ok() throws ApiException {
-    ApiClient joeDoeClient = anApiClient();
+    ApiClient joeDoeClient = joeDoeClient();
     UserAccountsApi api = new UserAccountsApi(joeDoeClient);
 
     Account actual = api.updateAccountIdentity(
@@ -655,7 +709,7 @@ class AccountIT {
 
   @Test
   void update_account_identity_ko() throws ApiException {
-    ApiClient joeDoeClient = anApiClient();
+    ApiClient joeDoeClient = joeDoeClient();
     UserAccountsApi api = new UserAccountsApi(joeDoeClient);
 
     assertThrowsApiException(
@@ -667,7 +721,7 @@ class AccountIT {
   @Test
   void read_preferred_bridge_account() throws ApiException {
     setUpBridgeRepositories();
-    ApiClient joeDoeClient = anApiClient();
+    ApiClient joeDoeClient = joeDoeClient();
     UserAccountsApi api = new UserAccountsApi(joeDoeClient);
 
     List<Account> actual = api.getAccountsByUserId(JOE_DOE_ID);
@@ -675,6 +729,63 @@ class AccountIT {
     assertEquals(1, actual.size());
     assertEquals(otherBridgeAccount().getName(), actual.get(0).getName());
     assertEquals(otherBridgeAccount().getIban(), actual.get(0).getIban());
+  }
+
+
+  @Test
+  void validate_bank_connection_ok() throws ApiException {
+    final String redirectUrl = "https://connect.bridge.io";
+    ApiClient bernarDoeClient = bernardDoeClient();
+    UserAccountsApi api = new UserAccountsApi(bernarDoeClient);
+
+    reset(userRepositoryMock);
+    reset(userSwanRepositoryMock);
+    setUpUserBernardRepository(userRepositoryMock);
+    setUpBernardUserSwanRepository(userSwanRepositoryMock);
+    when(bridgeBankRepositoryMock.validateCurrentProItems(BERNARD_DOE_TOKEN))
+        .thenReturn(BridgeConnectItem.builder()
+            .redirectUrl(redirectUrl)
+            .build()
+        );
+    when(bankRepositoryImplMock.initiateProAccountValidation(any()))
+        .thenReturn(redirectUrl);
+    when(userTokenRepositoryMock.getLatestTokenByAccount(any()))
+        .thenReturn(UserToken.builder()
+            .accessToken(BERNARD_DOE_TOKEN)
+            .user(bernard())
+            .build());
+
+    AccountValidationRedirection actual = api.initiateAccountValidation(BERNARD_DOE_ID,
+        BERNARD_DOE_ACCOUNT_ID, accountValidationRedirection().getRedirectionStatusUrls());
+
+    assertEquals(accountValidationRedirection(), actual);
+  }
+
+  @Test
+  void validate_or_edit_bank_connection_ko() throws IOException, InterruptedException {
+    ApiClient joeDoeClient = joeDoeClient();
+    UserAccountsApi api = new UserAccountsApi(joeDoeClient);
+
+    when(userTokenRepositoryMock.getLatestTokenByAccount(any()))
+        .thenReturn(UserToken.builder()
+            .accessToken(JOE_DOE_TOKEN)
+            .user(joeDoe())
+            .build());
+
+    assertThrowsApiException(
+        "{\"type\":\"400 BAD_REQUEST\",\""
+            + "message\":\"Account(id=beed1765-5c16-472a-b3f4-5c376ce5db58,name=Numer Swan Account,"
+            + "iban=FR7699999001001190346460988,status=OPENED) does not need validation.\"}",
+        () -> api.initiateAccountValidation(JOE_DOE_ID, JOE_DOE_ACCOUNT_ID,
+            new RedirectionStatusUrls()));
+  }
+
+  AccountValidationRedirection accountValidationRedirection() {
+    return new AccountValidationRedirection()
+        .redirectionUrl("https://connect.bridge.io")
+        .redirectionStatusUrls(new RedirectionStatusUrls()
+            .successUrl(REDIRECT_SUCCESS_URL)
+            .failureUrl(REDIRECT_FAILURE_URL));
   }
 
   static class ContextInitializer extends AbstractContextInitializer {

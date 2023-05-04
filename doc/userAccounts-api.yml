@@ -59,6 +59,45 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
+  accountValidationOperations:
+    post:
+      tags:
+        - User Accounts
+      summary: Initiate account validation
+      operationId: initiateAccountValidation
+      parameters:
+        - name: userId
+          in: path
+          schema:
+            type: string
+          required: true
+        - name: accountId
+          in: path
+          schema:
+            type: string
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: './api.yml#/components/schemas/RedirectionStatusUrls'
+      responses:
+        200:
+          description: Account validation redirect url
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountValidationRedirection'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
   updateAccountIdentity:
     put:
       tags:
@@ -605,6 +644,8 @@ components:
         - CLOSED
         - CLOSING
         - SUSPENDED
+        - VALIDATION_REQUIRED
+        - INVALID_CREDENTIALS
         - UNKNOWN
     UpdateAccountHolder:
       type: object
@@ -725,5 +766,8 @@ components:
         name:
           type: string
     BankConnectionRedirection:
+      allOf:
+        - $ref: './api.yml#/components/schemas/Redirection'
+    AccountValidationRedirection:
       allOf:
         - $ref: './api.yml#/components/schemas/Redirection'

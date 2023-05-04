@@ -26,6 +26,7 @@ public class AccountService {
   private final AccountRepository repository;
   private final BankRepository bankRepository;
   private final UserRepository userRepository;
+  private final UserService userService;
 
 
   @Transactional
@@ -46,6 +47,23 @@ public class AccountService {
     return repository.findByUserId(userId);
   }
 
+  //TODO: IMPORTANT ! The obtained account here is the persisted account
+  // Must get the most recent value from Bridge not from database
+  // Need to update account from Bridge when getting account by ID
+  public String initiateAccountValidation(String accountId) {
+    UserToken userToken = userService.getLatestTokenByAccount(accountId);
+    Account account = userToken.getUser().getAccount();
+    switch (account.getStatus()) {
+      case VALIDATION_REQUIRED:
+        return bankRepository.initiateProAccountValidation(userToken);
+      case INVALID_CREDENTIALS:
+        return bankRepository.initiateBankConnectionEdition(account);
+      default:
+        throw new BadRequestException(account.describeInfos() + " does not need validation.");
+    }
+  }
+
+  //TODO: use bank repository and do not expose BridgeBankRepository
   public BankConnectionRedirection getBankConnectionInitUrl(
       String userId, RedirectionStatusUrls urls) {
     User user = userRepository.getById(userId);

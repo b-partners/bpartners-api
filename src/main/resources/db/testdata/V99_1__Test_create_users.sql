@@ -5,4 +5,7 @@ values ('joe_doe_id', 'c15924bf-61f9-4381-8c9b-d34369bf91f7', '+261340465338', '
         'ENABLED',
         'logo.jpeg', 'Joe', 'Doe', 'VALID_IDENTITY', true),
        ('jane_doe_id', 'jane_doe_user_id', '+261341122334', 'jane@email.com', 5, 'ENABLED',
-        'logo.jpeg', null, null, null, null);
+        'logo.jpeg', null, null, null, null),
+       ('bernard_doe_id', 'account_pro_id', '+261342463616', 'bernard@email.com', 5,
+        'ENABLED',
+        'logo.jpeg', 'Bernard', 'Doe', 'VALID_IDENTITY', true);

@@ -27,4 +27,8 @@ public class Account implements Serializable {
   private Fraction availableBalance;
   private Bank bank;
   private AccountStatus status;
+
+  public String describeInfos() {
+    return "Account(id=" + id + ",name=" + name + ",iban=" + iban + ",status=" + status + ")";
+  }
 }

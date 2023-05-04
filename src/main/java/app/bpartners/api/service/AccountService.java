@@ -71,6 +71,7 @@ public class AccountService {
       Account saved = repository.save(defaultAccount.toBuilder()
           .bic(null)
           .iban(null)
+          .bank(null)
           .build(), userId);
       return saved;
     }

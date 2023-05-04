@@ -1,3 +1,18 @@
+# [0.15.0](https://github.com/b-partners/bpartners-api/compare/v0.14.1...v0.15.0) (2023-05-04)
+
+
+### Bug Fixes
+
+* reset account values when initiating bank connection ([4cc8c5c](https://github.com/b-partners/bpartners-api/commit/4cc8c5c18a7481ea200095d04fc00e8e08b0ebcc))
+* set bank value in database as NULL when disconnecting bank from bridge ([ed43039](https://github.com/b-partners/bpartners-api/commit/ed4303962dde90956b105cafc2c4e52b0d6dbfe4))
+
+
+### Features
+
+* allow account validation ([#786](https://github.com/b-partners/bpartners-api/issues/786)) ([5d4a165](https://github.com/b-partners/bpartners-api/commit/5d4a165468d60eb63729b1bc75ecaf1e1f94e972))
+
+
+
 ## [0.14.1](https://github.com/b-partners/bpartners-api/compare/v0.14.0...v0.14.1) (2023-05-03)
 
 
@@ -184,26 +199,6 @@
 
 * retrieve persisted user when swan is not provided ([cbd3a5b](https://github.com/b-partners/bpartners-api/commit/cbd3a5bacbcb9d7930d9813fba4b8aaef4e5fdb4))
 * set environment to run scheduled workflows for dev and preprod only ([#540](https://github.com/b-partners/bpartners-api/issues/540)) ([b529344](https://github.com/b-partners/bpartners-api/commit/b5293449e8dab6fec3569bf6ce33f6e6445ccb32))
-
-
-
-# [0.8.0](https://github.com/b-partners/bpartners-api/compare/v0.7.0...v0.8.0) (2023-02-23)
-
-
-### Bug Fixes
-
-* ignore missing informations during import from file ([3c30def](https://github.com/b-partners/bpartners-api/commit/3c30deffb4cba6033e34ebee61a6bffbeee07884))
-* page and page size is optional and have default values ([108b3d7](https://github.com/b-partners/bpartners-api/commit/108b3d76f1b7958b2aa9c3021aa96bd6fa68df76))
-* payment regulation works for every invoice status ([858ea4a](https://github.com/b-partners/bpartners-api/commit/858ea4a183583c9d0924351b6268a87d55839d73))
-* payment type is mapped correctly ([081b6ad](https://github.com/b-partners/bpartners-api/commit/081b6ad040de3d0aa902c1dfc862bcecb915a702))
-* reference is still available during same invoice update ([123be66](https://github.com/b-partners/bpartners-api/commit/123be66098e30679ea9c4f1bce05fa939021ab1e))
-* **to-revert:** unit price is set to zero when null is provided during crupdate products ([630dee6](https://github.com/b-partners/bpartners-api/commit/630dee6efc21cf84bca7dc2a7bc3beab52193ad4))
-
-
-### Features
-
-* add discount to invoice PDF ([1e0684e](https://github.com/b-partners/bpartners-api/commit/1e0684e4d89bd985c9243438cf5ddbf4538f32bf))
-* add global discount to invoice ([75029fa](https://github.com/b-partners/bpartners-api/commit/75029fad7740b87b5df29fee8029858754c36b70))
 
 
 

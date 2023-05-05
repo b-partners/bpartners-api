@@ -265,7 +265,8 @@ class CustomerIT {
 
     assertThrowsApiException(
         "{\"type\":\"404 NOT_FOUND\",\"message\":\"Customer." + OTHER_CUSTOMER_ID
-            + " is not found.\"}", () -> api.updateCustomers(JOE_DOE_ACCOUNT_ID,
+            + " is not found for Account(id=" + JOE_DOE_ACCOUNT_ID + ")\"}",
+        () -> api.updateCustomers(JOE_DOE_ACCOUNT_ID,
             List.of(customerUpdated().id(OTHER_CUSTOMER_ID))));
     assertThrowsApiException(
         "{\"type\":\"400 BAD_REQUEST\",\"message\":\"Identifier must not be null."

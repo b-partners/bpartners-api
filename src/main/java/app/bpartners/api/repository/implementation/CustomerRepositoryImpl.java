@@ -176,11 +176,12 @@ public class CustomerRepositoryImpl implements CustomerRepository {
     if (id != null) {
       jpaRepository.findById(id)
           .orElseThrow(() ->
-              new NotFoundException("Customer." + id + " is not found."));
+              new NotFoundException(
+                  "Customer." + id + " is not found for Account(id=" + domain.getIdAccount()
+                      + ")"));
     }
-    //TODO: check if only email is sufficient
-    //Case of update through import
-    Optional<HCustomer> optionalCustomer = jpaRepository.findByEmail(domain.getEmail());
+    Optional<HCustomer> optionalCustomer =
+        jpaRepository.findByIdAccountAndEmail(domain.getIdAccount(), domain.getEmail());
     return optionalCustomer.isEmpty() ? domain : domain.toBuilder()
         .id(optionalCustomer.get().getId())
         .build();

@@ -2,6 +2,7 @@ package app.bpartners.api.endpoint.rest.controller;
 
 import app.bpartners.api.endpoint.rest.mapper.AccountRestMapper;
 import app.bpartners.api.endpoint.rest.model.Account;
+import app.bpartners.api.endpoint.rest.model.AccountValidationRedirection;
 import app.bpartners.api.endpoint.rest.model.BankConnectionRedirection;
 import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
 import app.bpartners.api.endpoint.rest.model.UpdateAccountIdentity;
@@ -29,6 +30,19 @@ public class AccountController {
     return service.getAccountsByUserId(userId).stream()
         .map(mapper::toRest)
         .collect(Collectors.toUnmodifiableList());
+  }
+
+  //TODO: check redirection urls
+  @PostMapping("/users/{userId}/accounts/{accountId}/initiateAccountValidation")
+  public AccountValidationRedirection initiateAccountValidation(
+      @PathVariable(name = "userId") String userId,
+      @PathVariable(name = "accountId") String accountId,
+      @RequestBody RedirectionStatusUrls redirectionUrls) {
+    return new AccountValidationRedirection()
+        .redirectionUrl(service.initiateAccountValidation(accountId))
+        .redirectionStatusUrls(new RedirectionStatusUrls()
+            .successUrl(redirectionUrls.getSuccessUrl())
+            .failureUrl(redirectionUrls.getFailureUrl()));
   }
 
   @PostMapping("/users/{userId}/accounts/{accountId}/initiateBankConnection")

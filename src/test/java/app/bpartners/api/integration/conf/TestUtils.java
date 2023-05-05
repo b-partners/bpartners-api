@@ -107,8 +107,10 @@ public class TestUtils {
   public static final String BOOKED_STATUS = "Booked";
   public static final String PENDING_STATUS = "Pending";
   public static final String JOE_DOE_ID = "joe_doe_id";
+  public static final String BERNARD_DOE_ID = "bernard_doe_id";
   public static final String JOE_DOE_SWAN_USER_ID = "c15924bf-61f9-4381-8c9b-d34369bf91f7";
   public static final String JANE_DOE_SWAN_USER_ID = "jane_doe_user_id";
+  public static final String BERNARD_DOE_SWAN_USER_ID = "c15924bf-61f9-4381-8c9b-d34369bf91f7";
   public static final String BAD_TOKEN = "bad_token";
   public static final String VALID_EMAIL = "username@domain.com";
   public static final String API_URL = "https://api.swan.io/sandbox-partner/graphql";
@@ -119,6 +121,7 @@ public class TestUtils {
   public static final String REDIRECT_FAILURE_URL =
       "https://dashboard-dev.bpartners.app/login/failure";
   public static final String JOE_DOE_ACCOUNT_ID = "beed1765-5c16-472a-b3f4-5c376ce5db58";
+  public static final String BERNARD_DOE_ACCOUNT_ID = "account_pro_id";
   public static final String OTHER_ACCOUNT_ID = "other_account_id";
   public static final String OTHER_CUSTOMER_ID = "other_customer_id";
   public static final String USER1_ID = "user1_id";
@@ -137,8 +140,10 @@ public class TestUtils {
   public static final String BEARER_QUERY_PARAMETER_NAME = "accessToken";
   public static final String BEARER_PREFIX = "Bearer ";
   public static final String JOE_DOE_TOKEN = "joe_doe_token";
+  public static final String BERNARD_DOE_TOKEN = "bernard_doe_token";
   public static final String JOE_DOE_COGNITO_TOKEN = "joe_doe_token";
-      //TODO(distinct-cognito): should be diff from Swan
+  public static final String BERNARD_DOE_COGNITO_TOKEN = "bernard_doe_token";
+  //TODO(distinct-cognito): should be diff from Swan
   public static final String PROJECT_TOKEN = "project_token";
   public static final String BAD_CODE = "bad_code";
   public static final String SWAN_ONBOARDING_URL_FORMAT =
@@ -157,6 +162,7 @@ public class TestUtils {
   public static final String JANE_DOE_ID = "jane_doe_id";
   public static final String SESSION_ID = "session_id";
   public static final String ACCOUNT_OPENED = "Opened";
+  public static final String VALIDATION_REQUIRED = "Validation Required";
   public static final String ACCOUNT_CLOSED = "Closed";
   public static final String ACCOUNT_CLOSING = "Closing";
   public static final String ACCOUNT_SUSPENDED = "Suspended";
@@ -204,6 +210,17 @@ public class TestUtils {
         .build();
   }
 
+  public static SwanUser bernardDoe() {
+    return SwanUser.builder()
+        .id(BERNARD_DOE_SWAN_USER_ID)
+        .firstName("Bernard")
+        .lastName("Doe")
+        .idVerified(true)
+        .identificationStatus(VALID_IDENTITY_STATUS)
+        .mobilePhoneNumber("+261342463616")
+        .build();
+  }
+
   public static SwanUser janeDoe() {
     return SwanUser.builder()
         .id("jane_doe_user_id")
@@ -223,6 +240,17 @@ public class TestUtils {
         .identificationStatus(joeDoe().getIdentificationStatus())
         .mobilePhoneNumber(joeDoe().getMobilePhoneNumber())
         .idVerified(joeDoe().isIdVerified())
+        .build();
+  }
+
+  public static app.bpartners.api.repository.swan.model.SwanUser bernardDoeModel() {
+    return app.bpartners.api.repository.swan.model.SwanUser.builder()
+        .id(bernardDoe().getId())
+        .firstName(bernardDoe().getFirstName())
+        .lastName(bernardDoe().getLastName())
+        .identificationStatus(bernardDoe().getIdentificationStatus())
+        .mobilePhoneNumber(bernardDoe().getMobilePhoneNumber())
+        .idVerified(bernardDoe().isIdVerified())
         .build();
   }
 
@@ -272,6 +300,19 @@ public class TestUtils {
         .build();
   }
 
+  public static SwanAccount bernardDoeSwanAccount() {
+    return SwanAccount.builder()
+        .id("account_pro_id")
+        .name("Numer Swan Account")
+        .bic("SWNBFR22")
+        .iban("FR7699999001001190346460988")
+        .balances(new SwanAccount.Balances(
+            new SwanAccount.Balances.Available(1000.0)
+        ))
+        .statusInfo(new SwanAccount.StatusInfo(VALIDATION_REQUIRED))
+        .build();
+  }
+
   public static SwanAccount janeSwanAccount() {
     return SwanAccount.builder()
         .id("jane_account_id")
@@ -308,6 +349,36 @@ public class TestUtils {
                     .id(joeDoeSwanAccount().getId())
                     .statusInfo(SwanAccount.StatusInfo.builder()
                         .status(ACCOUNT_OPENED)
+                        .build())
+                    .build())
+                .build()))
+            .build())
+        .build();
+  }
+
+  public static SwanAccountHolder bernardDoeSwanAccountHolder() {
+    return SwanAccountHolder.builder()
+        .id("account_holder_id_3")
+        .verificationStatus(VERIFIED_STATUS)
+        .info(SwanAccountHolder.Info.builder()
+            .name("NUMER")
+            .businessActivity("businessAndRetail")
+            .businessActivityDescription("Phrase détaillée de mon activité")
+            .registrationNumber("899067250")
+            .vatNumber("FR32123456789")
+            .build())
+        .residencyAddress(SwanAccountHolder.ResidencyAddress.builder()
+            .addressLine1("6 RUE PAUL LANGEVIN")
+            .city("FONTENAY-SOUS-BOIS")
+            .country("FRA")
+            .postalCode("94120")
+            .build())
+        .accounts(SwanAccountHolder.Accounts.builder()
+            .edges(List.of(AccountResponse.Edge.builder()
+                .node(SwanAccount.builder()
+                    .id(bernardDoeSwanAccount().getId())
+                    .statusInfo(SwanAccount.StatusInfo.builder()
+                        .status(VALIDATION_REQUIRED)
                         .build())
                     .build())
                 .build()))
@@ -468,6 +539,16 @@ public class TestUtils {
         .totalVat(200)
         .createdAt(null)
         .totalPriceWithVat(2200)
+        .status(ProductStatus.ENABLED);
+  }
+
+  public static Product product6() {
+    return new Product()
+        .id("product6_id")
+        .description("Autres produits")
+        .unitPrice(1000)
+        .vatPercent(1000)
+        .unitPriceWithVat(1100)
         .status(ProductStatus.ENABLED);
   }
 
@@ -942,6 +1023,10 @@ public class TestUtils {
       when(swanComponent.getSwanUserByToken(BAD_TOKEN)).thenReturn(null);
       when(swanComponent.getSwanUserIdByToken(JOE_DOE_TOKEN)).thenReturn(joeDoe().getId());
       when(swanComponent.getSwanUserByToken(JOE_DOE_TOKEN)).thenReturn(joeDoe());
+
+      when(swanComponent.getSwanUserIdByToken(BERNARD_DOE_TOKEN)).thenReturn(bernardDoe().getId());
+      when(swanComponent.getSwanUserByToken(BERNARD_DOE_TOKEN)).thenReturn(bernardDoe());
+
       when(swanComponent.getSwanUserIdByToken(JANE_DOE_TOKEN)).thenReturn(janeDoe().getId());
       when(swanComponent.getSwanUserByToken(JANE_DOE_TOKEN)).thenReturn(janeDoe());
       when(swanComponent.getTokenByCode(BAD_CODE, REDIRECT_SUCCESS_URL)).thenThrow(
@@ -960,11 +1045,23 @@ public class TestUtils {
     when(swanRepository.getByToken(JANE_DOE_TOKEN)).thenReturn(janeDoeModel());
   }
 
+  public static void setUpBernardUserSwanRepository(UserSwanRepository swanRepository) {
+    when(swanRepository.whoami()).thenReturn(bernardDoeModel());
+    when(swanRepository.getByToken(BERNARD_DOE_TOKEN)).thenReturn(bernardDoeModel());
+  }
+
   public static void setUpAccountSwanRepository(AccountSwanRepository swanRepository) {
     when(swanRepository.findById(JOE_DOE_ACCOUNT_ID)).thenReturn(List.of(joeDoeSwanAccount()));
     when(swanRepository.findById(JOE_DOE_ID)).thenReturn(List.of(joeDoeSwanAccount()));
     when(swanRepository.findByBearer(JOE_DOE_TOKEN)).thenReturn(List.of(joeDoeSwanAccount()));
     when(swanRepository.findByUserId(JOE_DOE_ID)).thenReturn(List.of(joeDoeSwanAccount()));
+
+    when(swanRepository.findById(BERNARD_DOE_ACCOUNT_ID)).thenReturn(
+        List.of(bernardDoeSwanAccount()));
+    when(swanRepository.findById(BERNARD_DOE_ID)).thenReturn(List.of(bernardDoeSwanAccount()));
+    when(swanRepository.findByBearer(BERNARD_DOE_TOKEN)).thenReturn(
+        List.of(bernardDoeSwanAccount()));
+    when(swanRepository.findByUserId(BERNARD_DOE_ID)).thenReturn(List.of(bernardDoeSwanAccount()));
 
     when(swanRepository.findById(JANE_ACCOUNT_ID)).thenReturn(List.of(janeSwanAccount()));
     when(swanRepository.findByBearer(JANE_DOE_TOKEN)).thenReturn(List.of(janeSwanAccount()));
@@ -993,11 +1090,17 @@ public class TestUtils {
   }
 
   public static void setUpAccountHolderSwanRep(AccountHolderSwanRepository swanRepository) {
-    when(swanRepository.getById(any())).thenReturn(joeDoeSwanAccountHolder());
-    when(swanRepository.findAllByBearerAndAccountId(any(), any()))
+    when(swanRepository.getById(JOE_DOE_ID)).thenReturn(joeDoeSwanAccountHolder());
+    when(swanRepository.findAllByBearerAndAccountId(JOE_DOE_TOKEN, JOE_DOE_ACCOUNT_ID))
         .thenReturn(List.of(joeDoeSwanAccountHolder()));
-    when(swanRepository.findAllByAccountId(any()))
+    when(swanRepository.findAllByAccountId(JOE_DOE_ACCOUNT_ID))
         .thenReturn(List.of(joeDoeSwanAccountHolder()));
+
+    when(swanRepository.getById(BERNARD_DOE_ID)).thenReturn(bernardDoeSwanAccountHolder());
+    when(swanRepository.findAllByBearerAndAccountId(BERNARD_DOE_TOKEN, BERNARD_DOE_ACCOUNT_ID))
+        .thenReturn(List.of(bernardDoeSwanAccountHolder()));
+    when(swanRepository.findAllByAccountId(BERNARD_DOE_ACCOUNT_ID))
+        .thenReturn(List.of(bernardDoeSwanAccountHolder()));
   }
 
   public static void setUpPaymentInitiationRep(FintecturePaymentInitiationRepository repository) {
@@ -1053,6 +1156,8 @@ public class TestUtils {
     when(legalFileRepositoryMock.findAllToBeApprovedLegalFilesByUserId(JOE_DOE_ID))
         .thenReturn(List.of(domainApprovedLegalFile()));
     when(legalFileRepositoryMock.findAllToBeApprovedLegalFilesByUserId(JANE_DOE_ID))
+        .thenReturn(List.of(domainApprovedLegalFile()));
+    when(legalFileRepositoryMock.findAllToBeApprovedLegalFilesByUserId(BERNARD_DOE_ID))
         .thenReturn(List.of(domainApprovedLegalFile()));
   }
 

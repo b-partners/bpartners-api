@@ -1,6 +1,7 @@
 package app.bpartners.api.repository.implementation;
 
 import app.bpartners.api.endpoint.rest.security.AuthProvider;
+import app.bpartners.api.model.Account;
 import app.bpartners.api.model.Bank;
 import app.bpartners.api.model.BankConnection;
 import app.bpartners.api.model.User;
@@ -12,6 +13,7 @@ import app.bpartners.api.repository.BankRepository;
 import app.bpartners.api.repository.bridge.model.Bank.BridgeBank;
 import app.bpartners.api.repository.bridge.model.Item.BridgeItem;
 import app.bpartners.api.repository.bridge.repository.BridgeBankRepository;
+import app.bpartners.api.repository.jpa.AccountJpaRepository;
 import app.bpartners.api.repository.jpa.BankJpaRepository;
 import app.bpartners.api.repository.jpa.UserJpaRepository;
 import app.bpartners.api.repository.jpa.model.HBank;
@@ -39,6 +41,7 @@ public class BankRepositoryImpl implements BankRepository {
   private final UserMapper userMapper;
   private final BankMapper mapper;
   private final BankJpaRepository jpaRepository;
+  private final AccountJpaRepository accountJpaRepository;
 
   //TODO: check if it is necessary to persist values
   @Override
@@ -126,6 +129,25 @@ public class BankRepositoryImpl implements BankRepository {
           .getBridgeItemLastRefresh();
     }
     return null;
+  }
+
+  @Override
+  public String initiateProAccountValidation(UserToken userToken) {
+    return bridgeRepository.validateCurrentProItems(
+        userToken.getAccessToken()).getRedirectUrl();
+  }
+
+  @Override
+  public String initiateBankConnectionEdition(Account account) {
+    //TODO: item should be retrieved from HAccount not from Bridge
+    List<BridgeItem> items = bridgeRepository.getBridgeItems();
+    BridgeItem defaultItem = items.get(0);
+    if (items.size() > 1) {
+      log.warn(
+          "[Bridge] Multiple items (" + items + ")  found for" + account.describeInfos()
+              + "." + defaultItem.toString() + "chosen by default)");
+    }
+    return bridgeRepository.editItem(defaultItem.getId()).getRedirectUrl();
   }
 
   @Override

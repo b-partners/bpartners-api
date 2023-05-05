@@ -1,6 +1,7 @@
 package app.bpartners.api.repository.bridge.repository;
 
 import app.bpartners.api.repository.bridge.model.Bank.BridgeBank;
+import app.bpartners.api.repository.bridge.model.Item.BridgeConnectItem;
 import app.bpartners.api.repository.bridge.model.Item.BridgeItem;
 import java.time.Instant;
 import java.util.List;
@@ -17,4 +18,8 @@ public interface BridgeBankRepository {
   String refreshBankConnection(Long itemId, String token);
 
   boolean deleteItem(Long itemId, String token);
+
+  BridgeConnectItem validateCurrentProItems(String bearer);
+
+  BridgeConnectItem editItem(Long id);
 }

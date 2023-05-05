@@ -11,7 +11,10 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+import static app.bpartners.api.endpoint.rest.model.AccountStatus.INVALID_CREDENTIALS;
+import static app.bpartners.api.endpoint.rest.model.AccountStatus.OPENED;
 import static app.bpartners.api.endpoint.rest.model.AccountStatus.UNKNOWN;
+import static app.bpartners.api.endpoint.rest.model.AccountStatus.VALIDATION_REQUIRED;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -37,6 +40,15 @@ public class BridgeAccount {
   private Instant updatedAt;
 
   public AccountStatus getDomainStatus() {
-    return this.getStatus() == 0 ? AccountStatus.OPENED : UNKNOWN;
+    switch (this.status) {
+      case 0:
+        return OPENED;
+      case 402:
+        return INVALID_CREDENTIALS;
+      case 1100:
+        return VALIDATION_REQUIRED;
+      default:
+        return UNKNOWN;
+    }
   }
 }

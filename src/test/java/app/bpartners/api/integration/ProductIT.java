@@ -35,6 +35,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Instant;
 import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
@@ -55,7 +56,7 @@ import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_TOKEN;
 import static app.bpartners.api.integration.conf.TestUtils.disabledProduct;
 import static app.bpartners.api.integration.conf.TestUtils.isAfterOrEquals;
 import static app.bpartners.api.integration.conf.TestUtils.product1;
-import static app.bpartners.api.integration.conf.TestUtils.product4;
+import static app.bpartners.api.integration.conf.TestUtils.product6;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountHolderSwanRep;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountSwanRepository;
 import static app.bpartners.api.integration.conf.TestUtils.setUpLegalFileRepository;
@@ -63,7 +64,6 @@ import static app.bpartners.api.integration.conf.TestUtils.setUpPaymentInfoRepos
 import static app.bpartners.api.integration.conf.TestUtils.setUpPaymentInitiationRep;
 import static app.bpartners.api.integration.conf.TestUtils.setUpSwanComponent;
 import static app.bpartners.api.integration.conf.TestUtils.setUpUserSwanRepository;
-import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -75,6 +75,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @ContextConfiguration(initializers = ProductIT.ContextInitializer.class)
 @AutoConfigureMockMvc
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+@Slf4j
 class ProductIT {
   @MockBean
   private PaymentScheduleService paymentScheduleService;
@@ -124,7 +125,7 @@ class ProductIT {
 
   private static Product oldProduct(Product product) {
     return new Product()
-        .description("Nouveau produit")
+        .description("New product")
         .id(product.getId())
         .createdAt(product.getCreatedAt())
         .vatPercent(1000)
@@ -155,6 +156,14 @@ class ProductIT {
         .description("Nouveau produit")
         .quantity(1)
         .unitPrice(9000)
+        .vatPercent(1000);
+  }
+
+  CreateProduct createExistingProduct() {
+    return new CreateProduct()
+        .description("Tableau malgache")
+        .quantity(1)
+        .unitPrice(1000)
         .vatPercent(1000);
   }
 
@@ -203,7 +212,7 @@ class ProductIT {
         null, 1000, null, 1, 20);
     List<Product> actualSearchedByDescriptionAndUnitPrice = api.getProducts(
         JOE_DOE_ACCOUNT_ID, null, null, null, null,
-        "produits", 2000, null, 1, 20);
+        "produits", 1000, null, 1, 20);
     List<Product> actualSearchEmpty = api.getProducts(
         JOE_DOE_ACCOUNT_ID, null, null, null, null,
         null, 210, null, 1, 20);
@@ -215,7 +224,7 @@ class ProductIT {
     assertEquals("Tableau baobab", actualSearchedByDescription.get(0).getDescription());
     assertEquals("Tableau malgache", actualSearchedByDescription.get(1).getDescription());
     assertTrue(actualSearchedByUnitPrice.contains(product1()));
-    assertEquals(product4()
+    assertEquals(product6()
             .quantity(null)
             .totalVat(null)
             .totalPriceWithVat(null)
@@ -230,13 +239,15 @@ class ProductIT {
     PayingApi api = new PayingApi(joeDoeClient);
 
     List<Product> actual =
-        api.createProducts(JOE_DOE_ACCOUNT_ID, List.of(createProduct1()));
+        api.createProducts(JOE_DOE_ACCOUNT_ID, List.of(createProduct1(), createExistingProduct()));
     List<Product> actualProducts = api.getProducts(
         JOE_DOE_ACCOUNT_ID, true, null, null, null,
         null, null, null, 1, 20);
+    assertEquals(7, actualProducts.size());
     assertTrue(actualProducts.stream()
         .allMatch(product -> product.getCreatedAt() != null));
     actual.get(0).createdAt(actualProducts.get(0).getCreatedAt());
+    log.info(actual.toString());
     assertTrue(actualProducts.containsAll(actual));
     assertTrue(ignoreCreatedAt(actualProducts).containsAll(ignoreCreatedAt(actual)));
   }
@@ -246,7 +257,8 @@ class ProductIT {
   void create_and_update_products_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
     PayingApi api = new PayingApi(joeDoeClient);
-    CreateProduct createProduct = createProduct1().id(String.valueOf(randomUUID()));
+    CreateProduct createProduct =
+        createProduct1().id(null).description("New product");
 
     List<Product> actual1 = api.crupdateProducts(JOE_DOE_ACCOUNT_ID, List.of(createProduct));
     List<Product> allProducts1 = api.getProducts(
@@ -254,6 +266,7 @@ class ProductIT {
         null, null, null, 1, 20);
     List<Product> actual2 = api.crupdateProducts(JOE_DOE_ACCOUNT_ID,
         List.of(createProduct
+            .id(actual1.get(0).getId())
             .description("Other")
             .unitPrice(5000)));
     List<Product> allProducts2 = api.getProducts(
@@ -274,6 +287,7 @@ class ProductIT {
     assertEquals(expectedProduct, actualUpdated);
   }
 
+  @Order(1)
   @Test
   void read_products_ordered_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
@@ -304,6 +318,8 @@ class ProductIT {
     assertTrue(product3.getUnitPrice() <= product4.getUnitPrice());
     // /!\ it seems by default, the description order ASC is taken before the unit price ASC
     // Pay attention with multiple orders then
+    log.info(product5.toString());
+    log.info(product6.toString());
     assertTrue((product5.getUnitPrice() >= product6.getUnitPrice())
         && (product5.getDescription().compareTo(product6.getDescription()) <= 0));
   }
@@ -321,7 +337,7 @@ class ProductIT {
 
     assertEquals(HttpStatus.OK.value(), response.statusCode());
     assertNotNull(actual);
-    assertEquals(3, actual.size()); //All duplicate lines in the file are removed
+    assertEquals(5, actual.size()); //All duplicate lines in the file are removed
   }
 
   @Test

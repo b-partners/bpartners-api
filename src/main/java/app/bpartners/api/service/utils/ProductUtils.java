@@ -6,8 +6,14 @@ import app.bpartners.api.model.exception.BadRequestException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.Cell;
@@ -18,6 +24,7 @@ import org.apache.poi.ss.usermodel.WorkbookFactory;
 
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 import static java.util.Objects.isNull;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.jsoup.internal.StringUtil.isBlank;
 
 public class ProductUtils {
@@ -44,6 +51,9 @@ public class ProductUtils {
       workbook.close();
       return createProducts.stream()
           .filter(createProduct -> !hasBlankFields(createProduct))
+          .filter(distinctByKeys(
+              CreateProduct::getDescription
+          ))
           .collect(Collectors.toUnmodifiableList());
     } catch (InvalidFormatException | IOException e) {
       throw new ApiException(SERVER_EXCEPTION, "Failed to parse Excel file : " + e.getMessage());
@@ -56,22 +66,31 @@ public class ProductUtils {
 
     while (cell.hasNext()) {
       Cell currentCell = cell.next();
-
-      switch (cellIndex) {
-        case 0:
-          product.setDescription(currentCell.getStringCellValue());
-          break;
-        case 1:
-          product.setQuantity((int) currentCell.getNumericCellValue());
-          break;
-        case 2:
-          product.setUnitPrice((int) (currentCell.getNumericCellValue() * 100));
-          break;
-        default:
-          product.setVatPercent((int) (currentCell.getNumericCellValue() * 100));
-          break;
+      if (currentCell == null) {
+        continue;
+      } else {
+        switch (cellIndex) {
+          case 0:
+            product.setDescription(currentCell.getStringCellValue());
+            break;
+          case 1:
+            product.setQuantity(getIntValue(currentCell));
+            break;
+          case 2:
+            product.setUnitPrice(getIntValue(currentCell));
+            break;
+          default:
+            product.setVatPercent(getIntValue(currentCell));
+            break;
+        }
       }
       cellIndex++;
+    }
+    if (product.getUnitPrice() != null) {
+      product.setUnitPrice(product.getUnitPrice() * 100);
+    }
+    if (product.getVatPercent() != null) {
+      product.setVatPercent(product.getVatPercent() * 100);
     }
     return product;
   }
@@ -136,8 +155,41 @@ public class ProductUtils {
 
   private static boolean hasBlankFields(CreateProduct createProduct) {
     return isBlank(createProduct.getDescription())
+        && isEmpty(createProduct.getDescription())
         && isNull(createProduct.getUnitPrice())
         && isNull(createProduct.getVatPercent())
         && isNull(createProduct.getQuantity());
+  }
+
+  private static Double doubleValue(Cell cell) {
+    try {
+      return cell.getNumericCellValue();
+    } catch (NumberFormatException e) {
+      return null;
+    }
+  }
+
+  private static Integer getIntValue(Cell cell) {
+    if (cell.getCellType() == Cell.CELL_TYPE_NUMERIC) {
+      return doubleValue(cell) == null
+          ? null
+          : Objects.requireNonNullElse(doubleValue(cell), 0).intValue();
+    }
+    try {
+      return Integer.parseInt(cell.getStringCellValue());
+    } catch (NumberFormatException e) {
+      return null;
+    }
+  }
+
+  @SafeVarargs
+  private static <T> Predicate<T> distinctByKeys(final Function<? super T, ?>... keyExtractors) {
+    final Map<List<?>, Boolean> seen = new ConcurrentHashMap<>();
+    return elt -> {
+      final List<?> keys = Arrays.stream(keyExtractors)
+          .map(key -> key.apply(elt))
+          .collect(Collectors.toList());
+      return seen.putIfAbsent(keys, Boolean.TRUE) == null;
+    };
   }
 }

@@ -125,6 +125,7 @@ public class AccountRepositoryImpl implements AccountRepository {
     return save(domain, userEntity);
   }
 
+
   private Account save(Account domain, HUser user) {
     HAccount entityToSave = mapper.toEntity(domain, user);
     HAccount savedEntity = accountJpaRepository.save(entityToSave);

@@ -17,7 +17,7 @@ import static org.apfloat.Apcomplex.ONE;
 
 @Getter
 @Setter
-@Builder
+@Builder(toBuilder = true)
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString

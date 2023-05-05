@@ -542,6 +542,16 @@ public class TestUtils {
         .status(ProductStatus.ENABLED);
   }
 
+  public static Product product6() {
+    return new Product()
+        .id("product6_id")
+        .description("Autres produits")
+        .unitPrice(1000)
+        .vatPercent(1000)
+        .unitPriceWithVat(1100)
+        .status(ProductStatus.ENABLED);
+  }
+
   public static Product product5() {
     return new Product()
         .id("product5_id")

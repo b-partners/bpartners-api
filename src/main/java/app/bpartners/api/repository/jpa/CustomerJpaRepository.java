@@ -15,4 +15,6 @@ public interface CustomerJpaRepository extends JpaRepository<HCustomer, String> 
   List<HCustomer> findAllByIdAccount(String idAccount, Pageable pageable);
 
   Optional<HCustomer> findByEmail(String email);
+
+  Optional<HCustomer> findByIdAccountAndEmail(String idAccount, String email);
 }

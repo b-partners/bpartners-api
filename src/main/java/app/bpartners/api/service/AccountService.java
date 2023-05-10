@@ -83,10 +83,10 @@ public class AccountService {
   public Account disconnectBank(String userId) {
     User user = userRepository.getById(userId);
     Account account = user.getAccount(); /*TODO: Should get the actual account status*/
-    if (account.getIban() == null && account.getBank() == null) {
+    if (account.getBank() == null) {
       throw new BadRequestException("Only account associated to a bank can be disconnected, but "
           + "Account(id=" + account.getId() + ",name=" + account.getName()
-          + ") does not have bank and iban");
+          + ") is not associated to a bank");
     }
 
     if (bankRepository.disconnectBank(user)) {

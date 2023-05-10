@@ -1,0 +1,41 @@
+- Justesse: les tests passent
+- Clareté: l'implementation est maintenable
+
+Exemple: BPartners.AccountRepository
+- D'après le nom: CRUD sur des comptes (bancaires)
+- Difficulté:
+  - (D1) comptes bancaires différents avec des API différentes (Swan, Bridge, et plus tard BNI, MVola, etc)
+  - (D2) on veut avoir un cache local des données, si ils sont down, on pourra continuer à être up
+- Justesse: OK AccountIT passe
+- Clareté: KO! Comment j'ajoute/j'enlève une banque, comment je désactive ou fait évoluer la logique de caching?
+- 3 piliers pour solutionner ce problème de clareté:
+  - (S1) Effective Java, Item 64: cacher l'accès aux banques derrière une interface unique
+  - (S2) Facade Design Pattern: sélectionner la banque appropriée à travers une facade
+    - F in SLF4J stands for facade: il y a un million de loggeur en Java (LOG4J, Logback, SimpleLogger...), SLF4J permet d'en selectionner un
+    - Provider in HEI Admin UI: il y a un million de provider dans HEI Admin UI, le provider principal est une facade qui permet d'en selection un
+      - Remaquer que les providers de HEI Admin UI sont suivent exactement les 3 piliers qu'on veut mettre en place sur BPartners.AccountRepository
+  - (S3) S in SOLID stands for Single-Responsibility Principle
+    - Prises indépendemment, elles sont très simples
+    - Elles arrivent à adresser la complexité du problème par leur composition (ou comment l'union fait vraiment la force)
+
+# Effective Java, Item 64: Refer to Object by their Interfaces
+- https://kea.nu/files/textbooks/new/Effective%20Java%20%282017%2C%20Addison-Wesley%29.pdf
+- If you get into the habit of using interfaces as _______types_______, your program will be much more flexible.
+  - See also L in SOLID: Liskov (a female Turing awardee) substituion principle
+  - See also Introduction of Xavier Leroy thesis on polymorphic static typing https://www.theses.fr/1992PA077107
+  - Types are a super-power in the hands of a programmer _______if used correctly_______
+- [However] It is entirely appropriate to refer to an object by a class rather than an interface if no appropriate interface exists.
+- /!\ Leaky abstractions: https://en.wikipedia.org/wiki/Leaky_abstraction
+  - Exemple: BPartners.UserRepository::getUserBySwanUserIdAndToken
+
+# The Facade Design Pattern
+- AccountRepositoryImpl in BPartners
+  - Méthode Grothendieck: Ne jamais attaquer un problème de front, les laisser se dissoudre dans une marée montante de théorie générale
+    https://books.google.fr/books?id=3cBvEAAAQBAJ&pg=PT14&lpg=PT14&dq=grothendieck+laisser+le+probl%C3%A8me+se+dissoudre&source=bl&ots=fPLeLA72Tg&sig=ACfU3U1FO_FrRYKeZyDb-Er3bylkjAegXA&hl=en&sa=X&ved=2ahUKEwjD_urH86z-AhUqUqQEHfTAAO0Q6AF6BAgVEAM#v=onepage&q=grothendieck%20laisser%20le%20probl%C3%A8me%20se%20dissoudre&f=false
+
+# S in SOLID
+- What is the responsibility of RestController, Repository, JpaRepository, ConnectorRepository?
+
+
+
+Faites de votre code du Mozart: des pensées très profondes dans une expression très simple https://www.facebook.com/lou.andria261/videos/2766774113425973

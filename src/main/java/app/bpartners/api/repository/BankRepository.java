@@ -10,7 +10,7 @@ import java.time.Instant;
 public interface BankRepository {
   String initiateConnection(User user);
 
-  Bank findByBridgeId(Long id);
+  Bank findByExternalId(String id);
 
   Bank findById(String id);
 

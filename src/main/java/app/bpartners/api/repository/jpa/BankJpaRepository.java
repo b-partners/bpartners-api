@@ -7,5 +7,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface BankJpaRepository extends JpaRepository<HBank, String> {
-  List<HBank> findAllByBridgeId(Long id);
+  List<HBank> findAllByExternalId(Long id);
 }

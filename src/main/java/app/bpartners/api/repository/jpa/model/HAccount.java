@@ -7,6 +7,8 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
@@ -26,18 +28,19 @@ import org.hibernate.annotations.Type;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@Builder(toBuilder = true)
 @ToString
 @EqualsAndHashCode
 public class HAccount implements Serializable {
   @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
   private String id;
   @ManyToOne
   @JoinColumn(name = "id_user")
   @JsonIgnore
   private HUser user;
   private String idBank;
-  private Long bridgeAccountId;
+  private String externalId;
   @Column(name = "\"name\"")
   private String name;
   private String iban;

@@ -17,6 +17,7 @@ import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
 import app.bpartners.api.integration.conf.S3AbstractContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
 import app.bpartners.api.manager.ProjectTokenManager;
+import app.bpartners.api.repository.AccountConnectorRepository;
 import app.bpartners.api.repository.AccountRepository;
 import app.bpartners.api.repository.LegalFileRepository;
 import app.bpartners.api.repository.fintecture.FintectureConf;
@@ -26,7 +27,6 @@ import app.bpartners.api.repository.jpa.model.HAccountHolder;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitConf;
 import app.bpartners.api.repository.sendinblue.SendinblueConf;
 import app.bpartners.api.repository.swan.AccountHolderSwanRepository;
-import app.bpartners.api.repository.swan.AccountSwanRepository;
 import app.bpartners.api.repository.swan.UserSwanRepository;
 import app.bpartners.api.service.PaymentScheduleService;
 import java.time.Instant;
@@ -75,9 +75,9 @@ import static app.bpartners.api.integration.conf.TestUtils.datedPaymentRequest2;
 import static app.bpartners.api.integration.conf.TestUtils.product3;
 import static app.bpartners.api.integration.conf.TestUtils.product4;
 import static app.bpartners.api.integration.conf.TestUtils.product5;
+import static app.bpartners.api.integration.conf.TestUtils.setUpAccountConnectorSwanRepository;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountHolderSwanRep;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountRepository;
-import static app.bpartners.api.integration.conf.TestUtils.setUpAccountSwanRepository;
 import static app.bpartners.api.integration.conf.TestUtils.setUpEventBridge;
 import static app.bpartners.api.integration.conf.TestUtils.setUpLegalFileRepository;
 import static app.bpartners.api.integration.conf.TestUtils.setUpPaymentInitiationRep;
@@ -123,7 +123,7 @@ class InvoiceIT {
   @MockBean
   private UserSwanRepository userSwanRepositoryMock;
   @MockBean
-  private AccountSwanRepository accountSwanRepositoryMock;
+  private AccountConnectorRepository accountConnectorRepositoryMock;
   @MockBean
   private SwanComponent swanComponentMock;
   @MockBean
@@ -184,7 +184,7 @@ class InvoiceIT {
   public void setUp() {
     setUpSwanComponent(swanComponentMock);
     setUpUserSwanRepository(userSwanRepositoryMock);
-    setUpAccountSwanRepository(accountSwanRepositoryMock);
+    setUpAccountConnectorSwanRepository(accountConnectorRepositoryMock);
     setUpAccountHolderSwanRep(accountHolderRepositoryMock);
     setUpPaymentInitiationRep(paymentInitiationRepositoryMock);
     setUpEventBridge(eventBridgeClientMock);

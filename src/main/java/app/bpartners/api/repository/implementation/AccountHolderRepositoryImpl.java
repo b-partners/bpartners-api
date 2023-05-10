@@ -12,10 +12,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
 
 @Repository
 @AllArgsConstructor
+@Slf4j
 public class AccountHolderRepositoryImpl implements AccountHolderRepository {
   private final AccountHolderSwanRepository swanRepository;
   private final AccountHolderMapper mapper;

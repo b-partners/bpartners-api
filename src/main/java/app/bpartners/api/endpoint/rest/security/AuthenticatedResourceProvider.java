@@ -15,7 +15,7 @@ public class AuthenticatedResourceProvider {
   private final AccountHolderService accountHolderService;
 
   public Account getAccount() {
-    return accountService.getAccountByBearer(AuthProvider.getPrincipal().getBearer());
+    return accountService.getAccountByBearer(AuthProvider.getBearer());
   }
 
   public AccountHolder getAccountHolder() {

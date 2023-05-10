@@ -14,12 +14,12 @@ import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
 import app.bpartners.api.integration.conf.AbstractContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
 import app.bpartners.api.manager.ProjectTokenManager;
+import app.bpartners.api.repository.AccountConnectorRepository;
 import app.bpartners.api.repository.LegalFileRepository;
 import app.bpartners.api.repository.fintecture.FintectureConf;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitConf;
 import app.bpartners.api.repository.sendinblue.SendinblueConf;
 import app.bpartners.api.repository.swan.AccountHolderSwanRepository;
-import app.bpartners.api.repository.swan.AccountSwanRepository;
 import app.bpartners.api.repository.swan.UserSwanRepository;
 import app.bpartners.api.service.PaymentScheduleService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -45,8 +45,8 @@ import static app.bpartners.api.integration.conf.TestUtils.REDIRECT_FAILURE_URL;
 import static app.bpartners.api.integration.conf.TestUtils.REDIRECT_SUCCESS_URL;
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsApiException;
 import static app.bpartners.api.integration.conf.TestUtils.domainLegalFile;
+import static app.bpartners.api.integration.conf.TestUtils.setUpAccountConnectorSwanRepository;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountHolderSwanRep;
-import static app.bpartners.api.integration.conf.TestUtils.setUpAccountSwanRepository;
 import static app.bpartners.api.integration.conf.TestUtils.setUpSwanComponent;
 import static app.bpartners.api.integration.conf.TestUtils.setUpUserSwanRepository;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -84,7 +84,7 @@ class AuthenticationIT {
   @MockBean
   private UserSwanRepository userSwanRepositoryMock;
   @MockBean
-  private AccountSwanRepository accountSwanRepositoryMock;
+  private AccountConnectorRepository accountConnectorRepositoryMock;
   @MockBean
   private AccountHolderSwanRepository accountHolderRepositoryMock;
   @MockBean
@@ -100,7 +100,7 @@ class AuthenticationIT {
   public void setUp() {
     setUpSwanComponent(swanComponentMock);
     setUpUserSwanRepository(userSwanRepositoryMock);
-    setUpAccountSwanRepository(accountSwanRepositoryMock);
+    setUpAccountConnectorSwanRepository(accountConnectorRepositoryMock);
     setUpAccountHolderSwanRep(accountHolderRepositoryMock);
   }
 

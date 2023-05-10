@@ -24,7 +24,7 @@ on:
 
 env:
   ADS_DENOM_CHAR: e
-  NAME_PREFIX: private-
+  NAME_PREFIX: ''
 
 jobs:
   cd-compute:

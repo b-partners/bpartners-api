@@ -11,15 +11,8 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.UUID;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.retry.RetryCallback;
-import org.springframework.retry.RetryContext;
-import org.springframework.retry.backoff.ExponentialBackOffPolicy;
-import org.springframework.retry.listener.RetryListenerSupport;
-import org.springframework.retry.policy.SimpleRetryPolicy;
-import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Component;
 
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
@@ -31,7 +24,7 @@ import static java.util.UUID.randomUUID;
 public class BuildingPermitApi {
   private final ObjectMapper objectMapper =
       new ObjectMapper().findAndRegisterModules().configure(FAIL_ON_UNKNOWN_PROPERTIES, false);
-  private BuildingPermitConf buildingPermitConf;
+  private final BuildingPermitConf buildingPermitConf;
   private HttpClient httpClient;
 
   @Autowired
@@ -71,8 +64,8 @@ public class BuildingPermitApi {
         Thread.currentThread().interrupt();
         throw new ApiException(SERVER_EXCEPTION, e);
       } catch (URISyntaxException | IOException e) {
-        if(e instanceof URISyntaxException){
-        log.error("SOGEFI CALL - id={}, URISyntaxException", requestId);
+        if (e instanceof URISyntaxException) {
+          log.error("SOGEFI CALL - id={}, URISyntaxException", requestId);
         }
         if (e instanceof IOException && e.getMessage().contains("<!doctype html>")) {
           log.error("SOGEFI CALL - id={}, IOException-SOGEFI-429", requestId);

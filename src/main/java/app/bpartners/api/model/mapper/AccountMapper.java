@@ -39,6 +39,7 @@ public class AccountMapper {
   }
 
   public AccountConnector toConnector(BridgeAccount bridgeAccount) {
+    log.warn("DEBUG(bad-cents): toConnector: bridgeAccount.id={}, bridgeAccount.balance={}", bridgeAccount.getId(), bridgeAccount.getBalance());
     return AccountConnector.builder()
         .id(bridgeAccount.getId())
         .name(bridgeAccount.getName())
@@ -61,6 +62,7 @@ public class AccountMapper {
   }
 
   public Account toDomain(AccountConnector accountConnector, HAccount entity, Bank bank) {
+    log.warn("DEBUG(bad-cents): toDomain: entity.id={}, accountConnector.balance={}", entity.getId(), accountConnector.getBalance());
     return Account.builder()
         .id(entity.getId())
         .bic(entity.getBic())

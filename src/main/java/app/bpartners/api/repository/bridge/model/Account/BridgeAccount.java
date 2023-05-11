@@ -13,6 +13,7 @@ import lombok.ToString;
 
 import static app.bpartners.api.endpoint.rest.model.AccountStatus.INVALID_CREDENTIALS;
 import static app.bpartners.api.endpoint.rest.model.AccountStatus.OPENED;
+import static app.bpartners.api.endpoint.rest.model.AccountStatus.SCA_REQUIRED;
 import static app.bpartners.api.endpoint.rest.model.AccountStatus.UNKNOWN;
 import static app.bpartners.api.endpoint.rest.model.AccountStatus.VALIDATION_REQUIRED;
 
@@ -20,10 +21,14 @@ import static app.bpartners.api.endpoint.rest.model.AccountStatus.VALIDATION_REQ
 @NoArgsConstructor
 @Data
 @ToString
-@Builder
+@Builder(toBuilder = true)
 @EqualsAndHashCode
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class BridgeAccount {
+  public static final int BRIDGE_STATUS_OK = 0;
+  public static final int BRIDGE_STATUS_WRONG_CRED = 402;
+  public static final int BRIDGE_STATUS_SCA = 1010;
+  public static final int BRIDGE_STATUS_VALIDATION_REQ = 1100;
   @JsonProperty("id")
   private String id;
   @JsonProperty("bank_id")
@@ -41,11 +46,13 @@ public class BridgeAccount {
 
   public AccountStatus getDomainStatus() {
     switch (this.status) {
-      case 0:
+      case BRIDGE_STATUS_OK:
         return OPENED;
-      case 402:
+      case BRIDGE_STATUS_WRONG_CRED:
         return INVALID_CREDENTIALS;
-      case 1100:
+      case BRIDGE_STATUS_SCA:
+        return SCA_REQUIRED;
+      case BRIDGE_STATUS_VALIDATION_REQ:
         return VALIDATION_REQUIRED;
       default:
         return UNKNOWN;

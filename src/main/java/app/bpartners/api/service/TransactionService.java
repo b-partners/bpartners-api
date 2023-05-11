@@ -13,7 +13,6 @@ import app.bpartners.api.repository.TransactionRepository;
 import app.bpartners.api.repository.TransactionsSummaryRepository;
 import app.bpartners.api.repository.jpa.AccountHolderJpaRepository;
 import app.bpartners.api.repository.jpa.InvoiceJpaRepository;
-import app.bpartners.api.repository.jpa.model.HAccountHolder;
 import app.bpartners.api.repository.jpa.model.HInvoice;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -173,21 +172,15 @@ public class TransactionService {
         yearMonth.getMonthValue() - 1);
   }
 
-  //TODO: check if 60 minutes of refresh is enough or too much
-  @Scheduled(fixedRate = 60 * 60 * 1_000)
+  //TODO: check if 5 minutes of refresh is enough or too much
+  @Scheduled(fixedRate = 5 * 60 * 1_000)
   public void refreshTransactionsSummaries() {
     holderJpaRepository.findAllGroupByAccountId().forEach(
         accountHolder -> {
           refreshCurrentYearSummary(
               accountHolder.getAccountId(), parseFraction(accountHolder.getInitialCashflow()));
-          log.info("Transactions summaries refreshed for {}", getAccountHolderInfo(accountHolder));
+          log.info("Transactions summaries refreshed for {}", accountHolder.describeInfos());
         }
     );
-  }
-
-  private String getAccountHolderInfo(HAccountHolder accountHolder) {
-    return "AccountHolder(id=" + accountHolder.getId()
-        + ",name=" + accountHolder.getName()
-        + ",email=" + accountHolder.getEmail() + ")";
   }
 }

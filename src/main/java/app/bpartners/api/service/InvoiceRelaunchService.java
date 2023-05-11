@@ -33,6 +33,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.context.Context;
 
+import static app.bpartners.api.endpoint.rest.model.ArchiveStatus.DISABLED;
 import static app.bpartners.api.endpoint.rest.model.FileType.ATTACHMENT;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.DRAFT;
@@ -108,6 +109,9 @@ public class InvoiceRelaunchService {
     }
 
     Invoice invoice = invoiceRepository.getById(invoiceId);
+    if (invoice.getArchiveStatus().equals(DISABLED)) {
+      throw new BadRequestException("Invoice." + invoice.getId() + " is already DISABLED.");
+    }
     invoiceRelaunchValidator.accept(invoice);
 
     boolean isUserRelaunched = true;

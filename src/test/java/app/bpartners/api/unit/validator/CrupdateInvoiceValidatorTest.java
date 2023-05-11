@@ -1,6 +1,7 @@
 package app.bpartners.api.unit.validator;
 
 import app.bpartners.api.endpoint.rest.model.CrupdateInvoice;
+import app.bpartners.api.endpoint.rest.model.UpdateInvoiceArchivedStatus;
 import app.bpartners.api.endpoint.rest.validator.CreateProductValidator;
 import app.bpartners.api.endpoint.rest.validator.CrupdateInvoiceValidator;
 import app.bpartners.api.endpoint.rest.validator.PaymentRegValidator;
@@ -10,6 +11,7 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PROPOSAL;
+import static app.bpartners.api.integration.conf.TestUtils.assertThrowsBadRequestException;
 import static app.bpartners.api.integration.conf.TestUtils.createProduct4;
 import static app.bpartners.api.integration.conf.TestUtils.createProduct5;
 import static app.bpartners.api.integration.conf.TestUtils.customer1;
@@ -56,6 +58,13 @@ class CrupdateInvoiceValidatorTest {
   void invalid_invoice() {
     CrupdateInvoice invoice = new CrupdateInvoice().status(null);
     assertThrows(BadRequestException.class,
+        () -> validator.accept(invoice));
+  }
+
+  @Test
+  void invalid_invoice_to_archive() {
+    UpdateInvoiceArchivedStatus invoice = new UpdateInvoiceArchivedStatus().archiveStatus(null);
+    assertThrowsBadRequestException("Status is mandatory.",
         () -> validator.accept(invoice));
   }
 

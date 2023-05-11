@@ -47,6 +47,11 @@ public class InvoiceService {
     return repository.crupdate(toCrupdate);
   }
 
+  public List<Invoice> archiveInvoices(List<Invoice> toUpdate) {
+    toUpdate.forEach(repository::crupdate);
+    return toUpdate;
+  }
+
   private AccountHolder getAccountHolder(Invoice toCrupdate) {
     return holderService.getAccountHolderByAccountId(toCrupdate.getAccount().getId());
   }

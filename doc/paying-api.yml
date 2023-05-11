@@ -713,6 +713,45 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
+  archiveInvoices:
+    put:
+      tags:
+        - Paying
+      summary: Archive invoices
+      operationId: archiveInvoices
+      parameters:
+        - in: path
+          name: aId
+          description: Account identifier
+          schema:
+            type: string
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/UpdateInvoiceArchivedStatus'
+      responses:
+        200:
+          description: The archived invoices
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Invoice'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
   getRelaunches:
     get:
       tags:
@@ -1019,6 +1058,14 @@ components:
           description: attachments without content.
           items:
             $ref: '#/components/schemas/Attachment'
+    UpdateInvoiceArchivedStatus:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Invoice identifier
+        archiveStatus:
+          $ref: '#/components/schemas/archiveStatus'
     EmailInfo:
       type: object
       properties:
@@ -1054,6 +1101,8 @@ components:
           $ref: './customers-api.yml#/components/schemas/Customer'
         status:
           $ref: '#/components/schemas/InvoiceStatus'
+        archiveStatus:
+          $ref: '#/components/schemas/archiveStatus'
         paymentType:
           type: string
           enum:
@@ -1156,6 +1205,11 @@ components:
         - PROPOSAL_CONFIRMED
         - CONFIRMED
         - PAID
+    archiveStatus:
+      type: string
+      enum:
+        - ENABLED
+        - DISABLED
     InvoiceDiscount:
       type: object
       properties:

@@ -40,3 +40,12 @@ values ('invoice3_id', 'beed1765-5c16-472a-b3f4-5c376ce5db58', 'Facture ' ||
         'customer1_id',
         '2022-10-12',
         '2022-10-03', '2022-11-10', 'PAID', null, '2022-01-01T07:00:00.00Z');
+
+insert into "invoice"
+(id, id_account, title, "ref", id_customer, sending_date, validity_date, to_pay_at, status, comment,
+ "created_datetime", archive_status)
+values ('invoice8_id', 'beed1765-5c16-472a-b3f4-5c376ce5db58', 'Devis ' ||
+                                                               'transaction ', 'BP009',
+        'customer1_id',
+        '2022-10-12',
+        '2022-10-03', '2022-11-10', 'PROPOSAL', null, '2023-04-05T02:00:00.00Z', 'DISABLED');

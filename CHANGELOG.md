@@ -1,3 +1,19 @@
+# [0.17.0](https://github.com/b-partners/bpartners-api/compare/v0.15.0...v0.17.0) (2023-05-11)
+
+
+### Bug Fixes
+
+* allow bank disconnection only when account is associated to a bank ([5473592](https://github.com/b-partners/bpartners-api/commit/547359296b699f19d359268734167c819c014071))
+* import products ([#782](https://github.com/b-partners/bpartners-api/issues/782)) ([3749c1c](https://github.com/b-partners/bpartners-api/commit/3749c1c29acce22c2b94986b8f122065d180d6ea))
+
+
+### Features
+
+* add script to create function for getting billing info  ([380239e](https://github.com/b-partners/bpartners-api/commit/380239ea158c40158224a7ad7f82fb6faad5ea73))
+* archive invoices of an account ([#672](https://github.com/b-partners/bpartners-api/issues/672)) ([803a674](https://github.com/b-partners/bpartners-api/commit/803a6746373d0f3f1c62a2640d1331b5a07cf2ec))
+
+
+
 # [0.15.0](https://github.com/b-partners/bpartners-api/compare/v0.14.1...v0.15.0) (2023-05-04)
 
 
@@ -189,16 +205,6 @@
 ### Bug Fixes
 
 * do not ignore status in ProductRepo::byIdAccountAndStatus ([3b52cf7](https://github.com/b-partners/bpartners-api/commit/3b52cf7276d0b65873ebde8676cbb2933e6d1060))
-
-
-
-## [0.8.1](https://github.com/b-partners/bpartners-api/compare/v0.8.0...v0.8.1) (2023-03-02)
-
-
-### Bug Fixes
-
-* retrieve persisted user when swan is not provided ([cbd3a5b](https://github.com/b-partners/bpartners-api/commit/cbd3a5bacbcb9d7930d9813fba4b8aaef4e5fdb4))
-* set environment to run scheduled workflows for dev and preprod only ([#540](https://github.com/b-partners/bpartners-api/issues/540)) ([b529344](https://github.com/b-partners/bpartners-api/commit/b5293449e8dab6fec3569bf6ce33f6e6445ccb32))
 
 
 

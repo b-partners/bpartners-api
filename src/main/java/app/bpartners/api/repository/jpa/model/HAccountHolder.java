@@ -54,4 +54,10 @@ public class HAccountHolder implements Serializable {
   private Double latitude;
   private Integer townCode;
   private int prospectingPerimeter;
+
+  public String describeInfos() {
+    return "AccountHolder(id=" + this.getId()
+        + ",name=" + this.getName()
+        + ",email=" + this.getEmail() + ")";
+  }
 }

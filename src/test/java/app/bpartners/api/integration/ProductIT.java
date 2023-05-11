@@ -15,6 +15,7 @@ import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
 import app.bpartners.api.integration.conf.AbstractContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
 import app.bpartners.api.manager.ProjectTokenManager;
+import app.bpartners.api.repository.AccountConnectorRepository;
 import app.bpartners.api.repository.LegalFileRepository;
 import app.bpartners.api.repository.fintecture.FintectureConf;
 import app.bpartners.api.repository.fintecture.FintecturePaymentInfoRepository;
@@ -22,7 +23,6 @@ import app.bpartners.api.repository.fintecture.FintecturePaymentInitiationReposi
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitConf;
 import app.bpartners.api.repository.sendinblue.SendinblueConf;
 import app.bpartners.api.repository.swan.AccountHolderSwanRepository;
-import app.bpartners.api.repository.swan.AccountSwanRepository;
 import app.bpartners.api.repository.swan.UserSwanRepository;
 import app.bpartners.api.service.PaymentScheduleService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -35,7 +35,6 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Instant;
 import java.util.List;
-import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
@@ -57,8 +56,8 @@ import static app.bpartners.api.integration.conf.TestUtils.disabledProduct;
 import static app.bpartners.api.integration.conf.TestUtils.isAfterOrEquals;
 import static app.bpartners.api.integration.conf.TestUtils.product1;
 import static app.bpartners.api.integration.conf.TestUtils.product6;
+import static app.bpartners.api.integration.conf.TestUtils.setUpAccountConnectorSwanRepository;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountHolderSwanRep;
-import static app.bpartners.api.integration.conf.TestUtils.setUpAccountSwanRepository;
 import static app.bpartners.api.integration.conf.TestUtils.setUpLegalFileRepository;
 import static app.bpartners.api.integration.conf.TestUtils.setUpPaymentInfoRepository;
 import static app.bpartners.api.integration.conf.TestUtils.setUpPaymentInitiationRep;
@@ -75,7 +74,6 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @ContextConfiguration(initializers = ProductIT.ContextInitializer.class)
 @AutoConfigureMockMvc
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-@Slf4j
 class ProductIT {
   @MockBean
   private PaymentScheduleService paymentScheduleService;
@@ -96,7 +94,7 @@ class ProductIT {
   @MockBean
   private UserSwanRepository userSwanRepositoryMock;
   @MockBean
-  private AccountSwanRepository accountSwanRepositoryMock;
+  private AccountConnectorRepository accountConnectorRepositoryMock;
   @MockBean
   private AccountHolderSwanRepository accountHolderRepositoryMock;
   @MockBean
@@ -143,7 +141,7 @@ class ProductIT {
   @BeforeEach
   public void setUp() {
     setUpUserSwanRepository(userSwanRepositoryMock);
-    setUpAccountSwanRepository(accountSwanRepositoryMock);
+    setUpAccountConnectorSwanRepository(accountConnectorRepositoryMock);
     setUpAccountHolderSwanRep(accountHolderRepositoryMock);
     setUpSwanComponent(swanComponentMock);
     setUpPaymentInitiationRep(paymentInitiationRepositoryMock);
@@ -247,7 +245,6 @@ class ProductIT {
     assertTrue(actualProducts.stream()
         .allMatch(product -> product.getCreatedAt() != null));
     actual.get(0).createdAt(actualProducts.get(0).getCreatedAt());
-    log.info(actual.toString());
     assertTrue(actualProducts.containsAll(actual));
     assertTrue(ignoreCreatedAt(actualProducts).containsAll(ignoreCreatedAt(actual)));
   }
@@ -318,8 +315,6 @@ class ProductIT {
     assertTrue(product3.getUnitPrice() <= product4.getUnitPrice());
     // /!\ it seems by default, the description order ASC is taken before the unit price ASC
     // Pay attention with multiple orders then
-    log.info(product5.toString());
-    log.info(product6.toString());
     assertTrue((product5.getUnitPrice() >= product6.getUnitPrice())
         && (product5.getDescription().compareTo(product6.getDescription()) <= 0));
   }

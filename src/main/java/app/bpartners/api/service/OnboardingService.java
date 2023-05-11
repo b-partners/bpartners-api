@@ -61,10 +61,13 @@ public class OnboardingService {
     User savedUser = userRepository.save(userDefaultValues(toSave, id, bridgePassword));
     eventProducer.accept(List.of(toTypedUser(savedUser)));
     Account accountToSave = fromNewUser(savedUser);
-    Account savedAccount = accountRepository.save(accountToSave, savedUser.getId());
+    Account savedAccount = accountRepository.save(accountToSave);
     AccountHolder accountHolderToSave = fromNewAccountAndUser(companyName, savedAccount, savedUser);
     AccountHolder savedAccountHolder = accountHolderRepository.save(accountHolderToSave);
-    return new OnboardedUser(savedUser, savedAccount, savedAccountHolder);
+    User updatedAccount = savedUser.toBuilder()
+        .account(savedAccount)
+        .build();
+    return new OnboardedUser(updatedAccount, savedAccount, savedAccountHolder);
   }
 
   @Transactional(isolation = SERIALIZABLE)
@@ -109,7 +112,6 @@ public class OnboardingService {
 
   private Account fromNewUser(User user) {
     return Account.builder()
-        .id(String.valueOf(randomUUID()))
         .name(user.getName())
         .userId(user.getId())
         .availableBalance(DEFAULT_BALANCE)

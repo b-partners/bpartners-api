@@ -18,7 +18,7 @@ import lombok.ToString;
 @EqualsAndHashCode
 public class Bank implements Serializable {
   private String id;
-  private Long bridgeBankId;
+  private Long externalId;
   private String name;
   private String logoUrl;
 }

@@ -24,14 +24,15 @@ import app.bpartners.api.repository.fintecture.FintectureConf;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitConf;
 import app.bpartners.api.repository.sendinblue.SendinblueConf;
 import app.bpartners.api.repository.swan.AccountHolderSwanRepository;
-import app.bpartners.api.repository.swan.AccountSwanRepository;
 import app.bpartners.api.repository.swan.OnboardingSwanRepository;
 import app.bpartners.api.repository.swan.UserSwanRepository;
+import app.bpartners.api.repository.swan.implementation.SwanAccountConnectorRepository;
 import app.bpartners.api.service.AccountHolderService;
 import app.bpartners.api.service.AccountService;
 import app.bpartners.api.service.OnboardingService;
 import app.bpartners.api.service.PaymentScheduleService;
 import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
@@ -44,7 +45,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
 
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_TOKEN;
-import static app.bpartners.api.integration.conf.TestUtils.setUpAccountSwanRepository;
+import static app.bpartners.api.integration.conf.TestUtils.setUpAccountConnectorSwanRepository;
 import static app.bpartners.api.integration.conf.TestUtils.setUpEventBridge;
 import static app.bpartners.api.integration.conf.TestUtils.setUpLegalFileRepository;
 import static app.bpartners.api.integration.conf.TestUtils.setUpSwanComponent;
@@ -67,6 +68,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @Testcontainers
 @ContextConfiguration(initializers = UserServiceIT.ContextInitializer.class)
+@Slf4j
 class UserServiceIT {
   private static final String COMPANY_NAME = "user company name";
   @MockBean
@@ -94,8 +96,6 @@ class UserServiceIT {
   @MockBean
   private UserSwanRepository userSwanRepositoryMock;
   @MockBean
-  private AccountSwanRepository accountSwanRepositoryMock;
-  @MockBean
   private SwanComponent swanComponentMock;
   @MockBean
   private LegalFileRepository legalFileRepositoryMock;
@@ -113,12 +113,14 @@ class UserServiceIT {
   private AccountService accountService;
   @Autowired
   private AccountHolderService accountHolderService;
+  @MockBean
+  private SwanAccountConnectorRepository swanAccountConnectorRepositoryMock;
 
   @BeforeEach
   public void setUp() {
     setUpSwanComponent(swanComponentMock);
     setUpUserSwanRepository(userSwanRepositoryMock);
-    setUpAccountSwanRepository(accountSwanRepositoryMock);
+    setUpAccountConnectorSwanRepository(swanAccountConnectorRepositoryMock);
     setUpEventBridge(eventBridgeClientMock);
     setUpLegalFileRepository(legalFileRepositoryMock);
   }
@@ -153,6 +155,9 @@ class UserServiceIT {
 
     OnboardedUser actual = onboardingService.onboardUser(userToOnboard, COMPANY_NAME);
     User actualUser = actual.getOnboardedUser();
+    log.info("Onboarded {}", actual.getOnboardedUser());
+    log.info("Onboarded {}", actual.getOnboardedAccount());
+    log.info("Onboarded {}", actual.getOnboardedAccountHolder());
     List<Account> accounts =
         accountService.getAccountsByUserId(actualUser.getId());
     List<AccountHolder> accountHolders =

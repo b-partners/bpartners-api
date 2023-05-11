@@ -16,6 +16,7 @@ import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
 import app.bpartners.api.integration.conf.AbstractContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
 import app.bpartners.api.manager.ProjectTokenManager;
+import app.bpartners.api.repository.AccountConnectorRepository;
 import app.bpartners.api.repository.LegalFileRepository;
 import app.bpartners.api.repository.bridge.repository.BridgeUserRepository;
 import app.bpartners.api.repository.fintecture.FintectureConf;
@@ -24,7 +25,6 @@ import app.bpartners.api.repository.jpa.model.HUser;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitConf;
 import app.bpartners.api.repository.sendinblue.SendinblueConf;
 import app.bpartners.api.repository.swan.AccountHolderSwanRepository;
-import app.bpartners.api.repository.swan.AccountSwanRepository;
 import app.bpartners.api.repository.swan.OnboardingSwanRepository;
 import app.bpartners.api.repository.swan.UserSwanRepository;
 import app.bpartners.api.repository.swan.model.SwanUser;
@@ -68,8 +68,8 @@ import static app.bpartners.api.integration.conf.TestUtils.janeDoe;
 import static app.bpartners.api.integration.conf.TestUtils.joeDoe;
 import static app.bpartners.api.integration.conf.TestUtils.restJaneDoeUser;
 import static app.bpartners.api.integration.conf.TestUtils.restJoeDoeUser;
+import static app.bpartners.api.integration.conf.TestUtils.setUpAccountConnectorSwanRepository;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountHolderSwanRep;
-import static app.bpartners.api.integration.conf.TestUtils.setUpAccountSwanRepository;
 import static app.bpartners.api.integration.conf.TestUtils.setUpEventBridge;
 import static app.bpartners.api.integration.conf.TestUtils.setUpLegalFileRepository;
 import static app.bpartners.api.integration.conf.TestUtils.setUpOnboardingSwanRepositoryMock;
@@ -113,7 +113,7 @@ class UserIT {
   @MockBean
   private UserSwanRepository userSwanRepositoryMock;
   @MockBean
-  private AccountSwanRepository accountSwanRepositoryMock;
+  private AccountConnectorRepository accountConnectorRepositoryMock;
   @MockBean
   private SwanComponent swanComponentMock;
   @MockBean
@@ -136,8 +136,8 @@ class UserIT {
   public void setUp() {
     setUpSwanComponent(swanComponentMock);
     setUpUserSwanRepository(userSwanRepositoryMock);
+    setUpAccountConnectorSwanRepository(accountConnectorRepositoryMock);
     setUpEventBridge(eventBridgeClientMock);
-    setUpAccountSwanRepository(accountSwanRepositoryMock);
     setUpOnboardingSwanRepositoryMock(onboardingSwanRepositoryMock);
     setUpAccountHolderSwanRep(accountHolderMock);
     setUpLegalFileRepository(legalFileRepositoryMock);
@@ -430,7 +430,6 @@ class UserIT {
   @Test
   void onboard_users_ko() throws IOException, InterruptedException {
     when(bridgeUserRepositoryMock.createUser(any())).thenReturn(bridgeUser());
-    reset(swanComponentMock);
 
     HttpClient unauthenticatedClient = HttpClient.newBuilder().build();
     String basePath = "http://localhost:" + UserIT.ContextInitializer.SERVER_PORT;

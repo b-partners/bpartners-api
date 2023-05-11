@@ -90,16 +90,18 @@ public class AccountHolderMapper {
         .build();
   }
 
+  //TODO: delete this and map correctly these values
   public HAccountHolder toEntity(String accountId, SwanAccountHolder swanAccountHolder) {
     return HAccountHolder.builder()
-        .id(swanAccountHolder.getId())
+        .id(swanAccountHolder.getId()) //TODO: use persisted ID
         .accountId(accountId)
         .subjectToVat(true) //By default, an account holder IS subject to vat
         .mobilePhoneNumber(null)
         .email(null)
-        .verificationStatus(getStatus(swanAccountHolder.getVerificationStatus()))
         .socialCapital(
             String.valueOf(new Fraction())) //TODO : check default social capital 0 or null
+        .initialCashflow(String.valueOf(new Fraction()))
+        .verificationStatus(getStatus(swanAccountHolder.getVerificationStatus()))
         .vatNumber(swanAccountHolder.getInfo().getVatNumber())
         .name(swanAccountHolder.getInfo().getName())
         .businessActivity(swanAccountHolder.getInfo().getBusinessActivity())
@@ -109,7 +111,6 @@ public class AccountHolderMapper {
         .city(swanAccountHolder.getResidencyAddress().getCity())
         .country(swanAccountHolder.getResidencyAddress().getCountry())
         .postalCode(swanAccountHolder.getResidencyAddress().getPostalCode())
-        .initialCashflow(String.valueOf(0))
         .build();
   }
 

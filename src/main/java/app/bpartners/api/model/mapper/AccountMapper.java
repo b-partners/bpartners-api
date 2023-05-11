@@ -6,6 +6,7 @@ import app.bpartners.api.model.Bank;
 import app.bpartners.api.repository.bridge.model.Account.BridgeAccount;
 import app.bpartners.api.repository.jpa.model.HAccount;
 import app.bpartners.api.repository.jpa.model.HUser;
+import app.bpartners.api.repository.model.AccountConnector;
 import app.bpartners.api.repository.swan.model.SwanAccount;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,91 +19,104 @@ import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 @Component
 @AllArgsConstructor
 public class AccountMapper {
-
   public static final String OPENED_STATUS = "Opened";
   public static final String CLOSED_STATUS = "Closed";
   public static final String CLOSING_STATUS = "Closing";
   public static final String SUSPENDED_STATUS = "Suspended";
   public static final String VALIDATION_REQUIRED = "Validation Required";
   public static final String INVALID_CREDENTIALS = "Invalid Credentials";
+  public static final String DEFAULT_SWAN_BANK_ID = "swan_bank_id";
 
-  public Account toDomain(SwanAccount external, String userId) {
-    return Account.builder()
-        .id(external.getId())
-        .userId(userId)
-        .name(external.getName())
-        .iban(external.getIban())
-        .bic(external.getBic())
-        .availableBalance(parseFraction(external.getBalances().getAvailable().getValue() * 100))
-        .status(getStatus(external.getStatusInfo().getStatus()))
+  public AccountConnector toConnector(SwanAccount swanAccount) {
+    return AccountConnector.builder()
+        .id(swanAccount.getId())
+        .name(swanAccount.getName())
+        .balance(swanAccount.getBalances().getAvailable().getValue())
+        .iban(swanAccount.getIban())
+        .status(getStatus(swanAccount.getStatusInfo().getStatus()))
+        .bankId(DEFAULT_SWAN_BANK_ID)
         .build();
   }
 
-  public Account toDomain(SwanAccount swanAccount, HAccount entity, String userId) {
-    Account entityToDomain = toDomain(entity, userId);
-    Account swanToDomain = toDomain(swanAccount, userId);
-    if (swanToDomain.equals(entityToDomain)) {
-      return entityToDomain;
-    } else {
-      return swanToDomain;
-    }
+  public AccountConnector toConnector(BridgeAccount bridgeAccount) {
+    return AccountConnector.builder()
+        .id(bridgeAccount.getId())
+        .name(bridgeAccount.getName())
+        .balance(bridgeAccount.getBalance())
+        .iban(bridgeAccount.getIban())
+        .status(bridgeAccount.getDomainStatus())
+        .bankId(String.valueOf(bridgeAccount.getBankId()))
+        .build();
   }
 
-  public Account toDomain(HAccount entity, String userId) {
+  public AccountConnector toConnector(HAccount entity) {
+    return AccountConnector.builder()
+        .id(entity.getExternalId())
+        .name(entity.getName())
+        .balance(parseFraction(entity.getAvailableBalance()).getApproximatedValue())
+        .iban(entity.getIban())
+        .status(entity.getStatus())
+        .bankId(entity.getIdBank())
+        .build();
+  }
+
+  public Account toDomain(AccountConnector accountConnector, HAccount entity, Bank bank) {
+    return Account.builder()
+        .id(entity.getId())
+        .bic(entity.getBic())
+        .bank(bank)
+        .name(accountConnector.getName())
+        .iban(accountConnector.getIban())
+        .availableBalance(parseFraction(accountConnector.getBalance() * 100))
+        .status(accountConnector.getStatus())
+        .build();
+  }
+
+  public Account toDomain(HAccount entity, Bank bank) {
     if (entity == null) {
       return null;
     }
     return Account.builder()
         .id(entity.getId())
-        .userId(userId)
-        .bridgeAccountId(entity.getBridgeAccountId())
+        .userId(entity.getUser().getId())
         .name(entity.getName())
         .iban(entity.getIban())
         .bic(entity.getBic())
         .availableBalance(parseFraction(entity.getAvailableBalance()))
         .status(entity.getStatus())
+        .bank(bank) //TODO: add hbank
         .build();
   }
 
-  public Account toDomain(HAccount entity, Bank bank, String userId) {
-    return toDomain(entity, userId).toBuilder()
-        .bank(bank)
-        .build();
-  }
-
-  public Account toDomain(BridgeAccount bridgeAccount, Bank bank,
-                          Account domainAccount, String userId) {
-    return Account.builder()
-        .id(domainAccount == null ? null : domainAccount.getId())
-        .bic(domainAccount == null ? null : domainAccount.getBic())
-        .status(bridgeAccount.getDomainStatus())
-        .userId(userId)
-        .bridgeAccountId(bridgeAccount.getId())
-        .name(bridgeAccount.getName())
-        .iban(bridgeAccount.getIban())
-        .availableBalance(parseFraction(bridgeAccount.getBalance() * 100))
-        .bank(bank)
-        .build();
-  }
-
-  public HAccount toEntity(Account domain, HUser user) {
+  public HAccount toEntity(AccountConnector accountConnector, HAccount existing) {
     return HAccount.builder()
-        .id(domain.getId())
-        .bridgeAccountId(domain.getBridgeAccountId())
-        .user(user)
-        .idBank(domain.getBank() != null
-            ? domain.getBank().getId()
-            : null)
-        .name(domain.getName())
-        .iban(domain.getIban())
-        .bic(domain.getBic())
-        .availableBalance(domain.getAvailableBalance().toString())
-        .status(domain.getStatus())
+        .id(existing.getId())
+        .user(existing.getUser())
+        .idBank(accountConnector.getBankId())
+        .bic(existing.getBic())
+        .externalId(accountConnector.getId())
+        .name(accountConnector.getName())
+        .iban(accountConnector.getIban())
+        .availableBalance(String.valueOf(parseFraction(accountConnector.getBalance() * 100)))
+        .status(accountConnector.getStatus())
+        .build();
+  }
+
+  public HAccount toEntity(Account account, HUser userEntity) {
+    return HAccount.builder()
+        .id(account.getId())
+        .user(userEntity)
+        .idBank(account.getBank() == null ? null : account.getBank().getId())
+        .bic(account.getBic())
+        .name(account.getName())
+        .iban(account.getIban())
+        .availableBalance(String.valueOf(account.getAvailableBalance()))
+        .status(account.getStatus())
         .build();
   }
 
 
-  public AccountStatus getStatus(String status) {
+  public static AccountStatus getStatus(String status) {
     switch (status) {
       case OPENED_STATUS:
         return AccountStatus.OPENED;

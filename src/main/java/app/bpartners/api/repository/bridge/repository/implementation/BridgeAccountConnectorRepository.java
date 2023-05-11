@@ -2,29 +2,38 @@ package app.bpartners.api.repository.bridge.repository.implementation;
 
 import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.model.User;
+import app.bpartners.api.model.mapper.AccountMapper;
+import app.bpartners.api.repository.AccountConnectorRepository;
 import app.bpartners.api.repository.bridge.BridgeApi;
 import app.bpartners.api.repository.bridge.model.Account.BridgeAccount;
-import app.bpartners.api.repository.bridge.repository.BridgeAccountRepository;
+import app.bpartners.api.repository.implementation.SavableAccountConnectorRepository;
+import app.bpartners.api.repository.model.AccountConnector;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
 
+import static app.bpartners.api.endpoint.rest.security.AuthProvider.getAuthenticatedUserId;
+import static app.bpartners.api.endpoint.rest.security.AuthProvider.userIsAuthenticated;
+
+//TODO: add unit test
 @Repository
 @AllArgsConstructor
 @Slf4j
-public class BridgeAccountRepositoryImpl implements BridgeAccountRepository {
+public class BridgeAccountConnectorRepository implements AccountConnectorRepository {
   private final BridgeApi bridgeApi;
+  private final AccountMapper accountMapper;
+  private final SavableAccountConnectorRepository savableRepository;
 
   @Override
-  public List<BridgeAccount> findByBearer(String bearer) {
+  public List<AccountConnector> findByBearer(String bearer) {
     List<BridgeAccount> accounts = bridgeApi.findAccountsByToken(bearer);
     if (accounts.isEmpty()) {
       return List.of();
     }
     User authenticatedUser = AuthProvider.getPrincipal().getUser();
     if (authenticatedUser.getPreferredAccountId() != null) {
-      return List.of(accounts.stream()
+      return List.of(accountMapper.toConnector(accounts.stream()
           .filter(bridgeAccount ->
               String.valueOf(bridgeAccount.getId())
                   .equals(authenticatedUser.getPreferredAccountId()))
@@ -34,7 +43,7 @@ public class BridgeAccountRepositoryImpl implements BridgeAccountRepository {
                 + authenticatedUser.getPreferredAccountId() + ") has bad account external ID."
                 + getDefaultAccountMessage(accounts, authenticatedUser));
             return accounts.get(0);
-          }));
+          })));
     }
     if (accounts.size() > 1) {
       StringBuilder builder = getAccountMessageBuilder(accounts);
@@ -43,17 +52,39 @@ public class BridgeAccountRepositoryImpl implements BridgeAccountRepository {
               + "Therefore, these accounts were found :" + builder);
     }
     log.warn(getDefaultAccountMessage(accounts, authenticatedUser));
-    return List.of(accounts.get(0));
+    AccountConnector accountConnector = accountMapper.toConnector(accounts.get(0));
+    return List.of(accountConnector);
   }
 
   @Override
-  public List<BridgeAccount> findAllByAuthenticatedUser() {
-    return findByBearer(AuthProvider.getPrincipal().getBearer());
+  public List<AccountConnector> findByUserId(String userId) {
+    if (!userIsAuthenticated() || getAuthenticatedUserId() == null
+        || !getAuthenticatedUserId().equals(userId)) {
+      return List.of();
+    }
+    return findByBearer(AuthProvider.getBearer());
   }
 
   @Override
-  public BridgeAccount findById(Long id) {
-    return bridgeApi.findByAccountById(id, AuthProvider.getPrincipal().getBearer());
+  public AccountConnector save(AccountConnector accountConnector) {
+    return savableRepository.save(accountConnector);
+  }
+
+  @Override
+  public List<AccountConnector> saveAll(List<AccountConnector> accountConnectors) {
+    return savableRepository.saveAll(accountConnectors);
+  }
+
+  @Override
+  public AccountConnector findById(String id) {
+    try {
+      Long bridgeId = Long.valueOf(id);
+      return accountMapper.toConnector(
+          bridgeApi.findByAccountById(bridgeId, AuthProvider.getBearer()));
+      // /!\ case when provided ID is UUID, from Swan for example
+    } catch (NumberFormatException e) {
+      return null;
+    }
   }
 
   private StringBuilder getAccountMessageBuilder(List<BridgeAccount> accounts) {

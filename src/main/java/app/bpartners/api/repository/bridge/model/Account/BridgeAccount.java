@@ -25,7 +25,7 @@ import static app.bpartners.api.endpoint.rest.model.AccountStatus.VALIDATION_REQ
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class BridgeAccount {
   @JsonProperty("id")
-  private Long id;
+  private String id;
   @JsonProperty("bank_id")
   private Long bankId;
   @JsonProperty("name")

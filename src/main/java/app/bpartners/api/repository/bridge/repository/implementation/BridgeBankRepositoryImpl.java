@@ -43,7 +43,7 @@ public class BridgeBankRepositoryImpl implements BridgeBankRepository {
 
   @Override
   public List<BridgeItem> getBridgeItems() {
-    return bridgeApi.findItemsByToken(AuthProvider.getPrincipal().getBearer());
+    return bridgeApi.findItemsByToken(AuthProvider.getBearer());
   }
 
   @Override
@@ -58,12 +58,12 @@ public class BridgeBankRepositoryImpl implements BridgeBankRepository {
 
   @Override
   public BridgeConnectItem editItem(Long id) {
-    return bridgeApi.editItem(AuthProvider.getPrincipal().getBearer(), id);
+    return bridgeApi.editItem(AuthProvider.getBearer(), id);
   }
 
 
   @Override
   public boolean deleteItem(Long itemId, String token) {
-    return bridgeApi.deleteItem(itemId, AuthProvider.getPrincipal().getBearer());
+    return bridgeApi.deleteItem(itemId, AuthProvider.getBearer());
   }
 }

@@ -22,6 +22,31 @@ public class UserMapper {
   public static final String UNINITIATED_STATUS = "Uninitiated";
   private final AccountMapper accountMapper;
 
+
+  public User toDomain(HUser entityUser) {
+    return User.builder()
+        .id(entityUser.getId())
+        .firstName(entityUser.getFirstName())
+        .lastName(entityUser.getLastName())
+        .mobilePhoneNumber(entityUser.getPhoneNumber())
+        .email(entityUser.getEmail())
+        .accessToken(entityUser.getAccessToken())
+        .bridgePassword(entityUser.getBridgePassword())
+        .bridgeItemId(entityUser.getBridgeItemId())
+        .bridgeItemUpdatedAt(entityUser.getBridgeItemUpdatedAt())
+        .bridgeItemLastRefresh(entityUser.getBridgeItemLastRefresh())
+        .monthlySubscription(entityUser.getMonthlySubscription())
+        .status(entityUser.getStatus())
+        .logoFileId(entityUser.getLogoFileId())
+        .idVerified(entityUser.getIdVerified())
+        .identificationStatus(entityUser.getIdentificationStatus())
+        .account(entityUser.getAccounts() == null || entityUser.getAccounts().isEmpty() ? null
+            //TODO: map bank as args or through JPA
+            //TODO: An user can choose which account to use if more than one
+            : accountMapper.toDomain(entityUser.getAccounts().get(0), null))
+        .build();
+  }
+
   public User toDomain(HUser entityUser, SwanUser swanUser) {
     return User.builder()
         .id(entityUser.getId())
@@ -44,32 +69,9 @@ public class UserMapper {
                 : getIdentificationStatus(
                 swanUser.getIdentificationStatus()))
         .account(entityUser.getAccounts() == null || entityUser.getAccounts().isEmpty() ? null
-            : accountMapper.toDomain(entityUser.getAccounts().get(0),
-            entityUser.getId()))
-        .build();
-  }
-
-  public User toDomain(HUser entityUser) {
-    return User.builder()
-        .id(entityUser.getId())
-        .preferredAccountId(entityUser.getPreferredAccountExternalId())
-        .firstName(entityUser.getFirstName())
-        .lastName(entityUser.getLastName())
-        .mobilePhoneNumber(entityUser.getPhoneNumber())
-        .email(entityUser.getEmail())
-        .accessToken(entityUser.getAccessToken())
-        .bridgePassword(entityUser.getBridgePassword())
-        .bridgeItemId(entityUser.getBridgeItemId())
-        .bridgeItemUpdatedAt(entityUser.getBridgeItemUpdatedAt())
-        .bridgeItemLastRefresh(entityUser.getBridgeItemLastRefresh())
-        .monthlySubscription(entityUser.getMonthlySubscription())
-        .status(entityUser.getStatus())
-        .logoFileId(entityUser.getLogoFileId())
-        .idVerified(entityUser.getIdVerified())
-        .identificationStatus(entityUser.getIdentificationStatus())
-        .account(entityUser.getAccounts() == null || entityUser.getAccounts().isEmpty() ? null
-            : accountMapper.toDomain(entityUser.getAccounts().get(0),
-            entityUser.getId()))
+            //TODO: map bank as args or through JPA
+            //TODO: An user can choose which account to use if more than one
+            : accountMapper.toDomain(entityUser.getAccounts().get(0), null))
         .build();
   }
 

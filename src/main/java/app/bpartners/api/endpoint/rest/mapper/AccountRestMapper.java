@@ -26,15 +26,13 @@ public class AccountRestMapper {
         .status(internal.getStatus());
   }
 
-  public app.bpartners.api.model.Account toDomain(
-      String accountId, UpdateAccountIdentity accountIdentity) {
-    app.bpartners.api.model.Account persisted = accountRepository.findById(accountId);
-    return persisted.toBuilder()
-        .name(accountIdentity.getName() != null ? accountIdentity.getName() :
-            persisted.getName())
-        .bic(accountIdentity.getBic())
-        .iban(accountIdentity.getIban() != null ? accountIdentity.getIban() :
-            persisted.getIban())
+  public app.bpartners.api.model.UpdateAccountIdentity toDomain(
+      String accountId, UpdateAccountIdentity rest) {
+    return app.bpartners.api.model.UpdateAccountIdentity.builder()
+        .accountId(accountId)
+        .name(rest.getName())
+        .bic(rest.getBic())
+        .iban(rest.getIban())
         .build();
   }
 }

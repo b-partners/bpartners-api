@@ -1,7 +1,5 @@
 package app.bpartners.api.model;
 
-import app.bpartners.api.endpoint.rest.model.AccountStatus;
-import java.io.Serializable;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -17,17 +15,9 @@ import lombok.ToString;
 @Builder(toBuilder = true)
 @ToString
 @EqualsAndHashCode
-public class Account implements Serializable {
-  private String id;
-  private String userId;
+public class UpdateAccountIdentity {
+  private String accountId;
   private String name;
   private String iban;
   private String bic;
-  private Fraction availableBalance;
-  private Bank bank;
-  private AccountStatus status;
-
-  public String describeInfos() {
-    return "Account(id=" + id + ",name=" + name + ",iban=" + iban + ",status=" + status + ")";
-  }
 }

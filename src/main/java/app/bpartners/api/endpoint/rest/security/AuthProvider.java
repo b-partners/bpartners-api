@@ -36,6 +36,18 @@ public class AuthProvider extends AbstractUserDetailsAuthenticationProvider {
     return (Principal) authentication.getPrincipal();
   }
 
+  public static String getBearer() {
+    return userIsAuthenticated() ? getPrincipal().getBearer() : null;
+  }
+
+  public static String getAuthenticatedUserId() {
+    return userIsAuthenticated() ? getPrincipal().getUserId() : null;
+  }
+
+  public static boolean userIsAuthenticated() {
+    return SecurityContextHolder.getContext().getAuthentication() != null;
+  }
+
   @Override
   protected void additionalAuthenticationChecks(
       UserDetails userDetails, UsernamePasswordAuthenticationToken token) {
@@ -45,7 +57,7 @@ public class AuthProvider extends AbstractUserDetailsAuthenticationProvider {
   @Override
   protected UserDetails retrieveUser(
       String username, UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken) {
-    String bearer = getBearer(usernamePasswordAuthenticationToken);
+    String bearer = getBearerFromHeader(usernamePasswordAuthenticationToken);
     if (bearer == null) {
       throw new UsernameNotFoundException("Bad credentials"); // NOSONAR
     }
@@ -70,7 +82,7 @@ public class AuthProvider extends AbstractUserDetailsAuthenticationProvider {
     return new Principal(user, bearer);
   }
 
-  private String getBearer(
+  private String getBearerFromHeader(
       UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken) {
     Object tokenObject = usernamePasswordAuthenticationToken.getCredentials();
     if (!(tokenObject instanceof String) || !((String) tokenObject).startsWith(BEARER_PREFIX)) {

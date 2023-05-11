@@ -1,5 +1,6 @@
 package app.bpartners.api.repository.jpa.model;
 
+import app.bpartners.api.endpoint.rest.model.ArchiveStatus;
 import app.bpartners.api.endpoint.rest.model.Invoice.PaymentTypeEnum;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.repository.jpa.types.PostgresEnumType;
@@ -60,10 +61,14 @@ public class HInvoice implements Serializable {
   @Type(type = "pgsql_enum")
   @Enumerated(EnumType.STRING)
   private InvoiceStatus status;
+  @Type(type = "pgsql_enum")
+  @Enumerated(EnumType.STRING)
+  private ArchiveStatus archiveStatus;
   @ManyToOne
   @JoinColumn(name = "id_customer")
   private HCustomer customer;
   private String customerEmail;
+
   private String customerPhone;
   private String customerAddress;
   private String customerWebsite;

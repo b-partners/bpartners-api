@@ -1,5 +1,6 @@
 package app.bpartners.api.model;
 
+import app.bpartners.api.endpoint.rest.model.ArchiveStatus;
 import app.bpartners.api.endpoint.rest.model.Invoice.PaymentTypeEnum;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import java.time.Instant;
@@ -59,6 +60,7 @@ public class Invoice {
   private Account account;
   private List<InvoiceProduct> products;
   private InvoiceStatus status;
+  private ArchiveStatus archiveStatus;
   private String comment;
   private Instant updatedAt;
   private String fileId;

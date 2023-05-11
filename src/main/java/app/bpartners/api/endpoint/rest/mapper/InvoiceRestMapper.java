@@ -8,6 +8,7 @@ import app.bpartners.api.endpoint.rest.model.PaymentRegulation;
 import app.bpartners.api.endpoint.rest.model.PaymentRequest;
 import app.bpartners.api.endpoint.rest.model.Product;
 import app.bpartners.api.endpoint.rest.model.TransactionInvoice;
+import app.bpartners.api.endpoint.rest.model.UpdateInvoiceArchivedStatus;
 import app.bpartners.api.endpoint.rest.validator.CrupdateInvoiceValidator;
 import app.bpartners.api.model.CreatePaymentRegulation;
 import app.bpartners.api.model.Customer;
@@ -17,6 +18,7 @@ import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.repository.CustomerRepository;
+import app.bpartners.api.repository.InvoiceRepository;
 import app.bpartners.api.repository.jpa.InvoiceJpaRepository;
 import app.bpartners.api.repository.jpa.model.HInvoice;
 import app.bpartners.api.service.AccountService;
@@ -45,6 +47,7 @@ public class InvoiceRestMapper {
   private final AccountService accountService; //TODO: change to authResourceProvider
   private final CrupdateInvoiceValidator crupdateInvoiceValidator;
   private final InvoiceJpaRepository invoiceJpaRepository;
+  private final InvoiceRepository invoiceRepository;
 
   public Invoice toRest(app.bpartners.api.model.Invoice domain) {
     if (domain == null) {
@@ -67,6 +70,7 @@ public class InvoiceRestMapper {
         .createdAt(domain.getCreatedAt())
         .customer(customerMapper.toRest(domain.getCustomer()))
         .status(domain.getStatus())
+        .archiveStatus(domain.getArchiveStatus())
         .paymentType(domain.getPaymentType())
         .products(getProducts(domain))
         .totalVat(domain.getTotalVat().getCentsRoundUp())
@@ -103,7 +107,6 @@ public class InvoiceRestMapper {
     if (!hasAvailableReference(accountId, id, rest.getRef(), rest.getStatus())) {
       throw new BadRequestException("Invoice.reference=" + rest.getRef() + " is already used");
     }
-
     //TODO: deprecated use validityDate instead of toPayAt
     LocalDate validityDate = rest.getValidityDate();
     if (validityDate == null && rest.getToPayAt() != null
@@ -148,11 +151,20 @@ public class InvoiceRestMapper {
         .delayInPaymentAllowed(delayInPaymentAllowed)
         .delayPenaltyPercent(parseFraction(delayPenaltyPercent))
         .status(rest.getStatus())
+        .archiveStatus(rest.getArchiveStatus())
         .toPayAt(rest.getToPayAt())
         .account(accountService.getAccountById(accountId))
         .products(getProducts(rest))
         .metadata(rest.getMetadata() == null ? Map.of() : rest.getMetadata())
         .discount(getDiscount(discount))
+        .build();
+  }
+
+  public app.bpartners.api.model.Invoice toDomain(UpdateInvoiceArchivedStatus toUpdate) {
+    crupdateInvoiceValidator.accept(toUpdate);
+    app.bpartners.api.model.Invoice persisted = invoiceRepository.getById(toUpdate.getId());
+    return persisted.toBuilder()
+        .archiveStatus(toUpdate.getArchiveStatus())
         .build();
   }
 

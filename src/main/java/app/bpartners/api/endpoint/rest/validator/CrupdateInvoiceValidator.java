@@ -3,6 +3,7 @@ package app.bpartners.api.endpoint.rest.validator;
 import app.bpartners.api.endpoint.rest.model.CreateProduct;
 import app.bpartners.api.endpoint.rest.model.CrupdateInvoice;
 import app.bpartners.api.endpoint.rest.model.InvoiceDiscount;
+import app.bpartners.api.endpoint.rest.model.UpdateInvoiceArchivedStatus;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.NotImplementedException;
 import java.math.BigDecimal;
@@ -119,5 +120,16 @@ public class CrupdateInvoiceValidator implements Consumer<CrupdateInvoice> {
   private static boolean isBadPaymentAndSendingDate(CrupdateInvoice invoice) {
     return invoice.getToPayAt() != null && invoice.getSendingDate() != null
         && invoice.getToPayAt().isBefore(invoice.getSendingDate());
+  }
+
+  public void accept(UpdateInvoiceArchivedStatus toArchive) {
+    StringBuilder messageBuilder = new StringBuilder();
+    if (toArchive.getArchiveStatus() == null) {
+      messageBuilder.append("Status is mandatory.");
+    }
+    String errorMessage = messageBuilder.toString();
+    if (!errorMessage.isEmpty()) {
+      throw new BadRequestException(errorMessage);
+    }
   }
 }

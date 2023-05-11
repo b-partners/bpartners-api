@@ -1,4 +1,4 @@
-# [0.16.0](https://github.com/b-partners/bpartners-api/compare/v0.15.0...v0.16.0) (2023-05-11)
+# [0.17.0](https://github.com/b-partners/bpartners-api/compare/v0.15.0...v0.17.0) (2023-05-11)
 
 
 ### Bug Fixes

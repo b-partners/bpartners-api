@@ -7,6 +7,7 @@ import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.endpoint.rest.model.UpdateInvoiceArchivedStatus;
 import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.PageFromOne;
+import app.bpartners.api.model.UpdateInvoiceStatus;
 import app.bpartners.api.service.InvoiceService;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -28,10 +29,10 @@ public class InvoiceController {
   public Invoice crupdateInvoice(
       @PathVariable("id") String accountId,
       @PathVariable("iId") String invoiceId,
-      @RequestBody CrupdateInvoice crupdateInvoice) {
-    app.bpartners.api.model.Invoice toCrupdate =
-        mapper.toDomain(accountId, invoiceId, crupdateInvoice);
-    return mapper.toRest(service.crupdateInvoice(toCrupdate));
+      @RequestBody CrupdateInvoice restInvoice) {
+    app.bpartners.api.model.Invoice domainInvoice =
+        mapper.toDomain(accountId, invoiceId, restInvoice);
+    return mapper.toRest(service.crupdateInvoice(domainInvoice));
   }
 
   @GetMapping("/accounts/{id}/invoices/{iId}")
@@ -56,10 +57,10 @@ public class InvoiceController {
   public List<Invoice> archiveInvoices(
       @PathVariable(name = "aId") String accountId,
       @RequestBody List<UpdateInvoiceArchivedStatus> toArchive) {
-    List<app.bpartners.api.model.Invoice> toUpdate = toArchive.stream()
+    List<UpdateInvoiceStatus> invoiceStatuses = toArchive.stream()
         .map(mapper::toDomain)
         .collect(Collectors.toUnmodifiableList());
-    return service.archiveInvoices(toUpdate).stream()
+    return service.archiveInvoices(invoiceStatuses).stream()
         .map(mapper::toRest)
         .collect(Collectors.toUnmodifiableList());
   }

@@ -98,6 +98,8 @@ import static app.bpartners.api.model.exception.ApiException.ExceptionType.CLIEN
 import static app.bpartners.api.model.mapper.AccountMapper.getStatus;
 import static app.bpartners.api.model.mapper.UserMapper.VALID_IDENTITY_STATUS;
 import static app.bpartners.api.repository.bridge.model.Account.BridgeAccount.BRIDGE_STATUS_OK;
+import static app.bpartners.api.service.InvoiceService.DRAFT_REF_PREFIX;
+import static app.bpartners.api.service.InvoiceService.PROPOSAL_REF_PREFIX;
 import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -1312,5 +1314,17 @@ public class TestUtils {
     } catch (Exception e) {
       return Optional.empty();
     }
+  }
+
+  public static String invoiceRealRef(Invoice invoice) {
+    if (invoice.getRef() == null) {
+      return null;
+    }
+    if (invoice.getRef().contains(DRAFT_REF_PREFIX)) {
+      return invoice.getRef().replace(DRAFT_REF_PREFIX, "");
+    } else if (invoice.getRef().contains(PROPOSAL_REF_PREFIX)) {
+      return invoice.getRef().replace(PROPOSAL_REF_PREFIX, "");
+    }
+    return invoice.getRef();
   }
 }

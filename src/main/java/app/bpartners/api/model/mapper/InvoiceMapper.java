@@ -50,7 +50,6 @@ public class InvoiceMapper {
   private final ObjectMapper objectMapper;
   private final CustomerMapper customerMapper;
   private final InvoiceJpaRepository jpaRepository;
-  private final AccountService accountService;
   private final PaymentInitiationService pis;
   private final InvoiceProductMapper productMapper;
   private final PaymentRequestMapper requestMapper;
@@ -91,7 +90,7 @@ public class InvoiceMapper {
         .customerCountry(entity.getCustomerCountry())
         .customerWebsite(entity.getCustomerWebsite())
         .customerZipCode(entity.getCustomerZipCode())
-        .account(accountService.getAccountById(entity.getIdAccount()))
+        .accountId(entity.getIdAccount())
         .status(entity.getStatus())
         .archiveStatus(entity.getArchiveStatus())
         .toBeRelaunched(entity.isToBeRelaunched())
@@ -267,7 +266,7 @@ public class InvoiceMapper {
         .paymentUrl(paymentUrl)
         .ref(domain.getRealReference())
         .title(domain.getTitle())
-        .idAccount(domain.getAccount().getId())
+        .idAccount(domain.getAccountId())
         .status(domain.getStatus())
         .archiveStatus(
             domain.getArchiveStatus() == null ? ArchiveStatus.ENABLED : domain.getArchiveStatus())

@@ -36,7 +36,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
@@ -46,6 +49,7 @@ import org.junit.jupiter.api.function.Executable;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
@@ -75,6 +79,7 @@ import static app.bpartners.api.integration.conf.TestUtils.customer1;
 import static app.bpartners.api.integration.conf.TestUtils.customer2;
 import static app.bpartners.api.integration.conf.TestUtils.datedPaymentRequest1;
 import static app.bpartners.api.integration.conf.TestUtils.datedPaymentRequest2;
+import static app.bpartners.api.integration.conf.TestUtils.invoiceRealRef;
 import static app.bpartners.api.integration.conf.TestUtils.product3;
 import static app.bpartners.api.integration.conf.TestUtils.product4;
 import static app.bpartners.api.integration.conf.TestUtils.product5;
@@ -89,6 +94,7 @@ import static app.bpartners.api.integration.conf.TestUtils.setUpUserSwanReposito
 import static app.bpartners.api.model.Invoice.DEFAULT_DELAY_PENALTY_PERCENT;
 import static app.bpartners.api.model.Invoice.DEFAULT_TO_PAY_DELAY_DAYS;
 import static java.util.UUID.randomUUID;
+import static java.util.stream.Collectors.toUnmodifiableList;
 import static org.hibernate.validator.internal.util.Contracts.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -1191,10 +1197,49 @@ class InvoiceIT {
     assertEquals(DISABLED, actual.get(0).getArchiveStatus());
   }
 
+  @Test
+  @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+  public void concurrently_get_bridge_accounts() {
+    ApiClient joeDoeClient = anApiClient();
+    PayingApi api = new PayingApi(joeDoeClient);
+    var callerNb = 10;
+    var executor = Executors.newFixedThreadPool(10);
+
+    var invoiceId = "invoice_unique_id";
+    String reference = "REF01234";
+    var crupdateInvoice = new CrupdateInvoice()
+        .ref(reference)
+        .customer(customer1())
+        .products(List.of(createProduct2()))
+        .status(DRAFT);
+    var latch = new CountDownLatch(1);
+    var futures = new ArrayList<Future<Invoice>>();
+    for (var callerIdx = 0; callerIdx < callerNb; callerIdx++) {
+      futures.add(executor.submit(
+          () -> crupdateInvoice(api, invoiceId, crupdateInvoice, latch)));
+    }
+    latch.countDown();
+
+    List<Invoice> retrieved = futures.stream()
+        .map(TestUtils::getOptionalFutureResult)
+        .filter(Optional::isPresent)
+        .map(Optional::get)
+        .peek(invoice -> assertEquals(reference, invoiceRealRef(invoice)))
+        .collect(toUnmodifiableList());
+    assertEquals(retrieved.size(), callerNb);
+  }
+
+  @SneakyThrows
+  private static Invoice crupdateInvoice(
+      PayingApi api, String invoiceId, CrupdateInvoice invoice, CountDownLatch latch) {
+    latch.await();
+    return api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, invoiceId, invoice);
+  }
+
   private List<Product> ignoreIdsOf(List<Product> actual) {
     return actual.stream()
         .peek(product -> product.setId(null))
-        .collect(Collectors.toUnmodifiableList());
+        .collect(toUnmodifiableList());
   }
 
   private List<Invoice> ignoreUpdatedAt(List<Invoice> actual) {

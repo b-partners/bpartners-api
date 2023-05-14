@@ -6,6 +6,7 @@ import app.bpartners.api.endpoint.rest.model.InvoiceDiscount;
 import app.bpartners.api.endpoint.rest.model.UpdateInvoiceArchivedStatus;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.NotImplementedException;
+import app.bpartners.api.service.utils.InvoiceUtils;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Instant;
@@ -29,6 +30,20 @@ public class CrupdateInvoiceValidator implements Consumer<CrupdateInvoice> {
   private final LocalDate today = LocalDate.ofInstant(Instant.now(), ZoneId.of(REGION_PARIS));
   private final PaymentRegValidator paymentValidator;
   private final CreateProductValidator createProductValidator;
+
+  public void accept(UpdateInvoiceArchivedStatus toArchive) {
+    StringBuilder messageBuilder = new StringBuilder();
+    if (toArchive.getId() == null) {
+      messageBuilder.append("Id is mandatory. ");
+    }
+    if (toArchive.getArchiveStatus() == null) {
+      messageBuilder.append("Status is mandatory. ");
+    }
+    String errorMessage = messageBuilder.toString();
+    if (!errorMessage.isEmpty()) {
+      throw new BadRequestException(errorMessage);
+    }
+  }
 
   @Override
   public void accept(CrupdateInvoice invoice) {
@@ -120,16 +135,5 @@ public class CrupdateInvoiceValidator implements Consumer<CrupdateInvoice> {
   private static boolean isBadPaymentAndSendingDate(CrupdateInvoice invoice) {
     return invoice.getToPayAt() != null && invoice.getSendingDate() != null
         && invoice.getToPayAt().isBefore(invoice.getSendingDate());
-  }
-
-  public void accept(UpdateInvoiceArchivedStatus toArchive) {
-    StringBuilder messageBuilder = new StringBuilder();
-    if (toArchive.getArchiveStatus() == null) {
-      messageBuilder.append("Status is mandatory.");
-    }
-    String errorMessage = messageBuilder.toString();
-    if (!errorMessage.isEmpty()) {
-      throw new BadRequestException(errorMessage);
-    }
   }
 }

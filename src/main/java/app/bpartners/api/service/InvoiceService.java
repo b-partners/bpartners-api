@@ -6,11 +6,11 @@ import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.PageFromOne;
+import app.bpartners.api.model.UpdateInvoiceStatus;
 import app.bpartners.api.repository.InvoiceRepository;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -37,7 +37,7 @@ public class InvoiceService {
     return repository.getById(invoiceId);
   }
 
-  @Transactional(isolation = Isolation.SERIALIZABLE)
+  @Transactional
   public Invoice crupdateInvoice(Invoice toCrupdate) {
     if (!getAccountHolder(toCrupdate).isSubjectToVat()) {
       toCrupdate.getProducts().forEach(
@@ -47,12 +47,11 @@ public class InvoiceService {
     return repository.crupdate(toCrupdate);
   }
 
-  public List<Invoice> archiveInvoices(List<Invoice> toUpdate) {
-    toUpdate.forEach(repository::crupdate);
-    return toUpdate;
+  public List<Invoice> archiveInvoices(List<UpdateInvoiceStatus> invoiceStatuses) {
+    return repository.saveAll(invoiceStatuses);
   }
 
   private AccountHolder getAccountHolder(Invoice toCrupdate) {
-    return holderService.getAccountHolderByAccountId(toCrupdate.getAccount().getId());
+    return holderService.getAccountHolderByAccountId(toCrupdate.getAccountId());
   }
 }

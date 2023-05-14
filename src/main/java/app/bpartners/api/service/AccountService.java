@@ -39,7 +39,7 @@ public class AccountService {
     return accounts.get(0);
   }
 
-  public Account getAccountById(String id) {
+  public Account getById(String id) {
     return repository.findById(id);
   }
 

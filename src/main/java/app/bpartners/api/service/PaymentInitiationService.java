@@ -54,7 +54,7 @@ public class PaymentInitiationService {
   }
 
   private void checkAccountRequiredInfos(String accountId) {
-    Account account = accountService.getAccountById(accountId);
+    Account account = accountService.getById(accountId);
     StringBuilder builder = new StringBuilder();
     if (account.getBic() == null) {
       builder.append("Bic is mandatory for initiating payments. ");

@@ -6,6 +6,7 @@ import app.bpartners.api.endpoint.event.model.gen.InvoiceRelaunchSaved;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.endpoint.rest.security.model.Principal;
 import app.bpartners.api.endpoint.rest.security.principal.PrincipalProvider;
+import app.bpartners.api.model.Account;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.AccountInvoiceRelaunchConf;
 import app.bpartners.api.model.Attachment;
@@ -57,6 +58,7 @@ public class InvoiceRelaunchService {
   private final PrincipalProvider auth;
   private final FileService fileService;
   private final AttachmentService attachmentService;
+  private final AccountService accountService;
 
   private static String getDefaultSubject(Invoice invoice) {
     return "Votre " + getStatusValue(invoice.getStatus())
@@ -116,19 +118,21 @@ public class InvoiceRelaunchService {
 
     boolean isUserRelaunched = true;
     AccountHolder accountHolder =
-        holderService.getAccountHolderByAccountId(invoice.getAccount().getId());
+        holderService.getAccountHolderByAccountId(invoice.getAccountId());
+    Account account = accountService.getById(invoice.getAccountId());
 
     InvoiceRelaunch invoiceRelaunch =
         invoiceRelaunchRepository.save(
             invoice, getDefaultEmailPrefix(accountHolder) + emailObject, emailBody,
             isUserRelaunched);
-    attachments.forEach(attachment -> uploadAttachment(invoice.getAccount().getId(), attachment));
+    attachments.forEach(attachment -> uploadAttachment(invoice.getAccountId(), attachment));
     List<Attachment> attachmentList =
         attachmentService.saveAll(attachments, invoiceRelaunch.getId());
     invoiceRelaunch.setAttachments(attachmentList);
     eventProducer.accept(
         List.of(getTypedInvoiceRelaunched(
-            invoiceRelaunch.getInvoice(), accountHolder, emailObject, emailBody, attachments)));
+            invoiceRelaunch.getInvoice(), accountHolder,
+            account, emailObject, emailBody, attachments)));
 
     return invoiceRelaunch;
   }
@@ -201,7 +205,8 @@ public class InvoiceRelaunchService {
   }
 
   private TypedInvoiceRelaunchSaved getTypedInvoiceRelaunched(
-      Invoice invoice, AccountHolder accountHolder, String subject, String customEmailBody,
+      Invoice invoice, AccountHolder accountHolder, Account account, String subject,
+      String customEmailBody,
       List<Attachment> attachments) {
     //TODO: if invoice has already been relaunched then change this
     subject = subject == null ? getDefaultSubject(invoice) : subject;
@@ -213,6 +218,7 @@ public class InvoiceRelaunchService {
         invoice.getRef() + PDF_EXTENSION,
         invoice,
         accountHolder,
+        account,
         attachments.stream().map(this::deleteAttachmentContent)
             .collect(Collectors.toUnmodifiableList())
     );
@@ -220,7 +226,7 @@ public class InvoiceRelaunchService {
 
   private TypedInvoiceRelaunchSaved toTypedEvent(String recipient, String subject, String emailBody,
                                                  String attachmentName, Invoice invoice,
-                                                 AccountHolder accountHolder,
+                                                 AccountHolder accountHolder, Account account,
                                                  List<Attachment> contentlessAttachments) {
     return new TypedInvoiceRelaunchSaved(InvoiceRelaunchSaved.builder()
         .subject(subject)
@@ -229,6 +235,7 @@ public class InvoiceRelaunchService {
         .attachmentName(attachmentName)
         .invoice(invoice)
         .accountHolder(accountHolder)
+        .account(account)
         .logoFileId(userLogoFileId())
         .attachments(contentlessAttachments)
         .build());

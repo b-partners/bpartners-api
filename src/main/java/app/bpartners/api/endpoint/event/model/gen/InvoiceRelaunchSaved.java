@@ -1,5 +1,6 @@
 package app.bpartners.api.endpoint.event.model.gen;
 
+import app.bpartners.api.model.Account;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.Attachment;
 import app.bpartners.api.model.Invoice;
@@ -36,6 +37,8 @@ public class InvoiceRelaunchSaved implements Serializable {
   private Invoice invoice;
   @JsonProperty("accountHolder")
   private AccountHolder accountHolder;
+  @JsonProperty("account")
+  private Account account;
   @JsonProperty("logoFileId")
   private String logoFileId;
 

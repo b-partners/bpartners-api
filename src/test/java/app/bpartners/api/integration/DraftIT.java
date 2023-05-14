@@ -83,6 +83,12 @@ class DraftIT {
   private LegalFileRepository legalFileRepository;
 
   private static void generatePdf(String templateName) throws IOException {
+    Account account = Account.builder()
+        .id(JOE_DOE_ACCOUNT_ID)
+        .name("BPartners")
+        .iban("FR7630001007941234567890185")
+        .bic("BPFRPP751")
+        .build();
     app.bpartners.api.model.Invoice invoice = Invoice.builder()
         .id(INVOICE1_ID)
         .ref("invoice_ref")
@@ -97,12 +103,7 @@ class DraftIT {
             .percentValue(new Fraction())
             .amountValue(new Fraction())
             .build())
-        .account(Account.builder()
-            .id(JOE_DOE_ACCOUNT_ID)
-            .name("BPartners")
-            .iban("FR7630001007941234567890185")
-            .bic("BPFRPP751")
-            .build())
+        .accountId(JOE_DOE_ACCOUNT_ID)
         .paymentType(IN_INSTALMENT)
         .multiplePayments(List.of(
             CreatePaymentRegulation.builder()
@@ -142,7 +143,7 @@ class DraftIT {
         .socialCapital(10000)
         .subjectToVat(true)
         .build();
-    byte[] data = pdfUtils.generatePdf(invoice, accountHolder, logoAsBytes, templateName);
+    byte[] data = pdfUtils.generatePdf(invoice, accountHolder, account, logoAsBytes, templateName);
     File generatedFile = new File(randomUUID() + ".pdf");
     OutputStream os = new FileOutputStream(generatedFile);
     os.write(data);

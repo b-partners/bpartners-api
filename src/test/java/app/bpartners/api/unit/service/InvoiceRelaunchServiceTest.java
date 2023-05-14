@@ -16,6 +16,7 @@ import app.bpartners.api.repository.InvoiceRepository;
 import app.bpartners.api.repository.jpa.InvoiceJpaRepository;
 import app.bpartners.api.repository.jpa.model.HInvoice;
 import app.bpartners.api.service.AccountHolderService;
+import app.bpartners.api.service.AccountService;
 import app.bpartners.api.service.AttachmentService;
 import app.bpartners.api.service.FileService;
 import app.bpartners.api.service.InvoiceRelaunchConfService;
@@ -40,19 +41,20 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class InvoiceRelaunchServiceTest {
-  private static final String RANDOM_CONF_ID = "random conf id";
-  private InvoiceRelaunchService invoiceRelaunchService;
-  private AccountInvoiceRelaunchConfRepository accountInvoiceRelaunchRepository;
-  private InvoiceRelaunchRepository invoiceRelaunchRepository;
-  private InvoiceRelaunchValidator invoiceRelaunchValidator = new InvoiceRelaunchValidator();
-  private InvoiceRepository invoiceRepository;
-  private InvoiceJpaRepository invoiceJpaRepository;
-  private InvoiceRelaunchConfService relaunchConfService;
-  private AccountHolderService holderService;
-  private EventProducer eventProducer;
-  private PrincipalProvider auth;
-  private FileService fileService;
-  private AttachmentService attachmentService;
+  static final String RANDOM_CONF_ID = "random conf id";
+  InvoiceRelaunchService invoiceRelaunchService;
+  AccountInvoiceRelaunchConfRepository accountInvoiceRelaunchRepository;
+  InvoiceRelaunchRepository invoiceRelaunchRepository;
+  InvoiceRelaunchValidator invoiceRelaunchValidator = new InvoiceRelaunchValidator();
+  InvoiceRepository invoiceRepository;
+  InvoiceJpaRepository invoiceJpaRepository;
+  InvoiceRelaunchConfService relaunchConfService;
+  AccountHolderService holderService;
+  EventProducer eventProducer;
+  PrincipalProvider auth;
+  FileService fileService;
+  AttachmentService attachmentService;
+  AccountService accountService;
 
   @BeforeEach
   void setUp() {
@@ -66,6 +68,8 @@ class InvoiceRelaunchServiceTest {
     auth = mock(PrincipalProvider.class);
     fileService = mock(FileService.class);
     attachmentService = mock(AttachmentService.class);
+    accountService = mock(AccountService.class);
+
     setUpProvider(auth);
     invoiceRelaunchService = new InvoiceRelaunchService(
         accountInvoiceRelaunchRepository,
@@ -78,7 +82,8 @@ class InvoiceRelaunchServiceTest {
         eventProducer,
         auth,
         fileService,
-        attachmentService
+        attachmentService,
+        accountService
     );
     when(invoiceJpaRepository.findAllByToBeRelaunched(true))
         .thenReturn(
@@ -105,15 +110,15 @@ class InvoiceRelaunchServiceTest {
             Invoice
                 .builder()
                 .id(INVOICE1_ID)
-                .account(
-                    Account.builder()
-                        .id(JOE_DOE_ACCOUNT_ID)
-                        .build()
-                )
+                .accountId(JOE_DOE_ACCOUNT_ID)
                 .status(InvoiceStatus.PROPOSAL)
                 .archiveStatus(ENABLED)
                 .build()
         );
+    when(accountService.getById(JOE_DOE_ACCOUNT_ID))
+        .thenReturn(Account.builder()
+            .id(JOE_DOE_ACCOUNT_ID)
+            .build());
     when(invoiceRelaunchRepository.getByInvoiceId(
         INVOICE1_ID,
         null,

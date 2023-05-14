@@ -3,7 +3,6 @@ package app.bpartners.api.unit.service;
 import app.bpartners.api.endpoint.event.model.gen.InvoiceCrupdated;
 import app.bpartners.api.endpoint.rest.model.FileType;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
-import app.bpartners.api.model.Account;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.Customer;
 import app.bpartners.api.model.FileInfo;
@@ -64,12 +63,7 @@ class InvoiceCrupdatedServiceTest {
             .totalPriceWithVat(new Fraction())
             .totalPriceWithoutVat(new Fraction())
             .totalVat(new Fraction())
-            .account(Account.builder()
-                .id(JOE_DOE_ACCOUNT_ID)
-                .iban("iban")
-                .bic("bic")
-                .name("account_name")
-                .build())
+            .accountId(JOE_DOE_ACCOUNT_ID)
             .products(List.of(InvoiceProduct.builder()
                 .id("product_id")
                 .quantity(50)
@@ -113,7 +107,7 @@ class InvoiceCrupdatedServiceTest {
         .comment(invoiceCrupdated().getInvoice().getComment())
         .ref(invoiceCrupdated().getInvoice().getRealReference())
         .title(invoiceCrupdated().getInvoice().getTitle())
-        .idAccount(invoiceCrupdated().getInvoice().getAccount().getId())
+        .idAccount(invoiceCrupdated().getInvoice().getAccountId())
         .sendingDate(invoiceCrupdated().getInvoice().getSendingDate())
         .toPayAt(invoiceCrupdated().getInvoice().getToPayAt())
         .status(invoiceCrupdated().getInvoice().getStatus())
@@ -138,7 +132,7 @@ class InvoiceCrupdatedServiceTest {
   }
 
   private String invoiceAccountId() {
-    return invoiceCrupdated().getInvoice().getAccount().getId();
+    return invoiceCrupdated().getInvoice().getAccountId();
   }
 
   private String invoiceFileId() {

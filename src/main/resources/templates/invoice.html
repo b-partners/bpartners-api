@@ -421,9 +421,9 @@
         <div style="width: 100%;" class="no-break-inside">
             <h3>Nos coordonnées bancaires</h3>
             <ul style="margin: 10px">
-                <li>Nom du compte : <span th:text="${invoice.account.name}"></span></li>
-                <li>IBAN : <span th:text="${invoice.account.iban}"></span></li>
-                <li>BIC : <span th:text="${invoice.account.bic}"></span></li>
+                <li>Nom du compte : <span th:text="${invoice.getAccountId.name}"></span></li>
+                <li>IBAN : <span th:text="${invoice.getAccountId.iban}"></span></li>
+                <li>BIC : <span th:text="${invoice.getAccountId.bic}"></span></li>
             </ul>
         </div>
     </section>

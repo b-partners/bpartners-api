@@ -64,8 +64,7 @@ class CrupdateInvoiceValidatorTest {
   @Test
   void invalid_invoice_to_archive() {
     UpdateInvoiceArchivedStatus invoice = new UpdateInvoiceArchivedStatus().archiveStatus(null);
-    assertThrowsBadRequestException("Status is mandatory.",
+    assertThrowsBadRequestException("Id is mandatory. Status is mandatory. ",
         () -> validator.accept(invoice));
   }
-
 }

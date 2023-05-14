@@ -3,8 +3,10 @@ package app.bpartners.api.repository.implementation;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.endpoint.rest.security.model.Principal;
 import app.bpartners.api.endpoint.rest.security.principal.PrincipalProvider;
+import app.bpartners.api.model.Account;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.Invoice;
+import app.bpartners.api.model.UpdateInvoiceStatus;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.mapper.InvoiceMapper;
 import app.bpartners.api.model.mapper.InvoiceProductMapper;
@@ -16,6 +18,7 @@ import app.bpartners.api.repository.jpa.model.HInvoice;
 import app.bpartners.api.repository.jpa.model.HInvoiceProduct;
 import app.bpartners.api.repository.jpa.model.HPaymentRequest;
 import app.bpartners.api.service.AccountHolderService;
+import app.bpartners.api.service.AccountService;
 import app.bpartners.api.service.FileService;
 import app.bpartners.api.service.utils.InvoicePdfUtils;
 import java.util.ArrayList;
@@ -45,6 +48,7 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
   private final InvoiceProductMapper productMapper;
   private final InvoiceProductJpaRepository productJpaRepository;
   private final AccountHolderService holderService;
+  private final AccountService accountService;
   private final FileService fileService;
   private final InvoicePdfUtils pdfUtils = new InvoicePdfUtils();
 
@@ -67,16 +71,34 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
     return mapper.toDomain(persistedEntity);
   }
 
+  @Override
+  public List<Invoice> saveAll(List<UpdateInvoiceStatus> invoiceStatuses) {
+    List<HInvoice> entities = invoiceStatuses.stream()
+        .map(invoiceStatus -> jpaRepository.findById(invoiceStatus.getInvoiceId())
+            .orElseThrow(
+                () -> new NotFoundException(
+                    "Invoice(id=" + invoiceStatus.getInvoiceId() + ") not found"))
+            .toBuilder()
+            .archiveStatus(invoiceStatus.getStatus())
+            .build())
+        .collect(Collectors.toList());
+    return jpaRepository.saveAll(entities).stream()
+        .map(mapper::toDomain)
+        .collect(Collectors.toList());
+  }
+
   private String processPdfGeneration(Invoice domain) {
     String fileId = domain.getFileId() == null
         ? String.valueOf(randomUUID()) : domain.getFileId();
-    String accountId = domain.getAccount().getId();
+    String accountId = domain.getAccountId();
+    Account account = accountService.getById(accountId);
 
     List<byte[]> logos = fileService.downloadOptionalFile(LOGO, accountId, userLogoFileId());
     byte[] logoAsBytes = logos.isEmpty() ? null : logos.get(0);
     byte[] fileAsBytes = domain.getStatus() == CONFIRMED || domain.getStatus() == PAID
-        ? pdfUtils.generatePdf(domain, accountHolder(domain), logoAsBytes, INVOICE_TEMPLATE)
-        : pdfUtils.generatePdf(domain, accountHolder(domain), logoAsBytes, DRAFT_TEMPLATE);
+        ?
+        pdfUtils.generatePdf(domain, accountHolder(domain), account, logoAsBytes, INVOICE_TEMPLATE)
+        : pdfUtils.generatePdf(domain, accountHolder(domain), account, logoAsBytes, DRAFT_TEMPLATE);
     String id = fileService.upload(fileId, INVOICE, accountId, fileAsBytes, null).getId();
     domain.setFileId(id);
 
@@ -118,6 +140,6 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
   }
 
   private AccountHolder accountHolder(Invoice toCrupdate) {
-    return holderService.getAccountHolderByAccountId(toCrupdate.getAccount().getId());
+    return holderService.getAccountHolderByAccountId(toCrupdate.getAccountId());
   }
 }

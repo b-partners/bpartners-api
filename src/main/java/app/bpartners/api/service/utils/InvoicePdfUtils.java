@@ -18,10 +18,11 @@ import static app.bpartners.api.service.utils.QrCodeUtils.generateQrCode;
 
 public class InvoicePdfUtils {
 
-  public byte[] generatePdf(Invoice invoice, AccountHolder accountHolder,
-                            byte[] logoAsBytes, String template) {
+  public byte[] generatePdf(
+      Invoice invoice, AccountHolder accountHolder, Account account,
+      byte[] logoAsBytes, String template) {
     ITextRenderer renderer = new ITextRenderer();
-    loadStyle(renderer, invoice, accountHolder, logoAsBytes, template);
+    loadStyle(renderer, invoice, accountHolder, account, logoAsBytes, template);
     renderer.layout();
 
     ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
@@ -33,24 +34,25 @@ public class InvoicePdfUtils {
     return outputStream.toByteArray();
   }
 
-  private void loadStyle(ITextRenderer renderer, Invoice invoice, AccountHolder accountHolder,
+  private void loadStyle(ITextRenderer renderer, Invoice invoice,
+                         AccountHolder accountHolder, Account account,
                          byte[] logoAsBytes, String template) {
-    renderer.setDocumentFromString(parseInvoiceTemplateToString(invoice, accountHolder,
-        logoAsBytes, template));
+    renderer.setDocumentFromString(
+        parseInvoiceTemplateToString(invoice, accountHolder, account, logoAsBytes, template));
   }
 
   private String parseInvoiceTemplateToString(
-      Invoice invoice, AccountHolder accountHolder, byte[] logoAsBytes, String template) {
+      Invoice invoice, AccountHolder accountHolder,
+      Account account, byte[] logoAsBytes, String template) {
     TemplateEngine templateEngine = configureTemplate();
-    Context context = configureContext(invoice, accountHolder, logoAsBytes);
+    Context context = configureContext(invoice, accountHolder, account, logoAsBytes);
     return templateEngine.process(template, context);
   }
 
 
-  private Context configureContext(Invoice invoice, AccountHolder accountHolder,
-                                   byte[] logoAsBytes) {
+  private Context configureContext(
+      Invoice invoice, AccountHolder accountHolder, Account account, byte[] logoAsBytes) {
     Context context = new Context();
-    Account account = invoice.getAccount();
 
     context.setVariable("invoice", invoice);
     context.setVariable("logo", base64Image(logoAsBytes));

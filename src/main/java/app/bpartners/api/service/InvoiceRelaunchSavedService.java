@@ -1,6 +1,7 @@
 package app.bpartners.api.service;
 
 import app.bpartners.api.endpoint.event.model.gen.InvoiceRelaunchSaved;
+import app.bpartners.api.model.Account;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.Attachment;
 import app.bpartners.api.model.Invoice;
@@ -41,15 +42,16 @@ public class InvoiceRelaunchSavedService implements Consumer<InvoiceRelaunchSave
     String attachmentName = invoiceRelaunchSaved.getAttachmentName();
     Invoice invoice = invoiceRelaunchSaved.getInvoice();
     AccountHolder accountHolder = invoiceRelaunchSaved.getAccountHolder();
+    Account account = invoiceRelaunchSaved.getAccount();
     String logoFileId = invoiceRelaunchSaved.getLogoFileId();
     byte[] logoAsBytes =
-        fileService.downloadOptionalFile(LOGO, invoice.getAccount().getId(), logoFileId).get(0);
+        fileService.downloadOptionalFile(LOGO, invoice.getAccountId(), logoFileId).get(0);
 
     byte[] attachmentAsBytes =
         invoice.getStatus().equals(CONFIRMED) || invoice.getStatus().equals(PAID)
-            ? pdfUtils.generatePdf(invoice, accountHolder, logoAsBytes,
+            ? pdfUtils.generatePdf(invoice, accountHolder, account, logoAsBytes,
             INVOICE_TEMPLATE)
-            : pdfUtils.generatePdf(invoice, accountHolder, logoAsBytes,
+            : pdfUtils.generatePdf(invoice, accountHolder, account, logoAsBytes,
             DRAFT_TEMPLATE);
     Attachment attachment = Attachment.builder()
         .name(attachmentName)
@@ -59,7 +61,7 @@ public class InvoiceRelaunchSavedService implements Consumer<InvoiceRelaunchSave
     attachments.forEach(contentlessAttachment -> {
       byte[] content = fileService.downloadFile(
           ATTACHMENT,
-          invoice.getAccount().getId(),
+          invoice.getAccountId(),
           contentlessAttachment.getFileId()
       );
       contentlessAttachment.setContent(content);

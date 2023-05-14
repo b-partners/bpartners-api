@@ -20,14 +20,14 @@ public class InvoiceDiscount {
   private Fraction percentValue;
   private Fraction amountValue;
 
-  public Fraction getPercent(Fraction totalPrice) {
+  public Fraction convertToPercent(Fraction totalPrice) {
     if (percentValue == null && amountValue != null) {
       return totalPrice.operate(amountValue, Aprational::divide);
     }
     return percentValue;
   }
 
-  public Fraction getAmount(Fraction totalPrice) {
+  public Fraction getAmountValue(Fraction totalPrice) {
     if (amountValue == null && percentValue != null) {
       return totalPrice.operate(percentValue,
           (price, percent) -> {

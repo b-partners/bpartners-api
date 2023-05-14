@@ -97,6 +97,7 @@ import static app.bpartners.api.model.Transaction.RELEASED_STATUS;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.CLIENT_EXCEPTION;
 import static app.bpartners.api.model.mapper.AccountMapper.getStatus;
 import static app.bpartners.api.model.mapper.UserMapper.VALID_IDENTITY_STATUS;
+import static app.bpartners.api.repository.bridge.model.Account.BridgeAccount.BRIDGE_STATUS_OK;
 import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -128,7 +129,6 @@ public class TestUtils {
   public static final String JOE_DOE_ACCOUNT_ID = "beed1765-5c16-472a-b3f4-5c376ce5db58";
 
   public static final String BERNARD_DOE_ACCOUNT_ID = "account_pro_id";
-  //  public static final String JOE_DOE_ACCOUNT_ID = "c15924bf-61f9-4381-8c9b-d34369bf91f7";
   public static final String OTHER_ACCOUNT_ID = "other_account_id";
   public static final String OTHER_CUSTOMER_ID = "other_customer_id";
   public static final String USER1_ID = "user1_id";
@@ -281,7 +281,7 @@ public class TestUtils {
         .bankId(1234L)
         .name("Numer Bridge Account")
         .iban("FR7699999001001190346460988")
-        .status(0)
+        .status(BRIDGE_STATUS_OK)
         .balance(1000.0)
         .build();
   }
@@ -293,7 +293,7 @@ public class TestUtils {
         .bankId(456L)
         .name("Other")
         .iban("FR12349001001190346460988")
-        .status(0)
+        .status(BRIDGE_STATUS_OK)
         .balance(0.0)
         .build();
   }

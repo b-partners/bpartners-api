@@ -61,6 +61,10 @@ public class BridgeBankRepositoryImpl implements BridgeBankRepository {
     return bridgeApi.editItem(AuthProvider.getBearer(), id);
   }
 
+  @Override
+  public BridgeConnectItem synchronizeSca(Long id) {
+    return bridgeApi.initiateScaSync(AuthProvider.getBearer(), id);
+  }
 
   @Override
   public boolean deleteItem(Long itemId, String token) {

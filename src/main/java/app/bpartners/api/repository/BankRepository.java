@@ -18,9 +18,11 @@ public interface BankRepository {
 
   Instant refreshBankConnection(UserToken user);
 
+  String initiateScaSync(Account account);
+
   boolean disconnectBank(User user);
 
-  String initiateProAccountValidation(UserToken userToken);
+  String initiateProValidation(String accountId);
 
   String initiateBankConnectionEdition(Account account);
 }

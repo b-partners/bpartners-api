@@ -646,6 +646,7 @@ components:
         - SUSPENDED
         - VALIDATION_REQUIRED
         - INVALID_CREDENTIALS
+        - SCA_REQUIRED
         - UNKNOWN
     UpdateAccountHolder:
       type: object

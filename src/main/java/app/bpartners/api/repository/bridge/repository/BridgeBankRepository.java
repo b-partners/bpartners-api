@@ -17,6 +17,8 @@ public interface BridgeBankRepository {
 
   String refreshBankConnection(Long itemId, String token);
 
+  BridgeConnectItem synchronizeSca(Long id);
+
   boolean deleteItem(Long itemId, String token);
 
   BridgeConnectItem validateCurrentProItems(String bearer);

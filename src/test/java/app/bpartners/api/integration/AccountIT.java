@@ -44,7 +44,6 @@ import app.bpartners.api.repository.swan.implementation.SwanAccountConnectorRepo
 import app.bpartners.api.repository.swan.model.SwanAccount;
 import app.bpartners.api.repository.swan.response.AccountResponse;
 import app.bpartners.api.service.PaymentScheduleService;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -92,6 +91,8 @@ import static app.bpartners.api.integration.conf.TestUtils.setUpLegalFileReposit
 import static app.bpartners.api.integration.conf.TestUtils.setUpSwanComponent;
 import static app.bpartners.api.integration.conf.TestUtils.setUpUserSwanRepository;
 import static app.bpartners.api.integration.conf.TestUtils.toConnector;
+import static app.bpartners.api.repository.bridge.model.Account.BridgeAccount.BRIDGE_STATUS_OK;
+import static app.bpartners.api.repository.bridge.model.Account.BridgeAccount.BRIDGE_STATUS_SCA;
 import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 import static java.util.UUID.randomUUID;
 import static java.util.stream.Collectors.toUnmodifiableList;
@@ -441,7 +442,7 @@ class AccountIT {
   @Test
   @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
   public void concurrently_get_bridge_accounts() {
-    UserAccountsApi api = configureBridgeUserAccountApi();
+    UserAccountsApi api = configureBridgeUserAccountApi(otherBridgeAccount());
     var callerNb = 50;
     var executor = Executors.newFixedThreadPool(10);
 
@@ -465,7 +466,7 @@ class AccountIT {
   @Test
   @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
   public void concurrently_get_bridge_account_holders() {
-    UserAccountsApi api = configureBridgeUserAccountApi();
+    UserAccountsApi api = configureBridgeUserAccountApi(otherBridgeAccount());
     var callerNb = 50;
     var executor = Executors.newFixedThreadPool(10);
 
@@ -516,14 +517,14 @@ class AccountIT {
     return new UserAccountsApi(joeDoeClient);
   }
 
-  private UserAccountsApi configureBridgeUserAccountApi() {
+  private UserAccountsApi configureBridgeUserAccountApi(BridgeAccount bridgeAccount) {
     when(swanAccountConnectorRepositoryMock.findByUserId(JOE_DOE_ID)).thenReturn(List.of());
     when(swanAccountConnectorRepositoryMock.findByBearer(JOE_DOE_COGNITO_TOKEN)).thenReturn(
         List.of());
 
     reset(userRepositoryMock);
     setUpUserRepositoryWithoutPreferredAccount(userRepositoryMock);
-    setUpBridge(bridgeApiMock, otherBridgeAccount());
+    setUpBridge(bridgeApiMock, bridgeAccount);
     when(bankRepositoryImplMock.findByExternalId(
         String.valueOf(joeDoeBridgeAccount().getBankId()))).thenReturn(new Bank());
     when(bankRepositoryImplMock.disconnectBank(any())).thenReturn(true);
@@ -642,7 +643,7 @@ class AccountIT {
             .redirectUrl(redirectUrl)
             .build()
         );
-    when(bankRepositoryImplMock.initiateProAccountValidation(any()))
+    when(bankRepositoryImplMock.initiateProValidation(any()))
         .thenReturn(redirectUrl);
     when(userTokenRepositoryMock.getLatestTokenByAccount(any()))
         .thenReturn(UserToken.builder()
@@ -661,7 +662,43 @@ class AccountIT {
   }
 
   @Test
-  void validate_bank_connection_ko() throws IOException, InterruptedException {
+  void manage_bank_connection_with_strong_auth_ok() throws ApiException {
+    final String redirectUrl = "https://connect.bridge.io";
+    when(bankRepositoryImplMock.initiateScaSync(any()))
+        .thenReturn(redirectUrl);
+    BridgeAccount scaRequiredAccount = otherBridgeAccount().toBuilder()
+        .status(BRIDGE_STATUS_SCA)
+        .build();
+    UserAccountsApi api = configureBridgeUserAccountApi(scaRequiredAccount);
+
+    AccountValidationRedirection actual =
+        api.initiateAccountValidation(JOE_DOE_ID, JOE_DOE_ACCOUNT_ID, new RedirectionStatusUrls());
+
+    assertTrue(actual.getRedirectionUrl().contains(redirectUrl));
+  }
+
+  @Test
+  void manage_bank_connection_with_strong_auth_ko() {
+    final String redirectUrl = "https://connect.bridge.io";
+    when(bankRepositoryImplMock.initiateScaSync(any()))
+        .thenReturn(redirectUrl);
+    BridgeAccount scaRequiredAccount = otherBridgeAccount().toBuilder()
+        .status(BRIDGE_STATUS_OK)
+        .build();
+    UserAccountsApi api = configureBridgeUserAccountApi(scaRequiredAccount);
+
+    assertThrowsApiException("{\"type\":\"400 BAD_REQUEST\","
+            + "\"message\":\"Account("
+            + "id=beed1765-5c16-472a-b3f4-5c376ce5db58,"
+            + "name=Other,"
+            + "iban=FR12349001001190346460988,status=OPENED)"
+            + " does not need validation.\"}",
+        () -> api.initiateAccountValidation(JOE_DOE_ID, JOE_DOE_ACCOUNT_ID,
+            new RedirectionStatusUrls()));
+  }
+
+  @Test
+  void validate_bank_connection_ko() {
     ApiClient joeDoeClient = joeDoeClient();
     UserAccountsApi api = new UserAccountsApi(joeDoeClient);
 

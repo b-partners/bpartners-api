@@ -9,10 +9,10 @@ import app.bpartners.api.model.UserToken;
 import app.bpartners.api.model.mapper.BankMapper;
 import app.bpartners.api.model.mapper.UserMapper;
 import app.bpartners.api.repository.BankRepository;
+import app.bpartners.api.repository.UserTokenRepository;
 import app.bpartners.api.repository.bridge.model.Bank.BridgeBank;
 import app.bpartners.api.repository.bridge.model.Item.BridgeItem;
 import app.bpartners.api.repository.bridge.repository.BridgeBankRepository;
-import app.bpartners.api.repository.jpa.AccountJpaRepository;
 import app.bpartners.api.repository.jpa.BankJpaRepository;
 import app.bpartners.api.repository.jpa.UserJpaRepository;
 import app.bpartners.api.repository.jpa.model.HBank;
@@ -23,8 +23,10 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
 
+import static app.bpartners.api.model.BankConnection.BankConnectionStatus.INVALID_CREDENTIALS;
 import static app.bpartners.api.model.BankConnection.BankConnectionStatus.NOT_SUPPORTED;
 import static app.bpartners.api.model.BankConnection.BankConnectionStatus.OK;
+import static app.bpartners.api.model.BankConnection.BankConnectionStatus.SCA_REQUIRED;
 import static app.bpartners.api.model.BankConnection.BankConnectionStatus.UNKNOWN;
 import static app.bpartners.api.model.BankConnection.BankConnectionStatus.VALIDATION_REQUIRED;
 
@@ -35,12 +37,32 @@ public class BankRepositoryImpl implements BankRepository {
   public static final int ITEM_STATUS_OK = 0;
   public static final int ITEM_STATUS_NOT_SUPPORTED = 1005;
   public static final int ITEM_STATUS_PRO = 1100;
+  public static final int ITEM_STATUS_INVALID_CREDENTIALS = 402;
+  public static final int ITEM_STATUS_SCA_REQUIRED = 1010;
   private final BridgeBankRepository bridgeRepository;
   private final UserJpaRepository userJpaRepository;
   private final UserMapper userMapper;
   private final BankMapper mapper;
   private final BankJpaRepository jpaRepository;
-  private final AccountJpaRepository accountJpaRepository;
+  private final UserTokenRepository userTokenRepository;
+
+  public static BankConnection.BankConnectionStatus getBankConnectionStatus(Integer statusValue) {
+    switch (statusValue) {
+      case ITEM_STATUS_OK:
+        return OK;
+      case ITEM_STATUS_NOT_SUPPORTED:
+        return NOT_SUPPORTED;
+      case ITEM_STATUS_PRO:
+        return VALIDATION_REQUIRED;
+      case ITEM_STATUS_INVALID_CREDENTIALS:
+        return INVALID_CREDENTIALS;
+      case ITEM_STATUS_SCA_REQUIRED:
+        return SCA_REQUIRED;
+      default:
+        log.warn("Unknown bank status " + statusValue);
+        return UNKNOWN;
+    }
+  }
 
   //TODO: check if it is necessary to persist values
   @Override
@@ -89,7 +111,7 @@ public class BankRepositoryImpl implements BankRepository {
     HUser userToUpdate =
         userJpaRepository.getById(AuthProvider.getPrincipal().getUser().getId()).toBuilder()
             .bridgeItemId(connectionChosen.getId())
-            .bankConnectionStatus(getStatus(connectionChosen.getStatus()))
+            .bankConnectionStatus(getBankConnectionStatus(connectionChosen.getStatus()))
             .bridgeItemUpdatedAt(Instant.now())
             .build();
     HUser savedEntity = userJpaRepository.save(userToUpdate);
@@ -128,13 +150,30 @@ public class BankRepositoryImpl implements BankRepository {
   }
 
   @Override
-  public String initiateProAccountValidation(UserToken userToken) {
+  public String initiateProValidation(String accountId) {
+    UserToken userToken = userTokenRepository.getLatestTokenByAccount(accountId);
     return bridgeRepository.validateCurrentProItems(
         userToken.getAccessToken()).getRedirectUrl();
   }
 
   @Override
   public String initiateBankConnectionEdition(Account account) {
+    BridgeItem defaultItem = getDefaultItem(account);
+    return bridgeRepository.editItem(defaultItem.getId()).getRedirectUrl();
+  }
+
+  @Override
+  public String initiateScaSync(Account account) {
+    BridgeItem defaultItem = getDefaultItem(account);
+    return bridgeRepository.synchronizeSca(defaultItem.getId()).getRedirectUrl();
+  }
+
+  @Override
+  public boolean disconnectBank(User user) {
+    return bridgeRepository.deleteItem(user.getBridgeItemId(), user.getAccessToken());
+  }
+
+  private BridgeItem getDefaultItem(Account account) {
     //TODO: item should be retrieved from HAccount not from Bridge
     List<BridgeItem> items = bridgeRepository.getBridgeItems();
     BridgeItem defaultItem = items.get(0);
@@ -143,24 +182,6 @@ public class BankRepositoryImpl implements BankRepository {
           "[Bridge] Multiple items (" + items + ")  found for" + account.describeInfos()
               + "." + defaultItem.toString() + "chosen by default)");
     }
-    return bridgeRepository.editItem(defaultItem.getId()).getRedirectUrl();
-  }
-
-  @Override
-  public boolean disconnectBank(User user) {
-    return bridgeRepository.deleteItem(user.getBridgeItemId(), user.getAccessToken());
-  }
-
-  public static BankConnection.BankConnectionStatus getStatus(Integer statusValue) {
-    switch (statusValue) {
-      case ITEM_STATUS_OK:
-        return OK;
-      case ITEM_STATUS_NOT_SUPPORTED:
-        return NOT_SUPPORTED;
-      case ITEM_STATUS_PRO:
-        return VALIDATION_REQUIRED;
-      default:
-        return UNKNOWN;
-    }
+    return defaultItem;
   }
 }

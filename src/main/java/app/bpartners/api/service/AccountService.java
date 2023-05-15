@@ -29,8 +29,6 @@ public class AccountService {
   private final AccountRepository repository;
   private final BankRepository bankRepository;
   private final UserRepository userRepository;
-  private final UserService userService;
-
 
   @Transactional
   public Account getAccountByBearer(String bearer) {
@@ -44,7 +42,7 @@ public class AccountService {
   public Account getAccountById(String id) {
     return repository.findById(id);
   }
-  
+
   public Account updateAccountIdentity(UpdateAccountIdentity account) {
     return repository.save(account);
   }
@@ -53,17 +51,15 @@ public class AccountService {
     return repository.findByUserId(userId);
   }
 
-  //TODO: IMPORTANT ! The obtained account here is the persisted account
-  // Must get the most recent value from Bridge not from database
-  // Need to update account from Bridge when getting account by ID
   public String initiateAccountValidation(String accountId) {
-    UserToken userToken = userService.getLatestTokenByAccount(accountId);
-    Account account = userToken.getUser().getAccount();
+    Account account = getAccountById(accountId);
     switch (account.getStatus()) {
       case VALIDATION_REQUIRED:
-        return bankRepository.initiateProAccountValidation(userToken);
+        return bankRepository.initiateProValidation(accountId);
       case INVALID_CREDENTIALS:
         return bankRepository.initiateBankConnectionEdition(account);
+      case SCA_REQUIRED:
+        return bankRepository.initiateScaSync(account);
       default:
         throw new BadRequestException(account.describeInfos() + " does not need validation.");
     }

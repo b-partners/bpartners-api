@@ -73,6 +73,10 @@ public class BridgeConf {
     return baseUrl + "/connect/items/edit?item_id=";
   }
 
+  public String getScaSyncUrl() {
+    return baseUrl + "/connect/items/sync";
+  }
+
   public String getAccountUrl() {
     return baseUrl + "/accounts";
   }

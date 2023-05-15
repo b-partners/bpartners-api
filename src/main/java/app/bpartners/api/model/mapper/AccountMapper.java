@@ -39,7 +39,8 @@ public class AccountMapper {
   }
 
   public AccountConnector toConnector(BridgeAccount bridgeAccount) {
-    log.warn("DEBUG(bad-cents): toConnector: bridgeAccount.id={}, bridgeAccount.balance={}", bridgeAccount.getId(), bridgeAccount.getBalance());
+    log.warn("DEBUG(bad-cents): toConnector: bridgeAccount.id={}, bridgeAccount.balance={}",
+        bridgeAccount.getId(), bridgeAccount.getBalance());
     return AccountConnector.builder()
         .id(bridgeAccount.getId())
         .name(bridgeAccount.getName())
@@ -49,7 +50,7 @@ public class AccountMapper {
         // Yet BridgeAccount.balance is in minor units
         // The correct way to handle this is to create the precise type Money,
         // Then reason on Money instead of on Fraction / Double / Int and other not sufficiently typed objects!
-        .balance(bridgeAccount.getBalance()/100)
+        .balance(bridgeAccount.getBalance() / 100)
 
         .iban(bridgeAccount.getIban())
         .status(bridgeAccount.getDomainStatus())
@@ -69,7 +70,8 @@ public class AccountMapper {
   }
 
   public Account toDomain(AccountConnector accountConnector, HAccount entity, Bank bank) {
-    log.warn("DEBUG(bad-cents): toDomain: entity.id={}, accountConnector.balance={}", entity.getId(), accountConnector.getBalance());
+    log.warn("DEBUG(bad-cents): toDomain: entity.id={}, accountConnector.balance={}",
+        entity.getId(), accountConnector.getBalance());
     return Account.builder()
         .id(entity.getId())
         .bic(entity.getBic())

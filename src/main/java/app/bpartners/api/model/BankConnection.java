@@ -22,6 +22,6 @@ public class BankConnection {
   private BankConnectionStatus status;
 
   public enum BankConnectionStatus {
-    OK, NOT_SUPPORTED, VALIDATION_REQUIRED, UNKNOWN
+    OK, NOT_SUPPORTED, VALIDATION_REQUIRED, INVALID_CREDENTIALS, SCA_REQUIRED, UNKNOWN
   }
 }

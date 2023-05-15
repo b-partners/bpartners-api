@@ -37,14 +37,14 @@ public class ProjectTokenManager {
     return ssmComponent.getParameterValue(getFintectureTokenParameterName());
   }
 
-  @Scheduled(fixedRate = FOURTY_FIVE_MINUTES_INTERVAL)
-  @Async
-  @PostConstruct
-  public void refreshSwanProjectToken() {
-    ssmComponent.setParameterStringValue(
-        getSwanTokenParameterName(),
-        swanApi.getProjectToken().getAccessToken());
-  }
+//  @Scheduled(fixedRate = FOURTY_FIVE_MINUTES_INTERVAL)
+//  @Async
+//  @PostConstruct
+//  public void refreshSwanProjectToken() {
+//    ssmComponent.setParameterStringValue(
+//        getSwanTokenParameterName(),
+//        swanApi.getProjectToken().getAccessToken());
+//  }
 
   /*TODO: retry to get token after 10 secondes in case of server failure*/
   @Scheduled(fixedRate = FOURTY_FIVE_MINUTES_INTERVAL)

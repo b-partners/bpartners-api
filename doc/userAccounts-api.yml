@@ -441,6 +441,86 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
+  askFeedback:
+    post:
+      tags:
+        - User Accounts
+      summary: Ask feedback to some customers for an account holder
+      operationId: askFeedback
+      parameters:
+        - in: path
+          name: userId
+          schema:
+            type: string
+          required: true
+        - in: path
+          name: ahId
+          schema:
+            type: string
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FeedbackRequest'
+      responses:
+        200:
+          description: |
+            Created feedback with requested customers. 
+            Note that an email must be sent to said customers.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreatedFeedbackRequest'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
+  configureFeedback:
+    put:
+      tags:
+        - User Accounts
+      summary: Update feedback configuration for an account holder
+      operationId: updateFeedbackConf
+      parameters:
+        - in: path
+          name: userId
+          schema:
+            type: string
+          required: true
+        - in: path
+          name: ahId
+          schema:
+            type: string
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AccountHolderFeedback'
+      responses:
+        200:
+          description: Account holder with updated feedback configuration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountHolder'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
   updateRevenueTargets:
     put:
       tags:
@@ -680,6 +760,8 @@ components:
           type: string
         officialActivityName:
           type: string
+        feedback:
+          $ref: '#/components/schemas/AccountHolderFeedback'
         contactAddress:
           $ref: '#/components/schemas/ContactAddress'
         companyInfo:
@@ -694,6 +776,11 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/AnnualRevenueTarget'
+    AccountHolderFeedback:
+      type: object
+      properties:
+        feedbackLink:
+          type: string
     CreateAnnualRevenueTarget:
       type: object
       properties:
@@ -772,3 +859,24 @@ components:
     AccountValidationRedirection:
       allOf:
         - $ref: './api.yml#/components/schemas/Redirection'
+    FeedbackRequest:
+      type: object
+      allOf:
+        - $ref: './api.yml#/components/schemas/EmailAttributes'
+      properties:
+        customerIds:
+          type: array
+          items:
+            type: string
+    CreatedFeedbackRequest:
+      type: object
+      properties:
+        id:
+          type: string
+        customers:
+          type: array
+          items:
+            $ref: './customers-api.yml#/components/schemas/Customer'
+        creationDatetime:
+          type: string
+          format: date-time

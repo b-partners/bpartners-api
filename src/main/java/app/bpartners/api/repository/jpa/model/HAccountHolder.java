@@ -46,6 +46,7 @@ public class HAccountHolder implements Serializable {
   private String registrationNumber;
   private String businessActivity;
   private String businessActivityDescription;
+  private String feedbackLink;
   private String address;
   private String city;
   private String country;

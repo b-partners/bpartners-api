@@ -5,6 +5,7 @@ import app.bpartners.api.endpoint.rest.mapper.AnnualRevenueTargetRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.BusinessActivityRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.CompanyInfoMapper;
 import app.bpartners.api.endpoint.rest.model.AccountHolder;
+import app.bpartners.api.endpoint.rest.model.AccountHolderFeedback;
 import app.bpartners.api.endpoint.rest.model.CompanyBusinessActivity;
 import app.bpartners.api.endpoint.rest.model.CompanyInfo;
 import app.bpartners.api.endpoint.rest.model.CreateAnnualRevenueTarget;
@@ -96,5 +97,18 @@ public class AccountHolderController {
         .collect(Collectors.toUnmodifiableList());
     return accountHolderMapper.toRest(
         accountHolderService.updateAnnualRevenueTargets(accountId, accountHolderId, toSave));
+  }
+
+  @PutMapping("users/{userId}/accountHolders/{ahId}/feedback/configuration")
+  public AccountHolder updateFeedbackConf(
+      @PathVariable("userId") String userId,
+      @PathVariable("ahId") String accountHolderId,
+      @RequestBody AccountHolderFeedback toUpdate
+  ) {
+    return accountHolderMapper.toRest(
+        accountHolderService.updateFeedBackConfiguration(
+            accountHolderMapper.toDomain(accountHolderId, toUpdate)
+        )
+    );
   }
 }

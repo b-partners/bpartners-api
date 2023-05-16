@@ -52,6 +52,7 @@ public class AccountHolderMapper {
         .location(location)
         .prospectingPerimeter(entity.getProspectingPerimeter())
         .townCode(entity.getTownCode())
+        .feedbackLink(entity.getFeedbackLink())
         .build();
   }
 
@@ -87,6 +88,7 @@ public class AccountHolderMapper {
         .latitude(latitude)
         .prospectingPerimeter(domain.getProspectingPerimeter())
         .townCode(domain.getTownCode())
+        .feedbackLink(domain.getFeedbackLink())
         .build();
   }
 

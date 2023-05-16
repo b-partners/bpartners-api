@@ -6,6 +6,7 @@ import app.bpartners.api.endpoint.rest.api.UserAccountsApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
 import app.bpartners.api.endpoint.rest.model.AccountHolder;
+import app.bpartners.api.endpoint.rest.model.AccountHolderFeedback;
 import app.bpartners.api.endpoint.rest.model.CompanyBusinessActivity;
 import app.bpartners.api.endpoint.rest.model.CompanyInfo;
 import app.bpartners.api.endpoint.rest.model.ContactAddress;
@@ -75,6 +76,7 @@ import static app.bpartners.api.model.mapper.AccountHolderMapper.NOT_STARTED_STA
 import static app.bpartners.api.model.mapper.AccountHolderMapper.PENDING_STATUS;
 import static app.bpartners.api.model.mapper.AccountHolderMapper.WAITING_FOR_INFORMATION_STATUS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -508,6 +510,23 @@ class AccountHolderIT {
         );
   }
 
+  @Test
+  void add_feedback_link_ok() throws ApiException {
+    ApiClient joeDoeClient = anApiClient();
+    UserAccountsApi api = new UserAccountsApi(joeDoeClient);
+
+    AccountHolder actualAddedFeedbackLink = api.updateFeedbackConf(JOE_DOE_SWAN_USER_ID, SWAN_ACCOUNTHOLDER_ID,
+        new AccountHolderFeedback().feedbackLink("https://feedback.com"));
+    AccountHolder actualUpdatedFeedbackLink = api.updateFeedbackConf(JOE_DOE_SWAN_USER_ID, SWAN_ACCOUNTHOLDER_ID,
+        new AccountHolderFeedback().feedbackLink("https://updateFeedbackLink.com"));
+    AccountHolder actualNoFeedbackLink = api.updateFeedbackConf(JOE_DOE_SWAN_USER_ID, SWAN_ACCOUNTHOLDER_ID,
+        new AccountHolderFeedback());
+
+    assertEquals(SWAN_ACCOUNTHOLDER_ID, actualAddedFeedbackLink.getId());
+    assertEquals("https://feedback.com", actualAddedFeedbackLink.getFeedback().getFeedbackLink());
+    assertEquals("https://updateFeedbackLink.com", actualUpdatedFeedbackLink.getFeedback().getFeedbackLink());
+    assertNull(actualNoFeedbackLink.getFeedback().getFeedbackLink());
+  }
 
   private void setUpRepositoryMock() {
     when(accountHolderRepositoryMock.findAllByBearerAndAccountId(any(String.class),

@@ -80,6 +80,7 @@ import static app.bpartners.api.integration.conf.TestUtils.customer2;
 import static app.bpartners.api.integration.conf.TestUtils.datedPaymentRequest1;
 import static app.bpartners.api.integration.conf.TestUtils.datedPaymentRequest2;
 import static app.bpartners.api.integration.conf.TestUtils.invoiceRealRef;
+import static app.bpartners.api.integration.conf.TestUtils.product2;
 import static app.bpartners.api.integration.conf.TestUtils.product3;
 import static app.bpartners.api.integration.conf.TestUtils.product4;
 import static app.bpartners.api.integration.conf.TestUtils.product5;
@@ -1199,7 +1200,7 @@ class InvoiceIT {
 
   @Test
   @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
-  public void concurrently_get_bridge_accounts() {
+  public void concurrently_crupdate_invoice() {
     ApiClient joeDoeClient = anApiClient();
     PayingApi api = new PayingApi(joeDoeClient);
     var callerNb = 10;
@@ -1225,6 +1226,11 @@ class InvoiceIT {
         .filter(Optional::isPresent)
         .map(Optional::get)
         .peek(invoice -> assertEquals(reference, invoiceRealRef(invoice)))
+        .peek(invoice -> {
+            assertEquals(createProduct2().getQuantity(), invoice.getProducts().get(0).getQuantity());
+            assertEquals(createProduct2().getUnitPrice(), invoice.getProducts().get(0).getUnitPrice());
+            assertEquals(createProduct2().getVatPercent(), invoice.getProducts().get(0).getVatPercent());
+        })
         .collect(toUnmodifiableList());
     assertEquals(retrieved.size(), callerNb);
   }

@@ -120,8 +120,6 @@ public class InvoiceRestMapper {
         .comment(rest.getComment())
         .paymentType(convertType(rest.getPaymentType()))
         .multiplePayments(getMultiplePayments(rest))
-        //TODO: add invoice customer attributes
-        //.customer(optionalCustomer.orElse(null)) TODO
         .sendingDate(rest.getSendingDate())
         .validityDate(validityDate)
         .delayInPaymentAllowed(delayInPaymentAllowed)
@@ -129,6 +127,9 @@ public class InvoiceRestMapper {
         .status(rest.getStatus())
         .archiveStatus(rest.getArchiveStatus())
         .toPayAt(rest.getToPayAt())
+        .customer(
+            rest.getCustomer() != null
+                ? customerMapper.toDomain(accountId, rest.getCustomer()) : null)
         .accountId(accountId)
         .products(getInvoiceProducts(rest))
         .metadata(rest.getMetadata() == null ? Map.of() : rest.getMetadata())

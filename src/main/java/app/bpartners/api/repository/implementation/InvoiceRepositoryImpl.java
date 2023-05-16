@@ -11,9 +11,9 @@ import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.mapper.InvoiceMapper;
 import app.bpartners.api.model.mapper.InvoiceProductMapper;
 import app.bpartners.api.repository.InvoiceRepository;
+import app.bpartners.api.repository.jpa.CustomerJpaRepository;
 import app.bpartners.api.repository.jpa.InvoiceJpaRepository;
-import app.bpartners.api.repository.jpa.InvoiceProductJpaRepository;
-import app.bpartners.api.repository.jpa.PaymentRequestJpaRepository;
+import app.bpartners.api.repository.jpa.model.HCustomer;
 import app.bpartners.api.repository.jpa.model.HInvoice;
 import app.bpartners.api.repository.jpa.model.HInvoiceProduct;
 import app.bpartners.api.repository.jpa.model.HPaymentRequest;
@@ -23,8 +23,10 @@ import app.bpartners.api.service.FileService;
 import app.bpartners.api.service.utils.InvoicePdfUtils;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Repository;
@@ -40,13 +42,13 @@ import static org.springframework.data.domain.Sort.Direction.DESC;
 
 @Repository
 @AllArgsConstructor
+@Slf4j
 public class InvoiceRepositoryImpl implements InvoiceRepository {
   private final InvoiceJpaRepository jpaRepository;
-  private final PaymentRequestJpaRepository requestJpaRepository;
   private final PrincipalProvider auth;
   private final InvoiceMapper mapper;
   private final InvoiceProductMapper productMapper;
-  private final InvoiceProductJpaRepository productJpaRepository;
+  private final CustomerJpaRepository customerJpaRepository;
   private final AccountHolderService holderService;
   private final AccountService accountService;
   private final FileService fileService;
@@ -55,20 +57,23 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
   @Override
   public Invoice crupdate(Invoice invoice) {
     HInvoice entity = mapper.toEntity(invoice, true);
-    List<HPaymentRequest> paymentRequests = new ArrayList<>(entity.getPaymentRequests());
-    if (!entity.getProducts().isEmpty()) {
-      productJpaRepository.deleteAll(entity.getProducts());
+    if (invoice.getCustomer() != null) {
+      Optional<HCustomer> customer = customerJpaRepository.findById(invoice.getCustomer().getId());
+      if (customer.isPresent()) {
+        entity.setCustomer(customer.get());
+      } else {
+        throw new NotFoundException("Customer." + invoice.getCustomer().getId() + " is not found.");
+      }
     }
-    if (!entity.getPaymentRequests().isEmpty()
-        && invoice.getStatus() != CONFIRMED && invoice.getStatus() != PAID) {
-      requestJpaRepository.deleteAllByIdInvoice(entity.getId());
+    synchronized (this) {
+      List<HPaymentRequest> paymentRequests = new ArrayList<>(entity.getPaymentRequests());
+      HInvoice entityWithProdAndPay = entity
+          .products(getProductEntities(invoice, entity))
+          .paymentRequests(paymentRequests);
+      HInvoice persistedEntity = jpaRepository.save(entity
+          .fileId(processPdfGeneration(mapper.toDomain(entityWithProdAndPay))));
+      return mapper.toDomain(persistedEntity);
     }
-    HInvoice entityWithProdAndPay = entity
-        .products(getProductEntities(invoice, entity))
-        .paymentRequests(paymentRequests);
-    HInvoice persistedEntity = jpaRepository.save(entity
-        .fileId(processPdfGeneration(mapper.toDomain(entityWithProdAndPay))));
-    return mapper.toDomain(persistedEntity);
   }
 
   @Override
@@ -142,4 +147,5 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
   private AccountHolder accountHolder(Invoice toCrupdate) {
     return holderService.getAccountHolderByAccountId(toCrupdate.getAccountId());
   }
+
 }

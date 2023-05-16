@@ -52,7 +52,7 @@ public class AccountService {
   }
 
   public String initiateAccountValidation(String accountId) {
-    Account account = getAccountById(accountId);
+    Account account = repository.findById(accountId);
     switch (account.getStatus()) {
       case VALIDATION_REQUIRED:
         return bankRepository.initiateProValidation(accountId);

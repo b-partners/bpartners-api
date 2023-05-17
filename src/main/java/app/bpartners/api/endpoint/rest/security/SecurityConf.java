@@ -232,6 +232,8 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
             PUT, "/users/*/accounts/*/accountHolders/*/globalInfo").authenticated()
         .antMatchers(
             PUT, "/users/*/accountHolders/*/feedback/*").authenticated()
+        .antMatchers(
+            POST, "/users/*/accountHolders/*/feedback").authenticated()
         .requestMatchers(
             new SelfAccountMatcher(GET, "/accounts/*/paymentRequests", authResourceProvider)
         ).authenticated()

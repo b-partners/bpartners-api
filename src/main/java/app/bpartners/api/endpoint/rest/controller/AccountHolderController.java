@@ -4,20 +4,25 @@ import app.bpartners.api.endpoint.rest.mapper.AccountHolderRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.AnnualRevenueTargetRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.BusinessActivityRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.CompanyInfoMapper;
+import app.bpartners.api.endpoint.rest.mapper.FeedbackRestMapper;
 import app.bpartners.api.endpoint.rest.model.AccountHolder;
 import app.bpartners.api.endpoint.rest.model.AccountHolderFeedback;
 import app.bpartners.api.endpoint.rest.model.CompanyBusinessActivity;
 import app.bpartners.api.endpoint.rest.model.CompanyInfo;
 import app.bpartners.api.endpoint.rest.model.CreateAnnualRevenueTarget;
+import app.bpartners.api.endpoint.rest.model.CreatedFeedbackRequest;
+import app.bpartners.api.endpoint.rest.model.FeedbackRequest;
 import app.bpartners.api.endpoint.rest.model.UpdateAccountHolder;
 import app.bpartners.api.endpoint.rest.validator.CreateAnnualRevenueTargetValidator;
 import app.bpartners.api.model.AnnualRevenueTarget;
 import app.bpartners.api.service.AccountHolderService;
+import app.bpartners.api.service.FeedbackService;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -32,6 +37,8 @@ public class AccountHolderController {
   private final BusinessActivityRestMapper businessActivityMapper;
   private final AnnualRevenueTargetRestMapper revenueTargetRestMapper;
   private final CreateAnnualRevenueTargetValidator revenueTargetValidator;
+  private final FeedbackService feedbackService;
+  private final FeedbackRestMapper feedbackRestMapper;
 
   @GetMapping("/users/{userId}/accounts/{accountId}/accountHolders")
   public List<AccountHolder> getAccountHolders(
@@ -109,6 +116,17 @@ public class AccountHolderController {
         accountHolderService.updateFeedBackConfiguration(
             accountHolderMapper.toDomain(accountHolderId, toUpdate)
         )
+    );
+  }
+
+  @PostMapping("/users/{userId}/accountHolders/{ahId}/feedback")
+  public CreatedFeedbackRequest askFeedback(
+      @PathVariable("userId") String userId,
+      @PathVariable("ahId") String accountHolderId,
+      @RequestBody FeedbackRequest toAsk
+  ) {
+    return feedbackRestMapper.toRest(
+        feedbackService.save(accountHolderId, feedbackRestMapper.toDomain(accountHolderId, toAsk))
     );
   }
 }

@@ -11,6 +11,9 @@ import app.bpartners.api.endpoint.rest.model.CompanyBusinessActivity;
 import app.bpartners.api.endpoint.rest.model.CompanyInfo;
 import app.bpartners.api.endpoint.rest.model.ContactAddress;
 import app.bpartners.api.endpoint.rest.model.CreateAnnualRevenueTarget;
+import app.bpartners.api.endpoint.rest.model.CreateAttachment;
+import app.bpartners.api.endpoint.rest.model.CreatedFeedbackRequest;
+import app.bpartners.api.endpoint.rest.model.FeedbackRequest;
 import app.bpartners.api.endpoint.rest.model.UpdateAccountHolder;
 import app.bpartners.api.endpoint.rest.model.VerificationStatus;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
@@ -62,6 +65,8 @@ import static app.bpartners.api.integration.conf.TestUtils.assertThrowsApiExcept
 import static app.bpartners.api.integration.conf.TestUtils.companyBusinessActivity;
 import static app.bpartners.api.integration.conf.TestUtils.companyInfo;
 import static app.bpartners.api.integration.conf.TestUtils.createAnnualRevenueTarget;
+import static app.bpartners.api.integration.conf.TestUtils.customer1;
+import static app.bpartners.api.integration.conf.TestUtils.customer2;
 import static app.bpartners.api.integration.conf.TestUtils.janeSwanAccount;
 import static app.bpartners.api.integration.conf.TestUtils.joeDoeSwanAccount;
 import static app.bpartners.api.integration.conf.TestUtils.joeDoeSwanAccountHolder;
@@ -180,6 +185,19 @@ class AccountHolderIT {
     return AccountHolderResponse.Edge.builder()
         .node(swanAccountHolder)
         .build();
+  }
+
+  public static FeedbackRequest feedbackRequest() {
+    return new FeedbackRequest()
+        .subject("JOE DOE - Ask Feedback")
+        .message("message text")
+        .attachments(new CreateAttachment())
+        .customerIds(List.of(customer1().getId(), customer2().getId()));
+  }
+
+  public static CreatedFeedbackRequest expectedCreatedFeedbackRequest() {
+    return new CreatedFeedbackRequest()
+        .customers(List.of(customer1(), customer2()));
   }
 
   public static AccountHolderResponse.Edge verifiedAccountholder() {
@@ -517,17 +535,35 @@ class AccountHolderIT {
     ApiClient joeDoeClient = anApiClient();
     UserAccountsApi api = new UserAccountsApi(joeDoeClient);
 
-    AccountHolder actualAddedFeedbackLink = api.updateFeedbackConf(JOE_DOE_SWAN_USER_ID, SWAN_ACCOUNTHOLDER_ID,
-        new AccountHolderFeedback().feedbackLink("https://feedback.com"));
-    AccountHolder actualUpdatedFeedbackLink = api.updateFeedbackConf(JOE_DOE_SWAN_USER_ID, SWAN_ACCOUNTHOLDER_ID,
-        new AccountHolderFeedback().feedbackLink("https://updateFeedbackLink.com"));
-    AccountHolder actualNoFeedbackLink = api.updateFeedbackConf(JOE_DOE_SWAN_USER_ID, SWAN_ACCOUNTHOLDER_ID,
-        new AccountHolderFeedback());
+    AccountHolder actualAddedFeedbackLink =
+        api.updateFeedbackConf(JOE_DOE_SWAN_USER_ID, SWAN_ACCOUNTHOLDER_ID,
+            new AccountHolderFeedback().feedbackLink("https://feedback.com"));
+    AccountHolder actualUpdatedFeedbackLink =
+        api.updateFeedbackConf(JOE_DOE_SWAN_USER_ID, SWAN_ACCOUNTHOLDER_ID,
+            new AccountHolderFeedback().feedbackLink("https://updateFeedbackLink.com"));
+    AccountHolder actualNoFeedbackLink =
+        api.updateFeedbackConf(JOE_DOE_SWAN_USER_ID, SWAN_ACCOUNTHOLDER_ID,
+            new AccountHolderFeedback());
 
     assertEquals(SWAN_ACCOUNTHOLDER_ID, actualAddedFeedbackLink.getId());
     assertEquals("https://feedback.com", actualAddedFeedbackLink.getFeedback().getFeedbackLink());
-    assertEquals("https://updateFeedbackLink.com", actualUpdatedFeedbackLink.getFeedback().getFeedbackLink());
+    assertEquals("https://updateFeedbackLink.com",
+        actualUpdatedFeedbackLink.getFeedback().getFeedbackLink());
     assertNull(actualNoFeedbackLink.getFeedback().getFeedbackLink());
+  }
+
+  @Test
+  void ask_feedback_ok() throws ApiException {
+    ApiClient joeDoeClient = anApiClient();
+    UserAccountsApi api = new UserAccountsApi(joeDoeClient);
+
+    CreatedFeedbackRequest actualCreatedFeedbackRequest =
+        api.askFeedback(JOE_DOE_SWAN_USER_ID, SWAN_ACCOUNTHOLDER_ID, feedbackRequest());
+
+    assertEquals(expectedCreatedFeedbackRequest()
+            .id(actualCreatedFeedbackRequest.getId())
+            .creationDatetime(actualCreatedFeedbackRequest.getCreationDatetime())
+        , actualCreatedFeedbackRequest);
   }
 
   private void setUpRepositoryMock() {

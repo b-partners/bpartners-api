@@ -16,8 +16,12 @@ import lombok.ToString;
 @Builder(toBuilder = true)
 @ToString
 public class Feedback {
-  protected String id;
-  protected AccountHolder accountHolder;
-  protected List<Customer> customers;
-  protected Instant creationDatetime;
+  private String id;
+  private AccountHolder accountHolder;
+  private List<Customer> customers;
+  private Instant creationDatetime;
+
+  //TODO
+  private String subject;
+  private String message;
 }

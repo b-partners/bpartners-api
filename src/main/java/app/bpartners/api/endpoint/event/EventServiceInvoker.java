@@ -1,9 +1,11 @@
 package app.bpartners.api.endpoint.event;
 
 import app.bpartners.api.endpoint.event.model.TypedEvent;
+import app.bpartners.api.endpoint.event.model.gen.FeedbackRequested;
 import app.bpartners.api.endpoint.event.model.gen.InvoiceCrupdated;
 import app.bpartners.api.endpoint.event.model.gen.InvoiceRelaunchSaved;
 import app.bpartners.api.endpoint.event.model.gen.UserUpserted;
+import app.bpartners.api.service.FeedbackRequestedService;
 import app.bpartners.api.service.InvoiceCrupdatedService;
 import app.bpartners.api.service.InvoiceRelaunchSavedService;
 import app.bpartners.api.service.UserUpsertedService;
@@ -20,6 +22,7 @@ public class EventServiceInvoker implements Consumer<TypedEvent> {
   private final InvoiceRelaunchSavedService invoiceRelaunchSavedService;
   private final InvoiceCrupdatedService invoiceCrupdatedService;
   private final UserUpsertedService userUpsertedService;
+  private final FeedbackRequestedService feedbackRequestedService;
 
   @Override
   public void accept(TypedEvent typedEvent) {
@@ -30,6 +33,8 @@ public class EventServiceInvoker implements Consumer<TypedEvent> {
       invoiceCrupdatedService.accept((InvoiceCrupdated) payload);
     } else if (UserUpserted.class.getTypeName().equals(typedEvent.getTypeName())) {
       userUpsertedService.accept((UserUpserted) payload);
+    } else if (FeedbackRequested.class.getTypeName().equals(typedEvent.getTypeName())) {
+      feedbackRequestedService.accept((FeedbackRequested) payload);
     } else {
       log.error("Unexpected type for event={}", typedEvent);
     }

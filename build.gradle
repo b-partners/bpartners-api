@@ -149,6 +149,7 @@ dependencies {
     implementation 'software.amazon.awssdk:transfer:2.17.271'
     implementation 'software.amazon.awssdk:ses:2.17.292'
     implementation 'software.amazon.awssdk:protocol-core:2.17.292'
+    implementation 'org.springframework.retry:spring-retry:1.3.1'
     annotationProcessor 'software.amazon.awssdk:s3:2.17.271'
 
     implementation 'io.sentry:sentry-spring-boot-starter:5.5.3'

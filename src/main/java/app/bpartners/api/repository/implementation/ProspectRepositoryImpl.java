@@ -73,16 +73,12 @@ public class ProspectRepositoryImpl implements ProspectRepository {
         .collect(toUnmodifiableList());
     if (isSogefiProspector) {
       BuildingPermitList buildingPermitList = buildingPermitApi.getBuildingPermitList(townCodes);
-      if (buildingPermitList != null) {
-        buildingPermitList.getRecords().forEach(buildingPermit -> {
-          SingleBuildingPermit singleBuildingPermit =
-              buildingPermitApi.getSingleBuildingPermit(String.valueOf(buildingPermit.getFileId()));
-          if (singleBuildingPermit != null) {
-            sogefiBuildingPermitRepository.saveByBuildingPermit(idAccountHolder, buildingPermit,
-                singleBuildingPermit);
-          }
-        });
-      }
+      buildingPermitList.getRecords().forEach(buildingPermit -> {
+        SingleBuildingPermit singleBuildingPermit =
+            buildingPermitApi.getSingleBuildingPermit(String.valueOf(buildingPermit.getFileId()));
+        sogefiBuildingPermitRepository.saveByBuildingPermit(idAccountHolder, buildingPermit,
+            singleBuildingPermit);
+      });
     }
     return jpaRepository
         .findAllByIdAccountHolderAndTownCodeIsIn(idAccountHolder, townCodesAsInt).stream()

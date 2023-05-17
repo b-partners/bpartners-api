@@ -10,7 +10,7 @@ public interface AccountConnectorRepository {
 
   List<AccountConnector> findByUserId(String userId);
 
-  AccountConnector save(AccountConnector accountConnector);
+  AccountConnector save(String userId, AccountConnector accountConnector);
 
-  List<AccountConnector> saveAll(List<AccountConnector> accountConnectors);
+  List<AccountConnector> saveAll(String userId, List<AccountConnector> accountConnectors);
 }

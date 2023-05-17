@@ -1,5 +1,6 @@
 package app.bpartners.api.repository;
 
+import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.repository.model.AccountConnector;
 import java.util.List;
 import lombok.AllArgsConstructor;
@@ -10,26 +11,26 @@ public class CachedAccountConnectorRepository implements AccountConnectorReposit
 
   @Override
   public List<AccountConnector> findByBearer(String bearer) {
-    return saveAll(toCache.findByBearer(bearer));
+    return saveAll(AuthProvider.getAuthenticatedUserId(), toCache.findByBearer(bearer));
   }
 
   @Override
   public AccountConnector findById(String id) {
-    return save(toCache.findById(id));
+    return save(null, toCache.findById(id));
   }
 
   @Override
   public List<AccountConnector> findByUserId(String userId) {
-    return saveAll(toCache.findByUserId(userId));
+    return saveAll(userId, toCache.findByUserId(userId));
   }
 
   @Override
-  public AccountConnector save(AccountConnector accountConnector) {
-    return toCache.save(accountConnector);
+  public AccountConnector save(String idUser, AccountConnector accountConnector) {
+    return toCache.save(idUser, accountConnector);
   }
 
   @Override
-  public List<AccountConnector> saveAll(List<AccountConnector> accountConnectors) {
-    return toCache.saveAll(accountConnectors);
+  public List<AccountConnector> saveAll(String idUser, List<AccountConnector> accountConnectors) {
+    return toCache.saveAll(idUser, accountConnectors);
   }
 }

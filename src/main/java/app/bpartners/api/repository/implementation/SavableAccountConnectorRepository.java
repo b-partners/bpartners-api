@@ -1,10 +1,13 @@
 package app.bpartners.api.repository.implementation;
 
+import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.model.mapper.AccountMapper;
 import app.bpartners.api.repository.AccountConnectorRepository;
 import app.bpartners.api.repository.jpa.AccountJpaRepository;
+import app.bpartners.api.repository.jpa.UserJpaRepository;
 import app.bpartners.api.repository.jpa.model.HAccount;
+import app.bpartners.api.repository.jpa.model.HUser;
 import app.bpartners.api.repository.model.AccountConnector;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -19,6 +22,7 @@ import static java.util.UUID.randomUUID;
 @Slf4j
 public class SavableAccountConnectorRepository implements AccountConnectorRepository {
   private final AccountJpaRepository jpaRepository;
+  private final UserJpaRepository userJpaRepository;
   private final AccountMapper mapper;
 
   private static final String UNSUPPORTED_ERROR_MESSAGE = "Unsupported: only saving methods are!";
@@ -34,39 +38,46 @@ public class SavableAccountConnectorRepository implements AccountConnectorReposi
   }
 
   @Override
-  public List<AccountConnector> findByUserId(String userId) {
+  public List<AccountConnector> findByUserId(String idUser) {
     throw new NotImplementedException(UNSUPPORTED_ERROR_MESSAGE);
   }
 
   @Override
-  public AccountConnector save(AccountConnector accountConnector) {
+  public AccountConnector save(String idUser, AccountConnector accountConnector) {
     if (accountConnector == null) {
       return null;
     }
     HAccount toSave = mapper.toEntity(accountConnector,
         jpaRepository.findByExternalId(accountConnector.getId())
-            .orElse(fromNewAccount(accountConnector)));
+            .orElse(fromNewAccount(accountConnector, associatedUser(idUser))));
     HAccount saved = jpaRepository.save(toSave);
     return mapper.toConnector(saved);
   }
 
   @Override
-  public List<AccountConnector> saveAll(List<AccountConnector> accountConnectors) {
+  public List<AccountConnector> saveAll(String idUser, List<AccountConnector> accountConnectors) {
     List<HAccount> toSave = accountConnectors.stream()
         .map(accountConnector -> mapper.toEntity(accountConnector,
             jpaRepository.findByExternalId(accountConnector.getId())
-                .orElse(fromNewAccount(accountConnector))))
+                .orElse(fromNewAccount(accountConnector, associatedUser(idUser)))))
         .collect(Collectors.toList());
     return jpaRepository.saveAll(toSave).stream()
         .map(mapper::toConnector)
         .collect(Collectors.toList());
   }
 
-  private static HAccount fromNewAccount(AccountConnector accountConnector) {
+  private static HAccount fromNewAccount(AccountConnector accountConnector, HUser user) {
     return HAccount.builder()
         .id(String.valueOf(randomUUID()))
+        .user(user)
         .externalId(accountConnector.getId())
         .idBank(accountConnector.getBankId())
         .build();
+  }
+
+  private HUser associatedUser(String idUser) {
+    return idUser == null ? null : userJpaRepository.findById(idUser)
+        .orElseThrow(
+            () -> new NotFoundException("User(id=" + idUser + " not found"));
   }
 }

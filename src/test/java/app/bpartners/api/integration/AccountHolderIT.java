@@ -157,7 +157,8 @@ class AccountHolderIT {
         .address(joeDoeSwanAccountHolder().getResidencyAddress().getAddressLine1())
         .city(joeDoeSwanAccountHolder().getResidencyAddress().getCity())
         .country(joeDoeSwanAccountHolder().getResidencyAddress().getCountry())
-        .postalCode(joeDoeSwanAccountHolder().getResidencyAddress().getPostalCode());
+        .postalCode(joeDoeSwanAccountHolder().getResidencyAddress().getPostalCode())
+        .feedback(new AccountHolderFeedback());
   }
 
   public static AccountHolderResponse.Edge baseHolderResponse(
@@ -219,7 +220,8 @@ class AccountHolderIT {
             .email("numer@hei.school")
             .tvaNumber("FR32123456789")
             .location(location())
-            .townCode(92002));
+            .townCode(92002))
+        .feedback(new AccountHolderFeedback());
   }
 
   CompanyInfo updatedCompanyInfo() {

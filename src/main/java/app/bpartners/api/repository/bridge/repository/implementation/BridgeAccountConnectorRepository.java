@@ -79,7 +79,8 @@ public class BridgeAccountConnectorRepository implements AccountConnectorReposit
   public AccountConnector findById(String id) {
     try {
       Long bridgeId = Long.valueOf(id);
-      return accountMapper.toConnector(
+      return AuthProvider.getBearer() == null ? null
+          : accountMapper.toConnector(
           bridgeApi.findByAccountById(bridgeId, AuthProvider.getBearer()));
       // /!\ case when provided ID is UUID, from Swan for example
     } catch (NumberFormatException e) {

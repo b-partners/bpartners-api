@@ -144,7 +144,6 @@ public class TransactionMapper {
         .build();
   }
 
-
   public HTransaction toEntity(Transaction domain) {
     return HTransaction.builder()
         .id(domain.getId())

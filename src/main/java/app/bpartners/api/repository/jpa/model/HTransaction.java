@@ -26,7 +26,7 @@ import static javax.persistence.GenerationType.IDENTITY;
 @ToString
 @Getter
 @AllArgsConstructor
-@Builder
+@Builder(toBuilder = true)
 @NoArgsConstructor
 public class HTransaction {
   @Id

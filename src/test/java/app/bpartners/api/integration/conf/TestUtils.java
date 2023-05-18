@@ -1066,8 +1066,10 @@ public class TestUtils {
     when(accountConnectorRepository.findById(JOE_DOE_ID)).thenReturn(swanAccountConnector);
     when(accountConnectorRepository.findByBearer(JOE_DOE_TOKEN)).thenReturn(accountConnectors);
     when(accountConnectorRepository.findByUserId(JOE_DOE_ID)).thenReturn(accountConnectors);
-    when(accountConnectorRepository.save(swanAccountConnector)).thenReturn(swanAccountConnector);
-    when(accountConnectorRepository.saveAll(accountConnectors)).thenReturn(accountConnectors);
+    when(accountConnectorRepository.save(JOE_DOE_ID, swanAccountConnector)).thenReturn(
+        swanAccountConnector);
+    when(accountConnectorRepository.saveAll(JOE_DOE_ID, accountConnectors)).thenReturn(
+        accountConnectors);
 
     when(accountConnectorRepository.findById(JANE_ACCOUNT_ID)).thenReturn(
         toConnector(janeSwanAccount()));

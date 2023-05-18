@@ -38,7 +38,11 @@ public class AccountMapper {
         .build();
   }
 
+  //TODO: solve why bridge account is null
   public AccountConnector toConnector(BridgeAccount bridgeAccount) {
+    if (bridgeAccount == null) {
+      return null;
+    }
     log.warn("DEBUG(bad-cents): toConnector: bridgeAccount.id={}, bridgeAccount.balance={}",
         bridgeAccount.getId(), bridgeAccount.getBalance());
     return AccountConnector.builder()

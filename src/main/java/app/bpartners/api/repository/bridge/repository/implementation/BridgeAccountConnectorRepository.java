@@ -66,20 +66,21 @@ public class BridgeAccountConnectorRepository implements AccountConnectorReposit
   }
 
   @Override
-  public AccountConnector save(AccountConnector accountConnector) {
-    return savableRepository.save(accountConnector);
+  public AccountConnector save(String idUser, AccountConnector accountConnector) {
+    return savableRepository.save(idUser, accountConnector);
   }
 
   @Override
-  public List<AccountConnector> saveAll(List<AccountConnector> accountConnectors) {
-    return savableRepository.saveAll(accountConnectors);
+  public List<AccountConnector> saveAll(String idUser, List<AccountConnector> accountConnectors) {
+    return savableRepository.saveAll(idUser, accountConnectors);
   }
 
   @Override
   public AccountConnector findById(String id) {
     try {
       Long bridgeId = Long.valueOf(id);
-      return accountMapper.toConnector(
+      return AuthProvider.getBearer() == null ? null
+          : accountMapper.toConnector(
           bridgeApi.findByAccountById(bridgeId, AuthProvider.getBearer()));
       // /!\ case when provided ID is UUID, from Swan for example
     } catch (NumberFormatException e) {

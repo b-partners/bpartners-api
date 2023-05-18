@@ -27,7 +27,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
 
 import static app.bpartners.api.endpoint.rest.security.AuthProvider.userIsAuthenticated;
-import static app.bpartners.api.model.mapper.TransactionMapper.getStatusFromBridge;
 import static app.bpartners.api.model.mapper.TransactionMapper.getTransactionStatus;
 import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 
@@ -136,54 +135,11 @@ public class TransactionRepositoryImpl implements TransactionRepository {
   }
 
   private HTransaction getUpdatedTransaction(
-      String accountId,
-      BridgeTransaction transaction) {
-    Optional<HTransaction> optional = jpaRepository.findByIdBridge(transaction.getId());
-    if (optional.isPresent()) {
-      HTransaction optionalValue = optional.get();
-      checkTransactionUpdates(transaction, optionalValue);
-      return jpaRepository.save(optionalValue);
-    }
-    return jpaRepository.save(mapper.toEntity(accountId, transaction));
-  }
-
-  private static void checkTransactionUpdates(
-      BridgeTransaction bridgeTransaction,
-      HTransaction entity) {
-    if (entity.getAmount() == null
-        || (entity.getAmount() != null
-        && parseFraction(entity.getAmount()).getApproximatedValue() / 100
-        != bridgeTransaction.getAmount())) {
-      entity.setAmount(
-          String.valueOf(parseFraction(bridgeTransaction.getAmount() * 100)));
-    }
-    if (entity.getCurrency() == null
-        || (entity.getCurrency() != null
-        && !entity.getCurrency().equals(bridgeTransaction.getCurrency()))) {
-      entity.setCurrency(bridgeTransaction.getCurrency());
-    }
-    if (entity.getStatus() == null
-        || (entity.getStatus() != null
-        && !entity.getStatus().getValue()
-        .equals(getStatusFromBridge(bridgeTransaction).getValue()))) {
-      entity.setStatus(getStatusFromBridge(bridgeTransaction));
-    }
-    if (entity.getPaymentDateTime() == null
-        || (entity.getPaymentDateTime() != null
-        && !entity.getPaymentDateTime().equals(bridgeTransaction.getCreatedDatetime()))) {
-      entity.setPaymentDateTime(
-          bridgeTransaction.getCreatedDatetime());
-    }
-    if (entity.getLabel() == null
-        || (entity.getLabel() != null
-        && !entity.getLabel().equals((bridgeTransaction.getLabel())))) {
-      entity.setLabel(bridgeTransaction.getLabel());
-    }
-    if (entity.getSide() == null
-        || (entity.getSide() != null
-        && !entity.getSide().equals(bridgeTransaction.getSide()))) {
-      entity.setSide(bridgeTransaction.getSide());
-    }
+      String accountId, BridgeTransaction transaction) {
+    HTransaction transactionEntity = mapper.toEntity(accountId, transaction);
+    jpaRepository.findByIdBridge(transaction.getId())
+        .ifPresent(entity -> transactionEntity.setId(entity.getId()));
+    return jpaRepository.save(transactionEntity);
   }
 
   private static void checkTransactionUpdates(Node swanTransaction, HTransaction entity) {

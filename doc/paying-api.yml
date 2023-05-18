@@ -1024,8 +1024,10 @@ components:
       properties:
         subject:
           type: string
+        #TODO: check utility and depracted
         object:
           type: string
+        #TODO: check utility and depracted
         message:
           type: string
           description: html is waited
@@ -1034,7 +1036,7 @@ components:
         attachments:
           type: array
           items:
-            $ref: '#/components/schemas/CreateAttachment'
+            $ref: './api.yml#/components/schemas/CreateAttachment'
     InvoiceRelaunch:
       type: object
       properties:
@@ -1057,7 +1059,7 @@ components:
           type: array
           description: attachments without content.
           items:
-            $ref: '#/components/schemas/Attachment'
+            $ref: './api.yml#/components/schemas/Attachment'
     UpdateInvoiceArchivedStatus:
       type: object
       properties:
@@ -1154,7 +1156,7 @@ components:
         totalVat:
           type: integer
         totalPriceWithoutDiscount:
-            type: integer
+          type: integer
         totalPriceWithoutVat:
           type: integer
         totalPriceWithVat:
@@ -1289,21 +1291,6 @@ components:
           type: string
         reference:
           type: string
-    CreateAttachment:
-      type: object
-      properties:
-        name:
-          type: string
-        content:
-          type: string
-          format: byte
-    Attachment:
-      allOf:
-        - $ref: '#/components/schemas/CreateAttachment'
-      properties:
-        fileId:
-          type: string
-
     PaymentStatus:
       type: string
       enum:

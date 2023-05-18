@@ -510,9 +510,10 @@ class AccountIT {
         .build());
     when(swanAccountConnectorRepositoryMock.findByUserId(JOE_DOE_ID)).
         thenReturn(List.of(accountConnector));
-    when(swanAccountConnectorRepositoryMock.saveAll(List.of(accountConnector)))
+    when(swanAccountConnectorRepositoryMock.saveAll(JOE_DOE_ID, List.of(accountConnector)))
         .thenReturn(List.of(accountConnector));
-    when(swanAccountConnectorRepositoryMock.save(accountConnector)).thenReturn(accountConnector);
+    when(swanAccountConnectorRepositoryMock.save(JOE_DOE_ID, accountConnector)).thenReturn(
+        accountConnector);
     ApiClient joeDoeClient = joeDoeClient();
     return new UserAccountsApi(joeDoeClient);
   }
@@ -650,9 +651,9 @@ class AccountIT {
             .accessToken(BERNARD_DOE_TOKEN)
             .user(bernardUser())
             .build());
-    when(swanAccountConnectorRepositoryMock.save(any())).thenReturn(
+    when(swanAccountConnectorRepositoryMock.save(any(), any())).thenReturn(
         toConnector(bernardDoeSwanAccount()));
-    when(swanAccountConnectorRepositoryMock.saveAll(any())).thenReturn(
+    when(swanAccountConnectorRepositoryMock.saveAll(any(), any())).thenReturn(
         List.of(toConnector(bernardDoeSwanAccount())));
 
     AccountValidationRedirection actual = api.initiateAccountValidation(BERNARD_DOE_ID,
@@ -710,8 +711,8 @@ class AccountIT {
 
     assertThrowsApiException(
         "{\"type\":\"400 BAD_REQUEST\",\""
-            + "message\":\"Account(id=beed1765-5c16-472a-b3f4-5c376ce5db58,name=Numer Swan Account,"
-            + "iban=FR7699999001001190346460988,status=OPENED) does not need validation.\"}",
+            + "message\":\"Account(id=beed1765-5c16-472a-b3f4-5c376ce5db58,name=Account_name,"
+            + "iban=FR0123456789,status=OPENED) does not need validation.\"}",
         () -> api.initiateAccountValidation(JOE_DOE_ID, JOE_DOE_ACCOUNT_ID,
             new RedirectionStatusUrls()));
   }

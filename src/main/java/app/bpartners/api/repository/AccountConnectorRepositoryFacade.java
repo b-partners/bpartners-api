@@ -39,12 +39,12 @@ public class AccountConnectorRepositoryFacade implements AccountConnectorReposit
   }
 
   @Override
-  public AccountConnector save(AccountConnector accountConnector) {
-    return getAccountConnectorDependentRepository().save(accountConnector);
+  public AccountConnector save(String userId, AccountConnector accountConnector) {
+    return getAccountConnectorDependentRepository().save(userId, accountConnector);
   }
 
   @Override
-  public List<AccountConnector> saveAll(List<AccountConnector> accountConnectors) {
-    return getAccountConnectorDependentRepository().saveAll(accountConnectors);
+  public List<AccountConnector> saveAll(String userId, List<AccountConnector> accountConnectors) {
+    return getAccountConnectorDependentRepository().saveAll(userId, accountConnectors);
   }
 }

@@ -55,6 +55,10 @@ paths:
     $ref: './userAccounts-api.yml#/operations/updateCompanyInfo'
   /users/{userId}/accounts/{accountId}/accountHolders/{ahId}/revenueTargets:
     $ref: './userAccounts-api.yml#/operations/updateRevenueTargets'
+  /users/{userId}/accountHolders/{ahId}/feedback/configuration:
+    $ref: './userAccounts-api.yml#/operations/configureFeedback'
+  /users/{userId}/accountHolders/{ahId}/feedback:
+    $ref: './userAccounts-api.yml#/operations/askFeedback'
   /businessActivities:
     $ref: './userAccounts-api.yml#/operations/getBusinessActivities'
   /users/{userId}/accounts/{accountId}/accountHolders/{ahId}/businessActivities:
@@ -179,6 +183,31 @@ components:
           type: string
         redirectionStatusUrls:
           $ref: '#/components/schemas/RedirectionStatusUrls'
+    CreateAttachment:
+      type: object
+      properties:
+        name:
+          type: string
+        content:
+          type: string
+          format: byte
+    Attachment:
+      allOf:
+        - $ref: '#/components/schemas/CreateAttachment'
+      properties:
+        fileId:
+          type: string
+    #TODO: replace EmailInfo by EmailAttributes if necessary
+    EmailAttributes:
+      type: object
+      properties:
+        subject:
+          type: string
+        message:
+          type: string
+          description: HTML is waited
+        attachments:
+          $ref: '#/components/schemas/CreateAttachment'
     Page:
       type: integer
       description: Start at `1`

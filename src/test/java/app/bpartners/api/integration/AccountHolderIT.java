@@ -167,7 +167,7 @@ class AccountHolderIT {
         .city(joeDoeSwanAccountHolder().getResidencyAddress().getCity())
         .country(joeDoeSwanAccountHolder().getResidencyAddress().getCountry())
         .postalCode(joeDoeSwanAccountHolder().getResidencyAddress().getPostalCode())
-        .feedback(new AccountHolderFeedback());
+        .feedback(new AccountHolderFeedback().feedbackLink("feedback link"));
   }
 
   public static AccountHolderResponse.Edge baseHolderResponse(
@@ -243,7 +243,7 @@ class AccountHolderIT {
             .tvaNumber("FR32123456789")
             .location(location())
             .townCode(92002))
-        .feedback(new AccountHolderFeedback());
+        .feedback(new AccountHolderFeedback().feedbackLink("feedback link"));
   }
 
   CompanyInfo updatedCompanyInfo() {

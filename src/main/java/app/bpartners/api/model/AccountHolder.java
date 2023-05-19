@@ -33,6 +33,7 @@ public class AccountHolder {
   private String mobilePhoneNumber;
   private String email;
   private Fraction initialCashflow;
+  private String feedbackLink;
   private boolean subjectToVat;
   private VerificationStatus verificationStatus;
   private Geojson location;

@@ -2,6 +2,7 @@ package app.bpartners.api.endpoint.rest.mapper;
 
 
 import app.bpartners.api.endpoint.rest.model.AccountHolder;
+import app.bpartners.api.endpoint.rest.model.AccountHolderFeedback;
 import app.bpartners.api.endpoint.rest.model.AnnualRevenueTarget;
 import app.bpartners.api.endpoint.rest.model.CompanyBusinessActivity;
 import app.bpartners.api.endpoint.rest.model.CompanyInfo;
@@ -70,7 +71,13 @@ public class AccountHolderRestMapper {
         .address(domain.getAddress())
         .postalCode(domain.getPostalCode())
         .city(domain.getCity())
-        .country(domain.getCountry());
+        .country(domain.getCountry())
+        .feedback(createAccountHolderFeedback(domain.getFeedbackLink()));
+  }
+
+  public AccountHolderFeedback createAccountHolderFeedback(String feedbackLink) {
+    return new AccountHolderFeedback()
+        .feedbackLink(feedbackLink);
   }
 
   public app.bpartners.api.model.AccountHolder toDomain(
@@ -87,6 +94,17 @@ public class AccountHolderRestMapper {
         .postalCode(global.getContactAddress().getPostalCode())
         .country(global.getContactAddress().getCountry())
         .prospectingPerimeter(global.getContactAddress().getProspectingPerimeter())
+        .build();
+  }
+
+  public app.bpartners.api.model.AccountHolder toDomain(
+      String accountHolderId,
+      AccountHolderFeedback accountHolderFeedback
+  ) {
+    app.bpartners.api.model.AccountHolder accountHolder =
+        accountHolderRepository.findById(accountHolderId);
+    return accountHolder.toBuilder()
+        .feedbackLink(accountHolderFeedback.getFeedbackLink())
         .build();
   }
 }

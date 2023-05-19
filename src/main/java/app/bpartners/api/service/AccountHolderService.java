@@ -56,4 +56,8 @@ public class AccountHolderService {
     annualRevenueTargetService.saveAll(annualRevenueTargets);
     return accountHolderRepository.getByIdAndAccountId(accountHolderId, accountId);
   }
+
+  public AccountHolder updateFeedBackConfiguration(AccountHolder accountHolder) {
+    return accountHolderRepository.save(accountHolder);
+  }
 }

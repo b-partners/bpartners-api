@@ -89,6 +89,7 @@ public class S3Service {
           .build();
       return s3Client.getObjectAsBytes(objectRequest).asByteArray();
     } catch (NoSuchKeyException e) {
+      log.warn("S3 File not found, key to find was : {}", key);
       throw new ApiException(SERVER_EXCEPTION, e);
     }
   }

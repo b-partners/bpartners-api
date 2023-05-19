@@ -8,6 +8,7 @@ import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.Customer;
 import app.bpartners.api.model.Feedback;
 import app.bpartners.api.model.FeedbackRequest;
+import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.repository.AccountHolderRepository;
 import app.bpartners.api.repository.CustomerRepository;
 import app.bpartners.api.repository.FeedBackRepository;
@@ -26,10 +27,14 @@ public class FeedbackService {
   private final AccountHolderRepository accountHolderRepository;
 
   public Feedback save(FeedbackRequest toSave) {
+    AccountHolder accountHolder = accountHolderRepository.findById(toSave.getAccountHolderId());
+    if (accountHolder.getFeedbackLink() == null) {
+      throw new BadRequestException(accountHolder.describe() + " must set feedback link before "
+          + "asking for feedback");
+    }
     List<Customer> customers = toSave.getCustomerIds() != null ? toSave.getCustomerIds().stream()
         .map(customerRepository::findById)
         .collect(Collectors.toUnmodifiableList()) : null;
-    AccountHolder accountHolder = accountHolderRepository.findById(toSave.getAccountHolderId());
     Feedback toCreate = Feedback.builder()
         .id(toSave.getId())
         .accountHolder(accountHolder)

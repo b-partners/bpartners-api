@@ -6,8 +6,11 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 import org.jsoup.Jsoup;
-import org.jsoup.safety.Safelist;
 import org.springframework.stereotype.Component;
+
+import static app.bpartners.api.service.utils.EmailUtils.allowedTags;
+import static app.bpartners.api.service.utils.EmailUtils.getCustomSafelist;
+import static app.bpartners.api.service.utils.EmailUtils.hasMalformedTags;
 
 @Component
 public class CreateInvoiceRelaunchValidator implements Consumer<CreateInvoiceRelaunch> {
@@ -28,22 +31,5 @@ public class CreateInvoiceRelaunchValidator implements Consumer<CreateInvoiceRel
       createInvoiceRelaunch.setAttachments(List.of());
     }
     Jsoup.clean(Objects.requireNonNullElse(emailBody, message), getCustomSafelist());
-  }
-
-  private boolean hasMalformedTags(String htmlString) {
-    return !Jsoup.isValid(htmlString, getCustomSafelist());
-  }
-
-  private static Safelist getCustomSafelist() {
-    return Safelist.relaxed()
-        .addTags("del")
-        .removeTags("img");
-  }
-
-  private String allowedTags() {
-    return "a, b, blockquote, br, caption, cite, code, col, colgroup, dd, "
-        + "div, dl, dt, em, h1, h2, h3, h4, h5, h6, i, img, li, ol, p, pre, q, "
-        + "small, span, strike, strong, sub, sup, table, tbody, td, tfoot, th, "
-        + "thead, tr, u, ul, del";
   }
 }

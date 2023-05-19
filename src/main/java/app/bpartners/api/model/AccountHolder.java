@@ -39,4 +39,12 @@ public class AccountHolder {
   private Geojson location;
   private Integer townCode;
   private int prospectingPerimeter;
+
+  public String describe() {
+    return "AccountHolder{"
+        + "id='" + id + '\''
+        + ", name='" + name + '\''
+        + ", email='" + email + '\''
+        + '}';
+  }
 }

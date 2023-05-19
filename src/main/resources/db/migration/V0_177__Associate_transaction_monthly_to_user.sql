@@ -1,5 +1,5 @@
 alter table "monthly_transactions_summary"
-    add column id_user varchar;
+    add column if not exists id_user varchar;
 
 update "monthly_transactions_summary"
 set id_user = u_id

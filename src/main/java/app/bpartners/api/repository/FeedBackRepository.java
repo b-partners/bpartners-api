@@ -6,5 +6,5 @@ import java.util.List;
 public interface FeedBackRepository {
   Feedback findById(String id);
 
-  List<Feedback> saveAll(String accountHolderId, List<Feedback> toCreate);
+  Feedback save(Feedback toCreate);
 }

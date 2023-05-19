@@ -126,7 +126,7 @@ public class AccountHolderController {
       @RequestBody FeedbackRequest toAsk
   ) {
     return feedbackRestMapper.toRest(
-        feedbackService.save(accountHolderId, feedbackRestMapper.toDomain(accountHolderId, toAsk))
+        feedbackService.save(feedbackRestMapper.toDomain(accountHolderId, toAsk))
     );
   }
 }

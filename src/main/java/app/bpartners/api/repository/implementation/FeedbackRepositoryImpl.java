@@ -25,13 +25,10 @@ public class FeedbackRepositoryImpl implements FeedBackRepository {
   }
 
   @Override
-  public List<Feedback> saveAll(String accountHolderId, List<Feedback> toCreate) {
-    List<HFeedback> entityToCreate = toCreate.stream()
-        .map(mapper::toEntity)
-        .collect(Collectors.toUnmodifiableList());
-    return jpaRepository.saveAll(entityToCreate).stream()
-        .map(mapper::toDomain)
-        .collect(Collectors.toUnmodifiableList());
+  public Feedback save(Feedback toCreate) {
+    return mapper.toDomain(
+        jpaRepository.save(mapper.toEntity(toCreate))
+    );
   }
 
 }

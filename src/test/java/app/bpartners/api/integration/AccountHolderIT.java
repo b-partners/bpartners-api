@@ -49,14 +49,17 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
 
 import static app.bpartners.api.integration.conf.TestUtils.ACCOUNTHOLDER2_ID;
 import static app.bpartners.api.integration.conf.TestUtils.ACCOUNT_OPENED;
 import static app.bpartners.api.integration.conf.TestUtils.JANE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JANE_DOE_SWAN_USER_ID;
+import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_HOLDER_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_SWAN_USER_ID;
+import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_USER_ID;
 import static app.bpartners.api.integration.conf.TestUtils.SWAN_ACCOUNTHOLDER_ID;
 import static app.bpartners.api.integration.conf.TestUtils.VERIFIED_STATUS;
 import static app.bpartners.api.integration.conf.TestUtils.annualRevenueTarget1;
@@ -73,6 +76,7 @@ import static app.bpartners.api.integration.conf.TestUtils.joeDoeSwanAccountHold
 import static app.bpartners.api.integration.conf.TestUtils.location;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountConnectorSwanRepository;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountHolderSwanRep;
+import static app.bpartners.api.integration.conf.TestUtils.setUpEventBridge;
 import static app.bpartners.api.integration.conf.TestUtils.setUpLegalFileRepository;
 import static app.bpartners.api.integration.conf.TestUtils.setUpSwanComponent;
 import static app.bpartners.api.integration.conf.TestUtils.setUpUserSwanRepository;
@@ -122,6 +126,8 @@ class AccountHolderIT {
   private SwanComponent swanComponentMock;
   @MockBean
   private LegalFileRepository legalFileRepositoryMock;
+  @MockBean
+  private EventBridgeClient eventBridgeClientMock;
   private SwanApi swanApiMock;
   private SwanCustomApi swanCustomApiMock;
   private AccountHolderSwanRepositoryImpl accountHolderRepository;
@@ -191,8 +197,8 @@ class AccountHolderIT {
     return new FeedbackRequest()
         .subject("JOE DOE - Ask Feedback")
         .message("message text")
-        .attachments(new CreateAttachment())
-        .customerIds(List.of(customer1().getId(), customer2().getId()));
+        .attachments(null)
+        .customerIds(List.of("customer1_id", "customer2_id"));
   }
 
   public static CreatedFeedbackRequest expectedCreatedFeedbackRequest() {
@@ -293,6 +299,7 @@ class AccountHolderIT {
     setUpAccountConnectorSwanRepository(accountConnectorRepository);
     setUpAccountHolderSwanRep(accountHolderRepositoryMock);
     setUpLegalFileRepository(legalFileRepositoryMock);
+    setUpEventBridge(eventBridgeClientMock);
     swanApiMock = mock(SwanApi.class);
     accountHolderRepository = new AccountHolderSwanRepositoryImpl(swanApiMock, swanCustomApiMock);
   }
@@ -536,16 +543,16 @@ class AccountHolderIT {
     UserAccountsApi api = new UserAccountsApi(joeDoeClient);
 
     AccountHolder actualAddedFeedbackLink =
-        api.updateFeedbackConf(JOE_DOE_SWAN_USER_ID, SWAN_ACCOUNTHOLDER_ID,
+        api.updateFeedbackConf(JOE_DOE_USER_ID, JOE_DOE_ACCOUNT_HOLDER_ID,
             new AccountHolderFeedback().feedbackLink("https://feedback.com"));
     AccountHolder actualUpdatedFeedbackLink =
-        api.updateFeedbackConf(JOE_DOE_SWAN_USER_ID, SWAN_ACCOUNTHOLDER_ID,
+        api.updateFeedbackConf(JOE_DOE_USER_ID, JOE_DOE_ACCOUNT_HOLDER_ID,
             new AccountHolderFeedback().feedbackLink("https://updateFeedbackLink.com"));
     AccountHolder actualNoFeedbackLink =
-        api.updateFeedbackConf(JOE_DOE_SWAN_USER_ID, SWAN_ACCOUNTHOLDER_ID,
+        api.updateFeedbackConf(JOE_DOE_USER_ID, JOE_DOE_ACCOUNT_HOLDER_ID,
             new AccountHolderFeedback());
 
-    assertEquals(SWAN_ACCOUNTHOLDER_ID, actualAddedFeedbackLink.getId());
+    assertEquals(JOE_DOE_ACCOUNT_HOLDER_ID, actualAddedFeedbackLink.getId());
     assertEquals("https://feedback.com", actualAddedFeedbackLink.getFeedback().getFeedbackLink());
     assertEquals("https://updateFeedbackLink.com",
         actualUpdatedFeedbackLink.getFeedback().getFeedbackLink());
@@ -558,7 +565,7 @@ class AccountHolderIT {
     UserAccountsApi api = new UserAccountsApi(joeDoeClient);
 
     CreatedFeedbackRequest actualCreatedFeedbackRequest =
-        api.askFeedback(JOE_DOE_SWAN_USER_ID, SWAN_ACCOUNTHOLDER_ID, feedbackRequest());
+        api.askFeedback(JOE_DOE_USER_ID, JOE_DOE_ACCOUNT_HOLDER_ID, feedbackRequest());
 
     assertEquals(expectedCreatedFeedbackRequest()
             .id(actualCreatedFeedbackRequest.getId())

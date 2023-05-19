@@ -11,7 +11,6 @@ import app.bpartners.api.endpoint.rest.model.CompanyBusinessActivity;
 import app.bpartners.api.endpoint.rest.model.CompanyInfo;
 import app.bpartners.api.endpoint.rest.model.ContactAddress;
 import app.bpartners.api.endpoint.rest.model.CreateAnnualRevenueTarget;
-import app.bpartners.api.endpoint.rest.model.CreateAttachment;
 import app.bpartners.api.endpoint.rest.model.CreatedFeedbackRequest;
 import app.bpartners.api.endpoint.rest.model.FeedbackRequest;
 import app.bpartners.api.endpoint.rest.model.UpdateAccountHolder;
@@ -59,7 +58,6 @@ import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_HOLDE
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_SWAN_USER_ID;
-import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_USER_ID;
 import static app.bpartners.api.integration.conf.TestUtils.SWAN_ACCOUNTHOLDER_ID;
 import static app.bpartners.api.integration.conf.TestUtils.VERIFIED_STATUS;
 import static app.bpartners.api.integration.conf.TestUtils.annualRevenueTarget1;
@@ -543,13 +541,13 @@ class AccountHolderIT {
     UserAccountsApi api = new UserAccountsApi(joeDoeClient);
 
     AccountHolder actualAddedFeedbackLink =
-        api.updateFeedbackConf(JOE_DOE_USER_ID, JOE_DOE_ACCOUNT_HOLDER_ID,
+        api.updateFeedbackConf(JOE_DOE_ID, JOE_DOE_ACCOUNT_HOLDER_ID,
             new AccountHolderFeedback().feedbackLink("https://feedback.com"));
     AccountHolder actualUpdatedFeedbackLink =
-        api.updateFeedbackConf(JOE_DOE_USER_ID, JOE_DOE_ACCOUNT_HOLDER_ID,
+        api.updateFeedbackConf(JOE_DOE_ID, JOE_DOE_ACCOUNT_HOLDER_ID,
             new AccountHolderFeedback().feedbackLink("https://updateFeedbackLink.com"));
     AccountHolder actualNoFeedbackLink =
-        api.updateFeedbackConf(JOE_DOE_USER_ID, JOE_DOE_ACCOUNT_HOLDER_ID,
+        api.updateFeedbackConf(JOE_DOE_ID, JOE_DOE_ACCOUNT_HOLDER_ID,
             new AccountHolderFeedback());
 
     assertEquals(JOE_DOE_ACCOUNT_HOLDER_ID, actualAddedFeedbackLink.getId());
@@ -565,7 +563,7 @@ class AccountHolderIT {
     UserAccountsApi api = new UserAccountsApi(joeDoeClient);
 
     CreatedFeedbackRequest actualCreatedFeedbackRequest =
-        api.askFeedback(JOE_DOE_USER_ID, JOE_DOE_ACCOUNT_HOLDER_ID, feedbackRequest());
+        api.askFeedback(JOE_DOE_ID, JOE_DOE_ACCOUNT_HOLDER_ID, feedbackRequest());
 
     assertEquals(expectedCreatedFeedbackRequest()
             .id(actualCreatedFeedbackRequest.getId())

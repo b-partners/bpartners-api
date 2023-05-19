@@ -110,8 +110,7 @@ public class AccountHolderController {
   public AccountHolder updateFeedbackConf(
       @PathVariable("userId") String userId,
       @PathVariable("ahId") String accountHolderId,
-      @RequestBody AccountHolderFeedback toUpdate
-  ) {
+      @RequestBody AccountHolderFeedback toUpdate) {
     return accountHolderMapper.toRest(
         accountHolderService.updateFeedBackConfiguration(
             accountHolderMapper.toDomain(accountHolderId, toUpdate)
@@ -123,8 +122,7 @@ public class AccountHolderController {
   public CreatedFeedbackRequest askFeedback(
       @PathVariable("userId") String userId,
       @PathVariable("ahId") String accountHolderId,
-      @RequestBody FeedbackRequest toAsk
-  ) {
+      @RequestBody FeedbackRequest toAsk) {
     return feedbackRestMapper.toRest(
         feedbackService.save(feedbackRestMapper.toDomain(accountHolderId, toAsk))
     );

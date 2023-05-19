@@ -20,8 +20,6 @@ public class Feedback {
   private AccountHolder accountHolder;
   private List<Customer> customers;
   private Instant creationDatetime;
-
-  //TODO
   private String subject;
   private String message;
 }

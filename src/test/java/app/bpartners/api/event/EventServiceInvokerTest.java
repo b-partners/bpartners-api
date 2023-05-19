@@ -29,7 +29,8 @@ class EventServiceInvokerTest {
     feedbackRequestedService = mock(FeedbackRequestedService.class);
 
     eventServiceInvoker = new EventServiceInvoker(
-        invoiceRelaunchSavedService, invoiceCrupdatedService, userUpsertedService, feedbackRequestedService);
+        invoiceRelaunchSavedService, invoiceCrupdatedService, userUpsertedService,
+        feedbackRequestedService);
   }
 
   @Test

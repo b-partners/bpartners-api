@@ -72,7 +72,12 @@ public class AccountHolderRestMapper {
         .postalCode(domain.getPostalCode())
         .city(domain.getCity())
         .country(domain.getCountry())
-        .feedback(new AccountHolderFeedback().feedbackLink(domain.getFeedbackLink()));
+        .feedback(createAccountHolderFeedback(domain.getFeedbackLink()));
+  }
+
+  public AccountHolderFeedback createAccountHolderFeedback(String feedbackLink) {
+    return new AccountHolderFeedback()
+        .feedbackLink(feedbackLink);
   }
 
   public app.bpartners.api.model.AccountHolder toDomain(

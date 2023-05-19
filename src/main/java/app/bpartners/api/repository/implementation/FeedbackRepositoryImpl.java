@@ -5,9 +5,6 @@ import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.mapper.FeedbackMapper;
 import app.bpartners.api.repository.FeedBackRepository;
 import app.bpartners.api.repository.jpa.FeedbackJpaRepository;
-import app.bpartners.api.repository.jpa.model.HFeedback;
-import java.util.List;
-import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Repository;
 

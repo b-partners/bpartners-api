@@ -122,6 +122,7 @@ public class UserMapper {
         .identificationStatus(toSave.getIdentificationStatus())
         .status(toSave.getStatus())
         .idVerified(toSave.getIdVerified())
+        .oldS3AccountKey(toSave.getOldS3key())
         .build();
   }
 

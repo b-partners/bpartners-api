@@ -23,13 +23,10 @@ public class FeedbackRequestedService implements Consumer<FeedbackRequested> {
     String subject = feedbackRequested.getSubject();
     String htmlBody = feedbackRequested.getMessage();
     //TODO: configure attachment
-    String attachmentName = feedbackRequested.getAttachmentName();
-    Attachment attachment = Attachment.builder()
-        .name(attachmentName)
-        .build();
+    List<Attachment> attachment = List.of();
     recipients.forEach((recipient) -> {
       try {
-        service.sendEmail(recipient, subject, htmlBody, List.of(attachment));
+        service.sendEmail(recipient, subject, htmlBody, attachment);
       } catch (MessagingException | IOException e) {
         log.error("Email not sent : " + e.getMessage());
       }

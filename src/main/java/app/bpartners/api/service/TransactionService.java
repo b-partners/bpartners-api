@@ -8,6 +8,7 @@ import app.bpartners.api.model.Transaction;
 import app.bpartners.api.model.TransactionInvoice;
 import app.bpartners.api.model.TransactionsSummary;
 import app.bpartners.api.model.exception.NotFoundException;
+import app.bpartners.api.repository.AccountRepository;
 import app.bpartners.api.repository.TransactionRepository;
 import app.bpartners.api.repository.TransactionsSummaryRepository;
 import app.bpartners.api.repository.jpa.InvoiceJpaRepository;
@@ -37,7 +38,7 @@ public class TransactionService {
   private final TransactionRepository repository;
   private final TransactionsSummaryRepository summaryRepository;
   private final InvoiceJpaRepository invoiceRepository;
-  private final AccountService accountService;
+  private final AccountRepository accountRepository;
 
   private static Instant getFirstDayOfYear(int year) {
     return getFirstDayOfMonth(YearMonth.of(year, Month.JANUARY.getValue()));
@@ -166,7 +167,7 @@ public class TransactionService {
   //TODO: note that account (balance) is _NOT_ updated by this scheduled task anymore
   @Scheduled(fixedRate = 5 * 60 * 1_000)
   public void refreshTransactionsSummaries() {
-    List<Account> activeAccounts = accountService.findAllByActive(true);
+    List<Account> activeAccounts = accountRepository.findAll();
     activeAccounts.forEach(
         account -> {
           refreshCurrentYearSummary(account);

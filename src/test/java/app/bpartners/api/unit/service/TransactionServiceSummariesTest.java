@@ -8,7 +8,6 @@ import app.bpartners.api.repository.AccountRepository;
 import app.bpartners.api.repository.TransactionRepository;
 import app.bpartners.api.repository.TransactionsSummaryRepository;
 import app.bpartners.api.repository.jpa.InvoiceJpaRepository;
-import app.bpartners.api.service.AccountService;
 import app.bpartners.api.service.TransactionService;
 import java.math.BigInteger;
 import java.time.Instant;
@@ -32,7 +31,7 @@ class TransactionServiceSummariesTest {
   TransactionRepository transactionRepository;
   TransactionsSummaryRepository transactionsSummaryRepository;
   InvoiceJpaRepository invoiceRepositoryMock;
-  AccountService accountServiceMock;
+  AccountRepository accountRepositoryMock;
 
   private static Account joeDoeAccount() {
     return Account.builder()
@@ -46,12 +45,12 @@ class TransactionServiceSummariesTest {
     transactionsSummaryRepository = mock(TransactionsSummaryRepository.class);
     transactionRepository = mock(TransactionRepository.class);
     invoiceRepositoryMock = mock(InvoiceJpaRepository.class);
-    accountServiceMock = mock(AccountService.class);
+    accountRepositoryMock = mock(AccountRepository.class);
     transactionService = new TransactionService(
         transactionRepository,
         transactionsSummaryRepository,
         invoiceRepositoryMock,
-        accountServiceMock
+        accountRepositoryMock
     );
 
     when(transactionRepository.findByAccountIdAndStatusBetweenInstants(any(), any(), any(), any()))

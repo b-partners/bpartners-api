@@ -67,13 +67,14 @@ public class S3Service {
   }
 
   public String uploadFile(FileType fileType, String idUser, String fileId, byte[] toUpload) {
+    String key = AuthProvider.getAuthenticatedUser().getOldS3key();
     switch (fileType) {
       case LOGO:
-        return uploadFile(getLogoKey(idUser, fileId), toUpload);
+        return uploadFile(getLogoKey(key, fileId), toUpload);
       case INVOICE:
-        return uploadFile(getInvoiceKey(idUser, fileId), toUpload);
+        return uploadFile(getInvoiceKey(key, fileId), toUpload);
       case ATTACHMENT:
-        return uploadFile(getAttachmentKey(idUser, fileId), toUpload);
+        return uploadFile(getAttachmentKey(key, fileId), toUpload);
       default:
         throw new BadRequestException("Unknown file type " + fileType);
     }

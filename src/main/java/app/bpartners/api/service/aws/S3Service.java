@@ -40,6 +40,8 @@ public class S3Service {
   }
 
   private String uploadFile(String key, byte[] toUpload) {
+    log.info("File to be upload into S3 for User(id="
+        + AuthProvider.getAuthenticatedUserId() + ") with key {}", key);
     PutObjectRequest request = PutObjectRequest.builder()
         .bucket(s3Conf.getBucketName())
         .contentType(FileInfoUtils.parseMediaTypeFromBytes(toUpload).toString())

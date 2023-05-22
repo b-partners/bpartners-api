@@ -5,6 +5,7 @@ import app.bpartners.api.endpoint.rest.model.CrupdateInvoice;
 import app.bpartners.api.endpoint.rest.model.Invoice;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.endpoint.rest.model.UpdateInvoiceArchivedStatus;
+import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.service.InvoiceService;
@@ -29,9 +30,10 @@ public class InvoiceController {
       @PathVariable("id") String accountId,
       @PathVariable("iId") String invoiceId,
       @RequestBody CrupdateInvoice crupdateInvoice) {
-    app.bpartners.api.model.Invoice toCrupdate =
-        mapper.toDomain(accountId, invoiceId, crupdateInvoice);
-    return mapper.toRest(service.crupdateInvoice(toCrupdate));
+    String idUser =
+        AuthProvider.getAuthenticatedUserId(); //TODO: should be changed when endpoint changed
+    app.bpartners.api.model.Invoice domain = mapper.toDomain(idUser, invoiceId, crupdateInvoice);
+    return mapper.toRest(service.crupdateInvoice(domain));
   }
 
   @GetMapping("/accounts/{id}/invoices/{iId}")
@@ -47,7 +49,9 @@ public class InvoiceController {
       @RequestParam(name = "page", required = false) PageFromOne page,
       @RequestParam(name = "pageSize", required = false) BoundedPageSize pageSize,
       @RequestParam(name = "status", required = false) InvoiceStatus status) {
-    return service.getInvoices(accountId, page, pageSize, status).stream()
+    String idUser =
+        AuthProvider.getAuthenticatedUserId(); //TODO: should be changed when endpoint changed
+    return service.getInvoices(idUser, page, pageSize, status).stream()
         .map(mapper::toRest)
         .collect(Collectors.toUnmodifiableList());
   }
@@ -56,10 +60,10 @@ public class InvoiceController {
   public List<Invoice> archiveInvoices(
       @PathVariable(name = "aId") String accountId,
       @RequestBody List<UpdateInvoiceArchivedStatus> toArchive) {
-    List<app.bpartners.api.model.Invoice> toUpdate = toArchive.stream()
+    List<app.bpartners.api.model.Invoice> invoices = toArchive.stream()
         .map(mapper::toDomain)
         .collect(Collectors.toUnmodifiableList());
-    return service.archiveInvoices(toUpdate).stream()
+    return service.archiveInvoices(invoices).stream()
         .map(mapper::toRest)
         .collect(Collectors.toUnmodifiableList());
   }

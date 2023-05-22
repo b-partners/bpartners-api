@@ -2,6 +2,7 @@ package app.bpartners.api.service.aws;
 
 import app.bpartners.api.endpoint.event.S3Conf;
 import app.bpartners.api.endpoint.rest.model.FileType;
+import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.service.utils.FileInfoUtils;
@@ -39,6 +40,8 @@ public class S3Service {
   }
 
   private String uploadFile(String key, byte[] toUpload) {
+    log.info("File to be upload into S3 for User(id="
+        + AuthProvider.getAuthenticatedUserId() + ") with key {}", key);
     PutObjectRequest request = PutObjectRequest.builder()
         .bucket(s3Conf.getBucketName())
         .contentType(FileInfoUtils.parseMediaTypeFromBytes(toUpload).toString())
@@ -65,14 +68,15 @@ public class S3Service {
     return objectResponse.checksumSHA256();
   }
 
-  public String uploadFile(FileType fileType, String accountId, String fileId, byte[] toUpload) {
+  public String uploadFile(FileType fileType, String idUser, String fileId, byte[] toUpload) {
+    String key = AuthProvider.getAuthenticatedUser().getOldS3key();
     switch (fileType) {
       case LOGO:
-        return uploadFile(getLogoKey(accountId, fileId), toUpload);
+        return uploadFile(getLogoKey(key, fileId), toUpload);
       case INVOICE:
-        return uploadFile(getInvoiceKey(accountId, fileId), toUpload);
+        return uploadFile(getInvoiceKey(key, fileId), toUpload);
       case ATTACHMENT:
-        return uploadFile(getAttachmentKey(accountId, fileId), toUpload);
+        return uploadFile(getAttachmentKey(key, fileId), toUpload);
       default:
         throw new BadRequestException("Unknown file type " + fileType);
     }
@@ -87,39 +91,41 @@ public class S3Service {
           .build();
       return s3Client.getObjectAsBytes(objectRequest).asByteArray();
     } catch (NoSuchKeyException e) {
+      log.warn("S3 File not found, key to find was : {}", key);
       throw new ApiException(SERVER_EXCEPTION, e);
     }
   }
 
-  public byte[] downloadFile(FileType fileType, String accountId, String fileId) {
+  public byte[] downloadFile(FileType fileType, String idUser, String fileId) {
+    String key = AuthProvider.getAuthenticatedUser().getOldS3key();
     switch (fileType) {
       case LOGO:
-        return downloadFile(getLogoKey(accountId, fileId));
+        return downloadFile(getLogoKey(key, fileId));
       case INVOICE:
-        return downloadFile(getInvoiceKey(accountId, fileId));
+        return downloadFile(getInvoiceKey(key, fileId));
       case ATTACHMENT:
-        return downloadFile(getAttachmentKey(accountId, fileId));
+        return downloadFile(getAttachmentKey(key, fileId));
       default:
         throw new BadRequestException("Unknown file type " + fileType);
     }
   }
 
-  private String getBucketName(String env, String accountId, String fileId, String type) {
-    return String.format(S3_KEY_FORMAT, env, accountId, type, fileId);
+  private String getBucketName(String env, String idUser, String fileId, String type) {
+    return String.format(S3_KEY_FORMAT, env, idUser, type, fileId);
   }
 
-  private String getLogoKey(String accountId, String fileId) {
-    return getBucketName(s3Conf.getEnv(), accountId, fileId,
+  private String getLogoKey(String idUser, String fileId) {
+    return getBucketName(s3Conf.getEnv(), idUser, fileId,
         LOGO.name().toLowerCase());
   }
 
-  private String getInvoiceKey(String accountId, String fileId) {
-    return getBucketName(s3Conf.getEnv(), accountId, fileId,
+  private String getInvoiceKey(String idUser, String fileId) {
+    return getBucketName(s3Conf.getEnv(), idUser, fileId,
         INVOICE.name().toLowerCase());
   }
 
-  private String getAttachmentKey(String accountId, String fileId) {
-    return getBucketName(s3Conf.getEnv(), accountId, fileId,
+  private String getAttachmentKey(String idUser, String fileId) {
+    return getBucketName(s3Conf.getEnv(), idUser, fileId,
         ATTACHMENT.name().toLowerCase());
   }
 }

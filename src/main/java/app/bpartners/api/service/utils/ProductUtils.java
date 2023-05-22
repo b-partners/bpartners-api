@@ -6,14 +6,9 @@ import app.bpartners.api.model.exception.BadRequestException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.Cell;
@@ -23,6 +18,7 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
+import static app.bpartners.api.service.utils.FilterUtils.distinctByKeys;
 import static java.util.Objects.isNull;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.jsoup.internal.StringUtil.isBlank;
@@ -180,16 +176,5 @@ public class ProductUtils {
     } catch (NumberFormatException e) {
       return null;
     }
-  }
-
-  @SafeVarargs
-  private static <T> Predicate<T> distinctByKeys(final Function<? super T, ?>... keyExtractors) {
-    final Map<List<?>, Boolean> seen = new ConcurrentHashMap<>();
-    return elt -> {
-      final List<?> keys = Arrays.stream(keyExtractors)
-          .map(key -> key.apply(elt))
-          .collect(Collectors.toList());
-      return seen.putIfAbsent(keys, Boolean.TRUE) == null;
-    };
   }
 }

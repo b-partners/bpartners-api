@@ -66,7 +66,7 @@ public class SavableAccountConnectorRepository implements AccountConnectorReposi
         .collect(Collectors.toList());
   }
 
-  private static HAccount fromNewAccount(AccountConnector accountConnector, HUser user) {
+  private HAccount fromNewAccount(AccountConnector accountConnector, HUser user) {
     return HAccount.builder()
         .id(String.valueOf(randomUUID()))
         .user(user)

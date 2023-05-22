@@ -46,7 +46,7 @@ public class HInvoice implements Serializable {
   @Column(name = "\"ref\"")
   private String ref;
   private String title;
-  private String idAccount;
+  private String idUser;
   private String paymentUrl;
   private LocalDate sendingDate;
   private LocalDate validityDate;

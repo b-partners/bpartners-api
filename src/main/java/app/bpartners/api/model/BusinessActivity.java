@@ -1,5 +1,6 @@
 package app.bpartners.api.model;
 
+import java.io.Serializable;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -13,7 +14,7 @@ import lombok.ToString;
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
-public class BusinessActivity {
+public class BusinessActivity implements Serializable {
   private String id;
   private AccountHolder accountHolder;
   private String primaryActivity;

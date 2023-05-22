@@ -8,7 +8,7 @@ public class BoundedPageSize {
   @Getter
   private final int value;
 
-  private static final int MAX_SIZE = 500;
+  public static final int MAX_SIZE = 500;
 
   public BoundedPageSize(int value) {
     if (value < 1) {

@@ -3,6 +3,7 @@ package app.bpartners.api.event;
 import app.bpartners.api.endpoint.event.EventServiceInvoker;
 import app.bpartners.api.endpoint.event.model.TypedInvoiceRelaunchSaved;
 import app.bpartners.api.endpoint.event.model.gen.InvoiceRelaunchSaved;
+import app.bpartners.api.service.FeedbackRequestedService;
 import app.bpartners.api.service.InvoiceCrupdatedService;
 import app.bpartners.api.service.InvoiceRelaunchSavedService;
 import app.bpartners.api.service.UserUpsertedService;
@@ -18,15 +19,18 @@ class EventServiceInvokerTest {
   InvoiceRelaunchSavedService invoiceRelaunchSavedService;
   InvoiceCrupdatedService invoiceCrupdatedService;
   UserUpsertedService userUpsertedService;
+  FeedbackRequestedService feedbackRequestedService;
 
   @BeforeEach
   void setUp() {
     invoiceRelaunchSavedService = mock(InvoiceRelaunchSavedService.class);
     invoiceCrupdatedService = mock(InvoiceCrupdatedService.class);
     userUpsertedService = mock(UserUpsertedService.class);
+    feedbackRequestedService = mock(FeedbackRequestedService.class);
 
     eventServiceInvoker = new EventServiceInvoker(
-        invoiceRelaunchSavedService, invoiceCrupdatedService, userUpsertedService);
+        invoiceRelaunchSavedService, invoiceCrupdatedService, userUpsertedService,
+        feedbackRequestedService);
   }
 
   @Test

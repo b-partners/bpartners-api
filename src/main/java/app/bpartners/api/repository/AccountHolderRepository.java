@@ -6,9 +6,9 @@ import java.util.List;
 public interface AccountHolderRepository {
   List<AccountHolder> findAllByAccountId(String accountId);
 
-  AccountHolder save(AccountHolder accountHolder);
+  List<AccountHolder> findAllByUserId(String userId);
 
-  AccountHolder getByIdAndAccountId(String id, String accountId);
+  AccountHolder save(AccountHolder accountHolder);
 
   AccountHolder findById(String id);
 }

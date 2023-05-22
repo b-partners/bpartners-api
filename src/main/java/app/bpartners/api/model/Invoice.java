@@ -56,8 +56,7 @@ public class Invoice {
   private String customerCity;
   private Integer customerZipCode;
   private String customerCountry;
-
-  private Account account;
+  private User user;
   private List<InvoiceProduct> products;
   private InvoiceStatus status;
   private ArchiveStatus archiveStatus;
@@ -124,5 +123,13 @@ public class Invoice {
     return multiplePayments.stream()
         .sorted(Comparator.comparing(CreatePaymentRegulation::getMaturityDate))
         .collect(Collectors.toList());
+  }
+
+  public Account getActualAccount() {
+    return user.getDefaultAccount();
+  }
+
+  public AccountHolder getActualHolder() {
+    return user.getDefaultHolder();
   }
 }

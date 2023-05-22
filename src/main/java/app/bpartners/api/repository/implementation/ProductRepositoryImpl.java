@@ -34,25 +34,6 @@ public class ProductRepositoryImpl implements ProductRepository {
     return new Order(Direction.DESC, "createdAt");
   }
 
-  @Override
-  public List<Product> findAllByIdAccount(
-      String idAccount, Integer page, Integer pageSize,
-      OrderDirection descriptionOrder, OrderDirection unitPriceOrder, OrderDirection createdAtOrder
-  ) {
-    List<Order> orders = retrieveOrders(descriptionOrder, unitPriceOrder, createdAtOrder);
-    Pageable pageRequest = PageRequest.of(page, pageSize, Sort.by(orders));
-    return jpaRepository.findAllByIdAccount(idAccount, pageRequest).stream()
-        .map(mapper::toDomain)
-        .collect(Collectors.toUnmodifiableList());
-  }
-
-  @Override
-  public List<Product> findAllByIdAccount(String idAccount) {
-    return jpaRepository.findAllByIdAccount(idAccount).stream()
-        .map(mapper::toDomain)
-        .collect(Collectors.toUnmodifiableList());
-  }
-
   private List<Order> retrieveOrders(OrderDirection descriptionOrder,
                                      OrderDirection unitPriceOrder,
                                      OrderDirection createdAtOrder) {
@@ -73,19 +54,20 @@ public class ProductRepositoryImpl implements ProductRepository {
   }
 
   @Override
-  public List<Product> saveAll(String accountId, List<Product> toCreate) {
+  public List<Product> saveAll(String idUser, List<Product> toCreate) {
     List<HProduct> entityToCreate = toCreate.stream()
-        .map(customer -> checkExisting(accountId, customer))
-        .map(customer -> mapper.toEntity(accountId, customer))
+        .map(customer -> checkExisting(idUser, customer))
+        .map(customer -> mapper.toEntity(idUser, customer))
         .collect(Collectors.toList());
     return jpaRepository.saveAll(entityToCreate).stream()
         .map(mapper::toDomain)
         .collect(Collectors.toUnmodifiableList());
   }
 
+  //TODO: replace to findByCriteria as in Customers
   @Override
-  public List<Product> findAllByIdAccountAndStatusAndOrByDescriptionAndOrUnitPrice(
-      String idAccount, ProductStatus status, Integer page, Integer pageSize,
+  public List<Product> findByIdUserAndCriteria(
+      String idUser, ProductStatus status, Integer page, Integer pageSize,
       OrderDirection descriptionOrder, OrderDirection unitPriceOrder,
       OrderDirection createdAtOrder,
       String description, Fraction unitPrice) {
@@ -94,10 +76,10 @@ public class ProductRepositoryImpl implements ProductRepository {
     String descriptionFilter = description == null ? "" : description;
     String priceFilter = unitPrice == null ? "" : String.valueOf(unitPrice);
     List<HProduct> products = unitPrice == null
-        ? jpaRepository.findAllByIdAccountAndStatusAndDescriptionContainingIgnoreCase(
-        idAccount, status, descriptionFilter, pageRequest)
-        : jpaRepository.findAllByIdAccountAndStatusAndUnitPriceAndDescriptionContainingIgnoreCase(
-        idAccount, status, priceFilter, descriptionFilter, pageRequest);
+        ? jpaRepository.findAllByIdUserAndStatusAndDescriptionContainingIgnoreCase(
+        idUser, status, descriptionFilter, pageRequest)
+        : jpaRepository.findAllByIdUserAndStatusAndUnitPriceAndDescriptionContainingIgnoreCase(
+        idUser, status, priceFilter, descriptionFilter, pageRequest);
 
     return products.stream()
         .map(mapper::toDomain)
@@ -105,26 +87,31 @@ public class ProductRepositoryImpl implements ProductRepository {
   }
 
   @Override
-  public List<Product> updateStatus(String accountId, List<UpdateProductStatus> toUpdate) {
-    List<Product> productUpdated = new ArrayList<>();
-    for (UpdateProductStatus product : toUpdate) {
-      HProduct existingProduct = jpaRepository.findByIdAccountAndId(accountId, product.getId());
-      existingProduct.setStatus(product.getStatus());
-      productUpdated.add(mapper.toDomain(jpaRepository.save(existingProduct)));
-    }
-    return productUpdated;
+  public List<Product> updateStatuses(List<UpdateProductStatus> productStatuses) {
+    List<HProduct> products = productStatuses.stream()
+        .map(productStatus ->
+            jpaRepository.findById(productStatus.getId()).orElseThrow(
+                    () -> new NotFoundException(
+                        "Product(id=" + productStatus.getId() + " not found"))
+                .toBuilder()
+                .status(productStatus.getStatus())
+                .build())
+        .collect(Collectors.toList());
+    return jpaRepository.saveAll(products).stream()
+        .map(mapper::toDomain)
+        .collect(Collectors.toList());
   }
 
-  private Product checkExisting(String accountId, Product domain) {
+  private Product checkExisting(String idUser, Product domain) {
     String id = domain.getId();
     if (id != null) {
       jpaRepository.findById(id)
           .orElseThrow(()
               -> new NotFoundException(
-              "Product(id=" + id + ") not found for Account(id=" + accountId + ")"));
+              "Product(id=" + id + ") not found for User(id=" + idUser + ")"));
     }
-    Optional<HProduct> optionalProduct = jpaRepository.findByIdAccountAndDescription(
-        accountId, domain.getDescription());
+    Optional<HProduct> optionalProduct =
+        jpaRepository.findByIdUserAndDescription(idUser, domain.getDescription());
     return optionalProduct.isEmpty() ? domain : domain.toBuilder()
         .id(optionalProduct.get().getId())
         .build();

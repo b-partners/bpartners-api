@@ -13,22 +13,23 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.annotations.UpdateTimestamp;
+
 import static javax.persistence.GenerationType.IDENTITY;
 
 @Entity
-@Table(name = "\"account_invoice_relaunch_conf\"")
+@Table(name = "\"user_invoice_relaunch_conf\"")
 @Getter
 @Setter
 @ToString
-@Builder
+@Builder(toBuilder = true)
 @AllArgsConstructor
 @NoArgsConstructor
 @EqualsAndHashCode
-public class HAccountInvoiceRelaunchConf {
+public class HUserInvoiceRelaunchConf {
   @Id
   @GeneratedValue(strategy = IDENTITY)
   private String id;
-  private String accountId;
+  private String idUser;
   private int draftRelaunch;
   private int unpaidRelaunch;
   @UpdateTimestamp

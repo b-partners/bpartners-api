@@ -717,6 +717,8 @@ components:
           $ref: '#/components/schemas/Bank'
         status:
           $ref: '#/components/schemas/AccountStatus'
+        active:
+          type: boolean
     AccountStatus:
       type: string
       enum:

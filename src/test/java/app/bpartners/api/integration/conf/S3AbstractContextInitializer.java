@@ -11,7 +11,6 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.test.context.support.TestPropertySourceUtils;
 import org.testcontainers.containers.JdbcDatabaseContainer;
 import org.testcontainers.containers.PostgisContainerProvider;
-import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.containers.localstack.LocalStackContainer;
 import org.testcontainers.utility.DockerImageName;
 
@@ -23,6 +22,7 @@ public abstract class S3AbstractContextInitializer
 
   public static final String FLYWAY_TESTDATA_PATH = "classpath:/db/testdata";
   public static final String BUCKET_NAME = "bpartners";
+  public static final String OLD_S3_KEY = "old_s3_key";
 
   @Override
   public void initialize(ConfigurableApplicationContext applicationContext) {
@@ -51,10 +51,14 @@ public abstract class S3AbstractContextInitializer
         .build();
 
     s3.createBucket(BUCKET_NAME);
-    s3.putObject(new PutObjectRequest(BUCKET_NAME, "dev/accounts/beed1765-5c16-472a-b3f4"
-        + "-5c376ce5db58/logo/logo.jpeg", new File(testFilePath())));
-    s3.putObject(new PutObjectRequest(BUCKET_NAME, "dev/accounts/beed1765-5c16-472a-b3f4"
-        + "-5c376ce5db58/logo/test.jpeg", new File(testFilePath())));
+    s3.putObject(
+        new PutObjectRequest(
+            BUCKET_NAME,
+            "dev/accounts/" + OLD_S3_KEY + "/logo/logo.jpeg",
+            new File(testFilePath())));
+    s3.putObject(new PutObjectRequest(BUCKET_NAME,
+        "dev/accounts/" + OLD_S3_KEY + "/logo/test.jpeg",
+        new File(testFilePath())));
 
     TestPropertySourceUtils.addInlinedPropertiesToEnvironment(
         applicationContext,

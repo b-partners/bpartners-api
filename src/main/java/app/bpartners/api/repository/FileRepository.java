@@ -5,11 +5,9 @@ import app.bpartners.api.model.FileInfo;
 import java.util.Optional;
 
 public interface FileRepository {
-  FileInfo getByAccountIdAndId(String accountId, String id);
+  FileInfo findById(String id);
 
-  FileInfo getById(String id);
-
-  Optional<FileInfo> getOptionalByIdAndAccountId(String id, String accountId);
+  Optional<FileInfo> findOptionalById(String id);
 
   FileInfo save(FileInfo file);
 }

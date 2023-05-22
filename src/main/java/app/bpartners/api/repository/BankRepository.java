@@ -14,7 +14,7 @@ public interface BankRepository {
 
   Bank findById(String id);
 
-  BankConnection selfUpdateBankConnection();
+  BankConnection updateBankConnection(User user);
 
   Instant refreshBankConnection(UserToken user);
 

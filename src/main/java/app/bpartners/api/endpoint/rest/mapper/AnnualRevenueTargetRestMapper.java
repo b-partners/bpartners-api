@@ -14,12 +14,12 @@ public class AnnualRevenueTargetRestMapper {
   private final AccountHolderJpaRepository accountHolderJpaRepository;
 
   public AnnualRevenueTarget toDomain(
-      String accountHolderId, CreateAnnualRevenueTarget toCreate) {
+      String accountHolderId, CreateAnnualRevenueTarget revenueTarget) {
     return AnnualRevenueTarget.builder()
         .id(null) //Generated auto
-        .year(toCreate.getYear())
-        .amountTarget(parseFraction(toCreate.getAmountTarget()))
         .idAccountHolder(accountHolderId)
+        .year(revenueTarget.getYear())
+        .amountTarget(parseFraction(revenueTarget.getAmountTarget()))
         .build();
   }
 

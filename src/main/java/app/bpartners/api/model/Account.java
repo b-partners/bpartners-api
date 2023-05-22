@@ -19,15 +19,32 @@ import lombok.ToString;
 @EqualsAndHashCode
 public class Account implements Serializable {
   private String id;
+  private String idAccountHolder;
   private String userId;
   private String name;
   private String iban;
   private String bic;
   private Fraction availableBalance;
   private Bank bank;
+  private boolean active;
   private AccountStatus status;
 
+  public Account active(boolean active) {
+    this.active = active;
+    return this;
+  }
+
   public String describeInfos() {
-    return "Account(id=" + id + ",name=" + name + ",iban=" + iban + ",status=" + status + ")";
+    return "Account(id=" + id
+        + ",name=" + name
+        + ",iban=" + iban
+        + ",status=" + status + ","
+        + "active=" + active + ")";
+  }
+
+  public String describeMinInfos() {
+    return "Account(id=" + id
+        + ",iban=" + iban
+        + ",status=" + status + ")";
   }
 }

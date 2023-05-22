@@ -39,6 +39,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
+import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ID;
 import static app.bpartners.api.integration.conf.TestUtils.SESSION1_ID;
 import static app.bpartners.api.integration.conf.TestUtils.SESSION2_ID;
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsApiException;
@@ -148,7 +149,7 @@ class PaymentIT {
         .label(label)
         .reference("Payment reference")
         .paymentUrl("https://connect-v2-sbx.fintecture.com")
-        .accountId(JOE_DOE_ACCOUNT_ID)
+        .idUser(JOE_DOE_ID)
         .status(PaymentStatus.UNPAID)
         .build();
   }

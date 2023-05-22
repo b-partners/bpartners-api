@@ -9,7 +9,9 @@ import app.bpartners.api.model.mapper.UserMapper;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.bridge.model.User.BridgeUser;
 import app.bpartners.api.repository.bridge.repository.BridgeUserRepository;
+import app.bpartners.api.repository.jpa.AccountHolderJpaRepository;
 import app.bpartners.api.repository.jpa.UserJpaRepository;
+import app.bpartners.api.repository.jpa.model.HAccountHolder;
 import app.bpartners.api.repository.jpa.model.HUser;
 import app.bpartners.api.repository.swan.UserSwanRepository;
 import app.bpartners.api.repository.swan.model.SwanUser;
@@ -27,13 +29,13 @@ import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVE
 @Repository
 @AllArgsConstructor
 public class UserRepositoryImpl implements UserRepository {
-  public static final int UNIQUE_BRIDGE_SIZE = 1;
   private final UserSwanRepository swanRepository;
   private final UserJpaRepository jpaRepository;
   private final UserMapper userMapper;
   private final SwanComponent swanComponent;
   private final CognitoComponent cognitoComponent;
   private final BridgeUserRepository bridgeUserRepository;
+  private final AccountHolderJpaRepository holderJpaRepository;
 
   @Override
   public List<User> findAll() {
@@ -74,9 +76,9 @@ public class UserRepositoryImpl implements UserRepository {
       entityUser = getUpdatedUser(swanUser);
     } else {
       String bridgeToken = token;
-      List<HUser> entitiesFromBridge = jpaRepository.findByAccessToken(bridgeToken);
-      if (entitiesFromBridge.size() == UNIQUE_BRIDGE_SIZE) {
-        entityUser = entitiesFromBridge.get(0);
+      Optional<HUser> entitiesFromBridge = jpaRepository.findByAccessToken(bridgeToken);
+      if (entitiesFromBridge.isPresent()) {
+        entityUser = entitiesFromBridge.get();
       } else {
         String cognitoToken = token;
         String email = cognitoComponent.getEmailByToken(cognitoToken);
@@ -111,10 +113,16 @@ public class UserRepositoryImpl implements UserRepository {
 
   @Override
   public User save(User toSave) {
-    BridgeUser bridgeUser = bridgeUserRepository.createUser(userMapper.toBridgeUser(toSave));
-    HUser entityToSave = userMapper.toEntity(toSave, bridgeUser);
-    HUser savedUser = jpaRepository.save(entityToSave);
-    return userMapper.toDomain(savedUser);
+    if (toSave.getBridgePassword() == null) { //user does not still have bridge account
+      BridgeUser bridgeUser = bridgeUserRepository.createUser(userMapper.toBridgeUser(toSave));
+      HUser entityToSave = userMapper.toEntity(toSave, bridgeUser);
+      HUser savedUser = jpaRepository.save(entityToSave);
+      return userMapper.toDomain(savedUser);
+    }
+    List<HAccountHolder> associatedHolders =
+        holderJpaRepository.findAllByIdUser(toSave.getId());
+    return userMapper.toDomain(jpaRepository.save(
+        userMapper.toEntity(toSave, associatedHolders)));
   }
 
   public HUser getUpdatedUser(SwanUser swanUser) {

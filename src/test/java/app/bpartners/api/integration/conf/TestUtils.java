@@ -113,6 +113,7 @@ public class TestUtils {
   public static final String JOE_DOE_ID = "joe_doe_id";
   public static final String BERNARD_DOE_ID = "bernard_doe_id";
   public static final String JOE_DOE_SWAN_USER_ID = "c15924bf-61f9-4381-8c9b-d34369bf91f7";
+  public static final String JOE_DOE_ACCOUNT_HOLDER_ID = "b33e6eb0-e262-4596-a91f-20c6a7bfd343";
   public static final String JANE_DOE_SWAN_USER_ID = "jane_doe_user_id";
   public static final String BERNARD_DOE_SWAN_USER_ID = "c15924bf-61f9-4381-8c9b-d34369bf91f7";
   public static final String BAD_TOKEN = "bad_token";
@@ -1230,6 +1231,7 @@ public class TestUtils {
         .availableBalance(
             parseFraction(joeDoeSwanAccount().getBalances().getAvailable().getValue()))
         .status(OPENED)
+        .active(true)
         .build();
   }
 

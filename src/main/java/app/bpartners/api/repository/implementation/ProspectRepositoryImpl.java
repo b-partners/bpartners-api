@@ -99,7 +99,7 @@ public class ProspectRepositoryImpl implements ProspectRepository {
   @Transactional(isolation = SERIALIZABLE)
   @Override
   public List<Prospect> saveAll(List<Prospect> prospects) {
-    AccountHolder authenticatedAccount = resourceProvider.getAccountHolder();
+    AccountHolder authenticatedAccount = resourceProvider.getDefaultAccountHolder();
 
     boolean isSogefiProspector = isSogefiProspector(authenticatedAccount.getId());
     List<HProspect> entities =

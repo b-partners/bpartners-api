@@ -6,7 +6,6 @@ import app.bpartners.api.model.InvoiceRelaunch;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.repository.jpa.model.HInvoiceRelaunch;
 import app.bpartners.api.service.AttachmentService;
-import app.bpartners.api.service.InvoiceService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -14,16 +13,13 @@ import org.springframework.stereotype.Component;
 @AllArgsConstructor
 public class InvoiceRelaunchMapper {
   private final InvoiceMapper invoiceMapper;
-  private final InvoiceService invoiceService;
   private final AttachmentService attachmentService;
 
-  public InvoiceRelaunch toDomain(HInvoiceRelaunch entity) {
-    Invoice invoice = invoiceService.getById(entity.getInvoice().getId());
+  public InvoiceRelaunch toDomain(HInvoiceRelaunch entity, Invoice invoice) {
     return InvoiceRelaunch.builder()
         .id(entity.getId())
         .type(entity.getType())
         .invoice(invoice)
-        .accountId(entity.getInvoice().getIdAccount())
         .isUserRelaunched(entity.isUserRelaunched())
         .creationDatetime(entity.getCreationDatetime())
         .emailObject(entity.getObject())

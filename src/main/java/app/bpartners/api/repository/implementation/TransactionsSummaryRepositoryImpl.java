@@ -18,9 +18,9 @@ public class TransactionsSummaryRepositoryImpl implements TransactionsSummaryRep
   private final TransactionsSummaryMapper mapper;
 
   @Override
-  public TransactionsSummary getByAccountIdAndYear(String accountId, int year) {
+  public TransactionsSummary getByIdUserAndYear(String idUser, int year) {
     List<HMonthlyTransactionsSummary> monthlySummaries =
-        jpaRepository.getByIdAccountAndYear(accountId, year);
+        jpaRepository.getByIdUserAndYear(idUser, year);
     return mapper.toDomain(year, monthlySummaries);
   }
 
@@ -32,11 +32,11 @@ public class TransactionsSummaryRepositoryImpl implements TransactionsSummaryRep
   }
 
   public MonthlyTransactionsSummary updateYearMonthSummary(
-      String accountId, int year, MonthlyTransactionsSummary monthlySummary) {
+      String idUser, int year, MonthlyTransactionsSummary monthlySummary) {
     HMonthlyTransactionsSummary summaryEntity =
-        jpaRepository.findByIdAccountAndYearAndMonth(accountId, year, monthlySummary.getMonth())
+        jpaRepository.findByIdUserAndYearAndMonth(idUser, year, monthlySummary.getMonth())
             .orElse(HMonthlyTransactionsSummary.builder()
-                .idAccount(accountId)
+                .idUser(idUser)
                 .month(monthlySummary.getMonth())
                 .year(year)
                 .build());
@@ -50,8 +50,14 @@ public class TransactionsSummaryRepositoryImpl implements TransactionsSummaryRep
   }
 
   @Override
-  public MonthlyTransactionsSummary getByAccountIdAndYearMonth(
-      String accountId, int year, int month) {
-    return mapper.toDomain(jpaRepository.getByIdAccountAndYearAndMonth(accountId, year, month));
+  public MonthlyTransactionsSummary getByIdUserAndYearMonth(
+      String idUser, int year, int month) {
+    return mapper.toDomain(jpaRepository.getByIdUserAndYearAndMonth(idUser, year, month));
+  }
+
+  @Override
+  public void removeAll(String userId) {
+    List<HMonthlyTransactionsSummary> toRemove = jpaRepository.getByIdUser(userId);
+    jpaRepository.deleteAll(toRemove);
   }
 }

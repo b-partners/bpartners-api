@@ -4,13 +4,14 @@ import app.bpartners.api.model.MonthlyTransactionsSummary;
 import app.bpartners.api.model.TransactionsSummary;
 
 public interface TransactionsSummaryRepository {
-  TransactionsSummary getByAccountIdAndYear(String accountId, int year);
+  TransactionsSummary getByIdUserAndYear(String idUser, int year);
 
   TransactionsSummary getByAccountHolderIdAndYear(String accountHolderId, int year);
 
   MonthlyTransactionsSummary updateYearMonthSummary(
-      String accountId, int year,
-      MonthlyTransactionsSummary monthlyTransactionsSummary);
+      String idUser, int year, MonthlyTransactionsSummary monthlySummary);
 
-  MonthlyTransactionsSummary getByAccountIdAndYearMonth(String accountId, int year, int month);
+  MonthlyTransactionsSummary getByIdUserAndYearMonth(String idUser, int year, int month);
+
+  void removeAll(String userId);
 }

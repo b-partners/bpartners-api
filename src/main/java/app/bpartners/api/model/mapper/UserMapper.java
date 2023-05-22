@@ -5,8 +5,11 @@ import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.repository.bridge.model.User.BridgeUser;
 import app.bpartners.api.repository.bridge.model.User.CreateBridgeUser;
+import app.bpartners.api.repository.jpa.model.HAccountHolder;
 import app.bpartners.api.repository.jpa.model.HUser;
 import app.bpartners.api.repository.swan.model.SwanUser;
+import java.util.List;
+import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -21,7 +24,7 @@ public class UserMapper {
   public static final String PROCESSING_STATUS = "Processing";
   public static final String UNINITIATED_STATUS = "Uninitiated";
   private final AccountMapper accountMapper;
-
+  private final AccountHolderMapper accountHolderMapper;
 
   public User toDomain(HUser entityUser) {
     return User.builder()
@@ -32,7 +35,7 @@ public class UserMapper {
         .email(entityUser.getEmail())
         .accessToken(entityUser.getAccessToken())
         .bridgePassword(entityUser.getBridgePassword())
-        .bridgeItemId(entityUser.getBridgeItemId())
+        .bankConnectionId(entityUser.getBridgeItemId())
         .bridgeItemUpdatedAt(entityUser.getBridgeItemUpdatedAt())
         .bridgeItemLastRefresh(entityUser.getBridgeItemLastRefresh())
         .monthlySubscription(entityUser.getMonthlySubscription())
@@ -40,24 +43,32 @@ public class UserMapper {
         .logoFileId(entityUser.getLogoFileId())
         .idVerified(entityUser.getIdVerified())
         .identificationStatus(entityUser.getIdentificationStatus())
-        .account(entityUser.getAccounts() == null || entityUser.getAccounts().isEmpty() ? null
+        .oldS3key(entityUser.getOldS3AccountKey())
+        .accounts(entityUser.getAccounts() == null ? null : entityUser.getAccounts().stream()
             //TODO: map bank as args or through JPA
             //TODO: An user can choose which account to use if more than one
-            : accountMapper.toDomain(entityUser.getAccounts().get(0), null))
+            .map(account -> accountMapper.toDomain(account, null))
+            .collect(Collectors.toList()))
+        .accountHolders(entityUser.getAccountHolders() == null ? null
+            : entityUser.getAccountHolders().stream()
+            .map(accountHolderMapper::toDomain)
+            .collect(Collectors.toList()))
+        .preferredAccountId(entityUser.getPreferredAccountId())
+        .externalUserId(entityUser.getBridgeUserId())
         .build();
   }
 
   public User toDomain(HUser entityUser, SwanUser swanUser) {
     return User.builder()
         .id(entityUser.getId())
-        .preferredAccountId(entityUser.getPreferredAccountExternalId())
+        .preferredAccountId(entityUser.getPreferredAccountId())
         .firstName(swanUser == null ? entityUser.getFirstName() : swanUser.getFirstName())
         .lastName(swanUser == null ? entityUser.getLastName() : swanUser.getLastName())
         .mobilePhoneNumber(entityUser.getPhoneNumber())
         .email(entityUser.getEmail())
         .accessToken(entityUser.getAccessToken())
         .bridgePassword(entityUser.getBridgePassword())
-        .bridgeItemId(entityUser.getBridgeItemId())
+        .bankConnectionId(entityUser.getBridgeItemId())
         .bridgeItemUpdatedAt(entityUser.getBridgeItemUpdatedAt())
         .bridgeItemLastRefresh(entityUser.getBridgeItemLastRefresh())
         .monthlySubscription(entityUser.getMonthlySubscription())
@@ -68,10 +79,17 @@ public class UserMapper {
             swanUser == null ? entityUser.getIdentificationStatus()
                 : getIdentificationStatus(
                 swanUser.getIdentificationStatus()))
-        .account(entityUser.getAccounts() == null || entityUser.getAccounts().isEmpty() ? null
+        .accounts(entityUser.getAccounts() == null ? null : entityUser.getAccounts().stream()
             //TODO: map bank as args or through JPA
             //TODO: An user can choose which account to use if more than one
-            : accountMapper.toDomain(entityUser.getAccounts().get(0), null))
+            .map(account -> accountMapper.toDomain(account, null))
+            .collect(Collectors.toList()))
+        .accountHolders(entityUser.getAccountHolders() == null ? null
+            : entityUser.getAccountHolders().stream()
+            .map(accountHolderMapper::toDomain)
+            .collect(Collectors.toList()))
+        .externalUserId(swanUser == null ? null : swanUser.getId())
+        .oldS3key(entityUser.getOldS3AccountKey())
         .build();
   }
 
@@ -99,10 +117,18 @@ public class UserMapper {
         .lastName(toSave.getLastName())
         .email(toSave.getEmail())
         .phoneNumber(toSave.getMobilePhoneNumber())
+        .bridgeUserId(toSave.getExternalUserId())
         .bridgePassword(toSave.getBridgePassword())
         .identificationStatus(toSave.getIdentificationStatus())
         .status(toSave.getStatus())
         .idVerified(toSave.getIdVerified())
+        .oldS3AccountKey(toSave.getOldS3key())
+        .build();
+  }
+
+  public HUser toEntity(User user, List<HAccountHolder> accountHolders) {
+    return toEntity(user).toBuilder()
+        .accountHolders(accountHolders)
         .build();
   }
 

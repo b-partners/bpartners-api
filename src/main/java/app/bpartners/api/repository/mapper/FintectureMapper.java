@@ -30,7 +30,7 @@ public class FintectureMapper {
   //TODO: put these checks properly
   public FPaymentInitiation toFintectureResource(PaymentInitiation domain) {
     Account authenticatedAccount = authResourceProvider.getAccount();
-    AccountHolder authenticatedAccountHolder = authResourceProvider.getAccountHolder();
+    AccountHolder authenticatedAccountHolder = authResourceProvider.getDefaultAccountHolder();
     if (authenticatedAccount.getIban() == null) {
       throw new BadRequestException(
           "Account("

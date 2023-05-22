@@ -1,7 +1,6 @@
 package app.bpartners.api.model;
 
 import app.bpartners.api.endpoint.rest.model.ProductStatus;
-import app.bpartners.api.endpoint.rest.model.TransactionTypeEnum;
 import java.time.Instant;
 import java.util.Objects;
 import lombok.AccessLevel;
@@ -23,7 +22,6 @@ import static org.apfloat.Apcomplex.ONE;
 @ToString
 public class Product {
   private String id;
-  private String accountId;
   private String description;
   private Fraction unitPrice;
   @Getter(AccessLevel.NONE)

@@ -52,7 +52,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -112,7 +111,6 @@ import static org.springframework.test.annotation.DirtiesContext.MethodMode.BEFO
 @Testcontainers
 @ContextConfiguration(initializers = AccountIT.ContextInitializer.class)
 @AutoConfigureMockMvc
-@Slf4j
 class AccountIT {
   private static final String OTHER_USER_ID = "OTHER_USER_ID";
   @MockBean
@@ -228,7 +226,7 @@ class AccountIT {
         .id(JOE_DOE_ID)
         .email("joe@email.com")
         .preferredAccountId(null)
-        .account(joeDoeModelAccount())
+        .accounts(List.of(joeDoeModelAccount()))
         .build();
   }
 
@@ -237,7 +235,7 @@ class AccountIT {
         .id(BERNARD_DOE_ID)
         .email("bernard@email.com")
         .preferredAccountId(null)
-        .account(bernardDoeModelAccount())
+        .accounts(List.of(bernardDoeModelAccount()))
         .build();
   }
 
@@ -246,7 +244,7 @@ class AccountIT {
         .id(JOE_DOE_ID)
         .preferredAccountId(String.valueOf(otherBridgeAccount().getId()))
         .email("joe@email.com")
-        .account(joeDoeModelAccount())
+        .accounts(List.of(joeDoeModelAccount()))
         .build();
   }
 
@@ -258,6 +256,7 @@ class AccountIT {
         .bic(joeDoeSwanAccount().getBic())
         .iban(joeDoeSwanAccount().getIban())
         .bic("BIC_NOT_NULL")
+        .active(true)
         .availableBalance(100000);
   }
 
@@ -271,6 +270,7 @@ class AccountIT {
         .status(AccountStatus.OPENED)
         .bank(Bank.builder().build())
         .availableBalance(parseFraction(100000))
+        .active(true)
         .build();
   }
 
@@ -283,6 +283,7 @@ class AccountIT {
         .status(AccountStatus.VALIDATION_REQUIRED)
         .bank(Bank.builder().build())
         .availableBalance(parseFraction(100000))
+        .active(true)
         .build();
   }
 
@@ -349,12 +350,12 @@ class AccountIT {
         new SwanAccountConnectorRepository(
             savableAccountConnectorRepository, swanApiMock, swanCustomApi, accountMapper);
   }
+
   /*
-  TODO: make this test pass !
   @Test
   void disconnect_bank_ok() throws ApiException {
     setUpBridgeRepositories();
-    ApiClient joeDoeClient = anApiClient();
+    ApiClient joeDoeClient = joeDoeClient();
     UserAccountsApi api = new UserAccountsApi(joeDoeClient);
     Account beforeDisconnection = api.getAccountsByUserId(JOE_DOE_ID).get(0);
 
@@ -364,7 +365,7 @@ class AccountIT {
     User user = User.builder()
         .id(JOE_DOE_ID)
         .email("joe@email.com")
-        .account(persistDoeModelAccount())
+        .accounts(List.of(joeDoeModelAccount()))
         .build();
     when(userRepositoryMock.getById(any())).thenReturn(user);
     when(userRepositoryMock.getByEmail(any())).thenReturn(user);
@@ -374,14 +375,14 @@ class AccountIT {
     when(bridgeApiMock.findAccountsByToken(JOE_DOE_COGNITO_TOKEN)).thenReturn(List.of());
     Account afterDisconnection = api.getAccountsByUserId(JOE_DOE_ID).get(0);
 
-    assertEquals(afterDisconnection, beforeDisconnection);
-    //    assertEquals(beforeDisconnection.getId(), afterDisconnection.getId());
+    assertEquals(beforeDisconnection.getId(), afterDisconnection.getId());
     assertNotNull(beforeDisconnection.getIban());
     assertNotNull(beforeDisconnection.getBank());
     assertNull(afterDisconnection.getIban());
     assertNull(afterDisconnection.getBank());
     assertNull(afterDisconnection.getBic());
-  }*/
+  }
+  */
 
   @Test
   void read_opened_accounts_ok() throws ApiException {
@@ -614,7 +615,6 @@ class AccountIT {
 
   //TODO: check when external ID is not associated to account
   @Test
-  @DirtiesContext(methodMode = BEFORE_METHOD)
   void read_preferred_bridge_account() throws ApiException {
     setUpBridgeRepositories();
     ApiClient joeDoeClient = joeDoeClient();
@@ -622,11 +622,15 @@ class AccountIT {
 
     List<Account> actual = api.getAccountsByUserId(JOE_DOE_ID);
 
-    assertEquals(1, actual.size());
-    assertEquals(otherBridgeAccount().getName(), actual.get(0).getName());
-    assertEquals(otherBridgeAccount().getIban(), actual.get(0).getIban());
-  }
+    assertEquals(2, actual.size());
+    Account activeAccount = actual.stream()
+        .filter(Account::getActive)
+        .findAny()
+        .get();
+    assertEquals(otherBridgeAccount().getName(), activeAccount.getName());
+    assertEquals(otherBridgeAccount().getIban(), activeAccount.getIban());
 
+  }
 
   @Test
   @DirtiesContext(methodMode = AFTER_METHOD)
@@ -692,7 +696,7 @@ class AccountIT {
             + "\"message\":\"Account("
             + "id=beed1765-5c16-472a-b3f4-5c376ce5db58,"
             + "name=Other,"
-            + "iban=FR12349001001190346460988,status=OPENED)"
+            + "iban=FR12349001001190346460988,status=OPENED,active=false)"
             + " does not need validation.\"}",
         () -> api.initiateAccountValidation(JOE_DOE_ID, JOE_DOE_ACCOUNT_ID,
             new RedirectionStatusUrls()));
@@ -712,7 +716,7 @@ class AccountIT {
     assertThrowsApiException(
         "{\"type\":\"400 BAD_REQUEST\",\""
             + "message\":\"Account(id=beed1765-5c16-472a-b3f4-5c376ce5db58,name=Account_name,"
-            + "iban=FR0123456789,status=OPENED) does not need validation.\"}",
+            + "iban=FR0123456789,status=OPENED,active=false) does not need validation.\"}",
         () -> api.initiateAccountValidation(JOE_DOE_ID, JOE_DOE_ACCOUNT_ID,
             new RedirectionStatusUrls()));
   }

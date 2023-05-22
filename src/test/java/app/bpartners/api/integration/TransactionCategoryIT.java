@@ -29,15 +29,14 @@ import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
-import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
@@ -65,7 +64,6 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @ContextConfiguration(initializers = TransactionCategoryIT.ContextInitializer.class)
 @AutoConfigureMockMvc
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-@Slf4j
 class TransactionCategoryIT {
   @MockBean
   private PaymentScheduleService paymentScheduleService;
@@ -158,7 +156,6 @@ class TransactionCategoryIT {
         .comment("Don de l'Etat");
   }
 
-  @Order(3)
   @Test
   void read_transaction_categories_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
@@ -182,7 +179,6 @@ class TransactionCategoryIT {
     assertTrue(actualAll.containsAll(actualOutcome));
   }
 
-  @Order(4)
   @Test
   void count_transaction_categories_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
@@ -199,8 +195,8 @@ class TransactionCategoryIT {
     assertTrue(actualAll.stream().noneMatch(e -> e.getCount() != 0L));
   }
 
-  @Order(1)
   @Test
+  @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
   void create_transaction_categories_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
     PayingApi api = new PayingApi(joeDoeClient);
@@ -219,7 +215,6 @@ class TransactionCategoryIT {
     assertEquals(actualOther.get(0).getComment(), otherIncomeTransactionCategory().getComment());
   }
 
-  @Order(2)
   @Test
   void create_transaction_categories_ko() {
     ApiClient joeDoeClient = anApiClient();

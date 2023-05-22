@@ -10,9 +10,9 @@ import app.bpartners.api.model.FileInfo;
 import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.InvoiceProduct;
+import app.bpartners.api.model.User;
 import app.bpartners.api.repository.InvoiceRepository;
 import app.bpartners.api.repository.jpa.model.HInvoice;
-import app.bpartners.api.service.AccountHolderService;
 import app.bpartners.api.service.InvoiceCrupdatedService;
 import app.bpartners.api.service.InvoiceService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -28,6 +28,7 @@ import static app.bpartners.api.endpoint.rest.model.FileType.INVOICE;
 import static app.bpartners.api.integration.conf.TestUtils.FILE_ID;
 import static app.bpartners.api.integration.conf.TestUtils.INVOICE1_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
+import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 
@@ -35,20 +36,25 @@ class InvoiceCrupdatedServiceTest {
   InvoiceService invoiceService;
   InvoiceRepository invoiceRepository;
   InvoiceCrupdatedService invoiceCrupdatedService;
-  AccountHolderService accountHolderService;
 
   @BeforeEach
   void setUp() {
     invoiceRepository = mock(InvoiceRepository.class);
-    accountHolderService = mock(AccountHolderService.class);
-    invoiceService =
-        new InvoiceService(
-            invoiceRepository,
-            accountHolderService);
+    invoiceService = new InvoiceService(invoiceRepository);
     invoiceCrupdatedService = new InvoiceCrupdatedService(invoiceService);
   }
 
   InvoiceCrupdated invoiceCrupdated() {
+    Account account = Account.builder()
+        .id(JOE_DOE_ACCOUNT_ID)
+        .iban("iban")
+        .bic("bic")
+        .name("account_name")
+        .build();
+    User user = User.builder()
+        .id(JOE_DOE_ID)
+        .accounts(List.of(account))
+        .build();
     return InvoiceCrupdated.builder()
         .invoice(Invoice.builder()
             .id(INVOICE1_ID)
@@ -64,12 +70,7 @@ class InvoiceCrupdatedServiceTest {
             .totalPriceWithVat(new Fraction())
             .totalPriceWithoutVat(new Fraction())
             .totalVat(new Fraction())
-            .account(Account.builder()
-                .id(JOE_DOE_ACCOUNT_ID)
-                .iban("iban")
-                .bic("bic")
-                .name("account_name")
-                .build())
+            .user(user)
             .products(List.of(InvoiceProduct.builder()
                 .id("product_id")
                 .quantity(50)
@@ -92,7 +93,7 @@ class InvoiceCrupdatedServiceTest {
             .mainActivityDescription("Phrase détaillée de mon activité")
             .mobilePhoneNumber("899067250")
             .address("6 RUE PAUL LANGEVIN")
-            .accountId("account1_id")
+            //TODO: add account association
             .vatNumber("20")
             .siren("siren")
             .socialCapital(400000)
@@ -113,7 +114,7 @@ class InvoiceCrupdatedServiceTest {
         .comment(invoiceCrupdated().getInvoice().getComment())
         .ref(invoiceCrupdated().getInvoice().getRealReference())
         .title(invoiceCrupdated().getInvoice().getTitle())
-        .idAccount(invoiceCrupdated().getInvoice().getAccount().getId())
+        .idUser(invoiceCrupdated().getInvoice().getUser().getId())
         .sendingDate(invoiceCrupdated().getInvoice().getSendingDate())
         .toPayAt(invoiceCrupdated().getInvoice().getToPayAt())
         .status(invoiceCrupdated().getInvoice().getStatus())
@@ -138,7 +139,7 @@ class InvoiceCrupdatedServiceTest {
   }
 
   private String invoiceAccountId() {
-    return invoiceCrupdated().getInvoice().getAccount().getId();
+    return invoiceCrupdated().getInvoice().getActualAccount().getId();
   }
 
   private String invoiceFileId() {

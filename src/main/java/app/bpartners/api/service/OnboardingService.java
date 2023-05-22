@@ -21,6 +21,7 @@ import app.bpartners.api.repository.UserRepository;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,6 +33,7 @@ import static org.springframework.transaction.annotation.Isolation.SERIALIZABLE;
 
 @Service
 @AllArgsConstructor
+@Slf4j
 public class OnboardingService {
   public static final boolean DEFAULT_SUBJECT_TO_VAT = true;
   public static final VerificationStatus DEFAULT_VERIFICATION_STATUS = VerificationStatus.VERIFIED;
@@ -59,13 +61,16 @@ public class OnboardingService {
     String id = String.valueOf(randomUUID());
     String bridgePassword = encryptSequence(id);
     User savedUser = userRepository.save(userDefaultValues(toSave, id, bridgePassword));
+
     eventProducer.accept(List.of(toTypedUser(savedUser)));
-    Account accountToSave = fromNewUser(savedUser);
-    Account savedAccount = accountRepository.save(accountToSave);
-    AccountHolder accountHolderToSave = fromNewAccountAndUser(companyName, savedAccount, savedUser);
+
+    AccountHolder accountHolderToSave = fromNewUser(companyName, savedUser);
     AccountHolder savedAccountHolder = accountHolderRepository.save(accountHolderToSave);
+    Account accountToSave = fromNewUserAndAccountHolder(savedUser, savedAccountHolder);
+    Account savedAccount = accountRepository.save(accountToSave);
     User updatedAccount = savedUser.toBuilder()
-        .account(savedAccount)
+        .accounts(List.of(savedAccount.active(true)))
+        .accountHolders(List.of(savedAccountHolder))
         .build();
     return new OnboardedUser(updatedAccount, savedAccount, savedAccountHolder);
   }
@@ -94,13 +99,14 @@ public class OnboardingService {
         .identificationStatus(DEFAULT_USER_IDENTIFICATION) //default value
         .status(DEFAULT_USER_STATUS) //default value
         .idVerified(DEFAULT_VERIFIED) //default value
+        .accounts(List.of())
         .build();
   }
 
-  private AccountHolder fromNewAccountAndUser(String companyName, Account account, User user) {
+  private AccountHolder fromNewUser(String companyName, User user) {
     return AccountHolder.builder()
         .id(String.valueOf(randomUUID()))
-        .accountId(account.getId())
+        .userId(user.getId())
         .name(companyName)
         .initialCashflow(DEFAULT_CASH_FLOW)
         .email(user.getEmail())
@@ -110,12 +116,14 @@ public class OnboardingService {
         .build();
   }
 
-  private Account fromNewUser(User user) {
+  private Account fromNewUserAndAccountHolder(User savedUser, AccountHolder savedAccountHolder) {
     return Account.builder()
-        .name(user.getName())
-        .userId(user.getId())
+        .userId(savedUser.getId())
+        .idAccountHolder(savedAccountHolder.getId())
+        .name(savedUser.getName())
         .availableBalance(DEFAULT_BALANCE)
         .status(DEFAULT_STATUS)
+        .active(true)
         .build();
   }
 

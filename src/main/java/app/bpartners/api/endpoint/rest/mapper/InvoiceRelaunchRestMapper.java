@@ -7,6 +7,7 @@ import app.bpartners.api.endpoint.rest.model.EmailInfo;
 import app.bpartners.api.endpoint.rest.model.InvoiceRelaunch;
 import app.bpartners.api.endpoint.rest.model.InvoiceRelaunchConf;
 import app.bpartners.api.endpoint.rest.validator.CreateInvoiceRelaunchConfValidator;
+import app.bpartners.api.model.UserInvoiceRelaunchConf;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
@@ -19,10 +20,10 @@ public class InvoiceRelaunchRestMapper {
   private final InvoiceRestMapper invoiceRestMapper;
   private final AttachmentRestMapper attachmentRestMapper;
 
-  public app.bpartners.api.model.AccountInvoiceRelaunchConf toDomain(
+  public UserInvoiceRelaunchConf toDomain(
       CreateAccountInvoiceRelaunchConf createAccountInvoiceRelaunchConf) {
     validator.accept(createAccountInvoiceRelaunchConf);
-    return app.bpartners.api.model.AccountInvoiceRelaunchConf.builder()
+    return UserInvoiceRelaunchConf.builder()
         .draftRelaunch(createAccountInvoiceRelaunchConf.getDraftRelaunch())
         .unpaidRelaunch(createAccountInvoiceRelaunchConf.getUnpaidRelaunch())
         .build();
@@ -40,12 +41,16 @@ public class InvoiceRelaunchRestMapper {
   }
 
   public AccountInvoiceRelaunchConf toRest(
-      app.bpartners.api.model.AccountInvoiceRelaunchConf accountInvoiceRelaunchConf) {
+      UserInvoiceRelaunchConf userInvoiceRelaunchConf) {
     return new AccountInvoiceRelaunchConf()
-        .id(accountInvoiceRelaunchConf.getId())
-        .updatedAt(accountInvoiceRelaunchConf.getUpdatedAt())
-        .unpaidRelaunch(accountInvoiceRelaunchConf.getUnpaidRelaunch())
-        .draftRelaunch(accountInvoiceRelaunchConf.getDraftRelaunch());
+        .id(userInvoiceRelaunchConf.getId())
+        .updatedAt(userInvoiceRelaunchConf.getUpdatedAt())
+        .unpaidRelaunch(userInvoiceRelaunchConf.getUnpaidRelaunch())
+        .draftRelaunch(userInvoiceRelaunchConf.getDraftRelaunch());
+  }
+
+  public InvoiceRelaunch toRest(app.bpartners.api.model.InvoiceRelaunch domain, String accountId) {
+    return toRest(domain).accountId(accountId);
   }
 
   public InvoiceRelaunch toRest(app.bpartners.api.model.InvoiceRelaunch domain) {
@@ -57,7 +62,6 @@ public class InvoiceRelaunchRestMapper {
         .id(domain.getId())
         .type(domain.getType())
         .invoice(invoiceRestMapper.toRest(domain.getInvoice()))
-        .accountId(domain.getAccountId())
         .isUserRelaunched(domain.isUserRelaunched())
         .creationDatetime(domain.getCreationDatetime())
         .emailInfo(new EmailInfo()

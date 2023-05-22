@@ -2,12 +2,12 @@ package app.bpartners.api.endpoint.rest.mapper;
 
 
 import app.bpartners.api.endpoint.rest.model.AccountHolder;
+import app.bpartners.api.endpoint.rest.model.AccountHolderFeedback;
 import app.bpartners.api.endpoint.rest.model.AnnualRevenueTarget;
 import app.bpartners.api.endpoint.rest.model.CompanyBusinessActivity;
 import app.bpartners.api.endpoint.rest.model.CompanyInfo;
 import app.bpartners.api.endpoint.rest.model.ContactAddress;
 import app.bpartners.api.endpoint.rest.model.UpdateAccountHolder;
-import app.bpartners.api.endpoint.rest.validator.AccountHolderRestValidator;
 import app.bpartners.api.model.BusinessActivity;
 import app.bpartners.api.repository.AccountHolderRepository;
 import app.bpartners.api.service.AnnualRevenueTargetService;
@@ -23,7 +23,6 @@ import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 @AllArgsConstructor
 public class AccountHolderRestMapper {
 
-  private final AccountHolderRestValidator validator;
   private final BusinessActivityService businessActivityService;
   private final AnnualRevenueTargetService annualRevenueTargetService;
   private final AnnualRevenueTargetRestMapper annualRevenueTargetRestMapper;
@@ -70,13 +69,19 @@ public class AccountHolderRestMapper {
         .address(domain.getAddress())
         .postalCode(domain.getPostalCode())
         .city(domain.getCity())
-        .country(domain.getCountry());
+        .country(domain.getCountry())
+        .feedback(createAccountHolderFeedback(domain.getFeedbackLink()));
+  }
+
+  public AccountHolderFeedback createAccountHolderFeedback(String feedbackLink) {
+    return new AccountHolderFeedback()
+        .feedbackLink(feedbackLink);
   }
 
   public app.bpartners.api.model.AccountHolder toDomain(
       String accountHolderId, String accountId, UpdateAccountHolder global) {
     app.bpartners.api.model.AccountHolder accountHolder =
-        accountHolderRepository.getByIdAndAccountId(accountHolderId, accountId);
+        accountHolderRepository.findById(accountHolderId);
     return accountHolder.toBuilder()
         .name(global.getName())
         .siren(global.getSiren())
@@ -87,6 +92,17 @@ public class AccountHolderRestMapper {
         .postalCode(global.getContactAddress().getPostalCode())
         .country(global.getContactAddress().getCountry())
         .prospectingPerimeter(global.getContactAddress().getProspectingPerimeter())
+        .build();
+  }
+
+  public app.bpartners.api.model.AccountHolder toDomain(
+      String accountHolderId,
+      AccountHolderFeedback accountHolderFeedback
+  ) {
+    app.bpartners.api.model.AccountHolder accountHolder =
+        accountHolderRepository.findById(accountHolderId);
+    return accountHolder.toBuilder()
+        .feedbackLink(accountHolderFeedback.getFeedbackLink())
         .build();
   }
 }

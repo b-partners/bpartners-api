@@ -22,7 +22,7 @@ public class HFileInfo {
   @Id
   private String id;
   private Instant uploadedAt;
-  private String accountId;
+  private String idUser;
   @Column(name = "size_in_kb")
   private int sizeInKB;
   private String sha256;

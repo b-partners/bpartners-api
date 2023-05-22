@@ -35,9 +35,9 @@ public class SelfUserAccountMatcher implements RequestMatcher {
     var selfUserId = getSelfUserId(request);
     var selfAccountId = getSelfAccountId(request);
     var principalUserId = AuthProvider.getPrincipal().getUserId();
-    var principalAccountId = authResourceProvider.getAccount().getId();
     return Objects.equals(selfUserId, principalUserId)
-        && Objects.equals(selfAccountId, principalAccountId);
+        && authResourceProvider.getAccounts().stream()
+        .anyMatch(account -> account.getId().equals(selfAccountId));
   }
 
   private String getSelfUserId(HttpServletRequest request) {

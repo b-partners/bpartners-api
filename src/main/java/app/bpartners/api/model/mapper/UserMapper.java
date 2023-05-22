@@ -1,6 +1,7 @@
 package app.bpartners.api.model.mapper;
 
 import app.bpartners.api.endpoint.rest.model.IdentificationStatus;
+import app.bpartners.api.model.Bank;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.repository.bridge.model.User.BridgeUser;
@@ -29,6 +30,14 @@ public class UserMapper {
   private final AccountMapper accountMapper;
   private final AccountHolderMapper accountHolderMapper;
 
+  public User toDomain(HUser entity, Bank bank) {
+    return toDomain(entity).toBuilder()
+        .accounts(entity.getAccounts() == null ? null : entity.getAccounts().stream()
+            .map(account -> accountMapper.toDomain(account, bank))
+            .collect(Collectors.toList()))
+        .build();
+  }
+
   public User toDomain(HUser entityUser) {
     return User.builder()
         .id(entityUser.getId())
@@ -48,8 +57,6 @@ public class UserMapper {
         .identificationStatus(entityUser.getIdentificationStatus())
         .oldS3key(entityUser.getOldS3AccountKey())
         .accounts(entityUser.getAccounts() == null ? null : entityUser.getAccounts().stream()
-            //TODO: map bank as args or through JPA
-            //TODO: An user can choose which account to use if more than one
             .map(account -> accountMapper.toDomain(account, null))
             .collect(Collectors.toList()))
         .accountHolders(entityUser.getAccountHolders() == null ? null

@@ -124,10 +124,11 @@ public class BankRepositoryImpl implements BankRepository {
         .build();
     HUser savedEntity = userJpaRepository.save(entityToSave);
 
+    Bank bank = findByExternalId(String.valueOf(connectionChosen.getBankId()));
     return BankConnection.builder()
         .bridgeId(savedEntity.getBridgeItemId())
-        .user(userMapper.toDomain(savedEntity))
-        .bank(findByExternalId(String.valueOf(connectionChosen.getBankId())))
+        .user(userMapper.toDomain(savedEntity, bank))
+        .bank(bank)
         .status(savedEntity.getBankConnectionStatus())
         .build();
   }

@@ -2,10 +2,14 @@ package app.bpartners.api.endpoint.rest.mapper;
 
 import app.bpartners.api.endpoint.rest.model.OnboardUser;
 import app.bpartners.api.endpoint.rest.model.User;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
+@AllArgsConstructor
 public class UserRestMapper {
+  private final AccountRestMapper accountRestMapper;
+
   public User toRest(app.bpartners.api.model.User domain) {
     return new User()
         .id(domain.getId())
@@ -16,7 +20,8 @@ public class UserRestMapper {
         .status(domain.getStatus())
         .idVerified(domain.getIdVerified())
         .identificationStatus(domain.getIdentificationStatus())
-        .logoFileId(domain.getLogoFileId());
+        .logoFileId(domain.getLogoFileId())
+        .activeAccount(accountRestMapper.toRest(domain.getDefaultAccount()));
   }
 
   public app.bpartners.api.model.User toDomain(OnboardUser toCreateUser) {

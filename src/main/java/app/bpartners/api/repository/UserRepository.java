@@ -18,4 +18,6 @@ public interface UserRepository {
   User getById(String id);
 
   User save(User toSave);
+
+  User create(User user);
 }

@@ -5,6 +5,7 @@ import app.bpartners.api.endpoint.rest.client.ApiException;
 import app.bpartners.api.endpoint.rest.model.AccountInvoiceRelaunchConf;
 import app.bpartners.api.endpoint.rest.model.AnnualRevenueTarget;
 import app.bpartners.api.endpoint.rest.model.ArchiveStatus;
+import app.bpartners.api.endpoint.rest.model.Bank;
 import app.bpartners.api.endpoint.rest.model.BusinessActivity;
 import app.bpartners.api.endpoint.rest.model.CompanyBusinessActivity;
 import app.bpartners.api.endpoint.rest.model.CompanyInfo;
@@ -194,7 +195,24 @@ public class TestUtils {
         .status(ENABLED)
         .idVerified(true)
         .identificationStatus(VALID_IDENTITY)
-        .logoFileId("logo.jpeg");
+        .logoFileId("logo.jpeg")
+        .activeAccount(restJoeAccount());
+  }
+
+  private static app.bpartners.api.endpoint.rest.model.Account restJoeAccount() {
+    app.bpartners.api.model.Bank bank = joePersistedAccount().getBank();
+    return new app.bpartners.api.endpoint.rest.model.Account()
+        .id(joePersistedAccount().getId())
+        .name(joePersistedAccount().getName())
+        .iban(joePersistedAccount().getIban())
+        .bic(joePersistedAccount().getBic())
+        .availableBalance(joePersistedAccount().getAvailableBalance().getCentsRoundUp())
+        .status(joePersistedAccount().getStatus())
+        .active(joePersistedAccount().isActive())
+        .bank(bank == null ? null
+            : new Bank().id(bank.getId())
+            .name(bank.getName())
+            .logoUrl(bank.getLogoUrl()));
   }
 
   public static User restJaneDoeUser() {
@@ -207,7 +225,21 @@ public class TestUtils {
         .status(ENABLED)
         .idVerified(true)
         .identificationStatus(VALID_IDENTITY)
-        .logoFileId("logo.jpeg");
+        .logoFileId("logo.jpeg")
+        .activeAccount(restJaneAccount()
+        );
+  }
+
+  private static app.bpartners.api.endpoint.rest.model.Account restJaneAccount() {
+    return new app.bpartners.api.endpoint.rest.model.Account()
+        .id(JANE_ACCOUNT_ID)
+        .name("Jane account")
+        .availableBalance(0)
+        .bank(null)
+        .status(OPENED)
+        .active(true)
+        .iban("IBAN1234")
+        .bic("BIC123");
   }
 
   public static SwanUser joeDoe() {
@@ -1219,6 +1251,20 @@ public class TestUtils {
     when(accountRepository.findById(any())).thenReturn(joeModelAccount());
     when(accountRepository.findByBearer(any())).thenReturn(List.of(joeModelAccount()));
     when(accountRepository.findByUserId(any())).thenReturn(List.of(joeModelAccount()));
+  }
+
+  private static Account joePersistedAccount() {
+    return Account.builder()
+        .id("beed1765-5c16-472a-b3f4-5c376ce5db58")
+        .userId("joe_doe_id")
+        .name("Account_name")
+        .iban("FR0123456789")
+        .bic("BIC_NOT_NULL")
+        .availableBalance(parseFraction(10000))
+        .status(OPENED)
+        .active(true)
+        .bank(null)
+        .build();
   }
 
   private static Account joeModelAccount() {

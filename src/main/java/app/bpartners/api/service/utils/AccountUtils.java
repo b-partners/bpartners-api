@@ -5,8 +5,6 @@ import java.util.ArrayList;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 
-import static app.bpartners.api.repository.implementation.AccountRepositoryImpl.preferredAccountId;
-
 @Slf4j
 public class AccountUtils {
   private AccountUtils() {
@@ -32,10 +30,10 @@ public class AccountUtils {
     return builder.toString();
   }
 
-  public static Account filterActive(List<Account> accounts) {
+  public static Account filterActive(List<Account> accounts, String preferredAccountId) {
     return accounts.stream()
-        .filter(account -> preferredAccountId() != null
-            && preferredAccountId().equals(account.getId()))
+        .filter(account -> preferredAccountId != null
+            && preferredAccountId.equals(account.getId()))
         .findAny().orElseGet(
             () -> accounts.stream()
                 .filter(Account::isActive)

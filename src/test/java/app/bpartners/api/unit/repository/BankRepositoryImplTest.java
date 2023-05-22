@@ -14,6 +14,7 @@ import app.bpartners.api.repository.bridge.model.Item.BridgeItem;
 import app.bpartners.api.repository.bridge.repository.BridgeBankRepository;
 import app.bpartners.api.repository.implementation.BankRepositoryImpl;
 import app.bpartners.api.repository.jpa.AccountHolderJpaRepository;
+import app.bpartners.api.repository.jpa.AccountJpaRepository;
 import app.bpartners.api.repository.jpa.BankJpaRepository;
 import app.bpartners.api.repository.jpa.UserJpaRepository;
 import app.bpartners.api.repository.jpa.model.HBank;
@@ -43,6 +44,7 @@ class BankRepositoryImplTest {
   BankJpaRepository bankJpaRepositoryMock;
   UserTokenRepository userTokenRepositoryMock;
   AccountHolderJpaRepository holderJpaRepositoryMock;
+  AccountJpaRepository accountJpaRepositoryMock;
   BankRepositoryImpl subject;
 
   @BeforeEach
@@ -54,9 +56,12 @@ class BankRepositoryImplTest {
     bankJpaRepositoryMock = mock(BankJpaRepository.class);
     userTokenRepositoryMock = mock(UserTokenRepository.class);
     holderJpaRepositoryMock = mock(AccountHolderJpaRepository.class);
+    accountJpaRepositoryMock = mock(AccountJpaRepository.class);
+
     subject = new BankRepositoryImpl(
         bridgeBankRepositoryMock, userJpaRepositoryMock, userMapperMock, bankMapperMock,
-        bankJpaRepositoryMock, userTokenRepositoryMock, holderJpaRepositoryMock);
+        bankJpaRepositoryMock, userTokenRepositoryMock, holderJpaRepositoryMock,
+        accountJpaRepositoryMock);
 
     when(bridgeBankRepositoryMock.findById(any()))
         .thenReturn(BridgeBank.builder()

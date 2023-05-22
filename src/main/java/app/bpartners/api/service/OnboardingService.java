@@ -60,7 +60,7 @@ public class OnboardingService {
   public OnboardedUser onboardUser(User toSave, String companyName) {
     String id = String.valueOf(randomUUID());
     String bridgePassword = encryptSequence(id);
-    User savedUser = userRepository.save(userDefaultValues(toSave, id, bridgePassword));
+    User savedUser = userRepository.create(userDefaultValues(toSave, id, bridgePassword));
 
     eventProducer.accept(List.of(toTypedUser(savedUser)));
 

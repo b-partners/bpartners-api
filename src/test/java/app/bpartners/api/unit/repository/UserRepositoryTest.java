@@ -7,6 +7,7 @@ import app.bpartners.api.model.mapper.UserMapper;
 import app.bpartners.api.repository.bridge.repository.BridgeUserRepository;
 import app.bpartners.api.repository.implementation.UserRepositoryImpl;
 import app.bpartners.api.repository.jpa.AccountHolderJpaRepository;
+import app.bpartners.api.repository.jpa.AccountJpaRepository;
 import app.bpartners.api.repository.jpa.UserJpaRepository;
 import app.bpartners.api.repository.jpa.model.HUser;
 import app.bpartners.api.repository.swan.UserSwanRepository;
@@ -37,6 +38,7 @@ class UserRepositoryTest {
   UserRepositoryImpl subject;
   BridgeUserRepository bridgeUserRepositoryMock;
   AccountHolderJpaRepository accountHolderJpaRepositoryMock;
+  AccountJpaRepository accountJpaRepositoryMock;
 
   @BeforeEach
   void setUp() {
@@ -47,10 +49,12 @@ class UserRepositoryTest {
     cognitoComponentMock = mock(CognitoComponent.class);
     bridgeUserRepositoryMock = mock(BridgeUserRepository.class);
     accountHolderJpaRepositoryMock = mock(AccountHolderJpaRepository.class);
+    accountJpaRepositoryMock = mock(AccountJpaRepository.class);
     subject =
-        new UserRepositoryImpl(userSwanRepositoryMock, userJpaRepositoryMock, userMapperMock,
-            swanComponentMock,
-            cognitoComponentMock, bridgeUserRepositoryMock, accountHolderJpaRepositoryMock);
+        new UserRepositoryImpl(
+            userSwanRepositoryMock, userJpaRepositoryMock, userMapperMock,
+            swanComponentMock, cognitoComponentMock, bridgeUserRepositoryMock,
+            accountHolderJpaRepositoryMock, accountJpaRepositoryMock);
 
     setUpUserSwanRepository(userSwanRepositoryMock);
     setUpSwanComponent(swanComponentMock);

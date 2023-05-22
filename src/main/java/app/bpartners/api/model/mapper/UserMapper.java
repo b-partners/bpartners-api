@@ -5,18 +5,21 @@ import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.repository.bridge.model.User.BridgeUser;
 import app.bpartners.api.repository.bridge.model.User.CreateBridgeUser;
+import app.bpartners.api.repository.jpa.model.HAccount;
 import app.bpartners.api.repository.jpa.model.HAccountHolder;
 import app.bpartners.api.repository.jpa.model.HUser;
 import app.bpartners.api.repository.swan.model.SwanUser;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 
 @Component
 @AllArgsConstructor
+@Slf4j
 public class UserMapper {
   public static final String VALID_IDENTITY_STATUS = "ValidIdentity";
   public static final String INSUFFICIENT_DOCUMENT_QUALITY_STATUS = "InsufficientDocumentQuality";
@@ -123,12 +126,14 @@ public class UserMapper {
         .status(toSave.getStatus())
         .idVerified(toSave.getIdVerified())
         .oldS3AccountKey(toSave.getOldS3key())
+        .preferredAccountId(toSave.getPreferredAccountId())
         .build();
   }
 
-  public HUser toEntity(User user, List<HAccountHolder> accountHolders) {
+  public HUser toEntity(User user, List<HAccountHolder> accountHolders, List<HAccount> accounts) {
     return toEntity(user).toBuilder()
         .accountHolders(accountHolders)
+        .accounts(accounts)
         .build();
   }
 

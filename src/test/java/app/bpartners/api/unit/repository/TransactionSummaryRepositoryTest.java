@@ -12,7 +12,7 @@ import java.time.temporal.ChronoUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
+import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ID;
 import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -40,13 +40,13 @@ class TransactionSummaryRepositoryTest {
           return answer;
         }
     );
-    when(jpaRepository.getByIdAccountAndYearAndMonth(
-        eq(JOE_DOE_ACCOUNT_ID),
+    when(jpaRepository.getByIdUserAndYearAndMonth(
+        eq(JOE_DOE_ID),
         eq(YearMonth.now().getYear()),
         any(Integer.class))
     ).thenReturn(persisted());
-    when(jpaRepository.getByIdAccountAndYearAndMonth(
-        eq(JOE_DOE_ACCOUNT_ID),
+    when(jpaRepository.getByIdUserAndYearAndMonth(
+        eq(JOE_DOE_ID),
         eq(2021),
         any(Integer.class))
     ).thenReturn(null);
@@ -54,14 +54,13 @@ class TransactionSummaryRepositoryTest {
 
   @Test
   void crupdate_yearmonth_summary_ok() {
-    Instant now = Instant.now().truncatedTo(ChronoUnit.MILLIS);
     MonthlyTransactionsSummary actual = summaryRepository.updateYearMonthSummary(
-        JOE_DOE_ACCOUNT_ID,
+        JOE_DOE_ID,
         YearMonth.now().getYear(),
         updated(null)
     );
     MonthlyTransactionsSummary actual2 = summaryRepository.updateYearMonthSummary(
-        JOE_DOE_ACCOUNT_ID,
+        JOE_DOE_ID,
         2021,
         updated(null)
     );
@@ -75,10 +74,10 @@ class TransactionSummaryRepositoryTest {
     YearMonth now = YearMonth.now();
 
     MonthlyTransactionsSummary actual =
-        summaryRepository.getByAccountIdAndYearMonth(JOE_DOE_ACCOUNT_ID, now.getYear(),
+        summaryRepository.getByIdUserAndYearMonth(JOE_DOE_ID, now.getYear(),
             now.getMonthValue());
     MonthlyTransactionsSummary nullSummary =
-        summaryRepository.getByAccountIdAndYearMonth(JOE_DOE_ACCOUNT_ID, 2021, 2);
+        summaryRepository.getByIdUserAndYearMonth(JOE_DOE_ID, 2021, 2);
 
     assertEquals(domain().toBuilder().updatedAt(actual.getUpdatedAt()).build(), actual);
     assertNull(nullSummary);
@@ -92,7 +91,7 @@ class TransactionSummaryRepositoryTest {
         .income("0/1")
         .outcome("0/1")
         .cashFlow("0/1")
-        .idAccount("")
+        .idUser("")
         .updatedAt(Instant.now().truncatedTo(ChronoUnit.MILLIS))
         .build();
   }

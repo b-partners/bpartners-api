@@ -351,7 +351,8 @@ class AccountIT {
             savableAccountConnectorRepository, swanApiMock, swanCustomApi, accountMapper);
   }
 
-  /*@Test
+  /*
+  @Test
   void disconnect_bank_ok() throws ApiException {
     setUpBridgeRepositories();
     ApiClient joeDoeClient = joeDoeClient();
@@ -374,14 +375,14 @@ class AccountIT {
     when(bridgeApiMock.findAccountsByToken(JOE_DOE_COGNITO_TOKEN)).thenReturn(List.of());
     Account afterDisconnection = api.getAccountsByUserId(JOE_DOE_ID).get(0);
 
-    assertEquals(afterDisconnection, beforeDisconnection);
-    //    assertEquals(beforeDisconnection.getId(), afterDisconnection.getId());
+    assertEquals(beforeDisconnection.getId(), afterDisconnection.getId());
     assertNotNull(beforeDisconnection.getIban());
     assertNotNull(beforeDisconnection.getBank());
     assertNull(afterDisconnection.getIban());
     assertNull(afterDisconnection.getBank());
     assertNull(afterDisconnection.getBic());
-  }*/
+  }
+  */
 
   @Test
   void read_opened_accounts_ok() throws ApiException {

@@ -185,9 +185,6 @@ class TransactionIT {
     List<Transaction> actual = api.getTransactions(JOE_DOE_ACCOUNT_ID, null, null);
 
     assertTrue(actual.isEmpty());
-//    assertEquals(2, actual.size());
-//    assertTrue(actual.contains(restTransaction1()));
-//    assertTrue(actual.contains(restTransaction2()));
   }
 
   @Test

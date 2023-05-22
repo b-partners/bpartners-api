@@ -91,7 +91,8 @@ public class ProductRepositoryImpl implements ProductRepository {
     List<HProduct> products = productStatuses.stream()
         .map(productStatus ->
             jpaRepository.findById(productStatus.getId()).orElseThrow(
-                    () -> new NotFoundException("Product(id=" + productStatus.getId() + " not found"))
+                    () -> new NotFoundException(
+                        "Product(id=" + productStatus.getId() + " not found"))
                 .toBuilder()
                 .status(productStatus.getStatus())
                 .build())

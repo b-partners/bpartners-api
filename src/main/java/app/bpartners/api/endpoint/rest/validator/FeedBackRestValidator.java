@@ -3,7 +3,6 @@ package app.bpartners.api.endpoint.rest.validator;
 import app.bpartners.api.endpoint.rest.model.FeedbackRequest;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.NotImplementedException;
-import java.util.Objects;
 import java.util.function.Consumer;
 import org.jsoup.Jsoup;
 import org.springframework.stereotype.Component;

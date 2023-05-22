@@ -13,7 +13,6 @@ import app.bpartners.api.repository.AccountHolderRepository;
 import app.bpartners.api.repository.CustomerRepository;
 import app.bpartners.api.repository.FeedBackRepository;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -29,8 +28,9 @@ public class FeedbackService {
   public Feedback save(FeedbackRequest toSave) {
     AccountHolder accountHolder = accountHolderRepository.findById(toSave.getAccountHolderId());
     if (accountHolder.getFeedbackLink() == null) {
-      throw new BadRequestException(accountHolder.describe() + " must set feedback link before "
-          + "asking for feedback");
+      throw new BadRequestException(
+          accountHolder.describe() + " must set feedback link before "
+              + "asking for feedback");
     }
     List<Customer> customers = toSave.getCustomerIds() != null ? toSave.getCustomerIds().stream()
         .map(customerRepository::findById)

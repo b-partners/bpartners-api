@@ -6,7 +6,6 @@ import app.bpartners.api.model.InvoiceRelaunch;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.repository.jpa.model.HInvoiceRelaunch;
 import app.bpartners.api.service.AttachmentService;
-import app.bpartners.api.service.InvoiceService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 

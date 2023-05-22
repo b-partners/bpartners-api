@@ -1,6 +1,5 @@
 package app.bpartners.api.endpoint.rest.validator;
 
-import app.bpartners.api.endpoint.rest.model.UpdateCustomerStatus;
 import app.bpartners.api.endpoint.rest.model.UpdateProductStatus;
 import app.bpartners.api.model.exception.BadRequestException;
 import java.util.List;

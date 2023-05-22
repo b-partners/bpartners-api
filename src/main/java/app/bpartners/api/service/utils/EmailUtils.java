@@ -4,6 +4,9 @@ import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;
 
 public class EmailUtils {
+  private EmailUtils() {
+  }
+
   public static boolean hasMalformedTags(String htmlString) {
     return !Jsoup.isValid(htmlString, getCustomSafelist());
   }

@@ -125,7 +125,8 @@ public class CustomerRepositoryImpl implements CustomerRepository {
     List<HCustomer> customersToUpdate = customerStatusList.stream()
         .map(customerStatus ->
             jpaRepository.findById(customerStatus.getId()).orElseThrow(
-                    () -> new NotFoundException("Customer(id=" + customerStatus.getId() + " not found"))
+                    () -> new NotFoundException(
+                        "Customer(id=" + customerStatus.getId() + " not found"))
                 .toBuilder()
                 .status(customerStatus.getStatus())
                 .build())

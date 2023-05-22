@@ -51,8 +51,8 @@ public class User implements Serializable {
   }
 
   public Account getDefaultAccount() {
-    return accounts.isEmpty() ? null
-        : filterActive(accounts).active(true); //in every case, set as active
+    return accounts == null || accounts.isEmpty() ? null
+        : filterActive(accounts, preferredAccountId).active(true); //in every case, set as active
   }
 
   public AccountHolder getDefaultHolder() {

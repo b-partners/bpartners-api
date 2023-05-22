@@ -57,8 +57,10 @@ import static app.bpartners.api.endpoint.rest.model.IdentificationStatus.INVALID
 import static app.bpartners.api.endpoint.rest.model.IdentificationStatus.PROCESSING;
 import static app.bpartners.api.endpoint.rest.model.IdentificationStatus.UNINITIATED;
 import static app.bpartners.api.integration.UserServiceIT.bridgeUser;
+import static app.bpartners.api.integration.conf.TestUtils.JANE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JANE_DOE_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JANE_DOE_TOKEN;
+import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_TOKEN;
 import static app.bpartners.api.integration.conf.TestUtils.REDIRECT_FAILURE_URL;
@@ -95,6 +97,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 class UserIT {
   public static final String UNKNOWN_IDENTIFICATION_STATUS = "Unknown";
   public static final String JOE_DOE_COGNITO_TOKEN = "joe_doe_cognito_token";
+  public static final String OTHER_JOE_ACCOUNT_ID = "other_joe_account_id";
   @MockBean
   private BuildingPermitConf buildingPermitConf;
   @MockBean
@@ -198,6 +201,27 @@ class UserIT {
 
     assertEquals(HttpStatus.BAD_REQUEST.value(), response.statusCode());
   }*/
+
+  @Test
+  @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
+  void user_change_active_account_ok() throws ApiException {
+    ApiClient joeDoeClient = anApiClient();
+    UserAccountsApi api = new UserAccountsApi(joeDoeClient);
+    User before = api.getUserById(JOE_DOE_ID);
+
+    User actual = api.setActiveAccount(JOE_DOE_ID, OTHER_JOE_ACCOUNT_ID);
+
+    assertEquals(JOE_DOE_ACCOUNT_ID, before.getActiveAccount().getId());
+    assertEquals("other_joe_account_id", actual.getActiveAccount().getId());
+  }
+
+  @Test
+  void user_change_active_account_ko() {
+    ApiClient joeDoeClient = anApiClient();
+    UserAccountsApi api = new UserAccountsApi(joeDoeClient);
+
+    assertThrowsForbiddenException(() -> api.setActiveAccount(JOE_DOE_ID, JANE_ACCOUNT_ID));
+  }
 
   @Test
   void user_read_own_informations_ok() throws ApiException {

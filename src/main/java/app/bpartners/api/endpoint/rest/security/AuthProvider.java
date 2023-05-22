@@ -44,6 +44,11 @@ public class AuthProvider extends AbstractUserDetailsAuthenticationProvider {
     return userIsAuthenticated() ? getPrincipal().getUserId() : null;
   }
 
+  public static String getPreferredAccountId() {
+    return getAuthenticatedUser() != null ? getPrincipal().getUser().getPreferredAccountId() : null;
+  }
+
+
   public static User getAuthenticatedUser() {
     return userIsAuthenticated() ? getPrincipal().getUser() : null;
   }

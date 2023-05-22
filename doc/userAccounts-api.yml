@@ -28,6 +28,42 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
+  setActiveAccount:
+    post:
+      tags:
+        - User Accounts
+      summary: Set an account as active for an user
+      operationId: setActiveAccount
+      parameters:
+        - name: uId
+          in: path
+          schema:
+            type: string
+          required: true
+          description: User identifier
+        - name: aId
+          in: path
+          schema:
+            type: string
+          required: true
+          description: Account identifier
+      responses:
+        200:
+          description: User with updated active account
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
   getAccountsByUserId:
     get:
       tags:
@@ -675,6 +711,8 @@ components:
           type: string
         status:
           $ref: '#/components/schemas/EnableStatus'
+        activeAccount:
+          $ref: '#/components/schemas/Account'
     IdentificationStatus:
       type: string
       enum:

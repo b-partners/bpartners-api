@@ -8,14 +8,15 @@ import app.bpartners.api.model.UserToken;
 import app.bpartners.api.model.mapper.BankMapper;
 import app.bpartners.api.model.mapper.UserMapper;
 import app.bpartners.api.repository.BankRepository;
-import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.UserTokenRepository;
 import app.bpartners.api.repository.bridge.model.Bank.BridgeBank;
 import app.bpartners.api.repository.bridge.model.Item.BridgeItem;
 import app.bpartners.api.repository.bridge.repository.BridgeBankRepository;
 import app.bpartners.api.repository.jpa.AccountHolderJpaRepository;
+import app.bpartners.api.repository.jpa.AccountJpaRepository;
 import app.bpartners.api.repository.jpa.BankJpaRepository;
 import app.bpartners.api.repository.jpa.UserJpaRepository;
+import app.bpartners.api.repository.jpa.model.HAccount;
 import app.bpartners.api.repository.jpa.model.HAccountHolder;
 import app.bpartners.api.repository.jpa.model.HBank;
 import app.bpartners.api.repository.jpa.model.HUser;
@@ -48,6 +49,7 @@ public class BankRepositoryImpl implements BankRepository {
   private final BankJpaRepository jpaRepository;
   private final UserTokenRepository userTokenRepository;
   private final AccountHolderJpaRepository holderJpaRepository;
+  private final AccountJpaRepository accountJpaRepository;
 
   public static BankConnection.BankConnectionStatus getBankConnectionStatus(Integer statusValue) {
     switch (statusValue) {
@@ -111,9 +113,11 @@ public class BankRepositoryImpl implements BankRepository {
       log.warn("[Bridge] Only one bank connection supported for now. "
           + "Therefore these connections are found :" + bridgeItems);
     }
-    List<HAccountHolder> associatedHolders =
+    List<HAccountHolder> accountHolders =
         holderJpaRepository.findAllByIdUser(user.getId());
-    HUser entityToSave = userMapper.toEntity(user, associatedHolders).toBuilder()
+    List<HAccount> accounts =
+        accountJpaRepository.findByUser_Id(user.getId());
+    HUser entityToSave = userMapper.toEntity(user, accountHolders, accounts).toBuilder()
         .bridgeItemId(connectionChosen.getId())
         .bankConnectionStatus(getBankConnectionStatus(connectionChosen.getStatus()))
         .bridgeItemUpdatedAt(Instant.now())

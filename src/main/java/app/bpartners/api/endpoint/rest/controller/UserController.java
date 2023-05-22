@@ -10,6 +10,7 @@ import javax.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import static app.bpartners.api.endpoint.rest.security.SecurityConf.AUTHORIZATION_HEADER;
@@ -22,6 +23,11 @@ public class UserController {
   private final SwanComponent swanComponent;
   private final CognitoComponent cognitoComponent;
   private final UserService service;
+
+  @PostMapping(value = "/users/{uId}/accounts/{aId}/active")
+  public User setActiveAccount(@PathVariable String aId, @PathVariable String uId) {
+    return mapper.toRest(service.changeActiveAccount(uId, aId));
+  }
 
   @GetMapping(value = "/users/{id}")
   public User getUserById(HttpServletRequest request, @PathVariable String id) {

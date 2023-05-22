@@ -10,7 +10,9 @@ import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.bridge.model.User.BridgeUser;
 import app.bpartners.api.repository.bridge.repository.BridgeUserRepository;
 import app.bpartners.api.repository.jpa.AccountHolderJpaRepository;
+import app.bpartners.api.repository.jpa.AccountJpaRepository;
 import app.bpartners.api.repository.jpa.UserJpaRepository;
+import app.bpartners.api.repository.jpa.model.HAccount;
 import app.bpartners.api.repository.jpa.model.HAccountHolder;
 import app.bpartners.api.repository.jpa.model.HUser;
 import app.bpartners.api.repository.swan.UserSwanRepository;
@@ -36,6 +38,7 @@ public class UserRepositoryImpl implements UserRepository {
   private final CognitoComponent cognitoComponent;
   private final BridgeUserRepository bridgeUserRepository;
   private final AccountHolderJpaRepository holderJpaRepository;
+  private final AccountJpaRepository accountJpaRepository;
 
   @Override
   public List<User> findAll() {
@@ -113,16 +116,20 @@ public class UserRepositoryImpl implements UserRepository {
 
   @Override
   public User save(User toSave) {
-    if (toSave.getBridgePassword() == null) { //user does not still have bridge account
-      BridgeUser bridgeUser = bridgeUserRepository.createUser(userMapper.toBridgeUser(toSave));
-      HUser entityToSave = userMapper.toEntity(toSave, bridgeUser);
-      HUser savedUser = jpaRepository.save(entityToSave);
-      return userMapper.toDomain(savedUser);
-    }
-    List<HAccountHolder> associatedHolders =
+    List<HAccountHolder> accountHolders =
         holderJpaRepository.findAllByIdUser(toSave.getId());
+    List<HAccount> accounts =
+        accountJpaRepository.findByUser_Id(toSave.getId());
     return userMapper.toDomain(jpaRepository.save(
-        userMapper.toEntity(toSave, associatedHolders)));
+        userMapper.toEntity(toSave, accountHolders, accounts)));
+  }
+
+  @Override
+  public User create(User user) {
+    BridgeUser bridgeUser = bridgeUserRepository.createUser(userMapper.toBridgeUser(user));
+    HUser entityToSave = userMapper.toEntity(user, bridgeUser);
+    HUser savedUser = jpaRepository.save(entityToSave);
+    return userMapper.toDomain(savedUser);
   }
 
   public HUser getUpdatedUser(SwanUser swanUser) {

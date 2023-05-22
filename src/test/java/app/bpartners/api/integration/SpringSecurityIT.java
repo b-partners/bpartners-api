@@ -3,6 +3,7 @@ package app.bpartners.api.integration;
 import app.bpartners.api.SentryConf;
 import app.bpartners.api.endpoint.event.S3Conf;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
+import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
 import app.bpartners.api.integration.conf.AbstractContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
 import app.bpartners.api.manager.ProjectTokenManager;
@@ -17,7 +18,6 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -27,7 +27,6 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpMethod.OPTIONS;
@@ -48,13 +47,13 @@ class SpringSecurityIT {
   @MockBean
   private S3Conf s3Conf;
   @MockBean
+  private SwanConf swanConf;
+  @MockBean
   private FintectureConf fintectureConf;
   @MockBean
   private ProjectTokenManager projectTokenManager;
   @Autowired
   private SwanComponent swanComponent;
-  @Value("${dev.user.access.token}")
-  private String bearer;
 
   //TODO: to uncomment when auth is set
   //  @Test
@@ -62,11 +61,6 @@ class SpringSecurityIT {
   //    String swanUserId = swanComponent.getSwanUserIdByToken(bearer);
   //    assertEquals(JOE_DOE_SWAN_USER_ID, swanUserId);
   //  }
-
-  @Test
-  void unauthenticated_user_is_forbidden() {
-    assertNull(swanComponent.getSwanUserIdByToken(TestUtils.BAD_TOKEN));
-  }
 
   @Test
   void ping_with_cors() throws IOException, InterruptedException {

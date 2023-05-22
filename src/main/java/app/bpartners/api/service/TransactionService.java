@@ -81,11 +81,11 @@ public class TransactionService {
     return repository.findByAccountId(accountId);
   }
 
-  public TransactionsSummary getTransactionsSummary(String accountId, Integer year) {
+  public TransactionsSummary getTransactionsSummary(String idUser, Integer year) {
     if (year == null) {
       year = LocalDate.now().getYear();
     }
-    return summaryRepository.getByAccountIdAndYear(accountId, year);
+    return summaryRepository.getByIdUserAndYear(idUser, year);
   }
 
   //TODO: refactor invoice -> transactionInvoice to appropriate mapper
@@ -136,10 +136,10 @@ public class TransactionService {
     Fraction incomeValue = incomeReference.get();
     Fraction outcomeValue = outcomeReference.get();
     MonthlyTransactionsSummary actualSummary =
-        getByAccountIdAndYearMonth(account.getId(), yearMonth);
+        getByIdUserAndYearMonth(account.getUserId(), yearMonth);
 
     saveSummariesByYearMonth(
-        account.getId(),
+        account.getUserId(),
         yearMonth.getYear(),
         MonthlyTransactionsSummary
             .builder()
@@ -152,15 +152,14 @@ public class TransactionService {
   }
 
   public void saveSummariesByYearMonth(
-      String accountId, Integer year,
-      MonthlyTransactionsSummary monthlyTransactionsSummary) {
-    summaryRepository.updateYearMonthSummary(accountId, year, monthlyTransactionsSummary);
+      String idUser, Integer year, MonthlyTransactionsSummary monthlyTransactionsSummary) {
+    summaryRepository.updateYearMonthSummary(idUser, year, monthlyTransactionsSummary);
   }
 
-  public MonthlyTransactionsSummary getByAccountIdAndYearMonth(
-      String accountId, YearMonth yearMonth) {
-    return summaryRepository.getByAccountIdAndYearMonth(accountId, yearMonth.getYear(),
-        yearMonth.getMonthValue() - 1);
+  public MonthlyTransactionsSummary getByIdUserAndYearMonth(
+      String idUser, YearMonth yearMonth) {
+    return summaryRepository.getByIdUserAndYearMonth(
+        idUser, yearMonth.getYear(), yearMonth.getMonthValue() - 1);
   }
 
   //TODO: check if 5 minutes of refresh is enough or too much

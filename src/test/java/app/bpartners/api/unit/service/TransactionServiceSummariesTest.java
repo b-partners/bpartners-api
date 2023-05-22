@@ -20,6 +20,7 @@ import org.mockito.ArgumentCaptor;
 import static app.bpartners.api.integration.conf.TestUtils.CREDIT_SIDE;
 import static app.bpartners.api.integration.conf.TestUtils.DEBIT_SIDE;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
+import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -35,7 +36,7 @@ class TransactionServiceSummariesTest {
 
   private static Account joeDoeAccount() {
     return Account.builder()
-        .id(JOE_DOE_ACCOUNT_ID)
+        .userId(JOE_DOE_ID)
         .availableBalance(new Fraction())
         .build();
   }
@@ -61,12 +62,12 @@ class TransactionServiceSummariesTest {
   void refresh_summaries_with_last_month_summary() {
     YearMonth lastMonth = YearMonth.now().minusMonths(1);
     Instant now = Instant.now();
-    when(transactionsSummaryRepository.getByAccountIdAndYearMonth(
-        JOE_DOE_ACCOUNT_ID,
+    when(transactionsSummaryRepository.getByIdUserAndYearMonth(
+        JOE_DOE_ID,
         lastMonth.getYear(),
         lastMonth.getMonthValue() - 1
     )).thenReturn(lastMonthlySummary(now));
-    ArgumentCaptor<String> accountCaptor = ArgumentCaptor.forClass(String.class);
+    ArgumentCaptor<String> idUserCaptor = ArgumentCaptor.forClass(String.class);
     ArgumentCaptor<Integer> yearCaptor = ArgumentCaptor.forClass(Integer.class);
     ArgumentCaptor<MonthlyTransactionsSummary> summaryCaptor =
         ArgumentCaptor.forClass(MonthlyTransactionsSummary.class);
@@ -75,11 +76,11 @@ class TransactionServiceSummariesTest {
         YearMonth.now(),
         transactions());
     verify(transactionsSummaryRepository).updateYearMonthSummary(
-        accountCaptor.capture(),
+        idUserCaptor.capture(),
         yearCaptor.capture(),
         summaryCaptor.capture()
     );
-    assertEquals(JOE_DOE_ACCOUNT_ID, accountCaptor.getValue());
+    assertEquals(JOE_DOE_ID, idUserCaptor.getValue());
     assertEquals(YearMonth.now().getYear(), yearCaptor.getValue());
     assertEquals(refreshedSummary1(summaryCaptor.getValue().getUpdatedAt()),
         summaryCaptor.getValue());
@@ -88,23 +89,23 @@ class TransactionServiceSummariesTest {
   @Test
   void refresh_summaries_without_last_month_summary() {
     YearMonth lastMonth = YearMonth.now().minusMonths(1);
-    when(transactionsSummaryRepository.getByAccountIdAndYearMonth(
-        JOE_DOE_ACCOUNT_ID,
+    when(transactionsSummaryRepository.getByIdUserAndYearMonth(
+        JOE_DOE_ID,
         lastMonth.getYear(),
         lastMonth.getMonthValue() - 1
     )).thenReturn(null);
-    ArgumentCaptor<String> accountCaptor = ArgumentCaptor.forClass(String.class);
+    ArgumentCaptor<String> idUserCaptor = ArgumentCaptor.forClass(String.class);
     ArgumentCaptor<Integer> yearCaptor = ArgumentCaptor.forClass(Integer.class);
     ArgumentCaptor<MonthlyTransactionsSummary> summaryCaptor =
         ArgumentCaptor.forClass(MonthlyTransactionsSummary.class);
 
     transactionService.refreshMonthSummary(joeDoeAccount(), YearMonth.now(), transactions());
     verify(transactionsSummaryRepository).updateYearMonthSummary(
-        accountCaptor.capture(),
+        idUserCaptor.capture(),
         yearCaptor.capture(),
         summaryCaptor.capture()
     );
-    assertEquals(JOE_DOE_ACCOUNT_ID, accountCaptor.getValue());
+    assertEquals(JOE_DOE_ID, idUserCaptor.getValue());
     assertEquals(YearMonth.now().getYear(), yearCaptor.getValue());
     assertEquals(refreshedSummary2(summaryCaptor.getValue().getUpdatedAt()),
         summaryCaptor.getValue());

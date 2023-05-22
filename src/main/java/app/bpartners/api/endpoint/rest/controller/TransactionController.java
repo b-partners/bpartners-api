@@ -4,6 +4,7 @@ import app.bpartners.api.endpoint.rest.mapper.TransactionRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.TransactionsSummaryRestMapper;
 import app.bpartners.api.endpoint.rest.model.Transaction;
 import app.bpartners.api.endpoint.rest.model.TransactionsSummary;
+import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.service.TransactionService;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -32,7 +33,9 @@ public class TransactionController {
   public TransactionsSummary getTransactionsSummary(
       @PathVariable(name = "aId") String accountId,
       @RequestParam(required = false) Integer year) {
-    return summaryRestMapper.toRest(service.getTransactionsSummary(accountId, year));
+    String idUser =
+        AuthProvider.getAuthenticatedUserId(); //TODO: should be changed when endpoint changed
+    return summaryRestMapper.toRest(service.getTransactionsSummary(idUser, year));
   }
 
   @PutMapping(value = "/accounts/{accountId}/transactions/{transactionId}/invoices/{invoiceId}")

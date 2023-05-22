@@ -20,7 +20,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
@@ -80,6 +79,7 @@ public class AccountService {
   //TODO: IMPORTANT ! The obtained account here is the persisted account
   // Must get the most recent value from Bridge not from database
   // Need to update account from Bridge when getting account by ID
+  @Transactional
   public String initiateAccountValidation(String accountId) {
     Account account = repository.findById(accountId);
     switch (account.getStatus()) {
@@ -94,6 +94,7 @@ public class AccountService {
     }
   }
 
+  @Transactional
   public BankConnectionRedirection initiateBankConnection(
       String userId, RedirectionStatusUrls urls) {
     User user = userRepository.getById(userId);
@@ -169,7 +170,7 @@ public class AccountService {
         .build();
   }
 
-  @Transactional(isolation = Isolation.SERIALIZABLE)
+  @Transactional
   public Instant refreshBankConnection(UserToken userToken) {
     return bankRepository.refreshBankConnection(userToken);
   }

@@ -6,6 +6,7 @@ import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.mapper.UserMapper;
+import app.bpartners.api.repository.BankRepository;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.bridge.model.User.BridgeUser;
 import app.bpartners.api.repository.bridge.repository.BridgeUserRepository;
@@ -39,6 +40,7 @@ public class UserRepositoryImpl implements UserRepository {
   private final BridgeUserRepository bridgeUserRepository;
   private final AccountHolderJpaRepository holderJpaRepository;
   private final AccountJpaRepository accountJpaRepository;
+  private final BankRepository bankRepository;
 
   @Override
   public List<User> findAll() {
@@ -120,8 +122,14 @@ public class UserRepositoryImpl implements UserRepository {
         holderJpaRepository.findAllByIdUser(toSave.getId());
     List<HAccount> accounts =
         accountJpaRepository.findByUser_Id(toSave.getId());
-    return userMapper.toDomain(jpaRepository.save(
-        userMapper.toEntity(toSave, accountHolders, accounts)));
+    HUser savedUser = jpaRepository.save(
+        userMapper.toEntity(toSave, accountHolders, accounts));
+    Optional<HAccount> optionalAccount = accounts.stream()
+        .filter(account -> account.getIdBank() != null)
+        .findAny();
+    String idBank = optionalAccount.isEmpty() ? null
+        : optionalAccount.get().getIdBank();
+    return userMapper.toDomain(savedUser, bankRepository.findByExternalId(idBank));
   }
 
   @Override

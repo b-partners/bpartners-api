@@ -1,5 +1,41 @@
 operations:
-  getOrCreateCustomers:
+  getUniqueCustomer:
+    get:
+      tags:
+        - Customers
+      summary: Get a specific customer of the specified account
+      operationId: getCustomerById
+      parameters:
+        - in: path
+          name: aId
+          schema:
+            type: string
+          required: true
+          description: Account identifier
+        - in: path
+          name: cId
+          schema:
+            type: string
+          required: true
+          description: Customer identifier
+      responses:
+        200:
+          description: The customer with specified identifier
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Customer'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
+  customerOperations:
     get:
       tags:
         - Customers

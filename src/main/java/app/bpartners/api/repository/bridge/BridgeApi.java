@@ -296,6 +296,7 @@ public class BridgeApi {
           httpClient.send(request, HttpResponse.BodyHandlers.ofString());
       if (httpResponse.statusCode() != 200 && httpResponse.statusCode() != 201) {
         log.warn("BridgeApi errors : {}", httpResponse.body());
+        log.warn("Unauthenticated user is {}", user);
         return null;
       }
       return objectMapper.readValue(httpResponse.body(), BridgeTokenResponse.class);

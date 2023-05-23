@@ -9,6 +9,8 @@ import java.util.List;
 public interface TransactionRepository {
   List<Transaction> findByAccountId(String id);
 
+  Transaction findById(String id);
+
   List<Transaction> findByAccountIdAndStatus(String id, TransactionStatus status);
 
   Transaction save(JustifyTransaction justifyTransaction);

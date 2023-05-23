@@ -58,6 +58,14 @@ public class TransactionRepositoryImpl implements TransactionRepository {
   }
 
   @Override
+  public Transaction findById(String id) {
+    HTransaction transaction = jpaRepository.findById(id)
+        .orElseThrow(() -> new NotFoundException("Transaction." + id + " is not found."));
+    return mapper.toDomain(
+        transaction, categoryRepository.findByIdTransaction(transaction.getId()));
+  }
+
+  @Override
   public List<Transaction> findByAccountIdAndStatus(String id, TransactionStatus status) {
     return findByAccountId(id).stream()
         .filter(transaction -> transaction.getStatus().equals(status))

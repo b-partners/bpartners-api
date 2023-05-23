@@ -394,6 +394,42 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
+  getUniqueProduct:
+    get:
+      tags:
+        - Paying
+      summary: Get a specific product of the specified account
+      operationId: getProductById
+      parameters:
+        - in: path
+          name: aId
+          schema:
+            type: string
+          required: true
+          description: Account identifier
+        - in: path
+          name: pId
+          schema:
+            type: string
+          required: true
+          description: Product identifier
+      responses:
+        200:
+          description: The product with specified identifier
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
   productOperations:
     get:
       tags:

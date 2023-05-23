@@ -52,6 +52,7 @@ import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_TOKEN;
 import static app.bpartners.api.integration.conf.TestUtils.disabledProduct;
 import static app.bpartners.api.integration.conf.TestUtils.isAfterOrEquals;
 import static app.bpartners.api.integration.conf.TestUtils.product1;
+import static app.bpartners.api.integration.conf.TestUtils.product2;
 import static app.bpartners.api.integration.conf.TestUtils.product6;
 import static app.bpartners.api.integration.conf.TestUtils.setUpCognito;
 import static app.bpartners.api.integration.conf.TestUtils.setUpLegalFileRepository;
@@ -179,6 +180,19 @@ class ProductIT {
     assertTrue(actualDisabledProducts.stream()
         .allMatch(disabledProducts -> disabledProducts.getStatus() == ProductStatus.DISABLED));
     assertTrue(actualDisabledProducts.contains(disabledProduct()));
+  }
+
+  @Order(1)
+  @Test
+  void read_unique_product_ok() throws ApiException {
+    ApiClient joeDoeClient = anApiClient();
+    PayingApi api = new PayingApi(joeDoeClient);
+
+    Product actualProduct1 = api.getProductById(JOE_DOE_ACCOUNT_ID, "product1_id");
+    Product actualProduct2 = api.getProductById(JOE_DOE_ACCOUNT_ID, "product2_id");
+
+    assertEquals(product1(), actualProduct1);
+    assertEquals(product2(), actualProduct2);
   }
 
   @Order(1)

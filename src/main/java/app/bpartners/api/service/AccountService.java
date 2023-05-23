@@ -64,6 +64,7 @@ public class AccountService {
     return repository.findById(id);
   }
 
+  @Transactional
   public Account updateAccountIdentity(UpdateAccountIdentity account) {
     return repository.save(account);
   }

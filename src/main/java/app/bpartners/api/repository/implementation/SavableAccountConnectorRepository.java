@@ -47,28 +47,33 @@ public class SavableAccountConnectorRepository implements AccountConnectorReposi
     if (accountConnector == null) {
       return null;
     }
-    HAccount toSave = mapper.toEntity(accountConnector,
-        jpaRepository.findByExternalId(accountConnector.getId())
-            .orElse(fromNewAccount(accountConnector, associatedUser(idUser))));
+    HAccount toSave = checkIdentityUpdate(idUser, accountConnector);
     HAccount saved = jpaRepository.save(toSave);
     return mapper.toConnector(saved);
   }
 
   @Override
   public List<AccountConnector> saveAll(String idUser, List<AccountConnector> accountConnectors) {
-    List<HAccount> toSave = accountConnectors.stream()
-        .map(accountConnector -> mapper.toEntity(accountConnector,
-            jpaRepository.findByExternalId(accountConnector.getId())
-                .orElse(fromNewAccount(accountConnector, associatedUser(idUser)))))
+    List<HAccount> accountList = accountConnectors.stream()
+        .map(accountConnector -> checkIdentityUpdate(idUser, accountConnector))
         .collect(Collectors.toList());
-    return jpaRepository.saveAll(toSave).stream()
+    return jpaRepository.saveAll(accountList).stream()
         .map(mapper::toConnector)
         .collect(Collectors.toList());
+  }
+
+  private HAccount checkIdentityUpdate(String idUser, AccountConnector accountConnector) {
+    HUser associatedUser = associatedUser(idUser);
+    return mapper.toEntity(accountConnector,
+        jpaRepository.findByExternalId(accountConnector.getId())
+            .orElse(fromNewAccount(accountConnector, associatedUser)));
   }
 
   private HAccount fromNewAccount(AccountConnector accountConnector, HUser user) {
     return HAccount.builder()
         .id(String.valueOf(randomUUID()))
+        .name(accountConnector.getName())
+        .iban(accountConnector.getIban())
         .user(user)
         .externalId(accountConnector.getId())
         .idBank(accountConnector.getBankId())

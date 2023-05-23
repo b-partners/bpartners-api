@@ -80,8 +80,10 @@ import static app.bpartners.api.integration.conf.TestUtils.REDIRECT_SUCCESS_URL;
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsApiException;
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsForbiddenException;
 import static app.bpartners.api.integration.conf.TestUtils.bernardDoeSwanAccount;
+import static app.bpartners.api.integration.conf.TestUtils.filterAccountsById;
 import static app.bpartners.api.integration.conf.TestUtils.joeDoeBridgeAccount;
 import static app.bpartners.api.integration.conf.TestUtils.joeDoeSwanAccount;
+import static app.bpartners.api.integration.conf.TestUtils.joePersistedAccount;
 import static app.bpartners.api.integration.conf.TestUtils.otherBridgeAccount;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountConnectorSwanRepository;
 import static app.bpartners.api.integration.conf.TestUtils.setUpAccountHolderSwanRep;
@@ -97,6 +99,7 @@ import static java.util.UUID.randomUUID;
 import static java.util.stream.Collectors.toUnmodifiableList;
 import static org.hibernate.validator.internal.util.Contracts.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -214,11 +217,18 @@ class AccountIT {
             .failureUrl(REDIRECT_FAILURE_URL));
   }
 
-  public static UpdateAccountIdentity accountIdentity() {
+  public static UpdateAccountIdentity bicUpdateOnly() {
     return new UpdateAccountIdentity()
         .name(null)
         .bic("SWNBFR23")
         .iban(null);
+  }
+
+  public static UpdateAccountIdentity fullUpdateIdentity() {
+    return new UpdateAccountIdentity()
+        .name("New name")
+        .bic("SWNBFR23")
+        .iban("New Iban");
   }
 
   User joeDoeUser() {
@@ -589,18 +599,43 @@ class AccountIT {
   @Test
   @DirtiesContext(methodMode = AFTER_METHOD)
   void update_account_identity_ok() throws ApiException {
+    setUpBridgeRepositories();
     ApiClient joeDoeClient = joeDoeClient();
     UserAccountsApi api = new UserAccountsApi(joeDoeClient);
-    String persistedName = "Other";
-    String persistedIban = "FR12349001001190346460988";
 
-    Account actual = api.updateAccountIdentity(
-        JOE_DOE_ID, JOE_DOE_ACCOUNT_ID, accountIdentity());
+    Account actual1 = api.updateAccountIdentity(
+        JOE_DOE_ID, JOE_DOE_ACCOUNT_ID, bicUpdateOnly());
+    Account account1 = filterAccountsById(actual1.getId(), api.getAccountsByUserId(JOE_DOE_ID));
+    Account actual2 = api.updateAccountIdentity(
+        JOE_DOE_ID, JOE_DOE_ACCOUNT_ID, fullUpdateIdentity());
+    Account account2 = filterAccountsById(actual1.getId(), api.getAccountsByUserId(JOE_DOE_ID));
 
-    assertEquals(joeDoeRestAccount().getId(), actual.getId());
-    assertEquals(accountIdentity().getBic(), actual.getBic());
-    assertEquals(persistedIban, actual.getIban());
-    assertEquals(persistedName, actual.getName());
+    app.bpartners.api.model.Account expected1 = joePersistedAccount();
+    assertEquals(joeDoeRestAccount().getId(), actual1.getId());
+    //actual1 : bic only
+    assertEquals(joeDoeRestAccount().getId(), actual2.getId());
+    assertEquals(bicUpdateOnly().getBic(), actual1.getBic());
+    assertEquals(expected1.getIban(), actual1.getIban());
+    assertEquals(expected1.getName(), actual1.getName());
+    assertEquals(account1
+            .active(actual1.getActive()), //Not important here
+        actual1);
+    //actual2 : bic, name, iban
+    assertEquals(joeDoeRestAccount().getId(), actual2.getId());
+    assertEquals(fullUpdateIdentity().getBic(), actual2.getBic());
+    assertEquals(fullUpdateIdentity().getIban(), actual2.getIban());
+    assertEquals(fullUpdateIdentity().getName(), actual2.getName());
+    assertEquals(account2
+            .active(actual2.getActive()), //Not important here
+        actual2);
+  }
+
+  private static app.bpartners.api.model.Account joeUpdatedAccount() {
+    return joePersistedAccount().toBuilder()
+        .name(fullUpdateIdentity().getName())
+        .iban(fullUpdateIdentity().getIban())
+        .bic(fullUpdateIdentity().getBic())
+        .build();
   }
 
   @Test
@@ -611,26 +646,7 @@ class AccountIT {
     assertThrowsApiException(
         "{\"type\":\"400 BAD_REQUEST\",\"message\":\"bic is mandatory.\"}"
         , () -> api.updateAccountIdentity(JOE_DOE_ID, JOE_DOE_ACCOUNT_ID,
-            accountIdentity().bic(null)));
-  }
-
-  //TODO: check when external ID is not associated to account
-  @Test
-  void read_preferred_bridge_account() throws ApiException {
-    setUpBridgeRepositories();
-    ApiClient joeDoeClient = joeDoeClient();
-    UserAccountsApi api = new UserAccountsApi(joeDoeClient);
-
-    List<Account> actual = api.getAccountsByUserId(JOE_DOE_ID);
-
-    assertEquals(3, actual.size());
-    Account activeAccount = actual.stream()
-        .filter(Account::getActive)
-        .findAny()
-        .get();
-    assertEquals(otherBridgeAccount().getName(), activeAccount.getName());
-    assertEquals(otherBridgeAccount().getIban(), activeAccount.getIban());
-
+            bicUpdateOnly().bic(null)));
   }
 
   @Test
@@ -684,6 +700,7 @@ class AccountIT {
   }
 
   @Test
+  @DirtiesContext(methodMode = BEFORE_METHOD)
   void manage_bank_connection_with_strong_auth_ko() {
     final String redirectUrl = "https://connect.bridge.io";
     when(bankRepositoryImplMock.initiateScaSync(any()))
@@ -696,8 +713,8 @@ class AccountIT {
     assertThrowsApiException("{\"type\":\"400 BAD_REQUEST\","
             + "\"message\":\"Account("
             + "id=beed1765-5c16-472a-b3f4-5c376ce5db58,"
-            + "name=Other,"
-            + "iban=FR12349001001190346460988,status=OPENED,active=false)"
+            + "name=Account_name,"
+            + "iban=FR0123456789,status=OPENED,active=false)"
             + " does not need validation.\"}",
         () -> api.initiateAccountValidation(JOE_DOE_ID, JOE_DOE_ACCOUNT_ID,
             new RedirectionStatusUrls()));

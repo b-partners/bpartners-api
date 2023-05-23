@@ -3,6 +3,7 @@ package app.bpartners.api.integration;
 import app.bpartners.api.SentryConf;
 import app.bpartners.api.endpoint.event.S3Conf;
 import app.bpartners.api.endpoint.rest.api.CustomersApi;
+import app.bpartners.api.endpoint.rest.api.PayingApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
 import app.bpartners.api.endpoint.rest.model.CreateCustomer;
@@ -170,6 +171,17 @@ class CustomerIT {
     assertTrue(actualFilteredByCity.contains(customer1()));
     assertEquals("Jean Olivier", actualFilteredByCountry.get(0).getFirstName());
     assertTrue(actualNoFilter.containsAll(allFilteredResults));
+  }
+
+  @Order(1)
+  @Test
+  void read_unique_cutomer_ok() throws ApiException {
+    ApiClient joeDoeClient = anApiClient();
+    CustomersApi api = new CustomersApi(joeDoeClient);
+
+    Customer actualCustomer = api.getCustomerById(JOE_DOE_ACCOUNT_ID, "customer1_id");
+
+    assertEquals(customer1(), actualCustomer);
   }
 
   @Order(1)

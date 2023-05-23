@@ -120,8 +120,10 @@ paths:
   #############################################
   ############## Customers API ################
   #############################################
+  /accounts/{aId}/customers/{cId}:
+    $ref: './customers-api.yml#/operations/getUniqueCustomer'
   /accounts/{id}/customers:
-    $ref: './customers-api.yml#/operations/getOrCreateCustomers'
+    $ref: './customers-api.yml#/operations/customerOperations'
   /accounts/{id}/customers/upload:
     $ref: './customers-api.yml#/operations/importCustomers'
   /accounts/{id}/customers/status:

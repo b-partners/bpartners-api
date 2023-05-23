@@ -104,8 +104,10 @@ public class ProductRepositoryImpl implements ProductRepository {
 
   @Override
   public Product findById(String id) {
-    return mapper.toDomain(jpaRepository.findById(id).orElseThrow(() -> new NotFoundException(
-        "Product(id=" + id + " not found")));
+    return mapper.toDomain(
+        jpaRepository.findById(id).orElseThrow(
+            () -> new NotFoundException(
+                "Product(id=" + id + ") not found")));
   }
 
   private Product checkExisting(String idUser, Product domain) {

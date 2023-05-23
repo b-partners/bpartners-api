@@ -52,6 +52,7 @@ import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_TOKEN;
 import static app.bpartners.api.integration.conf.TestUtils.OTHER_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.TestUtils.OTHER_CUSTOMER_ID;
+import static app.bpartners.api.integration.conf.TestUtils.OTHER_PRODUCT_ID;
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsApiException;
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsForbiddenException;
 import static app.bpartners.api.integration.conf.TestUtils.customer1;
@@ -182,6 +183,19 @@ class CustomerIT {
     Customer actualCustomer = api.getCustomerById(JOE_DOE_ACCOUNT_ID, "customer1_id");
 
     assertEquals(customer1(), actualCustomer);
+  }
+
+  @Order(1)
+  @Test
+  void read_unique_customer_ko() {
+    ApiClient joeDoeClient = anApiClient();
+    CustomersApi api = new CustomersApi(joeDoeClient);
+
+    assertThrowsApiException(
+        "{\"type\":\"404 NOT_FOUND\",\"message\":\"Customer." + OTHER_CUSTOMER_ID
+            + " is not found.\"}",
+        () -> api.getCustomerById(JOE_DOE_ACCOUNT_ID, OTHER_CUSTOMER_ID)
+    );
   }
 
   @Order(1)

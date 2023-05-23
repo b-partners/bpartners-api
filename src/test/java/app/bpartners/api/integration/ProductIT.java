@@ -48,7 +48,11 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 import static app.bpartners.api.integration.conf.TestUtils.BEARER_PREFIX;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
+import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_TOKEN;
+import static app.bpartners.api.integration.conf.TestUtils.OTHER_CUSTOMER_ID;
+import static app.bpartners.api.integration.conf.TestUtils.OTHER_PRODUCT_ID;
+import static app.bpartners.api.integration.conf.TestUtils.assertThrowsApiException;
 import static app.bpartners.api.integration.conf.TestUtils.disabledProduct;
 import static app.bpartners.api.integration.conf.TestUtils.isAfterOrEquals;
 import static app.bpartners.api.integration.conf.TestUtils.product1;
@@ -191,6 +195,19 @@ class ProductIT {
     Product actualProduct1 = api.getProductById(JOE_DOE_ACCOUNT_ID, "product1_id");
 
     assertEquals(product1(), actualProduct1);
+  }
+
+  @Order(1)
+  @Test
+  void read_unique_product_ko() throws ApiException {
+    ApiClient joeDoeClient = anApiClient();
+    PayingApi api = new PayingApi(joeDoeClient);
+
+    assertThrowsApiException(
+        "{\"type\":\"404 NOT_FOUND\",\"message\":\"Product(id=" + OTHER_PRODUCT_ID
+            + ") not found\"}",
+        () -> api.getProductById(JOE_DOE_ACCOUNT_ID, OTHER_PRODUCT_ID)
+    );
   }
 
   @Order(1)

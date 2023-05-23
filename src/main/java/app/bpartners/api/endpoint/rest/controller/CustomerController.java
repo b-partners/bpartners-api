@@ -51,6 +51,13 @@ public class CustomerController {
         .collect(Collectors.toUnmodifiableList());
   }
 
+  @GetMapping("/accounts/{aId}/customers/{cId}")
+  public Customer getUniqueCustomer(
+      @PathVariable(name = "aId") String accountId,
+      @PathVariable(name = "cId") String id) {
+    return mapper.toRest(service.getCustomerById(id));
+  }
+
   @PostMapping("/accounts/{id}/customers")
   public List<Customer> createCustomers(
       @PathVariable(name = "id") String idAccount,

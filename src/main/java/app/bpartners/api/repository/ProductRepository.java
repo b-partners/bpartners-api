@@ -26,6 +26,6 @@ public interface ProductRepository {
 
   List<Product> updateStatuses(List<UpdateProductStatus> toUpdate);
 
-  Product findById (String id);
+  Product findById(String id);
 }
 

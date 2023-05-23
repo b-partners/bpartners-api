@@ -175,7 +175,7 @@ class CustomerIT {
 
   @Order(1)
   @Test
-  void read_unique_cutomer_ok() throws ApiException {
+  void read_unique_customer_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
     CustomersApi api = new CustomersApi(joeDoeClient);
 

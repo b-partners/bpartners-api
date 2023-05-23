@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
 
 import static app.bpartners.api.service.utils.AccountUtils.filterActive;
@@ -24,6 +25,7 @@ import static app.bpartners.api.service.utils.FilterUtils.distinctByKeys;
 
 @Repository
 @AllArgsConstructor
+@Slf4j
 public class AccountRepositoryImpl implements AccountRepository {
   private final AccountMapper mapper;
   private final AccountConnectorRepository connectorRepository;
@@ -81,10 +83,9 @@ public class AccountRepositoryImpl implements AccountRepository {
 
   @Override
   public Account save(UpdateAccountIdentity updateAccount) {
-    HAccount existing = jpaRepository.findById(updateAccount.getAccountId())
-        .orElseThrow(
-            () -> new NotFoundException(
-                "Account(id=" + updateAccount.getAccountId() + ") not found"));
+    Account account = findById(updateAccount.getAccountId());
+    HUser user = getUserById(account.getUserId());
+    HAccount existing = mapper.toEntity(account, user);
     HAccount saved = jpaRepository.save(existing.toBuilder()
         .name(updateAccount.getName() == null ? existing.getName() : updateAccount.getName())
         .iban(updateAccount.getIban() == null ? existing.getIban() : updateAccount.getIban())

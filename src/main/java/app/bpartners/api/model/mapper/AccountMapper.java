@@ -78,6 +78,7 @@ public class AccountMapper {
         entity.getId(), accountConnector.getBalance());
     return Account.builder()
         .id(entity.getId())
+        .externalId(accountConnector.getId())
         .userId(entity.getUser().getId())
         .bic(entity.getBic())
         .bank(bank)
@@ -94,6 +95,7 @@ public class AccountMapper {
     }
     return Account.builder()
         .id(entity.getId())
+        .externalId(entity.getExternalId())
         .userId(entity.getUser().getId())
         .name(entity.getName())
         .iban(entity.getIban())
@@ -109,10 +111,10 @@ public class AccountMapper {
         .id(existing.getId())
         .user(existing.getUser())
         .idBank(accountConnector.getBankId())
+        .name(existing.getName())
+        .iban(existing.getIban())
         .bic(existing.getBic())
         .externalId(accountConnector.getId())
-        .name(accountConnector.getName())
-        .iban(accountConnector.getIban())
         .availableBalance(String.valueOf(parseFraction(accountConnector.getBalance() * 100)))
         .status(accountConnector.getStatus())
         .build();
@@ -121,8 +123,10 @@ public class AccountMapper {
   public HAccount toEntity(Account account, HUser userEntity) {
     return HAccount.builder()
         .id(account.getId())
+        .externalId(account.getExternalId())
         .user(userEntity)
-        .idBank(account.getBank() == null ? null : account.getBank().getId())
+        .idBank(
+            account.getBank() == null ? null : String.valueOf(account.getBank().getExternalId()))
         .bic(account.getBic())
         .name(account.getName())
         .iban(account.getIban())

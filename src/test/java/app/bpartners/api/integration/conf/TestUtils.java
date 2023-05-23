@@ -31,6 +31,7 @@ import app.bpartners.api.endpoint.rest.security.principal.PrincipalProvider;
 import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.exception.BadRequestException;
+import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.repository.AccountConnectorRepository;
 import app.bpartners.api.repository.AccountRepository;
 import app.bpartners.api.repository.LegalFileRepository;
@@ -1253,7 +1254,7 @@ public class TestUtils {
     when(accountRepository.findByUserId(any())).thenReturn(List.of(joeModelAccount()));
   }
 
-  private static Account joePersistedAccount() {
+  public static Account joePersistedAccount() {
     return Account.builder()
         .id("beed1765-5c16-472a-b3f4-5c376ce5db58")
         .userId("joe_doe_id")
@@ -1346,6 +1347,14 @@ public class TestUtils {
     filter.put("annee[gte]", String.valueOf(Year.now().minusYears(1).getValue()));
     filter.put("type[in]", "PC,PA");
     return filter;
+  }
+
+  public static app.bpartners.api.endpoint.rest.model.Account filterAccountsById(
+      String accountId, List<app.bpartners.api.endpoint.rest.model.Account> accounts) {
+    return accounts.stream()
+        .filter(account -> account.getId().equals(accountId))
+        .findFirst().orElseThrow(() -> new NotFoundException("Account(id=" + accountId + ") not "
+            + "found"));
   }
 
   public static boolean isAfterOrEquals(Instant before, Instant after) {

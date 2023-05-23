@@ -6,8 +6,7 @@ import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
 import app.bpartners.api.endpoint.rest.model.FileInfo;
 import app.bpartners.api.endpoint.rest.model.FileType;
-import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
-import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
+import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.integration.conf.S3AbstractContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
 import app.bpartners.api.manager.ProjectTokenManager;
@@ -16,8 +15,6 @@ import app.bpartners.api.repository.LegalFileRepository;
 import app.bpartners.api.repository.fintecture.FintectureConf;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitConf;
 import app.bpartners.api.repository.sendinblue.SendinblueConf;
-import app.bpartners.api.repository.swan.AccountHolderSwanRepository;
-import app.bpartners.api.repository.swan.UserSwanRepository;
 import app.bpartners.api.service.PaymentScheduleService;
 import java.io.File;
 import java.io.IOException;
@@ -52,11 +49,8 @@ import static app.bpartners.api.integration.conf.TestUtils.TO_UPLOAD_FILE_ID;
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsApiException;
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsForbiddenException;
 import static app.bpartners.api.integration.conf.TestUtils.getApiException;
-import static app.bpartners.api.integration.conf.TestUtils.setUpAccountConnectorSwanRepository;
-import static app.bpartners.api.integration.conf.TestUtils.setUpAccountHolderSwanRep;
+import static app.bpartners.api.integration.conf.TestUtils.setUpCognito;
 import static app.bpartners.api.integration.conf.TestUtils.setUpLegalFileRepository;
-import static app.bpartners.api.integration.conf.TestUtils.setUpSwanComponent;
-import static app.bpartners.api.integration.conf.TestUtils.setUpUserSwanRepository;
 import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
@@ -77,23 +71,16 @@ class FileIT {
   @MockBean
   private SendinblueConf sendinblueConf;
   @MockBean
-  private SwanConf swanConf;
-  @MockBean
   private FintectureConf fintectureConf;
   @MockBean
   private ProjectTokenManager projectTokenManager;
   @MockBean
-  private UserSwanRepository userSwanRepositoryMock;
-  @MockBean
   private AccountConnectorRepository accountConnectorRepositoryMock;
   @MockBean
-  private AccountHolderSwanRepository accountHolderRepositoryMock;
-  @MockBean
-  private SwanComponent swanComponentMock;
-  @MockBean
   private LegalFileRepository legalFileRepositoryMock;
+  @MockBean
+  private CognitoComponent cognitoComponentMock;
   private Tika typeGuesser = new Tika();
-
 
   private static ApiClient anApiClient() {
     return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN, ContextInitializer.SERVER_PORT);
@@ -101,11 +88,8 @@ class FileIT {
 
   @BeforeEach
   public void setUp() {
-    setUpUserSwanRepository(userSwanRepositoryMock);
-    setUpSwanComponent(swanComponentMock);
-    setUpAccountConnectorSwanRepository(accountConnectorRepositoryMock);
-    setUpAccountHolderSwanRep(accountHolderRepositoryMock);
     setUpLegalFileRepository(legalFileRepositoryMock);
+    setUpCognito(cognitoComponentMock);
   }
 
   FileInfo file1() {

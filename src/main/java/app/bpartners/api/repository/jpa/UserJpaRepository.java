@@ -19,8 +19,6 @@ public interface UserJpaRepository extends JpaRepository<HUser, String> {
 
   HUser getByEmail(String email);
 
-  Optional<HUser> findUserBySwanUserId(String swanUserId);
-
   @Query(
       "select u from HUser u join HAccount a"
           + " on u.id = a.user.id"

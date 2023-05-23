@@ -5,14 +5,12 @@ import app.bpartners.api.model.Account;
 import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.MonthlyTransactionsSummary;
 import app.bpartners.api.model.Transaction;
-import app.bpartners.api.model.TransactionInvoice;
+import app.bpartners.api.model.JustifyTransaction;
 import app.bpartners.api.model.TransactionsSummary;
-import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.repository.AccountRepository;
 import app.bpartners.api.repository.TransactionRepository;
 import app.bpartners.api.repository.TransactionsSummaryRepository;
 import app.bpartners.api.repository.jpa.InvoiceJpaRepository;
-import app.bpartners.api.repository.jpa.model.HInvoice;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.Month;
@@ -88,18 +86,10 @@ public class TransactionService {
     return summaryRepository.getByIdUserAndYear(idUser, year);
   }
 
-  //TODO: refactor invoice -> transactionInvoice to appropriate mapper
   public Transaction justifyTransaction(String idTransaction, String idInvoice) {
-    Transaction transaction = repository.getById(idTransaction);
-    HInvoice invoice = invoiceRepository.findById(idInvoice).orElseThrow(
-        () -> new NotFoundException(
-            "Invoice." + idInvoice + " is not found")
-    );
-    return repository.save(transaction.toBuilder()
-        .transactionInvoice(TransactionInvoice.builder()
-            .invoiceId(invoice.getId())
-            .fileId(invoice.getFileId())
-            .build())
+    return repository.save(JustifyTransaction.builder()
+        .idTransaction(idTransaction)
+        .idInvoice(idInvoice)
         .build());
   }
 

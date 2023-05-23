@@ -57,7 +57,6 @@ public class HUser implements Serializable {
   @Column(name = "preferred_account_id")
   private String preferredAccountId;
   private String email;
-  private String swanUserId;
   private String bridgeUserId; //TODO: persist this when creating new users
   private String bridgePassword; //TODO: persist this when creating new users
   private String phoneNumber;

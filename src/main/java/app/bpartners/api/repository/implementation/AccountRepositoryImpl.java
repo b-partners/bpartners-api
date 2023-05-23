@@ -36,7 +36,7 @@ public class AccountRepositoryImpl implements AccountRepository {
   /*
     TODO:
     /!\ IMPORTANT NOTE !
-    To respect Facade pattern abstraction, JPA Repository must be a connector as Swan or Bridge.
+    To respect Facade pattern abstraction, JPA Repository must be a connector as Bridge.
     So the entities must be return through AccountConnector first, then convert into Account
     through JPA inside this class AccountRepositoryImpl.
     Meanwhile, to avoid two database requests, we broke the abstraction here.
@@ -61,9 +61,7 @@ public class AccountRepositoryImpl implements AccountRepository {
   public Account findById(String id) {
     HAccount entity = jpaRepository.findById(id).orElseThrow(
         () -> new NotFoundException("Account(id=" + id + ") not found"));
-    String externalId = entity.getExternalId() == null
-        ? entity.getId() //case when external ID equals ID (Default for Swan)
-        : entity.getExternalId(); // Default for Bridge
+    String externalId = entity.getExternalId(); // Default for Bridge
     AccountConnector accountConnector = connectorRepository.findById(externalId);
     if (accountConnector == null) {
       return mapper.toDomain(entity, bankRepository.findByExternalId(entity.getIdBank()));

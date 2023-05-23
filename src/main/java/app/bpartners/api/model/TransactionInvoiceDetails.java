@@ -10,12 +10,12 @@ import lombok.ToString;
 
 @Getter
 @Setter
-@Builder
+@Builder(toBuilder = true)
 @AllArgsConstructor
 @NoArgsConstructor
 @EqualsAndHashCode
 @ToString
-public class TransactionInvoice {
-  private String invoiceId;
+public class TransactionInvoiceDetails {
+  private String idInvoice;
   private String fileId;
 }

@@ -7,7 +7,8 @@ import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.InvoiceDiscount;
 import app.bpartners.api.model.InvoiceProduct;
 import app.bpartners.api.model.PaymentInitiation;
-import app.bpartners.api.model.TransactionInvoice;
+import app.bpartners.api.model.JustifyTransaction;
+import app.bpartners.api.model.TransactionInvoiceDetails;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.repository.jpa.InvoiceJpaRepository;
@@ -166,10 +167,10 @@ public class InvoiceMapper {
             product.getPriceNoVatWithDiscount(discount)));
   }
 
-  public TransactionInvoice toTransactionInvoice(HInvoice entity) {
+  public TransactionInvoiceDetails toTransactionInvoice(HInvoice entity) {
     return entity == null ? null
-        : TransactionInvoice.builder()
-        .invoiceId(entity.getId())
+        : TransactionInvoiceDetails.builder()
+        .idInvoice(entity.getId())
         .fileId(entity.getFileId())
         .build();
   }
@@ -190,12 +191,12 @@ public class InvoiceMapper {
     });
   }
 
-  public HInvoice toEntity(TransactionInvoice transactionInvoice) {
-    return transactionInvoice == null || transactionInvoice.getInvoiceId() == null ? null
-        : jpaRepository.findById(transactionInvoice.getInvoiceId())
+  public HInvoice toEntity(JustifyTransaction justifyTransaction) {
+    return justifyTransaction == null || justifyTransaction.getIdInvoice() == null ? null
+        : jpaRepository.findById(justifyTransaction.getIdInvoice())
         .orElseThrow(
             () -> new NotFoundException(
-                "Invoice." + transactionInvoice.getInvoiceId() + " is not found")
+                "Invoice." + justifyTransaction.getIdInvoice() + " is not found")
         );
   }
 

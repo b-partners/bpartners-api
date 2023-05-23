@@ -3,11 +3,9 @@ package app.bpartners.api.model.mapper;
 import app.bpartners.api.endpoint.rest.model.Geojson;
 import app.bpartners.api.endpoint.rest.model.VerificationStatus;
 import app.bpartners.api.model.AccountHolder;
-import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.validator.AccountHolderValidator;
 import app.bpartners.api.repository.jpa.model.HAccountHolder;
-import app.bpartners.api.repository.swan.model.SwanAccountHolder;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -89,30 +87,6 @@ public class AccountHolderMapper {
         .prospectingPerimeter(domain.getProspectingPerimeter())
         .townCode(domain.getTownCode())
         .feedbackLink(domain.getFeedbackLink())
-        .build();
-  }
-
-  //TODO: delete this and map correctly these values
-  public HAccountHolder toEntity(String accountId, SwanAccountHolder swanAccountHolder) {
-    return HAccountHolder.builder()
-        .id(swanAccountHolder.getId()) //TODO: use persisted ID
-        .subjectToVat(true) //By default, an account holder IS subject to vat
-        .mobilePhoneNumber(null)
-        .email(null)
-        .socialCapital(
-            String.valueOf(new Fraction())) //TODO : check default social capital 0 or null
-        .initialCashflow(String.valueOf(new Fraction()))
-        .verificationStatus(getStatus(swanAccountHolder.getVerificationStatus()))
-        .vatNumber(swanAccountHolder.getInfo().getVatNumber())
-        .name(swanAccountHolder.getInfo().getName())
-        .businessActivity(swanAccountHolder.getInfo().getBusinessActivity())
-        .businessActivityDescription(swanAccountHolder.getInfo().getBusinessActivityDescription())
-        .registrationNumber(swanAccountHolder.getInfo().getRegistrationNumber())
-        .address(swanAccountHolder.getResidencyAddress().getAddressLine1())
-        .city(swanAccountHolder.getResidencyAddress().getCity())
-        .country(swanAccountHolder.getResidencyAddress().getCountry())
-        .postalCode(swanAccountHolder.getResidencyAddress().getPostalCode())
-        .initialCashflow(String.valueOf(new Fraction()))
         .build();
   }
 

@@ -3,7 +3,6 @@ package app.bpartners.api.endpoint.rest.security;
 import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.endpoint.rest.security.exception.UnapprovedLegalFileException;
 import app.bpartners.api.endpoint.rest.security.model.Principal;
-import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
 import app.bpartners.api.model.LegalFile;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.UserToken;
@@ -20,13 +19,12 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 
-import static app.bpartners.api.endpoint.rest.security.swan.SwanConf.BEARER_PREFIX;
+import static app.bpartners.api.service.utils.SecurityUtils.BEARER_PREFIX;
 
 @Component
 @AllArgsConstructor
 public class AuthProvider extends AbstractUserDetailsAuthenticationProvider {
   private final CognitoComponent cognitoComponent;
-  private final SwanComponent swanComponent;
   private final UserService userService;
   private final LegalFileService legalFileService;
 
@@ -70,21 +68,13 @@ public class AuthProvider extends AbstractUserDetailsAuthenticationProvider {
     if (bearer == null) {
       throw new UsernameNotFoundException("Bad credentials"); // NOSONAR
     }
-    String swanBearer = bearer;
-    String cognitoBearer = bearer;
-    String swanUserId = swanComponent.getSwanUserIdByToken(swanBearer);
-    String email = cognitoComponent.getEmailByToken(cognitoBearer);
-    if (swanUserId == null && email == null) {
+    String email = cognitoComponent.getEmailByToken(bearer);
+    if (email == null) {
       throw new UsernameNotFoundException("Bad credentials"); // NOSONAR
     }
-    User user;
-    if (swanUserId != null) {
-      user = userService.getUserByIdAndBearer(swanUserId, swanBearer);
-    } else {
-      user = userService.getUserByEmail(email);
-      UserToken bridgeUserToken = userService.getLatestToken(user);
-      bearer = bridgeUserToken == null ? cognitoBearer : bridgeUserToken.getAccessToken();
-    }
+    User user = userService.getUserByEmail(email);
+    UserToken bridgeUserToken = userService.getLatestToken(user);
+    bearer = bridgeUserToken == null ? bearer : bridgeUserToken.getAccessToken();
     List<LegalFile> legalFilesList =
         legalFileService.getAllToBeApprovedLegalFilesByUserId(user.getId());
     checkLegalFiles(legalFilesList, user);

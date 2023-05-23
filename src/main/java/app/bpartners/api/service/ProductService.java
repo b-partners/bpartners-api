@@ -45,4 +45,8 @@ public class ProductService {
         .map(restMapper::toDomain)
         .collect(Collectors.toList());
   }
+
+  public Product getById(String id) {
+    return repository.findById(id);
+  }
 }

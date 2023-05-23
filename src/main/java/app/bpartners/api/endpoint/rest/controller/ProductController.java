@@ -55,6 +55,13 @@ public class ProductController {
         .collect(Collectors.toUnmodifiableList());
   }
 
+  @GetMapping("/accounts/{aId}/products/{pId}")
+  public Product getUniqueProduct(
+      @PathVariable(name = "aId") String accountId,
+      @PathVariable(name = "pId") String id) {
+    return mapper.toRest(productService.getById(id));
+  }
+
   @PutMapping("/accounts/{aId}/products")
   public List<Product> crupdateProducts(
       @PathVariable(name = "aId") String accountId,

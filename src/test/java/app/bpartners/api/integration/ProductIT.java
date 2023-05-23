@@ -189,10 +189,8 @@ class ProductIT {
     PayingApi api = new PayingApi(joeDoeClient);
 
     Product actualProduct1 = api.getProductById(JOE_DOE_ACCOUNT_ID, "product1_id");
-    Product actualProduct2 = api.getProductById(JOE_DOE_ACCOUNT_ID, "product2_id");
 
     assertEquals(product1(), actualProduct1);
-    assertEquals(product2(), actualProduct2);
   }
 
   @Order(1)

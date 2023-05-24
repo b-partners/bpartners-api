@@ -107,6 +107,9 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
             new SelfAccountMatcher(PUT, "/accounts/*/customers", authResourceProvider)
         ).authenticated()
         .requestMatchers(
+            new SelfAccountMatcher(GET, "/accounts/*/customers/*", authResourceProvider)
+        ).authenticated()
+        .requestMatchers(
             new SelfAccountMatcher(POST, "/accounts/*/customers/upload", authResourceProvider)
         ).authenticated()
         .requestMatchers(
@@ -114,6 +117,9 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
         ).authenticated()
         .requestMatchers(
             new SelfAccountMatcher(GET, "/accounts/*/transactions",
+                authResourceProvider)).authenticated()
+        .requestMatchers(
+            new SelfAccountMatcher(GET, "/accounts/*/transactions/*",
                 authResourceProvider)).authenticated()
         .requestMatchers(
             new SelfAccountMatcher(PUT, "/accounts/*/transactions/*/invoices/*",
@@ -155,6 +161,8 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
         ).authenticated()
         .requestMatchers(
             new SelfAccountMatcher(GET, "/accounts/*/products", authResourceProvider)
+        ).authenticated()
+        .requestMatchers(new SelfAccountMatcher(GET, "/accounts/*/products/*", authResourceProvider)
         ).authenticated()
         .requestMatchers(
             new SelfAccountMatcher(PUT, "/accounts/*/products", authResourceProvider)

@@ -92,7 +92,7 @@ public class ProductRepositoryImpl implements ProductRepository {
         .map(productStatus ->
             jpaRepository.findById(productStatus.getId()).orElseThrow(
                     () -> new NotFoundException(
-                        "Product(id=" + productStatus.getId() + " not found"))
+                        notFoundExceptionMessage(productStatus.getId())))
                 .toBuilder()
                 .status(productStatus.getStatus())
                 .build())
@@ -102,18 +102,30 @@ public class ProductRepositoryImpl implements ProductRepository {
         .collect(Collectors.toList());
   }
 
+  @Override
+  public Product findById(String id) {
+    return mapper.toDomain(
+        jpaRepository.findById(id).orElseThrow(
+            () -> new NotFoundException(
+                notFoundExceptionMessage(id))));
+  }
+
   private Product checkExisting(String idUser, Product domain) {
     String id = domain.getId();
     if (id != null) {
       jpaRepository.findById(id)
           .orElseThrow(()
               -> new NotFoundException(
-              "Product(id=" + id + ") not found for User(id=" + idUser + ")"));
+              notFoundExceptionMessage(id) + " for User(id=" + idUser + ")"));
     }
     Optional<HProduct> optionalProduct =
         jpaRepository.findByIdUserAndDescription(idUser, domain.getDescription());
     return optionalProduct.isEmpty() ? domain : domain.toBuilder()
         .id(optionalProduct.get().getId())
         .build();
+  }
+
+  private String notFoundExceptionMessage(String id) {
+    return "Product(id=" + id + ") not found";
   }
 }

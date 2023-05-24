@@ -47,11 +47,18 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import static app.bpartners.api.integration.conf.TestUtils.BEARER_PREFIX;
+import static app.bpartners.api.integration.conf.TestUtils.JANE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
+import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_TOKEN;
+import static app.bpartners.api.integration.conf.TestUtils.OTHER_CUSTOMER_ID;
+import static app.bpartners.api.integration.conf.TestUtils.OTHER_PRODUCT_ID;
+import static app.bpartners.api.integration.conf.TestUtils.assertThrowsApiException;
+import static app.bpartners.api.integration.conf.TestUtils.assertThrowsForbiddenException;
 import static app.bpartners.api.integration.conf.TestUtils.disabledProduct;
 import static app.bpartners.api.integration.conf.TestUtils.isAfterOrEquals;
 import static app.bpartners.api.integration.conf.TestUtils.product1;
+import static app.bpartners.api.integration.conf.TestUtils.product2;
 import static app.bpartners.api.integration.conf.TestUtils.product6;
 import static app.bpartners.api.integration.conf.TestUtils.setUpCognito;
 import static app.bpartners.api.integration.conf.TestUtils.setUpLegalFileRepository;
@@ -183,6 +190,33 @@ class ProductIT {
 
   @Order(1)
   @Test
+  void read_unique_product_ok() throws ApiException {
+    ApiClient joeDoeClient = anApiClient();
+    PayingApi api = new PayingApi(joeDoeClient);
+
+    Product actualProduct1 = api.getProductById(JOE_DOE_ACCOUNT_ID, "product1_id");
+
+    assertEquals(product1(), actualProduct1);
+  }
+
+  @Order(1)
+  @Test
+  void read_unique_product_ko() throws ApiException {
+    ApiClient joeDoeClient = anApiClient();
+    PayingApi api = new PayingApi(joeDoeClient);
+
+    assertThrowsApiException(
+        "{\"type\":\"404 NOT_FOUND\",\"message\":\"Product(id=" + OTHER_PRODUCT_ID
+            + ") not found\"}",
+        () -> api.getProductById(JOE_DOE_ACCOUNT_ID, OTHER_PRODUCT_ID)
+    );
+    assertThrowsForbiddenException(
+        () -> api.getProductById(JANE_ACCOUNT_ID, "product1_id")
+    );
+  }
+
+  @Order(1)
+  @Test
   void filter_product_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
     PayingApi api = new PayingApi(joeDoeClient);
@@ -267,6 +301,23 @@ class ProductIT {
     expectedProduct.setCreatedAt(null);
     assertEquals(oldProduct, actualProduct);
     assertEquals(expectedProduct, actualUpdated);
+  }
+
+  @Order(3)
+  @Test
+  void update_product_ko() throws ApiException {
+    ApiClient joeDoeClient = anApiClient();
+    PayingApi api = new PayingApi(joeDoeClient);
+    CreateProduct createProduct = new CreateProduct()
+        .id(OTHER_PRODUCT_ID)
+        .description("New product")
+        .unitPrice(5000);
+
+    assertThrowsApiException(
+        "{\"type\":\"404 NOT_FOUND\",\"message\":\"Product(id=" + OTHER_PRODUCT_ID
+            + ") not found for User(id=" + JOE_DOE_ID + ")\"}",
+        () -> api.crupdateProducts(JOE_DOE_ACCOUNT_ID, List.of(createProduct))
+    );
   }
 
   @Order(1)
@@ -374,6 +425,20 @@ class ProductIT {
             .allMatch(product -> product.getStatus() == ProductStatus.DISABLED));
     assertFalse(allProducts.containsAll(actual));
 
+  }
+
+  @Order(4)
+  @Test
+  void product_status_is_disabled_ko() {
+    ApiClient joeDoeClient = anApiClient();
+    PayingApi api = new PayingApi(joeDoeClient);
+
+    assertThrowsApiException(
+        "{\"type\":\"404 NOT_FOUND\",\"message\":\"Product(id=" + OTHER_PRODUCT_ID
+            + ") not found\"}",
+        () -> api.updateProductsStatus(JOE_DOE_ACCOUNT_ID,
+            List.of(new UpdateProductStatus().id(OTHER_PRODUCT_ID).status(ProductStatus.DISABLED)))
+    );
   }
 
   List<Product> ignoreCreatedAt(List<Product> actual) {

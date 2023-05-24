@@ -9,6 +9,7 @@ import app.bpartners.api.endpoint.rest.model.Invoice;
 import app.bpartners.api.endpoint.rest.model.MonthlyTransactionsSummary;
 import app.bpartners.api.endpoint.rest.model.Transaction;
 import app.bpartners.api.endpoint.rest.model.TransactionInvoice;
+import app.bpartners.api.endpoint.rest.model.TransactionStatus;
 import app.bpartners.api.endpoint.rest.model.TransactionsSummary;
 import app.bpartners.api.endpoint.rest.security.bridge.BridgeConf;
 import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
@@ -21,11 +22,17 @@ import app.bpartners.api.repository.bridge.BridgeApi;
 import app.bpartners.api.repository.bridge.model.Transaction.BridgeTransaction;
 import app.bpartners.api.repository.bridge.repository.BridgeTransactionRepository;
 import app.bpartners.api.repository.fintecture.FintectureConf;
+import app.bpartners.api.repository.jpa.TransactionJpaRepository;
+import app.bpartners.api.repository.jpa.model.HInvoice;
+import app.bpartners.api.repository.jpa.model.HTransaction;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitConf;
 import app.bpartners.api.repository.sendinblue.SendinblueConf;
 import app.bpartners.api.service.PaymentScheduleService;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -35,15 +42,21 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import static app.bpartners.api.integration.conf.TestUtils.INVOICE1_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JANE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JANE_DOE_TOKEN;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_TOKEN;
+import static app.bpartners.api.integration.conf.TestUtils.TRANSACTION1_ID;
+import static app.bpartners.api.integration.conf.TestUtils.UNKNOWN_TRANSACTION_ID;
+import static app.bpartners.api.integration.conf.TestUtils.assertThrowsApiException;
+import static app.bpartners.api.integration.conf.TestUtils.assertThrowsForbiddenException;
 import static app.bpartners.api.integration.conf.TestUtils.invoice1;
 import static app.bpartners.api.integration.conf.TestUtils.isAfterOrEquals;
 import static app.bpartners.api.integration.conf.TestUtils.restTransaction1;
 import static app.bpartners.api.integration.conf.TestUtils.setUpCognito;
 import static app.bpartners.api.integration.conf.TestUtils.setUpLegalFileRepository;
+import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 import static java.util.Calendar.DECEMBER;
 import static java.util.Calendar.JANUARY;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -84,6 +97,8 @@ class TransactionIT {
   private CognitoComponent cognitoComponentMock;
   @MockBean
   private BridgeTransactionRepository bridgeTransactionRepositoryMock;
+  @MockBean
+  private TransactionJpaRepository transactionJpaRepositoryMock;
 
   private static ApiClient anApiClient() {
     return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN,
@@ -156,27 +171,149 @@ class TransactionIT {
     setUpCognito(cognitoComponentMock);
     when(bridgeApiMock.findTransactionsUpdatedByToken(any()))
         .thenReturn(List.of());
+  }
 
-    when(bridgeTransactionRepositoryMock.findByBearer(JOE_DOE_TOKEN))
-        .thenReturn(List.of(bridgeTransaction1(), bridgeTransaction2(), bridgeTransaction3()));
+  private static HTransaction jpaTransactionEntity1() {
+    return HTransaction.builder()
+        .id("transaction1_id")
+        .idAccount(JOE_DOE_ACCOUNT_ID)
+        .idBridge(null)
+        .label("Création de site vitrine")
+        .reference("REF_001")
+        .amount("50000/1")
+        .currency("EUR")
+        .side("CREDIT_SIDE")
+        .status(TransactionStatus.PENDING)
+        .paymentDateTime(Instant.parse("2022-08-26T06:33:50.595Z"))
+        .build();
+  }
+
+  private static HTransaction jpaTransactionEntity2() {
+    return HTransaction.builder()
+        .id("transaction2_id")
+        .idAccount(JOE_DOE_ACCOUNT_ID)
+        .idBridge(null)
+        .label("Premier virement")
+        .reference("JOE-001")
+        .amount("50000/1")
+        .currency("EUR")
+        .side("CREDIT_SIDE")
+        .status(TransactionStatus.BOOKED)
+        .paymentDateTime(Instant.parse("2022-08-24T03:39:33.315Z"))
+        .build();
+  }
+
+
+  private static HTransaction bridgeTransactionEntity1() {
+    return HTransaction.builder()
+        .id("bridge_transaction1_id")
+        .idAccount(JOE_DOE_ACCOUNT_ID)
+        .idBridge(bridgeTransaction1().getId())
+        .label(bridgeTransaction1().getLabel())
+        .amount(String.valueOf(parseFraction(bridgeTransaction2().getAmount())))
+        .currency(bridgeTransaction1().getCurrency())
+        .side(bridgeTransaction1().getSide())
+        .status(bridgeTransaction1().getStatus())
+        .paymentDateTime(bridgeTransaction1().getTransactionDate()
+            .atStartOfDay(ZoneId.systemDefault())
+            .toInstant())
+        .build();
+  }
+
+  private static HTransaction bridgeTransactionEntity2() {
+    return HTransaction.builder()
+        .id("bridge_transaction2_id")
+        .idAccount(JOE_DOE_ACCOUNT_ID)
+        .idBridge(bridgeTransaction2().getId())
+        .label(bridgeTransaction2().getLabel())
+        .amount(String.valueOf(parseFraction(bridgeTransaction2().getAmount())))
+        .currency(bridgeTransaction2().getCurrency())
+        .side(bridgeTransaction2().getSide())
+        .status(bridgeTransaction2().getStatus())
+        .paymentDateTime(bridgeTransaction2().getTransactionDate()
+            .atStartOfDay(ZoneId.systemDefault())
+            .toInstant()).build();
+  }
+
+  private static HTransaction bridgeTransactionEntity3() {
+    return HTransaction.builder()
+        .id("bridge_transaction3_id")
+        .idAccount(JOE_DOE_ACCOUNT_ID)
+        .idBridge(bridgeTransaction3().getId())
+        .label(bridgeTransaction3().getLabel())
+        .amount(String.valueOf(parseFraction(bridgeTransaction3().getAmount())))
+        .currency(bridgeTransaction3().getCurrency())
+        .side(bridgeTransaction3().getSide())
+        .status(bridgeTransaction3().getStatus())
+        .paymentDateTime(bridgeTransaction3().getTransactionDate()
+            .atStartOfDay(ZoneId.systemDefault())
+            .toInstant())
+        .build();
   }
 
   @Test
-  void read_transactions_ok() throws ApiException {
+  void read_transactions_twice_ok() throws ApiException {
+    reset(transactionJpaRepositoryMock);
+    when(bridgeTransactionRepositoryMock.findByBearer(JOE_DOE_TOKEN))
+        .thenReturn(List.of(bridgeTransaction1(), bridgeTransaction2(), bridgeTransaction3()));
+    when(transactionJpaRepositoryMock.findByIdBridge(bridgeTransaction1().getId())).thenReturn(
+        Optional.of(bridgeTransactionEntity1()));
+    when(transactionJpaRepositoryMock.findByIdBridge(bridgeTransaction2().getId())).thenReturn(
+        Optional.of(bridgeTransactionEntity2()));
+    when(transactionJpaRepositoryMock.findByIdBridge(bridgeTransaction3().getId())).thenReturn(
+        Optional.of(bridgeTransactionEntity3()));
+    List<HTransaction> mockedBridgeTransactions = List.of(
+        bridgeTransactionEntity1(),
+        bridgeTransactionEntity2(),
+        bridgeTransactionEntity3());
+    when(transactionJpaRepositoryMock.saveAll(any()))
+        .thenReturn(mockedBridgeTransactions);
     ApiClient joeDoeClient = anApiClient();
     PayingApi api = new PayingApi(joeDoeClient);
 
-    List<Transaction> actual = api.getTransactions(JOE_DOE_ACCOUNT_ID, null, null);
+    List<Transaction> actual1 = api.getTransactions(JOE_DOE_ACCOUNT_ID, null, null);
+    List<Transaction> actual2 = api.getTransactions(JOE_DOE_ACCOUNT_ID, null, null);
 
-    assertEquals(3, actual.size());
+    assertEquals(3, actual1.size());
+    assertEquals(actual1, actual2);
     assertTrue(isAfterOrEquals(
-        actual.get(0).getPaymentDatetime(), actual.get(1).getPaymentDatetime()));
+        actual1.get(0).getPaymentDatetime(), actual1.get(1).getPaymentDatetime()));
     assertTrue(isAfterOrEquals(
-        actual.get(1).getPaymentDatetime(), actual.get(2).getPaymentDatetime()));
+        actual1.get(1).getPaymentDatetime(), actual1.get(2).getPaymentDatetime()));
     //TODO : actual transactions contains rest resource
   }
 
   @Test
+  void read_transaction_by_id_ok() throws ApiException {
+    reset(transactionJpaRepositoryMock);
+    when(transactionJpaRepositoryMock.findById(jpaTransactionEntity1().getId())).thenReturn(
+        Optional.of(jpaTransactionEntity1()));
+    ApiClient joeDoeClient = anApiClient();
+    PayingApi api = new PayingApi(joeDoeClient);
+
+    Transaction actual = api.getTransactionById(JOE_DOE_ACCOUNT_ID, TRANSACTION1_ID);
+
+    assertEquals(restTransaction1(), actual);
+  }
+
+  @Test
+  void read_transaction_by_id_ko() {
+    ApiClient joeDoeClient = anApiClient();
+    PayingApi api = new PayingApi(joeDoeClient);
+
+    assertThrowsApiException("{\"type\":\"404 NOT_FOUND\",\"message\":\""
+            + "Transaction.unknown_transaction_id is not found.\"}",
+        () -> api.getTransactionById(JOE_DOE_ACCOUNT_ID, UNKNOWN_TRANSACTION_ID));
+    assertThrowsForbiddenException(
+        () -> api.getTransactionById(JANE_ACCOUNT_ID, TRANSACTION1_ID));
+  }
+
+
+  /*
+  TODO: return empty when neither swan nor bridge return transaction
+   */
+  @Test
+  @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
   void read_empty_transactions_ok() throws ApiException {
     reset(bridgeTransactionRepositoryMock);
     ApiClient joeDoeClient = anApiClient();
@@ -190,6 +327,15 @@ class TransactionIT {
   @Test
   @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
   void justify_transaction_ok() throws ApiException {
+    reset(transactionJpaRepositoryMock);
+    when(transactionJpaRepositoryMock.findById(jpaTransactionEntity1().getId())).thenReturn(
+        Optional.of(jpaTransactionEntity1()));
+    when(transactionJpaRepositoryMock.save(any())).thenReturn(jpaTransactionEntity1().toBuilder()
+        .invoice(HInvoice.builder()
+            .id(INVOICE1_ID)
+            .fileId("file1_id")
+            .build())
+        .build());
     ApiClient joeDoeClient = anApiClient();
     PayingApi api = new PayingApi(joeDoeClient);
     Transaction transaction1 = restTransaction1();

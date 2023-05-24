@@ -31,7 +31,6 @@ class TransactionServiceSummariesTest {
   TransactionService transactionService;
   TransactionRepository transactionRepository;
   TransactionsSummaryRepository transactionsSummaryRepository;
-  InvoiceJpaRepository invoiceRepositoryMock;
   AccountRepository accountRepositoryMock;
 
   private static Account joeDoeAccount() {
@@ -45,12 +44,10 @@ class TransactionServiceSummariesTest {
   void setUp() {
     transactionsSummaryRepository = mock(TransactionsSummaryRepository.class);
     transactionRepository = mock(TransactionRepository.class);
-    invoiceRepositoryMock = mock(InvoiceJpaRepository.class);
     accountRepositoryMock = mock(AccountRepository.class);
     transactionService = new TransactionService(
         transactionRepository,
         transactionsSummaryRepository,
-        invoiceRepositoryMock,
         accountRepositoryMock
     );
 

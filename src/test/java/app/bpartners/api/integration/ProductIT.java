@@ -47,12 +47,14 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import static app.bpartners.api.integration.conf.TestUtils.BEARER_PREFIX;
+import static app.bpartners.api.integration.conf.TestUtils.JANE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_TOKEN;
 import static app.bpartners.api.integration.conf.TestUtils.OTHER_CUSTOMER_ID;
 import static app.bpartners.api.integration.conf.TestUtils.OTHER_PRODUCT_ID;
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsApiException;
+import static app.bpartners.api.integration.conf.TestUtils.assertThrowsForbiddenException;
 import static app.bpartners.api.integration.conf.TestUtils.disabledProduct;
 import static app.bpartners.api.integration.conf.TestUtils.isAfterOrEquals;
 import static app.bpartners.api.integration.conf.TestUtils.product1;
@@ -207,6 +209,9 @@ class ProductIT {
         "{\"type\":\"404 NOT_FOUND\",\"message\":\"Product(id=" + OTHER_PRODUCT_ID
             + ") not found\"}",
         () -> api.getProductById(JOE_DOE_ACCOUNT_ID, OTHER_PRODUCT_ID)
+    );
+    assertThrowsForbiddenException(
+        () -> api.getProductById(JANE_ACCOUNT_ID, "product1_id")
     );
   }
 

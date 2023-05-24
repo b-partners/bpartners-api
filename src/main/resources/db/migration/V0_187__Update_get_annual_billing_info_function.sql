@@ -6,6 +6,7 @@ create or replace function get_annual_billing_info(year integer)
                 user_id varchar,
                 first_name       varchar,
                 last_name        varchar,
+                email varchar,
                 january    numeric,
                 february   numeric,
                 march      numeric,

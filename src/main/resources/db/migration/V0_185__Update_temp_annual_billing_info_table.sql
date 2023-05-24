@@ -10,6 +10,7 @@ BEGIN
         user_id    varchar,
         first_name varchar,
         last_name  varchar,
+        email varchar,
         january    numeric default 0,
         february   numeric default 0,
         march      numeric default 0,

@@ -6,6 +6,7 @@ create or replace function get_billing_info_by_year_and_month(year integer, mont
                 user_id   varchar,
                 first_name         varchar,
                 last_name         varchar,
+                email varchar,
                 amount_value numeric,
                 average numeric,
                 median         double precision,
@@ -19,6 +20,7 @@ BEGIN
         select pr.id_user as user_id,
                u.first_name as first_name,
                u.last_name as last_name,
+               u.email as email,
                (sum((cast(split_part(pr.amount, '/', 1) as numeric)
                    / cast(split_part(pr.amount, '/', 2) as
                          numeric))) / 100) as amount_value,
@@ -33,7 +35,7 @@ BEGIN
                  as pr
                  inner join "user" u on pr.id_user = u.id
         where extract(month from pr.created_datetime) = month
-        group by u.first_name, pr.id_user, u.last_name;
+        group by u.first_name, pr.id_user, u.last_name, u.email;
 end;
 $$
     language plpgsql;

@@ -71,7 +71,7 @@ public class Fraction implements Serializable {
   }
 
   private BigDecimal getRoundedBigDecimal(RoundingMode roundingMode) {
-    return BigDecimal.valueOf(numerator.doubleValue() / denominator.doubleValue() / 100)
+    return BigDecimal.valueOf(numerator.doubleValue() / denominator.doubleValue())
         .setScale(2, roundingMode);
   }
 

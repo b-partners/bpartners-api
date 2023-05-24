@@ -36,6 +36,10 @@ public class CustomerService {
         phoneNumber, city, country, status, pageValue, pageSizeValue);
   }
 
+  public Customer getCustomerById(String id) {
+    return repository.findById(id);
+  }
+
   @Transactional
   public List<Customer> crupdateCustomers(List<Customer> customers) {
     return repository.saveAll(customers);

@@ -3,6 +3,7 @@ package app.bpartners.api.integration;
 import app.bpartners.api.SentryConf;
 import app.bpartners.api.endpoint.event.S3Conf;
 import app.bpartners.api.endpoint.rest.api.CustomersApi;
+import app.bpartners.api.endpoint.rest.api.PayingApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
 import app.bpartners.api.endpoint.rest.model.CreateCustomer;
@@ -46,11 +47,13 @@ import static app.bpartners.api.endpoint.rest.model.CustomerStatus.DISABLED;
 import static app.bpartners.api.endpoint.rest.model.CustomerStatus.ENABLED;
 import static app.bpartners.api.integration.conf.TestUtils.BAD_USER_ID;
 import static app.bpartners.api.integration.conf.TestUtils.BEARER_PREFIX;
+import static app.bpartners.api.integration.conf.TestUtils.JANE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_TOKEN;
 import static app.bpartners.api.integration.conf.TestUtils.OTHER_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.TestUtils.OTHER_CUSTOMER_ID;
+import static app.bpartners.api.integration.conf.TestUtils.OTHER_PRODUCT_ID;
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsApiException;
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsForbiddenException;
 import static app.bpartners.api.integration.conf.TestUtils.customer1;
@@ -170,6 +173,33 @@ class CustomerIT {
     assertTrue(actualFilteredByCity.contains(customer1()));
     assertEquals("Jean Olivier", actualFilteredByCountry.get(0).getFirstName());
     assertTrue(actualNoFilter.containsAll(allFilteredResults));
+  }
+
+  @Order(1)
+  @Test
+  void read_unique_customer_ok() throws ApiException {
+    ApiClient joeDoeClient = anApiClient();
+    CustomersApi api = new CustomersApi(joeDoeClient);
+
+    Customer actualCustomer = api.getCustomerById(JOE_DOE_ACCOUNT_ID, "customer1_id");
+
+    assertEquals(customer1(), actualCustomer);
+  }
+
+  @Order(1)
+  @Test
+  void read_unique_customer_ko() {
+    ApiClient joeDoeClient = anApiClient();
+    CustomersApi api = new CustomersApi(joeDoeClient);
+
+    assertThrowsApiException(
+        "{\"type\":\"404 NOT_FOUND\",\"message\":\"Customer." + OTHER_CUSTOMER_ID
+            + " is not found.\"}",
+        () -> api.getCustomerById(JOE_DOE_ACCOUNT_ID, OTHER_CUSTOMER_ID)
+    );
+    assertThrowsForbiddenException(
+        () -> api.getCustomerById(JANE_ACCOUNT_ID, "customer1_id")
+    );
   }
 
   @Order(1)

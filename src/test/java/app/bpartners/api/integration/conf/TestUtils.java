@@ -110,6 +110,7 @@ public class TestUtils {
   public static final String BERNARD_DOE_ACCOUNT_ID = "account_pro_id";
   public static final String OTHER_ACCOUNT_ID = "other_account_id";
   public static final String OTHER_CUSTOMER_ID = "other_customer_id";
+  public static final String OTHER_PRODUCT_ID = "other_product_id";
   public static final String USER1_ID = "user1_id";
   public static final String BAD_USER_ID = "bad_user_id";
   public static final String INVOICE1_ID = "invoice1_id";

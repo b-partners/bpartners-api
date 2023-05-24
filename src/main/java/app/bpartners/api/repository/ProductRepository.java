@@ -25,5 +25,7 @@ public interface ProductRepository {
       Fraction unitPrice);
 
   List<Product> updateStatuses(List<UpdateProductStatus> toUpdate);
+
+  Product findById(String id);
 }
 

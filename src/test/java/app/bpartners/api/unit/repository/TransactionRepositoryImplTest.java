@@ -4,7 +4,7 @@ import app.bpartners.api.model.UserToken;
 import app.bpartners.api.model.mapper.InvoiceMapper;
 import app.bpartners.api.model.mapper.TransactionMapper;
 import app.bpartners.api.repository.TransactionCategoryRepository;
-import app.bpartners.api.repository.bridge.repository.BridgeTransactionRepository;
+import app.bpartners.api.repository.connectors.transaction.TransactionConnectorRepository;
 import app.bpartners.api.repository.implementation.TransactionRepositoryImpl;
 import app.bpartners.api.repository.jpa.InvoiceJpaRepository;
 import app.bpartners.api.repository.jpa.TransactionJpaRepository;
@@ -21,9 +21,9 @@ class TransactionRepositoryImplTest {
   TransactionCategoryRepository categoryRepositoryMock;
   TransactionJpaRepository transactionJpaRepositoryMock;
   InvoiceMapper invoiceMapperMock;
-  BridgeTransactionRepository bridgeTransactionRepositoryMock;
   UserService userServiceMock;
   InvoiceJpaRepository invoiceJpaRepositoryMock;
+  TransactionConnectorRepository transactionConnectorRepositoryMock;
 
 
   @BeforeEach
@@ -32,12 +32,10 @@ class TransactionRepositoryImplTest {
     transactionMapperMock = new TransactionMapper(invoiceMapperMock);
     categoryRepositoryMock = mock(TransactionCategoryRepository.class);
     transactionJpaRepositoryMock = mock(TransactionJpaRepository.class);
-    bridgeTransactionRepositoryMock = mock(BridgeTransactionRepository.class);
-    userServiceMock = mock(UserService.class);
     invoiceJpaRepositoryMock = mock(InvoiceJpaRepository.class);
+    transactionConnectorRepositoryMock = mock(TransactionConnectorRepository.class);
     subject = new TransactionRepositoryImpl(transactionMapperMock, categoryRepositoryMock,
-        transactionJpaRepositoryMock, bridgeTransactionRepositoryMock, userServiceMock,
-        invoiceJpaRepositoryMock);
+        transactionJpaRepositoryMock, invoiceJpaRepositoryMock, transactionConnectorRepositoryMock);
 
     when(userServiceMock.getLatestTokenByAccount(any())).thenReturn(
         UserToken.builder().build());

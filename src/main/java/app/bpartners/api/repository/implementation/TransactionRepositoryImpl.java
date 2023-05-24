@@ -1,21 +1,18 @@
 package app.bpartners.api.repository.implementation;
 
 import app.bpartners.api.endpoint.rest.model.TransactionStatus;
-import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.model.JustifyTransaction;
 import app.bpartners.api.model.Transaction;
-import app.bpartners.api.model.UserToken;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.mapper.TransactionMapper;
 import app.bpartners.api.repository.TransactionCategoryRepository;
 import app.bpartners.api.repository.TransactionRepository;
-import app.bpartners.api.repository.bridge.model.Transaction.BridgeTransaction;
-import app.bpartners.api.repository.bridge.repository.BridgeTransactionRepository;
+import app.bpartners.api.repository.connectors.transaction.TransactionConnector;
+import app.bpartners.api.repository.connectors.transaction.TransactionConnectorRepository;
 import app.bpartners.api.repository.jpa.InvoiceJpaRepository;
 import app.bpartners.api.repository.jpa.TransactionJpaRepository;
 import app.bpartners.api.repository.jpa.model.HInvoice;
 import app.bpartners.api.repository.jpa.model.HTransaction;
-import app.bpartners.api.service.UserService;
 import java.time.Instant;
 import java.util.Comparator;
 import java.util.List;
@@ -24,8 +21,6 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
 
-import static app.bpartners.api.endpoint.rest.security.AuthProvider.userIsAuthenticated;
-
 @Repository
 @Slf4j
 @AllArgsConstructor
@@ -33,26 +28,22 @@ public class TransactionRepositoryImpl implements TransactionRepository {
   private final TransactionMapper mapper;
   private final TransactionCategoryRepository categoryRepository;
   private final TransactionJpaRepository jpaRepository;
-  private final BridgeTransactionRepository bridgeRepository;
-  private final UserService userService;
   private final InvoiceJpaRepository invoiceJpaRepository;
+  private final TransactionConnectorRepository connectorRepository;
 
   @Override
-  public List<Transaction> findByAccountId(String accountId) {
-    List<BridgeTransaction> bridgeTransactions =
-        userIsAuthenticated()
-            ? bridgeRepository.findByBearer(AuthProvider.getBearer())
-            : bridgeRepository.findByBearer(bridgeAccessToken(accountId));
-    if (bridgeTransactions.isEmpty()) {
-      return List.of();
-    }
-    return bridgeTransactions.stream()
-        .map(
-            transaction -> {
-              HTransaction entity = getUpdatedTransaction(accountId, transaction);
-              return mapper.toDomain(transaction, entity,
-                  categoryRepository.findByIdTransaction(entity.getId()));
-            })
+  public List<Transaction> findByAccountId(String idAccount) {
+    List<TransactionConnector> connectors = connectorRepository.findByIdAccount(idAccount);
+    List<HTransaction> entities = connectors.stream()
+        .map(connector -> jpaRepository.findByIdBridge(Long.valueOf(connector.getId()))
+            .orElseThrow(() -> new NotFoundException(
+                "Transaction(externalId=" + connector.getId() + ") not found")
+            ))
+        .collect(Collectors.toList());
+    return entities.stream()
+        .map(entity -> mapper.toDomain(entity,
+            categoryRepository.findByIdTransaction(entity.getId())))
+        //TODO: when getting from database only, sort by payment date DESC directly in db query
         .sorted(Comparator.comparing(Transaction::getPaymentDatetime).reversed())
         .collect(Collectors.toList());
   }
@@ -106,18 +97,5 @@ public class TransactionRepositoryImpl implements TransactionRepository {
         .orElseThrow(() -> new NotFoundException(
             "Transaction." + idTransaction + " not found"));
     return mapper.toDomain(entity, categoryRepository.findByIdTransaction(entity.getId()));
-  }
-
-  private HTransaction getUpdatedTransaction(
-      String accountId, BridgeTransaction transaction) {
-    HTransaction transactionEntity = mapper.toEntity(accountId, transaction);
-    jpaRepository.findByIdBridge(transaction.getId())
-        .ifPresent(entity -> transactionEntity.setId(entity.getId()));
-    return jpaRepository.save(transactionEntity);
-  }
-
-  private String bridgeAccessToken(String accountId) {
-    UserToken userToken = userService.getLatestTokenByAccount(accountId);
-    return userToken == null ? null : userToken.getAccessToken();
   }
 }

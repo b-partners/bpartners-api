@@ -1,5 +1,6 @@
 package app.bpartners.api.repository.bridge.model.Transaction;
 
+import app.bpartners.api.endpoint.rest.model.TransactionStatus;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.Instant;
@@ -50,5 +51,11 @@ public class BridgeTransaction {
 
   public String getSide() {
     return getAmount() > 0 ? CREDIT_SIDE : DEBIT_SIDE;
+  }
+
+  public TransactionStatus getStatus() {
+    return !isFuture()
+        ? TransactionStatus.BOOKED :
+        TransactionStatus.UPCOMING;
   }
 }

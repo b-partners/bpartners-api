@@ -1,10 +1,11 @@
 package app.bpartners.api.model.mapper;
 
-import app.bpartners.api.endpoint.rest.model.TransactionStatus;
 import app.bpartners.api.model.Transaction;
 import app.bpartners.api.model.TransactionCategory;
 import app.bpartners.api.repository.bridge.model.Transaction.BridgeTransaction;
+import app.bpartners.api.repository.connectors.transaction.TransactionConnector;
 import app.bpartners.api.repository.jpa.model.HTransaction;
+import java.time.LocalDate;
 import java.time.ZoneId;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,30 +19,47 @@ import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 public class TransactionMapper {
   private final InvoiceMapper invoiceMapper;
 
-  public static TransactionStatus getStatusFromBridge(BridgeTransaction bridgeTransaction) {
-    //TODO: add DELETED status
-    return !bridgeTransaction.isFuture()
-        ? TransactionStatus.BOOKED :
-        TransactionStatus.UPCOMING;
-  }
-
-  public Transaction toDomain(
-      BridgeTransaction bridgeTransaction,
-      HTransaction entity,
-      TransactionCategory category) {
-    return Transaction.builder()
-        .id(entity.getId())
-        .idAccount(entity.getIdAccount())
-        .idBridge(entity.getIdBridge())
-        .invoiceDetails(invoiceMapper.toTransactionInvoice(entity.getInvoice()))
-        .amount(parseFraction(bridgeTransaction.getAbsAmount() * 100))
+  public TransactionConnector toConnector(BridgeTransaction bridgeTransaction) {
+    return TransactionConnector.builder()
+        .id(String.valueOf(bridgeTransaction.getId()))
+        .amount(parseFraction(bridgeTransaction.getAbsAmount()))
         .currency(bridgeTransaction.getCurrency())
         .label(bridgeTransaction.getLabel())
-        .reference(entity.getReference())
-        .paymentDatetime(bridgeTransaction.getCreatedDatetime())
-        .category(category)
+        .transactionDate(bridgeTransaction.getTransactionDate())
+        .updatedAt(bridgeTransaction.getUpdatedAt())
         .side(bridgeTransaction.getSide())
-        .status(getStatusFromBridge(bridgeTransaction))
+        .status(bridgeTransaction.getStatus())
+        .build();
+  }
+
+  //TODO: check if necessary to set ZoneId to Paris
+  public TransactionConnector toConnector(HTransaction entity) {
+    LocalDate transactionDate =
+        LocalDate.ofInstant(entity.getPaymentDateTime(), ZoneId.systemDefault());
+    return TransactionConnector.builder()
+        .id(String.valueOf(entity.getIdBridge()))
+        .amount(parseFraction(entity.getAmount()))
+        .currency(entity.getCurrency())
+        .label(entity.getLabel())
+        .transactionDate(transactionDate)
+        .updatedAt(transactionDate.atStartOfDay(ZoneId.systemDefault()).toInstant())
+        .side(entity.getSide())
+        .status(entity.getStatus())
+        .build();
+  }
+
+  public HTransaction toEntity(String idAccount, TransactionConnector connector) {
+    return HTransaction.builder()
+        .idBridge(Long.valueOf(connector.getId()))
+        .idAccount(idAccount)
+        .amount(String.valueOf(connector.getAmount()))
+        .paymentDateTime(connector.getTransactionDate()
+            .atStartOfDay(ZoneId.systemDefault())
+            .toInstant())
+        .side(connector.getSide())
+        .status(connector.getStatus())
+        .currency(connector.getCurrency())
+        .label(connector.getLabel())
         .build();
   }
 
@@ -58,25 +76,6 @@ public class TransactionMapper {
         .side(entity.getSide())
         .status(entity.getStatus())
         .category(category)
-        .build();
-  }
-
-  public HTransaction toEntity(
-      String accountId,
-      BridgeTransaction bridgeTransaction) {
-    return HTransaction.builder()
-        .idBridge(bridgeTransaction.getId())
-        .idAccount(accountId)
-        .amount(String.valueOf(parseFraction(bridgeTransaction.getAbsAmount())))
-        .paymentDateTime(bridgeTransaction
-            .getTransactionDate()
-            .atStartOfDay(ZoneId.systemDefault())
-            .toInstant())
-        .side(bridgeTransaction.getSide())
-        .status(getStatusFromBridge(bridgeTransaction))
-        .reference(null)
-        .currency(bridgeTransaction.getCurrency())
-        .label(bridgeTransaction.getLabel())
         .build();
   }
 }

@@ -3,14 +3,13 @@ package app.bpartners.api.service;
 import app.bpartners.api.endpoint.rest.model.TransactionTypeEnum;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.Fraction;
+import app.bpartners.api.model.JustifyTransaction;
 import app.bpartners.api.model.MonthlyTransactionsSummary;
 import app.bpartners.api.model.Transaction;
-import app.bpartners.api.model.JustifyTransaction;
 import app.bpartners.api.model.TransactionsSummary;
 import app.bpartners.api.repository.AccountRepository;
 import app.bpartners.api.repository.TransactionRepository;
 import app.bpartners.api.repository.TransactionsSummaryRepository;
-import app.bpartners.api.repository.jpa.InvoiceJpaRepository;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.Month;
@@ -35,7 +34,6 @@ import static app.bpartners.api.endpoint.rest.model.TransactionStatus.BOOKED;
 public class TransactionService {
   private final TransactionRepository repository;
   private final TransactionsSummaryRepository summaryRepository;
-  private final InvoiceJpaRepository invoiceRepository;
   private final AccountRepository accountRepository;
 
   private static Instant getFirstDayOfYear(int year) {

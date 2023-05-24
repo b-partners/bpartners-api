@@ -303,6 +303,23 @@ class ProductIT {
     assertEquals(expectedProduct, actualUpdated);
   }
 
+  @Order(3)
+  @Test
+  void update_product_ko() throws ApiException {
+    ApiClient joeDoeClient = anApiClient();
+    PayingApi api = new PayingApi(joeDoeClient);
+    CreateProduct createProduct = new CreateProduct()
+        .id(OTHER_PRODUCT_ID)
+        .description("New product")
+        .unitPrice(5000);
+
+    assertThrowsApiException(
+        "{\"type\":\"404 NOT_FOUND\",\"message\":\"Product(id=" + OTHER_PRODUCT_ID
+            + ") not found for User(id=" + JOE_DOE_ID + ")\"}",
+        () -> api.crupdateProducts(JOE_DOE_ACCOUNT_ID, List.of(createProduct))
+    );
+  }
+
   @Order(1)
   @Test
   void read_products_ordered_ok() throws ApiException {
@@ -408,6 +425,20 @@ class ProductIT {
             .allMatch(product -> product.getStatus() == ProductStatus.DISABLED));
     assertFalse(allProducts.containsAll(actual));
 
+  }
+
+  @Order(4)
+  @Test
+  void product_status_is_disabled_ko() {
+    ApiClient joeDoeClient = anApiClient();
+    PayingApi api = new PayingApi(joeDoeClient);
+
+    assertThrowsApiException(
+        "{\"type\":\"404 NOT_FOUND\",\"message\":\"Product(id=" + OTHER_PRODUCT_ID
+            + ") not found\"}",
+        () -> api.updateProductsStatus(JOE_DOE_ACCOUNT_ID,
+            List.of(new UpdateProductStatus().id(OTHER_PRODUCT_ID).status(ProductStatus.DISABLED)))
+    );
   }
 
   List<Product> ignoreCreatedAt(List<Product> actual) {

@@ -150,6 +150,7 @@ public class AccountService {
   private void deleteOldAccounts(Account saved) {
     List<Account> accounts = repository.findByUserId(saved.getUserId());
     accounts.remove(saved);
+    //TODO: must delete transactions before ?
     repository.removeAll(accounts);
   }
 

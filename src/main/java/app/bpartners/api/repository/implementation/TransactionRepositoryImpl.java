@@ -19,6 +19,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import static app.bpartners.api.service.utils.TransactionUtils.describeList;
@@ -34,6 +36,15 @@ public class TransactionRepositoryImpl implements TransactionRepository {
   private final TransactionConnectorRepository connectorRepository;
 
   //TODO: check why transactions with same bridge ID are persisted twice
+  @Override
+  public List<Transaction> findPersistedByIdAccount(String idAccount, int page, int pageSize) {
+    Pageable pageable = PageRequest.of(page - 1, pageSize);
+    return jpaRepository.findByIdAccountOrderByPaymentDateTimeDesc(idAccount, pageable).stream()
+        .map(transaction -> mapper.toDomain(transaction,
+            categoryRepository.findByIdTransaction(transaction.getId())))
+        .collect(Collectors.toList());
+  }
+
   @Override
   public List<Transaction> findByAccountId(String idAccount) {
     List<TransactionConnector> connectors = connectorRepository.findByIdAccount(idAccount);

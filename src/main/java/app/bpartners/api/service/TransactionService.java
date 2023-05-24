@@ -79,6 +79,10 @@ public class TransactionService {
     return repository.findByAccountId(accountId);
   }
 
+  public Transaction getTransactionsById(String transactionId) {
+    return repository.findById(transactionId);
+  }
+
   public TransactionsSummary getTransactionsSummary(String idUser, Integer year) {
     if (year == null) {
       year = LocalDate.now().getYear();

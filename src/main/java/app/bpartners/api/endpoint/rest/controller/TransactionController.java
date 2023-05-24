@@ -29,6 +29,14 @@ public class TransactionController {
         .collect(Collectors.toUnmodifiableList());
   }
 
+  @GetMapping(value = "/accounts/{id}/transactions/{tId}")
+  public Transaction getTransactionById(
+      @PathVariable(name = "id") String accountId,
+      @PathVariable(name = "tId") String transactionId
+  ) {
+    return mapper.toRest(service.getTransactionsById(transactionId));
+  }
+
   @GetMapping(value = "/accounts/{aId}/transactionsSummary")
   public TransactionsSummary getTransactionsSummary(
       @PathVariable(name = "aId") String accountId,

@@ -39,6 +39,10 @@ import static app.bpartners.api.integration.conf.TestUtils.JANE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JANE_DOE_TOKEN;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_TOKEN;
+import static app.bpartners.api.integration.conf.TestUtils.TRANSACTION1_ID;
+import static app.bpartners.api.integration.conf.TestUtils.UNKNOWN_TRANSACTION_ID;
+import static app.bpartners.api.integration.conf.TestUtils.assertThrowsApiException;
+import static app.bpartners.api.integration.conf.TestUtils.assertThrowsForbiddenException;
 import static app.bpartners.api.integration.conf.TestUtils.invoice1;
 import static app.bpartners.api.integration.conf.TestUtils.isAfterOrEquals;
 import static app.bpartners.api.integration.conf.TestUtils.restTransaction1;
@@ -176,6 +180,32 @@ class TransactionIT {
     //TODO : actual transactions contains rest resource
   }
 
+  @Test
+  void read_transaction_by_id_ok() throws ApiException {
+    ApiClient joeDoeClient = anApiClient();
+    PayingApi api = new PayingApi(joeDoeClient);
+
+    Transaction actual = api.getTransactionById(JOE_DOE_ACCOUNT_ID, TRANSACTION1_ID);
+
+    assertEquals(restTransaction1(), actual);
+  }
+
+  @Test
+  void read_transaction_by_id_ko() {
+    ApiClient joeDoeClient = anApiClient();
+    PayingApi api = new PayingApi(joeDoeClient);
+
+    assertThrowsApiException("{\"type\":\"404 NOT_FOUND\",\"message\":\""
+            + "Transaction.unknown_transaction_id is not found.\"}",
+        () -> api.getTransactionById(JOE_DOE_ACCOUNT_ID, UNKNOWN_TRANSACTION_ID));
+    assertThrowsForbiddenException(
+        () -> api.getTransactionById(JANE_ACCOUNT_ID, TRANSACTION1_ID));
+  }
+
+
+  /*
+  TODO: return empty when neither swan nor bridge return transaction
+   */
   @Test
   void read_empty_transactions_ok() throws ApiException {
     reset(bridgeTransactionRepositoryMock);

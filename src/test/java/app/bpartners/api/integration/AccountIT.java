@@ -12,17 +12,14 @@ import app.bpartners.api.endpoint.rest.model.AccountValidationRedirection;
 import app.bpartners.api.endpoint.rest.model.BankConnectionRedirection;
 import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
 import app.bpartners.api.endpoint.rest.model.UpdateAccountIdentity;
-import app.bpartners.api.endpoint.rest.security.swan.BridgeConf;
-import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
-import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
+import app.bpartners.api.endpoint.rest.security.bridge.BridgeConf;
+import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.integration.conf.AbstractContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
 import app.bpartners.api.manager.ProjectTokenManager;
 import app.bpartners.api.model.Bank;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.UserToken;
-import app.bpartners.api.model.mapper.AccountMapper;
-import app.bpartners.api.repository.AccountConnectorRepository;
 import app.bpartners.api.repository.LegalFileRepository;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.UserTokenRepository;
@@ -32,17 +29,8 @@ import app.bpartners.api.repository.bridge.model.Item.BridgeConnectItem;
 import app.bpartners.api.repository.bridge.repository.BridgeBankRepository;
 import app.bpartners.api.repository.fintecture.FintectureConf;
 import app.bpartners.api.repository.implementation.BankRepositoryImpl;
-import app.bpartners.api.repository.implementation.SavableAccountConnectorRepository;
-import app.bpartners.api.repository.model.AccountConnector;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitConf;
 import app.bpartners.api.repository.sendinblue.SendinblueConf;
-import app.bpartners.api.repository.swan.AccountHolderSwanRepository;
-import app.bpartners.api.repository.swan.SwanApi;
-import app.bpartners.api.repository.swan.SwanCustomApi;
-import app.bpartners.api.repository.swan.UserSwanRepository;
-import app.bpartners.api.repository.swan.implementation.SwanAccountConnectorRepository;
-import app.bpartners.api.repository.swan.model.SwanAccount;
-import app.bpartners.api.repository.swan.response.AccountResponse;
 import app.bpartners.api.service.PaymentScheduleService;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -54,7 +42,6 @@ import java.util.concurrent.Future;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -62,11 +49,6 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import static app.bpartners.api.integration.conf.TestUtils.ACCOUNT_CLOSED;
-import static app.bpartners.api.integration.conf.TestUtils.ACCOUNT_CLOSING;
-import static app.bpartners.api.integration.conf.TestUtils.ACCOUNT_OPENED;
-import static app.bpartners.api.integration.conf.TestUtils.ACCOUNT_SUSPENDED;
-import static app.bpartners.api.integration.conf.TestUtils.ACCOUNT_UNKNOWN_STATUS;
 import static app.bpartners.api.integration.conf.TestUtils.BERNARD_DOE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.TestUtils.BERNARD_DOE_ID;
 import static app.bpartners.api.integration.conf.TestUtils.BERNARD_DOE_TOKEN;
@@ -75,35 +57,25 @@ import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_COGNITO_TOKEN;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_TOKEN;
+import static app.bpartners.api.integration.conf.TestUtils.JOE_EMAIL;
 import static app.bpartners.api.integration.conf.TestUtils.REDIRECT_FAILURE_URL;
 import static app.bpartners.api.integration.conf.TestUtils.REDIRECT_SUCCESS_URL;
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsApiException;
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsForbiddenException;
-import static app.bpartners.api.integration.conf.TestUtils.bernardDoeSwanAccount;
 import static app.bpartners.api.integration.conf.TestUtils.filterAccountsById;
 import static app.bpartners.api.integration.conf.TestUtils.joeDoeBridgeAccount;
-import static app.bpartners.api.integration.conf.TestUtils.joeDoeSwanAccount;
 import static app.bpartners.api.integration.conf.TestUtils.joePersistedAccount;
 import static app.bpartners.api.integration.conf.TestUtils.otherBridgeAccount;
-import static app.bpartners.api.integration.conf.TestUtils.setUpAccountConnectorSwanRepository;
-import static app.bpartners.api.integration.conf.TestUtils.setUpAccountHolderSwanRep;
-import static app.bpartners.api.integration.conf.TestUtils.setUpBernardUserSwanRepository;
+import static app.bpartners.api.integration.conf.TestUtils.setUpCognito;
 import static app.bpartners.api.integration.conf.TestUtils.setUpLegalFileRepository;
-import static app.bpartners.api.integration.conf.TestUtils.setUpSwanComponent;
-import static app.bpartners.api.integration.conf.TestUtils.setUpUserSwanRepository;
-import static app.bpartners.api.integration.conf.TestUtils.toConnector;
 import static app.bpartners.api.repository.bridge.model.Account.BridgeAccount.BRIDGE_STATUS_OK;
 import static app.bpartners.api.repository.bridge.model.Account.BridgeAccount.BRIDGE_STATUS_SCA;
 import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
-import static java.util.UUID.randomUUID;
 import static java.util.stream.Collectors.toUnmodifiableList;
 import static org.hibernate.validator.internal.util.Contracts.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
@@ -127,23 +99,11 @@ class AccountIT {
   @MockBean
   private S3Conf s3Conf;
   @MockBean
-  private SwanConf swanConf;
-  @MockBean
   private FintectureConf fintectureConf;
   @MockBean
   private ProjectTokenManager projectTokenManager;
   @MockBean
-  private SwanCustomApi swanCustomApi;
-  @MockBean
   private BridgeConf bridgeConf;
-  @MockBean
-  private UserSwanRepository userSwanRepositoryMock;
-  @MockBean
-  private SwanAccountConnectorRepository swanAccountConnectorRepositoryMock;
-  @MockBean
-  private SwanComponent swanComponentMock;
-  @MockBean
-  private AccountHolderSwanRepository accountHolderMock;
   @MockBean
   private LegalFileRepository legalFileRepositoryMock;
   @MockBean
@@ -151,18 +111,13 @@ class AccountIT {
   @MockBean
   private BankRepositoryImpl bankRepositoryImplMock;
   @MockBean
-  private SwanApi swanApiMock;
-  @Autowired
-  private SavableAccountConnectorRepository savableAccountConnectorRepository;
-  @Autowired
-  private AccountMapper accountMapper;
-  @MockBean
   private UserRepository userRepositoryMock;
   @MockBean
   private UserTokenRepository userTokenRepositoryMock;
   @MockBean
   private BridgeApi bridgeApiMock;
-  private AccountConnectorRepository accountConnectorRepositoryMock;
+  @MockBean
+  private CognitoComponent cognitoComponentMock;
 
   private static ApiClient joeDoeClient() {
     return TestUtils.anApiClient(JOE_DOE_TOKEN, ContextInitializer.SERVER_PORT);
@@ -170,43 +125,6 @@ class AccountIT {
 
   private static ApiClient bernardDoeClient() {
     return TestUtils.anApiClient(BERNARD_DOE_TOKEN, ContextInitializer.SERVER_PORT);
-  }
-
-  public static AccountResponse.Edge joeDoeEdge() {
-    SwanAccount swanAccount2 = joeDoeSwanAccount().toBuilder()
-        .statusInfo(new SwanAccount.StatusInfo(ACCOUNT_OPENED))
-        .build();
-    return AccountResponse.Edge.builder()
-        .node(swanAccount2)
-        .build();
-  }
-
-  public static AccountResponse.Edge openedStatusEdge() {
-    SwanAccount swanAccount2 = joeDoeSwanAccount().toBuilder()
-        .id(randomUUID().toString())
-        .statusInfo(new SwanAccount.StatusInfo(ACCOUNT_OPENED))
-        .build();
-    return AccountResponse.Edge.builder()
-        .node(swanAccount2)
-        .build();
-  }
-
-  public static AccountResponse.Edge closingStatusEdge() {
-    SwanAccount swanAccount3 = joeDoeSwanAccount().toBuilder()
-        .statusInfo(new SwanAccount.StatusInfo(ACCOUNT_CLOSING))
-        .build();
-    return AccountResponse.Edge.builder()
-        .node(swanAccount3)
-        .build();
-  }
-
-  public static AccountResponse.Edge suspendedStatusEdge() {
-    SwanAccount swanAccount4 = joeDoeSwanAccount().toBuilder()
-        .statusInfo(new SwanAccount.StatusInfo(ACCOUNT_SUSPENDED))
-        .build();
-    return AccountResponse.Edge.builder()
-        .node(swanAccount4)
-        .build();
   }
 
   AccountValidationRedirection accountValidationRedirection() {
@@ -258,25 +176,10 @@ class AccountIT {
         .build();
   }
 
-  Account joeDoeRestAccount() {
-    return new Account()
-        .id(JOE_DOE_ACCOUNT_ID)
-        .name(joeDoeSwanAccount().getName())
-        .iban(joeDoeSwanAccount().getIban())
-        .bic(joeDoeSwanAccount().getBic())
-        .iban(joeDoeSwanAccount().getIban())
-        .bic("BIC_NOT_NULL")
-        .active(true)
-        .availableBalance(100000);
-  }
-
   app.bpartners.api.model.Account joeDoeModelAccount() {
     return app.bpartners.api.model.Account.builder()
-        .id(joeDoeSwanAccount().getId())
+        .id(JOE_DOE_ACCOUNT_ID)
         .userId(JOE_DOE_ID)
-        .name(joeDoeSwanAccount().getName())
-        .iban(joeDoeSwanAccount().getIban())
-        .bic(joeDoeSwanAccount().getBic())
         .status(AccountStatus.OPENED)
         .bank(Bank.builder().build())
         .availableBalance(parseFraction(100000))
@@ -286,10 +189,10 @@ class AccountIT {
 
   app.bpartners.api.model.Account bernardDoeModelAccount() {
     return app.bpartners.api.model.Account.builder()
-        .id(bernardDoeSwanAccount().getId())
-        .name(bernardDoeSwanAccount().getName())
-        .iban(bernardDoeSwanAccount().getIban())
-        .bic(bernardDoeSwanAccount().getBic())
+        .id("TODO")
+        .name("TODO")
+        .iban("TODO")
+        .bic("TODO")
         .status(AccountStatus.VALIDATION_REQUIRED)
         .bank(Bank.builder().build())
         .availableBalance(parseFraction(100000))
@@ -299,17 +202,15 @@ class AccountIT {
 
   private void setUpUserRepository(UserRepository userRepositoryMock) {
     when(userRepositoryMock.findAll()).thenReturn(List.of(joeDoeUser()));
-    when(userRepositoryMock.getUserByToken(any())).thenReturn(joeDoeUser());
-    when(userRepositoryMock.getByEmail(any())).thenReturn(joeDoeUser());
-    when(userRepositoryMock.getById(any())).thenReturn(joeDoeUser());
-    when(userRepositoryMock.getUserBySwanUserIdAndToken(any(), any())).thenReturn(joeDoeUser());
+    when(userRepositoryMock.getUserByToken(JOE_DOE_TOKEN)).thenReturn(joeDoeUser());
+    when(userRepositoryMock.getByEmail(JOE_EMAIL)).thenReturn(joeDoeUser());
+    when(userRepositoryMock.getById(JOE_DOE_ID)).thenReturn(joeDoeUser());
   }
 
   private void setUpUserBernardRepository(UserRepository userRepositoryMock) {
     when(userRepositoryMock.findAll()).thenReturn(List.of(bernardUser()));
     when(userRepositoryMock.getUserByToken(any())).thenReturn(bernardUser());
     when(userRepositoryMock.getByEmail(any())).thenReturn(bernardUser());
-    when(userRepositoryMock.getUserBySwanUserIdAndToken(any(), any())).thenReturn(bernardUser());
   }
 
   private void setUpUserRepositoryWithPreferredAccount(UserRepository userRepositoryMock) {
@@ -320,7 +221,6 @@ class AccountIT {
     when(userRepositoryMock.getById(any())).thenReturn(user);
     when(userRepositoryMock.getUserByToken(any())).thenReturn(user);
     when(userRepositoryMock.getByEmail(any())).thenReturn(user);
-    when(userRepositoryMock.getUserBySwanUserIdAndToken(any(), any())).thenReturn(user);
   }
 
   private void setUpUserRepositoryWithoutPreferredAccount(UserRepository userRepositoryMock) {
@@ -331,14 +231,9 @@ class AccountIT {
     when(userRepositoryMock.getById(any())).thenReturn(user);
     when(userRepositoryMock.getUserByToken(any())).thenReturn(user);
     when(userRepositoryMock.getByEmail(any())).thenReturn(user);
-    when(userRepositoryMock.getUserBySwanUserIdAndToken(any(), any())).thenReturn(user);
   }
 
   private void setUpBridgeRepositories() {
-    when(swanAccountConnectorRepositoryMock.findByUserId(JOE_DOE_ID)).thenReturn(List.of());
-    when(swanAccountConnectorRepositoryMock.findByBearer(JOE_DOE_COGNITO_TOKEN)).thenReturn(
-        List.of());
-
     reset(userRepositoryMock);
     setUpUserRepositoryWithPreferredAccount(userRepositoryMock);
     setUpBridge(bridgeApiMock, joeDoeBridgeAccount(), otherBridgeAccount());
@@ -350,16 +245,12 @@ class AccountIT {
   @BeforeEach
   public void setUp() {
     setUpUserRepository(userRepositoryMock);
-    setUpSwanComponent(swanComponentMock);
-    setUpUserSwanRepository(userSwanRepositoryMock);
-    setUpAccountConnectorSwanRepository(swanAccountConnectorRepositoryMock);
-    setUpAccountHolderSwanRep(accountHolderMock);
     setUpLegalFileRepository(legalFileRepositoryMock);
-    swanApiMock = mock(SwanApi.class);
-    accountConnectorRepositoryMock =
-        new SwanAccountConnectorRepository(
-            savableAccountConnectorRepository, swanApiMock, swanCustomApi, accountMapper);
+    setUpCognito(cognitoComponentMock);
   }
+
+  //TODO: add read accounts by user ID ok
+
 
   /*
   @Test
@@ -380,7 +271,6 @@ class AccountIT {
     when(userRepositoryMock.getById(any())).thenReturn(user);
     when(userRepositoryMock.getByEmail(any())).thenReturn(user);
     when(userRepositoryMock.getUserByToken(any())).thenReturn(user);
-    when(userRepositoryMock.getUserBySwanUserIdAndToken(any(), any())).thenReturn(user);
     when(userRepositoryMock.getByEmail(any())).thenReturn(user);
     when(bridgeApiMock.findAccountsByToken(JOE_DOE_COGNITO_TOKEN)).thenReturn(List.of());
     Account afterDisconnection = api.getAccountsByUserId(JOE_DOE_ID).get(0);
@@ -393,15 +283,6 @@ class AccountIT {
     assertNull(afterDisconnection.getBic());
   }
   */
-
-  @Test
-  void read_opened_accounts_ok() throws ApiException {
-    UserAccountsApi api = configureSwanUserAccountsApi(ACCOUNT_OPENED);
-
-    List<Account> actual = api.getAccountsByUserId(JOE_DOE_ID);
-
-    assertTrue(actual.contains(joeDoeRestAccount().status(AccountStatus.OPENED)));
-  }
 
   @Test
   @DirtiesContext(methodMode = AFTER_METHOD)
@@ -430,24 +311,6 @@ class AccountIT {
     assertTrue(actual2.getRedirectionUrl().contains("https://connect.bridgeapi.io"));
     assertEquals(successUrl, actual2.getRedirectionStatusUrls().getSuccessUrl());
     assertEquals(failureUrl, actual2.getRedirectionStatusUrls().getFailureUrl());
-  }
-
-  @Test
-  void read_closed_accounts_ok() throws ApiException {
-    UserAccountsApi api = configureSwanUserAccountsApi(ACCOUNT_CLOSED);
-
-    List<Account> actual = api.getAccountsByUserId(JOE_DOE_ID);
-
-    assertTrue(actual.contains(joeDoeRestAccount().status(AccountStatus.CLOSED)));
-  }
-
-  @Test
-  void read_suspended_accounts_ok() throws ApiException {
-    UserAccountsApi api = configureSwanUserAccountsApi(ACCOUNT_SUSPENDED);
-
-    List<Account> actual = api.getAccountsByUserId(JOE_DOE_ID);
-
-    assertTrue(actual.contains(joeDoeRestAccount().status(AccountStatus.SUSPENDED)));
   }
 
   @Test
@@ -516,24 +379,7 @@ class AccountIT {
     return api.getAccountHolders(userId, accountId);
   }
 
-  private UserAccountsApi configureSwanUserAccountsApi(String statusInfo) {
-    AccountConnector accountConnector = toConnector(joeDoeSwanAccount().toBuilder()
-        .statusInfo(new SwanAccount.StatusInfo(statusInfo))
-        .build());
-    when(swanAccountConnectorRepositoryMock.findByUserId(JOE_DOE_ID)).
-        thenReturn(List.of(accountConnector));
-    when(swanAccountConnectorRepositoryMock.saveAll(JOE_DOE_ID, List.of(accountConnector)))
-        .thenReturn(List.of(accountConnector));
-    when(swanAccountConnectorRepositoryMock.save(JOE_DOE_ID, accountConnector)).thenReturn(
-        accountConnector);
-    ApiClient joeDoeClient = joeDoeClient();
-    return new UserAccountsApi(joeDoeClient);
-  }
-
   private UserAccountsApi configureBridgeUserAccountApi(BridgeAccount bridgeAccount) {
-    when(swanAccountConnectorRepositoryMock.findByUserId(JOE_DOE_ID)).thenReturn(List.of());
-    when(swanAccountConnectorRepositoryMock.findByBearer(JOE_DOE_COGNITO_TOKEN)).thenReturn(
-        List.of());
 
     reset(userRepositoryMock);
     setUpUserRepositoryWithoutPreferredAccount(userRepositoryMock);
@@ -546,47 +392,12 @@ class AccountIT {
   }
 
   @Test
-  void read_closing_accounts_ok() throws ApiException {
-    UserAccountsApi api = configureSwanUserAccountsApi(ACCOUNT_CLOSING);
-
-    List<Account> actual = api.getAccountsByUserId(JOE_DOE_ID);
-
-    assertTrue(actual.contains(joeDoeRestAccount().status(AccountStatus.CLOSING)));
-  }
-
-  @Test
-  @DirtiesContext(methodMode = BEFORE_METHOD)
-  void read_unknown_accounts_ok() throws ApiException {
-    UserAccountsApi api = configureSwanUserAccountsApi(ACCOUNT_UNKNOWN_STATUS);
-
-    List<Account> actual = api.getAccountsByUserId(JOE_DOE_ID);
-
-    assertTrue(actual.contains(joeDoeRestAccount().status(AccountStatus.UNKNOWN)));
-  }
-
-  @Test
   void joe_read_jane_accounts_ko() {
     ApiClient joeDoeClient = joeDoeClient();
     UserAccountsApi api = new UserAccountsApi(joeDoeClient);
 
     assertThrowsForbiddenException(() -> api.getAccountsByUserId(JANE_DOE_ID));
   }
-
-  //TODO
-  //  @Test
-  //  void read_from_multiple_swan_accounts_ok() {
-  //  }
-
-  //TODO
-  //  @Test
-  // void read_from_multiple_swan_accounts_ko() {
-  // }
-
-  //TODO
-  //  @Test
-  //  void read_without_opened_swan_account_ko() {
-  //    assertTrue(true);
-  //  }
 
   @Test
   void read_other_accounts_ko() {
@@ -611,9 +422,9 @@ class AccountIT {
     Account account2 = filterAccountsById(actual1.getId(), api.getAccountsByUserId(JOE_DOE_ID));
 
     app.bpartners.api.model.Account expected1 = joePersistedAccount();
-    assertEquals(joeDoeRestAccount().getId(), actual1.getId());
+    assertEquals(JOE_DOE_ACCOUNT_ID, actual1.getId());
     //actual1 : bic only
-    assertEquals(joeDoeRestAccount().getId(), actual2.getId());
+    assertEquals(JOE_DOE_ACCOUNT_ID, actual2.getId());
     assertEquals(bicUpdateOnly().getBic(), actual1.getBic());
     assertEquals(expected1.getIban(), actual1.getIban());
     assertEquals(expected1.getName(), actual1.getName());
@@ -621,7 +432,7 @@ class AccountIT {
             .active(actual1.getActive()), //Not important here
         actual1);
     //actual2 : bic, name, iban
-    assertEquals(joeDoeRestAccount().getId(), actual2.getId());
+    assertEquals(JOE_DOE_ACCOUNT_ID, actual2.getId());
     assertEquals(fullUpdateIdentity().getBic(), actual2.getBic());
     assertEquals(fullUpdateIdentity().getIban(), actual2.getIban());
     assertEquals(fullUpdateIdentity().getName(), actual2.getName());
@@ -656,10 +467,7 @@ class AccountIT {
     ApiClient bernarDoeClient = bernardDoeClient();
     UserAccountsApi api = new UserAccountsApi(bernarDoeClient);
 
-    reset(userRepositoryMock);
-    reset(userSwanRepositoryMock);
     setUpUserBernardRepository(userRepositoryMock);
-    setUpBernardUserSwanRepository(userSwanRepositoryMock);
     when(bridgeBankRepositoryMock.validateCurrentProItems(BERNARD_DOE_TOKEN))
         .thenReturn(BridgeConnectItem.builder()
             .redirectUrl(redirectUrl)
@@ -672,10 +480,6 @@ class AccountIT {
             .accessToken(BERNARD_DOE_TOKEN)
             .user(bernardUser())
             .build());
-    when(swanAccountConnectorRepositoryMock.save(any(), any())).thenReturn(
-        toConnector(bernardDoeSwanAccount()));
-    when(swanAccountConnectorRepositoryMock.saveAll(any(), any())).thenReturn(
-        List.of(toConnector(bernardDoeSwanAccount())));
 
     AccountValidationRedirection actual = api.initiateAccountValidation(BERNARD_DOE_ID,
         BERNARD_DOE_ACCOUNT_ID, accountValidationRedirection().getRedirectionStatusUrls());
@@ -746,26 +550,6 @@ class AccountIT {
             this.addAll(List.of(accounts));
           }
         });
-  }
-
-  void setUpSwanApi(SwanApi swanApi, AccountResponse.Edge... edges) {
-    when(swanApi.getData(eq(AccountResponse.class), any(String.class)))
-        .thenReturn(
-            AccountResponse.builder()
-                .data(
-                    AccountResponse.Data.builder()
-                        .accounts(
-                            AccountResponse.Accounts.builder()
-                                .edges(
-                                    new ArrayList<>() {
-                                      {
-                                        this.addAll(List.of(edges));
-                                      }
-                                    }
-                                ).build()
-                        ).build()
-                ).build()
-        );
   }
 
   static class ContextInitializer extends AbstractContextInitializer {

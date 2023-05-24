@@ -1,13 +1,11 @@
 package app.bpartners.api.endpoint.rest.controller;
 
 import app.bpartners.api.endpoint.rest.mapper.OnboardingRestMapper;
-import app.bpartners.api.endpoint.rest.mapper.RedirectionMapper;
 import app.bpartners.api.endpoint.rest.model.OnboardUser;
 import app.bpartners.api.endpoint.rest.model.OnboardedUser;
-import app.bpartners.api.endpoint.rest.model.OnboardingInitiation;
 import app.bpartners.api.endpoint.rest.model.Redirection;
-import app.bpartners.api.endpoint.rest.validator.OnboardingInitiationValidator;
 import app.bpartners.api.endpoint.rest.validator.OnboardingValidator;
+import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.service.OnboardingService;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -20,17 +18,12 @@ import org.springframework.web.bind.annotation.RestController;
 @AllArgsConstructor
 public class OnboardingController {
   private final OnboardingService onboardingService;
-  private final RedirectionMapper redirectionMapper;
-  private final OnboardingInitiationValidator initiationValidator;
   private final OnboardingValidator onboardingValidator;
   private final OnboardingRestMapper onboardingMapper;
 
   @PostMapping(value = "/onboardingInitiation")
-  public Redirection generateOnboarding(@RequestBody OnboardingInitiation params) {
-    initiationValidator.accept(params);
-    return redirectionMapper.toRest(
-        onboardingService.generateOnboarding(params.getRedirectionStatusUrls().getSuccessUrl(),
-            params.getRedirectionStatusUrls().getFailureUrl()));
+  public Redirection generateOnboarding() {
+    throw new NotImplementedException("Not supported for now. Use POST /onboarding");
   }
 
   @PostMapping(value = "/onboarding")

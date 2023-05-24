@@ -9,7 +9,6 @@ import app.bpartners.api.repository.bridge.model.User.CreateBridgeUser;
 import app.bpartners.api.repository.jpa.model.HAccount;
 import app.bpartners.api.repository.jpa.model.HAccountHolder;
 import app.bpartners.api.repository.jpa.model.HUser;
-import app.bpartners.api.repository.swan.model.SwanUser;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
@@ -65,41 +64,6 @@ public class UserMapper {
             .collect(Collectors.toList()))
         .preferredAccountId(entityUser.getPreferredAccountId())
         .externalUserId(entityUser.getBridgeUserId())
-        .build();
-  }
-
-  public User toDomain(HUser entityUser, SwanUser swanUser) {
-    return User.builder()
-        .id(entityUser.getId())
-        .preferredAccountId(entityUser.getPreferredAccountId())
-        .firstName(swanUser == null ? entityUser.getFirstName() : swanUser.getFirstName())
-        .lastName(swanUser == null ? entityUser.getLastName() : swanUser.getLastName())
-        .mobilePhoneNumber(entityUser.getPhoneNumber())
-        .email(entityUser.getEmail())
-        .accessToken(entityUser.getAccessToken())
-        .bridgePassword(entityUser.getBridgePassword())
-        .bankConnectionId(entityUser.getBridgeItemId())
-        .bridgeItemUpdatedAt(entityUser.getBridgeItemUpdatedAt())
-        .bridgeItemLastRefresh(entityUser.getBridgeItemLastRefresh())
-        .monthlySubscription(entityUser.getMonthlySubscription())
-        .status(entityUser.getStatus())
-        .logoFileId(entityUser.getLogoFileId())
-        .idVerified(swanUser == null ? entityUser.getIdVerified() : swanUser.isIdVerified())
-        .identificationStatus(
-            swanUser == null ? entityUser.getIdentificationStatus()
-                : getIdentificationStatus(
-                swanUser.getIdentificationStatus()))
-        .accounts(entityUser.getAccounts() == null ? null : entityUser.getAccounts().stream()
-            //TODO: map bank as args or through JPA
-            //TODO: An user can choose which account to use if more than one
-            .map(account -> accountMapper.toDomain(account, null))
-            .collect(Collectors.toList()))
-        .accountHolders(entityUser.getAccountHolders() == null ? null
-            : entityUser.getAccountHolders().stream()
-            .map(accountHolderMapper::toDomain)
-            .collect(Collectors.toList()))
-        .externalUserId(swanUser == null ? null : swanUser.getId())
-        .oldS3key(entityUser.getOldS3AccountKey())
         .build();
   }
 

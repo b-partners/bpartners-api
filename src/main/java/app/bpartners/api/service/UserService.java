@@ -43,11 +43,6 @@ public class UserService {
   }
 
   @Transactional(isolation = SERIALIZABLE)
-  public User getUserByIdAndBearer(String swanUserId, String accessToken) {
-    return userRepository.getUserBySwanUserIdAndToken(swanUserId, accessToken);
-  }
-
-  @Transactional(isolation = SERIALIZABLE)
   public User getUserByToken(String token) {
     return userRepository.getUserByToken(token);
   }

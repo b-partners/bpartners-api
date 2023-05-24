@@ -9,8 +9,6 @@ import app.bpartners.api.endpoint.rest.model.CreateToken;
 import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
 import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.endpoint.rest.security.cognito.CognitoConf;
-import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
-import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
 import app.bpartners.api.integration.conf.AbstractContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
 import app.bpartners.api.manager.ProjectTokenManager;
@@ -19,8 +17,6 @@ import app.bpartners.api.repository.LegalFileRepository;
 import app.bpartners.api.repository.fintecture.FintectureConf;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitConf;
 import app.bpartners.api.repository.sendinblue.SendinblueConf;
-import app.bpartners.api.repository.swan.AccountHolderSwanRepository;
-import app.bpartners.api.repository.swan.UserSwanRepository;
 import app.bpartners.api.service.PaymentScheduleService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
@@ -45,10 +41,7 @@ import static app.bpartners.api.integration.conf.TestUtils.REDIRECT_FAILURE_URL;
 import static app.bpartners.api.integration.conf.TestUtils.REDIRECT_SUCCESS_URL;
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsApiException;
 import static app.bpartners.api.integration.conf.TestUtils.domainLegalFile;
-import static app.bpartners.api.integration.conf.TestUtils.setUpAccountConnectorSwanRepository;
-import static app.bpartners.api.integration.conf.TestUtils.setUpAccountHolderSwanRep;
-import static app.bpartners.api.integration.conf.TestUtils.setUpSwanComponent;
-import static app.bpartners.api.integration.conf.TestUtils.setUpUserSwanRepository;
+import static app.bpartners.api.integration.conf.TestUtils.setUpCognito;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
@@ -72,25 +65,17 @@ class AuthenticationIT {
   @MockBean
   private S3Conf s3Conf;
   @MockBean
-  private SwanConf swanConf;
-  @MockBean
   private CognitoConf cognitoConf;
-  @MockBean
-  private CognitoComponent cognitoComponent;
   @MockBean
   private FintectureConf fintectureConf;
   @MockBean
   private ProjectTokenManager projectTokenManager;
   @MockBean
-  private UserSwanRepository userSwanRepositoryMock;
-  @MockBean
   private AccountConnectorRepository accountConnectorRepositoryMock;
   @MockBean
-  private AccountHolderSwanRepository accountHolderRepositoryMock;
-  @MockBean
-  private SwanComponent swanComponentMock;
-  @MockBean
   private LegalFileRepository legalFileRepositoryMock;
+  @MockBean
+  private CognitoComponent cognitoComponentMock;
 
   private static ApiClient anApiClient() {
     return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN, ContextInitializer.SERVER_PORT);
@@ -98,19 +83,8 @@ class AuthenticationIT {
 
   @BeforeEach
   public void setUp() {
-    setUpSwanComponent(swanComponentMock);
-    setUpUserSwanRepository(userSwanRepositoryMock);
-    setUpAccountConnectorSwanRepository(accountConnectorRepositoryMock);
-    setUpAccountHolderSwanRep(accountHolderRepositoryMock);
+    setUpCognito(cognitoComponentMock);
   }
-
-
-  //Uncomment to test the token provider
-  //@Value("${test.swan.user.code}")
-  //private String userCode;
-  //CreateToken validCode() {
-  //  return new CreateToken().code(userCode);
-  //}
 
   CreateToken invalidCreateToken() {
     return new CreateToken()
@@ -132,7 +106,7 @@ class AuthenticationIT {
   }
 
   @Test
-  void unauthenticated_get_auth_ok() throws IOException, InterruptedException {
+  void unauthenticated_get_auth_init_not_implemented_ok() throws IOException, InterruptedException {
     HttpClient unauthenticatedClient = HttpClient.newBuilder().build();
     String basePath = "http://localhost:" + AuthenticationIT.ContextInitializer.SERVER_PORT;
     String data = new ObjectMapper().writeValueAsString(validAuthInitiation());
@@ -147,7 +121,7 @@ class AuthenticationIT {
             .build(),
         HttpResponse.BodyHandlers.ofString());
 
-    assertEquals(HttpStatus.OK.value(), response.statusCode());
+    assertEquals(HttpStatus.NOT_IMPLEMENTED.value(), response.statusCode());
   }
 
   //TODO: add cognito get token ko and ok
@@ -184,14 +158,6 @@ class AuthenticationIT {
             + "User.joe_doe_id has not approved the legal file cgu_28-10-22.pdf\"}",
         () -> api.getAccountHolders(JOE_DOE_ID, JOE_DOE_ACCOUNT_ID));
   }
-
-  // /!\ This test is skipped because the userCode is only available for one test
-  // and errors occurs for CI and CD tests
-  //@Test
-  //void valid_code_provide_token_ok() {
-  //  Token validToken = swanComponent.getTokenByCode(userCode, "https://localhost:3000/login/success");
-  //assertNull(validToken);
-  //}
 
   public static class ContextInitializer extends AbstractContextInitializer {
     public static final int SERVER_PORT = TestUtils.anAvailableRandomPort();

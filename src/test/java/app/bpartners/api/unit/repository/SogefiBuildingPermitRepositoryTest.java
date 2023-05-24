@@ -19,7 +19,7 @@ import org.mockito.ArgumentCaptor;
 
 import static app.bpartners.api.endpoint.rest.model.ProspectStatus.CONTACTED;
 import static app.bpartners.api.endpoint.rest.model.ProspectStatus.TO_CONTACT;
-import static app.bpartners.api.integration.conf.TestUtils.SWAN_ACCOUNTHOLDER_ID;
+import static app.bpartners.api.integration.conf.TestUtils.ACCOUNTHOLDER_ID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -119,7 +119,7 @@ class SogefiBuildingPermitRepositoryTest {
         .name(PROSPECT_NAME)
         .address(PROSPECT_ADDRESS)
         .status(TO_CONTACT)
-        .idAccountHolder(SWAN_ACCOUNTHOLDER_ID)
+        .idAccountHolder(ACCOUNTHOLDER_ID)
         .townCode(92001)
         .build();
   }
@@ -130,7 +130,7 @@ class SogefiBuildingPermitRepositoryTest {
         .name("some name")
         .address("some address")
         .status(CONTACTED)
-        .idAccountHolder(SWAN_ACCOUNTHOLDER_ID)
+        .idAccountHolder(ACCOUNTHOLDER_ID)
         .townCode(92002)
         .build();
   }
@@ -145,7 +145,7 @@ class SogefiBuildingPermitRepositoryTest {
     ArgumentCaptor<HProspect> prospectEntityArgumentCaptor =
         ArgumentCaptor.forClass(HProspect.class);
 
-    subject.saveByBuildingPermit(SWAN_ACCOUNTHOLDER_ID, buildingPermit(),
+    subject.saveByBuildingPermit(ACCOUNTHOLDER_ID, buildingPermit(),
         singleBuildingPermit());
 
     verify(prospectJpaRepositoryMock, times(1)).save(prospectEntityArgumentCaptor.capture());
@@ -168,7 +168,7 @@ class SogefiBuildingPermitRepositoryTest {
     ArgumentCaptor<HProspect> prospectEntityArgumentCaptor =
         ArgumentCaptor.forClass(HProspect.class);
 
-    subject.saveByBuildingPermit(SWAN_ACCOUNTHOLDER_ID, buildingPermit(),
+    subject.saveByBuildingPermit(ACCOUNTHOLDER_ID, buildingPermit(),
         singleBuildingPermit());
 
     verify(prospectJpaRepositoryMock, times(1)).save(prospectEntityArgumentCaptor.capture());
@@ -187,7 +187,7 @@ class SogefiBuildingPermitRepositoryTest {
     SingleBuildingPermit singleBuildingPermit = singleBuildingPermit();
 
     assertThrows(ApiException.class,
-        () -> subject.saveByBuildingPermit(SWAN_ACCOUNTHOLDER_ID, buildingPermit,
+        () -> subject.saveByBuildingPermit(ACCOUNTHOLDER_ID, buildingPermit,
             singleBuildingPermit),
         "HProspect.id=" + PROSPECT1_ID + " was not found but it was linked with "
             + "HSogefiBuildingPermitProspect.id=" + SOGEFI_PROSPECT_ID);

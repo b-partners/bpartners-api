@@ -5,8 +5,6 @@ import app.bpartners.api.endpoint.event.S3Conf;
 import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.endpoint.rest.security.model.Principal;
-import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
-import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
 import app.bpartners.api.integration.conf.AbstractContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
 import app.bpartners.api.manager.ProjectTokenManager;
@@ -23,16 +21,11 @@ import app.bpartners.api.repository.bridge.repository.BridgeUserRepository;
 import app.bpartners.api.repository.fintecture.FintectureConf;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitConf;
 import app.bpartners.api.repository.sendinblue.SendinblueConf;
-import app.bpartners.api.repository.swan.AccountHolderSwanRepository;
-import app.bpartners.api.repository.swan.OnboardingSwanRepository;
-import app.bpartners.api.repository.swan.UserSwanRepository;
-import app.bpartners.api.repository.swan.implementation.SwanAccountConnectorRepository;
 import app.bpartners.api.service.AccountHolderService;
 import app.bpartners.api.service.AccountService;
 import app.bpartners.api.service.OnboardingService;
 import app.bpartners.api.service.PaymentScheduleService;
 import java.util.List;
-import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
@@ -45,11 +38,9 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
 
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_TOKEN;
-import static app.bpartners.api.integration.conf.TestUtils.setUpAccountConnectorSwanRepository;
+import static app.bpartners.api.integration.conf.TestUtils.setUpCognito;
 import static app.bpartners.api.integration.conf.TestUtils.setUpEventBridge;
 import static app.bpartners.api.integration.conf.TestUtils.setUpLegalFileRepository;
-import static app.bpartners.api.integration.conf.TestUtils.setUpSwanComponent;
-import static app.bpartners.api.integration.conf.TestUtils.setUpUserSwanRepository;
 import static app.bpartners.api.service.OnboardingService.DEFAULT_BALANCE;
 import static app.bpartners.api.service.OnboardingService.DEFAULT_CASH_FLOW;
 import static app.bpartners.api.service.OnboardingService.DEFAULT_STATUS;
@@ -68,7 +59,6 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @Testcontainers
 @ContextConfiguration(initializers = UserServiceIT.ContextInitializer.class)
-@Slf4j
 class UserServiceIT {
   private static final String COMPANY_NAME = "user company name";
   @MockBean
@@ -82,21 +72,11 @@ class UserServiceIT {
   @MockBean
   private S3Conf s3Conf;
   @MockBean
-  private SwanConf swanConf;
-  @MockBean
   private FintectureConf fintectureConf;
   @MockBean
   private ProjectTokenManager projectTokenManager;
   @MockBean
-  private OnboardingSwanRepository onboardingSwanRepository;
-  @MockBean
   private CognitoComponent cognitoComponent;
-  @MockBean
-  private AccountHolderSwanRepository accountHolderSwanRepository;
-  @MockBean
-  private UserSwanRepository userSwanRepositoryMock;
-  @MockBean
-  private SwanComponent swanComponentMock;
   @MockBean
   private LegalFileRepository legalFileRepositoryMock;
   @MockBean
@@ -113,16 +93,12 @@ class UserServiceIT {
   private AccountService accountService;
   @Autowired
   private AccountHolderService accountHolderService;
-  @MockBean
-  private SwanAccountConnectorRepository swanAccountConnectorRepositoryMock;
 
   @BeforeEach
   public void setUp() {
-    setUpSwanComponent(swanComponentMock);
-    setUpUserSwanRepository(userSwanRepositoryMock);
-    setUpAccountConnectorSwanRepository(swanAccountConnectorRepositoryMock);
     setUpEventBridge(eventBridgeClientMock);
     setUpLegalFileRepository(legalFileRepositoryMock);
+    setUpCognito(cognitoComponent);
   }
 
   public static BridgeUser bridgeUser() {
@@ -155,9 +131,6 @@ class UserServiceIT {
 
     OnboardedUser actual = onboardingService.onboardUser(userToOnboard, COMPANY_NAME);
     User actualUser = actual.getOnboardedUser();
-    log.info("Onboarded {}", actual.getOnboardedUser());
-    log.info("Onboarded {}", actual.getOnboardedAccount());
-    log.info("Onboarded {}", actual.getOnboardedAccountHolder());
     List<Account> accounts =
         accountService.getAccountsByUserId(actualUser.getId());
     List<AccountHolder> accountHolders =

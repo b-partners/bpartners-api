@@ -1,4 +1,4 @@
-package app.bpartners.api.endpoint.rest.security.swan;
+package app.bpartners.api.endpoint.rest.security.bridge;
 
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Value;

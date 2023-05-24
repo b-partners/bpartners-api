@@ -1,6 +1,6 @@
 package app.bpartners.api.repository.bridge;
 
-import app.bpartners.api.endpoint.rest.security.swan.BridgeConf;
+import app.bpartners.api.endpoint.rest.security.bridge.BridgeConf;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.repository.bridge.model.Account.BridgeAccount;
 import app.bpartners.api.repository.bridge.model.Bank.BridgeBank;
@@ -30,8 +30,8 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import static app.bpartners.api.endpoint.rest.security.swan.SwanConf.BEARER_PREFIX;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
+import static app.bpartners.api.service.utils.SecurityUtils.BEARER_PREFIX;
 
 @Component
 @Slf4j

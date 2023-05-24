@@ -35,7 +35,6 @@ public class Transaction {
   public static final String RELEASED_STATUS = "Released";
   private String id;
   private String idAccount;
-  private String idSwan;
   private Long idBridge;
   private Fraction amount;
   private String currency;
@@ -44,7 +43,7 @@ public class Transaction {
   private String side;
   private TransactionCategory category;
   private TransactionStatus status;
-  private TransactionInvoice transactionInvoice;
+  private TransactionInvoiceDetails invoiceDetails;
   @Getter(AccessLevel.NONE)
   private Instant paymentDatetime;
 

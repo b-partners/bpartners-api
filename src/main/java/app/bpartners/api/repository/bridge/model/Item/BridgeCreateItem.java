@@ -8,7 +8,7 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
-import static app.bpartners.api.endpoint.rest.security.swan.BridgeConf.FRANCE_BANK_COUNTRY_CODE;
+import static app.bpartners.api.endpoint.rest.security.bridge.BridgeConf.FRANCE_BANK_COUNTRY_CODE;
 
 @AllArgsConstructor
 @NoArgsConstructor

@@ -15,6 +15,7 @@ import app.bpartners.api.model.CreatePaymentRegulation;
 import app.bpartners.api.model.Customer;
 import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.InvoiceProduct;
+import app.bpartners.api.model.TransactionInvoiceDetails;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.NotImplementedException;
@@ -93,11 +94,11 @@ public class InvoiceRestMapper {
                 domain.getDiscount().getAmount(domain.getTotalPriceWithVat()).getCentsRoundUp()));
   }
 
-  public TransactionInvoice toRest(app.bpartners.api.model.TransactionInvoice transactionInvoice) {
-    return transactionInvoice == null ? null
+  public TransactionInvoice toRest(TransactionInvoiceDetails invoiceDetails) {
+    return invoiceDetails == null ? null
         : new TransactionInvoice()
-        .invoiceId(transactionInvoice.getInvoiceId())
-        .fileId(transactionInvoice.getFileId());
+        .invoiceId(invoiceDetails.getIdInvoice())
+        .fileId(invoiceDetails.getFileId());
   }
 
   public app.bpartners.api.model.Invoice toDomain(String idUser, String id, CrupdateInvoice rest) {

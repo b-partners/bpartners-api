@@ -3,7 +3,6 @@ package app.bpartners.api.endpoint.rest.controller;
 import app.bpartners.api.endpoint.rest.mapper.UserRestMapper;
 import app.bpartners.api.endpoint.rest.model.User;
 import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
-import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
 import app.bpartners.api.model.exception.ForbiddenException;
 import app.bpartners.api.service.UserService;
 import javax.servlet.http.HttpServletRequest;
@@ -14,13 +13,12 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import static app.bpartners.api.endpoint.rest.security.SecurityConf.AUTHORIZATION_HEADER;
-import static app.bpartners.api.endpoint.rest.security.swan.SwanConf.BEARER_PREFIX;
+import static app.bpartners.api.service.utils.SecurityUtils.BEARER_PREFIX;
 
 @RestController
 @AllArgsConstructor
 public class UserController {
   private final UserRestMapper mapper;
-  private final SwanComponent swanComponent;
   private final CognitoComponent cognitoComponent;
   private final UserService service;
 
@@ -41,14 +39,12 @@ public class UserController {
       throw new ForbiddenException();
     } else {
       bearer = bearer.substring(BEARER_PREFIX.length()).trim();
-      String swanUserId = swanComponent.getSwanUserIdByToken(bearer);
       String email = cognitoComponent.getEmailByToken(bearer);
-      if (swanUserId == null && email == null) {
+      if (email == null) {
         throw new ForbiddenException();
       }
       app.bpartners.api.model.User
-          user = swanUserId != null ? service.getUserByIdAndBearer(swanUserId, bearer) :
-          service.getUserByEmail(email);
+          user = service.getUserByEmail(email);
       if (!userId.equals(user.getId())) {
         throw new ForbiddenException();
       }

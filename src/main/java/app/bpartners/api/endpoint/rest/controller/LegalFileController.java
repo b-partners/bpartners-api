@@ -3,7 +3,6 @@ package app.bpartners.api.endpoint.rest.controller;
 import app.bpartners.api.endpoint.rest.mapper.LegalFileRestMapper;
 import app.bpartners.api.endpoint.rest.model.LegalFile;
 import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
-import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
 import app.bpartners.api.endpoint.rest.validator.LegalFileRestValidator;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.ForbiddenException;
@@ -20,12 +19,11 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import static app.bpartners.api.endpoint.rest.security.SecurityConf.AUTHORIZATION_HEADER;
-import static app.bpartners.api.endpoint.rest.security.swan.SwanConf.BEARER_PREFIX;
+import static app.bpartners.api.service.utils.SecurityUtils.BEARER_PREFIX;
 
 @RestController
 @AllArgsConstructor
 public class LegalFileController {
-  private final SwanComponent swanComponent;
   private final CognitoComponent cognitoComponent;
   private final UserService userService;
   private final UserTokenRepository bridgeRepository;
@@ -60,13 +58,11 @@ public class LegalFileController {
       throw new ForbiddenException();
     } else {
       bearer = bearer.substring(BEARER_PREFIX.length()).trim();
-      String swanUserId = swanComponent.getSwanUserIdByToken(bearer);
       String email = cognitoComponent.getEmailByToken(bearer);
-      if (swanUserId == null && email == null) {
+      if (email == null) {
         throw new ForbiddenException();
       }
-      User user = swanUserId != null ? userService.getUserByIdAndBearer(swanUserId, bearer) :
-          userService.getUserByEmail(email);
+      User user = userService.getUserByEmail(email);
       if (!userId.equals(user.getId())) {
         throw new ForbiddenException();
       }

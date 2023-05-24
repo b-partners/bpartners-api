@@ -5,21 +5,17 @@ import app.bpartners.api.endpoint.rest.api.PayingApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
 import app.bpartners.api.endpoint.rest.model.InvoiceRelaunchConf;
-import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
-import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
+import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.integration.conf.S3AbstractContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
 import app.bpartners.api.manager.ProjectTokenManager;
 import app.bpartners.api.repository.AccountConnectorRepository;
-import app.bpartners.api.repository.AccountRepository;
 import app.bpartners.api.repository.LegalFileRepository;
 import app.bpartners.api.repository.fintecture.FintectureConf;
 import app.bpartners.api.repository.fintecture.FintecturePaymentInfoRepository;
 import app.bpartners.api.repository.fintecture.FintecturePaymentInitiationRepository;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitConf;
 import app.bpartners.api.repository.sendinblue.SendinblueConf;
-import app.bpartners.api.repository.swan.AccountHolderSwanRepository;
-import app.bpartners.api.repository.swan.UserSwanRepository;
 import app.bpartners.api.service.PaymentScheduleService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.MethodOrderer;
@@ -35,14 +31,10 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import static app.bpartners.api.integration.conf.TestUtils.INVOICE1_ID;
 import static app.bpartners.api.integration.conf.TestUtils.INVOICE2_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
-import static app.bpartners.api.integration.conf.TestUtils.setUpAccountConnectorSwanRepository;
-import static app.bpartners.api.integration.conf.TestUtils.setUpAccountHolderSwanRep;
-import static app.bpartners.api.integration.conf.TestUtils.setUpAccountRepository;
+import static app.bpartners.api.integration.conf.TestUtils.setUpCognito;
 import static app.bpartners.api.integration.conf.TestUtils.setUpLegalFileRepository;
 import static app.bpartners.api.integration.conf.TestUtils.setUpPaymentInfoRepository;
 import static app.bpartners.api.integration.conf.TestUtils.setUpPaymentInitiationRep;
-import static app.bpartners.api.integration.conf.TestUtils.setUpSwanComponent;
-import static app.bpartners.api.integration.conf.TestUtils.setUpUserSwanRepository;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
@@ -61,20 +53,14 @@ class InvoiceRelaunchConfIT {
   private SentryConf sentryConf;
   @MockBean
   private SendinblueConf sendinblueConf;
-  @MockBean
-  private SwanConf swanConf;
+
   @MockBean
   private ProjectTokenManager projectTokenManager;
   @MockBean
   private FintectureConf fintectureConf;
   @MockBean
-  private AccountHolderSwanRepository accountHolderRepositoryMock;
-  @MockBean
-  private UserSwanRepository userSwanRepositoryMock;
-  @MockBean
   private AccountConnectorRepository accountConnectorRepositoryMock;
-  @MockBean
-  private SwanComponent swanComponentMock;
+
   @MockBean
   private FintecturePaymentInitiationRepository paymentInitiationRepositoryMock;
   @MockBean
@@ -82,7 +68,7 @@ class InvoiceRelaunchConfIT {
   @MockBean
   private FintecturePaymentInfoRepository paymentInfoRepositoryMock;
   @MockBean
-  private AccountRepository accountRepositoryMock;
+  private CognitoComponent cognitoComponentMock;
 
   private static ApiClient anApiClient() {
     return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN,
@@ -91,14 +77,10 @@ class InvoiceRelaunchConfIT {
 
   @BeforeEach
   public void setUp() {
-    setUpSwanComponent(swanComponentMock);
-    setUpUserSwanRepository(userSwanRepositoryMock);
-    setUpAccountConnectorSwanRepository(accountConnectorRepositoryMock);
-    setUpAccountHolderSwanRep(accountHolderRepositoryMock);
     setUpPaymentInitiationRep(paymentInitiationRepositoryMock);
     setUpPaymentInfoRepository(paymentInfoRepositoryMock);
     setUpLegalFileRepository(legalFileRepositoryMock);
-    setUpAccountRepository(accountRepositoryMock);
+    setUpCognito(cognitoComponentMock);
   }
 
   @Test

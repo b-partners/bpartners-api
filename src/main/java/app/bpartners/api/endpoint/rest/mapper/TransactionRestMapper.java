@@ -20,7 +20,7 @@ public class TransactionRestMapper {
         .reference(internal.getReference())
         .status(internal.getStatus())
         .type(internal.getType())
-        .invoice(invoiceRestMapper.toRest(internal.getTransactionInvoice()));
+        .invoice(invoiceRestMapper.toRest(internal.getInvoiceDetails()));
     if (internal.getCategory() != null) {
       transaction.setCategory(List.of(categoryRestMapper.toRest(internal.getCategory())));
     }

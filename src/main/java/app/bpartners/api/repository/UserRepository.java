@@ -7,8 +7,6 @@ import java.util.Optional;
 public interface UserRepository {
   List<User> findAll();
 
-  User getUserBySwanUserIdAndToken(String swanUserId, String token);
-
   User getUserByToken(String token);
 
   User getByEmail(String email);

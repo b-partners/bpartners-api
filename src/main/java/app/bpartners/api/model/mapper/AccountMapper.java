@@ -7,7 +7,6 @@ import app.bpartners.api.repository.bridge.model.Account.BridgeAccount;
 import app.bpartners.api.repository.jpa.model.HAccount;
 import app.bpartners.api.repository.jpa.model.HUser;
 import app.bpartners.api.repository.model.AccountConnector;
-import app.bpartners.api.repository.swan.model.SwanAccount;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -25,18 +24,6 @@ public class AccountMapper {
   public static final String SUSPENDED_STATUS = "Suspended";
   public static final String VALIDATION_REQUIRED = "Validation Required";
   public static final String INVALID_CREDENTIALS = "Invalid Credentials";
-  public static final String DEFAULT_SWAN_BANK_ID = "swan_bank_id";
-
-  public AccountConnector toConnector(SwanAccount swanAccount) {
-    return AccountConnector.builder()
-        .id(swanAccount.getId())
-        .name(swanAccount.getName())
-        .balance(swanAccount.getBalances().getAvailable().getValue())
-        .iban(swanAccount.getIban())
-        .status(getStatus(swanAccount.getStatusInfo().getStatus()))
-        .bankId(DEFAULT_SWAN_BANK_ID)
-        .build();
-  }
 
   //TODO: solve why bridge account is null
   public AccountConnector toConnector(BridgeAccount bridgeAccount) {

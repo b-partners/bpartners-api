@@ -5,7 +5,6 @@ import app.bpartners.api.endpoint.rest.client.ApiException;
 import app.bpartners.api.endpoint.rest.model.AccountInvoiceRelaunchConf;
 import app.bpartners.api.endpoint.rest.model.AnnualRevenueTarget;
 import app.bpartners.api.endpoint.rest.model.ArchiveStatus;
-import app.bpartners.api.endpoint.rest.model.Bank;
 import app.bpartners.api.endpoint.rest.model.BusinessActivity;
 import app.bpartners.api.endpoint.rest.model.CompanyBusinessActivity;
 import app.bpartners.api.endpoint.rest.model.CompanyInfo;
@@ -26,14 +25,12 @@ import app.bpartners.api.endpoint.rest.model.TransactionCategory;
 import app.bpartners.api.endpoint.rest.model.TransactionStatus;
 import app.bpartners.api.endpoint.rest.model.UpdateCustomerStatus;
 import app.bpartners.api.endpoint.rest.model.User;
+import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.endpoint.rest.security.model.Principal;
 import app.bpartners.api.endpoint.rest.security.principal.PrincipalProvider;
-import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.NotFoundException;
-import app.bpartners.api.repository.AccountConnectorRepository;
-import app.bpartners.api.repository.AccountRepository;
 import app.bpartners.api.repository.LegalFileRepository;
 import app.bpartners.api.repository.bridge.model.Account.BridgeAccount;
 import app.bpartners.api.repository.fintecture.FintectureConf;
@@ -46,22 +43,11 @@ import app.bpartners.api.repository.model.AccountConnector;
 import app.bpartners.api.repository.sendinblue.SendinblueApi;
 import app.bpartners.api.repository.sendinblue.model.Attributes;
 import app.bpartners.api.repository.sendinblue.model.Contact;
-import app.bpartners.api.repository.swan.AccountHolderSwanRepository;
-import app.bpartners.api.repository.swan.OnboardingSwanRepository;
-import app.bpartners.api.repository.swan.TransactionSwanRepository;
-import app.bpartners.api.repository.swan.UserSwanRepository;
-import app.bpartners.api.repository.swan.implementation.SwanAccountConnectorRepository;
-import app.bpartners.api.repository.swan.model.SwanAccount;
-import app.bpartners.api.repository.swan.model.SwanAccountHolder;
-import app.bpartners.api.repository.swan.model.SwanTransaction;
-import app.bpartners.api.repository.swan.model.SwanUser;
-import app.bpartners.api.repository.swan.response.AccountResponse;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpHeaders;
 import java.net.http.HttpRequest;
@@ -95,32 +81,22 @@ import static app.bpartners.api.endpoint.rest.model.TransactionTypeEnum.INCOME;
 import static app.bpartners.api.endpoint.rest.model.TransactionTypeEnum.OUTCOME;
 import static app.bpartners.api.model.Invoice.DEFAULT_DELAY_PENALTY_PERCENT;
 import static app.bpartners.api.model.Invoice.DEFAULT_TO_PAY_DELAY_DAYS;
-import static app.bpartners.api.model.Transaction.RELEASED_STATUS;
-import static app.bpartners.api.model.exception.ApiException.ExceptionType.CLIENT_EXCEPTION;
-import static app.bpartners.api.model.mapper.AccountMapper.getStatus;
-import static app.bpartners.api.model.mapper.UserMapper.VALID_IDENTITY_STATUS;
 import static app.bpartners.api.repository.bridge.model.Account.BridgeAccount.BRIDGE_STATUS_OK;
 import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 public class TestUtils {
   public static final String CREDIT_SIDE = "Credit";
   public static final String DEBIT_SIDE = "Debit";
-  public static final String BOOKED_STATUS = "Booked";
-  public static final String PENDING_STATUS = "Pending";
   public static final String JOE_DOE_ID = "joe_doe_id";
   public static final String BERNARD_DOE_ID = "bernard_doe_id";
-  public static final String JOE_DOE_SWAN_USER_ID = "c15924bf-61f9-4381-8c9b-d34369bf91f7";
+  public static final String JOE_DOE_USER_ID = "c15924bf-61f9-4381-8c9b-d34369bf91f7";
   public static final String JOE_DOE_ACCOUNT_HOLDER_ID = "b33e6eb0-e262-4596-a91f-20c6a7bfd343";
-  public static final String JANE_DOE_SWAN_USER_ID = "jane_doe_user_id";
-  public static final String BERNARD_DOE_SWAN_USER_ID = "c15924bf-61f9-4381-8c9b-d34369bf91f7";
-  public static final String BAD_TOKEN = "bad_token";
+  public static final String JANE_DOE_USER_ID = "jane_doe_user_id";
   public static final String VALID_EMAIL = "username@domain.com";
-  public static final String API_URL = "https://api.swan.io/sandbox-partner/graphql";
   public static final String OAUTH_URL = "https://api-sandbox.fintecture.com/oauth/accesstoken";
   public static final String PIS_URL = "https://api-sandbox.fintecture.com/pis/v2/";
   public static final String REDIRECT_SUCCESS_URL =
@@ -153,160 +129,63 @@ public class TestUtils {
   public static final String JOE_DOE_TOKEN = "joe_doe_token";
   public static final String BERNARD_DOE_TOKEN = "bernard_doe_token";
   public static final String JOE_DOE_COGNITO_TOKEN = "joe_doe_token";
-  //TODO(distinct-cognito): should be diff from Swan
-  public static final String BERNARD_DOE_COGNITO_TOKEN = "bernard_doe_token";
-  //TODO(distinct-cognito): should be diff from Swan
   public static final String PROJECT_TOKEN = "project_token";
   public static final String BAD_CODE = "bad_code";
-  public static final String SWAN_ONBOARDING_URL_FORMAT =
-      "https://api.banking.sandbox.swan.io/projects/uuid/onboardings/uuid";
   public static final String INVOICE_RELAUNCH1_ID = "invoice_relaunch1_id";
   public static final String INVOICE_RELAUNCH2_ID = "invoice_relaunch2_id";
   public static final String INVALID_LOGO_TYPE = "invalid_logo_type";
 
   public static final String NOT_JOE_DOE_ACCOUNT_ID = "NOT_" + JOE_DOE_ACCOUNT_ID;
-  public static final String VERIFIED_STATUS = "Verified";
-  public static final String SWAN_TRANSACTION_ID = "bosci_f224704f2555a42303e302ffb8e69eef";
-  public static final String SWAN_ACCOUNTHOLDER_ID = "b33e6eb0-e262-4596-a91f-20c6a7bfd343";
+  public static final String ACCOUNTHOLDER_ID = "b33e6eb0-e262-4596-a91f-20c6a7bfd343";
   public static final String ACCOUNTHOLDER2_ID = "account_holder_id_2";
   public static final String JANE_ACCOUNT_ID = "jane_account_id";
   public static final String JANE_DOE_TOKEN = "jane_doe_token";
   public static final String JANE_DOE_ID = "jane_doe_id";
   public static final String SESSION_ID = "session_id";
-  public static final String ACCOUNT_OPENED = "Opened";
-  public static final String VALIDATION_REQUIRED = "Validation Required";
-  public static final String ACCOUNT_CLOSED = "Closed";
-  public static final String ACCOUNT_CLOSING = "Closing";
-  public static final String ACCOUNT_SUSPENDED = "Suspended";
-  public static final String ACCOUNT_UNKNOWN_STATUS = "Unknown status";
   public static final String TRANSACTION1_ID = "transaction1_id";
   public static final String UNKNOWN_TRANSACTION_ID = "unknown_transaction_id";
   public static final String SESSION1_ID = "session1_id";
   public static final String SESSION2_ID = "session2_id";
-  public static final String NOT_JOE_DOE_ACCOUNT_HOLDER_ID = "NOT_" + SWAN_ACCOUNTHOLDER_ID;
+  public static final String NOT_JOE_DOE_ACCOUNT_HOLDER_ID = "NOT_" + ACCOUNTHOLDER_ID;
   public static final String GEOJSON_TYPE_POINT = "Point";
+  public static final String JOE_EMAIL = "joe@email.com";
+  public static final String JANE_EMAIL = "jane@email.com";
+  public static final String BERNARD_EMAIL = "bernard@email.com";
 
   public static User restJoeDoeUser() {
     return new User()
-        .id(TestUtils.JOE_DOE_ID)
-        .firstName(joeDoe().getFirstName())
-        .lastName(joeDoe().getLastName())
-        .phone(joeDoe().getMobilePhoneNumber())
-        .monthlySubscriptionAmount(5)
-        .status(ENABLED)
+        .id(JOE_DOE_ID)
+        .firstName("Joe")
+        .lastName("Doe")
         .idVerified(true)
         .identificationStatus(VALID_IDENTITY)
+        .phone("+261340465338")
+        .monthlySubscriptionAmount(5)
         .logoFileId("logo.jpeg")
+        .status(ENABLED)
         .activeAccount(restJoeAccount());
   }
 
-  private static app.bpartners.api.endpoint.rest.model.Account restJoeAccount() {
-    app.bpartners.api.model.Bank bank = joePersistedAccount().getBank();
+  public static app.bpartners.api.endpoint.rest.model.Account restJaneAccount() {
     return new app.bpartners.api.endpoint.rest.model.Account()
-        .id(joePersistedAccount().getId())
-        .name(joePersistedAccount().getName())
-        .iban(joePersistedAccount().getIban())
-        .bic(joePersistedAccount().getBic())
-        .availableBalance(joePersistedAccount().getAvailableBalance().getCentsRoundUp())
-        .status(joePersistedAccount().getStatus())
-        .active(joePersistedAccount().isActive())
-        .bank(bank == null ? null
-            : new Bank().id(bank.getId())
-            .name(bank.getName())
-            .logoUrl(bank.getLogoUrl()));
-  }
-
-  public static User restJaneDoeUser() {
-    return new User()
-        .id(TestUtils.JANE_DOE_ID)
-        .firstName(janeDoe().getFirstName())
-        .lastName(janeDoe().getLastName())
-        .phone(janeDoe().getMobilePhoneNumber())
-        .monthlySubscriptionAmount(5)
-        .status(ENABLED)
-        .idVerified(true)
-        .identificationStatus(VALID_IDENTITY)
-        .logoFileId("logo.jpeg")
-        .activeAccount(restJaneAccount()
-        );
-  }
-
-  private static app.bpartners.api.endpoint.rest.model.Account restJaneAccount() {
-    return new app.bpartners.api.endpoint.rest.model.Account()
-        .id(JANE_ACCOUNT_ID)
-        .name("Jane account")
+        .id("jane_account_id")
         .availableBalance(0)
-        .bank(null)
         .status(OPENED)
         .active(true)
+        .name("Jane account")
         .iban("IBAN1234")
         .bic("BIC123");
   }
 
-  public static SwanUser joeDoe() {
-    return SwanUser.builder()
-        .id(JOE_DOE_SWAN_USER_ID)
-        .firstName("Joe")
-        .lastName("Doe")
-        .idVerified(true)
-        .identificationStatus(VALID_IDENTITY_STATUS)
-        .mobilePhoneNumber("+261340465338")
-        .build();
-  }
-
-  public static SwanUser bernardDoe() {
-    return SwanUser.builder()
-        .id(BERNARD_DOE_SWAN_USER_ID)
-        .firstName("Bernard")
-        .lastName("Doe")
-        .idVerified(true)
-        .identificationStatus(VALID_IDENTITY_STATUS)
-        .mobilePhoneNumber("+261342463616")
-        .build();
-  }
-
-  public static SwanUser janeDoe() {
-    return SwanUser.builder()
-        .id("jane_doe_user_id")
-        .firstName("Jane")
-        .lastName("Doe")
-        .idVerified(true)
-        .identificationStatus(VALID_IDENTITY_STATUS)
-        .mobilePhoneNumber("+261341122334")
-        .build();
-  }
-
-  public static app.bpartners.api.repository.swan.model.SwanUser joeDoeModel() {
-    return app.bpartners.api.repository.swan.model.SwanUser.builder()
-        .id(joeDoe().getId())
-        .firstName(joeDoe().getFirstName())
-        .lastName(joeDoe().getLastName())
-        .identificationStatus(joeDoe().getIdentificationStatus())
-        .mobilePhoneNumber(joeDoe().getMobilePhoneNumber())
-        .idVerified(joeDoe().isIdVerified())
-        .build();
-  }
-
-  public static app.bpartners.api.repository.swan.model.SwanUser bernardDoeModel() {
-    return app.bpartners.api.repository.swan.model.SwanUser.builder()
-        .id(bernardDoe().getId())
-        .firstName(bernardDoe().getFirstName())
-        .lastName(bernardDoe().getLastName())
-        .identificationStatus(bernardDoe().getIdentificationStatus())
-        .mobilePhoneNumber(bernardDoe().getMobilePhoneNumber())
-        .idVerified(bernardDoe().isIdVerified())
-        .build();
-  }
-
-  public static app.bpartners.api.repository.swan.model.SwanUser janeDoeModel() {
-    return app.bpartners.api.repository.swan.model.SwanUser.builder()
-        .id(janeDoe().getId())
-        .firstName(janeDoe().getFirstName())
-        .lastName(janeDoe().getLastName())
-        .identificationStatus(janeDoe().getIdentificationStatus())
-        .mobilePhoneNumber(janeDoe().getMobilePhoneNumber())
-        .idVerified(janeDoe().isIdVerified())
-        .build();
+  public static app.bpartners.api.endpoint.rest.model.Account restJoeAccount() {
+    return new app.bpartners.api.endpoint.rest.model.Account()
+        .id("beed1765-5c16-472a-b3f4-5c376ce5db58")
+        .availableBalance(10000)
+        .status(OPENED)
+        .active(true)
+        .name("Account_name")
+        .iban("FR0123456789")
+        .bic("BIC_NOT_NULL");
   }
 
   public static BridgeAccount joeDoeBridgeAccount() {
@@ -332,104 +211,6 @@ public class TestUtils {
         .build();
   }
 
-  public static SwanAccount joeDoeSwanAccount() {
-    return SwanAccount.builder()
-        .id("beed1765-5c16-472a-b3f4-5c376ce5db58")
-        .name("Numer Swan Account")
-        .bic("SWNBFR22")
-        .iban("FR7699999001001190346460988")
-        .balances(new SwanAccount.Balances(
-            new SwanAccount.Balances.Available(1000.0)
-        ))
-        .statusInfo(new SwanAccount.StatusInfo(ACCOUNT_OPENED))
-        .build();
-  }
-
-  public static SwanAccount bernardDoeSwanAccount() {
-    return SwanAccount.builder()
-        .id("account_pro_external_id")
-        .name("Numer Swan Account")
-        .bic("SWNBFR22")
-        .iban("FR7699999001001190346460988")
-        .balances(new SwanAccount.Balances(
-            new SwanAccount.Balances.Available(1000.0)
-        ))
-        .statusInfo(new SwanAccount.StatusInfo(VALIDATION_REQUIRED))
-        .build();
-  }
-
-  public static SwanAccount janeSwanAccount() {
-    return SwanAccount.builder()
-        .id("jane_account_id")
-        .name("Jane Account")
-        .bic("SWNBFR22")
-        .iban("FR7699999001001190346460988")
-        .balances(new SwanAccount.Balances(
-            new SwanAccount.Balances.Available(1000.0)
-        ))
-        .statusInfo(new SwanAccount.StatusInfo(ACCOUNT_OPENED))
-        .build();
-  }
-
-  public static SwanAccountHolder joeDoeSwanAccountHolder() {
-    return SwanAccountHolder.builder()
-        .id("b33e6eb0-e262-4596-a91f-20c6a7bfd343")
-        .verificationStatus(VERIFIED_STATUS)
-        .info(SwanAccountHolder.Info.builder()
-            .name("NUMER")
-            .businessActivity("businessAndRetail")
-            .businessActivityDescription("Phrase détaillée de mon activité")
-            .registrationNumber("899067250")
-            .vatNumber("FR32123456789")
-            .build())
-        .residencyAddress(SwanAccountHolder.ResidencyAddress.builder()
-            .addressLine1("6 RUE PAUL LANGEVIN")
-            .city("FONTENAY-SOUS-BOIS")
-            .country("FRA")
-            .postalCode("94120")
-            .build())
-        .accounts(SwanAccountHolder.Accounts.builder()
-            .edges(List.of(AccountResponse.Edge.builder()
-                .node(SwanAccount.builder()
-                    .id(joeDoeSwanAccount().getId())
-                    .statusInfo(SwanAccount.StatusInfo.builder()
-                        .status(ACCOUNT_OPENED)
-                        .build())
-                    .build())
-                .build()))
-            .build())
-        .build();
-  }
-
-  public static SwanAccountHolder bernardDoeSwanAccountHolder() {
-    return SwanAccountHolder.builder()
-        .id("account_holder_id_3")
-        .verificationStatus(VERIFIED_STATUS)
-        .info(SwanAccountHolder.Info.builder()
-            .name("NUMER")
-            .businessActivity("businessAndRetail")
-            .businessActivityDescription("Phrase détaillée de mon activité")
-            .registrationNumber("899067250")
-            .vatNumber("FR32123456789")
-            .build())
-        .residencyAddress(SwanAccountHolder.ResidencyAddress.builder()
-            .addressLine1("6 RUE PAUL LANGEVIN")
-            .city("FONTENAY-SOUS-BOIS")
-            .country("FRA")
-            .postalCode("94120")
-            .build())
-        .accounts(SwanAccountHolder.Accounts.builder()
-            .edges(List.of(AccountResponse.Edge.builder()
-                .node(SwanAccount.builder()
-                    .id(bernardDoeSwanAccount().getId())
-                    .statusInfo(SwanAccount.StatusInfo.builder()
-                        .status(VALIDATION_REQUIRED)
-                        .build())
-                    .build())
-                .build()))
-            .build())
-        .build();
-  }
 
   public static AnnualRevenueTarget annualRevenueTarget1() {
     return new AnnualRevenueTarget()
@@ -658,91 +439,6 @@ public class TestUtils {
         .isOther(false);
   }
 
-  public static SwanTransaction swanTransaction1() {
-    return SwanTransaction.builder()
-        .node(SwanTransaction.Node.builder()
-            .id("bosci_f224704f2555a42303e302ffb8e69eef")
-            .label("Création de site vitrine")
-            .reference("REF_001")
-            .amount(SwanTransaction.Amount.builder()
-                .value(500.0)
-                .currency("EUR")
-                .build())
-            .createdAt(Instant.parse("2022-08-26T06:33:50.595Z"))
-            .side(CREDIT_SIDE)
-            .statusInfo(new SwanTransaction.Node.StatusInfo(PENDING_STATUS))
-            .build())
-        .build();
-  }
-
-  public static SwanTransaction swanTransaction2() {
-    return SwanTransaction.builder()
-        .node(SwanTransaction.Node.builder()
-            .id("bosci_28cb4daf35d3ab24cb775dcdefc8fdab")
-            .label("Test du virement")
-            .reference("TEST-001")
-            .amount(SwanTransaction.Amount.builder()
-                .value(100.0)
-                .currency("EUR")
-                .build())
-            .createdAt(Instant.parse("2022-08-24T04:57:02.606Z"))
-            .side(DEBIT_SIDE)
-            .statusInfo(new SwanTransaction.Node.StatusInfo(BOOKED_STATUS))
-            .build())
-        .build();
-  }
-
-  public static SwanTransaction swanTransaction3() {
-    return SwanTransaction.builder()
-        .node(SwanTransaction.Node.builder()
-            .id("bosci_0fe167566b234808a44aae415f057b6c")
-            .label("Premier virement")
-            .reference("JOE-001")
-            .amount(SwanTransaction.Amount.builder()
-                .value(500.0)
-                .currency("EUR")
-                .build())
-            .createdAt(Instant.parse("2022-08-24T03:39:33.315Z"))
-            .side(CREDIT_SIDE)
-            .statusInfo(new SwanTransaction.Node.StatusInfo(BOOKED_STATUS))
-            .build())
-        .build();
-  }
-
-  public static SwanTransaction swanTransaction4() {
-    return SwanTransaction.builder()
-        .node(SwanTransaction.Node.builder()
-            .id("bosci_12azgrb712gzf057b6c")
-            .label("Transaction avec nouveau statut")
-            .reference("123456")
-            .amount(SwanTransaction.Amount.builder()
-                .value(400.0)
-                .currency("EUR")
-                .build())
-            .createdAt(Instant.parse("2023-01-01T00:00:00.00Z"))
-            .side(CREDIT_SIDE)
-            .statusInfo(new SwanTransaction.Node.StatusInfo(RELEASED_STATUS))
-            .build())
-        .build();
-  }
-
-  public static SwanTransaction updatedSwanTransaction() {
-    return SwanTransaction.builder()
-        .node(SwanTransaction.Node.builder()
-            .id("bosci_f224704f2555a42303e302ffb8e69eef")
-            .label("Label à jour")
-            .reference("NEW_REF")
-            .amount(SwanTransaction.Amount.builder()
-                .value(111.1)
-                .currency("EUR")
-                .build())
-            .createdAt(Instant.parse("2022-08-26T01:00:00.00Z"))
-            .side(DEBIT_SIDE)
-            .statusInfo(new SwanTransaction.Node.StatusInfo(BOOKED_STATUS))
-            .build())
-        .build();
-  }
-
   public static app.bpartners.api.endpoint.rest.model.Transaction restTransaction2() {
     return new app.bpartners.api.endpoint.rest.model.Transaction()
         .id("transaction2_id")
@@ -765,30 +461,6 @@ public class TestUtils {
         .status(TransactionStatus.PENDING)
         .category(null)
         .paymentDatetime(Instant.parse("2022-08-26T06:33:50.595Z"));
-  }
-
-  public static app.bpartners.api.endpoint.rest.model.Transaction restUpdatedTransaction() {
-    return new app.bpartners.api.endpoint.rest.model.Transaction()
-        .id(TRANSACTION1_ID)
-        .label(updatedSwanTransaction().getNode().getLabel())
-        .reference(updatedSwanTransaction().getNode().getReference())
-        .amount(11110)
-        .type(OUTCOME)
-        .status(TransactionStatus.BOOKED)
-        .category(null)
-        .paymentDatetime(Instant.parse("2022-08-26T01:00:00.00Z"));
-  }
-
-  public static app.bpartners.api.endpoint.rest.model.Transaction restTransaction4() {
-    return new app.bpartners.api.endpoint.rest.model.Transaction()
-        .id(swanTransaction4().getNode().getId())
-        .label(swanTransaction4().getNode().getLabel())
-        .reference(swanTransaction4().getNode().getReference())
-        .amount(40000)
-        .type(INCOME)
-        .status(TransactionStatus.RELEASED)
-        .paymentDatetime(Instant.parse("2023-01-01T00:00:00.00Z"))
-        .category(null);
   }
 
   public static app.bpartners.api.endpoint.rest.model.Transaction restTransaction3() {
@@ -1042,6 +714,15 @@ public class TestUtils {
     return client;
   }
 
+  public static void setUpCognito(CognitoComponent cognitoComponentMock) {
+    when(cognitoComponentMock.getEmailByToken(JOE_DOE_TOKEN))
+        .thenReturn(JOE_EMAIL);
+    when(cognitoComponentMock.getEmailByToken(JANE_DOE_TOKEN))
+        .thenReturn(JANE_EMAIL);
+    when(cognitoComponentMock.getEmailByToken(BERNARD_DOE_TOKEN))
+        .thenReturn(BERNARD_EMAIL);
+  }
+
   public static void setUpProvider(PrincipalProvider provider) {
     when(provider.getAuthentication()).thenReturn(
         new UsernamePasswordAuthenticationToken(
@@ -1063,131 +744,6 @@ public class TestUtils {
     when(fintectureConfMock.getPrivateKey()).thenReturn(encodedKey);
     when(fintectureConfMock.getRequestToPayUrl()).thenReturn(PIS_URL + "request-to-pay");
     when(fintectureConfMock.getPaymentUrl()).thenReturn(PIS_URL + "payments");
-  }
-
-  public static void setUpSwanComponent(SwanComponent swanComponent) {
-    try {
-      when(swanComponent.getSwanUserByToken(BAD_TOKEN)).thenReturn(null);
-      when(swanComponent.getSwanUserIdByToken(JOE_DOE_TOKEN)).thenReturn(joeDoe().getId());
-      when(swanComponent.getSwanUserByToken(JOE_DOE_TOKEN)).thenReturn(joeDoe());
-
-      when(swanComponent.getSwanUserIdByToken(BERNARD_DOE_TOKEN)).thenReturn(bernardDoe().getId());
-      when(swanComponent.getSwanUserByToken(BERNARD_DOE_TOKEN)).thenReturn(bernardDoe());
-
-      when(swanComponent.getSwanUserIdByToken(JANE_DOE_TOKEN)).thenReturn(janeDoe().getId());
-      when(swanComponent.getSwanUserByToken(JANE_DOE_TOKEN)).thenReturn(janeDoe());
-      when(swanComponent.getTokenByCode(BAD_CODE, REDIRECT_SUCCESS_URL)).thenThrow(
-          BadRequestException.class);
-    } catch (URISyntaxException | IOException e) {
-      throw new app.bpartners.api.model.exception.ApiException(CLIENT_EXCEPTION, e);
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-      throw new RuntimeException(e);
-    }
-  }
-
-  public static void setUpUserSwanRepository(UserSwanRepository swanRepository) {
-    when(swanRepository.whoami()).thenReturn(joeDoeModel());
-    when(swanRepository.getByToken(JOE_DOE_TOKEN)).thenReturn(joeDoeModel());
-    when(swanRepository.getByToken(JANE_DOE_TOKEN)).thenReturn(janeDoeModel());
-  }
-
-  public static void setUpAccountConnectorSwanRepository(
-      AccountConnectorRepository accountConnectorRepository) {
-    AccountConnector swanAccountConnector = toConnector((joeDoeSwanAccount()));
-    List<AccountConnector> accountConnectors = List.of(swanAccountConnector);
-    when(accountConnectorRepository.findById(JOE_DOE_ACCOUNT_ID)).thenReturn(swanAccountConnector);
-    when(accountConnectorRepository.findById(JOE_DOE_ID)).thenReturn(swanAccountConnector);
-    when(accountConnectorRepository.findByBearer(JOE_DOE_TOKEN)).thenReturn(accountConnectors);
-    when(accountConnectorRepository.findByUserId(JOE_DOE_ID)).thenReturn(accountConnectors);
-    when(accountConnectorRepository.save(JOE_DOE_ID, swanAccountConnector)).thenReturn(
-        swanAccountConnector);
-    when(accountConnectorRepository.saveAll(JOE_DOE_ID, accountConnectors)).thenReturn(
-        accountConnectors);
-
-    when(accountConnectorRepository.findById(JANE_ACCOUNT_ID)).thenReturn(
-        toConnector(janeSwanAccount()));
-    when(accountConnectorRepository.findByBearer(JANE_DOE_TOKEN)).thenReturn(
-        List.of(toConnector(janeSwanAccount())));
-    when(accountConnectorRepository.findByUserId(JANE_DOE_ID)).thenReturn(
-        List.of(toConnector(janeSwanAccount())));
-
-    when(accountConnectorRepository.findByBearer(BERNARD_DOE_TOKEN)).thenReturn(
-        List.of(toConnector(bernardDoeSwanAccount())));
-    when(accountConnectorRepository.findById(BERNARD_DOE_ACCOUNT_ID)).thenReturn(
-        toConnector(bernardDoeSwanAccount()));
-    when(accountConnectorRepository.findByUserId(BERNARD_DOE_ID)).thenReturn(
-        List.of(toConnector(bernardDoeSwanAccount())));
-
-
-  }
-
-  public static void setUpBernardUserSwanRepository(UserSwanRepository swanRepository) {
-    when(swanRepository.whoami()).thenReturn(bernardDoeModel());
-    when(swanRepository.getByToken(BERNARD_DOE_TOKEN)).thenReturn(bernardDoeModel());
-  }
-
-  public static void setUpAccountSwanRepository(SwanAccountConnectorRepository swanRepository) {
-    when(swanRepository.findById(JOE_DOE_ACCOUNT_ID)).thenReturn(toConnector(joeDoeSwanAccount()));
-    when(swanRepository.findById(JOE_DOE_ID)).thenReturn(toConnector(joeDoeSwanAccount()));
-    when(swanRepository.findByBearer(JOE_DOE_TOKEN)).thenReturn(
-        List.of(toConnector(joeDoeSwanAccount())));
-    when(swanRepository.findByUserId(any())).thenReturn(
-        List.of(toConnector(joeDoeSwanAccount())));
-
-    when(swanRepository.findById(JANE_ACCOUNT_ID)).thenReturn(toConnector(janeSwanAccount()));
-    when(swanRepository.findByBearer(JANE_DOE_TOKEN)).thenReturn(
-        List.of(toConnector(janeSwanAccount())));
-    when(swanRepository.findByUserId(JANE_DOE_ID)).thenReturn(
-        List.of(toConnector(janeSwanAccount())));
-    when(swanRepository.findById(BERNARD_DOE_ACCOUNT_ID)).thenReturn(
-        toConnector(bernardDoeSwanAccount()));
-    when(swanRepository.findById(BERNARD_DOE_ID)).thenReturn(toConnector(bernardDoeSwanAccount()));
-    when(swanRepository.findByBearer(BERNARD_DOE_TOKEN)).thenReturn(
-        List.of(toConnector(bernardDoeSwanAccount())));
-    when(swanRepository.findByUserId(BERNARD_DOE_ID)).thenReturn(
-        List.of(toConnector(bernardDoeSwanAccount())));
-
-    when(swanRepository.findById(JANE_ACCOUNT_ID)).thenReturn(toConnector(janeSwanAccount()));
-    when(swanRepository.findByBearer(JANE_DOE_TOKEN)).thenReturn(
-        List.of(toConnector(janeSwanAccount())));
-    when(swanRepository.findByUserId(JANE_DOE_ID)).thenReturn(
-        List.of(toConnector(janeSwanAccount())));
-  }
-
-  public static void setUpTransactionRepository(TransactionSwanRepository repository) {
-    when(repository.getByIdAccount(any(), any())).thenReturn(
-        List.of(
-            swanTransaction1(),
-            swanTransaction2(),
-            swanTransaction3(),
-            swanTransaction4()));
-    when(repository.findById(eq(swanTransaction1().getNode().getId()), any()))
-        .thenReturn(swanTransaction1());
-    when(repository.findById(eq(swanTransaction2().getNode().getId()), any()))
-        .thenReturn(swanTransaction2());
-    when(repository.findById(eq(swanTransaction3().getNode().getId()), any()))
-        .thenReturn(swanTransaction3());
-    when(repository.findById(eq(swanTransaction4().getNode().getId()), any()))
-        .thenReturn(swanTransaction4());
-  }
-
-  public static void setUpOnboardingSwanRepositoryMock(OnboardingSwanRepository repository) {
-    when(repository.getOnboardingUrl(REDIRECT_SUCCESS_URL)).thenReturn(SWAN_ONBOARDING_URL_FORMAT);
-  }
-
-  public static void setUpAccountHolderSwanRep(AccountHolderSwanRepository swanRepository) {
-    when(swanRepository.getById(JOE_DOE_ID)).thenReturn(joeDoeSwanAccountHolder());
-    when(swanRepository.findAllByBearerAndAccountId(JOE_DOE_TOKEN, JOE_DOE_ACCOUNT_ID))
-        .thenReturn(List.of(joeDoeSwanAccountHolder()));
-    when(swanRepository.findAllByAccountId(JOE_DOE_ACCOUNT_ID))
-        .thenReturn(List.of(joeDoeSwanAccountHolder()));
-
-    when(swanRepository.getById(BERNARD_DOE_ID)).thenReturn(bernardDoeSwanAccountHolder());
-    when(swanRepository.findAllByBearerAndAccountId(BERNARD_DOE_TOKEN, BERNARD_DOE_ACCOUNT_ID))
-        .thenReturn(List.of(bernardDoeSwanAccountHolder()));
-    when(swanRepository.findAllByAccountId(BERNARD_DOE_ACCOUNT_ID))
-        .thenReturn(List.of(bernardDoeSwanAccountHolder()));
   }
 
   public static void setUpPaymentInitiationRep(FintecturePaymentInitiationRepository repository) {
@@ -1248,12 +804,6 @@ public class TestUtils {
         .thenReturn(List.of(domainApprovedLegalFile()));
   }
 
-  public static void setUpAccountRepository(AccountRepository accountRepository) {
-    when(accountRepository.findById(any())).thenReturn(joeModelAccount());
-    when(accountRepository.findByBearer(any())).thenReturn(List.of(joeModelAccount()));
-    when(accountRepository.findByUserId(any())).thenReturn(List.of(joeModelAccount()));
-  }
-
   public static Account joePersistedAccount() {
     return Account.builder()
         .id("beed1765-5c16-472a-b3f4-5c376ce5db58")
@@ -1265,20 +815,6 @@ public class TestUtils {
         .status(OPENED)
         .active(true)
         .bank(null)
-        .build();
-  }
-
-  private static Account joeModelAccount() {
-    return Account.builder()
-        .id(joeDoeSwanAccount().getId())
-        .userId("joe_doe_id")
-        .name(joeDoeSwanAccount().getName())
-        .iban(joeDoeSwanAccount().getIban())
-        .bic(joeDoeSwanAccount().getBic())
-        .availableBalance(
-            parseFraction(joeDoeSwanAccount().getBalances().getAvailable().getValue()))
-        .status(OPENED)
-        .active(true)
         .build();
   }
 
@@ -1319,16 +855,6 @@ public class TestUtils {
       body = "[no body]";
     }
     return operationId + " call failed with: " + statusCode + " - " + body;
-  }
-
-  public static AccountConnector toConnector(SwanAccount swanAccount) {
-    return AccountConnector.builder()
-        .id(swanAccount.getId())
-        .name(swanAccount.getName())
-        .balance(swanAccount.getBalances().getAvailable().getValue())
-        .iban(swanAccount.getIban())
-        .status(getStatus(swanAccount.getStatusInfo().getStatus()))
-        .build();
   }
 
   public static AccountConnector toConnector(BridgeAccount bridgeAccount) {

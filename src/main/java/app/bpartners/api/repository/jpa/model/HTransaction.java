@@ -32,7 +32,6 @@ public class HTransaction {
   @Id
   @GeneratedValue(strategy = IDENTITY)
   private String id;
-  private String idSwan;
   private String idAccount;
   private Long idBridge;
   @ManyToOne

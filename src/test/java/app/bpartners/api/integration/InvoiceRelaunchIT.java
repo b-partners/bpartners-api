@@ -10,21 +10,17 @@ import app.bpartners.api.endpoint.rest.model.CreateInvoiceRelaunch;
 import app.bpartners.api.endpoint.rest.model.EmailInfo;
 import app.bpartners.api.endpoint.rest.model.InvoiceRelaunch;
 import app.bpartners.api.endpoint.rest.model.RelaunchType;
-import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
-import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
+import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.integration.conf.S3AbstractContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
 import app.bpartners.api.manager.ProjectTokenManager;
 import app.bpartners.api.repository.AccountConnectorRepository;
-import app.bpartners.api.repository.AccountRepository;
 import app.bpartners.api.repository.LegalFileRepository;
 import app.bpartners.api.repository.fintecture.FintectureConf;
 import app.bpartners.api.repository.fintecture.FintecturePaymentInfoRepository;
 import app.bpartners.api.repository.fintecture.FintecturePaymentInitiationRepository;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitConf;
 import app.bpartners.api.repository.sendinblue.SendinblueConf;
-import app.bpartners.api.repository.swan.AccountHolderSwanRepository;
-import app.bpartners.api.repository.swan.UserSwanRepository;
 import app.bpartners.api.service.PaymentScheduleService;
 import java.io.IOException;
 import java.time.Instant;
@@ -52,15 +48,11 @@ import static app.bpartners.api.integration.conf.TestUtils.OTHER_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsApiException;
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsForbiddenException;
 import static app.bpartners.api.integration.conf.TestUtils.invoice1;
-import static app.bpartners.api.integration.conf.TestUtils.setUpAccountConnectorSwanRepository;
-import static app.bpartners.api.integration.conf.TestUtils.setUpAccountHolderSwanRep;
-import static app.bpartners.api.integration.conf.TestUtils.setUpAccountRepository;
+import static app.bpartners.api.integration.conf.TestUtils.setUpCognito;
 import static app.bpartners.api.integration.conf.TestUtils.setUpEventBridge;
 import static app.bpartners.api.integration.conf.TestUtils.setUpLegalFileRepository;
 import static app.bpartners.api.integration.conf.TestUtils.setUpPaymentInfoRepository;
 import static app.bpartners.api.integration.conf.TestUtils.setUpPaymentInitiationRep;
-import static app.bpartners.api.integration.conf.TestUtils.setUpSwanComponent;
-import static app.bpartners.api.integration.conf.TestUtils.setUpUserSwanRepository;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -80,19 +72,11 @@ class InvoiceRelaunchIT {
   @MockBean
   private SendinblueConf sendinblueConf;
   @MockBean
-  private SwanConf swanConf;
-  @MockBean
   private ProjectTokenManager projectTokenManager;
   @MockBean
   private FintectureConf fintectureConf;
   @MockBean
-  private AccountHolderSwanRepository accountHolderRepositoryMock;
-  @MockBean
-  private UserSwanRepository userSwanRepositoryMock;
-  @MockBean
   private AccountConnectorRepository accountConnectorRepositoryMock;
-  @MockBean
-  private SwanComponent swanComponentMock;
   @MockBean
   private FintecturePaymentInitiationRepository paymentInitiationRepositoryMock;
   @MockBean
@@ -102,7 +86,7 @@ class InvoiceRelaunchIT {
   @MockBean
   private EventBridgeClient eventBridgeClientMock;
   @MockBean
-  private AccountRepository accountRepositoryMock;
+  private CognitoComponent cognitoComponentMock;
 
   private static ApiClient anApiClient() {
     return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN,
@@ -111,15 +95,11 @@ class InvoiceRelaunchIT {
 
   @BeforeEach
   public void setUp() {
-    setUpSwanComponent(swanComponentMock);
-    setUpUserSwanRepository(userSwanRepositoryMock);
-    setUpAccountConnectorSwanRepository(accountConnectorRepositoryMock);
-    setUpAccountHolderSwanRep(accountHolderRepositoryMock);
     setUpPaymentInitiationRep(paymentInitiationRepositoryMock);
     setUpPaymentInfoRepository(paymentInfoRepositoryMock);
     setUpEventBridge(eventBridgeClientMock);
     setUpLegalFileRepository(legalFileRepositoryMock);
-    setUpAccountRepository(accountRepositoryMock);
+    setUpCognito(cognitoComponentMock);
   }
 
   InvoiceRelaunch invoiceRelaunch1() {

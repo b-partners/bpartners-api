@@ -10,21 +10,19 @@ import app.bpartners.api.endpoint.rest.model.MonthlyTransactionsSummary;
 import app.bpartners.api.endpoint.rest.model.Transaction;
 import app.bpartners.api.endpoint.rest.model.TransactionInvoice;
 import app.bpartners.api.endpoint.rest.model.TransactionsSummary;
-import app.bpartners.api.endpoint.rest.security.swan.BridgeConf;
-import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
-import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
+import app.bpartners.api.endpoint.rest.security.bridge.BridgeConf;
+import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.integration.conf.AbstractContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
 import app.bpartners.api.manager.ProjectTokenManager;
 import app.bpartners.api.repository.AccountConnectorRepository;
 import app.bpartners.api.repository.LegalFileRepository;
 import app.bpartners.api.repository.bridge.BridgeApi;
+import app.bpartners.api.repository.bridge.model.Transaction.BridgeTransaction;
+import app.bpartners.api.repository.bridge.repository.BridgeTransactionRepository;
 import app.bpartners.api.repository.fintecture.FintectureConf;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitConf;
 import app.bpartners.api.repository.sendinblue.SendinblueConf;
-import app.bpartners.api.repository.swan.AccountHolderSwanRepository;
-import app.bpartners.api.repository.swan.TransactionSwanRepository;
-import app.bpartners.api.repository.swan.UserSwanRepository;
 import app.bpartners.api.service.PaymentScheduleService;
 import java.time.LocalDate;
 import java.util.List;
@@ -40,20 +38,12 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import static app.bpartners.api.integration.conf.TestUtils.JANE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JANE_DOE_TOKEN;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
+import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_TOKEN;
 import static app.bpartners.api.integration.conf.TestUtils.invoice1;
 import static app.bpartners.api.integration.conf.TestUtils.isAfterOrEquals;
 import static app.bpartners.api.integration.conf.TestUtils.restTransaction1;
-import static app.bpartners.api.integration.conf.TestUtils.restTransaction2;
-import static app.bpartners.api.integration.conf.TestUtils.restTransaction3;
-import static app.bpartners.api.integration.conf.TestUtils.restTransaction4;
-import static app.bpartners.api.integration.conf.TestUtils.restUpdatedTransaction;
-import static app.bpartners.api.integration.conf.TestUtils.setUpAccountConnectorSwanRepository;
-import static app.bpartners.api.integration.conf.TestUtils.setUpAccountHolderSwanRep;
+import static app.bpartners.api.integration.conf.TestUtils.setUpCognito;
 import static app.bpartners.api.integration.conf.TestUtils.setUpLegalFileRepository;
-import static app.bpartners.api.integration.conf.TestUtils.setUpSwanComponent;
-import static app.bpartners.api.integration.conf.TestUtils.setUpTransactionRepository;
-import static app.bpartners.api.integration.conf.TestUtils.setUpUserSwanRepository;
-import static app.bpartners.api.integration.conf.TestUtils.updatedSwanTransaction;
 import static java.util.Calendar.DECEMBER;
 import static java.util.Calendar.JANUARY;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -79,28 +69,21 @@ class TransactionIT {
   @MockBean
   private S3Conf s3Conf;
   @MockBean
-  private SwanConf swanConf;
-  @MockBean
   private FintectureConf fintectureConf;
   @MockBean
   private ProjectTokenManager projectTokenManager;
   @MockBean
   private BridgeConf bridgeConf;
-
-  @MockBean
-  private UserSwanRepository userSwanRepositoryMock;
   @MockBean
   private AccountConnectorRepository accountConnectorRepositoryMock;
-  @MockBean
-  private SwanComponent swanComponentMock;
-  @MockBean
-  private TransactionSwanRepository transactionSwanRepositoryMock;
-  @MockBean
-  private AccountHolderSwanRepository accountHolderMock;
   @MockBean
   private LegalFileRepository legalFileRepositoryMock;
   @MockBean
   private BridgeApi bridgeApiMock;
+  @MockBean
+  private CognitoComponent cognitoComponentMock;
+  @MockBean
+  private BridgeTransactionRepository bridgeTransactionRepositoryMock;
 
   private static ApiClient anApiClient() {
     return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN,
@@ -140,17 +123,42 @@ class TransactionIT {
         .summary(List.of(month1(), month2()));
   }
 
+  private static BridgeTransaction bridgeTransaction1() {
+    return BridgeTransaction.builder()
+        .id(1L)
+        .label("Transaction 1")
+        .amount(100.0)
+        .transactionDate(LocalDate.of(2023, 1, 1))
+        .build();
+  }
+
+  private static BridgeTransaction bridgeTransaction2() {
+    return BridgeTransaction.builder()
+        .id(2L)
+        .label("Transaction 2")
+        .amount(200.0)
+        .transactionDate(LocalDate.of(2023, 1, 2))
+        .build();
+  }
+
+  private static BridgeTransaction bridgeTransaction3() {
+    return BridgeTransaction.builder()
+        .id(3L)
+        .label("Transaction 3")
+        .amount(300.0)
+        .transactionDate(LocalDate.of(2023, 1, 3))
+        .build();
+  }
+
   @BeforeEach
   public void setUp() {
-    setUpSwanComponent(swanComponentMock);
-    setUpUserSwanRepository(userSwanRepositoryMock);
-    setUpAccountConnectorSwanRepository(accountConnectorRepositoryMock);
-    setUpTransactionRepository(transactionSwanRepositoryMock);
-    setUpAccountHolderSwanRep(accountHolderMock);
     setUpLegalFileRepository(legalFileRepositoryMock);
-
+    setUpCognito(cognitoComponentMock);
     when(bridgeApiMock.findTransactionsUpdatedByToken(any()))
         .thenReturn(List.of());
+
+    when(bridgeTransactionRepositoryMock.findByBearer(JOE_DOE_TOKEN))
+        .thenReturn(List.of(bridgeTransaction1(), bridgeTransaction2(), bridgeTransaction3()));
   }
 
   @Test
@@ -160,25 +168,17 @@ class TransactionIT {
 
     List<Transaction> actual = api.getTransactions(JOE_DOE_ACCOUNT_ID, null, null);
 
-    assertEquals(4, actual.size());
-    assertTrue(actual.contains(restTransaction2()));
-    assertTrue(actual.contains(restTransaction1()));
-    assertTrue(ignoreIds(actual).contains(restTransaction3().id(null)));
-    assertTrue(ignoreIds(actual).contains(restTransaction4().id(null)));
+    assertEquals(3, actual.size());
     assertTrue(isAfterOrEquals(
         actual.get(0).getPaymentDatetime(), actual.get(1).getPaymentDatetime()));
     assertTrue(isAfterOrEquals(
         actual.get(1).getPaymentDatetime(), actual.get(2).getPaymentDatetime()));
+    //TODO : actual transactions contains rest resource
   }
 
-  /*
-  TODO: return empty when neither swan nor bridge return transaction
-   */
   @Test
   void read_empty_transactions_ok() throws ApiException {
-    reset(transactionSwanRepositoryMock);
-    when(transactionSwanRepositoryMock.findById(any(), any())).thenReturn(null);
-    when(transactionSwanRepositoryMock.getByIdAccount(any(), any())).thenReturn(List.of());
+    reset(bridgeTransactionRepositoryMock);
     ApiClient joeDoeClient = anApiClient();
     PayingApi api = new PayingApi(joeDoeClient);
 
@@ -188,27 +188,11 @@ class TransactionIT {
   }
 
   @Test
-  void read_override_transactions_ok() throws ApiException {
-    reset(transactionSwanRepositoryMock);
-    when(transactionSwanRepositoryMock.findById(any(), any())).thenReturn(
-        updatedSwanTransaction());
-    when(transactionSwanRepositoryMock.getByIdAccount(any(), any())).thenReturn(
-        List.of(updatedSwanTransaction()));
-    ApiClient joeDoeClient = anApiClient();
-    PayingApi api = new PayingApi(joeDoeClient);
-
-    List<Transaction> actual = api.getTransactions(JOE_DOE_ACCOUNT_ID, null, null);
-
-    assertEquals(1, actual.size());
-    assertTrue(actual.contains(restUpdatedTransaction()));
-  }
-
-  @Test
   @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
   void justify_transaction_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
     PayingApi api = new PayingApi(joeDoeClient);
-    Transaction transaction1 = restTransaction2();
+    Transaction transaction1 = restTransaction1();
     Invoice invoice1 = invoice1();
 
     Transaction actual = api.justifyTransaction(

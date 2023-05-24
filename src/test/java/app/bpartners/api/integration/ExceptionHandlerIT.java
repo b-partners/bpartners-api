@@ -2,9 +2,7 @@ package app.bpartners.api.integration;
 
 import app.bpartners.api.SentryConf;
 import app.bpartners.api.endpoint.event.S3Conf;
-import app.bpartners.api.endpoint.rest.client.ApiClient;
-import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
-import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
+import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.integration.conf.AbstractContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
 import app.bpartners.api.manager.ProjectTokenManager;
@@ -13,8 +11,6 @@ import app.bpartners.api.repository.LegalFileRepository;
 import app.bpartners.api.repository.fintecture.FintectureConf;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitConf;
 import app.bpartners.api.repository.sendinblue.SendinblueConf;
-import app.bpartners.api.repository.swan.AccountHolderSwanRepository;
-import app.bpartners.api.repository.swan.UserSwanRepository;
 import app.bpartners.api.service.PaymentScheduleService;
 import java.io.IOException;
 import java.net.URI;
@@ -35,11 +31,8 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_TOKEN;
 import static app.bpartners.api.integration.conf.TestUtils.TEST_FILE_ID;
-import static app.bpartners.api.integration.conf.TestUtils.setUpAccountConnectorSwanRepository;
-import static app.bpartners.api.integration.conf.TestUtils.setUpAccountHolderSwanRep;
+import static app.bpartners.api.integration.conf.TestUtils.setUpCognito;
 import static app.bpartners.api.integration.conf.TestUtils.setUpLegalFileRepository;
-import static app.bpartners.api.integration.conf.TestUtils.setUpSwanComponent;
-import static app.bpartners.api.integration.conf.TestUtils.setUpUserSwanRepository;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
@@ -59,33 +52,20 @@ class ExceptionHandlerIT {
   @MockBean
   private S3Conf s3Conf;
   @MockBean
-  private SwanConf swanConf;
-  @MockBean
   private FintectureConf fintectureConf;
   @MockBean
   private ProjectTokenManager projectTokenManager;
   @MockBean
-  private UserSwanRepository userSwanRepositoryMock;
-  @MockBean
   private AccountConnectorRepository accountConnectorRepositoryMock;
   @MockBean
-  private AccountHolderSwanRepository accountHolderMock;
-  @MockBean
-  private SwanComponent swanComponentMock;
-  @MockBean
   private LegalFileRepository legalFileRepositoryMock;
-
-  private static ApiClient anApiClient() {
-    return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN, ContextInitializer.SERVER_PORT);
-  }
+  @MockBean
+  private CognitoComponent cognitoComponentMock;
 
   @BeforeEach
   public void setUp() {
-    setUpUserSwanRepository(userSwanRepositoryMock);
-    setUpAccountConnectorSwanRepository(accountConnectorRepositoryMock);
-    setUpSwanComponent(swanComponentMock);
-    setUpAccountHolderSwanRep(accountHolderMock);
     setUpLegalFileRepository(legalFileRepositoryMock);
+    setUpCognito(cognitoComponentMock);
   }
 
   //TODO: should throw a bad request exception instead of a forbidden

@@ -67,7 +67,6 @@ public class BridgeAccountConnectorRepository implements AccountConnectorReposit
       return !userIsAuthenticated() ? null
           : accountMapper.toConnector(
           bridgeApi.findByAccountById(bridgeId, AuthProvider.getBearer()));
-      // /!\ case when provided ID is UUID, from Swan for example
     } catch (NumberFormatException e) {
       return null;
     }

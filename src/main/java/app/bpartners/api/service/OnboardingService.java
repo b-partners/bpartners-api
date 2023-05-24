@@ -12,11 +12,9 @@ import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.OnboardUser;
 import app.bpartners.api.model.OnboardedUser;
-import app.bpartners.api.model.Onboarding;
 import app.bpartners.api.model.User;
 import app.bpartners.api.repository.AccountHolderRepository;
 import app.bpartners.api.repository.AccountRepository;
-import app.bpartners.api.repository.OnboardingRepository;
 import app.bpartners.api.repository.UserRepository;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -43,18 +41,11 @@ public class OnboardingService {
   public static final boolean DEFAULT_VERIFIED = true;
   public static final EnableStatus DEFAULT_USER_STATUS = EnableStatus.ENABLED;
   public static final IdentificationStatus DEFAULT_USER_IDENTIFICATION = VALID_IDENTITY;
-  private final OnboardingRepository repository;
   private final UserRepository userRepository;
   private final AccountRepository accountRepository;
   private final AccountHolderRepository accountHolderRepository;
   private final EventProducer eventProducer;
   private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
-
-  public Onboarding generateOnboarding(String successUrl, String failureUrl) {
-    Onboarding onboarding = repository.save(successUrl);
-    onboarding.setFailureUrl(failureUrl);
-    return onboarding;
-  }
 
   @Transactional(isolation = SERIALIZABLE)
   public OnboardedUser onboardUser(User toSave, String companyName) {

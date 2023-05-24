@@ -2,25 +2,19 @@ package app.bpartners.api.repository;
 
 import app.bpartners.api.repository.bridge.repository.implementation.BridgeAccountConnectorRepository;
 import app.bpartners.api.repository.model.AccountConnector;
-import app.bpartners.api.repository.swan.implementation.SwanAccountConnectorRepository;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Repository;
 
-import static app.bpartners.api.endpoint.rest.security.AuthProvider.getAuthenticatedUserId;
-
 @Repository
 @Primary
 @AllArgsConstructor
 public class AccountConnectorRepositoryFacade implements AccountConnectorRepository {
-  private final SwanAccountConnectorRepository swanConnector;
   private final BridgeAccountConnectorRepository bridgeConnector;
 
   private AccountConnectorRepository getAccountConnectorDependentRepository() {
-    var swanAccounts = swanConnector.findByUserId(getAuthenticatedUserId());
-    return new CachedAccountConnectorRepository(
-        swanAccounts.isEmpty() ? bridgeConnector : swanConnector);
+    return new CachedAccountConnectorRepository(bridgeConnector);
   }
 
   @Override

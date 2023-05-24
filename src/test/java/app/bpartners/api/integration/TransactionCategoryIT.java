@@ -7,8 +7,7 @@ import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
 import app.bpartners.api.endpoint.rest.model.CreateTransactionCategory;
 import app.bpartners.api.endpoint.rest.model.TransactionCategory;
-import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
-import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
+import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.integration.conf.AbstractContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
 import app.bpartners.api.manager.ProjectTokenManager;
@@ -21,9 +20,6 @@ import app.bpartners.api.repository.bridge.repository.BridgeTransactionRepositor
 import app.bpartners.api.repository.fintecture.FintectureConf;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitConf;
 import app.bpartners.api.repository.sendinblue.SendinblueConf;
-import app.bpartners.api.repository.swan.AccountHolderSwanRepository;
-import app.bpartners.api.repository.swan.TransactionSwanRepository;
-import app.bpartners.api.repository.swan.UserSwanRepository;
 import app.bpartners.api.service.PaymentScheduleService;
 import java.math.BigInteger;
 import java.time.LocalDate;
@@ -47,12 +43,8 @@ import static app.bpartners.api.integration.conf.TestUtils.TRANSACTION1_ID;
 import static app.bpartners.api.integration.conf.TestUtils.UNKNOWN_TRANSACTION_ID;
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsApiException;
 import static app.bpartners.api.integration.conf.TestUtils.restTransaction1;
-import static app.bpartners.api.integration.conf.TestUtils.setUpAccountConnectorSwanRepository;
-import static app.bpartners.api.integration.conf.TestUtils.setUpAccountHolderSwanRep;
+import static app.bpartners.api.integration.conf.TestUtils.setUpCognito;
 import static app.bpartners.api.integration.conf.TestUtils.setUpLegalFileRepository;
-import static app.bpartners.api.integration.conf.TestUtils.setUpSwanComponent;
-import static app.bpartners.api.integration.conf.TestUtils.setUpTransactionRepository;
-import static app.bpartners.api.integration.conf.TestUtils.setUpUserSwanRepository;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -76,25 +68,17 @@ class TransactionCategoryIT {
   @MockBean
   private S3Conf s3Conf;
   @MockBean
-  private SwanConf swanConf;
-  @MockBean
   private FintectureConf fintectureConf;
   @MockBean
   private ProjectTokenManager projectTokenManager;
   @MockBean
-  private UserSwanRepository userSwanRepositoryMock;
-  @MockBean
   private AccountConnectorRepository accountConnectorRepository;
-  @MockBean
-  private SwanComponent swanComponentMock;
-  @MockBean
-  private TransactionSwanRepository transactionSwanRepositoryMock;
-  @MockBean
-  private AccountHolderSwanRepository accountHolderMock;
   @MockBean
   private BridgeTransactionRepository bridgeTransactionRepositoryMock;
   @MockBean
   private LegalFileRepository legalFileRepositoryMock;
+  @MockBean
+  private CognitoComponent cognitoComponentMock;
 
   private static ApiClient anApiClient() {
     return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN, ContextInitializer.SERVER_PORT);
@@ -126,12 +110,8 @@ class TransactionCategoryIT {
 
   @BeforeEach
   public void setUp() {
-    setUpSwanComponent(swanComponentMock);
-    setUpUserSwanRepository(userSwanRepositoryMock);
-    setUpAccountConnectorSwanRepository(accountConnectorRepository);
-    setUpTransactionRepository(transactionSwanRepositoryMock);
-    setUpAccountHolderSwanRep(accountHolderMock);
     setUpLegalFileRepository(legalFileRepositoryMock);
+    setUpCognito(cognitoComponentMock);
 
     when(bridgeTransactionRepositoryMock.findById(any()))
         .thenReturn(BridgeTransaction.builder().build());

@@ -7,8 +7,7 @@ import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
 import app.bpartners.api.endpoint.rest.model.Prospect;
 import app.bpartners.api.endpoint.rest.model.UpdateProspect;
-import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
-import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
+import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.integration.conf.AbstractContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
 import app.bpartners.api.manager.ProjectTokenManager;
@@ -23,8 +22,6 @@ import app.bpartners.api.repository.prospecting.datasource.buildingpermit.model.
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.model.BuildingPermitList;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.model.GeoJson;
 import app.bpartners.api.repository.sendinblue.SendinblueConf;
-import app.bpartners.api.repository.swan.AccountHolderSwanRepository;
-import app.bpartners.api.repository.swan.UserSwanRepository;
 import app.bpartners.api.service.PaymentScheduleService;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -43,14 +40,11 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 import static app.bpartners.api.endpoint.rest.model.ProspectStatus.TO_CONTACT;
 import static app.bpartners.api.integration.conf.TestUtils.NOT_JOE_DOE_ACCOUNT_HOLDER_ID;
-import static app.bpartners.api.integration.conf.TestUtils.SWAN_ACCOUNTHOLDER_ID;
+import static app.bpartners.api.integration.conf.TestUtils.ACCOUNTHOLDER_ID;
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsApiException;
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsForbiddenException;
-import static app.bpartners.api.integration.conf.TestUtils.setUpAccountConnectorSwanRepository;
-import static app.bpartners.api.integration.conf.TestUtils.setUpAccountHolderSwanRep;
+import static app.bpartners.api.integration.conf.TestUtils.setUpCognito;
 import static app.bpartners.api.integration.conf.TestUtils.setUpLegalFileRepository;
-import static app.bpartners.api.integration.conf.TestUtils.setUpSwanComponent;
-import static app.bpartners.api.integration.conf.TestUtils.setUpUserSwanRepository;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -75,19 +69,13 @@ class ProspectIT {
   @MockBean
   private S3Conf s3Conf;
   @MockBean
-  private SwanConf swanConf;
+  private CognitoComponent cognitoComponentMock;
   @MockBean
   private FintectureConf fintectureConf;
   @MockBean
   private ProjectTokenManager projectTokenManager;
   @MockBean
-  private UserSwanRepository userSwanRepositoryMock;
-  @MockBean
   private AccountConnectorRepository accountConnectorRepositoryMock;
-  @MockBean
-  private AccountHolderSwanRepository accountHolderRepositoryMock;
-  @MockBean
-  private SwanComponent swanComponentMock;
   @MockBean
   private LegalFileRepository legalFileRepositoryMock;
   @MockBean
@@ -103,11 +91,8 @@ class ProspectIT {
 
   @BeforeEach
   public void setUp() {
-    setUpUserSwanRepository(userSwanRepositoryMock);
-    setUpAccountConnectorSwanRepository(accountConnectorRepositoryMock);
-    setUpAccountHolderSwanRep(accountHolderRepositoryMock);
-    setUpSwanComponent(swanComponentMock);
     setUpLegalFileRepository(legalFileRepositoryMock);
+    setUpCognito(cognitoComponentMock);
     when(buildingPermitApiMock.getBuildingPermitList(any())).thenReturn(buildingPermitList());
   }
 
@@ -207,7 +192,7 @@ class ProspectIT {
     ApiClient joeDoeClient = anApiClient();
     ProspectingApi api = new ProspectingApi(joeDoeClient);
 
-    List<Prospect> actual = api.getProspects(SWAN_ACCOUNTHOLDER_ID);
+    List<Prospect> actual = api.getProspects(ACCOUNTHOLDER_ID);
 
     assertEquals(2, actual.size());
     assertTrue(actual.contains(prospect1()));
@@ -221,7 +206,7 @@ class ProspectIT {
     ApiClient joeDoeClient = anApiClient();
     ProspectingApi api = new ProspectingApi(joeDoeClient);
 
-    List<Prospect> actual = api.updateProspects(SWAN_ACCOUNTHOLDER_ID, List.of(updateProspect()));
+    List<Prospect> actual = api.updateProspects(ACCOUNTHOLDER_ID, List.of(updateProspect()));
 
     assertEquals(List.of(expectedProspect()), ignoreIdsOf(actual));
   }
@@ -234,7 +219,7 @@ class ProspectIT {
     assertThrowsApiException(
         "{\"type\":\"404 NOT_FOUND\",\"message\":\"Prospect." + UNKNOWN_PROSPECT_ID
             + " not found. \"}",
-        () -> api.updateProspects(SWAN_ACCOUNTHOLDER_ID,
+        () -> api.updateProspects(ACCOUNTHOLDER_ID,
             List.of(updateProspect().id(UNKNOWN_PROSPECT_ID))));
   }
 
@@ -245,7 +230,7 @@ class ProspectIT {
 
     assertThrowsApiException("{\"type\":\"501 NOT_IMPLEMENTED\","
             + "\"message\":\"prospect conversion not implemented yet\"}",
-        () -> api.convertProspect(SWAN_ACCOUNTHOLDER_ID, prospect1().getId(), List.of()));
+        () -> api.convertProspect(ACCOUNTHOLDER_ID, prospect1().getId(), List.of()));
   }
 
   @Test

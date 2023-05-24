@@ -15,8 +15,7 @@ import app.bpartners.api.endpoint.rest.model.CreatedFeedbackRequest;
 import app.bpartners.api.endpoint.rest.model.FeedbackRequest;
 import app.bpartners.api.endpoint.rest.model.UpdateAccountHolder;
 import app.bpartners.api.endpoint.rest.model.VerificationStatus;
-import app.bpartners.api.endpoint.rest.security.swan.SwanComponent;
-import app.bpartners.api.endpoint.rest.security.swan.SwanConf;
+import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.integration.conf.AbstractContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
 import app.bpartners.api.manager.ProjectTokenManager;
@@ -25,17 +24,7 @@ import app.bpartners.api.repository.LegalFileRepository;
 import app.bpartners.api.repository.fintecture.FintectureConf;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitConf;
 import app.bpartners.api.repository.sendinblue.SendinblueConf;
-import app.bpartners.api.repository.swan.AccountHolderSwanRepository;
-import app.bpartners.api.repository.swan.SwanApi;
-import app.bpartners.api.repository.swan.SwanCustomApi;
-import app.bpartners.api.repository.swan.UserSwanRepository;
-import app.bpartners.api.repository.swan.implementation.AccountHolderSwanRepositoryImpl;
-import app.bpartners.api.repository.swan.model.SwanAccount;
-import app.bpartners.api.repository.swan.model.SwanAccountHolder;
-import app.bpartners.api.repository.swan.response.AccountHolderResponse;
-import app.bpartners.api.repository.swan.response.AccountResponse;
 import app.bpartners.api.service.PaymentScheduleService;
-import java.util.ArrayList;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
@@ -51,15 +40,13 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
 
 import static app.bpartners.api.integration.conf.TestUtils.ACCOUNTHOLDER2_ID;
-import static app.bpartners.api.integration.conf.TestUtils.ACCOUNT_OPENED;
+import static app.bpartners.api.integration.conf.TestUtils.ACCOUNTHOLDER_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JANE_ACCOUNT_ID;
-import static app.bpartners.api.integration.conf.TestUtils.JANE_DOE_SWAN_USER_ID;
+import static app.bpartners.api.integration.conf.TestUtils.JANE_DOE_USER_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_HOLDER_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ID;
-import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_SWAN_USER_ID;
-import static app.bpartners.api.integration.conf.TestUtils.SWAN_ACCOUNTHOLDER_ID;
-import static app.bpartners.api.integration.conf.TestUtils.VERIFIED_STATUS;
+import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_USER_ID;
 import static app.bpartners.api.integration.conf.TestUtils.annualRevenueTarget1;
 import static app.bpartners.api.integration.conf.TestUtils.annualRevenueTarget2;
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsApiException;
@@ -68,27 +55,14 @@ import static app.bpartners.api.integration.conf.TestUtils.companyInfo;
 import static app.bpartners.api.integration.conf.TestUtils.createAnnualRevenueTarget;
 import static app.bpartners.api.integration.conf.TestUtils.customer1;
 import static app.bpartners.api.integration.conf.TestUtils.customer2;
-import static app.bpartners.api.integration.conf.TestUtils.janeSwanAccount;
-import static app.bpartners.api.integration.conf.TestUtils.joeDoeSwanAccount;
-import static app.bpartners.api.integration.conf.TestUtils.joeDoeSwanAccountHolder;
 import static app.bpartners.api.integration.conf.TestUtils.location;
-import static app.bpartners.api.integration.conf.TestUtils.setUpAccountConnectorSwanRepository;
-import static app.bpartners.api.integration.conf.TestUtils.setUpAccountHolderSwanRep;
+import static app.bpartners.api.integration.conf.TestUtils.setUpCognito;
 import static app.bpartners.api.integration.conf.TestUtils.setUpEventBridge;
 import static app.bpartners.api.integration.conf.TestUtils.setUpLegalFileRepository;
-import static app.bpartners.api.integration.conf.TestUtils.setUpSwanComponent;
-import static app.bpartners.api.integration.conf.TestUtils.setUpUserSwanRepository;
 import static app.bpartners.api.integration.conf.TestUtils.toUpdateAnnualRevenueTarget;
-import static app.bpartners.api.model.mapper.AccountHolderMapper.NOT_STARTED_STATUS;
-import static app.bpartners.api.model.mapper.AccountHolderMapper.PENDING_STATUS;
-import static app.bpartners.api.model.mapper.AccountHolderMapper.WAITING_FOR_INFORMATION_STATUS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
@@ -109,26 +83,17 @@ class AccountHolderIT {
   @MockBean
   private S3Conf s3Conf;
   @MockBean
-  private SwanConf swanConf;
-  @MockBean
   private FintectureConf fintectureConf;
   @MockBean
   private ProjectTokenManager projectTokenManager;
   @MockBean
-  private UserSwanRepository userSwanRepositoryMock;
-  @MockBean
   private AccountConnectorRepository accountConnectorRepository;
-  @MockBean
-  private AccountHolderSwanRepository accountHolderRepositoryMock;
-  @MockBean
-  private SwanComponent swanComponentMock;
   @MockBean
   private LegalFileRepository legalFileRepositoryMock;
   @MockBean
   private EventBridgeClient eventBridgeClientMock;
-  private SwanApi swanApiMock;
-  private SwanCustomApi swanCustomApiMock;
-  private AccountHolderSwanRepositoryImpl accountHolderRepository;
+  @MockBean
+  private CognitoComponent cognitoComponentMock;
 
   private static ApiClient anApiClient() {
     return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN, ContextInitializer.SERVER_PORT);
@@ -136,11 +101,11 @@ class AccountHolderIT {
 
   private static AccountHolder joeDoeAccountHolder() {
     return new AccountHolder()
-        .id(joeDoeSwanAccountHolder().getId())
+        .id("b33e6eb0-e262-4596-a91f-20c6a7bfd343")
         .verificationStatus(VerificationStatus.VERIFIED)
-        .name(joeDoeSwanAccountHolder().getInfo().getName())
-        .siren(joeDoeSwanAccountHolder().getInfo().getRegistrationNumber())
-        .officialActivityName(joeDoeSwanAccountHolder().getInfo().getBusinessActivity())
+        .name("NUMER")
+        .siren("899067250")
+        .officialActivityName("businessAndRetail")
         .initialCashflow(6000)
         .companyInfo(new CompanyInfo()
             .isSubjectToVat(true)
@@ -155,41 +120,21 @@ class AccountHolderIT {
             .secondary("TECHNOLOGY"))
         .contactAddress(new ContactAddress()
             .prospectingPerimeter(0)
-            .address(joeDoeSwanAccountHolder().getResidencyAddress().getAddressLine1())
-            .city(joeDoeSwanAccountHolder().getResidencyAddress().getCity())
-            .country(joeDoeSwanAccountHolder().getResidencyAddress().getCountry())
-            .postalCode(joeDoeSwanAccountHolder().getResidencyAddress().getPostalCode()))
+            .address("6 RUE PAUL LANGEVIN")
+            .city("FONTENAY-SOUS-BOIS")
+            .country("FRA")
+            .postalCode("94120"))
         .revenueTargets(List.of(
             annualRevenueTarget1(),
             annualRevenueTarget2()))
         // /!\ Deprecated : just use contactAddress
-        .address(joeDoeSwanAccountHolder().getResidencyAddress().getAddressLine1())
-        .city(joeDoeSwanAccountHolder().getResidencyAddress().getCity())
-        .country(joeDoeSwanAccountHolder().getResidencyAddress().getCountry())
-        .postalCode(joeDoeSwanAccountHolder().getResidencyAddress().getPostalCode())
+        .address("6 RUE PAUL LANGEVIN")
+        .city("FONTENAY-SOUS-BOIS")
+        .country("FRA")
+        .postalCode("94120")
         .feedback(new AccountHolderFeedback().feedbackLink("feedback link"));
   }
 
-  public static AccountHolderResponse.Edge baseHolderResponse(
-      String verificationStatus, String accountId) {
-    SwanAccountHolder swanAccountHolder =
-        joeDoeSwanAccountHolder().toBuilder()
-            .verificationStatus(verificationStatus)
-            .accounts(SwanAccountHolder.Accounts.builder()
-                .edges(List.of(AccountResponse.Edge.builder()
-                    .node(SwanAccount.builder()
-                        .id(accountId)
-                        .statusInfo(SwanAccount.StatusInfo.builder()
-                            .status(ACCOUNT_OPENED)
-                            .build())
-                        .build())
-                    .build()))
-                .build())
-            .build();
-    return AccountHolderResponse.Edge.builder()
-        .node(swanAccountHolder)
-        .build();
-  }
 
   public static FeedbackRequest feedbackRequest() {
     return new FeedbackRequest()
@@ -202,30 +147,6 @@ class AccountHolderIT {
   public static CreatedFeedbackRequest expectedCreatedFeedbackRequest() {
     return new CreatedFeedbackRequest()
         .customers(List.of(customer1(), customer2()));
-  }
-
-  public static AccountHolderResponse.Edge verifiedAccountholder() {
-    return baseJoeHolder(VERIFIED_STATUS);
-  }
-
-  public static AccountHolderResponse.Edge baseJoeHolder(String verificationStatus) {
-    return baseHolderResponse(verificationStatus, joeDoeSwanAccount().getId());
-  }
-
-  public static AccountHolderResponse.Edge notStartedAccountHolder() {
-    return baseJoeHolder(NOT_STARTED_STATUS);
-  }
-
-  public static AccountHolderResponse.Edge pendingAccountHolder() {
-    return baseJoeHolder(PENDING_STATUS);
-  }
-
-  public static AccountHolderResponse.Edge waitingAccountHolder() {
-    return baseJoeHolder(WAITING_FOR_INFORMATION_STATUS);
-  }
-
-  public static AccountHolderResponse.Edge baseJaneHolder(String verificationStatus) {
-    return baseHolderResponse(verificationStatus, janeSwanAccount().getId());
   }
 
   private static AccountHolder expected() {
@@ -261,10 +182,10 @@ class AccountHolderIT {
 
   UpdateAccountHolder globalInfo() {
     return new UpdateAccountHolder()
-        .name(joeDoeSwanAccountHolder().getInfo().getName())
+        .name("NUMER")
         .siren("FR123456789")
         .initialCashFlow(5000)
-        .officialActivityName(joeDoeSwanAccountHolder().getInfo().getBusinessActivity())
+        .officialActivityName("businessAndRetail")
         .contactAddress(new ContactAddress()
             .address("Rue 91, Charles de Gaulle")
             .city("Paris")
@@ -276,10 +197,10 @@ class AccountHolderIT {
 
   UpdateAccountHolder expectedGlobalInfo() {
     return new UpdateAccountHolder()
-        .name(joeDoeSwanAccountHolder().getInfo().getName())
+        .name("NUMER")
         .siren("FR123456789")
         .initialCashFlow(5000)
-        .officialActivityName(joeDoeSwanAccountHolder().getInfo().getBusinessActivity())
+        .officialActivityName("businessAndRetail")
         .contactAddress(new ContactAddress()
             .address("Rue 91, Charles de Gaulle")
             .city("Paris")
@@ -292,14 +213,9 @@ class AccountHolderIT {
 
   @BeforeEach
   public void setUp() {
-    setUpSwanComponent(swanComponentMock);
-    setUpUserSwanRepository(userSwanRepositoryMock);
-    setUpAccountConnectorSwanRepository(accountConnectorRepository);
-    setUpAccountHolderSwanRep(accountHolderRepositoryMock);
     setUpLegalFileRepository(legalFileRepositoryMock);
     setUpEventBridge(eventBridgeClientMock);
-    swanApiMock = mock(SwanApi.class);
-    accountHolderRepository = new AccountHolderSwanRepositoryImpl(swanApiMock, swanCustomApiMock);
+    setUpCognito(cognitoComponentMock);
   }
 
   @Test
@@ -313,44 +229,12 @@ class AccountHolderIT {
   }
 
   @Test
-  void read_multiple_verified_account_holders_ok() throws ApiException {
-    setUpSwanApi(swanApiMock,
-        verifiedAccountholder(),
-        baseJaneHolder(VERIFIED_STATUS),
-        notStartedAccountHolder());
-    setUpRepositoryMock();
-    ApiClient joeDoeClient = anApiClient();
-    UserAccountsApi api = new UserAccountsApi(joeDoeClient);
-
-    List<AccountHolder> actual = api.getAccountHolders(TestUtils.JOE_DOE_ID, JOE_DOE_ACCOUNT_ID);
-
-    assertTrue(actual.contains(joeDoeAccountHolder()));
-  }
-
-  @Test
-  void read_multiple_account_holders_ok() throws ApiException {
-    setUpSwanApi(swanApiMock,
-        verifiedAccountholder(),
-        notStartedAccountHolder(),
-        pendingAccountHolder(),
-        waitingAccountHolder());
-    setUpRepositoryMock();
-    ApiClient joeDoeClient = anApiClient();
-    UserAccountsApi api = new UserAccountsApi(joeDoeClient);
-
-    List<AccountHolder> actual = api.getAccountHolders(JOE_DOE_ID, JOE_DOE_ACCOUNT_ID);
-
-    assertEquals(1, actual.size());
-    assertEquals(joeDoeAccountHolder(), actual.get(0));
-  }
-
-  @Test
   @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
   void update_company_info_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
     UserAccountsApi api = new UserAccountsApi(joeDoeClient);
 
-    AccountHolder actual = api.updateCompanyInfo(JOE_DOE_SWAN_USER_ID, JOE_DOE_ACCOUNT_ID,
+    AccountHolder actual = api.updateCompanyInfo(JOE_DOE_USER_ID, JOE_DOE_ACCOUNT_ID,
         joeDoeAccountHolder().getId(), companyInfo()
             .location(location()
                 .latitude(43.5)
@@ -375,9 +259,9 @@ class AccountHolderIT {
     ApiClient joeDoeClient = anApiClient();
     UserAccountsApi api = new UserAccountsApi(joeDoeClient);
 
-    AccountHolder actual = api.updateBusinessActivities(JOE_DOE_SWAN_USER_ID, JOE_DOE_ACCOUNT_ID,
+    AccountHolder actual = api.updateBusinessActivities(JOE_DOE_USER_ID, JOE_DOE_ACCOUNT_ID,
         joeDoeAccountHolder().getId(), companyBusinessActivity());
-    AccountHolder actual1 = api.updateBusinessActivities(JANE_DOE_SWAN_USER_ID, JANE_ACCOUNT_ID,
+    AccountHolder actual1 = api.updateBusinessActivities(JANE_DOE_USER_ID, JANE_ACCOUNT_ID,
         ACCOUNTHOLDER2_ID, new CompanyBusinessActivity()
             .primary("IT"));
 
@@ -395,7 +279,7 @@ class AccountHolderIT {
     ApiClient joeDoeClient = anApiClient();
     UserAccountsApi api = new UserAccountsApi(joeDoeClient);
 
-    AccountHolder actual = api.updateRevenueTargets(JOE_DOE_SWAN_USER_ID, JOE_DOE_ACCOUNT_ID,
+    AccountHolder actual = api.updateRevenueTargets(JOE_DOE_USER_ID, JOE_DOE_ACCOUNT_ID,
         joeDoeAccountHolder().getId(), List.of(createAnnualRevenueTarget()));
 
     assertEquals(3, actual.getRevenueTargets().size());
@@ -407,7 +291,7 @@ class AccountHolderIT {
     ApiClient joeDoeClient = anApiClient();
     UserAccountsApi api = new UserAccountsApi(joeDoeClient);
 
-    AccountHolder actual = api.updateRevenueTargets(JOE_DOE_SWAN_USER_ID, JOE_DOE_ACCOUNT_ID,
+    AccountHolder actual = api.updateRevenueTargets(JOE_DOE_USER_ID, JOE_DOE_ACCOUNT_ID,
         joeDoeAccountHolder().getId(), List.of(toUpdateAnnualRevenueTarget()));
 
     assertEquals(2, actual.getRevenueTargets().size());
@@ -420,7 +304,7 @@ class AccountHolderIT {
 
     assertThrowsApiException(
         "{\"type\":\"501 NOT_IMPLEMENTED\",\"message\":\"2024 is duplicated.\"}",
-        () -> api.updateRevenueTargets(JOE_DOE_SWAN_USER_ID, JOE_DOE_ACCOUNT_ID,
+        () -> api.updateRevenueTargets(JOE_DOE_USER_ID, JOE_DOE_ACCOUNT_ID,
             joeDoeAccountHolder().getId(), List.of(
                 new CreateAnnualRevenueTarget()
                     .year(2024)
@@ -436,29 +320,11 @@ class AccountHolderIT {
     ApiClient joeDoeClient = anApiClient();
     UserAccountsApi api = new UserAccountsApi(joeDoeClient);
 
-    AccountHolder actualUpdated = api.updateAccountHolderInfo(JOE_DOE_SWAN_USER_ID,
-        JOE_DOE_ACCOUNT_ID, SWAN_ACCOUNTHOLDER_ID, globalInfo());
+    AccountHolder actualUpdated = api.updateAccountHolderInfo(JOE_DOE_USER_ID,
+        JOE_DOE_ACCOUNT_ID, ACCOUNTHOLDER_ID, globalInfo());
 
-    assertEquals(SWAN_ACCOUNTHOLDER_ID, actualUpdated.getId());
+    assertEquals(ACCOUNTHOLDER_ID, actualUpdated.getId());
     assertEquals(expectedGlobalInfo().getContactAddress(), actualUpdated.getContactAddress());
-  }
-
-  private void setUpSwanApi(SwanApi swanApi, AccountHolderResponse.Edge... edges) {
-    when(swanApi.getData(eq(AccountHolderResponse.class), any(String.class)))
-        .thenReturn(
-            AccountHolderResponse.builder()
-                .data(
-                    AccountHolderResponse.Data.builder()
-                        .accountHolders(
-                            AccountHolderResponse.AccountHolders.builder()
-                                .edges(new ArrayList<>() {
-                                  {
-                                    this.addAll(List.of(edges));
-                                  }
-                                }).build()
-                        ).build()
-                ).build()
-        );
   }
 
   @Test
@@ -495,24 +361,6 @@ class AccountHolderIT {
             .id(actualCreatedFeedbackRequest.getId())
             .creationDatetime(actualCreatedFeedbackRequest.getCreationDatetime())
         , actualCreatedFeedbackRequest);
-  }
-
-  private void setUpRepositoryMock() {
-    when(accountHolderRepositoryMock.findAllByBearerAndAccountId(any(String.class),
-        any(String.class)))
-        .thenAnswer(
-            invocation ->
-                accountHolderRepository
-                    .findAllByBearerAndAccountId(invocation.getArgument(0),
-                        invocation.getArgument(1))
-
-        );
-    when(accountHolderRepositoryMock.findAllByAccountId(any(String.class)))
-        .thenAnswer(
-            invocation ->
-                accountHolderRepository
-                    .findAllByAccountId(invocation.getArgument(0))
-        );
   }
 
   static class ContextInitializer extends AbstractContextInitializer {

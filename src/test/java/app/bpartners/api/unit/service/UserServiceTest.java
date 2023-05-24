@@ -28,7 +28,6 @@ class UserServiceTest {
 
     when(userRepository.getByEmail(any())).thenReturn(user());
     when(userRepository.getUserByToken(any())).thenReturn(user());
-    when(userRepository.getUserBySwanUserIdAndToken(any(), any())).thenReturn(user());
     when(userTokenRepository.getLatestTokenByUser(any())).thenReturn(new UserToken());
   }
 
@@ -36,12 +35,9 @@ class UserServiceTest {
   void read_user_ok() {
     User userFromEmail = userService.getUserByEmail(user().getEmail());
     User userFromToken = userService.getUserByToken(user().getAccessToken());
-    User userFromIdAndBearer = userService.getUserByIdAndBearer(user().getId(),
-        user().getAccessToken());
 
     assertNotNull(userFromEmail);
     assertNotNull(userFromToken);
-    assertNotNull(userFromIdAndBearer);
   }
 
   @Test

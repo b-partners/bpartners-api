@@ -27,6 +27,7 @@ import org.springframework.stereotype.Repository;
 @AllArgsConstructor
 @Slf4j
 public class ProductRepositoryImpl implements ProductRepository {
+  public static final String PRODUCT_ID = "Product(id=";
   private final ProductJpaRepository jpaRepository;
   private final ProductMapper mapper;
 
@@ -92,7 +93,7 @@ public class ProductRepositoryImpl implements ProductRepository {
         .map(productStatus ->
             jpaRepository.findById(productStatus.getId()).orElseThrow(
                     () -> new NotFoundException(
-                        "Product(id=" + productStatus.getId() + " not found"))
+                        PRODUCT_ID + productStatus.getId() + " not found"))
                 .toBuilder()
                 .status(productStatus.getStatus())
                 .build())
@@ -107,7 +108,7 @@ public class ProductRepositoryImpl implements ProductRepository {
     return mapper.toDomain(
         jpaRepository.findById(id).orElseThrow(
             () -> new NotFoundException(
-                "Product(id=" + id + ") not found")));
+                PRODUCT_ID + id + ") not found")));
   }
 
   private Product checkExisting(String idUser, Product domain) {
@@ -116,7 +117,7 @@ public class ProductRepositoryImpl implements ProductRepository {
       jpaRepository.findById(id)
           .orElseThrow(()
               -> new NotFoundException(
-              "Product(id=" + id + ") not found for User(id=" + idUser + ")"));
+              PRODUCT_ID + id + ") not found for User(id=" + idUser + ")"));
     }
     Optional<HProduct> optionalProduct =
         jpaRepository.findByIdUserAndDescription(idUser, domain.getDescription());

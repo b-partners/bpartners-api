@@ -198,7 +198,7 @@ class CustomerIT {
         () -> api.getCustomerById(JOE_DOE_ACCOUNT_ID, OTHER_CUSTOMER_ID)
     );
     assertThrowsForbiddenException(
-        () -> api.getCustomerById(JANE_ACCOUNT_ID,"customer1_id")
+        () -> api.getCustomerById(JANE_ACCOUNT_ID, "customer1_id")
     );
   }
 

@@ -61,6 +61,9 @@ public class BridgeConf {
     return baseUrl + "/transactions";
   }
 
+  public String getPaginatedTransactionUrl(String uri) {
+    return baseUrl + uri.replace("/v2", "");
+  }
   public String getItemStatusUrl(Long id) {
     return baseUrl + "/items/" + id + "/refresh/status";
   }

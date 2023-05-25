@@ -404,23 +404,34 @@ public class BridgeApi {
     }
   }
 
+  private List<BridgeTransaction> getTransactions(String userToken, String uri,
+                                                  List<BridgeTransaction> transactions)
+      throws URISyntaxException, IOException, InterruptedException {
+    HttpRequest request = HttpRequest.newBuilder()
+        .uri(new URI(uri == null ? conf.getTransactionUrl() : conf.getPaginatedTransactionUrl(uri)))
+        .headers(defaultHeadersWithToken(userToken))
+        .GET()
+        .build();
+    HttpResponse<String> httpResponse =
+        httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+    if (httpResponse.statusCode() != 200) {
+      log.warn("BridgeApi errors : {}", httpResponse.body());
+      return List.of();
+    }
+    BridgeListResponse<BridgeTransaction> response = objectMapper.readValue(httpResponse.body(),
+        new TypeReference<>() {
+        });
+    transactions.addAll(response.getResources());
+    if (response.getPagination().getNextUri() == null) {
+      return transactions;
+    }
+    return getTransactions(userToken, response.getPagination().getNextUri(), transactions);
+  }
+
   public List<BridgeTransaction> findTransactionsUpdatedByToken(String userToken) {
     try {
-      HttpRequest request = HttpRequest.newBuilder()
-          .uri(new URI(conf.getTransactionUpdatedUrl()))
-          .headers(defaultHeadersWithToken(userToken))
-          .GET()
-          .build();
-      HttpResponse<String> httpResponse =
-          httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-      if (httpResponse.statusCode() != 200) {
-        log.warn("BridgeApi errors : {}", httpResponse.body());
-        return List.of();
-      }
-      BridgeListResponse<BridgeTransaction> response = objectMapper.readValue(httpResponse.body(),
-          new TypeReference<>() {
-          });
-      return response.getResources();
+      List<BridgeTransaction> transactions = new ArrayList<>();
+      return getTransactions(userToken, null, transactions);
     } catch (URISyntaxException | IOException e) {
       throw new ApiException(SERVER_EXCEPTION, e);
     } catch (InterruptedException e) {

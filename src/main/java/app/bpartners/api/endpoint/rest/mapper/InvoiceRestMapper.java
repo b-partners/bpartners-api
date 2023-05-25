@@ -10,7 +10,9 @@ import app.bpartners.api.endpoint.rest.model.Product;
 import app.bpartners.api.endpoint.rest.model.TransactionInvoice;
 import app.bpartners.api.endpoint.rest.model.UpdateInvoiceArchivedStatus;
 import app.bpartners.api.endpoint.rest.security.AuthProvider;
+import app.bpartners.api.endpoint.rest.validator.ArchiveInvoiceValidator;
 import app.bpartners.api.endpoint.rest.validator.CrupdateInvoiceValidator;
+import app.bpartners.api.model.ArchiveInvoice;
 import app.bpartners.api.model.CreatePaymentRegulation;
 import app.bpartners.api.model.Customer;
 import app.bpartners.api.model.Fraction;
@@ -20,7 +22,6 @@ import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.repository.CustomerRepository;
-import app.bpartners.api.repository.InvoiceRepository;
 import app.bpartners.api.repository.jpa.InvoiceJpaRepository;
 import app.bpartners.api.repository.jpa.model.HInvoice;
 import java.time.LocalDate;
@@ -46,8 +47,8 @@ public class InvoiceRestMapper {
   private final CustomerRepository customerRepository;
   private final ProductRestMapper productRestMapper;
   private final CrupdateInvoiceValidator crupdateInvoiceValidator;
+  private final ArchiveInvoiceValidator archiveValidator;
   private final InvoiceJpaRepository invoiceJpaRepository;
-  private final InvoiceRepository invoiceRepository;
 
   public Invoice toRest(app.bpartners.api.model.Invoice domain) {
     if (domain == null) {
@@ -159,12 +160,11 @@ public class InvoiceRestMapper {
         .build();
   }
 
-  public app.bpartners.api.model.Invoice toDomain(UpdateInvoiceArchivedStatus toUpdate) {
-    crupdateInvoiceValidator.accept(toUpdate);
-    app.bpartners.api.model.Invoice persisted = invoiceRepository.getById(toUpdate.getId());
-    return persisted.toBuilder()
-        .archiveStatus(toUpdate.getArchiveStatus())
-        .user(AuthProvider.getAuthenticatedUser())
+  public ArchiveInvoice toDomain(UpdateInvoiceArchivedStatus archivedStatus) {
+    archiveValidator.accept(archivedStatus);
+    return ArchiveInvoice.builder()
+        .idInvoice(archivedStatus.getId())
+        .status(archivedStatus.getArchiveStatus())
         .build();
   }
 

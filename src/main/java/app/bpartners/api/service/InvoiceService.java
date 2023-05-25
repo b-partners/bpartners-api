@@ -1,6 +1,7 @@
 package app.bpartners.api.service;
 
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
+import app.bpartners.api.model.ArchiveInvoice;
 import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.Invoice;
@@ -45,8 +46,7 @@ public class InvoiceService {
     return repository.crupdate(invoice);
   }
 
-  public List<Invoice> archiveInvoices(List<Invoice> toUpdate) {
-    toUpdate.forEach(repository::crupdate);
-    return toUpdate;
+  public List<Invoice> archiveInvoices(List<ArchiveInvoice> archiveInvoices) {
+    return repository.saveAll(archiveInvoices);
   }
 }

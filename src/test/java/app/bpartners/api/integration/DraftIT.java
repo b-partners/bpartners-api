@@ -13,6 +13,7 @@ import app.bpartners.api.model.Customer;
 import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.InvoiceDiscount;
+import app.bpartners.api.model.PaymentRequest;
 import app.bpartners.api.model.User;
 import app.bpartners.api.repository.AccountConnectorRepository;
 import app.bpartners.api.repository.LegalFileRepository;
@@ -102,18 +103,22 @@ class DraftIT {
                 .build()))
             .build())
         .paymentType(IN_INSTALMENT)
-        .multiplePayments(List.of(
+        .paymentRegulations(List.of(
             CreatePaymentRegulation.builder()
-                .comment(null)
+                .paymentRequest(PaymentRequest.builder()
+                    .amount(new Fraction(BigInteger.valueOf(100)))
+                    .paymentUrl("https://connect-v2-sbx.fintecture.com")
+                    .build())
                 .maturityDate(LocalDate.now().plusDays(1L))
-                .amount(new Fraction(BigInteger.valueOf(100)))
-                .paymentUrl("https://connect-v2-sbx.fintecture.com")
+                .comment(null)
                 .build(),
             CreatePaymentRegulation.builder()
+                .paymentRequest(PaymentRequest.builder()
+                    .amount(new Fraction(BigInteger.TEN))
+                    .paymentUrl("https://connect-v2-sbx.fintecture.com")
+                    .build())
                 .comment("Avec un assez long commentaire pour voir si ça descend automatiquement")
                 .maturityDate(LocalDate.now())
-                .amount(new Fraction(BigInteger.TEN))
-                .paymentUrl("https://connect-v2-sbx.fintecture.com")
                 .build()))
         .products(creatableProds(3))
         .customer(Customer.builder()
@@ -123,9 +128,6 @@ class DraftIT {
             .email("exemple@email.com")
             .address("Paris 745")
             .build())
-        .totalPriceWithVat(new Fraction(BigInteger.ONE))
-        .totalPriceWithoutVat(new Fraction(BigInteger.ONE))
-        .totalVat(new Fraction(BigInteger.ONE))
         .paymentUrl("text")
         .build();
     InvoicePdfUtils pdfUtils = new InvoicePdfUtils();
@@ -169,7 +171,6 @@ class DraftIT {
         .vatPercent(new Fraction(BigInteger.ONE))
         .unitPrice(new Fraction(BigInteger.ONE))
         .priceNoVatWithDiscount(new Fraction())
-        .totalPriceWithVat(new Fraction(BigInteger.ONE))
         .totalWithDiscount(new Fraction())
         .build();
   }

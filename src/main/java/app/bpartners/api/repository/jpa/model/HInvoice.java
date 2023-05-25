@@ -76,10 +76,10 @@ public class HInvoice implements Serializable {
   private Integer customerZipCode;
   private String customerCountry;
   @OneToMany(
-      mappedBy = "invoice",
       orphanRemoval = true,
       cascade = CascadeType.ALL
   )
+  @JoinColumn(name = "id_invoice")
   private List<HInvoiceProduct> products = new ArrayList<>();
   @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
   @JoinColumn(name = "id_invoice")

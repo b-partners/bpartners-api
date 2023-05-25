@@ -3,7 +3,6 @@ package app.bpartners.api.endpoint.rest.mapper;
 import app.bpartners.api.endpoint.rest.model.CrupdateInvoice;
 import app.bpartners.api.endpoint.rest.model.Invoice;
 import app.bpartners.api.endpoint.rest.model.InvoiceDiscount;
-import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.endpoint.rest.model.PaymentRegulation;
 import app.bpartners.api.endpoint.rest.model.PaymentRequest;
 import app.bpartners.api.endpoint.rest.model.Product;
@@ -14,20 +13,14 @@ import app.bpartners.api.endpoint.rest.validator.ArchiveInvoiceValidator;
 import app.bpartners.api.endpoint.rest.validator.CrupdateInvoiceValidator;
 import app.bpartners.api.model.ArchiveInvoice;
 import app.bpartners.api.model.CreatePaymentRegulation;
-import app.bpartners.api.model.Customer;
 import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.InvoiceProduct;
 import app.bpartners.api.model.TransactionInvoiceDetails;
 import app.bpartners.api.model.exception.ApiException;
-import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.NotImplementedException;
-import app.bpartners.api.repository.CustomerRepository;
-import app.bpartners.api.repository.jpa.InvoiceJpaRepository;
-import app.bpartners.api.repository.jpa.model.HInvoice;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,6 +30,10 @@ import org.springframework.stereotype.Component;
 import static app.bpartners.api.endpoint.rest.model.CrupdateInvoice.PaymentTypeEnum.CASH;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
+import static app.bpartners.api.model.mapper.InvoiceMapper.computePriceNoVatWithDiscount;
+import static app.bpartners.api.model.mapper.InvoiceMapper.computePriceWithoutDiscount;
+import static app.bpartners.api.model.mapper.InvoiceMapper.computeTotalPriceWithVatAndDiscount;
+import static app.bpartners.api.model.mapper.InvoiceMapper.computeTotalVatWithDiscount;
 import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 
 @Slf4j
@@ -44,11 +41,9 @@ import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 @AllArgsConstructor
 public class InvoiceRestMapper {
   private final CustomerRestMapper customerMapper;
-  private final CustomerRepository customerRepository;
   private final ProductRestMapper productRestMapper;
   private final CrupdateInvoiceValidator crupdateInvoiceValidator;
   private final ArchiveInvoiceValidator archiveValidator;
-  private final InvoiceJpaRepository invoiceJpaRepository;
 
   public Invoice toRest(app.bpartners.api.model.Invoice domain) {
     if (domain == null) {
@@ -75,16 +70,16 @@ public class InvoiceRestMapper {
         .paymentType(domain.getPaymentType())
         .products(getProducts(domain))
         .totalVat(domain.getTotalVat().getCentsRoundUp())
-        .paymentUrl(domain.getPaymentUrl())
+        .totalPriceWithVat(domain.getTotalPriceWithVat().getCentsRoundUp())
         .totalPriceWithoutDiscount(domain.getTotalPriceWithoutDiscount().getCentsRoundUp())
         .totalPriceWithoutVat(domain.getTotalPriceWithoutVat().getCentsRoundUp())
-        .totalPriceWithVat(domain.getTotalPriceWithVat().getCentsRoundUp())
+        .paymentUrl(domain.getPaymentUrl())
         .sendingDate(domain.getSendingDate())
         .validityDate(domain.getValidityDate())
         .delayInPaymentAllowed(domain.getDelayInPaymentAllowed())
         .delayPenaltyPercent(domain.getDelayPenaltyPercent().getCentsRoundUp())
         .metadata(domain.getMetadata())
-        .paymentRegulations(domain.getMultiplePayments().stream()
+        .paymentRegulations(domain.getPaymentRegulations().stream()
             .map(payment -> getPaymentRegulation(domain.getTotalPriceWithVat(), payment))
             .collect(Collectors.toUnmodifiableList()))
         .toPayAt(toPayAt)
@@ -104,9 +99,7 @@ public class InvoiceRestMapper {
 
   public app.bpartners.api.model.Invoice toDomain(String idUser, String id, CrupdateInvoice rest) {
     crupdateInvoiceValidator.accept(rest);
-    if (!hasAvailableReference(idUser, id, rest.getRef(), rest.getStatus())) {
-      throw new BadRequestException("Invoice.reference=" + rest.getRef() + " is already used");
-    }
+
     //TODO: deprecated use validityDate instead of toPayAt
     LocalDate validityDate = rest.getValidityDate();
     if (validityDate == null && rest.getToPayAt() != null
@@ -114,6 +107,15 @@ public class InvoiceRestMapper {
       log.warn("DEPRECATED: DRAFT and PROPOSAL invoice must use validityDate"
           + " instead of toPayAt attribute during crupdate");
       validityDate = rest.getToPayAt();
+    }
+
+    Integer delayInPaymentAllowed = rest.getDelayInPaymentAllowed();
+    Integer delayPenaltyPercent = rest.getDelayPenaltyPercent();
+    //TODO: check default value if necessary
+    if (delayInPaymentAllowed == null && rest.getPaymentType() == CASH) {
+      log.warn(
+          "Delay in payment allowed is mandatory for CASH Payment type. 30 is given by default");
+      delayInPaymentAllowed = 30;
     }
 
     //TODO: deprecated ! discount must be mandatory
@@ -124,28 +126,19 @@ public class InvoiceRestMapper {
       discount = new InvoiceDiscount().percentValue(0);
     }
 
-    //TODO: explicit the customer ID and the override customer infos
-    Optional<Customer> optionalCustomer =
-        rest.getCustomer() == null
-            ? Optional.empty()
-            : Optional.of(customerRepository.findById(rest.getCustomer().getId()));
-    Integer delayInPaymentAllowed = rest.getDelayInPaymentAllowed();
-    Integer delayPenaltyPercent = rest.getDelayPenaltyPercent();
-    //TODO: check default value if necessary
-    if (delayInPaymentAllowed == null && rest.getPaymentType() == CASH) {
-      log.warn(
-          "Delay in payment allowed is mandatory for CASH Payment type. 30 is given by default");
-      delayInPaymentAllowed = 30;
-    }
+    app.bpartners.api.model.InvoiceDiscount discountDomain = getDiscount(discount);
+    Fraction discountAsPercent = discountDomain.getPercentValue();
+    List<InvoiceProduct> invoiceProducts = getProducts(rest);
     return app.bpartners.api.model.Invoice.builder()
         .id(id)
         .title(rest.getTitle())
         .ref(rest.getRef())
         .comment(rest.getComment())
         .paymentType(convertType(rest.getPaymentType()))
-        .multiplePayments(getMultiplePayments(rest))
-        //TODO: add invoice customer attributes
-        .customer(optionalCustomer.orElse(null))
+        .paymentRegulations(getMultiplePayments(rest))
+        .customer(rest.getCustomer() == null
+            ? null
+            : customerMapper.toDomain(idUser, rest.getCustomer()))
         .sendingDate(rest.getSendingDate())
         .validityDate(validityDate)
         .delayInPaymentAllowed(delayInPaymentAllowed)
@@ -154,9 +147,18 @@ public class InvoiceRestMapper {
         .archiveStatus(rest.getArchiveStatus())
         .toPayAt(rest.getToPayAt())
         .user(AuthProvider.getAuthenticatedUser())
-        .products(getProducts(rest))
+        //total without vat and without discount
+        .totalPriceWithoutDiscount(computePriceWithoutDiscount(invoiceProducts))
+        //total without vat but with discount
+        .totalPriceWithoutVat(computePriceNoVatWithDiscount(discountAsPercent, invoiceProducts))
+        //total vat with discount
+        .totalVat(computeTotalVatWithDiscount(discountAsPercent, invoiceProducts))
+        //total with vat and with discount
+        .totalPriceWithVat(
+            computeTotalPriceWithVatAndDiscount(discountAsPercent, invoiceProducts))
+        .products(invoiceProducts)
         .metadata(rest.getMetadata() == null ? Map.of() : rest.getMetadata())
-        .discount(getDiscount(discount))
+        .discount(discountDomain)
         .build();
   }
 
@@ -174,7 +176,9 @@ public class InvoiceRestMapper {
       throw new NotImplementedException("Only amount or percent payment method should be chosen");
     }
     return app.bpartners.api.model.CreatePaymentRegulation.builder()
-        .amount(parseFraction(invoicePayment.getAmount()))
+        .paymentRequest(app.bpartners.api.model.PaymentRequest.builder()
+            .amount(parseFraction(invoicePayment.getAmount()))
+            .build())
         .percent(parseFraction(invoicePayment.getPercent()))
         .comment(invoicePayment.getComment())
         .maturityDate(invoicePayment.getMaturityDate())
@@ -182,11 +186,12 @@ public class InvoiceRestMapper {
   }
 
   private static PaymentRegulation getPaymentRegulation(
-      Fraction totalPrice, CreatePaymentRegulation payment) {
+      Fraction totalPrice, CreatePaymentRegulation paymentRegulation) {
+    app.bpartners.api.model.PaymentRequest payment = paymentRegulation.getPaymentRequest();
     return new PaymentRegulation()
-        .maturityDate(payment.getMaturityDate())
+        .maturityDate(paymentRegulation.getMaturityDate())
         .paymentRequest(new PaymentRequest()
-            .id(payment.getEndToEndId())
+            .id(payment.getId())
             .reference(payment.getReference())
             .paymentUrl(payment.getPaymentUrl())
             .label(payment.getLabel())
@@ -203,7 +208,7 @@ public class InvoiceRestMapper {
             .payerName(payment.getPayerName())
             .payerEmail(payment.getPayerEmail())
             .paymentUrl(payment.getPaymentUrl())
-            .initiatedDatetime(payment.getInitiatedDatetime()));
+            .initiatedDatetime(paymentRegulation.getInitiatedDatetime()));
   }
 
   private app.bpartners.api.model.InvoiceDiscount getDiscount(
@@ -248,15 +253,5 @@ public class InvoiceRestMapper {
         throw new ApiException(ApiException.ExceptionType.SERVER_EXCEPTION,
             "Payment type " + crupdateInvoiceType.getValue() + " not found");
     }
-  }
-
-  private boolean hasAvailableReference(
-      String idUser, String invoiceId, String reference, InvoiceStatus status) {
-    if (reference == null) {
-      return true;
-    }
-    List<HInvoice> actual =
-        invoiceJpaRepository.findByIdUserAndRefAndStatus(idUser, reference, status);
-    return actual.isEmpty() || actual.get(0).getId().equals(invoiceId);
   }
 }

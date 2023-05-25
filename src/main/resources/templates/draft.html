@@ -314,7 +314,7 @@
             <th style="width: 150px">Commentaire</th>
             </thead>
             <tbody>
-            <th:block th:each="payment,i : ${invoice.getSortedMultiplePayments()}">
+            <th:block th:each="paymentReg,i : ${invoice.getSortedMultiplePayments()}">
                 <tr>
                     <td class="text-center">
                             <span th:if="${i.count < i.size}">
@@ -326,18 +326,18 @@
                     </td>
                     <td class="text-center">
                             <span
-                                    th:text="${#dates.format(payment.getFormattedMaturityDate(), 'dd-MM-yyyy')}"></span>
+                                    th:text="${#dates.format(paymentReg.getFormattedMaturityDate(), 'dd-MM-yyyy')}"></span>
                     </td>
                     <td class="text-center">
                             <span
-                                    th:text="${#numbers.formatDecimal(payment.getAmount().getCentsAsDecimal(),1,2)}"></span>€
+                                    th:text="${#numbers.formatDecimal(paymentReg.paymentRequest.getAmount().getCentsAsDecimal(),1,2)}"></span>€
                     </td>
                     <td class="text-center">
-                        <span th:if="${payment.getComment() != null}">
-                            <span th:text="${payment.getComment()}">
+                        <span th:if="${paymentReg.getComment() != null}">
+                            <span th:text="${paymentReg.getComment()}">
                             </span>
                         </span>
-                        <span th:unless="${payment.getComment() != null}">
+                        <span th:unless="${paymentReg.getComment() != null}">
                            -
                         </span>
                     </td>

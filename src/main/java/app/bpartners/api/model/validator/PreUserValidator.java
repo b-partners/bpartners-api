@@ -6,11 +6,13 @@ import java.util.List;
 import java.util.regex.Pattern;
 import org.springframework.stereotype.Component;
 
+import static app.bpartners.api.service.utils.EmailUtils.isValidEmail;
+
 @Component
 public class PreUserValidator {
   public void accept(PreUser preUser) {
     StringBuilder messageBuilder = new StringBuilder();
-    if (!hasValidEmail(preUser)) {
+    if (!isValidEmail(preUser.getEmail())) {
       messageBuilder.append("Invalid email. ");
     }
     if (preUser.getMobilePhoneNumber() != null && !hasValidPhoneNumber(preUser)) {
@@ -24,14 +26,6 @@ public class PreUserValidator {
 
   public void accept(List<PreUser> preUsers) {
     preUsers.forEach(this::accept);
-  }
-
-  private boolean hasValidEmail(PreUser preUser) {
-    String emailPattern = "^(?=.{1,64}@)[A-Za-z0-9_-]+(\\.[A-Za-z0-9_-]+)*@"
-        + "[^-][A-Za-z0-9-]+(\\.[A-Za-z0-9_-]+)*(\\.[A-Za-z]{2,})$";
-    return Pattern.compile(emailPattern)
-        .matcher(preUser.getEmail())
-        .matches();
   }
 
   private boolean hasValidPhoneNumber(PreUser preUser) {

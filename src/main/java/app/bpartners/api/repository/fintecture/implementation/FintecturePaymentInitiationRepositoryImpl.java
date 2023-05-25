@@ -71,7 +71,7 @@ public class FintecturePaymentInitiationRepositoryImpl implements
           .header(DATE, date)
           .header(SIGNATURE,
               getHeaderSignatureWithDigest(fintectureConf, requestId, digest, date, urlParams))
-          .header(AUTHORIZATION, getProjectBearer())
+          .header(AUTHORIZATION, bearerToken())
           .POST(HttpRequest.BodyPublishers.ofString(payload))
           .build();
       var response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
@@ -91,7 +91,7 @@ public class FintecturePaymentInitiationRepositoryImpl implements
     }
   }
 
-  private String getProjectBearer() {
+  private String bearerToken() {
     return BEARER_PREFIX + tokenManager.getFintectureProjectToken();
   }
 }

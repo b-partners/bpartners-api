@@ -6,6 +6,8 @@ import org.springframework.stereotype.Component;
 
 import static app.bpartners.api.endpoint.rest.validator.RedirectionValidator.verifyRedirectionStatusUrls;
 import static app.bpartners.api.endpoint.rest.validator.UUIDValidator.isValid;
+import static app.bpartners.api.service.utils.EmailUtils.EMAIL_PATTERN;
+import static app.bpartners.api.service.utils.EmailUtils.isValidEmail;
 
 @Component
 public class PaymentInitValidator implements Consumer<PaymentInitiation> {
@@ -18,6 +20,14 @@ public class PaymentInitValidator implements Consumer<PaymentInitiation> {
     if (paymentInitiation.getId() != null && !isValid(paymentInitiation.getId())) {
       builder.append("id must be a valid UUID. ");
     }
+    if (paymentInitiation.getLabel() == null) {
+      builder.append("label is mandatory. ");
+    }
+    if (paymentInitiation.getLabel() != null
+        && paymentInitiation.getLabel().isBlank()
+        && paymentInitiation.getLabel().isEmpty()) {
+      builder.append("label must not be blank or empty. ");
+    }
     if (paymentInitiation.getAmount() == null) {
       builder.append("amount is mandatory. ");
     }
@@ -26,6 +36,13 @@ public class PaymentInitValidator implements Consumer<PaymentInitiation> {
     }
     if (paymentInitiation.getPayerEmail() == null) {
       builder.append("payerEmail is mandatory. ");
+    }
+    if (paymentInitiation.getPayerEmail() != null
+        && !isValidEmail(paymentInitiation.getPayerEmail())) {
+      builder.append(
+              "payerEmail(").append(paymentInitiation.getPayerEmail())
+          .append(") does not have valid email format. Pattern expected is ")
+          .append(EMAIL_PATTERN);
     }
     verifyRedirectionStatusUrls(builder, paymentInitiation.getRedirectionStatusUrls());
   }

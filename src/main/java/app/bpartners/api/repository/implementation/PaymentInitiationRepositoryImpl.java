@@ -1,7 +1,9 @@
 package app.bpartners.api.repository.implementation;
 
+import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.model.PaymentInitiation;
 import app.bpartners.api.model.PaymentRedirection;
+import app.bpartners.api.model.User;
 import app.bpartners.api.model.mapper.PaymentRequestMapper;
 import app.bpartners.api.repository.PaymentInitiationRepository;
 import app.bpartners.api.repository.fintecture.FintecturePaymentInitiationRepository;
@@ -18,8 +20,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 @AllArgsConstructor
 public class PaymentInitiationRepositoryImpl implements PaymentInitiationRepository {
-  private final FintecturePaymentInitiationRepository
-      fintectureRepository;
+  private final FintecturePaymentInitiationRepository repository;
   private final FintectureMapper mapper;
   private final PaymentRequestJpaRepository paymentRequestRepository;
   private final PaymentRequestMapper paymentRequestMapper;
@@ -45,20 +46,24 @@ public class PaymentInitiationRepositoryImpl implements PaymentInitiationReposit
   @Override
   public List<HPaymentRequest> retrievePaymentEntitiesWithUrl(
       List<PaymentInitiation> paymentInitiations, String invoice) {
+    User authenticatedUser = AuthProvider.getAuthenticatedUser();
     return paymentInitiations.stream()
         .map(payment -> {
-          FPaymentInitiation paymentInitiation = mapper.toFintectureResource(payment);
+          FPaymentInitiation paymentInitiation = mapper.toFintectureResource(payment,
+              authenticatedUser.getDefaultAccount(), authenticatedUser.getDefaultHolder());
           FPaymentRedirection paymentRedirection =
-              fintectureRepository.save(paymentInitiation, payment.getSuccessUrl());
+              repository.save(paymentInitiation, payment.getSuccessUrl());
           return paymentRequestMapper.toEntity(paymentRedirection, payment, invoice);
         })
         .collect(Collectors.toList());
   }
 
   private FPaymentRedirection initiatePayment(PaymentInitiation domain, String invoice) {
-    FPaymentInitiation paymentInitiation = mapper.toFintectureResource(domain);
+    User authenticatedUser = AuthProvider.getAuthenticatedUser();
+    FPaymentInitiation paymentInitiation = mapper.toFintectureResource(domain,
+        authenticatedUser.getDefaultAccount(), authenticatedUser.getDefaultHolder());
     FPaymentRedirection paymentRedirection =
-        fintectureRepository.save(paymentInitiation, domain.getSuccessUrl());
+        repository.save(paymentInitiation, domain.getSuccessUrl());
     HPaymentRequest entity = paymentRequestMapper.toEntity(paymentRedirection, domain, invoice);
     paymentRequestRepository.save(entity);
     return paymentRedirection;

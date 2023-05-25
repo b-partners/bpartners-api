@@ -1,6 +1,5 @@
 package app.bpartners.api.repository.mapper;
 
-import app.bpartners.api.endpoint.rest.security.AuthenticatedResourceProvider;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.PaymentInitiation;
@@ -14,8 +13,6 @@ import org.springframework.stereotype.Component;
 @Component
 @AllArgsConstructor
 public class FintectureMapper {
-  private final AuthenticatedResourceProvider authResourceProvider;
-
   private Beneficiary toBeneficiary(Account account, AccountHolder accountHolder) {
     return Beneficiary.builder()
         .name(account.getName())
@@ -28,24 +25,23 @@ public class FintectureMapper {
   }
 
   //TODO: put these checks properly
-  public FPaymentInitiation toFintectureResource(PaymentInitiation domain) {
-    Account authenticatedAccount = authResourceProvider.getAccount();
-    AccountHolder authenticatedAccountHolder = authResourceProvider.getDefaultAccountHolder();
-    if (authenticatedAccount.getIban() == null) {
+  public FPaymentInitiation toFintectureResource(
+      PaymentInitiation domain, Account account, AccountHolder accountHolder) {
+    if (account.getIban() == null) {
       throw new BadRequestException(
           "Account("
-              + "id=" + authenticatedAccount.getId()
-              + ", name=" + authenticatedAccount.getName() + ") "
+              + "id=" + account.getId()
+              + ", name=" + account.getName() + ") "
               + "does not have iban. Iban is mandatory to initiate payment");
     }
-    if (authenticatedAccount.getBic() == null) {
+    if (account.getBic() == null) {
       throw new BadRequestException(
           "Account("
-              + "id=" + authenticatedAccount.getId()
-              + ", name=" + authenticatedAccount.getName() + ") "
+              + "id=" + account.getId()
+              + ", name=" + account.getName() + ") "
               + "does not have bic. Bic is mandatory to initiate payment");
     }
-    Beneficiary beneficiary = toBeneficiary(authenticatedAccount, authenticatedAccountHolder);
+    Beneficiary beneficiary = toBeneficiary(account, accountHolder);
 
     FPaymentInitiation.Attributes attributes = new FPaymentInitiation.Attributes();
     attributes.setAmount(String.valueOf(domain.getAmount().getCentsAsDecimal()));

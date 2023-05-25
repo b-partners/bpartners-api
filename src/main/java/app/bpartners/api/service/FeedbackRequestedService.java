@@ -24,7 +24,7 @@ public class FeedbackRequestedService implements Consumer<FeedbackRequested> {
     String htmlBody = feedbackRequested.getMessage();
     //TODO: configure attachment
     List<Attachment> attachment = List.of();
-    recipients.forEach((recipient) -> {
+    recipients.forEach(recipient -> {
       try {
         service.sendEmail(recipient, subject, htmlBody, attachment);
       } catch (MessagingException | IOException e) {

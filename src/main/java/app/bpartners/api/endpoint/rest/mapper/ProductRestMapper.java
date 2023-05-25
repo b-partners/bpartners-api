@@ -7,7 +7,6 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
-import static java.util.UUID.randomUUID;
 
 @Component
 @AllArgsConstructor

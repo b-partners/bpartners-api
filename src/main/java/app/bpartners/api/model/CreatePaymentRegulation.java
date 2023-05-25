@@ -19,21 +19,15 @@ import static org.apfloat.Apcomplex.ZERO;
 @Builder
 @Data
 public class CreatePaymentRegulation {
-  private String endToEndId;
-  private String paymentUrl;
-  private String reference;
-  private String payerName;
-  private String payerEmail;
-  private Fraction amount;
+  private PaymentRequest paymentRequest;
   private Fraction percent;
   private LocalDate maturityDate;
-  private String label;
   private String comment;
   private Instant initiatedDatetime;
 
   public Fraction getAmountOrPercent(Fraction totalAmount) {
-    if (amount != null && amount.getCentsRoundUp() != 0) {
-      return amount;
+    if (paymentRequest.getAmount() != null && paymentRequest.getAmount().getCentsRoundUp() != 0) {
+      return paymentRequest.getAmount();
     }
     return percent.operate(totalAmount,
         (percentValue, amountValue) -> {
@@ -43,10 +37,10 @@ public class CreatePaymentRegulation {
   }
 
   public String getPaymentUrlAsQrCode() {
-    if (paymentUrl == null) {
+    if (paymentRequest.getPaymentUrl() == null) {
       return null;
     }
-    return base64Image(QrCodeUtils.generateQrCode(paymentUrl));
+    return base64Image(QrCodeUtils.generateQrCode(paymentRequest.getPaymentUrl()));
   }
 
   public Date getFormattedMaturityDate() {

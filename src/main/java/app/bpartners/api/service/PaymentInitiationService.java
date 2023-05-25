@@ -6,12 +6,13 @@ import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.PaymentInitiation;
 import app.bpartners.api.model.PaymentRedirection;
+import app.bpartners.api.model.PaymentRequest;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.mapper.PaymentRequestMapper;
 import app.bpartners.api.repository.PaymentInitiationRepository;
-import app.bpartners.api.repository.jpa.model.HPaymentRequest;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -31,26 +32,30 @@ public class PaymentInitiationService {
   }
 
   public PaymentRedirection initiateInvoicePayment(
-      Invoice invoice, Fraction totalPriceWithVat) {
-    if (Objects.equals(totalPriceWithVat, new Fraction())) {
+      Invoice invoice) {
+    if (Objects.equals(invoice.getTotalPriceWithVat(), new Fraction())) {
       return new PaymentRedirection();
     }
     PaymentInitiation paymentInitiation = mapper.convertFromInvoice(
-        String.valueOf(randomUUID()), invoice, totalPriceWithVat, null);
+        String.valueOf(randomUUID()), invoice, null);
     return repository.saveAll(List.of(paymentInitiation), invoice.getId()).get(0);
   }
 
-  public List<HPaymentRequest> retrievePaymentEntities(
+  public List<PaymentRequest> retrievePaymentEntities(
       List<PaymentInitiation> paymentInitiations, String invoiceId, InvoiceStatus status) {
     if (status == InvoiceStatus.CONFIRMED || status == InvoiceStatus.PAID) {
       return List.of();
     }
-    return repository.retrievePaymentEntities(paymentInitiations, invoiceId);
+    return repository.retrievePaymentEntities(paymentInitiations, invoiceId).stream()
+        .map(PaymentRequest::new)
+        .collect(Collectors.toList());
   }
 
-  public List<HPaymentRequest> retrievePaymentEntitiesWithUrl(
+  public List<PaymentRequest> retrievePaymentEntitiesWithUrl(
       List<PaymentInitiation> paymentInitiations, String invoiceId) {
-    return repository.retrievePaymentEntitiesWithUrl(paymentInitiations, invoiceId);
+    return repository.retrievePaymentEntitiesWithUrl(paymentInitiations, invoiceId).stream()
+        .map(PaymentRequest::new)
+        .collect(Collectors.toList());
   }
 
   private void checkAccountRequiredInfos(String accountId) {

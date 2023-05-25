@@ -15,10 +15,12 @@ import app.bpartners.api.repository.mapper.FintectureMapper;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
 
 @Repository
 @AllArgsConstructor
+@Slf4j
 public class PaymentInitiationRepositoryImpl implements PaymentInitiationRepository {
   private final FintecturePaymentInitiationRepository repository;
   private final FintectureMapper mapper;

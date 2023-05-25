@@ -18,7 +18,6 @@ import app.bpartners.api.integration.conf.S3AbstractContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
 import app.bpartners.api.manager.ProjectTokenManager;
 import app.bpartners.api.repository.AccountConnectorRepository;
-import app.bpartners.api.repository.AccountRepository;
 import app.bpartners.api.repository.LegalFileRepository;
 import app.bpartners.api.repository.fintecture.FintectureConf;
 import app.bpartners.api.repository.fintecture.FintecturePaymentInitiationRepository;
@@ -32,7 +31,11 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Future;
 import java.util.stream.Collectors;
+import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
@@ -42,6 +45,7 @@ import org.junit.jupiter.api.function.Executable;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
@@ -82,6 +86,8 @@ import static app.bpartners.api.integration.conf.TestUtils.setUpPaymentInitiatio
 import static app.bpartners.api.model.Invoice.DEFAULT_DELAY_PENALTY_PERCENT;
 import static app.bpartners.api.model.Invoice.DEFAULT_TO_PAY_DELAY_DAYS;
 import static java.util.UUID.randomUUID;
+import static java.util.concurrent.Executors.newFixedThreadPool;
+import static java.util.stream.Collectors.toUnmodifiableList;
 import static org.hibernate.validator.internal.util.Contracts.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -97,6 +103,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @AutoConfigureMockMvc
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class InvoiceIT {
+  public static final String CONCURRENT_INVOICE_ID = "concurrent_invoice_id";
   @MockBean
   private PaymentScheduleService paymentScheduleService;
   @MockBean
@@ -407,7 +414,7 @@ class InvoiceIT {
         .products(List.of(product5().id(null)))
         .paymentRegulations(List.of(expectedDated1(), expectedDated2()))
         .paymentType(Invoice.PaymentTypeEnum.IN_INSTALMENT)
-        .toPayAt(null)
+        .toPayAt(LocalDate.of(2022, 11, 13))
         .delayInPaymentAllowed(confirmedInvoice().getDelayInPaymentAllowed())
         .delayPenaltyPercent(confirmedInvoice().getDelayPenaltyPercent())
         .totalPriceWithVat(1100)
@@ -534,8 +541,6 @@ class InvoiceIT {
                 .label("Fabrication Jean" + " - Restant dû")));
   }
 
-  //TODO: create PaginationIT for pagination test and add filters.
-  // In particular, check the date filters and the order filters (by created datetime desc)
   @Test
   @Order(1)
   void read_invoice_ok() throws ApiException {
@@ -628,8 +633,8 @@ class InvoiceIT {
             + "Invoice.reference=unique_ref is already used" + "\"}",
         secondCrupdateExecutable);
     assertThrowsApiException("{\"type\":\"404 NOT_FOUND\",\"message\":\""
-            + "Customer." + crupdateInvoiceWithNonExistentCustomer.getCustomer().getId()
-            + " is not found.\"}",
+            + "Customer(id=" + crupdateInvoiceWithNonExistentCustomer.getCustomer().getId()
+            + ") not found\"}",
         thirdCrupdateExecutable);
     assertThrowsApiException(
         "{\"type\":\"501 NOT_IMPLEMENTED\",\"message\":\""
@@ -1150,6 +1155,35 @@ class InvoiceIT {
 
     assertNotEquals(beforeChange.getArchiveStatus(), actual.get(0).getArchiveStatus());
     assertEquals(DISABLED, actual.get(0).getArchiveStatus());
+  }
+
+  @Test
+  @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+  public void concurrently_update_invoice() {
+    ApiClient joeDoeClient = anApiClient();
+    PayingApi api = new PayingApi(joeDoeClient);
+    var callerNb = 10;
+    var executor = newFixedThreadPool(10);
+
+    var latch = new CountDownLatch(1);
+    var futures = new ArrayList<Future<Invoice>>();
+    for (var callerIdx = 0; callerIdx < callerNb; callerIdx++) {
+      futures.add(executor.submit(() -> crupdateInvoice(latch, api, INVOICE3_ID)));
+    }
+    latch.countDown();
+
+    var retrieved = futures.stream()
+        .map(TestUtils::getOptionalFutureResult)
+        .filter(Optional::isPresent)
+        .map(Optional::get)
+        .collect(toUnmodifiableList());
+    assertEquals(callerNb, retrieved.size());
+  }
+
+  @SneakyThrows
+  private Invoice crupdateInvoice(CountDownLatch latch, PayingApi api, String idInvoice) {
+    latch.await();
+    return api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, idInvoice, validInvoice());
   }
 
   private List<Product> ignoreIdsOf(List<Product> actual) {

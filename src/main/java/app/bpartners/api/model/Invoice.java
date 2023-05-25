@@ -42,12 +42,7 @@ public class Invoice {
   private LocalDate toPayAt;
   private Integer delayInPaymentAllowed;
   private Fraction delayPenaltyPercent;
-  private Fraction totalPriceWithoutDiscount;
-  private Fraction totalPriceWithoutVat;
-  private Fraction totalVat;
-  private Fraction totalPriceWithVat;
   private String paymentUrl;
-
   private Customer customer;
   private String customerEmail;
   private String customerPhone;
@@ -66,14 +61,12 @@ public class Invoice {
   private boolean toBeRelaunched;
   private Instant createdAt;
   private Map<String, String> metadata;
-  private List<CreatePaymentRegulation> multiplePayments;
-
-  public Invoice multiplePayments(List<CreatePaymentRegulation> multiplePayments) {
-    this.multiplePayments = multiplePayments;
-    return this;
-  }
-
+  private List<CreatePaymentRegulation> paymentRegulations;
   private InvoiceDiscount discount;
+  private Fraction totalPriceWithoutDiscount;
+  private Fraction totalPriceWithoutVat;
+  private Fraction totalVat;
+  private Fraction totalPriceWithVat;
 
   public String getRealReference() {
     if (getRef() == null) {
@@ -120,7 +113,9 @@ public class Invoice {
   }
 
   public List<CreatePaymentRegulation> getSortedMultiplePayments() {
-    return multiplePayments.stream()
+    return paymentRegulations == null || paymentRegulations.isEmpty()
+        ? List.of()
+        : paymentRegulations.stream()
         .sorted(Comparator.comparing(CreatePaymentRegulation::getMaturityDate))
         .collect(Collectors.toList());
   }

@@ -6,16 +6,13 @@ import app.bpartners.api.model.CreatePaymentRegulation;
 import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.PaymentInitiation;
+import app.bpartners.api.model.PaymentRequest;
 import app.bpartners.api.repository.fintecture.model.FPaymentRedirection;
 import app.bpartners.api.repository.jpa.model.HPaymentRequest;
 import java.time.Instant;
-import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-@Slf4j
 @Component
-@AllArgsConstructor
 public class PaymentRequestMapper {
 
   public HPaymentRequest toEntity(
@@ -41,8 +38,8 @@ public class PaymentRequestMapper {
   }
 
   public PaymentInitiation convertFromInvoice(
-      String paymentInitiationId, Invoice invoice,
-      Fraction totalPriceWithVat, CreatePaymentRegulation payment) {
+      String paymentInitiationId, Invoice invoice, CreatePaymentRegulation payment) {
+    Fraction totalPriceWithVat = invoice.getTotalPriceWithVat();
     return PaymentInitiation.builder()
         .id(paymentInitiationId)
         .reference(invoice.getRealReference())
@@ -65,4 +62,29 @@ public class PaymentRequestMapper {
         .failureUrl("https://dashboard-dev.bpartners.app") //TODO: to change
         .build();
   }
+
+  public CreatePaymentRegulation toPaymentRegulation(PaymentRequest payment, Fraction percent) {
+    return CreatePaymentRegulation.builder()
+        .paymentRequest(PaymentRequest.builder()
+            .id(payment.getId())
+            .idUser(payment.getIdUser())
+            .externalId(payment.getExternalId())
+            .label(payment.getLabel())
+            .amount(payment.getAmount())
+            .paymentUrl(payment.getPaymentUrl())
+            .reference(payment.getReference())
+            .payerName(payment.getPayerName())
+            .payerEmail(payment.getPayerEmail())
+            .paymentDueDate(payment.getPaymentDueDate())
+            .createdDatetime(payment.getCreatedDatetime())
+            .status(payment.getStatus())
+            .comment(payment.getComment())
+            .build())
+        .percent(percent)
+        .comment(payment.getComment())
+        .maturityDate(payment.getPaymentDueDate())
+        .initiatedDatetime(payment.getCreatedDatetime())
+        .build();
+  }
+
 }

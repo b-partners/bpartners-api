@@ -3,7 +3,6 @@ package app.bpartners.api.model;
 import app.bpartners.api.endpoint.rest.model.ProductStatus;
 import java.math.BigInteger;
 import java.time.Instant;
-import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -24,20 +23,20 @@ import static org.apfloat.Apcomplex.ONE;
 @ToString
 public class InvoiceProduct {
   private String id;
+  private String idInvoice;
   private String description;
   private Integer quantity;
   private Fraction unitPrice;
   private Instant createdAt;
   private Fraction vatPercent;
-  @Getter(AccessLevel.NONE)
-  private Fraction unitPriceWithVat;
-  @Getter(AccessLevel.NONE)
-  private Fraction totalVat;
-  @Getter(AccessLevel.NONE)
-  private Fraction totalPriceWithVat;
+  //  @Getter(AccessLevel.NONE)
+  //  private Fraction totalVat;
+  //  @Getter(AccessLevel.NONE)
+  //  private Fraction totalPriceWithVat;
   private Fraction vatWithDiscount;
   private Fraction totalWithDiscount;
   private Fraction priceNoVatWithDiscount;
+  private ProductStatus status;
 
   public Fraction getDiscountAmount(Fraction discount) {
     Fraction price =
@@ -46,7 +45,7 @@ public class InvoiceProduct {
         (priceValue, discountValue) ->
             priceValue.multiply(discountValue.divide(new Aprational(10000))));
   }
-  private ProductStatus status;
+
 
   public Fraction getVatWithDiscount(Fraction discountPercent) {
     if (vatPercent == null) {
@@ -97,10 +96,6 @@ public class InvoiceProduct {
     totalWithDiscount = getPriceNoVatWithDiscount(discount)
         .operate(getVatWithDiscount(discount), Aprational::add);
     return totalWithDiscount;
-  }
-
-  public Fraction getPriceWithVatNoDiscount() {
-    return getPriceWithoutVat().operate(getVatAmount(), Aprational::add);
   }
 
   public Fraction getUnitPriceWithVat() {

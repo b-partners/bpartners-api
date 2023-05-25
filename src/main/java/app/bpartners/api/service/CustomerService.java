@@ -7,6 +7,7 @@ import app.bpartners.api.endpoint.rest.model.UpdateCustomerStatus;
 import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.Customer;
 import app.bpartners.api.model.PageFromOne;
+import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.repository.CustomerRepository;
 import java.io.ByteArrayInputStream;
 import java.util.List;
@@ -55,5 +56,12 @@ public class CustomerService {
     return customersFromFile.stream()
         .map(customer -> restMapper.toDomain(idUser, customer))
         .collect(Collectors.toList());
+  }
+
+  public void checkCustomerExistence(Customer toCheck) {
+    if (repository.findOptionalById(toCheck.getId()).isEmpty()) {
+      throw new NotFoundException(
+          "Customer(id=" + toCheck.getId() + ") not found");
+    }
   }
 }

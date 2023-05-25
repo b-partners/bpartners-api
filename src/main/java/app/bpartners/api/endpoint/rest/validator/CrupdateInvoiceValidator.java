@@ -121,15 +121,4 @@ public class CrupdateInvoiceValidator implements Consumer<CrupdateInvoice> {
     return invoice.getToPayAt() != null && invoice.getSendingDate() != null
         && invoice.getToPayAt().isBefore(invoice.getSendingDate());
   }
-
-  public void accept(UpdateInvoiceArchivedStatus toArchive) {
-    StringBuilder messageBuilder = new StringBuilder();
-    if (toArchive.getArchiveStatus() == null) {
-      messageBuilder.append("Status is mandatory.");
-    }
-    String errorMessage = messageBuilder.toString();
-    if (!errorMessage.isEmpty()) {
-      throw new BadRequestException(errorMessage);
-    }
-  }
 }

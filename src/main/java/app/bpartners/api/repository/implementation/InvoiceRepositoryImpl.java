@@ -2,6 +2,7 @@ package app.bpartners.api.repository.implementation;
 
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.endpoint.rest.security.AuthProvider;
+import app.bpartners.api.model.ArchiveInvoice;
 import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.NotFoundException;
@@ -104,6 +105,23 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
     return jpaRepository.findAllByIdUser(idUser, pageable).stream()
         .map(mapper::toDomain)
         .collect(Collectors.toUnmodifiableList());
+  }
+
+  @Override
+  public List<Invoice> saveAll(List<ArchiveInvoice> archiveInvoices) {
+    List<HInvoice> entities = archiveInvoices.stream()
+        .map(archiveInvoice -> {
+          HInvoice invoice = jpaRepository.findById(archiveInvoice.getIdInvoice())
+              .orElseThrow(() -> new NotFoundException(
+                  "Invoice(id=" + archiveInvoice.getIdInvoice() + " not found"));
+          return invoice.toBuilder()
+              .archiveStatus(archiveInvoice.getStatus())
+              .build();
+        })
+        .collect(Collectors.toList());
+    return jpaRepository.saveAll(entities).stream()
+        .map(mapper::toDomain)
+        .collect(Collectors.toList());
   }
 
   private List<HInvoiceProduct> getProductEntities(Invoice toCrupdate, HInvoice invoice) {

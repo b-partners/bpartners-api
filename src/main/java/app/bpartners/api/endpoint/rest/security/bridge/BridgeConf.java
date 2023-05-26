@@ -1,6 +1,7 @@
 package app.bpartners.api.endpoint.rest.security.bridge;
 
 import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -62,7 +63,7 @@ public class BridgeConf {
   }
 
   public String getPaginatedTransactionUrl(String uri) {
-    return baseUrl + uri.replace("/v2", "");
+    return baseUrl + uri.replace("/v2", StringUtils.EMPTY);
   }
 
   public String getItemStatusUrl(Long id) {

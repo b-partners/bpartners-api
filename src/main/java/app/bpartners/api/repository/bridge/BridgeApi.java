@@ -404,11 +404,13 @@ public class BridgeApi {
     }
   }
 
-  private List<BridgeTransaction> getTransactions(String userToken, String uri,
-                                                  List<BridgeTransaction> transactions)
+  private List<BridgeTransaction> getAllBridgeTransactionsByUserToken(String userToken, String uri,
+                                                                      List<BridgeTransaction> transactions)
       throws URISyntaxException, IOException, InterruptedException {
+    String requestUri = uri == null ? conf.getTransactionUrl() :
+        conf.getPaginatedTransactionUrl(uri);
     HttpRequest request = HttpRequest.newBuilder()
-        .uri(new URI(uri == null ? conf.getTransactionUrl() : conf.getPaginatedTransactionUrl(uri)))
+        .uri(new URI(requestUri))
         .headers(defaultHeadersWithToken(userToken))
         .GET()
         .build();
@@ -422,16 +424,17 @@ public class BridgeApi {
         new TypeReference<>() {
         });
     transactions.addAll(response.getResources());
-    if (response.getPagination().getNextUri() == null) {
+    String nextUri = response.getPagination().getNextUri();
+    if (nextUri == null) {
       return transactions;
     }
-    return getTransactions(userToken, response.getPagination().getNextUri(), transactions);
+    return getAllBridgeTransactionsByUserToken(userToken, nextUri, transactions);
   }
 
   public List<BridgeTransaction> findTransactionsUpdatedByToken(String userToken) {
     try {
       List<BridgeTransaction> transactions = new ArrayList<>();
-      return getTransactions(userToken, null, transactions);
+      return getAllBridgeTransactionsByUserToken(userToken, null, transactions);
     } catch (URISyntaxException | IOException e) {
       throw new ApiException(SERVER_EXCEPTION, e);
     } catch (InterruptedException e) {

@@ -1,17 +1,18 @@
 package app.bpartners.api.endpoint.rest.security.bridge;
 
 import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
 @Data
 public class BridgeConf {
+  public static final String FRANCE_BANK_COUNTRY_CODE = "fr";
   private String clientId;
   private String clientSecret;
   private String baseUrl;
   private String bridgeVersion;
-  public static final String FRANCE_BANK_COUNTRY_CODE = "fr";
 
   public BridgeConf(
       @Value("${bridge.client.id}")
@@ -59,6 +60,10 @@ public class BridgeConf {
 
   public String getTransactionUrl() {
     return baseUrl + "/transactions";
+  }
+
+  public String getPaginatedTransactionUrl(String uri) {
+    return baseUrl + uri.replace("/v2", StringUtils.EMPTY);
   }
 
   public String getItemStatusUrl(Long id) {

@@ -22,7 +22,10 @@ public class TransactionMapper {
   public TransactionConnector toConnector(BridgeTransaction bridgeTransaction) {
     return TransactionConnector.builder()
         .id(String.valueOf(bridgeTransaction.getId()))
-        .amount(parseFraction(bridgeTransaction.getAbsAmount()))
+
+        // TODO(bad-cents): it _seems_ bridge.amount is in major, while connector.amount is in minor
+        .amount(parseFraction(bridgeTransaction.getAbsAmount()*100))
+
         .currency(bridgeTransaction.getCurrency())
         .label(bridgeTransaction.getLabel())
         .transactionDate(bridgeTransaction.getTransactionDate())

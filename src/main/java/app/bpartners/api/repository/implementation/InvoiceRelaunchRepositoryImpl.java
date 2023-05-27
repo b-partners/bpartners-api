@@ -4,10 +4,13 @@ import app.bpartners.api.endpoint.rest.model.RelaunchType;
 import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.InvoiceRelaunch;
 import app.bpartners.api.model.exception.BadRequestException;
+import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.mapper.InvoiceRelaunchMapper;
 import app.bpartners.api.repository.InvoiceRelaunchRepository;
 import app.bpartners.api.repository.InvoiceRepository;
+import app.bpartners.api.repository.jpa.InvoiceJpaRepository;
 import app.bpartners.api.repository.jpa.InvoiceRelaunchJpaRepository;
+import app.bpartners.api.repository.jpa.model.HInvoice;
 import app.bpartners.api.repository.jpa.model.HInvoiceRelaunch;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -23,6 +26,7 @@ public class InvoiceRelaunchRepositoryImpl implements InvoiceRelaunchRepository 
   private final InvoiceRelaunchJpaRepository jpaRepository;
   private final InvoiceRelaunchMapper mapper;
   private final InvoiceRepository invoiceRepository;
+  private final InvoiceJpaRepository invoiceJpaRepository;
 
   @Override
   public List<InvoiceRelaunch> getByInvoiceId(
@@ -49,8 +53,10 @@ public class InvoiceRelaunchRepositoryImpl implements InvoiceRelaunchRepository 
   @Override
   public InvoiceRelaunch save(
       Invoice invoice, String object, String htmlBody, boolean isUserRelaunched) {
+    HInvoice invoiceEntity = invoiceJpaRepository.findById(invoice.getId()).orElseThrow(
+        () -> new NotFoundException("Invoice(id=" + invoice.getId() + ") not found"));
     HInvoiceRelaunch toSave =
-        mapper.toEntity(invoice, object, htmlBody, isUserRelaunched);
+        mapper.toEntity(invoiceEntity, object, htmlBody, isUserRelaunched);
     HInvoiceRelaunch savedRelaunch = jpaRepository.save(toSave);
     return mapper.toDomain(savedRelaunch, invoiceRepository.getById(invoice.getId()));
   }

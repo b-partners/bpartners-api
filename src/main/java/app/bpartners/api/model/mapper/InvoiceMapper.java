@@ -6,26 +6,17 @@ import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.InvoiceDiscount;
 import app.bpartners.api.model.InvoiceProduct;
-import app.bpartners.api.model.PaymentInitiation;
-import app.bpartners.api.model.JustifyTransaction;
+import app.bpartners.api.model.PaymentRequest;
 import app.bpartners.api.model.TransactionInvoiceDetails;
 import app.bpartners.api.model.User;
-import app.bpartners.api.model.exception.NotFoundException;
-import app.bpartners.api.repository.jpa.InvoiceJpaRepository;
 import app.bpartners.api.repository.jpa.model.HInvoice;
 import app.bpartners.api.repository.jpa.model.HInvoiceProduct;
 import app.bpartners.api.repository.jpa.model.HPaymentRequest;
-import app.bpartners.api.service.AccountService;
-import app.bpartners.api.service.PaymentInitiationService;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Instant;
-import java.time.LocalDate;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
@@ -34,16 +25,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.apfloat.Aprational;
 import org.springframework.stereotype.Component;
 
-import static app.bpartners.api.endpoint.rest.model.Invoice.PaymentTypeEnum.CASH;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PROPOSAL;
-import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PROPOSAL_CONFIRMED;
 import static app.bpartners.api.service.InvoiceService.DRAFT_REF_PREFIX;
 import static app.bpartners.api.service.InvoiceService.PROPOSAL_REF_PREFIX;
 import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 import static app.bpartners.api.service.utils.FractionUtils.toAprational;
-import static java.util.UUID.randomUUID;
+import static app.bpartners.api.service.utils.PaymentUtils.computeTotalPriceFromPaymentReqEntity;
 
 @Component
 @AllArgsConstructor
@@ -51,15 +40,8 @@ import static java.util.UUID.randomUUID;
 public class InvoiceMapper {
   private final ObjectMapper objectMapper;
   private final CustomerMapper customerMapper;
-  private final InvoiceJpaRepository jpaRepository;
-  private final AccountService accountService;
-  private final PaymentInitiationService pis;
   private final InvoiceProductMapper productMapper;
-  private final PaymentRequestMapper requestMapper;
-
-  private static Instant getCreatedDatetime(Optional<HInvoice> persisted) {
-    return persisted.map(HInvoice::getCreatedDatetime).orElse(Instant.now());
-  }
+  private final PaymentRequestMapper paymentRequestMapper;
 
   public Invoice toDomain(HInvoice entity, User user) {
     return toDomain(entity).toBuilder()
@@ -74,7 +56,7 @@ public class InvoiceMapper {
     }
     Integer delayInPaymentAllowed = entity.getDelayInPaymentAllowed();
     String delayPenaltyPercent = entity.getDelayPenaltyPercent();
-    List<InvoiceProduct> actualProducts = getActualProducts(entity);
+    List<InvoiceProduct> actualProducts = toInvoiceProducts(entity);
     Fraction discount = parseFraction(entity.getDiscountPercent());
     Invoice invoice = Invoice.builder()
         .id(entity.getId())
@@ -118,7 +100,7 @@ public class InvoiceMapper {
             .percentValue(parseFraction(entity.getDiscountPercent()))
             .amountValue(computeTotalDiscountAmount(discount, actualProducts))
             .build())
-        .multiplePayments(getMultiplePayments(entity))
+        .paymentRegulations(toCreatePaymentRegulations(entity))
         .build();
     return updateInvoiceReference(entity, invoice);
   }
@@ -138,33 +120,18 @@ public class InvoiceMapper {
     return invoice;
   }
 
-  public List<CreatePaymentRegulation> getMultiplePayments(HInvoice entity) {
+  public List<CreatePaymentRegulation> toCreatePaymentRegulations(HInvoice entity) {
     List<HPaymentRequest> paymentRequests = entity.getPaymentRequests();
-    Fraction totalPrice = computeMultiplePaymentsAmount(paymentRequests);
+    Fraction totalPrice = computeTotalPriceFromPaymentReqEntity(paymentRequests);
     return paymentRequests.stream()
-        .map(payment -> CreatePaymentRegulation.builder()
-            .endToEndId(payment.getId())
-            .percent(totalPrice.getCentsRoundUp() == 0 ? new Fraction()
-                : parseFraction(payment.getAmount()).operate(totalPrice,
-                Aprational::divide))
-            .label(payment.getLabel())
-            .comment(payment.getComment())
-            .amount(parseFraction(payment.getAmount()))
-            .paymentUrl(payment.getPaymentUrl())
-            .reference(payment.getReference())
-            .payerName(payment.getPayerName())
-            .payerEmail(payment.getPayerEmail())
-            .maturityDate(payment.getPaymentDueDate())
-            .initiatedDatetime(payment.getCreatedDatetime())
-            .build())
+        .map(payment -> {
+          Fraction percent = totalPrice.getCentsRoundUp() == 0 ? new Fraction()
+              : parseFraction(payment.getAmount()).operate(totalPrice,
+              Aprational::divide);
+          return paymentRequestMapper.toPaymentRegulation(
+              new PaymentRequest(payment), percent);
+        })
         .collect(Collectors.toUnmodifiableList());
-  }
-
-  private Fraction computePriceNoVatWithDiscount(Fraction discount,
-                                                 List<InvoiceProduct> actualProducts) {
-    return computeSum(actualProducts, actualProducts.stream()
-        .map(product ->
-            product.getPriceNoVatWithDiscount(discount)));
   }
 
   public TransactionInvoiceDetails toTransactionInvoice(HInvoice entity) {
@@ -175,7 +142,7 @@ public class InvoiceMapper {
         .build();
   }
 
-  private List<InvoiceProduct> getActualProducts(HInvoice entity) {
+  private List<InvoiceProduct> toInvoiceProducts(HInvoice entity) {
     return entity.getProducts() == null
         ? List.of() : entity.getProducts().stream()
         .map(productMapper::toDomain)
@@ -191,96 +158,27 @@ public class InvoiceMapper {
     });
   }
 
-  public HInvoice toEntity(JustifyTransaction justifyTransaction) {
-    return justifyTransaction == null || justifyTransaction.getIdInvoice() == null ? null
-        : jpaRepository.findById(justifyTransaction.getIdInvoice())
-        .orElseThrow(
-            () -> new NotFoundException(
-                "Invoice." + justifyTransaction.getIdInvoice() + " is not found")
-        );
-  }
-
-  //TODO: move to appropriate layer the actions
-  //TODO: split to specific sub-mapper
   @SneakyThrows
-  public HInvoice toEntity(Invoice domain, boolean isToBeCrupdated) {
-    String id = domain.getId();
-    String fileId = domain.getFileId();
-    String paymentUrl = domain.getPaymentUrl();
-    LocalDate sendingDate = domain.getSendingDate();
-    LocalDate toPayAt = null;
-    LocalDate validityDate = domain.getValidityDate();
-    List<HInvoiceProduct> actualProducts = List.of();
-    Fraction totalPriceWithVat =
-        computeTotalPriceWithVatAndDiscount(domain.getDiscount().getPercentValue(),
-            domain.getProducts());
-    List<PaymentInitiation> paymentInitiations = getPaymentInitiations(domain, totalPriceWithVat);
-    List<HPaymentRequest> paymentRequests =
-        pis.retrievePaymentEntities(paymentInitiations, id, domain.getStatus());
-
-    //TODO: split this into specific layer - BEGIN
-    Optional<HInvoice> optionalInvoice = jpaRepository.findById(id);
-    if (isToBeCrupdated && optionalInvoice.isPresent()) {
-      HInvoice entity = optionalInvoice.get();
-      actualProducts = entity.getProducts();
-      fileId = entity.getFileId();
-
-      //TODO: change when we can create a confirmed from scratch
-      if (domain.getStatus() == CONFIRMED && entity.getStatus() == PROPOSAL) {
-        id = String.valueOf(randomUUID());
-        sendingDate = LocalDate.now();
-        validityDate = null;
-        fileId = null;
-
-        jpaRepository.save(entity.status(PROPOSAL_CONFIRMED));
-      } else if (domain.getStatus() == PAID && entity.getStatus() == CONFIRMED) {
-        validityDate = null;
-        sendingDate = entity.getSendingDate();
-
-        if (domain.getPaymentType() == CASH) {
-          paymentUrl = entity.getPaymentUrl();
-          toPayAt = sendingDate.plusDays(domain.getDelayInPaymentAllowed());
-        } else {
-          paymentRequests = entity.getPaymentRequests();
-        }
-      }
-    }
-
-    if (domain.getStatus() == CONFIRMED) {
-      if (domain.getPaymentType() == CASH) {
-        Integer delayInPaymentAllowed = domain.getDelayInPaymentAllowed();
-        if (delayInPaymentAllowed == null) {
-          log.warn(
-              "Delay in payment allowed is mandatory to retrieve invoice payment date limit."
-                  + " 30 days are given by default");
-          delayInPaymentAllowed = 30;
-        }
-        toPayAt = sendingDate.plusDays(delayInPaymentAllowed);
-        paymentUrl =
-            getPaymentUrl(domain, paymentUrl, computeTotalPriceWithVatAndDiscount(
-                domain.getDiscount().getPercentValue(), domain.getProducts()));
-      } else {
-        //TODO: check if amount changed or paymentRegulations changed and retrieve new else get
-        // persisted
-        paymentRequests = pis.retrievePaymentEntitiesWithUrl(
-            paymentInitiations, id);
-        paymentUrl = null;
-      }
-    }
-    //TODO: split this into specific layer - END
+  public HInvoice toEntity(
+      Invoice domain,
+      List<HPaymentRequest> paymentRequests,
+      List<HInvoiceProduct> products) {
     return HInvoice.builder()
-        .id(id)
-        .fileId(fileId)
+        .id(domain.getId())
+        .fileId(domain.getFileId())
         .comment(domain.getComment())
-        .paymentUrl(paymentUrl)
+        .paymentUrl(domain.getPaymentUrl())
         .ref(domain.getRealReference())
         .title(domain.getTitle())
         .idUser(domain.getUser().getId())
         .status(domain.getStatus())
         .archiveStatus(
-            domain.getArchiveStatus() == null ? ArchiveStatus.ENABLED : domain.getArchiveStatus())
+            domain.getArchiveStatus() == null
+                ? ArchiveStatus.ENABLED
+                : domain.getArchiveStatus())
         .toBeRelaunched(domain.isToBeRelaunched())
-        .customer(domain.getCustomer() == null ? null
+        .customer(domain.getCustomer() == null
+            ? null
             : customerMapper.toEntity(domain.getCustomer()))
         .customerEmail(domain.getCustomerEmail())
         .customerAddress(domain.getCustomerAddress())
@@ -290,76 +188,55 @@ public class InvoiceMapper {
         .customerWebsite(domain.getCustomerWebsite())
         .customerZipCode(domain.getCustomerZipCode())
         .paymentType(domain.getPaymentType())
-        .validityDate(validityDate)
-        .sendingDate(sendingDate)
-        .toPayAt(toPayAt)
+        .validityDate(domain.getValidityDate())
+        .sendingDate(domain.getSendingDate())
+        .toPayAt(domain.getToPayAt())
         .updatedAt(Instant.now())
-        .createdDatetime(getCreatedDatetime(optionalInvoice))
+        .createdDatetime(domain.getCreatedAt())
         .delayInPaymentAllowed(domain.getDelayInPaymentAllowed())
         .delayPenaltyPercent(domain.getDelayPenaltyPercent().toString())
         .paymentRequests(paymentRequests)
-        .products(actualProducts)
+        .products(products)
         .metadataString(objectMapper.writeValueAsString(domain.getMetadata()))
         .discountPercent(domain.getDiscount().getPercentValue().toString())
         .build();
   }
 
-  private List<PaymentInitiation> getPaymentInitiations(
-      Invoice domain,
-      Fraction totalPriceWithVat) {
-    List<PaymentInitiation> payments = domain.getMultiplePayments().stream()
-        .map(payment -> {
-          String randomId = String.valueOf(randomUUID());
-          payment.setEndToEndId(randomId);
-          return requestMapper.convertFromInvoice(
-              randomId, domain, totalPriceWithVat, payment);
-        })
-        .sorted(Comparator.comparing(PaymentInitiation::getPaymentDueDate))
-        .collect(Collectors.toUnmodifiableList());
-    for (int i = 0; i < payments.size(); i++) {
-      if (i != payments.size() - 1) {
-        payments.get(i).setLabel(domain.getTitle() + " - Acompte N°" + (i + 1));
-      } else {
-        payments.get(i).setLabel(domain.getTitle() + " - Restant dû");
-      }
-    }
-    return payments;
-  }
-
-  private static Fraction computeMultiplePaymentsAmount(
-      List<HPaymentRequest> payments) {
-    AtomicReference<Fraction> fraction = new AtomicReference<>(new Fraction());
-    payments.forEach(
-        payment -> fraction.set(fraction.get()
-            .operate(parseFraction(payment.getAmount()), Aprational::add)));
-    return fraction.get();
-  }
-
-  private Fraction computeTotalDiscountAmount(Fraction discount, List<InvoiceProduct> products) {
+  public static Fraction computeTotalDiscountAmount(Fraction discount,
+                                                    List<InvoiceProduct> products) {
     return computeSum(products, products.stream()
         .map(product ->
             product.getDiscountAmount(discount)));
   }
 
-  private Fraction computeTotalVatWithDiscount(Fraction discount, List<InvoiceProduct> products) {
+  public static Fraction computeTotalVatWithDiscount(Fraction discount,
+                                                     List<InvoiceProduct> products) {
     return computeSum(products, products.stream()
         .map(product ->
             product.getVatWithDiscount(discount)));
   }
 
-  private Fraction computePriceWithoutDiscount(List<InvoiceProduct> products) {
+  public static Fraction computePriceWithoutDiscount(List<InvoiceProduct> products) {
     return computeSum(products, products.stream()
         .map(InvoiceProduct::getPriceWithoutVat));
   }
 
-  private Fraction computeTotalPriceWithVatAndDiscount(
+  public static Fraction computeTotalPriceWithVatAndDiscount(
       Fraction discount, List<InvoiceProduct> products) {
     return computeSum(products, products.stream()
         .map(product ->
             product.getPriceWithVatAndDiscount(discount)));
   }
 
-  private Fraction computeSum(List<InvoiceProduct> products, Stream<Fraction> fractionStream) {
+  public static Fraction computePriceNoVatWithDiscount(Fraction discount,
+                                                       List<InvoiceProduct> actualProducts) {
+    return computeSum(actualProducts, actualProducts.stream()
+        .map(product ->
+            product.getPriceNoVatWithDiscount(discount)));
+  }
+
+  private static Fraction computeSum(List<InvoiceProduct> products,
+                                     Stream<Fraction> fractionStream) {
     if (products == null) {
       return new Fraction();
     }
@@ -367,11 +244,5 @@ public class InvoiceMapper {
         .map(a -> toAprational(a.getNumerator(), a.getDenominator()))
         .reduce(new Aprational(0), Aprational::add);
     return parseFraction(aprational);
-  }
-
-  private String getPaymentUrl(Invoice domain, String paymentUrl, Fraction totalPriceWithVat) {
-    return totalPriceWithVat.getCentsAsDecimal() != 0
-        ? pis.initiateInvoicePayment(domain, totalPriceWithVat).getRedirectUrl()
-        : paymentUrl;
   }
 }

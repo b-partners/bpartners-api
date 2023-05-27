@@ -154,6 +154,12 @@ public class CustomerRepositoryImpl implements CustomerRepository {
             new NotFoundException("Customer." + id + " is not found.")));
   }
 
+  @Override
+  public Optional<Customer> findOptionalById(String id) {
+    Optional<HCustomer> optionalCustomer = jpaRepository.findById(id);
+    return optionalCustomer.map(mapper::toDomain);
+  }
+
   private Customer checkExisting(Customer domain) {
     //Case of update with ID
     String id = domain.getId();

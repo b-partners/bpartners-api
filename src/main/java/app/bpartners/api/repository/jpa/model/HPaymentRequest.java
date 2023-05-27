@@ -52,7 +52,20 @@ public class HPaymentRequest implements Serializable {
   @CreationTimestamp
   private Instant createdDatetime;
 
-  public HPaymentRequest(PaymentRequest p) {
-    //TODO
+  public HPaymentRequest(PaymentRequest domain) {
+    this.id = domain.getId();
+    this.sessionId = domain.getExternalId();
+    this.idUser = domain.getIdUser();
+    this.idInvoice = domain.getInvoiceId();
+    this.label = domain.getLabel();
+    this.paymentUrl = domain.getPaymentUrl();
+    this.reference = domain.getReference();
+    this.amount = domain.getAmount().toString();
+    this.payerName = domain.getPayerName();
+    this.payerEmail = domain.getPayerEmail();
+    this.paymentDueDate = domain.getPaymentDueDate();
+    this.status = domain.getStatus();
+    this.comment = domain.getComment();
+    this.createdDatetime = domain.getCreatedDatetime();
   }
 }

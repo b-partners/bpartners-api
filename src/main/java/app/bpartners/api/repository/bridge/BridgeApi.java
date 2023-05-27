@@ -404,23 +404,37 @@ public class BridgeApi {
     }
   }
 
+  private List<BridgeTransaction> getAllBridgeTransactionsByUserToken(String userToken, String uri,
+                                                                      List<BridgeTransaction> transactions)
+      throws URISyntaxException, IOException, InterruptedException {
+    String requestUri = uri == null ? conf.getTransactionUrl() :
+        conf.getPaginatedTransactionUrl(uri);
+    HttpRequest request = HttpRequest.newBuilder()
+        .uri(new URI(requestUri))
+        .headers(defaultHeadersWithToken(userToken))
+        .GET()
+        .build();
+    HttpResponse<String> httpResponse =
+        httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+    if (httpResponse.statusCode() != 200) {
+      log.warn("BridgeApi errors : {}", httpResponse.body());
+      return List.of();
+    }
+    BridgeListResponse<BridgeTransaction> response = objectMapper.readValue(httpResponse.body(),
+        new TypeReference<>() {
+        });
+    transactions.addAll(response.getResources());
+    String nextUri = response.getPagination().getNextUri();
+    if (nextUri == null) {
+      return transactions;
+    }
+    return getAllBridgeTransactionsByUserToken(userToken, nextUri, transactions);
+  }
+
   public List<BridgeTransaction> findTransactionsUpdatedByToken(String userToken) {
     try {
-      HttpRequest request = HttpRequest.newBuilder()
-          .uri(new URI(conf.getTransactionUpdatedUrl()))
-          .headers(defaultHeadersWithToken(userToken))
-          .GET()
-          .build();
-      HttpResponse<String> httpResponse =
-          httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-      if (httpResponse.statusCode() != 200) {
-        log.warn("BridgeApi errors : {}", httpResponse.body());
-        return List.of();
-      }
-      BridgeListResponse<BridgeTransaction> response = objectMapper.readValue(httpResponse.body(),
-          new TypeReference<>() {
-          });
-      return response.getResources();
+      List<BridgeTransaction> transactions = new ArrayList<>();
+      return getAllBridgeTransactionsByUserToken(userToken, null, transactions);
     } catch (URISyntaxException | IOException e) {
       throw new ApiException(SERVER_EXCEPTION, e);
     } catch (InterruptedException e) {

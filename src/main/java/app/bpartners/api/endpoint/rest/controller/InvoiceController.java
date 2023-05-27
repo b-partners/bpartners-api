@@ -6,6 +6,7 @@ import app.bpartners.api.endpoint.rest.model.Invoice;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.endpoint.rest.model.UpdateInvoiceArchivedStatus;
 import app.bpartners.api.endpoint.rest.security.AuthProvider;
+import app.bpartners.api.model.ArchiveInvoice;
 import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.service.InvoiceService;
@@ -60,10 +61,10 @@ public class InvoiceController {
   public List<Invoice> archiveInvoices(
       @PathVariable(name = "aId") String accountId,
       @RequestBody List<UpdateInvoiceArchivedStatus> toArchive) {
-    List<app.bpartners.api.model.Invoice> invoices = toArchive.stream()
+    List<ArchiveInvoice> archiveInvoices = toArchive.stream()
         .map(mapper::toDomain)
         .collect(Collectors.toUnmodifiableList());
-    return service.archiveInvoices(invoices).stream()
+    return service.archiveInvoices(archiveInvoices).stream()
         .map(mapper::toRest)
         .collect(Collectors.toUnmodifiableList());
   }

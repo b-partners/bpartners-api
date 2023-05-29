@@ -8,5 +8,7 @@ public interface UserTokenRepository {
 
   UserToken getLatestTokenByUser(User user);
 
+  UserToken getLatestTokenByUserId(String userId);
+
   UserToken getLatestTokenByAccount(String accountId);
 }

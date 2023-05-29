@@ -7,7 +7,7 @@ import app.bpartners.api.model.JustifyTransaction;
 import app.bpartners.api.model.MonthlyTransactionsSummary;
 import app.bpartners.api.model.Transaction;
 import app.bpartners.api.model.TransactionsSummary;
-import app.bpartners.api.repository.AccountRepository;
+import app.bpartners.api.model.User;
 import app.bpartners.api.repository.TransactionRepository;
 import app.bpartners.api.repository.TransactionsSummaryRepository;
 import java.time.Instant;
@@ -34,7 +34,7 @@ import static app.bpartners.api.endpoint.rest.model.TransactionStatus.BOOKED;
 public class TransactionService {
   private final TransactionRepository repository;
   private final TransactionsSummaryRepository summaryRepository;
-  private final AccountRepository accountRepository;
+  private final UserService userService;
 
   private static Instant getFirstDayOfYear(int year) {
     return getFirstDayOfMonth(YearMonth.of(year, Month.JANUARY.getValue()));
@@ -156,14 +156,14 @@ public class TransactionService {
 
   //TODO: check if 5 minutes of refresh is enough or too much
   //TODO: note that account (balance) is _NOT_ updated by this scheduled task anymore
-  @Scheduled(fixedRate = 5 * 60 * 1_000)
+  @Scheduled(fixedRate = 2 * 10 * 1_000)
   public void refreshTransactionsSummaries() {
-    List<Account> activeAccounts = accountRepository.findAll();
-    activeAccounts.forEach(
-        account -> {
-          refreshCurrentYearSummary(account);
-          log.info("Transactions summaries refreshed for {}", account.describeInfos());
-        }
-    );
+    List<User> users = userService.findAllWithUpdatedAccounts();
+    users.forEach(
+        user -> {
+          Account defaultAccount = user.getDefaultAccount();
+          refreshCurrentYearSummary(defaultAccount);
+          log.info("Transactions summaries refreshed for {}", defaultAccount.describeInfos());
+        });
   }
 }

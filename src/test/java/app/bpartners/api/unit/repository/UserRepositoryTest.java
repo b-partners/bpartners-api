@@ -3,6 +3,7 @@ package app.bpartners.api.unit.repository;
 import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.mapper.UserMapper;
+import app.bpartners.api.repository.AccountRepository;
 import app.bpartners.api.repository.BankRepository;
 import app.bpartners.api.repository.bridge.repository.BridgeUserRepository;
 import app.bpartners.api.repository.implementation.UserRepositoryImpl;
@@ -34,6 +35,7 @@ class UserRepositoryTest {
   AccountHolderJpaRepository accountHolderJpaRepositoryMock;
   AccountJpaRepository accountJpaRepositoryMock;
   BankRepository bankRepositoryMock;
+  AccountRepository accountRepositoryMock;
 
 
   @BeforeEach
@@ -45,10 +47,12 @@ class UserRepositoryTest {
     accountHolderJpaRepositoryMock = mock(AccountHolderJpaRepository.class);
     accountJpaRepositoryMock = mock(AccountJpaRepository.class);
     bankRepositoryMock = mock(BankRepository.class);
+    accountRepositoryMock = mock(AccountRepository.class);
     subject =
         new UserRepositoryImpl(userJpaRepositoryMock, userMapperMock, cognitoComponentMock,
             bridgeUserRepositoryMock,
-            accountHolderJpaRepositoryMock, accountJpaRepositoryMock, bankRepositoryMock);
+            accountHolderJpaRepositoryMock, accountJpaRepositoryMock, accountRepositoryMock,
+            bankRepositoryMock);
 
     when(userJpaRepositoryMock.save(any())).thenReturn(user());
     when(userJpaRepositoryMock.findByEmail(JOE_EMAIL)).thenReturn(Optional.ofNullable(user()));

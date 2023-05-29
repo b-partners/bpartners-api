@@ -2,9 +2,11 @@ package app.bpartners.api.repository.bridge.repository.implementation;
 
 import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.model.User;
+import app.bpartners.api.model.UserToken;
 import app.bpartners.api.model.mapper.AccountMapper;
 import app.bpartners.api.repository.AccountConnectorRepository;
 import app.bpartners.api.repository.BankRepository;
+import app.bpartners.api.repository.UserTokenRepository;
 import app.bpartners.api.repository.bridge.BridgeApi;
 import app.bpartners.api.repository.implementation.SavableAccountConnectorRepository;
 import app.bpartners.api.repository.model.AccountConnector;
@@ -26,28 +28,29 @@ public class BridgeAccountConnectorRepository implements AccountConnectorReposit
   private final AccountMapper accountMapper;
   private final SavableAccountConnectorRepository savableRepository;
   private final BankRepository bankRepository;
+  private final UserTokenRepository userTokenRepository;
 
   @Override
   public List<AccountConnector> findByBearer(String bearer) {
-    List<AccountConnector> connectors = bridgeApi.findAccountsByToken(bearer).stream()
-        .map(accountMapper::toConnector)
-        .collect(Collectors.toList());
-    if (!connectors.isEmpty()) {
-      User authenticated = AuthProvider.getAuthenticatedUser();
-      if (authenticated.getBankConnectionId() == null) {
-        bankRepository.updateBankConnection(authenticated);
-      }
-    }
-    return connectors;
+    return findByBearerWithUser(bearer, AuthProvider.getAuthenticatedUser());
   }
 
   @Override
   public List<AccountConnector> findByUserId(String userId) {
-    if (!userIsAuthenticated() || getAuthenticatedUserId() == null
-        || !getAuthenticatedUserId().equals(userId)) {
-      return List.of();
+    String bearer = AuthProvider.getBearer();
+    User authenticated = AuthProvider.getAuthenticatedUser();
+    if (bearer == null && authenticated == null) {
+      UserToken userToken = userTokenRepository.getLatestTokenByUserId(userId);
+      if (userToken != null) {
+        bearer = userToken.getAccessToken();
+        authenticated = userToken.getUser();
+      }
     }
-    return findByBearer(AuthProvider.getBearer());
+    return bearer == null
+        || getAuthenticatedUserId() == null
+        || !getAuthenticatedUserId().equals(userId)
+        ? List.of()
+        : findByBearerWithUser(bearer, authenticated);
   }
 
   @Override
@@ -71,4 +74,17 @@ public class BridgeAccountConnectorRepository implements AccountConnectorReposit
       return null;
     }
   }
+
+  private List<AccountConnector> findByBearerWithUser(String bearer, User authenticated) {
+    List<AccountConnector> connectors = bridgeApi.findAccountsByToken(bearer).stream()
+        .map(accountMapper::toConnector)
+        .collect(Collectors.toList());
+    if (!connectors.isEmpty()) {
+      if (authenticated.getBankConnectionId() == null) {
+        bankRepository.updateBankConnection(authenticated);
+      }
+    }
+    return connectors;
+  }
+
 }

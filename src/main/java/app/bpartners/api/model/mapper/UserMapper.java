@@ -1,6 +1,7 @@
 package app.bpartners.api.model.mapper;
 
 import app.bpartners.api.endpoint.rest.model.IdentificationStatus;
+import app.bpartners.api.model.Account;
 import app.bpartners.api.model.Bank;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.ApiException;
@@ -36,6 +37,13 @@ public class UserMapper {
             .collect(Collectors.toList()))
         .build();
   }
+
+  public User toDomain(HUser entityUser, List<Account> accounts) {
+    return toDomain(entityUser).toBuilder()
+        .accounts(accounts)
+        .build();
+  }
+
 
   public User toDomain(HUser entityUser) {
     return User.builder()

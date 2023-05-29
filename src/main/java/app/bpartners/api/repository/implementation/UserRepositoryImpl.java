@@ -4,6 +4,7 @@ import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.mapper.UserMapper;
+import app.bpartners.api.repository.AccountRepository;
 import app.bpartners.api.repository.BankRepository;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.bridge.model.User.BridgeUser;
@@ -29,12 +30,20 @@ public class UserRepositoryImpl implements UserRepository {
   private final BridgeUserRepository bridgeUserRepository;
   private final AccountHolderJpaRepository holderJpaRepository;
   private final AccountJpaRepository accountJpaRepository;
+  private final AccountRepository accountRepository;
   private final BankRepository bankRepository;
 
   @Override
   public List<User> findAll() {
     return jpaRepository.findAll().stream()
         .map(userMapper::toDomain)
+        .collect(Collectors.toList());
+  }
+
+  @Override
+  public List<User> findAllWithUpdatedAccounts() {
+    return jpaRepository.findAll().stream()
+        .map(user -> userMapper.toDomain(user, accountRepository.findByUserId(user.getId())))
         .collect(Collectors.toList());
   }
 
@@ -97,5 +106,11 @@ public class UserRepositoryImpl implements UserRepository {
     HUser entityToSave = userMapper.toEntity(user, bridgeUser);
     HUser savedUser = jpaRepository.save(entityToSave);
     return userMapper.toDomain(savedUser);
+  }
+
+  @Override
+  public User getByBearer(String bearer) {
+    return userMapper.toDomain(jpaRepository.getByAccessToken(bearer).orElseThrow(
+        () -> new NotFoundException("Any user were found associated to bearer. " + bearer)));
   }
 }

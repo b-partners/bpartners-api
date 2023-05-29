@@ -2,6 +2,7 @@ package app.bpartners.api.repository.implementation;
 
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.UserToken;
+import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.mapper.UserMapper;
 import app.bpartners.api.model.mapper.UserTokenMapper;
 import app.bpartners.api.repository.UserTokenRepository;
@@ -11,10 +12,12 @@ import app.bpartners.api.repository.jpa.UserJpaRepository;
 import app.bpartners.api.repository.jpa.model.HUser;
 import java.time.Instant;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
 
 @Repository
 @AllArgsConstructor
+@Slf4j
 public class UserTokenRepositoryImpl implements UserTokenRepository {
   private final UserJpaRepository userJpaRepository;
   private final UserTokenMapper mapper;
@@ -48,6 +51,21 @@ public class UserTokenRepositoryImpl implements UserTokenRepository {
         || (entity.getTokenExpirationDatetime() != null
         && entity.getTokenExpirationDatetime().isBefore(Instant.now()))) {
       return updateUserToken(user);
+    }
+    //Note that tokens are ordered by expiration datetime desc
+    return mapper.toDomain(entity);
+  }
+
+  @Override
+  public UserToken getLatestTokenByUserId(String userId) {
+    HUser entity = userJpaRepository.findById(userId).orElseThrow(
+        () -> new NotFoundException("User(id=" + userId + ") not found")
+    );
+    User domain = userMapper.toDomain(entity);
+    if (entity.getAccessToken() == null
+        || (entity.getTokenExpirationDatetime() != null
+        && entity.getTokenExpirationDatetime().isBefore(Instant.now()))) {
+      return updateUserToken(domain);
     }
     //Note that tokens are ordered by expiration datetime desc
     return mapper.toDomain(entity);

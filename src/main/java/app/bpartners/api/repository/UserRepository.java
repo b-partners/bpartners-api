@@ -7,6 +7,8 @@ import java.util.Optional;
 public interface UserRepository {
   List<User> findAll();
 
+  List<User> findAllWithUpdatedAccounts();
+
   User getUserByToken(String token);
 
   User getByEmail(String email);
@@ -18,4 +20,6 @@ public interface UserRepository {
   User save(User toSave);
 
   User create(User user);
+
+  User getByBearer(String bearer);
 }

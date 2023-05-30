@@ -29,6 +29,7 @@ import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.endpoint.rest.security.model.Principal;
 import app.bpartners.api.endpoint.rest.security.principal.PrincipalProvider;
 import app.bpartners.api.model.Account;
+import app.bpartners.api.model.Money;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.repository.LegalFileRepository;
@@ -43,6 +44,7 @@ import app.bpartners.api.repository.model.AccountConnector;
 import app.bpartners.api.repository.sendinblue.SendinblueApi;
 import app.bpartners.api.repository.sendinblue.model.Attributes;
 import app.bpartners.api.repository.sendinblue.model.Contact;
+import app.bpartners.api.service.utils.MoneyUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
@@ -82,7 +84,6 @@ import static app.bpartners.api.endpoint.rest.model.TransactionTypeEnum.OUTCOME;
 import static app.bpartners.api.model.Invoice.DEFAULT_DELAY_PENALTY_PERCENT;
 import static app.bpartners.api.model.Invoice.DEFAULT_TO_PAY_DELAY_DAYS;
 import static app.bpartners.api.repository.bridge.model.Account.BridgeAccount.BRIDGE_STATUS_OK;
-import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -181,7 +182,7 @@ public class TestUtils {
   public static app.bpartners.api.endpoint.rest.model.Account restJoeAccount() {
     return new app.bpartners.api.endpoint.rest.model.Account()
         .id("beed1765-5c16-472a-b3f4-5c376ce5db58")
-        .availableBalance(1000000)
+        .availableBalance(10000)
         .status(OPENED)
         .active(true)
         .name("Account_name")
@@ -812,7 +813,7 @@ public class TestUtils {
         .name("Account_name")
         .iban("FR0123456789")
         .bic("BIC_NOT_NULL")
-        .availableBalance(parseFraction(10000))
+        .availableBalance(MoneyUtils.fromMajor(10000))
         .status(OPENED)
         .active(true)
         .bank(null)
@@ -862,7 +863,7 @@ public class TestUtils {
     return AccountConnector.builder()
         .id(String.valueOf(bridgeAccount.getId()))
         .name(bridgeAccount.getName())
-        .balance(bridgeAccount.getBalance())
+        .balance(MoneyUtils.fromMajor(bridgeAccount.getBalance()))
         .iban(bridgeAccount.getIban())
         .status(bridgeAccount.getDomainStatus())
         .build();

@@ -5,13 +5,12 @@ import app.bpartners.api.model.TransactionCategory;
 import app.bpartners.api.repository.bridge.model.Transaction.BridgeTransaction;
 import app.bpartners.api.repository.connectors.transaction.TransactionConnector;
 import app.bpartners.api.repository.jpa.model.HTransaction;
+import app.bpartners.api.service.utils.MoneyUtils;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-
-import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 
 @Slf4j
 @Component
@@ -22,10 +21,7 @@ public class TransactionMapper {
   public TransactionConnector toConnector(BridgeTransaction bridgeTransaction) {
     return TransactionConnector.builder()
         .id(String.valueOf(bridgeTransaction.getId()))
-
-        // TODO(bad-cents): it _seems_ bridge.amount is in major, while connector.amount is in minor
-        .amount(parseFraction(bridgeTransaction.getAbsAmount()*100))
-
+        .amount(MoneyUtils.fromMinor(bridgeTransaction.getAbsAmount()))
         .currency(bridgeTransaction.getCurrency())
         .label(bridgeTransaction.getLabel())
         .transactionDate(bridgeTransaction.getTransactionDate())
@@ -41,7 +37,7 @@ public class TransactionMapper {
         LocalDate.ofInstant(entity.getPaymentDateTime(), ZoneId.systemDefault());
     return TransactionConnector.builder()
         .id(String.valueOf(entity.getIdBridge()))
-        .amount(parseFraction(entity.getAmount()))
+        .amount(MoneyUtils.fromMinorString(entity.getAmount()))
         .currency(entity.getCurrency())
         .label(entity.getLabel())
         .transactionDate(transactionDate)
@@ -71,7 +67,7 @@ public class TransactionMapper {
         .id(entity.getId())
         .idAccount(entity.getIdAccount())
         .invoiceDetails(invoiceMapper.toTransactionInvoice(entity.getInvoice()))
-        .amount(parseFraction(entity.getAmount()))
+        .amount(MoneyUtils.fromMinorString(entity.getAmount()))
         .currency(entity.getCurrency())
         .label(entity.getLabel())
         .reference(entity.getReference())

@@ -36,7 +36,7 @@ public class Transaction {
   private String id;
   private String idAccount;
   private Long idBridge;
-  private Fraction amount;
+  private Money amount;
   private String currency;
   private String label;
   private String reference;

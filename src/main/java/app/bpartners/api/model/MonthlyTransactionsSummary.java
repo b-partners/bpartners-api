@@ -21,9 +21,9 @@ import lombok.ToString;
 public class MonthlyTransactionsSummary {
   private String id;
   private int month;
-  private Fraction income;
-  private Fraction outcome;
-  private Fraction cashFlow;
+  private Money income;
+  private Money outcome;
+  private Money cashFlow;
   @Getter(AccessLevel.NONE)
   private Instant updatedAt;
 

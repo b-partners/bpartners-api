@@ -4,6 +4,7 @@ import app.bpartners.api.endpoint.rest.model.TransactionTypeEnum;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.JustifyTransaction;
+import app.bpartners.api.model.Money;
 import app.bpartners.api.model.MonthlyTransactionsSummary;
 import app.bpartners.api.model.Transaction;
 import app.bpartners.api.model.TransactionsSummary;
@@ -111,22 +112,22 @@ public class TransactionService {
 
   public void refreshMonthSummary(
       Account account, YearMonth yearMonth, List<Transaction> transactions) {
-    AtomicReference<Fraction> incomeReference = new AtomicReference<>(new Fraction());
-    AtomicReference<Fraction> outcomeReference = new AtomicReference<>(new Fraction());
+    AtomicReference<Money> incomeReference = new AtomicReference<>(new Money());
+    AtomicReference<Money> outcomeReference = new AtomicReference<>(new Money());
     transactions.forEach(
         transaction -> {
           if (transaction.getType().equals(TransactionTypeEnum.INCOME)) {
             incomeReference.set(
-                incomeReference.get().operate(transaction.getAmount(), Aprational::add));
+                incomeReference.get().add(transaction.getAmount()));
           }
           if (transaction.getType().equals(TransactionTypeEnum.OUTCOME)) {
             outcomeReference.set(
-                outcomeReference.get().operate(transaction.getAmount(), Aprational::add));
+                outcomeReference.get().add(transaction.getAmount()));
           }
         });
 
-    Fraction incomeValue = incomeReference.get();
-    Fraction outcomeValue = outcomeReference.get();
+    Money incomeValue = incomeReference.get();
+    Money outcomeValue = outcomeReference.get();
     MonthlyTransactionsSummary actualSummary =
         getByIdUserAndYearMonth(account.getUserId(), yearMonth);
 

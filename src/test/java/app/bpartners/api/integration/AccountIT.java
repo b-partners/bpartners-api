@@ -32,6 +32,7 @@ import app.bpartners.api.repository.implementation.BankRepositoryImpl;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitConf;
 import app.bpartners.api.repository.sendinblue.SendinblueConf;
 import app.bpartners.api.service.PaymentScheduleService;
+import app.bpartners.api.service.utils.MoneyUtils;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -182,7 +183,7 @@ class AccountIT {
         .userId(JOE_DOE_ID)
         .status(AccountStatus.OPENED)
         .bank(Bank.builder().build())
-        .availableBalance(parseFraction(100000))
+        .availableBalance(MoneyUtils.fromMajor(100000))
         .active(true)
         .build();
   }
@@ -195,7 +196,7 @@ class AccountIT {
         .bic("TODO")
         .status(AccountStatus.VALIDATION_REQUIRED)
         .bank(Bank.builder().build())
-        .availableBalance(parseFraction(100000))
+        .availableBalance(MoneyUtils.fromMajor(100000))
         .active(true)
         .build();
   }

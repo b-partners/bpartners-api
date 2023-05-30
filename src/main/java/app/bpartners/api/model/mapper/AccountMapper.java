@@ -3,19 +3,16 @@ package app.bpartners.api.model.mapper;
 import app.bpartners.api.endpoint.rest.model.AccountStatus;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.Bank;
-import app.bpartners.api.model.Fraction;
 import app.bpartners.api.repository.bridge.model.Account.BridgeAccount;
 import app.bpartners.api.repository.jpa.model.HAccount;
 import app.bpartners.api.repository.jpa.model.HUser;
 import app.bpartners.api.repository.model.AccountConnector;
-import java.math.BigInteger;
+import app.bpartners.api.service.utils.MoneyUtils;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apfloat.Aprational;
 import org.springframework.stereotype.Component;
 
 import static app.bpartners.api.endpoint.rest.model.AccountStatus.UNKNOWN;
-import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 
 @Slf4j
 @Component
@@ -33,19 +30,10 @@ public class AccountMapper {
     if (bridgeAccount == null) {
       return null;
     }
-    log.warn("DEBUG(bad-cents): toConnector: bridgeAccount.id={}, bridgeAccount.balance={}",
-        bridgeAccount.getId(), bridgeAccount.getBalance());
     return AccountConnector.builder()
         .id(bridgeAccount.getId())
         .name(bridgeAccount.getName())
-
-        //TODO(bad-cents): Typical bug from bad typing... This is why the Mars Climate Orbiter operation failed by the way...
-        // Lou thinks AccountConnector.balance is in major units (and is BADLY typed as it uses Double),
-        // Yet BridgeAccount.balance is in minor units
-        // The correct way to handle this is to create the precise type Money,
-        // Then reason on Money instead of on Fraction / Double / Int and other not sufficiently typed objects!
-        .balance(bridgeAccount.getBalance() / 100)
-
+        .balance(MoneyUtils.fromMajor(bridgeAccount.getBalance()))
         .iban(bridgeAccount.getIban())
         .status(bridgeAccount.getDomainStatus())
         .bankId(String.valueOf(bridgeAccount.getBankId()))
@@ -56,7 +44,7 @@ public class AccountMapper {
     return AccountConnector.builder()
         .id(entity.getExternalId())
         .name(entity.getName())
-        .balance(parseFraction(entity.getAvailableBalance()).getApproximatedValue())
+        .balance(MoneyUtils.fromMinorString(entity.getAvailableBalance()))
         .iban(entity.getIban())
         .status(entity.getStatus())
         .bankId(entity.getIdBank())
@@ -74,7 +62,7 @@ public class AccountMapper {
         .bank(bank)
         .name(accountConnector.getName())
         .iban(accountConnector.getIban())
-        .availableBalance(parseFraction(accountConnector.getBalance() * 100))
+        .availableBalance(accountConnector.getBalance())
         .status(accountConnector.getStatus())
         .build();
   }
@@ -83,10 +71,6 @@ public class AccountMapper {
     if (entity == null) {
       return null;
     }
-    Fraction availableBalance =
-        parseFraction(entity.getAvailableBalance())
-            .operate(new Fraction(BigInteger.valueOf(100)),
-            Aprational::multiply);
     return Account.builder()
         .id(entity.getId())
         .externalId(entity.getExternalId())
@@ -94,7 +78,7 @@ public class AccountMapper {
         .name(entity.getName())
         .iban(entity.getIban())
         .bic(entity.getBic())
-        .availableBalance(availableBalance)
+        .availableBalance(MoneyUtils.fromMinorString(entity.getAvailableBalance()))
         .status(entity.getStatus())
         .bank(bank) //TODO: add hbank
         .build();
@@ -109,7 +93,7 @@ public class AccountMapper {
         .iban(existing.getIban())
         .bic(existing.getBic())
         .externalId(accountConnector.getId())
-        .availableBalance(String.valueOf(parseFraction(accountConnector.getBalance() * 100)))
+        .availableBalance(String.valueOf(accountConnector.getBalance()))
         .status(accountConnector.getStatus())
         .build();
   }

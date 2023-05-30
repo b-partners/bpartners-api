@@ -4,6 +4,7 @@ import app.bpartners.api.endpoint.rest.model.BankConnectionRedirection;
 import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.Fraction;
+import app.bpartners.api.model.Money;
 import app.bpartners.api.model.UpdateAccountIdentity;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.UserToken;
@@ -159,7 +160,7 @@ public class AccountService {
         .bic(null)
         .iban(null)
         .bank(null)
-        .availableBalance(new Fraction())
+        .availableBalance(new Money())
         .build();
   }
 
@@ -167,7 +168,7 @@ public class AccountService {
     Account defaultAccount = account.toBuilder()
         .userId(userId)
         .name(user.getName())
-        .availableBalance(new Fraction())
+        .availableBalance(new Money())
         .bank(null)
         .bic(null)
         .iban(null)

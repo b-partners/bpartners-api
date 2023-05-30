@@ -1,32 +1,24 @@
 package app.bpartners.api.model;
 
-import java.util.function.BinaryOperator;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import org.apfloat.Aprational;
 
-import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
-
+/*
+  /!\ IMPORTANT !
+  Money value is in minor so persisted value must always be in minor
+ */
 @Getter
-@Setter
 @AllArgsConstructor
 @EqualsAndHashCode
-@ToString
+@Builder
 public class Money {
   private Fraction value;
 
-  public Money(Double fromMinor) {
-    value = parseFraction(fromMinor);
-  }
-
-  public Money(Integer fromMajor) {
-    value = parseFraction(fromMajor * 100);
-  }
-
-  public Money(String fromMinorString) {
-    value = parseFraction(fromMinorString);
+  public Money() {
+    value = new Fraction();
   }
 
   public double getApproximatedValue() {
@@ -41,12 +33,12 @@ public class Money {
     return value.getCentsAsDecimal();
   }
 
-  public int compareTo(Money money) {
-    return value.compareTo(money.getValue());
+  public Money add(Money money) {
+    return new Money(value.operate(money.getValue(), Aprational::add));
   }
 
-  public Money operate(Money money, BinaryOperator<Fraction> operator) {
-    return new Money(operator.apply(value, money.getValue()));
+  @Override
+  public String toString() {
+    return value.toString();
   }
-
 }

@@ -1,11 +1,12 @@
 package app.bpartners.api.unit.repository;
 
-import app.bpartners.api.model.Fraction;
+import app.bpartners.api.model.Money;
 import app.bpartners.api.model.MonthlyTransactionsSummary;
 import app.bpartners.api.model.mapper.TransactionsSummaryMapper;
 import app.bpartners.api.repository.implementation.TransactionsSummaryRepositoryImpl;
 import app.bpartners.api.repository.jpa.TransactionsSummaryJpaRepository;
 import app.bpartners.api.repository.jpa.model.HMonthlyTransactionsSummary;
+import app.bpartners.api.service.utils.MoneyUtils;
 import java.time.Instant;
 import java.time.YearMonth;
 import java.time.temporal.ChronoUnit;
@@ -13,7 +14,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ID;
-import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
@@ -99,9 +99,9 @@ class TransactionSummaryRepositoryTest {
   private MonthlyTransactionsSummary domain() {
     return MonthlyTransactionsSummary.builder()
         .month(persisted().getMonth())
-        .cashFlow(parseFraction(persisted().getCashFlow()))
-        .income(parseFraction(persisted().getIncome()))
-        .outcome(parseFraction(persisted().getOutcome()))
+        .cashFlow(MoneyUtils.fromMinorString(persisted().getCashFlow()))
+        .income(MoneyUtils.fromMinorString(persisted().getIncome()))
+        .outcome(MoneyUtils.fromMinorString(persisted().getOutcome()))
         .updatedAt(persisted().getUpdatedAt())
         .build();
   }
@@ -109,9 +109,9 @@ class TransactionSummaryRepositoryTest {
   private MonthlyTransactionsSummary updated(Instant updatedAt) {
     return MonthlyTransactionsSummary.builder()
         .id("random_id")
-        .outcome(new Fraction())
-        .income(new Fraction())
-        .cashFlow(new Fraction())
+        .outcome(new Money())
+        .income(new Money())
+        .cashFlow(new Money())
         .month(YearMonth.now().getMonthValue())
         .updatedAt(updatedAt)
         .build();

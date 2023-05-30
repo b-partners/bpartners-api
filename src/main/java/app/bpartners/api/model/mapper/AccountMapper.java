@@ -37,7 +37,7 @@ public class AccountMapper {
         .name(bridgeAccount.getName())
 
         //TODO(bad-cents): Typical bug from bad typing... This is why the Mars Climate Orbiter operation failed by the way...
-        // Lou thinks AccountConnecter.balance is in major units (and is BADLY typed as it uses Double),
+        // Lou thinks AccountConnector.balance is in major units (and is BADLY typed as it uses Double),
         // Yet BridgeAccount.balance is in minor units
         // The correct way to handle this is to create the precise type Money,
         // Then reason on Money instead of on Fraction / Double / Int and other not sufficiently typed objects!

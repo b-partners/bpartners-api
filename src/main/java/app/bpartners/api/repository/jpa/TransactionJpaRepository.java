@@ -1,9 +1,9 @@
 package app.bpartners.api.repository.jpa;
 
 import app.bpartners.api.repository.jpa.model.HTransaction;
-import java.util.Optional;
+import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface TransactionJpaRepository extends JpaRepository<HTransaction, String> {
-  Optional<HTransaction> findByIdBridge(Long idBridge);
+  List<HTransaction> findAllByIdBridge(Long idBridge);
 }

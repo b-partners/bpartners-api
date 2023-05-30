@@ -46,4 +46,12 @@ public class HTransaction {
   @Enumerated(EnumType.STRING)
   private TransactionStatus status;
   private Instant paymentDateTime;
+
+  public String describe() {
+    return "Transaction("
+        + "id='" + id + '\''
+        + ", idBridge=" + idBridge
+        + ", label='" + label + '\''
+        + ')';
+  }
 }

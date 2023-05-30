@@ -67,12 +67,13 @@ public class Fraction implements Serializable {
   }
 
   public Double getCentsAsDecimal() {
-    return getRoundedBigDecimal(RoundingMode.HALF_UP).doubleValue();
+    return getRoundedBigDecimal().doubleValue();
   }
 
-  private BigDecimal getRoundedBigDecimal(RoundingMode roundingMode) {
-    return BigDecimal.valueOf(numerator.doubleValue() / denominator.doubleValue())
-        .setScale(2, roundingMode);
+  //TODO: the /100 means that persisted fraction are in cents
+  private BigDecimal getRoundedBigDecimal() {
+    return BigDecimal.valueOf(numerator.doubleValue() / denominator.doubleValue() / 100)
+        .setScale(2, RoundingMode.HALF_UP);
   }
 
   public int compareTo(Fraction fraction) {

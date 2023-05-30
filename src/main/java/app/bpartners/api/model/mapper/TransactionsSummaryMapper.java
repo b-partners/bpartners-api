@@ -3,11 +3,10 @@ package app.bpartners.api.model.mapper;
 import app.bpartners.api.model.MonthlyTransactionsSummary;
 import app.bpartners.api.model.TransactionsSummary;
 import app.bpartners.api.repository.jpa.model.HMonthlyTransactionsSummary;
+import app.bpartners.api.service.utils.MoneyUtils;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
-
-import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 
 @Component
 public class TransactionsSummaryMapper {
@@ -28,9 +27,9 @@ public class TransactionsSummaryMapper {
     return MonthlyTransactionsSummary.builder()
         .id(entity.getId())
         .month(entity.getMonth())
-        .cashFlow(parseFraction(entity.getCashFlow()))
-        .income(parseFraction(entity.getIncome()))
-        .outcome(parseFraction(entity.getOutcome()))
+        .cashFlow(MoneyUtils.fromMinorString(entity.getCashFlow()))
+        .income(MoneyUtils.fromMinorString(entity.getIncome()))
+        .outcome(MoneyUtils.fromMinorString(entity.getOutcome()))
         .updatedAt(entity.getUpdatedAt())
         .build();
   }

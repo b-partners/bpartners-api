@@ -1,7 +1,7 @@
 package app.bpartners.api.repository.connectors.transaction;
 
 import app.bpartners.api.endpoint.rest.model.TransactionStatus;
-import app.bpartners.api.model.Fraction;
+import app.bpartners.api.model.Money;
 import java.time.Instant;
 import java.time.LocalDate;
 import lombok.AllArgsConstructor;
@@ -22,7 +22,7 @@ import lombok.ToString;
 public class TransactionConnector {
   private String id;
   private String label;
-  private Fraction amount; //Cents -> Currency
+  private Money amount;
   private LocalDate transactionDate;
   private Instant updatedAt;
   private String currency = "EUR";

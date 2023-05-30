@@ -1,14 +1,14 @@
 package app.bpartners.api.unit.service;
 
 import app.bpartners.api.model.Account;
-import app.bpartners.api.model.Fraction;
+import app.bpartners.api.model.Money;
 import app.bpartners.api.model.MonthlyTransactionsSummary;
 import app.bpartners.api.model.Transaction;
 import app.bpartners.api.repository.TransactionRepository;
 import app.bpartners.api.repository.TransactionsSummaryRepository;
 import app.bpartners.api.service.AccountService;
 import app.bpartners.api.service.TransactionService;
-import java.math.BigInteger;
+import app.bpartners.api.service.utils.MoneyUtils;
 import java.time.Instant;
 import java.time.YearMonth;
 import java.util.List;
@@ -34,7 +34,7 @@ class TransactionServiceSummariesTest {
   private static Account joeDoeAccount() {
     return Account.builder()
         .userId(JOE_DOE_ID)
-        .availableBalance(new Fraction())
+        .availableBalance(new Money())
         .build();
   }
 
@@ -109,13 +109,13 @@ class TransactionServiceSummariesTest {
   private Transaction.TransactionBuilder transactionWith100Value() {
     return Transaction
         .builder()
-        .amount(new Fraction(BigInteger.valueOf(100)));
+        .amount(MoneyUtils.fromMajor(100));
   }
 
   private MonthlyTransactionsSummary lastMonthlySummary(Instant updatedAt) {
     return MonthlyTransactionsSummary
         .builder()
-        .cashFlow(new Fraction(BigInteger.TWO))
+        .cashFlow(MoneyUtils.fromMinor(2.0))
         .updatedAt(updatedAt)
         .build();
   }
@@ -123,10 +123,10 @@ class TransactionServiceSummariesTest {
   private MonthlyTransactionsSummary refreshedSummary1(Instant updatedAt) {
     return MonthlyTransactionsSummary
         .builder()
-        .income(new Fraction(BigInteger.valueOf(100)))
+        .income(MoneyUtils.fromMajor(100))
         .month(YearMonth.now().getMonthValue() - 1)
-        .outcome(new Fraction(BigInteger.valueOf(100)))
-        .cashFlow(new Fraction())
+        .outcome(MoneyUtils.fromMajor(100))
+        .cashFlow(new Money())
         .updatedAt(updatedAt)
         .build();
   }
@@ -135,9 +135,9 @@ class TransactionServiceSummariesTest {
     return MonthlyTransactionsSummary
         .builder()
         .month(YearMonth.now().getMonthValue() - 1)
-        .income(new Fraction(BigInteger.valueOf(100)))
-        .outcome(new Fraction(BigInteger.valueOf(100)))
-        .cashFlow(new Fraction())
+        .income(MoneyUtils.fromMajor(100))
+        .outcome(MoneyUtils.fromMajor(100))
+        .cashFlow(new Money())
         .updatedAt(updatedAt)
         .build();
   }

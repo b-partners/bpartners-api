@@ -139,6 +139,12 @@ public class AccountRepositoryImpl implements AccountRepository {
     if (!activeAccount.isActive()) {
       activeAccount.active(true);
     }
+    if (preferredAccountId == null) {
+      HUser user = getUserById(activeAccount.getUserId());
+      userJpaRepository.save(user.toBuilder()
+          .preferredAccountId(activeAccount.getId())
+          .build());
+    }
     return accounts;
   }
 

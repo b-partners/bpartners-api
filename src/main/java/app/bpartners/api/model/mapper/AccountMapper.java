@@ -3,12 +3,15 @@ package app.bpartners.api.model.mapper;
 import app.bpartners.api.endpoint.rest.model.AccountStatus;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.Bank;
+import app.bpartners.api.model.Fraction;
 import app.bpartners.api.repository.bridge.model.Account.BridgeAccount;
 import app.bpartners.api.repository.jpa.model.HAccount;
 import app.bpartners.api.repository.jpa.model.HUser;
 import app.bpartners.api.repository.model.AccountConnector;
+import java.math.BigInteger;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apfloat.Aprational;
 import org.springframework.stereotype.Component;
 
 import static app.bpartners.api.endpoint.rest.model.AccountStatus.UNKNOWN;
@@ -80,6 +83,10 @@ public class AccountMapper {
     if (entity == null) {
       return null;
     }
+    Fraction availableBalance =
+        parseFraction(entity.getAvailableBalance())
+            .operate(new Fraction(BigInteger.valueOf(100)),
+            Aprational::multiply);
     return Account.builder()
         .id(entity.getId())
         .externalId(entity.getExternalId())
@@ -87,7 +94,7 @@ public class AccountMapper {
         .name(entity.getName())
         .iban(entity.getIban())
         .bic(entity.getBic())
-        .availableBalance(parseFraction(entity.getAvailableBalance()))
+        .availableBalance(availableBalance)
         .status(entity.getStatus())
         .bank(bank) //TODO: add hbank
         .build();

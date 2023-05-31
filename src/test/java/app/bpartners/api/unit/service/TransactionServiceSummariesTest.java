@@ -4,10 +4,9 @@ import app.bpartners.api.model.Account;
 import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.MonthlyTransactionsSummary;
 import app.bpartners.api.model.Transaction;
-import app.bpartners.api.repository.AccountRepository;
 import app.bpartners.api.repository.TransactionRepository;
 import app.bpartners.api.repository.TransactionsSummaryRepository;
-import app.bpartners.api.repository.jpa.InvoiceJpaRepository;
+import app.bpartners.api.service.AccountService;
 import app.bpartners.api.service.TransactionService;
 import java.math.BigInteger;
 import java.time.Instant;
@@ -19,7 +18,6 @@ import org.mockito.ArgumentCaptor;
 
 import static app.bpartners.api.integration.conf.TestUtils.CREDIT_SIDE;
 import static app.bpartners.api.integration.conf.TestUtils.DEBIT_SIDE;
-import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -31,7 +29,7 @@ class TransactionServiceSummariesTest {
   TransactionService transactionService;
   TransactionRepository transactionRepository;
   TransactionsSummaryRepository transactionsSummaryRepository;
-  AccountRepository accountRepositoryMock;
+  AccountService accountService;
 
   private static Account joeDoeAccount() {
     return Account.builder()
@@ -44,11 +42,11 @@ class TransactionServiceSummariesTest {
   void setUp() {
     transactionsSummaryRepository = mock(TransactionsSummaryRepository.class);
     transactionRepository = mock(TransactionRepository.class);
-    accountRepositoryMock = mock(AccountRepository.class);
+    accountService = mock(AccountService.class);
     transactionService = new TransactionService(
         transactionRepository,
         transactionsSummaryRepository,
-        accountRepositoryMock
+        accountService
     );
 
     when(transactionRepository.findByAccountIdAndStatusBetweenInstants(any(), any(), any(), any()))

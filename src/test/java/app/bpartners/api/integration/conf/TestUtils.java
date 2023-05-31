@@ -181,7 +181,7 @@ public class TestUtils {
   public static app.bpartners.api.endpoint.rest.model.Account restJoeAccount() {
     return new app.bpartners.api.endpoint.rest.model.Account()
         .id("beed1765-5c16-472a-b3f4-5c376ce5db58")
-        .availableBalance(10000)
+        .availableBalance(1000000)
         .status(OPENED)
         .active(true)
         .name("Account_name")

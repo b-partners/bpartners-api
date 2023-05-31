@@ -1,18 +1,31 @@
-# [0.18.0](https://github.com/b-partners/bpartners-api/compare/v0.15.0...v0.18.0) (2023-05-15)
+# [0.18.0](https://github.com/b-partners/bpartners-api/compare/v0.15.0...v0.18.0) (2023-05-31)
 
 
 ### Bug Fixes
 
+* add missing attributes validator when initiating payment ([bf018a5](https://github.com/b-partners/bpartners-api/commit/bf018a595e7b32808ee9b18fcd658e081da1f614))
 * allow bank disconnection only when account is associated to a bank ([5473592](https://github.com/b-partners/bpartners-api/commit/547359296b699f19d359268734167c819c014071))
+* associate new account to appropriate user ([2fb2160](https://github.com/b-partners/bpartners-api/commit/2fb2160268febd82d73f9e1926e6907564297d63))
+* associate transactions summary to user ([e3c1a2d](https://github.com/b-partners/bpartners-api/commit/e3c1a2d706e79c270eb5e9f015d8b9260eedd776))
+* avoid NPE when retrieving bridge account by ID from scheduled task ([72402df](https://github.com/b-partners/bpartners-api/commit/72402df942e107c76835638ef96cd939ab71ca55))
 * disable ProspectService.prospect cron ([73038ad](https://github.com/b-partners/bpartners-api/commit/73038ad51cc9978241ffb1d35dabf80ef5f15e0a))
+* get bank from database when mapping user accounts ([1a52348](https://github.com/b-partners/bpartners-api/commit/1a5234831543992db11d0cf543ae211199acfedc))
 * import products ([#782](https://github.com/b-partners/bpartners-api/issues/782)) ([3749c1c](https://github.com/b-partners/bpartners-api/commit/3749c1c29acce22c2b94986b8f122065d180d6ea))
+* minor and major AGAIN AND AGAIN ([776361b](https://github.com/b-partners/bpartners-api/commit/776361b5d61b8385aed1c8bc405af67af3eb8d12))
+* persist bridge transactions values when finding transactions ([4400d83](https://github.com/b-partners/bpartners-api/commit/4400d832ecd018b17052e66dc2706313d296c8a4))
+* refresh all accounts refresh transactions summary not only for active ([9498146](https://github.com/b-partners/bpartners-api/commit/9498146343251caab8e7f2a2839d33c091fa510c))
+* return null when any token provided when retrieving bridge account by ID ([bdb1810](https://github.com/b-partners/bpartners-api/commit/bdb18109ae31cc31d653bbc637dc17960655f7f5))
 
 
 ### Features
 
 * add script to create function for getting billing info  ([380239e](https://github.com/b-partners/bpartners-api/commit/380239ea158c40158224a7ad7f82fb6faad5ea73))
 * archive invoices of an account ([#672](https://github.com/b-partners/bpartners-api/issues/672)) ([803a674](https://github.com/b-partners/bpartners-api/commit/803a6746373d0f3f1c62a2640d1331b5a07cf2ec))
+* choose active account for an user ([95bd3d5](https://github.com/b-partners/bpartners-api/commit/95bd3d591674551eaa0950e9c7d6943178022382))
+* get one specific customer or one specific product for an account  ([a8bed88](https://github.com/b-partners/bpartners-api/commit/a8bed8857df52d366a319e2851de6109139320c7))
+* get one specific transaction for an account ([5134f46](https://github.com/b-partners/bpartners-api/commit/5134f465db02d97ac87ea647b2685e138ec3323e))
 * handle bridge SCA synchronization ([979bad8](https://github.com/b-partners/bpartners-api/commit/979bad832f71ffad013f7db76c9d176a7f09c73a))
+* handle multiple accounts for an user ([7353cfd](https://github.com/b-partners/bpartners-api/commit/7353cfdd6b7e13c4e54e64770dd41ee1f279d4e5))
 
 
 

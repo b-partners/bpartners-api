@@ -15,13 +15,14 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
 
-import static app.bpartners.api.service.utils.SecurityUtils.BEARER_PREFIX;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 import static app.bpartners.api.repository.fintecture.implementation.utils.FintecturePaymentUtils.ACCEPT;
 import static app.bpartners.api.repository.fintecture.implementation.utils.FintecturePaymentUtils.APPLICATION_JSON;
@@ -34,6 +35,7 @@ import static app.bpartners.api.repository.fintecture.implementation.utils.Finte
 import static app.bpartners.api.repository.fintecture.implementation.utils.FintecturePaymentUtils.getHeaderSignature;
 import static app.bpartners.api.repository.fintecture.implementation.utils.FintecturePaymentUtils.getHeaderSignatureWithDigest;
 import static app.bpartners.api.repository.fintecture.implementation.utils.FintecturePaymentUtils.getParsedDate;
+import static app.bpartners.api.service.utils.SecurityUtils.BEARER_PREFIX;
 import static java.util.UUID.randomUUID;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 
@@ -61,23 +63,8 @@ public class FintecturePaymentInfoRepositoryImpl implements FintecturePaymentInf
   public List<Session> getAllPayments() {
     String requestId = String.valueOf(randomUUID());
     String date = getParsedDate();
-    try {
-      HttpRequest request = HttpRequest.newBuilder()
-          .uri(new URI(fintectureConf.getPaymentUrl()))
-          .header(ACCEPT, APPLICATION_JSON)
-          .header(REQUEST_ID, requestId)
-          .header(LANGUAGE, "fr")
-          .header(DATE, date)
-          .header(SIGNATURE, getHeaderSignature(fintectureConf, requestId, date, EMPTY))
-          .header(AUTHORIZATION, BEARER_PREFIX + tokenManager.getFintectureProjectToken())
-          .GET().build();
-      return getPaymentsList(request);
-    } catch (IOException | URISyntaxException e) {
-      throw new ApiException(SERVER_EXCEPTION, e);
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-      throw new ApiException(SERVER_EXCEPTION, e);
-    }
+    String uri = fintectureConf.getPaymentUrl();
+    return getPaymentsList(requestId, date, EMPTY, uri);
   }
 
   //TODO: when list has multiple pages, check for next link data
@@ -86,9 +73,15 @@ public class FintecturePaymentInfoRepositoryImpl implements FintecturePaymentInf
     String requestId = String.valueOf(randomUUID());
     String date = getParsedDate();
     String urlParams = "?filter[status]=" + status;
+    String uri = fintectureConf.getPaymentUrl() + urlParams;
+    return getPaymentsList(requestId, date, urlParams, uri);
+  }
+
+  public List<Session> getPaymentsList(
+      String requestId, String date, String urlParams, String uri) {
     try {
       HttpRequest request = HttpRequest.newBuilder()
-          .uri(new URI(fintectureConf.getPaymentUrl() + urlParams))
+          .uri(new URI(uri))
           .header(ACCEPT, APPLICATION_JSON)
           .header(REQUEST_ID, requestId)
           .header(LANGUAGE, "fr")
@@ -96,29 +89,38 @@ public class FintecturePaymentInfoRepositoryImpl implements FintecturePaymentInf
           .header(SIGNATURE, getHeaderSignature(fintectureConf, requestId, date, urlParams))
           .header(AUTHORIZATION, BEARER_PREFIX + tokenManager.getFintectureProjectToken())
           .GET().build();
-      return getPaymentsList(request);
+      HttpResponse<String> response =
+          httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+      List<Session> sessionsStore = new ArrayList<>();
+      MultipleSessionResponse multipleSessionResponse = objectMapper.readValue(response.body(),
+          MultipleSessionResponse.class);
+      List<Session> sessions = multipleSessionResponse.getData().stream()
+          .map(session -> Session.builder()
+              .meta(Session.Meta.builder()
+                  .sessionId(session.getMeta().getSessionId())
+                  .status(session.getMeta().getStatus())
+                  .build())
+              .build())
+          .collect(Collectors.toList());
+
+      sessionsStore.addAll(sessions);
+
+      var responseLinks = (HashMap<String, String>) objectMapper.readValue(
+          response.body(), HashMap.class).get("links");
+
+      if (responseLinks.containsKey("next")) {
+        String nextUri = responseLinks.get("next");
+        return getPaymentsList(requestId, date, urlParams, nextUri);
+      }
+
+      return sessionsStore;
     } catch (IOException | URISyntaxException e) {
       throw new ApiException(SERVER_EXCEPTION, e);
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       throw new ApiException(SERVER_EXCEPTION, e);
     }
-  }
-
-  public List<Session> getPaymentsList(HttpRequest request)
-      throws IOException, InterruptedException {
-    HttpResponse<String> response =
-        httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-    MultipleSessionResponse multipleSessionResponse = objectMapper.readValue(response.body(),
-        MultipleSessionResponse.class);
-    return multipleSessionResponse.getData().stream()
-        .map(session -> Session.builder()
-            .meta(Session.Meta.builder()
-                .sessionId(session.getMeta().getSessionId())
-                .status(session.getMeta().getStatus())
-                .build())
-            .build())
-        .collect(Collectors.toList());
   }
 
   @Override

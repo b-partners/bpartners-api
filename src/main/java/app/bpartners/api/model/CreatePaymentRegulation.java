@@ -26,7 +26,7 @@ public class CreatePaymentRegulation {
   private Instant initiatedDatetime;
 
   public Fraction getAmountOrPercent(Fraction totalAmount) {
-    if (paymentRequest.getAmount() != null && paymentRequest.getAmount().getCentsRoundUp() != 0) {
+    if (paymentRequest.getAmount() != null && paymentRequest.getAmount().getIntValue() != 0) {
       return paymentRequest.getAmount();
     }
     return percent.operate(totalAmount,

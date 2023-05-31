@@ -24,18 +24,18 @@ public class TransactionsSummary {
 
   public Integer getAnnualIncome() {
     AtomicReference<Integer> income = new AtomicReference<>(0);
-    summary.forEach(monthly -> income.set(income.get() + monthly.getIncome().getCentsRoundUp()));
+    summary.forEach(monthly -> income.set(income.get() + monthly.getIncome().getIntValue()));
     return income.get();
   }
 
   public Integer getAnnualOutcome() {
     AtomicReference<Integer> outcome = new AtomicReference<>(0);
-    summary.forEach(monthly -> outcome.set(outcome.get() + monthly.getOutcome().getCentsRoundUp()));
+    summary.forEach(monthly -> outcome.set(outcome.get() + monthly.getOutcome().getIntValue()));
     return outcome.get();
   }
 
   public Integer getAnnualCashFlow() {
     return summary.isEmpty() ? 0
-        : summary.get(summary.size() - 1).getCashFlow().getCentsRoundUp();
+        : summary.get(summary.size() - 1).getCashFlow().getIntValue();
   }
 }

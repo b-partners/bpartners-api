@@ -28,9 +28,9 @@ public class TransactionsSummaryRestMapper {
         .id(domain.getId())
         .month(domain.getMonth())
         .updatedAt(domain.getUpdatedAt())
-        .income(domain.getIncome().getCentsRoundUp())
-        .outcome(domain.getOutcome().getCentsRoundUp())
-        .cashFlow(domain.getCashFlow().getCentsRoundUp());
+        .income(domain.getIncome().getIntValue())
+        .outcome(domain.getOutcome().getIntValue())
+        .cashFlow(domain.getCashFlow().getIntValue());
   }
 
   private static Instant getLastInstantUpdate(app.bpartners.api.model.TransactionsSummary domain) {

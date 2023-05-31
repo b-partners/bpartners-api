@@ -24,7 +24,7 @@ public class TransactionCategoryRestMapper {
   public TransactionCategory toRest(app.bpartners.api.model.TransactionCategoryTemplate domain) {
     return new TransactionCategory()
         .id(domain.getId())
-        .vat(domain.getVat().getCentsRoundUp())
+        .vat(domain.getVat().getIntValue())
         .type(domain.getType())
         .transactionType(domain.getTransactionType())
         .count(domain.getCount())
@@ -35,7 +35,7 @@ public class TransactionCategoryRestMapper {
   public TransactionCategory toRest(app.bpartners.api.model.TransactionCategory domain) {
     return new TransactionCategory()
         .id(domain.getId())
-        .vat(domain.getVat().getCentsRoundUp())
+        .vat(domain.getVat().getIntValue())
         .type(domain.getType())
         .transactionType(domain.getTransactionType())
         .count(domain.getTypeCount())

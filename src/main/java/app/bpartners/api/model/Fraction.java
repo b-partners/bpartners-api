@@ -66,6 +66,10 @@ public class Fraction implements Serializable {
     return (int) (getCentsAsDecimal() * 100);
   }
 
+  public Integer getIntValue() {
+    return (int) (getCentsAsDecimal() * 1);
+  }
+
   public Double getCentsAsDecimal() {
     return getRoundedBigDecimal(RoundingMode.HALF_UP).doubleValue();
   }

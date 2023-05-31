@@ -174,7 +174,7 @@ public class InvoiceService {
     Fraction totalPrice = computeTotalPriceFromPaymentReq(paymentRequests);
     return paymentRequests.stream()
         .map(payment -> {
-          Fraction percent = totalPrice.getCentsRoundUp() == 0 ? new Fraction()
+          Fraction percent = totalPrice.getIntValue() == 0 ? new Fraction()
               : payment.getAmount().operate(totalPrice,
               Aprational::divide);
           return requestMapper.toPaymentRegulation(payment, percent);

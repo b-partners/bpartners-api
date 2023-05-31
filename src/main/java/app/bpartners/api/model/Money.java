@@ -29,6 +29,11 @@ public class Money {
     return (int) (getRoundedValue() * 100);
   }
 
+  //TODO: delete when old values are correctly mapped
+  public Integer getIntValue() {
+    return value.getIntValue();
+  }
+
   public Double getRoundedValue() {
     return value.getCentsAsDecimal();
   }

@@ -125,7 +125,7 @@ public class InvoiceMapper {
     Fraction totalPrice = computeTotalPriceFromPaymentReqEntity(paymentRequests);
     return paymentRequests.stream()
         .map(payment -> {
-          Fraction percent = totalPrice.getCentsRoundUp() == 0 ? new Fraction()
+          Fraction percent = totalPrice.getIntValue() == 0 ? new Fraction()
               : parseFraction(payment.getAmount()).operate(totalPrice,
               Aprational::divide);
           return paymentRequestMapper.toPaymentRegulation(

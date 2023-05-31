@@ -17,9 +17,9 @@ public class ProductRestMapper {
     return new Product()
         .id(domain.getId())
         .description(domain.getDescription())
-        .unitPrice(domain.getUnitPrice().getCentsRoundUp())
-        .unitPriceWithVat(domain.getUnitPriceWithVat().getCentsRoundUp())
-        .vatPercent(domain.getVatPercent().getCentsRoundUp())
+        .unitPrice(domain.getUnitPrice().getIntValue())
+        .unitPriceWithVat(domain.getUnitPriceWithVat().getIntValue())
+        .vatPercent(domain.getVatPercent().getIntValue())
         .createdAt(domain.getCreatedAt())
         .status(domain.getStatus());
   }
@@ -29,11 +29,11 @@ public class ProductRestMapper {
         .id(domain.getId())
         .description(domain.getDescription())
         .quantity(domain.getQuantity())
-        .unitPrice(domain.getUnitPrice().getCentsRoundUp())
-        .unitPriceWithVat(domain.getUnitPriceWithVat().getCentsRoundUp())
-        .vatPercent(domain.getVatPercent().getCentsRoundUp())
-        .totalVat(domain.getVatWithDiscount().getCentsRoundUp())
-        .totalPriceWithVat(domain.getTotalWithDiscount().getCentsRoundUp())
+        .unitPrice(domain.getUnitPrice().getIntValue())
+        .unitPriceWithVat(domain.getUnitPriceWithVat().getIntValue())
+        .vatPercent(domain.getVatPercent().getIntValue())
+        .totalVat(domain.getVatWithDiscount().getIntValue())
+        .totalPriceWithVat(domain.getTotalWithDiscount().getIntValue())
         .status(domain.getStatus())
         .createdAt(domain.getCreatedAt());
   }

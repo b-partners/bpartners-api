@@ -46,7 +46,8 @@ public class AccountHolderRestMapper {
         .officialActivityName(domain.getMainActivity())
         .siren(domain.getSiren())
         .verificationStatus(domain.getVerificationStatus())
-        .initialCashflow(domain.getInitialCashflow().getCentsRoundUp())
+        //TODO: Fraction must be real value not cents value so cents must be returned
+        .initialCashflow(domain.getInitialCashflow().getIntValue())
         .companyInfo(new CompanyInfo()
             .isSubjectToVat(domain.isSubjectToVat())
             .email(domain.getEmail())

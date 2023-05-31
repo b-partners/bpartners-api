@@ -37,7 +37,7 @@ public class AccountHolderMapper {
         .subjectToVat(entity.isSubjectToVat())
         .email(entity.getEmail())
         .mobilePhoneNumber(entity.getMobilePhoneNumber())
-        .socialCapital(parseFraction(entity.getSocialCapital()).getCentsRoundUp())
+        .socialCapital(parseFraction(entity.getSocialCapital()).getIntValue())
         .vatNumber(entity.getVatNumber())
         .address(entity.getAddress())
         .city(entity.getCity())
@@ -71,6 +71,7 @@ public class AccountHolderMapper {
         .subjectToVat(domain.isSubjectToVat())
         .vatNumber(domain.getVatNumber())
         .mobilePhoneNumber(domain.getMobilePhoneNumber())
+        //TODO:Persist fraction must be its real value not its cents value
         .socialCapital(String.valueOf(parseFraction(domain.getSocialCapital())))
         .initialCashflow(domain.getInitialCashflow().toString())
         .verificationStatus(domain.getVerificationStatus())

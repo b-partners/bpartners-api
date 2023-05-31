@@ -69,15 +69,15 @@ public class InvoiceRestMapper {
         .archiveStatus(domain.getArchiveStatus())
         .paymentType(domain.getPaymentType())
         .products(getProducts(domain))
-        .totalVat(domain.getTotalVat().getCentsRoundUp())
-        .totalPriceWithVat(domain.getTotalPriceWithVat().getCentsRoundUp())
-        .totalPriceWithoutDiscount(domain.getTotalPriceWithoutDiscount().getCentsRoundUp())
-        .totalPriceWithoutVat(domain.getTotalPriceWithoutVat().getCentsRoundUp())
+        .totalVat(domain.getTotalVat().getIntValue())
+        .totalPriceWithVat(domain.getTotalPriceWithVat().getIntValue())
+        .totalPriceWithoutDiscount(domain.getTotalPriceWithoutDiscount().getIntValue())
+        .totalPriceWithoutVat(domain.getTotalPriceWithoutVat().getIntValue())
         .paymentUrl(domain.getPaymentUrl())
         .sendingDate(domain.getSendingDate())
         .validityDate(domain.getValidityDate())
         .delayInPaymentAllowed(domain.getDelayInPaymentAllowed())
-        .delayPenaltyPercent(domain.getDelayPenaltyPercent().getCentsRoundUp())
+        .delayPenaltyPercent(domain.getDelayPenaltyPercent().getIntValue())
         .metadata(domain.getMetadata())
         .paymentRegulations(domain.getPaymentRegulations().stream()
             .map(payment -> getPaymentRegulation(domain.getTotalPriceWithVat(), payment))
@@ -85,9 +85,9 @@ public class InvoiceRestMapper {
         .toPayAt(toPayAt)
         .globalDiscount(new InvoiceDiscount()
             .percentValue(
-                domain.getDiscount().getPercent(domain.getTotalPriceWithVat()).getCentsRoundUp())
+                domain.getDiscount().getPercent(domain.getTotalPriceWithVat()).getIntValue())
             .amountValue(
-                domain.getDiscount().getAmount(domain.getTotalPriceWithVat()).getCentsRoundUp()));
+                domain.getDiscount().getAmount(domain.getTotalPriceWithVat()).getIntValue()));
   }
 
   public TransactionInvoice toRest(TransactionInvoiceDetails invoiceDetails) {
@@ -195,7 +195,7 @@ public class InvoiceRestMapper {
             .reference(payment.getReference())
             .paymentUrl(payment.getPaymentUrl())
             .label(payment.getLabel())
-            .amount(payment.getAmount().getCentsRoundUp())
+            .amount(payment.getAmount().getIntValue())
             .percentValue(
                 totalPrice.getApproximatedValue() == 0
                     ? 0 :
@@ -204,7 +204,7 @@ public class InvoiceRestMapper {
                           amount = amount.divide(new Aprational(100));
                           price = price.divide(new Aprational(100));
                           return amount.divide(price).multiply(new Aprational(10000));
-                        }).getCentsRoundUp())
+                        }).getIntValue())
             .payerName(payment.getPayerName())
             .payerEmail(payment.getPayerEmail())
             .paymentUrl(payment.getPaymentUrl())

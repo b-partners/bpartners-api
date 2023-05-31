@@ -28,9 +28,11 @@ public class AnnualRevenueTargetRestMapper {
       AnnualRevenueTarget domain) {
     return new app.bpartners.api.endpoint.rest.model.AnnualRevenueTarget()
         .year(domain.getYear())
-        .amountTarget(domain.getAmountTarget().getCentsRoundUp())
-        .amountAttemptedPercent(domain.getAmountAttemptedPercent().getCentsRoundUp())
-        .amountAttempted(domain.getAmountAttempted().getCentsRoundUp())
+        //TODO: Fraction must be real value not cents value so cents must be returned
+        .amountTarget(domain.getAmountTarget().getIntValue())
+        .amountAttemptedPercent(
+            domain.getAmountAttemptedPercent().getIntValue())
+        .amountAttempted(domain.getAmountAttempted().getIntValue())
         .updatedAt(domain.getUpdatedAt());
   }
 

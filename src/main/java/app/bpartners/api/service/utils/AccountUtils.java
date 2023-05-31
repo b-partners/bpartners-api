@@ -3,6 +3,8 @@ package app.bpartners.api.service.utils;
 import app.bpartners.api.model.Account;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.function.Supplier;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -31,26 +33,28 @@ public class AccountUtils {
   }
 
   public static Account filterActive(List<Account> accounts, String preferredAccountId) {
-    return accounts.stream()
+    Optional<Account> firstPreferredAccount = accounts.stream()
         .filter(account -> preferredAccountId != null
             && preferredAccountId.equals(account.getId()))
-        .findAny().orElseGet(
-            () -> accounts.stream()
-                .filter(Account::isActive)
-                .findAny().orElseGet(
-                    () -> {
-                      Account firstAccount = accounts.stream()
-                          .filter(account -> account.getIban() != null)
-                          .findFirst().orElse(accounts.get(0));
-                      List<Account> others = new ArrayList<>(accounts);
-                      others.remove(firstAccount);
-                      log.warn(
-                          "Any active account found. " + firstAccount.describeMinInfos()
-                              + " is set as active by default but others found : "
-                              + describeAccounts(others));
-                      return firstAccount;
-                    }
-                )
-        );
+        .findFirst();
+    return firstPreferredAccount
+        .filter(account -> account.getIban() != null) //No IBAN must default account
+        .orElseGet(getAccountWithIbanFirst(accounts));
+  }
+
+  private static Supplier<Account> getAccountWithIbanFirst(List<Account> accounts) {
+    return () -> {
+      Account firstAccount = accounts.stream()
+          .filter(account -> account.getIban() != null)
+          .findFirst()
+          .orElse(accounts.get(0)); //No IBAN must be default account
+      List<Account> others = new ArrayList<>(accounts);
+      others.remove(firstAccount);
+      log.warn(
+          "Any active account found. " + firstAccount.describeMinInfos()
+              + " is set as active by default but others found : "
+              + describeAccounts(others));
+      return firstAccount;
+    };
   }
 }

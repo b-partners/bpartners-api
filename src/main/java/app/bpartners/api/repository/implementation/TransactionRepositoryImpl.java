@@ -21,6 +21,8 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
 
+import static app.bpartners.api.service.utils.TransactionUtils.describeList;
+
 @Repository
 @Slf4j
 @AllArgsConstructor
@@ -31,14 +33,24 @@ public class TransactionRepositoryImpl implements TransactionRepository {
   private final InvoiceJpaRepository invoiceJpaRepository;
   private final TransactionConnectorRepository connectorRepository;
 
+  //TODO: check why transactions with same bridge ID are persisted twice
   @Override
   public List<Transaction> findByAccountId(String idAccount) {
     List<TransactionConnector> connectors = connectorRepository.findByIdAccount(idAccount);
     List<HTransaction> entities = connectors.stream()
-        .map(connector -> jpaRepository.findByIdBridge(Long.valueOf(connector.getId()))
-            .orElseThrow(() -> new NotFoundException(
-                "Transaction(externalId=" + connector.getId() + ") not found")
-            ))
+        .map(connector -> {
+          List<HTransaction> bridgeTransactions =
+              jpaRepository.findAllByIdBridge(Long.valueOf(connector.getId()));
+          if (bridgeTransactions.isEmpty()) {
+            throw new NotFoundException(
+                "Transaction(externalId=" + connector.getId() + ") not found");
+          }
+          if (bridgeTransactions.size() > 1) {
+            log.warn("Duplicated transactions with same external ID {}",
+                describeList(bridgeTransactions));
+          }
+          return bridgeTransactions.get(0);
+        })
         .collect(Collectors.toList());
     return entities.stream()
         .map(entity -> mapper.toDomain(entity,

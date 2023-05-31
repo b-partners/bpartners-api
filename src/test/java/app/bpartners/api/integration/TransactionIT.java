@@ -256,12 +256,12 @@ class TransactionIT {
     reset(transactionJpaRepositoryMock);
     when(bridgeTransactionRepositoryMock.findByBearer(JOE_DOE_TOKEN))
         .thenReturn(List.of(bridgeTransaction1(), bridgeTransaction2(), bridgeTransaction3()));
-    when(transactionJpaRepositoryMock.findByIdBridge(bridgeTransaction1().getId())).thenReturn(
-        Optional.of(bridgeTransactionEntity1()));
-    when(transactionJpaRepositoryMock.findByIdBridge(bridgeTransaction2().getId())).thenReturn(
-        Optional.of(bridgeTransactionEntity2()));
-    when(transactionJpaRepositoryMock.findByIdBridge(bridgeTransaction3().getId())).thenReturn(
-        Optional.of(bridgeTransactionEntity3()));
+    when(transactionJpaRepositoryMock.findAllByIdBridge(bridgeTransaction1().getId())).thenReturn(
+        List.of(bridgeTransactionEntity1()));
+    when(transactionJpaRepositoryMock.findAllByIdBridge(bridgeTransaction2().getId())).thenReturn(
+        List.of(bridgeTransactionEntity2()));
+    when(transactionJpaRepositoryMock.findAllByIdBridge(bridgeTransaction3().getId())).thenReturn(
+        List.of(bridgeTransactionEntity3()));
     List<HTransaction> mockedBridgeTransactions = List.of(
         bridgeTransactionEntity1(),
         bridgeTransactionEntity2(),

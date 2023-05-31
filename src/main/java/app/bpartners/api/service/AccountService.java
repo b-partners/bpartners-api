@@ -139,7 +139,11 @@ public class AccountService {
   public List<Account> findAllActiveAccounts() {
     List<User> users = userRepository.findAll();
     List<Account> activeAccounts = new ArrayList<>();
-    users.forEach(user -> activeAccounts.add(user.getDefaultAccount()));
+    users.forEach(user -> {
+      if (user.getDefaultAccount() != null) {
+        activeAccounts.add(user.getDefaultAccount());
+      }
+    });
     return activeAccounts;
   }
 

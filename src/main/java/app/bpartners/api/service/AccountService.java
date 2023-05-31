@@ -15,6 +15,7 @@ import app.bpartners.api.repository.BankRepository;
 import app.bpartners.api.repository.TransactionsSummaryRepository;
 import app.bpartners.api.repository.UserRepository;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -132,6 +133,14 @@ public class AccountService {
       return saved;
     }
     throw new ApiException(SERVER_EXCEPTION, active.describeInfos() + " was not disconnected");
+  }
+
+  @Transactional
+  public List<Account> findAllActiveAccounts() {
+    List<User> users = userRepository.findAll();
+    List<Account> activeAccounts = new ArrayList<>();
+    users.forEach(user -> activeAccounts.add(user.getDefaultAccount()));
+    return activeAccounts;
   }
 
   private void deleteOldAccounts(Account saved) {

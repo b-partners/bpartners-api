@@ -1,5 +1,6 @@
 package app.bpartners.api.model.mapper;
 
+import app.bpartners.api.model.Money;
 import app.bpartners.api.model.Transaction;
 import app.bpartners.api.model.TransactionCategory;
 import app.bpartners.api.repository.bridge.model.Transaction.BridgeTransaction;
@@ -51,7 +52,9 @@ public class TransactionMapper {
     return HTransaction.builder()
         .idBridge(Long.valueOf(connector.getId()))
         .idAccount(idAccount)
-        .amount(String.valueOf(connector.getAmount()))
+        //TODO: must not be multiplied by 100 but persisted fraction is in major for now
+        // * 100 is to delete when persisted fraction is in minor
+        .amount(String.valueOf(connector.getAmount().multiply(new Money(100L))))
         .paymentDateTime(connector.getTransactionDate()
             .atStartOfDay(ZoneId.systemDefault())
             .toInstant())

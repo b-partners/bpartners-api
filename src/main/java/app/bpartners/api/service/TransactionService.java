@@ -155,7 +155,7 @@ public class TransactionService {
 
   //TODO: check if 1 hour of refresh is enough or too much
   //TODO: note that account (balance) is _NOT_ updated by this scheduled task anymore
-  @Scheduled(fixedRate = 1 * 60 * 1_000)
+  @Scheduled(fixedRate = 1 * 60 * 60 * 1_000)
   public void refreshTransactionsSummaries() {
     List<Account> activeAccounts = accountService.findAllActiveAccounts();
     activeAccounts.forEach(

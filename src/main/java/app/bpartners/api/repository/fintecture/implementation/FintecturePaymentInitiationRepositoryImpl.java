@@ -17,7 +17,6 @@ import java.security.NoSuchAlgorithmException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
 
-import static app.bpartners.api.service.utils.SecurityUtils.BEARER_PREFIX;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 import static app.bpartners.api.repository.fintecture.implementation.utils.FintecturePaymentUtils.ACCEPT;
 import static app.bpartners.api.repository.fintecture.implementation.utils.FintecturePaymentUtils.APPLICATION_JSON;
@@ -29,6 +28,7 @@ import static app.bpartners.api.repository.fintecture.implementation.utils.Finte
 import static app.bpartners.api.repository.fintecture.implementation.utils.FintecturePaymentUtils.getDigest;
 import static app.bpartners.api.repository.fintecture.implementation.utils.FintecturePaymentUtils.getHeaderSignatureWithDigest;
 import static app.bpartners.api.repository.fintecture.implementation.utils.FintecturePaymentUtils.getParsedDate;
+import static app.bpartners.api.service.utils.SecurityUtils.BEARER_PREFIX;
 import static java.util.UUID.randomUUID;
 import static org.apache.tika.metadata.HttpHeaders.CONTENT_TYPE;
 
@@ -55,9 +55,11 @@ public class FintecturePaymentInitiationRepositoryImpl implements
 
   @Override
   public FPaymentRedirection save(FPaymentInitiation paymentInitiation, String redirectUri) {
+    String globalPayload = null;
     try {
       String urlParams = String.format("?redirectUri=%s&state=12341234", redirectUri);
       String payload = objectMapper.writeValueAsString(paymentInitiation);
+      globalPayload = payload;
       String requestId = String.valueOf(randomUUID());
       String digest = getDigest(payload);
       String date = getParsedDate();
@@ -84,6 +86,7 @@ public class FintecturePaymentInitiationRepositoryImpl implements
       }
       return redirectionObj;
     } catch (IOException | URISyntaxException | NoSuchAlgorithmException e) {
+      log.warn("[Fintecture] Payment was not initiated. Payload was {}", globalPayload);
       throw new ApiException(ApiException.ExceptionType.SERVER_EXCEPTION, e);
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();

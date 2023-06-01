@@ -3,6 +3,7 @@ package app.bpartners.api.model.mapper;
 import app.bpartners.api.endpoint.rest.model.AccountStatus;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.Bank;
+import app.bpartners.api.model.Money;
 import app.bpartners.api.repository.bridge.model.Account.BridgeAccount;
 import app.bpartners.api.repository.jpa.model.HAccount;
 import app.bpartners.api.repository.jpa.model.HUser;
@@ -91,7 +92,9 @@ public class AccountMapper {
         .iban(existing.getIban())
         .bic(existing.getBic())
         .externalId(accountConnector.getId())
-        .availableBalance(String.valueOf(accountConnector.getBalance()))
+        //TODO: must not be multiplied by 100 but persisted fraction is in major for now
+        // * 100 is to delete when persisted fraction is in minor
+        .availableBalance(String.valueOf(accountConnector.getBalance().multiply(new Money(100L))))
         .status(accountConnector.getStatus())
         .build();
   }

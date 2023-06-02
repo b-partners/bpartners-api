@@ -1,17 +1,17 @@
 package app.bpartners.api.endpoint.rest.mapper;
 
 import app.bpartners.api.endpoint.rest.model.CompanyInfo;
-import app.bpartners.api.endpoint.rest.validator.CompanyInfoRestValidator;
+import app.bpartners.api.model.exception.BadRequestException;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
 @AllArgsConstructor
 public class CompanyInfoMapper {
-  private final CompanyInfoRestValidator validator;
-
   public app.bpartners.api.model.CompanyInfo toDomain(CompanyInfo rest) {
-    validator.accept(rest);
+    if (rest == null) {
+      throw new BadRequestException("RequestBody CompanyInfo is mandatory.");
+    }
     return app.bpartners.api.model.CompanyInfo.builder()
         .email(rest.getEmail())
         .tvaNumber(rest.getTvaNumber())

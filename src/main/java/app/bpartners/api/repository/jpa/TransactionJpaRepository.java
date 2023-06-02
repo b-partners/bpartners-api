@@ -9,4 +9,6 @@ public interface TransactionJpaRepository extends JpaRepository<HTransaction, St
   List<HTransaction> findByIdAccountOrderByPaymentDateTimeDesc(String idAccount, Pageable pageable);
 
   List<HTransaction> findAllByIdBridge(Long idBridge);
+
+  List<HTransaction> findAllByIdAccount(String idAccount);
 }

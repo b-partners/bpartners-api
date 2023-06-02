@@ -4,6 +4,7 @@ import app.bpartners.api.endpoint.rest.model.BankConnectionRedirection;
 import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.Fraction;
+import app.bpartners.api.model.Transaction;
 import app.bpartners.api.model.UpdateAccountIdentity;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.UserToken;
@@ -12,12 +13,14 @@ import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.repository.AccountRepository;
 import app.bpartners.api.repository.BankRepository;
+import app.bpartners.api.repository.TransactionRepository;
 import app.bpartners.api.repository.TransactionsSummaryRepository;
 import app.bpartners.api.repository.UserRepository;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Random;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -25,6 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 import static app.bpartners.api.service.utils.AccountUtils.describeAccountList;
+import static java.util.UUID.randomUUID;
 
 @Service
 @AllArgsConstructor
@@ -32,6 +36,7 @@ public class AccountService {
   private final AccountRepository repository;
   private final BankRepository bankRepository;
   private final UserRepository userRepository;
+  private final TransactionRepository transactionRepository;
   private final TransactionsSummaryRepository summaryRepository;
 
   public Account getActive(List<Account> accounts) {
@@ -150,12 +155,20 @@ public class AccountService {
   private void deleteOldAccounts(Account saved) {
     List<Account> accounts = repository.findByUserId(saved.getUserId());
     accounts.remove(saved);
-    //TODO: must delete transactions before ?
+
     repository.removeAll(accounts);
+    accounts.forEach(
+        account -> {
+          List<Transaction> transactions =
+              transactionRepository.findAllPersistedByIdAccount(account.getId());
+          transactionRepository.removeAll(transactions);
+        }
+    );
   }
 
   private Account resetDefaultAccount(User user, Account defaultAccount) {
     return defaultAccount.toBuilder()
+        .id(String.valueOf(randomUUID()))
         .name(user.getName())
         .bic(null)
         .iban(null)

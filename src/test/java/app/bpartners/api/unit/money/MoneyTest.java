@@ -1,4 +1,4 @@
-package app.bpartners.api.unit.currency;
+package app.bpartners.api.unit.money;
 
 import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.Money;
@@ -29,11 +29,11 @@ class MoneyTest {
 
     assertEquals(minorValue, fromMinor.getApproximatedValue());
     //TODO: * 100 because for now persisted fraction is in cent but should be its real value
-    assertEquals(roundedValue, fromMinor.getRoundedValue() * 100);
-    assertEquals(majorValue, fromMinor.getCentsRoundUp() * 100);
+    assertEquals(roundedValue, fromMinor.getRoundedValue());
+    assertEquals(majorValue, fromMinor.getCentsRoundUp());
 
     assertEquals(minorValue, fromMajor.getApproximatedValue());
-    assertEquals(roundedValue, fromMinor.getRoundedValue() * 100);
-    assertEquals(majorValue, fromMajor.getCentsRoundUp() * 100);
+    assertEquals(roundedValue, fromMinor.getRoundedValue());
+    assertEquals(majorValue, fromMajor.getCentsRoundUp());
   }
 }

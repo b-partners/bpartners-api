@@ -108,6 +108,35 @@ class TransactionIT {
     return TestUtils.anApiClient(token, ContextInitializer.SERVER_PORT);
   }
 
+  MonthlyTransactionsSummary month1() {
+    return new MonthlyTransactionsSummary()
+        .id("monthly_transactions_summary1_id")
+        .month(JANUARY)
+        .income(135600000)
+        .outcome(105000)
+        .cashFlow(135495000);
+  }
+
+  MonthlyTransactionsSummary month2() {
+    return new MonthlyTransactionsSummary()
+        .id("monthly_transactions_summary2_id")
+        .month(DECEMBER)
+        .income(0)
+        .outcome(0)
+        .cashFlow(135495000);
+  }
+
+  TransactionsSummary transactionsSummary1() {
+    int month1CashFlow = month1().getIncome() - month1().getOutcome();
+    int month2CashFlow = month2().getIncome() - month2().getOutcome();
+    return new TransactionsSummary()
+        .year(LocalDate.now().getYear())
+        .annualIncome(month1().getIncome() + month2().getIncome())
+        .annualOutcome(month1().getOutcome() + month2().getOutcome())
+        .annualCashFlow(month1CashFlow + month2CashFlow)
+        .summary(List.of(month1(), month2()));
+  }
+
   private static BridgeTransaction bridgeTransaction1() {
     return BridgeTransaction.builder()
         .id(1L)
@@ -193,7 +222,8 @@ class TransactionIT {
         .status(bridgeTransaction2().getStatus())
         .paymentDateTime(bridgeTransaction2().getTransactionDate()
             .atStartOfDay(ZoneId.systemDefault())
-            .toInstant()).build();
+            .toInstant())
+        .build();
   }
 
   private static HTransaction bridgeTransactionEntity3() {
@@ -210,35 +240,6 @@ class TransactionIT {
             .atStartOfDay(ZoneId.systemDefault())
             .toInstant())
         .build();
-  }
-
-  MonthlyTransactionsSummary month1() {
-    return new MonthlyTransactionsSummary()
-        .id("monthly_transactions_summary1_id")
-        .month(JANUARY)
-        .income(1356000)
-        .outcome(1050)
-        .cashFlow(1354950);
-  }
-
-  MonthlyTransactionsSummary month2() {
-    return new MonthlyTransactionsSummary()
-        .id("monthly_transactions_summary2_id")
-        .month(DECEMBER)
-        .income(0)
-        .outcome(0)
-        .cashFlow(1354950);
-  }
-
-  TransactionsSummary transactionsSummary1() {
-    int month1CashFlow = month1().getIncome() - month1().getOutcome();
-    int month2CashFlow = month2().getIncome() - month2().getOutcome();
-    return new TransactionsSummary()
-        .year(LocalDate.now().getYear())
-        .annualIncome(month1().getIncome() + month2().getIncome())
-        .annualOutcome(month1().getOutcome() + month2().getOutcome())
-        .annualCashFlow(month1CashFlow + month2CashFlow)
-        .summary(List.of(month1(), month2()));
   }
 
   @BeforeEach
@@ -265,7 +266,7 @@ class TransactionIT {
 
     assertEquals(2, actual1.size());
     assertEquals(actual1, actual2);
-    //TODO : actual transactions contains rest resource
+    // TODO : actual transactions contains rest resource
   }
 
   @Test
@@ -287,15 +288,14 @@ class TransactionIT {
     PayingApi api = new PayingApi(joeDoeClient);
 
     assertThrowsApiException("{\"type\":\"404 NOT_FOUND\",\"message\":\""
-            + "Transaction.unknown_transaction_id is not found.\"}",
+        + "Transaction.unknown_transaction_id is not found.\"}",
         () -> api.getTransactionById(JOE_DOE_ACCOUNT_ID, UNKNOWN_TRANSACTION_ID));
     assertThrowsForbiddenException(
         () -> api.getTransactionById(JANE_ACCOUNT_ID, TRANSACTION1_ID));
   }
 
-
   /*
-  TODO: return empty when neither swan nor bridge return transaction
+   * TODO: return empty when neither swan nor bridge return transaction
    */
   @Test
   @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
@@ -351,7 +351,7 @@ class TransactionIT {
     assertEquals(0, actualCustomYear.getSummary().size());
     assertEquals(currentYear + 1, actualCustomYear.getYear());
     assertEquals(transactionsSummary1()
-            .updatedAt(actualDefaultYear.getUpdatedAt()),
+        .updatedAt(actualDefaultYear.getUpdatedAt()),
         actualDefaultYear.summary(ignoreUpdatedAt(actualDefaultYear.getSummary())));
   }
 
@@ -362,8 +362,7 @@ class TransactionIT {
     int currentYear = LocalDate.now().getYear();
 
     TransactionsSummary actualDefaultYear = api.getTransactionsSummary(JANE_ACCOUNT_ID, null);
-    TransactionsSummary actualCustomYear =
-        api.getTransactionsSummary(JANE_ACCOUNT_ID, currentYear + 1);
+    TransactionsSummary actualCustomYear = api.getTransactionsSummary(JANE_ACCOUNT_ID, currentYear + 1);
 
     assertEquals(0, actualDefaultYear.getSummary().size());
     assertEquals(0, actualCustomYear.getSummary().size());

@@ -32,7 +32,7 @@ public class Money {
   }
 
   public Integer getCentsRoundUp() {
-    return (int) (getRoundedValue() * 100);
+    return value.getCentsRoundUp();
   }
 
   public Double getRoundedValue() {

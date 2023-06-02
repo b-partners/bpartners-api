@@ -110,10 +110,10 @@ class ProductIT {
         .id(product.getId())
         .createdAt(product.getCreatedAt())
         .description("Other")
-        .unitPrice(5000)
-        .vatPercent(1000)
+        .unitPrice(500000)
+        .vatPercent(100000)
         .status(ProductStatus.ENABLED)
-        .unitPriceWithVat(5500);
+        .unitPriceWithVat(550000);
   }
 
   private static Product oldProduct(Product product) {
@@ -121,10 +121,10 @@ class ProductIT {
         .description("New product")
         .id(product.getId())
         .createdAt(product.getCreatedAt())
-        .vatPercent(1000)
-        .unitPrice(9000)
+        .vatPercent(100000)
+        .unitPrice(900000)
         .status(ProductStatus.ENABLED)
-        .unitPriceWithVat(9900);
+        .unitPriceWithVat(990000);
   }
 
   private static UpdateProductStatus productDisabled() {

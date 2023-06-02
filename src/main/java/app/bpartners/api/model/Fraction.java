@@ -72,7 +72,7 @@ public class Fraction implements Serializable {
 
   //TODO: the /100 means that persisted fraction are in cents
   private BigDecimal getRoundedBigDecimal() {
-    return BigDecimal.valueOf(numerator.doubleValue() / denominator.doubleValue() / 100)
+    return BigDecimal.valueOf(numerator.doubleValue() / denominator.doubleValue())
         .setScale(2, RoundingMode.HALF_UP);
   }
 

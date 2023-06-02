@@ -318,9 +318,9 @@ public class TestUtils {
     return new Product()
         .id("product1_id")
         .description("Tableau malgache")
-        .unitPrice(1000)
-        .vatPercent(2000)
-        .unitPriceWithVat(1200)
+        .unitPrice(100000)
+        .vatPercent(200000)
+        .unitPriceWithVat(120000)
         .quantity(null)
         .totalVat(null)
         .createdAt(Instant.parse("2022-01-01T01:00:00.00Z"))
@@ -333,12 +333,12 @@ public class TestUtils {
         .id("product2_id")
         .description("Tableau baobab")
         .quantity(2)
-        .unitPrice(2000)
-        .vatPercent(1000)
-        .unitPriceWithVat(2200)
-        .totalVat(400)
+        .unitPrice(200000)
+        .vatPercent(100000)
+        .unitPriceWithVat(220000)
+        .totalVat(40000)
         .createdAt(Instant.parse("2022-01-01T02:00:00.00Z"))
-        .totalPriceWithVat(4400)
+        .totalPriceWithVat(440000)
         .status(ProductStatus.ENABLED);
   }
 
@@ -347,13 +347,13 @@ public class TestUtils {
         .id("product3_id")
         .description("Tuyau 1m")
         .quantity(3)
-        .unitPrice(2000)
-        .vatPercent(1000)
-        .unitPriceWithVat(2200)
-        .totalVat(600)
+        .unitPrice(200000)
+        .vatPercent(100000)
+        .unitPriceWithVat(220000)
+        .totalVat(60000)
         .createdAt(null)
         .status(ProductStatus.ENABLED)
-        .totalPriceWithVat(6600);
+        .totalPriceWithVat(660000);
   }
 
   public static Product product4() {
@@ -361,12 +361,12 @@ public class TestUtils {
         .id("product4_id")
         .description("Autres produits")
         .quantity(1)
-        .unitPrice(2000)
-        .vatPercent(1000)
-        .unitPriceWithVat(2200)
-        .totalVat(200)
+        .unitPrice(200000)
+        .vatPercent(100000)
+        .unitPriceWithVat(220000)
+        .totalVat(20000)
         .createdAt(null)
-        .totalPriceWithVat(2200)
+        .totalPriceWithVat(220000)
         .status(ProductStatus.ENABLED);
   }
 
@@ -374,9 +374,9 @@ public class TestUtils {
     return new Product()
         .id("product6_id")
         .description("Autres produits")
-        .unitPrice(1000)
-        .vatPercent(1000)
-        .unitPriceWithVat(1100)
+        .unitPrice(100000)
+        .vatPercent(10000)
+        .unitPriceWithVat(110000)
         .status(ProductStatus.ENABLED);
   }
 
@@ -385,22 +385,22 @@ public class TestUtils {
         .id("product5_id")
         .description("Machine agro-alimentaire")
         .quantity(1)
-        .unitPrice(1000)
-        .vatPercent(1000)
-        .unitPriceWithVat(1100)
-        .totalVat(100)
+        .unitPrice(100000)
+        .vatPercent(100000)
+        .unitPriceWithVat(110000)
+        .totalVat(10000)
         .createdAt(null)
         .status(ProductStatus.ENABLED)
-        .totalPriceWithVat(1100);
+        .totalPriceWithVat(110000);
   }
 
   public static Product disabledProduct() {
     return new Product()
         .id("product8_id")
         .description("Cartable")
-        .unitPrice(1200)
-        .vatPercent(1000)
-        .unitPriceWithVat(1320)
+        .unitPrice(120000)
+        .vatPercent(100000)
+        .unitPriceWithVat(132000)
         .createdAt(Instant.parse("2022-01-01T04:00:00.00Z"))
         .status(ProductStatus.DISABLED);
   }
@@ -409,23 +409,23 @@ public class TestUtils {
     return new CreateProduct()
         .description("Tableau baobab")
         .quantity(1)
-        .unitPrice(2000)
-        .vatPercent(1000);
+        .unitPrice(200000)
+        .vatPercent(100000);
   }
 
   public static CreateProduct createProduct4() {
     return new CreateProduct()
         .description("Autres produits")
         .quantity(1)
-        .unitPrice(2000)
-        .vatPercent(1000);
+        .unitPrice(200000)
+        .vatPercent(100000);
   }
 
   public static CreateProduct createProduct5() {
     return new CreateProduct()
         .description("Machine agro-alimentaire")
         .quantity(1)
-        .unitPrice(1000)
+        .unitPrice(100000)
         .vatPercent(1000);
   }
 
@@ -436,7 +436,7 @@ public class TestUtils {
         .description("Prestations ou ventes soumises à 20% de TVA")
         .transactionType(INCOME)
         .description("Prestations ou ventes soumises à 20% de TVA")
-        .vat(2000)
+        .vat(200000)
         .count(0L)
         .isOther(false);
   }
@@ -446,7 +446,7 @@ public class TestUtils {
         .id("transaction2_id")
         .label("Premier virement")
         .reference("JOE-001")
-        .amount(50000)
+        .amount(5000000)
         .type(INCOME)
         .status(TransactionStatus.BOOKED)
         .paymentDatetime(Instant.parse("2022-08-24T03:39:33.315Z"))
@@ -458,7 +458,7 @@ public class TestUtils {
         .id(TRANSACTION1_ID)
         .label("Création de site vitrine")
         .reference("REF_001")
-        .amount(50000)
+        .amount(5000000)
         .type(INCOME)
         .status(TransactionStatus.PENDING)
         .category(null)
@@ -470,7 +470,7 @@ public class TestUtils {
         .id("bosci_28cb4daf35d3ab24cb775dcdefc8fdab")
         .label("Test du virement")
         .reference("TEST-001")
-        .amount(10000)
+        .amount(1000000)
         .type(OUTCOME)
         .status(TransactionStatus.BOOKED)
         .paymentDatetime(Instant.parse("2022-08-24T04:57:02.606Z"))
@@ -480,7 +480,7 @@ public class TestUtils {
   public static PaymentRequest basePaymentRequest() {
     return new PaymentRequest()
         .paymentUrl("https://connect-v2-sbx.fintecture.com")
-        .amount(4400)
+        .amount(440000)
         .payerName("Luc Artisan")
         .payerEmail("bpartners.artisans@gmail.com");
   }
@@ -492,7 +492,7 @@ public class TestUtils {
             .id("bab75c91-f275-4f68-b10a-0f30f96f7806")
             .label("Reste 50%")
             .reference("FAC2023ACT02")
-            .percentValue(5000)
+            .percentValue(500000)
             .initiatedDatetime(Instant.parse("2023-01-02T00:00:00Z")));
   }
 
@@ -503,7 +503,7 @@ public class TestUtils {
             .id("a1275c91-f275-4f68-b10a-0f30f96f7806")
             .label("Acompte 50%")
             .reference("FAC2023ACT01")
-            .percentValue(5000)
+            .percentValue(500000)
             .initiatedDatetime(Instant.parse("2023-01-01T00:00:00Z")));
   }
 

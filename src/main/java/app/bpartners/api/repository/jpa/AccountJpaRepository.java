@@ -13,4 +13,7 @@ public interface AccountJpaRepository extends JpaRepository<HAccount, String> {
 
   @Lock(PESSIMISTIC_WRITE)
   Optional<HAccount> findByExternalId(String externalId);
+
+  @Lock(PESSIMISTIC_WRITE)
+  List<HAccount> findAllByExternalId(String externalId);
 }

@@ -36,12 +36,24 @@ public class AccountHolderService {
                                          CompanyInfo companyInfo) {
     AccountHolder accountHolder = accountHolderRepository.findById(accountHolderId);
     return accountHolderRepository.save(accountHolder.toBuilder()
-        .socialCapital(companyInfo.getSocialCapital())
-        .email(companyInfo.getEmail())
-        .mobilePhoneNumber(companyInfo.getPhone())
-        .subjectToVat(companyInfo.isSubjectToVat())
-        .location(companyInfo.getLocation())
-        .townCode(companyInfo.getTownCode())
+        .socialCapital(companyInfo == null || companyInfo.getSocialCapital() == null
+            ? accountHolder.getSocialCapital()
+            : companyInfo.getSocialCapital())
+        .email(companyInfo == null || companyInfo.getEmail() == null
+            ? accountHolder.getEmail()
+            : companyInfo.getEmail())
+        .mobilePhoneNumber(companyInfo == null || companyInfo.getPhone() == null
+            ? accountHolder.getMobilePhoneNumber()
+            : companyInfo.getPhone())
+        .subjectToVat(companyInfo == null
+            ? accountHolder.isSubjectToVat()
+            : companyInfo.isSubjectToVat())
+        .location(companyInfo == null || companyInfo.getLocation() == null
+            ? accountHolder.getLocation()
+            : companyInfo.getLocation())
+        .townCode(companyInfo == null || companyInfo.getTownCode() == null
+            ? accountHolder.getTownCode()
+            : companyInfo.getTownCode())
         .build());
   }
 

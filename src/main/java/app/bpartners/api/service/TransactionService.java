@@ -2,9 +2,11 @@ package app.bpartners.api.service;
 
 import app.bpartners.api.endpoint.rest.model.TransactionTypeEnum;
 import app.bpartners.api.model.Account;
+import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.JustifyTransaction;
 import app.bpartners.api.model.MonthlyTransactionsSummary;
+import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.model.Transaction;
 import app.bpartners.api.model.TransactionsSummary;
 import app.bpartners.api.repository.TransactionRepository;
@@ -72,11 +74,14 @@ public class TransactionService {
         .collect(Collectors.toUnmodifiableList());
   }
 
-  public List<Transaction> getTransactionsByAccountId(String accountId) {
-    return repository.findByAccountId(accountId);
+  public List<Transaction> getPersistedByIdAccount(String idAccount, PageFromOne page,
+                                                   BoundedPageSize pageSize) {
+    int pageValue = page == null ? 0 : page.getValue() - 1;
+    int pageSizeValue = pageSize == null ? 30 : pageSize.getValue();
+    return repository.findPersistedByIdAccount(idAccount, pageValue, pageSizeValue);
   }
 
-  public Transaction getTransactionsById(String transactionId) {
+  public Transaction getById(String transactionId) {
     return repository.findById(transactionId);
   }
 

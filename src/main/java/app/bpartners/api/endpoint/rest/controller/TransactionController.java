@@ -5,6 +5,8 @@ import app.bpartners.api.endpoint.rest.mapper.TransactionsSummaryRestMapper;
 import app.bpartners.api.endpoint.rest.model.Transaction;
 import app.bpartners.api.endpoint.rest.model.TransactionsSummary;
 import app.bpartners.api.endpoint.rest.security.AuthProvider;
+import app.bpartners.api.model.BoundedPageSize;
+import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.service.TransactionService;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -23,8 +25,13 @@ public class TransactionController {
   private final TransactionsSummaryRestMapper summaryRestMapper;
 
   @GetMapping(value = "/accounts/{id}/transactions")
-  public List<Transaction> getTransactions(@PathVariable(name = "id") String accountId) {
-    return service.getTransactionsByAccountId(accountId).stream()
+  public List<Transaction> getTransactions(
+      @PathVariable(name = "id") String accountId,
+      @RequestParam(name = "page", required = false)
+      PageFromOne page,
+      @RequestParam(name = "pageSize", required = false)
+      BoundedPageSize pageSize) {
+    return service.getPersistedByIdAccount(accountId, page, pageSize).stream()
         .map(mapper::toRest)
         .collect(Collectors.toUnmodifiableList());
   }
@@ -34,7 +41,7 @@ public class TransactionController {
       @PathVariable(name = "id") String accountId,
       @PathVariable(name = "tId") String transactionId
   ) {
-    return mapper.toRest(service.getTransactionsById(transactionId));
+    return mapper.toRest(service.getById(transactionId));
   }
 
   @GetMapping(value = "/accounts/{aId}/transactionsSummary")

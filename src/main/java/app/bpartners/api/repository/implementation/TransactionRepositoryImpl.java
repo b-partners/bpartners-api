@@ -14,11 +14,14 @@ import app.bpartners.api.repository.jpa.TransactionJpaRepository;
 import app.bpartners.api.repository.jpa.model.HInvoice;
 import app.bpartners.api.repository.jpa.model.HTransaction;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import static app.bpartners.api.service.utils.TransactionUtils.describeList;
@@ -34,6 +37,23 @@ public class TransactionRepositoryImpl implements TransactionRepository {
   private final TransactionConnectorRepository connectorRepository;
 
   //TODO: check why transactions with same bridge ID are persisted twice
+  @Override
+  public List<Transaction> findPersistedByIdAccount(String idAccount, int page, int pageSize) {
+    Pageable pageable = PageRequest.of(page, pageSize);
+    return jpaRepository.findByIdAccountOrderByPaymentDateTimeDesc(idAccount, pageable).stream()
+        .map(transaction -> mapper.toDomain(transaction,
+            categoryRepository.findByIdTransaction(transaction.getId())))
+        .collect(Collectors.toList());
+  }
+
+  @Override
+  public List<Transaction> findAllPersistedByIdAccount(String idAccount) {
+    return jpaRepository.findAllByIdAccount(idAccount).stream()
+        .map(transaction -> mapper.toDomain(transaction,
+            categoryRepository.findByIdTransaction(transaction.getId())))
+        .collect(Collectors.toList());
+  }
+
   @Override
   public List<Transaction> findByAccountId(String idAccount) {
     List<TransactionConnector> connectors = connectorRepository.findByIdAccount(idAccount);
@@ -109,5 +129,14 @@ public class TransactionRepositoryImpl implements TransactionRepository {
         .orElseThrow(() -> new NotFoundException(
             "Transaction." + idTransaction + " not found"));
     return mapper.toDomain(entity, categoryRepository.findByIdTransaction(entity.getId()));
+  }
+
+  @Override
+  public void removeAll(List<Transaction> toRemove) {
+    List<String> ids = new ArrayList<>();
+    toRemove.forEach(
+        transaction -> ids.add(transaction.getId())
+    );
+    jpaRepository.deleteAllById(ids);
   }
 }

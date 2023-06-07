@@ -7,7 +7,6 @@ import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.endpoint.rest.security.model.Principal;
 import app.bpartners.api.endpoint.rest.security.principal.PrincipalProvider;
 import app.bpartners.api.model.AccountHolder;
-import app.bpartners.api.model.UserInvoiceRelaunchConf;
 import app.bpartners.api.model.Attachment;
 import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.FileInfo;
@@ -16,11 +15,12 @@ import app.bpartners.api.model.InvoiceRelaunch;
 import app.bpartners.api.model.InvoiceRelaunchConf;
 import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.model.User;
+import app.bpartners.api.model.UserInvoiceRelaunchConf;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.validator.InvoiceRelaunchValidator;
-import app.bpartners.api.repository.UserInvoiceRelaunchConfRepository;
 import app.bpartners.api.repository.InvoiceRelaunchRepository;
 import app.bpartners.api.repository.InvoiceRepository;
+import app.bpartners.api.repository.UserInvoiceRelaunchConfRepository;
 import app.bpartners.api.repository.jpa.InvoiceJpaRepository;
 import app.bpartners.api.service.utils.TemplateResolverUtils;
 import java.time.LocalDate;
@@ -121,7 +121,8 @@ public class InvoiceRelaunchService {
         invoiceRelaunchRepository.save(
             invoice, getDefaultEmailPrefix(accountHolder) + emailObject, emailBody,
             isUserRelaunched);
-    attachments.forEach(attachment -> uploadAttachment(null, attachment)); //TODO
+    attachments.forEach(
+        attachment -> uploadAttachment(invoice.getUser().getId(), attachment));
     List<Attachment> attachmentList =
         attachmentService.saveAll(attachments, invoiceRelaunch.getId());
     invoiceRelaunch.setAttachments(attachmentList);

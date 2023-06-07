@@ -43,7 +43,7 @@ public class InvoiceRelaunchSavedService implements Consumer<InvoiceRelaunchSave
     AccountHolder accountHolder = invoiceRelaunchSaved.getAccountHolder();
     String logoFileId = invoiceRelaunchSaved.getLogoFileId();
     List<byte[]> logoFiles = fileService.downloadOptionalFile(
-        LOGO, invoice.getActualAccount().getId(), logoFileId);
+        LOGO, invoice.getUser().getId(), logoFileId);
     byte[] logoAsBytes = logoFiles.isEmpty()
         ? new byte[0]
         : logoFiles.get(0);
@@ -62,7 +62,7 @@ public class InvoiceRelaunchSavedService implements Consumer<InvoiceRelaunchSave
     attachments.forEach(contentlessAttachment -> {
       byte[] content = fileService.downloadFile(
           ATTACHMENT,
-          invoice.getActualAccount().getId(),
+          invoice.getUser().getId(),
           contentlessAttachment.getFileId()
       );
       contentlessAttachment.setContent(content);

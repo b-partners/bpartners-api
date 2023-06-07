@@ -1,0 +1,37 @@
+<html xmlns:th="http://www.thymeleaf.org" xmlns="http://www.w3.org/1999/html">
+<head>
+    <title>Onboarded user mail</title>
+    <style>
+        * {
+            font-family: Arial, Verdana, Georgia, and Courier, serif;
+            color: black;
+        }
+
+        h1, section, footer {
+            margin: 2vh 2vw;
+        }
+
+        h1 {
+            font-size: 1.2em;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+<p>
+    Bonjour,
+</p>
+<p> Un nouvel artisan s'est inscrit sur notre plateforme. Voici les informations que nous avons
+    récoltées à travers son inscription :</p>
+<p><strong><u>Nom de la société</u> :</strong> <span th:text="${accountHolder.name}"></span></p>
+<p><strong><u>Informations concernant le compte</u> :</strong></p>
+<ul>
+    <li>Nom(s) : <span th:text="${user.getFirstName()}"></span></li>
+    <li>Prénom(s) : <span th:text="${user.getLastName()}"></span></li>
+    <li>Email : <span th:text="${user.getEmail()}"></span></li>
+    <li>Numéro de téléphone : <span th:text="${user.getMobilePhoneNumber()}"></span></li>
+</ul>
+<p>BPartners, l'assistant intelligent Tout-en-Un, qui accélère la croissance des artisans &
+    indépendants français.</p>
+</body>
+</html>

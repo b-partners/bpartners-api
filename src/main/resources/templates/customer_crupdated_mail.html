@@ -1,0 +1,47 @@
+<html xmlns:th="http://www.thymeleaf.org" xmlns="http://www.w3.org/1999/html">
+<head>
+    <title>Customer crupdated</title>
+    <style>
+        * {
+            font-family: Arial, Verdana, Georgia, and Courier, serif;
+            color: black;
+        }
+
+        h1, section, footer {
+            margin: 2vh 2vw;
+        }
+
+        h1 {
+            font-size: 1.2em;
+            font-weight: 500;
+        }
+
+    </style>
+</head>
+<body>
+<p>
+    Bonjour,
+</p>
+<p>L'artisan <strong th:text="${user.getName()}"></strong> a
+    <span th:if="${type == 'CREATE'}"> ajouté un nouveau client.
+        </span>
+    <span th:unless="${type == 'CREATE'}"> mis a jour les informations du client <span
+            th:text="${customer.name}"></span>.
+        </span>
+    Voici les informations que nous avons récoltées :
+</p>
+<ul>
+    <li>Nom(s) : <span th:text="${customer.getFirstName()}"></span></li>
+    <li>Prénom(s) : <span th:text="${customer.getLastName()}"></span></li>
+    <li>Email : <span th:text="${customer.getEmail()}"></span></li>
+    <li>Numéro de téléphone : <span th:text="${customer.getPhone()}"></span></li>
+    <li>Adresse : <span th:text="${customer.getAddress()}"></span></li>
+    <li>Ville : <span th:text="${customer.getCity()}"></span></li>
+    <li>Code postal : <span th:text="${customer.getZipCode()}"></span></li>
+    <li>Pays : <span th:text="${customer.getCountry()}"></span></li>
+    <li>Site web : <span th:text="${customer.getWebsite()}"></span></li>
+</ul>
+<p>BPartners, l'assistant intelligent Tout-en-Un, qui accélère la croissance des artisans & indépendants
+    français.</p>
+</body>
+</html>

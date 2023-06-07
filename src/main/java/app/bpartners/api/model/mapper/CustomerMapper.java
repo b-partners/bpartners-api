@@ -4,6 +4,9 @@ import app.bpartners.api.model.Customer;
 import app.bpartners.api.repository.jpa.model.HCustomer;
 import org.springframework.stereotype.Component;
 
+import static app.bpartners.api.endpoint.rest.model.CustomerStatus.DISABLED;
+import static app.bpartners.api.endpoint.rest.model.CustomerStatus.ENABLED;
+
 @Component
 public class CustomerMapper {
 
@@ -25,6 +28,7 @@ public class CustomerMapper {
         .country(entity.getCountry())
         .comment(entity.getComment())
         .status(entity.getStatus())
+        .recentlyAdded(entity.isRecentlyAdded())
         .build();
   }
 
@@ -42,7 +46,9 @@ public class CustomerMapper {
         .city(domain.getCity())
         .country(domain.getCountry())
         .comment(domain.getComment())
-        .status(domain.getStatus())
+        .status(domain.getStatus() == null ? ENABLED
+            : domain.getStatus())
+        .recentlyAdded(domain.isRecentlyAdded())
         .build();
   }
 }

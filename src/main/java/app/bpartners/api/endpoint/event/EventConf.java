@@ -3,6 +3,7 @@ package app.bpartners.api.endpoint.event;
 import app.bpartners.api.model.exception.ApiException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -19,13 +20,17 @@ public class EventConf {
   private final Region region;
   private final String s3Endpoint;
   private final String sesSource;
+  @Getter
+  private final String adminEmail; //TODO: set as env variable
 
   public EventConf(@Value("${aws.region}") String region,
                    @Value("${aws.endpoint}") String s3Endpoint,
-                   @Value("${aws.ses.source}") String sesSource) {
+                   @Value("${aws.ses.source}") String sesSource,
+                   @Value("${admin.email}") String adminEmail) {
     this.sesSource = sesSource;
     this.region = Region.of(region);
     this.s3Endpoint = s3Endpoint;
+    this.adminEmail = adminEmail;
   }
 
   @Bean

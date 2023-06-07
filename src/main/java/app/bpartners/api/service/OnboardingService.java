@@ -1,7 +1,10 @@
 package app.bpartners.api.service;
 
+import app.bpartners.api.endpoint.event.EventConf;
 import app.bpartners.api.endpoint.event.EventProducer;
+import app.bpartners.api.endpoint.event.model.TypedUserOnboarded;
 import app.bpartners.api.endpoint.event.model.TypedUserUpserted;
+import app.bpartners.api.endpoint.event.model.gen.UserOnboarded;
 import app.bpartners.api.endpoint.event.model.gen.UserUpserted;
 import app.bpartners.api.endpoint.rest.model.AccountStatus;
 import app.bpartners.api.endpoint.rest.model.EnableStatus;
@@ -46,6 +49,7 @@ public class OnboardingService {
   private final AccountHolderRepository accountHolderRepository;
   private final EventProducer eventProducer;
   private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+  private final EventConf eventConf;
 
   @Transactional(isolation = SERIALIZABLE)
   public OnboardedUser onboardUser(User toSave, String companyName) {
@@ -63,7 +67,12 @@ public class OnboardingService {
         .accounts(List.of(savedAccount.active(true)))
         .accountHolders(List.of(savedAccountHolder))
         .build();
-    return new OnboardedUser(updatedAccount, savedAccount, savedAccountHolder);
+    OnboardedUser onboardedUser = new OnboardedUser(updatedAccount, savedAccount,
+        savedAccountHolder);
+
+    eventProducer.accept(List.of(toTypedEvent(onboardedUser))); //TODO: add appropriate test
+
+    return onboardedUser;
   }
 
   @Transactional(isolation = SERIALIZABLE)
@@ -78,6 +87,18 @@ public class OnboardingService {
         new UserUpserted()
             .userId(user.getId())
             .email(user.getEmail())
+    );
+  }
+
+  private TypedUserOnboarded toTypedEvent(OnboardedUser onboardedUser) {
+    String subject =
+        "Inscription d'un nouveau artisan : " + onboardedUser.getOnboardedUser().getName();
+    String recipient = eventConf.getAdminEmail();
+    return new TypedUserOnboarded(
+        new UserOnboarded()
+            .subject(subject)
+            .recipientEmail(recipient)
+            .onboardedUser(onboardedUser)
     );
   }
 

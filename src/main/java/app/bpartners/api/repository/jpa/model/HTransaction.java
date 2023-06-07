@@ -30,7 +30,6 @@ import static javax.persistence.GenerationType.IDENTITY;
 @NoArgsConstructor
 public class HTransaction {
   @Id
-  @GeneratedValue(strategy = IDENTITY)
   private String id;
   private String idAccount;
   private Long idBridge;

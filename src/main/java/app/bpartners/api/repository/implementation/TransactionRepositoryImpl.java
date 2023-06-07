@@ -36,7 +36,6 @@ public class TransactionRepositoryImpl implements TransactionRepository {
   private final InvoiceJpaRepository invoiceJpaRepository;
   private final TransactionConnectorRepository connectorRepository;
 
-  //TODO: check why transactions with same bridge ID are persisted twice
   @Override
   public List<Transaction> findPersistedByIdAccount(String idAccount, int page, int pageSize) {
     Pageable pageable = PageRequest.of(page, pageSize);

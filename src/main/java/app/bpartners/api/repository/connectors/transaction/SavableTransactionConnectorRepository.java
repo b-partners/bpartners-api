@@ -26,22 +26,21 @@ public class SavableTransactionConnectorRepository
     throw new NotImplementedException(UNSUPPORTED_ERROR_MESSAGE);
   }
 
-  //TODO: check why transactions with same bridge ID are persisted twice
   @Override
   public List<TransactionConnector> saveAll(
       String idAccount, List<TransactionConnector> connectors) {
     List<HTransaction> toSave = connectors.stream()
         .map(connector -> {
-          List<HTransaction> bridgeTransactions =
+          List<HTransaction> transactionsWithSameId =
               jpaRepository.findAllByIdBridge(Long.valueOf(connector.getId()));
-          if (bridgeTransactions.isEmpty()) {
+          if (transactionsWithSameId.isEmpty()) {
             return mapper.toEntity(idAccount, connector);
           }
-          if (bridgeTransactions.size() > 1) {
+          if (transactionsWithSameId.size() > 1) {
             log.warn("Duplicated transactions with same external ID {}",
-                describeList(bridgeTransactions));
+                describeList(transactionsWithSameId));
           }
-          return bridgeTransactions.get(0);
+          return transactionsWithSameId.get(0);
         })
         .collect(Collectors.toList());
     return jpaRepository.saveAll(toSave).stream()

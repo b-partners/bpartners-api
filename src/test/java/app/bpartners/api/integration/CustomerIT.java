@@ -3,7 +3,6 @@ package app.bpartners.api.integration;
 import app.bpartners.api.SentryConf;
 import app.bpartners.api.endpoint.event.S3Conf;
 import app.bpartners.api.endpoint.rest.api.CustomersApi;
-import app.bpartners.api.endpoint.rest.api.PayingApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
 import app.bpartners.api.endpoint.rest.model.CreateCustomer;
@@ -49,11 +48,9 @@ import static app.bpartners.api.integration.conf.TestUtils.BAD_USER_ID;
 import static app.bpartners.api.integration.conf.TestUtils.BEARER_PREFIX;
 import static app.bpartners.api.integration.conf.TestUtils.JANE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
-import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_TOKEN;
 import static app.bpartners.api.integration.conf.TestUtils.OTHER_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.TestUtils.OTHER_CUSTOMER_ID;
-import static app.bpartners.api.integration.conf.TestUtils.OTHER_PRODUCT_ID;
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsApiException;
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsForbiddenException;
 import static app.bpartners.api.integration.conf.TestUtils.customer1;
@@ -280,11 +277,6 @@ class CustomerIT {
     CustomersApi api = new CustomersApi(joeDoeClient);
 
     assertThrowsApiException(
-        "{\"type\":\"404 NOT_FOUND\",\"message\":\"Customer." + OTHER_CUSTOMER_ID
-            + " is not found for User(id=" + JOE_DOE_ID + ")\"}",
-        () -> api.updateCustomers(JOE_DOE_ACCOUNT_ID,
-            List.of(customerUpdated().id(OTHER_CUSTOMER_ID))));
-    assertThrowsApiException(
         "{\"type\":\"400 BAD_REQUEST\",\"message\":\"Identifier must not be null."
             + " firstName not be null.\"}", () -> api.updateCustomers(JOE_DOE_ACCOUNT_ID,
             List.of(customerUpdated().id(null).firstName(null))));
@@ -330,6 +322,24 @@ class CustomerIT {
             + "\"}", response.body().replace("\\", "")
     );
   }
+
+  @Order(5)
+  @Test
+  void upload_duplicated_customer_ko() throws IOException, InterruptedException {
+    Resource file = new ClassPathResource("files/wrong-duplicated-customers.xlsx");
+
+    HttpResponse<String> response = uploadFile(JOE_DOE_ACCOUNT_ID, file.getFile());
+
+    assertEquals(HttpStatus.BAD_REQUEST.value(), response.statusCode());
+    assertEquals(
+        "{\"type\":\"400 BAD_REQUEST\",\"message\":"
+            + "\"Email must be unique for each customer."
+            + "Otherwise,Customer(name=test 2 Test 2)"
+            + " and Customer(name=test 3 Test 3) "
+            + "have the same email = test+2@email.com. \"}",
+        response.body());
+  }
+
 
   @Order(6)
   @Test

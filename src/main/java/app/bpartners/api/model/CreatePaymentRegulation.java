@@ -1,6 +1,7 @@
 package app.bpartners.api.model;
 
 import app.bpartners.api.service.utils.QrCodeUtils;
+import java.io.Serializable;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -18,7 +19,7 @@ import static org.apfloat.Apcomplex.ZERO;
 @AllArgsConstructor
 @Builder
 @Data
-public class CreatePaymentRegulation {
+public class CreatePaymentRegulation implements Serializable {
   private PaymentRequest paymentRequest;
   private Fraction percent;
   private LocalDate maturityDate;
@@ -44,6 +45,7 @@ public class CreatePaymentRegulation {
   }
 
   public Date getFormattedMaturityDate() {
-    return Date.from(maturityDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
+    return maturityDate == null ? null
+        : Date.from(maturityDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
   }
 }

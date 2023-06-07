@@ -5,7 +5,9 @@ import app.bpartners.api.endpoint.rest.model.FileType;
 import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.exception.BadRequestException;
+import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.service.utils.FileInfoUtils;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.core.internal.waiters.ResponseOrException;
@@ -22,22 +24,18 @@ import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import static app.bpartners.api.endpoint.rest.model.FileType.ATTACHMENT;
 import static app.bpartners.api.endpoint.rest.model.FileType.INVOICE;
 import static app.bpartners.api.endpoint.rest.model.FileType.LOGO;
+import static app.bpartners.api.endpoint.rest.security.AuthProvider.userIsAuthenticated;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 
 
 @Service
 @Slf4j
+@AllArgsConstructor
 public class S3Service {
   private static final String S3_KEY_FORMAT = "%s/accounts/%s/%s/%s";
   private final S3Client s3Client;
   private final S3Conf s3Conf;
-
-  public S3Service(
-      S3Client s3Client,
-      S3Conf s3Conf) {
-    this.s3Client = s3Client;
-    this.s3Conf = s3Conf;
-  }
+  private final UserRepository userRepository;
 
   private String uploadFile(String key, byte[] toUpload) {
     log.info("File to be upload into S3 for User(id="
@@ -69,7 +67,7 @@ public class S3Service {
   }
 
   public String uploadFile(FileType fileType, String idUser, String fileId, byte[] toUpload) {
-    String key = AuthProvider.getAuthenticatedUser().getOldS3key();
+    String key = getKey(idUser);
     switch (fileType) {
       case LOGO:
         return uploadFile(getLogoKey(key, fileId), toUpload);
@@ -97,7 +95,7 @@ public class S3Service {
   }
 
   public byte[] downloadFile(FileType fileType, String idUser, String fileId) {
-    String key = AuthProvider.getAuthenticatedUser().getOldS3key();
+    String key = getKey(idUser);
     switch (fileType) {
       case LOGO:
         return downloadFile(getLogoKey(key, fileId));
@@ -108,6 +106,11 @@ public class S3Service {
       default:
         throw new BadRequestException("Unknown file type " + fileType);
     }
+  }
+
+  private String getKey(String idUser) {
+    return userIsAuthenticated() ? AuthProvider.getAuthenticatedUser().getOldS3key()
+        : userRepository.getById(idUser).getOldS3key();
   }
 
   private String getBucketName(String env, String idUser, String fileId, String type) {

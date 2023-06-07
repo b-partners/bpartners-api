@@ -7,6 +7,7 @@ import app.bpartners.api.endpoint.rest.model.UpdateCustomerStatus;
 import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.Customer;
 import app.bpartners.api.model.PageFromOne;
+import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.repository.CustomerRepository;
 import java.io.ByteArrayInputStream;
@@ -17,6 +18,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import static app.bpartners.api.service.utils.CustomerUtils.checkUniqueEmailConstraint;
 import static app.bpartners.api.service.utils.CustomerUtils.getCustomersInfoFromFile;
 
 @Service
@@ -53,6 +55,7 @@ public class CustomerService {
   public List<Customer> getDataFromFile(String idUser, byte[] file) {
     List<CreateCustomer> customersFromFile =
         getCustomersInfoFromFile(new ByteArrayInputStream(file));
+    checkUniqueEmailConstraint(customersFromFile);
     return customersFromFile.stream()
         .map(customer -> restMapper.toDomain(idUser, customer))
         .collect(Collectors.toList());

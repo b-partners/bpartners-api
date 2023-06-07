@@ -9,6 +9,8 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import static java.util.UUID.randomUUID;
+
 @Component
 @AllArgsConstructor
 @Slf4j
@@ -76,7 +78,7 @@ public class CustomerRestMapper {
             && (names[1].isEmpty() || names[1].isBlank())) ? null
             : names[1];
     return app.bpartners.api.model.Customer.builder()
-        .id(null) //generated automatically
+        .id(String.valueOf(randomUUID()))
         .idUser(userId)
         .firstName(firstName)
         .lastName(lastName)

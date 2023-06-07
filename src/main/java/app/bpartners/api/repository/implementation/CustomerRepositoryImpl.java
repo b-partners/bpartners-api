@@ -161,15 +161,6 @@ public class CustomerRepositoryImpl implements CustomerRepository {
   }
 
   private Customer checkExisting(Customer domain) {
-    //Case of update with ID
-    String id = domain.getId();
-    if (id != null) {
-      jpaRepository.findById(id)
-          .orElseThrow(() ->
-              new NotFoundException(
-                  "Customer." + id + " is not found for User(id=" + domain.getIdUser()
-                      + ")"));
-    }
     Optional<HCustomer> optionalCustomer =
         jpaRepository.findByIdUserAndEmail(domain.getIdUser(), domain.getEmail());
     return optionalCustomer.isEmpty() ? domain : domain.toBuilder()

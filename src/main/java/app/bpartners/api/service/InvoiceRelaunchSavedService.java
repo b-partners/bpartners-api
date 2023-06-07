@@ -42,9 +42,11 @@ public class InvoiceRelaunchSavedService implements Consumer<InvoiceRelaunchSave
     Invoice invoice = invoiceRelaunchSaved.getInvoice();
     AccountHolder accountHolder = invoiceRelaunchSaved.getAccountHolder();
     String logoFileId = invoiceRelaunchSaved.getLogoFileId();
-    byte[] logoAsBytes =
-        fileService.downloadOptionalFile(
-            LOGO, invoice.getActualAccount().getId(), logoFileId).get(0);
+    List<byte[]> logoFiles = fileService.downloadOptionalFile(
+        LOGO, invoice.getUser().getId(), logoFileId);
+    byte[] logoAsBytes = logoFiles.isEmpty()
+        ? new byte[0]
+        : logoFiles.get(0);
 
     byte[] attachmentAsBytes =
         invoice.getStatus().equals(CONFIRMED) || invoice.getStatus().equals(PAID)
@@ -60,7 +62,7 @@ public class InvoiceRelaunchSavedService implements Consumer<InvoiceRelaunchSave
     attachments.forEach(contentlessAttachment -> {
       byte[] content = fileService.downloadFile(
           ATTACHMENT,
-          invoice.getActualAccount().getId(),
+          invoice.getUser().getId(),
           contentlessAttachment.getFileId()
       );
       contentlessAttachment.setContent(content);
@@ -69,6 +71,8 @@ public class InvoiceRelaunchSavedService implements Consumer<InvoiceRelaunchSave
     invoiceRelaunchSaved.setAttachments(attachments);
     try {
       service.sendEmail(recipient, subject, htmlBody, attachments);
+      log.info("Email sent from "
+          + invoice.getActualAccount().describeMinInfos() + " to " + recipient);
     } catch (MessagingException | IOException e) {
       log.error("Email not sent : " + e.getMessage());
     }

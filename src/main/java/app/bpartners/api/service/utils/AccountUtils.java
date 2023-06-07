@@ -50,7 +50,7 @@ public class AccountUtils {
           .orElse(accounts.get(0)); //No IBAN must be default account
       List<Account> others = new ArrayList<>(accounts);
       others.remove(firstAccount);
-      log.warn(
+      log.info(
           "Any active account found. " + firstAccount.describeMinInfos()
               + " is set as active by default but others found : "
               + describeAccounts(others));

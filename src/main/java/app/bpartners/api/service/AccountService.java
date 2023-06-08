@@ -124,13 +124,13 @@ public class AccountService {
     if (bankRepository.disconnectBank(user)) {
       //Body of event bridge treatment
       summaryRepository.removeAll(userId);
+      repository.removeAll(accounts);
 
-      Account saved = repository.save(resetDefaultAccount(user, active));
-      deleteOldAccounts(saved);
+      Account newDefaultAccount = repository.save(resetDefaultAccount(user, active));
 
-      userRepository.save(resetDefaultUser(user));
+      userRepository.save(resetDefaultUser(user, newDefaultAccount));
       //End of treatment
-      return saved;
+      return newDefaultAccount;
     }
     throw new ApiException(SERVER_EXCEPTION, active.describeInfos() + " was not disconnected");
   }
@@ -147,18 +147,13 @@ public class AccountService {
     return activeAccounts;
   }
 
-  private void deleteOldAccounts(Account saved) {
-    List<Account> accounts = repository.findByUserId(saved.getUserId());
-    accounts.remove(saved);
-    repository.removeAll(accounts);
-  }
-
   private Account resetDefaultAccount(User user, Account defaultAccount) {
     return defaultAccount.toBuilder()
         .name(user.getName())
         .bic(null)
         .iban(null)
         .bank(null)
+        .externalId(null)
         .availableBalance(new Fraction())
         .build();
   }
@@ -175,12 +170,13 @@ public class AccountService {
     repository.save(defaultAccount);
   }
 
-  private User resetDefaultUser(User user) {
+  private User resetDefaultUser(User user, Account account) {
     return user.toBuilder()
-        .preferredAccountId(null)
+        .preferredAccountId(account.getId())
         .bankConnectionId(null)
+        .connectionStatus(null)
+        .bridgeItemLastRefresh(null)
         .bridgeItemUpdatedAt(Instant.now())
-        .bridgeItemLastRefresh(Instant.now())
         .build();
   }
 

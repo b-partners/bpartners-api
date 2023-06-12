@@ -4,7 +4,6 @@ import app.bpartners.api.endpoint.rest.model.BankConnectionRedirection;
 import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.Fraction;
-import app.bpartners.api.model.Transaction;
 import app.bpartners.api.model.UpdateAccountIdentity;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.UserToken;
@@ -13,14 +12,12 @@ import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.repository.AccountRepository;
 import app.bpartners.api.repository.BankRepository;
-import app.bpartners.api.repository.TransactionRepository;
 import app.bpartners.api.repository.TransactionsSummaryRepository;
 import app.bpartners.api.repository.UserRepository;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Random;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -36,7 +33,6 @@ public class AccountService {
   private final AccountRepository repository;
   private final BankRepository bankRepository;
   private final UserRepository userRepository;
-  private final TransactionRepository transactionRepository;
   private final TransactionsSummaryRepository summaryRepository;
 
   public Account getActive(List<Account> accounts) {
@@ -129,13 +125,13 @@ public class AccountService {
     if (bankRepository.disconnectBank(user)) {
       //Body of event bridge treatment
       summaryRepository.removeAll(userId);
+      repository.removeAll(accounts);
 
-      Account saved = repository.save(resetDefaultAccount(user, active));
-      deleteOldAccounts(saved);
+      Account newDefaultAccount = repository.save(resetDefaultAccount(user, active));
 
-      userRepository.save(resetDefaultUser(user));
+      userRepository.save(resetDefaultUser(user, newDefaultAccount));
       //End of treatment
-      return saved;
+      return newDefaultAccount;
     }
     throw new ApiException(SERVER_EXCEPTION, active.describeInfos() + " was not disconnected");
   }
@@ -152,20 +148,6 @@ public class AccountService {
     return activeAccounts;
   }
 
-  private void deleteOldAccounts(Account saved) {
-    List<Account> accounts = repository.findByUserId(saved.getUserId());
-    accounts.remove(saved);
-
-    repository.removeAll(accounts);
-    accounts.forEach(
-        account -> {
-          List<Transaction> transactions =
-              transactionRepository.findAllPersistedByIdAccount(account.getId());
-          transactionRepository.removeAll(transactions);
-        }
-    );
-  }
-
   private Account resetDefaultAccount(User user, Account defaultAccount) {
     return defaultAccount.toBuilder()
         .id(String.valueOf(randomUUID()))
@@ -173,6 +155,7 @@ public class AccountService {
         .bic(null)
         .iban(null)
         .bank(null)
+        .externalId(null)
         .availableBalance(new Fraction())
         .build();
   }
@@ -189,12 +172,13 @@ public class AccountService {
     repository.save(defaultAccount);
   }
 
-  private User resetDefaultUser(User user) {
+  private User resetDefaultUser(User user, Account account) {
     return user.toBuilder()
-        .preferredAccountId(null)
+        .preferredAccountId(account.getId())
         .bankConnectionId(null)
+        .connectionStatus(null)
+        .bridgeItemLastRefresh(null)
         .bridgeItemUpdatedAt(Instant.now())
-        .bridgeItemLastRefresh(Instant.now())
         .build();
   }
 

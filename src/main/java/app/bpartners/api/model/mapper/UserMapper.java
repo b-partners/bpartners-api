@@ -64,6 +64,7 @@ public class UserMapper {
             .collect(Collectors.toList()))
         .preferredAccountId(entityUser.getPreferredAccountId())
         .externalUserId(entityUser.getBridgeUserId())
+        .connectionStatus(entityUser.getBankConnectionStatus())
         .build();
   }
 
@@ -98,6 +99,10 @@ public class UserMapper {
         .idVerified(toSave.getIdVerified())
         .oldS3AccountKey(toSave.getOldS3key())
         .preferredAccountId(toSave.getPreferredAccountId())
+        .bridgeItemUpdatedAt(toSave.getBridgeItemUpdatedAt())
+        .bridgeItemLastRefresh(toSave.getBridgeItemLastRefresh())
+        .bankConnectionStatus(toSave.getConnectionStatus())
+        .bridgeItemId(toSave.getBankConnectionId())
         .build();
   }
 

@@ -21,7 +21,6 @@ import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
 
-import static app.bpartners.api.service.utils.SecurityUtils.BEARER_PREFIX;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 import static app.bpartners.api.repository.fintecture.implementation.utils.FintecturePaymentUtils.ACCEPT;
 import static app.bpartners.api.repository.fintecture.implementation.utils.FintecturePaymentUtils.APPLICATION_JSON;
@@ -34,6 +33,7 @@ import static app.bpartners.api.repository.fintecture.implementation.utils.Finte
 import static app.bpartners.api.repository.fintecture.implementation.utils.FintecturePaymentUtils.getHeaderSignature;
 import static app.bpartners.api.repository.fintecture.implementation.utils.FintecturePaymentUtils.getHeaderSignatureWithDigest;
 import static app.bpartners.api.repository.fintecture.implementation.utils.FintecturePaymentUtils.getParsedDate;
+import static app.bpartners.api.service.utils.SecurityUtils.BEARER_PREFIX;
 import static java.util.UUID.randomUUID;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 
@@ -109,7 +109,18 @@ public class FintecturePaymentInfoRepositoryImpl implements FintecturePaymentInf
       throws IOException, InterruptedException {
     HttpResponse<String> response =
         httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-    MultipleSessionResponse multipleSessionResponse = objectMapper.readValue(response.body(),
+    if (response.statusCode() != 200 && response.statusCode() != 201) {
+      log.warn("[Fintecture] Error occured, response was : "
+          + "{\"request-headers\":" + request.headers()
+          + ",\"uri\":" + request.uri()
+          + ",\"request-method\":" + request.method()
+          + ",\"request-body\":" + getRequestBodyAsString(request)
+          + ",\"response-status\":" + response.statusCode()
+          + ",\"response-body\":" + response.body()
+          + "}");
+      return List.of();
+    }
+    var multipleSessionResponse = objectMapper.readValue(response.body(),
         MultipleSessionResponse.class);
     return multipleSessionResponse.getData().stream()
         .map(session -> Session.builder()
@@ -119,6 +130,11 @@ public class FintecturePaymentInfoRepositoryImpl implements FintecturePaymentInf
                 .build())
             .build())
         .collect(Collectors.toList());
+  }
+
+  private String getRequestBodyAsString(HttpRequest request) {
+    return request.bodyPublisher().isEmpty() ? null
+        : request.bodyPublisher().get().toString();
   }
 
   @Override

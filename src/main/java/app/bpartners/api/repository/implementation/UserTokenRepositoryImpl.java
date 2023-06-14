@@ -6,7 +6,6 @@ import app.bpartners.api.model.mapper.UserMapper;
 import app.bpartners.api.model.mapper.UserTokenMapper;
 import app.bpartners.api.repository.UserTokenRepository;
 import app.bpartners.api.repository.bridge.BridgeApi;
-import app.bpartners.api.repository.bridge.response.BridgeTokenResponse;
 import app.bpartners.api.repository.jpa.UserJpaRepository;
 import app.bpartners.api.repository.jpa.model.HUser;
 import java.time.Instant;
@@ -26,14 +25,13 @@ public class UserTokenRepositoryImpl implements UserTokenRepository {
     if (user.getEmail() == null || user.getBridgePassword() == null) {
       return null;
     }
-    BridgeTokenResponse response = bridgeApi.authenticateUser(mapper.toBridgeAuthUser(user));
-    //TODO: do something as retry
+
+    var response = bridgeApi.authenticateUser(mapper.toBridgeAuthUser(user));
     if (response == null
         || !response.getUser().getEmail().equals(user.getEmail())) {
       return null;
     }
-    HUser entity = userJpaRepository.getById(user.getId());
-    return mapper.toDomain(userJpaRepository.save(entity.toBuilder()
+    return mapper.toDomain(userJpaRepository.save(userMapper.toEntity(user).toBuilder()
         .accessToken(response.getAccessToken())
         .tokenExpirationDatetime(response.getExpirationDate())
         .tokenCreationDatetime(Instant.now())
@@ -57,6 +55,16 @@ public class UserTokenRepositoryImpl implements UserTokenRepository {
   @Override
   public UserToken getLatestTokenByAccount(String accountId) {
     HUser entity = userJpaRepository.getByAccountId(accountId);
-    return entity == null ? null : getLatestTokenByUser(userMapper.toDomain(entity));
+    if (entity == null) {
+      return null;
+    }
+    User domain = userMapper.toDomain(entity);
+    if (entity.getAccessToken() == null
+        || (entity.getTokenExpirationDatetime() != null
+        && entity.getTokenExpirationDatetime().isBefore(Instant.now()))) {
+      return updateUserToken(domain);
+    }
+    //Note that tokens are ordered by expiration datetime desc
+    return mapper.toDomain(entity);
   }
 }

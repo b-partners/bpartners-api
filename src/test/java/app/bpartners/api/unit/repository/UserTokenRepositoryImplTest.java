@@ -24,10 +24,10 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 class UserTokenRepositoryImplTest {
-  UserTokenRepositoryImpl subject;
-  UserJpaRepository userJpaRepository;
-  UserTokenMapper userTokenMapper;
-  BridgeApi bridgeApi;
+  private UserTokenRepositoryImpl userTokenRepository;
+  private UserJpaRepository userJpaRepository;
+  private UserTokenMapper userTokenMapper;
+  private BridgeApi bridgeApi;
   UserMapper userMapper;
 
   @BeforeEach
@@ -36,7 +36,7 @@ class UserTokenRepositoryImplTest {
     userTokenMapper = mock(UserTokenMapper.class);
     bridgeApi = mock(BridgeApi.class);
     userMapper = mock(UserMapper.class);
-    subject = new UserTokenRepositoryImpl(
+    userTokenRepository = new UserTokenRepositoryImpl(
         userJpaRepository, userTokenMapper, bridgeApi, userMapper);
 
     when(userTokenMapper.toBridgeAuthUser(any())).thenReturn(bridgeUser());
@@ -51,21 +51,20 @@ class UserTokenRepositoryImplTest {
         .user(user())
         .accessToken(user().getAccessToken())
         .build());
-    when(userMapper.toEntity(any())).thenReturn(entity());
     when(userJpaRepository.getById(any())).thenReturn(entity());
     when(userJpaRepository.save(any())).thenReturn(entity());
   }
 
   @Test
   void update_user_token_ok() {
-    UserToken actual = subject.updateUserToken(user());
+    UserToken actual = userTokenRepository.updateUserToken(user());
 
     assertNotNull(actual);
   }
 
   @Test
   void read_latest_token_ok() {
-    UserToken actual = subject.getLatestTokenByUser(user());
+    UserToken actual = userTokenRepository.getLatestTokenByUser(user());
 
     assertNotNull(actual.getAccessToken());
   }

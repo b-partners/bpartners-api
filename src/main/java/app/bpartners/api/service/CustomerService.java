@@ -1,13 +1,19 @@
 package app.bpartners.api.service;
 
+import app.bpartners.api.endpoint.event.EventConf;
+import app.bpartners.api.endpoint.event.EventProducer;
+import app.bpartners.api.endpoint.event.model.TypedCustomerCrupdated;
+import app.bpartners.api.endpoint.event.model.TypedEvent;
+import app.bpartners.api.endpoint.event.model.gen.CustomerCrupdated;
 import app.bpartners.api.endpoint.rest.mapper.CustomerRestMapper;
 import app.bpartners.api.endpoint.rest.model.CreateCustomer;
 import app.bpartners.api.endpoint.rest.model.CustomerStatus;
 import app.bpartners.api.endpoint.rest.model.UpdateCustomerStatus;
+import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.Customer;
 import app.bpartners.api.model.PageFromOne;
-import app.bpartners.api.model.exception.BadRequestException;
+import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.repository.CustomerRepository;
 import java.io.ByteArrayInputStream;
@@ -27,6 +33,8 @@ import static app.bpartners.api.service.utils.CustomerUtils.getCustomersInfoFrom
 public class CustomerService {
   private final CustomerRepository repository;
   private final CustomerRestMapper restMapper;
+  private final EventProducer eventProducer;
+  private final EventConf eventConf;
 
   public List<Customer> getCustomers(
       String idUser, String firstName,
@@ -45,7 +53,17 @@ public class CustomerService {
 
   @Transactional
   public List<Customer> crupdateCustomers(List<Customer> customers) {
-    return repository.saveAll(customers);
+    List<Customer> saved = repository.saveAll(customers);
+
+    List<TypedEvent> typedEvent = saved.isEmpty() ? List.of()
+        : saved.stream().map(customer -> {
+          User user = AuthProvider.getAuthenticatedUser();
+          return toTypedEvent(user, customer, customer.isRecentlyAdded());
+        })
+        .collect(Collectors.toUnmodifiableList());
+    eventProducer.accept(typedEvent); //TODO: add appropriate test
+
+    return saved;
   }
 
   public List<Customer> updateStatuses(List<UpdateCustomerStatus> customerStatusList) {
@@ -66,5 +84,22 @@ public class CustomerService {
       throw new NotFoundException(
           "Customer(id=" + toCheck.getId() + ") not found");
     }
+  }
+
+  private TypedCustomerCrupdated toTypedEvent(User user, Customer customer, boolean isNew) {
+    String subject = isNew
+        ? "Ajout du nouveau client " + customer.getName() + " par l'artisan " + user.getName()
+        : "Modification du client existant " + customer.getName() + " par l'artisan "
+        + user.getName();
+    String recipientEmail = eventConf.getAdminEmail();
+    return new TypedCustomerCrupdated(
+        new CustomerCrupdated()
+            .subject(subject)
+            .recipientEmail(recipientEmail)
+            .type(isNew ? CustomerCrupdated.Type.CREATE
+                : CustomerCrupdated.Type.UPDATE)
+            .user(user)
+            .customer(customer)
+    );
   }
 }

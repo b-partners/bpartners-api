@@ -32,6 +32,7 @@ public class Customer {
   protected String country;
   protected String comment;
   protected CustomerStatus status;
+  protected boolean recentlyAdded = false;
 
   public String getFirstName() {
     return firstName;

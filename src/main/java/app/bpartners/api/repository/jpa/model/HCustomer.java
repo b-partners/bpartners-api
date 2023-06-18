@@ -7,6 +7,7 @@ import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -40,4 +41,6 @@ public class HCustomer {
   @Type(type = "pgsql_enum")
   @Enumerated(EnumType.STRING)
   private CustomerStatus status;
+  @Transient
+  private boolean recentlyAdded;
 }

@@ -1,6 +1,7 @@
 package app.bpartners.api.service;
 
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
+import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.ArchiveInvoice;
 import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.CreatePaymentRegulation;
@@ -100,6 +101,7 @@ public class InvoiceService {
     handleStatusesFromExistingInvoice(actual);
 
     if (actual.getStatus() == CONFIRMED || actual.getStatus() == PROPOSAL_CONFIRMED) {
+      checkHolderMandatoryData(invoice);
       //TODO: check everything is ok before marking invoice as CONFIRMED
       //Example : check if account has IBAN and BIC ...
       if (actual.getPaymentType() == CASH) {
@@ -109,6 +111,27 @@ public class InvoiceService {
       }
     }
     return actual;
+  }
+
+  private void checkHolderMandatoryData(Invoice invoice) {
+    AccountHolder accountHolder = invoice.getActualHolder();
+    StringBuilder builder = new StringBuilder();
+    if (accountHolder.getAddress() == null) {
+      builder.append("Account holder address is mandatory to confirm invoice");
+    }
+    if (accountHolder.getCountry() == null) {
+      builder.append("Account holder country is mandatory to confirm invoice");
+    }
+    if (accountHolder.getCity() == null) {
+      builder.append("Account holder city is mandatory to confirm invoice");
+    }
+    if (accountHolder.getPostalCode() == null) {
+      builder.append("Account holder postal code is mandatory to confirm invoice");
+    }
+    String message = builder.toString();
+    if (!message.isEmpty()) {
+      throw new BadRequestException(message);
+    }
   }
 
   private void handleStatusesFromExistingInvoice(Invoice actual) {

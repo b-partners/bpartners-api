@@ -23,7 +23,9 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import static app.bpartners.api.endpoint.rest.model.AccountStatus.OPENED;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
+import static app.bpartners.api.repository.implementation.BankRepositoryImpl.TRY_AGAIN;
 import static app.bpartners.api.service.utils.AccountUtils.describeAccountList;
 import static java.util.UUID.randomUUID;
 
@@ -103,7 +105,7 @@ public class AccountService {
     User user = userRepository.getById(userId);
     Account defaultAccount = user.getDefaultAccount();
     //TODO: map bank when mapping account inside userMapper and use it here
-    if (user.getBankConnectionId() != null) {
+    if (user.getBankConnectionId() != null && user.getBankConnectionId() != TRY_AGAIN) {
       throw new BadRequestException(
           defaultAccount.describeMinInfos() + " is already connected to a bank."
               + " Disconnect before initiating another bank connection.");
@@ -121,7 +123,10 @@ public class AccountService {
     User user = userRepository.getById(userId);
     List<Account> accounts = getAccountsByUserId(userId);
     Account active = getActive(accounts);
-
+    if (user.getBankConnectionId() == null) {
+      throw new BadRequestException("User(id=" + userId + ",name=" + user.getName() + ")"
+          + " is not still connected to a bank");
+    }
     if (bankRepository.disconnectBank(user)) {
       //Body of event bridge treatment
       summaryRepository.removeAll(userId);
@@ -154,9 +159,11 @@ public class AccountService {
         .name(user.getName())
         .bic(null)
         .iban(null)
+        .externalId(null)
         .bank(null)
         .externalId(null)
         .availableBalance(new Fraction())
+        .status(OPENED)
         .build();
   }
 

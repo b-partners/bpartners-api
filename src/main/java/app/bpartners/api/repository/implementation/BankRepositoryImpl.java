@@ -30,6 +30,7 @@ import static app.bpartners.api.model.BankConnection.BankConnectionStatus.INVALI
 import static app.bpartners.api.model.BankConnection.BankConnectionStatus.NOT_SUPPORTED;
 import static app.bpartners.api.model.BankConnection.BankConnectionStatus.OK;
 import static app.bpartners.api.model.BankConnection.BankConnectionStatus.SCA_REQUIRED;
+import static app.bpartners.api.model.BankConnection.BankConnectionStatus.TRY_AGAIN;
 import static app.bpartners.api.model.BankConnection.BankConnectionStatus.UNKNOWN;
 import static app.bpartners.api.model.BankConnection.BankConnectionStatus.VALIDATION_REQUIRED;
 
@@ -42,6 +43,7 @@ public class BankRepositoryImpl implements BankRepository {
   public static final int ITEM_STATUS_PRO = 1100;
   public static final int ITEM_STATUS_INVALID_CREDENTIALS = 402;
   public static final int ITEM_STATUS_SCA_REQUIRED = 1010;
+  public static final int TRY_AGAIN = 1003;
   private final BridgeBankRepository bridgeRepository;
   private final UserJpaRepository userJpaRepository;
   private final UserMapper userMapper;
@@ -63,6 +65,8 @@ public class BankRepositoryImpl implements BankRepository {
         return INVALID_CREDENTIALS;
       case ITEM_STATUS_SCA_REQUIRED:
         return SCA_REQUIRED;
+      case TRY_AGAIN:
+        return BankConnection.BankConnectionStatus.TRY_AGAIN;
       default:
         log.warn("Unknown bank status " + statusValue);
         return UNKNOWN;

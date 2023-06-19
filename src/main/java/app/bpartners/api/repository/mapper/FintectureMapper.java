@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 @AllArgsConstructor
 public class FintectureMapper {
   private Beneficiary toBeneficiary(Account account, AccountHolder accountHolder) {
+    checkMandatoryHolderInfos(accountHolder);
     return Beneficiary.builder()
         .name(account.getName())
         .iban(account.getIban())
@@ -22,6 +23,26 @@ public class FintectureMapper {
         .city(accountHolder.getCity())
         .country(accountHolder.getCountry().substring(0, 2))
         .zip(accountHolder.getPostalCode()).build();
+  }
+
+  private void checkMandatoryHolderInfos(AccountHolder accountHolder) {
+    StringBuilder builder = new StringBuilder();
+    if (accountHolder.getAddress() == null) {
+      builder.append("Account holder address is mandatory to initiate payment");
+    }
+    if (accountHolder.getCountry() == null) {
+      builder.append("Account holder country is mandatory to initiate payment");
+    }
+    if (accountHolder.getCity() == null) {
+      builder.append("Account holder city is mandatory to initiate payment");
+    }
+    if (accountHolder.getPostalCode() == null) {
+      builder.append("Account holder postal code is mandatory to initiate payment");
+    }
+    String message = builder.toString();
+    if (!message.isEmpty()) {
+      throw new BadRequestException(message);
+    }
   }
 
   //TODO: put these checks properly

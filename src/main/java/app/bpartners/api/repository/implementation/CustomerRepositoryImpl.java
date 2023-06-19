@@ -138,13 +138,28 @@ public class CustomerRepositoryImpl implements CustomerRepository {
 
   @Override
   public List<Customer> saveAll(List<Customer> toCreate) {
-    List<HCustomer> entityToCreate = toCreate.stream()
+    List<HCustomer> toSave = toCreate.stream()
         .map(this::checkExisting)
         .map(mapper::toEntity)
         .collect(Collectors.toUnmodifiableList());
-    return jpaRepository.saveAll(entityToCreate).stream()
+    List<HCustomer> saved = jpaRepository.saveAll(toSave);
+
+    checkRecentlyAdded(toSave, saved);
+
+    return saved.stream()
         .map(mapper::toDomain)
         .collect(Collectors.toUnmodifiableList());
+  }
+
+  private void checkRecentlyAdded(List<HCustomer> toSave, List<HCustomer> saved) {
+    for (HCustomer c1 : saved) {
+      for (HCustomer c2 : toSave) {
+        if (c1.getId().equals(c2.getId())) {
+          c1.setRecentlyAdded(c2.isRecentlyAdded());
+          break;
+        }
+      }
+    }
   }
 
   @Override
@@ -163,7 +178,11 @@ public class CustomerRepositoryImpl implements CustomerRepository {
   private Customer checkExisting(Customer domain) {
     Optional<HCustomer> optionalCustomer =
         jpaRepository.findByIdUserAndEmail(domain.getIdUser(), domain.getEmail());
-    return optionalCustomer.isEmpty() ? domain : domain.toBuilder()
+    return optionalCustomer.isEmpty()
+        ? domain.toBuilder()
+        .recentlyAdded(true)
+        .build()
+        : domain.toBuilder()
         .id(optionalCustomer.get().getId())
         .build();
   }

@@ -3,9 +3,11 @@ package app.bpartners.api.event;
 import app.bpartners.api.endpoint.event.EventServiceInvoker;
 import app.bpartners.api.endpoint.event.model.TypedInvoiceRelaunchSaved;
 import app.bpartners.api.endpoint.event.model.gen.InvoiceRelaunchSaved;
+import app.bpartners.api.service.CustomerCrupdatedService;
 import app.bpartners.api.service.FeedbackRequestedService;
 import app.bpartners.api.service.InvoiceCrupdatedService;
 import app.bpartners.api.service.InvoiceRelaunchSavedService;
+import app.bpartners.api.service.UserOnboardedService;
 import app.bpartners.api.service.UserUpsertedService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -15,11 +17,13 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 class EventServiceInvokerTest {
-  EventServiceInvoker eventServiceInvoker;
+  EventServiceInvoker subject;
   InvoiceRelaunchSavedService invoiceRelaunchSavedService;
   InvoiceCrupdatedService invoiceCrupdatedService;
   UserUpsertedService userUpsertedService;
   FeedbackRequestedService feedbackRequestedService;
+  CustomerCrupdatedService customerCrupdatedService;
+  UserOnboardedService userOnboardedService;
 
   @BeforeEach
   void setUp() {
@@ -28,9 +32,9 @@ class EventServiceInvokerTest {
     userUpsertedService = mock(UserUpsertedService.class);
     feedbackRequestedService = mock(FeedbackRequestedService.class);
 
-    eventServiceInvoker = new EventServiceInvoker(
+    subject = new EventServiceInvoker(
         invoiceRelaunchSavedService, invoiceCrupdatedService, userUpsertedService,
-        feedbackRequestedService);
+        feedbackRequestedService, customerCrupdatedService, userOnboardedService);
   }
 
   @Test
@@ -45,7 +49,7 @@ class EventServiceInvokerTest {
             .accountHolder(null)
             .logoFileId(null)
             .build());
-    eventServiceInvoker.accept(emailSent);
+    subject.accept(emailSent);
 
     verify(invoiceRelaunchSavedService, times(1)).accept(
         (InvoiceRelaunchSaved) emailSent.getPayload());

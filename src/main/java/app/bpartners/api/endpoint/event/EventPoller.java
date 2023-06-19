@@ -1,14 +1,18 @@
 package app.bpartners.api.endpoint.event;
 
 import app.bpartners.api.endpoint.event.EventConsumer.AcknowledgeableTypedEvent;
+import app.bpartners.api.endpoint.event.model.TypedCustomerCrupdated;
 import app.bpartners.api.endpoint.event.model.TypedEvent;
 import app.bpartners.api.endpoint.event.model.TypedFeedbackRequested;
 import app.bpartners.api.endpoint.event.model.TypedInvoiceCrupdated;
 import app.bpartners.api.endpoint.event.model.TypedInvoiceRelaunchSaved;
+import app.bpartners.api.endpoint.event.model.TypedUserOnboarded;
 import app.bpartners.api.endpoint.event.model.TypedUserUpserted;
+import app.bpartners.api.endpoint.event.model.gen.CustomerCrupdated;
 import app.bpartners.api.endpoint.event.model.gen.FeedbackRequested;
 import app.bpartners.api.endpoint.event.model.gen.InvoiceCrupdated;
 import app.bpartners.api.endpoint.event.model.gen.InvoiceRelaunchSaved;
+import app.bpartners.api.endpoint.event.model.gen.UserOnboarded;
 import app.bpartners.api.endpoint.event.model.gen.UserUpserted;
 import app.bpartners.api.model.exception.BadRequestException;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -31,14 +35,13 @@ import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
 @Slf4j
 public class EventPoller {
 
+  private static final int MAX_NUMBER_OF_MESSAGES = 10;
+  private static final Duration WAIT_TIME = Duration.ofSeconds(0); // MUST be if long-polling <= 20s
   public static final String DETAIL_PROPERTY = "detail";
   private final String queueUrl;
   private final SqsClient sqsClient;
   private final ObjectMapper om;
   private final EventConsumer eventConsumer;
-
-  private static final Duration WAIT_TIME = Duration.ofSeconds(0); // MUST be if long-polling <= 20s
-  private static final int MAX_NUMBER_OF_MESSAGES = 10;
 
   public EventPoller(
       @Value("${aws.sqs.mailboxUrl}") String queueUrl,
@@ -114,6 +117,14 @@ public class EventPoller {
       FeedbackRequested feedbackRequested =
           om.convertValue(body.get(DETAIL_PROPERTY), FeedbackRequested.class);
       typedEvent = new TypedFeedbackRequested(feedbackRequested);
+    } else if (CustomerCrupdated.class.getTypeName().equals(typeName)) {
+      CustomerCrupdated customerCrupdated =
+          om.convertValue(body.get(DETAIL_PROPERTY), CustomerCrupdated.class);
+      typedEvent = new TypedCustomerCrupdated(customerCrupdated);
+    } else if (UserOnboarded.class.getTypeName().equals(typeName)) {
+      UserOnboarded userOnboarded =
+          om.convertValue(body.get(DETAIL_PROPERTY), UserOnboarded.class);
+      typedEvent = new TypedUserOnboarded(userOnboarded);
     } else {
       throw new BadRequestException("Unexpected message type for message=" + message);
     }

@@ -148,7 +148,7 @@ class TransactionCategoryIT {
     List<TransactionCategory> actualOutcome = api.getTransactionCategories(JOE_DOE_ACCOUNT_ID,
         LocalDate.now(), LocalDate.now(), OUTCOME);
 
-    assertEquals(36, actualAll.size());
+    assertEquals(37, actualAll.size());
     assertEquals(actualIncome.get(13), fraisDeboursIncome());
     assertTrue(actualIncome.contains(fraisDeboursIncome()));
     assertTrue(actualOutcome.contains(fraisDeboursOutcome()));
@@ -171,7 +171,7 @@ class TransactionCategoryIT {
     List<TransactionCategory> actualAll = api.getTransactionCategories(
         JOE_DOE_ACCOUNT_ID, startDate, endDate, null);
 
-    assertEquals(36, actualAll.size());
+    assertEquals(37, actualAll.size());
     assertTrue(actualAll.stream().noneMatch(e -> e.getCount() != 0L));
   }
 

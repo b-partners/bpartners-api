@@ -13,6 +13,7 @@ import app.bpartners.api.repository.jpa.UserJpaRepository;
 import app.bpartners.api.repository.jpa.model.HAccount;
 import app.bpartners.api.repository.jpa.model.HUser;
 import app.bpartners.api.repository.model.AccountConnector;
+import app.bpartners.api.service.utils.AccountUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -121,7 +122,7 @@ public class AccountRepositoryImpl implements AccountRepository {
 
   private Account convertConnector(AccountConnector accountConnector) {
     String accountConnectorId = accountConnector.getId();
-    HAccount entity = jpaRepository.findByExternalId(accountConnectorId)
+    HAccount entity = AccountUtils.findByExternalId(accountConnectorId, jpaRepository)
         .orElseThrow(() -> new NotFoundException(
             "Account(externalId=" + accountConnectorId + ") not found"));
     return mapper.toDomain(accountConnector, entity,

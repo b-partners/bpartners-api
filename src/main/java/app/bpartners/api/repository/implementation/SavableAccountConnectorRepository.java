@@ -9,6 +9,7 @@ import app.bpartners.api.repository.jpa.UserJpaRepository;
 import app.bpartners.api.repository.jpa.model.HAccount;
 import app.bpartners.api.repository.jpa.model.HUser;
 import app.bpartners.api.repository.model.AccountConnector;
+import app.bpartners.api.service.utils.AccountUtils;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
@@ -65,7 +66,7 @@ public class SavableAccountConnectorRepository implements AccountConnectorReposi
   private HAccount checkIdentityUpdate(String idUser, AccountConnector accountConnector) {
     HUser associatedUser = associatedUser(idUser);
     return mapper.toEntity(accountConnector,
-        jpaRepository.findByExternalId(accountConnector.getId())
+        AccountUtils.findByExternalId(accountConnector.getId(), jpaRepository)
             .orElse(fromNewAccount(accountConnector, associatedUser)));
   }
 

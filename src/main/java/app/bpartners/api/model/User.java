@@ -45,7 +45,7 @@ public class User implements Serializable {
   private String preferredAccountId;
   private String externalUserId;
   private String oldS3key;
-
+  private BankConnection.BankConnectionStatus connectionStatus;
   public String getName() {
     return firstName + " " + lastName;
   }

@@ -38,6 +38,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -46,13 +47,11 @@ import static app.bpartners.api.integration.conf.TestUtils.INVOICE1_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JANE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JANE_DOE_TOKEN;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
-import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_TOKEN;
 import static app.bpartners.api.integration.conf.TestUtils.TRANSACTION1_ID;
 import static app.bpartners.api.integration.conf.TestUtils.UNKNOWN_TRANSACTION_ID;
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsApiException;
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsForbiddenException;
 import static app.bpartners.api.integration.conf.TestUtils.invoice1;
-import static app.bpartners.api.integration.conf.TestUtils.isAfterOrEquals;
 import static app.bpartners.api.integration.conf.TestUtils.restTransaction1;
 import static app.bpartners.api.integration.conf.TestUtils.setUpCognito;
 import static app.bpartners.api.integration.conf.TestUtils.setUpLegalFileRepository;
@@ -109,35 +108,6 @@ class TransactionIT {
     return TestUtils.anApiClient(token, ContextInitializer.SERVER_PORT);
   }
 
-  MonthlyTransactionsSummary month1() {
-    return new MonthlyTransactionsSummary()
-        .id("monthly_transactions_summary1_id")
-        .month(JANUARY)
-        .income(1356000)
-        .outcome(1050)
-        .cashFlow(1354950);
-  }
-
-  MonthlyTransactionsSummary month2() {
-    return new MonthlyTransactionsSummary()
-        .id("monthly_transactions_summary2_id")
-        .month(DECEMBER)
-        .income(0)
-        .outcome(0)
-        .cashFlow(1354950);
-  }
-
-  TransactionsSummary transactionsSummary1() {
-    int month1CashFlow = month1().getIncome() - month1().getOutcome();
-    int month2CashFlow = month2().getIncome() - month2().getOutcome();
-    return new TransactionsSummary()
-        .year(LocalDate.now().getYear())
-        .annualIncome(month1().getIncome() + month2().getIncome())
-        .annualOutcome(month1().getOutcome() + month2().getOutcome())
-        .annualCashFlow(month1CashFlow + month2CashFlow)
-        .summary(List.of(month1(), month2()));
-  }
-
   private static BridgeTransaction bridgeTransaction1() {
     return BridgeTransaction.builder()
         .id(1L)
@@ -163,14 +133,6 @@ class TransactionIT {
         .amount(300.0)
         .transactionDate(LocalDate.of(2023, 1, 3))
         .build();
-  }
-
-  @BeforeEach
-  public void setUp() {
-    setUpLegalFileRepository(legalFileRepositoryMock);
-    setUpCognito(cognitoComponentMock);
-    when(bridgeApiMock.findTransactionsUpdatedByToken(any()))
-        .thenReturn(List.of());
   }
 
   private static HTransaction jpaTransactionEntity1() {
@@ -203,10 +165,9 @@ class TransactionIT {
         .build();
   }
 
-
-  private static HTransaction bridgeTransactionEntity1() {
+  private static HTransaction transactionEntity1() {
     return HTransaction.builder()
-        .id("bridge_transaction1_id")
+        .id("transaction1_id")
         .idAccount(JOE_DOE_ACCOUNT_ID)
         .idBridge(bridgeTransaction1().getId())
         .label(bridgeTransaction1().getLabel())
@@ -220,9 +181,9 @@ class TransactionIT {
         .build();
   }
 
-  private static HTransaction bridgeTransactionEntity2() {
+  private static HTransaction transactionEntity2() {
     return HTransaction.builder()
-        .id("bridge_transaction2_id")
+        .id("transaction2_id")
         .idAccount(JOE_DOE_ACCOUNT_ID)
         .idBridge(bridgeTransaction2().getId())
         .label(bridgeTransaction2().getLabel())
@@ -251,22 +212,50 @@ class TransactionIT {
         .build();
   }
 
+  MonthlyTransactionsSummary month1() {
+    return new MonthlyTransactionsSummary()
+        .id("monthly_transactions_summary1_id")
+        .month(JANUARY)
+        .income(1356000)
+        .outcome(1050)
+        .cashFlow(1354950);
+  }
+
+  MonthlyTransactionsSummary month2() {
+    return new MonthlyTransactionsSummary()
+        .id("monthly_transactions_summary2_id")
+        .month(DECEMBER)
+        .income(0)
+        .outcome(0)
+        .cashFlow(1354950);
+  }
+
+  TransactionsSummary transactionsSummary1() {
+    int month1CashFlow = month1().getIncome() - month1().getOutcome();
+    int month2CashFlow = month2().getIncome() - month2().getOutcome();
+    return new TransactionsSummary()
+        .year(LocalDate.now().getYear())
+        .annualIncome(month1().getIncome() + month2().getIncome())
+        .annualOutcome(month1().getOutcome() + month2().getOutcome())
+        .annualCashFlow(month1CashFlow + month2CashFlow)
+        .summary(List.of(month1(), month2()));
+  }
+
+  @BeforeEach
+  public void setUp() {
+    setUpLegalFileRepository(legalFileRepositoryMock);
+    setUpCognito(cognitoComponentMock);
+    when(bridgeApiMock.findTransactionsUpdatedByToken(any()))
+        .thenReturn(List.of());
+  }
+
   @Test
   void read_transactions_twice_ok() throws ApiException {
     reset(transactionJpaRepositoryMock);
-    when(bridgeTransactionRepositoryMock.findByBearer(JOE_DOE_TOKEN))
-        .thenReturn(List.of(bridgeTransaction1(), bridgeTransaction2(), bridgeTransaction3()));
-    when(transactionJpaRepositoryMock.findAllByIdBridge(bridgeTransaction1().getId())).thenReturn(
-        List.of(bridgeTransactionEntity1()));
-    when(transactionJpaRepositoryMock.findAllByIdBridge(bridgeTransaction2().getId())).thenReturn(
-        List.of(bridgeTransactionEntity2()));
-    when(transactionJpaRepositoryMock.findAllByIdBridge(bridgeTransaction3().getId())).thenReturn(
-        List.of(bridgeTransactionEntity3()));
     List<HTransaction> mockedBridgeTransactions = List.of(
-        bridgeTransactionEntity1(),
-        bridgeTransactionEntity2(),
-        bridgeTransactionEntity3());
-    when(transactionJpaRepositoryMock.saveAll(any()))
+        transactionEntity1(), transactionEntity2());
+    when(transactionJpaRepositoryMock.findByIdAccountOrderByPaymentDateTimeDesc(JOE_DOE_ACCOUNT_ID,
+        PageRequest.of(0, 30)))
         .thenReturn(mockedBridgeTransactions);
     ApiClient joeDoeClient = anApiClient();
     PayingApi api = new PayingApi(joeDoeClient);
@@ -274,12 +263,8 @@ class TransactionIT {
     List<Transaction> actual1 = api.getTransactions(JOE_DOE_ACCOUNT_ID, null, null);
     List<Transaction> actual2 = api.getTransactions(JOE_DOE_ACCOUNT_ID, null, null);
 
-    assertEquals(3, actual1.size());
+    assertEquals(2, actual1.size());
     assertEquals(actual1, actual2);
-    assertTrue(isAfterOrEquals(
-        actual1.get(0).getPaymentDatetime(), actual1.get(1).getPaymentDatetime()));
-    assertTrue(isAfterOrEquals(
-        actual1.get(1).getPaymentDatetime(), actual1.get(2).getPaymentDatetime()));
     //TODO : actual transactions contains rest resource
   }
 

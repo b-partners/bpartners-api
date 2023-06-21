@@ -107,6 +107,56 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
+  prospectsEvaluation:
+    post:
+      tags:
+        - Prospecting
+      summary: Evaluate new prospects of an accountHolder from imported Excel data
+      operationId: evaluateProspects
+      parameters:
+        - in: path
+          name: ahId
+          schema:
+            type: string
+          required: true
+        - in: query
+          name: professionRule
+          schema:
+            type: string
+            example: DEPANNEUR
+            description: Only `DEPANNEUR` profession is supported for now
+          required: true
+      requestBody:
+        required: true
+        content:
+          #TODO: add template link in description
+          application/xls:
+            schema:
+              type: string
+              format: binary
+          application/xlsx:
+            schema:
+              type: string
+              format: binary
+      responses:
+        200:
+          description: The evaluated prospects
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EvaluatedProspect'
+      400:
+        $ref: './api.yml#/components/responses/400'
+      403:
+        $ref: './api.yml#/components/responses/403'
+      404:
+        $ref: './api.yml#/components/responses/404'
+      429:
+        $ref: './api.yml#/components/responses/429'
+      500:
+        $ref: './api.yml#/components/responses/500'
   convertProspect:
     put:
       tags:
@@ -190,6 +240,14 @@ components:
           $ref: '#/components/schemas/ProspectStatus'
         townCode:
           type: integer
+    EvaluatedProspect:
+      type: object
+      properties:
+        prospect:
+          $ref: '#/components/schemas/Prospect'
+        rating:
+          type: number
+          description: Between 0.0 and 10.0
     Prospect:
       allOf:
         - $ref: '#/components/schemas/UpdateProspect'

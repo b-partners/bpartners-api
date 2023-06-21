@@ -13,6 +13,7 @@ import app.bpartners.api.integration.conf.TestUtils;
 import app.bpartners.api.manager.ProjectTokenManager;
 import app.bpartners.api.repository.AccountConnectorRepository;
 import app.bpartners.api.repository.LegalFileRepository;
+import app.bpartners.api.repository.bridge.BridgeApi;
 import app.bpartners.api.repository.fintecture.FintectureConf;
 import app.bpartners.api.repository.jpa.MunicipalityJpaRepository;
 import app.bpartners.api.repository.jpa.model.HMunicipality;
@@ -82,6 +83,8 @@ class ProspectIT {
   private BuildingPermitApi buildingPermitApiMock;
   @MockBean
   private BuildingPermitConf buildingPermitConfMock;
+  @MockBean
+  private BridgeApi bridgeApi;
   @Autowired
   private MunicipalityJpaRepository municipalityJpaRepository;
 

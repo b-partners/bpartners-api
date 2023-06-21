@@ -1,5 +1,14 @@
 package app.bpartners.api.unit.repository;
 
+import app.bpartners.api.endpoint.rest.model.AccountStatus;
+import app.bpartners.api.endpoint.rest.model.EnableStatus;
+import app.bpartners.api.endpoint.rest.model.Geojson;
+import app.bpartners.api.endpoint.rest.model.IdentificationStatus;
+import app.bpartners.api.endpoint.rest.model.VerificationStatus;
+import app.bpartners.api.model.Account;
+import app.bpartners.api.model.AccountHolder;
+import app.bpartners.api.model.Bank;
+import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.UserToken;
 import app.bpartners.api.model.mapper.UserMapper;
@@ -11,8 +20,10 @@ import app.bpartners.api.repository.bridge.response.BridgeTokenResponse;
 import app.bpartners.api.repository.implementation.UserTokenRepositoryImpl;
 import app.bpartners.api.repository.jpa.UserJpaRepository;
 import app.bpartners.api.repository.jpa.model.HUser;
+import java.math.BigInteger;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -24,11 +35,11 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 class UserTokenRepositoryImplTest {
-  private UserTokenRepositoryImpl userTokenRepository;
-  private UserJpaRepository userJpaRepository;
-  private UserTokenMapper userTokenMapper;
-  private BridgeApi bridgeApi;
   UserMapper userMapper;
+  UserJpaRepository userJpaRepository;
+  UserTokenMapper userTokenMapper;
+  BridgeApi bridgeApi;
+  UserTokenRepositoryImpl subject;
 
   @BeforeEach
   void setUp() {
@@ -36,7 +47,7 @@ class UserTokenRepositoryImplTest {
     userTokenMapper = mock(UserTokenMapper.class);
     bridgeApi = mock(BridgeApi.class);
     userMapper = mock(UserMapper.class);
-    userTokenRepository = new UserTokenRepositoryImpl(
+    subject = new UserTokenRepositoryImpl(
         userJpaRepository, userTokenMapper, bridgeApi, userMapper);
 
     when(userTokenMapper.toBridgeAuthUser(any())).thenReturn(bridgeUser());
@@ -51,20 +62,21 @@ class UserTokenRepositoryImplTest {
         .user(user())
         .accessToken(user().getAccessToken())
         .build());
-    when(userJpaRepository.getById(any())).thenReturn(entity());
+    when(userMapper.toEntity(any())).thenReturn(HUser.builder().build());
+    when(userJpaRepository.getHUserById(any())).thenReturn(entity());
     when(userJpaRepository.save(any())).thenReturn(entity());
   }
 
   @Test
   void update_user_token_ok() {
-    UserToken actual = userTokenRepository.updateUserToken(user());
+    UserToken actual = subject.updateUserToken(user());
 
     assertNotNull(actual);
   }
 
   @Test
   void read_latest_token_ok() {
-    UserToken actual = userTokenRepository.getLatestTokenByUser(user());
+    UserToken actual = subject.getLatestTokenByUser(user());
 
     assertNotNull(actual.getAccessToken());
   }
@@ -80,9 +92,64 @@ class UserTokenRepositoryImplTest {
   User user() {
     return User.builder()
         .id(JOE_DOE_ID)
+        .logoFileId("logo_id")
+        .firstName("joe")
+        .lastName("doe")
         .email("exemple@gmail.com")
         .bridgePassword("password")
-        .accessToken(entity().getAccessToken())
+        .mobilePhoneNumber("+3312345678")
+        .bankConnectionId(1L)
+        .bridgeItemUpdatedAt(Instant.parse("2023-03-30T13:35:26.853Z"))
+        .bridgeItemLastRefresh(Instant.parse("2023-04-30T13:35:26.853Z"))
+        .accessToken(JOE_DOE_TOKEN)
+        .monthlySubscription(1)
+        .status(EnableStatus.ENABLED)
+        .idVerified(true)
+        .identificationStatus(IdentificationStatus.VALID_IDENTITY)
+        .accountHolders(List.of(AccountHolder.builder()
+            .id("account_holder_id")
+            .userId(JOE_DOE_ID)
+            .name("joe")
+            .address("address")
+            .city("city")
+            .country("country")
+            .postalCode("123")
+            .socialCapital(1)
+            .vatNumber("123")
+            .siren("Siren")
+            .mainActivity("activity")
+            .mainActivityDescription("description")
+            .mobilePhoneNumber("+3312345667")
+            .email("exemple@gmail.com")
+            .initialCashflow(new Fraction(BigInteger.ZERO, BigInteger.ONE))
+            .feedbackLink(null)
+            .subjectToVat(true)
+            .verificationStatus(VerificationStatus.VERIFIED)
+            .location(new Geojson())
+            .townCode(1)
+            .prospectingPerimeter(1)
+            .build()))
+        .accounts(List.of(Account.builder()
+            .id("account_id")
+            .externalId("1234")
+            .idAccountHolder("account_holder_id")
+            .userId(JOE_DOE_ID)
+            .name("joe doe")
+            .iban("iban")
+            .bic("bic")
+            .availableBalance(new Fraction(BigInteger.ZERO, BigInteger.ONE))
+            .bank(Bank.builder()
+                .id("bank_id")
+                .externalId(1234L)
+                .name("bank")
+                .logoUrl("http://logo.url")
+                .build())
+            .active(true)
+            .status(AccountStatus.OPENED)
+            .build()))
+        .preferredAccountId("account_id")
+        .externalUserId("user_id")
+        .oldS3key(null)
         .build();
   }
 

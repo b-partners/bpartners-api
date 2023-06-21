@@ -15,6 +15,7 @@ import app.bpartners.api.integration.conf.TestUtils;
 import app.bpartners.api.manager.ProjectTokenManager;
 import app.bpartners.api.repository.AccountConnectorRepository;
 import app.bpartners.api.repository.LegalFileRepository;
+import app.bpartners.api.repository.bridge.BridgeApi;
 import app.bpartners.api.repository.bridge.repository.BridgeUserRepository;
 import app.bpartners.api.repository.fintecture.FintectureConf;
 import app.bpartners.api.repository.jpa.UserJpaRepository;
@@ -83,7 +84,8 @@ class UserIT {
   private SendinblueConf sendinblueConf;
   @MockBean
   private S3Conf s3Conf;
-
+  @MockBean
+  private BridgeApi bridgeApi;
   @MockBean
   private FintectureConf fintectureConf;
   @MockBean

@@ -32,22 +32,23 @@ public class UserTokenRepositoryImpl implements UserTokenRepository {
         || !response.getUser().getEmail().equals(user.getEmail())) {
       return null;
     }
-    HUser entity = userJpaRepository.getById(user.getId());
-    return mapper.toDomain(userJpaRepository.save(entity.toBuilder()
+    HUser userEntity = userMapper.toEntity(user).toBuilder()
         .accessToken(response.getAccessToken())
         .tokenExpirationDatetime(response.getExpirationDate())
         .tokenCreationDatetime(Instant.now())
-        .build()));
+        .build();
+    return mapper.toDomain(
+        userJpaRepository.save(userEntity));
   }
 
   @Override
   public UserToken getLatestTokenByUser(User user) {
-    HUser entity = userJpaRepository.getById(user.getId());
+    HUser entity = userJpaRepository.getHUserById(user.getId());
     //TODO: when null or expired then retry 3 times with one second of intervals between
     if (entity.getAccessToken() == null
         || (entity.getTokenExpirationDatetime() != null
         && entity.getTokenExpirationDatetime().isBefore(Instant.now()))) {
-      return updateUserToken(user);
+      return updateUserToken(mapper.toDomain(entity).getUser());
     }
     //Note that tokens are ordered by expiration datetime desc
     return mapper.toDomain(entity);

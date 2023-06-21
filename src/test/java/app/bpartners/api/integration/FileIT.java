@@ -12,6 +12,7 @@ import app.bpartners.api.integration.conf.TestUtils;
 import app.bpartners.api.manager.ProjectTokenManager;
 import app.bpartners.api.repository.AccountConnectorRepository;
 import app.bpartners.api.repository.LegalFileRepository;
+import app.bpartners.api.repository.bridge.BridgeApi;
 import app.bpartners.api.repository.fintecture.FintectureConf;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitConf;
 import app.bpartners.api.repository.sendinblue.SendinblueConf;
@@ -76,6 +77,8 @@ class FileIT {
   private ProjectTokenManager projectTokenManager;
   @MockBean
   private AccountConnectorRepository accountConnectorRepositoryMock;
+  @MockBean
+  private BridgeApi bridgeApi;
   @MockBean
   private LegalFileRepository legalFileRepositoryMock;
   @MockBean

@@ -15,6 +15,7 @@ import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.TransactionCategoryTemplate;
 import app.bpartners.api.repository.AccountConnectorRepository;
 import app.bpartners.api.repository.LegalFileRepository;
+import app.bpartners.api.repository.bridge.BridgeApi;
 import app.bpartners.api.repository.bridge.model.Transaction.BridgeTransaction;
 import app.bpartners.api.repository.bridge.repository.BridgeTransactionRepository;
 import app.bpartners.api.repository.fintecture.FintectureConf;
@@ -63,6 +64,8 @@ class TransactionCategoryIT {
   private BuildingPermitConf buildingPermitConf;
   @MockBean
   private SentryConf sentryConf;
+  @MockBean
+  private BridgeApi bridgeApi;
   @MockBean
   private SendinblueConf sendinblueConf;
   @MockBean

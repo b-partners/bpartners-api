@@ -47,7 +47,7 @@ public class UserService {
     return userRepository.getUserByToken(token);
   }
 
-  @Transactional(isolation = SERIALIZABLE)
+  @Transactional
   public UserToken getLatestToken(User user) {
     return userTokenRepository.getLatestTokenByUser(user);
   }

@@ -76,7 +76,8 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
                     new AntPathRequestMatcher("/onboardingInitiation", POST.name()),
                     new AntPathRequestMatcher("/users/*/legalFiles", GET.name()),
                     new AntPathRequestMatcher("/users/*/legalFiles/*", PUT.name()),
-                    new AntPathRequestMatcher("/**", OPTIONS.toString())
+                    new AntPathRequestMatcher("/**", OPTIONS.toString()),
+                    new AntPathRequestMatcher("/whois/*", GET.name())
                 )
             )),
             AnonymousAuthenticationFilter.class)
@@ -97,6 +98,7 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
         .antMatchers(GET, "/users/*/legalFiles").permitAll()
         .antMatchers(PUT, "/users/*/legalFiles/*").permitAll()
         .antMatchers(OPTIONS, "/**").permitAll()
+        .antMatchers(GET, "/whois/*").permitAll()
         .requestMatchers(
             new SelfAccountMatcher(GET, "/accounts/*/customers", authResourceProvider)
         ).authenticated()

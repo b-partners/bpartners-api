@@ -36,6 +36,11 @@ public class UserService {
   }
 
   @Transactional
+  public User getUserById(String id) {
+    return userRepository.getById(id);
+  }
+
+  @Transactional
   public User getUserByEmail(String email) {
     return userRepository.getByEmail(email);
   }

@@ -26,5 +26,12 @@ public interface UserJpaRepository extends JpaRepository<HUser, String> {
   HUser getByAccountId(String accountId);
 
   @Lock(PESSIMISTIC_WRITE)
+  @Query(
+      "select u from HUser u join HAccount a"
+          + " on u.id = a.user.id"
+          + " where a.id = ?1")
+  HUser pwGetByAccountId(String accountId);
+
+  @Lock(PESSIMISTIC_WRITE)
   HUser getHUserById(String id);
 }

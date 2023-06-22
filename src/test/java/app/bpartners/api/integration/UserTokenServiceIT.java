@@ -45,6 +45,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @Slf4j
 public class UserTokenServiceIT {
 
+  public static final String ACCOUNT_ID = "other_joe_account_id";
   @MockBean
   private PaymentScheduleService paymentScheduleService;
   @MockBean
@@ -76,9 +77,16 @@ public class UserTokenServiceIT {
   }
 
   @SneakyThrows
-  private UserToken getUserLatestToken(UserService userService,
-                                       User user,
-                                       CountDownLatch latch) {
+  private UserToken getUserLatestTokenByAccount(UserService userService,
+                                                CountDownLatch latch) {
+    latch.await();
+    return userService.getLatestTokenByAccount(ACCOUNT_ID);
+  }
+
+  @SneakyThrows
+  private UserToken getUserLatestTokenByUser(UserService userService,
+                                             User user,
+                                             CountDownLatch latch) {
     latch.await();
     return userService.getLatestToken(user);
   }
@@ -94,7 +102,7 @@ public class UserTokenServiceIT {
   }
 
   @Test
-  void concurrently_get_user_latest_token() {
+  void concurrently_get_latest_token_by_account() {
     var callerNb = 100;
     var executor = newFixedThreadPool(100);
 
@@ -102,7 +110,28 @@ public class UserTokenServiceIT {
     var futures = new ArrayList<Future<UserToken>>();
     for (var callerIdx = 0; callerIdx < callerNb; callerIdx++) {
       futures.add(
-          executor.submit(() -> getUserLatestToken(userService, user(), latch)));
+          executor.submit(() -> getUserLatestTokenByAccount(userService, latch)));
+    }
+    latch.countDown();
+
+    var retrieved = futures.stream()
+        .map(TestUtils::getOptionalFutureResult)
+        .filter(Optional::isPresent)
+        .map(Optional::get)
+        .collect(toUnmodifiableList());
+    assertEquals(callerNb, retrieved.size());
+  }
+
+  @Test
+  void concurrently_get_latest_token_by_user() {
+    var callerNb = 100;
+    var executor = newFixedThreadPool(100);
+
+    var latch = new CountDownLatch(1);
+    var futures = new ArrayList<Future<UserToken>>();
+    for (var callerIdx = 0; callerIdx < callerNb; callerIdx++) {
+      futures.add(
+          executor.submit(() -> getUserLatestTokenByUser(userService, user(), latch)));
     }
     latch.countDown();
 

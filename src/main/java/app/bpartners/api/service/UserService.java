@@ -10,8 +10,6 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import static org.springframework.transaction.annotation.Isolation.SERIALIZABLE;
-
 
 @Service
 @AllArgsConstructor
@@ -37,12 +35,12 @@ public class UserService {
         .build());
   }
 
-  @Transactional(isolation = SERIALIZABLE)
+  @Transactional
   public User getUserByEmail(String email) {
     return userRepository.getByEmail(email);
   }
 
-  @Transactional(isolation = SERIALIZABLE)
+  @Transactional
   public User getUserByToken(String token) {
     return userRepository.getUserByToken(token);
   }
@@ -52,12 +50,12 @@ public class UserService {
     return userTokenRepository.getLatestTokenByUser(user);
   }
 
-  @Transactional(isolation = SERIALIZABLE)
+  @Transactional
   public List<User> findAll() {
     return userRepository.findAll();
   }
 
-  @Transactional(isolation = SERIALIZABLE)
+  @Transactional
   public UserToken getLatestTokenByAccount(String accountId) {
     return userTokenRepository.getLatestTokenByAccount(accountId);
   }

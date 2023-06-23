@@ -13,6 +13,7 @@ import app.bpartners.api.endpoint.rest.model.VerificationStatus;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.Fraction;
+import app.bpartners.api.model.Money;
 import app.bpartners.api.model.OnboardUser;
 import app.bpartners.api.model.OnboardedUser;
 import app.bpartners.api.model.User;
@@ -39,7 +40,7 @@ public class OnboardingService {
   public static final boolean DEFAULT_SUBJECT_TO_VAT = true;
   public static final VerificationStatus DEFAULT_VERIFICATION_STATUS = VerificationStatus.VERIFIED;
   public static final AccountStatus DEFAULT_STATUS = OPENED;
-  public static final Fraction DEFAULT_BALANCE = new Fraction();
+  public static final Money DEFAULT_BALANCE = new Money();
   public static final Fraction DEFAULT_CASH_FLOW = new Fraction();
   public static final boolean DEFAULT_VERIFIED = true;
   public static final EnableStatus DEFAULT_USER_STATUS = EnableStatus.ENABLED;

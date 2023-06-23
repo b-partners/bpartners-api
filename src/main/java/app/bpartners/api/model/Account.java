@@ -25,7 +25,7 @@ public class Account implements Serializable {
   private String name;
   private String iban;
   private String bic;
-  private Fraction availableBalance;
+  private Money availableBalance;
   private Bank bank;
   private boolean active;
   private AccountStatus status;

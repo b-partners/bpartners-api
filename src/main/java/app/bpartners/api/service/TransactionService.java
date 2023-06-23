@@ -121,11 +121,12 @@ public class TransactionService {
         transaction -> {
           if (transaction.getType().equals(TransactionTypeEnum.INCOME)) {
             incomeReference.set(
-                incomeReference.get().operate(transaction.getAmount(), Aprational::add));
+                incomeReference.get().operate(transaction.getAmount().getValue(), Aprational::add));
           }
           if (transaction.getType().equals(TransactionTypeEnum.OUTCOME)) {
             outcomeReference.set(
-                outcomeReference.get().operate(transaction.getAmount(), Aprational::add));
+                outcomeReference.get().operate(
+                    transaction.getAmount().getValue(), Aprational::add));
           }
         });
 
@@ -142,7 +143,7 @@ public class TransactionService {
             .id(actualSummary == null ? null : actualSummary.getId())
             .income(incomeValue)
             .outcome(outcomeValue)
-            .cashFlow(account.getAvailableBalance())
+            .cashFlow(account.getAvailableBalance().getValue())
             .month(yearMonth.getMonthValue() - 1)
             .build());
   }

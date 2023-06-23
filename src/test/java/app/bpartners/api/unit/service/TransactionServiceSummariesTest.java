@@ -2,6 +2,7 @@ package app.bpartners.api.unit.service;
 
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.Fraction;
+import app.bpartners.api.model.Money;
 import app.bpartners.api.model.MonthlyTransactionsSummary;
 import app.bpartners.api.model.Transaction;
 import app.bpartners.api.repository.TransactionRepository;
@@ -19,6 +20,7 @@ import org.mockito.ArgumentCaptor;
 import static app.bpartners.api.integration.conf.TestUtils.CREDIT_SIDE;
 import static app.bpartners.api.integration.conf.TestUtils.DEBIT_SIDE;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ID;
+import static app.bpartners.api.model.Money.fromMajor;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -34,7 +36,7 @@ class TransactionServiceSummariesTest {
   private static Account joeDoeAccount() {
     return Account.builder()
         .userId(JOE_DOE_ID)
-        .availableBalance(new Fraction())
+        .availableBalance(new Money())
         .build();
   }
 
@@ -109,7 +111,7 @@ class TransactionServiceSummariesTest {
   private Transaction.TransactionBuilder transactionWith100Value() {
     return Transaction
         .builder()
-        .amount(new Fraction(BigInteger.valueOf(100)));
+        .amount(fromMajor(10000));
   }
 
   private MonthlyTransactionsSummary lastMonthlySummary(Instant updatedAt) {

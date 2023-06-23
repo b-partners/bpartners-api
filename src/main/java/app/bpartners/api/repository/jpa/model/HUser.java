@@ -7,7 +7,6 @@ import app.bpartners.api.repository.jpa.types.PostgresEnumType;
 import java.io.Serializable;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
 import java.util.List;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -49,9 +48,9 @@ public class HUser implements Serializable {
   private String id;
   @OneToMany(mappedBy = "user")
   private List<HAccount> accounts;
-  @OneToMany(cascade = CascadeType.ALL)
+  @OneToMany
   @JoinColumn(name = "id_user")
-  private List<HAccountHolder> accountHolders = new ArrayList<>();
+  private List<HAccountHolder> accountHolders;
   private String firstName;
   private String lastName;
   @Column(name = "preferred_account_id")

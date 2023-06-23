@@ -2,6 +2,7 @@ package app.bpartners.api.unit.service;
 
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.Fraction;
+import app.bpartners.api.model.Money;
 import app.bpartners.api.model.MonthlyTransactionsSummary;
 import app.bpartners.api.model.Transaction;
 import app.bpartners.api.repository.TransactionRepository;
@@ -34,7 +35,7 @@ class TransactionServiceSummariesTest {
   private static Account joeDoeAccount() {
     return Account.builder()
         .userId(JOE_DOE_ID)
-        .availableBalance(new Fraction())
+        .availableBalance(new Money())
         .build();
   }
 

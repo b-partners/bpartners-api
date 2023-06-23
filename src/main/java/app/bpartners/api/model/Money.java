@@ -18,6 +18,9 @@ import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 public class Money implements Serializable {
   private Fraction value;
 
+  public Money(){
+    value = new Fraction();
+  }
   public Money(Double fromMinor) {
     value = parseFraction(fromMinor);
   }

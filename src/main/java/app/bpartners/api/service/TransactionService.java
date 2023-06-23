@@ -142,7 +142,7 @@ public class TransactionService {
             .id(actualSummary == null ? null : actualSummary.getId())
             .income(incomeValue)
             .outcome(outcomeValue)
-            .cashFlow(account.getAvailableBalance())
+            .cashFlow(account.getAvailableBalance().getValue())
             .month(yearMonth.getMonthValue() - 1)
             .build());
   }

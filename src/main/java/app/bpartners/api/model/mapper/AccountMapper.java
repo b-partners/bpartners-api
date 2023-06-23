@@ -4,6 +4,7 @@ import app.bpartners.api.endpoint.rest.model.AccountStatus;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.Bank;
 import app.bpartners.api.model.Fraction;
+import app.bpartners.api.model.Money;
 import app.bpartners.api.repository.bridge.model.Account.BridgeAccount;
 import app.bpartners.api.repository.jpa.model.HAccount;
 import app.bpartners.api.repository.jpa.model.HUser;
@@ -16,6 +17,9 @@ import org.springframework.stereotype.Component;
 
 import static app.bpartners.api.endpoint.rest.model.AccountStatus.UNKNOWN;
 import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
+import static app.bpartners.api.service.utils.MoneyUtils.fromMajor;
+import static app.bpartners.api.service.utils.MoneyUtils.fromMinor;
+import static app.bpartners.api.service.utils.MoneyUtils.fromMinorString;
 
 @Slf4j
 @Component
@@ -44,7 +48,7 @@ public class AccountMapper {
         // Yet BridgeAccount.balance is in minor units
         // The correct way to handle this is to create the precise type Money,
         // Then reason on Money instead of on Fraction / Double / Int and other not sufficiently typed objects!
-        .balance(bridgeAccount.getBalance() / 100)
+        .balance(fromMinor(bridgeAccount.getBalance()).getRoundedValue())
 
         .iban(bridgeAccount.getIban())
         .status(bridgeAccount.getDomainStatus())
@@ -74,7 +78,7 @@ public class AccountMapper {
         .bank(bank)
         .name(accountConnector.getName())
         .iban(accountConnector.getIban())
-        .availableBalance(parseFraction(accountConnector.getBalance() * 100))
+        .availableBalance(fromMajor(accountConnector.getBalance()))
         .status(accountConnector.getStatus())
         .build();
   }
@@ -83,10 +87,10 @@ public class AccountMapper {
     if (entity == null) {
       return null;
     }
-    Fraction availableBalance =
-        parseFraction(entity.getAvailableBalance())
-            .operate(new Fraction(BigInteger.valueOf(100)),
-            Aprational::multiply);
+
+    log.info("Entity balance {}", entity.getAvailableBalance());
+    log.info("Entity name {}", entity.getName());
+    Money availableBalance = fromMinorString(entity.getAvailableBalance());
     return Account.builder()
         .id(entity.getId())
         .externalId(entity.getExternalId())
@@ -124,7 +128,7 @@ public class AccountMapper {
         .bic(account.getBic())
         .name(account.getName())
         .iban(account.getIban())
-        .availableBalance(String.valueOf(account.getAvailableBalance()))
+        .availableBalance(String.valueOf(account.getAvailableBalance().getValue()))
         .status(account.getStatus())
         .build();
   }

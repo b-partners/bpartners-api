@@ -9,6 +9,7 @@ import app.bpartners.api.model.Account;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.Bank;
 import app.bpartners.api.model.Fraction;
+import app.bpartners.api.model.Money;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.UserToken;
 import app.bpartners.api.model.mapper.UserMapper;
@@ -130,7 +131,7 @@ class UserTokenRepositoryImplTest {
         .name("joe doe")
         .iban("iban")
         .bic("bic")
-        .availableBalance(new Fraction(BigInteger.ZERO, BigInteger.ONE))
+        .availableBalance(new Money(0))
         .bank(Bank.builder()
             .id("bank_id")
             .externalId(1234L)

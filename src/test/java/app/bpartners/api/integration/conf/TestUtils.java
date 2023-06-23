@@ -83,6 +83,7 @@ import static app.bpartners.api.model.Invoice.DEFAULT_DELAY_PENALTY_PERCENT;
 import static app.bpartners.api.model.Invoice.DEFAULT_TO_PAY_DELAY_DAYS;
 import static app.bpartners.api.repository.bridge.model.Account.BridgeAccount.BRIDGE_STATUS_OK;
 import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
+import static app.bpartners.api.service.utils.MoneyUtils.fromMinor;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -812,7 +813,7 @@ public class TestUtils {
         .name("Account_name")
         .iban("FR0123456789")
         .bic("BIC_NOT_NULL")
-        .availableBalance(parseFraction(10000))
+        .availableBalance(fromMinor(10000.0))
         .status(OPENED)
         .active(true)
         .bank(null)

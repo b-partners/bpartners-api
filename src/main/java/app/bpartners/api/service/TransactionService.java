@@ -121,11 +121,12 @@ public class TransactionService {
         transaction -> {
           if (transaction.getType().equals(TransactionTypeEnum.INCOME)) {
             incomeReference.set(
-                incomeReference.get().operate(transaction.getAmount(), Aprational::add));
+                incomeReference.get().operate(transaction.getAmount().getValue(), Aprational::add));
           }
           if (transaction.getType().equals(TransactionTypeEnum.OUTCOME)) {
             outcomeReference.set(
-                outcomeReference.get().operate(transaction.getAmount(), Aprational::add));
+                outcomeReference.get().operate(
+                    transaction.getAmount().getValue(), Aprational::add));
           }
         });
 

@@ -88,8 +88,6 @@ public class AccountMapper {
       return null;
     }
 
-    log.info("Entity balance {}", entity.getAvailableBalance());
-    log.info("Entity name {}", entity.getName());
     Money availableBalance = fromMinorString(entity.getAvailableBalance());
     return Account.builder()
         .id(entity.getId())

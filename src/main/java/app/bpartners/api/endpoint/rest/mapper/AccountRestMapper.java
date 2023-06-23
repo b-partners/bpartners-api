@@ -12,6 +12,7 @@ public class AccountRestMapper {
   private final BankRestMapper bankRestMapper;
 
   public Account toRest(app.bpartners.api.model.Account internal) {
+
     return new Account()
         .id(internal.getId())
         .name(internal.getName())

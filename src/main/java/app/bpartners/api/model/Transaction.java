@@ -35,7 +35,8 @@ public class Transaction {
   public static final String RELEASED_STATUS = "Released";
   private String id;
   private String idAccount;
-  private Fraction amount;
+  private Long idBridge;
+  private Money amount;
   private String currency;
   private String label;
   private String reference;

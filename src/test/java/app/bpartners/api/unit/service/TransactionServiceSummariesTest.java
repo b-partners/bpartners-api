@@ -110,7 +110,7 @@ class TransactionServiceSummariesTest {
   private Transaction.TransactionBuilder transactionWith100Value() {
     return Transaction
         .builder()
-        .amount(new Fraction(BigInteger.valueOf(100)));
+        .amount(new Money(10000));
   }
 
   private MonthlyTransactionsSummary lastMonthlySummary(Instant updatedAt) {

@@ -104,8 +104,10 @@ Resources:
               Value: !Sub '{{resolve:ssm:/bpartners/${Env}/cognito/userpool-client-id}}'
             - Name: AWS_COGNITO_USERPOOL_CLIENTSECRET
               Value: !Sub '{{resolve:ssm:/bpartners/${Env}/cognito/userpool-client-secret}}'
-            - Name: API_KEY
-              Value: !Sub '{{resolve:ssm:/bpartners/${Env}/api/key}}'
+            - Name: FEATURE_DETECTOR_API_KEY
+              Value: !Sub '{{resolve:ssm:/bpartners/${Env}/feature/detector/api/key}}'
+            - Name: FEATURE_DETECTOR_APPLICATION_NAME
+              Value: !Sub '{{resolve:ssm:/bpartners/${Env}/feature/detector/application/name}}'
           LogConfiguration:
             LogDriver: awslogs
             Options:

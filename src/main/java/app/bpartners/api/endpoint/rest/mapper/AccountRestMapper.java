@@ -17,7 +17,8 @@ public class AccountRestMapper {
         .name(internal.getName())
         .iban(internal.getIban())
         .bic(internal.getBic())
-        .availableBalance(internal.getAvailableBalance().getTenths())
+        .availableBalance(
+            internal.getAvailableBalance().getCents().intValue())
         .bank(bankRestMapper.toRest(internal.getBank()))
         .active(internal.isActive())
         .status(internal.getStatus());

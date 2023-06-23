@@ -347,7 +347,7 @@ class UserIT {
   }
 
   @Test
-  void client_with_api_key_get_user() throws IOException, InterruptedException {
+  void client_with_api_key_get_user_ok() throws IOException, InterruptedException {
     HttpClient client = HttpClient.newBuilder().build();
     String basePath = "http://localhost:" + ContextInitializer.SERVER_PORT;
     HttpRequest request = HttpRequest.newBuilder()
@@ -365,17 +365,24 @@ class UserIT {
   }
 
   @Test
-  void client_without_api_get_user() throws IOException, InterruptedException {
+  void client_with_api_key_get_user_ko() throws IOException, InterruptedException {
     HttpClient client = HttpClient.newBuilder().build();
     String basePath = "http://localhost:" + ContextInitializer.SERVER_PORT;
-    HttpRequest request = HttpRequest.newBuilder()
+    HttpRequest request1 = HttpRequest.newBuilder()
         .uri(URI.create(basePath + "/whois/" + JOE_DOE_ID))
         .GET()
         .build();
+    HttpRequest request2 = HttpRequest.newBuilder()
+        .uri(URI.create(basePath + "/whois/" + JOE_DOE_ID))
+        .headers("x-api-key", "api-key")
+        .GET()
+        .build();
 
-    HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+    HttpResponse<String> response1 = client.send(request1, HttpResponse.BodyHandlers.ofString());
+    HttpResponse<String> response2 = client.send(request2, HttpResponse.BodyHandlers.ofString());
 
-    assertEquals("{\"type\":\"403 FORBIDDEN\",\"message\":\"Access is denied\"}", response.body());
+    assertEquals("{\"type\":\"403 FORBIDDEN\",\"message\":\"Access is denied\"}", response1.body());
+    assertEquals("{\"type\":\"403 FORBIDDEN\",\"message\":\"Access is denied\"}", response2.body());
   }
 
   private List<OnboardedUser> convertBody(String responseBody) throws JsonProcessingException {

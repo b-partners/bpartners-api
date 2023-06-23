@@ -57,7 +57,13 @@ public class UserTokenRepositoryImpl implements UserTokenRepository {
   //TODO: check why some accounts are not associated to users
   @Override
   public UserToken getLatestTokenByAccount(String accountId) {
-    HUser entity = userJpaRepository.getByAccountId(accountId);
-    return entity == null ? null : getLatestTokenByUser(userMapper.toDomain(entity));
+    HUser entity = userJpaRepository.pwGetByAccountId(accountId);
+    if (entity.getAccessToken() == null
+        || (entity.getTokenExpirationDatetime() != null
+        && entity.getTokenExpirationDatetime().isBefore(Instant.now()))) {
+      return updateUserToken(mapper.toDomain(entity).getUser());
+    }
+    //Note that tokens are ordered by expiration datetime desc
+    return mapper.toDomain(entity);
   }
 }

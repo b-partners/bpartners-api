@@ -19,6 +19,7 @@ import org.thymeleaf.context.Context;
 
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 import static app.bpartners.api.service.utils.TemplateResolverUtils.parseTemplateResolver;
+import static org.springframework.scheduling.config.ScheduledTaskRegistrar.CRON_DISABLED;
 
 @Service
 @AllArgsConstructor
@@ -38,7 +39,7 @@ public class ProspectService {
     return repository.saveAll(toCreate);
   }
 
-  @Scheduled(cron = Scheduled.CRON_DISABLED, zone = "Europe/Paris")
+  @Scheduled(cron = CRON_DISABLED, zone = "Europe/Paris")
   public void prospect() {
     accountHolderJpaRepository.findAll().forEach(accountHolder -> {
       if (repository.needsProspects(accountHolder.getId(), LocalDate.now())

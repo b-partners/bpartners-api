@@ -6,7 +6,6 @@ import app.bpartners.api.repository.jpa.PaymentRequestJpaRepository;
 import app.bpartners.api.repository.jpa.model.HPaymentRequest;
 import java.util.ArrayList;
 import java.util.List;
-import javax.annotation.PostConstruct;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -14,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import static app.bpartners.api.endpoint.rest.model.PaymentStatus.PAID;
 import static app.bpartners.api.endpoint.rest.model.PaymentStatus.UNPAID;
+import static org.springframework.scheduling.config.ScheduledTaskRegistrar.CRON_DISABLED;
 
 @Service
 @AllArgsConstructor
@@ -24,8 +24,7 @@ public class PaymentScheduleService {
   private final PaymentRequestJpaRepository jpaRepository;
 
   //TODO: check if 12 hours of refresh is enough or too much
-  @Scheduled(fixedRate = 12 * 60 * 60 * 1_000)
-  @PostConstruct
+  @Scheduled(cron = CRON_DISABLED, zone = "Europe/Paris")
   public void updatePaymentStatus() {
     List<HPaymentRequest> unpaidPayments = jpaRepository.findAllByStatus(UNPAID);
     List<Session> externalPayments = infoRepository.getAllPaymentsByStatus(PAYMENT_CREATED);

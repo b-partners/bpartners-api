@@ -42,6 +42,7 @@ import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PROPOSAL;
 import static app.bpartners.api.model.BoundedPageSize.MAX_SIZE;
 import static app.bpartners.api.service.utils.FileInfoUtils.PDF_EXTENSION;
 import static java.util.UUID.randomUUID;
+import static org.springframework.scheduling.config.ScheduledTaskRegistrar.CRON_DISABLED;
 
 @Service
 @AllArgsConstructor
@@ -152,7 +153,7 @@ public class InvoiceRelaunchService {
         .build();
   }
 
-  @Scheduled(cron = "0 0 10 * * *")
+  @Scheduled(cron = CRON_DISABLED, zone = "Europe/Paris")
   public void relaunch() {
     //TODO : Transactional
     //TODO: next version will persist mailbody.

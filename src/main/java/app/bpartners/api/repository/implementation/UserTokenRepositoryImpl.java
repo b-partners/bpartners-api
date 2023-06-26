@@ -7,9 +7,14 @@ import app.bpartners.api.model.mapper.UserTokenMapper;
 import app.bpartners.api.repository.UserTokenRepository;
 import app.bpartners.api.repository.bridge.BridgeApi;
 import app.bpartners.api.repository.bridge.response.BridgeTokenResponse;
+import app.bpartners.api.repository.jpa.AccountHolderJpaRepository;
+import app.bpartners.api.repository.jpa.AccountJpaRepository;
 import app.bpartners.api.repository.jpa.UserJpaRepository;
+import app.bpartners.api.repository.jpa.model.HAccount;
+import app.bpartners.api.repository.jpa.model.HAccountHolder;
 import app.bpartners.api.repository.jpa.model.HUser;
 import java.time.Instant;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -20,6 +25,8 @@ public class UserTokenRepositoryImpl implements UserTokenRepository {
   private final UserTokenMapper mapper;
   private final BridgeApi bridgeApi;
   private final UserMapper userMapper;
+  private final AccountJpaRepository accountJpaRepository;
+  private final AccountHolderJpaRepository holderJpaRepository;
 
   @Override
   public UserToken updateUserToken(User user) {
@@ -32,13 +39,14 @@ public class UserTokenRepositoryImpl implements UserTokenRepository {
         || !response.getUser().getEmail().equals(user.getEmail())) {
       return null;
     }
-    HUser userEntity = userMapper.toEntity(user).toBuilder()
+    List<HAccount> accounts = accountJpaRepository.findByUser_Id(user.getId());
+    List<HAccountHolder> accountHolders = holderJpaRepository.findAllByIdUser(user.getId());
+    HUser userEntity = userMapper.toEntity(user, accountHolders, accounts).toBuilder()
         .accessToken(response.getAccessToken())
         .tokenExpirationDatetime(response.getExpirationDate())
         .tokenCreationDatetime(Instant.now())
         .build();
-    return mapper.toDomain(
-        userJpaRepository.save(userEntity));
+    return mapper.toDomain(userJpaRepository.save(userEntity));
   }
 
   @Override

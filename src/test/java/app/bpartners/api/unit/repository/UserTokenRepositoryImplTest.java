@@ -18,6 +18,8 @@ import app.bpartners.api.repository.bridge.model.User.BridgeUser;
 import app.bpartners.api.repository.bridge.model.User.CreateBridgeUser;
 import app.bpartners.api.repository.bridge.response.BridgeTokenResponse;
 import app.bpartners.api.repository.implementation.UserTokenRepositoryImpl;
+import app.bpartners.api.repository.jpa.AccountHolderJpaRepository;
+import app.bpartners.api.repository.jpa.AccountJpaRepository;
 import app.bpartners.api.repository.jpa.UserJpaRepository;
 import app.bpartners.api.repository.jpa.model.HUser;
 import java.math.BigInteger;
@@ -39,6 +41,8 @@ class UserTokenRepositoryImplTest {
   UserJpaRepository userJpaRepository;
   UserTokenMapper userTokenMapper;
   BridgeApi bridgeApi;
+  AccountHolderJpaRepository holderJpaRepository;
+  AccountJpaRepository accountJpaRepository;
   UserTokenRepositoryImpl subject;
 
   @BeforeEach
@@ -47,8 +51,11 @@ class UserTokenRepositoryImplTest {
     userTokenMapper = mock(UserTokenMapper.class);
     bridgeApi = mock(BridgeApi.class);
     userMapper = mock(UserMapper.class);
+    accountJpaRepository = mock(AccountJpaRepository.class);
+    holderJpaRepository = mock(AccountHolderJpaRepository.class);
     subject = new UserTokenRepositoryImpl(
-        userJpaRepository, userTokenMapper, bridgeApi, userMapper);
+        userJpaRepository, userTokenMapper, bridgeApi, userMapper,
+        accountJpaRepository, holderJpaRepository);
 
     when(userTokenMapper.toBridgeAuthUser(any())).thenReturn(bridgeUser());
     when(bridgeApi.authenticateUser(any())).thenReturn(
@@ -62,7 +69,7 @@ class UserTokenRepositoryImplTest {
         .user(user())
         .accessToken(user().getAccessToken())
         .build());
-    when(userMapper.toEntity(any())).thenReturn(HUser.builder().build());
+    when(userMapper.toEntity(any(), any(), any())).thenReturn(HUser.builder().build());
     when(userJpaRepository.getHUserById(any())).thenReturn(entity());
     when(userJpaRepository.save(any())).thenReturn(entity());
   }
@@ -106,50 +113,58 @@ class UserTokenRepositoryImplTest {
         .status(EnableStatus.ENABLED)
         .idVerified(true)
         .identificationStatus(IdentificationStatus.VALID_IDENTITY)
-        .accountHolders(List.of(AccountHolder.builder()
-            .id("account_holder_id")
-            .userId(JOE_DOE_ID)
-            .name("joe")
-            .address("address")
-            .city("city")
-            .country("country")
-            .postalCode("123")
-            .socialCapital(1)
-            .vatNumber("123")
-            .siren("Siren")
-            .mainActivity("activity")
-            .mainActivityDescription("description")
-            .mobilePhoneNumber("+3312345667")
-            .email("exemple@gmail.com")
-            .initialCashflow(new Fraction(BigInteger.ZERO, BigInteger.ONE))
-            .feedbackLink(null)
-            .subjectToVat(true)
-            .verificationStatus(VerificationStatus.VERIFIED)
-            .location(new Geojson())
-            .townCode(1)
-            .prospectingPerimeter(1)
-            .build()))
-        .accounts(List.of(Account.builder()
-            .id("account_id")
-            .externalId("1234")
-            .idAccountHolder("account_holder_id")
-            .userId(JOE_DOE_ID)
-            .name("joe doe")
-            .iban("iban")
-            .bic("bic")
-            .availableBalance(new Fraction(BigInteger.ZERO, BigInteger.ONE))
-            .bank(Bank.builder()
-                .id("bank_id")
-                .externalId(1234L)
-                .name("bank")
-                .logoUrl("http://logo.url")
-                .build())
-            .active(true)
-            .status(AccountStatus.OPENED)
-            .build()))
+        .accountHolders(List.of(accountHolder()))
+        .accounts(List.of(account()))
         .preferredAccountId("account_id")
         .externalUserId("user_id")
         .oldS3key(null)
+        .build();
+  }
+
+  private static Account account() {
+    return Account.builder()
+        .id("account_id")
+        .externalId("1234")
+        .idAccountHolder("account_holder_id")
+        .userId(JOE_DOE_ID)
+        .name("joe doe")
+        .iban("iban")
+        .bic("bic")
+        .availableBalance(new Fraction(BigInteger.ZERO, BigInteger.ONE))
+        .bank(Bank.builder()
+            .id("bank_id")
+            .externalId(1234L)
+            .name("bank")
+            .logoUrl("http://logo.url")
+            .build())
+        .active(true)
+        .status(AccountStatus.OPENED)
+        .build();
+  }
+
+  private static AccountHolder accountHolder() {
+    return AccountHolder.builder()
+        .id("account_holder_id")
+        .userId(JOE_DOE_ID)
+        .name("joe")
+        .address("address")
+        .city("city")
+        .country("country")
+        .postalCode("123")
+        .socialCapital(1)
+        .vatNumber("123")
+        .siren("Siren")
+        .mainActivity("activity")
+        .mainActivityDescription("description")
+        .mobilePhoneNumber("+3312345667")
+        .email("exemple@gmail.com")
+        .initialCashflow(new Fraction(BigInteger.ZERO, BigInteger.ONE))
+        .feedbackLink(null)
+        .subjectToVat(true)
+        .verificationStatus(VerificationStatus.VERIFIED)
+        .location(new Geojson())
+        .townCode(1)
+        .prospectingPerimeter(1)
         .build();
   }
 

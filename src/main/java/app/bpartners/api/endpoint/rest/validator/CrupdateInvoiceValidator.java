@@ -54,9 +54,6 @@ public class CrupdateInvoiceValidator implements Consumer<CrupdateInvoice> {
     if (invoice.getRef() != null && invoice.getRef().isBlank()) {
       invoice.setRef(null);
     }
-    if (isBadPaymentAndSendingDate(invoice)) {
-      exceptionBuilder.append("Payment date can not be after the sending date. ");
-    }
     if (invoice.getPaymentType() == CASH
         && invoice.getPaymentRegulations() != null && !invoice.getPaymentRegulations().isEmpty()) {
       exceptionBuilder.append(
@@ -115,10 +112,5 @@ public class CrupdateInvoiceValidator implements Consumer<CrupdateInvoice> {
   private boolean isBadSendingDate(CrupdateInvoice invoice) {
     return invoice.getSendingDate() != null && invoice.getSendingDate().compareTo(today) != 0
         && invoice.getSendingDate().isAfter(today);
-  }
-
-  private static boolean isBadPaymentAndSendingDate(CrupdateInvoice invoice) {
-    return invoice.getToPayAt() != null && invoice.getSendingDate() != null
-        && invoice.getToPayAt().isBefore(invoice.getSendingDate());
   }
 }

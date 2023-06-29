@@ -33,6 +33,8 @@ public abstract class AbstractContextInitializer
         "aws.cognito.userPool.clientSecret=dummy",
         "aws.eventBridge.bus=dummy",
         "aws.sqs.mailboxUrl=dummy",
+        "feature.detector.api.key=dummy",
+        "feature.detector.application.name=dummy",
         "fintecture.base.url=https://api-sandbox.fintecture.com",
         "swan.base.url=https://api.swan.io/sandbox-partner",
         "spring.datasource.url=" + postgresContainer.getJdbcUrl(),

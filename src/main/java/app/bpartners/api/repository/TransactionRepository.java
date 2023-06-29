@@ -9,8 +9,6 @@ import java.util.List;
 public interface TransactionRepository {
   List<Transaction> findPersistedByIdAccount(String idAccount, int page, int pageSize);
 
-  List<Transaction> findAllPersistedByIdAccount(String idAccount);
-
   List<Transaction> findByAccountId(String id);
 
   Transaction findById(String id);

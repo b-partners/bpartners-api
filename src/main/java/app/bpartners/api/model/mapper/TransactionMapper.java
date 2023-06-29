@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
+import static java.util.UUID.randomUUID;
 
 @Slf4j
 @Component
@@ -24,7 +25,7 @@ public class TransactionMapper {
         .id(String.valueOf(bridgeTransaction.getId()))
 
         // TODO(bad-cents): it _seems_ bridge.amount is in major, while connector.amount is in minor
-        .amount(parseFraction(bridgeTransaction.getAbsAmount()*100))
+        .amount(parseFraction(bridgeTransaction.getAbsAmount() * 100))
 
         .currency(bridgeTransaction.getCurrency())
         .label(bridgeTransaction.getLabel())
@@ -53,6 +54,7 @@ public class TransactionMapper {
 
   public HTransaction toEntity(String idAccount, TransactionConnector connector) {
     return HTransaction.builder()
+        .id(String.valueOf(randomUUID()))
         .idBridge(Long.valueOf(connector.getId()))
         .idAccount(idAccount)
         .amount(String.valueOf(connector.getAmount()))

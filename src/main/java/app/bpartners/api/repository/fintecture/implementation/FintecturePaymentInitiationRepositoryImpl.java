@@ -56,6 +56,7 @@ public class FintecturePaymentInitiationRepositoryImpl implements
   @Override
   public FPaymentRedirection save(FPaymentInitiation paymentInitiation, String redirectUri) {
     String globalPayload = null;
+    HttpRequest globalRequest = null;
     try {
       String urlParams = String.format("?redirectUri=%s&state=12341234", redirectUri);
       String payload = objectMapper.writeValueAsString(paymentInitiation);
@@ -76,22 +77,38 @@ public class FintecturePaymentInitiationRepositoryImpl implements
           .header(AUTHORIZATION, bearerToken())
           .POST(HttpRequest.BodyPublishers.ofString(payload))
           .build();
-      var response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-      var redirectionObj = objectMapper.readValue(response.body(), FPaymentRedirection.class);
-      if (redirectionObj.getMeta() == null
-          || redirectionObj.getMeta().getStatus() != 200
-          && redirectionObj.getMeta().getStatus() != 201) {
-        log.warn("Error from Fintecture : {}", response.body());
-        return null;
+      globalRequest = request;
+      return sendPaymentInitRequest(request);
+    } catch (IOException e) {
+      log.warn(
+          "[Fintecture] Payment was not initiated because of {}."
+              + " Payload was {}", e.getMessage(), globalPayload);
+      try {
+        return sendPaymentInitRequest(globalRequest);
+      } catch (IOException | InterruptedException ex) {
+        log.warn("[Fintecture] Second retry failed, payload was {}", globalRequest);
+        throw new ApiException(ApiException.ExceptionType.SERVER_EXCEPTION, ex);
       }
-      return redirectionObj;
-    } catch (IOException | URISyntaxException | NoSuchAlgorithmException e) {
+    } catch (URISyntaxException | NoSuchAlgorithmException e) {
       log.warn("[Fintecture] Payment was not initiated. Payload was {}", globalPayload);
       throw new ApiException(ApiException.ExceptionType.SERVER_EXCEPTION, e);
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       throw new ApiException(SERVER_EXCEPTION, e);
     }
+  }
+
+  private FPaymentRedirection sendPaymentInitRequest(HttpRequest request)
+      throws IOException, InterruptedException {
+    var response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+    var redirectionObj = objectMapper.readValue(response.body(), FPaymentRedirection.class);
+    if (redirectionObj.getMeta() == null
+        || redirectionObj.getMeta().getStatus() != 200
+        && redirectionObj.getMeta().getStatus() != 201) {
+      log.warn("Error from Fintecture : {}", response.body());
+      return null;
+    }
+    return redirectionObj;
   }
 
   private String bearerToken() {

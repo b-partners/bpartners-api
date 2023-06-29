@@ -103,6 +103,8 @@ public class UserMapper {
         .bridgeItemLastRefresh(toSave.getBridgeItemLastRefresh())
         .bankConnectionStatus(toSave.getConnectionStatus())
         .bridgeItemId(toSave.getBankConnectionId())
+        .logoFileId(toSave.getLogoFileId())
+        .monthlySubscription(toSave.getMonthlySubscription())
         .build();
   }
 

@@ -9,6 +9,7 @@ import app.bpartners.api.repository.TransactionRepository;
 import app.bpartners.api.repository.TransactionsSummaryRepository;
 import app.bpartners.api.service.AccountService;
 import app.bpartners.api.service.TransactionService;
+import app.bpartners.api.service.utils.MoneyUtils;
 import java.math.BigInteger;
 import java.time.Instant;
 import java.time.YearMonth;
@@ -110,7 +111,7 @@ class TransactionServiceSummariesTest {
   private Transaction.TransactionBuilder transactionWith100Value() {
     return Transaction
         .builder()
-        .amount(new Money(10000));
+        .amount(MoneyUtils.fromMajor(10000));
   }
 
   private MonthlyTransactionsSummary lastMonthlySummary(Instant updatedAt) {

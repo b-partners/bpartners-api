@@ -131,7 +131,7 @@ class UserTokenRepositoryImplTest {
         .name("joe doe")
         .iban("iban")
         .bic("bic")
-        .availableBalance(new Money(0))
+        .availableBalance(new Money())
         .bank(Bank.builder()
             .id("bank_id")
             .externalId(1234L)

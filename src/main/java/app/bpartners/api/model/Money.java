@@ -8,8 +8,6 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
-import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
-
 @Getter
 @Setter
 @Builder
@@ -20,18 +18,6 @@ public class Money implements Serializable {
 
   public Money() {
     value = new Fraction();
-  }
-
-  public Money(Double fromMinor) {
-    value = parseFraction(fromMinor);
-  }
-
-  public Money(Integer fromMajor) {
-    value = parseFraction(fromMajor / 100);
-  }
-
-  public Money(String fromMinorString) {
-    value = parseFraction(fromMinorString);
   }
 
   public double getApproximatedValue() {

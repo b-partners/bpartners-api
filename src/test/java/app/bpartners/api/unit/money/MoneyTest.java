@@ -2,6 +2,7 @@ package app.bpartners.api.unit.money;
 
 import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.Money;
+import app.bpartners.api.service.utils.MoneyUtils;
 import java.math.BigInteger;
 import org.junit.jupiter.api.Test;
 
@@ -12,13 +13,13 @@ public class MoneyTest {
   void money_manipulation_ok() {
     Fraction twoThirds = new Fraction(new BigInteger("2"), new BigInteger("3"));
     String twoThirdsStringValue = "2/3";
-    Money fromString = new Money(twoThirdsStringValue);
+    Money fromString = MoneyUtils.fromMinorString(twoThirdsStringValue);
 
     int majorValue = 20000; //Bridge
-    Money fromMajor = new Money(majorValue);
+    Money fromMajor = MoneyUtils.fromMajor(majorValue);
 
     Double minorValue = 200.0; //Swan
-    Money fromMinor = new Money(minorValue);
+    Money fromMinor = MoneyUtils.fromMinor(minorValue);
 
     int roundedValue = 200;
     assertEquals(

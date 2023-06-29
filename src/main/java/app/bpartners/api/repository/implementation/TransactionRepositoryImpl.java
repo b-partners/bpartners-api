@@ -47,14 +47,6 @@ public class TransactionRepositoryImpl implements TransactionRepository {
   }
 
   @Override
-  public List<Transaction> findAllPersistedByIdAccount(String idAccount) {
-    return jpaRepository.findAllByIdAccount(idAccount).stream()
-        .map(transaction -> mapper.toDomain(transaction,
-            categoryRepository.findByIdTransaction(transaction.getId())))
-        .collect(Collectors.toList());
-  }
-
-  @Override
   public List<Transaction> findByAccountId(String idAccount) {
     List<TransactionConnector> connectors = connectorRepository.findByIdAccount(idAccount);
     List<HTransaction> entities = connectors.stream()

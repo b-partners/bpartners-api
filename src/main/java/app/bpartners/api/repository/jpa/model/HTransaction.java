@@ -5,7 +5,6 @@ import java.time.Instant;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
-import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
@@ -18,8 +17,6 @@ import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.annotations.Type;
 
-import static javax.persistence.GenerationType.IDENTITY;
-
 @Entity
 @Table(name = "\"transaction\"")
 @Setter
@@ -30,7 +27,6 @@ import static javax.persistence.GenerationType.IDENTITY;
 @NoArgsConstructor
 public class HTransaction {
   @Id
-  @GeneratedValue(strategy = IDENTITY)
   private String id;
   private String idAccount;
   private Long idBridge;

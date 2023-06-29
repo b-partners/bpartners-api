@@ -22,7 +22,7 @@ public class WhoisService {
     this.userService = userService;
   }
 
-
+  // TODO: do this in Spring Security, during authorization
   public IntegratingApplication validateApiKey(String apiKey) {
     Map<String, String> apiKeyList = new HashMap<>();
     apiKeyList.put(FEATURE_DETECTOR_API_KEY, FEATURE_DETECTOR_APPLICATION);

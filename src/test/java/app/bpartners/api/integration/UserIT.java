@@ -9,6 +9,7 @@ import app.bpartners.api.endpoint.rest.client.ApiException;
 import app.bpartners.api.endpoint.rest.model.OnboardUser;
 import app.bpartners.api.endpoint.rest.model.OnboardedUser;
 import app.bpartners.api.endpoint.rest.model.User;
+import app.bpartners.api.endpoint.rest.model.Whois;
 import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.integration.conf.AbstractContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
@@ -76,6 +77,8 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 class UserIT {
   public static final String JOE_DOE_COGNITO_TOKEN = "joe_doe_cognito_token";
   public static final String OTHER_JOE_ACCOUNT_ID = "other_joe_account_id";
+  private static final String API_KEY = "dummy";
+  private final ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
   @MockBean
   private BuildingPermitConf buildingPermitConf;
   @MockBean
@@ -104,14 +107,6 @@ class UserIT {
   private BridgeUserRepository bridgeUserRepositoryMock;
   @Autowired
   private UserJpaRepository userJpaRepository;
-  private final ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
-
-  @BeforeEach
-  public void setUp() {
-    setUpEventBridge(eventBridgeClientMock);
-    setUpCognito(cognitoComponent);
-    setUpLegalFileRepository(legalFileRepositoryMock);
-  }
 
   private static ApiClient anApiClient() {
     return TestUtils.anApiClient(JOE_DOE_TOKEN, ContextInitializer.SERVER_PORT);
@@ -119,6 +114,27 @@ class UserIT {
 
   private static ApiClient anApiClient(String token) {
     return TestUtils.anApiClient(token, ContextInitializer.SERVER_PORT);
+  }
+
+  public static User restJaneDoeUser() {
+    return new User()
+        .id(JANE_DOE_ID)
+        .firstName("Jane")
+        .lastName("Doe")
+        .idVerified(true)
+        .identificationStatus(VALID_IDENTITY)
+        .phone("+261341122334")
+        .monthlySubscriptionAmount(5)
+        .logoFileId("logo.jpeg")
+        .status(ENABLED)
+        .activeAccount(restJaneAccount());
+  }
+
+  @BeforeEach
+  public void setUp() {
+    setUpEventBridge(eventBridgeClientMock);
+    setUpCognito(cognitoComponent);
+    setUpLegalFileRepository(legalFileRepositoryMock);
   }
 
   @Test
@@ -234,20 +250,6 @@ class UserIT {
         .identificationStatus(null), actual);
   }
 
-  public static User restJaneDoeUser() {
-    return new User()
-        .id(JANE_DOE_ID)
-        .firstName("Jane")
-        .lastName("Doe")
-        .idVerified(true)
-        .identificationStatus(VALID_IDENTITY)
-        .phone("+261341122334")
-        .monthlySubscriptionAmount(5)
-        .logoFileId("logo.jpeg")
-        .status(ENABLED)
-        .activeAccount(restJaneAccount());
-  }
-
   @Test
   void read_user_by_id_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
@@ -342,6 +344,45 @@ class UserIT {
     assertTrue(secondAttempt.body().contains(
         "User with email " + toOnboard.getEmail() + " already exists."
             + " Choose another email address"));
+  }
+
+  @Test
+  void client_with_api_key_get_user_ok() throws IOException, InterruptedException {
+    HttpClient client = HttpClient.newBuilder().build();
+    String basePath = "http://localhost:" + ContextInitializer.SERVER_PORT;
+    HttpRequest request = HttpRequest.newBuilder()
+        .uri(URI.create(basePath + "/whois/" + JOE_DOE_ID))
+        .headers("x-api-key", API_KEY)
+        .GET()
+        .build();
+
+    HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+    Whois expected = new Whois().user(restJoeDoeUser());
+    Whois actual = objectMapper.readValue(response.body(), Whois.class);
+
+    assertEquals(expected, actual);
+  }
+
+  @Test
+  void client_with_api_key_get_user_ko() throws IOException, InterruptedException {
+    HttpClient client = HttpClient.newBuilder().build();
+    String basePath = "http://localhost:" + ContextInitializer.SERVER_PORT;
+    HttpRequest request1 = HttpRequest.newBuilder()
+        .uri(URI.create(basePath + "/whois/" + JOE_DOE_ID))
+        .GET()
+        .build();
+    HttpRequest request2 = HttpRequest.newBuilder()
+        .uri(URI.create(basePath + "/whois/" + JOE_DOE_ID))
+        .headers("x-api-key", "api-key")
+        .GET()
+        .build();
+
+    HttpResponse<String> response1 = client.send(request1, HttpResponse.BodyHandlers.ofString());
+    HttpResponse<String> response2 = client.send(request2, HttpResponse.BodyHandlers.ofString());
+
+    assertEquals("{\"type\":\"403 FORBIDDEN\",\"message\":\"Access is denied\"}", response1.body());
+    assertEquals("{\"type\":\"403 FORBIDDEN\",\"message\":\"Access is denied\"}", response2.body());
   }
 
   private List<OnboardedUser> convertBody(String responseBody) throws JsonProcessingException {

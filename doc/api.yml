@@ -19,6 +19,8 @@ paths:
     $ref: './security-api.yml#/operations/createToken'
   /whoami:
     $ref: './security-api.yml#/operations/whoami'
+  /whois/{id}:
+    $ref: './security-api.yml#/operations/whois'
 
   #############################################
   ############## Onboarding API ###############
@@ -147,6 +149,10 @@ components:
     BearerAuth:
       type: http
       scheme: bearer
+    apiKeyHeader:
+      type: apiKey
+      in: header
+      name: x-api-key
   responses:
     400:
       description: Bad request

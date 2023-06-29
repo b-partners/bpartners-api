@@ -88,8 +88,43 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
+  whois:
+    get:
+      tags:
+        - Security
+      summary: Who is ? Tells who is the mentioned user
+      security: [ apikeyHeader: [ ] ]
+      operation: whois
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description: Who is the user
+          content:
+            application/json:
+                schema:
+                  $ref: '#/components/schemas/Whois'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
 
 components:
+  securitySchemes:
+    apiKeyHeader:
+      type: apiKey
+      in: header
+      name: x-api-key
   schemas:
     AuthInitiation:
       type: object
@@ -119,6 +154,10 @@ components:
         whoami:
           $ref: '#/components/schemas/Whoami'
     Whoami:
+      properties:
+        user:
+          $ref: './userAccounts-api.yml#/components/schemas/User'
+    Whois:
       properties:
         user:
           $ref: './userAccounts-api.yml#/components/schemas/User'

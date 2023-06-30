@@ -32,7 +32,7 @@ public class EventProducer implements Consumer<List<TypedEvent>> {
   public static class Conf {
 
     private final Region region;
-    private static final int MAX_PUT_EVENT_ENTRIES = 10;
+    public static final int MAX_PUT_EVENT_ENTRIES = 10;
 
     public Conf(@Value("${aws.region}") String region) {
       this.region = Region.of(region);

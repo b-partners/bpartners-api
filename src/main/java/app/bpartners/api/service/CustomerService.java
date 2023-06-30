@@ -24,6 +24,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import static app.bpartners.api.endpoint.event.EventProducer.Conf.MAX_PUT_EVENT_ENTRIES;
 import static app.bpartners.api.service.utils.CustomerUtils.checkUniqueEmailConstraint;
 import static app.bpartners.api.service.utils.CustomerUtils.getCustomersInfoFromFile;
 
@@ -61,7 +62,17 @@ public class CustomerService {
           return toTypedEvent(user, customer, customer.isRecentlyAdded());
         })
         .collect(Collectors.toUnmodifiableList());
-    eventProducer.accept(typedEvent); //TODO: add appropriate test
+    int typedEventSize = typedEvent.size();
+    if (typedEventSize > MAX_PUT_EVENT_ENTRIES) {
+      int subdivision = (int) Math.ceil(typedEventSize / (double) MAX_PUT_EVENT_ENTRIES);
+      for (int i = 1; i <= subdivision; i++) {
+        int firstIndex = i == 1 ? 0 : ((i - 1) * MAX_PUT_EVENT_ENTRIES);
+        int afterLastIndex = i == subdivision ? typedEventSize : (i * MAX_PUT_EVENT_ENTRIES);
+        eventProducer.accept(typedEvent.subList(firstIndex, afterLastIndex));
+      }
+    } else {
+      eventProducer.accept(typedEvent); //TODO: add appropriate test
+    }
 
     return saved;
   }

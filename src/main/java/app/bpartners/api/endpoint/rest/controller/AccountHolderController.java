@@ -11,10 +11,12 @@ import app.bpartners.api.endpoint.rest.model.CompanyBusinessActivity;
 import app.bpartners.api.endpoint.rest.model.CompanyInfo;
 import app.bpartners.api.endpoint.rest.model.CreateAnnualRevenueTarget;
 import app.bpartners.api.endpoint.rest.model.CreatedFeedbackRequest;
+import app.bpartners.api.endpoint.rest.model.EvaluatedProspect;
 import app.bpartners.api.endpoint.rest.model.FeedbackRequest;
 import app.bpartners.api.endpoint.rest.model.UpdateAccountHolder;
 import app.bpartners.api.endpoint.rest.validator.CreateAnnualRevenueTargetValidator;
 import app.bpartners.api.model.AnnualRevenueTarget;
+import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.service.AccountHolderService;
 import app.bpartners.api.service.FeedbackService;
 import java.util.List;
@@ -126,5 +128,11 @@ public class AccountHolderController {
     return feedbackRestMapper.toRest(
         feedbackService.save(feedbackRestMapper.toDomain(accountHolderId, toAsk))
     );
+  }
+
+  @PostMapping("/accountHolders/{ahId}/prospects/prospectsEvaluation")
+  public List<EvaluatedProspect> evaluateProspects(@RequestBody byte[] toEvaluate) {
+
+    throw new NotImplementedException("Evaluation not implemented");
   }
 }

@@ -254,12 +254,17 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
             new SelfAccountHolderMatcher(GET, "/accountHolders/*/prospects", authResourceProvider))
         .authenticated()
         .requestMatchers(
+            new SelfAccountHolderMatcher(PUT, "/accountHolders/*/prospects/*/prospectConversion",
+                authResourceProvider))
+        .authenticated()
+        .requestMatchers(
             new SelfAccountHolderMatcher(PUT, "/accountHolders/*/prospects",
                 authResourceProvider))
         .authenticated()
         .requestMatchers(
-            new SelfAccountHolderMatcher(PUT, "/accountHolders/*/prospects/*/prospectConversion",
-                authResourceProvider)).authenticated()
+            new SelfAccountHolderMatcher(POST, "/accountHolders/*/prospects/prospectsEvaluation",
+                authResourceProvider))
+        .authenticated()
         .antMatchers("/**").denyAll()
 
         // disable superfluous protections

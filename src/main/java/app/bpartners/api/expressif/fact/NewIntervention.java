@@ -1,0 +1,47 @@
+package app.bpartners.api.expressif.fact;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
+
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
+@EqualsAndHashCode
+@ToString
+public class NewIntervention {
+  private Boolean planned;
+  private String interventionType;
+  private String infestationType;
+  private String newIntAddress;
+  private Double distNewIntAndProspect; //TODO: convert two addresses to distance
+
+  private OldCustomer oldCustomerFact;
+
+  @Data
+  @AllArgsConstructor
+  @NoArgsConstructor
+  @Builder
+  @EqualsAndHashCode
+  @ToString
+  public static class OldCustomer {
+    private OldCustomerType type;
+
+    private ProfessionalType professionalType;
+    private String oldCustomerAddress;
+    private Double distNewIntAndOldCustomer; //TODO: convert two addresses to distance
+
+    public enum OldCustomerType {
+      PROFESSIONAL, INDIVIDUAL
+    }
+
+    //TODO: add trade type, restaurant, etc
+    public enum ProfessionalType {
+      OTHER
+    }
+  }
+}

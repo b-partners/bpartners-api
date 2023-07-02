@@ -53,7 +53,7 @@ class ProspectEvalUtilsTest {
             .infestationType("rat")
             .newIntAddress("15 Rue Marbeuf, 75008 Paris, France")
             .distNewIntAndProspect(500.0)
-            .oldCustomerFact(null)
+            .oldCustomerFact(NewIntervention.OldCustomer.builder().build())
             .build())
         .build();
   }
@@ -88,7 +88,7 @@ class ProspectEvalUtilsTest {
             .infestationType("puces")
             .newIntAddress("49-51 Av. des Champs-Élysées, 75008 Paris, France")
             .distNewIntAndProspect(2000.1)
-            .oldCustomerFact(null)
+            .oldCustomerFact(NewIntervention.OldCustomer.builder().build())
             .build())
         .build();
   }
@@ -158,7 +158,7 @@ class ProspectEvalUtilsTest {
             .distNewIntAndProspect(500.0)
             .oldCustomerFact(NewIntervention.OldCustomer.builder()
                 .type(PROFESSIONAL)
-                .professionalType(NewIntervention.OldCustomer.ProfessionalType.OTHER)
+                .professionalType("restaurant")
                 .oldCustomerAddress("49-51 Av. des Champs-Élysées, 75008 Paris, France")
                 .distNewIntAndOldCustomer(250.0)
                 .build())

@@ -14,7 +14,7 @@ import lombok.ToString;
 @EqualsAndHashCode
 @ToString
 public class Robbery {
-  private boolean declared;
+  private Boolean declared;
   private String robberyAddress;
   private Double distRobberyAndProspect;
 

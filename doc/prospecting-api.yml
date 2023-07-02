@@ -245,6 +245,9 @@ components:
       properties:
         prospect:
           $ref: '#/components/schemas/Prospect'
+        evaluationDate:
+          type: string
+          format: date-time
         rating:
           type: number
           description: Between 0.0 and 10.0

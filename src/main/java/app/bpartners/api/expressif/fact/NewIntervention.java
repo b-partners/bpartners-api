@@ -31,17 +31,12 @@ public class NewIntervention {
   public static class OldCustomer {
     private OldCustomerType type;
 
-    private ProfessionalType professionalType;
+    private String professionalType;
     private String oldCustomerAddress;
     private Double distNewIntAndOldCustomer; //TODO: convert two addresses to distance
 
     public enum OldCustomerType {
       PROFESSIONAL, INDIVIDUAL
-    }
-
-    //TODO: add trade type, restaurant, etc
-    public enum ProfessionalType {
-      OTHER
     }
   }
 }

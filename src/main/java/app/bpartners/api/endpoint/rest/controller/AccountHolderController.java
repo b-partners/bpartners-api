@@ -129,10 +129,4 @@ public class AccountHolderController {
         feedbackService.save(feedbackRestMapper.toDomain(accountHolderId, toAsk))
     );
   }
-
-  @PostMapping("/accountHolders/{ahId}/prospects/prospectsEvaluation")
-  public List<EvaluatedProspect> evaluateProspects(@RequestBody byte[] toEvaluate) {
-
-    throw new NotImplementedException("Evaluation not implemented");
-  }
 }

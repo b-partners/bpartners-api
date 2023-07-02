@@ -81,13 +81,9 @@ public class ProspectEvalUtils {
                 .infestationType(getStringValue(currentRow.getCell(22)))
                 .newIntAddress(getStringValue(currentRow.getCell(23)))
                 .distNewIntAndProspect(doubleValue(currentRow.getCell(24)))
-                .oldCustomerFact(customerType == null ? null
-                    : NewIntervention.OldCustomer.builder()
+                .oldCustomerFact(NewIntervention.OldCustomer.builder()
                     .type(customerType)
-                    .professionalType(
-                        getStringValue(currentRow.getCell(26)) == null
-                            || customerType == INDIVIDUAL ? null
-                            : NewIntervention.OldCustomer.ProfessionalType.OTHER)
+                    .professionalType(getStringValue(currentRow.getCell(26)))
                     .oldCustomerAddress(getStringValue(currentRow.getCell(27)))
                     .distNewIntAndOldCustomer(doubleValue(currentRow.getCell(28)))
                     .build())
@@ -241,7 +237,7 @@ public class ProspectEvalUtils {
 
   private static Double doubleValue(Cell cell) {
     try {
-      return cell.getNumericCellValue();
+      return cell.getCellType() == CELL_TYPE_BLANK ? null : cell.getNumericCellValue();
     } catch (NumberFormatException e) {
       return null;
     }

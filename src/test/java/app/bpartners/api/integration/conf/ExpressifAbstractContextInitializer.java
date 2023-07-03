@@ -6,7 +6,7 @@ import org.springframework.test.context.support.TestPropertySourceUtils;
 import org.testcontainers.containers.JdbcDatabaseContainer;
 import org.testcontainers.containers.PostgisContainerProvider;
 
-public abstract class AbstractContextInitializer
+public abstract class ExpressifAbstractContextInitializer
     implements ApplicationContextInitializer<ConfigurableApplicationContext> {
 
   @Override
@@ -35,7 +35,6 @@ public abstract class AbstractContextInitializer
         "aws.sqs.mailboxUrl=dummy",
         "feature.detector.api.key=dummy",
         "feature.detector.application.name=dummy",
-        "expressif.project.token=dummy",
         "fintecture.base.url=https://api-sandbox.fintecture.com",
         "swan.base.url=https://api.swan.io/sandbox-partner",
         "spring.datasource.url=" + postgresContainer.getJdbcUrl(),

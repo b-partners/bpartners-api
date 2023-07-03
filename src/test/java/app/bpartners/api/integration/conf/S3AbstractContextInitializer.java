@@ -84,6 +84,7 @@ public abstract class S3AbstractContextInitializer
         "bridge.version=dummy",
         "feature.detector.api.key=dummy",
         "feature.detector.application.name=dummy",
+        "expressif.project.token=dummy",
         "env=dev");
   }
 

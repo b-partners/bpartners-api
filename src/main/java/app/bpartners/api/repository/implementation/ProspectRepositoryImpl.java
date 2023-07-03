@@ -1,16 +1,25 @@
 package app.bpartners.api.repository.implementation;
 
 import app.bpartners.api.endpoint.rest.security.AuthenticatedResourceProvider;
+import app.bpartners.api.expressif.ProspectEval;
+import app.bpartners.api.expressif.ProspectResult;
+import app.bpartners.api.expressif.fact.NewIntervention;
+import app.bpartners.api.expressif.fact.Robbery;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.AnnualRevenueTarget;
 import app.bpartners.api.model.BusinessActivity;
 import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.Prospect;
+import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.mapper.ProspectMapper;
 import app.bpartners.api.repository.AccountHolderRepository;
 import app.bpartners.api.repository.ProspectRepository;
 import app.bpartners.api.repository.SogefiBuildingPermitRepository;
+import app.bpartners.api.repository.expressif.ExpressifApi;
+import app.bpartners.api.repository.expressif.model.InputForm;
+import app.bpartners.api.repository.expressif.model.InputValue;
+import app.bpartners.api.repository.expressif.model.OutputValue;
 import app.bpartners.api.repository.jpa.MunicipalityJpaRepository;
 import app.bpartners.api.repository.jpa.ProspectJpaRepository;
 import app.bpartners.api.repository.jpa.model.HMunicipality;
@@ -21,22 +30,29 @@ import app.bpartners.api.repository.prospecting.datasource.buildingpermit.model.
 import app.bpartners.api.service.AnnualRevenueTargetService;
 import app.bpartners.api.service.BusinessActivityService;
 import java.math.BigInteger;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.Year;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apfloat.Aprational;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import static app.bpartners.api.expressif.fact.NewIntervention.OldCustomer.OldCustomerType.INDIVIDUAL;
+import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 import static java.util.stream.Collectors.toUnmodifiableList;
 import static org.springframework.transaction.annotation.Isolation.SERIALIZABLE;
 
 @AllArgsConstructor
 @Repository
+@Slf4j
 public class ProspectRepositoryImpl implements ProspectRepository {
   public static final String TILE_LAYER = "carreleur";
   public static final String ROOFER = "toiturier";
@@ -49,6 +65,7 @@ public class ProspectRepositoryImpl implements ProspectRepository {
   private final AnnualRevenueTargetService revenueTargetService;
   private final AccountHolderRepository accountHolderRepository;
   private final MunicipalityJpaRepository municipalityJpaRepository;
+  private final ExpressifApi expressifApi;
 
   @Override
   public List<Prospect> findAllByIdAccountHolder(String idAccountHolder) {
@@ -94,6 +111,191 @@ public class ProspectRepositoryImpl implements ProspectRepository {
         TILE_LAYER.compareToIgnoreCase(businessActivity.getSecondaryActivity())) || Objects.equals(
         0, ROOFER.compareToIgnoreCase(businessActivity.getPrimaryActivity())) || Objects.equals(0,
         ROOFER.compareToIgnoreCase(businessActivity.getSecondaryActivity()));
+  }
+
+  @Override
+  public List<ProspectResult> evaluate(List<ProspectEval> prospectEvals) {
+    List<ProspectResult> prospectResults = new ArrayList<>();
+    for (ProspectEval prospectEval : prospectEvals) {
+      Instant evaluationDate = Instant.now();
+
+      List<InputValue> evalInputs = new ArrayList<>();
+      convertEvalDefaultAttr(prospectEval, evaluationDate, evalInputs);
+      convertEvalRuleAttr(prospectEval, evaluationDate, evalInputs);
+
+      List<OutputValue> evalResult = expressifApi.process(InputForm.builder()
+          .evaluationDate(evaluationDate)
+          .inputValues(evalInputs)
+          .build());
+
+      AtomicReference<Double> rating = new AtomicReference<>(-1.0);
+      if (evalResult.isEmpty()) {
+        log.warn("[ExpressIF] Any result retrieved from " + evalInputs);
+      } else {
+        evalResult.forEach(result -> {
+          if (result.getName().equals("Notation de l'ancien client")
+              || result.getName().equals("Notation du prospect")) {
+            rating.set((Double) result.getValue());
+          }
+        });
+      }
+
+      prospectResults.add(ProspectResult.builder()
+          .prospectEval(prospectEval)
+          .evaluationDate(evaluationDate)
+          .rating(rating.get())
+          .build());
+    }
+    //TODO: persist before returning the result
+    return prospectResults;
+  }
+
+  private void convertEvalRuleAttr(
+      ProspectEval prospectEval, Instant evaluationDate, List<InputValue> evalInputs) {
+    String prospectDepaRule = prospectEval.getDepaRule().getClass().getTypeName();
+    if (prospectDepaRule.equals(NewIntervention.class.getTypeName())) {
+      convertEvalNewInterventionAttr(prospectEval, evaluationDate, evalInputs);
+    } else if (prospectDepaRule.equals(Robbery.class.getTypeName())) {
+      convertEvalRobberyAttr(prospectEval, evaluationDate, evalInputs);
+    } else {
+      throw new ApiException(SERVER_EXCEPTION, "Unknown Depa rule applied " + prospectDepaRule);
+    }
+  }
+
+  private void convertEvalRobberyAttr(
+      ProspectEval prospectEval, Instant evaluationDate, List<InputValue> evalInputs) {
+    Robbery depaRule = (Robbery) prospectEval.getDepaRule();
+    if (depaRule.getDeclared() != null) {
+      evalInputs.add(InputValue.builder()
+          .evaluationDate(evaluationDate)
+          .name("La déclaration de cambriolage")
+          .value(depaRule.getDeclared())
+          .build());
+    }
+    if (depaRule.getDistRobberyAndProspect() != null) {
+      evalInputs.add(InputValue.builder()
+          .evaluationDate(evaluationDate)
+          .name("La distance entre un cambriolage et le prospect")
+          .value(depaRule.getDistRobberyAndProspect())
+          .build());
+    }
+    if (depaRule.getOldCustomer() != null) {
+      evalInputs.add(InputValue.builder()
+          .evaluationDate(evaluationDate)
+          .name("La distance entre un cambriolage et l'ancien client")
+          .value(depaRule.getOldCustomer().getDistRobberyAndOldCustomer())
+          .build());
+    }
+  }
+
+  private void convertEvalNewInterventionAttr(
+      ProspectEval prospectEval, Instant evaluationDate, List<InputValue> evalInputs) {
+    NewIntervention depaRule = (NewIntervention) prospectEval.getDepaRule();
+    if (depaRule.getPlanned() != null) {
+      evalInputs.add(InputValue.builder()
+          .evaluationDate(evaluationDate)
+          .name("Intervention prévue")
+          .value(depaRule.getPlanned())
+          .build());
+    }
+    if (depaRule.getInterventionType() != null) {
+      evalInputs.add(InputValue.builder()
+          .evaluationDate(evaluationDate)
+          .name("Le type de l'intervention prévue contre les nuisibles")
+          .value(depaRule.getInterventionType())
+          .build());
+    }
+    if (depaRule.getInfestationType() != null) {
+      evalInputs.add(InputValue.builder()
+          .evaluationDate(evaluationDate)
+          .name("Le type de l'infestation")
+          .value(depaRule.getInfestationType())
+          .build());
+    }
+    if (depaRule.getDistNewIntAndProspect() != null) {
+      evalInputs.add(InputValue.builder()
+          .evaluationDate(evaluationDate)
+          .name("La distance entre l'intervention prévue et le prospect")
+          .value(depaRule.getDistNewIntAndProspect())
+          .build());
+    }
+    NewIntervention.OldCustomer oldCustomerFact = depaRule.getOldCustomerFact();
+    if (oldCustomerFact.getProfessionalType() != null) {
+      evalInputs.add(InputValue.builder()
+          .evaluationDate(evaluationDate)
+          .name("Le type de professionnel")
+          .value(oldCustomerFact.getProfessionalType())
+          .build());
+    }
+    if (oldCustomerFact.getType() != null) {
+      evalInputs.add(InputValue.builder()
+          .evaluationDate(evaluationDate)
+          .name("Le type de client")
+          .value(oldCustomerFact.getType() == INDIVIDUAL
+              ? "particulier"
+              : "professionnel")
+          .build());
+    }
+    if (oldCustomerFact.getDistNewIntAndOldCustomer() != null) {
+      evalInputs.add(InputValue.builder()
+          .evaluationDate(evaluationDate)
+          .name("La distance entre l'intervention prévue et l'ancien client")
+          .value(oldCustomerFact.getDistNewIntAndOldCustomer())
+          .build());
+    }
+  }
+
+  private void convertEvalDefaultAttr(
+      ProspectEval prospectEval, Instant evaluationDate, List<InputValue> evalInputs) {
+    if (prospectEval.getLockSmith() != null) {
+      evalInputs.add(InputValue.builder()
+          .evaluationDate(evaluationDate)
+          .name("Serrurier")
+          .value(prospectEval.getLockSmith())
+          .build());
+    }
+    if (prospectEval.getAntiHarm() != null) {
+      evalInputs.add(InputValue.builder()
+          .evaluationDate(evaluationDate)
+          .name("Antinuisibles 3D")
+          .value(prospectEval.getAntiHarm())
+          .build());
+    }
+    if (prospectEval.getInsectControl() != null) {
+      evalInputs.add(InputValue.builder()
+          .evaluationDate(evaluationDate)
+          .name("Service de désinsectisation")
+          .value(prospectEval.getInsectControl())
+          .build());
+    }
+    if (prospectEval.getDisinfection() != null) {
+      evalInputs.add(InputValue.builder()
+          .evaluationDate(evaluationDate)
+          .name("Service de désinfection")
+          .value(prospectEval.getDisinfection())
+          .build());
+    }
+    if (prospectEval.getRatRemoval() != null) {
+      evalInputs.add(InputValue.builder()
+          .evaluationDate(evaluationDate)
+          .name("Service de dératisation")
+          .value(prospectEval.getRatRemoval())
+          .build());
+    }
+    if (prospectEval.getProfessionalCustomer() != null) {
+      evalInputs.add(InputValue.builder()
+          .evaluationDate(evaluationDate)
+          .name("Clientèle professionnelle")
+          .value(prospectEval.getProfessionalCustomer())
+          .build());
+    }
+    if (prospectEval.getParticularCustomer() != null) {
+      evalInputs.add(InputValue.builder()
+          .evaluationDate(evaluationDate)
+          .name("Clientèle particulier")
+          .value(prospectEval.getParticularCustomer())
+          .build());
+    }
   }
 
   @Transactional(isolation = SERIALIZABLE)

@@ -108,6 +108,8 @@ Resources:
               Value: !Sub '{{resolve:ssm:/bpartners/${Env}/feature/detector/api/key}}'
             - Name: FEATURE_DETECTOR_APPLICATION_NAME
               Value: !Sub '{{resolve:ssm:/bpartners/${Env}/feature/detector/application/name}}'
+            - Name: EXPRESSIF_PROJECT_TOKEN
+              Value: !Sub '{{resolve:ssm:/bpartners/${Env}/expressif/project-token}}'
           LogConfiguration:
             LogDriver: awslogs
             Options:

@@ -23,26 +23,24 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 public class CustomerUtils {
+  private static final int FIRST_SHEET_INDEX = 0;
+
   private CustomerUtils() {
   }
 
   public static List<CreateCustomer> getCustomersInfoFromFile(InputStream fileToRead) {
     try {
       Workbook workbook = WorkbookFactory.create(fileToRead);
-      Sheet sheet = workbook.getSheet(workbook.getSheetName(0));
+      Sheet sheet = workbook.getSheetAt(FIRST_SHEET_INDEX);
       List<CreateCustomer> customerTemplates = new ArrayList<>();
       Iterator<Row> rows = sheet.rowIterator();
-      int rowIndex = 0;
       while (rows.hasNext()) {
         Row currentRow = rows.next();
-        Iterator<Cell> cell = currentRow.cellIterator();
-        //Skip file headers but check column order
-        if (rowIndex == 0) {
-          verifyColumnOrder(cell);
+        if (currentRow.getRowNum() == 0) {
+          verifyColumnOrder(currentRow);
         } else {
-          customerTemplates.add(mapToCustomer(cell));
+          customerTemplates.add(mapToCustomer(currentRow));
         }
-        rowIndex++;
       }
       workbook.close();
       return customerTemplates.stream()
@@ -59,64 +57,54 @@ public class CustomerUtils {
     }
   }
 
-  private static CreateCustomer mapToCustomer(Iterator<Cell> cell) {
+  private static CreateCustomer mapToCustomer(Row currentRow) {
     CreateCustomer customer = new CreateCustomer();
-    int cellIndex = 0;
 
-    while (cell.hasNext()) {
-      Cell currentCell = cell.next();
-
+    for (int cellIndex = 0; cellIndex < 10; cellIndex++) {
+      Cell currentCell = currentRow.getCell(cellIndex);
       switch (cellIndex) {
         case 0:
           customer.setLastName(getStringValue(currentCell));
           break;
-
         case 1:
           customer.setFirstName(getStringValue(currentCell));
           break;
-
         case 2:
           customer.setEmail(getStringValue(currentCell));
           break;
-
         case 3:
           customer.setPhone(getStringValue(currentCell));
           break;
-
         case 4:
           customer.setWebsite(getStringValue(currentCell));
           break;
-
         case 5:
           customer.setAddress(getStringValue(currentCell));
           break;
-
         case 6:
           customer.setZipCode(getIntValue(currentCell));
           break;
-
         case 7:
           customer.setCity(getStringValue(currentCell));
           break;
-
         case 8:
           customer.setCountry(getStringValue(currentCell));
           break;
-
-        default:
+        case 9:
           customer.setComment(getStringValue(currentCell));
           break;
+        default:
+          throw new ApiException(SERVER_EXCEPTION,
+              "Unexpected exception occurred when parsing excel values to new customers");
       }
-      cellIndex++;
     }
     return customer;
   }
 
-  private static void verifyColumnOrder(Iterator<Cell> cell) {
-    int index = 0;
+  private static void verifyColumnOrder(Row currentRow) {
     StringBuilder messageBuilder = new StringBuilder();
-    while (cell.hasNext()) {
-      Cell actualCell = cell.next();
+    for (int index = 0; index < 10; index++) {
+      Cell actualCell = currentRow.getCell(index);
       switch (index) {
         case 0:
           if (!actualCell.getStringCellValue().trim()
@@ -190,7 +178,7 @@ public class CustomerUtils {
                 .append(" at column 9. ");
           }
           break;
-        default:
+        case 9:
           if (!actualCell.getStringCellValue().trim()
               .equalsIgnoreCase("commentaires")) {
             messageBuilder.append("\"Commentaires\" instead of ")
@@ -198,8 +186,10 @@ public class CustomerUtils {
                 .append(" at the last column.");
           }
           break;
+        default:
+          throw new ApiException(SERVER_EXCEPTION, "Unknown error occurred when treating cell at "
+              + "index " + index + " of row-" + currentRow.getRowNum());
       }
-      index++;
     }
     String errorMessage = messageBuilder.toString();
     if (!errorMessage.isEmpty()) {
@@ -215,6 +205,9 @@ public class CustomerUtils {
   }
 
   private static String getStringValue(Cell cell) {
+    if (cell == null || cell.getCellType() == Cell.CELL_TYPE_BLANK) {
+      return null;
+    }
     if (cell.getCellType() == Cell.CELL_TYPE_NUMERIC) {
       return doubleValue(cell) == null
           ? null
@@ -226,6 +219,9 @@ public class CustomerUtils {
   }
 
   private static Integer getIntValue(Cell cell) {
+    if (cell == null || cell.getCellType() == Cell.CELL_TYPE_BLANK) {
+      return null;
+    }
     if (cell.getCellType() == Cell.CELL_TYPE_NUMERIC) {
       return doubleValue(cell) == null
           ? null
@@ -239,6 +235,9 @@ public class CustomerUtils {
   }
 
   private static Double doubleValue(Cell cell) {
+    if (cell == null || cell.getCellType() == Cell.CELL_TYPE_BLANK) {
+      return null;
+    }
     try {
       return cell.getNumericCellValue();
     } catch (NumberFormatException e) {

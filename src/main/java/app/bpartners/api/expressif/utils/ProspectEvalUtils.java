@@ -112,6 +112,7 @@ public class ProspectEvalUtils {
         }
       }
     }
+    workbook.close();
     String exceptionMsg = exceptionMsgBuilder.toString();
     if (!exceptionMsg.isEmpty()) {
       throw new BadRequestException(exceptionMsg);

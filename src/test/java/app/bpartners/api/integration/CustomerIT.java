@@ -299,7 +299,7 @@ class CustomerIT {
         .readValue(response.body(), playerListType);
 
     assertNotNull(actual);
-    assertEquals(6, actual.size());
+    assertEquals(7, actual.size());
   }
 
   @Order(5)

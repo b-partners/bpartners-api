@@ -31,8 +31,7 @@ class CustomerValidatorTest {
   @Test
   void validator_validate_invalid_create_customer_ko() {
     assertThrowsBadRequestException(
-        "firstName is mandatory. lastName is mandatory. "
-        ,
+        "Either firstName or lastName is mandatory. ",
         () ->
             validator.accept(
                 new CreateCustomer()
@@ -48,10 +47,8 @@ class CustomerValidatorTest {
             )
     );
     assertThrowsBadRequestException(
-        "firstName is mandatory. "
-            + "lastName is mandatory. "
-            + "Email is mandatory. "
-            + "Phone is mandatory. "
+        "Either firstName or lastName is mandatory. "
+            + "Either email or phone is mandatory. "
             + "Address is mandatory. "
         ,
         () ->

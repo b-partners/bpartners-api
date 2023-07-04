@@ -36,6 +36,7 @@ public abstract class AbstractContextInitializer
         "feature.detector.api.key=dummy",
         "feature.detector.application.name=dummy",
         "expressif.project.token=dummy",
+        "ban.base_url=dummy",
         "fintecture.base.url=https://api-sandbox.fintecture.com",
         "swan.base.url=https://api.swan.io/sandbox-partner",
         "spring.datasource.url=" + postgresContainer.getJdbcUrl(),

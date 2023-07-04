@@ -110,6 +110,8 @@ Resources:
               Value: !Sub '{{resolve:ssm:/bpartners/${Env}/feature/detector/application/name}}'
             - Name: EXPRESSIF_PROJECT_TOKEN
               Value: !Sub '{{resolve:ssm:/bpartners/${Env}/expressif/project-token}}'
+            - Name: BAN_BASE_URL
+              Value: !Sub '{{resolve:ssm:/bpartners/${Env}/ban/base-url}}'
           LogConfiguration:
             LogDriver: awslogs
             Options:

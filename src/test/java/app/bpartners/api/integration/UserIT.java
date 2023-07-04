@@ -362,6 +362,7 @@ class UserIT {
     Whois actual = objectMapper.readValue(response.body(), Whois.class);
 
     assertEquals(expected, actual);
+    assertEquals(expected.getUser(), actual.getUser());
   }
 
   @Test

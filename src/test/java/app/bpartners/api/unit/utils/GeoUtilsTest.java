@@ -1,0 +1,23 @@
+package app.bpartners.api.unit.utils;
+
+import app.bpartners.api.service.utils.GeoUtils;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+class GeoUtilsTest {
+  @Test
+  void compute_distance_km_ok() {
+    assertEquals(0.21126616566096512,
+        GeoUtils.computeDistanceKm(
+            new GeoUtils.Coordinate(48.867503703133984, 2.270368312109328),
+            new GeoUtils.Coordinate(48.86919457328631, 2.2716855924110484)));
+  }
+  @Test
+  void compute_distance_m_ok() {
+    assertEquals(211.3,
+        GeoUtils.computeDistanceM(
+            new GeoUtils.Coordinate(48.867503703133984, 2.270368312109328),
+            new GeoUtils.Coordinate(48.86919457328631, 2.2716855924110484)));
+  }
+}

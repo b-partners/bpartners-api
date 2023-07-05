@@ -7,12 +7,15 @@ import app.bpartners.api.expressif.fact.Robbery;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.NotImplementedException;
+import app.bpartners.api.repository.ban.BanApi;
+import app.bpartners.api.repository.ban.model.GeoPosition;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
+import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Cell;
@@ -20,6 +23,7 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.springframework.stereotype.Component;
 
 import static app.bpartners.api.expressif.NewProspect.ContactNature.OTHER;
 import static app.bpartners.api.expressif.NewProspect.ContactNature.PROSPECT;
@@ -28,6 +32,8 @@ import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVE
 import static org.apache.poi.ss.usermodel.Cell.CELL_TYPE_BLANK;
 
 @Slf4j
+@Component
+@AllArgsConstructor
 public class ProspectEvalUtils {
   public static final int FIRST_SHEET_INDEX = 0;
   public static final String PROSPECT_NATURE_VALUE = "Prospect";
@@ -38,12 +44,15 @@ public class ProspectEvalUtils {
   public static final String ANTI_HORM_VALUE = "Antinuisibles 3D";
   public static final String LOCK_SMITH_VALUE = "Serrurier";
   public static final String INDIVIDUAL_VALUE = "particulier";
-
-  private ProspectEvalUtils() {
-  }
+  public static final int PROSPECT_ADDRESS_COL_INDEX = 4;
+  public static final int NEW_INT_ADDRESS_COL_INDEX = 23;
+  public static final int NEW_INT_OLD_CUST_ADDRESS_COL_INDEX = 26;
+  public static final int ROB_OLD_CUST_ADDRESS_COL_INDEX = 29;
+  public static final int ROBB_ADDRESS_COL_INDEX = 28;
+  private final BanApi banApi;
 
   @SneakyThrows
-  public static List<ProspectEval> convertFromExcel(InputStream file) {
+  public List<ProspectEval> convertFromExcel(InputStream file) {
     Workbook workbook = WorkbookFactory.create(file);
     Sheet sheet = workbook.getSheetAt(FIRST_SHEET_INDEX);
     List<ProspectEval> prospectEvalList = new ArrayList<>();
@@ -58,9 +67,10 @@ public class ProspectEvalUtils {
           addMissingException(exceptionMsgBuilder, currentRow);
         } else {
           ProspectEval prospectEval = new ProspectEval<>();
+          NewProspect newProspect = getNewProspect(currentRow);
 
           setProspectJobValue(exceptionMsgBuilder, currentRow, prospectEval);
-          prospectEval.setNewProspect(getNewProspect(currentRow));
+          prospectEval.setNewProspect(newProspect);
 
           prospectEval.setInsectControl(rowBooleanValue(currentRow, 15));
           prospectEval.setDisinfection(rowBooleanValue(currentRow, 16));
@@ -69,38 +79,47 @@ public class ProspectEvalUtils {
           prospectEval.setProfessionalCustomer(rowBooleanValue(currentRow, 19));
 
           if (depaRuleValue.equals(DEPA_RULE_NEW_INTERVENTION)) {
-            String oldCustomerType = getStringValue(currentRow.getCell(25));
+            String newIntAddress = getStringValue(currentRow.getCell(NEW_INT_ADDRESS_COL_INDEX));
+            GeoPosition newIntPos = banApi.search(newIntAddress);
+            String oldCustomerType = getStringValue(currentRow.getCell(24));
             NewIntervention.OldCustomer.OldCustomerType customerType =
                 oldCustomerType == null ? null :
                     (oldCustomerType.equals(INDIVIDUAL_VALUE)
                         ? INDIVIDUAL
                         : NewIntervention.OldCustomer.OldCustomerType.PROFESSIONAL);
+            String oldCustomerAddress =
+                getStringValue(currentRow.getCell(NEW_INT_OLD_CUST_ADDRESS_COL_INDEX));
             prospectEval.setDepaRule(NewIntervention.builder()
                 .planned(rowBooleanValue(currentRow, 20))
                 .interventionType(getStringValue(currentRow.getCell(21)))
                 .infestationType(getStringValue(currentRow.getCell(22)))
-                .newIntAddress(getStringValue(currentRow.getCell(23)))
-                .distNewIntAndProspect(doubleValue(currentRow.getCell(24)))
+                .newIntAddress(newIntAddress)
+                .distNewIntAndProspect(
+                    newProspect.getCoordinates().getDistanceFrom(newIntPos.getCoordinates()))
                 .oldCustomerFact(NewIntervention.OldCustomer.builder()
                     .type(customerType)
-                    .professionalType(getStringValue(currentRow.getCell(26)))
-                    .oldCustomerAddress(getStringValue(currentRow.getCell(27)))
-                    .distNewIntAndOldCustomer(doubleValue(currentRow.getCell(28)))
+                    .professionalType(getStringValue(currentRow.getCell(25)))
+                    .oldCustomerAddress(oldCustomerAddress)
+                    .distNewIntAndOldCustomer(oldCustomerAddress == null ? null
+                        : getDistNewIntAndOldCustomer(newIntPos, oldCustomerAddress))
                     .build())
                 .build());
           } else if (depaRuleValue.equals(DEPA_RULE_ROBBERY)) {
-            String robberryAddress = getStringValue(currentRow.getCell(32));
-            Double distRobberyAndOldCustomer = doubleValue(currentRow.getCell(33));
+            String oldCustAddress =
+                getStringValue(currentRow.getCell(ROB_OLD_CUST_ADDRESS_COL_INDEX));
+            String robberyAddress = getStringValue(currentRow.getCell(ROBB_ADDRESS_COL_INDEX));
+            GeoPosition robbAddressPos = banApi.search(robberyAddress);
+
             prospectEval.setDepaRule(Robbery.builder()
-                .declared(rowBooleanValue(currentRow, 29))
-                .robberyAddress(getStringValue(currentRow.getCell(30)))
-                .distRobberyAndProspect(doubleValue(currentRow.getCell(31)))
-                .oldCustomer((robberryAddress == null
-                    && (distRobberyAndOldCustomer == null || distRobberyAndOldCustomer == 0.0))
-                    ? null
+                .declared(rowBooleanValue(currentRow, 27))
+                .robberyAddress(robberyAddress)
+                .distRobberyAndProspect(
+                    newProspect.getCoordinates().getDistanceFrom(robbAddressPos.getCoordinates()))
+                .oldCustomer(oldCustAddress == null ? null
                     : Robbery.OldCustomer.builder()
-                    .address(robberryAddress)
-                    .distRobberyAndOldCustomer(distRobberyAndOldCustomer)
+                    .address(oldCustAddress)
+                    .distRobberyAndOldCustomer(
+                        getDistRobberyAndOldCustomer(robbAddressPos, oldCustAddress))
                     .build())
                 .build());
           } else {
@@ -120,8 +139,18 @@ public class ProspectEvalUtils {
     return prospectEvalList;
   }
 
-  private static void setProspectJobValue(StringBuilder exceptionMsgBuilder, Row currentRow,
-                                          ProspectEval<NewIntervention> prospectEval) {
+  private Double getDistRobberyAndOldCustomer(GeoPosition robbPos, String oldCustomerAddress) {
+    GeoPosition customerAddressPos = banApi.search(oldCustomerAddress);
+    return customerAddressPos.getCoordinates().getDistanceFrom(robbPos.getCoordinates());
+  }
+
+  private Double getDistNewIntAndOldCustomer(GeoPosition newIntPos, String oldCustomerAddress) {
+    GeoPosition custAddressPos = banApi.search(oldCustomerAddress);
+    return custAddressPos.getCoordinates().getDistanceFrom(newIntPos.getCoordinates());
+  }
+
+  private void setProspectJobValue(StringBuilder exceptionMsgBuilder, Row currentRow,
+                                   ProspectEval<NewIntervention> prospectEval) {
     String jobValue = getStringValue(currentRow.getCell(JOB_CELL_INDEX));
     if (jobValue == null) {
       exceptionMsgBuilder
@@ -142,7 +171,7 @@ public class ProspectEvalUtils {
     }
   }
 
-  private static NewProspect getNewProspect(Row currentRow) {
+  private NewProspect getNewProspect(Row currentRow) {
     NewProspect newProspect = new NewProspect();
     for (int colIndex = 0; colIndex < 13; colIndex++) {
       Cell currentCell = currentRow.getCell(colIndex);
@@ -159,8 +188,17 @@ public class ProspectEvalUtils {
         case 3:
           newProspect.setSubcategory(getStringValue(currentCell));
           break;
-        case 4:
-          newProspect.setAddress(getStringValue(currentCell));
+        //TODO: remove detected Brain Method
+        case PROSPECT_ADDRESS_COL_INDEX:
+          if (getStringValue(currentCell) == null) {
+            throw new BadRequestException(
+                "Prospect address is mandatory but not present for row "
+                    + (currentRow.getRowNum() + 1));
+          } else {
+            String addressValue = getStringValue(currentCell);
+            newProspect.setAddress(addressValue);
+            newProspect.setCoordinates(banApi.search(addressValue).getCoordinates());
+          }
           break;
         case 5:
           newProspect.setPhoneNumber(getStringValue(currentCell));
@@ -201,7 +239,7 @@ public class ProspectEvalUtils {
     return newProspect;
   }
 
-  private static String getStringValue(Cell cell) {
+  private String getStringValue(Cell cell) {
     if (cell.getCellType() == Cell.CELL_TYPE_NUMERIC) {
       return doubleValue(cell) == null
           ? null
@@ -212,7 +250,7 @@ public class ProspectEvalUtils {
         : cell.getStringCellValue();
   }
 
-  private static Date getDateValue(Cell cell) {
+  private Date getDateValue(Cell cell) {
     try {
       return cell.getCellType() == CELL_TYPE_BLANK
           ? null
@@ -223,20 +261,7 @@ public class ProspectEvalUtils {
     }
   }
 
-  private static Integer getIntValue(Cell cell) {
-    if (cell.getCellType() == Cell.CELL_TYPE_NUMERIC) {
-      return doubleValue(cell) == null
-          ? null
-          : Objects.requireNonNullElse(doubleValue(cell), 0).intValue();
-    }
-    try {
-      return Integer.parseInt(cell.getStringCellValue());
-    } catch (NumberFormatException e) {
-      return null;
-    }
-  }
-
-  private static Double doubleValue(Cell cell) {
+  private Double doubleValue(Cell cell) {
     try {
       return cell.getCellType() == CELL_TYPE_BLANK ? null : cell.getNumericCellValue();
     } catch (NumberFormatException e) {
@@ -244,12 +269,12 @@ public class ProspectEvalUtils {
     }
   }
 
-  private static Boolean rowBooleanValue(Row row, int cellIndex) {
+  private Boolean rowBooleanValue(Row row, int cellIndex) {
     String stringValue = getStringValue(row.getCell(cellIndex));
     return stringValue == null ? null : stringValue.equals("Yes");
   }
 
-  private static void addMissingException(StringBuilder exceptionMsgBuilder, Row currentRow) {
+  private void addMissingException(StringBuilder exceptionMsgBuilder, Row currentRow) {
     exceptionMsgBuilder
         .append(
             "Depa rule (column-N) is mandatory to evaluate prospect but is not present")

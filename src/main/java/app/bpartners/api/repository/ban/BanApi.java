@@ -1,8 +1,11 @@
 package app.bpartners.api.repository.ban;
 
 import app.bpartners.api.model.exception.ApiException;
+import app.bpartners.api.model.exception.BadRequestException;
+import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.repository.ban.model.GeoPosition;
 import app.bpartners.api.repository.ban.response.GeoJsonResponse;
+import app.bpartners.api.service.utils.GeoUtils;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
@@ -30,6 +33,10 @@ public class BanApi {
   }
 
   public GeoJsonResponse searchMultiplePos(String address) {
+    if (address.length() < 3 || address.length() > 200) {
+      throw new BadRequestException("Address to search must be between 3 and 200 chars");
+
+    }
     try {
       HttpRequest request = HttpRequest.newBuilder()
           .uri(new URI(defaultSearchUrl(address)))
@@ -52,18 +59,23 @@ public class BanApi {
   }
 
   public GeoPosition search(String address) {
+    if (address == null || address.isEmpty()) {
+      throw new BadRequestException("Address is mandatory for getting GeoPosition");
+    }
     GeoJsonResponse geoJsonResponse = searchMultiplePos(address);
     GeoJsonResponse.Feature highestFeat = geoJsonResponse.getFeatures()
         .stream()
         .max(Comparator.comparing(feature -> feature.getProperties().getScore()))
-        .orElse(null);
-    return highestFeat == null ? null
-        : GeoPosition.builder()
+        .orElseThrow(
+            () -> new NotFoundException("Given address " + address + " is not found."
+                + " Check if it's not mal formed."));
+    return GeoPosition.builder()
         .label(highestFeat.getProperties().getLabel())
-        .latitude(highestFeat.getGeometry().getCoordinates().get(1))
-        .longitude(highestFeat.getGeometry().getCoordinates().get(0))
+        .coordinates(GeoUtils.Coordinate.builder()
+            .longitude(highestFeat.getGeometry().getCoordinates().get(0))
+            .latitude(highestFeat.getGeometry().getCoordinates().get(1))
+            .build())
         .build();
-
   }
 
   private String defaultSearchUrl(String address) {

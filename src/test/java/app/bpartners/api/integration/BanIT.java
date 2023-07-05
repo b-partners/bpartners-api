@@ -16,6 +16,7 @@ import app.bpartners.api.repository.prospecting.datasource.buildingpermit.Buildi
 import app.bpartners.api.repository.sendinblue.SendinblueConf;
 import app.bpartners.api.service.PaymentScheduleService;
 import app.bpartners.api.service.TransactionService;
+import app.bpartners.api.service.utils.GeoUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,7 +36,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @ContextConfiguration(initializers = BanIT.ContextInitializer.class)
 @AutoConfigureMockMvc
 @Slf4j
-public class BanIT {
+class BanIT {
   @MockBean
   private BridgeConf bridgeConf;
   @MockBean
@@ -71,8 +72,10 @@ public class BanIT {
   void search_address_ok() {
     assertEquals(GeoPosition.builder()
             .label("356 Rue des Pyrénées 75020 Paris")
-            .latitude(48.87398)
-            .longitude(2.386415)
+            .coordinates(GeoUtils.Coordinate.builder()
+                .latitude(48.87398)
+                .longitude(2.386415)
+                .build())
             .build(),
         subject.search("356 Rue des Pyrénées, 75020 Paris"));
   }

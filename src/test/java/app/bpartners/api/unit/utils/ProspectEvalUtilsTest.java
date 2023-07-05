@@ -6,10 +6,14 @@ import app.bpartners.api.expressif.fact.NewIntervention;
 import app.bpartners.api.expressif.fact.Robbery;
 import app.bpartners.api.expressif.utils.ProspectEvalUtils;
 import app.bpartners.api.model.exception.NotImplementedException;
+import app.bpartners.api.repository.ban.BanApi;
+import app.bpartners.api.repository.ban.model.GeoPosition;
+import app.bpartners.api.service.utils.GeoUtils;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.Date;
 import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
@@ -20,8 +24,37 @@ import static app.bpartners.api.expressif.fact.NewIntervention.OldCustomer.OldCu
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsBadRequestException;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class ProspectEvalUtilsTest {
+  public static final double DEFAULT_LATITUDE = 0.0;
+  public static final double DEFAULT_LONGITUDE = 0.0;
+  BanApi banApiMock;
+  ProspectEvalUtils subject;
+
+  @BeforeEach
+  public void setUp() {
+    banApiMock = mock(BanApi.class);
+    subject = new ProspectEvalUtils(banApiMock);
+
+    when(banApiMock.search(any())).thenReturn(
+        GeoPosition.builder()
+            .coordinates(GeoUtils.Coordinate.builder()
+                .latitude(DEFAULT_LATITUDE)
+                .longitude(DEFAULT_LONGITUDE)
+                .build())
+            .build()
+    );
+  }
+
+  private static GeoUtils.Coordinate defaultCoordinate() {
+    return GeoUtils.Coordinate.builder()
+        .longitude(DEFAULT_LONGITUDE)
+        .latitude(DEFAULT_LATITUDE)
+        .build();
+  }
 
   private static ProspectEval<Object> prospectEval1() {
     return ProspectEval.builder()
@@ -39,6 +72,7 @@ class ProspectEvalUtilsTest {
             .category("Restaurant")
             .subcategory("Pizzeria")
             .contactNature(PROSPECT)
+            .coordinates(defaultCoordinate())
             .build())
         .lockSmith(false)
         .antiHarm(true)
@@ -52,7 +86,7 @@ class ProspectEvalUtilsTest {
             .interventionType("désinsectisation")
             .infestationType("rat")
             .newIntAddress("15 Rue Marbeuf, 75008 Paris, France")
-            .distNewIntAndProspect(500.0)
+            .distNewIntAndProspect(0.0)
             .oldCustomerFact(NewIntervention.OldCustomer.builder().build())
             .build())
         .build();
@@ -74,6 +108,7 @@ class ProspectEvalUtilsTest {
             .category("Restaurant")
             .subcategory("Restaurant chinois")
             .contactNature(OTHER)
+            .coordinates(defaultCoordinate())
             .build())
         .lockSmith(false)
         .antiHarm(true)
@@ -87,7 +122,7 @@ class ProspectEvalUtilsTest {
             .interventionType("désinfection")
             .infestationType("puces")
             .newIntAddress("49-51 Av. des Champs-Élysées, 75008 Paris, France")
-            .distNewIntAndProspect(2000.1)
+            .distNewIntAndProspect(0.0)
             .oldCustomerFact(NewIntervention.OldCustomer.builder().build())
             .build())
         .build();
@@ -109,6 +144,7 @@ class ProspectEvalUtilsTest {
             .category("Restaurant")
             .subcategory("Restaurant de spécialités d'Afrique de l'Ouest")
             .contactNature(PROSPECT)
+            .coordinates(defaultCoordinate())
             .build())
         .lockSmith(true)
         .antiHarm(false)
@@ -121,7 +157,7 @@ class ProspectEvalUtilsTest {
             .declared(true)
             .robberyAddress(
                 "Maison de l'Architecture, 148 Rue du Faubourg Saint-Martin, 75010 Paris, France")
-            .distRobberyAndProspect(250.0)
+            .distRobberyAndProspect(0.0)
             .build())
         .build();
   }
@@ -142,6 +178,7 @@ class ProspectEvalUtilsTest {
             .category("Restaurant")
             .subcategory("Restaurant japonais authentique")
             .contactNature(PROSPECT)
+            .coordinates(defaultCoordinate())
             .build())
         .lockSmith(false)
         .antiHarm(true)
@@ -155,12 +192,12 @@ class ProspectEvalUtilsTest {
             .interventionType("désinsectisation")
             .infestationType("rat")
             .newIntAddress("15 Rue Marbeuf, 75008 Paris, France")
-            .distNewIntAndProspect(500.0)
+            .distNewIntAndProspect(0.0)
             .oldCustomerFact(NewIntervention.OldCustomer.builder()
                 .type(PROFESSIONAL)
                 .professionalType("restaurant")
                 .oldCustomerAddress("49-51 Av. des Champs-Élysées, 75008 Paris, France")
-                .distNewIntAndOldCustomer(250.0)
+                .distNewIntAndOldCustomer(0.0)
                 .build())
             .build())
         .build();
@@ -171,7 +208,7 @@ class ProspectEvalUtilsTest {
     Resource prospectFile = new ClassPathResource("files/prospect-ok.xlsx");
 
     List<ProspectEval> prospectEvals =
-        ProspectEvalUtils.convertFromExcel(prospectFile.getInputStream());
+        subject.convertFromExcel(prospectFile.getInputStream());
 
     assertEquals(5, prospectEvals.size());
     /*
@@ -189,9 +226,9 @@ class ProspectEvalUtilsTest {
 
     assertThrowsBadRequestException(
         "Depa rule (column-N) is mandatory to evaluate prospect but is not present for row-2. ",
-        () -> ProspectEvalUtils.convertFromExcel(prospectFile1.getInputStream()));
+        () -> subject.convertFromExcel(prospectFile1.getInputStream()));
     NotImplementedException notImplementedException = assertThrows(NotImplementedException.class,
-        () -> ProspectEvalUtils.convertFromExcel(prospectFile2.getInputStream()));
+        () -> subject.convertFromExcel(prospectFile2.getInputStream()));
     assertEquals(
         "Only \"Dépa1 / Nouvelle intervention\" or \"Dépa1 / Cambriolage\""
             + " is supported for now. Otherwise, Dépa2 / Travaux was given",

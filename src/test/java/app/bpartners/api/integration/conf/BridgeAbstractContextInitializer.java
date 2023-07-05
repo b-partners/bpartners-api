@@ -31,7 +31,7 @@ public abstract class BridgeAbstractContextInitializer
         "aws.eventBridge.bus=dummy",
         "aws.sqs.mailboxUrl=dummy",
         "expressif.project.token=dummy",
-        "ban.base_url=dummy",
+        "ban.base.url=dummy",
         "feature.detector.api.key=dummy",
         "feature.detector.application.name=dummy",
         "fintecture.base.url=https://api-sandbox.fintecture.com",

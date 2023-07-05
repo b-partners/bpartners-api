@@ -58,5 +58,10 @@ public class GeoUtils {
   public static class Coordinate {
     private Double latitude;
     private Double longitude;
+
+    public Double getDistanceFrom(Coordinate other) {
+      return other == null || (other.getLatitude() == null || other.getLongitude() == null) ? null
+          : computeDistanceM(this, other);
+    }
   }
 }

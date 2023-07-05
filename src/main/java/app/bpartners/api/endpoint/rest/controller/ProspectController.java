@@ -4,16 +4,12 @@ import app.bpartners.api.endpoint.rest.mapper.ProspectRestMapper;
 import app.bpartners.api.endpoint.rest.model.EvaluatedProspect;
 import app.bpartners.api.endpoint.rest.model.Prospect;
 import app.bpartners.api.endpoint.rest.model.ProspectConversion;
-import app.bpartners.api.endpoint.rest.model.ProspectStatus;
 import app.bpartners.api.endpoint.rest.model.UpdateProspect;
-import app.bpartners.api.expressif.NewProspect;
 import app.bpartners.api.expressif.ProspectEval;
-import app.bpartners.api.expressif.ProspectResult;
 import app.bpartners.api.expressif.utils.ProspectEvalUtils;
 import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.service.ProspectService;
 import java.io.ByteArrayInputStream;
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
@@ -24,7 +20,6 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import static java.util.UUID.randomUUID;
 import static java.util.stream.Collectors.toUnmodifiableList;
 
 @RestController
@@ -32,6 +27,7 @@ import static java.util.stream.Collectors.toUnmodifiableList;
 public class ProspectController {
   private final ProspectService service;
   private final ProspectRestMapper mapper;
+  private final ProspectEvalUtils prospectUtils;
 
   @PutMapping("/accountHolders/{ahId}/prospects/{id}/prospectConversion")
   public List<ProspectConversion> convertProspect(
@@ -64,7 +60,7 @@ public class ProspectController {
       @PathVariable("ahId") String accountHolderId,
       @RequestBody byte[] toEvaluate) {
     List<ProspectEval> prospectEvals =
-        ProspectEvalUtils.convertFromExcel(new ByteArrayInputStream(toEvaluate));
+        prospectUtils.convertFromExcel(new ByteArrayInputStream(toEvaluate));
     return service.evaluateProspects(prospectEvals).stream()
         .map(mapper::toRest)
         .collect(Collectors.toList());

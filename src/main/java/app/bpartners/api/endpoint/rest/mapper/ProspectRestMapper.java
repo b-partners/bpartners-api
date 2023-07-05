@@ -1,6 +1,8 @@
 package app.bpartners.api.endpoint.rest.mapper;
 
+import app.bpartners.api.endpoint.rest.model.Area;
 import app.bpartners.api.endpoint.rest.model.EvaluatedProspect;
+import app.bpartners.api.endpoint.rest.model.Geojson;
 import app.bpartners.api.endpoint.rest.model.Prospect;
 import app.bpartners.api.endpoint.rest.model.ProspectStatus;
 import app.bpartners.api.endpoint.rest.model.UpdateProspect;
@@ -22,6 +24,10 @@ public class ProspectRestMapper {
   public EvaluatedProspect toRest(ProspectResult prospectResult) {
     ProspectEval prospectEval = prospectResult.getProspectEval();
     NewProspect prospect = prospectEval.getNewProspect();
+    Geojson geoJson = new Geojson()
+        .type("Point") //default type
+        .latitude(prospect.getCoordinates().getLatitude())
+        .longitude(prospect.getCoordinates().getLongitude());
     return new EvaluatedProspect()
         .prospect(new Prospect()
             .id(String.valueOf(randomUUID()))
@@ -30,7 +36,11 @@ public class ProspectRestMapper {
             .phone(prospect.getPhoneNumber())
             .email(prospect.getEmail())
             .townCode(Integer.valueOf(prospect.getPostalCode()))
-            .status(ProspectStatus.TO_CONTACT)
+            .location(geoJson)
+            .area(new Area()
+                .geojson(geoJson)
+                .image(null)) //TODO
+            .status(ProspectStatus.TO_CONTACT) //TODO
         )
         .evaluationDate(prospectResult.getEvaluationDate())
         .rating(BigDecimal.valueOf(prospectResult.getRating()));

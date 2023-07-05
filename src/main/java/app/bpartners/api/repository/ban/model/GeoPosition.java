@@ -1,5 +1,6 @@
 package app.bpartners.api.repository.ban.model;
 
+import app.bpartners.api.service.utils.GeoUtils;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -17,6 +18,5 @@ import lombok.ToString;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class GeoPosition {
   private String label;
-  private Double longitude;
-  private Double latitude;
+  private GeoUtils.Coordinate coordinates;
 }

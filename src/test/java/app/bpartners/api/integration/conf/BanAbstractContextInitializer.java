@@ -5,14 +5,13 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.test.context.support.TestPropertySourceUtils;
 import org.testcontainers.containers.JdbcDatabaseContainer;
 import org.testcontainers.containers.PostgisContainerProvider;
-import org.testcontainers.containers.PostgreSQLContainer;
 
-public abstract class BridgeAbstractContextInitializer
+public abstract class BanAbstractContextInitializer
     implements ApplicationContextInitializer<ConfigurableApplicationContext> {
 
   @Override
   public void initialize(ConfigurableApplicationContext applicationContext) {
-    JdbcDatabaseContainer postgresContainer =
+    JdbcDatabaseContainer<?> postgresContainer =
         new PostgisContainerProvider()
             .newInstance()
             .withDatabaseName("it-db")
@@ -24,6 +23,10 @@ public abstract class BridgeAbstractContextInitializer
     TestPropertySourceUtils.addInlinedPropertiesToEnvironment(
         applicationContext,
         "server.port=" + this.getServerPort(),
+        "bridge.client.id=dummy",
+        "bridge.client.secret=dummy",
+        "bridge.base.url=dummy",
+        "bridge.version=dummy",
         "aws.cognito.userPool.id=eu-west-3_vq2jlNjq7",
         "aws.cognito.userPool.domain=dummy",
         "aws.cognito.userPool.clientId=dummy",
@@ -31,7 +34,6 @@ public abstract class BridgeAbstractContextInitializer
         "aws.eventBridge.bus=dummy",
         "aws.sqs.mailboxUrl=dummy",
         "expressif.project.token=dummy",
-        "ban.base.url=dummy",
         "feature.detector.api.key=dummy",
         "feature.detector.application.name=dummy",
         "fintecture.base.url=https://api-sandbox.fintecture.com",

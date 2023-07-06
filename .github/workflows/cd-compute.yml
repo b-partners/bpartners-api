@@ -72,6 +72,7 @@ jobs:
           export BRIDGE_CLIENT_SECRET=${{ secrets.BRIDGE_CLIENT_SECRET }}
           export BRIDGE_BASE_URL=${{ secrets.BRIDGE_BASE_URL }}
           export BRIDGE_VERSION=${{ secrets.BRIDGE_VERSION }}
+          export BAN_BASE_URL=${{ secrets.BAN_BASE_URL }}
           ./gradlew test
         if: ${{ github.event.inputs.run_tests != 'false' && github.event_name != 'schedule' }}
 

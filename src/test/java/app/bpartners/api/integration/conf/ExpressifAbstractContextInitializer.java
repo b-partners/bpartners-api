@@ -35,6 +35,7 @@ public abstract class ExpressifAbstractContextInitializer
         "aws.sqs.mailboxUrl=dummy",
         "feature.detector.api.key=dummy",
         "feature.detector.application.name=dummy",
+        "ban.base.url=dummy",
         "fintecture.base.url=https://api-sandbox.fintecture.com",
         "swan.base.url=https://api.swan.io/sandbox-partner",
         "spring.datasource.url=" + postgresContainer.getJdbcUrl(),

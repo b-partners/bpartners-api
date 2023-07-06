@@ -82,6 +82,7 @@ public abstract class S3AbstractContextInitializer
         "bridge.client.secret=dummy",
         "bridge.base.url=dummy",
         "bridge.version=dummy",
+        "ban.base.url=dummy",
         "feature.detector.api.key=dummy",
         "feature.detector.application.name=dummy",
         "expressif.project.token=dummy",

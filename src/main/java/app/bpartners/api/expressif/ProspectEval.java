@@ -1,6 +1,5 @@
 package app.bpartners.api.expressif;
 
-import app.bpartners.api.model.Prospect;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

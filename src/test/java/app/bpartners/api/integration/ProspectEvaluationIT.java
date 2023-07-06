@@ -2,8 +2,9 @@ package app.bpartners.api.integration;
 
 import app.bpartners.api.SentryConf;
 import app.bpartners.api.endpoint.event.S3Conf;
-import app.bpartners.api.endpoint.rest.client.ApiClient;
+import app.bpartners.api.endpoint.rest.model.Area;
 import app.bpartners.api.endpoint.rest.model.EvaluatedProspect;
+import app.bpartners.api.endpoint.rest.model.Geojson;
 import app.bpartners.api.endpoint.rest.model.Prospect;
 import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.integration.conf.AbstractContextInitializer;
@@ -11,6 +12,8 @@ import app.bpartners.api.integration.conf.TestUtils;
 import app.bpartners.api.manager.ProjectTokenManager;
 import app.bpartners.api.repository.AccountConnectorRepository;
 import app.bpartners.api.repository.LegalFileRepository;
+import app.bpartners.api.repository.ban.BanApi;
+import app.bpartners.api.repository.ban.model.GeoPosition;
 import app.bpartners.api.repository.bridge.BridgeApi;
 import app.bpartners.api.repository.expressif.ExpressifApi;
 import app.bpartners.api.repository.expressif.model.OutputValue;
@@ -19,6 +22,7 @@ import app.bpartners.api.repository.prospecting.datasource.buildingpermit.Buildi
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitConf;
 import app.bpartners.api.repository.sendinblue.SendinblueConf;
 import app.bpartners.api.service.PaymentScheduleService;
+import app.bpartners.api.service.utils.GeoUtils;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
@@ -87,11 +91,9 @@ class ProspectEvaluationIT {
   @MockBean
   private BridgeApi bridgeApi;
   @MockBean
+  private BanApi banApiMock;
+  @MockBean
   private ExpressifApi expressifApiMock;
-
-  private static ApiClient anApiClient() {
-    return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN, ContextInitializer.SERVER_PORT);
-  }
 
   private static OutputValue<Object> ratingResult() {
     return OutputValue.builder()
@@ -100,10 +102,26 @@ class ProspectEvaluationIT {
         .build();
   }
 
+  private static Geojson defaultGeoJson() {
+    return new Geojson()
+        .type("Point")
+        .latitude(0.0)
+        .longitude(0.0);
+  }
+
+
   @BeforeEach
   public void setUp() {
     setUpLegalFileRepository(legalFileRepositoryMock);
     setUpCognito(cognitoComponentMock);
+
+    when(banApiMock.search(any())).thenReturn(GeoPosition.builder()
+        .coordinates(GeoUtils.Coordinate.builder()
+            .latitude(0.0)
+            .longitude(0.0)
+            .build())
+        .build()
+    );
   }
 
   @Test
@@ -134,7 +152,11 @@ class ProspectEvaluationIT {
             .phone("09 50 73 12 99 ")
             .address("5 Rue Sedaine, 75011 Paris")
             .status(TO_CONTACT)
-            .townCode(75011))
+            .townCode(75011)
+            .area(new Area()
+                .image(null)
+                .geojson(defaultGeoJson()))
+            .location(defaultGeoJson()))
         .rating(BigDecimal.valueOf((Double) ratingResult().getValue()));
   }
 

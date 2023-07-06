@@ -633,7 +633,7 @@ class InvoiceIT {
     assertDoesNotThrow(firstCrupdateExecutable);
     assertThrowsApiException(
         "{\"type\":\"400 BAD_REQUEST\",\"message\":\""
-            + "Invoice.reference=unique_ref is already used" + "\"}",
+            + "La référence unique_ref est déjà utilisée" + "\"}",
         secondCrupdateExecutable);
     assertThrowsApiException("{\"type\":\"404 NOT_FOUND\",\"message\":\""
             + "Customer(id=" + crupdateInvoiceWithNonExistentCustomer.getCustomer().getId()
@@ -1182,6 +1182,8 @@ class InvoiceIT {
         .collect(toUnmodifiableList());
     assertEquals(callerNb, retrieved.size());
   }
+
+
 
   @SneakyThrows
   private Invoice crupdateInvoice(CountDownLatch latch, PayingApi api, String idInvoice) {

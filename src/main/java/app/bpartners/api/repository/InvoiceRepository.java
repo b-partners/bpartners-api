@@ -20,6 +20,6 @@ public interface InvoiceRepository {
 
   List<Invoice> saveAll(List<ArchiveInvoice> archiveInvoices);
 
-  List<Invoice> findByIdUserAndRefAndStatus(
-      String idUser, String invoiceId, String reference, InvoiceStatus status);
+  List<Invoice> findByIdUserAndRef(
+      String idUser, String reference);
 }

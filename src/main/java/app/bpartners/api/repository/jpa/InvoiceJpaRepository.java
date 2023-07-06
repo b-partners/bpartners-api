@@ -20,8 +20,7 @@ public interface InvoiceJpaRepository extends JpaRepository<HInvoice, String> {
 
   List<HInvoice> findAllByIdUser(String idUser, Pageable pageable);
 
-  List<HInvoice> findByIdUserAndRefAndStatus(
-      String idAccount, String ref, InvoiceStatus status);
+  List<HInvoice> findByIdUserAndRef(String idAccount, String ref);
 
   List<HInvoice> findAllByToBeRelaunched(boolean toBeRelaunched);
 }

@@ -65,7 +65,7 @@ public class InvoiceService {
     }
     if (!hasAvailableReference(invoice)) {
       throw new BadRequestException(
-          "Invoice.reference=" + invoice.getRealReference() + " is already used");
+          "La référence " + invoice.getRealReference() + " est déjà utilisée");
     }
     if (!invoice.getActualHolder().isSubjectToVat()) {
       invoice.getProducts().forEach(
@@ -89,9 +89,17 @@ public class InvoiceService {
       return true;
     }
     List<Invoice> existingInvoice =
-        repository.findByIdUserAndRefAndStatus(idUser, idInvoice, reference, status);
-    return existingInvoice.isEmpty() || existingInvoice.stream()
-        .anyMatch(existing -> existing.getId().equals(idInvoice));
+        repository.findByIdUserAndRef(idUser, reference);
+
+    boolean isTobeConfirmed = existingInvoice.stream()
+        .anyMatch(existing -> existing.getStatus() == PROPOSAL);
+    boolean isToBePaid = existingInvoice.stream()
+        .anyMatch(existing -> existing.getStatus() == CONFIRMED);
+    return (status != CONFIRMED && status != PAID)
+        ? existingInvoice.isEmpty() || existingInvoice.stream()
+        .anyMatch(existing -> existing.getId().equals(idInvoice))
+        : status == CONFIRMED ? isTobeConfirmed
+        : isToBePaid;
   }
 
   private Invoice handleStatusChanges(Invoice invoice) {

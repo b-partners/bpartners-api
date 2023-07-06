@@ -152,9 +152,8 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
   }
 
   @Override
-  public List<Invoice> findByIdUserAndRefAndStatus(String idUser, String invoiceId,
-                                                   String reference, InvoiceStatus status) {
-    return jpaRepository.findByIdUserAndRefAndStatus(idUser, reference, status).stream()
+  public List<Invoice> findByIdUserAndRef(String idUser, String reference) {
+    return jpaRepository.findByIdUserAndRef(idUser, reference).stream()
         .map(mapper::toDomain)
         .collect(Collectors.toList());
   }

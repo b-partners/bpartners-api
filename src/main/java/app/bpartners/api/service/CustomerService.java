@@ -25,7 +25,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import static app.bpartners.api.endpoint.event.EventProducer.Conf.MAX_PUT_EVENT_ENTRIES;
-import static app.bpartners.api.service.utils.CustomerUtils.checkUniqueEmailConstraint;
 import static app.bpartners.api.service.utils.CustomerUtils.getCustomersInfoFromFile;
 
 @Service
@@ -84,7 +83,6 @@ public class CustomerService {
   public List<Customer> getDataFromFile(String idUser, byte[] file) {
     List<CreateCustomer> customersFromFile =
         getCustomersInfoFromFile(new ByteArrayInputStream(file));
-    checkUniqueEmailConstraint(customersFromFile);
     return customersFromFile.stream()
         .map(customer -> restMapper.toDomain(idUser, customer))
         .collect(Collectors.toList());

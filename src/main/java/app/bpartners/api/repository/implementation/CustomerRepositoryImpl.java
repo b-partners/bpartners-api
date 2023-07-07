@@ -176,14 +176,9 @@ public class CustomerRepositoryImpl implements CustomerRepository {
   }
 
   private Customer checkExisting(Customer domain) {
-    Optional<HCustomer> optionalCustomer =
-        jpaRepository.findByIdUserAndEmail(domain.getIdUser(), domain.getEmail());
+    Optional<HCustomer> optionalCustomer = jpaRepository.findById(domain.getId());
     return optionalCustomer.isEmpty()
-        ? domain.toBuilder()
-        .recentlyAdded(true)
-        .build()
-        : domain.toBuilder()
-        .id(optionalCustomer.get().getId())
-        .build();
+        ? domain.toBuilder().recentlyAdded(true).build()
+        : domain;
   }
 }

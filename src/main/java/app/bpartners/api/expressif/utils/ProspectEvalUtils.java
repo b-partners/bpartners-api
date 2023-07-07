@@ -240,6 +240,9 @@ public class ProspectEvalUtils {
   }
 
   private String getStringValue(Cell cell) {
+    if (cell == null) {
+      return null;
+    }
     if (cell.getCellType() == Cell.CELL_TYPE_NUMERIC) {
       return doubleValue(cell) == null
           ? null
@@ -251,6 +254,9 @@ public class ProspectEvalUtils {
   }
 
   private Date getDateValue(Cell cell) {
+    if (cell == null) {
+      return null;
+    }
     try {
       return cell.getCellType() == CELL_TYPE_BLANK
           ? null
@@ -262,6 +268,9 @@ public class ProspectEvalUtils {
   }
 
   private Double doubleValue(Cell cell) {
+    if (cell == null) {
+      return null;
+    }
     try {
       return cell.getCellType() == CELL_TYPE_BLANK ? null : cell.getNumericCellValue();
     } catch (NumberFormatException e) {

@@ -2,12 +2,14 @@ package app.bpartners.api.unit.repository;
 
 import app.bpartners.api.endpoint.rest.security.AuthenticatedResourceProvider;
 import app.bpartners.api.model.AnnualRevenueTarget;
+import app.bpartners.api.model.mapper.ProspectEvalMapper;
 import app.bpartners.api.model.mapper.ProspectMapper;
 import app.bpartners.api.repository.AccountHolderRepository;
 import app.bpartners.api.repository.SogefiBuildingPermitRepository;
 import app.bpartners.api.repository.expressif.ExpressifApi;
 import app.bpartners.api.repository.implementation.ProspectRepositoryImpl;
 import app.bpartners.api.repository.jpa.MunicipalityJpaRepository;
+import app.bpartners.api.repository.jpa.ProspectEvalInfoJpaRepository;
 import app.bpartners.api.repository.jpa.ProspectJpaRepository;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitApi;
 import app.bpartners.api.service.AnnualRevenueTargetService;
@@ -39,6 +41,8 @@ class ProspectRepositoryImplTest {
   AccountHolderRepository accountHolderRepositoryMock;
   MunicipalityJpaRepository municipalityJpaRepositoryMock;
   ExpressifApi expressifApiMock;
+  ProspectEvalMapper evalMapperMock;
+  ProspectEvalInfoJpaRepository evalInfoJpaRepositoryMock;
 
   @BeforeEach
   void setUp() {
@@ -53,12 +57,13 @@ class ProspectRepositoryImplTest {
     accountHolderRepositoryMock = mock(AccountHolderRepository.class);
     municipalityJpaRepositoryMock = mock(MunicipalityJpaRepository.class);
     expressifApiMock = mock(ExpressifApi.class);
-
+    evalMapperMock = mock(ProspectEvalMapper.class);
+    evalInfoJpaRepositoryMock = mock(ProspectEvalInfoJpaRepository.class);
     subject =
         new ProspectRepositoryImpl(prospectJpaRepositoryMock, prospectMapper, buildingPermitApiMock,
             sogefiBuildingPermitRepositoryMock, businessActivityServiceMock, resourceProviderMock,
             revenueTargetServiceMock, accountHolderRepositoryMock, municipalityJpaRepositoryMock,
-            expressifApiMock);
+            expressifApiMock, evalMapperMock, evalInfoJpaRepositoryMock);
     when(revenueTargetServiceMock.getByYear(JOE_DOE_ACCOUNT_ID, 2023)).thenReturn(
         Optional.ofNullable(
             AnnualRevenueTarget.builder()

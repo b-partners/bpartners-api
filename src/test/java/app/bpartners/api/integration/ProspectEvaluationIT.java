@@ -2,7 +2,6 @@ package app.bpartners.api.integration;
 
 import app.bpartners.api.SentryConf;
 import app.bpartners.api.endpoint.event.S3Conf;
-import app.bpartners.api.endpoint.rest.model.Area;
 import app.bpartners.api.endpoint.rest.model.EvaluatedProspect;
 import app.bpartners.api.endpoint.rest.model.Geojson;
 import app.bpartners.api.endpoint.rest.model.Prospect;
@@ -153,9 +152,7 @@ class ProspectEvaluationIT {
             .address("5 Rue Sedaine, 75011 Paris")
             .status(TO_CONTACT)
             .townCode(75011)
-            .area(new Area()
-                .image(null)
-                .geojson(defaultGeoJson()))
+            .area(null)
             .location(defaultGeoJson()))
         .rating(BigDecimal.valueOf((Double) ratingResult().getValue()));
   }

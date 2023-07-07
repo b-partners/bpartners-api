@@ -14,7 +14,9 @@ import lombok.ToString;
 @EqualsAndHashCode
 @ToString
 public class ProspectEval<T> {
-  private NewProspect newProspect;
+  private String id;
+  private String prospectOwnerId;
+  private ProspectEvalInfo prospectEvalInfo;
 
   private Boolean lockSmith;
   private Boolean antiHarm;

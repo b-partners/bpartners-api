@@ -1,9 +1,9 @@
-package app.bpartners.api.expressif.utils;
+package app.bpartners.api.repository.expressif.utils;
 
-import app.bpartners.api.expressif.NewProspect;
-import app.bpartners.api.expressif.ProspectEval;
-import app.bpartners.api.expressif.fact.NewIntervention;
-import app.bpartners.api.expressif.fact.Robbery;
+import app.bpartners.api.repository.expressif.NewProspect;
+import app.bpartners.api.repository.expressif.ProspectEval;
+import app.bpartners.api.repository.expressif.fact.NewIntervention;
+import app.bpartners.api.repository.expressif.fact.Robbery;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.NotImplementedException;
@@ -25,9 +25,8 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.springframework.stereotype.Component;
 
-import static app.bpartners.api.expressif.NewProspect.ContactNature.OTHER;
-import static app.bpartners.api.expressif.NewProspect.ContactNature.PROSPECT;
-import static app.bpartners.api.expressif.fact.NewIntervention.OldCustomer.OldCustomerType.INDIVIDUAL;
+import static app.bpartners.api.repository.expressif.NewProspect.ContactNature.OTHER;
+import static app.bpartners.api.repository.expressif.NewProspect.ContactNature.PROSPECT;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 import static org.apache.poi.ss.usermodel.Cell.CELL_TYPE_BLANK;
 
@@ -85,7 +84,7 @@ public class ProspectEvalUtils {
             NewIntervention.OldCustomer.OldCustomerType customerType =
                 oldCustomerType == null ? null :
                     (oldCustomerType.equals(INDIVIDUAL_VALUE)
-                        ? INDIVIDUAL
+                        ? NewIntervention.OldCustomer.OldCustomerType.INDIVIDUAL
                         : NewIntervention.OldCustomer.OldCustomerType.PROFESSIONAL);
             String oldCustomerAddress =
                 getStringValue(currentRow.getCell(NEW_INT_OLD_CUST_ADDRESS_COL_INDEX));

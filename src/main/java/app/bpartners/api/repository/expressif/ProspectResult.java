@@ -1,4 +1,4 @@
-package app.bpartners.api.expressif;
+package app.bpartners.api.repository.expressif;
 
 import java.time.Instant;
 import lombok.AllArgsConstructor;

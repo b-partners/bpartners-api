@@ -1,7 +1,7 @@
 package app.bpartners.api.service;
 
-import app.bpartners.api.expressif.ProspectEval;
-import app.bpartners.api.expressif.ProspectResult;
+import app.bpartners.api.repository.expressif.ProspectEval;
+import app.bpartners.api.repository.expressif.ProspectResult;
 import app.bpartners.api.model.Prospect;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.repository.ProspectRepository;

@@ -1,4 +1,4 @@
-package app.bpartners.api.expressif.fact;
+package app.bpartners.api.repository.expressif.fact;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

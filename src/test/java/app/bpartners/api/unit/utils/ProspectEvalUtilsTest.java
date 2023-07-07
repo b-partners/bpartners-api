@@ -1,10 +1,10 @@
 package app.bpartners.api.unit.utils;
 
-import app.bpartners.api.expressif.NewProspect;
-import app.bpartners.api.expressif.ProspectEval;
-import app.bpartners.api.expressif.fact.NewIntervention;
-import app.bpartners.api.expressif.fact.Robbery;
-import app.bpartners.api.expressif.utils.ProspectEvalUtils;
+import app.bpartners.api.repository.expressif.NewProspect;
+import app.bpartners.api.repository.expressif.ProspectEval;
+import app.bpartners.api.repository.expressif.fact.NewIntervention;
+import app.bpartners.api.repository.expressif.fact.Robbery;
+import app.bpartners.api.repository.expressif.utils.ProspectEvalUtils;
 import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.repository.ban.BanApi;
 import app.bpartners.api.repository.ban.model.GeoPosition;
@@ -18,9 +18,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 
-import static app.bpartners.api.expressif.NewProspect.ContactNature.OTHER;
-import static app.bpartners.api.expressif.NewProspect.ContactNature.PROSPECT;
-import static app.bpartners.api.expressif.fact.NewIntervention.OldCustomer.OldCustomerType.PROFESSIONAL;
+import static app.bpartners.api.repository.expressif.NewProspect.ContactNature.OTHER;
+import static app.bpartners.api.repository.expressif.NewProspect.ContactNature.PROSPECT;
+import static app.bpartners.api.repository.expressif.fact.NewIntervention.OldCustomer.OldCustomerType.PROFESSIONAL;
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsBadRequestException;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;

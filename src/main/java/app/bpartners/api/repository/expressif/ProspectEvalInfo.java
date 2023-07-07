@@ -15,7 +15,8 @@ import lombok.ToString;
 @Builder
 @EqualsAndHashCode
 @ToString
-public class NewProspect {
+public class ProspectEvalInfo {
+  private Long reference;
   private String name;
   private String website;
   private String address;
@@ -32,6 +33,6 @@ public class NewProspect {
   private GeoUtils.Coordinate coordinates;
 
   public enum ContactNature {
-    PROSPECT, OTHER
+    PROSPECT, OLD_CUSTOMER, OTHER
   }
 }

@@ -46,7 +46,8 @@ public class ProspectEvalMapper {
   }
 
   public HProspectEval toInfoEntity(
-      ProspectEval evalDomain, Instant evaluationDate, Double rating) {
+      ProspectEval evalDomain, Instant evaluationDate,
+      Double prospectRating, Double customerRating) {
     String ruleType = evalDomain.getDepaRule().getClass().getTypeName();
 
     Boolean declared;
@@ -85,10 +86,11 @@ public class ProspectEvalMapper {
         .declared(declared)
         .interventionAddress(interventionAddress)
         .interventionDistance(interventionDistance)
+        .prospectRating(prospectRating)
         .oldCustomerAddress(oldCustomerAddress)
         .oldCustomerDistance(oldCustomerDistance)
+        .customerRating(customerRating)
         .evaluationDate(evaluationDate)
-        .rating(rating)
         .build();
   }
 
@@ -106,7 +108,18 @@ public class ProspectEvalMapper {
             .particularCustomer(eval.getIndividualCustomer())
             .professionalCustomer(eval.getProfessionalCustomer())
             .build())
-        .rating(eval.getRating())
+        .interventionResult(
+            (ProspectResult.InterventionResult) ProspectResult.InterventionResult.builder()
+                .rating(eval.getProspectRating())
+                .distance(eval.getInterventionDistance())
+                .address(eval.getInterventionAddress())
+                .build())
+        .customerInterventionResult(
+            (ProspectResult.CustomerInterventionResult) ProspectResult.CustomerInterventionResult.builder()
+                .rating(eval.getCustomerRating())
+                .distance(eval.getOldCustomerDistance())
+                .address(eval.getOldCustomerAddress())
+                .build())
         .evaluationDate(eval.getEvaluationDate())
         .build();
   }

@@ -2,6 +2,8 @@ package app.bpartners.api.endpoint.rest.mapper;
 
 import app.bpartners.api.endpoint.rest.model.EvaluatedProspect;
 import app.bpartners.api.endpoint.rest.model.Geojson;
+import app.bpartners.api.endpoint.rest.model.InterventionResult;
+import app.bpartners.api.endpoint.rest.model.OldCustomerResult;
 import app.bpartners.api.endpoint.rest.model.Prospect;
 import app.bpartners.api.endpoint.rest.model.ProspectStatus;
 import app.bpartners.api.endpoint.rest.model.UpdateProspect;
@@ -42,7 +44,16 @@ public class ProspectRestMapper {
             .status(ProspectStatus.TO_CONTACT) //TODO
         )
         .evaluationDate(prospectResult.getEvaluationDate())
-        .rating(BigDecimal.valueOf(prospectResult.getRating()));
+        .interventionResult(new InterventionResult()
+            .address(prospectResult.getInterventionResult().getAddress())
+            .distanceFromProspect(
+                BigDecimal.valueOf(prospectResult.getInterventionResult().getDistance()))
+            .value(BigDecimal.valueOf(prospectResult.getInterventionResult().getRating())))
+        .oldCustomerResult(new OldCustomerResult()
+            .address(prospectResult.getCustomerInterventionResult().getAddress())
+            .distanceFromProspect(
+                BigDecimal.valueOf(prospectResult.getCustomerInterventionResult().getDistance()))
+            .value(BigDecimal.valueOf(prospectResult.getCustomerInterventionResult().getRating())));
   }
 
   public Prospect toRest(app.bpartners.api.model.Prospect domain) {

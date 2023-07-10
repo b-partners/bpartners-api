@@ -9,10 +9,12 @@ import app.bpartners.api.repository.fintecture.model.FPaymentInitiation;
 import app.bpartners.api.repository.fintecture.model.FPaymentRedirection;
 import app.bpartners.api.service.utils.PatternMatcher;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 @Component
 @AllArgsConstructor
+@Slf4j
 public class FintectureMapper {
   public static final String CUSTOM_COMMUNICATION_PATTERN =
       "[^a-zA-Z0-9 éèêëçâùûôî.,;:/!?$%_=+()*°@#ÂÇÉÈÊËÎÔÙÛ]";
@@ -71,8 +73,7 @@ public class FintectureMapper {
     FPaymentInitiation.Attributes attributes = new FPaymentInitiation.Attributes();
     attributes.setAmount(String.valueOf(domain.getAmount().getCentsAsDecimal()));
     attributes.setBeneficiary(beneficiary);
-    attributes.setCommunication(
-        PatternMatcher.filterCharacters(domain.getLabel(), CUSTOM_COMMUNICATION_PATTERN));
+    attributes.setCommunication(getCommunicationValue(domain));
 
     FPaymentInitiation.Meta meta = new FPaymentInitiation.Meta();
     meta.setPsuName(domain.getPayerName());
@@ -82,6 +83,16 @@ public class FintectureMapper {
     data.setAttributes(attributes);
 
     return new FPaymentInitiation(meta, data);
+  }
+
+  private String getCommunicationValue(PaymentInitiation domain) {
+    if (domain.getLabel() == null || domain.getLabel().length() < 3) {
+      log.warn("Payment label " + domain.getLabel() + " was null or < 3 chars. "
+          + "EMPTY_LABEL set by default for " + domain);
+      return "EMPTY_LABEL";
+    }
+    return PatternMatcher.filterCharacters(
+        domain.getLabel(), CUSTOM_COMMUNICATION_PATTERN);
   }
 
   public app.bpartners.api.model.PaymentRedirection toDomain(

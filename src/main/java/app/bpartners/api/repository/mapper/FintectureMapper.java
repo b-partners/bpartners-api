@@ -7,12 +7,16 @@ import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.repository.fintecture.model.Beneficiary;
 import app.bpartners.api.repository.fintecture.model.FPaymentInitiation;
 import app.bpartners.api.repository.fintecture.model.FPaymentRedirection;
+import app.bpartners.api.service.utils.PatternMatcher;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
 @AllArgsConstructor
 public class FintectureMapper {
+  public static final String CUSTOM_COMMUNICATION_PATTERN =
+      "[^a-zA-Z0-9 éèêëçâùûôî.,;:/!?$%_=+()*°@#ÂÇÉÈÊËÎÔÙÛ]";
+
   private Beneficiary toBeneficiary(Account account, AccountHolder accountHolder) {
     checkMandatoryHolderInfos(accountHolder);
     return Beneficiary.builder()
@@ -67,7 +71,8 @@ public class FintectureMapper {
     FPaymentInitiation.Attributes attributes = new FPaymentInitiation.Attributes();
     attributes.setAmount(String.valueOf(domain.getAmount().getCentsAsDecimal()));
     attributes.setBeneficiary(beneficiary);
-    attributes.setCommunication(domain.getLabel());
+    attributes.setCommunication(
+        PatternMatcher.filterCharacters(domain.getLabel(), CUSTOM_COMMUNICATION_PATTERN));
 
     FPaymentInitiation.Meta meta = new FPaymentInitiation.Meta();
     meta.setPsuName(domain.getPayerName());

@@ -326,24 +326,6 @@ class CustomerIT {
     );
   }
 
-  @Order(5)
-  @Test
-  void upload_duplicated_customer_ko() throws IOException, InterruptedException {
-    Resource file = new ClassPathResource("files/wrong-duplicated-customers.xlsx");
-
-    HttpResponse<String> response = uploadFile(JOE_DOE_ACCOUNT_ID, file.getFile());
-
-    assertEquals(HttpStatus.BAD_REQUEST.value(), response.statusCode());
-    assertEquals(
-        "{\"type\":\"400 BAD_REQUEST\",\"message\":"
-            + "\"Email must be unique for each customer."
-            + "Otherwise,Customer(name=test 2 Test 2)"
-            + " and Customer(name=test 3 Test 3) "
-            + "have the same email = test+2@email.com. \"}",
-        response.body());
-  }
-
-
   @Order(6)
   @Test
   void read_and_update_disabled_customers_ok() throws ApiException {

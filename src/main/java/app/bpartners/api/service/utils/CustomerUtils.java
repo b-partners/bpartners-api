@@ -244,32 +244,4 @@ public class CustomerUtils {
       return null;
     }
   }
-
-  public static void checkUniqueEmailConstraint(List<CreateCustomer> customersFromFile) {
-    StringBuilder builder = new StringBuilder();
-    for (int i = 0; i < customersFromFile.size(); i++) {
-      CreateCustomer c1 = customersFromFile.get(i);
-      for (int j = i + 1; j < customersFromFile.size(); j++) {
-        CreateCustomer c2 = customersFromFile.get(j);
-        if (c1.getEmail() != null && c2.getEmail() != null
-            && c1.getEmail().equals(c2.getEmail())) {
-          builder.append(describeCreateCustomer(c1))
-              .append(" and ")
-              .append(describeCreateCustomer(c2))
-              .append(" have the same email = " + c1.getEmail())
-              .append(". ");
-          break;
-        }
-      }
-    }
-    String message = builder.toString();
-    if (!message.isEmpty()) {
-      throw new BadRequestException("Email must be unique for each customer.Otherwise,"
-          + message);
-    }
-  }
-
-  public static String describeCreateCustomer(CreateCustomer c) {
-    return "Customer(name=" + c.getFirstName() + " " + c.getLastName() + ")";
-  }
 }

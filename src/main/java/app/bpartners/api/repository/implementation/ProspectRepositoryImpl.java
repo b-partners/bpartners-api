@@ -138,19 +138,22 @@ public class ProspectRepositoryImpl implements ProspectRepository {
           .inputValues(evalInputs)
           .build());
 
-      AtomicReference<Double> rating = new AtomicReference<>(UNPROCESSED_VALUE);
+      AtomicReference<Double> prospectRating = new AtomicReference<>(UNPROCESSED_VALUE);
+      AtomicReference<Double> customerRating = new AtomicReference<>(UNPROCESSED_VALUE);
       if (evalResult.isEmpty()) {
         log.warn("[ExpressIF] Any result retrieved from " + evalInputs);
       } else {
         evalResult.forEach(result -> {
-          if (result.getName().equals("Notation de l'ancien client")
-              || result.getName().equals("Notation du prospect")) {
-            rating.set((Double) result.getValue());
+          if (result.getName().equals("Notation du prospect")) {
+            prospectRating.set((Double) result.getValue());
+          } else if (result.getName().equals("Notation de l'ancien client")) {
+            customerRating.set((Double) result.getValue());
           }
         });
       }
       HProspectEval lastEval =
-          evalMapper.toInfoEntity(prospectEval, evaluationDate, rating.get());
+          evalMapper.toInfoEntity(prospectEval, evaluationDate,
+              prospectRating.get(), customerRating.get());
       prospectEvalEntities.add(getInfoEntity(prospectEval, lastEval));
     }
     return evalRepository.saveAll(prospectEvalEntities).stream()

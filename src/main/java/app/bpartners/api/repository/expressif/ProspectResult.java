@@ -16,6 +16,27 @@ import lombok.ToString;
 @ToString
 public class ProspectResult<T> {
   private ProspectEval<T> prospectEval;
+  private InterventionResult interventionResult;
+  private CustomerInterventionResult customerInterventionResult;
   private Instant evaluationDate;
-  private Double rating;
+
+  @Data
+  @AllArgsConstructor
+  @NoArgsConstructor
+  @Builder
+  @EqualsAndHashCode
+  @ToString
+  public static class RuleResult {
+    protected Double rating;
+    protected Double distance;
+    protected String address;
+  }
+
+  public static class InterventionResult extends RuleResult {
+
+  }
+
+  public static class CustomerInterventionResult extends RuleResult {
+
+  }
 }

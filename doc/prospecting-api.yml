@@ -248,9 +248,10 @@ components:
         evaluationDate:
           type: string
           format: date-time
-        rating:
-          type: number
-          description: Between 0.0 and 10.0
+        interventionResult:
+          $ref: '#/components/schemas/InterventionResult'
+        oldCustomerResult:
+          $ref: '#/components/schemas/OldCustomerResult'
     Prospect:
       allOf:
         - $ref: '#/components/schemas/UpdateProspect'
@@ -285,3 +286,19 @@ components:
         emailRepliedAt:
           type: string
           format: date-time
+    RuleResult:
+      type: object
+      properties:
+        address:
+          type: string
+        distanceFromProspect:
+          type: number
+        value:
+          type: number
+          description: -1 if any rules applied, otherwise value must be between 0 and 10
+    InterventionResult:
+      allOf:
+        - $ref: '#/components/schemas/RuleResult'
+    OldCustomerResult:
+      allOf:
+        - $ref: '#/components/schemas/RuleResult'

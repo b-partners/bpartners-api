@@ -12,7 +12,6 @@ create table if not exists prospect_eval
     id                    varchar
         constraint prospect_eval_pk primary key not null default uuid_generate_v4(),
     id_prospect_eval_info varchar,
-    rating                numeric check (rating = -1 or (rating >= 0 and rating <= 10)),
     evaluation_date       timestamp without time zone,
 
     rule                  prospect_eval_rule,
@@ -21,8 +20,10 @@ create table if not exists prospect_eval
     declared              boolean,
     intervention_address  varchar,
     intervention_distance numeric,
+    prospect_rating       numeric check (prospect_rating = -1 or (prospect_rating >= 0 and prospect_rating <= 10)),
     old_customer_address  varchar,
     old_customer_distance numeric,
+    customer_rating       numeric check (customer_rating = -1 or (customer_rating >= 0 and customer_rating <= 10)),
     constraint fk_prospect_eval_info foreign key (id_prospect_eval_info) references
         prospect_eval_info (id)
 );

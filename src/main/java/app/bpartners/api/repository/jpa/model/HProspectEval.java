@@ -28,7 +28,6 @@ public class HProspectEval {
   private String id;
   @Column(name = "id_prospect_eval_info")
   private String idProspectEvalInfo;
-  private Double rating;
   private Instant evaluationDate;
   @Type(type = "pgsql_enum")
   @Enumerated(EnumType.STRING)
@@ -36,10 +35,14 @@ public class HProspectEval {
   private Boolean individualCustomer;
   private Boolean professionalCustomer;
   private Boolean declared;
+
   private String interventionAddress;
   private Double interventionDistance;
+  private Double prospectRating;
+
   private String oldCustomerAddress;
   private Double oldCustomerDistance;
+  private Double customerRating;
 
   public enum ProspectEvalRule {
     NEW_INTERVENTION, ROBBERY

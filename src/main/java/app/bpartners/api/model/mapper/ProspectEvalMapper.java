@@ -108,18 +108,18 @@ public class ProspectEvalMapper {
             .particularCustomer(eval.getIndividualCustomer())
             .professionalCustomer(eval.getProfessionalCustomer())
             .build())
-        .interventionResult(
-            (ProspectResult.InterventionResult) ProspectResult.InterventionResult.builder()
-                .rating(eval.getProspectRating())
-                .distance(eval.getInterventionDistance())
-                .address(eval.getInterventionAddress())
-                .build())
-        .customerInterventionResult(
-            (ProspectResult.CustomerInterventionResult) ProspectResult.CustomerInterventionResult.builder()
-                .rating(eval.getCustomerRating())
-                .distance(eval.getOldCustomerDistance())
-                .address(eval.getOldCustomerAddress())
-                .build())
+        .interventionResult(eval.getInterventionAddress() == null ? null
+            : new ProspectResult.InterventionResult(
+            eval.getProspectRating(),
+            eval.getInterventionDistance(),
+            eval.getInterventionAddress()
+        ))
+        .customerInterventionResult(eval.getOldCustomerAddress() == null ? null
+            : new ProspectResult.CustomerInterventionResult(
+            eval.getCustomerRating(),
+            eval.getOldCustomerDistance(),
+            eval.getOldCustomerAddress()
+        ))
         .evaluationDate(eval.getEvaluationDate())
         .build();
   }

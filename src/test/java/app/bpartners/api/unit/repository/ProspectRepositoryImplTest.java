@@ -16,6 +16,7 @@ import app.bpartners.api.service.AnnualRevenueTargetService;
 import app.bpartners.api.service.BusinessActivityService;
 import java.time.LocalDate;
 import java.util.Optional;
+import javax.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -43,6 +44,8 @@ class ProspectRepositoryImplTest {
   ExpressifApi expressifApiMock;
   ProspectEvalMapper evalMapperMock;
   ProspectEvalInfoJpaRepository evalInfoJpaRepositoryMock;
+  EntityManager em;
+
 
   @BeforeEach
   void setUp() {
@@ -59,11 +62,12 @@ class ProspectRepositoryImplTest {
     expressifApiMock = mock(ExpressifApi.class);
     evalMapperMock = mock(ProspectEvalMapper.class);
     evalInfoJpaRepositoryMock = mock(ProspectEvalInfoJpaRepository.class);
+    em = mock(EntityManager.class);
     subject =
         new ProspectRepositoryImpl(prospectJpaRepositoryMock, prospectMapper, buildingPermitApiMock,
             sogefiBuildingPermitRepositoryMock, businessActivityServiceMock, resourceProviderMock,
             revenueTargetServiceMock, accountHolderRepositoryMock, municipalityJpaRepositoryMock,
-            expressifApiMock, evalMapperMock, evalInfoJpaRepositoryMock);
+            expressifApiMock, evalMapperMock, evalInfoJpaRepositoryMock, em);
     when(revenueTargetServiceMock.getByYear(JOE_DOE_ACCOUNT_ID, 2023)).thenReturn(
         Optional.ofNullable(
             AnnualRevenueTarget.builder()

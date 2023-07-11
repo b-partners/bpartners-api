@@ -2,9 +2,11 @@ package app.bpartners.api.integration;
 
 import app.bpartners.api.SentryConf;
 import app.bpartners.api.endpoint.event.S3Conf;
+import app.bpartners.api.endpoint.rest.model.Area;
+import app.bpartners.api.endpoint.rest.model.ContactNature;
 import app.bpartners.api.endpoint.rest.model.EvaluatedProspect;
 import app.bpartners.api.endpoint.rest.model.Geojson;
-import app.bpartners.api.endpoint.rest.model.Prospect;
+import app.bpartners.api.endpoint.rest.model.InterventionResult;
 import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.integration.conf.AbstractContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
@@ -45,14 +47,12 @@ import org.springframework.core.io.Resource;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import static app.bpartners.api.endpoint.rest.model.ProspectStatus.TO_CONTACT;
 import static app.bpartners.api.integration.conf.TestUtils.BEARER_PREFIX;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_HOLDER_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_TOKEN;
 import static app.bpartners.api.integration.conf.TestUtils.setUpCognito;
 import static app.bpartners.api.integration.conf.TestUtils.setUpLegalFileRepository;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
@@ -96,7 +96,7 @@ class ProspectEvaluationIT {
 
   private static OutputValue<Object> ratingResult() {
     return OutputValue.builder()
-        .name("Notation de l'ancien client")
+        .name("Notation du prospect")
         .value(10.0)
         .build();
   }
@@ -134,27 +134,28 @@ class ProspectEvaluationIT {
         });
 
     assertEquals(5, actual.size());
-    assertTrue(actual.stream().allMatch(
-        evaluatedProspect ->
-            evaluatedProspect.getRating()
-                .equals(BigDecimal.valueOf((Double) ratingResult().getValue()))));
     assertEquals(expectedProspectEval1(actual), actual.get(0));
   }
 
   private static EvaluatedProspect expectedProspectEval1(List<EvaluatedProspect> actual) {
     return new EvaluatedProspect()
         .evaluationDate(actual.get(0).getEvaluationDate())
-        .prospect(new Prospect()
-            .id(actual.get(0).getProspect().getId())
-            .name("Da Vito")
-            .email("davide@liquidcorp.fr")
-            .phone("09 50 73 12 99 ")
-            .address("5 Rue Sedaine, 75011 Paris")
-            .status(TO_CONTACT)
-            .townCode(75011)
-            .area(null)
-            .location(defaultGeoJson()))
-        .rating(BigDecimal.valueOf((Double) ratingResult().getValue()));
+        .id(actual.get(0).getId())
+        .reference(String.valueOf(1))
+        .name("Da Vito")
+        .email("davide@liquidcorp.fr")
+        .phone("09 50 73 12 99 ")
+        .address("5 Rue Sedaine, 75011 Paris")
+        .townCode(75011)
+        .city("Paris")
+        .managerName("Viviane TAING")
+        .contactNature(ContactNature.PROSPECT)
+        .area(new Area().geojson(defaultGeoJson()))
+        .interventionResult(
+            new InterventionResult()
+                .address("15 Rue Marbeuf, 75008 Paris, France")
+                .distanceFromProspect(BigDecimal.valueOf(0.0))
+                .value(BigDecimal.valueOf((Double) ratingResult().getValue())));
   }
 
   private HttpResponse<String> uploadFile(String accountHolderId, File toUpload)

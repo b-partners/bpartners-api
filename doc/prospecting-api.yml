@@ -241,10 +241,21 @@ components:
         townCode:
           type: integer
     EvaluatedProspect:
-      type: object
+      allOf:
+        - $ref: '#/components/schemas/Prospect'
       properties:
-        prospect:
-          $ref: '#/components/schemas/Prospect'
+        reference:
+          type: string
+        website:
+          type: string
+        city:
+          type: string
+        managerName:
+          type: string
+        contactNature:
+          $ref: '#/components/schemas/ContactNature'
+        area:
+          $ref: '#/components/schemas/Area'
         evaluationDate:
           type: string
           format: date-time
@@ -302,3 +313,9 @@ components:
     OldCustomerResult:
       allOf:
         - $ref: '#/components/schemas/RuleResult'
+    ContactNature:
+      type: string
+      enum:
+        - PROSPECT
+        - OLD_CUSTOMER
+        - OTHER

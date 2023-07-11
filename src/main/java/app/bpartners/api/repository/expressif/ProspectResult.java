@@ -33,10 +33,14 @@ public class ProspectResult<T> {
   }
 
   public static class InterventionResult extends RuleResult {
-
+    public InterventionResult(Double rating, Double distance, String address) {
+      super(rating, distance, address);
+    }
   }
 
   public static class CustomerInterventionResult extends RuleResult {
-
+    public CustomerInterventionResult(Double rating, Double distance, String address) {
+      super(rating, distance, address);
+    }
   }
 }

@@ -38,7 +38,7 @@ public class CustomerCrupdatedService implements Consumer<CustomerCrupdated> {
 
 
     try {
-      service.sendEmail(recipient, subject, htmlBody, attachments);
+      service.sendEmail(recipient, null, subject, htmlBody, attachments);
     } catch (MessagingException | IOException e) {
       log.error("Email not sent : " + e.getMessage());
     }

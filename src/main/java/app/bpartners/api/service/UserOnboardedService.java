@@ -35,7 +35,7 @@ public class UserOnboardedService implements Consumer<UserOnboarded> {
         configureUserContext(onboardedUser.getOnboardedUser(),
             onboardedUser.getOnboardedAccount(), onboardedUser.getOnboardedAccountHolder()));
     try {
-      service.sendEmail(recipient, subject, htmlBody, attachments);
+      service.sendEmail(recipient, null, subject, htmlBody, attachments);
     } catch (MessagingException | IOException e) {
       log.error("Email not sent : " + e.getMessage());
     }

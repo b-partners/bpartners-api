@@ -50,7 +50,7 @@ public class ProspectService {
             parseTemplateResolver(PROSPECT_MAIL_TEMPLATE, configureProspectContext(accountHolder));
         try {
           log.info("The email should be sent to: " + accountHolder.getEmail());
-          sesService.sendEmail(accountHolder.getEmail(), subject, htmlbody, List.of());
+          sesService.sendEmail(accountHolder.getEmail(), null, subject, htmlbody, List.of());
         } catch (IOException | MessagingException e) {
           throw new ApiException(SERVER_EXCEPTION, e);
         }

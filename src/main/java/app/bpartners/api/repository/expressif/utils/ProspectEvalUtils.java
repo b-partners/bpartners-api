@@ -1,5 +1,9 @@
 package app.bpartners.api.repository.expressif.utils;
 
+import app.bpartners.api.endpoint.rest.model.EvaluatedProspect;
+import app.bpartners.api.endpoint.rest.model.Geojson;
+import app.bpartners.api.endpoint.rest.model.InterventionResult;
+import app.bpartners.api.endpoint.rest.model.OldCustomerResult;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.NotImplementedException;
@@ -9,6 +13,9 @@ import app.bpartners.api.repository.expressif.ProspectEval;
 import app.bpartners.api.repository.expressif.ProspectEvalInfo;
 import app.bpartners.api.repository.expressif.fact.NewIntervention;
 import app.bpartners.api.repository.expressif.fact.Robbery;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Date;
@@ -50,6 +57,91 @@ public class ProspectEvalUtils {
   public static final int ROB_OLD_CUST_ADDRESS_COL_INDEX = 29;
   public static final int ROBB_ADDRESS_COL_INDEX = 28;
   private final BanApi banApi;
+
+  @SneakyThrows
+  public static byte[] convertIntoExcel(
+      ByteArrayInputStream inputProspectStream, List<EvaluatedProspect> results) {
+    ByteArrayOutputStream outputStream;
+    try (Workbook workbook = WorkbookFactory.create(inputProspectStream)) {
+      Sheet sheet = workbook.createSheet("Résultats évaluation");
+
+      Row headerRow = sheet.createRow(0);
+      headerRow.createCell(0).setCellValue("ID");
+      headerRow.createCell(1).setCellValue("Référence");
+      headerRow.createCell(2).setCellValue("Nom");
+      headerRow.createCell(3).setCellValue("Email");
+      headerRow.createCell(4).setCellValue("Site web");
+      headerRow.createCell(5).setCellValue("Téléphone");
+      headerRow.createCell(6).setCellValue("Adresse");
+      headerRow.createCell(7).setCellValue("Ville");
+      headerRow.createCell(8).setCellValue("Nom du gérant");
+      headerRow.createCell(9).setCellValue("Nature du contact");
+      headerRow.createCell(10).setCellValue("Date d'évaluation");
+      headerRow.createCell(11).setCellValue("Position - Latitude");
+      headerRow.createCell(12).setCellValue("Position - Longitude");
+      headerRow.createCell(13).setCellValue("Position - Carte");
+      headerRow.createCell(14).setCellValue("Intervention - Notation sur 10");
+      headerRow.createCell(15).setCellValue("Intervention - Adresse");
+      headerRow.createCell(16).setCellValue("Intervention - Distance depuis le prospect");
+      headerRow.createCell(17).setCellValue("Ancien client - Notation sur 10");
+      headerRow.createCell(18).setCellValue("Ancien client - Adresse");
+      headerRow.createCell(19).setCellValue("Ancien client - Distance depuis le prospect");
+
+      int row = 1;
+      for (EvaluatedProspect eval : results) {
+        Row currentRow = sheet.createRow(row);
+        currentRow.createCell(0).setCellValue(eval.getId());
+        currentRow.createCell(1).setCellValue(eval.getReference());
+        currentRow.createCell(2).setCellValue(eval.getName());
+        currentRow.createCell(3).setCellValue(eval.getEmail());
+        currentRow.createCell(4).setCellValue(eval.getWebsite());
+        currentRow.createCell(5).setCellValue(eval.getPhone());
+        currentRow.createCell(6).setCellValue(eval.getAddress());
+        currentRow.createCell(7).setCellValue(eval.getCity());
+        currentRow.createCell(8).setCellValue(eval.getManagerName());
+        currentRow.createCell(9).setCellValue(eval.getContactNature().getValue());
+        currentRow.createCell(10).setCellValue(eval.getEvaluationDate() == null ? null
+            : Date.from(eval.getEvaluationDate()));
+
+        Geojson geojson = eval.getArea() == null ? null
+            : eval.getArea().getGeojson();
+        currentRow.createCell(11).setCellValue(geojson == null ? null
+            : geojson.getLatitude());
+        currentRow.createCell(12).setCellValue(geojson == null ? null
+            : geojson.getLongitude());
+        currentRow.createCell(13).setCellValue(geojson == null ? null
+            //TODO: make this customizable from other maps service
+            : "https://www.latlong.net/c/?lat=" + geojson.getLatitude() + "&long="
+            + geojson.getLongitude());
+
+        InterventionResult interventionResult = eval.getInterventionResult();
+        currentRow.createCell(14).setCellValue(interventionResult == null ? null
+            : String.valueOf(interventionResult.getValue()));
+        currentRow.createCell(15).setCellValue(interventionResult == null ? null
+            : interventionResult.getAddress());
+        currentRow.createCell(16).setCellValue(interventionResult == null ? null
+            : String.valueOf(interventionResult.getDistanceFromProspect()));
+
+        OldCustomerResult oldCustomerResult = eval.getOldCustomerResult();
+        currentRow.createCell(17).setCellValue(
+            String.valueOf(oldCustomerResult == null ? null
+                : oldCustomerResult.getValue()));
+        currentRow.createCell(18).setCellValue(oldCustomerResult == null ? null
+            : oldCustomerResult.getAddress());
+        currentRow.createCell(19).setCellValue(oldCustomerResult == null ? null
+            : String.valueOf(oldCustomerResult.getDistanceFromProspect()));
+        row++;
+      }
+
+      outputStream = new ByteArrayOutputStream();
+      workbook.write(outputStream);
+      workbook.close();
+      outputStream.close();
+    } catch (IOException e) {
+      throw new ApiException(SERVER_EXCEPTION, e);
+    }
+    return outputStream.toByteArray();
+  }
 
   @SneakyThrows
   public List<ProspectEval> convertFromExcel(InputStream file) {

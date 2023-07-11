@@ -1,10 +1,10 @@
 package app.bpartners.api.service;
 
-import app.bpartners.api.expressif.ProspectEval;
-import app.bpartners.api.expressif.ProspectResult;
 import app.bpartners.api.model.Prospect;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.repository.ProspectRepository;
+import app.bpartners.api.repository.expressif.ProspectEval;
+import app.bpartners.api.repository.expressif.ProspectResult;
 import app.bpartners.api.repository.jpa.AccountHolderJpaRepository;
 import app.bpartners.api.repository.jpa.model.HAccountHolder;
 import app.bpartners.api.service.aws.SesService;
@@ -17,6 +17,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.thymeleaf.context.Context;
 
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
@@ -58,6 +59,7 @@ public class ProspectService {
     });
   }
 
+  @Transactional
   public List<ProspectResult> evaluateProspects(List<ProspectEval> prospectEvals) {
     return repository.evaluate(prospectEvals);
   }

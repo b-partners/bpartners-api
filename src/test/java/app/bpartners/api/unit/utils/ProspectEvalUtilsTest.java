@@ -1,10 +1,10 @@
 package app.bpartners.api.unit.utils;
 
-import app.bpartners.api.expressif.NewProspect;
-import app.bpartners.api.expressif.ProspectEval;
-import app.bpartners.api.expressif.fact.NewIntervention;
-import app.bpartners.api.expressif.fact.Robbery;
-import app.bpartners.api.expressif.utils.ProspectEvalUtils;
+import app.bpartners.api.repository.expressif.ProspectEvalInfo;
+import app.bpartners.api.repository.expressif.ProspectEval;
+import app.bpartners.api.repository.expressif.fact.NewIntervention;
+import app.bpartners.api.repository.expressif.fact.Robbery;
+import app.bpartners.api.repository.expressif.utils.ProspectEvalUtils;
 import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.repository.ban.BanApi;
 import app.bpartners.api.repository.ban.model.GeoPosition;
@@ -18,9 +18,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 
-import static app.bpartners.api.expressif.NewProspect.ContactNature.OTHER;
-import static app.bpartners.api.expressif.NewProspect.ContactNature.PROSPECT;
-import static app.bpartners.api.expressif.fact.NewIntervention.OldCustomer.OldCustomerType.PROFESSIONAL;
+import static app.bpartners.api.repository.expressif.ProspectEvalInfo.ContactNature.OTHER;
+import static app.bpartners.api.repository.expressif.ProspectEvalInfo.ContactNature.PROSPECT;
+import static app.bpartners.api.repository.expressif.fact.NewIntervention.OldCustomer.OldCustomerType.PROFESSIONAL;
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsBadRequestException;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -58,7 +58,7 @@ class ProspectEvalUtilsTest {
 
   private static ProspectEval<Object> prospectEval1() {
     return ProspectEval.builder()
-        .newProspect(NewProspect.builder()
+        .prospectEvalInfo(ProspectEvalInfo.builder()
             .name("Da Vito")
             .website(null)
             .address("5 Rue Sedaine, 75011 Paris")
@@ -87,14 +87,14 @@ class ProspectEvalUtilsTest {
             .infestationType("rat")
             .newIntAddress("15 Rue Marbeuf, 75008 Paris, France")
             .distNewIntAndProspect(0.0)
-            .oldCustomerFact(NewIntervention.OldCustomer.builder().build())
+            .oldCustomer(NewIntervention.OldCustomer.builder().build())
             .build())
         .build();
   }
 
   private static ProspectEval<Object> prospectEval2() {
     return ProspectEval.builder()
-        .newProspect(NewProspect.builder()
+        .prospectEvalInfo(ProspectEvalInfo.builder()
             .name("Royal Fata")
             .website("https://royal-fata-paris-20.fr/fr")
             .address("237 Rue des Pyrénées, 75020 Paris")
@@ -123,14 +123,14 @@ class ProspectEvalUtilsTest {
             .infestationType("puces")
             .newIntAddress("49-51 Av. des Champs-Élysées, 75008 Paris, France")
             .distNewIntAndProspect(0.0)
-            .oldCustomerFact(NewIntervention.OldCustomer.builder().build())
+            .oldCustomer(NewIntervention.OldCustomer.builder().build())
             .build())
         .build();
   }
 
   private static ProspectEval<Object> prospectEval3() {
     return ProspectEval.builder()
-        .newProspect(NewProspect.builder()
+        .prospectEvalInfo(ProspectEvalInfo.builder()
             .name("Resto Madalaya")
             .website(null)
             .address("2 Rue des Amandiers, 75020 Paris")
@@ -164,7 +164,7 @@ class ProspectEvalUtilsTest {
 
   private static ProspectEval<Object> prospectEval4() {
     return ProspectEval.builder()
-        .newProspect(NewProspect.builder()
+        .prospectEvalInfo(ProspectEvalInfo.builder()
             .name("OKY SUSHI okysushi")
             .website("https://okysushiparis.fr/")
             .address("356 Rue des Pyrénées, 75020 Paris")
@@ -193,7 +193,7 @@ class ProspectEvalUtilsTest {
             .infestationType("rat")
             .newIntAddress("15 Rue Marbeuf, 75008 Paris, France")
             .distNewIntAndProspect(0.0)
-            .oldCustomerFact(NewIntervention.OldCustomer.builder()
+            .oldCustomer(NewIntervention.OldCustomer.builder()
                 .type(PROFESSIONAL)
                 .professionalType("restaurant")
                 .oldCustomerAddress("49-51 Av. des Champs-Élysées, 75008 Paris, France")

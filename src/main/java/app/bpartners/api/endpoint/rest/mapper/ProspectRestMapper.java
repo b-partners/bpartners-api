@@ -1,15 +1,17 @@
 package app.bpartners.api.endpoint.rest.mapper;
 
 import app.bpartners.api.endpoint.rest.model.Area;
+import app.bpartners.api.endpoint.rest.model.ContactNature;
 import app.bpartners.api.endpoint.rest.model.EvaluatedProspect;
 import app.bpartners.api.endpoint.rest.model.Geojson;
+import app.bpartners.api.endpoint.rest.model.InterventionResult;
+import app.bpartners.api.endpoint.rest.model.OldCustomerResult;
 import app.bpartners.api.endpoint.rest.model.Prospect;
-import app.bpartners.api.endpoint.rest.model.ProspectStatus;
 import app.bpartners.api.endpoint.rest.model.UpdateProspect;
 import app.bpartners.api.endpoint.rest.validator.ProspectRestValidator;
-import app.bpartners.api.expressif.NewProspect;
-import app.bpartners.api.expressif.ProspectEval;
-import app.bpartners.api.expressif.ProspectResult;
+import app.bpartners.api.repository.expressif.ProspectEval;
+import app.bpartners.api.repository.expressif.ProspectEvalInfo;
+import app.bpartners.api.repository.expressif.ProspectResult;
 import java.math.BigDecimal;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -22,28 +24,42 @@ public class ProspectRestMapper {
   private final ProspectRestValidator validator;
 
   public EvaluatedProspect toRest(ProspectResult prospectResult) {
-    ProspectEval prospectEval = prospectResult.getProspectEval();
-    NewProspect prospect = prospectEval.getNewProspect();
+    if (prospectResult == null) {
+      return null;
+    }
+    ProspectEval eval = prospectResult.getProspectEval();
+    ProspectEvalInfo info = eval.getProspectEvalInfo();
     Geojson geoJson = new Geojson()
         .type("Point") //default type
-        .latitude(prospect.getCoordinates().getLatitude())
-        .longitude(prospect.getCoordinates().getLongitude());
+        .latitude(info.getCoordinates().getLatitude())
+        .longitude(info.getCoordinates().getLongitude());
+    ProspectResult.CustomerInterventionResult custRes =
+        prospectResult.getCustomerInterventionResult();
+    ProspectResult.InterventionResult intRes = prospectResult.getInterventionResult();
     return new EvaluatedProspect()
-        .prospect(new Prospect()
-            .id(String.valueOf(randomUUID()))
-            .name(prospect.getName())
-            .address(prospect.getAddress())
-            .phone(prospect.getPhoneNumber())
-            .email(prospect.getEmail())
-            .townCode(Integer.valueOf(prospect.getPostalCode()))
-            .location(geoJson)
-            .area(new Area()
-                .geojson(geoJson)
-                .image(null)) //TODO
-            .status(ProspectStatus.TO_CONTACT) //TODO
-        )
+        .id(String.valueOf(randomUUID()))
+        .reference(String.valueOf(info.getReference()))
+        .name(info.getName())
+        .phone(info.getPhoneNumber())
+        .email(info.getEmail())
+        .address(info.getAddress())
+        .city(info.getCity())
+        .townCode(Integer.valueOf(info.getPostalCode()))
+        .area(new Area().geojson(geoJson))
+        .managerName(info.getManagerName())
+        .contactNature(getProspect(info))
         .evaluationDate(prospectResult.getEvaluationDate())
-        .rating(BigDecimal.valueOf(prospectResult.getRating()));
+        .interventionResult(intRes == null ? null
+            : new InterventionResult()
+            .address(intRes.getAddress())
+            .distanceFromProspect(
+                BigDecimal.valueOf(intRes.getDistance()))
+            .value(BigDecimal.valueOf(intRes.getRating())))
+        .oldCustomerResult(custRes == null ? null
+            : new OldCustomerResult()
+            .address(custRes.getAddress())
+            .distanceFromProspect(BigDecimal.valueOf(custRes.getDistance()))
+            .value(BigDecimal.valueOf(custRes.getRating())));
   }
 
   public Prospect toRest(app.bpartners.api.model.Prospect domain) {
@@ -69,5 +85,15 @@ public class ProspectRestMapper {
         .status(rest.getStatus())
         .townCode(rest.getTownCode())
         .build();
+  }
+
+  private ContactNature getProspect(ProspectEvalInfo info) {
+    ProspectEvalInfo.ContactNature domainNature = info.getContactNature();
+    if (domainNature == ProspectEvalInfo.ContactNature.PROSPECT) {
+      return ContactNature.PROSPECT;
+    } else if (domainNature == ProspectEvalInfo.ContactNature.OLD_CUSTOMER) {
+      return ContactNature.OLD_CUSTOMER;
+    }
+    return ContactNature.OTHER;
   }
 }

@@ -1,4 +1,4 @@
-package app.bpartners.api.expressif;
+package app.bpartners.api.repository.expressif;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -14,7 +14,9 @@ import lombok.ToString;
 @EqualsAndHashCode
 @ToString
 public class ProspectEval<T> {
-  private NewProspect newProspect;
+  private String id;
+  private String prospectOwnerId;
+  private ProspectEvalInfo prospectEvalInfo;
 
   private Boolean lockSmith;
   private Boolean antiHarm;

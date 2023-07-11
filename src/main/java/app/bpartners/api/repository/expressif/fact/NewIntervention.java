@@ -1,4 +1,4 @@
-package app.bpartners.api.expressif.fact;
+package app.bpartners.api.repository.expressif.fact;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -20,7 +20,7 @@ public class NewIntervention {
   private String newIntAddress;
   private Double distNewIntAndProspect; //TODO: convert two addresses to distance
 
-  private OldCustomer oldCustomerFact;
+  private OldCustomer oldCustomer;
 
   @Data
   @AllArgsConstructor

@@ -1,14 +1,21 @@
-package app.bpartners.api.expressif.utils;
+package app.bpartners.api.repository.expressif.utils;
 
-import app.bpartners.api.expressif.NewProspect;
-import app.bpartners.api.expressif.ProspectEval;
-import app.bpartners.api.expressif.fact.NewIntervention;
-import app.bpartners.api.expressif.fact.Robbery;
+import app.bpartners.api.endpoint.rest.model.EvaluatedProspect;
+import app.bpartners.api.endpoint.rest.model.Geojson;
+import app.bpartners.api.endpoint.rest.model.InterventionResult;
+import app.bpartners.api.endpoint.rest.model.OldCustomerResult;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.repository.ban.BanApi;
 import app.bpartners.api.repository.ban.model.GeoPosition;
+import app.bpartners.api.repository.expressif.ProspectEval;
+import app.bpartners.api.repository.expressif.ProspectEvalInfo;
+import app.bpartners.api.repository.expressif.fact.NewIntervention;
+import app.bpartners.api.repository.expressif.fact.Robbery;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Date;
@@ -25,10 +32,10 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.springframework.stereotype.Component;
 
-import static app.bpartners.api.expressif.NewProspect.ContactNature.OTHER;
-import static app.bpartners.api.expressif.NewProspect.ContactNature.PROSPECT;
-import static app.bpartners.api.expressif.fact.NewIntervention.OldCustomer.OldCustomerType.INDIVIDUAL;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
+import static app.bpartners.api.repository.expressif.ProspectEvalInfo.ContactNature.OTHER;
+import static app.bpartners.api.repository.expressif.ProspectEvalInfo.ContactNature.PROSPECT;
+import static java.util.UUID.randomUUID;
 import static org.apache.poi.ss.usermodel.Cell.CELL_TYPE_BLANK;
 
 @Slf4j
@@ -52,6 +59,91 @@ public class ProspectEvalUtils {
   private final BanApi banApi;
 
   @SneakyThrows
+  public static byte[] convertIntoExcel(
+      ByteArrayInputStream inputProspectStream, List<EvaluatedProspect> results) {
+    ByteArrayOutputStream outputStream;
+    try (Workbook workbook = WorkbookFactory.create(inputProspectStream)) {
+      Sheet sheet = workbook.createSheet("Résultats évaluation");
+
+      Row headerRow = sheet.createRow(0);
+      headerRow.createCell(0).setCellValue("ID");
+      headerRow.createCell(1).setCellValue("Référence");
+      headerRow.createCell(2).setCellValue("Nom");
+      headerRow.createCell(3).setCellValue("Email");
+      headerRow.createCell(4).setCellValue("Site web");
+      headerRow.createCell(5).setCellValue("Téléphone");
+      headerRow.createCell(6).setCellValue("Adresse");
+      headerRow.createCell(7).setCellValue("Ville");
+      headerRow.createCell(8).setCellValue("Nom du gérant");
+      headerRow.createCell(9).setCellValue("Nature du contact");
+      headerRow.createCell(10).setCellValue("Date d'évaluation");
+      headerRow.createCell(11).setCellValue("Position - Latitude");
+      headerRow.createCell(12).setCellValue("Position - Longitude");
+      headerRow.createCell(13).setCellValue("Position - Carte");
+      headerRow.createCell(14).setCellValue("Intervention - Notation sur 10");
+      headerRow.createCell(15).setCellValue("Intervention - Adresse");
+      headerRow.createCell(16).setCellValue("Intervention - Distance depuis le prospect");
+      headerRow.createCell(17).setCellValue("Ancien client - Notation sur 10");
+      headerRow.createCell(18).setCellValue("Ancien client - Adresse");
+      headerRow.createCell(19).setCellValue("Ancien client - Distance depuis le prospect");
+
+      int row = 1;
+      for (EvaluatedProspect eval : results) {
+        Row currentRow = sheet.createRow(row);
+        currentRow.createCell(0).setCellValue(eval.getId());
+        currentRow.createCell(1).setCellValue(eval.getReference());
+        currentRow.createCell(2).setCellValue(eval.getName());
+        currentRow.createCell(3).setCellValue(eval.getEmail());
+        currentRow.createCell(4).setCellValue(eval.getWebsite());
+        currentRow.createCell(5).setCellValue(eval.getPhone());
+        currentRow.createCell(6).setCellValue(eval.getAddress());
+        currentRow.createCell(7).setCellValue(eval.getCity());
+        currentRow.createCell(8).setCellValue(eval.getManagerName());
+        currentRow.createCell(9).setCellValue(eval.getContactNature().getValue());
+        currentRow.createCell(10).setCellValue(eval.getEvaluationDate() == null ? null
+            : Date.from(eval.getEvaluationDate()));
+
+        Geojson geojson = eval.getArea() == null ? null
+            : eval.getArea().getGeojson();
+        currentRow.createCell(11).setCellValue(geojson == null ? null
+            : geojson.getLatitude());
+        currentRow.createCell(12).setCellValue(geojson == null ? null
+            : geojson.getLongitude());
+        currentRow.createCell(13).setCellValue(geojson == null ? null
+            //TODO: make this customizable from other maps service
+            : "https://www.latlong.net/c/?lat=" + geojson.getLatitude() + "&long="
+            + geojson.getLongitude());
+
+        InterventionResult interventionResult = eval.getInterventionResult();
+        currentRow.createCell(14).setCellValue(interventionResult == null ? null
+            : String.valueOf(interventionResult.getValue()));
+        currentRow.createCell(15).setCellValue(interventionResult == null ? null
+            : interventionResult.getAddress());
+        currentRow.createCell(16).setCellValue(interventionResult == null ? null
+            : String.valueOf(interventionResult.getDistanceFromProspect()));
+
+        OldCustomerResult oldCustomerResult = eval.getOldCustomerResult();
+        currentRow.createCell(17).setCellValue(
+            String.valueOf(oldCustomerResult == null ? null
+                : oldCustomerResult.getValue()));
+        currentRow.createCell(18).setCellValue(oldCustomerResult == null ? null
+            : oldCustomerResult.getAddress());
+        currentRow.createCell(19).setCellValue(oldCustomerResult == null ? null
+            : String.valueOf(oldCustomerResult.getDistanceFromProspect()));
+        row++;
+      }
+
+      outputStream = new ByteArrayOutputStream();
+      workbook.write(outputStream);
+      workbook.close();
+      outputStream.close();
+    } catch (IOException e) {
+      throw new ApiException(SERVER_EXCEPTION, e);
+    }
+    return outputStream.toByteArray();
+  }
+
+  @SneakyThrows
   public List<ProspectEval> convertFromExcel(InputStream file) {
     Workbook workbook = WorkbookFactory.create(file);
     Sheet sheet = workbook.getSheetAt(FIRST_SHEET_INDEX);
@@ -67,10 +159,21 @@ public class ProspectEvalUtils {
           addMissingException(exceptionMsgBuilder, currentRow);
         } else {
           ProspectEval prospectEval = new ProspectEval<>();
-          NewProspect newProspect = getNewProspect(currentRow);
+          ProspectEvalInfo prospectEvalInfo = getNewProspect(currentRow);
 
+          /*
+          /!\ Pay attention ! For now, we duplicate the prospect to evaluate for each evaluation
+          To associate new evaluation to existing prospectEval, we must identify the unique key.
+          Case 1 : we get the unique ID from the Excel file
+          Case 2 : we identify a unique prospect from some attributes
+          Like firstName + lastName + email + address
+
+          In any case, we would take more time to process the prospect evaluation file.
+           */
+          prospectEval.setId(String.valueOf(randomUUID()));
+          prospectEval.setProspectOwnerId(getStringValue(currentRow.getCell(30)));
           setProspectJobValue(exceptionMsgBuilder, currentRow, prospectEval);
-          prospectEval.setNewProspect(newProspect);
+          prospectEval.setProspectEvalInfo(prospectEvalInfo);
 
           prospectEval.setInsectControl(rowBooleanValue(currentRow, 15));
           prospectEval.setDisinfection(rowBooleanValue(currentRow, 16));
@@ -85,7 +188,7 @@ public class ProspectEvalUtils {
             NewIntervention.OldCustomer.OldCustomerType customerType =
                 oldCustomerType == null ? null :
                     (oldCustomerType.equals(INDIVIDUAL_VALUE)
-                        ? INDIVIDUAL
+                        ? NewIntervention.OldCustomer.OldCustomerType.INDIVIDUAL
                         : NewIntervention.OldCustomer.OldCustomerType.PROFESSIONAL);
             String oldCustomerAddress =
                 getStringValue(currentRow.getCell(NEW_INT_OLD_CUST_ADDRESS_COL_INDEX));
@@ -95,8 +198,8 @@ public class ProspectEvalUtils {
                 .infestationType(getStringValue(currentRow.getCell(22)))
                 .newIntAddress(newIntAddress)
                 .distNewIntAndProspect(
-                    newProspect.getCoordinates().getDistanceFrom(newIntPos.getCoordinates()))
-                .oldCustomerFact(NewIntervention.OldCustomer.builder()
+                    prospectEvalInfo.getCoordinates().getDistanceFrom(newIntPos.getCoordinates()))
+                .oldCustomer(NewIntervention.OldCustomer.builder()
                     .type(customerType)
                     .professionalType(getStringValue(currentRow.getCell(25)))
                     .oldCustomerAddress(oldCustomerAddress)
@@ -114,7 +217,8 @@ public class ProspectEvalUtils {
                 .declared(rowBooleanValue(currentRow, 27))
                 .robberyAddress(robberyAddress)
                 .distRobberyAndProspect(
-                    newProspect.getCoordinates().getDistanceFrom(robbAddressPos.getCoordinates()))
+                    prospectEvalInfo.getCoordinates()
+                        .getDistanceFrom(robbAddressPos.getCoordinates()))
                 .oldCustomer(oldCustAddress == null ? null
                     : Robbery.OldCustomer.builder()
                     .address(oldCustAddress)
@@ -171,22 +275,22 @@ public class ProspectEvalUtils {
     }
   }
 
-  private NewProspect getNewProspect(Row currentRow) {
-    NewProspect newProspect = new NewProspect();
+  private ProspectEvalInfo getNewProspect(Row currentRow) {
+    ProspectEvalInfo prospectEvalInfo = new ProspectEvalInfo();
     for (int colIndex = 0; colIndex < 13; colIndex++) {
       Cell currentCell = currentRow.getCell(colIndex);
       switch (colIndex) {
         case 0:
-          newProspect.setName(getStringValue(currentCell));
+          prospectEvalInfo.setName(getStringValue(currentCell));
           break;
         case 1:
-          newProspect.setWebsite(getStringValue(currentCell));
+          prospectEvalInfo.setWebsite(getStringValue(currentCell));
           break;
         case 2:
-          newProspect.setCategory(getStringValue(currentCell));
+          prospectEvalInfo.setCategory(getStringValue(currentCell));
           break;
         case 3:
-          newProspect.setSubcategory(getStringValue(currentCell));
+          prospectEvalInfo.setSubcategory(getStringValue(currentCell));
           break;
         //TODO: remove detected Brain Method
         case PROSPECT_ADDRESS_COL_INDEX:
@@ -196,38 +300,38 @@ public class ProspectEvalUtils {
                     + (currentRow.getRowNum() + 1));
           } else {
             String addressValue = getStringValue(currentCell);
-            newProspect.setAddress(addressValue);
-            newProspect.setCoordinates(banApi.search(addressValue).getCoordinates());
+            prospectEvalInfo.setAddress(addressValue);
+            prospectEvalInfo.setCoordinates(banApi.search(addressValue).getCoordinates());
           }
           break;
         case 5:
-          newProspect.setPhoneNumber(getStringValue(currentCell));
+          prospectEvalInfo.setPhoneNumber(getStringValue(currentCell));
           break;
         case 6:
-          newProspect.setEmail(getStringValue(currentCell));
+          prospectEvalInfo.setEmail(getStringValue(currentCell));
           break;
         case 7:
-          newProspect.setManagerName(getStringValue(currentCell));
+          prospectEvalInfo.setManagerName(getStringValue(currentCell));
           break;
         case 8:
-          newProspect.setMailSent(rowBooleanValue(currentRow, 8));
+          prospectEvalInfo.setMailSent(rowBooleanValue(currentRow, 8));
           break;
         case 9:
-          newProspect.setPostalCode(getStringValue(currentCell));
+          prospectEvalInfo.setPostalCode(getStringValue(currentCell));
           break;
         case 10:
-          newProspect.setCity(getStringValue(currentCell));
+          prospectEvalInfo.setCity(getStringValue(currentCell));
           break;
         case 11:
           Date dateValue = getDateValue(currentCell);
-          newProspect.setCompanyCreationDate(dateValue);
+          prospectEvalInfo.setCompanyCreationDate(dateValue);
           break;
         case 12:
           String natureValue = getStringValue(currentCell);
           if (natureValue == null) {
-            newProspect.setContactNature(null);
+            prospectEvalInfo.setContactNature(null);
           } else {
-            newProspect.setContactNature(natureValue.equals(PROSPECT_NATURE_VALUE)
+            prospectEvalInfo.setContactNature(natureValue.equals(PROSPECT_NATURE_VALUE)
                 ? PROSPECT : OTHER);
           }
           break;
@@ -236,7 +340,7 @@ public class ProspectEvalUtils {
               "Unexpected exception occurred when parsing excel values to new newProspect");
       }
     }
-    return newProspect;
+    return prospectEvalInfo;
   }
 
   private String getStringValue(Cell cell) {

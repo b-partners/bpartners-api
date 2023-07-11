@@ -1,10 +1,6 @@
 package app.bpartners.api.repository.implementation;
 
 import app.bpartners.api.endpoint.rest.security.AuthenticatedResourceProvider;
-import app.bpartners.api.expressif.ProspectEval;
-import app.bpartners.api.expressif.ProspectResult;
-import app.bpartners.api.expressif.fact.NewIntervention;
-import app.bpartners.api.expressif.fact.Robbery;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.AnnualRevenueTarget;
 import app.bpartners.api.model.BusinessActivity;
@@ -12,18 +8,26 @@ import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.Prospect;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.exception.BadRequestException;
+import app.bpartners.api.model.mapper.ProspectEvalMapper;
 import app.bpartners.api.model.mapper.ProspectMapper;
 import app.bpartners.api.repository.AccountHolderRepository;
 import app.bpartners.api.repository.ProspectRepository;
 import app.bpartners.api.repository.SogefiBuildingPermitRepository;
 import app.bpartners.api.repository.expressif.ExpressifApi;
+import app.bpartners.api.repository.expressif.ProspectEval;
+import app.bpartners.api.repository.expressif.ProspectResult;
+import app.bpartners.api.repository.expressif.fact.NewIntervention;
+import app.bpartners.api.repository.expressif.fact.Robbery;
 import app.bpartners.api.repository.expressif.model.InputForm;
 import app.bpartners.api.repository.expressif.model.InputValue;
 import app.bpartners.api.repository.expressif.model.OutputValue;
 import app.bpartners.api.repository.jpa.MunicipalityJpaRepository;
+import app.bpartners.api.repository.jpa.ProspectEvalInfoJpaRepository;
 import app.bpartners.api.repository.jpa.ProspectJpaRepository;
 import app.bpartners.api.repository.jpa.model.HMunicipality;
 import app.bpartners.api.repository.jpa.model.HProspect;
+import app.bpartners.api.repository.jpa.model.HProspectEval;
+import app.bpartners.api.repository.jpa.model.HProspectEvalInfo;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitApi;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.model.BuildingPermitList;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.model.SingleBuildingPermit;
@@ -39,14 +43,16 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
+import javax.persistence.EntityManager;
+import javax.persistence.Query;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apfloat.Aprational;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import static app.bpartners.api.expressif.fact.NewIntervention.OldCustomer.OldCustomerType.INDIVIDUAL;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
+import static app.bpartners.api.repository.expressif.fact.NewIntervention.OldCustomer.OldCustomerType.INDIVIDUAL;
 import static java.util.stream.Collectors.toUnmodifiableList;
 import static org.springframework.transaction.annotation.Isolation.SERIALIZABLE;
 
@@ -56,6 +62,7 @@ import static org.springframework.transaction.annotation.Isolation.SERIALIZABLE;
 public class ProspectRepositoryImpl implements ProspectRepository {
   public static final String TILE_LAYER = "carreleur";
   public static final String ROOFER = "toiturier";
+  public static final double UNPROCESSED_VALUE = -1.0;
   private final ProspectJpaRepository jpaRepository;
   private final ProspectMapper mapper;
   private final BuildingPermitApi buildingPermitApi;
@@ -66,6 +73,9 @@ public class ProspectRepositoryImpl implements ProspectRepository {
   private final AccountHolderRepository accountHolderRepository;
   private final MunicipalityJpaRepository municipalityJpaRepository;
   private final ExpressifApi expressifApi;
+  private final ProspectEvalMapper evalMapper;
+  private final ProspectEvalInfoJpaRepository evalRepository;
+  private final EntityManager em;
 
   @Override
   public List<Prospect> findAllByIdAccountHolder(String idAccountHolder) {
@@ -114,9 +124,9 @@ public class ProspectRepositoryImpl implements ProspectRepository {
   }
 
   @Override
-  public List<ProspectResult> evaluate(List<ProspectEval> prospectEvals) {
-    List<ProspectResult> prospectResults = new ArrayList<>();
-    for (ProspectEval prospectEval : prospectEvals) {
+  public List<ProspectResult> evaluate(List<ProspectEval> toEvaluate) {
+    List<HProspectEvalInfo> prospectEvalEntities = new ArrayList<>();
+    for (ProspectEval prospectEval : toEvaluate) {
       Instant evaluationDate = Instant.now();
 
       List<InputValue> evalInputs = new ArrayList<>();
@@ -128,26 +138,36 @@ public class ProspectRepositoryImpl implements ProspectRepository {
           .inputValues(evalInputs)
           .build());
 
-      AtomicReference<Double> rating = new AtomicReference<>(-1.0);
+      AtomicReference<Double> prospectRating = new AtomicReference<>(UNPROCESSED_VALUE);
+      AtomicReference<Double> customerRating = new AtomicReference<>(UNPROCESSED_VALUE);
       if (evalResult.isEmpty()) {
         log.warn("[ExpressIF] Any result retrieved from " + evalInputs);
       } else {
         evalResult.forEach(result -> {
-          if (result.getName().equals("Notation de l'ancien client")
-              || result.getName().equals("Notation du prospect")) {
-            rating.set((Double) result.getValue());
+          if (result.getName().equals("Notation du prospect")) {
+            prospectRating.set((Double) result.getValue());
+          } else if (result.getName().equals("Notation de l'ancien client")) {
+            customerRating.set((Double) result.getValue());
           }
         });
       }
-
-      prospectResults.add(ProspectResult.builder()
-          .prospectEval(prospectEval)
-          .evaluationDate(evaluationDate)
-          .rating(rating.get())
-          .build());
+      HProspectEval lastEval =
+          evalMapper.toInfoEntity(prospectEval, evaluationDate,
+              prospectRating.get(), customerRating.get());
+      prospectEvalEntities.add(getInfoEntity(prospectEval, lastEval));
     }
-    //TODO: persist before returning the result
-    return prospectResults;
+    return evalRepository.saveAll(prospectEvalEntities).stream()
+        .map(evalMapper::toResultDomain)
+        .collect(Collectors.toList());
+  }
+
+  private HProspectEvalInfo getInfoEntity(ProspectEval prospectEval, HProspectEval lastEval) {
+    HProspectEvalInfo entity = evalRepository.findById(prospectEval.getId())
+        .orElse(evalMapper.toInfoEntity(prospectEval, getNextEvalReference(), new ArrayList<>()));
+
+    entity.getProspectEvals().add(lastEval);
+
+    return entity;
   }
 
   private void convertEvalRuleAttr(
@@ -219,7 +239,7 @@ public class ProspectRepositoryImpl implements ProspectRepository {
           .value(depaRule.getDistNewIntAndProspect())
           .build());
     }
-    NewIntervention.OldCustomer oldCustomerFact = depaRule.getOldCustomerFact();
+    NewIntervention.OldCustomer oldCustomerFact = depaRule.getOldCustomer();
     if (oldCustomerFact.getProfessionalType() != null) {
       evalInputs.add(InputValue.builder()
           .evaluationDate(evaluationDate)
@@ -330,5 +350,10 @@ public class ProspectRepositoryImpl implements ProspectRepository {
         expectedAmountAttemptedPerDay.operate(todayAsFraction, Aprational::multiply);
     return revenueTargetsInAyear.get().getAmountAttempted().compareTo(expectedAmountAttemptedToday)
         == -1;
+  }
+
+  private Long getNextEvalReference() {
+    Query query = em.createNativeQuery("select nextval('prospect_eval_info_ref_seq');");
+    return ((Number) query.getSingleResult()).longValue();
   }
 }

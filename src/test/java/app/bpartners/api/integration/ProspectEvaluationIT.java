@@ -3,9 +3,10 @@ package app.bpartners.api.integration;
 import app.bpartners.api.SentryConf;
 import app.bpartners.api.endpoint.event.S3Conf;
 import app.bpartners.api.endpoint.rest.model.Area;
+import app.bpartners.api.endpoint.rest.model.ContactNature;
 import app.bpartners.api.endpoint.rest.model.EvaluatedProspect;
 import app.bpartners.api.endpoint.rest.model.Geojson;
-import app.bpartners.api.endpoint.rest.model.Prospect;
+import app.bpartners.api.endpoint.rest.model.InterventionResult;
 import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.integration.conf.AbstractContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
@@ -26,7 +27,9 @@ import app.bpartners.api.service.utils.GeoUtils;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.math.BigDecimal;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -43,17 +46,20 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import static app.bpartners.api.endpoint.rest.model.ProspectStatus.TO_CONTACT;
+import static app.bpartners.api.endpoint.rest.validator.ProspectRestValidator.XLSX_FILE;
 import static app.bpartners.api.integration.conf.TestUtils.BEARER_PREFIX;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_HOLDER_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_TOKEN;
 import static app.bpartners.api.integration.conf.TestUtils.setUpCognito;
 import static app.bpartners.api.integration.conf.TestUtils.setUpLegalFileRepository;
+import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
@@ -97,7 +103,7 @@ class ProspectEvaluationIT {
 
   private static OutputValue<Object> ratingResult() {
     return OutputValue.builder()
-        .name("Notation de l'ancien client")
+        .name("Notation du prospect")
         .value(10.0)
         .build();
   }
@@ -123,44 +129,68 @@ class ProspectEvaluationIT {
         .build()
     );
   }
+ /*
+ TODO: to complete with uploadFile with custom Accept value, application/pdf for example
+ @Test
+  void evaluate_prospects_bad_headers_ko() throws IOException, InterruptedException {
+    File prospectFile = new ClassPathResource("files/prospect-ok.xlsx").getFile();
+   /!\  null value seems not accepted by HttpHeader class
+    assertThrowsBadRequestException("",
+        () -> uploadFile(JOE_DOE_ACCOUNT_HOLDER_ID, prospectFile, null));
+    var actual = uploadFileJson(JOE_DOE_ACCOUNT_HOLDER_ID, prospectFile);
+    assertEquals(500, actual.statusCode());
+  } */
 
   @Test
   void evaluate_prospects_ok() throws IOException, InterruptedException {
     when(expressifApiMock.process(any())).thenReturn(List.of(ratingResult()));
     Resource prospectFile = new ClassPathResource("files/prospect-ok.xlsx");
-    HttpResponse<String> response = uploadFile(JOE_DOE_ACCOUNT_HOLDER_ID, prospectFile.getFile());
+    HttpResponse<String> jsonResponse =
+        uploadFileJson(JOE_DOE_ACCOUNT_HOLDER_ID, prospectFile.getFile());
+    HttpResponse<byte[]> excelResponse =
+        uploadFileExcel(JOE_DOE_ACCOUNT_HOLDER_ID, prospectFile.getFile());
 
-    List<EvaluatedProspect> actual = new ObjectMapper().findAndRegisterModules().readValue(
-        response.body(), new TypeReference<>() {
+    List<EvaluatedProspect> actualJson = new ObjectMapper().findAndRegisterModules().readValue(
+        jsonResponse.body(), new TypeReference<>() {
         });
 
-    assertEquals(5, actual.size());
-    assertTrue(actual.stream().allMatch(
-        evaluatedProspect ->
-            evaluatedProspect.getRating()
-                .equals(BigDecimal.valueOf((Double) ratingResult().getValue()))));
-    assertEquals(expectedProspectEval1(actual), actual.get(0));
+    assertEquals(HttpStatus.OK.value(), excelResponse.statusCode());
+    assertEquals(5, actualJson.size());
+    assertEquals(expectedProspectEval1(actualJson).reference(actualJson.get(0).getReference()),
+        actualJson.get(0));
+    /*
+    /!\ Uncomment only for local test use case
+    var actualExcel = excelResponse.body();
+    File generatedFile = new File("prospects-" + randomUUID() + ".xlsx");
+    OutputStream os = new FileOutputStream(generatedFile);
+    os.write(actualExcel);
+    os.close();
+    */
   }
 
   private static EvaluatedProspect expectedProspectEval1(List<EvaluatedProspect> actual) {
     return new EvaluatedProspect()
         .evaluationDate(actual.get(0).getEvaluationDate())
-        .prospect(new Prospect()
-            .id(actual.get(0).getProspect().getId())
-            .name("Da Vito")
-            .email("davide@liquidcorp.fr")
-            .phone("09 50 73 12 99 ")
-            .address("5 Rue Sedaine, 75011 Paris")
-            .status(TO_CONTACT)
-            .townCode(75011)
-            .area(new Area()
-                .image(null)
-                .geojson(defaultGeoJson()))
-            .location(defaultGeoJson()))
-        .rating(BigDecimal.valueOf((Double) ratingResult().getValue()));
+        .id(actual.get(0).getId())
+        .reference(String.valueOf(1))
+        .name("Da Vito")
+        .email("davide@liquidcorp.fr")
+        .phone("09 50 73 12 99 ")
+        .address("5 Rue Sedaine, 75011 Paris")
+        .townCode(75011)
+        .city("Paris")
+        .managerName("Viviane TAING")
+        .contactNature(ContactNature.PROSPECT)
+        .area(new Area().geojson(defaultGeoJson()))
+        .interventionResult(
+            new InterventionResult()
+                .address("15 Rue Marbeuf, 75008 Paris, France")
+                .distanceFromProspect(BigDecimal.valueOf(0.0))
+                .value(BigDecimal.valueOf((Double) ratingResult().getValue())));
   }
 
-  private HttpResponse<String> uploadFile(String accountHolderId, File toUpload)
+  private HttpResponse<String> uploadFileJson(
+      String accountHolderId, File toUpload)
       throws IOException, InterruptedException {
     HttpClient unauthenticatedClient = HttpClient.newBuilder().build();
     String basePath = "http://localhost:" + ProspectEvaluationIT.ContextInitializer.SERVER_PORT;
@@ -169,10 +199,26 @@ class ProspectEvaluationIT {
             .uri(URI.create(basePath + "/accountHolders/" + accountHolderId + "/prospects"
                 + "/prospectsEvaluation"))
             .header("Authorization", BEARER_PREFIX + JOE_DOE_TOKEN)
+            .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
             .method("POST", HttpRequest.BodyPublishers.ofFile(toUpload.toPath())).build(),
         HttpResponse.BodyHandlers.ofString());
 
     return response;
+  }
+
+  private HttpResponse<byte[]> uploadFileExcel(
+      String accountHolderId, File toUpload)
+      throws IOException, InterruptedException {
+    HttpClient unauthenticatedClient = HttpClient.newBuilder().build();
+    String basePath = "http://localhost:" + ProspectEvaluationIT.ContextInitializer.SERVER_PORT;
+
+    return unauthenticatedClient.send(HttpRequest.newBuilder()
+            .uri(URI.create(basePath + "/accountHolders/" + accountHolderId + "/prospects"
+                + "/prospectsEvaluation"))
+            .header("Authorization", BEARER_PREFIX + JOE_DOE_TOKEN)
+            .header(HttpHeaders.ACCEPT, XLSX_FILE)
+            .method("POST", HttpRequest.BodyPublishers.ofFile(toUpload.toPath())).build(),
+        HttpResponse.BodyHandlers.ofByteArray());
   }
 
   static class ContextInitializer extends AbstractContextInitializer {

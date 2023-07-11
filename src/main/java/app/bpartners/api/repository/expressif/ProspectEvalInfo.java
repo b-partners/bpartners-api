@@ -1,4 +1,4 @@
-package app.bpartners.api.expressif;
+package app.bpartners.api.repository.expressif;
 
 import app.bpartners.api.service.utils.GeoUtils;
 import java.util.Date;
@@ -15,7 +15,8 @@ import lombok.ToString;
 @Builder
 @EqualsAndHashCode
 @ToString
-public class NewProspect {
+public class ProspectEvalInfo {
+  private Long reference;
   private String name;
   private String website;
   private String address;
@@ -32,6 +33,6 @@ public class NewProspect {
   private GeoUtils.Coordinate coordinates;
 
   public enum ContactNature {
-    PROSPECT, OTHER
+    PROSPECT, OLD_CUSTOMER, OTHER
   }
 }

@@ -19,8 +19,9 @@ import lombok.ToString;
 @NoArgsConstructor
 @EqualsAndHashCode
 @ToString
-public class Prospect {
+public class Prospect implements Comparable<Prospect> {
   private String id;
+  private String idHolderOwner;
   private String name;
   private String email;
   private String phone;
@@ -29,6 +30,16 @@ public class Prospect {
   private ProspectStatus status;
   private Integer townCode;
   private ProspectRating rating;
+
+  @Override
+  public int compareTo(Prospect o) {
+    if (this.getRating().getValue() < o.getRating().getValue()) {
+      return -1;
+    } else if (this.getRating().getValue() > o.getRating().getValue()) {
+      return 1;
+    }
+    return 0;
+  }
 
   @Data
   @Builder

@@ -7,6 +7,7 @@ import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.repository.SogefiBuildingPermitRepository;
 import app.bpartners.api.repository.jpa.ProspectJpaRepository;
 import app.bpartners.api.repository.jpa.model.HProspect;
+import java.time.Instant;
 import java.util.Optional;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,7 +19,6 @@ import org.springframework.stereotype.Component;
 public class ProspectMapper {
 
   private final AuthenticatedResourceProvider provider;
-  private final SogefiBuildingPermitRepository sogefiRepository;
   private final ProspectJpaRepository jpaRepository;
 
   public HProspect toEntity(Prospect domain) {
@@ -27,6 +27,15 @@ public class ProspectMapper {
       throw new NotFoundException("Prospect." + domain.getId() + " not found. ");
     }
     HProspect existing = optionalProspect.get();
+    return toEntity(domain,
+        provider.getDefaultAccountHolder().getId(),
+        existing.getRating(),
+        existing.getLastEvaluationDate());
+  }
+
+  public HProspect toEntity(Prospect domain, String prospectOwnerId, Double rating,
+                            Instant lastEvaluationDate) {
+    Geojson location = domain.getLocation();
     return HProspect.builder()
         .id(domain.getId())
         .phone(domain.getPhone())
@@ -34,23 +43,19 @@ public class ProspectMapper {
         .email(domain.getEmail())
         .status(domain.getStatus())
         .address(domain.getAddress())
-        .idAccountHolder(provider.getDefaultAccountHolder().getId())
+        .idAccountHolder(prospectOwnerId)
         .townCode(domain.getTownCode())
-        .rating(existing.getRating())
-        .lastEvaluationDate(existing.getLastEvaluationDate())
+        .rating(rating)
+        .lastEvaluationDate(lastEvaluationDate)
+        .posLongitude(location == null ? null : location.getLongitude())
+        .posLatitude(location == null ? null : location.getLatitude())
         .build();
   }
 
-  public Prospect toDomain(HProspect entity, boolean isSogefiProspector) {
-    Geojson location = null;
-    if (isSogefiProspector) {
-      location = sogefiRepository.findLocationByIdProspect(entity.getId());
-      if (location == null) {
-        log.warn("Prospect." + entity.getId() + " not found in prospecting database.");
-      }
-    }
+  public Prospect toDomain(HProspect entity, Geojson location) {
     return Prospect.builder()
         .id(entity.getId())
+        .idHolderOwner(entity.getIdAccountHolder())
         .email(entity.getEmail())
         .address(entity.getAddress())
         .name(entity.getName())

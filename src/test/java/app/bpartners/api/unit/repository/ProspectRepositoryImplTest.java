@@ -50,7 +50,7 @@ class ProspectRepositoryImplTest {
   @BeforeEach
   void setUp() {
     prospectJpaRepositoryMock = mock(ProspectJpaRepository.class);
-    prospectMapper = new ProspectMapper(resourceProviderMock, sogefiBuildingPermitRepositoryMock,
+    prospectMapper = new ProspectMapper(resourceProviderMock,
         prospectJpaRepositoryMock);
     buildingPermitApiMock = mock(BuildingPermitApi.class);
     sogefiBuildingPermitRepositoryMock = mock(SogefiBuildingPermitRepository.class);
@@ -67,7 +67,7 @@ class ProspectRepositoryImplTest {
         new ProspectRepositoryImpl(prospectJpaRepositoryMock, prospectMapper, buildingPermitApiMock,
             sogefiBuildingPermitRepositoryMock, businessActivityServiceMock, resourceProviderMock,
             revenueTargetServiceMock, accountHolderRepositoryMock, municipalityJpaRepositoryMock,
-            expressifApiMock, evalMapperMock, evalInfoJpaRepositoryMock, em);
+            expressifApiMock, evalMapperMock, evalInfoJpaRepositoryMock, em, sogefiBuildingPermitRepositoryMock);
     when(revenueTargetServiceMock.getByYear(JOE_DOE_ACCOUNT_ID, 2023)).thenReturn(
         Optional.ofNullable(
             AnnualRevenueTarget.builder()

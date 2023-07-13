@@ -36,6 +36,7 @@ public class InvoiceRelaunchSavedService implements Consumer<InvoiceRelaunchSave
   @Override
   public void accept(InvoiceRelaunchSaved invoiceRelaunchSaved) {
     String recipient = invoiceRelaunchSaved.getRecipient();
+    String concerned = invoiceRelaunchSaved.getInvoice().getUser().getEmail();
     String subject = invoiceRelaunchSaved.getSubject();
     String htmlBody = invoiceRelaunchSaved.getHtmlBody();
     String attachmentName = invoiceRelaunchSaved.getAttachmentName();
@@ -70,7 +71,7 @@ public class InvoiceRelaunchSavedService implements Consumer<InvoiceRelaunchSave
     attachments.add(attachment);
     invoiceRelaunchSaved.setAttachments(attachments);
     try {
-      service.sendEmail(recipient, subject, htmlBody, attachments);
+      service.sendEmail(recipient, concerned, subject, htmlBody, attachments);
       log.info("Email sent from "
           + invoice.getActualAccount().describeMinInfos() + " to " + recipient);
     } catch (MessagingException | IOException e) {

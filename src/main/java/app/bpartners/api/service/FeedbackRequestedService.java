@@ -26,7 +26,7 @@ public class FeedbackRequestedService implements Consumer<FeedbackRequested> {
     List<Attachment> attachment = List.of();
     recipients.forEach(recipient -> {
       try {
-        service.sendEmail(recipient, subject, htmlBody, attachment);
+        service.sendEmail(recipient, null, subject, htmlBody, attachment);
       } catch (MessagingException | IOException e) {
         log.error("Email not sent : " + e.getMessage());
       }

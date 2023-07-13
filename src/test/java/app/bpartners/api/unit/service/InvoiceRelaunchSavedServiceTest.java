@@ -43,7 +43,7 @@ class InvoiceRelaunchSavedServiceTest {
     invoiceRelaunchSavedService =
         new InvoiceRelaunchSavedService(sesService, fileService);
 
-    doNothing().when(sesService).sendEmail(any(), any(), any(), any());
+    doNothing().when(sesService).sendEmail(any(), any(), any(), any(), any());
     when(fileService.downloadOptionalFile(any(), any(), any())).thenReturn(List.of(logoAsBytes));
   }
 
@@ -64,7 +64,7 @@ class InvoiceRelaunchSavedServiceTest {
         .attachments(List.of())
         .build());
 
-    verify(sesService, times(1)).sendEmail(eq(recipient), eq(subject), eq(htmlBody), any());
+    verify(sesService, times(1)).sendEmail(eq(recipient), any(), eq(subject), eq(htmlBody), any());
   }
 
   Invoice invoice() {

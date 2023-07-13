@@ -202,7 +202,7 @@ class DraftIT {
         + "<p>Bien à vous et merci pour votre confiance.</p>"
         + "</body></html>";
     assertDoesNotThrow(() -> this.subject.verifyEmailIdentity(recipient));
-    assertDoesNotThrow(() -> this.subject.sendEmail(recipient, subject, htmlBody,
+    assertDoesNotThrow(() -> this.subject.sendEmail(recipient, null, subject, htmlBody,
         List.of(attachment, secondAttachment)));
   }
 

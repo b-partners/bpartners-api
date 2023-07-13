@@ -20,6 +20,7 @@ import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 import javax.mail.util.ByteArrayDataSource;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.SdkBytes;
@@ -30,6 +31,7 @@ import software.amazon.awssdk.services.ses.model.SendRawEmailRequest;
 import software.amazon.awssdk.services.ses.model.VerifyEmailIdentityRequest;
 
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
+import static javax.mail.Message.RecipientType.CC;
 import static javax.mail.Message.RecipientType.TO;
 
 @Service
@@ -46,12 +48,12 @@ public class SesService {
     }
   }
 
-  public void sendEmail(String recipient, String subject, String htmlBody,
+  public void sendEmail(String recipient, String concerned, String subject, String htmlBody,
                         List<Attachment> attachments)
       throws IOException, MessagingException {
 
     Session session = Session.getDefaultInstance(new Properties());
-    MimeMessage mimeMessage = configureMimeMessage(session, subject, recipient);
+    MimeMessage mimeMessage = configureMimeMessage(session, subject, recipient, concerned);
     MimeBodyPart htmlPart = configureHtmlPart(htmlBody);
     List<MimeBodyPart> attachmentsAsMimeBodyPart = attachments.stream()
         .map(this::toMimeBodyPart)
@@ -89,13 +91,17 @@ public class SesService {
     }
   }
 
-  private MimeMessage configureMimeMessage(Session session, String subject, String recipient)
+  private MimeMessage configureMimeMessage(Session session, String subject, String recipient,
+                                           String concerned)
       throws MessagingException {
     MimeMessage message = new MimeMessage(session);
     // Add subject, from and to lines.
     message.setSubject(subject, "UTF-8");
     message.setFrom(new InternetAddress(eventConf.getSesSource()));
     message.setRecipients(TO, InternetAddress.parse(recipient));
+    if (concerned != null) {
+      message.setRecipients(CC, InternetAddress.parse(concerned));
+    }
     return message;
   }
 

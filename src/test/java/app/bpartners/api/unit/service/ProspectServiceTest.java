@@ -51,7 +51,7 @@ class ProspectServiceTest {
   void should_send_email() throws MessagingException, IOException {
     subject.prospect();
 
-    verify(sesServiceMock, times(1)).sendEmail(any(), any(), any(), any());
+    verify(sesServiceMock, times(1)).sendEmail(any(), any(), any(), any(), any());
   }
 
   @Test
@@ -62,6 +62,6 @@ class ProspectServiceTest {
 
     subject.prospect();
 
-    verify(sesServiceMock, never()).sendEmail(any(), any(), any(), any());
+    verify(sesServiceMock, never()).sendEmail(any(), any(), any(), any(), any());
   }
 }

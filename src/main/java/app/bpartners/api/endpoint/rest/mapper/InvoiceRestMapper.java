@@ -45,6 +45,33 @@ public class InvoiceRestMapper {
   private final CrupdateInvoiceValidator crupdateInvoiceValidator;
   private final ArchiveInvoiceValidator archiveValidator;
 
+  private static PaymentRegulation getPaymentRegulation(
+      Fraction totalPrice, CreatePaymentRegulation paymentRegulation) {
+    app.bpartners.api.model.PaymentRequest payment = paymentRegulation.getPaymentRequest();
+    return new PaymentRegulation()
+        .maturityDate(paymentRegulation.getMaturityDate())
+        .comment(paymentRegulation.getComment())
+        .paymentRequest(new PaymentRequest()
+            .id(payment.getId())
+            .reference(payment.getReference())
+            .paymentUrl(payment.getPaymentUrl())
+            .label(payment.getLabel())
+            .amount(payment.getAmount().getCentsRoundUp())
+            .percentValue(
+                totalPrice.getApproximatedValue() == 0
+                    ? 0 :
+                    payment.getAmount().operate(totalPrice,
+                        (amount, price) -> {
+                          amount = amount.divide(new Aprational(100));
+                          price = price.divide(new Aprational(100));
+                          return amount.divide(price).multiply(new Aprational(10000));
+                        }).getCentsRoundUp())
+            .payerName(payment.getPayerName())
+            .payerEmail(payment.getPayerEmail())
+            .paymentUrl(payment.getPaymentUrl())
+            .initiatedDatetime(paymentRegulation.getInitiatedDatetime()));
+  }
+
   public Invoice toRest(app.bpartners.api.model.Invoice domain) {
     if (domain == null) {
       return null;
@@ -183,32 +210,6 @@ public class InvoiceRestMapper {
         .comment(invoicePayment.getComment())
         .maturityDate(invoicePayment.getMaturityDate())
         .build();
-  }
-
-  private static PaymentRegulation getPaymentRegulation(
-      Fraction totalPrice, CreatePaymentRegulation paymentRegulation) {
-    app.bpartners.api.model.PaymentRequest payment = paymentRegulation.getPaymentRequest();
-    return new PaymentRegulation()
-        .maturityDate(paymentRegulation.getMaturityDate())
-        .paymentRequest(new PaymentRequest()
-            .id(payment.getId())
-            .reference(payment.getReference())
-            .paymentUrl(payment.getPaymentUrl())
-            .label(payment.getLabel())
-            .amount(payment.getAmount().getCentsRoundUp())
-            .percentValue(
-                totalPrice.getApproximatedValue() == 0
-                    ? 0 :
-                    payment.getAmount().operate(totalPrice,
-                        (amount, price) -> {
-                          amount = amount.divide(new Aprational(100));
-                          price = price.divide(new Aprational(100));
-                          return amount.divide(price).multiply(new Aprational(10000));
-                        }).getCentsRoundUp())
-            .payerName(payment.getPayerName())
-            .payerEmail(payment.getPayerEmail())
-            .paymentUrl(payment.getPaymentUrl())
-            .initiatedDatetime(paymentRegulation.getInitiatedDatetime()));
   }
 
   private app.bpartners.api.model.InvoiceDiscount getDiscount(

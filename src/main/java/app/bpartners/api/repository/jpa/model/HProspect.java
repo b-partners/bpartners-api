@@ -44,6 +44,8 @@ public class HProspect {
   @Enumerated(EnumType.STRING)
   private ProspectStatus status;
   private Integer townCode;
+  private Double posLongitude;
+  private Double posLatitude;
   private Double rating;
   private Instant lastEvaluationDate;
 }

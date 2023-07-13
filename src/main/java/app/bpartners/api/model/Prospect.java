@@ -21,6 +21,7 @@ import lombok.ToString;
 @ToString
 public class Prospect {
   private String id;
+  private String idHolderOwner;
   private String name;
   private String email;
   private String phone;

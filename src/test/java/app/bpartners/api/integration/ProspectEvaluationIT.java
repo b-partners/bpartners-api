@@ -1,18 +1,22 @@
 package app.bpartners.api.integration;
 
 import app.bpartners.api.SentryConf;
+import app.bpartners.api.endpoint.event.EventPoller;
 import app.bpartners.api.endpoint.event.S3Conf;
 import app.bpartners.api.endpoint.rest.model.Area;
 import app.bpartners.api.endpoint.rest.model.ContactNature;
 import app.bpartners.api.endpoint.rest.model.EvaluatedProspect;
 import app.bpartners.api.endpoint.rest.model.Geojson;
 import app.bpartners.api.endpoint.rest.model.InterventionResult;
+import app.bpartners.api.endpoint.rest.model.ProspectStatus;
 import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.integration.conf.AbstractContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
 import app.bpartners.api.manager.ProjectTokenManager;
+import app.bpartners.api.model.Prospect;
 import app.bpartners.api.repository.AccountConnectorRepository;
 import app.bpartners.api.repository.LegalFileRepository;
+import app.bpartners.api.repository.ProspectRepository;
 import app.bpartners.api.repository.ban.BanApi;
 import app.bpartners.api.repository.ban.model.GeoPosition;
 import app.bpartners.api.repository.bridge.BridgeApi;
@@ -27,20 +31,21 @@ import app.bpartners.api.service.utils.GeoUtils;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.math.BigDecimal;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.List;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -49,6 +54,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
@@ -58,8 +64,9 @@ import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_HOLDE
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_TOKEN;
 import static app.bpartners.api.integration.conf.TestUtils.setUpCognito;
 import static app.bpartners.api.integration.conf.TestUtils.setUpLegalFileRepository;
-import static java.util.UUID.randomUUID;
+import static app.bpartners.api.service.ProspectService.DEFAULT_RATING_PROSPECT_TO_CONVERT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
@@ -72,6 +79,8 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @Slf4j
 class ProspectEvaluationIT {
   public static final String PROFESSION_RULE = "DEPANNEUR";
+  @MockBean
+  private EventPoller poller;
   @MockBean
   private PaymentScheduleService paymentScheduleService;
   @MockBean
@@ -100,6 +109,8 @@ class ProspectEvaluationIT {
   private BanApi banApiMock;
   @MockBean
   private ExpressifApi expressifApiMock;
+  @Autowired
+  private ProspectRepository prospectRepository;
 
   private static OutputValue<Object> ratingResult() {
     return OutputValue.builder()
@@ -153,11 +164,21 @@ class ProspectEvaluationIT {
     List<EvaluatedProspect> actualJson = new ObjectMapper().findAndRegisterModules().readValue(
         jsonResponse.body(), new TypeReference<>() {
         });
+    List<Prospect> actualProspect =
+        prospectRepository.findAllByIdAccountHolder(JOE_DOE_ACCOUNT_HOLDER_ID).stream()
+            .peek(prospect -> prospect.setId(null))
+            .collect(Collectors.toList());
+    List<Prospect> fromEvaluated = actualJson.stream()
+        .filter(hasRatingOverDefault())
+        .map(ProspectEvaluationIT::convertToDomain)
+        .collect(Collectors.toList());
 
     assertEquals(HttpStatus.OK.value(), excelResponse.statusCode());
     assertEquals(5, actualJson.size());
     assertEquals(expectedProspectEval1(actualJson).reference(actualJson.get(0).getReference()),
         actualJson.get(0));
+    assertTrue(actualProspect.containsAll(fromEvaluated));
+
     /*
     /!\ Uncomment only for local test use case
     var actualExcel = excelResponse.body();
@@ -166,6 +187,32 @@ class ProspectEvaluationIT {
     os.write(actualExcel);
     os.close();
     */
+  }
+
+  private static Predicate<EvaluatedProspect> hasRatingOverDefault() {
+    return evaluated -> evaluated.getInterventionResult() != null
+        && evaluated.getInterventionResult().getValue().doubleValue()
+        >= DEFAULT_RATING_PROSPECT_TO_CONVERT;
+  }
+
+  private static Prospect convertToDomain(EvaluatedProspect evaluated) {
+    return Prospect.builder()
+        .idHolderOwner(JOE_DOE_ACCOUNT_HOLDER_ID)
+        .name(evaluated.getName())
+        .email(evaluated.getEmail())
+        .phone(evaluated.getPhone())
+        .address(evaluated.getAddress())
+        .status(ProspectStatus.TO_CONTACT)
+        .townCode(evaluated.getTownCode())
+        .location(new Geojson()
+            .latitude(evaluated.getArea().getGeojson().getLatitude())
+            .longitude(evaluated.getArea().getGeojson().getLongitude())
+        )
+        .rating(Prospect.ProspectRating.builder()
+            .value(evaluated.getInterventionResult().getValue().doubleValue())
+            .lastEvaluationDate(evaluated.getEvaluationDate())
+            .build())
+        .build();
   }
 
   private static EvaluatedProspect expectedProspectEval1(List<EvaluatedProspect> actual) {

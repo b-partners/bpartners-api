@@ -215,7 +215,7 @@ class ProspectIT {
 
     List<Prospect> actual = api.getProspects(ACCOUNTHOLDER_ID);
 
-    assertEquals(2, actual.size());
+    assertEquals(7, actual.size());
     assertTrue(actual.contains(prospect1()));
     assertTrue(actual.contains(prospect2()));
     assertFalse(actual.contains(prospect3()));

@@ -176,7 +176,7 @@ class AccountHolderIT {
         .email(companyInfo().getEmail())
         .phone(companyInfo().getPhone())
         .socialCapital(companyInfo().getSocialCapital())
-        .tvaNumber(joeDoeAccountHolder().getCompanyInfo().getTvaNumber())
+        .tvaNumber("FR12323456789")
         .location(location()
             .latitude(43.5)
             .longitude(2.5))

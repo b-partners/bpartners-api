@@ -1270,6 +1270,8 @@ components:
         maturityDate:
           type: string
           format: date
+        comment:
+          type: string
     InvoiceStatus:
       type: string
       enum:

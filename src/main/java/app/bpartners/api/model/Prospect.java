@@ -2,8 +2,10 @@ package app.bpartners.api.model;
 
 import app.bpartners.api.endpoint.rest.model.Geojson;
 import app.bpartners.api.endpoint.rest.model.ProspectStatus;
+import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -26,4 +28,16 @@ public class Prospect {
   private String address;
   private ProspectStatus status;
   private Integer townCode;
+  private ProspectRating rating;
+
+  @Data
+  @Builder
+  @AllArgsConstructor
+  @NoArgsConstructor
+  @EqualsAndHashCode
+  @ToString
+  public static class ProspectRating {
+    private Double value;
+    private Instant lastEvaluationDate;
+  }
 }

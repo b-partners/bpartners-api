@@ -109,9 +109,6 @@ class InvoiceRelaunchIT {
     return new InvoiceRelaunch()
         .id(INVOICE_RELAUNCH1_ID)
         .type(RelaunchType.PROPOSAL)
-        .invoice(invoice1()
-            .createdAt(null)
-            .updatedAt(null))
         .accountId(JOE_DOE_ACCOUNT_ID)
         .isUserRelaunched(true)
         .emailInfo(new EmailInfo())
@@ -135,10 +132,6 @@ class InvoiceRelaunchIT {
     return new InvoiceRelaunch()
         .id(INVOICE_RELAUNCH2_ID)
         .type(RelaunchType.CONFIRMED)
-        .invoice(invoice1()
-            .createdAt(null)
-            .updatedAt(null)
-        )
         .accountId(JOE_DOE_ACCOUNT_ID)
         .isUserRelaunched(false)
         .emailInfo(new EmailInfo())
@@ -162,10 +155,6 @@ class InvoiceRelaunchIT {
 
   InvoiceRelaunch expectedRelaunch() throws IOException {
     return new InvoiceRelaunch()
-        .invoice(invoice1()
-            .createdAt(null)
-            .updatedAt(null)
-        )
         .type(RelaunchType.CONFIRMED)
         .accountId(JOE_DOE_ACCOUNT_ID)
         .emailInfo(new EmailInfo()
@@ -196,16 +185,9 @@ class InvoiceRelaunchIT {
 
     InvoiceRelaunch actual =
         api.relaunchInvoice(JOE_DOE_ACCOUNT_ID, INVOICE1_ID, creatableInvoiceRelaunch());
-    actual.setInvoice(actual.getInvoice()
-        .createdAt(null)
-        .updatedAt(null));
     actual.setAttachments(ignoreFileIdsOf(actual.getAttachments()));
     InvoiceRelaunch otherActual =
         api.relaunchInvoice(JOE_DOE_ACCOUNT_ID, INVOICE1_ID, otherCreatableInvoiceRelaunch());
-    otherActual.setInvoice(otherActual.getInvoice()
-        .createdAt(null)
-        .updatedAt(null));
-
     assertEquals(
         expectedRelaunch()
             .id(actual.getId())
@@ -234,16 +216,13 @@ class InvoiceRelaunchIT {
     List<InvoiceRelaunch> confirmed =
         api.getRelaunches(JOE_DOE_ACCOUNT_ID, INVOICE1_ID, 1, 20,
             RelaunchType.CONFIRMED.toString());
-    List<InvoiceRelaunch> actualWithoutUpdatedDate = ignoreDates(actual);
-    List<InvoiceRelaunch> proposalsWithoutUpdatedDate = ignoreDates(proposals);
-    List<InvoiceRelaunch> confirmedWithoutUpdatedDate = ignoreDates(confirmed);
 
-    assertTrue(actualWithoutUpdatedDate.contains(invoiceRelaunch1()));
-    assertFalse(confirmedWithoutUpdatedDate.contains(invoiceRelaunch1()));
-    assertTrue(proposalsWithoutUpdatedDate.contains(invoiceRelaunch1()));
-    assertTrue(actualWithoutUpdatedDate.contains(invoiceRelaunch2()));
-    assertFalse(proposalsWithoutUpdatedDate.contains(invoiceRelaunch2()));
-    assertTrue(confirmedWithoutUpdatedDate.contains(invoiceRelaunch2()));
+    assertTrue(actual.contains(invoiceRelaunch1()));
+    assertFalse(confirmed.contains(invoiceRelaunch1()));
+    assertTrue(proposals.contains(invoiceRelaunch1()));
+    assertTrue(actual.contains(invoiceRelaunch2()));
+    assertFalse(proposals.contains(invoiceRelaunch2()));
+    assertTrue(confirmed.contains(invoiceRelaunch2()));
   }
 
   @Test
@@ -279,15 +258,6 @@ class InvoiceRelaunchIT {
             + "Invoice.invoice8_id is already DISABLED."
             + "\"}",
         () -> api.relaunchInvoice(JOE_DOE_ACCOUNT_ID, INVOICE8_ID, creatableInvoiceRelaunch()));
-  }
-
-  private List<InvoiceRelaunch> ignoreDates(List<InvoiceRelaunch> list) {
-    return list.stream()
-        .peek(invoiceRelaunch -> {
-          invoiceRelaunch.getInvoice().setUpdatedAt(null);
-          invoiceRelaunch.getInvoice().setCreatedAt(null);
-        })
-        .collect(Collectors.toUnmodifiableList());
   }
 
   private List<Attachment> ignoreFileIdsOf(List<Attachment> attachments) {

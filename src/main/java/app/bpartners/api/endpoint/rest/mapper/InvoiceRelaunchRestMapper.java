@@ -61,7 +61,6 @@ public class InvoiceRelaunchRestMapper {
     return new InvoiceRelaunch()
         .id(domain.getId())
         .type(domain.getType())
-        .invoice(invoiceRestMapper.toRest(domain.getInvoice()))
         .isUserRelaunched(domain.isUserRelaunched())
         .creationDatetime(domain.getCreationDatetime())
         .emailInfo(new EmailInfo()

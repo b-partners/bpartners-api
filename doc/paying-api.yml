@@ -1116,8 +1116,6 @@ components:
           type: string
         type:
           $ref: '#/components/schemas/RelaunchType'
-        invoice:
-          $ref: '#/components/schemas/Invoice'
         emailInfo:
           $ref: '#/components/schemas/EmailInfo'
         accountId:

@@ -33,6 +33,10 @@ public class Prospect implements Comparable<Prospect> {
 
   @Override
   public int compareTo(Prospect o) {
+    if (rating == null || rating.getValue() == null
+        && (o.getRating() == null || o.getRating().getValue() == null)) {
+      return 0;
+    }
     if (this.getRating().getValue() < o.getRating().getValue()) {
       return -1;
     } else if (this.getRating().getValue() > o.getRating().getValue()) {

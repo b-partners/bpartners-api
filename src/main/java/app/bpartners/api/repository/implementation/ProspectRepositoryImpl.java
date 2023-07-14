@@ -102,12 +102,14 @@ public class ProspectRepositoryImpl implements ProspectRepository {
         .collect(toUnmodifiableList());
     if (isSogefiProspector) {
       BuildingPermitList buildingPermitList = buildingPermitApi.getBuildingPermitList(townCodes);
-      buildingPermitList.getRecords().forEach(buildingPermit -> {
-        SingleBuildingPermit singleBuildingPermit =
-            buildingPermitApi.getSingleBuildingPermit(String.valueOf(buildingPermit.getFileId()));
-        sogefiBuildingPermitRepository.saveByBuildingPermit(idAccountHolder, buildingPermit,
-            singleBuildingPermit);
-      });
+      if (buildingPermitList != null && buildingPermitList.getRecords() != null) {
+        buildingPermitList.getRecords().forEach(buildingPermit -> {
+          SingleBuildingPermit singleBuildingPermit =
+              buildingPermitApi.getSingleBuildingPermit(String.valueOf(buildingPermit.getFileId()));
+          sogefiBuildingPermitRepository.saveByBuildingPermit(idAccountHolder, buildingPermit,
+              singleBuildingPermit);
+        });
+      }
     }
     //TODO: why do prospects must be filtered by town code
     // while it is already attached to account holder ?

@@ -267,6 +267,8 @@ components:
       allOf:
         - $ref: '#/components/schemas/UpdateProspect'
       properties:
+        rating:
+          $ref: '#/components/schemas/ProspectRating'
         area:
           $ref: '#/components/schemas/Area'
         #deprecated, will be replaced by area
@@ -319,3 +321,12 @@ components:
         - PROSPECT
         - OLD_CUSTOMER
         - OTHER
+    ProspectRating:
+      type: object
+      properties:
+        value:
+          type: number
+          description: -1 if rating is unknown. Otherwise, value must be between 0.0 and 10.0
+        lastEvaluation:
+          type: string
+          format: date-time

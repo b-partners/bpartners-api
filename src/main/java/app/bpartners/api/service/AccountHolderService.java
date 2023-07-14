@@ -54,6 +54,9 @@ public class AccountHolderService {
         .townCode(companyInfo == null || companyInfo.getTownCode() == null
             ? accountHolder.getTownCode()
             : companyInfo.getTownCode())
+        .vatNumber(companyInfo == null || companyInfo.getTvaNumber() == null
+            ? accountHolder.getVatNumber()
+            : companyInfo.getTvaNumber())
         .build());
   }
 

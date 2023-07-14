@@ -1,5 +1,6 @@
 package app.bpartners.api.repository.implementation;
 
+import app.bpartners.api.endpoint.rest.model.Geojson;
 import app.bpartners.api.endpoint.rest.security.AuthenticatedResourceProvider;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.AnnualRevenueTarget;
@@ -76,6 +77,7 @@ public class ProspectRepositoryImpl implements ProspectRepository {
   private final ProspectEvalMapper evalMapper;
   private final ProspectEvalInfoJpaRepository evalRepository;
   private final EntityManager em;
+  private final SogefiBuildingPermitRepository sogefiRepository;
 
   @Override
   public List<Prospect> findAllByIdAccountHolder(String idAccountHolder) {
@@ -100,17 +102,21 @@ public class ProspectRepositoryImpl implements ProspectRepository {
         .collect(toUnmodifiableList());
     if (isSogefiProspector) {
       BuildingPermitList buildingPermitList = buildingPermitApi.getBuildingPermitList(townCodes);
-      buildingPermitList.getRecords().forEach(buildingPermit -> {
-        SingleBuildingPermit singleBuildingPermit =
-            buildingPermitApi.getSingleBuildingPermit(String.valueOf(buildingPermit.getFileId()));
-        sogefiBuildingPermitRepository.saveByBuildingPermit(idAccountHolder, buildingPermit,
-            singleBuildingPermit);
-      });
+      if (buildingPermitList != null && buildingPermitList.getRecords() != null) {
+        buildingPermitList.getRecords().forEach(buildingPermit -> {
+          SingleBuildingPermit singleBuildingPermit =
+              buildingPermitApi.getSingleBuildingPermit(String.valueOf(buildingPermit.getFileId()));
+          sogefiBuildingPermitRepository.saveByBuildingPermit(idAccountHolder, buildingPermit,
+              singleBuildingPermit);
+        });
+      }
     }
-    return jpaRepository
-        .findAllByIdAccountHolderAndTownCodeIsIn(idAccountHolder, townCodesAsInt).stream()
-        .map(prospect -> mapper.toDomain(prospect, isSogefiProspector))
-        .collect(toUnmodifiableList());
+    //TODO: why do prospects must be filtered by town code
+    // while it is already attached to account holder ?
+    return jpaRepository.findAllByIdAccountHolder(idAccountHolder).stream()
+        .map(prospect -> toDomain(isSogefiProspector, prospect))
+        .sorted()
+        .collect(Collectors.toList());
   }
 
   public boolean isSogefiProspector(String idAccountHolder) {
@@ -327,8 +333,46 @@ public class ProspectRepositoryImpl implements ProspectRepository {
     List<HProspect> entities =
         prospects.stream().map(mapper::toEntity).collect(toUnmodifiableList());
     return jpaRepository.saveAll(entities).stream()
-        .map(entity -> mapper.toDomain(entity, isSogefiProspector))
+        .map(entity -> toDomain(isSogefiProspector, entity))
         .collect(toUnmodifiableList());
+  }
+
+  private Prospect toDomain(boolean isSogefiProspector, HProspect entity) {
+    Geojson domainGeojson =
+        entity.getPosLatitude() == null && entity.getPosLongitude() == null ? null
+            : new Geojson()
+            .latitude(entity.getPosLatitude())
+            .longitude(entity.getPosLongitude());
+    Geojson location = domainGeojson;
+    if (isSogefiProspector) {
+      location = sogefiRepository.findLocationByIdProspect(entity.getId());
+      if (location == null) {
+        location = domainGeojson;
+        log.warn("Prospect." + entity.getId() + " not found in prospecting database.");
+      }
+    }
+    return mapper.toDomain(entity, location);
+  }
+
+  @Override
+  public List<Prospect> create(List<Prospect> prospects) {
+    List<HProspect> toSave = prospects.stream()
+        .map(prospect -> {
+          Prospect.ProspectRating prospectRating = prospect.getRating();
+          return mapper.toEntity(
+              prospect,
+              prospect.getIdHolderOwner(),
+              prospectRating.getValue(),
+              prospectRating.getLastEvaluationDate());
+        })
+        .collect(Collectors.toList());
+    return jpaRepository.saveAll(toSave).stream()
+        .map(prospect -> mapper.toDomain(prospect,
+            prospect.getPosLatitude() == null && prospect.getPosLongitude() == null ? null
+                : new Geojson()
+                .latitude(prospect.getPosLatitude())
+                .longitude(prospect.getPosLongitude())))
+        .collect(Collectors.toList());
   }
 
   @Override

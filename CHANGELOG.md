@@ -1,3 +1,29 @@
+# [0.20.0](https://github.com/b-partners/bpartners-api/compare/v0.19.0...v0.20.0) (2023-07-13)
+
+
+### Bug Fixes
+
+* add default label fintecture payment when its value is null or under 3 chars ([e4393cb](https://github.com/b-partners/bpartners-api/commit/e4393cb70f1194a4748a3f75a75a819bdd7107ab))
+* add unique constraint on bridge transaction id ([8593514](https://github.com/b-partners/bpartners-api/commit/8593514fd7a154d4c0a852a3377db971084a35f4))
+* allow duplicated customers and customers with same email ([0d28387](https://github.com/b-partners/bpartners-api/commit/0d28387514dd9cc388bcfb0cc9167302ad021fd1))
+* allow some nullable values when importing/crupdating customers ([06bba00](https://github.com/b-partners/bpartners-api/commit/06bba00a61af1fa0fa36f9ca39118214e59b1b6a))
+* allow updating tva number ([3b13800](https://github.com/b-partners/bpartners-api/commit/3b13800cecd35bcb2b058a047f0dba2e9669f025))
+* avoid NPE when evaluating prospects from excel ([437a016](https://github.com/b-partners/bpartners-api/commit/437a016a13773595e1c316d1679410dadc63162f))
+* handle more than 10 simultaneous customers crupdate ([4601156](https://github.com/b-partners/bpartners-api/commit/460115644f62da6062d4106f72bb5ba8d0a40588))
+* map accounts and account holders from jpa before updating user token ([89304f2](https://github.com/b-partners/bpartners-api/commit/89304f2ac0c8d39ea5e3c2e4b248f27c61b8bc47))
+* map logo and monthly subscription for user correctly ([cc9e11c](https://github.com/b-partners/bpartners-api/commit/cc9e11c72d4aaf6c9b9246e42722009781686bc1))
+* remove sending date and payment date check when marking invoice as paid ([dd36b05](https://github.com/b-partners/bpartners-api/commit/dd36b05d9a93a247dc51603a1fd349614fd4f26e))
+* replace characters not supported by fintecture when initiating payment ([7993d7a](https://github.com/b-partners/bpartners-api/commit/7993d7ae1627c96fc5186c953219a27e6ad772a0))
+* retry payment initiation request once when error occurs ([a41de41](https://github.com/b-partners/bpartners-api/commit/a41de410dfcb1d942776d70200e114faff379b96))
+* validate invoice reference before crupdating ([7b54416](https://github.com/b-partners/bpartners-api/commit/7b54416dc40d3c0d9e8d38c5ab977818b78b6325))
+
+
+### Features
+
+* evaluate prospect through excel file ([775e98c](https://github.com/b-partners/bpartners-api/commit/775e98c2acc4610a5f7061cbb5848a07dfb1b606))
+
+
+
 # [0.19.0](https://github.com/b-partners/bpartners-api/compare/v0.18.0...v0.19.0) (2023-06-29)
 
 
@@ -210,35 +236,6 @@
 ### Features
 
 * add location to accountholder ([#615](https://github.com/b-partners/bpartners-api/issues/615)) ([36bd6cd](https://github.com/b-partners/bpartners-api/commit/36bd6cd8bb86582d77c390bc7f978934322efaf5))
-
-
-
-# [0.9.0](https://github.com/b-partners/bpartners-api/compare/v0.8.2...v0.9.0) (2023-03-16)
-
-
-### Bug Fixes
-
-* account is not updated when user is not associated ([46d9aa9](https://github.com/b-partners/bpartners-api/commit/46d9aa95d9f7e634849d6f34617138d160e98512))
-* add percent value on each invoice payment regulation ([6ded317](https://github.com/b-partners/bpartners-api/commit/6ded317e5f3f04f18fa3ab600776d9aa8603d9c8))
-* associate accounts to user during mapping   ([2809561](https://github.com/b-partners/bpartners-api/commit/28095611cbe188e7494ca482a1121d8238c5e202))
-* ignore unknown properties with sogefi api ([cae33ee](https://github.com/b-partners/bpartners-api/commit/cae33ee7ddf90f20d551abae1e09ca9a6a01400e))
-* payment initiation reference is correctly computed ([2946fc9](https://github.com/b-partners/bpartners-api/commit/2946fc9037558d39190d08e79e04f135b07852ad))
-* payments regulations are correctly persisted ([b5edd73](https://github.com/b-partners/bpartners-api/commit/b5edd73482a8521e160cdf79223588a8a52b9c23))
-* products are ordered by created date time descending by default ([7ba7c9f](https://github.com/b-partners/bpartners-api/commit/7ba7c9f4ecb0208daa301e2a0e0f269ac0a91798))
-* repair minor bugs ([f99fe90](https://github.com/b-partners/bpartners-api/commit/f99fe90829062474b42d8ce01e8d53d948a08f55))
-* returns persisted user during whoami if swan token not provided ([095fa77](https://github.com/b-partners/bpartners-api/commit/095fa77abcda848bb06a6b3336de4960eebd9ffe))
-* same transaction category type handles multiples transaction type ([b41f1ab](https://github.com/b-partners/bpartners-api/commit/b41f1ab13403704c415e02c7e4af4ed00949ce96))
-* show payment regulation in invoice generated pdf ([bb848bb](https://github.com/b-partners/bpartners-api/commit/bb848bbf45225ec0ad9f99913db25350031fd6ae))
-* typo in tile_layer and roofer ([585a4b3](https://github.com/b-partners/bpartners-api/commit/585a4b35ee6a63c92a4cc5c5818270669997834f))
-* unique invoice payment label is invoice reference ([1812541](https://github.com/b-partners/bpartners-api/commit/181254113264999a07f4a1ed84354a8e4a43f865))
-* use invoice real reference in payment initiation ([e25e647](https://github.com/b-partners/bpartners-api/commit/e25e64757a483f4eb1a44c398fa286e4f5bc699c))
-
-
-### Features
-
-* filter customers by criteria ([37506da](https://github.com/b-partners/bpartners-api/commit/37506da2e0f786731b0d35672b79834411b637fa))
-* filter products by criteria ([730a148](https://github.com/b-partners/bpartners-api/commit/730a1481c79608b7fab185297232a049a0c4c7e1))
-* prospects are fetched from sogefi buildingpermit ([#510](https://github.com/b-partners/bpartners-api/issues/510)) ([444ecc9](https://github.com/b-partners/bpartners-api/commit/444ecc976937cc1f6a8be3d81944e3312a63349e))
 
 
 

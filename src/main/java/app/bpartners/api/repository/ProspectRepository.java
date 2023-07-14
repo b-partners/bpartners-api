@@ -11,6 +11,8 @@ public interface ProspectRepository {
 
   List<Prospect> saveAll(List<Prospect> prospects);
 
+  List<Prospect> create(List<Prospect> prospects);
+
   boolean needsProspects(String idAccountHolder, LocalDate date);
 
   boolean isSogefiProspector(String idAccountHolder);

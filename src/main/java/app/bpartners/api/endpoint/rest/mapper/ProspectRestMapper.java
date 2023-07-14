@@ -7,6 +7,7 @@ import app.bpartners.api.endpoint.rest.model.Geojson;
 import app.bpartners.api.endpoint.rest.model.InterventionResult;
 import app.bpartners.api.endpoint.rest.model.OldCustomerResult;
 import app.bpartners.api.endpoint.rest.model.Prospect;
+import app.bpartners.api.endpoint.rest.model.ProspectRating;
 import app.bpartners.api.endpoint.rest.model.UpdateProspect;
 import app.bpartners.api.endpoint.rest.validator.ProspectRestValidator;
 import app.bpartners.api.repository.expressif.ProspectEval;
@@ -63,6 +64,7 @@ public class ProspectRestMapper {
   }
 
   public Prospect toRest(app.bpartners.api.model.Prospect domain) {
+    app.bpartners.api.model.Prospect.ProspectRating prospectRating = domain.getRating();
     return new Prospect()
         .id(domain.getId())
         .email(domain.getEmail())
@@ -71,7 +73,11 @@ public class ProspectRestMapper {
         .address(domain.getAddress())
         .location(domain.getLocation())
         .townCode(domain.getTownCode())
-        .status(domain.getStatus());
+        .status(domain.getStatus())
+        .rating(prospectRating == null ? null
+            : new ProspectRating()
+            .lastEvaluation(prospectRating.getLastEvaluationDate())
+            .value(BigDecimal.valueOf(prospectRating.getValue())));
   }
 
   public app.bpartners.api.model.Prospect toDomain(UpdateProspect rest) {

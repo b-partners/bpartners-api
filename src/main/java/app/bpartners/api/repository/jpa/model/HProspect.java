@@ -2,6 +2,7 @@ package app.bpartners.api.repository.jpa.model;
 
 import app.bpartners.api.endpoint.rest.model.ProspectStatus;
 import app.bpartners.api.repository.jpa.types.PostgresEnumType;
+import java.time.Instant;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
@@ -43,4 +44,8 @@ public class HProspect {
   @Enumerated(EnumType.STRING)
   private ProspectStatus status;
   private Integer townCode;
+  private Double posLongitude;
+  private Double posLatitude;
+  private Double rating;
+  private Instant lastEvaluationDate;
 }

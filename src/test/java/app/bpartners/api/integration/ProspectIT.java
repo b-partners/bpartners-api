@@ -1,11 +1,13 @@
 package app.bpartners.api.integration;
 
 import app.bpartners.api.SentryConf;
+import app.bpartners.api.endpoint.event.EventPoller;
 import app.bpartners.api.endpoint.event.S3Conf;
 import app.bpartners.api.endpoint.rest.api.ProspectingApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
 import app.bpartners.api.endpoint.rest.model.Prospect;
+import app.bpartners.api.endpoint.rest.model.ProspectRating;
 import app.bpartners.api.endpoint.rest.model.UpdateProspect;
 import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.integration.conf.AbstractContextInitializer;
@@ -24,6 +26,8 @@ import app.bpartners.api.repository.prospecting.datasource.buildingpermit.model.
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.model.GeoJson;
 import app.bpartners.api.repository.sendinblue.SendinblueConf;
 import app.bpartners.api.service.PaymentScheduleService;
+import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
@@ -61,6 +65,8 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @Slf4j
 class ProspectIT {
   private static final String UNKNOWN_PROSPECT_ID = "unknown_prospect_id";
+  @MockBean
+  private EventPoller eventPoller;
   @MockBean
   private PaymentScheduleService paymentScheduleService;
   @MockBean
@@ -134,7 +140,10 @@ class ProspectIT {
         .email(null)
         .phone(null)
         .address(null)
-        .townCode(92002);
+        .townCode(92002)
+        .rating(new ProspectRating()
+            .value(BigDecimal.valueOf(9.993))
+            .lastEvaluation(Instant.parse("2023-01-01T00:00:00.00Z")));
   }
 
   Prospect prospect2() {
@@ -146,7 +155,10 @@ class ProspectIT {
         .email("janeDoe@gmail.com")
         .phone("+261340465339")
         .address("30 Rue de la Montagne Sainte-Genevieve")
-        .townCode(92002);
+        .townCode(92002)
+        .rating(new ProspectRating()
+            .value(BigDecimal.valueOf(-1.0))
+            .lastEvaluation(null));
   }
 
   Prospect prospect3() {
@@ -158,7 +170,10 @@ class ProspectIT {
         .email("markusAdams@gmail.com")
         .phone("+261340465340")
         .address("30 Rue de la Montagne Sainte-Genevieve")
-        .townCode(92001);
+        .townCode(92001)
+        .rating(new ProspectRating()
+            .value(BigDecimal.valueOf(0))
+            .lastEvaluation(Instant.parse("2023-01-01T03:00:00.00Z")));
   }
 
   UpdateProspect updateProspect() {
@@ -178,7 +193,10 @@ class ProspectIT {
         .status(TO_CONTACT)
         .email("paulAdams@gmail.com")
         .phone("+261340465341")
-        .address("30 Rue de la Montagne Sainte-Genevieve");
+        .address("30 Rue de la Montagne Sainte-Genevieve")
+        .rating(new ProspectRating()
+            .value(BigDecimal.valueOf(9.993))
+            .lastEvaluation(Instant.parse("2023-01-01T00:00:00.00Z")));
   }
 
   HMunicipality antony() {
@@ -197,7 +215,7 @@ class ProspectIT {
 
     List<Prospect> actual = api.getProspects(ACCOUNTHOLDER_ID);
 
-    assertEquals(2, actual.size());
+    assertEquals(7, actual.size());
     assertTrue(actual.contains(prospect1()));
     assertTrue(actual.contains(prospect2()));
     assertFalse(actual.contains(prospect3()));

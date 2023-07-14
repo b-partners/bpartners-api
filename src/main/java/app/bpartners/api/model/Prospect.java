@@ -33,13 +33,16 @@ public class Prospect implements Comparable<Prospect> {
 
   @Override
   public int compareTo(Prospect o) {
-    if (rating == null || rating.getValue() == null
-        && (o.getRating() == null || o.getRating().getValue() == null)) {
+    ProspectRating actualRating = this.getRating();
+    ProspectRating otherRating = o.getRating();
+    if (actualRating == null || actualRating.getValue() == null) {
+      return 0;
+    } else if (otherRating == null || otherRating.getValue() == null) {
       return 0;
     }
-    if (this.getRating().getValue() < o.getRating().getValue()) {
+    if (actualRating.getValue() < otherRating.getValue()) {
       return -1;
-    } else if (this.getRating().getValue() > o.getRating().getValue()) {
+    } else if (actualRating.getValue() > otherRating.getValue()) {
       return 1;
     }
     return 0;

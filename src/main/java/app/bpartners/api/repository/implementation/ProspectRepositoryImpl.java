@@ -39,6 +39,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.Year;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -115,7 +116,7 @@ public class ProspectRepositoryImpl implements ProspectRepository {
     // while it is already attached to account holder ?
     return jpaRepository.findAllByIdAccountHolder(idAccountHolder).stream()
         .map(prospect -> toDomain(isSogefiProspector, prospect))
-        .sorted()
+        .sorted(Comparator.reverseOrder())
         .collect(Collectors.toList());
   }
 

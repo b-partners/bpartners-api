@@ -29,6 +29,7 @@ import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.endpoint.rest.security.model.Principal;
 import app.bpartners.api.endpoint.rest.security.principal.PrincipalProvider;
 import app.bpartners.api.model.Account;
+import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.repository.LegalFileRepository;
@@ -816,6 +817,12 @@ public class TestUtils {
         .status(OPENED)
         .active(true)
         .bank(null)
+        .build();
+  }
+
+  public static AccountHolder joeDoeAccountHolder() {
+    return AccountHolder.builder()
+        .id(JOE_DOE_ACCOUNT_HOLDER_ID)
         .build();
   }
 

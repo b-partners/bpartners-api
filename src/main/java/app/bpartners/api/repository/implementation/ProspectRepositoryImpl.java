@@ -63,6 +63,7 @@ import static org.springframework.transaction.annotation.Isolation.SERIALIZABLE;
 @Slf4j
 public class ProspectRepositoryImpl implements ProspectRepository {
   public static final String TILE_LAYER = "carreleur";
+  public static final String ANTI_HARM = "Antinuisible 3D";
   public static final String ROOFER = "toiturier";
   public static final double UNPROCESSED_VALUE = -1.0;
   private final ProspectJpaRepository jpaRepository;
@@ -82,7 +83,22 @@ public class ProspectRepositoryImpl implements ProspectRepository {
 
   @Override
   public List<Prospect> findAllByIdAccountHolder(String idAccountHolder) {
-    boolean isSogefiProspector = isSogefiProspector(idAccountHolder);
+    BusinessActivity businessActivity =
+        businessActivityService.findByAccountHolderId(idAccountHolder);
+    if (Objects.equals(0,
+        ANTI_HARM.compareToIgnoreCase(businessActivity.getPrimaryActivity()))
+        || Objects.equals(0,
+        ANTI_HARM.compareToIgnoreCase(businessActivity.getSecondaryActivity()))) {
+      return jpaRepository.findAllByIdAccountHolder(idAccountHolder).stream()
+          .map(prospect -> mapper.toDomain(prospect,
+              prospect.getPosLatitude() == null && prospect.getPosLongitude() == null ? null
+                  : new Geojson()
+                  .latitude(prospect.getPosLatitude())
+                  .longitude(prospect.getPosLongitude())))
+          .sorted(Comparator.reverseOrder())
+          .collect(Collectors.toList());
+    }
+    boolean isSogefiProspector = isSogefiProspector(businessActivity);
     AccountHolder accountHolder = accountHolderRepository.findById(idAccountHolder);
     if (accountHolder.getTownCode() == null) {
       throw new BadRequestException(
@@ -114,7 +130,8 @@ public class ProspectRepositoryImpl implements ProspectRepository {
     }
     //TODO: why do prospects must be filtered by town code
     // while it is already attached to account holder ?
-    return jpaRepository.findAllByIdAccountHolder(idAccountHolder).stream()
+    return jpaRepository.findAllByIdAccountHolderAndTownCodeIsIn(idAccountHolder, townCodesAsInt)
+        .stream()
         .map(prospect -> toDomain(isSogefiProspector, prospect))
         .sorted(Comparator.reverseOrder())
         .collect(Collectors.toList());
@@ -129,6 +146,15 @@ public class ProspectRepositoryImpl implements ProspectRepository {
         0, ROOFER.compareToIgnoreCase(businessActivity.getPrimaryActivity())) || Objects.equals(0,
         ROOFER.compareToIgnoreCase(businessActivity.getSecondaryActivity()));
   }
+
+  public boolean isSogefiProspector(BusinessActivity businessActivity) {
+    return Objects.equals(0, TILE_LAYER.compareToIgnoreCase(businessActivity.getPrimaryActivity()))
+        || Objects.equals(0,
+        TILE_LAYER.compareToIgnoreCase(businessActivity.getSecondaryActivity())) || Objects.equals(
+        0, ROOFER.compareToIgnoreCase(businessActivity.getPrimaryActivity())) || Objects.equals(0,
+        ROOFER.compareToIgnoreCase(businessActivity.getSecondaryActivity()));
+  }
+
 
   @Override
   public List<ProspectResult> evaluate(List<ProspectEval> toEvaluate) {

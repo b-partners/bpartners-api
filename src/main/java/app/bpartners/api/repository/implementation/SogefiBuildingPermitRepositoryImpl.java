@@ -10,6 +10,7 @@ import app.bpartners.api.repository.jpa.model.HSogefiBuildingPermitProspect;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.model.Applicant;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.model.BuildingPermit;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.model.SingleBuildingPermit;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import lombok.AllArgsConstructor;
@@ -25,6 +26,7 @@ public class SogefiBuildingPermitRepositoryImpl implements SogefiBuildingPermitR
   public static final int COORDINATES_LENGTH = 2;
   public static final int LONGITUDE_INDEX = 0;
   public static final int LATITUDE_INDEX = 1;
+  public static final double DEFAULT_RATING = -1.0;
   private final SogefiBuildingPermitJpaRepository jpaRepository;
   private final ProspectJpaRepository prospectJpaRepository;
 
@@ -45,6 +47,8 @@ public class SogefiBuildingPermitRepositoryImpl implements SogefiBuildingPermitR
           .address(applicant.getAddress())
           .idAccountHolder(idAccountHolder)
           .townCode(Integer.parseInt(singleBuildingPermit.getInsee()))
+          .rating(DEFAULT_RATING)
+          .lastEvaluationDate(Instant.now())
           .build();
       if (persisted.isEmpty()) {
         prospectEntityToSave.setStatus(TO_CONTACT);

@@ -121,6 +121,7 @@ class SogefiBuildingPermitRepositoryTest {
         .status(TO_CONTACT)
         .idAccountHolder(ACCOUNTHOLDER_ID)
         .townCode(92001)
+        .rating(-1.0)
         .build();
   }
 
@@ -151,7 +152,10 @@ class SogefiBuildingPermitRepositoryTest {
     verify(prospectJpaRepositoryMock, times(1)).save(prospectEntityArgumentCaptor.capture());
     verify(jpaRepositoryMock, times(1)).save(sogefiProspectEntityCaptor.capture());
 
-    assertEquals(expectedSavedProspect(), prospectEntityArgumentCaptor.getValue());
+    HProspect prospectEntityArgumentCaptorValue = prospectEntityArgumentCaptor.getValue();
+    assertEquals(expectedSavedProspect().toBuilder()
+        .lastEvaluationDate(prospectEntityArgumentCaptorValue.getLastEvaluationDate())
+        .build(), prospectEntityArgumentCaptorValue);
     assertEquals(expected, sogefiProspectEntityCaptor.getValue());
   }
 
@@ -174,7 +178,10 @@ class SogefiBuildingPermitRepositoryTest {
     verify(prospectJpaRepositoryMock, times(1)).save(prospectEntityArgumentCaptor.capture());
     verify(jpaRepositoryMock, times(1)).save(sogefiProspectEntityCaptor.capture());
 
-    assertEquals(expectedProspect, prospectEntityArgumentCaptor.getValue());
+    HProspect prospectCaptureValue = prospectEntityArgumentCaptor.getValue();
+    assertEquals(expectedProspect.toBuilder()
+        .lastEvaluationDate(prospectCaptureValue.getLastEvaluationDate())
+        .build(), prospectCaptureValue);
     assertEquals(expectedSavedSogefiProspect(), sogefiProspectEntityCaptor.getValue());
   }
 

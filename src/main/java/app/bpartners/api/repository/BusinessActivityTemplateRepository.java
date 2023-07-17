@@ -6,4 +6,6 @@ import org.springframework.data.domain.Pageable;
 
 public interface BusinessActivityTemplateRepository {
   List<BusinessActivityTemplate> findAll(Pageable pageable);
+
+  List<BusinessActivityTemplate> findAll();
 }

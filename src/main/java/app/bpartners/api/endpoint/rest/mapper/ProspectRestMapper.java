@@ -77,7 +77,8 @@ public class ProspectRestMapper {
         .rating(prospectRating == null ? null
             : new ProspectRating()
             .lastEvaluation(prospectRating.getLastEvaluationDate())
-            .value(BigDecimal.valueOf(prospectRating.getValue())));
+            .value(prospectRating.getValue() == null ? BigDecimal.valueOf(-1.0)
+                : BigDecimal.valueOf(prospectRating.getValue())));
   }
 
   public app.bpartners.api.model.Prospect toDomain(UpdateProspect rest) {

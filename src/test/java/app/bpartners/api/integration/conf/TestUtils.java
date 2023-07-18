@@ -79,6 +79,7 @@ import static app.bpartners.api.endpoint.rest.model.EnableStatus.ENABLED;
 import static app.bpartners.api.endpoint.rest.model.IdentificationStatus.VALID_IDENTITY;
 import static app.bpartners.api.endpoint.rest.model.Invoice.PaymentTypeEnum.IN_INSTALMENT;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
+import static app.bpartners.api.endpoint.rest.model.PaymentMethod.UNKNOWN;
 import static app.bpartners.api.endpoint.rest.model.TransactionTypeEnum.INCOME;
 import static app.bpartners.api.endpoint.rest.model.TransactionTypeEnum.OUTCOME;
 import static app.bpartners.api.model.Invoice.DEFAULT_DELAY_PENALTY_PERCENT;
@@ -535,6 +536,7 @@ public class TestUtils {
         .globalDiscount(new InvoiceDiscount()
             .percentValue(0)
             .amountValue(0))
+        .paymentMethod(UNKNOWN)
         .metadata(Map.of());
   }
 
@@ -557,6 +559,7 @@ public class TestUtils {
         .products(List.of(product5()))
         .totalPriceWithVat(1100)
         .totalVat(100).totalPriceWithoutVat(1000)
+        .paymentMethod(UNKNOWN)
         .metadata(Map.of());
   }
 

@@ -1203,6 +1203,8 @@ components:
             type: string
         globalDiscount:
           $ref: '#/components/schemas/InvoiceDiscount'
+        paymentMethod:
+          $ref: '#/components/schemas/PaymentMethod'
     CrupdateInvoice:
       allOf:
         - $ref: '#/components/schemas/CrupdateInvoiceTemplate'
@@ -1397,3 +1399,10 @@ components:
       properties:
         comment:
           type: string
+    PaymentMethod:
+      type: string
+      enum:
+        - UNKNOWN
+        - CASH
+        - BANK_TRANSFER
+        - CHEQUE

@@ -3,6 +3,7 @@ package app.bpartners.api.model;
 import app.bpartners.api.endpoint.rest.model.ArchiveStatus;
 import app.bpartners.api.endpoint.rest.model.Invoice.PaymentTypeEnum;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
+import app.bpartners.api.endpoint.rest.model.PaymentMethod;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -67,6 +68,7 @@ public class Invoice {
   private Fraction totalPriceWithoutVat;
   private Fraction totalVat;
   private Fraction totalPriceWithVat;
+  private PaymentMethod paymentMethod;
 
   public String getRealReference() {
     if (getRef() == null) {

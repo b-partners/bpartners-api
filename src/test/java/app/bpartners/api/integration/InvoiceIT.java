@@ -10,6 +10,7 @@ import app.bpartners.api.endpoint.rest.model.CrupdateInvoice;
 import app.bpartners.api.endpoint.rest.model.Invoice;
 import app.bpartners.api.endpoint.rest.model.InvoiceDiscount;
 import app.bpartners.api.endpoint.rest.model.InvoicePaymentReq;
+import app.bpartners.api.endpoint.rest.model.PaymentMethod;
 import app.bpartners.api.endpoint.rest.model.PaymentRegulation;
 import app.bpartners.api.endpoint.rest.model.PaymentRequest;
 import app.bpartners.api.endpoint.rest.model.Product;
@@ -60,6 +61,9 @@ import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.DRAFT;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PROPOSAL;
+import static app.bpartners.api.endpoint.rest.model.PaymentMethod.BANK_TRANSFER;
+import static app.bpartners.api.endpoint.rest.model.PaymentMethod.CHEQUE;
+import static app.bpartners.api.endpoint.rest.model.PaymentMethod.UNKNOWN;
 import static app.bpartners.api.integration.conf.TestUtils.ACCOUNTHOLDER_ID;
 import static app.bpartners.api.integration.conf.TestUtils.INVOICE1_ID;
 import static app.bpartners.api.integration.conf.TestUtils.INVOICE2_ID;
@@ -226,7 +230,8 @@ class InvoiceIT {
         .validityDate(LocalDate.of(2022, 10, 14))
         .toPayAt(LocalDate.of(2022, 11, 13))
         .delayInPaymentAllowed(15)
-        .delayPenaltyPercent(20);
+        .delayPenaltyPercent(20)
+        .paymentMethod(CHEQUE);
   }
 
   CrupdateInvoice paidInvoice() {
@@ -241,6 +246,7 @@ class InvoiceIT {
         .validityDate(LocalDate.of(2022, 10, 14))
         .toPayAt(LocalDate.of(2022, 11, 13))
         .delayInPaymentAllowed(15)
+        .paymentMethod(BANK_TRANSFER)
         .delayPenaltyPercent(20);
   }
 
@@ -270,6 +276,7 @@ class InvoiceIT {
         .globalDiscount(new InvoiceDiscount()
             .amountValue(0)
             .percentValue(0))
+        .paymentMethod(UNKNOWN)
         .metadata(Map.of());
   }
 
@@ -296,6 +303,7 @@ class InvoiceIT {
         .delayPenaltyPercent(actualConfirmed.getDelayPenaltyPercent())
         .delayInPaymentAllowed(actualConfirmed.getDelayInPaymentAllowed())
         .paymentUrl(actualConfirmed.getPaymentUrl())
+        .paymentMethod(UNKNOWN)
         .globalDiscount(new InvoiceDiscount()
             .amountValue(0)
             .percentValue(0))
@@ -324,6 +332,7 @@ class InvoiceIT {
         .totalVat(100)
         .totalPriceWithoutVat(1000)
         .totalPriceWithoutDiscount(1000)
+        .paymentMethod(UNKNOWN)
         .globalDiscount(new InvoiceDiscount()
             .amountValue(0)
             .percentValue(0))
@@ -343,6 +352,7 @@ class InvoiceIT {
             .amountValue(null)
             .percentValue(1000))
         .delayInPaymentAllowed(null)
+        .paymentMethod(PaymentMethod.CASH)
         .delayPenaltyPercent(null);
   }
 
@@ -376,6 +386,7 @@ class InvoiceIT {
             .percentValue(1000))
         .paymentRegulations(List.of())
         .paymentType(CASH)
+        .paymentMethod(PaymentMethod.CASH)
         .metadata(Map.of());
   }
 
@@ -405,6 +416,7 @@ class InvoiceIT {
         .globalDiscount(new InvoiceDiscount()
             .amountValue(0)
             .percentValue(0))
+        .paymentMethod(UNKNOWN)
         .metadata(Map.of());
   }
 
@@ -430,6 +442,7 @@ class InvoiceIT {
         .globalDiscount(new InvoiceDiscount()
             .amountValue(0)
             .percentValue(0))
+        .paymentMethod(CHEQUE)
         .metadata(Map.of());
   }
 
@@ -450,6 +463,7 @@ class InvoiceIT {
         .globalDiscount(new InvoiceDiscount()
             .percentValue(0)
             .amountValue(0))
+        .paymentMethod(UNKNOWN)
         .metadata(Map.of());
   }
 
@@ -472,6 +486,7 @@ class InvoiceIT {
         .totalPriceWithoutVat(1000)
         .totalPriceWithoutDiscount(1000)
         .metadata(Map.of())
+        .paymentMethod(BANK_TRANSFER)
         .globalDiscount(new InvoiceDiscount()
             .amountValue(0)
             .percentValue(0));
@@ -907,7 +922,8 @@ class InvoiceIT {
             .metadata(actual.getMetadata())
             .fileId(actual.getFileId())
             .updatedAt(actual.getUpdatedAt())
-            .createdAt(actual.getCreatedAt()),
+            .createdAt(actual.getCreatedAt())
+            .paymentMethod(UNKNOWN),
         actual);
   }
 

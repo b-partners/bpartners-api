@@ -1,3 +1,19 @@
+# [0.21.0](https://github.com/b-partners/bpartners-api/compare/v0.20.0...v0.21.0) (2023-07-18)
+
+
+### Bug Fixes
+
+* do not compare prospect when rating is null ([f521d63](https://github.com/b-partners/bpartners-api/commit/f521d6392b0c6d1011afc5cd0f8f8ac722f3cbc0))
+* do not compare prospect when rating is null ([87a0c26](https://github.com/b-partners/bpartners-api/commit/87a0c26d996b27544062511da34e2d0c050d4c7e))
+* order prospects by rating desc ([2acbf4f](https://github.com/b-partners/bpartners-api/commit/2acbf4fa2b0e76a52785d67d3bcedfac0cdb0874))
+
+
+### Features
+
+* add rating informations to prospect ([b06a8f4](https://github.com/b-partners/bpartners-api/commit/b06a8f4c82cd4fd0bc10d9bd3781dc032b9a21c4))
+
+
+
 # [0.20.0](https://github.com/b-partners/bpartners-api/compare/v0.19.0...v0.20.0) (2023-07-13)
 
 
@@ -216,26 +232,6 @@
 
 * add town code to accountholder ([#634](https://github.com/b-partners/bpartners-api/issues/634)) ([634a2df](https://github.com/b-partners/bpartners-api/commit/634a2df914a43fb7eb1d66745d3152069efbd3a1))
 * exchange cognito authorization code to cognito token ([0461793](https://github.com/b-partners/bpartners-api/commit/04617932874efb62c9f9e8b7b0467627f8007adc))
-
-
-
-# [0.10.0](https://github.com/b-partners/bpartners-api/compare/v0.9.0...v0.10.0) (2023-03-23)
-
-
-### Bug Fixes
-
-* convert paymentRegulation to empty array when null is provided ([8b5756d](https://github.com/b-partners/bpartners-api/commit/8b5756de3017e52abfbe6b7fea3ca6c03030337f))
-* delete blank products and customers ([ec4ba9d](https://github.com/b-partners/bpartners-api/commit/ec4ba9d6fd2cc74ad6082db95d82a615961d5e91))
-* remove duplicate customer ([ae7e98b](https://github.com/b-partners/bpartners-api/commit/ae7e98b3e61b30420edc9a0da6eae0e5017f88ac))
-* remove duplicated customers in the file ([363763a](https://github.com/b-partners/bpartners-api/commit/363763a74bd2417604043ed5b3c8f5e51bd61fb8))
-* remove duplicated product when create product by uploading excel file ([3e9b8e9](https://github.com/b-partners/bpartners-api/commit/3e9b8e995c40e9bb71bfa3d6e709a61e85c50a3d))
-* remove unique constraint on primary business activity ([3a7d8da](https://github.com/b-partners/bpartners-api/commit/3a7d8da58c01b3603ef246dde25bbc142860d9d0))
-* user domain authentication is based on email ([991bc3b](https://github.com/b-partners/bpartners-api/commit/991bc3ba638dc2c65235d7b06eaa49532d0eaf10))
-
-
-### Features
-
-* add location to accountholder ([#615](https://github.com/b-partners/bpartners-api/issues/615)) ([36bd6cd](https://github.com/b-partners/bpartners-api/commit/36bd6cd8bb86582d77c390bc7f978934322efaf5))
 
 
 

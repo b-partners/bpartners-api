@@ -195,7 +195,7 @@ public class BridgeIT {
   }
 
   public static class ContextInitializer extends BridgeAbstractContextInitializer {
-    public static final int SERVER_PORT = TestUtils.anAvailableRandomPort();
+    public static final int SERVER_PORT = TestUtils.findAvailableTcpPort();
 
     @Override
     public int getServerPort() {

@@ -11,7 +11,7 @@ import app.bpartners.api.endpoint.rest.model.OnboardedUser;
 import app.bpartners.api.endpoint.rest.model.User;
 import app.bpartners.api.endpoint.rest.model.Whois;
 import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
-import app.bpartners.api.integration.conf.AbstractContextInitializer;
+import app.bpartners.api.integration.conf.DbEnvContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
 import app.bpartners.api.manager.ProjectTokenManager;
 import app.bpartners.api.repository.AccountConnectorRepository;
@@ -71,7 +71,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @Testcontainers
-@ContextConfiguration(initializers = UserIT.ContextInitializer.class)
+@ContextConfiguration(initializers = DbEnvContextInitializer.class)
 @AutoConfigureMockMvc
 @Slf4j
 class UserIT {
@@ -109,11 +109,11 @@ class UserIT {
   private UserJpaRepository userJpaRepository;
 
   private static ApiClient anApiClient() {
-    return TestUtils.anApiClient(JOE_DOE_TOKEN, ContextInitializer.SERVER_PORT);
+    return TestUtils.anApiClient(JOE_DOE_TOKEN, DbEnvContextInitializer.getHttpServerPort());
   }
 
   private static ApiClient anApiClient(String token) {
-    return TestUtils.anApiClient(token, ContextInitializer.SERVER_PORT);
+    return TestUtils.anApiClient(token, DbEnvContextInitializer.getHttpServerPort());
   }
 
   public static User restJaneDoeUser() {
@@ -140,7 +140,7 @@ class UserIT {
   @Test
   void unauthenticated_get_onboarding_ok() throws IOException, InterruptedException {
     HttpClient unauthenticatedClient = HttpClient.newBuilder().build();
-    String basePath = "http://localhost:" + UserIT.ContextInitializer.SERVER_PORT;
+    String basePath = "http://localhost:" + DbEnvContextInitializer.getHttpServerPort();
 
     HttpResponse<String> response = unauthenticatedClient.send(
         HttpRequest.newBuilder()
@@ -284,7 +284,7 @@ class UserIT {
     when(bridgeUserRepositoryMock.createUser(any())).thenReturn(bridgeUser());
 
     HttpClient unauthenticatedClient = HttpClient.newBuilder().build();
-    String basePath = "http://localhost:" + UserIT.ContextInitializer.SERVER_PORT;
+    String basePath = "http://localhost:" + DbEnvContextInitializer.getHttpServerPort();
 
     OnboardUser toOnboard = onboardUser();
     HttpResponse<String> response = unauthenticatedClient.send(
@@ -319,7 +319,7 @@ class UserIT {
     when(bridgeUserRepositoryMock.createUser(any())).thenReturn(bridgeUser());
 
     HttpClient unauthenticatedClient = HttpClient.newBuilder().build();
-    String basePath = "http://localhost:" + UserIT.ContextInitializer.SERVER_PORT;
+    String basePath = "http://localhost:" + DbEnvContextInitializer.getHttpServerPort();
 
     OnboardUser toOnboard = onboardUser();
     HttpResponse<String> firstAttempt = unauthenticatedClient.send(
@@ -349,7 +349,7 @@ class UserIT {
   @Test
   void client_with_api_key_get_user_ok() throws IOException, InterruptedException {
     HttpClient client = HttpClient.newBuilder().build();
-    String basePath = "http://localhost:" + ContextInitializer.SERVER_PORT;
+    String basePath = "http://localhost:" + DbEnvContextInitializer.getHttpServerPort();
     HttpRequest request = HttpRequest.newBuilder()
         .uri(URI.create(basePath + "/whois/" + JOE_DOE_ID))
         .headers("x-api-key", API_KEY)
@@ -368,7 +368,7 @@ class UserIT {
   @Test
   void client_with_api_key_get_user_ko() throws IOException, InterruptedException {
     HttpClient client = HttpClient.newBuilder().build();
-    String basePath = "http://localhost:" + ContextInitializer.SERVER_PORT;
+    String basePath = "http://localhost:" + DbEnvContextInitializer.getHttpServerPort();
     HttpRequest request1 = HttpRequest.newBuilder()
         .uri(URI.create(basePath + "/whois/" + JOE_DOE_ID))
         .GET()
@@ -390,14 +390,5 @@ class UserIT {
     CollectionType collectionType = objectMapper.getTypeFactory()
         .constructCollectionType(List.class, OnboardedUser.class);
     return objectMapper.readValue(responseBody, collectionType);
-  }
-
-  static class ContextInitializer extends AbstractContextInitializer {
-    public static final int SERVER_PORT = TestUtils.anAvailableRandomPort();
-
-    @Override
-    public int getServerPort() {
-      return SERVER_PORT;
-    }
   }
 }

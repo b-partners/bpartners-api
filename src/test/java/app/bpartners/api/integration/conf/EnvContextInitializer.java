@@ -1,28 +1,30 @@
 package app.bpartners.api.integration.conf;
 
+import lombok.Getter;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.test.context.support.TestPropertySourceUtils;
-import org.testcontainers.containers.JdbcDatabaseContainer;
-import org.testcontainers.containers.PostgisContainerProvider;
 
-public abstract class AbstractContextInitializer
+import static app.bpartners.api.integration.conf.TestUtils.findAvailableTcpPort;
+import static org.springframework.test.context.support.TestPropertySourceUtils.addInlinedPropertiesToEnvironment;
+
+public class EnvContextInitializer
     implements ApplicationContextInitializer<ConfigurableApplicationContext> {
+
+  private final DbContextInitializer dbContextInitializer;
+  @Getter
+  private int httpServerPort = -1;
+
+  public EnvContextInitializer(DbContextInitializer dbContextInitializer) {
+    this.dbContextInitializer = dbContextInitializer;
+  }
 
   @Override
   public void initialize(ConfigurableApplicationContext applicationContext) {
-    JdbcDatabaseContainer<?> postgresContainer =
-        new PostgisContainerProvider()
-            .newInstance()
-            .withDatabaseName("it-db")
-            .withUsername("sa")
-            .withPassword("sa");
-    postgresContainer.start();
-
-    String flywayTestdataPath = "classpath:/db/testdata";
-    TestPropertySourceUtils.addInlinedPropertiesToEnvironment(
+    httpServerPort = findAvailableTcpPort();
+    var postgresContainer = dbContextInitializer.getPostgresContainer();
+    addInlinedPropertiesToEnvironment(
         applicationContext,
-        "server.port=" + this.getServerPort(),
+        "server.port=" + httpServerPort,
         "bridge.client.id=dummy",
         "bridge.client.secret=dummy",
         "bridge.base.url=dummy",
@@ -35,15 +37,13 @@ public abstract class AbstractContextInitializer
         "aws.sqs.mailboxUrl=dummy",
         "feature.detector.api.key=dummy",
         "feature.detector.application.name=dummy",
-        "expressif.project.token=dummy",
         "ban.base.url=dummy",
+        "expressif.project.token=dummy",
         "fintecture.base.url=https://api-sandbox.fintecture.com",
         "swan.base.url=https://api.swan.io/sandbox-partner",
         "spring.datasource.url=" + postgresContainer.getJdbcUrl(),
         "spring.datasource.username=" + postgresContainer.getUsername(),
         "spring.datasource.password=" + postgresContainer.getPassword(),
-        "spring.flyway.locations=classpath:/db/migration," + flywayTestdataPath);
+        "spring.flyway.locations=classpath:/db/migration," + dbContextInitializer.getFlywayTestdataPath());
   }
-
-  public abstract int getServerPort();
 }

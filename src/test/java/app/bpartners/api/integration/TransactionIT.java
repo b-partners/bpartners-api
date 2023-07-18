@@ -1,7 +1,5 @@
 package app.bpartners.api.integration;
 
-import app.bpartners.api.SentryConf;
-import app.bpartners.api.endpoint.event.S3Conf;
 import app.bpartners.api.endpoint.rest.api.PayingApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
@@ -11,37 +9,28 @@ import app.bpartners.api.endpoint.rest.model.Transaction;
 import app.bpartners.api.endpoint.rest.model.TransactionInvoice;
 import app.bpartners.api.endpoint.rest.model.TransactionStatus;
 import app.bpartners.api.endpoint.rest.model.TransactionsSummary;
-import app.bpartners.api.endpoint.rest.security.bridge.BridgeConf;
-import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
-import app.bpartners.api.integration.conf.AbstractContextInitializer;
+import app.bpartners.api.integration.conf.DbEnvContextInitializer;
+import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.integration.conf.TestUtils;
-import app.bpartners.api.manager.ProjectTokenManager;
-import app.bpartners.api.repository.AccountConnectorRepository;
-import app.bpartners.api.repository.LegalFileRepository;
-import app.bpartners.api.repository.bridge.BridgeApi;
 import app.bpartners.api.repository.bridge.model.Transaction.BridgeTransaction;
 import app.bpartners.api.repository.bridge.repository.BridgeTransactionRepository;
-import app.bpartners.api.repository.fintecture.FintectureConf;
 import app.bpartners.api.repository.jpa.TransactionJpaRepository;
 import app.bpartners.api.repository.jpa.model.HInvoice;
 import app.bpartners.api.repository.jpa.model.HTransaction;
-import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitConf;
-import app.bpartners.api.repository.sendinblue.SendinblueConf;
-import app.bpartners.api.service.PaymentScheduleService;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.ZoneId;
-import java.util.List;
-import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
+
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.List;
+import java.util.Optional;
 
 import static app.bpartners.api.integration.conf.TestUtils.INVOICE1_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JANE_ACCOUNT_ID;
@@ -68,44 +57,20 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @Testcontainers
 @ContextConfiguration(initializers = TransactionIT.ContextInitializer.class)
-@AutoConfigureMockMvc
-class TransactionIT {
-  @MockBean
-  private PaymentScheduleService paymentScheduleService;
-  @MockBean
-  private BuildingPermitConf buildingPermitConf;
-  @MockBean
-  private SentryConf sentryConf;
-  @MockBean
-  private SendinblueConf sendinblueConf;
-  @MockBean
-  private S3Conf s3Conf;
-  @MockBean
-  private FintectureConf fintectureConf;
-  @MockBean
-  private ProjectTokenManager projectTokenManager;
-  @MockBean
-  private BridgeConf bridgeConf;
-  @MockBean
-  private AccountConnectorRepository accountConnectorRepositoryMock;
-  @MockBean
-  private LegalFileRepository legalFileRepositoryMock;
-  @MockBean
-  private BridgeApi bridgeApiMock;
-  @MockBean
-  private CognitoComponent cognitoComponentMock;
-  @MockBean
-  private BridgeTransactionRepository bridgeTransactionRepositoryMock;
+class TransactionIT extends MockedThirdParties {
+
   @MockBean
   private TransactionJpaRepository transactionJpaRepositoryMock;
+  @MockBean
+  private BridgeTransactionRepository bridgeTransactionRepositoryMock;
 
   private static ApiClient anApiClient() {
     return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN,
-        TransactionIT.ContextInitializer.SERVER_PORT);
+        DbEnvContextInitializer.getHttpServerPort());
   }
 
   private static ApiClient anApiClient(String token) {
-    return TestUtils.anApiClient(token, ContextInitializer.SERVER_PORT);
+    return TestUtils.anApiClient(token, DbEnvContextInitializer.getHttpServerPort());
   }
 
   private static BridgeTransaction bridgeTransaction1() {
@@ -245,7 +210,7 @@ class TransactionIT {
   public void setUp() {
     setUpLegalFileRepository(legalFileRepositoryMock);
     setUpCognito(cognitoComponentMock);
-    when(bridgeApiMock.findTransactionsUpdatedByToken(any()))
+    when(bridgeApi.findTransactionsUpdatedByToken(any()))
         .thenReturn(List.of());
   }
 
@@ -376,19 +341,6 @@ class TransactionIT {
     return actual;
   }
 
-  List<Transaction> ignoreIds(List<Transaction> actual) {
-    actual.forEach(transaction -> {
-      transaction.setId(null);
-    });
-    return actual;
-  }
-
-  static class ContextInitializer extends AbstractContextInitializer {
-    public static final int SERVER_PORT = TestUtils.anAvailableRandomPort();
-
-    @Override
-    public int getServerPort() {
-      return SERVER_PORT;
-    }
+  static class ContextInitializer extends DbEnvContextInitializer {
   }
 }

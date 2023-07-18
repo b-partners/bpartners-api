@@ -9,7 +9,7 @@ import app.bpartners.api.endpoint.rest.model.CreateToken;
 import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
 import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.endpoint.rest.security.cognito.CognitoConf;
-import app.bpartners.api.integration.conf.AbstractContextInitializer;
+import app.bpartners.api.integration.conf.DbEnvContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
 import app.bpartners.api.manager.ProjectTokenManager;
 import app.bpartners.api.repository.AccountConnectorRepository;
@@ -20,12 +20,6 @@ import app.bpartners.api.repository.prospecting.datasource.buildingpermit.Buildi
 import app.bpartners.api.repository.sendinblue.SendinblueConf;
 import app.bpartners.api.service.PaymentScheduleService;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.io.IOException;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -34,6 +28,13 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
+
+import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.util.List;
 
 import static app.bpartners.api.integration.conf.TestUtils.BAD_CODE;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
@@ -50,7 +51,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @Testcontainers
-@ContextConfiguration(initializers = AuthenticationIT.ContextInitializer.class)
+@ContextConfiguration(initializers = DbEnvContextInitializer.class)
 @AutoConfigureMockMvc
 class AuthenticationIT {
   @MockBean
@@ -81,7 +82,7 @@ class AuthenticationIT {
   private BridgeApi bridgeApi;
 
   private static ApiClient anApiClient() {
-    return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN, ContextInitializer.SERVER_PORT);
+    return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN, DbEnvContextInitializer.getHttpServerPort());
   }
 
   @BeforeEach
@@ -111,7 +112,7 @@ class AuthenticationIT {
   @Test
   void unauthenticated_get_auth_init_not_implemented_ok() throws IOException, InterruptedException {
     HttpClient unauthenticatedClient = HttpClient.newBuilder().build();
-    String basePath = "http://localhost:" + AuthenticationIT.ContextInitializer.SERVER_PORT;
+    String basePath = "http://localhost:" + DbEnvContextInitializer.getHttpServerPort();
     String data = new ObjectMapper().writeValueAsString(validAuthInitiation());
     HttpResponse<String> response = unauthenticatedClient.send(
         HttpRequest.newBuilder()
@@ -131,7 +132,7 @@ class AuthenticationIT {
   @Test
   void unauthenticated_get_token_ko() throws IOException, InterruptedException {
     HttpClient unauthenticatedClient = HttpClient.newBuilder().build();
-    String basePath = "http://localhost:" + AuthenticationIT.ContextInitializer.SERVER_PORT;
+    String basePath = "http://localhost:" + DbEnvContextInitializer.getHttpServerPort();
     String data = new ObjectMapper().writeValueAsString(invalidCreateToken());
 
     HttpResponse<String> response = unauthenticatedClient.send(
@@ -160,14 +161,5 @@ class AuthenticationIT {
         "{\"type\":\"403 FORBIDDEN\",\"message\":\""
             + "User.joe_doe_id has not approved the legal file cgu_28-10-22.pdf\"}",
         () -> api.getAccountHolders(JOE_DOE_ID, JOE_DOE_ACCOUNT_ID));
-  }
-
-  public static class ContextInitializer extends AbstractContextInitializer {
-    public static final int SERVER_PORT = TestUtils.anAvailableRandomPort();
-
-    @Override
-    public int getServerPort() {
-      return SERVER_PORT;
-    }
   }
 }

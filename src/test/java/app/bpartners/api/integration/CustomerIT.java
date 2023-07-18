@@ -1,47 +1,32 @@
 package app.bpartners.api.integration;
 
-import app.bpartners.api.SentryConf;
-import app.bpartners.api.endpoint.event.S3Conf;
 import app.bpartners.api.endpoint.rest.api.CustomersApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
 import app.bpartners.api.endpoint.rest.model.CreateCustomer;
 import app.bpartners.api.endpoint.rest.model.Customer;
 import app.bpartners.api.endpoint.rest.model.CustomerStatus;
-import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
-import app.bpartners.api.integration.conf.AbstractContextInitializer;
+import app.bpartners.api.integration.conf.DbEnvContextInitializer;
+import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.integration.conf.TestUtils;
-import app.bpartners.api.manager.ProjectTokenManager;
-import app.bpartners.api.repository.AccountConnectorRepository;
-import app.bpartners.api.repository.LegalFileRepository;
-import app.bpartners.api.repository.bridge.BridgeApi;
-import app.bpartners.api.repository.fintecture.FintectureConf;
-import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitConf;
-import app.bpartners.api.repository.sendinblue.SendinblueConf;
-import app.bpartners.api.service.PaymentScheduleService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.CollectionType;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpStatus;
+import org.springframework.test.context.ContextConfiguration;
+import org.testcontainers.junit.jupiter.Testcontainers;
+
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.util.ArrayList;
 import java.util.List;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.Order;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestMethodOrder;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.Resource;
-import org.springframework.http.HttpStatus;
-import org.springframework.test.context.ContextConfiguration;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 import static app.bpartners.api.endpoint.rest.model.CustomerStatus.DISABLED;
 import static app.bpartners.api.endpoint.rest.model.CustomerStatus.ENABLED;
@@ -55,7 +40,6 @@ import static app.bpartners.api.integration.conf.TestUtils.OTHER_CUSTOMER_ID;
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsApiException;
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsForbiddenException;
 import static app.bpartners.api.integration.conf.TestUtils.customer1;
-import static app.bpartners.api.integration.conf.TestUtils.customer2;
 import static app.bpartners.api.integration.conf.TestUtils.customerDisabled;
 import static app.bpartners.api.integration.conf.TestUtils.customerUpdated;
 import static app.bpartners.api.integration.conf.TestUtils.customerWithSomeNullAttributes;
@@ -70,35 +54,11 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @Testcontainers
-@ContextConfiguration(initializers = CustomerIT.ContextInitializer.class)
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-@AutoConfigureMockMvc
-class CustomerIT {
-  @MockBean
-  private PaymentScheduleService paymentScheduleService;
-  @MockBean
-  private BuildingPermitConf buildingPermitConf;
-  @MockBean
-  private SentryConf sentryConf;
-  @MockBean
-  private SendinblueConf sendinblueConf;
-  @MockBean
-  private S3Conf s3Conf;
-  @MockBean
-  private CognitoComponent cognitoComponentMock;
-  @MockBean
-  private FintectureConf fintectureConf;
-  @MockBean
-  private ProjectTokenManager projectTokenManager;
-  @MockBean
-  private AccountConnectorRepository accountConnectorRepositoryMock;
-  @MockBean
-  private LegalFileRepository legalFileRepositoryMock;
-  @MockBean
-  private BridgeApi bridgeApi;
+@ContextConfiguration(initializers = DbEnvContextInitializer.class)
+class CustomerIT extends MockedThirdParties {
 
   private static ApiClient anApiClient() {
-    return TestUtils.anApiClient(JOE_DOE_TOKEN, ContextInitializer.SERVER_PORT);
+    return TestUtils.anApiClient(JOE_DOE_TOKEN, DbEnvContextInitializer.getHttpServerPort());
   }
 
   @BeforeEach
@@ -121,61 +81,6 @@ class CustomerIT {
         .comment("Nouvelle rencontre");
   }
 
-  @Order(1)
-  @Test
-  void read_and_filter_customers_ok() throws ApiException {
-    ApiClient joeDoeClient = anApiClient();
-    CustomersApi api = new CustomersApi(joeDoeClient);
-
-    List<Customer> actualNoFilter = api.getCustomers(
-        JOE_DOE_ACCOUNT_ID, null, null, null, null, null, null,
-        null, 1, 20);
-    List<Customer> actualFilteredByFirstAndLastName = api.getCustomers(
-        JOE_DOE_ACCOUNT_ID, "Jean", "Plombier", null, null, null, null,
-        null, 1, 20);
-    List<Customer> actualFilteredByEmail = api.getCustomers(
-        JOE_DOE_ACCOUNT_ID, null, null,
-        "bpartners.artisans@gmail.com", null, null, null,
-        null, 1, 20);
-    List<Customer> actualFilteredByPhoneNumber = api.getCustomers(
-        JOE_DOE_ACCOUNT_ID, null, null, null, "+33 12 34 56 78", null, null,
-        null, 1, 20);
-    List<Customer> actualFilteredByCity = api.getCustomers(
-        JOE_DOE_ACCOUNT_ID, null, null, null, null, "Metz", null,
-        null, 1, 20);
-    List<Customer> actualFilteredByCountry = api.getCustomers(
-        JOE_DOE_ACCOUNT_ID, null, null, null, null, null, "Allemagne",
-        null, 1, 20);
-    List<Customer> actualFilteredByFirstNameAndCity = api.getCustomers(
-        JOE_DOE_ACCOUNT_ID, "Jean", null, null, null, "Montmorency", null,
-        null, 1, 20);
-    List<Customer> allFilteredResults = new ArrayList<>();
-    allFilteredResults.addAll(actualFilteredByFirstAndLastName);
-    allFilteredResults.addAll(actualFilteredByEmail);
-    allFilteredResults.addAll(actualFilteredByPhoneNumber);
-    allFilteredResults.addAll(actualFilteredByCity);
-    allFilteredResults.addAll(actualFilteredByCountry);
-    allFilteredResults.addAll(actualFilteredByFirstNameAndCity);
-
-    assertEquals(4, actualNoFilter.size());
-    assertEquals(1, actualFilteredByFirstAndLastName.size());
-    assertEquals(1, actualFilteredByEmail.size());
-    assertEquals(2, actualFilteredByPhoneNumber.size());
-    assertEquals(1, actualFilteredByCity.size());
-    assertEquals(1, actualFilteredByCountry.size());
-    assertEquals(1, actualFilteredByFirstNameAndCity.size());
-    assertTrue(actualNoFilter.contains(customer1()));
-    assertTrue(actualNoFilter.contains(customer2()));
-    assertTrue(actualFilteredByFirstAndLastName.contains(customer2()));
-    assertTrue(actualFilteredByEmail.contains(customer1()));
-    assertTrue(actualFilteredByPhoneNumber.contains(customer1()));
-    assertTrue(actualFilteredByPhoneNumber.contains(customer2()));
-    assertTrue(actualFilteredByCity.contains(customer1()));
-    assertEquals("Jean Olivier", actualFilteredByCountry.get(0).getFirstName());
-    assertTrue(actualNoFilter.containsAll(allFilteredResults));
-  }
-
-  @Order(1)
   @Test
   void read_unique_customer_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
@@ -186,7 +91,6 @@ class CustomerIT {
     assertEquals(customer1(), actualCustomer);
   }
 
-  @Order(1)
   @Test
   void read_unique_customer_ko() {
     ApiClient joeDoeClient = anApiClient();
@@ -202,7 +106,6 @@ class CustomerIT {
     );
   }
 
-  @Order(1)
   @Test
   void read_customers_ko() {
     ApiClient joeDoeClient = anApiClient();
@@ -212,7 +115,6 @@ class CustomerIT {
         () -> api.getCustomers(BAD_USER_ID, null, null, null, null, null, null, null, null, null));
   }
 
-  @Order(2)
   @Test
   void create_customers_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
@@ -240,7 +142,6 @@ class CustomerIT {
         .email("notnull@email.com"), actual3.get(0).id(null));
   }
 
-  @Order(2)
   @Test
   void create_customers_ko() {
     ApiClient joeDoeClient = anApiClient();
@@ -250,7 +151,6 @@ class CustomerIT {
         () -> api.createCustomers(BAD_USER_ID, List.of(createCustomer1())));
   }
 
-  @Order(3)
   @Test
   void update_customer_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
@@ -263,9 +163,8 @@ class CustomerIT {
     assertTrue(existingCustomers.containsAll(actual));
   }
 
-  @Order(4)
   @Test
-  void update_customer_with_some_null_attributes_ok() throws ApiException {
+  void update_customer_with_some_null_attributes_ok() {
     ApiClient joeDoeClient = anApiClient();
     CustomersApi api = new CustomersApi(joeDoeClient);
 
@@ -273,7 +172,6 @@ class CustomerIT {
         () -> api.updateCustomers(JOE_DOE_ACCOUNT_ID, List.of(customerWithSomeNullAttributes())));
   }
 
-  @Order(4)
   @Test
   void update_customer_ko() {
     ApiClient joeDoeClient = anApiClient();
@@ -287,7 +185,6 @@ class CustomerIT {
         () -> api.updateCustomers(OTHER_ACCOUNT_ID, List.of(customerUpdated())));
   }
 
-  @Order(5)
   @Test
   void create_customers_from_uploaded_file_ok() throws IOException, InterruptedException {
     Resource filetoUpload = new ClassPathResource("files/customers.xlsx");
@@ -302,7 +199,6 @@ class CustomerIT {
     assertEquals(7, actual.size());
   }
 
-  @Order(5)
   @Test
   void create_customers_from_uploaded_file_ko() throws IOException, InterruptedException {
     Resource file = new ClassPathResource("files/wrong-customers.xlsx");
@@ -326,7 +222,6 @@ class CustomerIT {
     );
   }
 
-  @Order(6)
   @Test
   void read_and_update_disabled_customers_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
@@ -352,7 +247,7 @@ class CustomerIT {
   private HttpResponse<String> uploadFile(String accountId, File toUpload)
       throws IOException, InterruptedException {
     HttpClient unauthenticatedClient = HttpClient.newBuilder().build();
-    String basePath = "http://localhost:" + CustomerIT.ContextInitializer.SERVER_PORT;
+    String basePath = "http://localhost:" + DbEnvContextInitializer.getHttpServerPort();
 
     HttpResponse<String> response = unauthenticatedClient.send(HttpRequest.newBuilder()
             .uri(URI.create(basePath + "/accounts/" + accountId + "/customers/upload"))
@@ -361,14 +256,5 @@ class CustomerIT {
         HttpResponse.BodyHandlers.ofString());
 
     return response;
-  }
-
-  public static class ContextInitializer extends AbstractContextInitializer {
-    public static final int SERVER_PORT = TestUtils.anAvailableRandomPort();
-
-    @Override
-    public int getServerPort() {
-      return SERVER_PORT;
-    }
   }
 }

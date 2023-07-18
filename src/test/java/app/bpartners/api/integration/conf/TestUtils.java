@@ -47,8 +47,15 @@ import app.bpartners.api.repository.sendinblue.model.Attributes;
 import app.bpartners.api.repository.sendinblue.model.Contact;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.io.IOException;
-import java.net.ServerSocket;
+import lombok.SneakyThrows;
+import org.junit.jupiter.api.function.Executable;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.util.SocketUtils;
+import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
+import software.amazon.awssdk.services.eventbridge.model.PutEventsRequest;
+import software.amazon.awssdk.services.eventbridge.model.PutEventsResponse;
+
+import javax.net.ssl.SSLSession;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpHeaders;
@@ -66,13 +73,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.Future;
-import javax.net.ssl.SSLSession;
-import lombok.SneakyThrows;
-import org.junit.jupiter.api.function.Executable;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
-import software.amazon.awssdk.services.eventbridge.model.PutEventsRequest;
-import software.amazon.awssdk.services.eventbridge.model.PutEventsResponse;
 
 import static app.bpartners.api.endpoint.rest.model.AccountStatus.OPENED;
 import static app.bpartners.api.endpoint.rest.model.EnableStatus.ENABLED;
@@ -90,6 +90,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static org.springframework.util.SocketUtils.findAvailableTcpPort;
 
 public class TestUtils {
   public static final String CREDIT_SIDE = "Credit";
@@ -848,12 +849,8 @@ public class TestUtils {
         + "\"message\":\"Access is denied\"}", responseBody);
   }
 
-  public static int anAvailableRandomPort() {
-    try {
-      return new ServerSocket(0).getLocalPort();
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+  public static int findAvailableTcpPort() {
+    return SocketUtils.findAvailableTcpPort();
   }
 
   public static ApiException getApiException(String operationId, HttpResponse<byte[]> response) {

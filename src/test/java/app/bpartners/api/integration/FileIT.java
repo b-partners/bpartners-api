@@ -291,7 +291,7 @@ class FileIT {
 
   //TODO: write upload_triggers_event_ok as done in InvoiceIT
   public static class ContextInitializer extends S3AbstractContextInitializer {
-    public static final int SERVER_PORT = TestUtils.anAvailableRandomPort();
+    public static final int SERVER_PORT = TestUtils.findAvailableTcpPort();
 
     @Override
     public int getServerPort() {

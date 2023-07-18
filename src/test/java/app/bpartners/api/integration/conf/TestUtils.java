@@ -16,6 +16,7 @@ import app.bpartners.api.endpoint.rest.model.CustomerStatus;
 import app.bpartners.api.endpoint.rest.model.Geojson;
 import app.bpartners.api.endpoint.rest.model.Invoice;
 import app.bpartners.api.endpoint.rest.model.InvoiceDiscount;
+import app.bpartners.api.endpoint.rest.model.InvoicePaymentReq;
 import app.bpartners.api.endpoint.rest.model.LegalFile;
 import app.bpartners.api.endpoint.rest.model.PaymentRegulation;
 import app.bpartners.api.endpoint.rest.model.PaymentRequest;
@@ -477,8 +478,8 @@ public class TestUtils {
         .category(null);
   }
 
-  public static PaymentRequest basePaymentRequest() {
-    return new PaymentRequest()
+  public static InvoicePaymentReq basePaymentRequest() {
+    return new InvoicePaymentReq()
         .paymentUrl("https://connect-v2-sbx.fintecture.com")
         .amount(4400)
         .payerName("Luc Artisan")

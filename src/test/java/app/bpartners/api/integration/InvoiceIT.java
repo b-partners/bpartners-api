@@ -9,6 +9,7 @@ import app.bpartners.api.endpoint.rest.model.CreateProduct;
 import app.bpartners.api.endpoint.rest.model.CrupdateInvoice;
 import app.bpartners.api.endpoint.rest.model.Invoice;
 import app.bpartners.api.endpoint.rest.model.InvoiceDiscount;
+import app.bpartners.api.endpoint.rest.model.InvoicePaymentReq;
 import app.bpartners.api.endpoint.rest.model.PaymentRegulation;
 import app.bpartners.api.endpoint.rest.model.PaymentRequest;
 import app.bpartners.api.endpoint.rest.model.Product;
@@ -142,26 +143,28 @@ class InvoiceIT {
   private static PaymentRegulation expectedDated2() {
     return new PaymentRegulation()
         .maturityDate(LocalDate.of(2023, 2, 15))
-        .paymentRequest(new PaymentRequest()
+        .paymentRequest(new InvoicePaymentReq()
             .reference("BP005")
             .payerName(customer1().getFirstName() + " " + customer1().getLastName())
             .payerEmail(customer1().getEmail())
             .paymentUrl("https://connect-v2-sbx.fintecture.com")
             .percentValue(10000 - 909)
             .amount(1000)
+            .comment("Montant restant")
             .label("Facture achat - Restant dû"));
   }
 
   private static PaymentRegulation expectedDated1() {
     return new PaymentRegulation()
         .maturityDate(LocalDate.of(2023, 2, 1))
-        .paymentRequest(new PaymentRequest()
+        .paymentRequest(new InvoicePaymentReq()
             .reference("BP005")
             .payerName(customer1().getFirstName() + " " + customer1().getLastName())
             .payerEmail(customer1().getEmail())
             .paymentUrl("https://connect-v2-sbx.fintecture.com")
             .percentValue(909)
             .amount(100)
+            .comment("Un euro")
             .label("Facture achat - Acompte N°1"));
   }
 
@@ -477,45 +480,49 @@ class InvoiceIT {
   private static List<PaymentRegulation> initPaymentReg(String id) {
     return List.of(new PaymentRegulation()
             .maturityDate(LocalDate.of(2023, 1, 1))
-            .paymentRequest(new PaymentRequest()
+            .paymentRequest(new InvoicePaymentReq()
                 .paymentUrl(null)
                 .reference(id)
                 .percentValue(2510)
                 .amount(552)
                 .payerName("Luc Artisan")
                 .payerEmail("bpartners.artisans@gmail.com")
+                .comment("Acompte de 10%")
                 .label("Fabrication Jean" + " - Acompte N°1")),
         new PaymentRegulation()
             .maturityDate(LocalDate.of(2023, 1, 1))
-            .paymentRequest(new PaymentRequest()
+            .paymentRequest(new InvoicePaymentReq()
                 .paymentUrl(null)
                 .percentValue(10000 - 2510)
                 .amount(1648)
                 .reference(id)
                 .payerName("Luc Artisan")
                 .payerEmail("bpartners.artisans@gmail.com")
+                .comment("Reste 90%")
                 .label("Fabrication Jean" + " - Restant dû")));
   }
 
   private static List<PaymentRegulation> updatedPaymentRegulations(String id) {
     return List.of(new PaymentRegulation()
             .maturityDate(LocalDate.of(2023, 1, 1))
-            .paymentRequest(new PaymentRequest()
+            .paymentRequest(new InvoicePaymentReq()
                 .paymentUrl(null)
                 .reference(id)
                 .percentValue(1025)
                 .amount(225)
                 .payerName("Luc Artisan")
                 .payerEmail("bpartners.artisans@gmail.com")
+                .comment("Acompte de 10%")
                 .label("Fabrication Jean" + " - Acompte N°1")),
         new PaymentRegulation()
             .maturityDate(LocalDate.of(2023, 1, 1))
-            .paymentRequest(new PaymentRequest()
+            .paymentRequest(new InvoicePaymentReq()
                 .paymentUrl(null)
                 .percentValue(10000 - 1025)
                 .amount(1975)
                 .reference(id)
                 .payerName("Luc Artisan")
+                .comment("Reste 90%")
                 .payerEmail("bpartners.artisans@gmail.com")
                 .label("Fabrication Jean" + " - Restant dû")));
   }
@@ -523,24 +530,26 @@ class InvoiceIT {
   private static List<PaymentRegulation> confirmedPaymentRegulations(String id) {
     return List.of(new PaymentRegulation()
             .maturityDate(LocalDate.of(2023, 1, 1))
-            .paymentRequest(new PaymentRequest()
+            .paymentRequest(new InvoicePaymentReq()
                 .paymentUrl("https://connect-v2-sbx.fintecture.com")
                 .reference(id)
                 .percentValue(1025)
                 .amount(225)
                 .payerName("Luc Artisan")
+                .comment("Acompte de 10%")
                 .payerEmail("bpartners.artisans@gmail.com")
-                .label("Acompte de 10%")
+
                 .label("Fabrication Jean" + " - Acompte N°1")),
         new PaymentRegulation()
             .maturityDate(LocalDate.of(2023, 1, 1))
-            .paymentRequest(new PaymentRequest()
+            .paymentRequest(new InvoicePaymentReq()
                 .paymentUrl("https://connect-v2-sbx.fintecture.com")
                 .percentValue(10000 - 1025)
                 .amount(1975)
                 .reference(id)
                 .payerName("Luc Artisan")
                 .payerEmail("bpartners.artisans@gmail.com")
+                .comment("Reste 90%")
                 .label("Fabrication Jean" + " - Restant dû")));
   }
 
@@ -1182,7 +1191,6 @@ class InvoiceIT {
         .collect(toUnmodifiableList());
     assertEquals(callerNb, retrieved.size());
   }
-
 
 
   @SneakyThrows

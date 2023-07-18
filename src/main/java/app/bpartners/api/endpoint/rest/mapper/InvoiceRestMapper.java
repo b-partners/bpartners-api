@@ -3,6 +3,7 @@ package app.bpartners.api.endpoint.rest.mapper;
 import app.bpartners.api.endpoint.rest.model.CrupdateInvoice;
 import app.bpartners.api.endpoint.rest.model.Invoice;
 import app.bpartners.api.endpoint.rest.model.InvoiceDiscount;
+import app.bpartners.api.endpoint.rest.model.InvoicePaymentReq;
 import app.bpartners.api.endpoint.rest.model.PaymentRegulation;
 import app.bpartners.api.endpoint.rest.model.PaymentRequest;
 import app.bpartners.api.endpoint.rest.model.Product;
@@ -190,7 +191,7 @@ public class InvoiceRestMapper {
     app.bpartners.api.model.PaymentRequest payment = paymentRegulation.getPaymentRequest();
     return new PaymentRegulation()
         .maturityDate(paymentRegulation.getMaturityDate())
-        .paymentRequest(new PaymentRequest()
+        .paymentRequest(new InvoicePaymentReq()
             .id(payment.getId())
             .reference(payment.getReference())
             .paymentUrl(payment.getPaymentUrl())
@@ -208,6 +209,7 @@ public class InvoiceRestMapper {
             .payerName(payment.getPayerName())
             .payerEmail(payment.getPayerEmail())
             .paymentUrl(payment.getPaymentUrl())
+            .comment(payment.getComment())
             .initiatedDatetime(paymentRegulation.getInitiatedDatetime()));
   }
 

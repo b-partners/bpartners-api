@@ -1,5 +1,7 @@
 package app.bpartners.api.integration.conf;
 
+import com.amazonaws.auth.AWSStaticCredentialsProvider;
+import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
@@ -47,7 +49,8 @@ public abstract class S3AbstractContextInitializer
                 s3Container.getRegion()
             )
         )
-        .withCredentials(s3Container.getDefaultCredentialsProvider())
+        .withCredentials(new AWSStaticCredentialsProvider(
+            new BasicAWSCredentials(s3Container.getAccessKey(), s3Container.getSecretKey())))
         .build();
 
     s3.createBucket(BUCKET_NAME);

@@ -63,7 +63,7 @@ import static org.springframework.transaction.annotation.Isolation.SERIALIZABLE;
 @Slf4j
 public class ProspectRepositoryImpl implements ProspectRepository {
   public static final String TILE_LAYER = "carreleur";
-  public static final String ANTI_HARM = "Antinuisible 3D";
+  public static final String ANTI_HARM = "Antinuisibles 3D";
   public static final String ROOFER = "toiturier";
   public static final double UNPROCESSED_VALUE = -1.0;
   private final ProspectJpaRepository jpaRepository;

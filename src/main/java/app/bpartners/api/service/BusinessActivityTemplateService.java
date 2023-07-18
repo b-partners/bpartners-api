@@ -20,6 +20,7 @@ public class BusinessActivityTemplateService {
     int pageValue = page != null ? page.getValue() - 1 : 0;
     int pageSizeValue = pageSize != null ? pageSize.getValue() : 30;
     Pageable pageable = PageRequest.of(pageValue, pageSizeValue);
-    return repository.findAll(pageable);
+    /*/!\ return all because users can choose one between every business activities*/
+    return repository.findAll();
   }
 }

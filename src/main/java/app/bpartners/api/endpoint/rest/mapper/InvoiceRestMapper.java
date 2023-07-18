@@ -3,6 +3,8 @@ package app.bpartners.api.endpoint.rest.mapper;
 import app.bpartners.api.endpoint.rest.model.CrupdateInvoice;
 import app.bpartners.api.endpoint.rest.model.Invoice;
 import app.bpartners.api.endpoint.rest.model.InvoiceDiscount;
+import app.bpartners.api.endpoint.rest.model.InvoicePaymentReq;
+import app.bpartners.api.endpoint.rest.model.PaymentMethod;
 import app.bpartners.api.endpoint.rest.model.PaymentRegulation;
 import app.bpartners.api.endpoint.rest.model.PaymentRequest;
 import app.bpartners.api.endpoint.rest.model.Product;
@@ -30,6 +32,7 @@ import org.springframework.stereotype.Component;
 import static app.bpartners.api.endpoint.rest.model.CrupdateInvoice.PaymentTypeEnum.CASH;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
+import static app.bpartners.api.endpoint.rest.model.PaymentMethod.UNKNOWN;
 import static app.bpartners.api.model.mapper.InvoiceMapper.computePriceNoVatWithDiscount;
 import static app.bpartners.api.model.mapper.InvoiceMapper.computePriceWithoutDiscount;
 import static app.bpartners.api.model.mapper.InvoiceMapper.computeTotalPriceWithVatAndDiscount;
@@ -83,6 +86,7 @@ public class InvoiceRestMapper {
             .map(payment -> getPaymentRegulation(domain.getTotalPriceWithVat(), payment))
             .collect(Collectors.toUnmodifiableList()))
         .toPayAt(toPayAt)
+        .paymentMethod(domain.getPaymentMethod())
         .globalDiscount(new InvoiceDiscount()
             .percentValue(
                 domain.getDiscount().getPercent(domain.getTotalPriceWithVat()).getCentsRoundUp())
@@ -125,6 +129,12 @@ public class InvoiceRestMapper {
         && rest.getGlobalDiscount().getPercentValue() == null)) {
       discount = new InvoiceDiscount().percentValue(0);
     }
+    PaymentMethod paymentMethod = UNKNOWN;
+    if (rest.getPaymentMethod() == null) {
+      log.warn("DEPRECATED : Payment method is null. UNKNOWN type is set by default");
+    } else {
+      paymentMethod = rest.getPaymentMethod();
+    }
 
     app.bpartners.api.model.InvoiceDiscount discountDomain = getDiscount(discount);
     Fraction discountAsPercent = discountDomain.getPercentValue();
@@ -159,6 +169,7 @@ public class InvoiceRestMapper {
         .products(invoiceProducts)
         .metadata(rest.getMetadata() == null ? Map.of() : rest.getMetadata())
         .discount(discountDomain)
+        .paymentMethod(paymentMethod)
         .build();
   }
 
@@ -190,7 +201,7 @@ public class InvoiceRestMapper {
     app.bpartners.api.model.PaymentRequest payment = paymentRegulation.getPaymentRequest();
     return new PaymentRegulation()
         .maturityDate(paymentRegulation.getMaturityDate())
-        .paymentRequest(new PaymentRequest()
+        .paymentRequest(new InvoicePaymentReq()
             .id(payment.getId())
             .reference(payment.getReference())
             .paymentUrl(payment.getPaymentUrl())
@@ -208,6 +219,7 @@ public class InvoiceRestMapper {
             .payerName(payment.getPayerName())
             .payerEmail(payment.getPayerEmail())
             .paymentUrl(payment.getPaymentUrl())
+            .comment(payment.getComment())
             .initiatedDatetime(paymentRegulation.getInitiatedDatetime()));
   }
 

@@ -72,7 +72,7 @@ public class AccountHolderMapper {
         .vatNumber(domain.getVatNumber())
         .mobilePhoneNumber(domain.getMobilePhoneNumber())
         .socialCapital(String.valueOf(parseFraction(domain.getSocialCapital())))
-        .initialCashflow(domain.getInitialCashflow().toString())
+        .initialCashflow(String.valueOf(domain.getInitialCashflow()))
         .verificationStatus(domain.getVerificationStatus())
         .name(domain.getName())
         .registrationNumber(domain.getSiren())

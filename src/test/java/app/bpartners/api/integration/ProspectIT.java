@@ -13,7 +13,9 @@ import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.integration.conf.AbstractContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
 import app.bpartners.api.manager.ProjectTokenManager;
+import app.bpartners.api.model.BusinessActivity;
 import app.bpartners.api.repository.AccountConnectorRepository;
+import app.bpartners.api.repository.BusinessActivityRepository;
 import app.bpartners.api.repository.LegalFileRepository;
 import app.bpartners.api.repository.bridge.BridgeApi;
 import app.bpartners.api.repository.fintecture.FintectureConf;
@@ -40,6 +42,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
@@ -48,8 +51,10 @@ import static app.bpartners.api.integration.conf.TestUtils.NOT_JOE_DOE_ACCOUNT_H
 import static app.bpartners.api.integration.conf.TestUtils.ACCOUNTHOLDER_ID;
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsApiException;
 import static app.bpartners.api.integration.conf.TestUtils.assertThrowsForbiddenException;
+import static app.bpartners.api.integration.conf.TestUtils.joeDoeAccountHolder;
 import static app.bpartners.api.integration.conf.TestUtils.setUpCognito;
 import static app.bpartners.api.integration.conf.TestUtils.setUpLegalFileRepository;
+import static app.bpartners.api.repository.implementation.ProspectRepositoryImpl.ANTI_HARM;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -93,6 +98,8 @@ class ProspectIT {
   private BridgeApi bridgeApi;
   @Autowired
   private MunicipalityJpaRepository municipalityJpaRepository;
+  @Autowired
+  private BusinessActivityRepository businessRepository;
 
   private static ApiClient anApiClient() {
     return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN, ContextInitializer.SERVER_PORT);
@@ -172,8 +179,8 @@ class ProspectIT {
         .address("30 Rue de la Montagne Sainte-Genevieve")
         .townCode(92001)
         .rating(new ProspectRating()
-            .value(BigDecimal.valueOf(0))
-            .lastEvaluation(Instant.parse("2023-01-01T03:00:00.00Z")));
+            .value(BigDecimal.valueOf(0.0))
+            .lastEvaluation(Instant.parse("2023-01-01T00:00:00Z")));
   }
 
   UpdateProspect updateProspect() {
@@ -208,21 +215,28 @@ class ProspectIT {
   }
 
   @Test
-  @Order(1)
+  @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
   void read_prospects_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
     ProspectingApi api = new ProspectingApi(joeDoeClient);
 
-    List<Prospect> actual = api.getProspects(ACCOUNTHOLDER_ID);
+    List<Prospect> actual1 = api.getProspects(ACCOUNTHOLDER_ID);
+    businessRepository.save(BusinessActivity.builder()
+        .accountHolder(joeDoeAccountHolder())
+        .primaryActivity(ANTI_HARM)
+        .secondaryActivity(null)
+        .build());
+    List<Prospect> actual2 = api.getProspects(ACCOUNTHOLDER_ID);
 
-    assertEquals(7, actual.size());
-    assertTrue(actual.contains(prospect1()));
-    assertTrue(actual.contains(prospect2()));
-    assertFalse(actual.contains(prospect3()));
+    assertEquals(2, actual1.size());
+    assertEquals(7, actual2.size());
+    assertTrue(actual1.containsAll(List.of(prospect1(), prospect2())));
+    assertFalse(actual1.contains(prospect3()));
+    assertTrue(actual2.containsAll(List.of(prospect1(), prospect2(), prospect3())));
   }
 
   @Test
-  @Order(2)
+  @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
   void update_prospects_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
     ProspectingApi api = new ProspectingApi(joeDoeClient);
@@ -233,7 +247,7 @@ class ProspectIT {
   }
 
   @Test
-  void update_prospects_ko() throws ApiException {
+  void update_prospects_ko() {
     ApiClient joeDoeClient = anApiClient();
     ProspectingApi api = new ProspectingApi(joeDoeClient);
 

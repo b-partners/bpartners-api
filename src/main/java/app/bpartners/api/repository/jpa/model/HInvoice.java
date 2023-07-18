@@ -3,6 +3,7 @@ package app.bpartners.api.repository.jpa.model;
 import app.bpartners.api.endpoint.rest.model.ArchiveStatus;
 import app.bpartners.api.endpoint.rest.model.Invoice.PaymentTypeEnum;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
+import app.bpartners.api.endpoint.rest.model.PaymentMethod;
 import app.bpartners.api.repository.jpa.types.PostgresEnumType;
 import java.io.Serializable;
 import java.time.Instant;
@@ -91,6 +92,9 @@ public class HInvoice implements Serializable {
   private boolean toBeRelaunched;
   private String metadataString;
   private String discountPercent;
+  @Type(type = "pgsql_enum")
+  @Enumerated(EnumType.STRING)
+  private PaymentMethod paymentMethod;
 
   public HInvoice products(List<HInvoiceProduct> products) {
     this.products = products;

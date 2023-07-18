@@ -5,6 +5,7 @@ import app.bpartners.api.model.mapper.BusinessActivityTemplateMapper;
 import app.bpartners.api.repository.BusinessActivityTemplateRepository;
 import app.bpartners.api.repository.jpa.BusinessActivityTemplateJpaRepository;
 import java.util.List;
+import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
@@ -20,5 +21,12 @@ public class BusinessActivityTemplateRepositoryImpl
   public List<BusinessActivityTemplate> findAll(Pageable pageable) {
     return jpaRepository.findAll(pageable)
         .map(domainMapper::toDomain).getContent();
+  }
+
+  @Override
+  public List<BusinessActivityTemplate> findAll() {
+    return jpaRepository.findAll().stream()
+        .map(domainMapper::toDomain)
+        .collect(Collectors.toList());
   }
 }

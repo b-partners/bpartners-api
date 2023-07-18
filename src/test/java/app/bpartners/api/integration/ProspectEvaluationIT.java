@@ -13,8 +13,11 @@ import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.integration.conf.AbstractContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
 import app.bpartners.api.manager.ProjectTokenManager;
+import app.bpartners.api.model.BusinessActivity;
 import app.bpartners.api.model.Prospect;
 import app.bpartners.api.repository.AccountConnectorRepository;
+import app.bpartners.api.repository.AccountHolderRepository;
+import app.bpartners.api.repository.BusinessActivityRepository;
 import app.bpartners.api.repository.LegalFileRepository;
 import app.bpartners.api.repository.ProspectRepository;
 import app.bpartners.api.repository.ban.BanApi;
@@ -61,8 +64,10 @@ import static app.bpartners.api.endpoint.rest.validator.ProspectRestValidator.XL
 import static app.bpartners.api.integration.conf.TestUtils.BEARER_PREFIX;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_HOLDER_ID;
 import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_TOKEN;
+import static app.bpartners.api.integration.conf.TestUtils.joeDoeAccountHolder;
 import static app.bpartners.api.integration.conf.TestUtils.setUpCognito;
 import static app.bpartners.api.integration.conf.TestUtils.setUpLegalFileRepository;
+import static app.bpartners.api.repository.implementation.ProspectRepositoryImpl.ANTI_HARM;
 import static app.bpartners.api.service.ProspectService.DEFAULT_RATING_PROSPECT_TO_CONVERT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -110,6 +115,8 @@ class ProspectEvaluationIT {
   private ExpressifApi expressifApiMock;
   @Autowired
   private ProspectRepository prospectRepository;
+  @Autowired
+  private BusinessActivityRepository businessRepository;
 
   private static OutputValue<Object> ratingResult() {
     return OutputValue.builder()
@@ -153,6 +160,11 @@ class ProspectEvaluationIT {
 
   @Test
   void evaluate_prospects_ok() throws IOException, InterruptedException {
+    businessRepository.save(BusinessActivity.builder()
+        .accountHolder(joeDoeAccountHolder())
+        .primaryActivity(ANTI_HARM)
+        .secondaryActivity(null)
+        .build());
     when(expressifApiMock.process(any())).thenReturn(List.of(ratingResult()));
     Resource prospectFile = new ClassPathResource("files/prospect-ok.xlsx");
     HttpResponse<String> jsonResponse =
@@ -176,6 +188,7 @@ class ProspectEvaluationIT {
     assertEquals(5, actualJson.size());
     assertEquals(expectedProspectEval1(actualJson).reference(actualJson.get(0).getReference()),
         actualJson.get(0));
+    //assertEquals((fromEvaluated), actualProspect);
     assertTrue(actualProspect.containsAll(fromEvaluated));
 
     /*

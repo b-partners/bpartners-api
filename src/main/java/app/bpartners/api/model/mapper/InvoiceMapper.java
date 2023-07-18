@@ -101,6 +101,7 @@ public class InvoiceMapper {
             .amountValue(computeTotalDiscountAmount(discount, actualProducts))
             .build())
         .paymentRegulations(toCreatePaymentRegulations(entity))
+        .paymentMethod(entity.getPaymentMethod())
         .build();
     return updateInvoiceReference(entity, invoice);
   }
@@ -199,6 +200,7 @@ public class InvoiceMapper {
         .products(products)
         .metadataString(objectMapper.writeValueAsString(domain.getMetadata()))
         .discountPercent(domain.getDiscount().getPercentValue().toString())
+        .paymentMethod(domain.getPaymentMethod())
         .build();
   }
 

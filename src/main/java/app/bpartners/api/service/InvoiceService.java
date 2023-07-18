@@ -28,6 +28,7 @@ import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PROPOSAL;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PROPOSAL_CONFIRMED;
+import static app.bpartners.api.model.Invoice.DEFAULT_TO_PAY_DELAY_DAYS;
 import static app.bpartners.api.service.utils.PaymentUtils.computeTotalPriceFromPaymentReq;
 import static java.util.UUID.randomUUID;
 
@@ -170,7 +171,7 @@ public class InvoiceService {
       log.warn(
           "Delay in payment allowed is mandatory to retrieve invoice payment date limit."
               + " 30 days are given by default");
-      delayInPaymentAllowed = 30;
+      delayInPaymentAllowed = DEFAULT_TO_PAY_DELAY_DAYS;
     }
     actual.setToPayAt(actual.getSendingDate().plusDays(delayInPaymentAllowed));
     actual.setPaymentUrl(actual.getTotalPriceWithVat().getCentsAsDecimal() != 0

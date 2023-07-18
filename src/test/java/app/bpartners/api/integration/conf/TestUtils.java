@@ -16,6 +16,7 @@ import app.bpartners.api.endpoint.rest.model.CustomerStatus;
 import app.bpartners.api.endpoint.rest.model.Geojson;
 import app.bpartners.api.endpoint.rest.model.Invoice;
 import app.bpartners.api.endpoint.rest.model.InvoiceDiscount;
+import app.bpartners.api.endpoint.rest.model.InvoicePaymentReq;
 import app.bpartners.api.endpoint.rest.model.LegalFile;
 import app.bpartners.api.endpoint.rest.model.PaymentRegulation;
 import app.bpartners.api.endpoint.rest.model.PaymentRequest;
@@ -29,6 +30,7 @@ import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.endpoint.rest.security.model.Principal;
 import app.bpartners.api.endpoint.rest.security.principal.PrincipalProvider;
 import app.bpartners.api.model.Account;
+import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.repository.LegalFileRepository;
@@ -77,6 +79,7 @@ import static app.bpartners.api.endpoint.rest.model.EnableStatus.ENABLED;
 import static app.bpartners.api.endpoint.rest.model.IdentificationStatus.VALID_IDENTITY;
 import static app.bpartners.api.endpoint.rest.model.Invoice.PaymentTypeEnum.IN_INSTALMENT;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
+import static app.bpartners.api.endpoint.rest.model.PaymentMethod.UNKNOWN;
 import static app.bpartners.api.endpoint.rest.model.TransactionTypeEnum.INCOME;
 import static app.bpartners.api.endpoint.rest.model.TransactionTypeEnum.OUTCOME;
 import static app.bpartners.api.model.Invoice.DEFAULT_DELAY_PENALTY_PERCENT;
@@ -476,8 +479,8 @@ public class TestUtils {
         .category(null);
   }
 
-  public static PaymentRequest basePaymentRequest() {
-    return new PaymentRequest()
+  public static InvoicePaymentReq basePaymentRequest() {
+    return new InvoicePaymentReq()
         .paymentUrl("https://connect-v2-sbx.fintecture.com")
         .amount(4400)
         .payerName("Luc Artisan")
@@ -533,6 +536,7 @@ public class TestUtils {
         .globalDiscount(new InvoiceDiscount()
             .percentValue(0)
             .amountValue(0))
+        .paymentMethod(UNKNOWN)
         .metadata(Map.of());
   }
 
@@ -555,6 +559,7 @@ public class TestUtils {
         .products(List.of(product5()))
         .totalPriceWithVat(1100)
         .totalVat(100).totalPriceWithoutVat(1000)
+        .paymentMethod(UNKNOWN)
         .metadata(Map.of());
   }
 
@@ -816,6 +821,12 @@ public class TestUtils {
         .status(OPENED)
         .active(true)
         .bank(null)
+        .build();
+  }
+
+  public static AccountHolder joeDoeAccountHolder() {
+    return AccountHolder.builder()
+        .id(JOE_DOE_ACCOUNT_HOLDER_ID)
         .build();
   }
 

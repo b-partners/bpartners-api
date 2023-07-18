@@ -1203,6 +1203,8 @@ components:
             type: string
         globalDiscount:
           $ref: '#/components/schemas/InvoiceDiscount'
+        paymentMethod:
+          $ref: '#/components/schemas/PaymentMethod'
     CrupdateInvoice:
       allOf:
         - $ref: '#/components/schemas/CrupdateInvoiceTemplate'
@@ -1264,7 +1266,7 @@ components:
       type: object
       properties:
         paymentRequest:
-          $ref: '#/components/schemas/PaymentRequest'
+          $ref: '#/components/schemas/InvoicePaymentReq'
         maturityDate:
           type: string
           format: date
@@ -1391,3 +1393,16 @@ components:
           format: date-time
         paymentStatus:
           $ref: '#/components/schemas/PaymentStatus'
+    InvoicePaymentReq:
+      allOf:
+        - $ref: '#/components/schemas/PaymentRequest'
+      properties:
+        comment:
+          type: string
+    PaymentMethod:
+      type: string
+      enum:
+        - UNKNOWN
+        - CASH
+        - BANK_TRANSFER
+        - CHEQUE

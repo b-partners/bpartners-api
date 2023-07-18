@@ -406,7 +406,7 @@
                 coordonnées ci-dessous. <br/>
                 <!--        TODO : change delay in payment allowed properly-->
                 <span
-                th:if="${invoice.delayInPaymentAllowed != 30 && invoice.delayPenaltyPercent.getApproximatedValue() != 0}">
+                th:if="${invoice.delayPenaltyPercent.getApproximatedValue() != 0}">
                     Des pénalités correspondant à trois fois le taux de l’intérêt légal seront
                 applicables en
                 l’absence ou en cas de retard de paiement. Les pénalités de

@@ -16,6 +16,7 @@ import org.testcontainers.containers.PostgisContainerProvider;
 import org.testcontainers.containers.localstack.LocalStackContainer;
 import org.testcontainers.utility.DockerImageName;
 
+import static app.bpartners.api.integration.conf.AbstractContextInitializer.startPostgres;
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.S3;
 
 @Slf4j
@@ -28,13 +29,7 @@ public abstract class S3AbstractContextInitializer
 
   @Override
   public void initialize(ConfigurableApplicationContext applicationContext) {
-    JdbcDatabaseContainer postgresContainer =
-        new PostgisContainerProvider()
-            .newInstance()
-            .withDatabaseName("it-db")
-            .withUsername("sa")
-            .withPassword("sa");
-    postgresContainer.start();
+    var postgresContainer = startPostgres();
 
     LocalStackContainer s3Container = new LocalStackContainer(DockerImageName.parse(
         "localstack/localstack:0.11.3"))

@@ -3,21 +3,19 @@ package app.bpartners.api.integration.conf;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.test.context.support.TestPropertySourceUtils;
-import org.testcontainers.containers.JdbcDatabaseContainer;
-import org.testcontainers.containers.PostgisContainerProvider;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.utility.DockerImageName;
+
+import java.util.List;
+
+import static app.bpartners.api.integration.conf.TestUtils.anAvailableRandomPort;
 
 public abstract class AbstractContextInitializer
     implements ApplicationContextInitializer<ConfigurableApplicationContext> {
 
   @Override
   public void initialize(ConfigurableApplicationContext applicationContext) {
-    JdbcDatabaseContainer<?> postgresContainer =
-        new PostgisContainerProvider()
-            .newInstance()
-            .withDatabaseName("it-db")
-            .withUsername("sa")
-            .withPassword("sa");
-    postgresContainer.start();
+    PostgreSQLContainer<?> postgresContainer = startPostgres();
 
     String flywayTestdataPath = "classpath:/db/testdata";
     TestPropertySourceUtils.addInlinedPropertiesToEnvironment(
@@ -43,6 +41,20 @@ public abstract class AbstractContextInitializer
         "spring.datasource.username=" + postgresContainer.getUsername(),
         "spring.datasource.password=" + postgresContainer.getPassword(),
         "spring.flyway.locations=classpath:/db/migration," + flywayTestdataPath);
+  }
+
+  public static PostgreSQLContainer<?> startPostgres() {
+    int localPort = anAvailableRandomPort();
+    int containerPort = 5432;
+    DockerImageName postgres = DockerImageName.parse("postgres:14.7");
+    var postgresContainer = new PostgreSQLContainer<>(postgres)
+        .withDatabaseName("it-db")
+        .withUsername("sa")
+        .withPassword("sa")
+        .withExposedPorts(containerPort);
+    postgresContainer.setPortBindings(List.of(String.format("%d:%d", containerPort, localPort)));
+    postgresContainer.start();
+    return postgresContainer;
   }
 
   public abstract int getServerPort();

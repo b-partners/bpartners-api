@@ -7,18 +7,14 @@ import org.testcontainers.containers.JdbcDatabaseContainer;
 import org.testcontainers.containers.PostgisContainerProvider;
 import org.testcontainers.containers.PostgreSQLContainer;
 
+import static app.bpartners.api.integration.conf.AbstractContextInitializer.startPostgres;
+
 public abstract class BridgeAbstractContextInitializer
     implements ApplicationContextInitializer<ConfigurableApplicationContext> {
 
   @Override
   public void initialize(ConfigurableApplicationContext applicationContext) {
-    JdbcDatabaseContainer postgresContainer =
-        new PostgisContainerProvider()
-            .newInstance()
-            .withDatabaseName("it-db")
-            .withUsername("sa")
-            .withPassword("sa");
-    postgresContainer.start();
+    var postgresContainer = startPostgres();
 
     String flywayTestdataPath = "classpath:/db/testdata";
     TestPropertySourceUtils.addInlinedPropertiesToEnvironment(

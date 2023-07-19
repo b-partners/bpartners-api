@@ -6,18 +6,14 @@ import org.springframework.test.context.support.TestPropertySourceUtils;
 import org.testcontainers.containers.JdbcDatabaseContainer;
 import org.testcontainers.containers.PostgisContainerProvider;
 
+import static app.bpartners.api.integration.conf.AbstractContextInitializer.startPostgres;
+
 public abstract class ExpressifAbstractContextInitializer
     implements ApplicationContextInitializer<ConfigurableApplicationContext> {
 
   @Override
   public void initialize(ConfigurableApplicationContext applicationContext) {
-    JdbcDatabaseContainer<?> postgresContainer =
-        new PostgisContainerProvider()
-            .newInstance()
-            .withDatabaseName("it-db")
-            .withUsername("sa")
-            .withPassword("sa");
-    postgresContainer.start();
+    var postgresContainer = startPostgres();
 
     String flywayTestdataPath = "classpath:/db/testdata";
     TestPropertySourceUtils.addInlinedPropertiesToEnvironment(

@@ -110,7 +110,7 @@ ext {
     set('testcontainersVersion', "1.15.3")
 }
 test {
-    minHeapSize '4g'
+    minHeapSize '100g'
     maxHeapSize '200g'
     maxParallelForks = Runtime.runtime.availableProcessors().intdiv(2) ?: 1
     exclude '**/BridgeIT.class'

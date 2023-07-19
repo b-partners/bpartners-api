@@ -19,7 +19,6 @@ import app.bpartners.api.endpoint.rest.model.InvoiceDiscount;
 import app.bpartners.api.endpoint.rest.model.InvoicePaymentReq;
 import app.bpartners.api.endpoint.rest.model.LegalFile;
 import app.bpartners.api.endpoint.rest.model.PaymentRegulation;
-import app.bpartners.api.endpoint.rest.model.PaymentRequest;
 import app.bpartners.api.endpoint.rest.model.Product;
 import app.bpartners.api.endpoint.rest.model.ProductStatus;
 import app.bpartners.api.endpoint.rest.model.TransactionCategory;
@@ -84,8 +83,8 @@ import static app.bpartners.api.endpoint.rest.model.TransactionTypeEnum.INCOME;
 import static app.bpartners.api.endpoint.rest.model.TransactionTypeEnum.OUTCOME;
 import static app.bpartners.api.model.Invoice.DEFAULT_DELAY_PENALTY_PERCENT;
 import static app.bpartners.api.model.Invoice.DEFAULT_TO_PAY_DELAY_DAYS;
+import static app.bpartners.api.model.Money.fromMinor;
 import static app.bpartners.api.repository.bridge.model.Account.BridgeAccount.BRIDGE_STATUS_OK;
-import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -460,7 +459,7 @@ public class TestUtils {
         .id(TRANSACTION1_ID)
         .label("Création de site vitrine")
         .reference("REF_001")
-        .amount(50000)
+        .amount(5000000)
         .type(INCOME)
         .status(TransactionStatus.PENDING)
         .category(null)
@@ -817,7 +816,7 @@ public class TestUtils {
         .name("Account_name")
         .iban("FR0123456789")
         .bic("BIC_NOT_NULL")
-        .availableBalance(parseFraction(10000))
+        .availableBalance(fromMinor(10000.0))
         .status(OPENED)
         .active(true)
         .bank(null)

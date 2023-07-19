@@ -112,7 +112,7 @@ ext {
 test {
     minHeapSize '4g'
     maxHeapSize '200g'
-    jvmArgs '-XX:MaxPermSize=32g'
+    maxParallelForks = Runtime.runtime.availableProcessors().intdiv(2) ?: 1
     exclude '**/BridgeIT.class'
     exclude '**/DraftIT.class'
     exclude '**/InvoiceCrupdatedServiceTest.class'

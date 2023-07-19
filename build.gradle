@@ -110,6 +110,9 @@ ext {
     set('testcontainersVersion', "1.15.3")
 }
 test {
+    minHeapSize '4g'
+    maxHeapSize '200g'
+    jvmArgs '-XX:MaxPermSize=32g'
     exclude '**/BridgeIT.class'
     exclude '**/DraftIT.class'
     exclude '**/InvoiceCrupdatedServiceTest.class'

@@ -1,6 +1,7 @@
 package app.bpartners.api.integration;
 
 import app.bpartners.api.SentryConf;
+import app.bpartners.api.endpoint.event.EventPoller;
 import app.bpartners.api.endpoint.rest.api.PayingApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
@@ -12,7 +13,6 @@ import app.bpartners.api.endpoint.rest.model.InvoiceDiscount;
 import app.bpartners.api.endpoint.rest.model.InvoicePaymentReq;
 import app.bpartners.api.endpoint.rest.model.PaymentMethod;
 import app.bpartners.api.endpoint.rest.model.PaymentRegulation;
-import app.bpartners.api.endpoint.rest.model.PaymentRequest;
 import app.bpartners.api.endpoint.rest.model.Product;
 import app.bpartners.api.endpoint.rest.model.UpdateInvoiceArchivedStatus;
 import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
@@ -89,6 +89,7 @@ import static app.bpartners.api.integration.conf.TestUtils.setUpCognito;
 import static app.bpartners.api.integration.conf.TestUtils.setUpEventBridge;
 import static app.bpartners.api.integration.conf.TestUtils.setUpLegalFileRepository;
 import static app.bpartners.api.integration.conf.TestUtils.setUpPaymentInitiationRep;
+import static app.bpartners.api.model.BoundedPageSize.MAX_SIZE;
 import static app.bpartners.api.model.Invoice.DEFAULT_DELAY_PENALTY_PERCENT;
 import static app.bpartners.api.model.Invoice.DEFAULT_TO_PAY_DELAY_DAYS;
 import static java.util.UUID.randomUUID;
@@ -114,9 +115,10 @@ class InvoiceIT {
   private PaymentScheduleService paymentScheduleService;
   @MockBean
   private BuildingPermitConf buildingPermitConf;
-  public static final int MAX_PAGE_SIZE = 500;
   public static final String DRAFT_REF_PREFIX = "BROUILLON-";
   private static final String NEW_INVOICE_ID = "invoice_uuid";
+  @MockBean
+  private EventPoller eventPoller;
   @MockBean
   private SentryConf sentryConf;
   @MockBean
@@ -607,9 +609,9 @@ class InvoiceIT {
         "{\"type\":\"400 BAD_REQUEST\",\"message\":\"page size must be >=1\"}",
         () -> api.getInvoices(JOE_DOE_ACCOUNT_ID, 1, -10, null));
     assertThrowsApiException(
-        "{\"type\":\"400 BAD_REQUEST\",\"message\":\"page size must be <" + MAX_PAGE_SIZE
+        "{\"type\":\"400 BAD_REQUEST\",\"message\":\"page size must be <" + MAX_SIZE
             + "\"}",
-        () -> api.getInvoices(JOE_DOE_ACCOUNT_ID, 1, MAX_PAGE_SIZE + 1, null));
+        () -> api.getInvoices(JOE_DOE_ACCOUNT_ID, 1, MAX_SIZE + 1, null));
     assertThrowsApiException("{\"type\":\"404 NOT_FOUND\",\"message\":\""
             + "Invoice.not_existing_invoice_id is not found\"}",
         () -> api.getInvoiceById(JOE_DOE_ACCOUNT_ID, "not_existing_invoice_id"));

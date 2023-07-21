@@ -30,6 +30,7 @@ import app.bpartners.api.endpoint.rest.security.model.Principal;
 import app.bpartners.api.endpoint.rest.security.principal.PrincipalProvider;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.AccountHolder;
+import app.bpartners.api.model.Money;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.repository.LegalFileRepository;
@@ -183,7 +184,7 @@ public class TestUtils {
   public static app.bpartners.api.endpoint.rest.model.Account restJoeAccount() {
     return new app.bpartners.api.endpoint.rest.model.Account()
         .id("beed1765-5c16-472a-b3f4-5c376ce5db58")
-        .availableBalance(1000000)
+        .availableBalance(10000)
         .status(OPENED)
         .active(true)
         .name("Account_name")
@@ -872,7 +873,7 @@ public class TestUtils {
     return AccountConnector.builder()
         .id(String.valueOf(bridgeAccount.getId()))
         .name(bridgeAccount.getName())
-        .balance(bridgeAccount.getBalance())
+        .balance(Money.fromMinor(bridgeAccount.getBalance()))
         .iban(bridgeAccount.getIban())
         .status(bridgeAccount.getDomainStatus())
         .build();

@@ -1,6 +1,7 @@
 package app.bpartners.api.repository.model;
 
 import app.bpartners.api.endpoint.rest.model.AccountStatus;
+import app.bpartners.api.model.Money;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -17,7 +18,7 @@ import lombok.ToString;
 public class AccountConnector {
   private String id;
   private String name;
-  private Double balance;
+  private Money balance;
   private AccountStatus status;
   private String iban;
   private String bankId;

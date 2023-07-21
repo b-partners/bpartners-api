@@ -13,9 +13,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import static app.bpartners.api.endpoint.rest.model.AccountStatus.UNKNOWN;
-import static app.bpartners.api.model.Money.fromMajor;
-import static app.bpartners.api.model.Money.fromMinor;
-import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 
 @Slf4j
 @Component
@@ -36,7 +33,7 @@ public class AccountMapper {
     return AccountConnector.builder()
         .id(bridgeAccount.getId())
         .name(bridgeAccount.getName())
-        .balance(fromMinor(bridgeAccount.getBalance()).getCents())
+        .balance(Money.fromMinor(bridgeAccount.getBalance()))
         .iban(bridgeAccount.getIban())
         .status(bridgeAccount.getDomainStatus())
         .bankId(String.valueOf(bridgeAccount.getBankId()))
@@ -47,7 +44,7 @@ public class AccountMapper {
     return AccountConnector.builder()
         .id(entity.getExternalId())
         .name(entity.getName())
-        .balance(parseFraction(entity.getAvailableBalance()).getApproximatedValue())
+        .balance(Money.fromMajor(entity.getAvailableBalance()))
         .iban(entity.getIban())
         .status(entity.getStatus())
         .bankId(entity.getIdBank())
@@ -63,7 +60,7 @@ public class AccountMapper {
         .bank(bank)
         .name(accountConnector.getName())
         .iban(accountConnector.getIban())
-        .availableBalance(fromMajor(accountConnector.getBalance()))
+        .availableBalance(accountConnector.getBalance())
         .status(accountConnector.getStatus())
         .build();
   }
@@ -73,7 +70,7 @@ public class AccountMapper {
       return null;
     }
 
-    Money availableBalance = fromMinor(entity.getAvailableBalance());
+    Money availableBalance = Money.fromMajor(entity.getAvailableBalance());
     return Account.builder()
         .id(entity.getId())
         .externalId(entity.getExternalId())
@@ -96,7 +93,7 @@ public class AccountMapper {
         .iban(existing.getIban())
         .bic(existing.getBic())
         .externalId(accountConnector.getId())
-        .availableBalance(String.valueOf(parseFraction(accountConnector.getBalance() * 100)))
+        .availableBalance(accountConnector.getBalance().stringValue())
         .status(accountConnector.getStatus())
         .build();
   }

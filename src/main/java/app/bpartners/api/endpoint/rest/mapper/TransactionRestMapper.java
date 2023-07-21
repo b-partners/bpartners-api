@@ -14,7 +14,7 @@ public class TransactionRestMapper {
   public Transaction toRest(app.bpartners.api.model.Transaction internal) {
     Transaction transaction = new Transaction()
         .id(internal.getId())
-        .amount(internal.getAmount().getCents().intValue())
+        .amount(internal.getAmount().getCents())
         .label(internal.getLabel())
         .paymentDatetime(internal.getPaymentDatetime())
         .reference(internal.getReference())

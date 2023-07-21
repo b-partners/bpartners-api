@@ -459,7 +459,7 @@ public class TestUtils {
         .id(TRANSACTION1_ID)
         .label("Création de site vitrine")
         .reference("REF_001")
-        .amount(5000000)
+        .amount(50000)
         .type(INCOME)
         .status(TransactionStatus.PENDING)
         .category(null)

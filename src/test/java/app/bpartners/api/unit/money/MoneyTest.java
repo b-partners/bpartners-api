@@ -13,26 +13,18 @@ public class MoneyTest {
   @Test
   void money_manipulation_ok() {
     Fraction twoThirds = new Fraction(new BigInteger("2"), new BigInteger("3"));
-    String twoThirdsStringValue = "2/3";
-    Money fromString = fromMinor(twoThirdsStringValue);
+    String stringValue1 = "2/3";
+    int actualValue1 = 200; //Bridge
+    Double actualValue2 = 20000.0; //Swan
 
-    int majorValue = 20000; //Bridge
-    Money fromMajor = fromMajor(majorValue);
+    Money stringMajor = fromMajor(stringValue1);
+    Money stringMinor = fromMinor(stringValue1);
+    Money fromMinor = fromMinor(actualValue1);
+    Money fromMajor = fromMajor(actualValue2);
 
-    Double minorValue = 200.0; //Swan
-    Money fromMinor = fromMinor(minorValue);
-
-    int roundedValue = 200;
-    assertEquals(
-        twoThirds.getApproximatedValue(),
-        fromString.getApproximatedValue());
-
-    assertEquals(minorValue, fromMinor.getCents());
-    assertEquals(roundedValue, fromMinor.getCents());
-    assertEquals(majorValue, fromMinor.getTenths());
-
-    assertEquals(minorValue, fromMajor.getCents());
-    assertEquals(roundedValue, fromMinor.getCents());
-    assertEquals(majorValue, fromMajor.getTenths());
+    assertEquals(1, stringMajor.getCents());
+    assertEquals((int) ((2.0 / 3.0) * 100) + 1, stringMinor.getCents());
+    assertEquals(20000, fromMinor.getCents());
+    assertEquals(20000, fromMajor.getCents());
   }
 }

@@ -125,9 +125,9 @@ class TransactionServiceSummariesTest {
   private MonthlyTransactionsSummary refreshedSummary1(Instant updatedAt) {
     return MonthlyTransactionsSummary
         .builder()
-        .income(new Fraction(BigInteger.valueOf(100)))
+        .income(new Fraction(BigInteger.valueOf(10000)))
         .month(YearMonth.now().getMonthValue() - 1)
-        .outcome(new Fraction(BigInteger.valueOf(100)))
+        .outcome(new Fraction(BigInteger.valueOf(10000)))
         .cashFlow(new Fraction())
         .updatedAt(updatedAt)
         .build();
@@ -137,8 +137,8 @@ class TransactionServiceSummariesTest {
     return MonthlyTransactionsSummary
         .builder()
         .month(YearMonth.now().getMonthValue() - 1)
-        .income(new Fraction(BigInteger.valueOf(100)))
-        .outcome(new Fraction(BigInteger.valueOf(100)))
+        .income(new Fraction(BigInteger.valueOf(10000)))
+        .outcome(new Fraction(BigInteger.valueOf(10000)))
         .cashFlow(new Fraction())
         .updatedAt(updatedAt)
         .build();

@@ -3,8 +3,8 @@ package app.bpartners.api.unit.validator;
 import app.bpartners.api.endpoint.rest.model.CreateAccountInvoiceRelaunchConf;
 import app.bpartners.api.endpoint.rest.validator.CreateInvoiceRelaunchConfValidator;
 import org.junit.jupiter.api.Test;
-import static app.bpartners.api.integration.conf.TestUtils.assertThrowsBadRequestException;
-import static app.bpartners.api.integration.conf.TestUtils.createInvoiceRelaunchConf;
+import static app.bpartners.api.integration.conf.utils.TestUtils.assertThrowsBadRequestException;
+import static app.bpartners.api.integration.conf.utils.TestUtils.createInvoiceRelaunchConf;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 class CreateUserInvoiceRelaunchConfValidatorTest {

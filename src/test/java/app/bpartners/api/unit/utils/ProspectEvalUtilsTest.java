@@ -21,7 +21,7 @@ import org.springframework.core.io.Resource;
 import static app.bpartners.api.repository.expressif.ProspectEvalInfo.ContactNature.OTHER;
 import static app.bpartners.api.repository.expressif.ProspectEvalInfo.ContactNature.PROSPECT;
 import static app.bpartners.api.repository.expressif.fact.NewIntervention.OldCustomer.OldCustomerType.PROFESSIONAL;
-import static app.bpartners.api.integration.conf.TestUtils.assertThrowsBadRequestException;
+import static app.bpartners.api.integration.conf.utils.TestUtils.assertThrowsBadRequestException;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;

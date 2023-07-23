@@ -24,6 +24,7 @@ import app.bpartners.api.service.AccountHolderService;
 import app.bpartners.api.service.AccountService;
 import app.bpartners.api.service.OnboardingService;
 import app.bpartners.api.service.PaymentScheduleService;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
@@ -35,12 +36,10 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
 
-import java.util.List;
-
-import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_TOKEN;
-import static app.bpartners.api.integration.conf.TestUtils.setUpCognito;
-import static app.bpartners.api.integration.conf.TestUtils.setUpEventBridge;
-import static app.bpartners.api.integration.conf.TestUtils.setUpLegalFileRepository;
+import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_TOKEN;
+import static app.bpartners.api.integration.conf.utils.TestUtils.setUpCognito;
+import static app.bpartners.api.integration.conf.utils.TestUtils.setUpEventBridge;
+import static app.bpartners.api.integration.conf.utils.TestUtils.setUpLegalFileRepository;
 import static app.bpartners.api.service.OnboardingService.DEFAULT_BALANCE;
 import static app.bpartners.api.service.OnboardingService.DEFAULT_CASH_FLOW;
 import static app.bpartners.api.service.OnboardingService.DEFAULT_STATUS;

@@ -5,7 +5,7 @@ import app.bpartners.api.endpoint.event.EventPoller;
 import app.bpartners.api.endpoint.event.S3Conf;
 import app.bpartners.api.endpoint.rest.security.bridge.BridgeConf;
 import app.bpartners.api.integration.conf.BanAbstractContextInitializer;
-import app.bpartners.api.integration.conf.TestUtils;
+import app.bpartners.api.integration.conf.utils.TestUtils;
 import app.bpartners.api.manager.ProjectTokenManager;
 import app.bpartners.api.repository.AccountConnectorRepository;
 import app.bpartners.api.repository.ban.BanApi;

@@ -5,7 +5,7 @@ import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
 import app.bpartners.api.endpoint.rest.validator.PaymentInitValidator;
 import org.junit.jupiter.api.Test;
 
-import static app.bpartners.api.integration.conf.TestUtils.assertThrowsBadRequestException;
+import static app.bpartners.api.integration.conf.utils.TestUtils.assertThrowsBadRequestException;
 import static app.bpartners.api.service.utils.EmailUtils.EMAIL_PATTERN;
 import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;

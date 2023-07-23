@@ -19,7 +19,7 @@ import org.mockito.ArgumentCaptor;
 
 import static app.bpartners.api.endpoint.rest.model.ProspectStatus.CONTACTED;
 import static app.bpartners.api.endpoint.rest.model.ProspectStatus.TO_CONTACT;
-import static app.bpartners.api.integration.conf.TestUtils.ACCOUNTHOLDER_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.ACCOUNTHOLDER_ID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;

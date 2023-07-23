@@ -17,9 +17,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
-import static app.bpartners.api.integration.conf.TestUtils.CREDIT_SIDE;
-import static app.bpartners.api.integration.conf.TestUtils.DEBIT_SIDE;
-import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.CREDIT_SIDE;
+import static app.bpartners.api.integration.conf.utils.TestUtils.DEBIT_SIDE;
+import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ID;
 import static app.bpartners.api.model.Money.fromMajor;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;

@@ -4,7 +4,7 @@ import lombok.Getter;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
 
-import static app.bpartners.api.integration.conf.TestUtils.findAvailableTcpPort;
+import static app.bpartners.api.integration.conf.utils.TestUtils.findAvailableTcpPort;
 import static org.springframework.test.context.support.TestPropertySourceUtils.addInlinedPropertiesToEnvironment;
 
 public class EnvContextInitializer
@@ -44,6 +44,7 @@ public class EnvContextInitializer
         "spring.datasource.url=" + postgresContainer.getJdbcUrl(),
         "spring.datasource.username=" + postgresContainer.getUsername(),
         "spring.datasource.password=" + postgresContainer.getPassword(),
-        "spring.flyway.locations=classpath:/db/migration," + dbContextInitializer.getFlywayTestdataPath());
+        "spring.flyway.locations=classpath:/db/migration,"
+            + dbContextInitializer.getFlywayTestdataPath());
   }
 }

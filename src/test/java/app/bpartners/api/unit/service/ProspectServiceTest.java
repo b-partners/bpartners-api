@@ -14,7 +14,7 @@ import javax.mail.MessagingException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static app.bpartners.api.integration.conf.TestUtils.ACCOUNTHOLDER_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.ACCOUNTHOLDER_ID;
 import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;

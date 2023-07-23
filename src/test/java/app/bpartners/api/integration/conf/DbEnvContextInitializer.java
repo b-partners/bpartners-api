@@ -7,7 +7,8 @@ public class DbEnvContextInitializer
     implements ApplicationContextInitializer<ConfigurableApplicationContext> {
 
   private final DbContextInitializer dbContextInitializer = new DbContextInitializer();
-  private final EnvContextInitializer envContextInitializer = new EnvContextInitializer(dbContextInitializer);
+  private final EnvContextInitializer envContextInitializer =
+      new EnvContextInitializer(dbContextInitializer);
 
   private static int httpServerPort;
 

@@ -13,8 +13,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static app.bpartners.api.endpoint.rest.model.FileType.INVOICE;
-import static app.bpartners.api.integration.conf.TestUtils.FILE_ID;
-import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.FILE_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ID;
 import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;

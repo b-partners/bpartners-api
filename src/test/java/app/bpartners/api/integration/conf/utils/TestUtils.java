@@ -1,4 +1,4 @@
-package app.bpartners.api.integration.conf;
+package app.bpartners.api.integration.conf.utils;
 
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
@@ -47,15 +47,6 @@ import app.bpartners.api.repository.sendinblue.model.Attributes;
 import app.bpartners.api.repository.sendinblue.model.Contact;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.SneakyThrows;
-import org.junit.jupiter.api.function.Executable;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.util.SocketUtils;
-import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
-import software.amazon.awssdk.services.eventbridge.model.PutEventsRequest;
-import software.amazon.awssdk.services.eventbridge.model.PutEventsResponse;
-
-import javax.net.ssl.SSLSession;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpHeaders;
@@ -73,6 +64,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.Future;
+import javax.net.ssl.SSLSession;
+import lombok.SneakyThrows;
+import org.junit.jupiter.api.function.Executable;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.util.SocketUtils;
+import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
+import software.amazon.awssdk.services.eventbridge.model.PutEventsRequest;
+import software.amazon.awssdk.services.eventbridge.model.PutEventsResponse;
 
 import static app.bpartners.api.endpoint.rest.model.AccountStatus.OPENED;
 import static app.bpartners.api.endpoint.rest.model.EnableStatus.ENABLED;
@@ -90,7 +89,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
-import static org.springframework.util.SocketUtils.findAvailableTcpPort;
 
 public class TestUtils {
   public static final String CREDIT_SIDE = "Credit";
@@ -221,9 +219,9 @@ public class TestUtils {
     return new AnnualRevenueTarget()
         .year(2023)
         .updatedAt(Instant.parse("2022-01-01T01:00:00.00Z"))
-        .amountAttempted(1356000)
+        .amountAttempted(0)
         .amountTarget(1000000)
-        .amountAttemptedPercent(13560);
+        .amountAttemptedPercent(0);
   }
 
   public static AnnualRevenueTarget annualRevenueTarget2() {

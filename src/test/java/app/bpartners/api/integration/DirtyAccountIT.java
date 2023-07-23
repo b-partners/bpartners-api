@@ -12,7 +12,7 @@ import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
 import app.bpartners.api.endpoint.rest.model.UpdateAccountIdentity;
 import app.bpartners.api.integration.conf.DbEnvContextInitializer;
 import app.bpartners.api.integration.conf.MockedThirdParties;
-import app.bpartners.api.integration.conf.TestUtils;
+import app.bpartners.api.integration.conf.utils.TestUtils;
 import app.bpartners.api.model.Bank;
 import app.bpartners.api.model.Money;
 import app.bpartners.api.model.User;
@@ -24,6 +24,13 @@ import app.bpartners.api.repository.bridge.model.Account.BridgeAccount;
 import app.bpartners.api.repository.bridge.model.Item.BridgeConnectItem;
 import app.bpartners.api.repository.bridge.repository.BridgeBankRepository;
 import app.bpartners.api.repository.implementation.BankRepositoryImpl;
+import app.bpartners.api.repository.model.AccountConnector;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Future;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -34,32 +41,25 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Future;
-
-import static app.bpartners.api.integration.conf.TestUtils.BERNARD_DOE_ACCOUNT_ID;
-import static app.bpartners.api.integration.conf.TestUtils.BERNARD_DOE_ID;
-import static app.bpartners.api.integration.conf.TestUtils.BERNARD_DOE_TOKEN;
-import static app.bpartners.api.integration.conf.TestUtils.JANE_DOE_ID;
-import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
-import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_COGNITO_TOKEN;
-import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ID;
-import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_TOKEN;
-import static app.bpartners.api.integration.conf.TestUtils.JOE_EMAIL;
-import static app.bpartners.api.integration.conf.TestUtils.REDIRECT_FAILURE_URL;
-import static app.bpartners.api.integration.conf.TestUtils.REDIRECT_SUCCESS_URL;
-import static app.bpartners.api.integration.conf.TestUtils.assertThrowsApiException;
-import static app.bpartners.api.integration.conf.TestUtils.assertThrowsForbiddenException;
-import static app.bpartners.api.integration.conf.TestUtils.filterAccountsById;
-import static app.bpartners.api.integration.conf.TestUtils.joeDoeBridgeAccount;
-import static app.bpartners.api.integration.conf.TestUtils.joePersistedAccount;
-import static app.bpartners.api.integration.conf.TestUtils.otherBridgeAccount;
-import static app.bpartners.api.integration.conf.TestUtils.setUpCognito;
-import static app.bpartners.api.integration.conf.TestUtils.setUpLegalFileRepository;
+import static app.bpartners.api.integration.conf.utils.TestUtils.BERNARD_DOE_ACCOUNT_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.BERNARD_DOE_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.BERNARD_DOE_TOKEN;
+import static app.bpartners.api.integration.conf.utils.TestUtils.JANE_DOE_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_COGNITO_TOKEN;
+import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_TOKEN;
+import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_EMAIL;
+import static app.bpartners.api.integration.conf.utils.TestUtils.REDIRECT_FAILURE_URL;
+import static app.bpartners.api.integration.conf.utils.TestUtils.REDIRECT_SUCCESS_URL;
+import static app.bpartners.api.integration.conf.utils.TestUtils.assertThrowsApiException;
+import static app.bpartners.api.integration.conf.utils.TestUtils.assertThrowsForbiddenException;
+import static app.bpartners.api.integration.conf.utils.TestUtils.filterAccountsById;
+import static app.bpartners.api.integration.conf.utils.TestUtils.joeDoeBridgeAccount;
+import static app.bpartners.api.integration.conf.utils.TestUtils.joePersistedAccount;
+import static app.bpartners.api.integration.conf.utils.TestUtils.otherBridgeAccount;
+import static app.bpartners.api.integration.conf.utils.TestUtils.setUpCognito;
+import static app.bpartners.api.integration.conf.utils.TestUtils.setUpLegalFileRepository;
 import static app.bpartners.api.repository.bridge.model.Account.BridgeAccount.BRIDGE_STATUS_OK;
 import static app.bpartners.api.repository.bridge.model.Account.BridgeAccount.BRIDGE_STATUS_SCA;
 import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
@@ -87,7 +87,6 @@ class DirtyAccountIT extends MockedThirdParties {
   private BankRepositoryImpl bankRepositoryImplMock;
   @Mock
   private UserTokenRepository userTokenRepositoryMock;
-
   private static final String OTHER_USER_ID = "OTHER_USER_ID";
 
   private static ApiClient joeDoeClient() {
@@ -176,6 +175,8 @@ class DirtyAccountIT extends MockedThirdParties {
     when(userRepositoryMock.getUserByToken(JOE_DOE_TOKEN)).thenReturn(joeDoeUser());
     when(userRepositoryMock.getByEmail(JOE_EMAIL)).thenReturn(joeDoeUser());
     when(userRepositoryMock.getById(JOE_DOE_ID)).thenReturn(joeDoeUser());
+    when(userRepositoryMock.getById(JOE_DOE_ID)).thenReturn(joeDoeUser());
+    when(userRepositoryMock.findAll()).thenReturn(List.of(joeDoeUser()));
   }
 
   private void setUpUserBernardRepository(UserRepository userRepositoryMock) {
@@ -214,7 +215,7 @@ class DirtyAccountIT extends MockedThirdParties {
   }
 
   @BeforeEach
-  public void setUp() {
+  void setUp() {
     setUpUserRepository(userRepositoryMock);
     setUpLegalFileRepository(legalFileRepositoryMock);
     setUpCognito(cognitoComponentMock);
@@ -284,7 +285,7 @@ class DirtyAccountIT extends MockedThirdParties {
   }
 
   @Test
-  public void concurrently_get_bridge_accounts() {
+  void concurrently_get_bridge_accounts() {
     UserAccountsApi api = configureBridgeUserAccountApi(otherBridgeAccount());
     var callerNb = 50;
     var executor = newFixedThreadPool(10);
@@ -308,7 +309,7 @@ class DirtyAccountIT extends MockedThirdParties {
   }
 
   @Test
-  public void concurrently_get_bridge_account_holders() {
+  void concurrently_get_bridge_account_holders() {
     UserAccountsApi api = configureBridgeUserAccountApi(otherBridgeAccount());
     var callerNb = 50;
     var executor = newFixedThreadPool(10);
@@ -355,7 +356,10 @@ class DirtyAccountIT extends MockedThirdParties {
     when(bankRepositoryImplMock.findByExternalId(
         String.valueOf(joeDoeBridgeAccount().getBankId()))).thenReturn(new Bank());
     when(bankRepositoryImplMock.disconnectBank(any())).thenReturn(true);
-    ApiClient client = TestUtils.anApiClient(JOE_DOE_COGNITO_TOKEN, DbEnvContextInitializer.getHttpServerPort());
+    when(bridgeApi.findByAccountById(any(), any())).thenReturn(bridgeAccount);
+
+    ApiClient client =
+        TestUtils.anApiClient(JOE_DOE_COGNITO_TOKEN, DbEnvContextInitializer.getHttpServerPort());
     return new UserAccountsApi(client);
   }
 
@@ -461,6 +465,11 @@ class DirtyAccountIT extends MockedThirdParties {
     BridgeAccount scaRequiredAccount = otherBridgeAccount().toBuilder()
         .status(BRIDGE_STATUS_SCA)
         .build();
+    when(accountConnectorRepositoryMock.findById(any())).thenReturn(
+        AccountConnector.builder()
+            .id(scaRequiredAccount.getId())
+            .status(scaRequiredAccount.getDomainStatus())
+            .build());
     UserAccountsApi api = configureBridgeUserAccountApi(scaRequiredAccount);
 
     AccountValidationRedirection actual =

@@ -15,10 +15,10 @@ import java.util.Base64;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static app.bpartners.api.integration.conf.TestUtils.PIS_URL;
-import static app.bpartners.api.integration.conf.TestUtils.PROJECT_TOKEN;
-import static app.bpartners.api.integration.conf.TestUtils.REDIRECT_SUCCESS_URL;
-import static app.bpartners.api.integration.conf.TestUtils.httpResponseMock;
+import static app.bpartners.api.integration.conf.utils.TestUtils.PIS_URL;
+import static app.bpartners.api.integration.conf.utils.TestUtils.PROJECT_TOKEN;
+import static app.bpartners.api.integration.conf.utils.TestUtils.REDIRECT_SUCCESS_URL;
+import static app.bpartners.api.integration.conf.utils.TestUtils.httpResponseMock;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;

@@ -120,7 +120,7 @@ class InvoiceRelaunchServiceTest {
     when(invoiceRelaunchRepository.getByInvoiceId(
         INVOICE1_ID,
         null,
-        PageRequest.of(0, 500))
+        PageRequest.of(0, 50000))
     ).thenReturn(
         List.of(
             InvoiceRelaunch.builder().build()
@@ -165,7 +165,7 @@ class InvoiceRelaunchServiceTest {
     verify(invoiceRelaunchRepository).getByInvoiceId(
         idInvoiceCaptor2.capture(),
         eq(null),
-        eq(PageRequest.of(0, 500))
+        eq(PageRequest.of(0, 50000))
     );
     verify(invoiceRepository).getById(idInvoiceCaptor3.capture());
     verify(invoiceJpaRepository).save(invoiceSaveCaptor.capture());

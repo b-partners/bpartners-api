@@ -76,6 +76,7 @@ public class SavableAccountConnectorRepository implements AccountConnectorReposi
         .name(accountConnector.getName())
         .iban(accountConnector.getIban())
         .user(user)
+        .availableBalance(accountConnector.getBalance().stringValue())
         .externalId(accountConnector.getId())
         .idBank(accountConnector.getBankId())
         .build();

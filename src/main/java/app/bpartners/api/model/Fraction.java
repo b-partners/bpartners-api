@@ -58,10 +58,6 @@ public class Fraction implements Serializable {
     return (numerator.doubleValue()) / (denominator.doubleValue());
   }
 
-  public String getCentsUpAsString() {
-    return String.valueOf(getCentsRoundUp()).replace(".", ",");
-  }
-
   public Integer getCentsRoundUp() {
     return (int) (getCentsAsDecimal() * 100);
   }
@@ -71,8 +67,10 @@ public class Fraction implements Serializable {
   }
 
   private BigDecimal getRoundedBigDecimal(RoundingMode roundingMode) {
-    return BigDecimal.valueOf(numerator.doubleValue() / denominator.doubleValue() / 100)
+    double doubleValue = numerator.doubleValue() / denominator.doubleValue();
+    BigDecimal bigDecimal = BigDecimal.valueOf(doubleValue / 100)
         .setScale(2, roundingMode);
+    return bigDecimal;
   }
 
   public int compareTo(Fraction fraction) {

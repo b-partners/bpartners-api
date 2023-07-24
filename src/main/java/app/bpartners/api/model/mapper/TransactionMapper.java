@@ -1,5 +1,6 @@
 package app.bpartners.api.model.mapper;
 
+import app.bpartners.api.model.Money;
 import app.bpartners.api.model.Transaction;
 import app.bpartners.api.model.TransactionCategory;
 import app.bpartners.api.repository.bridge.model.Transaction.BridgeTransaction;
@@ -11,7 +12,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
+import static app.bpartners.api.model.Money.fromMajor;
 import static java.util.UUID.randomUUID;
 
 @Slf4j
@@ -23,10 +24,7 @@ public class TransactionMapper {
   public TransactionConnector toConnector(BridgeTransaction bridgeTransaction) {
     return TransactionConnector.builder()
         .id(String.valueOf(bridgeTransaction.getId()))
-
-        // TODO(bad-cents): it _seems_ bridge.amount is in major, while connector.amount is in minor
-        .amount(parseFraction(bridgeTransaction.getAbsAmount() * 100))
-
+        .amount(fromMajor(bridgeTransaction.getAbsAmount()))
         .currency(bridgeTransaction.getCurrency())
         .label(bridgeTransaction.getLabel())
         .transactionDate(bridgeTransaction.getTransactionDate())
@@ -40,9 +38,10 @@ public class TransactionMapper {
   public TransactionConnector toConnector(HTransaction entity) {
     LocalDate transactionDate =
         LocalDate.ofInstant(entity.getPaymentDateTime(), ZoneId.systemDefault());
+    Money amount = fromMajor(entity.getAmount());
     return TransactionConnector.builder()
         .id(String.valueOf(entity.getIdBridge()))
-        .amount(parseFraction(entity.getAmount()))
+        .amount(amount)
         .currency(entity.getCurrency())
         .label(entity.getLabel())
         .transactionDate(transactionDate)
@@ -57,7 +56,7 @@ public class TransactionMapper {
         .id(String.valueOf(randomUUID()))
         .idBridge(Long.valueOf(connector.getId()))
         .idAccount(idAccount)
-        .amount(String.valueOf(connector.getAmount()))
+        .amount(String.valueOf(connector.getAmount().getValue()))
         .paymentDateTime(connector.getTransactionDate()
             .atStartOfDay(ZoneId.systemDefault())
             .toInstant())
@@ -73,7 +72,7 @@ public class TransactionMapper {
         .id(entity.getId())
         .idAccount(entity.getIdAccount())
         .invoiceDetails(invoiceMapper.toTransactionInvoice(entity.getInvoice()))
-        .amount(parseFraction(entity.getAmount()))
+        .amount(fromMajor(entity.getAmount()))
         .currency(entity.getCurrency())
         .label(entity.getLabel())
         .reference(entity.getReference())

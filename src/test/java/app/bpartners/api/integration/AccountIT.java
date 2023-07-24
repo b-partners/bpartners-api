@@ -18,6 +18,7 @@ import app.bpartners.api.integration.conf.AbstractContextInitializer;
 import app.bpartners.api.integration.conf.TestUtils;
 import app.bpartners.api.manager.ProjectTokenManager;
 import app.bpartners.api.model.Bank;
+import app.bpartners.api.model.Money;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.UserToken;
 import app.bpartners.api.repository.LegalFileRepository;
@@ -182,7 +183,7 @@ class AccountIT {
         .userId(JOE_DOE_ID)
         .status(AccountStatus.OPENED)
         .bank(Bank.builder().build())
-        .availableBalance(parseFraction(100000))
+        .availableBalance(new Money(parseFraction(100000)))
         .active(true)
         .build();
   }
@@ -195,7 +196,7 @@ class AccountIT {
         .bic("TODO")
         .status(AccountStatus.VALIDATION_REQUIRED)
         .bank(Bank.builder().build())
-        .availableBalance(parseFraction(100000))
+        .availableBalance(new Money(parseFraction(100000)))
         .active(true)
         .build();
   }

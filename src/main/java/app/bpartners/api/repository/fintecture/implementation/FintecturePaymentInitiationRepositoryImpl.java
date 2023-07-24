@@ -7,15 +7,15 @@ import app.bpartners.api.repository.fintecture.FintecturePaymentInitiationReposi
 import app.bpartners.api.repository.fintecture.model.FPaymentInitiation;
 import app.bpartners.api.repository.fintecture.model.FPaymentRedirection;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Repository;
+
 import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.security.NoSuchAlgorithmException;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Repository;
 
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 import static app.bpartners.api.repository.fintecture.implementation.utils.FintecturePaymentUtils.ACCEPT;
@@ -53,47 +53,44 @@ public class FintecturePaymentInitiationRepositoryImpl implements
     return this;
   }
 
+  @SneakyThrows
   @Override
   public FPaymentRedirection save(FPaymentInitiation paymentInitiation, String redirectUri) {
-    String globalPayload = null;
-    HttpRequest globalRequest = null;
+    String urlParams = String.format("?redirectUri=%s&state=12341234", redirectUri);
+    String payload = objectMapper.writeValueAsString(paymentInitiation);
+    String requestId = String.valueOf(randomUUID());
+    String digest = getDigest(payload);
+    String date = getParsedDate();
+    var request = HttpRequest.newBuilder()
+        .uri(new URI(fintectureConf.getRequestToPayUrl() + urlParams))
+        .header(CONTENT_TYPE, APPLICATION_JSON)
+        .header(ACCEPT, APPLICATION_JSON)
+        .header(REQUEST_ID, requestId)
+        .header(LANGUAGE, "fr")
+        .header("digest", digest)
+        .header(DATE, date)
+        .header(SIGNATURE,
+            getHeaderSignatureWithDigest(fintectureConf, requestId, digest, date, urlParams))
+        .header(AUTHORIZATION, bearerToken())
+        .POST(HttpRequest.BodyPublishers.ofString(payload))
+        .build();
     try {
-      String urlParams = String.format("?redirectUri=%s&state=12341234", redirectUri);
-      String payload = objectMapper.writeValueAsString(paymentInitiation);
-      globalPayload = payload;
-      String requestId = String.valueOf(randomUUID());
-      String digest = getDigest(payload);
-      String date = getParsedDate();
-      var request = HttpRequest.newBuilder()
-          .uri(new URI(fintectureConf.getRequestToPayUrl() + urlParams))
-          .header(CONTENT_TYPE, APPLICATION_JSON)
-          .header(ACCEPT, APPLICATION_JSON)
-          .header(REQUEST_ID, requestId)
-          .header(LANGUAGE, "fr")
-          .header("digest", digest)
-          .header(DATE, date)
-          .header(SIGNATURE,
-              getHeaderSignatureWithDigest(fintectureConf, requestId, digest, date, urlParams))
-          .header(AUTHORIZATION, bearerToken())
-          .POST(HttpRequest.BodyPublishers.ofString(payload))
-          .build();
-      globalRequest = request;
       return sendPaymentInitRequest(request);
     } catch (IOException e) {
       log.warn(
           "[Fintecture] Payment was not initiated because of {}."
-              + " Payload was {}", e.getMessage(), globalPayload);
+              + " Payload was {}", e.getMessage(), payload);
       try {
-        return sendPaymentInitRequest(globalRequest);
+        return sendPaymentInitRequest(request);
       } catch (IOException | InterruptedException ex) {
-        log.warn("[Fintecture] Second retry failed, payload was {}", globalRequest);
+        log.warn("[Fintecture] Second retry failed, payload was {}", request);
         throw new ApiException(ApiException.ExceptionType.SERVER_EXCEPTION, ex);
       }
-    } catch (URISyntaxException | NoSuchAlgorithmException e) {
-      log.warn("[Fintecture] Payment was not initiated. Payload was {}", globalPayload);
-      throw new ApiException(ApiException.ExceptionType.SERVER_EXCEPTION, e);
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
+      log.warn(
+          "[Fintecture] Payment was not initiated because of {}."
+              + " Payload was {}", e.getMessage(), payload);
       throw new ApiException(SERVER_EXCEPTION, e);
     }
   }

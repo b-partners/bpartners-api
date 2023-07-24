@@ -55,6 +55,12 @@
             object-fit: contain;
         }
 
+        .stamp {
+            width: 190px;
+            height: 150px;
+            object-fit: contain;
+        }
+
         div.image-text {
             vertical-align: top;
             display: inline-block;
@@ -286,7 +292,8 @@
         <table class="table-head">
             <tr>
                 <td>
-                    <p style="margin-bottom: 90px">Mode de paiement :
+                    <p th:style="${(invoice.paymentMethod != null && invoice.status != null
+                     && invoice.status.toString() == 'PAID') ? '' : 'margin-bottom: 90px'}">Mode de paiement :
                         <strong
                                 th:if="${invoice.paymentType == null  ||
                             (invoice.paymentType != null && invoice.paymentType.getValue() == 'CASH')}">
@@ -296,9 +303,14 @@
                             (invoice.paymentType != null && invoice.paymentType.getValue() == 'CASH')}">
                             EN PLUSIEURS FOIS
                         </strong>
+                        <br/>
+                        <img class="stamp"
+                             th:if="${invoice.getStatus() != null && invoice.getStatus().toString() == 'PAID'
+                             && invoice.stamp != null}"
+                             th:src="${'data:image/jpeg;base64,' + invoice.stamp}" alt="stamp"/>
                     </p>
                 </td>
-                <td class="text-center">
+                <td style="text-align: center;vertical-align: top; ">
                     <div class="amount-section">
                         <div>
                             <p th:if="${invoice.discount.percentValue.getCentsAsDecimal() > 0}">
@@ -406,7 +418,7 @@
                 coordonnées ci-dessous. <br/>
                 <!--        TODO : change delay in payment allowed properly-->
                 <span
-                th:if="${invoice.delayPenaltyPercent.getApproximatedValue() != 0}">
+                        th:if="${invoice.delayPenaltyPercent.getApproximatedValue() != 0}">
                     Des pénalités correspondant à trois fois le taux de l’intérêt légal seront
                 applicables en
                 l’absence ou en cas de retard de paiement. Les pénalités de

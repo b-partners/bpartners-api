@@ -2,6 +2,7 @@ package app.bpartners.api.integration;
 
 import app.bpartners.api.SentryConf;
 import app.bpartners.api.endpoint.event.S3Conf;
+import app.bpartners.api.endpoint.rest.model.PaymentMethod;
 import app.bpartners.api.integration.conf.DbEnvContextInitializer;
 import app.bpartners.api.manager.ProjectTokenManager;
 import app.bpartners.api.model.Account;
@@ -40,8 +41,8 @@ import org.springframework.core.io.Resource;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import static app.bpartners.api.endpoint.rest.model.Invoice.PaymentTypeEnum.IN_INSTALMENT;
-import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PROPOSAL;
+import static app.bpartners.api.endpoint.rest.model.Invoice.PaymentTypeEnum.CASH;
+import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
 import static app.bpartners.api.integration.conf.utils.TestUtils.INVOICE1_ID;
 import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ID;
@@ -78,15 +79,37 @@ class DraftIT {
   private LegalFileRepository legalFileRepository;
 
   private static void generatePdf(String templateName) throws IOException {
+    List<CreatePaymentRegulation> paymentRegulations = List.of(
+        CreatePaymentRegulation.builder()
+            .paymentRequest(PaymentRequest.builder()
+                .amount(new Fraction(BigInteger.valueOf(100)))
+                .paymentUrl("https://connect-v2-sbx.fintecture.com")
+                .build())
+            .maturityDate(LocalDate.now().plusDays(1L))
+            .comment(null)
+            .build(),
+        CreatePaymentRegulation.builder()
+            .paymentRequest(PaymentRequest.builder()
+                .amount(new Fraction(BigInteger.TEN))
+                .paymentUrl("https://connect-v2-sbx.fintecture.com")
+                .build())
+            .comment("Avec un assez long commentaire pour voir si ça descend automatiquement")
+            .maturityDate(LocalDate.now())
+            .build());
     app.bpartners.api.model.Invoice invoice = Invoice.builder()
         .id(INVOICE1_ID)
         .ref("invoice_ref")
         .title("invoice_title")
-        .status(PROPOSAL)
+        .status(PAID)
+        .paymentMethod(PaymentMethod.BANK_TRANSFER)
         .sendingDate(LocalDate.now())
         .toPayAt(LocalDate.now())
         .delayInPaymentAllowed(2)
         .delayPenaltyPercent(new Fraction(BigInteger.TEN, BigInteger.ONE))
+        .totalPriceWithoutVat(new Fraction())
+        .totalVat(new Fraction())
+        .totalPriceWithoutDiscount(new Fraction())
+        .totalPriceWithVat(new Fraction())
         .discount(new InvoiceDiscount()
             .toBuilder()
             .percentValue(new Fraction())
@@ -101,25 +124,9 @@ class DraftIT {
                 .bic("BPFRPP751")
                 .build()))
             .build())
-        .paymentType(IN_INSTALMENT)
-        .paymentRegulations(List.of(
-            CreatePaymentRegulation.builder()
-                .paymentRequest(PaymentRequest.builder()
-                    .amount(new Fraction(BigInteger.valueOf(100)))
-                    .paymentUrl("https://connect-v2-sbx.fintecture.com")
-                    .build())
-                .maturityDate(LocalDate.now().plusDays(1L))
-                .comment(null)
-                .build(),
-            CreatePaymentRegulation.builder()
-                .paymentRequest(PaymentRequest.builder()
-                    .amount(new Fraction(BigInteger.TEN))
-                    .paymentUrl("https://connect-v2-sbx.fintecture.com")
-                    .build())
-                .comment("Avec un assez long commentaire pour voir si ça descend automatiquement")
-                .maturityDate(LocalDate.now())
-                .build()))
-        .products(creatableProds(3))
+        .paymentType(CASH)
+        .paymentRegulations(List.of())
+        .products(creatableProds(1))
         .customer(Customer.builder()
             .firstName("Olivier")
             .lastName("Durant")

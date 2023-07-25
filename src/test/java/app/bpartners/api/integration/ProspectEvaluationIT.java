@@ -26,6 +26,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -51,6 +52,10 @@ import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_TOKEN;
 import static app.bpartners.api.integration.conf.utils.TestUtils.joeDoeAccountHolder;
 import static app.bpartners.api.integration.conf.utils.TestUtils.setUpCognito;
 import static app.bpartners.api.integration.conf.utils.TestUtils.setUpLegalFileRepository;
+import static app.bpartners.api.repository.expressif.utils.ProspectEvalUtils.customerType;
+import static app.bpartners.api.repository.expressif.utils.ProspectEvalUtils.infestationType;
+import static app.bpartners.api.repository.expressif.utils.ProspectEvalUtils.interventionType;
+import static app.bpartners.api.repository.expressif.utils.ProspectEvalUtils.professionalCustomerType;
 import static app.bpartners.api.repository.implementation.ProspectRepositoryImpl.ANTI_HARM;
 import static app.bpartners.api.service.ProspectService.DEFAULT_RATING_PROSPECT_TO_CONVERT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -155,6 +160,33 @@ class ProspectEvaluationIT extends MockedThirdParties {
     os.write(actualExcel);
     os.close();
     */
+  }
+
+  @Test
+  void evaluate_prospects_ko() throws IOException, InterruptedException {
+    businessRepository.save(BusinessActivity.builder()
+        .accountHolder(joeDoeAccountHolder())
+        .primaryActivity(ANTI_HARM)
+        .secondaryActivity(null)
+        .build());
+    when(expressifApiMock.process(any())).thenReturn(List.of(ratingResult()));
+    Resource prospectFile = new ClassPathResource("files/prospect-ko-400.xlsx");
+    HttpResponse<String> jsonResponse =
+        uploadFileJson(JOE_DOE_ACCOUNT_HOLDER_ID, prospectFile.getFile());
+
+    assertEquals(
+        "{\"type\":\"400 BAD_REQUEST\",\"message\":\""
+            + "Row-3,Cell-17 accepts only `Yes` or `No` but was Other. "
+            + "Row-3,Cell-21 only support these values "
+            + Arrays.toString(interventionType()) + " but was Other intervention. "
+            + "Row-3,Cell-22 only support these values "
+            + Arrays.toString(infestationType())
+            + " but was otherinfestation. Row-3,Cell-24 only support these values "
+            + Arrays.toString(customerType()) + " but was Other infestation."
+            + " Row-3,Cell-25 only support these values "
+            + Arrays.toString(professionalCustomerType()) +
+            " but was Other professionnal. \"}",
+        jsonResponse.body());
   }
 
   private static Predicate<EvaluatedProspect> hasRatingOverDefault() {

@@ -221,7 +221,7 @@ class ProspectEvalUtilsTest {
 
   @Test
   void import_prospects_ko() {
-    Resource prospectFile1 = new ClassPathResource("files/prospect-ko-400.xlsx");
+    Resource prospectFile1 = new ClassPathResource("files/prospect-ko-400-2.xlsx");
     Resource prospectFile2 = new ClassPathResource("files/prospect-ko-500.xlsx");
 
     assertThrowsBadRequestException(

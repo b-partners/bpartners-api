@@ -1,33 +1,21 @@
 package app.bpartners.api.integration;
 
-import app.bpartners.api.SentryConf;
-import app.bpartners.api.endpoint.event.EventPoller;
-import app.bpartners.api.endpoint.event.S3Conf;
 import app.bpartners.api.endpoint.rest.model.Area;
 import app.bpartners.api.endpoint.rest.model.ContactNature;
 import app.bpartners.api.endpoint.rest.model.EvaluatedProspect;
 import app.bpartners.api.endpoint.rest.model.Geojson;
 import app.bpartners.api.endpoint.rest.model.InterventionResult;
 import app.bpartners.api.endpoint.rest.model.ProspectStatus;
-import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.integration.conf.DbEnvContextInitializer;
-import app.bpartners.api.manager.ProjectTokenManager;
+import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.model.BusinessActivity;
 import app.bpartners.api.model.Prospect;
-import app.bpartners.api.repository.AccountConnectorRepository;
 import app.bpartners.api.repository.BusinessActivityRepository;
-import app.bpartners.api.repository.LegalFileRepository;
 import app.bpartners.api.repository.ProspectRepository;
 import app.bpartners.api.repository.ban.BanApi;
 import app.bpartners.api.repository.ban.model.GeoPosition;
-import app.bpartners.api.repository.bridge.BridgeApi;
 import app.bpartners.api.repository.expressif.ExpressifApi;
 import app.bpartners.api.repository.expressif.model.OutputValue;
-import app.bpartners.api.repository.fintecture.FintectureConf;
-import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitApi;
-import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitConf;
-import app.bpartners.api.repository.sendinblue.SendinblueConf;
-import app.bpartners.api.service.PaymentScheduleService;
 import app.bpartners.api.service.utils.GeoUtils;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -38,14 +26,13 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -65,6 +52,10 @@ import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_TOKEN;
 import static app.bpartners.api.integration.conf.utils.TestUtils.joeDoeAccountHolder;
 import static app.bpartners.api.integration.conf.utils.TestUtils.setUpCognito;
 import static app.bpartners.api.integration.conf.utils.TestUtils.setUpLegalFileRepository;
+import static app.bpartners.api.repository.expressif.utils.ProspectEvalUtils.customerType;
+import static app.bpartners.api.repository.expressif.utils.ProspectEvalUtils.infestationType;
+import static app.bpartners.api.repository.expressif.utils.ProspectEvalUtils.interventionType;
+import static app.bpartners.api.repository.expressif.utils.ProspectEvalUtils.professionalCustomerType;
 import static app.bpartners.api.repository.implementation.ProspectRepositoryImpl.ANTI_HARM;
 import static app.bpartners.api.service.ProspectService.DEFAULT_RATING_PROSPECT_TO_CONVERT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -77,36 +68,8 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @Testcontainers
 @ContextConfiguration(initializers = DbEnvContextInitializer.class)
 @AutoConfigureMockMvc
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @Slf4j
-class ProspectEvaluationIT {
-  public static final String PROFESSION_RULE = "DEPANNEUR";
-  @MockBean
-  private EventPoller poller;
-  @MockBean
-  private PaymentScheduleService paymentScheduleService;
-  @MockBean
-  private SentryConf sentryConf;
-  @MockBean
-  private SendinblueConf sendinblueConf;
-  @MockBean
-  private S3Conf s3Conf;
-  @MockBean
-  private CognitoComponent cognitoComponentMock;
-  @MockBean
-  private FintectureConf fintectureConf;
-  @MockBean
-  private ProjectTokenManager projectTokenManager;
-  @MockBean
-  private AccountConnectorRepository accountConnectorRepositoryMock;
-  @MockBean
-  private LegalFileRepository legalFileRepositoryMock;
-  @MockBean
-  private BuildingPermitApi buildingPermitApiMock;
-  @MockBean
-  private BuildingPermitConf buildingPermitConfMock;
-  @MockBean
-  private BridgeApi bridgeApi;
+class ProspectEvaluationIT extends MockedThirdParties {
   @MockBean
   private BanApi banApiMock;
   @MockBean
@@ -197,6 +160,33 @@ class ProspectEvaluationIT {
     os.write(actualExcel);
     os.close();
     */
+  }
+
+  @Test
+  void evaluate_prospects_ko() throws IOException, InterruptedException {
+    businessRepository.save(BusinessActivity.builder()
+        .accountHolder(joeDoeAccountHolder())
+        .primaryActivity(ANTI_HARM)
+        .secondaryActivity(null)
+        .build());
+    when(expressifApiMock.process(any())).thenReturn(List.of(ratingResult()));
+    Resource prospectFile = new ClassPathResource("files/prospect-ko-400.xlsx");
+    HttpResponse<String> jsonResponse =
+        uploadFileJson(JOE_DOE_ACCOUNT_HOLDER_ID, prospectFile.getFile());
+
+    assertEquals(
+        "{\"type\":\"400 BAD_REQUEST\",\"message\":\""
+            + "Row-3,Cell-17 accepts only `Yes` or `No` but was Other. "
+            + "Row-3,Cell-21 only support these values "
+            + Arrays.toString(interventionType()) + " but was Other intervention. "
+            + "Row-3,Cell-22 only support these values "
+            + Arrays.toString(infestationType())
+            + " but was otherinfestation. Row-3,Cell-24 only support these values "
+            + Arrays.toString(customerType()) + " but was Other infestation."
+            + " Row-3,Cell-25 only support these values "
+            + Arrays.toString(professionalCustomerType()) +
+            " but was Other professionnal. \"}",
+        jsonResponse.body());
   }
 
   private static Predicate<EvaluatedProspect> hasRatingOverDefault() {

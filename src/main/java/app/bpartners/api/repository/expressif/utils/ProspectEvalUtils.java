@@ -18,6 +18,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -159,7 +160,7 @@ public class ProspectEvalUtils {
           addMissingException(exceptionMsgBuilder, currentRow);
         } else {
           ProspectEval prospectEval = new ProspectEval<>();
-          ProspectEvalInfo prospectEvalInfo = getNewProspect(currentRow);
+          ProspectEvalInfo prospectEvalInfo = getNewProspect(currentRow, exceptionMsgBuilder);
 
           /*
           /!\ Pay attention ! For now, we duplicate the prospect to evaluate for each evaluation
@@ -175,33 +176,28 @@ public class ProspectEvalUtils {
           setProspectJobValue(exceptionMsgBuilder, currentRow, prospectEval);
           prospectEval.setProspectEvalInfo(prospectEvalInfo);
 
-          prospectEval.setInsectControl(rowBooleanValue(currentRow, 15));
-          prospectEval.setDisinfection(rowBooleanValue(currentRow, 16));
-          prospectEval.setRatRemoval(rowBooleanValue(currentRow, 17));
-          prospectEval.setParticularCustomer(rowBooleanValue(currentRow, 18));
-          prospectEval.setProfessionalCustomer(rowBooleanValue(currentRow, 19));
+          prospectEval.setInsectControl(rowBooleanValue(currentRow, 15, exceptionMsgBuilder));
+          prospectEval.setDisinfection(rowBooleanValue(currentRow, 16, exceptionMsgBuilder));
+          prospectEval.setRatRemoval(rowBooleanValue(currentRow, 17, exceptionMsgBuilder));
+          prospectEval.setParticularCustomer(rowBooleanValue(currentRow, 18, exceptionMsgBuilder));
+          prospectEval.setProfessionalCustomer(
+              rowBooleanValue(currentRow, 19, exceptionMsgBuilder));
 
           if (depaRuleValue.equals(DEPA_RULE_NEW_INTERVENTION)) {
             String newIntAddress = getStringValue(currentRow.getCell(NEW_INT_ADDRESS_COL_INDEX));
             GeoPosition newIntPos = banApi.search(newIntAddress);
-            String oldCustomerType = getStringValue(currentRow.getCell(24));
-            NewIntervention.OldCustomer.OldCustomerType customerType =
-                oldCustomerType == null ? null :
-                    (oldCustomerType.equals(INDIVIDUAL_VALUE)
-                        ? NewIntervention.OldCustomer.OldCustomerType.INDIVIDUAL
-                        : NewIntervention.OldCustomer.OldCustomerType.PROFESSIONAL);
             String oldCustomerAddress =
                 getStringValue(currentRow.getCell(NEW_INT_OLD_CUST_ADDRESS_COL_INDEX));
             prospectEval.setDepaRule(NewIntervention.builder()
-                .planned(rowBooleanValue(currentRow, 20))
-                .interventionType(getStringValue(currentRow.getCell(21)))
-                .infestationType(getStringValue(currentRow.getCell(22)))
+                .planned(rowBooleanValue(currentRow, 20, exceptionMsgBuilder))
+                .interventionType(getInterventionType(currentRow, exceptionMsgBuilder))
+                .infestationType(getInfestationType(currentRow, exceptionMsgBuilder))
                 .newIntAddress(newIntAddress)
                 .distNewIntAndProspect(
                     prospectEvalInfo.getCoordinates().getDistanceFrom(newIntPos.getCoordinates()))
                 .oldCustomer(NewIntervention.OldCustomer.builder()
-                    .type(customerType)
-                    .professionalType(getStringValue(currentRow.getCell(25)))
+                    .type(getCustomerType(currentRow, exceptionMsgBuilder))
+                    .professionalType(getProfessionalType(currentRow, exceptionMsgBuilder))
                     .oldCustomerAddress(oldCustomerAddress)
                     .distNewIntAndOldCustomer(oldCustomerAddress == null ? null
                         : getDistNewIntAndOldCustomer(newIntPos, oldCustomerAddress))
@@ -214,7 +210,7 @@ public class ProspectEvalUtils {
             GeoPosition robbAddressPos = banApi.search(robberyAddress);
 
             prospectEval.setDepaRule(Robbery.builder()
-                .declared(rowBooleanValue(currentRow, 27))
+                .declared(rowBooleanValue(currentRow, 27, exceptionMsgBuilder))
                 .robberyAddress(robberyAddress)
                 .distRobberyAndProspect(
                     prospectEvalInfo.getCoordinates()
@@ -241,6 +237,96 @@ public class ProspectEvalUtils {
       throw new BadRequestException(exceptionMsg);
     }
     return prospectEvalList;
+  }
+
+  public String getProfessionalType(Row currentRow, StringBuilder exceptionMsgBuilder) {
+    int cellIndex = 25;
+    String stringValue = getStringValue(currentRow.getCell(cellIndex));
+    String realValue = getRealValue(stringValue);
+    if (realValue != null && !Arrays.asList(professionalCustomerType()).contains(realValue)) {
+      exceptionMsgBuilder.append(position(currentRow, cellIndex))
+          .append(" only support these values ")
+          .append(Arrays.toString(professionalCustomerType()))
+          .append(" but was ")
+          .append(stringValue)
+          .append(". ");
+    }
+    return realValue;
+  }
+
+  private NewIntervention.OldCustomer.OldCustomerType getCustomerType(
+      Row currentRow, StringBuilder exceptionMsgBuilder) {
+    int cellIndex = 24;
+    String stringValue = getStringValue(currentRow.getCell(cellIndex));
+    String realValue = getRealValue(stringValue);
+    if (realValue != null && !Arrays.asList(customerType()).contains(realValue)) {
+      exceptionMsgBuilder.append(position(currentRow, cellIndex))
+          .append(" only support these values ")
+          .append(Arrays.toString(customerType()))
+          .append(" but was ")
+          .append(stringValue)
+          .append(". ");
+    }
+    return stringValue == null ? null
+        : stringValue.equals(INDIVIDUAL_VALUE)
+        ? NewIntervention.OldCustomer.OldCustomerType.INDIVIDUAL
+        : NewIntervention.OldCustomer.OldCustomerType.PROFESSIONAL;
+  }
+
+  private String getInterventionType(Row currentRow, StringBuilder exceptionMsgBuilder) {
+    int cellIndex = 21;
+    String stringValue = getStringValue(currentRow.getCell(cellIndex));
+    String realValue = getRealValue(stringValue);
+    if (realValue != null && !Arrays.asList(interventionType()).contains(realValue)) {
+      exceptionMsgBuilder.append(position(currentRow, cellIndex))
+          .append(" only support these values ")
+          .append(Arrays.toString(interventionType()))
+          .append(" but was ")
+          .append(stringValue)
+          .append(". ");
+    }
+    return realValue;
+  }
+
+  private static String getRealValue(String stringValue) {
+    return stringValue == null ? null : stringValue.toLowerCase().replaceAll("\\s", "");
+  }
+
+  public static String[] customerType() {
+    return new String[] {"professionnel", "particulier"};
+  }
+
+  public static String[] interventionType() {
+    return new String[] {"désinsectisation", "désinfection", "dératisation"};
+  }
+
+  public static String[] infestationType() {
+    return new String[] {"blatte", "fourmi", "puces", "moustiques", "punaise de lit", "termite",
+        "guêpe", "frelon", "rat", "souris", "mulot", "surmulot", "autre"};
+  }
+
+  public static String[] professionalCustomerType() {
+    return new String[] {"commerce", "restaurant", "hangar", "hôtel", "épicerie",
+        "boulangerie-patisserie", "école", "établissement de santé", "centres commerciaux",
+        "entrepôts et usines", "jardins et parcs publics", "fermes et élevages",
+        "centres de loisirs et parcs d'attraction", "installations de production alimentaire",
+        "gestionnaire de biens immobiliers", "syndicat de copropriété", "association",
+        "administration publique", "bijouterie", "pharmacie", "hangar", "autre"};
+  }
+
+  private String getInfestationType(Row currentRow, StringBuilder exceptionMsgBuilder) {
+    int cellIndex = 22;
+    String stringValue = getStringValue(currentRow.getCell(cellIndex));
+    String realValue = getRealValue(stringValue);
+    if (!Arrays.asList(infestationType()).contains(realValue)) {
+      exceptionMsgBuilder.append(position(currentRow, cellIndex))
+          .append(" only support these values ")
+          .append(Arrays.toString(infestationType()))
+          .append(" but was ")
+          .append(realValue)
+          .append(". ");
+    }
+    return realValue;
   }
 
   private Double getDistRobberyAndOldCustomer(GeoPosition robbPos, String oldCustomerAddress) {
@@ -275,7 +361,7 @@ public class ProspectEvalUtils {
     }
   }
 
-  private ProspectEvalInfo getNewProspect(Row currentRow) {
+  private ProspectEvalInfo getNewProspect(Row currentRow, StringBuilder exceptionMsgBuilder) {
     ProspectEvalInfo prospectEvalInfo = new ProspectEvalInfo();
     for (int colIndex = 0; colIndex < 13; colIndex++) {
       Cell currentCell = currentRow.getCell(colIndex);
@@ -314,7 +400,7 @@ public class ProspectEvalUtils {
           prospectEvalInfo.setManagerName(getStringValue(currentCell));
           break;
         case 8:
-          prospectEvalInfo.setMailSent(rowBooleanValue(currentRow, 8));
+          prospectEvalInfo.setMailSent(getStringValue(currentCell));
           break;
         case 9:
           prospectEvalInfo.setPostalCode(getStringValue(currentCell));
@@ -382,9 +468,23 @@ public class ProspectEvalUtils {
     }
   }
 
-  private Boolean rowBooleanValue(Row row, int cellIndex) {
+  private Boolean rowBooleanValue(Row row, int cellIndex, StringBuilder exceptionMsgBuilder) {
     String stringValue = getStringValue(row.getCell(cellIndex));
-    return stringValue == null ? null : stringValue.equals("Yes");
+    Boolean bool = stringValue == null ? null : (stringValue.equals("Yes")
+        ? Boolean.TRUE : (stringValue.equals("No") ? Boolean.FALSE : null));
+    if (bool == null && stringValue != null) {
+      exceptionMsgBuilder
+          .append(position(row, cellIndex))
+          .append(" accepts only `Yes` or `No`")
+          .append(" but was ")
+          .append(stringValue)
+          .append(". ");
+    }
+    return stringValue == null ? null : bool;
+  }
+
+  private String position(Row row, int cellIndex) {
+    return "Row-" + (row.getRowNum() + 1) + ",Cell-" + cellIndex;
   }
 
   private void addMissingException(StringBuilder exceptionMsgBuilder, Row currentRow) {

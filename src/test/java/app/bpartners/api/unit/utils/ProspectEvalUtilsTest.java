@@ -65,7 +65,7 @@ class ProspectEvalUtilsTest {
             .phoneNumber("09 50 73 12 99 ")
             .email("davide@liquidcorp.fr")
             .managerName("Viviane TAING")
-            .mailSent(true)
+            .mailSent("true")
             .postalCode("75011")
             .city("Paris")
             .companyCreationDate(Date.from(Instant.parse("2020-12-31T21:00:00Z")))
@@ -137,7 +137,7 @@ class ProspectEvalUtilsTest {
             .phoneNumber("09 73 19 67 86/ 07 83 81 14 26")
             .email("mariemaupanier@gmail.com")
             .managerName("MASSIGA DIABY")
-            .mailSent(false)
+            .mailSent("false")
             .postalCode("75020")
             .city("Paris")
             .companyCreationDate(Date.from(Instant.parse("2021-01-02T21:00:00Z")))
@@ -221,7 +221,7 @@ class ProspectEvalUtilsTest {
 
   @Test
   void import_prospects_ko() {
-    Resource prospectFile1 = new ClassPathResource("files/prospect-ko-400.xlsx");
+    Resource prospectFile1 = new ClassPathResource("files/prospect-ko-400-2.xlsx");
     Resource prospectFile2 = new ClassPathResource("files/prospect-ko-500.xlsx");
 
     assertThrowsBadRequestException(

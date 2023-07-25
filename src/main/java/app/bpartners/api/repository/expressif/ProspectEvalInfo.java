@@ -23,7 +23,7 @@ public class ProspectEvalInfo {
   private String phoneNumber;
   private String email;
   private String managerName;
-  private Boolean mailSent;
+  private String mailSent;
   private String postalCode;
   private String city;
   private Date companyCreationDate;

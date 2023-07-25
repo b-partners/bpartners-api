@@ -101,7 +101,7 @@ class DraftIT {
         .ref("invoice_ref")
         .title("invoice_title")
         .status(PAID)
-        .paymentMethod(PaymentMethod.BANK_TRANSFER)
+        .paymentMethod(PaymentMethod.UNKNOWN)
         .sendingDate(LocalDate.now())
         .toPayAt(LocalDate.now())
         .delayInPaymentAllowed(2)

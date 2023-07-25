@@ -4,7 +4,6 @@ import app.bpartners.api.endpoint.rest.model.ArchiveStatus;
 import app.bpartners.api.endpoint.rest.model.Invoice.PaymentTypeEnum;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.endpoint.rest.model.PaymentMethod;
-import app.bpartners.api.model.exception.ApiException;
 import java.io.InputStream;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -23,6 +22,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.SneakyThrows;
 import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.ClassPathResource;
 
 import static app.bpartners.api.service.InvoiceService.DRAFT_REF_PREFIX;
@@ -36,6 +36,7 @@ import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 @NoArgsConstructor
 @EqualsAndHashCode
 @ToString
+@Slf4j
 public class Invoice {
   public static final int DEFAULT_TO_PAY_DELAY_DAYS = 30;
   public static final int DEFAULT_DELAY_PENALTY_PERCENT = 0;
@@ -142,8 +143,7 @@ public class Invoice {
     if (this.getStatus() == InvoiceStatus.PAID) {
       return addStamp(this.paymentMethod);
     }
-    throw new ApiException(ApiException.ExceptionType.SERVER_EXCEPTION,
-        "Only PAID invoice can have stamp");
+    return null;
   }
 
   @SneakyThrows
@@ -160,10 +160,11 @@ public class Invoice {
         path = "static/stamp/cheque.png";
         break;
       case UNKNOWN:
-        return null;
+        path = "static/stamp/paid.png";
+        break;
       default:
-        throw new ApiException(ApiException.ExceptionType.SERVER_EXCEPTION,
-            "Unable to get stamp for unknown " + paymentMethod);
+        log.warn("Unable to get stamp for unknown payment method {} ", paymentMethod);
+        return null;
     }
     InputStream is = new ClassPathResource(path).getInputStream();
     byte[] bytes = is.readAllBytes();

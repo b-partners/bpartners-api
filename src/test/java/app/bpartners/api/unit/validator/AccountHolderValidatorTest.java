@@ -5,7 +5,7 @@ import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.validator.AccountHolderValidator;
 import org.junit.jupiter.api.Test;
 
-import static app.bpartners.api.integration.conf.TestUtils.assertThrowsBadRequestException;
+import static app.bpartners.api.integration.conf.utils.TestUtils.assertThrowsBadRequestException;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 class AccountHolderValidatorTest {

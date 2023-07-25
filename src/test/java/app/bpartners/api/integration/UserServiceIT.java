@@ -5,8 +5,7 @@ import app.bpartners.api.endpoint.event.S3Conf;
 import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.endpoint.rest.security.model.Principal;
-import app.bpartners.api.integration.conf.AbstractContextInitializer;
-import app.bpartners.api.integration.conf.TestUtils;
+import app.bpartners.api.integration.conf.DbEnvContextInitializer;
 import app.bpartners.api.manager.ProjectTokenManager;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.AccountHolder;
@@ -37,10 +36,10 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
 
-import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_TOKEN;
-import static app.bpartners.api.integration.conf.TestUtils.setUpCognito;
-import static app.bpartners.api.integration.conf.TestUtils.setUpEventBridge;
-import static app.bpartners.api.integration.conf.TestUtils.setUpLegalFileRepository;
+import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_TOKEN;
+import static app.bpartners.api.integration.conf.utils.TestUtils.setUpCognito;
+import static app.bpartners.api.integration.conf.utils.TestUtils.setUpEventBridge;
+import static app.bpartners.api.integration.conf.utils.TestUtils.setUpLegalFileRepository;
 import static app.bpartners.api.service.OnboardingService.DEFAULT_BALANCE;
 import static app.bpartners.api.service.OnboardingService.DEFAULT_CASH_FLOW;
 import static app.bpartners.api.service.OnboardingService.DEFAULT_STATUS;
@@ -58,7 +57,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @Testcontainers
-@ContextConfiguration(initializers = UserServiceIT.ContextInitializer.class)
+@ContextConfiguration(initializers = DbEnvContextInitializer.class)
 class UserServiceIT {
   private static final String COMPANY_NAME = "user company name";
   @MockBean
@@ -172,14 +171,5 @@ class UserServiceIT {
     assertEquals(COMPANY_NAME, accountHolder.getName());
     assertEquals(DEFAULT_SUBJECT_TO_VAT, accountHolder.isSubjectToVat());
     assertEquals(DEFAULT_VERIFICATION_STATUS, accountHolder.getVerificationStatus());
-  }
-
-  static class ContextInitializer extends AbstractContextInitializer {
-    public static final int SERVER_PORT = TestUtils.anAvailableRandomPort();
-
-    @Override
-    public int getServerPort() {
-      return SERVER_PORT;
-    }
   }
 }

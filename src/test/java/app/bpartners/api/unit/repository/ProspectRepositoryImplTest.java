@@ -20,8 +20,8 @@ import javax.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
-import static app.bpartners.api.integration.conf.TestUtils.OTHER_ACCOUNT_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.OTHER_ACCOUNT_ID;
 import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -67,7 +67,8 @@ class ProspectRepositoryImplTest {
         new ProspectRepositoryImpl(prospectJpaRepositoryMock, prospectMapper, buildingPermitApiMock,
             sogefiBuildingPermitRepositoryMock, businessActivityServiceMock, resourceProviderMock,
             revenueTargetServiceMock, accountHolderRepositoryMock, municipalityJpaRepositoryMock,
-            expressifApiMock, evalMapperMock, evalInfoJpaRepositoryMock, em, sogefiBuildingPermitRepositoryMock);
+            expressifApiMock, evalMapperMock, evalInfoJpaRepositoryMock, em,
+            sogefiBuildingPermitRepositoryMock);
     when(revenueTargetServiceMock.getByYear(JOE_DOE_ACCOUNT_ID, 2023)).thenReturn(
         Optional.ofNullable(
             AnnualRevenueTarget.builder()

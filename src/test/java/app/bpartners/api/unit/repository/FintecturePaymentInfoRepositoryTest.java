@@ -12,9 +12,9 @@ import java.security.NoSuchAlgorithmException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static app.bpartners.api.integration.conf.TestUtils.SESSION_ID;
-import static app.bpartners.api.integration.conf.TestUtils.httpResponseMock;
-import static app.bpartners.api.integration.conf.TestUtils.setUpFintectureConf;
+import static app.bpartners.api.integration.conf.utils.TestUtils.SESSION_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.httpResponseMock;
+import static app.bpartners.api.integration.conf.utils.TestUtils.setUpFintectureConf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;

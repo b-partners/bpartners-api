@@ -3,8 +3,7 @@ package app.bpartners.api.integration;
 import app.bpartners.api.SentryConf;
 import app.bpartners.api.endpoint.event.S3Conf;
 import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
-import app.bpartners.api.integration.conf.AbstractContextInitializer;
-import app.bpartners.api.integration.conf.TestUtils;
+import app.bpartners.api.integration.conf.DbEnvContextInitializer;
 import app.bpartners.api.manager.ProjectTokenManager;
 import app.bpartners.api.repository.AccountConnectorRepository;
 import app.bpartners.api.repository.LegalFileRepository;
@@ -29,17 +28,17 @@ import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
-import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_TOKEN;
-import static app.bpartners.api.integration.conf.TestUtils.TEST_FILE_ID;
-import static app.bpartners.api.integration.conf.TestUtils.setUpCognito;
-import static app.bpartners.api.integration.conf.TestUtils.setUpLegalFileRepository;
+import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_TOKEN;
+import static app.bpartners.api.integration.conf.utils.TestUtils.TEST_FILE_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.setUpCognito;
+import static app.bpartners.api.integration.conf.utils.TestUtils.setUpLegalFileRepository;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @Testcontainers
-@ContextConfiguration(initializers = ExceptionHandlerIT.ContextInitializer.class)
+@ContextConfiguration(initializers = DbEnvContextInitializer.class)
 @AutoConfigureMockMvc
 class ExceptionHandlerIT {
   @MockBean
@@ -75,7 +74,7 @@ class ExceptionHandlerIT {
   /*@Test
   void unsupported_method_to_bad_request() throws IOException, InterruptedException {
     HttpClient unauthenticatedClient = HttpClient.newBuilder().build();
-    String basePath = "http://localhost:" + ContextInitializer.SERVER_PORT;
+    String basePath = "http://localhost:" + DbEnvContextInitializer.getHttpServerPort();
     Resource toUpload = new ClassPathResource("files/upload.jpg");
 
     HttpResponse<byte[]> response = unauthenticatedClient.send(
@@ -93,7 +92,7 @@ class ExceptionHandlerIT {
   @Test
   void message_not_readable_to_bad_request() throws IOException, InterruptedException {
     HttpClient unauthenticatedClient = HttpClient.newBuilder().build();
-    String basePath = "http://localhost:" + ContextInitializer.SERVER_PORT;
+    String basePath = "http://localhost:" + DbEnvContextInitializer.getHttpServerPort();
     Resource toUpload = new ClassPathResource("files/upload.jpg");
 
     HttpResponse<byte[]> response = unauthenticatedClient.send(
@@ -106,14 +105,5 @@ class ExceptionHandlerIT {
         HttpResponse.BodyHandlers.ofByteArray());
 
     assertEquals(HttpStatus.BAD_REQUEST.value(), response.statusCode());
-  }
-
-  public static class ContextInitializer extends AbstractContextInitializer {
-    public static final int SERVER_PORT = TestUtils.anAvailableRandomPort();
-
-    @Override
-    public int getServerPort() {
-      return SERVER_PORT;
-    }
   }
 }

@@ -3,7 +3,7 @@ package app.bpartners.api.integration;
 import app.bpartners.api.SentryConf;
 import app.bpartners.api.endpoint.event.S3Conf;
 import app.bpartners.api.integration.conf.BridgeAbstractContextInitializer;
-import app.bpartners.api.integration.conf.TestUtils;
+import app.bpartners.api.integration.conf.utils.TestUtils;
 import app.bpartners.api.manager.ProjectTokenManager;
 import app.bpartners.api.repository.AccountConnectorRepository;
 import app.bpartners.api.repository.bridge.BridgeApi;
@@ -195,7 +195,7 @@ public class BridgeIT {
   }
 
   public static class ContextInitializer extends BridgeAbstractContextInitializer {
-    public static final int SERVER_PORT = TestUtils.anAvailableRandomPort();
+    public static final int SERVER_PORT = TestUtils.findAvailableTcpPort();
 
     @Override
     public int getServerPort() {

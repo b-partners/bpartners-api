@@ -29,9 +29,9 @@ import org.mockito.ArgumentCaptor;
 import org.springframework.data.domain.PageRequest;
 
 import static app.bpartners.api.endpoint.rest.model.ArchiveStatus.ENABLED;
-import static app.bpartners.api.integration.conf.TestUtils.INVOICE1_ID;
-import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
-import static app.bpartners.api.integration.conf.TestUtils.setUpProvider;
+import static app.bpartners.api.integration.conf.utils.TestUtils.INVOICE1_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.setUpProvider;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.ArgumentMatchers.any;

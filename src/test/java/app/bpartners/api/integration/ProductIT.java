@@ -11,8 +11,8 @@ import app.bpartners.api.endpoint.rest.model.Product;
 import app.bpartners.api.endpoint.rest.model.ProductStatus;
 import app.bpartners.api.endpoint.rest.model.UpdateProductStatus;
 import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
-import app.bpartners.api.integration.conf.AbstractContextInitializer;
-import app.bpartners.api.integration.conf.TestUtils;
+import app.bpartners.api.integration.conf.DbEnvContextInitializer;
+import app.bpartners.api.integration.conf.utils.TestUtils;
 import app.bpartners.api.manager.ProjectTokenManager;
 import app.bpartners.api.repository.AccountConnectorRepository;
 import app.bpartners.api.repository.LegalFileRepository;
@@ -47,24 +47,22 @@ import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import static app.bpartners.api.integration.conf.TestUtils.BEARER_PREFIX;
-import static app.bpartners.api.integration.conf.TestUtils.JANE_ACCOUNT_ID;
-import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
-import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ID;
-import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_TOKEN;
-import static app.bpartners.api.integration.conf.TestUtils.OTHER_CUSTOMER_ID;
-import static app.bpartners.api.integration.conf.TestUtils.OTHER_PRODUCT_ID;
-import static app.bpartners.api.integration.conf.TestUtils.assertThrowsApiException;
-import static app.bpartners.api.integration.conf.TestUtils.assertThrowsForbiddenException;
-import static app.bpartners.api.integration.conf.TestUtils.disabledProduct;
-import static app.bpartners.api.integration.conf.TestUtils.isAfterOrEquals;
-import static app.bpartners.api.integration.conf.TestUtils.product1;
-import static app.bpartners.api.integration.conf.TestUtils.product2;
-import static app.bpartners.api.integration.conf.TestUtils.product6;
-import static app.bpartners.api.integration.conf.TestUtils.setUpCognito;
-import static app.bpartners.api.integration.conf.TestUtils.setUpLegalFileRepository;
-import static app.bpartners.api.integration.conf.TestUtils.setUpPaymentInfoRepository;
-import static app.bpartners.api.integration.conf.TestUtils.setUpPaymentInitiationRep;
+import static app.bpartners.api.integration.conf.utils.TestUtils.BEARER_PREFIX;
+import static app.bpartners.api.integration.conf.utils.TestUtils.JANE_ACCOUNT_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_TOKEN;
+import static app.bpartners.api.integration.conf.utils.TestUtils.OTHER_PRODUCT_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.assertThrowsApiException;
+import static app.bpartners.api.integration.conf.utils.TestUtils.assertThrowsForbiddenException;
+import static app.bpartners.api.integration.conf.utils.TestUtils.disabledProduct;
+import static app.bpartners.api.integration.conf.utils.TestUtils.isAfterOrEquals;
+import static app.bpartners.api.integration.conf.utils.TestUtils.product1;
+import static app.bpartners.api.integration.conf.utils.TestUtils.product6;
+import static app.bpartners.api.integration.conf.utils.TestUtils.setUpCognito;
+import static app.bpartners.api.integration.conf.utils.TestUtils.setUpLegalFileRepository;
+import static app.bpartners.api.integration.conf.utils.TestUtils.setUpPaymentInfoRepository;
+import static app.bpartners.api.integration.conf.utils.TestUtils.setUpPaymentInitiationRep;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -73,7 +71,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @Testcontainers
-@ContextConfiguration(initializers = ProductIT.ContextInitializer.class)
+@ContextConfiguration(initializers = DbEnvContextInitializer.class)
 @AutoConfigureMockMvc
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class ProductIT {
@@ -105,7 +103,8 @@ class ProductIT {
   private FintecturePaymentInfoRepository paymentInfoRepositoryMock;
 
   private static ApiClient anApiClient() {
-    return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN, ProductIT.ContextInitializer.SERVER_PORT);
+    return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN,
+        DbEnvContextInitializer.getHttpServerPort());
   }
 
   private static Product updatedProduct(Product product) {
@@ -394,7 +393,7 @@ class ProductIT {
   private HttpResponse<String> uploadFile(String accountId, File toUpload)
       throws InterruptedException, IOException {
     HttpClient unauthenticatedClient = HttpClient.newBuilder().build();
-    String basePath = "http://localhost:" + ProductIT.ContextInitializer.SERVER_PORT;
+    String basePath = "http://localhost:" + DbEnvContextInitializer.getHttpServerPort();
 
     HttpResponse<String> response = unauthenticatedClient.send(
         HttpRequest.newBuilder()
@@ -449,14 +448,5 @@ class ProductIT {
       product.setCreatedAt(null);
     });
     return actual;
-  }
-
-  static class ContextInitializer extends AbstractContextInitializer {
-    public static final int SERVER_PORT = TestUtils.anAvailableRandomPort();
-
-    @Override
-    public int getServerPort() {
-      return SERVER_PORT;
-    }
   }
 }

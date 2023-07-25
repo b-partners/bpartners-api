@@ -1,4 +1,4 @@
-package app.bpartners.api.integration.conf;
+package app.bpartners.api.integration.conf.utils;
 
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
@@ -47,8 +47,6 @@ import app.bpartners.api.repository.sendinblue.model.Attributes;
 import app.bpartners.api.repository.sendinblue.model.Contact;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.io.IOException;
-import java.net.ServerSocket;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpHeaders;
@@ -70,6 +68,7 @@ import javax.net.ssl.SSLSession;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.function.Executable;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.util.SocketUtils;
 import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsRequest;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsResponse;
@@ -220,9 +219,9 @@ public class TestUtils {
     return new AnnualRevenueTarget()
         .year(2023)
         .updatedAt(Instant.parse("2022-01-01T01:00:00.00Z"))
-        .amountAttempted(1356000)
+        .amountAttempted(0)
         .amountTarget(1000000)
-        .amountAttemptedPercent(13560);
+        .amountAttemptedPercent(0);
   }
 
   public static AnnualRevenueTarget annualRevenueTarget2() {
@@ -848,12 +847,8 @@ public class TestUtils {
         + "\"message\":\"Access is denied\"}", responseBody);
   }
 
-  public static int anAvailableRandomPort() {
-    try {
-      return new ServerSocket(0).getLocalPort();
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+  public static int findAvailableTcpPort() {
+    return SocketUtils.findAvailableTcpPort();
   }
 
   public static ApiException getApiException(String operationId, HttpResponse<byte[]> response) {

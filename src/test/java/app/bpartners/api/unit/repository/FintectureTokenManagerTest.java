@@ -6,7 +6,7 @@ import app.bpartners.api.repository.fintecture.model.TokenResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static app.bpartners.api.integration.conf.TestUtils.OAUTH_URL;
+import static app.bpartners.api.integration.conf.utils.TestUtils.OAUTH_URL;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;

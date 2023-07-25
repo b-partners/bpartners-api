@@ -6,8 +6,8 @@ import app.bpartners.api.endpoint.rest.validator.CompanyInfoRestValidator;
 import app.bpartners.api.endpoint.rest.validator.CompanyInfoValidator;
 import org.junit.jupiter.api.Test;
 
-import static app.bpartners.api.integration.conf.TestUtils.assertThrowsBadRequestException;
-import static app.bpartners.api.integration.conf.TestUtils.companyInfo;
+import static app.bpartners.api.integration.conf.utils.TestUtils.assertThrowsBadRequestException;
+import static app.bpartners.api.integration.conf.utils.TestUtils.companyInfo;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 class CompanyInfoValidatorTest {

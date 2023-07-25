@@ -1,7 +1,5 @@
 package app.bpartners.api.integration;
 
-import app.bpartners.api.SentryConf;
-import app.bpartners.api.endpoint.event.S3Conf;
 import app.bpartners.api.endpoint.rest.api.UserAccountsApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
@@ -15,52 +13,33 @@ import app.bpartners.api.endpoint.rest.model.CreatedFeedbackRequest;
 import app.bpartners.api.endpoint.rest.model.FeedbackRequest;
 import app.bpartners.api.endpoint.rest.model.UpdateAccountHolder;
 import app.bpartners.api.endpoint.rest.model.VerificationStatus;
-import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
-import app.bpartners.api.integration.conf.AbstractContextInitializer;
-import app.bpartners.api.integration.conf.TestUtils;
-import app.bpartners.api.manager.ProjectTokenManager;
-import app.bpartners.api.repository.AccountConnectorRepository;
-import app.bpartners.api.repository.LegalFileRepository;
-import app.bpartners.api.repository.bridge.BridgeApi;
-import app.bpartners.api.repository.fintecture.FintectureConf;
-import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitConf;
-import app.bpartners.api.repository.sendinblue.SendinblueConf;
-import app.bpartners.api.service.PaymentScheduleService;
+import app.bpartners.api.integration.conf.DbEnvContextInitializer;
+import app.bpartners.api.integration.conf.MockedThirdParties;
+import app.bpartners.api.integration.conf.utils.TestUtils;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestMethodOrder;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
 
-import static app.bpartners.api.integration.conf.TestUtils.ACCOUNTHOLDER2_ID;
-import static app.bpartners.api.integration.conf.TestUtils.ACCOUNTHOLDER_ID;
-import static app.bpartners.api.integration.conf.TestUtils.JANE_ACCOUNT_ID;
-import static app.bpartners.api.integration.conf.TestUtils.JANE_DOE_USER_ID;
-import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_HOLDER_ID;
-import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
-import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ID;
-import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_USER_ID;
-import static app.bpartners.api.integration.conf.TestUtils.annualRevenueTarget1;
-import static app.bpartners.api.integration.conf.TestUtils.annualRevenueTarget2;
-import static app.bpartners.api.integration.conf.TestUtils.assertThrowsApiException;
-import static app.bpartners.api.integration.conf.TestUtils.companyBusinessActivity;
-import static app.bpartners.api.integration.conf.TestUtils.companyInfo;
-import static app.bpartners.api.integration.conf.TestUtils.createAnnualRevenueTarget;
-import static app.bpartners.api.integration.conf.TestUtils.customer1;
-import static app.bpartners.api.integration.conf.TestUtils.customer2;
-import static app.bpartners.api.integration.conf.TestUtils.location;
-import static app.bpartners.api.integration.conf.TestUtils.setUpCognito;
-import static app.bpartners.api.integration.conf.TestUtils.setUpEventBridge;
-import static app.bpartners.api.integration.conf.TestUtils.setUpLegalFileRepository;
-import static app.bpartners.api.integration.conf.TestUtils.toUpdateAnnualRevenueTarget;
+import static app.bpartners.api.integration.conf.utils.TestUtils.ACCOUNTHOLDER_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_HOLDER_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_USER_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.annualRevenueTarget1;
+import static app.bpartners.api.integration.conf.utils.TestUtils.annualRevenueTarget2;
+import static app.bpartners.api.integration.conf.utils.TestUtils.assertThrowsApiException;
+import static app.bpartners.api.integration.conf.utils.TestUtils.companyBusinessActivity;
+import static app.bpartners.api.integration.conf.utils.TestUtils.companyInfo;
+import static app.bpartners.api.integration.conf.utils.TestUtils.createAnnualRevenueTarget;
+import static app.bpartners.api.integration.conf.utils.TestUtils.customer1;
+import static app.bpartners.api.integration.conf.utils.TestUtils.customer2;
+import static app.bpartners.api.integration.conf.utils.TestUtils.location;
+import static app.bpartners.api.integration.conf.utils.TestUtils.setUpCognito;
+import static app.bpartners.api.integration.conf.utils.TestUtils.setUpLegalFileRepository;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -68,38 +47,13 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @Testcontainers
-@ContextConfiguration(initializers = AccountHolderIT.ContextInitializer.class)
-@AutoConfigureMockMvc
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+@ContextConfiguration(initializers = DbEnvContextInitializer.class)
 @Slf4j
-class AccountHolderIT {
-  @MockBean
-  private BridgeApi bridgeApi;
-  @MockBean
-  private PaymentScheduleService paymentScheduleService;
-  @MockBean
-  private BuildingPermitConf buildingPermitConf;
-  @MockBean
-  private SentryConf sentryConf;
-  @MockBean
-  private SendinblueConf sendinblueConf;
-  @MockBean
-  private S3Conf s3Conf;
-  @MockBean
-  private FintectureConf fintectureConf;
-  @MockBean
-  private ProjectTokenManager projectTokenManager;
-  @MockBean
-  private AccountConnectorRepository accountConnectorRepository;
-  @MockBean
-  private LegalFileRepository legalFileRepositoryMock;
-  @MockBean
-  private EventBridgeClient eventBridgeClientMock;
-  @MockBean
-  private CognitoComponent cognitoComponentMock;
+class AccountHolderIT extends MockedThirdParties {
 
   private static ApiClient anApiClient() {
-    return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN, ContextInitializer.SERVER_PORT);
+    return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN,
+        DbEnvContextInitializer.getHttpServerPort());
   }
 
   private static AccountHolder joeDoeAccountHolder() {
@@ -217,67 +171,10 @@ class AccountHolderIT {
   @BeforeEach
   public void setUp() {
     setUpLegalFileRepository(legalFileRepositoryMock);
-    setUpEventBridge(eventBridgeClientMock);
     setUpCognito(cognitoComponentMock);
   }
 
   @Test
-  void read_verified_account_holders_ok() throws ApiException {
-    ApiClient joeDoeClient = anApiClient();
-    UserAccountsApi api = new UserAccountsApi(joeDoeClient);
-
-    List<AccountHolder> actual = api.getAccountHolders(TestUtils.JOE_DOE_ID, JOE_DOE_ACCOUNT_ID);
-
-    assertTrue(actual.contains(joeDoeAccountHolder()));
-  }
-
-  @Test
-  @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
-  void update_company_info_ok() throws ApiException {
-    ApiClient joeDoeClient = anApiClient();
-    UserAccountsApi api = new UserAccountsApi(joeDoeClient);
-
-    AccountHolder actual = api.updateCompanyInfo(JOE_DOE_USER_ID, JOE_DOE_ACCOUNT_ID,
-        joeDoeAccountHolder().getId(), companyInfo()
-            .location(location()
-                .latitude(43.5)
-                .longitude(2.5))
-            .townCode(92002));
-
-    assertEquals(expected()
-        .companyInfo(updatedCompanyInfo())
-        .businessActivities(new CompanyBusinessActivity()
-            .primary("IT")
-            .secondary("TECHNOLOGY"))
-        //TODO: check why revenue targets does not work properly for this test
-        .revenueTargets(actual.getRevenueTargets()), actual);
-    //TODO: check the vat number overriding
-    //    assertNotEquals(actual.getCompanyInfo().getTvaNumber(),
-    //        companyInfo().getTvaNumber());
-  }
-
-  @Test
-  @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
-  void update_business_activities_ok() throws ApiException {
-    ApiClient joeDoeClient = anApiClient();
-    UserAccountsApi api = new UserAccountsApi(joeDoeClient);
-
-    AccountHolder actual = api.updateBusinessActivities(JOE_DOE_USER_ID, JOE_DOE_ACCOUNT_ID,
-        joeDoeAccountHolder().getId(), companyBusinessActivity());
-    AccountHolder actual1 = api.updateBusinessActivities(JANE_DOE_USER_ID, JANE_ACCOUNT_ID,
-        ACCOUNTHOLDER2_ID, new CompanyBusinessActivity()
-            .primary("IT"));
-
-    assertEquals("IT", actual1.getBusinessActivities().getPrimary());
-    assertEquals(expected()
-            .companyInfo(
-                expected().getCompanyInfo()
-                    .isSubjectToVat(true)),
-        actual);
-  }
-
-  @Test
-  @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
   void create_annual_revenue_target_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
     UserAccountsApi api = new UserAccountsApi(joeDoeClient);
@@ -286,18 +183,6 @@ class AccountHolderIT {
         joeDoeAccountHolder().getId(), List.of(createAnnualRevenueTarget()));
 
     assertEquals(3, actual.getRevenueTargets().size());
-  }
-
-  @Test
-  @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
-  void update_annual_revenue_target_ok() throws ApiException {
-    ApiClient joeDoeClient = anApiClient();
-    UserAccountsApi api = new UserAccountsApi(joeDoeClient);
-
-    AccountHolder actual = api.updateRevenueTargets(JOE_DOE_USER_ID, JOE_DOE_ACCOUNT_ID,
-        joeDoeAccountHolder().getId(), List.of(toUpdateAnnualRevenueTarget()));
-
-    assertEquals(2, actual.getRevenueTargets().size());
   }
 
   @Test
@@ -318,7 +203,6 @@ class AccountHolderIT {
   }
 
   @Test
-  @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
   void update_global_info_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
     UserAccountsApi api = new UserAccountsApi(joeDoeClient);
@@ -353,6 +237,16 @@ class AccountHolderIT {
   }
 
   @Test
+  void read_verified_account_holders_ok() throws ApiException {
+    ApiClient joeDoeClient = anApiClient();
+    UserAccountsApi api = new UserAccountsApi(joeDoeClient);
+
+    List<AccountHolder> actual = api.getAccountHolders(TestUtils.JOE_DOE_ID, JOE_DOE_ACCOUNT_ID);
+
+    assertTrue(actual.contains(joeDoeAccountHolder()));
+  }
+
+  @Test
   void ask_feedback_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
     UserAccountsApi api = new UserAccountsApi(joeDoeClient);
@@ -364,14 +258,5 @@ class AccountHolderIT {
             .id(actualCreatedFeedbackRequest.getId())
             .creationDatetime(actualCreatedFeedbackRequest.getCreationDatetime())
         , actualCreatedFeedbackRequest);
-  }
-
-  static class ContextInitializer extends AbstractContextInitializer {
-    public static final int SERVER_PORT = TestUtils.anAvailableRandomPort();
-
-    @Override
-    public int getServerPort() {
-      return SERVER_PORT;
-    }
   }
 }

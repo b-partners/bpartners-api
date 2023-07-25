@@ -8,7 +8,7 @@ import app.bpartners.api.endpoint.rest.model.FileInfo;
 import app.bpartners.api.endpoint.rest.model.FileType;
 import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.integration.conf.S3AbstractContextInitializer;
-import app.bpartners.api.integration.conf.TestUtils;
+import app.bpartners.api.integration.conf.utils.TestUtils;
 import app.bpartners.api.manager.ProjectTokenManager;
 import app.bpartners.api.repository.AccountConnectorRepository;
 import app.bpartners.api.repository.LegalFileRepository;
@@ -37,21 +37,21 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import static app.bpartners.api.integration.conf.TestUtils.BEARER_PREFIX;
-import static app.bpartners.api.integration.conf.TestUtils.BEARER_QUERY_PARAMETER_NAME;
-import static app.bpartners.api.integration.conf.TestUtils.INVALID_LOGO_TYPE;
-import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
-import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ID;
-import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_TOKEN;
-import static app.bpartners.api.integration.conf.TestUtils.NOT_JOE_DOE_ACCOUNT_ID;
-import static app.bpartners.api.integration.conf.TestUtils.OTHER_TEST_FILE_ID;
-import static app.bpartners.api.integration.conf.TestUtils.TEST_FILE_ID;
-import static app.bpartners.api.integration.conf.TestUtils.TO_UPLOAD_FILE_ID;
-import static app.bpartners.api.integration.conf.TestUtils.assertThrowsApiException;
-import static app.bpartners.api.integration.conf.TestUtils.assertThrowsForbiddenException;
-import static app.bpartners.api.integration.conf.TestUtils.getApiException;
-import static app.bpartners.api.integration.conf.TestUtils.setUpCognito;
-import static app.bpartners.api.integration.conf.TestUtils.setUpLegalFileRepository;
+import static app.bpartners.api.integration.conf.utils.TestUtils.BEARER_PREFIX;
+import static app.bpartners.api.integration.conf.utils.TestUtils.BEARER_QUERY_PARAMETER_NAME;
+import static app.bpartners.api.integration.conf.utils.TestUtils.INVALID_LOGO_TYPE;
+import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_TOKEN;
+import static app.bpartners.api.integration.conf.utils.TestUtils.NOT_JOE_DOE_ACCOUNT_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.OTHER_TEST_FILE_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.TEST_FILE_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.TO_UPLOAD_FILE_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.assertThrowsApiException;
+import static app.bpartners.api.integration.conf.utils.TestUtils.assertThrowsForbiddenException;
+import static app.bpartners.api.integration.conf.utils.TestUtils.getApiException;
+import static app.bpartners.api.integration.conf.utils.TestUtils.setUpCognito;
+import static app.bpartners.api.integration.conf.utils.TestUtils.setUpLegalFileRepository;
 import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
@@ -291,7 +291,7 @@ class FileIT {
 
   //TODO: write upload_triggers_event_ok as done in InvoiceIT
   public static class ContextInitializer extends S3AbstractContextInitializer {
-    public static final int SERVER_PORT = TestUtils.anAvailableRandomPort();
+    public static final int SERVER_PORT = TestUtils.findAvailableTcpPort();
 
     @Override
     public int getServerPort() {

@@ -14,15 +14,13 @@ import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.retry.support.RetryTemplate;
 
-import static app.bpartners.api.integration.conf.TestUtils.httpResponseMock;
+import static app.bpartners.api.integration.conf.utils.TestUtils.httpResponseMock;
 import static app.bpartners.api.service.utils.URLUtils.URLEncodeMap;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;

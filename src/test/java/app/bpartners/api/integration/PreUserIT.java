@@ -4,8 +4,7 @@ import app.bpartners.api.SentryConf;
 import app.bpartners.api.endpoint.event.S3Conf;
 import app.bpartners.api.endpoint.rest.model.CreatePreUser;
 import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
-import app.bpartners.api.integration.conf.AbstractContextInitializer;
-import app.bpartners.api.integration.conf.TestUtils;
+import app.bpartners.api.integration.conf.DbEnvContextInitializer;
 import app.bpartners.api.manager.ProjectTokenManager;
 import app.bpartners.api.repository.fintecture.FintectureConf;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitConf;
@@ -28,15 +27,15 @@ import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import static app.bpartners.api.integration.conf.TestUtils.VALID_EMAIL;
-import static app.bpartners.api.integration.conf.TestUtils.setUpSendiblueApi;
+import static app.bpartners.api.integration.conf.utils.TestUtils.VALID_EMAIL;
+import static app.bpartners.api.integration.conf.utils.TestUtils.setUpSendiblueApi;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @Testcontainers
-@ContextConfiguration(initializers = PreUserIT.ContextInitializer.class)
+@ContextConfiguration(initializers = DbEnvContextInitializer.class)
 @AutoConfigureMockMvc
 class PreUserIT {
   @MockBean
@@ -94,7 +93,7 @@ class PreUserIT {
   @Test
   void unauthenticated_create_pre_users_ok() throws IOException, InterruptedException {
     HttpClient unauthenticatedClient = HttpClient.newBuilder().build();
-    String basePath = "http://localhost:" + PreUserIT.ContextInitializer.SERVER_PORT;
+    String basePath = "http://localhost:" + DbEnvContextInitializer.getHttpServerPort();
 
     HttpResponse<String> responseWithAttributes = unauthenticatedClient.send(
         HttpRequest.newBuilder()
@@ -122,7 +121,7 @@ class PreUserIT {
   @Test
   void unauthenticated_create_pre_users_ko() throws IOException, InterruptedException {
     HttpClient unauthenticatedClient = HttpClient.newBuilder().build();
-    String basePath = "http://localhost:" + PreUserIT.ContextInitializer.SERVER_PORT;
+    String basePath = "http://localhost:" + DbEnvContextInitializer.getHttpServerPort();
 
     HttpResponse<String> response = unauthenticatedClient.send(
         HttpRequest.newBuilder()
@@ -148,14 +147,5 @@ class PreUserIT {
     assertTrue(response.body().contains("Email is mandatory"));
     assertEquals(HttpStatus.BAD_REQUEST.value(), responseWithInvalidPhoneNumber.statusCode());
     assertTrue(responseWithInvalidPhoneNumber.body().contains("Invalid phone number"));
-  }
-
-  public static class ContextInitializer extends AbstractContextInitializer {
-    public static final int SERVER_PORT = TestUtils.anAvailableRandomPort();
-
-    @Override
-    public int getServerPort() {
-      return SERVER_PORT;
-    }
   }
 }

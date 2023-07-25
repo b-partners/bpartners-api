@@ -7,7 +7,7 @@ import app.bpartners.api.endpoint.rest.client.ApiException;
 import app.bpartners.api.endpoint.rest.model.InvoiceRelaunchConf;
 import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.integration.conf.S3AbstractContextInitializer;
-import app.bpartners.api.integration.conf.TestUtils;
+import app.bpartners.api.integration.conf.utils.TestUtils;
 import app.bpartners.api.manager.ProjectTokenManager;
 import app.bpartners.api.repository.AccountConnectorRepository;
 import app.bpartners.api.repository.LegalFileRepository;
@@ -29,13 +29,13 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import static app.bpartners.api.integration.conf.TestUtils.INVOICE1_ID;
-import static app.bpartners.api.integration.conf.TestUtils.INVOICE2_ID;
-import static app.bpartners.api.integration.conf.TestUtils.JOE_DOE_ACCOUNT_ID;
-import static app.bpartners.api.integration.conf.TestUtils.setUpCognito;
-import static app.bpartners.api.integration.conf.TestUtils.setUpLegalFileRepository;
-import static app.bpartners.api.integration.conf.TestUtils.setUpPaymentInfoRepository;
-import static app.bpartners.api.integration.conf.TestUtils.setUpPaymentInitiationRep;
+import static app.bpartners.api.integration.conf.utils.TestUtils.INVOICE1_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.INVOICE2_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.setUpCognito;
+import static app.bpartners.api.integration.conf.utils.TestUtils.setUpLegalFileRepository;
+import static app.bpartners.api.integration.conf.utils.TestUtils.setUpPaymentInfoRepository;
+import static app.bpartners.api.integration.conf.utils.TestUtils.setUpPaymentInitiationRep;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
@@ -138,7 +138,7 @@ class InvoiceRelaunchConfIT {
   }
 
   static class ContextInitializer extends S3AbstractContextInitializer {
-    public static final int SERVER_PORT = TestUtils.anAvailableRandomPort();
+    public static final int SERVER_PORT = TestUtils.findAvailableTcpPort();
 
     @Override
     public int getServerPort() {

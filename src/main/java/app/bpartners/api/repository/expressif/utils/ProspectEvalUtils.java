@@ -400,7 +400,7 @@ public class ProspectEvalUtils {
           prospectEvalInfo.setManagerName(getStringValue(currentCell));
           break;
         case 8:
-          prospectEvalInfo.setMailSent(rowBooleanValue(currentRow, 8, exceptionMsgBuilder));
+          prospectEvalInfo.setMailSent(getStringValue(currentCell));
           break;
         case 9:
           prospectEvalInfo.setPostalCode(getStringValue(currentCell));

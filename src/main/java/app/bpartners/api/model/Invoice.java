@@ -142,8 +142,7 @@ public class Invoice {
     if (this.getStatus() == InvoiceStatus.PAID) {
       return addStamp(this.paymentMethod);
     }
-    throw new ApiException(ApiException.ExceptionType.SERVER_EXCEPTION,
-        "Only PAID invoice can have stamp");
+    return null;
   }
 
   @SneakyThrows

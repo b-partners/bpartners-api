@@ -1,12 +1,10 @@
-package app.bpartners.api.repository.bridge.repository.implementation;
+package app.bpartners.api.repository.connectors.account;
 
 import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.mapper.AccountMapper;
-import app.bpartners.api.repository.AccountConnectorRepository;
 import app.bpartners.api.repository.BankRepository;
 import app.bpartners.api.repository.bridge.BridgeApi;
-import app.bpartners.api.repository.implementation.SavableAccountConnectorRepository;
 import app.bpartners.api.repository.model.AccountConnector;
 import java.util.List;
 import java.util.stream.Collectors;

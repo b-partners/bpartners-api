@@ -30,55 +30,21 @@ public class CustomerRepositoryImpl implements CustomerRepository {
   private final CustomerMapper mapper;
   private final EntityManager entityManager;
 
-  private static Predicate[] retrieveNotNullPredicates(
-      String idUser, String firstname, String lastname,
-      String email, String phoneNumber, String city,
-      String country, CustomerStatus status, CriteriaBuilder builder,
-      Root<HCustomer> root, List<Predicate> predicates) {
+  @Override
+  public List<Customer> findByIdUserAndCriteria(String idUser, List<String> keywords,
+                                                CustomerStatus status,
+                                                int page,
+                                                int pageSize) {
+    Pageable pageable = PageRequest.of(page, pageSize);
+    CriteriaBuilder builder = entityManager.getCriteriaBuilder();
+    CriteriaQuery<HCustomer> query = builder.createQuery(HCustomer.class);
+    Root<HCustomer> root = query.from(HCustomer.class);
+    List<Predicate> predicates = new ArrayList<>();
 
     predicates.add(
         builder.equal(root.get("idUser"), idUser)
     );
-    if (firstname != null) {
-      predicates.add(builder.or(
-          builder.like(root.get("firstName"), "%" + firstname + "%"),
-          builder.like(builder.lower(root.get("firstName")),
-              "%" + firstname + "%")
-      ));
-    }
-    if (lastname != null) {
-      predicates.add(builder.or(
-          builder.like(builder.lower(root.get("lastName")), "%" + lastname + "%"),
-          builder.like(root.get("lastName"), "%" + lastname + "%")
-      ));
-    }
-
-    if (email != null) {
-      predicates.add(builder.or(
-          builder.like(builder.lower(root.get("email")), "%" + email + "%"),
-          builder.like(root.get("email"), "%" + email + "%")
-      ));
-    }
-    if (phoneNumber != null) {
-      predicates.add(builder.or(
-          builder.like(builder.lower(root.get("phone")), "%" + phoneNumber + "%"),
-          builder.like(root.get("phone"), "%" + phoneNumber + "%")
-      ));
-    }
-    if (city != null) {
-      predicates.add(
-          builder.or(
-              builder.like(builder.lower(root.get("city")), "%" + city + "%"),
-              builder.like(root.get("city"), "%" + city + "%")
-          ));
-    }
-    if (country != null) {
-      predicates.add(builder.or(
-          builder.like(builder.lower(root.get("country")), "%" + country + "%"),
-          builder.like(root.get("country"), "%" + country + "%")
-      ));
-    }
-    if (status != null) {
+    if(status != null) {
       predicates.add(
           builder.equal(root.get("status"), status)
       );
@@ -87,28 +53,21 @@ public class CustomerRepositoryImpl implements CustomerRepository {
           builder.equal(root.get("status"), CustomerStatus.ENABLED)
       );
     }
-    return new Predicate[predicates.size()];
-  }
-
-  @Override
-  public List<Customer> findByIdUserAndCriteria(String idUser, String firstname,
-                                                String lastname, String email,
-                                                String phoneNumber, String city,
-                                                String country, CustomerStatus status, int page,
-                                                int pageSize) {
-    Pageable pageable = PageRequest.of(page, pageSize);
-    CriteriaBuilder builder = entityManager.getCriteriaBuilder();
-    CriteriaQuery<HCustomer> query = builder.createQuery(HCustomer.class);
-    Root<HCustomer> root = query.from(HCustomer.class);
-    List<Predicate> predicates = new ArrayList<>();
-    Predicate[] arrays =
-        retrieveNotNullPredicates(
-            idUser, firstname, lastname,
-            email, phoneNumber, city,
-            country, status, builder, root, predicates);
-
+    if(keywords != null && !keywords.isEmpty()) {
+      List<Predicate> keywordsPredicates = new ArrayList<>();
+      for (String keyword : keywords) {
+        keywordsPredicates.add(builder.like(builder.lower(root.get("firstName")),
+            "%" + keyword + "%"));
+        keywordsPredicates.add(builder.like(builder.lower(root.get("lastName")), "%" + keyword + "%"));
+        keywordsPredicates.add(builder.like(builder.lower(root.get("email")), "%" + keyword + "%"));
+        keywordsPredicates.add(builder.like(builder.lower(root.get("phone")), "%" + keyword + "%"));
+        keywordsPredicates.add(builder.like(builder.lower(root.get("city")), "%" + keyword + "%"));
+        keywordsPredicates.add(builder.like(builder.lower(root.get("country")), "%" + keyword + "%"));
+      }
+      predicates.add(builder.or(keywordsPredicates.toArray(new Predicate[0])));
+    }
     query
-        .where(builder.and(predicates.toArray(arrays)))
+        .where(builder.and(predicates.toArray(new Predicate[0])))
         .orderBy(QueryUtils.toOrders(pageable.getSort(), root, builder));
 
     return entityManager.createQuery(query)

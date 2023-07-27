@@ -17,6 +17,7 @@ import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.repository.CustomerRepository;
 import java.io.ByteArrayInputStream;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.transaction.Transactional;
@@ -36,15 +37,57 @@ public class CustomerService {
   private final EventProducer eventProducer;
   private final EventConf eventConf;
 
-  public List<Customer> getCustomers(
-      String idUser, String firstName,
-      String lastName, String email, String phoneNumber, String city, String country,
-      CustomerStatus status,
-      PageFromOne page, BoundedPageSize pageSize) {
+  private List<String> retrieveKeywords(String firstName,
+                                        String lastName, String email, String phoneNumber,
+                                        String city, String country, List<String> filters) {
+    List<String> keywords = new ArrayList<>();
+    if (firstName != null) {
+      log.warn("DEPRECATED: query parameter firstName is still used for filtering customers. Use " +
+          "the query parameter filters instead.");
+      keywords.add(firstName.toLowerCase());
+    }
+    if (lastName != null) {
+      log.warn("DEPRECATED: query parameter lastName is still used for filtering customers. Use " +
+          "the query parameter filters instead.");
+      keywords.add(lastName.toLowerCase());
+    }
+    if (email != null) {
+      log.warn("DEPRECATED: query parameter email is still used for filtering customers. Use " +
+          "the query parameter filters instead.");
+      keywords.add(email.toLowerCase());
+    }
+    if (phoneNumber != null) {
+      log.warn("DEPRECATED: query parameter phoneNumber is still used for filtering customers. " +
+          "Use the query parameter filters instead.");
+      keywords.add(phoneNumber.toLowerCase());
+    }
+    if (city != null) {
+      log.warn("DEPRECATED: query parameter city is still used for filtering customers. Use " +
+          "the query parameter filters instead.");
+      keywords.add(city.toLowerCase());
+    }
+    if (country != null) {
+      log.warn("DEPRECATED: query parameter country is still used for filtering customers. Use " +
+          "the query parameter filters instead.");
+      keywords.add(country.toLowerCase());
+    }
+    if (filters != null && !filters.isEmpty()) {
+      keywords.addAll(filters.stream()
+          .map(String::toLowerCase)
+          .collect(Collectors.toList()));
+    }
+    return keywords;
+  }
+
+  public List<Customer> getCustomers(String idUser, String firstName, String lastName, String email,
+                                     String phoneNumber, String city, String country,
+                                     List<String> filters, CustomerStatus status, PageFromOne page,
+                                     BoundedPageSize pageSize) {
     int pageValue = page != null ? page.getValue() - 1 : 0;
     int pageSizeValue = pageSize != null ? pageSize.getValue() : 30;
-    return repository.findByIdUserAndCriteria(idUser, firstName, lastName, email,
-        phoneNumber, city, country, status, pageValue, pageSizeValue);
+    List<String> keywords = retrieveKeywords(firstName, lastName, email,
+        phoneNumber, city, country, filters);
+    return repository.findByIdUserAndCriteria(idUser, keywords, status, pageValue, pageSizeValue);
   }
 
   public Customer getCustomerById(String id) {

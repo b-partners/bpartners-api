@@ -14,8 +14,7 @@ public interface CustomerRepository {
   Optional<Customer> findOptionalById(String id);
 
   List<Customer> findByIdUserAndCriteria(
-      String accountId, String firstname, String lastname, String email, String phoneNumber,
-      String city, String country, CustomerStatus status, int page, int pageSize);
+      String accountId, List<String> keywords, CustomerStatus status, int page, int pageSize);
 
   List<Customer> updateCustomersStatuses(List<UpdateCustomerStatus> toUpdate);
 }

@@ -160,7 +160,7 @@ class CustomerIT extends MockedThirdParties {
     List<Customer> actual = api.updateCustomers(JOE_DOE_ACCOUNT_ID, List.of(customerUpdated()));
     List<Customer> existingCustomers = api.getCustomers(JOE_DOE_ACCOUNT_ID,
         "Marc", "Montagnier", null, null, null, null, null, null, 1, 20);
-
+    assertEquals(existingCustomers, actual);
     assertTrue(existingCustomers.containsAll(actual));
   }
 
@@ -227,7 +227,7 @@ class CustomerIT extends MockedThirdParties {
   void read_customer_by_keyword() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
     CustomersApi api = new CustomersApi(joeDoeClient);
-    List<String> keywords = List.of("bpartners", "Luc");
+    List<String> keywords = List.of("bparTnErs", "OlIvIer", "FraNk");
 
     List<Customer> actual = api.getCustomers(JOE_DOE_ACCOUNT_ID, null, null, null, null, null,
         null, null, keywords, null, null);

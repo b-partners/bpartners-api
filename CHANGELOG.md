@@ -1,3 +1,28 @@
+# [0.22.0](https://github.com/b-partners/bpartners-api/compare/v0.21.0...v0.22.0) (2023-07-27)
+
+
+### Bug Fixes
+
+* add validation in excel file for prospect evaluations ([7843a45](https://github.com/b-partners/bpartners-api/commit/7843a45f45565dcf9c55459449fa177ae5822296))
+* avoid NPE when mapping prospect to rest ([6ce1be2](https://github.com/b-partners/bpartners-api/commit/6ce1be2ab790d8e1c97891d6cf7087b07f6fc2a6))
+* return comment when mapping payment regulation in invoice ([44adc40](https://github.com/b-partners/bpartners-api/commit/44adc40e10aa02dd1e8429d7a9a4dc628947b8ae))
+* return null when invoking invoice stamp not paid ([cd1a851](https://github.com/b-partners/bpartners-api/commit/cd1a8514c51637d1689079438c25ef205f59e3ba))
+* save major account balance value in database when getting from bridge ([9112999](https://github.com/b-partners/bpartners-api/commit/9112999d4a518083dbc35e5119bfa8835f8c06fc))
+* set default prospect evaluation infos to order correctly prospect by rating desc ([5cdecf5](https://github.com/b-partners/bpartners-api/commit/5cdecf58a57ed5ba00e12fd967fd68ed474da4a3))
+* set prospect eval info mailSent attribute as string not boolean ([2ffb7ed](https://github.com/b-partners/bpartners-api/commit/2ffb7ed6dd897637ace8178bcfe11f1d6aa0dff0))
+* show all prospects when account holder business activity is anti-harm ([a176116](https://github.com/b-partners/bpartners-api/commit/a17611692575d6abb9cc88eed951fbcf8df7c294))
+* show delay payment message in generated pdf when delay is 30 days ([6a142ab](https://github.com/b-partners/bpartners-api/commit/6a142ab5879009649983eb8dc5002e4964d9a55b))
+* temporarily return all business activities ([8692576](https://github.com/b-partners/bpartners-api/commit/8692576ff65d91607ec27c37869c8651694abd71))
+
+
+### Features
+
+* add PAID stamp without payment method for invoice ([fcbf9a7](https://github.com/b-partners/bpartners-api/commit/fcbf9a762b65e391a037aa4cdde0b7f33a14325d))
+* add payment method to invoice ([4a57223](https://github.com/b-partners/bpartners-api/commit/4a5722378d6968b2a23b5d54ca48e22f8c6c063b))
+* add stamp when marking invoice as paid according to payment method ([72e957c](https://github.com/b-partners/bpartners-api/commit/72e957c19d9fb4b91749207d819232a89db85687))
+
+
+
 # [0.21.0](https://github.com/b-partners/bpartners-api/compare/v0.20.0...v0.21.0) (2023-07-18)
 
 
@@ -209,29 +234,6 @@
 
 * archive customers ([8f9d169](https://github.com/b-partners/bpartners-api/commit/8f9d169cc3bee418e3cf06f330b9777d12714525))
 * update account holder global info ([0b68661](https://github.com/b-partners/bpartners-api/commit/0b686613febdcd82dbffa7a771dd9ebf57b97f7e))
-
-
-
-# [0.11.0](https://github.com/b-partners/bpartners-api/compare/v0.10.0...v0.11.0) (2023-03-31)
-
-
-### Bug Fixes
-
-* duplicate V0_133 ([#637](https://github.com/b-partners/bpartners-api/issues/637)) ([bbbe6d5](https://github.com/b-partners/bpartners-api/commit/bbbe6d524da971d809fe1386b07ed28fcfa51da9))
-* leave user token as cognito bearer when bridge bearer not retrieved ([8c788ed](https://github.com/b-partners/bpartners-api/commit/8c788ed22008bab1a0036dead9ae2b8e373f389a))
-* persist provided user ID during updating persisted account ([e88236a](https://github.com/b-partners/bpartners-api/commit/e88236afc18d076f4b568389ddd07835b4e168c9))
-* persisted transactions are updated when null are actual values ([4603d75](https://github.com/b-partners/bpartners-api/commit/4603d75ebb67196b30a90f1ac0f7176da87c13e3))
-* properly resolve ssm variables for cognito ([cca423f](https://github.com/b-partners/bpartners-api/commit/cca423f139f6a7a434ae8ca65ece9b3a5d8dad69))
-* remove profile arg in cd-compute ([1b09c46](https://github.com/b-partners/bpartners-api/commit/1b09c46c4d9863319ae8186dbbebe646ef97b4aa))
-* retrieve user from cognito token in legal file controller ([c5b482f](https://github.com/b-partners/bpartners-api/commit/c5b482fd8165618ea02f03a589389b7ba323db58))
-* retrieve user from cognito token in user controller ([fb5e0fa](https://github.com/b-partners/bpartners-api/commit/fb5e0fa788bcd52be18a5dd88162d8b2fb44b25e))
-* return empty list when any transaction retrieved ([545832c](https://github.com/b-partners/bpartners-api/commit/545832c12cfb326c25f058752b7188a68eb001e4))
-
-
-### Features
-
-* add town code to accountholder ([#634](https://github.com/b-partners/bpartners-api/issues/634)) ([634a2df](https://github.com/b-partners/bpartners-api/commit/634a2df914a43fb7eb1d66745d3152069efbd3a1))
-* exchange cognito authorization code to cognito token ([0461793](https://github.com/b-partners/bpartners-api/commit/04617932874efb62c9f9e8b7b0467627f8007adc))
 
 
 

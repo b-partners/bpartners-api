@@ -51,26 +51,26 @@ class DirtyCustomerIT extends MockedThirdParties {
 
     List<Customer> actualNoFilter = api.getCustomers(
         JOE_DOE_ACCOUNT_ID, null, null, null, null, null, null,
-        null, 1, 20);
+        null, null, 1, 20);
     List<Customer> actualFilteredByFirstAndLastName = api.getCustomers(
         JOE_DOE_ACCOUNT_ID, "Jean", "Plombier", null, null, null, null,
-        null, 1, 20);
+        null, null, 1, 20);
     List<Customer> actualFilteredByEmail = api.getCustomers(
         JOE_DOE_ACCOUNT_ID, null, null,
         "bpartners.artisans@gmail.com", null, null, null,
-        null, 1, 20);
+        null, null, 1, 20);
     List<Customer> actualFilteredByPhoneNumber = api.getCustomers(
         JOE_DOE_ACCOUNT_ID, null, null, null, "+33 12 34 56 78", null, null,
-        null, 1, 20);
+        null, null, 1, 20);
     List<Customer> actualFilteredByCity = api.getCustomers(
         JOE_DOE_ACCOUNT_ID, null, null, null, null, "Metz", null,
-        null, 1, 20);
+        null, null, 1, 20);
     List<Customer> actualFilteredByCountry = api.getCustomers(
         JOE_DOE_ACCOUNT_ID, null, null, null, null, null, "Allemagne",
-        null, 1, 20);
+        null, null, 1, 20);
     List<Customer> actualFilteredByFirstNameAndCity = api.getCustomers(
         JOE_DOE_ACCOUNT_ID, "Jean", null, null, null, "Montmorency", null,
-        null, 1, 20);
+        null, null, 1, 20);
     List<Customer> allFilteredResults = new ArrayList<>();
     allFilteredResults.addAll(actualFilteredByFirstAndLastName);
     allFilteredResults.addAll(actualFilteredByEmail);
@@ -104,7 +104,7 @@ class DirtyCustomerIT extends MockedThirdParties {
     var customersToUpdate = api.getCustomers(
         JOE_DOE_ACCOUNT_ID,
         null, null, null, null, null, null, null,
-        1, 20);
+        null, 1, 20);
     var customerToUpdate = customersToUpdate.get(0);
 
     String newLastName = randomUUID().toString();

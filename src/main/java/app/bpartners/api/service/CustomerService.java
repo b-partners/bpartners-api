@@ -85,9 +85,14 @@ public class CustomerService {
                                      BoundedPageSize pageSize) {
     int pageValue = page != null ? page.getValue() - 1 : 0;
     int pageSizeValue = pageSize != null ? pageSize.getValue() : 30;
-    List<String> keywords = retrieveKeywords(firstName, lastName, email,
-        phoneNumber, city, country, filters);
-    return repository.findByIdUserAndCriteria(idUser, keywords, status, pageValue, pageSizeValue);
+    List<String> keywords = new ArrayList<>();
+    if (filters != null && !filters.isEmpty()) {
+      keywords.addAll(filters.stream()
+          .map(String::toLowerCase)
+          .collect(Collectors.toList()));
+    }
+    return repository.findByIdUserAndCriteria(idUser, firstName, lastName, email,
+        phoneNumber, city, country, keywords, status, pageValue, pageSizeValue);
   }
 
   public Customer getCustomerById(String id) {

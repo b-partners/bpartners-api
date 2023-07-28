@@ -17,6 +17,7 @@ import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.repository.CustomerRepository;
 import java.io.ByteArrayInputStream;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.transaction.Transactional;
@@ -36,15 +37,20 @@ public class CustomerService {
   private final EventProducer eventProducer;
   private final EventConf eventConf;
 
-  public List<Customer> getCustomers(
-      String idUser, String firstName,
-      String lastName, String email, String phoneNumber, String city, String country,
-      CustomerStatus status,
-      PageFromOne page, BoundedPageSize pageSize) {
+  public List<Customer> getCustomers(String idUser, String firstName, String lastName, String email,
+                                     String phoneNumber, String city, String country,
+                                     List<String> filters, CustomerStatus status, PageFromOne page,
+                                     BoundedPageSize pageSize) {
     int pageValue = page != null ? page.getValue() - 1 : 0;
     int pageSizeValue = pageSize != null ? pageSize.getValue() : 30;
+    List<String> keywords = new ArrayList<>();
+    if (filters != null && !filters.isEmpty()) {
+      keywords.addAll(filters.stream()
+          .map(String::toLowerCase)
+          .collect(Collectors.toList()));
+    }
     return repository.findByIdUserAndCriteria(idUser, firstName, lastName, email,
-        phoneNumber, city, country, status, pageValue, pageSizeValue);
+        phoneNumber, city, country, keywords, status, pageValue, pageSizeValue);
   }
 
   public Customer getCustomerById(String id) {

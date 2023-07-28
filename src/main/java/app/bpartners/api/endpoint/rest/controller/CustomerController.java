@@ -31,6 +31,7 @@ public class CustomerController {
   private final UpdateCustomerStatusValidator validator;
 
   @GetMapping("/accounts/{id}/customers")
+  //TODO: only filters should be used for filtering customers
   public List<app.bpartners.api.endpoint.rest.model.Customer> getCustomers(
       @PathVariable String id,
       @RequestParam(required = false) String firstName,
@@ -39,6 +40,7 @@ public class CustomerController {
       @RequestParam(required = false) String phoneNumber,
       @RequestParam(required = false) String city,
       @RequestParam(required = false) String country,
+      @RequestParam(required = false) List<String> filters,
       @RequestParam(required = false) CustomerStatus status,
       @RequestParam(required = false) PageFromOne page,
       @RequestParam(required = false) BoundedPageSize pageSize) {
@@ -46,7 +48,7 @@ public class CustomerController {
         AuthProvider.getAuthenticatedUserId(); //TODO: should be changed when endpoint changed
     return service.getCustomers(
             idUser, firstName, lastName, email, phoneNumber,
-            city, country, status, page, pageSize).stream()
+            city, country, filters, status, page, pageSize).stream()
         .map(mapper::toRest)
         .collect(Collectors.toUnmodifiableList());
   }

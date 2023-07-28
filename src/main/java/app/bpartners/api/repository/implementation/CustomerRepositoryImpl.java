@@ -18,6 +18,7 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.query.QueryUtils;
@@ -25,10 +26,24 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 @AllArgsConstructor
+@Slf4j
 public class CustomerRepositoryImpl implements CustomerRepository {
+  private static final String FIRST_NAME = "firstName";
+  private static final String LAST_NAME = "lastName";
+  private static final String EMAIL = "email";
+  private static final String PHONE = "phone";
+  private static final String COUNTRY = "country";
+  private static final String CITY = "city";
+  private static final String STATUS = "status";
   private final CustomerJpaRepository jpaRepository;
   private final CustomerMapper mapper;
   private final EntityManager entityManager;
+
+  private static void warnDeprecated(String field) {
+    log.warn(
+        "DEPRECATED: query parameter {} is still used for filtering customers."
+            + " Use the query parameter filters instead.", field);
+  }
 
   private static Predicate[] retrieveNotNullPredicates(
       String idUser, String firstname, String lastname,
@@ -40,76 +55,111 @@ public class CustomerRepositoryImpl implements CustomerRepository {
         builder.equal(root.get("idUser"), idUser)
     );
     if (firstname != null) {
+      warnDeprecated(FIRST_NAME);
       predicates.add(builder.or(
-          builder.like(root.get("firstName"), "%" + firstname + "%"),
-          builder.like(builder.lower(root.get("firstName")),
-              "%" + firstname + "%")
+          builder.like(root.get(FIRST_NAME), "%" + firstname.toLowerCase() + "%"),
+          builder.like(builder.lower(root.get(FIRST_NAME)),
+              "%" + firstname.toLowerCase() + "%")
       ));
     }
     if (lastname != null) {
+      warnDeprecated(LAST_NAME);
       predicates.add(builder.or(
-          builder.like(builder.lower(root.get("lastName")), "%" + lastname + "%"),
-          builder.like(root.get("lastName"), "%" + lastname + "%")
+          builder.like(builder.lower(root.get(LAST_NAME)), "%" + lastname.toLowerCase() + "%"),
+          builder.like(root.get(LAST_NAME), "%" + lastname.toLowerCase() + "%")
       ));
     }
 
     if (email != null) {
+      warnDeprecated(EMAIL);
       predicates.add(builder.or(
-          builder.like(builder.lower(root.get("email")), "%" + email + "%"),
-          builder.like(root.get("email"), "%" + email + "%")
+          builder.like(builder.lower(root.get(EMAIL)), "%" + email.toLowerCase() + "%"),
+          builder.like(root.get(EMAIL), "%" + email.toLowerCase() + "%")
       ));
     }
     if (phoneNumber != null) {
+      warnDeprecated("phoneNumber");
       predicates.add(builder.or(
-          builder.like(builder.lower(root.get("phone")), "%" + phoneNumber + "%"),
-          builder.like(root.get("phone"), "%" + phoneNumber + "%")
+          builder.like(builder.lower(root.get(PHONE)), "%" + phoneNumber.toLowerCase() + "%"),
+          builder.like(root.get(PHONE), "%" + phoneNumber.toLowerCase() + "%")
       ));
     }
     if (city != null) {
+      warnDeprecated(CITY);
       predicates.add(
           builder.or(
-              builder.like(builder.lower(root.get("city")), "%" + city + "%"),
-              builder.like(root.get("city"), "%" + city + "%")
+              builder.like(builder.lower(root.get(CITY)), "%" + city.toLowerCase() + "%"),
+              builder.like(root.get(CITY), "%" + city.toLowerCase() + "%")
           ));
     }
     if (country != null) {
+      warnDeprecated(COUNTRY);
       predicates.add(builder.or(
-          builder.like(builder.lower(root.get("country")), "%" + country + "%"),
-          builder.like(root.get("country"), "%" + country + "%")
+          builder.like(builder.lower(root.get(COUNTRY)), "%" + country.toLowerCase() + "%"),
+          builder.like(root.get(COUNTRY), "%" + country.toLowerCase() + "%")
       ));
     }
     if (status != null) {
       predicates.add(
-          builder.equal(root.get("status"), status)
+          builder.equal(root.get(STATUS), status)
       );
     } else {
       predicates.add(
-          builder.equal(root.get("status"), CustomerStatus.ENABLED)
+          builder.equal(root.get(STATUS), CustomerStatus.ENABLED)
       );
     }
     return new Predicate[predicates.size()];
   }
 
   @Override
-  public List<Customer> findByIdUserAndCriteria(String idUser, String firstname,
-                                                String lastname, String email,
-                                                String phoneNumber, String city,
-                                                String country, CustomerStatus status, int page,
-                                                int pageSize) {
+  public List<Customer> findByIdUserAndCriteria(String idUser, String firstName, String lastName,
+                                                String email, String phoneNumber, String city,
+                                                String country, List<String> keywords,
+                                                CustomerStatus status, int page, int pageSize) {
     Pageable pageable = PageRequest.of(page, pageSize);
     CriteriaBuilder builder = entityManager.getCriteriaBuilder();
     CriteriaQuery<HCustomer> query = builder.createQuery(HCustomer.class);
     Root<HCustomer> root = query.from(HCustomer.class);
     List<Predicate> predicates = new ArrayList<>();
-    Predicate[] arrays =
-        retrieveNotNullPredicates(
-            idUser, firstname, lastname,
-            email, phoneNumber, city,
-            country, status, builder, root, predicates);
+    Predicate[] arrays = null;
 
-    query
-        .where(builder.and(predicates.toArray(arrays)))
-        .orderBy(QueryUtils.toOrders(pageable.getSort(), root, builder));
+    if (keywords != null && !keywords.isEmpty()) {
+      predicates.add(
+          builder.equal(root.get("idUser"), idUser)
+      );
+      if (status != null) {
+        predicates.add(
+            builder.equal(root.get(STATUS), status)
+        );
+      } else {
+        predicates.add(
+            builder.equal(root.get(STATUS), CustomerStatus.ENABLED)
+        );
+      }
+      List<Predicate> keywordsPredicates = new ArrayList<>();
+      for (String keyword : keywords) {
+        keywordsPredicates.add(builder.like(builder.lower(root.get(FIRST_NAME)),
+            "%" + keyword + "%"));
+        keywordsPredicates.add(
+            builder.like(builder.lower(root.get(LAST_NAME)), "%" + keyword + "%"));
+        keywordsPredicates.add(builder.like(builder.lower(root.get(EMAIL)), "%" + keyword + "%"));
+        keywordsPredicates.add(builder.like(builder.lower(root.get(PHONE)), "%" + keyword + "%"));
+        keywordsPredicates.add(builder.like(builder.lower(root.get("city")), "%" + keyword + "%"));
+        keywordsPredicates.add(
+            builder.like(builder.lower(root.get(COUNTRY)), "%" + keyword + "%"));
+      }
+      predicates.add(builder.or(keywordsPredicates.toArray(new Predicate[0])));
+      query
+          .where(builder.and(predicates.toArray(new Predicate[0])))
+          .orderBy(QueryUtils.toOrders(pageable.getSort(), root, builder));
+    } else {
+      arrays = retrieveNotNullPredicates(idUser, firstName, lastName, email, phoneNumber, city,
+          country,
+          status, builder, root, predicates);
+      query
+          .where(builder.and(predicates.toArray(arrays)))
+          .orderBy(QueryUtils.toOrders(pageable.getSort(), root, builder));
+    }
 
     return entityManager.createQuery(query)
         .setFirstResult((pageable.getPageNumber()) * pageable.getPageSize())

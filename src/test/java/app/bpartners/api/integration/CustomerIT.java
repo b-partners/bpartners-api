@@ -17,6 +17,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -111,7 +112,8 @@ class CustomerIT extends MockedThirdParties {
     CustomersApi api = new CustomersApi(joeDoeClient);
 
     assertThrowsForbiddenException(
-        () -> api.getCustomers(BAD_USER_ID, null, null, null, null, null, null, null, null, null));
+        () -> api.getCustomers(BAD_USER_ID, null, null, null, null, null, null, null, null, null,
+            null));
   }
 
   @Test
@@ -131,7 +133,7 @@ class CustomerIT extends MockedThirdParties {
                 .email("notnull@email.com")));
 
     List<Customer> actualList = api.getCustomers(
-        JOE_DOE_ACCOUNT_ID, null, null, null, null, null, null, null, 1, 20);
+        JOE_DOE_ACCOUNT_ID, null, null, null, null, null, null, null, null, 1, 20);
     assertTrue(actualList.containsAll(actual1));
     assertEquals(actual1.get(0).id(null), actual2.get(0).id(null));
     assertEquals(actual1.get(0)
@@ -157,8 +159,8 @@ class CustomerIT extends MockedThirdParties {
 
     List<Customer> actual = api.updateCustomers(JOE_DOE_ACCOUNT_ID, List.of(customerUpdated()));
     List<Customer> existingCustomers = api.getCustomers(JOE_DOE_ACCOUNT_ID,
-        "Marc", "Montagnier", null, null, null, null, null, 1, 20);
-
+        "Marc", "Montagnier", null, null, null, null, null, null, 1, 20);
+    assertEquals(existingCustomers, actual);
     assertTrue(existingCustomers.containsAll(actual));
   }
 
@@ -222,6 +224,19 @@ class CustomerIT extends MockedThirdParties {
   }
 
   @Test
+  void read_customer_by_keyword() throws ApiException {
+    ApiClient joeDoeClient = anApiClient();
+    CustomersApi api = new CustomersApi(joeDoeClient);
+    List<String> keywords = List.of("bparTnErs", "OlIvIer", "FraNk");
+
+    List<Customer> actual = api.getCustomers(JOE_DOE_ACCOUNT_ID, null, null, null, null, null,
+        null, null, keywords, null, null);
+
+    assertEquals(2, actual.size());
+    assertTrue(actual.contains(customer1()));
+  }
+
+  @Test
   void read_and_update_disabled_customers_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
     CustomersApi api = new CustomersApi(joeDoeClient);
@@ -230,10 +245,10 @@ class CustomerIT extends MockedThirdParties {
         api.updateCustomerStatus(JOE_DOE_ACCOUNT_ID, List.of(customerDisabled()));
     List<Customer> enabledCustomers = api.getCustomers(
         JOE_DOE_ACCOUNT_ID, null, null, null, null, null, null,
-        ENABLED, 1, 20);
+        ENABLED, null, 1, 20);
     List<Customer> disabledCustomers = api.getCustomers(
         JOE_DOE_ACCOUNT_ID, null, null, null, null, null, null,
-        DISABLED, 1, 20);
+        DISABLED, null, 1, 20);
 
     assertTrue(disabledCustomers.containsAll(actual));
     assertTrue(enabledCustomers.stream()

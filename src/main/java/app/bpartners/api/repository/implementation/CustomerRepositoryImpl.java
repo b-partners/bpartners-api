@@ -28,14 +28,21 @@ import org.springframework.stereotype.Repository;
 @AllArgsConstructor
 @Slf4j
 public class CustomerRepositoryImpl implements CustomerRepository {
+  private static final String FIRST_NAME = "firstName";
+  private static final String LAST_NAME = "lastName";
+  private static final String EMAIL = "email";
+  private static final String PHONE = "phone";
+  private static final String COUNTRY = "country";
+  private static final String CITY = "city";
+  private static final String STATUS = "status";
   private final CustomerJpaRepository jpaRepository;
   private final CustomerMapper mapper;
   private final EntityManager entityManager;
 
   private static void warnDeprecated(String field) {
     log.warn(
-        "DEPRECATED: query parameter {} is still used for filtering customers. Use the query parameter filters instead.",
-        field);
+        "DEPRECATED: query parameter {} is still used for filtering customers."
+            + " Use the query parameter filters instead.", field);
   }
 
   private static Predicate[] retrieveNotNullPredicates(
@@ -48,57 +55,57 @@ public class CustomerRepositoryImpl implements CustomerRepository {
         builder.equal(root.get("idUser"), idUser)
     );
     if (firstname != null) {
-      warnDeprecated("firstName");
+      warnDeprecated(FIRST_NAME);
       predicates.add(builder.or(
-          builder.like(root.get("firstName"), "%" + firstname.toLowerCase() + "%"),
-          builder.like(builder.lower(root.get("firstName")),
+          builder.like(root.get(FIRST_NAME), "%" + firstname.toLowerCase() + "%"),
+          builder.like(builder.lower(root.get(FIRST_NAME)),
               "%" + firstname.toLowerCase() + "%")
       ));
     }
     if (lastname != null) {
-      warnDeprecated("lastName");
+      warnDeprecated(LAST_NAME);
       predicates.add(builder.or(
-          builder.like(builder.lower(root.get("lastName")), "%" + lastname.toLowerCase() + "%"),
-          builder.like(root.get("lastName"), "%" + lastname.toLowerCase() + "%")
+          builder.like(builder.lower(root.get(LAST_NAME)), "%" + lastname.toLowerCase() + "%"),
+          builder.like(root.get(LAST_NAME), "%" + lastname.toLowerCase() + "%")
       ));
     }
 
     if (email != null) {
-      warnDeprecated("email");
+      warnDeprecated(EMAIL);
       predicates.add(builder.or(
-          builder.like(builder.lower(root.get("email")), "%" + email.toLowerCase() + "%"),
-          builder.like(root.get("email"), "%" + email.toLowerCase() + "%")
+          builder.like(builder.lower(root.get(EMAIL)), "%" + email.toLowerCase() + "%"),
+          builder.like(root.get(EMAIL), "%" + email.toLowerCase() + "%")
       ));
     }
     if (phoneNumber != null) {
       warnDeprecated("phoneNumber");
       predicates.add(builder.or(
-          builder.like(builder.lower(root.get("phone")), "%" + phoneNumber.toLowerCase() + "%"),
-          builder.like(root.get("phone"), "%" + phoneNumber.toLowerCase() + "%")
+          builder.like(builder.lower(root.get(PHONE)), "%" + phoneNumber.toLowerCase() + "%"),
+          builder.like(root.get(PHONE), "%" + phoneNumber.toLowerCase() + "%")
       ));
     }
     if (city != null) {
-      warnDeprecated("city");
+      warnDeprecated(CITY);
       predicates.add(
           builder.or(
-              builder.like(builder.lower(root.get("city")), "%" + city.toLowerCase() + "%"),
-              builder.like(root.get("city"), "%" + city.toLowerCase() + "%")
+              builder.like(builder.lower(root.get(CITY)), "%" + city.toLowerCase() + "%"),
+              builder.like(root.get(CITY), "%" + city.toLowerCase() + "%")
           ));
     }
     if (country != null) {
-      warnDeprecated("country");
+      warnDeprecated(COUNTRY);
       predicates.add(builder.or(
-          builder.like(builder.lower(root.get("country")), "%" + country.toLowerCase() + "%"),
-          builder.like(root.get("country"), "%" + country.toLowerCase() + "%")
+          builder.like(builder.lower(root.get(COUNTRY)), "%" + country.toLowerCase() + "%"),
+          builder.like(root.get(COUNTRY), "%" + country.toLowerCase() + "%")
       ));
     }
     if (status != null) {
       predicates.add(
-          builder.equal(root.get("status"), status)
+          builder.equal(root.get(STATUS), status)
       );
     } else {
       predicates.add(
-          builder.equal(root.get("status"), CustomerStatus.ENABLED)
+          builder.equal(root.get(STATUS), CustomerStatus.ENABLED)
       );
     }
     return new Predicate[predicates.size()];
@@ -122,24 +129,24 @@ public class CustomerRepositoryImpl implements CustomerRepository {
       );
       if (status != null) {
         predicates.add(
-            builder.equal(root.get("status"), status)
+            builder.equal(root.get(STATUS), status)
         );
       } else {
         predicates.add(
-            builder.equal(root.get("status"), CustomerStatus.ENABLED)
+            builder.equal(root.get(STATUS), CustomerStatus.ENABLED)
         );
       }
       List<Predicate> keywordsPredicates = new ArrayList<>();
       for (String keyword : keywords) {
-        keywordsPredicates.add(builder.like(builder.lower(root.get("firstName")),
+        keywordsPredicates.add(builder.like(builder.lower(root.get(FIRST_NAME)),
             "%" + keyword + "%"));
         keywordsPredicates.add(
-            builder.like(builder.lower(root.get("lastName")), "%" + keyword + "%"));
-        keywordsPredicates.add(builder.like(builder.lower(root.get("email")), "%" + keyword + "%"));
-        keywordsPredicates.add(builder.like(builder.lower(root.get("phone")), "%" + keyword + "%"));
+            builder.like(builder.lower(root.get(LAST_NAME)), "%" + keyword + "%"));
+        keywordsPredicates.add(builder.like(builder.lower(root.get(EMAIL)), "%" + keyword + "%"));
+        keywordsPredicates.add(builder.like(builder.lower(root.get(PHONE)), "%" + keyword + "%"));
         keywordsPredicates.add(builder.like(builder.lower(root.get("city")), "%" + keyword + "%"));
         keywordsPredicates.add(
-            builder.like(builder.lower(root.get("country")), "%" + keyword + "%"));
+            builder.like(builder.lower(root.get(COUNTRY)), "%" + keyword + "%"));
       }
       predicates.add(builder.or(keywordsPredicates.toArray(new Predicate[0])));
       query

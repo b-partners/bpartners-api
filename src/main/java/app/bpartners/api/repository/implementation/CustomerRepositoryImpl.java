@@ -32,6 +32,12 @@ public class CustomerRepositoryImpl implements CustomerRepository {
   private final CustomerMapper mapper;
   private final EntityManager entityManager;
 
+  private static void warnDeprecated(String field) {
+    log.warn(
+        "DEPRECATED: query parameter {} is still used for filtering customers. Use the query parameter filters instead.",
+        field);
+  }
+
   private static Predicate[] retrieveNotNullPredicates(
       String idUser, String firstname, String lastname,
       String email, String phoneNumber, String city,
@@ -42,8 +48,7 @@ public class CustomerRepositoryImpl implements CustomerRepository {
         builder.equal(root.get("idUser"), idUser)
     );
     if (firstname != null) {
-      log.warn("DEPRECATED: query parameter firstName is still used for filtering customers. Use " +
-          "the query parameter filters instead.");
+      warnDeprecated("firstName");
       predicates.add(builder.or(
           builder.like(root.get("firstName"), "%" + firstname.toLowerCase() + "%"),
           builder.like(builder.lower(root.get("firstName")),
@@ -51,8 +56,7 @@ public class CustomerRepositoryImpl implements CustomerRepository {
       ));
     }
     if (lastname != null) {
-      log.warn("DEPRECATED: query parameter lastName is still used for filtering customers. Use " +
-          "the query parameter filters instead.");
+      warnDeprecated("lastName");
       predicates.add(builder.or(
           builder.like(builder.lower(root.get("lastName")), "%" + lastname.toLowerCase() + "%"),
           builder.like(root.get("lastName"), "%" + lastname.toLowerCase() + "%")
@@ -60,24 +64,21 @@ public class CustomerRepositoryImpl implements CustomerRepository {
     }
 
     if (email != null) {
-      log.warn("DEPRECATED: query parameter email is still used for filtering customers. Use " +
-          "the query parameter filters instead.");
+      warnDeprecated("email");
       predicates.add(builder.or(
           builder.like(builder.lower(root.get("email")), "%" + email.toLowerCase() + "%"),
           builder.like(root.get("email"), "%" + email.toLowerCase() + "%")
       ));
     }
     if (phoneNumber != null) {
-      log.warn("DEPRECATED: query parameter phoneNumber is still used for filtering customers. " +
-          "Use the query parameter filters instead.");
+      warnDeprecated("phoneNumber");
       predicates.add(builder.or(
           builder.like(builder.lower(root.get("phone")), "%" + phoneNumber.toLowerCase() + "%"),
           builder.like(root.get("phone"), "%" + phoneNumber.toLowerCase() + "%")
       ));
     }
     if (city != null) {
-      log.warn("DEPRECATED: query parameter city is still used for filtering customers. Use " +
-          "the query parameter filters instead.");
+      warnDeprecated("city");
       predicates.add(
           builder.or(
               builder.like(builder.lower(root.get("city")), "%" + city.toLowerCase() + "%"),
@@ -85,8 +86,7 @@ public class CustomerRepositoryImpl implements CustomerRepository {
           ));
     }
     if (country != null) {
-      log.warn("DEPRECATED: query parameter country is still used for filtering customers. Use " +
-          "the query parameter filters instead.");
+      warnDeprecated("country");
       predicates.add(builder.or(
           builder.like(builder.lower(root.get("country")), "%" + country.toLowerCase() + "%"),
           builder.like(root.get("country"), "%" + country.toLowerCase() + "%")
@@ -103,13 +103,12 @@ public class CustomerRepositoryImpl implements CustomerRepository {
     }
     return new Predicate[predicates.size()];
   }
+
   @Override
-  public List<Customer> findByIdUserAndCriteria(String idUser, String firstName, String lastName, String email,
-                                                String phoneNumber, String city, String country,
-                                                List<String> keywords,
-                                                CustomerStatus status,
-                                                int page,
-                                                int pageSize) {
+  public List<Customer> findByIdUserAndCriteria(String idUser, String firstName, String lastName,
+                                                String email, String phoneNumber, String city,
+                                                String country, List<String> keywords,
+                                                CustomerStatus status, int page, int pageSize) {
     Pageable pageable = PageRequest.of(page, pageSize);
     CriteriaBuilder builder = entityManager.getCriteriaBuilder();
     CriteriaQuery<HCustomer> query = builder.createQuery(HCustomer.class);
@@ -117,11 +116,11 @@ public class CustomerRepositoryImpl implements CustomerRepository {
     List<Predicate> predicates = new ArrayList<>();
     Predicate[] arrays = null;
 
-    if(keywords != null && !keywords.isEmpty()) {
+    if (keywords != null && !keywords.isEmpty()) {
       predicates.add(
           builder.equal(root.get("idUser"), idUser)
       );
-      if(status != null) {
+      if (status != null) {
         predicates.add(
             builder.equal(root.get("status"), status)
         );
@@ -134,11 +133,13 @@ public class CustomerRepositoryImpl implements CustomerRepository {
       for (String keyword : keywords) {
         keywordsPredicates.add(builder.like(builder.lower(root.get("firstName")),
             "%" + keyword + "%"));
-        keywordsPredicates.add(builder.like(builder.lower(root.get("lastName")), "%" + keyword + "%"));
+        keywordsPredicates.add(
+            builder.like(builder.lower(root.get("lastName")), "%" + keyword + "%"));
         keywordsPredicates.add(builder.like(builder.lower(root.get("email")), "%" + keyword + "%"));
         keywordsPredicates.add(builder.like(builder.lower(root.get("phone")), "%" + keyword + "%"));
         keywordsPredicates.add(builder.like(builder.lower(root.get("city")), "%" + keyword + "%"));
-        keywordsPredicates.add(builder.like(builder.lower(root.get("country")), "%" + keyword + "%"));
+        keywordsPredicates.add(
+            builder.like(builder.lower(root.get("country")), "%" + keyword + "%"));
       }
       predicates.add(builder.or(keywordsPredicates.toArray(new Predicate[0])));
       query

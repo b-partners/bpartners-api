@@ -203,6 +203,13 @@ public class CustomerRepositoryImpl implements CustomerRepository {
   }
 
   @Override
+  public List<Customer> findWhereLatitudeOrLongitudeIsNull() {
+    return jpaRepository.findAllByLatitudeIsNullOrLongitudeIsNull().stream()
+        .map(mapper::toDomain)
+        .collect(Collectors.toList());
+  }
+
+  @Override
   public List<Customer> saveAll(List<Customer> toCreate) {
     List<HCustomer> toSave = toCreate.stream()
         .map(this::checkExisting)

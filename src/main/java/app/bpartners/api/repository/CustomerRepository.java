@@ -19,4 +19,6 @@ public interface CustomerRepository {
       List<String> keywords, CustomerStatus status, int page, int pageSize);
 
   List<Customer> updateCustomersStatuses(List<UpdateCustomerStatus> toUpdate);
+
+  List<Customer> findWhereLatitudeOrLongitudeIsNull();
 }

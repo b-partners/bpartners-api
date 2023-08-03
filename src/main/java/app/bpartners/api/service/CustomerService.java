@@ -16,6 +16,8 @@ import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.repository.CustomerRepository;
+import app.bpartners.api.repository.ban.BanApi;
+import app.bpartners.api.repository.ban.model.GeoPosition;
 import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,6 +25,7 @@ import java.util.stream.Collectors;
 import javax.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import static app.bpartners.api.endpoint.event.EventProducer.Conf.MAX_PUT_EVENT_ENTRIES;
@@ -36,6 +39,7 @@ public class CustomerService {
   private final CustomerRestMapper restMapper;
   private final EventProducer eventProducer;
   private final EventConf eventConf;
+  private final BanApi banApi;
 
   public List<Customer> getCustomers(String idUser, String firstName, String lastName, String email,
                                      String phoneNumber, String city, String country,
@@ -116,5 +120,18 @@ public class CustomerService {
             .user(user)
             .customer(customer)
     );
+  }
+
+  @Scheduled(cron = "0 10 * * * *")
+  public void updateCustomersLocation() {
+    List<Customer> customersToUpdate = repository.findWhereLatitudeOrLongitudeIsNull();
+    log.warn("{} customers are to be updated on their latitude and longitude",
+        customersToUpdate.size());
+    customersToUpdate.forEach(
+        customer -> {
+          GeoPosition position = banApi.search(customer.getAddress());
+          customer.setLatitude(position.getCoordinates().getLatitude());
+          customer.setLongitude(position.getCoordinates().getLongitude());
+        });
   }
 }

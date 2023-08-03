@@ -302,6 +302,10 @@ components:
       properties:
         id:
           type: string
+        latitude:
+          type: double
+        longitude:
+          type: double
         status:
           $ref: '#/components/schemas/CustomerStatus'
       allOf:

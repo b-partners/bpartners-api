@@ -12,7 +12,7 @@ import app.bpartners.api.endpoint.rest.security.cognito.CognitoConf;
 import app.bpartners.api.integration.conf.DbEnvContextInitializer;
 import app.bpartners.api.integration.conf.utils.TestUtils;
 import app.bpartners.api.manager.ProjectTokenManager;
-import app.bpartners.api.repository.AccountConnectorRepository;
+import app.bpartners.api.repository.connectors.account.AccountConnectorRepository;
 import app.bpartners.api.repository.LegalFileRepository;
 import app.bpartners.api.repository.bridge.BridgeApi;
 import app.bpartners.api.repository.fintecture.FintectureConf;

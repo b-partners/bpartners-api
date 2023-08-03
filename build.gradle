@@ -76,8 +76,8 @@ task generateReactClient(type: org.openapitools.generator.gradle.plugin.tasks.Ge
             apiPackage : "api",
             modelPackage : "models", */
             enumPropertyNaming: "original",
-            npmName : "bpartners-react-client",
-            npmVersion:  project.properties["args"] ?: "latest"
+            npmName           : "bpartners-react-client",
+            npmVersion        : project.properties["args"] ?: "latest"
     ]
 }
 task publishJavaClientToMavenLocal(type: Exec, dependsOn: generateJavaClient) {
@@ -118,6 +118,7 @@ test {
     exclude '**/InvoiceCrupdatedServiceTest.class'
     exclude '**/BridgeAccountRepositoryImplTest.class'
     exclude '**/ExpressifIT.class'
+    exclude '**/CalendarIT.class'
     useJUnitPlatform()
     finalizedBy jacocoTestReport
 }
@@ -129,6 +130,11 @@ jacocoTestReport {
 }
 
 dependencies {
+    //API Calendar
+    implementation 'com.google.api-client:google-api-client:2.0.0'
+    implementation 'com.google.oauth-client:google-oauth-client-jetty:1.34.1'
+    implementation 'com.google.apis:google-api-services-calendar:v3-rev20220715-2.0.0'
+
     implementation 'app.bpartners:api-rest:latest'
 
     implementation 'org.springframework.boot:spring-boot-starter-web'

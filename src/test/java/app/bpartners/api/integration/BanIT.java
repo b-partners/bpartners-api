@@ -7,7 +7,7 @@ import app.bpartners.api.endpoint.rest.security.bridge.BridgeConf;
 import app.bpartners.api.integration.conf.BanAbstractContextInitializer;
 import app.bpartners.api.integration.conf.utils.TestUtils;
 import app.bpartners.api.manager.ProjectTokenManager;
-import app.bpartners.api.repository.AccountConnectorRepository;
+import app.bpartners.api.repository.connectors.account.AccountConnectorRepository;
 import app.bpartners.api.repository.ban.BanApi;
 import app.bpartners.api.repository.ban.model.GeoPosition;
 import app.bpartners.api.repository.bridge.BridgeApi;

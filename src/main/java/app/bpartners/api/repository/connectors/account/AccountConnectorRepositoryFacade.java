@@ -1,6 +1,5 @@
-package app.bpartners.api.repository;
+package app.bpartners.api.repository.connectors.account;
 
-import app.bpartners.api.repository.bridge.repository.implementation.BridgeAccountConnectorRepository;
 import app.bpartners.api.repository.model.AccountConnector;
 import java.util.List;
 import lombok.AllArgsConstructor;

@@ -1,9 +1,8 @@
-package app.bpartners.api.repository.implementation;
+package app.bpartners.api.repository.connectors.account;
 
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.model.mapper.AccountMapper;
-import app.bpartners.api.repository.AccountConnectorRepository;
 import app.bpartners.api.repository.jpa.AccountJpaRepository;
 import app.bpartners.api.repository.jpa.UserJpaRepository;
 import app.bpartners.api.repository.jpa.model.HAccount;

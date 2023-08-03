@@ -1,4 +1,4 @@
-package app.bpartners.api.repository;
+package app.bpartners.api.repository.connectors.account;
 
 import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.repository.model.AccountConnector;

@@ -32,6 +32,7 @@ import static app.bpartners.api.endpoint.rest.model.ArchiveStatus.ENABLED;
 import static app.bpartners.api.integration.conf.utils.TestUtils.INVOICE1_ID;
 import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.utils.TestUtils.setUpProvider;
+import static app.bpartners.api.model.BoundedPageSize.MAX_SIZE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
@@ -120,7 +121,7 @@ class InvoiceRelaunchServiceTest {
     when(invoiceRelaunchRepository.getByInvoiceId(
         INVOICE1_ID,
         null,
-        PageRequest.of(0, 50000))
+        PageRequest.of(0, MAX_SIZE))
     ).thenReturn(
         List.of(
             InvoiceRelaunch.builder().build()
@@ -165,7 +166,7 @@ class InvoiceRelaunchServiceTest {
     verify(invoiceRelaunchRepository).getByInvoiceId(
         idInvoiceCaptor2.capture(),
         eq(null),
-        eq(PageRequest.of(0, 50000))
+        eq(PageRequest.of(0, MAX_SIZE))
     );
     verify(invoiceRepository).getById(idInvoiceCaptor3.capture());
     verify(invoiceJpaRepository).save(invoiceSaveCaptor.capture());

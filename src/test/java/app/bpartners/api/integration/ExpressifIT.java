@@ -7,7 +7,7 @@ import app.bpartners.api.endpoint.rest.security.bridge.BridgeConf;
 import app.bpartners.api.integration.conf.ExpressifAbstractContextInitializer;
 import app.bpartners.api.integration.conf.utils.TestUtils;
 import app.bpartners.api.manager.ProjectTokenManager;
-import app.bpartners.api.repository.AccountConnectorRepository;
+import app.bpartners.api.repository.connectors.account.AccountConnectorRepository;
 import app.bpartners.api.repository.bridge.BridgeApi;
 import app.bpartners.api.repository.expressif.ExpressifApi;
 import app.bpartners.api.repository.expressif.model.InputForm;

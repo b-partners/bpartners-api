@@ -83,6 +83,13 @@ operations:
             $ref: '#/components/schemas/CustomerStatus'
           description: Filter customer list by status
         - in: query
+          name: filters
+          schema:
+            type: array
+            items:
+              type: string
+          description: Filter customer by the given keywords
+        - in: query
           name: page
           schema:
             $ref: './api.yml#/components/schemas/Page'

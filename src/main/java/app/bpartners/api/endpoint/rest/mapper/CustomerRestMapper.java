@@ -36,6 +36,8 @@ public class CustomerRestMapper {
         .country(domain.getCountry())
         .city(domain.getCity())
         .comment(domain.getComment())
+        .latitude(domain.getLatitude())
+        .longitude(domain.getLongitude())
         .status(domain.getStatus());
   }
 
@@ -64,7 +66,10 @@ public class CustomerRestMapper {
         .country(rest.getCountry())
         .city(rest.getCity())
         .comment(rest.getComment())
+        .latitude(rest.getLatitude())
+        .longitude(rest.getLongitude())
         .status(rest.getStatus())
+
         .build();
   }
 

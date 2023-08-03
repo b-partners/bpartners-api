@@ -27,6 +27,8 @@ public class CustomerMapper {
         .city(entity.getCity())
         .country(entity.getCountry())
         .comment(entity.getComment())
+        .latitude(entity.getLatitude())
+        .longitude(entity.getLongitude())
         .status(entity.getStatus())
         .recentlyAdded(entity.isRecentlyAdded())
         .build();
@@ -46,6 +48,8 @@ public class CustomerMapper {
         .city(domain.getCity())
         .country(domain.getCountry())
         .comment(domain.getComment())
+        .latitude(domain.getLatitude())
+        .longitude(domain.getLongitude())
         .status(domain.getStatus() == null ? ENABLED
             : domain.getStatus())
         .recentlyAdded(domain.isRecentlyAdded())

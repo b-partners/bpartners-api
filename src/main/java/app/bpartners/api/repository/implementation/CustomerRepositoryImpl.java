@@ -111,63 +111,79 @@ public class CustomerRepositoryImpl implements CustomerRepository {
     return new Predicate[predicates.size()];
   }
 
-  @Override
-  public List<Customer> findByIdUserAndCriteria(String idUser, String firstName, String lastName,
-                                                String email, String phoneNumber, String city,
-                                                String country, List<String> keywords,
-                                                CustomerStatus status, int page, int pageSize) {
-    Pageable pageable = PageRequest.of(page, pageSize);
+  private static List<Customer> filterBy(String idUser, List<String> keywords,
+                                         CustomerStatus status, Pageable pageable,
+                                         EntityManager entityManager, CustomerMapper mapper) {
     CriteriaBuilder builder = entityManager.getCriteriaBuilder();
     CriteriaQuery<HCustomer> query = builder.createQuery(HCustomer.class);
-    Root<HCustomer> root = query.from(HCustomer.class);
     List<Predicate> predicates = new ArrayList<>();
-    Predicate[] arrays = null;
-
-    if (keywords != null && !keywords.isEmpty()) {
-      predicates.add(
-          builder.equal(root.get("idUser"), idUser)
-      );
-      if (status != null) {
-        predicates.add(
-            builder.equal(root.get(STATUS), status)
-        );
-      } else {
-        predicates.add(
+    Root<HCustomer> root = query.from(HCustomer.class);
+    predicates.add(builder.equal(root.get("idUser"), idUser));
+    predicates.add(
+        status != null ? builder.equal(root.get(STATUS), status) :
             builder.equal(root.get(STATUS), CustomerStatus.ENABLED)
-        );
-      }
-      List<Predicate> keywordsPredicates = new ArrayList<>();
-      for (String keyword : keywords) {
-        keywordsPredicates.add(builder.like(builder.lower(root.get(FIRST_NAME)),
-            "%" + keyword + "%"));
-        keywordsPredicates.add(
-            builder.like(builder.lower(root.get(LAST_NAME)), "%" + keyword + "%"));
-        keywordsPredicates.add(builder.like(builder.lower(root.get(EMAIL)), "%" + keyword + "%"));
-        keywordsPredicates.add(builder.like(builder.lower(root.get(PHONE)), "%" + keyword + "%"));
-        keywordsPredicates.add(builder.like(builder.lower(root.get("city")), "%" + keyword + "%"));
-        keywordsPredicates.add(
-            builder.like(builder.lower(root.get(COUNTRY)), "%" + keyword + "%"));
-      }
-      predicates.add(builder.or(keywordsPredicates.toArray(new Predicate[0])));
-      query
-          .where(builder.and(predicates.toArray(new Predicate[0])))
-          .orderBy(QueryUtils.toOrders(pageable.getSort(), root, builder));
-    } else {
-      arrays = retrieveNotNullPredicates(idUser, firstName, lastName, email, phoneNumber, city,
-          country,
-          status, builder, root, predicates);
-      query
-          .where(builder.and(predicates.toArray(arrays)))
-          .orderBy(QueryUtils.toOrders(pageable.getSort(), root, builder));
+    );
+    List<Predicate> keywordsPredicates = new ArrayList<>();
+    for (String keyword : keywords) {
+      keywordsPredicates.add(builder.like(builder.lower(root.get(FIRST_NAME)),
+          "%" + keyword + "%"));
+      keywordsPredicates.add(
+          builder.like(builder.lower(root.get(LAST_NAME)), "%" + keyword + "%"));
+      keywordsPredicates.add(builder.like(builder.lower(root.get(EMAIL)), "%" + keyword + "%"));
+      keywordsPredicates.add(builder.like(builder.lower(root.get(PHONE)), "%" + keyword + "%"));
+      keywordsPredicates.add(builder.like(builder.lower(root.get("city")), "%" + keyword + "%"));
+      keywordsPredicates.add(
+          builder.like(builder.lower(root.get(COUNTRY)), "%" + keyword + "%"));
     }
-
+    predicates.add(builder.or(keywordsPredicates.toArray(new Predicate[0])));
+    query
+        .where(builder.and(predicates.toArray(new Predicate[0])))
+        .orderBy(QueryUtils.toOrders(pageable.getSort(), root, builder));
     return entityManager.createQuery(query)
         .setFirstResult((pageable.getPageNumber()) * pageable.getPageSize())
         .setMaxResults(pageable.getPageSize())
         .getResultList()
         .stream()
         .map(mapper::toDomain)
-        .collect(Collectors.toUnmodifiableList());
+        .collect(Collectors.toList());
+  }
+
+  private static List<Customer> filterBy(String idUser, String firstName, String lastName,
+                                         String email, String phoneNumber, String city,
+                                         String country, CustomerStatus status, Pageable pageable,
+                                         EntityManager entityManager, CustomerMapper mapper) {
+    CriteriaBuilder builder = entityManager.getCriteriaBuilder();
+    CriteriaQuery<HCustomer> query = builder.createQuery(HCustomer.class);
+    List<Predicate> predicates = new ArrayList<>();
+    Root<HCustomer> root = query.from(HCustomer.class);
+    Predicate[] arrays =
+        retrieveNotNullPredicates(idUser, firstName, lastName, email, phoneNumber, city, country,
+            status, builder, root, predicates);
+    query
+        .where(builder.and(predicates.toArray(arrays)))
+        .orderBy(QueryUtils.toOrders(pageable.getSort(), root, builder));
+    return entityManager.createQuery(query)
+        .setFirstResult((pageable.getPageNumber()) * pageable.getPageSize())
+        .setMaxResults(pageable.getPageSize())
+        .getResultList()
+        .stream()
+        .map(mapper::toDomain)
+        .collect(Collectors.toList());
+  }
+
+  @Override
+  public List<Customer> findByIdUserAndCriteria(String idUser, String firstName, String lastName,
+                                                String email, String phoneNumber, String city,
+                                                String country, List<String> keywords,
+                                                CustomerStatus status, int page, int pageSize) {
+    Pageable pageable = PageRequest.of(page, pageSize);
+    if (keywords != null && !keywords.isEmpty()) {
+      return filterBy(idUser, keywords, status, pageable, entityManager, mapper);
+    } else {
+
+      return filterBy(idUser, firstName, lastName, email, phoneNumber, city, country,
+          status, pageable, entityManager, mapper);
+    }
   }
 
   @Override

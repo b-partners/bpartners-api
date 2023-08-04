@@ -12,6 +12,7 @@ import app.bpartners.api.endpoint.rest.model.UpdateCustomerStatus;
 import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.Customer;
+import app.bpartners.api.model.Location;
 import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.NotFoundException;
@@ -130,8 +131,11 @@ public class CustomerService {
     customersToUpdate.forEach(
         customer -> {
           GeoPosition position = banApi.search(customer.getAddress());
-          customer.setLatitude(position.getCoordinates().getLatitude());
-          customer.setLongitude(position.getCoordinates().getLongitude());
+          Location newLocation = Location.builder()
+              .latitude(position.getCoordinates().getLatitude())
+              .longitude(position.getCoordinates().getLongitude())
+              .build();
+          customer.setLocation(newLocation);
         });
   }
 }

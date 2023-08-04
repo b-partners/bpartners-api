@@ -123,7 +123,7 @@ public class CustomerService {
     );
   }
 
-  @Scheduled(cron = "0 10 * * * *")
+  @Scheduled(fixedRate = 10 * 60 * 1_000)
   public void updateCustomersLocation() {
     List<Customer> customersToUpdate = repository.findWhereLatitudeOrLongitudeIsNull();
     log.warn("{} customers are to be updated on their latitude and longitude",

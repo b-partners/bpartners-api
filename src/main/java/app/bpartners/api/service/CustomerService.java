@@ -12,10 +12,14 @@ import app.bpartners.api.endpoint.rest.model.UpdateCustomerStatus;
 import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.Customer;
+import app.bpartners.api.model.Location;
 import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.model.User;
+import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.repository.CustomerRepository;
+import app.bpartners.api.repository.ban.BanApi;
+import app.bpartners.api.repository.ban.model.GeoPosition;
 import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,6 +27,7 @@ import java.util.stream.Collectors;
 import javax.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import static app.bpartners.api.endpoint.event.EventProducer.Conf.MAX_PUT_EVENT_ENTRIES;
@@ -36,6 +41,7 @@ public class CustomerService {
   private final CustomerRestMapper restMapper;
   private final EventProducer eventProducer;
   private final EventConf eventConf;
+  private final BanApi banApi;
 
   public List<Customer> getCustomers(String idUser, String firstName, String lastName, String email,
                                      String phoneNumber, String city, String country,
@@ -116,5 +122,32 @@ public class CustomerService {
             .user(user)
             .customer(customer)
     );
+  }
+
+  @Scheduled(fixedRate = 10 * 60 * 1_000)
+  public void updateCustomersLocation() {
+    List<Customer> customersToUpdate = repository.findWhereLatitudeOrLongitudeIsNull();
+    if (customersToUpdate.size() > 0) {
+      log.warn("{} customers are to be updated on their latitude and longitude",
+          customersToUpdate.size());
+    }
+    customersToUpdate
+        .forEach(customer -> {
+          try {
+            GeoPosition position = banApi.search(customer.getAddress());
+            Location newLocation = Location.builder()
+                .latitude(position.getCoordinates().getLatitude())
+                .longitude(position.getCoordinates().getLongitude())
+                .build();
+            customer.setLocation(newLocation);
+            repository.save(customer);
+          } catch (BadRequestException e) {
+            throw new BadRequestException(
+                "Customer (id=" + customer.getId() + ") address id null.");
+          } catch (NotFoundException e) {
+            throw new NotFoundException("Given address " + customer.getAddress()
+                + " is not found. Check if it's not mal formed.");
+          }
+        });
   }
 }

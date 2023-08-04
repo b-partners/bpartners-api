@@ -38,6 +38,8 @@ public class HCustomer {
   private String city;
   private String country;
   private String comment;
+  private Double latitude;
+  private Double longitude;
   @Type(type = "pgsql_enum")
   @Enumerated(EnumType.STRING)
   private CustomerStatus status;

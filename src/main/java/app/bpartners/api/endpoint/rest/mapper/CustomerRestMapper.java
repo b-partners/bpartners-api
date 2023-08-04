@@ -2,6 +2,7 @@ package app.bpartners.api.endpoint.rest.mapper;
 
 import app.bpartners.api.endpoint.rest.model.CreateCustomer;
 import app.bpartners.api.endpoint.rest.model.Customer;
+import app.bpartners.api.endpoint.rest.model.CustomerLocation;
 import app.bpartners.api.endpoint.rest.model.CustomerStatus;
 import app.bpartners.api.endpoint.rest.validator.CreateCustomerValidator;
 import app.bpartners.api.endpoint.rest.validator.CustomerValidator;
@@ -23,6 +24,10 @@ public class CustomerRestMapper {
     if (domain == null) {
       return null;
     }
+    CustomerLocation customerLocation = new CustomerLocation()
+        .address(domain.getAddress())
+        .latitude(domain.getLocation().getLatitude())
+        .longitude(domain.getLocation().getLongitude());
     return new Customer()
         .id(domain.getId())
         .firstName(domain.getFirstName())
@@ -36,6 +41,7 @@ public class CustomerRestMapper {
         .country(domain.getCountry())
         .city(domain.getCity())
         .comment(domain.getComment())
+        .location(customerLocation)
         .status(domain.getStatus());
   }
 
@@ -50,6 +56,20 @@ public class CustomerRestMapper {
             && (names[1].equals(EMPTY_SPACE) || names[1].equals("")))
             ? null
             : names[1];
+    app.bpartners.api.model.Location customerLocation = null;
+    if (rest.getLocation() == null) {
+      customerLocation = app.bpartners.api.model.Location.builder()
+          .address(rest.getAddress())
+          .build();
+    } else {
+      customerLocation = app.bpartners.api.model.Location.builder()
+          .address(rest.getAddress())
+          .latitude(
+              rest.getLocation().getLatitude() == null ? null : rest.getLocation().getLatitude())
+          .longitude(
+              rest.getLocation().getLongitude() == null ? null : rest.getLocation().getLongitude())
+          .build();
+    }
     return app.bpartners.api.model.Customer.builder()
         .id(rest.getId())
         .idUser(idUser)
@@ -64,6 +84,7 @@ public class CustomerRestMapper {
         .country(rest.getCountry())
         .city(rest.getCity())
         .comment(rest.getComment())
+        .location(customerLocation)
         .status(rest.getStatus())
         .build();
   }
@@ -90,6 +111,9 @@ public class CustomerRestMapper {
         .city(rest.getCity())
         .country(rest.getCountry())
         .comment(rest.getComment())
+        .location(app.bpartners.api.model.Location.builder()
+            .address(rest.getAddress())
+            .build())
         .status(CustomerStatus.ENABLED) // set to enabled by default
         .build();
   }

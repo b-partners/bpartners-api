@@ -1,10 +1,10 @@
 package app.bpartners.api.model.mapper;
 
 import app.bpartners.api.model.Customer;
+import app.bpartners.api.model.Location;
 import app.bpartners.api.repository.jpa.model.HCustomer;
 import org.springframework.stereotype.Component;
 
-import static app.bpartners.api.endpoint.rest.model.CustomerStatus.DISABLED;
 import static app.bpartners.api.endpoint.rest.model.CustomerStatus.ENABLED;
 
 @Component
@@ -14,6 +14,11 @@ public class CustomerMapper {
     if (entity == null) {
       return null;
     }
+    Location customerLocation = Location.builder()
+        .address(entity.getAddress())
+        .longitude(entity.getLongitude() == null ? null : entity.getLongitude())
+        .latitude(entity.getLatitude() == null ? null : entity.getLatitude())
+        .build();
     return Customer.builder()
         .id(entity.getId())
         .idUser(entity.getIdUser())
@@ -27,6 +32,7 @@ public class CustomerMapper {
         .city(entity.getCity())
         .country(entity.getCountry())
         .comment(entity.getComment())
+        .location(customerLocation)
         .status(entity.getStatus())
         .recentlyAdded(entity.isRecentlyAdded())
         .build();
@@ -46,6 +52,14 @@ public class CustomerMapper {
         .city(domain.getCity())
         .country(domain.getCountry())
         .comment(domain.getComment())
+        .latitude(
+            domain.getLocation().getLatitude() == null
+                ? null
+                : domain.getLocation().getLatitude())
+        .longitude(
+            domain.getLocation().getLongitude() == null
+                ? null
+                : domain.getLocation().getLongitude())
         .status(domain.getStatus() == null ? ENABLED
             : domain.getStatus())
         .recentlyAdded(domain.isRecentlyAdded())

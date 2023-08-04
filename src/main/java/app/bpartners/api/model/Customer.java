@@ -31,6 +31,7 @@ public class Customer {
   protected String city;
   protected String country;
   protected String comment;
+  protected Location location;
   protected CustomerStatus status;
   protected boolean recentlyAdded = false;
 

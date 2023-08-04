@@ -2,8 +2,8 @@ package app.bpartners.api.endpoint.rest.mapper;
 
 import app.bpartners.api.endpoint.rest.model.CreateCustomer;
 import app.bpartners.api.endpoint.rest.model.Customer;
+import app.bpartners.api.endpoint.rest.model.CustomerLocation;
 import app.bpartners.api.endpoint.rest.model.CustomerStatus;
-import app.bpartners.api.endpoint.rest.model.Location;
 import app.bpartners.api.endpoint.rest.validator.CreateCustomerValidator;
 import app.bpartners.api.endpoint.rest.validator.CustomerValidator;
 import lombok.AllArgsConstructor;
@@ -24,7 +24,8 @@ public class CustomerRestMapper {
     if (domain == null) {
       return null;
     }
-    Location customerLocation = new Location()
+    CustomerLocation customerLocation = new CustomerLocation()
+        .address(domain.getAddress())
         .latitude(domain.getLocation().getLatitude())
         .longitude(domain.getLocation().getLongitude());
     return new Customer()
@@ -57,9 +58,12 @@ public class CustomerRestMapper {
             : names[1];
     app.bpartners.api.model.Location customerLocation = null;
     if (rest.getLocation() == null) {
-      customerLocation = app.bpartners.api.model.Location.builder().build();
+      customerLocation = app.bpartners.api.model.Location.builder()
+          .address(rest.getAddress())
+          .build();
     } else {
       customerLocation = app.bpartners.api.model.Location.builder()
+          .address(rest.getAddress())
           .latitude(
               rest.getLocation().getLatitude() == null ? null : rest.getLocation().getLatitude())
           .longitude(
@@ -107,7 +111,9 @@ public class CustomerRestMapper {
         .city(rest.getCity())
         .country(rest.getCountry())
         .comment(rest.getComment())
-        .location(app.bpartners.api.model.Location.builder().build())
+        .location(app.bpartners.api.model.Location.builder()
+            .address(rest.getAddress())
+            .build())
         .status(CustomerStatus.ENABLED) // set to enabled by default
         .build();
   }

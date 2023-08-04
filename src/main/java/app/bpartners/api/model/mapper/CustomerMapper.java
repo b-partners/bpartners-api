@@ -3,13 +3,11 @@ package app.bpartners.api.model.mapper;
 import app.bpartners.api.model.Customer;
 import app.bpartners.api.model.Location;
 import app.bpartners.api.repository.jpa.model.HCustomer;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import static app.bpartners.api.endpoint.rest.model.CustomerStatus.ENABLED;
 
 @Component
-@Slf4j
 public class CustomerMapper {
 
   public Customer toDomain(HCustomer entity) {
@@ -17,11 +15,10 @@ public class CustomerMapper {
       return null;
     }
     Location customerLocation = Location.builder()
+        .address(entity.getAddress())
         .longitude(entity.getLongitude() == null ? null : entity.getLongitude())
         .latitude(entity.getLatitude() == null ? null : entity.getLatitude())
         .build();
-    log.info("{} latitude", entity.getLatitude());
-    log.info("{} longitude", entity.getLongitude());
     return Customer.builder()
         .id(entity.getId())
         .idUser(entity.getIdUser())

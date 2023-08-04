@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 @Builder
 @EqualsAndHashCode
 public class Location implements Serializable {
+  private String address;
   private Double latitude;
   private Double longitude;
 

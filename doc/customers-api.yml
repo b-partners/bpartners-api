@@ -303,7 +303,7 @@ components:
         id:
           type: string
         location:
-          $ref: "#/components/schemas/Location"
+          $ref: "#/components/schemas/CustomerLocation"
         status:
           $ref: '#/components/schemas/CustomerStatus'
       allOf:
@@ -313,9 +313,11 @@ components:
       enum:
         - ENABLED
         - DISABLED
-    Location:
+    CustomerLocation:
       type: object
       properties:
+        address:
+          type: string
         latitude:
           type: double
         longitude:

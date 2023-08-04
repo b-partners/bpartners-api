@@ -131,8 +131,8 @@ public class CustomerService {
       log.warn("{} customers are to be updated on their latitude and longitude",
           customersToUpdate.size());
     }
-    List<Customer> toSave = customersToUpdate.stream()
-        .peek(customer -> {
+    customersToUpdate
+        .forEach(customer -> {
           try {
             GeoPosition position = banApi.search(customer.getAddress());
             Location newLocation = Location.builder()
@@ -140,6 +140,7 @@ public class CustomerService {
                 .longitude(position.getCoordinates().getLongitude())
                 .build();
             customer.setLocation(newLocation);
+            repository.save(customer);
           } catch (BadRequestException e) {
             throw new BadRequestException(
                 "Customer (id=" + customer.getId() + ") address id null.");
@@ -147,8 +148,6 @@ public class CustomerService {
             throw new NotFoundException("Given address " + customer.getAddress()
                 + " is not found. Check if it's not mal formed.");
           }
-        })
-        .collect(Collectors.toList());
-    this.crupdateCustomers(toSave);
+        });
   }
 }

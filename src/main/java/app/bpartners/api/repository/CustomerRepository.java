@@ -9,6 +9,8 @@ import java.util.Optional;
 public interface CustomerRepository {
   List<Customer> saveAll(List<Customer> toCreate);
 
+  Customer save(Customer toSave);
+
   Customer findById(String id);
 
   Optional<Customer> findOptionalById(String id);

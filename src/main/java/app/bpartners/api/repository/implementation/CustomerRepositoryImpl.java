@@ -224,6 +224,11 @@ public class CustomerRepositoryImpl implements CustomerRepository {
         .collect(Collectors.toUnmodifiableList());
   }
 
+  @Override
+  public Customer save(Customer toSave) {
+    return mapper.toDomain(jpaRepository.save(mapper.toEntity(toSave)));
+  }
+
   private void checkRecentlyAdded(List<HCustomer> toSave, List<HCustomer> saved) {
     for (HCustomer c1 : saved) {
       for (HCustomer c2 : toSave) {

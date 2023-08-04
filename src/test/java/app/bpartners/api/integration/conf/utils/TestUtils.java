@@ -276,6 +276,7 @@ public class TestUtils {
         .city("Montmorency")
         .country("France")
         .comment("Rencontre avec le plombier")
+        .location(new CustomerLocation().address("4 Avenue des Près"))
         .status(CustomerStatus.ENABLED);
   }
 

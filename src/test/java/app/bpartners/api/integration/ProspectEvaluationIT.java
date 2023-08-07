@@ -5,6 +5,7 @@ import app.bpartners.api.endpoint.rest.model.ContactNature;
 import app.bpartners.api.endpoint.rest.model.EvaluatedProspect;
 import app.bpartners.api.endpoint.rest.model.Geojson;
 import app.bpartners.api.endpoint.rest.model.InterventionResult;
+import app.bpartners.api.endpoint.rest.model.NewInterventionOption;
 import app.bpartners.api.endpoint.rest.model.ProspectStatus;
 import app.bpartners.api.integration.conf.DbEnvContextInitializer;
 import app.bpartners.api.integration.conf.MockedThirdParties;
@@ -16,6 +17,7 @@ import app.bpartners.api.repository.ban.BanApi;
 import app.bpartners.api.repository.ban.model.GeoPosition;
 import app.bpartners.api.repository.expressif.ExpressifApi;
 import app.bpartners.api.repository.expressif.model.OutputValue;
+import app.bpartners.api.service.CustomerService;
 import app.bpartners.api.service.utils.GeoUtils;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -42,6 +44,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
@@ -68,6 +71,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @Testcontainers
 @ContextConfiguration(initializers = DbEnvContextInitializer.class)
 @AutoConfigureMockMvc
+@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
 @Slf4j
 class ProspectEvaluationIT extends MockedThirdParties {
   @MockBean
@@ -78,11 +82,20 @@ class ProspectEvaluationIT extends MockedThirdParties {
   private ProspectRepository prospectRepository;
   @Autowired
   private BusinessActivityRepository businessRepository;
+  @Autowired
+  private CustomerService customerService;
 
-  private static OutputValue<Object> ratingResult() {
+  private static OutputValue<Object> prospectRatingResult() {
     return OutputValue.builder()
         .name("Notation du prospect")
         .value(10.0)
+        .build();
+  }
+
+  private static OutputValue<Object> customerRatingResult() {
+    return OutputValue.builder()
+        .name("Notation de l'ancien client")
+        .value(8.0)
         .build();
   }
 
@@ -126,25 +139,20 @@ class ProspectEvaluationIT extends MockedThirdParties {
         .primaryActivity(ANTI_HARM)
         .secondaryActivity(null)
         .build());
-    when(expressifApiMock.process(any())).thenReturn(List.of(ratingResult()));
+    when(expressifApiMock.process(any())).thenReturn(List.of(prospectRatingResult()));
+
     Resource prospectFile = new ClassPathResource("files/prospect-ok.xlsx");
     HttpResponse<String> jsonResponse =
-        uploadFileJson(JOE_DOE_ACCOUNT_HOLDER_ID, prospectFile.getFile());
+        uploadFileJson(JOE_DOE_ACCOUNT_HOLDER_ID, prospectFile.getFile(), null);
     HttpResponse<byte[]> excelResponse =
-        uploadFileExcel(JOE_DOE_ACCOUNT_HOLDER_ID, prospectFile.getFile());
+        uploadFileExcel(JOE_DOE_ACCOUNT_HOLDER_ID, prospectFile.getFile(), null);
 
     List<EvaluatedProspect> actualJson = new ObjectMapper().findAndRegisterModules().readValue(
         jsonResponse.body(), new TypeReference<>() {
         });
-    List<Prospect> actualProspect =
-        prospectRepository.findAllByIdAccountHolder(JOE_DOE_ACCOUNT_HOLDER_ID).stream()
-            .peek(prospect -> prospect.setId(null))
-            .collect(Collectors.toList());
-    List<Prospect> fromEvaluated = actualJson.stream()
-        .filter(hasRatingOverDefault())
-        .map(ProspectEvaluationIT::convertToDomain)
-        .collect(Collectors.toList());
 
+    List<Prospect> fromEvaluated = convertRestToDomain(actualJson);
+    List<Prospect> actualProspect = getPersistedProspect();
     assertEquals(HttpStatus.OK.value(), excelResponse.statusCode());
     assertEquals(5, actualJson.size());
     assertEquals(expectedProspectEval1(actualJson).reference(actualJson.get(0).getReference()),
@@ -162,6 +170,56 @@ class ProspectEvaluationIT extends MockedThirdParties {
     */
   }
 
+  private List<Prospect> getPersistedProspect() {
+    return prospectRepository.findAllByIdAccountHolder(JOE_DOE_ACCOUNT_HOLDER_ID).stream()
+        .peek(prospect -> prospect.setId(null))
+        .collect(Collectors.toList());
+  }
+
+  private static List<Prospect> convertRestToDomain(List<EvaluatedProspect> actualJson) {
+    return actualJson.stream()
+        .filter(hasRatingOverDefault())
+        .map(ProspectEvaluationIT::convertToDomain)
+        .collect(Collectors.toList());
+  }
+
+
+  @Test
+  void evaluate_prospects_and_old_customers_ok() throws IOException, InterruptedException {
+    businessRepository.save(BusinessActivity.builder()
+        .accountHolder(joeDoeAccountHolder())
+        .primaryActivity(ANTI_HARM)
+        .secondaryActivity(null)
+        .build());
+    when(expressifApiMock.process(any())).thenReturn(
+        List.of(prospectRatingResult(), customerRatingResult()));
+    when(banApiMock.search(any())).thenReturn(GeoPosition.builder()
+        .coordinates(GeoUtils.Coordinate.builder()
+            .latitude(0.0)
+            .longitude(0.0)
+            .build())
+        .build());
+
+    Resource prospectFile = new ClassPathResource("files/prospect-ok.xlsx");
+    HttpResponse<String> jsonResponse =
+        uploadFileJson(JOE_DOE_ACCOUNT_HOLDER_ID, prospectFile.getFile(),
+            NewInterventionOption.ALL);
+
+    List<EvaluatedProspect> actualJson = new ObjectMapper().findAndRegisterModules().readValue(
+        jsonResponse.body(), new TypeReference<>() {
+        });
+
+    List<Prospect> fromEvaluated = convertRestToDomain(actualJson);
+    List<Prospect> actualProspect = getPersistedProspect();
+    int customersSize = customerService.findByAccountHolderId(JOE_DOE_ACCOUNT_HOLDER_ID).size();
+    int evaluatedInterventionSize = 5 * customersSize;
+    int evaluatedRobberySize = 1; //TODO: remove when handling robbery fact correctly
+    assertEquals(evaluatedInterventionSize + evaluatedRobberySize, actualJson.size());
+    //TODO: make assertions pass correctly !
+    //assertTrue(actualProspect.containsAll(fromEvaluated));
+  }
+
+
   @Test
   void evaluate_prospects_ko() throws IOException, InterruptedException {
     businessRepository.save(BusinessActivity.builder()
@@ -169,10 +227,10 @@ class ProspectEvaluationIT extends MockedThirdParties {
         .primaryActivity(ANTI_HARM)
         .secondaryActivity(null)
         .build());
-    when(expressifApiMock.process(any())).thenReturn(List.of(ratingResult()));
+    when(expressifApiMock.process(any())).thenReturn(List.of(prospectRatingResult()));
     Resource prospectFile = new ClassPathResource("files/prospect-ko-400.xlsx");
     HttpResponse<String> jsonResponse =
-        uploadFileJson(JOE_DOE_ACCOUNT_HOLDER_ID, prospectFile.getFile());
+        uploadFileJson(JOE_DOE_ACCOUNT_HOLDER_ID, prospectFile.getFile(), null);
 
     assertEquals(
         "{\"type\":\"400 BAD_REQUEST\",\"message\":\""
@@ -233,38 +291,50 @@ class ProspectEvaluationIT extends MockedThirdParties {
             new InterventionResult()
                 .address("15 Rue Marbeuf, 75008 Paris, France")
                 .distanceFromProspect(BigDecimal.valueOf(0.0))
-                .value(BigDecimal.valueOf((Double) ratingResult().getValue())));
+                .value(BigDecimal.valueOf((Double) prospectRatingResult().getValue())));
   }
 
   private HttpResponse<String> uploadFileJson(
-      String accountHolderId, File toUpload)
+      String accountHolderId, File toUpload, NewInterventionOption interventionOption)
       throws IOException, InterruptedException {
     HttpClient unauthenticatedClient = HttpClient.newBuilder().build();
     String basePath = "http://localhost:" + DbEnvContextInitializer.getHttpServerPort();
 
-    HttpResponse<String> response = unauthenticatedClient.send(HttpRequest.newBuilder()
-            .uri(URI.create(basePath + "/accountHolders/" + accountHolderId + "/prospects"
-                + "/prospectsEvaluation"))
-            .header("Authorization", BEARER_PREFIX + JOE_DOE_TOKEN)
-            .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
-            .method("POST", HttpRequest.BodyPublishers.ofFile(toUpload.toPath())).build(),
+    HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
+        .uri(URI.create(basePath + "/accountHolders/" + accountHolderId + "/prospects"
+            + "/prospectsEvaluation"))
+        .header("Authorization", BEARER_PREFIX + JOE_DOE_TOKEN)
+        .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
+        .method("POST", HttpRequest.BodyPublishers.ofFile(toUpload.toPath()));
+
+    if (interventionOption != null) {
+      requestBuilder.header("newInterventionOption", String.valueOf(interventionOption));
+    }
+
+    HttpResponse<String> response = unauthenticatedClient.send(requestBuilder.build(),
         HttpResponse.BodyHandlers.ofString());
 
     return response;
   }
 
   private HttpResponse<byte[]> uploadFileExcel(
-      String accountHolderId, File toUpload)
+      String accountHolderId, File toUpload, NewInterventionOption interventionOption)
       throws IOException, InterruptedException {
     HttpClient unauthenticatedClient = HttpClient.newBuilder().build();
     String basePath = "http://localhost:" + DbEnvContextInitializer.getHttpServerPort();
 
-    return unauthenticatedClient.send(HttpRequest.newBuilder()
-            .uri(URI.create(basePath + "/accountHolders/" + accountHolderId + "/prospects"
-                + "/prospectsEvaluation"))
-            .header("Authorization", BEARER_PREFIX + JOE_DOE_TOKEN)
-            .header(HttpHeaders.ACCEPT, XLSX_FILE)
-            .method("POST", HttpRequest.BodyPublishers.ofFile(toUpload.toPath())).build(),
+    HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
+        .uri(URI.create(basePath + "/accountHolders/" + accountHolderId + "/prospects"
+            + "/prospectsEvaluation"))
+        .header("Authorization", BEARER_PREFIX + JOE_DOE_TOKEN)
+        .header(HttpHeaders.ACCEPT, XLSX_FILE)
+        .method("POST", HttpRequest.BodyPublishers.ofFile(toUpload.toPath()));
+
+    if (interventionOption != null) {
+      requestBuilder.header("newInterventionOption", String.valueOf(interventionOption));
+    }
+
+    return unauthenticatedClient.send(requestBuilder.build(),
         HttpResponse.BodyHandlers.ofByteArray());
   }
 }

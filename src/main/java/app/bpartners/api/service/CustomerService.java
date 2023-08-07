@@ -155,4 +155,9 @@ public class CustomerService {
       log.warn(exceptionMessage);
     }
   }
+
+  @Transactional
+  public List<Customer> findByAccountHolderId(String accountHolderId) {
+    return repository.findByIdAccountHolder(accountHolderId);
+  }
 }

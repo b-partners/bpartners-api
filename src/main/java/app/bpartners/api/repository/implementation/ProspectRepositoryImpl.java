@@ -199,7 +199,6 @@ public class ProspectRepositoryImpl implements ProspectRepository {
         .orElse(evalMapper.toInfoEntity(prospectEval, getNextEvalReference(), new ArrayList<>()));
 
     entity.getProspectEvals().add(lastEval);
-
     return entity;
   }
 

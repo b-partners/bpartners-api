@@ -48,34 +48,36 @@ public class ProspectEvalMapper {
   public HProspectEval toInfoEntity(
       ProspectEval evalDomain, Instant evaluationDate,
       Double prospectRating, Double customerRating) {
-    String ruleType = evalDomain.getDepaRule().getClass().getTypeName();
-
     Boolean declared;
     Double interventionDistance;
     String interventionAddress;
     String oldCustomerAddress;
     Double oldCustomerDistance;
     HProspectEval.ProspectEvalRule evalRule;
-    if (ruleType.equals(NewIntervention.class.getTypeName())) {
+    String idCustomer;
+    if (evalDomain.isNewIntervention()) {
       NewIntervention rule = (NewIntervention) evalDomain.getDepaRule();
       evalRule = NEW_INTERVENTION;
       declared = rule.getPlanned();
       interventionAddress = rule.getNewIntAddress();
       interventionDistance = rule.getDistNewIntAndProspect();
       NewIntervention.OldCustomer oldCustomer = rule.getOldCustomer();
+      idCustomer = oldCustomer.getIdCustomer();
       oldCustomerAddress = oldCustomer == null ? null : oldCustomer.getOldCustomerAddress();
       oldCustomerDistance = oldCustomer == null ? null : oldCustomer.getDistNewIntAndOldCustomer();
-    } else if (ruleType.equals(Robbery.class.getTypeName())) {
+    } else if (evalDomain.isRobbery()) {
       Robbery rule = (Robbery) evalDomain.getDepaRule();
       evalRule = ROBBERY;
       declared = rule.getDeclared();
       interventionAddress = rule.getRobberyAddress();
       interventionDistance = rule.getDistRobberyAndProspect();
       Robbery.OldCustomer oldCustomer = rule.getOldCustomer();
+      idCustomer = oldCustomer == null ? null : oldCustomer.getIdCustomer();
       oldCustomerAddress = oldCustomer == null ? null : oldCustomer.getAddress();
       oldCustomerDistance = oldCustomer == null ? null : oldCustomer.getDistRobberyAndOldCustomer();
     } else {
-      throw new ApiException(SERVER_EXCEPTION, "Unknown rule type " + ruleType);
+      throw new ApiException(SERVER_EXCEPTION,
+          "Unknown rule type " + evalDomain.getDepaRule().getClass().getTypeName());
     }
     return HProspectEval.builder()
         .id(String.valueOf(randomUUID()))
@@ -87,6 +89,7 @@ public class ProspectEvalMapper {
         .interventionAddress(interventionAddress)
         .interventionDistance(interventionDistance)
         .prospectRating(prospectRating)
+        .idCustomer(idCustomer)
         .oldCustomerAddress(oldCustomerAddress)
         .oldCustomerDistance(oldCustomerDistance)
         .customerRating(customerRating)
@@ -114,12 +117,14 @@ public class ProspectEvalMapper {
             eval.getInterventionDistance(),
             eval.getInterventionAddress()
         ))
-        .customerInterventionResult(eval.getOldCustomerAddress() == null ? null
-            : new ProspectResult.CustomerInterventionResult(
-            eval.getCustomerRating(),
-            eval.getOldCustomerDistance(),
-            eval.getOldCustomerAddress()
-        ))
+        .customerInterventionResult(
+            eval.getIdCustomer() == null || eval.getOldCustomerAddress() == null ? null
+                : new ProspectResult.CustomerInterventionResult(
+                eval.getCustomerRating(),
+                eval.getOldCustomerDistance(),
+                eval.getOldCustomerAddress(),
+                eval.getIdCustomer()
+            ))
         .evaluationDate(eval.getEvaluationDate())
         .build();
   }

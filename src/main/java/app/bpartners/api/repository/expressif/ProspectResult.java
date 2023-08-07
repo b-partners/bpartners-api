@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
@@ -39,8 +40,13 @@ public class ProspectResult<T> {
   }
 
   public static class CustomerInterventionResult extends RuleResult {
-    public CustomerInterventionResult(Double rating, Double distance, String address) {
+    @Getter
+    private String idCustomer;
+
+    public CustomerInterventionResult(Double rating, Double distance, String address,
+                                      String idCustomer) {
       super(rating, distance, address);
+      this.idCustomer = idCustomer;
     }
   }
 }

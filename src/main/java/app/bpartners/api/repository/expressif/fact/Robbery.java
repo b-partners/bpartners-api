@@ -26,6 +26,7 @@ public class Robbery {
   @Builder
   @EqualsAndHashCode
   public static class OldCustomer {
+    private String idCustomer;
     private String address;
     private Double distRobberyAndOldCustomer;
   }

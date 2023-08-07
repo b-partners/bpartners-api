@@ -1,5 +1,6 @@
 package app.bpartners.api.model;
 
+import app.bpartners.api.service.utils.GeoUtils;
 import java.io.Serializable;
 import lombok.Builder;
 import lombok.Data;
@@ -14,5 +15,5 @@ public class Location implements Serializable {
   private String address;
   private Double latitude;
   private Double longitude;
-
+  private GeoUtils.Coordinate coordinate;
 }

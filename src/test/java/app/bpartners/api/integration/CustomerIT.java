@@ -3,12 +3,14 @@ package app.bpartners.api.integration;
 import app.bpartners.api.endpoint.rest.api.CustomersApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
+import app.bpartners.api.endpoint.rest.mapper.CustomerRestMapper;
 import app.bpartners.api.endpoint.rest.model.CreateCustomer;
 import app.bpartners.api.endpoint.rest.model.Customer;
 import app.bpartners.api.endpoint.rest.model.CustomerStatus;
 import app.bpartners.api.integration.conf.DbEnvContextInitializer;
 import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.integration.conf.utils.TestUtils;
+import app.bpartners.api.service.CustomerService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.CollectionType;
 import java.io.File;
@@ -17,10 +19,11 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
@@ -33,6 +36,7 @@ import static app.bpartners.api.endpoint.rest.model.CustomerStatus.ENABLED;
 import static app.bpartners.api.integration.conf.utils.TestUtils.BAD_USER_ID;
 import static app.bpartners.api.integration.conf.utils.TestUtils.BEARER_PREFIX;
 import static app.bpartners.api.integration.conf.utils.TestUtils.JANE_ACCOUNT_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_HOLDER_ID;
 import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_TOKEN;
 import static app.bpartners.api.integration.conf.utils.TestUtils.OTHER_ACCOUNT_ID;
@@ -56,6 +60,10 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @Testcontainers
 @ContextConfiguration(initializers = DbEnvContextInitializer.class)
 class CustomerIT extends MockedThirdParties {
+  @Autowired
+  private CustomerService customerService;
+  @Autowired
+  private CustomerRestMapper customerRestMapper;
 
   private static ApiClient anApiClient() {
     return TestUtils.anApiClient(JOE_DOE_TOKEN, DbEnvContextInitializer.getHttpServerPort());
@@ -79,6 +87,23 @@ class CustomerIT extends MockedThirdParties {
         .city("Paris")
         .country("France")
         .comment("Nouvelle rencontre");
+  }
+
+  @Test
+  void read_customers_ok() throws ApiException {
+    ApiClient joeDoeClient = anApiClient();
+    CustomersApi api = new CustomersApi(joeDoeClient);
+
+    List<Customer> actual = api.getCustomers(JOE_DOE_ACCOUNT_ID,
+        null, null, null, null, null,
+        null, null, null, null, null);
+
+    List<app.bpartners.api.model.Customer> holderCustomers =
+        customerService.findByAccountHolderId(JOE_DOE_ACCOUNT_HOLDER_ID);
+    List<Customer> restHolderCustomers = holderCustomers.stream()
+        .map(customerRestMapper::toRest)
+        .collect(Collectors.toList());
+    assertEquals(restHolderCustomers, actual);
   }
 
   @Test

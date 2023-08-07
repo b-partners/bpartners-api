@@ -126,6 +126,13 @@ operations:
             example: DEPANNEUR
             description: Only `DEPANNEUR` profession is supported for now
           required: true
+        - in: header
+          name: newInterventionOption
+          schema:
+            $ref: '#/components/schemas/NewInterventionOption'
+            description: |
+              When any value provided, NEW_PROSPECT is chosen by default.
+          required: false
       requestBody:
         required: true
         content:
@@ -330,3 +337,13 @@ components:
         lastEvaluation:
           type: string
           format: date-time
+    NewInterventionOption:
+      type: string
+      description: |
+        ALL means that at the same the new prospects evaluation and old customers evaluation will be applied.
+        NEW_PROSPECT means that only the new prospects evaluation will be applied.
+        OLD_CUSTOMER means that only the old customers evaluation will be applied.
+      enum:
+        - ALL
+        - NEW_PROSPECT
+        - OLD_CUSTOMER

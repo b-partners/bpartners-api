@@ -2,6 +2,7 @@ package app.bpartners.api.endpoint.rest.controller;
 
 import app.bpartners.api.endpoint.rest.mapper.ProspectRestMapper;
 import app.bpartners.api.endpoint.rest.model.EvaluatedProspect;
+import app.bpartners.api.endpoint.rest.model.NewInterventionOption;
 import app.bpartners.api.endpoint.rest.model.Prospect;
 import app.bpartners.api.endpoint.rest.model.ProspectConversion;
 import app.bpartners.api.endpoint.rest.model.UpdateProspect;
@@ -32,6 +33,7 @@ import static java.util.stream.Collectors.toUnmodifiableList;
 @RestController
 @AllArgsConstructor
 public class ProspectController {
+  public static final String NEW_INTERVENTION_OPTION = "newInterventionOption";
   private final ProspectService service;
   private final ProspectRestMapper mapper;
   private final ProspectEvalUtils prospectUtils;
@@ -68,14 +70,17 @@ public class ProspectController {
       @PathVariable("ahId") String accountHolderId,
       @RequestBody byte[] toEvaluate,
       @RequestHeader HttpHeaders headers) {
-    String expectedValue = validator.validateAccept(headers.getFirst(HttpHeaders.ACCEPT));
-    boolean isExcelFile = expectedValue.equals(XLS_FILE) || expectedValue.equals(XLSX_FILE);
+    String acceptHeaders = validator.validateAccept(headers.getFirst(HttpHeaders.ACCEPT));
+    String newInterventionOptHeader = headers.getFirst(NEW_INTERVENTION_OPTION);
+    NewInterventionOption option = retrieveFromHeader(newInterventionOptHeader);
+    boolean isExcelFile = acceptHeaders.equals(XLS_FILE) || acceptHeaders.equals(XLSX_FILE);
 
     List<ProspectEval> prospectEvals =
         prospectUtils.convertFromExcel(new ByteArrayInputStream(toEvaluate));
-    List<EvaluatedProspect> evaluatedProspects = service.evaluateProspects(prospectEvals).stream()
-        .map(mapper::toRest)
-        .collect(Collectors.toList());
+    List<EvaluatedProspect> evaluatedProspects =
+        service.evaluateProspects(prospectEvals, option).stream()
+            .map(mapper::toRest)
+            .collect(Collectors.toList());
     if (isExcelFile) {
       return new ResponseEntity<>(
           ProspectEvalUtils.convertIntoExcel(new ByteArrayInputStream(toEvaluate),
@@ -83,5 +88,21 @@ public class ProspectController {
           HttpStatus.OK);
     }
     return new ResponseEntity<>(evaluatedProspects, HttpStatus.OK);
+  }
+
+  private static NewInterventionOption retrieveFromHeader(String newInterventionOptHeader) {
+    if (newInterventionOptHeader == null) {
+      return null;
+    }
+    switch (newInterventionOptHeader) {
+      case "ALL":
+        return NewInterventionOption.ALL;
+      case "NEW_PROSPECT":
+        return NewInterventionOption.NEW_PROSPECT;
+      case "OLD_CUSTOMER":
+        return NewInterventionOption.OLD_CUSTOMER;
+      default:
+        return null;
+    }
   }
 }

@@ -195,10 +195,14 @@ public class ProspectEvalUtils {
                 .newIntAddress(newIntAddress)
                 .distNewIntAndProspect(
                     prospectEvalInfo.getCoordinates().getDistanceFrom(newIntPos.getCoordinates()))
+                .coordinate(newIntPos.getCoordinates())
                 .oldCustomer(NewIntervention.OldCustomer.builder()
+                    .idCustomer(null) //Here to make it more explicit, we show actual customer value
                     .type(getCustomerType(currentRow, exceptionMsgBuilder))
                     .professionalType(getProfessionalType(currentRow, exceptionMsgBuilder))
+                    //TODO: Must be provided from database customer
                     .oldCustomerAddress(oldCustomerAddress)
+                    //Explicitly, this distance is provided from provided address
                     .distNewIntAndOldCustomer(oldCustomerAddress == null ? null
                         : getDistNewIntAndOldCustomer(newIntPos, oldCustomerAddress))
                     .build())

@@ -3,6 +3,7 @@ package app.bpartners.api.model.mapper;
 import app.bpartners.api.model.Customer;
 import app.bpartners.api.model.Location;
 import app.bpartners.api.repository.jpa.model.HCustomer;
+import app.bpartners.api.service.utils.GeoUtils;
 import org.springframework.stereotype.Component;
 
 import static app.bpartners.api.endpoint.rest.model.CustomerStatus.ENABLED;
@@ -14,10 +15,16 @@ public class CustomerMapper {
     if (entity == null) {
       return null;
     }
+    Double longitude = entity.getLongitude() == null ? null : entity.getLongitude();
+    Double latitude = entity.getLatitude() == null ? null : entity.getLatitude();
     Location customerLocation = Location.builder()
         .address(entity.getAddress())
-        .longitude(entity.getLongitude() == null ? null : entity.getLongitude())
-        .latitude(entity.getLatitude() == null ? null : entity.getLatitude())
+        .longitude(longitude)
+        .latitude(latitude)
+        .coordinate(GeoUtils.Coordinate.builder()
+            .latitude(latitude)
+            .longitude(longitude)
+            .build())
         .build();
     return Customer.builder()
         .id(entity.getId())
@@ -52,6 +59,7 @@ public class CustomerMapper {
         .city(domain.getCity())
         .country(domain.getCountry())
         .comment(domain.getComment())
+        //TODO: use coordinate instead
         .latitude(
             domain.getLocation().getLatitude() == null
                 ? null

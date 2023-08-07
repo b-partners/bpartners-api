@@ -1,5 +1,6 @@
 package app.bpartners.api.repository.connectors.transaction;
 
+import app.bpartners.api.model.Money;
 import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.model.mapper.TransactionMapper;
 import app.bpartners.api.repository.jpa.TransactionJpaRepository;
@@ -41,7 +42,14 @@ public class SavableTransactionConnectorRepository
             log.warn("Duplicated transactions with same external ID {}",
                 describeList(bridgeTransactions));
           }
-          return bridgeTransactions.get(0);
+          HTransaction entity = bridgeTransactions.get(0);
+          Money entityMoney = Money.fromMajor(entity.getAmount());
+          if (!entityMoney.equals(connector.getAmount())) {
+            return entity.toBuilder()
+                .amount(connector.getAmount().stringValue())
+                .build();
+          }
+          return entity;
         })
         .collect(Collectors.toList());
     return jpaRepository.saveAll(toSave).stream()

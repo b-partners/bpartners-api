@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import static app.bpartners.api.model.Money.fromMajor;
+import static app.bpartners.api.model.Money.fromMinor;
 import static java.util.UUID.randomUUID;
 
 @Slf4j
@@ -24,7 +25,7 @@ public class TransactionMapper {
   public TransactionConnector toConnector(BridgeTransaction bridgeTransaction) {
     return TransactionConnector.builder()
         .id(String.valueOf(bridgeTransaction.getId()))
-        .amount(fromMajor(bridgeTransaction.getAbsAmount()))
+        .amount(fromMinor(bridgeTransaction.getAbsAmount()))
         .currency(bridgeTransaction.getCurrency())
         .label(bridgeTransaction.getLabel())
         .transactionDate(bridgeTransaction.getTransactionDate())

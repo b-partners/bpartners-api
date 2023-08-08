@@ -62,13 +62,17 @@ public class BanApi {
     if (address == null || address.isEmpty()) {
       throw new BadRequestException("Address is mandatory for getting GeoPosition");
     }
+    NotFoundException notFoundException =
+        new NotFoundException("Given address " + address + " is not found."
+            + " Check if it's not mal formed.");
     GeoJsonResponse geoJsonResponse = searchMultiplePos(address);
+    if (geoJsonResponse == null) {
+      throw notFoundException;
+    }
     GeoJsonResponse.Feature highestFeat = geoJsonResponse.getFeatures()
         .stream()
         .max(Comparator.comparing(feature -> feature.getProperties().getScore()))
-        .orElseThrow(
-            () -> new NotFoundException("Given address " + address + " is not found."
-                + " Check if it's not mal formed."));
+        .orElseThrow(() -> notFoundException);
     return GeoPosition.builder()
         .label(highestFeat.getProperties().getLabel())
         .coordinates(GeoUtils.Coordinate.builder()

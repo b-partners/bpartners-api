@@ -126,28 +126,33 @@ public class CustomerService {
 
   @Scheduled(fixedRate = 10 * 60 * 1_000)
   public void updateCustomersLocation() {
-    List<Customer> customersToUpdate = repository.findWhereLatitudeOrLongitudeIsNull();
-    if (customersToUpdate.size() > 0) {
-      log.warn("{} customers are to be updated on their latitude and longitude",
-          customersToUpdate.size());
+    List<Customer> customers = repository.findWhereLatitudeOrLongitudeIsNull();
+    int customersCount = customers.size();
+    if (customersCount > 0) {
+      log.warn("{} customers are to be updated on their latitude and longitude", customersCount);
     }
-    customersToUpdate
-        .forEach(customer -> {
-          try {
-            GeoPosition position = banApi.search(customer.getAddress());
-            Location newLocation = Location.builder()
-                .latitude(position.getCoordinates().getLatitude())
-                .longitude(position.getCoordinates().getLongitude())
-                .build();
-            customer.setLocation(newLocation);
-            repository.save(customer);
-          } catch (BadRequestException e) {
-            throw new BadRequestException(
-                "Customer (id=" + customer.getId() + ") address id null.");
-          } catch (NotFoundException e) {
-            throw new NotFoundException("Given address " + customer.getAddress()
-                + " is not found. Check if it's not mal formed.");
-          }
-        });
+    StringBuilder sb = new StringBuilder();
+    customers.forEach(customer -> {
+      if (customer.getAddress() != null) {
+        try {
+          GeoPosition position = banApi.search(customer.getFullAddress());
+          Location newLocation = Location.builder()
+              .latitude(position.getCoordinates().getLatitude())
+              .longitude(position.getCoordinates().getLongitude())
+              .build();
+          customer.setLocation(newLocation);
+          repository.save(customer);
+        } catch (BadRequestException | NotFoundException e) {
+          sb.append("Customer(id=)")
+              .append(customer.getId())
+              .append(" location was not updated because ")
+              .append(e.getMessage());
+        }
+      }
+    });
+    String exceptionMessage = sb.toString();
+    if (!exceptionMessage.isEmpty()) {
+      log.warn(exceptionMessage);
+    }
   }
 }

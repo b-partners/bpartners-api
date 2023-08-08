@@ -48,4 +48,8 @@ public class Customer {
         .concat(firstName != null & lastName != null ? " " : "")
         .concat(lastName == null ? "" : lastName);
   }
+
+  public String getFullAddress() {
+    return address + " " + zipCode + " " + city + " " + country;
+  }
 }

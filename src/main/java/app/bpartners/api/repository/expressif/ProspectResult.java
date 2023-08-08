@@ -1,11 +1,11 @@
 package app.bpartners.api.repository.expressif;
 
+import app.bpartners.api.model.Customer;
 import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
@@ -39,9 +39,10 @@ public class ProspectResult<T> {
     }
   }
 
+  @Data
   public static class CustomerInterventionResult extends RuleResult {
-    @Getter
     private String idCustomer;
+    private Customer oldCustomer;
 
     public CustomerInterventionResult(Double rating, Double distance, String address,
                                       String idCustomer) {

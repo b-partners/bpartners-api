@@ -203,6 +203,13 @@ public class CustomerRepositoryImpl implements CustomerRepository {
   }
 
   @Override
+  public List<Customer> findWhereLatitudeOrLongitudeIsNull() {
+    return jpaRepository.findAllByLatitudeIsNullOrLongitudeIsNull().stream()
+        .map(mapper::toDomain)
+        .collect(Collectors.toList());
+  }
+
+  @Override
   public List<Customer> saveAll(List<Customer> toCreate) {
     List<HCustomer> toSave = toCreate.stream()
         .map(this::checkExisting)
@@ -215,6 +222,11 @@ public class CustomerRepositoryImpl implements CustomerRepository {
     return saved.stream()
         .map(mapper::toDomain)
         .collect(Collectors.toUnmodifiableList());
+  }
+
+  @Override
+  public Customer save(Customer toSave) {
+    return mapper.toDomain(jpaRepository.save(mapper.toEntity(toSave)));
   }
 
   private void checkRecentlyAdded(List<HCustomer> toSave, List<HCustomer> saved) {

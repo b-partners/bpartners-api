@@ -9,6 +9,8 @@ import java.util.Optional;
 public interface CustomerRepository {
   List<Customer> saveAll(List<Customer> toCreate);
 
+  Customer save(Customer toSave);
+
   Customer findById(String id);
 
   Optional<Customer> findOptionalById(String id);
@@ -19,4 +21,6 @@ public interface CustomerRepository {
       List<String> keywords, CustomerStatus status, int page, int pageSize);
 
   List<Customer> updateCustomersStatuses(List<UpdateCustomerStatus> toUpdate);
+
+  List<Customer> findWhereLatitudeOrLongitudeIsNull();
 }

@@ -12,6 +12,7 @@ import app.bpartners.api.endpoint.rest.model.CreateAccountInvoiceRelaunchConf;
 import app.bpartners.api.endpoint.rest.model.CreateAnnualRevenueTarget;
 import app.bpartners.api.endpoint.rest.model.CreateProduct;
 import app.bpartners.api.endpoint.rest.model.Customer;
+import app.bpartners.api.endpoint.rest.model.CustomerLocation;
 import app.bpartners.api.endpoint.rest.model.CustomerStatus;
 import app.bpartners.api.endpoint.rest.model.Geojson;
 import app.bpartners.api.endpoint.rest.model.Invoice;
@@ -258,6 +259,7 @@ public class TestUtils {
         .city("Metz")
         .country(null)
         .comment("Rencontre avec Luc")
+        .location(new CustomerLocation().address("15 rue Porte d'Orange"))
         .status(CustomerStatus.ENABLED);
   }
 
@@ -274,6 +276,7 @@ public class TestUtils {
         .city("Montmorency")
         .country("France")
         .comment("Rencontre avec le plombier")
+        .location(new CustomerLocation().address("4 Avenue des Près"))
         .status(CustomerStatus.ENABLED);
   }
 

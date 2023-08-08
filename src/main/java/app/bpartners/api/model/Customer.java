@@ -31,6 +31,7 @@ public class Customer {
   protected String city;
   protected String country;
   protected String comment;
+  protected Location location;
   protected CustomerStatus status;
   protected boolean recentlyAdded = false;
 
@@ -46,5 +47,9 @@ public class Customer {
     return (firstName == null ? "" : firstName)
         .concat(firstName != null & lastName != null ? " " : "")
         .concat(lastName == null ? "" : lastName);
+  }
+
+  public String getFullAddress() {
+    return address + " " + zipCode + " " + city + " " + country;
   }
 }

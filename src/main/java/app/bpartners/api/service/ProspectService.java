@@ -31,6 +31,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.thymeleaf.context.Context;
 
 import static app.bpartners.api.endpoint.rest.model.NewInterventionOption.NEW_PROSPECT;
+import static app.bpartners.api.endpoint.rest.model.NewInterventionOption.OLD_CUSTOMER;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 import static app.bpartners.api.service.utils.TemplateResolverUtils.parseTemplateResolver;
 import static java.util.UUID.randomUUID;
@@ -82,35 +83,67 @@ public class ProspectService {
       option = NEW_PROSPECT;
     }
     boolean isNotNewProspect = option != NEW_PROSPECT;
+    boolean isOldCustomer = option == OLD_CUSTOMER;
+
     var oldCustomersEval = isNotNewProspect ? getCustomersEval(prospectsEval)
         : new ArrayList<ProspectEval>();
     var prospectResults = repository.evaluate(mergeEvals(prospectsEval, oldCustomersEval));
 
-    var newProspects = retrieveProspects(prospectResults);
+    var newProspects = isOldCustomer ? new ArrayList<Prospect>()
+        : retrieveProspects(prospectResults);
     var oldCustomerProspects = isNotNewProspect ? retrieveOldCustomers(prospectResults)
         : new ArrayList<Prospect>();
+
     repository.create(mergeProspects(newProspects, oldCustomerProspects));
 
-    return prospectResults;
+    switch (option) {
+      case OLD_CUSTOMER:
+        return filteredCustomers(prospectResults);
+      case ALL:
+        return prospectResults;
+      default:
+        return filteredNewProspects(prospectResults);
+    }
   }
 
   private List<Prospect> retrieveOldCustomers(List<ProspectResult> prospectResults) {
-    List<ProspectResult> filteredProspects = prospectResults.stream()
-        .filter(result -> {
-          ProspectResult.CustomerInterventionResult customerResult =
-              result.getCustomerInterventionResult();
-          return customerResult != null
-              && customerResult.getRating() >= DEFAULT_RATING_PROSPECT_TO_CONVERT;
-        }).collect(Collectors.toList());
-    return getCustomersProspects(filteredProspects);
+    List<ProspectResult> filteredResults = ratedCustomers(prospectResults);
+    return convertToProspects(filteredResults);
+  }
+
+  private static List<ProspectResult> ratedCustomers(
+      List<ProspectResult> prospectResults) {
+    return filteredCustomers(prospectResults).stream()
+        .filter(result -> result.getCustomerInterventionResult().getRating()
+            >= DEFAULT_RATING_PROSPECT_TO_CONVERT)
+        .collect(Collectors.toList());
+  }
+
+  private static List<ProspectResult> filteredCustomers(
+      List<ProspectResult> prospectResults) {
+    return prospectResults.stream()
+        .filter(result -> result.getCustomerInterventionResult() != null)
+        .collect(Collectors.toList());
   }
 
   private List<Prospect> retrieveProspects(List<ProspectResult> prospectResults) {
-    return prospectResults.stream()
-        .filter(result -> result.getInterventionResult() != null &&
-            result.getCustomerInterventionResult() == null
-            && result.getInterventionResult().getRating() >= DEFAULT_RATING_PROSPECT_TO_CONVERT)
+    return ratedProspects(prospectResults).stream()
         .map(this::convertNewProspect)
+        .collect(Collectors.toList());
+  }
+
+  private static List<ProspectResult> ratedProspects(
+      List<ProspectResult> prospectResults) {
+    return filteredNewProspects(prospectResults).stream()
+        .filter(result -> result.getInterventionResult().getRating()
+            >= DEFAULT_RATING_PROSPECT_TO_CONVERT)
+        .collect(Collectors.toList());
+  }
+
+  private static List<ProspectResult> filteredNewProspects(List<ProspectResult> prospectResults) {
+    return prospectResults.stream()
+        .filter(result -> result.getInterventionResult() != null
+            && result.getCustomerInterventionResult() == null)
         .collect(Collectors.toList());
   }
 
@@ -128,7 +161,7 @@ public class ProspectService {
     return allEval;
   }
 
-  private List<Prospect> getCustomersProspects(List<ProspectResult> prospectResults) {
+  private List<Prospect> convertToProspects(List<ProspectResult> prospectResults) {
     HashMap<String, List<ProspectResult>> groupByCustomer =
         dispatchResultByCustomer(prospectResults);
     List<Prospect> prospects = new ArrayList<>();
@@ -141,7 +174,7 @@ public class ProspectService {
           prospects.add(convertOldCustomer(result, customer));
         }
       } else {
-        log.info("Prospects were customer null {}", entry.getValue());
+        log.info("Prospects results were customer null {}", entry.getValue());
       }
     }
     return prospects;
@@ -239,9 +272,7 @@ public class ProspectService {
 
   public Prospect convertOldCustomer(ProspectResult result, Customer customer) {
     ProspectEval eval = result.getProspectEval();
-    ProspectResult.CustomerInterventionResult customerResult =
-        result.getCustomerInterventionResult();
-    //TODO: dispatch List<ProspectResult> by idCustomer so we could optimize requests
+    result.getCustomerInterventionResult().setOldCustomer(customer);
     return Prospect.builder()
         .id(String.valueOf(randomUUID())) //TODO: change when prospect eval can be override
         .idHolderOwner(eval.getProspectOwnerId())

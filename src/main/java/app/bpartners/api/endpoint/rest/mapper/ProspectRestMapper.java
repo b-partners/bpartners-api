@@ -10,9 +10,11 @@ import app.bpartners.api.endpoint.rest.model.Prospect;
 import app.bpartners.api.endpoint.rest.model.ProspectRating;
 import app.bpartners.api.endpoint.rest.model.UpdateProspect;
 import app.bpartners.api.endpoint.rest.validator.ProspectRestValidator;
+import app.bpartners.api.model.Customer;
 import app.bpartners.api.repository.expressif.ProspectEval;
 import app.bpartners.api.repository.expressif.ProspectEvalInfo;
 import app.bpartners.api.repository.expressif.ProspectResult;
+import app.bpartners.api.service.utils.GeoUtils;
 import java.math.BigDecimal;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -30,37 +32,47 @@ public class ProspectRestMapper {
     }
     ProspectEval eval = prospectResult.getProspectEval();
     ProspectEvalInfo info = eval.getProspectEvalInfo();
-    Geojson geoJson = new Geojson()
-        .type("Point") //default type
-        .latitude(info.getCoordinates().getLatitude())
-        .longitude(info.getCoordinates().getLongitude());
-    ProspectResult.CustomerInterventionResult custRes =
+    ProspectResult.InterventionResult interventionResult = prospectResult.getInterventionResult();
+    ProspectResult.CustomerInterventionResult customerResult =
         prospectResult.getCustomerInterventionResult();
-    ProspectResult.InterventionResult intRes = prospectResult.getInterventionResult();
+    Customer customerInfo = customerResult == null ? null
+        : customerResult.getOldCustomer();
     return new EvaluatedProspect()
         .id(String.valueOf(randomUUID()))
         .reference(String.valueOf(info.getReference()))
-        .name(info.getName())
-        .phone(info.getPhoneNumber())
-        .email(info.getEmail())
-        .address(info.getAddress())
-        .city(info.getCity())
-        .townCode(Integer.valueOf(info.getPostalCode()))
-        .area(new Area().geojson(geoJson))
-        .managerName(info.getManagerName())
-        .contactNature(getProspect(info))
+        .name(customerInfo == null ? info.getName()
+            : customerInfo.getName())
+        .phone(customerInfo == null ? info.getPhoneNumber()
+            : customerInfo.getPhone())
+        .email(customerInfo == null ? info.getEmail()
+            : customerInfo.getEmail())
+        .address(customerInfo == null ? info.getAddress()
+            : customerInfo.getFullAddress())
+        .city(customerInfo == null ? info.getCity()
+            : customerInfo.getCity())
+        .townCode(customerInfo == null ? Integer.valueOf(info.getPostalCode())
+            : customerInfo.getZipCode()
+        )
+        .area(new Area().geojson(
+            customerInfo == null
+                ? toGeoJson(info.getCoordinates())
+                : toGeoJson(customerInfo.getLocation().getCoordinate())))
+        .managerName(customerInfo == null ? info.getManagerName()
+            : customerInfo.getName())
+        .contactNature(customerInfo == null ? getProspect(info)
+            : ContactNature.OLD_CUSTOMER)
         .evaluationDate(prospectResult.getEvaluationDate())
-        .interventionResult(intRes == null ? null
+        .interventionResult(interventionResult == null || customerInfo != null ? null
             : new InterventionResult()
-            .address(intRes.getAddress())
+            .address(interventionResult.getAddress())
             .distanceFromProspect(
-                BigDecimal.valueOf(intRes.getDistance()))
-            .value(BigDecimal.valueOf(intRes.getRating())))
-        .oldCustomerResult(custRes == null ? null
+                BigDecimal.valueOf(interventionResult.getDistance()))
+            .value(BigDecimal.valueOf(interventionResult.getRating())))
+        .oldCustomerResult(customerInfo == null ? null
             : new OldCustomerResult()
-            .address(custRes.getAddress())
-            .distanceFromProspect(BigDecimal.valueOf(custRes.getDistance()))
-            .value(BigDecimal.valueOf(custRes.getRating())));
+            .address(customerResult.getAddress())
+            .distanceFromProspect(BigDecimal.valueOf(customerResult.getDistance()))
+            .value(BigDecimal.valueOf(customerResult.getRating())));
   }
 
   public Prospect toRest(app.bpartners.api.model.Prospect domain) {
@@ -102,5 +114,12 @@ public class ProspectRestMapper {
       return ContactNature.OLD_CUSTOMER;
     }
     return ContactNature.OTHER;
+  }
+
+  private Geojson toGeoJson(GeoUtils.Coordinate coordinate) {
+    return new Geojson()
+        .type("Point") //default type
+        .latitude(coordinate.getLatitude())
+        .longitude(coordinate.getLongitude());
   }
 }

@@ -3,6 +3,7 @@ package app.bpartners.api.unit.service;
 import app.bpartners.api.repository.ProspectRepository;
 import app.bpartners.api.repository.jpa.AccountHolderJpaRepository;
 import app.bpartners.api.repository.jpa.model.HAccountHolder;
+import app.bpartners.api.service.CustomerService;
 import app.bpartners.api.service.ProspectService;
 import app.bpartners.api.service.aws.SesService;
 import app.bpartners.api.service.dataprocesser.ProspectDataProcesser;
@@ -29,8 +30,9 @@ class ProspectServiceTest {
   AccountHolderJpaRepository accountHolderJpaRepositoryMock =
       mock(AccountHolderJpaRepository.class);
   SesService sesServiceMock = mock(SesService.class);
+  CustomerService customerService = mock(CustomerService.class);
   ProspectService subject = new ProspectService(prospectRepositoryMock, dataProcesserMock,
-      accountHolderJpaRepositoryMock, sesServiceMock);
+      accountHolderJpaRepositoryMock, sesServiceMock, customerService);
 
   @BeforeEach
   void setup() {

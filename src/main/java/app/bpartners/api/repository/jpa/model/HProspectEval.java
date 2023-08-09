@@ -40,6 +40,7 @@ public class HProspectEval {
   private Double interventionDistance;
   private Double prospectRating;
 
+  private String idCustomer;
   private String oldCustomerAddress;
   private Double oldCustomerDistance;
   private Double customerRating;

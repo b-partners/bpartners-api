@@ -136,16 +136,25 @@ public class CustomerService {
       if (customer.getAddress() != null) {
         try {
           GeoPosition position = banApi.search(customer.getFullAddress());
-          Location newLocation = Location.builder()
-              .latitude(position.getCoordinates().getLatitude())
-              .longitude(position.getCoordinates().getLongitude())
-              .build();
-          customer.setLocation(newLocation);
-          repository.save(customer);
+          if (position == null) {
+            sb.append("Customer(id=")
+                .append(customer.getId())
+                .append(") location was not updated because")
+                .append(" address ")
+                .append(customer.getFullAddress())
+                .append(" was not found");
+          } else {
+            Location newLocation = Location.builder()
+                .latitude(position.getCoordinates().getLatitude())
+                .longitude(position.getCoordinates().getLongitude())
+                .build();
+            customer.setLocation(newLocation);
+            repository.save(customer);
+          }
         } catch (BadRequestException | NotFoundException e) {
-          sb.append("Customer(id=)")
+          sb.append("Customer(id=")
               .append(customer.getId())
-              .append(" location was not updated because ")
+              .append(") location was not updated because ")
               .append(e.getMessage());
         }
       }
@@ -154,5 +163,10 @@ public class CustomerService {
     if (!exceptionMessage.isEmpty()) {
       log.warn(exceptionMessage);
     }
+  }
+
+  @Transactional
+  public List<Customer> findByAccountHolderId(String accountHolderId) {
+    return repository.findByIdAccountHolder(accountHolderId);
   }
 }

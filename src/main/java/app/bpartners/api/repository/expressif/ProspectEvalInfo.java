@@ -17,20 +17,20 @@ import lombok.ToString;
 @ToString
 public class ProspectEvalInfo {
   private Long reference;
-  private String name;
-  private String website;
-  private String address;
-  private String phoneNumber;
-  private String email;
-  private String managerName;
+  protected String name;
+  protected String website;
+  protected String address;
+  protected String phoneNumber;
+  protected String email;
+  protected String managerName;
   private String mailSent;
-  private String postalCode;
-  private String city;
+  protected String postalCode;
+  protected String city;
   private Date companyCreationDate;
   private String category; //TODO: check if must be enum
   private String subcategory; //TODO: check if must be enum
   private ContactNature contactNature;
-  private GeoUtils.Coordinate coordinates;
+  protected GeoUtils.Coordinate coordinates;
 
   public enum ContactNature {
     PROSPECT, OLD_CUSTOMER, OTHER

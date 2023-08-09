@@ -1,5 +1,6 @@
 package app.bpartners.api.repository.expressif;
 
+import app.bpartners.api.model.Customer;
 import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -38,9 +39,15 @@ public class ProspectResult<T> {
     }
   }
 
+  @Data
   public static class CustomerInterventionResult extends RuleResult {
-    public CustomerInterventionResult(Double rating, Double distance, String address) {
+    private String idCustomer;
+    private Customer oldCustomer;
+
+    public CustomerInterventionResult(Double rating, Double distance, String address,
+                                      String idCustomer) {
       super(rating, distance, address);
+      this.idCustomer = idCustomer;
     }
   }
 }

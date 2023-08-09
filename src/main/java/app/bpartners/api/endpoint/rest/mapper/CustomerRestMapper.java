@@ -26,6 +26,7 @@ public class CustomerRestMapper {
     }
     CustomerLocation customerLocation = new CustomerLocation()
         .address(domain.getAddress())
+        //TODO: use getCoordinate instead
         .latitude(domain.getLocation().getLatitude())
         .longitude(domain.getLocation().getLongitude());
     return new Customer()

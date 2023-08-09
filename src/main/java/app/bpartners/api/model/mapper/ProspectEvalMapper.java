@@ -23,6 +23,7 @@ public class ProspectEvalMapper {
   public HProspectEvalInfo toInfoEntity(
       ProspectEval evalDomain, Long reference, List<HProspectEval> prospectEvals) {
     ProspectEvalInfo prospect = evalDomain.getProspectEvalInfo();
+    GeoUtils.Coordinate coordinates = prospect.getCoordinates();
     return HProspectEvalInfo.builder()
         .id(evalDomain.getId())
         .idAccountHolder(evalDomain.getProspectOwnerId())
@@ -38,8 +39,8 @@ public class ProspectEvalMapper {
         .category(prospect.getCategory())
         .subcategory(prospect.getSubcategory())
         .contactNature(prospect.getContactNature())
-        .posLatitude(prospect.getCoordinates().getLatitude())
-        .posLongitude(prospect.getCoordinates().getLongitude())
+        .posLatitude(coordinates == null ? null : coordinates.getLatitude())
+        .posLongitude(coordinates == null ? null : coordinates.getLongitude())
         .companyCreationDate(prospect.getCompanyCreationDate())
         .prospectEvals(prospectEvals)
         .build();
@@ -48,34 +49,36 @@ public class ProspectEvalMapper {
   public HProspectEval toInfoEntity(
       ProspectEval evalDomain, Instant evaluationDate,
       Double prospectRating, Double customerRating) {
-    String ruleType = evalDomain.getDepaRule().getClass().getTypeName();
-
     Boolean declared;
     Double interventionDistance;
     String interventionAddress;
     String oldCustomerAddress;
     Double oldCustomerDistance;
     HProspectEval.ProspectEvalRule evalRule;
-    if (ruleType.equals(NewIntervention.class.getTypeName())) {
+    String idCustomer;
+    if (evalDomain.isNewIntervention()) {
       NewIntervention rule = (NewIntervention) evalDomain.getDepaRule();
       evalRule = NEW_INTERVENTION;
       declared = rule.getPlanned();
       interventionAddress = rule.getNewIntAddress();
       interventionDistance = rule.getDistNewIntAndProspect();
       NewIntervention.OldCustomer oldCustomer = rule.getOldCustomer();
+      idCustomer = oldCustomer.getIdCustomer();
       oldCustomerAddress = oldCustomer == null ? null : oldCustomer.getOldCustomerAddress();
       oldCustomerDistance = oldCustomer == null ? null : oldCustomer.getDistNewIntAndOldCustomer();
-    } else if (ruleType.equals(Robbery.class.getTypeName())) {
+    } else if (evalDomain.isRobbery()) {
       Robbery rule = (Robbery) evalDomain.getDepaRule();
       evalRule = ROBBERY;
       declared = rule.getDeclared();
       interventionAddress = rule.getRobberyAddress();
       interventionDistance = rule.getDistRobberyAndProspect();
       Robbery.OldCustomer oldCustomer = rule.getOldCustomer();
+      idCustomer = oldCustomer == null ? null : oldCustomer.getIdCustomer();
       oldCustomerAddress = oldCustomer == null ? null : oldCustomer.getAddress();
       oldCustomerDistance = oldCustomer == null ? null : oldCustomer.getDistRobberyAndOldCustomer();
     } else {
-      throw new ApiException(SERVER_EXCEPTION, "Unknown rule type " + ruleType);
+      throw new ApiException(SERVER_EXCEPTION,
+          "Unknown rule type " + evalDomain.getDepaRule().getClass().getTypeName());
     }
     return HProspectEval.builder()
         .id(String.valueOf(randomUUID()))
@@ -87,6 +90,7 @@ public class ProspectEvalMapper {
         .interventionAddress(interventionAddress)
         .interventionDistance(interventionDistance)
         .prospectRating(prospectRating)
+        .idCustomer(idCustomer)
         .oldCustomerAddress(oldCustomerAddress)
         .oldCustomerDistance(oldCustomerDistance)
         .customerRating(customerRating)
@@ -114,17 +118,21 @@ public class ProspectEvalMapper {
             eval.getInterventionDistance(),
             eval.getInterventionAddress()
         ))
-        .customerInterventionResult(eval.getOldCustomerAddress() == null ? null
-            : new ProspectResult.CustomerInterventionResult(
-            eval.getCustomerRating(),
-            eval.getOldCustomerDistance(),
-            eval.getOldCustomerAddress()
-        ))
+        .customerInterventionResult(
+            eval.getIdCustomer() == null || eval.getOldCustomerAddress() == null ? null
+                : new ProspectResult.CustomerInterventionResult(
+                eval.getCustomerRating(),
+                eval.getOldCustomerDistance(),
+                eval.getOldCustomerAddress(),
+                eval.getIdCustomer()
+            ))
         .evaluationDate(eval.getEvaluationDate())
         .build();
   }
 
   private ProspectEvalInfo toInfoDomain(HProspectEvalInfo infoEntity) {
+    Double posLongitude = infoEntity.getPosLongitude();
+    Double posLatitude = infoEntity.getPosLatitude();
     return ProspectEvalInfo.builder()
         .reference(infoEntity.getReference())
         .name(infoEntity.getName())
@@ -140,9 +148,10 @@ public class ProspectEvalMapper {
         .subcategory(infoEntity.getSubcategory())
         .companyCreationDate(infoEntity.getCompanyCreationDate())
         .contactNature(infoEntity.getContactNature())
-        .coordinates(GeoUtils.Coordinate.builder()
-            .longitude(infoEntity.getPosLongitude())
-            .latitude(infoEntity.getPosLatitude())
+        .coordinates(posLatitude == null && posLongitude == null ? null
+            : GeoUtils.Coordinate.builder()
+            .longitude(posLongitude)
+            .latitude(posLatitude)
             .build())
         .build();
   }

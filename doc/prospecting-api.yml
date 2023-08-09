@@ -133,6 +133,22 @@ operations:
             description: |
               When any value provided, NEW_PROSPECT is chosen by default.
           required: false
+        - in: header
+          name: minCustomerRating
+          schema:
+            type: number
+            format: double
+            description: |
+              When any value provided, minimum customer rating accepted is 8.0.
+          required: false
+        - in: header
+          name: minProspectRating
+          schema:
+            type: number
+            format: double
+            description: |
+              When any value provided, minimum prospect rating accepted is 8.0.
+          required: false
       requestBody:
         required: true
         content:

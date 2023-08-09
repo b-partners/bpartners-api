@@ -23,6 +23,7 @@ public class ProspectEvalMapper {
   public HProspectEvalInfo toInfoEntity(
       ProspectEval evalDomain, Long reference, List<HProspectEval> prospectEvals) {
     ProspectEvalInfo prospect = evalDomain.getProspectEvalInfo();
+    GeoUtils.Coordinate coordinates = prospect.getCoordinates();
     return HProspectEvalInfo.builder()
         .id(evalDomain.getId())
         .idAccountHolder(evalDomain.getProspectOwnerId())
@@ -38,8 +39,8 @@ public class ProspectEvalMapper {
         .category(prospect.getCategory())
         .subcategory(prospect.getSubcategory())
         .contactNature(prospect.getContactNature())
-        .posLatitude(prospect.getCoordinates().getLatitude())
-        .posLongitude(prospect.getCoordinates().getLongitude())
+        .posLatitude(coordinates == null ? null : coordinates.getLatitude())
+        .posLongitude(coordinates == null ? null : coordinates.getLongitude())
         .companyCreationDate(prospect.getCompanyCreationDate())
         .prospectEvals(prospectEvals)
         .build();
@@ -130,6 +131,8 @@ public class ProspectEvalMapper {
   }
 
   private ProspectEvalInfo toInfoDomain(HProspectEvalInfo infoEntity) {
+    Double posLongitude = infoEntity.getPosLongitude();
+    Double posLatitude = infoEntity.getPosLatitude();
     return ProspectEvalInfo.builder()
         .reference(infoEntity.getReference())
         .name(infoEntity.getName())
@@ -145,9 +148,10 @@ public class ProspectEvalMapper {
         .subcategory(infoEntity.getSubcategory())
         .companyCreationDate(infoEntity.getCompanyCreationDate())
         .contactNature(infoEntity.getContactNature())
-        .coordinates(GeoUtils.Coordinate.builder()
-            .longitude(infoEntity.getPosLongitude())
-            .latitude(infoEntity.getPosLatitude())
+        .coordinates(posLatitude == null && posLongitude == null ? null
+            : GeoUtils.Coordinate.builder()
+            .longitude(posLongitude)
+            .latitude(posLatitude)
             .build())
         .build();
   }

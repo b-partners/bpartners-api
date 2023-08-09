@@ -185,7 +185,7 @@ public class ProspectEvalUtils {
 
           if (depaRuleValue.equals(DEPA_RULE_NEW_INTERVENTION)) {
             String newIntAddress = getStringValue(currentRow.getCell(NEW_INT_ADDRESS_COL_INDEX));
-            GeoPosition newIntPos = banApi.search(newIntAddress);
+            GeoPosition newIntPos = banApi.fSearch(newIntAddress);
             String oldCustomerAddress =
                 getStringValue(currentRow.getCell(NEW_INT_OLD_CUST_ADDRESS_COL_INDEX));
             prospectEval.setDepaRule(NewIntervention.builder()
@@ -194,8 +194,10 @@ public class ProspectEvalUtils {
                 .infestationType(getInfestationType(currentRow, exceptionMsgBuilder))
                 .newIntAddress(newIntAddress)
                 .distNewIntAndProspect(
-                    prospectEvalInfo.getCoordinates().getDistanceFrom(newIntPos.getCoordinates()))
-                .coordinate(newIntPos.getCoordinates())
+                    newIntPos == null || prospectEvalInfo.getCoordinates() == null ? null
+                        : prospectEvalInfo.getCoordinates()
+                        .getDistanceFrom(newIntPos.getCoordinates()))
+                .coordinate(newIntPos == null ? null : newIntPos.getCoordinates())
                 .oldCustomer(NewIntervention.OldCustomer.builder()
                     .idCustomer(null) //Here to make it more explicit, we show actual customer value
                     .type(getCustomerType(currentRow, exceptionMsgBuilder))
@@ -211,7 +213,7 @@ public class ProspectEvalUtils {
             String oldCustAddress =
                 getStringValue(currentRow.getCell(ROB_OLD_CUST_ADDRESS_COL_INDEX));
             String robberyAddress = getStringValue(currentRow.getCell(ROBB_ADDRESS_COL_INDEX));
-            GeoPosition robbAddressPos = banApi.search(robberyAddress);
+            GeoPosition robbAddressPos = banApi.fSearch(robberyAddress);
 
             prospectEval.setDepaRule(Robbery.builder()
                 .declared(rowBooleanValue(currentRow, 27, exceptionMsgBuilder))
@@ -334,13 +336,15 @@ public class ProspectEvalUtils {
   }
 
   private Double getDistRobberyAndOldCustomer(GeoPosition robbPos, String oldCustomerAddress) {
-    GeoPosition customerAddressPos = banApi.search(oldCustomerAddress);
-    return customerAddressPos.getCoordinates().getDistanceFrom(robbPos.getCoordinates());
+    GeoPosition customerAddressPos = banApi.fSearch(oldCustomerAddress);
+    return customerAddressPos == null ? null
+        : customerAddressPos.getCoordinates().getDistanceFrom(robbPos.getCoordinates());
   }
 
   private Double getDistNewIntAndOldCustomer(GeoPosition newIntPos, String oldCustomerAddress) {
-    GeoPosition custAddressPos = banApi.search(oldCustomerAddress);
-    return custAddressPos.getCoordinates().getDistanceFrom(newIntPos.getCoordinates());
+    GeoPosition custAddressPos = banApi.fSearch(oldCustomerAddress);
+    return custAddressPos == null ? null
+        : custAddressPos.getCoordinates().getDistanceFrom(newIntPos.getCoordinates());
   }
 
   private void setProspectJobValue(StringBuilder exceptionMsgBuilder, Row currentRow,
@@ -391,7 +395,9 @@ public class ProspectEvalUtils {
           } else {
             String addressValue = getStringValue(currentCell);
             prospectEvalInfo.setAddress(addressValue);
-            prospectEvalInfo.setCoordinates(banApi.search(addressValue).getCoordinates());
+            GeoPosition geoPosition = banApi.fSearch(addressValue);
+            prospectEvalInfo.setCoordinates(
+                geoPosition == null ? null : geoPosition.getCoordinates());
           }
           break;
         case 5:

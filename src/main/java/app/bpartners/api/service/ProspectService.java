@@ -15,6 +15,7 @@ import app.bpartners.api.repository.jpa.AccountHolderJpaRepository;
 import app.bpartners.api.repository.jpa.model.HAccountHolder;
 import app.bpartners.api.service.aws.SesService;
 import app.bpartners.api.service.dataprocesser.ProspectDataProcesser;
+import app.bpartners.api.service.utils.GeoUtils;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -251,6 +252,7 @@ public class ProspectService {
     ProspectEval eval = result.getProspectEval();
     ProspectEvalInfo info =
         result.getProspectEval().getProspectEvalInfo();
+    GeoUtils.Coordinate coordinates = info.getCoordinates();
     return Prospect.builder()
         .id(String.valueOf(randomUUID())) //TODO: change when prospect eval can be override
         .idHolderOwner(eval.getProspectOwnerId())
@@ -261,8 +263,10 @@ public class ProspectService {
         .status(ProspectStatus.TO_CONTACT) //Default when creating
         .townCode(Integer.valueOf(info.getPostalCode()))
         .location(new Geojson()
-            .latitude(info.getCoordinates().getLatitude())
-            .longitude(info.getCoordinates().getLongitude()))
+            .latitude(coordinates == null ? null
+                : coordinates.getLatitude())
+            .longitude(coordinates == null ? null
+                : coordinates.getLongitude()))
         .rating(Prospect.ProspectRating.builder()
             .value(result.getInterventionResult().getRating())
             .lastEvaluationDate(result.getEvaluationDate())

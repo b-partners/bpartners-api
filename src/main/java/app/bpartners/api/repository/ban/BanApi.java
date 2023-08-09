@@ -82,6 +82,14 @@ public class BanApi {
         .build();
   }
 
+  public GeoPosition fSearch(String address) {
+    try {
+      return search(address);
+    } catch (NotFoundException | BadRequestException e) {
+      return null;
+    }
+  }
+
   private String defaultSearchUrl(String address) {
     HashMap<String, String> queryParams = new HashMap<>();
     queryParams.put("q", address);

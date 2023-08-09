@@ -105,21 +105,28 @@ class ProspectEvaluationIT extends MockedThirdParties {
         .latitude(0.0)
         .longitude(0.0);
   }
+  private static GeoPosition geoPosZero() {
+    return GeoPosition.builder()
+        .coordinates(coordinateZero())
+        .build();
+  }
 
+  private static GeoUtils.Coordinate coordinateZero() {
+    return GeoUtils.Coordinate.builder()
+        .latitude(0.0)
+        .longitude(0.0)
+        .build();
+  }
 
   @BeforeEach
   public void setUp() {
     setUpLegalFileRepository(legalFileRepositoryMock);
     setUpCognito(cognitoComponentMock);
 
-    when(banApiMock.search(any())).thenReturn(GeoPosition.builder()
-        .coordinates(GeoUtils.Coordinate.builder()
-            .latitude(0.0)
-            .longitude(0.0)
-            .build())
-        .build()
-    );
+    when(banApiMock.search(any())).thenReturn(geoPosZero());
+    when(banApiMock.fSearch(any())).thenReturn(geoPosZero());
   }
+
  /*
  TODO: to complete with uploadFile with custom Accept value, application/pdf for example
  @Test
@@ -140,6 +147,7 @@ class ProspectEvaluationIT extends MockedThirdParties {
         .secondaryActivity(null)
         .build());
     when(expressifApiMock.process(any())).thenReturn(List.of(prospectRatingResult()));
+    when(banApiMock.fSearch(any())).thenReturn(geoPosZero());
 
     Resource prospectFile = new ClassPathResource("files/prospect-ok.xlsx");
     HttpResponse<String> jsonResponse =
@@ -193,12 +201,8 @@ class ProspectEvaluationIT extends MockedThirdParties {
         .build());
     when(expressifApiMock.process(any())).thenReturn(
         List.of(prospectRatingResult(), customerRatingResult()));
-    when(banApiMock.search(any())).thenReturn(GeoPosition.builder()
-        .coordinates(GeoUtils.Coordinate.builder()
-            .latitude(0.0)
-            .longitude(0.0)
-            .build())
-        .build());
+    when(banApiMock.search(any())).thenReturn(geoPosZero());
+    when(banApiMock.fSearch(any())).thenReturn(geoPosZero());
 
     Resource prospectFile = new ClassPathResource("files/prospect-ok.xlsx");
     HttpResponse<String> jsonResponse =

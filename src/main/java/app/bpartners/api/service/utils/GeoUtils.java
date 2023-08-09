@@ -60,7 +60,7 @@ public class GeoUtils {
     private Double longitude;
 
     public Double getDistanceFrom(Coordinate other) {
-      return other == null || (other.getLatitude() == null || other.getLongitude() == null) ? null
+      return other == null || other.getLatitude() == null || other.getLongitude() == null ? null
           : computeDistanceM(this, other);
     }
   }

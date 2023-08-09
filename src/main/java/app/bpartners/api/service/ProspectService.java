@@ -79,7 +79,9 @@ public class ProspectService {
   //TODO: IMPORTANT ! Only NewIntervention rule is supported for now
   @Transactional
   public List<ProspectResult> evaluateProspects(List<ProspectEval> prospectsEval,
-                                                NewInterventionOption option) {
+                                                NewInterventionOption option,
+                                                Double minProspectRating,
+                                                Double minCustomerRating) {
     if (option == null) {
       option = NEW_PROSPECT;
     }
@@ -91,9 +93,10 @@ public class ProspectService {
     var prospectResults = repository.evaluate(mergeEvals(prospectsEval, oldCustomersEval));
 
     var newProspects = isOldCustomer ? new ArrayList<Prospect>()
-        : retrieveProspects(prospectResults);
-    var oldCustomerProspects = isNotNewProspect ? retrieveOldCustomers(prospectResults)
-        : new ArrayList<Prospect>();
+        : retrieveProspects(prospectResults, minProspectRating);
+    var oldCustomerProspects =
+        isNotNewProspect ? retrieveOldCustomers(prospectResults, minCustomerRating)
+            : new ArrayList<Prospect>();
 
     repository.create(mergeProspects(newProspects, oldCustomerProspects));
 
@@ -107,16 +110,16 @@ public class ProspectService {
     }
   }
 
-  private List<Prospect> retrieveOldCustomers(List<ProspectResult> prospectResults) {
-    List<ProspectResult> filteredResults = ratedCustomers(prospectResults);
+  private List<Prospect> retrieveOldCustomers(List<ProspectResult> prospectResults,
+                                              Double minCustomerRating) {
+    List<ProspectResult> filteredResults = ratedCustomers(prospectResults, minCustomerRating);
     return convertToProspects(filteredResults);
   }
 
   private static List<ProspectResult> ratedCustomers(
-      List<ProspectResult> prospectResults) {
+      List<ProspectResult> prospectResults, Double minRating) {
     return filteredCustomers(prospectResults).stream()
-        .filter(result -> result.getCustomerInterventionResult().getRating()
-            >= DEFAULT_RATING_PROSPECT_TO_CONVERT)
+        .filter(result -> result.getCustomerInterventionResult().getRating() >= minRating)
         .collect(Collectors.toList());
   }
 
@@ -127,17 +130,17 @@ public class ProspectService {
         .collect(Collectors.toList());
   }
 
-  private List<Prospect> retrieveProspects(List<ProspectResult> prospectResults) {
-    return ratedProspects(prospectResults).stream()
+  private List<Prospect> retrieveProspects(List<ProspectResult> prospectResults,
+                                           Double minProspectRating) {
+    return ratedProspects(prospectResults, minProspectRating).stream()
         .map(this::convertNewProspect)
         .collect(Collectors.toList());
   }
 
   private static List<ProspectResult> ratedProspects(
-      List<ProspectResult> prospectResults) {
+      List<ProspectResult> prospectResults, Double minRating) {
     return filteredNewProspects(prospectResults).stream()
-        .filter(result -> result.getInterventionResult().getRating()
-            >= DEFAULT_RATING_PROSPECT_TO_CONVERT)
+        .filter(result -> result.getInterventionResult().getRating() >= minRating)
         .collect(Collectors.toList());
   }
 

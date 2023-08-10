@@ -124,7 +124,7 @@ public class CustomerService {
     );
   }
 
-  @Scheduled(fixedRate = 10 * 60 * 1_000)
+  @Scheduled(fixedRate = 24 * 60 * 60 * 1_000)
   public void updateCustomersLocation() {
     List<Customer> customers = repository.findWhereLatitudeOrLongitudeIsNull();
     int customersCount = customers.size();

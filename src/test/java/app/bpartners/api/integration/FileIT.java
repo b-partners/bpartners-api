@@ -1,24 +1,13 @@
 package app.bpartners.api.integration;
 
-import app.bpartners.api.SentryConf;
 import app.bpartners.api.endpoint.rest.api.FilesApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
 import app.bpartners.api.endpoint.rest.model.FileInfo;
 import app.bpartners.api.endpoint.rest.model.FileType;
-import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.integration.conf.S3AbstractContextInitializer;
 import app.bpartners.api.integration.conf.utils.TestUtils;
-import app.bpartners.api.manager.ProjectTokenManager;
-import app.bpartners.api.repository.connectors.account.AccountConnectorRepository;
-import app.bpartners.api.repository.LegalFileRepository;
-import app.bpartners.api.repository.bridge.BridgeApi;
-import app.bpartners.api.repository.fintecture.FintectureConf;
-import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitConf;
-import app.bpartners.api.repository.sendinblue.SendinblueConf;
-import app.bpartners.api.service.PaymentScheduleService;
-import app.bpartners.api.service.aws.S3Service;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -31,7 +20,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
@@ -63,8 +51,6 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @ContextConfiguration(initializers = FileIT.ContextInitializer.class)
 @AutoConfigureMockMvc
 class FileIT extends MockedThirdParties {
-  @MockBean
-  private S3Service s3Service;
   public static final String NON_EXISTENT_FILE_ID = "NOT" + TEST_FILE_ID;
   public static final String NOT_EXISTING_FILE_ID = "not_existing_file_id.jpeg";
   Tika typeGuesser = new Tika();

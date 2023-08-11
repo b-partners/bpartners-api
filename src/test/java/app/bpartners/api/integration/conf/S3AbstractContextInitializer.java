@@ -46,7 +46,7 @@ public abstract class S3AbstractContextInitializer
     postgresContainer.start();
 
     LocalStackContainer s3Container = new LocalStackContainer(DockerImageName.parse(
-        "localstack/localstack:2.2"))
+        "localstack/localstack"))
         .withServices(S3);
     s3Container.start();
 
@@ -59,7 +59,7 @@ public abstract class S3AbstractContextInitializer
             )
         )
         .withCredentials(new AWSStaticCredentialsProvider(
-            new BasicAWSCredentials(s3Container.getAccessKey(), s3Container.getSecretKey())))
+            s3Container.getDefaultCredentialsProvider().getCredentials()))
         .build();
 
     s3.createBucket(BUCKET_NAME);

@@ -16,7 +16,6 @@ import app.bpartners.api.endpoint.rest.model.UpdateInvoiceArchivedStatus;
 import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.integration.conf.S3AbstractContextInitializer;
 import app.bpartners.api.integration.conf.utils.TestUtils;
-import app.bpartners.api.repository.LegalFileRepository;
 import app.bpartners.api.repository.fintecture.FintecturePaymentInitiationRepository;
 import app.bpartners.api.repository.jpa.AccountHolderJpaRepository;
 import app.bpartners.api.repository.jpa.model.HAccountHolder;

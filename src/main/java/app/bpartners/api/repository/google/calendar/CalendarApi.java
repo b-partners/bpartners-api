@@ -1,7 +1,9 @@
 package app.bpartners.api.repository.google.calendar;
 
 import app.bpartners.api.model.exception.ApiException;
+import app.bpartners.api.model.exception.ForbiddenException;
 import com.google.api.client.auth.oauth2.Credential;
+import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.util.DateTime;
 import com.google.api.services.calendar.Calendar;
@@ -37,18 +39,33 @@ public class CalendarApi {
     DateTime now = new DateTime(System.currentTimeMillis());
     try {
       Events events = calendarService.events().list("primary")
-          .setMaxResults(10)
           .setTimeMin(now)
-          .setOrderBy("startTime")
-          .setSingleEvents(true)
           .execute();
       return events.getItems();
+    } catch (GoogleJsonResponseException e) {
+      if (e.getStatusCode() == 401) {
+        throw new ForbiddenException(
+            "Google Calendar Token is expired or invalid. Give your consent again.");
+      }
     } catch (IOException e) {
       throw new ApiException(SERVER_EXCEPTION, e);
     }
+    return List.of();
   }
 
   public List<Event> getEvents(String idUser) {
     return getEvents(calendarConf.loadCredential(idUser));
+  }
+
+  public String initConsent(String callbackUri) {
+    return calendarConf.getOauthRedirectUri(callbackUri);
+  }
+
+  public Credential loadCredentials(String idUser) {
+    return calendarConf.loadCredential(idUser);
+  }
+
+  public Credential storeCredential(String idUser, String authorizationCode, String redirectUri) {
+    return calendarConf.storeCredential(idUser, authorizationCode, redirectUri);
   }
 }

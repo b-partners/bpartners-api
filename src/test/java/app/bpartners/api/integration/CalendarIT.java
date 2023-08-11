@@ -6,6 +6,7 @@ import app.bpartners.api.repository.google.calendar.CalendarApi;
 import app.bpartners.api.repository.google.calendar.CalendarConf;
 import app.bpartners.api.repository.jpa.CalendarStoredCredentialJpaRep;
 import app.bpartners.api.repository.jpa.model.HCalendarStoredCredential;
+import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.services.calendar.model.Event;
 import java.io.File;
 import java.util.List;
@@ -39,8 +40,9 @@ public class CalendarIT extends MockedThirdParties {
   private CalendarStoredCredentialJpaRep storeRepository;
 
   @Test
-  void read_events_ok() {
-    List<Event> events = calendarApi.getEvents(calendarConf.getLocalCredentials(JOE_DOE_ID));
+  void read_events_from_local_credentials_ok() {
+    Credential loadedCredentials = calendarConf.getLocalCredentials(JOE_DOE_ID);
+    List<Event> events = calendarApi.getEvents(loadedCredentials);
     assertNotNull(events);
     downloadEvents(events);
     downloadCredentials(storeRepository.findAll());

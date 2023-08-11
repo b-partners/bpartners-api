@@ -18,6 +18,7 @@ import app.bpartners.api.repository.fintecture.FintectureConf;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitConf;
 import app.bpartners.api.repository.sendinblue.SendinblueConf;
 import app.bpartners.api.service.PaymentScheduleService;
+import app.bpartners.api.service.aws.S3Service;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -62,6 +63,8 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @ContextConfiguration(initializers = FileIT.ContextInitializer.class)
 @AutoConfigureMockMvc
 class FileIT extends MockedThirdParties {
+  @MockBean
+  private S3Service s3Service;
   public static final String NON_EXISTENT_FILE_ID = "NOT" + TEST_FILE_ID;
   public static final String NOT_EXISTING_FILE_ID = "not_existing_file_id.jpeg";
   Tika typeGuesser = new Tika();

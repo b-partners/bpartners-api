@@ -46,7 +46,7 @@ public abstract class S3AbstractContextInitializer
     postgresContainer.start();
 
     LocalStackContainer s3Container = new LocalStackContainer(DockerImageName.parse(
-        "localstack/localstack"))
+        "localstack/localstack:2.2"))
         .withServices(S3);
     s3Container.start();
 

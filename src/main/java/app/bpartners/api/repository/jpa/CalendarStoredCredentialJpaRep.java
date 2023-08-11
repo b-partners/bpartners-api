@@ -10,7 +10,7 @@ public interface CalendarStoredCredentialJpaRep
   boolean existsByAccessTokenAndRefreshTokenAndExpirationTimeMilliseconds(
       String accessToken, String refreshToken, Long expirationTime);
 
-  HCalendarStoredCredential findByIdUser(String idUser);
+  HCalendarStoredCredential findTopByIdUserOrderByCreationDatetimeDesc(String idUser);
 
   void deleteByIdUser(String idUser);
 }

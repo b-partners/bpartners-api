@@ -146,6 +146,15 @@ paths:
     $ref: './prospecting-api.yml#/operations/convertProspect'
   /accountHolders/{ahId}/prospects/prospectsEvaluation:
     $ref: './prospecting-api.yml#/operations/prospectsEvaluation'
+
+
+  #############################################
+  ################# Calendar API ##############
+  #############################################
+  /users/{id}/calendar/oauth2/consent:
+    $ref: './calendar-api.yml#/operations/calendarConsent'
+  /users/{id}/calendar/oauth2/auth:
+    $ref: './calendar-api.yml#/operations/calendarAuth'
 components:
   securitySchemes:
     BearerAuth:

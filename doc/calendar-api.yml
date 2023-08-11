@@ -1,0 +1,77 @@
+operations:
+  calendarAuth:
+    post:
+      tags:
+        - Calendar
+      summary: Exchange calendar token code to token
+      operationId: exchangeCode
+      parameters:
+        - name: id
+          in: path
+          description: User identifier
+          schema:
+            type: string
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CalendarAuth'
+      responses:
+        200:
+          description: The calendar OAuth token is persisted and can be used to calendar actions.
+        400:
+          $ref: './api.yml#/components/responses/400'
+        500:
+          $ref: './api.yml#/components/responses/500'
+  calendarConsent:
+    post:
+      tags:
+        - Calendar
+      summary: Initiate Oauth2 of Google Calendar API
+      operationId: initConsent
+      parameters:
+        - name: id
+          in: path
+          description: User identifier
+          schema:
+            type: string
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CalendarConsentInit'
+      responses:
+        200:
+          description: A redirection component where to initiate calendar consent
+          content:
+            application/json:
+              schema:
+                $ref: './api.yml#/components/schemas/Redirection'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
+components:
+  schemas:
+    CalendarConsentInit:
+      type: object
+      properties:
+        redirectionStatusUrls:
+          $ref: './api.yml#/components/schemas/RedirectionStatusUrls'
+    CalendarAuth:
+      type: object
+      properties:
+        code:
+          type: string
+        redirectUrls:
+          $ref: './api.yml#/components/schemas/RedirectionStatusUrls'

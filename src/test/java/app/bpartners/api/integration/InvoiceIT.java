@@ -109,8 +109,6 @@ class InvoiceIT extends MockedThirdParties {
   @MockBean
   private EventBridgeClient eventBridgeClientMock;
   @MockBean
-  private LegalFileRepository legalFileRepositoryMock;
-  @MockBean
   private AccountHolderJpaRepository holderJpaRepository;
 
   private static ApiClient anApiClient() {

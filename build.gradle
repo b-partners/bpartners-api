@@ -21,8 +21,11 @@ plugins {
     id 'checkstyle'
 }
 
-group = 'app.bpartners'
-sourceCompatibility = "11"
+java {
+    group = 'app.bpartners'
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
 
 configurations {
     compileOnly {

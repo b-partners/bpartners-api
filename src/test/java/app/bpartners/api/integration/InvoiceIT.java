@@ -16,6 +16,7 @@ import app.bpartners.api.endpoint.rest.model.PaymentRegulation;
 import app.bpartners.api.endpoint.rest.model.Product;
 import app.bpartners.api.endpoint.rest.model.UpdateInvoiceArchivedStatus;
 import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
+import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.integration.conf.S3AbstractContextInitializer;
 import app.bpartners.api.integration.conf.utils.TestUtils;
 import app.bpartners.api.manager.ProjectTokenManager;
@@ -109,26 +110,10 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @ContextConfiguration(initializers = InvoiceIT.ContextInitializer.class)
 @AutoConfigureMockMvc
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-class InvoiceIT {
+class InvoiceIT extends MockedThirdParties {
   public static final String CONCURRENT_INVOICE_ID = "concurrent_invoice_id";
-  @MockBean
-  private PaymentScheduleService paymentScheduleService;
-  @MockBean
-  private BuildingPermitConf buildingPermitConf;
   public static final String DRAFT_REF_PREFIX = "BROUILLON-";
   private static final String NEW_INVOICE_ID = "invoice_uuid";
-  @MockBean
-  private EventPoller eventPoller;
-  @MockBean
-  private SentryConf sentryConf;
-  @MockBean
-  private SendinblueConf sendinblueConf;
-  @MockBean
-  private FintectureConf fintectureConf;
-  @MockBean
-  private ProjectTokenManager projectTokenManager;
-  @MockBean
-  private AccountConnectorRepository accountConnectorRepositoryMock;
   @MockBean
   private FintecturePaymentInitiationRepository paymentInitiationRepositoryMock;
   @MockBean
@@ -137,10 +122,6 @@ class InvoiceIT {
   private LegalFileRepository legalFileRepositoryMock;
   @MockBean
   private AccountHolderJpaRepository holderJpaRepository;
-  @MockBean
-  private CognitoComponent cognitoComponentMock;
-  @MockBean
-  private BridgeApi bridgeApi;
 
   private static ApiClient anApiClient() {
     return TestUtils.anApiClient(JOE_DOE_TOKEN, InvoiceIT.ContextInitializer.SERVER_PORT);

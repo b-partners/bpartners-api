@@ -7,6 +7,7 @@ import app.bpartners.api.endpoint.rest.client.ApiException;
 import app.bpartners.api.endpoint.rest.model.FileInfo;
 import app.bpartners.api.endpoint.rest.model.FileType;
 import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
+import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.integration.conf.S3AbstractContextInitializer;
 import app.bpartners.api.integration.conf.utils.TestUtils;
 import app.bpartners.api.manager.ProjectTokenManager;
@@ -60,30 +61,10 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @Testcontainers
 @ContextConfiguration(initializers = FileIT.ContextInitializer.class)
 @AutoConfigureMockMvc
-class FileIT {
-  @MockBean
-  private PaymentScheduleService paymentScheduleService;
-  @MockBean
-  private BuildingPermitConf buildingPermitConf;
+class FileIT extends MockedThirdParties {
   public static final String NON_EXISTENT_FILE_ID = "NOT" + TEST_FILE_ID;
   public static final String NOT_EXISTING_FILE_ID = "not_existing_file_id.jpeg";
-  @MockBean
-  private SentryConf sentryConf;
-  @MockBean
-  private SendinblueConf sendinblueConf;
-  @MockBean
-  private FintectureConf fintectureConf;
-  @MockBean
-  private ProjectTokenManager projectTokenManager;
-  @MockBean
-  private AccountConnectorRepository accountConnectorRepositoryMock;
-  @MockBean
-  private BridgeApi bridgeApi;
-  @MockBean
-  private LegalFileRepository legalFileRepositoryMock;
-  @MockBean
-  private CognitoComponent cognitoComponentMock;
-  private Tika typeGuesser = new Tika();
+  Tika typeGuesser = new Tika();
 
   private static ApiClient anApiClient() {
     return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN, ContextInitializer.SERVER_PORT);

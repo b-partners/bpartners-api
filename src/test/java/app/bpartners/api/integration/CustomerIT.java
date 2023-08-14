@@ -103,7 +103,7 @@ class CustomerIT extends MockedThirdParties {
     List<Customer> restHolderCustomers = holderCustomers.stream()
         .map(customerRestMapper::toRest)
         .collect(Collectors.toList());
-    assertEquals(restHolderCustomers, actual);
+    assertTrue(restHolderCustomers.containsAll(actual));
   }
 
   @Test

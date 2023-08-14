@@ -38,6 +38,7 @@ import static app.bpartners.api.repository.expressif.ProspectEvalInfo.ContactNat
 import static app.bpartners.api.repository.expressif.ProspectEvalInfo.ContactNature.PROSPECT;
 import static java.util.UUID.randomUUID;
 import static org.apache.poi.ss.usermodel.Cell.CELL_TYPE_BLANK;
+import static org.apache.poi.ss.usermodel.Cell.CELL_TYPE_ERROR;
 
 @Slf4j
 @Component
@@ -440,7 +441,7 @@ public class ProspectEvalUtils {
   }
 
   private String getStringValue(Cell cell) {
-    if (cell == null) {
+    if (cell == null || cell.getCellType() == CELL_TYPE_ERROR) {
       return null;
     }
     if (cell.getCellType() == Cell.CELL_TYPE_NUMERIC) {
@@ -454,7 +455,7 @@ public class ProspectEvalUtils {
   }
 
   private Date getDateValue(Cell cell) {
-    if (cell == null) {
+    if (cell == null || cell.getCellType() == CELL_TYPE_ERROR) {
       return null;
     }
     try {
@@ -468,7 +469,7 @@ public class ProspectEvalUtils {
   }
 
   private Double doubleValue(Cell cell) {
-    if (cell == null) {
+    if (cell == null || cell.getCellType() == CELL_TYPE_ERROR) {
       return null;
     }
     try {

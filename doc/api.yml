@@ -104,6 +104,8 @@ paths:
     $ref: './paying-api.yml#/operations/archiveInvoices'
   /accounts/{aId}/invoices/{iId}:
     $ref: './paying-api.yml#/operations/invoiceOperations'
+  /accounts/{aId}/invoices/{iId}/duplication:
+    $ref: './paying-api.yml#/operations/invoiceDuplication'
   /accounts/{aId}/invoices/{iId}/relaunchConf:
     $ref: './paying-api.yml#/operations/invoiceRelaunchConfOperations'
   /accounts/{aId}/invoices/{iId}/relaunches:

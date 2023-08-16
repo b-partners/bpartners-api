@@ -6,9 +6,15 @@ operations:
       summary: Read calendar events of an user
       operationId: getCalendarEvents
       parameters:
-        - name: id
+        - name: userId
           in: path
           description: User identifier
+          schema:
+            type: string
+          required: true
+        - name: calendarId
+          in: path
+          description: Calendar identifier, Only `primary` value is supported for now.
           schema:
             type: string
           required: true
@@ -28,6 +34,44 @@ operations:
                 $ref: '#/components/schemas/CalendarEvent'
         400:
           $ref: './api.yml#/components/responses/400'
+        500:
+          $ref: './api.yml#/components/responses/500'
+    put:
+      tags:
+        - Calendar
+      summary: Create or update calendar events
+      operationId: crupdateCalendarEvents
+      parameters:
+        - name: userId
+          in: path
+          description: User identifier
+          schema:
+            type: string
+          required: true
+        - name: calendarId
+          in: path
+          description: Calendar identifier, Only `primary` value is supported for now.
+          schema:
+            type: string
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/CreateCalendarEvent'
+      responses:
+        200:
+          description: The calendar events crupdated
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CalendarEvent'
+        403:
+          $ref: './api.yml#/components/responses/403'
         500:
           $ref: './api.yml#/components/responses/500'
   calendarAuth:
@@ -107,6 +151,14 @@ components:
         redirectUrls:
           $ref: './api.yml#/components/schemas/RedirectionStatusUrls'
     CalendarEvent:
+      allOf:
+        - $ref: '#/components/schemas/CreateCalendarEvent'
+      type: object
+      properties:
+        updatedAt:
+          type: string
+          format: date-time
+    CreateCalendarEvent:
       type: object
       properties:
         id:
@@ -125,8 +177,5 @@ components:
           type: string
           format: date-time
         to:
-          type: string
-          format: date-time
-        updatedAt:
           type: string
           format: date-time

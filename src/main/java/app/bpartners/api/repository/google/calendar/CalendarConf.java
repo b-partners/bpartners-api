@@ -14,8 +14,8 @@ import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 
-import static com.google.api.services.calendar.CalendarScopes.CALENDAR_EVENTS_READONLY;
-import static com.google.api.services.calendar.CalendarScopes.CALENDAR_READONLY;
+import static com.google.api.services.calendar.CalendarScopes.CALENDAR;
+import static com.google.api.services.calendar.CalendarScopes.CALENDAR_EVENTS;
 
 @Configuration
 @Getter(AccessLevel.PACKAGE)
@@ -92,6 +92,6 @@ public class CalendarConf {
   }
 
   public static List<String> allowedScopes() {
-    return List.of(CALENDAR_READONLY, CALENDAR_EVENTS_READONLY);
+    return List.of(CALENDAR_EVENTS, CALENDAR);
   }
 }

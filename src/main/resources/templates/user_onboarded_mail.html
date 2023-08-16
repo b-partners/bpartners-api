@@ -26,6 +26,7 @@
 <p><strong><u>Nom de la société</u> :</strong> <span th:text="${accountHolder.name}"></span></p>
 <p><strong><u>Informations concernant le compte</u> :</strong></p>
 <ul>
+    <li>Id Account Holder : <span th:text="${accountHolder.getId()}"></span></li>
     <li>Nom(s) : <span th:text="${user.getFirstName()}"></span></li>
     <li>Prénom(s) : <span th:text="${user.getLastName()}"></span></li>
     <li>Email : <span th:text="${user.getEmail()}"></span></li>

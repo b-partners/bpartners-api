@@ -8,23 +8,26 @@ import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
 import java.util.List;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 
-import static com.google.api.services.calendar.CalendarScopes.CALENDAR_EVENTS_READONLY;
-import static com.google.api.services.calendar.CalendarScopes.CALENDAR_READONLY;
+import static com.google.api.services.calendar.CalendarScopes.CALENDAR;
+import static com.google.api.services.calendar.CalendarScopes.CALENDAR_EVENTS;
 
 @Configuration
-@Getter
+@Getter(AccessLevel.PACKAGE)
 public class CalendarConf {
   public static final int UNUSED_PORT = -1;
-  public static final GsonFactory JSON_FACTORY = GsonFactory.getDefaultInstance();
   private final String applicationName;
   private final String clientId;
   private final String clientSecret;
-  private final String redirectUri;
+  @Getter(AccessLevel.PUBLIC)
+  private final List<String> redirectUris;
+
+  public static final GsonFactory JSON_FACTORY = GsonFactory.getDefaultInstance();
   private final NetHttpTransport trustedTransport;
   private final DbCredentialStore dbCredentialStore;
   private final GoogleAuthorizationCodeFlow flow;
@@ -33,14 +36,15 @@ public class CalendarConf {
   public CalendarConf(@Value("${google.calendar.apps.name}") String applicationName,
                       @Value("${google.calendar.client.id}") String clientId,
                       @Value("${google.calendar.client.secret}") String clientSecret,
-                      @Value("${google.calendar.redirect.uri}") String redirectUri,
+                      @Value("${google.calendar.redirect.uris}")
+                      List<String> redirectUris,
                       DbCredentialStore dbCredentialStore) {
     this.applicationName = applicationName;
     this.clientId = clientId;
     this.clientSecret = clientSecret;
     this.trustedTransport = GoogleNetHttpTransport.newTrustedTransport();
-    this.redirectUri = redirectUri;
     this.dbCredentialStore = dbCredentialStore;
+    this.redirectUris = redirectUris;
     this.flow = getGoogleAuthorizationCodeFlow();
   }
 
@@ -53,22 +57,22 @@ public class CalendarConf {
         .authorize(idUser);
   }
 
-  public String getOauthRedirectUri() {
+  String getOauthRedirectUri(String redirectUri) {
     return flow.newAuthorizationUrl()
-        .setRedirectUri(this.redirectUri)
+        .setRedirectUri(redirectUri)
         .build();
   }
 
   @SneakyThrows
-  public Credential loadCredential(String idUser) {
+  Credential loadCredential(String idUser) {
     return flow.loadCredential(idUser);
   }
 
   @SneakyThrows
-  public Credential storeCredential(String idUser, String authorizationCode) {
+  Credential storeCredential(String idUser, String authorizationCode, String redirectUri) {
     if (authorizationCode != null) {
       var tokenResponse = flow.newTokenRequest(authorizationCode)
-          .setRedirectUri(this.redirectUri)
+          .setRedirectUri(redirectUri)
           .execute();
       return flow.createAndStoreCredential(tokenResponse, idUser);
     }
@@ -88,6 +92,6 @@ public class CalendarConf {
   }
 
   public static List<String> allowedScopes() {
-    return List.of(CALENDAR_READONLY, CALENDAR_EVENTS_READONLY);
+    return List.of(CALENDAR_EVENTS, CALENDAR);
   }
 }

@@ -2,12 +2,24 @@ package app.bpartners.api.integration;
 
 import app.bpartners.api.integration.conf.CalendarEnvContextInitializer;
 import app.bpartners.api.integration.conf.MockedThirdParties;
+import app.bpartners.api.repository.ban.BanApi;
 import app.bpartners.api.repository.google.calendar.CalendarApi;
 import app.bpartners.api.repository.google.calendar.CalendarConf;
 import app.bpartners.api.repository.jpa.CalendarStoredCredentialJpaRep;
 import app.bpartners.api.repository.jpa.model.HCalendarStoredCredential;
+import app.bpartners.api.service.CustomerService;
+import app.bpartners.api.service.TransactionService;
+import com.google.api.client.auth.oauth2.Credential;
+import com.google.api.client.util.DateTime;
 import com.google.api.services.calendar.model.Event;
+import com.google.api.services.calendar.model.EventAttendee;
+import com.google.api.services.calendar.model.EventDateTime;
 import java.io.File;
+import java.sql.Date;
+import java.time.Instant;
+import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.List;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -15,12 +27,16 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 import org.testcontainers.shaded.com.fasterxml.jackson.databind.SerializationFeature;
 
 import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ID;
+import static app.bpartners.api.repository.google.calendar.CalendarApi.DEFAULT_CALENDAR;
+import static app.bpartners.api.repository.google.calendar.CalendarApi.dateTimeFrom;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
@@ -37,10 +53,75 @@ public class CalendarIT extends MockedThirdParties {
   private CalendarConf calendarConf;
   @Autowired
   private CalendarStoredCredentialJpaRep storeRepository;
+  @MockBean
+  private TransactionService transactionService;
+  @MockBean
+  private BanApi banApi;
+  @MockBean
+  private CustomerService customerService;
 
   @Test
-  void read_events_ok() {
-    List<Event> events = calendarApi.getEvents(calendarConf.getLocalCredentials(JOE_DOE_ID));
+  void create_events_ok() {
+    Credential loadedCredentials = calendarConf.getLocalCredentials(JOE_DOE_ID);
+
+    List<Event> actual =
+        calendarApi.createEvents(loadedCredentials, DEFAULT_CALENDAR, createEvents());
+
+    assertNotNull(actual);
+    assertFalse(actual.isEmpty());
+    downloadEvents(actual);
+  }
+
+  private static List<Event> createEvents() {
+    return List.of(event1(), event2());
+  }
+
+  private static Event event1() {
+    long startMillis = System.currentTimeMillis();
+    long endMillis = startMillis + 3_600_000;
+    return new Event()
+        .setSummary("Event1 with location")
+        .setOrganizer(new Event.Organizer().setEmail("tech@bpartners.app"))
+        .setCreator(new Event.Creator().setEmail("tech@bpartners.app"))
+        .setStart(new EventDateTime()
+            .setDateTime(new DateTime(startMillis))
+            .setTimeZone("Europe/Paris"))
+        .setEnd(new EventDateTime()
+            .setDateTime(new DateTime(endMillis))
+            .setTimeZone("Europe/Paris"))
+        .setLocation("70 Rue Duhesme, 75018 Paris, France")
+        .setAttendees(List.of(
+            new EventAttendee().setEmail("tech@bpartners.app"),
+            new EventAttendee().setEmail("sofiane@bpartners.app")))
+        .setUpdated(dateTimeFrom(Instant.now()));
+  }
+
+  private static Event event2() {
+    long startMillis = System.currentTimeMillis();
+    long endMillis = startMillis + 3_600_000;
+    return new Event()
+        .setSummary("Event2 without location")
+        .setOrganizer(new Event.Organizer().setEmail("ryan@hei.school"))
+        .setCreator(new Event.Creator().setEmail("ryan@hei.school"))
+        .setStart(new EventDateTime()
+            .setDateTime(new DateTime(startMillis))
+            .setTimeZone("Europe/Paris"))
+        .setEnd(new EventDateTime()
+            .setDateTime(new DateTime(endMillis))
+            .setTimeZone("Europe/Paris"));
+  }
+
+  @Test
+  void read_events_from_local_credentials_ok() {
+    Instant instant = Instant.now();
+    ZonedDateTime zonedDateTime = instant.atZone(ZoneId.systemDefault());
+    ZonedDateTime beginOfDay = zonedDateTime.with(LocalTime.MIN);
+    ZonedDateTime endOfDay = zonedDateTime.with(LocalTime.MAX);
+    DateTime dateMin = new DateTime(Date.from(beginOfDay.toInstant()));
+    DateTime dateMax = new DateTime(Date.from(endOfDay.toInstant()));
+
+    Credential loadedCredentials = calendarConf.getLocalCredentials(JOE_DOE_ID);
+    List<Event> events = calendarApi.getEvents(loadedCredentials, dateMin, dateMax);
     assertNotNull(events);
     downloadEvents(events);
     downloadCredentials(storeRepository.findAll());

@@ -72,7 +72,7 @@ public class DbCredentialStore implements DataStore<StoredCredential> {
 
   @Override
   public StoredCredential get(String userId) {
-    return mapper.toStoredCredential(jpaRep.findByIdUser(userId));
+    return mapper.toStoredCredential(jpaRep.findTopByIdUserOrderByCreationDatetimeDesc(userId));
   }
 
   @Override

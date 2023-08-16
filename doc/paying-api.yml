@@ -708,6 +708,47 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
+  invoiceDuplication:
+    post:
+      tags:
+        - Paying
+      summary: Duplicate an existing invoice as draft
+      parameters:
+        - in: path
+          name: aId
+          description: Account identifier
+          schema:
+            type: string
+          required: true
+        - in: path
+          name: iId
+          description: Invoice identifier
+          schema:
+            type: string
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InvoiceReference'
+      responses:
+        200:
+          description: The duplicated draft invoice
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Invoice'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
   invoiceOperations:
     put:
       tags:
@@ -1406,3 +1447,8 @@ components:
         - CASH
         - BANK_TRANSFER
         - CHEQUE
+    InvoiceReference:
+      type: object
+      properties:
+        newReference:
+          type: string

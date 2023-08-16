@@ -42,7 +42,7 @@ public class EnvContextInitializer
         "google.calendar.apps.name=dummy",
         "google.calendar.client.id=dummy",
         "google.calendar.client.secret=dummy",
-        "google.calendar.redirect.uri=dummy",
+        "google.calendar.redirect.uris=dummy",
         "fintecture.base.url=https://api-sandbox.fintecture.com",
         "swan.base.url=https://api.swan.io/sandbox-partner",
         "spring.datasource.url=" + postgresContainer.getJdbcUrl(),

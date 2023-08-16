@@ -265,6 +265,18 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
             new SelfAccountHolderMatcher(POST, "/accountHolders/*/prospects/prospectsEvaluation",
                 authResourceProvider))
         .authenticated()
+        .requestMatchers(
+            new SelfUserMatcher(GET, "/users/*/calendar/*/events", authResourceProvider)
+        ).authenticated()
+        .requestMatchers(
+            new SelfUserMatcher(PUT, "/users/*/calendar/*/events", authResourceProvider))
+        .authenticated()
+        .requestMatchers(
+            new SelfUserMatcher(POST, "/users/*/calendar/oauth2/consent", authResourceProvider))
+        .authenticated()
+        .requestMatchers(
+            new SelfUserMatcher(POST, "/users/*/calendar/oauth2/auth", authResourceProvider))
+        .authenticated()
         .antMatchers("/**").denyAll()
 
         // disable superfluous protections

@@ -1,0 +1,181 @@
+operations:
+  calendarEvents:
+    get:
+      tags:
+        - Calendar
+      summary: Read calendar events of an user
+      operationId: getCalendarEvents
+      parameters:
+        - name: userId
+          in: path
+          description: User identifier
+          schema:
+            type: string
+          required: true
+        - name: calendarId
+          in: path
+          description: Calendar identifier, Only `primary` value is supported for now.
+          schema:
+            type: string
+          required: true
+        - name: from
+          in: query
+          description: When not provided or the `to` parameter not provided, the filter parameter is ignored.
+          schema:
+            type: string
+            format: date-time
+          required: false
+      responses:
+        200:
+          description: The calendar events
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CalendarEvent'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        500:
+          $ref: './api.yml#/components/responses/500'
+    put:
+      tags:
+        - Calendar
+      summary: Create or update calendar events
+      operationId: crupdateCalendarEvents
+      parameters:
+        - name: userId
+          in: path
+          description: User identifier
+          schema:
+            type: string
+          required: true
+        - name: calendarId
+          in: path
+          description: Calendar identifier, Only `primary` value is supported for now.
+          schema:
+            type: string
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/CreateCalendarEvent'
+      responses:
+        200:
+          description: The calendar events crupdated
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CalendarEvent'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        500:
+          $ref: './api.yml#/components/responses/500'
+  calendarAuth:
+    post:
+      tags:
+        - Calendar
+      summary: Exchange calendar token code to token
+      operationId: exchangeCode
+      parameters:
+        - name: id
+          in: path
+          description: User identifier
+          schema:
+            type: string
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CalendarAuth'
+      responses:
+        200:
+          description: The calendar OAuth token is persisted and can be used to calendar actions.
+        400:
+          $ref: './api.yml#/components/responses/400'
+        500:
+          $ref: './api.yml#/components/responses/500'
+  calendarConsent:
+    post:
+      tags:
+        - Calendar
+      summary: Initiate Oauth2 of Google Calendar API
+      operationId: initConsent
+      parameters:
+        - name: id
+          in: path
+          description: User identifier
+          schema:
+            type: string
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CalendarConsentInit'
+      responses:
+        200:
+          description: A redirection component where to initiate calendar consent
+          content:
+            application/json:
+              schema:
+                $ref: './api.yml#/components/schemas/Redirection'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
+components:
+  schemas:
+    CalendarConsentInit:
+      type: object
+      properties:
+        redirectionStatusUrls:
+          $ref: './api.yml#/components/schemas/RedirectionStatusUrls'
+    CalendarAuth:
+      type: object
+      properties:
+        code:
+          type: string
+        redirectUrls:
+          $ref: './api.yml#/components/schemas/RedirectionStatusUrls'
+    CalendarEvent:
+      allOf:
+        - $ref: '#/components/schemas/CreateCalendarEvent'
+      type: object
+      properties:
+        updatedAt:
+          type: string
+          format: date-time
+    CreateCalendarEvent:
+      type: object
+      properties:
+        id:
+          type: string
+        summary:
+          type: string
+        location:
+          type: string
+        organizer:
+          type: string
+        participants:
+          type: array
+          items:
+            type: string
+        from:
+          type: string
+          format: date-time
+        to:
+          type: string
+          format: date-time

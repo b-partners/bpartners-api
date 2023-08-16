@@ -118,8 +118,8 @@ Resources:
               Value: !Sub '{{resolve:ssm:/bpartners/${Env}/google/calendar/client/id}}'
             - Name: GOOGLE_CALENDAR_CLIENT_SECRET
               Value: !Sub '{{resolve:ssm:/bpartners/${Env}/google/calendar/client/secret}}'
-            - Name: GOOGLE_CALENDAR_REDIRECT_URI
-              Value: !Sub '{{resolve:ssm:/bpartners/${Env}/google/calendar/redirect/uri}}'
+            - Name: GOOGLE_CALENDAR_REDIRECT_URIS
+              Value: !Sub '{{resolve:ssm:/bpartners/${Env}/google/calendar/redirect/uris}}'
           LogConfiguration:
             LogDriver: awslogs
             Options:

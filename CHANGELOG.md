@@ -1,3 +1,27 @@
+# [0.24.0](https://github.com/b-partners/bpartners-api/compare/v0.23.0...v0.24.0) (2023-08-16)
+
+
+### Bug Fixes
+
+* avoid NPE when BanApi does not return result ([2aa2bf7](https://github.com/b-partners/bpartners-api/commit/2aa2bf764fb76fdd604350ca53c777615d5fd49e))
+* handle bad address during new prospect evaluation ([b527513](https://github.com/b-partners/bpartners-api/commit/b5275133702284cb4f663ee848ce63f5e9227abb))
+* map bridge transaction amount from minor ([ce98bda](https://github.com/b-partners/bpartners-api/commit/ce98bda5129d218320dd111326c2cd10c38173bc))
+* return customers infos during old customers evaluation ([abfea53](https://github.com/b-partners/bpartners-api/commit/abfea539f2da1bffc106ee7942cf7028c40f5823))
+* return null when cell type is error type when evaluating prospect ([c6d9071](https://github.com/b-partners/bpartners-api/commit/c6d907124ce62e19b4416664be57a52b771d48a3))
+* throw NotFoundException when banApi result is null ([1c7202c](https://github.com/b-partners/bpartners-api/commit/1c7202c058c49e720227b52ea5fe2c2af64ed9e9))
+* update customer location from full adress ([b7137de](https://github.com/b-partners/bpartners-api/commit/b7137deb79e4c4cf772c3c6b6e8aa52077b2a807))
+* update customers location every 24 hours instead of 10 minutes ([ba6a682](https://github.com/b-partners/bpartners-api/commit/ba6a6820add735d252e9c68e40d891b4ece4daea))
+
+
+### Features
+
+* configure calendar Oauth2 and test by listing events ([edcfb65](https://github.com/b-partners/bpartners-api/commit/edcfb652873fd19f426633e9b71495760ae656f6))
+* create new calendar events without persisting ([a3b4894](https://github.com/b-partners/bpartners-api/commit/a3b48948871225112a13b9bfa115ac3d8c1516ed))
+* evaluations can be configured by NEW_PROSPECT, OLD_CUSTOMERS or ALL of these two ([9ab2bd0](https://github.com/b-partners/bpartners-api/commit/9ab2bd0dff29e7f228dfa37c00da33dbaffd6bdf))
+* improve calendar events implementation and add filters ([eb44436](https://github.com/b-partners/bpartners-api/commit/eb4443638997a467ff49e78021cfdd4a97cefb5c))
+
+
+
 # [0.23.0](https://github.com/b-partners/bpartners-api/compare/v0.21.0...v0.23.0) (2023-08-03)
 
 
@@ -214,26 +238,6 @@
 ### Features
 
 * accountHolder has custom prospecting perimeter ([a3eb1ce](https://github.com/b-partners/bpartners-api/commit/a3eb1ceb21e32b92d4724bb9da3b3dabc5517aa6))
-
-
-
-# [0.12.0](https://github.com/b-partners/bpartners-api/compare/v0.11.0...v0.12.0) (2023-04-04)
-
-
-### Bug Fixes
-
-* account bic is not override when transaction is from bridge ([0a018f9](https://github.com/b-partners/bpartners-api/commit/0a018f997f8cfe8d2040c015c9e4e7c23b428048))
-* avoid NPE when retrieving transaction by ID from Swan ([1efb756](https://github.com/b-partners/bpartners-api/commit/1efb756a80f605cf43af84b8803de6470402a9e9))
-* avoid null values when retrieving user by token ([9dd3720](https://github.com/b-partners/bpartners-api/commit/9dd3720eda0f0116fb45ecf849cf01dec2730aab))
-* retrieve bridge account from persisted account ID ([1b957c4](https://github.com/b-partners/bpartners-api/commit/1b957c48193ed9b6eef332938fb88c39d69e48a5))
-* retrieve transaction from bridge and database when swan not provided ([9733e1d](https://github.com/b-partners/bpartners-api/commit/9733e1deacb9c8d29b7f3693d9e3c6be5113c2ae))
-* return bridge transaction absolute amount value ([0670778](https://github.com/b-partners/bpartners-api/commit/067077849a5e4d4d7b8e08a2ad7fe4837b5e6ebb))
-
-
-### Features
-
-* archive customers ([8f9d169](https://github.com/b-partners/bpartners-api/commit/8f9d169cc3bee418e3cf06f330b9777d12714525))
-* update account holder global info ([0b68661](https://github.com/b-partners/bpartners-api/commit/0b686613febdcd82dbffa7a771dd9ebf57b97f7e))
 
 
 

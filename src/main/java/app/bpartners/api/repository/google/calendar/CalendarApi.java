@@ -1,6 +1,7 @@
 package app.bpartners.api.repository.google.calendar;
 
 import app.bpartners.api.model.exception.ApiException;
+import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.ForbiddenException;
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
@@ -8,8 +9,11 @@ import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.util.DateTime;
 import com.google.api.services.calendar.Calendar;
 import com.google.api.services.calendar.model.Event;
-import com.google.api.services.calendar.model.Events;
+import com.google.api.services.calendar.model.EventDateTime;
 import java.io.IOException;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -24,6 +28,8 @@ import static app.bpartners.api.repository.google.calendar.CalendarConf.JSON_FAC
 @Component
 @AllArgsConstructor
 public class CalendarApi {
+  public static final String DEFAULT_CALENDAR = "primary";
+  public static final String START_TIME_ATTRIBUTE = "startTime";
   private final CalendarConf calendarConf;
 
   private Calendar initService(CalendarConf calendarConf, Credential credential) {
@@ -34,14 +40,26 @@ public class CalendarApi {
         .build();
   }
 
-  public List<Event> getEvents(Credential credential) {
+  public List<Event> getEvents(Credential credential, DateTime dateMin, DateTime dateMax) {
     Calendar calendarService = initService(calendarConf, credential);
-    DateTime now = new DateTime(System.currentTimeMillis());
     try {
-      Events events = calendarService.events().list("primary")
-          .setTimeMin(now)
-          .execute();
-      return events.getItems();
+      Calendar.Events.List eventBuilder = calendarService.events()
+          .list(DEFAULT_CALENDAR)
+          .setOrderBy(START_TIME_ATTRIBUTE)
+          .setSingleEvents(true);
+
+      if (dateMin != null && dateMax != null) {
+        Instant minInstant = Instant.parse(dateMin.toStringRfc3339());
+        Instant maxInstant = Instant.parse(dateMax.toStringRfc3339());
+        if (minInstant.isAfter(maxInstant)) {
+          throw new BadRequestException(
+              "Min datetime " + minInstant + " can not be after Max datetime " + maxInstant);
+        }
+        eventBuilder.setTimeMin(dateMin);
+        eventBuilder.setTimeMax(dateMax);
+      }
+
+      return eventBuilder.execute().getItems();
     } catch (GoogleJsonResponseException e) {
       if (e.getStatusCode() == 401) {
         throw new ForbiddenException(
@@ -53,8 +71,8 @@ public class CalendarApi {
     return List.of();
   }
 
-  public List<Event> getEvents(String idUser) {
-    return getEvents(calendarConf.loadCredential(idUser));
+  public List<Event> getEvents(String idUser, DateTime dateMin, DateTime dateMax) {
+    return getEvents(calendarConf.loadCredential(idUser), dateMin, dateMax);
   }
 
   public String initConsent(String callbackUri) {
@@ -67,5 +85,26 @@ public class CalendarApi {
 
   public Credential storeCredential(String idUser, String authorizationCode, String redirectUri) {
     return calendarConf.storeCredential(idUser, authorizationCode, redirectUri);
+  }
+
+  public static DateTime dateTimeFrom(Instant instant) {
+    return instant == null ? null : new DateTime(instant.toEpochMilli());
+  }
+
+  public static ZonedDateTime zonedDateTimeFrom(EventDateTime eventDateTime) {
+    return ZonedDateTime.ofInstant(instantFrom(eventDateTime),
+        ZoneId.of(timeZoneFrom(eventDateTime)));
+  }
+
+  public static String timeZoneFrom(EventDateTime eventDateTime) {
+    return eventDateTime.getTimeZone();
+  }
+
+  public static Instant instantFrom(EventDateTime eventDateTime) {
+    return instantFrom(eventDateTime.getDateTime());
+  }
+
+  public static Instant instantFrom(DateTime eventDateTime) {
+    return Instant.ofEpochMilli(eventDateTime.getValue());
   }
 }

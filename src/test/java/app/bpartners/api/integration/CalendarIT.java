@@ -7,8 +7,14 @@ import app.bpartners.api.repository.google.calendar.CalendarConf;
 import app.bpartners.api.repository.jpa.CalendarStoredCredentialJpaRep;
 import app.bpartners.api.repository.jpa.model.HCalendarStoredCredential;
 import com.google.api.client.auth.oauth2.Credential;
+import com.google.api.client.util.DateTime;
 import com.google.api.services.calendar.model.Event;
 import java.io.File;
+import java.sql.Date;
+import java.time.Instant;
+import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.List;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -41,8 +47,15 @@ public class CalendarIT extends MockedThirdParties {
 
   @Test
   void read_events_from_local_credentials_ok() {
+    Instant instant = Instant.now();
+    ZonedDateTime zonedDateTime = instant.atZone(ZoneId.systemDefault());
+    ZonedDateTime beginOfDay = zonedDateTime.with(LocalTime.MIN);
+    ZonedDateTime endOfDay = zonedDateTime.with(LocalTime.MAX);
+    DateTime dateMin = new DateTime(Date.from(beginOfDay.toInstant()));
+    DateTime dateMax = new DateTime(Date.from(endOfDay.toInstant()));
+
     Credential loadedCredentials = calendarConf.getLocalCredentials(JOE_DOE_ID);
-    List<Event> events = calendarApi.getEvents(loadedCredentials);
+    List<Event> events = calendarApi.getEvents(loadedCredentials, dateMin, dateMax);
     assertNotNull(events);
     downloadEvents(events);
     downloadCredentials(storeRepository.findAll());

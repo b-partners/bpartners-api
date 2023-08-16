@@ -1,26 +1,37 @@
 package app.bpartners.api.endpoint.rest.controller;
 
+import app.bpartners.api.endpoint.rest.mapper.CalendarRestMapper;
 import app.bpartners.api.endpoint.rest.model.CalendarAuth;
 import app.bpartners.api.endpoint.rest.model.CalendarConsentInit;
+import app.bpartners.api.endpoint.rest.model.CalendarEvent;
 import app.bpartners.api.endpoint.rest.model.Redirection;
 import app.bpartners.api.service.CalendarService;
-import com.google.api.services.calendar.model.Event;
+import java.time.Instant;
 import java.util.List;
+import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @AllArgsConstructor
 public class CalendarController {
-  private CalendarService calendarService;
+  private final CalendarService calendarService;
+  private final CalendarRestMapper mapper;
 
   @GetMapping("/users/{id}/calendar/events")
-  public List<Event> getCalendarEvents(@PathVariable(name = "id") String idUser) {
-    return calendarService.getEvents(idUser);
+  public List<CalendarEvent> getCalendarEvents(@PathVariable(name = "id") String idUser,
+                                               @RequestParam(name = "from", required = false)
+                                               Instant from,
+                                               @RequestParam(name = "to", required = false)
+                                               Instant to) {
+    return calendarService.getEvents(idUser, from, to).stream()
+        .map(mapper::toRest)
+        .collect(Collectors.toList());
   }
 
   @PostMapping("/users/{id}/calendar/oauth2/auth")

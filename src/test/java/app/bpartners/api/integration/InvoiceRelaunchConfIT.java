@@ -6,6 +6,7 @@ import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
 import app.bpartners.api.endpoint.rest.model.InvoiceRelaunchConf;
 import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
+import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.integration.conf.S3AbstractContextInitializer;
 import app.bpartners.api.integration.conf.utils.TestUtils;
 import app.bpartners.api.manager.ProjectTokenManager;
@@ -44,33 +45,12 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @ContextConfiguration(initializers = InvoiceRelaunchConfIT.ContextInitializer.class)
 @AutoConfigureMockMvc
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-class InvoiceRelaunchConfIT {
-  @MockBean
-  private PaymentScheduleService paymentScheduleService;
+class InvoiceRelaunchConfIT extends MockedThirdParties {
   private static final String RELAUNCH_CONF1_ID = "relaunchConf1_id";
-  @MockBean
-  private BuildingPermitConf buildingPermitConf;
-  @MockBean
-  private SentryConf sentryConf;
-  @MockBean
-  private SendinblueConf sendinblueConf;
-
-  @MockBean
-  private ProjectTokenManager projectTokenManager;
-  @MockBean
-  private FintectureConf fintectureConf;
-  @MockBean
-  private AccountConnectorRepository accountConnectorRepositoryMock;
-  @MockBean
-  private BridgeApi bridgeApi;
   @MockBean
   private FintecturePaymentInitiationRepository paymentInitiationRepositoryMock;
   @MockBean
-  private LegalFileRepository legalFileRepositoryMock;
-  @MockBean
   private FintecturePaymentInfoRepository paymentInfoRepositoryMock;
-  @MockBean
-  private CognitoComponent cognitoComponentMock;
 
   private static ApiClient anApiClient() {
     return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN,

@@ -93,7 +93,7 @@ public class OnboardingService {
 
   private TypedUserOnboarded toTypedEvent(OnboardedUser onboardedUser) {
     String subject =
-        "Inscription d'un nouveau artisan : " + onboardedUser.getOnboardedUser().getName();
+        "Inscription d'un nouvel artisan : " + onboardedUser.getOnboardedUser().getName();
     String recipient = eventConf.getAdminEmail();
     return new TypedUserOnboarded(
         new UserOnboarded()

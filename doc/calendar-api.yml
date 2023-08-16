@@ -1,4 +1,35 @@
 operations:
+  calendarEvents:
+    get:
+      tags:
+        - Calendar
+      summary: Read calendar events of an user
+      operationId: getCalendarEvents
+      parameters:
+        - name: id
+          in: path
+          description: User identifier
+          schema:
+            type: string
+          required: true
+        - name: from
+          in: query
+          description: When not provided or the `to` parameter not provided, the filter parameter is ignored.
+          schema:
+            type: string
+            format: date-time
+          required: false
+      responses:
+        200:
+          description: The calendar events
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CalendarEvent'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        500:
+          $ref: './api.yml#/components/responses/500'
   calendarAuth:
     post:
       tags:
@@ -75,3 +106,27 @@ components:
           type: string
         redirectUrls:
           $ref: './api.yml#/components/schemas/RedirectionStatusUrls'
+    CalendarEvent:
+      type: object
+      properties:
+        id:
+          type: string
+        summary:
+          type: string
+        location:
+          type: string
+        organizer:
+          type: string
+        participants:
+          type: array
+          items:
+            type: string
+        from:
+          type: string
+          format: date-time
+        to:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time

@@ -155,6 +155,8 @@ paths:
     $ref: './calendar-api.yml#/operations/calendarConsent'
   /users/{id}/calendar/oauth2/auth:
     $ref: './calendar-api.yml#/operations/calendarAuth'
+  /users/{id}/calendar/events:
+    $ref: './calendar-api.yml#/operations/calendarEvents'
 components:
   securitySchemes:
     BearerAuth:

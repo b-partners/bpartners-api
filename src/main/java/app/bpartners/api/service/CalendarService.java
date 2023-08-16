@@ -7,11 +7,11 @@ import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
 import app.bpartners.api.endpoint.rest.validator.CalendarConsentValidator;
 import app.bpartners.api.model.CalendarEvent;
 import app.bpartners.api.model.exception.BadRequestException;
+import app.bpartners.api.model.mapper.CalendarEventMapper;
 import app.bpartners.api.model.validator.CalendarAuthValidator;
 import app.bpartners.api.repository.google.calendar.CalendarApi;
 import app.bpartners.api.repository.google.calendar.CalendarConf;
 import com.google.api.services.calendar.model.Event;
-import com.google.api.services.calendar.model.EventAttendee;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
@@ -21,9 +21,6 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import static app.bpartners.api.repository.google.calendar.CalendarApi.dateTimeFrom;
-import static app.bpartners.api.repository.google.calendar.CalendarApi.instantFrom;
-import static app.bpartners.api.repository.google.calendar.CalendarApi.zonedDateTimeFrom;
-import static java.util.UUID.randomUUID;
 
 @Service
 @AllArgsConstructor
@@ -31,6 +28,18 @@ public class CalendarService {
   private final CalendarApi calendarApi;
   private final CalendarConsentValidator consentValidator;
   private final CalendarAuthValidator authValidator;
+  private final CalendarEventMapper eventMapper;
+
+  public List<CalendarEvent> saveEvents(String idUser,
+                                        String calendarId,
+                                        List<CalendarEvent> events) {
+    List<Event> toCreate = events.stream()
+        .map(eventMapper::toEvent)
+        .collect(Collectors.toList());
+    return calendarApi.createEvents(idUser, calendarId, toCreate).stream()
+        .map(eventMapper::toCalendarEvent)
+        .collect(Collectors.toList());
+  }
 
   public Redirection initConsent(CalendarConsentInit consentInit) {
     consentValidator.accept(consentInit);
@@ -61,26 +70,10 @@ public class CalendarService {
   public List<CalendarEvent> getEvents(String idUser, Instant instantMin, Instant instantMax) {
     return calendarApi.getEvents(idUser, dateTimeFrom(instantMin), dateTimeFrom(instantMax))
         .stream()
-        .map(event -> CalendarEvent.builder()
-            .id(String.valueOf(randomUUID())) //TODO: remove when calendar events are persisted
-            .summary(event.getSummary())
-            .location(event.getLocation())
-            .organizer(event.getOrganizer().getEmail())
-            .participants(getParticipants(event))
-            .from(zonedDateTimeFrom(event.getStart()))
-            .to(zonedDateTimeFrom(event.getEnd()))
-            .updatedAt(instantFrom(event.getUpdated()))
-            .build())
+        .map(eventMapper::toCalendarEvent)
         .collect(Collectors.toList());
   }
 
-  private static List<String> getParticipants(Event event) {
-    return event.getAttendees() != null && !event.getAttendees().isEmpty()
-        ? event.getAttendees().stream()
-        .map(EventAttendee::getEmail)
-        .collect(Collectors.toList())
-        : List.of();
-  }
 
   private CalendarConf calendarConf() {
     return calendarApi.getCalendarConf();

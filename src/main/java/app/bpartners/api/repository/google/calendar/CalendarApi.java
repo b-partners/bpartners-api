@@ -15,12 +15,14 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
+import static app.bpartners.api.model.mapper.CalendarEventMapper.PARIS_TIMEZONE;
 import static app.bpartners.api.repository.google.calendar.CalendarConf.JSON_FACTORY;
 
 @Slf4j
@@ -75,6 +77,33 @@ public class CalendarApi {
     return getEvents(calendarConf.loadCredential(idUser), dateMin, dateMax);
   }
 
+  public List<Event> createEvents(String idUser, String calendarId, List<Event> events) {
+    return createEvents(loadCredentials(idUser), calendarId, events);
+  }
+
+
+  public List<Event> createEvents(Credential credential, String calendarId, List<Event> events) {
+    Calendar calendarService = initService(calendarConf, credential);
+    return events.stream().map(event -> {
+      Event result = null;
+      try {
+        result = calendarService.events()
+            .insert(calendarId, event)
+            .execute();
+      } catch (GoogleJsonResponseException e) {
+        if (e.getStatusCode() == 401) {
+          throw new ForbiddenException(
+              "Google Calendar Token is expired or invalid. Give your consent again.");
+        }
+      } catch (IOException e) {
+        throw new ApiException(SERVER_EXCEPTION, e);
+      } catch (Exception e) {
+        log.warn(e.getMessage());
+      }
+      return result;
+    }).collect(Collectors.toList());
+  }
+
   public String initConsent(String callbackUri) {
     return calendarConf.getOauthRedirectUri(callbackUri);
   }
@@ -89,6 +118,10 @@ public class CalendarApi {
 
   public static DateTime dateTimeFrom(Instant instant) {
     return instant == null ? null : new DateTime(instant.toEpochMilli());
+  }
+
+  public static ZonedDateTime zonedDateTimeFrom(Instant instant) {
+    return ZonedDateTime.ofInstant(instant, ZoneId.of(PARIS_TIMEZONE));
   }
 
   public static ZonedDateTime zonedDateTimeFrom(EventDateTime eventDateTime) {

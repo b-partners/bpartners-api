@@ -266,8 +266,11 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
                 authResourceProvider))
         .authenticated()
         .requestMatchers(
-            new SelfUserMatcher(GET, "/users/*/calendar/events", authResourceProvider)
+            new SelfUserMatcher(GET, "/users/*/calendar/*/events", authResourceProvider)
         ).authenticated()
+        .requestMatchers(
+            new SelfUserMatcher(PUT, "/users/*/calendar/*/events", authResourceProvider))
+        .authenticated()
         .requestMatchers(
             new SelfUserMatcher(POST, "/users/*/calendar/oauth2/consent", authResourceProvider))
         .authenticated()

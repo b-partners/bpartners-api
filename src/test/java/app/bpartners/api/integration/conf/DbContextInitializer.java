@@ -22,7 +22,7 @@ public class DbContextInitializer
     int localPort = findAvailableTcpPort();
     int containerPort = 5432;
     DockerImageName postgis = DockerImageName
-        .parse("postgis/postgis")
+        .parse("duvel/postgis:15-3.3")
         .asCompatibleSubstituteFor("postgres");
 
     postgresContainer = new PostgreSQLContainer<>(postgis)

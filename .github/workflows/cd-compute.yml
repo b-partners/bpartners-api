@@ -73,10 +73,6 @@ jobs:
           export BRIDGE_BASE_URL=${{ secrets.BRIDGE_BASE_URL }}
           export BRIDGE_VERSION=${{ secrets.BRIDGE_VERSION }}
           export BAN_BASE_URL=${{ secrets.BAN_BASE_URL }}
-          export GOOGLE_CALENDAR_APPS_NAME=${{ secrets.GOOGLE_CALENDAR_APPS_NAME }}
-          export GOOGLE_CALENDAR_CLIENT_ID=${{ secrets.GOOGLE_CALENDAR_CLIENT_ID }}
-          export GOOGLE_CALENDAR_CLIENT_SECRET=${{ secrets.GOOGLE_CALENDAR_CLIENT_SECRET }}
-          export GOOGLE_CALENDAR_REDIRECT_URI=${{ secrets.GOOGLE_CALENDAR_REDIRECT_URI }}
           ./gradlew test
         if: ${{ github.event.inputs.run_tests != 'false' && github.event_name != 'schedule' }}
 

@@ -194,6 +194,11 @@ public class ProspectService {
       for (ProspectEval eval : subList) {
         NewIntervention newIntervention = (NewIntervention) eval.getDepaRule();
         for (Customer customer : oldCustomers) {
+          if (customer.getLocation() == null || customer.getLocation().getCoordinate() == null
+              || customer.getLocation().getCoordinate().getLatitude() == null
+              || customer.getLocation().getCoordinate().getLongitude() == null) {
+            continue;
+          }
           Double distance = newIntervention.getCoordinate()
               .getDistanceFrom(customer.getLocation().getCoordinate());
           if (distance < MAX_DISTANCE_LIMIT) {

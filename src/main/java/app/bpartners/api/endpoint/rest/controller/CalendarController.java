@@ -33,7 +33,7 @@ public class CalendarController {
         .collect(Collectors.toList());
   }
 
-  @GetMapping("/users/{idUser}/calendar/{calendarId}/events")
+  @GetMapping("/users/{idUser}/calendars/{calendarId}/events")
   public List<CalendarEvent> getCalendarEvents(@PathVariable(name = "idUser") String idUser,
                                                @PathVariable(name = "calendarId")
                                                String idCalendar,
@@ -46,7 +46,7 @@ public class CalendarController {
         .collect(Collectors.toList());
   }
 
-  @PutMapping("/users/{idUser}/calendar/{calendarId}/events")
+  @PutMapping("/users/{idUser}/calendars/{calendarId}/events")
   public List<CalendarEvent> crupdateEvents(@PathVariable(name = "idUser") String idUser,
                                             @PathVariable(name = "calendarId") String idCalendar,
                                             @RequestBody(required = false)
@@ -59,13 +59,13 @@ public class CalendarController {
         .collect(Collectors.toList());
   }
 
-  @PostMapping("/users/{id}/calendar/oauth2/auth")
+  @PostMapping("/users/{id}/calendars/oauth2/auth")
   public void handleAuth(@PathVariable(name = "id") String idUser,
                          @RequestBody CalendarAuth auth) {
     calendarService.exchangeCode(idUser, auth);
   }
 
-  @PostMapping("/users/{id}/calendar/oauth2/consent")
+  @PostMapping("/users/{id}/calendars/oauth2/consent")
   public Redirection initConsent(@PathVariable(name = "id") String userId,
                                  @RequestBody(required = false) CalendarConsentInit consentInit) {
     return calendarService.initConsent(consentInit);

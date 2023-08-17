@@ -151,11 +151,11 @@ paths:
   #############################################
   ################# Calendar API ##############
   #############################################
-  /users/{id}/calendar/oauth2/consent:
+  /users/{id}/calendars/oauth2/consent:
     $ref: './calendar-api.yml#/operations/calendarConsent'
-  /users/{id}/calendar/oauth2/auth:
+  /users/{id}/calendars/oauth2/auth:
     $ref: './calendar-api.yml#/operations/calendarAuth'
-  /users/{userId}/calendar/{calendarId}/events:
+  /users/{userId}/calendars/{calendarId}/events:
     $ref: './calendar-api.yml#/operations/calendarEvents'
   /users/{userId}/calendars:
     $ref: './calendar-api.yml#/operations/calendars'

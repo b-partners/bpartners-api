@@ -1,4 +1,28 @@
 operations:
+  calendars:
+    get:
+      tags:
+        - Calendar
+      summary: Read all calendars of an user
+      operation: getCalendars
+      parameters:
+        - name: userId
+          in: path
+          description: User identifier
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description: The calendars list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Calendar'
+        403:
+          $ref: './api.yml#/components/responses/400'
+        500:
+          $ref: './api.yml#/components/responses/500'
   calendarEvents:
     get:
       tags:
@@ -179,3 +203,19 @@ components:
         to:
           type: string
           format: date-time
+    Calendar:
+      type: object
+      properties:
+        id:
+          type: string
+        summary:
+          type: string
+        permission:
+          $ref: '#/components/schemas/CalendarPermission'
+    CalendarPermission:
+      type: string
+      enum:
+        - OWNER
+        - READER
+        - WRITER
+        - UNKNOWN

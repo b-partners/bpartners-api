@@ -8,6 +8,7 @@ import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.util.DateTime;
 import com.google.api.services.calendar.Calendar;
+import com.google.api.services.calendar.model.CalendarListEntry;
 import com.google.api.services.calendar.model.Event;
 import com.google.api.services.calendar.model.EventDateTime;
 import java.io.IOException;
@@ -102,6 +103,24 @@ public class CalendarApi {
       }
       return result;
     }).collect(Collectors.toList());
+  }
+
+  public List<CalendarListEntry> getCalendars(String idUser) {
+    Calendar calendarService = initService(calendarConf, loadCredentials(idUser));
+    List<CalendarListEntry> calendarList = null;
+    try {
+      calendarList = calendarService.calendarList().list().execute().getItems();
+    } catch (GoogleJsonResponseException e) {
+      if (e.getStatusCode() == 401) {
+        throw new ForbiddenException(
+            "Google Calendar Token is expired or invalid. Give your consent again.");
+      }
+    } catch (IOException e) {
+      throw new ApiException(SERVER_EXCEPTION, e);
+    } catch (Exception e) {
+      log.warn(e.getMessage());
+    }
+    return calendarList;
   }
 
   public String initConsent(String callbackUri) {

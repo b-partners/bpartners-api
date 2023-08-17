@@ -1,6 +1,7 @@
 package app.bpartners.api.endpoint.rest.controller;
 
 import app.bpartners.api.endpoint.rest.mapper.CalendarRestMapper;
+import app.bpartners.api.endpoint.rest.model.Calendar;
 import app.bpartners.api.endpoint.rest.model.CalendarAuth;
 import app.bpartners.api.endpoint.rest.model.CalendarConsentInit;
 import app.bpartners.api.endpoint.rest.model.CalendarEvent;
@@ -27,6 +28,13 @@ import static app.bpartners.api.repository.google.calendar.CalendarApi.DEFAULT_C
 public class CalendarController {
   private final CalendarService calendarService;
   private final CalendarRestMapper mapper;
+
+  @GetMapping("/users/{idUser}/calendars")
+  public List<Calendar> getCalendars(@PathVariable String idUser) {
+    return calendarService.getCalendars(idUser).stream()
+        .map(mapper::toRest)
+        .collect(Collectors.toList());
+  }
 
   @GetMapping("/users/{idUser}/calendar/{calendarId}/events")
   public List<CalendarEvent> getCalendarEvents(@PathVariable(name = "idUser") String idUser,

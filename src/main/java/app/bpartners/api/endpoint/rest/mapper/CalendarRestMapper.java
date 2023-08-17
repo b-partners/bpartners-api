@@ -1,5 +1,6 @@
 package app.bpartners.api.endpoint.rest.mapper;
 
+import app.bpartners.api.endpoint.rest.model.Calendar;
 import app.bpartners.api.endpoint.rest.model.CalendarEvent;
 import app.bpartners.api.endpoint.rest.model.CreateCalendarEvent;
 import org.springframework.stereotype.Component;
@@ -19,6 +20,13 @@ public class CalendarRestMapper {
         .from(calendarEvent.getFrom().toInstant())
         .to(calendarEvent.getTo().toInstant())
         .updatedAt(calendarEvent.getUpdatedAt());
+  }
+
+  public Calendar toRest(app.bpartners.api.model.Calendar calendar) {
+    return new Calendar()
+        .id(calendar.getId())
+        .summary(calendar.getSummary())
+        .permission(calendar.getCalendarPermission());
   }
 
   public app.bpartners.api.model.CalendarEvent toDomain(CreateCalendarEvent rest) {

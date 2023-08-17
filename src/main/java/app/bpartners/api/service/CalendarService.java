@@ -5,9 +5,11 @@ import app.bpartners.api.endpoint.rest.model.CalendarConsentInit;
 import app.bpartners.api.endpoint.rest.model.Redirection;
 import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
 import app.bpartners.api.endpoint.rest.validator.CalendarConsentValidator;
+import app.bpartners.api.model.Calendar;
 import app.bpartners.api.model.CalendarEvent;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.mapper.CalendarEventMapper;
+import app.bpartners.api.model.mapper.CalendarMapper;
 import app.bpartners.api.model.validator.CalendarAuthValidator;
 import app.bpartners.api.repository.google.calendar.CalendarApi;
 import app.bpartners.api.repository.google.calendar.CalendarConf;
@@ -29,6 +31,13 @@ public class CalendarService {
   private final CalendarConsentValidator consentValidator;
   private final CalendarAuthValidator authValidator;
   private final CalendarEventMapper eventMapper;
+  private final CalendarMapper calendarMapper;
+
+  public List<Calendar> getCalendars(String idUser) {
+    return calendarApi.getCalendars(idUser).stream()
+        .map(calendarMapper::toCalendar)
+        .collect(Collectors.toList());
+  }
 
   public List<CalendarEvent> saveEvents(String idUser,
                                         String calendarId,

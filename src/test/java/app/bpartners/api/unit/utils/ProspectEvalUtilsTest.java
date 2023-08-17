@@ -39,14 +39,14 @@ class ProspectEvalUtilsTest {
     banApiMock = mock(BanApi.class);
     subject = new ProspectEvalUtils(banApiMock);
 
-    when(banApiMock.search(any())).thenReturn(
-        GeoPosition.builder()
-            .coordinates(GeoUtils.Coordinate.builder()
-                .latitude(DEFAULT_LATITUDE)
-                .longitude(DEFAULT_LONGITUDE)
-                .build())
-            .build()
-    );
+    when(banApiMock.search(any())).thenReturn(defaultGeoPosition());
+    when(banApiMock.fSearch(any())).thenReturn(defaultGeoPosition());
+  }
+
+  private static GeoPosition defaultGeoPosition() {
+    return GeoPosition.builder()
+        .coordinates(defaultCoordinate())
+        .build();
   }
 
   private static GeoUtils.Coordinate defaultCoordinate() {

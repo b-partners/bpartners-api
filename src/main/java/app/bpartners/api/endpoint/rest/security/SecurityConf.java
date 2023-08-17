@@ -18,6 +18,7 @@ import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 
+import static app.bpartners.api.endpoint.rest.security.model.Role.EVAL_PROSPECT;
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpMethod.OPTIONS;
 import static org.springframework.http.HttpMethod.POST;
@@ -264,7 +265,7 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
         .requestMatchers(
             new SelfAccountHolderMatcher(POST, "/accountHolders/*/prospects/prospectsEvaluation",
                 authResourceProvider))
-        .authenticated()
+        .hasAnyRole(EVAL_PROSPECT.getRole())
         .requestMatchers(
             new SelfUserMatcher(GET, "/users/*/calendars/*/events", authResourceProvider)
         ).authenticated()

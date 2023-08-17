@@ -2,8 +2,14 @@ package app.bpartners.api.endpoint.rest.mapper;
 
 import app.bpartners.api.endpoint.rest.model.OnboardUser;
 import app.bpartners.api.endpoint.rest.model.User;
+import app.bpartners.api.endpoint.rest.model.UserRole;
+import app.bpartners.api.endpoint.rest.security.model.Role;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
+
+import static app.bpartners.api.endpoint.rest.security.model.Role.EVAL_PROSPECT;
 
 @Component
 @AllArgsConstructor
@@ -21,7 +27,26 @@ public class UserRestMapper {
         .idVerified(domain.getIdVerified())
         .identificationStatus(domain.getIdentificationStatus())
         .logoFileId(domain.getLogoFileId())
-        .activeAccount(accountRestMapper.toRest(domain.getDefaultAccount()));
+        .activeAccount(accountRestMapper.toRest(domain.getDefaultAccount()))
+        .roles(toRest(domain.getRoles()));
+  }
+
+  private UserRole toRest(Role role) {
+    if (role.getRole().equals(EVAL_PROSPECT.name())) {
+      return UserRole.EVAL_PROSPECT;
+    }
+    return null;
+  }
+
+  private List<UserRole> toRest(List<Role> roles) {
+    List<UserRole> userRoles = new ArrayList<>();
+    roles.forEach(role -> {
+      UserRole userRole = toRest(role);
+      if (userRole != null) {
+        userRoles.add(userRole);
+      }
+    });
+    return userRoles;
   }
 
   public app.bpartners.api.model.User toDomain(OnboardUser toCreateUser) {
@@ -32,4 +57,5 @@ public class UserRestMapper {
         .mobilePhoneNumber(toCreateUser.getPhoneNumber())
         .build();
   }
+
 }

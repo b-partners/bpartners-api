@@ -2,7 +2,7 @@ package app.bpartners.api.endpoint.rest.security.model;
 
 import app.bpartners.api.model.User;
 import java.util.Collection;
-import java.util.List;
+import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.ToString;
@@ -18,7 +18,9 @@ public class Principal implements UserDetails {
 
   @Override
   public Collection<? extends GrantedAuthority> getAuthorities() {
-    return List.of();
+    return user.getRoles().stream()
+        .map(role -> Role.valueOf(String.valueOf(role)))
+        .collect(Collectors.toList());
   }
 
   @Override

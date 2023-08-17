@@ -2,6 +2,7 @@ package app.bpartners.api.model;
 
 import app.bpartners.api.endpoint.rest.model.EnableStatus;
 import app.bpartners.api.endpoint.rest.model.IdentificationStatus;
+import app.bpartners.api.endpoint.rest.security.model.Role;
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.List;
@@ -46,6 +47,8 @@ public class User implements Serializable {
   private String externalUserId;
   private String oldS3key;
   private BankConnection.BankConnectionStatus connectionStatus;
+  private List<Role> roles;
+
   public String getName() {
     return firstName + " " + lastName;
   }

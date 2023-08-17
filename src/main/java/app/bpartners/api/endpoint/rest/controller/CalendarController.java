@@ -7,7 +7,6 @@ import app.bpartners.api.endpoint.rest.model.CalendarConsentInit;
 import app.bpartners.api.endpoint.rest.model.CalendarEvent;
 import app.bpartners.api.endpoint.rest.model.CreateCalendarEvent;
 import app.bpartners.api.endpoint.rest.model.Redirection;
-import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.service.CalendarService;
 import java.time.Instant;
 import java.util.List;
@@ -20,8 +19,6 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
-import static app.bpartners.api.repository.google.calendar.CalendarApi.DEFAULT_CALENDAR;
 
 @RestController
 @AllArgsConstructor
@@ -44,11 +41,7 @@ public class CalendarController {
                                                Instant from,
                                                @RequestParam(name = "to", required = false)
                                                Instant to) {
-    if (!idCalendar.equals(DEFAULT_CALENDAR)) {
-      throw new NotImplementedException(
-          "Only `" + DEFAULT_CALENDAR + "` value is supported for now.");
-    }
-    return calendarService.getEvents(idUser, from, to).stream()
+    return calendarService.getEvents(idUser, idCalendar, from, to).stream()
         .map(mapper::toRest)
         .collect(Collectors.toList());
   }
@@ -58,10 +51,6 @@ public class CalendarController {
                                             @PathVariable(name = "calendarId") String idCalendar,
                                             @RequestBody(required = false)
                                             List<CreateCalendarEvent> events) {
-    if (!idCalendar.equals(DEFAULT_CALENDAR)) {
-      throw new NotImplementedException(
-          "Only `" + DEFAULT_CALENDAR + "` value is supported for now.");
-    }
     List<app.bpartners.api.model.CalendarEvent> domainEvents = events.stream()
         .map(mapper::toDomain)
         .collect(Collectors.toList());

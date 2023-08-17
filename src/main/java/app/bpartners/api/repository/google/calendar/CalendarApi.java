@@ -43,11 +43,12 @@ public class CalendarApi {
         .build();
   }
 
-  public List<Event> getEvents(Credential credential, DateTime dateMin, DateTime dateMax) {
+  public List<Event> getEvents(String idCalendar, Credential credential, DateTime dateMin,
+                               DateTime dateMax) {
     Calendar calendarService = initService(calendarConf, credential);
     try {
       Calendar.Events.List eventBuilder = calendarService.events()
-          .list(DEFAULT_CALENDAR)
+          .list(idCalendar)
           .setOrderBy(START_TIME_ATTRIBUTE)
           .setSingleEvents(true);
 
@@ -74,8 +75,11 @@ public class CalendarApi {
     return List.of();
   }
 
-  public List<Event> getEvents(String idUser, DateTime dateMin, DateTime dateMax) {
-    return getEvents(calendarConf.loadCredential(idUser), dateMin, dateMax);
+  public List<Event> getEvents(String idUser,
+                               String idCalendar,
+                               DateTime dateMin,
+                               DateTime dateMax) {
+    return getEvents(idCalendar, calendarConf.loadCredential(idUser), dateMin, dateMax);
   }
 
   public List<Event> createEvents(String idUser, String calendarId, List<Event> events) {

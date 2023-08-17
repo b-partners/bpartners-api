@@ -121,7 +121,8 @@ public class CalendarIT extends MockedThirdParties {
     DateTime dateMax = new DateTime(Date.from(endOfDay.toInstant()));
 
     Credential loadedCredentials = calendarConf.getLocalCredentials(JOE_DOE_ID);
-    List<Event> events = calendarApi.getEvents(loadedCredentials, dateMin, dateMax);
+    List<Event> events =
+        calendarApi.getEvents(DEFAULT_CALENDAR, loadedCredentials, dateMin, dateMax);
     assertNotNull(events);
     downloadEvents(events);
     downloadCredentials(storeRepository.findAll());

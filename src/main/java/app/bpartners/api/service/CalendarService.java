@@ -9,10 +9,11 @@ import app.bpartners.api.model.Calendar;
 import app.bpartners.api.model.CalendarEvent;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.mapper.CalendarEventMapper;
-import app.bpartners.api.model.mapper.CalendarMapper;
 import app.bpartners.api.model.validator.CalendarAuthValidator;
+import app.bpartners.api.repository.CalendarRepository;
 import app.bpartners.api.repository.google.calendar.CalendarApi;
 import app.bpartners.api.repository.google.calendar.CalendarConf;
+import com.google.api.client.util.DateTime;
 import com.google.api.services.calendar.model.Event;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
@@ -31,21 +32,20 @@ public class CalendarService {
   private final CalendarConsentValidator consentValidator;
   private final CalendarAuthValidator authValidator;
   private final CalendarEventMapper eventMapper;
-  private final CalendarMapper calendarMapper;
+  private final CalendarRepository calendarRepository;
 
   public List<Calendar> getCalendars(String idUser) {
-    return calendarApi.getCalendars(idUser).stream()
-        .map(calendarMapper::toCalendar)
-        .collect(Collectors.toList());
+    return calendarRepository.findByIdUser(idUser);
   }
 
   public List<CalendarEvent> saveEvents(String idUser,
                                         String calendarId,
                                         List<CalendarEvent> events) {
+    Calendar calendar = calendarRepository.getById(calendarId);
     List<Event> toCreate = events.stream()
         .map(eventMapper::toEvent)
         .collect(Collectors.toList());
-    return calendarApi.createEvents(idUser, calendarId, toCreate).stream()
+    return calendarApi.createEvents(idUser, calendar.getEteId(), toCreate).stream()
         .map(eventMapper::toCalendarEvent)
         .collect(Collectors.toList());
   }
@@ -76,9 +76,14 @@ public class CalendarService {
     calendarApi.storeCredential(idUser, code, redirectUrl);
   }
 
-  public List<CalendarEvent> getEvents(String idUser, Instant instantMin, Instant instantMax) {
-    return calendarApi.getEvents(idUser, dateTimeFrom(instantMin), dateTimeFrom(instantMax))
-        .stream()
+  public List<CalendarEvent> getEvents(String idUser,
+                                       String idCalendar,
+                                       Instant instantMin,
+                                       Instant instantMax) {
+    Calendar calendar = calendarRepository.getById(idCalendar);
+    DateTime dateMin = dateTimeFrom(instantMin);
+    DateTime dateMax = dateTimeFrom(instantMax);
+    return calendarApi.getEvents(idUser, calendar.getEteId(), dateMin, dateMax).stream()
         .map(eventMapper::toCalendarEvent)
         .collect(Collectors.toList());
   }

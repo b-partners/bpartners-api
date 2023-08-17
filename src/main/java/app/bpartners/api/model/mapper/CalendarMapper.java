@@ -2,6 +2,7 @@ package app.bpartners.api.model.mapper;
 
 import app.bpartners.api.endpoint.rest.model.CalendarPermission;
 import app.bpartners.api.model.Calendar;
+import app.bpartners.api.repository.jpa.model.HCalendar;
 import com.google.api.services.calendar.model.CalendarListEntry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -26,6 +27,24 @@ public class CalendarMapper {
         .eteId(calendar.getId())
         .summary(calendar.getSummary())
         .calendarPermission(getPermission(calendar))
+        .build();
+  }
+
+  public Calendar toCalendar(HCalendar calendarEntity) {
+    return Calendar.builder()
+        .id(calendarEntity.getId())
+        .eteId(calendarEntity.getEteId())
+        .summary(calendarEntity.getSummary())
+        .calendarPermission(calendarEntity.getPermission())
+        .build();
+  }
+
+  public HCalendar toCalendarEntity(String idUser, CalendarListEntry entry) {
+    return HCalendar.builder()
+        .idUser(idUser)
+        .eteId(entry.getId())
+        .summary(entry.getSummary())
+        .permission(getPermission(entry))
         .build();
   }
 

@@ -1,6 +1,8 @@
 package app.bpartners.api.repository.google.calendar;
 
+import app.bpartners.api.model.exception.ForbiddenException;
 import com.google.api.client.auth.oauth2.Credential;
+import com.google.api.client.auth.oauth2.TokenResponseException;
 import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInstalledApp;
 import com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver;
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
@@ -71,10 +73,18 @@ public class CalendarConf {
   @SneakyThrows
   Credential storeCredential(String idUser, String authorizationCode, String redirectUri) {
     if (authorizationCode != null) {
-      var tokenResponse = flow.newTokenRequest(authorizationCode)
-          .setRedirectUri(redirectUri)
-          .execute();
-      return flow.createAndStoreCredential(tokenResponse, idUser);
+      try {
+        var tokenResponse = flow.newTokenRequest(authorizationCode)
+            .setRedirectUri(redirectUri)
+            .execute();
+        return flow.createAndStoreCredential(tokenResponse, idUser);
+      } catch (TokenResponseException e) {
+        if (e.getStatusCode() == 400) {
+          throw new ForbiddenException(
+              "Invalid grant (code=" + authorizationCode
+                  + ") when exchanging it to calendar API token");
+        }
+      }
     }
     return null;
   }

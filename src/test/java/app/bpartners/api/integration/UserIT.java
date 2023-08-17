@@ -11,6 +11,7 @@ import app.bpartners.api.endpoint.rest.model.OnboardedUser;
 import app.bpartners.api.endpoint.rest.model.User;
 import app.bpartners.api.endpoint.rest.model.Whois;
 import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
+import app.bpartners.api.endpoint.rest.security.model.Role;
 import app.bpartners.api.integration.conf.DbEnvContextInitializer;
 import app.bpartners.api.integration.conf.utils.TestUtils;
 import app.bpartners.api.manager.ProjectTokenManager;
@@ -127,7 +128,8 @@ class UserIT {
         .monthlySubscriptionAmount(5)
         .logoFileId("logo.jpeg")
         .status(ENABLED)
-        .activeAccount(restJaneAccount());
+        .activeAccount(restJaneAccount())
+        .roles(List.of());
   }
 
   @BeforeEach
@@ -242,6 +244,7 @@ class UserIT {
         .identificationStatus(null)
         .accounts(List.of())
         .accountHolders(List.of())
+        .roles(new Role[]{})
         .build(), beforeUpdate);
     assertEquals(restJaneDoeUser()
         .firstName(null)

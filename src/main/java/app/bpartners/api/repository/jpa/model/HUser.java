@@ -2,13 +2,16 @@ package app.bpartners.api.repository.jpa.model;
 
 import app.bpartners.api.endpoint.rest.model.EnableStatus;
 import app.bpartners.api.endpoint.rest.model.IdentificationStatus;
+import app.bpartners.api.endpoint.rest.model.UserRole;
+import app.bpartners.api.endpoint.rest.security.model.Role;
 import app.bpartners.api.model.BankConnection;
 import app.bpartners.api.repository.jpa.types.PostgresEnumType;
+import io.hypersistence.utils.hibernate.type.array.EnumArrayType;
+import io.hypersistence.utils.hibernate.type.array.internal.AbstractArrayType;
 import java.io.Serializable;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -27,6 +30,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.Parameter;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 
@@ -35,6 +39,15 @@ import static javax.persistence.GenerationType.IDENTITY;
 @Entity
 @Table(name = "\"user\"")
 @TypeDef(name = "pgsql_enum", typeClass = PostgresEnumType.class)
+@TypeDef(
+    name = "user_roles",
+    typeClass = EnumArrayType.class,
+    defaultForType = UserRole[].class,
+    parameters = @Parameter(
+        name = AbstractArrayType.SQL_ARRAY_TYPE,
+        value = "user_role"
+    )
+)
 @Getter
 @Setter
 @ToString
@@ -82,6 +95,10 @@ public class HUser implements Serializable {
   private IdentificationStatus identificationStatus;
   @Column(name = "old_s3_id_account")
   private String oldS3AccountKey;
+  @Type(type = "user_roles")
+  @Column(name = "roles", columnDefinition = "user_role[]")
+  private Role[] roles;
+
 
   public Instant getBridgeItemLastRefresh() {
     return bridgeItemLastRefresh == null ? null

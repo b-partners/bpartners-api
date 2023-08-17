@@ -167,7 +167,8 @@ public class TestUtils {
         .monthlySubscriptionAmount(5)
         .logoFileId("logo.jpeg")
         .status(ENABLED)
-        .activeAccount(restJoeAccount());
+        .activeAccount(restJoeAccount())
+        .roles(List.of());
   }
 
   public static app.bpartners.api.endpoint.rest.model.Account restJaneAccount() {

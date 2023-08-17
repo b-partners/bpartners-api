@@ -148,6 +148,7 @@ dependencies {
     implementation 'com.nimbusds:nimbus-jose-jwt'
 
     implementation 'com.vladmihalcea:hibernate-types-52:1.0.0'
+    implementation 'io.hypersistence:hypersistence-utils-hibernate-55:3.5.1'
     implementation 'org.flywaydb:flyway-core'
     implementation 'org.postgresql:postgresql'
 

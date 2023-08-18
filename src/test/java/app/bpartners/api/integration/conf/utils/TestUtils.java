@@ -260,7 +260,10 @@ public class TestUtils {
         .city("Metz")
         .country(null)
         .comment("Rencontre avec Luc")
-        .location(new CustomerLocation().address("15 rue Porte d'Orange"))
+        .location(new CustomerLocation()
+            .address("15 rue Porte d'Orange")
+            .longitude(0d)
+            .latitude(0d))
         .status(CustomerStatus.ENABLED);
   }
 
@@ -277,7 +280,10 @@ public class TestUtils {
         .city("Montmorency")
         .country("France")
         .comment("Rencontre avec le plombier")
-        .location(new CustomerLocation().address("4 Avenue des Près"))
+        .location(new CustomerLocation()
+            .address("4 Avenue des Près")
+            .longitude(0d)
+            .latitude(0d))
         .status(CustomerStatus.ENABLED);
   }
 

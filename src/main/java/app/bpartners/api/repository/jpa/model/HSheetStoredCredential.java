@@ -14,14 +14,14 @@ import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 
 @Entity
-@Table(name = "\"calendar_stored_credential\"")
+@Table(name = "\"sheet_stored_credential\"")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @SuperBuilder(toBuilder = true)
 @ToString
 @EqualsAndHashCode
-public class HCalendarStoredCredential  {
+public class HSheetStoredCredential {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private String id;

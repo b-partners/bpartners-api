@@ -1,4 +1,4 @@
-package app.bpartners.api.repository.google.calendar;
+package app.bpartners.api.repository.google.generic;
 
 import app.bpartners.api.model.exception.ForbiddenException;
 import com.google.api.client.auth.oauth2.Credential;
@@ -13,41 +13,33 @@ import java.util.List;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.SneakyThrows;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Configuration;
 
-import static com.google.api.services.calendar.CalendarScopes.CALENDAR;
-import static com.google.api.services.calendar.CalendarScopes.CALENDAR_EVENTS;
-
-@Configuration
-@Getter(AccessLevel.PACKAGE)
-public class CalendarConf {
+public class CredentialConfig {
   public static final int UNUSED_PORT = -1;
+  public static final GsonFactory JSON_FACTORY = GsonFactory.getDefaultInstance();
+  @Getter(AccessLevel.PUBLIC)
+  private final NetHttpTransport trustedTransport;
+  @Getter(AccessLevel.PUBLIC)
   private final String applicationName;
   private final String clientId;
   private final String clientSecret;
   @Getter(AccessLevel.PUBLIC)
   private final List<String> redirectUris;
-
-  public static final GsonFactory JSON_FACTORY = GsonFactory.getDefaultInstance();
-  private final NetHttpTransport trustedTransport;
-  private final CalendarDbCredentialStore dbCredentialStore;
   private final GoogleAuthorizationCodeFlow flow;
 
   @SneakyThrows
-  public CalendarConf(@Value("${google.calendar.apps.name}") String applicationName,
-                      @Value("${google.calendar.client.id}") String clientId,
-                      @Value("${google.calendar.client.secret}") String clientSecret,
-                      @Value("${google.calendar.redirect.uris}")
-                      List<String> redirectUris,
-                      CalendarDbCredentialStore dbCredentialStore) {
+  public CredentialConfig(String applicationName,
+                          String clientId,
+                          String clientSecret,
+                          List<String> redirectUris,
+                          List<String> allowedScopes,
+                          DbCredentialStore dbCredentialStore) {
     this.applicationName = applicationName;
     this.clientId = clientId;
     this.clientSecret = clientSecret;
-    this.trustedTransport = GoogleNetHttpTransport.newTrustedTransport();
-    this.dbCredentialStore = dbCredentialStore;
     this.redirectUris = redirectUris;
-    this.flow = getGoogleAuthorizationCodeFlow();
+    this.trustedTransport = GoogleNetHttpTransport.newTrustedTransport();
+    this.flow = getGoogleAuthorizationCodeFlow(allowedScopes, dbCredentialStore);
   }
 
   @SneakyThrows
@@ -59,19 +51,19 @@ public class CalendarConf {
         .authorize(idUser);
   }
 
-  String getOauthRedirectUri(String redirectUri) {
+  public String getOauthRedirectUri(String redirectUri) {
     return flow.newAuthorizationUrl()
         .setRedirectUri(redirectUri)
         .build();
   }
 
   @SneakyThrows
-  Credential loadCredential(String idUser) {
+  public Credential loadCredential(String idUser) {
     return flow.loadCredential(idUser);
   }
 
   @SneakyThrows
-  Credential storeCredential(String idUser, String authorizationCode, String redirectUri) {
+  public Credential storeCredential(String idUser, String authorizationCode, String redirectUri) {
     if (authorizationCode != null) {
       try {
         var tokenResponse = flow.newTokenRequest(authorizationCode)
@@ -90,18 +82,15 @@ public class CalendarConf {
   }
 
   @SneakyThrows
-  private GoogleAuthorizationCodeFlow getGoogleAuthorizationCodeFlow() {
+  private GoogleAuthorizationCodeFlow getGoogleAuthorizationCodeFlow(List<String> allowedScopes,
+                                                                     DbCredentialStore dbCredentialStore) {
     return new GoogleAuthorizationCodeFlow.Builder(
         trustedTransport,
         JSON_FACTORY,
         clientId,
         clientSecret,
-        allowedScopes())
+        allowedScopes)
         .setCredentialDataStore(dbCredentialStore)
         .build();
-  }
-
-  public static List<String> allowedScopes() {
-    return List.of(CALENDAR_EVENTS, CALENDAR);
   }
 }

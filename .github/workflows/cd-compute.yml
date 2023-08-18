@@ -22,6 +22,13 @@ on:
 
 env:
   ADS_DENOM_CHAR: e
+  ADS_BASEURL: ${{ secrets.ADS_BASEURL}}
+  ADS_BEARER: ${{ secrets.ADS_BEARER }}
+  BRIDGE_CLIENT_ID: ${{ secrets.BRIDGE_CLIENT_ID }}
+  BRIDGE_CLIENT_SECRET: ${{ secrets.BRIDGE_CLIENT_SECRET }}
+  BRIDGE_BASE_URL: ${{ secrets.BRIDGE_BASE_URL }}
+  BRIDGE_VERSION: ${{ secrets.BRIDGE_VERSION }}
+  BAN_BASE_URL: ${{ secrets.BAN_BASE_URL }}
   NAME_PREFIX: ''
 
 jobs:
@@ -91,8 +98,17 @@ jobs:
           file: version.yml
           version: version
 
-      - name: Run tests
-        run: ./gradlew test
+      - name: Jacoco test coverage
+        run: |
+          export ADS_BASEURL=$ADS_BASEURL
+          export ADS_BEARER=$ADS_BEARER
+          export ADS_DENOM_CHAR=$ADS_DENOM_CHAR
+          export BRIDGE_CLIENT_ID=$BRIDGE_CLIENT_ID
+          export BRIDGE_CLIENT_SECRET=$BRIDGE_CLIENT_SECRET
+          export BRIDGE_BASE_URL=$BRIDGE_BASE_URL
+          export BRIDGE_VERSION=$BRIDGE_VERSION
+          export BAN_BASE_URL=$BAN_BASE_URL
+          ./gradlew test
         if: ${{ github.event.inputs.run_tests != 'false' && github.event_name != 'schedule' }}
 
       - run: ./gradlew build -x test

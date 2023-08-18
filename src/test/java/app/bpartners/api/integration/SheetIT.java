@@ -3,6 +3,7 @@ package app.bpartners.api.integration;
 import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.integration.conf.SheetEnvContextInitializer;
 import app.bpartners.api.repository.ban.BanApi;
+import app.bpartners.api.repository.google.calendar.drive.DriveApi;
 import app.bpartners.api.repository.google.sheets.SheetApi;
 import app.bpartners.api.repository.google.sheets.SheetConf;
 import app.bpartners.api.repository.jpa.SheetStoredCredentialJpaRep;
@@ -10,13 +11,15 @@ import app.bpartners.api.repository.jpa.model.HSheetStoredCredential;
 import app.bpartners.api.service.CustomerService;
 import app.bpartners.api.service.TransactionService;
 import com.google.api.client.auth.oauth2.Credential;
+import com.google.api.services.drive.model.File;
+import com.google.api.services.drive.model.FileList;
 import com.google.api.services.sheets.v4.model.CellData;
 import com.google.api.services.sheets.v4.model.GridData;
 import com.google.api.services.sheets.v4.model.RowData;
 import com.google.api.services.sheets.v4.model.Sheet;
 import com.google.api.services.sheets.v4.model.Spreadsheet;
-import java.io.File;
 import java.util.List;
+import java.util.stream.Collectors;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
@@ -46,6 +49,8 @@ public class SheetIT extends MockedThirdParties {
   @Autowired
   private SheetConf sheetConf;
   @Autowired
+  private DriveApi driveApi;
+  @Autowired
   private SheetStoredCredentialJpaRep storeRepository;
   @MockBean
   private TransactionService transactionService;
@@ -53,6 +58,24 @@ public class SheetIT extends MockedThirdParties {
   private BanApi banApi;
   @MockBean
   private CustomerService customerService;
+
+  @Test
+  void read_all_sheets_file_ok() {
+    Credential loadedCredentials = sheetConf.getLocalCredentials(JOE_DOE_ID);
+
+    FileList actual = driveApi.getSpreadSheets(loadedCredentials);
+
+    List<File> files = actual.getFiles();
+    List<String> fileNames = files.stream()
+        .map(File::getName)
+        .collect(Collectors.toList());
+    //TODO: must be 2 because get at twice own spreadsheets or excel and shared spreadsheets or excel
+    assertEquals(1, files.size());
+    assertEquals(
+        List.of("Golden source Depa1 Depa 2 - Prospect métier Antinuisibles  Serrurier .xlsx"),
+        fileNames);
+    log.info(files.toString());
+  }
 
   @Test
   void read_sheets_from_local_credentials_ok() {
@@ -78,13 +101,13 @@ public class SheetIT extends MockedThirdParties {
   private static void downloadSheets(List<Spreadsheet> spreadsheets) {
     ObjectMapper om = new ObjectMapper();
     om.enable(SerializationFeature.INDENT_OUTPUT);
-    om.writeValue(new File("spreadsheets.json"), spreadsheets);
+    om.writeValue(new java.io.File("spreadsheets.json"), spreadsheets);
   }
 
   @SneakyThrows
   private static void downloadCredentials(List<HSheetStoredCredential> credentials) {
     ObjectMapper om = new ObjectMapper();
     om.enable(SerializationFeature.INDENT_OUTPUT);
-    om.writeValue(new File("credentials.json"), credentials);
+    om.writeValue(new java.io.File("credentials.json"), credentials);
   }
 }

@@ -125,6 +125,7 @@ class DirtyAccountIT extends MockedThirdParties {
         .email("joe@email.com")
         .preferredAccountId(null)
         .accounts(List.of(joeDoeModelAccount()))
+        .roles(List.of())
         .build();
   }
 
@@ -134,6 +135,7 @@ class DirtyAccountIT extends MockedThirdParties {
         .email("bernard@email.com")
         .preferredAccountId(null)
         .accounts(List.of(bernardDoeModelAccount()))
+        .roles(List.of())
         .build();
   }
 
@@ -143,6 +145,7 @@ class DirtyAccountIT extends MockedThirdParties {
         .preferredAccountId(String.valueOf(otherBridgeAccount().getId()))
         .email("joe@email.com")
         .accounts(List.of(joeDoeModelAccount()))
+        .roles(List.of())
         .build();
   }
 

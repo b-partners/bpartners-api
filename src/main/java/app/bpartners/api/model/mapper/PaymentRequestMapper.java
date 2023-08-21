@@ -38,12 +38,13 @@ public class PaymentRequestMapper {
   }
 
   public PaymentInitiation convertFromInvoice(
-      String paymentInitiationId, Invoice invoice, CreatePaymentRegulation payment) {
+      String paymentInitiationId, String label, String reference, Invoice invoice,
+      CreatePaymentRegulation payment) {
     Fraction totalPriceWithVat = invoice.getTotalPriceWithVat();
     return PaymentInitiation.builder()
         .id(paymentInitiationId)
-        .reference(invoice.getRealReference())
-        .label(invoice.getTitle())
+        .reference(reference)
+        .label(label)
         .amount(
             payment != null
                 ? payment.getAmountOrPercent(totalPriceWithVat)
@@ -86,5 +87,4 @@ public class PaymentRequestMapper {
         .initiatedDatetime(payment.getCreatedDatetime())
         .build();
   }
-
 }

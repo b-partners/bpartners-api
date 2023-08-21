@@ -42,6 +42,7 @@ import app.bpartners.api.repository.fintecture.FintecturePaymentInitiationReposi
 import app.bpartners.api.repository.fintecture.model.FPaymentInitiation;
 import app.bpartners.api.repository.fintecture.model.FPaymentRedirection;
 import app.bpartners.api.repository.fintecture.model.Session;
+import app.bpartners.api.repository.jpa.model.HAccountHolder;
 import app.bpartners.api.repository.model.AccountConnector;
 import app.bpartners.api.repository.sendinblue.SendinblueApi;
 import app.bpartners.api.repository.sendinblue.model.Attributes;
@@ -499,23 +500,31 @@ public class TestUtils {
   public static PaymentRegulation datedPaymentRequest2() {
     return new PaymentRegulation()
         .maturityDate(LocalDate.of(2023, 2, 1))
-        .paymentRequest(basePaymentRequest()
-            .id("bab75c91-f275-4f68-b10a-0f30f96f7806")
-            .label("Reste 50%")
-            .reference("FAC2023ACT02")
-            .percentValue(5000)
-            .initiatedDatetime(Instant.parse("2023-01-02T00:00:00Z")));
+        .paymentRequest(paymentReq2());
+  }
+
+  public static InvoicePaymentReq paymentReq2() {
+    return basePaymentRequest()
+        .id("bab75c91-f275-4f68-b10a-0f30f96f7806")
+        .label("Reste 50%")
+        .reference("FAC2023ACT02")
+        .percentValue(5000)
+        .initiatedDatetime(Instant.parse("2023-01-02T00:00:00Z"));
   }
 
   public static PaymentRegulation datedPaymentRequest1() {
     return new PaymentRegulation()
         .maturityDate(LocalDate.of(2023, 2, 1))
-        .paymentRequest(basePaymentRequest()
-            .id("a1275c91-f275-4f68-b10a-0f30f96f7806")
-            .label("Acompte 50%")
-            .reference("FAC2023ACT01")
-            .percentValue(5000)
-            .initiatedDatetime(Instant.parse("2023-01-01T00:00:00Z")));
+        .paymentRequest(paymentReq1());
+  }
+
+  public static InvoicePaymentReq paymentReq1() {
+    return basePaymentRequest()
+        .id("a1275c91-f275-4f68-b10a-0f30f96f7806")
+        .label("Acompte 50%")
+        .reference("FAC2023ACT01")
+        .percentValue(5000)
+        .initiatedDatetime(Instant.parse("2023-01-01T00:00:00Z"));
   }
 
 
@@ -525,7 +534,7 @@ public class TestUtils {
         .comment(null)
         .title("Outils pour plomberie")
         .fileId("file1_id")
-        .paymentUrl("https://connect-v2-sbx.fintecture.com")
+        // .paymentUrl("https://connect-v2-sbx.fintecture.com")
         .customer(customer1()).ref("BP001")
         .createdAt(Instant.parse("2022-01-01T01:00:00.00Z"))
         .sendingDate(LocalDate.of(2022, 9, 1))
@@ -836,6 +845,20 @@ public class TestUtils {
   public static AccountHolder joeDoeAccountHolder() {
     return AccountHolder.builder()
         .id(JOE_DOE_ACCOUNT_HOLDER_ID)
+        .build();
+  }
+
+  public static HAccountHolder accountHolderEntity1() {
+    return HAccountHolder.builder()
+        .id(ACCOUNTHOLDER_ID)
+        .idUser(JOE_DOE_ID)
+        .mobilePhoneNumber("+33 6 11 22 33 44")
+        .email("numer@hei.school")
+        .socialCapital("40000/1")
+        .vatNumber("FR 32 123456789")
+        .initialCashflow("6000/1")
+        .subjectToVat(true)
+        .country("FRA")
         .build();
   }
 

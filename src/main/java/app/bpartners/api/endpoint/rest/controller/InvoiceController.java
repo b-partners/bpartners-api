@@ -3,9 +3,11 @@ package app.bpartners.api.endpoint.rest.controller;
 import app.bpartners.api.endpoint.rest.mapper.InvoiceRestMapper;
 import app.bpartners.api.endpoint.rest.model.CrupdateInvoice;
 import app.bpartners.api.endpoint.rest.model.Invoice;
+import app.bpartners.api.endpoint.rest.model.InvoiceReference;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.endpoint.rest.model.UpdateInvoiceArchivedStatus;
 import app.bpartners.api.endpoint.rest.security.AuthProvider;
+import app.bpartners.api.endpoint.rest.validator.InvoiceReferenceValidator;
 import app.bpartners.api.model.ArchiveInvoice;
 import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.PageFromOne;
@@ -15,6 +17,7 @@ import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -25,6 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class InvoiceController {
   private final InvoiceRestMapper mapper;
   private final InvoiceService service;
+  private final InvoiceReferenceValidator referenceValidator;
 
   @PutMapping("/accounts/{id}/invoices/{iId}")
   public Invoice crupdateInvoice(
@@ -67,5 +71,14 @@ public class InvoiceController {
     return service.archiveInvoices(archiveInvoices).stream()
         .map(mapper::toRest)
         .collect(Collectors.toUnmodifiableList());
+  }
+
+  @PostMapping("/accounts/{aId}/invoices/{iId}/duplication")
+  public Invoice duplicateInvoice(@PathVariable String aId,
+                                  @PathVariable String iId,
+                                  @RequestBody(required = false)
+                                  InvoiceReference invoiceReference) {
+    referenceValidator.accept(invoiceReference);
+    return mapper.toRest(service.duplicateAsDraft(iId, invoiceReference.getNewReference()));
   }
 }

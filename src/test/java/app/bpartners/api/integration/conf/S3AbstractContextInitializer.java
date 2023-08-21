@@ -7,15 +7,17 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import java.io.File;
+import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.test.context.support.TestPropertySourceUtils;
 import org.testcontainers.containers.JdbcDatabaseContainer;
-import org.testcontainers.containers.PostgisContainerProvider;
+import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.containers.localstack.LocalStackContainer;
 import org.testcontainers.utility.DockerImageName;
 
+import static app.bpartners.api.integration.conf.utils.TestUtils.findAvailableTcpPort;
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.S3;
 
 @Slf4j
@@ -28,12 +30,18 @@ public abstract class S3AbstractContextInitializer
 
   @Override
   public void initialize(ConfigurableApplicationContext applicationContext) {
-    JdbcDatabaseContainer postgresContainer =
-        new PostgisContainerProvider()
-            .newInstance()
-            .withDatabaseName("it-db")
-            .withUsername("sa")
-            .withPassword("sa");
+    int localPort = findAvailableTcpPort();
+    int containerPort = 5432;
+    DockerImageName postgis = DockerImageName
+        .parse("postgis/postgis")
+        .asCompatibleSubstituteFor("postgres");
+    JdbcDatabaseContainer<?> postgresContainer = new PostgreSQLContainer<>(postgis)
+        .withDatabaseName("it-db")
+        .withUsername("sa")
+        .withPassword("sa")
+        .withExposedPorts(containerPort);
+    postgresContainer.setPortBindings(List.of(String.format("%d:%d", containerPort, localPort)));
+
     postgresContainer.start();
 
     LocalStackContainer s3Container = new LocalStackContainer(DockerImageName.parse(

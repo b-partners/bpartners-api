@@ -713,6 +713,7 @@ operations:
       tags:
         - Paying
       summary: Duplicate an existing invoice as draft
+      operationId: duplicateInvoice
       parameters:
         - in: path
           name: aId

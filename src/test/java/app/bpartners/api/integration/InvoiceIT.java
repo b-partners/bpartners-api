@@ -11,6 +11,7 @@ import app.bpartners.api.endpoint.rest.model.CrupdateInvoice;
 import app.bpartners.api.endpoint.rest.model.Invoice;
 import app.bpartners.api.endpoint.rest.model.InvoiceDiscount;
 import app.bpartners.api.endpoint.rest.model.InvoicePaymentReq;
+import app.bpartners.api.endpoint.rest.model.InvoiceReference;
 import app.bpartners.api.endpoint.rest.model.PaymentMethod;
 import app.bpartners.api.endpoint.rest.model.PaymentRegulation;
 import app.bpartners.api.endpoint.rest.model.Product;
@@ -196,7 +197,7 @@ class InvoiceIT {
         .thenReturn(List.of(accountHolderEntity1()));
   }
 
-  private HAccountHolder accountHolderEntity1() {
+  public static HAccountHolder accountHolderEntity1() {
     return HAccountHolder.builder()
         .id(ACCOUNTHOLDER_ID)
         .idUser(JOE_DOE_ID)
@@ -1208,6 +1209,20 @@ class InvoiceIT {
         .map(Optional::get)
         .collect(toUnmodifiableList());
     assertEquals(callerNb, retrieved.size());
+  }
+
+  @Test
+  void duplicate_invoice_ok() throws ApiException {
+    ApiClient joeDoeClient = anApiClient();
+    PayingApi api = new PayingApi(joeDoeClient);
+    String newRefValue = invoice1().getRef() + "V2";
+    InvoiceReference newReference = new InvoiceReference().newReference(newRefValue);
+
+    //Invoice actual =
+    assertThrowsApiException("",
+        () -> api.duplicateInvoice(JOE_DOE_ACCOUNT_ID, INVOICE1_ID, newReference));
+
+    //  assertEquals(invoice1().ref(newRefValue), actual);
   }
 
 

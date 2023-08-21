@@ -234,6 +234,13 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
                 authResourceProvider
             )
         ).authenticated()
+        .requestMatchers(
+            new SelfAccountMatcher(
+                POST,
+                "/accounts/*/invoices/*/duplication",
+                authResourceProvider
+            )
+        ).authenticated()
         .antMatchers(GET, "/businessActivities").authenticated()
         //TODO: set SelfUserAccountHolderMatcher
         .antMatchers(

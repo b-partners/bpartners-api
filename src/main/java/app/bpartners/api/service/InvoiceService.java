@@ -25,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import static app.bpartners.api.endpoint.rest.model.Invoice.PaymentTypeEnum.CASH;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
+import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.DRAFT;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PROPOSAL;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PROPOSAL_CONFIRMED;
@@ -215,22 +216,54 @@ public class InvoiceService {
   }
 
   private List<PaymentInitiation> getPaymentInitiations(Invoice domain) {
-    List<PaymentInitiation> payments = domain.getPaymentRegulations().stream()
+    List<CreatePaymentRegulation> paymentReg = domain.getPaymentRegulations();
+    List<PaymentInitiation> payments = paymentReg.stream()
         .map(payment -> {
           String randomId = String.valueOf(randomUUID());
-          payment.getPaymentRequest().setExternalId(randomId);
+          PaymentRequest paymentRequest = payment.getPaymentRequest();
+          paymentRequest.setExternalId(randomId);
+          String label = paymentRequest.getLabel();
+          String reference = paymentRequest.getReference();
           return requestMapper.convertFromInvoice(
-              randomId, domain, payment);
+              randomId, label, reference, domain, payment);
         })
         .sorted(Comparator.comparing(PaymentInitiation::getPaymentDueDate))
         .collect(Collectors.toUnmodifiableList());
     for (int i = 0; i < payments.size(); i++) {
-      if (i != payments.size() - 1) {
-        payments.get(i).setLabel(domain.getTitle() + " - Acompte N°" + (i + 1));
-      } else {
-        payments.get(i).setLabel(domain.getTitle() + " - Restant dû");
+      PaymentInitiation paymentInitiation = payments.get(i);
+      if (paymentInitiation.getLabel() == null) {
+        if (i != payments.size() - 1) {
+          paymentInitiation.setLabel(domain.getTitle() + " - Acompte N°" + (i + 1));
+        } else {
+          paymentInitiation.setLabel(domain.getTitle() + " - Restant dû");
+        }
       }
     }
     return payments;
+  }
+
+  @Transactional
+  public Invoice duplicateAsDraft(String idInvoice, String reference) {
+    Invoice actual = getById(idInvoice);
+    List<CreatePaymentRegulation> paymentRegulations = initPaymentReg(actual);
+    Invoice duplicatedInvoice = actual.toBuilder()
+        .id(String.valueOf(randomUUID()))
+        .ref(reference)
+        .status(DRAFT)
+        .paymentUrl(null)
+        .paymentRegulations(paymentRegulations)
+        .build();
+    return crupdateInvoice(duplicatedInvoice);
+  }
+
+  private static List<CreatePaymentRegulation> initPaymentReg(Invoice actual) {
+    List<CreatePaymentRegulation> paymentReg = actual.getPaymentRegulations();
+    paymentReg.forEach(payment -> {
+      PaymentRequest request = payment.getPaymentRequest();
+      request.setId(String.valueOf(randomUUID()));
+      request.setExternalId(null);
+      request.setPaymentUrl(null);
+    });
+    return paymentReg;
   }
 }

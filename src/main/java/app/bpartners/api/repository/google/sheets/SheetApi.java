@@ -26,7 +26,7 @@ public class SheetApi {
   public static final String START_TIME_ATTRIBUTE = "startTime";
   private final SheetConf sheetsConf;
 
-  private Sheets initService(SheetConf sheetsConf, Credential credential) {
+  public Sheets initService(SheetConf sheetsConf, Credential credential) {
     NetHttpTransport trustedTransport = sheetsConf.getTrustedTransport();
     String applicationName = sheetsConf.getApplicationName();
     return new Sheets.Builder(trustedTransport, JSON_FACTORY, credential)

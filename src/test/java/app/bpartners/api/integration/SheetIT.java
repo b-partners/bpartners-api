@@ -13,11 +13,19 @@ import app.bpartners.api.service.TransactionService;
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.services.drive.model.File;
 import com.google.api.services.drive.model.FileList;
+import com.google.api.services.sheets.v4.Sheets;
+import com.google.api.services.sheets.v4.model.BatchUpdateSpreadsheetRequest;
 import com.google.api.services.sheets.v4.model.CellData;
+import com.google.api.services.sheets.v4.model.ExtendedValue;
 import com.google.api.services.sheets.v4.model.GridData;
+import com.google.api.services.sheets.v4.model.GridRange;
+import com.google.api.services.sheets.v4.model.Request;
 import com.google.api.services.sheets.v4.model.RowData;
 import com.google.api.services.sheets.v4.model.Sheet;
 import com.google.api.services.sheets.v4.model.Spreadsheet;
+import com.google.api.services.sheets.v4.model.UpdateCellsRequest;
+import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.SneakyThrows;
@@ -78,6 +86,43 @@ public class SheetIT extends MockedThirdParties {
   }
 
   @Test
+  void write_sheets_from_local_credentials_ok() throws IOException {
+    Credential localCredential = sheetConf.getLocalCredentials(JOE_DOE_ID);
+    Sheets sheetsService = sheetApi.initService(sheetConf, localCredential);
+
+    String idSheet = "1JBSbBGawokv7gOR_B1_MMvORYOJQlHroOXj06T3tSYY";
+    /*GridData gridData = new GridData()
+        .setRowData(Collections.singletonList(
+            new RowData().setValues(Collections.singletonList(
+                new CellData().setUserEnteredValue(
+                    new ExtendedValue().setStringValue("Nouvelle valeur"))
+            ))
+        ));*/
+
+    CellData cellData = new CellData()
+        .setUserEnteredValue(
+            new ExtendedValue()
+                .setStringValue("Nouvelle valeur")
+        );
+    UpdateCellsRequest updateRequest = new UpdateCellsRequest()
+        .setFields("userEnteredValue")
+        .setRange(new GridRange().setStartRowIndex(0).setStartColumnIndex(0))
+        .setRows(Collections.singletonList(new RowData()
+            .setValues(
+                Collections.singletonList(cellData)
+            )));
+
+    Request updateCellRequest = new Request().setUpdateCells(updateRequest);
+
+    BatchUpdateSpreadsheetRequest batchUpdateRequest = new BatchUpdateSpreadsheetRequest()
+        .setRequests(Collections.singletonList(updateCellRequest));
+
+    sheetsService.spreadsheets()
+        .batchUpdate(idSheet, batchUpdateRequest)
+        .execute();
+  }
+
+  @Test
   void read_sheets_from_local_credentials_ok() {
     String idSheet = "1JBSbBGawokv7gOR_B1_MMvORYOJQlHroOXj06T3tSYY";
     Credential loadedCredentials = sheetConf.getLocalCredentials(JOE_DOE_ID);
@@ -94,7 +139,7 @@ public class SheetIT extends MockedThirdParties {
       firstValue = cellData.get(0).getFormattedValue();
     }
     assertNotNull(sheet);
-    assertEquals("FirstValue 1", firstValue);
+    assertEquals("Nouvelle valeur", firstValue);
   }
 
   @SneakyThrows

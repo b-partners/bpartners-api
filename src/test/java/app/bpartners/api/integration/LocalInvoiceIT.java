@@ -3,18 +3,28 @@ package app.bpartners.api.integration;
 import app.bpartners.api.endpoint.rest.api.PayingApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
+import app.bpartners.api.endpoint.rest.model.CreatePaymentRegulation;
+import app.bpartners.api.endpoint.rest.model.CreateProduct;
+import app.bpartners.api.endpoint.rest.model.CrupdateInvoice;
+import app.bpartners.api.endpoint.rest.model.Invoice;
 import app.bpartners.api.endpoint.rest.model.InvoiceReference;
+import app.bpartners.api.endpoint.rest.model.UpdateInvoiceArchivedStatus;
 import app.bpartners.api.integration.conf.DbEnvContextInitializer;
 import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.integration.conf.utils.TestUtils;
+import app.bpartners.api.repository.ban.BanApi;
 import app.bpartners.api.repository.fintecture.FintecturePaymentInitiationRepository;
 import app.bpartners.api.repository.jpa.AccountHolderJpaRepository;
 import app.bpartners.api.service.aws.S3Service;
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Future;
+import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -22,18 +32,54 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
 
-import static app.bpartners.api.integration.InvoiceIT.accountHolderEntity1;
+import static app.bpartners.api.endpoint.rest.model.ArchiveStatus.DISABLED;
+import static app.bpartners.api.endpoint.rest.model.CrupdateInvoice.PaymentTypeEnum.IN_INSTALMENT;
+import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.DRAFT;
+import static app.bpartners.api.integration.conf.utils.InvoiceTestUtils.discount_amount_not_supported_exec;
+import static app.bpartners.api.integration.conf.utils.InvoiceTestUtils.discount_percent_excedeed_exec;
+import static app.bpartners.api.integration.conf.utils.InvoiceTestUtils.first_ref_exec;
+import static app.bpartners.api.integration.conf.utils.InvoiceTestUtils.ignoreIdsAndDatetime;
+import static app.bpartners.api.integration.conf.utils.InvoiceTestUtils.ignoreIdsOf;
+import static app.bpartners.api.integration.conf.utils.InvoiceTestUtils.initializeDraft;
+import static app.bpartners.api.integration.conf.utils.InvoiceTestUtils.non_existent_customer_exec;
+import static app.bpartners.api.integration.conf.utils.InvoiceTestUtils.payment_reg_amount_higher_than_100_percent_exec;
+import static app.bpartners.api.integration.conf.utils.InvoiceTestUtils.payment_reg_amount_less_than_100_percent_exec;
+import static app.bpartners.api.integration.conf.utils.InvoiceTestUtils.payment_reg_more_than_one_payment_exec;
+import static app.bpartners.api.integration.conf.utils.InvoiceTestUtils.payment_reg_percent_higher_than_100_percent_exec;
+import static app.bpartners.api.integration.conf.utils.InvoiceTestUtils.payment_reg_percent_less_than_100_percent_exec;
+import static app.bpartners.api.integration.conf.utils.InvoiceTestUtils.unique_ref_violation_exec;
+import static app.bpartners.api.integration.conf.utils.InvoiceTestUtils.validInvoice;
 import static app.bpartners.api.integration.conf.utils.TestUtils.INVOICE1_ID;
 import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ID;
 import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_TOKEN;
+import static app.bpartners.api.integration.conf.utils.TestUtils.NOT_JOE_DOE_ACCOUNT_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.accountHolderEntity1;
 import static app.bpartners.api.integration.conf.utils.TestUtils.assertThrowsApiException;
+import static app.bpartners.api.integration.conf.utils.TestUtils.assertThrowsForbiddenException;
+import static app.bpartners.api.integration.conf.utils.TestUtils.createProduct2;
+import static app.bpartners.api.integration.conf.utils.TestUtils.createProduct4;
+import static app.bpartners.api.integration.conf.utils.TestUtils.createProduct5;
+import static app.bpartners.api.integration.conf.utils.TestUtils.customer1;
+import static app.bpartners.api.integration.conf.utils.TestUtils.datedPaymentRequest1;
+import static app.bpartners.api.integration.conf.utils.TestUtils.datedPaymentRequest2;
 import static app.bpartners.api.integration.conf.utils.TestUtils.invoice1;
+import static app.bpartners.api.integration.conf.utils.TestUtils.paymentReq1;
+import static app.bpartners.api.integration.conf.utils.TestUtils.paymentReq2;
+import static app.bpartners.api.integration.conf.utils.TestUtils.product5;
 import static app.bpartners.api.integration.conf.utils.TestUtils.setUpCognito;
 import static app.bpartners.api.integration.conf.utils.TestUtils.setUpEventBridge;
 import static app.bpartners.api.integration.conf.utils.TestUtils.setUpLegalFileRepository;
 import static app.bpartners.api.integration.conf.utils.TestUtils.setUpPaymentInitiationRep;
+import static app.bpartners.api.model.BoundedPageSize.MAX_SIZE;
+import static java.util.UUID.randomUUID;
+import static java.util.concurrent.Executors.newFixedThreadPool;
+import static java.util.stream.Collectors.toUnmodifiableList;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
@@ -42,8 +88,9 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @Testcontainers
 @ContextConfiguration(initializers = DbEnvContextInitializer.class)
 @AutoConfigureMockMvc
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class LocalInvoiceIT extends MockedThirdParties {
+  @MockBean
+  private BanApi banApi;
   @MockBean
   private AccountHolderJpaRepository holderJpaRepository;
   @MockBean
@@ -66,22 +113,268 @@ class LocalInvoiceIT extends MockedThirdParties {
     when(s3Service.uploadFile(any(), any(), any(), any())).thenReturn(EMPTY);
   }
 
-
-  private static ApiClient anApiClient() {
+  public static ApiClient anApiClient() {
     return TestUtils.anApiClient(JOE_DOE_TOKEN, DbEnvContextInitializer.getHttpServerPort());
+  }
+
+  @Test
+  void read_invoice_ordered_ok() throws ApiException {
+    ApiClient joeDoeClient = anApiClient();
+    PayingApi api = new PayingApi(joeDoeClient);
+
+    List<Invoice> actual1 = api.getInvoices(JOE_DOE_ACCOUNT_ID, 1, 5, null);
+    List<Invoice> actual2 = api.getInvoices(JOE_DOE_ACCOUNT_ID, 2, 5, null);
+
+    assertEquals(5, actual1.size());
+    assertEquals(3, actual2.size());
+    assertTrue(actual1.get(0).getCreatedAt().isAfter(actual1.get(1).getCreatedAt()));
+    assertTrue(actual1.get(1).getCreatedAt().isAfter(actual1.get(2).getCreatedAt()));
+    assertTrue(actual1.get(2).getCreatedAt().isAfter(actual1.get(3).getCreatedAt()));
+    assertTrue(actual1.get(3).getCreatedAt().isAfter(actual1.get(4).getCreatedAt()));
+    assertTrue(actual1.get(4).getCreatedAt().isAfter(actual2.get(0).getCreatedAt()));
+    assertTrue(actual2.get(0).getCreatedAt().isAfter(actual2.get(1).getCreatedAt()));
   }
 
   @Test
   void duplicate_invoice_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
     PayingApi api = new PayingApi(joeDoeClient);
-    String newRefValue = invoice1().getRef() + "V2";
+    String newRefValue = invoice1().getRef() + "-" + randomUUID();
     InvoiceReference newReference = new InvoiceReference().newReference(newRefValue);
 
-    //Invoice actual =
-    assertThrowsApiException("{\"type\":\"501 NOT_IMPLEMENTED\",\"message\":\"Not supported\"}",
-        () -> api.duplicateInvoice(JOE_DOE_ACCOUNT_ID, INVOICE1_ID, newReference));
+    Invoice actual =
+        api.duplicateInvoice(JOE_DOE_ACCOUNT_ID, INVOICE1_ID, newReference);
+    actual.setPaymentRegulations(ignoreIdsAndDatetime(actual));
 
-    //  assertEquals(invoice1().ref(newRefValue), actual);
+    Invoice expected = invoice1()
+        .id(actual.getId())
+        .paymentUrl(null)
+        .ref("BROUILLON-" + newRefValue)
+        .status(DRAFT)
+        .paymentRegulations(List.of(datedPaymentRequest1()
+            .paymentRequest(paymentReq1()
+                .id(null)
+                .paymentUrl(null)), datedPaymentRequest2()
+            .paymentRequest(paymentReq2()
+                .id(null)
+                .paymentUrl(null))))
+        .updatedAt(actual.getUpdatedAt());
+    expected.setPaymentRegulations(ignoreIdsAndDatetime(expected));
+    assertEquals(expected, actual);
+  }
+
+  @Test
+  void update_invoice_product_ok() throws ApiException {
+    ApiClient joeDoeClient = anApiClient();
+    PayingApi api = new PayingApi(joeDoeClient);
+
+    Invoice actualDraft = api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, String.valueOf(randomUUID()),
+        initializeDraft().ref(null)
+            .products(List.of(createProduct4(),
+                createProduct2())));
+    Invoice actualDraftUpdated = api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, actualDraft.getId(),
+        initializeDraft().ref(null)
+            .products(List.of(createProduct5())));
+    actualDraftUpdated.setProducts(ignoreIdsOf(actualDraftUpdated.getProducts()));
+
+    assertEquals(2, actualDraft.getProducts().size());
+    assertEquals(1, actualDraftUpdated.getProducts().size());
+    assertEquals(actualDraft.getId(), actualDraftUpdated.getId());
+    assertTrue(actualDraftUpdated.getProducts().contains(product5().id(null)));
+  }
+
+  @Test
+  void archive_invoice_ok() throws ApiException {
+    ApiClient joeDoeClient = anApiClient();
+    PayingApi api = new PayingApi(joeDoeClient);
+    Invoice initialInvoice = api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, String.valueOf(randomUUID()),
+        initializeDraft().ref(null)
+            .products(List.of(createProduct4(),
+                createProduct2())));
+    Invoice beforeChange = api.getInvoiceById(JOE_DOE_ACCOUNT_ID, initialInvoice.getId());
+
+    List<Invoice> actual =
+        api.archiveInvoices(JOE_DOE_ACCOUNT_ID, List.of(new UpdateInvoiceArchivedStatus()
+            .id(INVOICE1_ID)
+            .archiveStatus(DISABLED)));
+
+    assertNotEquals(beforeChange.getArchiveStatus(), actual.get(0).getArchiveStatus());
+    assertEquals(DISABLED, actual.get(0).getArchiveStatus());
+  }
+
+  @Test
+  void concurrently_update_invoice() throws ApiException {
+    ApiClient joeDoeClient = anApiClient();
+    PayingApi api = new PayingApi(joeDoeClient);
+    Invoice initialInvoice = api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, String.valueOf(randomUUID()),
+        initializeDraft().ref(null)
+            .products(List.of(createProduct4(),
+                createProduct2())));
+
+    var callerNb = 10;
+    var executor = newFixedThreadPool(10);
+
+    var latch = new CountDownLatch(1);
+    var futures = new ArrayList<Future<Invoice>>();
+    for (var callerIdx = 0; callerIdx < callerNb; callerIdx++) {
+      futures.add(executor.submit(() -> crupdateInvoice(latch, api, initialInvoice.getId())));
+    }
+    latch.countDown();
+
+    var retrieved = futures.stream()
+        .map(TestUtils::getOptionalFutureResult)
+        .filter(Optional::isPresent)
+        .map(Optional::get)
+        .collect(toUnmodifiableList());
+    assertEquals(callerNb, retrieved.size());
+  }
+
+  @Test
+  void crupdate_invoice_ko() {
+    ApiClient joeDoeClient = anApiClient();
+    PayingApi api = new PayingApi(joeDoeClient);
+    String firstInvoiceId = randomUUID().toString();
+    CrupdateInvoice crupdateInvoiceWithNonExistentCustomer =
+        initializeDraft().customer(customer1().id("non-existent-customer"));
+    String uniqueRef = "unique_ref";
+    List<CreateProduct> products = List.of(new CreateProduct()
+            .description("Produit 1")
+            .unitPrice(100)
+            .quantity(1)
+            .vatPercent(0),
+        new CreateProduct()
+            .description("Produit 2")
+            .unitPrice(200)
+            .quantity(1)
+            .vatPercent(1000));
+    assertDoesNotThrow(first_ref_exec(api, firstInvoiceId, uniqueRef));
+    assertThrowsApiException(
+        "{\"type\":\"400 BAD_REQUEST\",\"message\":\""
+            + "La référence unique_ref est déjà utilisée" + "\"}",
+        unique_ref_violation_exec(api, uniqueRef));
+    assertThrowsApiException("{\"type\":\"404 NOT_FOUND\",\"message\":\""
+            + "Customer(id=" + crupdateInvoiceWithNonExistentCustomer.getCustomer().getId()
+            + ") not found\"}",
+        non_existent_customer_exec(api, crupdateInvoiceWithNonExistentCustomer));
+    assertThrowsApiException(
+        "{\"type\":\"501 NOT_IMPLEMENTED\",\"message\":\""
+            + "Only discount percent is supported for now" + "\"}",
+        discount_amount_not_supported_exec(api));
+//    assertThrowsApiException(
+//        "{\"type\":\"400 BAD_REQUEST\",\"message\":\""
+//            + "Discount percent is mandatory" + "\"}",
+//        executable5);
+    assertThrowsApiException(
+        "{\"type\":\"400 BAD_REQUEST\",\"message\":\""
+            + "Discount percent 120.0% must be greater or equals to 0% and less or equals to 100%"
+            + "\"}",
+        discount_percent_excedeed_exec(api));
+    assertThrowsApiException("{\"type\":\"400 BAD_REQUEST\","
+            + "\"message\":\"Multiple payments request more than one payment\"}",
+        payment_reg_more_than_one_payment_exec(api));
+    assertThrowsApiException("{\"type\":\"400 BAD_REQUEST\",\"message\":"
+            + "\"Multiple payments amount 321 is not equals to total price with vat 320\"}",
+        payment_reg_amount_higher_than_100_percent_exec(api, products));
+
+    assertThrowsApiException("{\"type\":\"400 BAD_REQUEST\",\"message\":"
+            + "\"Multiple payments percent 110.0% is not equals to 100%\"}",
+        payment_reg_percent_higher_than_100_percent_exec(api, products));
+    assertThrowsApiException("{\"type\":\"400 BAD_REQUEST\",\"message\":"
+            + "\"Multiple payments percent 95.12% is not equals to 100%\"}",
+        payment_reg_percent_less_than_100_percent_exec(api, products));
+    assertThrowsApiException("{\"type\":\"400 BAD_REQUEST\",\"message\":"
+            + "\"Multiple payments amount 20 is not equals to total price with vat 320\"}",
+        payment_reg_amount_less_than_100_percent_exec(api, products));
+  }
+
+  @Test
+  void get_invoice_after_update_twice_ok() throws ApiException {
+    ApiClient joeDoeClient = anApiClient();
+    PayingApi api = new PayingApi(joeDoeClient);
+    Invoice initialInvoice = api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, String.valueOf(randomUUID()),
+        initializeDraft()
+            .ref(String.valueOf(randomUUID()))
+            .customer(customer1())
+            .products(List.of(createProduct4(),
+                createProduct2())));
+    String idInvoice = initialInvoice.getId();
+    CrupdateInvoice crupdateInvoice =
+        crupdateFromExisting(api.getInvoiceById(JOE_DOE_ACCOUNT_ID, idInvoice));
+
+    Invoice actual = api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, idInvoice, crupdateInvoice);
+    var paymentRegulations = actual.getPaymentRegulations();
+    assertEquals(2970, paymentRegulations.get(0).getPaymentRequest().getAmount());
+    assertEquals(330, paymentRegulations.get(1).getPaymentRequest().getAmount());
+
+    Invoice actualRefetched = api.getInvoiceById(JOE_DOE_ACCOUNT_ID, idInvoice);
+    var paymentRegulationsRefecthed = actualRefetched.getPaymentRegulations();
+    assertEquals(2970, paymentRegulationsRefecthed.get(0).getPaymentRequest().getAmount());
+    assertEquals(330, paymentRegulationsRefecthed.get(1).getPaymentRequest().getAmount());
+
+    Invoice actual2 = api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, idInvoice,
+        crupdateInvoice
+            .paymentRegulations(List.of(
+                new CreatePaymentRegulation()
+                    .percent(5000)
+                    .maturityDate(LocalDate.now()),
+                new CreatePaymentRegulation()
+                    .percent(5000)
+                    .maturityDate(LocalDate.now().plusDays(10L)))));
+    var paymentRegulations2 = actual2.getPaymentRegulations();
+    assertEquals(1650, paymentRegulations2.get(0).getPaymentRequest().getAmount());
+    assertEquals(1650, paymentRegulations2.get(1).getPaymentRequest().getAmount());
+
+    Invoice actualRefetched2 = api.getInvoiceById(JOE_DOE_ACCOUNT_ID, idInvoice);
+    var paymentRegulationsRefecthed2 = actualRefetched2.getPaymentRegulations();
+    assertEquals(1650, paymentRegulationsRefecthed2.get(0).getPaymentRequest().getAmount());
+    assertEquals(1650, paymentRegulationsRefecthed2.get(1).getPaymentRequest().getAmount());
+  }
+
+  @Test
+  void read_invoice_ko() {
+    ApiClient joeDoeClient = anApiClient();
+    PayingApi api = new PayingApi(joeDoeClient);
+
+    assertThrowsForbiddenException(() -> api.getInvoices(NOT_JOE_DOE_ACCOUNT_ID, 1, 10, null));
+    assertThrowsApiException(
+        "{\"type\":\"400 BAD_REQUEST\",\"message\":\"page must be >=1\"}",
+        () -> api.getInvoices(JOE_DOE_ACCOUNT_ID, -1, 10, null));
+    assertThrowsApiException(
+        "{\"type\":\"400 BAD_REQUEST\",\"message\":\"page size must be >=1\"}",
+        () -> api.getInvoices(JOE_DOE_ACCOUNT_ID, 1, -10, null));
+    assertThrowsApiException(
+        "{\"type\":\"400 BAD_REQUEST\",\"message\":\"page size must be <" + MAX_SIZE
+            + "\"}",
+        () -> api.getInvoices(JOE_DOE_ACCOUNT_ID, 1, MAX_SIZE + 1, null));
+    assertThrowsApiException("{\"type\":\"404 NOT_FOUND\",\"message\":\""
+            + "Invoice.not_existing_invoice_id is not found\"}",
+        () -> api.getInvoiceById(JOE_DOE_ACCOUNT_ID, "not_existing_invoice_id"));
+  }
+
+  @SneakyThrows
+  private Invoice crupdateInvoice(CountDownLatch latch, PayingApi api, String idInvoice) {
+    latch.await();
+    return api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, idInvoice, validInvoice());
+  }
+
+  private static CrupdateInvoice crupdateFromExisting(Invoice invoice) {
+    return new CrupdateInvoice()
+        .ref(invoice.getRef())
+        .title(invoice.getTitle())
+        .comment(invoice.getComment())
+        .products(List.of(createProduct4(), createProduct5()))
+        .customer(invoice.getCustomer())
+        .status(invoice.getStatus())
+        .sendingDate(invoice.getSendingDate())
+        .validityDate(invoice.getValidityDate())
+        .paymentType(IN_INSTALMENT)
+        .paymentRegulations(List.of(
+            new CreatePaymentRegulation()
+                .percent(9000)
+                .maturityDate(LocalDate.now()),
+            new CreatePaymentRegulation()
+                .percent(1000)
+                .maturityDate(LocalDate.now().plusDays(10L))))
+        .toPayAt(null);
   }
 }

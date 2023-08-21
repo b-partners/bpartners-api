@@ -223,7 +223,8 @@ public class InvoiceService {
           PaymentRequest paymentRequest = payment.getPaymentRequest();
           paymentRequest.setExternalId(randomId);
           String label = paymentRequest.getLabel();
-          String reference = paymentRequest.getReference();
+          String reference = paymentRequest.getReference() == null ? domain.getRealReference()
+              : paymentRequest.getReference();
           return requestMapper.convertFromInvoice(
               randomId, label, reference, domain, payment);
         })

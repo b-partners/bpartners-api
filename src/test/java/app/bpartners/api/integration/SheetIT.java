@@ -68,7 +68,7 @@ public class SheetIT extends MockedThirdParties {
   private CustomerService customerService;
 
   @Test
-  void read_all_sheets_file_ok() {
+  void read_all_excel_file_ok() {
     Credential loadedCredentials = sheetConf.getLocalCredentials(JOE_DOE_ID);
 
     FileList actual = driveApi.getSpreadSheets(loadedCredentials);
@@ -77,7 +77,6 @@ public class SheetIT extends MockedThirdParties {
     List<String> fileNames = files.stream()
         .map(File::getName)
         .collect(Collectors.toList());
-    //TODO: must be 2 because get at twice own spreadsheets or excel and shared spreadsheets or excel
     assertEquals(1, files.size());
     assertEquals(
         List.of("Golden source Depa1 Depa 2 - Prospect métier Antinuisibles  Serrurier .xlsx"),

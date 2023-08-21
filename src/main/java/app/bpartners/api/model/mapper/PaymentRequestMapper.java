@@ -5,6 +5,7 @@ import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.model.CreatePaymentRegulation;
 import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.Invoice;
+import app.bpartners.api.model.PaymentHistoryStatus;
 import app.bpartners.api.model.PaymentInitiation;
 import app.bpartners.api.model.PaymentRequest;
 import app.bpartners.api.repository.fintecture.model.FPaymentRedirection;
@@ -12,8 +13,38 @@ import app.bpartners.api.repository.jpa.model.HPaymentRequest;
 import java.time.Instant;
 import org.springframework.stereotype.Component;
 
+import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
+
 @Component
 public class PaymentRequestMapper {
+  public HPaymentRequest toEntity(PaymentRequest domain) {
+    PaymentHistoryStatus paymentHistoryStatus = domain.getPaymentHistoryStatus();
+    return HPaymentRequest.builder()
+        .id(domain.getId())
+        .idInvoice(domain.getInvoiceId())
+        .idUser(domain.getIdUser())
+        .sessionId(domain.getExternalId())
+        .paymentUrl(domain.getPaymentUrl())
+        .label(domain.getLabel())
+        .comment(domain.getComment())
+        .payerEmail(domain.getPayerEmail())
+        .payerName(domain.getPayerName())
+        .reference(domain.getReference())
+        .paymentDueDate(domain.getPaymentDueDate())
+        .amount(domain.getAmount().toString())
+        .createdDatetime(Instant.now())
+        .status(domain.getStatus())
+        .paymentStatusUpdatedAt(
+            paymentHistoryStatus == null ? null
+                : paymentHistoryStatus.getUpdatedAt())
+        .userUpdated(paymentHistoryStatus == null ? null
+            : paymentHistoryStatus.getUserUpdated())
+        .paymentStatusUpdatedAt(
+            paymentHistoryStatus == null ? null :
+                paymentHistoryStatus.getUpdatedAt()
+        )
+        .build();
+  }
 
   public HPaymentRequest toEntity(
       FPaymentRedirection paymentRedirection, PaymentInitiation domain, String idInvoice) {
@@ -39,7 +70,7 @@ public class PaymentRequestMapper {
 
   public PaymentInitiation convertFromInvoice(
       String paymentInitiationId, String label, String reference, Invoice invoice,
-      CreatePaymentRegulation payment) {
+      CreatePaymentRegulation payment, PaymentHistoryStatus paymentHistoryStatus) {
     Fraction totalPriceWithVat = invoice.getTotalPriceWithVat();
     return PaymentInitiation.builder()
         .id(paymentInitiationId)
@@ -61,10 +92,12 @@ public class PaymentRequestMapper {
             : null)
         .successUrl("https://dashboard-dev.bpartners.app") //TODO: to change
         .failureUrl("https://dashboard-dev.bpartners.app") //TODO: to change
+        .paymentHistoryStatus(paymentHistoryStatus)
         .build();
   }
 
   public CreatePaymentRegulation toPaymentRegulation(PaymentRequest payment, Fraction percent) {
+    PaymentHistoryStatus paymentHistoryStatus = payment.getPaymentHistoryStatus();
     return CreatePaymentRegulation.builder()
         .paymentRequest(PaymentRequest.builder()
             .id(payment.getId())
@@ -80,11 +113,43 @@ public class PaymentRequestMapper {
             .createdDatetime(payment.getCreatedDatetime())
             .status(payment.getStatus())
             .comment(payment.getComment())
+            .paymentHistoryStatus(PaymentHistoryStatus.builder()
+                .status(paymentHistoryStatus == null ? null
+                    : paymentHistoryStatus.getStatus())
+                .userUpdated(paymentHistoryStatus == null ? null
+                    : paymentHistoryStatus.getUserUpdated())
+                .updatedAt(paymentHistoryStatus == null ? null
+                    : paymentHistoryStatus.getUpdatedAt())
+                .build())
             .build())
         .percent(percent)
         .comment(payment.getComment())
         .maturityDate(payment.getPaymentDueDate())
         .initiatedDatetime(payment.getCreatedDatetime())
+        .build();
+  }
+
+  public PaymentRequest toDomain(HPaymentRequest entity) {
+    return PaymentRequest.builder()
+        .id(entity.getId())
+        .invoiceId(entity.getIdInvoice())
+        .idUser(entity.getIdUser())
+        .externalId(entity.getSessionId())
+        .paymentUrl(entity.getPaymentUrl())
+        .label(entity.getLabel())
+        .comment(entity.getComment())
+        .payerEmail(entity.getPayerEmail())
+        .payerName(entity.getPayerName())
+        .reference(entity.getReference())
+        .paymentDueDate(entity.getPaymentDueDate())
+        .amount(parseFraction(entity.getAmount()))
+        .createdDatetime(Instant.now())
+        .status(entity.getStatus())
+        .paymentHistoryStatus(PaymentHistoryStatus.builder()
+            .status(entity.getStatus())
+            .userUpdated(entity.getUserUpdated())
+            .updatedAt(entity.getPaymentStatusUpdatedAt())
+            .build())
         .build();
   }
 }

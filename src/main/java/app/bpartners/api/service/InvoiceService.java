@@ -1,6 +1,7 @@
 package app.bpartners.api.service;
 
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
+import app.bpartners.api.endpoint.rest.model.PaymentStatus;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.ArchiveInvoice;
 import app.bpartners.api.model.BoundedPageSize;
@@ -8,11 +9,16 @@ import app.bpartners.api.model.CreatePaymentRegulation;
 import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.PageFromOne;
+import app.bpartners.api.model.PaymentHistoryStatus;
 import app.bpartners.api.model.PaymentInitiation;
 import app.bpartners.api.model.PaymentRequest;
+import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.exception.BadRequestException;
+import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.mapper.PaymentRequestMapper;
 import app.bpartners.api.repository.InvoiceRepository;
+import app.bpartners.api.repository.PaymentRequestRepository;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -31,6 +37,7 @@ import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PROPOSAL;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PROPOSAL_CONFIRMED;
 import static app.bpartners.api.model.Invoice.DEFAULT_TO_PAY_DELAY_DAYS;
+import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 import static app.bpartners.api.service.utils.PaymentUtils.computeTotalPriceFromPaymentReq;
 import static java.util.UUID.randomUUID;
 
@@ -46,6 +53,55 @@ public class InvoiceService {
   private final CustomerService customerService;
   private final PaymentInitiationService pis;
   private final PaymentRequestMapper requestMapper;
+  private final PaymentRequestRepository paymentRepository;
+
+  @Transactional
+  public Invoice updatePaymentStatus(String invoiceId, String paymentId, PaymentStatus status) {
+    boolean isUserUpdated = true;
+    Invoice invoice = getById(invoiceId);
+    PaymentRequest paymentRequest = invoice.getPaymentRegulations().stream()
+        .filter(payment -> payment.getPaymentRequest().getId().equals(paymentId))
+        .findAny().orElseThrow(
+            () -> new NotFoundException(
+                "Invoice(id=" + invoiceId + ") "
+                    + "does not contain PaymentRequest(id=" + paymentId
+                    + ")"
+            ))
+        .getPaymentRequest();
+    PaymentRequest toSave = paymentRequest.toBuilder()
+        .invoiceId(invoiceId)
+        .status(status)
+        .paymentHistoryStatus(PaymentHistoryStatus.builder()
+            .status(status)
+            .updatedAt(Instant.now())
+            .userUpdated(isUserUpdated)
+            .build())
+        .build();
+    List<PaymentRequest> savedPayments =
+        paymentRepository.saveAll(List.of(toSave));
+    invoice.getPaymentRegulations().forEach(
+        payment -> {
+          var request = payment.getPaymentRequest();
+          if (request.getId().equals(paymentId)) {
+            if (savedPayments.isEmpty()) {
+              throw new ApiException(SERVER_EXCEPTION,
+                  "PaymentRequest(id=" + paymentId + ") was not saved");
+            }
+            payment.setPaymentRequest(savedPayments.get(0));
+          }
+        }
+    );
+    boolean allPaymentsPaid = invoice.getPaymentRegulations().stream()
+        .allMatch(payment ->
+            payment.getPaymentRequest().getStatus()
+                == PaymentStatus.PAID);
+    if (allPaymentsPaid) {
+      return crupdateInvoice(invoice.toBuilder()
+          .status(PAID)
+          .build());
+    }
+    return invoice;
+  }
 
   public List<Invoice> getInvoices(
       String idUser, PageFromOne page, BoundedPageSize pageSize, InvoiceStatus status) {
@@ -227,7 +283,8 @@ public class InvoiceService {
           String reference = paymentRequest.getReference() == null ? domain.getRealReference()
               : paymentRequest.getReference();
           return requestMapper.convertFromInvoice(
-              randomId, label, reference, domain, payment);
+              randomId, label, reference, domain, payment,
+              paymentRequest.getPaymentHistoryStatus());
         })
         .sorted(Comparator.comparing(PaymentInitiation::getPaymentDueDate))
         .collect(Collectors.toUnmodifiableList());

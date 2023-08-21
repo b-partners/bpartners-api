@@ -49,6 +49,8 @@ public class HPaymentRequest implements Serializable {
   private PaymentStatus status;
   @Column(name = "\"comment\"")
   private String comment;
+  private Boolean userUpdated;
+  private Instant paymentStatusUpdatedAt;
   @CreationTimestamp
   private Instant createdDatetime;
 

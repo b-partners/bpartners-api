@@ -6,7 +6,6 @@ import app.bpartners.api.endpoint.rest.model.InvoiceDiscount;
 import app.bpartners.api.endpoint.rest.model.InvoicePaymentReq;
 import app.bpartners.api.endpoint.rest.model.PaymentMethod;
 import app.bpartners.api.endpoint.rest.model.PaymentRegulation;
-import app.bpartners.api.endpoint.rest.model.PaymentRequest;
 import app.bpartners.api.endpoint.rest.model.Product;
 import app.bpartners.api.endpoint.rest.model.TransactionInvoice;
 import app.bpartners.api.endpoint.rest.model.UpdateInvoiceArchivedStatus;
@@ -220,6 +219,7 @@ public class InvoiceRestMapper {
             .payerEmail(payment.getPayerEmail())
             .paymentUrl(payment.getPaymentUrl())
             .comment(payment.getComment())
+            .paymentStatus(payment.getStatus())
             .initiatedDatetime(paymentRegulation.getInitiatedDatetime()));
   }
 

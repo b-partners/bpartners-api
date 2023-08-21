@@ -27,6 +27,7 @@ import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
 import static app.bpartners.api.endpoint.rest.model.PaymentMethod.BANK_TRANSFER;
 import static app.bpartners.api.endpoint.rest.model.PaymentMethod.CHEQUE;
 import static app.bpartners.api.endpoint.rest.model.PaymentMethod.UNKNOWN;
+import static app.bpartners.api.endpoint.rest.model.PaymentStatus.UNPAID;
 import static app.bpartners.api.integration.conf.utils.TestUtils.INVOICE1_ID;
 import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.utils.TestUtils.createProduct4;
@@ -164,7 +165,8 @@ public class InvoiceTestUtils {
             .percentValue(10000 - 909)
             .amount(1000)
             .comment("Montant restant")
-            .label("Facture achat - Restant dû"));
+            .label("Facture achat - Restant dû")
+            .paymentStatus(UNPAID));
   }
 
   private static PaymentRegulation expectedDated1() {
@@ -178,7 +180,8 @@ public class InvoiceTestUtils {
             .percentValue(909)
             .amount(100)
             .comment("Un euro")
-            .label("Facture achat - Acompte N°1"));
+            .label("Facture achat - Acompte N°1")
+            .paymentStatus(UNPAID));
   }
 
   public static List<PaymentRegulation> ignoreIdsAndDatetime(Invoice actualConfirmed) {
@@ -452,7 +455,8 @@ public class InvoiceTestUtils {
                 .payerName("Luc Artisan")
                 .payerEmail("bpartners.artisans@gmail.com")
                 .comment("Acompte de 10%")
-                .label("Fabrication Jean" + " - Acompte N°1")),
+                .label("Fabrication Jean" + " - Acompte N°1")
+                .paymentStatus(UNPAID)),
         new PaymentRegulation()
             .maturityDate(LocalDate.of(2023, 1, 1))
             .paymentRequest(new InvoicePaymentReq()
@@ -463,7 +467,8 @@ public class InvoiceTestUtils {
                 .payerName("Luc Artisan")
                 .payerEmail("bpartners.artisans@gmail.com")
                 .comment("Reste 90%")
-                .label("Fabrication Jean" + " - Restant dû")));
+                .label("Fabrication Jean" + " - Restant dû")
+                .paymentStatus(UNPAID)));
   }
 
   public static List<PaymentRegulation> updatedPaymentRegulations(String id) {
@@ -477,7 +482,8 @@ public class InvoiceTestUtils {
                 .payerName("Luc Artisan")
                 .payerEmail("bpartners.artisans@gmail.com")
                 .comment("Acompte de 10%")
-                .label("Fabrication Jean" + " - Acompte N°1")),
+                .label("Fabrication Jean" + " - Acompte N°1")
+                .paymentStatus(UNPAID)),
         new PaymentRegulation()
             .maturityDate(LocalDate.of(2023, 1, 1))
             .paymentRequest(new InvoicePaymentReq()
@@ -488,7 +494,8 @@ public class InvoiceTestUtils {
                 .payerName("Luc Artisan")
                 .comment("Reste 90%")
                 .payerEmail("bpartners.artisans@gmail.com")
-                .label("Fabrication Jean" + " - Restant dû")));
+                .label("Fabrication Jean" + " - Restant dû")
+                .paymentStatus(UNPAID)));
   }
 
   public static List<PaymentRegulation> confirmedPaymentRegulations(String id) {
@@ -502,8 +509,8 @@ public class InvoiceTestUtils {
                 .payerName("Luc Artisan")
                 .comment("Acompte de 10%")
                 .payerEmail("bpartners.artisans@gmail.com")
-
-                .label("Fabrication Jean" + " - Acompte N°1")),
+                .label("Fabrication Jean" + " - Acompte N°1")
+                .paymentStatus(UNPAID)),
         new PaymentRegulation()
             .maturityDate(LocalDate.of(2023, 1, 1))
             .paymentRequest(new InvoicePaymentReq()
@@ -514,7 +521,8 @@ public class InvoiceTestUtils {
                 .payerName("Luc Artisan")
                 .payerEmail("bpartners.artisans@gmail.com")
                 .comment("Reste 90%")
-                .label("Fabrication Jean" + " - Restant dû")));
+                .label("Fabrication Jean" + " - Restant dû")
+                .paymentStatus(UNPAID)));
   }
 
 

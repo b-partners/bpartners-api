@@ -425,6 +425,14 @@ public class TestUtils {
         .vatPercent(1000);
   }
 
+  public static CreateProduct createProduct3() {
+    return new CreateProduct()
+        .description("Tuyau 1m")
+        .quantity(3)
+        .unitPrice(2000)
+        .vatPercent(1000);
+  }
+
   public static CreateProduct createProduct4() {
     return new CreateProduct()
         .description("Autres produits")

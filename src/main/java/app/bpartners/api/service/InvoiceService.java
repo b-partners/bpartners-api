@@ -13,6 +13,7 @@ import app.bpartners.api.model.PaymentRequest;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.mapper.PaymentRequestMapper;
 import app.bpartners.api.repository.InvoiceRepository;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -93,15 +94,15 @@ public class InvoiceService {
     List<Invoice> existingInvoice =
         repository.findByIdUserAndRef(idUser, reference);
 
-    boolean isTobeConfirmed = existingInvoice.stream()
+    boolean isTobeConfirmed = existingInvoice.isEmpty() || existingInvoice.stream()
         .anyMatch(existing -> existing.getStatus() == PROPOSAL);
     boolean isToBePaid = existingInvoice.stream()
         .anyMatch(existing -> existing.getStatus() == CONFIRMED);
     return (status != CONFIRMED && status != PAID)
-        ? existingInvoice.isEmpty() || existingInvoice.stream()
-        .anyMatch(existing -> existing.getId().equals(idInvoice))
-        : status == CONFIRMED ? isTobeConfirmed
-        : isToBePaid;
+        ? (existingInvoice.isEmpty() || existingInvoice.stream()
+        .anyMatch(existing -> existing.getId().equals(idInvoice)))
+        : (status == CONFIRMED ? isTobeConfirmed
+        : isToBePaid);
   }
 
   private Invoice handleStatusChanges(Invoice invoice) {
@@ -253,6 +254,9 @@ public class InvoiceService {
         .status(DRAFT)
         .paymentUrl(null)
         .paymentRegulations(paymentRegulations)
+        .products(new ArrayList<>(actual.getProducts()).stream()
+            .peek(product -> product.setId(String.valueOf(randomUUID())))
+            .collect(Collectors.toList()))
         .build();
     return crupdateInvoice(duplicatedInvoice);
   }

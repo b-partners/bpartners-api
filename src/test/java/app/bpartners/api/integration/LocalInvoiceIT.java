@@ -19,6 +19,7 @@ import app.bpartners.api.service.aws.S3Service;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Future;
@@ -40,6 +41,7 @@ import static app.bpartners.api.integration.conf.utils.InvoiceTestUtils.discount
 import static app.bpartners.api.integration.conf.utils.InvoiceTestUtils.discount_percent_excedeed_exec;
 import static app.bpartners.api.integration.conf.utils.InvoiceTestUtils.first_ref_exec;
 import static app.bpartners.api.integration.conf.utils.InvoiceTestUtils.ignoreIdsAndDatetime;
+import static app.bpartners.api.integration.conf.utils.InvoiceTestUtils.ignoreIdsAndDatetimeAndUrl;
 import static app.bpartners.api.integration.conf.utils.InvoiceTestUtils.ignoreIdsOf;
 import static app.bpartners.api.integration.conf.utils.InvoiceTestUtils.initializeDraft;
 import static app.bpartners.api.integration.conf.utils.InvoiceTestUtils.non_existent_customer_exec;
@@ -59,14 +61,11 @@ import static app.bpartners.api.integration.conf.utils.TestUtils.accountHolderEn
 import static app.bpartners.api.integration.conf.utils.TestUtils.assertThrowsApiException;
 import static app.bpartners.api.integration.conf.utils.TestUtils.assertThrowsForbiddenException;
 import static app.bpartners.api.integration.conf.utils.TestUtils.createProduct2;
+import static app.bpartners.api.integration.conf.utils.TestUtils.createProduct3;
 import static app.bpartners.api.integration.conf.utils.TestUtils.createProduct4;
 import static app.bpartners.api.integration.conf.utils.TestUtils.createProduct5;
 import static app.bpartners.api.integration.conf.utils.TestUtils.customer1;
-import static app.bpartners.api.integration.conf.utils.TestUtils.datedPaymentRequest1;
-import static app.bpartners.api.integration.conf.utils.TestUtils.datedPaymentRequest2;
 import static app.bpartners.api.integration.conf.utils.TestUtils.invoice1;
-import static app.bpartners.api.integration.conf.utils.TestUtils.paymentReq1;
-import static app.bpartners.api.integration.conf.utils.TestUtils.paymentReq2;
 import static app.bpartners.api.integration.conf.utils.TestUtils.product5;
 import static app.bpartners.api.integration.conf.utils.TestUtils.setUpCognito;
 import static app.bpartners.api.integration.conf.utils.TestUtils.setUpEventBridge;
@@ -141,28 +140,38 @@ class LocalInvoiceIT extends MockedThirdParties {
   void duplicate_invoice_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
     PayingApi api = new PayingApi(joeDoeClient);
-    String newRefValue = invoice1().getRef() + "-" + randomUUID();
-    InvoiceReference newReference = new InvoiceReference().newReference(newRefValue);
+    String uuid = String.valueOf(randomUUID());
+    String newRefValue = invoice1().getRef() + "-" + uuid;
+    InvoiceReference newReference = new InvoiceReference().newReference(newRefValue + "-V2");
+    Invoice invoice1 = api.getInvoiceById(JOE_DOE_ACCOUNT_ID, INVOICE1_ID);
+    CrupdateInvoice crupdateInvoice =
+        crupdateFromExisting(invoice1, IN_INSTALMENT, paymentRegulations5050())
+            .ref(newRefValue);
+    Invoice initial = api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, uuid,
+        crupdateInvoice);
 
     Invoice actual =
-        api.duplicateInvoice(JOE_DOE_ACCOUNT_ID, INVOICE1_ID, newReference);
+        api.duplicateInvoice(JOE_DOE_ACCOUNT_ID, initial.getId(), newReference);
     actual.setPaymentRegulations(ignoreIdsAndDatetime(actual));
+    actual.setProducts(ignoreIdsOf(Objects.requireNonNull(actual.getProducts())));
 
-    Invoice expected = invoice1()
+    Invoice expected = initial
         .id(actual.getId())
         .paymentUrl(null)
-        .ref("BROUILLON-" + newRefValue)
+        .ref("BROUILLON-" + newReference.getNewReference())
         .status(DRAFT)
-        .paymentRegulations(List.of(datedPaymentRequest1()
-            .paymentRequest(paymentReq1()
-                .id(null)
-                .paymentUrl(null)), datedPaymentRequest2()
-            .paymentRequest(paymentReq2()
-                .id(null)
-                .paymentUrl(null))))
-        .updatedAt(actual.getUpdatedAt());
-    expected.setPaymentRegulations(ignoreIdsAndDatetime(expected));
+        .paymentRegulations(ignoreIdsAndDatetimeAndUrl(
+            Objects.requireNonNull(initial.getPaymentRegulations())))
+        .updatedAt(actual.getUpdatedAt())
+        .createdAt(actual.getCreatedAt());
+    Invoice afterDuplicateInv = api.getInvoiceById(JOE_DOE_ACCOUNT_ID, initial.getId());
+    expected.setProducts(ignoreIdsOf(Objects.requireNonNull(expected.getProducts())));
     assertEquals(expected, actual);
+    assertEquals(initial,
+        afterDuplicateInv
+            .products(ignoreIdsOf(
+                Objects.requireNonNull(afterDuplicateInv.getProducts())))
+            .paymentRegulations(ignoreIdsAndDatetime(afterDuplicateInv)));
   }
 
   @Test
@@ -378,5 +387,32 @@ class LocalInvoiceIT extends MockedThirdParties {
                 .percent(1000)
                 .maturityDate(LocalDate.now().plusDays(10L))))
         .toPayAt(null);
+  }
+
+  private static CrupdateInvoice crupdateFromExisting(Invoice invoice,
+                                                      CrupdateInvoice.PaymentTypeEnum paymentTypeEnum,
+                                                      List<CreatePaymentRegulation> paymentRegulations) {
+    return new CrupdateInvoice()
+        .ref(invoice.getRef())
+        .title(invoice.getTitle())
+        .comment(invoice.getComment())
+        .products(List.of(createProduct4(), createProduct3()))
+        .customer(invoice.getCustomer())
+        .status(invoice.getStatus())
+        .sendingDate(invoice.getSendingDate())
+        .validityDate(invoice.getValidityDate())
+        .paymentType(paymentTypeEnum)
+        .paymentRegulations(paymentRegulations)
+        .toPayAt(invoice.getToPayAt());
+  }
+
+  private static List<CreatePaymentRegulation> paymentRegulations5050() {
+    return List.of(
+        new CreatePaymentRegulation()
+            .percent(5000)
+            .maturityDate(LocalDate.now()),
+        new CreatePaymentRegulation()
+            .percent(5000)
+            .maturityDate(LocalDate.now().plusDays(10L)));
   }
 }

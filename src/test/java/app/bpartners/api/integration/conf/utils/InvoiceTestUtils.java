@@ -192,6 +192,29 @@ public class InvoiceTestUtils {
     return paymentRegulations;
   }
 
+  public static List<PaymentRegulation> ignoreIdsAndDatetimeAndUrl(Invoice actualConfirmed) {
+    List<PaymentRegulation> paymentRegulations =
+        new ArrayList<>(actualConfirmed.getPaymentRegulations());
+    paymentRegulations.forEach(
+        datedPaymentRequest -> datedPaymentRequest.setPaymentRequest(
+            datedPaymentRequest.getPaymentRequest()
+                .id(null)
+                .paymentUrl(null)
+                .initiatedDatetime(null)));
+    return paymentRegulations;
+  }
+
+  public static List<PaymentRegulation> ignoreIdsAndDatetimeAndUrl(
+      List<PaymentRegulation> paymentRegulations) {
+    paymentRegulations.forEach(
+        datedPaymentRequest -> datedPaymentRequest.setPaymentRequest(
+            datedPaymentRequest.getPaymentRequest()
+                .id(null)
+                .paymentUrl(null)
+                .initiatedDatetime(null)));
+    return paymentRegulations;
+  }
+
   public static CrupdateInvoice confirmedInvoice() {
     return new CrupdateInvoice()
         .ref("BP005")

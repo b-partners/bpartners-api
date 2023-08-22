@@ -7,10 +7,12 @@ import app.bpartners.api.endpoint.rest.model.Geojson;
 import app.bpartners.api.endpoint.rest.model.InterventionResult;
 import app.bpartners.api.endpoint.rest.model.NewInterventionOption;
 import app.bpartners.api.endpoint.rest.model.ProspectStatus;
+import app.bpartners.api.endpoint.rest.security.model.Role;
 import app.bpartners.api.integration.conf.DbEnvContextInitializer;
 import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.model.BusinessActivity;
 import app.bpartners.api.model.Prospect;
+import app.bpartners.api.model.User;
 import app.bpartners.api.repository.BusinessActivityRepository;
 import app.bpartners.api.repository.ProspectRepository;
 import app.bpartners.api.repository.ban.BanApi;
@@ -18,6 +20,7 @@ import app.bpartners.api.repository.ban.model.GeoPosition;
 import app.bpartners.api.repository.expressif.ExpressifApi;
 import app.bpartners.api.repository.expressif.model.OutputValue;
 import app.bpartners.api.service.CustomerService;
+import app.bpartners.api.service.UserService;
 import app.bpartners.api.service.utils.GeoUtils;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -51,6 +54,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import static app.bpartners.api.endpoint.rest.validator.ProspectRestValidator.XLSX_FILE;
 import static app.bpartners.api.integration.conf.utils.TestUtils.BEARER_PREFIX;
 import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_HOLDER_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ID;
 import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_TOKEN;
 import static app.bpartners.api.integration.conf.utils.TestUtils.joeDoeAccountHolder;
 import static app.bpartners.api.integration.conf.utils.TestUtils.setUpCognito;
@@ -84,6 +88,8 @@ class ProspectEvaluationIT extends MockedThirdParties {
   private BusinessActivityRepository businessRepository;
   @Autowired
   private CustomerService customerService;
+  @Autowired
+  private UserService userService;
 
   private static OutputValue<Object> prospectRatingResult() {
     return OutputValue.builder()
@@ -125,6 +131,10 @@ class ProspectEvaluationIT extends MockedThirdParties {
 
     when(banApiMock.search(any())).thenReturn(geoPosZero());
     when(banApiMock.fSearch(any())).thenReturn(geoPosZero());
+    User user = userService.getUserById(JOE_DOE_ID);
+    userService.saveUser(user.toBuilder()
+            .roles(List.of(Role.EVAL_PROSPECT))
+        .build());
   }
 
  /*

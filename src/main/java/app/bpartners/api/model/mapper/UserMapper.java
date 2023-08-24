@@ -1,6 +1,7 @@
 package app.bpartners.api.model.mapper;
 
 import app.bpartners.api.endpoint.rest.model.IdentificationStatus;
+import app.bpartners.api.endpoint.rest.security.model.Role;
 import app.bpartners.api.model.Bank;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.ApiException;
@@ -9,6 +10,7 @@ import app.bpartners.api.repository.bridge.model.User.CreateBridgeUser;
 import app.bpartners.api.repository.jpa.model.HAccount;
 import app.bpartners.api.repository.jpa.model.HAccountHolder;
 import app.bpartners.api.repository.jpa.model.HUser;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
@@ -65,6 +67,8 @@ public class UserMapper {
         .preferredAccountId(entityUser.getPreferredAccountId())
         .externalUserId(entityUser.getBridgeUserId())
         .connectionStatus(entityUser.getBankConnectionStatus())
+        .roles(entityUser.getRoles() == null ? List.of()
+            : Arrays.asList(entityUser.getRoles()))
         .build();
   }
 
@@ -105,6 +109,8 @@ public class UserMapper {
         .bridgeItemId(toSave.getBankConnectionId())
         .logoFileId(toSave.getLogoFileId())
         .monthlySubscription(toSave.getMonthlySubscription())
+        .roles(toSave.getRoles() == null ? new Role[] {}
+            : toSave.getRoles().toArray(Role[]::new))
         .build();
   }
 

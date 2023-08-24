@@ -8,6 +8,7 @@ import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.util.DateTime;
 import com.google.api.services.calendar.Calendar;
+import com.google.api.services.calendar.model.CalendarListEntry;
 import com.google.api.services.calendar.model.Event;
 import com.google.api.services.calendar.model.EventDateTime;
 import java.io.IOException;
@@ -42,11 +43,12 @@ public class CalendarApi {
         .build();
   }
 
-  public List<Event> getEvents(Credential credential, DateTime dateMin, DateTime dateMax) {
+  public List<Event> getEvents(String idCalendar, Credential credential, DateTime dateMin,
+                               DateTime dateMax) {
     Calendar calendarService = initService(calendarConf, credential);
     try {
       Calendar.Events.List eventBuilder = calendarService.events()
-          .list(DEFAULT_CALENDAR)
+          .list(idCalendar)
           .setOrderBy(START_TIME_ATTRIBUTE)
           .setSingleEvents(true);
 
@@ -73,8 +75,11 @@ public class CalendarApi {
     return List.of();
   }
 
-  public List<Event> getEvents(String idUser, DateTime dateMin, DateTime dateMax) {
-    return getEvents(calendarConf.loadCredential(idUser), dateMin, dateMax);
+  public List<Event> getEvents(String idUser,
+                               String idCalendar,
+                               DateTime dateMin,
+                               DateTime dateMax) {
+    return getEvents(idCalendar, calendarConf.loadCredential(idUser), dateMin, dateMax);
   }
 
   public List<Event> createEvents(String idUser, String calendarId, List<Event> events) {
@@ -102,6 +107,24 @@ public class CalendarApi {
       }
       return result;
     }).collect(Collectors.toList());
+  }
+
+  public List<CalendarListEntry> getCalendars(String idUser) {
+    Calendar calendarService = initService(calendarConf, loadCredentials(idUser));
+    List<CalendarListEntry> calendarList = null;
+    try {
+      calendarList = calendarService.calendarList().list().execute().getItems();
+    } catch (GoogleJsonResponseException e) {
+      if (e.getStatusCode() == 401) {
+        throw new ForbiddenException(
+            "Google Calendar Token is expired or invalid. Give your consent again.");
+      }
+    } catch (IOException e) {
+      throw new ApiException(SERVER_EXCEPTION, e);
+    } catch (Exception e) {
+      log.warn(e.getMessage());
+    }
+    return calendarList;
   }
 
   public String initConsent(String callbackUri) {

@@ -3,9 +3,7 @@ package app.bpartners.api.endpoint.rest.security.model;
 import org.springframework.security.core.GrantedAuthority;
 
 public enum Role implements GrantedAuthority {
-  STUDENT,
-  TEACHER,
-  MANAGER;
+  EVAL_PROSPECT;
 
   public String getRole() {
     return name();

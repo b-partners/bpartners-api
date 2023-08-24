@@ -713,6 +713,10 @@ components:
           $ref: '#/components/schemas/EnableStatus'
         activeAccount:
           $ref: '#/components/schemas/Account'
+        roles:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserRole'
     IdentificationStatus:
       type: string
       enum:
@@ -920,3 +924,7 @@ components:
         creationDatetime:
           type: string
           format: date-time
+    UserRole:
+      type: string
+      enum:
+        - EVAL_PROSPECT

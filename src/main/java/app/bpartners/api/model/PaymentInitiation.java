@@ -24,6 +24,7 @@ public class PaymentInitiation {
   private String reference;
   private Fraction amount;
   private PaymentStatus status;
+  private PaymentHistoryStatus paymentHistoryStatus;
   private String payerName;
   private String payerEmail;
   private String successUrl;

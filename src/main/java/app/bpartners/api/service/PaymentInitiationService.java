@@ -2,8 +2,10 @@ package app.bpartners.api.service;
 
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.model.Account;
+import app.bpartners.api.model.CreatePaymentRegulation;
 import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.Invoice;
+import app.bpartners.api.model.PaymentHistoryStatus;
 import app.bpartners.api.model.PaymentInitiation;
 import app.bpartners.api.model.PaymentRedirection;
 import app.bpartners.api.model.PaymentRequest;
@@ -36,8 +38,15 @@ public class PaymentInitiationService {
     if (Objects.equals(invoice.getTotalPriceWithVat(), new Fraction())) {
       return new PaymentRedirection();
     }
+    CreatePaymentRegulation paymentReg = null;
+    PaymentHistoryStatus paymentHistoryStatus = null;
     PaymentInitiation paymentInitiation = mapper.convertFromInvoice(
-        String.valueOf(randomUUID()), invoice, null);
+        String.valueOf(randomUUID()),
+        invoice.getTitle(),
+        invoice.getRealReference(),
+        invoice,
+        paymentReg,
+        paymentHistoryStatus);
     return repository.saveAll(List.of(paymentInitiation), invoice.getId()).get(0);
   }
 

@@ -18,6 +18,7 @@ import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 
+import static app.bpartners.api.endpoint.rest.security.model.Role.EVAL_PROSPECT;
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpMethod.OPTIONS;
 import static org.springframework.http.HttpMethod.POST;
@@ -233,6 +234,13 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
                 authResourceProvider
             )
         ).authenticated()
+        .requestMatchers(
+            new SelfAccountMatcher(
+                POST,
+                "/accounts/*/invoices/*/duplication",
+                authResourceProvider
+            )
+        ).authenticated()
         .antMatchers(GET, "/businessActivities").authenticated()
         //TODO: set SelfUserAccountHolderMatcher
         .antMatchers(
@@ -264,18 +272,23 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
         .requestMatchers(
             new SelfAccountHolderMatcher(POST, "/accountHolders/*/prospects/prospectsEvaluation",
                 authResourceProvider))
-        .authenticated()
+        .hasAnyRole(EVAL_PROSPECT.getRole())
         .requestMatchers(
-            new SelfUserMatcher(GET, "/users/*/calendar/*/events", authResourceProvider)
+            new SelfUserMatcher(GET, "/users/*/calendars/*/events", authResourceProvider)
         ).authenticated()
         .requestMatchers(
-            new SelfUserMatcher(PUT, "/users/*/calendar/*/events", authResourceProvider))
+            new SelfUserMatcher(PUT, "/users/*/calendars/*/events", authResourceProvider))
         .authenticated()
         .requestMatchers(
-            new SelfUserMatcher(POST, "/users/*/calendar/oauth2/consent", authResourceProvider))
+            new SelfUserMatcher(POST, "/users/*/calendars/oauth2/consent", authResourceProvider))
+        .authenticated()
+        .requestMatchers(new SelfUserMatcher(GET, "/users/*/calendars", authResourceProvider))
         .authenticated()
         .requestMatchers(
-            new SelfUserMatcher(POST, "/users/*/calendar/oauth2/auth", authResourceProvider))
+            new SelfUserMatcher(POST, "/users/*/calendars/oauth2/auth", authResourceProvider))
+        .authenticated()
+        .requestMatchers(
+            new SelfAccountMatcher(PUT, "/accounts/*/invoices/{iId}/paymentRegulations/*/paymentMethod", authResourceProvider))
         .authenticated()
         .antMatchers("/**").denyAll()
 

@@ -713,6 +713,7 @@ operations:
       tags:
         - Paying
       summary: Duplicate an existing invoice as draft
+      operationId: duplicateInvoice
       parameters:
         - in: path
           name: aId
@@ -735,6 +736,54 @@ operations:
       responses:
         200:
           description: The duplicated draft invoice
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Invoice'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
+  paymentRegulationOperations:
+    put:
+      tags:
+        - Paying
+      summary: Update payment status for a specific payment regulation of an invoice
+      operationId: updatePaymentRegMethod
+      parameters:
+        - in: path
+          name: aId
+          description: Account identifier
+          schema:
+            type: string
+          required: true
+        - in: path
+          name: iId
+          description: Invoice identifier
+          schema:
+            type: string
+          required: true
+        - in: path
+          name: pId
+          description: Payment regulation ou request (DEPRECATED) identifier
+          schema:
+            type: string
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePaymentRegMethod'
+      responses:
+        200:
+          description: The updated invoice with payment regulation new status and payment method
           content:
             application/json:
               schema:
@@ -1308,6 +1357,10 @@ components:
       properties:
         paymentRequest:
           $ref: '#/components/schemas/InvoicePaymentReq'
+        status:
+          $ref: '#/components/schemas/PaymentRegStatus'
+        paymentMethod:
+          $ref: '#/components/schemas/PaymentMethod'
         maturityDate:
           type: string
           format: date
@@ -1432,8 +1485,10 @@ components:
         initiatedDatetime:
           type: string
           format: date-time
+        #TODO: DEPRECATED
         paymentStatus:
           $ref: '#/components/schemas/PaymentStatus'
+    #TODO: DEPRECATED ! Use PaymentRegulation directly
     InvoicePaymentReq:
       allOf:
         - $ref: '#/components/schemas/PaymentRequest'
@@ -1444,6 +1499,7 @@ components:
       type: string
       enum:
         - UNKNOWN
+        - MULTIPLE
         - CASH
         - BANK_TRANSFER
         - CHEQUE
@@ -1452,3 +1508,18 @@ components:
       properties:
         newReference:
           type: string
+    PaymentRegStatus:
+      type: object
+      properties:
+        paymentStatus:
+          $ref: '#/components/schemas/PaymentStatus'
+        updatedAt:
+          type: string
+          format: date-time
+        userUpdated:
+          type: boolean
+    UpdatePaymentRegMethod:
+      type: object
+      properties:
+        method:
+          $ref: '#/components/schemas/PaymentMethod'

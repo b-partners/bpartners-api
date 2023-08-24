@@ -104,6 +104,8 @@ paths:
     $ref: './paying-api.yml#/operations/archiveInvoices'
   /accounts/{aId}/invoices/{iId}:
     $ref: './paying-api.yml#/operations/invoiceOperations'
+  /accounts/{aId}/invoices/{iId}/paymentRegulations/{pId}/paymentMethod:
+    $ref: './paying-api.yml#/operations/paymentRegulationOperations'
   /accounts/{aId}/invoices/{iId}/duplication:
     $ref: './paying-api.yml#/operations/invoiceDuplication'
   /accounts/{aId}/invoices/{iId}/relaunchConf:
@@ -151,12 +153,14 @@ paths:
   #############################################
   ################# Calendar API ##############
   #############################################
-  /users/{id}/calendar/oauth2/consent:
+  /users/{id}/calendars/oauth2/consent:
     $ref: './calendar-api.yml#/operations/calendarConsent'
-  /users/{id}/calendar/oauth2/auth:
+  /users/{id}/calendars/oauth2/auth:
     $ref: './calendar-api.yml#/operations/calendarAuth'
-  /users/{userId}/calendar/{calendarId}/events:
+  /users/{userId}/calendars/{calendarId}/events:
     $ref: './calendar-api.yml#/operations/calendarEvents'
+  /users/{userId}/calendars:
+    $ref: './calendar-api.yml#/operations/calendars'
 components:
   securitySchemes:
     BearerAuth:

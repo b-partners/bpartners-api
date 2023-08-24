@@ -1,6 +1,7 @@
 package app.bpartners.api.service;
 
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
+import app.bpartners.api.endpoint.rest.model.PaymentMethod;
 import app.bpartners.api.endpoint.rest.model.PaymentStatus;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.ArchiveInvoice;
@@ -36,6 +37,7 @@ import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.DRAFT;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PROPOSAL;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PROPOSAL_CONFIRMED;
+import static app.bpartners.api.endpoint.rest.model.PaymentMethod.MULTIPLE;
 import static app.bpartners.api.model.Invoice.DEFAULT_TO_PAY_DELAY_DAYS;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 import static app.bpartners.api.service.utils.PaymentUtils.computeTotalPriceFromPaymentReq;
@@ -56,7 +58,7 @@ public class InvoiceService {
   private final PaymentRequestRepository paymentRepository;
 
   @Transactional
-  public Invoice updatePaymentStatus(String invoiceId, String paymentId, PaymentStatus status) {
+  public Invoice updatePaymentStatus(String invoiceId, String paymentId, PaymentMethod method) {
     boolean isUserUpdated = true;
     Invoice invoice = getById(invoiceId);
     PaymentRequest paymentRequest = invoice.getPaymentRegulations().stream()
@@ -70,9 +72,10 @@ public class InvoiceService {
         .getPaymentRequest();
     PaymentRequest toSave = paymentRequest.toBuilder()
         .invoiceId(invoiceId)
-        .status(status)
+        .status(PaymentStatus.PAID)
         .paymentHistoryStatus(PaymentHistoryStatus.builder()
-            .status(status)
+            .status(PaymentStatus.PAID)
+            .paymentMethod(method)
             .updatedAt(Instant.now())
             .userUpdated(isUserUpdated)
             .build())
@@ -98,6 +101,7 @@ public class InvoiceService {
     if (allPaymentsPaid) {
       return crupdateInvoice(invoice.toBuilder()
           .status(PAID)
+          .paymentMethod(MULTIPLE)
           .build());
     }
     return invoice;

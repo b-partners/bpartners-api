@@ -1,5 +1,6 @@
 package app.bpartners.api.model;
 
+import app.bpartners.api.endpoint.rest.model.PaymentMethod;
 import app.bpartners.api.endpoint.rest.model.PaymentStatus;
 import java.time.Instant;
 import lombok.AllArgsConstructor;
@@ -17,6 +18,7 @@ import lombok.ToString;
 @ToString
 public class PaymentHistoryStatus {
   private PaymentStatus status;
+  private PaymentMethod paymentMethod;
   private Boolean userUpdated;
   private Instant updatedAt;
 }

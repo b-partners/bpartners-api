@@ -1,5 +1,6 @@
 package app.bpartners.api.repository.jpa.model;
 
+import app.bpartners.api.endpoint.rest.model.PaymentMethod;
 import app.bpartners.api.endpoint.rest.model.PaymentStatus;
 import app.bpartners.api.model.PaymentRequest;
 import java.io.Serializable;
@@ -47,6 +48,9 @@ public class HPaymentRequest implements Serializable {
   @Type(type = "pgsql_enum")
   @Enumerated(EnumType.STRING)
   private PaymentStatus status;
+  @Type(type = "pgsql_enum")
+  @Enumerated(EnumType.STRING)
+  private PaymentMethod paymentMethod;
   @Column(name = "\"comment\"")
   private String comment;
   private Boolean userUpdated;

@@ -755,7 +755,7 @@ operations:
       tags:
         - Paying
       summary: Update payment status for a specific payment regulation of an invoice
-      operationId: updatePaymentRegStatus
+      operationId: updatePaymentRegMethod
       parameters:
         - in: path
           name: aId
@@ -780,10 +780,10 @@ operations:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdatePaymentStatus'
+              $ref: '#/components/schemas/UpdatePaymentRegMethod'
       responses:
         200:
-          description: The updated invoice with payment regulation new status
+          description: The updated invoice with payment regulation new status and payment method
           content:
             application/json:
               schema:
@@ -1359,6 +1359,8 @@ components:
           $ref: '#/components/schemas/InvoicePaymentReq'
         status:
           $ref: '#/components/schemas/PaymentRegStatus'
+        paymentMethod:
+          $ref: '#/components/schemas/PaymentMethod'
         maturityDate:
           type: string
           format: date
@@ -1497,6 +1499,7 @@ components:
       type: string
       enum:
         - UNKNOWN
+        - MULTIPLE
         - CASH
         - BANK_TRANSFER
         - CHEQUE
@@ -1515,8 +1518,8 @@ components:
           format: date-time
         userUpdated:
           type: boolean
-    UpdatePaymentStatus:
+    UpdatePaymentRegMethod:
       type: object
       properties:
-        status:
-          $ref: '#/components/schemas/PaymentStatus'
+        method:
+          $ref: '#/components/schemas/PaymentMethod'

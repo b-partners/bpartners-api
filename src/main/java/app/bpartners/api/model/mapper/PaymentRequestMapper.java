@@ -114,6 +114,8 @@ public class PaymentRequestMapper {
             .status(payment.getStatus())
             .comment(payment.getComment())
             .paymentHistoryStatus(PaymentHistoryStatus.builder()
+                .paymentMethod(paymentHistoryStatus == null ? null
+                    : paymentHistoryStatus.getPaymentMethod())
                 .status(paymentHistoryStatus == null ? null
                     : paymentHistoryStatus.getStatus())
                 .userUpdated(paymentHistoryStatus == null ? null
@@ -146,6 +148,7 @@ public class PaymentRequestMapper {
         .createdDatetime(Instant.now())
         .status(entity.getStatus())
         .paymentHistoryStatus(PaymentHistoryStatus.builder()
+            .paymentMethod(entity.getPaymentMethod())
             .status(entity.getStatus())
             .userUpdated(entity.getUserUpdated())
             .updatedAt(entity.getPaymentStatusUpdatedAt())

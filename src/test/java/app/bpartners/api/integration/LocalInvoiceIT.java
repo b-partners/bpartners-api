@@ -8,10 +8,11 @@ import app.bpartners.api.endpoint.rest.model.CreateProduct;
 import app.bpartners.api.endpoint.rest.model.CrupdateInvoice;
 import app.bpartners.api.endpoint.rest.model.Invoice;
 import app.bpartners.api.endpoint.rest.model.InvoiceReference;
+import app.bpartners.api.endpoint.rest.model.PaymentMethod;
 import app.bpartners.api.endpoint.rest.model.PaymentRegulation;
 import app.bpartners.api.endpoint.rest.model.PaymentStatus;
 import app.bpartners.api.endpoint.rest.model.UpdateInvoiceArchivedStatus;
-import app.bpartners.api.endpoint.rest.model.UpdatePaymentStatus;
+import app.bpartners.api.endpoint.rest.model.UpdatePaymentRegMethod;
 import app.bpartners.api.integration.conf.DbEnvContextInitializer;
 import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.integration.conf.utils.TestUtils;
@@ -43,6 +44,7 @@ import static app.bpartners.api.endpoint.rest.model.CrupdateInvoice.PaymentTypeE
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.DRAFT;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
+import static app.bpartners.api.endpoint.rest.model.PaymentMethod.MULTIPLE;
 import static app.bpartners.api.integration.conf.utils.InvoiceTestUtils.discount_amount_not_supported_exec;
 import static app.bpartners.api.integration.conf.utils.InvoiceTestUtils.discount_percent_excedeed_exec;
 import static app.bpartners.api.integration.conf.utils.InvoiceTestUtils.first_ref_exec;
@@ -380,9 +382,8 @@ class LocalInvoiceIT extends MockedThirdParties {
         () -> api.getInvoiceById(JOE_DOE_ACCOUNT_ID, "not_existing_invoice_id"));
   }
 
-  //TODO: implement now then IT are configured
   @Test
-  void update_payment_regulation_payment_status_ok() throws ApiException {
+  void update_payment_regulation_method_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
     PayingApi api = new PayingApi(joeDoeClient);
     Invoice initialInvoice = api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, String.valueOf(randomUUID()),
@@ -398,18 +399,18 @@ class LocalInvoiceIT extends MockedThirdParties {
     var payment1 = paymentRegulations.get(0).getPaymentRequest();
     var payment2 = paymentRegulations.get(1).getPaymentRequest();
 
-    Invoice actual = api.updatePaymentRegStatus(
+    Invoice actual = api.updatePaymentRegMethod(
         JOE_DOE_ACCOUNT_ID,
         initialInvoice.getId(),
         payment1.getId(),
-        new UpdatePaymentStatus()
-            .status(PaymentStatus.PAID));
-    Invoice actual2 = api.updatePaymentRegStatus(
+        new UpdatePaymentRegMethod()
+            .method(PaymentMethod.UNKNOWN));
+    Invoice actual2 = api.updatePaymentRegMethod(
         JOE_DOE_ACCOUNT_ID,
         initialInvoice.getId(),
         payment2.getId(),
-        new UpdatePaymentStatus()
-            .status(PaymentStatus.PAID));
+        new UpdatePaymentRegMethod()
+            .method(PaymentMethod.UNKNOWN));
 
     var actualPayment1 = actual.getPaymentRegulations().get(0).getPaymentRequest();
     var actualPayment2 = actual.getPaymentRegulations().get(1).getPaymentRequest();
@@ -417,7 +418,9 @@ class LocalInvoiceIT extends MockedThirdParties {
     var actualPayment4 = actual2.getPaymentRegulations().get(1).getPaymentRequest();
 
     assertEquals(CONFIRMED, actual.getStatus());
+    assertEquals(PaymentMethod.UNKNOWN, actual.getPaymentMethod());
     assertEquals(PAID, actual2.getStatus());
+    assertEquals(MULTIPLE, actual2.getPaymentMethod());
     assertEquals(payment1.paymentStatus(PaymentStatus.PAID), actualPayment1);
     assertEquals(payment2.paymentStatus(PaymentStatus.UNPAID), actualPayment2);
     assertEquals(payment2.paymentStatus(PaymentStatus.PAID)

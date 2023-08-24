@@ -6,10 +6,10 @@ import app.bpartners.api.endpoint.rest.model.Invoice;
 import app.bpartners.api.endpoint.rest.model.InvoiceReference;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.endpoint.rest.model.UpdateInvoiceArchivedStatus;
-import app.bpartners.api.endpoint.rest.model.UpdatePaymentStatus;
+import app.bpartners.api.endpoint.rest.model.UpdatePaymentRegMethod;
 import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.endpoint.rest.validator.InvoiceReferenceValidator;
-import app.bpartners.api.endpoint.rest.validator.UpdatePaymentValidator;
+import app.bpartners.api.endpoint.rest.validator.UpdatePaymentRegValidator;
 import app.bpartners.api.model.ArchiveInvoice;
 import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.PageFromOne;
@@ -31,17 +31,17 @@ public class InvoiceController {
   private final InvoiceRestMapper mapper;
   private final InvoiceService service;
   private final InvoiceReferenceValidator referenceValidator;
-  private final UpdatePaymentValidator paymentValidator;
+  private final UpdatePaymentRegValidator paymentValidator;
 
-  @PutMapping("/accounts/{id}/invoices/{iId}/paymentRegulations/{pId}/paymentStatus")
-  public Invoice updatePaymentStatus(
+  @PutMapping("/accounts/{id}/invoices/{iId}/paymentRegulations/{pId}/paymentMethod")
+  public Invoice updatePaymentMethod(
       @PathVariable("id") String accountId,
       @PathVariable("iId") String invoiceId,
       @PathVariable("pId") String paymentId,
-      @RequestBody(required = false) UpdatePaymentStatus updatePaymentStatus) {
-    paymentValidator.accept(updatePaymentStatus);
+      @RequestBody(required = false) UpdatePaymentRegMethod updatePaymentRegMethod) {
+    paymentValidator.accept(updatePaymentRegMethod);
     return mapper.toRest(
-        service.updatePaymentStatus(invoiceId, paymentId, updatePaymentStatus.getStatus()));
+        service.updatePaymentStatus(invoiceId, paymentId, updatePaymentRegMethod.getMethod()));
   }
 
   @PutMapping("/accounts/{id}/invoices/{iId}")

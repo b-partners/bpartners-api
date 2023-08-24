@@ -33,6 +33,7 @@ public class PaymentRequest {
   private LocalDate paymentDueDate;
   private PaymentStatus status;
   private String comment;
+  private PaymentHistoryStatus paymentHistoryStatus;
   private Instant createdDatetime;
 
   public PaymentRequest(HPaymentRequest entity) {

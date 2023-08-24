@@ -8,7 +8,11 @@ import app.bpartners.api.endpoint.rest.model.CreateProduct;
 import app.bpartners.api.endpoint.rest.model.CrupdateInvoice;
 import app.bpartners.api.endpoint.rest.model.Invoice;
 import app.bpartners.api.endpoint.rest.model.InvoiceReference;
+import app.bpartners.api.endpoint.rest.model.PaymentMethod;
+import app.bpartners.api.endpoint.rest.model.PaymentRegulation;
+import app.bpartners.api.endpoint.rest.model.PaymentStatus;
 import app.bpartners.api.endpoint.rest.model.UpdateInvoiceArchivedStatus;
+import app.bpartners.api.endpoint.rest.model.UpdatePaymentRegMethod;
 import app.bpartners.api.integration.conf.DbEnvContextInitializer;
 import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.integration.conf.utils.TestUtils;
@@ -18,6 +22,7 @@ import app.bpartners.api.repository.jpa.AccountHolderJpaRepository;
 import app.bpartners.api.service.aws.S3Service;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -36,7 +41,10 @@ import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
 
 import static app.bpartners.api.endpoint.rest.model.ArchiveStatus.DISABLED;
 import static app.bpartners.api.endpoint.rest.model.CrupdateInvoice.PaymentTypeEnum.IN_INSTALMENT;
+import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.DRAFT;
+import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
+import static app.bpartners.api.endpoint.rest.model.PaymentMethod.MULTIPLE;
 import static app.bpartners.api.integration.conf.utils.InvoiceTestUtils.discount_amount_not_supported_exec;
 import static app.bpartners.api.integration.conf.utils.InvoiceTestUtils.discount_percent_excedeed_exec;
 import static app.bpartners.api.integration.conf.utils.InvoiceTestUtils.first_ref_exec;
@@ -61,7 +69,6 @@ import static app.bpartners.api.integration.conf.utils.TestUtils.accountHolderEn
 import static app.bpartners.api.integration.conf.utils.TestUtils.assertThrowsApiException;
 import static app.bpartners.api.integration.conf.utils.TestUtils.assertThrowsForbiddenException;
 import static app.bpartners.api.integration.conf.utils.TestUtils.createProduct2;
-import static app.bpartners.api.integration.conf.utils.TestUtils.createProduct3;
 import static app.bpartners.api.integration.conf.utils.TestUtils.createProduct4;
 import static app.bpartners.api.integration.conf.utils.TestUtils.createProduct5;
 import static app.bpartners.api.integration.conf.utils.TestUtils.customer1;
@@ -163,6 +170,7 @@ class LocalInvoiceIT extends MockedThirdParties {
         .paymentRegulations(ignoreIdsAndDatetimeAndUrl(
             Objects.requireNonNull(initial.getPaymentRegulations())))
         .updatedAt(actual.getUpdatedAt())
+        .toPayAt(actual.getToPayAt())
         .createdAt(actual.getCreatedAt());
     Invoice afterDuplicateInv = api.getInvoiceById(JOE_DOE_ACCOUNT_ID, initial.getId());
     expected.setProducts(ignoreIdsOf(Objects.requireNonNull(expected.getProducts())));
@@ -310,7 +318,9 @@ class LocalInvoiceIT extends MockedThirdParties {
                 createProduct2())));
     String idInvoice = initialInvoice.getId();
     CrupdateInvoice crupdateInvoice =
-        crupdateFromExisting(api.getInvoiceById(JOE_DOE_ACCOUNT_ID, idInvoice));
+        crupdateFromExisting(api.getInvoiceById(JOE_DOE_ACCOUNT_ID, idInvoice),
+            IN_INSTALMENT,
+            paymentRegulations1090());
 
     Invoice actual = api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, idInvoice, crupdateInvoice);
     var paymentRegulations = actual.getPaymentRegulations();
@@ -341,6 +351,16 @@ class LocalInvoiceIT extends MockedThirdParties {
     assertEquals(1650, paymentRegulationsRefecthed2.get(1).getPaymentRequest().getAmount());
   }
 
+  private static List<CreatePaymentRegulation> paymentRegulations1090() {
+    return List.of(
+        new CreatePaymentRegulation()
+            .percent(9000)
+            .maturityDate(LocalDate.now()),
+        new CreatePaymentRegulation()
+            .percent(1000)
+            .maturityDate(LocalDate.now().plusDays(10L)));
+  }
+
   @Test
   void read_invoice_ko() {
     ApiClient joeDoeClient = anApiClient();
@@ -362,31 +382,57 @@ class LocalInvoiceIT extends MockedThirdParties {
         () -> api.getInvoiceById(JOE_DOE_ACCOUNT_ID, "not_existing_invoice_id"));
   }
 
+  @Test
+  void update_payment_regulation_method_ok() throws ApiException {
+    ApiClient joeDoeClient = anApiClient();
+    PayingApi api = new PayingApi(joeDoeClient);
+    Invoice initialInvoice = api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, String.valueOf(randomUUID()),
+        initializeDraft()
+            .ref(String.valueOf(randomUUID()))
+            .status(CONFIRMED)
+            .customer(customer1())
+            .products(Collections.singletonList(createProduct2()))
+            .paymentType(IN_INSTALMENT)
+            .paymentRegulations(paymentRegulations1090())
+    );
+    List<PaymentRegulation> paymentRegulations = initialInvoice.getPaymentRegulations();
+    var payment1 = paymentRegulations.get(0).getPaymentRequest();
+    var payment2 = paymentRegulations.get(1).getPaymentRequest();
+
+    Invoice actual = api.updatePaymentRegMethod(
+        JOE_DOE_ACCOUNT_ID,
+        initialInvoice.getId(),
+        payment1.getId(),
+        new UpdatePaymentRegMethod()
+            .method(PaymentMethod.UNKNOWN));
+    Invoice actual2 = api.updatePaymentRegMethod(
+        JOE_DOE_ACCOUNT_ID,
+        initialInvoice.getId(),
+        payment2.getId(),
+        new UpdatePaymentRegMethod()
+            .method(PaymentMethod.UNKNOWN));
+
+    var actualPayment1 = actual.getPaymentRegulations().get(0).getPaymentRequest();
+    var actualPayment2 = actual.getPaymentRegulations().get(1).getPaymentRequest();
+    var actualPayment3 = actual2.getPaymentRegulations().get(0).getPaymentRequest();
+    var actualPayment4 = actual2.getPaymentRegulations().get(1).getPaymentRequest();
+
+    assertEquals(CONFIRMED, actual.getStatus());
+    assertEquals(PaymentMethod.UNKNOWN, actual.getPaymentMethod());
+    assertEquals(PAID, actual2.getStatus());
+    assertEquals(MULTIPLE, actual2.getPaymentMethod());
+    assertEquals(payment1.paymentStatus(PaymentStatus.PAID), actualPayment1);
+    assertEquals(payment2.paymentStatus(PaymentStatus.UNPAID), actualPayment2);
+    assertEquals(payment2.paymentStatus(PaymentStatus.PAID)
+        .initiatedDatetime(actualPayment3.getInitiatedDatetime()), actualPayment3);
+    assertEquals(payment1.paymentStatus(PaymentStatus.PAID)
+        .initiatedDatetime(actualPayment4.getInitiatedDatetime()), actualPayment4);
+  }
+
   @SneakyThrows
   private Invoice crupdateInvoice(CountDownLatch latch, PayingApi api, String idInvoice) {
     latch.await();
     return api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, idInvoice, validInvoice());
-  }
-
-  private static CrupdateInvoice crupdateFromExisting(Invoice invoice) {
-    return new CrupdateInvoice()
-        .ref(invoice.getRef())
-        .title(invoice.getTitle())
-        .comment(invoice.getComment())
-        .products(List.of(createProduct4(), createProduct5()))
-        .customer(invoice.getCustomer())
-        .status(invoice.getStatus())
-        .sendingDate(invoice.getSendingDate())
-        .validityDate(invoice.getValidityDate())
-        .paymentType(IN_INSTALMENT)
-        .paymentRegulations(List.of(
-            new CreatePaymentRegulation()
-                .percent(9000)
-                .maturityDate(LocalDate.now()),
-            new CreatePaymentRegulation()
-                .percent(1000)
-                .maturityDate(LocalDate.now().plusDays(10L))))
-        .toPayAt(null);
   }
 
   private static CrupdateInvoice crupdateFromExisting(Invoice invoice,
@@ -396,14 +442,14 @@ class LocalInvoiceIT extends MockedThirdParties {
         .ref(invoice.getRef())
         .title(invoice.getTitle())
         .comment(invoice.getComment())
-        .products(List.of(createProduct4(), createProduct3()))
+        .products(List.of(createProduct4(), createProduct5()))
         .customer(invoice.getCustomer())
         .status(invoice.getStatus())
         .sendingDate(invoice.getSendingDate())
         .validityDate(invoice.getValidityDate())
         .paymentType(paymentTypeEnum)
         .paymentRegulations(paymentRegulations)
-        .toPayAt(invoice.getToPayAt());
+        .toPayAt(null);
   }
 
   private static List<CreatePaymentRegulation> paymentRegulations5050() {

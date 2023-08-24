@@ -162,6 +162,8 @@ public class Invoice {
       case UNKNOWN:
         path = "static/stamp/paid.png";
         break;
+      case MULTIPLE:
+        return null; //No stamp when multiple payments
       default:
         log.warn("Unable to get stamp for unknown payment method {} ", paymentMethod);
         return null;

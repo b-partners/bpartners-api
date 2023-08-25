@@ -154,32 +154,30 @@ class LocalInvoiceIT extends MockedThirdParties {
     CrupdateInvoice crupdateInvoice =
         crupdateFromExisting(invoice1, IN_INSTALMENT, paymentRegulations5050())
             .ref(newRefValue);
-    Invoice initial = api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, uuid,
-        crupdateInvoice);
+    Invoice initial = api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, uuid, crupdateInvoice);
 
     Invoice actual =
         api.duplicateInvoice(JOE_DOE_ACCOUNT_ID, initial.getId(), newReference);
     actual.setPaymentRegulations(ignoreIdsAndDatetime(actual));
     actual.setProducts(ignoreIdsOf(Objects.requireNonNull(actual.getProducts())));
 
-    Invoice expected = initial
-        .id(actual.getId())
-        .paymentUrl(null)
-        .ref("BROUILLON-" + newReference.getNewReference())
-        .status(DRAFT)
-        .paymentRegulations(ignoreIdsAndDatetimeAndUrl(
-            Objects.requireNonNull(initial.getPaymentRegulations())))
-        .updatedAt(actual.getUpdatedAt())
-        .toPayAt(actual.getToPayAt())
-        .createdAt(actual.getCreatedAt());
-    Invoice afterDuplicateInv = api.getInvoiceById(JOE_DOE_ACCOUNT_ID, initial.getId());
-    expected.setProducts(ignoreIdsOf(Objects.requireNonNull(expected.getProducts())));
-    assertEquals(expected, actual);
-    assertEquals(initial,
-        afterDuplicateInv
+    Invoice initialAfter = api.getInvoiceById(JOE_DOE_ACCOUNT_ID, initial.getId());
+    assertNotEquals(initial.getFileId(), actual.getFileId());
+    assertNotEquals(initial.getId(), actual.getFileId());
+    assertEquals(initial, initialAfter);
+    assertEquals(initial
+            .paymentUrl(null)
+            .ref("BROUILLON-" + newReference.getNewReference())
+            .status(DRAFT)
+            .updatedAt(actual.getUpdatedAt())
+            .toPayAt(actual.getToPayAt())
+            .createdAt(actual.getCreatedAt())
+            .id(actual.getId()) //Ignoring it
+            .fileId(actual.getFileId())  //Ignoring it
             .products(ignoreIdsOf(
-                Objects.requireNonNull(afterDuplicateInv.getProducts())))
-            .paymentRegulations(ignoreIdsAndDatetime(afterDuplicateInv)));
+                Objects.requireNonNull(initialAfter.getProducts())))
+            .paymentRegulations(ignoreIdsAndDatetimeAndUrl(initialAfter)),
+        actual);
   }
 
   @Test

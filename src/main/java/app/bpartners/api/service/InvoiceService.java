@@ -311,6 +311,7 @@ public class InvoiceService {
     List<CreatePaymentRegulation> paymentRegulations = initPaymentReg(actual);
     Invoice duplicatedInvoice = actual.toBuilder()
         .id(String.valueOf(randomUUID()))
+        .fileId(String.valueOf(randomUUID()))
         .ref(reference)
         .status(DRAFT)
         .paymentUrl(null)

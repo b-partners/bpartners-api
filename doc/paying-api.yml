@@ -1359,8 +1359,6 @@ components:
           $ref: '#/components/schemas/InvoicePaymentReq'
         status:
           $ref: '#/components/schemas/PaymentRegStatus'
-        paymentMethod:
-          $ref: '#/components/schemas/PaymentMethod'
         maturityDate:
           type: string
           format: date
@@ -1511,6 +1509,8 @@ components:
     PaymentRegStatus:
       type: object
       properties:
+        paymentMethod:
+          $ref: '#/components/schemas/PaymentMethod'
         paymentStatus:
           $ref: '#/components/schemas/PaymentStatus'
         updatedAt:

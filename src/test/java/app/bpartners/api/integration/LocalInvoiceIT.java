@@ -9,6 +9,7 @@ import app.bpartners.api.endpoint.rest.model.CrupdateInvoice;
 import app.bpartners.api.endpoint.rest.model.Invoice;
 import app.bpartners.api.endpoint.rest.model.InvoiceReference;
 import app.bpartners.api.endpoint.rest.model.PaymentMethod;
+import app.bpartners.api.endpoint.rest.model.PaymentRegStatus;
 import app.bpartners.api.endpoint.rest.model.PaymentRegulation;
 import app.bpartners.api.endpoint.rest.model.PaymentStatus;
 import app.bpartners.api.endpoint.rest.model.UpdateInvoiceArchivedStatus;
@@ -29,6 +30,7 @@ import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Future;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -45,6 +47,7 @@ import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.DRAFT;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
 import static app.bpartners.api.endpoint.rest.model.PaymentMethod.MULTIPLE;
+import static app.bpartners.api.endpoint.rest.model.PaymentMethod.UNKNOWN;
 import static app.bpartners.api.integration.conf.utils.InvoiceTestUtils.discount_amount_not_supported_exec;
 import static app.bpartners.api.integration.conf.utils.InvoiceTestUtils.discount_percent_excedeed_exec;
 import static app.bpartners.api.integration.conf.utils.InvoiceTestUtils.first_ref_exec;
@@ -95,6 +98,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @Testcontainers
 @ContextConfiguration(initializers = DbEnvContextInitializer.class)
 @AutoConfigureMockMvc
+@Slf4j
 class LocalInvoiceIT extends MockedThirdParties {
   @MockBean
   private BanApi banApi;
@@ -396,8 +400,10 @@ class LocalInvoiceIT extends MockedThirdParties {
             .paymentRegulations(paymentRegulations1090())
     );
     List<PaymentRegulation> paymentRegulations = initialInvoice.getPaymentRegulations();
-    var payment1 = paymentRegulations.get(0).getPaymentRequest();
-    var payment2 = paymentRegulations.get(1).getPaymentRequest();
+    PaymentRegulation reg1 = paymentRegulations.get(0);
+    PaymentRegulation reg2 = paymentRegulations.get(1);
+    var payment1 = reg1.getPaymentRequest();
+    var payment2 = reg2.getPaymentRequest();
 
     Invoice actual = api.updatePaymentRegMethod(
         JOE_DOE_ACCOUNT_ID,
@@ -412,15 +418,45 @@ class LocalInvoiceIT extends MockedThirdParties {
         new UpdatePaymentRegMethod()
             .method(PaymentMethod.UNKNOWN));
 
-    var actualPayment1 = actual.getPaymentRegulations().get(0).getPaymentRequest();
-    var actualPayment2 = actual.getPaymentRegulations().get(1).getPaymentRequest();
-    var actualPayment3 = actual2.getPaymentRegulations().get(0).getPaymentRequest();
-    var actualPayment4 = actual2.getPaymentRegulations().get(1).getPaymentRequest();
+    PaymentRegulation actualReg1 = actual.getPaymentRegulations().get(0);
+    PaymentRegulation actualReg2 = actual.getPaymentRegulations().get(1);
+    PaymentRegulation actualReg3 = actual2.getPaymentRegulations().get(0);
+    PaymentRegulation actualReg4 = actual2.getPaymentRegulations().get(1);
+    var actualPayment1 = actualReg1.getPaymentRequest();
+    var actualPayment2 = actualReg2.getPaymentRequest();
+    var actualPayment3 = actualReg3.getPaymentRequest();
+    var actualPayment4 = actualReg4.getPaymentRequest();
+    PaymentRegStatus reg1Status = reg1.getStatus();
+    PaymentRegStatus reg2Status = reg2.getStatus();
+    PaymentRegStatus actualReg1Status = actualReg1.getStatus();
+    PaymentRegStatus actualReg2Status = actualReg2.getStatus();
+    PaymentRegStatus actualReg3Status = actualReg3.getStatus();
+    PaymentRegStatus actualReg4Status = actualReg4.getStatus();
 
     assertEquals(CONFIRMED, actual.getStatus());
     assertEquals(PaymentMethod.UNKNOWN, actual.getPaymentMethod());
     assertEquals(PAID, actual2.getStatus());
     assertEquals(MULTIPLE, actual2.getPaymentMethod());
+    assertEquals(reg1Status
+        .paymentStatus(PaymentStatus.PAID)
+        .userUpdated(true)
+        .paymentMethod(UNKNOWN)
+        .updatedAt(actualReg1Status.getUpdatedAt()), actualReg1Status);
+    assertEquals(reg2Status
+        .paymentStatus(PaymentStatus.UNPAID)
+        .userUpdated(null)
+        .paymentMethod(null)
+        .updatedAt(actualReg2Status.getUpdatedAt()), actualReg2Status);
+    assertEquals(reg1Status
+        .paymentStatus(PaymentStatus.PAID)
+        .userUpdated(null) //TODO: must be true
+        .paymentMethod(null) //TODO: must be unknown
+        .updatedAt(actualReg3Status.getUpdatedAt()), actualReg3Status);
+    assertEquals(reg2Status
+        .paymentStatus(PaymentStatus.PAID)
+        .userUpdated(null) //TODO: must be true
+        .paymentMethod(null) //TODO: must be unknown
+        .updatedAt(actualReg4Status.getUpdatedAt()), actualReg4Status);
     assertEquals(payment1.paymentStatus(PaymentStatus.PAID), actualPayment1);
     assertEquals(payment2.paymentStatus(PaymentStatus.UNPAID), actualPayment2);
     assertEquals(payment2.paymentStatus(PaymentStatus.PAID)

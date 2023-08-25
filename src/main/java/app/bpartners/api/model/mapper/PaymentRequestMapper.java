@@ -34,6 +34,8 @@ public class PaymentRequestMapper {
         .amount(domain.getAmount().toString())
         .createdDatetime(Instant.now())
         .status(domain.getStatus())
+        .paymentMethod(paymentHistoryStatus == null ? null
+            : paymentHistoryStatus.getPaymentMethod())
         .paymentStatusUpdatedAt(
             paymentHistoryStatus == null ? null
                 : paymentHistoryStatus.getUpdatedAt())
@@ -42,8 +44,7 @@ public class PaymentRequestMapper {
         .paymentStatusUpdatedAt(
             paymentHistoryStatus == null ? null :
                 paymentHistoryStatus.getUpdatedAt()
-        )
-        .build();
+        ).build();
   }
 
   public HPaymentRequest toEntity(
@@ -147,12 +148,17 @@ public class PaymentRequestMapper {
         .amount(parseFraction(entity.getAmount()))
         .createdDatetime(Instant.now())
         .status(entity.getStatus())
-        .paymentHistoryStatus(PaymentHistoryStatus.builder()
-            .paymentMethod(entity.getPaymentMethod())
-            .status(entity.getStatus())
-            .userUpdated(entity.getUserUpdated())
-            .updatedAt(entity.getPaymentStatusUpdatedAt())
-            .build())
+        .paymentHistoryStatus(
+            entity.getPaymentMethod() == null
+                && entity.getStatus() == null
+                && entity.getUserUpdated() == null
+                && entity.getPaymentStatusUpdatedAt() == null ? null
+                : PaymentHistoryStatus.builder()
+                .paymentMethod(entity.getPaymentMethod())
+                .status(entity.getStatus())
+                .userUpdated(entity.getUserUpdated())
+                .updatedAt(entity.getPaymentStatusUpdatedAt())
+                .build())
         .build();
   }
 }

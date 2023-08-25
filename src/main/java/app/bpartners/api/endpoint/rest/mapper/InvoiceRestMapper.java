@@ -5,7 +5,9 @@ import app.bpartners.api.endpoint.rest.model.Invoice;
 import app.bpartners.api.endpoint.rest.model.InvoiceDiscount;
 import app.bpartners.api.endpoint.rest.model.InvoicePaymentReq;
 import app.bpartners.api.endpoint.rest.model.PaymentMethod;
+import app.bpartners.api.endpoint.rest.model.PaymentRegStatus;
 import app.bpartners.api.endpoint.rest.model.PaymentRegulation;
+import app.bpartners.api.endpoint.rest.model.PaymentStatus;
 import app.bpartners.api.endpoint.rest.model.Product;
 import app.bpartners.api.endpoint.rest.model.TransactionInvoice;
 import app.bpartners.api.endpoint.rest.model.UpdateInvoiceArchivedStatus;
@@ -16,6 +18,7 @@ import app.bpartners.api.model.ArchiveInvoice;
 import app.bpartners.api.model.CreatePaymentRegulation;
 import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.InvoiceProduct;
+import app.bpartners.api.model.PaymentHistoryStatus;
 import app.bpartners.api.model.TransactionInvoiceDetails;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.exception.NotImplementedException;
@@ -198,8 +201,19 @@ public class InvoiceRestMapper {
   private static PaymentRegulation getPaymentRegulation(
       Fraction totalPrice, CreatePaymentRegulation paymentRegulation) {
     app.bpartners.api.model.PaymentRequest payment = paymentRegulation.getPaymentRequest();
+    PaymentHistoryStatus historyStatus = payment.getPaymentHistoryStatus();
     return new PaymentRegulation()
         .maturityDate(paymentRegulation.getMaturityDate())
+        .status(new PaymentRegStatus()
+            .paymentStatus(
+                historyStatus == null || historyStatus.getStatus() == null ? PaymentStatus.UNPAID
+                    : historyStatus.getStatus())
+            .updatedAt(historyStatus == null ? null
+                : historyStatus.getUpdatedAt())
+            .userUpdated(historyStatus == null ? null
+                : historyStatus.getUserUpdated())
+            .paymentMethod(historyStatus == null ? null
+                : historyStatus.getPaymentMethod()))
         .paymentRequest(new InvoicePaymentReq()
             .id(payment.getId())
             .reference(payment.getReference())
@@ -207,14 +221,13 @@ public class InvoiceRestMapper {
             .label(payment.getLabel())
             .amount(payment.getAmount().getCentsRoundUp())
             .percentValue(
-                totalPrice.getApproximatedValue() == 0
-                    ? 0 :
-                    payment.getAmount().operate(totalPrice,
-                        (amount, price) -> {
-                          amount = amount.divide(new Aprational(100));
-                          price = price.divide(new Aprational(100));
-                          return amount.divide(price).multiply(new Aprational(10000));
-                        }).getCentsRoundUp())
+                totalPrice.getApproximatedValue() == 0 ? 0
+                    : payment.getAmount().operate(totalPrice,
+                    (amount, price) -> {
+                      amount = amount.divide(new Aprational(100));
+                      price = price.divide(new Aprational(100));
+                      return amount.divide(price).multiply(new Aprational(10000));
+                    }).getCentsRoundUp())
             .payerName(payment.getPayerName())
             .payerEmail(payment.getPayerEmail())
             .paymentUrl(payment.getPaymentUrl())

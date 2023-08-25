@@ -51,5 +51,16 @@ public class PaymentRequest {
     this.status = entity.getStatus();
     this.comment = entity.getComment();
     this.createdDatetime = entity.getCreatedDatetime();
+    this.paymentHistoryStatus =
+        entity.getPaymentMethod() == null
+            && entity.getStatus() == null || entity.getStatus() == PaymentStatus.UNPAID
+            && entity.getPaymentStatusUpdatedAt() == null
+            && entity.getUserUpdated() == null ? null
+            : PaymentHistoryStatus.builder()
+            .paymentMethod(entity.getPaymentMethod())
+            .status(entity.getStatus())
+            .updatedAt(entity.getPaymentStatusUpdatedAt())
+            .userUpdated(entity.getUserUpdated())
+            .build();
   }
 }

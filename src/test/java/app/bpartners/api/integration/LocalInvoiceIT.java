@@ -447,13 +447,13 @@ class LocalInvoiceIT extends MockedThirdParties {
         .updatedAt(actualReg2Status.getUpdatedAt()), actualReg2Status);
     assertEquals(reg1Status
         .paymentStatus(PaymentStatus.PAID)
-        .userUpdated(null) //TODO: must be true
-        .paymentMethod(null) //TODO: must be unknown
+        .userUpdated(true)
+        .paymentMethod(UNKNOWN)
         .updatedAt(actualReg3Status.getUpdatedAt()), actualReg3Status);
     assertEquals(reg2Status
         .paymentStatus(PaymentStatus.PAID)
-        .userUpdated(null) //TODO: must be true
-        .paymentMethod(null) //TODO: must be unknown
+        .userUpdated(true)
+        .paymentMethod(UNKNOWN)
         .updatedAt(actualReg4Status.getUpdatedAt()), actualReg4Status);
     assertEquals(payment1.paymentStatus(PaymentStatus.PAID), actualPayment1);
     assertEquals(payment2.paymentStatus(PaymentStatus.UNPAID), actualPayment2);

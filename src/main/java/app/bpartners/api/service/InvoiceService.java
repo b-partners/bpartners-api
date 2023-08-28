@@ -99,11 +99,11 @@ public class InvoiceService {
             payment.getPaymentRequest().getStatus()
                 == PaymentStatus.PAID);
     if (allPaymentsPaid) {
-      Invoice paidInvoice = crupdateInvoice(invoice.toBuilder()
+      Invoice paidInvoice = invoice.toBuilder()
           .status(PAID)
           .paymentMethod(MULTIPLE)
-          .build());
-      return paidInvoice;
+          .build();
+      return crupdateInvoice(paidInvoice);
     }
     return invoice;
   }

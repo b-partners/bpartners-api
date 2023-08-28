@@ -2,6 +2,7 @@ package app.bpartners.api.repository.jpa.model;
 
 import app.bpartners.api.endpoint.rest.model.PaymentMethod;
 import app.bpartners.api.endpoint.rest.model.PaymentStatus;
+import app.bpartners.api.model.PaymentHistoryStatus;
 import app.bpartners.api.model.PaymentRequest;
 import java.io.Serializable;
 import java.time.Instant;
@@ -59,6 +60,7 @@ public class HPaymentRequest implements Serializable {
   private Instant createdDatetime;
 
   public HPaymentRequest(PaymentRequest domain) {
+    PaymentHistoryStatus historyStatus = domain.getPaymentHistoryStatus();
     this.id = domain.getId();
     this.sessionId = domain.getExternalId();
     this.idUser = domain.getIdUser();
@@ -70,8 +72,14 @@ public class HPaymentRequest implements Serializable {
     this.payerName = domain.getPayerName();
     this.payerEmail = domain.getPayerEmail();
     this.paymentDueDate = domain.getPaymentDueDate();
-    this.status = domain.getStatus();
     this.comment = domain.getComment();
+    this.status = historyStatus == null ? domain.getStatus()
+        : (historyStatus.getStatus() == null ? PaymentStatus.UNPAID
+        : historyStatus.getStatus());
+    this.userUpdated = historyStatus == null ? null
+        : historyStatus.getUserUpdated();
+    this.paymentMethod = historyStatus == null ? null
+        : historyStatus.getPaymentMethod();
     this.createdDatetime = domain.getCreatedDatetime();
   }
 }

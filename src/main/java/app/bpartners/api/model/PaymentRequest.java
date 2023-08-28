@@ -1,20 +1,27 @@
 package app.bpartners.api.model;
 
+import app.bpartners.api.endpoint.rest.model.PaymentMethod;
 import app.bpartners.api.endpoint.rest.model.PaymentStatus;
+import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.repository.jpa.model.HPaymentRequest;
+import java.io.InputStream;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.Base64;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.SneakyThrows;
 import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.ClassPathResource;
 
+import static app.bpartners.api.endpoint.rest.model.PaymentStatus.PAID;
 import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 
-@Getter
-@Setter
+@Slf4j
+@Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder(toBuilder = true)
@@ -62,5 +69,46 @@ public class PaymentRequest {
             .updatedAt(entity.getPaymentStatusUpdatedAt())
             .userUpdated(entity.getUserUpdated())
             .build();
+  }
+
+  public String getStamp() {
+    PaymentHistoryStatus historyStatus = this.paymentHistoryStatus;
+    if (historyStatus == null || historyStatus.getStatus() == null) {
+      return null;
+    }
+    if (historyStatus.getStatus() == PAID) {
+      return addStamp(historyStatus.getPaymentMethod());
+    }
+    return null;
+  }
+
+  @SneakyThrows
+  public static String addStamp(PaymentMethod paymentMethod) {
+    if (paymentMethod == null) {
+      return null;
+    }
+    String path;
+    switch (paymentMethod) {
+      case CASH:
+        path = "static/stamp/cash-no-bg.png";
+        break;
+      case BANK_TRANSFER:
+        path = "static/stamp/bank-no-bg.png";
+        break;
+      case CHEQUE:
+        path = "static/stamp/cheque-no-bg.png";
+        break;
+      case UNKNOWN:
+        path = "static/stamp/paid-no-bg.png";
+        break;
+      case MULTIPLE:
+        throw new NotImplementedException("MULTIPLE method not supported");
+      default:
+        log.warn("Unable to get stamp for unknown payment method {} ", paymentMethod);
+        return null;
+    }
+    InputStream is = new ClassPathResource(path).getInputStream();
+    byte[] bytes = is.readAllBytes();
+    return Base64.getEncoder().encodeToString(bytes);
   }
 }

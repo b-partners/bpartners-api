@@ -1,4 +1,4 @@
-name: CD compute
+name: CD Compute
 
 on:
   push:
@@ -21,21 +21,19 @@ on:
         default: true
 
 env:
-  ADS_DENOM_CHAR: e
+  ECR_REPOSITORY: bpartners-api-latest
   NAME_PREFIX: ''
 
 jobs:
-  cd-compute:
+  run_tests:
+    if: github.event.inputs.run_tests != 'false' && github.event_name != 'schedule' && github.ref_name == 'prod' || github.event.inputs.run_tests != 'false' && github.event_name != 'schedule' && github.ref_name == 'preprod'
+    uses: ./.github/workflows/ci.yml
+    secrets: inherit
+
+  deploy-stack:
     if: github.ref_name == 'prod' || github.ref_name == 'prod-private-url' || github.ref_name == 'preprod' || github.ref_name == 'preprod-private-url'
-
     runs-on: ubuntu-latest
-    
     timeout-minutes: 45
-
-    env:
-      AWS_REGION: eu-west-3
-      ECR_REPOSITORY: bpartners-api-latest
-
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -58,24 +56,6 @@ jobs:
           file: version.yml
           version: version
 
-      - name: Run tests
-        run: |
-          export DEV_USER_ACCESS_TOKEN=${{ secrets.DEV_USER_ACCESS_TOKEN }}
-          export SWAN_CLIENT_ID=${{ secrets.SWAN_CLIENT_ID }}
-          export SWAN_CLIENT_SECRET=${{ secrets.SWAN_CLIENT_SECRET }}
-          export AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
-          export AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          export ADS_BASEURL=${{ secrets.ADS_BASEURL}}
-          export ADS_BEARER=${{ secrets.ADS_BEARER}}
-          export ADS_DENOM_CHAR=${{ env.ADS_DENOM_CHAR }}
-          export BRIDGE_CLIENT_ID=${{ secrets.BRIDGE_CLIENT_ID }}
-          export BRIDGE_CLIENT_SECRET=${{ secrets.BRIDGE_CLIENT_SECRET }}
-          export BRIDGE_BASE_URL=${{ secrets.BRIDGE_BASE_URL }}
-          export BRIDGE_VERSION=${{ secrets.BRIDGE_VERSION }}
-          export BAN_BASE_URL=${{ secrets.BAN_BASE_URL }}
-          ./gradlew test
-        if: ${{ github.event.inputs.run_tests != 'false' && github.event_name != 'schedule' }}
-
       - run: ./gradlew build -x test
 
       - name: Install aws-cli
@@ -92,7 +72,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Set up crendetials for private ECR
         id: login-ecr

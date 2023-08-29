@@ -1,5 +1,6 @@
 package app.bpartners.api.integration.conf.utils;
 
+import app.bpartners.api.endpoint.event.S3Conf;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
 import app.bpartners.api.endpoint.rest.model.AccountInvoiceRelaunchConf;
@@ -753,6 +754,11 @@ public class TestUtils {
         .thenReturn(JANE_EMAIL);
     when(cognitoComponentMock.getEmailByToken(BERNARD_DOE_TOKEN))
         .thenReturn(BERNARD_EMAIL);
+  }
+
+  public static void setUpS3Conf(S3Conf s3Conf) {
+    when(s3Conf.getBucketName()).thenReturn("bpartners");
+    when(s3Conf.getEnv()).thenReturn("dev");
   }
 
   public static void setUpProvider(PrincipalProvider provider) {

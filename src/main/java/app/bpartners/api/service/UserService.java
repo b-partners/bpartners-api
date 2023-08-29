@@ -36,6 +36,11 @@ public class UserService {
   }
 
   @Transactional
+  public User saveUser(User toSave) {
+    return userRepository.save(toSave);
+  }
+
+  @Transactional
   public User getUserById(String id) {
     return userRepository.getById(id);
   }

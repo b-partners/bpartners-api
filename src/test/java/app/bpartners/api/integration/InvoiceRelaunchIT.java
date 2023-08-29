@@ -1,6 +1,5 @@
 package app.bpartners.api.integration;
 
-import app.bpartners.api.SentryConf;
 import app.bpartners.api.endpoint.rest.api.PayingApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
@@ -10,19 +9,11 @@ import app.bpartners.api.endpoint.rest.model.CreateInvoiceRelaunch;
 import app.bpartners.api.endpoint.rest.model.EmailInfo;
 import app.bpartners.api.endpoint.rest.model.InvoiceRelaunch;
 import app.bpartners.api.endpoint.rest.model.RelaunchType;
-import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
+import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.integration.conf.S3AbstractContextInitializer;
 import app.bpartners.api.integration.conf.utils.TestUtils;
-import app.bpartners.api.manager.ProjectTokenManager;
-import app.bpartners.api.repository.connectors.account.AccountConnectorRepository;
-import app.bpartners.api.repository.LegalFileRepository;
-import app.bpartners.api.repository.bridge.BridgeApi;
-import app.bpartners.api.repository.fintecture.FintectureConf;
 import app.bpartners.api.repository.fintecture.FintecturePaymentInfoRepository;
 import app.bpartners.api.repository.fintecture.FintecturePaymentInitiationRepository;
-import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitConf;
-import app.bpartners.api.repository.sendinblue.SendinblueConf;
-import app.bpartners.api.service.PaymentScheduleService;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.List;
@@ -62,33 +53,13 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @Testcontainers
 @ContextConfiguration(initializers = InvoiceRelaunchIT.ContextInitializer.class)
 @AutoConfigureMockMvc
-class InvoiceRelaunchIT {
-  @MockBean
-  private PaymentScheduleService paymentScheduleService;
-  @MockBean
-  private BuildingPermitConf buildingPermitConf;
-  @MockBean
-  private SentryConf sentryConf;
-  @MockBean
-  private SendinblueConf sendinblueConf;
-  @MockBean
-  private ProjectTokenManager projectTokenManager;
-  @MockBean
-  private FintectureConf fintectureConf;
-  @MockBean
-  private AccountConnectorRepository accountConnectorRepositoryMock;
+class InvoiceRelaunchIT extends MockedThirdParties {
   @MockBean
   private FintecturePaymentInitiationRepository paymentInitiationRepositoryMock;
-  @MockBean
-  private LegalFileRepository legalFileRepositoryMock;
   @MockBean
   private FintecturePaymentInfoRepository paymentInfoRepositoryMock;
   @MockBean
   private EventBridgeClient eventBridgeClientMock;
-  @MockBean
-  private CognitoComponent cognitoComponentMock;
-  @MockBean
-  private BridgeApi bridgeApi;
 
   private static ApiClient anApiClient() {
     return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN,

@@ -1,8 +1,5 @@
 package app.bpartners.api.integration;
 
-import app.bpartners.api.SentryConf;
-import app.bpartners.api.endpoint.event.EventPoller;
-import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.endpoint.rest.api.PayingApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
@@ -10,19 +7,11 @@ import app.bpartners.api.endpoint.rest.model.CreatePaymentRegulation;
 import app.bpartners.api.endpoint.rest.model.CrupdateInvoice;
 import app.bpartners.api.endpoint.rest.model.Invoice;
 import app.bpartners.api.endpoint.rest.model.InvoiceDiscount;
-import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
+import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.integration.conf.S3AbstractContextInitializer;
 import app.bpartners.api.integration.conf.utils.TestUtils;
-import app.bpartners.api.manager.ProjectTokenManager;
-import app.bpartners.api.repository.LegalFileRepository;
-import app.bpartners.api.repository.bridge.BridgeApi;
-import app.bpartners.api.repository.connectors.account.AccountConnectorRepository;
-import app.bpartners.api.repository.fintecture.FintectureConf;
 import app.bpartners.api.repository.fintecture.FintecturePaymentInitiationRepository;
 import app.bpartners.api.repository.jpa.AccountHolderJpaRepository;
-import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitConf;
-import app.bpartners.api.repository.sendinblue.SendinblueConf;
-import app.bpartners.api.service.PaymentScheduleService;
 import java.time.LocalDate;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -83,37 +72,13 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @Testcontainers
 @ContextConfiguration(initializers = InvoiceIT.ContextInitializer.class)
 @AutoConfigureMockMvc
-class InvoiceIT {
+class InvoiceIT extends MockedThirdParties {
   @MockBean
   private FintecturePaymentInitiationRepository paymentInitiationRepositoryMock;
   @MockBean
   private EventBridgeClient eventBridgeClientMock;
   @MockBean
   private AccountHolderJpaRepository holderJpaRepository;
-  @MockBean
-  protected PaymentScheduleService paymentScheduleService;
-  @MockBean
-  protected BuildingPermitConf buildingPermitConf;
-  @MockBean
-  protected SentryConf sentryConf;
-  @MockBean
-  protected SendinblueConf sendinblueConf;
-  @MockBean
-  protected CognitoComponent cognitoComponentMock;
-  @MockBean
-  protected FintectureConf fintectureConf;
-  @MockBean
-  protected ProjectTokenManager projectTokenManager;
-  @MockBean
-  protected AccountConnectorRepository accountConnectorRepositoryMock;
-  @MockBean
-  protected LegalFileRepository legalFileRepositoryMock;
-  @MockBean
-  protected BridgeApi bridgeApi;
-  @MockBean
-  protected EventProducer eventProducer;
-  @MockBean
-  protected EventPoller eventPoller;
 
   private static ApiClient anApiClient() {
     return TestUtils.anApiClient(JOE_DOE_TOKEN, InvoiceIT.ContextInitializer.SERVER_PORT);

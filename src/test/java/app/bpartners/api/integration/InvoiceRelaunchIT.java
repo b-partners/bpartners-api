@@ -44,6 +44,7 @@ import static app.bpartners.api.integration.conf.utils.TestUtils.setUpEventBridg
 import static app.bpartners.api.integration.conf.utils.TestUtils.setUpLegalFileRepository;
 import static app.bpartners.api.integration.conf.utils.TestUtils.setUpPaymentInfoRepository;
 import static app.bpartners.api.integration.conf.utils.TestUtils.setUpPaymentInitiationRep;
+import static app.bpartners.api.integration.conf.utils.TestUtils.setUpS3Conf;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -73,6 +74,7 @@ class InvoiceRelaunchIT extends MockedThirdParties {
     setUpEventBridge(eventBridgeClientMock);
     setUpLegalFileRepository(legalFileRepositoryMock);
     setUpCognito(cognitoComponentMock);
+    setUpS3Conf(s3Conf);
   }
 
   InvoiceRelaunch invoiceRelaunch1() {

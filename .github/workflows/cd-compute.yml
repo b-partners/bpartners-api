@@ -108,6 +108,8 @@ jobs:
           export BRIDGE_BASE_URL=$BRIDGE_BASE_URL
           export BRIDGE_VERSION=$BRIDGE_VERSION
           export BAN_BASE_URL=$BAN_BASE_URL
+          export AWS_ACCESS_KEY_ID=dummy
+          export AWS_SECRET_ACCESS_KEY=dummy
           ./gradlew test
         if: ${{ github.event.inputs.run_tests != 'false' && github.event_name != 'schedule' }}
 

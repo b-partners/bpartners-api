@@ -760,6 +760,7 @@ public class TestUtils {
     when(s3Conf.getBucketName()).thenReturn("bpartners");
     when(s3Conf.getEnv()).thenReturn("dev");
   }
+
   public static void setUpProvider(PrincipalProvider provider) {
     when(provider.getAuthentication()).thenReturn(
         new UsernamePasswordAuthenticationToken(

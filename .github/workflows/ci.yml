@@ -9,6 +9,9 @@ on:
       - '*'
   workflow_dispatch:
 
+  workflow_call:
+
+
 env:
   ADS_DENOM_CHAR: e
   ADS_BASEURL: ${{ secrets.ADS_BASEURL}}

@@ -82,13 +82,13 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
             actualEntity
                 .products(invoiceProducts)
                 .paymentRequests(paymentRequests), AuthProvider.getAuthenticatedUser());
-    HInvoice toSave = actualEntity.fileId(processPdfGeneration(toGenerateAsPdf));
+    HInvoice toSave = actualEntity.fileId(processAsPdf(toGenerateAsPdf));
     HInvoice savedInvoice = jpaRepository.save(toSave);
 
     return mapper.toDomain(savedInvoice, toGenerateAsPdf.getUser());
   }
 
-  private String processPdfGeneration(Invoice domain) {
+  public String processAsPdf(Invoice domain) {
     String fileId = domain.getFileId() == null
         ? String.valueOf(randomUUID()) : domain.getFileId();
     String idUser = domain.getUser().getId();

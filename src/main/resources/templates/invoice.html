@@ -122,6 +122,10 @@
         .no-break-inside {
             page-break-inside: avoid;
         }
+
+        .payment-container {
+            position: relative;
+        }
     </style>
     <style>
         #footer {
@@ -397,12 +401,18 @@
                            -
                         </span>
                         </td>
-                        <td class="text-center">
-                            <img class="payment-code"
-                                 th:src="${'data:image/jpeg;base64,' + paymentReg.getPaymentUrlAsQrCode()}"
-                                 alt="payment-code-qr"/>
-                            <span class="caption"><a
-                                    th:href="${paymentReg.paymentRequest.paymentUrl}">Payez ici</a></span>
+                        <td>
+                            <div class="payment-container">
+                                <img class="payment-code"
+                                     th:src="${'data:image/jpeg;base64,' + paymentReg.getPaymentUrlAsQrCode()}"
+                                     alt="payment-code-qr"/>
+                                <span class="caption"><a
+                                        th:href="${paymentReg.paymentRequest.paymentUrl}">Payez ici</a></span>
+                                <img style="position: absolute; top: 0; left:0;width:120px; height: 100px;object-fit: contain;"
+                                     th:src="${'data:image/jpeg;base64,' + paymentReg.paymentRequest.stamp}"
+                                     alt="payment-reg-qr"/>
+                            </div>
+
                         </td>
                     </tr>
                 </th:block>

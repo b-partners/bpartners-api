@@ -3,6 +3,7 @@ package app.bpartners.api.integration;
 import app.bpartners.api.SentryConf;
 import app.bpartners.api.endpoint.event.S3Conf;
 import app.bpartners.api.endpoint.rest.model.PaymentMethod;
+import app.bpartners.api.endpoint.rest.model.PaymentStatus;
 import app.bpartners.api.integration.conf.DbEnvContextInitializer;
 import app.bpartners.api.manager.ProjectTokenManager;
 import app.bpartners.api.model.Account;
@@ -13,10 +14,11 @@ import app.bpartners.api.model.Customer;
 import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.InvoiceDiscount;
+import app.bpartners.api.model.PaymentHistoryStatus;
 import app.bpartners.api.model.PaymentRequest;
 import app.bpartners.api.model.User;
-import app.bpartners.api.repository.connectors.account.AccountConnectorRepository;
 import app.bpartners.api.repository.LegalFileRepository;
+import app.bpartners.api.repository.connectors.account.AccountConnectorRepository;
 import app.bpartners.api.repository.fintecture.FintectureConf;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitConf;
 import app.bpartners.api.repository.sendinblue.SendinblueConf;
@@ -28,6 +30,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.math.BigInteger;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -41,8 +44,8 @@ import org.springframework.core.io.Resource;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import static app.bpartners.api.endpoint.rest.model.Invoice.PaymentTypeEnum.CASH;
-import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
+import static app.bpartners.api.endpoint.rest.model.Invoice.PaymentTypeEnum.IN_INSTALMENT;
+import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
 import static app.bpartners.api.integration.conf.utils.TestUtils.INVOICE1_ID;
 import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ID;
@@ -82,6 +85,12 @@ class DraftIT {
     List<CreatePaymentRegulation> paymentRegulations = List.of(
         CreatePaymentRegulation.builder()
             .paymentRequest(PaymentRequest.builder()
+                .paymentHistoryStatus(PaymentHistoryStatus.builder()
+                    .status(PaymentStatus.PAID)
+                    .paymentMethod(PaymentMethod.CASH)
+                    .userUpdated(true)
+                    .updatedAt(Instant.now())
+                    .build())
                 .amount(new Fraction(BigInteger.valueOf(100)))
                 .paymentUrl("https://connect-v2-sbx.fintecture.com")
                 .build())
@@ -90,6 +99,9 @@ class DraftIT {
             .build(),
         CreatePaymentRegulation.builder()
             .paymentRequest(PaymentRequest.builder()
+                .paymentHistoryStatus(PaymentHistoryStatus.builder()
+                    .status(PaymentStatus.UNPAID)
+                    .build())
                 .amount(new Fraction(BigInteger.TEN))
                 .paymentUrl("https://connect-v2-sbx.fintecture.com")
                 .build())
@@ -100,7 +112,7 @@ class DraftIT {
         .id(INVOICE1_ID)
         .ref("invoice_ref")
         .title("invoice_title")
-        .status(PAID)
+        .status(CONFIRMED)
         .paymentMethod(PaymentMethod.UNKNOWN)
         .sendingDate(LocalDate.now())
         .toPayAt(LocalDate.now())
@@ -124,8 +136,8 @@ class DraftIT {
                 .bic("BPFRPP751")
                 .build()))
             .build())
-        .paymentType(CASH)
-        .paymentRegulations(List.of())
+        .paymentType(IN_INSTALMENT)
+        .paymentRegulations(paymentRegulations)
         .products(creatableProds(1))
         .customer(Customer.builder()
             .firstName("Olivier")

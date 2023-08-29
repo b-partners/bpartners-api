@@ -8,6 +8,7 @@ import app.bpartners.api.endpoint.rest.model.Invoice;
 import app.bpartners.api.endpoint.rest.model.InvoiceDiscount;
 import app.bpartners.api.endpoint.rest.model.InvoicePaymentReq;
 import app.bpartners.api.endpoint.rest.model.PaymentMethod;
+import app.bpartners.api.endpoint.rest.model.PaymentRegStatus;
 import app.bpartners.api.endpoint.rest.model.PaymentRegulation;
 import app.bpartners.api.endpoint.rest.model.Product;
 import java.time.Instant;
@@ -156,6 +157,8 @@ public class InvoiceTestUtils {
 
   private static PaymentRegulation expectedDated2() {
     return new PaymentRegulation()
+        .status(new PaymentRegStatus()
+            .paymentStatus(UNPAID))
         .maturityDate(LocalDate.of(2023, 2, 15))
         .paymentRequest(new InvoicePaymentReq()
             .reference("BP005")
@@ -171,6 +174,8 @@ public class InvoiceTestUtils {
 
   private static PaymentRegulation expectedDated1() {
     return new PaymentRegulation()
+        .status(new PaymentRegStatus()
+            .paymentStatus(UNPAID))
         .maturityDate(LocalDate.of(2023, 2, 1))
         .paymentRequest(new InvoicePaymentReq()
             .reference("BP005")
@@ -446,6 +451,8 @@ public class InvoiceTestUtils {
 
   public static List<PaymentRegulation> initPaymentReg(String id) {
     return List.of(new PaymentRegulation()
+            .status(new PaymentRegStatus()
+                .paymentStatus(UNPAID))
             .maturityDate(LocalDate.of(2023, 1, 1))
             .paymentRequest(new InvoicePaymentReq()
                 .paymentUrl(null)
@@ -458,6 +465,8 @@ public class InvoiceTestUtils {
                 .label("Fabrication Jean" + " - Acompte N°1")
                 .paymentStatus(UNPAID)),
         new PaymentRegulation()
+            .status(new PaymentRegStatus()
+                .paymentStatus(UNPAID))
             .maturityDate(LocalDate.of(2023, 1, 1))
             .paymentRequest(new InvoicePaymentReq()
                 .paymentUrl(null)
@@ -473,6 +482,8 @@ public class InvoiceTestUtils {
 
   public static List<PaymentRegulation> updatedPaymentRegulations(String id) {
     return List.of(new PaymentRegulation()
+            .status(new PaymentRegStatus()
+                .paymentStatus(UNPAID))
             .maturityDate(LocalDate.of(2023, 1, 1))
             .paymentRequest(new InvoicePaymentReq()
                 .paymentUrl(null)
@@ -485,6 +496,8 @@ public class InvoiceTestUtils {
                 .label("Fabrication Jean" + " - Acompte N°1")
                 .paymentStatus(UNPAID)),
         new PaymentRegulation()
+            .status(new PaymentRegStatus()
+                .paymentStatus(UNPAID))
             .maturityDate(LocalDate.of(2023, 1, 1))
             .paymentRequest(new InvoicePaymentReq()
                 .paymentUrl(null)
@@ -500,6 +513,8 @@ public class InvoiceTestUtils {
 
   public static List<PaymentRegulation> confirmedPaymentRegulations(String id) {
     return List.of(new PaymentRegulation()
+            .status(new PaymentRegStatus()
+                .paymentStatus(UNPAID))
             .maturityDate(LocalDate.of(2023, 1, 1))
             .paymentRequest(new InvoicePaymentReq()
                 .paymentUrl("https://connect-v2-sbx.fintecture.com")
@@ -512,6 +527,8 @@ public class InvoiceTestUtils {
                 .label("Fabrication Jean" + " - Acompte N°1")
                 .paymentStatus(UNPAID)),
         new PaymentRegulation()
+            .status(new PaymentRegStatus()
+                .paymentStatus(UNPAID))
             .maturityDate(LocalDate.of(2023, 1, 1))
             .paymentRequest(new InvoicePaymentReq()
                 .paymentUrl("https://connect-v2-sbx.fintecture.com")

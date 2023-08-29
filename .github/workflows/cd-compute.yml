@@ -1,4 +1,4 @@
-name: CD compute
+name: CD Compute
 
 on:
   push:
@@ -21,61 +21,19 @@ on:
         default: true
 
 env:
-  ADS_DENOM_CHAR: e
-  ADS_BASEURL: ${{ secrets.ADS_BASEURL}}
-  ADS_BEARER: ${{ secrets.ADS_BEARER }}
-  BRIDGE_CLIENT_ID: ${{ secrets.BRIDGE_CLIENT_ID }}
-  BRIDGE_CLIENT_SECRET: ${{ secrets.BRIDGE_CLIENT_SECRET }}
-  BRIDGE_BASE_URL: ${{ secrets.BRIDGE_BASE_URL }}
-  BRIDGE_VERSION: ${{ secrets.BRIDGE_VERSION }}
-  BAN_BASE_URL: ${{ secrets.BAN_BASE_URL }}
+  ECR_REPOSITORY: bpartners-api-latest
   NAME_PREFIX: ''
 
 jobs:
-  start-runner:
-    name: Start self-hosted EC2 runner
+  run_tests:
+    if: github.event.inputs.run_tests != 'false' && github.event_name != 'schedule' && github.ref_name == 'prod' || github.event.inputs.run_tests != 'false' && github.event_name != 'schedule' && github.ref_name == 'preprod'
+    uses: ./.github/workflows/ci.yml
+    secrets: inherit
 
-    runs-on: ubuntu-latest
-
-    outputs:
-      label: ${{ steps.start-ec2-runner.outputs.label }}
-      ec2-instance-id: ${{ steps.start-ec2-runner.outputs.ec2-instance-id }}
-    steps:
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@13d241b293754004c80624b5567555c4a39ffbe3
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
-
-      - name: Start EC2 runner
-        id: start-ec2-runner
-        uses: machulav/ec2-github-runner@v2
-        with:
-          mode: start
-          github-token: ${{ secrets.GH_TOKEN }}
-          ec2-image-id: ${{ secrets.AMI_ID }}
-          ec2-instance-type: ${{ secrets.INSTANCE_TYPE }}
-          subnet-id: ${{ secrets.AWS_VPC_PUBLIC_SUBNET }}
-          security-group-id: ${{ secrets.AWS_VPC_SG }}
-          iam-role-name: gh-runner-role
-          aws-resource-tags: >
-            [
-              {"Key": "app", "Value": "bpartners"},
-              {"Key": "env", "Value": "${{ github.ref_name }}"}
-            ]
-
-  cd-compute:
+  deploy-stack:
     if: github.ref_name == 'prod' || github.ref_name == 'prod-private-url' || github.ref_name == 'preprod' || github.ref_name == 'preprod-private-url'
-
     runs-on: ubuntu-latest
-    
     timeout-minutes: 45
-
-    env:
-      AWS_REGION: eu-west-3
-      ECR_REPOSITORY: bpartners-api-latest
-
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -98,21 +56,6 @@ jobs:
           file: version.yml
           version: version
 
-      - name: Jacoco test coverage
-        run: |
-          export ADS_BASEURL=$ADS_BASEURL
-          export ADS_BEARER=$ADS_BEARER
-          export ADS_DENOM_CHAR=$ADS_DENOM_CHAR
-          export BRIDGE_CLIENT_ID=$BRIDGE_CLIENT_ID
-          export BRIDGE_CLIENT_SECRET=$BRIDGE_CLIENT_SECRET
-          export BRIDGE_BASE_URL=$BRIDGE_BASE_URL
-          export BRIDGE_VERSION=$BRIDGE_VERSION
-          export BAN_BASE_URL=$BAN_BASE_URL
-          export AWS_ACCESS_KEY_ID=dummy
-          export AWS_SECRET_ACCESS_KEY=dummy
-          ./gradlew test
-        if: ${{ github.event.inputs.run_tests != 'false' && github.event_name != 'schedule' }}
-
       - run: ./gradlew build -x test
 
       - name: Install aws-cli
@@ -129,7 +72,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Set up crendetials for private ECR
         id: login-ecr
@@ -219,30 +162,3 @@ jobs:
             ListenerRuleAvailablePriority=${{ env.listenerRuleAvailablePriority }},
             Image=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }},
             Cpu=${{ env.vCpu }}, Memory=${{ env.memory }}, TasksDesiredCount=${{ env.tasksDesiredCount }}"
-
-  stop-runner:
-    name: Stop self-hosted EC2 Runner
-
-    runs-on: ubuntu-latest
-
-    needs:
-      - start-runner
-      - quality
-
-    if: ${{ always() }}
-
-    steps:
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
-
-      - name: Stop EC2 runner
-        uses: machulav/ec2-github-runner@v2
-        with:
-          mode: stop
-          github-token: ${{ secrets.GH_TOKEN }}
-          label: ${{ needs.start-runner.outputs.label }}
-          ec2-instance-id: ${{ needs.start-runner.outputs.ec2-instance-id }}

@@ -19,6 +19,7 @@ import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.mapper.PaymentRequestMapper;
 import app.bpartners.api.repository.InvoiceRepository;
 import app.bpartners.api.repository.PaymentRequestRepository;
+import app.bpartners.api.repository.implementation.InvoiceRepositoryImpl;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -52,6 +53,7 @@ public class InvoiceService {
   public static final String DRAFT_REF_PREFIX = "BROUILLON-";
   public static final String PROPOSAL_REF_PREFIX = "DEVIS-";
   private final InvoiceRepository repository;
+  private final InvoiceRepositoryImpl repositoryImpl;
   private final CustomerService customerService;
   private final PaymentInitiationService pis;
   private final PaymentRequestMapper requestMapper;
@@ -105,6 +107,7 @@ public class InvoiceService {
           .build();
       return crupdateInvoice(paidInvoice);
     }
+    repositoryImpl.processAsPdf(invoice);
     return invoice;
   }
 

@@ -125,6 +125,7 @@
 
         .payment-container {
             position: relative;
+            text-align: center;
         }
     </style>
     <style>
@@ -362,7 +363,7 @@
              class="no-break-inside">
             <h3>Calendrier des échéances</h3>
             <p></p>
-            <table style="margin: 10px 0px 20px 0px;table-layout: fixed;" class="main-table">
+            <table style="margin: 10px 0px 20px 0px;table-layout: fixed; width: 680px" class="main-table">
                 <thead class="text-center" style="border: 1px solid black">
                 <th>Designation</th>
                 <th>Date d'échéance</th>
@@ -408,11 +409,10 @@
                                      alt="payment-code-qr"/>
                                 <span class="caption"><a
                                         th:href="${paymentReg.paymentRequest.paymentUrl}">Payez ici</a></span>
-                                <img style="position: absolute; top: 0; left:0;width:120px; height: 100px;object-fit: contain;"
+                                <img style="position: absolute; top: -10px;left: 35px;width:120px;height: 100px;object-fit: contain; z-index: 1"
                                      th:src="${'data:image/jpeg;base64,' + paymentReg.paymentRequest.stamp}"
                                      alt="payment-reg-qr"/>
                             </div>
-
                         </td>
                     </tr>
                 </th:block>

@@ -701,9 +701,7 @@ operations:
           name: archiveStatus
           description: 'Filter invoices by archive status. If null, returns ENABLED invoices'
           schema:
-            type: array
-            items:
-              $ref: '#/components/schemas/archiveStatus'
+            $ref: '#/components/schemas/archiveStatus'
       responses:
         200:
           description: The list of invoices

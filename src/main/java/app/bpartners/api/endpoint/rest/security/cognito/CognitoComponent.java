@@ -21,6 +21,7 @@ import org.springframework.stereotype.Component;
 import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminCreateUserRequest;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminCreateUserResponse;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.AttributeType;
 
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 
@@ -68,6 +69,16 @@ public class CognitoComponent {
     AdminCreateUserRequest createRequest = AdminCreateUserRequest.builder()
         .userPoolId(cognitoConf.getUserPoolId())
         .username(email)
+        .userAttributes(
+            AttributeType.builder()
+                .name("email")
+                .value(email)
+                .build(),
+            AttributeType.builder()
+                .name("email_verified")
+                .value("true")
+                .build()
+        )
         .build();
 
     AdminCreateUserResponse createResponse = cognitoClient.adminCreateUser(createRequest);

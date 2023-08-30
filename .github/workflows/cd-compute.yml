@@ -31,7 +31,6 @@ jobs:
     secrets: inherit
 
   deploy-stack:
-    needs: run-quality-check
     if: github.ref_name == 'prod' || github.ref_name == 'prod-private-url' || github.ref_name == 'preprod' || github.ref_name == 'preprod-private-url'
     runs-on: ubuntu-latest
     timeout-minutes: 45

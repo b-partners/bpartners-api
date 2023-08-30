@@ -1,4 +1,4 @@
-# [0.25.0](https://github.com/b-partners/bpartners-api/compare/v0.24.0...v0.25.0) (2023-08-30)
+# [0.26.0](https://github.com/b-partners/bpartners-api/compare/v0.24.0...v0.26.0) (2023-08-30)
 
 
 ### Bug Fixes
@@ -22,6 +22,7 @@
 * handle EVAL_PROSPECT authorization for specific user ([fbf7600](https://github.com/b-partners/bpartners-api/commit/fbf7600df213dc836400b3af3b8a3d1c24fb01da))
 * list all calendars without persisting ([dee0853](https://github.com/b-partners/bpartners-api/commit/dee0853f06dc5c2370e987a6fea17fda8fb3285c))
 * read invoice by multiple statuses ([073a643](https://github.com/b-partners/bpartners-api/commit/073a64347fc9d10b71cf9fcb4000b08967466e68))
+* read invoice filtered by archive status ([67ef348](https://github.com/b-partners/bpartners-api/commit/67ef3482b28de08d3de9354f4a3c23d3d2c96915))
 * update payment regulation status ([ad32664](https://github.com/b-partners/bpartners-api/commit/ad32664f97a36bd82685a999194457d9fd95e52c))
 
 
@@ -251,5 +252,6 @@
 * send daily email to accountHolders when they’re late on their revenue target ([#610](https://github.com/b-partners/bpartners-api/issues/610)) ([5f7d702](https://github.com/b-partners/bpartners-api/commit/5f7d7023ab77c6c7599228e84456fc12be1d2870))
 * use cgu-18-04-23.pdf ([f3b6e1d](https://github.com/b-partners/bpartners-api/commit/f3b6e1d1b92aeba2e850849d04cd4b63f4bd5521))
 * user can handle a preferred account ([b09dc95](https://github.com/b-partners/bpartners-api/commit/b09dc95df0feed973d4a9badcd4bd492ecc6896e))
+
 
 

@@ -69,6 +69,7 @@ public class CognitoComponent {
     AdminCreateUserRequest createRequest = AdminCreateUserRequest.builder()
         .userPoolId(cognitoConf.getUserPoolId())
         .username(email)
+        // TODO: add test to ensure it has properly been set
         .userAttributes(
             AttributeType.builder()
                 .name("email")

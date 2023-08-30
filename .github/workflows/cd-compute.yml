@@ -25,15 +25,13 @@ env:
   NAME_PREFIX: ''
 
 jobs:
-  run_tests:
+  run-quality-check:
     if: github.event.inputs.run_tests != 'false' && github.event_name != 'schedule' && github.ref_name == 'prod' || github.event.inputs.run_tests != 'false' && github.event_name != 'schedule' && github.ref_name == 'preprod'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Run tests
-        uses: ./.github/workflows/ci.yml
+    uses: ./.github/workflows/ci.yml
+    secrets: inherit
 
   deploy-stack:
-    needs: run_tests
+    needs: run-quality-check
     if: github.ref_name == 'prod' || github.ref_name == 'prod-private-url' || github.ref_name == 'preprod' || github.ref_name == 'preprod-private-url'
     runs-on: ubuntu-latest
     timeout-minutes: 45

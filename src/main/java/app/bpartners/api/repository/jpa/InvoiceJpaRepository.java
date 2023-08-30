@@ -13,9 +13,9 @@ public interface InvoiceJpaRepository extends JpaRepository<HInvoice, String> {
   @Lock(LockModeType.PESSIMISTIC_WRITE)
   Optional<HInvoice> findOptionalById(String id);
 
-  List<HInvoice> findAllByIdUserAndStatus(
+  List<HInvoice> findAllByIdUserAndStatusIn(
       String idUser,
-      InvoiceStatus status,
+      List<InvoiceStatus> status,
       Pageable pageable);
 
   List<HInvoice> findAllByIdUser(String idUser, Pageable pageable);

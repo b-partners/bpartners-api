@@ -118,10 +118,10 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
   }
 
   @Override
-  public List<Invoice> findAllByIdUserAndStatus(
-      String idUser, InvoiceStatus status, int page, int pageSize) {
+  public List<Invoice> findAllByIdUserAndStatuses(
+      String idUser, List<InvoiceStatus> statusList, int page, int pageSize) {
     PageRequest pageRequest = PageRequest.of(page, pageSize, Sort.by(DESC, "createdDatetime"));
-    return jpaRepository.findAllByIdUserAndStatus(idUser, status, pageRequest).stream()
+    return jpaRepository.findAllByIdUserAndStatusIn(idUser, statusList, pageRequest).stream()
         .map(mapper::toDomain)
         .collect(Collectors.toUnmodifiableList());
   }

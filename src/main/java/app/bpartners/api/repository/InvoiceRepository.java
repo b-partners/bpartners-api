@@ -13,8 +13,8 @@ public interface InvoiceRepository {
 
   Optional<Invoice> pwFindOptionalById(String id);
 
-  List<Invoice> findAllByIdUserAndStatus(
-      String idUser, InvoiceStatus status, int page, int pageSize);
+  List<Invoice> findAllByIdUserAndStatuses(
+      String idUser, List<InvoiceStatus> statusList, int page, int pageSize);
 
   List<Invoice> findAllByIdUser(String idUser, int page, int pageSize);
 

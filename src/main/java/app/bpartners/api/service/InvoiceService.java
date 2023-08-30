@@ -112,11 +112,11 @@ public class InvoiceService {
   }
 
   public List<Invoice> getInvoices(
-      String idUser, PageFromOne page, BoundedPageSize pageSize, InvoiceStatus status) {
+      String idUser, PageFromOne page, BoundedPageSize pageSize, List<InvoiceStatus> statusList) {
     int pageValue = page != null ? page.getValue() - 1 : 0;
     int pageSizeValue = pageSize != null ? pageSize.getValue() : 30;
-    if (status != null) {
-      return repository.findAllByIdUserAndStatus(idUser, status, pageValue, pageSizeValue);
+    if (statusList != null && !statusList.isEmpty()) {
+      return repository.findAllByIdUserAndStatuses(idUser, statusList, pageValue, pageSizeValue);
     }
     return repository.findAllByIdUser(idUser, pageValue, pageSizeValue);
   }

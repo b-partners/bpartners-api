@@ -1,6 +1,7 @@
 package app.bpartners.api.endpoint.rest.controller;
 
 import app.bpartners.api.endpoint.rest.mapper.InvoiceRestMapper;
+import app.bpartners.api.endpoint.rest.model.ArchiveStatus;
 import app.bpartners.api.endpoint.rest.model.CrupdateInvoice;
 import app.bpartners.api.endpoint.rest.model.Invoice;
 import app.bpartners.api.endpoint.rest.model.InvoiceReference;
@@ -71,7 +72,8 @@ public class InvoiceController {
       @RequestParam(name = "page", required = false) PageFromOne page,
       @RequestParam(name = "pageSize", required = false) BoundedPageSize pageSize,
       @RequestParam(name = "status", required = false) InvoiceStatus status,
-      @RequestParam(name = "statusList", required = false) List<InvoiceStatus> statusList) {
+      @RequestParam(name = "statusList", required = false) List<InvoiceStatus> statusList,
+      @RequestParam(name = "archiveStatus", required = false) ArchiveStatus archiveStatus) {
     String idUser =
         AuthProvider.getAuthenticatedUserId(); //TODO: should be changed when endpoint changed
     if (status != null && (statusList == null || statusList.isEmpty())) {
@@ -79,7 +81,7 @@ public class InvoiceController {
       statusList = new ArrayList<>();
       statusList.add(status);
     }
-    return service.getInvoices(idUser, page, pageSize, statusList).stream()
+    return service.getInvoices(idUser, page, pageSize, statusList, archiveStatus).stream()
         .map(mapper::toRest)
         .collect(Collectors.toUnmodifiableList());
   }

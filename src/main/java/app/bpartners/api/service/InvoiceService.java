@@ -1,5 +1,6 @@
 package app.bpartners.api.service;
 
+import app.bpartners.api.endpoint.rest.model.ArchiveStatus;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.endpoint.rest.model.PaymentMethod;
 import app.bpartners.api.endpoint.rest.model.PaymentStatus;
@@ -112,13 +113,21 @@ public class InvoiceService {
   }
 
   public List<Invoice> getInvoices(
-      String idUser, PageFromOne page, BoundedPageSize pageSize, List<InvoiceStatus> statusList) {
+      String idUser,
+      PageFromOne page,
+      BoundedPageSize pageSize,
+      List<InvoiceStatus> statusList,
+      ArchiveStatus archiveStatus) {
+    if (archiveStatus == null) {
+      archiveStatus = ArchiveStatus.ENABLED;
+    }
     int pageValue = page != null ? page.getValue() - 1 : 0;
     int pageSizeValue = pageSize != null ? pageSize.getValue() : 30;
     if (statusList != null && !statusList.isEmpty()) {
-      return repository.findAllByIdUserAndStatuses(idUser, statusList, pageValue, pageSizeValue);
+      return repository.findAllByIdUserAndStatusesAndArchiveStatus(idUser, statusList, archiveStatus, pageValue,
+          pageSizeValue);
     }
-    return repository.findAllByIdUser(idUser, pageValue, pageSizeValue);
+    return repository.findAllByIdUserAndArchiveStatus(idUser, archiveStatus, pageValue, pageSizeValue);
   }
 
   public Invoice getById(String invoiceId) {

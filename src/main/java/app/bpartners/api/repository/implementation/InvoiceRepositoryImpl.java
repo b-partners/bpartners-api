@@ -1,5 +1,6 @@
 package app.bpartners.api.repository.implementation;
 
+import app.bpartners.api.endpoint.rest.model.ArchiveStatus;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.model.ArchiveInvoice;
@@ -118,18 +119,28 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
   }
 
   @Override
-  public List<Invoice> findAllByIdUserAndStatuses(
-      String idUser, List<InvoiceStatus> statusList, int page, int pageSize) {
+  public List<Invoice> findAllByIdUserAndStatusesAndArchiveStatus(String idUser,
+                                                                  List<InvoiceStatus> statusList,
+                                                                  ArchiveStatus archiveStatus,
+                                                                  int page,
+                                                                  int pageSize) {
     PageRequest pageRequest = PageRequest.of(page, pageSize, Sort.by(DESC, "createdDatetime"));
-    return jpaRepository.findAllByIdUserAndStatusIn(idUser, statusList, pageRequest).stream()
+    return jpaRepository.findAllByIdUserAndArchiveStatusAndStatusIn(
+            idUser,
+            archiveStatus,
+            statusList,
+            pageRequest).stream()
         .map(mapper::toDomain)
         .collect(Collectors.toUnmodifiableList());
   }
 
   @Override
-  public List<Invoice> findAllByIdUser(String idUser, int page, int pageSize) {
+  public List<Invoice> findAllByIdUserAndArchiveStatus(String idUser,
+                                                       ArchiveStatus archiveStatus,
+                                                       int page,
+                                                       int pageSize) {
     PageRequest pageable = PageRequest.of(page, pageSize, Sort.by(DESC, "createdDatetime"));
-    return jpaRepository.findAllByIdUser(idUser, pageable).stream()
+    return jpaRepository.findAllByIdUserAndArchiveStatus(idUser, archiveStatus, pageable).stream()
         .map(mapper::toDomain)
         .collect(Collectors.toUnmodifiableList());
   }

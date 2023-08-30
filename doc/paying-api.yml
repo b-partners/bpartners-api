@@ -697,6 +697,13 @@ operations:
             type: array
             items:
               $ref: '#/components/schemas/InvoiceStatus'
+        - in: query
+          name: archiveStatus
+          description: 'Filter invoices by archive status. If null, returns ENABLED invoices'
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/archiveStatus'
       responses:
         200:
           description: The list of invoices
@@ -1379,6 +1386,7 @@ components:
         - PROPOSAL_CONFIRMED
         - CONFIRMED
         - PAID
+    #TODO: DEPRECATED ! Must be ArchiveStatus
     archiveStatus:
       type: string
       enum:

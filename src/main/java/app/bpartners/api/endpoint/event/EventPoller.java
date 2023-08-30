@@ -54,7 +54,7 @@ public class EventPoller {
     this.eventConsumer = eventConsumer;
   }
 
-  @Scheduled(fixedRate = 200)
+  @Scheduled(fixedRate = 200, initialDelay = 120000)
   public void poll() {
     ReceiveMessageRequest receiveMessageRequest = ReceiveMessageRequest.builder()
         .queueUrl(queueUrl)

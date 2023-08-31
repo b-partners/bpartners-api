@@ -167,7 +167,7 @@ jobs:
             Cpu=${{ env.vCpu }}, Memory=${{ env.memory }}, TasksDesiredCount=${{ env.tasksDesiredCount }}"
 
   deploy-stack-without-tests:
-    if: github.ref_name == 'prod' || github.ref_name == 'preprod' && github.event.inputs.run_tests == 'false'
+    if: (github.ref_name == 'prod' && github.event.inputs.run_tests == 'false') || (github.ref_name == 'preprod' && github.event.inputs.run_tests == 'false')
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:

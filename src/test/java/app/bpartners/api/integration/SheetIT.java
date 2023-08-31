@@ -52,6 +52,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @Slf4j
 // /!\ Important ! Run only in local
 public class SheetIT extends MockedThirdParties {
+  public static final String TEST_SHEET_ID = "1JBSbBGawokv7gOR_B1_MMvORYOJQlHroOXj06T3tSYY";
   @Autowired
   private SheetApi sheetApi;
   @Autowired
@@ -91,7 +92,6 @@ public class SheetIT extends MockedThirdParties {
     Credential localCredential = sheetConf.getLocalCredentials(JOE_DOE_ID);
     Sheets sheetsService = sheetApi.initService(sheetConf, localCredential);
 
-    String idSheet = "1JBSbBGawokv7gOR_B1_MMvORYOJQlHroOXj06T3tSYY";
     /*GridData gridData = new GridData()
         .setRowData(Collections.singletonList(
             new RowData().setValues(Collections.singletonList(
@@ -119,16 +119,15 @@ public class SheetIT extends MockedThirdParties {
         .setRequests(Collections.singletonList(updateCellRequest));
 
     sheetsService.spreadsheets()
-        .batchUpdate(idSheet, batchUpdateRequest)
+        .batchUpdate(TEST_SHEET_ID, batchUpdateRequest)
         .execute();
   }
 
   @Test
   void read_sheets_from_local_credentials_ok() {
-    String idSheet = "1JBSbBGawokv7gOR_B1_MMvORYOJQlHroOXj06T3tSYY";
     Credential loadedCredentials = sheetConf.getLocalCredentials(JOE_DOE_ID);
 
-    Spreadsheet sheet = sheetApi.getSheet(idSheet, loadedCredentials);
+    Spreadsheet sheet = sheetApi.getSheet(TEST_SHEET_ID, loadedCredentials);
     List<Sheet> sheets = sheet.getSheets();
     String firstValue = null;
     for (Sheet s : sheets) {

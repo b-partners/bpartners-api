@@ -7,12 +7,12 @@ import org.springframework.context.ConfigurableApplicationContext;
 import static app.bpartners.api.integration.conf.utils.TestUtils.findAvailableTcpPort;
 import static org.springframework.test.context.support.TestPropertySourceUtils.addInlinedPropertiesToEnvironment;
 
-public class CalendarEnvContextInitializer
+public class SheetEnvContextInitializer
     implements ApplicationContextInitializer<ConfigurableApplicationContext> {
 
   private final DbContextInitializer dbContextInitializer = new DbContextInitializer();
-  private final CalendarEnvContextInitializer.EnvContextInitializer envContextInitializer =
-      new CalendarEnvContextInitializer.EnvContextInitializer(dbContextInitializer);
+  private final SheetEnvContextInitializer.EnvContextInitializer envContextInitializer =
+      new SheetEnvContextInitializer.EnvContextInitializer(dbContextInitializer);
 
   private static int httpServerPort;
 
@@ -59,10 +59,10 @@ public class CalendarEnvContextInitializer
           "feature.detector.application.name=dummy",
           "ban.base.url=dummy",
           "expressif.project.token=dummy",
-          "google.sheets.apps.name=dummy",
-          "google.sheets.client.id=dummy",
-          "google.sheets.client.secret=dummy",
-          "google.sheets.redirect.uris=dummy",
+          "google.calendar.apps.name=dummy",
+          "google.calendar.client.id=dummy",
+          "google.calendar.client.secret=dummy",
+          "google.calendar.redirect.uris=dummy",
           "fintecture.base.url=https://api-sandbox.fintecture.com",
           "swan.base.url=https://api.swan.io/sandbox-partner",
           "spring.datasource.url=" + postgresContainer.getJdbcUrl(),

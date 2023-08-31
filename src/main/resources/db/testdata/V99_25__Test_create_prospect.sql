@@ -1,4 +1,4 @@
-insert into prospect (id, name, phone, email, address, status, id_account_holder, town_code, rating,
+insert into prospect (id, old_name, old_phone, old_email, old_address, status, id_account_holder, town_code, rating,
                       last_evaluation_date)
 values ('prospect1_id', null, null, null, null, 'TO_CONTACT',
         'b33e6eb0-e262-4596-a91f-20c6a7bfd343', 92002, 9.993, '2023-01-01T00:00:00.00Z'),

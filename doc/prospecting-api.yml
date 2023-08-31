@@ -246,18 +246,14 @@ operations:
         content:
           application/json:
             schema:
-              type: array
-              items:
-                $ref: '#/components/schemas/UpdateProspectStatus'
+              $ref: '#/components/schemas/ExtendedProspectStatus'
       responses:
         200:
           description: The updated prospects.
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Prospect'
+                $ref: '#/components/schemas/Prospect'
         400:
           $ref: './api.yml#/components/responses/400'
         403:
@@ -334,6 +330,7 @@ components:
     Prospect:
       allOf:
         - $ref: '#/components/schemas/UpdateProspect'
+        - $ref: '#/components/schemas/ProspectStatusDetails'
       properties:
         rating:
           $ref: '#/components/schemas/ProspectRating'
@@ -342,26 +339,20 @@ components:
         #deprecated, will be replaced by area
         location:
           $ref: '#/components/schemas/Geojson'
-        comment:
-          type: string
-        invoice:
-          $ref: './paying-api.yml#/components/schemas/Invoice'
-        contractAmount:
-          type: integer
-        userProspectEvaluation:
-          $ref: '#/components/schemas/UserProspectEvaluation'
-    UpdateProspectStatus:
-      allOf:
-        - $ref: '#/components/schemas/UpdateProspect'
+    ProspectStatusDetails:
       properties:
         comment:
           type: string
-        invoice_id:
+        invoiceID:
           type: string
         contractAmount:
           type: integer
         userProspectEvaluation:
-          $ref: '#/components/schemas/UserProspectEvaluation'
+          $ref: '#/components/schemas/ProspectFeedback'
+    ExtendedProspectStatus:
+      allOf:
+        - $ref: '#/components/schemas/UpdateProspect'
+        - $ref: '#/components/schemas/ProspectStatusDetails'
     Area:
       type: object
       properties:
@@ -428,12 +419,16 @@ components:
         - ALL
         - NEW_PROSPECT
         - OLD_CUSTOMER
-    UserProspectEvaluation:
+    ProspectFeedback:
       type: string
+      description: >
+        This evaluation depends on the prospect's status:
+        - TO_CONTACT: [NOT_INTERESTED, INTERESTED, PROPOSAL_SENT]
+        - CONTACTED: [PROPOSAL_ACCEPTED, PROPOSAL_DECLINED, INVOICE_SENT]
       enum:
         - NOT_INTERESTED
         - INTERESTED
-        - ESTIMATE_SENT
-        - ESTIMATE_ACCEPTED
-        - ESTIMATE_REFUSED
+        - PROPOSAL_SENT
+        - PROPOSAL_ACCEPTED
+        - PROPOSAL_DECLINED
         - INVOICE_SENT

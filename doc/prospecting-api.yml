@@ -224,6 +224,47 @@ operations:
         $ref: './api.yml#/components/responses/429'
       500:
         $ref: './api.yml#/components/responses/500'
+  updateProspects:
+    put:
+      tags:
+        - Prospecting
+      summary: update prospects status
+      operationId: updateProspectsStatus
+      parameters:
+        - in: path
+          name: ahId
+          schema:
+            type: string
+          required: true
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExtendedProspectStatus'
+      responses:
+        200:
+          description: The updated prospects.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Prospect'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
+
 components:
   schemas:
     Marketplace:
@@ -289,6 +330,7 @@ components:
     Prospect:
       allOf:
         - $ref: '#/components/schemas/UpdateProspect'
+        - $ref: '#/components/schemas/ProspectStatusDetails'
       properties:
         rating:
           $ref: '#/components/schemas/ProspectRating'
@@ -297,6 +339,20 @@ components:
         #deprecated, will be replaced by area
         location:
           $ref: '#/components/schemas/Geojson'
+    ProspectStatusDetails:
+      properties:
+        comment:
+          type: string
+        invoiceID:
+          type: string
+        contractAmount:
+          type: integer
+        prospectFeedback:
+          $ref: '#/components/schemas/ProspectFeedback'
+    ExtendedProspectStatus:
+      allOf:
+        - $ref: '#/components/schemas/UpdateProspect'
+        - $ref: '#/components/schemas/ProspectStatusDetails'
     Area:
       type: object
       properties:
@@ -363,3 +419,16 @@ components:
         - ALL
         - NEW_PROSPECT
         - OLD_CUSTOMER
+    ProspectFeedback:
+      type: string
+      description: >
+        This evaluation depends on the prospect's status:
+        - TO_CONTACT: [NOT_INTERESTED, INTERESTED, PROPOSAL_SENT]
+        - CONTACTED: [PROPOSAL_ACCEPTED, PROPOSAL_DECLINED, INVOICE_SENT]
+      enum:
+        - NOT_INTERESTED
+        - INTERESTED
+        - PROPOSAL_SENT
+        - PROPOSAL_ACCEPTED
+        - PROPOSAL_DECLINED
+        - INVOICE_SENT

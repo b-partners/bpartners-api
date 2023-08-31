@@ -18,6 +18,9 @@ import static app.bpartners.api.repository.google.calendar.CalendarConf.JSON_FAC
 @Component
 @AllArgsConstructor
 public class DriveApi {
+  public static final String EXCEL_MIME_TYPE =
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+  public static final String GOOGLE_SHEET_MIME_TYPE = "application/vnd.google-apps.spreadsheet";
   private final SheetConf sheetConf;
 
   private Drive initService(SheetConf sheetsConf, Credential credential) {
@@ -32,15 +35,24 @@ public class DriveApi {
     return getSpreadSheets(sheetConf.getLocalCredentials(idUser));
   }
 
-  @SneakyThrows
   public FileList getSpreadSheets(Credential credential) {
+    String spreadSheetQuery =
+        "mimeType='" + EXCEL_MIME_TYPE + "'"
+            + " or mimeType='" + GOOGLE_SHEET_MIME_TYPE + "'"
+            + "and ('me' in owners or sharedWithMe)";
+    return getFiles(credential, spreadSheetQuery);
+  }
+
+  @SneakyThrows
+  private FileList getFiles(Credential credential, String query) {
     Drive driveService = initService(sheetConf, credential);
     return driveService.files().list()
-        .setQ(
-            "mimeType='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'"
-                + " or mimeType='application/vnd.google-apps.spreadsheet'"
-                + "and 'me' in owners and sharedWithMe")
-        .setFields("files(id, name,mimeType)")
+        .setQ(query)
+        .setFields(defaultFields())
         .execute();
+  }
+
+  private static String defaultFields() {
+    return "files(id, name,mimeType)";
   }
 }

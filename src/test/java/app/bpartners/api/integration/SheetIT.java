@@ -77,11 +77,13 @@ public class SheetIT extends MockedThirdParties {
     List<String> fileNames = files.stream()
         .map(File::getName)
         .collect(Collectors.toList());
-    assertEquals(1, files.size());
-    assertEquals(
-        List.of("Golden source Depa1 Depa 2 - Prospect métier Antinuisibles  Serrurier .xlsx"),
-        fileNames);
     log.info(files.toString());
+    assertEquals(2, files.size());
+    assertEquals(
+        List.of(
+            "Golden source Depa1 Depa 2 - Prospect métier Antinuisibles  Serrurier .xlsx",
+            "Test"),
+        fileNames);
   }
 
   @Test

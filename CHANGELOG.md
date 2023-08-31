@@ -1,3 +1,41 @@
+## [0.26.1](https://github.com/b-partners/bpartners-api/compare/v0.26.0...v0.26.1) (2023-08-30)
+
+
+### Bug Fixes
+
+* **api:** archiveStatus query param schema in getInvoices operation ([a5dd1f9](https://github.com/b-partners/bpartners-api/commit/a5dd1f9ef3f60223c5754f504f421d7f3322432c))
+
+
+
+# [0.26.0](https://github.com/b-partners/bpartners-api/compare/v0.24.0...v0.26.0) (2023-08-30)
+
+
+### Bug Fixes
+
+* center payment regulation qr code and move paid-stamp position ([b5f9d3b](https://github.com/b-partners/bpartners-api/commit/b5f9d3b18649c6411d9733d29c4877a0d2b4f2e9))
+* CONFIRMED invoice can be created from sractch and duplicated invoice does not loose its products ([1573a3e](https://github.com/b-partners/bpartners-api/commit/1573a3e6204dd3d48a801298f8905ff2db870634))
+* connexion timeout when starting app ([8fede17](https://github.com/b-partners/bpartners-api/commit/8fede175cb327ff52baa6a9456a5cfe7f8ba86ef))
+* fix broken tests  ([4896921](https://github.com/b-partners/bpartners-api/commit/4896921ba4e151e90493f1b1c296752a8134d5b1))
+* generate new fileId when duplicating invoice ([347a8cd](https://github.com/b-partners/bpartners-api/commit/347a8cdf37c30c5d4cb9f2fb4a3b33cc1f87d4c6))
+* map correctly paymentMethod and paymentStatus for each payment regulation ([15ebc9d](https://github.com/b-partners/bpartners-api/commit/15ebc9dec99296da1ba32d59ba3d8d48cb23e3d4))
+* put paid invoice regulation stamp on qr code zone ([cd1b145](https://github.com/b-partners/bpartners-api/commit/cd1b1450ea2f134f847c50cffbf887ca80deec78))
+* reformat correctly credential exception in calendar API ([7fc0b8f](https://github.com/b-partners/bpartners-api/commit/7fc0b8f4d39f44171614bfda223a1033abea19af))
+* rename correctly all calendar endpoints ([b82c596](https://github.com/b-partners/bpartners-api/commit/b82c59639036ef361fd2a6a94afd541a6d634bf3))
+* return payment status through paymentRegStatus ([28d940c](https://github.com/b-partners/bpartners-api/commit/28d940cee1a285abd485bca7524cf36364a8d19a))
+* update PDF after marking invoice payment regulation as paid ([29ec282](https://github.com/b-partners/bpartners-api/commit/29ec2827564500d197afa4cd976d3229e210cbad))
+
+
+### Features
+
+* duplicate existing invoice as draft ([d00f887](https://github.com/b-partners/bpartners-api/commit/d00f887865600ba5791866ae2e4668eea388d99b))
+* handle EVAL_PROSPECT authorization for specific user ([fbf7600](https://github.com/b-partners/bpartners-api/commit/fbf7600df213dc836400b3af3b8a3d1c24fb01da))
+* list all calendars without persisting ([dee0853](https://github.com/b-partners/bpartners-api/commit/dee0853f06dc5c2370e987a6fea17fda8fb3285c))
+* read invoice by multiple statuses ([073a643](https://github.com/b-partners/bpartners-api/commit/073a64347fc9d10b71cf9fcb4000b08967466e68))
+* read invoice filtered by archive status ([67ef348](https://github.com/b-partners/bpartners-api/commit/67ef3482b28de08d3de9354f4a3c23d3d2c96915))
+* update payment regulation status ([ad32664](https://github.com/b-partners/bpartners-api/commit/ad32664f97a36bd82685a999194457d9fd95e52c))
+
+
+
 # [0.24.0](https://github.com/b-partners/bpartners-api/compare/v0.23.0...v0.24.0) (2023-08-16)
 
 
@@ -184,60 +222,6 @@
 * set users bank connection refresh into 8 hours and avoid max daily refresh exception ([22c9af8](https://github.com/b-partners/bpartners-api/commit/22c9af82ff5e505b8f66984b30ad1c163bc13ec3))
 * throw exception when provided email during onboarding is already used ([9a15651](https://github.com/b-partners/bpartners-api/commit/9a15651b8cbc5773354b237971a0b8eff4e1250c))
 * update transaction summary updated instant and display decimal social capital ([fda5f76](https://github.com/b-partners/bpartners-api/commit/fda5f76bf28d09b8aafe6912b4a4e03b898c4624))
-
-
-
-# [0.14.0](https://github.com/b-partners/bpartners-api/compare/v0.13.0...v0.14.0) (2023-04-25)
-
-
-### Bug Fixes
-
-* avoid NPE when fintecture can not initiate payment ([d5d1f4d](https://github.com/b-partners/bpartners-api/commit/d5d1f4db8b373b4a0c8567edaaa222b39b799763))
-* avoid NPE when updating payment status ([8db7117](https://github.com/b-partners/bpartners-api/commit/8db7117b1d76a7ead86cfe30980d3b1b8f813d23))
-* bank are persisted and map to account ([a8f3c30](https://github.com/b-partners/bpartners-api/commit/a8f3c3002b014496b638c2e1b93fa8447812a5ff))
-* bridge account balance is mapped as cents ([ee6ff7d](https://github.com/b-partners/bpartners-api/commit/ee6ff7d3335cbacae8d08534073f22cc1fa2c5e5))
-* buildingpermit returns onlytotal because onlytotal is true ([#690](https://github.com/b-partners/bpartners-api/issues/690)) ([85d6fa5](https://github.com/b-partners/bpartners-api/commit/85d6fa54cbf7594a5e7190b5d64c2b4149d21a45))
-* ClusterNamePrefix --> NamePrefix ([28ef0ce](https://github.com/b-partners/bpartners-api/commit/28ef0cecfb24c1bb1a6e6a5602f3797434069833))
-* customer import handle dynamic cell format inside excel file ([6f81bb0](https://github.com/b-partners/bpartners-api/commit/6f81bb0ea3e2b14df6ef468673b6978d650cf105))
-* customer import handle numeric cell ([1cf0aa0](https://github.com/b-partners/bpartners-api/commit/1cf0aa0f8332b8f61580d27c2db18eaa8d6cab89))
-* do not update account when getting account through ID ([06e7357](https://github.com/b-partners/bpartners-api/commit/06e7357e6bcb43b1c9a8b93a4b4c2b48ce9a9b41))
-* get accountHolders concurrently without fail ([4f2ecd3](https://github.com/b-partners/bpartners-api/commit/4f2ecd30560f68dc268cb0cf03403d7d6e1e72f9))
-* invoice delay penalty and penalty percent can be hidden   ([ccd6753](https://github.com/b-partners/bpartners-api/commit/ccd6753fee23c3cf5fcecca383d9df6a6e723cd4))
-* parse fraction into BigInteger directly without Long conversion ([2cc7855](https://github.com/b-partners/bpartners-api/commit/2cc7855aa7c009e5dd1ac8264dae257a63c4fe38))
-* private-url only triggers cd-compute ([0e8a6d8](https://github.com/b-partners/bpartners-api/commit/0e8a6d872cdd20f72fbcf12de0c9e57e56f2325c))
-* return new users info with associated account and account holder after onboarding ([b4eeb48](https://github.com/b-partners/bpartners-api/commit/b4eeb48de8f040407c36f49c03dff2b6416fb442))
-* set default payment status to unpaid during initiation ([4421fde](https://github.com/b-partners/bpartners-api/commit/4421fde1df9568088c0259ac77258e07d7fb7168))
-* set invoice delay payment default value to 30 ([1b0dfdf](https://github.com/b-partners/bpartners-api/commit/1b0dfdf85a4b7ebcaca43b2deb672ddbe9b30239))
-* set onboarding endpoint publicly available ([5e36257](https://github.com/b-partners/bpartners-api/commit/5e36257e2939734d2d003c555dca52d8192ddd56))
-* throw exception when trying to initiate payment without bic or iban ([64a1da0](https://github.com/b-partners/bpartners-api/commit/64a1da0d81ec84d3219806883d9ef5e0ce1121ce))
-* transactions are ordered by payment datetime desc ([3840805](https://github.com/b-partners/bpartners-api/commit/384080551ee0dd5f10af323d438f826537e6831e))
-* treat user upserted event when during event poller ([1d1e41c](https://github.com/b-partners/bpartners-api/commit/1d1e41c43416c28240615c6cd2537201dd795bc4))
-* use separate ecs cluster and separate listnerrule ([5d0ae19](https://github.com/b-partners/bpartners-api/commit/5d0ae19b9a243d5d465fb4da474e13b1c51065de))
-
-
-### Features
-
-* accountholder gets prospects from municipalities within a given prospecting perimeter as distance ([df72f18](https://github.com/b-partners/bpartners-api/commit/df72f18e606e399ad276efb2428681058de7e4bf))
-* add town code attribute to prospects and filter accountholder prospects by town code ([#674](https://github.com/b-partners/bpartners-api/issues/674)) ([ff8165d](https://github.com/b-partners/bpartners-api/commit/ff8165d6465e5a0be37270cdb32d8d46643e08e8))
-* onboard new user through cognito and bridge ([8bccd7d](https://github.com/b-partners/bpartners-api/commit/8bccd7d93ab2cb21ee5ac4e8ee97b53059e29730))
-* send daily email to accountHolders when they’re late on their revenue target ([#610](https://github.com/b-partners/bpartners-api/issues/610)) ([5f7d702](https://github.com/b-partners/bpartners-api/commit/5f7d7023ab77c6c7599228e84456fc12be1d2870))
-* use cgu-18-04-23.pdf ([f3b6e1d](https://github.com/b-partners/bpartners-api/commit/f3b6e1d1b92aeba2e850849d04cd4b63f4bd5521))
-* user can handle a preferred account ([b09dc95](https://github.com/b-partners/bpartners-api/commit/b09dc95df0feed973d4a9badcd4bd492ecc6896e))
-
-
-
-# [0.13.0](https://github.com/b-partners/bpartners-api/compare/v0.12.0...v0.13.0) (2023-04-05)
-
-
-### Bug Fixes
-
-* choose unique default account from bridge when multiples are provided ([4be75cd](https://github.com/b-partners/bpartners-api/commit/4be75cd49880b2af7bb0f7e85e9870a83c4e88ae))
-* refactor account holder repository and avoid NPE when swan not provided ([dc37b00](https://github.com/b-partners/bpartners-api/commit/dc37b0096cd0c8b7ad0a3dc24a27f0acf2015966))
-
-
-### Features
-
-* accountHolder has custom prospecting perimeter ([a3eb1ce](https://github.com/b-partners/bpartners-api/commit/a3eb1ceb21e32b92d4724bb9da3b3dabc5517aa6))
 
 
 

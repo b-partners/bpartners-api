@@ -1,22 +1,13 @@
 package app.bpartners.api.integration;
 
-import app.bpartners.api.SentryConf;
 import app.bpartners.api.endpoint.rest.api.FilesApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
 import app.bpartners.api.endpoint.rest.model.FileInfo;
 import app.bpartners.api.endpoint.rest.model.FileType;
-import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
+import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.integration.conf.S3AbstractContextInitializer;
 import app.bpartners.api.integration.conf.utils.TestUtils;
-import app.bpartners.api.manager.ProjectTokenManager;
-import app.bpartners.api.repository.connectors.account.AccountConnectorRepository;
-import app.bpartners.api.repository.LegalFileRepository;
-import app.bpartners.api.repository.bridge.BridgeApi;
-import app.bpartners.api.repository.fintecture.FintectureConf;
-import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitConf;
-import app.bpartners.api.repository.sendinblue.SendinblueConf;
-import app.bpartners.api.service.PaymentScheduleService;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -29,7 +20,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
@@ -52,6 +42,7 @@ import static app.bpartners.api.integration.conf.utils.TestUtils.assertThrowsFor
 import static app.bpartners.api.integration.conf.utils.TestUtils.getApiException;
 import static app.bpartners.api.integration.conf.utils.TestUtils.setUpCognito;
 import static app.bpartners.api.integration.conf.utils.TestUtils.setUpLegalFileRepository;
+import static app.bpartners.api.integration.conf.utils.TestUtils.setUpS3Conf;
 import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
@@ -60,30 +51,10 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @Testcontainers
 @ContextConfiguration(initializers = FileIT.ContextInitializer.class)
 @AutoConfigureMockMvc
-class FileIT {
-  @MockBean
-  private PaymentScheduleService paymentScheduleService;
-  @MockBean
-  private BuildingPermitConf buildingPermitConf;
+class FileIT extends MockedThirdParties {
   public static final String NON_EXISTENT_FILE_ID = "NOT" + TEST_FILE_ID;
   public static final String NOT_EXISTING_FILE_ID = "not_existing_file_id.jpeg";
-  @MockBean
-  private SentryConf sentryConf;
-  @MockBean
-  private SendinblueConf sendinblueConf;
-  @MockBean
-  private FintectureConf fintectureConf;
-  @MockBean
-  private ProjectTokenManager projectTokenManager;
-  @MockBean
-  private AccountConnectorRepository accountConnectorRepositoryMock;
-  @MockBean
-  private BridgeApi bridgeApi;
-  @MockBean
-  private LegalFileRepository legalFileRepositoryMock;
-  @MockBean
-  private CognitoComponent cognitoComponentMock;
-  private Tika typeGuesser = new Tika();
+  private final Tika typeGuesser = new Tika();
 
   private static ApiClient anApiClient() {
     return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN, ContextInitializer.SERVER_PORT);
@@ -93,6 +64,7 @@ class FileIT {
   public void setUp() {
     setUpLegalFileRepository(legalFileRepositoryMock);
     setUpCognito(cognitoComponentMock);
+    setUpS3Conf(s3Conf);
   }
 
   FileInfo file1() {

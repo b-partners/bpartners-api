@@ -153,8 +153,8 @@ dependencies {
     implementation 'org.postgresql:postgresql'
 
     implementation 'software.amazon.awssdk:s3-transfer-manager:2.17.271-PREVIEW'
-    implementation 'software.amazon.awssdk:eventbridge:2.17.109'
-    implementation 'software.amazon.awssdk:sqs:2.17.109'
+    implementation 'software.amazon.awssdk:eventbridge:2.20.136'
+    implementation 'software.amazon.awssdk:sqs:2.20.136'
     implementation 'software.amazon.awssdk:cognitoidentityprovider:2.17.109'
     implementation 'software.amazon.awssdk:ssm:2.17.109'
     implementation 'software.amazon.awssdk:transfer:2.17.271'

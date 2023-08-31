@@ -1,5 +1,6 @@
 package app.bpartners.api.repository.jpa;
 
+import app.bpartners.api.endpoint.rest.model.ArchiveStatus;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.repository.jpa.model.HInvoice;
 import java.util.List;
@@ -13,12 +14,16 @@ public interface InvoiceJpaRepository extends JpaRepository<HInvoice, String> {
   @Lock(LockModeType.PESSIMISTIC_WRITE)
   Optional<HInvoice> findOptionalById(String id);
 
-  List<HInvoice> findAllByIdUserAndStatus(
+  List<HInvoice> findAllByIdUserAndArchiveStatusAndStatusIn(
       String idUser,
-      InvoiceStatus status,
+      ArchiveStatus archiveStatus,
+      List<InvoiceStatus> status,
       Pageable pageable);
 
-  List<HInvoice> findAllByIdUser(String idUser, Pageable pageable);
+  List<HInvoice> findAllByIdUserAndArchiveStatus(
+      String idUser,
+      ArchiveStatus archiveStatus,
+      Pageable pageable);
 
   List<HInvoice> findByIdUserAndRef(String idAccount, String ref);
 

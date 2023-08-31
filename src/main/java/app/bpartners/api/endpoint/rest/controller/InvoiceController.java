@@ -1,6 +1,7 @@
 package app.bpartners.api.endpoint.rest.controller;
 
 import app.bpartners.api.endpoint.rest.mapper.InvoiceRestMapper;
+import app.bpartners.api.endpoint.rest.model.ArchiveStatus;
 import app.bpartners.api.endpoint.rest.model.CrupdateInvoice;
 import app.bpartners.api.endpoint.rest.model.Invoice;
 import app.bpartners.api.endpoint.rest.model.InvoiceReference;
@@ -14,9 +15,11 @@ import app.bpartners.api.model.ArchiveInvoice;
 import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.service.InvoiceService;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -27,6 +30,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @AllArgsConstructor
+@Slf4j
 public class InvoiceController {
   private final InvoiceRestMapper mapper;
   private final InvoiceService service;
@@ -67,10 +71,17 @@ public class InvoiceController {
       @PathVariable(name = "aId") String accountId,
       @RequestParam(name = "page", required = false) PageFromOne page,
       @RequestParam(name = "pageSize", required = false) BoundedPageSize pageSize,
-      @RequestParam(name = "status", required = false) InvoiceStatus status) {
+      @RequestParam(name = "status", required = false) InvoiceStatus status,
+      @RequestParam(name = "statusList", required = false) List<InvoiceStatus> statusList,
+      @RequestParam(name = "archiveStatus", required = false) ArchiveStatus archiveStatus) {
     String idUser =
         AuthProvider.getAuthenticatedUserId(); //TODO: should be changed when endpoint changed
-    return service.getInvoices(idUser, page, pageSize, status).stream()
+    if (status != null && (statusList == null || statusList.isEmpty())) {
+      log.warn("DEPRECATED: GET /accounts/{aId}/invoices query_param=status is still used");
+      statusList = new ArrayList<>();
+      statusList.add(status);
+    }
+    return service.getInvoices(idUser, page, pageSize, statusList, archiveStatus).stream()
         .map(mapper::toRest)
         .collect(Collectors.toUnmodifiableList());
   }

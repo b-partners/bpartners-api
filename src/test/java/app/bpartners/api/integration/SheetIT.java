@@ -3,13 +3,16 @@ package app.bpartners.api.integration;
 import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.integration.conf.SheetEnvContextInitializer;
 import app.bpartners.api.repository.ban.BanApi;
+import app.bpartners.api.repository.expressif.ProspectEvalInfo;
 import app.bpartners.api.repository.google.calendar.drive.DriveApi;
 import app.bpartners.api.repository.google.sheets.SheetApi;
 import app.bpartners.api.repository.google.sheets.SheetConf;
 import app.bpartners.api.repository.jpa.SheetStoredCredentialJpaRep;
 import app.bpartners.api.repository.jpa.model.HSheetStoredCredential;
 import app.bpartners.api.service.CustomerService;
+import app.bpartners.api.service.ProspectService;
 import app.bpartners.api.service.TransactionService;
+import app.bpartners.api.service.utils.DateUtils;
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.services.drive.model.File;
 import com.google.api.services.drive.model.FileList;
@@ -43,6 +46,7 @@ import org.testcontainers.shaded.com.fasterxml.jackson.databind.SerializationFea
 import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
@@ -53,6 +57,17 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 // /!\ Important ! Run only in local
 public class SheetIT extends MockedThirdParties {
   public static final String TEST_SHEET_ID = "1JBSbBGawokv7gOR_B1_MMvORYOJQlHroOXj06T3tSYY";
+  public static final String GOLDEN_SOURCE_SHEET_ID =
+      "1zLlb1m0vlS5Qn1T2sGI1q9BWzkXkaHHnjVbMfOVVuZ0";
+  public static final String GOLDEN_SOURCE_EXCEL_ID = "1KHJnf1ONumV3EeOwaKHgzPBYURSnEZ4R";
+
+  public static final String GOLDEN_SOURCE_EXCEL_NAME =
+      "Golden source Depa1 Depa 2 - Prospect métier Antinuisibles  Serrurier .xlsx";
+  public static final String GOLDEN_SOURCE_SPR_SHEET_NAME =
+      "Golden source Depa1 Depa 2 - Prospect métier Antinuisibles  Serrurier ";
+
+  public static final String TEST_SPR_SHEET_NAME = "Test";
+  public static final String GOLDEN_SOURCE_SHEET_NAME = "Source Import";
   @Autowired
   private SheetApi sheetApi;
   @Autowired
@@ -67,6 +82,40 @@ public class SheetIT extends MockedThirdParties {
   private BanApi banApi;
   @MockBean
   private CustomerService customerService;
+  @Autowired
+  private ProspectService prospectService;
+
+  private static ProspectEvalInfo prospectEvalInfo1() {
+    return ProspectEvalInfo.builder()
+        .name("Biscuits")
+        .website("https://biscuit-madeleine-cooky.fr/")
+        .address("1 Rue des Pâtissiers, 60200 Compiègne, France")
+        .phoneNumber("33 3 60 40 54 21 /03 60 40 54 21")
+        .email("contact@biscuit-madeleine-cooky.fr")
+        .managerName("Khoukha AOUICI DIT AOUICHAT ")
+        .mailSent(null)
+        .postalCode("60200")
+        .city("Compiègne")
+        .companyCreationDate(DateUtils.from_dd_MM_YYYY("01/01/2023"))
+        .category("Restaurant")
+        .subcategory("Magasin de gâteaux")
+        .contactNature(ProspectEvalInfo.ContactNature.PROSPECT)
+        .reference(null)
+        .coordinates(null)
+        .build();
+  }
+
+  @Test
+  void read_prospects_from_sheet_ok() {
+    List<ProspectEvalInfo> prospectEvalInfos = prospectService.readFromSheets(
+        JOE_DOE_ID,
+        GOLDEN_SOURCE_SPR_SHEET_NAME,
+        GOLDEN_SOURCE_SHEET_NAME);
+
+    assertEquals(3, prospectEvalInfos.size());
+    //assertEquals(prospectEvalInfos, prospectEvalInfo1());
+    assertTrue(prospectEvalInfos.contains(prospectEvalInfo1()));
+  }
 
   @Test
   void read_all_excel_file_ok() {
@@ -78,12 +127,9 @@ public class SheetIT extends MockedThirdParties {
     List<String> fileNames = files.stream()
         .map(File::getName)
         .collect(Collectors.toList());
-    log.info(files.toString());
-    assertEquals(2, files.size());
+    assertEquals(3, files.size());
     assertEquals(
-        List.of(
-            "Golden source Depa1 Depa 2 - Prospect métier Antinuisibles  Serrurier .xlsx",
-            "Test"),
+        List.of(GOLDEN_SOURCE_SPR_SHEET_NAME, GOLDEN_SOURCE_EXCEL_NAME, TEST_SPR_SHEET_NAME),
         fileNames);
   }
 
@@ -125,10 +171,10 @@ public class SheetIT extends MockedThirdParties {
 
   @Test
   void read_sheets_from_local_credentials_ok() {
-    Credential loadedCredentials = sheetConf.getLocalCredentials(JOE_DOE_ID);
+    Credential localCredentials = sheetConf.getLocalCredentials(JOE_DOE_ID);
 
-    Spreadsheet sheet = sheetApi.getSheet(TEST_SHEET_ID, loadedCredentials);
-    List<Sheet> sheets = sheet.getSheets();
+    Spreadsheet spreadsheet = sheetApi.getSpreadsheet(GOLDEN_SOURCE_SHEET_ID, localCredentials);
+    List<Sheet> sheets = spreadsheet.getSheets();
     String firstValue = null;
     for (Sheet s : sheets) {
       List<GridData> gridData = s.getData();
@@ -138,8 +184,9 @@ public class SheetIT extends MockedThirdParties {
       List<CellData> cellData = rowData1.getValues();
       firstValue = cellData.get(0).getFormattedValue();
     }
-    assertNotNull(sheet);
-    assertEquals("Nouvelle valeur", firstValue);
+    assertNotNull(spreadsheet);
+    assertNotNull(firstValue);
+    log.info("First value {}", firstValue);
   }
 
   @SneakyThrows

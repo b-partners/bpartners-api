@@ -1,9 +1,11 @@
 package app.bpartners.api.repository.google.calendar.drive;
 
+import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.repository.google.sheets.SheetConf;
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.services.drive.Drive;
+import com.google.api.services.drive.model.File;
 import com.google.api.services.drive.model.FileList;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -43,6 +45,16 @@ public class DriveApi {
     return getFiles(credential, spreadSheetQuery);
   }
 
+  public File getFileByIdUserAndName(String idUser, String fileName) {
+    FileList sheets = getSpreadSheets(idUser);
+    return sheets.getFiles().stream()
+        .filter(sheet -> sheet.getName().equals(fileName))
+        .findAny().orElseThrow(
+            () -> new NotFoundException(
+                "File(name=" + fileName
+                    + ") does not exist or you do not have authorization to read it"));
+  }
+
   @SneakyThrows
   private FileList getFiles(Credential credential, String query) {
     Drive driveService = initService(sheetConf, credential);
@@ -53,6 +65,6 @@ public class DriveApi {
   }
 
   private static String defaultFields() {
-    return "files(id, name,mimeType)";
+    return "files(id, name,mimeType,permissions)";
   }
 }

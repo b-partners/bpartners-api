@@ -6,16 +6,25 @@ import app.bpartners.api.endpoint.rest.model.ProspectStatus;
 import app.bpartners.api.model.Customer;
 import app.bpartners.api.model.Prospect;
 import app.bpartners.api.model.exception.ApiException;
+import app.bpartners.api.model.exception.BadRequestException;
+import app.bpartners.api.model.exception.NotFoundException;
+import app.bpartners.api.model.exception.NotImplementedException;
+import app.bpartners.api.model.mapper.ProspectMapper;
 import app.bpartners.api.repository.ProspectRepository;
 import app.bpartners.api.repository.expressif.ProspectEval;
 import app.bpartners.api.repository.expressif.ProspectEvalInfo;
 import app.bpartners.api.repository.expressif.ProspectResult;
 import app.bpartners.api.repository.expressif.fact.NewIntervention;
+import app.bpartners.api.repository.google.calendar.drive.DriveApi;
+import app.bpartners.api.repository.google.sheets.SheetApi;
 import app.bpartners.api.repository.jpa.AccountHolderJpaRepository;
 import app.bpartners.api.repository.jpa.model.HAccountHolder;
 import app.bpartners.api.service.aws.SesService;
 import app.bpartners.api.service.dataprocesser.ProspectDataProcesser;
 import app.bpartners.api.service.utils.GeoUtils;
+import com.google.api.services.drive.model.File;
+import com.google.api.services.sheets.v4.model.Sheet;
+import com.google.api.services.sheets.v4.model.Spreadsheet;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -34,6 +43,7 @@ import org.thymeleaf.context.Context;
 import static app.bpartners.api.endpoint.rest.model.NewInterventionOption.NEW_PROSPECT;
 import static app.bpartners.api.endpoint.rest.model.NewInterventionOption.OLD_CUSTOMER;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
+import static app.bpartners.api.repository.google.sheets.SheetConf.GRID_SHEET_TYPE;
 import static app.bpartners.api.service.utils.TemplateResolverUtils.parseTemplateResolver;
 import static java.util.UUID.randomUUID;
 
@@ -49,6 +59,9 @@ public class ProspectService {
   private final AccountHolderJpaRepository accountHolderJpaRepository;
   private final SesService sesService;
   private final CustomerService customerService;
+  private final SheetApi sheetApi;
+  private final DriveApi driveApi;
+  private final ProspectMapper prospectMapper;
 
   public List<Prospect> getAllByIdAccountHolder(String idAccountHolder, String name) {
     return dataProcesser.processProspects(
@@ -307,6 +320,28 @@ public class ProspectService {
             .lastEvaluationDate(result.getEvaluationDate())
             .build())
         .build();
+  }
+
+  //TODO: must be inside repository
+  public List<ProspectEvalInfo> readFromSheets(String idUser,
+                                               String spreadsheetName,
+                                               String sheetName) {
+    File spreadSheetFile = driveApi.getFileByIdUserAndName(idUser, spreadsheetName);
+    String spreadSheetFileId = spreadSheetFile.getId();
+    Spreadsheet spreadsheet = sheetApi.getSpreadsheet(idUser, spreadSheetFileId);
+    List<Sheet> sheets = spreadsheet.getSheets();
+    if (sheets.isEmpty()) {
+      throw new BadRequestException("Spreadsheet has empty sheets");
+    }
+    Sheet sheet = sheets.stream()
+        .filter(s -> s.getProperties().getTitle().equals(sheetName))
+        .findAny().orElseThrow(
+            () -> new NotFoundException("Sheet(name=" + sheetName + ")"
+                + " inside Spreadsheet(name=" + spreadsheetName + ") does not exist"));
+    if (!sheet.getProperties().getSheetType().equals(GRID_SHEET_TYPE)) {
+      throw new NotImplementedException("Only GRID sheet type is supported");
+    }
+    return prospectMapper.toProspect(sheet);
   }
 
   private Context configureProspectContext(HAccountHolder accountHolder) {

@@ -34,25 +34,28 @@ public class SheetApi {
         .build();
   }
 
-  public Spreadsheet getSheet(String idUser, String idSheet) {
-    return getSheet(idSheet, sheetsConf.loadCredential(idUser));
+  public Spreadsheet getSpreadsheet(String idUser, String idSpreadsheet) {
+    return getSpreadsheet(idSpreadsheet, sheetsConf.loadCredential(idUser));
   }
 
-  public Spreadsheet getSheet(String idSheet, Credential credential) {
+  public Spreadsheet getSpreadsheet(String idSpreadsheet, Credential credential) {
     Sheets sheetsService = initService(sheetsConf, credential);
+    Spreadsheet spreadsheet;
     try {
-      return sheetsService.spreadsheets().get(idSheet)
-          .setRanges(List.of("A1:H3"))
+      spreadsheet = sheetsService.spreadsheets().get(idSpreadsheet)
+          .setRanges(List.of("'Source Import'!A2:M10000", "'Golden Source dépa 1 & 2'!A2:M10000"))
           .setIncludeGridData(true)
           .execute();
     } catch (GoogleJsonResponseException e) {
       if (e.getStatusCode() == 401) {
         throw new ForbiddenException(
             "Google Calendar Token is expired or invalid. Give your consent again.");
+      } else {
+        throw new ApiException(SERVER_EXCEPTION, e);
       }
     } catch (IOException e) {
       throw new ApiException(SERVER_EXCEPTION, e);
     }
-    return null;
+    return spreadsheet;
   }
 }

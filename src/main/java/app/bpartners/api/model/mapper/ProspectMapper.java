@@ -6,9 +6,16 @@ import app.bpartners.api.endpoint.rest.model.ProspectStatus;
 import app.bpartners.api.endpoint.rest.security.AuthenticatedResourceProvider;
 import app.bpartners.api.model.Prospect;
 import app.bpartners.api.model.exception.NotFoundException;
+import app.bpartners.api.repository.expressif.ProspectEvalInfo;
 import app.bpartners.api.repository.jpa.ProspectJpaRepository;
 import app.bpartners.api.repository.jpa.model.HProspect;
+import app.bpartners.api.service.utils.DateUtils;
+import com.google.api.services.sheets.v4.model.CellData;
+import com.google.api.services.sheets.v4.model.RowData;
+import com.google.api.services.sheets.v4.model.Sheet;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +28,8 @@ import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 @Slf4j
 public class ProspectMapper {
 
+  public static final String PROSPECT_CONTACT_NATURE = "prospect";
+  public static final String OLD_CUSTOMER_CONTACT_NATURE = "ancien client";
   private final AuthenticatedResourceProvider provider;
   private final ProspectJpaRepository jpaRepository;
 
@@ -132,5 +141,81 @@ public class ProspectMapper {
             ? null
             : parseFraction(entity.getContractAmount()))
         .build();
+  }
+
+  public List<ProspectEvalInfo> toProspect(Sheet sheet) {
+    var gridData = sheet.getData();
+    List<ProspectEvalInfo> prospectList = new ArrayList<>();
+    List<PropertyAction> propertyActions = getPropertyActions();
+    gridData.forEach(grid -> {
+      int firstIndex = grid.getStartColumn() == null ? 0 : grid.getStartColumn();
+      var row = grid.getRowData();
+      row.forEach(rowData -> {
+        if (!hasNullCellData(rowData)) {
+          var prospectBuilder = ProspectEvalInfo.builder();
+          var cells = rowData.getValues();
+          for (int index = firstIndex;
+               index < cells.size() && index < firstIndex + propertyActions.size();
+               index++) {
+            var currentCell = cells.get(index);
+            PropertyAction action = propertyActions.get(index - firstIndex);
+            action.performAction(prospectBuilder, currentCell);
+          }
+          prospectList.add(prospectBuilder.build());
+        }
+      });
+    });
+    return prospectList;
+  }
+
+  public static ProspectEvalInfo.ContactNature getContactNature(String value) {
+    String formattedValue = value.trim().toLowerCase();
+    switch (formattedValue) {
+      case PROSPECT_CONTACT_NATURE:
+        return ProspectEvalInfo.ContactNature.PROSPECT;
+      case OLD_CUSTOMER_CONTACT_NATURE:
+        return ProspectEvalInfo.ContactNature.OLD_CUSTOMER;
+      case "null":
+        return null;
+      default:
+        log.warn("Unknown contact nature value " + value);
+        return ProspectEvalInfo.ContactNature.OTHER;
+    }
+  }
+
+  private static boolean hasNullCellData(RowData rowData) {
+    return rowData.getValues().stream()
+        .allMatch(cellData -> cellData.getFormattedValue() == null);
+  }
+
+  private static List<PropertyAction> getPropertyActions() {
+    List<PropertyAction> propertyActions = new ArrayList<>();
+    propertyActions.add((builder, currentCell) -> builder.name(currentCell.getFormattedValue()));
+    propertyActions.add((builder, currentCell) -> builder.website(currentCell.getFormattedValue()));
+    propertyActions.add(
+        (builder, currentCell) -> builder.category(currentCell.getFormattedValue()));
+    propertyActions.add(
+        (builder, currentCell) -> builder.subcategory(currentCell.getFormattedValue()));
+    propertyActions.add((builder, currentCell) -> builder.address(currentCell.getFormattedValue()));
+    propertyActions.add(
+        (builder, currentCell) -> builder.phoneNumber(currentCell.getFormattedValue()));
+    propertyActions.add((builder, currentCell) -> builder.email(currentCell.getFormattedValue()));
+    propertyActions.add(
+        (builder, currentCell) -> builder.managerName(currentCell.getFormattedValue()));
+    propertyActions.add(
+        (builder, currentCell) -> builder.mailSent(currentCell.getFormattedValue()));
+    propertyActions.add(
+        (builder, currentCell) -> builder.postalCode(currentCell.getFormattedValue()));
+    propertyActions.add((builder, currentCell) -> builder.city(currentCell.getFormattedValue()));
+    propertyActions.add((builder, currentCell) -> builder.companyCreationDate(
+        DateUtils.from_dd_MM_YYYY(currentCell.getFormattedValue()))
+    );
+    propertyActions.add((builder, currentCell) -> builder.contactNature(
+        getContactNature(currentCell.getFormattedValue())));
+    return propertyActions;
+  }
+
+  interface PropertyAction {
+    void performAction(ProspectEvalInfo.Builder builder, CellData currentCell);
   }
 }

@@ -6,7 +6,9 @@ import app.bpartners.api.endpoint.event.S3Conf;
 import app.bpartners.api.endpoint.rest.api.ProspectingApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
+import app.bpartners.api.endpoint.rest.model.ExtendedProspectStatus;
 import app.bpartners.api.endpoint.rest.model.Prospect;
+import app.bpartners.api.endpoint.rest.model.ProspectFeedback;
 import app.bpartners.api.endpoint.rest.model.ProspectRating;
 import app.bpartners.api.endpoint.rest.model.UpdateProspect;
 import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
@@ -45,6 +47,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import static app.bpartners.api.endpoint.rest.model.ProspectStatus.CONTACTED;
 import static app.bpartners.api.endpoint.rest.model.ProspectStatus.TO_CONTACT;
 import static app.bpartners.api.integration.conf.utils.TestUtils.NOT_JOE_DOE_ACCOUNT_HOLDER_ID;
 import static app.bpartners.api.integration.conf.utils.TestUtils.ACCOUNTHOLDER_ID;
@@ -187,17 +190,47 @@ class ProspectIT {
     return new UpdateProspect()
         .id("prospect1_id")
         .name("paul adams")
-        .status(TO_CONTACT)
+        .status(CONTACTED)
         .email("paulAdams@gmail.com")
         .phone("+261340465341")
         .address("30 Rue de la Montagne Sainte-Genevieve");
   }
 
+  ExtendedProspectStatus interestingProspect() {
+    return new ExtendedProspectStatus()
+        .id(prospect1().getId())
+        .name("Interesting prospect")
+        .email(prospect1().getEmail())
+        .phone(prospect1().getPhone())
+        .address(prospect1().getAddress())
+        .status(CONTACTED)
+        .townCode(prospect1().getTownCode())
+        .comment("Prospect to be updated")
+        .invoiceID("invoice1_id")
+        .contractAmount(2000)
+        .prospectFeedback(ProspectFeedback.INTERESTED);
+  }
+
+  ExtendedProspectStatus notInterestingProspect() {
+    return interestingProspect()
+        .prospectFeedback(ProspectFeedback.NOT_INTERESTED);
+  }
+
+  Prospect expectedInterestingProspect() {
+    return prospect1()
+        .name("Interesting prospect")
+        .comment("Prospect to be updated")
+        .invoiceID("invoice1_id")
+        .contractAmount(2000)
+        .status(CONTACTED)
+        .prospectFeedback(ProspectFeedback.INTERESTED);
+
+  }
   Prospect expectedProspect() {
     return new Prospect()
         .name("paul adams")
         .location(null)
-        .status(TO_CONTACT)
+        .status(CONTACTED)
         .email("paulAdams@gmail.com")
         .phone("+261340465341")
         .address("30 Rue de la Montagne Sainte-Genevieve")
@@ -256,6 +289,18 @@ class ProspectIT {
             + " not found. \"}",
         () -> api.updateProspects(ACCOUNTHOLDER_ID,
             List.of(updateProspect().id(UNKNOWN_PROSPECT_ID))));
+  }
+
+  @Test
+  void update_prospect_status_ok() throws ApiException {
+    ApiClient joeDoeClient = anApiClient();
+    ProspectingApi api = new ProspectingApi(joeDoeClient);
+
+    Prospect actualInterestingProspect = api.updateProspectsStatus(ACCOUNTHOLDER_ID, prospect1().getId(), interestingProspect());
+    Prospect actualNotInterstingProspect = api.updateProspectsStatus(ACCOUNTHOLDER_ID, prospect1().getId(), notInterestingProspect());
+
+    assertEquals(expectedInterestingProspect(), actualInterestingProspect);
+    assertEquals(prospect1(), actualNotInterstingProspect);
   }
 
   @Test

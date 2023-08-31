@@ -224,6 +224,51 @@ operations:
         $ref: './api.yml#/components/responses/429'
       500:
         $ref: './api.yml#/components/responses/500'
+  updateProspects:
+    put:
+      tags:
+        - Prospecting
+      summary: update prospects status
+      operationId: updateProspectsStatus
+      parameters:
+        - in: path
+          name: ahId
+          schema:
+            type: string
+          required: true
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/UpdateProspectStatus'
+      responses:
+        200:
+          description: The updated prospects.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Prospect'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
+
 components:
   schemas:
     Marketplace:
@@ -297,6 +342,26 @@ components:
         #deprecated, will be replaced by area
         location:
           $ref: '#/components/schemas/Geojson'
+        comment:
+          type: string
+        invoice:
+          $ref: './paying-api.yml#/components/schemas/Invoice'
+        contractAmount:
+          type: integer
+        userProspectEvaluation:
+          $ref: '#/components/schemas/UserProspectEvaluation'
+    UpdateProspectStatus:
+      allOf:
+        - $ref: '#/components/schemas/UpdateProspect'
+      properties:
+        comment:
+          type: string
+        invoice_id:
+          type: string
+        contractAmount:
+          type: integer
+        userProspectEvaluation:
+          $ref: '#/components/schemas/UserProspectEvaluation'
     Area:
       type: object
       properties:
@@ -363,3 +428,12 @@ components:
         - ALL
         - NEW_PROSPECT
         - OLD_CUSTOMER
+    UserProspectEvaluation:
+      type: string
+      enum:
+        - NOT_INTERESTED
+        - INTERESTED
+        - ESTIMATE_SENT
+        - ESTIMATE_ACCEPTED
+        - ESTIMATE_REFUSED
+        - INVOICE_SENT

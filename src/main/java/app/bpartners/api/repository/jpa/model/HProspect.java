@@ -1,5 +1,6 @@
 package app.bpartners.api.repository.jpa.model;
 
+import app.bpartners.api.endpoint.rest.model.ProspectFeedback;
 import app.bpartners.api.endpoint.rest.model.ProspectStatus;
 import app.bpartners.api.repository.jpa.types.PostgresEnumType;
 import java.time.Instant;
@@ -36,10 +37,14 @@ public class HProspect {
   @GeneratedValue(strategy = IDENTITY)
   private String id;
   private String idAccountHolder;
-  private String name;
-  private String email;
-  private String phone;
-  private String address;
+  private String oldName;
+  private String newName;
+  private String oldEmail;
+  private String newEmail;
+  private String oldPhone;
+  private String newPhone;
+  private String oldAddress;
+  private String newAddress;
   @Type(type = "pgsql_enum")
   @Enumerated(EnumType.STRING)
   private ProspectStatus status;
@@ -48,4 +53,10 @@ public class HProspect {
   private Double posLatitude;
   private Double rating;
   private Instant lastEvaluationDate;
+  private String comment;
+  private String contractAmount;
+  private String idInvoice;
+  @Type(type = "pgsql_enum")
+  @Enumerated(EnumType.STRING)
+  private ProspectFeedback prospectFeedback;
 }

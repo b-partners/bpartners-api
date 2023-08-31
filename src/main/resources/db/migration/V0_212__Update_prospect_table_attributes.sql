@@ -19,3 +19,4 @@ alter table "prospect" add column if not exists id_invoice varchar;
 alter table "prospect" add column if not exists prospect_feedback prospect_feedback;
 
 alter table "prospect" add constraint invoice_prospect_fk foreign key (id_invoice) references "invoice"(id);
+alter table "prospect" alter column id_account_holder drop not null ;

@@ -1,10 +1,11 @@
 package app.bpartners.api.model.mapper;
 
 import app.bpartners.api.endpoint.rest.model.Geojson;
+import app.bpartners.api.endpoint.rest.model.ProspectFeedback;
+import app.bpartners.api.endpoint.rest.model.ProspectStatus;
 import app.bpartners.api.endpoint.rest.security.AuthenticatedResourceProvider;
 import app.bpartners.api.model.Prospect;
 import app.bpartners.api.model.exception.NotFoundException;
-import app.bpartners.api.repository.SogefiBuildingPermitRepository;
 import app.bpartners.api.repository.jpa.ProspectJpaRepository;
 import app.bpartners.api.repository.jpa.model.HProspect;
 import java.time.Instant;
@@ -21,6 +22,22 @@ public class ProspectMapper {
   private final AuthenticatedResourceProvider provider;
   private final ProspectJpaRepository jpaRepository;
 
+  private static String checkIfOldOrNew(String toCheck,
+                                        String expected) {
+    if (toCheck != null && expected != null) {
+      return !expected.equals(toCheck) ? toCheck : null;
+    } else if (expected == null && toCheck != null) {
+      return toCheck;
+    } else if (expected != null && toCheck == null) {
+      return expected;
+    }
+    return null;
+  }
+
+  private static String isNewExists(String toCheck, String actual) {
+    return toCheck != null ? toCheck : actual;
+  }
+
   public HProspect toEntity(Prospect domain) {
     Optional<HProspect> optionalProspect = jpaRepository.findById(domain.getId());
     if (optionalProspect.isEmpty()) {
@@ -30,7 +47,47 @@ public class ProspectMapper {
     return toEntity(domain,
         provider.getDefaultAccountHolder().getId(),
         existing.getRating(),
-        existing.getLastEvaluationDate());
+        existing.getLastEvaluationDate(), existing);
+  }
+
+  public HProspect toEntity(Prospect domain, String prospectOwnerId, Double rating,
+                            Instant lastEvaluationDate, HProspect actualEntity) {
+    Geojson location = domain.getLocation();
+    if (domain.getStatus().equals(ProspectStatus.TO_CONTACT)
+        || (domain.getProspectFeedback() != null
+        && domain.getProspectFeedback().equals(ProspectFeedback.NOT_INTERESTED))) {
+      return actualEntity.toBuilder()
+          .newName(null)
+          .newEmail(null)
+          .newPhone(null)
+          .newAddress(null)
+          .idAccountHolder(null)
+          .comment(null)
+          .contractAmount(null)
+          .prospectFeedback(null)
+          .idInvoice(null)
+          .build();
+    } else {
+      return actualEntity.toBuilder()
+          .id(domain.getId())
+          .newPhone(checkIfOldOrNew(domain.getPhone(), actualEntity.getOldPhone()))
+          .newName(checkIfOldOrNew(domain.getName(), actualEntity.getOldName()))
+          .newAddress(checkIfOldOrNew(domain.getAddress(), actualEntity.getOldAddress()))
+          .newEmail(checkIfOldOrNew(domain.getEmail(), actualEntity.getOldEmail()))
+          .status(domain.getStatus())
+          .idAccountHolder(prospectOwnerId)
+          .townCode(domain.getTownCode())
+          .rating(rating)
+          .lastEvaluationDate(lastEvaluationDate)
+          .posLongitude(location == null ? null : location.getLongitude())
+          .posLatitude(location == null ? null : location.getLatitude())
+          .comment(domain.getComment())
+          .idInvoice(domain.getIdInvoice())
+          .prospectFeedback(domain.getProspectFeedback())
+          .contractAmount(
+              domain.getContractAmount() == null ? null : domain.getContractAmount().toString())
+          .build();
+    }
   }
 
   public HProspect toEntity(Prospect domain, String prospectOwnerId, Double rating,
@@ -38,11 +95,11 @@ public class ProspectMapper {
     Geojson location = domain.getLocation();
     return HProspect.builder()
         .id(domain.getId())
-        .phone(domain.getPhone())
-        .name(domain.getName())
-        .email(domain.getEmail())
+        .oldPhone(domain.getPhone())
+        .oldName(domain.getName())
+        .oldEmail(domain.getEmail())
         .status(domain.getStatus())
-        .address(domain.getAddress())
+        .oldAddress(domain.getAddress())
         .idAccountHolder(prospectOwnerId)
         .townCode(domain.getTownCode())
         .rating(rating)
@@ -56,10 +113,10 @@ public class ProspectMapper {
     return Prospect.builder()
         .id(entity.getId())
         .idHolderOwner(entity.getIdAccountHolder())
-        .email(entity.getEmail())
-        .address(entity.getAddress())
-        .name(entity.getName())
-        .phone(entity.getPhone())
+        .email(isNewExists(entity.getNewEmail(), entity.getOldEmail()))
+        .address(isNewExists(entity.getNewAddress(), entity.getOldAddress()))
+        .name(isNewExists(entity.getNewName(), entity.getOldName()))
+        .phone(isNewExists(entity.getNewPhone(), entity.getOldPhone()))
         .location(location)
         .status(entity.getStatus())
         .townCode(entity.getTownCode())

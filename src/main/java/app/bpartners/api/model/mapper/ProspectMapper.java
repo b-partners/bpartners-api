@@ -14,6 +14,8 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
+
 @Component
 @AllArgsConstructor
 @Slf4j
@@ -124,6 +126,12 @@ public class ProspectMapper {
             .value(entity.getRating())
             .lastEvaluationDate(entity.getLastEvaluationDate())
             .build())
+        .comment(entity.getComment())
+        .prospectFeedback(entity.getProspectFeedback())
+        .idInvoice(entity.getIdInvoice())
+        .contractAmount(entity.getContractAmount() == null
+            ? null
+            : parseFraction(entity.getContractAmount()))
         .build();
   }
 }

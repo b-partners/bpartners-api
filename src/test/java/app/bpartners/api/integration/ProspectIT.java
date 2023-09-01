@@ -37,6 +37,7 @@ import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -247,6 +248,7 @@ class ProspectIT {
         .build();
   }
 
+  @Order(1)
   @Test
   @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
   void read_prospects_ok() throws ApiException {
@@ -268,6 +270,7 @@ class ProspectIT {
     assertTrue(actual2.containsAll(List.of(prospect1(), prospect2(), prospect3())));
   }
 
+  @Order(2)
   @Test
   @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
   void update_prospects_ok() throws ApiException {
@@ -291,6 +294,7 @@ class ProspectIT {
             List.of(updateProspect().id(UNKNOWN_PROSPECT_ID))));
   }
 
+  @Order(2)
   @Test
   void update_prospect_status_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
@@ -300,7 +304,7 @@ class ProspectIT {
     Prospect actualNotInterstingProspect = api.updateProspectsStatus(ACCOUNTHOLDER_ID, prospect1().getId(), notInterestingProspect());
 
     assertEquals(expectedInterestingProspect(), actualInterestingProspect);
-    assertEquals(prospect1(), actualNotInterstingProspect);
+    assertEquals(prospect1().status(CONTACTED), actualNotInterstingProspect);
   }
 
   @Test

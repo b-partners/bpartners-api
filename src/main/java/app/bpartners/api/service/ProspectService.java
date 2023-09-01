@@ -58,6 +58,10 @@ public class ProspectService {
     return repository.saveAll(toCreate);
   }
 
+  public Prospect save(Prospect toSave) {
+    return repository.save(toSave);
+  }
+
   @Scheduled(cron = Scheduled.CRON_DISABLED, zone = "Europe/Paris")
   public void prospect() {
     accountHolderJpaRepository.findAll().forEach(accountHolder -> {

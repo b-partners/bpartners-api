@@ -3,12 +3,14 @@ package app.bpartners.api.endpoint.rest.mapper;
 import app.bpartners.api.endpoint.rest.model.Area;
 import app.bpartners.api.endpoint.rest.model.ContactNature;
 import app.bpartners.api.endpoint.rest.model.EvaluatedProspect;
+import app.bpartners.api.endpoint.rest.model.ExtendedProspectStatus;
 import app.bpartners.api.endpoint.rest.model.Geojson;
 import app.bpartners.api.endpoint.rest.model.InterventionResult;
 import app.bpartners.api.endpoint.rest.model.OldCustomerResult;
 import app.bpartners.api.endpoint.rest.model.Prospect;
 import app.bpartners.api.endpoint.rest.model.ProspectRating;
 import app.bpartners.api.endpoint.rest.model.UpdateProspect;
+import app.bpartners.api.endpoint.rest.validator.ExtendedProspectUpdateValidator;
 import app.bpartners.api.endpoint.rest.validator.ProspectRestValidator;
 import app.bpartners.api.model.Customer;
 import app.bpartners.api.repository.expressif.ProspectEval;
@@ -19,12 +21,14 @@ import java.math.BigDecimal;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 import static java.util.UUID.randomUUID;
 
 @Component
 @AllArgsConstructor
 public class ProspectRestMapper {
   private final ProspectRestValidator validator;
+  private final ExtendedProspectUpdateValidator prospectUpdateValidator;
 
   public EvaluatedProspect toRest(ProspectResult prospectResult) {
     if (prospectResult == null) {
@@ -90,7 +94,13 @@ public class ProspectRestMapper {
             : new ProspectRating()
             .lastEvaluation(prospectRating.getLastEvaluationDate())
             .value(prospectRating.getValue() == null ? BigDecimal.valueOf(-1.0)
-                : BigDecimal.valueOf(prospectRating.getValue())));
+                : BigDecimal.valueOf(prospectRating.getValue())))
+        .comment(domain.getComment())
+        .contractAmount(domain.getContractAmount() == null
+            ? null
+            : domain.getContractAmount().getCentsRoundUp())
+        .invoiceID(domain.getIdInvoice())
+        .prospectFeedback(domain.getProspectFeedback());
   }
 
   public app.bpartners.api.model.Prospect toDomain(UpdateProspect rest) {
@@ -103,6 +113,23 @@ public class ProspectRestMapper {
         .address(rest.getAddress())
         .status(rest.getStatus())
         .townCode(rest.getTownCode())
+        .build();
+  }
+
+  public app.bpartners.api.model.Prospect toDomain(ExtendedProspectStatus rest) {
+    prospectUpdateValidator.accept(rest);
+    return app.bpartners.api.model.Prospect.builder()
+        .id(rest.getId())
+        .email(rest.getEmail())
+        .name(rest.getName())
+        .phone(rest.getPhone())
+        .address(rest.getAddress())
+        .status(rest.getStatus())
+        .townCode(rest.getTownCode())
+        .comment(rest.getComment())
+        .contractAmount(parseFraction(rest.getContractAmount()))
+        .idInvoice(rest.getInvoiceID())
+        .prospectFeedback(rest.getProspectFeedback())
         .build();
   }
 

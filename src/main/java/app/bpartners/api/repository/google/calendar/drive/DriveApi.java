@@ -34,7 +34,7 @@ public class DriveApi {
   }
 
   public FileList getSpreadSheets(String idUser) {
-    return getSpreadSheets(sheetConf.getLocalCredentials(idUser));
+    return getSpreadSheets(sheetConf.loadCredential(idUser));
   }
 
   public FileList getSpreadSheets(Credential credential) {

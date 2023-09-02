@@ -113,7 +113,6 @@ public class SheetIT extends MockedThirdParties {
         GOLDEN_SOURCE_SHEET_NAME);
 
     assertEquals(3, prospectEvalInfos.size());
-    //assertEquals(prospectEvalInfos, prospectEvalInfo1());
     assertTrue(prospectEvalInfos.contains(prospectEvalInfo1()));
   }
 

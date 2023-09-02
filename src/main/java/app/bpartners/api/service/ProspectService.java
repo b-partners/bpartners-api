@@ -22,7 +22,6 @@ import app.bpartners.api.repository.jpa.model.HAccountHolder;
 import app.bpartners.api.service.aws.SesService;
 import app.bpartners.api.service.dataprocesser.ProspectDataProcesser;
 import app.bpartners.api.service.utils.GeoUtils;
-import com.google.api.services.drive.model.File;
 import com.google.api.services.sheets.v4.model.Sheet;
 import com.google.api.services.sheets.v4.model.Spreadsheet;
 import java.io.IOException;
@@ -326,9 +325,8 @@ public class ProspectService {
   public List<ProspectEvalInfo> readFromSheets(String idUser,
                                                String spreadsheetName,
                                                String sheetName) {
-    File spreadSheetFile = driveApi.getFileByIdUserAndName(idUser, spreadsheetName);
-    String spreadSheetFileId = spreadSheetFile.getId();
-    Spreadsheet spreadsheet = sheetApi.getSpreadsheet(idUser, spreadSheetFileId);
+    Spreadsheet spreadsheet =
+        sheetApi.getSpreadsheetByName(idUser, spreadsheetName);
     List<Sheet> sheets = spreadsheet.getSheets();
     if (sheets.isEmpty()) {
       throw new BadRequestException("Spreadsheet has empty sheets");
@@ -337,7 +335,8 @@ public class ProspectService {
         .filter(s -> s.getProperties().getTitle().equals(sheetName))
         .findAny().orElseThrow(
             () -> new NotFoundException("Sheet(name=" + sheetName + ")"
-                + " inside Spreadsheet(name=" + spreadsheetName + ") does not exist"));
+                + " inside Spreadsheet(name=" + spreadsheet.getProperties().getTitle()
+                + ") does not exist"));
     if (!sheet.getProperties().getSheetType().equals(GRID_SHEET_TYPE)) {
       throw new NotImplementedException("Only GRID sheet type is supported");
     }

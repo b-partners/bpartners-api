@@ -321,6 +321,16 @@ public class ProspectService {
         .build();
   }
 
+  public List<ProspectEvalInfo> readFromSheets(String idUser,
+                                               String spreadsheetName,
+                                               String sheetName,
+                                               String artisanOwner) {
+    return readFromSheets(idUser, spreadsheetName, sheetName).stream()
+        .filter(prospect -> prospect.getOwner() != null
+            && prospect.getOwner().equals(artisanOwner))
+        .collect(Collectors.toList());
+  }
+
   //TODO: must be inside repository
   public List<ProspectEvalInfo> readFromSheets(String idUser,
                                                String spreadsheetName,

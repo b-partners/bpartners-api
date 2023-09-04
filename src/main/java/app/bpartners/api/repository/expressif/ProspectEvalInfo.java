@@ -16,6 +16,7 @@ import lombok.ToString;
 @EqualsAndHashCode
 @ToString
 public class ProspectEvalInfo {
+  private String owner;
   private Long reference;
   protected String name;
   protected String website;

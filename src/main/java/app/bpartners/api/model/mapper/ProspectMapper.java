@@ -30,6 +30,7 @@ public class ProspectMapper {
 
   public static final String PROSPECT_CONTACT_NATURE = "prospect";
   public static final String OLD_CUSTOMER_CONTACT_NATURE = "ancien client";
+  public static final int OWNER_ID_CELL_INDEX = 30;
   private final AuthenticatedResourceProvider provider;
   private final ProspectJpaRepository jpaRepository;
 
@@ -157,8 +158,14 @@ public class ProspectMapper {
           for (int index = firstIndex;
                index < cells.size() && index < firstIndex + propertyActions.size();
                index++) {
-            var currentCell = cells.get(index);
-            PropertyAction action = propertyActions.get(index - firstIndex);
+            int builderIndex = index - firstIndex;
+            CellData currentCell;
+            if (builderIndex != propertyActions.size() - 1) {
+              currentCell = cells.get(index);
+            } else {
+              currentCell = cells.get(OWNER_ID_CELL_INDEX);
+            }
+            PropertyAction action = propertyActions.get(builderIndex);
             action.performAction(prospectBuilder, currentCell);
           }
           prospectList.add(prospectBuilder.build());
@@ -212,6 +219,7 @@ public class ProspectMapper {
     );
     propertyActions.add((builder, currentCell) -> builder.contactNature(
         getContactNature(currentCell.getFormattedValue())));
+    propertyActions.add((builder, currentCell) -> builder.owner(currentCell.getFormattedValue()));
     return propertyActions;
   }
 

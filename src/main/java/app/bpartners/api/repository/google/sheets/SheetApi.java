@@ -1,6 +1,7 @@
 package app.bpartners.api.repository.google.sheets;
 
 import app.bpartners.api.model.exception.ApiException;
+import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.ForbiddenException;
 import app.bpartners.api.repository.google.calendar.drive.DriveApi;
 import com.google.api.client.auth.oauth2.Credential;
@@ -112,15 +113,18 @@ public class SheetApi {
     Spreadsheet spreadsheet;
     try {
       spreadsheet = sheetsService.spreadsheets().get(idSpreadsheet)
-          .setRanges(List.of("'Source Import'!A2:M10000", "'Golden Source dépa 1 & 2'!A2:M10000"))
+          .setRanges(List.of("'Source Import'!A2:AE100", "'Golden Source dépa 1 & 2'!A2:AE100"))
           .setIncludeGridData(true)
           .execute();
     } catch (GoogleJsonResponseException e) {
-      if (e.getStatusCode() == 401) {
-        throw new ForbiddenException(
-            "Google Calendar Token is expired or invalid. Give your consent again.");
-      } else {
-        throw new ApiException(SERVER_EXCEPTION, e);
+      switch (e.getStatusCode()) {
+        case 400:
+          throw new BadRequestException(e.getMessage());
+        case 403:
+        case 401:
+          throw new ForbiddenException(e.getMessage());
+        default:
+          throw new ApiException(SERVER_EXCEPTION, e);
       }
     } catch (IOException e) {
       throw new ApiException(SERVER_EXCEPTION, e);

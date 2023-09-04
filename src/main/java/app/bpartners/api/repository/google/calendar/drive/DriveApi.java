@@ -1,18 +1,25 @@
 package app.bpartners.api.repository.google.calendar.drive;
 
+import app.bpartners.api.model.exception.ApiException;
+import app.bpartners.api.model.exception.BadRequestException;
+import app.bpartners.api.model.exception.ForbiddenException;
 import app.bpartners.api.model.exception.NotFoundException;
+import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.repository.google.sheets.SheetConf;
 import com.google.api.client.auth.oauth2.Credential;
+import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.model.File;
 import com.google.api.services.drive.model.FileList;
+import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 import static app.bpartners.api.repository.google.calendar.CalendarConf.JSON_FACTORY;
 
 @Slf4j
@@ -34,7 +41,7 @@ public class DriveApi {
   }
 
   public FileList getSpreadSheets(String idUser) {
-    return getSpreadSheets(sheetConf.loadCredential(idUser));
+    return getSpreadSheets(sheetConf.getLocalCredentials(idUser));
   }
 
   public FileList getSpreadSheets(Credential credential) {
@@ -47,21 +54,39 @@ public class DriveApi {
 
   public File getFileByIdUserAndName(String idUser, String fileName) {
     FileList sheets = getSpreadSheets(idUser);
-    return sheets.getFiles().stream()
+    var files = sheets.getFiles().stream()
         .filter(sheet -> sheet.getName().equals(fileName))
-        .findAny().orElseThrow(
-            () -> new NotFoundException(
-                "File(name=" + fileName
-                    + ") does not exist or you do not have authorization to read it"));
+        .collect(Collectors.toList());
+    if (files.isEmpty()) {
+      throw new NotFoundException(
+          "File(name=" + fileName
+              + ") does not exist or you do not have authorization to read it");
+    } else if (files.size() > 1) {
+      throw new NotImplementedException(
+          "There are " + files.size() + " files with name = " + fileName);
+    }
+    return files.get(0);
   }
 
   @SneakyThrows
   private FileList getFiles(Credential credential, String query) {
     Drive driveService = initService(sheetConf, credential);
-    return driveService.files().list()
-        .setQ(query)
-        .setFields(defaultFields())
-        .execute();
+    try {
+      return driveService.files().list()
+          .setQ(query)
+          .setFields(defaultFields())
+          .execute();
+    } catch (GoogleJsonResponseException e) {
+      switch (e.getStatusCode()) {
+        case 400:
+          throw new BadRequestException(e.getMessage());
+        case 403:
+        case 401:
+          throw new ForbiddenException(e.getMessage());
+        default:
+          throw new ApiException(SERVER_EXCEPTION, e);
+      }
+    }
   }
 
   private static String defaultFields() {

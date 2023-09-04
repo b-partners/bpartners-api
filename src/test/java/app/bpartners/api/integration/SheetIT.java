@@ -87,6 +87,7 @@ public class SheetIT extends MockedThirdParties {
 
   private static ProspectEvalInfo prospectEvalInfo1() {
     return ProspectEvalInfo.builder()
+        .owner("3d0fbbc4-d0cf-4b86-8d80-8f86165e56dd")
         .name("Biscuits")
         .website("https://biscuit-madeleine-cooky.fr/")
         .address("1 Rue des Pâtissiers, 60200 Compiègne, France")
@@ -103,6 +104,18 @@ public class SheetIT extends MockedThirdParties {
         .reference(null)
         .coordinates(null)
         .build();
+  }
+
+  @Test
+  void read_prospects_filtered_from_sheet_ok() {
+    List<ProspectEvalInfo> prospectEvalInfos = prospectService.readFromSheets(
+        JOE_DOE_ID,
+        GOLDEN_SOURCE_SPR_SHEET_NAME,
+        GOLDEN_SOURCE_SHEET_NAME,
+        "3d0fbbc4-d0cf-4b86-8d80-8f86165e56dd");
+
+    assertEquals(1, prospectEvalInfos.size());
+    assertEquals(prospectEvalInfos.get(0), prospectEvalInfo1());
   }
 
   @Test

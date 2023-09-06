@@ -708,8 +708,8 @@ operations:
           schema:
             $ref: '#/components/schemas/archiveStatus'
         - in: query
-          name: title
-          description: 'Filter invoices by title'
+          name: filters
+          description: 'Filter invoices by title and/or reference'
           schema:
             type: string
       responses:

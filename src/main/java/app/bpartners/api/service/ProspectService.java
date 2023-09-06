@@ -50,8 +50,9 @@ public class ProspectService {
   private final SesService sesService;
   private final CustomerService customerService;
 
-  public List<Prospect> getAllByIdAccountHolder(String idAccountHolder) {
-    return dataProcesser.processProspects(repository.findAllByIdAccountHolder(idAccountHolder));
+  public List<Prospect> getAllByIdAccountHolder(String idAccountHolder, String name) {
+    return dataProcesser.processProspects(
+        repository.findAllByIdAccountHolder(idAccountHolder, name == null ? "" : name));
   }
 
   public List<Prospect> saveAll(List<Prospect> toCreate) {

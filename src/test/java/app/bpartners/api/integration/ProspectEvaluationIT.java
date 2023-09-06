@@ -111,6 +111,7 @@ class ProspectEvaluationIT extends MockedThirdParties {
         .latitude(0.0)
         .longitude(0.0);
   }
+
   private static GeoPosition geoPosZero() {
     return GeoPosition.builder()
         .coordinates(coordinateZero())
@@ -133,7 +134,7 @@ class ProspectEvaluationIT extends MockedThirdParties {
     when(banApiMock.fSearch(any())).thenReturn(geoPosZero());
     User user = userService.getUserById(JOE_DOE_ID);
     userService.saveUser(user.toBuilder()
-            .roles(List.of(Role.EVAL_PROSPECT))
+        .roles(List.of(Role.EVAL_PROSPECT))
         .build());
   }
 
@@ -189,7 +190,7 @@ class ProspectEvaluationIT extends MockedThirdParties {
   }
 
   private List<Prospect> getPersistedProspect() {
-    return prospectRepository.findAllByIdAccountHolder(JOE_DOE_ACCOUNT_HOLDER_ID).stream()
+    return prospectRepository.findAllByIdAccountHolder(JOE_DOE_ACCOUNT_HOLDER_ID, "").stream()
         .peek(prospect -> prospect.setId(null))
         .collect(Collectors.toList());
   }

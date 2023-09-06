@@ -145,7 +145,7 @@ class ProspectIT {
   Prospect prospect1() {
     return new Prospect()
         .id("prospect1_id")
-        .name(null)
+        .name("John doe")
         .location(null)
         .status(TO_CONTACT)
         .email(null)
@@ -261,19 +261,25 @@ class ProspectIT {
     ApiClient joeDoeClient = anApiClient();
     ProspectingApi api = new ProspectingApi(joeDoeClient);
 
-    List<Prospect> actual1 = api.getProspects(ACCOUNTHOLDER_ID);
+    List<Prospect> actual1 = api.getProspects(ACCOUNTHOLDER_ID, null);
     businessRepository.save(BusinessActivity.builder()
         .accountHolder(joeDoeAccountHolder())
         .primaryActivity(ANTI_HARM)
         .secondaryActivity(null)
         .build());
-    List<Prospect> actual2 = api.getProspects(ACCOUNTHOLDER_ID);
+    List<Prospect> actual2 = api.getProspects(ACCOUNTHOLDER_ID, null);
+    String prospectName = "alyssa";
+    List<Prospect> actual3 = api.getProspects(ACCOUNTHOLDER_ID, prospectName);
 
     assertEquals(2, actual1.size());
     assertEquals(7, actual2.size());
     assertTrue(actual1.containsAll(List.of(prospect1(), prospect2())));
     assertFalse(actual1.contains(prospect3()));
     assertTrue(actual2.containsAll(List.of(prospect1(), prospect2(), prospect3())));
+    assertEquals(1, actual3.size());
+    assertTrue(actual3.stream()
+        .allMatch(
+            prospect -> prospect.getName() != null && prospect.getName().contains(prospectName)));
   }
 
   @Order(2)
@@ -335,7 +341,7 @@ class ProspectIT {
 
     assertThrowsForbiddenException(
         () -> api.updateProspects(NOT_JOE_DOE_ACCOUNT_HOLDER_ID, List.of()));
-    assertThrowsForbiddenException(() -> api.getProspects(NOT_JOE_DOE_ACCOUNT_HOLDER_ID));
+    assertThrowsForbiddenException(() -> api.getProspects(NOT_JOE_DOE_ACCOUNT_HOLDER_ID, null));
     assertThrowsForbiddenException(
         () -> api.convertProspect(NOT_JOE_DOE_ACCOUNT_HOLDER_ID, prospect1().getId(), List.of()));
   }

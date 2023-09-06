@@ -7,7 +7,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 public interface ProspectRepository {
-  List<Prospect> findAllByIdAccountHolder(String idAccountHolder);
+  List<Prospect> findAllByIdAccountHolder(String idAccountHolder, String name);
 
   List<Prospect> saveAll(List<Prospect> prospects);
 

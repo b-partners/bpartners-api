@@ -50,6 +50,12 @@ operations:
           schema:
             type: string
           required: true
+        - in: query
+          name: name
+          description: 'Filter prospects by name'
+          schema:
+            type: string
+        #TODO: set pagination
       responses:
         200:
           description: List of prospects for an accountHolder.

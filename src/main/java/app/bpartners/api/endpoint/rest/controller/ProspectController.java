@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import static app.bpartners.api.endpoint.rest.validator.ProspectRestValidator.XLSX_FILE;
@@ -94,8 +95,10 @@ public class ProspectController {
   }
 
   @GetMapping("/accountHolders/{ahId}/prospects")
-  public List<Prospect> getProspects(@PathVariable("ahId") String accountHolderId) {
-    return service.getAllByIdAccountHolder(accountHolderId).stream()
+  public List<Prospect> getProspects(@PathVariable("ahId") String accountHolderId,
+                                     @RequestParam(name = "name", required = false)
+                                     String name) {
+    return service.getAllByIdAccountHolder(accountHolderId, name).stream()
         .map(mapper::toRest)
         .collect(toUnmodifiableList());
   }

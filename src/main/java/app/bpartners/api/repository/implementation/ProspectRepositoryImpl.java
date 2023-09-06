@@ -82,14 +82,15 @@ public class ProspectRepositoryImpl implements ProspectRepository {
   private final SogefiBuildingPermitRepository sogefiRepository;
 
   @Override
-  public List<Prospect> findAllByIdAccountHolder(String idAccountHolder) {
+  public List<Prospect> findAllByIdAccountHolder(String idAccountHolder, String name) {
     BusinessActivity businessActivity =
         businessActivityService.findByAccountHolderId(idAccountHolder);
     if (Objects.equals(0,
         ANTI_HARM.compareToIgnoreCase(businessActivity.getPrimaryActivity()))
         || Objects.equals(0,
         ANTI_HARM.compareToIgnoreCase(businessActivity.getSecondaryActivity()))) {
-      return jpaRepository.findAllByIdAccountHolder(idAccountHolder).stream()
+      return jpaRepository.findAllByIdAccountHolderAndOldNameContainingIgnoreCase(idAccountHolder,
+              name).stream()
           .map(prospect -> mapper.toDomain(prospect,
               prospect.getPosLatitude() == null && prospect.getPosLongitude() == null ? null
                   : new Geojson()

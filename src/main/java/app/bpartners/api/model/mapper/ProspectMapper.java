@@ -30,10 +30,8 @@ public class ProspectMapper {
       return !expected.equals(toCheck) ? toCheck : null;
     } else if (expected == null && toCheck != null) {
       return toCheck;
-    } else if (expected != null && toCheck == null) {
-      return expected;
     }
-    return null;
+    return expected;
   }
 
   private static String isNewExists(String toCheck, String actual) {
@@ -68,6 +66,7 @@ public class ProspectMapper {
           .contractAmount(null)
           .prospectFeedback(null)
           .idInvoice(null)
+          .status(ProspectStatus.TO_CONTACT)
           .build();
     } else {
       return actualEntity.toBuilder()

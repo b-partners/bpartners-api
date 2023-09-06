@@ -217,6 +217,11 @@ class ProspectIT {
         .prospectFeedback(ProspectFeedback.NOT_INTERESTED);
   }
 
+  ExtendedProspectStatus prospectToReset() {
+    return interestingProspect()
+        .status(TO_CONTACT);
+  }
+
   Prospect expectedInterestingProspect() {
     return prospect1()
         .name("Interesting prospect")
@@ -305,9 +310,12 @@ class ProspectIT {
         api.updateProspectsStatus(ACCOUNTHOLDER_ID, prospect1().getId(), interestingProspect());
     Prospect actualNotInterstingProspect =
         api.updateProspectsStatus(ACCOUNTHOLDER_ID, prospect1().getId(), notInterestingProspect());
+    Prospect actualResetProspect =
+        api.updateProspectsStatus(ACCOUNTHOLDER_ID, prospect1().getId(), prospectToReset());
 
     assertEquals(expectedInterestingProspect(), actualInterestingProspect);
     assertEquals(prospect1(), actualNotInterstingProspect);
+    assertEquals(prospect1(), actualResetProspect);
   }
 
   @Test

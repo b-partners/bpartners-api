@@ -30,8 +30,9 @@ public class TransactionController {
       @RequestParam(name = "page", required = false)
       PageFromOne page,
       @RequestParam(name = "pageSize", required = false)
-      BoundedPageSize pageSize) {
-    return service.getPersistedByIdAccount(accountId, page, pageSize).stream()
+      BoundedPageSize pageSize,
+      @RequestParam(name = "label", required = false) String label) {
+    return service.getPersistedByIdAccount(accountId, label, page, pageSize).stream()
         .map(mapper::toRest)
         .collect(Collectors.toUnmodifiableList());
   }

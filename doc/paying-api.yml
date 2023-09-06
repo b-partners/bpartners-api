@@ -707,12 +707,6 @@ operations:
           description: 'Filter invoices by archive status. If null, returns ENABLED invoices'
           schema:
             $ref: '#/components/schemas/archiveStatus'
-        - in: query
-          name: filters
-          description: 'Filter invoices by title and/or reference'
-          schema:
-            type: string
-          required: false
       responses:
         200:
           description: The list of invoices

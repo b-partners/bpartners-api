@@ -114,47 +114,6 @@ class LocalInvoiceIT extends MockedThirdParties {
   @MockBean
   private S3Service s3Service;
 
-  public static ApiClient anApiClient() {
-    return TestUtils.anApiClient(JOE_DOE_TOKEN, DbEnvContextInitializer.getHttpServerPort());
-  }
-
-  private static List<CreatePaymentRegulation> paymentRegulations1090() {
-    return List.of(
-        new CreatePaymentRegulation()
-            .percent(9000)
-            .maturityDate(LocalDate.now()),
-        new CreatePaymentRegulation()
-            .percent(1000)
-            .maturityDate(LocalDate.now().plusDays(10L)));
-  }
-
-  private static CrupdateInvoice crupdateFromExisting(Invoice invoice,
-                                                      CrupdateInvoice.PaymentTypeEnum paymentTypeEnum,
-                                                      List<CreatePaymentRegulation> paymentRegulations) {
-    return new CrupdateInvoice()
-        .ref(invoice.getRef())
-        .title(invoice.getTitle())
-        .comment(invoice.getComment())
-        .products(List.of(createProduct4(), createProduct5()))
-        .customer(invoice.getCustomer())
-        .status(invoice.getStatus())
-        .sendingDate(invoice.getSendingDate())
-        .validityDate(invoice.getValidityDate())
-        .paymentType(paymentTypeEnum)
-        .paymentRegulations(paymentRegulations)
-        .toPayAt(null);
-  }
-
-  private static List<CreatePaymentRegulation> paymentRegulations5050() {
-    return List.of(
-        new CreatePaymentRegulation()
-            .percent(5000)
-            .maturityDate(LocalDate.now()),
-        new CreatePaymentRegulation()
-            .percent(5000)
-            .maturityDate(LocalDate.now().plusDays(10L)));
-  }
-
   @BeforeEach
   public void setUp() {
     setUpPaymentInitiationRep(paymentInitiationRepositoryMock);
@@ -168,6 +127,10 @@ class LocalInvoiceIT extends MockedThirdParties {
     when(s3Service.uploadFile(any(), any(), any(), any())).thenReturn(EMPTY);
   }
 
+  public static ApiClient anApiClient() {
+    return TestUtils.anApiClient(JOE_DOE_TOKEN, DbEnvContextInitializer.getHttpServerPort());
+  }
+
   @Test
   @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
   void read_invoice_by_status_ok() throws ApiException {
@@ -175,18 +138,17 @@ class LocalInvoiceIT extends MockedThirdParties {
     PayingApi api = new PayingApi(joeDoeClient);
 
     List<Invoice> actualAll =
-        api.getInvoices(JOE_DOE_ACCOUNT_ID, 1, MAX_SIZE, null, null, null, null);
+        api.getInvoices(JOE_DOE_ACCOUNT_ID, 1, MAX_SIZE, null, null, null);
     List<Invoice> actualDraft =
-        api.getInvoices(JOE_DOE_ACCOUNT_ID, 1, MAX_SIZE, null, List.of(DRAFT), null, null);
+        api.getInvoices(JOE_DOE_ACCOUNT_ID, 1, MAX_SIZE, null, List.of(DRAFT), null);
     List<Invoice> actualProposal =
-        api.getInvoices(JOE_DOE_ACCOUNT_ID, 1, MAX_SIZE, null, List.of(PROPOSAL), null, null);
+        api.getInvoices(JOE_DOE_ACCOUNT_ID, 1, MAX_SIZE, null, List.of(PROPOSAL), null);
     List<Invoice> actualConfirmed =
-        api.getInvoices(JOE_DOE_ACCOUNT_ID, 1, MAX_SIZE, null, List.of(CONFIRMED), null, null);
+        api.getInvoices(JOE_DOE_ACCOUNT_ID, 1, MAX_SIZE, null, List.of(CONFIRMED), null);
     List<Invoice> actualPaid =
-        api.getInvoices(JOE_DOE_ACCOUNT_ID, 1, MAX_SIZE, null, List.of(PAID), null, null);
+        api.getInvoices(JOE_DOE_ACCOUNT_ID, 1, MAX_SIZE, null, List.of(PAID), null);
     List<Invoice> actualConfirmedAndPaid =
-        api.getInvoices(JOE_DOE_ACCOUNT_ID, 1, MAX_SIZE, null, List.of(CONFIRMED, PAID), null,
-            null);
+        api.getInvoices(JOE_DOE_ACCOUNT_ID, 1, MAX_SIZE, null, List.of(CONFIRMED, PAID), null);
 
     assertTrue(actualAll.containsAll(
         Stream.of(actualDraft, actualProposal, actualConfirmed, actualPaid)
@@ -208,8 +170,8 @@ class LocalInvoiceIT extends MockedThirdParties {
     ApiClient joeDoeClient = anApiClient();
     PayingApi api = new PayingApi(joeDoeClient);
 
-    List<Invoice> actual1 = api.getInvoices(JOE_DOE_ACCOUNT_ID, 1, 5, null, null, null, null);
-    List<Invoice> actual2 = api.getInvoices(JOE_DOE_ACCOUNT_ID, 2, 5, null, null, null, null);
+    List<Invoice> actual1 = api.getInvoices(JOE_DOE_ACCOUNT_ID, 1, 5, null, null, null);
+    List<Invoice> actual2 = api.getInvoices(JOE_DOE_ACCOUNT_ID, 2, 5, null, null, null);
 
     assertEquals(5, actual1.size());
     assertEquals(2, actual2.size());
@@ -427,23 +389,33 @@ class LocalInvoiceIT extends MockedThirdParties {
     assertEquals(1650, paymentRegulationsRefecthed2.get(1).getPaymentRequest().getAmount());
   }
 
+  private static List<CreatePaymentRegulation> paymentRegulations1090() {
+    return List.of(
+        new CreatePaymentRegulation()
+            .percent(9000)
+            .maturityDate(LocalDate.now()),
+        new CreatePaymentRegulation()
+            .percent(1000)
+            .maturityDate(LocalDate.now().plusDays(10L)));
+  }
+
   @Test
   void read_invoice_ko() {
     ApiClient joeDoeClient = anApiClient();
     PayingApi api = new PayingApi(joeDoeClient);
 
     assertThrowsForbiddenException(
-        () -> api.getInvoices(NOT_JOE_DOE_ACCOUNT_ID, 1, 10, null, null, null, null));
+        () -> api.getInvoices(NOT_JOE_DOE_ACCOUNT_ID, 1, 10, null, null, null));
     assertThrowsApiException(
         "{\"type\":\"400 BAD_REQUEST\",\"message\":\"page must be >=1\"}",
-        () -> api.getInvoices(JOE_DOE_ACCOUNT_ID, -1, 10, null, null, null, null));
+        () -> api.getInvoices(JOE_DOE_ACCOUNT_ID, -1, 10, null, null, null));
     assertThrowsApiException(
         "{\"type\":\"400 BAD_REQUEST\",\"message\":\"page size must be >=1\"}",
-        () -> api.getInvoices(JOE_DOE_ACCOUNT_ID, 1, -10, null, null, null, null));
+        () -> api.getInvoices(JOE_DOE_ACCOUNT_ID, 1, -10, null, null, null));
     assertThrowsApiException(
         "{\"type\":\"400 BAD_REQUEST\",\"message\":\"page size must be <" + MAX_SIZE
             + "\"}",
-        () -> api.getInvoices(JOE_DOE_ACCOUNT_ID, 1, MAX_SIZE + 1, null, null, null, null));
+        () -> api.getInvoices(JOE_DOE_ACCOUNT_ID, 1, MAX_SIZE + 1, null, null, null));
     assertThrowsApiException("{\"type\":\"404 NOT_FOUND\",\"message\":\""
             + "Invoice.not_existing_invoice_id is not found\"}",
         () -> api.getInvoiceById(JOE_DOE_ACCOUNT_ID, "not_existing_invoice_id"));
@@ -532,5 +504,32 @@ class LocalInvoiceIT extends MockedThirdParties {
   private Invoice crupdateInvoice(CountDownLatch latch, PayingApi api, String idInvoice) {
     latch.await();
     return api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, idInvoice, validInvoice());
+  }
+
+  private static CrupdateInvoice crupdateFromExisting(Invoice invoice,
+                                                      CrupdateInvoice.PaymentTypeEnum paymentTypeEnum,
+                                                      List<CreatePaymentRegulation> paymentRegulations) {
+    return new CrupdateInvoice()
+        .ref(invoice.getRef())
+        .title(invoice.getTitle())
+        .comment(invoice.getComment())
+        .products(List.of(createProduct4(), createProduct5()))
+        .customer(invoice.getCustomer())
+        .status(invoice.getStatus())
+        .sendingDate(invoice.getSendingDate())
+        .validityDate(invoice.getValidityDate())
+        .paymentType(paymentTypeEnum)
+        .paymentRegulations(paymentRegulations)
+        .toPayAt(null);
+  }
+
+  private static List<CreatePaymentRegulation> paymentRegulations5050() {
+    return List.of(
+        new CreatePaymentRegulation()
+            .percent(5000)
+            .maturityDate(LocalDate.now()),
+        new CreatePaymentRegulation()
+            .percent(5000)
+            .maturityDate(LocalDate.now().plusDays(10L)));
   }
 }

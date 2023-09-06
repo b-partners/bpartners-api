@@ -36,6 +36,19 @@ public class TransactionRepositoryImpl implements TransactionRepository {
   private final InvoiceJpaRepository invoiceJpaRepository;
   private final TransactionConnectorRepository connectorRepository;
 
+  @Override
+  public List<Transaction> findByIdAccount(String idAccount, String label, int page, int pageSize) {
+    Pageable pageable = PageRequest.of(page, pageSize);
+    List<HTransaction> transactions =
+        jpaRepository.findByIdAccountAndLabelContainingIgnoreCaseOrderByPaymentDateTimeDesc(
+            idAccount, label, pageable);
+    return transactions
+        .stream()
+        .map(transaction -> mapper.toDomain(transaction,
+            categoryRepository.findByIdTransaction(transaction.getId())))
+        .collect(Collectors.toList());
+  }
+
   //TODO: check why transactions with same bridge ID are persisted twice
   @Override
   public List<Transaction> findPersistedByIdAccount(String idAccount, int page, int pageSize) {

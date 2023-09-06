@@ -12,6 +12,11 @@ operations:
             type: string
           required: true
         - in: query
+          name: label
+          description: Filter transactions by label
+          schema:
+            type: string
+        - in: query
           name: page
           schema:
             $ref: './api.yml#/components/schemas/Page'

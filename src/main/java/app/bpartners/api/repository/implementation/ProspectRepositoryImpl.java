@@ -363,6 +363,14 @@ public class ProspectRepositoryImpl implements ProspectRepository {
         .collect(toUnmodifiableList());
   }
 
+  @Override
+  public Prospect save(Prospect prospect) {
+    AccountHolder authenticatedAccount = resourceProvider.getDefaultAccountHolder();
+    HProspect entity = mapper.toEntity(prospect);
+    boolean isSogefiProspector = isSogefiProspector(authenticatedAccount.getId());
+    return toDomain(isSogefiProspector, jpaRepository.save(entity));
+  }
+
   private Prospect toDomain(boolean isSogefiProspector, HProspect entity) {
     Geojson domainGeojson =
         entity.getPosLatitude() == null && entity.getPosLongitude() == null ? null

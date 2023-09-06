@@ -112,22 +112,37 @@ public class InvoiceService {
     return invoice;
   }
 
+  //TODO: refactor and use EntityManager inside Repository to match dynamically
+  //TODO: handle invoice with null title value
   public List<Invoice> getInvoices(
       String idUser,
       PageFromOne page,
       BoundedPageSize pageSize,
       List<InvoiceStatus> statusList,
-      ArchiveStatus archiveStatus) {
+      ArchiveStatus archiveStatus,
+      String title) {
     if (archiveStatus == null) {
       archiveStatus = ArchiveStatus.ENABLED;
+    }
+    if (title == null) {
+      title = "";
     }
     int pageValue = page != null ? page.getValue() - 1 : 0;
     int pageSizeValue = pageSize != null ? pageSize.getValue() : 30;
     if (statusList != null && !statusList.isEmpty()) {
-      return repository.findAllByIdUserAndStatusesAndArchiveStatus(idUser, statusList, archiveStatus, pageValue,
-          pageSizeValue);
+      return repository.findAllByIdUserAndStatusesAndArchiveStatus(
+          idUser,
+          statusList,
+          archiveStatus,
+          title,
+          pageValue, pageSizeValue);
     }
-    return repository.findAllByIdUserAndArchiveStatus(idUser, archiveStatus, pageValue, pageSizeValue);
+    return repository.findAllByIdUserAndArchiveStatus(
+        idUser,
+        archiveStatus,
+        title,
+        pageValue,
+        pageSizeValue);
   }
 
   public Invoice getById(String invoiceId) {

@@ -122,12 +122,14 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
   public List<Invoice> findAllByIdUserAndStatusesAndArchiveStatus(String idUser,
                                                                   List<InvoiceStatus> statusList,
                                                                   ArchiveStatus archiveStatus,
+                                                                  String title,
                                                                   int page,
                                                                   int pageSize) {
     PageRequest pageRequest = PageRequest.of(page, pageSize, Sort.by(DESC, "createdDatetime"));
-    return jpaRepository.findAllByIdUserAndArchiveStatusAndStatusIn(
+    return jpaRepository.findAllByIdUserAndArchiveStatusAndTitleContainingIgnoreCaseAndStatusIn(
             idUser,
             archiveStatus,
+            title,
             statusList,
             pageRequest).stream()
         .map(mapper::toDomain)
@@ -137,10 +139,15 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
   @Override
   public List<Invoice> findAllByIdUserAndArchiveStatus(String idUser,
                                                        ArchiveStatus archiveStatus,
+                                                       String title,
                                                        int page,
                                                        int pageSize) {
     PageRequest pageable = PageRequest.of(page, pageSize, Sort.by(DESC, "createdDatetime"));
-    return jpaRepository.findAllByIdUserAndArchiveStatus(idUser, archiveStatus, pageable).stream()
+    return jpaRepository.findAllByIdUserAndArchiveStatusAndTitleContainingIgnoreCase(
+            idUser,
+            archiveStatus,
+            title,
+            pageable).stream()
         .map(mapper::toDomain)
         .collect(Collectors.toUnmodifiableList());
   }

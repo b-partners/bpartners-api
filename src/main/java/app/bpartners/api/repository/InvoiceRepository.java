@@ -15,12 +15,15 @@ public interface InvoiceRepository {
   Optional<Invoice> pwFindOptionalById(String id);
 
   List<Invoice> findAllByIdUserAndStatusesAndArchiveStatus(
-      String idUser, List<InvoiceStatus> statusList, ArchiveStatus archiveStatus,
+      String idUser,
+      List<InvoiceStatus> statusList,
+      ArchiveStatus archiveStatus,
+      String title,
       int page,
       int pageSize);
 
   List<Invoice> findAllByIdUserAndArchiveStatus(
-      String idUser, ArchiveStatus archiveStatus, int page, int pageSize);
+      String idUser, ArchiveStatus archiveStatus, String title, int page, int pageSize);
 
   List<Invoice> saveAll(List<ArchiveInvoice> archiveInvoices);
 

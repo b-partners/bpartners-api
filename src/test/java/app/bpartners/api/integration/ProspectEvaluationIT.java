@@ -112,7 +112,7 @@ class ProspectEvaluationIT extends MockedThirdParties {
         .longitude(0.0);
   }
 
-  private static GeoPosition geoPosZero() {
+  public static GeoPosition geoPosZero() {
     return GeoPosition.builder()
         .coordinates(coordinateZero())
         .build();

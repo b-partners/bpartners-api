@@ -377,7 +377,7 @@ public class ProspectService {
     if (!sheet.getProperties().getSheetType().equals(GRID_SHEET_TYPE)) {
       throw new NotImplementedException("Only GRID sheet type is supported");
     }
-    return prospectMapper.toProspect(sheet);
+    return prospectMapper.toProspectEvalInfo(sheet);
   }
 
   private Context configureProspectContext(HAccountHolder accountHolder) {

@@ -31,6 +31,7 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Component;
 
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
@@ -60,13 +61,19 @@ public class ProspectEvalUtils {
   public static final int ROBB_ADDRESS_COL_INDEX = 28;
   private final BanApi banApi;
 
+
   @SneakyThrows
   public static byte[] convertIntoExcel(
       ByteArrayInputStream inputProspectStream, List<EvaluatedProspect> results) {
     ByteArrayOutputStream outputStream;
-    try (Workbook workbook = WorkbookFactory.create(inputProspectStream)) {
+    Workbook workbook;
+    if (inputProspectStream == null) {
+      workbook = new XSSFWorkbook();
+    } else {
+      workbook = WorkbookFactory.create(inputProspectStream);
+    }
+    try {
       Sheet sheet = workbook.createSheet("Résultats évaluation");
-
       Row headerRow = sheet.createRow(0);
       headerRow.createCell(0).setCellValue("ID");
       headerRow.createCell(1).setCellValue("Référence");
@@ -107,10 +114,10 @@ public class ProspectEvalUtils {
 
         Geojson geojson = eval.getArea() == null ? null
             : eval.getArea().getGeojson();
-        currentRow.createCell(11).setCellValue(geojson == null ? null
-            : geojson.getLatitude());
-        currentRow.createCell(12).setCellValue(geojson == null ? null
-            : geojson.getLongitude());
+        currentRow.createCell(11).setCellValue(
+            geojson == null ? null : geojson.getLatitude());
+        currentRow.createCell(12).setCellValue(
+            geojson == null ? null : geojson.getLongitude());
         currentRow.createCell(13).setCellValue(geojson == null ? null
             //TODO: make this customizable from other maps service
             : "https://www.latlong.net/c/?lat=" + geojson.getLatitude() + "&long="
@@ -141,6 +148,10 @@ public class ProspectEvalUtils {
       outputStream.close();
     } catch (IOException e) {
       throw new ApiException(SERVER_EXCEPTION, e);
+    } finally {
+      if (workbook != null) {
+        workbook.close();
+      }
     }
     return outputStream.toByteArray();
   }
@@ -207,7 +218,7 @@ public class ProspectEvalUtils {
                     .oldCustomerAddress(oldCustomerAddress)
                     //Explicitly, this distance is provided from provided address
                     .distNewIntAndOldCustomer(oldCustomerAddress == null ? null
-                        : getDistNewIntAndOldCustomer(newIntPos, oldCustomerAddress))
+                        : getDistNewIntAndOldCustomer(banApi, newIntPos, oldCustomerAddress))
                     .build())
                 .build());
           } else if (depaRuleValue.equals(DEPA_RULE_ROBBERY)) {
@@ -295,7 +306,7 @@ public class ProspectEvalUtils {
     return realValue;
   }
 
-  private static String getRealValue(String stringValue) {
+  public static String getRealValue(String stringValue) {
     return stringValue == null ? null : stringValue.toLowerCase().replaceAll("\\s", "");
   }
 
@@ -342,7 +353,9 @@ public class ProspectEvalUtils {
         : customerAddressPos.getCoordinates().getDistanceFrom(robbPos.getCoordinates());
   }
 
-  private Double getDistNewIntAndOldCustomer(GeoPosition newIntPos, String oldCustomerAddress) {
+  public static Double getDistNewIntAndOldCustomer(BanApi banApi,
+                                                   GeoPosition newIntPos,
+                                                   String oldCustomerAddress) {
     GeoPosition custAddressPos = banApi.fSearch(oldCustomerAddress);
     return custAddressPos == null ? null
         : custAddressPos.getCoordinates().getDistanceFrom(newIntPos.getCoordinates());

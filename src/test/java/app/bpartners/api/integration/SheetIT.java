@@ -3,6 +3,7 @@ package app.bpartners.api.integration;
 import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.integration.conf.SheetEnvContextInitializer;
 import app.bpartners.api.repository.ban.BanApi;
+import app.bpartners.api.repository.expressif.ProspectEval;
 import app.bpartners.api.repository.expressif.ProspectEvalInfo;
 import app.bpartners.api.repository.google.calendar.drive.DriveApi;
 import app.bpartners.api.repository.google.sheets.SheetApi;
@@ -33,6 +34,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -43,10 +45,13 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 import org.testcontainers.shaded.com.fasterxml.jackson.databind.SerializationFeature;
 
+import static app.bpartners.api.integration.ProspectEvaluationIT.geoPosZero;
 import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
@@ -79,11 +84,16 @@ public class SheetIT extends MockedThirdParties {
   @MockBean
   private TransactionService transactionService;
   @MockBean
-  private BanApi banApi;
+  private BanApi banApiMock;
   @MockBean
   private CustomerService customerService;
   @Autowired
   private ProspectService prospectService;
+
+  @BeforeEach
+  public void setUp() {
+    when(banApiMock.fSearch(any())).thenReturn(geoPosZero());
+  }
 
   private static ProspectEvalInfo prospectEvalInfo1() {
     return ProspectEvalInfo.builder()
@@ -119,7 +129,22 @@ public class SheetIT extends MockedThirdParties {
   }
 
   @Test
-  void read_prospects_from_sheet_ok() {
+  void read_prospects_eval_from_sheet_ok() {
+    int minRange = 2;
+    int maxRange = 4;
+    List<ProspectEval> prospectEvals = prospectService.readEvaluationsFromSheets(
+        JOE_DOE_ID,
+        GOLDEN_SOURCE_SPR_SHEET_NAME,
+        GOLDEN_SOURCE_SHEET_NAME,
+        minRange, maxRange);
+
+    assertEquals(3, prospectEvals.size());
+    //TODO: verify attributes of each eval
+  }
+
+
+  @Test
+  void read_prospects_info_from_sheet_ok() {
     List<ProspectEvalInfo> prospectEvalInfos = prospectService.readFromSheets(
         JOE_DOE_ID,
         GOLDEN_SOURCE_SPR_SHEET_NAME,

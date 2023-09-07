@@ -18,12 +18,21 @@ import app.bpartners.api.repository.jpa.model.HPaymentRequest;
 import app.bpartners.api.service.FileService;
 import app.bpartners.api.service.utils.InvoicePdfUtils;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import javax.persistence.EntityManager;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.repository.query.QueryUtils;
 import org.springframework.stereotype.Repository;
 
 import static app.bpartners.api.endpoint.rest.model.FileType.INVOICE;
@@ -39,6 +48,7 @@ import static org.springframework.data.domain.Sort.Direction.DESC;
 
 @Repository
 @AllArgsConstructor
+@Slf4j
 public class InvoiceRepositoryImpl implements InvoiceRepository {
   private final InvoiceJpaRepository jpaRepository;
   private final PaymentRequestJpaRepository paymentReqJpaRepository;
@@ -46,6 +56,7 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
   private final InvoiceProductMapper productMapper;
   private final InvoiceProductJpaRepository productJpaRepository;
   private final FileService fileService;
+  private final EntityManager entityManager;
   private final InvoicePdfUtils pdfUtils = new InvoicePdfUtils();
 
   @Override
@@ -132,6 +143,49 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
             title,
             statusList,
             pageRequest).stream()
+        .map(mapper::toDomain)
+        .collect(Collectors.toUnmodifiableList());
+  }
+
+  @Override
+  public List<Invoice> findAllByIdUserAndCriteria(String idUser, List<InvoiceStatus> statusList,
+                                                  ArchiveStatus archiveStatus, String title,
+                                                  List<String> filters, int page, int pageSize) {
+    CriteriaBuilder builder = entityManager.getCriteriaBuilder();
+    CriteriaQuery<HInvoice> query = builder.createQuery(HInvoice.class);
+    List<Predicate> predicates = new ArrayList<>();
+    Root<HInvoice> root = query.from(HInvoice.class);
+    predicates.add(builder.equal(root.get("idUser"), idUser));
+    predicates.add(builder.equal(root.get("archiveStatus"), archiveStatus));
+    if (statusList != null) {
+      predicates.add(builder.or(statusList.stream()
+          .map(status -> builder.equal(root.get("status"), status)).toArray(Predicate[]::new)));
+    }
+    if (title != null) {
+      filters.add(title);
+      log.warn(
+          "DEPRECATED: query parameter title is still used for filtering invoices."
+              + " Use the query parameter filters instead.");
+    }
+    if (filters != null) {
+      List<Predicate> filtersPredicates = new ArrayList<>();
+      for (String filter : filters) {
+        filtersPredicates.add(builder.like(builder.lower(root.get("title")),
+            "%" + filter.toLowerCase() + "%"));
+        filtersPredicates.add(builder.like(builder.lower(root.get("ref")),
+            "%" + filter.toLowerCase() + "%"));
+      }
+      predicates.add(builder.or(filtersPredicates.toArray(new Predicate[0])));
+    }
+    Pageable pageable = PageRequest.of(page, pageSize, Sort.by(DESC, "createdDatetime"));
+    query
+        .where(builder.and(predicates.toArray(new Predicate[0])))
+        .orderBy(QueryUtils.toOrders(pageable.getSort(), root, builder));
+    return entityManager.createQuery(query)
+        .setFirstResult((pageable.getPageNumber()) * pageable.getPageSize())
+        .setMaxResults(pageable.getPageSize())
+        .getResultList()
+        .stream()
         .map(mapper::toDomain)
         .collect(Collectors.toUnmodifiableList());
   }

@@ -74,7 +74,8 @@ public class InvoiceController {
       @RequestParam(name = "status", required = false) InvoiceStatus status,
       @RequestParam(name = "statusList", required = false) List<InvoiceStatus> statusList,
       @RequestParam(name = "archiveStatus", required = false) ArchiveStatus archiveStatus,
-      @RequestParam(name = "title", required = false) String title) {
+      @RequestParam(name = "title", required = false) String title,
+      @RequestParam(name = "filters", required = false) List<String> filters) {
     String idUser =
         AuthProvider.getAuthenticatedUserId(); //TODO: should be changed when endpoint changed
     if (status != null && (statusList == null || statusList.isEmpty())) {
@@ -82,7 +83,8 @@ public class InvoiceController {
       statusList = new ArrayList<>();
       statusList.add(status);
     }
-    return service.getInvoices(idUser, page, pageSize, statusList, archiveStatus, title).stream()
+    return service.getInvoices(idUser, page, pageSize, statusList, archiveStatus, title, filters)
+        .stream()
         .map(mapper::toRest)
         .collect(Collectors.toUnmodifiableList());
   }

@@ -120,29 +120,14 @@ public class InvoiceService {
       BoundedPageSize pageSize,
       List<InvoiceStatus> statusList,
       ArchiveStatus archiveStatus,
-      String title) {
+      String title, List<String> filters) {
     if (archiveStatus == null) {
       archiveStatus = ArchiveStatus.ENABLED;
     }
-    if (title == null) {
-      title = "";
-    }
     int pageValue = page != null ? page.getValue() - 1 : 0;
     int pageSizeValue = pageSize != null ? pageSize.getValue() : 30;
-    if (statusList != null && !statusList.isEmpty()) {
-      return repository.findAllByIdUserAndStatusesAndArchiveStatus(
-          idUser,
-          statusList,
-          archiveStatus,
-          title,
-          pageValue, pageSizeValue);
-    }
-    return repository.findAllByIdUserAndArchiveStatus(
-        idUser,
-        archiveStatus,
-        title,
-        pageValue,
-        pageSizeValue);
+    return repository.findAllByIdUserAndCriteria(idUser, statusList, archiveStatus, title,
+        filters, pageValue, pageSizeValue);
   }
 
   public Invoice getById(String invoiceId) {

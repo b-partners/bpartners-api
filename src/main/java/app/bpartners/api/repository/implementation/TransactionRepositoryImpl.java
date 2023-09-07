@@ -51,8 +51,10 @@ public class TransactionRepositoryImpl implements TransactionRepository {
     Root<HTransaction> root = query.from(HTransaction.class);
     List<Predicate> predicates = new ArrayList<>();
     predicates.add(builder.equal(root.get("idAccount"), idAccount));
-    predicates.add(builder.or(builder.like(builder.lower(root.get("label"))
-        , "%" + label.toLowerCase() + "%")));
+    if(label != null) {
+      predicates.add(builder.or(builder.like(builder.lower(root.get("label"))
+          , "%" + label.toLowerCase() + "%")));
+    }
     query
         .where(builder.and(predicates.toArray(new Predicate[0])))
         .orderBy(QueryUtils.toOrders(pageable.getSort(), root, builder));

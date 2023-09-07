@@ -36,6 +36,7 @@ import static app.bpartners.api.integration.conf.utils.TestUtils.setUpLegalFileR
 import static app.bpartners.api.integration.conf.utils.TransactionTestUtils.jpaTransactionEntity1;
 import static app.bpartners.api.integration.conf.utils.TransactionTestUtils.transactionsSummary1;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.reset;
@@ -70,7 +71,7 @@ class DirtyTransactionIT extends MockedThirdParties {
 
     List<Transaction> actual = api.getTransactions(JOE_DOE_ACCOUNT_ID, null, null, null);
 
-    assertTrue(actual.isEmpty());
+    assertFalse(actual.isEmpty());
   }
 
   @Test

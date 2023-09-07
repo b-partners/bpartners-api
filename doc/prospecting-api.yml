@@ -113,12 +113,49 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
+  prospectsEvaluationOperations:
+    post:
+      tags:
+        - Prospecting
+      summary: Read and evaluate new prospects of an accountHolder through specified google sheets
+      operationId: evaluateProspects
+      parameters:
+        - in: path
+          name: ahId
+          schema:
+            type: string
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SheetProspectEvaluation'
+      responses:
+        200:
+          description: The evaluated prospects
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EvaluatedProspect'
+      400:
+        $ref: './api.yml#/components/responses/400'
+      403:
+        $ref: './api.yml#/components/responses/403'
+      404:
+        $ref: './api.yml#/components/responses/404'
+      429:
+        $ref: './api.yml#/components/responses/429'
+      500:
+        $ref: './api.yml#/components/responses/500'
   prospectsEvaluation:
     post:
       tags:
         - Prospecting
       summary: Evaluate new prospects of an accountHolder from imported Excel data
-      operationId: evaluateProspects
+      operationId: evaluateProspectsFromExcel
       parameters:
         - in: path
           name: ahId
@@ -438,3 +475,55 @@ components:
         - PROPOSAL_ACCEPTED
         - PROPOSAL_DECLINED
         - INVOICE_SENT
+    SheetProspectEvaluation:
+      type: object
+      properties:
+        artisanOwner:
+          description: Artisan's account holder name. Must not be null.
+          type: string
+        evaluationRules:
+          $ref: '#/components/schemas/ProspectEvaluationRules'
+        sheetProperties:
+          $ref: '#/components/schemas/SheetProperties'
+        ratingProperties:
+          $ref: '#/components/schemas/RatingProperties'
+    SheetProperties:
+      type: object
+      properties:
+        spreadsheetName:
+          type: string
+        sheetName:
+          type: string
+        ranges:
+          $ref: '#/components/schemas/SheetRange'
+    SheetRange:
+      type: object
+      properties:
+        min:
+          type: integer
+        max:
+          type: integer
+    ProspectEvaluationRules:
+      type: object
+      properties:
+        profession:
+          type: string
+          example: DEPANNEUR
+          description: Only `DEPANNEUR` profession is supported for now
+        newInterventionOption:
+          $ref: '#/components/schemas/NewInterventionOption'
+          description: |
+            When any value provided, NEW_PROSPECT is chosen by default.
+    RatingProperties:
+      type: object
+      properties:
+        minCustomerRating:
+          type: number
+          format: double
+          description: |
+            When any value provided, minimum customer rating accepted is 8.0.
+        minProspectRating:
+          type: number
+          format: double
+          description: |
+            When any value provided, minimum prospect rating accepted is 8.0.

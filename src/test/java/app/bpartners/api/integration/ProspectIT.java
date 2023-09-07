@@ -268,7 +268,7 @@ class ProspectIT {
         .secondaryActivity(null)
         .build());
     List<Prospect> actual2 = api.getProspects(ACCOUNTHOLDER_ID, null);
-    String prospectName = "alyssa";
+    String prospectName = "Alyssa";
     List<Prospect> actual3 = api.getProspects(ACCOUNTHOLDER_ID, prospectName);
 
     assertEquals(2, actual1.size());

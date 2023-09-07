@@ -23,8 +23,8 @@ public interface InvoiceRepository {
       int pageSize);
 
   List<Invoice> findAllByIdUserAndCriteria(String idUser, List<InvoiceStatus> statusList,
-                                           ArchiveStatus archiveStatus, String title,
-                                           List<String> filters, int page, int pageSize);
+                                           ArchiveStatus archiveStatus, List<String> filters,
+                                           int page, int pageSize);
 
   List<Invoice> findAllByIdUserAndArchiveStatus(
       String idUser, ArchiveStatus archiveStatus, String title, int page, int pageSize);

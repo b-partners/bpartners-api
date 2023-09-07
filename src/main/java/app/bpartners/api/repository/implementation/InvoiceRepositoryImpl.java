@@ -28,7 +28,6 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -48,7 +47,6 @@ import static org.springframework.data.domain.Sort.Direction.DESC;
 
 @Repository
 @AllArgsConstructor
-@Slf4j
 public class InvoiceRepositoryImpl implements InvoiceRepository {
   private final InvoiceJpaRepository jpaRepository;
   private final PaymentRequestJpaRepository paymentReqJpaRepository;
@@ -149,8 +147,8 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
 
   @Override
   public List<Invoice> findAllByIdUserAndCriteria(String idUser, List<InvoiceStatus> statusList,
-                                                  ArchiveStatus archiveStatus, String title,
-                                                  List<String> filters, int page, int pageSize) {
+                                                  ArchiveStatus archiveStatus, List<String> filters,
+                                                  int page, int pageSize) {
     CriteriaBuilder builder = entityManager.getCriteriaBuilder();
     CriteriaQuery<HInvoice> query = builder.createQuery(HInvoice.class);
     List<Predicate> predicates = new ArrayList<>();
@@ -160,12 +158,6 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
     if (statusList != null) {
       predicates.add(builder.or(statusList.stream()
           .map(status -> builder.equal(root.get("status"), status)).toArray(Predicate[]::new)));
-    }
-    if (title != null) {
-      filters.add(title);
-      log.warn(
-          "DEPRECATED: query parameter title is still used for filtering invoices."
-              + " Use the query parameter filters instead.");
     }
     if (filters != null) {
       List<Predicate> filtersPredicates = new ArrayList<>();

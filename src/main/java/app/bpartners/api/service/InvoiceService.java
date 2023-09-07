@@ -60,6 +60,17 @@ public class InvoiceService {
   private final PaymentRequestMapper requestMapper;
   private final PaymentRequestRepository paymentRepository;
 
+  private static List<CreatePaymentRegulation> initPaymentReg(Invoice actual) {
+    List<CreatePaymentRegulation> paymentReg = actual.getPaymentRegulations();
+    paymentReg.forEach(payment -> {
+      PaymentRequest request = payment.getPaymentRequest();
+      request.setId(String.valueOf(randomUUID()));
+      request.setExternalId(null);
+      request.setPaymentUrl(null);
+    });
+    return paymentReg;
+  }
+
   @Transactional
   public Invoice updatePaymentStatus(String invoiceId, String paymentId, PaymentMethod method) {
     boolean isUserUpdated = true;
@@ -126,8 +137,18 @@ public class InvoiceService {
     }
     int pageValue = page != null ? page.getValue() - 1 : 0;
     int pageSizeValue = pageSize != null ? pageSize.getValue() : 30;
-    return repository.findAllByIdUserAndCriteria(idUser, statusList, archiveStatus, title,
-        filters, pageValue, pageSizeValue);
+    List<String> keywords = new ArrayList<>();
+    if(filters != null) {
+      keywords.addAll(filters);
+    }
+    if(title != null) {
+      keywords.add(title);
+      log.warn(
+          "DEPRECATED: query parameter title is still used for filtering invoices."
+              + " Use the query parameter filters instead.");
+    }
+    return repository.findAllByIdUserAndCriteria(idUser, statusList, archiveStatus, keywords,
+        pageValue, pageSizeValue);
   }
 
   public Invoice getById(String invoiceId) {
@@ -261,7 +282,6 @@ public class InvoiceService {
     actual.setPaymentUrl(null);
   }
 
-
   private List<CreatePaymentRegulation> getPaymentRegWithUrl(Invoice actual) {
     List<PaymentInitiation> paymentInitiations = getPaymentInitiations(actual);
     List<PaymentRequest> paymentRequests =
@@ -334,16 +354,5 @@ public class InvoiceService {
             .collect(Collectors.toList()))
         .build();
     return crupdateInvoice(duplicatedInvoice);
-  }
-
-  private static List<CreatePaymentRegulation> initPaymentReg(Invoice actual) {
-    List<CreatePaymentRegulation> paymentReg = actual.getPaymentRegulations();
-    paymentReg.forEach(payment -> {
-      PaymentRequest request = payment.getPaymentRequest();
-      request.setId(String.valueOf(randomUUID()));
-      request.setExternalId(null);
-      request.setPaymentUrl(null);
-    });
-    return paymentReg;
   }
 }

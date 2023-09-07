@@ -185,7 +185,11 @@ public class SheetIT extends MockedThirdParties {
   void read_sheets_from_local_credentials_ok() {
     Credential localCredentials = sheetConf.getLocalCredentials(JOE_DOE_ID);
 
-    Spreadsheet spreadsheet = sheetApi.getSpreadsheet(GOLDEN_SOURCE_SHEET_ID, localCredentials);
+    int minRange = 2;
+    int maxRange = 100;
+    Spreadsheet spreadsheet =
+        sheetApi.getSpreadsheet(
+            GOLDEN_SOURCE_SHEET_ID, GOLDEN_SOURCE_SHEET_NAME, minRange, maxRange, localCredentials);
     List<Sheet> sheets = spreadsheet.getSheets();
     String firstValue = null;
     for (Sheet s : sheets) {

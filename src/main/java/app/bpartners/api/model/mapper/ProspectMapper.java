@@ -6,6 +6,8 @@ import app.bpartners.api.endpoint.rest.model.ProspectStatus;
 import app.bpartners.api.endpoint.rest.security.AuthenticatedResourceProvider;
 import app.bpartners.api.model.Prospect;
 import app.bpartners.api.model.exception.NotFoundException;
+import app.bpartners.api.model.exception.NotImplementedException;
+import app.bpartners.api.repository.expressif.ProspectEval;
 import app.bpartners.api.repository.expressif.ProspectEvalInfo;
 import app.bpartners.api.repository.jpa.ProspectJpaRepository;
 import app.bpartners.api.repository.jpa.model.HProspect;
@@ -142,6 +144,10 @@ public class ProspectMapper {
             ? null
             : parseFraction(entity.getContractAmount()))
         .build();
+  }
+
+  public List<ProspectEval> toProspectEval(Sheet sheet) {
+    throw new NotImplementedException("Not supported");
   }
 
   public List<ProspectEvalInfo> toProspect(Sheet sheet) {

@@ -321,6 +321,31 @@ public class ProspectService {
         .build();
   }
 
+  //TODO: must be inside repository
+  public List<ProspectEval> readEvaluationsFromSheets(String idUser,
+                                                      String spreadsheetName,
+                                                      String sheetName,
+                                                      Integer minRange,
+                                                      Integer maxRange) {
+    Spreadsheet spreadsheet =
+        sheetApi.getSpreadsheetByNames(idUser, spreadsheetName, sheetName, minRange, maxRange);
+    List<Sheet> sheets = spreadsheet.getSheets();
+    String sheetNameNotFoundMsg = "Sheet(name=" + sheetName + ")"
+        + " inside Spreadsheet(name=" + spreadsheet.getProperties().getTitle()
+        + ") does not exist";
+    if (sheets.isEmpty()) {
+      throw new BadRequestException("Spreadsheet has empty sheets or " + sheetNameNotFoundMsg);
+    }
+    Sheet sheet = sheets.stream()
+        .filter(s -> s.getProperties().getTitle().equals(sheetName))
+        .findAny().orElseThrow(
+            () -> new NotFoundException(sheetNameNotFoundMsg));
+    if (!sheet.getProperties().getSheetType().equals(GRID_SHEET_TYPE)) {
+      throw new NotImplementedException("Only GRID sheet type is supported");
+    }
+    return prospectMapper.toProspectEval(sheet);
+  }
+
   public List<ProspectEvalInfo> readFromSheets(String idUser,
                                                String spreadsheetName,
                                                String sheetName,
@@ -335,8 +360,10 @@ public class ProspectService {
   public List<ProspectEvalInfo> readFromSheets(String idUser,
                                                String spreadsheetName,
                                                String sheetName) {
+    int minRange = 2;
+    int maxRange = 100;
     Spreadsheet spreadsheet =
-        sheetApi.getSpreadsheetByName(idUser, spreadsheetName);
+        sheetApi.getSpreadsheetByNames(idUser, spreadsheetName, sheetName, minRange, maxRange);
     List<Sheet> sheets = spreadsheet.getSheets();
     if (sheets.isEmpty()) {
       throw new BadRequestException("Spreadsheet has empty sheets");

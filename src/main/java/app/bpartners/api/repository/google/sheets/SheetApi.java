@@ -48,10 +48,14 @@ public class SheetApi {
         .build();
   }
 
-  public Spreadsheet getSpreadsheetByName(String idUser, String spreadsheetName) {
+  public Spreadsheet getSpreadsheetByNames(String idUser,
+                                           String spreadsheetName,
+                                           String sheetName,
+                                           Integer minRange,
+                                           Integer maxRange) {
     File spreadSheetFile = driveApi.getFileByIdUserAndName(idUser, spreadsheetName);
     String spreadSheetFileId = spreadSheetFile.getId();
-    return getSpreadsheet(idUser, spreadSheetFileId);
+    return getSpreadsheet(idUser, spreadSheetFileId, sheetName, minRange, maxRange);
   }
 
   public Spreadsheet createFilterView(String idUser, String idSpreadsheet, String artisanOwner) {
@@ -104,16 +108,26 @@ public class SheetApi {
     }
   }
 
-  public Spreadsheet getSpreadsheet(String idUser, String idSpreadsheet) {
-    return getSpreadsheet(idSpreadsheet, sheetsConf.loadCredential(idUser));
+  public Spreadsheet getSpreadsheet(String idUser,
+                                    String idSpreadsheet,
+                                    String sheetName,
+                                    Integer minRange,
+                                    Integer maxRange) {
+    return getSpreadsheet(
+        idSpreadsheet, sheetName, minRange, maxRange, sheetsConf.loadCredential(idUser));
   }
 
-  public Spreadsheet getSpreadsheet(String idSpreadsheet, Credential credential) {
+  public Spreadsheet getSpreadsheet(String idSpreadsheet,
+                                    String sheetName,
+                                    Integer minRange,
+                                    Integer maxRange,
+                                    Credential credential) {
     Sheets sheetsService = initService(sheetsConf, credential);
     Spreadsheet spreadsheet;
     try {
+      String range = String.format("'%s'!A%d:AE%d", sheetName, minRange, maxRange);
       spreadsheet = sheetsService.spreadsheets().get(idSpreadsheet)
-          .setRanges(List.of("'Source Import'!A2:AE100", "'Golden Source dépa 1 & 2'!A2:AE100"))
+          .setRanges(List.of(range))
           .setIncludeGridData(true)
           .execute();
     } catch (GoogleJsonResponseException e) {

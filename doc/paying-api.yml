@@ -712,11 +712,6 @@ operations:
           description: 'Filter invoices by title'
           schema:
             type: string
-        - in: query
-          name: filters
-          description: 'Filter invoices by title and/or reference'
-          schema:
-            type: string
       responses:
         200:
           description: The list of invoices

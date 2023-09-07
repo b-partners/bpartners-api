@@ -18,10 +18,17 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
+import javax.persistence.EntityManager;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.repository.query.QueryUtils;
 import org.springframework.stereotype.Repository;
 
 import static app.bpartners.api.service.utils.TransactionUtils.describeList;
@@ -35,13 +42,34 @@ public class TransactionRepositoryImpl implements TransactionRepository {
   private final TransactionJpaRepository jpaRepository;
   private final InvoiceJpaRepository invoiceJpaRepository;
   private final TransactionConnectorRepository connectorRepository;
+  private final EntityManager entityManager;
+
+  private List<HTransaction> filterByIdAccountAndLabel(String idAccount, String label,
+                                                       Pageable pageable) {
+    CriteriaBuilder builder = entityManager.getCriteriaBuilder();
+    CriteriaQuery<HTransaction> query = builder.createQuery(HTransaction.class);
+    Root<HTransaction> root = query.from(HTransaction.class);
+    List<Predicate> predicates = new ArrayList<>();
+    predicates.add(builder.equal(root.get("idAccount"), idAccount));
+    if(label != null) {
+      predicates.add(builder.or(builder.like(builder.lower(root.get("label"))
+          , "%" + label.toLowerCase() + "%")));
+    }
+    query
+        .where(builder.and(predicates.toArray(new Predicate[0])))
+        .orderBy(QueryUtils.toOrders(pageable.getSort(), root, builder));
+
+    return entityManager.createQuery(query)
+        .setFirstResult((pageable.getPageNumber()) * pageable.getPageSize())
+        .setMaxResults(pageable.getPageSize())
+        .getResultList();
+  }
 
   @Override
   public List<Transaction> findByIdAccount(String idAccount, String label, int page, int pageSize) {
-    Pageable pageable = PageRequest.of(page, pageSize);
-    List<HTransaction> transactions =
-        jpaRepository.findByIdAccountAndLabelContainingIgnoreCaseOrderByPaymentDateTimeDesc(
-            idAccount, label, pageable);
+    Pageable pageable =
+        PageRequest.of(page, pageSize, Sort.by(Sort.Direction.DESC, "paymentDateTime"));
+    List<HTransaction> transactions = filterByIdAccountAndLabel(idAccount, label, pageable);
     return transactions
         .stream()
         .map(transaction -> mapper.toDomain(transaction,

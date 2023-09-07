@@ -80,9 +80,6 @@ public class TransactionService {
                                                    BoundedPageSize pageSize) {
     int pageValue = page == null ? 0 : page.getValue() - 1;
     int pageSizeValue = pageSize == null ? 30 : pageSize.getValue();
-    if (label == null) {
-      return repository.findPersistedByIdAccount(idAccount, pageValue, pageSizeValue);
-    }
     return repository.findByIdAccount(idAccount, label, pageValue, pageSizeValue);
   }
 

@@ -53,6 +53,8 @@ import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_TOKEN;
 import static app.bpartners.api.integration.conf.utils.TestUtils.accountHolderEntity1;
 import static app.bpartners.api.integration.conf.utils.TestUtils.createProduct4;
 import static app.bpartners.api.integration.conf.utils.TestUtils.customer1;
+import static app.bpartners.api.integration.conf.utils.TestUtils.invoice1;
+import static app.bpartners.api.integration.conf.utils.TestUtils.invoice2;
 import static app.bpartners.api.integration.conf.utils.TestUtils.product4;
 import static app.bpartners.api.integration.conf.utils.TestUtils.setUpCognito;
 import static app.bpartners.api.integration.conf.utils.TestUtils.setUpEventBridge;
@@ -95,6 +97,21 @@ class InvoiceIT extends MockedThirdParties {
 
     when(holderJpaRepository.findAllByIdUser(JOE_DOE_ID))
         .thenReturn(List.of(accountHolderEntity1()));
+  }
+
+  @Test
+  void read_filtered_invoice_ok() throws ApiException {
+    ApiClient joeDoeClient = anApiClient();
+    PayingApi api = new PayingApi(joeDoeClient);
+
+    List<Invoice> actualFiltered = api.getInvoices(JOE_DOE_ACCOUNT_ID, null, null, null, null,
+        null, null, List.of("pOUr", "bp002"));
+
+    assertEquals(2, actualFiltered.size());
+    assertTrue(actualFiltered.stream()
+        .anyMatch(invoice -> invoice.getRef().equals("BP002")));
+    assertTrue(actualFiltered.stream()
+        .anyMatch(invoice -> invoice.getTitle().equals("Outils pour plomberie")));
   }
 
   @Test

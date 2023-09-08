@@ -1,0 +1,77 @@
+operations:
+  sheetAuth:
+    post:
+      tags:
+        - Sheet
+      summary: Exchange sheet token code to token
+      operationId: exchangeSheetCode
+      parameters:
+        - name: id
+          in: path
+          description: User identifier
+          schema:
+            type: string
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SheetAuth'
+      responses:
+        200:
+          description: The sheet OAuth token is persisted and can be used to sheet actions.
+        400:
+          $ref: './api.yml#/components/responses/400'
+        500:
+          $ref: './api.yml#/components/responses/500'
+  sheetConsent:
+    post:
+      tags:
+        - Sheet
+      summary: Initiate Oauth2 of Google Sheet API
+      operationId: initSheetConsent
+      parameters:
+        - name: id
+          in: path
+          description: User identifier
+          schema:
+            type: string
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SheetConsentInit'
+      responses:
+        200:
+          description: A redirection component where to initiate sheet consent
+          content:
+            application/json:
+              schema:
+                $ref: './api.yml#/components/schemas/Redirection'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
+components:
+  schemas:
+    SheetConsentInit:
+      type: object
+      properties:
+        redirectionStatusUrls:
+          $ref: './api.yml#/components/schemas/RedirectionStatusUrls'
+    SheetAuth:
+      type: object
+      properties:
+        code:
+          type: string
+        redirectUrls:
+          $ref: './api.yml#/components/schemas/RedirectionStatusUrls'

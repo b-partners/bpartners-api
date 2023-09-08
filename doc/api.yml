@@ -154,6 +154,15 @@ paths:
     $ref: './prospecting-api.yml#/operations/updateProspects'
 
   #############################################
+  ################# Google Sheet API ##############
+  #############################################
+  /users/{id}/sheets/oauth2/consent:
+    $ref: './sheet-api.yml#/operations/sheetConsent'
+  /users/{id}/sheets/oauth2/auth:
+    $ref: './sheet-api.yml#/operations/sheetAuth'
+
+
+  #############################################
   ################# Calendar API ##############
   #############################################
   /users/{id}/calendars/oauth2/consent:

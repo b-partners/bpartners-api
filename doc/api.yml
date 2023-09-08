@@ -148,6 +148,8 @@ paths:
     $ref: './prospecting-api.yml#/operations/convertProspect'
   /accountHolders/{ahId}/prospects/prospectsEvaluation:
     $ref: './prospecting-api.yml#/operations/prospectsEvaluation'
+  /accountHolders/{ahId}/prospects/evaluations:
+    $ref: './prospecting-api.yml#/operations/prospectsEvaluationOperations'
   /accountHolders/{ahId}/prospects/{id}:
     $ref: './prospecting-api.yml#/operations/updateProspects'
 

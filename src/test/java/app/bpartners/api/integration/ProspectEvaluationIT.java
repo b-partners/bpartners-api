@@ -91,7 +91,7 @@ class ProspectEvaluationIT extends MockedThirdParties {
   @Autowired
   private UserService userService;
 
-  private static OutputValue<Object> prospectRatingResult() {
+  public static OutputValue<Object> prospectRatingResult() {
     return OutputValue.builder()
         .name("Notation du prospect")
         .value(10.0)
@@ -112,7 +112,7 @@ class ProspectEvaluationIT extends MockedThirdParties {
         .longitude(0.0);
   }
 
-  private static GeoPosition geoPosZero() {
+  public static GeoPosition geoPosZero() {
     return GeoPosition.builder()
         .coordinates(coordinateZero())
         .build();

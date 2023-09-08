@@ -34,7 +34,6 @@ public class ProspectRestValidator implements Consumer<UpdateProspect> {
   }
 
   public void accept(SheetProspectEvaluation evaluation) {
-    //TODO
     StringBuilder builder = new StringBuilder();
     ProspectEvaluationRules evaluationRules = evaluation.getEvaluationRules();
     RatingProperties ratingProperties = evaluation.getRatingProperties();
@@ -45,9 +44,17 @@ public class ProspectRestValidator implements Consumer<UpdateProspect> {
     if (ratingProperties != null) {
       if (ratingProperties.getMinCustomerRating() == null) {
         ratingProperties.setMinCustomerRating(8.0);
+      } else if (ratingProperties.getMinCustomerRating() < 0
+          || ratingProperties.getMinCustomerRating() > 10) {
+        builder.append("Min customer rating must be between 0 and 10 but was "
+            + ratingProperties.getMinCustomerRating());
       }
       if (ratingProperties.getMinProspectRating() == null) {
         ratingProperties.setMinProspectRating(8.0);
+      } else if (ratingProperties.getMinProspectRating() < 0
+          || ratingProperties.getMinCustomerRating() > 10) {
+        builder.append("Min prospect rating must be between 0 and 10 but was "
+            + ratingProperties.getMinProspectRating());
       }
     } else {
       evaluation.setRatingProperties(new RatingProperties()

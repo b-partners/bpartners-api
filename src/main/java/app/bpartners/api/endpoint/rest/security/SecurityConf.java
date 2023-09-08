@@ -273,6 +273,8 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
             new SelfAccountHolderMatcher(POST, "/accountHolders/*/prospects/prospectsEvaluation",
                 authResourceProvider))
         .hasAnyRole(EVAL_PROSPECT.getRole())
+        .requestMatchers(new SelfAccountMatcher(POST, "/accountHolders/*/prospects/evaluations", authResourceProvider))
+        .hasAnyRole(EVAL_PROSPECT.getRole())
         .requestMatchers(
             new SelfAccountHolderMatcher(PUT, "/accountHolders/*/prospects/*",
                 authResourceProvider))

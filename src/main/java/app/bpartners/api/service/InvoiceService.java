@@ -138,10 +138,10 @@ public class InvoiceService {
     int pageValue = page != null ? page.getValue() - 1 : 0;
     int pageSizeValue = pageSize != null ? pageSize.getValue() : 30;
     List<String> keywords = new ArrayList<>();
-    if(filters != null) {
+    if (filters != null) {
       keywords.addAll(filters);
     }
-    if(title != null) {
+    if (title != null) {
       keywords.add(title);
       log.warn(
           "DEPRECATED: query parameter title is still used for filtering invoices."

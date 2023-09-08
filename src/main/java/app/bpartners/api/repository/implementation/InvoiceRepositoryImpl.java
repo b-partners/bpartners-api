@@ -159,7 +159,7 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
       predicates.add(builder.or(statusList.stream()
           .map(status -> builder.equal(root.get("status"), status)).toArray(Predicate[]::new)));
     }
-    if (filters != null) {
+    if (!filters.isEmpty()) {
       List<Predicate> filtersPredicates = new ArrayList<>();
       for (String filter : filters) {
         filtersPredicates.add(builder.like(builder.lower(root.get("title")),

@@ -2,6 +2,7 @@ package app.bpartners.api.endpoint.rest.controller;
 
 import app.bpartners.api.endpoint.rest.mapper.ProspectRestMapper;
 import app.bpartners.api.endpoint.rest.model.EvaluatedProspect;
+import app.bpartners.api.endpoint.rest.model.ExtendedProspectStatus;
 import app.bpartners.api.endpoint.rest.model.NewInterventionOption;
 import app.bpartners.api.endpoint.rest.model.Prospect;
 import app.bpartners.api.endpoint.rest.model.ProspectConversion;
@@ -25,6 +26,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import static app.bpartners.api.endpoint.rest.validator.ProspectRestValidator.XLSX_FILE;
@@ -42,6 +44,48 @@ public class ProspectController {
   private final ProspectEvalUtils prospectUtils;
   private final ProspectRestValidator validator;
 
+  private static Double getMinCustomerRating(HttpHeaders headers) {
+    try {
+      double minCustomerRating = Double.parseDouble(headers.getFirst(MIN_CUSTOMER_RATING));
+      if (minCustomerRating < 0 || minCustomerRating > 10) {
+        throw new BadRequestException("Minimum customer rating value must be between 1 and 10,"
+            + " otherwise given is " + minCustomerRating);
+      }
+      return minCustomerRating;
+    } catch (NumberFormatException | NullPointerException e) {
+      return Double.valueOf(ProspectService.DEFAULT_RATING_PROSPECT_TO_CONVERT);
+    }
+  }
+
+  private static Double getMinProspectRating(HttpHeaders headers) {
+    try {
+      double minProspectRating = Double.valueOf(headers.getFirst(MIN_PROSPECT_RATING));
+      if (minProspectRating < 0 || minProspectRating > 10) {
+        throw new BadRequestException("Minimum prospect rating value must be between 1 and 10,"
+            + " otherwise given is " + minProspectRating);
+      }
+      return minProspectRating;
+    } catch (NumberFormatException | NullPointerException e) {
+      return Double.valueOf(ProspectService.DEFAULT_RATING_PROSPECT_TO_CONVERT);
+    }
+  }
+
+  private static NewInterventionOption retrieveFromHeader(String newInterventionOptHeader) {
+    if (newInterventionOptHeader == null) {
+      return null;
+    }
+    switch (newInterventionOptHeader) {
+      case "ALL":
+        return NewInterventionOption.ALL;
+      case "NEW_PROSPECT":
+        return NewInterventionOption.NEW_PROSPECT;
+      case "OLD_CUSTOMER":
+        return NewInterventionOption.OLD_CUSTOMER;
+      default:
+        return null;
+    }
+  }
+
   @PutMapping("/accountHolders/{ahId}/prospects/{id}/prospectConversion")
   public List<ProspectConversion> convertProspect(
       @PathVariable("ahId") String accountHolderId, @PathVariable("id") String prospectId,
@@ -51,8 +95,10 @@ public class ProspectController {
   }
 
   @GetMapping("/accountHolders/{ahId}/prospects")
-  public List<Prospect> getProspects(@PathVariable("ahId") String accountHolderId) {
-    return service.getAllByIdAccountHolder(accountHolderId).stream()
+  public List<Prospect> getProspects(@PathVariable("ahId") String accountHolderId,
+                                     @RequestParam(name = "name", required = false)
+                                     String name) {
+    return service.getAllByIdAccountHolder(accountHolderId, name).stream()
         .map(mapper::toRest)
         .collect(toUnmodifiableList());
   }
@@ -97,45 +143,11 @@ public class ProspectController {
     return new ResponseEntity<>(evaluatedProspects, HttpStatus.OK);
   }
 
-  private static Double getMinCustomerRating(HttpHeaders headers) {
-    try {
-      double minCustomerRating = Double.parseDouble(headers.getFirst(MIN_CUSTOMER_RATING));
-      if (minCustomerRating < 0 || minCustomerRating > 10) {
-        throw new BadRequestException("Minimum customer rating value must be between 1 and 10,"
-            + " otherwise given is " + minCustomerRating);
-      }
-      return minCustomerRating;
-    } catch (NumberFormatException | NullPointerException e) {
-      return Double.valueOf(ProspectService.DEFAULT_RATING_PROSPECT_TO_CONVERT);
-    }
-  }
-
-  private static Double getMinProspectRating(HttpHeaders headers) {
-    try {
-      double minProspectRating = Double.valueOf(headers.getFirst(MIN_PROSPECT_RATING));
-      if (minProspectRating < 0 || minProspectRating > 10) {
-        throw new BadRequestException("Minimum prospect rating value must be between 1 and 10,"
-            + " otherwise given is " + minProspectRating);
-      }
-      return minProspectRating;
-    } catch (NumberFormatException | NullPointerException e) {
-      return Double.valueOf(ProspectService.DEFAULT_RATING_PROSPECT_TO_CONVERT);
-    }
-  }
-
-  private static NewInterventionOption retrieveFromHeader(String newInterventionOptHeader) {
-    if (newInterventionOptHeader == null) {
-      return null;
-    }
-    switch (newInterventionOptHeader) {
-      case "ALL":
-        return NewInterventionOption.ALL;
-      case "NEW_PROSPECT":
-        return NewInterventionOption.NEW_PROSPECT;
-      case "OLD_CUSTOMER":
-        return NewInterventionOption.OLD_CUSTOMER;
-      default:
-        return null;
-    }
+  @PutMapping("/accountHolders/{ahId}/prospects/{id}")
+  public Prospect updateProspectsStatus(@PathVariable("ahId") String accountHolderId,
+                                        @PathVariable("id") String prospectId,
+                                        @RequestBody ExtendedProspectStatus toUpdate) {
+    app.bpartners.api.model.Prospect prospect = mapper.toDomain(toUpdate);
+    return mapper.toRest(service.save(prospect));
   }
 }

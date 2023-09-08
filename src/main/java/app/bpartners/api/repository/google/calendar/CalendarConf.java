@@ -31,7 +31,7 @@ public class CalendarConf {
 
   public static final GsonFactory JSON_FACTORY = GsonFactory.getDefaultInstance();
   private final NetHttpTransport trustedTransport;
-  private final DbCredentialStore dbCredentialStore;
+  private final CalendarDbCredentialStore dbCredentialStore;
   private final GoogleAuthorizationCodeFlow flow;
 
   @SneakyThrows
@@ -40,7 +40,7 @@ public class CalendarConf {
                       @Value("${google.calendar.client.secret}") String clientSecret,
                       @Value("${google.calendar.redirect.uris}")
                       List<String> redirectUris,
-                      DbCredentialStore dbCredentialStore) {
+                      CalendarDbCredentialStore dbCredentialStore) {
     this.applicationName = applicationName;
     this.clientId = clientId;
     this.clientSecret = clientSecret;

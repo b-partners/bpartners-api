@@ -12,5 +12,7 @@ public interface ProspectJpaRepository extends JpaRepository<HProspect, String> 
       List<Integer> townCode
   );
 
-  List<HProspect> findAllByIdAccountHolder(String idAccountHolder);
+  List<HProspect> findAllByIdAccountHolderAndOldNameContainingIgnoreCase(
+      String idAccountHolder,
+      String name);
 }

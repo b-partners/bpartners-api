@@ -74,11 +74,13 @@ public class TransactionService {
         .collect(Collectors.toUnmodifiableList());
   }
 
-  public List<Transaction> getPersistedByIdAccount(String idAccount, PageFromOne page,
+  public List<Transaction> getPersistedByIdAccount(String idAccount,
+                                                   String label,
+                                                   PageFromOne page,
                                                    BoundedPageSize pageSize) {
     int pageValue = page == null ? 0 : page.getValue() - 1;
     int pageSizeValue = pageSize == null ? 30 : pageSize.getValue();
-    return repository.findPersistedByIdAccount(idAccount, pageValue, pageSizeValue);
+    return repository.findByIdAccount(idAccount, label, pageValue, pageSizeValue);
   }
 
   public Transaction getById(String transactionId) {

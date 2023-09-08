@@ -9,16 +9,21 @@ on:
   workflow_dispatch:
     inputs:
       run_tests:
-        type: boolean
+        type: choice
         required: false
-        default: true
+        default: 'true'
+        description: Run tests or not
+        options:
+          - 'true'
+          - 'false'
 
   workflow_call:
     inputs:
       run_tests:
-        type: boolean
-        required: false
-        default: true
+        type: string
+        required: true
+        default: 'false'
+        description: Run tests or not (possible values are 'true' or 'false')
 
 env:
   ECR_REPOSITORY: bpartners-api-latest
@@ -26,15 +31,15 @@ env:
 
 jobs:
   run-quality-check:
-    if: github.event.inputs.run_tests != 'false' && github.event_name != 'schedule' && github.ref_name == 'prod' || github.event.inputs.run_tests != 'false' && github.event_name != 'schedule' && github.ref_name == 'preprod'
+    if: ${{ (inputs.run_tests != 'false' && github.event_name != 'schedule' && github.ref_name == 'prod') || (inputs.run_tests != 'false' && github.event_name != 'schedule' && github.ref_name == 'preprod') }}
     uses: ./.github/workflows/ci.yml
     secrets: inherit
 
   deploy-stack-after-tests:
     needs: run-quality-check
     if: >
-      ${{ (github.ref_name == 'prod' && github.event.inputs.run_tests != 'false' && needs.run-quality-check.result == 'success') || 
-      (github.ref_name == 'preprod' && github.event.inputs.run_tests != 'false' && needs.run-quality-check.result == 'success') }}
+      ${{ (github.ref_name == 'prod' && inputs.run_tests != 'false' && needs.run-quality-check.result == 'success') || 
+      (github.ref_name == 'preprod' && inputs.run_tests != 'false' && needs.run-quality-check.result == 'success') }}
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
@@ -167,7 +172,7 @@ jobs:
             Cpu=${{ env.vCpu }}, Memory=${{ env.memory }}, TasksDesiredCount=${{ env.tasksDesiredCount }}"
 
   deploy-stack-without-tests:
-    if: github.ref_name == 'prod' || github.ref_name == 'preprod' && github.event.inputs.run_tests == 'false'
+    if: ${{ (github.ref_name == 'prod' && inputs.run_tests == 'false') || (github.ref_name == 'preprod' && inputs.run_tests == 'false') }}
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:

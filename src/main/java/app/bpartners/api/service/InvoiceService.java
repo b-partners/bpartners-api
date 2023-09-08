@@ -60,6 +60,17 @@ public class InvoiceService {
   private final PaymentRequestMapper requestMapper;
   private final PaymentRequestRepository paymentRepository;
 
+  private static List<CreatePaymentRegulation> initPaymentReg(Invoice actual) {
+    List<CreatePaymentRegulation> paymentReg = actual.getPaymentRegulations();
+    paymentReg.forEach(payment -> {
+      PaymentRequest request = payment.getPaymentRequest();
+      request.setId(String.valueOf(randomUUID()));
+      request.setExternalId(null);
+      request.setPaymentUrl(null);
+    });
+    return paymentReg;
+  }
+
   @Transactional
   public Invoice updatePaymentStatus(String invoiceId, String paymentId, PaymentMethod method) {
     boolean isUserUpdated = true;
@@ -112,22 +123,32 @@ public class InvoiceService {
     return invoice;
   }
 
+  //TODO: refactor and use EntityManager inside Repository to match dynamically
+  //TODO: handle invoice with null title value
   public List<Invoice> getInvoices(
       String idUser,
       PageFromOne page,
       BoundedPageSize pageSize,
       List<InvoiceStatus> statusList,
-      ArchiveStatus archiveStatus) {
+      ArchiveStatus archiveStatus,
+      String title, List<String> filters) {
     if (archiveStatus == null) {
       archiveStatus = ArchiveStatus.ENABLED;
     }
     int pageValue = page != null ? page.getValue() - 1 : 0;
     int pageSizeValue = pageSize != null ? pageSize.getValue() : 30;
-    if (statusList != null && !statusList.isEmpty()) {
-      return repository.findAllByIdUserAndStatusesAndArchiveStatus(idUser, statusList, archiveStatus, pageValue,
-          pageSizeValue);
+    List<String> keywords = new ArrayList<>();
+    if (filters != null) {
+      keywords.addAll(filters);
     }
-    return repository.findAllByIdUserAndArchiveStatus(idUser, archiveStatus, pageValue, pageSizeValue);
+    if (title != null) {
+      keywords.add(title);
+      log.warn(
+          "DEPRECATED: query parameter title is still used for filtering invoices."
+              + " Use the query parameter filters instead.");
+    }
+    return repository.findAllByIdUserAndCriteria(idUser, statusList, archiveStatus, keywords,
+        pageValue, pageSizeValue);
   }
 
   public Invoice getById(String invoiceId) {
@@ -261,7 +282,6 @@ public class InvoiceService {
     actual.setPaymentUrl(null);
   }
 
-
   private List<CreatePaymentRegulation> getPaymentRegWithUrl(Invoice actual) {
     List<PaymentInitiation> paymentInitiations = getPaymentInitiations(actual);
     List<PaymentRequest> paymentRequests =
@@ -334,16 +354,5 @@ public class InvoiceService {
             .collect(Collectors.toList()))
         .build();
     return crupdateInvoice(duplicatedInvoice);
-  }
-
-  private static List<CreatePaymentRegulation> initPaymentReg(Invoice actual) {
-    List<CreatePaymentRegulation> paymentReg = actual.getPaymentRegulations();
-    paymentReg.forEach(payment -> {
-      PaymentRequest request = payment.getPaymentRequest();
-      request.setId(String.valueOf(randomUUID()));
-      request.setExternalId(null);
-      request.setPaymentUrl(null);
-    });
-    return paymentReg;
   }
 }

@@ -14,15 +14,17 @@ public interface InvoiceJpaRepository extends JpaRepository<HInvoice, String> {
   @Lock(LockModeType.PESSIMISTIC_WRITE)
   Optional<HInvoice> findOptionalById(String id);
 
-  List<HInvoice> findAllByIdUserAndArchiveStatusAndStatusIn(
+  List<HInvoice> findAllByIdUserAndArchiveStatusAndTitleContainingIgnoreCaseAndStatusIn(
       String idUser,
       ArchiveStatus archiveStatus,
+      String title,
       List<InvoiceStatus> status,
       Pageable pageable);
 
-  List<HInvoice> findAllByIdUserAndArchiveStatus(
+  List<HInvoice> findAllByIdUserAndArchiveStatusAndTitleContainingIgnoreCase(
       String idUser,
       ArchiveStatus archiveStatus,
+      String title,
       Pageable pageable);
 
   List<HInvoice> findByIdUserAndRef(String idAccount, String ref);

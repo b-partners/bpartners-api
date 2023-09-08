@@ -9,6 +9,7 @@ import app.bpartners.api.repository.implementation.TransactionRepositoryImpl;
 import app.bpartners.api.repository.jpa.InvoiceJpaRepository;
 import app.bpartners.api.repository.jpa.TransactionJpaRepository;
 import app.bpartners.api.service.UserService;
+import javax.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -24,6 +25,7 @@ class TransactionRepositoryImplTest {
   UserService userServiceMock;
   InvoiceJpaRepository invoiceJpaRepositoryMock;
   TransactionConnectorRepository transactionConnectorRepositoryMock;
+  EntityManager entityManagerMock;
 
 
   @BeforeEach
@@ -34,8 +36,10 @@ class TransactionRepositoryImplTest {
     transactionJpaRepositoryMock = mock(TransactionJpaRepository.class);
     invoiceJpaRepositoryMock = mock(InvoiceJpaRepository.class);
     transactionConnectorRepositoryMock = mock(TransactionConnectorRepository.class);
+    entityManagerMock = mock(EntityManager.class);
     subject = new TransactionRepositoryImpl(transactionMapperMock, categoryRepositoryMock,
-        transactionJpaRepositoryMock, invoiceJpaRepositoryMock, transactionConnectorRepositoryMock);
+        transactionJpaRepositoryMock, invoiceJpaRepositoryMock,
+        transactionConnectorRepositoryMock, entityManagerMock);
 
     when(userServiceMock.getLatestTokenByAccount(any())).thenReturn(
         UserToken.builder().build());

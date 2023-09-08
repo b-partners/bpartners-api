@@ -50,12 +50,17 @@ public class ProspectService {
   private final SesService sesService;
   private final CustomerService customerService;
 
-  public List<Prospect> getAllByIdAccountHolder(String idAccountHolder) {
-    return dataProcesser.processProspects(repository.findAllByIdAccountHolder(idAccountHolder));
+  public List<Prospect> getAllByIdAccountHolder(String idAccountHolder, String name) {
+    return dataProcesser.processProspects(
+        repository.findAllByIdAccountHolder(idAccountHolder, name == null ? "" : name));
   }
 
   public List<Prospect> saveAll(List<Prospect> toCreate) {
     return repository.saveAll(toCreate);
+  }
+
+  public Prospect save(Prospect toSave) {
+    return repository.save(toSave);
   }
 
   @Scheduled(cron = Scheduled.CRON_DISABLED, zone = "Europe/Paris")

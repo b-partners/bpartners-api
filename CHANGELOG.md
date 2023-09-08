@@ -1,3 +1,29 @@
+# [0.28.0](https://github.com/b-partners/bpartners-api/compare/v0.27.0...v0.28.0) (2023-09-07)
+
+
+### Features
+
+* filter invoice by title ([a6f2052](https://github.com/b-partners/bpartners-api/commit/a6f20520d02fccb43ff1aca6c1afbe9ed9c0524f))
+* filter prospect by name ([4ffd713](https://github.com/b-partners/bpartners-api/commit/4ffd71398a3f03712be6379944be2f666d1d214e))
+* filter transaction by label ([7b85703](https://github.com/b-partners/bpartners-api/commit/7b85703245895236d7948dcd68355733b0373314))
+
+
+### Reverts
+
+* Revert "docs(api): refactor invoice filtering to filter by title and/or reference" ([f29ae5f](https://github.com/b-partners/bpartners-api/commit/f29ae5fda8d4deda3b6fa0110b839c529696d48b))
+* Revert "docs(api): add query parameter for filtering invoice by title and/or reference " ([6f26cd7](https://github.com/b-partners/bpartners-api/commit/6f26cd7fdaab6fd0f597350632c891c5fa554a94))
+
+
+
+# [0.27.0](https://github.com/b-partners/bpartners-api/compare/v0.26.1...v0.27.0) (2023-09-06)
+
+
+### Features
+
+* update prospect status with new attributes ([e34ce11](https://github.com/b-partners/bpartners-api/commit/e34ce11ee49122cf81f3cfbd2c2d6d5735d9b0e2))
+
+
+
 ## [0.26.1](https://github.com/b-partners/bpartners-api/compare/v0.26.0...v0.26.1) (2023-08-30)
 
 
@@ -183,45 +209,6 @@
 * get one specific transaction for an account ([5134f46](https://github.com/b-partners/bpartners-api/commit/5134f465db02d97ac87ea647b2685e138ec3323e))
 * handle bridge SCA synchronization ([979bad8](https://github.com/b-partners/bpartners-api/commit/979bad832f71ffad013f7db76c9d176a7f09c73a))
 * handle multiple accounts for an user ([7353cfd](https://github.com/b-partners/bpartners-api/commit/7353cfdd6b7e13c4e54e64770dd41ee1f279d4e5))
-
-
-
-# [0.15.0](https://github.com/b-partners/bpartners-api/compare/v0.14.1...v0.15.0) (2023-05-04)
-
-
-### Bug Fixes
-
-* reset account values when initiating bank connection ([4cc8c5c](https://github.com/b-partners/bpartners-api/commit/4cc8c5c18a7481ea200095d04fc00e8e08b0ebcc))
-* set bank value in database as NULL when disconnecting bank from bridge ([ed43039](https://github.com/b-partners/bpartners-api/commit/ed4303962dde90956b105cafc2c4e52b0d6dbfe4))
-
-
-### Features
-
-* allow account validation ([#786](https://github.com/b-partners/bpartners-api/issues/786)) ([5d4a165](https://github.com/b-partners/bpartners-api/commit/5d4a165468d60eb63729b1bc75ecaf1e1f94e972))
-
-
-
-## [0.14.1](https://github.com/b-partners/bpartners-api/compare/v0.14.0...v0.14.1) (2023-05-03)
-
-
-### Bug Fixes
-
-* account holder from business activity is mapped from database ([d43788d](https://github.com/b-partners/bpartners-api/commit/d43788d6d010e0967f683ba44fd6e151c0c05c69))
-* account holder revenue target update ([7978229](https://github.com/b-partners/bpartners-api/commit/7978229fa5d975b70ca9e02b818f8cb5d7b40a4a))
-* check account bic and bic before payment initiation ([a1a9577](https://github.com/b-partners/bpartners-api/commit/a1a95771b5431828600db5fa26645a9dabe4f969))
-* check bridge transaction when trying to save transaction ([ac67c04](https://github.com/b-partners/bpartners-api/commit/ac67c044a8657a9e701c5472223fb5f49706821d))
-* delay in payment allowed can not be null for CASH payment type invoice ([d537f8f](https://github.com/b-partners/bpartners-api/commit/d537f8fdeb9113c46f668dfe06d8c4f36c00dc9e))
-* disable ProspectService.prospect cron ([bd36333](https://github.com/b-partners/bpartners-api/commit/bd363332c93dd8a2b8d1273b0642382317a89e52))
-* get bridge transaction when swan not provided when retrieving by ID ([d2fb1e5](https://github.com/b-partners/bpartners-api/commit/d2fb1e5289b7b3bd548f488e3dc349652e65902f))
-* get bridge transactions through dynamic bearer ([6388cc1](https://github.com/b-partners/bpartners-api/commit/6388cc194d6b36ab5297be5e36110080cb5f0bda))
-* import customers ([fe0bf1e](https://github.com/b-partners/bpartners-api/commit/fe0bf1e261d2b1a73c839f793788e01e403d3594))
-* refresh transactions summary from swan transactions only with user access token ([ec4faed](https://github.com/b-partners/bpartners-api/commit/ec4faed199146eff2d0cedcc780036784a63dbd4))
-* return account available balance as cash flow in transaction summary ([3931d57](https://github.com/b-partners/bpartners-api/commit/3931d57466cadadbc4b146a5cabbcd3c367d893d))
-* return empty transaction list for users not connected to bridge ([99133fc](https://github.com/b-partners/bpartners-api/commit/99133fc5c8d2682a91f800afaaf6a69a139a1a70))
-* set bic as null when iniating bank connection ([08636d9](https://github.com/b-partners/bpartners-api/commit/08636d9d180fbb04427917717374f54728b4f42d))
-* set users bank connection refresh into 8 hours and avoid max daily refresh exception ([22c9af8](https://github.com/b-partners/bpartners-api/commit/22c9af82ff5e505b8f66984b30ad1c163bc13ec3))
-* throw exception when provided email during onboarding is already used ([9a15651](https://github.com/b-partners/bpartners-api/commit/9a15651b8cbc5773354b237971a0b8eff4e1250c))
-* update transaction summary updated instant and display decimal social capital ([fda5f76](https://github.com/b-partners/bpartners-api/commit/fda5f76bf28d09b8aafe6912b4a4e03b898c4624))
 
 
 

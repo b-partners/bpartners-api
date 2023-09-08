@@ -116,8 +116,8 @@ class SogefiBuildingPermitRepositoryTest {
   HProspect expectedSavedProspect() {
     return HProspect.builder()
         .id(PROSPECT1_ID)
-        .name(PROSPECT_NAME)
-        .address(PROSPECT_ADDRESS)
+        .oldName(PROSPECT_NAME)
+        .oldAddress(PROSPECT_ADDRESS)
         .status(TO_CONTACT)
         .idAccountHolder(ACCOUNTHOLDER_ID)
         .townCode(92001)
@@ -128,8 +128,8 @@ class SogefiBuildingPermitRepositoryTest {
   HProspect toUpdateProspect() {
     return HProspect.builder()
         .id(PROSPECT1_ID)
-        .name("some name")
-        .address("some address")
+        .oldName("some name")
+        .oldAddress("some address")
         .status(CONTACTED)
         .idAccountHolder(ACCOUNTHOLDER_ID)
         .townCode(92002)

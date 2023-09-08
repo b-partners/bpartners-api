@@ -1,7 +1,5 @@
-package app.bpartners.api.repository.google.calendar;
+package app.bpartners.api.repository.google.generic;
 
-import app.bpartners.api.repository.google.calendar.mapper.StoredCredentialMapper;
-import app.bpartners.api.repository.jpa.CalendarStoredCredentialJpaRep;
 import com.google.api.client.auth.oauth2.StoredCredential;
 import com.google.api.client.util.store.DataStore;
 import com.google.api.client.util.store.DataStoreFactory;
@@ -9,18 +7,22 @@ import com.google.api.client.util.store.MemoryDataStoreFactory;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import lombok.AllArgsConstructor;
-import org.springframework.stereotype.Component;
 
-@Component
-@AllArgsConstructor
-public class DbCredentialStore implements DataStore<StoredCredential> {
+
+public class DbCredentialStore<E, J extends CredentialJpaRepository<E>, M extends CredentialMapper<E>>
+    implements DataStore<StoredCredential> {
   public static final MemoryDataStoreFactory STORE_FACTORY =
       MemoryDataStoreFactory.getDefaultInstance();
-  private final CalendarStoredCredentialJpaRep jpaRep;
-  private final StoredCredentialMapper mapper;
+  J repository;
+  M mapper;
+
+  public DbCredentialStore(J repository, M mapper) {
+    this.repository = repository;
+    this.mapper = mapper;
+  }
 
   @Override
   public DataStoreFactory getDataStoreFactory() {
@@ -34,7 +36,7 @@ public class DbCredentialStore implements DataStore<StoredCredential> {
 
   @Override
   public int size() throws IOException {
-    return jpaRep.findAll().size();
+    return repository.findAll().size();
   }
 
   @Override
@@ -43,43 +45,44 @@ public class DbCredentialStore implements DataStore<StoredCredential> {
   }
 
   @Override
-  public boolean containsKey(String userId) {
-    return jpaRep.existsByIdUser(userId);
-
+  public boolean containsKey(String key) {
+    return repository.existsByIdUser(key);
   }
 
   @Override
   public boolean containsValue(StoredCredential value) {
-    //TODO: find accessToken AND refreshToken AND expirationTimeMilliseconds
-    return jpaRep.existsByAccessTokenAndRefreshTokenAndExpirationTimeMilliseconds(
+    return repository.existsByAccessTokenAndRefreshTokenAndExpirationTimeMilliseconds(
         value.getAccessToken(), value.getRefreshToken(), value.getExpirationTimeMilliseconds()
     );
   }
 
   @Override
-  public Set<String> keySet() {
+  public Set<String> keySet() throws IOException {
     return values().stream()
         .map(StoredCredential::toString)
         .collect(Collectors.toSet());
   }
 
   @Override
-  public Collection<StoredCredential> values() {
-    return jpaRep.findAll().stream()
+  public Collection<StoredCredential> values() throws IOException {
+    return repository.findAll().stream()
         .map(mapper::toStoredCredential)
         .collect(Collectors.toList());
   }
 
   @Override
-  public StoredCredential get(String userId) {
-    return mapper.toStoredCredential(jpaRep.findTopByIdUserOrderByCreationDatetimeDesc(userId));
+  public StoredCredential get(String idUser) throws IOException {
+    List<E> allTokens =
+        repository.findAllByIdUserOrderByCreationDatetimeDesc(idUser);
+    return allTokens == null || allTokens.isEmpty() ? null
+        : mapper.toStoredCredential(allTokens.get(0));
   }
 
   @Override
-  public DataStore<StoredCredential> set(String userId, StoredCredential value) {
+  public DataStore<StoredCredential> set(String idUser, StoredCredential value) throws IOException {
     Instant createdAt = Instant.now();
-    var entity = mapper.toEntity(userId, value, createdAt);
-    jpaRep.save(entity);
+    var entity = mapper.toEntity(idUser, value, createdAt);
+    repository.save(entity);
     return this;
   }
 
@@ -90,8 +93,8 @@ public class DbCredentialStore implements DataStore<StoredCredential> {
   }
 
   @Override
-  public DataStore<StoredCredential> delete(String userId) {
-    jpaRep.deleteByIdUser(userId);
+  public DataStore<StoredCredential> delete(String idUser) throws IOException {
+    repository.deleteByIdUser(idUser);
     return this;
   }
 }

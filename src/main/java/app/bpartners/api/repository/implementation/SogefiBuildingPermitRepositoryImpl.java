@@ -43,8 +43,8 @@ public class SogefiBuildingPermitRepositoryImpl implements SogefiBuildingPermitR
     if (coordinates.size() == COORDINATES_LENGTH) {
       Applicant applicant = singleBuildingPermit.getSogefiInformation().getPermitApplicant();
       HProspect prospectEntityToSave = HProspect.builder()
-          .name(applicant.getName())
-          .address(applicant.getAddress())
+          .oldName(applicant.getName())
+          .oldAddress(applicant.getAddress())
           .idAccountHolder(idAccountHolder)
           .townCode(Integer.parseInt(singleBuildingPermit.getInsee()))
           .rating(DEFAULT_RATING)
@@ -58,8 +58,8 @@ public class SogefiBuildingPermitRepositoryImpl implements SogefiBuildingPermitR
         if (persistedProspectEntity.isPresent()) {
           prospectEntityToSave.setId(persistedProspectEntity.get().getId());
           prospectEntityToSave.setStatus(persistedProspectEntity.get().getStatus());
-          prospectEntityToSave.setPhone(persistedProspectEntity.get().getPhone());
-          prospectEntityToSave.setEmail(persistedProspectEntity.get().getEmail());
+          prospectEntityToSave.setOldPhone(persistedProspectEntity.get().getOldPhone());
+          prospectEntityToSave.setOldPhone(persistedProspectEntity.get().getOldPhone());
         } else {
           throw new ApiException(SERVER_EXCEPTION,
               "HProspect.id=" + persisted.get().getIdProspect()

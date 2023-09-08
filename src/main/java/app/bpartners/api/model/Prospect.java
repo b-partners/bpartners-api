@@ -1,6 +1,7 @@
 package app.bpartners.api.model;
 
 import app.bpartners.api.endpoint.rest.model.Geojson;
+import app.bpartners.api.endpoint.rest.model.ProspectFeedback;
 import app.bpartners.api.endpoint.rest.model.ProspectStatus;
 import java.time.Instant;
 import lombok.AllArgsConstructor;
@@ -30,6 +31,10 @@ public class Prospect implements Comparable<Prospect> {
   private ProspectStatus status;
   private Integer townCode;
   private ProspectRating rating;
+  private String comment;
+  private Fraction contractAmount;
+  private String idInvoice;
+  private ProspectFeedback prospectFeedback;
 
   @Override
   public int compareTo(Prospect o) {

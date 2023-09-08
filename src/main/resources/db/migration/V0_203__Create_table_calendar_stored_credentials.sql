@@ -1,4 +1,4 @@
-create table if not exists "calendar_stored_credential"
+create table if not exists calendar_stored_credential
 (
     id                           varchar
         constraint cal_stored_credential_pk primary key not null default uuid_generate_v4

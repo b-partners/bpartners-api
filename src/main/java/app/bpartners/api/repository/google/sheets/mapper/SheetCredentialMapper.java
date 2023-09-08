@@ -1,13 +1,15 @@
-package app.bpartners.api.repository.google.calendar.mapper;
+package app.bpartners.api.repository.google.sheets.mapper;
 
-import app.bpartners.api.repository.jpa.model.HCalendarStoredCredential;
+import app.bpartners.api.repository.google.generic.CredentialMapper;
+import app.bpartners.api.repository.jpa.model.HSheetStoredCredential;
 import com.google.api.client.auth.oauth2.StoredCredential;
 import java.time.Instant;
 import org.springframework.stereotype.Component;
 
 @Component
-public class StoredCredentialMapper {
-  public StoredCredential toStoredCredential(HCalendarStoredCredential entity) {
+public class SheetCredentialMapper implements CredentialMapper<HSheetStoredCredential> {
+  @Override
+  public StoredCredential toStoredCredential(HSheetStoredCredential entity) {
     if (entity == null) {
       return null;
     }
@@ -18,9 +20,10 @@ public class StoredCredentialMapper {
     return storedCredential;
   }
 
-  public HCalendarStoredCredential toEntity(
+  @Override
+  public HSheetStoredCredential toEntity(
       String idUser, StoredCredential storedCredential, Instant createdAt) {
-    return HCalendarStoredCredential.builder()
+    return (HSheetStoredCredential) HSheetStoredCredential.builder()
         .idUser(idUser)
         .accessToken(storedCredential.getAccessToken())
         .refreshToken(storedCredential.getRefreshToken())

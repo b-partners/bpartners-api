@@ -321,6 +321,22 @@ public class ProspectService {
         .build();
   }
 
+  public List<ProspectEval> readEvaluationsFromSheets(String idUser,
+                                                      String ownerId,
+                                                      String spreadsheetName,
+                                                      String sheetName,
+                                                      Integer minRange,
+                                                      Integer maxRange) {
+    return readEvaluationsFromSheets(
+        idUser,
+        spreadsheetName,
+        sheetName,
+        minRange,
+        maxRange).stream()
+        .filter(prospect -> prospect.getProspectOwnerId().equals(ownerId))
+        .collect(Collectors.toList());
+  }
+
   //TODO: must be inside repository
   public List<ProspectEval> readEvaluationsFromSheets(String idUser,
                                                       String spreadsheetName,

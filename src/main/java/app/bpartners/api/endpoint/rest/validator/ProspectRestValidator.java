@@ -42,15 +42,17 @@ public class ProspectRestValidator implements Consumer<UpdateProspect> {
     if (evaluation.getArtisanOwner() == null) {
       builder.append("ArtisanOwner is mandatory. ");
     }
-    if (ratingProperties == null) {
-      builder.append("RatingProperties is mandatory. ");
-    } else {
+    if (ratingProperties != null) {
       if (ratingProperties.getMinCustomerRating() == null) {
-        builder.append("RatingProperties.minCustomerRating is mandatory. ");
+        ratingProperties.setMinCustomerRating(8.0);
       }
       if (ratingProperties.getMinProspectRating() == null) {
-        builder.append("RatingProperties.minProspectRating is mandatory. ");
+        ratingProperties.setMinProspectRating(8.0);
       }
+    } else {
+      evaluation.setRatingProperties(new RatingProperties()
+          .minCustomerRating(8.0)
+          .minProspectRating(8.0));
     }
     if (evaluationRules == null) {
       builder.append("EvaluationRules is mandatory. ");

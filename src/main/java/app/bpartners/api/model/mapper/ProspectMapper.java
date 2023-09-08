@@ -39,6 +39,7 @@ import static app.bpartners.api.repository.expressif.utils.ProspectEvalUtils.inf
 import static app.bpartners.api.repository.expressif.utils.ProspectEvalUtils.interventionType;
 import static app.bpartners.api.repository.expressif.utils.ProspectEvalUtils.professionalCustomerType;
 import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
+import static java.util.UUID.randomUUID;
 
 @Component
 @AllArgsConstructor
@@ -173,6 +174,7 @@ public class ProspectMapper {
           var cells = rowData.getValues();
           ProspectEval.Builder<Object> builder = ProspectEval.builder();
           ProspectEvalInfo info = toProspectEvalInfo(firstIndex, rowData);
+          builder.id(String.valueOf(randomUUID()));
           builder.prospectEvalInfo(info);
           builder.prospectOwnerId(info.getOwner());
           setBuilderJobValue(builder, cells.get(14));

@@ -91,7 +91,7 @@ class ProspectEvaluationIT extends MockedThirdParties {
   @Autowired
   private UserService userService;
 
-  private static OutputValue<Object> prospectRatingResult() {
+  public static OutputValue<Object> prospectRatingResult() {
     return OutputValue.builder()
         .name("Notation du prospect")
         .value(10.0)

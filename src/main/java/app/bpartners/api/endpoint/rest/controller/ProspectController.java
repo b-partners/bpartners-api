@@ -135,6 +135,7 @@ public class ProspectController {
 
     List<ProspectEval> prospectEvaluations = service.readEvaluationsFromSheets(
         AuthProvider.getAuthenticatedUserId(),
+        prospectEvaluation.getArtisanOwner(),
         sheetProperties.getSpreadsheetName(),
         sheetProperties.getSheetName(),
         range.getMin(), range.getMax());

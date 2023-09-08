@@ -6,6 +6,7 @@ import app.bpartners.api.model.mapper.ProspectEvalMapper;
 import app.bpartners.api.model.mapper.ProspectMapper;
 import app.bpartners.api.repository.AccountHolderRepository;
 import app.bpartners.api.repository.SogefiBuildingPermitRepository;
+import app.bpartners.api.repository.ban.BanApi;
 import app.bpartners.api.repository.expressif.ExpressifApi;
 import app.bpartners.api.repository.implementation.ProspectRepositoryImpl;
 import app.bpartners.api.repository.jpa.MunicipalityJpaRepository;
@@ -44,14 +45,16 @@ class ProspectRepositoryImplTest {
   ExpressifApi expressifApiMock;
   ProspectEvalMapper evalMapperMock;
   ProspectEvalInfoJpaRepository evalInfoJpaRepositoryMock;
+  BanApi banApiMock;
   EntityManager em;
 
 
   @BeforeEach
   void setUp() {
     prospectJpaRepositoryMock = mock(ProspectJpaRepository.class);
-    prospectMapper = new ProspectMapper(resourceProviderMock,
-        prospectJpaRepositoryMock);
+    banApiMock = mock(BanApi.class);
+    prospectMapper =
+        new ProspectMapper(resourceProviderMock, prospectJpaRepositoryMock, banApiMock);
     buildingPermitApiMock = mock(BuildingPermitApi.class);
     sogefiBuildingPermitRepositoryMock = mock(SogefiBuildingPermitRepository.class);
     businessActivityServiceMock = mock(BusinessActivityService.class);

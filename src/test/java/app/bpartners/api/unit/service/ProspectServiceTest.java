@@ -1,6 +1,9 @@
 package app.bpartners.api.unit.service;
 
+import app.bpartners.api.model.mapper.ProspectMapper;
 import app.bpartners.api.repository.ProspectRepository;
+import app.bpartners.api.repository.google.calendar.drive.DriveApi;
+import app.bpartners.api.repository.google.sheets.SheetApi;
 import app.bpartners.api.repository.jpa.AccountHolderJpaRepository;
 import app.bpartners.api.repository.jpa.model.HAccountHolder;
 import app.bpartners.api.service.CustomerService;
@@ -16,7 +19,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static app.bpartners.api.integration.conf.utils.TestUtils.ACCOUNTHOLDER_ID;
-import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -31,8 +33,12 @@ class ProspectServiceTest {
       mock(AccountHolderJpaRepository.class);
   SesService sesServiceMock = mock(SesService.class);
   CustomerService customerService = mock(CustomerService.class);
+  SheetApi sheetApi = mock(SheetApi.class);
+  DriveApi driveApi = mock(DriveApi.class);
+  ProspectMapper prospectMapper = mock(ProspectMapper.class);
   ProspectService subject = new ProspectService(prospectRepositoryMock, dataProcesserMock,
-      accountHolderJpaRepositoryMock, sesServiceMock, customerService);
+      accountHolderJpaRepositoryMock, sesServiceMock, customerService, sheetApi, driveApi,
+      prospectMapper);
 
   @BeforeEach
   void setup() {

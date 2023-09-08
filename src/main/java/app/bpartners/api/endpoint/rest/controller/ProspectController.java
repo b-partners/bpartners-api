@@ -6,7 +6,13 @@ import app.bpartners.api.endpoint.rest.model.ExtendedProspectStatus;
 import app.bpartners.api.endpoint.rest.model.NewInterventionOption;
 import app.bpartners.api.endpoint.rest.model.Prospect;
 import app.bpartners.api.endpoint.rest.model.ProspectConversion;
+import app.bpartners.api.endpoint.rest.model.ProspectEvaluationRules;
+import app.bpartners.api.endpoint.rest.model.RatingProperties;
+import app.bpartners.api.endpoint.rest.model.SheetProperties;
+import app.bpartners.api.endpoint.rest.model.SheetProspectEvaluation;
+import app.bpartners.api.endpoint.rest.model.SheetRange;
 import app.bpartners.api.endpoint.rest.model.UpdateProspect;
+import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.endpoint.rest.validator.ProspectRestValidator;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.NotImplementedException;
@@ -114,8 +120,45 @@ public class ProspectController {
         .collect(toUnmodifiableList());
   }
 
-  @PostMapping("/accountHolders/{ahId}/prospects/prospectsEvaluation")
+  @PostMapping("/accountHolders/{ahId}/prospects/evaluations")
   public ResponseEntity evaluateProspects(
+      @PathVariable("ahId") String accountHolderId,
+      @RequestBody(required = false) SheetProspectEvaluation prospectEvaluation,
+      @RequestHeader HttpHeaders headers) {
+    validator.accept(prospectEvaluation);
+    String acceptHeaders = validator.validateAccept(headers.getFirst(HttpHeaders.ACCEPT));
+    boolean isExcelFile = acceptHeaders.equals(XLS_FILE) || acceptHeaders.equals(XLSX_FILE);
+    ProspectEvaluationRules evaluationRules = prospectEvaluation.getEvaluationRules();
+    RatingProperties ratingProperties = prospectEvaluation.getRatingProperties();
+    SheetProperties sheetProperties = prospectEvaluation.getSheetProperties();
+    SheetRange range = sheetProperties.getRanges();
+
+    List<ProspectEval> prospectEvaluations = service.readEvaluationsFromSheets(
+        AuthProvider.getAuthenticatedUserId(),
+        prospectEvaluation.getArtisanOwner(),
+        sheetProperties.getSpreadsheetName(),
+        sheetProperties.getSheetName(),
+        range.getMin(), range.getMax());
+
+    List<EvaluatedProspect> evaluatedProspects =
+        service.evaluateProspects(
+                prospectEvaluations,
+                evaluationRules.getNewInterventionOption(),
+                ratingProperties.getMinProspectRating(),
+                ratingProperties.getMinCustomerRating())
+            .stream()
+            .map(mapper::toRest)
+            .collect(Collectors.toList());
+    if (isExcelFile) {
+      byte[] excelFile =
+          ProspectEvalUtils.convertIntoExcel(null, evaluatedProspects);
+      return new ResponseEntity<>(excelFile, HttpStatus.OK);
+    }
+    return new ResponseEntity<>(evaluatedProspects, HttpStatus.OK);
+  }
+
+  @PostMapping("/accountHolders/{ahId}/prospects/prospectsEvaluation")
+  public ResponseEntity evaluateProspectsFromExcel(
       @PathVariable("ahId") String accountHolderId,
       @RequestBody byte[] toEvaluate,
       @RequestHeader HttpHeaders headers) {

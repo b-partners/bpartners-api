@@ -12,6 +12,8 @@ import static com.google.api.services.sheets.v4.SheetsScopes.SPREADSHEETS;
 @Configuration
 @Getter
 public class SheetConf extends CredentialConfig {
+  public static final String GRID_SHEET_TYPE = "GRID";
+
   public SheetConf(@Value("${google.sheet.apps.name}") String applicationName,
                    @Value("${google.sheet.client.id}") String clientId,
                    @Value("${google.sheet.client.secret}") String clientSecret,

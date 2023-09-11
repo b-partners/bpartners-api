@@ -7,13 +7,21 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import java.io.IOException;
+import java.net.Socket;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.security.SecureRandom;
+import java.security.cert.X509Certificate;
 import java.util.HashMap;
 import java.util.List;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLEngine;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509ExtendedTrustManager;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -22,7 +30,10 @@ import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVE
 @Component
 @Slf4j
 public class ExpressifApi {
-  private final HttpClient httpClient = HttpClient.newBuilder().build();
+  public static final String SSL_PROTOCOL = "SSL";
+  private final HttpClient httpClient = HttpClient.newBuilder()
+      .sslContext(mockedSslContext())
+      .build();
   private final ObjectMapper objectMapper = new ObjectMapper()
       .findAndRegisterModules()
       .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
@@ -62,4 +73,51 @@ public class ExpressifApi {
     queryParams.put("ruleBase", "Depanneurs.rules"); //TODO: set customizable
     return queryParams;
   }
+
+  @SneakyThrows
+  private static SSLContext mockedSslContext() {
+    SSLContext sslContext = SSLContext.getInstance(SSL_PROTOCOL);
+    sslContext.init(null, new TrustManager[] {MOCK_TRUST_MANAGER}, new SecureRandom());
+    return sslContext;
+  }
+
+  private static final TrustManager MOCK_TRUST_MANAGER = new X509ExtendedTrustManager() {
+
+    @Override
+    public void checkServerTrusted(X509Certificate[] chain, String authType) {
+      //Do nothing
+    }
+
+    @Override
+    public void checkServerTrusted(X509Certificate[] chain, String authType, Socket socket) {
+      //Do nothing
+
+    }
+
+    @Override
+    public void checkServerTrusted(X509Certificate[] chain, String authType, SSLEngine engine) {
+      //Do nothing
+    }
+
+    @Override
+    public X509Certificate[] getAcceptedIssuers() {
+      return new X509Certificate[0];
+    }
+
+    @Override
+    public void checkClientTrusted(X509Certificate[] chain, String authType) {
+      //Do nothing
+    }
+
+    @Override
+    public void checkClientTrusted(X509Certificate[] chain, String authType, Socket socket) {
+      //Do nothing
+
+    }
+
+    @Override
+    public void checkClientTrusted(X509Certificate[] chain, String authType, SSLEngine engine) {
+      //Do nothing
+    }
+  };
 }

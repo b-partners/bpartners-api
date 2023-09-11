@@ -12,10 +12,10 @@ import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.model.File;
 import com.google.api.services.drive.model.FileList;
+import java.io.IOException;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -41,7 +41,7 @@ public class DriveApi {
   }
 
   public FileList getSpreadSheets(String idUser) {
-    return getSpreadSheets(sheetConf.getLocalCredentials(idUser));
+    return getSpreadSheets(sheetConf.loadCredential(idUser));
   }
 
   public FileList getSpreadSheets(Credential credential) {
@@ -68,7 +68,6 @@ public class DriveApi {
     return files.get(0);
   }
 
-  @SneakyThrows
   private FileList getFiles(Credential credential, String query) {
     Drive driveService = initService(sheetConf, credential);
     try {
@@ -79,13 +78,17 @@ public class DriveApi {
     } catch (GoogleJsonResponseException e) {
       switch (e.getStatusCode()) {
         case 400:
-          throw new BadRequestException(e.getMessage());
+          throw new BadRequestException("[Google Drive] " + e.getDetails().getMessage());
         case 403:
+          throw new ForbiddenException("[Google Drive] " + e.getDetails().getMessage());
         case 401:
-          throw new ForbiddenException(e.getMessage());
+          throw new ForbiddenException(
+              "Google Drive/Sheet Token is expired or invalid. Give your consent again.");
         default:
           throw new ApiException(SERVER_EXCEPTION, e);
       }
+    } catch (IOException e) {
+      throw new ApiException(SERVER_EXCEPTION, e);
     }
   }
 

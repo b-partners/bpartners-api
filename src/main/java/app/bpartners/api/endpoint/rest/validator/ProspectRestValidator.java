@@ -35,57 +35,61 @@ public class ProspectRestValidator implements Consumer<UpdateProspect> {
 
   public void accept(SheetProspectEvaluation evaluation) {
     StringBuilder builder = new StringBuilder();
-    ProspectEvaluationRules evaluationRules = evaluation.getEvaluationRules();
-    RatingProperties ratingProperties = evaluation.getRatingProperties();
-    SheetProperties sheetProperties = evaluation.getSheetProperties();
-    if (evaluation.getArtisanOwner() == null) {
-      builder.append("ArtisanOwner is mandatory. ");
-    }
-    if (ratingProperties != null) {
-      if (ratingProperties.getMinCustomerRating() == null) {
-        ratingProperties.setMinCustomerRating(8.0);
-      } else if (ratingProperties.getMinCustomerRating() < 0
-          || ratingProperties.getMinCustomerRating() > 10) {
-        builder.append("Min customer rating must be between 0 and 10 but was "
-            + ratingProperties.getMinCustomerRating());
-      }
-      if (ratingProperties.getMinProspectRating() == null) {
-        ratingProperties.setMinProspectRating(8.0);
-      } else if (ratingProperties.getMinProspectRating() < 0
-          || ratingProperties.getMinCustomerRating() > 10) {
-        builder.append("Min prospect rating must be between 0 and 10 but was "
-            + ratingProperties.getMinProspectRating());
-      }
+    if (evaluation == null) {
+      builder.append("Request body SheetProspectEvaluation is mandatory");
     } else {
-      evaluation.setRatingProperties(new RatingProperties()
-          .minCustomerRating(8.0)
-          .minProspectRating(8.0));
-    }
-    if (evaluationRules == null) {
-      builder.append("EvaluationRules is mandatory. ");
-    } else {
-      if (evaluationRules.getNewInterventionOption() == null) {
-        builder.append("EvaluationRules.newInterventionOption is mandatory. ");
+      ProspectEvaluationRules evaluationRules = evaluation.getEvaluationRules();
+      RatingProperties ratingProperties = evaluation.getRatingProperties();
+      SheetProperties sheetProperties = evaluation.getSheetProperties();
+      if (evaluation.getArtisanOwner() == null) {
+        builder.append("ArtisanOwner is mandatory. ");
       }
-    }
-    if (sheetProperties == null) {
-      builder.append("SheetProperties is mandatory. ");
-    } else {
-      if (sheetProperties.getSheetName() == null) {
-        builder.append("SheetProperties.sheetName is mandatory. ");
-      }
-      if (sheetProperties.getSpreadsheetName() == null) {
-        builder.append("SheetProperties.spreadsheetName is mandatory. ");
-      }
-      SheetRange ranges = sheetProperties.getRanges();
-      if (ranges == null) {
-        builder.append("SheetProperties.ranges is mandatory. ");
-      } else {
-        if (ranges.getMin() == null) {
-          builder.append("SheetProperties.ranges.min is mandatory. ");
+      if (ratingProperties != null) {
+        if (ratingProperties.getMinCustomerRating() == null) {
+          ratingProperties.setMinCustomerRating(8.0);
+        } else if (ratingProperties.getMinCustomerRating() < 0
+            || ratingProperties.getMinCustomerRating() > 10) {
+          builder.append("Min customer rating must be between 0 and 10 but was "
+              + ratingProperties.getMinCustomerRating());
         }
-        if (ranges.getMax() == null) {
-          builder.append("SheetProperties.ranges.max is mandatory. ");
+        if (ratingProperties.getMinProspectRating() == null) {
+          ratingProperties.setMinProspectRating(8.0);
+        } else if (ratingProperties.getMinProspectRating() < 0
+            || ratingProperties.getMinCustomerRating() > 10) {
+          builder.append("Min prospect rating must be between 0 and 10 but was "
+              + ratingProperties.getMinProspectRating());
+        }
+      } else {
+        evaluation.setRatingProperties(new RatingProperties()
+            .minCustomerRating(8.0)
+            .minProspectRating(8.0));
+      }
+      if (evaluationRules == null) {
+        builder.append("EvaluationRules is mandatory. ");
+      } else {
+        if (evaluationRules.getNewInterventionOption() == null) {
+          builder.append("EvaluationRules.newInterventionOption is mandatory. ");
+        }
+      }
+      if (sheetProperties == null) {
+        builder.append("SheetProperties is mandatory. ");
+      } else {
+        if (sheetProperties.getSheetName() == null) {
+          builder.append("SheetProperties.sheetName is mandatory. ");
+        }
+        if (sheetProperties.getSpreadsheetName() == null) {
+          builder.append("SheetProperties.spreadsheetName is mandatory. ");
+        }
+        SheetRange ranges = sheetProperties.getRanges();
+        if (ranges == null) {
+          builder.append("SheetProperties.ranges is mandatory. ");
+        } else {
+          if (ranges.getMin() == null) {
+            builder.append("SheetProperties.ranges.min is mandatory. ");
+          }
+          if (ranges.getMax() == null) {
+            builder.append("SheetProperties.ranges.max is mandatory. ");
+          }
         }
       }
     }

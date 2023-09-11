@@ -133,10 +133,12 @@ public class SheetApi {
     } catch (GoogleJsonResponseException e) {
       switch (e.getStatusCode()) {
         case 400:
-          throw new BadRequestException(e.getMessage());
+          throw new BadRequestException("[Google Sheet] " + e.getDetails().getMessage());
         case 403:
+          throw new ForbiddenException("[Google Sheet] " + e.getDetails().getMessage());
         case 401:
-          throw new ForbiddenException(e.getMessage());
+          throw new ForbiddenException(
+              "Google Drive/Sheet Token is expired or invalid. Give your consent again.");
         default:
           throw new ApiException(SERVER_EXCEPTION, e);
       }
@@ -144,5 +146,13 @@ public class SheetApi {
       throw new ApiException(SERVER_EXCEPTION, e);
     }
     return spreadsheet;
+  }
+
+  public String initConsent(String callBackUri) {
+    return sheetsConf.getOauthRedirectUri(callBackUri);
+  }
+
+  public Credential storeCredential(String idUser, String authorizationCode, String redirectUrl) {
+    return sheetsConf.storeCredential(idUser, authorizationCode, redirectUrl);
   }
 }

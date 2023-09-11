@@ -296,6 +296,12 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
             new SelfUserMatcher(POST, "/users/*/calendars/oauth2/auth", authResourceProvider))
         .authenticated()
         .requestMatchers(
+            new SelfUserMatcher(POST, "/users/*/sheets/oauth2/consent", authResourceProvider))
+        .authenticated()
+        .requestMatchers(
+            new SelfUserMatcher(POST, "/users/*/sheets/oauth2/auth", authResourceProvider))
+        .authenticated()
+        .requestMatchers(
             new SelfAccountMatcher(PUT, "/accounts/*/invoices/{iId}/paymentRegulations/*/paymentMethod", authResourceProvider))
         .authenticated()
         .antMatchers("/**").denyAll()

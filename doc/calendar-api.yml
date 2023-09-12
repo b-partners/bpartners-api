@@ -55,7 +55,9 @@ operations:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CalendarEvent'
+                type: array
+                items:
+                  $ref: '#/components/schemas/CalendarEvent'
         400:
           $ref: './api.yml#/components/responses/400'
         500:

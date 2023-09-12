@@ -46,7 +46,8 @@ class LiveTransactionIT extends MockedThirdParties {
     ApiClient joeDoeClient = anApiClient();
     PayingApi api = new PayingApi(joeDoeClient);
 
-    List<Transaction> actual = api.getTransactions(JOE_DOE_ACCOUNT_ID, "Création", null, null);
+    List<Transaction> actual = api.getTransactions(JOE_DOE_ACCOUNT_ID, "Création", null, null,
+        null, null);
 
     assertEquals(1, actual.size());
     assertEquals(restTransaction1(), actual.get(0));

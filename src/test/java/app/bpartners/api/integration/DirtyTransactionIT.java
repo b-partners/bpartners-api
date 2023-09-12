@@ -69,7 +69,7 @@ class DirtyTransactionIT extends MockedThirdParties {
     ApiClient joeDoeClient = anApiClient(JOE_DOE_TOKEN);
     PayingApi api = new PayingApi(joeDoeClient);
 
-    List<Transaction> actual = api.getTransactions(JOE_DOE_ACCOUNT_ID, null, null, null);
+    List<Transaction> actual = api.getTransactions(JOE_DOE_ACCOUNT_ID, null, null, null, null, null);
 
     assertFalse(actual.isEmpty());
   }

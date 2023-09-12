@@ -23,6 +23,8 @@ import app.bpartners.api.endpoint.rest.model.LegalFile;
 import app.bpartners.api.endpoint.rest.model.PaymentRegulation;
 import app.bpartners.api.endpoint.rest.model.Product;
 import app.bpartners.api.endpoint.rest.model.ProductStatus;
+import app.bpartners.api.endpoint.rest.model.Redirection1;
+import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
 import app.bpartners.api.endpoint.rest.model.TransactionCategory;
 import app.bpartners.api.endpoint.rest.model.TransactionStatus;
 import app.bpartners.api.endpoint.rest.model.UpdateCustomerStatus;
@@ -874,6 +876,18 @@ public class TestUtils {
         .subjectToVat(true)
         .country("FRA")
         .build();
+  }
+
+  public static RedirectionStatusUrls redirectionStatusUrls() {
+    return new RedirectionStatusUrls()
+        .successUrl("dummy")
+        .failureUrl("dummy");
+  }
+
+  public static Redirection1 expectedRedirection() {
+    return new Redirection1()
+        .redirectionUrl("dummy")
+        .redirectionStatusUrls(redirectionStatusUrls());
   }
 
   public static void assertThrowsApiException(String expectedBody, Executable executable) {

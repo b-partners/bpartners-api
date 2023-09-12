@@ -3,6 +3,7 @@ package app.bpartners.api.endpoint.rest.controller;
 import app.bpartners.api.endpoint.rest.mapper.TransactionRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.TransactionsSummaryRestMapper;
 import app.bpartners.api.endpoint.rest.model.Transaction;
+import app.bpartners.api.endpoint.rest.model.TransactionStatus;
 import app.bpartners.api.endpoint.rest.model.TransactionsSummary;
 import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.model.BoundedPageSize;
@@ -31,8 +32,9 @@ public class TransactionController {
       PageFromOne page,
       @RequestParam(name = "pageSize", required = false)
       BoundedPageSize pageSize,
-      @RequestParam(name = "label", required = false) String label) {
-    return service.getPersistedByIdAccount(accountId, label, page, pageSize).stream()
+      @RequestParam(name = "label", required = false) String label,
+      @RequestParam(name = "status", required = false) TransactionStatus status) {
+    return service.getPersistedByIdAccount(accountId, label, status, page, pageSize).stream()
         .map(mapper::toRest)
         .collect(Collectors.toUnmodifiableList());
   }

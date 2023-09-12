@@ -1,5 +1,6 @@
 package app.bpartners.api.service;
 
+import app.bpartners.api.endpoint.rest.model.TransactionStatus;
 import app.bpartners.api.endpoint.rest.model.TransactionTypeEnum;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.BoundedPageSize;
@@ -75,12 +76,11 @@ public class TransactionService {
   }
 
   public List<Transaction> getPersistedByIdAccount(String idAccount,
-                                                   String label,
-                                                   PageFromOne page,
-                                                   BoundedPageSize pageSize) {
+                                                   String label, TransactionStatus status,
+                                                   PageFromOne page, BoundedPageSize pageSize) {
     int pageValue = page == null ? 0 : page.getValue() - 1;
     int pageSizeValue = pageSize == null ? 30 : pageSize.getValue();
-    return repository.findByIdAccount(idAccount, label, pageValue, pageSizeValue);
+    return repository.findByIdAccount(idAccount, label, status, pageValue, pageSizeValue);
   }
 
   public Transaction getById(String transactionId) {

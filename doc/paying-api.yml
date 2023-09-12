@@ -17,6 +17,16 @@ operations:
           schema:
             type: string
         - in: query
+          name: status
+          description: Filter transactions by status
+          schema:
+            $ref: '#/components/schemas/TransactionStatus'
+        - in: query
+          name: category
+          description: Filter transactions by category
+          schema:
+            type: string
+        - in: query
           name: page
           schema:
             $ref: './api.yml#/components/schemas/Page'

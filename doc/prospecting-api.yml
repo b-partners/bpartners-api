@@ -307,7 +307,50 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
-
+  calendarEventProspects:
+    post:
+      tags:
+        - Prospecting
+      summary: Convert found events into prospects
+      operationId: convertEventsAsProspects
+      parameters:
+        - name: userId
+          in: path
+          description: User identifier
+          schema:
+            type: string
+          required: true
+        - name: calendarId
+          in: path
+          description: Calendar identifier.
+          schema:
+            type: string
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostEventProspectConversion'
+      responses:
+        200:
+          description: The evaluated events as prospect.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Prospect'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
 components:
   schemas:
     Marketplace:
@@ -514,6 +557,60 @@ components:
           $ref: '#/components/schemas/NewInterventionOption'
           description: |
             When any value provided, NEW_PROSPECT is chosen by default.
+    PostEventProspectConversion:
+      type: object
+      properties:
+        evaluationRules:
+          $ref: '#/components/schemas/EventEvaluationRules'
+        eventDateRanges:
+          $ref: '#/components/schemas/EventDateRanges'
+        minRating:
+          type: number
+          format: double
+          description: |
+            When any value provided, minimum customer rating accepted is 8.0.
+    EventEvaluationRules:
+      type: object
+      properties:
+        profession:
+          $ref: '#/components/schemas/ProfessionType'
+        antiHarmRules:
+          $ref: '#/components/schemas/AntiHarmRules'
+    ProfessionType:
+      type: string
+      enum:
+        #Only supported for now
+        - ANTI_HARM
+    AntiHarmRules:
+      type: object
+      properties:
+        interventionTypes:
+          type: array
+          items:
+            $ref: '#/components/schemas/InterventionType'
+        infestationType:
+          type: string
+    InterventionType:
+      type: string
+      enum:
+        - INSECT_CONTROL
+        - DISINFECTION
+        - RAT_REMOVAL
+    EventDateRanges:
+      type: object
+      properties:
+        from:
+          type: string
+          format: date-time
+          description: |
+            When not provided or the `to` parameter not provided, the filter parameter is ignored.
+            If not provided, actual week is provided by default.
+        to:
+          type: string
+          format: date-time
+          description: |
+            When not provided or the `from` parameter not provided, the filter parameter is ignored.
+            If not provided, actual week is provided by default.
     RatingProperties:
       type: object
       properties:

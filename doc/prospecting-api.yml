@@ -307,22 +307,91 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
-  calendarEventProspects:
-    post:
+  prospectEvaluationJobDetails:
+    get:
       tags:
         - Prospecting
-      summary: Convert found events into prospects
-      operationId: convertEventsAsProspects
+      summary: Get all prospect evaluation jobs for an account holder
+      operationId: getProspectEvaluationJobs
       parameters:
-        - name: userId
+        - name: ahId
           in: path
-          description: User identifier
+          description: Account holder identifier
           schema:
             type: string
           required: true
-        - name: calendarId
+        - name: jId
           in: path
-          description: Calendar identifier.
+          description: Prospect evaluation job identifier
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProspectEvaluationJobResult'
+          400:
+            $ref: './api.yml#/components/responses/400'
+          403:
+            $ref: './api.yml#/components/responses/403'
+          404:
+            $ref: './api.yml#/components/responses/404'
+          429:
+            $ref: './api.yml#/components/responses/429'
+          500:
+            $ref: './api.yml#/components/responses/500'
+  prospectEvaluationJobs:
+    get:
+      tags:
+        - Prospecting
+      summary: Get all prospect evaluation jobs for an account holder
+      operationId: getProspectEvaluationJobs
+      parameters:
+        - name: ahId
+          in: path
+          description: Account holder identifier
+          schema:
+            type: string
+          required: true
+        - name: statuses
+          in: query
+          description: Filter prospect evaluation jobs by job statuses value
+          schema:
+            type: array
+            items:
+              $ref: './api.yml#/components/schemas/JobStatusValue'
+          required: false
+      responses:
+        200:
+          description:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ProspectEvaluationJobInfo'
+          400:
+            $ref: './api.yml#/components/responses/400'
+          403:
+            $ref: './api.yml#/components/responses/403'
+          404:
+            $ref: './api.yml#/components/responses/404'
+          429:
+            $ref: './api.yml#/components/responses/429'
+          500:
+            $ref: './api.yml#/components/responses/500'
+    post:
+      tags:
+        - Prospecting
+      summary: Run prospect-evaluation jobs
+      operationId: runProspectEvaluationJobs
+      parameters:
+        - name: ahId
+          in: path
+          description: Account holder identifier
           schema:
             type: string
           required: true
@@ -331,16 +400,20 @@ operations:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PostEventProspectConversion'
+              type: array
+              items:
+                $ref: '#/components/schemas/PostProspectEvaluationJob'
       responses:
         200:
-          description: The evaluated events as prospect.
+          description: |
+            Return prospect evaluation jobs results.
+            For each finished job with status `FINISHED`, an email will be automatically sent to the account holder.
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Prospect'
+                  $ref: '#/components/schemas/ProspectEvaluationJobResult'
         400:
           $ref: './api.yml#/components/responses/400'
         403:
@@ -557,18 +630,27 @@ components:
           $ref: '#/components/schemas/NewInterventionOption'
           description: |
             When any value provided, NEW_PROSPECT is chosen by default.
+    PostProspectEvaluationJob:
+      type: object
+      properties:
+        eventProspectConversion:
+          $ref: '#/components/schemas/PostEventProspectConversion'
+        #TODO: add spreadsheetEvaluation here
     PostEventProspectConversion:
       type: object
       properties:
+        calendarId:
+          type: string
         evaluationRules:
           $ref: '#/components/schemas/EventEvaluationRules'
         eventDateRanges:
           $ref: '#/components/schemas/EventDateRanges'
-        minRating:
-          type: number
-          format: double
+        sheetProperties:
+          $ref: '#/components/schemas/SheetProperties'
           description: |
-            When any value provided, minimum customer rating accepted is 8.0.
+            If not provided, then only existing customers will be evaluated.
+        ratingProperties:
+          $ref: '#/components/schemas/RatingProperties'
     EventEvaluationRules:
       type: object
       properties:
@@ -624,3 +706,33 @@ components:
           format: double
           description: |
             When any value provided, minimum prospect rating accepted is 8.0.
+    ProspectEvaluationJobInfo:
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          $ref: '#/components/schemas/ProspectEvaluationJobType'
+        status:
+          $ref: './api.yml#/components/schemas/JobStatus'
+        startedAt:
+          type: string
+          format: date-time
+        endedAt:
+          type: string
+          format: date-time
+    ProspectEvaluationJobType:
+      type: string
+      enum:
+        - CALENDAR_EVENT_CONVERSION
+        - ADDRESS_CONVERSION
+        - SPREADSHEET_EVALUATION
+    ProspectEvaluationJobResult:
+      allOf:
+        - $ref: '#/components/schemas/ProspectEvaluationJobInfo'
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Prospect'

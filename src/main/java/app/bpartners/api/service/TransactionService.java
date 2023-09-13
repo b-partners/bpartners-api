@@ -10,6 +10,7 @@ import app.bpartners.api.model.MonthlyTransactionsSummary;
 import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.model.Transaction;
 import app.bpartners.api.model.TransactionsSummary;
+import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.repository.TransactionRepository;
 import app.bpartners.api.repository.TransactionsSummaryRepository;
 import java.time.Instant;
@@ -77,9 +78,13 @@ public class TransactionService {
 
   public List<Transaction> getPersistedByIdAccount(String idAccount,
                                                    String label, TransactionStatus status,
-                                                   PageFromOne page, BoundedPageSize pageSize) {
+                                                   String category, PageFromOne page,
+                                                   BoundedPageSize pageSize) {
     int pageValue = page == null ? 0 : page.getValue() - 1;
     int pageSizeValue = pageSize == null ? 30 : pageSize.getValue();
+    if (category != null) {
+      throw new NotImplementedException("prospect conversion not implemented yet");
+    }
     return repository.findByIdAccount(idAccount, label, status, pageValue, pageSizeValue);
   }
 
@@ -163,7 +168,7 @@ public class TransactionService {
 
   //TODO: check if 1 hour of refresh is enough or too much
   //TODO: note that account (balance) is _NOT_ updated by this scheduled task anymore
-  @Scheduled(fixedRate = 1 * 60 * 60 * 1_000)
+  @Scheduled(fixedRate = 60 * 60 * 1_000)
   public void refreshTransactionsSummaries() {
     List<Account> activeAccounts = accountService.findAllActiveAccounts();
     activeAccounts.forEach(

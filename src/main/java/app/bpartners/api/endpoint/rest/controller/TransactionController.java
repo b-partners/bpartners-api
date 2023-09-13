@@ -33,8 +33,10 @@ public class TransactionController {
       @RequestParam(name = "pageSize", required = false)
       BoundedPageSize pageSize,
       @RequestParam(name = "label", required = false) String label,
-      @RequestParam(name = "status", required = false) TransactionStatus status) {
-    return service.getPersistedByIdAccount(accountId, label, status, page, pageSize).stream()
+      @RequestParam(name = "status", required = false) TransactionStatus status,
+      @RequestParam(name = "category", required = false) String category) {
+    return service.getPersistedByIdAccount(accountId, label, status, category, page, pageSize)
+        .stream()
         .map(mapper::toRest)
         .collect(Collectors.toUnmodifiableList());
   }

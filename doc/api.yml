@@ -152,8 +152,10 @@ paths:
     $ref: './prospecting-api.yml#/operations/prospectsEvaluationOperations'
   /accountHolders/{ahId}/prospects/{id}:
     $ref: './prospecting-api.yml#/operations/updateProspects'
-  /users/{userId}/calendars/{calendarId}/events/prospects:
-    $ref: './prospecting-api.yml#/operations/calendarEventProspects'
+  /accountHolders/{ahId}/prospects/evaluationJobs:
+    $ref: './prospecting-api.yml#/operations/prospectEvaluationJobs'
+  /accountHolders/{ahId}/prospects/evaluationJobs/{jId}:
+    $ref: './prospecting-api.yml#/operations/prospectEvaluationJobDetails'
 
   #############################################
   ################# Google Sheet API ##############
@@ -255,6 +257,20 @@ components:
           description: HTML is waited
         attachments:
           $ref: '#/components/schemas/CreateAttachment'
+    JobStatus:
+      type: object
+      properties:
+        value:
+          $ref: '#/components/schemas/JobStatusValue'
+        message:
+          type: string
+    JobStatusValue:
+      type: string
+      enum:
+        - NOT_STARTED
+        - IN_PROGRESS
+        - FINISHED
+        - FAILED
     Page:
       type: integer
       description: Start at `1`

@@ -3,9 +3,18 @@ package app.bpartners.api.integration;
 import app.bpartners.api.endpoint.rest.api.ProspectingApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
+import app.bpartners.api.endpoint.rest.model.AntiHarmRules;
 import app.bpartners.api.endpoint.rest.model.EvaluatedProspect;
+import app.bpartners.api.endpoint.rest.model.EventDateRanges;
+import app.bpartners.api.endpoint.rest.model.EventEvaluationRules;
+import app.bpartners.api.endpoint.rest.model.InterventionType;
 import app.bpartners.api.endpoint.rest.model.NewInterventionOption;
+import app.bpartners.api.endpoint.rest.model.PostEventProspectConversion;
+import app.bpartners.api.endpoint.rest.model.PostProspectEvaluationJob;
+import app.bpartners.api.endpoint.rest.model.ProfessionType;
+import app.bpartners.api.endpoint.rest.model.ProspectEvaluationJobResult;
 import app.bpartners.api.endpoint.rest.model.ProspectEvaluationRules;
+import app.bpartners.api.endpoint.rest.model.RatingProperties;
 import app.bpartners.api.endpoint.rest.model.SheetProperties;
 import app.bpartners.api.endpoint.rest.model.SheetProspectEvaluation;
 import app.bpartners.api.endpoint.rest.model.SheetRange;
@@ -21,6 +30,7 @@ import app.bpartners.api.repository.ban.BanApi;
 import app.bpartners.api.repository.expressif.ExpressifApi;
 import app.bpartners.api.repository.expressif.ProspectEval;
 import app.bpartners.api.repository.expressif.ProspectEvalInfo;
+import app.bpartners.api.repository.google.calendar.CalendarApi;
 import app.bpartners.api.repository.google.calendar.drive.DriveApi;
 import app.bpartners.api.repository.google.sheets.SheetApi;
 import app.bpartners.api.repository.google.sheets.SheetConf;
@@ -31,6 +41,7 @@ import app.bpartners.api.service.TransactionService;
 import app.bpartners.api.service.UserService;
 import app.bpartners.api.service.utils.DateUtils;
 import com.google.api.client.auth.oauth2.Credential;
+import com.google.api.services.calendar.model.Event;
 import com.google.api.services.drive.model.File;
 import com.google.api.services.drive.model.FileList;
 import com.google.api.services.sheets.v4.Sheets;
@@ -45,6 +56,7 @@ import com.google.api.services.sheets.v4.model.Sheet;
 import com.google.api.services.sheets.v4.model.Spreadsheet;
 import com.google.api.services.sheets.v4.model.UpdateCellsRequest;
 import java.io.IOException;
+import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -65,9 +77,11 @@ import static app.bpartners.api.integration.ProspectEvaluationIT.geoPosZero;
 import static app.bpartners.api.integration.ProspectEvaluationIT.prospectRatingResult;
 import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_HOLDER_ID;
 import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_USER_ID;
 import static app.bpartners.api.integration.conf.utils.TestUtils.joeDoeAccountHolder;
 import static app.bpartners.api.integration.conf.utils.TestUtils.setUpCognito;
 import static app.bpartners.api.integration.conf.utils.TestUtils.setUpLegalFileRepository;
+import static app.bpartners.api.repository.google.calendar.CalendarApi.dateTimeFrom;
 import static app.bpartners.api.repository.implementation.ProspectRepositoryImpl.ANTI_HARM;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -96,6 +110,7 @@ public class SheetIT extends MockedThirdParties {
   public static final String TEST_SPR_SHEET_NAME = "Test";
   public static final String GOLDEN_SOURCE_SHEET_NAME = "Source Import";
   public static final String PROFESSION = "DEPANNEUR";
+  public static final String CAL1_ID = "";
   @Autowired
   private SheetApi sheetApi;
   @Autowired
@@ -110,6 +125,8 @@ public class SheetIT extends MockedThirdParties {
   private BanApi banApiMock;
   @MockBean
   private CustomerService customerService;
+  @MockBean
+  private CalendarApi calendarApiMock;
   @Autowired
   private ProspectService prospectService;
   @MockBean
@@ -120,6 +137,42 @@ public class SheetIT extends MockedThirdParties {
   private BusinessActivityRepository businessRepository;
   @Autowired
   private UserService userService;
+
+  private static PostEventProspectConversion prospectEvent1() {
+    return new PostEventProspectConversion()
+        .calendarId(CAL1_ID)
+        .evaluationRules(new EventEvaluationRules()
+            .antiHarmRules(new AntiHarmRules()
+                .infestationType("souris")
+                .interventionTypes(List.of(InterventionType.DISINFECTION)))
+            .profession(ProfessionType.ANTI_HARM))
+        .eventDateRanges(new EventDateRanges()
+            .from(eventDateMin())
+            .to(eventDateMax()))
+        .sheetProperties(null)
+        .ratingProperties(
+            new RatingProperties()
+                .minCustomerRating(5.0)
+                .minProspectRating(5.0));
+  }
+
+  private static PostEventProspectConversion prospectEvent2() {
+    return prospectEvent1()
+        .sheetProperties(new SheetProperties()
+            .sheetName(GOLDEN_SOURCE_SPR_SHEET_NAME)
+            .spreadsheetName(GOLDEN_SOURCE_SHEET_NAME)
+            .ranges(new SheetRange()
+                .min(2)
+                .max(4)));
+  }
+
+  private static Instant eventDateMax() {
+    return Instant.parse("2023-09-01T00:00:00.00Z");
+  }
+
+  private static Instant eventDateMin() {
+    return Instant.parse("2023-09-30T23:59:59.00Z");
+  }
 
   @BeforeEach
   public void setUp() {
@@ -137,6 +190,42 @@ public class SheetIT extends MockedThirdParties {
   private static ApiClient anApiClient() {
     return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN,
         SheetEnvContextInitializer.getHttpServerPort());
+  }
+
+  @Test
+  void convert_events_to_prospect_ok() throws ApiException {
+    User user = userService.getUserById(JOE_DOE_ID);
+    User savedUser = userService.saveUser(user.toBuilder()
+        .roles(List.of(Role.EVAL_PROSPECT))
+        .build());
+    businessRepository.save(BusinessActivity.builder()
+        .accountHolder(joeDoeAccountHolder())
+        .primaryActivity(ANTI_HARM)
+        .secondaryActivity(null)
+        .build());
+    when(expressifApiMock.process(any())).thenReturn(List.of(prospectRatingResult()));
+    when(banApiMock.fSearch(any())).thenReturn(geoPosZero());
+    when(calendarApiMock.getEvents(JOE_DOE_ID, CAL1_ID, dateTimeFrom(eventDateMin()),
+        dateTimeFrom(eventDateMax())))
+        .thenReturn(
+            List.of(
+                new Event().setLocation("Location1"),
+                new Event().setLocation("Location2")));
+    ApiClient joeDoeClient = anApiClient();
+    ProspectingApi api = new ProspectingApi(joeDoeClient);
+
+    List<ProspectEvaluationJobResult> actual1 =
+        api.runProspectEvaluationJobs(JOE_DOE_USER_ID, List.of(
+            new PostProspectEvaluationJob()
+                .eventProspectConversion(prospectEvent1())));
+    List<ProspectEvaluationJobResult> actual2 =
+        api.runProspectEvaluationJobs(JOE_DOE_USER_ID,
+            List.of(
+                new PostProspectEvaluationJob()
+                    .eventProspectConversion(prospectEvent2())));
+
+    assertEquals(List.of(), actual1);
+    assertEquals(List.of(), actual2);
   }
 
   @Test

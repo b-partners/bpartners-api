@@ -1,3 +1,12 @@
+## [0.29.1](https://github.com/b-partners/bpartners-api/compare/v0.29.0...v0.29.1) (2023-09-13)
+
+
+### Bug Fixes
+
+* set prospect evaluations jobs and add calendar events - prospects conversion inside ([1ecdedc](https://github.com/b-partners/bpartners-api/commit/1ecdedca0c0306679e61ddafcd01894a10105b64))
+
+
+
 # [0.29.0](https://github.com/b-partners/bpartners-api/compare/v0.28.1...v0.29.0) (2023-09-12)
 
 
@@ -148,32 +157,6 @@
 ### Features
 
 * add rating informations to prospect ([b06a8f4](https://github.com/b-partners/bpartners-api/commit/b06a8f4c82cd4fd0bc10d9bd3781dc032b9a21c4))
-
-
-
-# [0.20.0](https://github.com/b-partners/bpartners-api/compare/v0.19.0...v0.20.0) (2023-07-13)
-
-
-### Bug Fixes
-
-* add default label fintecture payment when its value is null or under 3 chars ([e4393cb](https://github.com/b-partners/bpartners-api/commit/e4393cb70f1194a4748a3f75a75a819bdd7107ab))
-* add unique constraint on bridge transaction id ([8593514](https://github.com/b-partners/bpartners-api/commit/8593514fd7a154d4c0a852a3377db971084a35f4))
-* allow duplicated customers and customers with same email ([0d28387](https://github.com/b-partners/bpartners-api/commit/0d28387514dd9cc388bcfb0cc9167302ad021fd1))
-* allow some nullable values when importing/crupdating customers ([06bba00](https://github.com/b-partners/bpartners-api/commit/06bba00a61af1fa0fa36f9ca39118214e59b1b6a))
-* allow updating tva number ([3b13800](https://github.com/b-partners/bpartners-api/commit/3b13800cecd35bcb2b058a047f0dba2e9669f025))
-* avoid NPE when evaluating prospects from excel ([437a016](https://github.com/b-partners/bpartners-api/commit/437a016a13773595e1c316d1679410dadc63162f))
-* handle more than 10 simultaneous customers crupdate ([4601156](https://github.com/b-partners/bpartners-api/commit/460115644f62da6062d4106f72bb5ba8d0a40588))
-* map accounts and account holders from jpa before updating user token ([89304f2](https://github.com/b-partners/bpartners-api/commit/89304f2ac0c8d39ea5e3c2e4b248f27c61b8bc47))
-* map logo and monthly subscription for user correctly ([cc9e11c](https://github.com/b-partners/bpartners-api/commit/cc9e11c72d4aaf6c9b9246e42722009781686bc1))
-* remove sending date and payment date check when marking invoice as paid ([dd36b05](https://github.com/b-partners/bpartners-api/commit/dd36b05d9a93a247dc51603a1fd349614fd4f26e))
-* replace characters not supported by fintecture when initiating payment ([7993d7a](https://github.com/b-partners/bpartners-api/commit/7993d7ae1627c96fc5186c953219a27e6ad772a0))
-* retry payment initiation request once when error occurs ([a41de41](https://github.com/b-partners/bpartners-api/commit/a41de410dfcb1d942776d70200e114faff379b96))
-* validate invoice reference before crupdating ([7b54416](https://github.com/b-partners/bpartners-api/commit/7b54416dc40d3c0d9e8d38c5ab977818b78b6325))
-
-
-### Features
-
-* evaluate prospect through excel file ([775e98c](https://github.com/b-partners/bpartners-api/commit/775e98c2acc4610a5f7061cbb5848a07dfb1b606))
 
 
 

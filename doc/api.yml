@@ -130,6 +130,8 @@ paths:
   #############################################
   /accounts/{aId}/customers/{cId}:
     $ref: './customers-api.yml#/operations/getUniqueCustomer'
+  /accounts/{aId}/customers/export:
+    $ref: './customers-api.yml#/operations/customerExportOperations'
   /accounts/{id}/customers:
     $ref: './customers-api.yml#/operations/customerOperations'
   /accounts/{id}/customers/upload:
@@ -271,6 +273,11 @@ components:
         - IN_PROGRESS
         - FINISHED
         - FAILED
+    SupportedExportFileType:
+      type: string
+      enum:
+        - text/csv
+        - application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
     Page:
       type: integer
       description: Start at `1`

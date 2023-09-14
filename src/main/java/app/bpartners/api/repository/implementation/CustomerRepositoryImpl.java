@@ -210,6 +210,13 @@ public class CustomerRepositoryImpl implements CustomerRepository {
   }
 
   @Override
+  public List<Customer> findAllByIdUserOrderByLastNameAsc(String idUser) {
+    return jpaRepository.findAllByIdUserOrderByLastNameAsc(idUser).stream()
+        .map(mapper::toDomain)
+        .collect(Collectors.toList());
+  }
+
+  @Override
   public List<Customer> findByIdAccountHolder(String idAccountHolder) {
     if (idAccountHolder == null) {
       return List.of();

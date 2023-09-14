@@ -1,15 +1,18 @@
 package app.bpartners.api.service;
 
 import app.bpartners.api.endpoint.rest.model.Geojson;
+import app.bpartners.api.endpoint.rest.model.JobStatusValue;
 import app.bpartners.api.endpoint.rest.model.NewInterventionOption;
 import app.bpartners.api.endpoint.rest.model.ProspectStatus;
 import app.bpartners.api.model.Customer;
 import app.bpartners.api.model.Prospect;
+import app.bpartners.api.model.ProspectEvaluationJob;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.model.mapper.ProspectMapper;
+import app.bpartners.api.repository.ProspectEvaluationJobRepository;
 import app.bpartners.api.repository.ProspectRepository;
 import app.bpartners.api.repository.expressif.ProspectEval;
 import app.bpartners.api.repository.expressif.ProspectEvalInfo;
@@ -39,6 +42,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.thymeleaf.context.Context;
 
+import static app.bpartners.api.endpoint.rest.model.JobStatusValue.FAILED;
+import static app.bpartners.api.endpoint.rest.model.JobStatusValue.FINISHED;
+import static app.bpartners.api.endpoint.rest.model.JobStatusValue.IN_PROGRESS;
+import static app.bpartners.api.endpoint.rest.model.JobStatusValue.NOT_STARTED;
 import static app.bpartners.api.endpoint.rest.model.NewInterventionOption.NEW_PROSPECT;
 import static app.bpartners.api.endpoint.rest.model.NewInterventionOption.OLD_CUSTOMER;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
@@ -61,6 +68,16 @@ public class ProspectService {
   private final SheetApi sheetApi;
   private final DriveApi driveApi;
   private final ProspectMapper prospectMapper;
+  private final ProspectEvaluationJobRepository evalJobRepository;
+
+  public List<ProspectEvaluationJob> getEvaluationJobs(
+      String idAccountHolder,
+      List<JobStatusValue> statuses) {
+    if (statuses == null) {
+      statuses = List.of(NOT_STARTED, IN_PROGRESS, FINISHED, FAILED);
+    }
+    return evalJobRepository.findAllByIdAccountHolderAndStatusesIn(idAccountHolder, statuses);
+  }
 
   public List<Prospect> getAllByIdAccountHolder(String idAccountHolder, String name) {
     return dataProcesser.processProspects(

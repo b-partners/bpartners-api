@@ -3,9 +3,11 @@ package app.bpartners.api.endpoint.rest.controller;
 import app.bpartners.api.endpoint.rest.mapper.ProspectRestMapper;
 import app.bpartners.api.endpoint.rest.model.EvaluatedProspect;
 import app.bpartners.api.endpoint.rest.model.ExtendedProspectStatus;
+import app.bpartners.api.endpoint.rest.model.JobStatusValue;
 import app.bpartners.api.endpoint.rest.model.NewInterventionOption;
 import app.bpartners.api.endpoint.rest.model.Prospect;
 import app.bpartners.api.endpoint.rest.model.ProspectConversion;
+import app.bpartners.api.endpoint.rest.model.ProspectEvaluationJobInfo;
 import app.bpartners.api.endpoint.rest.model.ProspectEvaluationRules;
 import app.bpartners.api.endpoint.rest.model.RatingProperties;
 import app.bpartners.api.endpoint.rest.model.SheetProperties;
@@ -192,5 +194,14 @@ public class ProspectController {
                                         @RequestBody ExtendedProspectStatus toUpdate) {
     app.bpartners.api.model.Prospect prospect = mapper.toDomain(toUpdate);
     return mapper.toRest(service.save(prospect));
+  }
+
+  @GetMapping("/accountHolders/{ahId}/prospects/evaluationJobs")
+  public List<ProspectEvaluationJobInfo> getProspectEvaluationJobs(@PathVariable String ahId,
+                                                                   @RequestParam(name = "statuses", required = false)
+                                                                   List<JobStatusValue> statuses) {
+    return service.getEvaluationJobs(ahId, statuses).stream()
+        .map(mapper::toRest)
+        .collect(Collectors.toList());
   }
 }

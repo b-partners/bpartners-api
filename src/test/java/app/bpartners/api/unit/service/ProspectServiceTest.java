@@ -1,6 +1,7 @@
 package app.bpartners.api.unit.service;
 
 import app.bpartners.api.model.mapper.ProspectMapper;
+import app.bpartners.api.repository.ProspectEvaluationJobRepository;
 import app.bpartners.api.repository.ProspectRepository;
 import app.bpartners.api.repository.google.calendar.drive.DriveApi;
 import app.bpartners.api.repository.google.sheets.SheetApi;
@@ -36,9 +37,11 @@ class ProspectServiceTest {
   SheetApi sheetApi = mock(SheetApi.class);
   DriveApi driveApi = mock(DriveApi.class);
   ProspectMapper prospectMapper = mock(ProspectMapper.class);
-  ProspectService subject = new ProspectService(prospectRepositoryMock, dataProcesserMock,
-      accountHolderJpaRepositoryMock, sesServiceMock, customerService, sheetApi, driveApi,
-      prospectMapper);
+  ProspectEvaluationJobRepository jobRepositoryMock = mock(ProspectEvaluationJobRepository.class);
+  ProspectService subject = new ProspectService(
+      prospectRepositoryMock, dataProcesserMock, accountHolderJpaRepositoryMock,
+      sesServiceMock, customerService, sheetApi, driveApi,
+      prospectMapper, jobRepositoryMock);
 
   @BeforeEach
   void setup() {

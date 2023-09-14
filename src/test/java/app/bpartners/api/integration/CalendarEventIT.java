@@ -215,7 +215,7 @@ public class CalendarEventIT extends MockedThirdParties {
     when(calendarApiMock.getEvents(any(), (String) any(), any(), any())).thenReturn(
         List.of(expectedCreatedEvent()));
 
-    List<CalendarEvent> actual = api.getCalendarEvents(JOE_DOE_ID, "calendar1_id", null);
+    List<CalendarEvent> actual = api.getCalendarEvents(JOE_DOE_ID, "calendar1_id", null, null);
 
     assertEquals(List.of(expectedCalendarEvent()), actual.stream()
         .map(event -> {

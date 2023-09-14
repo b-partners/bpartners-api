@@ -8,16 +8,20 @@ import app.bpartners.api.endpoint.rest.model.Geojson;
 import app.bpartners.api.endpoint.rest.model.InterventionResult;
 import app.bpartners.api.endpoint.rest.model.OldCustomerResult;
 import app.bpartners.api.endpoint.rest.model.Prospect;
+import app.bpartners.api.endpoint.rest.model.ProspectEvaluationJobInfo;
+import app.bpartners.api.endpoint.rest.model.ProspectEvaluationJobResult;
 import app.bpartners.api.endpoint.rest.model.ProspectRating;
 import app.bpartners.api.endpoint.rest.model.UpdateProspect;
 import app.bpartners.api.endpoint.rest.validator.ExtendedProspectUpdateValidator;
 import app.bpartners.api.endpoint.rest.validator.ProspectRestValidator;
 import app.bpartners.api.model.Customer;
+import app.bpartners.api.model.ProspectEvaluationJob;
 import app.bpartners.api.repository.expressif.ProspectEval;
 import app.bpartners.api.repository.expressif.ProspectEvalInfo;
 import app.bpartners.api.repository.expressif.ProspectResult;
 import app.bpartners.api.service.utils.GeoUtils;
 import java.math.BigDecimal;
+import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -101,6 +105,27 @@ public class ProspectRestMapper {
             : domain.getContractAmount().getCentsRoundUp())
         .invoiceID(domain.getIdInvoice())
         .prospectFeedback(domain.getProspectFeedback());
+  }
+
+  public ProspectEvaluationJobInfo toRest(ProspectEvaluationJob domain) {
+    return new ProspectEvaluationJobInfo()
+        .id(domain.getId())
+        .type(domain.getType())
+        .status(domain.getJobStatus())
+        .startedAt(domain.getStartedAt())
+        .endedAt(domain.getEndedAt());
+  }
+
+  public ProspectEvaluationJobResult toRestResult(ProspectEvaluationJob domain) {
+    return new ProspectEvaluationJobResult()
+        .id(domain.getId())
+        .type(domain.getType())
+        .status(domain.getJobStatus())
+        .startedAt(domain.getStartedAt())
+        .endedAt(domain.getEndedAt())
+        .results(domain.getResults().stream()
+            .map(this::toRest)
+            .collect(Collectors.toList()));
   }
 
   public app.bpartners.api.model.Prospect toDomain(UpdateProspect rest) {

@@ -714,13 +714,16 @@ components:
         type:
           $ref: '#/components/schemas/ProspectEvaluationJobType'
         status:
-          $ref: './api.yml#/components/schemas/JobStatus'
+          $ref: '#/components/schemas/ProspectEvaluationJobStatus'
         startedAt:
           type: string
           format: date-time
         endedAt:
           type: string
           format: date-time
+    ProspectEvaluationJobStatus:
+      allOf:
+        - $ref: './api.yml#/components/schemas/JobStatus'
     ProspectEvaluationJobType:
       type: string
       enum:

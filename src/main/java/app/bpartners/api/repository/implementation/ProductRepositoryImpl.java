@@ -54,6 +54,13 @@ public class ProductRepositoryImpl implements ProductRepository {
   }
 
   @Override
+  public List<Product> findAllByIdUserOrderByDescriptionAsc(String idUser) {
+    return jpaRepository.findByIdUserOrderByDescriptionAsc(idUser).stream()
+        .map(mapper::toDomain)
+        .collect(Collectors.toList());
+  }
+
+  @Override
   public List<Product> saveAll(String idUser, List<Product> toCreate) {
     List<HProduct> entityToCreate = toCreate.stream()
         .map(customer -> checkExisting(idUser, customer))

@@ -18,4 +18,6 @@ public interface ProductJpaRepository extends JpaRepository<HProduct, String> {
   List<HProduct> findAllByIdUserAndStatusAndDescriptionContainingIgnoreCase(
       String idUser, ProductStatus status, String description, Pageable pageable
   );
+
+  List<HProduct> findByIdUserOrderByDescriptionAsc(String idUser);
 }

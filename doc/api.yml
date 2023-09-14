@@ -94,6 +94,8 @@ paths:
     $ref: './paying-api.yml#/operations/getUniqueProduct'
   /accounts/{id}/products:
     $ref: './paying-api.yml#/operations/productOperations'
+  /accounts/{id}/products/export:
+    $ref: './paying-api.yml#/operations/productExportOperations'
   /accounts/{aId}/products/status:
     $ref: './paying-api.yml#/operations/updateProductsStatus'
   /accounts/{id}/products/upload:

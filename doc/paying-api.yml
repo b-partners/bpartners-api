@@ -481,6 +481,46 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
+  productExportOperations:
+    get:
+      tags:
+        - Paying
+      summary: Export all products of an account
+      operationId: exportProducts
+      parameters:
+        - in: path
+          name: aId
+          schema:
+            type: string
+          required: true
+        - in: header
+          name: Accept
+          description: |
+            Only CSV or Excel file type is supported.
+          schema:
+            type: string
+      responses:
+        200:
+          description: Return CSV or Excel containing all the products of the account
+          content:
+            text/csv:
+              schema:
+                type: string
+                format: binary
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+              schema:
+                type: string
+                format: binary
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
   productOperations:
     get:
       tags:

@@ -14,9 +14,9 @@ import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.integration.conf.DbEnvContextInitializer;
 import app.bpartners.api.integration.conf.utils.TestUtils;
 import app.bpartners.api.manager.ProjectTokenManager;
-import app.bpartners.api.repository.connectors.account.AccountConnectorRepository;
 import app.bpartners.api.repository.LegalFileRepository;
 import app.bpartners.api.repository.bridge.BridgeApi;
+import app.bpartners.api.repository.connectors.account.AccountConnectorRepository;
 import app.bpartners.api.repository.fintecture.FintectureConf;
 import app.bpartners.api.repository.fintecture.FintecturePaymentInfoRepository;
 import app.bpartners.api.repository.fintecture.FintecturePaymentInitiationRepository;
@@ -27,6 +27,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.CollectionType;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -44,6 +45,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
@@ -56,6 +58,7 @@ import static app.bpartners.api.integration.conf.utils.TestUtils.OTHER_PRODUCT_I
 import static app.bpartners.api.integration.conf.utils.TestUtils.assertThrowsApiException;
 import static app.bpartners.api.integration.conf.utils.TestUtils.assertThrowsForbiddenException;
 import static app.bpartners.api.integration.conf.utils.TestUtils.disabledProduct;
+import static app.bpartners.api.integration.conf.utils.TestUtils.getApiException;
 import static app.bpartners.api.integration.conf.utils.TestUtils.isAfterOrEquals;
 import static app.bpartners.api.integration.conf.utils.TestUtils.product1;
 import static app.bpartners.api.integration.conf.utils.TestUtils.product6;
@@ -63,6 +66,8 @@ import static app.bpartners.api.integration.conf.utils.TestUtils.setUpCognito;
 import static app.bpartners.api.integration.conf.utils.TestUtils.setUpLegalFileRepository;
 import static app.bpartners.api.integration.conf.utils.TestUtils.setUpPaymentInfoRepository;
 import static app.bpartners.api.integration.conf.utils.TestUtils.setUpPaymentInitiationRep;
+import static app.bpartners.api.repository.google.calendar.drive.DriveApi.EXCEL_MIME_TYPE;
+import static app.bpartners.api.service.CustomerService.TEXT_CSV_MIME_TYPE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -157,6 +162,24 @@ class ProductIT {
         .quantity(1)
         .unitPrice(1000)
         .vatPercent(1000);
+  }
+
+  @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+  @Test
+  void export_products_ok() throws IOException, InterruptedException, ApiException {
+    InputStream expectedFileIs = new ClassPathResource("files/products.csv").getInputStream();
+
+    var actual = exportProducts(JOE_DOE_ACCOUNT_ID, TEXT_CSV_MIME_TYPE);
+    //TODO: check why not throwing error correctly
+    assertThrowsApiException("", () -> exportProducts(JOE_DOE_ACCOUNT_ID, EXCEL_MIME_TYPE));
+
+    assertEquals(expectedFileIs.readAllBytes().length, actual.body().length);
+    expectedFileIs.close();
+    /*Uncomment to download file
+    var fos = new FileOutputStream("products-" + randomUUID() + ".csv");
+    fos.write(actual.body());
+    fos.close();
+    */
   }
 
   @Order(1)
@@ -448,5 +471,22 @@ class ProductIT {
       product.setCreatedAt(null);
     });
     return actual;
+  }
+
+  private HttpResponse<byte[]> exportProducts(String accountId, String fileType)
+      throws IOException, InterruptedException, ApiException {
+    HttpClient unauthenticatedClient = HttpClient.newBuilder().build();
+    String basePath = "http://localhost:" + DbEnvContextInitializer.getHttpServerPort();
+
+    HttpResponse<byte[]> response = unauthenticatedClient.send(HttpRequest.newBuilder()
+            .uri(URI.create(basePath + "/accounts/" + accountId + "/products/export"))
+            .header("Authorization", BEARER_PREFIX + JOE_DOE_TOKEN)
+            .header("Accept", fileType)
+            .method("GET", HttpRequest.BodyPublishers.noBody()).build(),
+        HttpResponse.BodyHandlers.ofByteArray());
+    if (response.statusCode() / 100 != 2) {
+      throw getApiException("exportProducts", response);
+    }
+    return response;
   }
 }

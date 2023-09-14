@@ -57,7 +57,7 @@ public class ProductController {
           (fileType.equals(EXCEL_MIME_TYPE) ? EXCEL_EXTENSION : null);
       response.setContentType(fileType);
       response.setHeader("Content-Disposition",
-          "attachment; filename=\"customers" + fileExtension + "\"");
+          "attachment; filename=\"products" + fileExtension + "\"");
       response.setCharacterEncoding("UTF-8");
       PrintWriter writer = response.getWriter();
 

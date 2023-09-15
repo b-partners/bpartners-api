@@ -14,24 +14,15 @@ Parameters:
   PublicSubnetAZ:
     Type: String
     Default: eu-west-3a
-  PublicSubnetAZId:
-    Type: String
-    Default: euw3-az1
   PrivateSubnet1AZ:
     Type: String
     Default: eu-west-3b
-  PrivateSubnet1AZId:
-    Type: String
-    Default: euw3-az2
   PrivateSubnet1IPv4CIDR:
     Type: String
     Default: 172.31.16.0/20
   PrivateSubnet2AZ:
     Type: String
     Default: eu-west-3c
-  PrivateSubnet2AZId:
-    Type: String
-    Default: euw3-az3
   PrivateSubnet2IPv4CIDR:
     Type: String
     Default: 172.31.32.0/20
@@ -51,13 +42,36 @@ Resources:
         - Key: Name
           Value: !Ref VPCName
 
+  SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: !Join [ '' , [Security Group for ], !Ref VPCName ]
+      GroupName: !Join [ '' , !Ref VPCName, [-sg] ]
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - CidrIp: 0.0.0.0/0
+          IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+        - CidrIp: 0.0.0.0/0
+          IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+        - CidrIp: 0.0.0.0/0
+          IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+        - IpProtocol: -1
+          FromPort: -1
+          ToPort: -1
+          SourceSecurityGroupId: !Ref SecurityGroup
+
 ######## Public subnet configuration section start ########
 
   PublicSubnet:
     Type: AWS::EC2::Subnet
     Properties:
       AvailabilityZone: !Ref PublicSubnetAZ
-      AvailabilityZoneId: !Ref PublicSubnetAZId
       CidrBlock: !Ref IPv4CIDR
       MapPublicIpOnLaunch: 'true'
       VpcId: !Sub '{{resolve:ssm:/bpartners/vpc/id}}'
@@ -111,19 +125,17 @@ Resources:
     Type: AWS::EC2::Subnet
     Properties:
       AvailabilityZone: !Ref PrivateSubnet1AZ
-      AvailabilityZoneId: !Ref PrivateSubnet1AZId
       CidrBlock: !Ref PrivateSubnet1IPv4CIDR
       MapPublicIpOnLaunch: 'false'
-      VpcId: !Sub '{{resolve:ssm:/bpartners/vpc/id}}'
+      VpcId: !Ref VPC
 
   PrivateSubnet2:
     Type: AWS::EC2::Subnet
     Properties:
       AvailabilityZone: !Ref PrivateSubnet2AZ
-      AvailabilityZoneId: !Ref PrivateSubnet2AZId
       CidrBlock: !Ref PrivateSubnet2IPv4CIDR
       MapPublicIpOnLaunch: 'false'
-      VpcId: !Sub '{{resolve:ssm:/bpartners/vpc/id}}'
+      VpcId: !Ref VPC
 
   NATElasticIp:
     Type: AWS::EC2::EIP
@@ -200,11 +212,10 @@ Resources:
       Name: !Ref ALBName
       Scheme: internal
       SecurityGroups:
-        - !Sub '{{resolve:ssm:/bpartners/sg/id}}'
+        - !Ref SecurityGroup
       Subnets:
-        - !Sub '{{resolve:ssm:/bpartners/public/subnet/id}}'
-        - !Sub '{{resolve:ssm:/bpartners/private/subnet1/id}}'
-        - !Sub '{{resolve:ssm:/bpartners/private/subnet2/id}}'
+        - !Ref PrivateSubnet1
+        - !Ref PrivateSubnet2
       Type: application
 
   Listener:
@@ -233,12 +244,12 @@ Resources:
       Type: String
       Value: !Ref VPC
 
-  DefaulSecurityGroupIdSSM:
+  SecurityGroupIdSSM:
     Type: AWS::SSM:: Parameter
     Properties:
       Name: !Join [ '' , [ /bpartners/sg/id ] ]
       Type: String
-      Value: !GetAtt VPC.DefaultSecurityGroup
+      Value: !Ref SecurityGroup
 
   PublicSubnetSSM:
     Type: AWS::SSM::Parameter

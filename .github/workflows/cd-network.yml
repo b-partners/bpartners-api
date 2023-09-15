@@ -18,22 +18,13 @@ on:
         default: eu-west-3a
         description: The availability zone for the public subnet
         required: false
-      PublicSubnetAZId:
-        type: string
-        default: euw3-az1
-        description: The availability zone Id for the public subnet
-        required: false
       PrivateSubnet1AZ:
         type: string
         default: eu-west-3b
         description: The availability zone Id for the first private subnet
         required: false
-      PrivateSubnet1AZId:
-        type: string
-        default: euw3-az2
-        description: The availability zone Id for the first private subnet
-        required: false
       PrivateSubnet1IPv4CIDR:
+        type: string
         default: 172.31.16.0/16
         description: The IPv4 CIDR to assign to the first private subnet
         required: false
@@ -42,16 +33,16 @@ on:
         default: eu-west-3c
         description: The availability zone Id for the second private subnet
         required: false
-      PrivateSubnet2AZId:
-        type: string
-        default: euw3-az3
-        description: The availability zone Id for the second private subnet
-        required: false
       PrivateSubnet2IPv4CIDR:
+        type: string
         default: 172.31.32.0/16
         description: The IPv4 CIDR to assign to the second private subnet
         required: false
-
+      ALBName:
+        type: string
+        default: bpartners-internal-alb
+        description: The name to be given to the Application Load Balancer
+        required: false
 
 jobs:
   cd-network:
@@ -83,7 +74,6 @@ jobs:
           no-fail-on-empty-changeset: "1"
           parameter-overrides:
             "Env=${{ env.branch_env }}, VPCName=${{ github.event.inputs.VPCName }}, IPv4CIDR=${{ github.event.inputs.IPv4CIDR }},
-            PublicSubnetAZ=${{ github.event.inputs.PublicSubnetAZ }}, PublicSubnetAZId=${{ github.event.inputs.PublicSubnetAZId }},
-            PrivateSubnet1AZ=${{ github.event.inputs.PrivateSubnet1AZ }}, PrivateSubnet1AZId=${{ github.event.inputs.PrivateSubnet1AZId }},
+            PublicSubnetAZ=${{ github.event.inputs.PublicSubnetAZ }},PrivateSubnet1AZ=${{ github.event.inputs.PrivateSubnet1AZ }},
             PrivateSubnet1IPv4CIDR=${{ github.event.inputs.PrivateSubnet1IPv4CIDR }}, PrivateSubnet2AZ=${{ github.event.inputs.PrivateSubnet2AZ }},
-            PrivateSubnet2AZId=${{ github.event.inputs.PrivateSubnet2AZId }}, PrivateSubnet2IPv4CIDR=${{ github.event.inputs.PrivateSubnet2IPv4CIDR }} "
+            PrivateSubnet2IPv4CIDR=${{ github.event.inputs.PrivateSubnet2IPv4CIDR }}, ALBName=$${{ github.event.inputs.ALBName }}"

@@ -1,0 +1,212 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: VPC and ALB Cloudformation stack for Bpartners
+
+Parameters:
+  Env:
+    Type: String
+    Default: prod
+  IPv4CIDR:
+    Type: String
+    Default: 172.31.0.0/16
+  VPCName:
+    Type: String
+    Default: "bpartners"
+  PublicSubnetAZ:
+    Type: String
+    Default: eu-west-3a
+  PublicSubnetAZId:
+    Type: String
+    Default: euw3-az1
+  PrivateSubnet1AZ:
+    Type: String
+    Default: eu-west-3b
+  PrivateSubnet1AZId:
+    Type: String
+    Default: euw3-az2
+  PrivateSubnet1IPv4CIDR:
+    Type: String
+    Default: 172.31.16.0/20
+  PrivateSubnet2AZ:
+    Type: String
+    Default: eu-west-3c
+  PrivateSubnet2AZId:
+    Type: String
+    Default: euw3-az3
+  PrivateSubnet2IPv4CIDR:
+    Type: String
+    Default: 172.31.32.0/20
+
+Resources:
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref IPv4CIDR
+      EnableDnsHostnames: 'true'
+      EnableDnsSupport: 'true'
+      InstanceTenancy: default
+      Tags:
+        - Key: Name
+          Value: !Ref VPCName
+
+######## Public subnet configuration section start ########
+
+  PublicSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: !Ref PublicSubnetAZ
+      AvailabilityZoneId: !Ref PublicSubnetAZId
+      CidrBlock: !Ref IPv4CIDR
+      MapPublicIpOnLaunch: 'true'
+      VpcId: !Sub '{{resolve:ssm:/bpartners/vpc/id}}'
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: internet-gw
+
+  AttachInternetGateway:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref VPC
+      InternetGatewayId: !Ref InternetGateway
+
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref MyVPC
+      Tags:
+        - Key: Name
+          Value: public-route-table
+
+  PublicSubnetRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet
+      RouteTableId: !Ref PublicRouteTable
+
+  PublicRoute:
+    Type: AWS::EC2::Route
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+      RouteTableId: !Ref PublicRouteTable
+
+  PublicLocalRoute:
+    Type: AWS::EC2::Route
+    Properties:
+      DestinationCidrBlock: !Ref IPv4CIDR
+      GatewayId: !Ref InternetGateway
+      RouteTableId: !Ref PublicRouteTable
+
+######## End of public subnet configuration ########
+
+####### Private subnet configuration section ########
+
+  PrivateSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: !Ref PrivateSubnet1AZ
+      AvailabilityZoneId: !Ref PrivateSubnet1AZId
+      CidrBlock: !Ref PrivateSubnet1IPv4CIDR
+      MapPublicIpOnLaunch: 'false'
+      VpcId: !Sub '{{resolve:ssm:/bpartners/vpc/id}}'
+
+  PrivateSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: !Ref PrivateSubnet2AZ
+      AvailabilityZoneId: !Ref PrivateSubnet2AZId
+      CidrBlock: !Ref PrivateSubnet2IPv4CIDR
+      MapPublicIpOnLaunch: 'false'
+      VpcId: !Sub '{{resolve:ssm:/bpartners/vpc/id}}'
+
+  NATElasticIp:
+    Type: AWS::EC2::EIP
+    Properties:
+      Tags:
+        - Key: Name
+          Value: nat-eip
+
+  PublicNatGateway:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt NATElasticIp.AllocationId
+      ConnectivityType: public
+      SubnetId: !Ref PublicSubnet
+      Tags:
+        - Key: Name
+          Value: public-nat-gw
+
+  PrivateRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref MyVPC
+      Tags:
+        - Key: Name
+          Value: private-route-table
+
+  PrivateSubnet1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PrivateSubnet1
+      RouteTableId: !Ref PrivateRouteTable
+
+  PrivateSubnet2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PrivateSubnet2
+      RouteTableId: !Ref PrivateRouteTable
+
+  PrivateRoute:
+    Type: AWS::EC2::Route
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref PublicNatGateway
+      RouteTableId: !Ref PrivateRouteTable
+
+  PrivateLocalRoute:
+    Type: AWS::EC2::Route
+    Properties:
+      DestinationCidrBlock: !Ref IPv4CIDR
+      GatewayId: !Ref PublicNatGateway
+      RouteTableId: !Ref PrivateRouteTable
+
+######## End of private subnet configuration ########
+
+######## SSM storage section ########
+  VPCIdSSM:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Join [ '' , [ /bpartners/vpc/id ] ]
+      Type: String
+      Value: !Ref VPC
+
+  DefaulSecurityGroupIdSSM:
+    Type: AWS::SSM:: Parameter
+    Properties:
+      Name: !Join [ '' , [ /bpartners/sg/id ] ]
+      Type: String
+      Value: !GetAtt VPC.DefaultSecurityGroup
+
+  PublicSubnetSSM:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Join [ '' , [ /bpartners/public/subnet/id ] ]
+      Type: String
+      Value: !Ref PublicSubnet
+
+  PrivateSubnet1SSM:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Join [ '' , [ /bpartners/private/subnet1/id ] ]
+      Type: String
+      Value: !Ref PrivateSubnet1
+
+  PrivateSubnet2SSM:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Join [ '' , [ /bpartners/private/subnet2/id ] ]
+      Type: String
+      Value: !Ref PrivateSubnet2

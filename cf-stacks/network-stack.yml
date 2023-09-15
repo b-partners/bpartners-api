@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: VPC and ALB Cloudformation stack for Bpartners
+Description: VPC Cloudformation stack for Bpartners
 
 Parameters:
   Env:
@@ -35,6 +35,9 @@ Parameters:
   PrivateSubnet2IPv4CIDR:
     Type: String
     Default: 172.31.32.0/20
+  ALBName:
+    Type: String
+    Default: bpartners-internal-alb
 
 Resources:
   VPC:
@@ -175,6 +178,53 @@ Resources:
 
 ######## End of private subnet configuration ########
 
+######## Application Load Balancer configuration section ########
+
+  ApplicationLoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      IpAddressType: ipv4
+      LoadBalancerAttributes:
+        - Key: deletion_protection.enabled
+          Value: 'false'
+        - Key: load_balancing.cross_zone.enabled
+          Value: 'true'
+        - Key: idle_timeout.timeout_seconds
+          Value: 60
+        - Key: routing.http.desync_mitigation_mode
+          Value: defensive
+        - Key: routing.http.xff_header_processing.mode
+          Value: append
+        - Key: routing.http2.enabled
+          Value: 'true'
+      Name: !Ref ALBName
+      Scheme: internal
+      SecurityGroups:
+        - !Sub '{{resolve:ssm:/bpartners/sg/id}}'
+      Subnets:
+        - !Sub '{{resolve:ssm:/bpartners/public/subnet/id}}'
+        - !Sub '{{resolve:ssm:/bpartners/private/subnet1/id}}'
+        - !Sub '{{resolve:ssm:/bpartners/private/subnet2/id}}'
+      Type: application
+
+  Listener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      AlpnPolicy:
+        - HTTP2
+        - HTTP1
+      DefaultActions:
+        - Type: fixed-response
+          FixedResponseConfig:
+            ContentType: text/plain
+            StatusCode: 400
+            MessageBody: { "type": "BadRequestException", "message": "Host may be invalid", "source": "ialb" }
+      LoadBalancerArn: !Ref ApplicationLoadBalancer
+      Port: 80
+      Protocol: HTTP
+
+######## End of Application Load Balancer configuration ########
+
 ######## SSM storage section ########
   VPCIdSSM:
     Type: AWS::SSM::Parameter
@@ -210,3 +260,10 @@ Resources:
       Name: !Join [ '' , [ /bpartners/private/subnet2/id ] ]
       Type: String
       Value: !Ref PrivateSubnet2
+
+  ListenerArnSSM:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Join [ '' , [ /bpartners/, !Ref Env, /alb-https-listener-arn ] ]
+      Type: String
+      Value: !Ref Listener

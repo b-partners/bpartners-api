@@ -26,11 +26,12 @@ public class CalendarEventMapper {
   public static final String DEFAULT_EVENT_TYPE = "default";
   final ObjectMapper objectMapper = new ObjectMapper();
 
-  public HCalendarEvent toEntity(String idUser, String idCalendar, Event event) {
+  public HCalendarEvent toEntity(String id, String idUser, String idCalendar, Event event) {
     return HCalendarEvent.builder()
+        .id(id)
+        .eteId(event.getId())
         .idUser(idUser)
         .idCalendar(idCalendar)
-        .eteId(event.getId())
         .summary(event.getSummary())
         .location(event.getLocation())
         .organizer(event.getOrganizer().getEmail())
@@ -41,22 +42,39 @@ public class CalendarEventMapper {
         .build();
   }
 
-  public Event toEvent(CalendarEvent event) {
+  public HCalendarEvent toEntity(String idUser, String idCalendar, CalendarEvent domain) {
+    return HCalendarEvent.builder()
+        .id(domain.getId())
+        .eteId(null)
+        .idUser(idUser)
+        .idCalendar(idCalendar)
+        .summary(domain.getSummary())
+        .location(domain.getLocation())
+        .organizer(domain.getOrganizer())
+        .participants(encodeJsonList(domain.getParticipants()))
+        .from(domain.getFrom() == null ? null : domain.getFrom().toInstant())
+        .to(domain.getTo() == null ? null : domain.getTo().toInstant())
+        .updatedAt(Instant.now())
+        .build();
+  }
+
+  public Event toEvent(String id, CalendarEvent domain) {
     return new Event()
+        .setId(id)
         .setEventType(DEFAULT_EVENT_TYPE)
-        .setSummary(event.getSummary())
-        .setOrganizer(new Event.Organizer().setEmail(event.getOrganizer()))
-        .setCreator(new Event.Creator().setEmail(event.getOrganizer()))
+        .setSummary(domain.getSummary())
+        .setOrganizer(new Event.Organizer().setEmail(domain.getOrganizer()))
+        .setCreator(new Event.Creator().setEmail(domain.getOrganizer()))
         .setStart(new EventDateTime()
-            .setDateTime(dateTimeFrom(event.getFrom().toInstant()))
+            .setDateTime(dateTimeFrom(domain.getFrom().toInstant()))
             .setTimeZone(PARIS_TIMEZONE))
         .setEnd(new EventDateTime()
-            .setDateTime(dateTimeFrom(event.getTo().toInstant()))
+            .setDateTime(dateTimeFrom(domain.getTo().toInstant()))
             .setTimeZone(PARIS_TIMEZONE))
-        .setLocation(event.getLocation())
-        .setAttendees(event.getParticipants() == null || event.getParticipants().isEmpty()
-            ? List.of(new EventAttendee().setEmail(event.getOrganizer()))
-            : event.getParticipants().stream()
+        .setLocation(domain.getLocation())
+        .setAttendees(domain.getParticipants() == null || domain.getParticipants().isEmpty()
+            ? List.of(new EventAttendee().setEmail(domain.getOrganizer()))
+            : domain.getParticipants().stream()
             .map(participant -> new EventAttendee().setEmail(participant))
             .collect(Collectors.toList()))
         .setUpdated(dateTimeFrom(Instant.now()));

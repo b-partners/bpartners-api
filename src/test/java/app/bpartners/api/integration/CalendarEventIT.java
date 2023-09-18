@@ -231,7 +231,7 @@ public class CalendarEventIT extends MockedThirdParties {
   void crupdate_calendar_events_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
     CalendarApi api = new CalendarApi(joeDoeClient);
-    when(calendarApiMock.createEvents((String) any(), any(), any())).thenReturn(
+    when(calendarApiMock.crupdateEvents((String) any(), any(), any())).thenReturn(
         List.of(expectedCreatedEvent(), expectedCreatedEvent()),
         List.of(expectedUpdatedEvent()));
 

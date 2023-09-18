@@ -37,16 +37,6 @@ public class CalendarService {
   private final CalendarStoredCredentialRepository credentialRepository;
   private final CalendarEventRepository eventRepository;
 
-  public List<Calendar> getCalendars(String idUser) {
-    return calendarRepository.findByIdUser(idUser);
-  }
-
-  public List<CalendarEvent> saveEvents(String idUser,
-                                        String calendarId,
-                                        List<CalendarEvent> events) {
-    return eventRepository.saveAll(idUser, calendarId, events);
-  }
-
   public Redirection initConsent(CalendarConsentInit consentInit) {
     consentValidator.accept(consentInit);
     RedirectionStatusUrls urls = consentInit.getRedirectionStatusUrls();
@@ -76,6 +66,16 @@ public class CalendarService {
     } else {
       return credentialRepository.findLatestByIdUser(idUser);
     }
+  }
+
+  public List<Calendar> getCalendars(String idUser) {
+    return calendarRepository.findByIdUser(idUser);
+  }
+
+  public List<CalendarEvent> saveEvents(String idUser,
+                                        String calendarId,
+                                        List<CalendarEvent> events) {
+    return eventRepository.saveAll(idUser, calendarId, events);
   }
 
   public List<CalendarEvent> getEvents(String idUser,

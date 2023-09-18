@@ -5,12 +5,15 @@ import app.bpartners.api.endpoint.rest.model.CalendarConsentInit;
 import app.bpartners.api.endpoint.rest.model.Redirection;
 import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
 import app.bpartners.api.endpoint.rest.validator.CalendarConsentValidator;
+import app.bpartners.api.model.AccessToken;
 import app.bpartners.api.model.Calendar;
 import app.bpartners.api.model.CalendarEvent;
+import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.mapper.CalendarEventMapper;
 import app.bpartners.api.model.validator.CalendarAuthValidator;
 import app.bpartners.api.repository.CalendarRepository;
+import app.bpartners.api.repository.CalendarStoredCredentialRepository;
 import app.bpartners.api.repository.google.calendar.CalendarApi;
 import app.bpartners.api.repository.google.calendar.CalendarConf;
 import com.google.api.client.util.DateTime;
@@ -25,6 +28,7 @@ import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 import static app.bpartners.api.repository.google.calendar.CalendarApi.dateTimeFrom;
 
 @Service
@@ -35,6 +39,8 @@ public class CalendarService {
   private final CalendarAuthValidator authValidator;
   private final CalendarEventMapper eventMapper;
   private final CalendarRepository calendarRepository;
+  private final CalendarStoredCredentialRepository credentialRepository;
+
 
   public List<Calendar> getCalendars(String idUser) {
     return calendarRepository.findByIdUser(idUser);
@@ -69,13 +75,18 @@ public class CalendarService {
         .redirectionStatusUrls(urls);
   }
 
-  public void exchangeCode(String idUser, CalendarAuth auth) {
+  public AccessToken exchangeCode(String idUser, CalendarAuth auth) {
     authValidator.accept(auth);
     String code = URLDecoder.decode(auth.getCode(), StandardCharsets.UTF_8);
     RedirectionStatusUrls urls = auth.getRedirectUrls();
     String redirectUrl = urls.getSuccessUrl();
 
-    calendarApi.storeCredential(idUser, code, redirectUrl);
+    if (calendarApi.storeCredential(idUser, code, redirectUrl) == null) {
+      throw new ApiException(SERVER_EXCEPTION,
+          "Unable to exchange " + auth + " to Google Sheet access token");
+    } else {
+      return credentialRepository.findLatestByIdUser(idUser);
+    }
   }
 
   public List<CalendarEvent> getEvents(String idUser,

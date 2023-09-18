@@ -1,12 +1,14 @@
 package app.bpartners.api.endpoint.rest.controller;
 
 import app.bpartners.api.endpoint.rest.mapper.CalendarRestMapper;
+import app.bpartners.api.endpoint.rest.mapper.TokenRestMapper;
 import app.bpartners.api.endpoint.rest.model.Calendar;
 import app.bpartners.api.endpoint.rest.model.CalendarAuth;
 import app.bpartners.api.endpoint.rest.model.CalendarConsentInit;
 import app.bpartners.api.endpoint.rest.model.CalendarEvent;
 import app.bpartners.api.endpoint.rest.model.CreateCalendarEvent;
 import app.bpartners.api.endpoint.rest.model.Redirection;
+import app.bpartners.api.endpoint.rest.model.TokenValidity;
 import app.bpartners.api.service.CalendarService;
 import java.time.Instant;
 import java.util.List;
@@ -25,6 +27,8 @@ import org.springframework.web.bind.annotation.RestController;
 public class CalendarController {
   private final CalendarService calendarService;
   private final CalendarRestMapper mapper;
+  private final TokenRestMapper tokenRestMapper;
+
 
   @GetMapping("/users/{idUser}/calendars")
   public List<Calendar> getCalendars(@PathVariable String idUser) {
@@ -60,9 +64,9 @@ public class CalendarController {
   }
 
   @PostMapping("/users/{id}/calendars/oauth2/auth")
-  public void handleAuth(@PathVariable(name = "id") String idUser,
-                         @RequestBody CalendarAuth auth) {
-    calendarService.exchangeCode(idUser, auth);
+  public TokenValidity handleAuth(@PathVariable(name = "id") String idUser,
+                                  @RequestBody CalendarAuth auth) {
+    return tokenRestMapper.toRest(calendarService.exchangeCode(idUser, auth));
   }
 
   @PostMapping("/users/{id}/calendars/oauth2/consent")

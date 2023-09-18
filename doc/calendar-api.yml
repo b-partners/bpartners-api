@@ -130,7 +130,11 @@ operations:
               $ref: '#/components/schemas/CalendarAuth'
       responses:
         200:
-          description: The calendar OAuth token is persisted and can be used to calendar actions.
+          description: The calendar access token is persisted and expiration details is returned.
+          content:
+            application/json:
+              schema:
+                $ref: './api.yml#/components/schemas/TokenValidity'
         400:
           $ref: './api.yml#/components/responses/400'
         500:

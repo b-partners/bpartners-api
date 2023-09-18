@@ -7,10 +7,14 @@ import app.bpartners.api.endpoint.rest.model.Redirection1;
 import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
 import app.bpartners.api.endpoint.rest.model.SheetAuth;
 import app.bpartners.api.endpoint.rest.model.SheetConsentInit;
+import app.bpartners.api.endpoint.rest.model.TokenValidity;
 import app.bpartners.api.integration.conf.DbEnvContextInitializer;
 import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.integration.conf.utils.TestUtils;
 import app.bpartners.api.repository.google.sheets.SheetConf;
+import com.google.api.client.auth.oauth2.Credential;
+import com.google.api.client.http.HttpRequest;
+import java.io.IOException;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,7 +30,6 @@ import static app.bpartners.api.integration.conf.utils.TestUtils.expectedRedirec
 import static app.bpartners.api.integration.conf.utils.TestUtils.redirectionStatusUrls;
 import static app.bpartners.api.integration.conf.utils.TestUtils.setUpCognito;
 import static app.bpartners.api.integration.conf.utils.TestUtils.setUpLegalFileRepository;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -38,9 +41,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @AutoConfigureMockMvc
 public class SheetAuthIT extends MockedThirdParties {
   @MockBean
-  private app.bpartners.api.repository.google.sheets.SheetApi sheetApiMock;
-  @MockBean
-  private SheetConf sheetConf;
+  private SheetConf sheetConfMock;
 
   private static ApiClient anApiClient() {
     return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN,
@@ -69,9 +70,8 @@ public class SheetAuthIT extends MockedThirdParties {
   void init_consent_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
     SheetApi api = new SheetApi(joeDoeClient);
-    when(sheetApiMock.getSheetsConf()).thenReturn(sheetConf);
-    when(sheetApiMock.getSheetsConf().getRedirectUris()).thenReturn(List.of("dummy"));
-    when(sheetApiMock.initConsent(any())).thenReturn("dummy");
+    when(sheetConfMock.getRedirectUris()).thenReturn(List.of("dummy"));
+    when(sheetConfMock.getOauthRedirectUri(any())).thenReturn("dummy");
 
     Redirection1 actual = api.initSheetConsent(JOE_DOE_ID, sheetConsentInit());
 
@@ -101,12 +101,21 @@ public class SheetAuthIT extends MockedThirdParties {
   }
 
   @Test
-  void handle_auth_ok() {
+  void handle_auth_ok() throws ApiException {
+    when(sheetConfMock.storeCredential(any(), any(), any())).thenReturn(
+        new Credential(new AuthorizationHeaderAccessMethod())
+            .setAccessToken("access_token")
+            .setExpiresInSeconds(3600L)
+            .setRefreshToken(null));
     ApiClient joeDoeClient = anApiClient();
     SheetApi api = new SheetApi(joeDoeClient);
-    when(sheetApiMock.storeCredential(any(), any(), any())).thenReturn(null);
 
-    assertDoesNotThrow(() -> api.exchangeSheetCodeWithHttpInfo(JOE_DOE_ID, sheetAuth()));
+    var actual = api.exchangeSheetCode(JOE_DOE_ID, sheetAuth());
+
+    assertEquals(new TokenValidity()
+        .expirationTime(3600L)
+        .createdAt(actual.getCreatedAt())
+        .expiredAt(actual.getExpiredAt()), actual);
   }
 
   @Test
@@ -130,5 +139,32 @@ public class SheetAuthIT extends MockedThirdParties {
         () -> api.exchangeSheetCodeWithHttpInfo(JOE_DOE_ID,
             sheetAuth().redirectUrls(
                 new RedirectionStatusUrls().successUrl("http://localhost:8080/success"))));
+  }
+
+  static final class AuthorizationHeaderAccessMethod implements Credential.AccessMethod {
+
+    /**
+     * Authorization header prefix.
+     */
+    static final String HEADER_PREFIX = "Bearer ";
+
+    AuthorizationHeaderAccessMethod() {
+    }
+
+    public void intercept(HttpRequest request, String accessToken) throws IOException {
+      request.getHeaders().setAuthorization(HEADER_PREFIX + accessToken);
+    }
+
+    public String getAccessTokenFromRequest(HttpRequest request) {
+      List<String> authorizationAsList = request.getHeaders().getAuthorizationAsList();
+      if (authorizationAsList != null) {
+        for (String header : authorizationAsList) {
+          if (header.startsWith(HEADER_PREFIX)) {
+            return header.substring(HEADER_PREFIX.length());
+          }
+        }
+      }
+      return null;
+    }
   }
 }

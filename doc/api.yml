@@ -275,6 +275,18 @@ components:
         - IN_PROGRESS
         - FINISHED
         - FAILED
+    TokenValidity:
+      type: object
+      properties:
+        expirationTime:
+          type: integer
+          format: int64
+        createdAt:
+          type: string
+          format: date-time
+        expiredAt:
+          type: string
+          format: date-time
     SupportedExportFileType:
       type: string
       enum:

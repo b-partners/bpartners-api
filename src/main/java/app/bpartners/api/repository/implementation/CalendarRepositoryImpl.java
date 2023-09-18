@@ -26,8 +26,14 @@ public class CalendarRepositoryImpl implements CalendarRepository {
 
   @Override
   public List<Calendar> findByIdUser(String idUser) {
-    List<CalendarListEntry> calendarEntries = calendarApi.getCalendars(idUser);
+    List<CalendarListEntry> calendarEntries;
+    try {
+      calendarEntries = calendarApi.getCalendars(idUser);
+    } catch (Exception e) {
+      calendarEntries = List.of();
+    }
     List<HCalendar> retrievedCalendars = jpaRepository.findByIdUser(idUser);
+
     List<HCalendar> calendarEntities = calendarEntries.stream()
         .map(entry -> calendarMapper.toCalendarEntity(idUser, entry))
         .collect(Collectors.toList());
@@ -41,7 +47,8 @@ public class CalendarRepositoryImpl implements CalendarRepository {
         }
       }
     }
-    List<HCalendar> createdCalendars = jpaRepository.saveAll(calendarEntities.stream()
+    List<HCalendar> createdCalendars = calendarEntities.isEmpty() ? List.of()
+        : jpaRepository.saveAll(calendarEntities.stream()
         .filter(HCalendar::isNewCalendar)
         .collect(Collectors.toList()));
     List<HCalendar> all = createdCalendars.size() == 0

@@ -6,15 +6,19 @@ import app.bpartners.api.model.mapper.CalendarEventMapper;
 import app.bpartners.api.repository.CalendarEventRepository;
 import app.bpartners.api.repository.CalendarRepository;
 import app.bpartners.api.repository.google.calendar.CalendarApi;
+import app.bpartners.api.repository.jpa.CalendarEventJpaRepository;
+import app.bpartners.api.repository.jpa.model.HCalendarEvent;
 import com.google.api.client.util.DateTime;
 import com.google.api.services.calendar.model.Event;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import static app.bpartners.api.repository.google.calendar.CalendarApi.dateTimeFrom;
+import static java.util.UUID.randomUUID;
 
 @Repository
 @AllArgsConstructor
@@ -22,6 +26,7 @@ public class CalendarEventRepositoryImpl implements CalendarEventRepository {
   private final CalendarApi calendarApi;
   private final CalendarEventMapper eventMapper;
   private final CalendarRepository calendarRepository;
+  private final CalendarEventJpaRepository jpaRepository;
 
 
   @Override
@@ -30,14 +35,44 @@ public class CalendarEventRepositoryImpl implements CalendarEventRepository {
                                                        Instant from,
                                                        Instant to) {
     Calendar calendar = calendarRepository.getById(idCalendar);
-
     DateTime dateMin = dateTimeFrom(from);
     DateTime dateMax = dateTimeFrom(to);
-    List<CalendarEvent> actualEvents =
-        calendarApi.getEvents(idUser, calendar.getEteId(), dateMin, dateMax).stream()
-            .map(eventMapper::toCalendarEvent)
+
+    List<Event> eventEntries;
+    try {
+      eventEntries =
+          calendarApi.getEvents(idUser, calendar.getEteId(), dateMin, dateMax);
+    } catch (Exception e) {
+      eventEntries = List.of();
+    }
+    List<HCalendarEvent> retrievedEvents = jpaRepository.findByIdUser(idUser);
+
+    List<HCalendarEvent> eventEntities =
+        eventEntries.stream()
+            .map(event -> eventMapper.toEntity(idUser, idCalendar, event))
             .collect(Collectors.toList());
-    return actualEvents;
+    for (HCalendarEvent newEntity : eventEntities) {
+      newEntity.setId(String.valueOf(randomUUID()));
+      newEntity.setNewEvent(true);
+      newEntity.setCreatedAt(Instant.now());
+      for (HCalendarEvent actualEvent : retrievedEvents) {
+        if (actualEvent.getEteId().equals(newEntity.getEteId())) {
+          newEntity.setNewEvent(false);
+          break;
+        }
+      }
+    }
+
+    List<HCalendarEvent> createdEvents = eventEntities.isEmpty() ? List.of()
+        : jpaRepository.saveAll(eventEntities.stream()
+        .filter(HCalendarEvent::isNewEvent)
+        .collect(Collectors.toList()));
+    List<HCalendarEvent> all = createdEvents.size() == 0
+        ? retrievedEvents
+        : combine(retrievedEvents, createdEvents);
+    return all.stream()
+        .map(eventMapper::toDomain)
+        .collect(Collectors.toList());
   }
 
   @Override
@@ -49,5 +84,11 @@ public class CalendarEventRepositoryImpl implements CalendarEventRepository {
     return calendarApi.createEvents(idUser, calendar.getEteId(), googleEvents).stream()
         .map(eventMapper::toCalendarEvent)
         .collect(Collectors.toList());
+  }
+
+  private static List<HCalendarEvent> combine(List<HCalendarEvent> x1, List<HCalendarEvent> x2) {
+    ArrayList<HCalendarEvent> all = new ArrayList<>(x1);
+    all.addAll(x2);
+    return all;
   }
 }

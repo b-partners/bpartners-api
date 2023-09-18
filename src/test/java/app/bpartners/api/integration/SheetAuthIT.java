@@ -14,8 +14,6 @@ import app.bpartners.api.repository.google.sheets.SheetConf;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -24,12 +22,13 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ID;
 import static app.bpartners.api.integration.conf.utils.TestUtils.assertThrowsApiException;
+import static app.bpartners.api.integration.conf.utils.TestUtils.expectedRedirection;
+import static app.bpartners.api.integration.conf.utils.TestUtils.redirectionStatusUrls;
 import static app.bpartners.api.integration.conf.utils.TestUtils.setUpCognito;
 import static app.bpartners.api.integration.conf.utils.TestUtils.setUpLegalFileRepository;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
@@ -53,17 +52,6 @@ public class SheetAuthIT extends MockedThirdParties {
         .redirectionStatusUrls(redirectionStatusUrls());
   }
 
-  static Redirection1 expectedRedirection() {
-    return new Redirection1()
-        .redirectionUrl("dummy")
-        .redirectionStatusUrls(redirectionStatusUrls());
-  }
-
-  private static RedirectionStatusUrls redirectionStatusUrls() {
-    return new RedirectionStatusUrls()
-        .successUrl("dummy")
-        .failureUrl("dummy");
-  }
 
   static SheetAuth sheetAuth() {
     return new SheetAuth()

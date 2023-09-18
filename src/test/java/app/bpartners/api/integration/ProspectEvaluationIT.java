@@ -1,15 +1,22 @@
 package app.bpartners.api.integration;
 
+import app.bpartners.api.endpoint.rest.api.ProspectingApi;
+import app.bpartners.api.endpoint.rest.client.ApiClient;
+import app.bpartners.api.endpoint.rest.client.ApiException;
 import app.bpartners.api.endpoint.rest.model.Area;
 import app.bpartners.api.endpoint.rest.model.ContactNature;
 import app.bpartners.api.endpoint.rest.model.EvaluatedProspect;
 import app.bpartners.api.endpoint.rest.model.Geojson;
 import app.bpartners.api.endpoint.rest.model.InterventionResult;
 import app.bpartners.api.endpoint.rest.model.NewInterventionOption;
+import app.bpartners.api.endpoint.rest.model.ProspectEvaluationJobInfo;
+import app.bpartners.api.endpoint.rest.model.ProspectEvaluationJobStatus;
+import app.bpartners.api.endpoint.rest.model.ProspectEvaluationJobType;
 import app.bpartners.api.endpoint.rest.model.ProspectStatus;
 import app.bpartners.api.endpoint.rest.security.model.Role;
 import app.bpartners.api.integration.conf.DbEnvContextInitializer;
 import app.bpartners.api.integration.conf.MockedThirdParties;
+import app.bpartners.api.integration.conf.utils.TestUtils;
 import app.bpartners.api.model.BusinessActivity;
 import app.bpartners.api.model.Prospect;
 import app.bpartners.api.model.User;
@@ -31,10 +38,12 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -51,6 +60,10 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import static app.bpartners.api.endpoint.rest.model.JobStatusValue.FAILED;
+import static app.bpartners.api.endpoint.rest.model.JobStatusValue.FINISHED;
+import static app.bpartners.api.endpoint.rest.model.JobStatusValue.IN_PROGRESS;
+import static app.bpartners.api.endpoint.rest.model.JobStatusValue.NOT_STARTED;
 import static app.bpartners.api.endpoint.rest.validator.ProspectRestValidator.XLSX_FILE;
 import static app.bpartners.api.integration.conf.utils.TestUtils.BEARER_PREFIX;
 import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_HOLDER_ID;
@@ -91,6 +104,11 @@ class ProspectEvaluationIT extends MockedThirdParties {
   @Autowired
   private UserService userService;
 
+  private static ApiClient anApiClient() {
+    return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN,
+        DbEnvContextInitializer.getHttpServerPort());
+  }
+
   public static OutputValue<Object> prospectRatingResult() {
     return OutputValue.builder()
         .name("Notation du prospect")
@@ -125,6 +143,28 @@ class ProspectEvaluationIT extends MockedThirdParties {
         .build();
   }
 
+  private static ProspectEvaluationJobInfo evalJob1() {
+    return new ProspectEvaluationJobInfo()
+        .id("pe_job_id1")
+        .status(new ProspectEvaluationJobStatus()
+            .value(NOT_STARTED)
+            .message(null))
+        .type(ProspectEvaluationJobType.CALENDAR_EVENT_CONVERSION)
+        .startedAt(Instant.parse("2022-01-01T00:00:00.00Z"))
+        .endedAt(null);
+  }
+
+  private static ProspectEvaluationJobInfo evalJob3() {
+    return new ProspectEvaluationJobInfo()
+        .id("pe_job_id3")
+        .status(new ProspectEvaluationJobStatus()
+            .value(FAILED)
+            .message("Connection reset"))
+        .type(ProspectEvaluationJobType.ADDRESS_CONVERSION)
+        .startedAt(Instant.parse("2022-01-03T01:00:00.00Z"))
+        .endedAt(Instant.parse("2022-01-03T02:00:00.00Z"));
+  }
+
   @BeforeEach
   public void setUp() {
     setUpLegalFileRepository(legalFileRepositoryMock);
@@ -138,17 +178,67 @@ class ProspectEvaluationIT extends MockedThirdParties {
         .build());
   }
 
- /*
- TODO: to complete with uploadFile with custom Accept value, application/pdf for example
- @Test
-  void evaluate_prospects_bad_headers_ko() throws IOException, InterruptedException {
-    File prospectFile = new ClassPathResource("files/prospect-ok.xlsx").getFile();
-   /!\  null value seems not accepted by HttpHeader class
-    assertThrowsBadRequestException("",
-        () -> uploadFile(JOE_DOE_ACCOUNT_HOLDER_ID, prospectFile, null));
-    var actual = uploadFileJson(JOE_DOE_ACCOUNT_HOLDER_ID, prospectFile);
-    assertEquals(500, actual.statusCode());
-  } */
+  /*
+  TODO: to complete with uploadFile with custom Accept value, application/pdf for example
+  @Test
+   void evaluate_prospects_bad_headers_ko() throws IOException, InterruptedException {
+     File prospectFile = new ClassPathResource("files/prospect-ok.xlsx").getFile();
+    /!\  null value seems not accepted by HttpHeader class
+     assertThrowsBadRequestException("",
+         () -> uploadFile(JOE_DOE_ACCOUNT_HOLDER_ID, prospectFile, null));
+     var actual = uploadFileJson(JOE_DOE_ACCOUNT_HOLDER_ID, prospectFile);
+     assertEquals(500, actual.statusCode());
+   } */
+  @Test
+  void read_prospect_evaluation_jobs_ok() throws ApiException {
+    ApiClient joeDoeClient = anApiClient();
+    ProspectingApi api = new ProspectingApi(joeDoeClient);
+
+    var actual =
+        api.getProspectEvaluationJobs(JOE_DOE_ACCOUNT_HOLDER_ID, null);
+    var actualNotStarted =
+        api.getProspectEvaluationJobs(JOE_DOE_ACCOUNT_HOLDER_ID,
+            List.of(NOT_STARTED));
+    var actualFailed =
+        api.getProspectEvaluationJobs(JOE_DOE_ACCOUNT_HOLDER_ID, List.of(FAILED));
+    var actualFinished =
+        api.getProspectEvaluationJobs(JOE_DOE_ACCOUNT_HOLDER_ID, List.of(FINISHED));
+    var actualInProgress =
+        api.getProspectEvaluationJobs(JOE_DOE_ACCOUNT_HOLDER_ID,
+            List.of(IN_PROGRESS));
+    var actualFinishedAndFailed =
+        api.getProspectEvaluationJobs(JOE_DOE_ACCOUNT_HOLDER_ID,
+            List.of(FINISHED, FAILED));
+
+    assertEquals(5, actual.size());
+    assertEquals(1, actualNotStarted.size());
+    assertEquals(1, actualFailed.size());
+    assertTrue(actualNotStarted.stream()
+        .allMatch(jobInfo -> jobInfo.getStatus() != null &&
+            jobInfo.getStatus().getValue() == NOT_STARTED));
+    assertTrue(actualFailed.stream()
+        .allMatch(jobInfo -> jobInfo.getStatus() != null &&
+            jobInfo.getStatus().getValue() == FAILED));
+    assertTrue(actualFinished.stream()
+        .allMatch(jobInfo -> jobInfo.getStatus() != null &&
+            jobInfo.getStatus().getValue() == FINISHED));
+    assertTrue(actualInProgress.stream()
+        .allMatch(jobInfo -> jobInfo.getStatus() != null &&
+            jobInfo.getStatus().getValue() == IN_PROGRESS));
+    assertTrue(actualNotStarted.stream()
+        .allMatch(jobInfo -> jobInfo.getStatus() != null &&
+            jobInfo.getStatus().getValue() == NOT_STARTED));
+    assertTrue(actualFinishedAndFailed.containsAll(
+        Stream.of(actualFailed, actualFinished)
+            .flatMap(List::stream)
+            .collect(Collectors.toList())));
+    assertTrue(actual.containsAll(
+        Stream.of(actualNotStarted, actualFailed, actualFinished, actualInProgress)
+            .flatMap(List::stream)
+            .collect(Collectors.toList())));
+    assertEquals(evalJob1(), actualNotStarted.get(0));
+    assertEquals(evalJob3(), actualFailed.get(0));
+  }
 
   @Test
   void evaluate_prospects_ok() throws IOException, InterruptedException {

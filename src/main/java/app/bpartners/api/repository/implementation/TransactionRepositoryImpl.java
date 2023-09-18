@@ -45,15 +45,19 @@ public class TransactionRepositoryImpl implements TransactionRepository {
   private final EntityManager entityManager;
 
   private List<HTransaction> filterByIdAccountAndLabel(String idAccount, String label,
+                                                       TransactionStatus status,
                                                        Pageable pageable) {
     CriteriaBuilder builder = entityManager.getCriteriaBuilder();
     CriteriaQuery<HTransaction> query = builder.createQuery(HTransaction.class);
     Root<HTransaction> root = query.from(HTransaction.class);
     List<Predicate> predicates = new ArrayList<>();
     predicates.add(builder.equal(root.get("idAccount"), idAccount));
-    if(label != null) {
-      predicates.add(builder.or(builder.like(builder.lower(root.get("label"))
-          , "%" + label.toLowerCase() + "%")));
+    if (label != null) {
+      predicates.add(builder.or(builder.like(builder.lower(root.get("label")),
+          "%" + label.toLowerCase() + "%")));
+    }
+    if (status != null) {
+      predicates.add(builder.or(builder.equal(root.get("status"), status)));
     }
     query
         .where(builder.and(predicates.toArray(new Predicate[0])))
@@ -66,10 +70,11 @@ public class TransactionRepositoryImpl implements TransactionRepository {
   }
 
   @Override
-  public List<Transaction> findByIdAccount(String idAccount, String label, int page, int pageSize) {
+  public List<Transaction> findByIdAccount(String idAccount, String label, TransactionStatus status,
+                                           int page, int pageSize) {
     Pageable pageable =
         PageRequest.of(page, pageSize, Sort.by(Sort.Direction.DESC, "paymentDateTime"));
-    List<HTransaction> transactions = filterByIdAccountAndLabel(idAccount, label, pageable);
+    List<HTransaction> transactions = filterByIdAccountAndLabel(idAccount, label, status, pageable);
     return transactions
         .stream()
         .map(transaction -> mapper.toDomain(transaction,

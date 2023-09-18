@@ -17,7 +17,9 @@ import com.google.api.client.util.DateTime;
 import com.google.api.services.calendar.model.Event;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+import java.time.DayOfWeek;
 import java.time.Instant;
+import java.time.temporal.TemporalAdjusters;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
@@ -78,18 +80,39 @@ public class CalendarService {
 
   public List<CalendarEvent> getEvents(String idUser,
                                        String idCalendar,
-                                       Instant instantMin,
-                                       Instant instantMax) {
+                                       Instant from,
+                                       Instant to) {
+    if (from == null || to == null) {
+      from = lastMonday();
+      to = lastSunday();
+    }
+    if (from.isAfter(to)) {
+      throw new BadRequestException(
+          "Min datetime attribute `from` must be before or equals to max datetime attribute `to`");
+    }
+    DateTime dateMin = dateTimeFrom(from);
+    DateTime dateMax = dateTimeFrom(to);
     Calendar calendar = calendarRepository.getById(idCalendar);
-    DateTime dateMin = dateTimeFrom(instantMin);
-    DateTime dateMax = dateTimeFrom(instantMax);
     return calendarApi.getEvents(idUser, calendar.getEteId(), dateMin, dateMax).stream()
         .map(eventMapper::toCalendarEvent)
         .collect(Collectors.toList());
   }
 
-
   private CalendarConf calendarConf() {
     return calendarApi.getCalendarConf();
+  }
+
+  private Instant lastMonday() {
+    Instant now = Instant.now();
+    return now.atZone(java.time.ZoneOffset.UTC)
+        .with(TemporalAdjusters.previous(DayOfWeek.MONDAY))
+        .toInstant();
+  }
+
+  private Instant lastSunday() {
+    Instant now = Instant.now();
+    return now.atZone(java.time.ZoneOffset.UTC)
+        .with(TemporalAdjusters.next(DayOfWeek.SUNDAY))
+        .toInstant();
   }
 }

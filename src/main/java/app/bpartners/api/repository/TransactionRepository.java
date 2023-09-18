@@ -7,7 +7,8 @@ import java.time.Instant;
 import java.util.List;
 
 public interface TransactionRepository {
-  List<Transaction> findByIdAccount(String idAccount, String title, int page, int pageSize);
+  List<Transaction> findByIdAccount(String idAccount, String title, TransactionStatus status,
+                                    int page, int pageSize);
 
   List<Transaction> findPersistedByIdAccount(String idAccount, int page, int pageSize);
 

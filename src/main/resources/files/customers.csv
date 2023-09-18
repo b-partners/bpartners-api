@@ -1,0 +1,5 @@
+ID,Nom,Prénom,Email,Site web,Adresse,Code postal,Ville,Pays,Commentaire
+customer1_id,Artisan,Luc,bpartners.artisans@gmail.com,https://luc.website.com,15 rue Porte d'Orange,95160,Metz,,Rencontre avec Luc
+customer4_id, LeBlanc,Jean Olivier,olivier.jean@email.com,https://olivier.website.com,4 Avenue des Près,95160,Berlin,Allemagne,Rencontre à Berlin
+customer3_id, Montagnier,Marc,marc@email.com,https://marc.website.com,4 Avenue des Près,95160,Montmorency,France,Nouvelle rencontre
+customer2_id,Plombier,Jean,,https://jean.website.com,4 Avenue des Près,95160,Montmorency,France,Rencontre avec le plombier

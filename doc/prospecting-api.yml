@@ -307,7 +307,123 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
-
+  prospectEvaluationJobDetails:
+    get:
+      tags:
+        - Prospecting
+      summary: Get all prospect evaluation jobs for an account holder
+      operationId: getProspectEvaluationJobs
+      parameters:
+        - name: ahId
+          in: path
+          description: Account holder identifier
+          schema:
+            type: string
+          required: true
+        - name: jId
+          in: path
+          description: Prospect evaluation job identifier
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProspectEvaluationJobResult'
+          400:
+            $ref: './api.yml#/components/responses/400'
+          403:
+            $ref: './api.yml#/components/responses/403'
+          404:
+            $ref: './api.yml#/components/responses/404'
+          429:
+            $ref: './api.yml#/components/responses/429'
+          500:
+            $ref: './api.yml#/components/responses/500'
+  prospectEvaluationJobs:
+    get:
+      tags:
+        - Prospecting
+      summary: Get all prospect evaluation jobs for an account holder
+      operationId: getProspectEvaluationJobs
+      parameters:
+        - name: ahId
+          in: path
+          description: Account holder identifier
+          schema:
+            type: string
+          required: true
+        - name: statuses
+          in: query
+          description: Filter prospect evaluation jobs by job statuses value
+          schema:
+            type: array
+            items:
+              $ref: './api.yml#/components/schemas/JobStatusValue'
+          required: false
+      responses:
+        200:
+          description:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ProspectEvaluationJobInfo'
+          400:
+            $ref: './api.yml#/components/responses/400'
+          403:
+            $ref: './api.yml#/components/responses/403'
+          404:
+            $ref: './api.yml#/components/responses/404'
+          429:
+            $ref: './api.yml#/components/responses/429'
+          500:
+            $ref: './api.yml#/components/responses/500'
+    post:
+      tags:
+        - Prospecting
+      summary: Run prospect-evaluation jobs
+      operationId: runProspectEvaluationJobs
+      parameters:
+        - name: ahId
+          in: path
+          description: Account holder identifier
+          schema:
+            type: string
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/PostProspectEvaluationJob'
+      responses:
+        200:
+          description: |
+            Return prospect evaluation jobs results.
+            For each finished job with status `FINISHED`, an email will be automatically sent to the account holder.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ProspectEvaluationJobResult'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
 components:
   schemas:
     Marketplace:
@@ -514,6 +630,69 @@ components:
           $ref: '#/components/schemas/NewInterventionOption'
           description: |
             When any value provided, NEW_PROSPECT is chosen by default.
+    PostProspectEvaluationJob:
+      type: object
+      properties:
+        eventProspectConversion:
+          $ref: '#/components/schemas/PostEventProspectConversion'
+        #TODO: add spreadsheetEvaluation here
+    PostEventProspectConversion:
+      type: object
+      properties:
+        calendarId:
+          type: string
+        evaluationRules:
+          $ref: '#/components/schemas/EventEvaluationRules'
+        eventDateRanges:
+          $ref: '#/components/schemas/EventDateRanges'
+        sheetProperties:
+          $ref: '#/components/schemas/SheetProperties'
+          description: |
+            If not provided, then only existing customers will be evaluated.
+        ratingProperties:
+          $ref: '#/components/schemas/RatingProperties'
+    EventEvaluationRules:
+      type: object
+      properties:
+        profession:
+          $ref: '#/components/schemas/ProfessionType'
+        antiHarmRules:
+          $ref: '#/components/schemas/AntiHarmRules'
+    ProfessionType:
+      type: string
+      enum:
+        #Only supported for now
+        - ANTI_HARM
+    AntiHarmRules:
+      type: object
+      properties:
+        interventionTypes:
+          type: array
+          items:
+            $ref: '#/components/schemas/InterventionType'
+        infestationType:
+          type: string
+    InterventionType:
+      type: string
+      enum:
+        - INSECT_CONTROL
+        - DISINFECTION
+        - RAT_REMOVAL
+    EventDateRanges:
+      type: object
+      properties:
+        from:
+          type: string
+          format: date-time
+          description: |
+            When not provided or the `to` parameter not provided, the filter parameter is ignored.
+            If not provided, actual week is provided by default.
+        to:
+          type: string
+          format: date-time
+          description: |
+            When not provided or the `from` parameter not provided, the filter parameter is ignored.
+            If not provided, actual week is provided by default.
     RatingProperties:
       type: object
       properties:
@@ -527,3 +706,36 @@ components:
           format: double
           description: |
             When any value provided, minimum prospect rating accepted is 8.0.
+    ProspectEvaluationJobInfo:
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          $ref: '#/components/schemas/ProspectEvaluationJobType'
+        status:
+          $ref: '#/components/schemas/ProspectEvaluationJobStatus'
+        startedAt:
+          type: string
+          format: date-time
+        endedAt:
+          type: string
+          format: date-time
+    ProspectEvaluationJobStatus:
+      allOf:
+        - $ref: './api.yml#/components/schemas/JobStatus'
+    ProspectEvaluationJobType:
+      type: string
+      enum:
+        - CALENDAR_EVENT_CONVERSION
+        - ADDRESS_CONVERSION
+        - SPREADSHEET_EVALUATION
+    ProspectEvaluationJobResult:
+      allOf:
+        - $ref: '#/components/schemas/ProspectEvaluationJobInfo'
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Prospect'

@@ -9,9 +9,14 @@ import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.endpoint.rest.validator.UpdateCustomerStatusValidator;
 import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.PageFromOne;
+import app.bpartners.api.model.exception.ApiException;
+import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.service.CustomerService;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.List;
 import java.util.stream.Collectors;
+import javax.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,16 +24,51 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
+import static app.bpartners.api.service.CustomerService.EXCEL_MIME_TYPE;
+import static app.bpartners.api.service.CustomerService.TEXT_CSV_MIME_TYPE;
 
 @RestController
 @AllArgsConstructor
 @Slf4j
 public class CustomerController {
+  public static final String CSV_EXTENSION = ".csv";
+  public static final String EXCEL_EXTENSION = ".xlsx";
+  private static final String JSON_MIME_TYPE = "application/json";
   private final CustomerService service;
   private final CustomerRestMapper mapper;
   private final UpdateCustomerStatusValidator validator;
+
+  @GetMapping(value = "/accounts/{aId}/customers/export")
+  public void exportCustomers(@PathVariable String aId,
+                              @RequestHeader("Accept") String fileType,
+                              HttpServletResponse response) {
+    if (!fileType.equals(TEXT_CSV_MIME_TYPE)) {
+      throw new NotImplementedException("Only CSV export file is supported for now");
+    }
+    String idUser =
+        AuthProvider.getAuthenticatedUserId();
+    try {
+      String fileExtension = fileType.equals(TEXT_CSV_MIME_TYPE) ? CSV_EXTENSION :
+          (fileType.equals(EXCEL_MIME_TYPE) ? EXCEL_EXTENSION : null);
+      response.setContentType(fileType);
+      response.setHeader("Content-Disposition",
+          "attachment; filename=\"customers" + fileExtension + "\"");
+      response.setCharacterEncoding("UTF-8");
+      PrintWriter writer = response.getWriter();
+
+      service.exportCustomers(idUser, fileType, writer);
+
+      writer.close();
+    } catch (IOException e) {
+      throw new ApiException(SERVER_EXCEPTION, e);
+    }
+  }
+
 
   @GetMapping("/accounts/{id}/customers")
   //TODO: only filters should be used for filtering customers

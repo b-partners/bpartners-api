@@ -10,9 +10,14 @@ import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.endpoint.rest.validator.UpdateProductStatusValidator;
 import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.PageFromOne;
+import app.bpartners.api.model.exception.ApiException;
+import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.service.ProductService;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.List;
 import java.util.stream.Collectors;
+import javax.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,16 +25,49 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
+import static app.bpartners.api.service.CustomerService.EXCEL_MIME_TYPE;
+import static app.bpartners.api.service.CustomerService.TEXT_CSV_MIME_TYPE;
 
 @RestController
 @AllArgsConstructor
 @Slf4j
 public class ProductController {
+  public static final String CSV_EXTENSION = ".csv";
+  public static final String EXCEL_EXTENSION = ".xlsx";
   private final ProductRestMapper mapper;
-  private final ProductService productService;
+  private final ProductService service;
   private final UpdateProductStatusValidator validator;
+
+  @GetMapping(value = "/accounts/{aId}/products/export")
+  public void exportProducts(@PathVariable String aId,
+                             @RequestHeader("Accept") String fileType,
+                             HttpServletResponse response) {
+    if (!fileType.equals(TEXT_CSV_MIME_TYPE)) {
+      throw new NotImplementedException("Only CSV export file is supported for now");
+    }
+    String idUser =
+        AuthProvider.getAuthenticatedUserId();
+    try {
+      String fileExtension = fileType.equals(TEXT_CSV_MIME_TYPE) ? CSV_EXTENSION :
+          (fileType.equals(EXCEL_MIME_TYPE) ? EXCEL_EXTENSION : null);
+      response.setContentType(fileType);
+      response.setHeader("Content-Disposition",
+          "attachment; filename=\"products" + fileExtension + "\"");
+      response.setCharacterEncoding("UTF-8");
+      PrintWriter writer = response.getWriter();
+
+      service.exportCustomers(idUser, writer);
+
+      writer.close();
+    } catch (IOException e) {
+      throw new ApiException(SERVER_EXCEPTION, e);
+    }
+  }
 
   @GetMapping("/accounts/{id}/products")
   public List<Product> getProducts(
@@ -48,7 +86,7 @@ public class ProductController {
         : pageSize.getValue();
     String idUser =
         AuthProvider.getAuthenticatedUserId(); //TODO: should be changed when endpoint changed
-    return productService.getByIdUserAndCriteria(idUser, status, pageValue, pageSizeValue,
+    return service.getByIdUserAndCriteria(idUser, status, pageValue, pageSizeValue,
             descriptionOrder, unitPriceOrder, createdDateOrder, description, unitPrice)
         .stream()
         .map(mapper::toRest)
@@ -59,7 +97,7 @@ public class ProductController {
   public Product getUniqueProduct(
       @PathVariable(name = "aId") String accountId,
       @PathVariable(name = "pId") String id) {
-    return mapper.toRest(productService.getById(id));
+    return mapper.toRest(service.getById(id));
   }
 
   @PutMapping("/accounts/{aId}/products")
@@ -71,7 +109,7 @@ public class ProductController {
     List<app.bpartners.api.model.Product> domain = toCrupdate.stream()
         .map(mapper::toDomain)
         .collect(Collectors.toUnmodifiableList());
-    return productService.crupdate(idUser, domain).stream()
+    return service.crupdate(idUser, domain).stream()
         .map(mapper::toRest)
         .collect(Collectors.toUnmodifiableList());
   }
@@ -87,7 +125,7 @@ public class ProductController {
     List<app.bpartners.api.model.Product> domain = toCrupdate.stream()
         .map(mapper::toDomain)
         .collect(Collectors.toUnmodifiableList());
-    return productService.crupdate(idUser, domain).stream()
+    return service.crupdate(idUser, domain).stream()
         .map(mapper::toRest)
         .collect(Collectors.toUnmodifiableList());
   }
@@ -97,7 +135,7 @@ public class ProductController {
       @PathVariable(name = "aId") String accountId,
       @RequestBody List<UpdateProductStatus> productStatuses) {
     validator.accept(productStatuses);
-    return productService.updateStatuses(productStatuses).stream()
+    return service.updateStatuses(productStatuses).stream()
         .map(mapper::toRest)
         .collect(Collectors.toUnmodifiableList());
   }
@@ -109,8 +147,8 @@ public class ProductController {
     String idUser =
         AuthProvider.getAuthenticatedUserId(); //TODO: should be changed when endpoint changed
     List<app.bpartners.api.model.Product> products =
-        productService.getDataFromFile(toUpload);
-    return productService.crupdate(idUser, products)
+        service.getDataFromFile(toUpload);
+    return service.crupdate(idUser, products)
         .stream().map(mapper::toRest)
         .collect(Collectors.toUnmodifiableList());
   }

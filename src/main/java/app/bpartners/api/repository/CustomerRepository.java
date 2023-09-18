@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Optional;
 
 public interface CustomerRepository {
+  List<Customer> findAllByIdUserOrderByLastNameAsc(String idUser);
+
   List<Customer> findByIdAccountHolder(String idAccountHolder);
 
   List<Customer> saveAll(List<Customer> toCreate);

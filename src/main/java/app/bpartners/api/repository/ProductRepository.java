@@ -7,10 +7,10 @@ import app.bpartners.api.endpoint.rest.model.UpdateProductStatus;
 import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.Product;
 import java.util.List;
-import org.springframework.stereotype.Repository;
 
-@Repository
 public interface ProductRepository {
+  List<Product> findAllByIdUserOrderByDescriptionAsc(String idUser);
+
   List<Product> saveAll(String idUser, List<Product> toCreate);
 
   List<Product> findByIdUserAndCriteria(

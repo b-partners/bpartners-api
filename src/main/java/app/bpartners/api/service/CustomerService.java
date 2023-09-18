@@ -21,6 +21,7 @@ import app.bpartners.api.repository.CustomerRepository;
 import app.bpartners.api.repository.ban.BanApi;
 import app.bpartners.api.repository.ban.model.GeoPosition;
 import java.io.ByteArrayInputStream;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -37,11 +38,33 @@ import static app.bpartners.api.service.utils.CustomerUtils.getCustomersInfoFrom
 @AllArgsConstructor
 @Slf4j
 public class CustomerService {
+  public static final String TEXT_CSV_MIME_TYPE = "text/csv";
+  public static final String EXCEL_MIME_TYPE =
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+  public static final String CSV_HEADERS =
+      "ID,Nom,Prénom,Email,Site web,Adresse,Code postal,Ville,Pays,Commentaire";
   private final CustomerRepository repository;
   private final CustomerRestMapper restMapper;
   private final EventProducer eventProducer;
   private final EventConf eventConf;
   private final BanApi banApi;
+
+  public void exportCustomers(String idUser, String fileType, PrintWriter pw) {
+    var customers = repository.findAllByIdUserOrderByLastNameAsc(idUser);
+    pw.println(CSV_HEADERS);
+    customers.forEach(customer -> {
+      pw.println(
+          replaceNullValue(customer.getId()) + "," + replaceNullValue(customer.getLastName())
+              + "," + replaceNullValue(customer.getFirstName()) + ","
+              + replaceNullValue(customer.getEmail())
+              + "," + replaceNullValue(customer.getWebsite()) + ","
+              + replaceNullValue(customer.getAddress())
+              + "," + replaceNullValue(String.valueOf(customer.getZipCode())) + ","
+              + replaceNullValue(customer.getCity())
+              + "," + replaceNullValue(customer.getCountry()) + ","
+              + replaceNullValue(customer.getComment()));
+    });
+  }
 
   public List<Customer> getCustomers(String idUser, String firstName, String lastName, String email,
                                      String phoneNumber, String city, String country,
@@ -168,5 +191,9 @@ public class CustomerService {
   @Transactional
   public List<Customer> findByAccountHolderId(String accountHolderId) {
     return repository.findByIdAccountHolder(accountHolderId);
+  }
+
+  private static String replaceNullValue(String value) {
+    return value == null ? "" : value;
   }
 }

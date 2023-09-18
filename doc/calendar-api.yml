@@ -18,7 +18,9 @@ operations:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Calendar'
+                type: array
+                items:
+                  $ref: '#/components/schemas/Calendar'
         403:
           $ref: './api.yml#/components/responses/400'
         500:
@@ -49,13 +51,22 @@ operations:
             type: string
             format: date-time
           required: false
+        - name: to
+          in: query
+          description: When not provided or the `from` parameter not provided, the filter parameter is ignored.
+          schema:
+            type: string
+            format: date-time
+          required: false
       responses:
         200:
           description: The calendar events
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CalendarEvent'
+                type: array
+                items:
+                  $ref: '#/components/schemas/CalendarEvent'
         400:
           $ref: './api.yml#/components/responses/400'
         500:

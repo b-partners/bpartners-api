@@ -49,8 +49,8 @@ public class CalendarEventMapper {
         .location(event.getLocation())
         .organizer(event.getOrganizer().getEmail())
         .participants(getParticipants(event))
-        .from(zonedDateTimeFrom(event.getStart()))
-        .to(zonedDateTimeFrom(event.getEnd()))
+        .from(event.getStart() == null ? null : zonedDateTimeFrom(event.getStart()))
+        .to(event.getEnd() == null ? null : zonedDateTimeFrom(event.getEnd()))
         .updatedAt(instantFrom(event.getUpdated()))
         .build();
   }

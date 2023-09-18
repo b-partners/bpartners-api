@@ -35,6 +35,46 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
+  customerExportOperations:
+    get:
+      tags:
+        - Customers
+      summary: Export all customers of an account
+      operationId: exportCustomers
+      parameters:
+        - in: path
+          name: aId
+          schema:
+            type: string
+          required: true
+        - in: header
+          name: Accept
+          description: |
+            Only CSV or Excel file type is supported.
+          schema:
+            type: string
+      responses:
+        200:
+          description: Return CSV or Excel containing all the customers of the account
+          content:
+            text/csv:
+              schema:
+                type: string
+                format: binary
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+              schema:
+                type: string
+                format: binary
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
   customerOperations:
     get:
       tags:
@@ -106,6 +146,11 @@ operations:
                 type: array
                 items:
                   $ref: '#/components/schemas/Customer'
+            application/xls:
+              description: In case
+              schema:
+                type: string
+                format: binary
         400:
           $ref: './api.yml#/components/responses/400'
         403:

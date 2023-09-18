@@ -7,6 +7,9 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 public interface CustomerJpaRepository extends JpaRepository<HCustomer, String> {
+
+  List<HCustomer> findAllByIdUserOrderByLastNameAsc(String idUser);
+
   List<HCustomer> findAllByLatitudeIsNullOrLongitudeIsNull();
 
   @Query("select c from HCustomer c join HUser u on c.idUser = u.id"

@@ -8,6 +8,7 @@ import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.Product;
 import app.bpartners.api.repository.ProductRepository;
 import java.io.ByteArrayInputStream;
+import java.io.PrintWriter;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
@@ -19,6 +20,8 @@ import static app.bpartners.api.service.utils.ProductUtils.getProductsFromFile;
 @Service
 @AllArgsConstructor
 public class ProductService {
+  public static final String CSV_HEADERS =
+      "ID,Description,Prix unitaire (€),Prix unitaire avec TVA (€),TVA (%),Créé le";
   private final ProductRepository repository;
   private final ProductRestMapper restMapper;
 
@@ -48,5 +51,25 @@ public class ProductService {
 
   public Product getById(String id) {
     return repository.findById(id);
+  }
+
+  public void exportCustomers(String idUser, PrintWriter pw) {
+    var products = repository.findAllByIdUserOrderByDescriptionAsc(idUser);
+    pw.println(CSV_HEADERS);
+    products.forEach(product -> {
+      pw.println(
+          replaceNullValue(product.getId()) + "," + replaceNullValue(product.getDescription())
+              + "," + replaceNullValue(
+              String.valueOf(product.getUnitPrice().getApproximatedValue())) + ","
+              + replaceNullValue(
+              String.valueOf(product.getUnitPriceWithVat().getApproximatedValue()))
+              + "," + replaceNullValue(
+              String.valueOf(product.getVatPercent().getApproximatedValue())) + ","
+              + replaceNullValue(String.valueOf(product.getCreatedAt())));
+    });
+  }
+
+  private static String replaceNullValue(String value) {
+    return value == null ? "" : value;
   }
 }

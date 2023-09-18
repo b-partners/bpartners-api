@@ -15,6 +15,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.CollectionType;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -28,6 +29,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
@@ -47,8 +49,11 @@ import static app.bpartners.api.integration.conf.utils.TestUtils.customer1;
 import static app.bpartners.api.integration.conf.utils.TestUtils.customerDisabled;
 import static app.bpartners.api.integration.conf.utils.TestUtils.customerUpdated;
 import static app.bpartners.api.integration.conf.utils.TestUtils.customerWithSomeNullAttributes;
+import static app.bpartners.api.integration.conf.utils.TestUtils.getApiException;
 import static app.bpartners.api.integration.conf.utils.TestUtils.setUpCognito;
 import static app.bpartners.api.integration.conf.utils.TestUtils.setUpLegalFileRepository;
+import static app.bpartners.api.service.CustomerService.EXCEL_MIME_TYPE;
+import static app.bpartners.api.service.CustomerService.TEXT_CSV_MIME_TYPE;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -87,6 +92,23 @@ class CustomerIT extends MockedThirdParties {
         .city("Paris")
         .country("France")
         .comment("Nouvelle rencontre");
+  }
+
+  @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+  @Test
+  void export_customers_ok() throws IOException, InterruptedException, ApiException {
+    InputStream expectedFileIs = new ClassPathResource("files/customers.csv").getInputStream();
+
+    var actual = exportCustomers(JOE_DOE_ACCOUNT_ID, TEXT_CSV_MIME_TYPE);
+    //TODO: check why not throwing error correctly
+    assertThrowsApiException("", () -> exportCustomers(JOE_DOE_ACCOUNT_ID, EXCEL_MIME_TYPE));
+
+    assertEquals(expectedFileIs.readAllBytes().length, actual.body().length);
+    expectedFileIs.close();
+    /*Uncomment to download file
+    var fos = new FileOutputStream("customers" + randomUUID() + ".csv");
+    fos.write(actual.body());
+    fos.close();*/
   }
 
   @Test
@@ -294,6 +316,23 @@ class CustomerIT extends MockedThirdParties {
             .method("POST", HttpRequest.BodyPublishers.ofFile(toUpload.toPath())).build(),
         HttpResponse.BodyHandlers.ofString());
 
+    return response;
+  }
+
+  private HttpResponse<byte[]> exportCustomers(String accountId, String fileType)
+      throws IOException, InterruptedException, ApiException {
+    HttpClient unauthenticatedClient = HttpClient.newBuilder().build();
+    String basePath = "http://localhost:" + DbEnvContextInitializer.getHttpServerPort();
+
+    HttpResponse<byte[]> response = unauthenticatedClient.send(HttpRequest.newBuilder()
+            .uri(URI.create(basePath + "/accounts/" + accountId + "/customers/export"))
+            .header("Authorization", BEARER_PREFIX + JOE_DOE_TOKEN)
+            .header("Accept", fileType)
+            .method("GET", HttpRequest.BodyPublishers.noBody()).build(),
+        HttpResponse.BodyHandlers.ofByteArray());
+    if (response.statusCode() / 100 != 2) {
+      throw getApiException("exportCustomers", response);
+    }
     return response;
   }
 }

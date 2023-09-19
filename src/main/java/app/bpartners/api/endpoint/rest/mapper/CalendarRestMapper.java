@@ -10,16 +10,17 @@ import static app.bpartners.api.repository.google.calendar.CalendarApi.zonedDate
 @Component
 public class CalendarRestMapper {
   public CalendarEvent toRest(
-      app.bpartners.api.model.CalendarEvent calendarEvent) {
+      app.bpartners.api.model.CalendarEvent domain) {
     return new CalendarEvent()
-        .id(calendarEvent.getId())
-        .summary(calendarEvent.getSummary())
-        .location(calendarEvent.getLocation())
-        .organizer(calendarEvent.getOrganizer())
-        .participants(calendarEvent.getParticipants())
-        .from(calendarEvent.getFrom().toInstant())
-        .to(calendarEvent.getTo().toInstant())
-        .updatedAt(calendarEvent.getUpdatedAt());
+        .id(domain.getId())
+        .summary(domain.getSummary())
+        .location(domain.getLocation())
+        .organizer(domain.getOrganizer())
+        .participants(domain.getParticipants())
+        .isSynchronized(domain.isSync())
+        .from(domain.getFrom().toInstant())
+        .to(domain.getTo().toInstant())
+        .updatedAt(domain.getUpdatedAt());
   }
 
   public Calendar toRest(app.bpartners.api.model.Calendar calendar) {

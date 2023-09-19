@@ -40,6 +40,7 @@ public class HCalendarEvent implements Serializable {
   private Instant createdAt;
   private String idCalendar;
   private String idUser;
+  private boolean sync;
   @Transient
   private boolean newEvent;
 }

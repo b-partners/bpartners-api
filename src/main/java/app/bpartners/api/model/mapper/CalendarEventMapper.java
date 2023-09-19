@@ -46,6 +46,7 @@ public class CalendarEventMapper {
     return HCalendarEvent.builder()
         .id(domain.getId())
         .eteId(null)
+        .sync(false)
         .idUser(idUser)
         .idCalendar(idCalendar)
         .summary(domain.getSummary())
@@ -101,16 +102,17 @@ public class CalendarEventMapper {
         : List.of();
   }
 
-  public CalendarEvent toDomain(HCalendarEvent event) {
+  public CalendarEvent toDomain(HCalendarEvent entity) {
     return CalendarEvent.builder()
-        .id(event.getId())
-        .summary(event.getSummary())
-        .location(event.getLocation())
-        .organizer(event.getOrganizer())
-        .participants(decodeJsonList(event.getParticipants()))
-        .from(zonedDateTimeFrom(event.getFrom()))
-        .to(zonedDateTimeFrom(event.getTo()))
-        .updatedAt(event.getUpdatedAt())
+        .id(entity.getId())
+        .summary(entity.getSummary())
+        .location(entity.getLocation())
+        .organizer(entity.getOrganizer())
+        .participants(decodeJsonList(entity.getParticipants()))
+        .from(zonedDateTimeFrom(entity.getFrom()))
+        .to(zonedDateTimeFrom(entity.getTo()))
+        .updatedAt(entity.getUpdatedAt())
+        .sync(entity.isSync())
         .build();
   }
 

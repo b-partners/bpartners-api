@@ -49,20 +49,29 @@ public class CalendarEventRepositoryImpl implements CalendarEventRepository {
         eventEntries.stream()
             .map(event -> eventMapper.toEntity(randomUUID(), idUser, idCalendar, event))
             .collect(Collectors.toList());
-
-    /*TODO: improve this
-     *  The goal is to save only event with unknown end to end ID*/
-    for (HCalendarEvent newEvent : eventEntities) {
-      for (HCalendarEvent actualEvent : retrievedEvents) {
-        if ((actualEvent.getEteId() != null && newEvent.getEteId() != null)
-            && actualEvent.getEteId().equals(newEvent.getEteId())) {
-          newEvent.setNewEvent(false);
-          break;
-        } else {
-          newEvent.setId(randomUUID());
-          newEvent.setSync(true);
-          newEvent.setCreatedAt(Instant.now());
-          newEvent.setNewEvent(true);
+    if (retrievedEvents.isEmpty()) {
+      eventEntities.forEach(newEvent -> {
+            newEvent.setId(randomUUID());
+            newEvent.setSync(true);
+            newEvent.setCreatedAt(Instant.now());
+            newEvent.setNewEvent(true);
+          }
+      );
+    } else {
+      /*TODO: improve this
+       *  The goal is to save only event with unknown end to end ID*/
+      for (HCalendarEvent newEvent : eventEntities) {
+        for (HCalendarEvent actualEvent : retrievedEvents) {
+          if ((actualEvent.getEteId() != null && newEvent.getEteId() != null)
+              && actualEvent.getEteId().equals(newEvent.getEteId())) {
+            newEvent.setNewEvent(false);
+            break;
+          } else {
+            newEvent.setId(randomUUID());
+            newEvent.setSync(true);
+            newEvent.setCreatedAt(Instant.now());
+            newEvent.setNewEvent(true);
+          }
         }
       }
     }

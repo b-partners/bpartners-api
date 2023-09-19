@@ -17,7 +17,6 @@ import org.springframework.stereotype.Component;
 import static app.bpartners.api.repository.google.calendar.CalendarApi.dateTimeFrom;
 import static app.bpartners.api.repository.google.calendar.CalendarApi.instantFrom;
 import static app.bpartners.api.repository.google.calendar.CalendarApi.zonedDateTimeFrom;
-import static java.util.UUID.randomUUID;
 
 @Component
 @AllArgsConstructor
@@ -27,6 +26,8 @@ public class CalendarEventMapper {
   final ObjectMapper objectMapper = new ObjectMapper();
 
   public HCalendarEvent toEntity(String id, String idUser, String idCalendar, Event event) {
+    EventDateTime start = event.getStart();
+    EventDateTime end = event.getEnd();
     return HCalendarEvent.builder()
         .id(id)
         .eteId(event.getId())
@@ -36,8 +37,8 @@ public class CalendarEventMapper {
         .location(event.getLocation())
         .organizer(event.getOrganizer().getEmail())
         .participants(encodeJsonList(getParticipants(event)))
-        .from(event.getStart() == null ? null : instantFrom(event.getStart()))
-        .to(event.getEnd() == null ? null : instantFrom(event.getEnd()))
+        .from(start == null ? null : instantFrom(start))
+        .to(end == null ? null : instantFrom(end))
         .updatedAt(instantFrom(event.getUpdated()))
         .build();
   }
@@ -79,19 +80,6 @@ public class CalendarEventMapper {
             .map(participant -> new EventAttendee().setEmail(participant))
             .collect(Collectors.toList()))
         .setUpdated(dateTimeFrom(Instant.now()));
-  }
-
-  public CalendarEvent toCalendarEvent(Event event) {
-    return CalendarEvent.builder()
-        .id(String.valueOf(randomUUID())) //TODO: remove when calendar events are persisted
-        .summary(event.getSummary())
-        .location(event.getLocation())
-        .organizer(event.getOrganizer().getEmail())
-        .participants(getParticipants(event))
-        .from(event.getStart() == null ? null : zonedDateTimeFrom(event.getStart()))
-        .to(event.getEnd() == null ? null : zonedDateTimeFrom(event.getEnd()))
-        .updatedAt(instantFrom(event.getUpdated()))
-        .build();
   }
 
   private static List<String> getParticipants(Event event) {

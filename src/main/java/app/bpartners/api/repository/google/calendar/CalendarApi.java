@@ -163,7 +163,10 @@ public class CalendarApi {
   }
 
   public static Instant instantFrom(EventDateTime eventDateTime) {
-    return instantFrom(eventDateTime.getDateTime());
+    if (eventDateTime.getDateTime() == null && eventDateTime.getDate() != null) {
+      return instantFrom(eventDateTime.getDate());
+    }
+    return instantFrom(eventDateTime.getDateTime() == null ? null : eventDateTime.getDateTime());
   }
 
   public static Instant instantFrom(DateTime eventDateTime) {

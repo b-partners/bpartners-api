@@ -51,16 +51,17 @@ public class CalendarEventRepositoryImpl implements CalendarEventRepository {
 
     /*TODO: improve this
      *  The goal is to save only event with unknown end to end ID*/
-    for (HCalendarEvent newEntity : eventEntities) {
+    for (HCalendarEvent newEvent : eventEntities) {
       for (HCalendarEvent actualEvent : retrievedEvents) {
-        if ((actualEvent.getEteId() != null && newEntity.getEteId() != null)
-            && actualEvent.getEteId().equals(newEntity.getEteId())) {
-          newEntity.setNewEvent(false);
+        if ((actualEvent.getEteId() != null && newEvent.getEteId() != null)
+            && actualEvent.getEteId().equals(newEvent.getEteId())) {
+          newEvent.setNewEvent(false);
           break;
         } else {
-          newEntity.setId(randomUUID());
-          newEntity.setCreatedAt(Instant.now());
-          newEntity.setNewEvent(true);
+          newEvent.setId(randomUUID());
+          newEvent.setSync(true);
+          newEvent.setCreatedAt(Instant.now());
+          newEvent.setNewEvent(true);
         }
       }
     }
@@ -121,6 +122,7 @@ public class CalendarEventRepositoryImpl implements CalendarEventRepository {
             newEvent.setId(actualEvent.getId());
           } else {
             newEvent.setId(String.valueOf(randomUUID()));
+            newEvent.setSync(true);
             newEvent.setCreatedAt(Instant.now());
           }
         });

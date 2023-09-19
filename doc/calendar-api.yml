@@ -194,6 +194,9 @@ components:
         - $ref: '#/components/schemas/CreateCalendarEvent'
       type: object
       properties:
+        isSynchronized:
+          type: boolean
+          description: '`true` if synchronized with google calendar using valid token'
         updatedAt:
           type: string
           format: date-time

@@ -319,6 +319,48 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
+  accountHolderOperations:
+    get:
+      tags:
+        - User Accounts
+      summary: Get all existing account holders
+      description: Only users with appropriate roles as `EVAL_PROSPECT` are authorized to request it.
+      operationId: getAllAccountHolders
+      parameters:
+        - in: query
+          name: name
+          schema:
+            type: string
+          description: Filter account holders by name.
+        - in: query
+          name: page
+          description: If not provided, default value is 1.
+          schema:
+            $ref: './api.yml#/components/schemas/Page'
+        - in: query
+          name: pageSize
+          description: If not provided, default value is 30.
+          schema:
+            $ref: './api.yml#/components/schemas/PageSize'
+      responses:
+        200:
+          description: List of all existing accountHolders
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AccountHolder'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
   getAccountHolders:
     get:
       tags:

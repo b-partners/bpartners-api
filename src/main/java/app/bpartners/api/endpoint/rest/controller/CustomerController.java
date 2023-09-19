@@ -38,7 +38,6 @@ import static app.bpartners.api.service.CustomerService.TEXT_CSV_MIME_TYPE;
 public class CustomerController {
   public static final String CSV_EXTENSION = ".csv";
   public static final String EXCEL_EXTENSION = ".xlsx";
-  private static final String JSON_MIME_TYPE = "application/json";
   private final CustomerService service;
   private final CustomerRestMapper mapper;
   private final UpdateCustomerStatusValidator validator;

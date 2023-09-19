@@ -100,6 +100,7 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
         .antMatchers(PUT, "/users/*/legalFiles/*").permitAll()
         .antMatchers(OPTIONS, "/**").permitAll()
         .antMatchers(GET, "/whois/*").permitAll()
+        .antMatchers(GET, "/accountHolders").hasAnyRole(EVAL_PROSPECT.getRole())
         .requestMatchers(
             new SelfAccountMatcher(GET, "/accounts/*/customers", authResourceProvider)
         ).authenticated()

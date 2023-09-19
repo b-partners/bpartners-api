@@ -63,6 +63,8 @@ paths:
     $ref: './userAccounts-api.yml#/operations/configureFeedback'
   /users/{userId}/accountHolders/{ahId}/feedback:
     $ref: './userAccounts-api.yml#/operations/askFeedback'
+  /accountHolders:
+    $ref: './userAccounts-api.yml#/operations/accountHolderOperations'
   /businessActivities:
     $ref: './userAccounts-api.yml#/operations/getBusinessActivities'
   /users/{userId}/accounts/{accountId}/accountHolders/{ahId}/businessActivities:

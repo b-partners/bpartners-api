@@ -125,6 +125,11 @@ operations:
           schema:
             type: string
           required: true
+        - in: header
+          name: Accept
+          schema:
+            type: string
+            description: Only JSON or EXCEL type is supported for now. Use MIME type to specify it.
       requestBody:
         required: true
         content:

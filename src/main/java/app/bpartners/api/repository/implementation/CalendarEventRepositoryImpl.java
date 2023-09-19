@@ -43,7 +43,8 @@ public class CalendarEventRepositoryImpl implements CalendarEventRepository {
     DateTime dateMin = dateTimeFrom(from);
     DateTime dateMax = dateTimeFrom(to);
     List<Event> eventEntries = getSyncGoogleEvents(idUser, calendar, dateMin, dateMax);
-    List<HCalendarEvent> retrievedEvents = jpaRepository.findByIdUser(idUser);
+    List<HCalendarEvent> retrievedEvents =
+        jpaRepository.findAllByIdUserAndIdCalendar(idUser, idCalendar);
     List<HCalendarEvent> eventEntities =
         eventEntries.stream()
             .map(event -> eventMapper.toEntity(randomUUID(), idUser, idCalendar, event))
@@ -113,7 +114,8 @@ public class CalendarEventRepositoryImpl implements CalendarEventRepository {
     } else {
       /*TODO: improve this
        * The goal is to update existing events by using existing ID*/
-      List<HCalendarEvent> actualEventEntities = jpaRepository.findByIdUser(idUser);
+      List<HCalendarEvent> actualEventEntities =
+          jpaRepository.findAllByIdUserAndIdCalendar(idUser, idCalendar);
       newEventEntities.forEach(newEvent -> {
         actualEventEntities.forEach(actualEvent -> {
           newEvent.setUpdatedAt(Instant.now());

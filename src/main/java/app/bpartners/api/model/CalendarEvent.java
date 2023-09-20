@@ -24,6 +24,7 @@ public class CalendarEvent {
   private String organizer;
   private String location;
   private List<String> participants;
+  private boolean sync;
   private ZonedDateTime from;
   private ZonedDateTime to;
   private Instant updatedAt;

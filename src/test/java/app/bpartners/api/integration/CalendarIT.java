@@ -65,7 +65,7 @@ public class CalendarIT extends MockedThirdParties {
     Credential loadedCredentials = calendarConf.getLocalCredentials(JOE_DOE_ID);
 
     List<Event> actual =
-        calendarApi.createEvents(loadedCredentials, DEFAULT_CALENDAR, createEvents());
+        calendarApi.crupdateEvents(loadedCredentials, DEFAULT_CALENDAR, createEvents());
 
     assertNotNull(actual);
     assertFalse(actual.isEmpty());

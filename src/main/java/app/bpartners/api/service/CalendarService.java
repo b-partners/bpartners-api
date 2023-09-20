@@ -5,27 +5,27 @@ import app.bpartners.api.endpoint.rest.model.CalendarConsentInit;
 import app.bpartners.api.endpoint.rest.model.Redirection;
 import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
 import app.bpartners.api.endpoint.rest.validator.CalendarConsentValidator;
+import app.bpartners.api.model.AccessToken;
 import app.bpartners.api.model.Calendar;
 import app.bpartners.api.model.CalendarEvent;
+import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.exception.BadRequestException;
-import app.bpartners.api.model.mapper.CalendarEventMapper;
 import app.bpartners.api.model.validator.CalendarAuthValidator;
+import app.bpartners.api.repository.CalendarEventRepository;
 import app.bpartners.api.repository.CalendarRepository;
+import app.bpartners.api.repository.CalendarStoredCredentialRepository;
 import app.bpartners.api.repository.google.calendar.CalendarApi;
 import app.bpartners.api.repository.google.calendar.CalendarConf;
-import com.google.api.client.util.DateTime;
-import com.google.api.services.calendar.model.Event;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.time.DayOfWeek;
 import java.time.Instant;
 import java.time.temporal.TemporalAdjusters;
 import java.util.List;
-import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import static app.bpartners.api.repository.google.calendar.CalendarApi.dateTimeFrom;
+import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 
 @Service
 @AllArgsConstructor
@@ -33,24 +33,9 @@ public class CalendarService {
   private final CalendarApi calendarApi;
   private final CalendarConsentValidator consentValidator;
   private final CalendarAuthValidator authValidator;
-  private final CalendarEventMapper eventMapper;
   private final CalendarRepository calendarRepository;
-
-  public List<Calendar> getCalendars(String idUser) {
-    return calendarRepository.findByIdUser(idUser);
-  }
-
-  public List<CalendarEvent> saveEvents(String idUser,
-                                        String calendarId,
-                                        List<CalendarEvent> events) {
-    Calendar calendar = calendarRepository.getById(calendarId);
-    List<Event> toCreate = events.stream()
-        .map(eventMapper::toEvent)
-        .collect(Collectors.toList());
-    return calendarApi.createEvents(idUser, calendar.getEteId(), toCreate).stream()
-        .map(eventMapper::toCalendarEvent)
-        .collect(Collectors.toList());
-  }
+  private final CalendarStoredCredentialRepository credentialRepository;
+  private final CalendarEventRepository eventRepository;
 
   public Redirection initConsent(CalendarConsentInit consentInit) {
     consentValidator.accept(consentInit);
@@ -69,13 +54,28 @@ public class CalendarService {
         .redirectionStatusUrls(urls);
   }
 
-  public void exchangeCode(String idUser, CalendarAuth auth) {
+  public AccessToken exchangeCode(String idUser, CalendarAuth auth) {
     authValidator.accept(auth);
     String code = URLDecoder.decode(auth.getCode(), StandardCharsets.UTF_8);
     RedirectionStatusUrls urls = auth.getRedirectUrls();
     String redirectUrl = urls.getSuccessUrl();
 
-    calendarApi.storeCredential(idUser, code, redirectUrl);
+    if (calendarApi.storeCredential(idUser, code, redirectUrl) == null) {
+      throw new ApiException(SERVER_EXCEPTION,
+          "Unable to exchange " + auth + " to Google Sheet access token");
+    } else {
+      return credentialRepository.findLatestByIdUser(idUser);
+    }
+  }
+
+  public List<Calendar> getCalendars(String idUser) {
+    return calendarRepository.findByIdUser(idUser);
+  }
+
+  public List<CalendarEvent> saveEvents(String idUser,
+                                        String calendarId,
+                                        List<CalendarEvent> events) {
+    return eventRepository.saveAll(idUser, calendarId, events);
   }
 
   public List<CalendarEvent> getEvents(String idUser,
@@ -90,12 +90,7 @@ public class CalendarService {
       throw new BadRequestException(
           "Min datetime attribute `from` must be before or equals to max datetime attribute `to`");
     }
-    DateTime dateMin = dateTimeFrom(from);
-    DateTime dateMax = dateTimeFrom(to);
-    Calendar calendar = calendarRepository.getById(idCalendar);
-    return calendarApi.getEvents(idUser, calendar.getEteId(), dateMin, dateMax).stream()
-        .map(eventMapper::toCalendarEvent)
-        .collect(Collectors.toList());
+    return eventRepository.findByIdUserAndIdCalendar(idUser, idCalendar, from, to);
   }
 
   private CalendarConf calendarConf() {

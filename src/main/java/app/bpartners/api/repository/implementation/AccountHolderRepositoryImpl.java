@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -21,6 +22,20 @@ public class AccountHolderRepositoryImpl implements AccountHolderRepository {
   private final AccountHolderMapper mapper;
   private final AccountHolderJpaRepository jpaRepository;
   private final UserJpaRepository userJpaRepository;
+
+  @Override
+  public List<AccountHolder> findAll(Pageable pageable) {
+    return jpaRepository.findAll(pageable).stream()
+        .map(mapper::toDomain)
+        .collect(Collectors.toList());
+  }
+
+  @Override
+  public List<AccountHolder> findAllByName(String name, Pageable pageable) {
+    return jpaRepository.findAllByNameContainingIgnoreCase(name, pageable).stream()
+        .map(mapper::toDomain)
+        .collect(Collectors.toList());
+  }
 
   /*TODO: user findAllByUserId instead*/
   @Override

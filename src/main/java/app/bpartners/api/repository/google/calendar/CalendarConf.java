@@ -59,7 +59,7 @@ public class CalendarConf {
         .authorize(idUser);
   }
 
-  String getOauthRedirectUri(String redirectUri) {
+  public String getOauthRedirectUri(String redirectUri) {
     return flow.newAuthorizationUrl()
         .setRedirectUri(redirectUri)
         .build();
@@ -71,7 +71,7 @@ public class CalendarConf {
   }
 
   @SneakyThrows
-  Credential storeCredential(String idUser, String authorizationCode, String redirectUri) {
+  public Credential storeCredential(String idUser, String authorizationCode, String redirectUri) {
     if (authorizationCode != null) {
       try {
         var tokenResponse = flow.newTokenRequest(authorizationCode)

@@ -11,12 +11,12 @@ import app.bpartners.api.endpoint.rest.model.CompanyBusinessActivity;
 import app.bpartners.api.endpoint.rest.model.CompanyInfo;
 import app.bpartners.api.endpoint.rest.model.CreateAnnualRevenueTarget;
 import app.bpartners.api.endpoint.rest.model.CreatedFeedbackRequest;
-import app.bpartners.api.endpoint.rest.model.EvaluatedProspect;
 import app.bpartners.api.endpoint.rest.model.FeedbackRequest;
 import app.bpartners.api.endpoint.rest.model.UpdateAccountHolder;
 import app.bpartners.api.endpoint.rest.validator.CreateAnnualRevenueTargetValidator;
 import app.bpartners.api.model.AnnualRevenueTarget;
-import app.bpartners.api.model.exception.NotImplementedException;
+import app.bpartners.api.model.BoundedPageSize;
+import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.service.AccountHolderService;
 import app.bpartners.api.service.FeedbackService;
 import java.util.List;
@@ -27,12 +27,12 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @AllArgsConstructor
 public class AccountHolderController {
-
   private final AccountHolderService accountHolderService;
   private final AccountHolderRestMapper accountHolderMapper;
   private final CompanyInfoMapper companyInfoMapper;
@@ -41,6 +41,19 @@ public class AccountHolderController {
   private final CreateAnnualRevenueTargetValidator revenueTargetValidator;
   private final FeedbackService feedbackService;
   private final FeedbackRestMapper feedbackRestMapper;
+
+  @GetMapping("/accountHolders")
+  public List<AccountHolder> getAllAccountHolders(@RequestParam(name = "name", required = false) String name,
+                                                  @RequestParam(name = "page", required = false)
+                                                  PageFromOne page,
+                                                  @RequestParam(name = "pageSize", required = false)
+                                                  BoundedPageSize pageSize) {
+    int pageValue = page == null ? 0 : page.getValue();
+    int pageSizeValue = pageSize == null ? 30 : pageSize.getValue();
+    return accountHolderService.getAll(name, pageValue, pageSizeValue).stream()
+        .map(accountHolderMapper::toRest)
+        .collect(Collectors.toList());
+  }
 
   @GetMapping("/users/{userId}/accounts/{accountId}/accountHolders")
   public List<AccountHolder> getAccountHolders(

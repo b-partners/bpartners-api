@@ -13,14 +13,20 @@ import app.bpartners.api.endpoint.rest.model.CreatedFeedbackRequest;
 import app.bpartners.api.endpoint.rest.model.FeedbackRequest;
 import app.bpartners.api.endpoint.rest.model.UpdateAccountHolder;
 import app.bpartners.api.endpoint.rest.model.VerificationStatus;
+import app.bpartners.api.endpoint.rest.security.model.Role;
 import app.bpartners.api.integration.conf.DbEnvContextInitializer;
 import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.integration.conf.utils.TestUtils;
+import app.bpartners.api.model.User;
+import app.bpartners.api.service.UserService;
 import java.util.List;
+import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
@@ -32,6 +38,7 @@ import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_USER_ID
 import static app.bpartners.api.integration.conf.utils.TestUtils.annualRevenueTarget1;
 import static app.bpartners.api.integration.conf.utils.TestUtils.annualRevenueTarget2;
 import static app.bpartners.api.integration.conf.utils.TestUtils.assertThrowsApiException;
+import static app.bpartners.api.integration.conf.utils.TestUtils.assertThrowsForbiddenException;
 import static app.bpartners.api.integration.conf.utils.TestUtils.companyBusinessActivity;
 import static app.bpartners.api.integration.conf.utils.TestUtils.companyInfo;
 import static app.bpartners.api.integration.conf.utils.TestUtils.createAnnualRevenueTarget;
@@ -50,6 +57,8 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @ContextConfiguration(initializers = DbEnvContextInitializer.class)
 @Slf4j
 class AccountHolderIT extends MockedThirdParties {
+  @Autowired
+  private UserService userService;
 
   private static ApiClient anApiClient() {
     return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN,
@@ -172,6 +181,43 @@ class AccountHolderIT extends MockedThirdParties {
   public void setUp() {
     setUpLegalFileRepository(legalFileRepositoryMock);
     setUpCognito(cognitoComponentMock);
+  }
+
+  @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
+  @Test
+  void get_all_account_holders_ok() throws ApiException {
+    User user = userService.getUserById(JOE_DOE_ID);
+    userService.saveUser(user.toBuilder()
+        .roles(List.of(Role.EVAL_PROSPECT))
+        .build());
+    ApiClient joeDoeClient = anApiClient();
+    UserAccountsApi api = new UserAccountsApi(joeDoeClient);
+    String nameFilter1 = "NUMER";
+    String nameFilter2 = "oth";
+
+    List<AccountHolder> actualAll = api.getAllAccountHolders(null, null, null);
+    List<AccountHolder> actualByName1 = api.getAllAccountHolders(nameFilter1, null, null);
+    List<AccountHolder> actualByName2 = api.getAllAccountHolders(nameFilter2, null, null);
+
+    assertEquals(3, actualAll.size());
+    assertTrue(actualByName1.stream()
+        .allMatch(
+            accountHolder ->
+                Objects.requireNonNull(accountHolder.getName().toLowerCase())
+                    .contains(nameFilter1.toLowerCase())));
+    assertTrue(actualByName2.stream()
+        .allMatch(
+            accountHolder ->
+                Objects.requireNonNull(accountHolder.getName().toLowerCase())
+                    .contains(nameFilter2.toLowerCase())));
+  }
+
+  @Test
+  void get_all_account_holders_ko() {
+    ApiClient joeDoeClient = anApiClient();
+    UserAccountsApi api = new UserAccountsApi(joeDoeClient);
+
+    assertThrowsForbiddenException(() -> api.getAllAccountHolders(null, null, null));
   }
 
   @Test

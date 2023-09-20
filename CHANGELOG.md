@@ -1,3 +1,31 @@
+# [0.31.0](https://github.com/b-partners/bpartners-api/compare/v0.29.1...v0.31.0) (2023-09-20)
+
+
+### Bug Fixes
+
+* add accept-header in prospecting-api evaluations spec ([693ef43](https://github.com/b-partners/bpartners-api/commit/693ef439d0573d37e5d79303fd5f0aedf3508ad4))
+* add default value to date filters for calendar list ([0bcfbdd](https://github.com/b-partners/bpartners-api/commit/0bcfbdd3bff4fc515a48268062e505ab69466088))
+* avoid NPE when getting calendar events without date-times ([05d6632](https://github.com/b-partners/bpartners-api/commit/05d66324c2acf4ab74e8d59be11c7dafacb339c2))
+* avoid NPE when getting holidays events in calendar ([292d27a](https://github.com/b-partners/bpartners-api/commit/292d27a8ddd6b20ada0fa53596c6b1a28765e892))
+* calendarEventIT getCalendars arguments ([63d7d5a](https://github.com/b-partners/bpartners-api/commit/63d7d5a0b7b99c7683b58f971bb8651438c1e544))
+* get calendar events dispatched by calendar ([ad21d4e](https://github.com/b-partners/bpartners-api/commit/ad21d4e36bed434daa32cf6626b044a1a15368f0))
+* persist calendar event when listing from google ([08a7f74](https://github.com/b-partners/bpartners-api/commit/08a7f74c2f686035150df7a0cc4cb6ccc80c2c6d))
+* rename default products exported file correctly ([d6041c4](https://github.com/b-partners/bpartners-api/commit/d6041c4b5409ffb4fb150c7e63505da2b313155d))
+* return google sheet access token validity details when exchanging code ([5afb349](https://github.com/b-partners/bpartners-api/commit/5afb349d76f6c3e8c2fdecbed093a98ca26a2636))
+* return google sheet access token validity details when exchanging code ([4c3a55f](https://github.com/b-partners/bpartners-api/commit/4c3a55f36d2fe0b0dadcfc01f4c646f2bc461b9d))
+
+
+### Features
+
+* add sync status attribute to calendar event ([d742729](https://github.com/b-partners/bpartners-api/commit/d7427294b6a4eb346d80b15a5e86d34c9280b6c8))
+* export all customers for a specific account ([9155298](https://github.com/b-partners/bpartners-api/commit/915529815675c07d98931d77412cdef72063729f))
+* export all products for a specific account ([c211d66](https://github.com/b-partners/bpartners-api/commit/c211d668e6ee09f93e0f83f1cf12d43f090b6303))
+* filter transactions by status ([cdd7711](https://github.com/b-partners/bpartners-api/commit/cdd7711a33d1181e900fc642dc1bf4f6451accea))
+* get all account holders for authorized users ([f0ce059](https://github.com/b-partners/bpartners-api/commit/f0ce059d4a3905987bcec05429533f76d93aebb2))
+* read prospect evaluation jobs for an account holder ([e218256](https://github.com/b-partners/bpartners-api/commit/e218256d326f9bc817adc834b333540178d6b471))
+
+
+
 ## [0.29.1](https://github.com/b-partners/bpartners-api/compare/v0.29.0...v0.29.1) (2023-09-13)
 
 
@@ -141,22 +169,6 @@
 * add PAID stamp without payment method for invoice ([fcbf9a7](https://github.com/b-partners/bpartners-api/commit/fcbf9a762b65e391a037aa4cdde0b7f33a14325d))
 * add payment method to invoice ([4a57223](https://github.com/b-partners/bpartners-api/commit/4a5722378d6968b2a23b5d54ca48e22f8c6c063b))
 * add stamp when marking invoice as paid according to payment method ([72e957c](https://github.com/b-partners/bpartners-api/commit/72e957c19d9fb4b91749207d819232a89db85687))
-
-
-
-# [0.21.0](https://github.com/b-partners/bpartners-api/compare/v0.20.0...v0.21.0) (2023-07-18)
-
-
-### Bug Fixes
-
-* do not compare prospect when rating is null ([f521d63](https://github.com/b-partners/bpartners-api/commit/f521d6392b0c6d1011afc5cd0f8f8ac722f3cbc0))
-* do not compare prospect when rating is null ([87a0c26](https://github.com/b-partners/bpartners-api/commit/87a0c26d996b27544062511da34e2d0c050d4c7e))
-* order prospects by rating desc ([2acbf4f](https://github.com/b-partners/bpartners-api/commit/2acbf4fa2b0e76a52785d67d3bcedfac0cdb0874))
-
-
-### Features
-
-* add rating informations to prospect ([b06a8f4](https://github.com/b-partners/bpartners-api/commit/b06a8f4c82cd4fd0bc10d9bd3781dc032b9a21c4))
 
 
 

@@ -176,6 +176,7 @@ public class CalendarEventIT extends MockedThirdParties {
                 new RedirectionStatusUrls().successUrl("http://localhost:8080/success"))));
   }
 
+  //TODO: make test pass
   @Test
   void handle_auth_ok() {
     ApiClient joeDoeClient = anApiClient();
@@ -208,6 +209,7 @@ public class CalendarEventIT extends MockedThirdParties {
                 new RedirectionStatusUrls().successUrl("http://localhost:8080/success"))));
   }
 
+  //TODO: make test pass
   @Test
   void get_calendar_events_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
@@ -227,11 +229,12 @@ public class CalendarEventIT extends MockedThirdParties {
         }).collect(Collectors.toList()));
   }
 
+  //TODO: make test pass
   @Test
   void crupdate_calendar_events_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
     CalendarApi api = new CalendarApi(joeDoeClient);
-    when(calendarApiMock.createEvents((String) any(), any(), any())).thenReturn(
+    when(calendarApiMock.crupdateEvents((String) any(), any(), any())).thenReturn(
         List.of(expectedCreatedEvent(), expectedCreatedEvent()),
         List.of(expectedUpdatedEvent()));
 

@@ -14,10 +14,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
 
 @Repository
 @AllArgsConstructor
+@Slf4j
 //TODO: improve using connectors
 public class CalendarRepositoryImpl implements CalendarRepository {
   private final CalendarApi calendarApi;
@@ -26,8 +28,15 @@ public class CalendarRepositoryImpl implements CalendarRepository {
 
   @Override
   public List<Calendar> findByIdUser(String idUser) {
-    List<CalendarListEntry> calendarEntries = calendarApi.getCalendars(idUser);
+    List<CalendarListEntry> calendarEntries;
+    try {
+      calendarEntries = calendarApi.getCalendars(idUser);
+    } catch (Exception e) {
+      log.warn("Unable to synchronize with Google Calendar : " + e.getMessage());
+      calendarEntries = List.of();
+    }
     List<HCalendar> retrievedCalendars = jpaRepository.findByIdUser(idUser);
+
     List<HCalendar> calendarEntities = calendarEntries.stream()
         .map(entry -> calendarMapper.toCalendarEntity(idUser, entry))
         .collect(Collectors.toList());
@@ -41,7 +50,8 @@ public class CalendarRepositoryImpl implements CalendarRepository {
         }
       }
     }
-    List<HCalendar> createdCalendars = jpaRepository.saveAll(calendarEntities.stream()
+    List<HCalendar> createdCalendars = calendarEntities.isEmpty() ? List.of()
+        : jpaRepository.saveAll(calendarEntities.stream()
         .filter(HCalendar::isNewCalendar)
         .collect(Collectors.toList()));
     List<HCalendar> all = createdCalendars.size() == 0

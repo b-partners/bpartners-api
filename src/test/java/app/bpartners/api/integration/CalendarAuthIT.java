@@ -1,17 +1,17 @@
 package app.bpartners.api.integration;
 
-import app.bpartners.api.endpoint.rest.api.SheetApi;
+import app.bpartners.api.endpoint.rest.api.CalendarApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
+import app.bpartners.api.endpoint.rest.model.CalendarAuth;
+import app.bpartners.api.endpoint.rest.model.CalendarConsentInit;
 import app.bpartners.api.endpoint.rest.model.Redirection1;
 import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
-import app.bpartners.api.endpoint.rest.model.SheetAuth;
-import app.bpartners.api.endpoint.rest.model.SheetConsentInit;
 import app.bpartners.api.endpoint.rest.model.TokenValidity;
 import app.bpartners.api.integration.conf.DbEnvContextInitializer;
 import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.integration.conf.utils.TestUtils;
-import app.bpartners.api.repository.google.sheets.SheetConf;
+import app.bpartners.api.repository.google.calendar.CalendarConf;
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.http.HttpRequest;
 import java.io.IOException;
@@ -39,23 +39,23 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @Testcontainers
 @ContextConfiguration(initializers = DbEnvContextInitializer.class)
 @AutoConfigureMockMvc
-public class SheetAuthIT extends MockedThirdParties {
+public class CalendarAuthIT extends MockedThirdParties {
   @MockBean
-  private SheetConf sheetConfMock;
+  private CalendarConf calendarConfMock;
 
   private static ApiClient anApiClient() {
     return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN,
         DbEnvContextInitializer.getHttpServerPort());
   }
 
-  static SheetConsentInit sheetConsentInit() {
-    return new SheetConsentInit()
+  static CalendarConsentInit sheetConsentInit() {
+    return new CalendarConsentInit()
         .redirectionStatusUrls(redirectionStatusUrls());
   }
 
 
-  static SheetAuth sheetAuth() {
-    return new SheetAuth()
+  static CalendarAuth sheetAuth() {
+    return new CalendarAuth()
         .code("0000")
         .redirectUrls(redirectionStatusUrls());
   }
@@ -69,11 +69,10 @@ public class SheetAuthIT extends MockedThirdParties {
   @Test
   void init_consent_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
-    SheetApi api = new SheetApi(joeDoeClient);
-    when(sheetConfMock.getRedirectUris()).thenReturn(List.of("dummy"));
-    when(sheetConfMock.getOauthRedirectUri(any())).thenReturn("dummy");
-
-    Redirection1 actual = api.initSheetConsent(JOE_DOE_ID, sheetConsentInit());
+    CalendarApi api = new CalendarApi(joeDoeClient);
+    when(calendarConfMock.getRedirectUris()).thenReturn(List.of("dummy"));
+    when(calendarConfMock.getOauthRedirectUri(any())).thenReturn("dummy");
+    Redirection1 actual = api.initConsent(JOE_DOE_ID, sheetConsentInit());
 
     assertEquals(expectedRedirection(), actual);
   }
@@ -81,39 +80,39 @@ public class SheetAuthIT extends MockedThirdParties {
   @Test
   void init_consent_ko() {
     ApiClient joeDoeClient = anApiClient();
-    SheetApi api = new SheetApi(joeDoeClient);
+    CalendarApi api = new CalendarApi(joeDoeClient);
 
     assertThrowsApiException(
         "{\"type\":\"400 BAD_REQUEST\",\"message\":\"RedirectionStatusUrls is mandatory\"}",
-        () -> api.initSheetConsent(JOE_DOE_ID, sheetConsentInit().redirectionStatusUrls(null)));
+        () -> api.initConsent(JOE_DOE_ID, sheetConsentInit().redirectionStatusUrls(null)));
     assertThrowsApiException(
         "{\"type\":\"400 BAD_REQUEST\"," +
             "\"message\":\"RedirectionStatusUrls.successUrl is mandatory. \"}",
-        () -> api.initSheetConsent(JOE_DOE_ID,
+        () -> api.initConsent(JOE_DOE_ID,
             sheetConsentInit().redirectionStatusUrls(
                 new RedirectionStatusUrls().failureUrl("http://localhost:8080/failure"))));
     assertThrowsApiException(
         "{\"type\":\"400 BAD_REQUEST\"," +
             "\"message\":\"RedirectionStatusUrls.failureUrl is mandatory. \"}",
-        () -> api.initSheetConsent(JOE_DOE_ID,
+        () -> api.initConsent(JOE_DOE_ID,
             sheetConsentInit().redirectionStatusUrls(
                 new RedirectionStatusUrls().successUrl("http://localhost:8080/success"))));
   }
 
   @Test
   void handle_auth_ok() throws ApiException {
-    when(sheetConfMock.storeCredential(any(), any(), any())).thenReturn(
+    when(calendarConfMock.storeCredential(any(), any(), any())).thenReturn(
         new Credential(new AuthorizationHeaderAccessMethod())
             .setAccessToken("access_token")
             .setExpiresInSeconds(3600L)
             .setRefreshToken(null));
     ApiClient joeDoeClient = anApiClient();
-    SheetApi api = new SheetApi(joeDoeClient);
+    CalendarApi api = new CalendarApi(joeDoeClient);
 
-    var actual = api.exchangeSheetCode(JOE_DOE_ID, sheetAuth());
+    var actual = api.exchangeCode(JOE_DOE_ID, sheetAuth());
 
     assertEquals(new TokenValidity()
-        .expirationTime(3600L)
+        .expirationTime(3599L)
         .createdAt(actual.getCreatedAt())
         .expiredAt(actual.getExpiredAt()), actual);
   }
@@ -121,22 +120,22 @@ public class SheetAuthIT extends MockedThirdParties {
   @Test
   void handle_auth_ko() {
     ApiClient joeDoeClient = anApiClient();
-    SheetApi api = new SheetApi(joeDoeClient);
+    CalendarApi api = new CalendarApi(joeDoeClient);
 
     assertThrowsApiException(
         "{\"type\":\"400 BAD_REQUEST\",\"message\":\"Code is mandatory. \"}",
-        () -> api.exchangeSheetCodeWithHttpInfo(JOE_DOE_ID, sheetAuth().code(null)));
+        () -> api.exchangeCode(JOE_DOE_ID, sheetAuth().code(null)));
     assertThrowsApiException(
         "{\"type\":\"400 BAD_REQUEST\",\"message\":\"RedirectUrls is mandatory. \"}",
-        () -> api.exchangeSheetCodeWithHttpInfo(JOE_DOE_ID, sheetAuth().redirectUrls(null)));
+        () -> api.exchangeCode(JOE_DOE_ID, sheetAuth().redirectUrls(null)));
     assertThrowsApiException(
         "{\"type\":\"400 BAD_REQUEST\",\"message\":\"RedirectUrls.successUrl is mandatory. \"}",
-        () -> api.exchangeSheetCodeWithHttpInfo(JOE_DOE_ID,
+        () -> api.exchangeCode(JOE_DOE_ID,
             sheetAuth().redirectUrls(
                 new RedirectionStatusUrls().failureUrl("http://localhost:8080/failure"))));
     assertThrowsApiException(
         "{\"type\":\"400 BAD_REQUEST\",\"message\":\"RedirectUrls.failureUrl is mandatory. \"}",
-        () -> api.exchangeSheetCodeWithHttpInfo(JOE_DOE_ID,
+        () -> api.exchangeCode(JOE_DOE_ID,
             sheetAuth().redirectUrls(
                 new RedirectionStatusUrls().successUrl("http://localhost:8080/success"))));
   }

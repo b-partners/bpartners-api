@@ -97,6 +97,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @Slf4j
 // /!\ Important ! Run only in local
 public class SheetIT extends MockedThirdParties {
+  private static final String JSON_MIME_TYPE = "application/json";
   public static final String TEST_SHEET_ID = "1JBSbBGawokv7gOR_B1_MMvORYOJQlHroOXj06T3tSYY";
   public static final String GOLDEN_SOURCE_SHEET_ID =
       "1zLlb1m0vlS5Qn1T2sGI1q9BWzkXkaHHnjVbMfOVVuZ0";
@@ -261,7 +262,7 @@ public class SheetIT extends MockedThirdParties {
                         .min(minRange)
                         .max(maxRange))
                 )
-                .ratingProperties(null)
+                .ratingProperties(null), JSON_MIME_TYPE
         );
 
     assertEquals(2, actual.size());

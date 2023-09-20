@@ -82,19 +82,25 @@ public class CalendarApi {
     return getEvents(idCalendar, calendarConf.loadCredential(idUser), dateMin, dateMax);
   }
 
-  public List<Event> createEvents(String idUser, String calendarId, List<Event> events) {
-    return createEvents(loadCredentials(idUser), calendarId, events);
+  public List<Event> crupdateEvents(String idUser, String calendarId, List<Event> events) {
+    return crupdateEvents(loadCredentials(idUser), calendarId, events);
   }
 
 
-  public List<Event> createEvents(Credential credential, String calendarId, List<Event> events) {
+  public List<Event> crupdateEvents(Credential credential, String calendarId, List<Event> events) {
     Calendar calendarService = initService(calendarConf, credential);
     return events.stream().map(event -> {
       Event result = null;
       try {
-        result = calendarService.events()
-            .insert(calendarId, event)
-            .execute();
+        if (event.getId() == null) {
+          result = calendarService.events()
+              .insert(calendarId, event)
+              .execute();
+        } else {
+          result = calendarService.events()
+              .update(calendarId, event.getId(), event)
+              .execute();
+        }
       } catch (GoogleJsonResponseException e) {
         if (e.getStatusCode() == 401) {
           throw new ForbiddenException(
@@ -157,7 +163,10 @@ public class CalendarApi {
   }
 
   public static Instant instantFrom(EventDateTime eventDateTime) {
-    return instantFrom(eventDateTime.getDateTime());
+    if (eventDateTime.getDateTime() == null && eventDateTime.getDate() != null) {
+      return instantFrom(eventDateTime.getDate());
+    }
+    return instantFrom(eventDateTime.getDateTime() == null ? null : eventDateTime.getDateTime());
   }
 
   public static Instant instantFrom(DateTime eventDateTime) {

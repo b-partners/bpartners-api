@@ -8,6 +8,8 @@ import app.bpartners.api.repository.AccountHolderRepository;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -17,6 +19,12 @@ public class AccountHolderService {
   private final AccountHolderRepository accountHolderRepository;
   private final BusinessActivityService businessActivityService;
   private final AnnualRevenueTargetService annualRevenueTargetService;
+
+  public List<AccountHolder> getAll(String name, Integer page, Integer pageSize) {
+    Pageable pageable = PageRequest.of(page, pageSize);
+    return name == null ? accountHolderRepository.findAll(pageable)
+        : accountHolderRepository.findAllByName(name, pageable);
+  }
 
   public List<AccountHolder> getAccountHoldersByAccountId(String accountId) {
     return accountHolderRepository.findAllByAccountId(accountId);

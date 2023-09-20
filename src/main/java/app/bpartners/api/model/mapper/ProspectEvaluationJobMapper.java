@@ -2,7 +2,7 @@ package app.bpartners.api.model.mapper;
 
 import app.bpartners.api.endpoint.rest.model.Geojson;
 import app.bpartners.api.endpoint.rest.model.ProspectEvaluationJobStatus;
-import app.bpartners.api.model.ProspectEvaluationJob;
+import app.bpartners.api.model.prospect.job.ProspectEvaluationJob;
 import app.bpartners.api.repository.jpa.model.HProspect;
 import app.bpartners.api.repository.jpa.model.HProspectEvaluationJob;
 import java.util.List;
@@ -18,6 +18,7 @@ public class ProspectEvaluationJobMapper {
   public ProspectEvaluationJob toDomain(HProspectEvaluationJob entity, List<HProspect> results) {
     return ProspectEvaluationJob.builder()
         .id(entity.getId())
+        .idAccountHolder(entity.getIdAccountHolder())
         .type(entity.getType())
         .jobStatus(new ProspectEvaluationJobStatus()
             .value(entity.getJobStatus())
@@ -37,4 +38,15 @@ public class ProspectEvaluationJobMapper {
         .build();
   }
 
+  public HProspectEvaluationJob toEntity(ProspectEvaluationJob domain) {
+    return HProspectEvaluationJob.builder()
+        .id(domain.getId())
+        .idAccountHolder(domain.getIdAccountHolder())
+        .type(domain.getType())
+        .jobStatus(domain.getJobStatus().getValue())
+        .jobStatusMessage(domain.getJobStatus().getMessage())
+        .startedAt(domain.getStartedAt())
+        .endedAt(domain.getEndedAt())
+        .build();
+  }
 }

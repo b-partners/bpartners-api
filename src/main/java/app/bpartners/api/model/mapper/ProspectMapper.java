@@ -4,7 +4,7 @@ import app.bpartners.api.endpoint.rest.model.Geojson;
 import app.bpartners.api.endpoint.rest.model.ProspectFeedback;
 import app.bpartners.api.endpoint.rest.model.ProspectStatus;
 import app.bpartners.api.endpoint.rest.security.AuthenticatedResourceProvider;
-import app.bpartners.api.model.Prospect;
+import app.bpartners.api.model.prospect.Prospect;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.exception.NotImplementedException;

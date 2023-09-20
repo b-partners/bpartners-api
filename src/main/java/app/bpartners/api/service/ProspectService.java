@@ -1,17 +1,22 @@
 package app.bpartners.api.service;
 
+import app.bpartners.api.endpoint.event.EventProducer;
+import app.bpartners.api.endpoint.event.model.TypedProspectEvaluationJobInitiated;
 import app.bpartners.api.endpoint.rest.model.Geojson;
 import app.bpartners.api.endpoint.rest.model.JobStatusValue;
 import app.bpartners.api.endpoint.rest.model.NewInterventionOption;
+import app.bpartners.api.endpoint.rest.model.ProspectEvaluationJobStatus;
+import app.bpartners.api.endpoint.rest.model.ProspectEvaluationJobType;
 import app.bpartners.api.endpoint.rest.model.ProspectStatus;
 import app.bpartners.api.model.Customer;
-import app.bpartners.api.model.Prospect;
-import app.bpartners.api.model.ProspectEvaluationJob;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.model.mapper.ProspectMapper;
+import app.bpartners.api.model.prospect.Prospect;
+import app.bpartners.api.model.prospect.job.ProspectEvaluationJob;
+import app.bpartners.api.model.prospect.job.ProspectEvaluationJobRunner;
 import app.bpartners.api.repository.ProspectEvaluationJobRepository;
 import app.bpartners.api.repository.ProspectRepository;
 import app.bpartners.api.repository.expressif.ProspectEval;
@@ -28,6 +33,7 @@ import app.bpartners.api.service.utils.GeoUtils;
 import com.google.api.services.sheets.v4.model.Sheet;
 import com.google.api.services.sheets.v4.model.Spreadsheet;
 import java.io.IOException;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -69,6 +75,8 @@ public class ProspectService {
   private final DriveApi driveApi;
   private final ProspectMapper prospectMapper;
   private final ProspectEvaluationJobRepository evalJobRepository;
+  private final EventProducer eventProducer;
+
 
   @Transactional
   public Prospect getById(String id) {
@@ -126,6 +134,31 @@ public class ProspectService {
         }
       }
     });
+  }
+
+  public List<ProspectEvaluationJob> runEvaluationJobs(String ahId,
+                                                       List<ProspectEvaluationJobRunner> jobRunners) {
+    List<ProspectEvaluationJob> jobs = jobRunners.stream()
+        .map(job -> ProspectEvaluationJob.builder()
+            .id(String.valueOf(randomUUID()))
+            .idAccountHolder(ahId)
+            .type(getJobType(job))
+            .jobStatus(new ProspectEvaluationJobStatus()
+                .value(NOT_STARTED)
+                .message(null))
+            .startedAt(Instant.now())
+            .endedAt(null)
+            .results(List.of())
+            .build())
+        .collect(Collectors.toList());
+
+    List<ProspectEvaluationJob> savedJobs = evalJobRepository.saveAll(jobs);
+
+    eventProducer.accept(jobRunners.stream()
+        .map(TypedProspectEvaluationJobInitiated::new)
+        .collect(Collectors.toList()));
+
+    return savedJobs;
   }
 
   //TODO: IMPORTANT ! Only NewIntervention rule is supported for now
@@ -429,6 +462,14 @@ public class ProspectService {
       throw new NotImplementedException("Only GRID sheet type is supported");
     }
     return prospectMapper.toProspectEvalInfo(sheet);
+  }
+
+  private static ProspectEvaluationJobType getJobType(ProspectEvaluationJobRunner job) {
+    if (!job.isEventConversionJob()) {
+      throw new NotImplementedException(
+          "Only prospect evaluation job type [CALENDAR_EVENT_CONVERSION] is supported for now");
+    }
+    return ProspectEvaluationJobType.CALENDAR_EVENT_CONVERSION;
   }
 
   private Context configureProspectContext(HAccountHolder accountHolder) {

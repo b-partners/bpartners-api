@@ -1,6 +1,6 @@
 package app.bpartners.api.repository;
 
-import app.bpartners.api.model.Prospect;
+import app.bpartners.api.model.prospect.Prospect;
 import app.bpartners.api.repository.expressif.ProspectEval;
 import app.bpartners.api.repository.expressif.ProspectResult;
 import java.time.LocalDate;

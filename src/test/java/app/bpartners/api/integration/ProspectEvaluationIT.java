@@ -19,7 +19,7 @@ import app.bpartners.api.integration.conf.DbEnvContextInitializer;
 import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.integration.conf.utils.TestUtils;
 import app.bpartners.api.model.BusinessActivity;
-import app.bpartners.api.model.Prospect;
+import app.bpartners.api.model.prospect.Prospect;
 import app.bpartners.api.model.User;
 import app.bpartners.api.repository.BusinessActivityRepository;
 import app.bpartners.api.repository.ProspectRepository;

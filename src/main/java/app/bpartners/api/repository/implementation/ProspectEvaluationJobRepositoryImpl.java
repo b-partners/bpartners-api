@@ -1,7 +1,7 @@
 package app.bpartners.api.repository.implementation;
 
 import app.bpartners.api.endpoint.rest.model.JobStatusValue;
-import app.bpartners.api.model.ProspectEvaluationJob;
+import app.bpartners.api.model.prospect.job.ProspectEvaluationJob;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.mapper.ProspectEvaluationJobMapper;
 import app.bpartners.api.repository.ProspectEvaluationJobRepository;
@@ -39,5 +39,18 @@ public class ProspectEvaluationJobRepositoryImpl implements ProspectEvaluationJo
             () -> new NotFoundException("Job(id=" + id + ") not found"));
     List<HProspect> results = prospectJpaRepository.findAllByIdJob(entity.getId());
     return mapper.toDomain(entity, results);
+  }
+
+  @Override
+  public List<ProspectEvaluationJob> saveAll(List<ProspectEvaluationJob> toSave) {
+    List<HProspectEvaluationJob> jobEntities = toSave.stream()
+        .map(mapper::toEntity)
+        .collect(Collectors.toList());
+    return jobJpaRepository.saveAll(jobEntities).stream()
+        .map(entity -> {
+          List<HProspect> results = prospectJpaRepository.findAllByIdJob(entity.getId());
+          return mapper.toDomain(entity, results);
+        })
+        .collect(Collectors.toList());
   }
 }

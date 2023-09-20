@@ -7,9 +7,13 @@ import java.time.LocalDate;
 import java.util.List;
 
 public interface ProspectRepository {
+  Prospect getById(String id);
+
   List<Prospect> findAllByIdAccountHolder(String idAccountHolder, String name);
 
   List<Prospect> saveAll(List<Prospect> prospects);
+
+  List<Prospect> saveAllWithoutSogefi(List<Prospect> toSave);
 
   Prospect save(Prospect prospect);
 

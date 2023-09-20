@@ -4,6 +4,7 @@ import app.bpartners.api.endpoint.rest.model.ProspectFeedback;
 import app.bpartners.api.endpoint.rest.model.ProspectStatus;
 import app.bpartners.api.repository.jpa.types.PostgresEnumType;
 import java.time.Instant;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
@@ -37,6 +38,8 @@ public class HProspect {
   @GeneratedValue(strategy = IDENTITY)
   private String id;
   private String idAccountHolder;
+  @Column(name = "id_job")
+  private String idJob;
   private String oldName;
   private String newName;
   private String oldEmail;

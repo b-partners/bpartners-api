@@ -9,7 +9,7 @@ import app.bpartners.api.endpoint.rest.model.InterventionResult;
 import app.bpartners.api.endpoint.rest.model.OldCustomerResult;
 import app.bpartners.api.endpoint.rest.model.Prospect;
 import app.bpartners.api.endpoint.rest.model.ProspectEvaluationJobInfo;
-import app.bpartners.api.endpoint.rest.model.ProspectEvaluationJobResult;
+import app.bpartners.api.endpoint.rest.model.ProspectEvaluationJobDetails;
 import app.bpartners.api.endpoint.rest.model.ProspectRating;
 import app.bpartners.api.endpoint.rest.model.UpdateProspect;
 import app.bpartners.api.endpoint.rest.validator.ExtendedProspectUpdateValidator;
@@ -116,8 +116,8 @@ public class ProspectRestMapper {
         .endedAt(domain.getEndedAt());
   }
 
-  public ProspectEvaluationJobResult toRestResult(ProspectEvaluationJob domain) {
-    return new ProspectEvaluationJobResult()
+  public ProspectEvaluationJobDetails toRestResult(ProspectEvaluationJob domain) {
+    return new ProspectEvaluationJobDetails()
         .id(domain.getId())
         .type(domain.getType())
         .status(domain.getJobStatus())

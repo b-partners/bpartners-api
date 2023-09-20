@@ -55,6 +55,8 @@ import static app.bpartners.api.integration.conf.utils.TestUtils.NOT_JOE_DOE_ACC
 import static app.bpartners.api.integration.conf.utils.TestUtils.assertThrowsApiException;
 import static app.bpartners.api.integration.conf.utils.TestUtils.assertThrowsForbiddenException;
 import static app.bpartners.api.integration.conf.utils.TestUtils.joeDoeAccountHolder;
+import static app.bpartners.api.integration.conf.utils.TestUtils.prospect1;
+import static app.bpartners.api.integration.conf.utils.TestUtils.prospect2;
 import static app.bpartners.api.integration.conf.utils.TestUtils.setUpCognito;
 import static app.bpartners.api.integration.conf.utils.TestUtils.setUpLegalFileRepository;
 import static app.bpartners.api.repository.implementation.ProspectRepositoryImpl.ANTI_HARM;
@@ -140,36 +142,6 @@ class ProspectIT {
         .limit(1000)
         .records(List.of(buildingPermit()))
         .build();
-  }
-
-  Prospect prospect1() {
-    return new Prospect()
-        .id("prospect1_id")
-        .name("John doe")
-        .location(null)
-        .status(TO_CONTACT)
-        .email(null)
-        .phone(null)
-        .address(null)
-        .townCode(92002)
-        .rating(new ProspectRating()
-            .value(BigDecimal.valueOf(9.993))
-            .lastEvaluation(Instant.parse("2023-01-01T00:00:00.00Z")));
-  }
-
-  Prospect prospect2() {
-    return new Prospect()
-        .id("prospect2_id")
-        .name("jane doe")
-        .location(null)
-        .status(TO_CONTACT)
-        .email("janeDoe@gmail.com")
-        .phone("+261340465339")
-        .address("30 Rue de la Montagne Sainte-Genevieve")
-        .townCode(92002)
-        .rating(new ProspectRating()
-            .value(BigDecimal.valueOf(-1.0))
-            .lastEvaluation(null));
   }
 
   Prospect prospect3() {

@@ -70,6 +70,12 @@ public class ProspectService {
   private final ProspectMapper prospectMapper;
   private final ProspectEvaluationJobRepository evalJobRepository;
 
+  @Transactional
+  public Prospect getById(String id) {
+    return repository.getById(id);
+  }
+
+  @Transactional
   public List<ProspectEvaluationJob> getEvaluationJobs(
       String idAccountHolder,
       List<JobStatusValue> statuses) {
@@ -79,15 +85,27 @@ public class ProspectService {
     return evalJobRepository.findAllByIdAccountHolderAndStatusesIn(idAccountHolder, statuses);
   }
 
+  @Transactional
+  public ProspectEvaluationJob getEvaluationJob(String jobId) {
+    return evalJobRepository.getById(jobId);
+  }
+
   public List<Prospect> getAllByIdAccountHolder(String idAccountHolder, String name) {
     return dataProcesser.processProspects(
         repository.findAllByIdAccountHolder(idAccountHolder, name == null ? "" : name));
   }
 
+  @Transactional
   public List<Prospect> saveAll(List<Prospect> toCreate) {
     return repository.saveAll(toCreate);
   }
 
+  @Transactional
+  public List<Prospect> saveAllWithoutSogefi(List<Prospect> toSave) {
+    return repository.saveAllWithoutSogefi(toSave);
+  }
+
+  @Transactional
   public Prospect save(Prospect toSave) {
     return repository.save(toSave);
   }

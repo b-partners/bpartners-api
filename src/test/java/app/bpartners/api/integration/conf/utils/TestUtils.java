@@ -23,6 +23,8 @@ import app.bpartners.api.endpoint.rest.model.LegalFile;
 import app.bpartners.api.endpoint.rest.model.PaymentRegulation;
 import app.bpartners.api.endpoint.rest.model.Product;
 import app.bpartners.api.endpoint.rest.model.ProductStatus;
+import app.bpartners.api.endpoint.rest.model.Prospect;
+import app.bpartners.api.endpoint.rest.model.ProspectRating;
 import app.bpartners.api.endpoint.rest.model.Redirection1;
 import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
 import app.bpartners.api.endpoint.rest.model.TransactionCategory;
@@ -52,6 +54,7 @@ import app.bpartners.api.repository.sendinblue.model.Attributes;
 import app.bpartners.api.repository.sendinblue.model.Contact;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.math.BigDecimal;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpHeaders;
@@ -84,6 +87,7 @@ import static app.bpartners.api.endpoint.rest.model.IdentificationStatus.VALID_I
 import static app.bpartners.api.endpoint.rest.model.Invoice.PaymentTypeEnum.IN_INSTALMENT;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
 import static app.bpartners.api.endpoint.rest.model.PaymentMethod.UNKNOWN;
+import static app.bpartners.api.endpoint.rest.model.ProspectStatus.TO_CONTACT;
 import static app.bpartners.api.endpoint.rest.model.TransactionTypeEnum.INCOME;
 import static app.bpartners.api.endpoint.rest.model.TransactionTypeEnum.OUTCOME;
 import static app.bpartners.api.model.Invoice.DEFAULT_DELAY_PENALTY_PERCENT;
@@ -679,6 +683,36 @@ public class TestUtils {
                 .build())
             .build())
         .build();
+  }
+
+  public static Prospect prospect1() {
+    return new Prospect()
+        .id("prospect1_id")
+        .name("John doe")
+        .location(null)
+        .status(TO_CONTACT)
+        .email(null)
+        .phone(null)
+        .address(null)
+        .townCode(92002)
+        .rating(new ProspectRating()
+            .value(BigDecimal.valueOf(9.993))
+            .lastEvaluation(Instant.parse("2023-01-01T00:00:00.00Z")));
+  }
+
+  public static Prospect prospect2() {
+    return new Prospect()
+        .id("prospect2_id")
+        .name("jane doe")
+        .location(null)
+        .status(TO_CONTACT)
+        .email("janeDoe@gmail.com")
+        .phone("+261340465339")
+        .address("30 Rue de la Montagne Sainte-Genevieve")
+        .townCode(92002)
+        .rating(new ProspectRating()
+            .value(BigDecimal.valueOf(-1.0))
+            .lastEvaluation(null));
   }
 
   public static HttpResponse<Object> httpResponseMock(Object body) {

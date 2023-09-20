@@ -8,6 +8,7 @@ import app.bpartners.api.endpoint.rest.model.NewInterventionOption;
 import app.bpartners.api.endpoint.rest.model.Prospect;
 import app.bpartners.api.endpoint.rest.model.ProspectConversion;
 import app.bpartners.api.endpoint.rest.model.ProspectEvaluationJobInfo;
+import app.bpartners.api.endpoint.rest.model.ProspectEvaluationJobDetails;
 import app.bpartners.api.endpoint.rest.model.ProspectEvaluationRules;
 import app.bpartners.api.endpoint.rest.model.RatingProperties;
 import app.bpartners.api.endpoint.rest.model.SheetProperties;
@@ -203,5 +204,11 @@ public class ProspectController {
     return service.getEvaluationJobs(ahId, statuses).stream()
         .map(mapper::toRest)
         .collect(Collectors.toList());
+  }
+
+  @GetMapping("/accountHolders/{ahId}/prospects/evaluationJobs/{jId}")
+  public ProspectEvaluationJobDetails getProspectEvaluationJobDetailsById(@PathVariable String ahId,
+                                                                    @PathVariable String jId) {
+    return mapper.toRestResult(service.getEvaluationJob(jId));
   }
 }

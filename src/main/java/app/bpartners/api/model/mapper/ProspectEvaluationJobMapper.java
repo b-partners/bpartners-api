@@ -3,7 +3,9 @@ package app.bpartners.api.model.mapper;
 import app.bpartners.api.endpoint.rest.model.Geojson;
 import app.bpartners.api.endpoint.rest.model.ProspectEvaluationJobStatus;
 import app.bpartners.api.model.ProspectEvaluationJob;
+import app.bpartners.api.repository.jpa.model.HProspect;
 import app.bpartners.api.repository.jpa.model.HProspectEvaluationJob;
+import java.util.List;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -13,7 +15,7 @@ import org.springframework.stereotype.Component;
 public class ProspectEvaluationJobMapper {
   private final ProspectMapper prospectMapper;
 
-  public ProspectEvaluationJob toDomain(HProspectEvaluationJob entity) {
+  public ProspectEvaluationJob toDomain(HProspectEvaluationJob entity, List<HProspect> results) {
     return ProspectEvaluationJob.builder()
         .id(entity.getId())
         .type(entity.getType())
@@ -22,7 +24,7 @@ public class ProspectEvaluationJobMapper {
             .message(entity.getJobStatusMessage()))
         .startedAt(entity.getStartedAt())
         .endedAt(entity.getEndedAt())
-        .results(entity.getResults().stream()
+        .results(results.stream()
             .map(prospect -> {
               Geojson location =
                   prospect.getPosLatitude() != null && prospect.getPosLongitude() != null

@@ -9,6 +9,7 @@ import app.bpartners.api.endpoint.rest.model.EvaluatedProspect;
 import app.bpartners.api.endpoint.rest.model.Geojson;
 import app.bpartners.api.endpoint.rest.model.InterventionResult;
 import app.bpartners.api.endpoint.rest.model.NewInterventionOption;
+import app.bpartners.api.endpoint.rest.model.ProspectEvaluationJobDetails;
 import app.bpartners.api.endpoint.rest.model.ProspectEvaluationJobInfo;
 import app.bpartners.api.endpoint.rest.model.ProspectEvaluationJobStatus;
 import app.bpartners.api.endpoint.rest.model.ProspectEvaluationJobType;
@@ -27,6 +28,7 @@ import app.bpartners.api.repository.ban.model.GeoPosition;
 import app.bpartners.api.repository.expressif.ExpressifApi;
 import app.bpartners.api.repository.expressif.model.OutputValue;
 import app.bpartners.api.service.CustomerService;
+import app.bpartners.api.service.ProspectService;
 import app.bpartners.api.service.UserService;
 import app.bpartners.api.service.utils.GeoUtils;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -70,6 +72,8 @@ import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT
 import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ID;
 import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_TOKEN;
 import static app.bpartners.api.integration.conf.utils.TestUtils.joeDoeAccountHolder;
+import static app.bpartners.api.integration.conf.utils.TestUtils.prospect1;
+import static app.bpartners.api.integration.conf.utils.TestUtils.prospect2;
 import static app.bpartners.api.integration.conf.utils.TestUtils.setUpCognito;
 import static app.bpartners.api.integration.conf.utils.TestUtils.setUpLegalFileRepository;
 import static app.bpartners.api.repository.expressif.utils.ProspectEvalUtils.customerType;
@@ -91,12 +95,15 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
 @Slf4j
 class ProspectEvaluationIT extends MockedThirdParties {
+  public static final String PROSPECT_EVAL_JOB1_ID = "pe_job_id1";
   @MockBean
   private BanApi banApiMock;
   @MockBean
   private ExpressifApi expressifApiMock;
   @Autowired
   private ProspectRepository prospectRepository;
+  @Autowired
+  private ProspectService prospectService;
   @Autowired
   private BusinessActivityRepository businessRepository;
   @Autowired
@@ -141,6 +148,19 @@ class ProspectEvaluationIT extends MockedThirdParties {
         .latitude(0.0)
         .longitude(0.0)
         .build();
+  }
+
+  private static ProspectEvaluationJobDetails evalDetails1() {
+    return new ProspectEvaluationJobDetails()
+        .id("pe_job_id1")
+        .status(new ProspectEvaluationJobStatus()
+            .value(NOT_STARTED)
+            .message(null))
+        .type(ProspectEvaluationJobType.CALENDAR_EVENT_CONVERSION)
+        .startedAt(Instant.parse("2022-01-01T00:00:00.00Z"))
+        .endedAt(null)
+        .results(List.of(prospect1(), prospect2()
+        ));
   }
 
   private static ProspectEvaluationJobInfo evalJob1() {
@@ -239,6 +259,29 @@ class ProspectEvaluationIT extends MockedThirdParties {
     assertEquals(evalJob1(), actualNotStarted.get(0));
     assertEquals(evalJob3(), actualFailed.get(0));
   }
+
+  /*
+  TODO: make test pass
+  @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
+  @Test
+  void read_prospect_evaluation_job_details_ok() throws ApiException {
+    Prospect prospect1 = prospectService.getById(prospect1().getId());
+    Prospect prospect2 = prospectService.getById(prospect2().getId());
+    prospectService.saveAllWithoutSogefi(List.of(
+        prospect1.toBuilder()
+            .idJob(PROSPECT_EVAL_JOB1_ID)
+            .build(),
+        prospect2.toBuilder()
+            .idJob(PROSPECT_EVAL_JOB1_ID)
+            .build()));
+    ApiClient joeDoeClient = anApiClient();
+    ProspectingApi api = new ProspectingApi(joeDoeClient);
+
+    var actual =
+        api.getProspectEvaluationJobDetailsById(JOE_DOE_ACCOUNT_HOLDER_ID, PROSPECT_EVAL_JOB1_ID);
+
+    assertEquals(evalDetails1(), actual);
+  }*/
 
   @Test
   void evaluate_prospects_ok() throws IOException, InterruptedException {

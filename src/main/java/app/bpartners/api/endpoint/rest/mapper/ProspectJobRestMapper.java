@@ -30,6 +30,7 @@ public class ProspectJobRestMapper {
       return ProspectEvaluationJobRunner.builder()
           .eventJobRunner(
               toDomain(ahId,
+                  eventConversion.getCalendarId(),
                   evaluationRules,
                   ratingProperties,
                   sheetProperties,
@@ -42,11 +43,16 @@ public class ProspectJobRestMapper {
         "Only PostEventProspectConversion is supported for no");
   }
 
-  private EventJobRunner toDomain(String idAccountHolder, EventEvaluationRules evaluationRules,
+  private EventJobRunner toDomain(String idAccountHolder,
+                                  String calendarId,
+                                  EventEvaluationRules evaluationRules,
                                   RatingProperties ratingProperties,
-                                  SheetProperties sheetProperties, SheetRange sheetRange,
-                                  EventDateRanges eventDateRanges, AntiHarmRules antiHarmRules) {
+                                  SheetProperties sheetProperties,
+                                  SheetRange sheetRange,
+                                  EventDateRanges eventDateRanges,
+                                  AntiHarmRules antiHarmRules) {
     return EventJobRunner.builder()
+        .calendarId(calendarId)
         .sheetProspectEvaluation(
             toDomain(idAccountHolder,
                 evaluationRules,

@@ -6,12 +6,14 @@ import app.bpartners.api.endpoint.event.model.TypedEvent;
 import app.bpartners.api.endpoint.event.model.TypedFeedbackRequested;
 import app.bpartners.api.endpoint.event.model.TypedInvoiceCrupdated;
 import app.bpartners.api.endpoint.event.model.TypedInvoiceRelaunchSaved;
+import app.bpartners.api.endpoint.event.model.TypedProspectEvaluationJobInitiated;
 import app.bpartners.api.endpoint.event.model.TypedUserOnboarded;
 import app.bpartners.api.endpoint.event.model.TypedUserUpserted;
 import app.bpartners.api.endpoint.event.model.gen.CustomerCrupdated;
 import app.bpartners.api.endpoint.event.model.gen.FeedbackRequested;
 import app.bpartners.api.endpoint.event.model.gen.InvoiceCrupdated;
 import app.bpartners.api.endpoint.event.model.gen.InvoiceRelaunchSaved;
+import app.bpartners.api.endpoint.event.model.gen.ProspectEvaluationJobInitiated;
 import app.bpartners.api.endpoint.event.model.gen.UserOnboarded;
 import app.bpartners.api.endpoint.event.model.gen.UserUpserted;
 import app.bpartners.api.model.exception.BadRequestException;
@@ -54,7 +56,7 @@ public class EventPoller {
     this.eventConsumer = eventConsumer;
   }
 
-  @Scheduled(fixedRate = 200, initialDelay = 120000)
+  @Scheduled(fixedRate = 200)
   public void poll() {
     ReceiveMessageRequest receiveMessageRequest = ReceiveMessageRequest.builder()
         .queueUrl(queueUrl)
@@ -125,6 +127,10 @@ public class EventPoller {
       UserOnboarded userOnboarded =
           om.convertValue(body.get(DETAIL_PROPERTY), UserOnboarded.class);
       typedEvent = new TypedUserOnboarded(userOnboarded);
+    } else if (ProspectEvaluationJobInitiated.class.getTypeName().equals(typeName)) {
+      ProspectEvaluationJobInitiated evaluationJobInitiated =
+          om.convertValue(body.get(DETAIL_PROPERTY), ProspectEvaluationJobInitiated.class);
+      typedEvent = new TypedProspectEvaluationJobInitiated(evaluationJobInitiated);
     } else {
       throw new BadRequestException("Unexpected message type for message=" + message);
     }

@@ -1,6 +1,6 @@
 package app.bpartners.api.endpoint.event.model;
 
-import app.bpartners.api.model.prospect.job.ProspectEvaluationJobRunner;
+import app.bpartners.api.endpoint.event.model.gen.ProspectEvaluationJobInitiated;
 import java.io.Serializable;
 import lombok.AllArgsConstructor;
 import lombok.ToString;
@@ -10,15 +10,15 @@ import lombok.ToString;
 //TODO: add docs in EventBridge
 public class TypedProspectEvaluationJobInitiated implements TypedEvent {
 
-  private final ProspectEvaluationJobRunner evaluationJobRunner;
+  private final ProspectEvaluationJobInitiated evaluationJobInitiated;
 
   @Override
   public String getTypeName() {
-    return ProspectEvaluationJobRunner.class.getTypeName();
+    return ProspectEvaluationJobInitiated.class.getTypeName();
   }
 
   @Override
   public Serializable getPayload() {
-    return evaluationJobRunner;
+    return evaluationJobInitiated;
   }
 }

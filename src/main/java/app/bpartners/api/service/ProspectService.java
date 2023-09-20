@@ -2,6 +2,7 @@ package app.bpartners.api.service;
 
 import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.endpoint.event.model.TypedProspectEvaluationJobInitiated;
+import app.bpartners.api.endpoint.event.model.gen.ProspectEvaluationJobInitiated;
 import app.bpartners.api.endpoint.rest.model.Geojson;
 import app.bpartners.api.endpoint.rest.model.JobStatusValue;
 import app.bpartners.api.endpoint.rest.model.NewInterventionOption;
@@ -23,7 +24,6 @@ import app.bpartners.api.repository.expressif.ProspectEval;
 import app.bpartners.api.repository.expressif.ProspectEvalInfo;
 import app.bpartners.api.repository.expressif.ProspectResult;
 import app.bpartners.api.repository.expressif.fact.NewIntervention;
-import app.bpartners.api.repository.google.calendar.drive.DriveApi;
 import app.bpartners.api.repository.google.sheets.SheetApi;
 import app.bpartners.api.repository.jpa.AccountHolderJpaRepository;
 import app.bpartners.api.repository.jpa.model.HAccountHolder;
@@ -72,7 +72,6 @@ public class ProspectService {
   private final SesService sesService;
   private final CustomerService customerService;
   private final SheetApi sheetApi;
-  private final DriveApi driveApi;
   private final ProspectMapper prospectMapper;
   private final ProspectEvaluationJobRepository evalJobRepository;
   private final EventProducer eventProducer;
@@ -136,29 +135,45 @@ public class ProspectService {
     });
   }
 
-  public List<ProspectEvaluationJob> runEvaluationJobs(String ahId,
+  public List<ProspectEvaluationJob> runEvaluationJobs(String userId,
+                                                       String ahId,
                                                        List<ProspectEvaluationJobRunner> jobRunners) {
     List<ProspectEvaluationJob> jobs = jobRunners.stream()
-        .map(job -> ProspectEvaluationJob.builder()
-            .id(String.valueOf(randomUUID()))
-            .idAccountHolder(ahId)
-            .type(getJobType(job))
-            .jobStatus(new ProspectEvaluationJobStatus()
-                .value(NOT_STARTED)
-                .message(null))
-            .startedAt(Instant.now())
-            .endedAt(null)
-            .results(List.of())
-            .build())
+        .map(job -> {
+          String id = String.valueOf(randomUUID());
+          job.setJobId(id);
+          return ProspectEvaluationJob.builder()
+              .id(id)
+              .idAccountHolder(ahId)
+              .type(getJobType(job))
+              .jobStatus(new ProspectEvaluationJobStatus()
+                  .value(NOT_STARTED)
+                  .message(null))
+              .startedAt(Instant.now())
+              .endedAt(null)
+              .results(List.of())
+              .build();
+        })
         .collect(Collectors.toList());
 
     List<ProspectEvaluationJob> savedJobs = evalJobRepository.saveAll(jobs);
 
     eventProducer.accept(jobRunners.stream()
-        .map(TypedProspectEvaluationJobInitiated::new)
+        .map(evaluationJobRunner -> new TypedProspectEvaluationJobInitiated(
+            ProspectEvaluationJobInitiated.builder()
+                .jobId(evaluationJobRunner.getJobId())
+                .idUser(userId)
+                .jobRunner(evaluationJobRunner)
+                .build()))
         .collect(Collectors.toList()));
 
     return savedJobs;
+  }
+
+  @Transactional
+  public List<ProspectEvaluationJob> saveEvaluationJobs(
+      List<ProspectEvaluationJob> evaluationJobs) {
+    return evalJobRepository.saveAll(evaluationJobs);
   }
 
   //TODO: IMPORTANT ! Only NewIntervention rule is supported for now
@@ -389,6 +404,7 @@ public class ProspectService {
         .build();
   }
 
+  @Transactional
   public List<ProspectEval> readEvaluationsFromSheets(String idUser,
                                                       String ownerId,
                                                       String spreadsheetName,

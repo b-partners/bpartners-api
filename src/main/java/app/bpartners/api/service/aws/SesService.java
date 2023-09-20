@@ -20,7 +20,6 @@ import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 import javax.mail.util.ByteArrayDataSource;
 import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.SdkBytes;
@@ -109,7 +108,7 @@ public class SesService {
       throws MessagingException {
     MimeBodyPart attachmentPart = new MimeBodyPart();
     String fileMediaType =
-        String.valueOf(FileInfoUtils.parseMediaTypeFromBytes(attachmentAsBytes));
+        String.valueOf(FileInfoUtils.parseMediaTypeFromBytesWithoutCheck(attachmentAsBytes));
     DataSource fds = new ByteArrayDataSource(attachmentAsBytes, fileMediaType);
     attachmentPart.setDataHandler(new DataHandler(fds));
     attachmentPart.setFileName(attachmentName);

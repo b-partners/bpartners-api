@@ -9,8 +9,6 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 import lombok.AllArgsConstructor;
@@ -35,7 +33,6 @@ import org.hibernate.annotations.TypeDef;
 @EqualsAndHashCode
 public class HProspectEvaluationJob implements Serializable {
   @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
   private String id;
   private String idAccountHolder;
   private String jobStatusMessage;

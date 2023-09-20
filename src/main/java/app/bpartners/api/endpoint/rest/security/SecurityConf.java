@@ -275,6 +275,9 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
             new SelfAccountHolderMatcher(GET, "/accountHolders/*/prospects/evaluationJobs", authResourceProvider))
         .authenticated()
         .requestMatchers(
+            new SelfAccountHolderMatcher(POST, "/accountHolders/*/prospects/evaluationJobs", authResourceProvider))
+        .authenticated()
+        .requestMatchers(
             new SelfAccountHolderMatcher(PUT, "/accountHolders/*/prospects/*/prospectConversion",
                 authResourceProvider))
         .authenticated()

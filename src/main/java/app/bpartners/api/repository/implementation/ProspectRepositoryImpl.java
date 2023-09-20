@@ -6,7 +6,7 @@ import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.AnnualRevenueTarget;
 import app.bpartners.api.model.BusinessActivity;
 import app.bpartners.api.model.Fraction;
-import app.bpartners.api.model.Prospect;
+import app.bpartners.api.model.prospect.Prospect;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.mapper.ProspectEvalMapper;

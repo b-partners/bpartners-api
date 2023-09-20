@@ -1,8 +1,9 @@
-package app.bpartners.api.model;
+package app.bpartners.api.model.prospect;
 
 import app.bpartners.api.endpoint.rest.model.Geojson;
 import app.bpartners.api.endpoint.rest.model.ProspectFeedback;
 import app.bpartners.api.endpoint.rest.model.ProspectStatus;
+import app.bpartners.api.model.Fraction;
 import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

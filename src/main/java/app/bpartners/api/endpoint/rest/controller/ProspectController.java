@@ -1,14 +1,16 @@
 package app.bpartners.api.endpoint.rest.controller;
 
+import app.bpartners.api.endpoint.rest.mapper.ProspectJobRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.ProspectRestMapper;
 import app.bpartners.api.endpoint.rest.model.EvaluatedProspect;
 import app.bpartners.api.endpoint.rest.model.ExtendedProspectStatus;
 import app.bpartners.api.endpoint.rest.model.JobStatusValue;
 import app.bpartners.api.endpoint.rest.model.NewInterventionOption;
+import app.bpartners.api.endpoint.rest.model.PostProspectEvaluationJob;
 import app.bpartners.api.endpoint.rest.model.Prospect;
 import app.bpartners.api.endpoint.rest.model.ProspectConversion;
-import app.bpartners.api.endpoint.rest.model.ProspectEvaluationJobInfo;
 import app.bpartners.api.endpoint.rest.model.ProspectEvaluationJobDetails;
+import app.bpartners.api.endpoint.rest.model.ProspectEvaluationJobInfo;
 import app.bpartners.api.endpoint.rest.model.ProspectEvaluationRules;
 import app.bpartners.api.endpoint.rest.model.RatingProperties;
 import app.bpartners.api.endpoint.rest.model.SheetProperties;
@@ -19,6 +21,7 @@ import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.endpoint.rest.validator.ProspectRestValidator;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.NotImplementedException;
+import app.bpartners.api.model.prospect.job.ProspectEvaluationJobRunner;
 import app.bpartners.api.repository.expressif.ProspectEval;
 import app.bpartners.api.repository.expressif.utils.ProspectEvalUtils;
 import app.bpartners.api.service.ProspectService;
@@ -52,6 +55,7 @@ public class ProspectController {
   private final ProspectRestMapper mapper;
   private final ProspectEvalUtils prospectUtils;
   private final ProspectRestValidator validator;
+  private final ProspectJobRestMapper jobRestMapper;
 
   private static Double getMinCustomerRating(HttpHeaders headers) {
     try {
@@ -115,7 +119,7 @@ public class ProspectController {
   @PutMapping("/accountHolders/{ahId}/prospects")
   public List<Prospect> updateProspects(@PathVariable("ahId") String accountHolderId,
                                         @RequestBody List<UpdateProspect> prospects) {
-    List<app.bpartners.api.model.Prospect> prospectList = prospects.stream()
+    List<app.bpartners.api.model.prospect.Prospect> prospectList = prospects.stream()
         .map(mapper::toDomain)
         .collect(toUnmodifiableList());
     return service.saveAll(prospectList).stream()
@@ -193,7 +197,7 @@ public class ProspectController {
   public Prospect updateProspectsStatus(@PathVariable("ahId") String accountHolderId,
                                         @PathVariable("id") String prospectId,
                                         @RequestBody ExtendedProspectStatus toUpdate) {
-    app.bpartners.api.model.Prospect prospect = mapper.toDomain(toUpdate);
+    app.bpartners.api.model.prospect.Prospect prospect = mapper.toDomain(toUpdate);
     return mapper.toRest(service.save(prospect));
   }
 
@@ -208,7 +212,20 @@ public class ProspectController {
 
   @GetMapping("/accountHolders/{ahId}/prospects/evaluationJobs/{jId}")
   public ProspectEvaluationJobDetails getProspectEvaluationJobDetailsById(@PathVariable String ahId,
-                                                                    @PathVariable String jId) {
+                                                                          @PathVariable
+                                                                          String jId) {
     return mapper.toRestResult(service.getEvaluationJob(jId));
+  }
+
+  @PostMapping("/accountHolders/{ahId}/prospects/evaluationJobs")
+  public List<ProspectEvaluationJobDetails> runProspectEvaluationJobs(@PathVariable String ahId,
+                                                                      @RequestBody
+                                                                      List<PostProspectEvaluationJob> evaluationJobs) {
+    List<ProspectEvaluationJobRunner> jobRunners = evaluationJobs.stream()
+        .map(job -> jobRestMapper.toDomain(ahId, job))
+        .collect(Collectors.toList());
+    return service.runEvaluationJobs(ahId, jobRunners).stream()
+        .map(mapper::toRestResult)
+        .collect(Collectors.toList());
   }
 }

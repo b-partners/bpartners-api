@@ -15,7 +15,7 @@ import app.bpartners.api.endpoint.rest.model.UpdateProspect;
 import app.bpartners.api.endpoint.rest.validator.ExtendedProspectUpdateValidator;
 import app.bpartners.api.endpoint.rest.validator.ProspectRestValidator;
 import app.bpartners.api.model.Customer;
-import app.bpartners.api.model.ProspectEvaluationJob;
+import app.bpartners.api.model.prospect.job.ProspectEvaluationJob;
 import app.bpartners.api.repository.expressif.ProspectEval;
 import app.bpartners.api.repository.expressif.ProspectEvalInfo;
 import app.bpartners.api.repository.expressif.ProspectResult;
@@ -83,8 +83,8 @@ public class ProspectRestMapper {
             .value(BigDecimal.valueOf(customerResult.getRating())));
   }
 
-  public Prospect toRest(app.bpartners.api.model.Prospect domain) {
-    app.bpartners.api.model.Prospect.ProspectRating prospectRating = domain.getRating();
+  public Prospect toRest(app.bpartners.api.model.prospect.Prospect domain) {
+    app.bpartners.api.model.prospect.Prospect.ProspectRating prospectRating = domain.getRating();
     return new Prospect()
         .id(domain.getId())
         .email(domain.getEmail())
@@ -128,9 +128,9 @@ public class ProspectRestMapper {
             .collect(Collectors.toList()));
   }
 
-  public app.bpartners.api.model.Prospect toDomain(UpdateProspect rest) {
+  public app.bpartners.api.model.prospect.Prospect toDomain(UpdateProspect rest) {
     validator.accept(rest);
-    return app.bpartners.api.model.Prospect.builder()
+    return app.bpartners.api.model.prospect.Prospect.builder()
         .id(rest.getId())
         .email(rest.getEmail())
         .name(rest.getName())
@@ -141,9 +141,9 @@ public class ProspectRestMapper {
         .build();
   }
 
-  public app.bpartners.api.model.Prospect toDomain(ExtendedProspectStatus rest) {
+  public app.bpartners.api.model.prospect.Prospect toDomain(ExtendedProspectStatus rest) {
     prospectUpdateValidator.accept(rest);
-    return app.bpartners.api.model.Prospect.builder()
+    return app.bpartners.api.model.prospect.Prospect.builder()
         .id(rest.getId())
         .email(rest.getEmail())
         .name(rest.getName())

@@ -224,7 +224,8 @@ public class ProspectController {
     List<ProspectEvaluationJobRunner> jobRunners = evaluationJobs.stream()
         .map(job -> jobRestMapper.toDomain(ahId, job))
         .collect(Collectors.toList());
-    return service.runEvaluationJobs(ahId, jobRunners).stream()
+    return service.runEvaluationJobs(AuthProvider.getAuthenticatedUserId(), ahId, jobRunners)
+        .stream()
         .map(mapper::toRestResult)
         .collect(Collectors.toList());
   }

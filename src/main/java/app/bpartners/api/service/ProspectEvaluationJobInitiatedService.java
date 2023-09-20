@@ -84,6 +84,7 @@ public class ProspectEvaluationJobInitiatedService
                 eventConf.getAdminEmail(), //TODO: confirm to put BPartners as CC
                 "Résultat évaluation de prospect créé le " + finishedJob.getStartedAt(),
                 "",
+                //TODO: add args to override file extension through media type if any is found
                 List.of(new Attachment(String.valueOf(randomUUID()),
                     "prospect-evaluation-result-" + finishedJob.getId(),
                     convertIntoExcel(null, evaluatedProspects.stream()

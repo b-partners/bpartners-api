@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Slf4j
@@ -89,5 +90,21 @@ public class AccountHolderService {
 
   public AccountHolder updateFeedBackConfiguration(AccountHolder accountHolder) {
     return accountHolderRepository.save(accountHolder);
+  }
+
+  public List<AccountHolder> findAllByIdUser(String idUser) {
+    return accountHolderRepository.findAllByUserId(idUser);
+  }
+
+  @Transactional
+  public AccountHolder findDefaultByIdUser(String idUser) {
+    List<AccountHolder> accountHolders = findAllByIdUser(idUser);
+    AccountHolder defaultAccountHolder = accountHolders.isEmpty() ? null
+        : accountHolders.get(0);
+    if (accountHolders.size() > 1) {
+      log.warn("Multiple account holders not supported. "
+          + defaultAccountHolder.describe() + " chosen by default.");
+    }
+    return defaultAccountHolder;
   }
 }

@@ -1,0 +1,159 @@
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Résultat d'évaluation de prospects</title>
+    <style>
+
+        body {
+            font-family: Helvetica, serif;
+        }
+
+        table {
+            border-collapse: collapse;
+        }
+
+        .main-table th, td {
+            border: 0.5px solid grey;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        tbody tr td {
+            text-align: center;
+            width: 150px;
+            word-wrap: break-word;
+        }
+
+        th, td {
+            padding: 6px;
+        }
+    </style>
+</head>
+<body>
+<section>
+    <p>Bonjour <span th:text="${accountHolder.getName()}"></span>,</p>
+    <th:block th:if="${evaluatedProspects.isEmpty()}">
+        <p>
+            Malheureusement, nous n'avons pas trouvé de prospects qui pourraient vous intéresser à proximité de votre
+            nouvelle intervention du <span th:text="${interventionDate}"></span> au
+            <span th:text="${interventionLocation}"></span>.
+        </p>
+    </th:block>
+    <th:block th:unless="${evaluatedProspects.isEmpty()}">
+        <p> Voici la liste de <span th:if="${!oldCustomers.isEmpty()}">vos anciens clients</span>
+            <span th:if="${!oldCustomers.isEmpty() && !newProspects.isEmpty()}"> et de </span>
+            <span th:if="${!newProspects.isEmpty()}">vos nouveaux prospects</span> à proximité de
+            votre nouvelle intervention du <span th:text="${interventionDate}"></span> au <span
+                    th:text="${interventionLocation}"></span>.
+        </p>
+        <th:block th:if="${!oldCustomers.isEmpty()}">
+            <p style="font-weight: bold">
+                1. Pensez à prévenir vos anciens clients pour les fidéliser et mutualiser votre déplacement :
+            </p>
+            <table class="main-table" style="margin: 10px 0px 20px 0px;table-layout: fixed;">
+                <thead class="text-center">
+                <th>Nom</th>
+                <th>Email</th>
+                <th>Téléphone</th>
+                <th>Adresse</th>
+                <th>Nom du gérant</th>
+                <th>Nature du contact</th>
+                <th>Distance par rapport à votre lieu d'intervention<br/>(en mètre)</th>
+                </thead>
+                <tbody>
+                <th:block th:each="prospect : ${oldCustomers}">
+                    <tr>
+                        <td>
+                            <span th:text="${prospect.getName()}"></span>
+                        </td>
+                        <td>
+                            <span th:text="${prospect.getEmail()}"></span>
+                        </td>
+                        <td>
+                            <span th:text="${prospect.getPhone()}"></span>
+                        </td>
+                        <td>
+                            <span th:text="${prospect.getAddress()}"></span>
+                        </td>
+                        <td>
+                            <span th:text="${prospect.getManagerName()}"></span>
+                        </td>
+                        <td>
+                        <span
+                                th:text="${prospect.getContactNature().name().equals('OLD_CUSTOMER') ? 'Ancien client' : 'Prospect'}">
+                        </span>
+                        </td>
+                        <td>
+                            <span th:text="${prospect.getOldCustomerResult().getDistanceFromProspect().doubleValue()}"></span>
+                        </td>
+                    </tr>
+                </th:block>
+                </tbody>
+            </table>
+        </th:block>
+        <th:block th:if="${!newProspects.isEmpty()}">
+            <p style="font-weight: bold">
+                <span th:text="${oldCustomers.isEmpty() ? '1' : '2'}"></span>.
+                Faites connaissances de nouveaux clients, en passant rdv visite aux prospects suivants :
+            </p>
+            <table class="main-table" style="margin: 10px 0px 20px 0px;table-layout: fixed;">
+                <thead class="text-center">
+                <th>Nom</th>
+                <th>Email</th>
+                <th>Téléphone</th>
+                <th>Adresse</th>
+                <th>Nom du gérant</th>
+                <th>Nature du contact</th>
+                <th>Distance par rapport à votre lieu d'intervention<br/>(en mètre)</th>
+                </thead>
+                <tbody>
+                <th:block th:each="prospect : ${newProspects}">
+                    <tr>
+                        <td>
+                            <span th:text="${prospect.getName()}"></span>
+                        </td>
+                        <td>
+                            <span th:text="${prospect.getEmail()}"></span>
+                        </td>
+                        <td>
+                            <span th:text="${prospect.getPhone()}"></span>
+                        </td>
+                        <td>
+                            <span th:text="${prospect.getAddress()}"></span>
+                        </td>
+                        <td>
+                            <span th:text="${prospect.getManagerName()}"></span>
+                        </td>
+                        <td>
+                        <span
+                                th:text="${prospect.getContactNature().name().equals('OLD_CUSTOMER') ? 'Ancien client' : 'Prospect'}">
+                        </span>
+                        </td>
+                        <td>
+                            <span th:text="${prospect.getInterventionResult().getDistanceFromProspect().doubleValue()}"></span>
+                        </td>
+                    </tr>
+                </th:block>
+                </tbody>
+            </table>
+        </th:block>
+        <p>Retrouvez tous ces prospects sur votre application BPartners ou sur votre espace web. Une fois contacté,
+            ajoutez
+            les informations sur BPartners pour avoir l'exclusivité sur le prospect.
+        </p>
+    </th:block>
+    <p>N'hésitez pas à nous contacter si vous avez la moindre question.</p>
+    <footer>
+        <p>
+            L'équipe BPartners<br/>
+            BPartners - assistant intelligent des artisans & indépendants<br/>
+            27 rue du Chemin Vert, 75011, Paris<br/>
+            01 84 80 31 69<br/>
+            07 58 21 18 53<br/>
+            <a href="https://www.bpartners.app">https://www.bpartners.app</a>
+        </p>
+    </footer>
+</section>
+</body>
+</html>

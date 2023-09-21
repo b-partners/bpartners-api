@@ -1,6 +1,5 @@
 package app.bpartners.api.unit.service;
 
-import app.bpartners.api.endpoint.event.EventConf;
 import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.model.mapper.ProspectMapper;
 import app.bpartners.api.repository.ProspectEvaluationJobRepository;
@@ -40,12 +39,11 @@ class ProspectServiceTest {
   DriveApi driveApi = mock(DriveApi.class);
   ProspectMapper prospectMapper = mock(ProspectMapper.class);
   ProspectEvaluationJobRepository jobRepositoryMock = mock(ProspectEvaluationJobRepository.class);
-  EventConf eventConfMock = mock(EventConf.class);
   EventProducer eventProducerMock = mock(EventProducer.class);
   ProspectService subject = new ProspectService(
       prospectRepositoryMock, dataProcesserMock, accountHolderJpaRepositoryMock,
-      sesServiceMock, customerService, sheetApi, driveApi,
-      prospectMapper, jobRepositoryMock, eventConfMock, eventProducerMock);
+      sesServiceMock, customerService, sheetApi,
+      prospectMapper, jobRepositoryMock, eventProducerMock);
 
   @BeforeEach
   void setup() {

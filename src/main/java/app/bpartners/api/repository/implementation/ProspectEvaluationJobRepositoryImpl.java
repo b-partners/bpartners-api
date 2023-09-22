@@ -24,7 +24,8 @@ public class ProspectEvaluationJobRepositoryImpl implements ProspectEvaluationJo
   @Override
   public List<ProspectEvaluationJob> findAllByIdAccountHolderAndStatusesIn(String ahId,
                                                                            List<JobStatusValue> statuses) {
-    return jobJpaRepository.findAllByIdAccountHolderAndJobStatusIn(ahId, statuses).stream()
+    return jobJpaRepository.findAllByIdAccountHolderAndJobStatusInOrderByStartedAtDesc(
+            ahId, statuses).stream()
         .map(entity -> {
           List<HProspect> results = prospectJpaRepository.findAllByIdJob(entity.getId());
           return mapper.toDomain(entity, results);

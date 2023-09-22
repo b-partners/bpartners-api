@@ -60,6 +60,7 @@
                 <th>Nom du gérant</th>
                 <th>Nature du contact</th>
                 <th>Distance par rapport à votre lieu d'intervention<br/>(en mètre)</th>
+                <th>Notation sur 10</th>
                 </thead>
                 <tbody>
                 <th:block th:each="prospect : ${oldCustomers}">
@@ -85,7 +86,10 @@
                         </span>
                         </td>
                         <td>
-                            <span th:text="${prospect.getOldCustomerResult().getDistanceFromProspect().doubleValue()}"></span>
+                            <span th:text="${#numbers.formatDecimal(prospect.getOldCustomerResult().getDistanceFromProspect().doubleValue(),1,2)}"></span>
+                        </td>
+                        <td>
+                            <span th:text="${#numbers.formatDecimal(prospect.getInterventionResult().getValue().doubleValue(),1,2)}"></span>
                         </td>
                     </tr>
                 </th:block>
@@ -106,6 +110,7 @@
                 <th>Nom du gérant</th>
                 <th>Nature du contact</th>
                 <th>Distance par rapport à votre lieu d'intervention<br/>(en mètre)</th>
+                <th>Notation sur 10</th>
                 </thead>
                 <tbody>
                 <th:block th:each="prospect : ${newProspects}">
@@ -131,7 +136,10 @@
                         </span>
                         </td>
                         <td>
-                            <span th:text="${prospect.getInterventionResult().getDistanceFromProspect().doubleValue()}"></span>
+                            <span th:text="${#numbers.formatDecimal(prospect.getInterventionResult().getDistanceFromProspect().doubleValue(),1,2)}"></span>
+                        </td>
+                        <td>
+                            <span th:text="${#numbers.formatDecimal(prospect.getInterventionResult().getValue().doubleValue(),1,2)}"></span>
                         </td>
                     </tr>
                 </th:block>

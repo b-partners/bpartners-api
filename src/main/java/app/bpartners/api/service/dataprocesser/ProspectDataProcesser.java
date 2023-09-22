@@ -1,6 +1,6 @@
 package app.bpartners.api.service.dataprocesser;
 
-import app.bpartners.api.model.Prospect;
+import app.bpartners.api.model.prospect.Prospect;
 import java.util.List;
 import org.springframework.stereotype.Service;
 

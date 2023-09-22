@@ -15,4 +15,6 @@ public interface ProspectJpaRepository extends JpaRepository<HProspect, String> 
   List<HProspect> findAllByIdAccountHolderAndOldNameContainingIgnoreCase(
       String idAccountHolder,
       String name);
+
+  List<HProspect> findAllByIdJob(String idJob);
 }

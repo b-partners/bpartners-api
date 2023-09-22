@@ -7,6 +7,7 @@ import app.bpartners.api.service.CustomerCrupdatedService;
 import app.bpartners.api.service.FeedbackRequestedService;
 import app.bpartners.api.service.InvoiceCrupdatedService;
 import app.bpartners.api.service.InvoiceRelaunchSavedService;
+import app.bpartners.api.service.ProspectEvaluationJobInitiatedService;
 import app.bpartners.api.service.UserOnboardedService;
 import app.bpartners.api.service.UserUpsertedService;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,6 +25,7 @@ class EventServiceInvokerTest {
   FeedbackRequestedService feedbackRequestedService;
   CustomerCrupdatedService customerCrupdatedService;
   UserOnboardedService userOnboardedService;
+  ProspectEvaluationJobInitiatedService prospectJobInitiatedServiceMock;
 
   @BeforeEach
   void setUp() {
@@ -31,10 +33,11 @@ class EventServiceInvokerTest {
     invoiceCrupdatedService = mock(InvoiceCrupdatedService.class);
     userUpsertedService = mock(UserUpsertedService.class);
     feedbackRequestedService = mock(FeedbackRequestedService.class);
-
+    prospectJobInitiatedServiceMock = mock(ProspectEvaluationJobInitiatedService.class);
     subject = new EventServiceInvoker(
         invoiceRelaunchSavedService, invoiceCrupdatedService, userUpsertedService,
-        feedbackRequestedService, customerCrupdatedService, userOnboardedService);
+        feedbackRequestedService, customerCrupdatedService, userOnboardedService,
+        prospectJobInitiatedServiceMock);
   }
 
   @Test

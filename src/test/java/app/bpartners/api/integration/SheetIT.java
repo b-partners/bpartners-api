@@ -12,7 +12,7 @@ import app.bpartners.api.endpoint.rest.model.NewInterventionOption;
 import app.bpartners.api.endpoint.rest.model.PostEventProspectConversion;
 import app.bpartners.api.endpoint.rest.model.PostProspectEvaluationJob;
 import app.bpartners.api.endpoint.rest.model.ProfessionType;
-import app.bpartners.api.endpoint.rest.model.ProspectEvaluationJobResult;
+import app.bpartners.api.endpoint.rest.model.ProspectEvaluationJobDetails;
 import app.bpartners.api.endpoint.rest.model.ProspectEvaluationRules;
 import app.bpartners.api.endpoint.rest.model.RatingProperties;
 import app.bpartners.api.endpoint.rest.model.SheetProperties;
@@ -215,11 +215,11 @@ public class SheetIT extends MockedThirdParties {
     ApiClient joeDoeClient = anApiClient();
     ProspectingApi api = new ProspectingApi(joeDoeClient);
 
-    List<ProspectEvaluationJobResult> actual1 =
+    List<ProspectEvaluationJobDetails> actual1 =
         api.runProspectEvaluationJobs(JOE_DOE_USER_ID, List.of(
             new PostProspectEvaluationJob()
                 .eventProspectConversion(prospectEvent1())));
-    List<ProspectEvaluationJobResult> actual2 =
+    List<ProspectEvaluationJobDetails> actual2 =
         api.runProspectEvaluationJobs(JOE_DOE_USER_ID,
             List.of(
                 new PostProspectEvaluationJob()

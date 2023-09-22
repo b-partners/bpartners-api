@@ -1,8 +1,9 @@
-package app.bpartners.api.model;
+package app.bpartners.api.model.prospect;
 
 import app.bpartners.api.endpoint.rest.model.Geojson;
 import app.bpartners.api.endpoint.rest.model.ProspectFeedback;
 import app.bpartners.api.endpoint.rest.model.ProspectStatus;
+import app.bpartners.api.model.Fraction;
 import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -15,13 +16,14 @@ import lombok.ToString;
 
 @Getter
 @Setter
-@Builder
+@Builder(toBuilder = true)
 @AllArgsConstructor
 @NoArgsConstructor
 @EqualsAndHashCode
 @ToString
 public class Prospect implements Comparable<Prospect> {
   private String id;
+  private String idJob;
   private String idHolderOwner;
   private String name;
   private String email;

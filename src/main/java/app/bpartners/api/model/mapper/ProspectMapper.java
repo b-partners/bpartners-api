@@ -4,7 +4,7 @@ import app.bpartners.api.endpoint.rest.model.Geojson;
 import app.bpartners.api.endpoint.rest.model.ProspectFeedback;
 import app.bpartners.api.endpoint.rest.model.ProspectStatus;
 import app.bpartners.api.endpoint.rest.security.AuthenticatedResourceProvider;
-import app.bpartners.api.model.Prospect;
+import app.bpartners.api.model.prospect.Prospect;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.exception.NotImplementedException;
@@ -100,6 +100,7 @@ public class ProspectMapper {
     } else {
       return actualEntity.toBuilder()
           .id(domain.getId())
+          .idJob(domain.getIdJob())
           .newPhone(checkIfOldOrNew(domain.getPhone(), actualEntity.getOldPhone()))
           .newName(checkIfOldOrNew(domain.getName(), actualEntity.getOldName()))
           .newAddress(checkIfOldOrNew(domain.getAddress(), actualEntity.getOldAddress()))
@@ -142,6 +143,7 @@ public class ProspectMapper {
   public Prospect toDomain(HProspect entity, Geojson location) {
     return Prospect.builder()
         .id(entity.getId())
+        .idJob(entity.getIdJob())
         .idHolderOwner(entity.getIdAccountHolder())
         .email(isNewExists(entity.getNewEmail(), entity.getOldEmail()))
         .address(isNewExists(entity.getNewAddress(), entity.getOldAddress()))

@@ -316,8 +316,8 @@ operations:
     get:
       tags:
         - Prospecting
-      summary: Get all prospect evaluation jobs for an account holder
-      operationId: getProspectEvaluationJobs
+      summary: Get prospect evaluation job details for an account holder
+      operationId: getProspectEvaluationJobDetailsById
       parameters:
         - name: ahId
           in: path
@@ -337,7 +337,7 @@ operations:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ProspectEvaluationJobResult'
+                $ref: '#/components/schemas/ProspectEvaluationJobDetails'
           400:
             $ref: './api.yml#/components/responses/400'
           403:
@@ -411,14 +411,14 @@ operations:
       responses:
         200:
           description: |
-            Return prospect evaluation jobs results.
+            Return prospect evaluation jobs details.
             For each finished job with status `FINISHED`, an email will be automatically sent to the account holder.
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/ProspectEvaluationJobResult'
+                  $ref: '#/components/schemas/ProspectEvaluationJobDetails'
         400:
           $ref: './api.yml#/components/responses/400'
         403:
@@ -735,7 +735,7 @@ components:
         - CALENDAR_EVENT_CONVERSION
         - ADDRESS_CONVERSION
         - SPREADSHEET_EVALUATION
-    ProspectEvaluationJobResult:
+    ProspectEvaluationJobDetails:
       allOf:
         - $ref: '#/components/schemas/ProspectEvaluationJobInfo'
       type: object

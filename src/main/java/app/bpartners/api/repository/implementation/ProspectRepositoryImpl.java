@@ -6,7 +6,7 @@ import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.AnnualRevenueTarget;
 import app.bpartners.api.model.BusinessActivity;
 import app.bpartners.api.model.Fraction;
-import app.bpartners.api.model.Prospect;
+import app.bpartners.api.model.prospect.Prospect;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.mapper.ProspectEvalMapper;
@@ -80,6 +80,16 @@ public class ProspectRepositoryImpl implements ProspectRepository {
   private final ProspectEvalInfoJpaRepository evalRepository;
   private final EntityManager em;
   private final SogefiBuildingPermitRepository sogefiRepository;
+
+  @Override
+  public Prospect getById(String id) {
+    HProspect prospect = jpaRepository.getById(id);
+    return mapper.toDomain(prospect,
+        prospect.getPosLatitude() == null && prospect.getPosLongitude() == null ? null
+            : new Geojson()
+            .latitude(prospect.getPosLatitude())
+            .longitude(prospect.getPosLongitude()));
+  }
 
   @Override
   public List<Prospect> findAllByIdAccountHolder(String idAccountHolder, String name) {
@@ -361,6 +371,24 @@ public class ProspectRepositoryImpl implements ProspectRepository {
         prospects.stream().map(mapper::toEntity).collect(toUnmodifiableList());
     return jpaRepository.saveAll(entities).stream()
         .map(entity -> toDomain(isSogefiProspector, entity))
+        .collect(toUnmodifiableList());
+  }
+
+  @Override
+  public List<Prospect> saveAllWithoutSogefi(List<Prospect> prospects) {
+    List<HProspect> entities =
+        prospects.stream()
+            .map(mapper::toEntity)
+            .collect(toUnmodifiableList());
+    return jpaRepository.saveAll(entities).stream()
+        .map(prospect -> {
+          Geojson location =
+              prospect.getPosLatitude() != null && prospect.getPosLongitude() != null
+                  ? null : new Geojson()
+                  .latitude(prospect.getPosLatitude())
+                  .longitude(prospect.getPosLongitude());
+          return mapper.toDomain(prospect, location);
+        })
         .collect(toUnmodifiableList());
   }
 

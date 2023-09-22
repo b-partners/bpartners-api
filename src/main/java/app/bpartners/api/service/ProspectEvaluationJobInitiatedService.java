@@ -28,6 +28,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import javax.mail.MessagingException;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.context.Context;
 
@@ -43,6 +44,7 @@ import static java.util.UUID.randomUUID;
 
 @Service
 @AllArgsConstructor
+@Slf4j
 public class ProspectEvaluationJobInitiatedService
     implements Consumer<ProspectEvaluationJobInitiated> {
   public static final String PROSPECT_EVALUATION_RESULT_EMAIL_TEMPLATE =
@@ -94,8 +96,10 @@ public class ProspectEvaluationJobInitiatedService
                 NewInterventionOption.ALL,
                 ratingProperties.getMinProspectRating(),
                 ratingProperties.getMinCustomerRating());
-            long durationMinutes = runningJob.getDuration().toMinutes();
-            long durationSeconds = runningJob.getDuration().minusMinutes(durationMinutes)
+            long durationMinutes = runningJob.getDuration()
+                .toMinutes();
+            long durationSeconds = runningJob.getDuration()
+                .minusMinutes(durationMinutes)
                 .toSeconds();
             var finishedJob = updateJobStatus(runningJob, FINISHED,
                 getJobMessage(evaluatedProspects, durationMinutes, durationSeconds));
@@ -124,6 +128,8 @@ public class ProspectEvaluationJobInitiatedService
                     emailSubject,
                     htmlBody,
                     List.of());
+                log.info("Job(id=" + finishedJob.getId() + ") "
+                    + finishedJob.getJobStatus().getMessage());
               } catch (IOException | MessagingException e) {
                 throw new ApiException(SERVER_EXCEPTION, e);
               }
@@ -141,7 +147,7 @@ public class ProspectEvaluationJobInitiatedService
 
   private static String getJobMessage(List<ProspectResult> evaluatedProspects, long durationMinutes,
                                       long durationSeconds) {
-    return "Job successfully processed after "
+    return "Successfully processed after "
         + durationMinutes + " minutes "
         + durationSeconds + " seconds with " + evaluatedProspects.size()
         + " evaluated prospects or old customers";

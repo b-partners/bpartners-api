@@ -217,13 +217,19 @@ public class ProspectService {
     repository.create(prospectsWithoutDuplication);
 
     List<ProspectResult> prospectWithoutDuplication = removeDuplications(prospectResults);
+    List<ProspectResult> filteredRatingResults = prospectWithoutDuplication.stream()
+        .filter(result -> (result.getInterventionResult() != null
+            && result.getInterventionResult().getRating() >= minProspectRating)
+            || (result.getCustomerInterventionResult() != null
+            && result.getCustomerInterventionResult().getRating() >= minCustomerRating))
+        .collect(Collectors.toList());
     switch (option) {
       case OLD_CUSTOMER:
-        return filteredCustomers(prospectWithoutDuplication);
+        return filteredCustomers(filteredRatingResults);
       case ALL:
-        return prospectWithoutDuplication;
+        return filteredRatingResults;
       default:
-        return filteredNewProspects(prospectWithoutDuplication);
+        return filteredNewProspects(filteredRatingResults);
     }
   }
 

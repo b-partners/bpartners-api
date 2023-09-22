@@ -16,6 +16,7 @@ import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.model.mapper.ProspectMapper;
 import app.bpartners.api.model.prospect.Prospect;
+import app.bpartners.api.model.prospect.job.AntiHarmRules;
 import app.bpartners.api.model.prospect.job.ProspectEvaluationJob;
 import app.bpartners.api.model.prospect.job.ProspectEvaluationJobRunner;
 import app.bpartners.api.repository.ProspectEvaluationJobRepository;
@@ -55,6 +56,7 @@ import static app.bpartners.api.endpoint.rest.model.JobStatusValue.NOT_STARTED;
 import static app.bpartners.api.endpoint.rest.model.NewInterventionOption.NEW_PROSPECT;
 import static app.bpartners.api.endpoint.rest.model.NewInterventionOption.OLD_CUSTOMER;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
+import static app.bpartners.api.repository.expressif.fact.NewIntervention.OldCustomer.OldCustomerType.INDIVIDUAL;
 import static app.bpartners.api.repository.google.sheets.SheetConf.GRID_SHEET_TYPE;
 import static app.bpartners.api.service.utils.TemplateResolverUtils.parseTemplateResolver;
 import static java.util.UUID.randomUUID;
@@ -178,7 +180,9 @@ public class ProspectService {
 
   //TODO: IMPORTANT ! Only NewIntervention rule is supported for now
   @Transactional
-  public List<ProspectResult> evaluateProspects(List<ProspectEval> prospectsEval,
+  public List<ProspectResult> evaluateProspects(String ahId,
+                                                AntiHarmRules antiHarmRules,
+                                                List<ProspectEval> prospectsEval,
                                                 NewInterventionOption option,
                                                 Double minProspectRating,
                                                 Double minCustomerRating) {
@@ -188,7 +192,7 @@ public class ProspectService {
     boolean isNotNewProspect = option != NEW_PROSPECT;
     boolean isOldCustomer = option == OLD_CUSTOMER;
 
-    var oldCustomersEval = isNotNewProspect ? getCustomersEval(prospectsEval)
+    var oldCustomersEval = isNotNewProspect ? getCustomersEval(ahId, antiHarmRules, prospectsEval)
         : new ArrayList<ProspectEval>();
     var prospectResults = repository.evaluate(mergeEvals(prospectsEval, oldCustomersEval));
 
@@ -284,8 +288,11 @@ public class ProspectService {
     return prospects;
   }
 
-  private List<ProspectEval> getCustomersEval(List<ProspectEval> prospectEvals) {
-    HashMap<String, List<ProspectEval>> groupByOwner = dispatchEvalByOwner(prospectEvals);
+  private List<ProspectEval> getCustomersEval(String ahId,
+                                              AntiHarmRules antiHarmRules,
+                                              List<ProspectEval> prospectEvals) {
+    HashMap<String, List<ProspectEval>> groupByOwner = prospectEvals.isEmpty()
+        ? ownerHashMap(ahId) : dispatchEvalByOwner(prospectEvals);
     List<ProspectEval> oldCustomerEvals = new ArrayList<>();
     for (Map.Entry<String, List<ProspectEval>> entry : groupByOwner.entrySet()) {
       String accountHolderId = entry.getKey();
@@ -302,21 +309,41 @@ public class ProspectService {
           Double distance = newIntervention.getCoordinate()
               .getDistanceFrom(customer.getLocation().getCoordinate());
           if (distance < MAX_DISTANCE_LIMIT) {
-            oldCustomerEvals.add(eval.toBuilder()
+            NewIntervention.OldCustomer customerBuilder =
+                newIntervention.getOldCustomer().toBuilder()
+                    .idCustomer(customer.getId())
+                    .oldCustomerAddress(customer.getAddress())
+                    .distNewIntAndOldCustomer(distance)
+                    .build();
+            ProspectEval.Builder prospectBuilder = eval.toBuilder()
                 .id(String.valueOf(randomUUID())) //new ID
                 .depaRule(newIntervention.toBuilder()
-                    .oldCustomer(newIntervention.getOldCustomer().toBuilder()
-                        .idCustomer(customer.getId())
-                        .oldCustomerAddress(customer.getAddress())
-                        .distNewIntAndOldCustomer(distance)
-                        .build())
-                    .build())
-                .build());
+                    .oldCustomer(customerBuilder)
+                    .build());
+            if (prospectEvals.isEmpty() && antiHarmRules != null) {
+              prospectBuilder.particularCustomer(true);
+              prospectBuilder.professionalCustomer(false);
+              prospectBuilder.insectControl(antiHarmRules.isInsectControl());
+              prospectBuilder.disinfection(antiHarmRules.isDisinfection());
+              prospectBuilder.ratRemoval(antiHarmRules.isRatRemoval());
+              prospectBuilder.depaRule(newIntervention.toBuilder()
+                  .oldCustomer(customerBuilder.toBuilder()
+                      .type(INDIVIDUAL)
+                      .build())
+                  .build());
+            }
+            oldCustomerEvals.add(prospectBuilder.build());
           }
         }
       }
     }
     return oldCustomerEvals;
+  }
+
+  private static HashMap<String, List<ProspectEval>> ownerHashMap(String ahId) {
+    HashMap<String, List<ProspectEval>> ownerHasMap = new HashMap<>();
+    ownerHasMap.put(ahId, new ArrayList<>());
+    return ownerHasMap;
   }
 
   private HashMap<String, List<ProspectResult>> dispatchResultByCustomer(

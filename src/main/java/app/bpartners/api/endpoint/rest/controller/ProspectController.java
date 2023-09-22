@@ -149,6 +149,8 @@ public class ProspectController {
 
     List<EvaluatedProspect> evaluatedProspects =
         service.evaluateProspects(
+                accountHolderId,
+                null,
                 prospectEvaluations,
                 evaluationRules.getNewInterventionOption(),
                 ratingProperties.getMinProspectRating(),
@@ -180,7 +182,11 @@ public class ProspectController {
         prospectUtils.convertFromExcel(new ByteArrayInputStream(toEvaluate));
     List<EvaluatedProspect> evaluatedProspects =
         service.evaluateProspects(
-                prospectEvals, interventionOption, minProspectRating, minCustomerRating)
+                accountHolderId,
+                null,
+                prospectEvals,
+                interventionOption,
+                minProspectRating, minCustomerRating)
             .stream()
             .map(mapper::toRest)
             .collect(Collectors.toList());

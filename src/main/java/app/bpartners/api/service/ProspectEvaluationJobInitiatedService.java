@@ -70,6 +70,7 @@ public class ProspectEvaluationJobInitiatedService
           var eventJobRunner = job.getEventJobRunner();
           var ranges = eventJobRunner.getEventDateRanges();
           var sheetProspectEvaluation = eventJobRunner.getSheetProspectEvaluation();
+          var antiHarmRules = sheetProspectEvaluation.getEvaluationRules().getAntiHarmRules();
           var ratingProperties = sheetProspectEvaluation.getRatingProperties();
           List<CalendarEvent> calendarEvents = calendarService.getEvents(
               idUser,
@@ -81,7 +82,12 @@ public class ProspectEvaluationJobInitiatedService
               .collect(Collectors.toList());
           var locations = locationsFromEvents(eventsWithAddress);
           var prospects = getProspectsToEvaluate(idUser, eventJobRunner, locations);
-          var evaluatedProspects = prospectService.evaluateProspects(prospects,
+          var accountHolder =
+              holderService.findDefaultByIdUser(jobInitiated.getIdUser());
+          var evaluatedProspects = prospectService.evaluateProspects(
+              accountHolder.getId(),
+              antiHarmRules,
+              prospects,
               NewInterventionOption.ALL,
               ratingProperties.getMinProspectRating(),
               ratingProperties.getMinCustomerRating());
@@ -95,8 +101,6 @@ public class ProspectEvaluationJobInitiatedService
                   + " evaluated prospects or old customers");
           if (finishedJob.getJobStatus().getValue() == FINISHED) {
             //TODO: associate evaluated prospect to finished job
-            AccountHolder accountHolder =
-                holderService.findDefaultByIdUser(jobInitiated.getIdUser());
             eventsWithAddress.forEach(event -> {
               String interventionDate = formatFrenchDatetime(event.getFrom().toInstant());
               String interventionLocation = event.getLocation();

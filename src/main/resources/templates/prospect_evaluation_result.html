@@ -60,7 +60,6 @@
                 <th>Nom du gérant</th>
                 <th>Nature du contact</th>
                 <th>Distance par rapport à votre lieu d'intervention<br/>(en mètre)</th>
-                <th>Notation sur 10</th>
                 </thead>
                 <tbody>
                 <th:block th:each="prospect : ${oldCustomers}">
@@ -88,9 +87,6 @@
                         <td>
                             <span th:text="${#numbers.formatDecimal(prospect.getOldCustomerResult().getDistanceFromProspect().doubleValue(),1,2)}"></span>
                         </td>
-                        <td>
-                            <span th:text="${#numbers.formatDecimal(prospect.getInterventionResult().getValue().doubleValue(),1,2)}"></span>
-                        </td>
                     </tr>
                 </th:block>
                 </tbody>
@@ -110,7 +106,6 @@
                 <th>Nom du gérant</th>
                 <th>Nature du contact</th>
                 <th>Distance par rapport à votre lieu d'intervention<br/>(en mètre)</th>
-                <th>Notation sur 10</th>
                 </thead>
                 <tbody>
                 <th:block th:each="prospect : ${newProspects}">
@@ -137,9 +132,6 @@
                         </td>
                         <td>
                             <span th:text="${#numbers.formatDecimal(prospect.getInterventionResult().getDistanceFromProspect().doubleValue(),1,2)}"></span>
-                        </td>
-                        <td>
-                            <span th:text="${#numbers.formatDecimal(prospect.getInterventionResult().getValue().doubleValue(),1,2)}"></span>
                         </td>
                     </tr>
                 </th:block>

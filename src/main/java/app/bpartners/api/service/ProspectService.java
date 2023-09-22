@@ -185,7 +185,7 @@ public class ProspectService {
   @Transactional
   public List<ProspectResult> evaluateProspects(String ahId,
                                                 AntiHarmRules antiHarmRules,
-                                                List<ProspectEval> prospectsEval,
+                                                List<ProspectEval> prospectsToEvaluate,
                                                 NewInterventionOption option,
                                                 Double minProspectRating,
                                                 Double minCustomerRating) {
@@ -195,18 +195,19 @@ public class ProspectService {
     boolean isNotNewProspect = option != NEW_PROSPECT;
     boolean isOldCustomer = option == OLD_CUSTOMER;
 
-    var oldCustomersEval = isNotNewProspect ? getCustomersEval(ahId, antiHarmRules, prospectsEval)
-        : new ArrayList<ProspectEval>();
-    var prospectResults = repository.evaluate(mergeEvals(prospectsEval, oldCustomersEval));
+    List<ProspectEval> customersToEvalute =
+        isNotNewProspect ? getOldCustomersToEvaluate(ahId, antiHarmRules, prospectsToEvaluate)
+            : new ArrayList<>();
+    List<ProspectResult> prospectResults =
+        repository.evaluate(mergeEvals(prospectsToEvaluate, customersToEvalute));
 
-    var newProspects = isOldCustomer ? new ArrayList<Prospect>()
+    List<Prospect> newProspects = isOldCustomer ? new ArrayList<>()
         : retrieveProspects(prospectResults, minProspectRating);
-    var oldCustomerProspects =
+    List<Prospect> oldCustomerProspects =
         isNotNewProspect ? retrieveOldCustomers(prospectResults, minCustomerRating)
-            : new ArrayList<Prospect>();
-
-    var prospectsToSave = mergeProspects(newProspects, oldCustomerProspects);
-    var prospectsWithoutDuplication = prospectsToSave.stream()
+            : new ArrayList<>();
+    List<Prospect> prospectsToSave = mergeProspects(newProspects, oldCustomerProspects);
+    List<Prospect> prospectsWithoutDuplication = prospectsToSave.stream()
         .filter(distinctByKeys(
             Prospect::getName,
             Prospect::getEmail,
@@ -215,7 +216,7 @@ public class ProspectService {
         .collect(Collectors.toList());
     repository.create(prospectsWithoutDuplication);
 
-    var prospectWithoutDuplication = removeDuplications(prospectResults);
+    List<ProspectResult> prospectWithoutDuplication = removeDuplications(prospectResults);
     switch (option) {
       case OLD_CUSTOMER:
         return filteredCustomers(prospectWithoutDuplication);
@@ -300,19 +301,23 @@ public class ProspectService {
     return prospects;
   }
 
-  private List<ProspectEval> getCustomersEval(String ahId,
-                                              AntiHarmRules antiHarmRules,
-                                              List<ProspectEval> prospectEvals) {
-    HashMap<String, List<ProspectEval>> groupByOwner = prospectEvals.isEmpty()
-        ? ownerHashMap(ahId) : dispatchEvalByOwner(prospectEvals);
-    List<ProspectEval> oldCustomerEvals = new ArrayList<>();
+  private List<ProspectEval> getOldCustomersToEvaluate(String ahId,
+                                                       AntiHarmRules antiHarmRules,
+                                                       List<ProspectEval> prospectEvals) {
+    HashMap<String, List<ProspectEval>> groupByOwner =
+        prospectEvals.isEmpty() ? ownerHashMap(ahId)
+            : dispatchEvalByOwner(prospectEvals);
+    List<ProspectEval> customersToEvaluate = new ArrayList<>();
+
     for (Map.Entry<String, List<ProspectEval>> entry : groupByOwner.entrySet()) {
       String accountHolderId = entry.getKey();
       List<ProspectEval> subList = entry.getValue();
-      List<Customer> oldCustomers = customerService.findByAccountHolderId(accountHolderId);
-      for (ProspectEval eval : subList) {
-        NewIntervention newIntervention = (NewIntervention) eval.getDepaRule();
-        for (Customer customer : oldCustomers) {
+      List<Customer> customers = customerService.findByAccountHolderId(accountHolderId);
+
+      for (ProspectEval newProspectEval : subList) {
+        NewIntervention newIntervention = (NewIntervention) newProspectEval.getDepaRule();
+
+        for (Customer customer : customers) {
           if (customer.getLocation() == null || customer.getLocation().getCoordinate() == null
               || customer.getLocation().getCoordinate().getLatitude() == null
               || customer.getLocation().getCoordinate().getLongitude() == null) {
@@ -327,7 +332,7 @@ public class ProspectService {
                     .oldCustomerAddress(customer.getAddress())
                     .distNewIntAndOldCustomer(distance)
                     .build();
-            ProspectEval.Builder prospectBuilder = eval.toBuilder()
+            ProspectEval.Builder prospectBuilder = newProspectEval.toBuilder()
                 .id(String.valueOf(randomUUID())) //new ID
                 .depaRule(newIntervention.toBuilder()
                     .oldCustomer(customerBuilder)
@@ -344,12 +349,12 @@ public class ProspectService {
                       .build())
                   .build());
             }
-            oldCustomerEvals.add(prospectBuilder.build());
+            customersToEvaluate.add(prospectBuilder.build());
           }
         }
       }
     }
-    return oldCustomerEvals;
+    return customersToEvaluate;
   }
 
   private static HashMap<String, List<ProspectEval>> ownerHashMap(String ahId) {

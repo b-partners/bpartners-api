@@ -38,8 +38,10 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import javax.mail.MessagingException;
 import lombok.AllArgsConstructor;
@@ -58,6 +60,7 @@ import static app.bpartners.api.endpoint.rest.model.NewInterventionOption.OLD_CU
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 import static app.bpartners.api.repository.expressif.fact.NewIntervention.OldCustomer.OldCustomerType.INDIVIDUAL;
 import static app.bpartners.api.repository.google.sheets.SheetConf.GRID_SHEET_TYPE;
+import static app.bpartners.api.service.utils.FilterUtils.distinctByKeys;
 import static app.bpartners.api.service.utils.TemplateResolverUtils.parseTemplateResolver;
 import static java.util.UUID.randomUUID;
 
@@ -202,15 +205,24 @@ public class ProspectService {
         isNotNewProspect ? retrieveOldCustomers(prospectResults, minCustomerRating)
             : new ArrayList<Prospect>();
 
-    repository.create(mergeProspects(newProspects, oldCustomerProspects));
+    var prospectsToSave = mergeProspects(newProspects, oldCustomerProspects);
+    var prospectsWithoutDuplication = prospectsToSave.stream()
+        .filter(distinctByKeys(
+            Prospect::getName,
+            Prospect::getEmail,
+            Prospect::getPhone,
+            Prospect::getAddress))
+        .collect(Collectors.toList());
+    repository.create(prospectsWithoutDuplication);
 
+    var prospectWithoutDuplication = removeDuplications(prospectResults);
     switch (option) {
       case OLD_CUSTOMER:
-        return filteredCustomers(prospectResults);
+        return filteredCustomers(prospectWithoutDuplication);
       case ALL:
-        return prospectResults;
+        return prospectWithoutDuplication;
       default:
-        return filteredNewProspects(prospectResults);
+        return filteredNewProspects(prospectWithoutDuplication);
     }
   }
 
@@ -519,5 +531,37 @@ public class ProspectService {
     Context context = new Context();
     context.setVariable("accountHolderEntity", accountHolder);
     return context;
+  }
+
+  public static List<ProspectResult> removeDuplications(List<ProspectResult> prospectResults) {
+    List<ProspectResult> withoutDuplicat = new ArrayList<>();
+    Set<String> seen = new HashSet<>();
+
+    for (ProspectResult prospectResult : prospectResults) {
+      ProspectEval eval = prospectResult.getProspectEval();
+      ProspectEvalInfo info = eval.getProspectEvalInfo();
+      ProspectResult.CustomerInterventionResult customerResult =
+          prospectResult.getCustomerInterventionResult();
+      Customer customerInfo = customerResult == null ? null
+          : customerResult.getOldCustomer();
+      String prospectName = customerInfo == null ? info.getName()
+          : customerInfo.getName();
+      String prospectEmail = customerInfo == null ? info.getEmail()
+          : customerInfo.getEmail();
+      String prospectPhone = customerInfo == null ? info.getPhoneNumber()
+          : customerInfo.getPhone();
+      String prospectAddress = customerInfo == null ? info.getAddress()
+          : customerInfo.getFullAddress();
+      String key = prospectName + ":"
+          + prospectEmail + ":"
+          + prospectPhone + ":"
+          + prospectAddress;
+
+      if (!seen.contains(key)) {
+        seen.add(key);
+        withoutDuplicat.add(prospectResult);
+      }
+    }
+    return withoutDuplicat;
   }
 }

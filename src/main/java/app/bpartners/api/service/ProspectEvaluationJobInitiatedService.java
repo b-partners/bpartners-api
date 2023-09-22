@@ -22,6 +22,7 @@ import app.bpartners.api.service.utils.TemplateResolverUtils;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -81,29 +82,27 @@ public class ProspectEvaluationJobInitiatedService
               .filter(event -> event.getLocation() != null)
               .collect(Collectors.toList());
           var locations = locationsFromEvents(eventsWithAddress);
-          var prospects = getProspectsToEvaluate(idUser, eventJobRunner, locations);
+          var prospectsByEvents = getProspectsToEvaluate(idUser, eventJobRunner, locations);
           var accountHolder =
               holderService.findDefaultByIdUser(jobInitiated.getIdUser());
-          var evaluatedProspects = prospectService.evaluateProspects(
-              accountHolder.getId(),
-              antiHarmRules,
-              prospects,
-              NewInterventionOption.ALL,
-              ratingProperties.getMinProspectRating(),
-              ratingProperties.getMinCustomerRating());
-          long durationMinutes = runningJob.getDuration().toMinutes();
-          long durationSeconds = runningJob.getDuration().minusMinutes(durationMinutes)
-              .toSeconds();
-          var finishedJob = updateJobStatus(runningJob, FINISHED,
-              "Job successfully processed after "
-                  + durationMinutes + " minutes "
-                  + durationSeconds + " seconds with " + evaluatedProspects.size()
-                  + " evaluated prospects or old customers");
-          if (finishedJob.getJobStatus().getValue() == FINISHED) {
-            //TODO: associate evaluated prospect to finished job
-            eventsWithAddress.forEach(event -> {
-              String interventionDate = formatFrenchDatetime(event.getFrom().toInstant());
-              String interventionLocation = event.getLocation();
+          for (CalendarEvent c : eventsWithAddress) {
+            var prospects = prospectsByEvents.get(c.getLocation());
+            var evaluatedProspects = prospectService.evaluateProspects(
+                accountHolder.getId(),
+                antiHarmRules,
+                prospects,
+                NewInterventionOption.ALL,
+                ratingProperties.getMinProspectRating(),
+                ratingProperties.getMinCustomerRating());
+            long durationMinutes = runningJob.getDuration().toMinutes();
+            long durationSeconds = runningJob.getDuration().minusMinutes(durationMinutes)
+                .toSeconds();
+            var finishedJob = updateJobStatus(runningJob, FINISHED,
+                getJobMessage(evaluatedProspects, durationMinutes, durationSeconds));
+            if (finishedJob.getJobStatus().getValue() == FINISHED) {
+              //TODO: associate evaluated prospect to finished job
+              String interventionDate = formatFrenchDatetime(c.getFrom().toInstant());
+              String interventionLocation = c.getLocation();
               String emailSubject =
                   String.format("Vos prospects à proximité de votre RDV du %s au %s",
                       interventionDate, interventionLocation);
@@ -128,7 +127,7 @@ public class ProspectEvaluationJobInitiatedService
               } catch (IOException | MessagingException e) {
                 throw new ApiException(SERVER_EXCEPTION, e);
               }
-            });
+            }
           }
         } catch (Exception e) {
           updateJobStatus(runningJob, FAILED, e.getMessage());
@@ -138,6 +137,14 @@ public class ProspectEvaluationJobInitiatedService
             "Only prospect evaluation job type [CALENDAR_EVENT_CONVERSION] is supported for now");
       }
     }
+  }
+
+  private static String getJobMessage(List<ProspectResult> evaluatedProspects, long durationMinutes,
+                                      long durationSeconds) {
+    return "Job successfully processed after "
+        + durationMinutes + " minutes "
+        + durationSeconds + " seconds with " + evaluatedProspects.size()
+        + " evaluated prospects or old customers";
   }
 
   private ProspectEvaluationJob updateJobStatus(ProspectEvaluationJob job,
@@ -160,15 +167,16 @@ public class ProspectEvaluationJobInitiatedService
     return null;
   }
 
-  private List<ProspectEval> getProspectsToEvaluate(String idUser,
-                                                    EventJobRunner eventJobRunner,
-                                                    List<String> locations) {
-    List<ProspectEval> prospectsToEvaluate = new ArrayList<>();
+  private HashMap<String, List<ProspectEval>> getProspectsToEvaluate(String idUser,
+                                                                     EventJobRunner eventJobRunner,
+                                                                     List<String> locations) {
+    HashMap<String, List<ProspectEval>> prospectsByEvents = new HashMap<>();
     var newProspects = fromSpreadsheet(idUser, eventJobRunner);
     var evaluationRules = eventJobRunner.getSheetProspectEvaluation().getEvaluationRules();
     var antiHarmRules = evaluationRules.getAntiHarmRules();
     locations.forEach(calendarEventLocation -> {
       GeoPosition eventAddressPos = banApi.fSearch(calendarEventLocation);
+      List<ProspectEval> prospectsToEvaluate = new ArrayList<>();
       newProspects.forEach(prospect -> {
         NewIntervention clonedRule = (NewIntervention) prospect.getDepaRule();
         prospectsToEvaluate.add(
@@ -186,8 +194,9 @@ public class ProspectEvaluationJobInitiatedService
                     .build())
                 .build());
       });
+      prospectsByEvents.put(calendarEventLocation, prospectsToEvaluate);
     });
-    return prospectsToEvaluate;
+    return prospectsByEvents;
   }
 
   private List<String> locationsFromEvents(List<CalendarEvent> calendarEvents) {

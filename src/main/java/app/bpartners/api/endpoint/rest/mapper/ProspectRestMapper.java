@@ -46,7 +46,7 @@ public class ProspectRestMapper {
     Customer customerInfo = customerResult == null ? null
         : customerResult.getOldCustomer();
     return new EvaluatedProspect()
-        .id(String.valueOf(randomUUID()))
+        .id(String.valueOf(randomUUID())) //TODO: return persisted ID
         .reference(String.valueOf(info.getReference()))
         .name(customerInfo == null ? info.getName()
             : customerInfo.getName())

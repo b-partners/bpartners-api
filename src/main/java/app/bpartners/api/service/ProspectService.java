@@ -331,32 +331,32 @@ public class ProspectService {
           }
           Double distance = newIntervention.getCoordinate()
               .getDistanceFrom(customer.getLocation().getCoordinate());
-          if (distance < MAX_DISTANCE_LIMIT) {
-            NewIntervention.OldCustomer customerBuilder =
-                newIntervention.getOldCustomer().toBuilder()
-                    .idCustomer(customer.getId())
-                    .oldCustomerAddress(customer.getAddress())
-                    .distNewIntAndOldCustomer(distance)
-                    .build();
-            ProspectEval.Builder prospectBuilder = newProspectEval.toBuilder()
-                .id(String.valueOf(randomUUID())) //new ID
-                .depaRule(newIntervention.toBuilder()
-                    .oldCustomer(customerBuilder)
-                    .build());
-            if (prospectEvals.isEmpty() && antiHarmRules != null) {
-              prospectBuilder.particularCustomer(true);
-              prospectBuilder.professionalCustomer(false);
-              prospectBuilder.insectControl(antiHarmRules.isInsectControl());
-              prospectBuilder.disinfection(antiHarmRules.isDisinfection());
-              prospectBuilder.ratRemoval(antiHarmRules.isRatRemoval());
-              prospectBuilder.depaRule(newIntervention.toBuilder()
-                  .oldCustomer(customerBuilder.toBuilder()
-                      .type(INDIVIDUAL)
-                      .build())
+          //TODO only if necessary if (distance < MAX_DISTANCE_LIMIT) {
+          NewIntervention.OldCustomer customerBuilder =
+              newIntervention.getOldCustomer().toBuilder()
+                  .idCustomer(customer.getId())
+                  .oldCustomerAddress(customer.getAddress())
+                  .distNewIntAndOldCustomer(distance)
+                  .build();
+          ProspectEval.Builder prospectBuilder = newProspectEval.toBuilder()
+              .id(String.valueOf(randomUUID())) //new ID
+              .depaRule(newIntervention.toBuilder()
+                  .oldCustomer(customerBuilder)
                   .build());
-            }
-            customersToEvaluate.add(prospectBuilder.build());
+          if (prospectEvals.isEmpty() && antiHarmRules != null) {
+            prospectBuilder.particularCustomer(true);
+            prospectBuilder.professionalCustomer(false);
+            prospectBuilder.insectControl(antiHarmRules.isInsectControl());
+            prospectBuilder.disinfection(antiHarmRules.isDisinfection());
+            prospectBuilder.ratRemoval(antiHarmRules.isRatRemoval());
+            prospectBuilder.depaRule(newIntervention.toBuilder()
+                .oldCustomer(customerBuilder.toBuilder()
+                    .type(INDIVIDUAL)
+                    .build())
+                .build());
           }
+          customersToEvaluate.add(prospectBuilder.build());
+          // }
         }
       }
     }

@@ -131,13 +131,13 @@ Resources:
       DestinationCidrBlock: 0.0.0.0/0
       GatewayId: !Ref InternetGateway
       RouteTableId: !Ref PublicRouteTable
-
-  PublicLocalRoute:
-    Type: AWS::EC2::Route
-    Properties:
-      DestinationCidrBlock: !Ref IPv4CIDR
-      GatewayId: local
-      RouteTableId: !Ref PublicRouteTable
+#
+#  PublicLocalRoute:
+#    Type: AWS::EC2::Route
+#    Properties:
+#      DestinationCidrBlock: !Ref IPv4CIDR
+#      GatewayId: local
+#      RouteTableId: !Ref PublicRouteTable
 
 ######## End of public subnet configuration ########
 
@@ -202,13 +202,13 @@ Resources:
       DestinationCidrBlock: 0.0.0.0/0
       NatGatewayId: !Ref PublicNatGateway
       RouteTableId: !Ref PrivateRouteTable
-
-  PrivateLocalRoute:
-    Type: AWS::EC2::Route
-    Properties:
-      DestinationCidrBlock: !Ref IPv4CIDR
-      GatewayId: !Ref PublicNatGateway
-      RouteTableId: !Ref PrivateRouteTable
+#
+#  PrivateLocalRoute:
+#    Type: AWS::EC2::Route
+#    Properties:
+#      DestinationCidrBlock: !Ref IPv4CIDR
+#      GatewayId: !Ref PublicNatGateway
+#      RouteTableId: !Ref PrivateRouteTable
 
 ######## End of private subnet configuration ########
 

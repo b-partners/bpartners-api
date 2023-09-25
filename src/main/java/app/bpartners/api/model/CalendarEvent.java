@@ -24,8 +24,10 @@ public class CalendarEvent {
   private String organizer;
   private String location;
   private List<String> participants;
-  private boolean sync;
+  private boolean sync = false;
   private ZonedDateTime from;
   private ZonedDateTime to;
   private Instant updatedAt;
+  private String eteId; //TODO: deprecated
+  private boolean newEvent = false;
 }

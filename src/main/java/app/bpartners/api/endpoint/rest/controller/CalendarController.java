@@ -6,6 +6,7 @@ import app.bpartners.api.endpoint.rest.model.Calendar;
 import app.bpartners.api.endpoint.rest.model.CalendarAuth;
 import app.bpartners.api.endpoint.rest.model.CalendarConsentInit;
 import app.bpartners.api.endpoint.rest.model.CalendarEvent;
+import app.bpartners.api.endpoint.rest.model.CalendarProvider;
 import app.bpartners.api.endpoint.rest.model.CreateCalendarEvent;
 import app.bpartners.api.endpoint.rest.model.Redirection;
 import app.bpartners.api.endpoint.rest.model.TokenValidity;
@@ -41,11 +42,13 @@ public class CalendarController {
   public List<CalendarEvent> getCalendarEvents(@PathVariable(name = "idUser") String idUser,
                                                @PathVariable(name = "calendarId")
                                                String idCalendar,
+                                               @RequestParam(name = "provider", required = false)
+                                                 CalendarProvider provider,
                                                @RequestParam(name = "from", required = false)
                                                Instant from,
                                                @RequestParam(name = "to", required = false)
                                                Instant to) {
-    return calendarService.getEvents(idUser, idCalendar, from, to).stream()
+    return calendarService.getEvents(idUser, idCalendar, provider, from, to).stream()
         .map(mapper::toRest)
         .collect(Collectors.toList());
   }

@@ -40,10 +40,18 @@ operations:
           required: true
         - name: calendarId
           in: path
-          description: Calendar identifier, Only `primary` value is supported for now.
           schema:
             type: string
           required: true
+        - name: provider
+          in: query
+          description: |
+            Retrieve events through defined provider only.
+            When `GOOGLE_CALENDAR` is chosen, google calendar access token must be valid.
+            When any value is provided, `LOCAL` is chosen by default.
+          schema:
+            $ref: '#/components/schemas/CalendarProvider'
+          required: false
         - name: from
           in: query
           description: When not provided or the `to` parameter not provided, the filter parameter is ignored.
@@ -237,3 +245,8 @@ components:
         - READER
         - WRITER
         - UNKNOWN
+    CalendarProvider:
+      type: string
+      enum:
+        - GOOGLE_CALENDAR
+        - LOCAL

@@ -49,6 +49,8 @@ jobs:
     if: github.ref_name == 'prod' || github.ref_name == 'preprod'
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    env:
+      AWS_REGION: eu-west-3
     steps:
       - name: Checkout
         uses: actions/checkout@v2

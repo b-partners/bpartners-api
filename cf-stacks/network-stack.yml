@@ -45,26 +45,41 @@ Resources:
   SecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: !Join [ '' , [Security Group for ], !Ref VPCName ]
-      GroupName: !Join [ '' , !Ref VPCName, [-sg] ]
+      GroupDescription: !Join [ '' , [Security Group for , !Ref VPCName] ]
+      GroupName: !Join [ '' , [!Ref VPCName, -sg] ]
       VpcId: !Ref VPC
-      SecurityGroupIngress:
-        - CidrIp: 0.0.0.0/0
-          IpProtocol: tcp
-          FromPort: 443
-          ToPort: 443
-        - CidrIp: 0.0.0.0/0
-          IpProtocol: tcp
-          FromPort: 80
-          ToPort: 80
-        - CidrIp: 0.0.0.0/0
-          IpProtocol: tcp
-          FromPort: 22
-          ToPort: 22
-        - IpProtocol: -1
-          FromPort: -1
-          ToPort: -1
-          SourceSecurityGroupId: !Ref SecurityGroup
+
+  SecurityGroupHTTPSRule:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      IpProtocol: tcp
+      FromPort: 443
+      ToPort: 443
+      CidrIp: 0.0.0.0/0
+
+  SecurityGroupHTTPRule:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      CidrIp: 0.0.0.0/0
+      IpProtocol: tcp
+      FromPort: 80
+      ToPort: 80
+
+  SecurityGroupSSHRule:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      CidrIp: 0.0.0.0/0
+      IpProtocol: tcp
+      FromPort: 22
+      ToPort: 22
+
+  SecurityGroupSelfRule:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      IpProtocol: -1
+      FromPort: -1
+      ToPort: -1
+      SourceSecurityGroupId: !GetAtt SecurityGroup.GroupId
 
 ######## Public subnet configuration section start ########
 
@@ -92,7 +107,7 @@ Resources:
   PublicRouteTable:
     Type: AWS::EC2::RouteTable
     Properties:
-      VpcId: !Ref MyVPC
+      VpcId: !Ref VPC
       Tags:
         - Key: Name
           Value: public-route-table
@@ -157,7 +172,7 @@ Resources:
   PrivateRouteTable:
     Type: AWS::EC2::RouteTable
     Properties:
-      VpcId: !Ref MyVPC
+      VpcId: !Ref VPC
       Tags:
         - Key: Name
           Value: private-route-table
@@ -212,7 +227,7 @@ Resources:
       Name: !Ref ALBName
       Scheme: internal
       SecurityGroups:
-        - !Ref SecurityGroup
+        - !GetAtt SecurityGroup.GroupId
       Subnets:
         - !Ref PrivateSubnet1
         - !Ref PrivateSubnet2
@@ -240,35 +255,35 @@ Resources:
   VPCIdSSM:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: !Join [ '' , [ /bpartners/vpc/id ] ]
+      Name: /bpartners/vpc/id
       Type: String
       Value: !Ref VPC
 
   SecurityGroupIdSSM:
-    Type: AWS::SSM:: Parameter
+    Type: AWS::SSM::Parameter
     Properties:
-      Name: !Join [ '' , [ /bpartners/sg/id ] ]
+      Name: /bpartners/sg/id
       Type: String
-      Value: !Ref SecurityGroup
+      Value: !GetAtt SecurityGroup.GroupId
 
   PublicSubnetSSM:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: !Join [ '' , [ /bpartners/public/subnet/id ] ]
+      Name: /bpartners/public/subnet/id
       Type: String
       Value: !Ref PublicSubnet
 
   PrivateSubnet1SSM:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: !Join [ '' , [ /bpartners/private/subnet1/id ] ]
+      Name: /bpartners/private/subnet1/id
       Type: String
       Value: !Ref PrivateSubnet1
 
   PrivateSubnet2SSM:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: !Join [ '' , [ /bpartners/private/subnet2/id ] ]
+      Name: /bpartners/private/subnet2/id
       Type: String
       Value: !Ref PrivateSubnet2
 
@@ -277,4 +292,4 @@ Resources:
     Properties:
       Name: !Join [ '' , [ /bpartners/, !Ref Env, /alb-https-listener-arn ] ]
       Type: String
-      Value: !Ref Listener
+      Value: !GetAtt Listener.ListenerArn

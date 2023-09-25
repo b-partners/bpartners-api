@@ -32,6 +32,10 @@ Parameters:
   ALBName:
     Type: String
     Default: bpartners-internal-alb
+  ListenerPortNumber:
+    Type: Number
+    Default: 80
+    Description: The default listener port number
 
 Resources:
   VPC:
@@ -251,9 +255,9 @@ Resources:
           FixedResponseConfig:
             ContentType: text/plain
             StatusCode: 400
-            MessageBody: { "type": "BadRequestException", "message": "Host may be invalid", "source": "ialb" }
+            MessageBody: "{ \"type\": \"BadRequestException\", \"message\": \"Host may be invalid\", \"source\": \"ialb\" }"
       LoadBalancerArn: !Ref ApplicationLoadBalancer
-      Port: 80
+      Port: !Ref ListenerPortNumber
       Protocol: HTTP
 
 ######## End of Application Load Balancer configuration ########

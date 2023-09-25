@@ -192,11 +192,11 @@ public class ProspectService {
       option = NEW_PROSPECT;
     }
     boolean isNotNewProspect = option != NEW_PROSPECT;
-    List<ProspectEval> customersToEvalute =
+    List<ProspectEval> customersToEvaluate =
         isNotNewProspect ? getOldCustomersToEvaluate(ahId, antiHarmRules, prospectsToEvaluate)
             : new ArrayList<>();
     List<ProspectResult> prospectResults =
-        repository.evaluate(mergeEvals(prospectsToEvaluate, customersToEvalute));
+        repository.evaluate(mergeEvals(prospectsToEvaluate, customersToEvaluate));
     return getProspectResults(option, minProspectRating, minCustomerRating, prospectResults);
   }
 
@@ -383,6 +383,22 @@ public class ProspectService {
                       .build())
                   .build());
             }
+            /* /!\ Because here we only evaluate then save in another step
+             * Conversion of customers to new prospect is done here*/
+            prospectBuilder.prospectEvalInfo(ProspectEvalInfo.builder()
+                .owner(accountHolderId)
+                .name(customer.getName())
+                .managerName(customer.getName())
+                .email(customer.getEmail())
+                .phoneNumber(customer.getPhone())
+                .address(customer.getAddress())
+                .city(customer.getCity())
+                .coordinates(customer.getLocation().getCoordinate())
+                .postalCode(String.valueOf(customer.getZipCode()))
+                .contactNature(ProspectEvalInfo.ContactNature.OLD_CUSTOMER)
+                .category("Restaurant") //TODO: deprecated, but for now we will set it by default
+                .subcategory("Restaurant") //TODO: deprecated, but for now we will set it by default
+                .build());
             customersToEvaluate.add(prospectBuilder.build());
           }
         }

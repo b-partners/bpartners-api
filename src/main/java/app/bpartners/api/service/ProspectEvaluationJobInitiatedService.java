@@ -102,42 +102,10 @@ public class ProspectEvaluationJobInitiatedService
             long durationSeconds = runningJob.getDuration()
                 .minusMinutes(durationMinutes)
                 .toSeconds();
+            List<Prospect> results = convertProspectFromResults(
+                runningJob, accountHolder, evaluatedProspects);
             var finishedJob = updateJobStatus(runningJob.toBuilder()
-                    .results(evaluatedProspects.stream()
-                        .map(result -> {
-                          ProspectEvalInfo info =
-                              result.getProspectEval().getProspectEvalInfo();
-                          var interventionResult =
-                              result.getInterventionResult();
-                          var customerResult = result.getCustomerInterventionResult();
-                          var ratingBuilder =
-                              Prospect.ProspectRating.builder().lastEvaluationDate(Instant.now());
-                          if (interventionResult != null && customerResult == null) {
-                            ratingBuilder.value(interventionResult.getRating());
-                          } else if (interventionResult == null && customerResult != null) {
-                            ratingBuilder.value(customerResult.getRating());
-                          }
-                          return Prospect.builder()
-                              .id(String.valueOf(randomUUID()))
-                              .idJob(runningJob.getId())
-                              .idHolderOwner(accountHolder.getId())
-                              .name(info.getName())
-                              .email(info.getEmail())
-                              .phone(info.getPhoneNumber())
-                              .location(new Geojson()
-                                  .longitude(info.getCoordinates().getLongitude())
-                                  .latitude(info.getCoordinates().getLatitude())
-                              )
-                              .rating(ratingBuilder.build())
-                              .address(info.getAddress())
-                              .status(ProspectStatus.TO_CONTACT)
-                              .townCode(Integer.valueOf(info.getPostalCode()))
-                              .comment(null)
-                              .contractAmount(null)
-                              .prospectFeedback(null)
-                              .build();
-                        })
-                        .collect(Collectors.toList()))
+                    .results(results)
                     .build(), FINISHED,
                 getJobMessage(evaluatedProspects, durationMinutes, durationSeconds));
             if (finishedJob.getJobStatus().getValue() == FINISHED) {
@@ -180,6 +148,46 @@ public class ProspectEvaluationJobInitiatedService
             "Only prospect evaluation job type [CALENDAR_EVENT_CONVERSION] is supported for now");
       }
     }
+  }
+
+  private static List<Prospect> convertProspectFromResults(ProspectEvaluationJob runningJob,
+                                                           AccountHolder accountHolder,
+                                                           List<ProspectResult> evaluatedProspects) {
+    return evaluatedProspects.stream()
+        .map(result -> {
+          ProspectEvalInfo info =
+              result.getProspectEval().getProspectEvalInfo();
+          var interventionResult =
+              result.getInterventionResult();
+          var customerResult = result.getCustomerInterventionResult();
+          var ratingBuilder =
+              Prospect.ProspectRating.builder().lastEvaluationDate(Instant.now());
+          if (interventionResult != null && customerResult == null) {
+            ratingBuilder.value(interventionResult.getRating());
+          } else if (interventionResult == null && customerResult != null) {
+            ratingBuilder.value(customerResult.getRating());
+          }
+          return Prospect.builder()
+              .id(String.valueOf(randomUUID()))
+              .idJob(runningJob.getId())
+              .idHolderOwner(accountHolder.getId())
+              .name(info.getName())
+              .email(info.getEmail())
+              .phone(info.getPhoneNumber())
+              .location(new Geojson()
+                  .longitude(info.getCoordinates().getLongitude())
+                  .latitude(info.getCoordinates().getLatitude())
+              )
+              .rating(ratingBuilder.build())
+              .address(info.getAddress())
+              .status(ProspectStatus.TO_CONTACT)
+              .townCode(Integer.valueOf(info.getPostalCode()))
+              .comment(null)
+              .contractAmount(null)
+              .prospectFeedback(null)
+              .build();
+        })
+        .collect(Collectors.toList());
   }
 
   private static String getJobMessage(List<ProspectResult> evaluatedProspects, long durationMinutes,

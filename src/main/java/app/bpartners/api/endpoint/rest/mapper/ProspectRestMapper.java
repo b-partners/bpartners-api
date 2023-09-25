@@ -67,16 +67,16 @@ public class ProspectRestMapper {
                 : toGeoJson(customerInfo.getLocation().getCoordinate())))
         .managerName(customerInfo == null ? info.getManagerName()
             : customerInfo.getName())
-        .contactNature(customerInfo == null ? getProspect(info)
-            : ContactNature.OLD_CUSTOMER)
+        .contactNature(customerResult != null ? ContactNature.OLD_CUSTOMER
+            : getProspect(info))
         .evaluationDate(prospectResult.getEvaluationDate())
-        .interventionResult(interventionResult == null || customerInfo != null ? null
+        .interventionResult(interventionResult == null || customerResult != null ? null
             : new InterventionResult()
             .address(interventionResult.getAddress())
             .distanceFromProspect(
                 BigDecimal.valueOf(interventionResult.getDistance()))
             .value(BigDecimal.valueOf(interventionResult.getRating())))
-        .oldCustomerResult(customerInfo == null ? null
+        .oldCustomerResult(customerResult == null ? null
             : new OldCustomerResult()
             .address(customerResult.getAddress())
             .distanceFromProspect(BigDecimal.valueOf(customerResult.getDistance()))

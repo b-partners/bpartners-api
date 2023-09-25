@@ -56,6 +56,7 @@ Resources:
       FromPort: 443
       ToPort: 443
       CidrIp: 0.0.0.0/0
+      GroupId: !GetAtt SecurityGroup.GroupId
 
   SecurityGroupHTTPRule:
     Type: AWS::EC2::SecurityGroupIngress
@@ -64,6 +65,7 @@ Resources:
       IpProtocol: tcp
       FromPort: 80
       ToPort: 80
+      GroupId: !GetAtt SecurityGroup.GroupId
 
   SecurityGroupSSHRule:
     Type: AWS::EC2::SecurityGroupIngress
@@ -72,6 +74,7 @@ Resources:
       IpProtocol: tcp
       FromPort: 22
       ToPort: 22
+      GroupId: !GetAtt SecurityGroup.GroupId
 
   SecurityGroupSelfRule:
     Type: AWS::EC2::SecurityGroupIngress
@@ -89,7 +92,7 @@ Resources:
       AvailabilityZone: !Ref PublicSubnetAZ
       CidrBlock: !Ref IPv4CIDR
       MapPublicIpOnLaunch: 'true'
-      VpcId: !Sub '{{resolve:ssm:/bpartners/vpc/id}}'
+      VpcId: !Ref VPC
 
   InternetGateway:
     Type: AWS::EC2::InternetGateway

@@ -86,6 +86,7 @@ Resources:
       FromPort: -1
       ToPort: -1
       SourceSecurityGroupId: !GetAtt SecurityGroup.GroupId
+      GroupId: !GetAtt SecurityGroup.GroupId
 
 ######## Public subnet configuration section start ########
 

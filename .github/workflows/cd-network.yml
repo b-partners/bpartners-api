@@ -18,6 +18,11 @@ on:
         default: eu-west-3a
         description: The availability zone for the public subnet
         required: false
+      PublicSubnetIPv4CIDR:
+        type: string
+        default: 172.31.0.0/20
+        description: The IPv4 CIDR to assign to the public subnet
+        required: false
       PrivateSubnet1AZ:
         type: string
         default: eu-west-3b
@@ -78,4 +83,5 @@ jobs:
             "Env=${{ env.branch_env }}, VPCName=${{ github.event.inputs.VPCName }}, IPv4CIDR=${{ github.event.inputs.IPv4CIDR }},
             PublicSubnetAZ=${{ github.event.inputs.PublicSubnetAZ }},PrivateSubnet1AZ=${{ github.event.inputs.PrivateSubnet1AZ }},
             PrivateSubnet1IPv4CIDR=${{ github.event.inputs.PrivateSubnet1IPv4CIDR }}, PrivateSubnet2AZ=${{ github.event.inputs.PrivateSubnet2AZ }},
-            PrivateSubnet2IPv4CIDR=${{ github.event.inputs.PrivateSubnet2IPv4CIDR }}, ALBName=$${{ github.event.inputs.ALBName }}"
+            PrivateSubnet2IPv4CIDR=${{ github.event.inputs.PrivateSubnet2IPv4CIDR }}, ALBName=${{ github.event.inputs.ALBName }},
+            PublicSubnetIPv4CIDR=${{ github.event.inputs.PublicSubnetIPv4CIDR }}"

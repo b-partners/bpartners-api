@@ -247,9 +247,6 @@ Resources:
   Listener:
     Type: AWS::ElasticLoadBalancingV2::Listener
     Properties:
-      AlpnPolicy:
-        - HTTP2
-        - HTTP1
       DefaultActions:
         - Type: fixed-response
           FixedResponseConfig:

@@ -136,7 +136,7 @@ Resources:
     Type: AWS::EC2::Route
     Properties:
       DestinationCidrBlock: !Ref IPv4CIDR
-      GatewayId: !Ref InternetGateway
+      GatewayId: local
       RouteTableId: !Ref PublicRouteTable
 
 ######## End of public subnet configuration ########

@@ -181,7 +181,6 @@ public class ProspectService {
     return evalJobRepository.saveAll(evaluationJobs);
   }
 
-  //TODO: IMPORTANT ! Only NewIntervention rule is supported for now
   @Transactional
   public List<ProspectResult> evaluateProspects(String ahId,
                                                 AntiHarmRules antiHarmRules,
@@ -189,6 +188,27 @@ public class ProspectService {
                                                 NewInterventionOption option,
                                                 Double minProspectRating,
                                                 Double minCustomerRating) {
+    if (option == null) {
+      option = NEW_PROSPECT;
+    }
+    boolean isNotNewProspect = option != NEW_PROSPECT;
+    List<ProspectEval> customersToEvalute =
+        isNotNewProspect ? getOldCustomersToEvaluate(ahId, antiHarmRules, prospectsToEvaluate)
+            : new ArrayList<>();
+    List<ProspectResult> prospectResults =
+        repository.evaluate(mergeEvals(prospectsToEvaluate, customersToEvalute));
+    return getProspectResults(option, minProspectRating, minCustomerRating, prospectResults);
+  }
+
+
+  //TODO: IMPORTANT ! Only NewIntervention rule is supported for now
+  @Transactional
+  public List<ProspectResult> evaluateAndSaveProspects(String ahId,
+                                                       AntiHarmRules antiHarmRules,
+                                                       List<ProspectEval> prospectsToEvaluate,
+                                                       NewInterventionOption option,
+                                                       Double minProspectRating,
+                                                       Double minCustomerRating) {
     if (option == null) {
       option = NEW_PROSPECT;
     }
@@ -216,6 +236,13 @@ public class ProspectService {
         .collect(Collectors.toList());
     repository.create(prospectsWithoutDuplication);
 
+    return getProspectResults(option, minProspectRating, minCustomerRating, prospectResults);
+  }
+
+  private List<ProspectResult> getProspectResults(NewInterventionOption option,
+                                                  Double minProspectRating,
+                                                  Double minCustomerRating,
+                                                  List<ProspectResult> prospectResults) {
     List<ProspectResult> prospectWithoutDuplication = removeDuplications(prospectResults);
     List<ProspectResult> filteredRatingResults = prospectWithoutDuplication.stream()
         .filter(result -> (result.getInterventionResult() != null
@@ -267,7 +294,8 @@ public class ProspectService {
         .collect(Collectors.toList());
   }
 
-  private static List<ProspectResult> filteredNewProspects(List<ProspectResult> prospectResults) {
+  private static List<ProspectResult> filteredNewProspects
+      (List<ProspectResult> prospectResults) {
     return prospectResults.stream()
         .filter(result -> result.getInterventionResult() != null
             && result.getCustomerInterventionResult() == null)

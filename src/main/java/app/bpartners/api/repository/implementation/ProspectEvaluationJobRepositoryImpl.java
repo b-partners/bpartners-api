@@ -26,10 +26,7 @@ public class ProspectEvaluationJobRepositoryImpl implements ProspectEvaluationJo
                                                                            List<JobStatusValue> statuses) {
     return jobJpaRepository.findAllByIdAccountHolderAndJobStatusInOrderByStartedAtDesc(
             ahId, statuses).stream()
-        .map(entity -> {
-          List<HProspect> results = prospectJpaRepository.findAllByIdJob(entity.getId());
-          return mapper.toDomain(entity, results);
-        })
+        .map(entity -> mapper.toDomain(entity, entity.getResults()))
         .collect(Collectors.toList());
   }
 
@@ -38,20 +35,19 @@ public class ProspectEvaluationJobRepositoryImpl implements ProspectEvaluationJo
     HProspectEvaluationJob entity = jobJpaRepository.findById(id)
         .orElseThrow(
             () -> new NotFoundException("Job(id=" + id + ") not found"));
-    List<HProspect> results = prospectJpaRepository.findAllByIdJob(entity.getId());
-    return mapper.toDomain(entity, results);
+    return mapper.toDomain(entity, entity.getResults());
   }
 
   @Override
   public List<ProspectEvaluationJob> saveAll(List<ProspectEvaluationJob> toSave) {
     List<HProspectEvaluationJob> jobEntities = toSave.stream()
-        .map(mapper::toEntity)
+        .map(job -> {
+          List<HProspect> results = prospectJpaRepository.findAllByIdJob(job.getId());
+          return mapper.toEntity(job, results);
+        })
         .collect(Collectors.toList());
     return jobJpaRepository.saveAll(jobEntities).stream()
-        .map(entity -> {
-          List<HProspect> results = prospectJpaRepository.findAllByIdJob(entity.getId());
-          return mapper.toDomain(entity, results);
-        })
+        .map(savedJob -> mapper.toDomain(savedJob, savedJob.getResults()))
         .collect(Collectors.toList());
   }
 }

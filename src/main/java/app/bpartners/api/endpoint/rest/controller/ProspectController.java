@@ -148,7 +148,7 @@ public class ProspectController {
         range.getMin(), range.getMax());
 
     List<EvaluatedProspect> evaluatedProspects =
-        service.evaluateProspects(
+        service.evaluateAndSaveProspects(
                 accountHolderId,
                 null,
                 prospectEvaluations,
@@ -181,7 +181,7 @@ public class ProspectController {
     List<ProspectEval> prospectEvals =
         prospectUtils.convertFromExcel(new ByteArrayInputStream(toEvaluate));
     List<EvaluatedProspect> evaluatedProspects =
-        service.evaluateProspects(
+        service.evaluateAndSaveProspects(
                 accountHolderId,
                 null,
                 prospectEvals,

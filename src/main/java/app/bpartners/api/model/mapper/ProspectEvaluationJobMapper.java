@@ -2,11 +2,13 @@ package app.bpartners.api.model.mapper;
 
 import app.bpartners.api.endpoint.rest.model.Geojson;
 import app.bpartners.api.endpoint.rest.model.ProspectEvaluationJobStatus;
+import app.bpartners.api.model.prospect.Prospect;
 import app.bpartners.api.model.prospect.job.ProspectEvaluationJob;
 import app.bpartners.api.repository.jpa.model.HProspect;
 import app.bpartners.api.repository.jpa.model.HProspectEvaluationJob;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -38,13 +40,28 @@ public class ProspectEvaluationJobMapper {
         .build();
   }
 
-  public HProspectEvaluationJob toEntity(ProspectEvaluationJob domain) {
+  public HProspectEvaluationJob toEntity(ProspectEvaluationJob domain,
+                                         List<HProspect> existingResults) {
+    List<HProspect> actualResults = domain.getResults().stream()
+        .map(prospect -> {
+          Prospect.ProspectRating rating = prospect.getRating();
+          return prospectMapper.toEntity(prospect,
+              prospect.getIdHolderOwner(),
+              rating.getValue(),
+              rating.getLastEvaluationDate()); //No existing so creating a new one
+        })
+        .collect(Collectors.toList());
+    List<HProspect> prospects = existingResults.isEmpty() ? actualResults
+        : Stream.of(existingResults, actualResults)
+        .flatMap(List::stream)
+        .collect(Collectors.toList());
     return HProspectEvaluationJob.builder()
         .id(domain.getId())
         .idAccountHolder(domain.getIdAccountHolder())
         .type(domain.getType())
         .jobStatus(domain.getJobStatus().getValue())
         .jobStatusMessage(domain.getJobStatus().getMessage())
+        .results(prospects)
         .startedAt(domain.getStartedAt())
         .endedAt(domain.getEndedAt())
         .build();

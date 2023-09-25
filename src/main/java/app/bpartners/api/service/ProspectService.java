@@ -181,7 +181,6 @@ public class ProspectService {
     return evalJobRepository.saveAll(evaluationJobs);
   }
 
-  //TODO: IMPORTANT ! Only NewIntervention rule is supported for now
   @Transactional
   public List<ProspectResult> evaluateProspects(String ahId,
                                                 AntiHarmRules antiHarmRules,
@@ -189,6 +188,27 @@ public class ProspectService {
                                                 NewInterventionOption option,
                                                 Double minProspectRating,
                                                 Double minCustomerRating) {
+    if (option == null) {
+      option = NEW_PROSPECT;
+    }
+    boolean isNotNewProspect = option != NEW_PROSPECT;
+    List<ProspectEval> customersToEvaluate =
+        isNotNewProspect ? getOldCustomersToEvaluate(ahId, antiHarmRules, prospectsToEvaluate)
+            : new ArrayList<>();
+    List<ProspectResult> prospectResults =
+        repository.evaluate(mergeEvals(prospectsToEvaluate, customersToEvaluate));
+    return getProspectResults(option, minProspectRating, minCustomerRating, prospectResults);
+  }
+
+
+  //TODO: IMPORTANT ! Only NewIntervention rule is supported for now
+  @Transactional
+  public List<ProspectResult> evaluateAndSaveProspects(String ahId,
+                                                       AntiHarmRules antiHarmRules,
+                                                       List<ProspectEval> prospectsToEvaluate,
+                                                       NewInterventionOption option,
+                                                       Double minProspectRating,
+                                                       Double minCustomerRating) {
     if (option == null) {
       option = NEW_PROSPECT;
     }
@@ -216,6 +236,13 @@ public class ProspectService {
         .collect(Collectors.toList());
     repository.create(prospectsWithoutDuplication);
 
+    return getProspectResults(option, minProspectRating, minCustomerRating, prospectResults);
+  }
+
+  private List<ProspectResult> getProspectResults(NewInterventionOption option,
+                                                  Double minProspectRating,
+                                                  Double minCustomerRating,
+                                                  List<ProspectResult> prospectResults) {
     List<ProspectResult> prospectWithoutDuplication = removeDuplications(prospectResults);
     List<ProspectResult> filteredRatingResults = prospectWithoutDuplication.stream()
         .filter(result -> (result.getInterventionResult() != null
@@ -267,7 +294,8 @@ public class ProspectService {
         .collect(Collectors.toList());
   }
 
-  private static List<ProspectResult> filteredNewProspects(List<ProspectResult> prospectResults) {
+  private static List<ProspectResult> filteredNewProspects
+      (List<ProspectResult> prospectResults) {
     return prospectResults.stream()
         .filter(result -> result.getInterventionResult() != null
             && result.getCustomerInterventionResult() == null)
@@ -331,32 +359,48 @@ public class ProspectService {
           }
           Double distance = newIntervention.getCoordinate()
               .getDistanceFrom(customer.getLocation().getCoordinate());
-          //TODO only if necessary if (distance < MAX_DISTANCE_LIMIT) {
-          NewIntervention.OldCustomer customerBuilder =
-              newIntervention.getOldCustomer().toBuilder()
-                  .idCustomer(customer.getId())
-                  .oldCustomerAddress(customer.getAddress())
-                  .distNewIntAndOldCustomer(distance)
-                  .build();
-          ProspectEval.Builder prospectBuilder = newProspectEval.toBuilder()
-              .id(String.valueOf(randomUUID())) //new ID
-              .depaRule(newIntervention.toBuilder()
-                  .oldCustomer(customerBuilder)
+          if (distance < MAX_DISTANCE_LIMIT) {
+            NewIntervention.OldCustomer customerBuilder =
+                newIntervention.getOldCustomer().toBuilder()
+                    .idCustomer(customer.getId())
+                    .oldCustomerAddress(customer.getAddress())
+                    .distNewIntAndOldCustomer(distance)
+                    .build();
+            ProspectEval.Builder prospectBuilder = newProspectEval.toBuilder()
+                .id(String.valueOf(randomUUID())) //new ID
+                .depaRule(newIntervention.toBuilder()
+                    .oldCustomer(customerBuilder)
+                    .build());
+            if (prospectEvals.isEmpty() && antiHarmRules != null) {
+              prospectBuilder.particularCustomer(true);
+              prospectBuilder.professionalCustomer(false);
+              prospectBuilder.insectControl(antiHarmRules.isInsectControl());
+              prospectBuilder.disinfection(antiHarmRules.isDisinfection());
+              prospectBuilder.ratRemoval(antiHarmRules.isRatRemoval());
+              prospectBuilder.depaRule(newIntervention.toBuilder()
+                  .oldCustomer(customerBuilder.toBuilder()
+                      .type(INDIVIDUAL)
+                      .build())
                   .build());
-          if (prospectEvals.isEmpty() && antiHarmRules != null) {
-            prospectBuilder.particularCustomer(true);
-            prospectBuilder.professionalCustomer(false);
-            prospectBuilder.insectControl(antiHarmRules.isInsectControl());
-            prospectBuilder.disinfection(antiHarmRules.isDisinfection());
-            prospectBuilder.ratRemoval(antiHarmRules.isRatRemoval());
-            prospectBuilder.depaRule(newIntervention.toBuilder()
-                .oldCustomer(customerBuilder.toBuilder()
-                    .type(INDIVIDUAL)
-                    .build())
+            }
+            /* /!\ Because here we only evaluate then save in another step
+             * Conversion of customers to new prospect is done here*/
+            prospectBuilder.prospectEvalInfo(ProspectEvalInfo.builder()
+                .owner(accountHolderId)
+                .name(customer.getName())
+                .managerName(customer.getName())
+                .email(customer.getEmail())
+                .phoneNumber(customer.getPhone())
+                .address(customer.getAddress())
+                .city(customer.getCity())
+                .coordinates(customer.getLocation().getCoordinate())
+                .postalCode(String.valueOf(customer.getZipCode()))
+                .contactNature(ProspectEvalInfo.ContactNature.OLD_CUSTOMER)
+                .category("Restaurant") //TODO: deprecated, but for now we will set it by default
+                .subcategory("Restaurant") //TODO: deprecated, but for now we will set it by default
                 .build());
+            customersToEvaluate.add(prospectBuilder.build());
           }
-          customersToEvaluate.add(prospectBuilder.build());
-          // }
         }
       }
     }

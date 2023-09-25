@@ -4,17 +4,21 @@ import app.bpartners.api.endpoint.event.EventConf;
 import app.bpartners.api.endpoint.event.model.gen.ProspectEvaluationJobInitiated;
 import app.bpartners.api.endpoint.rest.mapper.ProspectRestMapper;
 import app.bpartners.api.endpoint.rest.model.EvaluatedProspect;
+import app.bpartners.api.endpoint.rest.model.Geojson;
 import app.bpartners.api.endpoint.rest.model.JobStatusValue;
 import app.bpartners.api.endpoint.rest.model.NewInterventionOption;
+import app.bpartners.api.endpoint.rest.model.ProspectStatus;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.CalendarEvent;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.exception.NotImplementedException;
+import app.bpartners.api.model.prospect.Prospect;
 import app.bpartners.api.model.prospect.job.EventJobRunner;
 import app.bpartners.api.model.prospect.job.ProspectEvaluationJob;
 import app.bpartners.api.repository.ban.BanApi;
 import app.bpartners.api.repository.ban.model.GeoPosition;
 import app.bpartners.api.repository.expressif.ProspectEval;
+import app.bpartners.api.repository.expressif.ProspectEvalInfo;
 import app.bpartners.api.repository.expressif.ProspectResult;
 import app.bpartners.api.repository.expressif.fact.NewIntervention;
 import app.bpartners.api.service.aws.SesService;
@@ -63,9 +67,6 @@ public class ProspectEvaluationJobInitiatedService
     var existingJob = prospectService.getEvaluationJob(job.getJobId());
     var runningJob = runningJob(existingJob);
     if (
-      /*TODO: if events is received again.
-       * In particular, if we want to handle this processing through separate lambda container for perf
-       * existingJob.getJobStatus().getValue() == IN_PROGRESS ||*/
         (runningJob != null && runningJob.getJobStatus().getValue() == IN_PROGRESS)) {
       var idUser = jobInitiated.getIdUser();
       if (job.isEventConversionJob()) { //Only supported type for now
@@ -101,7 +102,11 @@ public class ProspectEvaluationJobInitiatedService
             long durationSeconds = runningJob.getDuration()
                 .minusMinutes(durationMinutes)
                 .toSeconds();
-            var finishedJob = updateJobStatus(runningJob, FINISHED,
+            List<Prospect> results = convertProspectFromResults(
+                runningJob, accountHolder, evaluatedProspects);
+            var finishedJob = updateJobStatus(runningJob.toBuilder()
+                    .results(results)
+                    .build(), FINISHED,
                 getJobMessage(evaluatedProspects, durationMinutes, durationSeconds));
             if (finishedJob.getJobStatus().getValue() == FINISHED) {
               //TODO: associate evaluated prospect to finished job
@@ -143,6 +148,46 @@ public class ProspectEvaluationJobInitiatedService
             "Only prospect evaluation job type [CALENDAR_EVENT_CONVERSION] is supported for now");
       }
     }
+  }
+
+  private static List<Prospect> convertProspectFromResults(ProspectEvaluationJob runningJob,
+                                                           AccountHolder accountHolder,
+                                                           List<ProspectResult> evaluatedProspects) {
+    return evaluatedProspects.stream()
+        .map(result -> {
+          ProspectEvalInfo info =
+              result.getProspectEval().getProspectEvalInfo();
+          var interventionResult =
+              result.getInterventionResult();
+          var customerResult = result.getCustomerInterventionResult();
+          var ratingBuilder =
+              Prospect.ProspectRating.builder().lastEvaluationDate(Instant.now());
+          if (interventionResult != null && customerResult == null) {
+            ratingBuilder.value(interventionResult.getRating());
+          } else if (interventionResult == null && customerResult != null) {
+            ratingBuilder.value(customerResult.getRating());
+          }
+          return Prospect.builder()
+              .id(String.valueOf(randomUUID()))
+              .idJob(runningJob.getId())
+              .idHolderOwner(accountHolder.getId())
+              .name(info.getName())
+              .email(info.getEmail())
+              .phone(info.getPhoneNumber())
+              .location(new Geojson()
+                  .longitude(info.getCoordinates().getLongitude())
+                  .latitude(info.getCoordinates().getLatitude())
+              )
+              .rating(ratingBuilder.build())
+              .address(info.getAddress())
+              .status(ProspectStatus.TO_CONTACT)
+              .townCode(Integer.valueOf(info.getPostalCode()))
+              .comment(null)
+              .contractAmount(null)
+              .prospectFeedback(null)
+              .build();
+        })
+        .collect(Collectors.toList());
   }
 
   private static String getJobMessage(List<ProspectResult> evaluatedProspects, long durationMinutes,

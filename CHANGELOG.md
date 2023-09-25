@@ -1,3 +1,27 @@
+# [0.32.0](https://github.com/b-partners/bpartners-api/compare/v0.31.0...v0.32.0) (2023-09-25)
+
+
+### Bug Fixes
+
+* add prospect or old customers notation inside email response when evaluating prospects ([b1d1013](https://github.com/b-partners/bpartners-api/commit/b1d101382d75e2dcd86b200f95e4cfc7efcc0c9e))
+* **api:** rename ProspectEvaluationJobResult to ProspectEvaluationJobDetails and its operations ([ac54fa2](https://github.com/b-partners/bpartners-api/commit/ac54fa2a9b779e46d689f78b44366b34615e67d6))
+* avoid duplicated prospects or old customers when evaluating prospects ([06039b3](https://github.com/b-partners/bpartners-api/commit/06039b306f5005473506d4b61849221ce10df97d))
+* dispatch sending email by retrieved calendar event ([e7708dc](https://github.com/b-partners/bpartners-api/commit/e7708dc0496b2580ca000325aecf0a0562f8d9b6))
+* filter prospects results after evaluation to match only to those that match minimum rating criteria ([fe3c7e3](https://github.com/b-partners/bpartners-api/commit/fe3c7e374001da482be6eac8686bfb7cd2ed28df))
+* handle customer results after prospect evaluation ([3d3b1e0](https://github.com/b-partners/bpartners-api/commit/3d3b1e05ac023a0901bc5645d5ba3b80f99ef846))
+* order prospect evaluation jobs by start datetime desc ([0acaea5](https://github.com/b-partners/bpartners-api/commit/0acaea5823146e083b7dca7d5b0848c0e4ec9af2))
+* reformat prospect distance from intervention value inside mail sent after prospect evaluation ([fd3d245](https://github.com/b-partners/bpartners-api/commit/fd3d245300f8b345db3a966f378b0efac923d764))
+* save and associate evaluated prospects to job ([eb63baf](https://github.com/b-partners/bpartners-api/commit/eb63bafd0db7918df61847940c9075c531aa1c96))
+* set aws region in cd-network ([f03751f](https://github.com/b-partners/bpartners-api/commit/f03751f540c0ff105492ae91513ca3400a1c4cc8))
+
+
+### Features
+
+* read evaluation job details by id ([7e45dc9](https://github.com/b-partners/bpartners-api/commit/7e45dc9251e76cb49af28c1c665854eeb21142ac))
+* run prospect evaluation job to convert calendar events ([fa12eaa](https://github.com/b-partners/bpartners-api/commit/fa12eaa2c3b1b5646f9a9c3b177a29d5be99eaf2))
+
+
+
 # [0.31.0](https://github.com/b-partners/bpartners-api/compare/v0.29.1...v0.31.0) (2023-09-20)
 
 
@@ -144,31 +168,6 @@
 * create new calendar events without persisting ([a3b4894](https://github.com/b-partners/bpartners-api/commit/a3b48948871225112a13b9bfa115ac3d8c1516ed))
 * evaluations can be configured by NEW_PROSPECT, OLD_CUSTOMERS or ALL of these two ([9ab2bd0](https://github.com/b-partners/bpartners-api/commit/9ab2bd0dff29e7f228dfa37c00da33dbaffd6bdf))
 * improve calendar events implementation and add filters ([eb44436](https://github.com/b-partners/bpartners-api/commit/eb4443638997a467ff49e78021cfdd4a97cefb5c))
-
-
-
-# [0.23.0](https://github.com/b-partners/bpartners-api/compare/v0.21.0...v0.23.0) (2023-08-03)
-
-
-### Bug Fixes
-
-* add validation in excel file for prospect evaluations ([7843a45](https://github.com/b-partners/bpartners-api/commit/7843a45f45565dcf9c55459449fa177ae5822296))
-* avoid NPE when mapping prospect to rest ([6ce1be2](https://github.com/b-partners/bpartners-api/commit/6ce1be2ab790d8e1c97891d6cf7087b07f6fc2a6))
-* return comment when mapping payment regulation in invoice ([44adc40](https://github.com/b-partners/bpartners-api/commit/44adc40e10aa02dd1e8429d7a9a4dc628947b8ae))
-* return null when invoking invoice stamp not paid ([cd1a851](https://github.com/b-partners/bpartners-api/commit/cd1a8514c51637d1689079438c25ef205f59e3ba))
-* save major account balance value in database when getting from bridge ([9112999](https://github.com/b-partners/bpartners-api/commit/9112999d4a518083dbc35e5119bfa8835f8c06fc))
-* set default prospect evaluation infos to order correctly prospect by rating desc ([5cdecf5](https://github.com/b-partners/bpartners-api/commit/5cdecf58a57ed5ba00e12fd967fd68ed474da4a3))
-* set prospect eval info mailSent attribute as string not boolean ([2ffb7ed](https://github.com/b-partners/bpartners-api/commit/2ffb7ed6dd897637ace8178bcfe11f1d6aa0dff0))
-* show all prospects when account holder business activity is anti-harm ([a176116](https://github.com/b-partners/bpartners-api/commit/a17611692575d6abb9cc88eed951fbcf8df7c294))
-* show delay payment message in generated pdf when delay is 30 days ([6a142ab](https://github.com/b-partners/bpartners-api/commit/6a142ab5879009649983eb8dc5002e4964d9a55b))
-* temporarily return all business activities ([8692576](https://github.com/b-partners/bpartners-api/commit/8692576ff65d91607ec27c37869c8651694abd71))
-
-
-### Features
-
-* add PAID stamp without payment method for invoice ([fcbf9a7](https://github.com/b-partners/bpartners-api/commit/fcbf9a762b65e391a037aa4cdde0b7f33a14325d))
-* add payment method to invoice ([4a57223](https://github.com/b-partners/bpartners-api/commit/4a5722378d6968b2a23b5d54ca48e22f8c6c063b))
-* add stamp when marking invoice as paid according to payment method ([72e957c](https://github.com/b-partners/bpartners-api/commit/72e957c19d9fb4b91749207d819232a89db85687))
 
 
 

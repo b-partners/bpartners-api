@@ -6,11 +6,11 @@ import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.AnnualRevenueTarget;
 import app.bpartners.api.model.BusinessActivity;
 import app.bpartners.api.model.Fraction;
-import app.bpartners.api.model.prospect.Prospect;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.mapper.ProspectEvalMapper;
 import app.bpartners.api.model.mapper.ProspectMapper;
+import app.bpartners.api.model.prospect.Prospect;
 import app.bpartners.api.repository.AccountHolderRepository;
 import app.bpartners.api.repository.ProspectRepository;
 import app.bpartners.api.repository.SogefiBuildingPermitRepository;
@@ -116,6 +116,10 @@ public class ProspectRepositoryImpl implements ProspectRepository {
           "AccountHolder.id=" + idAccountHolder + " is missing the " + "required property town "
               + "code");
     }
+    /*
+    TODO: In order to remove PostGis usage in the DB, you will have to remove HMunicipality,
+      and the municipalityJpaRepository as it is the only class using PostGis functions.
+    */
     List<HMunicipality> municipalities =
         municipalityJpaRepository.findMunicipalitiesWithinDistance(
             String.valueOf(accountHolder.getTownCode()), accountHolder.getProspectingPerimeter());

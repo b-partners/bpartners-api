@@ -6,12 +6,12 @@ import app.bpartners.api.endpoint.rest.model.EvaluatedProspect;
 import app.bpartners.api.endpoint.rest.model.ExtendedProspectStatus;
 import app.bpartners.api.endpoint.rest.model.JobStatusValue;
 import app.bpartners.api.endpoint.rest.model.NewInterventionOption;
-import app.bpartners.api.endpoint.rest.model.PostProspectEvaluationJob;
 import app.bpartners.api.endpoint.rest.model.Prospect;
 import app.bpartners.api.endpoint.rest.model.ProspectConversion;
 import app.bpartners.api.endpoint.rest.model.ProspectEvaluationJobDetails;
 import app.bpartners.api.endpoint.rest.model.ProspectEvaluationJobInfo;
 import app.bpartners.api.endpoint.rest.model.ProspectEvaluationRules;
+import app.bpartners.api.endpoint.rest.model.PutProspectEvaluationJob;
 import app.bpartners.api.endpoint.rest.model.RatingProperties;
 import app.bpartners.api.endpoint.rest.model.SheetProperties;
 import app.bpartners.api.endpoint.rest.model.SheetProspectEvaluation;
@@ -223,10 +223,10 @@ public class ProspectController {
     return mapper.toRestResult(service.getEvaluationJob(jId));
   }
 
-  @PostMapping("/accountHolders/{ahId}/prospects/evaluationJobs")
+  @PutMapping("/accountHolders/{ahId}/prospects/evaluationJobs")
   public List<ProspectEvaluationJobDetails> runProspectEvaluationJobs(@PathVariable String ahId,
                                                                       @RequestBody
-                                                                      List<PostProspectEvaluationJob> evaluationJobs) {
+                                                                      List<PutProspectEvaluationJob> evaluationJobs) {
     List<ProspectEvaluationJobRunner> jobRunners = evaluationJobs.stream()
         .map(job -> jobRestMapper.toDomain(ahId, job))
         .collect(Collectors.toList());

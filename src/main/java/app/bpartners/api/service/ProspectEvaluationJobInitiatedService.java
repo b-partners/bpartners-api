@@ -3,6 +3,7 @@ package app.bpartners.api.service;
 import app.bpartners.api.endpoint.event.EventConf;
 import app.bpartners.api.endpoint.event.model.gen.ProspectEvaluationJobInitiated;
 import app.bpartners.api.endpoint.rest.mapper.ProspectRestMapper;
+import app.bpartners.api.endpoint.rest.model.CalendarProvider;
 import app.bpartners.api.endpoint.rest.model.EvaluatedProspect;
 import app.bpartners.api.endpoint.rest.model.Geojson;
 import app.bpartners.api.endpoint.rest.model.JobStatusValue;
@@ -79,6 +80,8 @@ public class ProspectEvaluationJobInitiatedService
           List<CalendarEvent> calendarEvents = calendarService.getEvents(
               idUser,
               eventJobRunner.getCalendarId(),
+              //TODO: check if local or google calendar is the most appropriate
+              CalendarProvider.LOCAL,
               ranges.getFrom(),
               ranges.getTo());
           List<CalendarEvent> eventsWithAddress = calendarEvents.stream()

@@ -2,6 +2,7 @@ package app.bpartners.api.service;
 
 import app.bpartners.api.endpoint.rest.model.CalendarAuth;
 import app.bpartners.api.endpoint.rest.model.CalendarConsentInit;
+import app.bpartners.api.endpoint.rest.model.CalendarProvider;
 import app.bpartners.api.endpoint.rest.model.Redirection;
 import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
 import app.bpartners.api.endpoint.rest.validator.CalendarConsentValidator;
@@ -10,12 +11,15 @@ import app.bpartners.api.model.Calendar;
 import app.bpartners.api.model.CalendarEvent;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.exception.BadRequestException;
+import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.model.validator.CalendarAuthValidator;
-import app.bpartners.api.repository.CalendarEventRepository;
 import app.bpartners.api.repository.CalendarRepository;
 import app.bpartners.api.repository.CalendarStoredCredentialRepository;
 import app.bpartners.api.repository.google.calendar.CalendarApi;
 import app.bpartners.api.repository.google.calendar.CalendarConf;
+import app.bpartners.api.repository.implementation.FacadeCalendarEventRepository;
+import app.bpartners.api.repository.implementation.GoogleCalendarEventRepository;
+import app.bpartners.api.repository.implementation.LocalCalendarEventRepository;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.time.DayOfWeek;
@@ -35,7 +39,9 @@ public class CalendarService {
   private final CalendarAuthValidator authValidator;
   private final CalendarRepository calendarRepository;
   private final CalendarStoredCredentialRepository credentialRepository;
-  private final CalendarEventRepository eventRepository;
+  private final FacadeCalendarEventRepository facadeCalendarEventRepository;
+  private final LocalCalendarEventRepository localEventRepository;
+  private final GoogleCalendarEventRepository googleEventRepository;
 
   public Redirection initConsent(CalendarConsentInit consentInit) {
     consentValidator.accept(consentInit);
@@ -75,11 +81,12 @@ public class CalendarService {
   public List<CalendarEvent> saveEvents(String idUser,
                                         String calendarId,
                                         List<CalendarEvent> events) {
-    return eventRepository.saveAll(idUser, calendarId, events);
+    return facadeCalendarEventRepository.saveAll(idUser, calendarId, events);
   }
 
   public List<CalendarEvent> getEvents(String idUser,
                                        String idCalendar,
+                                       CalendarProvider provider,
                                        Instant from,
                                        Instant to) {
     if (from == null || to == null) {
@@ -90,7 +97,17 @@ public class CalendarService {
       throw new BadRequestException(
           "Min datetime attribute `from` must be before or equals to max datetime attribute `to`");
     }
-    return eventRepository.findByIdUserAndIdCalendar(idUser, idCalendar, from, to);
+    if (provider == null) {
+      provider = CalendarProvider.LOCAL;
+    }
+    switch (provider) {
+      case LOCAL:
+        return localEventRepository.findByIdUserAndIdCalendar(idUser, idCalendar, from, to);
+      case GOOGLE_CALENDAR:
+        return googleEventRepository.findByIdUserAndIdCalendar(idUser, idCalendar, from, to);
+      default:
+        throw new NotImplementedException("Unknown provider " + provider);
+    }
   }
 
   private CalendarConf calendarConf() {

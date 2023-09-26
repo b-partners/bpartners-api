@@ -25,29 +25,28 @@ public class CalendarEventMapper {
   public static final String DEFAULT_EVENT_TYPE = "default";
   final ObjectMapper objectMapper = new ObjectMapper();
 
-  public HCalendarEvent toEntity(String id, String idUser, String idCalendar, Event event) {
-    EventDateTime start = event.getStart();
-    EventDateTime end = event.getEnd();
+  public HCalendarEvent toEntity(String id, String idUser, String idCalendar, Event googleEvent) {
+    EventDateTime start = googleEvent.getStart();
+    EventDateTime end = googleEvent.getEnd();
     return HCalendarEvent.builder()
         .id(id)
-        .eteId(event.getId())
+        .eteId(googleEvent.getId())
         .idUser(idUser)
         .idCalendar(idCalendar)
-        .summary(event.getSummary())
-        .location(event.getLocation())
-        .organizer(event.getOrganizer().getEmail())
-        .participants(encodeJsonList(getParticipants(event)))
+        .summary(googleEvent.getSummary())
+        .location(googleEvent.getLocation())
+        .organizer(googleEvent.getOrganizer().getEmail())
+        .participants(encodeJsonList(getParticipants(googleEvent)))
         .from(start == null ? null : instantFrom(start))
         .to(end == null ? null : instantFrom(end))
-        .updatedAt(instantFrom(event.getUpdated()))
+        .updatedAt(instantFrom(googleEvent.getUpdated()))
         .build();
   }
 
   public HCalendarEvent toEntity(String idUser, String idCalendar, CalendarEvent domain) {
     return HCalendarEvent.builder()
         .id(domain.getId())
-        .eteId(null)
-        .sync(false)
+        .eteId(domain.getEteId()) //TODO: deprecated
         .idUser(idUser)
         .idCalendar(idCalendar)
         .summary(domain.getSummary())
@@ -101,6 +100,26 @@ public class CalendarEventMapper {
         .to(zonedDateTimeFrom(entity.getTo()))
         .updatedAt(entity.getUpdatedAt())
         .sync(entity.isSync())
+        .build();
+  }
+
+  public CalendarEvent toDomain(String id,
+                                boolean isSync,
+                                boolean isNewEvent,
+                                Instant updatedAt,
+                                Event googleEvent) {
+    return CalendarEvent.builder()
+        .id(id)
+        .summary(googleEvent.getSummary())
+        .location(googleEvent.getLocation())
+        .organizer(googleEvent.getOrganizer().getEmail())
+        .participants(getParticipants(googleEvent))
+        .from(zonedDateTimeFrom(googleEvent.getStart()))
+        .to(zonedDateTimeFrom(googleEvent.getEnd()))
+        .updatedAt(updatedAt)
+        .sync(isSync)
+        .newEvent(isNewEvent)
+        .eteId(googleEvent.getId()) //TODO: deprecated
         .build();
   }
 

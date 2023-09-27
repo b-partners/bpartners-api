@@ -9,8 +9,8 @@ import app.bpartners.api.endpoint.rest.model.EventDateRanges;
 import app.bpartners.api.endpoint.rest.model.EventEvaluationRules;
 import app.bpartners.api.endpoint.rest.model.InterventionType;
 import app.bpartners.api.endpoint.rest.model.NewInterventionOption;
-import app.bpartners.api.endpoint.rest.model.PostEventProspectConversion;
-import app.bpartners.api.endpoint.rest.model.PostProspectEvaluationJob;
+import app.bpartners.api.endpoint.rest.model.PutEventProspectConversion;
+import app.bpartners.api.endpoint.rest.model.PutProspectEvaluationJob;
 import app.bpartners.api.endpoint.rest.model.ProfessionType;
 import app.bpartners.api.endpoint.rest.model.ProspectEvaluationJobDetails;
 import app.bpartners.api.endpoint.rest.model.ProspectEvaluationRules;
@@ -139,8 +139,8 @@ public class SheetIT extends MockedThirdParties {
   @Autowired
   private UserService userService;
 
-  private static PostEventProspectConversion prospectEvent1() {
-    return new PostEventProspectConversion()
+  private static PutEventProspectConversion prospectEvent1() {
+    return new PutEventProspectConversion()
         .calendarId(CAL1_ID)
         .evaluationRules(new EventEvaluationRules()
             .antiHarmRules(new AntiHarmRules()
@@ -157,7 +157,7 @@ public class SheetIT extends MockedThirdParties {
                 .minProspectRating(5.0));
   }
 
-  private static PostEventProspectConversion prospectEvent2() {
+  private static PutEventProspectConversion prospectEvent2() {
     return prospectEvent1()
         .sheetProperties(new SheetProperties()
             .sheetName(GOLDEN_SOURCE_SPR_SHEET_NAME)
@@ -217,12 +217,12 @@ public class SheetIT extends MockedThirdParties {
 
     List<ProspectEvaluationJobDetails> actual1 =
         api.runProspectEvaluationJobs(JOE_DOE_USER_ID, List.of(
-            new PostProspectEvaluationJob()
+            new PutProspectEvaluationJob()
                 .eventProspectConversion(prospectEvent1())));
     List<ProspectEvaluationJobDetails> actual2 =
         api.runProspectEvaluationJobs(JOE_DOE_USER_ID,
             List.of(
-                new PostProspectEvaluationJob()
+                new PutProspectEvaluationJob()
                     .eventProspectConversion(prospectEvent2())));
 
     assertEquals(List.of(), actual1);

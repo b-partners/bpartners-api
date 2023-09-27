@@ -144,21 +144,17 @@ public class ProspectService {
                                                        String ahId,
                                                        List<ProspectEvaluationJobRunner> jobRunners) {
     List<ProspectEvaluationJob> jobs = jobRunners.stream()
-        .map(job -> {
-          String id = String.valueOf(randomUUID());
-          job.setJobId(id);
-          return ProspectEvaluationJob.builder()
-              .id(id)
-              .idAccountHolder(ahId)
-              .type(getJobType(job))
-              .jobStatus(new ProspectEvaluationJobStatus()
-                  .value(NOT_STARTED)
-                  .message(null))
-              .startedAt(Instant.now())
-              .endedAt(null)
-              .results(List.of())
-              .build();
-        })
+        .map(jobRunner -> ProspectEvaluationJob.builder()
+            .id(jobRunner.getJobId())
+            .idAccountHolder(ahId)
+            .type(getJobType(jobRunner))
+            .jobStatus(new ProspectEvaluationJobStatus()
+                .value(NOT_STARTED)
+                .message(null))
+            .startedAt(Instant.now())
+            .endedAt(null)
+            .results(List.of())
+            .build())
         .collect(Collectors.toList());
 
     List<ProspectEvaluationJob> savedJobs = evalJobRepository.saveAll(jobs);

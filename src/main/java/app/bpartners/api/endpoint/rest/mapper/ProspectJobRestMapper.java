@@ -3,8 +3,8 @@ package app.bpartners.api.endpoint.rest.mapper;
 import app.bpartners.api.endpoint.rest.model.AntiHarmRules;
 import app.bpartners.api.endpoint.rest.model.EventDateRanges;
 import app.bpartners.api.endpoint.rest.model.EventEvaluationRules;
-import app.bpartners.api.endpoint.rest.model.PostEventProspectConversion;
-import app.bpartners.api.endpoint.rest.model.PostProspectEvaluationJob;
+import app.bpartners.api.endpoint.rest.model.PutEventProspectConversion;
+import app.bpartners.api.endpoint.rest.model.PutProspectEvaluationJob;
 import app.bpartners.api.endpoint.rest.model.RatingProperties;
 import app.bpartners.api.endpoint.rest.model.SheetProperties;
 import app.bpartners.api.endpoint.rest.model.SheetRange;
@@ -18,8 +18,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class ProspectJobRestMapper {
   public ProspectEvaluationJobRunner toDomain(String ahId,
-                                              PostProspectEvaluationJob rest) {
-    PostEventProspectConversion eventConversion = rest.getEventProspectConversion();
+                                              PutProspectEvaluationJob rest) {
+    PutEventProspectConversion eventConversion = rest.getEventProspectConversion();
     if (eventConversion != null) {
       var evaluationRules = eventConversion.getEvaluationRules();
       var ratingProperties = eventConversion.getRatingProperties();
@@ -28,6 +28,7 @@ public class ProspectJobRestMapper {
       var eventDateRanges = eventConversion.getEventDateRanges();
       var antiHarmRules = evaluationRules.getAntiHarmRules();
       return ProspectEvaluationJobRunner.builder()
+          .jobId(rest.getJobId())
           .eventJobRunner(
               toDomain(ahId,
                   eventConversion.getCalendarId(),
@@ -40,7 +41,7 @@ public class ProspectJobRestMapper {
           .build();
     }
     throw new NotImplementedException(
-        "Only PostEventProspectConversion is supported for no");
+        "Only PutEventProspectConversion is supported for no");
   }
 
   private EventJobRunner toDomain(String idAccountHolder,

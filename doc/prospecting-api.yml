@@ -388,7 +388,7 @@ operations:
             $ref: './api.yml#/components/responses/429'
           500:
             $ref: './api.yml#/components/responses/500'
-    post:
+    put:
       tags:
         - Prospecting
       summary: Run prospect-evaluation jobs
@@ -407,7 +407,7 @@ operations:
             schema:
               type: array
               items:
-                $ref: '#/components/schemas/PostProspectEvaluationJob'
+                $ref: '#/components/schemas/PutProspectEvaluationJob'
       responses:
         200:
           description: |
@@ -635,13 +635,15 @@ components:
           $ref: '#/components/schemas/NewInterventionOption'
           description: |
             When any value provided, NEW_PROSPECT is chosen by default.
-    PostProspectEvaluationJob:
+    PutProspectEvaluationJob:
       type: object
       properties:
+        jobId:
+          type: string
         eventProspectConversion:
-          $ref: '#/components/schemas/PostEventProspectConversion'
+          $ref: '#/components/schemas/PutEventProspectConversion'
         #TODO: add spreadsheetEvaluation here
-    PostEventProspectConversion:
+    PutEventProspectConversion:
       type: object
       properties:
         calendarId:

@@ -571,11 +571,13 @@ public class ProspectService {
   }
 
   private static ProspectEvaluationJobType getJobType(ProspectEvaluationJobRunner job) {
-    if (!job.isEventConversionJob()) {
-      throw new NotImplementedException(
-          "Only prospect evaluation job type [CALENDAR_EVENT_CONVERSION] is supported for now");
+    if (job.isEventConversionJob()) {
+      return ProspectEvaluationJobType.CALENDAR_EVENT_CONVERSION;
+    } else if (job.isSpreadsheetEvaluationJob()) {
+      return ProspectEvaluationJobType.SPREADSHEET_EVALUATION;
     }
-    return ProspectEvaluationJobType.CALENDAR_EVENT_CONVERSION;
+    throw new NotImplementedException(
+        "Only prospect evaluation job type [CALENDAR_EVENT_CONVERSION and SPREADSHEET_EVALUATION] are supported for now");
   }
 
   private Context configureProspectContext(HAccountHolder accountHolder) {

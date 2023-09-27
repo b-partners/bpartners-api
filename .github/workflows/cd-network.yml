@@ -48,6 +48,11 @@ on:
         default: bpartners-internal-alb
         description: The name to be given to the Application Load Balancer
         required: false
+      RepositoryName:
+        type: string
+        default: bpartners-api-latest
+        description: The name to give to the private repository
+        required: false
 
 jobs:
   cd-network:
@@ -84,4 +89,4 @@ jobs:
             PublicSubnetAZ=${{ github.event.inputs.PublicSubnetAZ }},PrivateSubnet1AZ=${{ github.event.inputs.PrivateSubnet1AZ }},
             PrivateSubnet1IPv4CIDR=${{ github.event.inputs.PrivateSubnet1IPv4CIDR }}, PrivateSubnet2AZ=${{ github.event.inputs.PrivateSubnet2AZ }},
             PrivateSubnet2IPv4CIDR=${{ github.event.inputs.PrivateSubnet2IPv4CIDR }}, ALBName=${{ github.event.inputs.ALBName }},
-            PublicSubnetIPv4CIDR=${{ github.event.inputs.PublicSubnetIPv4CIDR }}"
+            PublicSubnetIPv4CIDR=${{ github.event.inputs.PublicSubnetIPv4CIDR }},RepositoryName=${{ github.event.inputs.RepositoryName }}"

@@ -36,6 +36,10 @@ Parameters:
     Type: Number
     Default: 80
     Description: The default listener port number
+  RepositoryName:
+    Type: String
+    Default: bpartners-api-latest
+    Description: The name to give to the private ECR repository
 
 Resources:
   VPC:
@@ -258,6 +262,17 @@ Resources:
       Protocol: HTTP
 
 ######## End of Application Load Balancer configuration ########
+
+#### ECR Provisioning ####
+
+  PrivateRepository:
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName: !Ref RepositoryName
+      ImageScanningConfiguration:
+        - ScanOnPush: 'true'
+
+#### End of ECR Provisioning ####
 
 ######## SSM storage section ########
   VPCIdSSM:

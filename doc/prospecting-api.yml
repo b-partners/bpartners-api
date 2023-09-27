@@ -642,6 +642,8 @@ components:
           type: string
         eventProspectConversion:
           $ref: '#/components/schemas/PutEventProspectConversion'
+        spreadSheetEvaluation:
+          $ref: '#/components/schemas/SheetProspectEvaluation'
         #TODO: add spreadsheetEvaluation here
     PutEventProspectConversion:
       type: object

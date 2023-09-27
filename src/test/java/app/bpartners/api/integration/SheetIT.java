@@ -254,7 +254,7 @@ public class SheetIT extends MockedThirdParties {
                 .artisanOwner("account_holder_id_2")
                 .evaluationRules(new ProspectEvaluationRules()
                     .newInterventionOption(NewInterventionOption.NEW_PROSPECT)
-                    .profession(PROFESSION))
+                    .profession(ProfessionType.ANTI_HARM))
                 .sheetProperties(new SheetProperties()
                     .spreadsheetName(SheetIT.GOLDEN_SOURCE_SPR_SHEET_NAME)
                     .sheetName(SheetIT.GOLDEN_SOURCE_SHEET_NAME)

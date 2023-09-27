@@ -628,9 +628,9 @@ components:
       type: object
       properties:
         profession:
-          type: string
-          example: DEPANNEUR
-          description: Only `DEPANNEUR` profession is supported for now
+          $ref: '#/components/schemas/ProfessionType'
+        antiHarmRules:
+          $ref: '#/components/schemas/AntiHarmRules'
         newInterventionOption:
           $ref: '#/components/schemas/NewInterventionOption'
           description: |
@@ -642,6 +642,8 @@ components:
           type: string
         eventProspectConversion:
           $ref: '#/components/schemas/PutEventProspectConversion'
+        spreadSheetEvaluation:
+          $ref: '#/components/schemas/SheetProspectEvaluation'
         #TODO: add spreadsheetEvaluation here
     PutEventProspectConversion:
       type: object

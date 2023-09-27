@@ -147,8 +147,10 @@ public class ProspectEvaluationJobInitiatedService
           updateJobStatus(runningJob, FAILED, e.getMessage());
         }
       } else {
-        throw new NotImplementedException(
-            "Only prospect evaluation job type [CALENDAR_EVENT_CONVERSION] is supported for now");
+        String exceptionMsg =
+            "Only prospect evaluation job type [CALENDAR_EVENT_CONVERSION] is supported for now";
+        updateJobStatus(runningJob, FAILED, exceptionMsg);
+        throw new NotImplementedException(exceptionMsg);
       }
     }
   }

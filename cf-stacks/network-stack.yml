@@ -270,7 +270,7 @@ Resources:
     Properties:
       RepositoryName: !Ref RepositoryName
       ImageScanningConfiguration:
-        - ScanOnPush: 'true'
+        ScanOnPush: 'true'
 
 #### End of ECR Provisioning ####
 

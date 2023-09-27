@@ -17,13 +17,13 @@ import lombok.ToString;
 public class ProspectEvaluationJobRunner implements Serializable {
   private String jobId;
   private EventJobRunner eventJobRunner;
-  private SheetEvaluationJobRunner sheetProspectEvaluation;
+  private SheetEvaluationJobRunner sheetJobRunner;
 
   public boolean isEventConversionJob() {
     return eventJobRunner != null;
   }
 
   public boolean isSpreadsheetEvaluationJob() {
-    return sheetProspectEvaluation != null;
+    return sheetJobRunner != null;
   }
 }

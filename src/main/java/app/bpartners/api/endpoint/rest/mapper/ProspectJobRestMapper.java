@@ -60,7 +60,7 @@ public class ProspectJobRestMapper {
       SheetRange sheetRange = sheetProperties.getRanges();
       return ProspectEvaluationJobRunner.builder()
           .jobId(rest.getJobId())
-          .sheetProspectEvaluation(
+          .sheetJobRunner(
               toDomain(spreadSheetEvaluation.getArtisanOwner(),
                   evaluationRules,
                   ratingProperties,

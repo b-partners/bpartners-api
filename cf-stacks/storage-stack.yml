@@ -20,6 +20,13 @@ Conditions:
     - ''
 
 Resources:
+  DatabaseSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: !Join ['', [Subnet group for ,!Ref Env, database]]
+      DBSubnetGroupName: !Join ['', [!Ref Env, -subnet-group]]
+      SubnetIds: !Sub '{{resolve:ssm:/bpartners/${Env}/db/subnet-ids}}'
+
   Database:
     Type: AWS::RDS::DBInstance
     DeletionPolicy: Retain
@@ -38,6 +45,9 @@ Resources:
         !If [NotCreatingDatabaseFromSnapshot, !Sub '{{resolve:ssm:/bpartners/${Env}/db/username}}', !Ref "AWS::NoValue" ]
       MasterUserPassword:
         !If [NotCreatingDatabaseFromSnapshot, !Sub '{{resolve:ssm:/bpartners/${Env}/db/password}}', !Ref "AWS::NoValue" ]
+      DBSubnetGroupName: !Ref DatabaseSubnetGroup
+      VPCSecurityGroups:
+        - !Sub '{{resolve:ssm:/bpartners/sg/id}}'
   DatabaseSSM:
     Type: AWS::SSM::Parameter
     Properties:

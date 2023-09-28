@@ -21,6 +21,10 @@ public class AccountHolderService {
   private final BusinessActivityService businessActivityService;
   private final AnnualRevenueTargetService annualRevenueTargetService;
 
+  public AccountHolder getById(String id) {
+    return accountHolderRepository.findById(id);
+  }
+
   public List<AccountHolder> getAll(String name, Integer page, Integer pageSize) {
     Pageable pageable = PageRequest.of(page, pageSize);
     return name == null ? accountHolderRepository.findAll(pageable)

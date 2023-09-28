@@ -1,5 +1,6 @@
 package app.bpartners.api.model.prospect.job;
 
+import app.bpartners.api.endpoint.rest.model.NewInterventionOption;
 import app.bpartners.api.endpoint.rest.model.ProfessionType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -17,4 +18,5 @@ import lombok.ToString;
 public class EvaluationRules {
   private ProfessionType profession;
   private AntiHarmRules antiHarmRules;
+  private NewInterventionOption interventionOption;
 }

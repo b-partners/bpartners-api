@@ -156,6 +156,7 @@ public class ProspectJobRestMapper {
     return EvaluationRules.builder()
         .profession(evaluationRules == null ? null : evaluationRules.getProfession())
         .antiHarmRules(toDomain(antiHarmRules))
+        .interventionOption(null)
         .build();
   }
 
@@ -164,6 +165,8 @@ public class ProspectJobRestMapper {
         .profession(evaluationRules == null ? null : evaluationRules.getProfession())
         .antiHarmRules(
             toDomain(evaluationRules == null ? null : evaluationRules.getAntiHarmRules()))
+        .interventionOption(
+            evaluationRules == null ? null : evaluationRules.getNewInterventionOption())
         .build();
   }
 

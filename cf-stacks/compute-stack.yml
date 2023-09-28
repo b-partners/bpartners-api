@@ -214,7 +214,7 @@ Resources:
         - Field: host-header
           HostHeaderConfig:
             Values:
-              - !Join ['', [ private-, api-, !Ref Env, .bpartners.app]]
+              - !Join ['', [ private-, api., !Ref Env, .bpartners.app]]
       Actions:
         - Type: forward
           TargetGroupArn: !Ref TargetGroup

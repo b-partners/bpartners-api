@@ -1,0 +1,1 @@
+alter table "prospect" drop column status;

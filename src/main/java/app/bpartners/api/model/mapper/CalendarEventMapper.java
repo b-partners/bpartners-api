@@ -55,7 +55,7 @@ public class CalendarEventMapper {
         .participants(encodeJsonList(domain.getParticipants()))
         .from(domain.getFrom() == null ? null : domain.getFrom().toInstant())
         .to(domain.getTo() == null ? null : domain.getTo().toInstant())
-        .updatedAt(Instant.now())
+        .updatedAt(domain.getUpdatedAt())
         .build();
   }
 

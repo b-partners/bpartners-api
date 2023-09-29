@@ -159,6 +159,9 @@ public class CalendarApi {
   }
 
   public static String timeZoneFrom(EventDateTime eventDateTime) {
+    if (eventDateTime.getDateTime() == null && eventDateTime.getDate() != null) {
+      return PARIS_TIMEZONE;
+    }
     return eventDateTime.getTimeZone();
   }
 

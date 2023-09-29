@@ -1,4 +1,4 @@
-FROM amazoncorretto:11-alpine
+FROM amazoncorretto:17.0.0-alpine
 ARG version
 ARG JAR_FILE=build/libs/bpartners-api-$version.jar
 COPY ${JAR_FILE} app.jar

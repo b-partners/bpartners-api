@@ -15,6 +15,7 @@ import org.springframework.stereotype.Repository;
 public class ProspectHistoryRepositoryImpl implements ProspectHistoryRepository {
   private final ProspectHistoryJpaRepository jpaRepository;
   private final ProspectHistoryMapper mapper;
+
   @Override
   public List<ProspectHistory> getAllByIdProspect(String idProspect) {
     List<HProspectHistory> entities = jpaRepository.findAllByIdProspect(idProspect);
@@ -26,5 +27,15 @@ public class ProspectHistoryRepositoryImpl implements ProspectHistoryRepository 
   @Override
   public ProspectHistory getLatestUpdateByIdProspect(String idProspect) {
     return mapper.toDomain(jpaRepository.findTopByIdProspectOrderByUpdatedAt(idProspect));
+  }
+
+  @Override
+  public List<ProspectHistory> saveAll(List<ProspectHistory> toSave) {
+    List<HProspectHistory> entities = toSave.stream()
+        .map(mapper::toEntity)
+        .collect(Collectors.toList());
+    return jpaRepository.saveAll(entities).stream()
+        .map(mapper::toDomain)
+        .collect(Collectors.toList());
   }
 }

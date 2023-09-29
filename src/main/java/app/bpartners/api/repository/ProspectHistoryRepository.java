@@ -6,4 +6,5 @@ import java.util.List;
 public interface ProspectHistoryRepository {
   List<ProspectHistory> getAllByIdProspect(String idProspect);
   ProspectHistory getLatestUpdateByIdProspect(String idProspect);
+  List<ProspectHistory> saveAll(List<ProspectHistory> toSave);
 }

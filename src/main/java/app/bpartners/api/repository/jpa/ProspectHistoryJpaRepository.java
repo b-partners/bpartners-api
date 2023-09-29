@@ -6,4 +6,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface ProspectHistoryJpaRepository extends JpaRepository<HProspectHistory, String> {
   List<HProspectHistory> findAllByIdProspect(String idProspect);
+  HProspectHistory findTopByIdProspectOrderByUpdatedAt(String idProspect);
 }

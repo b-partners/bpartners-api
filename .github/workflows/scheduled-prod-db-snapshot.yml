@@ -1,0 +1,65 @@
+name: Sched Make Prod Snapshot
+
+on:
+  schedule:
+    - cron: '0 0 * * *'
+
+  workflow_dispatch:
+    inputs:
+      target_env:
+        type: choice
+        required: false
+        default: ''
+        description: The environment to make the snapshot
+        options:
+          - 'prod'
+          - 'preprod'
+
+  workflow_call:
+
+env:
+  Env: prod
+
+jobs:
+  create-snapshot:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Override Env if necessary
+        if: ${{ inputs.target_env != '' }}
+        run: |
+            echo "Env=${{ inputs.target_env }}" >> $GITHUB_ENV
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@13d241b293754004c80624b5567555c4a39ffbe3
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Get oldest RDS snapshot
+        id: oldestSnapshot
+        run: |
+          oldest_snapshot=$(aws rds describe-db-snapshots --region eu-west-3 --snapshot-type manual | jq -r '.DBSnapshots | sort_by(.SnapshotCreateTime)[0].DBSnapshotIdentifier')
+          echo "::set-output name=oldest_snapshot::$oldest_snapshot"
+
+      - name: Delete RDS snapshot
+        run: |
+          aws rds delete-db-snapshot --db-snapshot-identifier ${{ steps.oldestSnapshot.outputs.oldest_snapshot }}
+
+      - name: Retrieve Database identifier from Parameter Store and set it as Env
+        run: |
+          aws configure set default.output text
+          echo "dbIdentifier=$(aws ssm get-parameter --name /bpartners/$Env/db/identifier --query "Parameter.Value" | grep -o '^[^.]*')" >> $GITHUB_ENV
+
+      - name: Get Time
+        id: current-time
+        uses: nanzm/get-time-action@v1.1
+        with:
+          timeZone: 3
+          format: 'YYYY-MM-DD-HH-mm-ss'
+
+      - name: Set time as env
+        run: echo "time=${{ steps.current-time.outputs.time }}" >> $GITHUB_ENV
+
+      - name: Create snapshot for the actual version of the database
+        run: aws rds create-db-snapshot --db-instance-identifier ${{ env.dbIdentifier }} --db-snapshot-identifier $Env-snapshot-pre-cd-compute-${{ github.sha }}-${{ env.time }}

@@ -451,23 +451,31 @@ public class ProspectService {
     ProspectEvalInfo info =
         result.getProspectEval().getProspectEvalInfo();
     GeoUtils.Coordinate coordinates = info.getCoordinates();
+    return fromEvaluationObj(result, eval, info, coordinates);
+  }
+
+  private static Prospect fromEvaluationObj(ProspectResult result,
+                                            ProspectEval eval,
+                                            ProspectEvalInfo info,
+                                            GeoUtils.Coordinate coordinates) {
     return Prospect.builder()
         .id(String.valueOf(randomUUID())) //TODO: change when prospect eval can be override
-        .idHolderOwner(eval.getProspectOwnerId())
-        .name(info.getName())
-        .email(info.getEmail())
-        .phone(info.getPhoneNumber())
-        .address(info.getAddress())
+        .idHolderOwner(eval == null ? null
+            : eval.getProspectOwnerId())
+        .name(info == null ? null : info.getName())
+        .email(info == null ? null : info.getEmail())
+        .phone(info == null ? null : info.getPhoneNumber())
+        .address(info == null ? null : info.getAddress())
         .status(ProspectStatus.TO_CONTACT) //Default when creating
-        .townCode(Integer.valueOf(info.getPostalCode()))
+        .townCode(info == null ? null : Integer.valueOf(info.getPostalCode()))
         .location(new Geojson()
             .latitude(coordinates == null ? null
                 : coordinates.getLatitude())
             .longitude(coordinates == null ? null
                 : coordinates.getLongitude()))
         .rating(Prospect.ProspectRating.builder()
-            .value(result.getInterventionResult().getRating())
-            .lastEvaluationDate(result.getEvaluationDate())
+            .value(result == null ? null : result.getInterventionResult().getRating())
+            .lastEvaluationDate(result == null ? null : result.getEvaluationDate())
             .build())
         .build();
   }
@@ -616,5 +624,25 @@ public class ProspectService {
       }
     }
     return withoutDuplicat;
+  }
+
+  public List<Prospect> importProspectsFromSpreadsheet(String idUser,
+                                                       String spreadsheetName,
+                                                       String sheetName,
+                                                       Integer minRange,
+                                                       Integer maxRange) {
+    List<ProspectEval> prospectEvals = readEvaluationsFromSheets(
+        idUser,
+        spreadsheetName,
+        sheetName,
+        minRange,
+        maxRange);
+    List<Prospect> prospectsToSave = prospectEvals.stream()
+        .map(eval -> {
+          ProspectEvalInfo prospectInfo = eval.getProspectEvalInfo();
+          return fromEvaluationObj(null, null, prospectInfo, null);
+        }).collect(Collectors.toList());
+
+    return repository.create(prospectsToSave);
   }
 }

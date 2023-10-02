@@ -38,6 +38,45 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
+  prospectImportOperations:
+    post:
+      tags:
+        - Prospecting
+      summary: Import prospects
+      operationId: importProspects
+      description: |
+        Only import through Google Spreadsheet is supported for now.
+      parameters:
+        - in: path
+          name: ahId
+          schema:
+            type: string
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ImportProspect'
+      responses:
+        200:
+          description: List of imported prospects.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Prospect'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
   prospectOperations:
     get:
       tags:
@@ -748,3 +787,8 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Prospect'
+    ImportProspect:
+      type: object
+      properties:
+        spreadsheetImport:
+          $ref: '#/components/schemas/SheetProperties'

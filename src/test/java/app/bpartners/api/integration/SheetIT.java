@@ -7,8 +7,10 @@ import app.bpartners.api.endpoint.rest.model.AntiHarmRules;
 import app.bpartners.api.endpoint.rest.model.EvaluatedProspect;
 import app.bpartners.api.endpoint.rest.model.EventDateRanges;
 import app.bpartners.api.endpoint.rest.model.EventEvaluationRules;
+import app.bpartners.api.endpoint.rest.model.ImportProspect;
 import app.bpartners.api.endpoint.rest.model.InterventionType;
 import app.bpartners.api.endpoint.rest.model.NewInterventionOption;
+import app.bpartners.api.endpoint.rest.model.Prospect;
 import app.bpartners.api.endpoint.rest.model.PutEventProspectConversion;
 import app.bpartners.api.endpoint.rest.model.PutProspectEvaluationJob;
 import app.bpartners.api.endpoint.rest.model.ProfessionType;
@@ -109,7 +111,7 @@ public class SheetIT extends MockedThirdParties {
       "Golden source Depa1 Depa 2 - Prospect métier Antinuisibles  Serrurier ";
 
   public static final String TEST_SPR_SHEET_NAME = "Test";
-  public static final String GOLDEN_SOURCE_SHEET_NAME = "Source Import";
+  public static final String GOLDEN_SOURCE_SHEET_NAME = "Local Ryan";
   public static final String PROFESSION = "DEPANNEUR";
   public static final String CAL1_ID = "";
   @Autowired
@@ -191,6 +193,35 @@ public class SheetIT extends MockedThirdParties {
   private static ApiClient anApiClient() {
     return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN,
         SheetEnvContextInitializer.getHttpServerPort());
+  }
+
+  @Test
+  void import_prospects_through_sheet_ok() throws ApiException {
+    User user = userService.getUserById(JOE_DOE_ID);
+    User savedUser = userService.saveUser(user.toBuilder()
+        .roles(List.of(Role.EVAL_PROSPECT))
+        .build());
+    businessRepository.save(BusinessActivity.builder()
+        .accountHolder(joeDoeAccountHolder())
+        .primaryActivity(ANTI_HARM)
+        .secondaryActivity(null)
+        .build());
+    when(expressifApiMock.process(any())).thenReturn(List.of(prospectRatingResult()));
+    when(banApiMock.fSearch(any())).thenReturn(geoPosZero());
+    int minRange = 2;
+    int maxRange = 5;
+    ApiClient joeDoeClient = anApiClient();
+    ProspectingApi api = new ProspectingApi(joeDoeClient);
+
+    List<Prospect> actual = api.importProspects(JOE_DOE_ACCOUNT_HOLDER_ID, new ImportProspect()
+        .spreadsheetImport(new SheetProperties()
+            .spreadsheetName(SheetIT.GOLDEN_SOURCE_SPR_SHEET_NAME)
+            .sheetName(SheetIT.GOLDEN_SOURCE_SHEET_NAME)
+            .ranges(new SheetRange()
+                .min(minRange)
+                .max(maxRange))));
+
+    assertEquals(4, actual.size());
   }
 
   @Test

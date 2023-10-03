@@ -28,6 +28,7 @@ on:
 env:
   ECR_REPOSITORY: bpartners-api-latest
   NAME_PREFIX: ''
+  AWS_REGION: eu-west-3
 
 jobs:
 #  run-quality-check:

@@ -769,6 +769,10 @@ components:
         endedAt:
           type: string
           format: date-time
+        metadata:
+          type: object
+          additionalProperties:
+            type: string
     ProspectEvaluationJobStatus:
       allOf:
         - $ref: './api.yml#/components/schemas/JobStatus'

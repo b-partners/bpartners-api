@@ -1,5 +1,6 @@
 package app.bpartners.api.endpoint.rest.validator;
 
+import app.bpartners.api.endpoint.rest.model.ImportProspect;
 import app.bpartners.api.endpoint.rest.model.ProspectEvaluationRules;
 import app.bpartners.api.endpoint.rest.model.RatingProperties;
 import app.bpartners.api.endpoint.rest.model.SheetProperties;
@@ -94,6 +95,32 @@ public class ProspectRestValidator implements Consumer<UpdateProspect> {
       }
     }
     String exceptionMessage = builder.toString();
+    if (!exceptionMessage.isEmpty()) {
+      throw new BadRequestException(exceptionMessage);
+    }
+  }
+
+  public void accept(ImportProspect importProspect) {
+    StringBuilder messageBuilder = new StringBuilder();
+    if (importProspect == null) {
+      messageBuilder.append("ImportProspect is mandatory. ");
+    } else {
+      SheetProperties sheetProperties = importProspect.getSpreadsheetImport();
+      if (sheetProperties == null) {
+        messageBuilder.append("ImportProspect.sheetProperties is mandatory. ");
+      } else {
+        if (sheetProperties.getSpreadsheetName() == null) {
+          messageBuilder.append("ImportProspect.sheetProperties.spreadsheetName is mandatory. ");
+        }
+        if (sheetProperties.getSheetName() == null) {
+          messageBuilder.append("ImportProspect.sheetProperties.sheetName is mandatory. ");
+        }
+        if (sheetProperties.getRanges() == null) {
+          messageBuilder.append("ImportProspect.sheetProperties.ranges is mandatory. ");
+        }
+      }
+    }
+    String exceptionMessage = messageBuilder.toString();
     if (!exceptionMessage.isEmpty()) {
       throw new BadRequestException(exceptionMessage);
     }

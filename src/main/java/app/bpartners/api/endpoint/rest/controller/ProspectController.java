@@ -4,6 +4,7 @@ import app.bpartners.api.endpoint.rest.mapper.ProspectJobRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.ProspectRestMapper;
 import app.bpartners.api.endpoint.rest.model.EvaluatedProspect;
 import app.bpartners.api.endpoint.rest.model.ExtendedProspectStatus;
+import app.bpartners.api.endpoint.rest.model.ImportProspect;
 import app.bpartners.api.endpoint.rest.model.JobStatusValue;
 import app.bpartners.api.endpoint.rest.model.NewInterventionOption;
 import app.bpartners.api.endpoint.rest.model.Prospect;
@@ -97,6 +98,21 @@ public class ProspectController {
       default:
         return null;
     }
+  }
+
+  @PostMapping("/accountHolders/{ahId}/prospects/import")
+  public List<Prospect> importProspects(@PathVariable String ahId,
+                                        @RequestBody ImportProspect importProspect) {
+    validator.accept(importProspect);
+    SheetProperties sheetProperties = importProspect.getSpreadsheetImport();
+    return service.importProspectsFromSpreadsheet(
+            AuthProvider.getAuthenticatedUserId(),
+            sheetProperties.getSpreadsheetName(),
+            sheetProperties.getSheetName(),
+            sheetProperties.getRanges().getMin(),
+            sheetProperties.getRanges().getMax()).stream()
+        .map(mapper::toRest)
+        .collect(Collectors.toList());
   }
 
   @PutMapping("/accountHolders/{ahId}/prospects/{id}/prospectConversion")

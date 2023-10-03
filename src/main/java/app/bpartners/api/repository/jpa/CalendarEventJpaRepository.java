@@ -11,4 +11,6 @@ public interface CalendarEventJpaRepository extends JpaRepository<HCalendarEvent
   List<HCalendarEvent> findAllByIdUserAndIdCalendar(String idUser, String idCalendar);
 
   Optional<HCalendarEvent> findByEteId(String eteId);
+
+  List<HCalendarEvent> findAllByEteId(String eteId);
 }

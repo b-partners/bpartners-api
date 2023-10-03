@@ -11,6 +11,7 @@ import app.bpartners.api.repository.jpa.model.HCalendarEvent;
 import com.google.api.client.util.DateTime;
 import com.google.api.services.calendar.model.Event;
 import java.time.Instant;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -71,20 +72,32 @@ public class GoogleCalendarEventRepository
 
   private List<CalendarEvent> toDomainFrom(List<Event> crupdatedEvents) {
     return crupdatedEvents.stream()
-        .map(event -> {
+        .map(googleEvent -> {
           String id = String.valueOf(randomUUID());
           boolean isSync = true;
           boolean isNewEvent = true;
-          Instant actualUpdatedAt = instantFrom(event.getUpdated());
-          Optional<HCalendarEvent> optionalEvent = jpaRepository.findByEteId(event.getId());
-          if (optionalEvent.isPresent()) {
-            HCalendarEvent eventEntity = optionalEvent.get();
+          Instant actualUpdatedAt = instantFrom(googleEvent.getUpdated());
+          /*TODO: check why end_to_end_id is persisted twice*/
+          List<HCalendarEvent> optionalEvent = jpaRepository.findAllByEteId(googleEvent.getId());
+          if (!optionalEvent.isEmpty()) {
+            List<HCalendarEvent> sortedByUpdatedAtDesc = optionalEvent.stream()
+                .sorted(Comparator.comparing(HCalendarEvent::getUpdatedAt).reversed())
+                .collect(Collectors.toList());
+            HCalendarEvent eventEntity = optionalEvent.get(0);
+            //Remove this delete when end_to_end_id is NOT persisted twice anymore
+            if (sortedByUpdatedAtDesc.remove(eventEntity)) {
+              jpaRepository.deleteAllById(sortedByUpdatedAtDesc.stream()
+                  .map(HCalendarEvent::getId)
+                  .collect(Collectors.toList())
+              );
+            }
+            /*TODO: END*/
             Instant savedUpdatedAt = eventEntity.getUpdatedAt();
             id = eventEntity.getId();
             isNewEvent = false;
             isSync = actualUpdatedAt.compareTo(savedUpdatedAt) == 0;
           }
-          return eventMapper.toDomain(id, isSync, isNewEvent, actualUpdatedAt, event);
+          return eventMapper.toDomain(id, isSync, isNewEvent, actualUpdatedAt, googleEvent);
         })
         .collect(Collectors.toList());
   }

@@ -7,6 +7,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -28,6 +29,7 @@ public class ProspectEvaluationJob {
   private Instant startedAt;
   private Instant endedAt;
   private List<Prospect> results = new ArrayList<>();
+  private Map<String, String> metadata;
 
   public Duration getDuration() {
     return endedAt == null ? Duration.between(startedAt, Instant.now())

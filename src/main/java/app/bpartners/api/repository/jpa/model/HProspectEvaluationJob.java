@@ -52,4 +52,5 @@ public class HProspectEvaluationJob implements Serializable {
   private ProspectEvaluationJobType type;
   private Instant startedAt;
   private Instant endedAt;
+  private String metadataString;
 }

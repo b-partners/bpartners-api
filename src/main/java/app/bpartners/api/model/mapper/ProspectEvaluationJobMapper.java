@@ -6,15 +6,20 @@ import app.bpartners.api.model.prospect.Prospect;
 import app.bpartners.api.model.prospect.job.ProspectEvaluationJob;
 import app.bpartners.api.repository.jpa.model.HProspect;
 import app.bpartners.api.repository.jpa.model.HProspectEvaluationJob;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
+import lombok.SneakyThrows;
 import org.springframework.stereotype.Component;
+
+import static app.bpartners.api.service.utils.StringUtils.toMetadataMap;
 
 @Component
 @AllArgsConstructor
 public class ProspectEvaluationJobMapper {
+  private final ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
   private final ProspectMapper prospectMapper;
 
   public ProspectEvaluationJob toDomain(HProspectEvaluationJob entity, List<HProspect> results) {
@@ -37,9 +42,11 @@ public class ProspectEvaluationJobMapper {
               return prospectMapper.toDomain(prospect, location);
             })
             .collect(Collectors.toList()))
+        .metadata(toMetadataMap(entity.getMetadataString()))
         .build();
   }
 
+  @SneakyThrows
   public HProspectEvaluationJob toEntity(ProspectEvaluationJob domain,
                                          List<HProspect> existingResults) {
     List<HProspect> actualResults = domain.getResults().stream()
@@ -64,6 +71,7 @@ public class ProspectEvaluationJobMapper {
         .results(prospects)
         .startedAt(domain.getStartedAt())
         .endedAt(domain.getEndedAt())
+        .metadataString(objectMapper.writeValueAsString(domain.getMetadata()))
         .build();
   }
 }

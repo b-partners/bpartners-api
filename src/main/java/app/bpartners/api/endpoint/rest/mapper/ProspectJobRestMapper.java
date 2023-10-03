@@ -16,14 +16,19 @@ import app.bpartners.api.model.prospect.job.EvaluationRules;
 import app.bpartners.api.model.prospect.job.EventJobRunner;
 import app.bpartners.api.model.prospect.job.ProspectEvaluationJobRunner;
 import app.bpartners.api.model.prospect.job.SheetEvaluationJobRunner;
+import app.bpartners.api.service.utils.StringUtils;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
+import lombok.SneakyThrows;
 import org.springframework.stereotype.Component;
 
 @Component
 @AllArgsConstructor
 public class ProspectJobRestMapper {
+  private final ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
   private final ProspectJobValidator jobValidator;
 
+  @SneakyThrows
   public ProspectEvaluationJobRunner toDomain(String ahId,
                                               PutProspectEvaluationJob rest) {
     jobValidator.accept(rest);
@@ -43,6 +48,7 @@ public class ProspectJobRestMapper {
       var antiHarmRules = evaluationRules.getAntiHarmRules();
       return ProspectEvaluationJobRunner.builder()
           .jobId(rest.getJobId())
+          .metadata(StringUtils.toMetadataMap(objectMapper.writeValueAsString(rest)))
           .eventJobRunner(
               toDomain(ahId,
                   eventConversion.getCalendarId(),
@@ -60,6 +66,7 @@ public class ProspectJobRestMapper {
       SheetRange sheetRange = sheetProperties.getRanges();
       return ProspectEvaluationJobRunner.builder()
           .jobId(rest.getJobId())
+          .metadata(StringUtils.toMetadataMap(objectMapper.writeValueAsString(rest)))
           .sheetJobRunner(
               toDomain(spreadSheetEvaluation.getArtisanOwner(),
                   evaluationRules,

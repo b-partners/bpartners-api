@@ -679,6 +679,10 @@ components:
       properties:
         jobId:
           type: string
+        metadata:
+          type: object
+          additionalProperties:
+            type: string
         eventProspectConversion:
           $ref: '#/components/schemas/PutEventProspectConversion'
         spreadSheetEvaluation:

@@ -146,6 +146,7 @@ public class ProspectService {
     List<ProspectEvaluationJob> jobs = jobRunners.stream()
         .map(jobRunner -> ProspectEvaluationJob.builder()
             .id(jobRunner.getJobId())
+            .metadata(jobRunner.getMetadata())
             .idAccountHolder(ahId)
             .type(getJobType(jobRunner))
             .jobStatus(new ProspectEvaluationJobStatus()

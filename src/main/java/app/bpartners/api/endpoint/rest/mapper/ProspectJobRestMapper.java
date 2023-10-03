@@ -16,7 +16,9 @@ import app.bpartners.api.model.prospect.job.EvaluationRules;
 import app.bpartners.api.model.prospect.job.EventJobRunner;
 import app.bpartners.api.model.prospect.job.ProspectEvaluationJobRunner;
 import app.bpartners.api.model.prospect.job.SheetEvaluationJobRunner;
+import java.util.Map;
 import lombok.AllArgsConstructor;
+import lombok.SneakyThrows;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -24,6 +26,7 @@ import org.springframework.stereotype.Component;
 public class ProspectJobRestMapper {
   private final ProspectJobValidator jobValidator;
 
+  @SneakyThrows
   public ProspectEvaluationJobRunner toDomain(String ahId,
                                               PutProspectEvaluationJob rest) {
     jobValidator.accept(rest);
@@ -34,6 +37,7 @@ public class ProspectJobRestMapper {
           "Only eventProspectConversion or spreadSheetEvaluation can be running"
               + " at once for now but no both");
     }
+    Map<String, String> metadata = rest.getMetadata() == null ? Map.of() : rest.getMetadata();
     if (eventConversion != null) {
       var evaluationRules = eventConversion.getEvaluationRules();
       var ratingProperties = eventConversion.getRatingProperties();
@@ -43,6 +47,7 @@ public class ProspectJobRestMapper {
       var antiHarmRules = evaluationRules.getAntiHarmRules();
       return ProspectEvaluationJobRunner.builder()
           .jobId(rest.getJobId())
+          .metadata(metadata)
           .eventJobRunner(
               toDomain(ahId,
                   eventConversion.getCalendarId(),
@@ -60,6 +65,7 @@ public class ProspectJobRestMapper {
       SheetRange sheetRange = sheetProperties.getRanges();
       return ProspectEvaluationJobRunner.builder()
           .jobId(rest.getJobId())
+          .metadata(metadata)
           .sheetJobRunner(
               toDomain(spreadSheetEvaluation.getArtisanOwner(),
                   evaluationRules,

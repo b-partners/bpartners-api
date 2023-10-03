@@ -679,6 +679,10 @@ components:
       properties:
         jobId:
           type: string
+        metadata:
+          type: object
+          additionalProperties:
+            type: string
         eventProspectConversion:
           $ref: '#/components/schemas/PutEventProspectConversion'
         spreadSheetEvaluation:
@@ -769,6 +773,10 @@ components:
         endedAt:
           type: string
           format: date-time
+        metadata:
+          type: object
+          additionalProperties:
+            type: string
     ProspectEvaluationJobStatus:
       allOf:
         - $ref: './api.yml#/components/schemas/JobStatus'

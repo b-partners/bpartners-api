@@ -45,6 +45,7 @@ public class HProspectEvalInfo {
   private String city;
   private String category; //TODO: check if must be enum
   private String subcategory; //TODO: check if must be enum
+  private String defaultComment;
   @Type(type = "pgsql_enum")
   @Enumerated(EnumType.STRING)
   private ProspectEvalInfo.ContactNature contactNature;

@@ -487,6 +487,13 @@ public class ProspectService {
                                             ProspectEval eval,
                                             ProspectEvalInfo info,
                                             GeoUtils.Coordinate coordinates) {
+    Integer townCode;
+    try {
+      townCode =
+          info == null ? null : Integer.valueOf(info.getPostalCode());
+    } catch (NumberFormatException e) {
+      townCode = null;
+    }
     return Prospect.builder()
         .id(String.valueOf(randomUUID())) //TODO: change when prospect eval can be override
         .idHolderOwner(eval == null ? null
@@ -495,6 +502,10 @@ public class ProspectService {
         .email(info == null ? null : info.getEmail())
         .phone(info == null ? null : info.getPhoneNumber())
         .address(info == null ? null : info.getAddress())
+        .status(TO_CONTACT) //Default when creating
+        .townCode(info == null ? null : townCode)
+        .defaultComment(info == null ? null
+            : info.getDefaultComment())
         .status(TO_CONTACT) //Default when creating
         .townCode(info == null ? null : Integer.valueOf(info.getPostalCode()))
         .location(new Geojson()

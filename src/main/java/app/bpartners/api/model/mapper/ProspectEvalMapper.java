@@ -43,6 +43,7 @@ public class ProspectEvalMapper {
         .posLongitude(coordinates == null ? null : coordinates.getLongitude())
         .companyCreationDate(prospect.getCompanyCreationDate())
         .prospectEvals(prospectEvals)
+        .defaultComment(prospect.getDefaultComment())
         .build();
   }
 
@@ -153,6 +154,7 @@ public class ProspectEvalMapper {
             .longitude(posLongitude)
             .latitude(posLatitude)
             .build())
+        .defaultComment(infoEntity.getDefaultComment())
         .build();
   }
 }

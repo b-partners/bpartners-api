@@ -278,6 +278,7 @@ public class ProspectEvaluationJobInitiatedService
               .address(info.getAddress())
               .status(ProspectStatus.TO_CONTACT)
               .townCode(Integer.valueOf(info.getPostalCode()))
+              .defaultComment(info.getDefaultComment())
               .comment(null)
               .contractAmount(null)
               .prospectFeedback(null)
@@ -360,12 +361,13 @@ public class ProspectEvaluationJobInitiatedService
                                              SheetEvaluationJobRunner sheetProspectEvaluation) {
     var sheetProperties = sheetProspectEvaluation.getSheetProperties();
     var sheetRange = sheetProperties.getRanges();
-    return prospectService.readEvaluationsFromSheets(
+    List<ProspectEval> prospectEvals = prospectService.readEvaluationsFromSheets(
         idUser,
         sheetProspectEvaluation.getArtisanOwner(),
         sheetProperties.getSpreadsheetName(),
         sheetProperties.getSheetName(),
         sheetRange.getMin(),
         sheetRange.getMax());
+    return prospectEvals;
   }
 }

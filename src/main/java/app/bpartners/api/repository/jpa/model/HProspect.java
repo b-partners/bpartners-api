@@ -57,6 +57,7 @@ public class HProspect {
   private Double rating;
   private Instant lastEvaluationDate;
   private String comment;
+  private String defaultComment;
   private String contractAmount;
   private String idInvoice;
   @Type(type = "pgsql_enum")

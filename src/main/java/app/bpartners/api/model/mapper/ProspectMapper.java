@@ -113,6 +113,7 @@ public class ProspectMapper {
           .posLongitude(location == null ? null : location.getLongitude())
           .posLatitude(location == null ? null : location.getLatitude())
           .comment(domain.getComment())
+          .defaultComment(domain.getDefaultComment())
           .idInvoice(domain.getIdInvoice())
           .prospectFeedback(domain.getProspectFeedback())
           .contractAmount(
@@ -137,6 +138,7 @@ public class ProspectMapper {
         .lastEvaluationDate(lastEvaluationDate)
         .posLongitude(location == null ? null : location.getLongitude())
         .posLatitude(location == null ? null : location.getLatitude())
+        .defaultComment(domain.getDefaultComment())
         .build();
   }
 
@@ -157,6 +159,7 @@ public class ProspectMapper {
             .lastEvaluationDate(entity.getLastEvaluationDate())
             .build())
         .comment(entity.getComment())
+        .defaultComment(entity.getDefaultComment())
         .prospectFeedback(entity.getProspectFeedback())
         .idInvoice(entity.getIdInvoice())
         .contractAmount(entity.getContractAmount() == null

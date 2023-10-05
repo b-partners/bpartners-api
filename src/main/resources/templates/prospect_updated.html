@@ -1,0 +1,39 @@
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Prospect mis à jour</title>
+    <style>
+
+        body {
+            font-family: Helvetica, serif;
+        }
+    </style>
+</head>
+<body>
+<section>
+    <p>Bonjour,</p>
+    <p>Le statut du prospect <span th:text="${prospect.getName()}"></span> de l'artisan
+        <span th:text="${accountHolder.getName()}"></span> a été mis à jour en
+        <span th:text="${translatedStatus}"></span> le <span th:text="${frenchUpdatedDatetime}"></span>
+    </p>
+    <p>Pour rappel, voici les informations concernant ce prospect : </p>
+    <ul>
+        <li>Nom : <span th:text="${prospect.getName()}"></span></li>
+        <li>Email : <span th:text="${prospect.getEmail()}"></span></li>
+        <li>Téléphone : <span th:text="${prospect.getPhone()}"></span></li>
+        <li>Adresse : <span th:text="${prospect.getAddress()}"></span></li>
+        <li>Notation du prospect sur 10 :
+            <span th:text="${#numbers.formatDecimal(prospect.getRating().getValue(),1,2)}"></span></li>
+    </ul>
+    <footer>
+        <p>
+            L'équipe BPartners<br/>
+            BPartners - assistant intelligent des artisans & indépendants<br/>
+            27 rue du Chemin Vert, 75011, Paris<br/>
+            01 84 80 31 69<br/>
+            07 58 21 18 53<br/>
+            <a href="https://www.bpartners.app">https://www.bpartners.app</a>
+        </p>
+    </footer>
+</section>
+</body>
+</html>

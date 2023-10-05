@@ -1,3 +1,25 @@
+# [0.33.0](https://github.com/b-partners/bpartners-api/compare/v0.32.2...v0.33.0) (2023-10-05)
+
+
+### Bug Fixes
+
+* avoid NPE when getting calendar events through google calendar ([14b3f35](https://github.com/b-partners/bpartners-api/commit/14b3f35f210f6e9f85562626a1310314a4151d4e))
+* do not filter old customers by distance when evaluting prospects ([0e58062](https://github.com/b-partners/bpartners-api/commit/0e5806245215381077981b4c61d7ca695d799b23))
+* return metadata when launching new prospect evaluation job ([b0d980a](https://github.com/b-partners/bpartners-api/commit/b0d980a87984048be10510a62fe39b70863c2762))
+
+
+### Features
+
+* import prospects through google sheet ([a81e1b7](https://github.com/b-partners/bpartners-api/commit/a81e1b70c6f44dff906915c20451e8b375fd42e1))
+* send email to admin after each prospect update status ([607a61c](https://github.com/b-partners/bpartners-api/commit/607a61cf132fa5d73aeef0e9b44c2b947e654f13))
+
+
+### Reverts
+
+* Revert "infra: update listener rule target to xx-api.{env}.xxx"  ([fb59abc](https://github.com/b-partners/bpartners-api/commit/fb59abcd67dac31daf815e7648654ddd365722ac))
+
+
+
 ## [0.32.2](https://github.com/b-partners/bpartners-api/compare/v0.32.1...v0.32.2) (2023-09-26)
 
 
@@ -124,15 +146,6 @@
 ### Features
 
 * update prospect status with new attributes ([e34ce11](https://github.com/b-partners/bpartners-api/commit/e34ce11ee49122cf81f3cfbd2c2d6d5735d9b0e2))
-
-
-
-## [0.26.1](https://github.com/b-partners/bpartners-api/compare/v0.26.0...v0.26.1) (2023-08-30)
-
-
-### Bug Fixes
-
-* **api:** archiveStatus query param schema in getInvoices operation ([a5dd1f9](https://github.com/b-partners/bpartners-api/commit/a5dd1f9ef3f60223c5754f504f421d7f3322432c))
 
 
 

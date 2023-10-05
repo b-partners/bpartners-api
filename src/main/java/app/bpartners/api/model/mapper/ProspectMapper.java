@@ -4,6 +4,7 @@ import app.bpartners.api.endpoint.rest.model.Geojson;
 import app.bpartners.api.endpoint.rest.model.ProspectFeedback;
 import app.bpartners.api.endpoint.rest.model.ProspectStatus;
 import app.bpartners.api.endpoint.rest.security.AuthenticatedResourceProvider;
+import app.bpartners.api.model.ProspectHistory;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.exception.NotImplementedException;
@@ -15,6 +16,7 @@ import app.bpartners.api.repository.expressif.ProspectEvalInfo;
 import app.bpartners.api.repository.expressif.fact.NewIntervention;
 import app.bpartners.api.repository.jpa.ProspectJpaRepository;
 import app.bpartners.api.repository.jpa.model.HProspect;
+import app.bpartners.api.service.ProspectHistoryService;
 import app.bpartners.api.service.utils.DateUtils;
 import com.google.api.services.sheets.v4.model.CellData;
 import com.google.api.services.sheets.v4.model.RowData;
@@ -52,6 +54,7 @@ public class ProspectMapper {
   private final AuthenticatedResourceProvider provider;
   private final ProspectJpaRepository jpaRepository;
   private final BanApi banApi;
+  private final ProspectHistoryService historyService;
 
   private static String checkIfOldOrNew(String toCheck,
                                         String expected) {
@@ -95,7 +98,6 @@ public class ProspectMapper {
           .contractAmount(null)
           .prospectFeedback(null)
           .idInvoice(null)
-          .status(ProspectStatus.TO_CONTACT)
           .build();
     } else {
       return actualEntity.toBuilder()
@@ -105,7 +107,6 @@ public class ProspectMapper {
           .newName(checkIfOldOrNew(domain.getName(), actualEntity.getOldName()))
           .newAddress(checkIfOldOrNew(domain.getAddress(), actualEntity.getOldAddress()))
           .newEmail(checkIfOldOrNew(domain.getEmail(), actualEntity.getOldEmail()))
-          .status(domain.getStatus())
           .idAccountHolder(prospectOwnerId)
           .townCode(domain.getTownCode())
           .rating(rating)
@@ -129,7 +130,6 @@ public class ProspectMapper {
         .oldPhone(domain.getPhone())
         .oldName(domain.getName())
         .oldEmail(domain.getEmail())
-        .status(domain.getStatus())
         .oldAddress(domain.getAddress())
         .idAccountHolder(prospectOwnerId)
         .townCode(domain.getTownCode())
@@ -141,6 +141,7 @@ public class ProspectMapper {
   }
 
   public Prospect toDomain(HProspect entity, Geojson location) {
+    ProspectHistory history = historyService.getLatestHistoryByIdProspect(entity.getId());
     return Prospect.builder()
         .id(entity.getId())
         .idJob(entity.getIdJob())
@@ -150,7 +151,7 @@ public class ProspectMapper {
         .name(isNewExists(entity.getNewName(), entity.getOldName()))
         .phone(isNewExists(entity.getNewPhone(), entity.getOldPhone()))
         .location(location)
-        .status(entity.getStatus())
+        .status(history.getStatus())
         .townCode(entity.getTownCode())
         .rating(Prospect.ProspectRating.builder()
             .value(entity.getRating())

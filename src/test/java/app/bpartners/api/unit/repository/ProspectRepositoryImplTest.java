@@ -3,6 +3,7 @@ package app.bpartners.api.unit.repository;
 import app.bpartners.api.endpoint.rest.security.AuthenticatedResourceProvider;
 import app.bpartners.api.model.AnnualRevenueTarget;
 import app.bpartners.api.model.mapper.ProspectEvalMapper;
+import app.bpartners.api.model.mapper.ProspectHistoryMapper;
 import app.bpartners.api.model.mapper.ProspectMapper;
 import app.bpartners.api.repository.AccountHolderRepository;
 import app.bpartners.api.repository.SogefiBuildingPermitRepository;
@@ -15,6 +16,7 @@ import app.bpartners.api.repository.jpa.ProspectJpaRepository;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitApi;
 import app.bpartners.api.service.AnnualRevenueTargetService;
 import app.bpartners.api.service.BusinessActivityService;
+import app.bpartners.api.service.ProspectHistoryService;
 import java.time.LocalDate;
 import java.util.Optional;
 import javax.persistence.EntityManager;
@@ -47,6 +49,8 @@ class ProspectRepositoryImplTest {
   ProspectEvalInfoJpaRepository evalInfoJpaRepositoryMock;
   BanApi banApiMock;
   EntityManager em;
+  ProspectHistoryService historyServiceMock;
+  ProspectHistoryMapper historyMapper;
 
 
   @BeforeEach
@@ -54,7 +58,8 @@ class ProspectRepositoryImplTest {
     prospectJpaRepositoryMock = mock(ProspectJpaRepository.class);
     banApiMock = mock(BanApi.class);
     prospectMapper =
-        new ProspectMapper(resourceProviderMock, prospectJpaRepositoryMock, banApiMock);
+        new ProspectMapper(resourceProviderMock, prospectJpaRepositoryMock, banApiMock,
+            historyServiceMock);
     buildingPermitApiMock = mock(BuildingPermitApi.class);
     sogefiBuildingPermitRepositoryMock = mock(SogefiBuildingPermitRepository.class);
     businessActivityServiceMock = mock(BusinessActivityService.class);
@@ -71,7 +76,7 @@ class ProspectRepositoryImplTest {
             sogefiBuildingPermitRepositoryMock, businessActivityServiceMock, resourceProviderMock,
             revenueTargetServiceMock, accountHolderRepositoryMock, municipalityJpaRepositoryMock,
             expressifApiMock, evalMapperMock, evalInfoJpaRepositoryMock, em,
-            sogefiBuildingPermitRepositoryMock);
+            sogefiBuildingPermitRepositoryMock, historyMapper, historyServiceMock);
     when(revenueTargetServiceMock.getByYear(JOE_DOE_ACCOUNT_ID, 2023)).thenReturn(
         Optional.ofNullable(
             AnnualRevenueTarget.builder()

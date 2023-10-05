@@ -1,14 +1,15 @@
 package app.bpartners.api.repository.implementation;
 
 import app.bpartners.api.endpoint.rest.model.JobStatusValue;
-import app.bpartners.api.model.prospect.job.ProspectEvaluationJob;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.mapper.ProspectEvaluationJobMapper;
+import app.bpartners.api.model.prospect.job.ProspectEvaluationJob;
 import app.bpartners.api.repository.ProspectEvaluationJobRepository;
 import app.bpartners.api.repository.jpa.ProspectEvaluationJobJpaRepository;
 import app.bpartners.api.repository.jpa.ProspectJpaRepository;
 import app.bpartners.api.repository.jpa.model.HProspect;
 import app.bpartners.api.repository.jpa.model.HProspectEvaluationJob;
+import app.bpartners.api.service.ProspectHistoryService;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
@@ -20,6 +21,7 @@ public class ProspectEvaluationJobRepositoryImpl implements ProspectEvaluationJo
   private final ProspectEvaluationJobJpaRepository jobJpaRepository;
   private final ProspectJpaRepository prospectJpaRepository;
   private final ProspectEvaluationJobMapper mapper;
+  private final ProspectHistoryService historyService;
 
   @Override
   public List<ProspectEvaluationJob> findAllByIdAccountHolderAndStatusesIn(String ahId,
@@ -46,7 +48,10 @@ public class ProspectEvaluationJobRepositoryImpl implements ProspectEvaluationJo
           return mapper.toEntity(job, results);
         })
         .collect(Collectors.toList());
-    return jobJpaRepository.saveAll(jobEntities).stream()
+    List<HProspectEvaluationJob> saved = jobJpaRepository.saveAll(jobEntities);
+    return saved.stream()
+        .peek(savedJob -> historyService.createDefaultHistoryForNewProspects(savedJob.getResults(),
+            savedJob.getIdAccountHolder()))
         .map(savedJob -> mapper.toDomain(savedJob, savedJob.getResults()))
         .collect(Collectors.toList());
   }

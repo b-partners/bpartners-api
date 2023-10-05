@@ -48,9 +48,6 @@ public class HProspect {
   private String newPhone;
   private String oldAddress;
   private String newAddress;
-  @Type(type = "pgsql_enum")
-  @Enumerated(EnumType.STRING)
-  private ProspectStatus status;
   private Integer townCode;
   private Double posLongitude;
   private Double posLatitude;

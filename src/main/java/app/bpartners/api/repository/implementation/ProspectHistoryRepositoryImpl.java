@@ -38,4 +38,9 @@ public class ProspectHistoryRepositoryImpl implements ProspectHistoryRepository 
         .map(mapper::toDomain)
         .collect(Collectors.toList());
   }
+
+  @Override
+  public ProspectHistory save(ProspectHistory toSave) {
+    return mapper.toDomain(jpaRepository.save(mapper.toEntity(toSave)));
+  }
 }

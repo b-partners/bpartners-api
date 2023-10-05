@@ -46,20 +46,29 @@ jobs:
           aws-secret-access-key: ${{ secrets.PROD_AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
+      - name: Retrieve Database identifier from Parameter Store and set it as Env
+        run: |
+          aws configure set default.output text
+          echo "dbIdentifier=$(aws ssm get-parameter --name /bpartners/$Env/db/identifier --query "Parameter.Value" | grep -o '^[^.]*')" >> $GITHUB_ENV  
+
+      - name: Get RDS Snapshot Count
+        id: snapshot_count
+        run: |
+            snapshot_count=$(aws rds describe-db-snapshots --db-instance-identifier ${{ env.dbIdentifier }} --query "length(DBSnapshots[?SnapshotType=='manual'])" --output text)
+            echo "Snapshot Count: $snapshot_count"
+            echo "##[set-output name=snapshot_count]$snapshot_count"
+
       - name: Get oldest RDS snapshot
+        if: steps.snapshot_count.outputs.snapshot_count > 90
         id: oldestSnapshot
         run: |
           oldest_snapshot=$(aws rds describe-db-snapshots --region eu-west-3 --snapshot-type manual | jq -r '.DBSnapshots | sort_by(.SnapshotCreateTime)[0].DBSnapshotIdentifier')
           echo "::set-output name=oldest_snapshot::$oldest_snapshot"
 
       - name: Delete RDS snapshot
+        if: steps.oldestSnapshot.outputs.oldest_snapshot != null
         run: |
           aws rds delete-db-snapshot --db-snapshot-identifier ${{ steps.oldestSnapshot.outputs.oldest_snapshot }}
-
-      - name: Retrieve Database identifier from Parameter Store and set it as Env
-        run: |
-          aws configure set default.output text
-          echo "dbIdentifier=$(aws ssm get-parameter --name /bpartners/$Env/db/identifier --query "Parameter.Value" | grep -o '^[^.]*')" >> $GITHUB_ENV
 
       - name: Get Time
         id: current-time

@@ -54,7 +54,7 @@ jobs:
       - name: Get RDS Snapshot Count
         id: snapshot_count
         run: |
-            snapshot_count=$(aws rds describe-db-snapshots --db-instance-identifier ${{ env.dbIdentifier }} --query "length(DBSnapshots[?SnapshotType=='manual'])" --output text)
+            snapshot_count=$(aws rds describe-db-snapshots --region eu-west-3 --snapshot-type manual --query "length(DBSnapshots[?SnapshotType=='manual'])" --output text)
             echo "Snapshot Count: $snapshot_count"
             echo "##[set-output name=snapshot_count]$snapshot_count"
 

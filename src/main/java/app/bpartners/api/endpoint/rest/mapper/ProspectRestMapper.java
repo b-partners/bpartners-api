@@ -113,7 +113,8 @@ public class ProspectRestMapper {
         .type(domain.getType())
         .status(domain.getJobStatus())
         .startedAt(domain.getStartedAt())
-        .endedAt(domain.getEndedAt());
+        .endedAt(domain.getEndedAt())
+        .metadata(domain.getMetadata());
   }
 
   public ProspectEvaluationJobDetails toRestResult(ProspectEvaluationJob domain) {
@@ -125,7 +126,8 @@ public class ProspectRestMapper {
         .endedAt(domain.getEndedAt())
         .results(domain.getResults().stream()
             .map(this::toRest)
-            .collect(Collectors.toList()));
+            .collect(Collectors.toList()))
+        .metadata(domain.getMetadata());
   }
 
   public app.bpartners.api.model.prospect.Prospect toDomain(UpdateProspect rest) {

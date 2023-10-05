@@ -2,7 +2,9 @@ package app.bpartners.api.service;
 
 import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.endpoint.event.model.TypedProspectEvaluationJobInitiated;
+import app.bpartners.api.endpoint.event.model.TypedProspectUpdated;
 import app.bpartners.api.endpoint.event.model.gen.ProspectEvaluationJobInitiated;
+import app.bpartners.api.endpoint.event.model.gen.ProspectUpdated;
 import app.bpartners.api.endpoint.rest.model.Geojson;
 import app.bpartners.api.endpoint.rest.model.JobStatusValue;
 import app.bpartners.api.endpoint.rest.model.NewInterventionOption;
@@ -118,8 +120,15 @@ public class ProspectService {
   }
 
   @Transactional
-  public Prospect save(Prospect toSave) {
-    return repository.save(toSave);
+  public Prospect update(Prospect toSave) {
+    Prospect savedProspect = repository.save(toSave);
+    if (toSave.getStatus() != savedProspect.getStatus()) {
+      eventProducer.accept(List.of(new TypedProspectUpdated(ProspectUpdated.builder()
+          .prospect(savedProspect)
+          .updatedAt(Instant.now())
+          .build())));
+    }
+    return savedProspect;
   }
 
   @Scheduled(cron = Scheduled.CRON_DISABLED, zone = "Europe/Paris")
@@ -146,6 +155,7 @@ public class ProspectService {
     List<ProspectEvaluationJob> jobs = jobRunners.stream()
         .map(jobRunner -> ProspectEvaluationJob.builder()
             .id(jobRunner.getJobId())
+            .metadata(jobRunner.getMetadata())
             .idAccountHolder(ahId)
             .type(getJobType(jobRunner))
             .jobStatus(new ProspectEvaluationJobStatus()

@@ -151,11 +151,18 @@ public class ProspectRepositoryImpl implements ProspectRepository {
   public boolean isSogefiProspector(String idAccountHolder) {
     BusinessActivity businessActivity =
         businessActivityService.findByAccountHolderId(idAccountHolder);
-    return Objects.equals(0, TILE_LAYER.compareToIgnoreCase(businessActivity.getPrimaryActivity()))
-        || Objects.equals(0,
-        TILE_LAYER.compareToIgnoreCase(businessActivity.getSecondaryActivity())) || Objects.equals(
-        0, ROOFER.compareToIgnoreCase(businessActivity.getPrimaryActivity())) || Objects.equals(0,
-        ROOFER.compareToIgnoreCase(businessActivity.getSecondaryActivity()));
+    String secondaryActivity = businessActivity.getSecondaryActivity();
+    String primaryActivity = businessActivity.getPrimaryActivity();
+    if (primaryActivity == null && secondaryActivity == null) {
+      return false;
+    }
+    return primaryActivity != null
+        && Objects.equals(0, TILE_LAYER.compareToIgnoreCase(primaryActivity))
+        || secondaryActivity != null
+        && Objects.equals(0, TILE_LAYER.compareToIgnoreCase(secondaryActivity))
+        || primaryActivity != null && Objects.equals(0, ROOFER.compareToIgnoreCase(primaryActivity))
+        || secondaryActivity != null
+        && Objects.equals(0, ROOFER.compareToIgnoreCase(secondaryActivity));
   }
 
   public boolean isSogefiProspector(BusinessActivity businessActivity) {

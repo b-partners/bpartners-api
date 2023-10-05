@@ -1,6 +1,7 @@
 package app.bpartners.api.model.prospect.job;
 
 import java.io.Serializable;
+import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -16,6 +17,7 @@ import lombok.ToString;
 @ToString
 public class ProspectEvaluationJobRunner implements Serializable {
   private String jobId;
+  private Map<String, String> metadata;
   private EventJobRunner eventJobRunner;
   private SheetEvaluationJobRunner sheetJobRunner;
 

@@ -6,6 +6,7 @@ import app.bpartners.api.endpoint.event.model.gen.FeedbackRequested;
 import app.bpartners.api.endpoint.event.model.gen.InvoiceCrupdated;
 import app.bpartners.api.endpoint.event.model.gen.InvoiceRelaunchSaved;
 import app.bpartners.api.endpoint.event.model.gen.ProspectEvaluationJobInitiated;
+import app.bpartners.api.endpoint.event.model.gen.ProspectUpdated;
 import app.bpartners.api.endpoint.event.model.gen.UserOnboarded;
 import app.bpartners.api.endpoint.event.model.gen.UserUpserted;
 import app.bpartners.api.service.CustomerCrupdatedService;
@@ -15,6 +16,7 @@ import app.bpartners.api.service.InvoiceRelaunchSavedService;
 import app.bpartners.api.service.ProspectEvaluationJobInitiatedService;
 import app.bpartners.api.service.UserOnboardedService;
 import app.bpartners.api.service.UserUpsertedService;
+import app.bpartners.api.service.aws.ProspectUpdatedService;
 import java.io.Serializable;
 import java.util.function.Consumer;
 import lombok.AllArgsConstructor;
@@ -32,6 +34,7 @@ public class EventServiceInvoker implements Consumer<TypedEvent> {
   private final CustomerCrupdatedService customerCrupdatedService;
   private final UserOnboardedService userOnboardedService;
   private final ProspectEvaluationJobInitiatedService prospectJobInitiatedService;
+  private final ProspectUpdatedService prospectUpdatedService;
 
   @Override
   public void accept(TypedEvent typedEvent) {
@@ -48,8 +51,11 @@ public class EventServiceInvoker implements Consumer<TypedEvent> {
       customerCrupdatedService.accept((CustomerCrupdated) payload);
     } else if (UserOnboarded.class.getTypeName().equals(typedEvent.getTypeName())) {
       userOnboardedService.accept((UserOnboarded) payload);
-    } else if (ProspectEvaluationJobInitiated.class.getTypeName().equals(typedEvent.getTypeName())) {
+    } else if (ProspectEvaluationJobInitiated.class.getTypeName()
+        .equals(typedEvent.getTypeName())) {
       prospectJobInitiatedService.accept((ProspectEvaluationJobInitiated) payload);
+    } else if (ProspectUpdated.class.getTypeName().equals(typedEvent.getTypeName())) {
+      prospectUpdatedService.accept((ProspectUpdated) payload);
     } else {
       log.error("Unexpected type for event={}", typedEvent);
     }

@@ -220,7 +220,7 @@ public class ProspectController {
                                         @PathVariable("id") String prospectId,
                                         @RequestBody ExtendedProspectStatus toUpdate) {
     app.bpartners.api.model.prospect.Prospect prospect = mapper.toDomain(toUpdate);
-    return mapper.toRest(service.save(prospect));
+    return mapper.toRest(service.update(prospect));
   }
 
   @GetMapping("/accountHolders/{ahId}/prospects/evaluationJobs")

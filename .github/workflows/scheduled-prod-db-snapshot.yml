@@ -19,6 +19,7 @@ on:
 
 env:
   Env: prod
+  AWS_REGION: eu-west-3
 
 jobs:
   create-snapshot:
@@ -30,7 +31,7 @@ jobs:
             echo "Env=${{ inputs.target_env }}" >> $GITHUB_ENV
 
       - name: Configure preprod AWS credentials
-        if: $Env != 'prod'
+        if: ${{ env.Env != 'prod' }}
         uses: aws-actions/configure-aws-credentials@13d241b293754004c80624b5567555c4a39ffbe3
         with:
           aws-access-key-id: ${{ secrets.PREPROD_AWS_ACCESS_KEY_ID }}
@@ -38,7 +39,7 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Configure prod AWS credentials
-        if: $Env == 'prod'
+        if: ${{ env.Env == 'prod' }}
         uses: aws-actions/configure-aws-credentials@13d241b293754004c80624b5567555c4a39ffbe3
         with:
           aws-access-key-id: ${{ secrets.PROD_AWS_ACCESS_KEY_ID }}

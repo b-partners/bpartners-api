@@ -100,6 +100,7 @@ public class ProspectRestMapper {
             .value(prospectRating.getValue() == null ? BigDecimal.valueOf(-1.0)
                 : BigDecimal.valueOf(prospectRating.getValue())))
         .comment(domain.getComment())
+        .defaultComment(domain.getDefaultComment())
         .contractAmount(domain.getContractAmount() == null
             ? null
             : domain.getContractAmount().getCentsRoundUp())

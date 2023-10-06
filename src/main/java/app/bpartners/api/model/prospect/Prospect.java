@@ -34,6 +34,7 @@ public class Prospect implements Comparable<Prospect> {
   private Integer townCode;
   private ProspectRating rating;
   private String comment;
+  private String defaultComment;
   private Fraction contractAmount;
   private String idInvoice;
   private ProspectFeedback prospectFeedback;

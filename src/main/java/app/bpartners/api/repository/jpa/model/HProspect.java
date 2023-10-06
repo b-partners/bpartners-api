@@ -40,6 +40,7 @@ public class HProspect {
   private String idAccountHolder;
   @Column(name = "id_job")
   private String idJob;
+  private String managerName;
   private String oldName;
   private String newName;
   private String oldEmail;

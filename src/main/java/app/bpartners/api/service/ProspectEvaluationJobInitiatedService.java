@@ -268,6 +268,7 @@ public class ProspectEvaluationJobInitiatedService
               .idJob(runningJob.getId())
               .idHolderOwner(accountHolder.getId())
               .name(info.getName())
+              .managerName(info.getManagerName())
               .email(info.getEmail())
               .phone(info.getPhoneNumber())
               .location(new Geojson()

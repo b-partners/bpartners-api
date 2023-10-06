@@ -125,7 +125,7 @@ public class SheetApi {
     Sheets sheetsService = initService(sheetsConf, credential);
     Spreadsheet spreadsheet;
     try {
-      String range = String.format("'%s'!A%d:AE%d", sheetName, minRange, maxRange);
+      String range = String.format("'%s'!A%d:AF%d", sheetName, minRange, maxRange);
       spreadsheet = sheetsService.spreadsheets().get(idSpreadsheet)
           .setRanges(List.of(range))
           .setIncludeGridData(true)

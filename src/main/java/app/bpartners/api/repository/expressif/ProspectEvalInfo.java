@@ -32,6 +32,7 @@ public class ProspectEvalInfo {
   private String subcategory; //TODO: check if must be enum
   private ContactNature contactNature;
   protected GeoUtils.Coordinate coordinates;
+  private String defaultComment;
 
   public enum ContactNature {
     PROSPECT, OLD_CUSTOMER, OTHER

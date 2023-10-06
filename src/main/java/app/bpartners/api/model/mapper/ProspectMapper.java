@@ -48,7 +48,7 @@ public class ProspectMapper {
 
   public static final String PROSPECT_CONTACT_NATURE = "prospect";
   public static final String OLD_CUSTOMER_CONTACT_NATURE = "ancien client";
-  public static final int OWNER_ID_CELL_INDEX = 30;
+  public static final int OWNER_ID_CELL_INDEX = 31;
   private final AuthenticatedResourceProvider provider;
   private final ProspectJpaRepository jpaRepository;
   private final BanApi banApi;
@@ -113,6 +113,7 @@ public class ProspectMapper {
           .posLongitude(location == null ? null : location.getLongitude())
           .posLatitude(location == null ? null : location.getLatitude())
           .comment(domain.getComment())
+          .defaultComment(domain.getDefaultComment())
           .idInvoice(domain.getIdInvoice())
           .prospectFeedback(domain.getProspectFeedback())
           .contractAmount(
@@ -137,6 +138,7 @@ public class ProspectMapper {
         .lastEvaluationDate(lastEvaluationDate)
         .posLongitude(location == null ? null : location.getLongitude())
         .posLatitude(location == null ? null : location.getLatitude())
+        .defaultComment(domain.getDefaultComment())
         .build();
   }
 
@@ -157,6 +159,7 @@ public class ProspectMapper {
             .lastEvaluationDate(entity.getLastEvaluationDate())
             .build())
         .comment(entity.getComment())
+        .defaultComment(entity.getDefaultComment())
         .prospectFeedback(entity.getProspectFeedback())
         .idInvoice(entity.getIdInvoice())
         .contractAmount(entity.getContractAmount() == null
@@ -179,22 +182,22 @@ public class ProspectMapper {
           builder.id(String.valueOf(randomUUID()));
           builder.prospectEvalInfo(info);
           builder.prospectOwnerId(info.getOwner());
-          setBuilderJobValue(builder, cells.get(14));
-          builder.insectControl(rowBooleanValue(cells.get(15)));
-          builder.disinfection(rowBooleanValue(cells.get(16)));
-          builder.ratRemoval(rowBooleanValue(cells.get(17)));
-          builder.particularCustomer(rowBooleanValue(cells.get(18)));
-          builder.professionalCustomer(rowBooleanValue(cells.get(19)));
+          setBuilderJobValue(builder, cells.get(15));
+          builder.insectControl(rowBooleanValue(cells.get(16)));
+          builder.disinfection(rowBooleanValue(cells.get(17)));
+          builder.ratRemoval(rowBooleanValue(cells.get(18)));
+          builder.particularCustomer(rowBooleanValue(cells.get(19)));
+          builder.professionalCustomer(rowBooleanValue(cells.get(20)));
 
-          String depaRuleValue = cells.get(13).getFormattedValue();
+          String depaRuleValue = cells.get(14).getFormattedValue();
           if (depaRuleValue.equals(DEPA_RULE_NEW_INTERVENTION)) {
-            String newIntAddress = cells.get(23).getFormattedValue();
+            String newIntAddress = cells.get(24).getFormattedValue();
             GeoPosition newIntPos = banApi.fSearch(newIntAddress);
-            String oldCustomerAddress = cells.get(26).getFormattedValue();
+            String oldCustomerAddress = cells.get(27).getFormattedValue();
             builder.depaRule(NewIntervention.builder()
-                .planned(rowBooleanValue(cells.get(20)))
-                .interventionType(getInterventionType(cells.get(21)))
-                .infestationType(getInfestationType(cells.get(22)))
+                .planned(rowBooleanValue(cells.get(21)))
+                .interventionType(getInterventionType(cells.get(22)))
+                .infestationType(getInfestationType(cells.get(23)))
                 .newIntAddress(newIntAddress)
                 .distNewIntAndProspect(
                     newIntPos == null || info.getCoordinates() == null ? null
@@ -203,8 +206,8 @@ public class ProspectMapper {
                 .coordinate(newIntPos == null ? null : newIntPos.getCoordinates())
                 .oldCustomer(NewIntervention.OldCustomer.builder()
                     .idCustomer(null) //Here to make it more explicit, we show actual customer value
-                    .type(getCustomerType(cells.get(24)))
-                    .professionalType(getProfessionalType(cells.get(25)))
+                    .type(getCustomerType(cells.get(25)))
+                    .professionalType(getProfessionalType(cells.get(26)))
                     //TODO: Must be provided from database customer
                     .oldCustomerAddress(oldCustomerAddress)
                     //Explicitly, this distance is provided from provided address
@@ -392,10 +395,11 @@ public class ProspectMapper {
     prospectPropertyActions.add(
         (builder, currentCell) -> builder.city(currentCell.getFormattedValue()));
     prospectPropertyActions.add((builder, currentCell) -> builder.companyCreationDate(
-        DateUtils.from_dd_MM_YYYY(currentCell.getFormattedValue()))
-    );
+        DateUtils.from_dd_MM_YYYY(currentCell.getFormattedValue())));
     prospectPropertyActions.add((builder, currentCell) -> builder.contactNature(
         getContactNature(currentCell.getFormattedValue())));
+    prospectPropertyActions.add((builder, currentCell) -> builder.defaultComment(
+        currentCell.getFormattedValue()));
     prospectPropertyActions.add(
         (builder, currentCell) -> builder.owner(currentCell.getFormattedValue()));
     return prospectPropertyActions;

@@ -535,6 +535,8 @@ components:
         - $ref: '#/components/schemas/UpdateProspect'
         - $ref: '#/components/schemas/ProspectStatusDetails'
       properties:
+        defaultComment:
+          type: string
         rating:
           $ref: '#/components/schemas/ProspectRating'
         area:

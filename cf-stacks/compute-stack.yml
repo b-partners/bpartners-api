@@ -128,6 +128,8 @@ Resources:
               Value: !Sub '{{resolve:ssm:/bpartners/${Env}/google/sheet/client/secret}}'
             - Name: GOOGLE_SHEET_REDIRECT_URIS
               Value: !Sub '{{resolve:ssm:/bpartners/${Env}/google/sheet/redirect/uris}}'
+            - Name: ADMIN_EMAIL
+              Value: !Sub '{{resolve:ssm:/bpartners/${Env}/admin/email}}'
           LogConfiguration:
             LogDriver: awslogs
             Options:

@@ -10,7 +10,6 @@ import app.bpartners.api.endpoint.rest.model.JobStatusValue;
 import app.bpartners.api.endpoint.rest.model.NewInterventionOption;
 import app.bpartners.api.endpoint.rest.model.ProspectEvaluationJobStatus;
 import app.bpartners.api.endpoint.rest.model.ProspectEvaluationJobType;
-import app.bpartners.api.endpoint.rest.model.ProspectStatus;
 import app.bpartners.api.model.Customer;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.exception.BadRequestException;
@@ -59,6 +58,9 @@ import static app.bpartners.api.endpoint.rest.model.JobStatusValue.IN_PROGRESS;
 import static app.bpartners.api.endpoint.rest.model.JobStatusValue.NOT_STARTED;
 import static app.bpartners.api.endpoint.rest.model.NewInterventionOption.NEW_PROSPECT;
 import static app.bpartners.api.endpoint.rest.model.NewInterventionOption.OLD_CUSTOMER;
+import static app.bpartners.api.endpoint.rest.model.ProspectStatus.CONTACTED;
+import static app.bpartners.api.endpoint.rest.model.ProspectStatus.CONVERTED;
+import static app.bpartners.api.endpoint.rest.model.ProspectStatus.TO_CONTACT;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 import static app.bpartners.api.repository.expressif.fact.NewIntervention.OldCustomer.OldCustomerType.INDIVIDUAL;
 import static app.bpartners.api.repository.google.sheets.SheetConf.GRID_SHEET_TYPE;
@@ -121,14 +123,31 @@ public class ProspectService {
 
   @Transactional
   public Prospect update(Prospect toSave) {
+    Prospect existing = repository.getById(toSave.getId());
+    //validateStatusUpdateFlow(toSave, existing);
     Prospect savedProspect = repository.save(toSave);
-    if (toSave.getStatus() != savedProspect.getStatus()) {
+    if (existing.getStatus() != savedProspect.getStatus()) {
       eventProducer.accept(List.of(new TypedProspectUpdated(ProspectUpdated.builder()
           .prospect(savedProspect)
           .updatedAt(Instant.now())
           .build())));
     }
     return savedProspect;
+  }
+
+  private void validateStatusUpdateFlow(Prospect toSave, Prospect existing) {
+    StringBuilder exceptionBuilder = new StringBuilder();
+    if (toSave.getStatus() == TO_CONTACT && existing.getStatus() != CONTACTED) {
+      exceptionBuilder.append("Prospect(id=").append(toSave.getId()).append(",status=")
+          .append(toSave.getStatus()).append(") can only be updated to status ").append(CONTACTED);
+    } else if (toSave.getStatus() == CONTACTED && existing.getStatus() != CONVERTED) {
+      exceptionBuilder.append("Prospect(id=").append(toSave.getId()).append(",status=")
+          .append(toSave.getStatus()).append(") can only be updated to status ").append(CONVERTED);
+    }
+    String errorMsg = exceptionBuilder.toString();
+    if (!errorMsg.isEmpty()) {
+      throw new BadRequestException(errorMsg);
+    }
   }
 
   @Scheduled(cron = Scheduled.CRON_DISABLED, zone = "Europe/Paris")
@@ -476,7 +495,7 @@ public class ProspectService {
         .email(info == null ? null : info.getEmail())
         .phone(info == null ? null : info.getPhoneNumber())
         .address(info == null ? null : info.getAddress())
-        .status(ProspectStatus.TO_CONTACT) //Default when creating
+        .status(TO_CONTACT) //Default when creating
         .townCode(info == null ? null : Integer.valueOf(info.getPostalCode()))
         .location(new Geojson()
             .latitude(coordinates == null ? null
@@ -500,7 +519,7 @@ public class ProspectService {
         .email(customer.getEmail())
         .phone(customer.getPhone())
         .address(customer.getFullAddress())
-        .status(ProspectStatus.TO_CONTACT) //Default when creating
+        .status(TO_CONTACT) //Default when creating
         .townCode(Integer.valueOf(customer.getZipCode()))
         .location(new Geojson()
             .latitude(customer.getLocation().getCoordinate().getLatitude())

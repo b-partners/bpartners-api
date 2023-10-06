@@ -3,7 +3,11 @@ package app.bpartners.api.service;
 import app.bpartners.api.endpoint.event.model.gen.CustomerCrupdated;
 import app.bpartners.api.model.Attachment;
 import app.bpartners.api.model.Customer;
+import app.bpartners.api.model.Location;
 import app.bpartners.api.model.User;
+import app.bpartners.api.repository.CustomerRepository;
+import app.bpartners.api.repository.ban.BanApi;
+import app.bpartners.api.repository.ban.model.GeoPosition;
 import app.bpartners.api.service.aws.SesService;
 import java.io.IOException;
 import java.util.List;
@@ -22,6 +26,8 @@ import static app.bpartners.api.service.utils.TemplateResolverUtils.parseTemplat
 public class CustomerCrupdatedService implements Consumer<CustomerCrupdated> {
   public static final String CUSTOMER_CRUPDATED_MAIL = "customer_crupdated_mail";
   private final SesService service;
+  private final CustomerRepository customerRepository;
+  private final BanApi banApi;
 
   @Override
   public void accept(CustomerCrupdated customerCrupdated) {
@@ -31,12 +37,24 @@ public class CustomerCrupdatedService implements Consumer<CustomerCrupdated> {
     CustomerCrupdated.Type type = customerCrupdated.getType();
     List<Attachment> attachments = List.of();
 
+    Customer updatedCustomer = customer.toBuilder().build();
+    GeoPosition customerPosition = banApi.fSearch(customer.getAddress());
+    if (!customerPosition.getCoordinates().equals(
+        customer.getLocation().getCoordinate())) {
+      updatedCustomer = customerRepository.save(customer.toBuilder()
+          .location(Location.builder()
+              .coordinate(customerPosition.getCoordinates())
+              .address(customer.getAddress())
+              .longitude(customerPosition.getCoordinates().getLongitude())
+              .latitude(customerPosition.getCoordinates().getLatitude())
+              .build())
+          .build());
+    }
+
     String
         htmlBody = parseTemplateResolver(CUSTOMER_CRUPDATED_MAIL,
-        configureCustomerContext(customerCrupdated.getUser(), customer,
+        configureCustomerContext(customerCrupdated.getUser(), updatedCustomer,
             type));
-
-
     try {
       service.sendEmail(recipient, null, subject, htmlBody, attachments);
     } catch (MessagingException | IOException e) {

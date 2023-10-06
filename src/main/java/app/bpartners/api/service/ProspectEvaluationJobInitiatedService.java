@@ -86,7 +86,7 @@ public class ProspectEvaluationJobInitiatedService
               idUser,
               eventJobRunner.getCalendarId(),
               //TODO: check if local or google calendar is the most appropriate
-              CalendarProvider.LOCAL,
+              CalendarProvider.GOOGLE_CALENDAR,
               ranges.getFrom(),
               ranges.getTo());
           List<CalendarEvent> eventsWithAddress = calendarEvents.stream()

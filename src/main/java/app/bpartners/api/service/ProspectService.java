@@ -499,6 +499,7 @@ public class ProspectService {
         .idHolderOwner(eval == null ? null
             : eval.getProspectOwnerId())
         .name(info == null ? null : info.getName())
+        .managerName(info == null ? null : info.getManagerName())
         .email(info == null ? null : info.getEmail())
         .phone(info == null ? null : info.getPhoneNumber())
         .address(info == null ? null : info.getAddress())
@@ -527,6 +528,7 @@ public class ProspectService {
         .id(String.valueOf(randomUUID())) //TODO: change when prospect eval can be override
         .idHolderOwner(eval.getProspectOwnerId())
         .name(customer.getName())
+        .managerName(customer.getName())
         .email(customer.getEmail())
         .phone(customer.getPhone())
         .address(customer.getFullAddress())

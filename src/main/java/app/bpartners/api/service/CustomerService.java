@@ -158,21 +158,29 @@ public class CustomerService {
     customers.forEach(customer -> {
       if (customer.getAddress() != null) {
         try {
-          GeoPosition position = banApi.search(customer.getFullAddress());
-          if (position == null) {
-            sb.append("Customer(id=")
-                .append(customer.getId())
-                .append(") location was not updated because")
-                .append(" address ")
-                .append(customer.getFullAddress())
-                .append(" was not found");
+          String fullAddress = customer.getFullAddress();
+          if (fullAddress.length() < 3 || fullAddress.length() > 200) {
+            sb.append(
+                String.format(
+                    "Unable to update Customer(id=%s,name=%s) position because address was %s",
+                    customer.getId(), customer.getName(), fullAddress));
           } else {
-            Location newLocation = Location.builder()
-                .latitude(position.getCoordinates().getLatitude())
-                .longitude(position.getCoordinates().getLongitude())
-                .build();
-            customer.setLocation(newLocation);
-            repository.save(customer);
+            GeoPosition position = banApi.search(fullAddress);
+            if (position == null) {
+              sb.append("Customer(id=")
+                  .append(customer.getId())
+                  .append(") location was not updated because")
+                  .append(" address ")
+                  .append(fullAddress)
+                  .append(" was not found");
+            } else {
+              Location newLocation = Location.builder()
+                  .latitude(position.getCoordinates().getLatitude())
+                  .longitude(position.getCoordinates().getLongitude())
+                  .build();
+              customer.setLocation(newLocation);
+              repository.save(customer);
+            }
           }
         } catch (BadRequestException | NotFoundException e) {
           sb.append("Customer(id=")

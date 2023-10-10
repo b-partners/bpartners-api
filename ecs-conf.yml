@@ -13,4 +13,4 @@ envs:
     vCpu: 512
     memory: 1GB
     tasksDesiredCount: 1
-    listenerRuleAvailablePriority: 20
+    listenerRuleAvailablePriority: 10

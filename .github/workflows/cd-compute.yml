@@ -311,7 +311,7 @@ jobs:
         uses: aws-actions/aws-cloudformation-github-deploy@v1
         if: github.ref_name != 'prod-private-url' && github.ref_name != 'preprod-private-url'
         with:
-          name: ${{ env.branch_env }}-compute-bpartners
+          name: ${{ env.branch_env }}-old-compute-bpartners
           template: cf-stacks/compute-stack.yml
           tags: "[ { \"Key\": \"app\", \"Value\": \"bpartners\" }, { \"Key\": \"env\", \"Value\": \"${{ env.branch_env }}\" } ]"
           capabilities: CAPABILITY_NAMED_IAM

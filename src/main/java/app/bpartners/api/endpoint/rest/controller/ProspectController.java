@@ -30,6 +30,7 @@ import java.io.ByteArrayInputStream;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -48,6 +49,7 @@ import static java.util.stream.Collectors.toUnmodifiableList;
 
 @RestController
 @AllArgsConstructor
+@Slf4j
 public class ProspectController {
   public static final String NEW_INTERVENTION_OPTION = "newInterventionOption";
   public static final String MIN_CUSTOMER_RATING = "minCustomerRating";
@@ -187,6 +189,7 @@ public class ProspectController {
       @PathVariable("ahId") String accountHolderId,
       @RequestBody byte[] toEvaluate,
       @RequestHeader HttpHeaders headers) {
+    log.warn("POST /accountHolders/{ahId}/prospects/prospectsEvaluation is depreacted");
     String acceptHeaders = validator.validateAccept(headers.getFirst(HttpHeaders.ACCEPT));
     NewInterventionOption interventionOption =
         retrieveFromHeader(headers.getFirst(NEW_INTERVENTION_OPTION));

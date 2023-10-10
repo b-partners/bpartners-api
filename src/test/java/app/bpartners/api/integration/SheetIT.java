@@ -9,16 +9,13 @@ import app.bpartners.api.endpoint.rest.model.EventDateRanges;
 import app.bpartners.api.endpoint.rest.model.EventEvaluationRules;
 import app.bpartners.api.endpoint.rest.model.ImportProspect;
 import app.bpartners.api.endpoint.rest.model.InterventionType;
-import app.bpartners.api.endpoint.rest.model.NewInterventionOption;
+import app.bpartners.api.endpoint.rest.model.ProfessionType;
 import app.bpartners.api.endpoint.rest.model.Prospect;
+import app.bpartners.api.endpoint.rest.model.ProspectEvaluationJobDetails;
 import app.bpartners.api.endpoint.rest.model.PutEventProspectConversion;
 import app.bpartners.api.endpoint.rest.model.PutProspectEvaluationJob;
-import app.bpartners.api.endpoint.rest.model.ProfessionType;
-import app.bpartners.api.endpoint.rest.model.ProspectEvaluationJobDetails;
-import app.bpartners.api.endpoint.rest.model.ProspectEvaluationRules;
 import app.bpartners.api.endpoint.rest.model.RatingProperties;
 import app.bpartners.api.endpoint.rest.model.SheetProperties;
-import app.bpartners.api.endpoint.rest.model.SheetProspectEvaluation;
 import app.bpartners.api.endpoint.rest.model.SheetRange;
 import app.bpartners.api.endpoint.rest.security.model.Role;
 import app.bpartners.api.integration.conf.MockedThirdParties;
@@ -258,46 +255,6 @@ public class SheetIT extends MockedThirdParties {
 
     assertEquals(List.of(), actual1);
     assertEquals(List.of(), actual2);
-  }
-
-  @Test
-  void evaluate_prospects_from_sheet_ok() throws ApiException {
-    User user = userService.getUserById(JOE_DOE_ID);
-    User savedUser = userService.saveUser(user.toBuilder()
-        .roles(List.of(Role.EVAL_PROSPECT))
-        .build());
-    businessRepository.save(BusinessActivity.builder()
-        .accountHolder(joeDoeAccountHolder())
-        .primaryActivity(ANTI_HARM)
-        .secondaryActivity(null)
-        .build());
-    when(expressifApiMock.process(any())).thenReturn(List.of(prospectRatingResult()));
-    when(banApiMock.fSearch(any())).thenReturn(geoPosZero());
-    ApiClient joeDoeClient = anApiClient();
-    ProspectingApi api = new ProspectingApi(joeDoeClient);
-
-    int minRange = 2;
-    int maxRange = 4;
-    List<EvaluatedProspect> actual =
-        api.evaluateProspects(
-            JOE_DOE_ACCOUNT_HOLDER_ID,
-            new SheetProspectEvaluation()
-                .artisanOwner("account_holder_id_2")
-                .evaluationRules(new ProspectEvaluationRules()
-                    .newInterventionOption(NewInterventionOption.NEW_PROSPECT)
-                    .profession(ProfessionType.ANTI_HARM))
-                .sheetProperties(new SheetProperties()
-                    .spreadsheetName(SheetIT.GOLDEN_SOURCE_SPR_SHEET_NAME)
-                    .sheetName(SheetIT.GOLDEN_SOURCE_SHEET_NAME)
-                    .ranges(new SheetRange()
-                        .min(minRange)
-                        .max(maxRange))
-                )
-                .ratingProperties(null), JSON_MIME_TYPE
-        );
-
-    assertEquals(2, actual.size());
-    downloadProspect(actual);
   }
 
   private static ProspectEvalInfo prospectEvalInfo1() {

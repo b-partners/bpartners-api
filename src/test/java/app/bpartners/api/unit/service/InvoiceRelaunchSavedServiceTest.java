@@ -1,5 +1,6 @@
 package app.bpartners.api.unit.service;
 
+import app.bpartners.api.endpoint.event.EventConf;
 import app.bpartners.api.endpoint.event.model.gen.InvoiceRelaunchSaved;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.AccountHolder;
@@ -35,13 +36,15 @@ class InvoiceRelaunchSavedServiceTest {
   InvoiceRelaunchSavedService invoiceRelaunchSavedService;
   SesService sesService;
   FileService fileService;
+  EventConf eventConfMock;
 
   @BeforeEach
   void setUp() throws MessagingException, IOException {
     sesService = mock(SesService.class);
     fileService = mock(FileService.class);
+    eventConfMock = mock(EventConf.class);
     invoiceRelaunchSavedService =
-        new InvoiceRelaunchSavedService(sesService, fileService);
+        new InvoiceRelaunchSavedService(sesService, fileService, eventConfMock);
 
     doNothing().when(sesService).sendEmail(any(), any(), any(), any(), any());
     when(fileService.downloadOptionalFile(any(), any(), any())).thenReturn(List.of(logoAsBytes));

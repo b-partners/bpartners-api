@@ -1,9 +1,11 @@
 package app.bpartners.api.service;
 
+import app.bpartners.api.endpoint.event.EventConf;
 import app.bpartners.api.endpoint.event.model.gen.InvoiceRelaunchSaved;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.Attachment;
 import app.bpartners.api.model.Invoice;
+import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.service.aws.SesService;
 import app.bpartners.api.service.utils.InvoicePdfUtils;
 import java.io.IOException;
@@ -21,6 +23,7 @@ import static app.bpartners.api.endpoint.rest.model.FileType.ATTACHMENT;
 import static app.bpartners.api.endpoint.rest.model.FileType.LOGO;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
+import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 import static app.bpartners.api.service.InvoiceCrupdatedService.DRAFT_TEMPLATE;
 import static app.bpartners.api.service.InvoiceCrupdatedService.INVOICE_TEMPLATE;
 
@@ -31,6 +34,7 @@ public class InvoiceRelaunchSavedService implements Consumer<InvoiceRelaunchSave
   private final SesService service;
   private final FileService fileService;
   private final InvoicePdfUtils pdfUtils = new InvoicePdfUtils();
+  private final EventConf eventConf;
 
   @Transactional(isolation = Isolation.SERIALIZABLE)
   @Override
@@ -71,11 +75,17 @@ public class InvoiceRelaunchSavedService implements Consumer<InvoiceRelaunchSave
     attachments.add(attachment);
     invoiceRelaunchSaved.setAttachments(attachments);
     try {
-      service.sendEmail(recipient, concerned, subject, htmlBody, attachments);
+      service.sendEmail(recipient,
+          concerned,
+          subject,
+          htmlBody,
+          attachments,
+          eventConf.getAdminEmail());
       log.info("Email sent from "
           + invoice.getActualAccount().describeMinInfos() + " to " + recipient);
     } catch (MessagingException | IOException e) {
       log.error("Email not sent : " + e.getMessage());
+      throw new ApiException(SERVER_EXCEPTION, e);
     }
   }
 }

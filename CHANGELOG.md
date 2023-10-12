@@ -1,3 +1,30 @@
+# [0.34.0](https://github.com/b-partners/bpartners-api/compare/v0.33.0...v0.34.0) (2023-10-12)
+
+
+### Bug Fixes
+
+* compare prospect status to update with existing prospect status ([a425c6a](https://github.com/b-partners/bpartners-api/commit/a425c6a646ed29a07c9b17e07eb4b14945115c6c))
+* do not scan geoposition through BAN API when reading spreadsheet ([06a2c66](https://github.com/b-partners/bpartners-api/commit/06a2c66ee36e8c6e7fce4deff2aeb9e1ccf0250c))
+* set customers location update scheduled task to 30 minutes intervals ([f5e8841](https://github.com/b-partners/bpartners-api/commit/f5e8841ddaacb7e4d3eda03b14cc536982158bc8))
+* skip address less than 3 chars and more than 200 chars when updating customer position ([51f96cc](https://github.com/b-partners/bpartners-api/commit/51f96ccadca23b8729e784f2d8ee5b566ebdf31f))
+* update customer geoposition after crupdate ([a0443ee](https://github.com/b-partners/bpartners-api/commit/a0443ee948d71d30b9196314483af52760dfe7c7))
+* use google calendar provider when converting event to prospect ([e8619b6](https://github.com/b-partners/bpartners-api/commit/e8619b65184535ed081e8723b7cef82db94f108b))
+
+
+### Features
+
+* add default comment to prospect ([8fcc202](https://github.com/b-partners/bpartners-api/commit/8fcc2028bcaea381fedeb45cc7248bc57bcb7df2))
+* add manager name to prospect ([87d6ac8](https://github.com/b-partners/bpartners-api/commit/87d6ac8f6194fff284dfb8d9c1fe6c4ab31c9f15))
+* set invoice relaunch email body from scratch ([eb54aa6](https://github.com/b-partners/bpartners-api/commit/eb54aa69d78b1026e215789e9d95f737938a2d62))
+
+
+### Reverts
+
+* Revert "chore(to-reset): re deploy old api at api-prod" ([13e86cb](https://github.com/b-partners/bpartners-api/commit/13e86cb989a60f07826f0e8e8744cf605a97698f))
+* Revert "chore(to-reset): use 20 as listenerRulePriority to old-api" ([f431c21](https://github.com/b-partners/bpartners-api/commit/f431c21fd4b2daabe3da4e3f4443543666680937))
+
+
+
 # [0.33.0](https://github.com/b-partners/bpartners-api/compare/v0.32.2...v0.33.0) (2023-10-05)
 
 
@@ -137,15 +164,6 @@
 
 * Revert "docs(api): refactor invoice filtering to filter by title and/or reference" ([f29ae5f](https://github.com/b-partners/bpartners-api/commit/f29ae5fda8d4deda3b6fa0110b839c529696d48b))
 * Revert "docs(api): add query parameter for filtering invoice by title and/or reference " ([6f26cd7](https://github.com/b-partners/bpartners-api/commit/6f26cd7fdaab6fd0f597350632c891c5fa554a94))
-
-
-
-# [0.27.0](https://github.com/b-partners/bpartners-api/compare/v0.26.1...v0.27.0) (2023-09-06)
-
-
-### Features
-
-* update prospect status with new attributes ([e34ce11](https://github.com/b-partners/bpartners-api/commit/e34ce11ee49122cf81f3cfbd2c2d6d5735d9b0e2))
 
 
 

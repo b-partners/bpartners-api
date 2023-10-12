@@ -2,12 +2,11 @@ package app.bpartners.api.model.mapper;
 
 import app.bpartners.api.endpoint.rest.model.Geojson;
 import app.bpartners.api.endpoint.rest.model.ProspectFeedback;
-import app.bpartners.api.endpoint.rest.model.ProspectStatus;
 import app.bpartners.api.endpoint.rest.security.AuthenticatedResourceProvider;
-import app.bpartners.api.model.prospect.Prospect;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.exception.NotImplementedException;
+import app.bpartners.api.model.prospect.Prospect;
 import app.bpartners.api.repository.ban.BanApi;
 import app.bpartners.api.repository.ban.model.GeoPosition;
 import app.bpartners.api.repository.expressif.ProspectEval;
@@ -28,6 +27,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import static app.bpartners.api.endpoint.rest.model.ProspectStatus.TO_CONTACT;
 import static app.bpartners.api.repository.expressif.utils.ProspectEvalUtils.ANTI_HORM_VALUE;
 import static app.bpartners.api.repository.expressif.utils.ProspectEvalUtils.DEPA_RULE_NEW_INTERVENTION;
 import static app.bpartners.api.repository.expressif.utils.ProspectEvalUtils.INDIVIDUAL_VALUE;
@@ -56,7 +56,7 @@ public class ProspectMapper {
   private static String checkIfOldOrNew(String toCheck,
                                         String expected) {
     if (toCheck != null && expected != null) {
-      return !expected.equals(toCheck) ? toCheck : null;
+      return !toCheck.equals(expected) ? toCheck : null;
     } else if (expected == null && toCheck != null) {
       return toCheck;
     }
@@ -79,10 +79,15 @@ public class ProspectMapper {
         existing.getLastEvaluationDate(), existing);
   }
 
-  public HProspect toEntity(Prospect domain, String prospectOwnerId, Double rating,
-                            Instant lastEvaluationDate, HProspect actualEntity) {
+  //TODO: put this constraint check inside service not here
+  public HProspect toEntity(Prospect domain,
+                            String prospectOwnerId,
+                            Double rating,
+                            Instant lastEvaluationDate,
+                            HProspect actualEntity) {
     Geojson location = domain.getLocation();
-    if (domain.getStatus().equals(ProspectStatus.TO_CONTACT)
+    if ((actualEntity.getStatus() != TO_CONTACT
+        && domain.getStatus().equals(TO_CONTACT))
         || (domain.getProspectFeedback() != null
         && domain.getProspectFeedback().equals(ProspectFeedback.NOT_INTERESTED))) {
       return actualEntity.toBuilder()
@@ -95,7 +100,7 @@ public class ProspectMapper {
           .contractAmount(null)
           .prospectFeedback(null)
           .idInvoice(null)
-          .status(ProspectStatus.TO_CONTACT)
+          .status(TO_CONTACT)
           .build();
     } else {
       return actualEntity.toBuilder()

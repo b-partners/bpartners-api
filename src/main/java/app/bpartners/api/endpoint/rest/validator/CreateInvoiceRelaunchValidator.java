@@ -22,6 +22,9 @@ public class CreateInvoiceRelaunchValidator implements Consumer<CreateInvoiceRel
     if (message == null && emailBody == null) {
       throw new BadRequestException("EmailBody is mandatory. ");
     }
+    if (createInvoiceRelaunch.getIsFromScratch() == null) {
+      createInvoiceRelaunch.setIsFromScratch(false);
+    }
     if (hasMalformedTags(
         Objects.requireNonNullElse(emailBody, message))) {
       throw new BadRequestException("Your HTML syntax is malformed or you use other tags "

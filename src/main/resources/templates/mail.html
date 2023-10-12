@@ -9,25 +9,29 @@
 </head>
 <body>
 <section>
-    <h2 th:text="${accountHolder.getName()}"></h2>
-    <th:block th:if="${customEmailBody == null}">
-        <p>Bonjour,</p>
-        <p>Ci-joint votre <span th:text="${type}"></span> enregistré à la référence <span
-                th:text="${invoice.getRef()}"></span>.
-        </p>
+    <th:block th:if="${!isFromScratch}">
+        <h2 th:text="${accountHolder.getName()}"></h2>
+        <th:block th:if="${customEmailBody == null}">
+            <p>Bonjour,</p>
+            <p>Ci-joint votre <span th:text="${type}"></span> enregistré à la référence <span
+                    th:text="${invoice.getRef()}"></span>.
+            </p>
+        </th:block>
+        <th:block th:if="${customEmailBody != null}" th:utext="${customEmailBody}"></th:block>
+        <p>Dans l'attente de vous lire,</p>
+        <p>Bien à vous</p>
+        <footer>
+            <p>
+                <strong th:text="${user.getName()}"></strong><br>
+                <th:block th:if="${accountHolder.getEmail()!=null}">Email: <span
+                        th:text="${accountHolder.getEmail()}"></span><br></th:block>
+                Tél: <span th:text="${user.getMobilePhoneNumber()}"></span>
+            </p>
+        </footer>
     </th:block>
-    <th:block th:if="${customEmailBody != null}" th:utext="${customEmailBody}"></th:block>
-    <p>Dans l'attente de vous lire,</p>
-    <p>Bien à vous</p>
-    <footer>
-        <p>
-            <strong th:text="${user.getName()}"></strong><br>
-            <th:block th:if="${accountHolder.getEmail()!=null}">Email: <span
-                    th:text="${accountHolder.getEmail()}"></span><br></th:block>
-            Tél: <span th:text="${user.getMobilePhoneNumber()}"></span>
-        </p>
-    </footer>
+    <th:block th:unless="${!isFromScratch}">
+        <th:block th:if="${customEmailBody != null}" th:utext="${customEmailBody}"></th:block>
+    </th:block>
 </section>
-
 </body>
 </html>

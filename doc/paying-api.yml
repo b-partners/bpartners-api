@@ -1264,6 +1264,12 @@ components:
     CreateInvoiceRelaunch:
       type: object
       properties:
+        isFromScratch:
+          type: boolean
+          description: | 
+            If false, generate default header and signature inside the email body to send.
+            If true, send only provided email body
+            If not provided, default value is false.
         subject:
           type: string
         #TODO: check utility and depracted

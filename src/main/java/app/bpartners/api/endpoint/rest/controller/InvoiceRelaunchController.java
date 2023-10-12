@@ -11,7 +11,6 @@ import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.service.InvoiceRelaunchService;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -37,7 +36,7 @@ public class InvoiceRelaunchController {
       @RequestParam(name = "type", required = false) String type) {
     return service.getRelaunchesByInvoiceId(invoiceId, type, page, pageSize).stream()
         .map(invoiceRelaunch -> mapper.toRest(invoiceRelaunch, accountId))
-        .collect(Collectors.toUnmodifiableList());
+        .toList();
   }
 
   @PostMapping(value = "/accounts/{aId}/invoices/{iId}/relaunch")
@@ -46,6 +45,7 @@ public class InvoiceRelaunchController {
       @PathVariable("iId") String invoiceId,
       @RequestBody CreateInvoiceRelaunch createInvoiceRelaunch) {
     validator.accept(createInvoiceRelaunch);
+    /*TODO: set this inside service*/
     ArrayList<String> emailObjectList = new ArrayList<>() {
       {
         add(createInvoiceRelaunch.getObject());
@@ -61,9 +61,15 @@ public class InvoiceRelaunchController {
     List<Attachment> attachments =
         createInvoiceRelaunch.getAttachments().stream()
             .map(attachmentRestMapper::toDomain)
-            .collect(Collectors.toUnmodifiableList());
+            .toList();
+    /*END TODO*/
     app.bpartners.api.model.InvoiceRelaunch invoiceRelaunch =
-        service.relaunchInvoiceManually(invoiceId, emailObjectList, emailBodyList, attachments);
+        service.relaunchInvoiceManually(
+            invoiceId,
+            emailObjectList,
+            emailBodyList,
+            attachments,
+            createInvoiceRelaunch.getIsFromScratch());
     return mapper.toRest(invoiceRelaunch, accountId);
   }
 }

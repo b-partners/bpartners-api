@@ -25,7 +25,6 @@ import app.bpartners.api.repository.jpa.InvoiceJpaRepository;
 import app.bpartners.api.service.utils.TemplateResolverUtils;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -94,9 +93,11 @@ public class InvoiceRelaunchService {
     return repository.save(idUser, relaunchConf);
   }
 
-  public InvoiceRelaunch relaunchInvoiceManually(
-      String invoiceId, List<String> emailObjectList, List<String> emailBodyList,
-      List<Attachment> attachments) {
+  public InvoiceRelaunch relaunchInvoiceManually(String invoiceId,
+                                                 List<String> emailObjectList,
+                                                 List<String> emailBodyList,
+                                                 List<Attachment> attachments,
+                                                 boolean fromScratch) {
     String emailObject = null;
     if (!emailObjectList.isEmpty()) {
       emailObject = emailObjectList.get(0) == null ? emailObjectList.get(1) :
@@ -126,9 +127,15 @@ public class InvoiceRelaunchService {
     List<Attachment> attachmentList =
         attachmentService.saveAll(attachments, invoiceRelaunch.getId());
     invoiceRelaunch.setAttachments(attachmentList);
-    eventProducer.accept(
-        List.of(getTypedInvoiceRelaunched(
-            invoiceRelaunch.getInvoice(), accountHolder, emailObject, emailBody, attachments)));
+
+    eventProducer.accept(List.of(
+        getTypedInvoiceRelaunched(
+            invoiceRelaunch.getInvoice(),
+            accountHolder,
+            emailObject,
+            emailBody,
+            attachments,
+            fromScratch)));
 
     return invoiceRelaunch;
   }
@@ -152,7 +159,7 @@ public class InvoiceRelaunchService {
         .build();
   }
 
-  @Scheduled(cron = "0 0 10 * * *")
+  @Scheduled(cron = Scheduled.CRON_DISABLED)
   public void relaunch() {
     //TODO : Transactional
     //TODO: next version will persist mailbody.
@@ -171,7 +178,7 @@ public class InvoiceRelaunchService {
             boolean notReachedMaxRehearse = size < conf.getRehearsalNumber();
             if (notReachedMaxRehearse) {
               //TODO: relaunch invoice with attachments
-              relaunchInvoiceManually(invoice.getId(), List.of(), List.of(), List.of());
+              relaunchInvoiceManually(invoice.getId(), List.of(), List.of(), List.of(), false);
               if (size + 1 == conf.getRehearsalNumber()) {
                 invoice.setToBeRelaunched(false);
                 invoiceJpaRepository.save(invoice);
@@ -191,33 +198,52 @@ public class InvoiceRelaunchService {
     return invoiceRelaunchRepository.getByInvoiceId(invoiceId, type, pageable);
   }
 
-  private String emailBody(String customEmailBody, Invoice invoice, AccountHolder accountHolder) {
-    return TemplateResolverUtils.parseTemplateResolver(MAIL_TEMPLATE,
-        configureContext(invoice, accountHolder, customEmailBody));
+  private String emailBody(String customEmailBody,
+                           Invoice invoice,
+                           AccountHolder accountHolder,
+                           boolean fromScratch) {
+    Context context = new Context();
+
+    context.setVariable("invoice", invoice);
+    context.setVariable("user", authenticatedUser());
+    context.setVariable("type", getStatusValue(invoice.getStatus()));
+    context.setVariable("customEmailBody", customEmailBody);
+    context.setVariable("accountHolder", accountHolder);
+    context.setVariable("isFromScratch", fromScratch);
+
+    return TemplateResolverUtils.parseTemplateResolver(MAIL_TEMPLATE, context);
   }
 
   private TypedInvoiceRelaunchSaved getTypedInvoiceRelaunched(
-      Invoice invoice, AccountHolder accountHolder, String subject, String customEmailBody,
-      List<Attachment> attachments) {
+      Invoice invoice,
+      AccountHolder accountHolder,
+      String subject,
+      String customEmailBody,
+      List<Attachment> attachments,
+      boolean fromScratch) {
     //TODO: if invoice has already been relaunched then change this
     subject = subject == null ? getDefaultSubject(invoice) : subject;
     String recipient = invoice.getCustomer().getEmail();
 
     return toTypedEvent(
         recipient, getSubject(accountHolder, subject),
-        emailBody(customEmailBody, invoice, accountHolder),
+        emailBody(customEmailBody, invoice, accountHolder, fromScratch),
         invoice.getRef() + PDF_EXTENSION,
         invoice,
         accountHolder,
-        attachments.stream().map(this::deleteAttachmentContent)
-            .collect(Collectors.toUnmodifiableList())
+        attachments.stream()
+            .map(this::deleteAttachmentContent)
+            .toList()
     );
   }
 
-  private TypedInvoiceRelaunchSaved toTypedEvent(String recipient, String subject, String emailBody,
-                                                 String attachmentName, Invoice invoice,
+  private TypedInvoiceRelaunchSaved toTypedEvent(String recipient,
+                                                 String subject,
+                                                 String emailBody,
+                                                 String attachmentName,
+                                                 Invoice invoice,
                                                  AccountHolder accountHolder,
-                                                 List<Attachment> contentlessAttachments) {
+                                                 List<Attachment> attachments) {
     return new TypedInvoiceRelaunchSaved(InvoiceRelaunchSaved.builder()
         .subject(subject)
         .recipient(recipient)
@@ -226,7 +252,7 @@ public class InvoiceRelaunchService {
         .invoice(invoice)
         .accountHolder(accountHolder)
         .logoFileId(userLogoFileId())
-        .attachments(contentlessAttachments)
+        .attachments(attachments)
         .build());
   }
 
@@ -236,18 +262,5 @@ public class InvoiceRelaunchService {
 
   private User authenticatedUser() {
     return ((Principal) auth.getAuthentication().getPrincipal()).getUser();
-  }
-
-  private Context configureContext(
-      Invoice invoice, AccountHolder accountHolder, String customEmailBody) {
-    Context context = new Context();
-
-    context.setVariable("invoice", invoice);
-    context.setVariable("user", authenticatedUser());
-    context.setVariable("type", getStatusValue(invoice.getStatus()));
-    context.setVariable("customEmailBody", customEmailBody);
-    context.setVariable("accountHolder", accountHolder);
-
-    return context;
   }
 }

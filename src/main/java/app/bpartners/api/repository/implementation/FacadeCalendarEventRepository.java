@@ -3,6 +3,7 @@ package app.bpartners.api.repository.implementation;
 import app.bpartners.api.model.Calendar;
 import app.bpartners.api.model.CalendarEvent;
 import app.bpartners.api.model.EventConnector;
+import app.bpartners.api.model.exception.ForbiddenException;
 import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.model.mapper.CalendarEventMapper;
 import app.bpartners.api.repository.CalendarEventRepository;
@@ -113,8 +114,8 @@ public class FacadeCalendarEventRepository
       });
       return googleEvents;
     } catch (Exception e) {
-      log.warn("Unable to synchronize with Google Calendar : " + e.getMessage());
-      return List.of();
+      throw new ForbiddenException(
+          "Unable to synchronize with Google Calendar : " + e.getMessage());
     }
   }
 }

@@ -98,7 +98,7 @@ public class CalendarService {
           "Min datetime attribute `from` must be before or equals to max datetime attribute `to`");
     }
     if (provider == null) {
-      provider = CalendarProvider.LOCAL;
+      provider = CalendarProvider.GOOGLE_CALENDAR;
     }
     switch (provider) {
       case LOCAL:

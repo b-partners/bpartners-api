@@ -72,7 +72,8 @@ public class CalendarApi {
     } catch (IOException e) {
       throw new ApiException(SERVER_EXCEPTION, e);
     }
-    return List.of();
+    throw new ForbiddenException(
+        "Google Calendar Token is expired or invalid. Give your consent again.");
   }
 
   public List<Event> getEvents(String idUser,

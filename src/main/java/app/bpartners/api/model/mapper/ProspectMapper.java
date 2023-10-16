@@ -81,7 +81,8 @@ public class ProspectMapper {
     return toEntity(domain,
         provider.getDefaultAccountHolder().getId(),
         existing.getRating(),
-        existing.getLastEvaluationDate(), existing);
+        existing.getLastEvaluationDate(),
+        existing);
   }
 
   //TODO: put this constraint check inside service not here

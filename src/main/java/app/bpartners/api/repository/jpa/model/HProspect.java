@@ -4,6 +4,7 @@ import app.bpartners.api.endpoint.rest.model.ProspectFeedback;
 import app.bpartners.api.endpoint.rest.model.ProspectStatus;
 import app.bpartners.api.repository.jpa.types.PostgresEnumType;
 import java.time.Instant;
+import java.util.Comparator;
 import java.util.List;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -72,6 +73,9 @@ public class HProspect {
   private ProspectFeedback prospectFeedback;
 
   public ProspectStatus getActualStatus() {
-    return statusHistories.isEmpty() ? null : statusHistories.get(0).getStatus();
+    return statusHistories.isEmpty() ? null : statusHistories.stream()
+        .sorted(Comparator.comparing(HProspectStatusHistory::getUpdatedAt).reversed())
+        .toList()
+        .get(0).getStatus();
   }
 }

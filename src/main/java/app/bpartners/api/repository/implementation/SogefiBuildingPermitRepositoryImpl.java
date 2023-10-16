@@ -17,8 +17,8 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import static app.bpartners.api.endpoint.rest.model.ProspectStatus.TO_CONTACT;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
+import static app.bpartners.api.service.ProspectService.defaultStatusHistoryEntity;
 
 @Repository
 @AllArgsConstructor
@@ -51,15 +51,16 @@ public class SogefiBuildingPermitRepositoryImpl implements SogefiBuildingPermitR
           .lastEvaluationDate(Instant.now())
           .build();
       if (persisted.isEmpty()) {
-        prospectEntityToSave.setStatus(TO_CONTACT);
+        prospectEntityToSave.setStatusHistories(defaultStatusHistoryEntity());
       } else {
-        Optional<HProspect> persistedProspectEntity =
+        Optional<HProspect> optionalProspect =
             prospectJpaRepository.findById(persisted.get().getIdProspect());
-        if (persistedProspectEntity.isPresent()) {
-          prospectEntityToSave.setId(persistedProspectEntity.get().getId());
-          prospectEntityToSave.setStatus(persistedProspectEntity.get().getStatus());
-          prospectEntityToSave.setOldPhone(persistedProspectEntity.get().getOldPhone());
-          prospectEntityToSave.setOldPhone(persistedProspectEntity.get().getOldPhone());
+        if (optionalProspect.isPresent()) {
+          HProspect existingProspect = optionalProspect.get();
+          prospectEntityToSave.setId(existingProspect.getId());
+          prospectEntityToSave.setStatusHistories(existingProspect.getStatusHistories());
+          prospectEntityToSave.setOldPhone(existingProspect.getOldPhone());
+          prospectEntityToSave.setOldPhone(existingProspect.getOldPhone());
         } else {
           throw new ApiException(SERVER_EXCEPTION,
               "HProspect.id=" + persisted.get().getIdProspect()

@@ -546,6 +546,18 @@ components:
         #deprecated, will be replaced by area
         location:
           $ref: '#/components/schemas/Geojson'
+        statusHistory:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProspectStatusHistory'
+    ProspectStatusHistory:
+      type: object
+      properties:
+        status:
+          $ref: '#/components/schemas/ProspectStatus'
+        updatedAt:
+          type: string
+          format: date-time
     ProspectStatusDetails:
       properties:
         comment:

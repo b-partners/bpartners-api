@@ -13,14 +13,13 @@ import app.bpartners.api.endpoint.rest.model.ProspectEvaluationJobDetails;
 import app.bpartners.api.endpoint.rest.model.ProspectEvaluationJobInfo;
 import app.bpartners.api.endpoint.rest.model.ProspectEvaluationJobStatus;
 import app.bpartners.api.endpoint.rest.model.ProspectEvaluationJobType;
-import app.bpartners.api.endpoint.rest.model.ProspectStatus;
 import app.bpartners.api.endpoint.rest.security.model.Role;
 import app.bpartners.api.integration.conf.DbEnvContextInitializer;
 import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.integration.conf.utils.TestUtils;
 import app.bpartners.api.model.BusinessActivity;
-import app.bpartners.api.model.prospect.Prospect;
 import app.bpartners.api.model.User;
+import app.bpartners.api.model.prospect.Prospect;
 import app.bpartners.api.repository.BusinessActivityRepository;
 import app.bpartners.api.repository.ProspectRepository;
 import app.bpartners.api.repository.ban.BanApi;
@@ -82,6 +81,7 @@ import static app.bpartners.api.repository.expressif.utils.ProspectEvalUtils.int
 import static app.bpartners.api.repository.expressif.utils.ProspectEvalUtils.professionalCustomerType;
 import static app.bpartners.api.repository.implementation.ProspectRepositoryImpl.ANTI_HARM;
 import static app.bpartners.api.service.ProspectService.DEFAULT_RATING_PROSPECT_TO_CONVERT;
+import static app.bpartners.api.service.ProspectService.defaultStatusHistory;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -408,7 +408,7 @@ class ProspectEvaluationIT extends MockedThirdParties {
         .email(evaluated.getEmail())
         .phone(evaluated.getPhone())
         .address(evaluated.getAddress())
-        .status(ProspectStatus.TO_CONTACT)
+        .statusHistories(defaultStatusHistory())
         .townCode(evaluated.getTownCode())
         .location(new Geojson()
             .latitude(evaluated.getArea().getGeojson().getLatitude())

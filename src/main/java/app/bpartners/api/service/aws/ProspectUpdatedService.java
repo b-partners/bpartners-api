@@ -40,7 +40,7 @@ public class ProspectUpdatedService implements Consumer<ProspectUpdated> {
       String recipient = eventConf.getAdminEmail();
       String concerned = null;
       String frenchUpdatedDatetime = formatFrenchDatetime(updatedAt);
-      String translatedStatus = getTranslatedStatus(prospect.getStatus());
+      String translatedStatus = getTranslatedStatus(prospect.getActualStatus());
       String subject = String.format(
           "Le prospect intitulé %s appartenant à l'artisan %s est passé en statut %s le %s",
           prospect.getName(),

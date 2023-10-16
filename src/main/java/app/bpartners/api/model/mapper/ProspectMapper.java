@@ -7,6 +7,7 @@ import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.model.prospect.Prospect;
+import app.bpartners.api.model.prospect.ProspectStatusHistory;
 import app.bpartners.api.repository.ban.BanApi;
 import app.bpartners.api.repository.ban.model.GeoPosition;
 import app.bpartners.api.repository.expressif.ProspectEval;
@@ -14,6 +15,7 @@ import app.bpartners.api.repository.expressif.ProspectEvalInfo;
 import app.bpartners.api.repository.expressif.fact.NewIntervention;
 import app.bpartners.api.repository.jpa.ProspectJpaRepository;
 import app.bpartners.api.repository.jpa.model.HProspect;
+import app.bpartners.api.repository.jpa.model.HProspectStatusHistory;
 import app.bpartners.api.service.utils.DateUtils;
 import com.google.api.services.sheets.v4.model.CellData;
 import com.google.api.services.sheets.v4.model.RowData;
@@ -23,6 +25,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -38,6 +42,7 @@ import static app.bpartners.api.repository.expressif.utils.ProspectEvalUtils.get
 import static app.bpartners.api.repository.expressif.utils.ProspectEvalUtils.infestationType;
 import static app.bpartners.api.repository.expressif.utils.ProspectEvalUtils.interventionType;
 import static app.bpartners.api.repository.expressif.utils.ProspectEvalUtils.professionalCustomerType;
+import static app.bpartners.api.service.ProspectService.defaultStatusHistoryEntity;
 import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 import static java.util.UUID.randomUUID;
 
@@ -76,7 +81,8 @@ public class ProspectMapper {
     return toEntity(domain,
         provider.getDefaultAccountHolder().getId(),
         existing.getRating(),
-        existing.getLastEvaluationDate(), existing);
+        existing.getLastEvaluationDate(),
+        existing);
   }
 
   //TODO: put this constraint check inside service not here
@@ -86,8 +92,9 @@ public class ProspectMapper {
                             Instant lastEvaluationDate,
                             HProspect actualEntity) {
     Geojson location = domain.getLocation();
-    if ((actualEntity.getStatus() != TO_CONTACT
-        && domain.getStatus().equals(TO_CONTACT))
+    List<HProspectStatusHistory> actualHistory = actualEntity.getStatusHistories();
+    if ((actualEntity.getActualStatus() != TO_CONTACT
+        && domain.getActualStatus().equals(TO_CONTACT))
         || (domain.getProspectFeedback() != null
         && domain.getProspectFeedback().equals(ProspectFeedback.NOT_INTERESTED))) {
       return actualEntity.toBuilder()
@@ -100,9 +107,15 @@ public class ProspectMapper {
           .contractAmount(null)
           .prospectFeedback(null)
           .idInvoice(null)
-          .status(TO_CONTACT)
+          .statusHistories(updatedStatusHistory(actualHistory, defaultStatusHistoryEntity()))
           .build();
     } else {
+      List<HProspectStatusHistory> newStatusHistory = List.of(
+          HProspectStatusHistory.builder()
+              .id(String.valueOf(randomUUID()))
+              .status(domain.getActualStatus())
+              .updatedAt(Instant.now())
+              .build());
       return actualEntity.toBuilder()
           .id(domain.getId())
           .idJob(domain.getIdJob())
@@ -111,7 +124,7 @@ public class ProspectMapper {
           .newName(checkIfOldOrNew(domain.getName(), actualEntity.getOldName()))
           .newAddress(checkIfOldOrNew(domain.getAddress(), actualEntity.getOldAddress()))
           .newEmail(checkIfOldOrNew(domain.getEmail(), actualEntity.getOldEmail()))
-          .status(domain.getStatus())
+          .statusHistories(updatedStatusHistory(actualHistory, newStatusHistory))
           .idAccountHolder(prospectOwnerId)
           .townCode(domain.getTownCode())
           .rating(rating)
@@ -128,8 +141,16 @@ public class ProspectMapper {
     }
   }
 
-  public HProspect toEntity(Prospect domain, String prospectOwnerId, Double rating,
+  public HProspect toEntity(Prospect domain,
+                            String prospectOwnerId,
+                            Double rating,
                             Instant lastEvaluationDate) {
+    List<HProspectStatusHistory> newStatusHistory = List.of(
+        HProspectStatusHistory.builder()
+            .id(String.valueOf(randomUUID()))
+            .status(domain.getActualStatus())
+            .updatedAt(Instant.now())
+            .build());
     Geojson location = domain.getLocation();
     return HProspect.builder()
         .id(domain.getId())
@@ -137,7 +158,7 @@ public class ProspectMapper {
         .managerName(domain.getManagerName())
         .oldName(domain.getName())
         .oldEmail(domain.getEmail())
-        .status(domain.getStatus())
+        .statusHistories(updatedStatusHistory(List.of(), newStatusHistory))
         .oldAddress(domain.getAddress())
         .idAccountHolder(prospectOwnerId)
         .townCode(domain.getTownCode())
@@ -160,7 +181,9 @@ public class ProspectMapper {
         .managerName(entity.getManagerName())
         .phone(isNewExists(entity.getNewPhone(), entity.getOldPhone()))
         .location(location)
-        .status(entity.getStatus())
+        .statusHistories(entity.getStatusHistories().stream()
+            .map(this::toDomain)
+            .collect(Collectors.toList()))
         .townCode(entity.getTownCode())
         .rating(Prospect.ProspectRating.builder()
             .value(entity.getRating())
@@ -174,6 +197,20 @@ public class ProspectMapper {
             ? null
             : parseFraction(entity.getContractAmount()))
         .build();
+  }
+
+  public ProspectStatusHistory toDomain(HProspectStatusHistory history) {
+    return ProspectStatusHistory.builder()
+        .status(history.getStatus())
+        .updatedAt(history.getUpdatedAt())
+        .build();
+  }
+
+  private List<HProspectStatusHistory> updatedStatusHistory(
+      List<HProspectStatusHistory> actualHistory, List<HProspectStatusHistory> newStatusHistory) {
+    return Stream.of(actualHistory, newStatusHistory)
+        .flatMap(List::stream)
+        .collect(Collectors.toList());
   }
 
   public List<ProspectEval> toProspectEval(Sheet sheet) {

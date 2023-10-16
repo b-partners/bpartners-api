@@ -14,6 +14,7 @@ import app.bpartners.api.model.CalendarEvent;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.model.prospect.Prospect;
+import app.bpartners.api.model.prospect.ProspectStatusHistory;
 import app.bpartners.api.model.prospect.job.EventJobRunner;
 import app.bpartners.api.model.prospect.job.ProspectEvaluationJob;
 import app.bpartners.api.model.prospect.job.SheetEvaluationJobRunner;
@@ -277,7 +278,10 @@ public class ProspectEvaluationJobInitiatedService
               )
               .rating(ratingBuilder.build())
               .address(info.getAddress())
-              .status(ProspectStatus.TO_CONTACT)
+              .statusHistories(List.of(ProspectStatusHistory.builder()
+                  .status(ProspectStatus.TO_CONTACT)
+                  .updatedAt(Instant.now())
+                  .build()))
               .townCode(Integer.valueOf(info.getPostalCode()))
               .defaultComment(info.getDefaultComment())
               .comment(null)

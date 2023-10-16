@@ -8,19 +8,22 @@ import app.bpartners.api.endpoint.rest.model.Geojson;
 import app.bpartners.api.endpoint.rest.model.InterventionResult;
 import app.bpartners.api.endpoint.rest.model.OldCustomerResult;
 import app.bpartners.api.endpoint.rest.model.Prospect;
-import app.bpartners.api.endpoint.rest.model.ProspectEvaluationJobInfo;
 import app.bpartners.api.endpoint.rest.model.ProspectEvaluationJobDetails;
+import app.bpartners.api.endpoint.rest.model.ProspectEvaluationJobInfo;
 import app.bpartners.api.endpoint.rest.model.ProspectRating;
 import app.bpartners.api.endpoint.rest.model.UpdateProspect;
 import app.bpartners.api.endpoint.rest.validator.ExtendedProspectUpdateValidator;
 import app.bpartners.api.endpoint.rest.validator.ProspectRestValidator;
 import app.bpartners.api.model.Customer;
+import app.bpartners.api.model.prospect.ProspectStatusHistory;
 import app.bpartners.api.model.prospect.job.ProspectEvaluationJob;
 import app.bpartners.api.repository.expressif.ProspectEval;
 import app.bpartners.api.repository.expressif.ProspectEvalInfo;
 import app.bpartners.api.repository.expressif.ProspectResult;
 import app.bpartners.api.service.utils.GeoUtils;
 import java.math.BigDecimal;
+import java.time.Instant;
+import java.util.List;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -94,7 +97,7 @@ public class ProspectRestMapper {
         .address(domain.getAddress())
         .location(domain.getLocation())
         .townCode(domain.getTownCode())
-        .status(domain.getStatus())
+        .status(domain.getActualStatus())
         .rating(prospectRating == null ? null
             : new ProspectRating()
             .lastEvaluation(prospectRating.getLastEvaluationDate())
@@ -141,7 +144,10 @@ public class ProspectRestMapper {
         .managerName(rest.getManagerName())
         .phone(rest.getPhone())
         .address(rest.getAddress())
-        .status(rest.getStatus())
+        .statusHistories(List.of(ProspectStatusHistory.builder()
+            .status(rest.getStatus())
+            .updatedAt(Instant.now())
+            .build()))
         .townCode(rest.getTownCode())
         .build();
   }
@@ -155,7 +161,10 @@ public class ProspectRestMapper {
         .managerName(rest.getManagerName())
         .phone(rest.getPhone())
         .address(rest.getAddress())
-        .status(rest.getStatus())
+        .statusHistories(List.of(ProspectStatusHistory.builder()
+            .status(rest.getStatus())
+            .updatedAt(Instant.now())
+            .build()))
         .townCode(rest.getTownCode())
         .comment(rest.getComment())
         .contractAmount(parseFraction(rest.getContractAmount()))

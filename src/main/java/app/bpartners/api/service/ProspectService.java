@@ -10,6 +10,7 @@ import app.bpartners.api.endpoint.rest.model.JobStatusValue;
 import app.bpartners.api.endpoint.rest.model.NewInterventionOption;
 import app.bpartners.api.endpoint.rest.model.ProspectEvaluationJobStatus;
 import app.bpartners.api.endpoint.rest.model.ProspectEvaluationJobType;
+import app.bpartners.api.endpoint.rest.model.ProspectStatus;
 import app.bpartners.api.model.Customer;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.exception.BadRequestException;
@@ -17,6 +18,7 @@ import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.model.mapper.ProspectMapper;
 import app.bpartners.api.model.prospect.Prospect;
+import app.bpartners.api.model.prospect.ProspectStatusHistory;
 import app.bpartners.api.model.prospect.job.AntiHarmRules;
 import app.bpartners.api.model.prospect.job.ProspectEvaluationJob;
 import app.bpartners.api.model.prospect.job.ProspectEvaluationJobRunner;
@@ -29,6 +31,7 @@ import app.bpartners.api.repository.expressif.fact.NewIntervention;
 import app.bpartners.api.repository.google.sheets.SheetApi;
 import app.bpartners.api.repository.jpa.AccountHolderJpaRepository;
 import app.bpartners.api.repository.jpa.model.HAccountHolder;
+import app.bpartners.api.repository.jpa.model.HProspectStatusHistory;
 import app.bpartners.api.service.aws.SesService;
 import app.bpartners.api.service.dataprocesser.ProspectDataProcesser;
 import app.bpartners.api.service.utils.GeoUtils;
@@ -126,7 +129,7 @@ public class ProspectService {
     Prospect existing = repository.getById(toSave.getId());
     //validateStatusUpdateFlow(toSave, existing);
     Prospect savedProspect = repository.save(toSave);
-    if (existing.getStatus() != savedProspect.getStatus()) {
+    if (existing.getActualStatus() != savedProspect.getActualStatus()) {
       eventProducer.accept(List.of(new TypedProspectUpdated(ProspectUpdated.builder()
           .prospect(savedProspect)
           .updatedAt(Instant.now())
@@ -137,12 +140,14 @@ public class ProspectService {
 
   private void validateStatusUpdateFlow(Prospect toSave, Prospect existing) {
     StringBuilder exceptionBuilder = new StringBuilder();
-    if (toSave.getStatus() == TO_CONTACT && existing.getStatus() != CONTACTED) {
+    if (toSave.getActualStatus() == TO_CONTACT && existing.getActualStatus() != CONTACTED) {
       exceptionBuilder.append("Prospect(id=").append(toSave.getId()).append(",status=")
-          .append(toSave.getStatus()).append(") can only be updated to status ").append(CONTACTED);
-    } else if (toSave.getStatus() == CONTACTED && existing.getStatus() != CONVERTED) {
+          .append(toSave.getActualStatus()).append(") can only be updated to status ")
+          .append(CONTACTED);
+    } else if (toSave.getActualStatus() == CONTACTED && existing.getActualStatus() != CONVERTED) {
       exceptionBuilder.append("Prospect(id=").append(toSave.getId()).append(",status=")
-          .append(toSave.getStatus()).append(") can only be updated to status ").append(CONVERTED);
+          .append(toSave.getActualStatus()).append(") can only be updated to status ")
+          .append(CONVERTED);
     }
     String errorMsg = exceptionBuilder.toString();
     if (!errorMsg.isEmpty()) {
@@ -503,11 +508,10 @@ public class ProspectService {
         .email(info == null ? null : info.getEmail())
         .phone(info == null ? null : info.getPhoneNumber())
         .address(info == null ? null : info.getAddress())
-        .status(TO_CONTACT) //Default when creating
+        .statusHistories(defaultStatusHistory())
         .townCode(info == null ? null : townCode)
         .defaultComment(info == null ? null
             : info.getDefaultComment())
-        .status(TO_CONTACT) //Default when creating
         .townCode(info == null ? null : Integer.valueOf(info.getPostalCode()))
         .location(new Geojson()
             .latitude(coordinates == null ? null
@@ -532,7 +536,7 @@ public class ProspectService {
         .email(customer.getEmail())
         .phone(customer.getPhone())
         .address(customer.getFullAddress())
-        .status(TO_CONTACT) //Default when creating
+        .statusHistories(defaultStatusHistory())
         .townCode(Integer.valueOf(customer.getZipCode()))
         .location(new Geojson()
             .latitude(customer.getLocation().getCoordinate().getLatitude())
@@ -542,6 +546,21 @@ public class ProspectService {
             .lastEvaluationDate(result.getEvaluationDate())
             .build())
         .build();
+  }
+
+  public static List<ProspectStatusHistory> defaultStatusHistory() {
+    return List.of(ProspectStatusHistory.builder()
+        .status(TO_CONTACT)
+        .updatedAt(Instant.now())
+        .build());
+  }
+
+  public static List<HProspectStatusHistory> defaultStatusHistoryEntity() {
+    return List.of(HProspectStatusHistory.builder()
+        .id(String.valueOf(randomUUID()))
+        .status(ProspectStatus.TO_CONTACT)
+        .updatedAt(Instant.now())
+        .build());
   }
 
   @Transactional

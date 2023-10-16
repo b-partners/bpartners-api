@@ -98,6 +98,9 @@ public class ProspectRestMapper {
         .location(domain.getLocation())
         .townCode(domain.getTownCode())
         .status(domain.getActualStatus())
+        .statusHistory(domain.getStatusHistories().stream()
+            .map(this::toRest)
+            .collect(Collectors.toList()))
         .rating(prospectRating == null ? null
             : new ProspectRating()
             .lastEvaluation(prospectRating.getLastEvaluationDate())
@@ -110,6 +113,13 @@ public class ProspectRestMapper {
             : domain.getContractAmount().getCentsRoundUp())
         .invoiceID(domain.getIdInvoice())
         .prospectFeedback(domain.getProspectFeedback());
+  }
+
+  private app.bpartners.api.endpoint.rest.model.ProspectStatusHistory toRest(
+      ProspectStatusHistory statusHistory) {
+    return new app.bpartners.api.endpoint.rest.model.ProspectStatusHistory()
+        .status(statusHistory.getStatus())
+        .updatedAt(statusHistory.getUpdatedAt());
   }
 
   public ProspectEvaluationJobInfo toRest(ProspectEvaluationJob domain) {

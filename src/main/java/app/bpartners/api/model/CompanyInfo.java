@@ -18,6 +18,7 @@ public class CompanyInfo {
   private boolean subjectToVat;
   private String phone;
   private String email;
+  private String website;
   private String tvaNumber;
   private Integer socialCapital;
   private BusinessActivity businessActivity;

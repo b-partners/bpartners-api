@@ -48,13 +48,16 @@ public class AccountHolderService {
   public AccountHolder updateCompanyInfo(String accountHolderId,
                                          CompanyInfo companyInfo) {
     AccountHolder accountHolder = accountHolderRepository.findById(accountHolderId);
-    return accountHolderRepository.save(accountHolder.toBuilder()
+    AccountHolder toSave = accountHolder.toBuilder()
         .socialCapital(companyInfo == null || companyInfo.getSocialCapital() == null
             ? accountHolder.getSocialCapital()
             : companyInfo.getSocialCapital())
         .email(companyInfo == null || companyInfo.getEmail() == null
             ? accountHolder.getEmail()
             : companyInfo.getEmail())
+        .website(companyInfo == null
+            ? accountHolder.getWebsite()
+            : companyInfo.getWebsite())
         .mobilePhoneNumber(companyInfo == null || companyInfo.getPhone() == null
             ? accountHolder.getMobilePhoneNumber()
             : companyInfo.getPhone())
@@ -70,7 +73,8 @@ public class AccountHolderService {
         .vatNumber(companyInfo == null || companyInfo.getTvaNumber() == null
             ? accountHolder.getVatNumber()
             : companyInfo.getTvaNumber())
-        .build());
+        .build();
+    return accountHolderRepository.save(toSave);
   }
 
   public AccountHolder updateGlobalInfo(AccountHolder accountHolder) {

@@ -33,6 +33,7 @@ public class AccountHolder implements Serializable {
   private String mainActivityDescription;
   private String mobilePhoneNumber;
   private String email;
+  private String website;
   private Fraction initialCashflow;
   private String feedbackLink;
   private boolean subjectToVat;

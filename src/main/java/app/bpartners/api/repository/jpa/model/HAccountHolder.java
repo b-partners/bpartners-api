@@ -36,6 +36,7 @@ public class HAccountHolder implements Serializable {
   private String vatNumber;
   private String mobilePhoneNumber;
   private String email;
+  private String website;
   private boolean subjectToVat = true;
   private String initialCashflow;
   @Type(type = "pgsql_enum")

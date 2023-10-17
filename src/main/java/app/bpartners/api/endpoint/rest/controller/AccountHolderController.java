@@ -43,11 +43,12 @@ public class AccountHolderController {
   private final FeedbackRestMapper feedbackRestMapper;
 
   @GetMapping("/accountHolders")
-  public List<AccountHolder> getAllAccountHolders(@RequestParam(name = "name", required = false) String name,
-                                                  @RequestParam(name = "page", required = false)
-                                                  PageFromOne page,
-                                                  @RequestParam(name = "pageSize", required = false)
-                                                  BoundedPageSize pageSize) {
+  public List<AccountHolder> getAllAccountHolders(
+      @RequestParam(name = "name", required = false) String name,
+      @RequestParam(name = "page", required = false)
+      PageFromOne page,
+      @RequestParam(name = "pageSize", required = false)
+      BoundedPageSize pageSize) {
     int pageValue = page == null ? 0 : page.getValue();
     int pageSizeValue = pageSize == null ? 30 : pageSize.getValue();
     return accountHolderService.getAll(name, pageValue, pageSizeValue).stream()
@@ -70,11 +71,11 @@ public class AccountHolderController {
       @PathVariable("userId") String userId,
       @PathVariable("accountId") String accountId,
       @PathVariable("ahId") String accountHolderId) {
-    return accountHolderMapper.toRest(
-        accountHolderService.updateCompanyInfo(accountHolderId,
-            companyInfoMapper.toDomain(companyInfo)
-        )
-    );
+    app.bpartners.api.model.CompanyInfo companyInfoDomain =
+        companyInfoMapper.toDomain(companyInfo);
+    app.bpartners.api.model.AccountHolder savedAccountHolder =
+        accountHolderService.updateCompanyInfo(accountHolderId, companyInfoDomain);
+    return accountHolderMapper.toRest(savedAccountHolder);
   }
 
   @PutMapping("/users/{userId}/accounts/{accountId}/accountHolders/{ahId}/globalInfo")

@@ -916,6 +916,8 @@ components:
           type: string
         email:
           type: string
+        website:
+          type: string
         socialCapital:
           type: integer
         tvaNumber:

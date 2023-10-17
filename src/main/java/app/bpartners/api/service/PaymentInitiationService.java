@@ -13,20 +13,66 @@ import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.mapper.PaymentRequestMapper;
 import app.bpartners.api.repository.PaymentInitiationRepository;
+import app.bpartners.api.repository.jpa.PaymentRequestJpaRepository;
+import app.bpartners.api.repository.jpa.model.HPaymentRequest;
+import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import static app.bpartners.api.endpoint.rest.model.PaymentStatus.PAID;
+import static app.bpartners.api.service.PaymentScheduleService.PAYMENT_CREATED;
+import static app.bpartners.api.service.PaymentScheduleService.paymentMessage;
 import static java.util.UUID.randomUUID;
 
 @Service
 @AllArgsConstructor
+@Slf4j
 public class PaymentInitiationService {
   private final PaymentInitiationRepository repository;
+  private final PaymentRequestJpaRepository jpaRepository;
   private final PaymentRequestMapper mapper;
   private final AccountService accountService;
+
+  public void updatePaymentStatuses(Map<String, String> paymentStatusMap) {
+    StringBuilder msgBuilder = new StringBuilder();
+    List<HPaymentRequest> toSave = new ArrayList<>();
+    paymentStatusMap.forEach(
+        (sessionId, statusValue) -> {
+          if (statusValue.equals(PAYMENT_CREATED)) {
+            Optional<HPaymentRequest> optionalPayment = jpaRepository.findBySessionId(sessionId);
+            if (optionalPayment.isEmpty()) {
+              msgBuilder.append("Unable to found payment with session_id=")
+                  .append(sessionId)
+                  .append(". ");
+            } else {
+              HPaymentRequest paymentRequest = optionalPayment.get();
+              toSave.add(paymentRequest.toBuilder()
+                  .status(PAID)
+                  .paymentStatusUpdatedAt(Instant.now())
+                  .build());
+            }
+          } else {
+            log.warn("Payment(sessionId={}, statusValue={}) received successfully but not treated.",
+                sessionId, statusValue);
+          }
+        }
+    );
+    String msgValue = msgBuilder.toString();
+    if (!msgValue.isEmpty()) {
+      log.warn(msgValue);
+    }
+    if (!toSave.isEmpty()) {
+      List<HPaymentRequest> savedPaidPayments = jpaRepository.saveAll(toSave);
+      log.info("Payment requests " + paymentMessage(savedPaidPayments) + " updated successfully");
+    }
+  }
 
   public List<PaymentRedirection> initiatePayments(
       String accountId, List<PaymentInitiation> paymentInitiations) {

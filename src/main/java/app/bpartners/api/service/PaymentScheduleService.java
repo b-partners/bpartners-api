@@ -4,6 +4,7 @@ import app.bpartners.api.repository.fintecture.FintecturePaymentInfoRepository;
 import app.bpartners.api.repository.fintecture.model.Session;
 import app.bpartners.api.repository.jpa.PaymentRequestJpaRepository;
 import app.bpartners.api.repository.jpa.model.HPaymentRequest;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.PostConstruct;
@@ -37,6 +38,7 @@ public class PaymentScheduleService {
             && externalPayment.getMeta().getStatus().equals(PAYMENT_CREATED)) {
           paidPayments.add(payment.toBuilder()
               .status(PAID)
+              .paymentStatusUpdatedAt(Instant.now())
               .build());
           break;
         }
@@ -48,7 +50,7 @@ public class PaymentScheduleService {
     }
   }
 
-  String paymentMessage(List<HPaymentRequest> paymentRequests) {
+  public static String paymentMessage(List<HPaymentRequest> paymentRequests) {
     StringBuilder builder = new StringBuilder();
     for (HPaymentRequest payment : paymentRequests) {
       builder.append("(id=")
@@ -58,7 +60,7 @@ public class PaymentScheduleService {
           .append(", status=")
           .append(payment.getStatus())
           .append(")")
-          .append(", ");
+          .append(" ");
     }
     if (!builder.toString().isEmpty()) {
       return builder.toString();

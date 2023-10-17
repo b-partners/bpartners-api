@@ -6,6 +6,7 @@ import app.bpartners.api.model.PaymentRedirection;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.mapper.PaymentRequestMapper;
 import app.bpartners.api.repository.PaymentInitiationRepository;
+import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.fintecture.FintecturePaymentInitiationRepository;
 import app.bpartners.api.repository.fintecture.model.FPaymentInitiation;
 import app.bpartners.api.repository.fintecture.model.FPaymentRedirection;
@@ -18,6 +19,8 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
 
+import static app.bpartners.api.endpoint.rest.security.AuthProvider.getAuthenticatedUser;
+
 @Repository
 @AllArgsConstructor
 @Slf4j
@@ -26,13 +29,14 @@ public class PaymentInitiationRepositoryImpl implements PaymentInitiationReposit
   private final FintectureMapper mapper;
   private final PaymentRequestJpaRepository paymentRequestRepository;
   private final PaymentRequestMapper paymentRequestMapper;
+  private final UserRepository userRepository;
 
   @Override
   public List<PaymentRedirection> saveAll(
-      List<PaymentInitiation> paymentInitiations, String invoice) {
+      List<PaymentInitiation> paymentInitiations, String invoice, User user) {
     return paymentInitiations.stream()
         .map(domain -> {
-          FPaymentRedirection paymentRedirection = initiatePayment(domain, invoice);
+          FPaymentRedirection paymentRedirection = initiatePayment(domain, invoice, user);
           return mapper.toDomain(paymentRedirection, domain);
         }).collect(Collectors.toUnmodifiableList());
   }
@@ -47,8 +51,10 @@ public class PaymentInitiationRepositoryImpl implements PaymentInitiationReposit
 
   @Override
   public List<HPaymentRequest> retrievePaymentEntitiesWithUrl(
-      List<PaymentInitiation> paymentInitiations, String invoice) {
-    User authenticatedUser = AuthProvider.getAuthenticatedUser();
+      List<PaymentInitiation> paymentInitiations, String invoice, User user) {
+    User authenticatedUser = getAuthenticatedUser() == null
+        ? user : getAuthenticatedUser();
+
     return paymentInitiations.stream()
         .map(payment -> {
           FPaymentInitiation paymentInitiation = mapper.toFintectureResource(payment,
@@ -60,8 +66,8 @@ public class PaymentInitiationRepositoryImpl implements PaymentInitiationReposit
         .collect(Collectors.toList());
   }
 
-  private FPaymentRedirection initiatePayment(PaymentInitiation domain, String invoice) {
-    User authenticatedUser = AuthProvider.getAuthenticatedUser();
+  private FPaymentRedirection initiatePayment(PaymentInitiation domain, String invoice, User user) {
+    User authenticatedUser = getAuthenticatedUser() == null ? user : getAuthenticatedUser();
     FPaymentInitiation paymentInitiation = mapper.toFintectureResource(domain,
         authenticatedUser.getDefaultAccount(), authenticatedUser.getDefaultHolder());
     FPaymentRedirection paymentRedirection =

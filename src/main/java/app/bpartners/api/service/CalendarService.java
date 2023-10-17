@@ -11,7 +11,6 @@ import app.bpartners.api.model.Calendar;
 import app.bpartners.api.model.CalendarEvent;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.exception.BadRequestException;
-import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.model.validator.CalendarAuthValidator;
 import app.bpartners.api.repository.CalendarRepository;
 import app.bpartners.api.repository.CalendarStoredCredentialRepository;
@@ -98,16 +97,13 @@ public class CalendarService {
           "Min datetime attribute `from` must be before or equals to max datetime attribute `to`");
     }
     if (provider == null) {
-      provider = CalendarProvider.LOCAL;
+      provider = CalendarProvider.GOOGLE_CALENDAR;
     }
-    switch (provider) {
-      case LOCAL:
-        return localEventRepository.findByIdUserAndIdCalendar(idUser, idCalendar, from, to);
-      case GOOGLE_CALENDAR:
-        return googleEventRepository.findByIdUserAndIdCalendar(idUser, idCalendar, from, to);
-      default:
-        throw new NotImplementedException("Unknown provider " + provider);
-    }
+    return switch (provider) {
+      case LOCAL -> localEventRepository.findByIdUserAndIdCalendar(idUser, idCalendar, from, to);
+      case GOOGLE_CALENDAR ->
+          googleEventRepository.findByIdUserAndIdCalendar(idUser, idCalendar, from, to);
+    };
   }
 
   private CalendarConf calendarConf() {

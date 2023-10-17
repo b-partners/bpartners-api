@@ -1,3 +1,20 @@
+# [0.35.0](https://github.com/b-partners/bpartners-api/compare/v0.34.1...v0.35.0) (2023-10-17)
+
+
+### Bug Fixes
+
+* remove duplicated email subject when relaunching invoice ([d77ccb9](https://github.com/b-partners/bpartners-api/commit/d77ccb95f12b4bd30277048ecb4a3f064aafc2be))
+* set google calendar provider when listing events by default ([ab1620a](https://github.com/b-partners/bpartners-api/commit/ab1620addce3cbef08d9102b6d0f30c153b285a5))
+* throw bad request exception instead of empty array when listing calendar events with expired token ([ba59a3c](https://github.com/b-partners/bpartners-api/commit/ba59a3c3a4bd8acac418dfa29e59ccd2078f9e0d))
+
+
+### Features
+
+* add website to account holder ([0c9e563](https://github.com/b-partners/bpartners-api/commit/0c9e5635d2133469538df17aaca9bde82a0ceaa2))
+* persist and return prospect status changes ([394e0b3](https://github.com/b-partners/bpartners-api/commit/394e0b3f2554cfb8a05d4e09419a93a99426d22c))
+
+
+
 ## [0.34.1](https://github.com/b-partners/bpartners-api/compare/v0.34.0...v0.34.1) (2023-10-16)
 
 
@@ -149,15 +166,6 @@
 
 * configure google sheets OAuth2 ([d6a0683](https://github.com/b-partners/bpartners-api/commit/d6a0683aa2da4b1e3bf4229bf6bada7c095c96e6))
 * evaluate prospect through google sheets ([e024294](https://github.com/b-partners/bpartners-api/commit/e0242942ac27ea6cac78963b01e5c9c65a612438))
-
-
-
-## [0.28.1](https://github.com/b-partners/bpartners-api/compare/v0.28.0...v0.28.1) (2023-09-08)
-
-
-### Bug Fixes
-
-* transactionIT and prospectIT filters ([63ea268](https://github.com/b-partners/bpartners-api/commit/63ea2687c1879e999aca4eaff31c2b8108d901df))
 
 
 

@@ -23,6 +23,25 @@
         <li>Adresse : <span th:text="${prospect.getAddress()}"></span></li>
         <li>Notation du prospect sur 10 :
             <span th:text="${#numbers.formatDecimal(prospect.getRating().getValue(),1,2)}"></span></li>
+        <li>Commentaire par l'artisan :
+            <span th:if="${prospect.comment != null && !prospect.comment.isEmpty()}">
+                <span th:text="${prospect.comment}"></span>
+            </span>
+            <span th:unless="${prospect.comment != null && !prospect.comment.isEmpty()}">
+                Non renseigné
+            </span>
+        </li>
+        <li>Montant convenu en € :
+            <span th:if="${prospect.contractAmount != null}">
+                <span th:text="${#numbers.formatDecimal(prospect.contractAmount.getApproximatedValue(),1,2)}"></span>
+            </span>
+            <span th:unless="${prospect.contractAmount != null}">
+                -
+            </span>
+        </li>
+        <li>
+            Avis du prospect indiqué par l'artisan : <span th:text="${translatedFeedback}"></span>
+        </li>
     </ul>
     <footer>
         <p>

@@ -5,6 +5,8 @@ import app.bpartners.api.endpoint.rest.model.ProspectFeedback;
 import app.bpartners.api.endpoint.rest.model.ProspectStatus;
 import app.bpartners.api.model.Fraction;
 import java.time.Instant;
+import java.util.Comparator;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -31,7 +33,7 @@ public class Prospect implements Comparable<Prospect> {
   private String phone;
   private Geojson location;
   private String address;
-  private ProspectStatus status;
+  private List<ProspectStatusHistory> statusHistories;
   private Integer townCode;
   private ProspectRating rating;
   private String comment;
@@ -39,6 +41,13 @@ public class Prospect implements Comparable<Prospect> {
   private Fraction contractAmount;
   private String idInvoice;
   private ProspectFeedback prospectFeedback;
+
+  public ProspectStatus getActualStatus() {
+    return statusHistories.isEmpty() ? null : statusHistories.stream()
+        .sorted(Comparator.comparing(ProspectStatusHistory::getUpdatedAt).reversed())
+        .toList()
+        .get(0).getStatus();
+  }
 
   @Override
   public int compareTo(Prospect o) {

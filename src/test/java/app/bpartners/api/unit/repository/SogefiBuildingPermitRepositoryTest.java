@@ -5,19 +5,20 @@ import app.bpartners.api.repository.implementation.SogefiBuildingPermitRepositor
 import app.bpartners.api.repository.jpa.ProspectJpaRepository;
 import app.bpartners.api.repository.jpa.SogefiBuildingPermitJpaRepository;
 import app.bpartners.api.repository.jpa.model.HProspect;
+import app.bpartners.api.repository.jpa.model.HProspectStatusHistory;
 import app.bpartners.api.repository.jpa.model.HSogefiBuildingPermitProspect;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.model.Applicant;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.model.BuildingPermit;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.model.GeoJson;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.model.SingleBuildingPermit;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.model.SogefiInformation;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
-import static app.bpartners.api.endpoint.rest.model.ProspectStatus.CONTACTED;
 import static app.bpartners.api.endpoint.rest.model.ProspectStatus.TO_CONTACT;
 import static app.bpartners.api.integration.conf.utils.TestUtils.ACCOUNTHOLDER_ID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -29,6 +30,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+//TODO: make test pass with prospect history statuses
 class SogefiBuildingPermitRepositoryTest {
   public static final String PROSPECT_NAME = "name";
   public static final String PROSPECT_ADDRESS = "address";
@@ -118,7 +120,7 @@ class SogefiBuildingPermitRepositoryTest {
         .id(PROSPECT1_ID)
         .oldName(PROSPECT_NAME)
         .oldAddress(PROSPECT_ADDRESS)
-        .status(TO_CONTACT)
+        .statusHistories(defaultStatusHistoriesEntity())
         .idAccountHolder(ACCOUNTHOLDER_ID)
         .townCode(92001)
         .rating(-1.0)
@@ -130,10 +132,18 @@ class SogefiBuildingPermitRepositoryTest {
         .id(PROSPECT1_ID)
         .oldName("some name")
         .oldAddress("some address")
-        .status(CONTACTED)
+        .statusHistories(defaultStatusHistoriesEntity())
         .idAccountHolder(ACCOUNTHOLDER_ID)
         .townCode(92002)
         .build();
+  }
+
+  private static List<HProspectStatusHistory> defaultStatusHistoriesEntity() {
+    return List.of(HProspectStatusHistory.builder()
+        .id("TODO")
+        .status(TO_CONTACT)
+        .updatedAt(Instant.now())
+        .build());
   }
 
   @Test
@@ -166,7 +176,7 @@ class SogefiBuildingPermitRepositoryTest {
     when(prospectJpaRepositoryMock.findById(PROSPECT1_ID)).thenReturn(
         Optional.of(toUpdateProspect()));
     HProspect expectedProspect = expectedSavedProspect();
-    expectedProspect.setStatus(toUpdateProspect().getStatus());
+    expectedProspect.setStatusHistories(defaultStatusHistoriesEntity());
     ArgumentCaptor<HSogefiBuildingPermitProspect> sogefiProspectEntityCaptor =
         ArgumentCaptor.forClass(HSogefiBuildingPermitProspect.class);
     ArgumentCaptor<HProspect> prospectEntityArgumentCaptor =

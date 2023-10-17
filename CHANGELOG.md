@@ -1,3 +1,14 @@
+## [0.34.1](https://github.com/b-partners/bpartners-api/compare/v0.34.0...v0.34.1) (2023-10-16)
+
+
+### Bug Fixes
+
+* rename account identifier param in products export ([702e311](https://github.com/b-partners/bpartners-api/commit/702e311e4c328f89e1156fa6212cf1faec338381))
+* unable to save events with expired google calendar token ([2aae567](https://github.com/b-partners/bpartners-api/commit/2aae567ceb54ea5268f6ed0f50248111bc68ddcf))
+* update TO_CONTACT prospect informations correctly ([271f7da](https://github.com/b-partners/bpartners-api/commit/271f7da6fe193b38ca4ae1e7d69834191a71c021))
+
+
+
 # [0.34.0](https://github.com/b-partners/bpartners-api/compare/v0.33.0...v0.34.0) (2023-10-12)
 
 
@@ -147,23 +158,6 @@
 ### Bug Fixes
 
 * transactionIT and prospectIT filters ([63ea268](https://github.com/b-partners/bpartners-api/commit/63ea2687c1879e999aca4eaff31c2b8108d901df))
-
-
-
-# [0.28.0](https://github.com/b-partners/bpartners-api/compare/v0.27.0...v0.28.0) (2023-09-07)
-
-
-### Features
-
-* filter invoice by title ([a6f2052](https://github.com/b-partners/bpartners-api/commit/a6f20520d02fccb43ff1aca6c1afbe9ed9c0524f))
-* filter prospect by name ([4ffd713](https://github.com/b-partners/bpartners-api/commit/4ffd71398a3f03712be6379944be2f666d1d214e))
-* filter transaction by label ([7b85703](https://github.com/b-partners/bpartners-api/commit/7b85703245895236d7948dcd68355733b0373314))
-
-
-### Reverts
-
-* Revert "docs(api): refactor invoice filtering to filter by title and/or reference" ([f29ae5f](https://github.com/b-partners/bpartners-api/commit/f29ae5fda8d4deda3b6fa0110b839c529696d48b))
-* Revert "docs(api): add query parameter for filtering invoice by title and/or reference " ([6f26cd7](https://github.com/b-partners/bpartners-api/commit/6f26cd7fdaab6fd0f597350632c891c5fa554a94))
 
 
 

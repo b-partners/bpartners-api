@@ -65,10 +65,6 @@ public class InvoiceRelaunchService {
         + invoice.getCustomer().getLastName().toUpperCase();
   }
 
-  private static String getSubject(AccountHolder accountHolder, String subject) {
-    return "[" + accountHolder.getName() + "] " + subject;
-  }
-
   private static String getStatusValue(InvoiceStatus status) {
     if (status.equals(PROPOSAL) || status.equals(DRAFT)) {
       return "devis";
@@ -226,7 +222,8 @@ public class InvoiceRelaunchService {
     String recipient = invoice.getCustomer().getEmail();
 
     return toTypedEvent(
-        recipient, getSubject(accountHolder, subject),
+        recipient,
+        subject,
         emailBody(customEmailBody, invoice, accountHolder, fromScratch),
         invoice.getRef() + PDF_EXTENSION,
         invoice,

@@ -270,43 +270,6 @@ jobs:
           echo "tasksDesiredCount=${{ steps.get-configuration.outputs.tasksDesiredCount}}" >> $GITHUB_ENV
           echo "listenerRuleAvailablePriority=${{ steps.get-configuration.outputs.listenerRuleAvailablePriority}}" >> $GITHUB_ENV
 
-      - name: Retrieve Database identifier from Parameter Store and set it as Env
-        run: |
-          aws configure set default.output text
-          echo "dbIdentifier=$(aws ssm get-parameter --name /bpartners/${{ env.branch_env }}/db/identifier --query "Parameter.Value" | grep -o '^[^.]*')" >> $GITHUB_ENV
-
-      - name: Get RDS Snapshot Count
-        id: snapshot_count
-        run: |
-          snapshot_count=$(aws rds describe-db-snapshots --region eu-west-3 --snapshot-type manual --query "length(DBSnapshots[?SnapshotType=='manual'])" --output text)
-          echo "Snapshot Count: $snapshot_count"
-          echo "##[set-output name=snapshot_count]$snapshot_count"
-
-      - name: Get oldest RDS snapshot
-        if: steps.snapshot_count.outputs.snapshot_count > 90
-        id: oldestSnapshot
-        run: |
-          oldest_snapshot=$(aws rds describe-db-snapshots --region eu-west-3 --snapshot-type manual | jq -r '.DBSnapshots | sort_by(.SnapshotCreateTime)[0].DBSnapshotIdentifier')
-          echo "::set-output name=oldest_snapshot::$oldest_snapshot"
-
-      - name: Delete RDS snapshot
-        if: steps.oldestSnapshot.outputs.oldest_snapshot != null
-        run: |
-          aws rds delete-db-snapshot --db-snapshot-identifier ${{ steps.oldestSnapshot.outputs.oldest_snapshot }}
-
-      - name: Get Time
-        id: current-time
-        uses: nanzm/get-time-action@v1.1
-        with:
-          timeZone: 3
-          format: 'YYYY-MM-DD-HH-mm-ss'
-
-      - name: Set time as env
-        run: echo "time=${{ steps.current-time.outputs.time }}" >> $GITHUB_ENV
-
-      - name: Create snapshot for the actual version of the database
-        run: aws rds create-db-snapshot --db-instance-identifier ${{ env.dbIdentifier }} --db-snapshot-identifier ${{ env.branch_env }}-snapshot-pre-cd-compute-${{ github.sha }}-${{ env.time }}
-
       - name: Deploy compute stack
         uses: aws-actions/aws-cloudformation-github-deploy@v1
         if: github.ref_name != 'prod-private-url' && github.ref_name != 'preprod-private-url'

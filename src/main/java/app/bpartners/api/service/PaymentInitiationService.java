@@ -9,6 +9,7 @@ import app.bpartners.api.model.PaymentHistoryStatus;
 import app.bpartners.api.model.PaymentInitiation;
 import app.bpartners.api.model.PaymentRedirection;
 import app.bpartners.api.model.PaymentRequest;
+import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.mapper.PaymentRequestMapper;
 import app.bpartners.api.repository.PaymentInitiationRepository;
@@ -30,7 +31,7 @@ public class PaymentInitiationService {
   public List<PaymentRedirection> initiatePayments(
       String accountId, List<PaymentInitiation> paymentInitiations) {
     checkAccountRequiredInfos(accountId);
-    return repository.saveAll(paymentInitiations, null);
+    return repository.saveAll(paymentInitiations, null, null);
   }
 
   public PaymentRedirection initiateInvoicePayment(
@@ -47,7 +48,8 @@ public class PaymentInitiationService {
         invoice,
         paymentReg,
         paymentHistoryStatus);
-    return repository.saveAll(List.of(paymentInitiation), invoice.getId()).get(0);
+    return repository.saveAll(List.of(paymentInitiation), invoice.getId(), invoice.getUser())
+        .get(0);
   }
 
   public List<PaymentRequest> retrievePaymentEntities(
@@ -61,8 +63,8 @@ public class PaymentInitiationService {
   }
 
   public List<PaymentRequest> retrievePaymentEntitiesWithUrl(
-      List<PaymentInitiation> paymentInitiations, String invoiceId) {
-    return repository.retrievePaymentEntitiesWithUrl(paymentInitiations, invoiceId).stream()
+      List<PaymentInitiation> paymentInitiations, String invoiceId, User user) {
+    return repository.retrievePaymentEntitiesWithUrl(paymentInitiations, invoiceId, user).stream()
         .map(PaymentRequest::new)
         .collect(Collectors.toList());
   }

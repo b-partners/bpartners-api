@@ -4,7 +4,7 @@ import app.bpartners.api.model.exception.BadRequestException;
 import lombok.Getter;
 
 public class PageFromOne {
-  private static final int MIN_PAGE = 1;
+  public static final int MIN_PAGE = 1;
   @Getter
   private final int value;
 

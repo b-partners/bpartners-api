@@ -2,13 +2,13 @@ package app.bpartners.api.repository.implementation;
 
 import app.bpartners.api.endpoint.rest.model.ArchiveStatus;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
-import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.model.ArchiveInvoice;
 import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.mapper.InvoiceMapper;
 import app.bpartners.api.model.mapper.InvoiceProductMapper;
 import app.bpartners.api.repository.InvoiceRepository;
+import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.jpa.InvoiceJpaRepository;
 import app.bpartners.api.repository.jpa.InvoiceProductJpaRepository;
 import app.bpartners.api.repository.jpa.PaymentRequestJpaRepository;
@@ -39,6 +39,7 @@ import static app.bpartners.api.endpoint.rest.model.FileType.LOGO;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PROPOSAL_CONFIRMED;
+import static app.bpartners.api.endpoint.rest.security.AuthProvider.getAuthenticatedUser;
 import static app.bpartners.api.endpoint.rest.security.AuthProvider.userIsAuthenticated;
 import static app.bpartners.api.service.InvoiceService.DRAFT_TEMPLATE;
 import static app.bpartners.api.service.InvoiceService.INVOICE_TEMPLATE;
@@ -55,6 +56,7 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
   private final InvoiceProductJpaRepository productJpaRepository;
   private final FileService fileService;
   private final EntityManager entityManager;
+  protected final UserRepository userRepository;
   private final InvoicePdfUtils pdfUtils = new InvoicePdfUtils();
 
   @Override
@@ -91,7 +93,8 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
         mapper.toDomain(
             actualEntity
                 .products(invoiceProducts)
-                .paymentRequests(paymentRequests), AuthProvider.getAuthenticatedUser());
+                .paymentRequests(paymentRequests), userIsAuthenticated() ? getAuthenticatedUser()
+                : actual.getUser());
     HInvoice toSave = actualEntity.fileId(processAsPdf(toGenerateAsPdf));
     HInvoice savedInvoice = jpaRepository.save(toSave);
 
@@ -103,7 +106,8 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
         ? String.valueOf(randomUUID()) : domain.getFileId();
     String idUser = domain.getUser().getId();
 
-    List<byte[]> logos = fileService.downloadOptionalFile(LOGO, idUser, userLogoFileId());
+    List<byte[]> logos =
+        fileService.downloadOptionalFile(LOGO, idUser, domain.getUser().getLogoFileId());
     byte[] logoAsBytes = logos.isEmpty() ? null : logos.get(0);
     byte[] fileAsBytes = domain.getStatus() == CONFIRMED || domain.getStatus() == PAID
         ? pdfUtils.generatePdf(domain, domain.getActualHolder(), logoAsBytes, INVOICE_TEMPLATE)
@@ -118,7 +122,7 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
   public Invoice getById(String invoiceId) {
     return mapper.toDomain(jpaRepository.findById(invoiceId).orElseThrow(
             () -> new NotFoundException("Invoice." + invoiceId + " is not found")),
-        AuthProvider.getAuthenticatedUser());
+        getAuthenticatedUser());
   }
 
   @Override
@@ -178,8 +182,10 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
         .setMaxResults(pageable.getPageSize())
         .getResultList()
         .stream()
-        .map(mapper::toDomain)
-        .collect(Collectors.toUnmodifiableList());
+        .map(invoice -> mapper.toDomain(invoice,
+            userIsAuthenticated() ? getAuthenticatedUser()
+                : userRepository.getById(idUser)))
+        .toList();
   }
 
   @Override
@@ -220,11 +226,5 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
     return jpaRepository.findByIdUserAndRef(idUser, reference).stream()
         .map(mapper::toDomain)
         .collect(Collectors.toList());
-  }
-
-  private String userLogoFileId() {
-    return userIsAuthenticated()
-        ? AuthProvider.getAuthenticatedUser().getLogoFileId()
-        : null;
   }
 }

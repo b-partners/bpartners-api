@@ -125,6 +125,7 @@ public class InvoiceService {
 
   //TODO: refactor and use EntityManager inside Repository to match dynamically
   //TODO: handle invoice with null title value
+  @Transactional
   public List<Invoice> getInvoices(
       String idUser,
       PageFromOne page,
@@ -188,6 +189,12 @@ public class InvoiceService {
     List<Invoice> existingInvoice =
         repository.findByIdUserAndRef(idUser, reference);
 
+    if (invoice.getStatus() == CONFIRMED
+        && !existingInvoice.isEmpty()
+        && existingInvoice.stream()
+        .anyMatch(i -> i.getStatus() == CONFIRMED)) {
+      return true;
+    }
     boolean isTobeConfirmed = existingInvoice.isEmpty() || existingInvoice.stream()
         .anyMatch(existing -> existing.getStatus() == PROPOSAL);
     boolean isToBePaid = existingInvoice.stream()
@@ -285,7 +292,7 @@ public class InvoiceService {
   private List<CreatePaymentRegulation> getPaymentRegWithUrl(Invoice actual) {
     List<PaymentInitiation> paymentInitiations = getPaymentInitiations(actual);
     List<PaymentRequest> paymentRequests =
-        pis.retrievePaymentEntitiesWithUrl(paymentInitiations, actual.getId());
+        pis.retrievePaymentEntitiesWithUrl(paymentInitiations, actual.getId(), actual.getUser());
     return convertPaymentRequests(paymentRequests);
   }
 

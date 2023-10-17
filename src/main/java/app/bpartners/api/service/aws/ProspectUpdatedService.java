@@ -2,6 +2,7 @@ package app.bpartners.api.service.aws;
 
 import app.bpartners.api.endpoint.event.EventConf;
 import app.bpartners.api.endpoint.event.model.gen.ProspectUpdated;
+import app.bpartners.api.endpoint.rest.model.ProspectFeedback;
 import app.bpartners.api.endpoint.rest.model.ProspectStatus;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.Attachment;
@@ -41,14 +42,19 @@ public class ProspectUpdatedService implements Consumer<ProspectUpdated> {
       String concerned = null;
       String frenchUpdatedDatetime = formatFrenchDatetime(updatedAt);
       String translatedStatus = getTranslatedStatus(prospect.getActualStatus());
+      String translatedFeedback = getTranslatedFeedBack(prospect.getProspectFeedback());
       String subject = String.format(
           "Le prospect intitulé %s appartenant à l'artisan %s est passé en statut %s le %s",
           prospect.getName(),
           accountHolder.getName(),
           translatedStatus,
           frenchUpdatedDatetime);
-      String htmlBody = htmlBody(prospect, accountHolder, translatedStatus,
-          frenchUpdatedDatetime);
+      String htmlBody = htmlBody(
+          prospect,
+          accountHolder,
+          translatedStatus,
+          frenchUpdatedDatetime,
+          translatedFeedback);
       List<Attachment> attachments = List.of();
       sesService.sendEmail(recipient, concerned, subject, htmlBody, attachments);
       log.info("{} updated and mail sent to recipient={}", prospect, recipient);
@@ -67,12 +73,26 @@ public class ProspectUpdatedService implements Consumer<ProspectUpdated> {
     return translatedStatus.toUpperCase();
   }
 
+  private String getTranslatedFeedBack(ProspectFeedback feedback) {
+    String translatedFeedback = switch (feedback) {
+      case NOT_INTERESTED -> "Pas intéressé";
+      case INTERESTED -> "Interessé";
+      case PROPOSAL_SENT -> "Devis envoyé";
+      case PROPOSAL_ACCEPTED -> "Devis accepté";
+      case PROPOSAL_DECLINED -> "Devis refusé";
+      case INVOICE_SENT -> "Facture envoyée";
+    };
+    return translatedFeedback.toUpperCase();
+  }
+
   private String htmlBody(Prospect prospect,
                           AccountHolder accountHolder,
                           String translatedStatus,
-                          String frenchUpdatedDatetime) {
+                          String frenchUpdatedDatetime,
+                          String translatedFeedback) {
     Context context = new Context();
     context.setVariable("prospect", prospect);
+    context.setVariable("translatedFeedback", translatedFeedback);
     context.setVariable("accountHolder", accountHolder);
     context.setVariable("translatedStatus", translatedStatus);
     context.setVariable("frenchUpdatedDatetime", frenchUpdatedDatetime);

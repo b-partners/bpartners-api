@@ -14,6 +14,7 @@ public class CompanyInfoMapper {
     }
     return app.bpartners.api.model.CompanyInfo.builder()
         .email(rest.getEmail())
+        .website(rest.getWebsite())
         .tvaNumber(rest.getTvaNumber())
         .phone(rest.getPhone())
         .socialCapital(rest.getSocialCapital())

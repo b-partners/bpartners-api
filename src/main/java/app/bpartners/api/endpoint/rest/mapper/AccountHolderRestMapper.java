@@ -50,6 +50,7 @@ public class AccountHolderRestMapper {
         .companyInfo(new CompanyInfo()
             .isSubjectToVat(domain.isSubjectToVat())
             .email(domain.getEmail())
+            .website(domain.getWebsite())
             .phone(domain.getMobilePhoneNumber())
             .tvaNumber(domain.getVatNumber())
             .socialCapital(domain.getSocialCapital())

@@ -123,6 +123,7 @@ public class OnboardingService {
         .name(companyName)
         .initialCashflow(DEFAULT_CASH_FLOW)
         .email(user.getEmail())
+        .website(null)
         .mobilePhoneNumber(user.getMobilePhoneNumber())
         .verificationStatus(DEFAULT_VERIFICATION_STATUS) //default value
         .subjectToVat(DEFAULT_SUBJECT_TO_VAT) //default value

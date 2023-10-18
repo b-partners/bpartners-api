@@ -28,7 +28,6 @@ import java.util.stream.Collectors;
 import javax.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import static app.bpartners.api.endpoint.event.EventProducer.Conf.MAX_PUT_EVENT_ENTRIES;
@@ -147,7 +146,7 @@ public class CustomerService {
     );
   }
 
-  @Scheduled(cron = Scheduled.CRON_DISABLED)
+  //@Scheduled(cron = Scheduled.CRON_DISABLED)
   public void updateCustomersLocation() {
     List<Customer> customers = repository.findWhereLatitudeOrLongitudeIsNull();
     int customersCount = customers.size();

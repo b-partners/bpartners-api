@@ -308,8 +308,7 @@ public class ProspectMapper {
     if (info.getAddress() == null) {
       throw new BadRequestException("Address is missing for Prospect(name=" + info.getName() + ")");
     } else {
-      GeoPosition geoPosition = null;
-      //banApi.fSearch(info.getAddress());
+      GeoPosition geoPosition = banApi.fSearch(info.getAddress());
       info.setCoordinates(
           geoPosition == null ? null : geoPosition.getCoordinates());
     }

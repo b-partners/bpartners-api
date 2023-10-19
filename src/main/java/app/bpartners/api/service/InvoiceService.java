@@ -189,12 +189,19 @@ public class InvoiceService {
     List<Invoice> existingInvoice =
         repository.findByIdUserAndRef(idUser, reference);
 
-    if (invoice.getStatus() == CONFIRMED
+    /*Case when crupdating CONFIRMED invoice*/
+    if (existingInvoice.size() == 1
+        && existingInvoice.get(0).getStatus() == CONFIRMED
+        && invoice.getStatus() == CONFIRMED) {
+      return invoice.getId().equals(existingInvoice.get(0).getId());
+    } else if ((invoice.getStatus() == CONFIRMED)
         && !existingInvoice.isEmpty()
         && existingInvoice.stream()
-        .anyMatch(i -> i.getStatus() == CONFIRMED)) {
+        .anyMatch(existing -> existing.getStatus() == CONFIRMED
+            && existing.getId().equals(invoice.getId()))) {
       return true;
     }
+
     boolean isTobeConfirmed = existingInvoice.isEmpty() || existingInvoice.stream()
         .anyMatch(existing -> existing.getStatus() == PROPOSAL);
     boolean isToBePaid = existingInvoice.stream()

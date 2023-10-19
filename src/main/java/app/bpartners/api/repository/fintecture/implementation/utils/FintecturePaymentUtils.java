@@ -69,10 +69,7 @@ public class FintecturePaymentUtils {
               + "date: " + date + "\n"
               + "digest: " + digest + "\n"
               + "x-request-id: " + requestId;
-      PrivateKey key = copyKey(fintectureConf.getPrivateKey());
-      Signature privateSignature = Signature.getInstance(SIGNATURE_ALGORITHM);
-      privateSignature.initSign(key);
-      privateSignature.update(signingString.getBytes(StandardCharsets.UTF_8));
+      Signature privateSignature = getSignature(fintectureConf.getPrivateKey(), signingString);
       byte[] signatureAsBytes = privateSignature.sign();
       return Base64.getEncoder().encodeToString(signatureAsBytes);
     } catch (NoSuchAlgorithmException | InvalidKeySpecException | SignatureException
@@ -88,16 +85,23 @@ public class FintecturePaymentUtils {
           "(request-target): get /pis/v2/payments" + urlParams + "\n"
               + "date: " + date + "\n"
               + "x-request-id: " + requestId;
-      PrivateKey key = copyKey(fintectureConf.getPrivateKey());
-      Signature privateSignature = Signature.getInstance(SIGNATURE_ALGORITHM);
-      privateSignature.initSign(key);
-      privateSignature.update(signingString.getBytes(StandardCharsets.UTF_8));
+      Signature privateSignature = getSignature(fintectureConf.getPrivateKey(), signingString);
       byte[] signatureAsBytes = privateSignature.sign();
       return Base64.getEncoder().encodeToString(signatureAsBytes);
     } catch (NoSuchAlgorithmException | InvalidKeySpecException | SignatureException
              | InvalidKeyException e) {
       throw new ApiException(SERVER_EXCEPTION, e);
     }
+  }
+
+  public static Signature getSignature(String keyValue, String data)
+      throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException,
+      SignatureException {
+    PrivateKey key = copyKey(keyValue);
+    Signature privateSignature = Signature.getInstance(SIGNATURE_ALGORITHM);
+    privateSignature.initSign(key);
+    privateSignature.update(data.getBytes(StandardCharsets.UTF_8));
+    return privateSignature;
   }
 
   private static PrivateKey copyKey(String privateKey)

@@ -61,6 +61,7 @@ public class PaymentInitiationService {
   private final EventConf eventConf;
   private final UserRepository userRepository;
   private final InvoiceRepository invoiceRepository;
+  private final SnsService snsService;
 
   @SneakyThrows
   @Transactional
@@ -96,6 +97,13 @@ public class PaymentInitiationService {
       List<HPaymentRequest> savedPaidPayments = jpaRepository.saveAll(toSave);
       log.info("Payment requests " + paymentMessage(savedPaidPayments) + " updated successfully");
       notifyByEmail(savedPaidPayments);
+      notifyByMobileNotification(savedPaidPayments);
+    }
+  }
+
+  private void notifyByMobileNotification(List<HPaymentRequest> paymentRequests) {
+    for (var payment : paymentRequests) {
+      snsService.pushNotification(getNotificationTitle(payment));
     }
   }
 
@@ -120,9 +128,7 @@ public class PaymentInitiationService {
       String recipient = accountHolder.getEmail();
       String cc = null;
       String bcc = eventConf.getAdminEmail();
-      String subject =
-          String.format("Réception d'un nouveau paiement de %s € de la part de %s",
-              paymentAmount.getCentsAsDecimal(), payment.getPayerName());
+      String subject = getNotificationTitle(payment);
       String htmlBody = emailBody;
       List<Attachment> attachments = List.of();
       sesService.sendEmail(recipient,
@@ -132,6 +138,12 @@ public class PaymentInitiationService {
           attachments, bcc);
       log.info("Mail sent to {} after updating payment status id.{}", recipient, payment.getId());
     }
+  }
+
+  private static String getNotificationTitle(HPaymentRequest payment) {
+    Fraction paymentAmount = parseFraction(payment.getAmount());
+    return String.format("Réception d'un nouveau paiement de %s € de la part de %s",
+        paymentAmount.getApproximatedValue(), payment.getPayerName());
   }
 
   @SneakyThrows

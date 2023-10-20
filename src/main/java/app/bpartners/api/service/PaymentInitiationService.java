@@ -1,7 +1,10 @@
 package app.bpartners.api.service;
 
+import app.bpartners.api.endpoint.event.EventConf;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.model.Account;
+import app.bpartners.api.model.AccountHolder;
+import app.bpartners.api.model.Attachment;
 import app.bpartners.api.model.CreatePaymentRegulation;
 import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.Invoice;
@@ -12,10 +15,15 @@ import app.bpartners.api.model.PaymentRequest;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.mapper.PaymentRequestMapper;
+import app.bpartners.api.repository.InvoiceRepository;
 import app.bpartners.api.repository.PaymentInitiationRepository;
+import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.fintecture.FintectureConf;
 import app.bpartners.api.repository.jpa.PaymentRequestJpaRepository;
 import app.bpartners.api.repository.jpa.model.HPaymentRequest;
+import app.bpartners.api.service.aws.SesService;
+import app.bpartners.api.service.utils.DateUtils;
+import app.bpartners.api.service.utils.TemplateResolverUtils;
 import java.security.Signature;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -29,24 +37,33 @@ import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.thymeleaf.context.Context;
 
 import static app.bpartners.api.endpoint.rest.model.PaymentStatus.PAID;
 import static app.bpartners.api.repository.fintecture.implementation.utils.FintecturePaymentUtils.getSignature;
 import static app.bpartners.api.service.PaymentScheduleService.PAYMENT_CREATED;
 import static app.bpartners.api.service.PaymentScheduleService.paymentMessage;
+import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 import static java.util.UUID.randomUUID;
 
 @Service
 @AllArgsConstructor
 @Slf4j
 public class PaymentInitiationService {
+  public static final String PAYMENT_STATUS_CHANGED_TEMPLATE = "payment_status_changed";
   private final PaymentInitiationRepository repository;
   private final PaymentRequestJpaRepository jpaRepository;
   private final PaymentRequestMapper mapper;
   private final AccountService accountService;
   private final FintectureConf fintectureConf;
+  private final SesService sesService;
+  private final EventConf eventConf;
+  private final UserRepository userRepository;
+  private final InvoiceRepository invoiceRepository;
 
   @SneakyThrows
+  @Transactional
   public void updatePaymentStatuses(Map<String, String> paymentStatusMap) {
     StringBuilder msgBuilder = new StringBuilder();
     List<HPaymentRequest> toSave = new ArrayList<>();
@@ -78,6 +95,42 @@ public class PaymentInitiationService {
     if (!toSave.isEmpty()) {
       List<HPaymentRequest> savedPaidPayments = jpaRepository.saveAll(toSave);
       log.info("Payment requests " + paymentMessage(savedPaidPayments) + " updated successfully");
+      notifyByEmail(savedPaidPayments);
+    }
+  }
+
+  @SneakyThrows
+  private void notifyByEmail(List<HPaymentRequest> paymentRequests) {
+    for (var payment : paymentRequests) {
+      User user = userRepository.getById(payment.getIdUser());
+      AccountHolder accountHolder = user.getDefaultHolder();
+      Invoice invoice = payment.getIdInvoice() == null ? null
+          : invoiceRepository.getById(payment.getIdInvoice());
+      Context context = new Context();
+      context.setVariable("payment", payment);
+      Fraction paymentAmount = parseFraction(payment.getAmount());
+      context.setVariable("paymentAmount", paymentAmount);
+      context.setVariable("accountHolder", accountHolder);
+      context.setVariable("invoice", invoice);
+      context.setVariable("paymentDatetime",
+          DateUtils.formatFrenchDatetime(payment.getPaymentStatusUpdatedAt()));
+      String emailBody = TemplateResolverUtils.parseTemplateResolver(
+          PAYMENT_STATUS_CHANGED_TEMPLATE, context);
+
+      String recipient = accountHolder.getEmail();
+      String cc = null;
+      String bcc = eventConf.getAdminEmail();
+      String subject =
+          String.format("Réception d'un nouveau paiement de %s € de la part de %s",
+              paymentAmount.getCentsAsDecimal(), payment.getPayerName());
+      String htmlBody = emailBody;
+      List<Attachment> attachments = List.of();
+      sesService.sendEmail(recipient,
+          cc,
+          subject,
+          htmlBody,
+          attachments, bcc);
+      log.info("Mail sent to {} after updating payment status id.{}", recipient, payment.getId());
     }
   }
 

@@ -120,9 +120,11 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
 
   @Override
   public Invoice getById(String invoiceId) {
-    return mapper.toDomain(jpaRepository.findById(invoiceId).orElseThrow(
-            () -> new NotFoundException("Invoice." + invoiceId + " is not found")),
-        getAuthenticatedUser());
+    HInvoice invoice = jpaRepository.findById(invoiceId).orElseThrow(
+        () -> new NotFoundException("Invoice." + invoiceId + " is not found"));
+    return mapper.toDomain(invoice,
+        userIsAuthenticated() ? getAuthenticatedUser() :
+            userRepository.getById(invoice.getIdUser()));
   }
 
   @Override

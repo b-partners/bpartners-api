@@ -1,0 +1,60 @@
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Changement de statut d'une recolte de paiement</title>
+    <style>
+        body {
+            font-family: Helvetica, serif;
+        }
+
+        table {
+            border-collapse: collapse;
+        }
+
+        .main-table th, td {
+            border: 0.5px solid grey;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        tbody tr td {
+            text-align: center;
+            width: 150px;
+            word-wrap: break-word;
+        }
+
+        th, td {
+            padding: 6px;
+        }
+    </style>
+</head>
+<body>
+<section>
+    <p>Bonjour <span th:text="${accountHolder.getName()}"></span>,</p>
+    <th:block th:if="${payment.getStatus().name().equals('PAID')}">
+        <p>
+            Nous vous notifions que le paiement intitulé « <span th:text="${payment.getLabel()}"></span> » d'un montant
+            de <span
+                th:text="${#numbers.formatDecimal(paymentAmount.getApproximatedValue(),1,2)}"></span> € vient d'être
+            effectué par <span th:text="${payment.getPayerName()}"></span> le <span
+                th:text="${paymentDatetime}"></span>.</p>
+        <p>Veuillez noter que le positionnement de l'argent sur votre compte peut prendre jusqu'à 24 heures à partir de
+            la réception de ce mail.</p>
+        <p th:if="${invoice != null}">
+            Ce paiement est rattaché à la facture ayant comme référence <span th:text="${invoice.getRef()}"></span>.
+        </p>
+    </th:block>
+    <footer>
+        <p>
+            L'équipe BPartners<br/>
+            BPartners - assistant intelligent des artisans & indépendants<br/>
+            27 rue du Chemin Vert, 75011, Paris<br/>
+            01 84 80 31 69<br/>
+            07 58 21 18 53<br/>
+            <a href="https://www.bpartners.app">https://www.bpartners.app</a>
+        </p>
+    </footer>
+</section>
+</body>
+</html>

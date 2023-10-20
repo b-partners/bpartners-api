@@ -52,7 +52,13 @@ public class AuthProvider extends AbstractUserDetailsAuthenticationProvider {
   }
 
   public static boolean userIsAuthenticated() {
-    return SecurityContextHolder.getContext().getAuthentication() != null;
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    if (authentication == null) {
+      return false;
+    } else {
+      Object principal = authentication.getPrincipal();
+      return !principal.getClass().getTypeName().equals(String.class.getTypeName());
+    }
   }
 
   @Override

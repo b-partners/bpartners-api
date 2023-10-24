@@ -1,3 +1,12 @@
+## [0.35.2](https://github.com/b-partners/bpartners-api/compare/v0.35.1...v0.35.2) (2023-10-24)
+
+
+### Bug Fixes
+
+* remove spreadsheet properties when prospecting through calendar ([a632059](https://github.com/b-partners/bpartners-api/commit/a6320598437d3f0b0bf0f8d5cabb9fea602b877f))
+
+
+
 ## [0.35.1](https://github.com/b-partners/bpartners-api/compare/v0.35.0...v0.35.1) (2023-10-24)
 
 
@@ -155,15 +164,6 @@
 * filter transactions by status ([cdd7711](https://github.com/b-partners/bpartners-api/commit/cdd7711a33d1181e900fc642dc1bf4f6451accea))
 * get all account holders for authorized users ([f0ce059](https://github.com/b-partners/bpartners-api/commit/f0ce059d4a3905987bcec05429533f76d93aebb2))
 * read prospect evaluation jobs for an account holder ([e218256](https://github.com/b-partners/bpartners-api/commit/e218256d326f9bc817adc834b333540178d6b471))
-
-
-
-## [0.29.1](https://github.com/b-partners/bpartners-api/compare/v0.29.0...v0.29.1) (2023-09-13)
-
-
-### Bug Fixes
-
-* set prospect evaluations jobs and add calendar events - prospects conversion inside ([1ecdedc](https://github.com/b-partners/bpartners-api/commit/1ecdedca0c0306679e61ddafcd01894a10105b64))
 
 
 

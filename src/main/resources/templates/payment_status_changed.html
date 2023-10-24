@@ -36,7 +36,7 @@
         <p>
             Nous vous notifions que le paiement intitulé « <span th:text="${payment.getLabel()}"></span> » d'un montant
             de <span
-                th:text="${#numbers.formatDecimal(paymentAmount.getApproximatedValue(),1,2)}"></span> € vient d'être
+                th:text="${#numbers.formatDecimal(paymentAmount.getCentsAsDecimal(),1,2)}"></span> € vient d'être
             effectué par <span th:text="${payment.getPayerName()}"></span> le <span
                 th:text="${paymentDatetime}"></span>.</p>
         <p>Veuillez noter que le positionnement de l'argent sur votre compte peut prendre jusqu'à 24 heures à partir de

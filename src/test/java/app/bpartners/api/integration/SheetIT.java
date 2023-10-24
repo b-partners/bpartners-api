@@ -149,7 +149,6 @@ public class SheetIT extends MockedThirdParties {
         .eventDateRanges(new EventDateRanges()
             .from(eventDateMin())
             .to(eventDateMax()))
-        .sheetProperties(null)
         .ratingProperties(
             new RatingProperties()
                 .minCustomerRating(5.0)
@@ -157,13 +156,7 @@ public class SheetIT extends MockedThirdParties {
   }
 
   private static PutEventProspectConversion prospectEvent2() {
-    return prospectEvent1()
-        .sheetProperties(new SheetProperties()
-            .sheetName(GOLDEN_SOURCE_SPR_SHEET_NAME)
-            .spreadsheetName(GOLDEN_SOURCE_SHEET_NAME)
-            .ranges(new SheetRange()
-                .min(2)
-                .max(4)));
+    return prospectEvent1();
   }
 
   private static Instant eventDateMax() {

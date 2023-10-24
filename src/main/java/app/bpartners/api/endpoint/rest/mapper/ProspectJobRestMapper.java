@@ -41,8 +41,6 @@ public class ProspectJobRestMapper {
     if (eventConversion != null) {
       var evaluationRules = eventConversion.getEvaluationRules();
       var ratingProperties = eventConversion.getRatingProperties();
-      var sheetProperties = eventConversion.getSheetProperties();
-      var sheetRange = sheetProperties.getRanges();
       var eventDateRanges = eventConversion.getEventDateRanges();
       var antiHarmRules = evaluationRules.getAntiHarmRules();
       return ProspectEvaluationJobRunner.builder()
@@ -53,8 +51,6 @@ public class ProspectJobRestMapper {
                   eventConversion.getCalendarId(),
                   evaluationRules,
                   ratingProperties,
-                  sheetProperties,
-                  sheetRange,
                   eventDateRanges,
                   antiHarmRules))
           .build();
@@ -82,33 +78,14 @@ public class ProspectJobRestMapper {
                                   String calendarId,
                                   EventEvaluationRules evaluationRules,
                                   RatingProperties ratingProperties,
-                                  SheetProperties sheetProperties,
-                                  SheetRange sheetRange,
                                   EventDateRanges eventDateRanges,
                                   AntiHarmRules antiHarmRules) {
     return EventJobRunner.builder()
         .calendarId(calendarId)
-        .sheetProspectEvaluation(
-            toDomain(idAccountHolder,
-                evaluationRules,
-                ratingProperties,
-                sheetProperties,
-                sheetRange,
-                antiHarmRules))
-        .eventDateRanges(toDomain(eventDateRanges))
-        .build();
-  }
-
-  private SheetEvaluationJobRunner toDomain(String idAccountHolder,
-                                            EventEvaluationRules evaluationRules,
-                                            RatingProperties ratingProperties,
-                                            SheetProperties sheetProperties, SheetRange sheetRange,
-                                            AntiHarmRules antiHarmRules) {
-    return SheetEvaluationJobRunner.builder()
         .artisanOwner(idAccountHolder)
         .evaluationRules(toDomain(evaluationRules, antiHarmRules))
         .ratingProperties(toDomain(ratingProperties))
-        .sheetProperties(toDomain(sheetProperties, sheetRange))
+        .eventDateRanges(toDomain(eventDateRanges))
         .build();
   }
 

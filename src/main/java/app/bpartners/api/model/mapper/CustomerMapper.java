@@ -4,6 +4,7 @@ import app.bpartners.api.model.Customer;
 import app.bpartners.api.model.Location;
 import app.bpartners.api.repository.jpa.model.HCustomer;
 import app.bpartners.api.service.utils.GeoUtils;
+import java.time.Instant;
 import org.springframework.stereotype.Component;
 
 import static app.bpartners.api.endpoint.rest.model.CustomerStatus.ENABLED;
@@ -42,6 +43,8 @@ public class CustomerMapper {
         .location(customerLocation)
         .status(entity.getStatus())
         .recentlyAdded(entity.isRecentlyAdded())
+        .updatedAt(entity.getUpdatedAt())
+        .createdAt(entity.getCreatedAt())
         .build();
   }
 
@@ -71,6 +74,7 @@ public class CustomerMapper {
         .status(domain.getStatus() == null ? ENABLED
             : domain.getStatus())
         .recentlyAdded(domain.isRecentlyAdded())
+        .updatedAt(Instant.now())
         .build();
   }
 }

@@ -21,8 +21,11 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.query.QueryUtils;
 import org.springframework.stereotype.Repository;
+
+import static app.bpartners.api.repository.jpa.model.HCustomer.UPDATED_AT_PROPERTY;
 
 @Repository
 @AllArgsConstructor
@@ -138,7 +141,7 @@ public class CustomerRepositoryImpl implements CustomerRepository {
     predicates.add(builder.or(keywordsPredicates.toArray(new Predicate[0])));
     query
         .where(builder.and(predicates.toArray(new Predicate[0])))
-        .orderBy(QueryUtils.toOrders(pageable.getSort(), root, builder));
+        .orderBy(QueryUtils.toOrders(updatedAtDescSort(), root, builder));
     return entityManager.createQuery(query)
         .setFirstResult((pageable.getPageNumber()) * pageable.getPageSize())
         .setMaxResults(pageable.getPageSize())
@@ -161,7 +164,10 @@ public class CustomerRepositoryImpl implements CustomerRepository {
             status, builder, root, predicates);
     query
         .where(builder.and(predicates.toArray(arrays)))
-        .orderBy(QueryUtils.toOrders(pageable.getSort(), root, builder));
+        .orderBy(
+            QueryUtils.toOrders(updatedAtDescSort(),
+                root,
+                builder));
     return entityManager.createQuery(query)
         .setFirstResult((pageable.getPageNumber()) * pageable.getPageSize())
         .setMaxResults(pageable.getPageSize())
@@ -180,7 +186,6 @@ public class CustomerRepositoryImpl implements CustomerRepository {
     if (keywords != null && !keywords.isEmpty()) {
       return filterBy(idUser, keywords, status, pageable, entityManager, mapper);
     } else {
-
       return filterBy(idUser, firstName, lastName, email, phoneNumber, city, country,
           status, pageable, entityManager, mapper);
     }
@@ -228,17 +233,18 @@ public class CustomerRepositoryImpl implements CustomerRepository {
 
   @Override
   public List<Customer> saveAll(List<Customer> toCreate) {
+    //TODO: fix customer createdAt null value after create or update
     List<HCustomer> toSave = toCreate.stream()
         .map(this::checkExisting)
         .map(mapper::toEntity)
-        .collect(Collectors.toUnmodifiableList());
+        .toList();
     List<HCustomer> saved = jpaRepository.saveAll(toSave);
 
     checkRecentlyAdded(toSave, saved);
 
     return saved.stream()
         .map(mapper::toDomain)
-        .collect(Collectors.toUnmodifiableList());
+        .toList();
   }
 
   @Override
@@ -272,8 +278,25 @@ public class CustomerRepositoryImpl implements CustomerRepository {
 
   private Customer checkExisting(Customer domain) {
     Optional<HCustomer> optionalCustomer = jpaRepository.findById(domain.getId());
-    return optionalCustomer.isEmpty()
-        ? domain.toBuilder().recentlyAdded(true).build()
-        : domain;
+    if (optionalCustomer.isEmpty()) {
+      return domain.toBuilder()
+          .recentlyAdded(true)
+          .build();
+    } else {
+      HCustomer existing = optionalCustomer.get();
+      return domain.toBuilder()
+          .createdAt(existing.getCreatedAt())
+          .build();
+    }
   }
+
+  private static Sort updatedAtDescSort() {
+    return Sort.by(updatedAtDescOrder());
+  }
+
+  private static Sort.Order updatedAtDescOrder() {
+    return new Sort.Order(
+        Sort.Direction.DESC, UPDATED_AT_PROPERTY);
+  }
+
 }

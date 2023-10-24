@@ -16,8 +16,10 @@ import lombok.ToString;
 @ToString
 public class EventJobRunner {
   private String calendarId;
+  private String artisanOwner;
   private EventDateRanges eventDateRanges;
-  private SheetEvaluationJobRunner sheetProspectEvaluation;
+  private EvaluationRules evaluationRules;
+  private RatingProperties ratingProperties;
 
   @Data
   @Builder(toBuilder = true)

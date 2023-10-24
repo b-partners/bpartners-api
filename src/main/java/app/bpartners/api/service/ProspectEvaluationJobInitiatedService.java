@@ -80,9 +80,8 @@ public class ProspectEvaluationJobInitiatedService
         try {
           var eventJobRunner = job.getEventJobRunner();
           var ranges = eventJobRunner.getEventDateRanges();
-          var sheetProspectEvaluation = eventJobRunner.getSheetProspectEvaluation();
-          var antiHarmRules = sheetProspectEvaluation.getEvaluationRules().getAntiHarmRules();
-          var ratingProperties = sheetProspectEvaluation.getRatingProperties();
+          var antiHarmRules = eventJobRunner.getEvaluationRules().getAntiHarmRules();
+          var ratingProperties = eventJobRunner.getRatingProperties();
           List<CalendarEvent> calendarEvents = calendarService.getEvents(
               idUser,
               eventJobRunner.getCalendarId(),
@@ -324,8 +323,8 @@ public class ProspectEvaluationJobInitiatedService
                                                                      EventJobRunner eventJobRunner,
                                                                      List<String> locations) {
     HashMap<String, List<ProspectEval>> prospectsByEvents = new HashMap<>();
-    var newProspects = fromSpreadsheet(idUser, eventJobRunner);
-    var evaluationRules = eventJobRunner.getSheetProspectEvaluation().getEvaluationRules();
+    var newProspects = fromDatabase(idUser, eventJobRunner);
+    var evaluationRules = eventJobRunner.getEvaluationRules();
     var antiHarmRules = evaluationRules.getAntiHarmRules();
     locations.forEach(calendarEventLocation -> {
       GeoPosition eventAddressPos = banApi.fSearch(calendarEventLocation);
@@ -334,7 +333,7 @@ public class ProspectEvaluationJobInitiatedService
         NewIntervention clonedRule = (NewIntervention) prospect.getDepaRule();
         prospectsToEvaluate.add(
             prospect.toBuilder()
-                .prospectOwnerId(eventJobRunner.getSheetProspectEvaluation().getArtisanOwner())
+                .prospectOwnerId(eventJobRunner.getArtisanOwner())
                 .id(String.valueOf(randomUUID()))
                 .ratRemoval(antiHarmRules.isRatRemoval())
                 .disinfection(antiHarmRules.isDisinfection())
@@ -358,8 +357,9 @@ public class ProspectEvaluationJobInitiatedService
         .collect(Collectors.toList());
   }
 
-  private List<ProspectEval> fromSpreadsheet(String idUser, EventJobRunner eventJobRunner) {
-    return fromSpreadsheet(idUser, eventJobRunner.getSheetProspectEvaluation());
+  private List<ProspectEval> fromDatabase(String idUser, EventJobRunner eventJobRunner) {
+    //TODO: retrieve from database here
+    return List.of();
   }
 
   private List<ProspectEval> fromSpreadsheet(String idUser,

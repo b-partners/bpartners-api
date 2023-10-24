@@ -135,14 +135,14 @@ public class ProspectController {
   }
 
   @PutMapping("/accountHolders/{ahId}/prospects")
-  public List<Prospect> updateProspects(@PathVariable("ahId") String accountHolderId,
-                                        @RequestBody List<UpdateProspect> prospects) {
+  public List<Prospect> crupdateProspects(@PathVariable("ahId") String accountHolderId,
+                                          @RequestBody List<UpdateProspect> prospects) {
     List<app.bpartners.api.model.prospect.Prospect> prospectList = prospects.stream()
         .map(mapper::toDomain)
-        .collect(toUnmodifiableList());
+        .toList();
     return service.saveAll(prospectList).stream()
         .map(mapper::toRest)
-        .collect(toUnmodifiableList());
+        .toList();
   }
 
   @PostMapping("/accountHolders/{ahId}/prospects/evaluations")

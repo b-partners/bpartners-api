@@ -6,11 +6,11 @@ import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.AnnualRevenueTarget;
 import app.bpartners.api.model.BusinessActivity;
 import app.bpartners.api.model.Fraction;
-import app.bpartners.api.model.prospect.Prospect;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.mapper.ProspectEvalMapper;
 import app.bpartners.api.model.mapper.ProspectMapper;
+import app.bpartners.api.model.prospect.Prospect;
 import app.bpartners.api.repository.AccountHolderRepository;
 import app.bpartners.api.repository.ProspectRepository;
 import app.bpartners.api.repository.SogefiBuildingPermitRepository;
@@ -83,8 +83,8 @@ public class ProspectRepositoryImpl implements ProspectRepository {
 
   @Override
   public Prospect getById(String id) {
-    HProspect prospect = jpaRepository.getById(id);
-    return mapper.toDomain(prospect,
+    HProspect prospect = jpaRepository.findById(id).orElse(null);
+    return prospect == null ? null : mapper.toDomain(prospect,
         prospect.getPosLatitude() == null && prospect.getPosLongitude() == null ? null
             : new Geojson()
             .latitude(prospect.getPosLatitude())
@@ -372,21 +372,30 @@ public class ProspectRepositoryImpl implements ProspectRepository {
   @Override
   public List<Prospect> saveAll(List<Prospect> prospects) {
     AccountHolder authenticatedAccount = resourceProvider.getDefaultAccountHolder();
-
     boolean isSogefiProspector = isSogefiProspector(authenticatedAccount.getId());
     List<HProspect> entities =
-        prospects.stream().map(mapper::toEntity).collect(toUnmodifiableList());
+        prospects.stream()
+            .map(prospect -> {
+              Optional<HProspect> optionalProspect = jpaRepository.findById(prospect.getId());
+              HProspect existing = optionalProspect.orElse(null);
+              return mapper.toEntity(prospect, existing);
+            })
+            .toList();
     return jpaRepository.saveAll(entities).stream()
         .map(entity -> toDomain(isSogefiProspector, entity))
-        .collect(toUnmodifiableList());
+        .toList();
   }
 
   @Override
   public List<Prospect> saveAllWithoutSogefi(List<Prospect> prospects) {
     List<HProspect> entities =
         prospects.stream()
-            .map(mapper::toEntity)
-            .collect(toUnmodifiableList());
+            .map(prospect -> {
+              Optional<HProspect> optionalProspect = jpaRepository.findById(prospect.getId());
+              HProspect existing = optionalProspect.orElse(null);
+              return mapper.toEntity(prospect, existing);
+            })
+            .toList();
     return jpaRepository.saveAll(entities).stream()
         .map(prospect -> {
           Geojson location =
@@ -396,13 +405,15 @@ public class ProspectRepositoryImpl implements ProspectRepository {
                   .longitude(prospect.getPosLongitude());
           return mapper.toDomain(prospect, location);
         })
-        .collect(toUnmodifiableList());
+        .toList();
   }
 
   @Override
   public Prospect save(Prospect prospect) {
     AccountHolder authenticatedAccount = resourceProvider.getDefaultAccountHolder();
-    HProspect entity = mapper.toEntity(prospect);
+    Optional<HProspect> optionalProspect = jpaRepository.findById(prospect.getId());
+    HProspect existing = optionalProspect.orElse(null);
+    HProspect entity = mapper.toEntity(prospect, existing);
     boolean isSogefiProspector = isSogefiProspector(authenticatedAccount.getId());
     return toDomain(isSogefiProspector, jpaRepository.save(entity));
   }

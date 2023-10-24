@@ -1,3 +1,16 @@
+## [0.35.1](https://github.com/b-partners/bpartners-api/compare/v0.35.0...v0.35.1) (2023-10-24)
+
+
+### Bug Fixes
+
+* add additional info to prospect sent after status change ([152b46c](https://github.com/b-partners/bpartners-api/commit/152b46c0d889d8c71be20585b2867546ae2b54c4))
+* complete signature verification with payment_status_changes webhooks ([2672d53](https://github.com/b-partners/bpartners-api/commit/2672d5307fbdfc76c38960c9dc4e0f7e3e5bbf75))
+* convert address to coordinates when reading prospects through sheets ([0c34efa](https://github.com/b-partners/bpartners-api/commit/0c34efad58cfae847530b2ed35d8dafa56c72bea))
+* enrich invoice reference check during crupdate ([d650788](https://github.com/b-partners/bpartners-api/commit/d6507889bd58752dcd7abaa8cf6ff44e75d6b589))
+* let invoice crupdate and listing without authenticated user ([550dacf](https://github.com/b-partners/bpartners-api/commit/550dacfd49b70e831e96c54dec8ab53389dbdb5c))
+
+
+
 # [0.35.0](https://github.com/b-partners/bpartners-api/compare/v0.34.1...v0.35.0) (2023-10-17)
 
 
@@ -151,21 +164,6 @@
 ### Bug Fixes
 
 * set prospect evaluations jobs and add calendar events - prospects conversion inside ([1ecdedc](https://github.com/b-partners/bpartners-api/commit/1ecdedca0c0306679e61ddafcd01894a10105b64))
-
-
-
-# [0.29.0](https://github.com/b-partners/bpartners-api/compare/v0.28.1...v0.29.0) (2023-09-12)
-
-
-### Bug Fixes
-
-* **to-revert:** mock ssl context to allow communication with http expressif server ([6dbe876](https://github.com/b-partners/bpartners-api/commit/6dbe876b97df8afed76f11e21fbe71a3d2ab6bf5))
-
-
-### Features
-
-* configure google sheets OAuth2 ([d6a0683](https://github.com/b-partners/bpartners-api/commit/d6a0683aa2da4b1e3bf4229bf6bada7c095c96e6))
-* evaluate prospect through google sheets ([e024294](https://github.com/b-partners/bpartners-api/commit/e0242942ac27ea6cac78963b01e5c9c65a612438))
 
 
 

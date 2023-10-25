@@ -127,6 +127,9 @@ public class ProspectService {
   @Transactional
   public Prospect update(Prospect toSave) {
     Prospect existing = repository.getById(toSave.getId());
+    if (existing == null) {
+      throw new NotFoundException("Prospect(id=" + toSave.getId() + ") not found");
+    }
     //validateStatusUpdateFlow(toSave, existing);
     Prospect savedProspect = repository.save(toSave);
     if (existing.getActualStatus() != savedProspect.getActualStatus()) {

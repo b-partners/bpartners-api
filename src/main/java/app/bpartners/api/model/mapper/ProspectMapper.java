@@ -4,7 +4,6 @@ import app.bpartners.api.endpoint.rest.model.Geojson;
 import app.bpartners.api.endpoint.rest.model.ProspectFeedback;
 import app.bpartners.api.endpoint.rest.security.AuthenticatedResourceProvider;
 import app.bpartners.api.model.exception.BadRequestException;
-import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.model.prospect.Prospect;
 import app.bpartners.api.model.prospect.ProspectStatusHistory;
@@ -24,7 +23,6 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
@@ -72,16 +70,13 @@ public class ProspectMapper {
     return toCheck != null ? toCheck : actual;
   }
 
-  public HProspect toEntity(Prospect domain) {
-    Optional<HProspect> optionalProspect = jpaRepository.findById(domain.getId());
-    if (optionalProspect.isEmpty()) {
-      throw new NotFoundException("Prospect." + domain.getId() + " not found. ");
-    }
-    HProspect existing = optionalProspect.get();
+  public HProspect toEntity(Prospect domain, HProspect existing) {
+    Double rating = existing == null ? -1 : existing.getRating();
+    Instant lastEvaluationDate = existing == null ? null : existing.getLastEvaluationDate();
     return toEntity(domain,
         provider.getDefaultAccountHolder().getId(),
-        existing.getRating(),
-        existing.getLastEvaluationDate(),
+        rating,
+        lastEvaluationDate,
         existing);
   }
 
@@ -92,6 +87,9 @@ public class ProspectMapper {
                             Instant lastEvaluationDate,
                             HProspect actualEntity) {
     Geojson location = domain.getLocation();
+    actualEntity = actualEntity == null ? HProspect.builder()
+        .id(String.valueOf(randomUUID()))
+        .build() : actualEntity;
     List<HProspectStatusHistory> actualHistory = actualEntity.getStatusHistories();
     if ((actualEntity.getActualStatus() != TO_CONTACT
         && domain.getActualStatus().equals(TO_CONTACT))

@@ -1,6 +1,7 @@
 package app.bpartners.api.model;
 
 import app.bpartners.api.endpoint.rest.model.CustomerStatus;
+import java.time.Instant;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -34,6 +35,8 @@ public class Customer {
   protected Location location;
   protected CustomerStatus status;
   protected boolean recentlyAdded = false;
+  protected Instant updatedAt;
+  protected Instant createdAt;
 
   public String getFirstName() {
     return firstName;

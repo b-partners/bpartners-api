@@ -351,6 +351,12 @@ components:
           $ref: "#/components/schemas/CustomerLocation"
         status:
           $ref: '#/components/schemas/CustomerStatus'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
       allOf:
         - $ref: '#/components/schemas/CreateCustomer'
     CustomerStatus:

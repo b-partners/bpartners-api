@@ -35,6 +35,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 import static app.bpartners.api.endpoint.rest.model.CustomerStatus.DISABLED;
 import static app.bpartners.api.endpoint.rest.model.CustomerStatus.ENABLED;
+import static app.bpartners.api.integration.DirtyCustomerIT.ignoreUpdatedAndCreatedAt;
 import static app.bpartners.api.integration.conf.utils.TestUtils.BAD_USER_ID;
 import static app.bpartners.api.integration.conf.utils.TestUtils.BEARER_PREFIX;
 import static app.bpartners.api.integration.conf.utils.TestUtils.JANE_ACCOUNT_ID;
@@ -135,7 +136,9 @@ class CustomerIT extends MockedThirdParties {
 
     Customer actualCustomer = api.getCustomerById(JOE_DOE_ACCOUNT_ID, "customer1_id");
 
-    assertEquals(customer1(), actualCustomer);
+    assertEquals(customer1()
+        .createdAt(actualCustomer.getCreatedAt())
+        .updatedAt(actualCustomer.getUpdatedAt()), actualCustomer);
   }
 
   @Test
@@ -169,25 +172,37 @@ class CustomerIT extends MockedThirdParties {
     CustomersApi api = new CustomersApi(joeDoeClient);
 
     List<Customer> actual1 =
-        api.createCustomers(JOE_DOE_ACCOUNT_ID, List.of(createCustomer1()));
+        ignoreUpdatedAndCreatedAt(
+            api.createCustomers(JOE_DOE_ACCOUNT_ID, List.of(createCustomer1())));
     List<Customer> actual2 =
-        api.createCustomers(JOE_DOE_ACCOUNT_ID, List.of(createCustomer1().firstName("Create")));
+        ignoreUpdatedAndCreatedAt(api.createCustomers(JOE_DOE_ACCOUNT_ID,
+            List.of(createCustomer1().firstName("Create"))));
     List<Customer> actual3 =
-        api.createCustomers(JOE_DOE_ACCOUNT_ID,
+        ignoreUpdatedAndCreatedAt(api.createCustomers(JOE_DOE_ACCOUNT_ID,
             List.of(createCustomer1()
                 .firstName("NotNullFirstName")
                 .lastName("NotNullLastName")
-                .email("notnull@email.com")));
+                .email("notnull@email.com"))));
 
-    List<Customer> actualList = api.getCustomers(
-        JOE_DOE_ACCOUNT_ID, null, null, null, null, null, null, null, null, 1, 20);
+    List<Customer> actualList = ignoreUpdatedAndCreatedAt(api.getCustomers(
+        JOE_DOE_ACCOUNT_ID, null, null, null, null, null, null, null, null, 1, 20));
     assertTrue(actualList.containsAll(actual1));
-    assertEquals(actual1.get(0).id(null), actual2.get(0).id(null));
-    assertEquals(actual1.get(0)
-        .id(null)
-        .firstName("NotNullFirstName")
-        .lastName("NotNullLastName")
-        .email("notnull@email.com"), actual3.get(0).id(null));
+    Customer customer1 = actual1.get(0);
+    Customer customer2 = actual2.get(0);
+    Customer customer3 = actual3.get(0);
+    assertEquals(customer1
+            .id(null)
+            .updatedAt(customer2.getUpdatedAt())
+            .createdAt(customer2.getCreatedAt()),
+        customer2.id(null));
+    assertEquals(customer1
+            .id(null)
+            .firstName("NotNullFirstName")
+            .lastName("NotNullLastName")
+            .email("notnull@email.com")
+            .updatedAt(customer3.getUpdatedAt())
+            .createdAt(customer3.getCreatedAt()),
+        customer3.id(null));
   }
 
   @Test
@@ -204,9 +219,12 @@ class CustomerIT extends MockedThirdParties {
     ApiClient joeDoeClient = anApiClient();
     CustomersApi api = new CustomersApi(joeDoeClient);
 
-    List<Customer> actual = api.updateCustomers(JOE_DOE_ACCOUNT_ID, List.of(customerUpdated()));
-    List<Customer> existingCustomers = api.getCustomers(JOE_DOE_ACCOUNT_ID,
-        "Marc", "Montagnier", null, null, null, null, null, null, 1, 20);
+    List<Customer> actual = ignoreUpdatedAndCreatedAt(
+        api.updateCustomers(JOE_DOE_ACCOUNT_ID, List.of(customerUpdated())));
+    List<Customer> existingCustomers =
+        ignoreUpdatedAndCreatedAt(api.getCustomers(JOE_DOE_ACCOUNT_ID,
+            "Marc", "Montagnier", null, null, null, null, null, null, 1, 20));
+
     assertEquals(existingCustomers, actual);
     assertTrue(existingCustomers.containsAll(actual));
   }
@@ -276,8 +294,9 @@ class CustomerIT extends MockedThirdParties {
     CustomersApi api = new CustomersApi(joeDoeClient);
     List<String> keywords = List.of("bparTnErs", "OlIvIer", "FraNk");
 
-    List<Customer> actual = api.getCustomers(JOE_DOE_ACCOUNT_ID, null, null, null, null, null,
-        null, null, keywords, null, null);
+    List<Customer> actual =
+        ignoreUpdatedAndCreatedAt(api.getCustomers(JOE_DOE_ACCOUNT_ID, null, null, null, null, null,
+            null, null, keywords, null, null));
 
     assertEquals(2, actual.size());
     assertTrue(actual.contains(customer1()));
@@ -290,12 +309,12 @@ class CustomerIT extends MockedThirdParties {
 
     List<Customer> actual =
         api.updateCustomerStatus(JOE_DOE_ACCOUNT_ID, List.of(customerDisabled()));
-    List<Customer> enabledCustomers = api.getCustomers(
+    List<Customer> enabledCustomers = ignoreUpdatedAndCreatedAt(api.getCustomers(
         JOE_DOE_ACCOUNT_ID, null, null, null, null, null, null,
-        ENABLED, null, 1, 20);
-    List<Customer> disabledCustomers = api.getCustomers(
+        ENABLED, null, 1, 20));
+    List<Customer> disabledCustomers = ignoreUpdatedAndCreatedAt(api.getCustomers(
         JOE_DOE_ACCOUNT_ID, null, null, null, null, null, null,
-        DISABLED, null, 1, 20);
+        DISABLED, null, 1, 20));
 
     assertTrue(disabledCustomers.containsAll(actual));
     assertTrue(enabledCustomers.stream()

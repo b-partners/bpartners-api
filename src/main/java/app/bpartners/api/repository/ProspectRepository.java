@@ -1,5 +1,6 @@
 package app.bpartners.api.repository;
 
+import app.bpartners.api.endpoint.rest.model.ProspectStatus;
 import app.bpartners.api.model.prospect.Prospect;
 import app.bpartners.api.repository.expressif.ProspectEval;
 import app.bpartners.api.repository.expressif.ProspectResult;
@@ -8,6 +9,8 @@ import java.util.List;
 
 public interface ProspectRepository {
   Prospect getById(String id);
+
+  List<Prospect> findAllByStatus(ProspectStatus status);
 
   List<Prospect> findAllByIdAccountHolder(String idAccountHolder, String name);
 

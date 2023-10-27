@@ -11,6 +11,7 @@ import app.bpartners.api.repository.jpa.AccountHolderJpaRepository;
 import app.bpartners.api.repository.jpa.model.HAccountHolder;
 import app.bpartners.api.service.CustomerService;
 import app.bpartners.api.service.ProspectService;
+import app.bpartners.api.service.ProspectStatusService;
 import app.bpartners.api.service.aws.SesService;
 import app.bpartners.api.service.dataprocesser.ProspectDataProcesser;
 import java.io.IOException;
@@ -42,10 +43,11 @@ class ProspectServiceTest {
   ProspectEvaluationJobRepository jobRepositoryMock = mock(ProspectEvaluationJobRepository.class);
   EventProducer eventProducerMock = mock(EventProducer.class);
   EventConf eventConfMock = mock(EventConf.class);
+  ProspectStatusService prospectStatusService = mock(ProspectStatusService.class);
   ProspectService subject = new ProspectService(
       prospectRepositoryMock, dataProcesserMock, accountHolderJpaRepositoryMock,
       sesServiceMock, customerService, sheetApi,
-      prospectMapper, jobRepositoryMock, eventProducerMock, eventConfMock);
+      prospectMapper, jobRepositoryMock, eventProducerMock, eventConfMock, prospectStatusService);
 
   @BeforeEach
   void setup() {

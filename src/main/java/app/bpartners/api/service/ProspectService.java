@@ -717,7 +717,7 @@ public class ProspectService {
     return repository.create(prospectsToSave);
   }
 
-  @Scheduled(cron = "0 15 * * FRI", zone = PARIS_TIMEZONE)
+  @Scheduled(cron = "0 0 16 * * FRI", zone = PARIS_TIMEZONE)
   public void relaunchHoldersProspects() {
     List<Prospect> prospectToContact = statusService.findAllByStatus(TO_CONTACT);
     Map<String, List<Prospect>> prospectsByHolder = dispatchByHolder(prospectToContact);

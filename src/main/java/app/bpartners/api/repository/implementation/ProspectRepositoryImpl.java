@@ -1,6 +1,7 @@
 package app.bpartners.api.repository.implementation;
 
 import app.bpartners.api.endpoint.rest.model.Geojson;
+import app.bpartners.api.endpoint.rest.model.ProspectStatus;
 import app.bpartners.api.endpoint.rest.security.AuthenticatedResourceProvider;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.AnnualRevenueTarget;
@@ -89,6 +90,18 @@ public class ProspectRepositoryImpl implements ProspectRepository {
             : new Geojson()
             .latitude(prospect.getPosLatitude())
             .longitude(prospect.getPosLongitude()));
+  }
+
+  @Override
+  public List<Prospect> findAllByStatus(ProspectStatus status) {
+    return jpaRepository.findAllByStatus(status.getValue()).stream()
+        .map(prospect -> mapper.toDomain(prospect,
+            prospect.getPosLatitude() == null && prospect.getPosLongitude() == null ? null
+                : new Geojson()
+                .latitude(prospect.getPosLatitude())
+                .longitude(prospect.getPosLongitude())))
+        .sorted(Comparator.reverseOrder())
+        .collect(Collectors.toList());
   }
 
   @Override

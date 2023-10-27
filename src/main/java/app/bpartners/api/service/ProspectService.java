@@ -1,5 +1,6 @@
 package app.bpartners.api.service;
 
+import app.bpartners.api.endpoint.event.EventConf;
 import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.endpoint.event.model.TypedProspectEvaluationJobInitiated;
 import app.bpartners.api.endpoint.event.model.TypedProspectUpdated;
@@ -11,6 +12,7 @@ import app.bpartners.api.endpoint.rest.model.NewInterventionOption;
 import app.bpartners.api.endpoint.rest.model.ProspectEvaluationJobStatus;
 import app.bpartners.api.endpoint.rest.model.ProspectEvaluationJobType;
 import app.bpartners.api.endpoint.rest.model.ProspectStatus;
+import app.bpartners.api.model.Attachment;
 import app.bpartners.api.model.Customer;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.exception.BadRequestException;
@@ -34,6 +36,7 @@ import app.bpartners.api.repository.jpa.model.HAccountHolder;
 import app.bpartners.api.repository.jpa.model.HProspectStatusHistory;
 import app.bpartners.api.service.aws.SesService;
 import app.bpartners.api.service.dataprocesser.ProspectDataProcesser;
+import app.bpartners.api.service.utils.DateUtils;
 import app.bpartners.api.service.utils.GeoUtils;
 import com.google.api.services.sheets.v4.model.Sheet;
 import com.google.api.services.sheets.v4.model.Spreadsheet;
@@ -45,6 +48,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.mail.MessagingException;
@@ -65,6 +69,7 @@ import static app.bpartners.api.endpoint.rest.model.ProspectStatus.CONTACTED;
 import static app.bpartners.api.endpoint.rest.model.ProspectStatus.CONVERTED;
 import static app.bpartners.api.endpoint.rest.model.ProspectStatus.TO_CONTACT;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
+import static app.bpartners.api.model.mapper.CalendarEventMapper.PARIS_TIMEZONE;
 import static app.bpartners.api.repository.expressif.fact.NewIntervention.OldCustomer.OldCustomerType.INDIVIDUAL;
 import static app.bpartners.api.repository.google.sheets.SheetConf.GRID_SHEET_TYPE;
 import static app.bpartners.api.service.utils.FilterUtils.distinctByKeys;
@@ -78,6 +83,7 @@ public class ProspectService {
   public static final String PROSPECT_MAIL_TEMPLATE = "prospect_mail";
   public static final int DEFAULT_RATING_PROSPECT_TO_CONVERT = 8;
   public static final int MAX_DISTANCE_LIMIT = 1_000;
+  public static final String PROSPECT_RELAUNCH_TEMPLATE = "prospect_relaunch_template";
   private final ProspectRepository repository;
   private final ProspectDataProcesser dataProcesser;
   private final AccountHolderJpaRepository accountHolderJpaRepository;
@@ -87,7 +93,8 @@ public class ProspectService {
   private final ProspectMapper prospectMapper;
   private final ProspectEvaluationJobRepository evalJobRepository;
   private final EventProducer eventProducer;
-
+  private final EventConf eventConf;
+  private final ProspectStatusService statusService;
 
   @Transactional
   public Prospect getById(String id) {
@@ -127,6 +134,9 @@ public class ProspectService {
   @Transactional
   public Prospect update(Prospect toSave) {
     Prospect existing = repository.getById(toSave.getId());
+    if (existing == null) {
+      throw new NotFoundException("Prospect(id=" + toSave.getId() + ") not found");
+    }
     //validateStatusUpdateFlow(toSave, existing);
     Prospect savedProspect = repository.save(toSave);
     if (existing.getActualStatus() != savedProspect.getActualStatus()) {
@@ -705,5 +715,69 @@ public class ProspectService {
         }).collect(Collectors.toList());
 
     return repository.create(prospectsToSave);
+  }
+
+  @Scheduled(cron = "0 0 14 ? * FRI", zone = PARIS_TIMEZONE)
+  public void relaunchHoldersProspects() {
+    List<Prospect> prospectToContact = statusService.findAllByStatus(TO_CONTACT);
+    Map<String, List<Prospect>> prospectsByHolder = dispatchByHolder(prospectToContact);
+    StringBuilder msgBuilder = new StringBuilder();
+    prospectsByHolder.forEach(
+        (idHolder, prospects) -> {
+          Optional<HAccountHolder> optionalHolder = accountHolderJpaRepository.findById(idHolder);
+          if (optionalHolder.isEmpty()) {
+            msgBuilder.append("Failed to attempt to relaunch AccountHolder(id=")
+                .append(idHolder)
+                .append(") because it was not found");
+          } else {
+            try {
+              HAccountHolder accountHolder = optionalHolder.get();
+              String recipient = accountHolder.getEmail();
+              String cc = eventConf.getAdminEmail();
+
+              String today = DateUtils.formatFrenchDate(Instant.now());
+              String emailSubject =
+                  String.format(
+                      "[BPartners] Pensez à modifier le statut de vos prospects pour les conserver - %s",
+                      today);
+              String emailBody = prospectRelaunchEmailBody(prospects, accountHolder);
+              List<Attachment> attachments = List.of();
+              sesService.sendEmail(recipient, cc, emailSubject, emailBody, attachments);
+              log.info("Mail sent to {} after relaunching prospects not contacted", recipient);
+            } catch (IOException | MessagingException e) {
+              throw new ApiException(SERVER_EXCEPTION, e);
+            }
+          }
+        }
+    );
+    String exceptionMsg = msgBuilder.toString();
+    if (!exceptionMsg.isEmpty()) {
+      log.warn(exceptionMsg);
+    }
+  }
+
+  private static String prospectRelaunchEmailBody(List<Prospect> prospects,
+                                                  HAccountHolder accountHolder) {
+    Context context = new Context();
+    context.setVariable("accountHolder", accountHolder);
+    context.setVariable("prospects", prospects);
+    return parseTemplateResolver(PROSPECT_RELAUNCH_TEMPLATE, context);
+  }
+
+  private Map<String, List<Prospect>> dispatchByHolder(List<Prospect> prospects) {
+    Map<String, List<Prospect>> prospectsByHolder = new HashMap<>();
+    for (Prospect prospect : prospects) {
+      String idHolder = prospect.getIdHolderOwner();
+      if (idHolder != null) {
+        if (!prospectsByHolder.containsKey(idHolder)) {
+          List<Prospect> subList = new ArrayList<>();
+          subList.add(prospect);
+          prospectsByHolder.put(idHolder, subList);
+        } else {
+          prospectsByHolder.get(idHolder).add(prospect);
+        }
+      }
+    }
+    return prospectsByHolder;
   }
 }

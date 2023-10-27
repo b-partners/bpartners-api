@@ -43,7 +43,9 @@ public class CustomerRestMapper {
         .city(domain.getCity())
         .comment(domain.getComment())
         .location(customerLocation)
-        .status(domain.getStatus());
+        .status(domain.getStatus())
+        .updatedAt(domain.getUpdatedAt())
+        .createdAt(domain.getCreatedAt());
   }
 
   public app.bpartners.api.model.Customer toDomain(String idUser, Customer rest) {

@@ -1,0 +1,91 @@
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Résultat d'évaluation de prospects</title>
+    <style>
+
+        body {
+            font-family: Helvetica, serif;
+        }
+
+        table {
+            border-collapse: collapse;
+        }
+
+        .main-table th, td {
+            border: 0.5px solid grey;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        tbody tr td {
+            text-align: center;
+            width: 150px;
+            word-wrap: break-word;
+        }
+
+        th, td {
+            padding: 6px;
+        }
+    </style>
+</head>
+<body>
+<section>
+    <p>Bonjour <span th:text="${accountHolder.getName()}"></span>,</p>
+    <p>C'est la fin de semaine, si ce n'est pas encore fait, mettez à jour vos prospects en <span
+            style="font-weight:bold ">"contacté"</span> ou en
+        <span style="font-weight:bold ">"converti"</span> pour garder l'exclusivité dessus.</p>
+    <p>Nous vous invitons à modifier le statut sur votre
+        dashboard : <a
+                th:href="@{https://dashboard.bpartners.app/prospects}">https://dashboard.bpartners.app/prospects</a>
+    </p></p>
+    <p style="font-weight: bold; text-decoration: underline">Voici la liste des prospects ou ancien clients en attente de
+        votre action :</p>
+    <table class="main-table" style="margin: 10px 0px 20px 0px;table-layout: fixed;">
+        <thead class="text-center">
+        <th>Nom</th>
+        <th>Email</th>
+        <th>Téléphone</th>
+        <th>Adresse</th>
+        <th>Nom du gérant</th>
+        <th>Notation du prospect par rapport à vos prochaines interventions<br/>(sur 10)</th>
+        </thead>
+        <tbody>
+        <th:block th:each="prospect : ${prospects}">
+            <tr>
+                <td>
+                    <span th:text="${prospect.getName()}"></span>
+                </td>
+                <td>
+                    <span th:text="${prospect.getEmail()}"></span>
+                </td>
+                <td>
+                    <span th:text="${prospect.getPhone()}"></span>
+                </td>
+                <td>
+                    <span th:text="${prospect.getAddress()}"></span>
+                </td>
+                <td>
+                    <span th:text="${prospect.getManagerName()}"></span>
+                </td>
+                <td>
+                    <span th:text="${#numbers.formatDecimal(prospect.getRating().getValue(),1,2)}"></span>
+                </td>
+            </tr>
+        </th:block>
+        </tbody>
+    </table>
+    <footer>
+        <p>
+            L'équipe BPartners<br/>
+            BPartners - assistant intelligent des artisans & indépendants<br/>
+            27 rue du Chemin Vert, 75011, Paris<br/>
+            01 84 80 31 69<br/>
+            07 58 21 18 53<br/>
+            <a href="https://www.bpartners.app">https://www.bpartners.app</a>
+        </p>
+    </footer>
+</section>
+</body>
+</html>

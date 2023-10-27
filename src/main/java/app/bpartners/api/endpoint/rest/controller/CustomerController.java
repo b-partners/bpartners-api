@@ -15,7 +15,6 @@ import app.bpartners.api.service.CustomerService;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.List;
-import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -89,7 +88,7 @@ public class CustomerController {
             idUser, firstName, lastName, email, phoneNumber,
             city, country, filters, status, page, pageSize).stream()
         .map(mapper::toRest)
-        .collect(Collectors.toUnmodifiableList());
+        .toList();
   }
 
   @GetMapping("/accounts/{aId}/customers/{cId}")
@@ -108,10 +107,10 @@ public class CustomerController {
         AuthProvider.getAuthenticatedUserId(); //TODO: should be changed when endpoint changed
     List<app.bpartners.api.model.Customer> customers = toCreate.stream()
         .map(createCustomer -> mapper.toDomain(idUser, createCustomer))
-        .collect(Collectors.toUnmodifiableList());
+        .toList();
     return service.crupdateCustomers(customers).stream()
         .map(mapper::toRest)
-        .collect(Collectors.toUnmodifiableList());
+        .toList();
   }
 
   @PutMapping("/accounts/{id}/customers")
@@ -122,10 +121,10 @@ public class CustomerController {
         AuthProvider.getAuthenticatedUserId(); //TODO: should be changed when endpoint changed
     List<app.bpartners.api.model.Customer> customers = toUpdate.stream()
         .map(customer -> mapper.toDomain(idUser, customer))
-        .collect(Collectors.toUnmodifiableList());
+        .toList();
     return service.crupdateCustomers(customers).stream()
         .map(mapper::toRest)
-        .collect(Collectors.toUnmodifiableList());
+        .toList();
   }
 
   @PostMapping(value = "/accounts/{accountId}/customers/upload")
@@ -138,7 +137,7 @@ public class CustomerController {
         service.getDataFromFile(idUser, toUpload);
     return service.crupdateCustomers(customerTemplates)
         .stream().map(mapper::toRest)
-        .collect(Collectors.toUnmodifiableList());
+        .toList();
   }
 
   @PutMapping(value = "/accounts/{id}/customers/status")
@@ -148,6 +147,6 @@ public class CustomerController {
     validator.accept(customerStatuses);
     return service.updateStatuses(customerStatuses).stream()
         .map(mapper::toRest)
-        .collect(Collectors.toUnmodifiableList());
+        .toList();
   }
 }

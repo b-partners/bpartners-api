@@ -89,6 +89,7 @@ public class ProspectMapper {
     Geojson location = domain.getLocation();
     actualEntity = actualEntity == null ? HProspect.builder()
         .id(String.valueOf(randomUUID()))
+        .statusHistories(defaultStatusHistoryEntity())
         .build() : actualEntity;
     List<HProspectStatusHistory> actualHistory = actualEntity.getStatusHistories();
     if ((actualEntity.getActualStatus() != TO_CONTACT

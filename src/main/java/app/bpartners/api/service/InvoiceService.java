@@ -148,7 +148,11 @@ public class InvoiceService {
           "DEPRECATED: query parameter title is still used for filtering invoices."
               + " Use the query parameter filters instead.");
     }
-    return repository.findAllByIdUserAndCriteria(idUser, statusList, archiveStatus, keywords,
+    return repository.findAllByIdUserAndCriteria(
+        idUser,
+        statusList,
+        archiveStatus,
+        keywords,
         pageValue, pageSizeValue);
   }
 

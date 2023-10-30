@@ -132,7 +132,7 @@ public class InvoiceMapper {
           return paymentRequestMapper.toPaymentRegulation(
               new PaymentRequest(payment), percent);
         })
-        .collect(Collectors.toUnmodifiableList());
+        .toList();
   }
 
   public TransactionInvoiceDetails toTransactionInvoice(HInvoice entity) {
@@ -147,7 +147,7 @@ public class InvoiceMapper {
     return entity.getProducts() == null
         ? List.of() : entity.getProducts().stream()
         .map(productMapper::toDomain)
-        .collect(Collectors.toUnmodifiableList());
+        .toList();
   }
 
   @SneakyThrows

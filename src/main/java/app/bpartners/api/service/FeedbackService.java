@@ -34,7 +34,7 @@ public class FeedbackService {
     }
     List<Customer> customers = toSave.getCustomerIds() != null ? toSave.getCustomerIds().stream()
         .map(customerRepository::findById)
-        .collect(Collectors.toUnmodifiableList()) : null;
+        .toList() : null;
     Feedback toCreate = Feedback.builder()
         .id(toSave.getId())
         .accountHolder(accountHolder)
@@ -59,9 +59,9 @@ public class FeedbackService {
   private List<String> getRecipientEmails(List<Customer> recipients) {
     List<Customer> customerListWithEmail = recipients.stream()
         .filter(recipient -> recipient.getEmail() != null)
-        .collect(Collectors.toUnmodifiableList());
+        .toList();
     return customerListWithEmail.stream()
         .map(Customer::getEmail)
-        .collect(Collectors.toUnmodifiableList());
+        .toList();
   }
 }

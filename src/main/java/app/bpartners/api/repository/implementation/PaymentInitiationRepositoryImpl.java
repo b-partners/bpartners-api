@@ -38,7 +38,7 @@ public class PaymentInitiationRepositoryImpl implements PaymentInitiationReposit
         .map(domain -> {
           FPaymentRedirection paymentRedirection = initiatePayment(domain, invoice, user);
           return mapper.toDomain(paymentRedirection, domain);
-        }).collect(Collectors.toUnmodifiableList());
+        }).toList();
   }
 
   @Override

@@ -39,7 +39,7 @@ public class CreateAnnualRevenueTargetValidator implements Consumer<CreateAnnual
     for (CreateAnnualRevenueTarget revenue : createAnnualRevenueTargets) {
       List<CreateAnnualRevenueTarget> target = createAnnualRevenueTargets.stream()
           .filter(revenueTarget -> Objects.equals(revenueTarget.getYear(), revenue.getYear()))
-          .collect(Collectors.toUnmodifiableList());
+          .toList();
       if (target.size() >= 2) {
         throw new NotImplementedException(revenue.getYear() + " is duplicated.");
       }

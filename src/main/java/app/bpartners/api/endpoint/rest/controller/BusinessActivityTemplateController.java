@@ -23,7 +23,7 @@ public class BusinessActivityTemplateController {
       @RequestParam(required = false) PageFromOne page,
       @RequestParam(required = false) BoundedPageSize pageSize) {
     return templateService.getBusinessActivities(page, pageSize).stream()
-        .map(mapper::toRest).collect(Collectors.toUnmodifiableList());
+        .map(mapper::toRest).toList();
   }
 
 }

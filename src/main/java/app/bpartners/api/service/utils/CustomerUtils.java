@@ -51,7 +51,7 @@ public class CustomerUtils {
               CreateCustomer::getFirstName,
               CreateCustomer::getLastName,
               CreateCustomer::getEmail))
-          .collect(Collectors.toUnmodifiableList());
+          .toList();
     } catch (InvalidFormatException | IOException e) {
       throw new ApiException(SERVER_EXCEPTION, "Failed to parse Excel file : " + e.getMessage());
     }

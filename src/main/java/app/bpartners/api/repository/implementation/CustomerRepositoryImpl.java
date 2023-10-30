@@ -204,7 +204,7 @@ public class CustomerRepositoryImpl implements CustomerRepository {
         .collect(Collectors.toList());
     return jpaRepository.saveAll(customersToUpdate).stream()
         .map(mapper::toDomain)
-        .collect(Collectors.toUnmodifiableList());
+        .toList();
   }
 
   @Override

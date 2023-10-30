@@ -86,7 +86,7 @@ public class InvoiceRestMapper {
         .metadata(domain.getMetadata())
         .paymentRegulations(domain.getPaymentRegulations().stream()
             .map(payment -> getPaymentRegulation(domain.getTotalPriceWithVat(), payment))
-            .collect(Collectors.toUnmodifiableList()))
+            .toList())
         .toPayAt(toPayAt)
         .paymentMethod(domain.getPaymentMethod())
         .globalDiscount(new InvoiceDiscount()
@@ -248,20 +248,20 @@ public class InvoiceRestMapper {
     return rest.getPaymentRegulations() == null
         ? List.of() : rest.getPaymentRegulations().stream()
         .map(this::toDomain)
-        .collect(Collectors.toUnmodifiableList());
+        .toList();
   }
 
   private List<InvoiceProduct> getProducts(CrupdateInvoice rest) {
     return rest.getProducts() == null ? List.of() : rest.getProducts().stream()
         .map(productRestMapper::toInvoiceDomain)
-        .collect(Collectors.toUnmodifiableList());
+        .toList();
   }
 
   private List<Product> getProducts(app.bpartners.api.model.Invoice domain) {
     return domain.getProducts() == null
         ? List.of() : domain.getProducts().stream()
         .map(productRestMapper::toRest)
-        .collect(Collectors.toUnmodifiableList());
+        .toList();
   }
 
   private Invoice.PaymentTypeEnum convertType(

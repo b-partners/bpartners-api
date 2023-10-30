@@ -26,6 +26,6 @@ public class MarketplaceController {
       @RequestParam(value = "pageSize", required = false) BoundedPageSize pageSize) {
     return service.getMarketplacesByAccountId(accountId, page, pageSize).stream()
         .map(mapper::toRest)
-        .collect(Collectors.toUnmodifiableList());
+        .toList();
   }
 }

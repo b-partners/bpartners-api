@@ -29,14 +29,14 @@ public class AnnualRevenueTargetRepositoryImpl implements AnnualRevenueTargetRep
     List<HAnnualRevenueTarget> entities = filterExistingTargetByYear(domain);
     return annualRevenueTargetJpaRepository.saveAll(entities).stream()
         .map(this::convertToDomain)
-        .collect(Collectors.toUnmodifiableList());
+        .toList();
   }
 
   @Override
   public List<AnnualRevenueTarget> getAnnualRevenueTargets(String accountHolderId) {
     return annualRevenueTargetJpaRepository.findByIdAccountHolder(accountHolderId).stream()
         .map(this::convertToDomain)
-        .collect(Collectors.toUnmodifiableList());
+        .toList();
   }
 
   @Override

@@ -238,7 +238,7 @@ class InvoiceRelaunchIT extends MockedThirdParties {
     }
     return attachments.stream()
         .peek(attachment -> attachment.setFileId(null))
-        .collect(Collectors.toUnmodifiableList());
+        .toList();
   }
 
   static class ContextInitializer extends S3AbstractContextInitializer {

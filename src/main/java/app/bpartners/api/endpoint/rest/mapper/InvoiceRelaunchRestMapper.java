@@ -57,7 +57,7 @@ public class InvoiceRelaunchRestMapper {
     List<Attachment> attachments =
         domain.getAttachments().stream()
             .map(attachmentRestMapper::toRest)
-            .collect(Collectors.toUnmodifiableList());
+            .toList();
     return new InvoiceRelaunch()
         .id(domain.getId())
         .type(domain.getType())

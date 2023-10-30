@@ -32,7 +32,7 @@ public class AccountHolderRestMapper {
     List<AnnualRevenueTarget> annualRevenueTargets =
         annualRevenueTargetService.getAnnualRevenueTargets(domain.getId()).stream()
             .map(annualRevenueTargetRestMapper::toRest)
-            .collect(Collectors.toUnmodifiableList());
+            .toList();
 
     BusinessActivity businessActivity =
         businessActivityService.findByAccountHolderId(domain.getId());

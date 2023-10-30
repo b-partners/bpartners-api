@@ -31,10 +31,10 @@ public class PreUserRepositoryImpl implements PreUserRepository {
               (double) Instant.now().toEpochMilli();
           return contactMapper.toSendinblueContact(contactId, preUser);
         })
-        .collect(Collectors.toUnmodifiableList()));
+        .toList());
     List<HPreUser> entityPreUsers = mapper.toEntity(toCreate);
     return repository.saveAll(entityPreUsers).stream()
         .map(mapper::toDomain)
-        .collect(Collectors.toUnmodifiableList());
+        .toList();
   }
 }

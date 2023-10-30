@@ -66,7 +66,7 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
         .collect(Collectors.toList());
     List<HInvoiceProduct> invoiceProducts = actual.getProducts().stream()
         .map(productMapper::toEntity)
-        .collect(Collectors.toUnmodifiableList());
+        .toList();
 
     Invoice toBeSaved = actual;
     if (!paymentRequests.isEmpty()
@@ -148,7 +148,7 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
             statusList,
             pageRequest).stream()
         .map(mapper::toDomain)
-        .collect(Collectors.toUnmodifiableList());
+        .toList();
   }
 
   @Override
@@ -203,7 +203,7 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
             title,
             pageable).stream()
         .map(mapper::toDomain)
-        .collect(Collectors.toUnmodifiableList());
+        .toList();
   }
 
   @Override

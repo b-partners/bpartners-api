@@ -44,7 +44,7 @@ public class TransactionCategoryTemplateRepositoryImpl implements
       String idAccount, LocalDate begin, LocalDate end) {
     return jpaRepository.findAllByIdAccount(idAccount, begin, end).stream()
         .map(mapper::toDomain)
-        .collect(Collectors.toUnmodifiableList());
+        .toList();
   }
 
   @Override
@@ -53,6 +53,6 @@ public class TransactionCategoryTemplateRepositoryImpl implements
     return jpaRepository.findAllByIdAccountAndType(
             transactionType.getValue(), idAccount, begin, end).stream()
         .map(mapper::toDomain)
-        .collect(Collectors.toUnmodifiableList());
+        .toList();
   }
 }

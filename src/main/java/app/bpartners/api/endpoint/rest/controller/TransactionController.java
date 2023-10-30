@@ -38,7 +38,7 @@ public class TransactionController {
     return service.getPersistedByIdAccount(accountId, label, status, category, page, pageSize)
         .stream()
         .map(mapper::toRest)
-        .collect(Collectors.toUnmodifiableList());
+        .toList();
   }
 
   @GetMapping(value = "/accounts/{id}/transactions/{tId}")

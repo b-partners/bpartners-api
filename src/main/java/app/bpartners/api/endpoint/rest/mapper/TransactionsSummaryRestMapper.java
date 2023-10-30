@@ -19,7 +19,7 @@ public class TransactionsSummaryRestMapper {
         .updatedAt(getLastInstantUpdate(domain))
         .summary(domain.getSummary().stream()
             .map(this::toRest)
-            .collect(Collectors.toUnmodifiableList()));
+            .toList());
   }
 
   public MonthlyTransactionsSummary toRest(

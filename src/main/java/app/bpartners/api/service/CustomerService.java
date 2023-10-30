@@ -94,7 +94,7 @@ public class CustomerService {
           User user = AuthProvider.getAuthenticatedUser();
           return toTypedEvent(user, customer, customer.isRecentlyAdded());
         })
-        .collect(Collectors.toUnmodifiableList());
+        .toList();
     int typedEventSize = typedEvent.size();
     if (typedEventSize > MAX_PUT_EVENT_ENTRIES) {
       int subdivision = (int) Math.ceil(typedEventSize / (double) MAX_PUT_EVENT_ENTRIES);

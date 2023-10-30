@@ -35,7 +35,7 @@ public class FeedbackRestMapper {
         .id(domain.getId())
         .customers(domain.getCustomers().stream()
             .map(customerRestMapper::toRest)
-            .collect(Collectors.toUnmodifiableList()))
+            .toList())
         .creationDatetime(domain.getCreationDatetime());
   }
 }

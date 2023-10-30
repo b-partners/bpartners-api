@@ -546,7 +546,7 @@ public class InvoiceTestUtils {
   public static List<Product> ignoreIdsOf(List<Product> actual) {
     return actual.stream()
         .peek(product -> product.setId(null))
-        .collect(Collectors.toUnmodifiableList());
+        .toList();
   }
 
   public static List<Invoice> ignoreUpdatedAt(List<Invoice> actual) {

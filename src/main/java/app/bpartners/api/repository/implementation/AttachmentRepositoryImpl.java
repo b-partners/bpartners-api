@@ -22,17 +22,17 @@ public class AttachmentRepositoryImpl implements AttachmentRepository {
     return jpaRepository.findAllByIdInvoiceRelaunch(idInvoiceRelaunch)
         .stream()
         .map(mapper::toDomain)
-        .collect(Collectors.toUnmodifiableList());
+        .toList();
   }
 
   @Override
   public List<Attachment> saveAll(List<Attachment> attachments, String idInvoiceRelaunch) {
     List<HAttachment> entities = attachments.stream()
         .map(attachment -> mapper.toEntity(attachment, idInvoiceRelaunch))
-        .collect(Collectors.toUnmodifiableList());
+        .toList();
     return jpaRepository.saveAll(entities)
         .stream()
         .map(mapper::toDomain)
-        .collect(Collectors.toUnmodifiableList());
+        .toList();
   }
 }

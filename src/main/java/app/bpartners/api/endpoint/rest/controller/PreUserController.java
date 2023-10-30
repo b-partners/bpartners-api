@@ -23,9 +23,9 @@ public class PreUserController {
       @RequestBody List<CreatePreUser> createPreUsers) {
     List<PreUser> toCreate = createPreUsers.stream()
         .map(mapper::toDomain)
-        .collect(Collectors.toUnmodifiableList());
+        .toList();
     return service.createPreUsers(toCreate).stream()
         .map(mapper::toRest)
-        .collect(Collectors.toUnmodifiableList());
+        .toList();
   }
 }

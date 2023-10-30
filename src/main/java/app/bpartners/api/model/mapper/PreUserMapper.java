@@ -36,6 +36,6 @@ public class PreUserMapper {
   public List<HPreUser> toEntity(List<PreUser> preUser) {
     return preUser.stream()
         .map(this::toEntity)
-        .collect(Collectors.toUnmodifiableList());
+        .toList();
   }
 }

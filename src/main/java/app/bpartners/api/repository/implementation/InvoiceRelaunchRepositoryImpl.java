@@ -35,7 +35,7 @@ public class InvoiceRelaunchRepositoryImpl implements InvoiceRelaunchRepository 
       return jpaRepository.getByInvoiceId(invoiceId, pageable).stream()
           .map(invoiceRelaunch -> mapper.toDomain(
               invoiceRelaunch, invoiceRepository.getById(invoiceId)))
-          .collect(Collectors.toUnmodifiableList());
+          .toList();
     } else {
       RelaunchType enumType;
       try {
@@ -46,7 +46,7 @@ public class InvoiceRelaunchRepositoryImpl implements InvoiceRelaunchRepository 
       return jpaRepository.getByInvoiceIdAndType(invoiceId, enumType, pageable).stream()
           .map(invoiceRelaunch -> mapper.toDomain(
               invoiceRelaunch, invoiceRepository.getById(invoiceId)))
-          .collect(Collectors.toUnmodifiableList());
+          .toList();
     }
   }
 

@@ -73,7 +73,7 @@ public class TransactionService {
                 &&
                 transaction.getPaymentDatetime().isBefore(to)
         )
-        .collect(Collectors.toUnmodifiableList());
+        .toList();
   }
 
   public List<Transaction> getPersistedByIdAccount(String idAccount,

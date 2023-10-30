@@ -338,7 +338,7 @@ public class InvoiceService {
               paymentRequest.getPaymentHistoryStatus());
         })
         .sorted(Comparator.comparing(PaymentInitiation::getPaymentDueDate))
-        .collect(Collectors.toUnmodifiableList());
+        .toList();
     for (int i = 0; i < payments.size(); i++) {
       PaymentInitiation paymentInitiation = payments.get(i);
       if (paymentInitiation.getLabel() == null) {

@@ -16,7 +16,7 @@ public class TransactionsSummaryMapper {
         .year(year)
         .summary(summaries.stream()
             .map(this::toDomain)
-            .collect(Collectors.toUnmodifiableList()))
+            .toList())
         .build();
   }
 

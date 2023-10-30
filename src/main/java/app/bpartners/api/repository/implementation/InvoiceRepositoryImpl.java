@@ -25,6 +25,7 @@ import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import lombok.AllArgsConstructor;
@@ -159,6 +160,7 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
     CriteriaQuery<HInvoice> query = builder.createQuery(HInvoice.class);
     List<Predicate> predicates = new ArrayList<>();
     Root<HInvoice> root = query.from(HInvoice.class);
+
     predicates.add(builder.equal(root.get("idUser"), idUser));
     predicates.add(builder.equal(root.get("archiveStatus"), archiveStatus));
     if (statusList != null) {
@@ -172,6 +174,7 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
             "%" + filter.toLowerCase() + "%"));
         filtersPredicates.add(builder.like(builder.lower(root.get("ref")),
             "%" + filter.toLowerCase() + "%"));
+        setCustomerFilters(builder, root, filtersPredicates, filter);
       }
       predicates.add(builder.or(filtersPredicates.toArray(new Predicate[0])));
     }
@@ -188,6 +191,26 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
             userIsAuthenticated() ? getAuthenticatedUser()
                 : userRepository.getById(idUser)))
         .toList();
+  }
+
+  private void setCustomerFilters(CriteriaBuilder builder,
+                                  Root<HInvoice> rootPath,
+                                  List<Predicate> filtersPredicates, String filter) {
+    Path<String> customerPath = rootPath.get("customer");
+    filtersPredicates.add(builder.like(builder.lower(customerPath.get("firstName")),
+        "%" + filter.toLowerCase() + "%"));
+    filtersPredicates.add(builder.like(builder.lower(customerPath.get("lastName")),
+        "%" + filter.toLowerCase() + "%"));
+    filtersPredicates.add(builder.like(builder.lower(customerPath.get("email")),
+        "%" + filter.toLowerCase() + "%"));
+    filtersPredicates.add(builder.like(builder.lower(customerPath.get("phone")),
+        "%" + filter.toLowerCase() + "%"));
+    filtersPredicates.add(builder.like(builder.lower(customerPath.get("address")),
+        "%" + filter.toLowerCase() + "%"));
+    filtersPredicates.add(builder.like(builder.lower(customerPath.get("city")),
+        "%" + filter.toLowerCase() + "%"));
+    filtersPredicates.add(builder.like(builder.lower(customerPath.get("country")),
+        "%" + filter.toLowerCase() + "%"));
   }
 
   @Override

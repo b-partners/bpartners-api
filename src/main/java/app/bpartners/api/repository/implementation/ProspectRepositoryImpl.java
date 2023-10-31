@@ -100,7 +100,6 @@ public class ProspectRepositoryImpl implements ProspectRepository {
                 : new Geojson()
                 .latitude(prospect.getPosLatitude())
                 .longitude(prospect.getPosLongitude())))
-        .sorted(Comparator.reverseOrder())
         .collect(Collectors.toList());
   }
 

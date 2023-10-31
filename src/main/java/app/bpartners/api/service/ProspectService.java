@@ -719,7 +719,9 @@ public class ProspectService {
 
   @Scheduled(cron = "0 0 14 ? * FRI", zone = PARIS_TIMEZONE)
   public void relaunchHoldersProspects() {
-    List<Prospect> prospectToContact = statusService.findAllByStatus(TO_CONTACT);
+    List<Prospect> prospectToContact = statusService.findAllByStatus(TO_CONTACT).stream()
+        .filter(prospect -> prospect.getRating().getValue() > 0)
+        .collect(Collectors.toList());
     Map<String, List<Prospect>> prospectsByHolder = dispatchByHolder(prospectToContact);
     StringBuilder msgBuilder = new StringBuilder();
     prospectsByHolder.forEach(

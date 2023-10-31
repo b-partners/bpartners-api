@@ -39,7 +39,7 @@ public class TransactionCategoryController {
             startDate, endDate)
         .stream()
         .map(mapper::toRest)
-        .collect(Collectors.toUnmodifiableList());
+        .toList();
   }
 
   @PostMapping("/accounts/{accountId}/transactions/{transactionId}/transactionCategories")
@@ -49,9 +49,9 @@ public class TransactionCategoryController {
       @RequestBody List<CreateTransactionCategory> toCreate) {
     List<app.bpartners.api.model.TransactionCategory> domainToCreate = toCreate.stream()
         .map(category -> mapper.toDomain(transactionId, accountId, category))
-        .collect(Collectors.toUnmodifiableList());
+        .toList();
     return service.createCategories(domainToCreate).stream()
         .map(mapper::toRest)
-        .collect(Collectors.toUnmodifiableList());
+        .toList();
   }
 }

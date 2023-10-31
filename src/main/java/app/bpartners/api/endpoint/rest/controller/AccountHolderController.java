@@ -62,7 +62,7 @@ public class AccountHolderController {
       @PathVariable String accountId) {
     return accountHolderService.getAccountHoldersByAccountId(accountId).stream()
         .map(accountHolderMapper::toRest)
-        .collect(Collectors.toUnmodifiableList());
+        .toList();
   }
 
   @PutMapping("/users/{userId}/accounts/{accountId}/accountHolders/{ahId}/companyInfo")
@@ -117,7 +117,7 @@ public class AccountHolderController {
     List<AnnualRevenueTarget> toSave = toCreate.stream()
         .map(revenueTarget ->
             revenueTargetRestMapper.toDomain(accountHolderId, revenueTarget))
-        .collect(Collectors.toUnmodifiableList());
+        .toList();
     return accountHolderMapper.toRest(
         accountHolderService.updateAnnualRevenueTargets(accountId, accountHolderId, toSave));
   }

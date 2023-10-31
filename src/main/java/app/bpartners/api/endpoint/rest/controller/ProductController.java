@@ -90,7 +90,7 @@ public class ProductController {
             descriptionOrder, unitPriceOrder, createdDateOrder, description, unitPrice)
         .stream()
         .map(mapper::toRest)
-        .collect(Collectors.toUnmodifiableList());
+        .toList();
   }
 
   @GetMapping("/accounts/{aId}/products/{pId}")
@@ -108,10 +108,10 @@ public class ProductController {
         AuthProvider.getAuthenticatedUserId(); //TODO: should be changed when endpoint changed
     List<app.bpartners.api.model.Product> domain = toCrupdate.stream()
         .map(mapper::toDomain)
-        .collect(Collectors.toUnmodifiableList());
+        .toList();
     return service.crupdate(idUser, domain).stream()
         .map(mapper::toRest)
-        .collect(Collectors.toUnmodifiableList());
+        .toList();
   }
 
   @PostMapping("/accounts/{aId}/products")
@@ -124,10 +124,10 @@ public class ProductController {
         AuthProvider.getAuthenticatedUserId(); //TODO: should be changed when endpoint changed
     List<app.bpartners.api.model.Product> domain = toCrupdate.stream()
         .map(mapper::toDomain)
-        .collect(Collectors.toUnmodifiableList());
+        .toList();
     return service.crupdate(idUser, domain).stream()
         .map(mapper::toRest)
-        .collect(Collectors.toUnmodifiableList());
+        .toList();
   }
 
   @PutMapping("/accounts/{aId}/products/status")
@@ -137,7 +137,7 @@ public class ProductController {
     validator.accept(productStatuses);
     return service.updateStatuses(productStatuses).stream()
         .map(mapper::toRest)
-        .collect(Collectors.toUnmodifiableList());
+        .toList();
   }
 
   @PostMapping(value = "/accounts/{accountId}/products/upload")
@@ -150,6 +150,6 @@ public class ProductController {
         service.getDataFromFile(toUpload);
     return service.crupdate(idUser, products)
         .stream().map(mapper::toRest)
-        .collect(Collectors.toUnmodifiableList());
+        .toList();
   }
 }

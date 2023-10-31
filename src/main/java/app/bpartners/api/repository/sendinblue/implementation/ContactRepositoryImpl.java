@@ -20,6 +20,6 @@ public class ContactRepositoryImpl implements ContactRepository {
     return contacts.stream()
         .map(contact -> sendinblueApi
             .createContact(mapper.toExternalCreateContact(contact)))
-        .collect(Collectors.toUnmodifiableList());
+        .toList();
   }
 }

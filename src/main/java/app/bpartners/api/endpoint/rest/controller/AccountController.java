@@ -29,7 +29,7 @@ public class AccountController {
   public List<Account> getAccountsByUserId(@PathVariable(name = "id") String userId) {
     return service.getAccountsByUserId(userId).stream()
         .map(mapper::toRest)
-        .collect(Collectors.toUnmodifiableList());
+        .toList();
   }
 
   //TODO: check redirection urls

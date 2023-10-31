@@ -68,7 +68,7 @@ public class ProductRepositoryImpl implements ProductRepository {
         .collect(Collectors.toList());
     return jpaRepository.saveAll(entityToCreate).stream()
         .map(mapper::toDomain)
-        .collect(Collectors.toUnmodifiableList());
+        .toList();
   }
 
   //TODO: replace to findByCriteria as in Customers
@@ -90,7 +90,7 @@ public class ProductRepositoryImpl implements ProductRepository {
 
     return products.stream()
         .map(mapper::toDomain)
-        .collect(Collectors.toUnmodifiableList());
+        .toList();
   }
 
   @Override

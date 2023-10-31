@@ -33,17 +33,17 @@ public class TransactionCategoryRepositoryImpl implements TransactionCategoryRep
     }
     return entities.stream()
         .map(entity -> domainMapper.toDomain(idAccount, entity, startDate, endDate))
-        .collect(Collectors.toUnmodifiableList());
+        .toList();
   }
 
   @Override
   public List<TransactionCategory> saveAll(List<TransactionCategory> toCreate) {
     List<HTransactionCategory> entitiesToCreate = toCreate.stream()
         .map(domainMapper::toEntity)
-        .collect(Collectors.toUnmodifiableList());
+        .toList();
     return jpaRepository.saveAll(entitiesToCreate).stream()
         .map(category -> domainMapper.toDomain(category, DEFAULT_START_DATE, LocalDate.now()))
-        .collect(Collectors.toUnmodifiableList());
+        .toList();
   }
 
   @Transactional(isolation = Isolation.SERIALIZABLE)

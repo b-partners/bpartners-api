@@ -17,7 +17,6 @@ import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.service.InvoiceService;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -86,7 +85,7 @@ public class InvoiceController {
     return service.getInvoices(idUser, page, pageSize, statusList, archiveStatus, title, filters)
         .stream()
         .map(mapper::toRest)
-        .collect(Collectors.toUnmodifiableList());
+        .toList();
   }
 
   @PutMapping("/accounts/{aId}/invoices/archive")
@@ -95,10 +94,10 @@ public class InvoiceController {
       @RequestBody List<UpdateInvoiceArchivedStatus> toArchive) {
     List<ArchiveInvoice> archiveInvoices = toArchive.stream()
         .map(mapper::toDomain)
-        .collect(Collectors.toUnmodifiableList());
+        .toList();
     return service.archiveInvoices(archiveInvoices).stream()
         .map(mapper::toRest)
-        .collect(Collectors.toUnmodifiableList());
+        .toList();
   }
 
   @PostMapping("/accounts/{aId}/invoices/{iId}/duplication")

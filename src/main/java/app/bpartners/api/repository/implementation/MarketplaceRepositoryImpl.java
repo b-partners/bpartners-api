@@ -22,6 +22,6 @@ public class MarketplaceRepositoryImpl implements MarketplaceRepository {
     Pageable pageable = PageRequest.of(page, pageSize);
     //TODO: change to findAllByAccountId when it's correctly set but for now return all marketplaces
     return jpaRepository.findAll(pageable).stream().map(mapper::toDomain)
-        .collect(Collectors.toUnmodifiableList());
+        .toList();
   }
 }

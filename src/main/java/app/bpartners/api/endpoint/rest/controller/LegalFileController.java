@@ -38,7 +38,7 @@ public class LegalFileController {
     checkUserSelfMatcher(request, userId);
     return service.getLegalFiles(userId).stream()
         .map(mapper::toRest)
-        .collect(Collectors.toUnmodifiableList());
+        .toList();
   }
 
   @PutMapping("/users/{id}/legalFiles/{lId}")

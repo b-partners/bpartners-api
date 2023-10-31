@@ -50,7 +50,7 @@ public class ProductUtils {
           .filter(distinctByKeys(
               CreateProduct::getDescription
           ))
-          .collect(Collectors.toUnmodifiableList());
+          .toList();
     } catch (InvalidFormatException | IOException e) {
       throw new ApiException(SERVER_EXCEPTION, "Failed to parse Excel file : " + e.getMessage());
     }

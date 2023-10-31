@@ -130,7 +130,7 @@ public class TransactionRepositoryImpl implements TransactionRepository {
   public List<Transaction> findByAccountIdAndStatus(String id, TransactionStatus status) {
     return findByAccountId(id).stream()
         .filter(transaction -> transaction.getStatus().equals(status))
-        .collect(Collectors.toUnmodifiableList());
+        .toList();
   }
 
   @Override
@@ -158,7 +158,7 @@ public class TransactionRepositoryImpl implements TransactionRepository {
                 &&
                 transaction.getPaymentDatetime().isBefore(to)
         )
-        .collect(Collectors.toUnmodifiableList());
+        .toList();
   }
 
   @Override

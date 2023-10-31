@@ -1,5 +1,6 @@
 package app.bpartners.api.model.prospect;
 
+import app.bpartners.api.endpoint.rest.model.ContactNature;
 import app.bpartners.api.endpoint.rest.model.Geojson;
 import app.bpartners.api.endpoint.rest.model.ProspectFeedback;
 import app.bpartners.api.endpoint.rest.model.ProspectStatus;
@@ -41,6 +42,7 @@ public class Prospect implements Comparable<Prospect> {
   private Fraction contractAmount;
   private String idInvoice;
   private ProspectFeedback prospectFeedback;
+  private ContactNature contactNature;
 
   public ProspectStatus getActualStatus() {
     return statusHistories.isEmpty() ? null : statusHistories.stream()

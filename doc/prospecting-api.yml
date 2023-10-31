@@ -550,6 +550,8 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ProspectStatusHistory'
+        contactNature:
+          $ref: '#/components/schemas/ContactNature'
     ProspectStatusHistory:
       type: object
       properties:

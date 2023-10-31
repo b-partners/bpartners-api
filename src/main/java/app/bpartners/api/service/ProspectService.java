@@ -127,11 +127,6 @@ public class ProspectService {
   }
 
   @Transactional
-  public List<Prospect> saveAllWithoutSogefi(List<Prospect> toSave) {
-    return repository.saveAllWithoutSogefi(toSave);
-  }
-
-  @Transactional
   public Prospect update(Prospect toSave) {
     Prospect existing = repository.getById(toSave.getId());
     if (existing == null) {

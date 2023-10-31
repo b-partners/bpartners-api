@@ -16,8 +16,6 @@ public interface ProspectRepository {
 
   List<Prospect> saveAll(List<Prospect> prospects);
 
-  List<Prospect> saveAllWithoutSogefi(List<Prospect> toSave);
-
   Prospect save(Prospect prospect);
 
   List<Prospect> create(List<Prospect> prospects);

@@ -399,28 +399,6 @@ public class ProspectRepositoryImpl implements ProspectRepository {
   }
 
   @Override
-  public List<Prospect> saveAllWithoutSogefi(List<Prospect> prospects) {
-    List<HProspect> entities =
-        prospects.stream()
-            .map(prospect -> {
-              Optional<HProspect> optionalProspect = jpaRepository.findById(prospect.getId());
-              HProspect existing = optionalProspect.orElse(null);
-              return mapper.toEntity(prospect, existing);
-            })
-            .toList();
-    return jpaRepository.saveAll(entities).stream()
-        .map(prospect -> {
-          Geojson location =
-              prospect.getPosLatitude() != null && prospect.getPosLongitude() != null
-                  ? null : new Geojson()
-                  .latitude(prospect.getPosLatitude())
-                  .longitude(prospect.getPosLongitude());
-          return mapper.toDomain(prospect, location);
-        })
-        .toList();
-  }
-
-  @Override
   public Prospect save(Prospect prospect) {
     AccountHolder authenticatedAccount = resourceProvider.getDefaultAccountHolder();
     Optional<HProspect> optionalProspect = jpaRepository.findById(prospect.getId());

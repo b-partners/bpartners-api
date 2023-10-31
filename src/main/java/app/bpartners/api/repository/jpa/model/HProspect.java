@@ -1,5 +1,6 @@
 package app.bpartners.api.repository.jpa.model;
 
+import app.bpartners.api.endpoint.rest.model.ContactNature;
 import app.bpartners.api.endpoint.rest.model.ProspectFeedback;
 import app.bpartners.api.endpoint.rest.model.ProspectStatus;
 import app.bpartners.api.repository.jpa.types.PostgresEnumType;
@@ -71,6 +72,9 @@ public class HProspect {
   @Type(type = "pgsql_enum")
   @Enumerated(EnumType.STRING)
   private ProspectFeedback prospectFeedback;
+  @Type(type = "pgsql_enum")
+  @Enumerated(EnumType.STRING)
+  private ContactNature contactNature;
 
   public ProspectStatus getActualStatus() {
     return statusHistories.isEmpty() ? null : statusHistories.stream()

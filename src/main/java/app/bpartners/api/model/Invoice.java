@@ -4,6 +4,7 @@ import app.bpartners.api.endpoint.rest.model.ArchiveStatus;
 import app.bpartners.api.endpoint.rest.model.Invoice.PaymentTypeEnum;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.endpoint.rest.model.PaymentMethod;
+import app.bpartners.api.service.utils.DateUtils;
 import java.io.InputStream;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -75,6 +76,10 @@ public class Invoice {
   private Fraction totalVat;
   private Fraction totalPriceWithVat;
   private PaymentMethod paymentMethod;
+
+  public String getUpdatedAtFrenchDate() {
+    return DateUtils.formatFrenchDate(updatedAt);
+  }
 
   public String getRealReference() {
     if (getRef() == null) {

@@ -312,10 +312,15 @@
                             EN PLUSIEURS FOIS
                         </strong>
                         <br/>
-                        <img class="stamp"
-                             th:if="${invoice.getStatus() != null && invoice.getStatus().toString() == 'PAID'
-                             && invoice.stamp != null}"
-                             th:src="${'data:image/jpeg;base64,' + invoice.stamp}" alt="stamp"/>
+                        <th:block th:if="${invoice.getStatus() != null && invoice.getStatus().toString() == 'PAID'}">
+                            <img class="stamp"
+                                 th:if="${invoice.stamp != null}"
+                                 th:src="${'data:image/jpeg;base64,' + invoice.stamp}" alt="stamp"/>
+                            <br/>
+                            <span>Payée le <span
+                                    th:text="${invoice.getUpdatedAtFrenchDate()}"></span>
+                            </span>
+                        </th:block>
                     </p>
                 </td>
                 <td style="text-align: center;vertical-align: top; ">
@@ -412,6 +417,11 @@
                                      alt="payment-code-qr"/>
                                 <span class="caption"><a
                                         th:href="${paymentReg.paymentRequest.paymentUrl}">Payez ici</a></span>
+                                <span th:if="${paymentReg.paymentRequest.paymentHistoryStatus != null
+                                && paymentReg.paymentRequest.paymentHistoryStatus.updatedAt != null}">
+                                    Payée le <span
+                                        th:text="${paymentReg.paymentRequest.paymentHistoryStatus.getUpdatedAtFrenchDate()}"></span>
+                                </span>
                                 <img style="position: absolute; top: -10px;left: 35px;width:120px;height: 100px;object-fit: contain; z-index: 1"
                                      th:src="${'data:image/jpeg;base64,' + paymentReg.paymentRequest.stamp}"
                                      alt="payment-reg-qr"/>

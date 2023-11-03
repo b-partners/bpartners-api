@@ -48,6 +48,7 @@ public class User implements Serializable {
   private String oldS3key;
   private BankConnection.BankConnectionStatus connectionStatus;
   private List<Role> roles;
+  private String snsArn;
 
   public String getName() {
     return firstName + " " + lastName;

@@ -23,19 +23,15 @@ public class EventConf {
   private final String sesSource;
   @Getter
   private final String adminEmail; //TODO: set as env variable
-  @Getter
-  private final String snsTargetArn;
 
   public EventConf(@Value("${aws.region}") String region,
                    @Value("${aws.endpoint}") String s3Endpoint,
                    @Value("${aws.ses.source}") String sesSource,
-                   @Value("${admin.email}") String adminEmail,
-                   @Value("${aws.sns.target.arn}") String snsTargetArn) {
+                   @Value("${admin.email}") String adminEmail) {
     this.sesSource = sesSource;
     this.region = Region.of(region);
     this.s3Endpoint = s3Endpoint;
     this.adminEmail = adminEmail;
-    this.snsTargetArn = snsTargetArn;
   }
 
   @Bean

@@ -3,6 +3,7 @@ package app.bpartners.api.model;
 import app.bpartners.api.endpoint.rest.model.EnableStatus;
 import app.bpartners.api.endpoint.rest.model.IdentificationStatus;
 import app.bpartners.api.endpoint.rest.security.model.Role;
+import com.nimbusds.jose.util.Base64;
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.List;
@@ -49,6 +50,10 @@ public class User implements Serializable {
   private BankConnection.BankConnectionStatus connectionStatus;
   private List<Role> roles;
   private String snsArn;
+
+  public String getEncodedSnsArn() {
+    return snsArn == null ? null : Base64.encode(snsArn).toString();
+  }
 
   public String getName() {
     return firstName + " " + lastName;

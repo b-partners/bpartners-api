@@ -28,7 +28,8 @@ public class UserRestMapper {
         .identificationStatus(domain.getIdentificationStatus())
         .logoFileId(domain.getLogoFileId())
         .activeAccount(accountRestMapper.toRest(domain.getDefaultAccount()))
-        .roles(toRest(domain.getRoles()));
+        .roles(toRest(domain.getRoles()))
+        .snsArn(domain.getEncodedSnsArn());
   }
 
   private UserRole toRest(Role role) {
@@ -57,5 +58,4 @@ public class UserRestMapper {
         .mobilePhoneNumber(toCreateUser.getPhoneNumber())
         .build();
   }
-
 }

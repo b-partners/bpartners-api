@@ -69,6 +69,7 @@ public class UserMapper {
         .connectionStatus(entityUser.getBankConnectionStatus())
         .roles(entityUser.getRoles() == null ? List.of()
             : Arrays.asList(entityUser.getRoles()))
+        .snsArn(entityUser.getSnsArn())
         .build();
   }
 
@@ -111,6 +112,7 @@ public class UserMapper {
         .monthlySubscription(toSave.getMonthlySubscription())
         .roles(toSave.getRoles() == null ? new Role[] {}
             : toSave.getRoles().toArray(Role[]::new))
+        .snsArn(toSave.getSnsArn())
         .build();
   }
 

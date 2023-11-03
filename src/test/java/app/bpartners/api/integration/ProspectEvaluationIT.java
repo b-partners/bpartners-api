@@ -323,7 +323,7 @@ class ProspectEvaluationIT extends MockedThirdParties {
   }
 
   private List<Prospect> getPersistedProspect() {
-    return prospectRepository.findAllByIdAccountHolder(JOE_DOE_ACCOUNT_HOLDER_ID, "").stream()
+    return prospectRepository.findAllByIdAccountHolder(JOE_DOE_ACCOUNT_HOLDER_ID, "", null).stream()
         .peek(prospect -> prospect.setId(null))
         .collect(Collectors.toList());
   }

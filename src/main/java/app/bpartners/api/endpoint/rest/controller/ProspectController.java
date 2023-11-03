@@ -45,7 +45,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import static app.bpartners.api.endpoint.rest.validator.ProspectRestValidator.XLSX_FILE;
 import static app.bpartners.api.endpoint.rest.validator.ProspectRestValidator.XLS_FILE;
-import static java.util.stream.Collectors.toUnmodifiableList;
 
 @RestController
 @AllArgsConstructor
@@ -128,10 +127,12 @@ public class ProspectController {
   @GetMapping("/accountHolders/{ahId}/prospects")
   public List<Prospect> getProspects(@PathVariable("ahId") String accountHolderId,
                                      @RequestParam(name = "name", required = false)
-                                     String name) {
-    return service.getAllByIdAccountHolder(accountHolderId, name).stream()
+                                     String name,
+                                     @RequestParam(name = "contactNature", required = false)
+                                     String contactNature) {
+    return service.getByCriteria(accountHolderId, name, contactNature).stream()
         .map(mapper::toRest)
-        .collect(toUnmodifiableList());
+        .toList();
   }
 
   @PutMapping("/accountHolders/{ahId}/prospects")

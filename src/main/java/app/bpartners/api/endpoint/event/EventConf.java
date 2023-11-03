@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Configuration;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.ses.SesClient;
+import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.ssm.SsmClient;
 
@@ -62,6 +63,13 @@ public class EventConf {
   @Bean
   public SesClient getSesClient() {
     return SesClient.builder()
+        .region(region) //Override the localstack default region for live test in localhost
+        .build();
+  }
+
+  @Bean
+  public SnsClient getSnsClient() {
+    return SnsClient.builder()
         .region(region) //Override the localstack default region for live test in localhost
         .build();
   }

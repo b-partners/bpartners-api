@@ -12,7 +12,6 @@ import app.bpartners.api.repository.ban.model.GeoPosition;
 import app.bpartners.api.repository.expressif.ProspectEval;
 import app.bpartners.api.repository.expressif.ProspectEvalInfo;
 import app.bpartners.api.repository.expressif.fact.NewIntervention;
-import app.bpartners.api.repository.jpa.ProspectJpaRepository;
 import app.bpartners.api.repository.jpa.model.HProspect;
 import app.bpartners.api.repository.jpa.model.HProspectStatusHistory;
 import app.bpartners.api.service.utils.DateUtils;
@@ -53,7 +52,6 @@ public class ProspectMapper {
   public static final String OLD_CUSTOMER_CONTACT_NATURE = "ancien client";
   public static final int OWNER_ID_CELL_INDEX = 31;
   private final AuthenticatedResourceProvider provider;
-  private final ProspectJpaRepository jpaRepository;
   private final BanApi banApi;
 
   private static String checkIfOldOrNew(String toCheck,
@@ -134,6 +132,7 @@ public class ProspectMapper {
           .defaultComment(domain.getDefaultComment())
           .idInvoice(domain.getIdInvoice())
           .prospectFeedback(domain.getProspectFeedback())
+          .contactNature(domain.getContactNature())
           .contractAmount(
               domain.getContractAmount() == null ? null : domain.getContractAmount().toString())
           .build();
@@ -166,6 +165,7 @@ public class ProspectMapper {
         .posLongitude(location == null ? null : location.getLongitude())
         .posLatitude(location == null ? null : location.getLatitude())
         .defaultComment(domain.getDefaultComment())
+        .contactNature(domain.getContactNature())
         .build();
   }
 
@@ -195,6 +195,7 @@ public class ProspectMapper {
         .contractAmount(entity.getContractAmount() == null
             ? null
             : parseFraction(entity.getContractAmount()))
+        .contactNature(entity.getContactNature())
         .build();
   }
 

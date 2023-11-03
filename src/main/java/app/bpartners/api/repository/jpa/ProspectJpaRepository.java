@@ -1,5 +1,6 @@
 package app.bpartners.api.repository.jpa;
 
+import app.bpartners.api.endpoint.rest.model.ContactNature;
 import app.bpartners.api.repository.jpa.model.HProspect;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -16,6 +17,11 @@ public interface ProspectJpaRepository extends JpaRepository<HProspect, String> 
   List<HProspect> findAllByIdAccountHolderAndOldNameContainingIgnoreCase(
       String idAccountHolder,
       String name);
+
+  List<HProspect> findAllByIdAccountHolderAndOldNameContainingIgnoreCaseAndContactNature(
+      String idAccountHolder,
+      String name,
+      ContactNature contactNature);
 
   List<HProspect> findAllByIdJob(String idJob);
 

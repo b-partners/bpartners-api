@@ -28,7 +28,7 @@ Resources:
   Cluster:
     Type: AWS::ECS::Cluster
     Properties:
-      ClusterName: !Join ['', [!Ref NamePrefix, !Ref Env, -compute-bpartners]]
+      ClusterName: !Join [ '', [ !Ref NamePrefix, !Ref Env, -compute-bpartners ] ]
   LogGroup:
     Type: AWS::Logs::LogGroup
     DeletionPolicy: Retain
@@ -36,7 +36,7 @@ Resources:
     Type: AWS::ECS::TaskDefinition
     DependsOn: LogGroup
     Properties:
-      Family: !Join ['', [!Ref NamePrefix, !Ref Env, -compute-bpartners]]
+      Family: !Join [ '', [ !Ref NamePrefix, !Ref Env, -compute-bpartners ] ]
       NetworkMode: awsvpc
       RequiresCompatibilities:
         - FARGATE
@@ -139,7 +139,7 @@ Resources:
   ExecutionRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: !Join ['', [!Ref NamePrefix, !Ref Env, -compute-bpartners, -ExecutionRole]]
+      RoleName: !Join [ '', [ !Ref NamePrefix, !Ref Env, -compute-bpartners, -ExecutionRole ] ]
       AssumeRolePolicyDocument:
         Statement:
           - Effect: Allow
@@ -151,7 +151,7 @@ Resources:
   TaskRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: !Join ['', [!Ref NamePrefix, !Ref Env, -compute-bpartners, -TaskRole]]
+      RoleName: !Join [ '', [ !Ref NamePrefix, !Ref Env, -compute-bpartners, -TaskRole ] ]
       AssumeRolePolicyDocument:
         Version: 2012-10-17
         Statement:
@@ -166,6 +166,7 @@ Resources:
         - 'arn:aws:iam::aws:policy/AmazonSSMFullAccess'
         - 'arn:aws:iam::aws:policy/AmazonCognitoPowerUser'
         - 'arn:aws:iam::aws:policy/AmazonSESFullAccess'
+        - 'arn:aws:iam::aws:policy/AmazonSNSFullAccess'
 
   Service:
     Type: AWS::ECS::Service
@@ -189,7 +190,7 @@ Resources:
   TargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
-      Name: !Join ['', [!Ref NamePrefix, !Ref Env, -compute-bp, -tg]]
+      Name: !Join [ '', [ !Ref NamePrefix, !Ref Env, -compute-bp, -tg ] ]
       Protocol: HTTP
       Port: !Ref ContainerPort
       # TargetType must be ip with Fargate: targets are (de-)registered on container creation/destruction
@@ -216,7 +217,7 @@ Resources:
         - Field: host-header
           HostHeaderConfig:
             Values:
-              - !Join ['', [ private-, api., !Ref Env, .bpartners.app]]
+              - !Join [ '', [ private-, api., !Ref Env, .bpartners.app ] ]
       Actions:
         - Type: forward
           TargetGroupArn: !Ref TargetGroup

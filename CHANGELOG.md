@@ -1,3 +1,31 @@
+# [0.36.0](https://github.com/b-partners/bpartners-api/compare/v0.35.1...v0.36.0) (2023-11-03)
+
+
+### Bug Fixes
+
+* add contact nature to prospect ([53d9ab2](https://github.com/b-partners/bpartners-api/commit/53d9ab2225f21059637630f0fd6c3eaa04ec23c2))
+* add encoded sns arn inside users attributes ([d90113b](https://github.com/b-partners/bpartners-api/commit/d90113b5c53cd17197de43c91fae4450628d0fd1))
+* avoid NPE when crupdating prospects ([3a95d13](https://github.com/b-partners/bpartners-api/commit/3a95d130e2017e464494712963d2a7bdc590e4f6))
+* crupdate prospects ([f12e445](https://github.com/b-partners/bpartners-api/commit/f12e44580956da5e81f7582956c2365b2982ad29))
+* filter invoice keywords by customer infos ([6d2e061](https://github.com/b-partners/bpartners-api/commit/6d2e0613f859386657582f21142a18024968059c))
+* order customers by updated datetime desc ([1279aef](https://github.com/b-partners/bpartners-api/commit/1279aefab718c07bf5c4e23e756651dfae3f3743))
+* relaunch TO_CONTACT prospects to 2pm and only with rating > 0 ([cf8b1e0](https://github.com/b-partners/bpartners-api/commit/cf8b1e0f737b6517ae36a9d6e68736a2dc59e536))
+* remove spreadsheet properties when prospecting through calendar ([a632059](https://github.com/b-partners/bpartners-api/commit/a6320598437d3f0b0bf0f8d5cabb9fea602b877f))
+* set payment amount value inside email status changed to cents ([ad5348e](https://github.com/b-partners/bpartners-api/commit/ad5348eb8d75f64027dbfb0ace6166318d7acc1d))
+
+
+### Features
+
+* relaunch account holders every friday 02:00 PM for prospect with status TO_CONTACT ([b351a8d](https://github.com/b-partners/bpartners-api/commit/b351a8dbe8cc3b53b1d192176c5545e57692fccb))
+
+
+### Reverts
+
+* Revert "chore: set account holder prospects relaunch to 4pm" ([473dbac](https://github.com/b-partners/bpartners-api/commit/473dbac3265de66c2ab73bbcce94e3d4d3a00085))
+* Revert "chore(to-revert): refresh unpaid invoices for artisan alphanuisible" ([2142ad5](https://github.com/b-partners/bpartners-api/commit/2142ad59106c0305ef1a093b1fc969ed0cfeb312))
+
+
+
 ## [0.35.1](https://github.com/b-partners/bpartners-api/compare/v0.35.0...v0.35.1) (2023-10-24)
 
 
@@ -155,15 +183,6 @@
 * filter transactions by status ([cdd7711](https://github.com/b-partners/bpartners-api/commit/cdd7711a33d1181e900fc642dc1bf4f6451accea))
 * get all account holders for authorized users ([f0ce059](https://github.com/b-partners/bpartners-api/commit/f0ce059d4a3905987bcec05429533f76d93aebb2))
 * read prospect evaluation jobs for an account holder ([e218256](https://github.com/b-partners/bpartners-api/commit/e218256d326f9bc817adc834b333540178d6b471))
-
-
-
-## [0.29.1](https://github.com/b-partners/bpartners-api/compare/v0.29.0...v0.29.1) (2023-09-13)
-
-
-### Bug Fixes
-
-* set prospect evaluations jobs and add calendar events - prospects conversion inside ([1ecdedc](https://github.com/b-partners/bpartners-api/commit/1ecdedca0c0306679e61ddafcd01894a10105b64))
 
 
 

@@ -85,12 +85,12 @@ public class ProspectMapper {
                             Instant lastEvaluationDate,
                             HProspect actualEntity) {
     Geojson location = domain.getLocation();
-    actualEntity = actualEntity == null ? HProspect.builder()
+    HProspect entity = actualEntity == null ? HProspect.builder()
         .id(String.valueOf(randomUUID()))
         .statusHistories(defaultStatusHistoryEntity())
         .build() : actualEntity;
-    List<HProspectStatusHistory> actualHistory = actualEntity.getStatusHistories();
-    if ((actualEntity.getActualStatus() != TO_CONTACT
+    List<HProspectStatusHistory> actualHistory = entity.getStatusHistories();
+    if ((actualEntity != null && actualEntity.getActualStatus() != TO_CONTACT
         && domain.getActualStatus().equals(TO_CONTACT))
         || (domain.getProspectFeedback() != null
         && domain.getProspectFeedback().equals(ProspectFeedback.NOT_INTERESTED))) {
@@ -113,7 +113,7 @@ public class ProspectMapper {
               .status(domain.getActualStatus())
               .updatedAt(Instant.now())
               .build());
-      return actualEntity.toBuilder()
+      return entity.toBuilder()
           .id(domain.getId())
           .idJob(domain.getIdJob())
           .managerName(domain.getManagerName())

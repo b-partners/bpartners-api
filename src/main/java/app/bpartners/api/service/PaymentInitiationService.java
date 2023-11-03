@@ -168,7 +168,7 @@ public class PaymentInitiationService {
   private static String getNotificationTitle(HPaymentRequest payment) {
     Fraction paymentAmount = parseFraction(payment.getAmount());
     return String.format("Réception d'un nouveau paiement de %s € de la part de %s",
-        paymentAmount.getApproximatedValue(), payment.getPayerName());
+        paymentAmount.getCentsAsDecimal(), payment.getPayerName());
   }
 
   @SneakyThrows

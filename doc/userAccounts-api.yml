@@ -759,6 +759,11 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/UserRole'
+        snsArn:
+          type: string
+          description: |
+            Base64 encoded sns ARN used to target user for mobile notifications.
+            Must be decoded before use.
     IdentificationStatus:
       type: string
       enum:

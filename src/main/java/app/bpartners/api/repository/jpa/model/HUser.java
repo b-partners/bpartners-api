@@ -98,7 +98,7 @@ public class HUser implements Serializable {
   @Type(type = "user_roles")
   @Column(name = "roles", columnDefinition = "user_role[]")
   private Role[] roles;
-
+  private String snsArn;
 
   public Instant getBridgeItemLastRefresh() {
     return bridgeItemLastRefresh == null ? null

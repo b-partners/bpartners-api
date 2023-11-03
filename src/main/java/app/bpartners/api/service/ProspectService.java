@@ -6,6 +6,7 @@ import app.bpartners.api.endpoint.event.model.TypedProspectEvaluationJobInitiate
 import app.bpartners.api.endpoint.event.model.TypedProspectUpdated;
 import app.bpartners.api.endpoint.event.model.gen.ProspectEvaluationJobInitiated;
 import app.bpartners.api.endpoint.event.model.gen.ProspectUpdated;
+import app.bpartners.api.endpoint.rest.model.ContactNature;
 import app.bpartners.api.endpoint.rest.model.Geojson;
 import app.bpartners.api.endpoint.rest.model.JobStatusValue;
 import app.bpartners.api.endpoint.rest.model.NewInterventionOption;
@@ -116,9 +117,19 @@ public class ProspectService {
     return evalJobRepository.getById(jobId);
   }
 
-  public List<Prospect> getAllByIdAccountHolder(String idAccountHolder, String name) {
+  public List<Prospect> getByCriteria(String idAccountHolder,
+                                      String name,
+                                      String contactNatureValue) {
+    ContactNature contactNature;
+    try {
+      contactNature = contactNatureValue == null ? null
+          : ContactNature.valueOf(contactNatureValue);
+    } catch (IllegalArgumentException e) {
+      throw new BadRequestException("Unknown contactNature type = " + contactNatureValue);
+    }
+    String nameValue = name == null ? "" : name;
     return dataProcesser.processProspects(
-        repository.findAllByIdAccountHolder(idAccountHolder, name == null ? "" : name));
+        repository.findAllByIdAccountHolder(idAccountHolder, nameValue, contactNature));
   }
 
   @Transactional

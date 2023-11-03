@@ -54,7 +54,7 @@ class ProspectRepositoryImplTest {
     prospectJpaRepositoryMock = mock(ProspectJpaRepository.class);
     banApiMock = mock(BanApi.class);
     prospectMapper =
-        new ProspectMapper(resourceProviderMock, prospectJpaRepositoryMock, banApiMock);
+        new ProspectMapper(resourceProviderMock, banApiMock);
     buildingPermitApiMock = mock(BuildingPermitApi.class);
     sogefiBuildingPermitRepositoryMock = mock(SogefiBuildingPermitRepository.class);
     businessActivityServiceMock = mock(BusinessActivityService.class);

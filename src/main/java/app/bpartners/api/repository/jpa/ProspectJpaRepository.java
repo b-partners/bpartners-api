@@ -48,8 +48,9 @@ public interface ProspectJpaRepository extends JpaRepository<HProspect, String> 
           + "       prospect_feedback,"
           + "       id_job,"
           + "       default_comment,"
-          + "       manager_name"
-          + " from prospect_actual_status"
+          + "       manager_name,"
+          + "       contact_nature"
+          + " from view_prospect_actual_status"
           + " where cast(actual_status as varchar) = ?1")
   List<HProspect> findAllByStatus(String prospectStatus);
 }

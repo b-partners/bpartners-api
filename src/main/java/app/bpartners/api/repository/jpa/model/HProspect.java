@@ -12,7 +12,6 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
-import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
@@ -28,8 +27,6 @@ import lombok.ToString;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 
-import static javax.persistence.GenerationType.IDENTITY;
-
 @Entity
 @Table(name = "\"prospect\"")
 @Getter
@@ -42,7 +39,6 @@ import static javax.persistence.GenerationType.IDENTITY;
 @TypeDef(name = "pgsql_enum", typeClass = PostgresEnumType.class)
 public class HProspect {
   @Id
-  @GeneratedValue(strategy = IDENTITY)
   private String id;
   private String idAccountHolder;
   @Column(name = "id_job")

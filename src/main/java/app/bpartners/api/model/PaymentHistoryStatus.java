@@ -2,6 +2,7 @@ package app.bpartners.api.model;
 
 import app.bpartners.api.endpoint.rest.model.PaymentMethod;
 import app.bpartners.api.endpoint.rest.model.PaymentStatus;
+import app.bpartners.api.service.utils.DateUtils;
 import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -21,4 +22,8 @@ public class PaymentHistoryStatus {
   private PaymentMethod paymentMethod;
   private Boolean userUpdated;
   private Instant updatedAt;
+
+  public String getUpdatedAtFrenchDate() {
+    return DateUtils.formatFrenchDate(updatedAt);
+  }
 }

@@ -28,6 +28,7 @@ import java.security.Signature;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -102,9 +103,33 @@ public class PaymentInitiationService {
   }
 
   private void notifyByMobileNotification(List<HPaymentRequest> paymentRequests) {
-    for (var payment : paymentRequests) {
-      snsService.pushNotification(getNotificationTitle(payment));
+    Map<String, List<HPaymentRequest>> paymentsByUser = dispatchPaymentsByUser(paymentRequests);
+    paymentsByUser.forEach(
+        (idUser, payments) -> {
+          User user = userRepository.getById(idUser);
+          for (var payment : paymentRequests) {
+            snsService.pushNotification(getNotificationTitle(payment), user);
+          }
+        }
+    );
+  }
+
+  private static Map<String, List<HPaymentRequest>> dispatchPaymentsByUser(
+      List<HPaymentRequest> paymentRequests) {
+    Map<String, List<HPaymentRequest>> paymentsByUser = new HashMap<>();
+    for (HPaymentRequest payment : paymentRequests) {
+      String idUser = payment.getIdUser();
+      if (idUser != null) {
+        if (!paymentsByUser.containsKey(idUser)) {
+          List<HPaymentRequest> subList = new ArrayList<>();
+          subList.add(payment);
+          paymentsByUser.put(idUser, subList);
+        } else {
+          paymentsByUser.get(idUser).add(payment);
+        }
+      }
     }
+    return paymentsByUser;
   }
 
   @SneakyThrows

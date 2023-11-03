@@ -1,5 +1,6 @@
 package app.bpartners.api.repository;
 
+import app.bpartners.api.endpoint.rest.model.ContactNature;
 import app.bpartners.api.endpoint.rest.model.ProspectStatus;
 import app.bpartners.api.model.prospect.Prospect;
 import app.bpartners.api.repository.expressif.ProspectEval;
@@ -12,7 +13,9 @@ public interface ProspectRepository {
 
   List<Prospect> findAllByStatus(ProspectStatus status);
 
-  List<Prospect> findAllByIdAccountHolder(String idAccountHolder, String name);
+  List<Prospect> findAllByIdAccountHolder(String idAccountHolder,
+                                          String name,
+                                          ContactNature contactNature);
 
   List<Prospect> saveAll(List<Prospect> prospects);
 

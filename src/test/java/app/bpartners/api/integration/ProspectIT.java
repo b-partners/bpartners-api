@@ -251,15 +251,15 @@ class ProspectIT {
     ApiClient joeDoeClient = anApiClient();
     ProspectingApi api = new ProspectingApi(joeDoeClient);
 
-    List<Prospect> actual1 = api.getProspects(ACCOUNTHOLDER_ID, null);
+    List<Prospect> actual1 = api.getProspects(ACCOUNTHOLDER_ID, null, null);
     businessRepository.save(BusinessActivity.builder()
         .accountHolder(joeDoeAccountHolder())
         .primaryActivity(ANTI_HARM)
         .secondaryActivity(null)
         .build());
-    List<Prospect> actual2 = api.getProspects(ACCOUNTHOLDER_ID, null);
+    List<Prospect> actual2 = api.getProspects(ACCOUNTHOLDER_ID, null, null);
     String prospectName = "Alyssa";
-    List<Prospect> actual3 = api.getProspects(ACCOUNTHOLDER_ID, prospectName);
+    List<Prospect> actual3 = api.getProspects(ACCOUNTHOLDER_ID, prospectName, null);
 
     assertEquals(2, actual1.size());
     assertEquals(7, actual2.size());
@@ -347,7 +347,8 @@ class ProspectIT {
 
     assertThrowsForbiddenException(
         () -> api.updateProspects(NOT_JOE_DOE_ACCOUNT_HOLDER_ID, List.of()));
-    assertThrowsForbiddenException(() -> api.getProspects(NOT_JOE_DOE_ACCOUNT_HOLDER_ID, null));
+    assertThrowsForbiddenException(
+        () -> api.getProspects(NOT_JOE_DOE_ACCOUNT_HOLDER_ID, null, null));
     assertThrowsForbiddenException(
         () -> api.convertProspect(NOT_JOE_DOE_ACCOUNT_HOLDER_ID, prospect1().getId(), List.of()));
   }

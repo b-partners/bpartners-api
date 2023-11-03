@@ -94,6 +94,13 @@ operations:
           description: 'Filter prospects by name'
           schema:
             type: string
+        - in: query
+          name: contactNature
+          description: |
+            Filter prospects by contact nature. 
+            Available default are OLD_CUSTOMER or PROSPECT
+          schema:
+            $ref: '#/components/schemas/ContactNature'
         #TODO: set pagination
       responses:
         200:

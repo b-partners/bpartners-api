@@ -1,5 +1,6 @@
 package app.bpartners.api.repository.implementation;
 
+import app.bpartners.api.endpoint.rest.model.ContactNature;
 import app.bpartners.api.endpoint.rest.model.Geojson;
 import app.bpartners.api.endpoint.rest.model.ProspectStatus;
 import app.bpartners.api.endpoint.rest.security.AuthenticatedResourceProvider;
@@ -104,15 +105,24 @@ public class ProspectRepositoryImpl implements ProspectRepository {
   }
 
   @Override
-  public List<Prospect> findAllByIdAccountHolder(String idAccountHolder, String name) {
+  public List<Prospect> findAllByIdAccountHolder(String idAccountHolder,
+                                                 String name,
+                                                 ContactNature contactNature) {
     BusinessActivity businessActivity =
         businessActivityService.findByAccountHolderId(idAccountHolder);
     if (Objects.equals(0,
         ANTI_HARM.compareToIgnoreCase(businessActivity.getPrimaryActivity()))
         || Objects.equals(0,
         ANTI_HARM.compareToIgnoreCase(businessActivity.getSecondaryActivity()))) {
-      return jpaRepository.findAllByIdAccountHolderAndOldNameContainingIgnoreCase(idAccountHolder,
-              name).stream()
+      List<HProspect> prospects = contactNature == null
+          ? jpaRepository.findAllByIdAccountHolderAndOldNameContainingIgnoreCase(
+          idAccountHolder,
+          name)
+          : jpaRepository.findAllByIdAccountHolderAndOldNameContainingIgnoreCaseAndContactNature(
+          idAccountHolder,
+          name,
+          contactNature);
+      return prospects.stream()
           .map(prospect -> mapper.toDomain(prospect,
               prospect.getPosLatitude() == null && prospect.getPosLongitude() == null ? null
                   : new Geojson()

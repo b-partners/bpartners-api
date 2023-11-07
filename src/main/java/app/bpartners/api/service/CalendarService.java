@@ -29,6 +29,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
+import static app.bpartners.api.service.utils.URLUtils.extractURLPath;
 
 @Service
 @AllArgsConstructor
@@ -46,14 +47,15 @@ public class CalendarService {
     consentValidator.accept(consentInit);
     RedirectionStatusUrls urls = consentInit.getRedirectionStatusUrls();
     String redirectUrl = urls.getSuccessUrl();
+    String extractedUrl = extractURLPath(redirectUrl);
 
     List<String> supportedRedirectUris = calendarConf().getRedirectUris();
-    if (!supportedRedirectUris.contains(redirectUrl)) {
+    if (!supportedRedirectUris.contains(extractedUrl)) {
       throw new BadRequestException("Redirect URI [" + redirectUrl + "] is unknown. "
           + "Only " + supportedRedirectUris + " are.");
     }
 
-    String consentUrl = calendarApi.initConsent(redirectUrl);
+    String consentUrl = calendarApi.initConsent(extractedUrl);
     return new Redirection()
         .redirectionUrl(consentUrl)
         .redirectionStatusUrls(urls);
@@ -64,8 +66,9 @@ public class CalendarService {
     String code = URLDecoder.decode(auth.getCode(), StandardCharsets.UTF_8);
     RedirectionStatusUrls urls = auth.getRedirectUrls();
     String redirectUrl = urls.getSuccessUrl();
+    String extractedUrl = extractURLPath(redirectUrl);
 
-    if (calendarApi.storeCredential(idUser, code, redirectUrl) == null) {
+    if (calendarApi.storeCredential(idUser, code, extractedUrl) == null) {
       throw new ApiException(SERVER_EXCEPTION,
           "Unable to exchange " + auth + " to Google Sheet access token");
     } else {

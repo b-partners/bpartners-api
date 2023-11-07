@@ -8,6 +8,7 @@ import app.bpartners.api.endpoint.rest.model.CreateProduct;
 import app.bpartners.api.endpoint.rest.model.CrupdateInvoice;
 import app.bpartners.api.endpoint.rest.model.Invoice;
 import app.bpartners.api.endpoint.rest.model.InvoiceReference;
+import app.bpartners.api.endpoint.rest.model.OrderDirection;
 import app.bpartners.api.endpoint.rest.model.PaymentMethod;
 import app.bpartners.api.endpoint.rest.model.PaymentRegStatus;
 import app.bpartners.api.endpoint.rest.model.PaymentRegulation;
@@ -29,7 +30,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Future;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -79,6 +79,7 @@ import static app.bpartners.api.integration.conf.utils.TestUtils.createProduct4;
 import static app.bpartners.api.integration.conf.utils.TestUtils.createProduct5;
 import static app.bpartners.api.integration.conf.utils.TestUtils.customer1;
 import static app.bpartners.api.integration.conf.utils.TestUtils.invoice1;
+import static app.bpartners.api.integration.conf.utils.TestUtils.isAfterOrEquals;
 import static app.bpartners.api.integration.conf.utils.TestUtils.product5;
 import static app.bpartners.api.integration.conf.utils.TestUtils.setUpCognito;
 import static app.bpartners.api.integration.conf.utils.TestUtils.setUpEventBridge;
@@ -138,27 +139,34 @@ class LocalInvoiceIT extends MockedThirdParties {
     PayingApi api = new PayingApi(joeDoeClient);
 
     List<Invoice> actualAll =
-        api.getInvoices(JOE_DOE_ACCOUNT_ID, 1, MAX_SIZE, null, null, null, null, null);
+        api.getInvoices(JOE_DOE_ACCOUNT_ID, 1, MAX_SIZE, null, null, null, null, null, null);
     List<Invoice> actualDraft =
-        api.getInvoices(JOE_DOE_ACCOUNT_ID, 1, MAX_SIZE, null, List.of(DRAFT), null, null, null);
+        api.getInvoices(JOE_DOE_ACCOUNT_ID, 1, MAX_SIZE, null, List.of(DRAFT), null, null, null,
+            null);
     List<Invoice> actualProposal =
-        api.getInvoices(JOE_DOE_ACCOUNT_ID, 1, MAX_SIZE, null, List.of(PROPOSAL), null, null, null);
+        api.getInvoices(JOE_DOE_ACCOUNT_ID, 1, MAX_SIZE, null, List.of(PROPOSAL), null, null, null,
+            null);
     List<Invoice> actualConfirmed =
         api.getInvoices(JOE_DOE_ACCOUNT_ID, 1, MAX_SIZE, null, List.of(CONFIRMED), null, null,
-            null);
+            null, null);
     List<Invoice> actualPaid =
-        api.getInvoices(JOE_DOE_ACCOUNT_ID, 1, MAX_SIZE, null, List.of(PAID), null, null, null);
+        api.getInvoices(JOE_DOE_ACCOUNT_ID, 1, MAX_SIZE, null, List.of(PAID), null, null, null,
+            null);
     List<Invoice> actualConfirmedAndPaid =
         api.getInvoices(JOE_DOE_ACCOUNT_ID, 1, MAX_SIZE, null, List.of(CONFIRMED, PAID), null,
-            null, null);
+            null, null, null);
     String titleToFitler = "Facture";
     List<Invoice> actualByTitle =
-        api.getInvoices(JOE_DOE_ACCOUNT_ID, 1, MAX_SIZE, null, null, null, titleToFitler, null);
+        api.getInvoices(JOE_DOE_ACCOUNT_ID, 1, MAX_SIZE, null, null, null, titleToFitler, null,
+            null);
+    List<Invoice> actualOrderedBySendingDate =
+        api.getInvoices(JOE_DOE_ACCOUNT_ID, 1, MAX_SIZE, null, null, null, null, null,
+            OrderDirection.DESC);
 
     assertTrue(actualAll.containsAll(
         Stream.of(actualDraft, actualProposal, actualConfirmed, actualPaid)
             .flatMap(List::stream)
-            .collect(Collectors.toList())));
+            .toList()));
     assertTrue(actualDraft.stream().allMatch(invoice -> invoice.getStatus() == DRAFT));
     assertTrue(actualProposal.stream().allMatch(invoice -> invoice.getStatus() == PROPOSAL));
     assertTrue(actualConfirmed.stream().allMatch(invoice -> invoice.getStatus() == CONFIRMED));
@@ -166,10 +174,15 @@ class LocalInvoiceIT extends MockedThirdParties {
     assertTrue(actualConfirmedAndPaid.containsAll(
         Stream.of(actualConfirmed, actualPaid)
             .flatMap(List::stream)
-            .collect(Collectors.toList())));
+            .toList()));
     assertEquals(6, actualByTitle.size());
     assertTrue(actualByTitle.stream()
         .allMatch(invoice -> invoice.getTitle().contains(titleToFitler)));
+    assertEquals(actualAll.size(), actualOrderedBySendingDate.size());
+    isAfterOrEquals(actualOrderedBySendingDate.get(0).getSendingDate(),
+        actualOrderedBySendingDate.get(1).getSendingDate());
+    isAfterOrEquals(actualOrderedBySendingDate.get(1).getSendingDate(),
+        actualOrderedBySendingDate.get(2).getSendingDate()); //etc...
   }
 
   @Test
@@ -178,8 +191,10 @@ class LocalInvoiceIT extends MockedThirdParties {
     ApiClient joeDoeClient = anApiClient();
     PayingApi api = new PayingApi(joeDoeClient);
 
-    List<Invoice> actual1 = api.getInvoices(JOE_DOE_ACCOUNT_ID, 1, 5, null, null, null, null, null);
-    List<Invoice> actual2 = api.getInvoices(JOE_DOE_ACCOUNT_ID, 2, 5, null, null, null, null, null);
+    List<Invoice> actual1 =
+        api.getInvoices(JOE_DOE_ACCOUNT_ID, 1, 5, null, null, null, null, null, null);
+    List<Invoice> actual2 =
+        api.getInvoices(JOE_DOE_ACCOUNT_ID, 2, 5, null, null, null, null, null, null);
 
     assertEquals(5, actual1.size());
     assertEquals(2, actual2.size());
@@ -413,17 +428,18 @@ class LocalInvoiceIT extends MockedThirdParties {
     PayingApi api = new PayingApi(joeDoeClient);
 
     assertThrowsForbiddenException(
-        () -> api.getInvoices(NOT_JOE_DOE_ACCOUNT_ID, 1, 10, null, null, null, null, null));
+        () -> api.getInvoices(NOT_JOE_DOE_ACCOUNT_ID, 1, 10, null, null, null, null, null, null));
     assertThrowsApiException(
         "{\"type\":\"400 BAD_REQUEST\",\"message\":\"page must be >=1\"}",
-        () -> api.getInvoices(JOE_DOE_ACCOUNT_ID, -1, 10, null, null, null, null, null));
+        () -> api.getInvoices(JOE_DOE_ACCOUNT_ID, -1, 10, null, null, null, null, null, null));
     assertThrowsApiException(
         "{\"type\":\"400 BAD_REQUEST\",\"message\":\"page size must be >=1\"}",
-        () -> api.getInvoices(JOE_DOE_ACCOUNT_ID, 1, -10, null, null, null, null, null));
+        () -> api.getInvoices(JOE_DOE_ACCOUNT_ID, 1, -10, null, null, null, null, null, null));
     assertThrowsApiException(
         "{\"type\":\"400 BAD_REQUEST\",\"message\":\"page size must be <" + MAX_SIZE
             + "\"}",
-        () -> api.getInvoices(JOE_DOE_ACCOUNT_ID, 1, MAX_SIZE + 1, null, null, null, null, null));
+        () -> api.getInvoices(JOE_DOE_ACCOUNT_ID, 1, MAX_SIZE + 1, null, null, null, null, null,
+            null));
     assertThrowsApiException("{\"type\":\"404 NOT_FOUND\",\"message\":\""
             + "Invoice.not_existing_invoice_id is not found\"}",
         () -> api.getInvoiceById(JOE_DOE_ACCOUNT_ID, "not_existing_invoice_id"));

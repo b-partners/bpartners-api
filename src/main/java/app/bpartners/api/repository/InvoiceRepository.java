@@ -2,6 +2,7 @@ package app.bpartners.api.repository;
 
 import app.bpartners.api.endpoint.rest.model.ArchiveStatus;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
+import app.bpartners.api.endpoint.rest.model.OrderDirection;
 import app.bpartners.api.model.ArchiveInvoice;
 import app.bpartners.api.model.Invoice;
 import java.util.List;
@@ -21,6 +22,13 @@ public interface InvoiceRepository {
       String title,
       int page,
       int pageSize);
+
+  List<Invoice> findAllByIdUserAndCriteria(String idUser,
+                                           List<InvoiceStatus> statusList,
+                                           ArchiveStatus archiveStatus,
+                                           List<String> filters,
+                                           int page, int pageSize,
+                                           OrderDirection sendingDateOrder);
 
   List<Invoice> findAllByIdUserAndCriteria(String idUser,
                                            List<InvoiceStatus> statusList,

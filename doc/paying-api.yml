@@ -769,6 +769,12 @@ operations:
             type: array
             items:
               type: string
+        - in: query
+          name: sendingDateOrder
+          schema:
+            $ref: '#/components/schemas/OrderDirection'
+          description: |
+            Order invoice by sending date ASC | DESC. If not provided, invoices are not ordered.
       responses:
         200:
           description: The list of invoices
@@ -1266,7 +1272,7 @@ components:
       properties:
         isFromScratch:
           type: boolean
-          description: | 
+          description: |
             If false, generate default header and signature inside the email body to send.
             If true, send only provided email body
             If not provided, default value is false.

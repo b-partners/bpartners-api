@@ -6,6 +6,7 @@ import app.bpartners.api.endpoint.rest.model.CrupdateInvoice;
 import app.bpartners.api.endpoint.rest.model.Invoice;
 import app.bpartners.api.endpoint.rest.model.InvoiceReference;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
+import app.bpartners.api.endpoint.rest.model.OrderDirection;
 import app.bpartners.api.endpoint.rest.model.UpdateInvoiceArchivedStatus;
 import app.bpartners.api.endpoint.rest.model.UpdatePaymentRegMethod;
 import app.bpartners.api.endpoint.rest.security.AuthProvider;
@@ -74,7 +75,8 @@ public class InvoiceController {
       @RequestParam(name = "statusList", required = false) List<InvoiceStatus> statusList,
       @RequestParam(name = "archiveStatus", required = false) ArchiveStatus archiveStatus,
       @RequestParam(name = "title", required = false) String title,
-      @RequestParam(name = "filters", required = false) List<String> filters) {
+      @RequestParam(name = "filters", required = false) List<String> filters,
+      @RequestParam(name = "sendingDateOrder", required = false) OrderDirection sendingDateOrder) {
     String idUser =
         AuthProvider.getAuthenticatedUserId(); //TODO: should be changed when endpoint changed
     if (status != null && (statusList == null || statusList.isEmpty())) {
@@ -82,7 +84,13 @@ public class InvoiceController {
       statusList = new ArrayList<>();
       statusList.add(status);
     }
-    return service.getInvoices(idUser, page, pageSize, statusList, archiveStatus, title, filters)
+    return service.getInvoices(idUser,
+            page,
+            pageSize,
+            statusList,
+            archiveStatus,
+            title,
+            filters)
         .stream()
         .map(mapper::toRest)
         .toList();

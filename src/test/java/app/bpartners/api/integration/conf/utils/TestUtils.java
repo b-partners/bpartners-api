@@ -1003,6 +1003,10 @@ public class TestUtils {
     return before.isAfter(after) || before.equals(after);
   }
 
+  public static boolean isAfterOrEquals(LocalDate before, LocalDate after) {
+    return before.isAfter(after) || before.equals(after);
+  }
+
   @SneakyThrows
   public static <T> Optional<T> getOptionalFutureResult(Future<T> future) {
     try {

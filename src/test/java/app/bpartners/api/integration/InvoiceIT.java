@@ -53,8 +53,6 @@ import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_TOKEN;
 import static app.bpartners.api.integration.conf.utils.TestUtils.accountHolderEntity1;
 import static app.bpartners.api.integration.conf.utils.TestUtils.createProduct4;
 import static app.bpartners.api.integration.conf.utils.TestUtils.customer1;
-import static app.bpartners.api.integration.conf.utils.TestUtils.invoice1;
-import static app.bpartners.api.integration.conf.utils.TestUtils.invoice2;
 import static app.bpartners.api.integration.conf.utils.TestUtils.product4;
 import static app.bpartners.api.integration.conf.utils.TestUtils.setUpCognito;
 import static app.bpartners.api.integration.conf.utils.TestUtils.setUpEventBridge;
@@ -105,7 +103,7 @@ class InvoiceIT extends MockedThirdParties {
     PayingApi api = new PayingApi(joeDoeClient);
 
     List<Invoice> actualFiltered = api.getInvoices(JOE_DOE_ACCOUNT_ID, null, null, null, null,
-        null, null, List.of("pOUr", "bp002"));
+        null, null, List.of("pOUr", "bp002"), null);
 
     assertEquals(2, actualFiltered.size());
     assertTrue(actualFiltered.stream()

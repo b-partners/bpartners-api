@@ -2,6 +2,7 @@ package app.bpartners.api.repository.implementation;
 
 import app.bpartners.api.endpoint.rest.model.ArchiveStatus;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
+import app.bpartners.api.endpoint.rest.model.OrderDirection;
 import app.bpartners.api.model.ArchiveInvoice;
 import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.exception.NotFoundException;
@@ -149,6 +150,50 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
             statusList,
             pageRequest).stream()
         .map(mapper::toDomain)
+        .toList();
+  }
+
+  @Override
+  public List<Invoice> findAllByIdUserAndCriteria(String idUser, List<InvoiceStatus> statusList,
+                                                  ArchiveStatus archiveStatus, List<String> filters,
+                                                  int page, int pageSize,
+                                                  OrderDirection sendingDateOrder) {
+    CriteriaBuilder builder = entityManager.getCriteriaBuilder();
+    CriteriaQuery<HInvoice> query = builder.createQuery(HInvoice.class);
+    List<Predicate> predicates = new ArrayList<>();
+    Root<HInvoice> root = query.from(HInvoice.class);
+
+    predicates.add(builder.equal(root.get("idUser"), idUser));
+    predicates.add(builder.equal(root.get("archiveStatus"), archiveStatus));
+    if (statusList != null) {
+      predicates.add(builder.or(statusList.stream()
+          .map(status -> builder.equal(root.get("status"), status)).toArray(Predicate[]::new)));
+    }
+    if (!filters.isEmpty()) {
+      List<Predicate> filtersPredicates = new ArrayList<>();
+      for (String filter : filters) {
+        filtersPredicates.add(builder.like(builder.lower(root.get("title")),
+            "%" + filter.toLowerCase() + "%"));
+        filtersPredicates.add(builder.like(builder.lower(root.get("ref")),
+            "%" + filter.toLowerCase() + "%"));
+        setCustomerFilters(builder, root, filtersPredicates, filter);
+      }
+      predicates.add(builder.or(filtersPredicates.toArray(new Predicate[0])));
+    }
+    Sort sort = sendingDateOrder == null ? Sort.by(DESC, "createdDatetime")
+        : Sort.by(Sort.Direction.valueOf(sendingDateOrder.getValue()), "sendingDate");
+    Pageable pageable = PageRequest.of(page, pageSize, sort);
+    query
+        .where(builder.and(predicates.toArray(new Predicate[0])))
+        .orderBy(QueryUtils.toOrders(sort, root, builder));
+    return entityManager.createQuery(query)
+        .setFirstResult((pageable.getPageNumber()) * pageable.getPageSize())
+        .setMaxResults(pageable.getPageSize())
+        .getResultList()
+        .stream()
+        .map(invoice -> mapper.toDomain(invoice,
+            userIsAuthenticated() ? getAuthenticatedUser()
+                : userRepository.getById(idUser)))
         .toList();
   }
 

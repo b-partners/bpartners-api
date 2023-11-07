@@ -2,6 +2,7 @@ package app.bpartners.api.service;
 
 import app.bpartners.api.endpoint.rest.model.ArchiveStatus;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
+import app.bpartners.api.endpoint.rest.model.OrderDirection;
 import app.bpartners.api.endpoint.rest.model.PaymentMethod;
 import app.bpartners.api.endpoint.rest.model.PaymentStatus;
 import app.bpartners.api.model.AccountHolder;
@@ -121,6 +122,35 @@ public class InvoiceService {
     }
     repositoryImpl.processAsPdf(invoice);
     return invoice;
+  }
+
+  @Transactional
+  public List<Invoice> getInvoicesByCriteria(
+      String idUser,
+      PageFromOne page,
+      BoundedPageSize pageSize,
+      List<InvoiceStatus> statusList,
+      ArchiveStatus archiveStatus,
+      String title, List<String> filters,
+      OrderDirection sendingDateOrder) {
+    int pageValue = page != null ? page.getValue() - 1 : 0;
+    int pageSizeValue = pageSize != null ? pageSize.getValue() : 30;
+    List<String> keywords = new ArrayList<>();
+    if (filters != null) {
+      keywords.addAll(filters);
+    }
+    if (title != null) {
+      keywords.add(title);
+      log.warn(
+          "DEPRECATED: query parameter title is still used for filtering invoices."
+              + " Use the query parameter filters instead.");
+    }
+    return repository.findAllByIdUserAndCriteria(
+        idUser,
+        statusList,
+        archiveStatus,
+        keywords,
+        pageValue, pageSizeValue, sendingDateOrder);
   }
 
   //TODO: refactor and use EntityManager inside Repository to match dynamically

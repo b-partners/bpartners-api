@@ -17,8 +17,10 @@ import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 
 @Component
 public class PaymentRequestMapper {
-  public HPaymentRequest toEntity(PaymentRequest domain) {
+  public HPaymentRequest toEntity(PaymentRequest domain, HPaymentRequest existing) {
     PaymentHistoryStatus paymentHistoryStatus = domain.getPaymentHistoryStatus();
+    Instant createdDatetime = existing == null ? Instant.now() :
+        existing.getCreatedDatetime();
     return HPaymentRequest.builder()
         .id(domain.getId())
         .idInvoice(domain.getInvoiceId())
@@ -32,12 +34,12 @@ public class PaymentRequestMapper {
         .reference(domain.getReference())
         .paymentDueDate(domain.getPaymentDueDate())
         .amount(domain.getAmount().toString())
-        .createdDatetime(Instant.now())
+        .createdDatetime(createdDatetime)
         .status(domain.getStatus())
         .paymentMethod(paymentHistoryStatus == null ? null
             : paymentHistoryStatus.getPaymentMethod())
         .paymentStatusUpdatedAt(
-            paymentHistoryStatus == null ? null
+            paymentHistoryStatus == null ? createdDatetime
                 : paymentHistoryStatus.getUpdatedAt())
         .userUpdated(paymentHistoryStatus == null ? null
             : paymentHistoryStatus.getUserUpdated())

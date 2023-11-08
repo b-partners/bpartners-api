@@ -10,15 +10,25 @@ import java.util.stream.Collectors;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class URLUtils {
+
+  public static final int HTTP_DEFAULT_PORT = 80;
+  public static final int HTTPS_DEFAULT_PORT = 443;
+
   private URLUtils() {
   }
 
   public static String extractURLPath(String urlString) {
     try {
       URL url = new URL(urlString);
-      return url.getPath();
+      String protocol = url.getProtocol();
+      String host = url.getHost();
+      String path = url.getPath();
+      int port = url.getPort();
+      String portValue = port == HTTP_DEFAULT_PORT || port == HTTPS_DEFAULT_PORT ? ""
+          : ":" + port;
+      return protocol + "://" + host + portValue + path;
     } catch (MalformedURLException e) {
-      throw new BadRequestException("Malforme URL : " + urlString);
+      throw new BadRequestException("Malformed URL : " + urlString);
     }
   }
 

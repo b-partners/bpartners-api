@@ -19,7 +19,11 @@ public class PaymentRepositoryImpl implements PaymentRequestRepository {
   @Override
   public List<PaymentRequest> saveAll(List<PaymentRequest> payments) {
     List<HPaymentRequest> paymentEntities = payments.stream()
-        .map(mapper::toEntity)
+        .map(domain -> {
+          HPaymentRequest existing = domain.getId() == null ? null
+              : jpaRepository.getById(domain.getId());
+          return mapper.toEntity(domain, existing);
+        })
         .collect(Collectors.toList());
     return jpaRepository.saveAll(paymentEntities).stream()
         .map(mapper::toDomain)

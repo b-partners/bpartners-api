@@ -66,7 +66,8 @@ public class PaymentRequest {
             : PaymentHistoryStatus.builder()
             .paymentMethod(entity.getPaymentMethod())
             .status(entity.getStatus())
-            .updatedAt(entity.getPaymentStatusUpdatedAt())
+            .updatedAt(entity.getPaymentStatusUpdatedAt() == null ? entity.getCreatedDatetime()
+                : entity.getPaymentStatusUpdatedAt())
             .userUpdated(entity.getUserUpdated())
             .build();
   }

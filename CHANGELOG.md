@@ -1,3 +1,18 @@
+## [0.36.1](https://github.com/b-partners/bpartners-api/compare/v0.36.0...v0.36.1) (2023-11-08)
+
+
+### Bug Fixes
+
+* add contact nature inside prospect view ([707349c](https://github.com/b-partners/bpartners-api/commit/707349c56fd02943639d486aaf23fdab6e31e1cc))
+* add payment datetime under invoice stamp ([da87dd2](https://github.com/b-partners/bpartners-api/commit/da87dd2d066d6dd31f30ee11dcc3c6cb99805097))
+* attach saved prospect to account holder owner ([543a5e5](https://github.com/b-partners/bpartners-api/commit/543a5e56b90e3b337318b47d1de3041a0265fae5))
+* handle -1 value for port not set when extracting url ([2730d62](https://github.com/b-partners/bpartners-api/commit/2730d62bd24e8aea03d3001b05c1f4563bf63f4f))
+* handle query parameters when initiating calendar consent ([2d563fc](https://github.com/b-partners/bpartners-api/commit/2d563fca7d0b02b928f856707dff26bb10feae2c))
+* set payment created datetime as default payment status updated datetime ([1594533](https://github.com/b-partners/bpartners-api/commit/159453301718e7269f9dc08a1cc143095f39aced))
+* set payment value as cents in notification ([f78eb2f](https://github.com/b-partners/bpartners-api/commit/f78eb2f02d25f65b41c1ac858a9acf2f6ef7d824))
+
+
+
 # [0.36.0](https://github.com/b-partners/bpartners-api/compare/v0.35.1...v0.36.0) (2023-11-03)
 
 
@@ -155,34 +170,6 @@
 
 * read evaluation job details by id ([7e45dc9](https://github.com/b-partners/bpartners-api/commit/7e45dc9251e76cb49af28c1c665854eeb21142ac))
 * run prospect evaluation job to convert calendar events ([fa12eaa](https://github.com/b-partners/bpartners-api/commit/fa12eaa2c3b1b5646f9a9c3b177a29d5be99eaf2))
-
-
-
-# [0.31.0](https://github.com/b-partners/bpartners-api/compare/v0.29.1...v0.31.0) (2023-09-20)
-
-
-### Bug Fixes
-
-* add accept-header in prospecting-api evaluations spec ([693ef43](https://github.com/b-partners/bpartners-api/commit/693ef439d0573d37e5d79303fd5f0aedf3508ad4))
-* add default value to date filters for calendar list ([0bcfbdd](https://github.com/b-partners/bpartners-api/commit/0bcfbdd3bff4fc515a48268062e505ab69466088))
-* avoid NPE when getting calendar events without date-times ([05d6632](https://github.com/b-partners/bpartners-api/commit/05d66324c2acf4ab74e8d59be11c7dafacb339c2))
-* avoid NPE when getting holidays events in calendar ([292d27a](https://github.com/b-partners/bpartners-api/commit/292d27a8ddd6b20ada0fa53596c6b1a28765e892))
-* calendarEventIT getCalendars arguments ([63d7d5a](https://github.com/b-partners/bpartners-api/commit/63d7d5a0b7b99c7683b58f971bb8651438c1e544))
-* get calendar events dispatched by calendar ([ad21d4e](https://github.com/b-partners/bpartners-api/commit/ad21d4e36bed434daa32cf6626b044a1a15368f0))
-* persist calendar event when listing from google ([08a7f74](https://github.com/b-partners/bpartners-api/commit/08a7f74c2f686035150df7a0cc4cb6ccc80c2c6d))
-* rename default products exported file correctly ([d6041c4](https://github.com/b-partners/bpartners-api/commit/d6041c4b5409ffb4fb150c7e63505da2b313155d))
-* return google sheet access token validity details when exchanging code ([5afb349](https://github.com/b-partners/bpartners-api/commit/5afb349d76f6c3e8c2fdecbed093a98ca26a2636))
-* return google sheet access token validity details when exchanging code ([4c3a55f](https://github.com/b-partners/bpartners-api/commit/4c3a55f36d2fe0b0dadcfc01f4c646f2bc461b9d))
-
-
-### Features
-
-* add sync status attribute to calendar event ([d742729](https://github.com/b-partners/bpartners-api/commit/d7427294b6a4eb346d80b15a5e86d34c9280b6c8))
-* export all customers for a specific account ([9155298](https://github.com/b-partners/bpartners-api/commit/915529815675c07d98931d77412cdef72063729f))
-* export all products for a specific account ([c211d66](https://github.com/b-partners/bpartners-api/commit/c211d668e6ee09f93e0f83f1cf12d43f090b6303))
-* filter transactions by status ([cdd7711](https://github.com/b-partners/bpartners-api/commit/cdd7711a33d1181e900fc642dc1bf4f6451accea))
-* get all account holders for authorized users ([f0ce059](https://github.com/b-partners/bpartners-api/commit/f0ce059d4a3905987bcec05429533f76d93aebb2))
-* read prospect evaluation jobs for an account holder ([e218256](https://github.com/b-partners/bpartners-api/commit/e218256d326f9bc817adc834b333540178d6b471))
 
 
 

@@ -138,7 +138,7 @@ public class ProspectEvaluationJobInitiatedService
           String emailSubject = "Les prospects évalués retenus pour " + holderOwner.getName()
               + " contenu dans la feuille " + sheetProperties.getSheetName();
           String emailBody = spreadsheetEvaluationEmailBody(holderOwner, evaluatedProspects);
-          terminateJob(runningJob, runningHolder, evaluatedProspects, emailSubject, emailBody);
+          terminateJob(runningJob, holderOwner, evaluatedProspects, emailSubject, emailBody);
         } catch (Exception e) {
           updateJobStatus(runningJob, FAILED, e.getMessage());
         }

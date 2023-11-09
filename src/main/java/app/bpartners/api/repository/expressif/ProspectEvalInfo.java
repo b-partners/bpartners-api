@@ -12,7 +12,7 @@ import lombok.ToString;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder(builderClassName = "Builder")
+@Builder(builderClassName = "Builder", toBuilder = true)
 @EqualsAndHashCode
 @ToString
 public class ProspectEvalInfo {

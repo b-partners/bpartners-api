@@ -213,6 +213,66 @@ public class ProspectMapper {
         .collect(Collectors.toList());
   }
 
+  public List<ProspectEval> toProspectEval(String ownerId, Sheet sheet) {
+    var gridData = sheet.getData();
+    List<ProspectEval> prospectList = new ArrayList<>();
+    gridData.forEach(grid -> {
+      int firstIndex = grid.getStartColumn() == null ? 0 : grid.getStartColumn();
+      var rows = grid.getRowData();
+      rows.forEach(rowData -> {
+        if (!hasNullCellData(rowData)) {
+          var cells = rowData.getValues();
+          ProspectEval.Builder<Object> builder = ProspectEval.builder();
+          ProspectEvalInfo info = toProspectEvalInfo(firstIndex, rowData).toBuilder()
+              .owner(ownerId)
+              .build();
+          builder.id(String.valueOf(randomUUID()));
+          builder.prospectEvalInfo(info);
+          builder.prospectOwnerId(ownerId);
+          setBuilderJobValue(builder, cells.get(15));
+          builder.insectControl(rowBooleanValue(cells.get(16)));
+          builder.disinfection(rowBooleanValue(cells.get(17)));
+          builder.ratRemoval(rowBooleanValue(cells.get(18)));
+          builder.particularCustomer(rowBooleanValue(cells.get(19)));
+          builder.professionalCustomer(rowBooleanValue(cells.get(20)));
+
+          String depaRuleValue = cells.get(14).getFormattedValue();
+          if (depaRuleValue.equals(DEPA_RULE_NEW_INTERVENTION)) {
+            String newIntAddress = cells.get(24).getFormattedValue();
+            GeoPosition newIntPos = banApi.fSearch(newIntAddress);
+            String oldCustomerAddress = cells.get(27).getFormattedValue();
+            builder.depaRule(NewIntervention.builder()
+                .planned(rowBooleanValue(cells.get(21)))
+                .interventionType(getInterventionType(cells.get(22)))
+                .infestationType(getInfestationType(cells.get(23)))
+                .newIntAddress(newIntAddress)
+                .distNewIntAndProspect(
+                    newIntPos == null || info.getCoordinates() == null ? null
+                        : info.getCoordinates()
+                        .getDistanceFrom(newIntPos.getCoordinates()))
+                .coordinate(newIntPos == null ? null : newIntPos.getCoordinates())
+                .oldCustomer(NewIntervention.OldCustomer.builder()
+                    .idCustomer(null) //Here to make it more explicit, we show actual customer value
+                    .type(getCustomerType(cells.get(25)))
+                    .professionalType(getProfessionalType(cells.get(26)))
+                    //TODO: Must be provided from database customer
+                    .oldCustomerAddress(oldCustomerAddress)
+                    //Explicitly, this distance is provided from provided address
+                    .distNewIntAndOldCustomer(oldCustomerAddress == null ? null
+                        : getDistNewIntAndOldCustomer(banApi, newIntPos, oldCustomerAddress))
+                    .build())
+                .build());
+          } else {
+            throw new NotImplementedException(
+                "Only " + DEPA_RULE_NEW_INTERVENTION + " is supported for now");
+          }
+          prospectList.add(builder.build());
+        }
+      });
+    });
+    return prospectList;
+  }
+
   public List<ProspectEval> toProspectEval(Sheet sheet) {
     var gridData = sheet.getData();
     List<ProspectEval> prospectList = new ArrayList<>();

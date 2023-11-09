@@ -114,7 +114,12 @@ public class ProspectEvaluationJobInitiatedService
                     evaluatedProspects,
                     interventionDate,
                     interventionLocation);
-            terminateJob(runningJob, runningHolder, evaluatedProspects, emailSubject, emailBody);
+            terminateJob(runningJob,
+                runningHolder,
+                runningHolder,
+                evaluatedProspects,
+                emailSubject,
+                emailBody);
           }
         } catch (Exception e) {
           updateJobStatus(runningJob, FAILED, e.getMessage());
@@ -138,7 +143,12 @@ public class ProspectEvaluationJobInitiatedService
           String emailSubject = "Les prospects évalués retenus pour " + holderOwner.getName()
               + " contenu dans la feuille " + sheetProperties.getSheetName();
           String emailBody = spreadsheetEvaluationEmailBody(holderOwner, evaluatedProspects);
-          terminateJob(runningJob, holderOwner, evaluatedProspects, emailSubject, emailBody);
+          terminateJob(runningJob,
+              holderOwner,
+              runningHolder,
+              evaluatedProspects,
+              emailSubject,
+              emailBody);
         } catch (Exception e) {
           updateJobStatus(runningJob, FAILED, e.getMessage());
         }
@@ -153,7 +163,8 @@ public class ProspectEvaluationJobInitiatedService
   }
 
   private void terminateJob(ProspectEvaluationJob runningJob,
-                            AccountHolder accountHolder,
+                            AccountHolder ownerHolder,
+                            AccountHolder runningHolder,
                             List<ProspectResult> evaluatedProspects,
                             String emailSubject,
                             String emailBody) {
@@ -163,13 +174,13 @@ public class ProspectEvaluationJobInitiatedService
         .minusMinutes(durationMinutes)
         .toSeconds();
     List<Prospect> results = convertProspectFromResults(
-        runningJob, accountHolder, evaluatedProspects);
+        runningJob, ownerHolder, evaluatedProspects);
     var finishedJob = updateJobStatus(runningJob.toBuilder()
             .results(results)
             .build(), FINISHED,
         getJobMessage(evaluatedProspects, durationMinutes, durationSeconds));
     if (finishedJob.getJobStatus().getValue() == FINISHED) {
-      sendJobResultThroughEmail(accountHolder, finishedJob, emailSubject, emailBody);
+      sendJobResultThroughEmail(runningHolder, finishedJob, emailSubject, emailBody);
     }
   }
 
@@ -228,12 +239,12 @@ public class ProspectEvaluationJobInitiatedService
         SHEET_EVALUATION_RESULT_EMAIL_TEMPLATE, context);
   }
 
-  private void sendJobResultThroughEmail(AccountHolder accountHolder,
+  private void sendJobResultThroughEmail(AccountHolder runningHolder,
                                          ProspectEvaluationJob finishedJob,
                                          String emailSubject, String htmlBody) {
     try {
       sesService.sendEmail(
-          accountHolder.getEmail(),
+          runningHolder.getEmail(),
           null,
           //eventConf.getAdminEmail(), //TODO: confirm to put BPartners as CC
           emailSubject,

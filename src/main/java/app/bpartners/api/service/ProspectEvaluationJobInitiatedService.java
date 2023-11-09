@@ -366,7 +366,7 @@ public class ProspectEvaluationJobInitiatedService
                                              SheetEvaluationJobRunner sheetProspectEvaluation) {
     var sheetProperties = sheetProspectEvaluation.getSheetProperties();
     var sheetRange = sheetProperties.getRanges();
-    List<ProspectEval> prospectEvals = prospectService.readEvaluationsFromSheets(
+    List<ProspectEval> prospectEvals = prospectService.readEvaluationsFromSheetsWithoutFilter(
         idUser,
         sheetProspectEvaluation.getArtisanOwner(),
         sheetProperties.getSpreadsheetName(),

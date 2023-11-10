@@ -146,10 +146,12 @@ public class ProspectRestMapper {
         .metadata(domain.getMetadata());
   }
 
-  public app.bpartners.api.model.prospect.Prospect toDomain(UpdateProspect rest) {
+  public app.bpartners.api.model.prospect.Prospect toDomain(String ownerId,
+                                                            UpdateProspect rest) {
     validator.accept(rest);
     return app.bpartners.api.model.prospect.Prospect.builder()
         .id(rest.getId())
+        .idHolderOwner(ownerId)
         .email(rest.getEmail())
         .name(rest.getName())
         .managerName(rest.getManagerName())

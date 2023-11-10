@@ -410,11 +410,10 @@ public class ProspectRepositoryImpl implements ProspectRepository {
 
   @Override
   public Prospect save(Prospect prospect) {
-    AccountHolder authenticatedAccount = resourceProvider.getDefaultAccountHolder();
     Optional<HProspect> optionalProspect = jpaRepository.findById(prospect.getId());
     HProspect existing = optionalProspect.orElse(null);
     HProspect entity = mapper.toEntity(prospect, existing);
-    boolean isSogefiProspector = isSogefiProspector(authenticatedAccount.getId());
+    boolean isSogefiProspector = isSogefiProspector(prospect.getIdHolderOwner());
     return toDomain(isSogefiProspector, jpaRepository.save(entity));
   }
 

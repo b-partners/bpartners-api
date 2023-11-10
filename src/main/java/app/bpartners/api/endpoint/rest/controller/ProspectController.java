@@ -223,7 +223,7 @@ public class ProspectController {
   public Prospect updateProspectsStatus(@PathVariable("ahId") String accountHolderId,
                                         @PathVariable("id") String prospectId,
                                         @RequestBody ExtendedProspectStatus toUpdate) {
-    app.bpartners.api.model.prospect.Prospect prospect = mapper.toDomain(toUpdate);
+    app.bpartners.api.model.prospect.Prospect prospect = mapper.toDomain(accountHolderId, toUpdate);
     return mapper.toRest(service.update(prospect));
   }
 

@@ -163,10 +163,12 @@ public class ProspectRestMapper {
         .build();
   }
 
-  public app.bpartners.api.model.prospect.Prospect toDomain(ExtendedProspectStatus rest) {
+  public app.bpartners.api.model.prospect.Prospect toDomain(String ownerId,
+                                                            ExtendedProspectStatus rest) {
     prospectUpdateValidator.accept(rest);
     return app.bpartners.api.model.prospect.Prospect.builder()
         .id(rest.getId())
+        .idHolderOwner(ownerId)
         .email(rest.getEmail())
         .name(rest.getName())
         .managerName(rest.getManagerName())

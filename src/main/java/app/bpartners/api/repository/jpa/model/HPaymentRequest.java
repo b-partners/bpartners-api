@@ -80,6 +80,8 @@ public class HPaymentRequest implements Serializable {
         : historyStatus.getUserUpdated();
     this.paymentMethod = historyStatus == null ? null
         : historyStatus.getPaymentMethod();
+    this.paymentStatusUpdatedAt = historyStatus == null ? null :
+        domain.getCreatedDatetime();
     this.createdDatetime = domain.getCreatedDatetime();
   }
 }

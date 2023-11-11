@@ -1,8 +1,8 @@
 package app.bpartners.api.model.mapper;
 
+import app.bpartners.api.endpoint.rest.model.ContactNature;
 import app.bpartners.api.endpoint.rest.model.Geojson;
 import app.bpartners.api.endpoint.rest.model.ProspectFeedback;
-import app.bpartners.api.endpoint.rest.security.AuthenticatedResourceProvider;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.model.prospect.Prospect;
@@ -51,7 +51,6 @@ public class ProspectMapper {
   public static final String PROSPECT_CONTACT_NATURE = "prospect";
   public static final String OLD_CUSTOMER_CONTACT_NATURE = "ancien client";
   public static final int OWNER_ID_CELL_INDEX = 31;
-  private final AuthenticatedResourceProvider provider;
   private final BanApi banApi;
 
   private static String checkIfOldOrNew(String toCheck,
@@ -72,7 +71,7 @@ public class ProspectMapper {
     Double rating = existing == null ? -1 : existing.getRating();
     Instant lastEvaluationDate = existing == null ? null : existing.getLastEvaluationDate();
     return toEntity(domain,
-        provider.getDefaultAccountHolder().getId(),
+        domain.getIdHolderOwner(),
         rating,
         lastEvaluationDate,
         existing);
@@ -87,6 +86,7 @@ public class ProspectMapper {
     Geojson location = domain.getLocation();
     HProspect entity = actualEntity == null ? HProspect.builder()
         .id(String.valueOf(randomUUID()))
+        .idAccountHolder(prospectOwnerId)
         .statusHistories(defaultStatusHistoryEntity())
         .build() : actualEntity;
     List<HProspectStatusHistory> actualHistory = entity.getStatusHistories();
@@ -117,10 +117,22 @@ public class ProspectMapper {
           .id(domain.getId())
           .idJob(domain.getIdJob())
           .managerName(domain.getManagerName())
-          .newPhone(checkIfOldOrNew(domain.getPhone(), actualEntity.getOldPhone()))
-          .newName(checkIfOldOrNew(domain.getName(), actualEntity.getOldName()))
-          .newAddress(checkIfOldOrNew(domain.getAddress(), actualEntity.getOldAddress()))
-          .newEmail(checkIfOldOrNew(domain.getEmail(), actualEntity.getOldEmail()))
+          .oldPhone(actualEntity == null ? domain.getPhone()
+              : actualEntity.getOldPhone())
+          .oldName(actualEntity == null ? domain.getName()
+              : actualEntity.getOldName())
+          .oldAddress(actualEntity == null ? domain.getAddress()
+              : actualEntity.getOldAddress())
+          .oldEmail(actualEntity == null ? domain.getEmail()
+              : actualEntity.getOldEmail())
+          .newPhone(actualEntity == null ? null
+              : checkIfOldOrNew(domain.getPhone(), entity.getOldPhone()))
+          .newName(actualEntity == null ? null
+              : checkIfOldOrNew(domain.getName(), entity.getOldName()))
+          .newAddress(actualEntity == null ? null
+              : checkIfOldOrNew(domain.getAddress(), entity.getOldAddress()))
+          .newEmail(actualEntity == null ? null
+              : checkIfOldOrNew(domain.getEmail(), entity.getOldEmail()))
           .statusHistories(updatedStatusHistory(actualHistory, newStatusHistory))
           .idAccountHolder(prospectOwnerId)
           .townCode(domain.getTownCode())
@@ -132,7 +144,10 @@ public class ProspectMapper {
           .defaultComment(domain.getDefaultComment())
           .idInvoice(domain.getIdInvoice())
           .prospectFeedback(domain.getProspectFeedback())
-          .contactNature(domain.getContactNature())
+          .contactNature(actualEntity == null
+              ? (domain.getContactNature() == null ? ContactNature.PROSPECT :
+              domain.getContactNature())
+              : actualEntity.getContactNature())
           .contractAmount(
               domain.getContractAmount() == null ? null : domain.getContractAmount().toString())
           .build();

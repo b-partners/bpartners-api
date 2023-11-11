@@ -139,7 +139,7 @@ public class ProspectController {
   public List<Prospect> crupdateProspects(@PathVariable("ahId") String accountHolderId,
                                           @RequestBody List<UpdateProspect> prospects) {
     List<app.bpartners.api.model.prospect.Prospect> prospectList = prospects.stream()
-        .map(mapper::toDomain)
+        .map(prospect -> mapper.toDomain(accountHolderId, prospect))
         .toList();
     return service.saveAll(prospectList).stream()
         .map(mapper::toRest)
@@ -223,7 +223,7 @@ public class ProspectController {
   public Prospect updateProspectsStatus(@PathVariable("ahId") String accountHolderId,
                                         @PathVariable("id") String prospectId,
                                         @RequestBody ExtendedProspectStatus toUpdate) {
-    app.bpartners.api.model.prospect.Prospect prospect = mapper.toDomain(toUpdate);
+    app.bpartners.api.model.prospect.Prospect prospect = mapper.toDomain(accountHolderId, toUpdate);
     return mapper.toRest(service.update(prospect));
   }
 

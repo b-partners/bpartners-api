@@ -1,5 +1,6 @@
 package app.bpartners.api.service;
 
+import app.bpartners.api.endpoint.event.EventConf;
 import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.endpoint.event.model.TypedInvoiceRelaunchSaved;
 import app.bpartners.api.endpoint.event.model.gen.InvoiceRelaunchSaved;
@@ -22,14 +23,18 @@ import app.bpartners.api.repository.InvoiceRelaunchRepository;
 import app.bpartners.api.repository.InvoiceRepository;
 import app.bpartners.api.repository.UserInvoiceRelaunchConfRepository;
 import app.bpartners.api.repository.jpa.InvoiceJpaRepository;
+import app.bpartners.api.service.aws.SesService;
+import app.bpartners.api.service.utils.InvoicePdfUtils;
 import app.bpartners.api.service.utils.TemplateResolverUtils;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.thymeleaf.context.Context;
 
 import static app.bpartners.api.endpoint.rest.model.ArchiveStatus.DISABLED;
@@ -57,6 +62,9 @@ public class InvoiceRelaunchService {
   private final PrincipalProvider auth;
   private final FileService fileService;
   private final AttachmentService attachmentService;
+  private final EventConf eventConf;
+  private final InvoicePdfUtils pdfUtils = new InvoicePdfUtils();
+  private final SesService sesService;
 
   private static String getDefaultSubject(Invoice invoice) {
     return "Votre " + getStatusValue(invoice.getStatus())
@@ -89,6 +97,7 @@ public class InvoiceRelaunchService {
     return repository.save(idUser, relaunchConf);
   }
 
+  @Transactional
   public InvoiceRelaunch relaunchInvoiceManually(String invoiceId,
                                                  List<String> emailObjectList,
                                                  List<String> emailBodyList,
@@ -124,6 +133,30 @@ public class InvoiceRelaunchService {
         attachmentService.saveAll(attachments, invoiceRelaunch.getId());
     invoiceRelaunch.setAttachments(attachmentList);
 
+    String subject = emailObject == null
+        ? getDefaultSubject(invoice) : emailObject;
+    String recipient = invoice.getCustomer().getEmail();
+    String concerned = invoice.getUser().getDefaultHolder().getEmail();
+    String invisibleConcerned = eventConf.getAdminEmail();
+    String attachmentName = invoice.getRef() + PDF_EXTENSION;
+    String htmlBody = emailBody(emailBody, invoice, accountHolder, fromScratch);
+    InvoiceRelaunchSavedService.relaunchInvoiceAction(
+        recipient,
+        concerned,
+        invisibleConcerned,
+        subject,
+        htmlBody,
+        attachmentName,
+        new ArrayList<>(attachmentList),
+        invoice,
+        accountHolder,
+        userLogoFileId(),
+        fileService,
+        pdfUtils,
+        sesService
+    );
+    /*
+    /!\ Relaunch invoice synchronously for now
     eventProducer.accept(List.of(
         getTypedInvoiceRelaunched(
             invoiceRelaunch.getInvoice(),
@@ -131,7 +164,7 @@ public class InvoiceRelaunchService {
             emailObject,
             emailBody,
             attachments,
-            fromScratch)));
+            fromScratch)));*/
 
     return invoiceRelaunch;
   }

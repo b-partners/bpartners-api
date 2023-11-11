@@ -31,7 +31,7 @@ import static app.bpartners.api.service.InvoiceCrupdatedService.INVOICE_TEMPLATE
 @AllArgsConstructor
 @Slf4j
 public class InvoiceRelaunchSavedService implements Consumer<InvoiceRelaunchSaved> {
-  private final SesService service;
+  private final SesService sesService;
   private final FileService fileService;
   private final InvoicePdfUtils pdfUtils = new InvoicePdfUtils();
   private final EventConf eventConf;
@@ -47,6 +47,36 @@ public class InvoiceRelaunchSavedService implements Consumer<InvoiceRelaunchSave
     Invoice invoice = invoiceRelaunchSaved.getInvoice();
     AccountHolder accountHolder = invoiceRelaunchSaved.getAccountHolder();
     String logoFileId = invoiceRelaunchSaved.getLogoFileId();
+    List<Attachment> attachments = new ArrayList<>(invoiceRelaunchSaved.getAttachments());
+
+    relaunchInvoiceAction(recipient,
+        concerned,
+        eventConf.getAdminEmail(),
+        subject,
+        htmlBody,
+        attachmentName,
+        attachments,
+        invoice,
+        accountHolder,
+        logoFileId,
+        fileService,
+        pdfUtils,
+        sesService);
+  }
+
+  public static void relaunchInvoiceAction(String recipient,
+                                           String concerned,
+                                           String invisibleRecipient,
+                                           String subject,
+                                           String htmlBody,
+                                           String attachmentName,
+                                           List<Attachment> attachments,
+                                           Invoice invoice,
+                                           AccountHolder accountHolder,
+                                           String logoFileId,
+                                           FileService fileService,
+                                           InvoicePdfUtils pdfUtils,
+                                           SesService service) {
     List<byte[]> logoFiles = fileService.downloadOptionalFile(
         LOGO, invoice.getUser().getId(), logoFileId);
     byte[] logoAsBytes = logoFiles.isEmpty()
@@ -63,24 +93,24 @@ public class InvoiceRelaunchSavedService implements Consumer<InvoiceRelaunchSave
         .name(attachmentName)
         .content(attachmentAsBytes)
         .build();
-    List<Attachment> attachments = new ArrayList<>(invoiceRelaunchSaved.getAttachments());
     attachments.forEach(contentlessAttachment -> {
-      byte[] content = fileService.downloadFile(
-          ATTACHMENT,
-          invoice.getUser().getId(),
-          contentlessAttachment.getFileId()
-      );
-      contentlessAttachment.setContent(content);
+      if (contentlessAttachment.getContent() == null) {
+        byte[] content = fileService.downloadFile(
+            ATTACHMENT,
+            invoice.getUser().getId(),
+            contentlessAttachment.getFileId()
+        );
+        contentlessAttachment.setContent(content);
+      }
     });
     attachments.add(attachment);
-    invoiceRelaunchSaved.setAttachments(attachments);
     try {
       service.sendEmail(recipient,
           concerned,
           subject,
           htmlBody,
           attachments,
-          eventConf.getAdminEmail());
+          invisibleRecipient);
       log.info("Email sent from "
           + invoice.getActualAccount().describeMinInfos() + " to " + recipient);
     } catch (MessagingException | IOException e) {

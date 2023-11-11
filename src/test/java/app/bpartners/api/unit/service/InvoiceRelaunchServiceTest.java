@@ -1,5 +1,6 @@
 package app.bpartners.api.unit.service;
 
+import app.bpartners.api.endpoint.event.EventConf;
 import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.endpoint.rest.security.principal.PrincipalProvider;
@@ -11,9 +12,9 @@ import app.bpartners.api.model.InvoiceRelaunch;
 import app.bpartners.api.model.InvoiceRelaunchConf;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.validator.InvoiceRelaunchValidator;
-import app.bpartners.api.repository.UserInvoiceRelaunchConfRepository;
 import app.bpartners.api.repository.InvoiceRelaunchRepository;
 import app.bpartners.api.repository.InvoiceRepository;
+import app.bpartners.api.repository.UserInvoiceRelaunchConfRepository;
 import app.bpartners.api.repository.jpa.InvoiceJpaRepository;
 import app.bpartners.api.repository.jpa.model.HInvoice;
 import app.bpartners.api.service.AccountHolderService;
@@ -21,6 +22,7 @@ import app.bpartners.api.service.AttachmentService;
 import app.bpartners.api.service.FileService;
 import app.bpartners.api.service.InvoiceRelaunchConfService;
 import app.bpartners.api.service.InvoiceRelaunchService;
+import app.bpartners.api.service.aws.SesService;
 import java.time.LocalDate;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -55,7 +57,10 @@ class InvoiceRelaunchServiceTest {
   private PrincipalProvider auth;
   private FileService fileService;
   private AttachmentService attachmentService;
+  private EventConf eventConfMock;
+  private SesService sesServiceMock;
 
+  private
   @BeforeEach
   void setUp() {
     accountInvoiceRelaunchRepository = mock(UserInvoiceRelaunchConfRepository.class);
@@ -68,6 +73,8 @@ class InvoiceRelaunchServiceTest {
     auth = mock(PrincipalProvider.class);
     fileService = mock(FileService.class);
     attachmentService = mock(AttachmentService.class);
+    eventConfMock = mock(EventConf.class);
+    sesServiceMock = mock(SesService.class);
     setUpProvider(auth);
     invoiceRelaunchService = new InvoiceRelaunchService(
         accountInvoiceRelaunchRepository,
@@ -80,7 +87,9 @@ class InvoiceRelaunchServiceTest {
         eventProducer,
         auth,
         fileService,
-        attachmentService
+        attachmentService,
+        eventConfMock,
+        sesServiceMock
     );
     when(invoiceJpaRepository.findAllByToBeRelaunched(true))
         .thenReturn(

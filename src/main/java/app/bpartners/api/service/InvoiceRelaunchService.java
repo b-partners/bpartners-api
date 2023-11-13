@@ -112,7 +112,7 @@ public class InvoiceRelaunchService {
           .toList()
           .get(0);
 
-      String newEmailObject = fixEmailObject(invoiceRelaunch);
+      String newEmailObject = "Annule et remplace " + fixEmailObject(invoiceRelaunch);
 
       relaunchInvoiceManually(invoiceId,
           List.of(newEmailObject),
@@ -127,8 +127,7 @@ public class InvoiceRelaunchService {
     String uniquePrefix = removeDuplicateBrackets(emailObject);
     int lastPrefixIndex = emailObject.lastIndexOf(uniquePrefix);
     String objectWithoutPrefix = emailObject.substring(lastPrefixIndex + uniquePrefix.length());
-    String newEmailObject = uniquePrefix + objectWithoutPrefix;
-    return newEmailObject;
+    return uniquePrefix + objectWithoutPrefix;
   }
 
   @Transactional

@@ -19,6 +19,7 @@ import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 
 import static app.bpartners.api.endpoint.rest.security.model.Role.EVAL_PROSPECT;
+import static app.bpartners.api.endpoint.rest.security.model.Role.INVOICE_RELAUNCHER;
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpMethod.OPTIONS;
 import static org.springframework.http.HttpMethod.POST;
@@ -232,6 +233,9 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
         .requestMatchers(
             new SelfAccountMatcher(POST, "/accounts/*/invoices/*/relaunch", authResourceProvider)
         ).authenticated()
+        .requestMatchers(
+            new SelfAccountMatcher(POST, "/accounts/*/invoices/relaunches", authResourceProvider)
+        ).hasAnyRole(INVOICE_RELAUNCHER.getRole())
         .requestMatchers(
             new SelfAccountMatcher(
                 GET,

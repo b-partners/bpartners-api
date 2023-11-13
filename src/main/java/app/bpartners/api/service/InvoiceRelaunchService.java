@@ -28,7 +28,12 @@ import app.bpartners.api.service.utils.InvoicePdfUtils;
 import app.bpartners.api.service.utils.TemplateResolverUtils;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -98,6 +103,35 @@ public class InvoiceRelaunchService {
   }
 
   @Transactional
+  public void restartLastRelaunch(List<String> invoiceIds) {
+    invoiceIds.forEach(invoiceId -> {
+      List<InvoiceRelaunch> invoiceRelaunches =
+          invoiceRelaunchRepository.getByInvoiceId(invoiceId, null, Pageable.ofSize(MAX_SIZE));
+      InvoiceRelaunch invoiceRelaunch = invoiceRelaunches.stream()
+          .sorted(Comparator.comparing(InvoiceRelaunch::getCreationDatetime).reversed())
+          .toList()
+          .get(0);
+
+      String newEmailObject = fixEmailObject(invoiceRelaunch);
+
+      relaunchInvoiceManually(invoiceId,
+          List.of(newEmailObject),
+          List.of(invoiceRelaunch.getEmailBody()),
+          invoiceRelaunch.getAttachments(),
+          true);
+    });
+  }
+
+  private String fixEmailObject(InvoiceRelaunch invoiceRelaunch) {
+    String emailObject = invoiceRelaunch.getEmailObject();
+    String uniquePrefix = removeDuplicateBrackets(emailObject);
+    int lastPrefixIndex = emailObject.lastIndexOf(uniquePrefix);
+    String objectWithoutPrefix = emailObject.substring(lastPrefixIndex + uniquePrefix.length());
+    String newEmailObject = uniquePrefix + objectWithoutPrefix;
+    return newEmailObject;
+  }
+
+  @Transactional
   public InvoiceRelaunch relaunchInvoiceManually(String invoiceId,
                                                  List<String> emailObjectList,
                                                  List<String> emailBodyList,
@@ -150,7 +184,7 @@ public class InvoiceRelaunchService {
         new ArrayList<>(attachmentList),
         invoice,
         accountHolder,
-        userLogoFileId(),
+        invoice.getUser().getLogoFileId(),
         fileService,
         pdfUtils,
         sesService
@@ -224,7 +258,13 @@ public class InvoiceRelaunchService {
     int pageValue = page != null ? page.getValue() - 1 : 0;
     int pageSizeValue = pageSize != null ? pageSize.getValue() : 30;
     Pageable pageable = PageRequest.of(pageValue, pageSizeValue);
-    return invoiceRelaunchRepository.getByInvoiceId(invoiceId, type, pageable);
+    List<InvoiceRelaunch> invoiceRelaunches =
+        invoiceRelaunchRepository.getByInvoiceId(invoiceId, type, pageable);
+    invoiceRelaunches.forEach(invoiceRelaunch -> {
+      String newEmailObject = fixEmailObject(invoiceRelaunch);
+      invoiceRelaunch.setEmailObject(newEmailObject);
+    });
+    return invoiceRelaunches;
   }
 
   private String emailBody(String customEmailBody,
@@ -234,7 +274,7 @@ public class InvoiceRelaunchService {
     Context context = new Context();
 
     context.setVariable("invoice", invoice);
-    context.setVariable("user", authenticatedUser());
+    context.setVariable("user", invoice.getUser());
     context.setVariable("type", getStatusValue(invoice.getStatus()));
     context.setVariable("customEmailBody", customEmailBody);
     context.setVariable("accountHolder", accountHolder);
@@ -292,5 +332,28 @@ public class InvoiceRelaunchService {
 
   private User authenticatedUser() {
     return ((Principal) auth.getAuthentication().getPrincipal()).getUser();
+  }
+
+  private String removeDuplicateBrackets(String input) {
+    String regex = "\\[(.+?)]";
+    Matcher matcher = Pattern.compile(regex).matcher(input);
+    Set<String> uniqueMatches = new LinkedHashSet<>();
+
+    while (matcher.find()) {
+      uniqueMatches.add(matcher.group(1));
+    }
+
+    StringBuilder result = new StringBuilder();
+    boolean first = true;
+
+    for (String match : uniqueMatches) {
+      if (!first) {
+        result.append(' ');
+      }
+      result.append('[').append(match).append(']');
+      first = false;
+    }
+
+    return result.toString().trim();
   }
 }

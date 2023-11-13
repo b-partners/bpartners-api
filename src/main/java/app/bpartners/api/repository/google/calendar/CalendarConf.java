@@ -59,6 +59,13 @@ public class CalendarConf {
         .authorize(idUser);
   }
 
+  public String getOauthRedirectUri(String redirectUri, String state) {
+    return flow.newAuthorizationUrl()
+        .setRedirectUri(redirectUri)
+        .setState(state)
+        .build();
+  }
+
   public String getOauthRedirectUri(String redirectUri) {
     return flow.newAuthorizationUrl()
         .setRedirectUri(redirectUri)

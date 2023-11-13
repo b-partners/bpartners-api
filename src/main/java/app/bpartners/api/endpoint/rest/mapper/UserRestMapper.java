@@ -10,6 +10,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import static app.bpartners.api.endpoint.rest.security.model.Role.EVAL_PROSPECT;
+import static app.bpartners.api.endpoint.rest.security.model.Role.INVOICE_RELAUNCHER;
 
 @Component
 @AllArgsConstructor
@@ -35,6 +36,8 @@ public class UserRestMapper {
   private UserRole toRest(Role role) {
     if (role.getRole().equals(EVAL_PROSPECT.name())) {
       return UserRole.EVAL_PROSPECT;
+    } else if (role.getRole().equals(INVOICE_RELAUNCHER.name())) {
+      return UserRole.INVOICE_RELAUNCHER;
     }
     return null;
   }

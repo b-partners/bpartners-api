@@ -112,7 +112,7 @@ public class InvoiceRelaunchService {
           .toList()
           .get(0);
 
-      String newEmailObject = "Annule et remplace " + fixEmailObject(invoiceRelaunch);
+      String newEmailObject = fixEmailObject(invoiceRelaunch);
 
       relaunchInvoiceManually(invoiceId,
           List.of(newEmailObject),

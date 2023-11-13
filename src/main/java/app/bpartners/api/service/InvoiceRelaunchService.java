@@ -112,11 +112,7 @@ public class InvoiceRelaunchService {
           .toList()
           .get(0);
 
-      String emailObject = invoiceRelaunch.getEmailObject();
-      String uniquePrefix = removeDuplicateBrackets(emailObject);
-      int lastPrefixIndex = emailObject.lastIndexOf(uniquePrefix);
-      String objectWithoutPrefix = emailObject.substring(lastPrefixIndex + uniquePrefix.length());
-      String newEmailObject = uniquePrefix + objectWithoutPrefix;
+      String newEmailObject = fixEmailObject(invoiceRelaunch);
 
       relaunchInvoiceManually(invoiceId,
           List.of(newEmailObject),
@@ -124,6 +120,15 @@ public class InvoiceRelaunchService {
           invoiceRelaunch.getAttachments(),
           true);
     });
+  }
+
+  private String fixEmailObject(InvoiceRelaunch invoiceRelaunch) {
+    String emailObject = invoiceRelaunch.getEmailObject();
+    String uniquePrefix = removeDuplicateBrackets(emailObject);
+    int lastPrefixIndex = emailObject.lastIndexOf(uniquePrefix);
+    String objectWithoutPrefix = emailObject.substring(lastPrefixIndex + uniquePrefix.length());
+    String newEmailObject = uniquePrefix + objectWithoutPrefix;
+    return newEmailObject;
   }
 
   @Transactional
@@ -253,7 +258,13 @@ public class InvoiceRelaunchService {
     int pageValue = page != null ? page.getValue() - 1 : 0;
     int pageSizeValue = pageSize != null ? pageSize.getValue() : 30;
     Pageable pageable = PageRequest.of(pageValue, pageSizeValue);
-    return invoiceRelaunchRepository.getByInvoiceId(invoiceId, type, pageable);
+    List<InvoiceRelaunch> invoiceRelaunches =
+        invoiceRelaunchRepository.getByInvoiceId(invoiceId, type, pageable);
+    invoiceRelaunches.forEach(invoiceRelaunch -> {
+      String newEmailObject = fixEmailObject(invoiceRelaunch);
+      invoiceRelaunch.setEmailObject(newEmailObject);
+    });
+    return invoiceRelaunches;
   }
 
   private String emailBody(String customEmailBody,

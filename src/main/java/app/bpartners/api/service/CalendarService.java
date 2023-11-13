@@ -29,6 +29,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
+import static app.bpartners.api.service.utils.URLUtils.extractURLParams;
 import static app.bpartners.api.service.utils.URLUtils.extractURLPath;
 
 @Service
@@ -48,6 +49,7 @@ public class CalendarService {
     RedirectionStatusUrls urls = consentInit.getRedirectionStatusUrls();
     String redirectUrl = urls.getSuccessUrl();
     String extractedUrl = extractURLPath(redirectUrl);
+    String params = extractURLParams(redirectUrl);
 
     List<String> supportedRedirectUris = calendarConf().getRedirectUris();
     if (!supportedRedirectUris.contains(extractedUrl)) {
@@ -55,7 +57,7 @@ public class CalendarService {
           + "Only " + supportedRedirectUris + " are.");
     }
 
-    String consentUrl = calendarApi.initConsent(extractedUrl);
+    String consentUrl = calendarApi.initConsent(extractedUrl, params);
     return new Redirection()
         .redirectionUrl(consentUrl)
         .redirectionStatusUrls(urls);

@@ -134,6 +134,10 @@ public class CalendarApi {
     return calendarList;
   }
 
+  public String initConsent(String callbackUri, String encodedParams) {
+    return calendarConf.getOauthRedirectUri(callbackUri, encodedParams);
+  }
+
   public String initConsent(String callbackUri) {
     return calendarConf.getOauthRedirectUri(callbackUri);
   }

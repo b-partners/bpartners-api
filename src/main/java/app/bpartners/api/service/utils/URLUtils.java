@@ -6,7 +6,6 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.util.Map;
 import java.util.stream.Collectors;
-import lombok.extern.slf4j.Slf4j;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -15,6 +14,7 @@ public class URLUtils {
   public static final int HTTP_DEFAULT_PORT = 80;
   public static final int HTTPS_DEFAULT_PORT = 443;
   public static final int PORT_NOT_SET_VALUE = -1;
+  public static final String QUERY_DELIMITER = "?";
 
   private URLUtils() {
   }
@@ -42,5 +42,13 @@ public class URLUtils {
         .map(e -> URLEncoder.encode(e.getKey(), UTF_8) + "="
             + URLEncoder.encode(e.getValue(), UTF_8))
         .collect(Collectors.joining("&"));
+  }
+
+  public static String extractURLParams(String urlString) {
+    if (urlString.contains(QUERY_DELIMITER)) {
+      int delimiterIndex = urlString.indexOf(QUERY_DELIMITER);
+      return urlString.substring(delimiterIndex + 1);
+    }
+    return null;
   }
 }

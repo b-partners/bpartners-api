@@ -977,3 +977,4 @@ components:
       type: string
       enum:
         - EVAL_PROSPECT
+        - INVOICE_RELAUNCHER

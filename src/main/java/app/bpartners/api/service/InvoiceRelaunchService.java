@@ -125,7 +125,7 @@ public class InvoiceRelaunchService {
 
     InvoiceRelaunch invoiceRelaunch =
         invoiceRelaunchRepository.save(
-            invoice, getDefaultEmailPrefix(accountHolder) + emailObject, emailBody,
+            invoice, emailObject, emailBody,
             isUserRelaunched);
     attachments.forEach(
         attachment -> uploadAttachment(invoice.getUser().getId(), attachment));

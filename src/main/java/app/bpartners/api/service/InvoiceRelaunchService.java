@@ -112,8 +112,14 @@ public class InvoiceRelaunchService {
           .toList()
           .get(0);
 
+      String emailObject = invoiceRelaunch.getEmailObject();
+      String uniquePrefix = removeDuplicateBrackets(emailObject);
+      int lastPrefixIndex = emailObject.lastIndexOf(uniquePrefix);
+      String objectWithoutPrefix = emailObject.substring(lastPrefixIndex + uniquePrefix.length());
+      String newEmailObject = uniquePrefix + objectWithoutPrefix;
+
       relaunchInvoiceManually(invoiceId,
-          List.of(removeDuplicateBrackets(invoiceRelaunch.getEmailObject())),
+          List.of(newEmailObject),
           List.of(invoiceRelaunch.getEmailBody()),
           invoiceRelaunch.getAttachments(),
           true);

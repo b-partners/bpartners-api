@@ -39,6 +39,12 @@ public class InvoiceRelaunchController {
         .toList();
   }
 
+  @PostMapping(value = "/accounts/{aId}/invoices/relaunches")
+  public void restartLastRelaunches(@PathVariable String aId,
+                                    @RequestBody List<String> invoiceIds) {
+    service.restartLastRelaunch(invoiceIds);
+  }
+
   @PostMapping(value = "/accounts/{aId}/invoices/{iId}/relaunch")
   public InvoiceRelaunch relaunchInvoice(
       @PathVariable("aId") String accountId,

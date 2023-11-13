@@ -24,7 +24,6 @@ import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import static app.bpartners.api.endpoint.rest.model.FileType.ATTACHMENT;
 import static app.bpartners.api.endpoint.rest.model.FileType.INVOICE;
 import static app.bpartners.api.endpoint.rest.model.FileType.LOGO;
-import static app.bpartners.api.endpoint.rest.security.AuthProvider.userIsAuthenticated;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 
 
@@ -109,8 +108,7 @@ public class S3Service {
   }
 
   private String getKey(String idUser) {
-    return userIsAuthenticated() ? AuthProvider.getAuthenticatedUser().getOldS3key()
-        : userRepository.getById(idUser).getOldS3key();
+    return userRepository.getById(idUser).getOldS3key();
   }
 
   private String getBucketName(String env, String idUser, String fileId, String type) {

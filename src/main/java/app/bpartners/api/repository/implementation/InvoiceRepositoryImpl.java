@@ -40,8 +40,6 @@ import static app.bpartners.api.endpoint.rest.model.FileType.LOGO;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PROPOSAL_CONFIRMED;
-import static app.bpartners.api.endpoint.rest.security.AuthProvider.getAuthenticatedUser;
-import static app.bpartners.api.endpoint.rest.security.AuthProvider.userIsAuthenticated;
 import static app.bpartners.api.service.InvoiceService.DRAFT_TEMPLATE;
 import static app.bpartners.api.service.InvoiceService.INVOICE_TEMPLATE;
 import static java.util.UUID.randomUUID;
@@ -94,8 +92,7 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
         mapper.toDomain(
             actualEntity
                 .products(invoiceProducts)
-                .paymentRequests(paymentRequests), userIsAuthenticated() ? getAuthenticatedUser()
-                : actual.getUser());
+                .paymentRequests(paymentRequests), actual.getUser());
     HInvoice toSave = actualEntity.fileId(processAsPdf(toGenerateAsPdf));
     HInvoice savedInvoice = jpaRepository.save(toSave);
 
@@ -185,9 +182,7 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
         .setMaxResults(pageable.getPageSize())
         .getResultList()
         .stream()
-        .map(invoice -> mapper.toDomain(invoice,
-            userIsAuthenticated() ? getAuthenticatedUser()
-                : userRepository.getById(idUser)))
+        .map(invoice -> mapper.toDomain(invoice, userRepository.getById(idUser)))
         .toList();
   }
 

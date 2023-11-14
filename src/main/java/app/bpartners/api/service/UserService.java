@@ -2,7 +2,6 @@ package app.bpartners.api.service;
 
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.UserToken;
-import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.UserTokenRepository;
@@ -22,12 +21,18 @@ public class UserService {
   @Transactional
   public User registerDevice(String idUser, String token) {
     User user = userRepository.getById(idUser);
-    if (user.getSnsArn() != null) {
-      throw new BadRequestException("User(id=" + idUser + ") has already a SNS endpoint ARN");
+    String actualToken = user.getDeviceToken();
+    if (actualToken != null && actualToken.equals(token)) {
+      return user;
+    }
+    String actualArn = user.getSnsArn();
+    if (actualArn != null) {
+      snsService.deleteEndpointArn(actualArn);
     }
     String snsArn = snsService.createEndpointArn(token);
     return saveUser(user.toBuilder()
         .snsArn(snsArn)
+        .deviceToken(token)
         .build());
   }
 

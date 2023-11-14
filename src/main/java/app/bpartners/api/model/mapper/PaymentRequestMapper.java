@@ -51,6 +51,8 @@ public class PaymentRequestMapper {
 
   public HPaymentRequest toEntity(
       FPaymentRedirection paymentRedirection, PaymentInitiation domain, String idInvoice) {
+    PaymentHistoryStatus historyStatus = domain.getPaymentHistoryStatus();
+    Instant createdDatetime = Instant.now();
     return HPaymentRequest.builder()
         .id(domain.getId())
         .idInvoice(idInvoice)
@@ -66,8 +68,10 @@ public class PaymentRequestMapper {
         .reference(domain.getReference())
         .paymentDueDate(domain.getPaymentDueDate())
         .amount(domain.getAmount().toString())
-        .createdDatetime(Instant.now())
+        .createdDatetime(createdDatetime)
         .status(domain.getStatus() == null ? PaymentStatus.UNPAID : domain.getStatus())
+        .paymentStatusUpdatedAt(
+            historyStatus == null ? createdDatetime : historyStatus.getUpdatedAt())
         .build();
   }
 

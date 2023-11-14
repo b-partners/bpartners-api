@@ -23,6 +23,7 @@ public abstract class BanAbstractContextInitializer
     TestPropertySourceUtils.addInlinedPropertiesToEnvironment(
         applicationContext,
         "server.port=" + this.getServerPort(),
+        "sns.platform.arn=dummy",
         "bridge.client.id=dummy",
         "bridge.client.secret=dummy",
         "bridge.base.url=dummy",

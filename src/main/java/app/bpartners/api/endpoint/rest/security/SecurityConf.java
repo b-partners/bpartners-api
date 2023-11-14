@@ -137,6 +137,9 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
         .requestMatchers(new SelfUserMatcher(GET, "/users/*/accounts", authResourceProvider))
         .authenticated()
         .requestMatchers(
+            new SelfUserMatcher(POST, "/users/*/deviceRegistration", authResourceProvider)
+        ).authenticated()
+        .requestMatchers(
             new SelfUserAccountMatcher(GET, "/users/*/accounts/*/accountHolders",
                 authResourceProvider)
         ).authenticated()

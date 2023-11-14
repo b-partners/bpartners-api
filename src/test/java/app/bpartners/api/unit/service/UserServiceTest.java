@@ -4,6 +4,7 @@ import app.bpartners.api.model.User;
 import app.bpartners.api.model.UserToken;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.UserTokenRepository;
+import app.bpartners.api.service.SnsService;
 import app.bpartners.api.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -16,15 +17,17 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 class UserServiceTest {
-  private UserService userService;
-  private UserRepository userRepository;
-  private UserTokenRepository userTokenRepository;
+  UserService userService;
+  UserRepository userRepository;
+  UserTokenRepository userTokenRepository;
+  SnsService snsServiceMock;
 
   @BeforeEach
   void setUp() {
     userRepository = mock(UserRepository.class);
     userTokenRepository = mock(UserTokenRepository.class);
-    userService = new UserService(userRepository, userTokenRepository);
+    snsServiceMock = mock(SnsService.class);
+    userService = new UserService(userRepository, userTokenRepository, snsServiceMock);
 
     when(userRepository.getByEmail(any())).thenReturn(user());
     when(userRepository.getUserByToken(any())).thenReturn(user());

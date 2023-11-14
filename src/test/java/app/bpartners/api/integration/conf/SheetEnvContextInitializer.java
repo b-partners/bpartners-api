@@ -45,6 +45,7 @@ public class SheetEnvContextInitializer
       addInlinedPropertiesToEnvironment(
           applicationContext,
           "server.port=" + httpServerPort,
+          "sns.platform.arn=dummy",
           "bridge.client.id=dummy",
           "bridge.client.secret=dummy",
           "bridge.base.url=dummy",

@@ -50,6 +50,11 @@ public class User implements Serializable {
   private BankConnection.BankConnectionStatus connectionStatus;
   private List<Role> roles;
   private String snsArn;
+  private String deviceToken;
+
+  public String getEncodedDeviceToken() {
+    return deviceToken == null ? null : Base64.encode(deviceToken).toString();
+  }
 
   public String getEncodedSnsArn() {
     return snsArn == null ? null : Base64.encode(snsArn).toString();

@@ -16,6 +16,25 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserService {
   private final UserRepository userRepository;
   private final UserTokenRepository userTokenRepository;
+  private final SnsService snsService;
+
+  @Transactional
+  public User registerDevice(String idUser, String token) {
+    User user = userRepository.getById(idUser);
+    String actualToken = user.getDeviceToken();
+    if (actualToken != null && actualToken.equals(token)) {
+      return user;
+    }
+    String actualArn = user.getSnsArn();
+    if (actualArn != null) {
+      snsService.deleteEndpointArn(actualArn);
+    }
+    String snsArn = snsService.createEndpointArn(token);
+    return saveUser(user.toBuilder()
+        .snsArn(snsArn)
+        .deviceToken(token)
+        .build());
+  }
 
   @Transactional
   public User changeActiveAccount(String idUser, String idAccount) {

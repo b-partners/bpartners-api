@@ -166,6 +166,12 @@ paths:
     $ref: './prospecting-api.yml#/operations/prospectEvaluationJobDetails'
 
   #############################################
+  ################# AWS SNS API ##############
+  #############################################
+  /users/{uId}/deviceRegistration:
+    $ref: './userAccounts-api.yml#/operations/deviceRegistrationOperations'
+
+  #############################################
   ################# Google Sheet API ##############
   #############################################
   /users/{id}/sheets/oauth2/consent:

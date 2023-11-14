@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sns.model.CreatePlatformEndpointRequest;
 import software.amazon.awssdk.services.sns.model.CreatePlatformEndpointResponse;
+import software.amazon.awssdk.services.sns.model.DeleteEndpointRequest;
 import software.amazon.awssdk.services.sns.model.InvalidParameterException;
 import software.amazon.awssdk.services.sns.model.NotFoundException;
 import software.amazon.awssdk.services.sns.model.PublishRequest;
@@ -23,6 +24,16 @@ import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVE
 public class SnsService {
   private SnsClient snsClient;
   private EventConf eventConf;
+
+  public void deleteEndpointArn(String arn) {
+    try {
+      snsClient.deleteEndpoint(DeleteEndpointRequest.builder()
+          .endpointArn(arn)
+          .build());
+    } catch (Exception e) {
+      throw new ApiException(SERVER_EXCEPTION, e);
+    }
+  }
 
   public String createEndpointArn(String deviceToken) {
     try {

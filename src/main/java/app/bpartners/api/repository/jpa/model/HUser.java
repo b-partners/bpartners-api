@@ -99,6 +99,7 @@ public class HUser implements Serializable {
   @Column(name = "roles", columnDefinition = "user_role[]")
   private Role[] roles;
   private String snsArn;
+  private String deviceToken;
 
   public Instant getBridgeItemLastRefresh() {
     return bridgeItemLastRefresh == null ? null

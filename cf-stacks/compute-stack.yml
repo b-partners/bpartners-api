@@ -130,6 +130,8 @@ Resources:
               Value: !Sub '{{resolve:ssm:/bpartners/${Env}/google/sheet/redirect/uris}}'
             - Name: ADMIN_EMAIL
               Value: !Sub '{{resolve:ssm:/bpartners/${Env}/admin/email}}'
+            - Name: SNS_PLATFORM_ARN
+              Value: !Sub '{{resolve:ssm:/bpartners/${Env}/sns/platform-arn}}'
           LogConfiguration:
             LogDriver: awslogs
             Options:

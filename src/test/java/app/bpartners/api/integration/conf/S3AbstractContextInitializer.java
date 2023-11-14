@@ -74,6 +74,7 @@ public abstract class S3AbstractContextInitializer
     TestPropertySourceUtils.addInlinedPropertiesToEnvironment(
         applicationContext,
         "server.port=" + this.getServerPort(),
+        "sns.platform.arn=dummy",
         "aws.cognito.userPool.id=eu-west-3_vq2jlNjq7",
         "aws.cognito.userPool.domain=dummy",
         "aws.cognito.userPool.clientId=dummy",

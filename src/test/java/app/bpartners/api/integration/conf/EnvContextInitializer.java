@@ -25,6 +25,7 @@ public class EnvContextInitializer
     addInlinedPropertiesToEnvironment(
         applicationContext,
         "server.port=" + httpServerPort,
+        "sns.platform.arn=dummy",
         "admin.email=dummy",
         "bridge.client.id=dummy",
         "bridge.client.secret=dummy",

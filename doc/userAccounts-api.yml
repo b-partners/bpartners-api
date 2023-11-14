@@ -1,4 +1,39 @@
 operations:
+  deviceRegistrationOperations:
+    post:
+      tags:
+        - User Accounts
+      summary: Register a device for a specific user
+      description: |
+        Note that we will use the same endpoint arn for multiple devices of the same user.
+      parameters:
+        - name: uId
+          in: path
+          schema:
+            type: string
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeviceToken'
+      responses:
+        200:
+          description: User with new endpoint arn
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
   getUserById:
     get:
       tags:
@@ -978,3 +1013,8 @@ components:
       enum:
         - EVAL_PROSPECT
         - INVOICE_RELAUNCHER
+    DeviceToken:
+      type: object
+      properties:
+        token:
+          type: string

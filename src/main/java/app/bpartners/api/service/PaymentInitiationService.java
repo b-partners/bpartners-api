@@ -98,7 +98,7 @@ public class PaymentInitiationService {
       List<HPaymentRequest> savedPaidPayments = jpaRepository.saveAll(toSave);
       log.info("Payment requests " + paymentMessage(savedPaidPayments) + " updated successfully");
       notifyByEmail(savedPaidPayments);
-      notifyByMobileNotification(savedPaidPayments);
+      //notifyByMobileNotification(savedPaidPayments);
     }
   }
 

@@ -1,5 +1,6 @@
 package app.bpartners.api.repository.google.sheets;
 
+import app.bpartners.api.manager.ProjectTokenManager;
 import app.bpartners.api.repository.google.generic.CredentialConfig;
 import java.util.List;
 import lombok.Getter;
@@ -18,13 +19,15 @@ public class SheetConf extends CredentialConfig {
                    @Value("${google.sheet.client.id}") String clientId,
                    @Value("${google.sheet.client.secret}") String clientSecret,
                    @Value("${google.sheet.redirect.uris}") List<String> redirectUris,
-                   SheetsDbCredentialStore dbCredentialStore) {
+                   SheetsDbCredentialStore dbCredentialStore,
+                   ProjectTokenManager tokenManager) {
     super(applicationName,
         clientId,
         clientSecret,
         redirectUris,
         allowedScopes(),
-        dbCredentialStore);
+        dbCredentialStore,
+        tokenManager);
   }
 
   public static List<String> allowedScopes() {

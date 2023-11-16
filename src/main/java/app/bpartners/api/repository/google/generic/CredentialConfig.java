@@ -1,11 +1,14 @@
 package app.bpartners.api.repository.google.generic;
 
+import app.bpartners.api.manager.ProjectTokenManager;
+import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.exception.ForbiddenException;
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.auth.oauth2.TokenResponseException;
 import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInstalledApp;
 import com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver;
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
+import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
@@ -13,6 +16,9 @@ import java.util.List;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.SneakyThrows;
+
+import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
+import static app.bpartners.api.repository.google.sheets.SheetConf.allowedScopes;
 
 public class CredentialConfig {
   public static final int UNUSED_PORT = -1;
@@ -26,6 +32,7 @@ public class CredentialConfig {
   @Getter(AccessLevel.PUBLIC)
   private final List<String> redirectUris;
   private final GoogleAuthorizationCodeFlow flow;
+  private final ProjectTokenManager tokenManager;
 
   @SneakyThrows
   public CredentialConfig(String applicationName,
@@ -33,11 +40,13 @@ public class CredentialConfig {
                           String clientSecret,
                           List<String> redirectUris,
                           List<String> allowedScopes,
-                          DbCredentialStore dbCredentialStore) {
+                          DbCredentialStore dbCredentialStore,
+                          ProjectTokenManager tokenManager) {
     this.applicationName = applicationName;
     this.clientId = clientId;
     this.clientSecret = clientSecret;
     this.redirectUris = redirectUris;
+    this.tokenManager = tokenManager;
     this.trustedTransport = GoogleNetHttpTransport.newTrustedTransport();
     this.flow = getGoogleAuthorizationCodeFlow(allowedScopes, dbCredentialStore);
   }
@@ -92,5 +101,14 @@ public class CredentialConfig {
         allowedScopes)
         .setCredentialDataStore(dbCredentialStore)
         .build();
+  }
+
+  public GoogleCredential googleCredential() {
+    try {
+      return GoogleCredential.fromStream(tokenManager.googleServiceAccountStream())
+          .createScoped(allowedScopes());
+    } catch (Exception e) {
+      throw new ApiException(SERVER_EXCEPTION, e);
+    }
   }
 }

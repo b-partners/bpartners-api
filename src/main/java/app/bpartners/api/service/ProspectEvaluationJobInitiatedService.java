@@ -279,6 +279,12 @@ public class ProspectEvaluationJobInitiatedService
           } else if (interventionResult == null && customerResult != null) {
             ratingBuilder.value(customerResult.getRating());
           }
+          Integer townCode;
+          try {
+            townCode = Integer.valueOf(info.getPostalCode());
+          } catch (NumberFormatException e) {
+            townCode = null;
+          }
           return Prospect.builder()
               .id(String.valueOf(randomUUID()))
               .idJob(runningJob.getId())
@@ -297,7 +303,7 @@ public class ProspectEvaluationJobInitiatedService
                   .status(ProspectStatus.TO_CONTACT)
                   .updatedAt(Instant.now())
                   .build()))
-              .townCode(Integer.valueOf(info.getPostalCode()))
+              .townCode(townCode)
               .defaultComment(info.getDefaultComment())
               .comment(null)
               .contractAmount(null)

@@ -53,19 +53,21 @@ public class Prospect implements Comparable<Prospect> {
 
   @Override
   public int compareTo(Prospect o) {
+    if (o == null) {
+      return 0;
+    }
     ProspectRating actualRating = this.getRating();
     ProspectRating otherRating = o.getRating();
-    if (actualRating == null || actualRating.getValue() == null) {
+    if (actualRating == null || otherRating == null) {
       return 0;
-    } else if (otherRating == null || otherRating.getValue() == null) {
-      return 0;
+    } else {
+      Double actualRatingValue = actualRating.getValue();
+      Double otherRatingValue = otherRating.getValue();
+      if (actualRatingValue == null || otherRatingValue == null) {
+        return 0;
+      }
+      return actualRatingValue.compareTo(otherRatingValue);
     }
-    if (actualRating.getValue() < otherRating.getValue()) {
-      return -1;
-    } else if (actualRating.getValue() > otherRating.getValue()) {
-      return 1;
-    }
-    return 0;
   }
 
   @Data

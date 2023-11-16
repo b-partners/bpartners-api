@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -40,6 +41,7 @@ public class SheetApi {
   private final DriveApi driveApi;
   private final SheetConf sheetsConf;
 
+  @SneakyThrows
   public Sheets initService(SheetConf sheetsConf, Credential credential) {
     NetHttpTransport trustedTransport = sheetsConf.getTrustedTransport();
     String applicationName = sheetsConf.getApplicationName();
@@ -108,13 +110,14 @@ public class SheetApi {
     }
   }
 
+  @SneakyThrows
   public Spreadsheet getSpreadsheet(String idUser,
                                     String idSpreadsheet,
                                     String sheetName,
                                     Integer minRange,
                                     Integer maxRange) {
     return getSpreadsheet(
-        idSpreadsheet, sheetName, minRange, maxRange, sheetsConf.loadCredential(idUser));
+        idSpreadsheet, sheetName, minRange, maxRange, sheetsConf.googleCredential());
   }
 
   public Spreadsheet getSpreadsheet(String idSpreadsheet,

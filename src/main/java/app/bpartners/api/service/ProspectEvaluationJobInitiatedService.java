@@ -11,6 +11,7 @@ import app.bpartners.api.endpoint.rest.model.NewInterventionOption;
 import app.bpartners.api.endpoint.rest.model.ProspectStatus;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.CalendarEvent;
+import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.model.prospect.Prospect;
@@ -46,6 +47,7 @@ import static app.bpartners.api.endpoint.rest.model.JobStatusValue.FINISHED;
 import static app.bpartners.api.endpoint.rest.model.JobStatusValue.IN_PROGRESS;
 import static app.bpartners.api.endpoint.rest.model.JobStatusValue.NOT_STARTED;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
+import static app.bpartners.api.model.prospect.job.SheetEvaluationJobRunner.GOLDEN_SOURCE_SPR_SHEET_NAME;
 import static app.bpartners.api.service.utils.DateUtils.formatFrenchDatetime;
 import static java.util.UUID.randomUUID;
 
@@ -65,6 +67,7 @@ public class ProspectEvaluationJobInitiatedService
   private final SesService sesService;
   private final EventConf eventConf;
   private final ProspectRestMapper prospectRestMapper;
+  private final UserService userService;
 
   @Override
   public void accept(ProspectEvaluationJobInitiated jobInitiated) {
@@ -123,6 +126,7 @@ public class ProspectEvaluationJobInitiatedService
           }
         } catch (Exception e) {
           updateJobStatus(runningJob, FAILED, e.getMessage());
+          throw new ApiException(SERVER_EXCEPTION, e);
         }
       } else if (job.isSpreadsheetEvaluationJob()) {
         try {
@@ -151,6 +155,7 @@ public class ProspectEvaluationJobInitiatedService
               emailBody);
         } catch (Exception e) {
           updateJobStatus(runningJob, FAILED, e.getMessage());
+          throw new ApiException(SERVER_EXCEPTION, e);
         }
       } else {
         String exceptionMsg =
@@ -274,6 +279,12 @@ public class ProspectEvaluationJobInitiatedService
           } else if (interventionResult == null && customerResult != null) {
             ratingBuilder.value(customerResult.getRating());
           }
+          Integer townCode;
+          try {
+            townCode = Integer.valueOf(info.getPostalCode());
+          } catch (NumberFormatException e) {
+            townCode = null;
+          }
           return Prospect.builder()
               .id(String.valueOf(randomUUID()))
               .idJob(runningJob.getId())
@@ -292,7 +303,7 @@ public class ProspectEvaluationJobInitiatedService
                   .status(ProspectStatus.TO_CONTACT)
                   .updatedAt(Instant.now())
                   .build()))
-              .townCode(Integer.valueOf(info.getPostalCode()))
+              .townCode(townCode)
               .defaultComment(info.getDefaultComment())
               .comment(null)
               .contractAmount(null)
@@ -334,7 +345,7 @@ public class ProspectEvaluationJobInitiatedService
                                                                      EventJobRunner eventJobRunner,
                                                                      List<String> locations) {
     HashMap<String, List<ProspectEval>> prospectsByEvents = new HashMap<>();
-    var newProspects = fromDatabase(idUser, eventJobRunner);
+    var newProspects = fromDefaultSheet(idUser);
     var evaluationRules = eventJobRunner.getEvaluationRules();
     var antiHarmRules = evaluationRules.getAntiHarmRules();
     locations.forEach(calendarEventLocation -> {
@@ -371,6 +382,22 @@ public class ProspectEvaluationJobInitiatedService
   private List<ProspectEval> fromDatabase(String idUser, EventJobRunner eventJobRunner) {
     //TODO: retrieve from database here
     return List.of();
+  }
+
+  //TODO: use this function to import inside database
+  private List<ProspectEval> fromDefaultSheet(String idUser) {
+    User user = userService.getUserById(idUser);
+    AccountHolder accountHolder = user.getDefaultHolder();
+    String sheetName = accountHolder.getName();
+    int minDefaultRange = 2;
+    int maxDefaultRange = 100;
+    return prospectService.readEvaluationsFromSheetsWithoutFilter(
+        idUser,
+        accountHolder.getId(),
+        GOLDEN_SOURCE_SPR_SHEET_NAME,
+        sheetName,
+        minDefaultRange,
+        maxDefaultRange);
   }
 
   private List<ProspectEval> fromSpreadsheet(String idUser,

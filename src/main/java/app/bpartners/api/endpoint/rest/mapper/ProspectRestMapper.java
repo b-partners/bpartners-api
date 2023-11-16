@@ -48,6 +48,12 @@ public class ProspectRestMapper {
         prospectResult.getCustomerInterventionResult();
     Customer customerInfo = customerResult == null ? null
         : customerResult.getOldCustomer();
+    Integer postalCode;
+    try {
+      postalCode = Integer.valueOf(info.getPostalCode());
+    } catch (NumberFormatException e) {
+      postalCode = null;
+    }
     return new EvaluatedProspect()
         .id(String.valueOf(randomUUID())) //TODO: return persisted ID
         .reference(String.valueOf(info.getReference()))
@@ -61,7 +67,7 @@ public class ProspectRestMapper {
             : customerInfo.getFullAddress())
         .city(customerInfo == null ? info.getCity()
             : customerInfo.getCity())
-        .townCode(customerInfo == null ? Integer.valueOf(info.getPostalCode())
+        .townCode(customerInfo == null ? postalCode
             : customerInfo.getZipCode()
         )
         .area(new Area().geojson(

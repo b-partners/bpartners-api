@@ -126,6 +126,7 @@ public class ProspectEvaluationJobInitiatedService
           }
         } catch (Exception e) {
           updateJobStatus(runningJob, FAILED, e.getMessage());
+          throw new ApiException(SERVER_EXCEPTION, e);
         }
       } else if (job.isSpreadsheetEvaluationJob()) {
         try {
@@ -154,6 +155,7 @@ public class ProspectEvaluationJobInitiatedService
               emailBody);
         } catch (Exception e) {
           updateJobStatus(runningJob, FAILED, e.getMessage());
+          throw new ApiException(SERVER_EXCEPTION, e);
         }
       } else {
         String exceptionMsg =

@@ -635,7 +635,9 @@ public class ProspectService {
         + " inside Spreadsheet(name=" + spreadsheet.getProperties().getTitle()
         + ") does not exist";
     if (sheets.isEmpty()) {
-      throw new BadRequestException("Spreadsheet has empty sheets or " + sheetNameNotFoundMsg);
+      String errorMsg = "Spreadsheet has empty sheets or " + sheetNameNotFoundMsg;
+      log.error(errorMsg);
+      throw new BadRequestException(errorMsg);
     }
     Sheet sheet = sheets.stream()
         .filter(s -> s.getProperties().getTitle().equals(sheetName))

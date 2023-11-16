@@ -22,8 +22,8 @@ import app.bpartners.api.model.prospect.job.ProspectEvaluationJob;
 import app.bpartners.api.model.prospect.job.SheetEvaluationJobRunner;
 import app.bpartners.api.repository.ban.BanApi;
 import app.bpartners.api.repository.ban.model.GeoPosition;
-import app.bpartners.api.repository.expressif.ProspectEval;
-import app.bpartners.api.repository.expressif.ProspectEvalInfo;
+import app.bpartners.api.repository.expressif.ProspectEvaluation;
+import app.bpartners.api.repository.expressif.ProspectEvaluationInfo;
 import app.bpartners.api.repository.expressif.ProspectResult;
 import app.bpartners.api.repository.expressif.fact.NewIntervention;
 import app.bpartners.api.service.aws.SesService;
@@ -61,20 +61,20 @@ public class ProspectEvaluationJobInitiatedService
       "prospect_event_evaluation_result";
   public static final String SHEET_EVALUATION_RESULT_EMAIL_TEMPLATE =
       "prospect_sheet_evaluation_result";
-  private final AccountHolderService holderService;
-  private final ProspectService prospectService;
-  private final CalendarService calendarService;
   private final BanApi banApi;
+  private final AccountHolderService holderService;
+  private final ProspectEvaluationService evaluationService;
+  private final CalendarService calendarService;
   private final SesService sesService;
   private final EventConf eventConf;
-  private final ProspectRestMapper prospectRestMapper;
   private final UserService userService;
   private final SnsService snsService;
+  private final ProspectRestMapper prospectRestMapper;
 
   @Override
   public void accept(ProspectEvaluationJobInitiated jobInitiated) {
     var job = jobInitiated.getJobRunner();
-    var existingJob = prospectService.getEvaluationJob(job.getJobId());
+    var existingJob = evaluationService.getEvaluationJob(job.getJobId());
     var runningJob = runningJob(existingJob);
     if (
         (runningJob != null && runningJob.getJobStatus().getValue() == IN_PROGRESS)) {
@@ -87,21 +87,23 @@ public class ProspectEvaluationJobInitiatedService
           var ranges = eventJobRunner.getEventDateRanges();
           var antiHarmRules = eventJobRunner.getEvaluationRules().getAntiHarmRules();
           var ratingProperties = eventJobRunner.getRatingProperties();
+
           List<CalendarEvent> calendarEvents = calendarService.getEvents(
               user.getId(),
               eventJobRunner.getCalendarId(),
-              //TODO: check if local or google calendar is the most appropriate
               CalendarProvider.GOOGLE_CALENDAR,
               ranges.getFrom(),
               ranges.getTo());
+
           List<CalendarEvent> eventsWithAddress = calendarEvents.stream()
               .filter(event -> event.getLocation() != null)
               .collect(Collectors.toList());
+
           var locations = locationsFromEvents(eventsWithAddress);
           var prospectsByEvents = getProspectsToEvaluate(user, eventJobRunner, locations);
           for (CalendarEvent c : eventsWithAddress) {
             var prospects = prospectsByEvents.get(c.getLocation());
-            var evaluatedProspects = prospectService.evaluateProspects(
+            var evaluatedProspects = evaluationService.evaluateProspects(
                 runningHolder.getId(),
                 antiHarmRules,
                 prospects,
@@ -140,10 +142,10 @@ public class ProspectEvaluationJobInitiatedService
           var antiHarmRules = evaluationRules.getAntiHarmRules();
           var ratingProperties = sheetJobRunner.getRatingProperties();
           var sheetProperties = sheetJobRunner.getSheetProperties();
-          var evaluatedProspects = prospectService.evaluateProspects(
+          var evaluatedProspects = evaluationService.evaluateProspects(
               holderOwner.getId(),
               antiHarmRules,
-              fromSpreadsheet(user.getId(), sheetJobRunner),
+              fromSpreadsheet(sheetJobRunner),
               evaluationRules.getInterventionOption(),
               ratingProperties.getMinProspectRating(),
               ratingProperties.getMinCustomerRating());
@@ -286,8 +288,8 @@ public class ProspectEvaluationJobInitiatedService
                                                            List<ProspectResult> evaluatedProspects) {
     return evaluatedProspects.stream()
         .map(result -> {
-          ProspectEvalInfo info =
-              result.getProspectEval().getProspectEvalInfo();
+          ProspectEvaluationInfo info =
+              result.getProspectEvaluation().getProspectEvaluationInfo();
           var interventionResult =
               result.getInterventionResult();
           var customerResult = result.getCustomerInterventionResult();
@@ -350,7 +352,7 @@ public class ProspectEvaluationJobInitiatedService
         .endedAt(jobStatusValue == FINISHED || jobStatusValue == FAILED ? Instant.now()
             : null)
         .build();
-    return prospectService.saveEvaluationJobs(List.of(clonedJob)).get(0);
+    return evaluationService.saveAllEvaluationJobs(List.of(clonedJob)).get(0);
   }
 
   private ProspectEvaluationJob runningJob(ProspectEvaluationJob existingJob) {
@@ -360,18 +362,20 @@ public class ProspectEvaluationJobInitiatedService
     return null;
   }
 
-  private HashMap<String, List<ProspectEval>> getProspectsToEvaluate(User user,
-                                                                     EventJobRunner eventJobRunner,
-                                                                     List<String> locations) {
-    HashMap<String, List<ProspectEval>> prospectsByEvents = new HashMap<>();
+  private HashMap<String, List<ProspectEvaluation>> getProspectsToEvaluate(User user,
+                                                                           EventJobRunner eventJobRunner,
+                                                                           List<String> locations) {
+    HashMap<String, List<ProspectEvaluation>> prospectsByEvents = new HashMap<>();
     var newProspects = fromDefaultSheet(user);
     var evaluationRules = eventJobRunner.getEvaluationRules();
     var antiHarmRules = evaluationRules.getAntiHarmRules();
     locations.forEach(calendarEventLocation -> {
       GeoPosition eventAddressPos = banApi.fSearch(calendarEventLocation);
-      List<ProspectEval> prospectsToEvaluate = new ArrayList<>();
+      List<ProspectEvaluation> prospectsToEvaluate = new ArrayList<>();
       newProspects.forEach(prospect -> {
         NewIntervention clonedRule = (NewIntervention) prospect.getDepaRule();
+        Double distanceFromInterventionAndProspect = eventAddressPos.getCoordinates()
+            .getDistanceFrom(prospect.getProspectEvaluationInfo().getCoordinates());
         prospectsToEvaluate.add(
             prospect.toBuilder()
                 .prospectOwnerId(eventJobRunner.getArtisanOwner())
@@ -382,8 +386,7 @@ public class ProspectEvaluationJobInitiatedService
                 .depaRule(clonedRule.toBuilder()
                     .newIntAddress(calendarEventLocation)
                     .coordinate(eventAddressPos.getCoordinates())
-                    .distNewIntAndProspect(eventAddressPos.getCoordinates()
-                        .getDistanceFrom(prospect.getProspectEvalInfo().getCoordinates()))
+                    .distNewIntAndProspect(distanceFromInterventionAndProspect)
                     .build())
                 .build());
       });
@@ -398,37 +401,32 @@ public class ProspectEvaluationJobInitiatedService
         .collect(Collectors.toList());
   }
 
-  private List<ProspectEval> fromDatabase(String idUser, EventJobRunner eventJobRunner) {
+  private List<ProspectEvaluation> fromDatabase(String idUser, EventJobRunner eventJobRunner) {
     //TODO: retrieve from database here
     return List.of();
   }
 
   //TODO: use this function to import inside database
-  private List<ProspectEval> fromDefaultSheet(User user) {
+  private List<ProspectEvaluation> fromDefaultSheet(User user) {
     AccountHolder accountHolder = user.getDefaultHolder();
     String sheetName = accountHolder.getName();
     int minDefaultRange = 2;
     int maxDefaultRange = 100;
-    return prospectService.readEvaluationsFromSheetsWithoutFilter(
-        user.getId(),
-        accountHolder.getId(),
+    return evaluationService.readEvaluations(
         GOLDEN_SOURCE_SPR_SHEET_NAME,
         sheetName,
         minDefaultRange,
         maxDefaultRange);
   }
 
-  private List<ProspectEval> fromSpreadsheet(String idUser,
-                                             SheetEvaluationJobRunner sheetProspectEvaluation) {
+  private List<ProspectEvaluation> fromSpreadsheet(SheetEvaluationJobRunner sheetProspectEvaluation) {
     var sheetProperties = sheetProspectEvaluation.getSheetProperties();
     var sheetRange = sheetProperties.getRanges();
-    List<ProspectEval> prospectEvals = prospectService.readEvaluationsFromSheetsWithoutFilter(
-        idUser,
-        sheetProspectEvaluation.getArtisanOwner(),
+    List<ProspectEvaluation> prospectEvaluations = evaluationService.readEvaluations(
         sheetProperties.getSpreadsheetName(),
         sheetProperties.getSheetName(),
         sheetRange.getMin(),
         sheetRange.getMax());
-    return prospectEvals;
+    return prospectEvaluations;
   }
 }

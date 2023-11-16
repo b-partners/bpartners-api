@@ -1,6 +1,6 @@
 package app.bpartners.api.repository.jpa.model;
 
-import app.bpartners.api.repository.expressif.ProspectEvalInfo;
+import app.bpartners.api.repository.expressif.ProspectEvaluationInfo;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -29,7 +29,7 @@ import org.hibernate.annotations.Type;
 @AllArgsConstructor
 @NoArgsConstructor
 @EqualsAndHashCode
-public class HProspectEvalInfo {
+public class HProspectEvaluationInfo {
   @Id
   private String id;
   private Long reference;
@@ -48,12 +48,12 @@ public class HProspectEvalInfo {
   private String defaultComment;
   @Type(type = "pgsql_enum")
   @Enumerated(EnumType.STRING)
-  private ProspectEvalInfo.ContactNature contactNature;
+  private ProspectEvaluationInfo.ContactNature contactNature;
   private Double posLongitude;
   private Double posLatitude;
   private Date companyCreationDate;
   @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
   @JoinColumn(name = "id_prospect_eval_info")
   @OrderBy("evaluationDate desc")
-  private List<HProspectEval> prospectEvals = new ArrayList<>();
+  private List<HProspectEvaluation> prospectEvals = new ArrayList<>();
 }

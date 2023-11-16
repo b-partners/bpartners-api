@@ -40,10 +40,6 @@ public class DriveApi {
         .build();
   }
 
-  public FileList getSpreadSheets(String idUser) {
-    return getSpreadSheets(sheetConf.googleCredential());
-  }
-
   public FileList getSpreadSheets(Credential credential) {
     String spreadSheetQuery =
         "mimeType='" + EXCEL_MIME_TYPE + "'"
@@ -52,8 +48,8 @@ public class DriveApi {
     return getFiles(credential, spreadSheetQuery);
   }
 
-  public File getFileByIdUserAndName(String idUser, String fileName) {
-    FileList sheets = getSpreadSheets(idUser);
+  public File getFileByName(String fileName) {
+    FileList sheets = getSpreadSheets(sheetConf.googleCredential());
     var files = sheets.getFiles().stream()
         .filter(sheet -> sheet.getName().equals(fileName))
         .collect(Collectors.toList());

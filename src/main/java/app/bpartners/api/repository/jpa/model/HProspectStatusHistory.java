@@ -3,6 +3,7 @@ package app.bpartners.api.repository.jpa.model;
 import app.bpartners.api.endpoint.rest.model.ProspectStatus;
 import app.bpartners.api.repository.jpa.types.PostgresEnumType;
 import java.time.Instant;
+import java.util.List;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
@@ -18,6 +19,7 @@ import lombok.ToString;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 
+import static java.util.UUID.randomUUID;
 import static javax.persistence.GenerationType.IDENTITY;
 
 @Entity
@@ -37,4 +39,12 @@ public class HProspectStatusHistory {
   @Enumerated(EnumType.STRING)
   private ProspectStatus status;
   private Instant updatedAt;
+
+  public static List<HProspectStatusHistory> defaultStatusHistoryEntity() {
+    return List.of(HProspectStatusHistory.builder()
+        .id(String.valueOf(randomUUID()))
+        .status(ProspectStatus.TO_CONTACT)
+        .updatedAt(Instant.now())
+        .build());
+  }
 }

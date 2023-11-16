@@ -18,7 +18,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
-import static app.bpartners.api.service.ProspectService.defaultStatusHistoryEntity;
+import static app.bpartners.api.repository.jpa.model.HProspectStatusHistory.defaultStatusHistoryEntity;
 
 @Repository
 @AllArgsConstructor

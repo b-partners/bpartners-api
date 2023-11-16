@@ -50,14 +50,13 @@ public class SheetApi {
         .build();
   }
 
-  public Spreadsheet getSpreadsheetByNames(String idUser,
-                                           String spreadsheetName,
+  public Spreadsheet getSpreadsheetByNames(String spreadsheetName,
                                            String sheetName,
                                            Integer minRange,
                                            Integer maxRange) {
-    File spreadSheetFile = driveApi.getFileByIdUserAndName(idUser, spreadsheetName);
+    File spreadSheetFile = driveApi.getFileByName(spreadsheetName);
     String spreadSheetFileId = spreadSheetFile.getId();
-    return getSpreadsheet(idUser, spreadSheetFileId, sheetName, minRange, maxRange);
+    return getSpreadsheet(spreadSheetFileId, sheetName, minRange, maxRange);
   }
 
   public Spreadsheet createFilterView(String idUser, String idSpreadsheet, String artisanOwner) {
@@ -111,8 +110,7 @@ public class SheetApi {
   }
 
   @SneakyThrows
-  public Spreadsheet getSpreadsheet(String idUser,
-                                    String idSpreadsheet,
+  public Spreadsheet getSpreadsheet(String idSpreadsheet,
                                     String sheetName,
                                     Integer minRange,
                                     Integer maxRange) {

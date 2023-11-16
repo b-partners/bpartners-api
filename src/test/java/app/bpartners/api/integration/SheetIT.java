@@ -24,19 +24,16 @@ import app.bpartners.api.integration.conf.utils.TestUtils;
 import app.bpartners.api.model.BusinessActivity;
 import app.bpartners.api.model.User;
 import app.bpartners.api.repository.BusinessActivityRepository;
-import app.bpartners.api.repository.ProspectRepository;
 import app.bpartners.api.repository.ban.BanApi;
 import app.bpartners.api.repository.expressif.ExpressifApi;
-import app.bpartners.api.repository.expressif.ProspectEval;
-import app.bpartners.api.repository.expressif.ProspectEvalInfo;
+import app.bpartners.api.repository.expressif.ProspectEvaluation;
+import app.bpartners.api.repository.expressif.ProspectEvaluationInfo;
 import app.bpartners.api.repository.google.calendar.CalendarApi;
 import app.bpartners.api.repository.google.calendar.drive.DriveApi;
 import app.bpartners.api.repository.google.sheets.SheetApi;
 import app.bpartners.api.repository.google.sheets.SheetConf;
-import app.bpartners.api.repository.jpa.SheetStoredCredentialJpaRep;
-import app.bpartners.api.service.CustomerService;
+import app.bpartners.api.service.ProspectEvaluationService;
 import app.bpartners.api.service.ProspectService;
-import app.bpartners.api.service.TransactionService;
 import app.bpartners.api.service.UserService;
 import app.bpartners.api.service.utils.DateUtils;
 import com.google.api.client.auth.oauth2.Credential;
@@ -84,7 +81,6 @@ import static app.bpartners.api.repository.google.calendar.CalendarApi.dateTimeF
 import static app.bpartners.api.repository.implementation.ProspectRepositoryImpl.ANTI_HARM;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
@@ -109,30 +105,23 @@ public class SheetIT extends MockedThirdParties {
 
   public static final String TEST_SPR_SHEET_NAME = "Test";
   public static final String GOLDEN_SOURCE_SHEET_NAME = "Local Ryan";
-  public static final String PROFESSION = "DEPANNEUR";
   public static final String CAL1_ID = "";
-  @Autowired
-  private SheetApi sheetApi;
-  @Autowired
-  private SheetConf sheetConf;
-  @Autowired
-  private DriveApi driveApi;
-  @Autowired
-  private SheetStoredCredentialJpaRep storeRepository;
-  @MockBean
-  private TransactionService transactionService;
   @MockBean
   private BanApi banApiMock;
   @MockBean
-  private CustomerService customerService;
-  @MockBean
   private CalendarApi calendarApiMock;
-  @Autowired
-  private ProspectService prospectService;
   @MockBean
   private ExpressifApi expressifApiMock;
   @Autowired
-  private ProspectRepository prospectRepository;
+  private SheetApi sheetApi;
+  @Autowired
+  private DriveApi driveApi;
+  @Autowired
+  private SheetConf sheetConf;
+  @Autowired
+  private ProspectService prospectService;
+  @Autowired
+  private ProspectEvaluationService evaluationService;
   @Autowired
   private BusinessActivityRepository businessRepository;
   @Autowired
@@ -250,8 +239,8 @@ public class SheetIT extends MockedThirdParties {
     assertEquals(List.of(), actual2);
   }
 
-  private static ProspectEvalInfo prospectEvalInfo1() {
-    return ProspectEvalInfo.builder()
+  private static ProspectEvaluationInfo prospectEvalInfo1() {
+    return ProspectEvaluationInfo.builder()
         .owner("3d0fbbc4-d0cf-4b86-8d80-8f86165e56dd")
         .name("Biscuits")
         .website("https://biscuit-madeleine-cooky.fr/")
@@ -265,48 +254,23 @@ public class SheetIT extends MockedThirdParties {
         .companyCreationDate(DateUtils.from_dd_MM_YYYY("01/01/2023"))
         .category("Restaurant")
         .subcategory("Magasin de gâteaux")
-        .contactNature(ProspectEvalInfo.ContactNature.PROSPECT)
+        .contactNature(ProspectEvaluationInfo.ContactNature.PROSPECT)
         .reference(null)
         .coordinates(null)
         .build();
   }
 
   @Test
-  void read_prospects_filtered_from_sheet_ok() {
-    List<ProspectEvalInfo> prospectEvalInfos = prospectService.readFromSheets(
-        JOE_DOE_ID,
-        GOLDEN_SOURCE_SPR_SHEET_NAME,
-        GOLDEN_SOURCE_SHEET_NAME,
-        "3d0fbbc4-d0cf-4b86-8d80-8f86165e56dd");
-
-    assertEquals(1, prospectEvalInfos.size());
-    assertEquals(prospectEvalInfos.get(0), prospectEvalInfo1());
-  }
-
-  @Test
   void read_prospects_eval_from_sheet_ok() {
     int minRange = 2;
     int maxRange = 4;
-    List<ProspectEval> actual = prospectService.readEvaluationsFromSheets(
-        JOE_DOE_ID,
+    List<ProspectEvaluation> actual = evaluationService.readEvaluations(
         GOLDEN_SOURCE_SPR_SHEET_NAME,
         GOLDEN_SOURCE_SHEET_NAME,
         minRange, maxRange);
 
     assertEquals(3, actual.size());
     //TODO: verify attributes of each eval
-  }
-
-
-  @Test
-  void read_prospects_info_from_sheet_ok() {
-    List<ProspectEvalInfo> actual = prospectService.readFromSheets(
-        JOE_DOE_ID,
-        GOLDEN_SOURCE_SPR_SHEET_NAME,
-        GOLDEN_SOURCE_SHEET_NAME);
-
-    assertEquals(3, actual.size());
-    assertTrue(actual.contains(prospectEvalInfo1()));
   }
 
   @Test

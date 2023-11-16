@@ -15,10 +15,10 @@ import lombok.ToString;
 @Builder(toBuilder = true, builderClassName = "Builder")
 @EqualsAndHashCode
 @ToString
-public class ProspectEval<T> {
+public class ProspectEvaluation<T> {
   private String id;
   private String prospectOwnerId;
-  private ProspectEvalInfo prospectEvalInfo;
+  private ProspectEvaluationInfo prospectEvaluationInfo;
   private Boolean lockSmith;
   private Boolean antiHarm;
   private Boolean insectControl;

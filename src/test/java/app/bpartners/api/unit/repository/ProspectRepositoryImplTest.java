@@ -10,7 +10,7 @@ import app.bpartners.api.repository.ban.BanApi;
 import app.bpartners.api.repository.expressif.ExpressifApi;
 import app.bpartners.api.repository.implementation.ProspectRepositoryImpl;
 import app.bpartners.api.repository.jpa.MunicipalityJpaRepository;
-import app.bpartners.api.repository.jpa.ProspectEvalInfoJpaRepository;
+import app.bpartners.api.repository.jpa.ProspectEvaluationInfoJpaRepository;
 import app.bpartners.api.repository.jpa.ProspectJpaRepository;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitApi;
 import app.bpartners.api.service.AnnualRevenueTargetService;
@@ -44,7 +44,7 @@ class ProspectRepositoryImplTest {
   MunicipalityJpaRepository municipalityJpaRepositoryMock;
   ExpressifApi expressifApiMock;
   ProspectEvalMapper evalMapperMock;
-  ProspectEvalInfoJpaRepository evalInfoJpaRepositoryMock;
+  ProspectEvaluationInfoJpaRepository evalInfoJpaRepositoryMock;
   BanApi banApiMock;
   EntityManager em;
 
@@ -64,7 +64,7 @@ class ProspectRepositoryImplTest {
     municipalityJpaRepositoryMock = mock(MunicipalityJpaRepository.class);
     expressifApiMock = mock(ExpressifApi.class);
     evalMapperMock = mock(ProspectEvalMapper.class);
-    evalInfoJpaRepositoryMock = mock(ProspectEvalInfoJpaRepository.class);
+    evalInfoJpaRepositoryMock = mock(ProspectEvaluationInfoJpaRepository.class);
     em = mock(EntityManager.class);
     subject =
         new ProspectRepositoryImpl(prospectJpaRepositoryMock, prospectMapper, buildingPermitApiMock,

@@ -23,7 +23,7 @@ import org.hibernate.annotations.Type;
 @AllArgsConstructor
 @NoArgsConstructor
 @EqualsAndHashCode
-public class HProspectEval {
+public class HProspectEvaluation {
   @Id
   private String id;
   @Column(name = "id_prospect_eval_info")

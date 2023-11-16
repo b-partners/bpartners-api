@@ -1,7 +1,7 @@
 package app.bpartners.api.unit.utils;
 
-import app.bpartners.api.repository.expressif.ProspectEvalInfo;
-import app.bpartners.api.repository.expressif.ProspectEval;
+import app.bpartners.api.repository.expressif.ProspectEvaluationInfo;
+import app.bpartners.api.repository.expressif.ProspectEvaluation;
 import app.bpartners.api.repository.expressif.fact.NewIntervention;
 import app.bpartners.api.repository.expressif.fact.Robbery;
 import app.bpartners.api.repository.expressif.utils.ProspectEvalUtils;
@@ -18,8 +18,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 
-import static app.bpartners.api.repository.expressif.ProspectEvalInfo.ContactNature.OTHER;
-import static app.bpartners.api.repository.expressif.ProspectEvalInfo.ContactNature.PROSPECT;
+import static app.bpartners.api.repository.expressif.ProspectEvaluationInfo.ContactNature.OTHER;
+import static app.bpartners.api.repository.expressif.ProspectEvaluationInfo.ContactNature.PROSPECT;
 import static app.bpartners.api.repository.expressif.fact.NewIntervention.OldCustomer.OldCustomerType.PROFESSIONAL;
 import static app.bpartners.api.integration.conf.utils.TestUtils.assertThrowsBadRequestException;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -28,7 +28,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-class ProspectEvalUtilsTest {
+class ProspectEvaluationUtilsTest {
   public static final double DEFAULT_LATITUDE = 0.0;
   public static final double DEFAULT_LONGITUDE = 0.0;
   BanApi banApiMock;
@@ -56,9 +56,9 @@ class ProspectEvalUtilsTest {
         .build();
   }
 
-  private static ProspectEval<Object> prospectEval1() {
-    return ProspectEval.builder()
-        .prospectEvalInfo(ProspectEvalInfo.builder()
+  private static ProspectEvaluation<Object> prospectEval1() {
+    return ProspectEvaluation.builder()
+        .prospectEvaluationInfo(ProspectEvaluationInfo.builder()
             .name("Da Vito")
             .website(null)
             .address("5 Rue Sedaine, 75011 Paris")
@@ -92,9 +92,9 @@ class ProspectEvalUtilsTest {
         .build();
   }
 
-  private static ProspectEval<Object> prospectEval2() {
-    return ProspectEval.builder()
-        .prospectEvalInfo(ProspectEvalInfo.builder()
+  private static ProspectEvaluation<Object> prospectEval2() {
+    return ProspectEvaluation.builder()
+        .prospectEvaluationInfo(ProspectEvaluationInfo.builder()
             .name("Royal Fata")
             .website("https://royal-fata-paris-20.fr/fr")
             .address("237 Rue des Pyrénées, 75020 Paris")
@@ -128,9 +128,9 @@ class ProspectEvalUtilsTest {
         .build();
   }
 
-  private static ProspectEval<Object> prospectEval3() {
-    return ProspectEval.builder()
-        .prospectEvalInfo(ProspectEvalInfo.builder()
+  private static ProspectEvaluation<Object> prospectEval3() {
+    return ProspectEvaluation.builder()
+        .prospectEvaluationInfo(ProspectEvaluationInfo.builder()
             .name("Resto Madalaya")
             .website(null)
             .address("2 Rue des Amandiers, 75020 Paris")
@@ -162,9 +162,9 @@ class ProspectEvalUtilsTest {
         .build();
   }
 
-  private static ProspectEval<Object> prospectEval4() {
-    return ProspectEval.builder()
-        .prospectEvalInfo(ProspectEvalInfo.builder()
+  private static ProspectEvaluation<Object> prospectEval4() {
+    return ProspectEvaluation.builder()
+        .prospectEvaluationInfo(ProspectEvaluationInfo.builder()
             .name("OKY SUSHI okysushi")
             .website("https://okysushiparis.fr/")
             .address("356 Rue des Pyrénées, 75020 Paris")
@@ -207,10 +207,10 @@ class ProspectEvalUtilsTest {
   void import_prospects_ok() throws IOException {
     Resource prospectFile = new ClassPathResource("files/prospect-ok.xlsx");
 
-    List<ProspectEval> prospectEvals =
+    List<ProspectEvaluation> prospectEvaluations =
         subject.convertFromExcel(prospectFile.getInputStream());
 
-    assertEquals(5, prospectEvals.size());
+    assertEquals(5, prospectEvaluations.size());
     /*
     /!\ It seems Github couldn't run the test with these asserts
     assertEquals(prospectEval1(), prospectEvals.get(0));

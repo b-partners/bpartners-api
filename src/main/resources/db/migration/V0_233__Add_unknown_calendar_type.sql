@@ -1,0 +1,1 @@
+alter type calendar_permission add value if not exists 'UNKNOWN';

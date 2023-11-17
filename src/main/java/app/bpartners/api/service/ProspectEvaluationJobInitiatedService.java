@@ -10,6 +10,7 @@ import app.bpartners.api.endpoint.rest.model.JobStatusValue;
 import app.bpartners.api.endpoint.rest.model.NewInterventionOption;
 import app.bpartners.api.endpoint.rest.model.ProspectStatus;
 import app.bpartners.api.model.AccountHolder;
+import app.bpartners.api.model.Attachment;
 import app.bpartners.api.model.CalendarEvent;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.ApiException;
@@ -260,15 +261,19 @@ public class ProspectEvaluationJobInitiatedService
 
   private void sendJobResultThroughEmail(AccountHolder runningHolder,
                                          ProspectEvaluationJob finishedJob,
-                                         String emailSubject, String htmlBody) {
+                                         String emailSubject, String emailBody) {
     try {
+      String recipient = runningHolder.getEmail();
+      String concerned = null;
+      String invisibleRecipient = eventConf.getAdminEmail();
+      List<Attachment> attachments = List.of();
       sesService.sendEmail(
-          runningHolder.getEmail(),
-          null,
-          //eventConf.getAdminEmail(), //TODO: confirm to put BPartners as CC
+          recipient,
+          concerned,
           emailSubject,
-          htmlBody,
-          List.of());
+          emailBody,
+          attachments,
+          invisibleRecipient);
       log.info("Job(id=" + finishedJob.getId() + ") "
           + finishedJob.getJobStatus().getMessage());
     } catch (IOException | MessagingException e) {

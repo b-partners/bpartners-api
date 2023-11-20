@@ -649,9 +649,9 @@ public class TestUtils {
 
   public static LegalFile defaultLegalFile() {
     return new LegalFile()
-        .id("e200a1fd-5bb7-4b7a-a521-4a6002dc1927")
-        .name("cgu_28-10-22.pdf")
-        .fileUrl("https://legal.bpartners.app/cgu_28-10-22.pdf")
+        .id("05c96052-c2a1-4f1e-9e43-53ecd8642099")
+        .name("cgu_20-11-23.pdf")
+        .fileUrl("https://legal.bpartners.app/cgu_20-11-23.pdf")
         .approvalDatetime(null);
   }
 

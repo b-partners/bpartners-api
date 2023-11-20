@@ -10,6 +10,7 @@ import app.bpartners.api.endpoint.rest.model.JobStatusValue;
 import app.bpartners.api.endpoint.rest.model.NewInterventionOption;
 import app.bpartners.api.endpoint.rest.model.ProspectStatus;
 import app.bpartners.api.model.AccountHolder;
+import app.bpartners.api.model.Attachment;
 import app.bpartners.api.model.CalendarEvent;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.ApiException;
@@ -68,6 +69,7 @@ public class ProspectEvaluationJobInitiatedService
   private final EventConf eventConf;
   private final ProspectRestMapper prospectRestMapper;
   private final UserService userService;
+  private final SnsService snsService;
 
   @Override
   public void accept(ProspectEvaluationJobInitiated jobInitiated) {
@@ -76,7 +78,7 @@ public class ProspectEvaluationJobInitiatedService
     var runningJob = runningJob(existingJob);
     if (
         (runningJob != null && runningJob.getJobStatus().getValue() == IN_PROGRESS)) {
-      var idUser = jobInitiated.getIdUser();
+      User user = userService.getUserById(jobInitiated.getIdUser());
       var runningHolder =
           holderService.findDefaultByIdUser(jobInitiated.getIdUser());
       if (job.isEventConversionJob()) { //Only supported type for now
@@ -86,7 +88,7 @@ public class ProspectEvaluationJobInitiatedService
           var antiHarmRules = eventJobRunner.getEvaluationRules().getAntiHarmRules();
           var ratingProperties = eventJobRunner.getRatingProperties();
           List<CalendarEvent> calendarEvents = calendarService.getEvents(
-              idUser,
+              user.getId(),
               eventJobRunner.getCalendarId(),
               //TODO: check if local or google calendar is the most appropriate
               CalendarProvider.GOOGLE_CALENDAR,
@@ -96,7 +98,7 @@ public class ProspectEvaluationJobInitiatedService
               .filter(event -> event.getLocation() != null)
               .collect(Collectors.toList());
           var locations = locationsFromEvents(eventsWithAddress);
-          var prospectsByEvents = getProspectsToEvaluate(idUser, eventJobRunner, locations);
+          var prospectsByEvents = getProspectsToEvaluate(user, eventJobRunner, locations);
           for (CalendarEvent c : eventsWithAddress) {
             var prospects = prospectsByEvents.get(c.getLocation());
             var evaluatedProspects = prospectService.evaluateProspects(
@@ -117,7 +119,8 @@ public class ProspectEvaluationJobInitiatedService
                     evaluatedProspects,
                     interventionDate,
                     interventionLocation);
-            terminateJob(runningJob,
+            terminateJob(user,
+                runningJob,
                 runningHolder,
                 runningHolder,
                 evaluatedProspects,
@@ -140,14 +143,16 @@ public class ProspectEvaluationJobInitiatedService
           var evaluatedProspects = prospectService.evaluateProspects(
               holderOwner.getId(),
               antiHarmRules,
-              fromSpreadsheet(idUser, sheetJobRunner),
+              fromSpreadsheet(user.getId(), sheetJobRunner),
               evaluationRules.getInterventionOption(),
               ratingProperties.getMinProspectRating(),
               ratingProperties.getMinCustomerRating());
           String emailSubject = "Les prospects évalués retenus pour " + holderOwner.getName()
               + " contenu dans la feuille " + sheetProperties.getSheetName();
           String emailBody = spreadsheetEvaluationEmailBody(holderOwner, evaluatedProspects);
-          terminateJob(runningJob,
+          terminateJob(
+              user,
+              runningJob,
               holderOwner,
               runningHolder,
               evaluatedProspects,
@@ -167,12 +172,14 @@ public class ProspectEvaluationJobInitiatedService
     }
   }
 
-  private void terminateJob(ProspectEvaluationJob runningJob,
-                            AccountHolder ownerHolder,
-                            AccountHolder runningHolder,
-                            List<ProspectResult> evaluatedProspects,
-                            String emailSubject,
-                            String emailBody) {
+  private void terminateJob(
+      User user,
+      ProspectEvaluationJob runningJob,
+      AccountHolder ownerHolder,
+      AccountHolder runningHolder,
+      List<ProspectResult> evaluatedProspects,
+      String emailSubject,
+      String emailBody) {
     long durationMinutes = runningJob.getDuration()
         .toMinutes();
     long durationSeconds = runningJob.getDuration()
@@ -185,8 +192,16 @@ public class ProspectEvaluationJobInitiatedService
             .build(), FINISHED,
         getJobMessage(evaluatedProspects, durationMinutes, durationSeconds));
     if (finishedJob.getJobStatus().getValue() == FINISHED) {
+      if (!results.isEmpty()) {
+        notifyResultToDevice(results, user);
+      }
       sendJobResultThroughEmail(runningHolder, finishedJob, emailSubject, emailBody);
     }
+  }
+
+  private void notifyResultToDevice(List<Prospect> prospects, User user) {
+    String message = prospects.size() + " nouveaux prospects ont été ajoutés sur votre dashboard";
+    snsService.pushNotification(message, user);
   }
 
   private String eventConversionEmailBody(AccountHolder accountHolder,
@@ -246,15 +261,19 @@ public class ProspectEvaluationJobInitiatedService
 
   private void sendJobResultThroughEmail(AccountHolder runningHolder,
                                          ProspectEvaluationJob finishedJob,
-                                         String emailSubject, String htmlBody) {
+                                         String emailSubject, String emailBody) {
     try {
+      String recipient = runningHolder.getEmail();
+      String concerned = null;
+      String invisibleRecipient = eventConf.getAdminEmail();
+      List<Attachment> attachments = List.of();
       sesService.sendEmail(
-          runningHolder.getEmail(),
-          null,
-          //eventConf.getAdminEmail(), //TODO: confirm to put BPartners as CC
+          recipient,
+          concerned,
           emailSubject,
-          htmlBody,
-          List.of());
+          emailBody,
+          attachments,
+          invisibleRecipient);
       log.info("Job(id=" + finishedJob.getId() + ") "
           + finishedJob.getJobStatus().getMessage());
     } catch (IOException | MessagingException e) {
@@ -341,11 +360,11 @@ public class ProspectEvaluationJobInitiatedService
     return null;
   }
 
-  private HashMap<String, List<ProspectEval>> getProspectsToEvaluate(String idUser,
+  private HashMap<String, List<ProspectEval>> getProspectsToEvaluate(User user,
                                                                      EventJobRunner eventJobRunner,
                                                                      List<String> locations) {
     HashMap<String, List<ProspectEval>> prospectsByEvents = new HashMap<>();
-    var newProspects = fromDefaultSheet(idUser);
+    var newProspects = fromDefaultSheet(user);
     var evaluationRules = eventJobRunner.getEvaluationRules();
     var antiHarmRules = evaluationRules.getAntiHarmRules();
     locations.forEach(calendarEventLocation -> {
@@ -385,14 +404,13 @@ public class ProspectEvaluationJobInitiatedService
   }
 
   //TODO: use this function to import inside database
-  private List<ProspectEval> fromDefaultSheet(String idUser) {
-    User user = userService.getUserById(idUser);
+  private List<ProspectEval> fromDefaultSheet(User user) {
     AccountHolder accountHolder = user.getDefaultHolder();
     String sheetName = accountHolder.getName();
     int minDefaultRange = 2;
     int maxDefaultRange = 100;
     return prospectService.readEvaluationsFromSheetsWithoutFilter(
-        idUser,
+        user.getId(),
         accountHolder.getId(),
         GOLDEN_SOURCE_SPR_SHEET_NAME,
         sheetName,

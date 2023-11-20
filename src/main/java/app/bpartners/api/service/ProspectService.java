@@ -15,6 +15,7 @@ import app.bpartners.api.endpoint.rest.model.ProspectEvaluationJobType;
 import app.bpartners.api.endpoint.rest.model.ProspectStatus;
 import app.bpartners.api.model.Attachment;
 import app.bpartners.api.model.Customer;
+import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.NotFoundException;
@@ -96,6 +97,8 @@ public class ProspectService {
   private final EventProducer eventProducer;
   private final EventConf eventConf;
   private final ProspectStatusService statusService;
+  private final SnsService snsService;
+  private final UserService userService;
 
   @Transactional
   public Prospect getById(String id) {
@@ -768,18 +771,9 @@ public class ProspectService {
           } else {
             try {
               HAccountHolder accountHolder = optionalHolder.get();
-              String recipient = accountHolder.getEmail();
-              String cc = eventConf.getAdminEmail();
-
-              String today = DateUtils.formatFrenchDate(Instant.now());
-              String emailSubject =
-                  String.format(
-                      "[BPartners] Pensez à modifier le statut de vos prospects pour les conserver - %s",
-                      today);
-              String emailBody = prospectRelaunchEmailBody(prospects, accountHolder);
-              List<Attachment> attachments = List.of();
-              sesService.sendEmail(recipient, cc, emailSubject, emailBody, attachments);
-              log.info("Mail sent to {} after relaunching prospects not contacted", recipient);
+              User user = userService.getUserById(accountHolder.getIdUser());
+              sendEmailProspectToContact(prospects, optionalHolder);
+              notifyProspectsToContact(user);
             } catch (IOException | MessagingException e) {
               throw new ApiException(SERVER_EXCEPTION, e);
             }
@@ -790,6 +784,30 @@ public class ProspectService {
     if (!exceptionMsg.isEmpty()) {
       log.warn(exceptionMsg);
     }
+  }
+
+  private void sendEmailProspectToContact(List<Prospect> prospects,
+                                          Optional<HAccountHolder> optionalHolder)
+      throws IOException, MessagingException {
+    HAccountHolder accountHolder = optionalHolder.get();
+    String recipient = accountHolder.getEmail();
+    String cc = eventConf.getAdminEmail();
+    String today = DateUtils.formatFrenchDate(Instant.now());
+    String emailSubject =
+        String.format(
+            "[BPartners] Pensez à modifier le statut de vos prospects pour les conserver - %s",
+            today);
+    String emailBody = prospectRelaunchEmailBody(prospects, accountHolder);
+    List<Attachment> attachments = List.of();
+
+    sesService.sendEmail(recipient, cc, emailSubject, emailBody, attachments);
+    log.info("Mail sent to {} after relaunching prospects not contacted", recipient);
+  }
+
+  private void notifyProspectsToContact(User user) {
+    String message = "Pensez à modifier le statut de vos prospects pour les conserver";
+    snsService.pushNotification(message, user);
+    log.info("Notifications(message=" + message + ") sent to " + user.getName());
   }
 
   private static String prospectRelaunchEmailBody(List<Prospect> prospects,

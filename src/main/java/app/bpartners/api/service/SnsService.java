@@ -51,10 +51,25 @@ public class SnsService {
   }
 
   public void pushNotification(String message, User user) {
-    PublishResponse publishResponse = snsClient.publish(PublishRequest.builder()
-        .targetArn(user.getSnsArn())
-        .message(message)
-        .build());
-    log.info("Notifications pushed with messageId=" + publishResponse.messageId());
+    String snsArn = user.getSnsArn();
+    if (snsArn == null) {
+      log.warn(
+          "[FAILED] Mobile notification with message content [{}]"
+              + " not sent to {} because SNS ARN is null",
+          message, user.getName());
+    } else {
+      try {
+        PublishResponse publishResponse = snsClient.publish(PublishRequest.builder()
+            .targetArn(snsArn)
+            .message(message)
+            .build());
+        log.info("Notifications pushed with messageId=" + publishResponse.messageId());
+      } catch (Exception e) {
+        log.warn(
+            "[FAILED] Mobile notification with message content [{}]"
+                + " not sent to {} because {}}",
+            message, user.getName(), e.getMessage());
+      }
+    }
   }
 }

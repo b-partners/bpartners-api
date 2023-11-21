@@ -44,7 +44,7 @@ public class InvoiceScheduleService {
           try {
             invoiceService.crupdateInvoice(invoice);
             log.info("Invoice(id=" + invoice.getId() + ") refreshed");
-          } catch (BadRequestException e) {
+          } catch (Exception e) {
             log.error(e.getMessage());
           }
         }

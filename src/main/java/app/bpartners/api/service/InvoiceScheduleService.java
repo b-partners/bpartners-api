@@ -8,9 +8,7 @@ import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.model.PaymentRequest;
 import app.bpartners.api.model.User;
-import app.bpartners.api.model.exception.BadRequestException;
 import java.util.List;
-import javax.annotation.PostConstruct;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -24,7 +22,6 @@ public class InvoiceScheduleService {
   private final UserService userService;
   private final InvoiceService invoiceService;
 
-  @PostConstruct
   void refreshInvoices() {
     List<User> users = userService.findAll();
     for (User u : users) {

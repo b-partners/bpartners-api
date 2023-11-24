@@ -53,6 +53,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.annotation.PostConstruct;
 import javax.mail.MessagingException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -754,10 +755,13 @@ public class ProspectService {
     return repository.create(prospectsToSave);
   }
 
+  @PostConstruct
   @Scheduled(cron = "0 0 14 ? * FRI", zone = PARIS_TIMEZONE)
   public void relaunchHoldersProspects() {
     List<Prospect> prospectToContact = statusService.findAllByStatus(TO_CONTACT).stream()
-        .filter(prospect -> prospect.getRating().getValue() > 0)
+        .filter(prospect -> prospect.getRating() != null
+            && prospect.getRating().getValue() != null
+            && prospect.getRating().getValue() > 0)
         .collect(Collectors.toList());
     Map<String, List<Prospect>> prospectsByHolder = dispatchByHolder(prospectToContact);
     StringBuilder msgBuilder = new StringBuilder();

@@ -14,6 +14,7 @@ import lombok.ToString;
 import static app.bpartners.api.endpoint.rest.model.AccountStatus.INVALID_CREDENTIALS;
 import static app.bpartners.api.endpoint.rest.model.AccountStatus.OPENED;
 import static app.bpartners.api.endpoint.rest.model.AccountStatus.SCA_REQUIRED;
+import static app.bpartners.api.endpoint.rest.model.AccountStatus.UNDERGOING_REFRESHMENT;
 import static app.bpartners.api.endpoint.rest.model.AccountStatus.UNKNOWN;
 import static app.bpartners.api.endpoint.rest.model.AccountStatus.VALIDATION_REQUIRED;
 
@@ -29,6 +30,8 @@ public class BridgeAccount {
   public static final int BRIDGE_STATUS_WRONG_CRED = 402;
   public static final int BRIDGE_STATUS_SCA = 1010;
   public static final int BRIDGE_STATUS_VALIDATION_REQ = 1100;
+  public static final int BRIDGE_ACCOUNT_ADDED_RECENTLY = -2;
+  public static final int BRIDGE_CREDENTIAL_UPDATED_RECENTLY = -3;
   @JsonProperty("id")
   private String id;
   @JsonProperty("bank_id")
@@ -54,6 +57,9 @@ public class BridgeAccount {
         return SCA_REQUIRED;
       case BRIDGE_STATUS_VALIDATION_REQ:
         return VALIDATION_REQUIRED;
+      case BRIDGE_ACCOUNT_ADDED_RECENTLY:
+      case BRIDGE_CREDENTIAL_UPDATED_RECENTLY:
+        return UNDERGOING_REFRESHMENT;
       default:
         return UNKNOWN;
     }

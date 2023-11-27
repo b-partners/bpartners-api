@@ -2,9 +2,7 @@ package app.bpartners.api.service;
 
 import app.bpartners.api.endpoint.event.EventConf;
 import app.bpartners.api.endpoint.event.EventProducer;
-import app.bpartners.api.endpoint.event.model.TypedCustomerCrupdated;
-import app.bpartners.api.endpoint.event.model.TypedEvent;
-import app.bpartners.api.endpoint.event.model.gen.CustomerCrupdated;
+import app.bpartners.api.endpoint.event.gen.CustomerCrupdated;
 import app.bpartners.api.endpoint.rest.mapper.CustomerRestMapper;
 import app.bpartners.api.endpoint.rest.model.CreateCustomer;
 import app.bpartners.api.endpoint.rest.model.CustomerStatus;
@@ -48,6 +46,10 @@ public class CustomerService {
   private final EventConf eventConf;
   private final BanApi banApi;
 
+  private static String replaceNullValue(String value) {
+    return value == null ? "" : value;
+  }
+
   public void exportCustomers(String idUser, String fileType, PrintWriter pw) {
     var customers = repository.findAllByIdUserOrderByLastNameAsc(idUser);
     pw.println(CSV_HEADERS);
@@ -89,7 +91,7 @@ public class CustomerService {
   public List<Customer> crupdateCustomers(List<Customer> customers) {
     List<Customer> saved = repository.saveAll(customers);
 
-    List<TypedEvent> typedEvent = saved.isEmpty() ? List.of()
+    List<Object> typedEvent = saved.isEmpty() ? List.of()
         : saved.stream().map(customer -> {
           User user = AuthProvider.getAuthenticatedUser();
           return toTypedEvent(user, customer, customer.isRecentlyAdded());
@@ -129,21 +131,19 @@ public class CustomerService {
     }
   }
 
-  private TypedCustomerCrupdated toTypedEvent(User user, Customer customer, boolean isNew) {
+  private CustomerCrupdated toTypedEvent(User user, Customer customer, boolean isNew) {
     String subject = isNew
         ? "Ajout du nouveau client " + customer.getName() + " par l'artisan " + user.getName()
         : "Modification du client existant " + customer.getName() + " par l'artisan "
         + user.getName();
     String recipientEmail = eventConf.getAdminEmail();
-    return new TypedCustomerCrupdated(
-        new CustomerCrupdated()
-            .subject(subject)
-            .recipientEmail(recipientEmail)
-            .type(isNew ? CustomerCrupdated.Type.CREATE
-                : CustomerCrupdated.Type.UPDATE)
-            .user(user)
-            .customer(customer)
-    );
+    return new CustomerCrupdated()
+        .subject(subject)
+        .recipientEmail(recipientEmail)
+        .type(isNew ? CustomerCrupdated.Type.CREATE
+            : CustomerCrupdated.Type.UPDATE)
+        .user(user)
+        .customer(customer);
   }
 
   //@Scheduled(cron = Scheduled.CRON_DISABLED)
@@ -198,9 +198,5 @@ public class CustomerService {
   @Transactional
   public List<Customer> findByAccountHolderId(String accountHolderId) {
     return repository.findByIdAccountHolder(accountHolderId);
-  }
-
-  private static String replaceNullValue(String value) {
-    return value == null ? "" : value;
   }
 }

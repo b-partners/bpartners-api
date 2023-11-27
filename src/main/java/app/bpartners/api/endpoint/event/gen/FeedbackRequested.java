@@ -1,4 +1,4 @@
-package app.bpartners.api.endpoint.event.model.gen;
+package app.bpartners.api.endpoint.event.gen;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;

@@ -3,7 +3,7 @@ package app.bpartners.api.event;
 import app.bpartners.api.endpoint.event.EventConsumer;
 import app.bpartners.api.endpoint.event.EventServiceInvoker;
 import app.bpartners.api.endpoint.event.model.TypedInvoiceRelaunchSaved;
-import app.bpartners.api.endpoint.event.model.gen.InvoiceRelaunchSaved;
+import app.bpartners.api.endpoint.event.gen.InvoiceRelaunchSaved;
 import java.time.Duration;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;

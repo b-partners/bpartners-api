@@ -1,4 +1,4 @@
-package app.bpartners.api.endpoint.event.model.gen;
+package app.bpartners.api.endpoint.event.gen;
 
 import app.bpartners.api.model.Customer;
 import app.bpartners.api.model.User;

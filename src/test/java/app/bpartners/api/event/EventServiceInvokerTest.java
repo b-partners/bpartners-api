@@ -2,15 +2,15 @@ package app.bpartners.api.event;
 
 import app.bpartners.api.endpoint.event.EventServiceInvoker;
 import app.bpartners.api.endpoint.event.model.TypedInvoiceRelaunchSaved;
-import app.bpartners.api.endpoint.event.model.gen.InvoiceRelaunchSaved;
-import app.bpartners.api.service.CustomerCrupdatedService;
-import app.bpartners.api.service.FeedbackRequestedService;
-import app.bpartners.api.service.InvoiceCrupdatedService;
-import app.bpartners.api.service.InvoiceRelaunchSavedService;
-import app.bpartners.api.service.ProspectEvaluationJobInitiatedService;
-import app.bpartners.api.service.UserOnboardedService;
-import app.bpartners.api.service.UserUpsertedService;
-import app.bpartners.api.service.aws.ProspectUpdatedService;
+import app.bpartners.api.endpoint.event.gen.InvoiceRelaunchSaved;
+import app.bpartners.api.service.event.CustomerCrupdatedService;
+import app.bpartners.api.service.event.FeedbackRequestedService;
+import app.bpartners.api.service.event.InvoiceCrupdatedService;
+import app.bpartners.api.service.event.InvoiceRelaunchSavedService;
+import app.bpartners.api.service.event.ProspectEvaluationJobInitiatedService;
+import app.bpartners.api.service.event.UserOnboardedService;
+import app.bpartners.api.service.event.UserUpsertedService;
+import app.bpartners.api.service.event.ProspectUpdatedService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

@@ -2,8 +2,7 @@ package app.bpartners.api.service;
 
 import app.bpartners.api.endpoint.event.EventConf;
 import app.bpartners.api.endpoint.event.EventProducer;
-import app.bpartners.api.endpoint.event.model.TypedInvoiceRelaunchSaved;
-import app.bpartners.api.endpoint.event.model.gen.InvoiceRelaunchSaved;
+import app.bpartners.api.endpoint.event.gen.InvoiceRelaunchSaved;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.endpoint.rest.security.model.Principal;
 import app.bpartners.api.endpoint.rest.security.principal.PrincipalProvider;
@@ -24,6 +23,7 @@ import app.bpartners.api.repository.InvoiceRepository;
 import app.bpartners.api.repository.UserInvoiceRelaunchConfRepository;
 import app.bpartners.api.repository.jpa.InvoiceJpaRepository;
 import app.bpartners.api.service.aws.SesService;
+import app.bpartners.api.service.event.InvoiceRelaunchSavedService;
 import app.bpartners.api.service.utils.InvoicePdfUtils;
 import app.bpartners.api.service.utils.TemplateResolverUtils;
 import java.time.LocalDate;
@@ -282,7 +282,7 @@ public class InvoiceRelaunchService {
     return TemplateResolverUtils.parseTemplateResolver(MAIL_TEMPLATE, context);
   }
 
-  private TypedInvoiceRelaunchSaved getTypedInvoiceRelaunched(
+  private InvoiceRelaunchSaved getTypedInvoiceRelaunched(
       Invoice invoice,
       AccountHolder accountHolder,
       String subject,
@@ -306,14 +306,14 @@ public class InvoiceRelaunchService {
     );
   }
 
-  private TypedInvoiceRelaunchSaved toTypedEvent(String recipient,
-                                                 String subject,
-                                                 String emailBody,
-                                                 String attachmentName,
-                                                 Invoice invoice,
-                                                 AccountHolder accountHolder,
-                                                 List<Attachment> attachments) {
-    return new TypedInvoiceRelaunchSaved(InvoiceRelaunchSaved.builder()
+  private InvoiceRelaunchSaved toTypedEvent(String recipient,
+                                            String subject,
+                                            String emailBody,
+                                            String attachmentName,
+                                            Invoice invoice,
+                                            AccountHolder accountHolder,
+                                            List<Attachment> attachments) {
+    return InvoiceRelaunchSaved.builder()
         .subject(subject)
         .recipient(recipient)
         .htmlBody(emailBody)
@@ -322,7 +322,7 @@ public class InvoiceRelaunchService {
         .accountHolder(accountHolder)
         .logoFileId(userLogoFileId())
         .attachments(attachments)
-        .build());
+        .build();
   }
 
   private String userLogoFileId() {

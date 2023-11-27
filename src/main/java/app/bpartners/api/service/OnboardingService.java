@@ -2,10 +2,8 @@ package app.bpartners.api.service;
 
 import app.bpartners.api.endpoint.event.EventConf;
 import app.bpartners.api.endpoint.event.EventProducer;
-import app.bpartners.api.endpoint.event.model.TypedUserOnboarded;
-import app.bpartners.api.endpoint.event.model.TypedUserUpserted;
-import app.bpartners.api.endpoint.event.model.gen.UserOnboarded;
-import app.bpartners.api.endpoint.event.model.gen.UserUpserted;
+import app.bpartners.api.endpoint.event.gen.UserOnboarded;
+import app.bpartners.api.endpoint.event.gen.UserUpserted;
 import app.bpartners.api.endpoint.rest.model.AccountStatus;
 import app.bpartners.api.endpoint.rest.model.EnableStatus;
 import app.bpartners.api.endpoint.rest.model.IdentificationStatus;
@@ -83,24 +81,20 @@ public class OnboardingService {
         .collect(Collectors.toList());
   }
 
-  private TypedUserUpserted toTypedUser(User user) {
-    return new TypedUserUpserted(
-        new UserUpserted()
+  private UserUpserted toTypedUser(User user) {
+    return new UserUpserted()
             .userId(user.getId())
-            .email(user.getEmail())
-    );
+            .email(user.getEmail());
   }
 
-  private TypedUserOnboarded toTypedEvent(OnboardedUser onboardedUser) {
+  private UserOnboarded toTypedEvent(OnboardedUser onboardedUser) {
     String subject =
         "Inscription d'un nouvel artisan : " + onboardedUser.getOnboardedUser().getName();
     String recipient = eventConf.getAdminEmail();
-    return new TypedUserOnboarded(
-        new UserOnboarded()
+    return new UserOnboarded()
             .subject(subject)
             .recipientEmail(recipient)
-            .onboardedUser(onboardedUser)
-    );
+            .onboardedUser(onboardedUser);
   }
 
   private User userDefaultValues(User user, String id, String bridgePassword) {

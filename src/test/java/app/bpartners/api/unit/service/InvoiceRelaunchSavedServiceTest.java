@@ -1,7 +1,7 @@
 package app.bpartners.api.unit.service;
 
 import app.bpartners.api.endpoint.event.EventConf;
-import app.bpartners.api.endpoint.event.model.gen.InvoiceRelaunchSaved;
+import app.bpartners.api.endpoint.event.gen.InvoiceRelaunchSaved;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.Customer;
@@ -11,7 +11,7 @@ import app.bpartners.api.model.InvoiceDiscount;
 import app.bpartners.api.model.InvoiceProduct;
 import app.bpartners.api.model.User;
 import app.bpartners.api.service.FileService;
-import app.bpartners.api.service.InvoiceRelaunchSavedService;
+import app.bpartners.api.service.event.InvoiceRelaunchSavedService;
 import app.bpartners.api.service.aws.SesService;
 import java.io.IOException;
 import java.time.LocalDate;

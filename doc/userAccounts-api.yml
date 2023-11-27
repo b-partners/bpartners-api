@@ -847,6 +847,7 @@ components:
       type: string
       enum:
         - OPENED
+        - UNDERGOING_REFRESHMENT
         - CLOSED
         - CLOSING
         - SUSPENDED

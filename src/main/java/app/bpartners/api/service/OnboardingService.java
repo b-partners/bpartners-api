@@ -2,6 +2,7 @@ package app.bpartners.api.service;
 
 import app.bpartners.api.endpoint.event.EventConf;
 import app.bpartners.api.endpoint.event.EventProducer;
+import app.bpartners.api.endpoint.event.SesConf;
 import app.bpartners.api.endpoint.event.gen.UserOnboarded;
 import app.bpartners.api.endpoint.event.gen.UserUpserted;
 import app.bpartners.api.endpoint.rest.model.AccountStatus;
@@ -48,7 +49,7 @@ public class OnboardingService {
   private final AccountHolderRepository accountHolderRepository;
   private final EventProducer eventProducer;
   private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
-  private final EventConf eventConf;
+  private final SesConf sesConf;
 
   @Transactional(isolation = SERIALIZABLE)
   public OnboardedUser onboardUser(User toSave, String companyName) {
@@ -90,7 +91,7 @@ public class OnboardingService {
   private UserOnboarded toTypedEvent(OnboardedUser onboardedUser) {
     String subject =
         "Inscription d'un nouvel artisan : " + onboardedUser.getOnboardedUser().getName();
-    String recipient = eventConf.getAdminEmail();
+    String recipient = sesConf.getAdminEmail();
     return new UserOnboarded()
             .subject(subject)
             .recipientEmail(recipient)

@@ -1,7 +1,7 @@
 package app.bpartners.api.service;
 
-import app.bpartners.api.endpoint.event.EventConf;
 import app.bpartners.api.endpoint.event.EventProducer;
+import app.bpartners.api.endpoint.event.SesConf;
 import app.bpartners.api.endpoint.event.gen.InvoiceRelaunchSaved;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.endpoint.rest.security.model.Principal;
@@ -67,7 +67,7 @@ public class InvoiceRelaunchService {
   private final PrincipalProvider auth;
   private final FileService fileService;
   private final AttachmentService attachmentService;
-  private final EventConf eventConf;
+  private final SesConf sesConf;
   private final InvoicePdfUtils pdfUtils = new InvoicePdfUtils();
   private final SesService sesService;
 
@@ -170,7 +170,7 @@ public class InvoiceRelaunchService {
         ? getDefaultSubject(invoice) : emailObject;
     String recipient = invoice.getCustomer().getEmail();
     String concerned = invoice.getUser().getDefaultHolder().getEmail();
-    String invisibleConcerned = eventConf.getAdminEmail();
+    String invisibleConcerned = sesConf.getAdminEmail();
     String attachmentName = invoice.getRef() + PDF_EXTENSION;
     String htmlBody = emailBody(emailBody, invoice, accountHolder, fromScratch);
     InvoiceRelaunchSavedService.relaunchInvoiceAction(

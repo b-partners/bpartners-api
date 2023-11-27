@@ -2,6 +2,7 @@ package app.bpartners.api.service;
 
 import app.bpartners.api.endpoint.event.EventConf;
 import app.bpartners.api.endpoint.event.EventProducer;
+import app.bpartners.api.endpoint.event.SesConf;
 import app.bpartners.api.endpoint.event.model.TypedProspectEvaluationJobInitiated;
 import app.bpartners.api.endpoint.event.model.TypedProspectUpdated;
 import app.bpartners.api.endpoint.event.gen.ProspectEvaluationJobInitiated;
@@ -95,7 +96,7 @@ public class ProspectService {
   private final ProspectMapper prospectMapper;
   private final ProspectEvaluationJobRepository evalJobRepository;
   private final EventProducer eventProducer;
-  private final EventConf eventConf;
+  private final SesConf sesConf;
   private final ProspectStatusService statusService;
   private final SnsService snsService;
   private final UserService userService;
@@ -793,7 +794,7 @@ public class ProspectService {
       throws IOException, MessagingException {
     HAccountHolder accountHolder = optionalHolder.get();
     String recipient = accountHolder.getEmail();
-    String cc = eventConf.getAdminEmail();
+    String cc = sesConf.getAdminEmail();
     String today = DateUtils.formatFrenchDate(Instant.now());
     String emailSubject =
         String.format(

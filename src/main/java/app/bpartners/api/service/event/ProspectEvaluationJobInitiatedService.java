@@ -1,6 +1,6 @@
 package app.bpartners.api.service.event;
 
-import app.bpartners.api.endpoint.event.EventConf;
+import app.bpartners.api.endpoint.event.SesConf;
 import app.bpartners.api.endpoint.event.gen.ProspectEvaluationJobInitiated;
 import app.bpartners.api.endpoint.rest.mapper.ProspectRestMapper;
 import app.bpartners.api.endpoint.rest.model.CalendarProvider;
@@ -71,7 +71,7 @@ public class ProspectEvaluationJobInitiatedService
   private final CalendarService calendarService;
   private final BanApi banApi;
   private final SesService sesService;
-  private final EventConf eventConf;
+  private final SesConf sesConf;
   private final ProspectRestMapper prospectRestMapper;
   private final UserService userService;
   private final SnsService snsService;
@@ -270,7 +270,7 @@ public class ProspectEvaluationJobInitiatedService
     try {
       String recipient = runningHolder.getEmail();
       String concerned = null;
-      String invisibleRecipient = eventConf.getAdminEmail();
+      String invisibleRecipient = sesConf.getAdminEmail();
       List<Attachment> attachments = List.of();
       sesService.sendEmail(
           recipient,

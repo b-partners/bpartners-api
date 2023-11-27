@@ -2,6 +2,7 @@ package app.bpartners.api.service;
 
 import app.bpartners.api.endpoint.event.EventConf;
 import app.bpartners.api.endpoint.event.EventProducer;
+import app.bpartners.api.endpoint.event.SesConf;
 import app.bpartners.api.endpoint.event.gen.CustomerCrupdated;
 import app.bpartners.api.endpoint.rest.mapper.CustomerRestMapper;
 import app.bpartners.api.endpoint.rest.model.CreateCustomer;
@@ -44,6 +45,7 @@ public class CustomerService {
   private final CustomerRestMapper restMapper;
   private final EventProducer eventProducer;
   private final EventConf eventConf;
+  private final SesConf sesConf;
   private final BanApi banApi;
 
   private static String replaceNullValue(String value) {
@@ -136,7 +138,7 @@ public class CustomerService {
         ? "Ajout du nouveau client " + customer.getName() + " par l'artisan " + user.getName()
         : "Modification du client existant " + customer.getName() + " par l'artisan "
         + user.getName();
-    String recipientEmail = eventConf.getAdminEmail();
+    String recipientEmail = sesConf.getAdminEmail();
     return new CustomerCrupdated()
         .subject(subject)
         .recipientEmail(recipientEmail)

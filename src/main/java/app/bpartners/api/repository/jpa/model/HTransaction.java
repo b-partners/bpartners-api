@@ -29,6 +29,8 @@ public class HTransaction {
   @Id
   private String id;
   private String idAccount;
+  private String idUser;
+  private String idBank;
   private Long idBridge;
   @ManyToOne
   @JoinColumn(name = "id_invoice")

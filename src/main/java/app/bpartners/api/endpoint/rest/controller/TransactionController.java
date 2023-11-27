@@ -2,6 +2,7 @@ package app.bpartners.api.endpoint.rest.controller;
 
 import app.bpartners.api.endpoint.rest.mapper.TransactionRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.TransactionsSummaryRestMapper;
+import app.bpartners.api.endpoint.rest.model.EnableStatus;
 import app.bpartners.api.endpoint.rest.model.Transaction;
 import app.bpartners.api.endpoint.rest.model.TransactionStatus;
 import app.bpartners.api.endpoint.rest.model.TransactionsSummary;
@@ -10,7 +11,6 @@ import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.service.TransactionService;
 import java.util.List;
-import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -52,10 +52,11 @@ public class TransactionController {
   @GetMapping(value = "/accounts/{aId}/transactionsSummary")
   public TransactionsSummary getTransactionsSummary(
       @PathVariable(name = "aId") String accountId,
-      @RequestParam(required = false) Integer year) {
+      @RequestParam(required = false) Integer year,
+      @RequestParam(required = false) EnableStatus status) {
     String idUser =
         AuthProvider.getAuthenticatedUserId(); //TODO: should be changed when endpoint changed
-    return summaryRestMapper.toRest(service.getTransactionsSummary(idUser, year));
+    return summaryRestMapper.toRest(service.getTransactionsSummary(idUser, year, status));
   }
 
   @PutMapping(value = "/accounts/{accountId}/transactions/{transactionId}/invoices/{invoiceId}")

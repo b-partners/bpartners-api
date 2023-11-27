@@ -35,7 +35,6 @@ public class Transaction {
   public static final String RELEASED_STATUS = "Released";
   private String id;
   private String idAccount;
-  private Long idBridge;
   private Money amount;
   private String currency;
   private String label;
@@ -46,6 +45,7 @@ public class Transaction {
   private TransactionInvoiceDetails invoiceDetails;
   @Getter(AccessLevel.NONE)
   private Instant paymentDatetime;
+  private Bank bank;
 
   public Instant getPaymentDatetime() {
     return paymentDatetime.truncatedTo(ChronoUnit.MILLIS);

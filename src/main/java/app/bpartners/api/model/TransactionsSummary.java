@@ -18,8 +18,8 @@ import lombok.ToString;
 @EqualsAndHashCode
 @ToString
 public class TransactionsSummary {
+  private String idUser;
   private int year;
-
   private List<MonthlyTransactionsSummary> summary;
 
   public Integer getAnnualIncome() {

@@ -1,5 +1,6 @@
 package app.bpartners.api.model.mapper;
 
+import app.bpartners.api.model.Bank;
 import app.bpartners.api.model.Money;
 import app.bpartners.api.model.Transaction;
 import app.bpartners.api.model.TransactionCategory;
@@ -52,7 +53,10 @@ public class TransactionMapper {
         .build();
   }
 
-  public HTransaction toEntity(String idAccount, TransactionConnector connector) {
+  public HTransaction toEntity(String idAccount,
+                               String idUser,
+                               String idBank,
+                               TransactionConnector connector) {
     return HTransaction.builder()
         .id(String.valueOf(randomUUID()))
         .idBridge(Long.valueOf(connector.getId()))
@@ -65,10 +69,12 @@ public class TransactionMapper {
         .status(connector.getStatus())
         .currency(connector.getCurrency())
         .label(connector.getLabel())
+        .idBank(idBank)
+        .idUser(idUser)
         .build();
   }
 
-  public Transaction toDomain(HTransaction entity, TransactionCategory category) {
+  public Transaction toDomain(HTransaction entity, Bank bank, TransactionCategory category) {
     return Transaction.builder()
         .id(entity.getId())
         .idAccount(entity.getIdAccount())
@@ -81,6 +87,7 @@ public class TransactionMapper {
         .side(entity.getSide())
         .status(entity.getStatus())
         .category(category)
+        .bank(bank)
         .build();
   }
 }

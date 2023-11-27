@@ -40,15 +40,17 @@ class TransactionSummaryRepositoryTest {
           return answer;
         }
     );
-    when(jpaRepository.getByIdUserAndYearAndMonth(
+    when(jpaRepository.getByIdUserAndYearAndMonthAndTransactionSummaryStatus(
         eq(JOE_DOE_ID),
         eq(YearMonth.now().getYear()),
-        any(Integer.class))
+        any(Integer.class),
+        any())
     ).thenReturn(persisted());
-    when(jpaRepository.getByIdUserAndYearAndMonth(
+    when(jpaRepository.getByIdUserAndYearAndMonthAndTransactionSummaryStatus(
         eq(JOE_DOE_ID),
         eq(2021),
-        any(Integer.class))
+        any(Integer.class),
+        any())
     ).thenReturn(null);
   }
 
@@ -74,10 +76,10 @@ class TransactionSummaryRepositoryTest {
     YearMonth now = YearMonth.now();
 
     MonthlyTransactionsSummary actual =
-        summaryRepository.getByIdUserAndYearMonth(JOE_DOE_ID, now.getYear(),
+        summaryRepository.getEnabledByIdUserAndYearMonth(JOE_DOE_ID, now.getYear(),
             now.getMonthValue());
     MonthlyTransactionsSummary nullSummary =
-        summaryRepository.getByIdUserAndYearMonth(JOE_DOE_ID, 2021, 2);
+        summaryRepository.getEnabledByIdUserAndYearMonth(JOE_DOE_ID, 2021, 2);
 
     assertEquals(domain().toBuilder().updatedAt(actual.getUpdatedAt()).build(), actual);
     assertNull(nullSummary);

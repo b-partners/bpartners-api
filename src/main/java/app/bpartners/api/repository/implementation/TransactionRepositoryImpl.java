@@ -5,6 +5,7 @@ import app.bpartners.api.model.JustifyTransaction;
 import app.bpartners.api.model.Transaction;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.mapper.TransactionMapper;
+import app.bpartners.api.repository.BankRepository;
 import app.bpartners.api.repository.TransactionCategoryRepository;
 import app.bpartners.api.repository.TransactionRepository;
 import app.bpartners.api.repository.connectors.transaction.TransactionConnector;
@@ -43,6 +44,7 @@ public class TransactionRepositoryImpl implements TransactionRepository {
   private final InvoiceJpaRepository invoiceJpaRepository;
   private final TransactionConnectorRepository connectorRepository;
   private final EntityManager entityManager;
+  private final BankRepository bankRepository;
 
   private List<HTransaction> filterByIdAccountAndLabel(String idAccount, String label,
                                                        TransactionStatus status,
@@ -78,6 +80,7 @@ public class TransactionRepositoryImpl implements TransactionRepository {
     return transactions
         .stream()
         .map(transaction -> mapper.toDomain(transaction,
+            bankRepository.findById(transaction.getIdBank()),
             categoryRepository.findByIdTransaction(transaction.getId())))
         .collect(Collectors.toList());
   }
@@ -88,6 +91,7 @@ public class TransactionRepositoryImpl implements TransactionRepository {
     Pageable pageable = PageRequest.of(page, pageSize);
     return jpaRepository.findByIdAccountOrderByPaymentDateTimeDesc(idAccount, pageable).stream()
         .map(transaction -> mapper.toDomain(transaction,
+            bankRepository.findById(transaction.getIdBank()),
             categoryRepository.findByIdTransaction(transaction.getId())))
         .collect(Collectors.toList());
   }
@@ -109,10 +113,11 @@ public class TransactionRepositoryImpl implements TransactionRepository {
           }
           return bridgeTransactions.get(0);
         })
-        .collect(Collectors.toList());
+        .toList();
     return entities.stream()
-        .map(entity -> mapper.toDomain(entity,
-            categoryRepository.findByIdTransaction(entity.getId())))
+        .map(transaction -> mapper.toDomain(transaction,
+            bankRepository.findById(transaction.getIdBank()),
+            categoryRepository.findByIdTransaction(transaction.getId())))
         //TODO: when getting from database only, sort by payment date DESC directly in db query
         .sorted(Comparator.comparing(Transaction::getPaymentDatetime).reversed())
         .collect(Collectors.toList());
@@ -123,7 +128,9 @@ public class TransactionRepositoryImpl implements TransactionRepository {
     HTransaction transaction = jpaRepository.findById(id)
         .orElseThrow(() -> new NotFoundException("Transaction." + id + " is not found."));
     return mapper.toDomain(
-        transaction, categoryRepository.findByIdTransaction(transaction.getId()));
+        transaction,
+        bankRepository.findById(transaction.getIdBank()),
+        categoryRepository.findByIdTransaction(transaction.getId()));
   }
 
   @Override
@@ -145,6 +152,7 @@ public class TransactionRepositoryImpl implements TransactionRepository {
         .invoice(invoice)
         .build());
     return mapper.toDomain(savedTransaction,
+        bankRepository.findById(entity.getIdBank()),
         categoryRepository.findByIdTransaction(entity.getId()));
   }
 
@@ -166,7 +174,9 @@ public class TransactionRepositoryImpl implements TransactionRepository {
     HTransaction entity = jpaRepository.findById(idTransaction)
         .orElseThrow(() -> new NotFoundException(
             "Transaction." + idTransaction + " not found"));
-    return mapper.toDomain(entity, categoryRepository.findByIdTransaction(entity.getId()));
+    return mapper.toDomain(entity,
+        bankRepository.findById(entity.getIdBank()),
+        categoryRepository.findByIdTransaction(entity.getId()));
   }
 
   @Override

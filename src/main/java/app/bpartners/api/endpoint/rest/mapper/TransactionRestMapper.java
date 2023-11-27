@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 public class TransactionRestMapper {
   private final TransactionCategoryRestMapper categoryRestMapper;
   private final InvoiceRestMapper invoiceRestMapper;
+  private final BankRestMapper bankRestMapper;
 
   public Transaction toRest(app.bpartners.api.model.Transaction internal) {
     Transaction transaction = new Transaction()
@@ -20,7 +21,8 @@ public class TransactionRestMapper {
         .reference(internal.getReference())
         .status(internal.getStatus())
         .type(internal.getType())
-        .invoice(invoiceRestMapper.toRest(internal.getInvoiceDetails()));
+        .invoice(invoiceRestMapper.toRest(internal.getInvoiceDetails()))
+        .bank(bankRestMapper.toRest(internal.getBank()));
     if (internal.getCategory() != null) {
       transaction.setCategory(List.of(categoryRestMapper.toRest(internal.getCategory())));
     }

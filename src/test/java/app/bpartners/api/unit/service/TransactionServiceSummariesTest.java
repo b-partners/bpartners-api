@@ -59,7 +59,7 @@ class TransactionServiceSummariesTest {
   void refresh_summaries_with_last_month_summary() {
     YearMonth lastMonth = YearMonth.now().minusMonths(1);
     Instant now = Instant.now();
-    when(transactionsSummaryRepository.getByIdUserAndYearMonth(
+    when(transactionsSummaryRepository.getEnabledByIdUserAndYearMonth(
         JOE_DOE_ID,
         lastMonth.getYear(),
         lastMonth.getMonthValue() - 1
@@ -86,7 +86,7 @@ class TransactionServiceSummariesTest {
   @Test
   void refresh_summaries_without_last_month_summary() {
     YearMonth lastMonth = YearMonth.now().minusMonths(1);
-    when(transactionsSummaryRepository.getByIdUserAndYearMonth(
+    when(transactionsSummaryRepository.getEnabledByIdUserAndYearMonth(
         JOE_DOE_ID,
         lastMonth.getYear(),
         lastMonth.getMonthValue() - 1

@@ -1,10 +1,12 @@
 package app.bpartners.api.service;
 
 import app.bpartners.api.endpoint.rest.model.BankConnectionRedirection;
+import app.bpartners.api.endpoint.rest.model.EnableStatus;
 import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
 import app.bpartners.api.model.Account;
-import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.Money;
+import app.bpartners.api.model.MonthlyTransactionsSummary;
+import app.bpartners.api.model.TransactionsSummary;
 import app.bpartners.api.model.UpdateAccountIdentity;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.UserToken;
@@ -130,7 +132,18 @@ public class AccountService {
     }
     if (bankRepository.disconnectBank(user)) {
       //Body of event bridge treatment
-      summaryRepository.removeAll(userId);
+
+      /* Disable transactionsSummary*/
+      List<TransactionsSummary> allSummaries = summaryRepository.getByIdUser(userId);
+      for (TransactionsSummary ts : allSummaries) {
+        List<MonthlyTransactionsSummary> monthlySummaries = ts.getSummary();
+        monthlySummaries.forEach(mts -> {
+          mts.setTransactionSummaryStatus(EnableStatus.DISABLED);
+        });
+      }
+      summaryRepository.saveAll(allSummaries);
+
+      //TODO: disable accounts only
       repository.removeAll(accounts);
 
       Account newDefaultAccount = repository.save(resetDefaultAccount(user, active));

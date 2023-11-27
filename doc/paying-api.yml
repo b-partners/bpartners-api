@@ -1154,6 +1154,8 @@ components:
           $ref: '#/components/schemas/TransactionStatus'
         invoice:
           $ref: '#/components/schemas/TransactionInvoice'
+        bank:
+          $ref: './userAccounts-api.yml#/components/schemas/Bank'
     TransactionTypeEnum:
       type: string
       enum:

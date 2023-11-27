@@ -1,5 +1,6 @@
 package app.bpartners.api.repository.implementation;
 
+import app.bpartners.api.endpoint.rest.model.EnableStatus;
 import app.bpartners.api.model.MonthlyTransactionsSummary;
 import app.bpartners.api.model.TransactionsSummary;
 import app.bpartners.api.model.mapper.TransactionsSummaryMapper;
@@ -7,9 +8,14 @@ import app.bpartners.api.repository.TransactionsSummaryRepository;
 import app.bpartners.api.repository.jpa.TransactionsSummaryJpaRepository;
 import app.bpartners.api.repository.jpa.model.HMonthlyTransactionsSummary;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Repository;
+
+import static app.bpartners.api.endpoint.rest.model.EnableStatus.ENABLED;
 
 @Repository
 @AllArgsConstructor
@@ -18,17 +24,85 @@ public class TransactionsSummaryRepositoryImpl implements TransactionsSummaryRep
   private final TransactionsSummaryMapper mapper;
 
   @Override
-  public TransactionsSummary getByIdUserAndYear(String idUser, int year) {
-    List<HMonthlyTransactionsSummary> monthlySummaries =
-        jpaRepository.getByIdUserAndYear(idUser, year);
-    return mapper.toDomain(year, monthlySummaries);
+  public List<TransactionsSummary> getByIdUser(String idUser) {
+    List<HMonthlyTransactionsSummary> toRemove = jpaRepository.getByIdUser(idUser);
+    List<MonthlyTransactionsSummary> allSummaries = toRemove.stream()
+        .map(mapper::toDomain)
+        .toList();
+
+    return mapToTransactionsSummary(allSummaries);
+  }
+
+  private List<TransactionsSummary> mapToTransactionsSummary(
+      List<MonthlyTransactionsSummary> allSummaries) {
+    Map<Integer, List<MonthlyTransactionsSummary>> monthlySummariesByYear = new HashMap<>();
+    for (MonthlyTransactionsSummary s : allSummaries) {
+      int year = s.getYear();
+      if (!monthlySummariesByYear.containsKey(year)) {
+        List<MonthlyTransactionsSummary> subList = new ArrayList<>();
+        subList.add(s);
+        monthlySummariesByYear.put(year, subList);
+      } else {
+        monthlySummariesByYear.get(year).add(s);
+      }
+    }
+    List<TransactionsSummary> transactionsSummaries = new ArrayList<>();
+    monthlySummariesByYear.forEach(
+        (year, summaries) -> {
+          transactionsSummaries.add(mapper.toDomain(year, summaries));
+        }
+    );
+    return transactionsSummaries;
   }
 
   @Override
-  public TransactionsSummary getByAccountHolderIdAndYear(String accountHolderId, int year) {
+  public List<TransactionsSummary> saveAll(List<TransactionsSummary> toSave) {
+    List<HMonthlyTransactionsSummary> monthlyEntities = new ArrayList<>();
+    for (TransactionsSummary ts : toSave) {
+      String idUser = ts.getIdUser();
+      int year = ts.getYear();
+      List<MonthlyTransactionsSummary> summariesToSave = ts.getSummary();
+      for (MonthlyTransactionsSummary mts : summariesToSave) {
+        HMonthlyTransactionsSummary summaryEntity =
+            jpaRepository.findByIdUserAndYearAndMonth(idUser, year, mts.getMonth())
+                .orElse(HMonthlyTransactionsSummary.builder()
+                    .idUser(idUser)
+                    .month(mts.getMonth())
+                    .year(year)
+                    .build());
+        HMonthlyTransactionsSummary toSaveEntity = summaryEntity.toBuilder()
+            .cashFlow(mts.getCashFlow().toString())
+            .income(mts.getIncome().toString())
+            .outcome(mts.getOutcome().toString())
+            .transactionSummaryStatus(mts.getTransactionSummaryStatus())
+            .updatedAt(Instant.now())
+            .build();
+
+        monthlyEntities.add(toSaveEntity);
+      }
+    }
+    List<MonthlyTransactionsSummary> savedSummaries =
+        jpaRepository.saveAll(monthlyEntities).stream()
+            .map(mapper::toDomain)
+            .toList();
+    return mapToTransactionsSummary(savedSummaries);
+  }
+
+  public TransactionsSummary getByIdUserAndYearAndStatus(String idUser, int year,
+                                                         EnableStatus status) {
     List<HMonthlyTransactionsSummary> monthlySummaries =
-        jpaRepository.getByIdAccountHolderIdAndYear(accountHolderId, year);
-    return mapper.toDomain(year, monthlySummaries);
+        jpaRepository.getByIdUserAndYearAndTransactionSummaryStatus(idUser, year, status);
+    return mapper.toDomainFromEntity(year, monthlySummaries);
+  }
+
+  @Override
+  public TransactionsSummary getEnabledByAccountHolderIdAndYear(String accountHolderId, int year) {
+    List<HMonthlyTransactionsSummary> monthlySummaries =
+        jpaRepository.getByIdAccountHolderIdAndYearAndStatus(
+            accountHolderId,
+            year,
+            ENABLED.getValue());
+    return mapper.toDomainFromEntity(year, monthlySummaries);
   }
 
   public MonthlyTransactionsSummary updateYearMonthSummary(
@@ -38,6 +112,7 @@ public class TransactionsSummaryRepositoryImpl implements TransactionsSummaryRep
             .orElse(HMonthlyTransactionsSummary.builder()
                 .idUser(idUser)
                 .month(monthlySummary.getMonth())
+                .transactionSummaryStatus(ENABLED)
                 .year(year)
                 .build());
     HMonthlyTransactionsSummary toSave = summaryEntity.toBuilder()
@@ -50,9 +125,12 @@ public class TransactionsSummaryRepositoryImpl implements TransactionsSummaryRep
   }
 
   @Override
-  public MonthlyTransactionsSummary getByIdUserAndYearMonth(
+  public MonthlyTransactionsSummary getEnabledByIdUserAndYearMonth(
       String idUser, int year, int month) {
-    return mapper.toDomain(jpaRepository.getByIdUserAndYearAndMonth(idUser, year, month));
+    return mapper.toDomain(
+        jpaRepository.getByIdUserAndYearAndMonthAndTransactionSummaryStatus(idUser,
+            year, month,
+            ENABLED));
   }
 
   @Override

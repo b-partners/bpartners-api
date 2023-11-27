@@ -11,7 +11,6 @@ import app.bpartners.api.repository.jpa.model.HAnnualRevenueTarget;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -47,7 +46,7 @@ public class AnnualRevenueTargetRepositoryImpl implements AnnualRevenueTargetRep
 
   private AnnualRevenueTarget convertToDomain(HAnnualRevenueTarget target) {
     TransactionsSummary transactionsSummary =
-        summaryRepository.getByAccountHolderIdAndYear(
+        summaryRepository.getEnabledByAccountHolderIdAndYear(
             target.getIdAccountHolder(), target.getYear());
     Fraction amountTarget = parseFraction(target.getAmountTarget());
     Fraction amountAttempted = parseFraction(transactionsSummary.getAnnualIncome());

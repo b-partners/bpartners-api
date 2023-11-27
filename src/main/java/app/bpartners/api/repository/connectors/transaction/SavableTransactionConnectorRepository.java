@@ -3,7 +3,9 @@ package app.bpartners.api.repository.connectors.transaction;
 import app.bpartners.api.model.Money;
 import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.model.mapper.TransactionMapper;
+import app.bpartners.api.repository.jpa.AccountJpaRepository;
 import app.bpartners.api.repository.jpa.TransactionJpaRepository;
+import app.bpartners.api.repository.jpa.model.HAccount;
 import app.bpartners.api.repository.jpa.model.HTransaction;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -21,6 +23,7 @@ public class SavableTransactionConnectorRepository
   private static final String UNSUPPORTED_ERROR_MESSAGE = "Unsupported: only saving methods are!";
   private final TransactionJpaRepository jpaRepository;
   private final TransactionMapper mapper;
+  private final AccountJpaRepository accountJpaRepository;
 
   @Override
   public List<TransactionConnector> findByIdAccount(String idAccount) {
@@ -31,12 +34,15 @@ public class SavableTransactionConnectorRepository
   @Override
   public List<TransactionConnector> saveAll(
       String idAccount, List<TransactionConnector> connectors) {
+    HAccount account = accountJpaRepository.getById(idAccount);
     List<HTransaction> toSave = connectors.stream()
         .map(connector -> {
           List<HTransaction> bridgeTransactions =
               jpaRepository.findAllByIdBridge(Long.valueOf(connector.getId()));
           if (bridgeTransactions.isEmpty()) {
-            return mapper.toEntity(idAccount, connector);
+            String idUser = account.getUser().getId();
+            String idBank = account.getIdBank();
+            return mapper.toEntity(idAccount, idUser, idBank, connector);
           }
           if (bridgeTransactions.size() > 1) {
             log.warn("Duplicated transactions with same external ID {}",

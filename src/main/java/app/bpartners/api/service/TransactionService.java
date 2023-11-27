@@ -1,5 +1,6 @@
 package app.bpartners.api.service;
 
+import app.bpartners.api.endpoint.rest.model.EnableStatus;
 import app.bpartners.api.endpoint.rest.model.TransactionStatus;
 import app.bpartners.api.endpoint.rest.model.TransactionTypeEnum;
 import app.bpartners.api.model.Account;
@@ -22,7 +23,6 @@ import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apfloat.Aprational;
@@ -92,11 +92,15 @@ public class TransactionService {
     return repository.findById(transactionId);
   }
 
-  public TransactionsSummary getTransactionsSummary(String idUser, Integer year) {
+  public TransactionsSummary getTransactionsSummary(String idUser, Integer year,
+                                                    EnableStatus status) {
     if (year == null) {
       year = LocalDate.now().getYear();
     }
-    return summaryRepository.getByIdUserAndYear(idUser, year);
+    if (status == null) {
+      status = EnableStatus.ENABLED;
+    }
+    return summaryRepository.getByIdUserAndYearAndStatus(idUser, year, status);
   }
 
   public Transaction justifyTransaction(String idTransaction, String idInvoice) {
@@ -145,9 +149,10 @@ public class TransactionService {
     saveSummariesByYearMonth(
         account.getUserId(),
         yearMonth.getYear(),
-        MonthlyTransactionsSummary
-            .builder()
+        MonthlyTransactionsSummary.builder()
             .id(actualSummary == null ? null : actualSummary.getId())
+            .transactionSummaryStatus(actualSummary == null
+                ? EnableStatus.ENABLED : actualSummary.getTransactionSummaryStatus())
             .income(incomeValue)
             .outcome(outcomeValue)
             .cashFlow(account.getAvailableBalance().getValue())
@@ -162,7 +167,7 @@ public class TransactionService {
 
   public MonthlyTransactionsSummary getByIdUserAndYearMonth(
       String idUser, YearMonth yearMonth) {
-    return summaryRepository.getByIdUserAndYearMonth(
+    return summaryRepository.getEnabledByIdUserAndYearMonth(
         idUser, yearMonth.getYear(), yearMonth.getMonthValue() - 1);
   }
 

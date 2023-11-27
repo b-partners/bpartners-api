@@ -3,7 +3,7 @@ info:
   version: 'latest'
   title: BPartners API
 servers:
-  - url: https://api-dev.bpartners.app
+  - url: https://api.preprod.bpartners.app
 security:
   - BearerAuth: [ ]
 

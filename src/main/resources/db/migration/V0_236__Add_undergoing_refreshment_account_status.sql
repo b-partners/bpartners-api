@@ -1,0 +1,1 @@
+alter type "account_status" add value if not exists 'UNDERGOING_REFRESHMENT';

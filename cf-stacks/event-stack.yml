@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: Event stack for BPartners
+Description: bpartners - Event
 
 Parameters:
   Env:
@@ -10,6 +10,7 @@ Resources:
     Type: AWS::SQS::Queue
     Properties:
       QueueName: !Join ['' , [!Ref Env , -bpartners]]
+      VisibilityTimeout: 601
       RedrivePolicy:
         deadLetterTargetArn: !GetAtt DeadLetterQueue.Arn
         maxReceiveCount: 5
@@ -72,12 +73,26 @@ Resources:
       Type: String
       Value: !Ref MailboxQueue
 
+  MailboxQueueSSMArn:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Join ['' , [/bpartners/ , !Ref Env , /sqs/mailbox-queue-arn]]
+      Type: String
+      Value: !GetAtt MailboxQueue.Arn
+
   DeadLetterQueueSSM:
     Type: AWS::SSM::Parameter
     Properties:
       Name: !Join ['' , [/bpartners/ , !Ref Env , /sqs/dead-letter-queue-url]]
       Type: String
       Value: !Ref DeadLetterQueue
+
+  DeadLetterQueueArnSSM:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Join [ '' , [ /bpartners/ , !Ref Env , /sqs/dead-letter-queue-arn ] ]
+      Type: String
+      Value: !GetAtt DeadLetterQueue.Arn
 
   EventBridgeBus:
     Type: AWS::Events::EventBus
@@ -109,10 +124,23 @@ Resources:
       Type: String
       Value: !GetAtt EventBridgeBus.Name
 
+  EventBridgeBusArnSSM:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Join [ '',[ /bpartners/ , !Ref Env , /eventbridge/bus-arn ] ]
+      Type: String
+      Value: !GetAtt EventBridgeBus.Arn
+
 Outputs:
   MailboxQueueURL:
     Value: !Ref MailboxQueueSSM
+  MailboxQueueArn:
+    Value: !Ref MailboxQueueSSMArn
   DeadLetterQueueURL:
     Value: !Ref DeadLetterQueueSSM
+  DeadLetterQueueArn:
+    Value: !Ref DeadLetterQueueArnSSM
   EventBridgeBusName:
     Value: !Ref EventBridgeBusNameSSM
+  EventBridgeArnName:
+    Value: !Ref EventBridgeBusArnSSM

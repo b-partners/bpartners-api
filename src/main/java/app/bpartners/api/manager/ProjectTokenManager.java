@@ -13,7 +13,6 @@ import org.springframework.stereotype.Component;
 @Component
 @EnableAsync
 public class ProjectTokenManager {
-  public static final int FOURTY_FIVE_MINUTES_INTERVAL = 2700000;
   public static final String PARAMS_NAME_GOOGLE_SERVICE_ACCOUNT = "/bpartners/google/service-account";
   private final FinctectureTokenManager finctectureTokenManager;
   private final SsmComponent ssmComponent;
@@ -38,7 +37,6 @@ public class ProjectTokenManager {
   }
 
   /*TODO: retry to get token after 10 secondes in case of server failure*/
-  @Scheduled(fixedRate = FOURTY_FIVE_MINUTES_INTERVAL)
   @Async
   @PostConstruct
   public void refreshFintectureProjectToken() {

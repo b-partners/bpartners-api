@@ -1,7 +1,9 @@
 package app.bpartners.api.repository.jpa.model;
 
+import app.bpartners.api.endpoint.rest.model.EnableStatus;
 import app.bpartners.api.endpoint.rest.model.TransactionStatus;
 import java.time.Instant;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
@@ -41,6 +43,11 @@ public class HTransaction {
   @Type(type = "pgsql_enum")
   @Enumerated(EnumType.STRING)
   private TransactionStatus status;
+  //Used to filter transactions summary only for enabled
+  @Type(type = "pgsql_enum")
+  @Enumerated(EnumType.STRING)
+  @Column(name = "transaction_enable_status")
+  private EnableStatus enableStatus;
   private Instant paymentDateTime;
 
   public String describe() {

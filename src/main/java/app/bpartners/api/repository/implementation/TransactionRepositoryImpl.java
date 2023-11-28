@@ -109,7 +109,7 @@ public class TransactionRepositoryImpl implements TransactionRepository {
           }
           return bridgeTransactions.get(0);
         })
-        .collect(Collectors.toList());
+        .toList();
     return entities.stream()
         .map(entity -> mapper.toDomain(entity,
             categoryRepository.findByIdTransaction(entity.getId())))
@@ -146,6 +146,18 @@ public class TransactionRepositoryImpl implements TransactionRepository {
         .build());
     return mapper.toDomain(savedTransaction,
         categoryRepository.findByIdTransaction(entity.getId()));
+  }
+
+  @Override
+  public List<Transaction> saveAll(List<Transaction> transactions) {
+    List<HTransaction> entities = transactions.stream()
+        .map(mapper::toEntity)
+        .toList();
+    ;
+    return entities.stream()
+        .map(entity -> mapper.toDomain(entity,
+            categoryRepository.findByIdTransaction(entity.getId())))
+        .collect(Collectors.toList());
   }
 
   @Override

@@ -1,5 +1,6 @@
 package app.bpartners.api.service;
 
+import app.bpartners.api.endpoint.rest.model.EnableStatus;
 import app.bpartners.api.endpoint.rest.model.TransactionStatus;
 import app.bpartners.api.endpoint.rest.model.TransactionTypeEnum;
 import app.bpartners.api.model.Account;
@@ -22,7 +23,7 @@ import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
+import javax.annotation.PostConstruct;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apfloat.Aprational;
@@ -111,9 +112,12 @@ public class TransactionService {
     List<Transaction> yearlyTransactions =
         repository.findByAccountIdAndStatusBetweenInstants(
             account.getId(), BOOKED, getFirstDayOfYear(actualYear), getLastDayOfYear(actualYear));
+    List<Transaction> enabledTransactions = yearlyTransactions.stream()
+        .filter(transaction -> transaction.getEnableStatus() == EnableStatus.ENABLED)
+        .toList();
     for (int i = Month.JANUARY.getValue(); i <= Month.DECEMBER.getValue(); i++) {
       YearMonth yearMonth = YearMonth.of(actualYear, i);
-      List<Transaction> monthlyTransactions = filterByTwoInstants(yearlyTransactions,
+      List<Transaction> monthlyTransactions = filterByTwoInstants(enabledTransactions,
           getFirstDayOfMonth(yearMonth),
           getLastDayOfMonth(yearMonth));
       refreshMonthSummary(account, YearMonth.of(actualYear, i), monthlyTransactions);
@@ -169,6 +173,7 @@ public class TransactionService {
   //TODO: check if 1 hour of refresh is enough or too much
   //TODO: note that account (balance) is _NOT_ updated by this scheduled task anymore
   @Scheduled(fixedRate = 60 * 60 * 1_000)
+  @PostConstruct
   public void refreshTransactionsSummaries() {
     List<Account> activeAccounts = accountService.findAllActiveAccounts();
     activeAccounts.forEach(

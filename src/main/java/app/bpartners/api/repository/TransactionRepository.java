@@ -20,6 +20,9 @@ public interface TransactionRepository {
 
   Transaction save(JustifyTransaction justifyTransaction);
 
+
+  List<Transaction> saveAll(List<Transaction> transactions);
+
   List<Transaction> findByAccountIdAndStatusBetweenInstants(
       String id, TransactionStatus status,
       Instant from, Instant to);

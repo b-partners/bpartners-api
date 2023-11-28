@@ -1,10 +1,7 @@
 package app.bpartners.api.service;
 
-import app.bpartners.api.endpoint.event.EventConf;
 import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.endpoint.event.SesConf;
-import app.bpartners.api.endpoint.event.model.TypedProspectEvaluationJobInitiated;
-import app.bpartners.api.endpoint.event.model.TypedProspectUpdated;
 import app.bpartners.api.endpoint.event.gen.ProspectEvaluationJobInitiated;
 import app.bpartners.api.endpoint.event.gen.ProspectUpdated;
 import app.bpartners.api.endpoint.rest.model.ContactNature;
@@ -150,10 +147,10 @@ public class ProspectService {
     //validateStatusUpdateFlow(toSave, existing);
     Prospect savedProspect = repository.save(toSave);
     if (existing.getActualStatus() != savedProspect.getActualStatus()) {
-      eventProducer.accept(List.of(new TypedProspectUpdated(ProspectUpdated.builder()
+      eventProducer.accept(List.of(ProspectUpdated.builder()
           .prospect(savedProspect)
           .updatedAt(Instant.now())
-          .build())));
+          .build()));
     }
     return savedProspect;
   }
@@ -214,15 +211,18 @@ public class ProspectService {
     List<ProspectEvaluationJob> savedJobs = evalJobRepository.saveAll(jobs);
 
     eventProducer.accept(jobRunners.stream()
-        .map(evaluationJobRunner -> new TypedProspectEvaluationJobInitiated(
-            ProspectEvaluationJobInitiated.builder()
-                .jobId(evaluationJobRunner.getJobId())
-                .idUser(userId)
-                .jobRunner(evaluationJobRunner)
-                .build()))
+        .map(evaluationJobRunner -> toTypedEvent(evaluationJobRunner, userId))
         .collect(Collectors.toList()));
 
     return savedJobs;
+  }
+
+  private ProspectEvaluationJobInitiated toTypedEvent(ProspectEvaluationJobRunner evaluationJobRunner, String userId) {
+    return ProspectEvaluationJobInitiated.builder()
+        .jobId(evaluationJobRunner.getJobId())
+        .idUser(userId)
+        .jobRunner(evaluationJobRunner)
+        .build();
   }
 
   @Transactional

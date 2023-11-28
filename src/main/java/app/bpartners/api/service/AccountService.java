@@ -43,18 +43,11 @@ public class AccountService {
 
   public Account getActive(List<Account> accounts) {
     return accounts.stream()
-        .filter(Account::isActive)
+        .filter(account -> account.isActive() && account.isEnabled())
         .findAny()
         .orElseThrow(() -> new NotImplementedException(
             "One account should be active but "
                 + describeAccountList(accounts) + " do not contain active account"));
-  }
-
-  @Transactional
-  public List<Account> findAllByActive(boolean status) {
-    return repository.findAll().stream()
-        .filter(account -> account.isActive() == status)
-        .collect(Collectors.toList());
   }
 
   @Transactional
@@ -134,8 +127,6 @@ public class AccountService {
     if (bankRepository.disconnectBank(user)) {
       //Body of event bridge treatment
       summaryRepository.removeAll(userId);
-      //TODO: disable accounts only
-      repository.removeAll(accounts);
 
       //Disable transactions
       List<Transaction> allTransactions = new ArrayList<>();
@@ -145,6 +136,10 @@ public class AccountService {
       }
       allTransactions.forEach(transaction -> transaction.setEnableStatus(EnableStatus.DISABLED));
       transactionRepository.saveAll(allTransactions);
+
+      repository.saveAll(accounts.stream()
+          .peek(account -> account.setEnableStatus(EnableStatus.DISABLED))
+          .toList());
 
       Account newDefaultAccount = repository.save(resetDefaultAccount(user, active));
 
@@ -178,6 +173,7 @@ public class AccountService {
         .externalId(null)
         .availableBalance(new Money())
         .status(OPENED)
+        .enableStatus(EnableStatus.ENABLED)
         .build();
   }
 

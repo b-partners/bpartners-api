@@ -1,6 +1,7 @@
 package app.bpartners.api.repository.jpa.model;
 
 import app.bpartners.api.endpoint.rest.model.AccountStatus;
+import app.bpartners.api.endpoint.rest.model.EnableStatus;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.io.Serializable;
 import javax.persistence.Column;
@@ -51,4 +52,7 @@ public class HAccount implements Serializable {
   @Type(type = "pgsql_enum")
   @Enumerated(EnumType.STRING)
   private AccountStatus status;
+  @Type(type = "pgsql_enum")
+  @Enumerated(EnumType.STRING)
+  private EnableStatus enableStatus;
 }

@@ -95,6 +95,21 @@ public class AccountRepositoryImpl implements AccountRepository {
   }
 
   @Override
+  public List<Account> saveAll(List<Account> toSave) {
+    List<HAccount> entities = toSave.stream()
+        .map(account -> {
+          HUser user = getUserById(account.getUserId());
+          return mapper.toEntity(account, user);
+        })
+        .toList();
+    return jpaRepository.saveAll(entities).stream()
+        .map(saved -> mapper.toDomain(
+            saved, saved.getIdBank() == null ? null :
+                bankRepository.findByExternalId(saved.getIdBank())))
+        .toList();
+  }
+
+  @Override
   public Account save(Account toSave) {
     HUser user = getUserById(toSave.getUserId());
     HAccount entity = mapper.toEntity(toSave, user);

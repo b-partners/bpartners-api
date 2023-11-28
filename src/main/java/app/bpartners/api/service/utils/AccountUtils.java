@@ -48,7 +48,8 @@ public class AccountUtils {
 
   public static Account filterActive(List<Account> accounts, String preferredAccountId) {
     Optional<Account> firstPreferredAccount = accounts.stream()
-        .filter(account -> preferredAccountId != null
+        .filter(account -> account.isEnabled()
+            && preferredAccountId != null
             && preferredAccountId.equals(account.getId()))
         .findFirst();
     return firstPreferredAccount

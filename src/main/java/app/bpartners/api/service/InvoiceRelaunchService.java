@@ -1,6 +1,5 @@
 package app.bpartners.api.service;
 
-import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.endpoint.event.SesConf;
 import app.bpartners.api.endpoint.event.gen.InvoiceRelaunchSaved;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
@@ -63,7 +62,6 @@ public class InvoiceRelaunchService {
   private final InvoiceJpaRepository invoiceJpaRepository;
   private final InvoiceRelaunchConfService relaunchConfService;
   private final AccountHolderService holderService;
-  private final EventProducer eventProducer;
   private final PrincipalProvider auth;
   private final FileService fileService;
   private final AttachmentService attachmentService;

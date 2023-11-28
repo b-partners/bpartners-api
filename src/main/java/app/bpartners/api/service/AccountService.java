@@ -1,10 +1,11 @@
 package app.bpartners.api.service;
 
 import app.bpartners.api.endpoint.rest.model.BankConnectionRedirection;
+import app.bpartners.api.endpoint.rest.model.EnableStatus;
 import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
 import app.bpartners.api.model.Account;
-import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.Money;
+import app.bpartners.api.model.Transaction;
 import app.bpartners.api.model.UpdateAccountIdentity;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.UserToken;
@@ -13,6 +14,7 @@ import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.repository.AccountRepository;
 import app.bpartners.api.repository.BankRepository;
+import app.bpartners.api.repository.TransactionRepository;
 import app.bpartners.api.repository.TransactionsSummaryRepository;
 import app.bpartners.api.repository.UserRepository;
 import java.time.Instant;
@@ -37,6 +39,7 @@ public class AccountService {
   private final BankRepository bankRepository;
   private final UserRepository userRepository;
   private final TransactionsSummaryRepository summaryRepository;
+  private final TransactionRepository transactionRepository;
 
   public Account getActive(List<Account> accounts) {
     return accounts.stream()
@@ -131,7 +134,17 @@ public class AccountService {
     if (bankRepository.disconnectBank(user)) {
       //Body of event bridge treatment
       summaryRepository.removeAll(userId);
+      //TODO: disable accounts only
       repository.removeAll(accounts);
+
+      //Disable transactions
+      List<Transaction> allTransactions = new ArrayList<>();
+      for (Account account : accounts) {
+        List<Transaction> transactions = transactionRepository.findByAccountId(account.getId());
+        allTransactions.addAll(transactions);
+      }
+      allTransactions.forEach(transaction -> transaction.setEnableStatus(EnableStatus.DISABLED));
+      transactionRepository.saveAll(allTransactions);
 
       Account newDefaultAccount = repository.save(resetDefaultAccount(user, active));
 

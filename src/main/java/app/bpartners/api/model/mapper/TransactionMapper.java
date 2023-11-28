@@ -1,5 +1,6 @@
 package app.bpartners.api.model.mapper;
 
+import app.bpartners.api.endpoint.rest.model.EnableStatus;
 import app.bpartners.api.model.Money;
 import app.bpartners.api.model.Transaction;
 import app.bpartners.api.model.TransactionCategory;
@@ -52,6 +53,21 @@ public class TransactionMapper {
         .build();
   }
 
+  public HTransaction toEntity(Transaction domain) {
+    return HTransaction.builder()
+        .id(String.valueOf(randomUUID()))
+        .idBridge(domain.getIdBridge())
+        .idAccount(domain.getIdAccount())
+        .amount(String.valueOf(domain.getAmount().getValue()))
+        .paymentDateTime(domain.getPaymentDatetime())
+        .side(domain.getSide())
+        .status(domain.getStatus())
+        .currency(domain.getCurrency())
+        .label(domain.getLabel())
+        .enableStatus(domain.getEnableStatus())
+        .build();
+  }
+
   public HTransaction toEntity(String idAccount, TransactionConnector connector) {
     return HTransaction.builder()
         .id(String.valueOf(randomUUID()))
@@ -65,6 +81,7 @@ public class TransactionMapper {
         .status(connector.getStatus())
         .currency(connector.getCurrency())
         .label(connector.getLabel())
+        .enableStatus(EnableStatus.ENABLED)
         .build();
   }
 
@@ -81,6 +98,7 @@ public class TransactionMapper {
         .side(entity.getSide())
         .status(entity.getStatus())
         .category(category)
+        .enableStatus(entity.getEnableStatus())
         .build();
   }
 }

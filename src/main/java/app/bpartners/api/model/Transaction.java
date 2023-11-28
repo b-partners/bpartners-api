@@ -1,5 +1,6 @@
 package app.bpartners.api.model;
 
+import app.bpartners.api.endpoint.rest.model.EnableStatus;
 import app.bpartners.api.endpoint.rest.model.TransactionStatus;
 import app.bpartners.api.endpoint.rest.model.TransactionTypeEnum;
 import app.bpartners.api.model.exception.ApiException;
@@ -44,6 +45,7 @@ public class Transaction {
   private TransactionCategory category;
   private TransactionStatus status;
   private TransactionInvoiceDetails invoiceDetails;
+  private EnableStatus enableStatus;
   @Getter(AccessLevel.NONE)
   private Instant paymentDatetime;
 

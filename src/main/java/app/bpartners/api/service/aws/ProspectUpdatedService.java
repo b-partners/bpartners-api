@@ -74,6 +74,9 @@ public class ProspectUpdatedService implements Consumer<ProspectUpdated> {
   }
 
   private String getTranslatedFeedBack(ProspectFeedback feedback) {
+    if (feedback == null) {
+      return null;
+    }
     String translatedFeedback = switch (feedback) {
       case NOT_INTERESTED -> "Pas intéressé";
       case INTERESTED -> "Interessé";

@@ -3,6 +3,7 @@ package app.bpartners.api.service.utils;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.repository.jpa.AccountJpaRepository;
 import app.bpartners.api.repository.jpa.model.HAccount;
+import app.bpartners.api.repository.model.AccountConnector;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -24,6 +25,26 @@ public class AccountUtils {
       log.warn("Multiple accounts with same externalID=" + externalId + " detected");
     }
     return Optional.of(accountsWithSameId.get(0));
+  }
+
+  public static Optional<HAccount> findByIbanOrNameAndBank(
+      AccountConnector accountConnector, AccountJpaRepository jpaRepository) {
+    String iban = accountConnector.getIban();
+    String name = accountConnector.getName();
+    String bankId = accountConnector.getBankId();
+
+    List<HAccount> accountsWithIbanOrNameAndBank =
+        iban == null ? jpaRepository.findAllByNameContainingIgnoreCaseAndIdBank(name, bankId)
+            : jpaRepository.findAllByIban(iban);
+    if (accountsWithIbanOrNameAndBank.isEmpty()) {
+      return Optional.empty();
+    }
+    if (accountsWithIbanOrNameAndBank.size() > 1) {
+      log.warn(
+          "Multiple accounts with same iban=" + iban + " or name=" + name
+              + " and bankId=" + bankId + " detected");
+    }
+    return Optional.of(accountsWithIbanOrNameAndBank.get(0));
   }
 
   public static String describeAccountList(List<Account> accounts) {
@@ -48,7 +69,8 @@ public class AccountUtils {
 
   public static Account filterActive(List<Account> accounts, String preferredAccountId) {
     Optional<Account> firstPreferredAccount = accounts.stream()
-        .filter(account -> preferredAccountId != null
+        .filter(account -> account.isEnabled()
+            && preferredAccountId != null
             && preferredAccountId.equals(account.getId()))
         .findFirst();
     return firstPreferredAccount
@@ -59,7 +81,7 @@ public class AccountUtils {
   private static Supplier<Account> getAccountWithIbanFirst(List<Account> accounts) {
     return () -> {
       Account firstAccount = accounts.stream()
-          .filter(account -> account.getIban() != null)
+          .filter(account -> account.getIban() != null && account.isEnabled())
           .findFirst()
           .orElse(accounts.get(0)); //No IBAN must be default account
       List<Account> others = new ArrayList<>(accounts);

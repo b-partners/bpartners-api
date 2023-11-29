@@ -95,6 +95,21 @@ public class AccountRepositoryImpl implements AccountRepository {
   }
 
   @Override
+  public List<Account> saveAll(List<Account> toSave) {
+    List<HAccount> entities = toSave.stream()
+        .map(account -> {
+          HUser user = getUserById(account.getUserId());
+          return mapper.toEntity(account, user);
+        })
+        .toList();
+    return jpaRepository.saveAll(entities).stream()
+        .map(saved -> mapper.toDomain(
+            saved, saved.getIdBank() == null ? null :
+                bankRepository.findByExternalId(saved.getIdBank())))
+        .toList();
+  }
+
+  @Override
   public Account save(Account toSave) {
     HUser user = getUserById(toSave.getUserId());
     HAccount entity = mapper.toEntity(toSave, user);
@@ -130,9 +145,12 @@ public class AccountRepositoryImpl implements AccountRepository {
   }
 
   private List<Account> getJpaAccounts(String userId, String preferredAccountId) {
-    return filterByActive(preferredAccountId, jpaRepository.findByUser_Id(userId).stream()
-        .map(entity -> mapper.toDomain(entity, bankRepository.findByExternalId(entity.getIdBank())))
-        .collect(Collectors.toList()));
+    List<HAccount> accountEntities = jpaRepository.findByUser_Id(userId);
+    List<Account> accounts = accountEntities.stream()
+        .map(entity ->
+            mapper.toDomain(entity, bankRepository.findByExternalId(entity.getIdBank())))
+        .collect(Collectors.toList());
+    return filterByActive(preferredAccountId, accounts);
   }
 
   private List<Account> filterByActive(String preferredAccountId, List<Account> accounts) {

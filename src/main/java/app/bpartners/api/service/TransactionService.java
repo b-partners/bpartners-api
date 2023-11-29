@@ -23,7 +23,6 @@ import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
-import javax.annotation.PostConstruct;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apfloat.Aprational;
@@ -78,9 +77,10 @@ public class TransactionService {
   }
 
   public List<Transaction> getPersistedByIdAccount(String idAccount,
-                                                   String label, TransactionStatus status,
-                                                   String category, PageFromOne page,
-                                                   BoundedPageSize pageSize) {
+                                                   String label,
+                                                   TransactionStatus status,
+                                                   String category,
+                                                   PageFromOne page, BoundedPageSize pageSize) {
     int pageValue = page == null ? 0 : page.getValue() - 1;
     int pageSizeValue = pageSize == null ? 30 : pageSize.getValue();
     if (category != null) {

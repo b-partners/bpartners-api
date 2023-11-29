@@ -15,6 +15,8 @@ public interface AccountRepository {
 
   Account save(Account toSave);
 
+  List<Account> saveAll(List<Account> toSave);
+
   void removeAll(List<Account> toRemove);
 
   List<Account> findAll();

@@ -10,7 +10,6 @@ public interface TransactionRepository {
   List<Transaction> findByIdAccount(String idAccount, String title, TransactionStatus status,
                                     int page, int pageSize);
 
-  List<Transaction> findPersistedByIdAccount(String idAccount, int page, int pageSize);
 
   List<Transaction> findByAccountId(String id);
 

@@ -81,6 +81,7 @@ public class AccountMapper {
         .availableBalance(availableBalance)
         .status(entity.getStatus())
         .bank(bank) //TODO: add hbank
+        .enableStatus(entity.getEnableStatus())
         .build();
   }
 
@@ -95,6 +96,7 @@ public class AccountMapper {
         .externalId(accountConnector.getId())
         .availableBalance(accountConnector.getBalance().stringValue())
         .status(accountConnector.getStatus())
+        .enableStatus(existing.getEnableStatus())
         .build();
   }
 
@@ -110,6 +112,7 @@ public class AccountMapper {
         .iban(account.getIban())
         .availableBalance(String.valueOf(account.getAvailableBalance().getValue()))
         .status(account.getStatus())
+        .enableStatus(account.getEnableStatus())
         .build();
   }
 

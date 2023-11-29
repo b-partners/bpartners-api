@@ -138,6 +138,7 @@ public class OnboardingService {
         .availableBalance(DEFAULT_BALANCE)
         .status(DEFAULT_STATUS)
         .active(true)
+        .enableStatus(EnableStatus.ENABLED)
         .build();
   }
 

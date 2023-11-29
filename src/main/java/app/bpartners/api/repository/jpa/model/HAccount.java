@@ -1,6 +1,7 @@
 package app.bpartners.api.repository.jpa.model;
 
 import app.bpartners.api.endpoint.rest.model.AccountStatus;
+import app.bpartners.api.endpoint.rest.model.EnableStatus;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.io.Serializable;
 import javax.persistence.Column;
@@ -8,8 +9,6 @@ import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
@@ -34,7 +33,6 @@ import org.hibernate.annotations.Type;
 @EqualsAndHashCode
 public class HAccount implements Serializable {
   @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
   private String id;
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "id_user")
@@ -51,4 +49,7 @@ public class HAccount implements Serializable {
   @Type(type = "pgsql_enum")
   @Enumerated(EnumType.STRING)
   private AccountStatus status;
+  @Type(type = "pgsql_enum")
+  @Enumerated(EnumType.STRING)
+  private EnableStatus enableStatus;
 }

@@ -68,7 +68,7 @@ public class ProspectMapper {
   }
 
   public HProspect toEntity(Prospect domain, HProspect existing) {
-    Double rating = existing == null ? -1 : existing.getRating();
+    Double rating = existing == null || existing.getRating() == null ? -1 : existing.getRating();
     Instant lastEvaluationDate = existing == null ? null : existing.getLastEvaluationDate();
     return toEntity(domain,
         domain.getIdHolderOwner(),

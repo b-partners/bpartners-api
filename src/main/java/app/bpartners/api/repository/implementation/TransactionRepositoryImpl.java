@@ -1,5 +1,6 @@
 package app.bpartners.api.repository.implementation;
 
+import app.bpartners.api.endpoint.rest.model.EnableStatus;
 import app.bpartners.api.endpoint.rest.model.TransactionStatus;
 import app.bpartners.api.model.JustifyTransaction;
 import app.bpartners.api.model.Transaction;
@@ -50,8 +51,10 @@ public class TransactionRepositoryImpl implements TransactionRepository {
     CriteriaBuilder builder = entityManager.getCriteriaBuilder();
     CriteriaQuery<HTransaction> query = builder.createQuery(HTransaction.class);
     Root<HTransaction> root = query.from(HTransaction.class);
+
     List<Predicate> predicates = new ArrayList<>();
     predicates.add(builder.equal(root.get("idAccount"), idAccount));
+    predicates.add(builder.equal(root.get("enableStatus"), EnableStatus.ENABLED));
     if (label != null) {
       predicates.add(builder.or(builder.like(builder.lower(root.get("label")),
           "%" + label.toLowerCase() + "%")));
@@ -70,23 +73,15 @@ public class TransactionRepositoryImpl implements TransactionRepository {
   }
 
   @Override
-  public List<Transaction> findByIdAccount(String idAccount, String label, TransactionStatus status,
+  public List<Transaction> findByIdAccount(String idAccount,
+                                           String label,
+                                           TransactionStatus status,
                                            int page, int pageSize) {
     Pageable pageable =
         PageRequest.of(page, pageSize, Sort.by(Sort.Direction.DESC, "paymentDateTime"));
     List<HTransaction> transactions = filterByIdAccountAndLabel(idAccount, label, status, pageable);
     return transactions
         .stream()
-        .map(transaction -> mapper.toDomain(transaction,
-            categoryRepository.findByIdTransaction(transaction.getId())))
-        .collect(Collectors.toList());
-  }
-
-  //TODO: check why transactions with same bridge ID are persisted twice
-  @Override
-  public List<Transaction> findPersistedByIdAccount(String idAccount, int page, int pageSize) {
-    Pageable pageable = PageRequest.of(page, pageSize);
-    return jpaRepository.findByIdAccountOrderByPaymentDateTimeDesc(idAccount, pageable).stream()
         .map(transaction -> mapper.toDomain(transaction,
             categoryRepository.findByIdTransaction(transaction.getId())))
         .collect(Collectors.toList());
@@ -109,7 +104,7 @@ public class TransactionRepositoryImpl implements TransactionRepository {
           }
           return bridgeTransactions.get(0);
         })
-        .collect(Collectors.toList());
+        .toList();
     return entities.stream()
         .map(entity -> mapper.toDomain(entity,
             categoryRepository.findByIdTransaction(entity.getId())))
@@ -146,6 +141,18 @@ public class TransactionRepositoryImpl implements TransactionRepository {
         .build());
     return mapper.toDomain(savedTransaction,
         categoryRepository.findByIdTransaction(entity.getId()));
+  }
+
+  @Override
+  public List<Transaction> saveAll(List<Transaction> transactions) {
+    List<HTransaction> entities = transactions.stream()
+        .map(mapper::toEntity)
+        .toList();
+    ;
+    return entities.stream()
+        .map(entity -> mapper.toDomain(entity,
+            categoryRepository.findByIdTransaction(entity.getId())))
+        .collect(Collectors.toList());
   }
 
   @Override

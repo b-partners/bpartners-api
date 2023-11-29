@@ -1,10 +1,11 @@
 package app.bpartners.api.service;
 
 import app.bpartners.api.endpoint.rest.model.BankConnectionRedirection;
+import app.bpartners.api.endpoint.rest.model.EnableStatus;
 import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
 import app.bpartners.api.model.Account;
-import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.Money;
+import app.bpartners.api.model.Transaction;
 import app.bpartners.api.model.UpdateAccountIdentity;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.UserToken;
@@ -13,6 +14,7 @@ import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.repository.AccountRepository;
 import app.bpartners.api.repository.BankRepository;
+import app.bpartners.api.repository.TransactionRepository;
 import app.bpartners.api.repository.TransactionsSummaryRepository;
 import app.bpartners.api.repository.UserRepository;
 import java.time.Instant;
@@ -37,21 +39,15 @@ public class AccountService {
   private final BankRepository bankRepository;
   private final UserRepository userRepository;
   private final TransactionsSummaryRepository summaryRepository;
+  private final TransactionRepository transactionRepository;
 
   public Account getActive(List<Account> accounts) {
     return accounts.stream()
-        .filter(Account::isActive)
+        .filter(account -> account.isActive() && account.isEnabled())
         .findAny()
         .orElseThrow(() -> new NotImplementedException(
             "One account should be active but "
                 + describeAccountList(accounts) + " do not contain active account"));
-  }
-
-  @Transactional
-  public List<Account> findAllByActive(boolean status) {
-    return repository.findAll().stream()
-        .filter(account -> account.isActive() == status)
-        .collect(Collectors.toList());
   }
 
   @Transactional
@@ -61,7 +57,9 @@ public class AccountService {
 
   @Transactional
   public List<Account> getAccountsByBearer(String bearer) {
-    return repository.findByBearer(bearer);
+    return repository.findByBearer(bearer).stream()
+        .filter(app.bpartners.api.model.Account::isEnabled)
+        .toList();
   }
 
   @Transactional
@@ -78,6 +76,7 @@ public class AccountService {
   @Transactional
   public List<Account> getAccountsByUserId(String userId) {
     return repository.findByUserId(userId).stream()
+        .filter(app.bpartners.api.model.Account::isEnabled)
         .sorted(Comparator.comparing(Account::isActive).reversed())
         .collect(Collectors.toList());
   }
@@ -131,11 +130,34 @@ public class AccountService {
     if (bankRepository.disconnectBank(user)) {
       //Body of event bridge treatment
       summaryRepository.removeAll(userId);
-      repository.removeAll(accounts);
 
-      Account newDefaultAccount = repository.save(resetDefaultAccount(user, active));
+      //Disable transactions
+      List<Transaction> allTransactions = new ArrayList<>();
+      for (Account account : accounts) {
+        List<Transaction> transactions = transactionRepository.findByAccountId(account.getId());
+        allTransactions.addAll(transactions);
+      }
+      allTransactions.forEach(transaction -> transaction.setEnableStatus(EnableStatus.DISABLED));
+      transactionRepository.saveAll(allTransactions);
+
+      Account defaultAccount = accounts.stream()
+          .filter(account -> account.getBank() == null && account.getExternalId() == null)
+          .findFirst()
+          .orElse(null);
+
+      List<Account> toDisableAccounts = new ArrayList<>(accounts);
+      toDisableAccounts.remove(defaultAccount);
+      repository.saveAll(toDisableAccounts.stream()
+          .peek(account -> account.setEnableStatus(EnableStatus.DISABLED))
+          .toList());
+
+      Account newDefaultAccount = defaultAccount == null
+          ? resetDefaultAccount(user, active)
+          : defaultAccount;
+      //repository.save(resetDefaultAccount(user, active));
 
       userRepository.save(resetDefaultUser(user, newDefaultAccount));
+
       //End of treatment
       return newDefaultAccount;
     }
@@ -165,6 +187,7 @@ public class AccountService {
         .externalId(null)
         .availableBalance(new Money())
         .status(OPENED)
+        .enableStatus(EnableStatus.ENABLED)
         .build();
   }
 

@@ -10,7 +10,6 @@ import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.service.TransactionService;
 import java.util.List;
-import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;

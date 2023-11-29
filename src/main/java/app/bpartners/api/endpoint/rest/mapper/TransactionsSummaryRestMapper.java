@@ -5,7 +5,6 @@ import app.bpartners.api.endpoint.rest.model.TransactionsSummary;
 import java.time.Instant;
 import java.util.Comparator;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -34,7 +33,7 @@ public class TransactionsSummaryRestMapper {
   }
 
   private static Instant getLastInstantUpdate(app.bpartners.api.model.TransactionsSummary domain) {
-    AtomicReference<Instant> lastUpdate = new AtomicReference<>();
+    AtomicReference<Instant> lastUpdate = new AtomicReference<>(Instant.now());
     domain.getSummary().stream()
         .max(Comparator.comparing(
             app.bpartners.api.model.MonthlyTransactionsSummary::getUpdatedAt))

@@ -10,7 +10,6 @@ public interface TransactionRepository {
   List<Transaction> findByIdAccount(String idAccount, String title, TransactionStatus status,
                                     int page, int pageSize);
 
-  List<Transaction> findPersistedByIdAccount(String idAccount, int page, int pageSize);
 
   List<Transaction> findByAccountId(String id);
 
@@ -19,6 +18,9 @@ public interface TransactionRepository {
   List<Transaction> findByAccountIdAndStatus(String id, TransactionStatus status);
 
   Transaction save(JustifyTransaction justifyTransaction);
+
+
+  List<Transaction> saveAll(List<Transaction> transactions);
 
   List<Transaction> findByAccountIdAndStatusBetweenInstants(
       String id, TransactionStatus status,

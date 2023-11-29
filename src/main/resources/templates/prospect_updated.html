@@ -40,7 +40,13 @@
             </span>
         </li>
         <li>
-            Avis du prospect indiqué par l'artisan : <span th:text="${translatedFeedback}"></span>
+            Avis du prospect indiqué par l'artisan :
+            <span th:if="${translatedFeedback != null}">
+                <span th:text="${translatedFeedback}"></span>
+            </span>
+            <span th:unless="${translatedFeedback != null}">
+                -
+            </span>
         </li>
     </ul>
     <footer>

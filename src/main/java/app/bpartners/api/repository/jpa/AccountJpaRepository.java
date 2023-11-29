@@ -2,7 +2,6 @@ package app.bpartners.api.repository.jpa;
 
 import app.bpartners.api.repository.jpa.model.HAccount;
 import java.util.List;
-import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 
@@ -12,8 +11,11 @@ public interface AccountJpaRepository extends JpaRepository<HAccount, String> {
   List<HAccount> findByUser_Id(String userId);
 
   @Lock(PESSIMISTIC_WRITE)
-  Optional<HAccount> findByExternalId(String externalId);
+  List<HAccount> findAllByExternalId(String externalId);
 
   @Lock(PESSIMISTIC_WRITE)
-  List<HAccount> findAllByExternalId(String externalId);
+  List<HAccount> findAllByIban(String iban);
+
+  @Lock(PESSIMISTIC_WRITE)
+  List<HAccount> findAllByNameContainingIgnoreCaseAndIdBank(String name, String idBank);
 }

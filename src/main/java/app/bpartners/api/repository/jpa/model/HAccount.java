@@ -9,8 +9,6 @@ import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
@@ -35,7 +33,6 @@ import org.hibernate.annotations.Type;
 @EqualsAndHashCode
 public class HAccount implements Serializable {
   @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
   private String id;
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "id_user")

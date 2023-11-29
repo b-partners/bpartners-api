@@ -9,7 +9,6 @@ import app.bpartners.api.endpoint.rest.model.UpdateAccountIdentity;
 import app.bpartners.api.endpoint.rest.validator.UpdateAccountIdentityRestValidator;
 import app.bpartners.api.service.AccountService;
 import java.util.List;
-import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;

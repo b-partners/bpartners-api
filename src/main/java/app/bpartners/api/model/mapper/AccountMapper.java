@@ -96,6 +96,7 @@ public class AccountMapper {
         .externalId(accountConnector.getId())
         .availableBalance(accountConnector.getBalance().stringValue())
         .status(accountConnector.getStatus())
+        .enableStatus(existing.getEnableStatus())
         .build();
   }
 

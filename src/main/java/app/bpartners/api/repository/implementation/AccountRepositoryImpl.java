@@ -145,9 +145,12 @@ public class AccountRepositoryImpl implements AccountRepository {
   }
 
   private List<Account> getJpaAccounts(String userId, String preferredAccountId) {
-    return filterByActive(preferredAccountId, jpaRepository.findByUser_Id(userId).stream()
-        .map(entity -> mapper.toDomain(entity, bankRepository.findByExternalId(entity.getIdBank())))
-        .collect(Collectors.toList()));
+    List<HAccount> accountEntities = jpaRepository.findByUser_Id(userId);
+    List<Account> accounts = accountEntities.stream()
+        .map(entity ->
+            mapper.toDomain(entity, bankRepository.findByExternalId(entity.getIdBank())))
+        .collect(Collectors.toList());
+    return filterByActive(preferredAccountId, accounts);
   }
 
   private List<Account> filterByActive(String preferredAccountId, List<Account> accounts) {

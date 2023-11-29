@@ -57,7 +57,9 @@ public class AccountService {
 
   @Transactional
   public List<Account> getAccountsByBearer(String bearer) {
-    return repository.findByBearer(bearer);
+    return repository.findByBearer(bearer).stream()
+        .filter(app.bpartners.api.model.Account::isEnabled)
+        .toList();
   }
 
   @Transactional
@@ -74,6 +76,7 @@ public class AccountService {
   @Transactional
   public List<Account> getAccountsByUserId(String userId) {
     return repository.findByUserId(userId).stream()
+        .filter(app.bpartners.api.model.Account::isEnabled)
         .sorted(Comparator.comparing(Account::isActive).reversed())
         .collect(Collectors.toList());
   }
@@ -137,13 +140,24 @@ public class AccountService {
       allTransactions.forEach(transaction -> transaction.setEnableStatus(EnableStatus.DISABLED));
       transactionRepository.saveAll(allTransactions);
 
-      repository.saveAll(accounts.stream()
+      Account defaultAccount = accounts.stream()
+          .filter(account -> account.getBank() == null && account.getExternalId() == null)
+          .findFirst()
+          .orElse(null);
+
+      List<Account> toDisableAccounts = new ArrayList<>(accounts);
+      toDisableAccounts.remove(defaultAccount);
+      repository.saveAll(toDisableAccounts.stream()
           .peek(account -> account.setEnableStatus(EnableStatus.DISABLED))
           .toList());
 
-      Account newDefaultAccount = repository.save(resetDefaultAccount(user, active));
+      Account newDefaultAccount = defaultAccount == null
+          ? resetDefaultAccount(user, active)
+          : defaultAccount;
+      //repository.save(resetDefaultAccount(user, active));
 
       userRepository.save(resetDefaultUser(user, newDefaultAccount));
+
       //End of treatment
       return newDefaultAccount;
     }

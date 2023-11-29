@@ -1,5 +1,6 @@
 package app.bpartners.api.repository.connectors.account;
 
+import app.bpartners.api.endpoint.rest.model.EnableStatus;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.model.mapper.AccountMapper;
@@ -10,6 +11,7 @@ import app.bpartners.api.repository.jpa.model.HUser;
 import app.bpartners.api.repository.model.AccountConnector;
 import app.bpartners.api.service.utils.AccountUtils;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -64,9 +66,23 @@ public class SavableAccountConnectorRepository implements AccountConnectorReposi
 
   private HAccount checkIdentityUpdate(String idUser, AccountConnector accountConnector) {
     HUser associatedUser = associatedUser(idUser);
-    return mapper.toEntity(accountConnector,
-        AccountUtils.findByExternalId(accountConnector.getId(), jpaRepository)
-            .orElse(fromNewAccount(accountConnector, associatedUser)));
+    Optional<HAccount> optionalAccountByExternalId =
+        AccountUtils.findByExternalId(accountConnector.getId(), jpaRepository);
+
+    HAccount existingAccount =
+        optionalAccountByExternalId.orElseGet(() -> {
+          Optional<HAccount> optionalAccountByIban =
+              AccountUtils.findByIbanOrNameAndBank(accountConnector, jpaRepository);
+          if (optionalAccountByIban.isEmpty()) {
+            return fromNewAccount(accountConnector, associatedUser);
+          } else {
+            HAccount accountSameIban = optionalAccountByIban.get();
+            return accountSameIban.toBuilder()
+                .enableStatus(EnableStatus.ENABLED)
+                .build();
+          }
+        });
+    return mapper.toEntity(accountConnector, existingAccount);
   }
 
   private HAccount fromNewAccount(AccountConnector accountConnector, HUser user) {
@@ -78,6 +94,7 @@ public class SavableAccountConnectorRepository implements AccountConnectorReposi
         .availableBalance(accountConnector.getBalance().stringValue())
         .externalId(accountConnector.getId())
         .idBank(accountConnector.getBankId())
+        .enableStatus(EnableStatus.ENABLED)
         .build();
   }
 

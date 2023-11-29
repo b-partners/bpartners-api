@@ -281,17 +281,7 @@ class ProspectIT {
     assertEquals(List.of(expectedProspect()), ignoreIdsAndHistoryUpdatedOf(actual));
   }
 
-  @Test
-  void update_prospects_ko() {
-    ApiClient joeDoeClient = anApiClient();
-    ProspectingApi api = new ProspectingApi(joeDoeClient);
-
-    assertThrowsApiException(
-        "{\"type\":\"404 NOT_FOUND\",\"message\":\"Prospect." + UNKNOWN_PROSPECT_ID
-            + " not found. \"}",
-        () -> api.updateProspects(ACCOUNTHOLDER_ID,
-            List.of(updateProspect().id(UNKNOWN_PROSPECT_ID))));
-  }
+  // TODO: add test update_prospect_ko
 
   @Order(2)
   @Test

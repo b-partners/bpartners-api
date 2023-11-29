@@ -316,7 +316,11 @@ class CustomerIT extends MockedThirdParties {
         JOE_DOE_ACCOUNT_ID, null, null, null, null, null, null,
         DISABLED, null, 1, 20));
 
-    assertTrue(disabledCustomers.containsAll(actual));
+    assertTrue(disabledCustomers.containsAll(actual.stream().map(customer -> {
+      customer.updatedAt(null);
+      customer.createdAt(null);
+      return customer;
+    }).toList()));
     assertTrue(enabledCustomers.stream()
         .allMatch(customer -> customer.getStatus() == ENABLED));
     assertTrue(disabledCustomers.stream()

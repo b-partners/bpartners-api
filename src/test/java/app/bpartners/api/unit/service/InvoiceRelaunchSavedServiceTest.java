@@ -1,9 +1,11 @@
 package app.bpartners.api.unit.service;
 
 import app.bpartners.api.endpoint.event.EventConf;
+import app.bpartners.api.endpoint.event.SesConf;
 import app.bpartners.api.endpoint.event.gen.InvoiceRelaunchSaved;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.AccountHolder;
+import app.bpartners.api.model.Attachment;
 import app.bpartners.api.model.Customer;
 import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.Invoice;
@@ -23,31 +25,34 @@ import org.junit.jupiter.api.Test;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PROPOSAL;
 import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ID;
 import static java.util.UUID.randomUUID;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyList;
+import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+
 class InvoiceRelaunchSavedServiceTest {
   public static final byte[] logoAsBytes = new byte[0];
   InvoiceRelaunchSavedService invoiceRelaunchSavedService;
   SesService sesService;
   FileService fileService;
-  EventConf eventConfMock;
+  SesConf sesConf;
 
   @BeforeEach
   void setUp() throws MessagingException, IOException {
     sesService = mock(SesService.class);
     fileService = mock(FileService.class);
-    eventConfMock = mock(EventConf.class);
+    sesConf = mock(SesConf.class);
     invoiceRelaunchSavedService =
-        new InvoiceRelaunchSavedService(sesService, fileService, eventConfMock);
+        new InvoiceRelaunchSavedService(sesService, fileService, sesConf);
 
     doNothing().when(sesService).sendEmail(any(), any(), any(), any(), any());
-    when(fileService.downloadOptionalFile(any(), any(), any())).thenReturn(List.of(logoAsBytes));
+    when(fileService.downloadOptionalFile(any(), any(), any())).thenReturn(List.of());
   }
 
   @Test
@@ -56,7 +61,7 @@ class InvoiceRelaunchSavedServiceTest {
     String subject = "Objet du mail";
     String htmlBody = "<html><body>Corps du mail</body></html>";
 
-    invoiceRelaunchSavedService.accept(InvoiceRelaunchSaved.builder()
+      invoiceRelaunchSavedService.accept(InvoiceRelaunchSaved.builder()
         .recipient(recipient)
         .subject(subject)
         .htmlBody(htmlBody)
@@ -67,7 +72,7 @@ class InvoiceRelaunchSavedServiceTest {
         .attachments(List.of())
         .build());
 
-    verify(sesService, times(1)).sendEmail(eq(recipient), any(), eq(subject), eq(htmlBody), any());
+    verify(sesService, times(1)).sendEmail(eq(recipient), any(), eq(subject), eq(htmlBody), anyList(), any());
   }
 
   Invoice invoice() {

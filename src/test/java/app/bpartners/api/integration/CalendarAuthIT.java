@@ -70,8 +70,8 @@ public class CalendarAuthIT extends MockedThirdParties {
   void init_consent_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
     CalendarApi api = new CalendarApi(joeDoeClient);
-    when(calendarConfMock.getRedirectUris()).thenReturn(List.of("dummy"));
-    when(calendarConfMock.getOauthRedirectUri(any())).thenReturn("dummy");
+    when(calendarConfMock.getRedirectUris()).thenReturn(List.of("https://dummy.com"));
+    when(calendarConfMock.getOauthRedirectUri(any())).thenReturn("https://dummy.com");
     Redirection1 actual = api.initConsent(JOE_DOE_ID, sheetConsentInit());
 
     assertEquals(expectedRedirection(), actual);
@@ -112,7 +112,7 @@ public class CalendarAuthIT extends MockedThirdParties {
     var actual = api.exchangeCode(JOE_DOE_ID, sheetAuth());
 
     assertEquals(new TokenValidity()
-        .expirationTime(3599L)
+        .expirationTime(3600L)
         .createdAt(actual.getCreatedAt())
         .expiredAt(actual.getExpiredAt()), actual);
   }

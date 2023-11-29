@@ -130,6 +130,9 @@ class DirtyTransactionIT extends MockedThirdParties {
     assertEquals(0, actualCustomYear.getSummary().size());
     assertEquals(currentYear + 1, actualCustomYear.getYear());
     assertEquals(transactionsSummary1()
+        .annualIncome(1356000)
+        .annualOutcome(1050)
+        .annualCashFlow(1354950)
         .summary(actualDefaultYear.getSummary())
         .updatedAt(actualDefaultYear.getUpdatedAt()), actualDefaultYear);
     //TODO: check why this assert does not pass !

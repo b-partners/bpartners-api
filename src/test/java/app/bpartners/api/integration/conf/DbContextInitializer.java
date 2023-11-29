@@ -23,14 +23,12 @@ public class DbContextInitializer
     int containerPort = 5432;
     DockerImageName postgis = DockerImageName
         .parse("postgis/postgis")
-        .asCompatibleSubstituteFor("postgres");
+        .asCompatibleSubstituteFor("postgres:13.9");
 
     postgresContainer = new PostgreSQLContainer<>(postgis)
         .withDatabaseName("it-db")
         .withUsername("sa")
-        .withPassword("sa")
-        .withExposedPorts(containerPort);
-    postgresContainer.setPortBindings(List.of(String.format("%d:%d", containerPort, localPort)));
+        .withPassword("sa");
 
     postgresContainer.start();
   }

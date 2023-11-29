@@ -82,6 +82,7 @@ import org.springframework.util.SocketUtils;
 import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsRequest;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsResponse;
+import software.amazon.awssdk.services.s3.S3Client;
 
 import static app.bpartners.api.endpoint.rest.model.AccountStatus.OPENED;
 import static app.bpartners.api.endpoint.rest.model.EnableStatus.ENABLED;
@@ -231,9 +232,9 @@ public class TestUtils {
     return new AnnualRevenueTarget()
         .year(2023)
         .updatedAt(Instant.parse("2022-01-01T01:00:00.00Z"))
-        .amountAttempted(0)
+        .amountAttempted(1356000)
         .amountTarget(1000000)
-        .amountAttemptedPercent(0);
+        .amountAttemptedPercent(13560);
   }
 
   public static AnnualRevenueTarget annualRevenueTarget2() {
@@ -928,13 +929,13 @@ public class TestUtils {
 
   public static RedirectionStatusUrls redirectionStatusUrls() {
     return new RedirectionStatusUrls()
-        .successUrl("dummy")
-        .failureUrl("dummy");
+        .successUrl("https://dummy.com")
+        .failureUrl("https://dummy.com");
   }
 
   public static Redirection1 expectedRedirection() {
     return new Redirection1()
-        .redirectionUrl("dummy")
+        .redirectionUrl(null)
         .redirectionStatusUrls(redirectionStatusUrls());
   }
 

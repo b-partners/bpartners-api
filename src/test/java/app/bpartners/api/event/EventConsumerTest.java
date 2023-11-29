@@ -2,13 +2,13 @@ package app.bpartners.api.event;
 
 import app.bpartners.api.endpoint.event.EventConsumer;
 import app.bpartners.api.endpoint.event.EventServiceInvoker;
-import app.bpartners.api.endpoint.event.model.TypedInvoiceRelaunchSaved;
 import app.bpartners.api.endpoint.event.gen.InvoiceRelaunchSaved;
 import java.time.Duration;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.timeout;
@@ -28,8 +28,7 @@ class EventConsumerTest {
 
   @Test
   void email_sent_event_is_ack_if_eventServiceInvoker_succeeded() {
-    TypedInvoiceRelaunchSaved emailSent =
-        new TypedInvoiceRelaunchSaved(InvoiceRelaunchSaved.builder()
+    InvoiceRelaunchSaved emailSent = InvoiceRelaunchSaved.builder()
             .subject(null)
             .recipient(null)
             .htmlBody(null)
@@ -37,20 +36,19 @@ class EventConsumerTest {
             .invoice(null)
             .accountHolder(null)
             .logoFileId(null)
-            .build());
+            .build();
     Runnable acknowledger = mock(Runnable.class);
 
     eventConsumer.accept(
-        List.of(new EventConsumer.AcknowledgeableTypedEvent(emailSent, acknowledger)));
+        List.of(new EventConsumer.AcknowledgeableTypedEvent(new EventConsumer.TypedEvent("app.bpartners.api.endpoint.event.gen.InvoiceRelaunchSaved" ,emailSent), acknowledger)));
 
-    verify(eventServiceInvoker, timeout(TIMEOUT.toMillis())).accept(emailSent);
+    verify(eventServiceInvoker, timeout(TIMEOUT.toMillis())).accept(new EventConsumer.TypedEvent("app.bpartners.api.endpoint.event.gen.InvoiceRelaunchSaved" ,emailSent));
     verify(acknowledger, timeout(TIMEOUT.toMillis())).run();
   }
 
   @Test
   void email_sent_event_is_not_ack_if_eventServiceInvoker_failed() {
-    TypedInvoiceRelaunchSaved emailSent =
-        new TypedInvoiceRelaunchSaved(InvoiceRelaunchSaved.builder()
+    InvoiceRelaunchSaved emailSent = InvoiceRelaunchSaved.builder()
             .subject(null)
             .recipient(null)
             .htmlBody(null)
@@ -58,14 +56,14 @@ class EventConsumerTest {
             .invoice(null)
             .accountHolder(null)
             .logoFileId(null)
-            .build());
+            .build();
     Runnable acknowledger = mock(Runnable.class);
-    doThrow(RuntimeException.class).when(eventServiceInvoker).accept(emailSent);
+    doThrow(RuntimeException.class).when(eventServiceInvoker).accept(new EventConsumer.TypedEvent("app.bpartners.api.endpoint.event.gen.InvoiceRelaunchSaved" ,emailSent));
 
-    eventConsumer.accept(
-        List.of(new EventConsumer.AcknowledgeableTypedEvent(emailSent, acknowledger)));
+    assertThrows(RuntimeException.class, () -> eventConsumer.accept(
+        List.of(new EventConsumer.AcknowledgeableTypedEvent(new EventConsumer.TypedEvent("app.bpartners.api.endpoint.event.gen.InvoiceRelaunchSaved" ,emailSent), acknowledger))));
 
-    verify(eventServiceInvoker, timeout(TIMEOUT.toMillis())).accept(emailSent);
+    verify(eventServiceInvoker, timeout(TIMEOUT.toMillis())).accept(new EventConsumer.TypedEvent("app.bpartners.api.endpoint.event.gen.InvoiceRelaunchSaved" ,emailSent));
     verify(acknowledger, timeout(TIMEOUT.toMillis()).times(0)).run();
   }
 }

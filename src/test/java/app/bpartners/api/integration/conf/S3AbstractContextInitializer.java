@@ -38,9 +38,7 @@ public abstract class S3AbstractContextInitializer
     JdbcDatabaseContainer<?> postgresContainer = new PostgreSQLContainer<>(postgis)
         .withDatabaseName("it-db")
         .withUsername("sa")
-        .withPassword("sa")
-        .withExposedPorts(containerPort);
-    postgresContainer.setPortBindings(List.of(String.format("%d:%d", containerPort, localPort)));
+        .withPassword("sa");
 
     postgresContainer.start();
 

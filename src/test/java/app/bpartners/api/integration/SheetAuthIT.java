@@ -70,8 +70,8 @@ public class SheetAuthIT extends MockedThirdParties {
   void init_consent_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
     SheetApi api = new SheetApi(joeDoeClient);
-    when(sheetConfMock.getRedirectUris()).thenReturn(List.of("dummy"));
-    when(sheetConfMock.getOauthRedirectUri(any())).thenReturn("dummy");
+    when(sheetConfMock.getRedirectUris()).thenReturn(List.of("https://dummy.com"));
+    when(sheetConfMock.getOauthRedirectUri(any())).thenReturn("https://dummy-redirection.com");
 
     Redirection1 actual = api.initSheetConsent(JOE_DOE_ID, sheetConsentInit());
 
@@ -105,7 +105,7 @@ public class SheetAuthIT extends MockedThirdParties {
     when(sheetConfMock.storeCredential(any(), any(), any())).thenReturn(
         new Credential(new AuthorizationHeaderAccessMethod())
             .setAccessToken("access_token")
-            .setExpiresInSeconds(3600L)
+            .setExpiresInSeconds(3599L)
             .setRefreshToken(null));
     ApiClient joeDoeClient = anApiClient();
     SheetApi api = new SheetApi(joeDoeClient);

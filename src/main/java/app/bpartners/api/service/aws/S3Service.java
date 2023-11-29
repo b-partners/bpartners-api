@@ -32,7 +32,6 @@ import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVE
 @AllArgsConstructor
 public class S3Service {
   private static final String S3_KEY_FORMAT = "%s/accounts/%s/%s/%s";
-  private final S3Client s3Client;
   private final S3Conf s3Conf;
   private final UserRepository userRepository;
 
@@ -46,9 +45,9 @@ public class S3Service {
         .key(key)
         .build();
 
-    PutObjectResponse objectResponse = s3Client.putObject(request, RequestBody.fromBytes(toUpload));
+    PutObjectResponse objectResponse = s3Conf.getS3Client().putObject(request, RequestBody.fromBytes(toUpload));
 
-    ResponseOrException<HeadObjectResponse> responseOrException = s3Client
+    ResponseOrException<HeadObjectResponse> responseOrException = s3Conf.getS3Client()
         .waiter()
         .waitUntilObjectExists(
             HeadObjectRequest.builder()
@@ -86,7 +85,7 @@ public class S3Service {
           .bucket(s3Conf.getBucketName())
           .key(key)
           .build();
-      return s3Client.getObjectAsBytes(objectRequest).asByteArray();
+      return s3Conf.getS3Client().getObjectAsBytes(objectRequest).asByteArray();
     } catch (NoSuchKeyException e) {
       log.warn("S3 File not found, key to find was : {}", key);
       throw new ApiException(SERVER_EXCEPTION, e);

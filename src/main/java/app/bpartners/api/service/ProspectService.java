@@ -3,7 +3,6 @@ package app.bpartners.api.service;
 import app.bpartners.api.endpoint.event.EventConf;
 import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.endpoint.event.model.TypedProspectEvaluationJobInitiated;
-import app.bpartners.api.endpoint.event.model.TypedProspectUpdated;
 import app.bpartners.api.endpoint.event.model.gen.ProspectEvaluationJobInitiated;
 import app.bpartners.api.endpoint.event.model.gen.ProspectUpdated;
 import app.bpartners.api.endpoint.rest.model.ContactNature;
@@ -36,6 +35,7 @@ import app.bpartners.api.repository.google.sheets.SheetApi;
 import app.bpartners.api.repository.jpa.AccountHolderJpaRepository;
 import app.bpartners.api.repository.jpa.model.HAccountHolder;
 import app.bpartners.api.repository.jpa.model.HProspectStatusHistory;
+import app.bpartners.api.service.aws.ProspectUpdatedService;
 import app.bpartners.api.service.aws.SesService;
 import app.bpartners.api.service.dataprocesser.ProspectDataProcesser;
 import app.bpartners.api.service.utils.DateUtils;
@@ -99,6 +99,7 @@ public class ProspectService {
   private final ProspectStatusService statusService;
   private final SnsService snsService;
   private final UserService userService;
+  private final ProspectUpdatedService prospectUpdatedService;
 
   @Transactional
   public Prospect getById(String id) {
@@ -148,12 +149,15 @@ public class ProspectService {
     }
     //validateStatusUpdateFlow(toSave, existing);
     Prospect savedProspect = repository.save(toSave);
-    if (existing.getActualStatus() != savedProspect.getActualStatus()) {
-      eventProducer.accept(List.of(new TypedProspectUpdated(ProspectUpdated.builder()
+
+    if (existing.getActualStatus() != savedProspect.getActualStatus()
+        || savedProspect.isGivenUp()) {
+      prospectUpdatedService.accept(ProspectUpdated.builder()
           .prospect(savedProspect)
           .updatedAt(Instant.now())
-          .build())));
+          .build());
     }
+
     return savedProspect;
   }
 

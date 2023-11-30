@@ -28,6 +28,7 @@ public class Prospect implements Comparable<Prospect> {
   private String id;
   private String idJob;
   private String idHolderOwner;
+  private String latestOldHolder;
   private String managerName;
   private String name;
   private String email;
@@ -51,6 +52,18 @@ public class Prospect implements Comparable<Prospect> {
         .get(0).getStatus();
   }
 
+  public boolean isGivenUp() {
+    return this.getIdHolderOwner() == null && this.getLatestOldHolder() != null;
+  }
+
+  public String describe() {
+    return "Prospect{"
+        + "id='" + id + '\''
+        + ", name='" + name + '\''
+        + ", email='" + email + '\''
+        + '}';
+  }
+
   @Override
   public int compareTo(Prospect o) {
     if (o == null) {
@@ -68,6 +81,7 @@ public class Prospect implements Comparable<Prospect> {
       }
       return actualRatingValue.compareTo(otherRatingValue);
     }
+
   }
 
   @Data

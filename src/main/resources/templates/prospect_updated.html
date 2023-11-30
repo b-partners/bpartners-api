@@ -11,38 +11,64 @@
 <body>
 <section>
     <p>Bonjour,</p>
-    <p>Le statut du prospect <span th:text="${prospect.getName()}"></span> de l'artisan
-        <span th:text="${accountHolder.getName()}"></span> a été mis à jour en
-        <span th:text="${translatedStatus}"></span> le <span th:text="${frenchUpdatedDatetime}"></span>
-    </p>
-    <p>Pour rappel, voici les informations concernant ce prospect : </p>
-    <ul>
-        <li>Nom : <span th:text="${prospect.getName()}"></span></li>
-        <li>Email : <span th:text="${prospect.getEmail()}"></span></li>
-        <li>Téléphone : <span th:text="${prospect.getPhone()}"></span></li>
-        <li>Adresse : <span th:text="${prospect.getAddress()}"></span></li>
-        <li>Notation du prospect sur 10 :
-            <span th:text="${#numbers.formatDecimal(prospect.getRating().getValue(),1,2)}"></span></li>
-        <li>Commentaire par l'artisan :
-            <span th:if="${prospect.comment != null && !prospect.comment.isEmpty()}">
+    <div th:if="${updateType.name().equals('GIVE_UP')}">
+        <p>Le prospect <span th:text="${prospect.getName()}"></span> a été abandonné par l'artisan
+            <span th:text="${accountHolder.getName()}"></span> le <span th:text="${frenchUpdatedDatetime}"></span>.
+        </p>
+        <p>Pour rappel, voici les informations concernant ce prospect : </p>
+        <ul>
+            <li>Nom : <span th:text="${prospect.getName()}"></span></li>
+            <li>Email : <span th:text="${prospect.getEmail()}"></span></li>
+            <li>Téléphone : <span th:text="${prospect.getPhone()}"></span></li>
+            <li>Adresse : <span th:text="${prospect.getAddress()}"></span></li>
+        </ul>
+    </div>
+    <div th:unless="${updateType.name().equals('GIVE_UP')}">
+        <p>Le statut du prospect <span th:text="${prospect.getName()}"></span> de l'artisan
+            <span th:text="${accountHolder.getName()}"></span> a été mis à jour en
+            <span th:text="${translatedStatus}"></span> le <span th:text="${frenchUpdatedDatetime}"></span>
+        </p>
+        <p>Pour rappel, voici les informations concernant ce prospect : </p>
+        <ul>
+            <li>Nom : <span th:text="${prospect.getName()}"></span></li>
+            <li>Email : <span th:text="${prospect.getEmail()}"></span></li>
+            <li>Téléphone : <span th:text="${prospect.getPhone()}"></span></li>
+            <li>Adresse : <span th:text="${prospect.getAddress()}"></span></li>
+            <li>Notation du prospect sur 10 :
+                <span th:if="${prospect.getRating().getValue() > 0}">
+                    <span th:text="${#numbers.formatDecimal(prospect.getRating().getValue(),1,2)}"></span>
+                </span>
+                <span th:unless="${prospect.getRating().getValue() > 0}">
+                    -
+                </span>
+            </li>
+            <li>Commentaire par l'artisan :
+                <span th:if="${prospect.comment != null && !prospect.comment.isEmpty()}">
                 <span th:text="${prospect.comment}"></span>
             </span>
-            <span th:unless="${prospect.comment != null && !prospect.comment.isEmpty()}">
+                <span th:unless="${prospect.comment != null && !prospect.comment.isEmpty()}">
                 Non renseigné
             </span>
-        </li>
-        <li>Montant convenu en € :
-            <span th:if="${prospect.contractAmount != null}">
+            </li>
+            <li>Montant convenu en € :
+                <span th:if="${prospect.contractAmount != null}">
                 <span th:text="${#numbers.formatDecimal(prospect.contractAmount.getApproximatedValue(),1,2)}"></span>
             </span>
-            <span th:unless="${prospect.contractAmount != null}">
+                <span th:unless="${prospect.contractAmount != null}">
                 -
             </span>
-        </li>
-        <li>
-            Avis du prospect indiqué par l'artisan : <span th:text="${translatedFeedback}"></span>
-        </li>
-    </ul>
+            </li>
+            <li>
+                Avis du prospect indiqué par l'artisan :
+                <span th:if="${translatedFeedback != null}">
+                <span th:text="${translatedFeedback}"></span>
+            </span>
+                <span th:unless="${translatedFeedback != null}">
+                -
+            </span>
+            </li>
+        </ul>
+    </div>
     <footer>
         <p>
             L'équipe BPartners<br/>

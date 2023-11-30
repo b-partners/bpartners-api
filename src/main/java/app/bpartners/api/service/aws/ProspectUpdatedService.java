@@ -35,15 +35,24 @@ public class ProspectUpdatedService implements Consumer<ProspectUpdated> {
   @Override
   public void accept(ProspectUpdated prospectUpdated) {
     Prospect prospect = prospectUpdated.getProspect();
+    AccountHolder accountHolder =
+        prospect.isGivenUp() ? holderRepository.findById(prospect.getLatestOldHolder())
+            : holderRepository.findById(prospect.getIdHolderOwner());
+    ProspectUpdateType updateType = prospect.isGivenUp() ? ProspectUpdateType.GIVE_UP
+        : ProspectUpdateType.CONTINUE_PROCESS;
     Instant updatedAt = prospectUpdated.getUpdatedAt();
-    AccountHolder accountHolder = holderRepository.findById(prospect.getIdHolderOwner());
     try {
       String recipient = eventConf.getAdminEmail();
       String concerned = null;
       String frenchUpdatedDatetime = formatFrenchDatetime(updatedAt);
       String translatedStatus = getTranslatedStatus(prospect.getActualStatus());
       String translatedFeedback = getTranslatedFeedBack(prospect.getProspectFeedback());
-      String subject = String.format(
+      String subject = prospect.isGivenUp() ? String.format(
+          "Le prospect intitulé %s a été abandonné par l'artisan %s le %s",
+          prospect.getName(),
+          accountHolder.getName(),
+          frenchUpdatedDatetime)
+          : String.format(
           "Le prospect intitulé %s appartenant à l'artisan %s est passé en statut %s le %s",
           prospect.getName(),
           accountHolder.getName(),
@@ -54,10 +63,11 @@ public class ProspectUpdatedService implements Consumer<ProspectUpdated> {
           accountHolder,
           translatedStatus,
           frenchUpdatedDatetime,
-          translatedFeedback);
+          translatedFeedback,
+          updateType);
       List<Attachment> attachments = List.of();
       sesService.sendEmail(recipient, concerned, subject, htmlBody, attachments);
-      log.info("{} updated and mail sent to recipient={}", prospect, recipient);
+      log.info("{} updated and mail sent to recipient={}", prospect.describe(), recipient);
     } catch (IOException | MessagingException e) {
       log.warn("Enable to send email after " + prospect + " update. Exception was :" + e);
       throw new ApiException(ApiException.ExceptionType.SERVER_EXCEPTION, e);
@@ -74,6 +84,9 @@ public class ProspectUpdatedService implements Consumer<ProspectUpdated> {
   }
 
   private String getTranslatedFeedBack(ProspectFeedback feedback) {
+    if (feedback == null) {
+      return null;
+    }
     String translatedFeedback = switch (feedback) {
       case NOT_INTERESTED -> "Pas intéressé";
       case INTERESTED -> "Interessé";
@@ -89,8 +102,10 @@ public class ProspectUpdatedService implements Consumer<ProspectUpdated> {
                           AccountHolder accountHolder,
                           String translatedStatus,
                           String frenchUpdatedDatetime,
-                          String translatedFeedback) {
+                          String translatedFeedback,
+                          ProspectUpdateType updateType) {
     Context context = new Context();
+    context.setVariable("updateType", updateType);
     context.setVariable("prospect", prospect);
     context.setVariable("translatedFeedback", translatedFeedback);
     context.setVariable("accountHolder", accountHolder);
@@ -98,5 +113,9 @@ public class ProspectUpdatedService implements Consumer<ProspectUpdated> {
     context.setVariable("frenchUpdatedDatetime", frenchUpdatedDatetime);
     return TemplateResolverUtils.parseTemplateResolver(
         PROSPECT_UPDATED_TEMPLATE, context);
+  }
+
+  enum ProspectUpdateType {
+    GIVE_UP, CONTINUE_PROCESS
   }
 }

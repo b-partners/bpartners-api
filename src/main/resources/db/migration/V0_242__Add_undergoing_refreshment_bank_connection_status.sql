@@ -1,0 +1,1 @@
+alter type "bank_connection_status" add value if not exists 'UNDERGOING_REFRESHMENT';

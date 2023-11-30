@@ -57,7 +57,7 @@ public class ProspectUpdatedService implements Consumer<ProspectUpdated> {
           translatedFeedback);
       List<Attachment> attachments = List.of();
       sesService.sendEmail(recipient, concerned, subject, htmlBody, attachments);
-      log.info("{} updated and mail sent to recipient={}", prospect, recipient);
+      log.info("{} updated and mail sent to recipient={}", prospect.describe(), recipient);
     } catch (IOException | MessagingException e) {
       log.warn("Enable to send email after " + prospect + " update. Exception was :" + e);
       throw new ApiException(ApiException.ExceptionType.SERVER_EXCEPTION, e);

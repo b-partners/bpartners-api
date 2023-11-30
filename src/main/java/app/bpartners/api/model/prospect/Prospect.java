@@ -51,6 +51,15 @@ public class Prospect implements Comparable<Prospect> {
         .get(0).getStatus();
   }
 
+
+  public String describe() {
+    return "Prospect{"
+        + "id='" + id + '\''
+        + ", name='" + name + '\''
+        + ", email='" + email + '\''
+        + '}';
+  }
+
   @Override
   public int compareTo(Prospect o) {
     if (o == null) {
@@ -68,6 +77,7 @@ public class Prospect implements Comparable<Prospect> {
       }
       return actualRatingValue.compareTo(otherRatingValue);
     }
+
   }
 
   @Data

@@ -35,12 +35,10 @@ public class ProspectUpdatedService implements Consumer<ProspectUpdated> {
   @Override
   public void accept(ProspectUpdated prospectUpdated) {
     Prospect prospect = prospectUpdated.getProspect();
-    boolean prospectGivenUp =
-        prospect.getIdHolderOwner() == null && prospect.getLatestOldHolder() != null;
     AccountHolder accountHolder =
-        prospectGivenUp ? holderRepository.findById(prospect.getLatestOldHolder())
+        prospect.isGivenUp() ? holderRepository.findById(prospect.getLatestOldHolder())
             : holderRepository.findById(prospect.getIdHolderOwner());
-    ProspectUpdateType updateType = prospectGivenUp ? ProspectUpdateType.GIVE_UP
+    ProspectUpdateType updateType = prospect.isGivenUp() ? ProspectUpdateType.GIVE_UP
         : ProspectUpdateType.CONTINUE_PROCESS;
     Instant updatedAt = prospectUpdated.getUpdatedAt();
     try {
@@ -49,7 +47,7 @@ public class ProspectUpdatedService implements Consumer<ProspectUpdated> {
       String frenchUpdatedDatetime = formatFrenchDatetime(updatedAt);
       String translatedStatus = getTranslatedStatus(prospect.getActualStatus());
       String translatedFeedback = getTranslatedFeedBack(prospect.getProspectFeedback());
-      String subject = prospectGivenUp ? String.format(
+      String subject = prospect.isGivenUp() ? String.format(
           "Le prospect intitulé %s a été abandonné par l'artisan %s le %s",
           prospect.getName(),
           accountHolder.getName(),

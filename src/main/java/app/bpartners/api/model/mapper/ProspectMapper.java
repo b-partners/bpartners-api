@@ -104,6 +104,7 @@ public class ProspectMapper {
           .contractAmount(null)
           .prospectFeedback(null)
           .idInvoice(null)
+          .latestOldHolder(domain.getIdHolderOwner())
           .statusHistories(updatedStatusHistory(actualHistory, defaultStatusHistoryEntity()))
           .build();
     } else {
@@ -211,6 +212,7 @@ public class ProspectMapper {
             ? null
             : parseFraction(entity.getContractAmount()))
         .contactNature(entity.getContactNature())
+        .latestOldHolder(entity.getLatestOldHolder())
         .build();
   }
 

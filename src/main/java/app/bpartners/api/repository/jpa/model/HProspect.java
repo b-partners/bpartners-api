@@ -41,6 +41,7 @@ public class HProspect {
   @Id
   private String id;
   private String idAccountHolder;
+  private String latestOldHolder;
   @Column(name = "id_job")
   private String idJob;
   private String managerName;

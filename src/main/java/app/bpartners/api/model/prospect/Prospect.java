@@ -28,6 +28,7 @@ public class Prospect implements Comparable<Prospect> {
   private String id;
   private String idJob;
   private String idHolderOwner;
+  private String latestOldHolder;
   private String managerName;
   private String name;
   private String email;

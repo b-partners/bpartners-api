@@ -52,6 +52,9 @@ public class Prospect implements Comparable<Prospect> {
         .get(0).getStatus();
   }
 
+  public boolean isGivenUp() {
+    return this.getIdHolderOwner() == null && this.getLatestOldHolder() != null;
+  }
 
   public String describe() {
     return "Prospect{"

@@ -72,7 +72,10 @@ public class SavableAccountConnectorRepository implements AccountConnectorReposi
     HAccount existingAccount =
         optionalAccountByExternalId.orElseGet(() -> {
           Optional<HAccount> optionalAccountByIban =
-              AccountUtils.findByIbanOrNameAndBank(accountConnector, jpaRepository);
+              AccountUtils.findByIbanOrNameAndBankAndIdUser(
+                  idUser,
+                  accountConnector,
+                  jpaRepository);
           if (optionalAccountByIban.isEmpty()) {
             return fromNewAccount(accountConnector, associatedUser);
           } else {

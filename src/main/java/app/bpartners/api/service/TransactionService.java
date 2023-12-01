@@ -12,6 +12,7 @@ import app.bpartners.api.model.JustifyTransaction;
 import app.bpartners.api.model.MonthlyTransactionsSummary;
 import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.model.Transaction;
+import app.bpartners.api.model.TransactionExportDetails;
 import app.bpartners.api.model.TransactionInvoiceDetails;
 import app.bpartners.api.model.TransactionsSummary;
 import app.bpartners.api.model.User;
@@ -50,6 +51,7 @@ import org.springframework.stereotype.Service;
 
 import static app.bpartners.api.endpoint.rest.model.TransactionStatus.BOOKED;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
+import static java.time.Instant.now;
 import static java.util.UUID.randomUUID;
 
 @Service
@@ -64,9 +66,9 @@ public class TransactionService {
   private final S3Service s3Service;
   private final UserService userService;
 
-  public String generateTransactionSummaryLink(String idAccount,
-                                               Instant from, Instant to,
-                                               TransactionStatus transactionStatus) {
+  public TransactionExportDetails generateTransactionSummaryLink(String idAccount,
+                                                                 Instant from, Instant to,
+                                                                 TransactionStatus transactionStatus) {
     if (from.isAfter(to)) {
       throw new BadRequestException(
           String.format("Min interval (%s) must be after max interval (%s)", from, to));
@@ -93,11 +95,18 @@ public class TransactionService {
     String compressedFileId = String.valueOf(randomUUID());
     s3Service.uploadFile(FileType.TRANSACTION, user.getId(), compressedFileId, compressed);
 
-    return s3Service.getPresignedUrl(
+    Instant createdAt = now();
+    Instant expiredAt = createdAt.plusSeconds(ONE_HOUR_IN_SECONDS);
+    String presignedUrl = s3Service.getPresignedUrl(
         FileType.TRANSACTION,
         user.getId(),
         compressedFileId,
         ONE_HOUR_IN_SECONDS);
+    return TransactionExportDetails.builder()
+        .downloadLink(presignedUrl)
+        .createdAt(createdAt)
+        .expiredAt(expiredAt)
+        .build();
   }
 
   private Map<String, byte[]> convertToFileNameAndBytes(User user,

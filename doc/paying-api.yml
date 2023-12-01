@@ -16,7 +16,7 @@ operations:
           content:
             application/json:
               schema:
-                type: string
+                $ref: '#/components/schemas/TransactionExportLink'
   getTransactions:
     get:
       tags:
@@ -1284,7 +1284,7 @@ components:
       properties:
         isFromScratch:
           type: boolean
-          description: | 
+          description: |
             If false, generate default header and signature inside the email body to send.
             If true, send only provided email body
             If not provided, default value is false.
@@ -1639,3 +1639,15 @@ components:
           format: date-time
         transactionStatus:
           $ref: '#/components/schemas/TransactionStatus'
+    TransactionExportLink:
+      type: object
+      properties:
+        createdAt:
+          type: string
+          format: date-time
+        expiredAt:
+          type: string
+          format: date-time
+        downloadLink:
+          type: string
+          description: Expired after 1 hour

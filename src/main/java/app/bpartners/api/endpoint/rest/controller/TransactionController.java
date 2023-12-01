@@ -4,9 +4,11 @@ import app.bpartners.api.endpoint.rest.mapper.TransactionRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.TransactionsSummaryRestMapper;
 import app.bpartners.api.endpoint.rest.model.Transaction;
 import app.bpartners.api.endpoint.rest.model.TransactionExportInput;
+import app.bpartners.api.endpoint.rest.model.TransactionExportLink;
 import app.bpartners.api.endpoint.rest.model.TransactionStatus;
 import app.bpartners.api.endpoint.rest.model.TransactionsSummary;
 import app.bpartners.api.endpoint.rest.security.AuthProvider;
+import app.bpartners.api.endpoint.rest.validator.TransactionExportValidator;
 import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.service.TransactionService;
@@ -26,12 +28,17 @@ public class TransactionController {
   private final TransactionService service;
   private final TransactionRestMapper mapper;
   private final TransactionsSummaryRestMapper summaryRestMapper;
+  private final TransactionExportValidator exportValidator;
 
   @PostMapping(value = "/accounts/{id}/transactions/exportLink")
-  public String generateTransactionsExportLink(@PathVariable String id,
-                                               @RequestBody
-                                               TransactionExportInput input) {
-    return service.generateTransactionSummaryLink(id, input.getFrom(), input.getTo(), input.getTransactionStatus());
+  public TransactionExportLink generateTransactionsExportLink(@PathVariable String id,
+                                                              @RequestBody
+                                                              TransactionExportInput input) {
+    exportValidator.accept(input);
+    return mapper.toRest(service.generateTransactionSummaryLink(
+        id,
+        input.getFrom(), input.getTo(),
+        input.getTransactionStatus()));
   }
 
   @GetMapping(value = "/accounts/{id}/transactions")

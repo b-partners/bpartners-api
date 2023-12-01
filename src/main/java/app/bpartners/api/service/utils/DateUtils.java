@@ -39,4 +39,11 @@ public class DateUtils {
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
     return localDateTime.format(formatter);
   }
+
+  public static String formatFrenchDateUnderscore(Instant instant) {
+    ZoneId zoneId = ZoneId.of(PARIS_TIMEZONE);
+    LocalDateTime localDateTime = instant.atZone(zoneId).toLocalDateTime();
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd_MM_yyyy");
+    return localDateTime.format(formatter);
+  }
 }

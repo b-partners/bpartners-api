@@ -8,7 +8,10 @@ import app.bpartners.api.model.Transaction;
 import app.bpartners.api.repository.TransactionRepository;
 import app.bpartners.api.repository.TransactionsSummaryRepository;
 import app.bpartners.api.service.AccountService;
+import app.bpartners.api.service.InvoiceService;
 import app.bpartners.api.service.TransactionService;
+import app.bpartners.api.service.UserService;
+import app.bpartners.api.service.aws.S3Service;
 import java.math.BigInteger;
 import java.time.Instant;
 import java.time.YearMonth;
@@ -32,6 +35,9 @@ class TransactionServiceSummariesTest {
   TransactionRepository transactionRepository;
   TransactionsSummaryRepository transactionsSummaryRepository;
   AccountService accountService;
+  InvoiceService invoiceServiceMock;
+  S3Service s3ServiceMock;
+  UserService userServiceMock;
 
   private static Account joeDoeAccount() {
     return Account.builder()
@@ -45,10 +51,16 @@ class TransactionServiceSummariesTest {
     transactionsSummaryRepository = mock(TransactionsSummaryRepository.class);
     transactionRepository = mock(TransactionRepository.class);
     accountService = mock(AccountService.class);
+    invoiceServiceMock = mock(InvoiceService.class);
+    s3ServiceMock = mock(S3Service.class);
+    userServiceMock = mock(UserService.class);
     transactionService = new TransactionService(
         transactionRepository,
         transactionsSummaryRepository,
-        accountService
+        accountService,
+        invoiceServiceMock,
+        s3ServiceMock,
+        userServiceMock
     );
 
     when(transactionRepository.findByAccountIdAndStatusBetweenInstants(any(), any(), any(), any()))

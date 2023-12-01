@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.ses.SesClient;
 import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sqs.SqsClient;
@@ -56,6 +57,18 @@ public class EventConf {
   public S3Client getS3Client() {
     try {
       return S3Client.builder()
+          .endpointOverride(new URI(s3Endpoint))
+          .region(region)
+          .build();
+    } catch (URISyntaxException e) {
+      throw new ApiException(SERVER_EXCEPTION, e);
+    }
+  }
+
+  @Bean
+  public S3Presigner getS3Presigner() {
+    try {
+      return S3Presigner.builder()
           .endpointOverride(new URI(s3Endpoint))
           .region(region)
           .build();

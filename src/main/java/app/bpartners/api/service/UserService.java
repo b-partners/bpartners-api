@@ -19,6 +19,11 @@ public class UserService {
   private final SnsService snsService;
 
   @Transactional
+  public User getByIdAccount(String idAccount) {
+    return userRepository.getByIdAccount(idAccount);
+  }
+
+  @Transactional
   public User registerDevice(String idUser, String token) {
     User user = userRepository.getById(idUser);
     String actualToken = user.getDeviceToken();

@@ -1,4 +1,22 @@
 operations:
+  transactionsExportLink:
+    post:
+      tags:
+        - Paying
+      summary: Generate transactions export link
+      description: Link expired after one (1) hour
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransactionExportInput'
+      responses:
+        200:
+          description: Link to download transactions summary excel file compressed with associated invoices
+          content:
+            application/json:
+              schema:
+                type: string
   getTransactions:
     get:
       tags:
@@ -1610,3 +1628,14 @@ components:
       properties:
         method:
           $ref: '#/components/schemas/PaymentMethod'
+    TransactionExportInput:
+      type: object
+      properties:
+        from:
+          type: string
+          format: date-time
+        to:
+          type: string
+          format: date-time
+        transactionStatus:
+          $ref: '#/components/schemas/TransactionStatus'

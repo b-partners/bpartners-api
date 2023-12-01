@@ -165,6 +165,7 @@ components:
     FileType:
       type: string
       enum:
+        - TRANSACTION
         - INVOICE
         - LOGO
         - ATTACHMENT

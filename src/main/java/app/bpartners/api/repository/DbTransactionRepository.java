@@ -5,7 +5,6 @@ import app.bpartners.api.endpoint.rest.model.TransactionStatus;
 import app.bpartners.api.model.JustifyTransaction;
 import app.bpartners.api.model.Transaction;
 import app.bpartners.api.model.exception.NotFoundException;
-import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.model.mapper.TransactionMapper;
 import app.bpartners.api.repository.jpa.InvoiceJpaRepository;
 import app.bpartners.api.repository.jpa.TransactionJpaRepository;
@@ -21,12 +20,14 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import lombok.AllArgsConstructor;
+import org.springframework.context.annotation.Primary;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.query.QueryUtils;
 import org.springframework.stereotype.Repository;
 
+@Primary
 @Repository
 @AllArgsConstructor
 public class DbTransactionRepository implements TransactionRepository {
@@ -78,9 +79,13 @@ public class DbTransactionRepository implements TransactionRepository {
         .collect(Collectors.toList());
   }
 
+  //TODO: Bad implementation ! Use correct SQL Query
   @Override
   public List<Transaction> findByAccountId(String id) {
-    throw new NotFoundException("Not supported ! Must be pageable");
+    return jpaRepository.findAllByIdAccountOrderByPaymentDateTimeDesc(id).stream()
+        .map(transaction -> mapper.toDomain(transaction,
+            categoryRepository.findByIdTransaction(transaction.getId())))
+        .toList();
   }
 
   @Override
@@ -91,9 +96,12 @@ public class DbTransactionRepository implements TransactionRepository {
         transaction, categoryRepository.findByIdTransaction(transaction.getId()));
   }
 
+  //TODO: Bad implementation ! Use correct SQL Query
   @Override
   public List<Transaction> findByAccountIdAndStatus(String id, TransactionStatus status) {
-    throw new NotImplementedException("Not supported");
+    return findByAccountId(id).stream()
+        .filter(transaction -> transaction.getStatus().equals(status))
+        .toList();
   }
 
   @Override
@@ -123,11 +131,18 @@ public class DbTransactionRepository implements TransactionRepository {
         .collect(Collectors.toList());
   }
 
+  //TODO: Bad implementation ! Use correct SQL Query
   @Override
   public List<Transaction> findByAccountIdAndStatusBetweenInstants(String id,
                                                                    TransactionStatus status,
                                                                    Instant from, Instant to) {
-    throw new NotImplementedException("Not supported");
+    return findByAccountIdAndStatus(id, status).stream()
+        .filter(
+            transaction -> transaction.getPaymentDatetime().isAfter(from)
+                &&
+                transaction.getPaymentDatetime().isBefore(to)
+        )
+        .toList();
   }
 
   @Override

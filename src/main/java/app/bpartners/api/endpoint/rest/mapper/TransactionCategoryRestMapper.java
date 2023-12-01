@@ -6,8 +6,8 @@ import app.bpartners.api.endpoint.rest.model.TransactionTypeEnum;
 import app.bpartners.api.endpoint.rest.validator.CreateTransactionCategoryValidator;
 import app.bpartners.api.model.TransactionCategoryTemplate;
 import app.bpartners.api.model.exception.BadRequestException;
+import app.bpartners.api.repository.DbTransactionRepository;
 import app.bpartners.api.repository.TransactionCategoryTemplateRepository;
-import app.bpartners.api.repository.TransactionRepository;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -18,7 +18,7 @@ import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 @AllArgsConstructor
 public class TransactionCategoryRestMapper {
   private final TransactionCategoryTemplateRepository categoryTemplateRep;
-  private final TransactionRepository transactionRepository;
+  private final DbTransactionRepository transactionRepository;
   private final CreateTransactionCategoryValidator validator;
 
   public TransactionCategory toRest(app.bpartners.api.model.TransactionCategoryTemplate domain) {

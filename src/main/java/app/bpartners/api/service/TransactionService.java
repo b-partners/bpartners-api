@@ -79,7 +79,7 @@ public class TransactionService {
       transactionStatus = BOOKED;
     }
     List<Transaction> transactions =
-        bridgeTransactionRepository.findByAccountIdAndStatusBetweenInstants(
+        dbTransactionRepository.findByAccountIdAndStatusBetweenInstants(
             idAccount,
             transactionStatus,
             from, to);

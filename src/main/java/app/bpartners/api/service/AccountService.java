@@ -14,7 +14,7 @@ import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.repository.AccountRepository;
 import app.bpartners.api.repository.BankRepository;
-import app.bpartners.api.repository.TransactionRepository;
+import app.bpartners.api.repository.DbTransactionRepository;
 import app.bpartners.api.repository.TransactionsSummaryRepository;
 import app.bpartners.api.repository.UserRepository;
 import java.time.Instant;
@@ -39,7 +39,7 @@ public class AccountService {
   private final BankRepository bankRepository;
   private final UserRepository userRepository;
   private final TransactionsSummaryRepository summaryRepository;
-  private final TransactionRepository transactionRepository;
+  private final DbTransactionRepository transactionRepository;
 
   public Account getActive(List<Account> accounts) {
     return accounts.stream()

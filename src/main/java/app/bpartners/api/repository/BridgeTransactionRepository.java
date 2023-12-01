@@ -32,7 +32,7 @@ public class BridgeTransactionRepository implements TransactionRepository {
   @Override
   public List<Transaction> findByIdAccount(String idAccount, String title, TransactionStatus status,
                                            int page, int pageSize) {
-    throw new NotFoundException("Not supported ! Must be pageable");
+    throw new NotImplementedException("Not supported ! Must be pageable");
   }
 
   @Override

@@ -5,6 +5,8 @@ import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.Money;
 import app.bpartners.api.model.MonthlyTransactionsSummary;
 import app.bpartners.api.model.Transaction;
+import app.bpartners.api.repository.BridgeTransactionRepository;
+import app.bpartners.api.repository.DbTransactionRepository;
 import app.bpartners.api.repository.TransactionRepository;
 import app.bpartners.api.repository.TransactionsSummaryRepository;
 import app.bpartners.api.service.AccountService;
@@ -32,7 +34,8 @@ import static org.mockito.Mockito.when;
 
 class TransactionServiceSummariesTest {
   TransactionService transactionService;
-  TransactionRepository transactionRepository;
+  DbTransactionRepository dbTransactionRepository;
+  BridgeTransactionRepository bridgeTransactionRepository;
   TransactionsSummaryRepository transactionsSummaryRepository;
   AccountService accountService;
   InvoiceService invoiceServiceMock;
@@ -49,13 +52,15 @@ class TransactionServiceSummariesTest {
   @BeforeEach
   void setUp() {
     transactionsSummaryRepository = mock(TransactionsSummaryRepository.class);
-    transactionRepository = mock(TransactionRepository.class);
+    dbTransactionRepository = mock(DbTransactionRepository.class);
+    bridgeTransactionRepository = mock(BridgeTransactionRepository.class);
     accountService = mock(AccountService.class);
     invoiceServiceMock = mock(InvoiceService.class);
     s3ServiceMock = mock(S3Service.class);
     userServiceMock = mock(UserService.class);
     transactionService = new TransactionService(
-        transactionRepository,
+        dbTransactionRepository,
+        bridgeTransactionRepository,
         transactionsSummaryRepository,
         accountService,
         invoiceServiceMock,
@@ -63,7 +68,8 @@ class TransactionServiceSummariesTest {
         userServiceMock
     );
 
-    when(transactionRepository.findByAccountIdAndStatusBetweenInstants(any(), any(), any(), any()))
+    when(
+        dbTransactionRepository.findByAccountIdAndStatusBetweenInstants(any(), any(), any(), any()))
         .thenReturn(transactions());
   }
 

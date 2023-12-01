@@ -14,10 +14,8 @@ public interface AccountJpaRepository extends JpaRepository<HAccount, String> {
   List<HAccount> findAllByExternalId(String externalId);
 
   @Lock(PESSIMISTIC_WRITE)
-  List<HAccount> findAllByUser_IdAndIban(String idUser, String iban);
+  List<HAccount> findAllByIban(String iban);
 
   @Lock(PESSIMISTIC_WRITE)
-  List<HAccount> findAllByUser_IdAndNameContainingIgnoreCaseAndIdBank(String idUser,
-                                                                      String name,
-                                                                      String idBank);
+  List<HAccount> findAllByNameContainingIgnoreCaseAndIdBank(String name, String idBank);
 }

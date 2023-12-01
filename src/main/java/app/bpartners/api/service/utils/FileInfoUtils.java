@@ -14,6 +14,7 @@ public class FileInfoUtils {
 
   public static final String PDF_EXTENSION = ".pdf";
   public static final String JPG_FORMAT_NAME = "JPG";
+  public static final String APPLICATION_ZIP_VALUE = "application/zip";
 
 
   public static MediaType parseMediaTypeFromBytes(byte[] bytes) {
@@ -33,8 +34,9 @@ public class FileInfoUtils {
     if (!mediaType.equals(MediaType.IMAGE_JPEG_VALUE)
         && !mediaType.equals(MediaType.IMAGE_PNG_VALUE)
         && !mediaType.equals(MediaType.APPLICATION_PDF_VALUE)
-        && !mediaType.equals(EXCEL_MIME_TYPE)) {
-      throw new BadRequestException("Only pdf, png, jpeg/jpg and excel files are allowed.");
+        && !mediaType.equals(EXCEL_MIME_TYPE)
+        && !mediaType.equals(APPLICATION_ZIP_VALUE)) {
+      throw new BadRequestException("Only pdf, png, jpeg/jpg, zip and excel files are allowed.");
     }
   }
 }

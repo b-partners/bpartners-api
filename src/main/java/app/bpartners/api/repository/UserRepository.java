@@ -5,6 +5,9 @@ import java.util.List;
 import java.util.Optional;
 
 public interface UserRepository {
+
+  User getByIdAccount(String idAccount);
+
   List<User> findAll();
 
   User getUserByToken(String token);

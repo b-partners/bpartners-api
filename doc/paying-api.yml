@@ -1,4 +1,22 @@
 operations:
+  transactionsExportLink:
+    post:
+      tags:
+        - Paying
+      summary: Generate transactions export link
+      description: Link expired after one (1) hour
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransactionExportInput'
+      responses:
+        200:
+          description: Link to download transactions summary excel file compressed with associated invoices
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionExportLink'
   getTransactions:
     get:
       tags:
@@ -1266,7 +1284,7 @@ components:
       properties:
         isFromScratch:
           type: boolean
-          description: | 
+          description: |
             If false, generate default header and signature inside the email body to send.
             If true, send only provided email body
             If not provided, default value is false.
@@ -1610,3 +1628,26 @@ components:
       properties:
         method:
           $ref: '#/components/schemas/PaymentMethod'
+    TransactionExportInput:
+      type: object
+      properties:
+        from:
+          type: string
+          format: date-time
+        to:
+          type: string
+          format: date-time
+        transactionStatus:
+          $ref: '#/components/schemas/TransactionStatus'
+    TransactionExportLink:
+      type: object
+      properties:
+        createdAt:
+          type: string
+          format: date-time
+        expiredAt:
+          type: string
+          format: date-time
+        downloadLink:
+          type: string
+          description: Expired after 1 hour

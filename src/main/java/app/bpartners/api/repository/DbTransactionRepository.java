@@ -1,22 +1,18 @@
-package app.bpartners.api.repository.implementation;
+package app.bpartners.api.repository;
 
 import app.bpartners.api.endpoint.rest.model.EnableStatus;
 import app.bpartners.api.endpoint.rest.model.TransactionStatus;
 import app.bpartners.api.model.JustifyTransaction;
 import app.bpartners.api.model.Transaction;
 import app.bpartners.api.model.exception.NotFoundException;
+import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.model.mapper.TransactionMapper;
-import app.bpartners.api.repository.TransactionCategoryRepository;
-import app.bpartners.api.repository.TransactionRepository;
-import app.bpartners.api.repository.connectors.transaction.TransactionConnector;
-import app.bpartners.api.repository.connectors.transaction.TransactionConnectorRepository;
 import app.bpartners.api.repository.jpa.InvoiceJpaRepository;
 import app.bpartners.api.repository.jpa.TransactionJpaRepository;
 import app.bpartners.api.repository.jpa.model.HInvoice;
 import app.bpartners.api.repository.jpa.model.HTransaction;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
@@ -25,24 +21,19 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.query.QueryUtils;
 import org.springframework.stereotype.Repository;
 
-import static app.bpartners.api.service.utils.TransactionUtils.describeList;
-
 @Repository
-@Slf4j
 @AllArgsConstructor
-public class TransactionRepositoryImpl implements TransactionRepository {
+public class DbTransactionRepository implements TransactionRepository {
   private final TransactionMapper mapper;
   private final TransactionCategoryRepository categoryRepository;
   private final TransactionJpaRepository jpaRepository;
   private final InvoiceJpaRepository invoiceJpaRepository;
-  private final TransactionConnectorRepository connectorRepository;
   private final EntityManager entityManager;
 
   private List<HTransaction> filterByIdAccountAndLabel(String idAccount, String label,
@@ -88,29 +79,8 @@ public class TransactionRepositoryImpl implements TransactionRepository {
   }
 
   @Override
-  public List<Transaction> findByAccountId(String idAccount) {
-    List<TransactionConnector> connectors = connectorRepository.findByIdAccount(idAccount);
-    List<HTransaction> entities = connectors.stream()
-        .map(connector -> {
-          List<HTransaction> bridgeTransactions =
-              jpaRepository.findAllByIdBridge(Long.valueOf(connector.getId()));
-          if (bridgeTransactions.isEmpty()) {
-            throw new NotFoundException(
-                "Transaction(externalId=" + connector.getId() + ") not found");
-          }
-          if (bridgeTransactions.size() > 1) {
-            log.warn("Duplicated transactions with same external ID {}",
-                describeList(bridgeTransactions));
-          }
-          return bridgeTransactions.get(0);
-        })
-        .toList();
-    return entities.stream()
-        .map(entity -> mapper.toDomain(entity,
-            categoryRepository.findByIdTransaction(entity.getId())))
-        //TODO: when getting from database only, sort by payment date DESC directly in db query
-        .sorted(Comparator.comparing(Transaction::getPaymentDatetime).reversed())
-        .collect(Collectors.toList());
+  public List<Transaction> findByAccountId(String id) {
+    throw new NotFoundException("Not supported ! Must be pageable");
   }
 
   @Override
@@ -123,9 +93,7 @@ public class TransactionRepositoryImpl implements TransactionRepository {
 
   @Override
   public List<Transaction> findByAccountIdAndStatus(String id, TransactionStatus status) {
-    return findByAccountId(id).stream()
-        .filter(transaction -> transaction.getStatus().equals(status))
-        .toList();
+    throw new NotImplementedException("Not supported");
   }
 
   @Override
@@ -156,16 +124,10 @@ public class TransactionRepositoryImpl implements TransactionRepository {
   }
 
   @Override
-  public List<Transaction> findByAccountIdAndStatusBetweenInstants(
-      String id, TransactionStatus status,
-      Instant from, Instant to) {
-    return findByAccountIdAndStatus(id, status).stream()
-        .filter(
-            transaction -> transaction.getPaymentDatetime().isAfter(from)
-                &&
-                transaction.getPaymentDatetime().isBefore(to)
-        )
-        .toList();
+  public List<Transaction> findByAccountIdAndStatusBetweenInstants(String id,
+                                                                   TransactionStatus status,
+                                                                   Instant from, Instant to) {
+    throw new NotImplementedException("Not supported");
   }
 
   @Override

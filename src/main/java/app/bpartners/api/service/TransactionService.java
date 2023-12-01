@@ -19,7 +19,8 @@ import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.NotImplementedException;
-import app.bpartners.api.repository.TransactionRepository;
+import app.bpartners.api.repository.BridgeTransactionRepository;
+import app.bpartners.api.repository.DbTransactionRepository;
 import app.bpartners.api.repository.TransactionsSummaryRepository;
 import app.bpartners.api.service.aws.S3Service;
 import app.bpartners.api.service.utils.DateUtils;
@@ -59,7 +60,8 @@ import static java.util.UUID.randomUUID;
 @Slf4j
 public class TransactionService {
   public static final long ONE_HOUR_IN_SECONDS = 3600L;
-  private final TransactionRepository repository;
+  private final DbTransactionRepository dbTransactionRepository;
+  private final BridgeTransactionRepository bridgeTransactionRepository;
   private final TransactionsSummaryRepository summaryRepository;
   private final AccountService accountService;
   private final InvoiceService invoiceService;
@@ -77,7 +79,10 @@ public class TransactionService {
       transactionStatus = BOOKED;
     }
     List<Transaction> transactions =
-        repository.findByAccountIdAndStatusBetweenInstants(idAccount, transactionStatus, from, to);
+        bridgeTransactionRepository.findByAccountIdAndStatusBetweenInstants(
+            idAccount,
+            transactionStatus,
+            from, to);
     User user = userService.getByIdAccount(idAccount);
 
     Map<byte[], Map<String, String>> excelFileWithAssociatedInvoices =
@@ -258,11 +263,12 @@ public class TransactionService {
     if (category != null) {
       throw new NotImplementedException("prospect conversion not implemented yet");
     }
-    return repository.findByIdAccount(idAccount, label, status, pageValue, pageSizeValue);
+    return dbTransactionRepository.findByIdAccount(idAccount, label, status, pageValue,
+        pageSizeValue);
   }
 
   public Transaction getById(String transactionId) {
-    return repository.findById(transactionId);
+    return dbTransactionRepository.findById(transactionId);
   }
 
   public TransactionsSummary getTransactionsSummary(String idUser, Integer year) {
@@ -273,7 +279,7 @@ public class TransactionService {
   }
 
   public Transaction justifyTransaction(String idTransaction, String idInvoice) {
-    return repository.save(JustifyTransaction.builder()
+    return dbTransactionRepository.save(JustifyTransaction.builder()
         .idTransaction(idTransaction)
         .idInvoice(idInvoice)
         .build());
@@ -282,7 +288,7 @@ public class TransactionService {
   public void refreshCurrentYearSummary(Account account) {
     int actualYear = Year.now().getValue();
     List<Transaction> yearlyTransactions =
-        repository.findByAccountIdAndStatusBetweenInstants(
+        bridgeTransactionRepository.findByAccountIdAndStatusBetweenInstants(
             account.getId(), BOOKED, getFirstDayOfYear(actualYear), getLastDayOfYear(actualYear));
     List<Transaction> enabledTransactions = yearlyTransactions.stream()
         .filter(transaction -> transaction.getEnableStatus() == EnableStatus.ENABLED)

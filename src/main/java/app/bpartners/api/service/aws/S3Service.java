@@ -7,6 +7,8 @@ import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.service.utils.FileInfoUtils;
+import java.time.Duration;
+import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -20,6 +22,9 @@ import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
 
 import static app.bpartners.api.endpoint.rest.model.FileType.ATTACHMENT;
 import static app.bpartners.api.endpoint.rest.model.FileType.INVOICE;
@@ -33,8 +38,47 @@ import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVE
 public class S3Service {
   private static final String S3_KEY_FORMAT = "%s/accounts/%s/%s/%s";
   private final S3Client s3Client;
+  private final S3Presigner s3Presigner;
   private final S3Conf s3Conf;
   private final UserRepository userRepository;
+
+  public String getPresignedUrl(String key, Long expirationInSeconds) {
+    Instant now = Instant.now();
+    Instant expirationInstant = now.plusSeconds(expirationInSeconds);
+    Duration expirationDuration = Duration.between(now, expirationInstant);
+
+    GetObjectRequest getObjectRequest = GetObjectRequest.builder()
+        .bucket(s3Conf.getBucketName())
+        .key(key)
+        .build();
+
+    PresignedGetObjectRequest presignRequest =
+        s3Presigner.presignGetObject(GetObjectPresignRequest.builder()
+            .signatureDuration(expirationDuration)
+            .getObjectRequest(getObjectRequest)
+            .build());
+
+    return presignRequest.url().toString();
+  }
+
+  public String getPresignedUrl(FileType fileType,
+                                String idUser,
+                                String fileId,
+                                Long expirationInSeconds) {
+    String key = getKey(idUser);
+    switch (fileType) {
+      case TRANSACTION:
+        return getPresignedUrl(getTransactionKey(fileId), expirationInSeconds);
+      case LOGO:
+        return getPresignedUrl(getLogoKey(key, fileId), expirationInSeconds);
+      case INVOICE:
+        return getPresignedUrl(getInvoiceKey(key, fileId), expirationInSeconds);
+      case ATTACHMENT:
+        return getPresignedUrl(getAttachmentKey(key, fileId), expirationInSeconds);
+      default:
+        throw new BadRequestException("Unknown file type " + fileType);
+    }
+  }
 
   private String uploadFile(String key, byte[] toUpload) {
     log.info("File to be upload into S3 for User(id="
@@ -68,6 +112,8 @@ public class S3Service {
   public String uploadFile(FileType fileType, String idUser, String fileId, byte[] toUpload) {
     String key = getKey(idUser);
     switch (fileType) {
+      case TRANSACTION:
+        return uploadFile(getTransactionKey(fileId), toUpload);
       case LOGO:
         return uploadFile(getLogoKey(key, fileId), toUpload);
       case INVOICE:
@@ -96,6 +142,8 @@ public class S3Service {
   public byte[] downloadFile(FileType fileType, String idUser, String fileId) {
     String key = getKey(idUser);
     switch (fileType) {
+      case TRANSACTION:
+        return downloadFile(getTransactionKey(fileId));
       case LOGO:
         return downloadFile(getLogoKey(key, fileId));
       case INVOICE:
@@ -113,6 +161,10 @@ public class S3Service {
 
   private String getBucketName(String env, String idUser, String fileId, String type) {
     return String.format(S3_KEY_FORMAT, env, idUser, type, fileId);
+  }
+
+  private String getTransactionKey(String fileId) {
+    return "transactions/" + fileId;
   }
 
   private String getLogoKey(String idUser, String fileId) {

@@ -110,10 +110,8 @@ public class ProspectRepositoryImpl implements ProspectRepository {
                                                  ContactNature contactNature) {
     BusinessActivity businessActivity =
         businessActivityService.findByAccountHolderId(idAccountHolder);
-    if (Objects.equals(0,
-        ANTI_HARM.compareToIgnoreCase(businessActivity.getPrimaryActivity()))
-        || Objects.equals(0,
-        ANTI_HARM.compareToIgnoreCase(businessActivity.getSecondaryActivity()))) {
+    boolean isSogefiProspector = isSogefiProspector(businessActivity);
+    if (!isSogefiProspector) {
       List<HProspect> prospects = contactNature == null
           ? jpaRepository.findAllByIdAccountHolderAndOldNameContainingIgnoreCase(
           idAccountHolder,
@@ -131,7 +129,6 @@ public class ProspectRepositoryImpl implements ProspectRepository {
           .sorted(Comparator.reverseOrder())
           .collect(Collectors.toList());
     }
-    boolean isSogefiProspector = isSogefiProspector(businessActivity);
     AccountHolder accountHolder = accountHolderRepository.findById(idAccountHolder);
     if (accountHolder.getTownCode() == null) {
       throw new BadRequestException(
@@ -150,16 +147,14 @@ public class ProspectRepositoryImpl implements ProspectRepository {
         .mapToInt(Integer::parseInt)
         .boxed()
         .collect(toUnmodifiableList());
-    if (isSogefiProspector) {
-      BuildingPermitList buildingPermitList = buildingPermitApi.getBuildingPermitList(townCodes);
-      if (buildingPermitList != null && buildingPermitList.getRecords() != null) {
-        buildingPermitList.getRecords().forEach(buildingPermit -> {
-          SingleBuildingPermit singleBuildingPermit =
-              buildingPermitApi.getSingleBuildingPermit(String.valueOf(buildingPermit.getFileId()));
-          sogefiBuildingPermitRepository.saveByBuildingPermit(idAccountHolder, buildingPermit,
-              singleBuildingPermit);
-        });
-      }
+    BuildingPermitList buildingPermitList = buildingPermitApi.getBuildingPermitList(townCodes);
+    if (buildingPermitList != null && buildingPermitList.getRecords() != null) {
+      buildingPermitList.getRecords().forEach(buildingPermit -> {
+        SingleBuildingPermit singleBuildingPermit =
+            buildingPermitApi.getSingleBuildingPermit(String.valueOf(buildingPermit.getFileId()));
+        sogefiBuildingPermitRepository.saveByBuildingPermit(idAccountHolder, buildingPermit,
+            singleBuildingPermit);
+      });
     }
     //TODO: why do prospects must be filtered by town code
     // while it is already attached to account holder ?

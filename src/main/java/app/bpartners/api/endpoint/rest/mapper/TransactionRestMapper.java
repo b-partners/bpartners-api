@@ -1,6 +1,8 @@
 package app.bpartners.api.endpoint.rest.mapper;
 
 import app.bpartners.api.endpoint.rest.model.Transaction;
+import app.bpartners.api.endpoint.rest.model.TransactionExportLink;
+import app.bpartners.api.model.TransactionExportDetails;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -10,6 +12,13 @@ import org.springframework.stereotype.Component;
 public class TransactionRestMapper {
   private final TransactionCategoryRestMapper categoryRestMapper;
   private final InvoiceRestMapper invoiceRestMapper;
+
+  public TransactionExportLink toRest(TransactionExportDetails domain) {
+    return new TransactionExportLink()
+        .downloadLink(domain.getDownloadLink())
+        .createdAt(domain.getCreatedAt())
+        .expiredAt(domain.getExpiredAt());
+  }
 
   public Transaction toRest(app.bpartners.api.model.Transaction internal) {
     Transaction transaction = new Transaction()

@@ -27,15 +27,18 @@ public class AccountUtils {
     return Optional.of(accountsWithSameId.get(0));
   }
 
-  public static Optional<HAccount> findByIbanOrNameAndBank(
+  public static Optional<HAccount> findByIbanOrNameAndBankAndIdUser(
+      String idUser,
       AccountConnector accountConnector, AccountJpaRepository jpaRepository) {
     String iban = accountConnector.getIban();
     String name = accountConnector.getName();
     String bankId = accountConnector.getBankId();
 
     List<HAccount> accountsWithIbanOrNameAndBank =
-        iban == null ? jpaRepository.findAllByNameContainingIgnoreCaseAndIdBank(name, bankId)
-            : jpaRepository.findAllByIban(iban);
+        iban == null
+            ? jpaRepository.findAllByUser_IdAndNameContainingIgnoreCaseAndIdBank(
+            idUser, name, bankId)
+            : jpaRepository.findAllByUser_IdAndIban(idUser, iban);
     if (accountsWithIbanOrNameAndBank.isEmpty()) {
       return Optional.empty();
     }

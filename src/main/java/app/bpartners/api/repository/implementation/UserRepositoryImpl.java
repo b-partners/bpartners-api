@@ -32,6 +32,13 @@ public class UserRepositoryImpl implements UserRepository {
   private final BankRepository bankRepository;
 
   @Override
+  public User getByIdAccount(String idAccount) {
+    HAccount account = accountJpaRepository.findById(idAccount)
+        .orElseThrow(() -> new NotFoundException("Account(id=" + idAccount + ") not found"));
+    return userMapper.toDomain(account.getUser());
+  }
+
+  @Override
   public List<User> findAll() {
     return jpaRepository.findAll().stream()
         .map(userMapper::toDomain)

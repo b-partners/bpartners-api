@@ -5,10 +5,15 @@ import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.Money;
 import app.bpartners.api.model.MonthlyTransactionsSummary;
 import app.bpartners.api.model.Transaction;
+import app.bpartners.api.repository.BridgeTransactionRepository;
+import app.bpartners.api.repository.DbTransactionRepository;
 import app.bpartners.api.repository.TransactionRepository;
 import app.bpartners.api.repository.TransactionsSummaryRepository;
 import app.bpartners.api.service.AccountService;
+import app.bpartners.api.service.InvoiceService;
 import app.bpartners.api.service.TransactionService;
+import app.bpartners.api.service.UserService;
+import app.bpartners.api.service.aws.S3Service;
 import java.math.BigInteger;
 import java.time.Instant;
 import java.time.YearMonth;
@@ -29,9 +34,13 @@ import static org.mockito.Mockito.when;
 
 class TransactionServiceSummariesTest {
   TransactionService transactionService;
-  TransactionRepository transactionRepository;
+  DbTransactionRepository dbTransactionRepository;
+  BridgeTransactionRepository bridgeTransactionRepository;
   TransactionsSummaryRepository transactionsSummaryRepository;
   AccountService accountService;
+  InvoiceService invoiceServiceMock;
+  S3Service s3ServiceMock;
+  UserService userServiceMock;
 
   private static Account joeDoeAccount() {
     return Account.builder()
@@ -43,15 +52,24 @@ class TransactionServiceSummariesTest {
   @BeforeEach
   void setUp() {
     transactionsSummaryRepository = mock(TransactionsSummaryRepository.class);
-    transactionRepository = mock(TransactionRepository.class);
+    dbTransactionRepository = mock(DbTransactionRepository.class);
+    bridgeTransactionRepository = mock(BridgeTransactionRepository.class);
     accountService = mock(AccountService.class);
+    invoiceServiceMock = mock(InvoiceService.class);
+    s3ServiceMock = mock(S3Service.class);
+    userServiceMock = mock(UserService.class);
     transactionService = new TransactionService(
-        transactionRepository,
+        dbTransactionRepository,
+        bridgeTransactionRepository,
         transactionsSummaryRepository,
-        accountService
+        accountService,
+        invoiceServiceMock,
+        s3ServiceMock,
+        userServiceMock
     );
 
-    when(transactionRepository.findByAccountIdAndStatusBetweenInstants(any(), any(), any(), any()))
+    when(
+        dbTransactionRepository.findByAccountIdAndStatusBetweenInstants(any(), any(), any(), any()))
         .thenReturn(transactions());
   }
 

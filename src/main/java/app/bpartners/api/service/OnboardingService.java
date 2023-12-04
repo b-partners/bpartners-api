@@ -3,7 +3,6 @@ package app.bpartners.api.service;
 import app.bpartners.api.endpoint.event.EventConf;
 import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.endpoint.event.model.TypedUserOnboarded;
-import app.bpartners.api.endpoint.event.model.TypedUserUpserted;
 import app.bpartners.api.endpoint.event.model.gen.UserOnboarded;
 import app.bpartners.api.endpoint.event.model.gen.UserUpserted;
 import app.bpartners.api.endpoint.rest.model.AccountStatus;
@@ -51,6 +50,7 @@ public class OnboardingService {
   private final EventProducer eventProducer;
   private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
   private final EventConf eventConf;
+  private final UserUpsertedService userUpsertedService;
 
   @Transactional(isolation = SERIALIZABLE)
   public OnboardedUser onboardUser(User toSave, String companyName) {
@@ -58,7 +58,7 @@ public class OnboardingService {
     String bridgePassword = encryptSequence(id);
     User savedUser = userRepository.create(userDefaultValues(toSave, id, bridgePassword));
 
-    eventProducer.accept(List.of(toTypedUser(savedUser)));
+    userUpsertedService.accept(toTypedUser(savedUser));
 
     AccountHolder accountHolderToSave = fromNewUser(companyName, savedUser);
     AccountHolder savedAccountHolder = accountHolderRepository.save(accountHolderToSave);
@@ -83,11 +83,11 @@ public class OnboardingService {
         .collect(Collectors.toList());
   }
 
-  private TypedUserUpserted toTypedUser(User user) {
-    return new TypedUserUpserted(
+  private UserUpserted toTypedUser(User user) {
+    return
         new UserUpserted()
             .userId(user.getId())
-            .email(user.getEmail())
+            .email(user.getEmail()
     );
   }
 

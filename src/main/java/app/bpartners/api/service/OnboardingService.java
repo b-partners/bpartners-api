@@ -2,7 +2,6 @@ package app.bpartners.api.service;
 
 import app.bpartners.api.endpoint.event.EventConf;
 import app.bpartners.api.endpoint.event.EventProducer;
-import app.bpartners.api.endpoint.event.model.TypedUserOnboarded;
 import app.bpartners.api.endpoint.event.model.gen.UserOnboarded;
 import app.bpartners.api.endpoint.event.model.gen.UserUpserted;
 import app.bpartners.api.endpoint.rest.model.AccountStatus;
@@ -51,6 +50,7 @@ public class OnboardingService {
   private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
   private final EventConf eventConf;
   private final UserUpsertedService userUpsertedService;
+  private final UserOnboardedService userOnboardedService;
 
   @Transactional(isolation = SERIALIZABLE)
   public OnboardedUser onboardUser(User toSave, String companyName) {
@@ -71,7 +71,7 @@ public class OnboardingService {
     OnboardedUser onboardedUser = new OnboardedUser(updatedAccount, savedAccount,
         savedAccountHolder);
 
-    eventProducer.accept(List.of(toTypedEvent(onboardedUser))); //TODO: add appropriate test
+    userOnboardedService.accept(toTypedEvent(onboardedUser)); //TODO: add appropriate test
 
     return onboardedUser;
   }
@@ -88,19 +88,17 @@ public class OnboardingService {
         new UserUpserted()
             .userId(user.getId())
             .email(user.getEmail()
-    );
+            );
   }
 
-  private TypedUserOnboarded toTypedEvent(OnboardedUser onboardedUser) {
+  private UserOnboarded toTypedEvent(OnboardedUser onboardedUser) {
     String subject =
         "Inscription d'un nouvel artisan : " + onboardedUser.getOnboardedUser().getName();
     String recipient = eventConf.getAdminEmail();
-    return new TypedUserOnboarded(
-        new UserOnboarded()
-            .subject(subject)
-            .recipientEmail(recipient)
-            .onboardedUser(onboardedUser)
-    );
+    return new UserOnboarded()
+        .subject(subject)
+        .recipientEmail(recipient)
+        .onboardedUser(onboardedUser);
   }
 
   private User userDefaultValues(User user, String id, String bridgePassword) {

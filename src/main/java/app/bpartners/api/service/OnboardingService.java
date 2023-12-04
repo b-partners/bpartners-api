@@ -2,8 +2,6 @@ package app.bpartners.api.service;
 
 import app.bpartners.api.endpoint.event.EventConf;
 import app.bpartners.api.endpoint.event.EventProducer;
-import app.bpartners.api.endpoint.event.model.TypedUserOnboarded;
-import app.bpartners.api.endpoint.event.model.TypedUserUpserted;
 import app.bpartners.api.endpoint.event.model.gen.UserOnboarded;
 import app.bpartners.api.endpoint.event.model.gen.UserUpserted;
 import app.bpartners.api.endpoint.rest.model.AccountStatus;
@@ -17,6 +15,7 @@ import app.bpartners.api.model.Money;
 import app.bpartners.api.model.OnboardUser;
 import app.bpartners.api.model.OnboardedUser;
 import app.bpartners.api.model.User;
+import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.repository.AccountHolderRepository;
 import app.bpartners.api.repository.AccountRepository;
 import app.bpartners.api.repository.UserRepository;
@@ -51,29 +50,35 @@ public class OnboardingService {
   private final EventProducer eventProducer;
   private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
   private final EventConf eventConf;
+  private final UserUpsertedService userUpsertedService;
+  private final UserOnboardedService userOnboardedService;
 
   @Transactional(isolation = SERIALIZABLE)
   public OnboardedUser onboardUser(User toSave, String companyName) {
-    String id = String.valueOf(randomUUID());
-    String bridgePassword = encryptSequence(id);
-    User savedUser = userRepository.create(userDefaultValues(toSave, id, bridgePassword));
+    try {
+      String userId = String.valueOf(randomUUID());
+      String bridgePassword = encryptSequence(userId);
+      User savedUser = userRepository.create(userDefaultValues(toSave, userId, bridgePassword));
 
-    eventProducer.accept(List.of(toTypedUser(savedUser)));
+      userUpsertedService.accept(toTypedUser(savedUser));
 
-    AccountHolder accountHolderToSave = fromNewUser(companyName, savedUser);
-    AccountHolder savedAccountHolder = accountHolderRepository.save(accountHolderToSave);
-    Account accountToSave = fromNewUserAndAccountHolder(savedUser, savedAccountHolder);
-    Account savedAccount = accountRepository.save(accountToSave);
-    User updatedAccount = savedUser.toBuilder()
-        .accounts(List.of(savedAccount.active(true)))
-        .accountHolders(List.of(savedAccountHolder))
-        .build();
-    OnboardedUser onboardedUser = new OnboardedUser(updatedAccount, savedAccount,
-        savedAccountHolder);
+      AccountHolder accountHolderToSave = fromNewUser(companyName, savedUser);
+      AccountHolder savedAccountHolder = accountHolderRepository.save(accountHolderToSave);
+      Account accountToSave = fromNewUserAndAccountHolder(savedUser, savedAccountHolder);
+      Account savedAccount = accountRepository.save(accountToSave);
+      User updatedAccount = savedUser.toBuilder()
+          .accounts(List.of(savedAccount.active(true)))
+          .accountHolders(List.of(savedAccountHolder))
+          .build();
+      OnboardedUser onboardedUser = new OnboardedUser(updatedAccount, savedAccount,
+          savedAccountHolder);
 
-    eventProducer.accept(List.of(toTypedEvent(onboardedUser))); //TODO: add appropriate test
-
-    return onboardedUser;
+      userOnboardedService.accept(toTypedEvent(onboardedUser));
+      return onboardedUser;
+    } catch (ApiException e) {
+      log.error("Unable to onboard new user {}", toSave);
+    }
+    return null;
   }
 
   @Transactional(isolation = SERIALIZABLE)
@@ -83,29 +88,27 @@ public class OnboardingService {
         .collect(Collectors.toList());
   }
 
-  private TypedUserUpserted toTypedUser(User user) {
-    return new TypedUserUpserted(
+  private UserUpserted toTypedUser(User user) {
+    return
         new UserUpserted()
             .userId(user.getId())
-            .email(user.getEmail())
-    );
+            .email(user.getEmail()
+            );
   }
 
-  private TypedUserOnboarded toTypedEvent(OnboardedUser onboardedUser) {
+  private UserOnboarded toTypedEvent(OnboardedUser onboardedUser) {
     String subject =
         "Inscription d'un nouvel artisan : " + onboardedUser.getOnboardedUser().getName();
     String recipient = eventConf.getAdminEmail();
-    return new TypedUserOnboarded(
-        new UserOnboarded()
-            .subject(subject)
-            .recipientEmail(recipient)
-            .onboardedUser(onboardedUser)
-    );
+    return new UserOnboarded()
+        .subject(subject)
+        .recipientEmail(recipient)
+        .onboardedUser(onboardedUser);
   }
 
-  private User userDefaultValues(User user, String id, String bridgePassword) {
+  private User userDefaultValues(User user, String userId, String bridgePassword) {
     return user.toBuilder()
-        .id(user.getId() == null ? id : user.getId())
+        .id(user.getId() == null ? userId : user.getId())
         .bridgePassword(
             user.getBridgePassword() == null
                 ? bridgePassword : user.getBridgePassword())
@@ -132,6 +135,7 @@ public class OnboardingService {
 
   private Account fromNewUserAndAccountHolder(User savedUser, AccountHolder savedAccountHolder) {
     return Account.builder()
+        .id(String.valueOf(randomUUID()))
         .userId(savedUser.getId())
         .idAccountHolder(savedAccountHolder.getId())
         .name(savedUser.getName())

@@ -1,5 +1,6 @@
 package app.bpartners.api.repository.jpa.model;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
@@ -28,6 +29,7 @@ public class HAttachment {
   @GeneratedValue(strategy = IDENTITY)
   private String id;
   private String idInvoiceRelaunch;
+  @Column(name = "id_email")
   private String idEmail;
   private String idFile;
   private String name;

@@ -18,6 +18,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import org.hibernate.annotations.Type;
 
 @Entity
 @Table(name = "\"email\"")
@@ -38,6 +39,7 @@ public class HEmail implements Serializable {
   @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
   @JoinColumn(name = "id_email")
   List<HAttachment> attachments;
+  @Type(type = "pgsql_enum")
   @Enumerated(EnumType.STRING)
   private EmailStatus status;
 }

@@ -34,4 +34,8 @@ public class Email implements Serializable {
     }
     return recipients.get(0);
   }
+
+  public String describe() {
+    return "Email(id=" + id + ", object=" + object + ",idUser=" + idUser + ")";
+  }
 }

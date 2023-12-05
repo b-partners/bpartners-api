@@ -35,6 +35,7 @@ public class MailingRestMapper {
     return app.bpartners.api.model.Email.builder()
         .id(rest.getId())
         .idUser(idUser)
+        .recipients(rest.getRecipients())
         .object(rest.getEmailObject())
         .body(rest.getEmailBody())
         .status(rest.getStatus())

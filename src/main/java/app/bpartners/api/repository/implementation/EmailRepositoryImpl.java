@@ -6,6 +6,7 @@ import app.bpartners.api.repository.EmailRepository;
 import app.bpartners.api.repository.jpa.EmailJpaRepository;
 import app.bpartners.api.repository.jpa.model.HEmail;
 import java.util.List;
+import java.util.Optional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -14,6 +15,13 @@ import org.springframework.stereotype.Repository;
 public class EmailRepositoryImpl implements EmailRepository {
   private final EmailJpaRepository jpaRepository;
   private final EmailMapper emailMapper;
+
+  @Override
+  public Email findById(String id) {
+    Optional<HEmail> optionEmail = jpaRepository.findById(id);
+    return optionEmail.map(emailMapper::toDomain)
+        .orElse(null);
+  }
 
   @Override
   public List<Email> findAllByUserId(String userId) {

@@ -14,6 +14,7 @@ public class EmailMapper {
   public Email toDomain(HEmail entity) {
     return Email.builder()
         .id(entity.getId())
+        .idUser(entity.getIdUser())
         .recipients(DataTypeUtils.decodeJsonList(entity.getRecipients()))
         .object(entity.getObject())
         .body(entity.getBody())

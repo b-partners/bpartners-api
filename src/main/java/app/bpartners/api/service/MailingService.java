@@ -77,7 +77,8 @@ public class MailingService {
     StringBuilder msgBuilder = new StringBuilder();
     emails.forEach(actualEmail -> {
       Email existingEmail = emailRepository.findById(actualEmail.getId());
-      if (existingEmail.getStatus() == EmailStatus.SENT
+      if (existingEmail != null
+          && existingEmail.getStatus() == EmailStatus.SENT
           && actualEmail.getStatus() == EmailStatus.DRAFT) {
         msgBuilder.append("Unable to edit email ")
             .append(actualEmail.describe())

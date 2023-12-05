@@ -2,8 +2,6 @@ package app.bpartners.api.model.mapper;
 
 import app.bpartners.api.model.CalendarEvent;
 import app.bpartners.api.repository.jpa.model.HCalendarEvent;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.services.calendar.model.Event;
 import com.google.api.services.calendar.model.EventAttendee;
 import com.google.api.services.calendar.model.EventDateTime;
@@ -11,19 +9,19 @@ import java.time.Instant;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
-import lombok.SneakyThrows;
 import org.springframework.stereotype.Component;
 
 import static app.bpartners.api.repository.google.calendar.CalendarApi.dateTimeFrom;
 import static app.bpartners.api.repository.google.calendar.CalendarApi.instantFrom;
 import static app.bpartners.api.repository.google.calendar.CalendarApi.zonedDateTimeFrom;
+import static app.bpartners.api.service.utils.DataTypeUtils.decodeJsonList;
+import static app.bpartners.api.service.utils.DataTypeUtils.encodeJsonList;
 
 @Component
 @AllArgsConstructor
 public class CalendarEventMapper {
   public static final String PARIS_TIMEZONE = "Europe/Paris";
   public static final String DEFAULT_EVENT_TYPE = "default";
-  final ObjectMapper objectMapper = new ObjectMapper();
 
   public HCalendarEvent toEntity(String id, String idUser, String idCalendar, Event googleEvent) {
     EventDateTime start = googleEvent.getStart();
@@ -123,14 +121,5 @@ public class CalendarEventMapper {
         .build();
   }
 
-  @SneakyThrows
-  private String encodeJsonList(List<String> values) {
-    return objectMapper.writeValueAsString(values);
-  }
 
-  @SneakyThrows
-  private List<String> decodeJsonList(String value) {
-    return objectMapper.readValue(value, new TypeReference<>() {
-    });
-  }
 }

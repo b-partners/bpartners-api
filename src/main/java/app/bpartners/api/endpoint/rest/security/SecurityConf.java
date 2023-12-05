@@ -336,6 +336,9 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
         .requestMatchers(
             new SelfAccountMatcher(PUT, "/accounts/*/invoices/{iId}/paymentRegulations/*/paymentMethod", authResourceProvider))
         .authenticated()
+        .requestMatchers(
+            new SelfUserMatcher(PUT, "/users/*/emails", authResourceProvider))
+        .authenticated()
         .antMatchers("/**").denyAll()
 
         // disable superfluous protections

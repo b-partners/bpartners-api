@@ -1,0 +1,118 @@
+operations:
+  mailingOperations:
+    get:
+      tags:
+        - Mailing
+      summary: Read all emails for an user
+      operationId: readEmails
+      parameters:
+        - in: path
+          name: userId
+          schema:
+            type: string
+          required: true
+        - in: query
+          name: status
+          schema:
+            $ref: '#/components/schemas/EmailStatus'
+        - in: query
+          name: page
+          schema:
+            $ref: './api.yml#/components/schemas/Page'
+        - in: query
+          name: pageSize
+          schema:
+            $ref: './api.yml#/components/schemas/PageSize'
+      responses:
+        200:
+          description: List of emails of the user
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Email'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
+    put:
+      tags:
+        - Mailing
+      summary: Edit or send some emails to some recipients
+      operationId: editOrSendEmails
+      parameters:
+        - in: path
+          name: userId
+          schema:
+            type: string
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/CreateEmail'
+      responses:
+        200:
+          description: List of emails of the BPartners account
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Email'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
+components:
+  schemas:
+    CreateEmail:
+      type: object
+      properties:
+        id:
+          type: string
+        recipients:
+          type: array
+          items:
+            type: string
+        emailObject:
+          type: string
+        emailBody:
+          type: string
+        attachments:
+          type: array
+          items:
+            $ref: './api.yml#/components/schemas/CreateAttachment'
+        status:
+          $ref: '#/components/schemas/EmailStatus'
+    Email:
+      allOf:
+        - $ref: '#/components/schemas/CreateEmail'
+      properties:
+        attachments:
+          type: array
+          items:
+            $ref: './api.yml#/components/schemas/Attachment'
+    EmailStatus:
+      type: string
+      enum:
+        - DRAFT
+        - SENT
+      description: |
+        By default, email is saved asa DRAFT. 
+        Only email SENT status are sent to recipients.

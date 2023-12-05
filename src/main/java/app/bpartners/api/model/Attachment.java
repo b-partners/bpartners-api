@@ -14,6 +14,7 @@ import lombok.ToString;
 @NoArgsConstructor
 @ToString
 public class Attachment {
+  private String idEmail;
   private String fileId;
   private String name;
   private byte[] content;

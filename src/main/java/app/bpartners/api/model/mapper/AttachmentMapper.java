@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 public class AttachmentMapper {
   public Attachment toDomain(HAttachment entity) {
     return Attachment.builder()
+        .idEmail(entity.getIdEmail())
         .fileId(entity.getIdFile())
         .name(entity.getName())
         .build();
@@ -17,6 +18,14 @@ public class AttachmentMapper {
     return HAttachment.builder()
         .name(domain.getName())
         .idInvoiceRelaunch(idInvoiceRelaunch)
+        .idFile(domain.getFileId())
+        .build();
+  }
+
+  public HAttachment toEntity(Attachment domain) {
+    return HAttachment.builder()
+        .idEmail(domain.getIdEmail())
+        .name(domain.getName())
         .idFile(domain.getFileId())
         .build();
   }

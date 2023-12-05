@@ -193,6 +193,12 @@ paths:
     $ref: './calendar-api.yml#/operations/calendarEvents'
   /users/{userId}/calendars:
     $ref: './calendar-api.yml#/operations/calendars'
+
+  #############################################
+  ################# Mailing API ##############
+  #############################################
+  /users/{userId}/emails:
+    $ref: './mailing-api.yml#/operations/mailingOperations'
 components:
   securitySchemes:
     BearerAuth:

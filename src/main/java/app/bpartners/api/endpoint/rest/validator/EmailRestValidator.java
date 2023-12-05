@@ -2,6 +2,7 @@ package app.bpartners.api.endpoint.rest.validator;
 
 import app.bpartners.api.endpoint.rest.model.CreateEmail;
 import app.bpartners.api.model.exception.BadRequestException;
+import app.bpartners.api.model.exception.NotImplementedException;
 import java.util.function.Consumer;
 import org.springframework.stereotype.Component;
 
@@ -9,6 +10,9 @@ import org.springframework.stereotype.Component;
 public class EmailRestValidator implements Consumer<CreateEmail> {
   @Override
   public void accept(CreateEmail email) {
+    if (email.getAttachments() != null && !email.getAttachments().isEmpty()) {
+      throw new NotImplementedException("Email does not support attachments for now");
+    }
     StringBuilder builder = new StringBuilder();
     if (email.getId() == null) {
       builder.append("Attribute `id` is mandatory. ");

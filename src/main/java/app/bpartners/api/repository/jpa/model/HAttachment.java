@@ -28,6 +28,7 @@ public class HAttachment {
   @GeneratedValue(strategy = IDENTITY)
   private String id;
   private String idInvoiceRelaunch;
+  private String idEmail;
   private String idFile;
   private String name;
 }

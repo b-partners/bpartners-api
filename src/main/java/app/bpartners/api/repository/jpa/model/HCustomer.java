@@ -53,4 +53,10 @@ public class HCustomer {
   @Column(updatable = false)
   private Instant createdAt;
   private Instant updatedAt;
+  private String latestFullAddress;
+
+  public String getFullAddress() {
+    return address + " " + zipCode + " " + city + " " + country;
+  }
+
 }

@@ -233,7 +233,6 @@ public class CustomerRepositoryImpl implements CustomerRepository {
 
   @Override
   public List<Customer> saveAll(List<Customer> toCreate) {
-    //TODO: fix customer createdAt null value after create or update
     List<HCustomer> toSave = toCreate.stream()
         .map(this::checkExisting)
         .map(mapper::toEntity)
@@ -279,14 +278,17 @@ public class CustomerRepositoryImpl implements CustomerRepository {
   private Customer checkExisting(Customer domain) {
     Optional<HCustomer> optionalCustomer = jpaRepository.findById(domain.getId());
     if (optionalCustomer.isEmpty()) {
-      return domain.toBuilder()
+      Customer customer = domain.toBuilder()
           .recentlyAdded(true)
           .build();
+      return customer;
     } else {
       HCustomer existing = optionalCustomer.get();
-      return domain.toBuilder()
+      Customer customer = domain.toBuilder()
+          .latestFullAddress(existing.getFullAddress())
           .createdAt(existing.getCreatedAt())
           .build();
+      return customer;
     }
   }
 

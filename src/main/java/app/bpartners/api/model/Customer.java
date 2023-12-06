@@ -37,6 +37,7 @@ public class Customer {
   protected boolean recentlyAdded = false;
   protected Instant updatedAt;
   protected Instant createdAt;
+  protected String latestFullAddress;
 
   public String describe() {
     return "Customer(id=" + id + ", name=" + getName() + ", idUser=" + idUser + ")";

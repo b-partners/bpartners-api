@@ -82,19 +82,25 @@ public class ProspectMapper {
                             String prospectOwnerId,
                             Double rating,
                             Instant lastEvaluationDate,
-                            HProspect actualEntity) {
+                            HProspect existingEntity) {
     Geojson location = domain.getLocation();
-    HProspect entity = actualEntity == null ? HProspect.builder()
+    HProspect entity = existingEntity == null ? HProspect.builder()
         .id(String.valueOf(randomUUID()))
         .idAccountHolder(prospectOwnerId)
         .statusHistories(defaultStatusHistoryEntity())
-        .build() : actualEntity;
+        .build() : existingEntity;
     List<HProspectStatusHistory> actualHistory = entity.getStatusHistories();
-    if ((actualEntity != null && actualEntity.getActualStatus() != TO_CONTACT
-        && domain.getActualStatus().equals(TO_CONTACT))
-        || (domain.getProspectFeedback() != null
-        && domain.getProspectFeedback().equals(ProspectFeedback.NOT_INTERESTED))) {
-      return actualEntity.toBuilder()
+
+    boolean prospectIsResetToContact = existingEntity != null
+        && existingEntity.getActualStatus() != TO_CONTACT
+        && domain.getActualStatus().equals(TO_CONTACT);
+
+    boolean prospectIsDeclined = domain.getProspectFeedback() != null
+        && domain.getProspectFeedback() == ProspectFeedback.NOT_INTERESTED
+        || domain.getProspectFeedback() == ProspectFeedback.PROPOSAL_DECLINED;
+
+    if (prospectIsResetToContact || prospectIsDeclined) {
+      return existingEntity.toBuilder()
           .newName(null)
           .newEmail(null)
           .newPhone(null)
@@ -118,21 +124,21 @@ public class ProspectMapper {
           .id(domain.getId())
           .idJob(domain.getIdJob())
           .managerName(domain.getManagerName())
-          .oldPhone(actualEntity == null ? domain.getPhone()
-              : actualEntity.getOldPhone())
-          .oldName(actualEntity == null ? domain.getName()
-              : actualEntity.getOldName())
-          .oldAddress(actualEntity == null ? domain.getAddress()
-              : actualEntity.getOldAddress())
-          .oldEmail(actualEntity == null ? domain.getEmail()
-              : actualEntity.getOldEmail())
-          .newPhone(actualEntity == null ? null
+          .oldPhone(existingEntity == null ? domain.getPhone()
+              : existingEntity.getOldPhone())
+          .oldName(existingEntity == null ? domain.getName()
+              : existingEntity.getOldName())
+          .oldAddress(existingEntity == null ? domain.getAddress()
+              : existingEntity.getOldAddress())
+          .oldEmail(existingEntity == null ? domain.getEmail()
+              : existingEntity.getOldEmail())
+          .newPhone(existingEntity == null ? null
               : checkIfOldOrNew(domain.getPhone(), entity.getOldPhone()))
-          .newName(actualEntity == null ? null
+          .newName(existingEntity == null ? null
               : checkIfOldOrNew(domain.getName(), entity.getOldName()))
-          .newAddress(actualEntity == null ? null
+          .newAddress(existingEntity == null ? null
               : checkIfOldOrNew(domain.getAddress(), entity.getOldAddress()))
-          .newEmail(actualEntity == null ? null
+          .newEmail(existingEntity == null ? null
               : checkIfOldOrNew(domain.getEmail(), entity.getOldEmail()))
           .statusHistories(updatedStatusHistory(actualHistory, newStatusHistory))
           .idAccountHolder(prospectOwnerId)
@@ -145,10 +151,10 @@ public class ProspectMapper {
           .defaultComment(domain.getDefaultComment())
           .idInvoice(domain.getIdInvoice())
           .prospectFeedback(domain.getProspectFeedback())
-          .contactNature(actualEntity == null
+          .contactNature(existingEntity == null
               ? (domain.getContactNature() == null ? ContactNature.PROSPECT :
               domain.getContactNature())
-              : actualEntity.getContactNature())
+              : existingEntity.getContactNature())
           .contractAmount(
               domain.getContractAmount() == null ? null : domain.getContractAmount().toString())
           .build();

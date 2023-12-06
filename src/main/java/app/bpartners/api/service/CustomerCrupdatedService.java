@@ -42,18 +42,20 @@ public class CustomerCrupdatedService implements Consumer<CustomerCrupdated> {
     List<Attachment> attachments = List.of();
 
     Customer updatedCustomer = customer.toBuilder().build();
-    GeoPosition customerPosition = banApi.fSearch(customer.getAddress());
-    if (!customerPosition.getCoordinates().equals(
-        customer.getLocation().getCoordinate())) {
-      updatedCustomer = customerRepository.save(customer.toBuilder()
-          .location(Location.builder()
-              .coordinate(customerPosition.getCoordinates())
-              .address(customer.getAddress())
-              .longitude(customerPosition.getCoordinates().getLongitude())
-              .latitude(customerPosition.getCoordinates().getLatitude())
-              .build())
-          .build());
-      log.info("{} coordinates updated from BAN API", updatedCustomer.describe());
+    if (!updatedCustomer.getFullAddress().equals(updatedCustomer.getLatestFullAddress())) {
+      GeoPosition customerPosition = banApi.fSearch(customer.getAddress());
+      if (!customerPosition.getCoordinates().equals(
+          customer.getLocation().getCoordinate())) {
+        updatedCustomer = customerRepository.save(customer.toBuilder()
+            .location(Location.builder()
+                .coordinate(customerPosition.getCoordinates())
+                .address(customer.getAddress())
+                .longitude(customerPosition.getCoordinates().getLongitude())
+                .latitude(customerPosition.getCoordinates().getLatitude())
+                .build())
+            .build());
+        log.info("{} coordinates updated from BAN API", updatedCustomer.describe());
+      }
     }
 
     String

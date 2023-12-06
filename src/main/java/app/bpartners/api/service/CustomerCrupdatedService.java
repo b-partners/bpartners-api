@@ -29,6 +29,10 @@ public class CustomerCrupdatedService implements Consumer<CustomerCrupdated> {
   private final CustomerRepository customerRepository;
   private final BanApi banApi;
 
+  public void accept(List<CustomerCrupdated> customerCrupdatedList) {
+    customerCrupdatedList.forEach(this);
+  }
+
   @Override
   public void accept(CustomerCrupdated customerCrupdated) {
     String subject = customerCrupdated.getSubject();
@@ -49,6 +53,7 @@ public class CustomerCrupdatedService implements Consumer<CustomerCrupdated> {
               .latitude(customerPosition.getCoordinates().getLatitude())
               .build())
           .build());
+      log.info("{} coordinates updated from BAN API", updatedCustomer.describe());
     }
 
     String
@@ -57,6 +62,7 @@ public class CustomerCrupdatedService implements Consumer<CustomerCrupdated> {
             type));
     try {
       service.sendEmail(recipient, null, subject, htmlBody, attachments);
+      log.info("Email sent to {} to notify {} update", recipient, updatedCustomer.describe());
     } catch (MessagingException | IOException e) {
       log.error("Email not sent : " + e.getMessage());
     }

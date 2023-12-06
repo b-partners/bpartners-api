@@ -45,6 +45,7 @@ public class CustomerMapper {
         .recentlyAdded(entity.isRecentlyAdded())
         .updatedAt(entity.getUpdatedAt())
         .createdAt(entity.getCreatedAt())
+        .latestFullAddress(entity.getLatestFullAddress())
         .build();
   }
 
@@ -75,6 +76,7 @@ public class CustomerMapper {
             : domain.getStatus())
         .recentlyAdded(domain.isRecentlyAdded())
         .updatedAt(Instant.now())
+        .latestFullAddress(domain.getLatestFullAddress())
         .build();
   }
 }

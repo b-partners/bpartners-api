@@ -44,7 +44,7 @@ public class FintectureConf {
     String beginPrivateKeySyntax = "-----BEGIN PRIVATE KEY-----";
     String spaceAndTabRegex = "\\r\\n|\\r|\\n";
     String privateKey =
-        ssmComponent.getParameterValue("/bpartners/" + "preprod" + "/fintecture/private-key");
+        ssmComponent.getParameterValue("/bpartners/" + env + "/fintecture/private-key");
     return privateKey.replace(endPrivateKeySyntax, EMPTY)
         .replace(beginPrivateKeySyntax, EMPTY)
         .replaceAll(spaceAndTabRegex, EMPTY);

@@ -46,10 +46,10 @@ public class Prospect implements Comparable<Prospect> {
   private ContactNature contactNature;
 
   public ProspectStatus getActualStatus() {
-    return statusHistories.isEmpty() ? null : statusHistories.stream()
+    List<ProspectStatusHistory> orderedByStatusUpdateDesc = statusHistories.stream()
         .sorted(Comparator.comparing(ProspectStatusHistory::getUpdatedAt).reversed())
-        .toList()
-        .get(0).getStatus();
+        .toList();
+    return statusHistories.isEmpty() ? null : orderedByStatusUpdateDesc.get(0).getStatus();
   }
 
   public boolean isGivenUp() {

@@ -150,13 +150,10 @@ public class ProspectService {
     //validateStatusUpdateFlow(toSave, existing);
     Prospect savedProspect = repository.save(toSave);
 
-    if (existing.getActualStatus() != savedProspect.getActualStatus()
-        || savedProspect.isGivenUp()) {
-      prospectUpdatedService.accept(ProspectUpdated.builder()
-          .prospect(savedProspect)
-          .updatedAt(Instant.now())
-          .build());
-    }
+    prospectUpdatedService.accept(ProspectUpdated.builder()
+        .prospect(savedProspect)
+        .updatedAt(Instant.now())
+        .build());
 
     return savedProspect;
   }

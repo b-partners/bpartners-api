@@ -27,13 +27,10 @@ import app.bpartners.api.repository.expressif.model.OutputValue;
 import app.bpartners.api.repository.jpa.MunicipalityJpaRepository;
 import app.bpartners.api.repository.jpa.ProspectEvalInfoJpaRepository;
 import app.bpartners.api.repository.jpa.ProspectJpaRepository;
-import app.bpartners.api.repository.jpa.model.HMunicipality;
 import app.bpartners.api.repository.jpa.model.HProspect;
 import app.bpartners.api.repository.jpa.model.HProspectEval;
 import app.bpartners.api.repository.jpa.model.HProspectEvalInfo;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitApi;
-import app.bpartners.api.repository.prospecting.datasource.buildingpermit.model.BuildingPermitList;
-import app.bpartners.api.repository.prospecting.datasource.buildingpermit.model.SingleBuildingPermit;
 import app.bpartners.api.service.AnnualRevenueTargetService;
 import app.bpartners.api.service.BusinessActivityService;
 import java.math.BigInteger;
@@ -57,7 +54,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 import static app.bpartners.api.repository.expressif.fact.NewIntervention.OldCustomer.OldCustomerType.INDIVIDUAL;
-import static java.util.stream.Collectors.toUnmodifiableList;
 import static org.springframework.transaction.annotation.Isolation.SERIALIZABLE;
 
 @AllArgsConstructor
@@ -135,30 +131,32 @@ public class ProspectRepositoryImpl implements ProspectRepository {
           "AccountHolder.id=" + idAccountHolder + " is missing the " + "required property town "
               + "code");
     }
-    List<HMunicipality> municipalities =
-        municipalityJpaRepository.findMunicipalitiesWithinDistance(
-            String.valueOf(accountHolder.getTownCode()), accountHolder.getProspectingPerimeter());
-    String townCodes =
-        municipalities.stream()
-            .map(HMunicipality::getCode)
-            .collect(Collectors.joining(","));
-    List<Integer> townCodesAsInt = municipalities.stream()
-        .map(HMunicipality::getCode)
-        .mapToInt(Integer::parseInt)
-        .boxed()
-        .collect(toUnmodifiableList());
-    BuildingPermitList buildingPermitList = buildingPermitApi.getBuildingPermitList(townCodes);
-    if (buildingPermitList != null && buildingPermitList.getRecords() != null) {
-      buildingPermitList.getRecords().forEach(buildingPermit -> {
-        SingleBuildingPermit singleBuildingPermit =
-            buildingPermitApi.getSingleBuildingPermit(String.valueOf(buildingPermit.getFileId()));
-        sogefiBuildingPermitRepository.saveByBuildingPermit(idAccountHolder, buildingPermit,
-            singleBuildingPermit);
-      });
-    }
+
+    //TODO: Refactor municipality not use postgis extension
+//    List<HMunicipality> municipalities =
+//        municipalityJpaRepository.findMunicipalitiesWithinDistance(
+//            String.valueOf(accountHolder.getTownCode()), accountHolder.getProspectingPerimeter());
+//    String townCodes =
+//        municipalities.stream()
+//            .map(HMunicipality::getCode)
+//            .collect(Collectors.joining(","));
+//    List<Integer> townCodesAsInt = municipalities.stream()
+//        .map(HMunicipality::getCode)
+//        .mapToInt(Integer::parseInt)
+//        .boxed()
+//        .collect(toUnmodifiableList());
+//    BuildingPermitList buildingPermitList = buildingPermitApi.getBuildingPermitList(townCodes);
+//    if (buildingPermitList != null && buildingPermitList.getRecords() != null) {
+//      buildingPermitList.getRecords().forEach(buildingPermit -> {
+//        SingleBuildingPermit singleBuildingPermit =
+//            buildingPermitApi.getSingleBuildingPermit(String.valueOf(buildingPermit.getFileId()));
+//        sogefiBuildingPermitRepository.saveByBuildingPermit(idAccountHolder, buildingPermit,
+//            singleBuildingPermit);
+//      });
+//    }
     //TODO: why do prospects must be filtered by town code
     // while it is already attached to account holder ?
-    return jpaRepository.findAllByIdAccountHolderAndTownCodeIsIn(idAccountHolder, townCodesAsInt)
+    return jpaRepository.findAllByIdAccountHolder(idAccountHolder)
         .stream()
         .map(prospect -> toDomain(isSogefiProspector, prospect))
         .sorted(Comparator.reverseOrder())

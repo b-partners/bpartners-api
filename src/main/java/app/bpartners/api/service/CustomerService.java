@@ -90,7 +90,7 @@ public class CustomerService {
     List<CustomerCrupdated> customerCrupdatedList = saved.isEmpty() ? List.of()
         : saved.stream().map(customer -> {
           User user = AuthProvider.getAuthenticatedUser();
-          return toTypedEvent(user, customer, customer.isRecentlyAdded());
+          return toCrupdatedEvent(user, customer, customer.isRecentlyAdded());
         })
         .collect(Collectors.toList());
 
@@ -128,7 +128,7 @@ public class CustomerService {
     }
   }
 
-  private CustomerCrupdated toTypedEvent(User user, Customer customer, boolean isNew) {
+  private CustomerCrupdated toCrupdatedEvent(User user, Customer customer, boolean isNew) {
     String subject = isNew
         ? "Ajout du nouveau client " + customer.getName() + " par l'artisan " + user.getName()
         : "Modification du client existant " + customer.getName() + " par l'artisan "

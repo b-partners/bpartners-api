@@ -28,14 +28,15 @@ public abstract class S3AbstractContextInitializer
   public static final String BUCKET_NAME = "bpartners";
   public static final String OLD_S3_KEY = "old_s3_key";
 
+  static String testFilePath() {
+    return "src/main/resources/files/downloaded.jpeg";
+  }
+
   @Override
   public void initialize(ConfigurableApplicationContext applicationContext) {
     int localPort = findAvailableTcpPort();
     int containerPort = 5432;
-    DockerImageName postgis = DockerImageName
-        .parse("postgis/postgis")
-        .asCompatibleSubstituteFor("postgres");
-    JdbcDatabaseContainer<?> postgresContainer = new PostgreSQLContainer<>(postgis)
+    JdbcDatabaseContainer<?> postgresContainer = new PostgreSQLContainer<>("postgres")
         .withDatabaseName("it-db")
         .withUsername("sa")
         .withPassword("sa")
@@ -107,10 +108,6 @@ public abstract class S3AbstractContextInitializer
         "feature.detector.application.name=dummy",
         "expressif.project.token=dummy",
         "env=dev");
-  }
-
-  static String testFilePath() {
-    return "src/main/resources/files/downloaded.jpeg";
   }
 
   public abstract int getServerPort();

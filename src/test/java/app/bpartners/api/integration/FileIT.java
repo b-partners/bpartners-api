@@ -135,7 +135,7 @@ class FileIT extends MockedThirdParties {
 
     assertThrowsApiException(
         "{\"type\":\"400 BAD_REQUEST\","
-            + "\"message\":\"Only pdf, png and jpeg/jpg files are allowed."
+            + "\"message\":\"Only pdf, png, jpeg/jpg, zip and excel files are allowed."
             + "\"}",
         () -> upload(FileType.LOGO.getValue(), "test", toUpload.getFile()));
     assertThrowsApiException(

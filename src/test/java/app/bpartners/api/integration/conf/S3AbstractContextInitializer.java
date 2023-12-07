@@ -85,7 +85,7 @@ public abstract class S3AbstractContextInitializer
         "google.calendar.apps.name=dummy",
         "google.calendar.client.id=dummy",
         "google.calendar.client.secret=dummy",
-        "google.calendar.redirect.uris=dummy",
+        "google.calendar.redirect.uris=https://dummy.com/success",
         "google.sheet.apps.name=dummy",
         "google.sheet.client.id=dummy",
         "google.sheet.client.secret=dummy",

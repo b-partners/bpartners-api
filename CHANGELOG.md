@@ -1,3 +1,12 @@
+## [0.37.2](https://github.com/b-partners/bpartners-api/compare/v0.37.1...v0.37.2) (2023-12-07)
+
+
+### Bug Fixes
+
+* define parameters inside api for transactionExportLink operations ([e838770](https://github.com/b-partners/bpartners-api/commit/e8387706e1197ae8f98a8d074dc6d3b07073b64e))
+
+
+
 ## [0.37.1](https://github.com/b-partners/bpartners-api/compare/v0.37.0...v0.37.1) (2023-12-07)
 
 
@@ -202,15 +211,6 @@
 ### Reverts
 
 * Revert "infra: update listener rule target to xx-api.{env}.xxx"  ([fb59abc](https://github.com/b-partners/bpartners-api/commit/fb59abcd67dac31daf815e7648654ddd365722ac))
-
-
-
-## [0.32.2](https://github.com/b-partners/bpartners-api/compare/v0.32.1...v0.32.2) (2023-09-26)
-
-
-### Bug Fixes
-
-* use PUT instead of POST when running evaluation jobs ([7a169fe](https://github.com/b-partners/bpartners-api/commit/7a169fec69b5b8a3c79887052b022e19b7b57555))
 
 
 

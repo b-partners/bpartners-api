@@ -80,7 +80,7 @@ paths:
   #############################################
   /accounts/{id}/transactions:
     $ref: './paying-api.yml#/operations/getTransactions'
-  /accounts/{id}/transactions/exportLink:
+  /accounts/{aId}/transactions/exportLink:
     $ref: './paying-api.yml#/operations/transactionsExportLink'
   /accounts/{id}/transactions/{tId}:
     $ref: './paying-api.yml#/operations/getTransactionById'

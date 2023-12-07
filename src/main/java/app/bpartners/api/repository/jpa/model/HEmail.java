@@ -2,6 +2,7 @@ package app.bpartners.api.repository.jpa.model;
 
 import app.bpartners.api.endpoint.rest.model.EmailStatus;
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.List;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
@@ -36,6 +37,8 @@ public class HEmail implements Serializable {
   private String recipients;
   private String object;
   private String body;
+  private Instant updatedAt;
+  private Instant sendingDatetime;
   @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
   @JoinColumn(name = "id_email")
   List<HAttachment> attachments;

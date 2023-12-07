@@ -26,7 +26,9 @@ public class MailingRestMapper {
         .status(domain.getStatus())
         .attachments(domain.getAttachments().stream()
             .map(attachmentMapper::toRest)
-            .collect(Collectors.toList()));
+            .collect(Collectors.toList()))
+        .sendingDatetime(domain.getSendingDatetime())
+        .updatedAt(domain.getUpdatedAt());
   }
 
   public app.bpartners.api.model.Email toDomain(String idUser, CreateEmail rest) {

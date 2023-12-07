@@ -39,5 +39,4 @@ public class EmailRepositoryImpl implements EmailRepository {
         .map(emailMapper::toDomain)
         .toList();
   }
-
 }

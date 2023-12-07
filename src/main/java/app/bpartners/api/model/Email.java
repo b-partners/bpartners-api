@@ -3,6 +3,7 @@ package app.bpartners.api.model;
 import app.bpartners.api.endpoint.rest.model.EmailStatus;
 import app.bpartners.api.model.exception.NotImplementedException;
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -27,6 +28,8 @@ public class Email implements Serializable {
   private String body;
   private List<Attachment> attachments;
   private EmailStatus status;
+  private Instant updatedAt;
+  private Instant sendingDatetime;
 
   public String getRecipient() {
     if (recipients.size() > 1) {

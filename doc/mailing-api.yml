@@ -108,6 +108,12 @@ components:
           type: array
           items:
             $ref: './api.yml#/components/schemas/Attachment'
+        updatedAt:
+          type: string
+          format: date-time
+        sendingDatetime:
+          type: string
+          format: date-time
     EmailStatus:
       type: string
       enum:

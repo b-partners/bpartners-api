@@ -1,3 +1,18 @@
+## [0.37.1](https://github.com/b-partners/bpartners-api/compare/v0.37.0...v0.37.1) (2023-12-07)
+
+
+### Bug Fixes
+
+* add update datetime and sending datetime attributes to email ([752cc78](https://github.com/b-partners/bpartners-api/commit/752cc7874d6e5319250cbca38bfce6e01aa9f0b9))
+* allow authenticated users to list their own emails ([e793e91](https://github.com/b-partners/bpartners-api/commit/e793e9181ad491e95e926a95a51db9096a92e5a0))
+* compare business activity for sogefi prospecting when values not null only ([4ec3c13](https://github.com/b-partners/bpartners-api/commit/4ec3c1327dfb71b37cb994a6e5e8ec353602848b))
+* do not update coordinates if customer address did not change ([81e095a](https://github.com/b-partners/bpartners-api/commit/81e095a09fb077c31c432498f0298a8eda921297))
+* handle customerCrupdated event synchronously ([2b25448](https://github.com/b-partners/bpartners-api/commit/2b25448705dc17a802dfd4389e6628e2d7e4e36c))
+* send email for every update on prospect ([03919ae](https://github.com/b-partners/bpartners-api/commit/03919ae392a8946834a612e2a2782bffc4d28e7a))
+* set fintecture private key env dependant ([1a81f6a](https://github.com/b-partners/bpartners-api/commit/1a81f6a64cc9f9581baeadbeaa5c2299622e5716))
+
+
+
 # [0.37.0](https://github.com/b-partners/bpartners-api/compare/v0.36.1...v0.37.0) (2023-12-05)
 
 
@@ -196,15 +211,6 @@
 ### Bug Fixes
 
 * use PUT instead of POST when running evaluation jobs ([7a169fe](https://github.com/b-partners/bpartners-api/commit/7a169fec69b5b8a3c79887052b022e19b7b57555))
-
-
-
-## [0.32.1](https://github.com/b-partners/bpartners-api/compare/v0.32.0...v0.32.1) (2023-09-26)
-
-
-### Bug Fixes
-
-* dispatch calendar event list by provider ([d6fb338](https://github.com/b-partners/bpartners-api/commit/d6fb33879e0d74f956326f546145f469f9a0f21e))
 
 
 

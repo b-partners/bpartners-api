@@ -39,7 +39,7 @@ public class CalendarRepositoryImpl implements CalendarRepository {
 
     List<HCalendar> calendarEntities = calendarEntries.stream()
         .map(entry -> calendarMapper.toCalendarEntity(idUser, entry))
-        .collect(Collectors.toList());
+        .toList();
     for (HCalendar newEntity : calendarEntities) {
       newEntity.setNewCalendar(true);
       newEntity.setCreatedAt(Instant.now());
@@ -61,6 +61,15 @@ public class CalendarRepositoryImpl implements CalendarRepository {
     return all.stream()
         .map(calendarMapper::toCalendar)
         .collect(Collectors.toList());
+  }
+
+  @Override
+  public List<Calendar> removeAllByIdUser(String idUser) {
+    List<Calendar> userCalendars = findByIdUser(idUser);
+    jpaRepository.deleteAllById(userCalendars.stream()
+        .map(Calendar::getId)
+        .toList());
+    return userCalendars;
   }
 
   @Override

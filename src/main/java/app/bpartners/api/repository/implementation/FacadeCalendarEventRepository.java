@@ -100,6 +100,11 @@ public class FacadeCalendarEventRepository
         .collect(Collectors.toList());
   }
 
+  @Override
+  public List<CalendarEvent> removeAllByIdUser(String idUser) {
+    throw new NotImplementedException("Not supported");
+  }
+
   //TODO: improve this
   private List<EventConnector> getSavedGoogleEvents(String idUser,
                                                     Calendar calendar,

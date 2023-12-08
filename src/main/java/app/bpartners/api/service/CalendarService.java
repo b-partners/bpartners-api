@@ -78,6 +78,14 @@ public class CalendarService {
     }
   }
 
+  public AccessToken exchangeCodeAndRefreshCalendars(String idUser, CalendarAuth auth) {
+    localEventRepository.removeAllByIdUser(idUser);
+    calendarRepository.removeAllByIdUser(idUser); //delete existing calendars
+    AccessToken token = exchangeCode(idUser, auth);
+    calendarRepository.findByIdUser(idUser); //get new calendars
+    return token;
+  }
+
   public List<Calendar> getCalendars(String idUser) {
     return calendarRepository.findByIdUser(idUser);
   }

@@ -43,7 +43,7 @@ public class CalendarController {
                                                @PathVariable(name = "calendarId")
                                                String idCalendar,
                                                @RequestParam(name = "provider", required = false)
-                                                 CalendarProvider provider,
+                                               CalendarProvider provider,
                                                @RequestParam(name = "from", required = false)
                                                Instant from,
                                                @RequestParam(name = "to", required = false)
@@ -69,7 +69,7 @@ public class CalendarController {
   @PostMapping("/users/{id}/calendars/oauth2/auth")
   public TokenValidity handleAuth(@PathVariable(name = "id") String idUser,
                                   @RequestBody CalendarAuth auth) {
-    return tokenRestMapper.toRest(calendarService.exchangeCode(idUser, auth));
+    return tokenRestMapper.toRest(calendarService.exchangeCodeAndRefreshCalendars(idUser, auth));
   }
 
   @PostMapping("/users/{id}/calendars/oauth2/consent")

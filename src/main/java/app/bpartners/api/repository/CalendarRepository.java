@@ -7,6 +7,8 @@ import java.util.Optional;
 public interface CalendarRepository {
   List<Calendar> findByIdUser(String idUser);
 
+  List<Calendar> removeAllByIdUser(String idUser);
+
   Optional<Calendar> findById(String id);
 
   Calendar getById(String id);

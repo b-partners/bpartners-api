@@ -40,4 +40,15 @@ public class LocalCalendarEventRepository
         .map(eventMapper::toDomain)
         .collect(Collectors.toList());
   }
+
+  @Override
+  public List<CalendarEvent> removeAllByIdUser(String idUser) {
+    List<HCalendarEvent> userCalendarEvents = jpaRepository.findAllByIdUser(idUser);
+    jpaRepository.deleteAllById(userCalendarEvents.stream()
+        .map(HCalendarEvent::getId)
+        .toList());
+    return userCalendarEvents.stream()
+        .map(eventMapper::toDomain)
+        .collect(Collectors.toList());
+  }
 }

@@ -100,9 +100,10 @@ public class ProspectEvaluationJobInitiatedService
               .collect(Collectors.toList());
 
           var locations = locationsFromEvents(eventsWithAddress);
-          var prospectsByEvents = getProspectsToEvaluate(user, eventJobRunner, locations);
-          for (CalendarEvent c : eventsWithAddress) {
-            var prospects = prospectsByEvents.get(c.getLocation());
+          HashMap<String, List<ProspectEvaluation>> prospectsByEvents =
+              getProspectsToEvaluate(user, eventJobRunner, locations);
+          for (CalendarEvent calendarEvent : eventsWithAddress) {
+            var prospects = prospectsByEvents.get(calendarEvent.getLocation());
             var evaluatedProspects = evaluationService.evaluateProspects(
                 runningHolder.getId(),
                 antiHarmRules,
@@ -110,8 +111,8 @@ public class ProspectEvaluationJobInitiatedService
                 NewInterventionOption.ALL,
                 ratingProperties.getMinProspectRating(),
                 ratingProperties.getMinCustomerRating());
-            String interventionDate = formatFrenchDatetime(c.getFrom().toInstant());
-            String interventionLocation = c.getLocation();
+            String interventionDate = formatFrenchDatetime(calendarEvent.getFrom().toInstant());
+            String interventionLocation = calendarEvent.getLocation();
             String emailSubject =
                 String.format("Vos prospects à proximité de votre RDV du %s au %s",
                     interventionDate, interventionLocation);
@@ -419,7 +420,8 @@ public class ProspectEvaluationJobInitiatedService
         maxDefaultRange);
   }
 
-  private List<ProspectEvaluation> fromSpreadsheet(SheetEvaluationJobRunner sheetProspectEvaluation) {
+  private List<ProspectEvaluation> fromSpreadsheet(
+      SheetEvaluationJobRunner sheetProspectEvaluation) {
     var sheetProperties = sheetProspectEvaluation.getSheetProperties();
     var sheetRange = sheetProperties.getRanges();
     List<ProspectEvaluation> prospectEvaluations = evaluationService.readEvaluations(

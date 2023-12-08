@@ -8,6 +8,7 @@ import org.testcontainers.containers.JdbcDatabaseContainer;
 import org.testcontainers.containers.PostgreSQLContainer;
 
 import static app.bpartners.api.integration.conf.utils.TestUtils.findAvailableTcpPort;
+import static java.lang.Runtime.getRuntime;
 
 public abstract class BridgeAbstractContextInitializer
     implements ApplicationContextInitializer<ConfigurableApplicationContext> {
@@ -45,6 +46,8 @@ public abstract class BridgeAbstractContextInitializer
         "spring.datasource.username=" + postgresContainer.getUsername(),
         "spring.datasource.password=" + postgresContainer.getPassword(),
         "spring.flyway.locations=classpath:/db/migration," + flywayTestdataPath);
+    getRuntime()
+        .addShutdownHook(new Thread(postgresContainer::stop));
   }
 
   public abstract int getServerPort();

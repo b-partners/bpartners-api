@@ -9,6 +9,7 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.utility.DockerImageName;
 
 import static app.bpartners.api.integration.conf.utils.TestUtils.findAvailableTcpPort;
+import static java.lang.Runtime.getRuntime;
 
 public class DbContextInitializer
     implements ApplicationContextInitializer<ConfigurableApplicationContext> {
@@ -30,6 +31,8 @@ public class DbContextInitializer
     postgresContainer.setPortBindings(List.of(String.format("%d:%d", containerPort, localPort)));
 
     postgresContainer.start();
+    getRuntime()
+        .addShutdownHook(new Thread(postgresContainer::stop));
   }
 
   public JdbcDatabaseContainer<?> getPostgresContainer() {

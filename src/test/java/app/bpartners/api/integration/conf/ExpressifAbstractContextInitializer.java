@@ -6,6 +6,8 @@ import org.springframework.test.context.support.TestPropertySourceUtils;
 import org.testcontainers.containers.JdbcDatabaseContainer;
 import org.testcontainers.containers.PostgisContainerProvider;
 
+import static java.lang.Runtime.getRuntime;
+
 public abstract class ExpressifAbstractContextInitializer
     implements ApplicationContextInitializer<ConfigurableApplicationContext> {
 
@@ -50,6 +52,8 @@ public abstract class ExpressifAbstractContextInitializer
         "spring.datasource.username=" + postgresContainer.getUsername(),
         "spring.datasource.password=" + postgresContainer.getPassword(),
         "spring.flyway.locations=classpath:/db/migration," + flywayTestdataPath);
+    getRuntime()
+        .addShutdownHook(new Thread(postgresContainer::stop));
   }
 
   public abstract int getServerPort();

@@ -18,6 +18,7 @@ import org.testcontainers.containers.localstack.LocalStackContainer;
 import org.testcontainers.utility.DockerImageName;
 
 import static app.bpartners.api.integration.conf.utils.TestUtils.findAvailableTcpPort;
+import static java.lang.Runtime.getRuntime;
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.S3;
 
 @Slf4j
@@ -108,6 +109,11 @@ public abstract class S3AbstractContextInitializer
         "feature.detector.application.name=dummy",
         "expressif.project.token=dummy",
         "env=dev");
+    getRuntime()
+        .addShutdownHook(new Thread(() -> {
+          postgresContainer.stop();
+          s3Container.stop();
+        }));
   }
 
   public abstract int getServerPort();

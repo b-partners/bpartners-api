@@ -15,15 +15,12 @@ public abstract class BridgeAbstractContextInitializer
 
   @Override
   public void initialize(ConfigurableApplicationContext applicationContext) {
-    int localPort = findAvailableTcpPort();
-    int containerPort = 5432;
     JdbcDatabaseContainer<?> postgresContainer =
         new PostgreSQLContainer<>()
             .withDatabaseName("it-db")
             .withUsername("sa")
-            .withPassword("sa")
-            .withExposedPorts(containerPort);
-    postgresContainer.setPortBindings(List.of(String.format("%d:%d", containerPort, localPort)));
+            .withPassword("sa");
+
     postgresContainer.start();
 
     String flywayTestdataPath = "classpath:/db/testdata";

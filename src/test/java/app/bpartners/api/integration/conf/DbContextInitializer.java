@@ -20,15 +20,11 @@ public class DbContextInitializer
 
   @Override
   public void initialize(ConfigurableApplicationContext applicationContext) {
-    int localPort = findAvailableTcpPort();
-    int containerPort = 5432;
 
     postgresContainer = new PostgreSQLContainer<>("postgres")
         .withDatabaseName("it-db")
         .withUsername("sa")
-        .withPassword("sa")
-        .withExposedPorts(containerPort);
-    postgresContainer.setPortBindings(List.of(String.format("%d:%d", containerPort, localPort)));
+        .withPassword("sa");
 
     postgresContainer.start();
     getRuntime()

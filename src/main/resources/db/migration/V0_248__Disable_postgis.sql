@@ -1,2 +1,2 @@
-drop extension if exists "postgis_topology";
-drop extension if exists "postgis";
+drop extension if exists "postgis_topology" cascade;
+drop extension if exists "postgis" cascade;

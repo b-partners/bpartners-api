@@ -159,7 +159,7 @@ class AuthenticationIT {
 
     assertThrowsApiException(
         "{\"type\":\"403 FORBIDDEN\",\"message\":\""
-            + "User.joe_doe_id has not approved the legal file cgu_28-10-22.pdf\"}",
+            + "User.joe_doe_id has not approved the legal file cgu_20-11-23.pdf\"}",
         () -> api.getAccountHolders(JOE_DOE_ID, JOE_DOE_ACCOUNT_ID));
   }
 }

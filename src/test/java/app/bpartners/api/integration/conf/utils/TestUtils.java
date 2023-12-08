@@ -42,6 +42,8 @@ import app.bpartners.api.model.Money;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.repository.LegalFileRepository;
+import app.bpartners.api.repository.ban.BanApi;
+import app.bpartners.api.repository.ban.model.GeoPosition;
 import app.bpartners.api.repository.bridge.model.Account.BridgeAccount;
 import app.bpartners.api.repository.fintecture.FintectureConf;
 import app.bpartners.api.repository.fintecture.FintecturePaymentInfoRepository;
@@ -54,6 +56,7 @@ import app.bpartners.api.repository.model.AccountConnector;
 import app.bpartners.api.repository.sendinblue.SendinblueApi;
 import app.bpartners.api.repository.sendinblue.model.Attributes;
 import app.bpartners.api.repository.sendinblue.model.Contact;
+import app.bpartners.api.service.utils.GeoUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
@@ -729,6 +732,18 @@ public class TestUtils {
             .lastEvaluation(null));
   }
 
+  public static GeoPosition geoPosZero() {
+    return GeoPosition.builder()
+        .coordinates(coordinateZero())
+        .build();
+  }
+
+  public static GeoUtils.Coordinate coordinateZero() {
+    return GeoUtils.Coordinate.builder()
+        .latitude(0.0)
+        .longitude(0.0)
+        .build();
+  }
   public static HttpResponse<Object> httpResponseMock(Object body) {
     return new HttpResponse<>() {
       @Override
@@ -892,6 +907,11 @@ public class TestUtils {
         .thenReturn(List.of(domainApprovedLegalFile()));
   }
 
+  public static void setUpBanApiMock(BanApi banApiMock) {
+    when(banApiMock.search(any())).thenReturn(geoPosZero());
+    when(banApiMock.fSearch(any())).thenReturn(geoPosZero());
+  }
+
   public static Account joePersistedAccount() {
     return Account.builder()
         .id("beed1765-5c16-472a-b3f4-5c376ce5db58")
@@ -928,13 +948,13 @@ public class TestUtils {
 
   public static RedirectionStatusUrls redirectionStatusUrls() {
     return new RedirectionStatusUrls()
-        .successUrl("dummy")
-        .failureUrl("dummy");
+        .successUrl("https://dummy.com/success")
+        .failureUrl("https://dummy.com/failure");
   }
 
   public static Redirection1 expectedRedirection() {
     return new Redirection1()
-        .redirectionUrl("dummy")
+        .redirectionUrl("https://dummy.com/redirection")
         .redirectionStatusUrls(redirectionStatusUrls());
   }
 

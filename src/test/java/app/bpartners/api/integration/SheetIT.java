@@ -72,11 +72,11 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 import org.testcontainers.shaded.com.fasterxml.jackson.databind.SerializationFeature;
 
-import static app.bpartners.api.integration.ProspectEvaluationIT.geoPosZero;
 import static app.bpartners.api.integration.ProspectEvaluationIT.prospectRatingResult;
 import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_HOLDER_ID;
 import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ID;
 import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_USER_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.geoPosZero;
 import static app.bpartners.api.integration.conf.utils.TestUtils.joeDoeAccountHolder;
 import static app.bpartners.api.integration.conf.utils.TestUtils.setUpCognito;
 import static app.bpartners.api.integration.conf.utils.TestUtils.setUpLegalFileRepository;

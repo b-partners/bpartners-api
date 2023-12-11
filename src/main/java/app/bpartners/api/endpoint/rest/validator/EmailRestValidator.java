@@ -3,8 +3,11 @@ package app.bpartners.api.endpoint.rest.validator;
 import app.bpartners.api.endpoint.rest.model.CreateEmail;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.NotImplementedException;
+import app.bpartners.api.service.utils.EmailUtils;
 import java.util.function.Consumer;
 import org.springframework.stereotype.Component;
+
+import static app.bpartners.api.service.utils.EmailUtils.allowedTags;
 
 @Component
 public class EmailRestValidator implements Consumer<CreateEmail> {
@@ -22,6 +25,12 @@ public class EmailRestValidator implements Consumer<CreateEmail> {
     }
     if (email.getEmailBody() == null) {
       builder.append("Attribute `emailBody` is mandatory. ");
+    } else {
+      if (EmailUtils.hasMalformedTags(email.getEmailBody())) {
+        builder.append(
+                "Your HTML syntax is malformed or you use other tags " + "than these allowed : ")
+            .append(allowedTags());
+      }
     }
     if (email.getStatus() == null) {
       builder.append("Attribute `status` is mandatory. ");

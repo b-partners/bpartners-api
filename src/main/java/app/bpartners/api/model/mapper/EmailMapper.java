@@ -3,6 +3,7 @@ package app.bpartners.api.model.mapper;
 import app.bpartners.api.model.Email;
 import app.bpartners.api.repository.jpa.model.HEmail;
 import app.bpartners.api.service.utils.DataTypeUtils;
+import java.time.Instant;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -22,6 +23,8 @@ public class EmailMapper {
         .attachments(entity.getAttachments().stream()
             .map(attachmentMapper::toDomain)
             .toList())
+        .sendingDatetime(entity.getSendingDatetime())
+        .updatedAt(entity.getUpdatedAt())
         .build();
   }
 
@@ -36,6 +39,8 @@ public class EmailMapper {
         .attachments(domain.getAttachments().stream()
             .map(attachmentMapper::toEntity)
             .toList())
+        .sendingDatetime(domain.getSendingDatetime())
+        .updatedAt(Instant.now())
         .build();
   }
 }

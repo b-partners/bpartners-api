@@ -10,6 +10,7 @@ import app.bpartners.api.endpoint.rest.model.CompanyInfo;
 import app.bpartners.api.endpoint.rest.model.ContactAddress;
 import app.bpartners.api.endpoint.rest.model.CreateAnnualRevenueTarget;
 import app.bpartners.api.endpoint.rest.model.CreatedFeedbackRequest;
+import app.bpartners.api.endpoint.rest.model.Customer;
 import app.bpartners.api.endpoint.rest.model.FeedbackRequest;
 import app.bpartners.api.endpoint.rest.model.UpdateAccountHolder;
 import app.bpartners.api.endpoint.rest.model.VerificationStatus;
@@ -299,6 +300,13 @@ class AccountHolderIT extends MockedThirdParties {
 
     CreatedFeedbackRequest actualCreatedFeedbackRequest =
         api.askFeedback(JOE_DOE_ID, JOE_DOE_ACCOUNT_HOLDER_ID, feedbackRequest());
+
+    List<Customer> actualCustomers = actualCreatedFeedbackRequest.getCustomers().stream().map(customer -> {
+      customer.updatedAt(null);
+      customer.createdAt(null);
+      return customer;
+    }).toList();
+    actualCreatedFeedbackRequest.customers(actualCustomers);
 
     assertEquals(expectedCreatedFeedbackRequest()
             .id(actualCreatedFeedbackRequest.getId())

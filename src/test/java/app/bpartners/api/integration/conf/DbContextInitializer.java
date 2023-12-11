@@ -21,11 +21,8 @@ public class DbContextInitializer
   public void initialize(ConfigurableApplicationContext applicationContext) {
     int localPort = findAvailableTcpPort();
     int containerPort = 5432;
-    DockerImageName postgis = DockerImageName
-        .parse("postgis/postgis")
-        .asCompatibleSubstituteFor("postgres");
 
-    postgresContainer = new PostgreSQLContainer<>(postgis)
+    postgresContainer = new PostgreSQLContainer<>("postgres")
         .withDatabaseName("it-db")
         .withUsername("sa")
         .withPassword("sa")

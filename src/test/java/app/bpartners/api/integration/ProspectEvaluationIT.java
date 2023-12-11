@@ -70,6 +70,7 @@ import static app.bpartners.api.integration.conf.utils.TestUtils.BEARER_PREFIX;
 import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_HOLDER_ID;
 import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ID;
 import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_TOKEN;
+import static app.bpartners.api.integration.conf.utils.TestUtils.geoPosZero;
 import static app.bpartners.api.integration.conf.utils.TestUtils.joeDoeAccountHolder;
 import static app.bpartners.api.integration.conf.utils.TestUtils.prospect1;
 import static app.bpartners.api.integration.conf.utils.TestUtils.prospect2;
@@ -135,19 +136,6 @@ class ProspectEvaluationIT extends MockedThirdParties {
         .type("Point")
         .latitude(0.0)
         .longitude(0.0);
-  }
-
-  public static GeoPosition geoPosZero() {
-    return GeoPosition.builder()
-        .coordinates(coordinateZero())
-        .build();
-  }
-
-  private static GeoUtils.Coordinate coordinateZero() {
-    return GeoUtils.Coordinate.builder()
-        .latitude(0.0)
-        .longitude(0.0)
-        .build();
   }
 
   private static ProspectEvaluationJobDetails evalDetails1() {

@@ -5,6 +5,13 @@ operations:
         - Paying
       summary: Generate transactions export link
       description: Link expired after one (1) hour
+      operationId: exportTransactionsAndInvoices
+      parameters:
+        - in: path
+          name: aId
+          description: Account identifier
+          schema:
+            type: string
       requestBody:
         content:
           application/json:

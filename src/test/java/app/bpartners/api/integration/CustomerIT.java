@@ -6,11 +6,14 @@ import app.bpartners.api.endpoint.rest.client.ApiException;
 import app.bpartners.api.endpoint.rest.mapper.CustomerRestMapper;
 import app.bpartners.api.endpoint.rest.model.CreateCustomer;
 import app.bpartners.api.endpoint.rest.model.Customer;
+import app.bpartners.api.endpoint.rest.model.CustomerLocation;
 import app.bpartners.api.endpoint.rest.model.CustomerStatus;
 import app.bpartners.api.integration.conf.DbEnvContextInitializer;
 import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.integration.conf.utils.TestUtils;
+import app.bpartners.api.repository.ban.BanApi;
 import app.bpartners.api.service.CustomerService;
+import app.bpartners.api.service.aws.SesService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.CollectionType;
 import java.io.File;
@@ -22,10 +25,12 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.List;
 import java.util.stream.Collectors;
+import javax.mail.MessagingException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
@@ -35,6 +40,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 import static app.bpartners.api.endpoint.rest.model.CustomerStatus.DISABLED;
 import static app.bpartners.api.endpoint.rest.model.CustomerStatus.ENABLED;
+import static app.bpartners.api.integration.DirtyCustomerIT.ignoreLatitudeAndLongitude;
 import static app.bpartners.api.integration.DirtyCustomerIT.ignoreUpdatedAndCreatedAt;
 import static app.bpartners.api.integration.conf.utils.TestUtils.BAD_USER_ID;
 import static app.bpartners.api.integration.conf.utils.TestUtils.BEARER_PREFIX;
@@ -51,6 +57,7 @@ import static app.bpartners.api.integration.conf.utils.TestUtils.customerDisable
 import static app.bpartners.api.integration.conf.utils.TestUtils.customerUpdated;
 import static app.bpartners.api.integration.conf.utils.TestUtils.customerWithSomeNullAttributes;
 import static app.bpartners.api.integration.conf.utils.TestUtils.getApiException;
+import static app.bpartners.api.integration.conf.utils.TestUtils.setUpBanApiMock;
 import static app.bpartners.api.integration.conf.utils.TestUtils.setUpCognito;
 import static app.bpartners.api.integration.conf.utils.TestUtils.setUpLegalFileRepository;
 import static app.bpartners.api.service.CustomerService.EXCEL_MIME_TYPE;
@@ -60,6 +67,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
@@ -70,6 +79,10 @@ class CustomerIT extends MockedThirdParties {
   private CustomerService customerService;
   @Autowired
   private CustomerRestMapper customerRestMapper;
+  @MockBean
+  private BanApi banApiMock;
+  @MockBean
+  private SesService sesService;
 
   private static ApiClient anApiClient() {
     return TestUtils.anApiClient(JOE_DOE_TOKEN, DbEnvContextInitializer.getHttpServerPort());
@@ -79,6 +92,7 @@ class CustomerIT extends MockedThirdParties {
   public void setUp() {
     setUpLegalFileRepository(legalFileRepositoryMock);
     setUpCognito(cognitoComponentMock);
+    setUpBanApiMock(banApiMock);
   }
 
   CreateCustomer createCustomer1() {
@@ -167,7 +181,8 @@ class CustomerIT extends MockedThirdParties {
   }
 
   @Test
-  void create_customers_ok() throws ApiException {
+  void create_customers_ok() throws ApiException, MessagingException, IOException {
+    doNothing().when(sesService).sendEmail(any(), any(), any(), any(), any());
     ApiClient joeDoeClient = anApiClient();
     CustomersApi api = new CustomersApi(joeDoeClient);
 
@@ -186,23 +201,29 @@ class CustomerIT extends MockedThirdParties {
 
     List<Customer> actualList = ignoreUpdatedAndCreatedAt(api.getCustomers(
         JOE_DOE_ACCOUNT_ID, null, null, null, null, null, null, null, null, 1, 20));
-    assertTrue(actualList.containsAll(actual1));
+    assertTrue(actualList.containsAll(ignoreLatitudeAndLongitude(actual1)));
     Customer customer1 = actual1.get(0);
     Customer customer2 = actual2.get(0);
     Customer customer3 = actual3.get(0);
     assertEquals(customer1
             .id(null)
+            .location(null)
             .updatedAt(customer2.getUpdatedAt())
             .createdAt(customer2.getCreatedAt()),
-        customer2.id(null));
+        customer2
+            .id(null)
+            .location(null));
     assertEquals(customer1
             .id(null)
             .firstName("NotNullFirstName")
             .lastName("NotNullLastName")
             .email("notnull@email.com")
             .updatedAt(customer3.getUpdatedAt())
-            .createdAt(customer3.getCreatedAt()),
-        customer3.id(null));
+            .createdAt(customer3.getCreatedAt())
+            .location(null),
+        customer3
+            .id(null)
+            .location(null));
   }
 
   @Test
@@ -225,7 +246,7 @@ class CustomerIT extends MockedThirdParties {
         ignoreUpdatedAndCreatedAt(api.getCustomers(JOE_DOE_ACCOUNT_ID,
             "Marc", "Montagnier", null, null, null, null, null, null, 1, 20));
 
-    assertEquals(existingCustomers, actual);
+    assertEquals(ignoreLatitudeAndLongitude(existingCustomers), ignoreLatitudeAndLongitude(actual));
     assertTrue(existingCustomers.containsAll(actual));
   }
 
@@ -316,7 +337,11 @@ class CustomerIT extends MockedThirdParties {
         JOE_DOE_ACCOUNT_ID, null, null, null, null, null, null,
         DISABLED, null, 1, 20));
 
-    assertTrue(disabledCustomers.containsAll(actual));
+    assertTrue(disabledCustomers.containsAll(actual.stream().map(customer -> {
+      customer.updatedAt(null);
+      customer.createdAt(null);
+      return customer;
+    }).toList()));
     assertTrue(enabledCustomers.stream()
         .allMatch(customer -> customer.getStatus() == ENABLED));
     assertTrue(disabledCustomers.stream()

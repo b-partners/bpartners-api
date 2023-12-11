@@ -11,6 +11,7 @@ import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.repository.EmailRepository;
 import app.bpartners.api.service.aws.SesService;
 import java.io.IOException;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -83,6 +84,9 @@ public class MailingService {
         msgBuilder.append("Unable to edit email ")
             .append(actualEmail.describe())
             .append(" because it was already sent. ");
+      }
+      if (actualEmail.getStatus() == EmailStatus.SENT) {
+        actualEmail.setSendingDatetime(Instant.now());
       }
     });
     String msgException = msgBuilder.toString();

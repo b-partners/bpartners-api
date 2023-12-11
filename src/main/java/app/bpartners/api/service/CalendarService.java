@@ -2,6 +2,7 @@ package app.bpartners.api.service;
 
 import app.bpartners.api.endpoint.rest.model.CalendarAuth;
 import app.bpartners.api.endpoint.rest.model.CalendarConsentInit;
+import app.bpartners.api.endpoint.rest.model.CalendarPermission;
 import app.bpartners.api.endpoint.rest.model.CalendarProvider;
 import app.bpartners.api.endpoint.rest.model.Redirection;
 import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
@@ -78,8 +79,18 @@ public class CalendarService {
     }
   }
 
+  public AccessToken exchangeCodeAndRefreshCalendars(String idUser, CalendarAuth auth) {
+    localEventRepository.removeAllByIdUser(idUser);
+    calendarRepository.removeAllByIdUser(idUser); //delete existing calendars
+    AccessToken token = exchangeCode(idUser, auth);
+    calendarRepository.findByIdUser(idUser); //get new calendars
+    return token;
+  }
+
   public List<Calendar> getCalendars(String idUser) {
-    return calendarRepository.findByIdUser(idUser);
+    return calendarRepository.findByIdUser(idUser).stream()
+        .filter(calendar -> calendar.getCalendarPermission() == CalendarPermission.OWNER)
+        .toList();
   }
 
   public List<CalendarEvent> saveEvents(String idUser,

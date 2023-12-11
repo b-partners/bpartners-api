@@ -13,6 +13,7 @@ import app.bpartners.api.integration.conf.DbEnvContextInitializer;
 import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.integration.conf.utils.TestUtils;
 import app.bpartners.api.repository.google.calendar.CalendarConf;
+import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.util.DateTime;
 import com.google.api.services.calendar.model.Event;
 import com.google.api.services.calendar.model.EventAttendee;
@@ -53,6 +54,8 @@ public class CalendarEventIT extends MockedThirdParties {
   private app.bpartners.api.repository.google.calendar.CalendarApi calendarApiMock;
   @MockBean
   private CalendarConf calendarConf;
+  @MockBean
+  private Credential credential;
 
   static CalendarConsentInit calendarConsentInit() {
     return new CalendarConsentInit()
@@ -79,7 +82,8 @@ public class CalendarEventIT extends MockedThirdParties {
         .participants(List.of())
         .from(null)
         .to(null)
-        .updatedAt(null);
+        .updatedAt(null)
+        .isSynchronized(true);
 
   }
 
@@ -110,7 +114,8 @@ public class CalendarEventIT extends MockedThirdParties {
 
   static CreateCalendarEvent calendarEventToCreate1() {
     return new CreateCalendarEvent()
-        .summary(null)
+        .id("created_event_1_id")
+        .summary("Dummy Event 1")
         .location(null)
         .organizer("dummy")
         .participants(List.of())
@@ -120,7 +125,8 @@ public class CalendarEventIT extends MockedThirdParties {
 
   static CreateCalendarEvent calendarEventToCreate2() {
     return new CreateCalendarEvent()
-        .summary(null)
+        .id("created_event_2_id")
+        .summary("Dummy Event 2")
         .location(null)
         .organizer("dummy")
         .participants(List.of())
@@ -146,8 +152,9 @@ public class CalendarEventIT extends MockedThirdParties {
     ApiClient joeDoeClient = anApiClient();
     CalendarApi api = new CalendarApi(joeDoeClient);
     when(calendarApiMock.getCalendarConf()).thenReturn(calendarConf);
-    when(calendarApiMock.getCalendarConf().getRedirectUris()).thenReturn(List.of("dummy"));
-    when(calendarApiMock.initConsent(any())).thenReturn("dummy");
+    when(calendarApiMock.getCalendarConf().getRedirectUris()).thenReturn(List.of("https://dummy.com/success"));
+    when(calendarApiMock.initConsent(any(), any())).thenReturn("https://dummy.com/redirection");
+    when(calendarApiMock.storeCredential(any(), any(), any())).thenReturn(credential);
 
     Redirection1 actual = api.initConsent(JOE_DOE_ID, calendarConsentInit());
 
@@ -181,7 +188,7 @@ public class CalendarEventIT extends MockedThirdParties {
   void handle_auth_ok() {
     ApiClient joeDoeClient = anApiClient();
     CalendarApi api = new CalendarApi(joeDoeClient);
-    when(calendarApiMock.storeCredential(any(), any(), any())).thenReturn(null);
+    when(calendarApiMock.storeCredential(any(), any(), any())).thenReturn(credential);
 
     assertDoesNotThrow(() -> api.exchangeCode(JOE_DOE_ID, calendarAuth()));
   }

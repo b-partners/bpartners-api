@@ -4,6 +4,7 @@ import app.bpartners.api.endpoint.rest.api.CustomersApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
 import app.bpartners.api.endpoint.rest.model.Customer;
+import app.bpartners.api.endpoint.rest.model.CustomerLocation;
 import app.bpartners.api.integration.conf.DbEnvContextInitializer;
 import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.integration.conf.utils.TestUtils;
@@ -120,6 +121,15 @@ class DirtyCustomerIT extends MockedThirdParties {
         .peek(customer -> {
           customer.setCreatedAt(null);
           customer.setUpdatedAt(null);
+        })
+        .toList();
+  }
+
+  public static List<Customer> ignoreLatitudeAndLongitude(List<Customer> customers) {
+    return customers.stream()
+        .peek(customer -> {
+          customer.getLocation().setLatitude(0.0);
+          customer.getLocation().setLongitude(0.0);
         })
         .toList();
   }

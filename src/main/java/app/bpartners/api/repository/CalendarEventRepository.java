@@ -11,4 +11,6 @@ public interface CalendarEventRepository {
                                                 Instant to);
 
   List<CalendarEvent> saveAll(String idUser, String idCalendar, List<CalendarEvent> toSave);
+
+  List<CalendarEvent> removeAllByIdUser(String idUser);
 }

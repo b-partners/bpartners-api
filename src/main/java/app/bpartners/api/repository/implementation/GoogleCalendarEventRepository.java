@@ -2,6 +2,7 @@ package app.bpartners.api.repository.implementation;
 
 import app.bpartners.api.model.Calendar;
 import app.bpartners.api.model.CalendarEvent;
+import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.model.mapper.CalendarEventMapper;
 import app.bpartners.api.repository.CalendarEventRepository;
 import app.bpartners.api.repository.CalendarRepository;
@@ -43,7 +44,7 @@ public class GoogleCalendarEventRepository
     List<CalendarEvent> googleConvertedEvents = toDomainFrom(eventEntries);
     List<CalendarEvent> newGoogleEvents = googleConvertedEvents.stream()
         .filter(CalendarEvent::isNewEvent)
-        .collect(Collectors.toList());
+        .toList();
     if (!newGoogleEvents.isEmpty()) {
       jpaRepository.saveAll(newGoogleEvents.stream()
           .map(event -> eventMapper.toEntity(idUser, idCalendar, event))
@@ -68,6 +69,11 @@ public class GoogleCalendarEventRepository
     List<Event> savedGoogleEvents =
         calendarApi.crupdateEvents(idUser, calendar.getEteId(), googleEventsToSave);
     return toDomainFrom(savedGoogleEvents);
+  }
+
+  @Override
+  public List<CalendarEvent> removeAllByIdUser(String idUser) {
+    throw new NotImplementedException("Not supported");
   }
 
   private List<CalendarEvent> toDomainFrom(List<Event> crupdatedEvents) {

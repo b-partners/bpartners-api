@@ -1,7 +1,7 @@
-package app.bpartners.api.service;
+package app.bpartners.api.service.event;
 
 import app.bpartners.api.endpoint.event.EventConf;
-import app.bpartners.api.endpoint.event.model.gen.ProspectEvaluationJobInitiated;
+import app.bpartners.api.endpoint.event.gen.ProspectEvaluationJobInitiated;
 import app.bpartners.api.endpoint.rest.mapper.ProspectRestMapper;
 import app.bpartners.api.endpoint.rest.model.CalendarProvider;
 import app.bpartners.api.endpoint.rest.model.EvaluatedProspect;
@@ -25,6 +25,11 @@ import app.bpartners.api.repository.expressif.ProspectEval;
 import app.bpartners.api.repository.expressif.ProspectEvalInfo;
 import app.bpartners.api.repository.expressif.ProspectResult;
 import app.bpartners.api.repository.expressif.fact.NewIntervention;
+import app.bpartners.api.service.AccountHolderService;
+import app.bpartners.api.service.CalendarService;
+import app.bpartners.api.service.ProspectService;
+import app.bpartners.api.service.SnsService;
+import app.bpartners.api.service.UserService;
 import app.bpartners.api.service.aws.SesService;
 import app.bpartners.api.service.utils.GeoUtils;
 import app.bpartners.api.service.utils.TemplateResolverUtils;

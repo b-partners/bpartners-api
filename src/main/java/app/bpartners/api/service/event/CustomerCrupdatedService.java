@@ -1,6 +1,6 @@
-package app.bpartners.api.service;
+package app.bpartners.api.service.event;
 
-import app.bpartners.api.endpoint.event.model.gen.CustomerCrupdated;
+import app.bpartners.api.endpoint.event.gen.CustomerCrupdated;
 import app.bpartners.api.model.Attachment;
 import app.bpartners.api.model.Customer;
 import app.bpartners.api.model.Location;

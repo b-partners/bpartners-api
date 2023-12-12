@@ -1,6 +1,6 @@
-package app.bpartners.api.service;
+package app.bpartners.api.service.event;
 
-import app.bpartners.api.endpoint.event.model.gen.UserOnboarded;
+import app.bpartners.api.endpoint.event.gen.UserOnboarded;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.Attachment;

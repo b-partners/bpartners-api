@@ -1,11 +1,12 @@
-package app.bpartners.api.service;
+package app.bpartners.api.service.event;
 
 import app.bpartners.api.endpoint.event.EventConf;
-import app.bpartners.api.endpoint.event.model.gen.InvoiceRelaunchSaved;
+import app.bpartners.api.endpoint.event.gen.InvoiceRelaunchSaved;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.Attachment;
 import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.exception.ApiException;
+import app.bpartners.api.service.FileService;
 import app.bpartners.api.service.aws.SesService;
 import app.bpartners.api.service.utils.InvoicePdfUtils;
 import java.io.IOException;
@@ -24,8 +25,8 @@ import static app.bpartners.api.endpoint.rest.model.FileType.LOGO;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
-import static app.bpartners.api.service.InvoiceCrupdatedService.DRAFT_TEMPLATE;
-import static app.bpartners.api.service.InvoiceCrupdatedService.INVOICE_TEMPLATE;
+import static app.bpartners.api.service.event.InvoiceCrupdatedService.DRAFT_TEMPLATE;
+import static app.bpartners.api.service.event.InvoiceCrupdatedService.INVOICE_TEMPLATE;
 
 @Service
 @AllArgsConstructor

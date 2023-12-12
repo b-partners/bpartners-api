@@ -1,6 +1,6 @@
-package app.bpartners.api.service;
+package app.bpartners.api.service.event;
 
-import app.bpartners.api.endpoint.event.model.gen.UserUpserted;
+import app.bpartners.api.endpoint.event.gen.UserUpserted;
 import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import java.util.function.Consumer;
 import lombok.AllArgsConstructor;

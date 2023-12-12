@@ -1,97 +1,27 @@
 package app.bpartners.api.endpoint.event;
 
-import app.bpartners.api.model.exception.ApiException;
-import java.net.URI;
-import java.net.URISyntaxException;
+import app.bpartners.api.PojaGenerated;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.presigner.S3Presigner;
-import software.amazon.awssdk.services.ses.SesClient;
-import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sqs.SqsClient;
-import software.amazon.awssdk.services.ssm.SsmClient;
 
-import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
-
+@PojaGenerated
 @Configuration
 public class EventConf {
   private final Region region;
-  private final String s3Endpoint;
-  private final String sesSource;
-  @Getter
-  private final String adminEmail; //TODO: set as env variable
-  @Getter
-  private final String snsPlatformArn;
+  @Getter private final String sqsQueue;
 
-  public EventConf(@Value("${aws.region}") String region,
-                   @Value("${aws.endpoint}") String s3Endpoint,
-                   @Value("${aws.ses.source}") String sesSource,
-                   @Value("${admin.email}") String adminEmail,
-                   @Value("${sns.platform.arn}") String snsPlatformArn) {
-    this.sesSource = sesSource;
-    this.region = Region.of(region);
-    this.s3Endpoint = s3Endpoint;
-    this.adminEmail = adminEmail;
-    this.snsPlatformArn = snsPlatformArn;
+  public EventConf(
+      @Value("${aws.region}") Region region, @Value("${aws.sqs.queue.url}") String sqsQueue) {
+    this.region = region;
+    this.sqsQueue = sqsQueue;
   }
 
   @Bean
   public SqsClient getSqsClient() {
-    return SqsClient.builder()
-        .region(region)
-        .build();
-  }
-
-  @Bean
-  public SsmClient getSsmClient() {
-    return SsmClient.builder()
-        .region(region)
-        .build();
-  }
-
-  @Bean
-  public S3Client getS3Client() {
-    try {
-      return S3Client.builder()
-          .endpointOverride(new URI(s3Endpoint))
-          .region(region)
-          .build();
-    } catch (URISyntaxException e) {
-      throw new ApiException(SERVER_EXCEPTION, e);
-    }
-  }
-
-  @Bean
-  public S3Presigner getS3Presigner() {
-    try {
-      return S3Presigner.builder()
-          .endpointOverride(new URI(s3Endpoint))
-          .region(region)
-          .build();
-    } catch (URISyntaxException e) {
-      throw new ApiException(SERVER_EXCEPTION, e);
-    }
-  }
-
-  @Bean
-  public SesClient getSesClient() {
-    return SesClient.builder()
-        .region(region) //Override the localstack default region for live test in localhost
-        .build();
-  }
-
-  @Bean
-  public SnsClient getSnsClient() {
-    return SnsClient.builder()
-        .region(region) //Override the localstack default region for live test in localhost
-        .build();
-  }
-
-  public String getSesSource() {
-    return this.sesSource;
+    return SqsClient.builder().region(region).build();
   }
 }

@@ -1,4 +1,4 @@
-package app.bpartners.api.endpoint.event.model.gen;
+package app.bpartners.api.endpoint.event.gen;
 
 import app.bpartners.api.model.OnboardedUser;
 import com.fasterxml.jackson.annotation.JsonProperty;

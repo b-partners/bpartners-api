@@ -1,9 +1,7 @@
 package app.bpartners.api.service;
 
 import app.bpartners.api.endpoint.event.EventProducer;
-import app.bpartners.api.endpoint.event.model.TypedEvent;
-import app.bpartners.api.endpoint.event.model.TypedFeedbackRequested;
-import app.bpartners.api.endpoint.event.model.gen.FeedbackRequested;
+import app.bpartners.api.endpoint.event.gen.FeedbackRequested;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.Customer;
 import app.bpartners.api.model.Feedback;
@@ -13,7 +11,6 @@ import app.bpartners.api.repository.AccountHolderRepository;
 import app.bpartners.api.repository.CustomerRepository;
 import app.bpartners.api.repository.FeedBackRepository;
 import java.util.List;
-import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -47,13 +44,13 @@ public class FeedbackService {
     return repository.save(toCreate);
   }
 
-  private TypedEvent toTypedEvent(Feedback feedback) {
-    return new TypedFeedbackRequested(FeedbackRequested.builder()
+  private FeedbackRequested toTypedEvent(Feedback feedback) {
+    return FeedbackRequested.builder()
         .subject(feedback.getSubject())
         .message(feedback.getMessage())
         .attachmentName(null)
         .recipientsEmails(getRecipientEmails(feedback.getCustomers()))
-        .build());
+        .build();
   }
 
   private List<String> getRecipientEmails(List<Customer> recipients) {

@@ -1,7 +1,6 @@
 package app.bpartners.api.integration;
 
 import app.bpartners.api.SentryConf;
-import app.bpartners.api.endpoint.event.EventPoller;
 import app.bpartners.api.endpoint.event.S3Conf;
 import app.bpartners.api.endpoint.rest.api.ProspectingApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
@@ -79,8 +78,6 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @Slf4j
 class ProspectIT {
   private static final String UNKNOWN_PROSPECT_ID = "unknown_prospect_id";
-  @MockBean
-  private EventPoller eventPoller;
   @MockBean
   private PaymentScheduleService paymentScheduleService;
   @MockBean

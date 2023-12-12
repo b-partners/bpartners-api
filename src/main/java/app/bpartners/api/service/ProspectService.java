@@ -1,10 +1,9 @@
 package app.bpartners.api.service;
 
-import app.bpartners.api.endpoint.event.EventConf;
 import app.bpartners.api.endpoint.event.EventProducer;
-import app.bpartners.api.endpoint.event.model.TypedProspectEvaluationJobInitiated;
-import app.bpartners.api.endpoint.event.model.gen.ProspectEvaluationJobInitiated;
-import app.bpartners.api.endpoint.event.model.gen.ProspectUpdated;
+import app.bpartners.api.endpoint.event.SesConf;
+import app.bpartners.api.endpoint.event.gen.ProspectEvaluationJobInitiated;
+import app.bpartners.api.endpoint.event.gen.ProspectUpdated;
 import app.bpartners.api.endpoint.rest.model.ContactNature;
 import app.bpartners.api.endpoint.rest.model.Geojson;
 import app.bpartners.api.endpoint.rest.model.JobStatusValue;
@@ -36,9 +35,9 @@ import app.bpartners.api.repository.google.sheets.SheetApi;
 import app.bpartners.api.repository.jpa.AccountHolderJpaRepository;
 import app.bpartners.api.repository.jpa.model.HAccountHolder;
 import app.bpartners.api.repository.jpa.model.HProspectStatusHistory;
-import app.bpartners.api.service.aws.ProspectUpdatedService;
 import app.bpartners.api.service.aws.SesService;
 import app.bpartners.api.service.dataprocesser.ProspectDataProcesser;
+import app.bpartners.api.service.event.ProspectUpdatedService;
 import app.bpartners.api.service.utils.DateUtils;
 import app.bpartners.api.service.utils.GeoUtils;
 import com.google.api.services.sheets.v4.model.Sheet;
@@ -72,7 +71,6 @@ import static app.bpartners.api.endpoint.rest.model.ProspectStatus.CONTACTED;
 import static app.bpartners.api.endpoint.rest.model.ProspectStatus.CONVERTED;
 import static app.bpartners.api.endpoint.rest.model.ProspectStatus.TO_CONTACT;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
-import static app.bpartners.api.model.mapper.CalendarEventMapper.PARIS_TIMEZONE;
 import static app.bpartners.api.repository.expressif.fact.NewIntervention.OldCustomer.OldCustomerType.INDIVIDUAL;
 import static app.bpartners.api.repository.google.sheets.SheetConf.GRID_SHEET_TYPE;
 import static app.bpartners.api.service.utils.FilterUtils.distinctByKeys;
@@ -96,7 +94,7 @@ public class ProspectService {
   private final ProspectMapper prospectMapper;
   private final ProspectEvaluationJobRepository evalJobRepository;
   private final EventProducer eventProducer;
-  private final EventConf eventConf;
+  private final SesConf sesConf;
   private final ProspectStatusService statusService;
   private final SnsService snsService;
   private final UserService userService;
@@ -231,15 +229,18 @@ public class ProspectService {
     List<ProspectEvaluationJob> savedJobs = evalJobRepository.saveAll(jobs);
 
     eventProducer.accept(jobRunners.stream()
-        .map(evaluationJobRunner -> new TypedProspectEvaluationJobInitiated(
-            ProspectEvaluationJobInitiated.builder()
-                .jobId(evaluationJobRunner.getJobId())
-                .idUser(userId)
-                .jobRunner(evaluationJobRunner)
-                .build()))
+        .map(evaluationJobRunner -> toTypedEvent(evaluationJobRunner, userId))
         .collect(Collectors.toList()));
 
     return savedJobs;
+  }
+
+  private ProspectEvaluationJobInitiated toTypedEvent(ProspectEvaluationJobRunner evaluationJobRunner, String userId) {
+    return ProspectEvaluationJobInitiated.builder()
+        .jobId(evaluationJobRunner.getJobId())
+        .idUser(userId)
+        .jobRunner(evaluationJobRunner)
+        .build();
   }
 
   @Transactional
@@ -810,7 +811,7 @@ public class ProspectService {
       throws IOException, MessagingException {
     HAccountHolder accountHolder = optionalHolder.get();
     String recipient = accountHolder.getEmail();
-    String cc = eventConf.getAdminEmail();
+    String cc = sesConf.getAdminEmail();
     String today = DateUtils.formatFrenchDate(Instant.now());
     String emailSubject =
         String.format(

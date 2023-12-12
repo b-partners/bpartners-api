@@ -1,7 +1,6 @@
 package app.bpartners.api.integration;
 
 import app.bpartners.api.SentryConf;
-import app.bpartners.api.endpoint.event.EventPoller;
 import app.bpartners.api.endpoint.event.S3Conf;
 import app.bpartners.api.endpoint.rest.security.bridge.BridgeConf;
 import app.bpartners.api.integration.conf.ExpressifAbstractContextInitializer;
@@ -64,8 +63,6 @@ public class ExpressifIT {
   private EventBridgeClient eventBridgeClient;
   @MockBean
   private SqsClient sqsClient;
-  @MockBean
-  private EventPoller eventPoller;
   @Autowired
   private ExpressifApi subject;
 

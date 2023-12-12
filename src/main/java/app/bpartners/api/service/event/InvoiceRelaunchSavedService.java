@@ -1,6 +1,7 @@
 package app.bpartners.api.service.event;
 
 import app.bpartners.api.endpoint.event.EventConf;
+import app.bpartners.api.endpoint.event.SesConf;
 import app.bpartners.api.endpoint.event.gen.InvoiceRelaunchSaved;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.Attachment;
@@ -35,7 +36,7 @@ public class InvoiceRelaunchSavedService implements Consumer<InvoiceRelaunchSave
   private final SesService sesService;
   private final FileService fileService;
   private final InvoicePdfUtils pdfUtils = new InvoicePdfUtils();
-  private final EventConf eventConf;
+  private final SesConf sesConf;
 
   @Transactional(isolation = Isolation.SERIALIZABLE)
   @Override
@@ -52,7 +53,7 @@ public class InvoiceRelaunchSavedService implements Consumer<InvoiceRelaunchSave
 
     relaunchInvoiceAction(recipient,
         concerned,
-        eventConf.getAdminEmail(),
+        sesConf.getAdminEmail(),
         subject,
         htmlBody,
         attachmentName,

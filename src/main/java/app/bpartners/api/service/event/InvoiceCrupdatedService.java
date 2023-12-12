@@ -1,8 +1,9 @@
-package app.bpartners.api.service;
+package app.bpartners.api.service.event;
 
-import app.bpartners.api.endpoint.event.model.gen.InvoiceCrupdated;
+import app.bpartners.api.endpoint.event.gen.InvoiceCrupdated;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.Invoice;
+import app.bpartners.api.service.InvoiceService;
 import app.bpartners.api.service.utils.InvoicePdfUtils;
 import java.util.function.Consumer;
 import lombok.AllArgsConstructor;

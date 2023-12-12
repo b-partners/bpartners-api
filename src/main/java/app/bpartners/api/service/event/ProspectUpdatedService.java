@@ -1,7 +1,7 @@
-package app.bpartners.api.service.aws;
+package app.bpartners.api.service.event;
 
 import app.bpartners.api.endpoint.event.EventConf;
-import app.bpartners.api.endpoint.event.model.gen.ProspectUpdated;
+import app.bpartners.api.endpoint.event.gen.ProspectUpdated;
 import app.bpartners.api.endpoint.rest.model.ProspectFeedback;
 import app.bpartners.api.endpoint.rest.model.ProspectStatus;
 import app.bpartners.api.model.AccountHolder;
@@ -9,6 +9,7 @@ import app.bpartners.api.model.Attachment;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.prospect.Prospect;
 import app.bpartners.api.repository.AccountHolderRepository;
+import app.bpartners.api.service.aws.SesService;
 import app.bpartners.api.service.utils.TemplateResolverUtils;
 import java.io.IOException;
 import java.time.Instant;

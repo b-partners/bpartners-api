@@ -25,7 +25,6 @@ public class PaymentScheduleService {
   private final PaymentRequestJpaRepository jpaRepository;
 
   //TODO: check if 12 hours of refresh is enough or too much
-  @Scheduled(fixedRate = 12 * 60 * 60 * 1_000)
   @PostConstruct
   public void updatePaymentStatus() {
     List<HPaymentRequest> unpaidPayments = jpaRepository.findAllByStatus(UNPAID);

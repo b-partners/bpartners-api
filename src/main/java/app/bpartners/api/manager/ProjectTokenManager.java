@@ -38,7 +38,6 @@ public class ProjectTokenManager {
   }
 
   /*TODO: retry to get token after 10 secondes in case of server failure*/
-  @Scheduled(fixedRate = FOURTY_FIVE_MINUTES_INTERVAL)
   @Async
   @PostConstruct
   public void refreshFintectureProjectToken() {

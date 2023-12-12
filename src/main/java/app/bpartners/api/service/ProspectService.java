@@ -772,7 +772,6 @@ public class ProspectService {
     return repository.create(prospectsToSave);
   }
 
-  @Scheduled(cron = "0 0 14 ? * FRI", zone = PARIS_TIMEZONE)
   public void relaunchHoldersProspects() {
     List<Prospect> prospectToContact = statusService.findAllByStatus(TO_CONTACT).stream()
         .filter(prospect -> prospect.getRating() != null

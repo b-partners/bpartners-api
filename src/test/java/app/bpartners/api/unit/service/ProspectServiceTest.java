@@ -15,7 +15,7 @@ import app.bpartners.api.service.ProspectService;
 import app.bpartners.api.service.ProspectStatusService;
 import app.bpartners.api.service.SnsService;
 import app.bpartners.api.service.UserService;
-import app.bpartners.api.service.aws.ProspectUpdatedService;
+import app.bpartners.api.service.event.ProspectUpdatedService;
 import app.bpartners.api.service.aws.SesService;
 import app.bpartners.api.service.dataprocesser.ProspectDataProcesser;
 import java.io.IOException;

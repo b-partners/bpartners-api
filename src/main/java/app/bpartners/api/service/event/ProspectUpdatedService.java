@@ -1,6 +1,7 @@
 package app.bpartners.api.service.event;
 
 import app.bpartners.api.endpoint.event.EventConf;
+import app.bpartners.api.endpoint.event.SesConf;
 import app.bpartners.api.endpoint.event.gen.ProspectUpdated;
 import app.bpartners.api.endpoint.rest.model.ProspectFeedback;
 import app.bpartners.api.endpoint.rest.model.ProspectStatus;
@@ -30,7 +31,7 @@ public class ProspectUpdatedService implements Consumer<ProspectUpdated> {
   public static final String PROSPECT_UPDATED_TEMPLATE = "prospect_updated";
   private final AccountHolderRepository holderRepository;
   private final SesService sesService;
-  private final EventConf eventConf;
+  private final SesConf sesConf;
 
 
   @Override
@@ -43,7 +44,7 @@ public class ProspectUpdatedService implements Consumer<ProspectUpdated> {
         : ProspectUpdateType.CONTINUE_PROCESS;
     Instant updatedAt = prospectUpdated.getUpdatedAt();
     try {
-      String recipient = eventConf.getAdminEmail();
+      String recipient = sesConf.getAdminEmail();
       String concerned = null;
       String frenchUpdatedDatetime = formatFrenchDatetime(updatedAt);
       String translatedStatus = getTranslatedStatus(prospect.getActualStatus());

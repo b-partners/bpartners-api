@@ -43,8 +43,6 @@ import app.bpartners.api.model.Money;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.repository.LegalFileRepository;
-import app.bpartners.api.repository.ban.BanApi;
-import app.bpartners.api.repository.ban.model.GeoPosition;
 import app.bpartners.api.repository.bridge.model.Account.BridgeAccount;
 import app.bpartners.api.repository.fintecture.FintectureConf;
 import app.bpartners.api.repository.fintecture.FintecturePaymentInfoRepository;
@@ -57,7 +55,6 @@ import app.bpartners.api.repository.model.AccountConnector;
 import app.bpartners.api.repository.sendinblue.SendinblueApi;
 import app.bpartners.api.repository.sendinblue.model.Attributes;
 import app.bpartners.api.repository.sendinblue.model.Contact;
-import app.bpartners.api.service.utils.GeoUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
@@ -86,6 +83,7 @@ import org.springframework.util.SocketUtils;
 import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsRequest;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsResponse;
+import software.amazon.awssdk.services.s3.S3Client;
 
 import static app.bpartners.api.endpoint.rest.model.AccountStatus.OPENED;
 import static app.bpartners.api.endpoint.rest.model.EnableStatus.ENABLED;
@@ -235,9 +233,9 @@ public class TestUtils {
     return new AnnualRevenueTarget()
         .year(2023)
         .updatedAt(Instant.parse("2022-01-01T01:00:00.00Z"))
-        .amountAttempted(0)
+        .amountAttempted(1356000)
         .amountTarget(1000000)
-        .amountAttemptedPercent(0);
+        .amountAttemptedPercent(13560);
   }
 
   public static AnnualRevenueTarget annualRevenueTarget2() {
@@ -735,18 +733,6 @@ public class TestUtils {
             .lastEvaluation(null));
   }
 
-  public static GeoPosition geoPosZero() {
-    return GeoPosition.builder()
-        .coordinates(coordinateZero())
-        .build();
-  }
-
-  public static GeoUtils.Coordinate coordinateZero() {
-    return GeoUtils.Coordinate.builder()
-        .latitude(0.0)
-        .longitude(0.0)
-        .build();
-  }
   public static HttpResponse<Object> httpResponseMock(Object body) {
     return new HttpResponse<>() {
       @Override
@@ -910,11 +896,6 @@ public class TestUtils {
         .thenReturn(List.of(domainApprovedLegalFile()));
   }
 
-  public static void setUpBanApiMock(BanApi banApiMock) {
-    when(banApiMock.search(any())).thenReturn(geoPosZero());
-    when(banApiMock.fSearch(any())).thenReturn(geoPosZero());
-  }
-
   public static Account joePersistedAccount() {
     return Account.builder()
         .id("beed1765-5c16-472a-b3f4-5c376ce5db58")
@@ -951,13 +932,13 @@ public class TestUtils {
 
   public static RedirectionStatusUrls redirectionStatusUrls() {
     return new RedirectionStatusUrls()
-        .successUrl("https://dummy.com/success")
-        .failureUrl("https://dummy.com/failure");
+        .successUrl("https://dummy.com")
+        .failureUrl("https://dummy.com");
   }
 
   public static Redirection1 expectedRedirection() {
     return new Redirection1()
-        .redirectionUrl("https://dummy.com/redirection")
+        .redirectionUrl(null)
         .redirectionStatusUrls(redirectionStatusUrls());
   }
 

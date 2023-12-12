@@ -1,30 +1,26 @@
-buildscript {
-    repositories {
-        maven {
-            url "https://plugins.gradle.org/m2/"
-        }
-    }
-    dependencies {
-        classpath "org.openapitools:openapi-generator-gradle-plugin:5.4.0"
-    }
-}
+import org.apache.tools.ant.taskdefs.condition.Os
+import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
 
 plugins {
     id 'java'
-    id 'org.springframework.boot' version '2.5.3'
-    id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+    id 'org.springframework.boot' version '2.7.17'
+    id 'io.spring.dependency-management' version '1.1.3'
 
-    id 'org.openapi.generator' version '5.4.0'
+    id 'org.openapi.generator' version '5.3.0'
 
-    id 'org.sonarqube' version '3.3'
     id 'jacoco'
-    id 'checkstyle'
+}
+
+repositories {
+mavenLocal()
+
+    mavenCentral()
 }
 
 java {
-    group = 'app.bpartners'
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
+    group = 'app.bpartners.api'
+    sourceCompatibility = '17'
+    targetCompatibility = '17'
 }
 
 configurations {
@@ -38,7 +34,7 @@ repositories {
     mavenCentral()
 }
 
-task generateJavaClient(type: org.openapitools.generator.gradle.plugin.tasks.GenerateTask) {
+task generateJavaClient(type: GenerateTask) {
     generatorName = "java"
     inputSpec = "$rootDir/doc/api.yml".toString()
     outputDir = "$buildDir/gen".toString()
@@ -48,43 +44,38 @@ task generateJavaClient(type: org.openapitools.generator.gradle.plugin.tasks.Gen
 
     configOptions = [
             serializationLibrary: "jackson",
-            dateLibrary         : "custom"
+            dateLibrary: "custom"
     ]
     typeMappings = [
             // What date-time type to use when? https://i.stack.imgur.com/QPhGW.png
-            Date    : "java.time.LocalDate",
+            Date: "java.time.LocalDate",
             DateTime: "java.time.Instant",
     ]
     library = "native"
 
     groupId = 'app.bpartners'
-    id = 'api-rest'
+    id = 'bpartners-gen'
     skipValidateSpec = false
     logToStderr = true
     generateAliasAsModel = false
     enablePostProcessFile = false
 }
-task generateReactClient(type: org.openapitools.generator.gradle.plugin.tasks.GenerateTask) {
+task generateTsClient(type: org.openapitools.generator.gradle.plugin.tasks.GenerateTask) {
     generatorName = "typescript-axios"
     inputSpec = "$rootDir/doc/api.yml".toString()
-    outputDir = "$buildDir/gen-react-client".toString()
+    outputDir = "$buildDir/gen-ts".toString()
     typeMappings = [
             Date    : "Date",
             DateTime: "Date",
     ]
     additionalProperties = [
-            /* // allOf is buggy when used withSeparateModelsAndApi
-               // https://github.com/OpenAPITools/openapi-generator/issues/9163
-            withSeparateModelsAndApi : true,
-            apiPackage : "api",
-            modelPackage : "models", */
             enumPropertyNaming: "original",
-            npmName           : "bpartners-react-client",
+            npmName           : "@bpartners/typescript-client",
             npmVersion        : project.properties["args"] ?: "latest"
     ]
 }
 task publishJavaClientToMavenLocal(type: Exec, dependsOn: generateJavaClient) {
-    if (org.apache.tools.ant.taskdefs.condition.Os.isFamily(org.apache.tools.ant.taskdefs.condition.Os.FAMILY_WINDOWS)) {
+    if (Os.isFamily(Os.FAMILY_WINDOWS)){
         commandLine './.shell/publish_gen_to_maven_local.bat'
     } else {
         commandLine './.shell/publish_gen_to_maven_local.sh'
@@ -92,128 +83,92 @@ task publishJavaClientToMavenLocal(type: Exec, dependsOn: generateJavaClient) {
 }
 tasks.compileJava.dependsOn publishJavaClientToMavenLocal
 
-apply plugin: 'checkstyle'
-checkstyle {
-    toolVersion '8.45'
-    configFile file("config/checkstyle/google_checks_custom.xml")
-}
-checkstyleMain {
-    source = 'src/main/java'
-}
-checkstyleTest {
-    source = 'src/test/java'
-}
-tasks.withType(Checkstyle) {
-    reports {
-        xml.enabled true
-    }
+
+test {
+    maxParallelForks = Runtime.runtime.availableProcessors().intdiv(2) ?: 1
+    useJUnitPlatform()
+    finalizedBy jacocoTestCoverageVerification
 }
 
-ext {
-    set('testcontainersVersion', "1.15.3")
-}
-test {
-    minHeapSize '4g' // won't change perf even if increase
-    maxHeapSize '200g'
-    maxParallelForks = Runtime.runtime.availableProcessors().intdiv(2) ?: 1
-    exclude '**/BridgeIT.class'
-    exclude '**/DraftIT.class'
-    exclude '**/InvoiceCrupdatedServiceTest.class'
-    exclude '**/BridgeAccountRepositoryImplTest.class'
-    exclude '**/ExpressifIT.class'
-    exclude '**/CalendarIT.class'
-    exclude '**/SheetIT.class'
-    useJUnitPlatform()
-    finalizedBy jacocoTestReport
-}
-jacocoTestReport {
-    dependsOn test
-    reports {
-        xml.required = true
+jacocoTestCoverageVerification {
+    violationRules {
+        rule {
+            limit {
+                counter = "LINE"
+                minimum = 0.8
+            }
+        }
     }
 }
 
 dependencies {
-    implementation 'com.google.api-client:google-api-client:2.2.0'
-    implementation 'com.google.oauth-client:google-oauth-client-jetty:1.34.1'
-    //API Calendar
-    implementation 'com.google.apis:google-api-services-calendar:v3-rev20220715-2.0.0'
-    //API Drive
-    implementation 'com.google.apis:google-api-services-drive:v3-rev20220815-2.0.0'
-    //API Sheets
-    implementation 'com.google.apis:google-api-services-sheets:v4-rev20220927-2.0.0'
-
-
-    implementation 'app.bpartners:api-rest:latest'
-
     implementation 'org.springframework.boot:spring-boot-starter-web'
-    implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-    implementation 'org.springframework.boot:spring-boot-starter-validation'
-
-    implementation 'com.sendinblue:sib-api-v3-sdk:6.0.0'
-
-    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
-    implementation 'com.nimbusds:nimbus-jose-jwt'
-
-    implementation 'com.vladmihalcea:hibernate-types-52:1.0.0'
-    implementation 'io.hypersistence:hypersistence-utils-hibernate-55:3.5.1'
     implementation 'org.flywaydb:flyway-core'
     implementation 'org.postgresql:postgresql'
 
-    implementation 'software.amazon.awssdk:s3-transfer-manager:2.17.271-PREVIEW'
-    implementation 'software.amazon.awssdk:eventbridge:2.20.136'
-    implementation 'software.amazon.awssdk:sqs:2.20.136'
-    implementation 'software.amazon.awssdk:cognitoidentityprovider:2.17.109'
-    implementation 'software.amazon.awssdk:ssm:2.17.109'
-    implementation 'software.amazon.awssdk:transfer:2.17.271'
-    implementation 'software.amazon.awssdk:ses:2.17.292'
-    implementation 'software.amazon.awssdk:protocol-core:2.17.292'
-    implementation 'software.amazon.awssdk:sns:2.20.153'
-    implementation 'org.springframework.retry:spring-retry:1.3.1'
-    annotationProcessor 'software.amazon.awssdk:s3:2.17.271'
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+    implementation 'com.vladmihalcea:hibernate-types-52:1.0.0'
 
-    implementation 'io.sentry:sentry-spring-boot-starter:5.5.3'
-    implementation 'io.sentry:sentry-logback:5.5.3'
+    implementation 'com.amazonaws.serverless:aws-serverless-java-container-springboot2:1.9.3'
+    implementation 'software.amazon.awssdk:aws-query-protocol:2.20.26'
 
-    implementation 'org.apache.tika:tika-core:1.18'
-    implementation 'org.thymeleaf:thymeleaf:3.0.15.RELEASE'
-    implementation 'org.xhtmlrenderer:flying-saucer-pdf:9.1.22'
+    implementation 'com.amazonaws:aws-lambda-java-core:1.2.3'
+    implementation 'com.amazonaws:aws-lambda-java-events:3.11.3'
+    implementation 'software.amazon.awssdk:sqs:2.21.7'
+    implementation 'software.amazon.awssdk:eventbridge:2.21.7'
 
-    implementation 'com.google.zxing:core:3.5.0'
-    implementation 'com.google.zxing:javase:3.5.0'
-
-    implementation 'jakarta.mail:jakarta.mail-api:2.1.0'
-    implementation 'com.sun.mail:jakarta.mail:1.6.5'
-
-    implementation 'org.apfloat:apfloat:1.10.1'
-
-    implementation 'org.apache.poi:poi:3.12'
-    implementation 'org.apache.poi:poi-ooxml:3.12'
-
-    implementation 'org.jsoup:jsoup:1.15.3'
+    implementation 'org.reflections:reflections:0.10.2'
 
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
     testCompileOnly 'org.projectlombok:lombok'
     testAnnotationProcessor 'org.projectlombok:lombok'
 
-    testImplementation 'com.github.javafaker:javafaker:1.0.2'
-
-    testImplementation 'com.amazonaws:aws-java-sdk-s3:1.12.315'
-
-    testImplementation 'org.mockito:mockito-inline:4.6.1'
+    implementation 'org.openapitools:jackson-databind-nullable:0.2.6'
+    implementation 'io.swagger:swagger-annotations:1.6.12'
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testImplementation 'org.springframework.security:spring-security-test'
+    testImplementation 'org.testcontainers:junit-jupiter:1.19.1'
 
-    testImplementation 'org.testcontainers:junit-jupiter'
-    testImplementation 'org.testcontainers:postgresql'
-    testImplementation 'org.testcontainers:localstack'
-}
+    testImplementation 'org.testcontainers:postgresql:1.19.1'
 
-dependencyManagement {
-    imports {
-        mavenBom "org.testcontainers:testcontainers-bom:${testcontainersVersion}"
-    }
+implementation 'com.google.api-client:google-api-client:2.2.0'
+implementation 'com.google.oauth-client:google-oauth-client-jetty:1.34.1'
+implementation 'com.google.apis:google-api-services-calendar:v3-rev20220715-2.0.0'
+implementation 'com.google.apis:google-api-services-drive:v3-rev20220815-2.0.0'
+implementation 'com.google.apis:google-api-services-sheets:v4-rev20220927-2.0.0'
+implementation 'app.bpartners:api-rest:latest'
+implementation 'org.springframework.boot:spring-boot-starter-security'
+implementation 'org.springframework.boot:spring-boot-starter-validation'
+implementation 'com.sendinblue:sib-api-v3-sdk:6.0.0'
+implementation 'com.nimbusds:nimbus-jose-jwt:9.37'
+implementation 'io.hypersistence:hypersistence-utils-hibernate-55:3.5.1'
+implementation 'software.amazon.awssdk:s3-transfer-manager:2.17.271-PREVIEW'
+implementation 'software.amazon.awssdk:cognitoidentityprovider:2.17.109'
+implementation 'software.amazon.awssdk:ssm:2.17.109'
+implementation 'software.amazon.awssdk:transfer:2.17.271'
+implementation 'software.amazon.awssdk:ses:2.17.292'
+implementation 'software.amazon.awssdk:protocol-core:2.17.292'
+implementation 'software.amazon.awssdk:sns:2.20.153'
+implementation 'org.springframework.retry:spring-retry:1.3.1'
+implementation 'software.amazon.awssdk:s3:2.17.271'
+implementation 'io.sentry:sentry-spring-boot-starter:5.5.3'
+implementation 'io.sentry:sentry-logback:5.5.3'
+implementation 'org.apache.tika:tika-core:1.18'
+implementation 'org.thymeleaf:thymeleaf:3.0.15.RELEASE'
+implementation 'org.xhtmlrenderer:flying-saucer-pdf:9.1.22'
+implementation 'com.google.zxing:core:3.5.0'
+implementation 'com.google.zxing:javase:3.5.0'
+implementation 'jakarta.mail:jakarta.mail-api:2.1.0'
+implementation 'com.sun.mail:jakarta.mail:1.6.5'
+implementation 'org.apfloat:apfloat:1.10.1'
+implementation 'org.apache.poi:poi:3.12'
+implementation 'org.apache.poi:poi-ooxml:3.12'
+implementation 'org.jsoup:jsoup:1.15.3'
+testImplementation 'org.mockito:mockito-inline:4.6.1'
+testImplementation 'org.springframework.security:spring-security-test'
+implementation 'org.testcontainers:localstack:1.19.3'
+
+
 }

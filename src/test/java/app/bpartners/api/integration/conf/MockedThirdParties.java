@@ -1,7 +1,6 @@
 package app.bpartners.api.integration.conf;
 
 import app.bpartners.api.SentryConf;
-import app.bpartners.api.endpoint.event.EventPoller;
 import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.endpoint.event.S3Conf;
 import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
@@ -42,6 +41,4 @@ public class MockedThirdParties {
   protected BridgeApi bridgeApi;
   @MockBean
   protected EventProducer eventProducer;
-  @MockBean
-  protected EventPoller eventPoller;
 }

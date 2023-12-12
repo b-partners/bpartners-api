@@ -1,4 +1,4 @@
-name: CD event 
+name: CD event
 
 on:
   push:
@@ -8,7 +8,7 @@ on:
 
   workflow_dispatch:
 
-jobs: 
+jobs:
   cd-event:
     if: github.ref_name == 'prod' || github.ref_name == 'preprod'
 
@@ -18,18 +18,14 @@ jobs:
 
     env:
       AWS_REGION: eu-west-3
-    
+
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: Put branch_env into GITHUB_ENV
-        run: |
-          echo "branch_env=${{ github.ref_name }}" >> $GITHUB_ENV
+        uses: actions/checkout@v4.1.1
 
       - name: Configure preprod AWS credentials
-        if: ${{ github.ref_name != 'prod' }}
-        uses: aws-actions/configure-aws-credentials@13d241b293754004c80624b5567555c4a39ffbe3
+        if: ${{ github.ref_name == 'preprod' }}
+        uses: aws-actions/configure-aws-credentials@v4.0.1
         with:
           aws-access-key-id: ${{ secrets.PREPROD_AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.PREPROD_AWS_SECRET_ACCESS_KEY }}
@@ -37,19 +33,19 @@ jobs:
 
       - name: Configure prod AWS credentials
         if: ${{ github.ref_name == 'prod' }}
-        uses: aws-actions/configure-aws-credentials@13d241b293754004c80624b5567555c4a39ffbe3
+        uses: aws-actions/configure-aws-credentials@v4.0.1
         with:
           aws-access-key-id: ${{ secrets.PROD_AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.PROD_AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
-          
+
       - name: Deploy event stack
         uses: aws-actions/aws-cloudformation-github-deploy@v1
         with:
-          name: ${{ env.branch_env }}-event-bpartners
+          name: ${{ github.ref_name }}-event-bpartners
           template: cf-stacks/event-stack.yml
-          tags: "[ { \"Key\": \"app\", \"Value\": \"api\" }, { \"Key\": \"env\", \"Value\": \"${{ env.branch_env }}\" } ]"
+          tags: "[ { \"Key\": \"app\", \"Value\": \"bpartners\" }, { \"Key\": \"env\", \"Value\": \"${{ github.ref_name }}\" } ]"
           capabilities: CAPABILITY_NAMED_IAM
           no-fail-on-empty-changeset: "1"
           parameter-overrides:
-            "Env=${{ env.branch_env }}" 
+            "Env=${{ github.ref_name }}"

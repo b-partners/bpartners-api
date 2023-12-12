@@ -1,6 +1,6 @@
 package app.bpartners.api.service;
 
-import app.bpartners.api.endpoint.event.EventConf;
+import app.bpartners.api.endpoint.event.SnsConf;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.exception.BadRequestException;
@@ -23,7 +23,7 @@ import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVE
 @Slf4j
 public class SnsService {
   private SnsClient snsClient;
-  private EventConf eventConf;
+  private SnsConf snsConf;
 
   public void deleteEndpointArn(String arn) {
     try {
@@ -40,7 +40,7 @@ public class SnsService {
       CreatePlatformEndpointResponse platformEndpoint =
           snsClient.createPlatformEndpoint(CreatePlatformEndpointRequest.builder()
               .token(deviceToken)
-              .platformApplicationArn(eventConf.getSnsPlatformArn())
+              .platformApplicationArn(snsConf.getSnsPlatformArn())
               .build());
       return platformEndpoint.endpointArn();
     } catch (InvalidParameterException | NotFoundException e) {

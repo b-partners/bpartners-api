@@ -1,6 +1,7 @@
 package app.bpartners.api.service.aws;
 
 import app.bpartners.api.endpoint.event.EventConf;
+import app.bpartners.api.endpoint.event.SesConf;
 import app.bpartners.api.model.Attachment;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.service.utils.FileInfoUtils;
@@ -36,7 +37,7 @@ import static javax.mail.Message.RecipientType.TO;
 @Service
 @AllArgsConstructor
 public class SesService {
-  private final EventConf eventConf;
+  private final SesConf sesConf;
   private final SesClient client;
 
   private static void addBodyPart(MimeMultipart mimeMultipart, MimeBodyPart e) {
@@ -115,7 +116,7 @@ public class SesService {
     MimeMessage message = new MimeMessage(session);
     // Add subject, from and to lines.
     message.setSubject(subject, "UTF-8");
-    message.setFrom(new InternetAddress(eventConf.getSesSource()));
+    message.setFrom(new InternetAddress(sesConf.getSesSource()));
     message.setRecipients(TO, InternetAddress.parse(recipient));
     if (concerned != null) {
       message.setRecipients(CC, InternetAddress.parse(concerned));
@@ -132,7 +133,7 @@ public class SesService {
     MimeMessage message = new MimeMessage(session);
     // Add subject, from and to lines.
     message.setSubject(subject, "UTF-8");
-    message.setFrom(new InternetAddress(eventConf.getSesSource()));
+    message.setFrom(new InternetAddress(sesConf.getSesSource()));
     message.setRecipients(TO, InternetAddress.parse(recipient));
     if (concerned != null) {
       message.setRecipients(CC, InternetAddress.parse(concerned));

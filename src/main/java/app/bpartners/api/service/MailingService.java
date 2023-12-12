@@ -1,6 +1,7 @@
 package app.bpartners.api.service;
 
 import app.bpartners.api.endpoint.event.EventConf;
+import app.bpartners.api.endpoint.event.SesConf;
 import app.bpartners.api.endpoint.rest.model.EmailStatus;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.Attachment;
@@ -30,7 +31,7 @@ public class MailingService {
   private final SesService sesService;
   private final EmailRepository emailRepository;
   private final UserService userService;
-  private final EventConf eventConf;
+  private final SesConf sesConf;
 
   public List<Email> getEmailsByUserId(String userId) {
     return emailRepository.findAllByUserId(userId);
@@ -54,7 +55,7 @@ public class MailingService {
                 String object = email.getObject();
                 String body = email.getBody();
                 List<Attachment> attachments = email.getAttachments();
-                String invisibleRecipient = eventConf.getAdminEmail();
+                String invisibleRecipient = sesConf.getAdminEmail();
                 sesService.sendEmail(
                     recipient,
                     concerned,

@@ -1,13 +1,13 @@
 package app.bpartners.api.unit.utils;
 
-import app.bpartners.api.repository.expressif.ProspectEvalInfo;
-import app.bpartners.api.repository.expressif.ProspectEval;
-import app.bpartners.api.repository.expressif.fact.NewIntervention;
-import app.bpartners.api.repository.expressif.fact.Robbery;
-import app.bpartners.api.repository.expressif.utils.ProspectEvalUtils;
 import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.repository.ban.BanApi;
 import app.bpartners.api.repository.ban.model.GeoPosition;
+import app.bpartners.api.repository.expressif.ProspectEval;
+import app.bpartners.api.repository.expressif.ProspectEvalInfo;
+import app.bpartners.api.repository.expressif.fact.NewIntervention;
+import app.bpartners.api.repository.expressif.fact.Robbery;
+import app.bpartners.api.repository.expressif.utils.ProspectEvalUtils;
 import app.bpartners.api.service.utils.GeoUtils;
 import java.io.IOException;
 import java.time.Instant;
@@ -18,10 +18,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 
+import static app.bpartners.api.integration.conf.utils.TestUtils.assertThrowsBadRequestException;
 import static app.bpartners.api.repository.expressif.ProspectEvalInfo.ContactNature.OTHER;
 import static app.bpartners.api.repository.expressif.ProspectEvalInfo.ContactNature.PROSPECT;
 import static app.bpartners.api.repository.expressif.fact.NewIntervention.OldCustomer.OldCustomerType.PROFESSIONAL;
-import static app.bpartners.api.integration.conf.utils.TestUtils.assertThrowsBadRequestException;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -33,15 +33,6 @@ class ProspectEvalUtilsTest {
   public static final double DEFAULT_LONGITUDE = 0.0;
   BanApi banApiMock;
   ProspectEvalUtils subject;
-
-  @BeforeEach
-  public void setUp() {
-    banApiMock = mock(BanApi.class);
-    subject = new ProspectEvalUtils(banApiMock);
-
-    when(banApiMock.search(any())).thenReturn(defaultGeoPosition());
-    when(banApiMock.fSearch(any())).thenReturn(defaultGeoPosition());
-  }
 
   private static GeoPosition defaultGeoPosition() {
     return GeoPosition.builder()
@@ -201,6 +192,15 @@ class ProspectEvalUtilsTest {
                 .build())
             .build())
         .build();
+  }
+
+  @BeforeEach
+  public void setUp() {
+    banApiMock = mock(BanApi.class);
+    subject = new ProspectEvalUtils(banApiMock);
+
+    when(banApiMock.search(any())).thenReturn(defaultGeoPosition());
+    when(banApiMock.fSearch(any())).thenReturn(defaultGeoPosition());
   }
 
   @Test

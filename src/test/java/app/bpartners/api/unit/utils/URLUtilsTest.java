@@ -1,6 +1,5 @@
 package app.bpartners.api.unit.utils;
 
-import app.bpartners.api.service.utils.URLUtils;
 import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;

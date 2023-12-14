@@ -1,6 +1,7 @@
 package app.bpartners.api.integration.conf;
 
 import app.bpartners.api.SentryConf;
+import app.bpartners.api.conf.FacadeIT;
 import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.endpoint.event.S3Conf;
 import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
@@ -14,9 +15,12 @@ import app.bpartners.api.repository.sendinblue.SendinblueConf;
 import app.bpartners.api.service.PaymentScheduleService;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.web.server.LocalServerPort;
 
 @AutoConfigureMockMvc
-public class MockedThirdParties {
+public class MockedThirdParties extends FacadeIT {
+  @LocalServerPort
+  protected int localPort;
   @MockBean
   protected PaymentScheduleService paymentScheduleService;
   @MockBean

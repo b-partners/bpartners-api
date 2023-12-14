@@ -1,6 +1,7 @@
 package app.bpartners.api.integration;
 
 import app.bpartners.api.SentryConf;
+import app.bpartners.api.conf.FacadeIT;
 import app.bpartners.api.endpoint.event.S3Conf;
 import app.bpartners.api.endpoint.rest.api.UserAccountsApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
@@ -10,6 +11,7 @@ import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
 import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.endpoint.rest.security.cognito.CognitoConf;
 import app.bpartners.api.integration.conf.DbEnvContextInitializer;
+import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.integration.conf.utils.TestUtils;
 import app.bpartners.api.manager.ProjectTokenManager;
 import app.bpartners.api.repository.connectors.account.AccountConnectorRepository;
@@ -31,6 +33,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -42,47 +45,24 @@ import static app.bpartners.api.integration.conf.utils.TestUtils.REDIRECT_FAILUR
 import static app.bpartners.api.integration.conf.utils.TestUtils.REDIRECT_SUCCESS_URL;
 import static app.bpartners.api.integration.conf.utils.TestUtils.assertThrowsApiException;
 import static app.bpartners.api.integration.conf.utils.TestUtils.domainLegalFile;
+import static app.bpartners.api.integration.conf.utils.TestUtils.findAvailableTcpPort;
+import static app.bpartners.api.integration.conf.utils.TestUtils.location;
 import static app.bpartners.api.integration.conf.utils.TestUtils.setUpCognito;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
-@SpringBootTest(webEnvironment = RANDOM_PORT)
 @Testcontainers
-@ContextConfiguration(initializers = DbEnvContextInitializer.class)
 @AutoConfigureMockMvc
-class AuthenticationIT {
-  @MockBean
-  private PaymentScheduleService paymentScheduleService;
+class AuthenticationIT extends MockedThirdParties {
   public static final String DEFAULT_STATE = "12341234";
   private static final String PHONE_NUMBER = "+261340465338";
   @MockBean
-  private BuildingPermitConf buildingPermitConf;
-  @MockBean
-  private SentryConf sentryConf;
-  @MockBean
-  private SendinblueConf sendinblueConf;
-  @MockBean
-  private S3Conf s3Conf;
-  @MockBean
   private CognitoConf cognitoConf;
-  @MockBean
-  private FintectureConf fintectureConf;
-  @MockBean
-  private ProjectTokenManager projectTokenManager;
-  @MockBean
-  private AccountConnectorRepository accountConnectorRepositoryMock;
-  @MockBean
-  private LegalFileRepository legalFileRepositoryMock;
-  @MockBean
-  private CognitoComponent cognitoComponentMock;
-  @MockBean
-  private BridgeApi bridgeApi;
 
-  private static ApiClient anApiClient() {
-    return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN,
-        DbEnvContextInitializer.getHttpServerPort());
+  private ApiClient anApiClient() {
+    return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN, localPort);
   }
 
   @BeforeEach
@@ -112,7 +92,7 @@ class AuthenticationIT {
   @Test
   void unauthenticated_get_auth_init_not_implemented_ok() throws IOException, InterruptedException {
     HttpClient unauthenticatedClient = HttpClient.newBuilder().build();
-    String basePath = "http://localhost:" + DbEnvContextInitializer.getHttpServerPort();
+    String basePath = "http://localhost:" + localPort;
     String data = new ObjectMapper().writeValueAsString(validAuthInitiation());
     HttpResponse<String> response = unauthenticatedClient.send(
         HttpRequest.newBuilder()
@@ -132,7 +112,7 @@ class AuthenticationIT {
   @Test
   void unauthenticated_get_token_ko() throws IOException, InterruptedException {
     HttpClient unauthenticatedClient = HttpClient.newBuilder().build();
-    String basePath = "http://localhost:" + DbEnvContextInitializer.getHttpServerPort();
+    String basePath = "http://localhost:" + localPort;
     String data = new ObjectMapper().writeValueAsString(invalidCreateToken());
 
     HttpResponse<String> response = unauthenticatedClient.send(

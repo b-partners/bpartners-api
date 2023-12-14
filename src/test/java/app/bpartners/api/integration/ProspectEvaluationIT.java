@@ -89,9 +89,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
-@SpringBootTest(webEnvironment = RANDOM_PORT)
 @Testcontainers
-@ContextConfiguration(initializers = DbEnvContextInitializer.class)
 @AutoConfigureMockMvc
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
 @Slf4j
@@ -112,9 +110,8 @@ class ProspectEvaluationIT extends MockedThirdParties {
   @Autowired
   private UserService userService;
 
-  private static ApiClient anApiClient() {
-    return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN,
-        DbEnvContextInitializer.getHttpServerPort());
+  private ApiClient anApiClient() {
+    return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN, localPort);
   }
 
   public static OutputValue<Object> prospectRatingResult() {
@@ -434,7 +431,7 @@ class ProspectEvaluationIT extends MockedThirdParties {
       String accountHolderId, File toUpload, NewInterventionOption interventionOption)
       throws IOException, InterruptedException {
     HttpClient unauthenticatedClient = HttpClient.newBuilder().build();
-    String basePath = "http://localhost:" + DbEnvContextInitializer.getHttpServerPort();
+    String basePath = "http://localhost:" + localPort;
 
     HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
         .uri(URI.create(basePath + "/accountHolders/" + accountHolderId + "/prospects"
@@ -457,7 +454,7 @@ class ProspectEvaluationIT extends MockedThirdParties {
       String accountHolderId, File toUpload, NewInterventionOption interventionOption)
       throws IOException, InterruptedException {
     HttpClient unauthenticatedClient = HttpClient.newBuilder().build();
-    String basePath = "http://localhost:" + DbEnvContextInitializer.getHttpServerPort();
+    String basePath = "http://localhost:" + localPort;
 
     HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
         .uri(URI.create(basePath + "/accountHolders/" + accountHolderId + "/prospects"

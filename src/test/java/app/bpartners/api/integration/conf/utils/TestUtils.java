@@ -953,13 +953,13 @@ public class TestUtils {
 
   public static RedirectionStatusUrls redirectionStatusUrls() {
     return new RedirectionStatusUrls()
-        .successUrl("https://dummy.com")
-        .failureUrl("https://dummy.com");
+        .successUrl("https://dummy.com/success")
+        .failureUrl("https://dummy.com/failure");
   }
 
   public static Redirection1 expectedRedirection() {
     return new Redirection1()
-        .redirectionUrl(null)
+        .redirectionUrl("https://dummy.com/redirection")
         .redirectionStatusUrls(redirectionStatusUrls());
   }
 

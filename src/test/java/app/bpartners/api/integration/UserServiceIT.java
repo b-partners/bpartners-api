@@ -6,6 +6,7 @@ import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.endpoint.rest.security.model.Principal;
 import app.bpartners.api.integration.conf.DbEnvContextInitializer;
+import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.manager.ProjectTokenManager;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.AccountHolder;
@@ -55,34 +56,11 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
-@SpringBootTest(webEnvironment = RANDOM_PORT)
 @Testcontainers
-@ContextConfiguration(initializers = DbEnvContextInitializer.class)
-class UserServiceIT {
+class UserServiceIT extends MockedThirdParties {
   private static final String COMPANY_NAME = "user company name";
   @MockBean
-  private PaymentScheduleService paymentScheduleService;
-  @MockBean
-  private BuildingPermitConf buildingPermitConf;
-  @MockBean
-  private SentryConf sentryConf;
-  @MockBean
-  private SendinblueConf sendinblueConf;
-  @MockBean
-  private S3Conf s3Conf;
-  @MockBean
-  private FintectureConf fintectureConf;
-  @MockBean
-  private ProjectTokenManager projectTokenManager;
-  @MockBean
-  private CognitoComponent cognitoComponent;
-  @MockBean
-  private LegalFileRepository legalFileRepositoryMock;
-  @MockBean
-  private BridgeBankRepository bridgeBankRepositoryMock;
-  @MockBean
-  private BridgeApi bridgeApi;
-  @MockBean
+  private BridgeBankRepository bridgeBankRepositoryMock;  @MockBean
   private EventBridgeClient eventBridgeClientMock;
   @Autowired
   private OnboardingService onboardingService;
@@ -97,7 +75,7 @@ class UserServiceIT {
   public void setUp() {
     setUpEventBridge(eventBridgeClientMock);
     setUpLegalFileRepository(legalFileRepositoryMock);
-    setUpCognito(cognitoComponent);
+    setUpCognito(cognitoComponentMock);
   }
 
   public static BridgeUser bridgeUser() {

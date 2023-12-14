@@ -24,14 +24,11 @@ import static app.bpartners.api.integration.conf.utils.TestUtils.setUpLegalFileR
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
-@SpringBootTest(webEnvironment = RANDOM_PORT)
 @Testcontainers
-@ContextConfiguration(initializers = MarketPlaceIT.ContextInitializer.class)
 class MarketPlaceIT extends MockedThirdParties {
 
-  private static ApiClient anApiClient() {
-    return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN,
-        DbEnvContextInitializer.getHttpServerPort());
+  private ApiClient anApiClient() {
+    return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN, localPort);
   }
 
   @BeforeEach
@@ -111,6 +108,4 @@ class MarketPlaceIT extends MockedThirdParties {
     return marketplaces;
   }
 
-  static class ContextInitializer extends DbEnvContextInitializer {
-  }
 }

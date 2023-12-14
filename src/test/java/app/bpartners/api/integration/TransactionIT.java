@@ -39,18 +39,15 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
-@SpringBootTest(webEnvironment = RANDOM_PORT)
 @Testcontainers
-@ContextConfiguration(initializers = TransactionIT.ContextInitializer.class)
 class TransactionIT extends MockedThirdParties {
   @MockBean
   private TransactionJpaRepository transactionJpaRepositoryMock;
   @MockBean
   private BridgeTransactionRepository bridgeTransactionRepositoryMock;
 
-  private static ApiClient anApiClient(String token) {
-    return TestUtils.anApiClient(token,
-        DbEnvContextInitializer.getHttpServerPort());
+  private ApiClient anApiClient(String token) {
+    return TestUtils.anApiClient(token, localPort);
   }
 
   @BeforeEach
@@ -115,8 +112,5 @@ class TransactionIT extends MockedThirdParties {
         () -> api.getTransactionById(JOE_DOE_ACCOUNT_ID, UNKNOWN_TRANSACTION_ID));
     assertThrowsForbiddenException(
         () -> api.getTransactionById(JANE_ACCOUNT_ID, TRANSACTION1_ID));
-  }
-
-  static class ContextInitializer extends DbEnvContextInitializer {
   }
 }

@@ -43,9 +43,7 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
-@SpringBootTest(webEnvironment = RANDOM_PORT)
 @Testcontainers
-@ContextConfiguration(initializers = DbEnvContextInitializer.class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
 class DirtyTransactionIT extends MockedThirdParties {
   @MockBean
@@ -53,8 +51,8 @@ class DirtyTransactionIT extends MockedThirdParties {
   @MockBean
   private BridgeTransactionRepository bridgeTransactionRepositoryMock;
 
-  private static ApiClient anApiClient(String token) {
-    return TestUtils.anApiClient(token, DbEnvContextInitializer.getHttpServerPort());
+  private ApiClient anApiClient(String token) {
+    return TestUtils.anApiClient(token, localPort);
   }
 
   @BeforeEach

@@ -14,7 +14,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.core.internal.waiters.ResponseOrException;
 import software.amazon.awssdk.core.sync.RequestBody;
-import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.ChecksumAlgorithm;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
@@ -22,7 +21,6 @@ import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
-import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
 
@@ -37,8 +35,6 @@ import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVE
 @AllArgsConstructor
 public class S3Service {
   private static final String S3_KEY_FORMAT = "%s/accounts/%s/%s/%s";
-  private final S3Client s3Client;
-  private final S3Presigner s3Presigner;
   private final S3Conf s3Conf;
   private final UserRepository userRepository;
 
@@ -53,7 +49,7 @@ public class S3Service {
         .build();
 
     PresignedGetObjectRequest presignRequest =
-        s3Presigner.presignGetObject(GetObjectPresignRequest.builder()
+        s3Conf.getS3Presigner().presignGetObject(GetObjectPresignRequest.builder()
             .signatureDuration(expirationDuration)
             .getObjectRequest(getObjectRequest)
             .build());
@@ -90,9 +86,10 @@ public class S3Service {
         .key(key)
         .build();
 
-    PutObjectResponse objectResponse = s3Client.putObject(request, RequestBody.fromBytes(toUpload));
+    PutObjectResponse objectResponse =
+        s3Conf.getS3Client().putObject(request, RequestBody.fromBytes(toUpload));
 
-    ResponseOrException<HeadObjectResponse> responseOrException = s3Client
+    ResponseOrException<HeadObjectResponse> responseOrException = s3Conf.getS3Client()
         .waiter()
         .waitUntilObjectExists(
             HeadObjectRequest.builder()
@@ -132,7 +129,7 @@ public class S3Service {
           .bucket(s3Conf.getBucketName())
           .key(key)
           .build();
-      return s3Client.getObjectAsBytes(objectRequest).asByteArray();
+      return s3Conf.getS3Client().getObjectAsBytes(objectRequest).asByteArray();
     } catch (NoSuchKeyException e) {
       log.warn("S3 File not found, key to find was : {}", key);
       throw new ApiException(SERVER_EXCEPTION, e);

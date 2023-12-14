@@ -4,6 +4,7 @@ import app.bpartners.api.SentryConf;
 import app.bpartners.api.endpoint.event.S3Conf;
 import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.integration.conf.DbEnvContextInitializer;
+import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.manager.ProjectTokenManager;
 import app.bpartners.api.repository.connectors.account.AccountConnectorRepository;
 import app.bpartners.api.repository.LegalFileRepository;
@@ -36,33 +37,9 @@ import static app.bpartners.api.integration.conf.utils.TestUtils.setUpLegalFileR
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
-@SpringBootTest(webEnvironment = RANDOM_PORT)
 @Testcontainers
-@ContextConfiguration(initializers = DbEnvContextInitializer.class)
 @AutoConfigureMockMvc
-class ExceptionHandlerIT {
-  @MockBean
-  private BridgeApi bridgeApi;
-  @MockBean
-  private PaymentScheduleService paymentScheduleService;
-  @MockBean
-  private BuildingPermitConf buildingPermitConf;
-  @MockBean
-  private SentryConf sentryConf;
-  @MockBean
-  private SendinblueConf sendinblueConf;
-  @MockBean
-  private S3Conf s3Conf;
-  @MockBean
-  private FintectureConf fintectureConf;
-  @MockBean
-  private ProjectTokenManager projectTokenManager;
-  @MockBean
-  private AccountConnectorRepository accountConnectorRepositoryMock;
-  @MockBean
-  private LegalFileRepository legalFileRepositoryMock;
-  @MockBean
-  private CognitoComponent cognitoComponentMock;
+class ExceptionHandlerIT extends MockedThirdParties {
 
   @BeforeEach
   public void setUp() {
@@ -92,7 +69,7 @@ class ExceptionHandlerIT {
   @Test
   void message_not_readable_to_bad_request() throws IOException, InterruptedException {
     HttpClient unauthenticatedClient = HttpClient.newBuilder().build();
-    String basePath = "http://localhost:" + DbEnvContextInitializer.getHttpServerPort();
+    String basePath = "http://localhost:" + localPort;
     Resource toUpload = new ClassPathResource("files/upload.jpg");
 
     HttpResponse<byte[]> response = unauthenticatedClient.send(

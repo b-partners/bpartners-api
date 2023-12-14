@@ -25,14 +25,11 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
-@SpringBootTest(webEnvironment = RANDOM_PORT)
 @Testcontainers
-@ContextConfiguration(initializers = LiveTransactionIT.ContextInitializer.class)
 class LiveTransactionIT extends MockedThirdParties {
 
-  private static ApiClient anApiClient() {
-    return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN,
-        DbEnvContextInitializer.getHttpServerPort());
+  private ApiClient anApiClient() {
+    return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN, localPort);
   }
 
   @BeforeEach
@@ -53,9 +50,6 @@ class LiveTransactionIT extends MockedThirdParties {
 
     assertEquals(1, actual.size());
     assertEquals(restTransaction1(), actual.get(0));
-  }
-
-  static class ContextInitializer extends DbEnvContextInitializer {
   }
 
   @Test

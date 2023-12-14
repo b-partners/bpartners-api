@@ -24,15 +24,12 @@ import static app.bpartners.api.integration.conf.utils.TestUtils.setUpLegalFileR
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
-@SpringBootTest(webEnvironment = RANDOM_PORT)
 @Testcontainers
-@ContextConfiguration(initializers = UserInvoiceRelaunchConfIT.ContextInitializer.class)
 @AutoConfigureMockMvc
 class UserInvoiceRelaunchConfIT extends MockedThirdParties {
 
-  private static ApiClient anApiClient() {
-    return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN,
-        DbEnvContextInitializer.getHttpServerPort());
+  private ApiClient anApiClient() {
+    return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN, localPort);
   }
 
   private static AccountInvoiceRelaunchConf createdRelaunch() {
@@ -86,6 +83,4 @@ class UserInvoiceRelaunchConfIT extends MockedThirdParties {
     assertEquals(expected, actual);
   }
 
-  static class ContextInitializer extends DbEnvContextInitializer {
-  }
 }

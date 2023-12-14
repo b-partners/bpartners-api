@@ -39,15 +39,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import static org.springframework.test.annotation.DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD;
 
-@SpringBootTest(webEnvironment = RANDOM_PORT)
 @Testcontainers
-@ContextConfiguration(initializers = DbEnvContextInitializer.class)
 @DirtiesContext(classMode = BEFORE_EACH_TEST_METHOD)
 @Slf4j
 class DirtyAccountHolderIT extends MockedThirdParties {
 
-  private static ApiClient anApiClient() {
-    return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN, getHttpServerPort());
+  private ApiClient anApiClient() {
+    return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN, localPort);
   }
 
   private static AccountHolder joeDoeAccountHolder() {

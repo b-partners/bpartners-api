@@ -35,17 +35,14 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
-@SpringBootTest(webEnvironment = RANDOM_PORT)
 @Testcontainers
-@ContextConfiguration(initializers = DbEnvContextInitializer.class)
 @AutoConfigureMockMvc
 public class SheetAuthIT extends MockedThirdParties {
   @MockBean
   private SheetConf sheetConfMock;
 
-  private static ApiClient anApiClient() {
-    return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN,
-        DbEnvContextInitializer.getHttpServerPort());
+  private ApiClient anApiClient() {
+    return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN, localPort);
   }
 
   static SheetConsentInit sheetConsentInit() {

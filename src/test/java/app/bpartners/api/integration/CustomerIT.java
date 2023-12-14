@@ -70,9 +70,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
-@SpringBootTest(webEnvironment = RANDOM_PORT)
 @Testcontainers
-@ContextConfiguration(initializers = DbEnvContextInitializer.class)
 class CustomerIT extends MockedThirdParties {
   @Autowired
   private CustomerService customerService;
@@ -83,8 +81,8 @@ class CustomerIT extends MockedThirdParties {
   @MockBean
   private SesService sesService;
 
-  private static ApiClient anApiClient() {
-    return TestUtils.anApiClient(JOE_DOE_TOKEN, DbEnvContextInitializer.getHttpServerPort());
+  private ApiClient anApiClient() {
+    return TestUtils.anApiClient(JOE_DOE_TOKEN, localPort);
   }
 
   @BeforeEach

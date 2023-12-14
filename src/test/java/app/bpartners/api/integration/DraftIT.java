@@ -5,6 +5,7 @@ import app.bpartners.api.endpoint.event.S3Conf;
 import app.bpartners.api.endpoint.rest.model.PaymentMethod;
 import app.bpartners.api.endpoint.rest.model.PaymentStatus;
 import app.bpartners.api.integration.conf.DbEnvContextInitializer;
+import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.manager.ProjectTokenManager;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.AccountHolder;
@@ -53,33 +54,11 @@ import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
-@SpringBootTest(webEnvironment = RANDOM_PORT)
 @Testcontainers
-@ContextConfiguration(initializers = DbEnvContextInitializer.class)
 @AutoConfigureMockMvc
-class DraftIT {
-  @MockBean
-  private PaymentScheduleService paymentScheduleService;
-  @MockBean
-  private BuildingPermitConf buildingPermitConf;
-  @MockBean
-  private SentryConf sentryConf;
-  @MockBean
-  private SendinblueConf sendinblueConf;
-  @MockBean
-  private S3Conf s3Conf;
-
-  @MockBean
-  private FintectureConf fintectureConf;
-  @MockBean
-  private ProjectTokenManager projectTokenManager;
-  @MockBean
-  private AccountConnectorRepository accountConnectorRepositoryMock;
-
+class DraftIT extends MockedThirdParties {
   @Autowired
   private SesService subject;
-  @Autowired
-  private LegalFileRepository legalFileRepository;
 
   private static void generatePdf(String templateName) throws IOException {
     List<CreatePaymentRegulation> paymentRegulations = List.of(

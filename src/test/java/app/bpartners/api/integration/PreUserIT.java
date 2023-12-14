@@ -5,6 +5,7 @@ import app.bpartners.api.endpoint.event.S3Conf;
 import app.bpartners.api.endpoint.rest.model.CreatePreUser;
 import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.integration.conf.DbEnvContextInitializer;
+import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.manager.ProjectTokenManager;
 import app.bpartners.api.repository.fintecture.FintectureConf;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitConf;
@@ -27,33 +28,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import static app.bpartners.api.integration.conf.utils.TestUtils.VALID_EMAIL;
-import static app.bpartners.api.integration.conf.utils.TestUtils.setUpSendiblueApi;
+import static app.bpartners.api.integration.conf.utils.TestUtils.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
-@SpringBootTest(webEnvironment = RANDOM_PORT)
 @Testcontainers
-@ContextConfiguration(initializers = DbEnvContextInitializer.class)
 @AutoConfigureMockMvc
-class PreUserIT {
-  @MockBean
-  private PaymentScheduleService paymentScheduleService;
-  @MockBean
-  private BuildingPermitConf buildingPermitConf;
-  @MockBean
-  private SentryConf sentryConf;
-  @MockBean
-  private SendinblueConf sendinblueConf;
-  @MockBean
-  private S3Conf s3Conf;
-  @MockBean
-  private CognitoComponent cognitoComponentMock;
-  @MockBean
-  private FintectureConf fintectureConf;
-  @MockBean
-  private ProjectTokenManager projectTokenManager;
+class PreUserIT extends MockedThirdParties {
   @MockBean
   private SendinblueApi sendinblueApi;
 
@@ -93,7 +75,7 @@ class PreUserIT {
   @Test
   void unauthenticated_create_pre_users_ok() throws IOException, InterruptedException {
     HttpClient unauthenticatedClient = HttpClient.newBuilder().build();
-    String basePath = "http://localhost:" + DbEnvContextInitializer.getHttpServerPort();
+    String basePath = "http://localhost:" + localPort;
 
     HttpResponse<String> responseWithAttributes = unauthenticatedClient.send(
         HttpRequest.newBuilder()
@@ -121,7 +103,7 @@ class PreUserIT {
   @Test
   void unauthenticated_create_pre_users_ko() throws IOException, InterruptedException {
     HttpClient unauthenticatedClient = HttpClient.newBuilder().build();
-    String basePath = "http://localhost:" + DbEnvContextInitializer.getHttpServerPort();
+    String basePath = "http://localhost:" + localPort;
 
     HttpResponse<String> response = unauthenticatedClient.send(
         HttpRequest.newBuilder()

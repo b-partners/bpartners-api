@@ -45,9 +45,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
-@SpringBootTest(webEnvironment = RANDOM_PORT)
 @Testcontainers
-@ContextConfiguration(initializers = DbEnvContextInitializer.class)
 @AutoConfigureMockMvc
 public class CalendarEventIT extends MockedThirdParties {
   @MockBean
@@ -68,9 +66,8 @@ public class CalendarEventIT extends MockedThirdParties {
         .redirectUrls(redirectionStatusUrls());
   }
 
-  private static ApiClient anApiClient() {
-    return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN,
-        DbEnvContextInitializer.getHttpServerPort());
+  private ApiClient anApiClient() {
+    return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN, localPort);
   }
 
   static CalendarEvent expectedCalendarEvent() {

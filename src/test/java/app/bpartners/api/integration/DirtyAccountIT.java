@@ -74,9 +74,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import static org.springframework.test.annotation.DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD;
 
-@SpringBootTest(webEnvironment = RANDOM_PORT)
 @Testcontainers
-@ContextConfiguration(initializers = DbEnvContextInitializer.class)
 @DirtiesContext(classMode = BEFORE_EACH_TEST_METHOD)
 class DirtyAccountIT extends MockedThirdParties {
   @MockBean
@@ -89,12 +87,12 @@ class DirtyAccountIT extends MockedThirdParties {
   private UserTokenRepository userTokenRepositoryMock;
   private static final String OTHER_USER_ID = "OTHER_USER_ID";
 
-  private static ApiClient joeDoeClient() {
-    return TestUtils.anApiClient(JOE_DOE_TOKEN, DbEnvContextInitializer.getHttpServerPort());
+  private ApiClient joeDoeClient() {
+    return TestUtils.anApiClient(JOE_DOE_TOKEN, localPort);
   }
 
-  private static ApiClient bernardDoeClient() {
-    return TestUtils.anApiClient(BERNARD_DOE_TOKEN, DbEnvContextInitializer.getHttpServerPort());
+  private ApiClient bernardDoeClient() {
+    return TestUtils.anApiClient(BERNARD_DOE_TOKEN, localPort);
   }
 
   AccountValidationRedirection accountValidationRedirection() {
@@ -362,7 +360,7 @@ class DirtyAccountIT extends MockedThirdParties {
     when(bridgeApi.findByAccountById(any(), any())).thenReturn(bridgeAccount);
 
     ApiClient client =
-        TestUtils.anApiClient(JOE_DOE_COGNITO_TOKEN, DbEnvContextInitializer.getHttpServerPort());
+        TestUtils.anApiClient(JOE_DOE_COGNITO_TOKEN, localPort);
     return new UserAccountsApi(client);
   }
 

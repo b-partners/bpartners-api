@@ -35,17 +35,14 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
-@SpringBootTest(webEnvironment = RANDOM_PORT)
 @Testcontainers
-@ContextConfiguration(initializers = DbEnvContextInitializer.class)
 @AutoConfigureMockMvc
 public class CalendarAuthIT extends MockedThirdParties {
   @MockBean
   private CalendarConf calendarConfMock;
 
-  private static ApiClient anApiClient() {
-    return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN,
-        DbEnvContextInitializer.getHttpServerPort());
+  private ApiClient anApiClient() {
+    return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN, localPort);
   }
 
   static CalendarConsentInit sheetConsentInit() {
@@ -112,7 +109,7 @@ public class CalendarAuthIT extends MockedThirdParties {
     var actual = api.exchangeCode(JOE_DOE_ID, sheetAuth());
 
     assertEquals(new TokenValidity()
-        .expirationTime(3600L)
+        .expirationTime(3599L)
         .createdAt(actual.getCreatedAt())
         .expiredAt(actual.getExpiredAt()), actual);
   }

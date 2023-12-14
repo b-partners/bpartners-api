@@ -1,7 +1,5 @@
 package app.bpartners.api.integration;
 
-import app.bpartners.api.SentryConf;
-import app.bpartners.api.endpoint.event.S3Conf;
 import app.bpartners.api.endpoint.rest.api.SecurityApi;
 import app.bpartners.api.endpoint.rest.api.UserAccountsApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
@@ -10,21 +8,12 @@ import app.bpartners.api.endpoint.rest.model.OnboardUser;
 import app.bpartners.api.endpoint.rest.model.OnboardedUser;
 import app.bpartners.api.endpoint.rest.model.User;
 import app.bpartners.api.endpoint.rest.model.Whois;
-import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.endpoint.rest.security.model.Role;
-import app.bpartners.api.integration.conf.DbEnvContextInitializer;
+import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.integration.conf.utils.TestUtils;
-import app.bpartners.api.manager.ProjectTokenManager;
-import app.bpartners.api.repository.connectors.account.AccountConnectorRepository;
-import app.bpartners.api.repository.LegalFileRepository;
-import app.bpartners.api.repository.bridge.BridgeApi;
 import app.bpartners.api.repository.bridge.repository.BridgeUserRepository;
-import app.bpartners.api.repository.fintecture.FintectureConf;
 import app.bpartners.api.repository.jpa.UserJpaRepository;
 import app.bpartners.api.repository.jpa.model.HUser;
-import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitConf;
-import app.bpartners.api.repository.sendinblue.SendinblueConf;
-import app.bpartners.api.service.PaymentScheduleService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.CollectionType;
@@ -39,11 +28,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
 
@@ -68,54 +55,22 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
-import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
-@SpringBootTest(webEnvironment = RANDOM_PORT)
 @Testcontainers
-@ContextConfiguration(initializers = DbEnvContextInitializer.class)
 @AutoConfigureMockMvc
 @Slf4j
-class UserIT {
+class UserIT extends MockedThirdParties {
   public static final String JOE_DOE_COGNITO_TOKEN = "joe_doe_cognito_token";
   public static final String OTHER_JOE_ACCOUNT_ID = "other_joe_account_id";
   private static final String API_KEY = "dummy";
   private final ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
-  @MockBean
-  private BuildingPermitConf buildingPermitConf;
-  @MockBean
-  private SentryConf sentryConf;
-  @MockBean
-  private SendinblueConf sendinblueConf;
-  @MockBean
-  private S3Conf s3Conf;
-  @MockBean
-  private BridgeApi bridgeApi;
-  @MockBean
-  private FintectureConf fintectureConf;
-  @MockBean
-  private ProjectTokenManager projectTokenManager;
-  @MockBean
-  private PaymentScheduleService paymentScheduleService;
-  @MockBean
-  private AccountConnectorRepository accountConnectorRepositoryMock;
-  @MockBean
-  private LegalFileRepository legalFileRepositoryMock;
-  @MockBean
-  private CognitoComponent cognitoComponent;
+
   @MockBean
   private EventBridgeClient eventBridgeClientMock;
   @MockBean
   private BridgeUserRepository bridgeUserRepositoryMock;
   @Autowired
   private UserJpaRepository userJpaRepository;
-
-  private static ApiClient anApiClient() {
-    return TestUtils.anApiClient(JOE_DOE_TOKEN, DbEnvContextInitializer.getHttpServerPort());
-  }
-
-  private static ApiClient anApiClient(String token) {
-    return TestUtils.anApiClient(token, DbEnvContextInitializer.getHttpServerPort());
-  }
 
   public static User restJaneDoeUser() {
     return new User()
@@ -132,17 +87,25 @@ class UserIT {
         .roles(List.of());
   }
 
+  private ApiClient anApiClient() {
+    return TestUtils.anApiClient(JOE_DOE_TOKEN, localPort);
+  }
+
+  private ApiClient anApiClient(String token) {
+    return TestUtils.anApiClient(token, localPort);
+  }
+
   @BeforeEach
   public void setUp() {
     setUpEventBridge(eventBridgeClientMock);
-    setUpCognito(cognitoComponent);
+    setUpCognito(cognitoComponentMock);
     setUpLegalFileRepository(legalFileRepositoryMock);
   }
 
   @Test
   void unauthenticated_get_onboarding_ok() throws IOException, InterruptedException {
     HttpClient unauthenticatedClient = HttpClient.newBuilder().build();
-    String basePath = "http://localhost:" + DbEnvContextInitializer.getHttpServerPort();
+    String basePath = "http://localhost:" + localPort;
 
     HttpResponse<String> response = unauthenticatedClient.send(
         HttpRequest.newBuilder()
@@ -197,7 +160,7 @@ class UserIT {
   @Test
   void read_user_using_cognito_ok() throws ApiException {
     String email = "joe@email.com";
-    when(cognitoComponent.getEmailByToken(JOE_DOE_COGNITO_TOKEN))
+    when(cognitoComponentMock.getEmailByToken(JOE_DOE_COGNITO_TOKEN))
         .thenReturn(email);
     ApiClient joeDoeClient = anApiClient(JOE_DOE_COGNITO_TOKEN);
     UserAccountsApi api = new UserAccountsApi(joeDoeClient);
@@ -209,7 +172,7 @@ class UserIT {
 
   @Test
   void read_user_using_cognito_ko() {
-    when(cognitoComponent.getEmailByToken(JOE_DOE_COGNITO_TOKEN))
+    when(cognitoComponentMock.getEmailByToken(JOE_DOE_COGNITO_TOKEN))
         .thenReturn("jane@email.com");
     ApiClient joeDoeClient = anApiClient(JOE_DOE_COGNITO_TOKEN);
 
@@ -244,7 +207,7 @@ class UserIT {
         .identificationStatus(null)
         .accounts(List.of())
         .accountHolders(List.of())
-        .roles(new Role[]{})
+        .roles(new Role[] {})
         .build(), beforeUpdate);
     assertEquals(restJaneDoeUser()
         .firstName(null)
@@ -287,7 +250,7 @@ class UserIT {
     when(bridgeUserRepositoryMock.createUser(any())).thenReturn(bridgeUser());
 
     HttpClient unauthenticatedClient = HttpClient.newBuilder().build();
-    String basePath = "http://localhost:" + DbEnvContextInitializer.getHttpServerPort();
+    String basePath = "http://localhost:" + localPort;
 
     OnboardUser toOnboard = onboardUser();
     HttpResponse<String> response = unauthenticatedClient.send(
@@ -322,7 +285,7 @@ class UserIT {
     when(bridgeUserRepositoryMock.createUser(any())).thenReturn(bridgeUser());
 
     HttpClient unauthenticatedClient = HttpClient.newBuilder().build();
-    String basePath = "http://localhost:" + DbEnvContextInitializer.getHttpServerPort();
+    String basePath = "http://localhost:" + localPort;
 
     OnboardUser toOnboard = onboardUser();
     HttpResponse<String> firstAttempt = unauthenticatedClient.send(
@@ -352,7 +315,7 @@ class UserIT {
   @Test
   void client_with_api_key_get_user_ok() throws IOException, InterruptedException {
     HttpClient client = HttpClient.newBuilder().build();
-    String basePath = "http://localhost:" + DbEnvContextInitializer.getHttpServerPort();
+    String basePath = "http://localhost:" + localPort;
     HttpRequest request = HttpRequest.newBuilder()
         .uri(URI.create(basePath + "/whois/" + JOE_DOE_ID))
         .headers("x-api-key", API_KEY)
@@ -371,7 +334,7 @@ class UserIT {
   @Test
   void client_with_api_key_get_user_ko() throws IOException, InterruptedException {
     HttpClient client = HttpClient.newBuilder().build();
-    String basePath = "http://localhost:" + DbEnvContextInitializer.getHttpServerPort();
+    String basePath = "http://localhost:" + localPort;
     HttpRequest request1 = HttpRequest.newBuilder()
         .uri(URI.create(basePath + "/whois/" + JOE_DOE_ID))
         .GET()

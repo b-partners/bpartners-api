@@ -1,5 +1,9 @@
 package app.bpartners.api.integration;
 
+import app.bpartners.api.SentryConf;
+import app.bpartners.api.conf.FacadeIT;
+import app.bpartners.api.endpoint.event.EventProducer;
+import app.bpartners.api.endpoint.event.S3Conf;
 import app.bpartners.api.endpoint.rest.api.UserAccountsApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
@@ -14,11 +18,20 @@ import app.bpartners.api.endpoint.rest.model.Customer;
 import app.bpartners.api.endpoint.rest.model.FeedbackRequest;
 import app.bpartners.api.endpoint.rest.model.UpdateAccountHolder;
 import app.bpartners.api.endpoint.rest.model.VerificationStatus;
+import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.endpoint.rest.security.model.Role;
 import app.bpartners.api.integration.conf.DbEnvContextInitializer;
 import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.integration.conf.utils.TestUtils;
+import app.bpartners.api.manager.ProjectTokenManager;
 import app.bpartners.api.model.User;
+import app.bpartners.api.repository.LegalFileRepository;
+import app.bpartners.api.repository.bridge.BridgeApi;
+import app.bpartners.api.repository.connectors.account.AccountConnectorRepository;
+import app.bpartners.api.repository.fintecture.FintectureConf;
+import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitConf;
+import app.bpartners.api.repository.sendinblue.SendinblueConf;
+import app.bpartners.api.service.PaymentScheduleService;
 import app.bpartners.api.service.UserService;
 import java.util.List;
 import java.util.Objects;
@@ -27,6 +40,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -53,17 +68,14 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
-@SpringBootTest(webEnvironment = RANDOM_PORT)
 @Testcontainers
-@ContextConfiguration(initializers = DbEnvContextInitializer.class)
 @Slf4j
 class AccountHolderIT extends MockedThirdParties {
   @Autowired
   private UserService userService;
 
-  private static ApiClient anApiClient() {
-    return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN,
-        DbEnvContextInitializer.getHttpServerPort());
+  private ApiClient anApiClient() {
+    return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN, localPort);
   }
 
   private static AccountHolder joeDoeAccountHolder() {
@@ -301,11 +313,12 @@ class AccountHolderIT extends MockedThirdParties {
     CreatedFeedbackRequest actualCreatedFeedbackRequest =
         api.askFeedback(JOE_DOE_ID, JOE_DOE_ACCOUNT_HOLDER_ID, feedbackRequest());
 
-    List<Customer> actualCustomers = actualCreatedFeedbackRequest.getCustomers().stream().map(customer -> {
-      customer.updatedAt(null);
-      customer.createdAt(null);
-      return customer;
-    }).toList();
+    List<Customer> actualCustomers =
+        actualCreatedFeedbackRequest.getCustomers().stream().map(customer -> {
+          customer.updatedAt(null);
+          customer.createdAt(null);
+          return customer;
+        }).toList();
     actualCreatedFeedbackRequest.customers(actualCustomers);
 
     assertEquals(expectedCreatedFeedbackRequest()

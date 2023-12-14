@@ -1,11 +1,5 @@
 package app.bpartners.api.integration.conf;
 
-import com.amazonaws.auth.AWSStaticCredentialsProvider;
-import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.client.builder.AwsClientBuilder;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.amazonaws.services.s3.model.PutObjectRequest;
 import java.io.File;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
@@ -16,6 +10,12 @@ import org.testcontainers.containers.JdbcDatabaseContainer;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.containers.localstack.LocalStackContainer;
 import org.testcontainers.utility.DockerImageName;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import static app.bpartners.api.integration.conf.utils.TestUtils.findAvailableTcpPort;
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.S3;
@@ -50,27 +50,23 @@ public abstract class S3AbstractContextInitializer
         .withServices(S3);
     s3Container.start();
 
-    AmazonS3 s3 = AmazonS3ClientBuilder
-        .standard()
-        .withEndpointConfiguration(
-            new AwsClientBuilder.EndpointConfiguration(
-                s3Container.getEndpointOverride(S3).toString(),
-                s3Container.getRegion()
-            )
-        )
-        .withCredentials(new AWSStaticCredentialsProvider(
-            new BasicAWSCredentials(s3Container.getAccessKey(), s3Container.getSecretKey())))
+    S3Client s3Client = S3Client.builder()
+        .endpointOverride(s3Container.getEndpointOverride(S3))
+        .region(Region.of(s3Container.getRegion()))
+        .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("test", "test")))
         .build();
 
-    s3.createBucket(BUCKET_NAME);
-    s3.putObject(
-        new PutObjectRequest(
-            BUCKET_NAME,
-            "dev/accounts/" + OLD_S3_KEY + "/logo/logo.jpeg",
-            new File(testFilePath())));
-    s3.putObject(new PutObjectRequest(BUCKET_NAME,
-        "dev/accounts/" + OLD_S3_KEY + "/logo/test.jpeg",
-        new File(testFilePath())));
+    s3Client.createBucket(CreateBucketRequest.builder()
+            .bucket(BUCKET_NAME)
+        .build());
+    s3Client.putObject(PutObjectRequest.builder()
+        .bucket(BUCKET_NAME)
+        .key("dev/accounts/" + OLD_S3_KEY + "/logo/logo.jpeg")
+        .build(), new File(testFilePath()).toPath());
+    s3Client.putObject(PutObjectRequest.builder()
+            .bucket(BUCKET_NAME)
+            .key("dev/accounts/" + OLD_S3_KEY + "/logo/test.jpeg")
+            .build(), new File(testFilePath()).toPath());
 
     TestPropertySourceUtils.addInlinedPropertiesToEnvironment(
         applicationContext,

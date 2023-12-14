@@ -2,6 +2,7 @@ package app.bpartners.api.unit.service;
 
 import app.bpartners.api.endpoint.event.EventConf;
 import app.bpartners.api.endpoint.event.EventProducer;
+import app.bpartners.api.endpoint.event.SesConf;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.endpoint.rest.security.principal.PrincipalProvider;
 import app.bpartners.api.model.Account;
@@ -57,7 +58,7 @@ class InvoiceRelaunchServiceTest {
   private PrincipalProvider auth;
   private FileService fileService;
   private AttachmentService attachmentService;
-  private EventConf eventConfMock;
+  private SesConf sesConf;
   private SesService sesServiceMock;
 
   private
@@ -73,7 +74,7 @@ class InvoiceRelaunchServiceTest {
     auth = mock(PrincipalProvider.class);
     fileService = mock(FileService.class);
     attachmentService = mock(AttachmentService.class);
-    eventConfMock = mock(EventConf.class);
+    sesConf = mock(SesConf.class);
     sesServiceMock = mock(SesService.class);
     setUpProvider(auth);
     invoiceRelaunchService = new InvoiceRelaunchService(
@@ -84,11 +85,10 @@ class InvoiceRelaunchServiceTest {
         invoiceJpaRepository,
         relaunchConfService,
         holderService,
-        eventProducer,
         auth,
         fileService,
         attachmentService,
-        eventConfMock,
+        sesConf,
         sesServiceMock
     );
     when(invoiceJpaRepository.findAllByToBeRelaunched(true))

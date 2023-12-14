@@ -46,7 +46,7 @@ public class S3Conf {
   }
 
   @Bean
-  public S3Presigner s3Presigner(){
+  public S3Presigner getS3Presigner(){
     return S3Presigner.builder()
         .region(region)
         .build();

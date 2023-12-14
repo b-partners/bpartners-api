@@ -1,7 +1,7 @@
 package app.bpartners.api.unit.service;
 
-import app.bpartners.api.endpoint.event.EventConf;
 import app.bpartners.api.endpoint.event.EventProducer;
+import app.bpartners.api.endpoint.event.SesConf;
 import app.bpartners.api.model.mapper.ProspectMapper;
 import app.bpartners.api.repository.ProspectEvaluationJobRepository;
 import app.bpartners.api.repository.ProspectRepository;
@@ -15,9 +15,9 @@ import app.bpartners.api.service.ProspectService;
 import app.bpartners.api.service.ProspectStatusService;
 import app.bpartners.api.service.SnsService;
 import app.bpartners.api.service.UserService;
-import app.bpartners.api.service.event.ProspectUpdatedService;
 import app.bpartners.api.service.aws.SesService;
 import app.bpartners.api.service.dataprocesser.ProspectDataProcesser;
+import app.bpartners.api.service.event.ProspectUpdatedService;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
@@ -46,7 +46,7 @@ class ProspectServiceTest {
   ProspectMapper prospectMapper = mock(ProspectMapper.class);
   ProspectEvaluationJobRepository jobRepositoryMock = mock(ProspectEvaluationJobRepository.class);
   EventProducer eventProducerMock = mock(EventProducer.class);
-  EventConf eventConfMock = mock(EventConf.class);
+  SesConf sesConfMock = mock(SesConf.class);
   ProspectStatusService prospectStatusService = mock(ProspectStatusService.class);
   UserService userServiceMock = mock(UserService.class);
   SnsService snsServiceMock = mock(SnsService.class);
@@ -55,7 +55,7 @@ class ProspectServiceTest {
   ProspectService subject = new ProspectService(
       prospectRepositoryMock, dataProcesserMock, accountHolderJpaRepositoryMock,
       sesServiceMock, customerService, sheetApi,
-      prospectMapper, jobRepositoryMock, eventProducerMock, eventConfMock, prospectStatusService,
+      prospectMapper, jobRepositoryMock, eventProducerMock, sesConfMock, prospectStatusService,
       snsServiceMock, userServiceMock, prospectUpdatedService, calendarApiMock);
 
   @BeforeEach

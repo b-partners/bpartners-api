@@ -1,6 +1,5 @@
 package app.bpartners.api.unit.service;
 
-import app.bpartners.api.endpoint.event.EventConf;
 import app.bpartners.api.endpoint.event.SesConf;
 import app.bpartners.api.endpoint.event.gen.InvoiceRelaunchSaved;
 import app.bpartners.api.model.Account;
@@ -12,8 +11,8 @@ import app.bpartners.api.model.InvoiceDiscount;
 import app.bpartners.api.model.InvoiceProduct;
 import app.bpartners.api.model.User;
 import app.bpartners.api.service.FileService;
-import app.bpartners.api.service.event.InvoiceRelaunchSavedService;
 import app.bpartners.api.service.aws.SesService;
+import app.bpartners.api.service.event.InvoiceRelaunchSavedService;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
@@ -68,7 +67,7 @@ class InvoiceRelaunchSavedServiceTest {
         .attachments(List.of())
         .build());
 
-    verify(sesService, times(1)).sendEmail(eq(recipient), any(), eq(subject), eq(htmlBody), any());
+    verify(sesService, times(1)).sendEmail(eq(recipient), any(), eq(subject), eq(htmlBody), any(), any());
   }
 
   Invoice invoice() {

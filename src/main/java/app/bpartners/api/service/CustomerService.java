@@ -39,7 +39,7 @@ public class CustomerService {
   public static final String EXCEL_MIME_TYPE =
       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
   public static final String CSV_HEADERS =
-      "ID,Nom,Prénom,Email,Site web,Adresse,Code postal,Ville,Pays,Commentaire";
+      "ID,Nom,Prénom,Email,Site web,Adresse,Code postal,Ville,Pays,Commentaire,Type";
   private final CustomerRepository repository;
   private final CustomerRestMapper restMapper;
   private final EventConf eventConf;
@@ -59,7 +59,8 @@ public class CustomerService {
               + "," + replaceNullValue(String.valueOf(customer.getZipCode())) + ","
               + replaceNullValue(customer.getCity())
               + "," + replaceNullValue(customer.getCountry()) + ","
-              + replaceNullValue(customer.getComment()));
+              + "," + replaceNullValue(customer.getComment()) + ","
+              + replaceNullValue(customer.getTranslatedType()));
     });
   }
 

@@ -7,10 +7,16 @@ import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.service.utils.FileInfoUtils;
+
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Arrays;
+
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.bouncycastle.jcajce.provider.digest.SHA256;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.core.internal.waiters.ResponseOrException;
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -76,34 +82,43 @@ public class S3Service {
     }
   }
 
+  private static byte[] calculateChecksum(byte[] content) throws NoSuchAlgorithmException {
+    MessageDigest digest = MessageDigest.getInstance("SHA-256");
+    digest.update(content);
+    return digest.digest();
+  }
   private String uploadFile(String key, byte[] toUpload) {
     log.info("File to be upload into S3 for User(id="
         + AuthProvider.getAuthenticatedUserId() + ") with key {}", key);
-    PutObjectRequest request = PutObjectRequest.builder()
-        .bucket(s3Conf.getBucketName())
-        .contentType(FileInfoUtils.parseMediaTypeFromBytes(toUpload).toString())
-        .checksumAlgorithm(ChecksumAlgorithm.SHA256)
-        .key(key)
-        .build();
+    try{
+      PutObjectRequest request = PutObjectRequest.builder()
+              .bucket(s3Conf.getBucketName())
+              .key(key)
+              .contentType(FileInfoUtils.parseMediaTypeFromBytes(toUpload).toString())
+              .contentMD5(Arrays.toString(calculateChecksum(toUpload)))
+              .build();
 
-    PutObjectResponse objectResponse =
-        s3Conf.getS3Client().putObject(request, RequestBody.fromBytes(toUpload));
+      PutObjectResponse objectResponse =
+              s3Conf.getS3Client().putObject(request, RequestBody.fromBytes(toUpload));
 
-    ResponseOrException<HeadObjectResponse> responseOrException = s3Conf.getS3Client()
-        .waiter()
-        .waitUntilObjectExists(
-            HeadObjectRequest.builder()
-                .bucket(s3Conf.getBucketName())
-                .key(key)
-                .build())
-        .matched();
-    responseOrException.exception().ifPresent(throwable -> {
-      throw new ApiException(SERVER_EXCEPTION, throwable.getMessage());
-    });
-    responseOrException.response().ifPresent(response ->
-        log.info("response={}", response));
+      ResponseOrException<HeadObjectResponse> responseOrException = s3Conf.getS3Client()
+              .waiter()
+              .waitUntilObjectExists(
+                      HeadObjectRequest.builder()
+                              .bucket(s3Conf.getBucketName())
+                              .key(key)
+                              .build())
+              .matched();
+      responseOrException.exception().ifPresent(throwable -> {
+        throw new ApiException(SERVER_EXCEPTION, throwable.getMessage());
+      });
+      responseOrException.response().ifPresent(response ->
+              log.info("response={}", response));
 
-    return objectResponse.checksumSHA256();
+      return objectResponse.checksumSHA256();
+    } catch (NoSuchAlgorithmException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   public String uploadFile(FileType fileType, String idUser, String fileId, byte[] toUpload) {

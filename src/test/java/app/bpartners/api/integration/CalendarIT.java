@@ -23,6 +23,7 @@ import java.time.ZonedDateTime;
 import java.util.List;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -45,6 +46,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @ContextConfiguration(initializers = CalendarEnvContextInitializer.class)
 @AutoConfigureMockMvc
 @Slf4j
+@Disabled
 // /!\ Important ! Run only in local
 public class CalendarIT extends MockedThirdParties {
   @Autowired

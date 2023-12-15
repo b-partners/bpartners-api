@@ -13,7 +13,7 @@ public class EnvConf {
     registry.add("bridge.client.secret", () -> "dummy");
     registry.add("bridge.base.url", () -> "dummy");
     registry.add("bridge.version", () -> "dummy");
-    registry.add("aws.bucket.name", () -> "dummy");
+    registry.add("aws.bucket.name", () -> "bpartners");
     registry.add("aws.cognito.userPool.id", () -> "eu-west-3_vq2jlNjq7");
     registry.add("aws.cognito.userPool.domain", () -> "dummy");
     registry.add("aws.cognito.userPool.clientId", () -> "dummy  ");

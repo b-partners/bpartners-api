@@ -5,6 +5,7 @@ import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.model.mapper.ProspectMapper;
 import app.bpartners.api.repository.ProspectEvaluationJobRepository;
 import app.bpartners.api.repository.ProspectRepository;
+import app.bpartners.api.repository.google.calendar.CalendarApi;
 import app.bpartners.api.repository.google.calendar.drive.DriveApi;
 import app.bpartners.api.repository.google.sheets.SheetApi;
 import app.bpartners.api.repository.jpa.AccountHolderJpaRepository;
@@ -50,11 +51,12 @@ class ProspectServiceTest {
   UserService userServiceMock = mock(UserService.class);
   SnsService snsServiceMock = mock(SnsService.class);
   ProspectUpdatedService prospectUpdatedService = mock(ProspectUpdatedService.class);
+  CalendarApi calendarApiMock = mock(CalendarApi.class);
   ProspectService subject = new ProspectService(
       prospectRepositoryMock, dataProcesserMock, accountHolderJpaRepositoryMock,
       sesServiceMock, customerService, sheetApi,
       prospectMapper, jobRepositoryMock, eventProducerMock, eventConfMock, prospectStatusService,
-      snsServiceMock, userServiceMock, prospectUpdatedService);
+      snsServiceMock, userServiceMock, prospectUpdatedService, calendarApiMock);
 
   @BeforeEach
   void setup() {

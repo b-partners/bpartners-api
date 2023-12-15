@@ -42,6 +42,7 @@ public class CustomerMapper {
         .comment(entity.getComment())
         .location(customerLocation)
         .status(entity.getStatus())
+        .customerType(entity.getCustomerType())
         .recentlyAdded(entity.isRecentlyAdded())
         .updatedAt(entity.getUpdatedAt())
         .createdAt(entity.getCreatedAt())
@@ -74,6 +75,7 @@ public class CustomerMapper {
                 : domain.getLocation().getLongitude())
         .status(domain.getStatus() == null ? ENABLED
             : domain.getStatus())
+        .customerType(domain.getCustomerType())
         .recentlyAdded(domain.isRecentlyAdded())
         .updatedAt(Instant.now())
         .latestFullAddress(domain.getLatestFullAddress())

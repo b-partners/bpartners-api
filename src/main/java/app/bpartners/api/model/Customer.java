@@ -1,6 +1,7 @@
 package app.bpartners.api.model;
 
 import app.bpartners.api.endpoint.rest.model.CustomerStatus;
+import app.bpartners.api.endpoint.rest.model.CustomerType;
 import java.time.Instant;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -38,6 +39,7 @@ public class Customer {
   protected Instant updatedAt;
   protected Instant createdAt;
   protected String latestFullAddress;
+  protected CustomerType customerType;
 
   public String describe() {
     return "Customer(id=" + id + ", name=" + getName() + ", idUser=" + idUser + ")";

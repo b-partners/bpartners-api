@@ -70,7 +70,7 @@ public class CustomerController {
 
   @GetMapping("/accounts/{id}/customers")
   //TODO: only filters should be used for filtering customers
-  public List<app.bpartners.api.endpoint.rest.model.Customer> getCustomers(
+  public List<Customer> getCustomers(
       @PathVariable String id,
       @RequestParam(required = false) String firstName,
       @RequestParam(required = false) String lastName,

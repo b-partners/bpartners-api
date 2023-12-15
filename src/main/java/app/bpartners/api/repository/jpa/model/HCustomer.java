@@ -1,6 +1,7 @@
 package app.bpartners.api.repository.jpa.model;
 
 import app.bpartners.api.endpoint.rest.model.CustomerStatus;
+import app.bpartners.api.endpoint.rest.model.CustomerType;
 import app.bpartners.api.repository.jpa.types.PostgresEnumType;
 import java.time.Instant;
 import javax.persistence.Column;
@@ -44,6 +45,9 @@ public class HCustomer {
   private String comment;
   private Double latitude;
   private Double longitude;
+  @Type(type = "pgsql_enum")
+  @Enumerated(EnumType.STRING)
+  private CustomerType customerType;
   @Type(type = "pgsql_enum")
   @Enumerated(EnumType.STRING)
   private CustomerStatus status;

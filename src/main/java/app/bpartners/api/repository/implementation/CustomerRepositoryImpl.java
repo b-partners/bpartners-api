@@ -1,6 +1,7 @@
 package app.bpartners.api.repository.implementation;
 
 import app.bpartners.api.endpoint.rest.model.CustomerStatus;
+import app.bpartners.api.endpoint.rest.model.CustomerType;
 import app.bpartners.api.endpoint.rest.model.UpdateCustomerStatus;
 import app.bpartners.api.model.Customer;
 import app.bpartners.api.model.exception.NotFoundException;
@@ -280,12 +281,15 @@ public class CustomerRepositoryImpl implements CustomerRepository {
     if (optionalCustomer.isEmpty()) {
       Customer customer = domain.toBuilder()
           .recentlyAdded(true)
+          .customerType(CustomerType.INDIVIDUAL)
           .build();
       return customer;
     } else {
       HCustomer existing = optionalCustomer.get();
       Customer customer = domain.toBuilder()
           .latestFullAddress(existing.getFullAddress())
+          .customerType(domain.getCustomerType() == null ? existing.getCustomerType()
+              : domain.getCustomerType())
           .createdAt(existing.getCreatedAt())
           .build();
       return customer;

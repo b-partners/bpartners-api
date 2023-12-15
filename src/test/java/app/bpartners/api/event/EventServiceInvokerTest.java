@@ -22,8 +22,6 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.ContextConfiguration;
 
-@SpringBootTest(webEnvironment = RANDOM_PORT)
-@ContextConfiguration(initializers = DbEnvContextInitializer.class)
 class EventServiceInvokerTest extends MockedThirdParties {
   EventServiceInvoker subject;
   @MockBean InvoiceRelaunchSavedService invoiceRelaunchSavedService;

@@ -3,10 +3,11 @@ package app.bpartners.api.endpoint.rest.controller;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import app.bpartners.api.conf.FacadeIT;
+import app.bpartners.api.integration.conf.MockedThirdParties;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-class HealthControllerIT extends FacadeIT {
+class HealthControllerIT extends MockedThirdParties {
 
   @Autowired HealthController healthController;
 

@@ -31,6 +31,7 @@ import app.bpartners.api.repository.expressif.ProspectEval;
 import app.bpartners.api.repository.expressif.ProspectEvalInfo;
 import app.bpartners.api.repository.expressif.ProspectResult;
 import app.bpartners.api.repository.expressif.fact.NewIntervention;
+import app.bpartners.api.repository.google.calendar.CalendarApi;
 import app.bpartners.api.repository.google.sheets.SheetApi;
 import app.bpartners.api.repository.jpa.AccountHolderJpaRepository;
 import app.bpartners.api.repository.jpa.model.HAccountHolder;
@@ -100,6 +101,7 @@ public class ProspectService {
   private final SnsService snsService;
   private final UserService userService;
   private final ProspectUpdatedService prospectUpdatedService;
+  private final CalendarApi calendarApi;
 
   @Transactional
   public Prospect getById(String id) {
@@ -196,6 +198,14 @@ public class ProspectService {
   public List<ProspectEvaluationJob> runEvaluationJobs(String userId,
                                                        String ahId,
                                                        List<ProspectEvaluationJobRunner> jobRunners) {
+    Optional<ProspectEvaluationJobRunner> anyEventConversionJob = jobRunners.stream()
+        .filter(ProspectEvaluationJobRunner::isEventConversionJob)
+        .findAny();
+    if (anyEventConversionJob.isPresent() && !calendarApi.hasValidToken(userId)) {
+      throw new BadRequestException(
+          "CALENDAR_EVENT_CONVERSION job is to be executed "
+              + "but calendar access token is expired or invalid");
+    }
     List<ProspectEvaluationJob> jobs = jobRunners.stream()
         .map(jobRunner -> ProspectEvaluationJob.builder()
             .id(jobRunner.getJobId())

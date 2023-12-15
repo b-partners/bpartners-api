@@ -35,6 +35,16 @@ public class CalendarApi {
   public static final String START_TIME_ATTRIBUTE = "startTime";
   private final CalendarConf calendarConf;
 
+  public boolean hasValidToken(String idUser) {
+    Credential credential = calendarConf.loadCredential(idUser);
+    if (credential == null) {
+      return false;
+    }
+    Long expirationTimeMilliseconds = credential.getExpirationTimeMilliseconds();
+    Instant expirationInstant = Instant.ofEpochMilli(expirationTimeMilliseconds);
+    return !expirationInstant.isBefore(Instant.now());
+  }
+
   private Calendar initService(CalendarConf calendarConf, Credential credential) {
     NetHttpTransport trustedTransport = calendarConf.getTrustedTransport();
     String applicationName = calendarConf.getApplicationName();

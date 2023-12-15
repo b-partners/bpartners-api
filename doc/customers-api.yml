@@ -322,9 +322,16 @@ components:
     CreateCustomer:
       type: object
       properties:
+        name:
+          type: string
+          description: |
+            For INDIVIDUAL customer, the name attribute refers to customer first name and last name.
+            For PROFESSIONAL customer, the name attribute refers to company name.
         firstName:
+          deprecated: true
           type: string
         lastName:
+          deprecated: true
           type: string
         email:
           type: string

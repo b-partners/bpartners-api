@@ -24,9 +24,12 @@ public class Customer {
   protected String id;
   protected String idAccount;
   protected String idUser;
+  protected String name;
   @Getter(AccessLevel.NONE)
+  @Deprecated
   protected String firstName;
   @Getter(AccessLevel.NONE)
+  @Deprecated
   protected String lastName;
   protected String email;
   protected String phone;
@@ -60,6 +63,10 @@ public class Customer {
     return (firstName == null ? "" : firstName)
         .concat(firstName != null & lastName != null ? " " : "")
         .concat(lastName == null ? "" : lastName);
+  }
+
+  public String getRealName() {
+    return name == null ? getName() : name;
   }
 
   public String getTranslatedType() {

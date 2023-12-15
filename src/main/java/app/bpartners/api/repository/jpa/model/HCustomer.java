@@ -33,6 +33,7 @@ public class HCustomer {
   @Id
   private String id;
   private String idUser;
+  private String name;
   private String firstName;
   private String lastName;
   private String email;

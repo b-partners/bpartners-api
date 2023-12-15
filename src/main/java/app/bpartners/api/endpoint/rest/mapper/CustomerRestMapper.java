@@ -32,6 +32,7 @@ public class CustomerRestMapper {
         .longitude(domain.getLocation().getLongitude());
     return new Customer()
         .id(domain.getId())
+        .name(domain.getRealName())
         .firstName(domain.getFirstName())
         .lastName(domain.getLastName())
         .phone(domain.getPhone())
@@ -75,9 +76,21 @@ public class CustomerRestMapper {
               rest.getLocation().getLongitude() == null ? null : rest.getLocation().getLongitude())
           .build();
     }
+    String name = null;
+    if (rest.getName() != null) {
+      name = rest.getName();
+    } else {
+      if (rest.getFirstName() != null) {
+        name = rest.getFirstName();
+      }
+      if (rest.getLastName() != null) {
+        name += " " + rest.getLastName();
+      }
+    }
     return app.bpartners.api.model.Customer.builder()
         .id(rest.getId())
         .idUser(idUser)
+        .name(name)
         .firstName(firstName)
         .lastName(lastName)
         .phone(rest.getPhone())

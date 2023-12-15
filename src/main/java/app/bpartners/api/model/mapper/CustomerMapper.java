@@ -30,6 +30,7 @@ public class CustomerMapper {
     return Customer.builder()
         .id(entity.getId())
         .idUser(entity.getIdUser())
+        .name(entity.getName())
         .firstName(entity.getFirstName())
         .lastName(entity.getLastName())
         .email(entity.getEmail())
@@ -53,6 +54,7 @@ public class CustomerMapper {
   public HCustomer toEntity(Customer domain) {
     return HCustomer.builder()
         .id(domain.getId())
+        .name(domain.getName())
         .idUser(domain.getIdUser())
         .email(domain.getEmail())
         .firstName(domain.getFirstName())

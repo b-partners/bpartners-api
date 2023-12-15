@@ -11,6 +11,7 @@ import app.bpartners.api.endpoint.rest.model.InvoiceRelaunch;
 import app.bpartners.api.endpoint.rest.model.RelaunchType;
 import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.integration.conf.S3AbstractContextInitializer;
+import app.bpartners.api.integration.conf.S3MockedThirdParties;
 import app.bpartners.api.integration.conf.utils.TestUtils;
 import app.bpartners.api.repository.fintecture.FintecturePaymentInfoRepository;
 import app.bpartners.api.repository.fintecture.FintecturePaymentInitiationRepository;
@@ -50,11 +51,9 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
-@SpringBootTest(webEnvironment = RANDOM_PORT)
 @Testcontainers
-@ContextConfiguration(initializers = InvoiceRelaunchIT.ContextInitializer.class)
 @AutoConfigureMockMvc
-class InvoiceRelaunchIT extends MockedThirdParties {
+class InvoiceRelaunchIT extends S3MockedThirdParties {
   @MockBean
   private FintecturePaymentInitiationRepository paymentInitiationRepositoryMock;
   @MockBean
@@ -62,9 +61,8 @@ class InvoiceRelaunchIT extends MockedThirdParties {
   @MockBean
   private EventBridgeClient eventBridgeClientMock;
 
-  private static ApiClient anApiClient() {
-    return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN,
-        InvoiceRelaunchIT.ContextInitializer.SERVER_PORT);
+  private ApiClient anApiClient() {
+    return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN, localPort);
   }
 
   @BeforeEach
@@ -74,7 +72,6 @@ class InvoiceRelaunchIT extends MockedThirdParties {
     setUpEventBridge(eventBridgeClientMock);
     setUpLegalFileRepository(legalFileRepositoryMock);
     setUpCognito(cognitoComponentMock);
-    setUpS3Conf(s3Conf);
   }
 
   InvoiceRelaunch invoiceRelaunch1() {
@@ -239,14 +236,5 @@ class InvoiceRelaunchIT extends MockedThirdParties {
     return attachments.stream()
         .peek(attachment -> attachment.setFileId(null))
         .toList();
-  }
-
-  static class ContextInitializer extends S3AbstractContextInitializer {
-    public static final int SERVER_PORT = TestUtils.findAvailableTcpPort();
-
-    @Override
-    public int getServerPort() {
-      return SERVER_PORT;
-    }
   }
 }

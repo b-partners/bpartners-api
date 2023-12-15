@@ -1,5 +1,6 @@
 package app.bpartners.api.integration;
 
+import app.bpartners.api.endpoint.event.S3Conf;
 import app.bpartners.api.endpoint.rest.api.FilesApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
@@ -7,6 +8,7 @@ import app.bpartners.api.endpoint.rest.model.FileInfo;
 import app.bpartners.api.endpoint.rest.model.FileType;
 import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.integration.conf.S3AbstractContextInitializer;
+import app.bpartners.api.integration.conf.S3MockedThirdParties;
 import app.bpartners.api.integration.conf.utils.TestUtils;
 import java.io.File;
 import java.io.IOException;
@@ -18,6 +20,7 @@ import java.time.Instant;
 import org.apache.tika.Tika;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.ClassPathResource;
@@ -26,6 +29,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.S3Client;
 
 import static app.bpartners.api.integration.conf.utils.TestUtils.BEARER_PREFIX;
 import static app.bpartners.api.integration.conf.utils.TestUtils.BEARER_QUERY_PARAMETER_NAME;
@@ -45,26 +52,25 @@ import static app.bpartners.api.integration.conf.utils.TestUtils.setUpLegalFileR
 import static app.bpartners.api.integration.conf.utils.TestUtils.setUpS3Conf;
 import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
+import static org.testcontainers.containers.localstack.LocalStackContainer.Service.S3;
 
-@SpringBootTest(webEnvironment = RANDOM_PORT)
 @Testcontainers
-@ContextConfiguration(initializers = FileIT.ContextInitializer.class)
 @AutoConfigureMockMvc
-class FileIT extends MockedThirdParties {
+class FileIT extends S3MockedThirdParties {
   public static final String NON_EXISTENT_FILE_ID = "NOT" + TEST_FILE_ID;
   public static final String NOT_EXISTING_FILE_ID = "not_existing_file_id.jpeg";
   private final Tika typeGuesser = new Tika();
 
-  private static ApiClient anApiClient() {
-    return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN, ContextInitializer.SERVER_PORT);
+  private ApiClient anApiClient() {
+    return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN, localPort);
   }
 
   @BeforeEach
   public void setUp() {
     setUpLegalFileRepository(legalFileRepositoryMock);
     setUpCognito(cognitoComponentMock);
-    setUpS3Conf(s3Conf);
   }
 
   FileInfo file1() {
@@ -114,7 +120,6 @@ class FileIT extends MockedThirdParties {
         fakeExeFile.getFile());
     HttpResponse<byte[]> pngResponse = upload(FileType.LOGO.getValue(), randomUUID().toString(),
         pngFile.getFile());
-
     assertEquals(HttpStatus.OK.value(), jpegResponse.statusCode());
     assertEquals(HttpStatus.OK.value(), fakeExeResponse.statusCode());
     assertEquals(HttpStatus.OK.value(), pngResponse.statusCode());
@@ -149,7 +154,7 @@ class FileIT extends MockedThirdParties {
   private HttpResponse<byte[]> upload(String fileType, String fileId, File toUpload)
       throws IOException, InterruptedException, ApiException {
     HttpClient unauthenticatedClient = HttpClient.newBuilder().build();
-    String basePath = "http://localhost:" + ContextInitializer.SERVER_PORT;
+    String basePath = "http://localhost:" + localPort;
 
     HttpResponse<byte[]> response = unauthenticatedClient.send(
         HttpRequest.newBuilder()
@@ -167,7 +172,7 @@ class FileIT extends MockedThirdParties {
 
   @Test
   void download_file_ko() {
-    String basePath = "http://localhost:" + ContextInitializer.SERVER_PORT;
+    String basePath = "http://localhost:" + localPort;
 
     assertThrowsApiException(
         "{\"type\":\"404 NOT_FOUND\",\"message\":\"File.not_existing_file_id.jpeg not found.\"}",
@@ -194,7 +199,7 @@ class FileIT extends MockedThirdParties {
 
   @Test
   void download_file_ok() throws IOException, InterruptedException, ApiException {
-    String basePath = "http://localhost:" + ContextInitializer.SERVER_PORT;
+    String basePath = "http://localhost:" + localPort;
 
     HttpResponse<byte[]> responseBearerInHeader = download(FileType.LOGO, basePath, JOE_DOE_TOKEN,
         null, TEST_FILE_ID);
@@ -262,12 +267,4 @@ class FileIT extends MockedThirdParties {
   }
 
   //TODO: write upload_triggers_event_ok as done in InvoiceIT
-  public static class ContextInitializer extends S3AbstractContextInitializer {
-    public static final int SERVER_PORT = TestUtils.findAvailableTcpPort();
-
-    @Override
-    public int getServerPort() {
-      return SERVER_PORT;
-    }
-  }
 }

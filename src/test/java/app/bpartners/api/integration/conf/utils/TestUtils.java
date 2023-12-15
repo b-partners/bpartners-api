@@ -83,6 +83,9 @@ import lombok.SneakyThrows;
 import org.junit.jupiter.api.function.Executable;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.util.SocketUtils;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsRequest;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsResponse;
@@ -105,6 +108,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static org.testcontainers.containers.localstack.LocalStackContainer.Service.S3;
 
 public class TestUtils {
   public static final String CREDIT_SIDE = "Credit";
@@ -829,6 +833,10 @@ public class TestUtils {
   public static void setUpS3Conf(S3Conf s3Conf) {
     when(s3Conf.getBucketName()).thenReturn("bpartners");
     when(s3Conf.getEnv()).thenReturn("dev");
+    when(s3Conf.getS3Client()).thenAnswer(invocation -> S3Client.builder()
+            .region(Region.US_EAST_1)
+            .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("test", "test")))
+            .build());
   }
 
   public static void setUpProvider(PrincipalProvider provider) {

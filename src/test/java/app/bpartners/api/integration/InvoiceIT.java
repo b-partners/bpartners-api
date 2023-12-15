@@ -9,6 +9,7 @@ import app.bpartners.api.endpoint.rest.model.Invoice;
 import app.bpartners.api.endpoint.rest.model.InvoiceDiscount;
 import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.integration.conf.S3AbstractContextInitializer;
+import app.bpartners.api.integration.conf.S3MockedThirdParties;
 import app.bpartners.api.integration.conf.utils.TestUtils;
 import app.bpartners.api.repository.fintecture.FintecturePaymentInitiationRepository;
 import app.bpartners.api.repository.jpa.AccountHolderJpaRepository;
@@ -71,11 +72,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
-@SpringBootTest(webEnvironment = RANDOM_PORT)
 @Testcontainers
-@ContextConfiguration(initializers = InvoiceIT.ContextInitializer.class)
 @AutoConfigureMockMvc
-class InvoiceIT extends MockedThirdParties {
+class InvoiceIT extends S3MockedThirdParties {
   @MockBean
   private FintecturePaymentInitiationRepository paymentInitiationRepositoryMock;
   @MockBean
@@ -83,8 +82,8 @@ class InvoiceIT extends MockedThirdParties {
   @MockBean
   private AccountHolderJpaRepository holderJpaRepository;
 
-  private static ApiClient anApiClient() {
-    return TestUtils.anApiClient(JOE_DOE_TOKEN, InvoiceIT.ContextInitializer.SERVER_PORT);
+  private ApiClient anApiClient() {
+    return TestUtils.anApiClient(JOE_DOE_TOKEN, localPort);
   }
 
   @BeforeEach
@@ -93,7 +92,6 @@ class InvoiceIT extends MockedThirdParties {
     setUpEventBridge(eventBridgeClientMock);
     setUpLegalFileRepository(legalFileRepositoryMock);
     setUpCognito(cognitoComponentMock);
-    setUpS3Conf(s3Conf);
 
     when(holderJpaRepository.findAllByIdUser(JOE_DOE_ID))
         .thenReturn(List.of(accountHolderEntity1()));
@@ -424,14 +422,5 @@ class InvoiceIT extends MockedThirdParties {
 
     Invoice peristed2 = api.getInvoiceById(JOE_DOE_ACCOUNT_ID, invoice.getId());
     assertEquals(2, peristed2.getPaymentRegulations().size());
-  }
-
-  static class ContextInitializer extends S3AbstractContextInitializer {
-    public static final int SERVER_PORT = TestUtils.findAvailableTcpPort();
-
-    @Override
-    public int getServerPort() {
-      return SERVER_PORT;
-    }
   }
 }

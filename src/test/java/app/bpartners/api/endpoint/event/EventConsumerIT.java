@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import app.bpartners.api.conf.FacadeIT;
 import app.bpartners.api.endpoint.event.gen.UuidCreated;
+import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.repository.DummyUuidRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -12,7 +13,7 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-class EventConsumerIT extends FacadeIT {
+class EventConsumerIT extends MockedThirdParties {
 
   @Autowired EventConsumer subject;
   @Autowired DummyUuidRepository dummyUuidRepository;

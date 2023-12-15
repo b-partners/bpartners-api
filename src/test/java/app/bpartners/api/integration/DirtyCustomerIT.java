@@ -4,15 +4,16 @@ import app.bpartners.api.endpoint.rest.api.CustomersApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
 import app.bpartners.api.endpoint.rest.model.Customer;
-import app.bpartners.api.endpoint.rest.model.CustomerLocation;
 import app.bpartners.api.integration.conf.DbEnvContextInitializer;
 import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.integration.conf.utils.TestUtils;
+import app.bpartners.api.service.aws.SesService;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -34,6 +35,8 @@ import static org.springframework.test.annotation.DirtiesContext.ClassMode.BEFOR
 @ContextConfiguration(initializers = DbEnvContextInitializer.class)
 @DirtiesContext(classMode = BEFORE_EACH_TEST_METHOD)
 class DirtyCustomerIT extends MockedThirdParties {
+  @MockBean
+  private SesService sesServiceMock;
 
   private static ApiClient anApiClient() {
     return TestUtils.anApiClient(JOE_DOE_TOKEN, DbEnvContextInitializer.getHttpServerPort());

@@ -1,5 +1,7 @@
 package app.bpartners.api.service;
 
+import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
+
 import app.bpartners.api.endpoint.rest.model.Redirection;
 import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
 import app.bpartners.api.endpoint.rest.model.SheetAuth;
@@ -18,8 +20,6 @@ import java.util.List;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
-
 @Service
 @AllArgsConstructor
 public class SheetService {
@@ -35,14 +35,17 @@ public class SheetService {
 
     List<String> supportedRedirectUris = sheetConf().getRedirectUris();
     if (!supportedRedirectUris.contains(redirectUrl)) {
-      throw new BadRequestException("Redirect URI [" + redirectUrl + "] is unknown. "
-          + "Only " + supportedRedirectUris + " are.");
+      throw new BadRequestException(
+          "Redirect URI ["
+              + redirectUrl
+              + "] is unknown. "
+              + "Only "
+              + supportedRedirectUris
+              + " are.");
     }
 
     String consentUrl = sheetApi.initConsent(redirectUrl);
-    return new Redirection()
-        .redirectionUrl(consentUrl)
-        .redirectionStatusUrls(urls);
+    return new Redirection().redirectionUrl(consentUrl).redirectionStatusUrls(urls);
   }
 
   public AccessToken exchangeCode(String idUser, SheetAuth auth) {
@@ -52,8 +55,8 @@ public class SheetService {
     String redirectUrl = urls.getSuccessUrl();
 
     if (sheetApi.storeCredential(idUser, code, redirectUrl) == null) {
-      throw new ApiException(SERVER_EXCEPTION,
-          "Unable to exchange " + auth + " to Google Sheet access token");
+      throw new ApiException(
+          SERVER_EXCEPTION, "Unable to exchange " + auth + " to Google Sheet access token");
     } else {
       return credentialRepository.findLatestByIdUser(idUser);
     }

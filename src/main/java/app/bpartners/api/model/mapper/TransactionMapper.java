@@ -1,5 +1,9 @@
 package app.bpartners.api.model.mapper;
 
+import static app.bpartners.api.model.Money.fromMajor;
+import static app.bpartners.api.model.Money.fromMinor;
+import static java.util.UUID.randomUUID;
+
 import app.bpartners.api.endpoint.rest.model.EnableStatus;
 import app.bpartners.api.model.Money;
 import app.bpartners.api.model.Transaction;
@@ -12,10 +16,6 @@ import java.time.ZoneId;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-
-import static app.bpartners.api.model.Money.fromMajor;
-import static app.bpartners.api.model.Money.fromMinor;
-import static java.util.UUID.randomUUID;
 
 @Slf4j
 @Component
@@ -36,7 +36,7 @@ public class TransactionMapper {
         .build();
   }
 
-  //TODO: check if necessary to set ZoneId to Paris
+  // TODO: check if necessary to set ZoneId to Paris
   public TransactionConnector toConnector(HTransaction entity) {
     LocalDate transactionDate =
         LocalDate.ofInstant(entity.getPaymentDateTime(), ZoneId.systemDefault());
@@ -74,9 +74,8 @@ public class TransactionMapper {
         .idBridge(Long.valueOf(connector.getId()))
         .idAccount(idAccount)
         .amount(String.valueOf(connector.getAmount().getValue()))
-        .paymentDateTime(connector.getTransactionDate()
-            .atStartOfDay(ZoneId.systemDefault())
-            .toInstant())
+        .paymentDateTime(
+            connector.getTransactionDate().atStartOfDay(ZoneId.systemDefault()).toInstant())
         .side(connector.getSide())
         .status(connector.getStatus())
         .currency(connector.getCurrency())

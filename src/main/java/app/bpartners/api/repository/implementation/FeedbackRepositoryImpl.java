@@ -16,16 +16,14 @@ public class FeedbackRepositoryImpl implements FeedBackRepository {
 
   @Override
   public Feedback findById(String id) {
-    return mapper.toDomain(jpaRepository.findById(id)
-        .orElseThrow(() ->
-            new NotFoundException("Feedback" + id + " is not found.")));
+    return mapper.toDomain(
+        jpaRepository
+            .findById(id)
+            .orElseThrow(() -> new NotFoundException("Feedback" + id + " is not found.")));
   }
 
   @Override
   public Feedback save(Feedback toCreate) {
-    return mapper.toDomain(
-        jpaRepository.save(mapper.toEntity(toCreate))
-    );
+    return mapper.toDomain(jpaRepository.save(mapper.toEntity(toCreate)));
   }
-
 }

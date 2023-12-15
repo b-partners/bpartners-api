@@ -1,13 +1,13 @@
 package app.bpartners.api.endpoint.rest.mapper;
 
+import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
+
 import app.bpartners.api.endpoint.rest.model.PaymentInitiation;
 import app.bpartners.api.endpoint.rest.model.PaymentRedirection;
 import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
 import app.bpartners.api.endpoint.rest.validator.PaymentInitValidator;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
-
-import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 
 @Component
 @AllArgsConstructor
@@ -30,9 +30,10 @@ public class PaymentInitRestMapper {
   }
 
   public PaymentRedirection toRest(app.bpartners.api.model.PaymentRedirection domain) {
-    RedirectionStatusUrls statusUrls = new RedirectionStatusUrls()
-        .successUrl(domain.getSuccessUrl())
-        .failureUrl(domain.getFailureUrl());
+    RedirectionStatusUrls statusUrls =
+        new RedirectionStatusUrls()
+            .successUrl(domain.getSuccessUrl())
+            .failureUrl(domain.getFailureUrl());
     return new PaymentRedirection()
         .id(domain.getEndToEndId())
         .redirectionUrl(domain.getRedirectUrl())

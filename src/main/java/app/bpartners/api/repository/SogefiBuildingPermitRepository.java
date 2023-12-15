@@ -5,8 +5,10 @@ import app.bpartners.api.repository.prospecting.datasource.buildingpermit.model.
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.model.SingleBuildingPermit;
 
 public interface SogefiBuildingPermitRepository {
-  void saveByBuildingPermit(String idAccountHolder, BuildingPermit buildingPermit,
-                            SingleBuildingPermit singleBuildingPermit);
+  void saveByBuildingPermit(
+      String idAccountHolder,
+      BuildingPermit buildingPermit,
+      SingleBuildingPermit singleBuildingPermit);
 
   Geojson findLocationByIdProspect(String idProspect);
 }

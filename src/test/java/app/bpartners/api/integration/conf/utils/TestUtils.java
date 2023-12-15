@@ -1,5 +1,23 @@
 package app.bpartners.api.integration.conf.utils;
 
+import static app.bpartners.api.endpoint.rest.model.AccountStatus.OPENED;
+import static app.bpartners.api.endpoint.rest.model.EnableStatus.ENABLED;
+import static app.bpartners.api.endpoint.rest.model.IdentificationStatus.VALID_IDENTITY;
+import static app.bpartners.api.endpoint.rest.model.Invoice.PaymentTypeEnum.IN_INSTALMENT;
+import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
+import static app.bpartners.api.endpoint.rest.model.PaymentMethod.UNKNOWN;
+import static app.bpartners.api.endpoint.rest.model.ProspectStatus.TO_CONTACT;
+import static app.bpartners.api.endpoint.rest.model.TransactionTypeEnum.INCOME;
+import static app.bpartners.api.endpoint.rest.model.TransactionTypeEnum.OUTCOME;
+import static app.bpartners.api.model.Invoice.DEFAULT_DELAY_PENALTY_PERCENT;
+import static app.bpartners.api.model.Invoice.DEFAULT_TO_PAY_DELAY_DAYS;
+import static app.bpartners.api.model.Money.fromMinor;
+import static app.bpartners.api.repository.bridge.model.Account.BridgeAccount.BRIDGE_STATUS_OK;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+
 import app.bpartners.api.endpoint.event.S3Conf;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
@@ -90,25 +108,6 @@ import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsRequest;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsResponse;
 import software.amazon.awssdk.services.s3.S3Client;
-
-import static app.bpartners.api.endpoint.rest.model.AccountStatus.OPENED;
-import static app.bpartners.api.endpoint.rest.model.EnableStatus.ENABLED;
-import static app.bpartners.api.endpoint.rest.model.IdentificationStatus.VALID_IDENTITY;
-import static app.bpartners.api.endpoint.rest.model.Invoice.PaymentTypeEnum.IN_INSTALMENT;
-import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
-import static app.bpartners.api.endpoint.rest.model.PaymentMethod.UNKNOWN;
-import static app.bpartners.api.endpoint.rest.model.ProspectStatus.TO_CONTACT;
-import static app.bpartners.api.endpoint.rest.model.TransactionTypeEnum.INCOME;
-import static app.bpartners.api.endpoint.rest.model.TransactionTypeEnum.OUTCOME;
-import static app.bpartners.api.model.Invoice.DEFAULT_DELAY_PENALTY_PERCENT;
-import static app.bpartners.api.model.Invoice.DEFAULT_TO_PAY_DELAY_DAYS;
-import static app.bpartners.api.model.Money.fromMinor;
-import static app.bpartners.api.repository.bridge.model.Account.BridgeAccount.BRIDGE_STATUS_OK;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
-import static org.testcontainers.containers.localstack.LocalStackContainer.Service.S3;
 
 public class TestUtils {
   public static final String CREDIT_SIDE = "Credit";
@@ -235,7 +234,6 @@ public class TestUtils {
         .build();
   }
 
-
   public static AnnualRevenueTarget annualRevenueTarget1() {
     return new AnnualRevenueTarget()
         .year(2023)
@@ -255,15 +253,11 @@ public class TestUtils {
   }
 
   public static CreateAnnualRevenueTarget createAnnualRevenueTarget() {
-    return new CreateAnnualRevenueTarget()
-        .year(2025)
-        .amountTarget(150000);
+    return new CreateAnnualRevenueTarget().year(2025).amountTarget(150000);
   }
 
   public static CreateAnnualRevenueTarget toUpdateAnnualRevenueTarget() {
-    return new CreateAnnualRevenueTarget()
-        .year(2023)
-        .amountTarget(2000000);
+    return new CreateAnnualRevenueTarget().year(2023).amountTarget(2000000);
   }
 
   public static Customer customer1() {
@@ -279,10 +273,8 @@ public class TestUtils {
         .city("Metz")
         .country(null)
         .comment("Rencontre avec Luc")
-        .location(new CustomerLocation()
-            .address("15 rue Porte d'Orange")
-            .longitude(0d)
-            .latitude(0d))
+        .location(
+            new CustomerLocation().address("15 rue Porte d'Orange").longitude(0d).latitude(0d))
         .status(CustomerStatus.ENABLED)
         .customerType(CustomerType.INDIVIDUAL);
   }
@@ -300,10 +292,7 @@ public class TestUtils {
         .city("Montmorency")
         .country("France")
         .comment("Rencontre avec le plombier")
-        .location(new CustomerLocation()
-            .address("4 Avenue des Près")
-            .longitude(0d)
-            .latitude(0d))
+        .location(new CustomerLocation().address("4 Avenue des Près").longitude(0d).latitude(0d))
         .status(CustomerStatus.ENABLED)
         .customerType(CustomerType.INDIVIDUAL);
   }
@@ -341,9 +330,7 @@ public class TestUtils {
   }
 
   public static UpdateCustomerStatus customerDisabled() {
-    return new UpdateCustomerStatus()
-        .id("customer3_id")
-        .status(CustomerStatus.DISABLED);
+    return new UpdateCustomerStatus().id("customer3_id").status(CustomerStatus.DISABLED);
   }
 
   public static Product product1() {
@@ -446,11 +433,7 @@ public class TestUtils {
   }
 
   public static CreateProduct createProduct3() {
-    return new CreateProduct()
-        .description("Tuyau 1m")
-        .quantity(3)
-        .unitPrice(2000)
-        .vatPercent(1000);
+    return new CreateProduct().description("Tuyau 1m").quantity(3).unitPrice(2000).vatPercent(1000);
   }
 
   public static CreateProduct createProduct4() {
@@ -555,7 +538,6 @@ public class TestUtils {
         .initiatedDatetime(Instant.parse("2023-01-01T00:00:00Z"));
   }
 
-
   public static Invoice invoice1() {
     return new Invoice()
         .id(INVOICE1_ID)
@@ -563,7 +545,8 @@ public class TestUtils {
         .title("Outils pour plomberie")
         .fileId("file1_id")
         // .paymentUrl("https://connect-v2-sbx.fintecture.com")
-        .customer(customer1()).ref("BP001")
+        .customer(customer1())
+        .ref("BP001")
         .createdAt(Instant.parse("2022-01-01T01:00:00.00Z"))
         .sendingDate(LocalDate.of(2022, 9, 1))
         .validityDate(LocalDate.of(2022, 10, 3))
@@ -579,9 +562,7 @@ public class TestUtils {
         .paymentType(IN_INSTALMENT)
         .paymentRegulations(List.of(datedPaymentRequest1(), datedPaymentRequest2()))
         .totalPriceWithoutDiscount(8000)
-        .globalDiscount(new InvoiceDiscount()
-            .percentValue(0)
-            .amountValue(0))
+        .globalDiscount(new InvoiceDiscount().percentValue(0).amountValue(0))
         .paymentMethod(UNKNOWN)
         .metadata(Map.of());
   }
@@ -604,7 +585,8 @@ public class TestUtils {
         .archiveStatus(ArchiveStatus.ENABLED)
         .products(List.of(product5()))
         .totalPriceWithVat(1100)
-        .totalVat(100).totalPriceWithoutVat(1000)
+        .totalVat(100)
+        .totalPriceWithoutVat(1000)
         .paymentMethod(UNKNOWN)
         .metadata(Map.of());
   }
@@ -618,27 +600,19 @@ public class TestUtils {
   }
 
   public static CreateAccountInvoiceRelaunchConf createInvoiceRelaunchConf() {
-    return new CreateAccountInvoiceRelaunchConf()
-        .draftRelaunch(2)
-        .unpaidRelaunch(2);
+    return new CreateAccountInvoiceRelaunchConf().draftRelaunch(2).unpaidRelaunch(2);
   }
 
   public static BusinessActivity businessActivity1() {
-    return new BusinessActivity()
-        .id("businessActivityTemplate1_id")
-        .name("IT");
+    return new BusinessActivity().id("businessActivityTemplate1_id").name("IT");
   }
 
   public static BusinessActivity businessActivity2() {
-    return new BusinessActivity()
-        .id("businessActivityTemplate2_id")
-        .name("TECHNOLOGY");
+    return new BusinessActivity().id("businessActivityTemplate2_id").name("TECHNOLOGY");
   }
 
   public static CompanyBusinessActivity companyBusinessActivity() {
-    return new CompanyBusinessActivity()
-        .primary("Boulanger")
-        .secondary("Fromager");
+    return new CompanyBusinessActivity().primary("Boulanger").secondary("Fromager");
   }
 
   public static CompanyInfo companyInfo() {
@@ -685,16 +659,16 @@ public class TestUtils {
 
   public static Session fintectureSession() {
     return Session.builder()
-        .meta(Session.Meta.builder()
-            .code("200")
-            .build())
-        .data(Session.Data.builder()
-            .type("payments")
-            .attributes(Session.Attributes.builder()
-                .paymentScheme("SEPA")
-                .endToEndId("end_to_end_id")
+        .meta(Session.Meta.builder().code("200").build())
+        .data(
+            Session.Data.builder()
+                .type("payments")
+                .attributes(
+                    Session.Attributes.builder()
+                        .paymentScheme("SEPA")
+                        .endToEndId("end_to_end_id")
+                        .build())
                 .build())
-            .build())
         .build();
   }
 
@@ -709,15 +683,14 @@ public class TestUtils {
         .phone(null)
         .address(null)
         .townCode(92002)
-        .rating(new ProspectRating()
-            .value(BigDecimal.valueOf(9.993))
-            .lastEvaluation(Instant.parse("2023-01-01T00:00:00.00Z")));
+        .rating(
+            new ProspectRating()
+                .value(BigDecimal.valueOf(9.993))
+                .lastEvaluation(Instant.parse("2023-01-01T00:00:00.00Z")));
   }
 
   public static List<ProspectStatusHistory> getStatusHistory(ProspectStatus status) {
-    return List.of(new ProspectStatusHistory()
-        .status(status)
-        .updatedAt(defaultInstant()));
+    return List.of(new ProspectStatusHistory().status(status).updatedAt(defaultInstant()));
   }
 
   private static Instant defaultInstant() {
@@ -735,22 +708,15 @@ public class TestUtils {
         .phone("+261340465339")
         .address("30 Rue de la Montagne Sainte-Genevieve")
         .townCode(92002)
-        .rating(new ProspectRating()
-            .value(BigDecimal.valueOf(-1.0))
-            .lastEvaluation(null));
+        .rating(new ProspectRating().value(BigDecimal.valueOf(-1.0)).lastEvaluation(null));
   }
 
   public static GeoPosition geoPosZero() {
-    return GeoPosition.builder()
-        .coordinates(coordinateZero())
-        .build();
+    return GeoPosition.builder().coordinates(coordinateZero()).build();
   }
 
   public static GeoUtils.Coordinate coordinateZero() {
-    return GeoUtils.Coordinate.builder()
-        .latitude(0.0)
-        .longitude(0.0)
-        .build();
+    return GeoUtils.Coordinate.builder().latitude(0.0).longitude(0.0).build();
   }
 
   public static HttpResponse<Object> httpResponseMock(Object body) {
@@ -805,10 +771,7 @@ public class TestUtils {
   }
 
   public static Geojson location() {
-    return new Geojson()
-        .type(GEOJSON_TYPE_POINT)
-        .longitude(1.0)
-        .latitude(23.5);
+    return new Geojson().type(GEOJSON_TYPE_POINT).longitude(1.0).latitude(23.5);
   }
 
   public static ApiClient anApiClient(String token, int serverPort) {
@@ -816,39 +779,36 @@ public class TestUtils {
     client.setScheme("http");
     client.setHost("localhost");
     client.setPort(serverPort);
-    client.setRequestInterceptor(httpRequestBuilder ->
-        httpRequestBuilder.header("Authorization", BEARER_PREFIX + token));
+    client.setRequestInterceptor(
+        httpRequestBuilder -> httpRequestBuilder.header("Authorization", BEARER_PREFIX + token));
     return client;
   }
 
   public static void setUpCognito(CognitoComponent cognitoComponentMock) {
-    when(cognitoComponentMock.getEmailByToken(JOE_DOE_TOKEN))
-        .thenReturn(JOE_EMAIL);
-    when(cognitoComponentMock.getEmailByToken(JANE_DOE_TOKEN))
-        .thenReturn(JANE_EMAIL);
-    when(cognitoComponentMock.getEmailByToken(BERNARD_DOE_TOKEN))
-        .thenReturn(BERNARD_EMAIL);
+    when(cognitoComponentMock.getEmailByToken(JOE_DOE_TOKEN)).thenReturn(JOE_EMAIL);
+    when(cognitoComponentMock.getEmailByToken(JANE_DOE_TOKEN)).thenReturn(JANE_EMAIL);
+    when(cognitoComponentMock.getEmailByToken(BERNARD_DOE_TOKEN)).thenReturn(BERNARD_EMAIL);
   }
 
   public static void setUpS3Conf(S3Conf s3Conf) {
     when(s3Conf.getBucketName()).thenReturn("bpartners");
     when(s3Conf.getEnv()).thenReturn("dev");
-    when(s3Conf.getS3Client()).thenAnswer(invocation -> S3Client.builder()
-            .region(Region.US_EAST_1)
-            .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("test", "test")))
-            .build());
+    when(s3Conf.getS3Client())
+        .thenAnswer(
+            invocation ->
+                S3Client.builder()
+                    .region(Region.US_EAST_1)
+                    .credentialsProvider(
+                        StaticCredentialsProvider.create(
+                            AwsBasicCredentials.create("test", "test")))
+                    .build());
   }
 
   public static void setUpProvider(PrincipalProvider provider) {
-    when(provider.getAuthentication()).thenReturn(
-        new UsernamePasswordAuthenticationToken(
-            new Principal(
-                new app.bpartners.api.model.User(),
-                JOE_DOE_TOKEN
-            ),
-            new Object()
-        )
-    );
+    when(provider.getAuthentication())
+        .thenReturn(
+            new UsernamePasswordAuthenticationToken(
+                new Principal(new app.bpartners.api.model.User(), JOE_DOE_TOKEN), new Object()));
   }
 
   public static void setUpFintectureConf(FintectureConf fintectureConfMock)
@@ -864,51 +824,54 @@ public class TestUtils {
 
   public static void setUpPaymentInitiationRep(FintecturePaymentInitiationRepository repository) {
     when(repository.save(any(FPaymentInitiation.class), any()))
-        .thenAnswer(invocation ->
-            FPaymentRedirection.builder()
-                .meta(FPaymentRedirection.Meta.builder()
-                    .sessionId(SESSION1_ID)
-                    .url("https://connect-v2-sbx.fintecture.com")
+        .thenAnswer(
+            invocation ->
+                FPaymentRedirection.builder()
+                    .meta(
+                        FPaymentRedirection.Meta.builder()
+                            .sessionId(SESSION1_ID)
+                            .url("https://connect-v2-sbx.fintecture.com")
+                            .build())
                     .build())
-                .build()
-        )
-        .thenAnswer(invocation ->
-            FPaymentRedirection.builder()
-                .meta(FPaymentRedirection.Meta.builder()
-                    .sessionId(SESSION2_ID)
-                    .url("https://connect-v2-sbx.fintecture.com")
-                    .build())
-                .build()
-        );
+        .thenAnswer(
+            invocation ->
+                FPaymentRedirection.builder()
+                    .meta(
+                        FPaymentRedirection.Meta.builder()
+                            .sessionId(SESSION2_ID)
+                            .url("https://connect-v2-sbx.fintecture.com")
+                            .build())
+                    .build());
   }
 
   public static void setUpPaymentInfoRepository(FintecturePaymentInfoRepository repository) {
-    when(repository.getPaymentBySessionId(any(String.class)))
-        .thenReturn(fintectureSession());
+    when(repository.getPaymentBySessionId(any(String.class))).thenReturn(fintectureSession());
   }
 
   public static void setUpSendiblueApi(SendinblueApi sendinblueApi) {
-    Attributes attributes = Attributes.builder()
-        .id(0D)
-        .firstName("John")
-        .lastName("Doe")
-        .smsPhoneNumber("+33611223344")
-        .build();
-    when(sendinblueApi.createContact(any())).thenReturn(Contact.builder()
-        .email(VALID_EMAIL)
-        .updateEnabled(true)
-        .listIds(List.of())
-        .smtpBlackListed(List.of())
-        .smsBlackListed(false)
-        .emailBlackListed(false)
-        .attributes(attributes)
-        .build());
+    Attributes attributes =
+        Attributes.builder()
+            .id(0D)
+            .firstName("John")
+            .lastName("Doe")
+            .smsPhoneNumber("+33611223344")
+            .build();
+    when(sendinblueApi.createContact(any()))
+        .thenReturn(
+            Contact.builder()
+                .email(VALID_EMAIL)
+                .updateEnabled(true)
+                .listIds(List.of())
+                .smtpBlackListed(List.of())
+                .smsBlackListed(false)
+                .emailBlackListed(false)
+                .attributes(attributes)
+                .build());
   }
 
   public static void setUpEventBridge(EventBridgeClient eventBridgeClient) {
-    when(eventBridgeClient.putEvents((PutEventsRequest) any())).thenReturn(
-        PutEventsResponse.builder().build()
-    );
+    when(eventBridgeClient.putEvents((PutEventsRequest) any()))
+        .thenReturn(PutEventsResponse.builder().build());
   }
 
   public static void setUpLegalFileRepository(LegalFileRepository legalFileRepositoryMock) {
@@ -940,9 +903,7 @@ public class TestUtils {
   }
 
   public static AccountHolder joeDoeAccountHolder() {
-    return AccountHolder.builder()
-        .id(JOE_DOE_ACCOUNT_HOLDER_ID)
-        .build();
+    return AccountHolder.builder().id(JOE_DOE_ACCOUNT_HOLDER_ID).build();
   }
 
   public static HAccountHolder accountHolderEntity1() {
@@ -984,9 +945,8 @@ public class TestUtils {
   public static void assertThrowsForbiddenException(Executable executable) {
     ApiException apiException = assertThrows(ApiException.class, executable);
     String responseBody = apiException.getResponseBody();
-    assertEquals("{"
-        + "\"type\":\"403 FORBIDDEN\","
-        + "\"message\":\"Access is denied\"}", responseBody);
+    assertEquals(
+        "{" + "\"type\":\"403 FORBIDDEN\"," + "\"message\":\"Access is denied\"}", responseBody);
   }
 
   public static int findAvailableTcpPort() {
@@ -1028,8 +988,8 @@ public class TestUtils {
       String accountId, List<app.bpartners.api.endpoint.rest.model.Account> accounts) {
     return accounts.stream()
         .filter(account -> account.getId().equals(accountId))
-        .findFirst().orElseThrow(() -> new NotFoundException("Account(id=" + accountId + ") not "
-            + "found"));
+        .findFirst()
+        .orElseThrow(() -> new NotFoundException("Account(id=" + accountId + ") not " + "found"));
   }
 
   public static boolean isAfterOrEquals(Instant before, Instant after) {

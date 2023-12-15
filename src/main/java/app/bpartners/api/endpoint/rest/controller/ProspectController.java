@@ -1,5 +1,8 @@
 package app.bpartners.api.endpoint.rest.controller;
 
+import static app.bpartners.api.endpoint.rest.validator.ProspectRestValidator.XLSX_FILE;
+import static app.bpartners.api.endpoint.rest.validator.ProspectRestValidator.XLS_FILE;
+
 import app.bpartners.api.endpoint.rest.mapper.ProspectJobRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.ProspectRestMapper;
 import app.bpartners.api.endpoint.rest.model.EvaluatedProspect;
@@ -43,9 +46,6 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import static app.bpartners.api.endpoint.rest.validator.ProspectRestValidator.XLSX_FILE;
-import static app.bpartners.api.endpoint.rest.validator.ProspectRestValidator.XLS_FILE;
-
 @RestController
 @AllArgsConstructor
 @Slf4j
@@ -63,8 +63,10 @@ public class ProspectController {
     try {
       double minCustomerRating = Double.parseDouble(headers.getFirst(MIN_CUSTOMER_RATING));
       if (minCustomerRating < 0 || minCustomerRating > 10) {
-        throw new BadRequestException("Minimum customer rating value must be between 1 and 10,"
-            + " otherwise given is " + minCustomerRating);
+        throw new BadRequestException(
+            "Minimum customer rating value must be between 1 and 10,"
+                + " otherwise given is "
+                + minCustomerRating);
       }
       return minCustomerRating;
     } catch (NumberFormatException | NullPointerException e) {
@@ -76,8 +78,10 @@ public class ProspectController {
     try {
       double minProspectRating = Double.valueOf(headers.getFirst(MIN_PROSPECT_RATING));
       if (minProspectRating < 0 || minProspectRating > 10) {
-        throw new BadRequestException("Minimum prospect rating value must be between 1 and 10,"
-            + " otherwise given is " + minProspectRating);
+        throw new BadRequestException(
+            "Minimum prospect rating value must be between 1 and 10,"
+                + " otherwise given is "
+                + minProspectRating);
       }
       return minProspectRating;
     } catch (NumberFormatException | NullPointerException e) {
@@ -102,48 +106,47 @@ public class ProspectController {
   }
 
   @PostMapping("/accountHolders/{ahId}/prospects/import")
-  public List<Prospect> importProspects(@PathVariable String ahId,
-                                        @RequestBody ImportProspect importProspect) {
+  public List<Prospect> importProspects(
+      @PathVariable String ahId, @RequestBody ImportProspect importProspect) {
     validator.accept(importProspect);
     SheetProperties sheetProperties = importProspect.getSpreadsheetImport();
-    return service.importProspectsFromSpreadsheet(
+    return service
+        .importProspectsFromSpreadsheet(
             AuthProvider.getAuthenticatedUserId(),
             sheetProperties.getSpreadsheetName(),
             sheetProperties.getSheetName(),
             sheetProperties.getRanges().getMin(),
-            sheetProperties.getRanges().getMax()).stream()
+            sheetProperties.getRanges().getMax())
+        .stream()
         .map(mapper::toRest)
         .collect(Collectors.toList());
   }
 
   @PutMapping("/accountHolders/{ahId}/prospects/{id}/prospectConversion")
   public List<ProspectConversion> convertProspect(
-      @PathVariable("ahId") String accountHolderId, @PathVariable("id") String prospectId,
+      @PathVariable("ahId") String accountHolderId,
+      @PathVariable("id") String prospectId,
       @RequestBody List<ProspectConversion> prospectConversion) {
-    //TODO: what should we do here ?
+    // TODO: what should we do here ?
     throw new NotImplementedException("prospect conversion not implemented yet");
   }
 
   @GetMapping("/accountHolders/{ahId}/prospects")
-  public List<Prospect> getProspects(@PathVariable("ahId") String accountHolderId,
-                                     @RequestParam(name = "name", required = false)
-                                     String name,
-                                     @RequestParam(name = "contactNature", required = false)
-                                     String contactNature) {
+  public List<Prospect> getProspects(
+      @PathVariable("ahId") String accountHolderId,
+      @RequestParam(name = "name", required = false) String name,
+      @RequestParam(name = "contactNature", required = false) String contactNature) {
     return service.getByCriteria(accountHolderId, name, contactNature).stream()
         .map(mapper::toRest)
         .toList();
   }
 
   @PutMapping("/accountHolders/{ahId}/prospects")
-  public List<Prospect> crupdateProspects(@PathVariable("ahId") String accountHolderId,
-                                          @RequestBody List<UpdateProspect> prospects) {
-    List<app.bpartners.api.model.prospect.Prospect> prospectList = prospects.stream()
-        .map(prospect -> mapper.toDomain(accountHolderId, prospect))
-        .toList();
-    return service.saveAll(prospectList).stream()
-        .map(mapper::toRest)
-        .toList();
+  public List<Prospect> crupdateProspects(
+      @PathVariable("ahId") String accountHolderId, @RequestBody List<UpdateProspect> prospects) {
+    List<app.bpartners.api.model.prospect.Prospect> prospectList =
+        prospects.stream().map(prospect -> mapper.toDomain(accountHolderId, prospect)).toList();
+    return service.saveAll(prospectList).stream().map(mapper::toRest).toList();
   }
 
   @PostMapping("/accountHolders/{ahId}/prospects/evaluations")
@@ -159,15 +162,18 @@ public class ProspectController {
     SheetProperties sheetProperties = prospectEvaluation.getSheetProperties();
     SheetRange range = sheetProperties.getRanges();
 
-    List<ProspectEval> prospectEvaluations = service.readEvaluationsFromSheets(
-        AuthProvider.getAuthenticatedUserId(),
-        prospectEvaluation.getArtisanOwner(),
-        sheetProperties.getSpreadsheetName(),
-        sheetProperties.getSheetName(),
-        range.getMin(), range.getMax());
+    List<ProspectEval> prospectEvaluations =
+        service.readEvaluationsFromSheets(
+            AuthProvider.getAuthenticatedUserId(),
+            prospectEvaluation.getArtisanOwner(),
+            sheetProperties.getSpreadsheetName(),
+            sheetProperties.getSheetName(),
+            range.getMin(),
+            range.getMax());
 
     List<EvaluatedProspect> evaluatedProspects =
-        service.evaluateAndSaveProspects(
+        service
+            .evaluateAndSaveProspects(
                 accountHolderId,
                 null,
                 prospectEvaluations,
@@ -178,8 +184,7 @@ public class ProspectController {
             .map(mapper::toRest)
             .collect(Collectors.toList());
     if (isExcelFile) {
-      byte[] excelFile =
-          ProspectEvalUtils.convertIntoExcel(null, evaluatedProspects);
+      byte[] excelFile = ProspectEvalUtils.convertIntoExcel(null, evaluatedProspects);
       return new ResponseEntity<>(excelFile, HttpStatus.OK);
     }
     return new ResponseEntity<>(evaluatedProspects, HttpStatus.OK);
@@ -201,56 +206,59 @@ public class ProspectController {
     List<ProspectEval> prospectEvals =
         prospectUtils.convertFromExcel(new ByteArrayInputStream(toEvaluate));
     List<EvaluatedProspect> evaluatedProspects =
-        service.evaluateAndSaveProspects(
+        service
+            .evaluateAndSaveProspects(
                 accountHolderId,
                 null,
                 prospectEvals,
                 interventionOption,
-                minProspectRating, minCustomerRating)
+                minProspectRating,
+                minCustomerRating)
             .stream()
             .map(mapper::toRest)
             .collect(Collectors.toList());
     if (isExcelFile) {
       return new ResponseEntity<>(
-          ProspectEvalUtils.convertIntoExcel(new ByteArrayInputStream(toEvaluate),
-              evaluatedProspects),
+          ProspectEvalUtils.convertIntoExcel(
+              new ByteArrayInputStream(toEvaluate), evaluatedProspects),
           HttpStatus.OK);
     }
     return new ResponseEntity<>(evaluatedProspects, HttpStatus.OK);
   }
 
   @PutMapping("/accountHolders/{ahId}/prospects/{id}")
-  public Prospect updateProspectsStatus(@PathVariable("ahId") String accountHolderId,
-                                        @PathVariable("id") String prospectId,
-                                        @RequestBody ExtendedProspectStatus toUpdate) {
+  public Prospect updateProspectsStatus(
+      @PathVariable("ahId") String accountHolderId,
+      @PathVariable("id") String prospectId,
+      @RequestBody ExtendedProspectStatus toUpdate) {
     app.bpartners.api.model.prospect.Prospect prospect = mapper.toDomain(accountHolderId, toUpdate);
     return mapper.toRest(service.update(prospect));
   }
 
   @GetMapping("/accountHolders/{ahId}/prospects/evaluationJobs")
-  public List<ProspectEvaluationJobInfo> getProspectEvaluationJobs(@PathVariable String ahId,
-                                                                   @RequestParam(name = "statuses", required = false)
-                                                                   List<JobStatusValue> statuses) {
+  public List<ProspectEvaluationJobInfo> getProspectEvaluationJobs(
+      @PathVariable String ahId,
+      @RequestParam(name = "statuses", required = false) List<JobStatusValue> statuses) {
     return service.getEvaluationJobs(ahId, statuses).stream()
         .map(mapper::toRest)
         .collect(Collectors.toList());
   }
 
   @GetMapping("/accountHolders/{ahId}/prospects/evaluationJobs/{jId}")
-  public ProspectEvaluationJobDetails getProspectEvaluationJobDetailsById(@PathVariable String ahId,
-                                                                          @PathVariable
-                                                                          String jId) {
+  public ProspectEvaluationJobDetails getProspectEvaluationJobDetailsById(
+      @PathVariable String ahId, @PathVariable String jId) {
     return mapper.toRestResult(service.getEvaluationJob(jId));
   }
 
   @PutMapping("/accountHolders/{ahId}/prospects/evaluationJobs")
-  public List<ProspectEvaluationJobDetails> runProspectEvaluationJobs(@PathVariable String ahId,
-                                                                      @RequestBody
-                                                                      List<PutProspectEvaluationJob> evaluationJobs) {
-    List<ProspectEvaluationJobRunner> jobRunners = evaluationJobs.stream()
-        .map(job -> jobRestMapper.toDomain(ahId, job))
-        .collect(Collectors.toList());
-    return service.runEvaluationJobs(AuthProvider.getAuthenticatedUserId(), ahId, jobRunners)
+  public List<ProspectEvaluationJobDetails> runProspectEvaluationJobs(
+      @PathVariable String ahId, @RequestBody List<PutProspectEvaluationJob> evaluationJobs) {
+    List<ProspectEvaluationJobRunner> jobRunners =
+        evaluationJobs.stream()
+            .map(job -> jobRestMapper.toDomain(ahId, job))
+            .collect(Collectors.toList());
+    return service
+        .runEvaluationJobs(AuthProvider.getAuthenticatedUserId(), ahId, jobRunners)
         .stream()
         .map(mapper::toRestResult)
         .collect(Collectors.toList());

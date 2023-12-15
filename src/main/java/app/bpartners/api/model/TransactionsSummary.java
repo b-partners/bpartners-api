@@ -35,7 +35,6 @@ public class TransactionsSummary {
   }
 
   public Integer getAnnualCashFlow() {
-    return summary.isEmpty() ? 0
-        : summary.get(summary.size() - 1).getCashFlow().getCentsRoundUp();
+    return summary.isEmpty() ? 0 : summary.get(summary.size() - 1).getCashFlow().getCentsRoundUp();
   }
 }

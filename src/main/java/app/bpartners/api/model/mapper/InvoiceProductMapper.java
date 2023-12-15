@@ -1,12 +1,12 @@
 package app.bpartners.api.model.mapper;
 
+import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
+
 import app.bpartners.api.endpoint.rest.model.ProductStatus;
 import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.InvoiceProduct;
 import app.bpartners.api.repository.jpa.model.HInvoiceProduct;
 import org.springframework.stereotype.Component;
-
-import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 
 @Component
 public class InvoiceProductMapper {

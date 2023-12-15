@@ -1,10 +1,10 @@
 package app.bpartners.api.endpoint.rest.validator;
 
+import static app.bpartners.api.endpoint.rest.validator.RedirectionValidator.verifyRedirectionStatusUrls;
+
 import app.bpartners.api.endpoint.rest.model.OnboardingInitiation;
 import java.util.function.Consumer;
 import org.springframework.stereotype.Component;
-
-import static app.bpartners.api.endpoint.rest.validator.RedirectionValidator.verifyRedirectionStatusUrls;
 
 @Component
 public class OnboardingInitiationValidator implements Consumer<OnboardingInitiation> {
@@ -14,5 +14,4 @@ public class OnboardingInitiationValidator implements Consumer<OnboardingInitiat
     StringBuilder exceptionMessageBuilder = new StringBuilder();
     verifyRedirectionStatusUrls(exceptionMessageBuilder, initiation.getRedirectionStatusUrls());
   }
-
 }

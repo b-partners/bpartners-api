@@ -21,7 +21,7 @@ public class ProspectJobValidator implements Consumer<PutProspectEvaluationJob> 
         exceptionMsgBuilder.append(
             "Both EventProspectConversion and SpreadSheetEvaluation can not be null. ");
       }
-      //TODO: add other EventProspectConversion and SpreadSheetEvaluation attributes validation
+      // TODO: add other EventProspectConversion and SpreadSheetEvaluation attributes validation
     }
     String exceptionMsg = exceptionMsgBuilder.toString();
     if (!exceptionMsg.isEmpty()) {

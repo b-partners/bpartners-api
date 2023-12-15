@@ -1,6 +1,13 @@
 package app.bpartners.api.service.event;
 
-import app.bpartners.api.endpoint.event.EventConf;
+import static app.bpartners.api.endpoint.rest.model.FileType.ATTACHMENT;
+import static app.bpartners.api.endpoint.rest.model.FileType.LOGO;
+import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
+import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
+import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
+import static app.bpartners.api.service.event.InvoiceCrupdatedService.DRAFT_TEMPLATE;
+import static app.bpartners.api.service.event.InvoiceCrupdatedService.INVOICE_TEMPLATE;
+
 import app.bpartners.api.endpoint.event.SesConf;
 import app.bpartners.api.endpoint.event.gen.InvoiceRelaunchSaved;
 import app.bpartners.api.model.AccountHolder;
@@ -20,14 +27,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
-
-import static app.bpartners.api.endpoint.rest.model.FileType.ATTACHMENT;
-import static app.bpartners.api.endpoint.rest.model.FileType.LOGO;
-import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
-import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
-import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
-import static app.bpartners.api.service.event.InvoiceCrupdatedService.DRAFT_TEMPLATE;
-import static app.bpartners.api.service.event.InvoiceCrupdatedService.INVOICE_TEMPLATE;
 
 @Service
 @AllArgsConstructor
@@ -51,7 +50,8 @@ public class InvoiceRelaunchSavedService implements Consumer<InvoiceRelaunchSave
     String logoFileId = invoiceRelaunchSaved.getLogoFileId();
     List<Attachment> attachments = new ArrayList<>(invoiceRelaunchSaved.getAttachments());
 
-    relaunchInvoiceAction(recipient,
+    relaunchInvoiceAction(
+        recipient,
         concerned,
         sesConf.getAdminEmail(),
         subject,
@@ -66,55 +66,44 @@ public class InvoiceRelaunchSavedService implements Consumer<InvoiceRelaunchSave
         sesService);
   }
 
-  public static void relaunchInvoiceAction(String recipient,
-                                           String concerned,
-                                           String invisibleRecipient,
-                                           String subject,
-                                           String htmlBody,
-                                           String attachmentName,
-                                           List<Attachment> attachments,
-                                           Invoice invoice,
-                                           AccountHolder accountHolder,
-                                           String logoFileId,
-                                           FileService fileService,
-                                           InvoicePdfUtils pdfUtils,
-                                           SesService service) {
-    List<byte[]> logoFiles = fileService.downloadOptionalFile(
-        LOGO, invoice.getUser().getId(), logoFileId);
-    byte[] logoAsBytes = logoFiles.isEmpty()
-        ? new byte[0]
-        : logoFiles.get(0);
+  public static void relaunchInvoiceAction(
+      String recipient,
+      String concerned,
+      String invisibleRecipient,
+      String subject,
+      String htmlBody,
+      String attachmentName,
+      List<Attachment> attachments,
+      Invoice invoice,
+      AccountHolder accountHolder,
+      String logoFileId,
+      FileService fileService,
+      InvoicePdfUtils pdfUtils,
+      SesService service) {
+    List<byte[]> logoFiles =
+        fileService.downloadOptionalFile(LOGO, invoice.getUser().getId(), logoFileId);
+    byte[] logoAsBytes = logoFiles.isEmpty() ? new byte[0] : logoFiles.get(0);
 
     byte[] attachmentAsBytes =
         invoice.getStatus().equals(CONFIRMED) || invoice.getStatus().equals(PAID)
-            ? pdfUtils.generatePdf(invoice, accountHolder, logoAsBytes,
-            INVOICE_TEMPLATE)
-            : pdfUtils.generatePdf(invoice, accountHolder, logoAsBytes,
-            DRAFT_TEMPLATE);
-    Attachment attachment = Attachment.builder()
-        .name(attachmentName)
-        .content(attachmentAsBytes)
-        .build();
-    attachments.forEach(contentlessAttachment -> {
-      if (contentlessAttachment.getContent() == null) {
-        byte[] content = fileService.downloadFile(
-            ATTACHMENT,
-            invoice.getUser().getId(),
-            contentlessAttachment.getFileId()
-        );
-        contentlessAttachment.setContent(content);
-      }
-    });
+            ? pdfUtils.generatePdf(invoice, accountHolder, logoAsBytes, INVOICE_TEMPLATE)
+            : pdfUtils.generatePdf(invoice, accountHolder, logoAsBytes, DRAFT_TEMPLATE);
+    Attachment attachment =
+        Attachment.builder().name(attachmentName).content(attachmentAsBytes).build();
+    attachments.forEach(
+        contentlessAttachment -> {
+          if (contentlessAttachment.getContent() == null) {
+            byte[] content =
+                fileService.downloadFile(
+                    ATTACHMENT, invoice.getUser().getId(), contentlessAttachment.getFileId());
+            contentlessAttachment.setContent(content);
+          }
+        });
     attachments.add(attachment);
     try {
-      service.sendEmail(recipient,
-          concerned,
-          subject,
-          htmlBody,
-          attachments,
-          invisibleRecipient);
-      log.info("Email sent from "
-          + invoice.getActualAccount().describeMinInfos() + " to " + recipient);
+      service.sendEmail(recipient, concerned, subject, htmlBody, attachments, invisibleRecipient);
+      log.info(
+          "Email sent from " + invoice.getActualAccount().describeMinInfos() + " to " + recipient);
     } catch (MessagingException | IOException e) {
       log.error("Email not sent : " + e.getMessage());
       throw new ApiException(SERVER_EXCEPTION, e);

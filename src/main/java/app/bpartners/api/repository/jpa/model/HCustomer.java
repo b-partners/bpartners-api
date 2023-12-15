@@ -30,8 +30,7 @@ import org.hibernate.annotations.TypeDef;
 @Builder(toBuilder = true)
 public class HCustomer {
   public static final String UPDATED_AT_PROPERTY = "updatedAt";
-  @Id
-  private String id;
+  @Id private String id;
   private String idUser;
   private String name;
   private String firstName;
@@ -46,22 +45,24 @@ public class HCustomer {
   private String comment;
   private Double latitude;
   private Double longitude;
+
   @Type(type = "pgsql_enum")
   @Enumerated(EnumType.STRING)
   private CustomerType customerType;
   @Type(type = "pgsql_enum")
   @Enumerated(EnumType.STRING)
   private CustomerStatus status;
-  @Transient
-  private boolean recentlyAdded;
+
+  @Transient private boolean recentlyAdded;
+
   @CreationTimestamp
   @Column(updatable = false)
   private Instant createdAt;
+
   private Instant updatedAt;
   private String latestFullAddress;
 
   public String getFullAddress() {
     return address + " " + zipCode + " " + city + " " + country;
   }
-
 }

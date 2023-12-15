@@ -20,9 +20,17 @@ public interface CustomerRepository {
   Optional<Customer> findOptionalById(String id);
 
   List<Customer> findByIdUserAndCriteria(
-      String accountId, String firstName, String lastName, String email,
-      String phoneNumber, String city, String country,
-      List<String> keywords, CustomerStatus status, int page, int pageSize);
+      String accountId,
+      String firstName,
+      String lastName,
+      String email,
+      String phoneNumber,
+      String city,
+      String country,
+      List<String> keywords,
+      CustomerStatus status,
+      int page,
+      int pageSize);
 
   List<Customer> updateCustomersStatuses(List<UpdateCustomerStatus> toUpdate);
 

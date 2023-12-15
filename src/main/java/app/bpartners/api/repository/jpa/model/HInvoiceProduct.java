@@ -1,5 +1,7 @@
 package app.bpartners.api.repository.jpa.model;
 
+import static javax.persistence.GenerationType.IDENTITY;
+
 import app.bpartners.api.endpoint.rest.model.ProductStatus;
 import java.io.Serializable;
 import javax.persistence.Column;
@@ -18,8 +20,6 @@ import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.annotations.Type;
 
-import static javax.persistence.GenerationType.IDENTITY;
-
 @Entity
 @Table(name = "\"invoice_product\"")
 @Getter
@@ -33,12 +33,15 @@ public class HInvoiceProduct implements Serializable {
   @Id
   @GeneratedValue(strategy = IDENTITY)
   private String id;
+
   @Column(name = "id_invoice")
   private String idInvoice;
+
   private String description;
   private Integer quantity;
   private String unitPrice;
   private String vatPercent;
+
   @Type(type = "pgsql_enum")
   @Enumerated(EnumType.STRING)
   private ProductStatus status;

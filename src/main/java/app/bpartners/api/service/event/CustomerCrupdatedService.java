@@ -62,10 +62,10 @@ public class CustomerCrupdatedService implements Consumer<CustomerCrupdated> {
       }
     }
 
-    String
-        htmlBody = parseTemplateResolver(CUSTOMER_CRUPDATED_MAIL,
-        configureCustomerContext(customerCrupdated.getUser(), updatedCustomer,
-            type));
+    String htmlBody =
+        parseTemplateResolver(
+            CUSTOMER_CRUPDATED_MAIL,
+            configureCustomerContext(customerCrupdated.getUser(), updatedCustomer, type));
     try {
       service.sendEmail(recipient, null, subject, htmlBody, attachments);
       log.info("Email sent to {} to notify {} update", recipient, updatedCustomer.describe());
@@ -74,8 +74,8 @@ public class CustomerCrupdatedService implements Consumer<CustomerCrupdated> {
     }
   }
 
-  private Context configureCustomerContext(User user, Customer customer,
-                                           CustomerCrupdated.Type type) {
+  private Context configureCustomerContext(
+      User user, Customer customer, CustomerCrupdated.Type type) {
     Context context = new Context();
     context.setVariable("type", type.toString());
     context.setVariable("user", user);

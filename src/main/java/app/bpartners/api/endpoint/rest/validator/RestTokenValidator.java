@@ -1,11 +1,11 @@
 package app.bpartners.api.endpoint.rest.validator;
 
+import static app.bpartners.api.endpoint.rest.validator.RedirectionValidator.verifyRedirectionStatusUrls;
+
 import app.bpartners.api.endpoint.rest.model.CreateToken;
 import app.bpartners.api.model.exception.BadRequestException;
 import java.util.function.Consumer;
 import org.springframework.stereotype.Component;
-
-import static app.bpartners.api.endpoint.rest.validator.RedirectionValidator.verifyRedirectionStatusUrls;
 
 @Component
 public class RestTokenValidator implements Consumer<CreateToken> {

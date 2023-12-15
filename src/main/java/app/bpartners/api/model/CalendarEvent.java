@@ -28,6 +28,6 @@ public class CalendarEvent {
   private ZonedDateTime from;
   private ZonedDateTime to;
   private Instant updatedAt;
-  private String eteId; //TODO: deprecated
+  private String eteId; // TODO: deprecated
   private boolean newEvent = false;
 }

@@ -1,5 +1,7 @@
 package app.bpartners.api.endpoint.rest.security;
 
+import static org.springframework.http.HttpMethod.GET;
+
 import java.io.IOException;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -11,7 +13,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
-import static org.springframework.http.HttpMethod.GET;
 
 @Slf4j
 public class BearerAuthFilter extends AbstractAuthenticationProcessingFilter {
@@ -39,8 +40,10 @@ public class BearerAuthFilter extends AbstractAuthenticationProcessingFilter {
 
   @Override
   protected void successfulAuthentication(
-      HttpServletRequest request, HttpServletResponse response,
-      FilterChain chain, Authentication authenticated)
+      HttpServletRequest request,
+      HttpServletResponse response,
+      FilterChain chain,
+      Authentication authenticated)
       throws IOException, ServletException {
     super.successfulAuthentication(request, response, chain, authenticated);
     chain.doFilter(request, response);

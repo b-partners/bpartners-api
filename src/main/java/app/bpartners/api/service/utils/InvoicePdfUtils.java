@@ -1,5 +1,9 @@
 package app.bpartners.api.service.utils;
 
+import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
+import static app.bpartners.api.service.utils.FileUtils.base64Image;
+import static app.bpartners.api.service.utils.QrCodeUtils.generateQrCode;
+
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.Invoice;
@@ -12,14 +16,10 @@ import org.thymeleaf.templatemode.TemplateMode;
 import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
 import org.xhtmlrenderer.pdf.ITextRenderer;
 
-import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
-import static app.bpartners.api.service.utils.FileUtils.base64Image;
-import static app.bpartners.api.service.utils.QrCodeUtils.generateQrCode;
-
 public class InvoicePdfUtils {
 
-  public byte[] generatePdf(Invoice invoice, AccountHolder accountHolder,
-                            byte[] logoAsBytes, String template) {
+  public byte[] generatePdf(
+      Invoice invoice, AccountHolder accountHolder, byte[] logoAsBytes, String template) {
     ITextRenderer renderer = new ITextRenderer();
     loadStyle(renderer, invoice, accountHolder, logoAsBytes, template);
     renderer.layout();
@@ -33,10 +33,14 @@ public class InvoicePdfUtils {
     return outputStream.toByteArray();
   }
 
-  private void loadStyle(ITextRenderer renderer, Invoice invoice, AccountHolder accountHolder,
-                         byte[] logoAsBytes, String template) {
-    renderer.setDocumentFromString(parseInvoiceTemplateToString(invoice, accountHolder,
-        logoAsBytes, template));
+  private void loadStyle(
+      ITextRenderer renderer,
+      Invoice invoice,
+      AccountHolder accountHolder,
+      byte[] logoAsBytes,
+      String template) {
+    renderer.setDocumentFromString(
+        parseInvoiceTemplateToString(invoice, accountHolder, logoAsBytes, template));
   }
 
   private String parseInvoiceTemplateToString(
@@ -46,9 +50,8 @@ public class InvoicePdfUtils {
     return templateEngine.process(template, context);
   }
 
-
-  private Context configureContext(Invoice invoice, AccountHolder accountHolder,
-                                   byte[] logoAsBytes) {
+  private Context configureContext(
+      Invoice invoice, AccountHolder accountHolder, byte[] logoAsBytes) {
     Context context = new Context();
     Account account = invoice.getActualAccount();
 

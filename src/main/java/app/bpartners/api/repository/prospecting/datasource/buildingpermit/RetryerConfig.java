@@ -25,18 +25,18 @@ public class RetryerConfig {
     backOffPolicy.setMultiplier(2.0);
     retryTemplate.setBackOffPolicy(backOffPolicy);
 
-    retryTemplate.registerListener(new RetryListenerSupport() {
-      @Override
-      public <T, E extends Throwable> void onError(RetryContext context,
-                                                   RetryCallback<T, E> callback,
-                                                   Throwable throwable) {
-        if (throwable.getMessage().contains("<!doctype html>")) {
-          super.onError(context, callback, throwable);
-        } else {
-          context.setExhaustedOnly();
-        }
-      }
-    });
+    retryTemplate.registerListener(
+        new RetryListenerSupport() {
+          @Override
+          public <T, E extends Throwable> void onError(
+              RetryContext context, RetryCallback<T, E> callback, Throwable throwable) {
+            if (throwable.getMessage().contains("<!doctype html>")) {
+              super.onError(context, callback, throwable);
+            } else {
+              context.setExhaustedOnly();
+            }
+          }
+        });
 
     return retryTemplate;
   }

@@ -1,6 +1,5 @@
 package app.bpartners.api.repository;
 
-
 import app.bpartners.api.endpoint.rest.model.OrderDirection;
 import app.bpartners.api.endpoint.rest.model.ProductStatus;
 import app.bpartners.api.endpoint.rest.model.UpdateProductStatus;
@@ -28,4 +27,3 @@ public interface ProductRepository {
 
   Product findById(String id);
 }
-

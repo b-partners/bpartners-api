@@ -32,12 +32,15 @@ public class HProduct {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private String id;
+
   private String idUser;
   private String description;
   private String unitPrice;
   private String vatPercent;
+
   @Column(name = "created_datetime")
   private Instant createdAt;
+
   @Type(type = "pgsql_enum")
   @Enumerated(EnumType.STRING)
   private ProductStatus status;

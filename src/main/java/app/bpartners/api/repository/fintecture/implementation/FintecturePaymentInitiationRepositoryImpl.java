@@ -1,22 +1,5 @@
 package app.bpartners.api.repository.fintecture.implementation;
 
-import app.bpartners.api.manager.ProjectTokenManager;
-import app.bpartners.api.model.exception.ApiException;
-import app.bpartners.api.repository.fintecture.FintectureConf;
-import app.bpartners.api.repository.fintecture.FintecturePaymentInitiationRepository;
-import app.bpartners.api.repository.fintecture.model.FPaymentInitiation;
-import app.bpartners.api.repository.fintecture.model.FPaymentRedirection;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Repository;
-
-import java.io.IOException;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 import static app.bpartners.api.repository.fintecture.implementation.utils.FintecturePaymentUtils.ACCEPT;
 import static app.bpartners.api.repository.fintecture.implementation.utils.FintecturePaymentUtils.APPLICATION_JSON;
@@ -32,17 +15,33 @@ import static app.bpartners.api.service.utils.SecurityUtils.BEARER_PREFIX;
 import static java.util.UUID.randomUUID;
 import static org.apache.tika.metadata.HttpHeaders.CONTENT_TYPE;
 
+import app.bpartners.api.manager.ProjectTokenManager;
+import app.bpartners.api.model.exception.ApiException;
+import app.bpartners.api.repository.fintecture.FintectureConf;
+import app.bpartners.api.repository.fintecture.FintecturePaymentInitiationRepository;
+import app.bpartners.api.repository.fintecture.model.FPaymentInitiation;
+import app.bpartners.api.repository.fintecture.model.FPaymentRedirection;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Repository;
+
 @Slf4j
 @Repository
-public class FintecturePaymentInitiationRepositoryImpl implements
-    FintecturePaymentInitiationRepository {
+public class FintecturePaymentInitiationRepositoryImpl
+    implements FintecturePaymentInitiationRepository {
   private final FintectureConf fintectureConf;
   private final ProjectTokenManager tokenManager;
   private final ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
   private HttpClient httpClient;
 
-  public FintecturePaymentInitiationRepositoryImpl(FintectureConf fintectureConf,
-                                                   ProjectTokenManager tokenManager) {
+  public FintecturePaymentInitiationRepositoryImpl(
+      FintectureConf fintectureConf, ProjectTokenManager tokenManager) {
     this.fintectureConf = fintectureConf;
     this.tokenManager = tokenManager;
     httpClient = HttpClient.newBuilder().build();
@@ -61,25 +60,28 @@ public class FintecturePaymentInitiationRepositoryImpl implements
     String requestId = String.valueOf(randomUUID());
     String digest = getDigest(payload);
     String date = getParsedDate();
-    var request = HttpRequest.newBuilder()
-        .uri(new URI(fintectureConf.getRequestToPayUrl() + urlParams))
-        .header(CONTENT_TYPE, APPLICATION_JSON)
-        .header(ACCEPT, APPLICATION_JSON)
-        .header(REQUEST_ID, requestId)
-        .header(LANGUAGE, "fr")
-        .header("digest", digest)
-        .header(DATE, date)
-        .header(SIGNATURE,
-            getHeaderSignatureWithDigest(fintectureConf, requestId, digest, date, urlParams))
-        .header(AUTHORIZATION, bearerToken())
-        .POST(HttpRequest.BodyPublishers.ofString(payload))
-        .build();
+    var request =
+        HttpRequest.newBuilder()
+            .uri(new URI(fintectureConf.getRequestToPayUrl() + urlParams))
+            .header(CONTENT_TYPE, APPLICATION_JSON)
+            .header(ACCEPT, APPLICATION_JSON)
+            .header(REQUEST_ID, requestId)
+            .header(LANGUAGE, "fr")
+            .header("digest", digest)
+            .header(DATE, date)
+            .header(
+                SIGNATURE,
+                getHeaderSignatureWithDigest(fintectureConf, requestId, digest, date, urlParams))
+            .header(AUTHORIZATION, bearerToken())
+            .POST(HttpRequest.BodyPublishers.ofString(payload))
+            .build();
     try {
       return sendPaymentInitRequest(request);
     } catch (IOException e) {
       log.warn(
-          "[Fintecture] Payment was not initiated because of {}."
-              + " Payload was {}", e.getMessage(), payload);
+          "[Fintecture] Payment was not initiated because of {}." + " Payload was {}",
+          e.getMessage(),
+          payload);
       try {
         return sendPaymentInitRequest(request);
       } catch (IOException | InterruptedException ex) {
@@ -89,8 +91,9 @@ public class FintecturePaymentInitiationRepositoryImpl implements
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       log.warn(
-          "[Fintecture] Payment was not initiated because of {}."
-              + " Payload was {}", e.getMessage(), payload);
+          "[Fintecture] Payment was not initiated because of {}." + " Payload was {}",
+          e.getMessage(),
+          payload);
       throw new ApiException(SERVER_EXCEPTION, e);
     }
   }
@@ -101,7 +104,7 @@ public class FintecturePaymentInitiationRepositoryImpl implements
     var redirectionObj = objectMapper.readValue(response.body(), FPaymentRedirection.class);
     if (redirectionObj.getMeta() == null
         || redirectionObj.getMeta().getStatus() != 200
-        && redirectionObj.getMeta().getStatus() != 201) {
+            && redirectionObj.getMeta().getStatus() != 201) {
       log.warn("Error from Fintecture : {}", response.body());
       return null;
     }

@@ -22,10 +22,7 @@ public interface InvoiceJpaRepository extends JpaRepository<HInvoice, String> {
       Pageable pageable);
 
   List<HInvoice> findAllByIdUserAndArchiveStatusAndTitleContainingIgnoreCase(
-      String idUser,
-      ArchiveStatus archiveStatus,
-      String title,
-      Pageable pageable);
+      String idUser, ArchiveStatus archiveStatus, String title, Pageable pageable);
 
   List<HInvoice> findByIdUserAndRef(String idAccount, String ref);
 

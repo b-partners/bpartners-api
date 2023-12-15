@@ -1,5 +1,9 @@
 package app.bpartners.api.service;
 
+import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
+import static app.bpartners.api.service.utils.URLUtils.extractURLParams;
+import static app.bpartners.api.service.utils.URLUtils.extractURLPath;
+
 import app.bpartners.api.endpoint.rest.model.CalendarAuth;
 import app.bpartners.api.endpoint.rest.model.CalendarConsentInit;
 import app.bpartners.api.endpoint.rest.model.CalendarPermission;
@@ -29,10 +33,6 @@ import java.util.List;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
-import static app.bpartners.api.service.utils.URLUtils.extractURLParams;
-import static app.bpartners.api.service.utils.URLUtils.extractURLPath;
-
 @Service
 @AllArgsConstructor
 public class CalendarService {
@@ -54,14 +54,17 @@ public class CalendarService {
 
     List<String> supportedRedirectUris = calendarConf().getRedirectUris();
     if (!supportedRedirectUris.contains(extractedUrl)) {
-      throw new BadRequestException("Redirect URI [" + redirectUrl + "] is unknown. "
-          + "Only " + supportedRedirectUris + " are.");
+      throw new BadRequestException(
+          "Redirect URI ["
+              + redirectUrl
+              + "] is unknown. "
+              + "Only "
+              + supportedRedirectUris
+              + " are.");
     }
 
     String consentUrl = calendarApi.initConsent(extractedUrl, params);
-    return new Redirection()
-        .redirectionUrl(consentUrl)
-        .redirectionStatusUrls(urls);
+    return new Redirection().redirectionUrl(consentUrl).redirectionStatusUrls(urls);
   }
 
   public AccessToken exchangeCode(String idUser, CalendarAuth auth) {
@@ -72,8 +75,8 @@ public class CalendarService {
     String extractedUrl = extractURLPath(redirectUrl);
 
     if (calendarApi.storeCredential(idUser, code, extractedUrl) == null) {
-      throw new ApiException(SERVER_EXCEPTION,
-          "Unable to exchange " + auth + " to Google Sheet access token");
+      throw new ApiException(
+          SERVER_EXCEPTION, "Unable to exchange " + auth + " to Google Sheet access token");
     } else {
       return credentialRepository.findLatestByIdUser(idUser);
     }
@@ -81,9 +84,9 @@ public class CalendarService {
 
   public AccessToken exchangeCodeAndRefreshCalendars(String idUser, CalendarAuth auth) {
     localEventRepository.removeAllByIdUser(idUser);
-    calendarRepository.removeAllByIdUser(idUser); //delete existing calendars
+    calendarRepository.removeAllByIdUser(idUser); // delete existing calendars
     AccessToken token = exchangeCode(idUser, auth);
-    calendarRepository.findByIdUser(idUser); //get new calendars
+    calendarRepository.findByIdUser(idUser); // get new calendars
     return token;
   }
 
@@ -93,17 +96,13 @@ public class CalendarService {
         .toList();
   }
 
-  public List<CalendarEvent> saveEvents(String idUser,
-                                        String calendarId,
-                                        List<CalendarEvent> events) {
+  public List<CalendarEvent> saveEvents(
+      String idUser, String calendarId, List<CalendarEvent> events) {
     return facadeCalendarEventRepository.saveAll(idUser, calendarId, events);
   }
 
-  public List<CalendarEvent> getEvents(String idUser,
-                                       String idCalendar,
-                                       CalendarProvider provider,
-                                       Instant from,
-                                       Instant to) {
+  public List<CalendarEvent> getEvents(
+      String idUser, String idCalendar, CalendarProvider provider, Instant from, Instant to) {
     if (from == null || to == null) {
       from = lastMonday();
       to = lastSunday();
@@ -117,8 +116,8 @@ public class CalendarService {
     }
     return switch (provider) {
       case LOCAL -> localEventRepository.findByIdUserAndIdCalendar(idUser, idCalendar, from, to);
-      case GOOGLE_CALENDAR ->
-          googleEventRepository.findByIdUserAndIdCalendar(idUser, idCalendar, from, to);
+      case GOOGLE_CALENDAR -> googleEventRepository.findByIdUserAndIdCalendar(
+          idUser, idCalendar, from, to);
     };
   }
 

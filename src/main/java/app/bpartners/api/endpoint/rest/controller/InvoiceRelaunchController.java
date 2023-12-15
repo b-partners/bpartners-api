@@ -40,8 +40,8 @@ public class InvoiceRelaunchController {
   }
 
   @PostMapping(value = "/accounts/{aId}/invoices/relaunches")
-  public void restartLastRelaunches(@PathVariable String aId,
-                                    @RequestBody List<String> invoiceIds) {
+  public void restartLastRelaunches(
+      @PathVariable String aId, @RequestBody List<String> invoiceIds) {
     service.restartLastRelaunch(invoiceIds);
   }
 
@@ -52,18 +52,20 @@ public class InvoiceRelaunchController {
       @RequestBody CreateInvoiceRelaunch createInvoiceRelaunch) {
     validator.accept(createInvoiceRelaunch);
     /*TODO: set this inside service*/
-    ArrayList<String> emailObjectList = new ArrayList<>() {
-      {
-        add(createInvoiceRelaunch.getObject());
-        add(createInvoiceRelaunch.getSubject());
-      }
-    };
-    ArrayList<String> emailBodyList = new ArrayList<>() {
-      {
-        add(createInvoiceRelaunch.getEmailBody());
-        add(createInvoiceRelaunch.getMessage());
-      }
-    };
+    ArrayList<String> emailObjectList =
+        new ArrayList<>() {
+          {
+            add(createInvoiceRelaunch.getObject());
+            add(createInvoiceRelaunch.getSubject());
+          }
+        };
+    ArrayList<String> emailBodyList =
+        new ArrayList<>() {
+          {
+            add(createInvoiceRelaunch.getEmailBody());
+            add(createInvoiceRelaunch.getMessage());
+          }
+        };
     List<Attachment> attachments =
         createInvoiceRelaunch.getAttachments().stream()
             .map(attachmentRestMapper::toDomain)

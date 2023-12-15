@@ -26,16 +26,22 @@ public class InvoiceRelaunchSaved implements Serializable {
 
   @JsonProperty("recipient")
   private String recipient = null;
+
   @JsonProperty("subject")
   private String subject = null;
+
   @JsonProperty("htmlBody")
   private String htmlBody = null;
+
   @JsonProperty("attachmentName")
   private String attachmentName;
+
   @JsonProperty("invoice")
   private Invoice invoice;
+
   @JsonProperty("accountHolder")
   private AccountHolder accountHolder;
+
   @JsonProperty("logoFileId")
   private String logoFileId;
 

@@ -1,5 +1,7 @@
 package app.bpartners.api.repository.connectors.transaction;
 
+import static app.bpartners.api.endpoint.rest.security.AuthProvider.userIsAuthenticated;
+
 import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.model.UserToken;
 import app.bpartners.api.model.mapper.TransactionMapper;
@@ -10,12 +12,9 @@ import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import static app.bpartners.api.endpoint.rest.security.AuthProvider.userIsAuthenticated;
-
 @Repository
 @AllArgsConstructor
-public class BridgeTransactionConnectorRepository
-    implements TransactionConnectorRepository {
+public class BridgeTransactionConnectorRepository implements TransactionConnectorRepository {
   private final SavableTransactionConnectorRepository savableRepository;
   private final BridgeTransactionRepository bridgeRepository;
   private final TransactionMapper mapper;
@@ -23,9 +22,8 @@ public class BridgeTransactionConnectorRepository
 
   @Override
   public List<TransactionConnector> findByIdAccount(String idAccount) {
-    String bearerFromAccount = userIsAuthenticated()
-        ? AuthProvider.getBearer()
-        : bridgeAccessToken(idAccount);
+    String bearerFromAccount =
+        userIsAuthenticated() ? AuthProvider.getBearer() : bridgeAccessToken(idAccount);
     return bridgeRepository.findByBearer(bearerFromAccount).stream()
         .map(mapper::toConnector)
         .collect(Collectors.toList());

@@ -23,8 +23,13 @@ public class BankConnection {
 
   /*TODO: BAD ! Avoid duplication and use generated Status from API*/
   public enum BankConnectionStatus {
-    OK, NOT_SUPPORTED, VALIDATION_REQUIRED,
-    INVALID_CREDENTIALS, SCA_REQUIRED, TRY_AGAIN,
-    UNDERGOING_REFRESHMENT, UNKNOWN
+    OK,
+    NOT_SUPPORTED,
+    VALIDATION_REQUIRED,
+    INVALID_CREDENTIALS,
+    SCA_REQUIRED,
+    TRY_AGAIN,
+    UNDERGOING_REFRESHMENT,
+    UNKNOWN
   }
 }

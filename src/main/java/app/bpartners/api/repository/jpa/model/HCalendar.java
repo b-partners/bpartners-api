@@ -1,5 +1,7 @@
 package app.bpartners.api.repository.jpa.model;
 
+import static javax.persistence.GenerationType.IDENTITY;
+
 import app.bpartners.api.endpoint.rest.model.CalendarPermission;
 import java.time.Instant;
 import javax.persistence.Entity;
@@ -18,8 +20,6 @@ import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.annotations.Type;
 
-import static javax.persistence.GenerationType.IDENTITY;
-
 @Entity
 @Table(name = "\"calendar\"")
 @Getter
@@ -33,13 +33,15 @@ public class HCalendar {
   @Id
   @GeneratedValue(strategy = IDENTITY)
   private String id;
+
   private String idUser;
   private String eteId;
   private String summary;
+
   @Type(type = "pgsql_enum")
   @Enumerated(EnumType.STRING)
   private CalendarPermission permission;
+
   private Instant createdAt;
-  @Transient
-  private boolean newCalendar;
+  @Transient private boolean newCalendar;
 }

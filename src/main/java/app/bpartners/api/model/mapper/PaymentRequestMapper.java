@@ -1,5 +1,7 @@
 package app.bpartners.api.model.mapper;
 
+import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
+
 import app.bpartners.api.endpoint.rest.model.PaymentStatus;
 import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.model.CreatePaymentRegulation;
@@ -13,14 +15,11 @@ import app.bpartners.api.repository.jpa.model.HPaymentRequest;
 import java.time.Instant;
 import org.springframework.stereotype.Component;
 
-import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
-
 @Component
 public class PaymentRequestMapper {
   public HPaymentRequest toEntity(PaymentRequest domain, HPaymentRequest existing) {
     PaymentHistoryStatus paymentHistoryStatus = domain.getPaymentHistoryStatus();
-    Instant createdDatetime = existing == null ? Instant.now() :
-        existing.getCreatedDatetime();
+    Instant createdDatetime = existing == null ? Instant.now() : existing.getCreatedDatetime();
     return HPaymentRequest.builder()
         .id(domain.getId())
         .idInvoice(domain.getInvoiceId())
@@ -36,17 +35,14 @@ public class PaymentRequestMapper {
         .amount(domain.getAmount().toString())
         .createdDatetime(createdDatetime)
         .status(domain.getStatus())
-        .paymentMethod(paymentHistoryStatus == null ? null
-            : paymentHistoryStatus.getPaymentMethod())
+        .paymentMethod(
+            paymentHistoryStatus == null ? null : paymentHistoryStatus.getPaymentMethod())
         .paymentStatusUpdatedAt(
-            paymentHistoryStatus == null ? createdDatetime
-                : paymentHistoryStatus.getUpdatedAt())
-        .userUpdated(paymentHistoryStatus == null ? null
-            : paymentHistoryStatus.getUserUpdated())
+            paymentHistoryStatus == null ? createdDatetime : paymentHistoryStatus.getUpdatedAt())
+        .userUpdated(paymentHistoryStatus == null ? null : paymentHistoryStatus.getUserUpdated())
         .paymentStatusUpdatedAt(
-            paymentHistoryStatus == null ? null :
-                paymentHistoryStatus.getUpdatedAt()
-        ).build();
+            paymentHistoryStatus == null ? null : paymentHistoryStatus.getUpdatedAt())
+        .build();
   }
 
   public HPaymentRequest toEntity(
@@ -57,10 +53,8 @@ public class PaymentRequestMapper {
         .id(domain.getId())
         .idInvoice(idInvoice)
         .idUser(AuthProvider.getAuthenticatedUserId())
-        .sessionId(paymentRedirection == null ? null
-            : paymentRedirection.getMeta().getSessionId())
-        .paymentUrl(paymentRedirection == null ? null
-            : paymentRedirection.getMeta().getUrl())
+        .sessionId(paymentRedirection == null ? null : paymentRedirection.getMeta().getSessionId())
+        .paymentUrl(paymentRedirection == null ? null : paymentRedirection.getMeta().getUrl())
         .label(domain.getLabel())
         .comment(domain.getComment())
         .payerEmail(domain.getPayerEmail())
@@ -76,29 +70,25 @@ public class PaymentRequestMapper {
   }
 
   public PaymentInitiation convertFromInvoice(
-      String paymentInitiationId, String label, String reference, Invoice invoice,
-      CreatePaymentRegulation payment, PaymentHistoryStatus paymentHistoryStatus) {
+      String paymentInitiationId,
+      String label,
+      String reference,
+      Invoice invoice,
+      CreatePaymentRegulation payment,
+      PaymentHistoryStatus paymentHistoryStatus) {
     Fraction totalPriceWithVat = invoice.getTotalPriceWithVat();
     return PaymentInitiation.builder()
         .id(paymentInitiationId)
         .reference(reference)
         .label(label)
-        .amount(
-            payment != null
-                ? payment.getAmountOrPercent(totalPriceWithVat)
-                : totalPriceWithVat)
-        //TODO: use customerName and customerEmail when overriding
-        .comment(payment != null ? payment.getComment()
-            : null)
-        .payerName(invoice.getCustomer() == null
-            ? null : invoice.getCustomer().getFullName())
-        .payerEmail(invoice.getCustomer() == null
-            ? null : invoice.getCustomer().getEmail())
-        .paymentDueDate(payment != null
-            ? payment.getMaturityDate()
-            : null)
-        .successUrl("https://dashboard-dev.bpartners.app") //TODO: to change
-        .failureUrl("https://dashboard-dev.bpartners.app") //TODO: to change
+        .amount(payment != null ? payment.getAmountOrPercent(totalPriceWithVat) : totalPriceWithVat)
+        // TODO: use customerName and customerEmail when overriding
+        .comment(payment != null ? payment.getComment() : null)
+        .payerName(invoice.getCustomer() == null ? null : invoice.getCustomer().getFirstName())
+        .payerEmail(invoice.getCustomer() == null ? null : invoice.getCustomer().getEmail())
+        .paymentDueDate(payment != null ? payment.getMaturityDate() : null)
+        .successUrl("https://dashboard-dev.bpartners.app") // TODO: to change
+        .failureUrl("https://dashboard-dev.bpartners.app") // TODO: to change
         .paymentHistoryStatus(paymentHistoryStatus)
         .build();
   }
@@ -106,31 +96,39 @@ public class PaymentRequestMapper {
   public CreatePaymentRegulation toPaymentRegulation(PaymentRequest payment, Fraction percent) {
     PaymentHistoryStatus paymentHistoryStatus = payment.getPaymentHistoryStatus();
     return CreatePaymentRegulation.builder()
-        .paymentRequest(PaymentRequest.builder()
-            .id(payment.getId())
-            .idUser(payment.getIdUser())
-            .externalId(payment.getExternalId())
-            .label(payment.getLabel())
-            .amount(payment.getAmount())
-            .paymentUrl(payment.getPaymentUrl())
-            .reference(payment.getReference())
-            .payerName(payment.getPayerName())
-            .payerEmail(payment.getPayerEmail())
-            .paymentDueDate(payment.getPaymentDueDate())
-            .createdDatetime(payment.getCreatedDatetime())
-            .status(payment.getStatus())
-            .comment(payment.getComment())
-            .paymentHistoryStatus(PaymentHistoryStatus.builder()
-                .paymentMethod(paymentHistoryStatus == null ? null
-                    : paymentHistoryStatus.getPaymentMethod())
-                .status(paymentHistoryStatus == null ? null
-                    : paymentHistoryStatus.getStatus())
-                .userUpdated(paymentHistoryStatus == null ? null
-                    : paymentHistoryStatus.getUserUpdated())
-                .updatedAt(paymentHistoryStatus == null ? null
-                    : paymentHistoryStatus.getUpdatedAt())
+        .paymentRequest(
+            PaymentRequest.builder()
+                .id(payment.getId())
+                .idUser(payment.getIdUser())
+                .externalId(payment.getExternalId())
+                .label(payment.getLabel())
+                .amount(payment.getAmount())
+                .paymentUrl(payment.getPaymentUrl())
+                .reference(payment.getReference())
+                .payerName(payment.getPayerName())
+                .payerEmail(payment.getPayerEmail())
+                .paymentDueDate(payment.getPaymentDueDate())
+                .createdDatetime(payment.getCreatedDatetime())
+                .status(payment.getStatus())
+                .comment(payment.getComment())
+                .paymentHistoryStatus(
+                    PaymentHistoryStatus.builder()
+                        .paymentMethod(
+                            paymentHistoryStatus == null
+                                ? null
+                                : paymentHistoryStatus.getPaymentMethod())
+                        .status(
+                            paymentHistoryStatus == null ? null : paymentHistoryStatus.getStatus())
+                        .userUpdated(
+                            paymentHistoryStatus == null
+                                ? null
+                                : paymentHistoryStatus.getUserUpdated())
+                        .updatedAt(
+                            paymentHistoryStatus == null
+                                ? null
+                                : paymentHistoryStatus.getUpdatedAt())
+                        .build())
                 .build())
-            .build())
         .percent(percent)
         .comment(payment.getComment())
         .maturityDate(payment.getPaymentDueDate())
@@ -156,15 +154,16 @@ public class PaymentRequestMapper {
         .status(entity.getStatus())
         .paymentHistoryStatus(
             entity.getPaymentMethod() == null
-                && entity.getStatus() == null
-                && entity.getUserUpdated() == null
-                && entity.getPaymentStatusUpdatedAt() == null ? null
+                    && entity.getStatus() == null
+                    && entity.getUserUpdated() == null
+                    && entity.getPaymentStatusUpdatedAt() == null
+                ? null
                 : PaymentHistoryStatus.builder()
-                .paymentMethod(entity.getPaymentMethod())
-                .status(entity.getStatus())
-                .userUpdated(entity.getUserUpdated())
-                .updatedAt(entity.getPaymentStatusUpdatedAt())
-                .build())
+                    .paymentMethod(entity.getPaymentMethod())
+                    .status(entity.getStatus())
+                    .userUpdated(entity.getUserUpdated())
+                    .updatedAt(entity.getPaymentStatusUpdatedAt())
+                    .build())
         .build();
   }
 }

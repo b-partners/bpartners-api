@@ -19,11 +19,12 @@ import lombok.Setter;
 @NoArgsConstructor
 @Builder
 public class HFileInfo {
-  @Id
-  private String id;
+  @Id private String id;
   private Instant uploadedAt;
   private String idUser;
+
   @Column(name = "size_in_kb")
   private int sizeInKB;
+
   private String sha256;
 }

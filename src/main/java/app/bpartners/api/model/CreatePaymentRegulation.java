@@ -1,5 +1,8 @@
 package app.bpartners.api.model;
 
+import static app.bpartners.api.service.utils.FileUtils.base64Image;
+import static org.apfloat.Apcomplex.ZERO;
+
 import app.bpartners.api.service.utils.QrCodeUtils;
 import java.io.Serializable;
 import java.time.Instant;
@@ -11,9 +14,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.apfloat.Aprational;
-
-import static app.bpartners.api.service.utils.FileUtils.base64Image;
-import static org.apfloat.Apcomplex.ZERO;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -30,7 +30,8 @@ public class CreatePaymentRegulation implements Serializable {
     if (paymentRequest.getAmount() != null && paymentRequest.getAmount().getCentsRoundUp() != 0) {
       return paymentRequest.getAmount();
     }
-    return percent.operate(totalAmount,
+    return percent.operate(
+        totalAmount,
         (percentValue, amountValue) -> {
           Aprational percentAprational = ZERO.add(percentValue.divide(new Aprational(10000)));
           return amountValue.multiply(percentAprational);
@@ -45,7 +46,8 @@ public class CreatePaymentRegulation implements Serializable {
   }
 
   public Date getFormattedMaturityDate() {
-    return maturityDate == null ? null
+    return maturityDate == null
+        ? null
         : Date.from(maturityDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
   }
 }

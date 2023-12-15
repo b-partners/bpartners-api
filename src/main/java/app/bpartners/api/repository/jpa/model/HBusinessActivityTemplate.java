@@ -19,8 +19,6 @@ import lombok.Setter;
 @NoArgsConstructor
 @Builder
 public class HBusinessActivityTemplate implements Serializable {
-  @Id
-  @GeneratedValue
-  private String id;
+  @Id @GeneratedValue private String id;
   private String name;
 }

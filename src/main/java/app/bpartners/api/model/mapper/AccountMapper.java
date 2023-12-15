@@ -1,5 +1,7 @@
 package app.bpartners.api.model.mapper;
 
+import static app.bpartners.api.endpoint.rest.model.AccountStatus.UNKNOWN;
+
 import app.bpartners.api.endpoint.rest.model.AccountStatus;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.Bank;
@@ -12,8 +14,6 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import static app.bpartners.api.endpoint.rest.model.AccountStatus.UNKNOWN;
-
 @Slf4j
 @Component
 @AllArgsConstructor
@@ -25,7 +25,7 @@ public class AccountMapper {
   public static final String VALIDATION_REQUIRED = "Validation Required";
   public static final String INVALID_CREDENTIALS = "Invalid Credentials";
 
-  //TODO: solve why bridge account is null
+  // TODO: solve why bridge account is null
   public AccountConnector toConnector(BridgeAccount bridgeAccount) {
     if (bridgeAccount == null) {
       return null;
@@ -80,7 +80,7 @@ public class AccountMapper {
         .bic(entity.getBic())
         .availableBalance(availableBalance)
         .status(entity.getStatus())
-        .bank(bank) //TODO: add hbank
+        .bank(bank) // TODO: add hbank
         .enableStatus(entity.getEnableStatus())
         .build();
   }
@@ -115,7 +115,6 @@ public class AccountMapper {
         .enableStatus(account.getEnableStatus())
         .build();
   }
-
 
   public static AccountStatus getStatus(String status) {
     switch (status) {

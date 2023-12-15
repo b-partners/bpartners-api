@@ -1,5 +1,8 @@
 package app.bpartners.api.repository.bridge.model.Transaction;
 
+import static app.bpartners.api.model.Transaction.CREDIT_SIDE;
+import static app.bpartners.api.model.Transaction.DEBIT_SIDE;
+
 import app.bpartners.api.endpoint.rest.model.TransactionStatus;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -13,9 +16,6 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
-import static app.bpartners.api.model.Transaction.CREDIT_SIDE;
-import static app.bpartners.api.model.Transaction.DEBIT_SIDE;
-
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
@@ -26,18 +26,25 @@ import static app.bpartners.api.model.Transaction.DEBIT_SIDE;
 public class BridgeTransaction {
   @JsonProperty("id")
   private Long id;
+
   @JsonProperty("account_id")
   private String accountId;
+
   @JsonProperty("bank_description")
   private String label;
+
   @JsonProperty("amount")
   private Double amount;
+
   @JsonProperty("date")
   private LocalDate transactionDate;
+
   @JsonProperty("updated_at")
   private Instant updatedAt;
+
   @JsonProperty("currency_code")
   private String currency;
+
   @JsonProperty("is_future")
   private boolean isFuture;
 
@@ -54,8 +61,6 @@ public class BridgeTransaction {
   }
 
   public TransactionStatus getStatus() {
-    return !isFuture()
-        ? TransactionStatus.BOOKED :
-        TransactionStatus.UPCOMING;
+    return !isFuture() ? TransactionStatus.BOOKED : TransactionStatus.UPCOMING;
   }
 }

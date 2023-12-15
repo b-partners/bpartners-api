@@ -17,8 +17,10 @@ import lombok.ToString;
 public class CognitoToken {
   @JsonProperty("id_token")
   private String idToken;
+
   @JsonProperty("refresh_token")
   private String refreshToken;
+
   @JsonProperty("expires_in")
   private Integer expiresIn;
 }

@@ -90,7 +90,6 @@ public class Session {
     public String getType() {
       return type;
     }
-
   }
 
   @NoArgsConstructor

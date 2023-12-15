@@ -1,5 +1,10 @@
 package app.bpartners.api.integration.conf.utils;
 
+import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_ID;
+import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
+import static java.util.Calendar.DECEMBER;
+import static java.util.Calendar.JANUARY;
+
 import app.bpartners.api.endpoint.rest.model.MonthlyTransactionsSummary;
 import app.bpartners.api.endpoint.rest.model.TransactionStatus;
 import app.bpartners.api.endpoint.rest.model.TransactionsSummary;
@@ -10,14 +15,8 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.List;
 
-import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_ID;
-import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
-import static java.util.Calendar.DECEMBER;
-import static java.util.Calendar.JANUARY;
-
 public class TransactionTestUtils {
-  private TransactionTestUtils() {
-  }
+  private TransactionTestUtils() {}
 
   public static BridgeTransaction bridgeTransaction1() {
     return BridgeTransaction.builder()
@@ -86,9 +85,11 @@ public class TransactionTestUtils {
         .currency(bridgeTransaction1().getCurrency())
         .side(bridgeTransaction1().getSide())
         .status(bridgeTransaction1().getStatus())
-        .paymentDateTime(bridgeTransaction1().getTransactionDate()
-            .atStartOfDay(ZoneId.systemDefault())
-            .toInstant())
+        .paymentDateTime(
+            bridgeTransaction1()
+                .getTransactionDate()
+                .atStartOfDay(ZoneId.systemDefault())
+                .toInstant())
         .build();
   }
 
@@ -102,9 +103,12 @@ public class TransactionTestUtils {
         .currency(bridgeTransaction2().getCurrency())
         .side(bridgeTransaction2().getSide())
         .status(bridgeTransaction2().getStatus())
-        .paymentDateTime(bridgeTransaction2().getTransactionDate()
-            .atStartOfDay(ZoneId.systemDefault())
-            .toInstant()).build();
+        .paymentDateTime(
+            bridgeTransaction2()
+                .getTransactionDate()
+                .atStartOfDay(ZoneId.systemDefault())
+                .toInstant())
+        .build();
   }
 
   public static HTransaction bridgeTransactionEntity3() {
@@ -117,9 +121,11 @@ public class TransactionTestUtils {
         .currency(bridgeTransaction3().getCurrency())
         .side(bridgeTransaction3().getSide())
         .status(bridgeTransaction3().getStatus())
-        .paymentDateTime(bridgeTransaction3().getTransactionDate()
-            .atStartOfDay(ZoneId.systemDefault())
-            .toInstant())
+        .paymentDateTime(
+            bridgeTransaction3()
+                .getTransactionDate()
+                .atStartOfDay(ZoneId.systemDefault())
+                .toInstant())
         .build();
   }
 
@@ -154,9 +160,10 @@ public class TransactionTestUtils {
 
   public static List<MonthlyTransactionsSummary> ignoreUpdatedAt(
       List<MonthlyTransactionsSummary> actual) {
-    actual.forEach(monthlyTransactionsSummary -> {
-      monthlyTransactionsSummary.setUpdatedAt(null);
-    });
+    actual.forEach(
+        monthlyTransactionsSummary -> {
+          monthlyTransactionsSummary.setUpdatedAt(null);
+        });
     return actual;
   }
 }

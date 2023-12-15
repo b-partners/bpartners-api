@@ -1,5 +1,12 @@
 package app.bpartners.api.repository.bridge.model.Account;
 
+import static app.bpartners.api.endpoint.rest.model.AccountStatus.INVALID_CREDENTIALS;
+import static app.bpartners.api.endpoint.rest.model.AccountStatus.OPENED;
+import static app.bpartners.api.endpoint.rest.model.AccountStatus.SCA_REQUIRED;
+import static app.bpartners.api.endpoint.rest.model.AccountStatus.UNDERGOING_REFRESHMENT;
+import static app.bpartners.api.endpoint.rest.model.AccountStatus.UNKNOWN;
+import static app.bpartners.api.endpoint.rest.model.AccountStatus.VALIDATION_REQUIRED;
+
 import app.bpartners.api.endpoint.rest.model.AccountStatus;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -10,13 +17,6 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
-
-import static app.bpartners.api.endpoint.rest.model.AccountStatus.INVALID_CREDENTIALS;
-import static app.bpartners.api.endpoint.rest.model.AccountStatus.OPENED;
-import static app.bpartners.api.endpoint.rest.model.AccountStatus.SCA_REQUIRED;
-import static app.bpartners.api.endpoint.rest.model.AccountStatus.UNDERGOING_REFRESHMENT;
-import static app.bpartners.api.endpoint.rest.model.AccountStatus.UNKNOWN;
-import static app.bpartners.api.endpoint.rest.model.AccountStatus.VALIDATION_REQUIRED;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -32,18 +32,25 @@ public class BridgeAccount {
   public static final int BRIDGE_STATUS_VALIDATION_REQ = 1100;
   public static final int BRIDGE_ACCOUNT_ADDED_RECENTLY = -2;
   public static final int BRIDGE_CREDENTIAL_UPDATED_RECENTLY = -3;
+
   @JsonProperty("id")
   private String id;
+
   @JsonProperty("bank_id")
   private Long bankId;
+
   @JsonProperty("name")
   private String name;
+
   @JsonProperty("balance")
   private Double balance;
+
   @JsonProperty("status")
   private Integer status;
+
   @JsonProperty("iban")
   private String iban;
+
   @JsonProperty("updated_at")
   private Instant updatedAt;
 

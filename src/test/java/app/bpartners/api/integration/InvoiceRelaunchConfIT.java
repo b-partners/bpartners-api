@@ -1,11 +1,12 @@
 package app.bpartners.api.integration;
 
+import static app.bpartners.api.integration.conf.utils.TestUtils.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import app.bpartners.api.endpoint.rest.api.PayingApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
 import app.bpartners.api.endpoint.rest.model.InvoiceRelaunchConf;
-import app.bpartners.api.integration.conf.MockedThirdParties;
-import app.bpartners.api.integration.conf.S3AbstractContextInitializer;
 import app.bpartners.api.integration.conf.S3MockedThirdParties;
 import app.bpartners.api.integration.conf.utils.TestUtils;
 import app.bpartners.api.repository.fintecture.FintecturePaymentInfoRepository;
@@ -16,24 +17,16 @@ import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
-
-import static app.bpartners.api.integration.conf.utils.TestUtils.*;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 @Testcontainers
 @AutoConfigureMockMvc
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class InvoiceRelaunchConfIT extends S3MockedThirdParties {
   private static final String RELAUNCH_CONF1_ID = "relaunchConf1_id";
-  @MockBean
-  private FintecturePaymentInitiationRepository paymentInitiationRepositoryMock;
-  @MockBean
-  private FintecturePaymentInfoRepository paymentInfoRepositoryMock;
+  @MockBean private FintecturePaymentInitiationRepository paymentInitiationRepositoryMock;
+  @MockBean private FintecturePaymentInfoRepository paymentInfoRepositoryMock;
 
   private ApiClient anApiClient() {
     return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN, localPort);
@@ -53,9 +46,7 @@ class InvoiceRelaunchConfIT extends S3MockedThirdParties {
     ApiClient joeDoeClient = anApiClient();
     PayingApi api = new PayingApi(joeDoeClient);
 
-    InvoiceRelaunchConf actual = api.getInvoiceRelaunchConf(
-        JOE_DOE_ACCOUNT_ID, INVOICE2_ID
-    );
+    InvoiceRelaunchConf actual = api.getInvoiceRelaunchConf(JOE_DOE_ACCOUNT_ID, INVOICE2_ID);
 
     assertEquals(expectedRelaunchConf(), actual);
   }
@@ -66,13 +57,10 @@ class InvoiceRelaunchConfIT extends S3MockedThirdParties {
     ApiClient joeDoeClient = anApiClient();
     PayingApi api = new PayingApi(joeDoeClient);
 
-    InvoiceRelaunchConf actual = api.configureInvoiceRelaunch(
-        JOE_DOE_ACCOUNT_ID, INVOICE1_ID,
-        createInvoiceRelaunchConf()
-    );
-    InvoiceRelaunchConf updated = api.configureInvoiceRelaunch(
-        JOE_DOE_ACCOUNT_ID, INVOICE1_ID, updateInvoiceRelaunchConf()
-    );
+    InvoiceRelaunchConf actual =
+        api.configureInvoiceRelaunch(JOE_DOE_ACCOUNT_ID, INVOICE1_ID, createInvoiceRelaunchConf());
+    InvoiceRelaunchConf updated =
+        api.configureInvoiceRelaunch(JOE_DOE_ACCOUNT_ID, INVOICE1_ID, updateInvoiceRelaunchConf());
 
     assertEquals(createInvoiceRelaunchConf().id(actual.getId()), actual);
     assertEquals(updateInvoiceRelaunchConf().id(actual.getId()), updated);
@@ -87,15 +75,10 @@ class InvoiceRelaunchConfIT extends S3MockedThirdParties {
   }
 
   InvoiceRelaunchConf createInvoiceRelaunchConf() {
-    return new InvoiceRelaunchConf()
-        .idInvoice(INVOICE1_ID)
-        .delay(5)
-        .rehearsalNumber(5);
+    return new InvoiceRelaunchConf().idInvoice(INVOICE1_ID).delay(5).rehearsalNumber(5);
   }
 
   InvoiceRelaunchConf updateInvoiceRelaunchConf() {
-    return createInvoiceRelaunchConf()
-        .delay(10)
-        .rehearsalNumber(15);
+    return createInvoiceRelaunchConf().delay(10).rehearsalNumber(15);
   }
 }

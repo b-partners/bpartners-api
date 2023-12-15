@@ -45,10 +45,8 @@ public class AccountHolderController {
   @GetMapping("/accountHolders")
   public List<AccountHolder> getAllAccountHolders(
       @RequestParam(name = "name", required = false) String name,
-      @RequestParam(name = "page", required = false)
-      PageFromOne page,
-      @RequestParam(name = "pageSize", required = false)
-      BoundedPageSize pageSize) {
+      @RequestParam(name = "page", required = false) PageFromOne page,
+      @RequestParam(name = "pageSize", required = false) BoundedPageSize pageSize) {
     int pageValue = page == null ? 0 : page.getValue();
     int pageSizeValue = pageSize == null ? 30 : pageSize.getValue();
     return accountHolderService.getAll(name, pageValue, pageSizeValue).stream()
@@ -58,8 +56,7 @@ public class AccountHolderController {
 
   @GetMapping("/users/{userId}/accounts/{accountId}/accountHolders")
   public List<AccountHolder> getAccountHolders(
-      @PathVariable String userId,
-      @PathVariable String accountId) {
+      @PathVariable String userId, @PathVariable String accountId) {
     return accountHolderService.getAccountHoldersByAccountId(accountId).stream()
         .map(accountHolderMapper::toRest)
         .toList();
@@ -71,8 +68,7 @@ public class AccountHolderController {
       @PathVariable("userId") String userId,
       @PathVariable("accountId") String accountId,
       @PathVariable("ahId") String accountHolderId) {
-    app.bpartners.api.model.CompanyInfo companyInfoDomain =
-        companyInfoMapper.toDomain(companyInfo);
+    app.bpartners.api.model.CompanyInfo companyInfoDomain = companyInfoMapper.toDomain(companyInfo);
     app.bpartners.api.model.AccountHolder savedAccountHolder =
         accountHolderService.updateCompanyInfo(accountHolderId, companyInfoDomain);
     return accountHolderMapper.toRest(savedAccountHolder);
@@ -84,12 +80,9 @@ public class AccountHolderController {
       @PathVariable("userId") String userId,
       @PathVariable("accountId") String accountId,
       @PathVariable("ahId") String accountHolderId) {
-    app.bpartners.api.model.AccountHolder
-        accountHolder = accountHolderMapper.toDomain(accountHolderId, accountId,
-        globalInfo);
-    return accountHolderMapper.toRest(
-        accountHolderService.updateGlobalInfo(accountHolder)
-    );
+    app.bpartners.api.model.AccountHolder accountHolder =
+        accountHolderMapper.toDomain(accountHolderId, accountId, globalInfo);
+    return accountHolderMapper.toRest(accountHolderService.updateGlobalInfo(accountHolder));
   }
 
   @PutMapping("/users/{userId}/accounts/{accountId}/accountHolders/{ahId}/businessActivities")
@@ -97,13 +90,12 @@ public class AccountHolderController {
       @RequestBody CompanyBusinessActivity businessActivity,
       @PathVariable("userId") String userId,
       @PathVariable("accountId") String accountId,
-      @PathVariable("ahId") String accountHolderId
-  ) {
+      @PathVariable("ahId") String accountHolderId) {
     return accountHolderMapper.toRest(
-        accountHolderService.updateBusinessActivities(accountId, accountHolderId,
-            businessActivityMapper.toDomain(accountId, businessActivity)
-        )
-    );
+        accountHolderService.updateBusinessActivities(
+            accountId,
+            accountHolderId,
+            businessActivityMapper.toDomain(accountId, businessActivity)));
   }
 
   @PutMapping("/users/{userId}/accounts/{accountId}/accountHolders/{ahId}/revenueTargets")
@@ -111,13 +103,12 @@ public class AccountHolderController {
       @PathVariable("userId") String userId,
       @PathVariable("accountId") String accountId,
       @PathVariable("ahId") String accountHolderId,
-      @RequestBody List<CreateAnnualRevenueTarget> toCreate
-  ) {
+      @RequestBody List<CreateAnnualRevenueTarget> toCreate) {
     revenueTargetValidator.accept(toCreate);
-    List<AnnualRevenueTarget> toSave = toCreate.stream()
-        .map(revenueTarget ->
-            revenueTargetRestMapper.toDomain(accountHolderId, revenueTarget))
-        .toList();
+    List<AnnualRevenueTarget> toSave =
+        toCreate.stream()
+            .map(revenueTarget -> revenueTargetRestMapper.toDomain(accountHolderId, revenueTarget))
+            .toList();
     return accountHolderMapper.toRest(
         accountHolderService.updateAnnualRevenueTargets(accountId, accountHolderId, toSave));
   }
@@ -129,9 +120,7 @@ public class AccountHolderController {
       @RequestBody AccountHolderFeedback toUpdate) {
     return accountHolderMapper.toRest(
         accountHolderService.updateFeedBackConfiguration(
-            accountHolderMapper.toDomain(accountHolderId, toUpdate)
-        )
-    );
+            accountHolderMapper.toDomain(accountHolderId, toUpdate)));
   }
 
   @PostMapping("/users/{userId}/accountHolders/{ahId}/feedback")
@@ -140,7 +129,6 @@ public class AccountHolderController {
       @PathVariable("ahId") String accountHolderId,
       @RequestBody FeedbackRequest toAsk) {
     return feedbackRestMapper.toRest(
-        feedbackService.save(feedbackRestMapper.toDomain(accountHolderId, toAsk))
-    );
+        feedbackService.save(feedbackRestMapper.toDomain(accountHolderId, toAsk)));
   }
 }

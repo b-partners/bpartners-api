@@ -9,7 +9,6 @@ import app.bpartners.api.endpoint.rest.model.InvoiceRelaunchConf;
 import app.bpartners.api.endpoint.rest.validator.CreateInvoiceRelaunchConfValidator;
 import app.bpartners.api.model.UserInvoiceRelaunchConf;
 import java.util.List;
-import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -30,8 +29,7 @@ public class InvoiceRelaunchRestMapper {
   }
 
   public app.bpartners.api.model.InvoiceRelaunchConf toDomain(
-      InvoiceRelaunchConf rest, String invoiceId
-  ) {
+      InvoiceRelaunchConf rest, String invoiceId) {
     return app.bpartners.api.model.InvoiceRelaunchConf.builder()
         .id(rest.getId())
         .idInvoice(invoiceId)
@@ -40,8 +38,7 @@ public class InvoiceRelaunchRestMapper {
         .build();
   }
 
-  public AccountInvoiceRelaunchConf toRest(
-      UserInvoiceRelaunchConf userInvoiceRelaunchConf) {
+  public AccountInvoiceRelaunchConf toRest(UserInvoiceRelaunchConf userInvoiceRelaunchConf) {
     return new AccountInvoiceRelaunchConf()
         .id(userInvoiceRelaunchConf.getId())
         .updatedAt(userInvoiceRelaunchConf.getUpdatedAt())
@@ -55,18 +52,17 @@ public class InvoiceRelaunchRestMapper {
 
   public InvoiceRelaunch toRest(app.bpartners.api.model.InvoiceRelaunch domain) {
     List<Attachment> attachments =
-        domain.getAttachments().stream()
-            .map(attachmentRestMapper::toRest)
-            .toList();
+        domain.getAttachments().stream().map(attachmentRestMapper::toRest).toList();
     return new InvoiceRelaunch()
         .id(domain.getId())
         .type(domain.getType())
         .isUserRelaunched(domain.isUserRelaunched())
         .creationDatetime(domain.getCreationDatetime())
-        .emailInfo(new EmailInfo()
-            .emailBody(domain.getEmailBody())
-            .emailObject(domain.getEmailObject())
-            .attachmentFileId(domain.getAttachmentFileId()))
+        .emailInfo(
+            new EmailInfo()
+                .emailBody(domain.getEmailBody())
+                .emailObject(domain.getEmailObject())
+                .attachmentFileId(domain.getAttachmentFileId()))
         .attachments(attachments);
   }
 

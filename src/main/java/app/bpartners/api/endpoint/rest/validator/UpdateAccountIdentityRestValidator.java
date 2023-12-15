@@ -26,12 +26,12 @@ public class UpdateAccountIdentityRestValidator implements Consumer<UpdateAccoun
   }
 
   private boolean isValidBic(String bic) {
-    //TODO: use regExp to match bic
+    // TODO: use regExp to match bic
     return true;
   }
 
   private boolean isValidIban(String iban) {
-    //TODO: use regExp to match iban
+    // TODO: use regExp to match iban
     return true;
   }
 }

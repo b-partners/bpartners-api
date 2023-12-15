@@ -8,7 +8,8 @@ import org.springframework.stereotype.Service;
 
 @AllArgsConstructor
 @Service
-public class RefreshTransactionsSummariesTriggeredService implements Consumer<RefreshTransactionsSummariesTriggered> {
+public class RefreshTransactionsSummariesTriggeredService
+    implements Consumer<RefreshTransactionsSummariesTriggered> {
   private final TransactionService service;
 
   @Override

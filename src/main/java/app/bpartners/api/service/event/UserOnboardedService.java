@@ -1,5 +1,7 @@
 package app.bpartners.api.service.event;
 
+import static app.bpartners.api.service.utils.TemplateResolverUtils.parseTemplateResolver;
+
 import app.bpartners.api.endpoint.event.gen.UserOnboarded;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.AccountHolder;
@@ -16,8 +18,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.context.Context;
 
-import static app.bpartners.api.service.utils.TemplateResolverUtils.parseTemplateResolver;
-
 @Service
 @AllArgsConstructor
 @Slf4j
@@ -31,9 +31,13 @@ public class UserOnboardedService implements Consumer<UserOnboarded> {
     String recipient = userOnboarded.getRecipientEmail();
     OnboardedUser onboardedUser = userOnboarded.getOnboardedUser();
     List<Attachment> attachments = List.of();
-    String htmlBody = parseTemplateResolver(USER_ONBOARDED_MAIL,
-        configureUserContext(onboardedUser.getOnboardedUser(),
-            onboardedUser.getOnboardedAccount(), onboardedUser.getOnboardedAccountHolder()));
+    String htmlBody =
+        parseTemplateResolver(
+            USER_ONBOARDED_MAIL,
+            configureUserContext(
+                onboardedUser.getOnboardedUser(),
+                onboardedUser.getOnboardedAccount(),
+                onboardedUser.getOnboardedAccountHolder()));
     try {
       service.sendEmail(recipient, null, subject, htmlBody, attachments);
     } catch (MessagingException | IOException e) {

@@ -24,9 +24,10 @@ public class MailingRestMapper {
         .emailObject(domain.getObject())
         .emailBody(domain.getBody())
         .status(domain.getStatus())
-        .attachments(domain.getAttachments().stream()
-            .map(attachmentMapper::toRest)
-            .collect(Collectors.toList()))
+        .attachments(
+            domain.getAttachments().stream()
+                .map(attachmentMapper::toRest)
+                .collect(Collectors.toList()))
         .sendingDatetime(domain.getSendingDatetime())
         .updatedAt(domain.getUpdatedAt());
   }
@@ -41,10 +42,10 @@ public class MailingRestMapper {
         .object(rest.getEmailObject())
         .body(rest.getEmailBody())
         .status(rest.getStatus())
-        .attachments(attachments == null ? List.of()
-            : attachments.stream()
-            .map(attachmentMapper::toDomain)
-            .collect(Collectors.toList()))
+        .attachments(
+            attachments == null
+                ? List.of()
+                : attachments.stream().map(attachmentMapper::toDomain).collect(Collectors.toList()))
         .build();
   }
 }

@@ -15,8 +15,8 @@ import org.springframework.stereotype.Service;
 public class BusinessActivityTemplateService {
   private final BusinessActivityTemplateRepository repository;
 
-  public List<BusinessActivityTemplate> getBusinessActivities(PageFromOne page,
-                                                              BoundedPageSize pageSize) {
+  public List<BusinessActivityTemplate> getBusinessActivities(
+      PageFromOne page, BoundedPageSize pageSize) {
     int pageValue = page != null ? page.getValue() - 1 : 0;
     int pageSizeValue = pageSize != null ? pageSize.getValue() : 30;
     Pageable pageable = PageRequest.of(pageValue, pageSizeValue);

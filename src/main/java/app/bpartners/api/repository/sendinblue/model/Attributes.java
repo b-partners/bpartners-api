@@ -21,7 +21,6 @@ public class Attributes {
   private String smsPhoneNumber;
   public static final String JSON_PROPERTY_SMS = "SMS";
 
-
   @JsonProperty(JSON_PROPERTY_ID)
   @JsonInclude(JsonInclude.Include.USE_DEFAULTS)
   public Double getId() {

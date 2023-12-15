@@ -1,5 +1,14 @@
 package app.bpartners.api.unit.repository;
 
+import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ID;
+import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.MonthlyTransactionsSummary;
 import app.bpartners.api.model.mapper.TransactionsSummaryMapper;
@@ -12,15 +21,6 @@ import java.time.temporal.ChronoUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ID;
-import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 class TransactionSummaryRepositoryTest {
   TransactionsSummaryRepositoryImpl summaryRepository;
   TransactionsSummaryJpaRepository jpaRepository;
@@ -31,39 +31,29 @@ class TransactionSummaryRepositoryTest {
     jpaRepository = mock(TransactionsSummaryJpaRepository.class);
     mapper = new TransactionsSummaryMapper();
     summaryRepository = new TransactionsSummaryRepositoryImpl(jpaRepository, mapper);
-    when(jpaRepository.save(any(HMonthlyTransactionsSummary.class))).thenAnswer(
-        i -> {
-          HMonthlyTransactionsSummary answer = i.getArgument(0);
-          if (answer.getId() == null) {
-            answer.setId("random_id");
-          }
-          return answer;
-        }
-    );
+    when(jpaRepository.save(any(HMonthlyTransactionsSummary.class)))
+        .thenAnswer(
+            i -> {
+              HMonthlyTransactionsSummary answer = i.getArgument(0);
+              if (answer.getId() == null) {
+                answer.setId("random_id");
+              }
+              return answer;
+            });
     when(jpaRepository.getByIdUserAndYearAndMonth(
-        eq(JOE_DOE_ID),
-        eq(YearMonth.now().getYear()),
-        any(Integer.class))
-    ).thenReturn(persisted());
-    when(jpaRepository.getByIdUserAndYearAndMonth(
-        eq(JOE_DOE_ID),
-        eq(2021),
-        any(Integer.class))
-    ).thenReturn(null);
+            eq(JOE_DOE_ID), eq(YearMonth.now().getYear()), any(Integer.class)))
+        .thenReturn(persisted());
+    when(jpaRepository.getByIdUserAndYearAndMonth(eq(JOE_DOE_ID), eq(2021), any(Integer.class)))
+        .thenReturn(null);
   }
 
   @Test
   void crupdate_yearmonth_summary_ok() {
-    MonthlyTransactionsSummary actual = summaryRepository.updateYearMonthSummary(
-        JOE_DOE_ID,
-        YearMonth.now().getYear(),
-        updated(null)
-    );
-    MonthlyTransactionsSummary actual2 = summaryRepository.updateYearMonthSummary(
-        JOE_DOE_ID,
-        2021,
-        updated(null)
-    );
+    MonthlyTransactionsSummary actual =
+        summaryRepository.updateYearMonthSummary(
+            JOE_DOE_ID, YearMonth.now().getYear(), updated(null));
+    MonthlyTransactionsSummary actual2 =
+        summaryRepository.updateYearMonthSummary(JOE_DOE_ID, 2021, updated(null));
 
     assertEquals(updated(actual.getUpdatedAt()), actual);
     assertEquals(updated(actual2.getUpdatedAt()), actual2);
@@ -74,8 +64,7 @@ class TransactionSummaryRepositoryTest {
     YearMonth now = YearMonth.now();
 
     MonthlyTransactionsSummary actual =
-        summaryRepository.getByIdUserAndYearMonth(JOE_DOE_ID, now.getYear(),
-            now.getMonthValue());
+        summaryRepository.getByIdUserAndYearMonth(JOE_DOE_ID, now.getYear(), now.getMonthValue());
     MonthlyTransactionsSummary nullSummary =
         summaryRepository.getByIdUserAndYearMonth(JOE_DOE_ID, 2021, 2);
 
@@ -84,8 +73,7 @@ class TransactionSummaryRepositoryTest {
   }
 
   private HMonthlyTransactionsSummary persisted() {
-    return HMonthlyTransactionsSummary
-        .builder()
+    return HMonthlyTransactionsSummary.builder()
         .year(YearMonth.now().getYear())
         .month(YearMonth.now().getMonthValue())
         .income("0/1")

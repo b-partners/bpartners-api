@@ -1,15 +1,15 @@
 package app.bpartners.api.endpoint.rest.validator;
 
+import static app.bpartners.api.service.utils.EmailUtils.allowedTags;
+import static app.bpartners.api.service.utils.EmailUtils.getCustomSafelist;
+import static app.bpartners.api.service.utils.EmailUtils.hasMalformedTags;
+
 import app.bpartners.api.endpoint.rest.model.FeedbackRequest;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.NotImplementedException;
 import java.util.function.Consumer;
 import org.jsoup.Jsoup;
 import org.springframework.stereotype.Component;
-
-import static app.bpartners.api.service.utils.EmailUtils.allowedTags;
-import static app.bpartners.api.service.utils.EmailUtils.getCustomSafelist;
-import static app.bpartners.api.service.utils.EmailUtils.hasMalformedTags;
 
 @Component
 public class FeedBackRestValidator implements Consumer<FeedbackRequest> {
@@ -24,8 +24,10 @@ public class FeedBackRestValidator implements Consumer<FeedbackRequest> {
       exceptionMessageBuilder.append("recipients are mandatory. ");
     }
     if (hasMalformedTags(feedbackRequest.getMessage())) {
-      throw new BadRequestException("Your HTML syntax is malformed or you use other tags "
-          + "than these allowed : " + allowedTags());
+      throw new BadRequestException(
+          "Your HTML syntax is malformed or you use other tags "
+              + "than these allowed : "
+              + allowedTags());
     }
     if (feedbackRequest.getMessage() == null) {
       exceptionMessageBuilder.append("message is mandatory. ");

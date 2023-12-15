@@ -1,42 +1,5 @@
 package app.bpartners.api.integration;
 
-import app.bpartners.api.SentryConf;
-import app.bpartners.api.endpoint.event.S3Conf;
-import app.bpartners.api.endpoint.rest.security.AuthProvider;
-import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
-import app.bpartners.api.endpoint.rest.security.model.Principal;
-import app.bpartners.api.integration.conf.DbEnvContextInitializer;
-import app.bpartners.api.integration.conf.MockedThirdParties;
-import app.bpartners.api.manager.ProjectTokenManager;
-import app.bpartners.api.model.Account;
-import app.bpartners.api.model.AccountHolder;
-import app.bpartners.api.model.OnboardedUser;
-import app.bpartners.api.model.User;
-import app.bpartners.api.repository.LegalFileRepository;
-import app.bpartners.api.repository.bridge.BridgeApi;
-import app.bpartners.api.repository.bridge.model.Item.BridgeItem;
-import app.bpartners.api.repository.bridge.model.User.BridgeUser;
-import app.bpartners.api.repository.bridge.repository.BridgeBankRepository;
-import app.bpartners.api.repository.bridge.repository.BridgeUserRepository;
-import app.bpartners.api.repository.fintecture.FintectureConf;
-import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitConf;
-import app.bpartners.api.repository.sendinblue.SendinblueConf;
-import app.bpartners.api.service.AccountHolderService;
-import app.bpartners.api.service.AccountService;
-import app.bpartners.api.service.OnboardingService;
-import app.bpartners.api.service.PaymentScheduleService;
-import java.util.List;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.mockito.MockedStatic;
-import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.context.ContextConfiguration;
-import org.testcontainers.junit.jupiter.Testcontainers;
-import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
-
 import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_TOKEN;
 import static app.bpartners.api.integration.conf.utils.TestUtils.setUpCognito;
 import static app.bpartners.api.integration.conf.utils.TestUtils.setUpEventBridge;
@@ -54,22 +17,40 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
-import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
+
+import app.bpartners.api.endpoint.rest.security.AuthProvider;
+import app.bpartners.api.endpoint.rest.security.model.Principal;
+import app.bpartners.api.integration.conf.MockedThirdParties;
+import app.bpartners.api.model.Account;
+import app.bpartners.api.model.AccountHolder;
+import app.bpartners.api.model.OnboardedUser;
+import app.bpartners.api.model.User;
+import app.bpartners.api.repository.bridge.model.Item.BridgeItem;
+import app.bpartners.api.repository.bridge.model.User.BridgeUser;
+import app.bpartners.api.repository.bridge.repository.BridgeBankRepository;
+import app.bpartners.api.repository.bridge.repository.BridgeUserRepository;
+import app.bpartners.api.service.AccountHolderService;
+import app.bpartners.api.service.AccountService;
+import app.bpartners.api.service.OnboardingService;
+import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.testcontainers.junit.jupiter.Testcontainers;
+import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
 
 @Testcontainers
 class UserServiceIT extends MockedThirdParties {
   private static final String COMPANY_NAME = "user company name";
-  @MockBean
-  private BridgeBankRepository bridgeBankRepositoryMock;  @MockBean
-  private EventBridgeClient eventBridgeClientMock;
-  @Autowired
-  private OnboardingService onboardingService;
-  @MockBean
-  private BridgeUserRepository bridgeUserRepositoryMock;
-  @Autowired
-  private AccountService accountService;
-  @Autowired
-  private AccountHolderService accountHolderService;
+  @MockBean private BridgeBankRepository bridgeBankRepositoryMock;
+  @MockBean private EventBridgeClient eventBridgeClientMock;
+  @Autowired private OnboardingService onboardingService;
+  @MockBean private BridgeUserRepository bridgeUserRepositoryMock;
+  @Autowired private AccountService accountService;
+  @Autowired private AccountHolderService accountHolderService;
 
   @BeforeEach
   public void setUp() {
@@ -100,7 +81,8 @@ class UserServiceIT extends MockedThirdParties {
   void onboard_user_ok() {
     MockedStatic<AuthProvider> authProviderMockedStatic = Mockito.mockStatic(AuthProvider.class);
     User userToOnboard = toOnboard();
-    authProviderMockedStatic.when(AuthProvider::getPrincipal)
+    authProviderMockedStatic
+        .when(AuthProvider::getPrincipal)
         .thenReturn(new Principal(userToOnboard, JOE_DOE_TOKEN));
     when(bridgeApi.findItemsByToken(any())).thenReturn(List.of(new BridgeItem()));
     when(bridgeBankRepositoryMock.refreshBankConnection(any(), any())).thenReturn("success");
@@ -108,8 +90,7 @@ class UserServiceIT extends MockedThirdParties {
 
     OnboardedUser actual = onboardingService.onboardUser(userToOnboard, COMPANY_NAME);
     User actualUser = actual.getOnboardedUser();
-    List<Account> accounts =
-        accountService.getAccountsByUserId(actualUser.getId());
+    List<Account> accounts = accountService.getAccountsByUserId(actualUser.getId());
     List<AccountHolder> accountHolders =
         accountHolderService.getAccountHoldersByAccountId(accounts.get(0).getId());
 

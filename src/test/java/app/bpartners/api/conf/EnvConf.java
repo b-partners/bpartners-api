@@ -1,8 +1,8 @@
 package app.bpartners.api.conf;
 
-import org.springframework.test.context.DynamicPropertyRegistry;
-
 import static app.bpartners.api.integration.conf.utils.TestUtils.findAvailableTcpPort;
+
+import org.springframework.test.context.DynamicPropertyRegistry;
 
 public class EnvConf {
   void configureProperties(DynamicPropertyRegistry registry) {

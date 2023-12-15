@@ -19,30 +19,17 @@ import org.springframework.boot.test.web.server.LocalServerPort;
 
 @AutoConfigureMockMvc
 public class MockedThirdParties extends FacadeIT {
-  @LocalServerPort
-  protected int localPort;
-  @MockBean
-  protected PaymentScheduleService paymentScheduleService;
-  @MockBean
-  protected BuildingPermitConf buildingPermitConf;
-  @MockBean
-  protected SentryConf sentryConf;
-  @MockBean
-  protected SendinblueConf sendinblueConf;
-  @MockBean
-  protected S3Conf s3Conf;
-  @MockBean
-  protected CognitoComponent cognitoComponentMock;
-  @MockBean
-  protected FintectureConf fintectureConf;
-  @MockBean
-  protected ProjectTokenManager projectTokenManager;
-  @MockBean
-  protected AccountConnectorRepository accountConnectorRepositoryMock;
-  @MockBean
-  protected LegalFileRepository legalFileRepositoryMock;
-  @MockBean
-  protected BridgeApi bridgeApi;
-  @MockBean
-  protected EventProducer eventProducer;
+  @LocalServerPort protected int localPort;
+  @MockBean protected PaymentScheduleService paymentScheduleService;
+  @MockBean protected BuildingPermitConf buildingPermitConf;
+  @MockBean protected SentryConf sentryConf;
+  @MockBean protected SendinblueConf sendinblueConf;
+  @MockBean protected S3Conf s3Conf;
+  @MockBean protected CognitoComponent cognitoComponentMock;
+  @MockBean protected FintectureConf fintectureConf;
+  @MockBean protected ProjectTokenManager projectTokenManager;
+  @MockBean protected AccountConnectorRepository accountConnectorRepositoryMock;
+  @MockBean protected LegalFileRepository legalFileRepositoryMock;
+  @MockBean protected BridgeApi bridgeApi;
+  @MockBean protected EventProducer eventProducer;
 }

@@ -9,7 +9,7 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
-//TODO: use generated from EventBridge instead
+// TODO: use generated from EventBridge instead
 @Data
 @Builder(toBuilder = true)
 @AllArgsConstructor

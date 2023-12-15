@@ -23,8 +23,10 @@ public class InvoiceCrupdated implements Serializable {
 
   @JsonProperty("invoice")
   private Invoice invoice;
+
   @JsonProperty("accountHolder")
   private AccountHolder accountHolder;
+
   @JsonProperty("logoFileId")
   private String logoFileId;
 

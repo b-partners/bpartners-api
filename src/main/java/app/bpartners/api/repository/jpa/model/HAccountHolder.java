@@ -27,22 +27,27 @@ import org.hibernate.annotations.Type;
 @NoArgsConstructor
 @EqualsAndHashCode
 public class HAccountHolder implements Serializable {
-  @Id
-  private String id;
+  @Id private String id;
+
   @Column(name = "id_user")
   private String idUser;
+
   private String socialCapital;
+
   @Column(name = "tva_number")
   private String vatNumber;
+
   private String mobilePhoneNumber;
   private String email;
   private String website;
   private boolean subjectToVat = true;
   private String initialCashflow;
+
   @Type(type = "pgsql_enum")
   @Enumerated(EnumType.STRING)
   @Column(name = "verification_status")
   private VerificationStatus verificationStatus;
+
   private String name;
   private String registrationNumber;
   private String businessActivity;
@@ -58,8 +63,12 @@ public class HAccountHolder implements Serializable {
   private int prospectingPerimeter;
 
   public String describeInfos() {
-    return "AccountHolder(id=" + this.getId()
-        + ",name=" + this.getName()
-        + ",email=" + this.getEmail() + ")";
+    return "AccountHolder(id="
+        + this.getId()
+        + ",name="
+        + this.getName()
+        + ",email="
+        + this.getEmail()
+        + ")";
   }
 }

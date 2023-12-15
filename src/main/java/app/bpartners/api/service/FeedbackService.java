@@ -26,20 +26,21 @@ public class FeedbackService {
     AccountHolder accountHolder = accountHolderRepository.findById(toSave.getAccountHolderId());
     if (accountHolder.getFeedbackLink() == null) {
       throw new BadRequestException(
-          accountHolder.describe() + " must set feedback link before "
-              + "asking for feedback");
+          accountHolder.describe() + " must set feedback link before " + "asking for feedback");
     }
-    List<Customer> customers = toSave.getCustomerIds() != null ? toSave.getCustomerIds().stream()
-        .map(customerRepository::findById)
-        .toList() : null;
-    Feedback toCreate = Feedback.builder()
-        .id(toSave.getId())
-        .accountHolder(accountHolder)
-        .customers(customers)
-        .creationDatetime(toSave.getCreationDatetime())
-        .subject(toSave.getSubject())
-        .message(toSave.getMessage())
-        .build();
+    List<Customer> customers =
+        toSave.getCustomerIds() != null
+            ? toSave.getCustomerIds().stream().map(customerRepository::findById).toList()
+            : null;
+    Feedback toCreate =
+        Feedback.builder()
+            .id(toSave.getId())
+            .accountHolder(accountHolder)
+            .customers(customers)
+            .creationDatetime(toSave.getCreationDatetime())
+            .subject(toSave.getSubject())
+            .message(toSave.getMessage())
+            .build();
     eventProducer.accept(List.of(toTypedEvent(toCreate)));
     return repository.save(toCreate);
   }
@@ -54,11 +55,8 @@ public class FeedbackService {
   }
 
   private List<String> getRecipientEmails(List<Customer> recipients) {
-    List<Customer> customerListWithEmail = recipients.stream()
-        .filter(recipient -> recipient.getEmail() != null)
-        .toList();
-    return customerListWithEmail.stream()
-        .map(Customer::getEmail)
-        .toList();
+    List<Customer> customerListWithEmail =
+        recipients.stream().filter(recipient -> recipient.getEmail() != null).toList();
+    return customerListWithEmail.stream().map(Customer::getEmail).toList();
   }
 }

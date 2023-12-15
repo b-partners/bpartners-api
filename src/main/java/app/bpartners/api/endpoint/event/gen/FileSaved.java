@@ -22,12 +22,16 @@ public class FileSaved implements Serializable {
 
   @JsonProperty("fileType")
   private FileType fileType = null;
+
   @JsonProperty("accountId")
   private String accountId = null;
+
   @JsonProperty("fileId")
   private String fileId = null;
+
   @JsonProperty("fileAsBytes")
   private byte[] fileAsBytes = null;
+
   @JsonProperty("userId")
   private String userId = null;
 

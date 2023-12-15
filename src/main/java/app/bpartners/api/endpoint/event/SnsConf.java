@@ -10,19 +10,16 @@ import software.amazon.awssdk.services.sns.SnsClient;
 @Configuration
 public class SnsConf {
   private final Region region;
-  @Getter
-  private final String snsPlatformArn;
+  @Getter private final String snsPlatformArn;
 
-  public SnsConf(@Value("${sns.platform.arn}")String snsPlatformArn,
-                 @Value("eu-west-3") Region region) {
+  public SnsConf(
+      @Value("${sns.platform.arn}") String snsPlatformArn, @Value("eu-west-3") Region region) {
     this.snsPlatformArn = snsPlatformArn;
     this.region = region;
   }
 
   @Bean
-  public SnsClient getSnsClient(){
-    return SnsClient.builder()
-        .region(region)
-        .build();
+  public SnsClient getSnsClient() {
+    return SnsClient.builder().region(region).build();
   }
 }

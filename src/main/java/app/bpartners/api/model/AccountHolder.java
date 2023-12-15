@@ -43,10 +43,6 @@ public class AccountHolder implements Serializable {
   private int prospectingPerimeter;
 
   public String describe() {
-    return "AccountHolder("
-        + "id=" + id
-        + "name=" + name
-        + "siren=" + siren
-        + ")";
+    return "AccountHolder(" + "id=" + id + "name=" + name + "siren=" + siren + ")";
   }
 }

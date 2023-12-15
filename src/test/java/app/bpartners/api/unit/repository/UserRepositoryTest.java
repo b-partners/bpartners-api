@@ -1,5 +1,16 @@
 package app.bpartners.api.unit.repository;
 
+import static app.bpartners.api.endpoint.rest.model.EnableStatus.ENABLED;
+import static app.bpartners.api.endpoint.rest.model.IdentificationStatus.VALID_IDENTITY;
+import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_TOKEN;
+import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_EMAIL;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.mapper.UserMapper;
@@ -14,17 +25,6 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static app.bpartners.api.endpoint.rest.model.EnableStatus.ENABLED;
-import static app.bpartners.api.endpoint.rest.model.IdentificationStatus.VALID_IDENTITY;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_TOKEN;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_EMAIL;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 class UserRepositoryTest {
   UserJpaRepository userJpaRepositoryMock;
   UserMapper userMapperMock;
@@ -34,7 +34,6 @@ class UserRepositoryTest {
   AccountHolderJpaRepository accountHolderJpaRepositoryMock;
   AccountJpaRepository accountJpaRepositoryMock;
   BankRepository bankRepositoryMock;
-
 
   @BeforeEach
   void setUp() {
@@ -46,9 +45,14 @@ class UserRepositoryTest {
     accountJpaRepositoryMock = mock(AccountJpaRepository.class);
     bankRepositoryMock = mock(BankRepository.class);
     subject =
-        new UserRepositoryImpl(userJpaRepositoryMock, userMapperMock, cognitoComponentMock,
+        new UserRepositoryImpl(
+            userJpaRepositoryMock,
+            userMapperMock,
+            cognitoComponentMock,
             bridgeUserRepositoryMock,
-            accountHolderJpaRepositoryMock, accountJpaRepositoryMock, bankRepositoryMock);
+            accountHolderJpaRepositoryMock,
+            accountJpaRepositoryMock,
+            bankRepositoryMock);
 
     when(userJpaRepositoryMock.save(any())).thenReturn(user());
     when(userJpaRepositoryMock.findByEmail(JOE_EMAIL)).thenReturn(Optional.ofNullable(user()));

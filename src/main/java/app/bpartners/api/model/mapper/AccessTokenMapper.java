@@ -17,7 +17,6 @@ public class AccessTokenMapper {
         entity.getRefreshToken());
   }
 
-
   public AccessToken toDomain(HCalendarStoredCredential entity) {
     return getAccessToken(
         entity.getExpirationTimeMilliseconds(),
@@ -27,11 +26,12 @@ public class AccessTokenMapper {
         entity.getRefreshToken());
   }
 
-  private AccessToken getAccessToken(Long expirationTimeMilliseconds,
-                                     Instant creationDatetime2,
-                                     String id,
-                                     String accessToken,
-                                     String refreshToken) {
+  private AccessToken getAccessToken(
+      Long expirationTimeMilliseconds,
+      Instant creationDatetime2,
+      String id,
+      String accessToken,
+      String refreshToken) {
     Instant creationDatetime = creationDatetime2;
     Long creationTimeMilliseconds = creationDatetime.toEpochMilli();
     Instant expirationDatetime = Instant.ofEpochMilli(expirationTimeMilliseconds);
@@ -40,8 +40,7 @@ public class AccessTokenMapper {
         .value(accessToken)
         .refreshToken(refreshToken)
         .creationDatetime(creationDatetime)
-        .expirationTimeInSeconds(
-            (expirationTimeMilliseconds - creationTimeMilliseconds) / 1_000)
+        .expirationTimeInSeconds((expirationTimeMilliseconds - creationTimeMilliseconds) / 1_000)
         .expirationDatetime(expirationDatetime)
         .build();
   }

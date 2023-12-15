@@ -1,13 +1,13 @@
 package app.bpartners.api.endpoint.rest.validator;
 
-import app.bpartners.api.endpoint.rest.model.PaymentInitiation;
-import java.util.function.Consumer;
-import org.springframework.stereotype.Component;
-
 import static app.bpartners.api.endpoint.rest.validator.RedirectionValidator.verifyRedirectionStatusUrls;
 import static app.bpartners.api.endpoint.rest.validator.UUIDValidator.isValid;
 import static app.bpartners.api.service.utils.EmailUtils.EMAIL_PATTERN;
 import static app.bpartners.api.service.utils.EmailUtils.isValidEmail;
+
+import app.bpartners.api.endpoint.rest.model.PaymentInitiation;
+import java.util.function.Consumer;
+import org.springframework.stereotype.Component;
 
 @Component
 public class PaymentInitValidator implements Consumer<PaymentInitiation> {
@@ -39,8 +39,9 @@ public class PaymentInitValidator implements Consumer<PaymentInitiation> {
     }
     if (paymentInitiation.getPayerEmail() != null
         && !isValidEmail(paymentInitiation.getPayerEmail())) {
-      builder.append(
-              "payerEmail(").append(paymentInitiation.getPayerEmail())
+      builder
+          .append("payerEmail(")
+          .append(paymentInitiation.getPayerEmail())
           .append(") does not have valid email format. Pattern expected is ")
           .append(EMAIL_PATTERN);
     }

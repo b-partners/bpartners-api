@@ -21,15 +21,16 @@ public class TransactionRestMapper {
   }
 
   public Transaction toRest(app.bpartners.api.model.Transaction internal) {
-    Transaction transaction = new Transaction()
-        .id(internal.getId())
-        .amount(internal.getAmount().getCents())
-        .label(internal.getLabel())
-        .paymentDatetime(internal.getPaymentDatetime())
-        .reference(internal.getReference())
-        .status(internal.getStatus())
-        .type(internal.getType())
-        .invoice(invoiceRestMapper.toRest(internal.getInvoiceDetails()));
+    Transaction transaction =
+        new Transaction()
+            .id(internal.getId())
+            .amount(internal.getAmount().getCents())
+            .label(internal.getLabel())
+            .paymentDatetime(internal.getPaymentDatetime())
+            .reference(internal.getReference())
+            .status(internal.getStatus())
+            .type(internal.getType())
+            .invoice(invoiceRestMapper.toRest(internal.getInvoiceDetails()));
     if (internal.getCategory() != null) {
       transaction.setCategory(List.of(categoryRestMapper.toRest(internal.getCategory())));
     }

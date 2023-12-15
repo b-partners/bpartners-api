@@ -9,8 +9,7 @@ public interface TransactionCategoryTemplateRepository {
   List<TransactionCategoryTemplate> findByType(String type);
 
   TransactionCategoryTemplate findByTypeAndTransactionType(
-      String type,
-      TransactionTypeEnum transactionType);
+      String type, TransactionTypeEnum transactionType);
 
   List<TransactionCategoryTemplate> findAllByIdAccount(
       String idAccount, LocalDate begin, LocalDate end);

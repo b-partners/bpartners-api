@@ -37,7 +37,7 @@ public class ContactMapper {
         .phone(preUser.getMobilePhoneNumber())
         .email(preUser.getEmail())
         .listIds(List.of(sendinblueConf.getContactListId()))
-        //TODO: make this configurable or use correct configuration
+        // TODO: make this configurable or use correct configuration
         .emailBlackListed(false)
         .smsBlackListed(false)
         .updateEnabled(false)
@@ -46,13 +46,14 @@ public class ContactMapper {
   }
 
   public Contact toSendinblueContact(app.bpartners.api.model.Contact domain) {
-    Attributes contactAttributes = Attributes.builder()
-        .id(domain.getId())
-        .firstName(domain.getFirstName())
-        .lastName(domain.getLastName())
-        .phone(phoneDoubleValues(domain.getPhone()))
-        .smsPhoneNumber(domain.getPhone())
-        .build();
+    Attributes contactAttributes =
+        Attributes.builder()
+            .id(domain.getId())
+            .firstName(domain.getFirstName())
+            .lastName(domain.getLastName())
+            .phone(phoneDoubleValues(domain.getPhone()))
+            .smsPhoneNumber(domain.getPhone())
+            .build();
     return Contact.builder()
         .email(domain.getEmail())
         .emailBlackListed(domain.isEmailBlackListed())

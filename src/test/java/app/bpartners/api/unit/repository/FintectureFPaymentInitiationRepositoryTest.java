@@ -1,5 +1,16 @@
 package app.bpartners.api.unit.repository;
 
+import static app.bpartners.api.integration.conf.utils.TestUtils.PIS_URL;
+import static app.bpartners.api.integration.conf.utils.TestUtils.PROJECT_TOKEN;
+import static app.bpartners.api.integration.conf.utils.TestUtils.REDIRECT_SUCCESS_URL;
+import static app.bpartners.api.integration.conf.utils.TestUtils.httpResponseMock;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import app.bpartners.api.manager.ProjectTokenManager;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.repository.fintecture.FintectureConf;
@@ -15,17 +26,6 @@ import java.util.Base64;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static app.bpartners.api.integration.conf.utils.TestUtils.PIS_URL;
-import static app.bpartners.api.integration.conf.utils.TestUtils.PROJECT_TOKEN;
-import static app.bpartners.api.integration.conf.utils.TestUtils.REDIRECT_SUCCESS_URL;
-import static app.bpartners.api.integration.conf.utils.TestUtils.httpResponseMock;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 class FintectureFPaymentInitiationRepositoryTest {
   FintectureConf fintectureConf;
   ProjectTokenManager projectTokenManager;
@@ -38,8 +38,8 @@ class FintectureFPaymentInitiationRepositoryTest {
     projectTokenManager = mock(ProjectTokenManager.class);
     httpClient = mock(HttpClient.class);
     fintecturePaymentInitiationRepository =
-        new FintecturePaymentInitiationRepositoryImpl(fintectureConf,
-            projectTokenManager).httpClient(httpClient);
+        new FintecturePaymentInitiationRepositoryImpl(fintectureConf, projectTokenManager)
+            .httpClient(httpClient);
     KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
     generator.initialize(2048);
     KeyPair pair = generator.generateKeyPair();
@@ -62,17 +62,13 @@ class FintectureFPaymentInitiationRepositoryTest {
 
   FPaymentRedirection invalidPaymentRedirection2() {
     return FPaymentRedirection.builder()
-        .meta(FPaymentRedirection.Meta.builder()
-            .status(400)
-            .build())
+        .meta(FPaymentRedirection.Meta.builder().status(400).build())
         .build();
   }
 
   FPaymentRedirection validPaymentRedirection() {
     return FPaymentRedirection.builder()
-        .meta(FPaymentRedirection.Meta.builder()
-            .status(200)
-            .build())
+        .meta(FPaymentRedirection.Meta.builder().status(200).build())
         .build();
   }
 
@@ -88,25 +84,19 @@ class FintectureFPaymentInitiationRepositoryTest {
 
   @Test
   void save_payment_without_status_code_ko() throws IOException, InterruptedException {
-    when(httpClient.send(any(), any())).thenReturn(
-        httpResponseMock(invalidPaymentRedirection())
-    );
+    when(httpClient.send(any(), any())).thenReturn(httpResponseMock(invalidPaymentRedirection()));
 
     FPaymentRedirection actualResponse =
-        fintecturePaymentInitiationRepository.save(paymentInitiation(),
-            REDIRECT_SUCCESS_URL);
+        fintecturePaymentInitiationRepository.save(paymentInitiation(), REDIRECT_SUCCESS_URL);
 
     assertNull(actualResponse);
   }
 
   @Test
   void save_payment_with_status_code_400_ko() throws IOException, InterruptedException {
-    when(httpClient.send(any(), any())).thenReturn(
-        httpResponseMock(invalidPaymentRedirection2())
-    );
+    when(httpClient.send(any(), any())).thenReturn(httpResponseMock(invalidPaymentRedirection2()));
     FPaymentRedirection actualResponse =
-        fintecturePaymentInitiationRepository.save(paymentInitiation(),
-            REDIRECT_SUCCESS_URL);
+        fintecturePaymentInitiationRepository.save(paymentInitiation(), REDIRECT_SUCCESS_URL);
 
     assertNull(actualResponse);
   }
@@ -116,8 +106,8 @@ class FintectureFPaymentInitiationRepositoryTest {
     when(httpClient.send(any(), any())).thenThrow(new IOException());
     FPaymentInitiation FPaymentInitiation = paymentInitiation();
 
-    assertThrows(ApiException.class,
-        () -> fintecturePaymentInitiationRepository.save(FPaymentInitiation,
-            REDIRECT_SUCCESS_URL));
+    assertThrows(
+        ApiException.class,
+        () -> fintecturePaymentInitiationRepository.save(FPaymentInitiation, REDIRECT_SUCCESS_URL));
   }
 }

@@ -1,5 +1,6 @@
 package app.bpartners.api.endpoint.rest.mapper;
 
+import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 
 import app.bpartners.api.endpoint.rest.model.AccountHolder;
 import app.bpartners.api.endpoint.rest.model.AccountHolderFeedback;
@@ -13,11 +14,8 @@ import app.bpartners.api.repository.AccountHolderRepository;
 import app.bpartners.api.service.AnnualRevenueTargetService;
 import app.bpartners.api.service.BusinessActivityService;
 import java.util.List;
-import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
-
-import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 
 @Component
 @AllArgsConstructor
@@ -47,24 +45,25 @@ public class AccountHolderRestMapper {
         .siren(domain.getSiren())
         .verificationStatus(domain.getVerificationStatus())
         .initialCashflow(domain.getInitialCashflow().getCentsRoundUp())
-        .companyInfo(new CompanyInfo()
-            .isSubjectToVat(domain.isSubjectToVat())
-            .email(domain.getEmail())
-            .website(domain.getWebsite())
-            .phone(domain.getMobilePhoneNumber())
-            .tvaNumber(domain.getVatNumber())
-            .socialCapital(domain.getSocialCapital())
-            .location(domain.getLocation())
-            .townCode(domain.getTownCode()))
-        .contactAddress(new ContactAddress()
-            .prospectingPerimeter(domain.getProspectingPerimeter())
-            .city(domain.getCity())
-            .address(domain.getAddress())
-            .postalCode(domain.getPostalCode())
-            .country(domain.getCountry()))
-        .businessActivities(new CompanyBusinessActivity()
-            .primary(primaryActivity)
-            .secondary(secondaryActivity))
+        .companyInfo(
+            new CompanyInfo()
+                .isSubjectToVat(domain.isSubjectToVat())
+                .email(domain.getEmail())
+                .website(domain.getWebsite())
+                .phone(domain.getMobilePhoneNumber())
+                .tvaNumber(domain.getVatNumber())
+                .socialCapital(domain.getSocialCapital())
+                .location(domain.getLocation())
+                .townCode(domain.getTownCode()))
+        .contactAddress(
+            new ContactAddress()
+                .prospectingPerimeter(domain.getProspectingPerimeter())
+                .city(domain.getCity())
+                .address(domain.getAddress())
+                .postalCode(domain.getPostalCode())
+                .country(domain.getCountry()))
+        .businessActivities(
+            new CompanyBusinessActivity().primary(primaryActivity).secondary(secondaryActivity))
         .revenueTargets(annualRevenueTargets)
         // /!\ Deprecated : use contactAddress instead
         .address(domain.getAddress())
@@ -75,8 +74,7 @@ public class AccountHolderRestMapper {
   }
 
   public AccountHolderFeedback createAccountHolderFeedback(String feedbackLink) {
-    return new AccountHolderFeedback()
-        .feedbackLink(feedbackLink);
+    return new AccountHolderFeedback().feedbackLink(feedbackLink);
   }
 
   public app.bpartners.api.model.AccountHolder toDomain(
@@ -97,13 +95,9 @@ public class AccountHolderRestMapper {
   }
 
   public app.bpartners.api.model.AccountHolder toDomain(
-      String accountHolderId,
-      AccountHolderFeedback accountHolderFeedback
-  ) {
+      String accountHolderId, AccountHolderFeedback accountHolderFeedback) {
     app.bpartners.api.model.AccountHolder accountHolder =
         accountHolderRepository.findById(accountHolderId);
-    return accountHolder.toBuilder()
-        .feedbackLink(accountHolderFeedback.getFeedbackLink())
-        .build();
+    return accountHolder.toBuilder().feedbackLink(accountHolderFeedback.getFeedbackLink()).build();
   }
 }

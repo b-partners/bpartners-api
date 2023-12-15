@@ -1,5 +1,7 @@
 package app.bpartners.api.endpoint.rest.security;
 
+import static app.bpartners.api.service.utils.SecurityUtils.BEARER_PREFIX;
+
 import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.endpoint.rest.security.exception.UnapprovedLegalFileException;
 import app.bpartners.api.endpoint.rest.security.model.Principal;
@@ -18,8 +20,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
-
-import static app.bpartners.api.service.utils.SecurityUtils.BEARER_PREFIX;
 
 @Component
 @AllArgsConstructor
@@ -45,7 +45,6 @@ public class AuthProvider extends AbstractUserDetailsAuthenticationProvider {
   public static String getPreferredAccountId() {
     return getAuthenticatedUser() != null ? getPrincipal().getUser().getPreferredAccountId() : null;
   }
-
 
   public static User getAuthenticatedUser() {
     return userIsAuthenticated() ? getPrincipal().getUser() : null;
@@ -99,7 +98,8 @@ public class AuthProvider extends AbstractUserDetailsAuthenticationProvider {
   private void checkLegalFiles(List<LegalFile> legalFiles, User user) {
     if (!legalFiles.isEmpty()) {
       StringBuilder exceptionMessageBuilder = new StringBuilder();
-      legalFiles.forEach(legalFile -> {
+      legalFiles.forEach(
+          legalFile -> {
             if (!legalFile.isApproved()) {
               exceptionMessageBuilder
                   .append("User.")
@@ -107,8 +107,7 @@ public class AuthProvider extends AbstractUserDetailsAuthenticationProvider {
                   .append(" has not approved the legal file ")
                   .append(legalFile.getName());
             }
-          }
-      );
+          });
       String exceptionMessage = exceptionMessageBuilder.toString();
       if (!exceptionMessage.isEmpty()) {
         throw new UnapprovedLegalFileException(exceptionMessage);

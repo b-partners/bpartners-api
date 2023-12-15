@@ -1,5 +1,11 @@
 package app.bpartners.api.integration;
 
+import static app.bpartners.api.integration.conf.utils.TestUtils.businessActivity1;
+import static app.bpartners.api.integration.conf.utils.TestUtils.businessActivity2;
+import static app.bpartners.api.integration.conf.utils.TestUtils.setUpCognito;
+import static app.bpartners.api.integration.conf.utils.TestUtils.setUpLegalFileRepository;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import app.bpartners.api.endpoint.rest.api.UserAccountsApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
@@ -11,12 +17,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.testcontainers.junit.jupiter.Testcontainers;
-
-import static app.bpartners.api.integration.conf.utils.TestUtils.businessActivity1;
-import static app.bpartners.api.integration.conf.utils.TestUtils.businessActivity2;
-import static app.bpartners.api.integration.conf.utils.TestUtils.setUpCognito;
-import static app.bpartners.api.integration.conf.utils.TestUtils.setUpLegalFileRepository;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Testcontainers
 @AutoConfigureMockMvc

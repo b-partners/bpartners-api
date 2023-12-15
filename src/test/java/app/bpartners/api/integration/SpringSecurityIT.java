@@ -1,14 +1,10 @@
 package app.bpartners.api.integration;
 
-import app.bpartners.api.SentryConf;
-import app.bpartners.api.endpoint.event.S3Conf;
-import app.bpartners.api.integration.conf.DbEnvContextInitializer;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.springframework.http.HttpMethod.GET;
+import static org.springframework.http.HttpMethod.OPTIONS;
+
 import app.bpartners.api.integration.conf.MockedThirdParties;
-import app.bpartners.api.manager.ProjectTokenManager;
-import app.bpartners.api.repository.fintecture.FintectureConf;
-import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitConf;
-import app.bpartners.api.repository.sendinblue.SendinblueConf;
-import app.bpartners.api.service.PaymentScheduleService;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -16,17 +12,9 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
-import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
-import static org.springframework.http.HttpMethod.GET;
-import static org.springframework.http.HttpMethod.OPTIONS;
 
 @Testcontainers
 @AutoConfigureMockMvc
@@ -37,14 +25,15 @@ class SpringSecurityIT extends MockedThirdParties {
     HttpClient unauthenticatedClient = HttpClient.newBuilder().build();
     String basePath = "http://localhost:" + localPort;
 
-    HttpResponse<String> response = unauthenticatedClient.send(
-        HttpRequest.newBuilder()
-            .uri(URI.create(basePath + "/ping"))
-            // cors
-            .header("Access-Control-Request-Method", "GET")
-            .header("Origin", "http://localhost:3000")
-            .build(),
-        HttpResponse.BodyHandlers.ofString());
+    HttpResponse<String> response =
+        unauthenticatedClient.send(
+            HttpRequest.newBuilder()
+                .uri(URI.create(basePath + "/ping"))
+                // cors
+                .header("Access-Control-Request-Method", "GET")
+                .header("Origin", "http://localhost:3000")
+                .build(),
+            HttpResponse.BodyHandlers.ofString());
 
     assertEquals(HttpStatus.OK.value(), response.statusCode());
     assertEquals("pong", response.body());
@@ -64,15 +53,16 @@ class SpringSecurityIT extends MockedThirdParties {
     HttpClient unauthenticatedClient = HttpClient.newBuilder().build();
     String basePath = "http://localhost:" + localPort;
 
-    HttpResponse<String> response = unauthenticatedClient.send(
-        HttpRequest.newBuilder()
-            .uri(URI.create(basePath + path))
-            .method(OPTIONS.name(), HttpRequest.BodyPublishers.noBody())
-            .header("Access-Control-Request-Headers", "authorization")
-            .header("Access-Control-Request-Method", method.name())
-            .header("Origin", "http://localhost:3000")
-            .build(),
-        HttpResponse.BodyHandlers.ofString());
+    HttpResponse<String> response =
+        unauthenticatedClient.send(
+            HttpRequest.newBuilder()
+                .uri(URI.create(basePath + path))
+                .method(OPTIONS.name(), HttpRequest.BodyPublishers.noBody())
+                .header("Access-Control-Request-Headers", "authorization")
+                .header("Access-Control-Request-Method", method.name())
+                .header("Origin", "http://localhost:3000")
+                .build(),
+            HttpResponse.BodyHandlers.ofString());
 
     var headers = response.headers();
     var origins = headers.allValues("Access-Control-Allow-Origin");

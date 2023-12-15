@@ -1,5 +1,10 @@
 package app.bpartners.api.service.utils;
 
+import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
+import static app.bpartners.api.service.utils.FilterUtils.distinctByKeys;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
+
 import app.bpartners.api.endpoint.rest.model.CreateCustomer;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.exception.BadRequestException;
@@ -9,7 +14,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
@@ -17,16 +21,10 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 
-import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
-import static app.bpartners.api.service.utils.FilterUtils.distinctByKeys;
-import static org.apache.commons.lang3.StringUtils.isBlank;
-import static org.apache.commons.lang3.StringUtils.isEmpty;
-
 public class CustomerUtils {
   private static final int FIRST_SHEET_INDEX = 0;
 
-  private CustomerUtils() {
-  }
+  private CustomerUtils() {}
 
   public static List<CreateCustomer> getCustomersInfoFromFile(InputStream fileToRead) {
     try {
@@ -44,13 +42,14 @@ public class CustomerUtils {
       }
       workbook.close();
       return customerTemplates.stream()
-          //Remove blank fields
+          // Remove blank fields
           .filter(createCustomer -> !hasBlankFields(createCustomer))
-          //Remove duplicated customer
-          .filter(distinctByKeys(
-              CreateCustomer::getFirstName,
-              CreateCustomer::getLastName,
-              CreateCustomer::getEmail))
+          // Remove duplicated customer
+          .filter(
+              distinctByKeys(
+                  CreateCustomer::getFirstName,
+                  CreateCustomer::getLastName,
+                  CreateCustomer::getEmail))
           .toList();
     } catch (InvalidFormatException | IOException e) {
       throw new ApiException(SERVER_EXCEPTION, "Failed to parse Excel file : " + e.getMessage());
@@ -94,7 +93,8 @@ public class CustomerUtils {
           customer.setComment(getStringValue(currentCell));
           break;
         default:
-          throw new ApiException(SERVER_EXCEPTION,
+          throw new ApiException(
+              SERVER_EXCEPTION,
               "Unexpected exception occurred when parsing excel values to new customers");
       }
     }
@@ -107,88 +107,113 @@ public class CustomerUtils {
       Cell actualCell = currentRow.getCell(index);
       switch (index) {
         case 0:
-          if (!actualCell.getStringCellValue().trim()
-              .equalsIgnoreCase("nom")) {
-            messageBuilder.append("\"Nom\" instead of ")
-                .append("\"").append(actualCell.getStringCellValue()).append("\"")
+          if (!actualCell.getStringCellValue().trim().equalsIgnoreCase("nom")) {
+            messageBuilder
+                .append("\"Nom\" instead of ")
+                .append("\"")
+                .append(actualCell.getStringCellValue())
+                .append("\"")
                 .append(" at column 1. ");
           }
           break;
         case 1:
-          if (!actualCell.getStringCellValue().trim()
-              .equalsIgnoreCase("prénom(s)")) {
-            messageBuilder.append("\"Prénom(s)\" instead of ")
-                .append("\"").append(actualCell.getStringCellValue()).append("\"")
+          if (!actualCell.getStringCellValue().trim().equalsIgnoreCase("prénom(s)")) {
+            messageBuilder
+                .append("\"Prénom(s)\" instead of ")
+                .append("\"")
+                .append(actualCell.getStringCellValue())
+                .append("\"")
                 .append(" at column 2. ");
           }
           break;
         case 2:
-          if (!actualCell.getStringCellValue().trim()
-              .equalsIgnoreCase("email")) {
-            messageBuilder.append("\"Email\" instead of ")
-                .append("\"").append(actualCell.getStringCellValue()).append("\"")
+          if (!actualCell.getStringCellValue().trim().equalsIgnoreCase("email")) {
+            messageBuilder
+                .append("\"Email\" instead of ")
+                .append("\"")
+                .append(actualCell.getStringCellValue())
+                .append("\"")
                 .append(" at column 3. ");
           }
           break;
         case 3:
-          if (!actualCell.getStringCellValue().trim()
-              .equalsIgnoreCase("téléphone")) {
-            messageBuilder.append("\"Téléphone\" instead of ")
-                .append("\"").append(actualCell.getStringCellValue()).append("\"")
+          if (!actualCell.getStringCellValue().trim().equalsIgnoreCase("téléphone")) {
+            messageBuilder
+                .append("\"Téléphone\" instead of ")
+                .append("\"")
+                .append(actualCell.getStringCellValue())
+                .append("\"")
                 .append(" at column 4. ");
           }
           break;
         case 4:
-          if (!actualCell.getStringCellValue().trim()
-              .equalsIgnoreCase("siteweb")) {
-            messageBuilder.append("\"Siteweb\" instead of ")
-                .append("\"").append(actualCell.getStringCellValue()).append("\"")
+          if (!actualCell.getStringCellValue().trim().equalsIgnoreCase("siteweb")) {
+            messageBuilder
+                .append("\"Siteweb\" instead of ")
+                .append("\"")
+                .append(actualCell.getStringCellValue())
+                .append("\"")
                 .append(" at column 5. ");
           }
           break;
         case 5:
-          if (!actualCell.getStringCellValue().trim()
-              .equalsIgnoreCase("adresse")) {
-            messageBuilder.append("\"Adresse\" instead of ")
-                .append("\"").append(actualCell.getStringCellValue()).append("\"")
+          if (!actualCell.getStringCellValue().trim().equalsIgnoreCase("adresse")) {
+            messageBuilder
+                .append("\"Adresse\" instead of ")
+                .append("\"")
+                .append(actualCell.getStringCellValue())
+                .append("\"")
                 .append(" at column 6. ");
           }
           break;
         case 6:
-          if (!actualCell.getStringCellValue().trim()
-              .equalsIgnoreCase("code postal")) {
-            messageBuilder.append("\"Code Postal\" instead of ")
-                .append("\"").append(actualCell.getStringCellValue()).append("\"")
+          if (!actualCell.getStringCellValue().trim().equalsIgnoreCase("code postal")) {
+            messageBuilder
+                .append("\"Code Postal\" instead of ")
+                .append("\"")
+                .append(actualCell.getStringCellValue())
+                .append("\"")
                 .append(" at column 7. ");
           }
           break;
         case 7:
-          if (!actualCell.getStringCellValue().trim()
-              .equalsIgnoreCase("ville")) {
-            messageBuilder.append("\"Ville\" instead of ")
-                .append("\"").append(actualCell.getStringCellValue()).append("\"")
+          if (!actualCell.getStringCellValue().trim().equalsIgnoreCase("ville")) {
+            messageBuilder
+                .append("\"Ville\" instead of ")
+                .append("\"")
+                .append(actualCell.getStringCellValue())
+                .append("\"")
                 .append(" at column 8. ");
           }
           break;
         case 8:
-          if (!actualCell.getStringCellValue().trim()
-              .equalsIgnoreCase("pays")) {
-            messageBuilder.append("\"Pays\" instead of ")
-                .append("\"").append(actualCell.getStringCellValue()).append("\"")
+          if (!actualCell.getStringCellValue().trim().equalsIgnoreCase("pays")) {
+            messageBuilder
+                .append("\"Pays\" instead of ")
+                .append("\"")
+                .append(actualCell.getStringCellValue())
+                .append("\"")
                 .append(" at column 9. ");
           }
           break;
         case 9:
-          if (!actualCell.getStringCellValue().trim()
-              .equalsIgnoreCase("commentaires")) {
-            messageBuilder.append("\"Commentaires\" instead of ")
-                .append("\"").append(actualCell.getStringCellValue()).append("\"")
+          if (!actualCell.getStringCellValue().trim().equalsIgnoreCase("commentaires")) {
+            messageBuilder
+                .append("\"Commentaires\" instead of ")
+                .append("\"")
+                .append(actualCell.getStringCellValue())
+                .append("\"")
                 .append(" at the last column.");
           }
           break;
         default:
-          throw new ApiException(SERVER_EXCEPTION, "Unknown error occurred when treating cell at "
-              + "index " + index + " of row-" + currentRow.getRowNum());
+          throw new ApiException(
+              SERVER_EXCEPTION,
+              "Unknown error occurred when treating cell at "
+                  + "index "
+                  + index
+                  + " of row-"
+                  + currentRow.getRowNum());
       }
     }
     String errorMessage = messageBuilder.toString();

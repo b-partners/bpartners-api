@@ -11,8 +11,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-
-public class DbCredentialStore<E, J extends CredentialJpaRepository<E>, M extends CredentialMapper<E>>
+public class DbCredentialStore<
+        E, J extends CredentialJpaRepository<E>, M extends CredentialMapper<E>>
     implements DataStore<StoredCredential> {
   public static final MemoryDataStoreFactory STORE_FACTORY =
       MemoryDataStoreFactory.getDefaultInstance();
@@ -52,15 +52,12 @@ public class DbCredentialStore<E, J extends CredentialJpaRepository<E>, M extend
   @Override
   public boolean containsValue(StoredCredential value) {
     return repository.existsByAccessTokenAndRefreshTokenAndExpirationTimeMilliseconds(
-        value.getAccessToken(), value.getRefreshToken(), value.getExpirationTimeMilliseconds()
-    );
+        value.getAccessToken(), value.getRefreshToken(), value.getExpirationTimeMilliseconds());
   }
 
   @Override
   public Set<String> keySet() throws IOException {
-    return values().stream()
-        .map(StoredCredential::toString)
-        .collect(Collectors.toSet());
+    return values().stream().map(StoredCredential::toString).collect(Collectors.toSet());
   }
 
   @Override
@@ -72,9 +69,9 @@ public class DbCredentialStore<E, J extends CredentialJpaRepository<E>, M extend
 
   @Override
   public StoredCredential get(String idUser) throws IOException {
-    List<E> allTokens =
-        repository.findAllByIdUserOrderByCreationDatetimeDesc(idUser);
-    return allTokens == null || allTokens.isEmpty() ? null
+    List<E> allTokens = repository.findAllByIdUserOrderByCreationDatetimeDesc(idUser);
+    return allTokens == null || allTokens.isEmpty()
+        ? null
         : mapper.toStoredCredential(allTokens.get(0));
   }
 
@@ -88,7 +85,7 @@ public class DbCredentialStore<E, J extends CredentialJpaRepository<E>, M extend
 
   @Override
   public DataStore<StoredCredential> clear() {
-    //We do _NOT_ need to clear database
+    // We do _NOT_ need to clear database
     return this;
   }
 

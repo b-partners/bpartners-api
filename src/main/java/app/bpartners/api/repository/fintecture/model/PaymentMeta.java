@@ -49,7 +49,5 @@ public class PaymentMeta {
     public String getReason() {
       return reason;
     }
-
   }
-
 }

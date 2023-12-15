@@ -1,59 +1,41 @@
 package app.bpartners.api.integration;
 
-import app.bpartners.api.SentryConf;
-import app.bpartners.api.endpoint.event.S3Conf;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import app.bpartners.api.endpoint.rest.security.bridge.BridgeConf;
 import app.bpartners.api.integration.conf.BanAbstractContextInitializer;
 import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.integration.conf.utils.TestUtils;
-import app.bpartners.api.manager.ProjectTokenManager;
-import app.bpartners.api.repository.connectors.account.AccountConnectorRepository;
 import app.bpartners.api.repository.ban.BanApi;
 import app.bpartners.api.repository.ban.model.GeoPosition;
-import app.bpartners.api.repository.bridge.BridgeApi;
-import app.bpartners.api.repository.fintecture.FintectureConf;
-import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitConf;
-import app.bpartners.api.repository.sendinblue.SendinblueConf;
-import app.bpartners.api.service.PaymentScheduleService;
 import app.bpartners.api.service.TransactionService;
 import app.bpartners.api.service.utils.GeoUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
 import software.amazon.awssdk.services.sqs.SqsClient;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 @Testcontainers
 @AutoConfigureMockMvc
 @Slf4j
 class BanIT extends MockedThirdParties {
-  @MockBean
-  private BridgeConf bridgeConf;
-  @MockBean
-  private EventBridgeClient eventBridgeClient;
-  @MockBean
-  private SqsClient sqsClient;
-  @MockBean
-  private TransactionService transactionService;
-  @Autowired
-  private BanApi subject;
+  @MockBean private BridgeConf bridgeConf;
+  @MockBean private EventBridgeClient eventBridgeClient;
+  @MockBean private SqsClient sqsClient;
+  @MockBean private TransactionService transactionService;
+  @Autowired private BanApi subject;
 
   @Test
   void search_address_ok() {
-    assertEquals(GeoPosition.builder()
+    assertEquals(
+        GeoPosition.builder()
             .label("356 Rue des Pyrénées 75020 Paris")
-            .coordinates(GeoUtils.Coordinate.builder()
-                .latitude(48.87398)
-                .longitude(2.386415)
-                .build())
+            .coordinates(
+                GeoUtils.Coordinate.builder().latitude(48.87398).longitude(2.386415).build())
             .build(),
         subject.search("356 Rue des Pyrénées, 75020 Paris"));
   }

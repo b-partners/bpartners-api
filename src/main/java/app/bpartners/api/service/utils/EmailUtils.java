@@ -6,16 +6,14 @@ import org.jsoup.safety.Safelist;
 
 public class EmailUtils {
 
-  public static final String EMAIL_PATTERN = "^(?=.{1,64}@)[A-Za-z0-9_-]+(\\.[A-Za-z0-9_-]+)*@"
-      + "[^-][A-Za-z0-9-]+(\\.[A-Za-z0-9_-]+)*(\\.[A-Za-z]{2,})$";
+  public static final String EMAIL_PATTERN =
+      "^(?=.{1,64}@)[A-Za-z0-9_-]+(\\.[A-Za-z0-9_-]+)*@"
+          + "[^-][A-Za-z0-9-]+(\\.[A-Za-z0-9_-]+)*(\\.[A-Za-z]{2,})$";
 
-  private EmailUtils() {
-  }
+  private EmailUtils() {}
 
   public static boolean isValidEmail(String email) {
-    return Pattern.compile(EMAIL_PATTERN)
-        .matcher(email)
-        .matches();
+    return Pattern.compile(EMAIL_PATTERN).matcher(email).matches();
   }
 
   public static boolean hasMalformedTags(String htmlString) {
@@ -23,9 +21,7 @@ public class EmailUtils {
   }
 
   public static Safelist getCustomSafelist() {
-    return Safelist.relaxed()
-        .addTags("del")
-        .removeTags("img");
+    return Safelist.relaxed().addTags("del").removeTags("img");
   }
 
   public static String allowedTags() {

@@ -1,22 +1,12 @@
 package app.bpartners.api.integration;
 
-import app.bpartners.api.SentryConf;
-import app.bpartners.api.endpoint.event.S3Conf;
-import app.bpartners.api.endpoint.rest.security.bridge.BridgeConf;
-import app.bpartners.api.integration.conf.ExpressifAbstractContextInitializer;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import app.bpartners.api.integration.conf.MockedThirdParties;
-import app.bpartners.api.integration.conf.utils.TestUtils;
-import app.bpartners.api.manager.ProjectTokenManager;
-import app.bpartners.api.repository.connectors.account.AccountConnectorRepository;
-import app.bpartners.api.repository.bridge.BridgeApi;
 import app.bpartners.api.repository.expressif.ExpressifApi;
 import app.bpartners.api.repository.expressif.model.InputForm;
 import app.bpartners.api.repository.expressif.model.InputValue;
 import app.bpartners.api.repository.expressif.model.OutputValue;
-import app.bpartners.api.repository.fintecture.FintectureConf;
-import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitConf;
-import app.bpartners.api.repository.sendinblue.SendinblueConf;
-import app.bpartners.api.service.PaymentScheduleService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.time.Instant;
 import java.util.List;
@@ -24,22 +14,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
-import software.amazon.awssdk.services.sqs.SqsClient;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 @Testcontainers
 @AutoConfigureMockMvc
 @Slf4j
 public class ExpressifIT extends MockedThirdParties {
-  @Autowired
-  private ExpressifApi subject;
+  @Autowired private ExpressifApi subject;
 
   private List<OutputValue<Object>> expected(Instant evaluationDate) {
     return List.of(
@@ -63,19 +44,22 @@ public class ExpressifIT extends MockedThirdParties {
   @Test
   void process_prospect_ok() throws JsonProcessingException {
     Instant evaluationDate = Instant.parse("2023-04-01T06:06:00.511Z");
-    InputForm input = InputForm.builder()
-        .evaluationDate(evaluationDate)
-        .inputValues(List.of(
-            new InputValue<>(evaluationDate, "Antinuisibles 3D", false),
-            new InputValue<>(evaluationDate, "Serrurier", true),
-            new InputValue<>(evaluationDate, "Clientèle professionnelle", true),
-            new InputValue<>(evaluationDate, "Clientèle particulier", true),
-            new InputValue<>(evaluationDate, "Intervention prévue", true),
-            new InputValue<>(evaluationDate, "Le type de client", "particulier"),
-            new InputValue<>(evaluationDate,
-                "La distance entre l'intervention prévue et l'ancien client",
-                200.0)))
-        .build();
+    InputForm input =
+        InputForm.builder()
+            .evaluationDate(evaluationDate)
+            .inputValues(
+                List.of(
+                    new InputValue<>(evaluationDate, "Antinuisibles 3D", false),
+                    new InputValue<>(evaluationDate, "Serrurier", true),
+                    new InputValue<>(evaluationDate, "Clientèle professionnelle", true),
+                    new InputValue<>(evaluationDate, "Clientèle particulier", true),
+                    new InputValue<>(evaluationDate, "Intervention prévue", true),
+                    new InputValue<>(evaluationDate, "Le type de client", "particulier"),
+                    new InputValue<>(
+                        evaluationDate,
+                        "La distance entre l'intervention prévue et l'ancien client",
+                        200.0)))
+            .build();
 
     List<OutputValue> actual = subject.process(input);
 

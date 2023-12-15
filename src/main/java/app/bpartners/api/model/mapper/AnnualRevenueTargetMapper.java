@@ -1,13 +1,13 @@
 package app.bpartners.api.model.mapper;
 
+import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
+
 import app.bpartners.api.model.AnnualRevenueTarget;
 import app.bpartners.api.model.Fraction;
 import app.bpartners.api.repository.TransactionsSummaryRepository;
 import app.bpartners.api.repository.jpa.model.HAnnualRevenueTarget;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
-
-import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 
 @Component
 @AllArgsConstructor

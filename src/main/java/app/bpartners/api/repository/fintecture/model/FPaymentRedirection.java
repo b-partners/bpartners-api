@@ -22,8 +22,10 @@ public class FPaymentRedirection {
   public static class Meta {
     @JsonProperty("status")
     private Integer status;
+
     @JsonProperty("session_id")
     private String sessionId;
+
     @JsonProperty("url")
     private String url;
   }

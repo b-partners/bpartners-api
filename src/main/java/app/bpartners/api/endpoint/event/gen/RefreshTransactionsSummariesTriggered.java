@@ -10,5 +10,4 @@ import lombok.ToString;
 @Builder
 @ToString
 @AllArgsConstructor
-public class RefreshTransactionsSummariesTriggered implements Serializable {
-}
+public class RefreshTransactionsSummariesTriggered implements Serializable {}

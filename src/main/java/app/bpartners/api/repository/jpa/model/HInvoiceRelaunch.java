@@ -1,5 +1,7 @@
 package app.bpartners.api.repository.jpa.model;
 
+import static javax.persistence.GenerationType.IDENTITY;
+
 import app.bpartners.api.endpoint.rest.model.RelaunchType;
 import app.bpartners.api.repository.jpa.types.PostgresEnumType;
 import java.io.Serializable;
@@ -24,8 +26,6 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 
-import static javax.persistence.GenerationType.IDENTITY;
-
 @Entity
 @Table(name = "\"invoice_relaunch\"")
 @TypeDef(name = "pgsql_enum", typeClass = PostgresEnumType.class)
@@ -40,16 +40,18 @@ public class HInvoiceRelaunch implements Serializable {
   @Id
   @GeneratedValue(strategy = IDENTITY)
   private String id;
+
   @Column(name = "\"type\"")
   @Type(type = "pgsql_enum")
   @Enumerated(EnumType.STRING)
   private RelaunchType type;
+
   @ManyToOne
   @JoinColumn(name = "id_invoice")
   private HInvoice invoice;
+
   private boolean isUserRelaunched;
-  @CreationTimestamp
-  private Instant creationDatetime;
+  @CreationTimestamp private Instant creationDatetime;
   private String object;
   private String emailBody;
   private String attachmentFileId;

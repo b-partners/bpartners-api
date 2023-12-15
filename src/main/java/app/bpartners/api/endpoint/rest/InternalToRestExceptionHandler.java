@@ -21,7 +21,6 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
-
 @RestControllerAdvice
 @Slf4j
 public class InternalToRestExceptionHandler {
@@ -67,15 +66,14 @@ public class InternalToRestExceptionHandler {
       TooManyRequestsException e) {
     log.info("Too many requests", e);
     return new ResponseEntity<>(
-        toRest(e, HttpStatus.TOO_MANY_REQUESTS),
-        HttpStatus.TOO_MANY_REQUESTS);
+        toRest(e, HttpStatus.TOO_MANY_REQUESTS), HttpStatus.TOO_MANY_REQUESTS);
   }
 
   @ExceptionHandler(
       value = {
-          LockAcquisitionException.class,
-          CannotAcquireLockException.class,
-          OptimisticLockException.class
+        LockAcquisitionException.class,
+        CannotAcquireLockException.class,
+        OptimisticLockException.class
       })
   ResponseEntity<app.bpartners.api.endpoint.rest.model.Exception> handleLockAcquisitionException(
       Exception e) {
@@ -83,10 +81,12 @@ public class InternalToRestExceptionHandler {
     return handleTooManyRequests(new TooManyRequestsException(e));
   }
 
-  @ExceptionHandler(value = {
-      AccessDeniedException.class,
-      BadCredentialsException.class,
-      ForbiddenException.class})
+  @ExceptionHandler(
+      value = {
+        AccessDeniedException.class,
+        BadCredentialsException.class,
+        ForbiddenException.class
+      })
   ResponseEntity<app.bpartners.api.endpoint.rest.model.Exception> handleForbidden(Exception e) {
     /* rest.model.Exception.Type.FORBIDDEN designates both authentication and authorization errors.
      * Hence do _not_ HttpsStatus.UNAUTHORIZED because, counter-intuitively,
@@ -124,8 +124,7 @@ public class InternalToRestExceptionHandler {
   ResponseEntity<app.bpartners.api.endpoint.rest.model.Exception> handleDefault(Exception e) {
     log.error("Internal error", e);
     return new ResponseEntity<>(
-        toRest(e, HttpStatus.INTERNAL_SERVER_ERROR),
-        HttpStatus.INTERNAL_SERVER_ERROR);
+        toRest(e, HttpStatus.INTERNAL_SERVER_ERROR), HttpStatus.INTERNAL_SERVER_ERROR);
   }
 
   private app.bpartners.api.endpoint.rest.model.Exception toRest(Exception e, HttpStatus status) {

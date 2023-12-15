@@ -18,8 +18,10 @@ import lombok.ToString;
 public class InputValue<T> {
   @JsonProperty("Date")
   private Instant evaluationDate;
+
   @JsonProperty("Name")
   private String name;
+
   @JsonProperty("Value")
   private T value;
 }

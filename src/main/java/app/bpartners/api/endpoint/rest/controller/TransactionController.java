@@ -31,27 +31,24 @@ public class TransactionController {
   private final TransactionExportValidator exportValidator;
 
   @PostMapping(value = "/accounts/{id}/transactions/exportLink")
-  public TransactionExportLink generateTransactionsExportLink(@PathVariable String id,
-                                                              @RequestBody
-                                                              TransactionExportInput input) {
+  public TransactionExportLink generateTransactionsExportLink(
+      @PathVariable String id, @RequestBody TransactionExportInput input) {
     exportValidator.accept(input);
-    return mapper.toRest(service.generateTransactionSummaryLink(
-        id,
-        input.getFrom(), input.getTo(),
-        input.getTransactionStatus()));
+    return mapper.toRest(
+        service.generateTransactionSummaryLink(
+            id, input.getFrom(), input.getTo(), input.getTransactionStatus()));
   }
 
   @GetMapping(value = "/accounts/{id}/transactions")
   public List<Transaction> getTransactions(
       @PathVariable(name = "id") String accountId,
-      @RequestParam(name = "page", required = false)
-      PageFromOne page,
-      @RequestParam(name = "pageSize", required = false)
-      BoundedPageSize pageSize,
+      @RequestParam(name = "page", required = false) PageFromOne page,
+      @RequestParam(name = "pageSize", required = false) BoundedPageSize pageSize,
       @RequestParam(name = "label", required = false) String label,
       @RequestParam(name = "status", required = false) TransactionStatus status,
       @RequestParam(name = "category", required = false) String category) {
-    return service.getPersistedByIdAccount(accountId, label, status, category, page, pageSize)
+    return service
+        .getPersistedByIdAccount(accountId, label, status, category, page, pageSize)
         .stream()
         .map(mapper::toRest)
         .toList();
@@ -60,17 +57,15 @@ public class TransactionController {
   @GetMapping(value = "/accounts/{id}/transactions/{tId}")
   public Transaction getTransactionById(
       @PathVariable(name = "id") String accountId,
-      @PathVariable(name = "tId") String transactionId
-  ) {
+      @PathVariable(name = "tId") String transactionId) {
     return mapper.toRest(service.getById(transactionId));
   }
 
   @GetMapping(value = "/accounts/{aId}/transactionsSummary")
   public TransactionsSummary getTransactionsSummary(
-      @PathVariable(name = "aId") String accountId,
-      @RequestParam(required = false) Integer year) {
+      @PathVariable(name = "aId") String accountId, @RequestParam(required = false) Integer year) {
     String idUser =
-        AuthProvider.getAuthenticatedUserId(); //TODO: should be changed when endpoint changed
+        AuthProvider.getAuthenticatedUserId(); // TODO: should be changed when endpoint changed
     return summaryRestMapper.toRest(service.getTransactionsSummary(idUser, year));
   }
 

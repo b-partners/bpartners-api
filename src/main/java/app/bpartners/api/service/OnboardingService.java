@@ -1,6 +1,10 @@
 package app.bpartners.api.service;
 
-import app.bpartners.api.endpoint.event.EventConf;
+import static app.bpartners.api.endpoint.rest.model.AccountStatus.OPENED;
+import static app.bpartners.api.endpoint.rest.model.IdentificationStatus.VALID_IDENTITY;
+import static java.util.UUID.randomUUID;
+import static org.springframework.transaction.annotation.Isolation.SERIALIZABLE;
+
 import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.endpoint.event.SesConf;
 import app.bpartners.api.endpoint.event.gen.UserOnboarded;
@@ -26,11 +30,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import static app.bpartners.api.endpoint.rest.model.AccountStatus.OPENED;
-import static app.bpartners.api.endpoint.rest.model.IdentificationStatus.VALID_IDENTITY;
-import static java.util.UUID.randomUUID;
-import static org.springframework.transaction.annotation.Isolation.SERIALIZABLE;
 
 @Service
 @AllArgsConstructor
@@ -63,14 +62,15 @@ public class OnboardingService {
     AccountHolder savedAccountHolder = accountHolderRepository.save(accountHolderToSave);
     Account accountToSave = fromNewUserAndAccountHolder(savedUser, savedAccountHolder);
     Account savedAccount = accountRepository.save(accountToSave);
-    User updatedAccount = savedUser.toBuilder()
-        .accounts(List.of(savedAccount.active(true)))
-        .accountHolders(List.of(savedAccountHolder))
-        .build();
-    OnboardedUser onboardedUser = new OnboardedUser(updatedAccount, savedAccount,
-        savedAccountHolder);
+    User updatedAccount =
+        savedUser.toBuilder()
+            .accounts(List.of(savedAccount.active(true)))
+            .accountHolders(List.of(savedAccountHolder))
+            .build();
+    OnboardedUser onboardedUser =
+        new OnboardedUser(updatedAccount, savedAccount, savedAccountHolder);
 
-    eventProducer.accept(List.of(toTypedEvent(onboardedUser))); //TODO: add appropriate test
+    eventProducer.accept(List.of(toTypedEvent(onboardedUser))); // TODO: add appropriate test
 
     return onboardedUser;
   }
@@ -83,9 +83,7 @@ public class OnboardingService {
   }
 
   private UserUpserted toTypedUser(User user) {
-    return new UserUpserted()
-        .userId(user.getId())
-        .email(user.getEmail());
+    return new UserUpserted().userId(user.getId()).email(user.getEmail());
   }
 
   private UserOnboarded toTypedEvent(OnboardedUser onboardedUser) {
@@ -102,11 +100,10 @@ public class OnboardingService {
     return user.toBuilder()
         .id(user.getId() == null ? id : user.getId())
         .bridgePassword(
-            user.getBridgePassword() == null
-                ? bridgePassword : user.getBridgePassword())
-        .identificationStatus(DEFAULT_USER_IDENTIFICATION) //default value
-        .status(DEFAULT_USER_STATUS) //default value
-        .idVerified(DEFAULT_VERIFIED) //default value
+            user.getBridgePassword() == null ? bridgePassword : user.getBridgePassword())
+        .identificationStatus(DEFAULT_USER_IDENTIFICATION) // default value
+        .status(DEFAULT_USER_STATUS) // default value
+        .idVerified(DEFAULT_VERIFIED) // default value
         .accounts(List.of())
         .build();
   }
@@ -120,8 +117,8 @@ public class OnboardingService {
         .email(user.getEmail())
         .website(null)
         .mobilePhoneNumber(user.getMobilePhoneNumber())
-        .verificationStatus(DEFAULT_VERIFICATION_STATUS) //default value
-        .subjectToVat(DEFAULT_SUBJECT_TO_VAT) //default value
+        .verificationStatus(DEFAULT_VERIFICATION_STATUS) // default value
+        .subjectToVat(DEFAULT_SUBJECT_TO_VAT) // default value
         .build();
   }
 
@@ -139,5 +136,4 @@ public class OnboardingService {
   private String encryptSequence(String sequence) {
     return encoder.encode(sequence);
   }
-
 }

@@ -7,11 +7,11 @@ import app.bpartners.api.repository.jpa.model.HSheetStoredCredential;
 import org.springframework.stereotype.Component;
 
 @Component
-public class SheetsDbCredentialStore extends
-    DbCredentialStore<HSheetStoredCredential, SheetStoredCredentialJpaRep, SheetCredentialMapper> {
-  public SheetsDbCredentialStore(SheetStoredCredentialJpaRep repository,
-                                 SheetCredentialMapper mapper) {
+public class SheetsDbCredentialStore
+    extends DbCredentialStore<
+        HSheetStoredCredential, SheetStoredCredentialJpaRep, SheetCredentialMapper> {
+  public SheetsDbCredentialStore(
+      SheetStoredCredentialJpaRep repository, SheetCredentialMapper mapper) {
     super(repository, mapper);
   }
 }
-

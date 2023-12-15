@@ -1,14 +1,5 @@
 package app.bpartners.api.unit.repository;
 
-import app.bpartners.api.model.User;
-import app.bpartners.api.model.UserToken;
-import app.bpartners.api.repository.UserTokenRepository;
-import app.bpartners.api.repository.bridge.BridgeApi;
-import app.bpartners.api.repository.bridge.model.Bank.BridgeBank;
-import app.bpartners.api.repository.bridge.repository.implementation.BridgeBankRepositoryImpl;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
 import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_TOKEN;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -17,6 +8,15 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
+
+import app.bpartners.api.model.User;
+import app.bpartners.api.model.UserToken;
+import app.bpartners.api.repository.UserTokenRepository;
+import app.bpartners.api.repository.bridge.BridgeApi;
+import app.bpartners.api.repository.bridge.model.Bank.BridgeBank;
+import app.bpartners.api.repository.bridge.repository.implementation.BridgeBankRepositoryImpl;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 class BridgeBankRepositoryImplTest {
   private final Long BRIDGE_BANK_ID = 1L;
@@ -32,9 +32,8 @@ class BridgeBankRepositoryImplTest {
 
     when(bridgeApi.findBankById(any(Long.class))).thenReturn(bridgeBank());
     when(bridgeApi.initiateBankConnection(any(), any())).thenReturn(JOE_DOE_TOKEN);
-    when(userTokenRepository.getLatestTokenByUser(any(User.class))).thenReturn(UserToken.builder()
-        .accessToken(JOE_DOE_TOKEN)
-        .build());
+    when(userTokenRepository.getLatestTokenByUser(any(User.class)))
+        .thenReturn(UserToken.builder().accessToken(JOE_DOE_TOKEN).build());
   }
 
   @Test
@@ -67,9 +66,6 @@ class BridgeBankRepositoryImplTest {
   }*/
 
   BridgeBank bridgeBank() {
-    return BridgeBank.builder()
-        .id(1L)
-        .name("bridge bank")
-        .build();
+    return BridgeBank.builder().id(1L).name("bridge bank").build();
   }
 }

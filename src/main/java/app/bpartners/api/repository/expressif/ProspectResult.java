@@ -44,8 +44,8 @@ public class ProspectResult<T> {
     private String idCustomer;
     private Customer oldCustomer;
 
-    public CustomerInterventionResult(Double rating, Double distance, String address,
-                                      String idCustomer) {
+    public CustomerInterventionResult(
+        Double rating, Double distance, String address, String idCustomer) {
       super(rating, distance, address);
       this.idCustomer = idCustomer;
     }

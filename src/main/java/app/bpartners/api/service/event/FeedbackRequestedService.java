@@ -22,14 +22,15 @@ public class FeedbackRequestedService implements Consumer<FeedbackRequested> {
     List<String> recipients = feedbackRequested.getRecipientsEmails();
     String subject = feedbackRequested.getSubject();
     String htmlBody = feedbackRequested.getMessage();
-    //TODO: configure attachment
+    // TODO: configure attachment
     List<Attachment> attachment = List.of();
-    recipients.forEach(recipient -> {
-      try {
-        service.sendEmail(recipient, null, subject, htmlBody, attachment);
-      } catch (MessagingException | IOException e) {
-        log.error("Email not sent : " + e.getMessage());
-      }
-    });
+    recipients.forEach(
+        recipient -> {
+          try {
+            service.sendEmail(recipient, null, subject, htmlBody, attachment);
+          } catch (MessagingException | IOException e) {
+            log.error("Email not sent : " + e.getMessage());
+          }
+        });
   }
 }

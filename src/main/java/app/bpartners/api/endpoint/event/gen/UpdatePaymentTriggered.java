@@ -10,5 +10,4 @@ import lombok.ToString;
 @Builder
 @ToString
 @AllArgsConstructor
-public class UpdatePaymentTriggered implements Serializable {
-}
+public class UpdatePaymentTriggered implements Serializable {}

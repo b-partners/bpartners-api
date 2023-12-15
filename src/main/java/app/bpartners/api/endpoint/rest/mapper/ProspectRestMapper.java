@@ -1,5 +1,8 @@
 package app.bpartners.api.endpoint.rest.mapper;
 
+import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
+import static java.util.UUID.randomUUID;
+
 import app.bpartners.api.endpoint.rest.model.Area;
 import app.bpartners.api.endpoint.rest.model.ContactNature;
 import app.bpartners.api.endpoint.rest.model.EvaluatedProspect;
@@ -28,9 +31,6 @@ import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
-import static java.util.UUID.randomUUID;
-
 @Component
 @AllArgsConstructor
 public class ProspectRestMapper {
@@ -46,8 +46,7 @@ public class ProspectRestMapper {
     ProspectResult.InterventionResult interventionResult = prospectResult.getInterventionResult();
     ProspectResult.CustomerInterventionResult customerResult =
         prospectResult.getCustomerInterventionResult();
-    Customer customerInfo = customerResult == null ? null
-        : customerResult.getOldCustomer();
+    Customer customerInfo = customerResult == null ? null : customerResult.getOldCustomer();
     Integer postalCode;
     try {
       postalCode = Integer.valueOf(info.getPostalCode());
@@ -55,41 +54,37 @@ public class ProspectRestMapper {
       postalCode = null;
     }
     return new EvaluatedProspect()
-        .id(String.valueOf(randomUUID())) //TODO: return persisted ID
+        .id(String.valueOf(randomUUID())) // TODO: return persisted ID
         .reference(String.valueOf(info.getReference()))
-        .name(customerInfo == null ? info.getName()
-            : customerInfo.getFullName())
-        .phone(customerInfo == null ? info.getPhoneNumber()
-            : customerInfo.getPhone())
-        .email(customerInfo == null ? info.getEmail()
-            : customerInfo.getEmail())
-        .address(customerInfo == null ? info.getAddress()
-            : customerInfo.getFullAddress())
-        .city(customerInfo == null ? info.getCity()
-            : customerInfo.getCity())
-        .townCode(customerInfo == null ? postalCode
-            : customerInfo.getZipCode()
-        )
-        .area(new Area().geojson(
-            customerInfo == null
-                ? toGeoJson(info.getCoordinates())
-                : toGeoJson(customerInfo.getLocation().getCoordinate())))
-        .managerName(customerInfo == null ? info.getManagerName()
-            : customerInfo.getFullName())
-        .contactNature(customerResult != null ? ContactNature.OLD_CUSTOMER
-            : getProspect(info))
+        .name(customerInfo == null ? info.getName() : customerInfo.getFullName())
+        .phone(customerInfo == null ? info.getPhoneNumber() : customerInfo.getPhone())
+        .email(customerInfo == null ? info.getEmail() : customerInfo.getEmail())
+        .address(customerInfo == null ? info.getAddress() : customerInfo.getFullAddress())
+        .city(customerInfo == null ? info.getCity() : customerInfo.getCity())
+        .townCode(customerInfo == null ? postalCode : customerInfo.getZipCode())
+        .area(
+            new Area()
+                .geojson(
+                    customerInfo == null
+                        ? toGeoJson(info.getCoordinates())
+                        : toGeoJson(customerInfo.getLocation().getCoordinate())))
+        .managerName(customerInfo == null ? info.getManagerName() : customerInfo.getFullName())
+        .contactNature(customerResult != null ? ContactNature.OLD_CUSTOMER : getProspect(info))
         .evaluationDate(prospectResult.getEvaluationDate())
-        .interventionResult(interventionResult == null || customerResult != null ? null
-            : new InterventionResult()
-            .address(interventionResult.getAddress())
-            .distanceFromProspect(
-                BigDecimal.valueOf(interventionResult.getDistance()))
-            .value(BigDecimal.valueOf(interventionResult.getRating())))
-        .oldCustomerResult(customerResult == null ? null
-            : new OldCustomerResult()
-            .address(customerResult.getAddress())
-            .distanceFromProspect(BigDecimal.valueOf(customerResult.getDistance()))
-            .value(BigDecimal.valueOf(customerResult.getRating())));
+        .interventionResult(
+            interventionResult == null || customerResult != null
+                ? null
+                : new InterventionResult()
+                    .address(interventionResult.getAddress())
+                    .distanceFromProspect(BigDecimal.valueOf(interventionResult.getDistance()))
+                    .value(BigDecimal.valueOf(interventionResult.getRating())))
+        .oldCustomerResult(
+            customerResult == null
+                ? null
+                : new OldCustomerResult()
+                    .address(customerResult.getAddress())
+                    .distanceFromProspect(BigDecimal.valueOf(customerResult.getDistance()))
+                    .value(BigDecimal.valueOf(customerResult.getRating())));
   }
 
   public Prospect toRest(app.bpartners.api.model.prospect.Prospect domain) {
@@ -104,19 +99,23 @@ public class ProspectRestMapper {
         .location(domain.getLocation())
         .townCode(domain.getTownCode())
         .status(domain.getActualStatus())
-        .statusHistory(domain.getStatusHistories().stream()
-            .map(this::toRest)
-            .collect(Collectors.toList()))
-        .rating(prospectRating == null ? null
-            : new ProspectRating()
-            .lastEvaluation(prospectRating.getLastEvaluationDate())
-            .value(prospectRating.getValue() == null ? BigDecimal.valueOf(-1.0)
-                : BigDecimal.valueOf(prospectRating.getValue())))
+        .statusHistory(
+            domain.getStatusHistories().stream().map(this::toRest).collect(Collectors.toList()))
+        .rating(
+            prospectRating == null
+                ? null
+                : new ProspectRating()
+                    .lastEvaluation(prospectRating.getLastEvaluationDate())
+                    .value(
+                        prospectRating.getValue() == null
+                            ? BigDecimal.valueOf(-1.0)
+                            : BigDecimal.valueOf(prospectRating.getValue())))
         .comment(domain.getComment())
         .defaultComment(domain.getDefaultComment())
-        .contractAmount(domain.getContractAmount() == null
-            ? null
-            : domain.getContractAmount().getCentsRoundUp())
+        .contractAmount(
+            domain.getContractAmount() == null
+                ? null
+                : domain.getContractAmount().getCentsRoundUp())
         .invoiceID(domain.getIdInvoice())
         .prospectFeedback(domain.getProspectFeedback())
         .contactNature(domain.getContactNature());
@@ -146,14 +145,11 @@ public class ProspectRestMapper {
         .status(domain.getJobStatus())
         .startedAt(domain.getStartedAt())
         .endedAt(domain.getEndedAt())
-        .results(domain.getResults().stream()
-            .map(this::toRest)
-            .collect(Collectors.toList()))
+        .results(domain.getResults().stream().map(this::toRest).collect(Collectors.toList()))
         .metadata(domain.getMetadata());
   }
 
-  public app.bpartners.api.model.prospect.Prospect toDomain(String ownerId,
-                                                            UpdateProspect rest) {
+  public app.bpartners.api.model.prospect.Prospect toDomain(String ownerId, UpdateProspect rest) {
     validator.accept(rest);
     return app.bpartners.api.model.prospect.Prospect.builder()
         .id(rest.getId())
@@ -163,16 +159,18 @@ public class ProspectRestMapper {
         .managerName(rest.getManagerName())
         .phone(rest.getPhone())
         .address(rest.getAddress())
-        .statusHistories(List.of(ProspectStatusHistory.builder()
-            .status(rest.getStatus())
-            .updatedAt(Instant.now())
-            .build()))
+        .statusHistories(
+            List.of(
+                ProspectStatusHistory.builder()
+                    .status(rest.getStatus())
+                    .updatedAt(Instant.now())
+                    .build()))
         .townCode(rest.getTownCode())
         .build();
   }
 
-  public app.bpartners.api.model.prospect.Prospect toDomain(String ownerId,
-                                                            ExtendedProspectStatus rest) {
+  public app.bpartners.api.model.prospect.Prospect toDomain(
+      String ownerId, ExtendedProspectStatus rest) {
     prospectUpdateValidator.accept(rest);
     return app.bpartners.api.model.prospect.Prospect.builder()
         .id(rest.getId())
@@ -182,10 +180,12 @@ public class ProspectRestMapper {
         .managerName(rest.getManagerName())
         .phone(rest.getPhone())
         .address(rest.getAddress())
-        .statusHistories(List.of(ProspectStatusHistory.builder()
-            .status(rest.getStatus())
-            .updatedAt(Instant.now())
-            .build()))
+        .statusHistories(
+            List.of(
+                ProspectStatusHistory.builder()
+                    .status(rest.getStatus())
+                    .updatedAt(Instant.now())
+                    .build()))
         .townCode(rest.getTownCode())
         .comment(rest.getComment())
         .contractAmount(parseFraction(rest.getContractAmount()))
@@ -206,7 +206,7 @@ public class ProspectRestMapper {
 
   private Geojson toGeoJson(GeoUtils.Coordinate coordinate) {
     return new Geojson()
-        .type("Point") //default type
+        .type("Point") // default type
         .latitude(coordinate.getLatitude())
         .longitude(coordinate.getLongitude());
   }

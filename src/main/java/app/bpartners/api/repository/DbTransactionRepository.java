@@ -37,9 +37,8 @@ public class DbTransactionRepository implements TransactionRepository {
   private final InvoiceJpaRepository invoiceJpaRepository;
   private final EntityManager entityManager;
 
-  private List<HTransaction> filterByIdAccountAndLabel(String idAccount, String label,
-                                                       TransactionStatus status,
-                                                       Pageable pageable) {
+  private List<HTransaction> filterByIdAccountAndLabel(
+      String idAccount, String label, TransactionStatus status, Pageable pageable) {
     CriteriaBuilder builder = entityManager.getCriteriaBuilder();
     CriteriaQuery<HTransaction> query = builder.createQuery(HTransaction.class);
     Root<HTransaction> root = query.from(HTransaction.class);
@@ -48,8 +47,9 @@ public class DbTransactionRepository implements TransactionRepository {
     predicates.add(builder.equal(root.get("idAccount"), idAccount));
     predicates.add(builder.equal(root.get("enableStatus"), EnableStatus.ENABLED));
     if (label != null) {
-      predicates.add(builder.or(builder.like(builder.lower(root.get("label")),
-          "%" + label.toLowerCase() + "%")));
+      predicates.add(
+          builder.or(
+              builder.like(builder.lower(root.get("label")), "%" + label.toLowerCase() + "%")));
     }
     if (status != null) {
       predicates.add(builder.or(builder.equal(root.get("status"), status)));
@@ -58,45 +58,49 @@ public class DbTransactionRepository implements TransactionRepository {
         .where(builder.and(predicates.toArray(new Predicate[0])))
         .orderBy(QueryUtils.toOrders(pageable.getSort(), root, builder));
 
-    return entityManager.createQuery(query)
+    return entityManager
+        .createQuery(query)
         .setFirstResult((pageable.getPageNumber()) * pageable.getPageSize())
         .setMaxResults(pageable.getPageSize())
         .getResultList();
   }
 
   @Override
-  public List<Transaction> findByIdAccount(String idAccount,
-                                           String label,
-                                           TransactionStatus status,
-                                           int page, int pageSize) {
+  public List<Transaction> findByIdAccount(
+      String idAccount, String label, TransactionStatus status, int page, int pageSize) {
     Pageable pageable =
         PageRequest.of(page, pageSize, Sort.by(Sort.Direction.DESC, "paymentDateTime"));
     List<HTransaction> transactions = filterByIdAccountAndLabel(idAccount, label, status, pageable);
-    return transactions
-        .stream()
-        .map(transaction -> mapper.toDomain(transaction,
-            categoryRepository.findByIdTransaction(transaction.getId())))
+    return transactions.stream()
+        .map(
+            transaction ->
+                mapper.toDomain(
+                    transaction, categoryRepository.findByIdTransaction(transaction.getId())))
         .collect(Collectors.toList());
   }
 
-  //TODO: Bad implementation ! Use correct SQL Query
+  // TODO: Bad implementation ! Use correct SQL Query
   @Override
   public List<Transaction> findByAccountId(String id) {
     return jpaRepository.findAllByIdAccountOrderByPaymentDateTimeDesc(id).stream()
-        .map(transaction -> mapper.toDomain(transaction,
-            categoryRepository.findByIdTransaction(transaction.getId())))
+        .map(
+            transaction ->
+                mapper.toDomain(
+                    transaction, categoryRepository.findByIdTransaction(transaction.getId())))
         .toList();
   }
 
   @Override
   public Transaction findById(String id) {
-    HTransaction transaction = jpaRepository.findById(id)
-        .orElseThrow(() -> new NotFoundException("Transaction." + id + " is not found."));
+    HTransaction transaction =
+        jpaRepository
+            .findById(id)
+            .orElseThrow(() -> new NotFoundException("Transaction." + id + " is not found."));
     return mapper.toDomain(
         transaction, categoryRepository.findByIdTransaction(transaction.getId()));
   }
 
-  //TODO: Bad implementation ! Use correct SQL Query
+  // TODO: Bad implementation ! Use correct SQL Query
   @Override
   public List<Transaction> findByAccountIdAndStatus(String id, TransactionStatus status) {
     return findByAccountId(id).stream()
@@ -106,59 +110,60 @@ public class DbTransactionRepository implements TransactionRepository {
 
   @Override
   public Transaction save(JustifyTransaction toSave) {
-    HTransaction entity = jpaRepository.findById(toSave.getIdTransaction())
-        .orElseThrow(() -> new NotFoundException("Transaction(id=" + toSave.getIdTransaction()
-            + ") not found"));
-    HInvoice invoice = invoiceJpaRepository.findById(toSave.getIdInvoice())
-        .orElseThrow(() -> new NotFoundException("Invoice(id=" + toSave.getIdInvoice()
-            + ") not found"));
-    HTransaction savedTransaction = jpaRepository.save(entity.toBuilder()
-        .invoice(invoice)
-        .build());
-    return mapper.toDomain(savedTransaction,
-        categoryRepository.findByIdTransaction(entity.getId()));
+    HTransaction entity =
+        jpaRepository
+            .findById(toSave.getIdTransaction())
+            .orElseThrow(
+                () ->
+                    new NotFoundException(
+                        "Transaction(id=" + toSave.getIdTransaction() + ") not found"));
+    HInvoice invoice =
+        invoiceJpaRepository
+            .findById(toSave.getIdInvoice())
+            .orElseThrow(
+                () -> new NotFoundException("Invoice(id=" + toSave.getIdInvoice() + ") not found"));
+    HTransaction savedTransaction = jpaRepository.save(entity.toBuilder().invoice(invoice).build());
+    return mapper.toDomain(
+        savedTransaction, categoryRepository.findByIdTransaction(entity.getId()));
   }
 
   @Override
   public List<Transaction> saveAll(List<Transaction> transactions) {
-    List<HTransaction> entities = transactions.stream()
-        .map(mapper::toEntity)
-        .toList();
+    List<HTransaction> entities = transactions.stream().map(mapper::toEntity).toList();
     ;
     return entities.stream()
-        .map(entity -> mapper.toDomain(entity,
-            categoryRepository.findByIdTransaction(entity.getId())))
+        .map(
+            entity ->
+                mapper.toDomain(entity, categoryRepository.findByIdTransaction(entity.getId())))
         .collect(Collectors.toList());
   }
 
-  //TODO: Bad implementation ! Use correct SQL Query
+  // TODO: Bad implementation ! Use correct SQL Query
   @Override
-  public List<Transaction> findByAccountIdAndStatusBetweenInstants(String id,
-                                                                   TransactionStatus status,
-                                                                   Instant from, Instant to) {
+  public List<Transaction> findByAccountIdAndStatusBetweenInstants(
+      String id, TransactionStatus status, Instant from, Instant to) {
     return findByAccountIdAndStatus(id, status).stream()
         .filter(
-            transaction -> transaction.getPaymentDatetime().isAfter(from)
-                &&
-                transaction.getPaymentDatetime().isBefore(to)
-        )
+            transaction ->
+                transaction.getPaymentDatetime().isAfter(from)
+                    && transaction.getPaymentDatetime().isBefore(to))
         .toList();
   }
 
   @Override
   public Transaction getById(String idTransaction) {
-    HTransaction entity = jpaRepository.findById(idTransaction)
-        .orElseThrow(() -> new NotFoundException(
-            "Transaction." + idTransaction + " not found"));
+    HTransaction entity =
+        jpaRepository
+            .findById(idTransaction)
+            .orElseThrow(
+                () -> new NotFoundException("Transaction." + idTransaction + " not found"));
     return mapper.toDomain(entity, categoryRepository.findByIdTransaction(entity.getId()));
   }
 
   @Override
   public void removeAll(List<Transaction> toRemove) {
     List<String> ids = new ArrayList<>();
-    toRemove.forEach(
-        transaction -> ids.add(transaction.getId())
-    );
+    toRemove.forEach(transaction -> ids.add(transaction.getId()));
     jpaRepository.deleteAllById(ids);
   }
 }

@@ -6,6 +6,7 @@ import app.bpartners.api.endpoint.rest.client.ApiException;
 import app.bpartners.api.endpoint.rest.model.InvoiceRelaunchConf;
 import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.integration.conf.S3AbstractContextInitializer;
+import app.bpartners.api.integration.conf.S3MockedThirdParties;
 import app.bpartners.api.integration.conf.utils.TestUtils;
 import app.bpartners.api.repository.fintecture.FintecturePaymentInfoRepository;
 import app.bpartners.api.repository.fintecture.FintecturePaymentInitiationRepository;
@@ -20,32 +21,22 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import static app.bpartners.api.integration.conf.utils.TestUtils.INVOICE1_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.INVOICE2_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.setUpCognito;
-import static app.bpartners.api.integration.conf.utils.TestUtils.setUpLegalFileRepository;
-import static app.bpartners.api.integration.conf.utils.TestUtils.setUpPaymentInfoRepository;
-import static app.bpartners.api.integration.conf.utils.TestUtils.setUpPaymentInitiationRep;
-import static app.bpartners.api.integration.conf.utils.TestUtils.setUpS3Conf;
+import static app.bpartners.api.integration.conf.utils.TestUtils.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
-@SpringBootTest(webEnvironment = RANDOM_PORT)
 @Testcontainers
-@ContextConfiguration(initializers = InvoiceRelaunchConfIT.ContextInitializer.class)
 @AutoConfigureMockMvc
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-class InvoiceRelaunchConfIT extends MockedThirdParties {
+class InvoiceRelaunchConfIT extends S3MockedThirdParties {
   private static final String RELAUNCH_CONF1_ID = "relaunchConf1_id";
   @MockBean
   private FintecturePaymentInitiationRepository paymentInitiationRepositoryMock;
   @MockBean
   private FintecturePaymentInfoRepository paymentInfoRepositoryMock;
 
-  private static ApiClient anApiClient() {
-    return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN,
-        InvoiceRelaunchConfIT.ContextInitializer.SERVER_PORT);
+  private ApiClient anApiClient() {
+    return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN, localPort);
   }
 
   @BeforeEach
@@ -54,7 +45,6 @@ class InvoiceRelaunchConfIT extends MockedThirdParties {
     setUpPaymentInfoRepository(paymentInfoRepositoryMock);
     setUpLegalFileRepository(legalFileRepositoryMock);
     setUpCognito(cognitoComponentMock);
-    setUpS3Conf(s3Conf);
   }
 
   @Test
@@ -107,14 +97,5 @@ class InvoiceRelaunchConfIT extends MockedThirdParties {
     return createInvoiceRelaunchConf()
         .delay(10)
         .rehearsalNumber(15);
-  }
-
-  static class ContextInitializer extends S3AbstractContextInitializer {
-    public static final int SERVER_PORT = TestUtils.findAvailableTcpPort();
-
-    @Override
-    public int getServerPort() {
-      return SERVER_PORT;
-    }
   }
 }

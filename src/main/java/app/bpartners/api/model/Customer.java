@@ -1,6 +1,8 @@
 package app.bpartners.api.model;
 
 import app.bpartners.api.endpoint.rest.model.CustomerStatus;
+import app.bpartners.api.endpoint.rest.model.CustomerType;
+import app.bpartners.api.model.exception.ApiException;
 import java.time.Instant;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -9,6 +11,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+
+import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 
 @Getter
 @Setter
@@ -38,6 +42,7 @@ public class Customer {
   protected Instant updatedAt;
   protected Instant createdAt;
   protected String latestFullAddress;
+  protected CustomerType customerType;
 
   public String describe() {
     return "Customer(id=" + id + ", name=" + getName() + ", idUser=" + idUser + ")";
@@ -55,6 +60,16 @@ public class Customer {
     return (firstName == null ? "" : firstName)
         .concat(firstName != null & lastName != null ? " " : "")
         .concat(lastName == null ? "" : lastName);
+  }
+
+  public String getTranslatedType() {
+    if (customerType == CustomerType.INDIVIDUAL) {
+      return "Particulier";
+    } else if (customerType == CustomerType.PROFESSIONAL) {
+      return "Professionel";
+    } else {
+      throw new ApiException(SERVER_EXCEPTION, "Unknown customerType " + customerType);
+    }
   }
 
   public String getFullAddress() {

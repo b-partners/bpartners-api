@@ -4,6 +4,7 @@ import app.bpartners.api.endpoint.rest.model.CreateCustomer;
 import app.bpartners.api.endpoint.rest.model.Customer;
 import app.bpartners.api.endpoint.rest.model.CustomerLocation;
 import app.bpartners.api.endpoint.rest.model.CustomerStatus;
+import app.bpartners.api.endpoint.rest.model.CustomerType;
 import app.bpartners.api.endpoint.rest.validator.CreateCustomerValidator;
 import app.bpartners.api.endpoint.rest.validator.CustomerValidator;
 import lombok.AllArgsConstructor;
@@ -45,6 +46,7 @@ public class CustomerRestMapper {
         .location(customerLocation)
         .status(domain.getStatus())
         .updatedAt(domain.getUpdatedAt())
+        .customerType(domain.getCustomerType())
         .createdAt(domain.getCreatedAt());
   }
 
@@ -89,6 +91,7 @@ public class CustomerRestMapper {
         .comment(rest.getComment())
         .location(customerLocation)
         .status(rest.getStatus())
+        .customerType(rest.getCustomerType())
         .build();
   }
 
@@ -118,6 +121,8 @@ public class CustomerRestMapper {
             .address(rest.getAddress())
             .build())
         .status(CustomerStatus.ENABLED) // set to enabled by default
+        .customerType(rest.getCustomerType() == null ? CustomerType.INDIVIDUAL
+            : rest.getCustomerType())
         .build();
   }
 

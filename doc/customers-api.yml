@@ -342,6 +342,8 @@ components:
           type: string
         comment:
           type: string
+        customerType:
+          $ref: '#/components/schemas/CustomerType'
     Customer:
       type: object
       properties:
@@ -380,3 +382,8 @@ components:
           type: string
         status:
           $ref: '#/components/schemas/CustomerStatus'
+    CustomerType:
+      type: string
+      enum:
+        - PROFESSIONAL
+        - INDIVIDUAL

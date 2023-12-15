@@ -15,6 +15,7 @@ import app.bpartners.api.endpoint.rest.model.CreateProduct;
 import app.bpartners.api.endpoint.rest.model.Customer;
 import app.bpartners.api.endpoint.rest.model.CustomerLocation;
 import app.bpartners.api.endpoint.rest.model.CustomerStatus;
+import app.bpartners.api.endpoint.rest.model.CustomerType;
 import app.bpartners.api.endpoint.rest.model.Geojson;
 import app.bpartners.api.endpoint.rest.model.Invoice;
 import app.bpartners.api.endpoint.rest.model.InvoiceDiscount;
@@ -277,7 +278,8 @@ public class TestUtils {
             .address("15 rue Porte d'Orange")
             .longitude(0d)
             .latitude(0d))
-        .status(CustomerStatus.ENABLED);
+        .status(CustomerStatus.ENABLED)
+        .customerType(CustomerType.INDIVIDUAL);
   }
 
   public static Customer customer2() {
@@ -297,7 +299,8 @@ public class TestUtils {
             .address("4 Avenue des Près")
             .longitude(0d)
             .latitude(0d))
-        .status(CustomerStatus.ENABLED);
+        .status(CustomerStatus.ENABLED)
+        .customerType(CustomerType.INDIVIDUAL);
   }
 
   public static Customer customerUpdated() {

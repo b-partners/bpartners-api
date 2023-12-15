@@ -1,5 +1,7 @@
 package app.bpartners.api.repository.jpa.model;
 
+import static javax.persistence.GenerationType.IDENTITY;
+
 import java.time.Instant;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -16,8 +18,6 @@ import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
 
-import static javax.persistence.GenerationType.IDENTITY;
-
 @Entity
 @Table(name = "\"user_legal_file\"")
 @Getter
@@ -31,12 +31,14 @@ public class HUserLegalFile {
   @Id
   @GeneratedValue(strategy = IDENTITY)
   private String id;
+
   @OneToOne
   @JoinColumn(name = "id_user", referencedColumnName = "id")
   private HUser user;
+
   @OneToOne
   @JoinColumn(name = "id_legal_file", referencedColumnName = "id")
   private HLegalFile legalFile;
-  @CreationTimestamp
-  private Instant approvalDatetime;
+
+  @CreationTimestamp private Instant approvalDatetime;
 }

@@ -1,5 +1,9 @@
 package app.bpartners.api.repository.google.calendar;
 
+import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
+import static app.bpartners.api.model.mapper.CalendarEventMapper.PARIS_TIMEZONE;
+import static app.bpartners.api.repository.google.calendar.CalendarConf.JSON_FACTORY;
+
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.ForbiddenException;
@@ -21,10 +25,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-
-import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
-import static app.bpartners.api.model.mapper.CalendarEventMapper.PARIS_TIMEZONE;
-import static app.bpartners.api.repository.google.calendar.CalendarConf.JSON_FACTORY;
 
 @Slf4j
 @Data
@@ -53,14 +53,16 @@ public class CalendarApi {
         .build();
   }
 
-  public List<Event> getEvents(String idCalendar, Credential credential, DateTime dateMin,
-                               DateTime dateMax) {
+  public List<Event> getEvents(
+      String idCalendar, Credential credential, DateTime dateMin, DateTime dateMax) {
     Calendar calendarService = initService(calendarConf, credential);
     try {
-      Calendar.Events.List eventBuilder = calendarService.events()
-          .list(idCalendar)
-          .setOrderBy(START_TIME_ATTRIBUTE)
-          .setSingleEvents(true);
+      Calendar.Events.List eventBuilder =
+          calendarService
+              .events()
+              .list(idCalendar)
+              .setOrderBy(START_TIME_ATTRIBUTE)
+              .setSingleEvents(true);
 
       if (dateMin != null && dateMax != null) {
         Instant minInstant = Instant.parse(dateMin.toStringRfc3339());
@@ -86,10 +88,8 @@ public class CalendarApi {
         "Google Calendar Token is expired or invalid. Give your consent again.");
   }
 
-  public List<Event> getEvents(String idUser,
-                               String idCalendar,
-                               DateTime dateMin,
-                               DateTime dateMax) {
+  public List<Event> getEvents(
+      String idUser, String idCalendar, DateTime dateMin, DateTime dateMax) {
     return getEvents(idCalendar, calendarConf.loadCredential(idUser), dateMin, dateMax);
   }
 
@@ -97,33 +97,32 @@ public class CalendarApi {
     return crupdateEvents(loadCredentials(idUser), calendarId, events);
   }
 
-
   public List<Event> crupdateEvents(Credential credential, String calendarId, List<Event> events) {
     Calendar calendarService = initService(calendarConf, credential);
-    return events.stream().map(event -> {
-      Event result = null;
-      try {
-        if (event.getId() == null) {
-          result = calendarService.events()
-              .insert(calendarId, event)
-              .execute();
-        } else {
-          result = calendarService.events()
-              .update(calendarId, event.getId(), event)
-              .execute();
-        }
-      } catch (GoogleJsonResponseException e) {
-        if (e.getStatusCode() == 401) {
-          throw new ForbiddenException(
-              "Google Calendar Token is expired or invalid. Give your consent again.");
-        }
-      } catch (IOException e) {
-        throw new ApiException(SERVER_EXCEPTION, e);
-      } catch (Exception e) {
-        log.warn(e.getMessage());
-      }
-      return result;
-    }).collect(Collectors.toList());
+    return events.stream()
+        .map(
+            event -> {
+              Event result = null;
+              try {
+                if (event.getId() == null) {
+                  result = calendarService.events().insert(calendarId, event).execute();
+                } else {
+                  result =
+                      calendarService.events().update(calendarId, event.getId(), event).execute();
+                }
+              } catch (GoogleJsonResponseException e) {
+                if (e.getStatusCode() == 401) {
+                  throw new ForbiddenException(
+                      "Google Calendar Token is expired or invalid. Give your consent again.");
+                }
+              } catch (IOException e) {
+                throw new ApiException(SERVER_EXCEPTION, e);
+              } catch (Exception e) {
+                log.warn(e.getMessage());
+              }
+              return result;
+            })
+        .collect(Collectors.toList());
   }
 
   public List<CalendarListEntry> getCalendars(String idUser) {
@@ -169,8 +168,8 @@ public class CalendarApi {
   }
 
   public static ZonedDateTime zonedDateTimeFrom(EventDateTime eventDateTime) {
-    return ZonedDateTime.ofInstant(instantFrom(eventDateTime),
-        ZoneId.of(timeZoneFrom(eventDateTime)));
+    return ZonedDateTime.ofInstant(
+        instantFrom(eventDateTime), ZoneId.of(timeZoneFrom(eventDateTime)));
   }
 
   public static String timeZoneFrom(EventDateTime eventDateTime) {

@@ -34,44 +34,44 @@ public class UserTokenRepositoryImpl implements UserTokenRepository {
       return null;
     }
     BridgeTokenResponse response = bridgeApi.authenticateUser(mapper.toBridgeAuthUser(user));
-    //TODO: do something as retry
-    if (response == null
-        || !response.getUser().getEmail().equals(user.getEmail())) {
+    // TODO: do something as retry
+    if (response == null || !response.getUser().getEmail().equals(user.getEmail())) {
       return null;
     }
     List<HAccount> accounts = accountJpaRepository.findByUser_Id(user.getId());
     List<HAccountHolder> accountHolders = holderJpaRepository.findAllByIdUser(user.getId());
-    HUser userEntity = userMapper.toEntity(user, accountHolders, accounts).toBuilder()
-        .accessToken(response.getAccessToken())
-        .tokenExpirationDatetime(response.getExpirationDate())
-        .tokenCreationDatetime(Instant.now())
-        .build();
+    HUser userEntity =
+        userMapper.toEntity(user, accountHolders, accounts).toBuilder()
+            .accessToken(response.getAccessToken())
+            .tokenExpirationDatetime(response.getExpirationDate())
+            .tokenCreationDatetime(Instant.now())
+            .build();
     return mapper.toDomain(userJpaRepository.save(userEntity));
   }
 
   @Override
   public UserToken getLatestTokenByUser(User user) {
     HUser entity = userJpaRepository.getHUserById(user.getId());
-    //TODO: when null or expired then retry 3 times with one second of intervals between
+    // TODO: when null or expired then retry 3 times with one second of intervals between
     if (entity.getAccessToken() == null
         || (entity.getTokenExpirationDatetime() != null
-        && entity.getTokenExpirationDatetime().isBefore(Instant.now()))) {
+            && entity.getTokenExpirationDatetime().isBefore(Instant.now()))) {
       return updateUserToken(mapper.toDomain(entity).getUser());
     }
-    //Note that tokens are ordered by expiration datetime desc
+    // Note that tokens are ordered by expiration datetime desc
     return mapper.toDomain(entity);
   }
 
-  //TODO: check why some accounts are not associated to users
+  // TODO: check why some accounts are not associated to users
   @Override
   public UserToken getLatestTokenByAccount(String accountId) {
     HUser entity = userJpaRepository.pwGetByAccountId(accountId);
     if (entity.getAccessToken() == null
         || (entity.getTokenExpirationDatetime() != null
-        && entity.getTokenExpirationDatetime().isBefore(Instant.now()))) {
+            && entity.getTokenExpirationDatetime().isBefore(Instant.now()))) {
       return updateUserToken(mapper.toDomain(entity).getUser());
     }
-    //Note that tokens are ordered by expiration datetime desc
+    // Note that tokens are ordered by expiration datetime desc
     return mapper.toDomain(entity);
   }
 }

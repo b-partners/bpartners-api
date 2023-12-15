@@ -28,13 +28,15 @@ public class ProspectEvalInfo {
   protected String postalCode;
   protected String city;
   private Date companyCreationDate;
-  private String category; //TODO: check if must be enum
-  private String subcategory; //TODO: check if must be enum
+  private String category; // TODO: check if must be enum
+  private String subcategory; // TODO: check if must be enum
   private ContactNature contactNature;
   protected GeoUtils.Coordinate coordinates;
   private String defaultComment;
 
   public enum ContactNature {
-    PROSPECT, OLD_CUSTOMER, OTHER
+    PROSPECT,
+    OLD_CUSTOMER,
+    OTHER
   }
 }

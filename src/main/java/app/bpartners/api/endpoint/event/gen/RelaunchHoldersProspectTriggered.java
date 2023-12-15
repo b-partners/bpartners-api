@@ -10,5 +10,4 @@ import lombok.ToString;
 @Builder
 @ToString
 @AllArgsConstructor
-public class RelaunchHoldersProspectTriggered implements Serializable {
-}
+public class RelaunchHoldersProspectTriggered implements Serializable {}

@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 public class CompanyInfoRestValidator implements Consumer<CompanyInfo> {
   @Override
   public void accept(CompanyInfo companyInfo) {
-    //todo: merge with companyInfo validator when it will be used
+    // todo: merge with companyInfo validator when it will be used
     StringBuilder exceptionMessageBuilder = new StringBuilder();
     if (companyInfo.getLocation() != null) {
       if (companyInfo.getLocation().getLatitude() == null) {

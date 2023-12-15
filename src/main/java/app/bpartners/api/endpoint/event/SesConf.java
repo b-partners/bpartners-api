@@ -10,14 +10,13 @@ import software.amazon.awssdk.services.ses.SesClient;
 @Configuration
 public class SesConf {
   private final Region region;
-  @Getter
-  private final String sesSource;
-  @Getter
-  private final String adminEmail;
+  @Getter private final String sesSource;
+  @Getter private final String adminEmail;
 
-  public SesConf(@Value("${aws.ses.source}")String sesSource,
-                 @Value("${admin.email}") String adminEmail,
-                 @Value("eu-west-3") Region region) {
+  public SesConf(
+      @Value("${aws.ses.source}") String sesSource,
+      @Value("${admin.email}") String adminEmail,
+      @Value("eu-west-3") Region region) {
     this.sesSource = sesSource;
     this.adminEmail = adminEmail;
     this.region = region;
@@ -25,8 +24,6 @@ public class SesConf {
 
   @Bean
   public SesClient getSesClient() {
-    return SesClient.builder()
-        .region(region)
-        .build();
+    return SesClient.builder().region(region).build();
   }
 }

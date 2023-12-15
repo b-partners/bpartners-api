@@ -9,7 +9,6 @@ import app.bpartners.api.repository.jpa.model.HPreUser;
 import app.bpartners.api.repository.sendinblue.ContactRepository;
 import java.time.Instant;
 import java.util.List;
-import java.util.stream.Collectors;
 import javax.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -25,16 +24,16 @@ public class PreUserRepositoryImpl implements PreUserRepository {
   @Transactional
   @Override
   public List<PreUser> saveAll(List<PreUser> toCreate) {
-    contactRepository.save(toCreate.stream()
-        .map(preUser -> {
-          Double contactId = //TODO: change this type double to appropriate type
-              (double) Instant.now().toEpochMilli();
-          return contactMapper.toSendinblueContact(contactId, preUser);
-        })
-        .toList());
+    contactRepository.save(
+        toCreate.stream()
+            .map(
+                preUser -> {
+                  Double contactId = // TODO: change this type double to appropriate type
+                      (double) Instant.now().toEpochMilli();
+                  return contactMapper.toSendinblueContact(contactId, preUser);
+                })
+            .toList());
     List<HPreUser> entityPreUsers = mapper.toEntity(toCreate);
-    return repository.saveAll(entityPreUsers).stream()
-        .map(mapper::toDomain)
-        .toList();
+    return repository.saveAll(entityPreUsers).stream().map(mapper::toDomain).toList();
   }
 }

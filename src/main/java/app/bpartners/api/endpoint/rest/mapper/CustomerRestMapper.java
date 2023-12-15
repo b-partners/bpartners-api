@@ -1,5 +1,7 @@
 package app.bpartners.api.endpoint.rest.mapper;
 
+import static java.util.UUID.randomUUID;
+
 import app.bpartners.api.endpoint.rest.model.CreateCustomer;
 import app.bpartners.api.endpoint.rest.model.Customer;
 import app.bpartners.api.endpoint.rest.model.CustomerLocation;
@@ -9,8 +11,6 @@ import app.bpartners.api.endpoint.rest.validator.CustomerValidator;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-
-import static java.util.UUID.randomUUID;
 
 @Component
 @AllArgsConstructor
@@ -24,11 +24,12 @@ public class CustomerRestMapper {
     if (domain == null) {
       return null;
     }
-    CustomerLocation customerLocation = new CustomerLocation()
-        .address(domain.getAddress())
-        //TODO: use getCoordinate instead
-        .latitude(domain.getLocation().getLatitude())
-        .longitude(domain.getLocation().getLongitude());
+    CustomerLocation customerLocation =
+        new CustomerLocation()
+            .address(domain.getAddress())
+            // TODO: use getCoordinate instead
+            .latitude(domain.getLocation().getLatitude())
+            .longitude(domain.getLocation().getLongitude());
     return new Customer()
         .id(domain.getId())
         .name(domain.getRealName())
@@ -52,28 +53,32 @@ public class CustomerRestMapper {
 
   public app.bpartners.api.model.Customer toDomain(String idUser, Customer rest) {
     customerValidator.accept(rest);
-    String[] names =
-        retrieveNames(rest.getFirstName(), rest.getLastName());
+    String[] names = retrieveNames(rest.getFirstName(), rest.getLastName());
     String firstName = names.length != 0 ? names[0] : null;
     String lastName =
-        names.length == 0 || (names.length == 2
-            && names[1] != null
-            && (names[1].equals(EMPTY_SPACE) || names[1].equals("")))
+        names.length == 0
+                || (names.length == 2
+                    && names[1] != null
+                    && (names[1].equals(EMPTY_SPACE) || names[1].equals("")))
             ? null
             : names[1];
     app.bpartners.api.model.Location customerLocation = null;
     if (rest.getLocation() == null) {
-      customerLocation = app.bpartners.api.model.Location.builder()
-          .address(rest.getAddress())
-          .build();
+      customerLocation =
+          app.bpartners.api.model.Location.builder().address(rest.getAddress()).build();
     } else {
-      customerLocation = app.bpartners.api.model.Location.builder()
-          .address(rest.getAddress())
-          .latitude(
-              rest.getLocation().getLatitude() == null ? null : rest.getLocation().getLatitude())
-          .longitude(
-              rest.getLocation().getLongitude() == null ? null : rest.getLocation().getLongitude())
-          .build();
+      customerLocation =
+          app.bpartners.api.model.Location.builder()
+              .address(rest.getAddress())
+              .latitude(
+                  rest.getLocation().getLatitude() == null
+                      ? null
+                      : rest.getLocation().getLatitude())
+              .longitude(
+                  rest.getLocation().getLongitude() == null
+                      ? null
+                      : rest.getLocation().getLongitude())
+              .build();
     }
     String name = null;
     if (rest.getName() != null) {
@@ -113,8 +118,10 @@ public class CustomerRestMapper {
     String firstName = names.length != 0 ? names[0] : null;
     String lastName =
         names.length == 0
-            || (names.length == 2 && names[1] != null
-            && (names[1].isEmpty() || names[1].isBlank())) ? null
+                || (names.length == 2
+                    && names[1] != null
+                    && (names[1].isEmpty() || names[1].isBlank()))
+            ? null
             : names[1];
     String name = null;
     if (rest.getName() != null) {
@@ -141,9 +148,7 @@ public class CustomerRestMapper {
         .city(rest.getCity())
         .country(rest.getCountry())
         .comment(rest.getComment())
-        .location(app.bpartners.api.model.Location.builder()
-            .address(rest.getAddress())
-            .build())
+        .location(app.bpartners.api.model.Location.builder().address(rest.getAddress()).build())
         .status(CustomerStatus.ENABLED) // set to enabled by default
         .customerType(rest.getCustomerType())
         .build();

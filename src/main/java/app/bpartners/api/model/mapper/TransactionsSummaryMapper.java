@@ -1,25 +1,21 @@
 package app.bpartners.api.model.mapper;
 
+import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
+
 import app.bpartners.api.model.MonthlyTransactionsSummary;
 import app.bpartners.api.model.TransactionsSummary;
 import app.bpartners.api.repository.jpa.model.HMonthlyTransactionsSummary;
 import java.util.List;
-import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
-
-import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 
 @Component
 public class TransactionsSummaryMapper {
   public TransactionsSummary toDomain(int year, List<HMonthlyTransactionsSummary> summaries) {
     return TransactionsSummary.builder()
         .year(year)
-        .summary(summaries.stream()
-            .map(this::toDomain)
-            .toList())
+        .summary(summaries.stream().map(this::toDomain).toList())
         .build();
   }
-
 
   public MonthlyTransactionsSummary toDomain(HMonthlyTransactionsSummary entity) {
     if (entity == null) {

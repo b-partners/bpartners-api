@@ -25,7 +25,9 @@ public class OnboardingValidator implements Consumer<OnboardUser> {
     } else {
       if (userRepository.findByEmail(onboardUser.getEmail()).isPresent()) {
         throw new BadRequestException(
-            "User with email " + onboardUser.getEmail() + " already exists."
+            "User with email "
+                + onboardUser.getEmail()
+                + " already exists."
                 + " Choose another email address");
       }
     }

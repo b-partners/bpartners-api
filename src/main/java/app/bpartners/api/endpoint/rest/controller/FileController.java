@@ -36,7 +36,7 @@ public class FileController {
       @PathVariable(name = "id") String fileId,
       @RequestParam(name = "fileType") FileType fileType) {
     String idUser =
-        AuthProvider.getAuthenticatedUserId(); //TODO: should be changed when endpoint changed
+        AuthProvider.getAuthenticatedUserId(); // TODO: should be changed when endpoint changed
     byte[] downloaded = service.downloadFile(fileType, idUser, fileId);
     return ResponseEntity.ok()
         .contentType(FileInfoUtils.parseMediaTypeFromBytes(downloaded))
@@ -50,7 +50,7 @@ public class FileController {
       @RequestParam(name = "fileType") FileType fileType,
       @RequestBody byte[] toUpload) {
     String idUser =
-        AuthProvider.getAuthenticatedUserId(); //TODO: should be changed when endpoint changed
+        AuthProvider.getAuthenticatedUserId(); // TODO: should be changed when endpoint changed
     service.upload(fileId, fileType, idUser, toUpload);
     return ResponseEntity.ok()
         .contentType(FileInfoUtils.parseMediaTypeFromBytes(toUpload))

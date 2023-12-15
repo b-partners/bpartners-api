@@ -1,5 +1,7 @@
 package app.bpartners.api.repository;
 
+import static app.bpartners.api.service.utils.TransactionUtils.describeList;
+
 import app.bpartners.api.endpoint.rest.model.TransactionStatus;
 import app.bpartners.api.model.JustifyTransaction;
 import app.bpartners.api.model.Transaction;
@@ -18,8 +20,6 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
 
-import static app.bpartners.api.service.utils.TransactionUtils.describeList;
-
 @Repository
 @AllArgsConstructor
 @Slf4j
@@ -30,33 +30,37 @@ public class BridgeTransactionRepository implements TransactionRepository {
   private final TransactionConnectorRepository connectorRepository;
 
   @Override
-  public List<Transaction> findByIdAccount(String idAccount, String title, TransactionStatus status,
-                                           int page, int pageSize) {
+  public List<Transaction> findByIdAccount(
+      String idAccount, String title, TransactionStatus status, int page, int pageSize) {
     throw new NotImplementedException("Not supported ! Must be pageable");
   }
 
   @Override
   public List<Transaction> findByAccountId(String id) {
     List<TransactionConnector> connectors = connectorRepository.findByIdAccount(id);
-    List<HTransaction> entities = connectors.stream()
-        .map(connector -> {
-          List<HTransaction> bridgeTransactions =
-              jpaRepository.findAllByIdBridge(Long.valueOf(connector.getId()));
-          if (bridgeTransactions.isEmpty()) {
-            throw new NotFoundException(
-                "Transaction(externalId=" + connector.getId() + ") not found");
-          }
-          if (bridgeTransactions.size() > 1) {
-            log.warn("Duplicated transactions with same external ID {}",
-                describeList(bridgeTransactions));
-          }
-          return bridgeTransactions.get(0);
-        })
-        .toList();
+    List<HTransaction> entities =
+        connectors.stream()
+            .map(
+                connector -> {
+                  List<HTransaction> bridgeTransactions =
+                      jpaRepository.findAllByIdBridge(Long.valueOf(connector.getId()));
+                  if (bridgeTransactions.isEmpty()) {
+                    throw new NotFoundException(
+                        "Transaction(externalId=" + connector.getId() + ") not found");
+                  }
+                  if (bridgeTransactions.size() > 1) {
+                    log.warn(
+                        "Duplicated transactions with same external ID {}",
+                        describeList(bridgeTransactions));
+                  }
+                  return bridgeTransactions.get(0);
+                })
+            .toList();
     return entities.stream()
-        .map(entity -> mapper.toDomain(entity,
-            categoryRepository.findByIdTransaction(entity.getId())))
-        //TODO: when getting from database only, sort by payment date DESC directly in db query
+        .map(
+            entity ->
+                mapper.toDomain(entity, categoryRepository.findByIdTransaction(entity.getId())))
+        // TODO: when getting from database only, sort by payment date DESC directly in db query
         .sorted(Comparator.comparing(Transaction::getPaymentDatetime).reversed())
         .collect(Collectors.toList());
   }
@@ -84,15 +88,13 @@ public class BridgeTransactionRepository implements TransactionRepository {
   }
 
   @Override
-  public List<Transaction> findByAccountIdAndStatusBetweenInstants(String id,
-                                                                   TransactionStatus status,
-                                                                   Instant from, Instant to) {
+  public List<Transaction> findByAccountIdAndStatusBetweenInstants(
+      String id, TransactionStatus status, Instant from, Instant to) {
     return findByAccountIdAndStatus(id, status).stream()
         .filter(
-            transaction -> transaction.getPaymentDatetime().isAfter(from)
-                &&
-                transaction.getPaymentDatetime().isBefore(to)
-        )
+            transaction ->
+                transaction.getPaymentDatetime().isAfter(from)
+                    && transaction.getPaymentDatetime().isBefore(to))
         .toList();
   }
 

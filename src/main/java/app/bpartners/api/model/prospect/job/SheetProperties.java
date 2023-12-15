@@ -16,5 +16,5 @@ import lombok.ToString;
 public class SheetProperties {
   private String spreadsheetName;
   private String sheetName;
-  private SheetRange ranges; //TODO: set to Collections
+  private SheetRange ranges; // TODO: set to Collections
 }

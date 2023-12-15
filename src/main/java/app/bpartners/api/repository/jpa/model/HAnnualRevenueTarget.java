@@ -30,10 +30,12 @@ public class HAnnualRevenueTarget implements Serializable {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private String id;
+
   private String idAccountHolder;
+
   @Column(name = "\"year\"")
   private Integer year;
+
   private String amountTarget;
-  @UpdateTimestamp
-  private Instant updatedAt;
+  @UpdateTimestamp private Instant updatedAt;
 }

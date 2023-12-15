@@ -16,8 +16,6 @@ public class SsmConf {
 
   @Bean
   public SsmClient getSsmClient() {
-    return SsmClient.builder()
-        .region(region)
-        .build();
+    return SsmClient.builder().region(region).build();
   }
 }

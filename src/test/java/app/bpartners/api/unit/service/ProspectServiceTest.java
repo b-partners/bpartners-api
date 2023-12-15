@@ -1,5 +1,13 @@
 package app.bpartners.api.unit.service;
 
+import static app.bpartners.api.integration.conf.utils.TestUtils.ACCOUNTHOLDER_ID;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.endpoint.event.SesConf;
 import app.bpartners.api.model.mapper.ProspectMapper;
@@ -26,14 +34,6 @@ import javax.mail.MessagingException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static app.bpartners.api.integration.conf.utils.TestUtils.ACCOUNTHOLDER_ID;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 class ProspectServiceTest {
   ProspectRepository prospectRepositoryMock = mock(ProspectRepository.class);
   ProspectDataProcesser dataProcesserMock = mock(ProspectDataProcesser.class);
@@ -52,21 +52,31 @@ class ProspectServiceTest {
   SnsService snsServiceMock = mock(SnsService.class);
   ProspectUpdatedService prospectUpdatedService = mock(ProspectUpdatedService.class);
   CalendarApi calendarApiMock = mock(CalendarApi.class);
-  ProspectService subject = new ProspectService(
-      prospectRepositoryMock, dataProcesserMock, accountHolderJpaRepositoryMock,
-      sesServiceMock, customerService, sheetApi,
-      prospectMapper, jobRepositoryMock, eventProducerMock, sesConfMock, prospectStatusService,
-      snsServiceMock, userServiceMock, prospectUpdatedService, calendarApiMock);
+  ProspectService subject =
+      new ProspectService(
+          prospectRepositoryMock,
+          dataProcesserMock,
+          accountHolderJpaRepositoryMock,
+          sesServiceMock,
+          customerService,
+          sheetApi,
+          prospectMapper,
+          jobRepositoryMock,
+          eventProducerMock,
+          sesConfMock,
+          prospectStatusService,
+          snsServiceMock,
+          userServiceMock,
+          prospectUpdatedService,
+          calendarApiMock);
 
   @BeforeEach
   void setup() {
-    when(accountHolderJpaRepositoryMock.findAll()).thenReturn(
-        List.of(HAccountHolder.builder()
-                .id(ACCOUNTHOLDER_ID)
-                .build(),
-            HAccountHolder.builder()
-                .id("fake_accountholder_id")
-                .build()));
+    when(accountHolderJpaRepositoryMock.findAll())
+        .thenReturn(
+            List.of(
+                HAccountHolder.builder().id(ACCOUNTHOLDER_ID).build(),
+                HAccountHolder.builder().id("fake_accountholder_id").build()));
     when(prospectRepositoryMock.needsProspects(ACCOUNTHOLDER_ID, LocalDate.now()))
         .thenAnswer(i -> Objects.equals(i.getArgument(0), ACCOUNTHOLDER_ID));
     when(prospectRepositoryMock.isSogefiProspector(any()))
@@ -82,8 +92,8 @@ class ProspectServiceTest {
 
   @Test
   void should_not_send_email() throws MessagingException, IOException {
-    when(prospectRepositoryMock.needsProspects(ACCOUNTHOLDER_ID, LocalDate.now())).thenReturn(
-        false);
+    when(prospectRepositoryMock.needsProspects(ACCOUNTHOLDER_ID, LocalDate.now()))
+        .thenReturn(false);
     when(prospectRepositoryMock.isSogefiProspector(any())).thenReturn(false);
 
     subject.prospect();

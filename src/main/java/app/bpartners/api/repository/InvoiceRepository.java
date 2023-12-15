@@ -22,11 +22,13 @@ public interface InvoiceRepository {
       int page,
       int pageSize);
 
-  List<Invoice> findAllByIdUserAndCriteria(String idUser,
-                                           List<InvoiceStatus> statusList,
-                                           ArchiveStatus archiveStatus,
-                                           List<String> filters,
-                                           int page, int pageSize);
+  List<Invoice> findAllByIdUserAndCriteria(
+      String idUser,
+      List<InvoiceStatus> statusList,
+      ArchiveStatus archiveStatus,
+      List<String> filters,
+      int page,
+      int pageSize);
 
   List<Invoice> findAllByIdUserAndArchiveStatus(
       String idUser, ArchiveStatus archiveStatus, String title, int page, int pageSize);

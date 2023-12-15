@@ -17,8 +17,10 @@ public class UserOnboarded implements Serializable {
 
   @JsonProperty("subject")
   private String subject;
+
   @JsonProperty("recipient")
   private String recipientEmail;
+
   @JsonProperty("customer")
   private OnboardedUser onboardedUser;
 
@@ -37,5 +39,3 @@ public class UserOnboarded implements Serializable {
     return this;
   }
 }
-
-

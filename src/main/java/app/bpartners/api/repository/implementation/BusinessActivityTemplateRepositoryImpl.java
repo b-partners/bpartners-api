@@ -12,15 +12,13 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 @AllArgsConstructor
-public class BusinessActivityTemplateRepositoryImpl
-    implements BusinessActivityTemplateRepository {
+public class BusinessActivityTemplateRepositoryImpl implements BusinessActivityTemplateRepository {
   private final BusinessActivityTemplateJpaRepository jpaRepository;
   private final BusinessActivityTemplateMapper domainMapper;
 
   @Override
   public List<BusinessActivityTemplate> findAll(Pageable pageable) {
-    return jpaRepository.findAll(pageable)
-        .map(domainMapper::toDomain).getContent();
+    return jpaRepository.findAll(pageable).map(domainMapper::toDomain).getContent();
   }
 
   @Override

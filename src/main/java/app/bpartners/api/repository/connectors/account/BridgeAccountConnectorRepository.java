@@ -1,5 +1,8 @@
 package app.bpartners.api.repository.connectors.account;
 
+import static app.bpartners.api.endpoint.rest.security.AuthProvider.getAuthenticatedUserId;
+import static app.bpartners.api.endpoint.rest.security.AuthProvider.userIsAuthenticated;
+
 import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.mapper.AccountMapper;
@@ -12,10 +15,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
 
-import static app.bpartners.api.endpoint.rest.security.AuthProvider.getAuthenticatedUserId;
-import static app.bpartners.api.endpoint.rest.security.AuthProvider.userIsAuthenticated;
-
-//TODO: add unit test
+// TODO: add unit test
 @Repository
 @AllArgsConstructor
 @Slf4j
@@ -27,9 +27,10 @@ public class BridgeAccountConnectorRepository implements AccountConnectorReposit
 
   @Override
   public List<AccountConnector> findByBearer(String bearer) {
-    List<AccountConnector> connectors = bridgeApi.findAccountsByToken(bearer).stream()
-        .map(accountMapper::toConnector)
-        .collect(Collectors.toList());
+    List<AccountConnector> connectors =
+        bridgeApi.findAccountsByToken(bearer).stream()
+            .map(accountMapper::toConnector)
+            .collect(Collectors.toList());
     if (!connectors.isEmpty()) {
       User authenticated = AuthProvider.getAuthenticatedUser();
       if (authenticated.getBankConnectionId() == null) {
@@ -41,7 +42,8 @@ public class BridgeAccountConnectorRepository implements AccountConnectorReposit
 
   @Override
   public List<AccountConnector> findByUserId(String userId) {
-    if (!userIsAuthenticated() || getAuthenticatedUserId() == null
+    if (!userIsAuthenticated()
+        || getAuthenticatedUserId() == null
         || !getAuthenticatedUserId().equals(userId)) {
       return List.of();
     }
@@ -62,9 +64,10 @@ public class BridgeAccountConnectorRepository implements AccountConnectorReposit
   public AccountConnector findById(String id) {
     try {
       Long bridgeId = Long.valueOf(id);
-      return !userIsAuthenticated() ? null
+      return !userIsAuthenticated()
+          ? null
           : accountMapper.toConnector(
-          bridgeApi.findByAccountById(bridgeId, AuthProvider.getBearer()));
+              bridgeApi.findByAccountById(bridgeId, AuthProvider.getBearer()));
     } catch (NumberFormatException e) {
       return null;
     }

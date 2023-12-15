@@ -1,12 +1,10 @@
 package app.bpartners.api.unit.validator;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+
 import app.bpartners.api.endpoint.rest.model.CreateProduct;
 import app.bpartners.api.endpoint.rest.validator.CreateProductValidator;
-import app.bpartners.api.model.exception.BadRequestException;
 import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class CreateProductValidatorTest {
   private final CreateProductValidator validator = new CreateProductValidator();
@@ -33,9 +31,9 @@ class CreateProductValidatorTest {
     assertDoesNotThrow(() -> validator.accept(validProduct));
   }
 
-//  @Test
-//  void invalid_product() {
-//    CreateProduct invalidProduct = invalidProduct();
-//    assertThrows(BadRequestException.class, () -> validator.accept(invalidProduct));
-//  }
+  //  @Test
+  //  void invalid_product() {
+  //    CreateProduct invalidProduct = invalidProduct();
+  //    assertThrows(BadRequestException.class, () -> validator.accept(invalidProduct));
+  //  }
 }

@@ -1,5 +1,7 @@
 package app.bpartners.api.repository.jpa.model;
 
+import static javax.persistence.GenerationType.IDENTITY;
+
 import java.time.Instant;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -15,8 +17,6 @@ import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
 
-import static javax.persistence.GenerationType.IDENTITY;
-
 @Entity
 @Table(name = "\"monthly_transactions_summary\"")
 @Getter
@@ -30,15 +30,18 @@ public class HMonthlyTransactionsSummary {
   @Id
   @GeneratedValue(strategy = IDENTITY)
   private String id;
+
   private String idAccount;
   private String idUser;
+
   @Column(name = "\"year\"")
   private int year;
+
   @Column(name = "\"month\"")
   private int month;
+
   private String income;
   private String outcome;
   private String cashFlow;
-  @CreationTimestamp
-  private Instant updatedAt;
+  @CreationTimestamp private Instant updatedAt;
 }

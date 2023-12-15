@@ -20,13 +20,16 @@ import lombok.ToString;
 @ToString
 public class FeedbackRequested implements Serializable {
   private static final long serialVersionUID = 1L;
+
   @JsonProperty("subject")
   private String subject;
+
   @JsonProperty("message")
   private String message;
+
   @JsonProperty("attachmentName")
   private String attachmentName;
+
   @JsonProperty("recipients")
   private List<String> recipientsEmails;
 }
-

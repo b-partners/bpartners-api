@@ -18,12 +18,16 @@ public class CustomerCrupdated implements Serializable {
 
   @JsonProperty("subject")
   private String subject;
+
   @JsonProperty("recipient")
   private String recipientEmail;
+
   @JsonProperty("user")
   private User user;
+
   @JsonProperty("customer")
   private Customer customer;
+
   @JsonProperty("type")
   private Type type;
 
@@ -52,9 +56,8 @@ public class CustomerCrupdated implements Serializable {
     return this;
   }
 
-  public enum Type  {
-    UPDATE, CREATE
+  public enum Type {
+    UPDATE,
+    CREATE
   }
 }
-
-

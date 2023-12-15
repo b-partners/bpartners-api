@@ -1,5 +1,9 @@
 package app.bpartners.api.model;
 
+import static app.bpartners.api.service.InvoiceService.DRAFT_REF_PREFIX;
+import static app.bpartners.api.service.InvoiceService.PROPOSAL_REF_PREFIX;
+import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
+
 import app.bpartners.api.endpoint.rest.model.ArchiveStatus;
 import app.bpartners.api.endpoint.rest.model.Invoice.PaymentTypeEnum;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
@@ -25,10 +29,6 @@ import lombok.SneakyThrows;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.ClassPathResource;
-
-import static app.bpartners.api.service.InvoiceService.DRAFT_REF_PREFIX;
-import static app.bpartners.api.service.InvoiceService.PROPOSAL_REF_PREFIX;
-import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 
 @Getter
 @Setter
@@ -129,8 +129,8 @@ public class Invoice {
     return paymentRegulations == null || paymentRegulations.isEmpty()
         ? List.of()
         : paymentRegulations.stream()
-        .sorted(Comparator.comparing(CreatePaymentRegulation::getMaturityDate))
-        .collect(Collectors.toList());
+            .sorted(Comparator.comparing(CreatePaymentRegulation::getMaturityDate))
+            .collect(Collectors.toList());
   }
 
   public Account getActualAccount() {
@@ -168,7 +168,7 @@ public class Invoice {
         path = "static/stamp/paid.png";
         break;
       case MULTIPLE:
-        return null; //No stamp when multiple payments
+        return null; // No stamp when multiple payments
       default:
         log.warn("Unable to get stamp for unknown payment method {} ", paymentMethod);
         return null;

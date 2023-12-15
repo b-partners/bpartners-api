@@ -19,14 +19,15 @@ public class SheetController {
   private final TokenRestMapper tokenRestMapper;
 
   @PostMapping("/users/{id}/sheets/oauth2/auth")
-  public TokenValidity handleAuth(@PathVariable(name = "id") String idUser,
-                                  @RequestBody SheetAuth auth) {
+  public TokenValidity handleAuth(
+      @PathVariable(name = "id") String idUser, @RequestBody SheetAuth auth) {
     return tokenRestMapper.toRest(calendarService.exchangeCode(idUser, auth));
   }
 
   @PostMapping("/users/{id}/sheets/oauth2/consent")
-  public Redirection initConsent(@PathVariable(name = "id") String userId,
-                                 @RequestBody(required = false) SheetConsentInit consentInit) {
+  public Redirection initConsent(
+      @PathVariable(name = "id") String userId,
+      @RequestBody(required = false) SheetConsentInit consentInit) {
     return calendarService.initConsent(consentInit);
   }
 }

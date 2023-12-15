@@ -1,5 +1,7 @@
 package app.bpartners.api.repository.jpa.model;
 
+import static javax.persistence.GenerationType.IDENTITY;
+
 import java.time.Instant;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -12,8 +14,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-
-import static javax.persistence.GenerationType.IDENTITY;
 
 @Entity
 @Table(name = "\"legal_file\"")
@@ -28,6 +28,7 @@ public class HLegalFile {
   @Id
   @GeneratedValue(strategy = IDENTITY)
   private String id;
+
   private String name;
   private String fileUrl;
   private Instant createdDatetime;

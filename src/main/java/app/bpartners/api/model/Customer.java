@@ -28,9 +28,11 @@ public class Customer {
   @Getter(AccessLevel.NONE)
   @Deprecated
   protected String firstName;
+
   @Getter(AccessLevel.NONE)
   @Deprecated
   protected String lastName;
+
   protected String email;
   protected String phone;
   protected String website;

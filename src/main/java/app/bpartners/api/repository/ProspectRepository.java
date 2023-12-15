@@ -13,9 +13,8 @@ public interface ProspectRepository {
 
   List<Prospect> findAllByStatus(ProspectStatus status);
 
-  List<Prospect> findAllByIdAccountHolder(String idAccountHolder,
-                                          String name,
-                                          ContactNature contactNature);
+  List<Prospect> findAllByIdAccountHolder(
+      String idAccountHolder, String name, ContactNature contactNature);
 
   List<Prospect> saveAll(List<Prospect> prospects);
 

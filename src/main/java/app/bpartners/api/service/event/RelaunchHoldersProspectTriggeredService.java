@@ -8,7 +8,8 @@ import org.springframework.stereotype.Service;
 
 @Service
 @AllArgsConstructor
-public class RelaunchHoldersProspectTriggeredService implements Consumer<RelaunchHoldersProspectTriggered> {
+public class RelaunchHoldersProspectTriggeredService
+    implements Consumer<RelaunchHoldersProspectTriggered> {
   private final ProspectService service;
 
   @Override

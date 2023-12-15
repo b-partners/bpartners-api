@@ -1,5 +1,27 @@
 package app.bpartners.api.integration;
 
+import static app.bpartners.api.endpoint.rest.model.EnableStatus.ENABLED;
+import static app.bpartners.api.endpoint.rest.model.IdentificationStatus.VALID_IDENTITY;
+import static app.bpartners.api.integration.UserServiceIT.bridgeUser;
+import static app.bpartners.api.integration.conf.utils.TestUtils.JANE_ACCOUNT_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.JANE_DOE_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.JANE_DOE_TOKEN;
+import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_TOKEN;
+import static app.bpartners.api.integration.conf.utils.TestUtils.REDIRECT_FAILURE_URL;
+import static app.bpartners.api.integration.conf.utils.TestUtils.REDIRECT_SUCCESS_URL;
+import static app.bpartners.api.integration.conf.utils.TestUtils.assertThrowsForbiddenException;
+import static app.bpartners.api.integration.conf.utils.TestUtils.restJaneAccount;
+import static app.bpartners.api.integration.conf.utils.TestUtils.restJoeDoeUser;
+import static app.bpartners.api.integration.conf.utils.TestUtils.setUpCognito;
+import static app.bpartners.api.integration.conf.utils.TestUtils.setUpEventBridge;
+import static app.bpartners.api.integration.conf.utils.TestUtils.setUpLegalFileRepository;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+
 import app.bpartners.api.endpoint.rest.api.SecurityApi;
 import app.bpartners.api.endpoint.rest.api.UserAccountsApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
@@ -34,28 +56,6 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
 
-import static app.bpartners.api.endpoint.rest.model.EnableStatus.ENABLED;
-import static app.bpartners.api.endpoint.rest.model.IdentificationStatus.VALID_IDENTITY;
-import static app.bpartners.api.integration.UserServiceIT.bridgeUser;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JANE_ACCOUNT_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JANE_DOE_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JANE_DOE_TOKEN;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_TOKEN;
-import static app.bpartners.api.integration.conf.utils.TestUtils.REDIRECT_FAILURE_URL;
-import static app.bpartners.api.integration.conf.utils.TestUtils.REDIRECT_SUCCESS_URL;
-import static app.bpartners.api.integration.conf.utils.TestUtils.assertThrowsForbiddenException;
-import static app.bpartners.api.integration.conf.utils.TestUtils.restJaneAccount;
-import static app.bpartners.api.integration.conf.utils.TestUtils.restJoeDoeUser;
-import static app.bpartners.api.integration.conf.utils.TestUtils.setUpCognito;
-import static app.bpartners.api.integration.conf.utils.TestUtils.setUpEventBridge;
-import static app.bpartners.api.integration.conf.utils.TestUtils.setUpLegalFileRepository;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
-
 @Testcontainers
 @AutoConfigureMockMvc
 @Slf4j
@@ -65,12 +65,9 @@ class UserIT extends MockedThirdParties {
   private static final String API_KEY = "dummy";
   private final ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
 
-  @MockBean
-  private EventBridgeClient eventBridgeClientMock;
-  @MockBean
-  private BridgeUserRepository bridgeUserRepositoryMock;
-  @Autowired
-  private UserJpaRepository userJpaRepository;
+  @MockBean private EventBridgeClient eventBridgeClientMock;
+  @MockBean private BridgeUserRepository bridgeUserRepositoryMock;
+  @Autowired private UserJpaRepository userJpaRepository;
 
   public static User restJaneDoeUser() {
     return new User()
@@ -107,21 +104,28 @@ class UserIT extends MockedThirdParties {
     HttpClient unauthenticatedClient = HttpClient.newBuilder().build();
     String basePath = "http://localhost:" + localPort;
 
-    HttpResponse<String> response = unauthenticatedClient.send(
-        HttpRequest.newBuilder()
-            .uri(URI.create(basePath + "/onboardingInitiation"))
-            .header("Access-Control-Request-Method", "POST")
-            .header("Content-Type", "application/json")
-            .header("Accept", "application/json")
-            .header("Origin", "http://localhost:3000")
-            .POST(HttpRequest.BodyPublishers.ofString("{\n"
-                + "\"redirectionStatusUrls\": {\n"
-                + "    \"successUrl\": \"" + REDIRECT_SUCCESS_URL + "\",\n"
-                + "    \"failureUrl\": \"" + REDIRECT_FAILURE_URL + "/error\"\n"
-                + "  }"
-                + "}"))
-            .build(),
-        HttpResponse.BodyHandlers.ofString());
+    HttpResponse<String> response =
+        unauthenticatedClient.send(
+            HttpRequest.newBuilder()
+                .uri(URI.create(basePath + "/onboardingInitiation"))
+                .header("Access-Control-Request-Method", "POST")
+                .header("Content-Type", "application/json")
+                .header("Accept", "application/json")
+                .header("Origin", "http://localhost:3000")
+                .POST(
+                    HttpRequest.BodyPublishers.ofString(
+                        "{\n"
+                            + "\"redirectionStatusUrls\": {\n"
+                            + "    \"successUrl\": \""
+                            + REDIRECT_SUCCESS_URL
+                            + "\",\n"
+                            + "    \"failureUrl\": \""
+                            + REDIRECT_FAILURE_URL
+                            + "/error\"\n"
+                            + "  }"
+                            + "}"))
+                .build(),
+            HttpResponse.BodyHandlers.ofString());
 
     assertEquals(HttpStatus.NOT_IMPLEMENTED.value(), response.statusCode());
   }
@@ -160,8 +164,7 @@ class UserIT extends MockedThirdParties {
   @Test
   void read_user_using_cognito_ok() throws ApiException {
     String email = "joe@email.com";
-    when(cognitoComponentMock.getEmailByToken(JOE_DOE_COGNITO_TOKEN))
-        .thenReturn(email);
+    when(cognitoComponentMock.getEmailByToken(JOE_DOE_COGNITO_TOKEN)).thenReturn(email);
     ApiClient joeDoeClient = anApiClient(JOE_DOE_COGNITO_TOKEN);
     UserAccountsApi api = new UserAccountsApi(joeDoeClient);
 
@@ -172,8 +175,7 @@ class UserIT extends MockedThirdParties {
 
   @Test
   void read_user_using_cognito_ko() {
-    when(cognitoComponentMock.getEmailByToken(JOE_DOE_COGNITO_TOKEN))
-        .thenReturn("jane@email.com");
+    when(cognitoComponentMock.getEmailByToken(JOE_DOE_COGNITO_TOKEN)).thenReturn("jane@email.com");
     ApiClient joeDoeClient = anApiClient(JOE_DOE_COGNITO_TOKEN);
 
     UserAccountsApi api = new UserAccountsApi(joeDoeClient);
@@ -182,8 +184,7 @@ class UserIT extends MockedThirdParties {
   }
 
   @Test
-  void persist_user_info_while_reading_ok()
-      throws ApiException {
+  void persist_user_info_while_reading_ok() throws ApiException {
     String email = "jane@email.com";
     HUser beforeUpdate = userJpaRepository.getByEmail(email);
     beforeUpdate.setAccounts(List.of());
@@ -194,26 +195,30 @@ class UserIT extends MockedThirdParties {
 
     User actual = api.getUserById(JANE_DOE_ID);
 
-    assertEquals(HUser.builder()
-        .id("jane_doe_id")
-        .status(beforeUpdate.getStatus())
-        .phoneNumber(beforeUpdate.getPhoneNumber())
-        .monthlySubscription(beforeUpdate.getMonthlySubscription())
-        .logoFileId(beforeUpdate.getLogoFileId())
-        .firstName(null)
-        .lastName(null)
-        .email("jane@email.com")
-        .idVerified(null)
-        .identificationStatus(null)
-        .accounts(List.of())
-        .accountHolders(List.of())
-        .roles(new Role[] {})
-        .build(), beforeUpdate);
-    assertEquals(restJaneDoeUser()
-        .firstName(null)
-        .lastName(null)
-        .idVerified(null)
-        .identificationStatus(null), actual);
+    assertEquals(
+        HUser.builder()
+            .id("jane_doe_id")
+            .status(beforeUpdate.getStatus())
+            .phoneNumber(beforeUpdate.getPhoneNumber())
+            .monthlySubscription(beforeUpdate.getMonthlySubscription())
+            .logoFileId(beforeUpdate.getLogoFileId())
+            .firstName(null)
+            .lastName(null)
+            .email("jane@email.com")
+            .idVerified(null)
+            .identificationStatus(null)
+            .accounts(List.of())
+            .accountHolders(List.of())
+            .roles(new Role[] {})
+            .build(),
+        beforeUpdate);
+    assertEquals(
+        restJaneDoeUser()
+            .firstName(null)
+            .lastName(null)
+            .idVerified(null)
+            .identificationStatus(null),
+        actual);
   }
 
   @Test
@@ -253,33 +258,48 @@ class UserIT extends MockedThirdParties {
     String basePath = "http://localhost:" + localPort;
 
     OnboardUser toOnboard = onboardUser();
-    HttpResponse<String> response = unauthenticatedClient.send(
-        HttpRequest.newBuilder()
-            .uri(URI.create(basePath + "/onboarding"))
-            .headers("Content-Type", "application/json")
-            .headers("Accept", "*/*")
-            .POST(HttpRequest.BodyPublishers.ofString(
-                new ObjectMapper().writeValueAsString(List.of(toOnboard))))
-            .build(), HttpResponse.BodyHandlers.ofString());
+    HttpResponse<String> response =
+        unauthenticatedClient.send(
+            HttpRequest.newBuilder()
+                .uri(URI.create(basePath + "/onboarding"))
+                .headers("Content-Type", "application/json")
+                .headers("Accept", "*/*")
+                .POST(
+                    HttpRequest.BodyPublishers.ofString(
+                        new ObjectMapper().writeValueAsString(List.of(toOnboard))))
+                .build(),
+            HttpResponse.BodyHandlers.ofString());
     var actual = convertBody(response.body());
     OnboardedUser onboardedUser = actual.get(0);
 
-    assertEquals(List.of(new OnboardedUser()
-        .user(onboardedUser.getUser()
-            .firstName(toOnboard.getFirstName())
-            .lastName(toOnboard.getLastName())
-            .phone(toOnboard.getPhoneNumber()))
-        .account(onboardedUser.getAccount()
-            .name(toOnboard.getFirstName() + " " + toOnboard.getLastName()))
-        .accountHolder(onboardedUser.getAccountHolder()
-            .name(toOnboard.getCompanyName())
-            .companyInfo(onboardedUser.getAccountHolder().getCompanyInfo()
-                .email(toOnboard.getEmail())
-                .phone(toOnboard.getPhoneNumber()))
-            .name(toOnboard.getCompanyName()))), actual);
+    assertEquals(
+        List.of(
+            new OnboardedUser()
+                .user(
+                    onboardedUser
+                        .getUser()
+                        .firstName(toOnboard.getFirstName())
+                        .lastName(toOnboard.getLastName())
+                        .phone(toOnboard.getPhoneNumber()))
+                .account(
+                    onboardedUser
+                        .getAccount()
+                        .name(toOnboard.getFirstName() + " " + toOnboard.getLastName()))
+                .accountHolder(
+                    onboardedUser
+                        .getAccountHolder()
+                        .name(toOnboard.getCompanyName())
+                        .companyInfo(
+                            onboardedUser
+                                .getAccountHolder()
+                                .getCompanyInfo()
+                                .email(toOnboard.getEmail())
+                                .phone(toOnboard.getPhoneNumber()))
+                        .name(toOnboard.getCompanyName()))),
+        actual);
   }
 
-  //TODO: check why two attempts with same email are all OK
+  // TODO: check why two attempts with same email are all OK
   @Test
   void onboard_users_ko() throws IOException, InterruptedException {
     when(bridgeUserRepositoryMock.createUser(any())).thenReturn(bridgeUser());
@@ -288,39 +308,52 @@ class UserIT extends MockedThirdParties {
     String basePath = "http://localhost:" + localPort;
 
     OnboardUser toOnboard = onboardUser();
-    HttpResponse<String> firstAttempt = unauthenticatedClient.send(
-        HttpRequest.newBuilder()
-            .uri(URI.create(basePath + "/onboarding"))
-            .headers("Content-Type", "application/json")
-            .headers("Accept", "*/*")
-            .POST(HttpRequest.BodyPublishers.ofString(
-                new ObjectMapper().writeValueAsString(List.of(toOnboard))))
-            .build(), HttpResponse.BodyHandlers.ofString());
+    HttpResponse<String> firstAttempt =
+        unauthenticatedClient.send(
+            HttpRequest.newBuilder()
+                .uri(URI.create(basePath + "/onboarding"))
+                .headers("Content-Type", "application/json")
+                .headers("Accept", "*/*")
+                .POST(
+                    HttpRequest.BodyPublishers.ofString(
+                        new ObjectMapper().writeValueAsString(List.of(toOnboard))))
+                .build(),
+            HttpResponse.BodyHandlers.ofString());
     assertEquals(HttpStatus.OK.value(), firstAttempt.statusCode());
 
-    HttpResponse<String> secondAttempt = unauthenticatedClient.send(
-        HttpRequest.newBuilder()
-            .uri(URI.create(basePath + "/onboarding"))
-            .headers("Content-Type", "application/json")
-            .headers("Accept", "*/*")
-            .POST(HttpRequest.BodyPublishers.ofString(
-                new ObjectMapper().writeValueAsString(List.of(toOnboard.email("joe@email.com")))))
-            .build(), HttpResponse.BodyHandlers.ofString());
+    HttpResponse<String> secondAttempt =
+        unauthenticatedClient.send(
+            HttpRequest.newBuilder()
+                .uri(URI.create(basePath + "/onboarding"))
+                .headers("Content-Type", "application/json")
+                .headers("Accept", "*/*")
+                .POST(
+                    HttpRequest.BodyPublishers.ofString(
+                        new ObjectMapper()
+                            .writeValueAsString(List.of(toOnboard.email("joe@email.com")))))
+                .build(),
+            HttpResponse.BodyHandlers.ofString());
     assertEquals(HttpStatus.BAD_REQUEST.value(), secondAttempt.statusCode());
-    assertTrue(secondAttempt.body().contains(
-        "User with email " + toOnboard.getEmail() + " already exists."
-            + " Choose another email address"));
+    assertTrue(
+        secondAttempt
+            .body()
+            .contains(
+                "User with email "
+                    + toOnboard.getEmail()
+                    + " already exists."
+                    + " Choose another email address"));
   }
 
   @Test
   void client_with_api_key_get_user_ok() throws IOException, InterruptedException {
     HttpClient client = HttpClient.newBuilder().build();
     String basePath = "http://localhost:" + localPort;
-    HttpRequest request = HttpRequest.newBuilder()
-        .uri(URI.create(basePath + "/whois/" + JOE_DOE_ID))
-        .headers("x-api-key", API_KEY)
-        .GET()
-        .build();
+    HttpRequest request =
+        HttpRequest.newBuilder()
+            .uri(URI.create(basePath + "/whois/" + JOE_DOE_ID))
+            .headers("x-api-key", API_KEY)
+            .GET()
+            .build();
 
     HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
@@ -335,15 +368,14 @@ class UserIT extends MockedThirdParties {
   void client_with_api_key_get_user_ko() throws IOException, InterruptedException {
     HttpClient client = HttpClient.newBuilder().build();
     String basePath = "http://localhost:" + localPort;
-    HttpRequest request1 = HttpRequest.newBuilder()
-        .uri(URI.create(basePath + "/whois/" + JOE_DOE_ID))
-        .GET()
-        .build();
-    HttpRequest request2 = HttpRequest.newBuilder()
-        .uri(URI.create(basePath + "/whois/" + JOE_DOE_ID))
-        .headers("x-api-key", "api-key")
-        .GET()
-        .build();
+    HttpRequest request1 =
+        HttpRequest.newBuilder().uri(URI.create(basePath + "/whois/" + JOE_DOE_ID)).GET().build();
+    HttpRequest request2 =
+        HttpRequest.newBuilder()
+            .uri(URI.create(basePath + "/whois/" + JOE_DOE_ID))
+            .headers("x-api-key", "api-key")
+            .GET()
+            .build();
 
     HttpResponse<String> response1 = client.send(request1, HttpResponse.BodyHandlers.ofString());
     HttpResponse<String> response2 = client.send(request2, HttpResponse.BodyHandlers.ofString());
@@ -353,8 +385,8 @@ class UserIT extends MockedThirdParties {
   }
 
   private List<OnboardedUser> convertBody(String responseBody) throws JsonProcessingException {
-    CollectionType collectionType = objectMapper.getTypeFactory()
-        .constructCollectionType(List.class, OnboardedUser.class);
+    CollectionType collectionType =
+        objectMapper.getTypeFactory().constructCollectionType(List.class, OnboardedUser.class);
     return objectMapper.readValue(responseBody, collectionType);
   }
 }

@@ -18,10 +18,10 @@ public class FileInfoRepositoryImpl implements FileRepository {
 
   @Override
   public FileInfo findById(String id) {
-    return mapper.toDomain(jpaRepository.findById(id)
-        .orElseThrow(
-            () -> new NotFoundException("File." + id + " not found.")
-        ));
+    return mapper.toDomain(
+        jpaRepository
+            .findById(id)
+            .orElseThrow(() -> new NotFoundException("File." + id + " not found.")));
   }
 
   public Optional<FileInfo> findOptionalById(String id) {

@@ -21,10 +21,11 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder(toBuilder = true)
 @ToString
 @EqualsAndHashCode
-public class HCalendarStoredCredential  {
+public class HCalendarStoredCredential {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private String id;
+
   private String idUser;
   private String accessToken;
   private String refreshToken;

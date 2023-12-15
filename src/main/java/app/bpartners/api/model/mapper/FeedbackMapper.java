@@ -19,9 +19,10 @@ public class FeedbackMapper {
     return Feedback.builder()
         .id(entity.getId())
         .accountHolder(accountHolderMapper.toDomain(entity.getAccountHolder()))
-        .customers(entity.getCustomers().stream()
-            .map(customerMapper::toDomain)
-            .collect(Collectors.toList()))
+        .customers(
+            entity.getCustomers().stream()
+                .map(customerMapper::toDomain)
+                .collect(Collectors.toList()))
         .creationDatetime(entity.getCreationDatetime())
         .build();
   }
@@ -30,9 +31,10 @@ public class FeedbackMapper {
     return HFeedback.builder()
         .id(domain.getId())
         .accountHolder(accountHolderMapper.toEntity(domain.getAccountHolder()))
-        .customers(domain.getCustomers().stream()
-            .map(customerMapper::toEntity)
-            .collect(Collectors.toList()))
+        .customers(
+            domain.getCustomers().stream()
+                .map(customerMapper::toEntity)
+                .collect(Collectors.toList()))
         .creationDatetime(domain.getCreationDatetime())
         .build();
   }

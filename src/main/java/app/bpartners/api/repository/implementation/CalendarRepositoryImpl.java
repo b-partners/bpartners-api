@@ -20,7 +20,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 @AllArgsConstructor
 @Slf4j
-//TODO: improve using connectors
+// TODO: improve using connectors
 public class CalendarRepositoryImpl implements CalendarRepository {
   private final CalendarApi calendarApi;
   private final CalendarJpaRepository jpaRepository;
@@ -37,9 +37,10 @@ public class CalendarRepositoryImpl implements CalendarRepository {
     }
     List<HCalendar> retrievedCalendars = jpaRepository.findByIdUser(idUser);
 
-    List<HCalendar> calendarEntities = calendarEntries.stream()
-        .map(entry -> calendarMapper.toCalendarEntity(idUser, entry))
-        .toList();
+    List<HCalendar> calendarEntities =
+        calendarEntries.stream()
+            .map(entry -> calendarMapper.toCalendarEntity(idUser, entry))
+            .toList();
     for (HCalendar newEntity : calendarEntities) {
       newEntity.setNewCalendar(true);
       newEntity.setCreatedAt(Instant.now());
@@ -50,25 +51,25 @@ public class CalendarRepositoryImpl implements CalendarRepository {
         }
       }
     }
-    List<HCalendar> createdCalendars = calendarEntities.isEmpty() ? List.of()
-        : jpaRepository.saveAll(calendarEntities.stream()
-        .filter(HCalendar::isNewCalendar)
-        .collect(Collectors.toList()));
-    List<HCalendar> all = createdCalendars.size() == 0
-        ? retrievedCalendars
-        : combine(retrievedCalendars, createdCalendars);
+    List<HCalendar> createdCalendars =
+        calendarEntities.isEmpty()
+            ? List.of()
+            : jpaRepository.saveAll(
+                calendarEntities.stream()
+                    .filter(HCalendar::isNewCalendar)
+                    .collect(Collectors.toList()));
+    List<HCalendar> all =
+        createdCalendars.size() == 0
+            ? retrievedCalendars
+            : combine(retrievedCalendars, createdCalendars);
 
-    return all.stream()
-        .map(calendarMapper::toCalendar)
-        .collect(Collectors.toList());
+    return all.stream().map(calendarMapper::toCalendar).collect(Collectors.toList());
   }
 
   @Override
   public List<Calendar> removeAllByIdUser(String idUser) {
     List<Calendar> userCalendars = findByIdUser(idUser);
-    jpaRepository.deleteAllById(userCalendars.stream()
-        .map(Calendar::getId)
-        .toList());
+    jpaRepository.deleteAllById(userCalendars.stream().map(Calendar::getId).toList());
     return userCalendars;
   }
 
@@ -79,8 +80,8 @@ public class CalendarRepositoryImpl implements CalendarRepository {
 
   @Override
   public Calendar getById(String id) {
-    return findById(id).orElseThrow(
-        () -> new NotFoundException("Calendar(id=" + id + ") is not found"));
+    return findById(id)
+        .orElseThrow(() -> new NotFoundException("Calendar(id=" + id + ") is not found"));
   }
 
   private static List<HCalendar> combine(List<HCalendar> x1, List<HCalendar> x2) {

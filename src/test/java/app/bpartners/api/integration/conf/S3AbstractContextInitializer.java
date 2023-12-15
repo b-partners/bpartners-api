@@ -1,5 +1,8 @@
 package app.bpartners.api.integration.conf;
 
+import static app.bpartners.api.integration.conf.utils.TestUtils.findAvailableTcpPort;
+import static org.testcontainers.containers.localstack.LocalStackContainer.Service.S3;
+
 import java.io.File;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
@@ -17,9 +20,6 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
-import static app.bpartners.api.integration.conf.utils.TestUtils.findAvailableTcpPort;
-import static org.testcontainers.containers.localstack.LocalStackContainer.Service.S3;
-
 @Slf4j
 public abstract class S3AbstractContextInitializer
     implements ApplicationContextInitializer<ConfigurableApplicationContext> {
@@ -36,37 +36,42 @@ public abstract class S3AbstractContextInitializer
   public void initialize(ConfigurableApplicationContext applicationContext) {
     int localPort = findAvailableTcpPort();
     int containerPort = 5432;
-    JdbcDatabaseContainer<?> postgresContainer = new PostgreSQLContainer<>("postgres")
-        .withDatabaseName("it-db")
-        .withUsername("sa")
-        .withPassword("sa")
-        .withExposedPorts(containerPort);
+    JdbcDatabaseContainer<?> postgresContainer =
+        new PostgreSQLContainer<>("postgres")
+            .withDatabaseName("it-db")
+            .withUsername("sa")
+            .withPassword("sa")
+            .withExposedPorts(containerPort);
     postgresContainer.setPortBindings(List.of(String.format("%d:%d", containerPort, localPort)));
 
     postgresContainer.start();
 
-    LocalStackContainer s3Container = new LocalStackContainer(DockerImageName.parse(
-        "localstack/localstack:0.11.3"))
-        .withServices(S3);
+    LocalStackContainer s3Container =
+        new LocalStackContainer(DockerImageName.parse("localstack/localstack:0.11.3"))
+            .withServices(S3);
     s3Container.start();
 
-    S3Client s3Client = S3Client.builder()
-        .endpointOverride(s3Container.getEndpointOverride(S3))
-        .region(Region.of(s3Container.getRegion()))
-        .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("test", "test")))
-        .build();
+    S3Client s3Client =
+        S3Client.builder()
+            .endpointOverride(s3Container.getEndpointOverride(S3))
+            .region(Region.of(s3Container.getRegion()))
+            .credentialsProvider(
+                StaticCredentialsProvider.create(AwsBasicCredentials.create("test", "test")))
+            .build();
 
-    s3Client.createBucket(CreateBucketRequest.builder()
+    s3Client.createBucket(CreateBucketRequest.builder().bucket(BUCKET_NAME).build());
+    s3Client.putObject(
+        PutObjectRequest.builder()
             .bucket(BUCKET_NAME)
-        .build());
-    s3Client.putObject(PutObjectRequest.builder()
-        .bucket(BUCKET_NAME)
-        .key("dev/accounts/" + OLD_S3_KEY + "/logo/logo.jpeg")
-        .build(), new File(testFilePath()).toPath());
-    s3Client.putObject(PutObjectRequest.builder()
+            .key("dev/accounts/" + OLD_S3_KEY + "/logo/logo.jpeg")
+            .build(),
+        new File(testFilePath()).toPath());
+    s3Client.putObject(
+        PutObjectRequest.builder()
             .bucket(BUCKET_NAME)
             .key("dev/accounts/" + OLD_S3_KEY + "/logo/test.jpeg")
-            .build(), new File(testFilePath()).toPath());
+            .build(),
+        new File(testFilePath()).toPath());
 
     TestPropertySourceUtils.addInlinedPropertiesToEnvironment(
         applicationContext,

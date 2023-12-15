@@ -1,5 +1,14 @@
 package app.bpartners.api.unit.repository;
 
+import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_TOKEN;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.Bank;
 import app.bpartners.api.model.BankConnection;
@@ -26,15 +35,6 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_TOKEN;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 class BankRepositoryImplTest {
   private static final String REDIRECT_URL = "https://www.redirecturl.com";
   BridgeBankRepository bridgeBankRepositoryMock;
@@ -58,15 +58,18 @@ class BankRepositoryImplTest {
     holderJpaRepositoryMock = mock(AccountHolderJpaRepository.class);
     accountJpaRepositoryMock = mock(AccountJpaRepository.class);
 
-    subject = new BankRepositoryImpl(
-        bridgeBankRepositoryMock, userJpaRepositoryMock, userMapperMock, bankMapperMock,
-        bankJpaRepositoryMock, userTokenRepositoryMock, holderJpaRepositoryMock,
-        accountJpaRepositoryMock);
+    subject =
+        new BankRepositoryImpl(
+            bridgeBankRepositoryMock,
+            userJpaRepositoryMock,
+            userMapperMock,
+            bankMapperMock,
+            bankJpaRepositoryMock,
+            userTokenRepositoryMock,
+            holderJpaRepositoryMock,
+            accountJpaRepositoryMock);
 
-    when(bridgeBankRepositoryMock.findById(any()))
-        .thenReturn(BridgeBank.builder()
-            .id(1L)
-            .build());
+    when(bridgeBankRepositoryMock.findById(any())).thenReturn(BridgeBank.builder().id(1L).build());
     when(bankJpaRepositoryMock.findAllByExternalId(any())).thenReturn(List.of(bankEntity()));
     when(bankMapperMock.toDomain(any(), any())).thenReturn(bank());
     when(bankJpaRepositoryMock.findById(any())).thenReturn(Optional.of(bankEntity()));
@@ -85,23 +88,15 @@ class BankRepositoryImplTest {
   }
 
   BridgeItem bridgeItem() {
-    return BridgeItem.builder()
-        .id(1L)
-        .bankId(Long.valueOf(bank().getId()))
-        .status(0)
-        .build();
+    return BridgeItem.builder().id(1L).bankId(Long.valueOf(bank().getId())).status(0).build();
   }
 
   BridgeConnectItem connectItem() {
-    return BridgeConnectItem.builder()
-        .redirectUrl(REDIRECT_URL)
-        .build();
+    return BridgeConnectItem.builder().redirectUrl(REDIRECT_URL).build();
   }
 
   HBank bankEntity() {
-    return HBank.builder()
-        .id(bank().getId())
-        .build();
+    return HBank.builder().id(bank().getId()).build();
   }
 
   HUser userEntity() {
@@ -124,23 +119,15 @@ class BankRepositoryImplTest {
   }
 
   Bank bank() {
-    return Bank.builder()
-        .id("5")
-        .build();
+    return Bank.builder().id("5").build();
   }
 
   BankConnection bankConnection() {
-    return BankConnection.builder()
-        .bridgeId(bridgeItem().getId())
-        .user(user())
-        .build();
+    return BankConnection.builder().bridgeId(bridgeItem().getId()).user(user()).build();
   }
 
   UserToken userToken() {
-    return UserToken.builder()
-        .user(user())
-        .accessToken(JOE_DOE_TOKEN)
-        .build();
+    return UserToken.builder().user(user()).accessToken(JOE_DOE_TOKEN).build();
   }
 
   @Test
@@ -195,5 +182,4 @@ class BankRepositoryImplTest {
 
     assertEquals(REDIRECT_URL, actual);
   }
-
 }

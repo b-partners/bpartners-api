@@ -20,10 +20,13 @@ import lombok.ToString;
 public class BridgeItemStatus {
   @JsonProperty("status")
   private String status;
+
   @JsonProperty("refreshed_at")
   private Instant refreshedAt;
+
   @JsonProperty("refreshed_accounts_count")
   private Integer refreshedCount;
+
   @JsonProperty("total_accounts_count")
   private Integer accountsToBeRefreshedCount;
 }

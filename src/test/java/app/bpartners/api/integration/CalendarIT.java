@@ -1,5 +1,12 @@
 package app.bpartners.api.integration;
 
+import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ID;
+import static app.bpartners.api.repository.google.calendar.CalendarApi.DEFAULT_CALENDAR;
+import static app.bpartners.api.repository.google.calendar.CalendarApi.dateTimeFrom;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
+
 import app.bpartners.api.integration.conf.CalendarEnvContextInitializer;
 import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.repository.ban.BanApi;
@@ -34,13 +41,6 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 import org.testcontainers.shaded.com.fasterxml.jackson.databind.SerializationFeature;
 
-import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ID;
-import static app.bpartners.api.repository.google.calendar.CalendarApi.DEFAULT_CALENDAR;
-import static app.bpartners.api.repository.google.calendar.CalendarApi.dateTimeFrom;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
-
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @Testcontainers
 @ContextConfiguration(initializers = CalendarEnvContextInitializer.class)
@@ -49,18 +49,12 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @Disabled
 // /!\ Important ! Run only in local
 public class CalendarIT extends MockedThirdParties {
-  @Autowired
-  private CalendarApi calendarApi;
-  @Autowired
-  private CalendarConf calendarConf;
-  @Autowired
-  private CalendarStoredCredentialJpaRep storeRepository;
-  @MockBean
-  private TransactionService transactionService;
-  @MockBean
-  private BanApi banApi;
-  @MockBean
-  private CustomerService customerService;
+  @Autowired private CalendarApi calendarApi;
+  @Autowired private CalendarConf calendarConf;
+  @Autowired private CalendarStoredCredentialJpaRep storeRepository;
+  @MockBean private TransactionService transactionService;
+  @MockBean private BanApi banApi;
+  @MockBean private CustomerService customerService;
 
   @Test
   void create_events_ok() {
@@ -85,16 +79,15 @@ public class CalendarIT extends MockedThirdParties {
         .setSummary("Event1 with location")
         .setOrganizer(new Event.Organizer().setEmail("tech@bpartners.app"))
         .setCreator(new Event.Creator().setEmail("tech@bpartners.app"))
-        .setStart(new EventDateTime()
-            .setDateTime(new DateTime(startMillis))
-            .setTimeZone("Europe/Paris"))
-        .setEnd(new EventDateTime()
-            .setDateTime(new DateTime(endMillis))
-            .setTimeZone("Europe/Paris"))
+        .setStart(
+            new EventDateTime().setDateTime(new DateTime(startMillis)).setTimeZone("Europe/Paris"))
+        .setEnd(
+            new EventDateTime().setDateTime(new DateTime(endMillis)).setTimeZone("Europe/Paris"))
         .setLocation("70 Rue Duhesme, 75018 Paris, France")
-        .setAttendees(List.of(
-            new EventAttendee().setEmail("tech@bpartners.app"),
-            new EventAttendee().setEmail("sofiane@bpartners.app")))
+        .setAttendees(
+            List.of(
+                new EventAttendee().setEmail("tech@bpartners.app"),
+                new EventAttendee().setEmail("sofiane@bpartners.app")))
         .setUpdated(dateTimeFrom(Instant.now()));
   }
 
@@ -105,12 +98,10 @@ public class CalendarIT extends MockedThirdParties {
         .setSummary("Event2 without location")
         .setOrganizer(new Event.Organizer().setEmail("ryan@hei.school"))
         .setCreator(new Event.Creator().setEmail("ryan@hei.school"))
-        .setStart(new EventDateTime()
-            .setDateTime(new DateTime(startMillis))
-            .setTimeZone("Europe/Paris"))
-        .setEnd(new EventDateTime()
-            .setDateTime(new DateTime(endMillis))
-            .setTimeZone("Europe/Paris"));
+        .setStart(
+            new EventDateTime().setDateTime(new DateTime(startMillis)).setTimeZone("Europe/Paris"))
+        .setEnd(
+            new EventDateTime().setDateTime(new DateTime(endMillis)).setTimeZone("Europe/Paris"));
   }
 
   @Test

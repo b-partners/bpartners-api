@@ -53,15 +53,14 @@ public class InvoiceController {
       @PathVariable("iId") String invoiceId,
       @RequestBody CrupdateInvoice crupdateInvoice) {
     String idUser =
-        AuthProvider.getAuthenticatedUserId(); //TODO: should be changed when endpoint changed
+        AuthProvider.getAuthenticatedUserId(); // TODO: should be changed when endpoint changed
     app.bpartners.api.model.Invoice domain = mapper.toDomain(idUser, invoiceId, crupdateInvoice);
     return mapper.toRest(service.crupdateInvoice(domain));
   }
 
   @GetMapping("/accounts/{id}/invoices/{iId}")
   public Invoice getInvoice(
-      @PathVariable("id") String accountId,
-      @PathVariable("iId") String invoiceId) {
+      @PathVariable("id") String accountId, @PathVariable("iId") String invoiceId) {
     return mapper.toRest(service.getById(invoiceId));
   }
 
@@ -76,13 +75,14 @@ public class InvoiceController {
       @RequestParam(name = "title", required = false) String title,
       @RequestParam(name = "filters", required = false) List<String> filters) {
     String idUser =
-        AuthProvider.getAuthenticatedUserId(); //TODO: should be changed when endpoint changed
+        AuthProvider.getAuthenticatedUserId(); // TODO: should be changed when endpoint changed
     if (status != null && (statusList == null || statusList.isEmpty())) {
       log.warn("DEPRECATED: GET /accounts/{aId}/invoices query_param=status is still used");
       statusList = new ArrayList<>();
       statusList.add(status);
     }
-    return service.getInvoices(idUser, page, pageSize, statusList, archiveStatus, title, filters)
+    return service
+        .getInvoices(idUser, page, pageSize, statusList, archiveStatus, title, filters)
         .stream()
         .map(mapper::toRest)
         .toList();
@@ -92,19 +92,15 @@ public class InvoiceController {
   public List<Invoice> archiveInvoices(
       @PathVariable(name = "aId") String accountId,
       @RequestBody List<UpdateInvoiceArchivedStatus> toArchive) {
-    List<ArchiveInvoice> archiveInvoices = toArchive.stream()
-        .map(mapper::toDomain)
-        .toList();
-    return service.archiveInvoices(archiveInvoices).stream()
-        .map(mapper::toRest)
-        .toList();
+    List<ArchiveInvoice> archiveInvoices = toArchive.stream().map(mapper::toDomain).toList();
+    return service.archiveInvoices(archiveInvoices).stream().map(mapper::toRest).toList();
   }
 
   @PostMapping("/accounts/{aId}/invoices/{iId}/duplication")
-  public Invoice duplicateInvoice(@PathVariable String aId,
-                                  @PathVariable String iId,
-                                  @RequestBody(required = false)
-                                  InvoiceReference invoiceReference) {
+  public Invoice duplicateInvoice(
+      @PathVariable String aId,
+      @PathVariable String iId,
+      @RequestBody(required = false) InvoiceReference invoiceReference) {
     referenceValidator.accept(invoiceReference);
     return mapper.toRest(service.duplicateAsDraft(iId, invoiceReference.getNewReference()));
   }

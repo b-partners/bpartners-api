@@ -1,5 +1,7 @@
 package app.bpartners.api.repository.jpa.model;
 
+import static javax.persistence.GenerationType.IDENTITY;
+
 import app.bpartners.api.endpoint.rest.model.EnableStatus;
 import app.bpartners.api.endpoint.rest.model.IdentificationStatus;
 import app.bpartners.api.endpoint.rest.model.UserRole;
@@ -34,8 +36,6 @@ import org.hibernate.annotations.Parameter;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 
-import static javax.persistence.GenerationType.IDENTITY;
-
 @Entity
 @Table(name = "\"user\"")
 @TypeDef(name = "pgsql_enum", typeClass = PostgresEnumType.class)
@@ -43,11 +43,7 @@ import static javax.persistence.GenerationType.IDENTITY;
     name = "user_roles",
     typeClass = EnumArrayType.class,
     defaultForType = UserRole[].class,
-    parameters = @Parameter(
-        name = AbstractArrayType.SQL_ARRAY_TYPE,
-        value = "user_role"
-    )
-)
+    parameters = @Parameter(name = AbstractArrayType.SQL_ARRAY_TYPE, value = "user_role"))
 @Getter
 @Setter
 @ToString
@@ -59,50 +55,64 @@ public class HUser implements Serializable {
   @Id
   @GeneratedValue(strategy = IDENTITY)
   private String id;
+
   @OneToMany(mappedBy = "user")
   private List<HAccount> accounts;
+
   @OneToMany
   @JoinColumn(name = "id_user")
   private List<HAccountHolder> accountHolders;
+
   private String firstName;
   private String lastName;
+
   @Column(name = "preferred_account_id")
   private String preferredAccountId;
+
   private String email;
-  private String bridgeUserId; //TODO: persist this when creating new users
-  private String bridgePassword; //TODO: persist this when creating new users
+  private String bridgeUserId; // TODO: persist this when creating new users
+  private String bridgePassword; // TODO: persist this when creating new users
   private String phoneNumber;
   private String accessToken;
   private Instant tokenExpirationDatetime;
   private Instant tokenCreationDatetime;
   private int monthlySubscription;
   private Long bridgeItemId;
-  @CreationTimestamp
-  private Instant bridgeItemUpdatedAt;
+  @CreationTimestamp private Instant bridgeItemUpdatedAt;
+
   @CreationTimestamp
   @Getter(AccessLevel.NONE)
   private Instant bridgeItemLastRefresh;
+
   @Type(type = "pgsql_enum")
   @Enumerated(EnumType.STRING)
   private BankConnection.BankConnectionStatus bankConnectionStatus;
+
   private String logoFileId;
+
   @Type(type = "pgsql_enum")
   @Enumerated(EnumType.STRING)
   private EnableStatus status;
+
   private Boolean idVerified;
+
   @Type(type = "pgsql_enum")
   @Enumerated(EnumType.STRING)
   private IdentificationStatus identificationStatus;
+
   @Column(name = "old_s3_id_account")
   private String oldS3AccountKey;
+
   @Type(type = "user_roles")
   @Column(name = "roles", columnDefinition = "user_role[]")
   private Role[] roles;
+
   private String snsArn;
   private String deviceToken;
 
   public Instant getBridgeItemLastRefresh() {
-    return bridgeItemLastRefresh == null ? null
+    return bridgeItemLastRefresh == null
+        ? null
         : bridgeItemLastRefresh.truncatedTo(ChronoUnit.MILLIS);
   }
 }

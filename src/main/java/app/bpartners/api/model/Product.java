@@ -1,5 +1,7 @@
 package app.bpartners.api.model;
 
+import static org.apfloat.Apcomplex.ONE;
+
 import app.bpartners.api.endpoint.rest.model.ProductStatus;
 import java.time.Instant;
 import java.util.Objects;
@@ -12,8 +14,6 @@ import lombok.Setter;
 import lombok.ToString;
 import org.apfloat.Aprational;
 
-import static org.apfloat.Apcomplex.ONE;
-
 @Getter
 @Setter
 @Builder(toBuilder = true)
@@ -24,15 +24,18 @@ public class Product {
   private String id;
   private String description;
   private Fraction unitPrice;
+
   @Getter(AccessLevel.NONE)
   private Fraction unitPriceWithVat;
+
   private Fraction vatPercent;
   private Instant createdAt;
 
   private ProductStatus status;
 
   public Fraction getUnitPriceWithVat() {
-    return unitPrice.operate(vatPercent,
+    return unitPrice.operate(
+        vatPercent,
         (price, vat) -> {
           Aprational vatAprational = ONE.add(vat.divide(new Aprational(10000)));
           return price.multiply(vatAprational);
@@ -48,7 +51,8 @@ public class Product {
       return false;
     }
     Product product = (Product) o;
-    return product != null && Objects.equals(description, product.getDescription())
+    return product != null
+        && Objects.equals(description, product.getDescription())
         && Objects.equals(vatPercent, product.getVatPercent())
         && Objects.equals(unitPrice, product.getUnitPrice())
         && Objects.equals(unitPriceWithVat, product.getUnitPriceWithVat());

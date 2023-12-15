@@ -1,6 +1,5 @@
 package app.bpartners.api.service;
 
-
 import app.bpartners.api.model.PreUser;
 import app.bpartners.api.model.validator.PreUserValidator;
 import app.bpartners.api.repository.PreUserRepository;

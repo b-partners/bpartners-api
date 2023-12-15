@@ -4,8 +4,7 @@ import java.util.List;
 import lombok.AllArgsConstructor;
 
 @AllArgsConstructor
-public class CachedTransactionConnectorRepository
-    implements TransactionConnectorRepository {
+public class CachedTransactionConnectorRepository implements TransactionConnectorRepository {
   private final TransactionConnectorRepository toCache;
 
   @Override

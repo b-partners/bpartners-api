@@ -27,8 +27,7 @@ public class ProspectJobRestMapper {
   private final ProspectJobValidator jobValidator;
 
   @SneakyThrows
-  public ProspectEvaluationJobRunner toDomain(String ahId,
-                                              PutProspectEvaluationJob rest) {
+  public ProspectEvaluationJobRunner toDomain(String ahId, PutProspectEvaluationJob rest) {
     jobValidator.accept(rest);
     PutEventProspectConversion eventConversion = rest.getEventProspectConversion();
     SheetProspectEvaluation spreadSheetEvaluation = rest.getSpreadSheetEvaluation();
@@ -47,7 +46,8 @@ public class ProspectJobRestMapper {
           .jobId(rest.getJobId())
           .metadata(metadata)
           .eventJobRunner(
-              toDomain(ahId,
+              toDomain(
+                  ahId,
                   eventConversion.getCalendarId(),
                   evaluationRules,
                   ratingProperties,
@@ -63,7 +63,8 @@ public class ProspectJobRestMapper {
           .jobId(rest.getJobId())
           .metadata(metadata)
           .sheetJobRunner(
-              toDomain(spreadSheetEvaluation.getArtisanOwner(),
+              toDomain(
+                  spreadSheetEvaluation.getArtisanOwner(),
                   evaluationRules,
                   ratingProperties,
                   sheetProperties,
@@ -74,12 +75,13 @@ public class ProspectJobRestMapper {
         "Only PutEventProspectConversion and SpreadSheetEvaluation is supported for now");
   }
 
-  private EventJobRunner toDomain(String idAccountHolder,
-                                  String calendarId,
-                                  EventEvaluationRules evaluationRules,
-                                  RatingProperties ratingProperties,
-                                  EventDateRanges eventDateRanges,
-                                  AntiHarmRules antiHarmRules) {
+  private EventJobRunner toDomain(
+      String idAccountHolder,
+      String calendarId,
+      EventEvaluationRules evaluationRules,
+      RatingProperties ratingProperties,
+      EventDateRanges eventDateRanges,
+      AntiHarmRules antiHarmRules) {
     return EventJobRunner.builder()
         .calendarId(calendarId)
         .artisanOwner(idAccountHolder)
@@ -89,11 +91,12 @@ public class ProspectJobRestMapper {
         .build();
   }
 
-  private SheetEvaluationJobRunner toDomain(String idAccountHolder,
-                                            ProspectEvaluationRules evaluationRules,
-                                            RatingProperties ratingProperties,
-                                            SheetProperties sheetProperties,
-                                            SheetRange sheetRange) {
+  private SheetEvaluationJobRunner toDomain(
+      String idAccountHolder,
+      ProspectEvaluationRules evaluationRules,
+      RatingProperties ratingProperties,
+      SheetProperties sheetProperties,
+      SheetRange sheetRange) {
     return SheetEvaluationJobRunner.builder()
         .artisanOwner(idAccountHolder)
         .evaluationRules(toDomain(evaluationRules))
@@ -101,7 +104,6 @@ public class ProspectJobRestMapper {
         .sheetProperties(toDomain(sheetProperties, sheetRange))
         .build();
   }
-
 
   private EventJobRunner.EventDateRanges toDomain(EventDateRanges eventDateRanges) {
     return EventJobRunner.EventDateRanges.builder()
@@ -113,29 +115,28 @@ public class ProspectJobRestMapper {
   private app.bpartners.api.model.prospect.job.SheetProperties toDomain(
       SheetProperties sheetProperties, SheetRange sheetRange) {
     return app.bpartners.api.model.prospect.job.SheetProperties.builder()
-        .spreadsheetName(sheetProperties == null ? null
-            : sheetProperties.getSpreadsheetName())
-        .sheetName(sheetProperties == null ? null
-            : sheetProperties.getSheetName())
-        .ranges(app.bpartners.api.model.prospect.job.SheetRange.builder()
-            .min(sheetRange == null ? null : sheetRange.getMin())
-            .max(sheetRange == null ? null : sheetRange.getMax())
-            .build())
+        .spreadsheetName(sheetProperties == null ? null : sheetProperties.getSpreadsheetName())
+        .sheetName(sheetProperties == null ? null : sheetProperties.getSheetName())
+        .ranges(
+            app.bpartners.api.model.prospect.job.SheetRange.builder()
+                .min(sheetRange == null ? null : sheetRange.getMin())
+                .max(sheetRange == null ? null : sheetRange.getMax())
+                .build())
         .build();
   }
 
   private app.bpartners.api.model.prospect.job.RatingProperties toDomain(
       RatingProperties ratingProperties) {
     return app.bpartners.api.model.prospect.job.RatingProperties.builder()
-        .minCustomerRating(ratingProperties == null ? null
-            : ratingProperties.getMinCustomerRating())
-        .minProspectRating(ratingProperties == null ? null
-            : ratingProperties.getMinProspectRating())
+        .minCustomerRating(
+            ratingProperties == null ? null : ratingProperties.getMinCustomerRating())
+        .minProspectRating(
+            ratingProperties == null ? null : ratingProperties.getMinProspectRating())
         .build();
   }
 
-  private EvaluationRules toDomain(EventEvaluationRules evaluationRules,
-                                   AntiHarmRules antiHarmRules) {
+  private EvaluationRules toDomain(
+      EventEvaluationRules evaluationRules, AntiHarmRules antiHarmRules) {
     return EvaluationRules.builder()
         .profession(evaluationRules == null ? null : evaluationRules.getProfession())
         .antiHarmRules(toDomain(antiHarmRules))

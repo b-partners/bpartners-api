@@ -50,20 +50,21 @@ public class ProspectRestValidator implements Consumer<UpdateProspect> {
           ratingProperties.setMinCustomerRating(8.0);
         } else if (ratingProperties.getMinCustomerRating() < 0
             || ratingProperties.getMinCustomerRating() > 10) {
-          builder.append("Min customer rating must be between 0 and 10 but was "
-              + ratingProperties.getMinCustomerRating());
+          builder.append(
+              "Min customer rating must be between 0 and 10 but was "
+                  + ratingProperties.getMinCustomerRating());
         }
         if (ratingProperties.getMinProspectRating() == null) {
           ratingProperties.setMinProspectRating(8.0);
         } else if (ratingProperties.getMinProspectRating() < 0
             || ratingProperties.getMinCustomerRating() > 10) {
-          builder.append("Min prospect rating must be between 0 and 10 but was "
-              + ratingProperties.getMinProspectRating());
+          builder.append(
+              "Min prospect rating must be between 0 and 10 but was "
+                  + ratingProperties.getMinProspectRating());
         }
       } else {
-        evaluation.setRatingProperties(new RatingProperties()
-            .minCustomerRating(8.0)
-            .minProspectRating(8.0));
+        evaluation.setRatingProperties(
+            new RatingProperties().minCustomerRating(8.0).minProspectRating(8.0));
       }
       if (evaluationRules == null) {
         builder.append("EvaluationRules is mandatory. ");
@@ -128,14 +129,24 @@ public class ProspectRestValidator implements Consumer<UpdateProspect> {
 
   public String validateAccept(String headerValue) {
     if (headerValue == null) {
-      throw new BadRequestException("Accept Header is mandatory. Types [application/json,"
-          + XLS_FILE + "," + XLSX_FILE + "] are supported");
+      throw new BadRequestException(
+          "Accept Header is mandatory. Types [application/json,"
+              + XLS_FILE
+              + ","
+              + XLSX_FILE
+              + "] are supported");
     }
     boolean isExcelFile = headerValue.equals(XLS_FILE) || headerValue.equals(XLSX_FILE);
     boolean isJsonFile = headerValue.equals(MediaType.APPLICATION_JSON_VALUE);
     if (!isExcelFile && !isJsonFile) {
-      throw new NotImplementedException(headerValue + " is not supported."
-          + "Only types [application/json," + XLS_FILE + "," + XLSX_FILE + "] are supported");
+      throw new NotImplementedException(
+          headerValue
+              + " is not supported."
+              + "Only types [application/json,"
+              + XLS_FILE
+              + ","
+              + XLSX_FILE
+              + "] are supported");
     }
     return headerValue;
   }

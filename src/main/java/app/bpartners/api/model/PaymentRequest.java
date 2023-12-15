@@ -1,5 +1,8 @@
 package app.bpartners.api.model;
 
+import static app.bpartners.api.endpoint.rest.model.PaymentStatus.PAID;
+import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
+
 import app.bpartners.api.endpoint.rest.model.PaymentMethod;
 import app.bpartners.api.endpoint.rest.model.PaymentStatus;
 import app.bpartners.api.model.exception.NotImplementedException;
@@ -16,9 +19,6 @@ import lombok.SneakyThrows;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.ClassPathResource;
-
-import static app.bpartners.api.endpoint.rest.model.PaymentStatus.PAID;
-import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 
 @Slf4j
 @Data
@@ -59,17 +59,20 @@ public class PaymentRequest {
     this.comment = entity.getComment();
     this.createdDatetime = entity.getCreatedDatetime();
     this.paymentHistoryStatus =
-        entity.getPaymentMethod() == null
-            && entity.getStatus() == null || entity.getStatus() == PaymentStatus.UNPAID
-            && entity.getPaymentStatusUpdatedAt() == null
-            && entity.getUserUpdated() == null ? null
+        entity.getPaymentMethod() == null && entity.getStatus() == null
+                || entity.getStatus() == PaymentStatus.UNPAID
+                    && entity.getPaymentStatusUpdatedAt() == null
+                    && entity.getUserUpdated() == null
+            ? null
             : PaymentHistoryStatus.builder()
-            .paymentMethod(entity.getPaymentMethod())
-            .status(entity.getStatus())
-            .updatedAt(entity.getPaymentStatusUpdatedAt() == null ? entity.getCreatedDatetime()
-                : entity.getPaymentStatusUpdatedAt())
-            .userUpdated(entity.getUserUpdated())
-            .build();
+                .paymentMethod(entity.getPaymentMethod())
+                .status(entity.getStatus())
+                .updatedAt(
+                    entity.getPaymentStatusUpdatedAt() == null
+                        ? entity.getCreatedDatetime()
+                        : entity.getPaymentStatusUpdatedAt())
+                .userUpdated(entity.getUserUpdated())
+                .build();
   }
 
   public String getStamp() {

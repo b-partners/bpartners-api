@@ -23,12 +23,13 @@ public class SheetCredentialMapper implements CredentialMapper<HSheetStoredCrede
   @Override
   public HSheetStoredCredential toEntity(
       String idUser, StoredCredential storedCredential, Instant createdAt) {
-    return (HSheetStoredCredential) HSheetStoredCredential.builder()
-        .idUser(idUser)
-        .accessToken(storedCredential.getAccessToken())
-        .refreshToken(storedCredential.getRefreshToken())
-        .expirationTimeMilliseconds(storedCredential.getExpirationTimeMilliseconds())
-        .creationDatetime(createdAt)
-        .build();
+    return (HSheetStoredCredential)
+        HSheetStoredCredential.builder()
+            .idUser(idUser)
+            .accessToken(storedCredential.getAccessToken())
+            .refreshToken(storedCredential.getRefreshToken())
+            .expirationTimeMilliseconds(storedCredential.getExpirationTimeMilliseconds())
+            .creationDatetime(createdAt)
+            .build();
   }
 }

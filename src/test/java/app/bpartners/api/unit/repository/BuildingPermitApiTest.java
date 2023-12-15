@@ -1,24 +1,8 @@
 package app.bpartners.api.unit.repository;
 
-import app.bpartners.api.model.exception.ApiException;
-import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitApi;
-import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitConf;
-import app.bpartners.api.repository.prospecting.datasource.buildingpermit.RetryerConfig;
-import app.bpartners.api.repository.prospecting.datasource.buildingpermit.model.BuildingPermitList;
-import app.bpartners.api.repository.prospecting.datasource.buildingpermit.model.SingleBuildingPermit;
-import java.io.IOException;
-import java.net.http.HttpClient;
-import java.time.Year;
-import java.util.HashMap;
-import java.util.Map;
-import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.Test;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import static app.bpartners.api.integration.conf.utils.TestUtils.httpResponseMock;
 import static app.bpartners.api.service.utils.URLUtils.URLEncodeMap;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -26,11 +10,26 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import app.bpartners.api.model.exception.ApiException;
+import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitApi;
+import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitConf;
+import app.bpartners.api.repository.prospecting.datasource.buildingpermit.RetryerConfig;
+import app.bpartners.api.repository.prospecting.datasource.buildingpermit.model.BuildingPermitList;
+import app.bpartners.api.repository.prospecting.datasource.buildingpermit.model.SingleBuildingPermit;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
+import java.net.http.HttpClient;
+import java.time.Year;
+import java.util.HashMap;
+import java.util.Map;
+import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.Test;
+
 @Slf4j
 class BuildingPermitApiTest {
   public static final String BASE_URL = "https://localhost";
   public static final String BEARER = "bearer";
-  //todo: move json to files
+  // todo: move json to files
   public static final String SINGLE_BUILDING_PERMIT_JSON =
       "{\"sogefi_id_dossier\":112597101,\"sogefi_ref_dossier\":\"PC 092002 22 A0023\","
           + "\"sogefi_sitadel\":true,\"type\":\"PC\",\"l_type\":\"permis de construire\","
@@ -108,8 +107,7 @@ class BuildingPermitApiTest {
   BuildingPermitConf conf = new BuildingPermitConf(BASE_URL, BEARER, COMMON_DENOM_CHAR);
   HttpClient mockHttpClient = mock(HttpClient.class);
   RetryerConfig retryerConfig = new RetryerConfig();
-  BuildingPermitApi api = new BuildingPermitApi(conf, retryerConfig)
-      .httpClient(mockHttpClient);
+  BuildingPermitApi api = new BuildingPermitApi(conf, retryerConfig).httpClient(mockHttpClient);
 
   BuildingPermitList expectedPermits() throws IOException {
     return om.readValue(BUILDING_PERMIT_LIST_JSON, BuildingPermitList.class);
@@ -141,8 +139,8 @@ class BuildingPermitApiTest {
 
   @Test
   void read_one_ok() throws IOException, InterruptedException {
-    when(mockHttpClient.send(any(), any())).thenReturn(
-        httpResponseMock(SINGLE_BUILDING_PERMIT_JSON));
+    when(mockHttpClient.send(any(), any()))
+        .thenReturn(httpResponseMock(SINGLE_BUILDING_PERMIT_JSON));
 
     SingleBuildingPermit singleBuildingPermit = api.getSingleBuildingPermit(ID_SOGEFI);
 
@@ -151,8 +149,8 @@ class BuildingPermitApiTest {
 
   @Test
   void handle_sogefi_429_retryer() throws IOException, InterruptedException {
-    when(mockHttpClient.send(any(), any())).thenThrow(
-        new IOException(SOGEFI_EXCEPTION_MESSAGE_KEYWORD));
+    when(mockHttpClient.send(any(), any()))
+        .thenThrow(new IOException(SOGEFI_EXCEPTION_MESSAGE_KEYWORD));
 
     try {
       api.getData(BASE_URL, SingleBuildingPermit.class);
@@ -164,7 +162,7 @@ class BuildingPermitApiTest {
 
   @Test
   void read_from_sogefi_ko() throws IOException, InterruptedException {
-//    TODO: add test for the retrier
+    //    TODO: add test for the retrier
     when(mockHttpClient.send(any(), any())).thenThrow(new InterruptedException());
 
     assertThrows(ApiException.class, () -> api.getBuildingPermitList(INSEE));

@@ -8,7 +8,6 @@ import app.bpartners.api.repository.jpa.TransactionCategoryJpaRepository;
 import app.bpartners.api.repository.jpa.model.HTransactionCategory;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Isolation;
@@ -23,11 +22,8 @@ public class TransactionCategoryRepositoryImpl implements TransactionCategoryRep
 
   @Override
   public List<TransactionCategory> findByIdAccountAndType(
-      String idAccount,
-      TransactionTypeEnum type,
-      LocalDate startDate, LocalDate endDate) {
-    List<HTransactionCategory> entities =
-        findAllByCriteria(idAccount, type);
+      String idAccount, TransactionTypeEnum type, LocalDate startDate, LocalDate endDate) {
+    List<HTransactionCategory> entities = findAllByCriteria(idAccount, type);
     if (entities.isEmpty()) {
       return List.of();
     }
@@ -38,9 +34,8 @@ public class TransactionCategoryRepositoryImpl implements TransactionCategoryRep
 
   @Override
   public List<TransactionCategory> saveAll(List<TransactionCategory> toCreate) {
-    List<HTransactionCategory> entitiesToCreate = toCreate.stream()
-        .map(domainMapper::toEntity)
-        .toList();
+    List<HTransactionCategory> entitiesToCreate =
+        toCreate.stream().map(domainMapper::toEntity).toList();
     return jpaRepository.saveAll(entitiesToCreate).stream()
         .map(category -> domainMapper.toDomain(category, DEFAULT_START_DATE, LocalDate.now()))
         .toList();
@@ -57,9 +52,7 @@ public class TransactionCategoryRepositoryImpl implements TransactionCategoryRep
     return domainMapper.toDomain(persisted, DEFAULT_START_DATE, LocalDate.now());
   }
 
-
-  public List<HTransactionCategory> findAllByCriteria(
-      String idAccount, TransactionTypeEnum type) {
+  public List<HTransactionCategory> findAllByCriteria(String idAccount, TransactionTypeEnum type) {
     if (type == null) {
       return jpaRepository.findAllByIdAccount(idAccount);
     }

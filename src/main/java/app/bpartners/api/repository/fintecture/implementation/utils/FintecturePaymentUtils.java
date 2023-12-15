@@ -1,5 +1,7 @@
 package app.bpartners.api.repository.fintecture.implementation.utils;
 
+import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
+
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.repository.fintecture.FintectureConf;
 import java.nio.charset.StandardCharsets;
@@ -17,8 +19,6 @@ import java.time.Instant;
 import java.util.Base64;
 import java.util.Date;
 
-import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
-
 public class FintecturePaymentUtils {
   public static final String SIGNATURE_ALGORITHM = "SHA256withRSA";
   public static final String REQUEST_ID = "x-request-id";
@@ -29,8 +29,7 @@ public class FintecturePaymentUtils {
   public static final String ACCEPT = "accept";
   public static final String APPLICATION_JSON = "application/json";
 
-  private FintecturePaymentUtils() {
-  }
+  private FintecturePaymentUtils() {}
 
   public static String getParsedDate() {
     String rfc2822Pattern = "EEE, dd MMM yyyy HH:mm:ss Z";
@@ -45,58 +44,90 @@ public class FintecturePaymentUtils {
     return "SHA-256=" + hashString;
   }
 
-  public static String getHeaderSignatureWithDigest(FintectureConf fintectureConf, String requestId,
-                                                    String digest, String date, String urlParams) {
-    return "keyId=\"" + fintectureConf.getAppId() + "\","
+  public static String getHeaderSignatureWithDigest(
+      FintectureConf fintectureConf,
+      String requestId,
+      String digest,
+      String date,
+      String urlParams) {
+    return "keyId=\""
+        + fintectureConf.getAppId()
+        + "\","
         + "algorithm=\"rsa-sha256\",headers=\"(request-target)"
         + " date digest x-request-id\", signature=\""
-        + getSignatureWithDigest(fintectureConf, requestId, digest, date, urlParams) + "\"";
+        + getSignatureWithDigest(fintectureConf, requestId, digest, date, urlParams)
+        + "\"";
   }
 
-  public static String getHeaderSignature(FintectureConf fintectureConf, String requestId,
-                                          String date, String urlParams) {
-    return "keyId=\"" + fintectureConf.getAppId() + "\","
+  public static String getHeaderSignature(
+      FintectureConf fintectureConf, String requestId, String date, String urlParams) {
+    return "keyId=\""
+        + fintectureConf.getAppId()
+        + "\","
         + "algorithm=\"rsa-sha256\",headers=\"(request-target) date x-request-id\","
-        + "signature=\"" + getSignature(fintectureConf, requestId, date, urlParams) + "\"";
+        + "signature=\""
+        + getSignature(fintectureConf, requestId, date, urlParams)
+        + "\"";
   }
 
-  public static String getSignatureWithDigest(FintectureConf fintectureConf, String requestId,
-                                              String digest,
-                                              String date, String urlParams) {
+  public static String getSignatureWithDigest(
+      FintectureConf fintectureConf,
+      String requestId,
+      String digest,
+      String date,
+      String urlParams) {
     try {
       String signingString =
-          "(request-target): post /pis/v2/request-to-pay" + urlParams + "\n"
-              + "date: " + date + "\n"
-              + "digest: " + digest + "\n"
-              + "x-request-id: " + requestId;
+          "(request-target): post /pis/v2/request-to-pay"
+              + urlParams
+              + "\n"
+              + "date: "
+              + date
+              + "\n"
+              + "digest: "
+              + digest
+              + "\n"
+              + "x-request-id: "
+              + requestId;
       Signature privateSignature = getSignature(fintectureConf.getPrivateKey(), signingString);
       byte[] signatureAsBytes = privateSignature.sign();
       return Base64.getEncoder().encodeToString(signatureAsBytes);
-    } catch (NoSuchAlgorithmException | InvalidKeySpecException | SignatureException
-             | InvalidKeyException e) {
+    } catch (NoSuchAlgorithmException
+        | InvalidKeySpecException
+        | SignatureException
+        | InvalidKeyException e) {
       throw new ApiException(SERVER_EXCEPTION, e);
     }
   }
 
-  public static String getSignature(FintectureConf fintectureConf, String requestId,
-                                    String date, String urlParams) {
+  public static String getSignature(
+      FintectureConf fintectureConf, String requestId, String date, String urlParams) {
     try {
       String signingString =
-          "(request-target): get /pis/v2/payments" + urlParams + "\n"
-              + "date: " + date + "\n"
-              + "x-request-id: " + requestId;
+          "(request-target): get /pis/v2/payments"
+              + urlParams
+              + "\n"
+              + "date: "
+              + date
+              + "\n"
+              + "x-request-id: "
+              + requestId;
       Signature privateSignature = getSignature(fintectureConf.getPrivateKey(), signingString);
       byte[] signatureAsBytes = privateSignature.sign();
       return Base64.getEncoder().encodeToString(signatureAsBytes);
-    } catch (NoSuchAlgorithmException | InvalidKeySpecException | SignatureException
-             | InvalidKeyException e) {
+    } catch (NoSuchAlgorithmException
+        | InvalidKeySpecException
+        | SignatureException
+        | InvalidKeyException e) {
       throw new ApiException(SERVER_EXCEPTION, e);
     }
   }
 
   public static Signature getSignature(String keyValue, String data)
-      throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException,
-      SignatureException {
+      throws NoSuchAlgorithmException,
+          InvalidKeySpecException,
+          InvalidKeyException,
+          SignatureException {
     PrivateKey key = copyKey(keyValue);
     Signature privateSignature = Signature.getInstance(SIGNATURE_ALGORITHM);
     privateSignature.initSign(key);

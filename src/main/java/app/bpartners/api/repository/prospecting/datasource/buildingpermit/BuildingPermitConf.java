@@ -1,5 +1,7 @@
 package app.bpartners.api.repository.prospecting.datasource.buildingpermit;
 
+import static app.bpartners.api.service.utils.URLUtils.URLEncodeMap;
+
 import java.time.Year;
 import java.util.HashMap;
 import java.util.Map;
@@ -7,8 +9,6 @@ import lombok.Getter;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
-
-import static app.bpartners.api.service.utils.URLUtils.URLEncodeMap;
 
 @Configuration
 @Getter
@@ -24,9 +24,10 @@ public class BuildingPermitConf {
   private String bearer;
   private String denomChar;
 
-  public BuildingPermitConf(@Value("${ads.baseUrl}") String baseUrl,
-                            @Value("${ads.bearer}") String bearer,
-                            @Value("${ads.denom.char}") String denomChar) {
+  public BuildingPermitConf(
+      @Value("${ads.baseUrl}") String baseUrl,
+      @Value("${ads.bearer}") String bearer,
+      @Value("${ads.denom.char}") String denomChar) {
     this.baseUrl = baseUrl;
     this.bearer = bearer;
     this.denomChar = denomChar;

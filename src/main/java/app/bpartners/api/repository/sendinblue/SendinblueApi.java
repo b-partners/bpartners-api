@@ -1,5 +1,7 @@
 package app.bpartners.api.repository.sendinblue;
 
+import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
+
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.repository.mapper.SendinblueMapper;
@@ -9,8 +11,6 @@ import sendinblue.ApiException;
 import sibApi.ContactsApi;
 import sibModel.CreateContact;
 import sibModel.CreateUpdateContactModel;
-
-import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 
 @Component
 public class SendinblueApi {
@@ -47,8 +47,8 @@ public class SendinblueApi {
     try {
       contactsApi.deleteContact(identifier);
     } catch (ApiException e) {
-      throw new app.bpartners.api.model.exception.ApiException(SERVER_EXCEPTION,
-          e.getResponseBody());
+      throw new app.bpartners.api.model.exception.ApiException(
+          SERVER_EXCEPTION, e.getResponseBody());
     }
   }
 }

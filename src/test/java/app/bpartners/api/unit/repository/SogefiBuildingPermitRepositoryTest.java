@@ -1,5 +1,16 @@
 package app.bpartners.api.unit.repository;
 
+import static app.bpartners.api.endpoint.rest.model.ProspectStatus.TO_CONTACT;
+import static app.bpartners.api.integration.conf.utils.TestUtils.ACCOUNTHOLDER_ID;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.repository.implementation.SogefiBuildingPermitRepositoryImpl;
 import app.bpartners.api.repository.jpa.ProspectJpaRepository;
@@ -19,18 +30,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
-import static app.bpartners.api.endpoint.rest.model.ProspectStatus.TO_CONTACT;
-import static app.bpartners.api.integration.conf.utils.TestUtils.ACCOUNTHOLDER_ID;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-//TODO: make test pass with prospect history statuses
+// TODO: make test pass with prospect history statuses
 class SogefiBuildingPermitRepositoryTest {
   public static final String PROSPECT_NAME = "name";
   public static final String PROSPECT_ADDRESS = "address";
@@ -42,16 +42,11 @@ class SogefiBuildingPermitRepositoryTest {
   private ProspectJpaRepository prospectJpaRepositoryMock;
 
   private static Applicant applicant() {
-    return Applicant.builder()
-        .name(PROSPECT_NAME)
-        .address(PROSPECT_ADDRESS)
-        .build();
+    return Applicant.builder().name(PROSPECT_NAME).address(PROSPECT_ADDRESS).build();
   }
 
   private static SogefiInformation sogefiInformation() {
-    return SogefiInformation.builder()
-        .permitApplicant(applicant())
-        .build();
+    return SogefiInformation.builder().permitApplicant(applicant()).build();
   }
 
   @BeforeEach
@@ -61,11 +56,13 @@ class SogefiBuildingPermitRepositoryTest {
     subject = new SogefiBuildingPermitRepositoryImpl(jpaRepositoryMock, prospectJpaRepositoryMock);
     reset(jpaRepositoryMock);
     reset(prospectJpaRepositoryMock);
-    when(prospectJpaRepositoryMock.save(any())).thenAnswer(i -> {
-      HProspect entity = i.getArgument(0);
-      entity.setId(PROSPECT1_ID);
-      return entity;
-    });
+    when(prospectJpaRepositoryMock.save(any()))
+        .thenAnswer(
+            i -> {
+              HProspect entity = i.getArgument(0);
+              entity.setId(PROSPECT1_ID);
+              return entity;
+            });
   }
 
   HSogefiBuildingPermitProspect sogefiBuildingPermitProspect() {
@@ -90,10 +87,8 @@ class SogefiBuildingPermitRepositoryTest {
         .year(2023)
         .suffix(null)
         .geoJson(null)
-        .centroidGeoJson(GeoJson.<List<Object>>builder()
-            .type("Point")
-            .coordinates(List.of(1.0, 23.0))
-            .build())
+        .centroidGeoJson(
+            GeoJson.<List<Object>>builder().type("Point").coordinates(List.of(1.0, 23.0)).build())
         .build();
   }
 
@@ -139,11 +134,12 @@ class SogefiBuildingPermitRepositoryTest {
   }
 
   private static List<HProspectStatusHistory> defaultStatusHistoriesEntity() {
-    return List.of(HProspectStatusHistory.builder()
-        .id("TODO")
-        .status(TO_CONTACT)
-        .updatedAt(Instant.now())
-        .build());
+    return List.of(
+        HProspectStatusHistory.builder()
+            .id("TODO")
+            .status(TO_CONTACT)
+            .updatedAt(Instant.now())
+            .build());
   }
 
   @Test
@@ -156,25 +152,26 @@ class SogefiBuildingPermitRepositoryTest {
     ArgumentCaptor<HProspect> prospectEntityArgumentCaptor =
         ArgumentCaptor.forClass(HProspect.class);
 
-    subject.saveByBuildingPermit(ACCOUNTHOLDER_ID, buildingPermit(),
-        singleBuildingPermit());
+    subject.saveByBuildingPermit(ACCOUNTHOLDER_ID, buildingPermit(), singleBuildingPermit());
 
     verify(prospectJpaRepositoryMock, times(1)).save(prospectEntityArgumentCaptor.capture());
     verify(jpaRepositoryMock, times(1)).save(sogefiProspectEntityCaptor.capture());
 
     HProspect prospectEntityArgumentCaptorValue = prospectEntityArgumentCaptor.getValue();
-    assertEquals(expectedSavedProspect().toBuilder()
-        .lastEvaluationDate(prospectEntityArgumentCaptorValue.getLastEvaluationDate())
-        .build(), prospectEntityArgumentCaptorValue);
+    assertEquals(
+        expectedSavedProspect().toBuilder()
+            .lastEvaluationDate(prospectEntityArgumentCaptorValue.getLastEvaluationDate())
+            .build(),
+        prospectEntityArgumentCaptorValue);
     assertEquals(expected, sogefiProspectEntityCaptor.getValue());
   }
 
   @Test
   void save_by_building_permit_updates_existing_prospect_ok() {
-    when(jpaRepositoryMock.findByIdSogefi(ID_SOGEFI)).thenReturn(
-        Optional.of(sogefiBuildingPermitProspect()));
-    when(prospectJpaRepositoryMock.findById(PROSPECT1_ID)).thenReturn(
-        Optional.of(toUpdateProspect()));
+    when(jpaRepositoryMock.findByIdSogefi(ID_SOGEFI))
+        .thenReturn(Optional.of(sogefiBuildingPermitProspect()));
+    when(prospectJpaRepositoryMock.findById(PROSPECT1_ID))
+        .thenReturn(Optional.of(toUpdateProspect()));
     HProspect expectedProspect = expectedSavedProspect();
     expectedProspect.setStatusHistories(defaultStatusHistoriesEntity());
     ArgumentCaptor<HSogefiBuildingPermitProspect> sogefiProspectEntityCaptor =
@@ -182,31 +179,35 @@ class SogefiBuildingPermitRepositoryTest {
     ArgumentCaptor<HProspect> prospectEntityArgumentCaptor =
         ArgumentCaptor.forClass(HProspect.class);
 
-    subject.saveByBuildingPermit(ACCOUNTHOLDER_ID, buildingPermit(),
-        singleBuildingPermit());
+    subject.saveByBuildingPermit(ACCOUNTHOLDER_ID, buildingPermit(), singleBuildingPermit());
 
     verify(prospectJpaRepositoryMock, times(1)).save(prospectEntityArgumentCaptor.capture());
     verify(jpaRepositoryMock, times(1)).save(sogefiProspectEntityCaptor.capture());
 
     HProspect prospectCaptureValue = prospectEntityArgumentCaptor.getValue();
-    assertEquals(expectedProspect.toBuilder()
-        .lastEvaluationDate(prospectCaptureValue.getLastEvaluationDate())
-        .build(), prospectCaptureValue);
+    assertEquals(
+        expectedProspect.toBuilder()
+            .lastEvaluationDate(prospectCaptureValue.getLastEvaluationDate())
+            .build(),
+        prospectCaptureValue);
     assertEquals(expectedSavedSogefiProspect(), sogefiProspectEntityCaptor.getValue());
   }
 
   @Test
   void save_by_building_permit_ko() {
     when(prospectJpaRepositoryMock.findById(any())).thenReturn(Optional.empty());
-    when(jpaRepositoryMock.findByIdSogefi(ID_SOGEFI)).thenReturn(
-        Optional.of(sogefiBuildingPermitProspect()));
+    when(jpaRepositoryMock.findByIdSogefi(ID_SOGEFI))
+        .thenReturn(Optional.of(sogefiBuildingPermitProspect()));
     BuildingPermit buildingPermit = buildingPermit();
     SingleBuildingPermit singleBuildingPermit = singleBuildingPermit();
 
-    assertThrows(ApiException.class,
-        () -> subject.saveByBuildingPermit(ACCOUNTHOLDER_ID, buildingPermit,
-            singleBuildingPermit),
-        "HProspect.id=" + PROSPECT1_ID + " was not found but it was linked with "
-            + "HSogefiBuildingPermitProspect.id=" + SOGEFI_PROSPECT_ID);
+    assertThrows(
+        ApiException.class,
+        () -> subject.saveByBuildingPermit(ACCOUNTHOLDER_ID, buildingPermit, singleBuildingPermit),
+        "HProspect.id="
+            + PROSPECT1_ID
+            + " was not found but it was linked with "
+            + "HSogefiBuildingPermitProspect.id="
+            + SOGEFI_PROSPECT_ID);
   }
 }

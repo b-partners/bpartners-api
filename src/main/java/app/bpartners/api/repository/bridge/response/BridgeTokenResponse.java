@@ -19,9 +19,10 @@ import lombok.ToString;
 public class BridgeTokenResponse {
   @JsonProperty("user")
   private BridgeUser user;
+
   @JsonProperty("access_token")
   private String accessToken;
+
   @JsonProperty("expires_at")
   private Instant expirationDate;
-
 }

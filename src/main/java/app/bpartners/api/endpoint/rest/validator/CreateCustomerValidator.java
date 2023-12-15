@@ -25,5 +25,4 @@ public class CreateCustomerValidator implements Consumer<CreateCustomer> {
       throw new BadRequestException(exceptionMessage);
     }
   }
-
 }

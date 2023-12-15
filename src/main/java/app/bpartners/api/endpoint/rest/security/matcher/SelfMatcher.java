@@ -23,4 +23,3 @@ public abstract class SelfMatcher implements RequestMatcher {
     return uriMatcher.find() ? uriMatcher.group(GROUP_NAME) : null;
   }
 }
-

@@ -1,6 +1,18 @@
 package app.bpartners.api.unit.service;
 
-import app.bpartners.api.endpoint.event.EventConf;
+import static app.bpartners.api.endpoint.rest.model.ArchiveStatus.ENABLED;
+import static app.bpartners.api.integration.conf.utils.TestUtils.INVOICE1_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.setUpProvider;
+import static app.bpartners.api.model.BoundedPageSize.MAX_SIZE;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.endpoint.event.SesConf;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
@@ -31,19 +43,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.data.domain.PageRequest;
 
-import static app.bpartners.api.endpoint.rest.model.ArchiveStatus.ENABLED;
-import static app.bpartners.api.integration.conf.utils.TestUtils.INVOICE1_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.setUpProvider;
-import static app.bpartners.api.model.BoundedPageSize.MAX_SIZE;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 class InvoiceRelaunchServiceTest {
   private static final String RANDOM_CONF_ID = "random conf id";
   private InvoiceRelaunchService invoiceRelaunchService;
@@ -61,9 +60,7 @@ class InvoiceRelaunchServiceTest {
   private SesConf sesConf;
   private SesService sesServiceMock;
 
-  private
-  @BeforeEach
-  void setUp() {
+  private @BeforeEach void setUp() {
     accountInvoiceRelaunchRepository = mock(UserInvoiceRelaunchConfRepository.class);
     invoiceRelaunchRepository = mock(InvoiceRelaunchRepository.class);
     invoiceRepository = mock(InvoiceRepository.class);
@@ -77,20 +74,20 @@ class InvoiceRelaunchServiceTest {
     sesConf = mock(SesConf.class);
     sesServiceMock = mock(SesService.class);
     setUpProvider(auth);
-    invoiceRelaunchService = new InvoiceRelaunchService(
-        accountInvoiceRelaunchRepository,
-        invoiceRelaunchRepository,
-        invoiceRelaunchValidator,
-        invoiceRepository,
-        invoiceJpaRepository,
-        relaunchConfService,
-        holderService,
-        auth,
-        fileService,
-        attachmentService,
-        sesConf,
-        sesServiceMock
-    );
+    invoiceRelaunchService =
+        new InvoiceRelaunchService(
+            accountInvoiceRelaunchRepository,
+            invoiceRelaunchRepository,
+            invoiceRelaunchValidator,
+            invoiceRepository,
+            invoiceJpaRepository,
+            relaunchConfService,
+            holderService,
+            auth,
+            fileService,
+            attachmentService,
+            sesConf,
+            sesServiceMock);
     when(invoiceJpaRepository.findAllByToBeRelaunched(true))
         .thenReturn(
             List.of(
@@ -99,67 +96,43 @@ class InvoiceRelaunchServiceTest {
                     .toBeRelaunched(true)
                     .archiveStatus(ENABLED)
                     .sendingDate(LocalDate.now().minusDays(10))
-                    .build()
-            )
-        );
+                    .build()));
     when(relaunchConfService.findByIdInvoice(any(String.class)))
-        .thenAnswer(i ->
-            InvoiceRelaunchConf.builder()
-                .id(RANDOM_CONF_ID)
-                .idInvoice(i.getArgument(0))
-                .delay(10)
-                .rehearsalNumber(2)
-                .build()
-        );
+        .thenAnswer(
+            i ->
+                InvoiceRelaunchConf.builder()
+                    .id(RANDOM_CONF_ID)
+                    .idInvoice(i.getArgument(0))
+                    .delay(10)
+                    .rehearsalNumber(2)
+                    .build());
     when(invoiceRepository.getById(INVOICE1_ID))
         .thenReturn(
-            Invoice
-                .builder()
+            Invoice.builder()
                 .id(INVOICE1_ID)
-                .user(User.builder()
-                    .accounts(List.of(
-                        Account.builder()
-                            .id(JOE_DOE_ACCOUNT_ID)
-                            .build()))
-                    .build()
-                )
+                .user(
+                    User.builder()
+                        .accounts(List.of(Account.builder().id(JOE_DOE_ACCOUNT_ID).build()))
+                        .build())
                 .status(InvoiceStatus.PROPOSAL)
                 .archiveStatus(ENABLED)
-                .build()
-        );
-    when(invoiceRelaunchRepository.getByInvoiceId(
-        INVOICE1_ID,
-        null,
-        PageRequest.of(0, MAX_SIZE))
-    ).thenReturn(
-        List.of(
-            InvoiceRelaunch.builder().build()
-        )
-    );
+                .build());
+    when(invoiceRelaunchRepository.getByInvoiceId(INVOICE1_ID, null, PageRequest.of(0, MAX_SIZE)))
+        .thenReturn(List.of(InvoiceRelaunch.builder().build()));
     when(invoiceRelaunchRepository.save(any(Invoice.class), any(), any(), eq(true)))
         .thenReturn(
             InvoiceRelaunch.builder()
                 .invoice(
-                    Invoice
-                        .builder()
+                    Invoice.builder()
                         .status(InvoiceStatus.PROPOSAL)
                         .archiveStatus(ENABLED)
                         .customer(
-                            Customer.builder()
-                                .firstName("someName")
-                                .lastName("lastName")
-                                .build()
-                        )
-                        .build()
-                )
-                .build()
-        );
+                            Customer.builder().firstName("someName").lastName("lastName").build())
+                        .build())
+                .build());
     when(holderService.getDefaultByAccountId(JOE_DOE_ACCOUNT_ID))
-        .thenReturn(
-            AccountHolder.builder().build()
-        );
-    when(fileService.downloadFile(any(), any(), any()))
-        .thenReturn(new byte[0]);
+        .thenReturn(AccountHolder.builder().build());
+    when(fileService.downloadFile(any(), any(), any())).thenReturn(new byte[0]);
     when(attachmentService.saveAll(any(), any())).thenReturn(List.of());
   }
 
@@ -172,11 +145,8 @@ class InvoiceRelaunchServiceTest {
 
     invoiceRelaunchService.relaunch();
     verify(relaunchConfService).findByIdInvoice(idInvoiceCaptor.capture());
-    verify(invoiceRelaunchRepository).getByInvoiceId(
-        idInvoiceCaptor2.capture(),
-        eq(null),
-        eq(PageRequest.of(0, MAX_SIZE))
-    );
+    verify(invoiceRelaunchRepository)
+        .getByInvoiceId(idInvoiceCaptor2.capture(), eq(null), eq(PageRequest.of(0, MAX_SIZE)));
     verify(invoiceRepository).getById(idInvoiceCaptor3.capture());
     verify(invoiceJpaRepository).save(invoiceSaveCaptor.capture());
 

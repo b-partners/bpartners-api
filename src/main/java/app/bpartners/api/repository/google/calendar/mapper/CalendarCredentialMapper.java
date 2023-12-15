@@ -23,12 +23,13 @@ public class CalendarCredentialMapper implements CredentialMapper<HCalendarStore
   @Override
   public HCalendarStoredCredential toEntity(
       String idUser, StoredCredential storedCredential, Instant createdAt) {
-    return (HCalendarStoredCredential) HCalendarStoredCredential.builder()
-        .idUser(idUser)
-        .accessToken(storedCredential.getAccessToken())
-        .refreshToken(storedCredential.getRefreshToken())
-        .expirationTimeMilliseconds(storedCredential.getExpirationTimeMilliseconds())
-        .creationDatetime(createdAt)
-        .build();
+    return (HCalendarStoredCredential)
+        HCalendarStoredCredential.builder()
+            .idUser(idUser)
+            .accessToken(storedCredential.getAccessToken())
+            .refreshToken(storedCredential.getRefreshToken())
+            .expirationTimeMilliseconds(storedCredential.getExpirationTimeMilliseconds())
+            .creationDatetime(createdAt)
+            .build();
   }
 }

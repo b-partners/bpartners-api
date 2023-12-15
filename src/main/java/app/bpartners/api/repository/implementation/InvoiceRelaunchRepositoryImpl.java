@@ -13,7 +13,6 @@ import app.bpartners.api.repository.jpa.InvoiceRelaunchJpaRepository;
 import app.bpartners.api.repository.jpa.model.HInvoice;
 import app.bpartners.api.repository.jpa.model.HInvoiceRelaunch;
 import java.util.List;
-import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
@@ -29,12 +28,12 @@ public class InvoiceRelaunchRepositoryImpl implements InvoiceRelaunchRepository 
   private final InvoiceJpaRepository invoiceJpaRepository;
 
   @Override
-  public List<InvoiceRelaunch> getByInvoiceId(
-      String invoiceId, String type, Pageable pageable) {
+  public List<InvoiceRelaunch> getByInvoiceId(String invoiceId, String type, Pageable pageable) {
     if (type == null) {
       return jpaRepository.getByInvoiceId(invoiceId, pageable).stream()
-          .map(invoiceRelaunch -> mapper.toDomain(
-              invoiceRelaunch, invoiceRepository.getById(invoiceId)))
+          .map(
+              invoiceRelaunch ->
+                  mapper.toDomain(invoiceRelaunch, invoiceRepository.getById(invoiceId)))
           .toList();
     } else {
       RelaunchType enumType;
@@ -44,8 +43,9 @@ public class InvoiceRelaunchRepositoryImpl implements InvoiceRelaunchRepository 
         throw new BadRequestException("Type value should be PROPOSAL or CONFIRMED");
       }
       return jpaRepository.getByInvoiceIdAndType(invoiceId, enumType, pageable).stream()
-          .map(invoiceRelaunch -> mapper.toDomain(
-              invoiceRelaunch, invoiceRepository.getById(invoiceId)))
+          .map(
+              invoiceRelaunch ->
+                  mapper.toDomain(invoiceRelaunch, invoiceRepository.getById(invoiceId)))
           .toList();
     }
   }
@@ -53,10 +53,12 @@ public class InvoiceRelaunchRepositoryImpl implements InvoiceRelaunchRepository 
   @Override
   public InvoiceRelaunch save(
       Invoice invoice, String object, String htmlBody, boolean isUserRelaunched) {
-    HInvoice invoiceEntity = invoiceJpaRepository.findById(invoice.getId()).orElseThrow(
-        () -> new NotFoundException("Invoice(id=" + invoice.getId() + ") not found"));
-    HInvoiceRelaunch toSave =
-        mapper.toEntity(invoiceEntity, object, htmlBody, isUserRelaunched);
+    HInvoice invoiceEntity =
+        invoiceJpaRepository
+            .findById(invoice.getId())
+            .orElseThrow(
+                () -> new NotFoundException("Invoice(id=" + invoice.getId() + ") not found"));
+    HInvoiceRelaunch toSave = mapper.toEntity(invoiceEntity, object, htmlBody, isUserRelaunched);
     HInvoiceRelaunch savedRelaunch = jpaRepository.save(toSave);
     return mapper.toDomain(savedRelaunch, invoiceRepository.getById(invoice.getId()));
   }

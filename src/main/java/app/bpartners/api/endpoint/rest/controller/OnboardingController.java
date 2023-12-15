@@ -29,9 +29,8 @@ public class OnboardingController {
   @PostMapping(value = "/onboarding")
   public List<OnboardedUser> onboardUser(@RequestBody List<OnboardUser> onboardUsers) {
     onboardingValidator.accept(onboardUsers);
-    List<app.bpartners.api.model.OnboardUser> toSave = onboardUsers.stream()
-        .map(onboardingMapper::toDomain)
-        .collect(Collectors.toList());
+    List<app.bpartners.api.model.OnboardUser> toSave =
+        onboardUsers.stream().map(onboardingMapper::toDomain).collect(Collectors.toList());
     return onboardingService.onboardUsers(toSave).stream()
         .map(onboardingMapper::toRest)
         .collect(Collectors.toList());

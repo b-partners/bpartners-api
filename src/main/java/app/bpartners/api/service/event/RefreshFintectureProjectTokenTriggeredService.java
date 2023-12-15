@@ -8,11 +8,13 @@ import org.springframework.stereotype.Service;
 
 @Service
 @AllArgsConstructor
-public class RefreshFintectureProjectTokenTriggeredService implements Consumer<RefreshFintectureProjectTokenTriggered> {
+public class RefreshFintectureProjectTokenTriggeredService
+    implements Consumer<RefreshFintectureProjectTokenTriggered> {
   private final ProjectTokenManager projectTokenManager;
 
   @Override
-  public void accept(RefreshFintectureProjectTokenTriggered refreshFintectureProjectTokenTriggered) {
+  public void accept(
+      RefreshFintectureProjectTokenTriggered refreshFintectureProjectTokenTriggered) {
     projectTokenManager.refreshFintectureProjectToken();
   }
 }

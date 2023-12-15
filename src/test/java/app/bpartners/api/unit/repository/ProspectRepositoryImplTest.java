@@ -1,5 +1,14 @@
 package app.bpartners.api.unit.repository;
 
+import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.OTHER_ACCOUNT_ID;
+import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import app.bpartners.api.endpoint.rest.security.AuthenticatedResourceProvider;
 import app.bpartners.api.model.AnnualRevenueTarget;
 import app.bpartners.api.model.mapper.ProspectEvalMapper;
@@ -21,15 +30,6 @@ import javax.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.OTHER_ACCOUNT_ID;
-import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
-import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 class ProspectRepositoryImplTest {
 
   ProspectRepositoryImpl subject;
@@ -48,13 +48,11 @@ class ProspectRepositoryImplTest {
   BanApi banApiMock;
   EntityManager em;
 
-
   @BeforeEach
   void setUp() {
     prospectJpaRepositoryMock = mock(ProspectJpaRepository.class);
     banApiMock = mock(BanApi.class);
-    prospectMapper =
-        new ProspectMapper(banApiMock);
+    prospectMapper = new ProspectMapper(banApiMock);
     buildingPermitApiMock = mock(BuildingPermitApi.class);
     sogefiBuildingPermitRepositoryMock = mock(SogefiBuildingPermitRepository.class);
     businessActivityServiceMock = mock(BusinessActivityService.class);
@@ -67,38 +65,50 @@ class ProspectRepositoryImplTest {
     evalInfoJpaRepositoryMock = mock(ProspectEvalInfoJpaRepository.class);
     em = mock(EntityManager.class);
     subject =
-        new ProspectRepositoryImpl(prospectJpaRepositoryMock, prospectMapper, buildingPermitApiMock,
-            sogefiBuildingPermitRepositoryMock, businessActivityServiceMock, resourceProviderMock,
-            revenueTargetServiceMock, accountHolderRepositoryMock, municipalityJpaRepositoryMock,
-            expressifApiMock, evalMapperMock, evalInfoJpaRepositoryMock, em,
+        new ProspectRepositoryImpl(
+            prospectJpaRepositoryMock,
+            prospectMapper,
+            buildingPermitApiMock,
+            sogefiBuildingPermitRepositoryMock,
+            businessActivityServiceMock,
+            resourceProviderMock,
+            revenueTargetServiceMock,
+            accountHolderRepositoryMock,
+            municipalityJpaRepositoryMock,
+            expressifApiMock,
+            evalMapperMock,
+            evalInfoJpaRepositoryMock,
+            em,
             sogefiBuildingPermitRepositoryMock);
-    when(revenueTargetServiceMock.getByYear(JOE_DOE_ACCOUNT_ID, 2023)).thenReturn(
-        Optional.ofNullable(
-            AnnualRevenueTarget.builder()
-                .amountTarget(parseFraction(150000))
-                .amountAttempted(parseFraction(32000))
-                .idAccountHolder(EMPTY)
-                .build()));
+    when(revenueTargetServiceMock.getByYear(JOE_DOE_ACCOUNT_ID, 2023))
+        .thenReturn(
+            Optional.ofNullable(
+                AnnualRevenueTarget.builder()
+                    .amountTarget(parseFraction(150000))
+                    .amountAttempted(parseFraction(32000))
+                    .idAccountHolder(EMPTY)
+                    .build()));
     when(revenueTargetServiceMock.getByYear(OTHER_ACCOUNT_ID, 2023))
-        .thenReturn(Optional.ofNullable(AnnualRevenueTarget.builder()
-            .amountTarget(parseFraction(150000))
-            .amountAttempted(parseFraction(30000))
-            .idAccountHolder(EMPTY)
-            .build()));
+        .thenReturn(
+            Optional.ofNullable(
+                AnnualRevenueTarget.builder()
+                    .amountTarget(parseFraction(150000))
+                    .amountAttempted(parseFraction(30000))
+                    .idAccountHolder(EMPTY)
+                    .build()));
   }
 
   @Test
   void needsProspects_false() {
-    boolean needProspect = subject.needsProspects(JOE_DOE_ACCOUNT_ID, LocalDate.parse(
-        "2023-03-15"));
+    boolean needProspect =
+        subject.needsProspects(JOE_DOE_ACCOUNT_ID, LocalDate.parse("2023-03-15"));
 
     assertFalse(needProspect);
   }
 
   @Test
   void needsProspects_true() {
-    boolean needProspect = subject.needsProspects(OTHER_ACCOUNT_ID, LocalDate.parse(
-        "2023-03-15"));
+    boolean needProspect = subject.needsProspects(OTHER_ACCOUNT_ID, LocalDate.parse("2023-03-15"));
 
     assertTrue(needProspect);
   }

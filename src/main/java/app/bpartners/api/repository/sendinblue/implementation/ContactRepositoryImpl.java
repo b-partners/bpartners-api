@@ -5,7 +5,6 @@ import app.bpartners.api.repository.sendinblue.ContactRepository;
 import app.bpartners.api.repository.sendinblue.SendinblueApi;
 import app.bpartners.api.repository.sendinblue.model.Contact;
 import java.util.List;
-import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -18,8 +17,7 @@ public class ContactRepositoryImpl implements ContactRepository {
   @Override
   public List<Contact> save(List<Contact> contacts) {
     return contacts.stream()
-        .map(contact -> sendinblueApi
-            .createContact(mapper.toExternalCreateContact(contact)))
+        .map(contact -> sendinblueApi.createContact(mapper.toExternalCreateContact(contact)))
         .toList();
   }
 }

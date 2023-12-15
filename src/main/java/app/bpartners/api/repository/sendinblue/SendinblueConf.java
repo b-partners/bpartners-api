@@ -15,10 +15,8 @@ public class SendinblueConf {
   private final ApiClient defaultClient;
 
   public SendinblueConf(
-      @Value("${sendinblue.api.key}")
-      String apiKey,
-      @Value("${sendinblue.contactlist.id}")
-      Long contactListId) {
+      @Value("${sendinblue.api.key}") String apiKey,
+      @Value("${sendinblue.contactlist.id}") Long contactListId) {
     this.apiKey = apiKey;
     this.contactListId = contactListId;
     this.defaultClient = sendinblue.Configuration.getDefaultApiClient();

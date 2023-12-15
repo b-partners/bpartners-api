@@ -8,7 +8,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface ProspectEvaluationJobJpaRepository
     extends JpaRepository<HProspectEvaluationJob, String> {
 
-  List<HProspectEvaluationJob> findAllByIdAccountHolderAndJobStatusInOrderByStartedAtDesc(String ahId,
-                                                                      List<JobStatusValue> statuses);
-
+  List<HProspectEvaluationJob> findAllByIdAccountHolderAndJobStatusInOrderByStartedAtDesc(
+      String ahId, List<JobStatusValue> statuses);
 }

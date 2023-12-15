@@ -7,9 +7,8 @@ import java.time.Instant;
 import java.util.List;
 
 public interface TransactionRepository {
-  List<Transaction> findByIdAccount(String idAccount, String title, TransactionStatus status,
-                                    int page, int pageSize);
-
+  List<Transaction> findByIdAccount(
+      String idAccount, String title, TransactionStatus status, int page, int pageSize);
 
   List<Transaction> findByAccountId(String id);
 
@@ -19,15 +18,12 @@ public interface TransactionRepository {
 
   Transaction save(JustifyTransaction justifyTransaction);
 
-
   List<Transaction> saveAll(List<Transaction> transactions);
 
   List<Transaction> findByAccountIdAndStatusBetweenInstants(
-      String id, TransactionStatus status,
-      Instant from, Instant to);
+      String id, TransactionStatus status, Instant from, Instant to);
 
   Transaction getById(String idTransaction);
 
   void removeAll(List<Transaction> toRemove);
-
 }

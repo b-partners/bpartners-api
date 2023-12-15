@@ -19,9 +19,8 @@ public class SsmComponent {
 
   public String getParameterValue(String parameterName) {
     try {
-      GetParameterRequest parameterRequest = GetParameterRequest.builder()
-          .name(parameterName)
-          .build();
+      GetParameterRequest parameterRequest =
+          GetParameterRequest.builder().name(parameterName).build();
 
       GetParameterResponse parameterResponse = ssmClient.getParameter(parameterRequest);
 
@@ -32,12 +31,12 @@ public class SsmComponent {
   }
 
   public void setParameterStringValue(String parameterName, String value) {
-    ssmClient.putParameter(PutParameterRequest
-        .builder()
-        .name(parameterName)
-        .value(value)
-        .type(SSM_STRING_PARAMETER_TYPE)
-        .overwrite(true)
-        .build());
+    ssmClient.putParameter(
+        PutParameterRequest.builder()
+            .name(parameterName)
+            .value(value)
+            .type(SSM_STRING_PARAMETER_TYPE)
+            .overwrite(true)
+            .build());
   }
 }

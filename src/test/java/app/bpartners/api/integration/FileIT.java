@@ -1,39 +1,5 @@
 package app.bpartners.api.integration;
 
-import app.bpartners.api.endpoint.event.S3Conf;
-import app.bpartners.api.endpoint.rest.api.FilesApi;
-import app.bpartners.api.endpoint.rest.client.ApiClient;
-import app.bpartners.api.endpoint.rest.client.ApiException;
-import app.bpartners.api.endpoint.rest.model.FileInfo;
-import app.bpartners.api.endpoint.rest.model.FileType;
-import app.bpartners.api.integration.conf.MockedThirdParties;
-import app.bpartners.api.integration.conf.S3AbstractContextInitializer;
-import app.bpartners.api.integration.conf.S3MockedThirdParties;
-import app.bpartners.api.integration.conf.utils.TestUtils;
-import java.io.File;
-import java.io.IOException;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.time.Instant;
-import org.apache.tika.Tika;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.Resource;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.test.context.ContextConfiguration;
-import org.testcontainers.junit.jupiter.Testcontainers;
-import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
-import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
-import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.s3.S3Client;
-
 import static app.bpartners.api.integration.conf.utils.TestUtils.BEARER_PREFIX;
 import static app.bpartners.api.integration.conf.utils.TestUtils.BEARER_QUERY_PARAMETER_NAME;
 import static app.bpartners.api.integration.conf.utils.TestUtils.INVALID_LOGO_TYPE;
@@ -49,12 +15,32 @@ import static app.bpartners.api.integration.conf.utils.TestUtils.assertThrowsFor
 import static app.bpartners.api.integration.conf.utils.TestUtils.getApiException;
 import static app.bpartners.api.integration.conf.utils.TestUtils.setUpCognito;
 import static app.bpartners.api.integration.conf.utils.TestUtils.setUpLegalFileRepository;
-import static app.bpartners.api.integration.conf.utils.TestUtils.setUpS3Conf;
 import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.when;
-import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
-import static org.testcontainers.containers.localstack.LocalStackContainer.Service.S3;
+
+import app.bpartners.api.endpoint.rest.api.FilesApi;
+import app.bpartners.api.endpoint.rest.client.ApiClient;
+import app.bpartners.api.endpoint.rest.client.ApiException;
+import app.bpartners.api.endpoint.rest.model.FileInfo;
+import app.bpartners.api.endpoint.rest.model.FileType;
+import app.bpartners.api.integration.conf.S3MockedThirdParties;
+import app.bpartners.api.integration.conf.utils.TestUtils;
+import java.io.File;
+import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.time.Instant;
+import org.apache.tika.Tika;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 @Testcontainers
 @AutoConfigureMockMvc
@@ -100,12 +86,14 @@ class FileIT extends S3MockedThirdParties {
     FilesApi api = new FilesApi(joeDoeClient);
 
     assertThrowsForbiddenException(() -> api.getFileById(NOT_JOE_DOE_ACCOUNT_ID, TEST_FILE_ID));
-    assertThrowsApiException("{"
+    assertThrowsApiException(
+        "{"
             + "\"type\":\"404 NOT_FOUND\","
-            + "\"message\":\"File." + NON_EXISTENT_FILE_ID + " not found.\""
+            + "\"message\":\"File."
+            + NON_EXISTENT_FILE_ID
+            + " not found.\""
             + "}",
-        () -> api.getFileById(JOE_DOE_ACCOUNT_ID, NON_EXISTENT_FILE_ID)
-    );
+        () -> api.getFileById(JOE_DOE_ACCOUNT_ID, NON_EXISTENT_FILE_ID));
   }
 
   @Test
@@ -114,12 +102,12 @@ class FileIT extends S3MockedThirdParties {
     Resource fakeExeFile = new ClassPathResource("files/jpeg-with-exe-extension.exe");
     Resource pngFile = new ClassPathResource("files/png-file.png");
 
-    HttpResponse<byte[]> jpegResponse = upload(FileType.LOGO.getValue(), randomUUID().toString(),
-        jpegFile.getFile());
-    HttpResponse<byte[]> fakeExeResponse = upload(FileType.LOGO.getValue(), randomUUID().toString(),
-        fakeExeFile.getFile());
-    HttpResponse<byte[]> pngResponse = upload(FileType.LOGO.getValue(), randomUUID().toString(),
-        pngFile.getFile());
+    HttpResponse<byte[]> jpegResponse =
+        upload(FileType.LOGO.getValue(), randomUUID().toString(), jpegFile.getFile());
+    HttpResponse<byte[]> fakeExeResponse =
+        upload(FileType.LOGO.getValue(), randomUUID().toString(), fakeExeFile.getFile());
+    HttpResponse<byte[]> pngResponse =
+        upload(FileType.LOGO.getValue(), randomUUID().toString(), pngFile.getFile());
     assertEquals(HttpStatus.OK.value(), jpegResponse.statusCode());
     assertEquals(HttpStatus.OK.value(), fakeExeResponse.statusCode());
     assertEquals(HttpStatus.OK.value(), pngResponse.statusCode());
@@ -129,7 +117,7 @@ class FileIT extends S3MockedThirdParties {
     assertEquals(MediaType.IMAGE_JPEG_VALUE, typeGuesser.detect(fakeExeResponse.body()));
     assertEquals(pngFile.getInputStream().readAllBytes().length, pngResponse.body().length);
     // /!\ it seems nor the file is a fake png nor the guessed mediaType is always jpeg
-    //assertEquals(MediaType.IMAGE_PNG_VALUE, typeGuesser.detect(pngResponse.body()));
+    // assertEquals(MediaType.IMAGE_PNG_VALUE, typeGuesser.detect(pngResponse.body()));
     /* /!\ The file seems to get more bytes than initial with S3 localstack container
     assertEquals(jpegFile.getInputStream().readAllBytes().length, downloadResponse.body().length);*/
   }
@@ -156,14 +144,22 @@ class FileIT extends S3MockedThirdParties {
     HttpClient unauthenticatedClient = HttpClient.newBuilder().build();
     String basePath = "http://localhost:" + localPort;
 
-    HttpResponse<byte[]> response = unauthenticatedClient.send(
-        HttpRequest.newBuilder()
-            .uri(URI.create(
-                basePath + "/accounts/" + JOE_DOE_ACCOUNT_ID + "/files/" + fileId
-                    + "/raw?fileType=" + fileType))
-            .header("Authorization", BEARER_PREFIX + JOE_DOE_TOKEN)
-            .method("POST", HttpRequest.BodyPublishers.ofFile(toUpload.toPath())).build(),
-        HttpResponse.BodyHandlers.ofByteArray());
+    HttpResponse<byte[]> response =
+        unauthenticatedClient.send(
+            HttpRequest.newBuilder()
+                .uri(
+                    URI.create(
+                        basePath
+                            + "/accounts/"
+                            + JOE_DOE_ACCOUNT_ID
+                            + "/files/"
+                            + fileId
+                            + "/raw?fileType="
+                            + fileType))
+                .header("Authorization", BEARER_PREFIX + JOE_DOE_TOKEN)
+                .method("POST", HttpRequest.BodyPublishers.ofFile(toUpload.toPath()))
+                .build(),
+            HttpResponse.BodyHandlers.ofByteArray());
     if (response.statusCode() / 100 != 2) {
       throw getApiException("downloadFile", response);
     }
@@ -176,12 +172,11 @@ class FileIT extends S3MockedThirdParties {
 
     assertThrowsApiException(
         "{\"type\":\"404 NOT_FOUND\",\"message\":\"File.not_existing_file_id.jpeg not found.\"}",
-        () -> download(FileType.LOGO, basePath, JOE_DOE_TOKEN,
-            null, NOT_EXISTING_FILE_ID));
+        () -> download(FileType.LOGO, basePath, JOE_DOE_TOKEN, null, NOT_EXISTING_FILE_ID));
 
-    assertThrowsApiException("{\"type\":\"404 NOT_FOUND\",\"message\":\"File.null not found.\"}",
-        () -> download(FileType.LOGO, basePath, JOE_DOE_TOKEN,
-            null, null));
+    assertThrowsApiException(
+        "{\"type\":\"404 NOT_FOUND\",\"message\":\"File.null not found.\"}",
+        () -> download(FileType.LOGO, basePath, JOE_DOE_TOKEN, null, null));
   }
 
   @Test
@@ -189,22 +184,25 @@ class FileIT extends S3MockedThirdParties {
     ApiClient joeDoeClient = anApiClient();
     FilesApi api = new FilesApi(joeDoeClient);
 
-    assertThrowsApiException("{"
+    assertThrowsApiException(
+        "{"
             + "\"type\":\"404 NOT_FOUND\","
-            + "\"message\":\"File." + OTHER_TEST_FILE_ID + " not found.\""
+            + "\"message\":\"File."
+            + OTHER_TEST_FILE_ID
+            + " not found.\""
             + "}",
-        () -> api.downloadFile(JOE_DOE_ACCOUNT_ID, OTHER_TEST_FILE_ID, JOE_DOE_TOKEN,
-            FileType.LOGO));
+        () ->
+            api.downloadFile(JOE_DOE_ACCOUNT_ID, OTHER_TEST_FILE_ID, JOE_DOE_TOKEN, FileType.LOGO));
   }
 
   @Test
   void download_file_ok() throws IOException, InterruptedException, ApiException {
     String basePath = "http://localhost:" + localPort;
 
-    HttpResponse<byte[]> responseBearerInHeader = download(FileType.LOGO, basePath, JOE_DOE_TOKEN,
-        null, TEST_FILE_ID);
-    HttpResponse<byte[]> responseBearerInQuery = download(FileType.LOGO, basePath, JOE_DOE_TOKEN,
-        TEST_FILE_ID);
+    HttpResponse<byte[]> responseBearerInHeader =
+        download(FileType.LOGO, basePath, JOE_DOE_TOKEN, null, TEST_FILE_ID);
+    HttpResponse<byte[]> responseBearerInQuery =
+        download(FileType.LOGO, basePath, JOE_DOE_TOKEN, TEST_FILE_ID);
     HttpResponse<byte[]> responseBearerInBoth =
         download(FileType.LOGO, basePath, JOE_DOE_TOKEN, JOE_DOE_TOKEN, TEST_FILE_ID);
 
@@ -222,49 +220,66 @@ class FileIT extends S3MockedThirdParties {
       responseBearerInBoth.body().length);*/
   }
 
-  public HttpResponse<byte[]> download(FileType fileType, String basePath, String token,
-                                       String queryBearer,
-                                       String fileId)
+  public HttpResponse<byte[]> download(
+      FileType fileType, String basePath, String token, String queryBearer, String fileId)
       throws IOException, InterruptedException, ApiException {
     HttpClient unauthenticatedClient = HttpClient.newBuilder().build();
-    HttpResponse<byte[]> response = unauthenticatedClient.send(
-        HttpRequest.newBuilder()
-            .uri(URI.create(
-                basePath + "/accounts/" + JOE_DOE_ACCOUNT_ID + "/files/" + fileId
-                    + "/raw?"
-                    + BEARER_QUERY_PARAMETER_NAME + "=" + queryBearer + "&fileType="
-                    + fileType))
-            .header("Access-Control-Request-Method", "GET")
-            .header("Authorization", BEARER_PREFIX + token)
-            .GET()
-            .build(),
-        HttpResponse.BodyHandlers.ofByteArray());
+    HttpResponse<byte[]> response =
+        unauthenticatedClient.send(
+            HttpRequest.newBuilder()
+                .uri(
+                    URI.create(
+                        basePath
+                            + "/accounts/"
+                            + JOE_DOE_ACCOUNT_ID
+                            + "/files/"
+                            + fileId
+                            + "/raw?"
+                            + BEARER_QUERY_PARAMETER_NAME
+                            + "="
+                            + queryBearer
+                            + "&fileType="
+                            + fileType))
+                .header("Access-Control-Request-Method", "GET")
+                .header("Authorization", BEARER_PREFIX + token)
+                .GET()
+                .build(),
+            HttpResponse.BodyHandlers.ofByteArray());
     if (response.statusCode() / 100 != 2) {
       throw getApiException("downloadFile", response);
     }
     return response;
   }
 
-  public HttpResponse<byte[]> download(FileType fileType, String basePath, String queryBearer,
-                                       String fileId)
+  public HttpResponse<byte[]> download(
+      FileType fileType, String basePath, String queryBearer, String fileId)
       throws IOException, InterruptedException, ApiException {
     HttpClient unauthenticatedClient = HttpClient.newBuilder().build();
-    HttpResponse<byte[]> response = unauthenticatedClient.send(
-        HttpRequest.newBuilder()
-            .uri(URI.create(
-                basePath + "/accounts/" + JOE_DOE_ACCOUNT_ID + "/files/" + fileId
-                    + "/raw?"
-                    + BEARER_QUERY_PARAMETER_NAME + "=" + queryBearer + "&fileType="
-                    + fileType))
-            .header("Access-Control-Request-Method", "GET")
-            .GET()
-            .build(),
-        HttpResponse.BodyHandlers.ofByteArray());
+    HttpResponse<byte[]> response =
+        unauthenticatedClient.send(
+            HttpRequest.newBuilder()
+                .uri(
+                    URI.create(
+                        basePath
+                            + "/accounts/"
+                            + JOE_DOE_ACCOUNT_ID
+                            + "/files/"
+                            + fileId
+                            + "/raw?"
+                            + BEARER_QUERY_PARAMETER_NAME
+                            + "="
+                            + queryBearer
+                            + "&fileType="
+                            + fileType))
+                .header("Access-Control-Request-Method", "GET")
+                .GET()
+                .build(),
+            HttpResponse.BodyHandlers.ofByteArray());
     if (response.statusCode() / 100 != 2) {
       throw getApiException("downloadFile", response);
     }
     return response;
   }
 
-  //TODO: write upload_triggers_event_ok as done in InvoiceIT
+  // TODO: write upload_triggers_event_ok as done in InvoiceIT
 }

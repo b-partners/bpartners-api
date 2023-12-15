@@ -11,23 +11,21 @@ import org.springframework.stereotype.Component;
 @AllArgsConstructor
 public class BusinessActivityMapper {
   public HBusinessActivity toEntity(BusinessActivity domain, HAccountHolder accountHolder) {
-    return HBusinessActivity.builder()
-        .id(domain.getId())
-        .accountHolder(accountHolder)
-        .build();
+    return HBusinessActivity.builder().id(domain.getId()).accountHolder(accountHolder).build();
   }
 
   public BusinessActivity toDomain(HBusinessActivity entity, AccountHolder accountHolder) {
-    String primaryActivity = entity.getPrimaryActivity() == null ? null :
-        entity.getPrimaryActivity().getName();
-    String secondaryActivity = entity.getSecondaryActivity() == null ? null :
-        entity.getSecondaryActivity().getName();
-    BusinessActivity activity = BusinessActivity.builder()
-        .id(entity.getId())
-        .accountHolder(accountHolder)
-        .primaryActivity(primaryActivity)
-        .secondaryActivity(secondaryActivity)
-        .build();
+    String primaryActivity =
+        entity.getPrimaryActivity() == null ? null : entity.getPrimaryActivity().getName();
+    String secondaryActivity =
+        entity.getSecondaryActivity() == null ? null : entity.getSecondaryActivity().getName();
+    BusinessActivity activity =
+        BusinessActivity.builder()
+            .id(entity.getId())
+            .accountHolder(accountHolder)
+            .primaryActivity(primaryActivity)
+            .secondaryActivity(secondaryActivity)
+            .build();
 
     if (entity.getOtherPrimaryActivity() != null) {
       activity.setPrimaryActivity(entity.getOtherPrimaryActivity());

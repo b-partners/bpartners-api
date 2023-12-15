@@ -1,12 +1,12 @@
 package app.bpartners.api.service.utils;
 
+import static app.bpartners.api.service.CustomerService.EXCEL_MIME_TYPE;
+
 import app.bpartners.api.model.exception.BadRequestException;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tika.Tika;
 import org.springframework.http.MediaType;
-
-import static app.bpartners.api.service.CustomerService.EXCEL_MIME_TYPE;
 
 @Slf4j
 @NoArgsConstructor
@@ -15,7 +15,6 @@ public class FileInfoUtils {
   public static final String PDF_EXTENSION = ".pdf";
   public static final String JPG_FORMAT_NAME = "JPG";
   public static final String APPLICATION_ZIP_VALUE = "application/zip";
-
 
   public static MediaType parseMediaTypeFromBytes(byte[] bytes) {
     Tika tika = new Tika();

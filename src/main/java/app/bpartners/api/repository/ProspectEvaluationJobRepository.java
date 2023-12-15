@@ -5,8 +5,8 @@ import app.bpartners.api.model.prospect.job.ProspectEvaluationJob;
 import java.util.List;
 
 public interface ProspectEvaluationJobRepository {
-  List<ProspectEvaluationJob> findAllByIdAccountHolderAndStatusesIn(String ahId,
-                                                                    List<JobStatusValue> statuses);
+  List<ProspectEvaluationJob> findAllByIdAccountHolderAndStatusesIn(
+      String ahId, List<JobStatusValue> statuses);
 
   ProspectEvaluationJob getById(String id);
 

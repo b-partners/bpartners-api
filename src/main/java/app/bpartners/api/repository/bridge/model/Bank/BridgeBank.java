@@ -19,10 +19,13 @@ import lombok.ToString;
 public class BridgeBank {
   @JsonProperty("id")
   private Long id;
+
   @JsonProperty("name")
   private String name;
+
   @JsonProperty("parent_name")
   private String parentName;
+
   @JsonProperty("logo_url")
   private String logoUrl;
 }

@@ -102,6 +102,8 @@ class DirtyCustomerIT extends MockedThirdParties {
                 1,
                 20));
     List<Customer> allFilteredResults = new ArrayList<>();
+    Customer expectedCustomer1 = customer1().lastName("Nouvel artisan");
+
     allFilteredResults.addAll(actualFilteredByFirstAndLastName);
     allFilteredResults.addAll(actualFilteredByEmail);
     allFilteredResults.addAll(actualFilteredByPhoneNumber);
@@ -116,13 +118,13 @@ class DirtyCustomerIT extends MockedThirdParties {
     assertEquals(1, actualFilteredByCity.size());
     assertEquals(1, actualFilteredByCountry.size());
     assertEquals(1, actualFilteredByFirstNameAndCity.size());
-    assertTrue(actualNoFilter.contains(customer1()));
+    assertTrue(actualNoFilter.contains(expectedCustomer1));
     assertTrue(actualNoFilter.contains(customer2()));
     assertTrue(actualFilteredByFirstAndLastName.contains(customer2()));
-    assertTrue(actualFilteredByEmail.contains(customer1()));
-    assertTrue(actualFilteredByPhoneNumber.contains(customer1()));
+    assertTrue(actualFilteredByEmail.contains(expectedCustomer1));
+    assertTrue(actualFilteredByPhoneNumber.contains(expectedCustomer1));
     assertTrue(actualFilteredByPhoneNumber.contains(customer2()));
-    assertTrue(actualFilteredByCity.contains(customer1()));
+    assertTrue(actualFilteredByCity.contains(expectedCustomer1));
     assertEquals("Jean Olivier", actualFilteredByCountry.get(0).getFirstName());
     assertTrue(actualNoFilter.containsAll(allFilteredResults));
   }
@@ -135,12 +137,11 @@ class DirtyCustomerIT extends MockedThirdParties {
         api.getCustomers(JOE_DOE_ACCOUNT_ID, null, null, null, null, null, null, null, null, 1, 20);
     var customerToUpdate = customersToUpdate.get(0);
 
-    String newLastName = randomUUID().toString();
-    customerToUpdate.setLastName(newLastName);
+    customerToUpdate.setLastName("Nouvel artisan");
     api.updateCustomers(JOE_DOE_ACCOUNT_ID, List.of(customerToUpdate));
     var updatedCustomer = api.getCustomerById(JOE_DOE_ACCOUNT_ID, customerToUpdate.getId());
 
-    assertEquals(newLastName, updatedCustomer.getLastName());
+    assertEquals("Nouvel artisan", updatedCustomer.getLastName());
   }
 
   public static List<Customer> ignoreUpdatedAndCreatedAt(List<Customer> customers) {

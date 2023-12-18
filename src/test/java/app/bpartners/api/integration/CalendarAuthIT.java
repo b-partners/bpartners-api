@@ -109,7 +109,7 @@ public class CalendarAuthIT extends MockedThirdParties {
 
     assertEquals(
         new TokenValidity()
-            .expirationTime(3599L)
+            .expirationTime(3600L)
             .createdAt(actual.getCreatedAt())
             .expiredAt(actual.getExpiredAt()),
         actual);

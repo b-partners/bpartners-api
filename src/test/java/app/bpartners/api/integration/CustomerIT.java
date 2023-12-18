@@ -197,7 +197,7 @@ class CustomerIT extends MockedThirdParties {
         ignoreUpdatedAndCreatedAt(
             api.getCustomers(
                 JOE_DOE_ACCOUNT_ID, null, null, null, null, null, null, null, null, 1, 20));
-    assertTrue(actualList.containsAll(ignoreLatitudeAndLongitude(actual1)));
+    assertTrue(ignoreLatitudeAndLongitude(actualList).containsAll(ignoreLatitudeAndLongitude(actual1)));
     Customer customer1 = actual1.get(0);
     Customer customer2 = actual2.get(0);
     Customer customer3 = actual3.get(0);
@@ -378,7 +378,7 @@ class CustomerIT extends MockedThirdParties {
   private HttpResponse<String> uploadFile(String accountId, File toUpload)
       throws IOException, InterruptedException {
     HttpClient unauthenticatedClient = HttpClient.newBuilder().build();
-    String basePath = "http://localhost:" + DbEnvContextInitializer.getHttpServerPort();
+    String basePath = "http://localhost:" + localPort;
 
     HttpResponse<String> response =
         unauthenticatedClient.send(
@@ -395,7 +395,7 @@ class CustomerIT extends MockedThirdParties {
   private HttpResponse<byte[]> exportCustomers(String accountId, String fileType)
       throws IOException, InterruptedException, ApiException {
     HttpClient unauthenticatedClient = HttpClient.newBuilder().build();
-    String basePath = "http://localhost:" + DbEnvContextInitializer.getHttpServerPort();
+    String basePath = "http://localhost:" + localPort;
 
     HttpResponse<byte[]> response =
         unauthenticatedClient.send(

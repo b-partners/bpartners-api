@@ -97,7 +97,7 @@ class DirtyAccountIT extends MockedThirdParties {
   }
 
   public static UpdateAccountIdentity bicUpdateOnly() {
-    return new UpdateAccountIdentity().name(null).bic("SWNBFR23").iban(null);
+    return new UpdateAccountIdentity().name("another name").bic("SWNBFR23").iban("another iban");
   }
 
   public static UpdateAccountIdentity fullUpdateIdentity() {
@@ -376,13 +376,12 @@ class DirtyAccountIT extends MockedThirdParties {
         api.updateAccountIdentity(JOE_DOE_ID, JOE_DOE_ACCOUNT_ID, fullUpdateIdentity());
     Account account2 = filterAccountsById(actual1.getId(), api.getAccountsByUserId(JOE_DOE_ID));
 
-    app.bpartners.api.model.Account expected1 = joePersistedAccount();
     assertEquals(JOE_DOE_ACCOUNT_ID, actual1.getId());
     // actual1 : bic only
     assertEquals(JOE_DOE_ACCOUNT_ID, actual2.getId());
     assertEquals(bicUpdateOnly().getBic(), actual1.getBic());
-    assertEquals(expected1.getIban(), actual1.getIban());
-    assertEquals(expected1.getName(), actual1.getName());
+    assertEquals(bicUpdateOnly().getIban(), actual1.getIban());
+    assertEquals(bicUpdateOnly().getName(), actual1.getName());
     assertEquals(
         account1.active(actual1.getActive()), // Not important here
         actual1);
@@ -468,8 +467,8 @@ class DirtyAccountIT extends MockedThirdParties {
         "{\"type\":\"400 BAD_REQUEST\","
             + "\"message\":\"Account("
             + "id=beed1765-5c16-472a-b3f4-5c376ce5db58,"
-            + "name=Account_name,"
-            + "iban=FR0123456789,status=OPENED,active=false)"
+            + "name=null null,"
+            + "iban=null,status=OPENED,active=false)"
             + " does not need validation.\"}",
         () ->
             api.initiateAccountValidation(
@@ -486,8 +485,8 @@ class DirtyAccountIT extends MockedThirdParties {
 
     assertThrowsApiException(
         "{\"type\":\"400 BAD_REQUEST\",\""
-            + "message\":\"Account(id=beed1765-5c16-472a-b3f4-5c376ce5db58,name=Account_name,"
-            + "iban=FR0123456789,status=OPENED,active=false) does not need validation.\"}",
+            + "message\":\"Account(id=beed1765-5c16-472a-b3f4-5c376ce5db58,name=null null,"
+            + "iban=null,status=OPENED,active=false) does not need validation.\"}",
         () ->
             api.initiateAccountValidation(
                 JOE_DOE_ID, JOE_DOE_ACCOUNT_ID, new RedirectionStatusUrls()));

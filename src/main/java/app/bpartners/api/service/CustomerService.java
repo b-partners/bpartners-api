@@ -131,8 +131,8 @@ public class CustomerService {
 
   private CustomerCrupdated toCrupdatedEvent(User user, Customer customer, boolean isNew) {
     String subject = isNew
-        ? "Ajout du nouveau client " + customer.getName() + " par l'artisan " + user.getName()
-        : "Modification du client existant " + customer.getName() + " par l'artisan "
+        ? "Ajout du nouveau client " + customer.getFullName() + " par l'artisan " + user.getName()
+        : "Modification du client existant " + customer.getFullName() + " par l'artisan "
         + user.getName();
     String recipientEmail = eventConf.getAdminEmail();
     return new CustomerCrupdated()
@@ -160,7 +160,7 @@ public class CustomerService {
             sb.append(
                 String.format(
                     "Unable to update Customer(id=%s,name=%s) position because address was %s",
-                    customer.getId(), customer.getName(), fullAddress));
+                    customer.getId(), customer.getFullName(), fullAddress));
           } else {
             GeoPosition position = banApi.search(fullAddress);
             if (position == null) {

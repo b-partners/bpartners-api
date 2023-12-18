@@ -48,7 +48,7 @@ public class Customer {
   protected CustomerType customerType;
 
   public String describe() {
-    return "Customer(id=" + id + ", name=" + getName() + ", idUser=" + idUser + ")";
+    return "Customer(id=" + id + ", name=" + getFullName() + ", idUser=" + idUser + ")";
   }
 
   public String getFirstName() {
@@ -59,14 +59,14 @@ public class Customer {
     return lastName;
   }
 
-  public String getName() {
+  public String getFullName() {
     return (firstName == null ? "" : firstName)
         .concat(firstName != null & lastName != null ? " " : "")
         .concat(lastName == null ? "" : lastName);
   }
 
   public String getRealName() {
-    return name == null ? getName() : name;
+    return name == null ? getFullName() : name;
   }
 
   public String getTranslatedType() {

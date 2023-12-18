@@ -138,7 +138,7 @@
             </td>
             <td class="text-right" th:if="${invoice.customer != null}">
                 <p><strong
-                        th:text="${#strings.toUpperCase(invoice.customer.getName())}"></strong>
+                        th:text="${#strings.toUpperCase(invoice.customer.getFullName())}"></strong>
                 </p>
                 <p class="muted"><span
                         th:text="${invoice.customer.address}"></span>

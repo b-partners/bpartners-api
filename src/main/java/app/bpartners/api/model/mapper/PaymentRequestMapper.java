@@ -91,7 +91,7 @@ public class PaymentRequestMapper {
         .comment(payment != null ? payment.getComment()
             : null)
         .payerName(invoice.getCustomer() == null
-            ? null : invoice.getCustomer().getName())
+            ? null : invoice.getCustomer().getFullName())
         .payerEmail(invoice.getCustomer() == null
             ? null : invoice.getCustomer().getEmail())
         .paymentDueDate(payment != null

@@ -447,8 +447,8 @@ public class ProspectService {
              * Conversion of customers to new prospect is done here*/
             prospectBuilder.prospectEvalInfo(ProspectEvalInfo.builder()
                 .owner(accountHolderId)
-                .name(customer.getName())
-                .managerName(customer.getName())
+                .name(customer.getFullName())
+                .managerName(customer.getFullName())
                 .email(customer.getEmail())
                 .phoneNumber(customer.getPhone())
                 .address(customer.getAddress())
@@ -561,8 +561,8 @@ public class ProspectService {
     return Prospect.builder()
         .id(String.valueOf(randomUUID())) //TODO: change when prospect eval can be override
         .idHolderOwner(eval.getProspectOwnerId())
-        .name(customer.getName())
-        .managerName(customer.getName())
+        .name(customer.getFullName())
+        .managerName(customer.getFullName())
         .email(customer.getEmail())
         .phone(customer.getPhone())
         .address(customer.getFullAddress())
@@ -725,7 +725,7 @@ public class ProspectService {
       Customer customerInfo = customerResult == null ? null
           : customerResult.getOldCustomer();
       String prospectName = customerInfo == null ? info.getName()
-          : customerInfo.getName();
+          : customerInfo.getFullName();
       String prospectEmail = customerInfo == null ? info.getEmail()
           : customerInfo.getEmail();
       String prospectPhone = customerInfo == null ? info.getPhoneNumber()

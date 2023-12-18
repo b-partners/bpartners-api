@@ -58,7 +58,7 @@ public class ProspectRestMapper {
         .id(String.valueOf(randomUUID())) //TODO: return persisted ID
         .reference(String.valueOf(info.getReference()))
         .name(customerInfo == null ? info.getName()
-            : customerInfo.getName())
+            : customerInfo.getFullName())
         .phone(customerInfo == null ? info.getPhoneNumber()
             : customerInfo.getPhone())
         .email(customerInfo == null ? info.getEmail()
@@ -75,7 +75,7 @@ public class ProspectRestMapper {
                 ? toGeoJson(info.getCoordinates())
                 : toGeoJson(customerInfo.getLocation().getCoordinate())))
         .managerName(customerInfo == null ? info.getManagerName()
-            : customerInfo.getName())
+            : customerInfo.getFullName())
         .contactNature(customerResult != null ? ContactNature.OLD_CUSTOMER
             : getProspect(info))
         .evaluationDate(prospectResult.getEvaluationDate())

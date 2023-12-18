@@ -238,11 +238,12 @@ public class CustomerRepositoryImpl implements CustomerRepository {
         .map(this::checkExisting)
         .map(mapper::toEntity)
         .toList();
-    List<HCustomer> saved = jpaRepository.saveAll(toSave);
 
-    checkRecentlyAdded(toSave, saved);
+    List<HCustomer> entitySaved = jpaRepository.saveAll(toSave);
 
-    return saved.stream()
+    checkRecentlyAdded(toSave, entitySaved);
+
+    return entitySaved.stream()
         .map(mapper::toDomain)
         .toList();
   }

@@ -26,7 +26,7 @@
     <span th:if="${type == 'CREATE'}"> ajouté un nouveau client.
         </span>
     <span th:unless="${type == 'CREATE'}"> mis a jour les informations du client <span
-            th:text="${customer.name}"></span>.
+            th:text="${customer.fullName}"></span>.
         </span>
     Voici les informations que nous avons récoltées :
 </p>

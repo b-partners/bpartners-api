@@ -117,11 +117,23 @@ public class CustomerRestMapper {
             || (names.length == 2 && names[1] != null
             && (names[1].isEmpty() || names[1].isBlank())) ? null
             : names[1];
+    String name = null;
+    if (rest.getName() != null) {
+      name = rest.getName();
+    } else {
+      if (rest.getFirstName() != null) {
+        name = rest.getFirstName();
+      }
+      if (rest.getLastName() != null) {
+        name += " " + rest.getLastName();
+      }
+    }
     return app.bpartners.api.model.Customer.builder()
         .id(String.valueOf(randomUUID()))
         .idUser(userId)
         .firstName(firstName)
         .lastName(lastName)
+        .name(name)
         .phone(rest.getPhone())
         .website(rest.getWebsite())
         .email(rest.getEmail())

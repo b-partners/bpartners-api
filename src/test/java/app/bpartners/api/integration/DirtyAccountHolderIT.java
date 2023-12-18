@@ -181,6 +181,7 @@ class DirtyAccountHolderIT extends MockedThirdParties {
                                     .longitude(2.5)
                                     .type("Point"))
                     .phone("+33 5 13 3234")
+                    .email("anotherEmail@gmail.com")
                     .tvaNumber("FR12323456789"))
                     .revenueTargets(List.of()),
             actual.revenueTargets(List.of()));

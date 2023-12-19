@@ -44,7 +44,6 @@ class EventServiceInvokerTest {
         feedbackRequestedService,
         customerCrupdatedService,
         userOnboardedService,
-        prospectJobInitiatedServiceMock,
         prospectUpdatedServiceMock);
   }
 

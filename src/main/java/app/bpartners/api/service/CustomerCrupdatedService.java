@@ -42,7 +42,10 @@ public class CustomerCrupdatedService implements Consumer<CustomerCrupdated> {
     List<Attachment> attachments = List.of();
 
     Customer updatedCustomer = customer.toBuilder().build();
-    if (!updatedCustomer.getFullAddress().equals(updatedCustomer.getLatestFullAddress())) {
+    if (!updatedCustomer.getFullAddress().equals(updatedCustomer.getLatestFullAddress())
+        || updatedCustomer.getLocation().getCoordinate() == null
+        || (updatedCustomer.getLocation().getCoordinate().getLatitude() == null
+        && updatedCustomer.getLocation().getCoordinate().getLongitude() == null)) {
       GeoPosition customerPosition = banApi.fSearch(customer.getAddress());
       if (customerPosition != null
           && !customerPosition.getCoordinates().equals(

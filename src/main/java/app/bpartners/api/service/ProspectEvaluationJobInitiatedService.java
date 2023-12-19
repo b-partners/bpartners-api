@@ -34,7 +34,6 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import javax.mail.MessagingException;
 import lombok.AllArgsConstructor;
@@ -56,14 +55,12 @@ import static java.util.UUID.randomUUID;
 @Service
 @AllArgsConstructor
 @Slf4j
-public class ProspectEvaluationJobInitiatedService
-    implements Consumer<ProspectEvaluationJobInitiated> {
+public class ProspectEvaluationJobInitiatedService {
   public static final String EVENT_EVALUATION_RESULT_EMAIL_TEMPLATE =
       "prospect_event_evaluation_result";
   public static final String SHEET_EVALUATION_RESULT_EMAIL_TEMPLATE =
       "prospect_sheet_evaluation_result";
   private final AccountHolderService holderService;
-  private final ProspectService prospectService;
   private final CalendarService calendarService;
   private final BanApi banApi;
   private final SesService sesService;
@@ -72,30 +69,30 @@ public class ProspectEvaluationJobInitiatedService
   private final UserService userService;
   private final SnsService snsService;
 
-  @Override
-  public void accept(ProspectEvaluationJobInitiated jobInitiated) {
+  public void accept(ProspectEvaluationJobInitiated jobInitiated, ProspectService prospectService) {
     var job = jobInitiated.getJobRunner();
     ProspectEvaluationJob existingJob = prospectService.getEvaluationJob(job.getJobId());
-    ProspectEvaluationJob runningJob = runningJob(existingJob);
+    ProspectEvaluationJob runningJob = runningJob(prospectService, existingJob);
     if (runningJob != null && runningJob.getJobStatus().getValue() == IN_PROGRESS) {
       User user = userService.getUserById(jobInitiated.getIdUser());
       var runningHolder =
           holderService.findDefaultByIdUser(jobInitiated.getIdUser());
       if (job.isEventConversionJob()) {
-        handleEventConversionJob(job, runningJob, user, runningHolder);
+        handleEventConversionJob(prospectService, job, runningJob, user, runningHolder);
       } else if (job.isSpreadsheetEvaluationJob()) {
-        handleSpreadsheetEvaluationJob(job, runningJob, user, runningHolder);
+        handleSpreadsheetEvaluationJob(prospectService, job, runningJob, user, runningHolder);
       } else {
         String exceptionMsg =
             "Only prospect evaluation job types"
                 + " CALENDAR_EVENT_CONVERSION and SPREADSHEET_EVALUATION are supported for now";
-        updateJobStatus(runningJob, FAILED, exceptionMsg);
+        updateJobStatus(prospectService, runningJob, FAILED, exceptionMsg);
         throw new NotImplementedException(exceptionMsg);
       }
     }
   }
 
-  private void handleEventConversionJob(ProspectEvaluationJobRunner job,
+  private void handleEventConversionJob(ProspectService prospectService,
+                                        ProspectEvaluationJobRunner job,
                                         ProspectEvaluationJob runningJob,
                                         User user, AccountHolder runningHolder) {
     try {
@@ -107,7 +104,7 @@ public class ProspectEvaluationJobInitiatedService
       List<CalendarEvent> eventsWithAddress = getEventWithAddress(user, eventJobRunner, ranges);
       List<String> locations = retrieveLocations(eventsWithAddress);
       HashMap<String, List<ProspectEval>> prospectsByEvents =
-          getProspectsToEvaluate(user, eventJobRunner, locations);
+          getProspectsToEvaluate(prospectService, user, eventJobRunner, locations);
 
       for (CalendarEvent calendarEvent : eventsWithAddress) {
         List<ProspectEval> prospects = prospectsByEvents.get(calendarEvent.getLocation());
@@ -130,7 +127,7 @@ public class ProspectEvaluationJobInitiatedService
                 evaluatedProspects,
                 interventionDate,
                 interventionLocation);
-        terminateJob(user,
+        terminateJob(prospectService, user,
             runningJob,
             runningHolder,
             runningHolder,
@@ -139,7 +136,7 @@ public class ProspectEvaluationJobInitiatedService
             emailBody);
       }
     } catch (Exception e) {
-      updateJobStatus(runningJob, FAILED, e.getMessage());
+      updateJobStatus(prospectService, runningJob, FAILED, e.getMessage());
       throw new ApiException(SERVER_EXCEPTION, e);
     }
   }
@@ -158,7 +155,8 @@ public class ProspectEvaluationJobInitiatedService
     return eventsWithAddress;
   }
 
-  private void handleSpreadsheetEvaluationJob(ProspectEvaluationJobRunner job,
+  private void handleSpreadsheetEvaluationJob(ProspectService prospectService,
+                                              ProspectEvaluationJobRunner job,
                                               ProspectEvaluationJob runningJob,
                                               User user, AccountHolder runningHolder) {
     try {
@@ -172,14 +170,14 @@ public class ProspectEvaluationJobInitiatedService
       var evaluatedProspects = prospectService.evaluateProspects(
           holderOwner.getId(),
           antiHarmRules,
-          fromSpreadsheet(user.getId(), sheetJobRunner),
+          fromSpreadsheet(prospectService, user.getId(), sheetJobRunner),
           evaluationRules.getInterventionOption(),
           ratingProperties.getMinProspectRating(),
           ratingProperties.getMinCustomerRating());
       String emailSubject = "Les prospects évalués retenus pour " + holderOwner.getName()
           + " contenu dans la feuille " + sheetProperties.getSheetName();
       String emailBody = spreadsheetEvaluationEmailBody(holderOwner, evaluatedProspects);
-      terminateJob(
+      terminateJob(prospectService,
           user,
           runningJob,
           holderOwner,
@@ -188,12 +186,13 @@ public class ProspectEvaluationJobInitiatedService
           emailSubject,
           emailBody);
     } catch (Exception e) {
-      updateJobStatus(runningJob, FAILED, e.getMessage());
+      updateJobStatus(prospectService, runningJob, FAILED, e.getMessage());
       throw new ApiException(SERVER_EXCEPTION, e);
     }
   }
 
   private void terminateJob(
+      ProspectService prospectService,
       User user,
       ProspectEvaluationJob runningJob,
       AccountHolder ownerHolder,
@@ -208,7 +207,7 @@ public class ProspectEvaluationJobInitiatedService
         .toSeconds();
     List<Prospect> results = convertProspectFromResults(
         runningJob, ownerHolder, evaluatedProspects);
-    var finishedJob = updateJobStatus(runningJob.toBuilder()
+    var finishedJob = updateJobStatus(prospectService, runningJob.toBuilder()
             .results(results)
             .build(), FINISHED,
         getJobMessage(evaluatedProspects, durationMinutes, durationSeconds));
@@ -361,7 +360,8 @@ public class ProspectEvaluationJobInitiatedService
         + " evaluated prospects or old customers";
   }
 
-  private ProspectEvaluationJob updateJobStatus(ProspectEvaluationJob job,
+  private ProspectEvaluationJob updateJobStatus(ProspectService prospectService,
+                                                ProspectEvaluationJob job,
                                                 JobStatusValue jobStatusValue,
                                                 String jobMessage) {
     ProspectEvaluationJob clonedJob = job.toBuilder()
@@ -374,18 +374,21 @@ public class ProspectEvaluationJobInitiatedService
     return prospectService.saveEvaluationJobs(List.of(clonedJob)).get(0);
   }
 
-  private ProspectEvaluationJob runningJob(ProspectEvaluationJob existingJob) {
+  private ProspectEvaluationJob runningJob(ProspectService prospectService,
+                                           ProspectEvaluationJob existingJob) {
     if (existingJob.getJobStatus().getValue() == NOT_STARTED) {
-      return updateJobStatus(existingJob, IN_PROGRESS, null);
+      return updateJobStatus(prospectService, existingJob, IN_PROGRESS, null);
     }
     return null;
   }
 
-  private HashMap<String, List<ProspectEval>> getProspectsToEvaluate(User user,
-                                                                     EventJobRunner eventJobRunner,
-                                                                     List<String> locations) {
+  private HashMap<String, List<ProspectEval>> getProspectsToEvaluate(
+      ProspectService prospectService,
+      User user,
+      EventJobRunner eventJobRunner,
+      List<String> locations) {
     HashMap<String, List<ProspectEval>> prospectsByEvents = new HashMap<>();
-    var newProspects = fromDefaultSheet(user);
+    var newProspects = fromDefaultSheet(prospectService, user);
     var evaluationRules = eventJobRunner.getEvaluationRules();
     var antiHarmRules = evaluationRules.getAntiHarmRules();
     locations.forEach(calendarEventLocation -> {
@@ -426,7 +429,8 @@ public class ProspectEvaluationJobInitiatedService
   }
 
   //TODO: use this function to import inside database
-  private List<ProspectEval> fromDefaultSheet(User user) {
+  private List<ProspectEval> fromDefaultSheet(ProspectService prospectService,
+                                              User user) {
     AccountHolder accountHolder = user.getDefaultHolder();
     String sheetName = accountHolder.getName();
     int minDefaultRange = 2;
@@ -440,7 +444,8 @@ public class ProspectEvaluationJobInitiatedService
         maxDefaultRange);
   }
 
-  private List<ProspectEval> fromSpreadsheet(String idUser,
+  private List<ProspectEval> fromSpreadsheet(ProspectService prospectService,
+                                             String idUser,
                                              SheetEvaluationJobRunner sheetProspectEvaluation) {
     var sheetProperties = sheetProspectEvaluation.getSheetProperties();
     var sheetRange = sheetProperties.getRanges();

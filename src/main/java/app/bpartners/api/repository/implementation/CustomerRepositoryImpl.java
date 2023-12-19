@@ -282,7 +282,8 @@ public class CustomerRepositoryImpl implements CustomerRepository {
     if (optionalCustomer.isEmpty()) {
       Customer customer = domain.toBuilder()
           .recentlyAdded(true)
-          .customerType(CustomerType.INDIVIDUAL)
+          .customerType(domain.getCustomerType() == null ? CustomerType.INDIVIDUAL
+              : domain.getCustomerType())
           .build();
       return customer;
     } else {

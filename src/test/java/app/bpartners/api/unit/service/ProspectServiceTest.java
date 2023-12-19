@@ -11,6 +11,7 @@ import app.bpartners.api.repository.google.sheets.SheetApi;
 import app.bpartners.api.repository.jpa.AccountHolderJpaRepository;
 import app.bpartners.api.repository.jpa.model.HAccountHolder;
 import app.bpartners.api.service.CustomerService;
+import app.bpartners.api.service.ProspectEvaluationJobInitiatedService;
 import app.bpartners.api.service.ProspectService;
 import app.bpartners.api.service.ProspectStatusService;
 import app.bpartners.api.service.SnsService;
@@ -52,11 +53,16 @@ class ProspectServiceTest {
   SnsService snsServiceMock = mock(SnsService.class);
   ProspectUpdatedService prospectUpdatedService = mock(ProspectUpdatedService.class);
   CalendarApi calendarApiMock = mock(CalendarApi.class);
+
+  ProspectEvaluationJobInitiatedService jobInitiatedServiceMock =
+      mock(ProspectEvaluationJobInitiatedService.class);
+
   ProspectService subject = new ProspectService(
       prospectRepositoryMock, dataProcesserMock, accountHolderJpaRepositoryMock,
       sesServiceMock, customerService, sheetApi,
       prospectMapper, jobRepositoryMock, eventProducerMock, eventConfMock, prospectStatusService,
-      snsServiceMock, userServiceMock, prospectUpdatedService, calendarApiMock);
+      snsServiceMock, userServiceMock, prospectUpdatedService, calendarApiMock,
+      jobInitiatedServiceMock);
 
   @BeforeEach
   void setup() {

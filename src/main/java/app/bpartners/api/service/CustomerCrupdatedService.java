@@ -44,7 +44,8 @@ public class CustomerCrupdatedService implements Consumer<CustomerCrupdated> {
     Customer updatedCustomer = customer.toBuilder().build();
     if (!updatedCustomer.getFullAddress().equals(updatedCustomer.getLatestFullAddress())) {
       GeoPosition customerPosition = banApi.fSearch(customer.getAddress());
-      if (!customerPosition.getCoordinates().equals(
+      if (customerPosition != null
+          && !customerPosition.getCoordinates().equals(
           customer.getLocation().getCoordinate())) {
         updatedCustomer = customerRepository.save(customer.toBuilder()
             .location(Location.builder()

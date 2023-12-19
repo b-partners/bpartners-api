@@ -45,6 +45,9 @@ public class BanApi {
       var response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
       if (response.statusCode() != 200) {
         log.warn("Error from BAN : " + response.body());
+        if (response.body().contains("504")) {
+          return null;
+        }
         return null;
       }
       return objectMapper.readValue(response.body(),

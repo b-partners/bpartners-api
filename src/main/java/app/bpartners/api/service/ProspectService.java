@@ -2,7 +2,6 @@ package app.bpartners.api.service;
 
 import app.bpartners.api.endpoint.event.EventConf;
 import app.bpartners.api.endpoint.event.EventProducer;
-import app.bpartners.api.endpoint.event.model.TypedProspectEvaluationJobInitiated;
 import app.bpartners.api.endpoint.event.model.gen.ProspectEvaluationJobInitiated;
 import app.bpartners.api.endpoint.event.model.gen.ProspectUpdated;
 import app.bpartners.api.endpoint.rest.model.ContactNature;
@@ -102,6 +101,7 @@ public class ProspectService {
   private final UserService userService;
   private final ProspectUpdatedService prospectUpdatedService;
   private final CalendarApi calendarApi;
+  private final ProspectEvaluationJobInitiatedService jobInitiatedService;
 
   @Transactional
   public Prospect getById(String id) {
@@ -223,14 +223,16 @@ public class ProspectService {
 
     List<ProspectEvaluationJob> savedJobs = evalJobRepository.saveAll(jobs);
 
-    eventProducer.accept(jobRunners.stream()
-        .map(evaluationJobRunner -> new TypedProspectEvaluationJobInitiated(
+    List<ProspectEvaluationJobInitiated> jobInitiatedList = jobRunners.stream()
+        .map(evaluationJobRunner ->
             ProspectEvaluationJobInitiated.builder()
                 .jobId(evaluationJobRunner.getJobId())
                 .idUser(userId)
                 .jobRunner(evaluationJobRunner)
-                .build()))
-        .collect(Collectors.toList()));
+                .build())
+        .toList();
+
+    jobInitiatedList.forEach(job -> jobInitiatedService.accept(job, this));
 
     return savedJobs;
   }

@@ -63,7 +63,8 @@ jobs:
         id: oldestSnapshot
         run: |
           oldest_snapshot=$(aws rds describe-db-snapshots --region eu-west-3 --snapshot-type manual | jq -r '.DBSnapshots | sort_by(.SnapshotCreateTime)[0].DBSnapshotIdentifier')
-          echo "::set-output name=oldest_snapshot::$oldest_snapshot"
+          echo "##[set-output name=oldest_snapshot]$oldest_snapshot"
+          
 
       - name: Delete RDS snapshot
         if: steps.oldestSnapshot.outputs.oldest_snapshot != null

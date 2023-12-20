@@ -22,6 +22,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -38,6 +39,7 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 @Testcontainers
 @AutoConfigureMockMvc
+@Disabled
 class DraftIT extends MockedThirdParties {
   @Autowired
   private SesService subject;
@@ -183,11 +185,13 @@ class DraftIT extends MockedThirdParties {
             + ".</p>"
             + "<p>Bien à vous et merci pour votre confiance.</p>"
             + "</body></html>";
+    /*
+    TODO: DraftIT must only execute in local
     assertDoesNotThrow(() -> this.subject.verifyEmailIdentity(recipient));
     assertDoesNotThrow(
         () ->
             this.subject.sendEmail(
-                recipient, null, subject, htmlBody, List.of(attachment, secondAttachment)));
+                recipient, null, subject, htmlBody, List.of(attachment, secondAttachment)));*/
   }
 
   @Test

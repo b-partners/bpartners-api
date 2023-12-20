@@ -166,6 +166,9 @@ public class ProspectRepositoryImpl implements ProspectRepository {
   public boolean isSogefiProspector(String idAccountHolder) {
     BusinessActivity businessActivity =
         businessActivityService.findByAccountHolderId(idAccountHolder);
+    if (businessActivity == null) {
+      return false;
+    }
     String secondaryActivity = businessActivity.getSecondaryActivity();
     String primaryActivity = businessActivity.getPrimaryActivity();
     if (primaryActivity == null && secondaryActivity == null) {

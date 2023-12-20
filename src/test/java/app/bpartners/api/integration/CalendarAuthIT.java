@@ -100,7 +100,7 @@ public class CalendarAuthIT extends MockedThirdParties {
         .thenReturn(
             new Credential(new AuthorizationHeaderAccessMethod())
                 .setAccessToken("access_token")
-                .setExpiresInSeconds(3600L)
+                .setExpiresInSeconds(3599L)
                 .setRefreshToken(null));
     ApiClient joeDoeClient = anApiClient();
     CalendarApi api = new CalendarApi(joeDoeClient);

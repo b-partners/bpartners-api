@@ -1,0 +1,37 @@
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Échec d'evaluations de prospects</title>
+    <style>
+
+        body {
+            font-family: Helvetica, serif;
+        }
+    </style>
+</head>
+<body>
+<section>
+    <p>Bonjour,</p>
+    <p>L'artisan <span th:text="${accountHolder.name}"></span> a lancé une évaluation de prospect le <span
+            th:text="${runningJobStart}"></span> mais a rencontré une erreur lors de son traitement.
+    </p>
+    <div th:if="${job.isEventConversionJob() && events!=null}">
+        <p>L'artisan a cherché des prospects pour ces prochaines interventions ci-après :</p>
+        <ul th:each="event : ${events}">
+            <li th:text="${event.getLocation()}"></li>
+        </ul>
+    </div>
+    <p>L'erreur suivante est survenue lors du traitement : </p>
+    <p><strong th:text="${exception.getMessage()}"></strong></p>
+    <footer>
+        <p>
+            L'équipe BPartners<br/>
+            BPartners - assistant intelligent des artisans & indépendants<br/>
+            27 rue du Chemin Vert, 75011, Paris<br/>
+            01 84 80 31 69<br/>
+            07 58 21 18 53<br/>
+            <a href="https://www.bpartners.app">https://www.bpartners.app</a>
+        </p>
+    </footer>
+</section>
+</body>
+</html>

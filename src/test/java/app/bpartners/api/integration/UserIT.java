@@ -1,27 +1,5 @@
 package app.bpartners.api.integration;
 
-import static app.bpartners.api.endpoint.rest.model.EnableStatus.ENABLED;
-import static app.bpartners.api.endpoint.rest.model.IdentificationStatus.VALID_IDENTITY;
-import static app.bpartners.api.integration.UserServiceIT.bridgeUser;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JANE_ACCOUNT_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JANE_DOE_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JANE_DOE_TOKEN;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_TOKEN;
-import static app.bpartners.api.integration.conf.utils.TestUtils.REDIRECT_FAILURE_URL;
-import static app.bpartners.api.integration.conf.utils.TestUtils.REDIRECT_SUCCESS_URL;
-import static app.bpartners.api.integration.conf.utils.TestUtils.assertThrowsForbiddenException;
-import static app.bpartners.api.integration.conf.utils.TestUtils.restJaneAccount;
-import static app.bpartners.api.integration.conf.utils.TestUtils.restJoeDoeUser;
-import static app.bpartners.api.integration.conf.utils.TestUtils.setUpCognito;
-import static app.bpartners.api.integration.conf.utils.TestUtils.setUpEventBridge;
-import static app.bpartners.api.integration.conf.utils.TestUtils.setUpLegalFileRepository;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
-
 import app.bpartners.api.endpoint.rest.api.SecurityApi;
 import app.bpartners.api.endpoint.rest.api.UserAccountsApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
@@ -55,6 +33,28 @@ import org.springframework.http.HttpStatus;
 import org.springframework.test.annotation.DirtiesContext;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
+
+import static app.bpartners.api.endpoint.rest.model.EnableStatus.ENABLED;
+import static app.bpartners.api.endpoint.rest.model.IdentificationStatus.VALID_IDENTITY;
+import static app.bpartners.api.integration.UserServiceIT.bridgeUser;
+import static app.bpartners.api.integration.conf.utils.TestUtils.JANE_ACCOUNT_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.JANE_DOE_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.JANE_DOE_TOKEN;
+import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_TOKEN;
+import static app.bpartners.api.integration.conf.utils.TestUtils.REDIRECT_FAILURE_URL;
+import static app.bpartners.api.integration.conf.utils.TestUtils.REDIRECT_SUCCESS_URL;
+import static app.bpartners.api.integration.conf.utils.TestUtils.assertThrowsForbiddenException;
+import static app.bpartners.api.integration.conf.utils.TestUtils.restJaneAccount;
+import static app.bpartners.api.integration.conf.utils.TestUtils.restJoeDoeUser;
+import static app.bpartners.api.integration.conf.utils.TestUtils.setUpCognito;
+import static app.bpartners.api.integration.conf.utils.TestUtils.setUpEventBridge;
+import static app.bpartners.api.integration.conf.utils.TestUtils.setUpLegalFileRepository;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
 @Testcontainers
 @AutoConfigureMockMvc
@@ -131,7 +131,6 @@ class UserIT extends MockedThirdParties {
   }
 
   @Test
-  @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
   void user_change_active_account_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
     UserAccountsApi api = new UserAccountsApi(joeDoeClient);
@@ -153,19 +152,19 @@ class UserIT extends MockedThirdParties {
 
   @Test
   void user_read_own_informations_ok() throws ApiException {
-    ApiClient joeDoeClient = anApiClient();
-    SecurityApi api = new SecurityApi(joeDoeClient);
+    ApiClient janeDoeClient = anApiClient(JANE_DOE_TOKEN);
+    SecurityApi api = new SecurityApi(janeDoeClient);
 
     User actualUser = api.whoami().getUser();
 
-    assertEquals(restJoeDoeUser(), actualUser);
+    assertEquals(restJaneDoeUser(), actualUser);
   }
 
   @Test
   void read_user_using_cognito_ok() throws ApiException {
     String email = "joe@email.com";
     when(cognitoComponentMock.getEmailByToken(JOE_DOE_COGNITO_TOKEN)).thenReturn(email);
-    ApiClient joeDoeClient = anApiClient(JOE_DOE_COGNITO_TOKEN);
+    ApiClient joeDoeClient = anApiClient();
     UserAccountsApi api = new UserAccountsApi(joeDoeClient);
 
     User actualUser = api.getUserById(JOE_DOE_ID);
@@ -202,33 +201,29 @@ class UserIT extends MockedThirdParties {
             .phoneNumber(beforeUpdate.getPhoneNumber())
             .monthlySubscription(beforeUpdate.getMonthlySubscription())
             .logoFileId(beforeUpdate.getLogoFileId())
-            .firstName(null)
-            .lastName(null)
+            .firstName("Jane")
+            .lastName("Doe")
             .email("jane@email.com")
-            .idVerified(null)
-            .identificationStatus(null)
+            .idVerified(true)
+            .identificationStatus(VALID_IDENTITY)
             .accounts(List.of())
             .accountHolders(List.of())
             .roles(new Role[] {})
             .build(),
         beforeUpdate);
     assertEquals(
-        restJaneDoeUser()
-            .firstName(null)
-            .lastName(null)
-            .idVerified(null)
-            .identificationStatus(null),
+        restJaneDoeUser(),
         actual);
   }
 
   @Test
   void read_user_by_id_ok() throws ApiException {
-    ApiClient joeDoeClient = anApiClient();
-    UserAccountsApi api = new UserAccountsApi(joeDoeClient);
+    ApiClient janeDoeClient = anApiClient(JANE_DOE_TOKEN);
+    UserAccountsApi api = new UserAccountsApi(janeDoeClient);
 
-    User actualUser = api.getUserById(JOE_DOE_ID);
+    User actualUser = api.getUserById(JANE_DOE_ID);
 
-    assertEquals(restJoeDoeUser(), actualUser);
+    assertEquals(restJaneDoeUser(), actualUser);
   }
 
   @Test
@@ -350,14 +345,14 @@ class UserIT extends MockedThirdParties {
     String basePath = "http://localhost:" + localPort;
     HttpRequest request =
         HttpRequest.newBuilder()
-            .uri(URI.create(basePath + "/whois/" + JOE_DOE_ID))
+            .uri(URI.create(basePath + "/whois/" + JANE_DOE_ID))
             .headers("x-api-key", API_KEY)
             .GET()
             .build();
 
     HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
-    Whois expected = new Whois().user(restJoeDoeUser());
+    Whois expected = new Whois().user(restJaneDoeUser());
     Whois actual = objectMapper.readValue(response.body(), Whois.class);
 
     assertEquals(expected, actual);

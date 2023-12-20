@@ -35,4 +35,8 @@ public class ProspectEvaluationJob {
     return endedAt == null ? Duration.between(startedAt, Instant.now())
         : Duration.between(startedAt, endedAt);
   }
+
+  public String describe() {
+    return "Job(id=" + id + ",idAccountHolder=" + idAccountHolder + ",startedAt=" + startedAt + ")";
+  }
 }

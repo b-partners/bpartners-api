@@ -13,8 +13,6 @@ import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.Attachment;
 import app.bpartners.api.model.CalendarEvent;
 import app.bpartners.api.model.User;
-import app.bpartners.api.model.exception.ApiException;
-import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.model.prospect.Prospect;
 import app.bpartners.api.model.prospect.ProspectStatusHistory;
 import app.bpartners.api.model.prospect.job.EventJobRunner;
@@ -49,7 +47,6 @@ import static app.bpartners.api.endpoint.rest.model.JobStatusValue.FAILED;
 import static app.bpartners.api.endpoint.rest.model.JobStatusValue.FINISHED;
 import static app.bpartners.api.endpoint.rest.model.JobStatusValue.IN_PROGRESS;
 import static app.bpartners.api.endpoint.rest.model.JobStatusValue.NOT_STARTED;
-import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 import static app.bpartners.api.model.prospect.job.SheetEvaluationJobRunner.GOLDEN_SOURCE_SPR_SHEET_NAME;
 import static app.bpartners.api.service.utils.DateUtils.formatFrenchDatetime;
 import static java.util.UUID.randomUUID;
@@ -91,7 +88,7 @@ public class ProspectEvaluationJobInitiatedService
             "Only prospect evaluation job types"
                 + " CALENDAR_EVENT_CONVERSION and SPREADSHEET_EVALUATION are supported for now";
         updateJobStatus(runningJob, FAILED, exceptionMsg);
-        throw new NotImplementedException(exceptionMsg);
+        log.error(exceptionMsg);
       }
     }
   }
@@ -141,7 +138,9 @@ public class ProspectEvaluationJobInitiatedService
       }
     } catch (Exception e) {
       updateJobStatus(runningJob, FAILED, e.getMessage());
-      throw new ApiException(SERVER_EXCEPTION, e);
+      log.error("Exception occurred when treating job {} : {}",
+          runningJob.describe(),
+          e.getMessage());
     }
   }
 
@@ -190,7 +189,9 @@ public class ProspectEvaluationJobInitiatedService
           emailBody);
     } catch (Exception e) {
       updateJobStatus(runningJob, FAILED, e.getMessage());
-      throw new ApiException(SERVER_EXCEPTION, e);
+      log.error("Exception occurred when treating job {} : {}",
+          runningJob.describe(),
+          e.getMessage());
     }
   }
 
@@ -299,7 +300,9 @@ public class ProspectEvaluationJobInitiatedService
       log.info("Job(id=" + finishedJob.getId() + ") "
           + finishedJob.getJobStatus().getMessage());
     } catch (IOException | MessagingException e) {
-      throw new ApiException(SERVER_EXCEPTION, e);
+      log.error("Exception occurred when sending mail of job {} : {}",
+          finishedJob.describe(),
+          e.getMessage());
     }
   }
 

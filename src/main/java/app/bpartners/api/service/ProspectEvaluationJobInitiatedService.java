@@ -223,7 +223,8 @@ public class ProspectEvaluationJobInitiatedService
   }
 
   private void notifyResultToDevice(List<Prospect> prospects, User user) {
-    String message = prospects.size() + " nouveaux prospects ont été ajoutés sur votre dashboard";
+    String message = prospects.size() == 1 ? "1 nouveau prospect a été ajouté sur votre dashboard"
+        : prospects.size() + " nouveaux prospects ont été ajoutés sur votre dashboard";
     snsService.pushNotification(message, user);
   }
 

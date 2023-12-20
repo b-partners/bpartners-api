@@ -1,25 +1,68 @@
 package app.bpartners.api.integration;
 
-import static app.bpartners.api.integration.conf.utils.TestUtils.*;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
+import app.bpartners.api.SentryConf;
+import app.bpartners.api.conf.FacadeIT;
+import app.bpartners.api.endpoint.event.EventProducer;
+import app.bpartners.api.endpoint.event.S3Conf;
 import app.bpartners.api.endpoint.rest.api.UserAccountsApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
 import app.bpartners.api.endpoint.rest.model.LegalFile;
-import app.bpartners.api.integration.conf.MockedThirdParties;
+import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.integration.conf.utils.TestUtils;
+import app.bpartners.api.manager.ProjectTokenManager;
+import app.bpartners.api.repository.bridge.BridgeApi;
+import app.bpartners.api.repository.connectors.account.AccountConnectorRepository;
+import app.bpartners.api.repository.fintecture.FintectureConf;
+import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitConf;
+import app.bpartners.api.repository.sendinblue.SendinblueConf;
+import app.bpartners.api.service.PaymentScheduleService;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.web.server.LocalServerPort;
 import org.testcontainers.junit.jupiter.Testcontainers;
+
+import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.assertThrowsApiException;
+import static app.bpartners.api.integration.conf.utils.TestUtils.assertThrowsForbiddenException;
+import static app.bpartners.api.integration.conf.utils.TestUtils.defaultLegalFile;
+import static app.bpartners.api.integration.conf.utils.TestUtils.legalFile1;
+import static app.bpartners.api.integration.conf.utils.TestUtils.setUpCognito;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Testcontainers
 @AutoConfigureMockMvc
-class LegalFileIT extends MockedThirdParties {
+class LegalFileIT extends FacadeIT {
+  @LocalServerPort
+  protected int localPort;
+  @MockBean
+  protected PaymentScheduleService paymentScheduleService;
+  @MockBean
+  BuildingPermitConf buildingPermitConf;
+  @MockBean
+  SentryConf sentryConf;
+  @MockBean
+  SendinblueConf sendinblueConf;
+  @MockBean
+  S3Conf s3Conf;
+  @MockBean
+  CognitoComponent cognitoComponentMock;
+  @MockBean
+  FintectureConf fintectureConf;
+  @MockBean
+  ProjectTokenManager projectTokenManager;
+  @MockBean
+  AccountConnectorRepository accountConnectorRepositoryMock;
+  @MockBean
+  BridgeApi bridgeApi;
+  @MockBean
+  EventProducer eventProducer;
+
   public static final String NOT_EXISTING_LEGAL_FILE = "not_existing_legal_file";
 
   @BeforeEach
@@ -46,7 +89,7 @@ class LegalFileIT extends MockedThirdParties {
 
     List<LegalFile> actual = api.getLegalFiles(JOE_DOE_ID);
 
-    assertEquals(5, actual.size());
+    assertEquals(7, actual.size());
     assertTrue(actual.contains(legalFile1().toBeConfirmed(true)));
   }
 

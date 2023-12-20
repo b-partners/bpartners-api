@@ -140,7 +140,14 @@ public class ProspectService {
 
   @Transactional
   public List<Prospect> saveAll(List<Prospect> toCreate) {
-    return repository.saveAll(toCreate);
+    List<Prospect> savedProspects = repository.saveAll(toCreate);
+
+    savedProspects.forEach(savedProspect -> prospectUpdatedService.accept(ProspectUpdated.builder()
+        .prospect(savedProspect)
+        .updatedAt(Instant.now())
+        .build()));
+
+    return savedProspects;
   }
 
   @Transactional

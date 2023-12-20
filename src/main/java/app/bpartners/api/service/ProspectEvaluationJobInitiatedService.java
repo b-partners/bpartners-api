@@ -28,6 +28,7 @@ import app.bpartners.api.repository.expressif.ProspectEvalInfo;
 import app.bpartners.api.repository.expressif.ProspectResult;
 import app.bpartners.api.repository.expressif.fact.NewIntervention;
 import app.bpartners.api.service.aws.SesService;
+import app.bpartners.api.service.utils.GeoUtils;
 import app.bpartners.api.service.utils.TemplateResolverUtils;
 import java.io.IOException;
 import java.time.Instant;
@@ -391,23 +392,27 @@ public class ProspectEvaluationJobInitiatedService
     locations.forEach(calendarEventLocation -> {
       List<ProspectEval> subList = new ArrayList<>();
       GeoPosition eventAddressPos = banApi.fSearch(calendarEventLocation);
+      GeoUtils.Coordinate eventAddressCoordinates = eventAddressPos == null ? null
+          : eventAddressPos.getCoordinates();
 
       newProspects.forEach(prospect -> {
         NewIntervention clonedRule = (NewIntervention) prospect.getDepaRule();
-        subList.add(
-            prospect.toBuilder()
-                .prospectOwnerId(eventJobRunner.getArtisanOwner())
-                .id(String.valueOf(randomUUID()))
-                .ratRemoval(antiHarmRules.isRatRemoval())
-                .disinfection(antiHarmRules.isDisinfection())
-                .insectControl(antiHarmRules.isInsectControl())
-                .depaRule(clonedRule.toBuilder()
-                    .newIntAddress(calendarEventLocation)
-                    .coordinate(eventAddressPos.getCoordinates())
-                    .distNewIntAndProspect(eventAddressPos.getCoordinates()
-                        .getDistanceFrom(prospect.getProspectEvalInfo().getCoordinates()))
-                    .build())
-                .build());
+        ProspectEval prospectEval = prospect.toBuilder()
+            .id(String.valueOf(randomUUID()))
+            .prospectOwnerId(eventJobRunner.getArtisanOwner())
+            .ratRemoval(antiHarmRules.isRatRemoval())
+            .disinfection(antiHarmRules.isDisinfection())
+            .insectControl(antiHarmRules.isInsectControl())
+            .depaRule(clonedRule.toBuilder()
+                .newIntAddress(calendarEventLocation)
+                .coordinate(eventAddressCoordinates)
+                .distNewIntAndProspect(
+                    eventAddressCoordinates == null ? null
+                        : eventAddressCoordinates.getDistanceFrom(
+                        prospect.getProspectEvalInfo().getCoordinates()))
+                .build())
+            .build();
+        subList.add(prospectEval);
       });
       prospectsByEvents.put(calendarEventLocation, subList);
     });

@@ -88,7 +88,7 @@ public class ProspectEvaluationJobInitiatedService
             "Only prospect evaluation job types"
                 + " CALENDAR_EVENT_CONVERSION and SPREADSHEET_EVALUATION are supported for now";
         updateJobStatus(runningJob, FAILED, exceptionMsg);
-        log.error(exceptionMsg);
+        log.warn(exceptionMsg);
       }
     }
   }
@@ -138,7 +138,7 @@ public class ProspectEvaluationJobInitiatedService
       }
     } catch (Exception e) {
       updateJobStatus(runningJob, FAILED, e.getMessage());
-      log.error("Exception occurred when treating job {} : {}",
+      log.warn("Exception occurred when treating job {} : {}",
           runningJob.describe(),
           e.getMessage());
     }
@@ -189,7 +189,7 @@ public class ProspectEvaluationJobInitiatedService
           emailBody);
     } catch (Exception e) {
       updateJobStatus(runningJob, FAILED, e.getMessage());
-      log.error("Exception occurred when treating job {} : {}",
+      log.warn("Exception occurred when treating job {} : {}",
           runningJob.describe(),
           e.getMessage());
     }
@@ -301,7 +301,7 @@ public class ProspectEvaluationJobInitiatedService
       log.info("Job(id=" + finishedJob.getId() + ") "
           + finishedJob.getJobStatus().getMessage());
     } catch (IOException | MessagingException e) {
-      log.error("Exception occurred when sending mail of job {} : {}",
+      log.warn("Exception occurred when sending mail of job {} : {}",
           finishedJob.describe(),
           e.getMessage());
     }

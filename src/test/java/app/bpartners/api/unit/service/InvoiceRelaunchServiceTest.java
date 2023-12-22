@@ -39,6 +39,7 @@ import app.bpartners.api.service.aws.SesService;
 import java.time.LocalDate;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.data.domain.PageRequest;
@@ -137,6 +138,8 @@ class InvoiceRelaunchServiceTest {
   }
 
   @Test
+  @Disabled
+  // TODO: check if should be removed or not as scheduler is disabled
   void test_scheduler() {
     ArgumentCaptor<String> idInvoiceCaptor = ArgumentCaptor.forClass(String.class);
     ArgumentCaptor<String> idInvoiceCaptor2 = ArgumentCaptor.forClass(String.class);

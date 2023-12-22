@@ -2,6 +2,7 @@ package app.bpartners.api.service;
 
 import app.bpartners.api.endpoint.event.EventConf;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
+import app.bpartners.api.endpoint.rest.model.PaymentMethod;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.Attachment;
@@ -19,6 +20,7 @@ import app.bpartners.api.repository.InvoiceRepository;
 import app.bpartners.api.repository.PaymentInitiationRepository;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.fintecture.FintectureConf;
+import app.bpartners.api.repository.implementation.InvoiceRepositoryImpl;
 import app.bpartners.api.repository.jpa.PaymentRequestJpaRepository;
 import app.bpartners.api.repository.jpa.model.HPaymentRequest;
 import app.bpartners.api.service.aws.SesService;
@@ -62,6 +64,7 @@ public class PaymentInitiationService {
   private final EventConf eventConf;
   private final UserRepository userRepository;
   private final InvoiceRepository invoiceRepository;
+  private final InvoiceRepositoryImpl invoiceRepositoryImpl;
   private final SnsService snsService;
 
   @SneakyThrows
@@ -81,6 +84,7 @@ public class PaymentInitiationService {
               HPaymentRequest paymentRequest = optionalPayment.get();
               toSave.add(paymentRequest.toBuilder()
                   .status(PAID)
+                  .paymentMethod(PaymentMethod.BANK_TRANSFER)
                   .paymentStatusUpdatedAt(Instant.now())
                   .build());
             }
@@ -96,6 +100,14 @@ public class PaymentInitiationService {
     }
     if (!toSave.isEmpty()) {
       List<HPaymentRequest> savedPaidPayments = jpaRepository.saveAll(toSave);
+      savedPaidPayments.stream()
+          .filter(payment -> payment.getIdInvoice() != null)
+          .toList()
+          .forEach(payment -> {
+            Invoice invoice = invoiceRepository.findById(payment.getIdInvoice());
+            invoiceRepositoryImpl.processAsPdf(invoice);
+            log.info("{} PDF is refreshed", invoice.describe());
+          });
       log.info("Payment requests " + paymentMessage(savedPaidPayments) + " updated successfully");
       notifyByEmail(savedPaidPayments);
       notifyByMobileNotification(savedPaidPayments);

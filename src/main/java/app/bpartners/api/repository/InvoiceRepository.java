@@ -35,4 +35,6 @@ public interface InvoiceRepository {
 
   List<Invoice> findByIdUserAndRef(
       String idUser, String reference);
+
+  Invoice findById(String id);
 }

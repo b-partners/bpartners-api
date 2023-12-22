@@ -128,6 +128,7 @@ class PaymentIT extends MockedThirdParties {
           entity.setId(null);
           entity.setCreatedDatetime(null);
         });
+    allEntities.forEach(hPaymentRequest -> hPaymentRequest.setPaymentStatusUpdatedAt(null));
     assertTrue(
         allEntities.containsAll(
             List.of(

@@ -2,8 +2,7 @@ package app.bpartners.api.unit.repository;
 
 import static app.bpartners.api.endpoint.rest.model.ProspectStatus.TO_CONTACT;
 import static app.bpartners.api.integration.conf.utils.TestUtils.ACCOUNTHOLDER_ID;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
@@ -24,6 +23,7 @@ import app.bpartners.api.repository.prospecting.datasource.buildingpermit.model.
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.model.SingleBuildingPermit;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.model.SogefiInformation;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -138,7 +138,7 @@ class SogefiBuildingPermitRepositoryTest {
         HProspectStatusHistory.builder()
             .id("TODO")
             .status(TO_CONTACT)
-            .updatedAt(Instant.now())
+            .updatedAt(Instant.now().truncatedTo(ChronoUnit.MINUTES))
             .build());
   }
 
@@ -158,9 +158,12 @@ class SogefiBuildingPermitRepositoryTest {
     verify(jpaRepositoryMock, times(1)).save(sogefiProspectEntityCaptor.capture());
 
     HProspect prospectEntityArgumentCaptorValue = prospectEntityArgumentCaptor.getValue();
+    assertTrue(prospectEntityArgumentCaptorValue.getStatusHistories().stream().anyMatch(prospect -> prospect.getStatus().equals(TO_CONTACT)));
+    prospectEntityArgumentCaptorValue.setStatusHistories(null);
     assertEquals(
         expectedSavedProspect().toBuilder()
             .lastEvaluationDate(prospectEntityArgumentCaptorValue.getLastEvaluationDate())
+                .statusHistories(null)
             .build(),
         prospectEntityArgumentCaptorValue);
     assertEquals(expected, sogefiProspectEntityCaptor.getValue());

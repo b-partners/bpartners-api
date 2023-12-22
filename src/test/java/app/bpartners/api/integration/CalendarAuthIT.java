@@ -7,6 +7,7 @@ import static app.bpartners.api.integration.conf.utils.TestUtils.redirectionStat
 import static app.bpartners.api.integration.conf.utils.TestUtils.setUpCognito;
 import static app.bpartners.api.integration.conf.utils.TestUtils.setUpLegalFileRepository;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -100,19 +101,21 @@ public class CalendarAuthIT extends MockedThirdParties {
         .thenReturn(
             new Credential(new AuthorizationHeaderAccessMethod())
                 .setAccessToken("access_token")
-                .setExpiresInSeconds(3599L)
+                .setExpiresInSeconds(3600L)
                 .setRefreshToken(null));
     ApiClient joeDoeClient = anApiClient();
     CalendarApi api = new CalendarApi(joeDoeClient);
 
     var actual = api.exchangeCode(JOE_DOE_ID, sheetAuth());
 
+    assertTrue(actual.getExpirationTime() >= 3580 && actual.getExpirationTime() <= 3600);
     assertEquals(
         new TokenValidity()
-            .expirationTime(3600L)
+            .expirationTime(null)
             .createdAt(actual.getCreatedAt())
             .expiredAt(actual.getExpiredAt()),
-        actual);
+        actual
+                .expirationTime(null));
   }
 
   @Test

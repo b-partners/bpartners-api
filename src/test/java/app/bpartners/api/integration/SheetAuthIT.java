@@ -26,6 +26,7 @@ import com.google.api.client.http.HttpRequest;
 import java.io.IOException;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -58,8 +59,8 @@ public class SheetAuthIT extends MockedThirdParties {
   void init_consent_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
     SheetApi api = new SheetApi(joeDoeClient);
-    when(sheetConfMock.getRedirectUris()).thenReturn(List.of("dummy"));
-    when(sheetConfMock.getOauthRedirectUri(any())).thenReturn("dummy");
+    when(sheetConfMock.getRedirectUris()).thenReturn(List.of("https://dummy.com/success"));
+    when(sheetConfMock.getOauthRedirectUri(any())).thenReturn("https://dummy.com/redirection");
 
     Redirection1 actual = api.initSheetConsent(JOE_DOE_ID, sheetConsentInit());
 
@@ -95,12 +96,14 @@ public class SheetAuthIT extends MockedThirdParties {
   }
 
   @Test
+  @Disabled
+  // TODO: remove this class as we don't authenticate anymore on google sheet
   void handle_auth_ok() throws ApiException {
     when(sheetConfMock.storeCredential(any(), any(), any()))
         .thenReturn(
             new Credential(new AuthorizationHeaderAccessMethod())
                 .setAccessToken("access_token")
-                .setExpiresInSeconds(3600L)
+                .setExpiresInSeconds(3599L)
                 .setRefreshToken(null));
     ApiClient joeDoeClient = anApiClient();
     SheetApi api = new SheetApi(joeDoeClient);

@@ -35,13 +35,14 @@ import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+
+import org.junit.jupiter.api.*;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 @Testcontainers
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @AutoConfigureMockMvc
 public class CalendarEventIT extends MockedThirdParties {
   @MockBean private app.bpartners.api.repository.google.calendar.CalendarApi calendarApiMock;
@@ -215,6 +216,7 @@ public class CalendarEventIT extends MockedThirdParties {
 
   // TODO: make test pass
   @Test
+  @Order(1)
   void get_calendar_events_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
     CalendarApi api = new CalendarApi(joeDoeClient);
@@ -239,6 +241,7 @@ public class CalendarEventIT extends MockedThirdParties {
   }
 
   // TODO: make test pass
+  @Order(2)
   @Test
   void crupdate_calendar_events_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
@@ -251,7 +254,8 @@ public class CalendarEventIT extends MockedThirdParties {
     List<CalendarEvent> savedCalendarEvents =
         api.crupdateCalendarEvents(
             JOE_DOE_ID,
-            "calendar1_id",
+            "calendar1" +
+                    "_id",
             List.of(calendarEventToCreate1(), calendarEventToCreate2()));
     calendarEventToUpdate().setId(savedCalendarEvents.get(0).getId());
     List<CalendarEvent> updatedCalendarEvents =

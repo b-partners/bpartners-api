@@ -6,8 +6,7 @@ import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import app.bpartners.api.endpoint.rest.security.AuthenticatedResourceProvider;
 import app.bpartners.api.model.AnnualRevenueTarget;
@@ -80,7 +79,7 @@ class ProspectRepositoryImplTest {
             evalInfoJpaRepositoryMock,
             em,
             sogefiBuildingPermitRepositoryMock);
-    when(revenueTargetServiceMock.getByYear(JOE_DOE_ACCOUNT_ID, 2023))
+    when(revenueTargetServiceMock.getByYear(JOE_DOE_ACCOUNT_ID, 2024))
         .thenReturn(
             Optional.ofNullable(
                 AnnualRevenueTarget.builder()
@@ -88,7 +87,7 @@ class ProspectRepositoryImplTest {
                     .amountAttempted(parseFraction(32000))
                     .idAccountHolder(EMPTY)
                     .build()));
-    when(revenueTargetServiceMock.getByYear(OTHER_ACCOUNT_ID, 2023))
+    when(revenueTargetServiceMock.getByYear(OTHER_ACCOUNT_ID, 2024))
         .thenReturn(
             Optional.ofNullable(
                 AnnualRevenueTarget.builder()
@@ -101,14 +100,14 @@ class ProspectRepositoryImplTest {
   @Test
   void needsProspects_false() {
     boolean needProspect =
-        subject.needsProspects(JOE_DOE_ACCOUNT_ID, LocalDate.parse("2023-03-15"));
+        subject.needsProspects(JOE_DOE_ACCOUNT_ID, LocalDate.parse("2024-03-15"));
 
     assertFalse(needProspect);
   }
 
   @Test
   void needsProspects_true() {
-    boolean needProspect = subject.needsProspects(OTHER_ACCOUNT_ID, LocalDate.parse("2023-03-15"));
+    boolean needProspect = subject.needsProspects(OTHER_ACCOUNT_ID, LocalDate.parse("2024-03-15"));
 
     assertTrue(needProspect);
   }

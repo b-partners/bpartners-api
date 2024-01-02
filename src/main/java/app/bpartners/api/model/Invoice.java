@@ -177,4 +177,8 @@ public class Invoice {
     byte[] bytes = is.readAllBytes();
     return Base64.getEncoder().encodeToString(bytes);
   }
+
+  public String describe() {
+    return "Invoice(id=" + id + ",reference=" + ref + ",user=" + user.getId() + ")";
+  }
 }

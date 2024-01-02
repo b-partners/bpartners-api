@@ -4,6 +4,7 @@ import app.bpartners.api.endpoint.rest.model.ArchiveStatus;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.model.ArchiveInvoice;
 import app.bpartners.api.model.Invoice;
+import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.mapper.InvoiceMapper;
 import app.bpartners.api.model.mapper.InvoiceProductMapper;
@@ -244,5 +245,12 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
     return jpaRepository.findByIdUserAndRef(idUser, reference).stream()
         .map(mapper::toDomain)
         .collect(Collectors.toList());
+  }
+
+  @Override
+  public Invoice findById(String id) {
+    HInvoice invoice = jpaRepository.getById(id);
+    User user = userRepository.getById(invoice.getIdUser());
+    return mapper.toDomain(invoice, user);
   }
 }

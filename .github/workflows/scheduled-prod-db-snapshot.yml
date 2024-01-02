@@ -28,7 +28,7 @@ jobs:
       - name: Override Env if necessary
         if: ${{ inputs.target_env != '' }}
         run: |
-            echo "Env=${{ inputs.target_env }}" >> $GITHUB_ENV
+          echo "Env=${{ inputs.target_env }}" >> $GITHUB_ENV
 
       - name: Configure preprod AWS credentials
         if: ${{ env.Env != 'prod' }}
@@ -46,29 +46,23 @@ jobs:
           aws-secret-access-key: ${{ secrets.PROD_AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Retrieve Database identifier from Parameter Store and set it as Env
-        run: |
-          aws configure set default.output text
-          echo "dbIdentifier=$(aws ssm get-parameter --name /bpartners/$Env/db/identifier --query "Parameter.Value" | grep -o '^[^.]*')" >> $GITHUB_ENV  
-
       - name: Get RDS Snapshot Count
-        id: snapshot_count
+        id: snapshot-count
         run: |
-            snapshot_count=$(aws rds describe-db-snapshots --region eu-west-3 --snapshot-type manual --query "length(DBSnapshots[?SnapshotType=='manual'])" --output text)
-            echo "Snapshot Count: $snapshot_count"
-            echo "##[set-output name=snapshot_count]$snapshot_count"
+          snapshot_count=$(aws rds describe-db-snapshots --region eu-west-3 --snapshot-type manual --query "length(DBSnapshots[?SnapshotType=='manual'])" --output text)
+          echo "Snapshot Count: $snapshot_count"
+          echo "##[set-output name=snapshot_count]$snapshot_count"
 
       - name: Get oldest RDS snapshot
-        if: steps.snapshot_count.outputs.snapshot_count > 70
-        id: oldestSnapshot
+        if: steps.snapshot-count.outputs.snapshot_count > 70
+        id: get-oldest-snapshot
         run: |
-            oldest_snapshot=$(aws rds describe-db-snapshots --region eu-west-3 --snapshot-type manual | jq -r '.DBSnapshots | sort_by(.SnapshotCreateTime)[0].DBSnapshotIdentifier')
-            echo "::set-output name=oldest_snapshot::$oldest_snapshot"
+          oldest_snapshot=$(aws rds describe-db-snapshots --region eu-west-3 --snapshot-type manual | jq -r '.DBSnapshots | sort_by(.SnapshotCreateTime)[0].DBSnapshotIdentifier')
+          echo "::set-output name=oldest_snapshot::$oldest_snapshot"
 
       - name: Delete RDS snapshot
-        if: steps.oldestSnapshot.outputs.oldest_snapshot != null
-        run: |
-            aws rds delete-db-snapshot --db-snapshot-identifier ${{ steps.oldestSnapshot.outputs.oldest_snapshot }}
+        if: steps.get-oldest-snapshot.outputs.oldest_snapshot != null
+        run: aws rds delete-db-snapshot --db-snapshot-identifier ${{ steps.get-oldest-snapshot.outputs.oldest_snapshot }}
 
       - name: Get Time
         id: current-time
@@ -79,6 +73,11 @@ jobs:
 
       - name: Set time as env
         run: echo "time=${{ steps.current-time.outputs.time }}" >> $GITHUB_ENV
+
+      - name: Retrieve Database identifier from Parameter Store and set it as Env
+        run: |
+          aws configure set default.output text
+          echo "dbIdentifier=$(aws ssm get-parameter --name /bpartners/$Env/db/identifier --query "Parameter.Value" | grep -o '^[^.]*')" >> $GITHUB_ENV
 
       - name: Create snapshot for the actual version of the database
         run: aws rds create-db-snapshot --db-instance-identifier ${{ env.dbIdentifier }} --db-snapshot-identifier $Env-snapshot-pre-cd-compute-${{ github.sha }}-${{ env.time }}

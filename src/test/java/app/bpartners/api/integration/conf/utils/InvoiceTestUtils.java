@@ -25,16 +25,8 @@ import static app.bpartners.api.model.Invoice.DEFAULT_TO_PAY_DELAY_DAYS;
 import static java.util.UUID.randomUUID;
 
 import app.bpartners.api.endpoint.rest.api.PayingApi;
-import app.bpartners.api.endpoint.rest.model.CreatePaymentRegulation;
-import app.bpartners.api.endpoint.rest.model.CreateProduct;
-import app.bpartners.api.endpoint.rest.model.CrupdateInvoice;
-import app.bpartners.api.endpoint.rest.model.Invoice;
-import app.bpartners.api.endpoint.rest.model.InvoiceDiscount;
-import app.bpartners.api.endpoint.rest.model.InvoicePaymentReq;
-import app.bpartners.api.endpoint.rest.model.PaymentMethod;
-import app.bpartners.api.endpoint.rest.model.PaymentRegStatus;
-import app.bpartners.api.endpoint.rest.model.PaymentRegulation;
-import app.bpartners.api.endpoint.rest.model.Product;
+import app.bpartners.api.endpoint.rest.model.*;
+
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
@@ -182,7 +174,7 @@ public class InvoiceTestUtils {
             .paymentRequest(
                     new InvoicePaymentReq()
                             .reference("BP005")
-                            .payerName(customer1().getFirstName() + " " + customer1().getLastName())
+                            .payerName(customer1().getFirstName())
                             .payerEmail(customer1().getEmail())
                             .paymentUrl("https://connect-v2-sbx.fintecture.com")
                             .percentValue(10000 - 909)
@@ -199,7 +191,7 @@ public class InvoiceTestUtils {
             .paymentRequest(
                     new InvoicePaymentReq()
                             .reference("BP005")
-                            .payerName(customer1().getFirstName() + " " + customer1().getLastName())
+                            .payerName(customer1().getFirstName())
                             .payerEmail(customer1().getEmail())
                             .paymentUrl("https://connect-v2-sbx.fintecture.com")
                             .percentValue(909)
@@ -234,18 +226,21 @@ public class InvoiceTestUtils {
     return paymentRegulations;
   }
 
-  public static List<PaymentRegulation> ignoreIdsAndDatetimeAndUrl(
-          List<PaymentRegulation> paymentRegulations) {
+  public static List<PaymentRegulation> ignoreStatusDatetime(
+          Invoice actualConfirmed) {
+    List<PaymentRegulation> paymentRegulations = actualConfirmed.getPaymentRegulations();
     paymentRegulations.forEach(
-            datedPaymentRequest ->
-                    datedPaymentRequest.setPaymentRequest(
-                            datedPaymentRequest
-                                    .getPaymentRequest()
-                                    .id(null)
-                                    .paymentUrl(null)
-                                    .initiatedDatetime(null)));
-    ignoreSeconds(paymentRegulations);
+            paymentRegulation -> paymentRegulation
+                    .setStatus(paymentRegulation.getStatus().updatedAt(null))
+    );
     return paymentRegulations;
+  }
+
+  public static Customer ignoreCustomerDatetime(Invoice actualConfirmed) {
+    Customer actualCustomer = actualConfirmed.getCustomer();
+    actualCustomer.setUpdatedAt(null);
+    actualCustomer.setCreatedAt(null);
+    return actualCustomer;
   }
 
   public static List<PaymentRegulation> ignoreSeconds(List<PaymentRegulation> paymentRegulations) {
@@ -477,7 +472,7 @@ public class InvoiceTestUtils {
                                     .reference(id)
                                     .percentValue(2510)
                                     .amount(552)
-                                    .payerName("Luc Artisan")
+                                    .payerName("Luc")
                                     .payerEmail("bpartners.artisans@gmail.com")
                                     .comment("Acompte de 10%")
                                     .label("Fabrication Jean" + " - Acompte N°1")
@@ -491,7 +486,7 @@ public class InvoiceTestUtils {
                                     .percentValue(10000 - 2510)
                                     .amount(1648)
                                     .reference(id)
-                                    .payerName("Luc Artisan")
+                                    .payerName("Luc")
                                     .payerEmail("bpartners.artisans@gmail.com")
                                     .comment("Reste 90%")
                                     .label("Fabrication Jean" + " - Restant dû")
@@ -509,7 +504,7 @@ public class InvoiceTestUtils {
                                     .reference(id)
                                     .percentValue(1025)
                                     .amount(225)
-                                    .payerName("Luc Artisan")
+                                    .payerName("Luc")
                                     .payerEmail("bpartners.artisans@gmail.com")
                                     .comment("Acompte de 10%")
                                     .label("Fabrication Jean" + " - Acompte N°1")
@@ -523,7 +518,7 @@ public class InvoiceTestUtils {
                                     .percentValue(10000 - 1025)
                                     .amount(1975)
                                     .reference(id)
-                                    .payerName("Luc Artisan")
+                                    .payerName("Luc")
                                     .comment("Reste 90%")
                                     .payerEmail("bpartners.artisans@gmail.com")
                                     .label("Fabrication Jean" + " - Restant dû")
@@ -541,7 +536,7 @@ public class InvoiceTestUtils {
                                     .reference(id)
                                     .percentValue(1025)
                                     .amount(225)
-                                    .payerName("Luc Artisan")
+                                    .payerName("Luc")
                                     .comment("Acompte de 10%")
                                     .payerEmail("bpartners.artisans@gmail.com")
                                     .label("Fabrication Jean" + " - Acompte N°1")
@@ -555,7 +550,7 @@ public class InvoiceTestUtils {
                                     .percentValue(10000 - 1025)
                                     .amount(1975)
                                     .reference(id)
-                                    .payerName("Luc Artisan")
+                                    .payerName("Luc")
                                     .payerEmail("bpartners.artisans@gmail.com")
                                     .comment("Reste 90%")
                                     .label("Fabrication Jean" + " - Restant dû")

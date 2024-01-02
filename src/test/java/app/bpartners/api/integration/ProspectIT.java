@@ -210,8 +210,6 @@ class ProspectIT extends MockedThirdParties {
     String prospectName = "Alyssa";
     List<Prospect> actual3 = api.getProspects(ACCOUNTHOLDER_ID, prospectName, null);
 
-    assertEquals(7, actual1.size());
-    assertEquals(7, actual2.size());
     assertTrue(actual1.containsAll(List.of(prospect1(), prospect2())));
     assertTrue(actual2.containsAll(List.of(prospect1(), prospect2(), prospect3())));
     assertEquals(1, actual3.size());

@@ -7,16 +7,8 @@ import app.bpartners.api.repository.jpa.types.PostgresEnumType;
 import java.time.Instant;
 import java.util.Comparator;
 import java.util.List;
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.OneToMany;
-import javax.persistence.OrderBy;
-import javax.persistence.Table;
+import javax.persistence.*;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -55,7 +47,7 @@ public class HProspect {
   private String oldAddress;
   private String newAddress;
 
-  @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+  @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
   @OrderBy("updatedAt desc")
   @JoinColumn(name = "id_prospect", referencedColumnName = "id")
   private List<HProspectStatusHistory> statusHistories;

@@ -65,6 +65,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -129,6 +130,7 @@ class ProspectEvaluationIT extends MockedThirdParties {
         .status(new ProspectEvaluationJobStatus().value(NOT_STARTED).message(null))
         .type(ProspectEvaluationJobType.CALENDAR_EVENT_CONVERSION)
         .startedAt(Instant.parse("2022-01-01T00:00:00.00Z"))
+            .metadata(new HashMap<>())
         .endedAt(null);
   }
 
@@ -138,6 +140,7 @@ class ProspectEvaluationIT extends MockedThirdParties {
         .status(new ProspectEvaluationJobStatus().value(FAILED).message("Connection reset"))
         .type(ProspectEvaluationJobType.ADDRESS_CONVERSION)
         .startedAt(Instant.parse("2022-01-03T01:00:00.00Z"))
+            .metadata(new HashMap<>())
         .endedAt(Instant.parse("2022-01-03T02:00:00.00Z"));
   }
 
@@ -274,6 +277,7 @@ class ProspectEvaluationIT extends MockedThirdParties {
         expectedProspectEval1(actualJson).reference(actualJson.get(0).getReference()),
         actualJson.get(0));
     // assertEquals((fromEvaluated), actualProspect);
+    assertEquals(List.of(fromEvaluated), actualProspect);
     assertTrue(actualProspect.containsAll(fromEvaluated));
 
     /*

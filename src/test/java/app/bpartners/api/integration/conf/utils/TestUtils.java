@@ -238,18 +238,18 @@ public class TestUtils {
     return new AnnualRevenueTarget()
         .year(2023)
         .updatedAt(Instant.parse("2022-01-01T01:00:00.00Z"))
-        .amountAttempted(1356000)
+        .amountAttempted(0)
         .amountTarget(1000000)
-        .amountAttemptedPercent(13560);
+        .amountAttemptedPercent(0);
   }
 
   public static AnnualRevenueTarget annualRevenueTarget2() {
     return new AnnualRevenueTarget()
         .year(2024)
         .updatedAt(Instant.parse("2022-01-08T01:00:00.00Z"))
-        .amountAttempted(0)
+        .amountAttempted(1356000)
         .amountTarget(1000000)
-        .amountAttemptedPercent(0);
+        .amountAttemptedPercent(13560);
   }
 
   public static CreateAnnualRevenueTarget createAnnualRevenueTarget() {

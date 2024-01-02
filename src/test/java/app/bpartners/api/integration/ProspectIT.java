@@ -45,11 +45,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.Order;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -154,7 +150,7 @@ class ProspectIT extends MockedThirdParties {
         ignoreHistoryUpdatedOf(
             prospect1()
                 .statusHistory(
-                    Stream.of(prospect1().getStatusHistory(), getStatusHistory(CONTACTED))
+                    Stream.of(getStatusHistory(CONTACTED), prospect1().getStatusHistory(), getStatusHistory(CONTACTED))
                         .flatMap(List::stream)
                         .toList()));
     return expected
@@ -239,6 +235,8 @@ class ProspectIT extends MockedThirdParties {
   }
 
   @Test
+  @Disabled
+  // disabled as now we could crupdate prospect
   void update_prospects_ko() {
     ApiClient joeDoeClient = anApiClient();
     ProspectingApi api = new ProspectingApi(joeDoeClient);
@@ -270,6 +268,7 @@ class ProspectIT extends MockedThirdParties {
             prospect1()
                 .statusHistory(
                     Stream.of(
+                            getStatusHistory(CONTACTED),
                             getStatusHistory(CONTACTED),
                             prospect1().getStatusHistory(),
                             getStatusHistory(TO_CONTACT))

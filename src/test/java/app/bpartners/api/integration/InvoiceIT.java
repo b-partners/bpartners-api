@@ -7,21 +7,8 @@ import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.DRAFT;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PROPOSAL;
 import static app.bpartners.api.endpoint.rest.model.PaymentMethod.UNKNOWN;
-import static app.bpartners.api.integration.conf.utils.InvoiceTestUtils.DRAFT_REF_PREFIX;
-import static app.bpartners.api.integration.conf.utils.InvoiceTestUtils.NEW_INVOICE_ID;
-import static app.bpartners.api.integration.conf.utils.InvoiceTestUtils.confirmedInvoice;
-import static app.bpartners.api.integration.conf.utils.InvoiceTestUtils.expectedConfirmed;
-import static app.bpartners.api.integration.conf.utils.InvoiceTestUtils.expectedDraft;
-import static app.bpartners.api.integration.conf.utils.InvoiceTestUtils.expectedInitializedDraft;
-import static app.bpartners.api.integration.conf.utils.InvoiceTestUtils.expectedMultiplePayments;
-import static app.bpartners.api.integration.conf.utils.InvoiceTestUtils.expectedPaid;
-import static app.bpartners.api.integration.conf.utils.InvoiceTestUtils.ignoreIdsAndDatetime;
-import static app.bpartners.api.integration.conf.utils.InvoiceTestUtils.ignoreIdsOf;
-import static app.bpartners.api.integration.conf.utils.InvoiceTestUtils.initPaymentReg;
-import static app.bpartners.api.integration.conf.utils.InvoiceTestUtils.initializeDraft;
-import static app.bpartners.api.integration.conf.utils.InvoiceTestUtils.paidInvoice;
-import static app.bpartners.api.integration.conf.utils.InvoiceTestUtils.updatedPaymentRegulations;
-import static app.bpartners.api.integration.conf.utils.InvoiceTestUtils.validInvoice;
+import static app.bpartners.api.integration.conf.utils.InvoiceTestUtils.*;
+import static app.bpartners.api.integration.conf.utils.InvoiceTestUtils.ignoreStatusDatetime;
 import static app.bpartners.api.integration.conf.utils.TestUtils.INVOICE4_ID;
 import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ID;
@@ -154,14 +141,15 @@ class InvoiceIT extends S3MockedThirdParties {
         api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, id, crupdateInvoice.status(CONFIRMED));
     actualConfirmed.setPaymentRegulations(ignoreIdsAndDatetime(actualConfirmed));
     actualConfirmed.setProducts(ignoreIdsOf(actualConfirmed.getProducts()));
+    actualConfirmed.setPaymentRegulations(ignoreStatusDatetime(actualConfirmed));
 
-    assertEquals(initPaymentReg(id), actualDraft.getPaymentRegulations());
+    assertEquals(initPaymentReg(id), ignoreStatusDatetime(actualDraft));
     assertTrue(
         actualDraft.getPaymentRegulations().stream()
             .allMatch(
                 paymentRegulation ->
                     paymentRegulation.getPaymentRequest().getPaymentUrl() == null));
-    assertEquals(updatedPaymentRegulations(id), actualProposal.getPaymentRegulations());
+    assertEquals(updatedPaymentRegulations(id), ignoreStatusDatetime(actualProposal));
     assertTrue(
         actualProposal.getPaymentRegulations().stream()
             .allMatch(
@@ -191,6 +179,7 @@ class InvoiceIT extends S3MockedThirdParties {
     Invoice actualUpdatedDraft =
         api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, NEW_INVOICE_ID, validInvoice());
     actualUpdatedDraft.setProducts(ignoreIdsOf(actualUpdatedDraft.getProducts()));
+    actualUpdatedDraft.setCustomer(ignoreCustomerDatetime(actualUpdatedDraft));
 
     assertEquals(
         expectedInitializedDraft()
@@ -226,11 +215,15 @@ class InvoiceIT extends S3MockedThirdParties {
     Invoice actualConfirmed =
         api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, INVOICE4_ID, confirmedInvoice());
     actualConfirmed.setProducts(ignoreIdsOf(actualConfirmed.getProducts()));
+    actualConfirmed.setPaymentRegulations(ignoreStatusDatetime(actualConfirmed));
+    actualConfirmed.setCustomer(ignoreCustomerDatetime(actualConfirmed));
     actualConfirmed.setPaymentRegulations(ignoreIdsAndDatetime(actualConfirmed));
     Invoice actualPaid =
         api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, actualConfirmed.getId(), paidInvoice());
     actualPaid.setProducts(ignoreIdsOf(actualPaid.getProducts()));
     actualPaid.setPaymentRegulations(ignoreIdsAndDatetime(actualPaid));
+    actualPaid.setPaymentRegulations(ignoreStatusDatetime(actualPaid));
+    actualPaid.setCustomer(ignoreCustomerDatetime(actualPaid));
 
     assertEquals(
         expectedConfirmed()
@@ -239,7 +232,7 @@ class InvoiceIT extends S3MockedThirdParties {
             .archiveStatus(ENABLED)
             .sendingDate(LocalDate.now())
             .updatedAt(actualConfirmed.getUpdatedAt()),
-        actualConfirmed.createdAt(null));
+            actualConfirmed.createdAt(null));
     assertNotNull(actualConfirmed.getFileId());
     assertNotEquals(INVOICE4_ID, actualConfirmed.getId());
     assertNotNull(actualConfirmed.getUpdatedAt());

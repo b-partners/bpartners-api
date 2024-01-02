@@ -56,9 +56,11 @@ import static java.util.UUID.randomUUID;
 @Slf4j
 public class ProspectEvaluationJobInitiatedService
     implements Consumer<ProspectEvaluationJobInitiated> {
-  public static final String EVENT_EVALUATION_RESULT_EMAIL_TEMPLATE =
+  private static final String JOB_PROCESSING_FAILED_EMAIL_TEMPLATE =
+      "prospect_event_evaluation_failed";
+  private static final String EVENT_EVALUATION_RESULT_EMAIL_TEMPLATE =
       "prospect_event_evaluation_result";
-  public static final String SHEET_EVALUATION_RESULT_EMAIL_TEMPLATE =
+  private static final String SHEET_EVALUATION_RESULT_EMAIL_TEMPLATE =
       "prospect_sheet_evaluation_result";
   private final AccountHolderService holderService;
   private final ProspectService prospectService;
@@ -88,7 +90,7 @@ public class ProspectEvaluationJobInitiatedService
             "Only prospect evaluation job types"
                 + " CALENDAR_EVENT_CONVERSION and SPREADSHEET_EVALUATION are supported for now";
         updateJobStatus(runningJob, FAILED, exceptionMsg);
-        log.error(exceptionMsg);
+        log.warn(exceptionMsg);
       }
     }
   }
@@ -96,14 +98,16 @@ public class ProspectEvaluationJobInitiatedService
   private void handleEventConversionJob(ProspectEvaluationJobRunner job,
                                         ProspectEvaluationJob runningJob,
                                         User user, AccountHolder runningHolder) {
+    List<String> locations = null;
+    List<CalendarEvent> eventsWithAddress = null;
     try {
       var eventJobRunner = job.getEventJobRunner();
       var ranges = eventJobRunner.getEventDateRanges();
       var antiHarmRules = eventJobRunner.getEvaluationRules().getAntiHarmRules();
       var ratingProperties = eventJobRunner.getRatingProperties();
 
-      List<CalendarEvent> eventsWithAddress = getEventWithAddress(user, eventJobRunner, ranges);
-      List<String> locations = retrieveLocations(eventsWithAddress);
+      eventsWithAddress = getEventWithAddress(user, eventJobRunner, ranges);
+      locations = retrieveLocations(eventsWithAddress);
       HashMap<String, List<ProspectEval>> prospectsByEvents =
           getProspectsToEvaluate(user, eventJobRunner, locations);
 
@@ -138,10 +142,52 @@ public class ProspectEvaluationJobInitiatedService
       }
     } catch (Exception e) {
       updateJobStatus(runningJob, FAILED, e.getMessage());
-      log.error("Exception occurred when treating job {} : {}",
+      log.warn("Exception occurred when treating job {} : {}",
           runningJob.describe(),
           e.getMessage());
+      String recipient = eventConf.getAdminEmail();
+      try {
+        String concerned = null;
+        String runningJobStart = formatFrenchDatetime(runningJob.getStartedAt());
+        String subject =
+            "Erreur lors de l'évaluation de prospects de " + runningHolder.getName()
+                + " lancés le " + runningJobStart;
+        String htmlBody = evaluationJobFailedEmailBody(
+            job,
+            runningHolder,
+            eventsWithAddress,
+            e,
+            runningJobStart);
+        sesService.sendEmail(
+            recipient,
+            concerned,
+            subject,
+            htmlBody,
+            List.of());
+        log.info("Email sent to email to " + recipient + " after processing prospect evaluation "
+            + runningJob.describe());
+      } catch (IOException | MessagingException ex) {
+        log.warn(
+            "Unable to send email to " + recipient + " after processing prospect evaluation "
+                + runningJob.describe());
+      }
     }
+  }
+
+  private String evaluationJobFailedEmailBody(ProspectEvaluationJobRunner job,
+                                              AccountHolder runningHolder,
+                                              List<CalendarEvent> eventsWithAddress,
+                                              Exception e,
+                                              String runningJobStart) {
+    Context context = new Context();
+    context.setVariable("accountHolder", runningHolder);
+    context.setVariable("job", job);
+    context.setVariable("runningJobStart", runningJobStart);
+    context.setVariable("events", eventsWithAddress);
+    context.setVariable("exception", e);
+    return TemplateResolverUtils.parseTemplateResolver(
+        JOB_PROCESSING_FAILED_EMAIL_TEMPLATE,
+        context);
   }
 
   private List<CalendarEvent> getEventWithAddress(User user, EventJobRunner eventJobRunner,
@@ -189,7 +235,7 @@ public class ProspectEvaluationJobInitiatedService
           emailBody);
     } catch (Exception e) {
       updateJobStatus(runningJob, FAILED, e.getMessage());
-      log.error("Exception occurred when treating job {} : {}",
+      log.warn("Exception occurred when treating job {} : {}",
           runningJob.describe(),
           e.getMessage());
     }
@@ -301,7 +347,7 @@ public class ProspectEvaluationJobInitiatedService
       log.info("Job(id=" + finishedJob.getId() + ") "
           + finishedJob.getJobStatus().getMessage());
     } catch (IOException | MessagingException e) {
-      log.error("Exception occurred when sending mail of job {} : {}",
+      log.warn("Exception occurred when sending mail of job {} : {}",
           finishedJob.describe(),
           e.getMessage());
     }

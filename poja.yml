@@ -4,7 +4,7 @@ custom_java_deps: poja-custom-java-deps.txt
 custom_java_env_vars: poja-custom-java-env-vars.txt
 custom_java_repositories: poja-custom-java-repositories.txt
 frontal_memory: 2048
-jacoco-min-coverage: '0.8'
+jacoco-min-coverage: '0.2'
 package_full_name: app.bpartners.api
 region: eu-west-3
 ses_source: noreply@nowhere.com

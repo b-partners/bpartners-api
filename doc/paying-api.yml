@@ -155,7 +155,9 @@ operations:
     put:
       tags:
         - Paying
-      summary: Add supporting documents file infos for a transaction
+      summary: | 
+        Add supporting documents file infos for a transaction.
+        For now, only one document can be uploaded at once.
       operationId: addTransactionSupportingDocuments
       parameters:
         - in: path
@@ -174,16 +176,21 @@ operations:
         required: true
         description: |
           Allowed file types are JPEG, PNG and PDF.
-          Each file size must be under or equals 1MB.
-          At most, 5 files can upload be uploaded once.
+          Only one supporting document can be uploaded at once for now.
+          File size must be under or equals 1MB.
         content:
-          multipart/form-data:
+          image/jpeg:
             schema:
-              type: array
-              items:
-                schema:
-                  type: string
-                  format: binary
+              type: string
+              format: binary
+          image/png:
+            schema:
+              type: string
+              format: binary
+          application/pdf:
+            schema:
+              type: string
+              format: binary
       responses:
         200:
           description: Supporting documents file infos associated to transactions

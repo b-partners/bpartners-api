@@ -125,6 +125,7 @@ public class S3Service {
     String key = getKey(idUser);
     switch (fileType) {
       case TRANSACTION:
+      case TRANSACTION_SUPPORTING_DOCS:
         return uploadFile(getTransactionKey(fileId), toUpload);
       case LOGO:
         return uploadFile(getLogoKey(key, fileId), toUpload);
@@ -152,6 +153,7 @@ public class S3Service {
     String key = getKey(idUser);
     switch (fileType) {
       case TRANSACTION:
+      case TRANSACTION_SUPPORTING_DOCS:
         return downloadFile(getTransactionKey(fileId));
       case LOGO:
         return downloadFile(getLogoKey(key, fileId));

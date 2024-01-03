@@ -8,9 +8,11 @@ import app.bpartners.api.model.Transaction;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.model.mapper.TransactionMapper;
+import app.bpartners.api.model.mapper.TransactionSupportingDocsMapper;
 import app.bpartners.api.repository.connectors.transaction.TransactionConnector;
 import app.bpartners.api.repository.connectors.transaction.TransactionConnectorRepository;
 import app.bpartners.api.repository.jpa.TransactionJpaRepository;
+import app.bpartners.api.repository.jpa.TransactionSupportingDocsJpaRepository;
 import app.bpartners.api.repository.jpa.model.HTransaction;
 import java.time.Instant;
 import java.util.Comparator;
@@ -28,6 +30,8 @@ public class BridgeTransactionRepository implements TransactionRepository {
   private final TransactionCategoryRepository categoryRepository;
   private final TransactionJpaRepository jpaRepository;
   private final TransactionConnectorRepository connectorRepository;
+  private final TransactionSupportingDocsJpaRepository transactionDocsRep;
+  private final TransactionSupportingDocsMapper transactionDocsMapper;
 
   @Override
   public List<Transaction> findByIdAccount(
@@ -57,10 +61,12 @@ public class BridgeTransactionRepository implements TransactionRepository {
                 })
             .toList();
     return entities.stream()
-        .map(
-            entity ->
-                mapper.toDomain(entity, categoryRepository.findByIdTransaction(entity.getId())))
-        // TODO: when getting from database only, sort by payment date DESC directly in db query
+        .map(entity -> mapper.toDomain(entity,
+            categoryRepository.findByIdTransaction(entity.getId()),
+            transactionDocsRep.findAllByIdTransaction(entity.getId()).stream()
+                .map(transactionDocsMapper::toDomain)
+                .toList()))
+        //TODO: when getting from database only, sort by payment date DESC directly in db query
         .sorted(Comparator.comparing(Transaction::getPaymentDatetime).reversed())
         .collect(Collectors.toList());
   }

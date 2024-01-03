@@ -1,3 +1,32 @@
+# [0.38.0](https://github.com/b-partners/bpartners-api/compare/v0.37.2...v0.38.0) (2024-01-03)
+
+
+### Bug Fixes
+
+* add name attribute to customer instead of first or last name ([262447f](https://github.com/b-partners/bpartners-api/commit/262447f746daf445f5690dee0529b9f2663edb79))
+* avoid NPE when checking customers locations update ([fdb05f5](https://github.com/b-partners/bpartners-api/commit/fdb05f577822f82f416089c9fa57f4ccb16b7f54))
+* do not check sogefi prospector when business activity is null ([25e13b8](https://github.com/b-partners/bpartners-api/commit/25e13b88039cf73a8b30c7ec40f572a3175209e8))
+* do not rethrow error when terminating job in prospectEvaluationJob ([d38c99c](https://github.com/b-partners/bpartners-api/commit/d38c99c4a17bc2228431be7f4362966411816389))
+* drop postgis extension cascade ([2dadc67](https://github.com/b-partners/bpartners-api/commit/2dadc67cd6e3450af41e6605d4212c72af44bc6e))
+* only give INDIVIDUAL type for customer when provided type is null ([73d89ac](https://github.com/b-partners/bpartners-api/commit/73d89ac0323910f0308d72f26fc71c0b81192c19))
+* order calendar list by OWNER permission ([eaa5f6f](https://github.com/b-partners/bpartners-api/commit/eaa5f6f104d9525027ebe23ecc24026ebcc7f911))
+* refresh calendars when exchanging calendar token ([16762b4](https://github.com/b-partners/bpartners-api/commit/16762b419782aac55945f4c485bdd04bb1459972))
+* refresh invoice after payment webhook update ([aba6815](https://github.com/b-partners/bpartners-api/commit/aba681517024e450beb6f0a08e7a0d12d0af242f))
+* rename customer fullName method ([14fa14f](https://github.com/b-partners/bpartners-api/commit/14fa14f9a8f9b3de34254fd715eb859f2fb70fed))
+* retrieve customer name for POST endpoint creation ([1be6a29](https://github.com/b-partners/bpartners-api/commit/1be6a29e4223f2bc52f0960ed131ef881d184655))
+* send email when saving prospects ([a5fe147](https://github.com/b-partners/bpartners-api/commit/a5fe14784c2a4ee166e07ca9843d077ad87a9ae5))
+* update customer position if latest value is null ([46ad8f5](https://github.com/b-partners/bpartners-api/commit/46ad8f5e7cba6ff73078f53684f933b87d904727))
+* validate email body before sending email from scratch ([3cdd601](https://github.com/b-partners/bpartners-api/commit/3cdd601294069e69678c1c3246dc8c6d985ebd5f))
+* verify calendar access token before running job service ([768c359](https://github.com/b-partners/bpartners-api/commit/768c35997ec989a27c8da299f0eff6ae7585e52b))
+
+
+### Features
+
+* add  and get external supporting documents to transaction ([9994bdc](https://github.com/b-partners/bpartners-api/commit/9994bdcf07c8a06f9b223d1c2f4c7be91f7fa316))
+* add customer type to customers ([e035bb2](https://github.com/b-partners/bpartners-api/commit/e035bb270544c1f4db155c1563d9b206293b71e6))
+
+
+
 ## [0.37.2](https://github.com/b-partners/bpartners-api/compare/v0.37.1...v0.37.2) (2023-12-07)
 
 
@@ -189,28 +218,6 @@
 
 * Revert "chore(to-reset): re deploy old api at api-prod" ([13e86cb](https://github.com/b-partners/bpartners-api/commit/13e86cb989a60f07826f0e8e8744cf605a97698f))
 * Revert "chore(to-reset): use 20 as listenerRulePriority to old-api" ([f431c21](https://github.com/b-partners/bpartners-api/commit/f431c21fd4b2daabe3da4e3f4443543666680937))
-
-
-
-# [0.33.0](https://github.com/b-partners/bpartners-api/compare/v0.32.2...v0.33.0) (2023-10-05)
-
-
-### Bug Fixes
-
-* avoid NPE when getting calendar events through google calendar ([14b3f35](https://github.com/b-partners/bpartners-api/commit/14b3f35f210f6e9f85562626a1310314a4151d4e))
-* do not filter old customers by distance when evaluting prospects ([0e58062](https://github.com/b-partners/bpartners-api/commit/0e5806245215381077981b4c61d7ca695d799b23))
-* return metadata when launching new prospect evaluation job ([b0d980a](https://github.com/b-partners/bpartners-api/commit/b0d980a87984048be10510a62fe39b70863c2762))
-
-
-### Features
-
-* import prospects through google sheet ([a81e1b7](https://github.com/b-partners/bpartners-api/commit/a81e1b70c6f44dff906915c20451e8b375fd42e1))
-* send email to admin after each prospect update status ([607a61c](https://github.com/b-partners/bpartners-api/commit/607a61cf132fa5d73aeef0e9b44c2b947e654f13))
-
-
-### Reverts
-
-* Revert "infra: update listener rule target to xx-api.{env}.xxx"  ([fb59abc](https://github.com/b-partners/bpartners-api/commit/fb59abcd67dac31daf815e7648654ddd365722ac))
 
 
 

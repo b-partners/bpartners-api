@@ -173,6 +173,8 @@ public class TestUtils {
   public static final String JOE_EMAIL = "joe@email.com";
   public static final String JANE_EMAIL = "jane@email.com";
   public static final String BERNARD_EMAIL = "bernard@email.com";
+  public static final String TRANSACTION3_ID = "transaction3_id";
+
 
   public static User restJoeDoeUser() {
     return new User()

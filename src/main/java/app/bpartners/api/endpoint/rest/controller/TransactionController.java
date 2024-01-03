@@ -10,10 +10,14 @@ import app.bpartners.api.endpoint.rest.model.TransactionsSummary;
 import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.endpoint.rest.validator.TransactionExportValidator;
 import app.bpartners.api.model.BoundedPageSize;
+import app.bpartners.api.endpoint.rest.model.FileInfo;
 import app.bpartners.api.model.PageFromOne;
+import app.bpartners.api.model.exception.NotImplementedException;
+import app.bpartners.api.model.mapper.FileMapper;
 import app.bpartners.api.service.TransactionService;
 import java.util.List;
 import lombok.AllArgsConstructor;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -29,6 +33,35 @@ public class TransactionController {
   private final TransactionRestMapper mapper;
   private final TransactionsSummaryRestMapper summaryRestMapper;
   private final TransactionExportValidator exportValidator;
+  private final FileMapper fileMapper;
+
+  @GetMapping("/accounts/{aId}/transactions/{tId}/supportingDocuments")
+  public List<FileInfo> getTransactionSupportingDocuments(@PathVariable String aId,
+                                                          @PathVariable String tId) {
+    return service.getSupportingDocuments(tId).stream()
+        .map(supportingDoc -> fileMapper.toRest(supportingDoc.getFileInfo()))
+        .toList();
+  }
+
+  @PostMapping("/accounts/{aId}/transactions/{tId}/supportingDocuments")
+  public List<FileInfo> addTransactionSupportingDocuments(@PathVariable String aId,
+                                                          @PathVariable String tId,
+                                                          @RequestBody byte[] documentAsBytes) {
+    return service.addSupportingDocuments(
+            AuthProvider.getAuthenticatedUserId(),
+            tId,
+            documentAsBytes).stream()
+        .map(supportingDoc -> fileMapper.toRest(supportingDoc.getFileInfo()))
+        .toList();
+  }
+
+  @DeleteMapping("/accounts/{aId}/transactions/{tId}/supportingDocuments")
+  public List<FileInfo> deleteTransactionSupportingDocuments(@PathVariable String aId,
+                                                             @PathVariable String tId,
+                                                             @RequestBody
+                                                             List<String> supportingDocumentsIds) {
+    throw new NotImplementedException("Not supported");
+  }
 
   @PostMapping(value = "/accounts/{id}/transactions/exportLink")
   public TransactionExportLink generateTransactionsExportLink(

@@ -8,6 +8,8 @@ import app.bpartners.api.endpoint.rest.model.TransactionTypeEnum;
 import app.bpartners.api.model.exception.ApiException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -49,6 +51,7 @@ public class Transaction {
 
   @Getter(AccessLevel.NONE)
   private Instant paymentDatetime;
+  private List<TransactionSupportingDocs> supportingDocuments = new ArrayList<>();
 
   public Instant getPaymentDatetime() {
     return paymentDatetime.truncatedTo(ChronoUnit.MILLIS);

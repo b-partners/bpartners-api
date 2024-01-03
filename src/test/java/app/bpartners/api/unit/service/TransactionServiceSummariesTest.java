@@ -7,9 +7,9 @@ import app.bpartners.api.model.MonthlyTransactionsSummary;
 import app.bpartners.api.model.Transaction;
 import app.bpartners.api.repository.BridgeTransactionRepository;
 import app.bpartners.api.repository.DbTransactionRepository;
-import app.bpartners.api.repository.TransactionRepository;
 import app.bpartners.api.repository.TransactionsSummaryRepository;
 import app.bpartners.api.service.AccountService;
+import app.bpartners.api.service.FileService;
 import app.bpartners.api.service.InvoiceService;
 import app.bpartners.api.service.TransactionService;
 import app.bpartners.api.service.UserService;
@@ -41,6 +41,8 @@ class TransactionServiceSummariesTest {
   InvoiceService invoiceServiceMock;
   S3Service s3ServiceMock;
   UserService userServiceMock;
+  FileService fileServiceMock;
+
 
   private static Account joeDoeAccount() {
     return Account.builder()
@@ -58,6 +60,7 @@ class TransactionServiceSummariesTest {
     invoiceServiceMock = mock(InvoiceService.class);
     s3ServiceMock = mock(S3Service.class);
     userServiceMock = mock(UserService.class);
+    fileServiceMock = mock(FileService.class);
     transactionService = new TransactionService(
         dbTransactionRepository,
         bridgeTransactionRepository,
@@ -65,7 +68,8 @@ class TransactionServiceSummariesTest {
         accountService,
         invoiceServiceMock,
         s3ServiceMock,
-        userServiceMock
+        userServiceMock,
+        fileServiceMock
     );
 
     when(

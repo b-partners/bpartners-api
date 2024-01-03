@@ -20,6 +20,7 @@ import org.springframework.web.servlet.HandlerExceptionResolver;
 
 import static app.bpartners.api.endpoint.rest.security.model.Role.EVAL_PROSPECT;
 import static app.bpartners.api.endpoint.rest.security.model.Role.INVOICE_RELAUNCHER;
+import static org.springframework.http.HttpMethod.DELETE;
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpMethod.OPTIONS;
 import static org.springframework.http.HttpMethod.POST;
@@ -136,6 +137,15 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
                 authResourceProvider)).authenticated()
         .requestMatchers(
             new SelfAccountMatcher(PUT, "/accounts/*/transactions/*/invoices/*",
+                authResourceProvider)).authenticated()
+        .requestMatchers(
+            new SelfAccountMatcher(GET, "/accounts/*/transactions/*/supportingDocuments",
+                authResourceProvider)).authenticated()
+        .requestMatchers(
+            new SelfAccountMatcher(POST, "/accounts/*/transactions/*/supportingDocuments",
+                authResourceProvider)).authenticated()
+        .requestMatchers(
+            new SelfAccountMatcher(DELETE, "/accounts/*/transactions/*/supportingDocuments",
                 authResourceProvider)).authenticated()
         .requestMatchers(new SelfUserMatcher(GET, "/users/*/accounts", authResourceProvider))
         .authenticated()

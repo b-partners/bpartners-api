@@ -4,11 +4,14 @@ import app.bpartners.api.endpoint.rest.model.EnableStatus;
 import app.bpartners.api.model.Money;
 import app.bpartners.api.model.Transaction;
 import app.bpartners.api.model.TransactionCategory;
+import app.bpartners.api.model.TransactionSupportingDocs;
 import app.bpartners.api.repository.bridge.model.Transaction.BridgeTransaction;
 import app.bpartners.api.repository.connectors.transaction.TransactionConnector;
+import app.bpartners.api.repository.jpa.model.HInvoice;
 import app.bpartners.api.repository.jpa.model.HTransaction;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -22,6 +25,7 @@ import static java.util.UUID.randomUUID;
 @AllArgsConstructor
 public class TransactionMapper {
   private final InvoiceMapper invoiceMapper;
+  private final TransactionSupportingDocsMapper docsMapper;
 
   public TransactionConnector toConnector(BridgeTransaction bridgeTransaction) {
     return TransactionConnector.builder()
@@ -53,9 +57,11 @@ public class TransactionMapper {
         .build();
   }
 
-  public HTransaction toEntity(Transaction domain) {
+  public HTransaction toEntity(Transaction domain,
+                               HInvoice invoiceEntity) {
+
     return HTransaction.builder()
-        .id(String.valueOf(randomUUID()))
+        .id(domain.getId())
         .idBridge(domain.getIdBridge())
         .idAccount(domain.getIdAccount())
         .amount(String.valueOf(domain.getAmount().getValue()))
@@ -65,6 +71,7 @@ public class TransactionMapper {
         .currency(domain.getCurrency())
         .label(domain.getLabel())
         .enableStatus(domain.getEnableStatus())
+        .invoice(invoiceEntity)
         .build();
   }
 
@@ -85,7 +92,10 @@ public class TransactionMapper {
         .build();
   }
 
-  public Transaction toDomain(HTransaction entity, TransactionCategory category) {
+  public Transaction toDomain(
+      HTransaction entity,
+      TransactionCategory category,
+      List<TransactionSupportingDocs> supportingDocs) {
     return Transaction.builder()
         .id(entity.getId())
         .idAccount(entity.getIdAccount())
@@ -99,6 +109,7 @@ public class TransactionMapper {
         .status(entity.getStatus())
         .category(category)
         .enableStatus(entity.getEnableStatus())
+        .supportingDocuments(supportingDocs)
         .build();
   }
 }

@@ -21,9 +21,4 @@ public class SesConf {
     this.adminEmail = adminEmail;
     this.region = region;
   }
-
-  @Bean
-  public SesClient getSesClient() {
-    return SesClient.builder().region(region).build();
-  }
 }

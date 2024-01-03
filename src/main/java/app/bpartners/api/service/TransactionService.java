@@ -6,6 +6,7 @@ import app.bpartners.api.endpoint.rest.model.TransactionStatus;
 import app.bpartners.api.endpoint.rest.model.TransactionTypeEnum;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.BoundedPageSize;
+import app.bpartners.api.model.FileInfo;
 import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.JustifyTransaction;
@@ -14,6 +15,7 @@ import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.model.Transaction;
 import app.bpartners.api.model.TransactionExportDetails;
 import app.bpartners.api.model.TransactionInvoiceDetails;
+import app.bpartners.api.model.TransactionSupportingDocs;
 import app.bpartners.api.model.TransactionsSummary;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.ApiException;
@@ -33,6 +35,7 @@ import java.time.Year;
 import java.time.YearMonth;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -50,6 +53,7 @@ import org.apfloat.Aprational;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import static app.bpartners.api.endpoint.rest.model.FileType.TRANSACTION_SUPPORTING_DOCS;
 import static app.bpartners.api.endpoint.rest.model.TransactionStatus.BOOKED;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 import static java.time.Instant.now;
@@ -67,6 +71,41 @@ public class TransactionService {
   private final InvoiceService invoiceService;
   private final S3Service s3Service;
   private final UserService userService;
+  private final FileService fileService;
+
+  public List<TransactionSupportingDocs> getSupportingDocuments(String transactionId) {
+    Transaction transaction = dbTransactionRepository.findById(transactionId);
+    return transaction.getSupportingDocuments();
+  }
+
+  public List<TransactionSupportingDocs> addSupportingDocuments(
+      String idUser,
+      String transactionId,
+      byte[] documentAsBytes) {
+    Transaction transaction = dbTransactionRepository.findById(transactionId);
+
+    String fileId = String.valueOf(randomUUID());
+    String supportingDocsId = String.valueOf(randomUUID());
+
+    FileInfo uploadedFileInfo =
+        fileService.upload(fileId, TRANSACTION_SUPPORTING_DOCS, idUser, documentAsBytes);
+
+    List<TransactionSupportingDocs> actualDocs =
+        new ArrayList<>(transaction.getSupportingDocuments());
+
+    actualDocs.add(TransactionSupportingDocs.builder()
+        .id(supportingDocsId)
+        .fileInfo(uploadedFileInfo)
+        .build());
+
+    Transaction savedTransaction = dbTransactionRepository.saveAll(
+        List.of(
+            transaction.toBuilder()
+                .supportingDocuments(actualDocs)
+                .build())).get(0);
+
+    return savedTransaction.getSupportingDocuments();
+  }
 
   public TransactionExportDetails generateTransactionSummaryLink(String idAccount,
                                                                  Instant from, Instant to,

@@ -152,10 +152,10 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
-    put:
+    post:
       tags:
         - Paying
-      summary: | 
+      summary: |
         Add supporting documents file infos for a transaction.
         For now, only one document can be uploaded at once.
       operationId: addTransactionSupportingDocuments

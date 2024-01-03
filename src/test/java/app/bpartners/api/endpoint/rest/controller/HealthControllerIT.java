@@ -7,11 +7,12 @@ import app.bpartners.api.PojaGenerated;
 import app.bpartners.api.conf.FacadeIT;
 import app.bpartners.api.endpoint.rest.controller.health.HealthDbController;
 import app.bpartners.api.endpoint.rest.controller.health.PingController;
+import app.bpartners.api.integration.conf.MockedThirdParties;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 @PojaGenerated
-class HealthControllerIT extends FacadeIT {
+class HealthControllerIT extends MockedThirdParties {
 
   @Autowired PingController pingController;
   @Autowired HealthDbController healthDbController;

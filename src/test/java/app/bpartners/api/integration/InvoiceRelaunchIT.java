@@ -18,6 +18,9 @@ import static app.bpartners.api.integration.conf.utils.TestUtils.setUpPaymentIni
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.when;
 
 import app.bpartners.api.endpoint.rest.api.PayingApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
@@ -32,9 +35,11 @@ import app.bpartners.api.integration.conf.S3MockedThirdParties;
 import app.bpartners.api.integration.conf.utils.TestUtils;
 import app.bpartners.api.repository.fintecture.FintecturePaymentInfoRepository;
 import app.bpartners.api.repository.fintecture.FintecturePaymentInitiationRepository;
+import app.bpartners.api.service.aws.SesService;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.List;
+import javax.mail.MessagingException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -50,6 +55,7 @@ class InvoiceRelaunchIT extends S3MockedThirdParties {
   @MockBean private FintecturePaymentInitiationRepository paymentInitiationRepositoryMock;
   @MockBean private FintecturePaymentInfoRepository paymentInfoRepositoryMock;
   @MockBean private EventBridgeClient eventBridgeClientMock;
+  @MockBean private SesService sesServiceMock;
 
   private ApiClient anApiClient() {
     return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN, localPort);
@@ -70,7 +76,7 @@ class InvoiceRelaunchIT extends S3MockedThirdParties {
         .type(RelaunchType.PROPOSAL)
         .accountId(JOE_DOE_ACCOUNT_ID)
         .isUserRelaunched(true)
-        .emailInfo(new EmailInfo())
+        .emailInfo(new EmailInfo().emailObject(""))
         .creationDatetime(Instant.parse("2022-01-01T01:00:00.00Z"))
         .attachments(List.of(attachment1(), attachment2()));
   }
@@ -89,7 +95,7 @@ class InvoiceRelaunchIT extends S3MockedThirdParties {
         .type(RelaunchType.CONFIRMED)
         .accountId(JOE_DOE_ACCOUNT_ID)
         .isUserRelaunched(false)
-        .emailInfo(new EmailInfo())
+        .emailInfo(new EmailInfo().emailObject(""))
         .creationDatetime(Instant.parse("2022-01-01T01:00:00.00Z"))
         .attachments(List.of());
   }
@@ -114,7 +120,7 @@ class InvoiceRelaunchIT extends S3MockedThirdParties {
         .accountId(JOE_DOE_ACCOUNT_ID)
         .emailInfo(
             new EmailInfo()
-                .emailObject("[NUMER] relaunch_object")
+                .emailObject("relaunch_object")
                 .emailBody("<p>Email body</p>")
                 .attachmentFileId("file1_id"))
         .isUserRelaunched(true)
@@ -133,7 +139,8 @@ class InvoiceRelaunchIT extends S3MockedThirdParties {
   }
 
   @Test
-  void relaunch_invoice_ok() throws ApiException, IOException {
+  void relaunch_invoice_ok() throws ApiException, IOException, MessagingException {
+    doNothing().when(sesServiceMock).sendEmail(any(), any(), any(), any(), any(), any());
     ApiClient joeDoeClient = anApiClient();
     PayingApi api = new PayingApi(joeDoeClient);
 

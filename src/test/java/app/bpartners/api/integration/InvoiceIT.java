@@ -232,7 +232,7 @@ class InvoiceIT extends S3MockedThirdParties {
             .archiveStatus(ENABLED)
             .sendingDate(LocalDate.now())
             .updatedAt(actualConfirmed.getUpdatedAt()),
-            actualConfirmed.createdAt(null));
+        actualConfirmed.createdAt(null));
     assertNotNull(actualConfirmed.getFileId());
     assertNotEquals(INVOICE4_ID, actualConfirmed.getId());
     assertNotNull(actualConfirmed.getUpdatedAt());

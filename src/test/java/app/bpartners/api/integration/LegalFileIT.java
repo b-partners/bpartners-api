@@ -1,5 +1,15 @@
 package app.bpartners.api.integration;
 
+import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.assertThrowsApiException;
+import static app.bpartners.api.integration.conf.utils.TestUtils.assertThrowsForbiddenException;
+import static app.bpartners.api.integration.conf.utils.TestUtils.defaultLegalFile;
+import static app.bpartners.api.integration.conf.utils.TestUtils.legalFile1;
+import static app.bpartners.api.integration.conf.utils.TestUtils.setUpCognito;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import app.bpartners.api.SentryConf;
 import app.bpartners.api.conf.FacadeIT;
 import app.bpartners.api.endpoint.event.EventProducer;
@@ -25,43 +35,21 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.assertThrowsApiException;
-import static app.bpartners.api.integration.conf.utils.TestUtils.assertThrowsForbiddenException;
-import static app.bpartners.api.integration.conf.utils.TestUtils.defaultLegalFile;
-import static app.bpartners.api.integration.conf.utils.TestUtils.legalFile1;
-import static app.bpartners.api.integration.conf.utils.TestUtils.setUpCognito;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 @Testcontainers
 @AutoConfigureMockMvc
 class LegalFileIT extends FacadeIT {
-  @LocalServerPort
-  protected int localPort;
-  @MockBean
-  protected PaymentScheduleService paymentScheduleService;
-  @MockBean
-  BuildingPermitConf buildingPermitConf;
-  @MockBean
-  SentryConf sentryConf;
-  @MockBean
-  SendinblueConf sendinblueConf;
-  @MockBean
-  S3Conf s3Conf;
-  @MockBean
-  CognitoComponent cognitoComponentMock;
-  @MockBean
-  FintectureConf fintectureConf;
-  @MockBean
-  ProjectTokenManager projectTokenManager;
-  @MockBean
-  AccountConnectorRepository accountConnectorRepositoryMock;
-  @MockBean
-  BridgeApi bridgeApi;
-  @MockBean
-  EventProducer eventProducer;
+  @LocalServerPort protected int localPort;
+  @MockBean protected PaymentScheduleService paymentScheduleService;
+  @MockBean BuildingPermitConf buildingPermitConf;
+  @MockBean SentryConf sentryConf;
+  @MockBean SendinblueConf sendinblueConf;
+  @MockBean S3Conf s3Conf;
+  @MockBean CognitoComponent cognitoComponentMock;
+  @MockBean FintectureConf fintectureConf;
+  @MockBean ProjectTokenManager projectTokenManager;
+  @MockBean AccountConnectorRepository accountConnectorRepositoryMock;
+  @MockBean BridgeApi bridgeApi;
+  @MockBean EventProducer eventProducer;
 
   public static final String NOT_EXISTING_LEGAL_FILE = "not_existing_legal_file";
 

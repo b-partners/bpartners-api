@@ -35,7 +35,6 @@ import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
-
 import org.junit.jupiter.api.*;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -254,8 +253,7 @@ public class CalendarEventIT extends MockedThirdParties {
     List<CalendarEvent> savedCalendarEvents =
         api.crupdateCalendarEvents(
             JOE_DOE_ID,
-            "calendar1" +
-                    "_id",
+            "calendar1" + "_id",
             List.of(calendarEventToCreate1(), calendarEventToCreate2()));
     calendarEventToUpdate().setId(savedCalendarEvents.get(0).getId());
     List<CalendarEvent> updatedCalendarEvents =

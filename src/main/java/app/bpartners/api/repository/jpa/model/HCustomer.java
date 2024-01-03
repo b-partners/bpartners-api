@@ -49,6 +49,7 @@ public class HCustomer {
   @Type(type = "pgsql_enum")
   @Enumerated(EnumType.STRING)
   private CustomerType customerType;
+
   @Type(type = "pgsql_enum")
   @Enumerated(EnumType.STRING)
   private CustomerStatus status;

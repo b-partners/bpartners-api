@@ -3,7 +3,6 @@ package app.bpartners.api.unit.objectMapper;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import app.bpartners.api.conf.FacadeIT;
 import app.bpartners.api.integration.conf.MockedThirdParties;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.exc.InvalidDefinitionException;

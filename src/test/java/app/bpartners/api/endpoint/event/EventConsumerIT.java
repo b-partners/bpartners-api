@@ -4,7 +4,6 @@ import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import app.bpartners.api.PojaGenerated;
-import app.bpartners.api.conf.FacadeIT;
 import app.bpartners.api.endpoint.event.gen.UuidCreated;
 import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.repository.DummyUuidRepository;

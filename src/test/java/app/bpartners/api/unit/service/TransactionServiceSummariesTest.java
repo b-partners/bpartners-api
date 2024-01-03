@@ -43,7 +43,6 @@ class TransactionServiceSummariesTest {
   UserService userServiceMock;
   FileService fileServiceMock;
 
-
   private static Account joeDoeAccount() {
     return Account.builder().userId(JOE_DOE_ID).availableBalance(new Money()).build();
   }
@@ -58,16 +57,16 @@ class TransactionServiceSummariesTest {
     s3ServiceMock = mock(S3Service.class);
     userServiceMock = mock(UserService.class);
     fileServiceMock = mock(FileService.class);
-    transactionService = new TransactionService(
-        dbTransactionRepository,
-        bridgeTransactionRepository,
-        transactionsSummaryRepository,
-        accountService,
-        invoiceServiceMock,
-        s3ServiceMock,
-        userServiceMock,
-        fileServiceMock
-    );
+    transactionService =
+        new TransactionService(
+            dbTransactionRepository,
+            bridgeTransactionRepository,
+            transactionsSummaryRepository,
+            accountService,
+            invoiceServiceMock,
+            s3ServiceMock,
+            userServiceMock,
+            fileServiceMock);
 
     when(dbTransactionRepository.findByAccountIdAndStatusBetweenInstants(
             any(), any(), any(), any()))

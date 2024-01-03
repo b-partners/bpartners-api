@@ -82,13 +82,15 @@ public class DbTransactionRepository implements TransactionRepository {
     Pageable pageable =
         PageRequest.of(page, pageSize, Sort.by(Sort.Direction.DESC, "paymentDateTime"));
     List<HTransaction> transactions = filterByIdAccountAndLabel(idAccount, label, status, pageable);
-    return transactions
-        .stream()
-        .map(transaction -> mapper.toDomain(transaction,
-            categoryRepository.findByIdTransaction(transaction.getId()),
-            transactionDocsRep.findAllByIdTransaction(transaction.getId()).stream()
-                .map(transactionDocsMapper::toDomain)
-                .toList()))
+    return transactions.stream()
+        .map(
+            transaction ->
+                mapper.toDomain(
+                    transaction,
+                    categoryRepository.findByIdTransaction(transaction.getId()),
+                    transactionDocsRep.findAllByIdTransaction(transaction.getId()).stream()
+                        .map(transactionDocsMapper::toDomain)
+                        .toList()))
         .collect(Collectors.toList());
   }
 
@@ -96,11 +98,14 @@ public class DbTransactionRepository implements TransactionRepository {
   @Override
   public List<Transaction> findByAccountId(String id) {
     return jpaRepository.findAllByIdAccountOrderByPaymentDateTimeDesc(id).stream()
-        .map(transaction -> mapper.toDomain(transaction,
-            categoryRepository.findByIdTransaction(transaction.getId()),
-            transactionDocsRep.findAllByIdTransaction(transaction.getId()).stream()
-                .map(transactionDocsMapper::toDomain)
-                .toList()))
+        .map(
+            transaction ->
+                mapper.toDomain(
+                    transaction,
+                    categoryRepository.findByIdTransaction(transaction.getId()),
+                    transactionDocsRep.findAllByIdTransaction(transaction.getId()).stream()
+                        .map(transactionDocsMapper::toDomain)
+                        .toList()))
         .toList();
   }
 
@@ -111,7 +116,8 @@ public class DbTransactionRepository implements TransactionRepository {
             .findById(id)
             .orElseThrow(() -> new NotFoundException("Transaction." + id + " is not found."));
     return mapper.toDomain(
-        transaction, categoryRepository.findByIdTransaction(transaction.getId()),
+        transaction,
+        categoryRepository.findByIdTransaction(transaction.getId()),
         transactionDocsRep.findAllByIdTransaction(transaction.getId()).stream()
             .map(transactionDocsMapper::toDomain)
             .toList());
@@ -127,16 +133,21 @@ public class DbTransactionRepository implements TransactionRepository {
 
   @Override
   public Transaction save(JustifyTransaction toSave) {
-    HTransaction entity = jpaRepository.findById(toSave.getIdTransaction())
-        .orElseThrow(() -> new NotFoundException("Transaction(id=" + toSave.getIdTransaction()
-            + ") not found"));
-    HInvoice invoice = invoiceJpaRepository.findById(toSave.getIdInvoice())
-        .orElseThrow(() -> new NotFoundException("Invoice(id=" + toSave.getIdInvoice()
-            + ") not found"));
-    HTransaction savedTransaction = jpaRepository.save(entity.toBuilder()
-        .invoice(invoice)
-        .build());
-    return mapper.toDomain(savedTransaction,
+    HTransaction entity =
+        jpaRepository
+            .findById(toSave.getIdTransaction())
+            .orElseThrow(
+                () ->
+                    new NotFoundException(
+                        "Transaction(id=" + toSave.getIdTransaction() + ") not found"));
+    HInvoice invoice =
+        invoiceJpaRepository
+            .findById(toSave.getIdInvoice())
+            .orElseThrow(
+                () -> new NotFoundException("Invoice(id=" + toSave.getIdInvoice() + ") not found"));
+    HTransaction savedTransaction = jpaRepository.save(entity.toBuilder().invoice(invoice).build());
+    return mapper.toDomain(
+        savedTransaction,
         categoryRepository.findByIdTransaction(entity.getId()),
         transactionDocsRep.findAllByIdTransaction(entity.getId()).stream()
             .map(transactionDocsMapper::toDomain)
@@ -146,32 +157,40 @@ public class DbTransactionRepository implements TransactionRepository {
   @Override
   public List<Transaction> saveAll(List<Transaction> transactions) {
     List<HTransactionSupportingDocs> supportingDocsList = new ArrayList<>();
-    List<HTransaction> entities = transactions.stream()
-        .map(transaction -> {
-          TransactionInvoiceDetails invoiceDetails = transaction.getInvoiceDetails();
-          HInvoice invoice = invoiceDetails == null || invoiceDetails.getIdInvoice() == null ? null
-              : invoiceJpaRepository.getById(invoiceDetails.getIdInvoice());
+    List<HTransaction> entities =
+        transactions.stream()
+            .map(
+                transaction -> {
+                  TransactionInvoiceDetails invoiceDetails = transaction.getInvoiceDetails();
+                  HInvoice invoice =
+                      invoiceDetails == null || invoiceDetails.getIdInvoice() == null
+                          ? null
+                          : invoiceJpaRepository.getById(invoiceDetails.getIdInvoice());
 
-          List<HTransactionSupportingDocs> existingSuppDocs =
-              transactionDocsRep.findAllByIdTransaction(transaction.getId());
+                  List<HTransactionSupportingDocs> existingSuppDocs =
+                      transactionDocsRep.findAllByIdTransaction(transaction.getId());
 
-          supportingDocsList.addAll(Stream.of(existingSuppDocs, computeSupportingDocs(transaction))
-              .flatMap(List::stream)
-              .toList());
+                  supportingDocsList.addAll(
+                      Stream.of(existingSuppDocs, computeSupportingDocs(transaction))
+                          .flatMap(List::stream)
+                          .toList());
 
-          return mapper.toEntity(transaction, invoice);
-        })
-        .toList();
+                  return mapper.toEntity(transaction, invoice);
+                })
+            .toList();
 
     List<HTransaction> savedTransactions = jpaRepository.saveAll(entities);
     transactionDocsRep.saveAll(supportingDocsList);
 
     return savedTransactions.stream()
-        .map(entity -> mapper.toDomain(entity,
-            categoryRepository.findByIdTransaction(entity.getId()),
-            transactionDocsRep.findAllByIdTransaction(entity.getId()).stream()
-                .map(transactionDocsMapper::toDomain)
-                .toList()))
+        .map(
+            entity ->
+                mapper.toDomain(
+                    entity,
+                    categoryRepository.findByIdTransaction(entity.getId()),
+                    transactionDocsRep.findAllByIdTransaction(entity.getId()).stream()
+                        .map(transactionDocsMapper::toDomain)
+                        .toList()))
         .collect(Collectors.toList());
   }
 
@@ -189,10 +208,14 @@ public class DbTransactionRepository implements TransactionRepository {
 
   @Override
   public Transaction getById(String idTransaction) {
-    HTransaction entity = jpaRepository.findById(idTransaction)
-        .orElseThrow(() -> new NotFoundException(
-            "Transaction." + idTransaction + " not found"));
-    return mapper.toDomain(entity, categoryRepository.findByIdTransaction(entity.getId()),
+    HTransaction entity =
+        jpaRepository
+            .findById(idTransaction)
+            .orElseThrow(
+                () -> new NotFoundException("Transaction." + idTransaction + " not found"));
+    return mapper.toDomain(
+        entity,
+        categoryRepository.findByIdTransaction(entity.getId()),
         transactionDocsRep.findAllByIdTransaction(entity.getId()).stream()
             .map(transactionDocsMapper::toDomain)
             .toList());
@@ -207,14 +230,16 @@ public class DbTransactionRepository implements TransactionRepository {
 
   private List<HTransactionSupportingDocs> computeSupportingDocs(Transaction transaction) {
     return transaction.getSupportingDocuments().stream()
-        .map(newDocs -> {
-          FileInfo fileInfo = newDocs.getFileInfo();
-          HFileInfo fileInfoEntity = fileInfoJpaRepository.getById(fileInfo.getId());
-          return HTransactionSupportingDocs.builder()
-              .id(newDocs.getId())
-              .idTransaction(transaction.getId())
-              .fileInfo(fileInfoEntity)
-              .build();
-        }).toList();
+        .map(
+            newDocs -> {
+              FileInfo fileInfo = newDocs.getFileInfo();
+              HFileInfo fileInfoEntity = fileInfoJpaRepository.getById(fileInfo.getId());
+              return HTransactionSupportingDocs.builder()
+                  .id(newDocs.getId())
+                  .idTransaction(transaction.getId())
+                  .fileInfo(fileInfoEntity)
+                  .build();
+            })
+        .toList();
   }
 }

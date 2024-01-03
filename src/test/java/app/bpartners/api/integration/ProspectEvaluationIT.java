@@ -131,7 +131,7 @@ class ProspectEvaluationIT extends MockedThirdParties {
         .status(new ProspectEvaluationJobStatus().value(NOT_STARTED).message(null))
         .type(ProspectEvaluationJobType.CALENDAR_EVENT_CONVERSION)
         .startedAt(Instant.parse("2022-01-01T00:00:00.00Z"))
-            .metadata(new HashMap<>())
+        .metadata(new HashMap<>())
         .endedAt(null);
   }
 
@@ -141,7 +141,7 @@ class ProspectEvaluationIT extends MockedThirdParties {
         .status(new ProspectEvaluationJobStatus().value(FAILED).message("Connection reset"))
         .type(ProspectEvaluationJobType.ADDRESS_CONVERSION)
         .startedAt(Instant.parse("2022-01-03T01:00:00.00Z"))
-            .metadata(new HashMap<>())
+        .metadata(new HashMap<>())
         .endedAt(Instant.parse("2022-01-03T02:00:00.00Z"));
   }
 
@@ -250,7 +250,7 @@ class ProspectEvaluationIT extends MockedThirdParties {
 
   @Test
   @Disabled
-    // TODO: check how it works and correct assertions
+  // TODO: check how it works and correct assertions
   void evaluate_prospects_ok() throws IOException, InterruptedException {
     businessRepository.save(
         BusinessActivity.builder()

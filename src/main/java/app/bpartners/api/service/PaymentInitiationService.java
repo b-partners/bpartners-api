@@ -87,7 +87,7 @@ public class PaymentInitiationService {
                   paymentRequest.toBuilder()
                       .status(PAID)
                       .paymentMethod(PaymentMethod.BANK_TRANSFER)
-                  .paymentStatusUpdatedAt(Instant.now())
+                      .paymentStatusUpdatedAt(Instant.now())
                       .build());
             }
           } else {
@@ -106,11 +106,12 @@ public class PaymentInitiationService {
       savedPaidPayments.stream()
           .filter(payment -> payment.getIdInvoice() != null)
           .toList()
-          .forEach(payment -> {
-            Invoice invoice = invoiceRepository.findById(payment.getIdInvoice());
-            invoiceRepositoryImpl.processAsPdf(invoice);
-            log.info("{} PDF is refreshed", invoice.describe());
-          });
+          .forEach(
+              payment -> {
+                Invoice invoice = invoiceRepository.findById(payment.getIdInvoice());
+                invoiceRepositoryImpl.processAsPdf(invoice);
+                log.info("{} PDF is refreshed", invoice.describe());
+              });
       log.info("Payment requests " + paymentMessage(savedPaidPayments) + " updated successfully");
       notifyByEmail(savedPaidPayments);
       notifyByMobileNotification(savedPaidPayments);

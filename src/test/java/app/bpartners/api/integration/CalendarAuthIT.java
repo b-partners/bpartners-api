@@ -114,8 +114,7 @@ public class CalendarAuthIT extends MockedThirdParties {
             .expirationTime(null)
             .createdAt(actual.getCreatedAt())
             .expiredAt(actual.getExpiredAt()),
-        actual
-                .expirationTime(null));
+        actual.expirationTime(null));
   }
 
   @Test

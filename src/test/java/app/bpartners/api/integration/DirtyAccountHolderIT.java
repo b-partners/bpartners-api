@@ -20,12 +20,12 @@ import app.bpartners.api.endpoint.rest.api.UserAccountsApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
 import app.bpartners.api.endpoint.rest.model.AccountHolder;
-import app.bpartners.api.endpoint.rest.model.VerificationStatus;
-import app.bpartners.api.endpoint.rest.model.CompanyInfo;
-import app.bpartners.api.endpoint.rest.model.CompanyBusinessActivity;
-import app.bpartners.api.endpoint.rest.model.ContactAddress;
 import app.bpartners.api.endpoint.rest.model.AccountHolderFeedback;
+import app.bpartners.api.endpoint.rest.model.CompanyBusinessActivity;
+import app.bpartners.api.endpoint.rest.model.CompanyInfo;
+import app.bpartners.api.endpoint.rest.model.ContactAddress;
 import app.bpartners.api.endpoint.rest.model.Geojson;
+import app.bpartners.api.endpoint.rest.model.VerificationStatus;
 import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.integration.conf.utils.TestUtils;
 import java.util.List;
@@ -173,17 +173,16 @@ class DirtyAccountHolderIT extends MockedThirdParties {
             new CompanyBusinessActivity().primary("IT"));
 
     assertEquals("IT", actual1.getBusinessActivities().getPrimary());
-    assertEquals(expected()
-            .companyInfo(expected()
-                    .getCompanyInfo().location(
-                            new Geojson()
-                                    .latitude(43.5)
-                                    .longitude(2.5)
-                                    .type("Point"))
+    assertEquals(
+        expected()
+            .companyInfo(
+                expected()
+                    .getCompanyInfo()
+                    .location(new Geojson().latitude(43.5).longitude(2.5).type("Point"))
                     .phone("+33 5 13 3234")
                     .email("anotherEmail@gmail.com")
                     .tvaNumber("FR12323456789"))
-                    .revenueTargets(List.of()),
-            actual.revenueTargets(List.of()));
+            .revenueTargets(List.of()),
+        actual.revenueTargets(List.of()));
   }
 }

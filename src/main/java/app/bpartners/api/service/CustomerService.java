@@ -168,7 +168,10 @@ public class CustomerService {
   private CustomerCrupdated toTypedEvent(User user, Customer customer, boolean isNew) {
     String subject =
         isNew
-            ? "Ajout du nouveau client " + customer.getFullName() + " par l'artisan " + user.getName()
+            ? "Ajout du nouveau client "
+                + customer.getFullName()
+                + " par l'artisan "
+                + user.getName()
             : "Modification du client existant "
                 + customer.getFullName()
                 + " par l'artisan "

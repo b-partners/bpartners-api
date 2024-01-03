@@ -22,10 +22,11 @@ import lombok.Setter;
 @Builder
 @EqualsAndHashCode
 public class HTransactionSupportingDocs {
-  @Id
-  private String id;
+  @Id private String id;
+
   @Column(name = "id_transaction")
   private String idTransaction;
+
   @ManyToOne
   @JoinColumn(name = "id_file_info")
   private HFileInfo fileInfo;

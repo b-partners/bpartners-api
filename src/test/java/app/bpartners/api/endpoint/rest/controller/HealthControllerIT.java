@@ -4,7 +4,6 @@ import static app.bpartners.api.endpoint.rest.controller.health.PingController.O
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import app.bpartners.api.PojaGenerated;
-import app.bpartners.api.conf.FacadeIT;
 import app.bpartners.api.endpoint.rest.controller.health.HealthDbController;
 import app.bpartners.api.endpoint.rest.controller.health.PingController;
 import app.bpartners.api.integration.conf.MockedThirdParties;

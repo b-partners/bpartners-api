@@ -234,7 +234,7 @@ public class ProspectEvalUtils {
                         NewIntervention.OldCustomer.builder()
                             .idCustomer(
                                 null) // Here to make it more explicit, we show actual customer
-                                      // value
+                            // value
                             .type(getCustomerType(currentRow, exceptionMsgBuilder))
                             .professionalType(getProfessionalType(currentRow, exceptionMsgBuilder))
                             // TODO: Must be provided from database customer

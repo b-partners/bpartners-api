@@ -2,6 +2,7 @@ package app.bpartners.api.endpoint.rest.security;
 
 import static app.bpartners.api.endpoint.rest.security.model.Role.EVAL_PROSPECT;
 import static app.bpartners.api.endpoint.rest.security.model.Role.INVOICE_RELAUNCHER;
+import static org.springframework.http.HttpMethod.DELETE;
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpMethod.OPTIONS;
 import static org.springframework.http.HttpMethod.POST;
@@ -24,14 +25,6 @@ import org.springframework.security.web.util.matcher.NegatedRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.servlet.HandlerExceptionResolver;
-
-import static app.bpartners.api.endpoint.rest.security.model.Role.EVAL_PROSPECT;
-import static app.bpartners.api.endpoint.rest.security.model.Role.INVOICE_RELAUNCHER;
-import static org.springframework.http.HttpMethod.DELETE;
-import static org.springframework.http.HttpMethod.GET;
-import static org.springframework.http.HttpMethod.OPTIONS;
-import static org.springframework.http.HttpMethod.POST;
-import static org.springframework.http.HttpMethod.PUT;
 
 @Configuration
 @Slf4j
@@ -157,23 +150,28 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
                 PUT, "/accounts/*/transactions/*/invoices/*", authResourceProvider))
         .authenticated()
         .requestMatchers(
-            new SelfAccountMatcher(GET, "/accounts/*/transactions/*",
-                authResourceProvider)).authenticated()
+            new SelfAccountMatcher(GET, "/accounts/*/transactions/*", authResourceProvider))
+        .authenticated()
         .requestMatchers(
-            new SelfAccountMatcher(POST, "/accounts/*/transactions/exportLink",
-                authResourceProvider)).authenticated()
+            new SelfAccountMatcher(
+                POST, "/accounts/*/transactions/exportLink", authResourceProvider))
+        .authenticated()
         .requestMatchers(
-            new SelfAccountMatcher(PUT, "/accounts/*/transactions/*/invoices/*",
-                authResourceProvider)).authenticated()
+            new SelfAccountMatcher(
+                PUT, "/accounts/*/transactions/*/invoices/*", authResourceProvider))
+        .authenticated()
         .requestMatchers(
-            new SelfAccountMatcher(GET, "/accounts/*/transactions/*/supportingDocuments",
-                authResourceProvider)).authenticated()
+            new SelfAccountMatcher(
+                GET, "/accounts/*/transactions/*/supportingDocuments", authResourceProvider))
+        .authenticated()
         .requestMatchers(
-            new SelfAccountMatcher(POST, "/accounts/*/transactions/*/supportingDocuments",
-                authResourceProvider)).authenticated()
+            new SelfAccountMatcher(
+                POST, "/accounts/*/transactions/*/supportingDocuments", authResourceProvider))
+        .authenticated()
         .requestMatchers(
-            new SelfAccountMatcher(DELETE, "/accounts/*/transactions/*/supportingDocuments",
-                authResourceProvider)).authenticated()
+            new SelfAccountMatcher(
+                DELETE, "/accounts/*/transactions/*/supportingDocuments", authResourceProvider))
+        .authenticated()
         .requestMatchers(new SelfUserMatcher(GET, "/users/*/accounts", authResourceProvider))
         .authenticated()
         .requestMatchers(

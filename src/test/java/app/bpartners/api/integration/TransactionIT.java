@@ -1,16 +1,5 @@
 package app.bpartners.api.integration;
 
-import app.bpartners.api.endpoint.rest.api.PayingApi;
-import app.bpartners.api.endpoint.rest.client.ApiClient;
-import app.bpartners.api.endpoint.rest.client.ApiException;
-import app.bpartners.api.endpoint.rest.model.Transaction;
-import app.bpartners.api.integration.conf.MockedThirdParties;
-import app.bpartners.api.integration.conf.utils.TestUtils;
-import java.util.List;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.testcontainers.junit.jupiter.Testcontainers;
-
 import static app.bpartners.api.integration.conf.utils.TestUtils.JANE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.utils.TestUtils.TRANSACTION1_ID;
@@ -23,6 +12,17 @@ import static app.bpartners.api.integration.conf.utils.TestUtils.setUpLegalFileR
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+
+import app.bpartners.api.endpoint.rest.api.PayingApi;
+import app.bpartners.api.endpoint.rest.client.ApiClient;
+import app.bpartners.api.endpoint.rest.client.ApiException;
+import app.bpartners.api.endpoint.rest.model.Transaction;
+import app.bpartners.api.integration.conf.MockedThirdParties;
+import app.bpartners.api.integration.conf.utils.TestUtils;
+import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 @Testcontainers
 class TransactionIT extends MockedThirdParties {
@@ -55,20 +55,9 @@ class TransactionIT extends MockedThirdParties {
     PayingApi api = new PayingApi(joeDoeClient);
 
     List<Transaction> actual1 =
-        api.getTransactions(
-            JOE_DOE_ACCOUNT_ID,
-            null,
-            null,
-            null,
-            null,
-            null);
+        api.getTransactions(JOE_DOE_ACCOUNT_ID, null, null, null, null, null);
     List<Transaction> actual2 =
-        api.getTransactions(JOE_DOE_ACCOUNT_ID,
-            null,
-            null,
-            null,
-            null,
-            null);
+        api.getTransactions(JOE_DOE_ACCOUNT_ID, null, null, null, null, null);
 
     assertEquals(2, actual1.size());
     assertEquals(actual1, actual2);

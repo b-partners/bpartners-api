@@ -57,8 +57,7 @@ public class TransactionMapper {
         .build();
   }
 
-  public HTransaction toEntity(Transaction domain,
-                               HInvoice invoiceEntity) {
+  public HTransaction toEntity(Transaction domain, HInvoice invoiceEntity) {
 
     return HTransaction.builder()
         .id(domain.getId())

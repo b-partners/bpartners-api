@@ -287,7 +287,7 @@ public class ProspectMapper {
                                 NewIntervention.OldCustomer.builder()
                                     .idCustomer(
                                         null) // Here to make it more explicit, we show actual
-                                              // customer value
+                                    // customer value
                                     .type(getCustomerType(cells.get(25)))
                                     .professionalType(getProfessionalType(cells.get(26)))
                                     // TODO: Must be provided from database customer
@@ -355,7 +355,7 @@ public class ProspectMapper {
                                 NewIntervention.OldCustomer.builder()
                                     .idCustomer(
                                         null) // Here to make it more explicit, we show actual
-                                              // customer value
+                                    // customer value
                                     .type(getCustomerType(cells.get(25)))
                                     .professionalType(getProfessionalType(cells.get(26)))
                                     // TODO: Must be provided from database customer

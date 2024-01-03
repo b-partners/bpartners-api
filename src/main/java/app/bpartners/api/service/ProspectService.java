@@ -1,5 +1,21 @@
 package app.bpartners.api.service;
 
+import static app.bpartners.api.endpoint.rest.model.JobStatusValue.FAILED;
+import static app.bpartners.api.endpoint.rest.model.JobStatusValue.FINISHED;
+import static app.bpartners.api.endpoint.rest.model.JobStatusValue.IN_PROGRESS;
+import static app.bpartners.api.endpoint.rest.model.JobStatusValue.NOT_STARTED;
+import static app.bpartners.api.endpoint.rest.model.NewInterventionOption.NEW_PROSPECT;
+import static app.bpartners.api.endpoint.rest.model.NewInterventionOption.OLD_CUSTOMER;
+import static app.bpartners.api.endpoint.rest.model.ProspectStatus.CONTACTED;
+import static app.bpartners.api.endpoint.rest.model.ProspectStatus.CONVERTED;
+import static app.bpartners.api.endpoint.rest.model.ProspectStatus.TO_CONTACT;
+import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
+import static app.bpartners.api.repository.expressif.fact.NewIntervention.OldCustomer.OldCustomerType.INDIVIDUAL;
+import static app.bpartners.api.repository.google.sheets.SheetConf.GRID_SHEET_TYPE;
+import static app.bpartners.api.service.utils.FilterUtils.distinctByKeys;
+import static app.bpartners.api.service.utils.TemplateResolverUtils.parseTemplateResolver;
+import static java.util.UUID.randomUUID;
+
 import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.endpoint.event.SesConf;
 import app.bpartners.api.endpoint.event.gen.ProspectEvaluationJobInitiated;
@@ -60,22 +76,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.thymeleaf.context.Context;
-
-import static app.bpartners.api.endpoint.rest.model.JobStatusValue.FAILED;
-import static app.bpartners.api.endpoint.rest.model.JobStatusValue.FINISHED;
-import static app.bpartners.api.endpoint.rest.model.JobStatusValue.IN_PROGRESS;
-import static app.bpartners.api.endpoint.rest.model.JobStatusValue.NOT_STARTED;
-import static app.bpartners.api.endpoint.rest.model.NewInterventionOption.NEW_PROSPECT;
-import static app.bpartners.api.endpoint.rest.model.NewInterventionOption.OLD_CUSTOMER;
-import static app.bpartners.api.endpoint.rest.model.ProspectStatus.CONTACTED;
-import static app.bpartners.api.endpoint.rest.model.ProspectStatus.CONVERTED;
-import static app.bpartners.api.endpoint.rest.model.ProspectStatus.TO_CONTACT;
-import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
-import static app.bpartners.api.repository.expressif.fact.NewIntervention.OldCustomer.OldCustomerType.INDIVIDUAL;
-import static app.bpartners.api.repository.google.sheets.SheetConf.GRID_SHEET_TYPE;
-import static app.bpartners.api.service.utils.FilterUtils.distinctByKeys;
-import static app.bpartners.api.service.utils.TemplateResolverUtils.parseTemplateResolver;
-import static java.util.UUID.randomUUID;
 
 @Service
 @AllArgsConstructor
@@ -286,10 +286,7 @@ public class ProspectService {
   }
 
   private ProspectUpdated toTypedEvent(Prospect prospect) {
-    return ProspectUpdated.builder()
-        .prospect(prospect)
-        .updatedAt(Instant.now())
-        .build();
+    return ProspectUpdated.builder().prospect(prospect).updatedAt(Instant.now()).build();
   }
 
   @Transactional
@@ -301,10 +298,9 @@ public class ProspectService {
     // validateStatusUpdateFlow(toSave, existing);
     Prospect savedProspect = repository.save(toSave);
 
-    eventProducer.accept(List.of(ProspectUpdated.builder()
-        .prospect(savedProspect)
-        .updatedAt(Instant.now())
-        .build()));
+    eventProducer.accept(
+        List.of(
+            ProspectUpdated.builder().prospect(savedProspect).updatedAt(Instant.now()).build()));
 
     return savedProspect;
   }
@@ -357,31 +353,31 @@ public class ProspectService {
             });
   }
 
-  public List<ProspectEvaluationJob> runEvaluationJobs(String userId,
-                                                       String ahId,
-                                                       List<ProspectEvaluationJobRunner> jobRunners) {
-    Optional<ProspectEvaluationJobRunner> anyEventConversionJob = jobRunners.stream()
-        .filter(ProspectEvaluationJobRunner::isEventConversionJob)
-        .findAny();
+  public List<ProspectEvaluationJob> runEvaluationJobs(
+      String userId, String ahId, List<ProspectEvaluationJobRunner> jobRunners) {
+    Optional<ProspectEvaluationJobRunner> anyEventConversionJob =
+        jobRunners.stream().filter(ProspectEvaluationJobRunner::isEventConversionJob).findAny();
     if (anyEventConversionJob.isPresent() && !calendarApi.hasValidToken(userId)) {
       throw new BadRequestException(
           "CALENDAR_EVENT_CONVERSION job is to be executed "
               + "but calendar access token is expired or invalid");
     }
-    List<ProspectEvaluationJob> jobs = jobRunners.stream()
-        .map(jobRunner -> ProspectEvaluationJob.builder()
-            .id(jobRunner.getJobId())
-            .metadata(jobRunner.getMetadata())
-            .idAccountHolder(ahId)
-            .type(getJobType(jobRunner))
-            .jobStatus(new ProspectEvaluationJobStatus()
-                .value(NOT_STARTED)
-                .message(null))
-            .startedAt(Instant.now())
-            .endedAt(null)
-            .results(List.of())
-            .build())
-        .collect(Collectors.toList());
+    List<ProspectEvaluationJob> jobs =
+        jobRunners.stream()
+            .map(
+                jobRunner ->
+                    ProspectEvaluationJob.builder()
+                        .id(jobRunner.getJobId())
+                        .metadata(jobRunner.getMetadata())
+                        .idAccountHolder(ahId)
+                        .type(getJobType(jobRunner))
+                        .jobStatus(
+                            new ProspectEvaluationJobStatus().value(NOT_STARTED).message(null))
+                        .startedAt(Instant.now())
+                        .endedAt(null)
+                        .results(List.of())
+                        .build())
+            .collect(Collectors.toList());
 
     List<ProspectEvaluationJob> savedJobs = evalJobRepository.saveAll(jobs);
 
@@ -483,10 +479,10 @@ public class ProspectService {
             .filter(
                 result ->
                     (result.getInterventionResult() != null
-                        && result.getInterventionResult().getRating() >= minProspectRating)
+                            && result.getInterventionResult().getRating() >= minProspectRating)
                         || (result.getCustomerInterventionResult() != null
-                        && result.getCustomerInterventionResult().getRating()
-                        >= minCustomerRating))
+                            && result.getCustomerInterventionResult().getRating()
+                                >= minCustomerRating))
             .collect(Collectors.toList());
     switch (option) {
       case OLD_CUSTOMER:

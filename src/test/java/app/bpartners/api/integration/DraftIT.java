@@ -1,5 +1,12 @@
 package app.bpartners.api.integration;
 
+import static app.bpartners.api.endpoint.rest.model.Invoice.PaymentTypeEnum.IN_INSTALMENT;
+import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
+import static app.bpartners.api.integration.conf.utils.TestUtils.INVOICE1_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ID;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+
 import app.bpartners.api.endpoint.rest.model.PaymentMethod;
 import app.bpartners.api.endpoint.rest.model.PaymentStatus;
 import app.bpartners.api.integration.conf.MockedThirdParties;
@@ -30,19 +37,11 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import static app.bpartners.api.endpoint.rest.model.Invoice.PaymentTypeEnum.IN_INSTALMENT;
-import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
-import static app.bpartners.api.integration.conf.utils.TestUtils.INVOICE1_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ID;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-
 @Testcontainers
 @AutoConfigureMockMvc
 @Disabled
 class DraftIT extends MockedThirdParties {
-  @Autowired
-  private SesService subject;
+  @Autowired private SesService subject;
 
   private static void generatePdf(String templateName) throws IOException {
     List<CreatePaymentRegulation> paymentRegulations =

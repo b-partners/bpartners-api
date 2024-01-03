@@ -7,7 +7,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-import app.bpartners.api.conf.FacadeIT;
 import app.bpartners.api.endpoint.event.EventConsumer;
 import app.bpartners.api.endpoint.event.gen.UuidCreated;
 import app.bpartners.api.integration.conf.MockedThirdParties;

@@ -1,5 +1,6 @@
 package app.bpartners.api.service;
 
+import static app.bpartners.api.endpoint.rest.model.FileType.TRANSACTION_SUPPORTING_DOCS;
 import static app.bpartners.api.endpoint.rest.model.TransactionStatus.BOOKED;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 import static java.time.Instant.now;
@@ -57,12 +58,6 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.apfloat.Aprational;
 import org.springframework.stereotype.Service;
 
-import static app.bpartners.api.endpoint.rest.model.FileType.TRANSACTION_SUPPORTING_DOCS;
-import static app.bpartners.api.endpoint.rest.model.TransactionStatus.BOOKED;
-import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
-import static java.time.Instant.now;
-import static java.util.UUID.randomUUID;
-
 @Service
 @AllArgsConstructor
 @Slf4j
@@ -83,9 +78,7 @@ public class TransactionService {
   }
 
   public List<TransactionSupportingDocs> addSupportingDocuments(
-      String idUser,
-      String transactionId,
-      byte[] documentAsBytes) {
+      String idUser, String transactionId, byte[] documentAsBytes) {
     Transaction transaction = dbTransactionRepository.findById(transactionId);
 
     String fileId = String.valueOf(randomUUID());
@@ -97,16 +90,16 @@ public class TransactionService {
     List<TransactionSupportingDocs> actualDocs =
         new ArrayList<>(transaction.getSupportingDocuments());
 
-    actualDocs.add(TransactionSupportingDocs.builder()
-        .id(supportingDocsId)
-        .fileInfo(uploadedFileInfo)
-        .build());
+    actualDocs.add(
+        TransactionSupportingDocs.builder()
+            .id(supportingDocsId)
+            .fileInfo(uploadedFileInfo)
+            .build());
 
-    Transaction savedTransaction = dbTransactionRepository.saveAll(
-        List.of(
-            transaction.toBuilder()
-                .supportingDocuments(actualDocs)
-                .build())).get(0);
+    Transaction savedTransaction =
+        dbTransactionRepository
+            .saveAll(List.of(transaction.toBuilder().supportingDocuments(actualDocs).build()))
+            .get(0);
 
     return savedTransaction.getSupportingDocuments();
   }

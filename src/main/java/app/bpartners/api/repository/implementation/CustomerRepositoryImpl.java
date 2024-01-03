@@ -134,8 +134,8 @@ public class CustomerRepositoryImpl implements CustomerRepository {
             : builder.equal(root.get(STATUS), CustomerStatus.ENABLED));
     List<Predicate> keywordsPredicates = new ArrayList<>();
     for (String keyword : keywords) {
-      keywordsPredicates.add(builder.like(builder.lower(root.get(FIRST_NAME)),
-          "%" + keyword + "%"));
+      keywordsPredicates.add(
+          builder.like(builder.lower(root.get(FIRST_NAME)), "%" + keyword + "%"));
       keywordsPredicates.add(
           builder.like(builder.lower(root.get(FIRST_NAME)), "%" + keyword + "%"));
       keywordsPredicates.add(builder.like(builder.lower(root.get(LAST_NAME)), "%" + keyword + "%"));
@@ -277,18 +277,14 @@ public class CustomerRepositoryImpl implements CustomerRepository {
 
   @Override
   public List<Customer> saveAll(List<Customer> toCreate) {
-    List<HCustomer> toSave = toCreate.stream()
-        .map(this::checkExisting)
-        .map(mapper::toEntity)
-        .toList();
+    List<HCustomer> toSave =
+        toCreate.stream().map(this::checkExisting).map(mapper::toEntity).toList();
 
     List<HCustomer> entitySaved = jpaRepository.saveAll(toSave);
 
     checkRecentlyAdded(toSave, entitySaved);
 
-    return entitySaved.stream()
-        .map(mapper::toDomain)
-        .toList();
+    return entitySaved.stream().map(mapper::toDomain).toList();
   }
 
   @Override
@@ -324,20 +320,26 @@ public class CustomerRepositoryImpl implements CustomerRepository {
   private Customer checkExisting(Customer domain) {
     Optional<HCustomer> optionalCustomer = jpaRepository.findById(domain.getId());
     if (optionalCustomer.isEmpty()) {
-      Customer customer = domain.toBuilder()
-          .recentlyAdded(true)
-          .customerType(domain.getCustomerType() == null ? CustomerType.INDIVIDUAL
-              : domain.getCustomerType())
-          .build();
+      Customer customer =
+          domain.toBuilder()
+              .recentlyAdded(true)
+              .customerType(
+                  domain.getCustomerType() == null
+                      ? CustomerType.INDIVIDUAL
+                      : domain.getCustomerType())
+              .build();
       return customer;
     } else {
       HCustomer existing = optionalCustomer.get();
-      Customer customer = domain.toBuilder()
-          .latestFullAddress(existing.getFullAddress())
-          .customerType(domain.getCustomerType() == null ? existing.getCustomerType()
-              : domain.getCustomerType())
-          .createdAt(existing.getCreatedAt())
-          .build();
+      Customer customer =
+          domain.toBuilder()
+              .latestFullAddress(existing.getFullAddress())
+              .customerType(
+                  domain.getCustomerType() == null
+                      ? existing.getCustomerType()
+                      : domain.getCustomerType())
+              .createdAt(existing.getCreatedAt())
+              .build();
       return customer;
     }
   }

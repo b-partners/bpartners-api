@@ -14,7 +14,6 @@ import static app.bpartners.api.integration.conf.utils.TestUtils.setUpCognito;
 import static app.bpartners.api.integration.conf.utils.TestUtils.setUpLegalFileRepository;
 import static app.bpartners.api.repository.implementation.ProspectRepositoryImpl.ANTI_HARM;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -150,7 +149,10 @@ class ProspectIT extends MockedThirdParties {
         ignoreHistoryUpdatedOf(
             prospect1()
                 .statusHistory(
-                    Stream.of(getStatusHistory(CONTACTED), prospect1().getStatusHistory(), getStatusHistory(CONTACTED))
+                    Stream.of(
+                            getStatusHistory(CONTACTED),
+                            prospect1().getStatusHistory(),
+                            getStatusHistory(CONTACTED))
                         .flatMap(List::stream)
                         .toList()));
     return expected

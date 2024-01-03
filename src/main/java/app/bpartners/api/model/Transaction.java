@@ -51,6 +51,7 @@ public class Transaction {
 
   @Getter(AccessLevel.NONE)
   private Instant paymentDatetime;
+
   private List<TransactionSupportingDocs> supportingDocuments = new ArrayList<>();
 
   public Instant getPaymentDatetime() {

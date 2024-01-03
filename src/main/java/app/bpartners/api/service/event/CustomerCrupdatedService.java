@@ -1,5 +1,7 @@
 package app.bpartners.api.service.event;
 
+import static app.bpartners.api.service.utils.TemplateResolverUtils.parseTemplateResolver;
+
 import app.bpartners.api.endpoint.event.gen.CustomerCrupdated;
 import app.bpartners.api.model.Attachment;
 import app.bpartners.api.model.Customer;
@@ -17,8 +19,6 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.context.Context;
-
-import static app.bpartners.api.service.utils.TemplateResolverUtils.parseTemplateResolver;
 
 @Service
 @AllArgsConstructor
@@ -45,19 +45,21 @@ public class CustomerCrupdatedService implements Consumer<CustomerCrupdated> {
     if (!updatedCustomer.getFullAddress().equals(updatedCustomer.getLatestFullAddress())
         || updatedCustomer.getLocation().getCoordinate() == null
         || (updatedCustomer.getLocation().getCoordinate().getLatitude() == null
-        && updatedCustomer.getLocation().getCoordinate().getLongitude() == null)) {
+            && updatedCustomer.getLocation().getCoordinate().getLongitude() == null)) {
       GeoPosition customerPosition = banApi.fSearch(customer.getAddress());
       if (customerPosition != null
-          && !customerPosition.getCoordinates().equals(
-          customer.getLocation().getCoordinate())) {
-        updatedCustomer = customerRepository.save(customer.toBuilder()
-            .location(Location.builder()
-                .coordinate(customerPosition.getCoordinates())
-                .address(customer.getAddress())
-                .longitude(customerPosition.getCoordinates().getLongitude())
-                .latitude(customerPosition.getCoordinates().getLatitude())
-                .build())
-            .build());
+          && !customerPosition.getCoordinates().equals(customer.getLocation().getCoordinate())) {
+        updatedCustomer =
+            customerRepository.save(
+                customer.toBuilder()
+                    .location(
+                        Location.builder()
+                            .coordinate(customerPosition.getCoordinates())
+                            .address(customer.getAddress())
+                            .longitude(customerPosition.getCoordinates().getLongitude())
+                            .latitude(customerPosition.getCoordinates().getLatitude())
+                            .build())
+                    .build());
         log.info("{} coordinates updated from BAN API", updatedCustomer.describe());
       }
     }

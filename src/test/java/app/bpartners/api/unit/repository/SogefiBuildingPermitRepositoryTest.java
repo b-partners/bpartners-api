@@ -158,12 +158,14 @@ class SogefiBuildingPermitRepositoryTest {
     verify(jpaRepositoryMock, times(1)).save(sogefiProspectEntityCaptor.capture());
 
     HProspect prospectEntityArgumentCaptorValue = prospectEntityArgumentCaptor.getValue();
-    assertTrue(prospectEntityArgumentCaptorValue.getStatusHistories().stream().anyMatch(prospect -> prospect.getStatus().equals(TO_CONTACT)));
+    assertTrue(
+        prospectEntityArgumentCaptorValue.getStatusHistories().stream()
+            .anyMatch(prospect -> prospect.getStatus().equals(TO_CONTACT)));
     prospectEntityArgumentCaptorValue.setStatusHistories(null);
     assertEquals(
         expectedSavedProspect().toBuilder()
             .lastEvaluationDate(prospectEntityArgumentCaptorValue.getLastEvaluationDate())
-                .statusHistories(null)
+            .statusHistories(null)
             .build(),
         prospectEntityArgumentCaptorValue);
     assertEquals(expected, sogefiProspectEntityCaptor.getValue());

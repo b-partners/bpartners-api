@@ -1,5 +1,22 @@
 package app.bpartners.api.integration;
 
+import static app.bpartners.api.integration.conf.utils.TestUtils.setUpCognito;
+import static app.bpartners.api.integration.conf.utils.TestUtils.setUpEventBridge;
+import static app.bpartners.api.integration.conf.utils.TestUtils.setUpLegalFileRepository;
+import static app.bpartners.api.service.OnboardingService.DEFAULT_BALANCE;
+import static app.bpartners.api.service.OnboardingService.DEFAULT_CASH_FLOW;
+import static app.bpartners.api.service.OnboardingService.DEFAULT_STATUS;
+import static app.bpartners.api.service.OnboardingService.DEFAULT_SUBJECT_TO_VAT;
+import static app.bpartners.api.service.OnboardingService.DEFAULT_USER_IDENTIFICATION;
+import static app.bpartners.api.service.OnboardingService.DEFAULT_USER_STATUS;
+import static app.bpartners.api.service.OnboardingService.DEFAULT_VERIFICATION_STATUS;
+import static app.bpartners.api.service.OnboardingService.DEFAULT_VERIFIED;
+import static java.util.UUID.randomUUID;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+
 import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.AccountHolder;
@@ -20,38 +37,15 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
 
-import static app.bpartners.api.integration.conf.utils.TestUtils.setUpCognito;
-import static app.bpartners.api.integration.conf.utils.TestUtils.setUpEventBridge;
-import static app.bpartners.api.integration.conf.utils.TestUtils.setUpLegalFileRepository;
-import static app.bpartners.api.service.OnboardingService.DEFAULT_BALANCE;
-import static app.bpartners.api.service.OnboardingService.DEFAULT_CASH_FLOW;
-import static app.bpartners.api.service.OnboardingService.DEFAULT_STATUS;
-import static app.bpartners.api.service.OnboardingService.DEFAULT_SUBJECT_TO_VAT;
-import static app.bpartners.api.service.OnboardingService.DEFAULT_USER_IDENTIFICATION;
-import static app.bpartners.api.service.OnboardingService.DEFAULT_USER_STATUS;
-import static app.bpartners.api.service.OnboardingService.DEFAULT_VERIFICATION_STATUS;
-import static app.bpartners.api.service.OnboardingService.DEFAULT_VERIFIED;
-import static java.util.UUID.randomUUID;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
-
 @Testcontainers
 class UserServiceIT extends MockedThirdParties {
   private static final String COMPANY_NAME = "user company name";
-  @MockBean
-  private BridgeBankRepository bridgeBankRepositoryMock;
-  @MockBean
-  private EventBridgeClient eventBridgeClientMock;
-  @Autowired
-  private OnboardingService onboardingService;
-  @MockBean
-  private BridgeUserRepository bridgeUserRepositoryMock;
-  @Autowired
-  private AccountService accountService;
-  @Autowired
-  private AccountHolderService accountHolderService;
+  @MockBean private BridgeBankRepository bridgeBankRepositoryMock;
+  @MockBean private EventBridgeClient eventBridgeClientMock;
+  @Autowired private OnboardingService onboardingService;
+  @MockBean private BridgeUserRepository bridgeUserRepositoryMock;
+  @Autowired private AccountService accountService;
+  @Autowired private AccountHolderService accountHolderService;
 
   @BeforeEach
   public void setUp() {
@@ -81,9 +75,9 @@ class UserServiceIT extends MockedThirdParties {
   @Test
   void onboard_user_ok() {
     /*MockedStatic<AuthProvider> authProviderMockedStatic = Mockito.mockStatic(AuthProvider.class);
-   authProviderMockedStatic
-        .when(AuthProvider::getPrincipal)
-        .thenReturn(new Principal(userToOnboard, JOE_DOE_TOKEN));*/
+    authProviderMockedStatic
+         .when(AuthProvider::getPrincipal)
+         .thenReturn(new Principal(userToOnboard, JOE_DOE_TOKEN));*/
     User userToOnboard = toOnboard();
     when(bridgeApi.findItemsByToken(any())).thenReturn(List.of(new BridgeItem()));
     when(bridgeBankRepositoryMock.refreshBankConnection(any(), any())).thenReturn("success");

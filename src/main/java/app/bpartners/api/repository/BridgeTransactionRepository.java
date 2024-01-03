@@ -61,12 +61,15 @@ public class BridgeTransactionRepository implements TransactionRepository {
                 })
             .toList();
     return entities.stream()
-        .map(entity -> mapper.toDomain(entity,
-            categoryRepository.findByIdTransaction(entity.getId()),
-            transactionDocsRep.findAllByIdTransaction(entity.getId()).stream()
-                .map(transactionDocsMapper::toDomain)
-                .toList()))
-        //TODO: when getting from database only, sort by payment date DESC directly in db query
+        .map(
+            entity ->
+                mapper.toDomain(
+                    entity,
+                    categoryRepository.findByIdTransaction(entity.getId()),
+                    transactionDocsRep.findAllByIdTransaction(entity.getId()).stream()
+                        .map(transactionDocsMapper::toDomain)
+                        .toList()))
+        // TODO: when getting from database only, sort by payment date DESC directly in db query
         .sorted(Comparator.comparing(Transaction::getPaymentDatetime).reversed())
         .collect(Collectors.toList());
   }

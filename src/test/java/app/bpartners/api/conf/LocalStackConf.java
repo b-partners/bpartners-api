@@ -57,6 +57,7 @@ public class LocalStackConf {
   }
 
   void configureProperties(DynamicPropertyRegistry registry) {
+    registry.add("aws.s3.bucket", () -> BUCKET_NAME);
     registry.add("aws.region", s3Container::getRegion);
     registry.add("aws.endpoint", () -> s3Container.getEndpointOverride(S3));
     registry.add("env", () -> "dev");

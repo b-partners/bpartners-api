@@ -1,6 +1,5 @@
 package app.bpartners.api.service.event;
 
-import app.bpartners.api.endpoint.event.EventConf;
 import app.bpartners.api.endpoint.event.SesConf;
 import app.bpartners.api.endpoint.event.gen.ProspectEvaluationJobInitiated;
 import app.bpartners.api.endpoint.rest.mapper.ProspectRestMapper;
@@ -151,7 +150,7 @@ public class ProspectEvaluationJobInitiatedService
       log.warn("Exception occurred when treating job {} : {}",
           runningJob.describe(),
           e.getMessage());
-      String recipient = eventConf.getAdminEmail();
+      String recipient = sesConf.getAdminEmail();
       try {
         String concerned = null;
         String runningJobStart = formatFrenchDatetime(runningJob.getStartedAt());

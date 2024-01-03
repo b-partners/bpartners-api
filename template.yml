@@ -10,9 +10,7 @@ Globals:
     Architectures:
       - x86_64
     Timeout: 600
-    AutoPublishAlias: live
-    SnapStart:
-      ApplyOn: PublishedVersions
+    
     VpcConfig:
       SecurityGroupIds:
         - !Sub '{{resolve:ssm:/bpartners/sg/id}}'
@@ -24,6 +22,9 @@ Globals:
         ENV: !Ref Env
         AWS_SQS_QUEUE_URL: !Sub '{{resolve:ssm:/bpartners/${Env}/sqs/mailbox-queue-url}}'
         AWS_EVENTBRIDGE_BUS: !Sub '{{resolve:ssm:/bpartners/${Env}/eventbridge/bus-name}}'
+        AWS_S3_BUCKET: !Sub '{{resolve:ssm:/bpartners/${Env}/s3/bucket-name}}'
+        AWS_SES_SOURCE: noreply@nowhere.com
+        
         DATABASE_URL: !Sub '{{resolve:ssm:/bpartners/${Env}/db/url}}'
         DATABASE_USERNAME: !Sub '{{resolve:ssm:/bpartners/${Env}/db/username}}'
         DATABASE_PASSWORD: !Sub '{{resolve:ssm:/bpartners/${Env}/db/password}}'
@@ -36,7 +37,7 @@ Globals:
         SENDINBLUE_API_KEY: !Sub '{{resolve:ssm:/bpartners/${Env}/sendinblue/api-key}}'
         SENDINBLUE_CONTACTLIST_ID: !Sub '{{resolve:ssm:/bpartners/${Env}/sendinblue/contactlist-id}}'
         ADS_BASEURL: !Sub '{{resolve:ssm:/bpartners/${Env}/sogefi/ads-base-url}}'
-        ADS_BEARER !Sub '{{resolve:ssm:/bpartners/${Env}/sogefi/ads-bearer}}'
+        ADS_BEARER: !Sub '{{resolve:ssm:/bpartners/${Env}/sogefi/ads-bearer}}'
         ADS_DENOM_CHAR: !Sub '{{resolve:ssm:/bpartners/${Env}/sogefi/ads-denom-char}}'
         BRIDGE_CLIENT_ID: !Sub '{{resolve:ssm:/bpartners/${Env}/bridge/client-id}}'
         BRIDGE_CLIENT_SECRET: !Sub '{{resolve:ssm:/bpartners/${Env}/bridge/client-secret}}'
@@ -59,7 +60,7 @@ Globals:
         GOOGLE_SHEET_REDIRECT_URIS: !Sub '{{resolve:ssm:/bpartners/${Env}/google/sheet/redirect/uris}}'
         ADMIN_EMAIL: !Sub '{{resolve:ssm:/bpartners/${Env}/admin/email}}'
         SNS_PLATFORM_ARN: !Sub '{{resolve:ssm:/bpartners/${Env}/sns/platform-arn}}'
-
+        JAVA_TOOL_OPTIONS: -XX:+TieredCompilation -XX:TieredStopAtLevel=1 -Dspring.main.lazy-initialization=true -Dspring.data.jpa.repositories.bootstrap-mode=lazy -Dspring.datasource.max-active=5 -Dspring.datasource.max-idle=1 -Dspring.datasource.min-idle=1 -Dspring.datasource.initial-size=1
 
 Parameters:
   Env:
@@ -70,8 +71,9 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: app.bpartners.api.ApiEventHandler::handleRequest
-      MemorySize: 512
+      MemorySize: 2048
       Role: !Sub '{{resolve:ssm:/bpartners/${Env}/execution/role-arn}}'
+      
       Events:
         ApiCall:
           Type: Api
@@ -85,6 +87,7 @@ Resources:
       Handler: app.bpartners.api.MailboxEventHandler::handleRequest
       MemorySize: 1024
       Role: !Sub '{{resolve:ssm:/bpartners/${Env}/execution/role-arn}}'
+      
       Events:
         AllEvents:
           Type: SQS

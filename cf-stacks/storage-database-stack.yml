@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: bpartners - Storage
+Description: bpartners - Storage Postgres
 
 Parameters:
   Env:

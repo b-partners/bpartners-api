@@ -21,7 +21,7 @@ Resources:
   BucketSSM:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: !Join ['', [/bpartners/feature-detector/, !Ref Env, /s3/bucket-name]]
+      Name: !Join ['', [/bpartners/, !Ref Env, /s3/bucket-name]]
       Type: String
       Value: !Ref Bucket
 

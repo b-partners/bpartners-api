@@ -4,11 +4,9 @@ import app.bpartners.api.PojaGenerated;
 import org.springframework.test.context.DynamicPropertyRegistry;
 
 @PojaGenerated
-public class EventConf {
+public class BucketConf {
 
   void configureProperties(DynamicPropertyRegistry registry) {
-    registry.add("aws.region", () -> "dummy-region");
-    registry.add("aws.sqs.queue.url", () -> "dummy-queue-url");
-    registry.add("aws.eventBridge.bus", () -> "dummy-bus-url");
+    registry.add("aws.s3.bucket", () -> "dummy-bucket");
   }
 }

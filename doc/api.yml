@@ -1,0 +1,355 @@
+openapi: 3.0.3
+info:
+  version: 'latest'
+  title: BPartners API
+servers:
+  - url: https://api-dev.bpartners.app
+security:
+  - BearerAuth: [ ]
+
+paths:
+  #############################################
+  ############### Security API ################
+  #############################################
+  /ping:
+    $ref: './security-api.yml#/operations/ping'
+  /authInitiation:
+    $ref: './security-api.yml#/operations/initiateAuth'
+  /token:
+    $ref: './security-api.yml#/operations/createToken'
+  /whoami:
+    $ref: './security-api.yml#/operations/whoami'
+  /whois/{id}:
+    $ref: './security-api.yml#/operations/whois'
+
+  #############################################
+  ############## Onboarding API ###############
+  #############################################
+  /onboardingInitiation:
+    $ref: './onboarding-api.yml#/operations/initiateOnboarding'
+  /preUsers:
+    $ref: './onboarding-api.yml#/operations/createPreUsers'
+  /onboarding:
+    $ref: './onboarding-api.yml#/operations/onboardUser'
+
+  #############################################
+  ############ User Accounts API ##############
+  #############################################
+  /users/{id}:
+    $ref: './userAccounts-api.yml#/operations/getUserById'
+  /users/{id}/accounts:
+    $ref: './userAccounts-api.yml#/operations/getAccountsByUserId'
+  /users/{uId}/accounts/{aId}/active:
+    $ref: './userAccounts-api.yml#/operations/setActiveAccount'
+  /users/{userId}/accounts/{accountId}/initiateAccountValidation:
+    $ref: './userAccounts-api.yml#/operations/accountValidationOperations'
+  /users/{userId}/accounts/{accountId}/identity:
+    $ref: './userAccounts-api.yml#/operations/updateAccountIdentity'
+  /users/{userId}/accounts/{accountId}/initiateBankConnection:
+    $ref: './userAccounts-api.yml#/operations/initiateBankConnection'
+  /users/{userId}/initiateBankConnection:
+    $ref: './userAccounts-api.yml#/operations/initiateBankConnectionWithoutAccount'
+  /users/{userId}/disconnectBank:
+    $ref: './userAccounts-api.yml#/operations/disconnectBank'
+  /users/{userId}/accounts/{accountId}/accountHolders:
+    $ref: './userAccounts-api.yml#/operations/getAccountHolders'
+  /users/{userId}/accounts/{accountId}/accountHolders/{ahId}/globalInfo:
+    $ref: './userAccounts-api.yml#/operations/updateAccountHolderInfo'
+  /users/{userId}/accounts/{accountId}/accountHolders/{ahId}/companyInfo:
+    $ref: './userAccounts-api.yml#/operations/updateCompanyInfo'
+  /users/{userId}/accounts/{accountId}/accountHolders/{ahId}/revenueTargets:
+    $ref: './userAccounts-api.yml#/operations/updateRevenueTargets'
+  /users/{userId}/accountHolders/{ahId}/feedback/configuration:
+    $ref: './userAccounts-api.yml#/operations/configureFeedback'
+  /users/{userId}/accountHolders/{ahId}/feedback:
+    $ref: './userAccounts-api.yml#/operations/askFeedback'
+  /accountHolders:
+    $ref: './userAccounts-api.yml#/operations/accountHolderOperations'
+  /businessActivities:
+    $ref: './userAccounts-api.yml#/operations/getBusinessActivities'
+  /users/{userId}/accounts/{accountId}/accountHolders/{ahId}/businessActivities:
+    $ref: './userAccounts-api.yml#/operations/updateBusinessActivities'
+  /users/{id}/legalFiles:
+    $ref: './userAccounts-api.yml#/operations/getLegalFiles'
+  /users/{uId}/legalFiles/{lId}:
+    $ref: './userAccounts-api.yml#/operations/approveLegalFile'
+
+
+  #############################################
+  ################ Paying API #################
+  #############################################
+  /accounts/{id}/transactions:
+    $ref: './paying-api.yml#/operations/getTransactions'
+  /accounts/{aId}/transactions/exportLink:
+    $ref: './paying-api.yml#/operations/transactionsExportLink'
+  /accounts/{id}/transactions/{tId}:
+    $ref: './paying-api.yml#/operations/getTransactionById'
+  /accounts/{aId}/transactions/{tId}/invoices/{iId}:
+    $ref: './paying-api.yml#/operations/justifyTransaction'
+  /accounts/{aId}/transactionsSummary:
+    $ref: './paying-api.yml#/operations/getTransactionsSummary'
+  /accounts/{aId}/invoiceRelaunchConf:
+    $ref: './paying-api.yml#/operations/accountRelaunchOperations'
+  /accounts/{aId}/transactionCategories:
+    $ref: './paying-api.yml#/operations/getTransactionCategories'
+  /accounts/{aId}/transactions/{tId}/transactionCategories:
+    $ref: './paying-api.yml#/operations/createTransactionCategories'
+  /accounts/{aId}/products/{pId}:
+    $ref: './paying-api.yml#/operations/getUniqueProduct'
+  /accounts/{id}/products:
+    $ref: './paying-api.yml#/operations/productOperations'
+  /accounts/{aId}/products/export:
+    $ref: './paying-api.yml#/operations/productExportOperations'
+  /accounts/{aId}/products/status:
+    $ref: './paying-api.yml#/operations/updateProductsStatus'
+  /accounts/{id}/products/upload:
+    $ref: './paying-api.yml#/operations/importProducts'
+  /accounts/{aId}/invoices:
+    $ref: './paying-api.yml#/operations/getInvoices'
+  /accounts/{aId}/invoices/archive:
+    $ref: './paying-api.yml#/operations/archiveInvoices'
+  /accounts/{aId}/invoices/{iId}:
+    $ref: './paying-api.yml#/operations/invoiceOperations'
+  /accounts/{aId}/invoices/{iId}/paymentRegulations/{pId}/paymentMethod:
+    $ref: './paying-api.yml#/operations/paymentRegulationOperations'
+  /accounts/{aId}/invoices/{iId}/duplication:
+    $ref: './paying-api.yml#/operations/invoiceDuplication'
+  /accounts/{aId}/invoices/{iId}/relaunchConf:
+    $ref: './paying-api.yml#/operations/invoiceRelaunchConfOperations'
+  /accounts/{aId}/invoices/{iId}/relaunches:
+    $ref: './paying-api.yml#/operations/getRelaunches'
+  /accounts/{aId}/invoices/{iId}/relaunch:
+    $ref: './paying-api.yml#/operations/relaunchInvoice'
+  /accounts/{id}/paymentInitiations:
+    $ref: './paying-api.yml#/operations/paymentInitiationsOperations'
+
+  #############################################
+  ################# Files API #################
+  #############################################
+  /accounts/{aId}/files/{id}:
+    $ref: './files-api.yml#/operations/getFileById'
+  /accounts/{aId}/files/{id}/raw:
+    $ref: './files-api.yml#/operations/downloadOrUploadFile'
+
+  #############################################
+  ############## Customers API ################
+  #############################################
+  /accounts/{aId}/customers/{cId}:
+    $ref: './customers-api.yml#/operations/getUniqueCustomer'
+  /accounts/{aId}/customers/export:
+    $ref: './customers-api.yml#/operations/customerExportOperations'
+  /accounts/{id}/customers:
+    $ref: './customers-api.yml#/operations/customerOperations'
+  /accounts/{id}/customers/upload:
+    $ref: './customers-api.yml#/operations/importCustomers'
+  /accounts/{id}/customers/status:
+    $ref: './customers-api.yml#/operations/updateCustomerStatus'
+
+  #############################################
+  ############# Prospecting API ###############
+  #############################################
+  /accounts/{id}/marketplaces:
+    $ref: './prospecting-api.yml#/operations/getMarketplaces'
+  /accountHolders/{ahId}/prospects:
+    $ref: './prospecting-api.yml#/operations/prospectOperations'
+  /accountHolders/{ahId}/prospects/import:
+    $ref: './prospecting-api.yml#/operations/prospectImportOperations'
+  /accountHolders/{ahId}/prospects/{id}/prospectConversion:
+    $ref: './prospecting-api.yml#/operations/convertProspect'
+  /accountHolders/{ahId}/prospects/prospectsEvaluation:
+    $ref: './prospecting-api.yml#/operations/prospectsEvaluation'
+  /accountHolders/{ahId}/prospects/evaluations:
+    $ref: './prospecting-api.yml#/operations/prospectsEvaluationOperations'
+  /accountHolders/{ahId}/prospects/{id}:
+    $ref: './prospecting-api.yml#/operations/updateProspects'
+  /accountHolders/{ahId}/prospects/evaluationJobs:
+    $ref: './prospecting-api.yml#/operations/prospectEvaluationJobs'
+  /accountHolders/{ahId}/prospects/evaluationJobs/{jId}:
+    $ref: './prospecting-api.yml#/operations/prospectEvaluationJobDetails'
+
+  #############################################
+  ################# AWS SNS API ##############
+  #############################################
+  /users/{uId}/deviceRegistration:
+    $ref: './userAccounts-api.yml#/operations/deviceRegistrationOperations'
+
+  #############################################
+  ################# Google Sheet API ##############
+  #############################################
+  /users/{id}/sheets/oauth2/consent:
+    $ref: './sheet-api.yml#/operations/sheetConsent'
+  /users/{id}/sheets/oauth2/auth:
+    $ref: './sheet-api.yml#/operations/sheetAuth'
+
+
+  #############################################
+  ################# Calendar API ##############
+  #############################################
+  /users/{id}/calendars/oauth2/consent:
+    $ref: './calendar-api.yml#/operations/calendarConsent'
+  /users/{id}/calendars/oauth2/auth:
+    $ref: './calendar-api.yml#/operations/calendarAuth'
+  /users/{userId}/calendars/{calendarId}/events:
+    $ref: './calendar-api.yml#/operations/calendarEvents'
+  /users/{userId}/calendars:
+    $ref: './calendar-api.yml#/operations/calendars'
+
+  #############################################
+  ################# Mailing API ##############
+  #############################################
+  /users/{userId}/emails:
+    $ref: './mailing-api.yml#/operations/mailingOperations'
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+    apiKeyHeader:
+      type: apiKey
+      in: header
+      name: x-api-key
+  responses:
+    400:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/BadRequestException'
+    403:
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/NotAuthorizedException'
+    404:
+      description: Not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ResourceNotFoundException'
+    429:
+      description: Too many requests to the API
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/TooManyRequestsException'
+    500:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/InternalServerException'
+  schemas:
+    RedirectionStatusUrls:
+      type: object
+      properties:
+        successUrl:
+          type: string
+        failureUrl:
+          type: string
+    Redirection:
+      type: object
+      properties:
+        redirectionUrl:
+          type: string
+        redirectionStatusUrls:
+          $ref: '#/components/schemas/RedirectionStatusUrls'
+    CreateAttachment:
+      type: object
+      properties:
+        name:
+          type: string
+        content:
+          type: string
+          format: byte
+    Attachment:
+      allOf:
+        - $ref: '#/components/schemas/CreateAttachment'
+      properties:
+        fileId:
+          type: string
+    #TODO: replace EmailInfo by EmailAttributes if necessary
+    EmailAttributes:
+      type: object
+      properties:
+        subject:
+          type: string
+        message:
+          type: string
+          description: HTML is waited
+        attachments:
+          $ref: '#/components/schemas/CreateAttachment'
+    JobStatus:
+      type: object
+      properties:
+        value:
+          $ref: '#/components/schemas/JobStatusValue'
+        message:
+          type: string
+    JobStatusValue:
+      type: string
+      enum:
+        - NOT_STARTED
+        - IN_PROGRESS
+        - FINISHED
+        - FAILED
+    TokenValidity:
+      type: object
+      properties:
+        expirationTime:
+          type: integer
+          format: int64
+        createdAt:
+          type: string
+          format: date-time
+        expiredAt:
+          type: string
+          format: date-time
+    SupportedExportFileType:
+      type: string
+      enum:
+        - text/csv
+        - application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+    Page:
+      type: integer
+      description: Start at `1`
+    PageSize:
+      type: integer
+      description: Cannot exceed `500`
+    Exception:
+      type: object
+      properties:
+        type:
+          type: string
+        message:
+          type: string
+    BadRequestException:
+      allOf:
+        - $ref: '#/components/schemas/Exception'
+      example:
+        type: BadRequestException
+        message: Bad request
+    NotAuthorizedException:
+      allOf:
+        - $ref: '#/components/schemas/Exception'
+      example:
+        type: NotAuthorizedException
+        message: Not authorized
+    ResourceNotFoundException:
+      allOf:
+        - $ref: '#/components/schemas/Exception'
+      example:
+        type: ResourceNotFoundException
+        message: Resource of type <T> identified by <I> not found
+    TooManyRequestsException:
+      allOf:
+        - $ref: '#/components/schemas/Exception'
+      example:
+        type: TooManyRequestsException
+        message: Too many requests
+    InternalServerException:
+      allOf:
+        - $ref: '#/components/schemas/Exception'
+      example:
+        type: InternalServerException
+        message: Unexpected error

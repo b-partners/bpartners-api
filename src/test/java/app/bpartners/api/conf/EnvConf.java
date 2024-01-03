@@ -18,7 +18,12 @@ public class EnvConf {
     registry.add("aws.sqs.mailboxUrl", () -> "dummy");
     registry.add("feature.detector.api.key", () -> "dummy");
     registry.add("feature.detector.application.name", () -> "dummy");
-    registry.add("expressif.projet.token", () -> "dummy");
+    registry.add("expressif.project.token", () -> "dummy");
+    registry.add("ban.base.url", () -> "dummy");
+    registry.add("bridge.base.url", () -> "dummy");
+    registry.add("bridge.version", () -> "dummy");
+    registry.add("bridge.client.id", () -> "dummy");
+    registry.add("bridge.client.secret", () -> "dummy");
     registry.add("google.calendar.apps.name", () -> "dummy");
     registry.add("google.calendar.client.id", () -> "dummy");
     registry.add("google.calendar.client.secret", () -> "dummy");

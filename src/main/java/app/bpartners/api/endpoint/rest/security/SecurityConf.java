@@ -80,7 +80,11 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
                         new AntPathRequestMatcher("/users/*/legalFiles/*", PUT.name()),
                         new AntPathRequestMatcher("/**", OPTIONS.toString()),
                         new AntPathRequestMatcher("/whois/*", GET.name()),
-                        new AntPathRequestMatcher("/webhooks/paymentStatus", POST.name())))),
+                        new AntPathRequestMatcher("/webhooks/paymentStatus", POST.name()),
+                        new AntPathRequestMatcher("/health/db", GET.name()),
+                        new AntPathRequestMatcher("/health/bucket", GET.name()),
+                        new AntPathRequestMatcher("/health/email", GET.name()),
+                        new AntPathRequestMatcher("/health/event", GET.name())))),
             AnonymousAuthenticationFilter.class)
         .anonymous()
 
@@ -113,6 +117,14 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
         .antMatchers(GET, "/whois/*")
         .permitAll()
         .antMatchers(POST, "/webhooks/paymentStatus")
+        .permitAll()
+        .antMatchers(GET, "/health/db")
+        .permitAll()
+        .antMatchers(GET, "/health/bucket")
+        .permitAll()
+        .antMatchers(GET, "/health/event")
+        .permitAll()
+        .antMatchers(GET, "/health/email")
         .permitAll()
         .antMatchers(GET, "/accountHolders")
         .hasAnyRole(EVAL_PROSPECT.getRole())

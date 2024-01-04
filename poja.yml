@@ -1,5 +1,5 @@
 app_name: bpartners
-cli_version: 9.1.1
+cli_version: 10.0.0
 custom_java_deps: poja-custom-java-deps.txt
 custom_java_env_vars: poja-custom-java-env-vars.txt
 custom_java_repositories: poja-custom-java-repositories.txt
@@ -13,7 +13,7 @@ ssm_subnet1_id: /bpartners/private/subnet1/id
 ssm_subnet2_id: /bpartners/private/subnet2/id
 ts_client_api_url_env_var_name: REACT_APP_BPARTNERS_API_URL
 ts_client_default_openapi_server_url: api.prod.bpartners.app
-with_database: postgres
+with_database: non-poja-managed-postgres
 with_gen_clients: 'true'
 with_own_vpc: 'true'
 with_swagger_ui: 'false'

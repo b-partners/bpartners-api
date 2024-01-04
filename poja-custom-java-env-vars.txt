@@ -30,3 +30,6 @@ GOOGLE_SHEET_CLIENT_SECRET: !Sub '{{resolve:ssm:/bpartners/${Env}/google/sheet/c
 GOOGLE_SHEET_REDIRECT_URIS: !Sub '{{resolve:ssm:/bpartners/${Env}/google/sheet/redirect/uris}}'
 ADMIN_EMAIL: !Sub '{{resolve:ssm:/bpartners/${Env}/admin/email}}'
 SNS_PLATFORM_ARN: !Sub '{{resolve:ssm:/bpartners/${Env}/sns/platform-arn}}'
+DATABASE_URL: !Sub '{{resolve:ssm:/bpartners/${Env}/db/url}}'
+DATABASE_USERNAME: !Sub '{{resolve:ssm:/bpartners/${Env}/db/username}}'
+DATABASE_PASSWORD: !Sub '{{resolve:ssm:/bpartners/${Env}/db/password}}'

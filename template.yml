@@ -10,7 +10,9 @@ Globals:
     Architectures:
       - x86_64
     Timeout: 600
-    
+    AutoPublishAlias: live
+    SnapStart:
+      ApplyOn: PublishedVersions
     VpcConfig:
       SecurityGroupIds:
         - !Sub '{{resolve:ssm:/bpartners/sg/id}}'
@@ -25,9 +27,7 @@ Globals:
         AWS_S3_BUCKET: !Sub '{{resolve:ssm:/bpartners/${Env}/s3/bucket-name}}'
         AWS_SES_SOURCE: noreply@nowhere.com
         
-        DATABASE_URL: !Sub '{{resolve:ssm:/bpartners/${Env}/db/url}}'
-        DATABASE_USERNAME: !Sub '{{resolve:ssm:/bpartners/${Env}/db/username}}'
-        DATABASE_PASSWORD: !Sub '{{resolve:ssm:/bpartners/${Env}/db/password}}'
+        
         SENTRY_DSN: !Sub '{{resolve:ssm:/bpartners/sentry/dsn}}'
         AWS_COGNITO_USERPOOL_ID: !Sub '{{resolve:ssm:/bpartners/${Env}/cognito/userpool-id}}'
         FINTECTURE_APP_ID: !Sub '{{resolve:ssm:/bpartners/${Env}/fintecture/app-id}}'
@@ -60,7 +60,10 @@ Globals:
         GOOGLE_SHEET_REDIRECT_URIS: !Sub '{{resolve:ssm:/bpartners/${Env}/google/sheet/redirect/uris}}'
         ADMIN_EMAIL: !Sub '{{resolve:ssm:/bpartners/${Env}/admin/email}}'
         SNS_PLATFORM_ARN: !Sub '{{resolve:ssm:/bpartners/${Env}/sns/platform-arn}}'
-        JAVA_TOOL_OPTIONS: -XX:+TieredCompilation -XX:TieredStopAtLevel=1 -Dspring.main.lazy-initialization=true -Dspring.data.jpa.repositories.bootstrap-mode=lazy -Dspring.datasource.max-active=5 -Dspring.datasource.max-idle=1 -Dspring.datasource.min-idle=1 -Dspring.datasource.initial-size=1
+        DATABASE_URL: !Sub '{{resolve:ssm:/bpartners/${Env}/db/url}}'
+        DATABASE_USERNAME: !Sub '{{resolve:ssm:/bpartners/${Env}/db/username}}'
+        DATABASE_PASSWORD: !Sub '{{resolve:ssm:/bpartners/${Env}/db/password}}'
+        
 
 Parameters:
   Env:

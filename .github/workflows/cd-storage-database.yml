@@ -1,4 +1,4 @@
-name: CD storage database
+name: CD storage
 
 on:
   push:
@@ -7,6 +7,11 @@ on:
       - 'preprod'
 
   workflow_dispatch:
+    inputs:
+      db_snapshot_identifier:
+        type: string
+        default: null
+        required: false
 
 jobs:
   cd-storage:
@@ -22,20 +27,23 @@ jobs:
     steps:
       - uses: actions/checkout@v4.1.1
 
+      - name: Put branch_env into GITHUB_ENV
+        run: |
+          echo "branch_env=${{ github.ref_name }}" >> $GITHUB_ENV
+
       - uses: hei-school/aws-credentials-setter@v1.0.3
         with:
           secrets: ${{ toJSON(secrets) }}
           region: ${{ env.AWS_REGION }}
 
-      - name: Deploy storage database stack
+      - name: Deploy storage stack
         uses: aws-actions/aws-cloudformation-github-deploy@v1
         with:
-          # TODO: -storage- --> -database-. But it will BREAK backward compatibility.
-          name: ${{ github.ref_name }}-storage-bpartners
+          name: ${{ env.branch_env }}-storage-bpartners
           template: cf-stacks/storage-database-stack.yml
-          tags: "[ { \"Key\": \"app\", \"Value\": \"bpartners\" }, { \"Key\": \"env\", \"Value\": \"${{ github.ref_name }}\" } ]"
+          tags: "[ { \"Key\": \"app\", \"Value\": \"bpartners\" }, { \"Key\": \"env\", \"Value\": \"${{ env.branch_env }}\" } ]"
           capabilities: CAPABILITY_NAMED_IAM
           no-fail-on-empty-changeset: "1"
           parameter-overrides:
-            "Env=${{ github.ref_name }},
-            ProdDbClusterTimeout=${{ vars.PROD_DB_CLUSTER_TIMEOUT }}"
+            "Env=${{ env.branch_env }},
+             DBSnapshot=${{ github.event.inputs.db_snapshot_identifier }}"

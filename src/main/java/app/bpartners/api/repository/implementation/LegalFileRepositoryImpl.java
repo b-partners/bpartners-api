@@ -38,10 +38,12 @@ public class LegalFileRepositoryImpl implements LegalFileRepository {
   @Override
   public LegalFile save(String userId, String legalFileId) {
     HLegalFile optionalLegalFile = jpaRepository.getById(legalFileId);
-    HUserLegalFile userLegalFile = userLegalJpaRepository.save(HUserLegalFile.builder()
-        .user(userJpaRepository.getById(userId))
-        .legalFile(optionalLegalFile)
-        .build());
+    HUserLegalFile userLegalFile =
+        userLegalJpaRepository.save(
+            HUserLegalFile.builder()
+                .user(userJpaRepository.getById(userId))
+                .legalFile(optionalLegalFile)
+                .build());
     return mapper.toDomain(userLegalFile.getLegalFile(), userLegalFile);
   }
 
@@ -51,21 +53,26 @@ public class LegalFileRepositoryImpl implements LegalFileRepository {
     List<HUserLegalFile> userLegalFiles = userLegalJpaRepository.findAllByUser_Id(userId);
     List<LegalFile> legalFiles = new ArrayList<>();
     files.forEach(
-        legalFile -> userLegalFiles.stream()
-            .filter(userLegalFile -> legalFile.getId().equals(userLegalFile.getLegalFile().getId()))
-            .findFirst()
-            .ifPresentOrElse(
-                userLegalFile -> legalFiles.add(mapper.toDomain(legalFile, userLegalFile)),
-                () -> legalFiles.add(mapper.toDomain(legalFile, null)))
-    );
+        legalFile ->
+            userLegalFiles.stream()
+                .filter(
+                    userLegalFile -> legalFile.getId().equals(userLegalFile.getLegalFile().getId()))
+                .findFirst()
+                .ifPresentOrElse(
+                    userLegalFile -> legalFiles.add(mapper.toDomain(legalFile, userLegalFile)),
+                    () -> legalFiles.add(mapper.toDomain(legalFile, null))));
     return legalFiles;
   }
 
   @Override
   public List<LegalFile> findAllToBeApprovedLegalFilesByUserId(String userId) {
     List<HLegalFile> legalFiles = jpaRepository.findAllByToBeConfirmedTrue();
-    return legalFiles.stream().map(legalFile -> mapper.toDomain(legalFile,
-        userLegalJpaRepository.findByLegalFile_IdAndUser_Id(legalFile.getId(), userId))).collect(
-        Collectors.toUnmodifiableList());
+    return legalFiles.stream()
+        .map(
+            legalFile ->
+                mapper.toDomain(
+                    legalFile,
+                    userLegalJpaRepository.findByLegalFile_IdAndUser_Id(legalFile.getId(), userId)))
+        .collect(Collectors.toUnmodifiableList());
   }
 }

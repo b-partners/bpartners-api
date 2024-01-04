@@ -1,5 +1,8 @@
 package app.bpartners.api.endpoint.rest.mapper;
 
+import static app.bpartners.api.endpoint.rest.security.model.Role.EVAL_PROSPECT;
+import static app.bpartners.api.endpoint.rest.security.model.Role.INVOICE_RELAUNCHER;
+
 import app.bpartners.api.endpoint.rest.model.OnboardUser;
 import app.bpartners.api.endpoint.rest.model.User;
 import app.bpartners.api.endpoint.rest.model.UserRole;
@@ -8,9 +11,6 @@ import java.util.ArrayList;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
-
-import static app.bpartners.api.endpoint.rest.security.model.Role.EVAL_PROSPECT;
-import static app.bpartners.api.endpoint.rest.security.model.Role.INVOICE_RELAUNCHER;
 
 @Component
 @AllArgsConstructor
@@ -44,12 +44,13 @@ public class UserRestMapper {
 
   private List<UserRole> toRest(List<Role> roles) {
     List<UserRole> userRoles = new ArrayList<>();
-    roles.forEach(role -> {
-      UserRole userRole = toRest(role);
-      if (userRole != null) {
-        userRoles.add(userRole);
-      }
-    });
+    roles.forEach(
+        role -> {
+          UserRole userRole = toRest(role);
+          if (userRole != null) {
+            userRoles.add(userRole);
+          }
+        });
     return userRoles;
   }
 

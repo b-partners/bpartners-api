@@ -25,7 +25,7 @@ public class InvoiceRelaunchConfController {
   public AccountInvoiceRelaunchConf getAccountInvoiceRelaunch(
       @PathVariable("aId") String accountId) {
     String idUser =
-        AuthProvider.getAuthenticatedUserId(); //TODO: should be changed when endpoint changed
+        AuthProvider.getAuthenticatedUserId(); // TODO: should be changed when endpoint changed
     return mapper.toRest(relaunchService.getByIdUser(idUser));
   }
 
@@ -34,14 +34,13 @@ public class InvoiceRelaunchConfController {
       @PathVariable("aId") String accountId,
       @RequestBody CreateAccountInvoiceRelaunchConf toCreate) {
     String idUser =
-        AuthProvider.getAuthenticatedUserId(); //TODO: should be changed when endpoint changed
+        AuthProvider.getAuthenticatedUserId(); // TODO: should be changed when endpoint changed
     return mapper.toRest(relaunchService.saveConf(idUser, mapper.toDomain(toCreate)));
   }
 
   @GetMapping("/accounts/{aId}/invoices/{iId}/relaunchConf")
   public InvoiceRelaunchConf getInvoiceRelaunchConf(
-      @PathVariable("aId") String accountId,
-      @PathVariable("iId") String invoiceId) {
+      @PathVariable("aId") String accountId, @PathVariable("iId") String invoiceId) {
     return mapper.toRest(relaunchConfService.findByIdInvoice(invoiceId));
   }
 

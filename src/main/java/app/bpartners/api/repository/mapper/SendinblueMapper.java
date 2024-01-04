@@ -11,8 +11,8 @@ import sibModel.GetExtendedContactDetails;
 public class SendinblueMapper {
 
   public Contact toDomain(GetExtendedContactDetails contactDetails) {
-    Attributes attributes = mapAttributes(
-        (LinkedTreeMap<Object, Object>) contactDetails.getAttributes());
+    Attributes attributes =
+        mapAttributes((LinkedTreeMap<Object, Object>) contactDetails.getAttributes());
     return Contact.builder()
         .email(contactDetails.getEmail())
         .emailBlackListed(contactDetails.isEmailBlacklisted())
@@ -57,4 +57,3 @@ public class SendinblueMapper {
         .build();
   }
 }
-

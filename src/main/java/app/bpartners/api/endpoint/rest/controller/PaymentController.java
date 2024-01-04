@@ -6,7 +6,6 @@ import app.bpartners.api.endpoint.rest.model.PaymentRedirection;
 import app.bpartners.api.service.PaymentInitiationService;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -28,7 +27,7 @@ public class PaymentController {
       @RequestParam("session_id") String sessionId,
       @RequestParam("status") String status,
       @RequestHeader("Signature") String signatureHeader) {
-    //TODO: initiationService.verifySignature(signatureHeader, sessionId, status);
+    // TODO: initiationService.verifySignature(signatureHeader, sessionId, status);
     initiationService.updatePaymentStatuses(Map.of(sessionId, status));
   }
 
@@ -36,9 +35,8 @@ public class PaymentController {
   List<PaymentRedirection> initiatePayments(
       @PathVariable(name = "id") String accountId,
       @RequestBody List<PaymentInitiation> paymentRequests) {
-    List<app.bpartners.api.model.PaymentInitiation> domain = paymentRequests.stream()
-        .map(mapper::toDomain)
-        .toList();
+    List<app.bpartners.api.model.PaymentInitiation> domain =
+        paymentRequests.stream().map(mapper::toDomain).toList();
     return initiationService.initiatePayments(accountId, domain).stream()
         .map(mapper::toRest)
         .toList();

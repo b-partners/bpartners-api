@@ -33,12 +33,13 @@ import org.hibernate.annotations.Type;
 @NoArgsConstructor
 @EqualsAndHashCode
 public class HPaymentRequest implements Serializable {
-  @Id
-  private String id;
+  @Id private String id;
   private String sessionId;
   private String idUser;
+
   @Column(name = "id_invoice")
   private String idInvoice;
+
   private String label;
   private String paymentUrl;
   private String reference;
@@ -46,18 +47,21 @@ public class HPaymentRequest implements Serializable {
   private String payerName;
   private String payerEmail;
   private LocalDate paymentDueDate;
+
   @Type(type = "pgsql_enum")
   @Enumerated(EnumType.STRING)
   private PaymentStatus status;
+
   @Type(type = "pgsql_enum")
   @Enumerated(EnumType.STRING)
   private PaymentMethod paymentMethod;
+
   @Column(name = "\"comment\"")
   private String comment;
+
   private Boolean userUpdated;
   private Instant paymentStatusUpdatedAt;
-  @CreationTimestamp
-  private Instant createdDatetime;
+  @CreationTimestamp private Instant createdDatetime;
 
   public HPaymentRequest(PaymentRequest domain) {
     PaymentHistoryStatus historyStatus = domain.getPaymentHistoryStatus();
@@ -73,15 +77,15 @@ public class HPaymentRequest implements Serializable {
     this.payerEmail = domain.getPayerEmail();
     this.paymentDueDate = domain.getPaymentDueDate();
     this.comment = domain.getComment();
-    this.status = historyStatus == null ? domain.getStatus()
-        : (historyStatus.getStatus() == null ? PaymentStatus.UNPAID
-        : historyStatus.getStatus());
-    this.userUpdated = historyStatus == null ? null
-        : historyStatus.getUserUpdated();
-    this.paymentMethod = historyStatus == null ? null
-        : historyStatus.getPaymentMethod();
-    this.paymentStatusUpdatedAt = historyStatus == null ? null :
-        domain.getCreatedDatetime();
+    this.status =
+        historyStatus == null
+            ? domain.getStatus()
+            : (historyStatus.getStatus() == null
+                ? PaymentStatus.UNPAID
+                : historyStatus.getStatus());
+    this.userUpdated = historyStatus == null ? null : historyStatus.getUserUpdated();
+    this.paymentMethod = historyStatus == null ? null : historyStatus.getPaymentMethod();
+    this.paymentStatusUpdatedAt = historyStatus == null ? null : domain.getCreatedDatetime();
     this.createdDatetime = domain.getCreatedDatetime();
   }
 }

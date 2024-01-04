@@ -5,10 +5,8 @@ import java.time.Instant;
 import java.util.List;
 
 public interface CalendarEventRepository {
-  List<CalendarEvent> findByIdUserAndIdCalendar(String idUser,
-                                                String idCalendar,
-                                                Instant from,
-                                                Instant to);
+  List<CalendarEvent> findByIdUserAndIdCalendar(
+      String idUser, String idCalendar, Instant from, Instant to);
 
   List<CalendarEvent> saveAll(String idUser, String idCalendar, List<CalendarEvent> toSave);
 

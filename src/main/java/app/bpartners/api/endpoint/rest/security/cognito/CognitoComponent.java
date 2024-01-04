@@ -1,5 +1,7 @@
 package app.bpartners.api.endpoint.rest.security.cognito;
 
+import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
+
 import app.bpartners.api.endpoint.rest.model.Token;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.exception.BadRequestException;
@@ -23,8 +25,6 @@ import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminCreate
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminCreateUserResponse;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AttributeType;
 
-import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
-
 @Slf4j
 @Component
 public class CognitoComponent {
@@ -34,9 +34,7 @@ public class CognitoComponent {
   private final CognitoIdentityProviderClient cognitoClient;
   private final ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
 
-  public CognitoComponent(
-      CognitoConf cognitoConf,
-      CognitoIdentityProviderClient cognitoClient) {
+  public CognitoComponent(CognitoConf cognitoConf, CognitoIdentityProviderClient cognitoClient) {
     this.cognitoConf = cognitoConf;
     this.cognitoClient = cognitoClient;
   }
@@ -47,9 +45,9 @@ public class CognitoComponent {
       claims = cognitoConf.getCognitoJwtProcessor().process(idToken, null);
     } catch (ParseException | BadJOSEException | JOSEException e) {
       /* From Javadoc:
-         ParseException – If the string couldn't be parsed to a valid JWT.
-         BadJOSEException – If the JWT is rejected.
-         JOSEException – If an internal processing exception is encountered. */
+      ParseException – If the string couldn't be parsed to a valid JWT.
+      BadJOSEException – If the JWT is rejected.
+      JOSEException – If an internal processing exception is encountered. */
       return null;
     }
 
@@ -64,23 +62,16 @@ public class CognitoComponent {
     return claims.getClaims().get("email").toString();
   }
 
-
   public String createUser(String email) {
-    AdminCreateUserRequest createRequest = AdminCreateUserRequest.builder()
-        .userPoolId(cognitoConf.getUserPoolId())
-        .username(email)
-        // TODO: add test to ensure it has properly been set
-        .userAttributes(
-            AttributeType.builder()
-                .name("email")
-                .value(email)
-                .build(),
-            AttributeType.builder()
-                .name("email_verified")
-                .value("true")
-                .build()
-        )
-        .build();
+    AdminCreateUserRequest createRequest =
+        AdminCreateUserRequest.builder()
+            .userPoolId(cognitoConf.getUserPoolId())
+            .username(email)
+            // TODO: add test to ensure it has properly been set
+            .userAttributes(
+                AttributeType.builder().name("email").value(email).build(),
+                AttributeType.builder().name("email_verified").value("true").build())
+            .build();
 
     AdminCreateUserResponse createResponse = cognitoClient.adminCreateUser(createRequest);
     if (createResponse == null
@@ -95,28 +86,36 @@ public class CognitoComponent {
       String code, String successUrl) {
     HttpClient httpClient = HttpClient.newBuilder().build();
     String data =
-        "client_id=" + cognitoConf.getClientId()
-            + "&client_secret=" + cognitoConf.getClientSecret()
-            + "&redirect_uri=" + successUrl
+        "client_id="
+            + cognitoConf.getClientId()
+            + "&client_secret="
+            + cognitoConf.getClientSecret()
+            + "&redirect_uri="
+            + successUrl
             + "&grant_type=authorization_code"
-            + "&code=" + code;
+            + "&code="
+            + code;
     byte[] postData = data.getBytes(StandardCharsets.UTF_8);
     try {
-      HttpRequest request = HttpRequest.newBuilder()
-          .uri(new URI(cognitoConf.getOauthUrl()))
-          .header("Content-Type", "application/x-www-form-urlencoded")
-          .header("Authorization",
-              BASIC_AUTH_PREFIX
-                  + getBasicToken(cognitoConf.getClientId(), cognitoConf.getClientSecret()))
-          .POST(HttpRequest.BodyPublishers.ofByteArray(postData))
-          .build();
+      HttpRequest request =
+          HttpRequest.newBuilder()
+              .uri(new URI(cognitoConf.getOauthUrl()))
+              .header("Content-Type", "application/x-www-form-urlencoded")
+              .header(
+                  "Authorization",
+                  BASIC_AUTH_PREFIX
+                      + getBasicToken(cognitoConf.getClientId(), cognitoConf.getClientSecret()))
+              .POST(HttpRequest.BodyPublishers.ofByteArray(postData))
+              .build();
       HttpResponse<String> httpResponse =
           httpClient.send(request, HttpResponse.BodyHandlers.ofString());
       return toRestToken(objectMapper.readValue(httpResponse.body(), CognitoToken.class));
     } catch (IOException | URISyntaxException e) {
-      //TODO: map correctly with cognito response
-      throw new BadRequestException("Code is invalid, expired, revoked or the redirectUrl "
-          + successUrl + " does not match in the authorization request");
+      // TODO: map correctly with cognito response
+      throw new BadRequestException(
+          "Code is invalid, expired, revoked or the redirectUrl "
+              + successUrl
+              + " does not match in the authorization request");
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       throw new ApiException(SERVER_EXCEPTION, e);

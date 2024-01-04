@@ -24,8 +24,7 @@ public class AuthenticatedResourceProvider {
   }
 
   public AccountHolder getDefaultAccountHolder() {
-    return accountHolderService.getDefaultByAccountId(getAccount().getId()
-    );
+    return accountHolderService.getDefaultByAccountId(getAccount().getId());
   }
 
   public List<AccountHolder> getAccountHolders() {

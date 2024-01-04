@@ -1,11 +1,11 @@
 package app.bpartners.api.integration.conf;
 
+import static app.bpartners.api.integration.conf.utils.TestUtils.findAvailableTcpPort;
+import static org.springframework.test.context.support.TestPropertySourceUtils.addInlinedPropertiesToEnvironment;
+
 import lombok.Getter;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
-
-import static app.bpartners.api.integration.conf.utils.TestUtils.findAvailableTcpPort;
-import static org.springframework.test.context.support.TestPropertySourceUtils.addInlinedPropertiesToEnvironment;
 
 public class CalendarEnvContextInitializer
     implements ApplicationContextInitializer<ConfigurableApplicationContext> {
@@ -31,8 +31,7 @@ public class CalendarEnvContextInitializer
       implements ApplicationContextInitializer<ConfigurableApplicationContext> {
 
     private final DbContextInitializer dbContextInitializer;
-    @Getter
-    private int httpServerPort = -1;
+    @Getter private int httpServerPort = -1;
 
     public EnvContextInitializer(DbContextInitializer dbContextInitializer) {
       this.dbContextInitializer = dbContextInitializer;

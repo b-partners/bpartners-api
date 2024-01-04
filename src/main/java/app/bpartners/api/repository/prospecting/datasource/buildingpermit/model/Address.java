@@ -1,13 +1,13 @@
 package app.bpartners.api.repository.prospecting.datasource.buildingpermit.model;
 
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.USE_DEFAULTS;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
-
-import static com.fasterxml.jackson.annotation.JsonInclude.Include.USE_DEFAULTS;
 
 @ToString
 @NoArgsConstructor

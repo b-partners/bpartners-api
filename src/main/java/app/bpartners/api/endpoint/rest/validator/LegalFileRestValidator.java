@@ -14,8 +14,11 @@ public class LegalFileRestValidator {
   public void accept(String userId, String legalFileId) {
     LegalFile legalFile = repository.findByUserIdAndLegalFileId(userId, legalFileId);
     if (legalFile.isApproved()) {
-      throw new BadRequestException("LegalFile." + legalFileId + " was already approved on "
-          + legalFile.getApprovalDatetime());
+      throw new BadRequestException(
+          "LegalFile."
+              + legalFileId
+              + " was already approved on "
+              + legalFile.getApprovalDatetime());
     }
   }
 }

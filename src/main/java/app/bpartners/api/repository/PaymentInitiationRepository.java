@@ -7,7 +7,8 @@ import app.bpartners.api.repository.jpa.model.HPaymentRequest;
 import java.util.List;
 
 public interface PaymentInitiationRepository {
-  List<PaymentRedirection> saveAll(List<PaymentInitiation> paymentInitiation, String invoice, User user);
+  List<PaymentRedirection> saveAll(
+      List<PaymentInitiation> paymentInitiation, String invoice, User user);
 
   List<HPaymentRequest> retrievePaymentEntitiesWithUrl(
       List<PaymentInitiation> paymentInitiation, String invoice, User user);

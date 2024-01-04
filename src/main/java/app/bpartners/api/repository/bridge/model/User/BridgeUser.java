@@ -17,6 +17,7 @@ import lombok.ToString;
 public class BridgeUser {
   @JsonProperty("uuid")
   private String uuid;
+
   @JsonProperty("email")
   private String email;
 }

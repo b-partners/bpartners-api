@@ -1,6 +1,8 @@
 package app.bpartners.api.service;
 
-import app.bpartners.api.endpoint.event.EventConf;
+import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
+
+import app.bpartners.api.endpoint.event.SesConf;
 import app.bpartners.api.endpoint.rest.model.EmailStatus;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.Attachment;
@@ -21,8 +23,6 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
-
 @Service
 @AllArgsConstructor
 @Slf4j
@@ -30,7 +30,7 @@ public class MailingService {
   private final SesService sesService;
   private final EmailRepository emailRepository;
   private final UserService userService;
-  private final EventConf eventConf;
+  private final SesConf sesConf;
 
   public List<Email> getEmailsByUserId(String userId) {
     return emailRepository.findAllByUserId(userId);
@@ -54,14 +54,9 @@ public class MailingService {
                 String object = email.getObject();
                 String body = email.getBody();
                 List<Attachment> attachments = email.getAttachments();
-                String invisibleRecipient = eventConf.getAdminEmail();
+                String invisibleRecipient = sesConf.getAdminEmail();
                 sesService.sendEmail(
-                    recipient,
-                    concerned,
-                    object,
-                    body,
-                    attachments,
-                    invisibleRecipient);
+                    recipient, concerned, object, body, attachments, invisibleRecipient);
                 log.info("Email sent to {} from {} with object {}", recipient, concerned, object);
               } catch (IOException | MessagingException e) {
                 log.error("Unable to sent email {}", email);
@@ -76,19 +71,21 @@ public class MailingService {
 
   private void checkEmailEditionValidity(List<Email> emails) {
     StringBuilder msgBuilder = new StringBuilder();
-    emails.forEach(actualEmail -> {
-      Email existingEmail = emailRepository.findById(actualEmail.getId());
-      if (existingEmail != null
-          && existingEmail.getStatus() == EmailStatus.SENT
-          && actualEmail.getStatus() == EmailStatus.DRAFT) {
-        msgBuilder.append("Unable to edit email ")
-            .append(actualEmail.describe())
-            .append(" because it was already sent. ");
-      }
-      if (actualEmail.getStatus() == EmailStatus.SENT) {
-        actualEmail.setSendingDatetime(Instant.now());
-      }
-    });
+    emails.forEach(
+        actualEmail -> {
+          Email existingEmail = emailRepository.findById(actualEmail.getId());
+          if (existingEmail != null
+              && existingEmail.getStatus() == EmailStatus.SENT
+              && actualEmail.getStatus() == EmailStatus.DRAFT) {
+            msgBuilder
+                .append("Unable to edit email ")
+                .append(actualEmail.describe())
+                .append(" because it was already sent. ");
+          }
+          if (actualEmail.getStatus() == EmailStatus.SENT) {
+            actualEmail.setSendingDatetime(Instant.now());
+          }
+        });
     String msgException = msgBuilder.toString();
     if (!msgException.isEmpty()) {
       throw new BadRequestException(msgException);

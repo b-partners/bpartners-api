@@ -1,5 +1,7 @@
 package app.bpartners.api.model;
 
+import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
+
 import app.bpartners.api.endpoint.rest.model.EnableStatus;
 import app.bpartners.api.endpoint.rest.model.TransactionStatus;
 import app.bpartners.api.endpoint.rest.model.TransactionTypeEnum;
@@ -16,8 +18,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-
-import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 
 @Getter
 @Setter
@@ -48,8 +48,10 @@ public class Transaction {
   private TransactionStatus status;
   private TransactionInvoiceDetails invoiceDetails;
   private EnableStatus enableStatus;
+
   @Getter(AccessLevel.NONE)
   private Instant paymentDatetime;
+
   private List<TransactionSupportingDocs> supportingDocuments = new ArrayList<>();
 
   public Instant getPaymentDatetime() {
@@ -65,7 +67,7 @@ public class Transaction {
       case DEBIT_SIDE_VALUE:
         return TransactionTypeEnum.OUTCOME;
       default:
-        //TODO: add unknown side
+        // TODO: add unknown side
         throw new ApiException(SERVER_EXCEPTION, "Unexpected side " + side);
     }
   }

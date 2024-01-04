@@ -1,5 +1,8 @@
 package app.bpartners.api.endpoint.rest.controller;
 
+import static app.bpartners.api.endpoint.rest.security.SecurityConf.AUTHORIZATION_HEADER;
+import static app.bpartners.api.service.utils.SecurityUtils.BEARER_PREFIX;
+
 import app.bpartners.api.endpoint.rest.mapper.LegalFileRestMapper;
 import app.bpartners.api.endpoint.rest.model.LegalFile;
 import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
@@ -10,16 +13,12 @@ import app.bpartners.api.repository.UserTokenRepository;
 import app.bpartners.api.service.LegalFileService;
 import app.bpartners.api.service.UserService;
 import java.util.List;
-import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import static app.bpartners.api.endpoint.rest.security.SecurityConf.AUTHORIZATION_HEADER;
-import static app.bpartners.api.service.utils.SecurityUtils.BEARER_PREFIX;
 
 @RestController
 @AllArgsConstructor
@@ -33,12 +32,9 @@ public class LegalFileController {
 
   @GetMapping("/users/{id}/legalFiles")
   public List<LegalFile> getLegalFiles(
-      HttpServletRequest request,
-      @PathVariable(name = "id") String userId) {
+      HttpServletRequest request, @PathVariable(name = "id") String userId) {
     checkUserSelfMatcher(request, userId);
-    return service.getLegalFiles(userId).stream()
-        .map(mapper::toRest)
-        .toList();
+    return service.getLegalFiles(userId).stream().map(mapper::toRest).toList();
   }
 
   @PutMapping("/users/{id}/legalFiles/{lId}")
@@ -51,7 +47,7 @@ public class LegalFileController {
     return mapper.toRest(service.approveLegalFile(userId, legalFileId));
   }
 
-  //TODO: put into a customAuthProvider that does not needs legal file check
+  // TODO: put into a customAuthProvider that does not needs legal file check
   private void checkUserSelfMatcher(HttpServletRequest request, String userId) {
     String bearer = request.getHeader(AUTHORIZATION_HEADER);
     if (bearer == null) {

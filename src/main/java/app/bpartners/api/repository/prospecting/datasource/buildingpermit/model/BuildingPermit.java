@@ -1,5 +1,7 @@
 package app.bpartners.api.repository.prospecting.datasource.buildingpermit.model;
 
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.USE_DEFAULTS;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
@@ -8,8 +10,6 @@ import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
-
-import static com.fasterxml.jackson.annotation.JsonInclude.Include.USE_DEFAULTS;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -26,7 +26,7 @@ public class BuildingPermit {
   private int year;
   private String ref;
   private String suffix;
-  //todo: deserialize with the corresponding java type
+  // todo: deserialize with the corresponding java type
   private GeoJson<List<List<List<Object>>>> geoJson;
   private GeoJson<List<Object>> centroidGeoJson;
   private String idSitadel;

@@ -15,8 +15,8 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 @AllArgsConstructor
-public class TransactionCategoryTemplateRepositoryImpl implements
-    TransactionCategoryTemplateRepository {
+public class TransactionCategoryTemplateRepositoryImpl
+    implements TransactionCategoryTemplateRepository {
 
   private final TransactionCategoryTemplateJpaRepository jpaRepository;
   private final TransactionCategoryMapper mapper;
@@ -27,15 +27,12 @@ public class TransactionCategoryTemplateRepositoryImpl implements
     if (categories.isEmpty()) {
       throw new NotFoundException("Category " + type + " is not found");
     }
-    return categories.stream()
-        .map(mapper::toDomain)
-        .collect(Collectors.toList());
+    return categories.stream().map(mapper::toDomain).collect(Collectors.toList());
   }
 
   @Override
   public TransactionCategoryTemplate findByTypeAndTransactionType(
-      String type,
-      TransactionTypeEnum transactionType) {
+      String type, TransactionTypeEnum transactionType) {
     return mapper.toDomain(jpaRepository.findByTypeAndTransactionType(type, transactionType));
   }
 
@@ -50,8 +47,9 @@ public class TransactionCategoryTemplateRepositoryImpl implements
   @Override
   public List<TransactionCategoryTemplate> findAllByIdAccountAndType(
       String idAccount, TransactionTypeEnum transactionType, LocalDate begin, LocalDate end) {
-    return jpaRepository.findAllByIdAccountAndType(
-            transactionType.getValue(), idAccount, begin, end).stream()
+    return jpaRepository
+        .findAllByIdAccountAndType(transactionType.getValue(), idAccount, begin, end)
+        .stream()
         .map(mapper::toDomain)
         .toList();
   }

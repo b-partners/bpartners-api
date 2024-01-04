@@ -25,23 +25,23 @@ import lombok.ToString;
 @ToString
 @EqualsAndHashCode
 public class HCalendarEvent implements Serializable {
-  @Id
-  private String id;
+  @Id private String id;
   private String eteId;
   private String summary;
   private String organizer;
   private String location;
   private String participants;
+
   @Column(name = "\"from\"")
   private Instant from;
+
   @Column(name = "\"to\"")
   private Instant to;
+
   private Instant updatedAt;
   private Instant createdAt;
   private String idCalendar;
   private String idUser;
-  @Transient
-  private boolean sync;
-  @Transient
-  private boolean newEvent;
+  @Transient private boolean sync;
+  @Transient private boolean newEvent;
 }

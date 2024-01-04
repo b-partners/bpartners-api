@@ -1,5 +1,9 @@
 package app.bpartners.api.model.prospect.job;
 
+import static app.bpartners.api.endpoint.rest.model.InterventionType.DISINFECTION;
+import static app.bpartners.api.endpoint.rest.model.InterventionType.INSECT_CONTROL;
+import static app.bpartners.api.endpoint.rest.model.InterventionType.RAT_REMOVAL;
+
 import app.bpartners.api.endpoint.rest.model.InterventionType;
 import java.util.List;
 import lombok.AllArgsConstructor;
@@ -8,10 +12,6 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
-
-import static app.bpartners.api.endpoint.rest.model.InterventionType.DISINFECTION;
-import static app.bpartners.api.endpoint.rest.model.InterventionType.INSECT_CONTROL;
-import static app.bpartners.api.endpoint.rest.model.InterventionType.RAT_REMOVAL;
 
 @Data
 @Builder(toBuilder = true)

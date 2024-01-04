@@ -10,7 +10,6 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-
 @Service
 @AllArgsConstructor
 public class UserService {
@@ -35,10 +34,7 @@ public class UserService {
       snsService.deleteEndpointArn(actualArn);
     }
     String snsArn = snsService.createEndpointArn(token);
-    return saveUser(user.toBuilder()
-        .snsArn(snsArn)
-        .deviceToken(token)
-        .build());
+    return saveUser(user.toBuilder().snsArn(snsArn).deviceToken(token).build());
   }
 
   @Transactional
@@ -47,16 +43,14 @@ public class UserService {
     if (user.getDefaultAccount().getId().equals(idAccount)) {
       return user;
     }
-    boolean accountIsAssociated = user.getAccounts().stream()
-        .anyMatch(account -> account.getId().equals(idAccount));
+    boolean accountIsAssociated =
+        user.getAccounts().stream().anyMatch(account -> account.getId().equals(idAccount));
     if (!accountIsAssociated) {
       throw new NotFoundException(
           "Account(id=" + idAccount + ") is not found for User(id=" + idUser + ")");
     }
 
-    return userRepository.save(user.toBuilder()
-        .preferredAccountId(idAccount)
-        .build());
+    return userRepository.save(user.toBuilder().preferredAccountId(idAccount).build());
   }
 
   @Transactional

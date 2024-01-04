@@ -7,16 +7,7 @@ import app.bpartners.api.repository.jpa.types.PostgresEnumType;
 import java.time.Instant;
 import java.util.Comparator;
 import java.util.List;
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.OneToMany;
-import javax.persistence.OrderBy;
-import javax.persistence.Table;
+import javax.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -38,12 +29,13 @@ import org.hibernate.annotations.TypeDef;
 @EqualsAndHashCode
 @TypeDef(name = "pgsql_enum", typeClass = PostgresEnumType.class)
 public class HProspect {
-  @Id
-  private String id;
+  @Id private String id;
   private String idAccountHolder;
   private String latestOldHolder;
+
   @Column(name = "id_job")
   private String idJob;
+
   private String managerName;
   private String oldName;
   private String newName;
@@ -53,10 +45,12 @@ public class HProspect {
   private String newPhone;
   private String oldAddress;
   private String newAddress;
-  @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+
+  @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
   @OrderBy("updatedAt desc")
   @JoinColumn(name = "id_prospect", referencedColumnName = "id")
   private List<HProspectStatusHistory> statusHistories;
+
   private Integer townCode;
   private Double posLongitude;
   private Double posLatitude;
@@ -66,17 +60,22 @@ public class HProspect {
   private String defaultComment;
   private String contractAmount;
   private String idInvoice;
+
   @Type(type = "pgsql_enum")
   @Enumerated(EnumType.STRING)
   private ProspectFeedback prospectFeedback;
+
   @Type(type = "pgsql_enum")
   @Enumerated(EnumType.STRING)
   private ContactNature contactNature;
 
   public ProspectStatus getActualStatus() {
-    return statusHistories.isEmpty() ? null : statusHistories.stream()
-        .sorted(Comparator.comparing(HProspectStatusHistory::getUpdatedAt).reversed())
-        .toList()
-        .get(0).getStatus();
+    return statusHistories.isEmpty()
+        ? null
+        : statusHistories.stream()
+            .sorted(Comparator.comparing(HProspectStatusHistory::getUpdatedAt).reversed())
+            .toList()
+            .get(0)
+            .getStatus();
   }
 }

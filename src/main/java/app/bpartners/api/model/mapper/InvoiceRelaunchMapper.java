@@ -50,7 +50,11 @@ public class InvoiceRelaunchMapper {
         return RelaunchType.CONFIRMED;
       default:
         throw new BadRequestException(
-            "Invoice." + idInvoice + " with status " + invoiceStatus + "can not be "
+            "Invoice."
+                + idInvoice
+                + " with status "
+                + invoiceStatus
+                + "can not be "
                 + "relaunched");
     }
   }

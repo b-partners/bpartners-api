@@ -1,5 +1,7 @@
 package app.bpartners.api.repository.jpa.model;
 
+import static javax.persistence.GenerationType.IDENTITY;
+
 import app.bpartners.api.endpoint.rest.model.ProspectStatus;
 import app.bpartners.api.repository.jpa.types.PostgresEnumType;
 import java.time.Instant;
@@ -18,8 +20,6 @@ import lombok.ToString;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 
-import static javax.persistence.GenerationType.IDENTITY;
-
 @Entity
 @Table(name = "\"prospect_status_history\"")
 @Data
@@ -33,8 +33,10 @@ public class HProspectStatusHistory {
   @Id
   @GeneratedValue(strategy = IDENTITY)
   private String id;
+
   @Type(type = "pgsql_enum")
   @Enumerated(EnumType.STRING)
   private ProspectStatus status;
+
   private Instant updatedAt;
 }

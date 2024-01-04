@@ -1,5 +1,7 @@
 package app.bpartners.api.repository.ban;
 
+import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
+
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.NotFoundException;
@@ -19,8 +21,6 @@ import java.util.HashMap;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
-
 @Component
 @Slf4j
 public class BanApi {
@@ -35,13 +35,10 @@ public class BanApi {
   public GeoJsonResponse searchMultiplePos(String address) {
     if (address.length() < 3 || address.length() > 200) {
       throw new BadRequestException("Address to search must be between 3 and 200 chars");
-
     }
     try {
-      HttpRequest request = HttpRequest.newBuilder()
-          .uri(new URI(defaultSearchUrl(address)))
-          .GET()
-          .build();
+      HttpRequest request =
+          HttpRequest.newBuilder().uri(new URI(defaultSearchUrl(address))).GET().build();
       var response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
       if (response.statusCode() != 200) {
         log.warn("Error from BAN : " + response.body());
@@ -50,9 +47,7 @@ public class BanApi {
         }
         return null;
       }
-      return objectMapper.readValue(response.body(),
-          new TypeReference<>() {
-          });
+      return objectMapper.readValue(response.body(), new TypeReference<>() {});
     } catch (URISyntaxException | IOException e) {
       throw new ApiException(SERVER_EXCEPTION, e);
     } catch (InterruptedException e) {
@@ -66,22 +61,23 @@ public class BanApi {
       throw new BadRequestException("Address is mandatory for getting GeoPosition");
     }
     NotFoundException notFoundException =
-        new NotFoundException("Given address " + address + " is not found."
-            + " Check if it's not mal formed.");
+        new NotFoundException(
+            "Given address " + address + " is not found." + " Check if it's not mal formed.");
     GeoJsonResponse geoJsonResponse = searchMultiplePos(address);
     if (geoJsonResponse == null) {
       throw notFoundException;
     }
-    GeoJsonResponse.Feature highestFeat = geoJsonResponse.getFeatures()
-        .stream()
-        .max(Comparator.comparing(feature -> feature.getProperties().getScore()))
-        .orElseThrow(() -> notFoundException);
+    GeoJsonResponse.Feature highestFeat =
+        geoJsonResponse.getFeatures().stream()
+            .max(Comparator.comparing(feature -> feature.getProperties().getScore()))
+            .orElseThrow(() -> notFoundException);
     return GeoPosition.builder()
         .label(highestFeat.getProperties().getLabel())
-        .coordinates(GeoUtils.Coordinate.builder()
-            .longitude(highestFeat.getGeometry().getCoordinates().get(0))
-            .latitude(highestFeat.getGeometry().getCoordinates().get(1))
-            .build())
+        .coordinates(
+            GeoUtils.Coordinate.builder()
+                .longitude(highestFeat.getGeometry().getCoordinates().get(0))
+                .latitude(highestFeat.getGeometry().getCoordinates().get(1))
+                .build())
         .build();
   }
 

@@ -1,10 +1,25 @@
 package app.bpartners.api.service;
 
-import app.bpartners.api.endpoint.event.EventConf;
+import static app.bpartners.api.endpoint.rest.model.JobStatusValue.FAILED;
+import static app.bpartners.api.endpoint.rest.model.JobStatusValue.FINISHED;
+import static app.bpartners.api.endpoint.rest.model.JobStatusValue.IN_PROGRESS;
+import static app.bpartners.api.endpoint.rest.model.JobStatusValue.NOT_STARTED;
+import static app.bpartners.api.endpoint.rest.model.NewInterventionOption.NEW_PROSPECT;
+import static app.bpartners.api.endpoint.rest.model.NewInterventionOption.OLD_CUSTOMER;
+import static app.bpartners.api.endpoint.rest.model.ProspectStatus.CONTACTED;
+import static app.bpartners.api.endpoint.rest.model.ProspectStatus.CONVERTED;
+import static app.bpartners.api.endpoint.rest.model.ProspectStatus.TO_CONTACT;
+import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
+import static app.bpartners.api.repository.expressif.fact.NewIntervention.OldCustomer.OldCustomerType.INDIVIDUAL;
+import static app.bpartners.api.repository.google.sheets.SheetConf.GRID_SHEET_TYPE;
+import static app.bpartners.api.service.utils.FilterUtils.distinctByKeys;
+import static app.bpartners.api.service.utils.TemplateResolverUtils.parseTemplateResolver;
+import static java.util.UUID.randomUUID;
+
 import app.bpartners.api.endpoint.event.EventProducer;
-import app.bpartners.api.endpoint.event.model.TypedProspectEvaluationJobInitiated;
-import app.bpartners.api.endpoint.event.model.gen.ProspectEvaluationJobInitiated;
-import app.bpartners.api.endpoint.event.model.gen.ProspectUpdated;
+import app.bpartners.api.endpoint.event.SesConf;
+import app.bpartners.api.endpoint.event.gen.ProspectEvaluationJobInitiated;
+import app.bpartners.api.endpoint.event.gen.ProspectUpdated;
 import app.bpartners.api.endpoint.rest.model.ContactNature;
 import app.bpartners.api.endpoint.rest.model.Geojson;
 import app.bpartners.api.endpoint.rest.model.JobStatusValue;
@@ -36,9 +51,9 @@ import app.bpartners.api.repository.google.sheets.SheetApi;
 import app.bpartners.api.repository.jpa.AccountHolderJpaRepository;
 import app.bpartners.api.repository.jpa.model.HAccountHolder;
 import app.bpartners.api.repository.jpa.model.HProspectStatusHistory;
-import app.bpartners.api.service.aws.ProspectUpdatedService;
 import app.bpartners.api.service.aws.SesService;
 import app.bpartners.api.service.dataprocesser.ProspectDataProcesser;
+import app.bpartners.api.service.event.ProspectUpdatedService;
 import app.bpartners.api.service.utils.DateUtils;
 import app.bpartners.api.service.utils.GeoUtils;
 import com.google.api.services.sheets.v4.model.Sheet;
@@ -62,23 +77,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.thymeleaf.context.Context;
 
-import static app.bpartners.api.endpoint.rest.model.JobStatusValue.FAILED;
-import static app.bpartners.api.endpoint.rest.model.JobStatusValue.FINISHED;
-import static app.bpartners.api.endpoint.rest.model.JobStatusValue.IN_PROGRESS;
-import static app.bpartners.api.endpoint.rest.model.JobStatusValue.NOT_STARTED;
-import static app.bpartners.api.endpoint.rest.model.NewInterventionOption.NEW_PROSPECT;
-import static app.bpartners.api.endpoint.rest.model.NewInterventionOption.OLD_CUSTOMER;
-import static app.bpartners.api.endpoint.rest.model.ProspectStatus.CONTACTED;
-import static app.bpartners.api.endpoint.rest.model.ProspectStatus.CONVERTED;
-import static app.bpartners.api.endpoint.rest.model.ProspectStatus.TO_CONTACT;
-import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
-import static app.bpartners.api.model.mapper.CalendarEventMapper.PARIS_TIMEZONE;
-import static app.bpartners.api.repository.expressif.fact.NewIntervention.OldCustomer.OldCustomerType.INDIVIDUAL;
-import static app.bpartners.api.repository.google.sheets.SheetConf.GRID_SHEET_TYPE;
-import static app.bpartners.api.service.utils.FilterUtils.distinctByKeys;
-import static app.bpartners.api.service.utils.TemplateResolverUtils.parseTemplateResolver;
-import static java.util.UUID.randomUUID;
-
 @Service
 @AllArgsConstructor
 @Slf4j
@@ -96,12 +94,154 @@ public class ProspectService {
   private final ProspectMapper prospectMapper;
   private final ProspectEvaluationJobRepository evalJobRepository;
   private final EventProducer eventProducer;
-  private final EventConf eventConf;
+  private final SesConf sesConf;
   private final ProspectStatusService statusService;
   private final SnsService snsService;
   private final UserService userService;
   private final ProspectUpdatedService prospectUpdatedService;
   private final CalendarApi calendarApi;
+
+  private static List<ProspectResult> ratedCustomers(
+      List<ProspectResult> prospectResults, Double minRating) {
+    return filteredCustomers(prospectResults).stream()
+        .filter(result -> result.getCustomerInterventionResult().getRating() >= minRating)
+        .collect(Collectors.toList());
+  }
+
+  private static List<ProspectResult> filteredCustomers(List<ProspectResult> prospectResults) {
+    return prospectResults.stream()
+        .filter(result -> result.getCustomerInterventionResult() != null)
+        .collect(Collectors.toList());
+  }
+
+  private static List<ProspectResult> ratedProspects(
+      List<ProspectResult> prospectResults, Double minRating) {
+    return filteredNewProspects(prospectResults).stream()
+        .filter(result -> result.getInterventionResult().getRating() >= minRating)
+        .collect(Collectors.toList());
+  }
+
+  private static List<ProspectResult> filteredNewProspects(List<ProspectResult> prospectResults) {
+    return prospectResults.stream()
+        .filter(
+            result ->
+                result.getInterventionResult() != null
+                    && result.getCustomerInterventionResult() == null)
+        .collect(Collectors.toList());
+  }
+
+  private static List<Prospect> mergeProspects(
+      List<Prospect> newProspects, List<Prospect> oldCustomers) {
+    List<Prospect> allProspects = new ArrayList<>(newProspects);
+    allProspects.addAll(oldCustomers);
+    return allProspects;
+  }
+
+  private static List<ProspectEval> mergeEvals(
+      List<ProspectEval> prospectEvals, List<ProspectEval> oldCustomersEval) {
+    List<ProspectEval> allEval = new ArrayList<>(prospectEvals);
+    allEval.addAll(oldCustomersEval);
+    return allEval;
+  }
+
+  private static HashMap<String, List<ProspectEval>> ownerHashMap(String ahId) {
+    HashMap<String, List<ProspectEval>> ownerHasMap = new HashMap<>();
+    ownerHasMap.put(ahId, new ArrayList<>());
+    return ownerHasMap;
+  }
+
+  private static Prospect fromEvaluationObj(
+      ProspectResult result,
+      ProspectEval eval,
+      ProspectEvalInfo info,
+      GeoUtils.Coordinate coordinates) {
+    Integer townCode;
+    try {
+      townCode = info == null ? null : Integer.valueOf(info.getPostalCode());
+    } catch (NumberFormatException e) {
+      townCode = null;
+    }
+    return Prospect.builder()
+        .id(String.valueOf(randomUUID())) // TODO: change when prospect eval can be override
+        .idHolderOwner(eval == null ? null : eval.getProspectOwnerId())
+        .name(info == null ? null : info.getName())
+        .managerName(info == null ? null : info.getManagerName())
+        .email(info == null ? null : info.getEmail())
+        .phone(info == null ? null : info.getPhoneNumber())
+        .address(info == null ? null : info.getAddress())
+        .statusHistories(defaultStatusHistory())
+        .townCode(info == null ? null : townCode)
+        .defaultComment(info == null ? null : info.getDefaultComment())
+        .townCode(info == null ? null : Integer.valueOf(info.getPostalCode()))
+        .location(
+            new Geojson()
+                .latitude(coordinates == null ? null : coordinates.getLatitude())
+                .longitude(coordinates == null ? null : coordinates.getLongitude()))
+        .rating(
+            Prospect.ProspectRating.builder()
+                .value(result == null ? null : result.getInterventionResult().getRating())
+                .lastEvaluationDate(result == null ? null : result.getEvaluationDate())
+                .build())
+        .build();
+  }
+
+  public static List<ProspectStatusHistory> defaultStatusHistory() {
+    return List.of(
+        ProspectStatusHistory.builder().status(TO_CONTACT).updatedAt(Instant.now()).build());
+  }
+
+  public static List<HProspectStatusHistory> defaultStatusHistoryEntity() {
+    return List.of(
+        HProspectStatusHistory.builder()
+            .id(String.valueOf(randomUUID()))
+            .status(ProspectStatus.TO_CONTACT)
+            .updatedAt(Instant.now())
+            .build());
+  }
+
+  private static ProspectEvaluationJobType getJobType(ProspectEvaluationJobRunner job) {
+    if (job.isEventConversionJob()) {
+      return ProspectEvaluationJobType.CALENDAR_EVENT_CONVERSION;
+    } else if (job.isSpreadsheetEvaluationJob()) {
+      return ProspectEvaluationJobType.SPREADSHEET_EVALUATION;
+    }
+    throw new NotImplementedException(
+        "Only prospect evaluation job type [CALENDAR_EVENT_CONVERSION and SPREADSHEET_EVALUATION]"
+            + " are supported for now");
+  }
+
+  public static List<ProspectResult> removeDuplications(List<ProspectResult> prospectResults) {
+    List<ProspectResult> withoutDuplicat = new ArrayList<>();
+    Set<String> seen = new HashSet<>();
+
+    for (ProspectResult prospectResult : prospectResults) {
+      ProspectEval eval = prospectResult.getProspectEval();
+      ProspectEvalInfo info = eval.getProspectEvalInfo();
+      ProspectResult.CustomerInterventionResult customerResult =
+          prospectResult.getCustomerInterventionResult();
+      Customer customerInfo = customerResult == null ? null : customerResult.getOldCustomer();
+      String prospectName = customerInfo == null ? info.getName() : customerInfo.getFullName();
+      String prospectEmail = customerInfo == null ? info.getEmail() : customerInfo.getEmail();
+      String prospectPhone = customerInfo == null ? info.getPhoneNumber() : customerInfo.getPhone();
+      String prospectAddress =
+          customerInfo == null ? info.getAddress() : customerInfo.getFullAddress();
+      String key = prospectName + ":" + prospectEmail + ":" + prospectPhone + ":" + prospectAddress;
+
+      if (!seen.contains(key)) {
+        seen.add(key);
+        withoutDuplicat.add(prospectResult);
+      }
+    }
+    return withoutDuplicat;
+  }
+
+  private static String prospectRelaunchEmailBody(
+      List<Prospect> prospects, HAccountHolder accountHolder) {
+    Context context = new Context();
+    context.setVariable("accountHolder", accountHolder);
+    context.setVariable("prospects", prospects);
+    return parseTemplateResolver(PROSPECT_RELAUNCH_TEMPLATE, context);
+  }
 
   @Transactional
   public Prospect getById(String id) {
@@ -110,8 +250,7 @@ public class ProspectService {
 
   @Transactional
   public List<ProspectEvaluationJob> getEvaluationJobs(
-      String idAccountHolder,
-      List<JobStatusValue> statuses) {
+      String idAccountHolder, List<JobStatusValue> statuses) {
     if (statuses == null) {
       statuses = List.of(NOT_STARTED, IN_PROGRESS, FINISHED, FAILED);
     }
@@ -123,13 +262,11 @@ public class ProspectService {
     return evalJobRepository.getById(jobId);
   }
 
-  public List<Prospect> getByCriteria(String idAccountHolder,
-                                      String name,
-                                      String contactNatureValue) {
+  public List<Prospect> getByCriteria(
+      String idAccountHolder, String name, String contactNatureValue) {
     ContactNature contactNature;
     try {
-      contactNature = contactNatureValue == null ? null
-          : ContactNature.valueOf(contactNatureValue);
+      contactNature = contactNatureValue == null ? null : ContactNature.valueOf(contactNatureValue);
     } catch (IllegalArgumentException e) {
       throw new BadRequestException("Unknown contactNature type = " + contactNatureValue);
     }
@@ -142,12 +279,14 @@ public class ProspectService {
   public List<Prospect> saveAll(List<Prospect> toCreate) {
     List<Prospect> savedProspects = repository.saveAll(toCreate);
 
-    savedProspects.forEach(savedProspect -> prospectUpdatedService.accept(ProspectUpdated.builder()
-        .prospect(savedProspect)
-        .updatedAt(Instant.now())
-        .build()));
+    savedProspects.forEach(
+        savedProspect -> eventProducer.accept(List.of(toTypedEvent(savedProspect))));
 
     return savedProspects;
+  }
+
+  private ProspectUpdated toTypedEvent(Prospect prospect) {
+    return ProspectUpdated.builder().prospect(prospect).updatedAt(Instant.now()).build();
   }
 
   @Transactional
@@ -156,13 +295,12 @@ public class ProspectService {
     if (existing == null) {
       throw new NotFoundException("Prospect(id=" + toSave.getId() + ") not found");
     }
-    //validateStatusUpdateFlow(toSave, existing);
+    // validateStatusUpdateFlow(toSave, existing);
     Prospect savedProspect = repository.save(toSave);
 
-    prospectUpdatedService.accept(ProspectUpdated.builder()
-        .prospect(savedProspect)
-        .updatedAt(Instant.now())
-        .build());
+    eventProducer.accept(
+        List.of(
+            ProspectUpdated.builder().prospect(savedProspect).updatedAt(Instant.now()).build()));
 
     return savedProspect;
   }
@@ -170,12 +308,20 @@ public class ProspectService {
   private void validateStatusUpdateFlow(Prospect toSave, Prospect existing) {
     StringBuilder exceptionBuilder = new StringBuilder();
     if (toSave.getActualStatus() == TO_CONTACT && existing.getActualStatus() != CONTACTED) {
-      exceptionBuilder.append("Prospect(id=").append(toSave.getId()).append(",status=")
-          .append(toSave.getActualStatus()).append(") can only be updated to status ")
+      exceptionBuilder
+          .append("Prospect(id=")
+          .append(toSave.getId())
+          .append(",status=")
+          .append(toSave.getActualStatus())
+          .append(") can only be updated to status ")
           .append(CONTACTED);
     } else if (toSave.getActualStatus() == CONTACTED && existing.getActualStatus() != CONVERTED) {
-      exceptionBuilder.append("Prospect(id=").append(toSave.getId()).append(",status=")
-          .append(toSave.getActualStatus()).append(") can only be updated to status ")
+      exceptionBuilder
+          .append("Prospect(id=")
+          .append(toSave.getId())
+          .append(",status=")
+          .append(toSave.getActualStatus())
+          .append(") can only be updated to status ")
           .append(CONVERTED);
     }
     String errorMsg = exceptionBuilder.toString();
@@ -186,60 +332,70 @@ public class ProspectService {
 
   @Scheduled(cron = Scheduled.CRON_DISABLED, zone = "Europe/Paris")
   public void prospect() {
-    accountHolderJpaRepository.findAll().forEach(accountHolder -> {
-      if (repository.needsProspects(accountHolder.getId(), LocalDate.now())
-          && repository.isSogefiProspector(accountHolder.getId())) {
-        final String subject = "Avez-vous besoin de nouveaux clients ?";
-        final String htmlbody =
-            parseTemplateResolver(PROSPECT_MAIL_TEMPLATE, configureProspectContext(accountHolder));
-        try {
-          log.info("The email should be sent to: " + accountHolder.getEmail());
-          sesService.sendEmail(accountHolder.getEmail(), null, subject, htmlbody, List.of());
-        } catch (IOException | MessagingException e) {
-          throw new ApiException(SERVER_EXCEPTION, e);
-        }
-      }
-    });
+    accountHolderJpaRepository
+        .findAll()
+        .forEach(
+            accountHolder -> {
+              if (repository.needsProspects(accountHolder.getId(), LocalDate.now())
+                  && repository.isSogefiProspector(accountHolder.getId())) {
+                final String subject = "Avez-vous besoin de nouveaux clients ?";
+                final String htmlbody =
+                    parseTemplateResolver(
+                        PROSPECT_MAIL_TEMPLATE, configureProspectContext(accountHolder));
+                try {
+                  log.info("The email should be sent to: " + accountHolder.getEmail());
+                  sesService.sendEmail(
+                      accountHolder.getEmail(), null, subject, htmlbody, List.of());
+                } catch (IOException | MessagingException e) {
+                  throw new ApiException(SERVER_EXCEPTION, e);
+                }
+              }
+            });
   }
 
-  public List<ProspectEvaluationJob> runEvaluationJobs(String userId,
-                                                       String ahId,
-                                                       List<ProspectEvaluationJobRunner> jobRunners) {
-    Optional<ProspectEvaluationJobRunner> anyEventConversionJob = jobRunners.stream()
-        .filter(ProspectEvaluationJobRunner::isEventConversionJob)
-        .findAny();
+  public List<ProspectEvaluationJob> runEvaluationJobs(
+      String userId, String ahId, List<ProspectEvaluationJobRunner> jobRunners) {
+    Optional<ProspectEvaluationJobRunner> anyEventConversionJob =
+        jobRunners.stream().filter(ProspectEvaluationJobRunner::isEventConversionJob).findAny();
     if (anyEventConversionJob.isPresent() && !calendarApi.hasValidToken(userId)) {
       throw new BadRequestException(
           "CALENDAR_EVENT_CONVERSION job is to be executed "
               + "but calendar access token is expired or invalid");
     }
-    List<ProspectEvaluationJob> jobs = jobRunners.stream()
-        .map(jobRunner -> ProspectEvaluationJob.builder()
-            .id(jobRunner.getJobId())
-            .metadata(jobRunner.getMetadata())
-            .idAccountHolder(ahId)
-            .type(getJobType(jobRunner))
-            .jobStatus(new ProspectEvaluationJobStatus()
-                .value(NOT_STARTED)
-                .message(null))
-            .startedAt(Instant.now())
-            .endedAt(null)
-            .results(List.of())
-            .build())
-        .collect(Collectors.toList());
+    List<ProspectEvaluationJob> jobs =
+        jobRunners.stream()
+            .map(
+                jobRunner ->
+                    ProspectEvaluationJob.builder()
+                        .id(jobRunner.getJobId())
+                        .metadata(jobRunner.getMetadata())
+                        .idAccountHolder(ahId)
+                        .type(getJobType(jobRunner))
+                        .jobStatus(
+                            new ProspectEvaluationJobStatus().value(NOT_STARTED).message(null))
+                        .startedAt(Instant.now())
+                        .endedAt(null)
+                        .results(List.of())
+                        .build())
+            .collect(Collectors.toList());
 
     List<ProspectEvaluationJob> savedJobs = evalJobRepository.saveAll(jobs);
 
-    eventProducer.accept(jobRunners.stream()
-        .map(evaluationJobRunner -> new TypedProspectEvaluationJobInitiated(
-            ProspectEvaluationJobInitiated.builder()
-                .jobId(evaluationJobRunner.getJobId())
-                .idUser(userId)
-                .jobRunner(evaluationJobRunner)
-                .build()))
-        .collect(Collectors.toList()));
+    eventProducer.accept(
+        jobRunners.stream()
+            .map(evaluationJobRunner -> toTypedEvent(evaluationJobRunner, userId))
+            .collect(Collectors.toList()));
 
     return savedJobs;
+  }
+
+  private ProspectEvaluationJobInitiated toTypedEvent(
+      ProspectEvaluationJobRunner evaluationJobRunner, String userId) {
+    return ProspectEvaluationJobInitiated.builder()
+        .jobId(evaluationJobRunner.getJobId())
+        .idUser(userId)
+        .jobRunner(evaluationJobRunner)
+        .build();
   }
 
   @Transactional
@@ -249,33 +405,35 @@ public class ProspectService {
   }
 
   @Transactional
-  public List<ProspectResult> evaluateProspects(String ahId,
-                                                AntiHarmRules antiHarmRules,
-                                                List<ProspectEval> prospectsToEvaluate,
-                                                NewInterventionOption option,
-                                                Double minProspectRating,
-                                                Double minCustomerRating) {
+  public List<ProspectResult> evaluateProspects(
+      String ahId,
+      AntiHarmRules antiHarmRules,
+      List<ProspectEval> prospectsToEvaluate,
+      NewInterventionOption option,
+      Double minProspectRating,
+      Double minCustomerRating) {
     if (option == null) {
       option = NEW_PROSPECT;
     }
     boolean isNotNewProspect = option != NEW_PROSPECT;
     List<ProspectEval> customersToEvaluate =
-        isNotNewProspect ? getOldCustomersToEvaluate(ahId, antiHarmRules, prospectsToEvaluate)
+        isNotNewProspect
+            ? getOldCustomersToEvaluate(ahId, antiHarmRules, prospectsToEvaluate)
             : new ArrayList<>();
     List<ProspectResult> prospectResults =
         repository.evaluate(mergeEvals(prospectsToEvaluate, customersToEvaluate));
     return getProspectResults(option, minProspectRating, minCustomerRating, prospectResults);
   }
 
-
-  //TODO: IMPORTANT ! Only NewIntervention rule is supported for now
+  // TODO: IMPORTANT ! Only NewIntervention rule is supported for now
   @Transactional
-  public List<ProspectResult> evaluateAndSaveProspects(String ahId,
-                                                       AntiHarmRules antiHarmRules,
-                                                       List<ProspectEval> prospectsToEvaluate,
-                                                       NewInterventionOption option,
-                                                       Double minProspectRating,
-                                                       Double minCustomerRating) {
+  public List<ProspectResult> evaluateAndSaveProspects(
+      String ahId,
+      AntiHarmRules antiHarmRules,
+      List<ProspectEval> prospectsToEvaluate,
+      NewInterventionOption option,
+      Double minProspectRating,
+      Double minCustomerRating) {
     if (option == null) {
       option = NEW_PROSPECT;
     }
@@ -283,40 +441,49 @@ public class ProspectService {
     boolean isOldCustomer = option == OLD_CUSTOMER;
 
     List<ProspectEval> customersToEvalute =
-        isNotNewProspect ? getOldCustomersToEvaluate(ahId, antiHarmRules, prospectsToEvaluate)
+        isNotNewProspect
+            ? getOldCustomersToEvaluate(ahId, antiHarmRules, prospectsToEvaluate)
             : new ArrayList<>();
     List<ProspectResult> prospectResults =
         repository.evaluate(mergeEvals(prospectsToEvaluate, customersToEvalute));
 
-    List<Prospect> newProspects = isOldCustomer ? new ArrayList<>()
-        : retrieveProspects(prospectResults, minProspectRating);
+    List<Prospect> newProspects =
+        isOldCustomer ? new ArrayList<>() : retrieveProspects(prospectResults, minProspectRating);
     List<Prospect> oldCustomerProspects =
-        isNotNewProspect ? retrieveOldCustomers(prospectResults, minCustomerRating)
+        isNotNewProspect
+            ? retrieveOldCustomers(prospectResults, minCustomerRating)
             : new ArrayList<>();
     List<Prospect> prospectsToSave = mergeProspects(newProspects, oldCustomerProspects);
-    List<Prospect> prospectsWithoutDuplication = prospectsToSave.stream()
-        .filter(distinctByKeys(
-            Prospect::getName,
-            Prospect::getEmail,
-            Prospect::getPhone,
-            Prospect::getAddress))
-        .collect(Collectors.toList());
+    List<Prospect> prospectsWithoutDuplication =
+        prospectsToSave.stream()
+            .filter(
+                distinctByKeys(
+                    Prospect::getName,
+                    Prospect::getEmail,
+                    Prospect::getPhone,
+                    Prospect::getAddress))
+            .collect(Collectors.toList());
     repository.create(prospectsWithoutDuplication);
 
     return getProspectResults(option, minProspectRating, minCustomerRating, prospectResults);
   }
 
-  private List<ProspectResult> getProspectResults(NewInterventionOption option,
-                                                  Double minProspectRating,
-                                                  Double minCustomerRating,
-                                                  List<ProspectResult> prospectResults) {
+  private List<ProspectResult> getProspectResults(
+      NewInterventionOption option,
+      Double minProspectRating,
+      Double minCustomerRating,
+      List<ProspectResult> prospectResults) {
     List<ProspectResult> prospectWithoutDuplication = removeDuplications(prospectResults);
-    List<ProspectResult> filteredRatingResults = prospectWithoutDuplication.stream()
-        .filter(result -> (result.getInterventionResult() != null
-            && result.getInterventionResult().getRating() >= minProspectRating)
-            || (result.getCustomerInterventionResult() != null
-            && result.getCustomerInterventionResult().getRating() >= minCustomerRating))
-        .collect(Collectors.toList());
+    List<ProspectResult> filteredRatingResults =
+        prospectWithoutDuplication.stream()
+            .filter(
+                result ->
+                    (result.getInterventionResult() != null
+                            && result.getInterventionResult().getRating() >= minProspectRating)
+                        || (result.getCustomerInterventionResult() != null
+                            && result.getCustomerInterventionResult().getRating()
+                                >= minCustomerRating))
+            .collect(Collectors.toList());
     switch (option) {
       case OLD_CUSTOMER:
         return filteredCustomers(filteredRatingResults);
@@ -327,60 +494,17 @@ public class ProspectService {
     }
   }
 
-  private List<Prospect> retrieveOldCustomers(List<ProspectResult> prospectResults,
-                                              Double minCustomerRating) {
+  private List<Prospect> retrieveOldCustomers(
+      List<ProspectResult> prospectResults, Double minCustomerRating) {
     List<ProspectResult> filteredResults = ratedCustomers(prospectResults, minCustomerRating);
     return convertToProspects(filteredResults);
   }
 
-  private static List<ProspectResult> ratedCustomers(
-      List<ProspectResult> prospectResults, Double minRating) {
-    return filteredCustomers(prospectResults).stream()
-        .filter(result -> result.getCustomerInterventionResult().getRating() >= minRating)
-        .collect(Collectors.toList());
-  }
-
-  private static List<ProspectResult> filteredCustomers(
-      List<ProspectResult> prospectResults) {
-    return prospectResults.stream()
-        .filter(result -> result.getCustomerInterventionResult() != null)
-        .collect(Collectors.toList());
-  }
-
-  private List<Prospect> retrieveProspects(List<ProspectResult> prospectResults,
-                                           Double minProspectRating) {
+  private List<Prospect> retrieveProspects(
+      List<ProspectResult> prospectResults, Double minProspectRating) {
     return ratedProspects(prospectResults, minProspectRating).stream()
         .map(this::convertNewProspect)
         .collect(Collectors.toList());
-  }
-
-  private static List<ProspectResult> ratedProspects(
-      List<ProspectResult> prospectResults, Double minRating) {
-    return filteredNewProspects(prospectResults).stream()
-        .filter(result -> result.getInterventionResult().getRating() >= minRating)
-        .collect(Collectors.toList());
-  }
-
-  private static List<ProspectResult> filteredNewProspects
-      (List<ProspectResult> prospectResults) {
-    return prospectResults.stream()
-        .filter(result -> result.getInterventionResult() != null
-            && result.getCustomerInterventionResult() == null)
-        .collect(Collectors.toList());
-  }
-
-  private static List<Prospect> mergeProspects(List<Prospect> newProspects,
-                                               List<Prospect> oldCustomers) {
-    List<Prospect> allProspects = new ArrayList<>(newProspects);
-    allProspects.addAll(oldCustomers);
-    return allProspects;
-  }
-
-  private static List<ProspectEval> mergeEvals(List<ProspectEval> prospectEvals,
-                                               List<ProspectEval> oldCustomersEval) {
-    List<ProspectEval> allEval = new ArrayList<>(prospectEvals);
-    allEval.addAll(oldCustomersEval);
-    return allEval;
   }
 
   private List<Prospect> convertToProspects(List<ProspectResult> prospectResults) {
@@ -402,12 +526,10 @@ public class ProspectService {
     return prospects;
   }
 
-  private List<ProspectEval> getOldCustomersToEvaluate(String ahId,
-                                                       AntiHarmRules antiHarmRules,
-                                                       List<ProspectEval> prospectEvals) {
+  private List<ProspectEval> getOldCustomersToEvaluate(
+      String ahId, AntiHarmRules antiHarmRules, List<ProspectEval> prospectEvals) {
     HashMap<String, List<ProspectEval>> groupByOwner =
-        prospectEvals.isEmpty() ? ownerHashMap(ahId)
-            : dispatchEvalByOwner(prospectEvals);
+        prospectEvals.isEmpty() ? ownerHashMap(ahId) : dispatchEvalByOwner(prospectEvals);
     List<ProspectEval> customersToEvaluate = new ArrayList<>();
 
     for (Map.Entry<String, List<ProspectEval>> entry : groupByOwner.entrySet()) {
@@ -419,13 +541,16 @@ public class ProspectService {
         NewIntervention newIntervention = (NewIntervention) newProspectEval.getDepaRule();
 
         for (Customer customer : customers) {
-          if (customer.getLocation() == null || customer.getLocation().getCoordinate() == null
+          if (customer.getLocation() == null
+              || customer.getLocation().getCoordinate() == null
               || customer.getLocation().getCoordinate().getLatitude() == null
               || customer.getLocation().getCoordinate().getLongitude() == null) {
             continue;
           }
-          Double distance = newIntervention.getCoordinate()
-              .getDistanceFrom(customer.getLocation().getCoordinate());
+          Double distance =
+              newIntervention
+                  .getCoordinate()
+                  .getDistanceFrom(customer.getLocation().getCoordinate());
           if (distance < MAX_DISTANCE_LIMIT) {
             NewIntervention.OldCustomer customerBuilder =
                 newIntervention.getOldCustomer().toBuilder()
@@ -433,51 +558,46 @@ public class ProspectService {
                     .oldCustomerAddress(customer.getAddress())
                     .distNewIntAndOldCustomer(distance)
                     .build();
-            ProspectEval.Builder prospectBuilder = newProspectEval.toBuilder()
-                .id(String.valueOf(randomUUID())) //new ID
-                .depaRule(newIntervention.toBuilder()
-                    .oldCustomer(customerBuilder)
-                    .build());
+            ProspectEval.Builder prospectBuilder =
+                newProspectEval.toBuilder()
+                    .id(String.valueOf(randomUUID())) // new ID
+                    .depaRule(newIntervention.toBuilder().oldCustomer(customerBuilder).build());
             if (prospectEvals.isEmpty() && antiHarmRules != null) {
               prospectBuilder.particularCustomer(true);
               prospectBuilder.professionalCustomer(false);
               prospectBuilder.insectControl(antiHarmRules.isInsectControl());
               prospectBuilder.disinfection(antiHarmRules.isDisinfection());
               prospectBuilder.ratRemoval(antiHarmRules.isRatRemoval());
-              prospectBuilder.depaRule(newIntervention.toBuilder()
-                  .oldCustomer(customerBuilder.toBuilder()
-                      .type(INDIVIDUAL)
-                      .build())
-                  .build());
+              prospectBuilder.depaRule(
+                  newIntervention.toBuilder()
+                      .oldCustomer(customerBuilder.toBuilder().type(INDIVIDUAL).build())
+                      .build());
             }
             /* /!\ Because here we only evaluate then save in another step
              * Conversion of customers to new prospect is done here*/
-            prospectBuilder.prospectEvalInfo(ProspectEvalInfo.builder()
-                .owner(accountHolderId)
-                .name(customer.getFullName())
-                .managerName(customer.getFullName())
-                .email(customer.getEmail())
-                .phoneNumber(customer.getPhone())
-                .address(customer.getAddress())
-                .city(customer.getCity())
-                .coordinates(customer.getLocation().getCoordinate())
-                .postalCode(String.valueOf(customer.getZipCode()))
-                .contactNature(ProspectEvalInfo.ContactNature.OLD_CUSTOMER)
-                .category("Restaurant") //TODO: deprecated, but for now we will set it by default
-                .subcategory("Restaurant") //TODO: deprecated, but for now we will set it by default
-                .build());
+            prospectBuilder.prospectEvalInfo(
+                ProspectEvalInfo.builder()
+                    .owner(accountHolderId)
+                    .name(customer.getFullName())
+                    .managerName(customer.getFullName())
+                    .email(customer.getEmail())
+                    .phoneNumber(customer.getPhone())
+                    .address(customer.getAddress())
+                    .city(customer.getCity())
+                    .coordinates(customer.getLocation().getCoordinate())
+                    .postalCode(String.valueOf(customer.getZipCode()))
+                    .contactNature(ProspectEvalInfo.ContactNature.OLD_CUSTOMER)
+                    .category(
+                        "Restaurant") // TODO: deprecated, but for now we will set it by default
+                    .subcategory(
+                        "Restaurant") // TODO: deprecated, but for now we will set it by default
+                    .build());
             customersToEvaluate.add(prospectBuilder.build());
           }
         }
       }
     }
     return customersToEvaluate;
-  }
-
-  private static HashMap<String, List<ProspectEval>> ownerHashMap(String ahId) {
-    HashMap<String, List<ProspectEval>> ownerHasMap = new HashMap<>();
-    ownerHasMap.put(ahId, new ArrayList<>());
-    return ownerHasMap;
   }
 
   private HashMap<String, List<ProspectResult>> dispatchResultByCustomer(
@@ -497,7 +617,6 @@ public class ProspectService {
     }
     return prospectResultMap;
   }
-
 
   private HashMap<String, List<ProspectEval>> dispatchEvalByOwner(
       List<ProspectEval> prospectEvals) {
@@ -519,54 +638,16 @@ public class ProspectService {
 
   public Prospect convertNewProspect(ProspectResult result) {
     ProspectEval eval = result.getProspectEval();
-    ProspectEvalInfo info =
-        result.getProspectEval().getProspectEvalInfo();
+    ProspectEvalInfo info = result.getProspectEval().getProspectEvalInfo();
     GeoUtils.Coordinate coordinates = info.getCoordinates();
     return fromEvaluationObj(result, eval, info, coordinates);
-  }
-
-  private static Prospect fromEvaluationObj(ProspectResult result,
-                                            ProspectEval eval,
-                                            ProspectEvalInfo info,
-                                            GeoUtils.Coordinate coordinates) {
-    Integer townCode;
-    try {
-      townCode =
-          info == null ? null : Integer.valueOf(info.getPostalCode());
-    } catch (NumberFormatException e) {
-      townCode = null;
-    }
-    return Prospect.builder()
-        .id(String.valueOf(randomUUID())) //TODO: change when prospect eval can be override
-        .idHolderOwner(eval == null ? null
-            : eval.getProspectOwnerId())
-        .name(info == null ? null : info.getName())
-        .managerName(info == null ? null : info.getManagerName())
-        .email(info == null ? null : info.getEmail())
-        .phone(info == null ? null : info.getPhoneNumber())
-        .address(info == null ? null : info.getAddress())
-        .statusHistories(defaultStatusHistory())
-        .townCode(info == null ? null : townCode)
-        .defaultComment(info == null ? null
-            : info.getDefaultComment())
-        .townCode(info == null ? null : Integer.valueOf(info.getPostalCode()))
-        .location(new Geojson()
-            .latitude(coordinates == null ? null
-                : coordinates.getLatitude())
-            .longitude(coordinates == null ? null
-                : coordinates.getLongitude()))
-        .rating(Prospect.ProspectRating.builder()
-            .value(result == null ? null : result.getInterventionResult().getRating())
-            .lastEvaluationDate(result == null ? null : result.getEvaluationDate())
-            .build())
-        .build();
   }
 
   public Prospect convertOldCustomer(ProspectResult result, Customer customer) {
     ProspectEval eval = result.getProspectEval();
     result.getCustomerInterventionResult().setOldCustomer(customer);
     return Prospect.builder()
-        .id(String.valueOf(randomUUID())) //TODO: change when prospect eval can be override
+        .id(String.valueOf(randomUUID())) // TODO: change when prospect eval can be override
         .idHolderOwner(eval.getProspectOwnerId())
         .name(customer.getFullName())
         .managerName(customer.getFullName())
@@ -574,116 +655,104 @@ public class ProspectService {
         .phone(customer.getPhone())
         .address(customer.getFullAddress())
         .statusHistories(defaultStatusHistory())
-        .townCode(Integer.valueOf(customer.getZipCode()))
-        .location(new Geojson()
-            .latitude(customer.getLocation().getCoordinate().getLatitude())
-            .longitude(customer.getLocation().getCoordinate().getLongitude()))
-        .rating(Prospect.ProspectRating.builder()
-            .value(result.getInterventionResult().getRating())
-            .lastEvaluationDate(result.getEvaluationDate())
-            .build())
+        .townCode(customer.getZipCode())
+        .location(
+            new Geojson()
+                .latitude(customer.getLocation().getCoordinate().getLatitude())
+                .longitude(customer.getLocation().getCoordinate().getLongitude()))
+        .rating(
+            Prospect.ProspectRating.builder()
+                .value(result.getInterventionResult().getRating())
+                .lastEvaluationDate(result.getEvaluationDate())
+                .build())
         .build();
   }
 
-  public static List<ProspectStatusHistory> defaultStatusHistory() {
-    return List.of(ProspectStatusHistory.builder()
-        .status(TO_CONTACT)
-        .updatedAt(Instant.now())
-        .build());
-  }
-
-  public static List<HProspectStatusHistory> defaultStatusHistoryEntity() {
-    return List.of(HProspectStatusHistory.builder()
-        .id(String.valueOf(randomUUID()))
-        .status(ProspectStatus.TO_CONTACT)
-        .updatedAt(Instant.now())
-        .build());
-  }
-
   @Transactional
-  public List<ProspectEval> readEvaluationsFromSheets(String idUser,
-                                                      String ownerId,
-                                                      String spreadsheetName,
-                                                      String sheetName,
-                                                      Integer minRange,
-                                                      Integer maxRange) {
-    return readEvaluationsFromSheets(
-        idUser,
-        spreadsheetName,
-        sheetName,
-        minRange,
-        maxRange).stream()
+  public List<ProspectEval> readEvaluationsFromSheets(
+      String idUser,
+      String ownerId,
+      String spreadsheetName,
+      String sheetName,
+      Integer minRange,
+      Integer maxRange) {
+    return readEvaluationsFromSheets(idUser, spreadsheetName, sheetName, minRange, maxRange)
+        .stream()
         .filter(prospect -> prospect.getProspectOwnerId().equals(ownerId))
         .collect(Collectors.toList());
   }
 
-  //TODO: must be inside repository
-  public List<ProspectEval> readEvaluationsFromSheets(String idUser,
-                                                      String spreadsheetName,
-                                                      String sheetName,
-                                                      Integer minRange,
-                                                      Integer maxRange) {
+  // TODO: must be inside repository
+  public List<ProspectEval> readEvaluationsFromSheets(
+      String idUser, String spreadsheetName, String sheetName, Integer minRange, Integer maxRange) {
     Spreadsheet spreadsheet =
         sheetApi.getSpreadsheetByNames(idUser, spreadsheetName, sheetName, minRange, maxRange);
     List<Sheet> sheets = spreadsheet.getSheets();
-    String sheetNameNotFoundMsg = "Sheet(name=" + sheetName + ")"
-        + " inside Spreadsheet(name=" + spreadsheet.getProperties().getTitle()
-        + ") does not exist";
+    String sheetNameNotFoundMsg =
+        "Sheet(name="
+            + sheetName
+            + ")"
+            + " inside Spreadsheet(name="
+            + spreadsheet.getProperties().getTitle()
+            + ") does not exist";
     if (sheets.isEmpty()) {
       throw new BadRequestException("Spreadsheet has empty sheets or " + sheetNameNotFoundMsg);
     }
-    Sheet sheet = sheets.stream()
-        .filter(s -> s.getProperties().getTitle().equals(sheetName))
-        .findAny().orElseThrow(
-            () -> new NotFoundException(sheetNameNotFoundMsg));
+    Sheet sheet =
+        sheets.stream()
+            .filter(s -> s.getProperties().getTitle().equals(sheetName))
+            .findAny()
+            .orElseThrow(() -> new NotFoundException(sheetNameNotFoundMsg));
     if (!sheet.getProperties().getSheetType().equals(GRID_SHEET_TYPE)) {
       throw new NotImplementedException("Only GRID sheet type is supported");
     }
     return prospectMapper.toProspectEval(sheet);
   }
 
-  //TODO: remove duplication
-  public List<ProspectEval> readEvaluationsFromSheetsWithoutFilter(String idUser,
-                                                                   String ownerId,
-                                                                   String spreadsheetName,
-                                                                   String sheetName,
-                                                                   Integer minRange,
-                                                                   Integer maxRange) {
+  // TODO: remove duplication
+  public List<ProspectEval> readEvaluationsFromSheetsWithoutFilter(
+      String idUser,
+      String ownerId,
+      String spreadsheetName,
+      String sheetName,
+      Integer minRange,
+      Integer maxRange) {
     Spreadsheet spreadsheet =
         sheetApi.getSpreadsheetByNames(idUser, spreadsheetName, sheetName, minRange, maxRange);
     List<Sheet> sheets = spreadsheet.getSheets();
-    String sheetNameNotFoundMsg = "Sheet(name=" + sheetName + ")"
-        + " inside Spreadsheet(name=" + spreadsheet.getProperties().getTitle()
-        + ") does not exist";
+    String sheetNameNotFoundMsg =
+        "Sheet(name="
+            + sheetName
+            + ")"
+            + " inside Spreadsheet(name="
+            + spreadsheet.getProperties().getTitle()
+            + ") does not exist";
     if (sheets.isEmpty()) {
       String errorMsg = "Spreadsheet has empty sheets or " + sheetNameNotFoundMsg;
       log.error(errorMsg);
       throw new BadRequestException(errorMsg);
     }
-    Sheet sheet = sheets.stream()
-        .filter(s -> s.getProperties().getTitle().equals(sheetName))
-        .findAny().orElseThrow(
-            () -> new NotFoundException(sheetNameNotFoundMsg));
+    Sheet sheet =
+        sheets.stream()
+            .filter(s -> s.getProperties().getTitle().equals(sheetName))
+            .findAny()
+            .orElseThrow(() -> new NotFoundException(sheetNameNotFoundMsg));
     if (!sheet.getProperties().getSheetType().equals(GRID_SHEET_TYPE)) {
       throw new NotImplementedException("Only GRID sheet type is supported");
     }
     return prospectMapper.toProspectEval(ownerId, sheet);
   }
 
-  public List<ProspectEvalInfo> readFromSheets(String idUser,
-                                               String spreadsheetName,
-                                               String sheetName,
-                                               String artisanOwner) {
+  public List<ProspectEvalInfo> readFromSheets(
+      String idUser, String spreadsheetName, String sheetName, String artisanOwner) {
     return readFromSheets(idUser, spreadsheetName, sheetName).stream()
-        .filter(prospect -> prospect.getOwner() != null
-            && prospect.getOwner().equals(artisanOwner))
+        .filter(prospect -> prospect.getOwner() != null && prospect.getOwner().equals(artisanOwner))
         .collect(Collectors.toList());
   }
 
-  //TODO: must be inside repository
-  public List<ProspectEvalInfo> readFromSheets(String idUser,
-                                               String spreadsheetName,
-                                               String sheetName) {
+  // TODO: must be inside repository
+  public List<ProspectEvalInfo> readFromSheets(
+      String idUser, String spreadsheetName, String sheetName) {
     int minRange = 2;
     int maxRange = 100;
     Spreadsheet spreadsheet =
@@ -692,26 +761,23 @@ public class ProspectService {
     if (sheets.isEmpty()) {
       throw new BadRequestException("Spreadsheet has empty sheets");
     }
-    Sheet sheet = sheets.stream()
-        .filter(s -> s.getProperties().getTitle().equals(sheetName))
-        .findAny().orElseThrow(
-            () -> new NotFoundException("Sheet(name=" + sheetName + ")"
-                + " inside Spreadsheet(name=" + spreadsheet.getProperties().getTitle()
-                + ") does not exist"));
+    Sheet sheet =
+        sheets.stream()
+            .filter(s -> s.getProperties().getTitle().equals(sheetName))
+            .findAny()
+            .orElseThrow(
+                () ->
+                    new NotFoundException(
+                        "Sheet(name="
+                            + sheetName
+                            + ")"
+                            + " inside Spreadsheet(name="
+                            + spreadsheet.getProperties().getTitle()
+                            + ") does not exist"));
     if (!sheet.getProperties().getSheetType().equals(GRID_SHEET_TYPE)) {
       throw new NotImplementedException("Only GRID sheet type is supported");
     }
     return prospectMapper.toProspectEvalInfo(sheet);
-  }
-
-  private static ProspectEvaluationJobType getJobType(ProspectEvaluationJobRunner job) {
-    if (job.isEventConversionJob()) {
-      return ProspectEvaluationJobType.CALENDAR_EVENT_CONVERSION;
-    } else if (job.isSpreadsheetEvaluationJob()) {
-      return ProspectEvaluationJobType.SPREADSHEET_EVALUATION;
-    }
-    throw new NotImplementedException(
-        "Only prospect evaluation job type [CALENDAR_EVENT_CONVERSION and SPREADSHEET_EVALUATION] are supported for now");
   }
 
   private Context configureProspectContext(HAccountHolder accountHolder) {
@@ -720,72 +786,39 @@ public class ProspectService {
     return context;
   }
 
-  public static List<ProspectResult> removeDuplications(List<ProspectResult> prospectResults) {
-    List<ProspectResult> withoutDuplicat = new ArrayList<>();
-    Set<String> seen = new HashSet<>();
-
-    for (ProspectResult prospectResult : prospectResults) {
-      ProspectEval eval = prospectResult.getProspectEval();
-      ProspectEvalInfo info = eval.getProspectEvalInfo();
-      ProspectResult.CustomerInterventionResult customerResult =
-          prospectResult.getCustomerInterventionResult();
-      Customer customerInfo = customerResult == null ? null
-          : customerResult.getOldCustomer();
-      String prospectName = customerInfo == null ? info.getName()
-          : customerInfo.getFullName();
-      String prospectEmail = customerInfo == null ? info.getEmail()
-          : customerInfo.getEmail();
-      String prospectPhone = customerInfo == null ? info.getPhoneNumber()
-          : customerInfo.getPhone();
-      String prospectAddress = customerInfo == null ? info.getAddress()
-          : customerInfo.getFullAddress();
-      String key = prospectName + ":"
-          + prospectEmail + ":"
-          + prospectPhone + ":"
-          + prospectAddress;
-
-      if (!seen.contains(key)) {
-        seen.add(key);
-        withoutDuplicat.add(prospectResult);
-      }
-    }
-    return withoutDuplicat;
-  }
-
-  public List<Prospect> importProspectsFromSpreadsheet(String idUser,
-                                                       String spreadsheetName,
-                                                       String sheetName,
-                                                       Integer minRange,
-                                                       Integer maxRange) {
-    List<ProspectEval> prospectEvals = readEvaluationsFromSheets(
-        idUser,
-        spreadsheetName,
-        sheetName,
-        minRange,
-        maxRange);
-    List<Prospect> prospectsToSave = prospectEvals.stream()
-        .map(eval -> {
-          ProspectEvalInfo prospectInfo = eval.getProspectEvalInfo();
-          return fromEvaluationObj(null, null, prospectInfo, null);
-        }).collect(Collectors.toList());
+  public List<Prospect> importProspectsFromSpreadsheet(
+      String idUser, String spreadsheetName, String sheetName, Integer minRange, Integer maxRange) {
+    List<ProspectEval> prospectEvals =
+        readEvaluationsFromSheets(idUser, spreadsheetName, sheetName, minRange, maxRange);
+    List<Prospect> prospectsToSave =
+        prospectEvals.stream()
+            .map(
+                eval -> {
+                  ProspectEvalInfo prospectInfo = eval.getProspectEvalInfo();
+                  return fromEvaluationObj(null, null, prospectInfo, null);
+                })
+            .collect(Collectors.toList());
 
     return repository.create(prospectsToSave);
   }
 
-  @Scheduled(cron = "0 0 14 ? * FRI", zone = PARIS_TIMEZONE)
   public void relaunchHoldersProspects() {
-    List<Prospect> prospectToContact = statusService.findAllByStatus(TO_CONTACT).stream()
-        .filter(prospect -> prospect.getRating() != null
-            && prospect.getRating().getValue() != null
-            && prospect.getRating().getValue() > 0)
-        .collect(Collectors.toList());
+    List<Prospect> prospectToContact =
+        statusService.findAllByStatus(TO_CONTACT).stream()
+            .filter(
+                prospect ->
+                    prospect.getRating() != null
+                        && prospect.getRating().getValue() != null
+                        && prospect.getRating().getValue() > 0)
+            .collect(Collectors.toList());
     Map<String, List<Prospect>> prospectsByHolder = dispatchByHolder(prospectToContact);
     StringBuilder msgBuilder = new StringBuilder();
     prospectsByHolder.forEach(
         (idHolder, prospects) -> {
           Optional<HAccountHolder> optionalHolder = accountHolderJpaRepository.findById(idHolder);
           if (optionalHolder.isEmpty()) {
-            msgBuilder.append("Failed to attempt to relaunch AccountHolder(id=")
+            msgBuilder
+                .append("Failed to attempt to relaunch AccountHolder(id=")
                 .append(idHolder)
                 .append(") because it was not found");
           } else {
@@ -798,20 +831,19 @@ public class ProspectService {
               throw new ApiException(SERVER_EXCEPTION, e);
             }
           }
-        }
-    );
+        });
     String exceptionMsg = msgBuilder.toString();
     if (!exceptionMsg.isEmpty()) {
       log.warn(exceptionMsg);
     }
   }
 
-  private void sendEmailProspectToContact(List<Prospect> prospects,
-                                          Optional<HAccountHolder> optionalHolder)
+  private void sendEmailProspectToContact(
+      List<Prospect> prospects, Optional<HAccountHolder> optionalHolder)
       throws IOException, MessagingException {
     HAccountHolder accountHolder = optionalHolder.get();
     String recipient = accountHolder.getEmail();
-    String cc = eventConf.getAdminEmail();
+    String cc = sesConf.getAdminEmail();
     String today = DateUtils.formatFrenchDate(Instant.now());
     String emailSubject =
         String.format(
@@ -828,14 +860,6 @@ public class ProspectService {
     String message = "Pensez à modifier le statut de vos prospects pour les conserver";
     snsService.pushNotification(message, user);
     log.info("Notifications(message=" + message + ") sent to " + user.getName());
-  }
-
-  private static String prospectRelaunchEmailBody(List<Prospect> prospects,
-                                                  HAccountHolder accountHolder) {
-    Context context = new Context();
-    context.setVariable("accountHolder", accountHolder);
-    context.setVariable("prospects", prospects);
-    return parseTemplateResolver(PROSPECT_RELAUNCH_TEMPLATE, context);
   }
 
   private Map<String, List<Prospect>> dispatchByHolder(List<Prospect> prospects) {

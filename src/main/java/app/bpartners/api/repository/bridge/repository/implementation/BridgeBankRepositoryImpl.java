@@ -29,13 +29,11 @@ public class BridgeBankRepositoryImpl implements BridgeBankRepository {
   public String initiateBankConnection(String userEmail) {
     UserToken bridgeToken =
         tokenRepository.getLatestTokenByUser(AuthProvider.getPrincipal().getUser());
-    return bridgeApi.initiateBankConnection(BridgeCreateItem.builder()
-            .prefillEmail(userEmail)
-            .build(),
-        bridgeToken.getAccessToken());
+    return bridgeApi.initiateBankConnection(
+        BridgeCreateItem.builder().prefillEmail(userEmail).build(), bridgeToken.getAccessToken());
   }
 
-  //TODO: refresh can have multiple status but we don't handle this here
+  // TODO: refresh can have multiple status but we don't handle this here
   @Override
   public Instant getItemStatusRefreshedAt(Long itemId, String token) {
     return bridgeApi.getItemStatusRefreshedAt(itemId, token);

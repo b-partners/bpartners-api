@@ -1,0 +1,124 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: bpartners - Computation and API
+
+Globals:
+  Function:
+    CodeUri: .
+    Runtime: java17
+    Tracing: Active
+    Architectures:
+      - x86_64
+    Timeout: 600
+    AutoPublishAlias: live
+    SnapStart:
+      ApplyOn: PublishedVersions
+    VpcConfig:
+      SecurityGroupIds:
+        - !Sub '{{resolve:ssm:/bpartners/sg/id}}'
+      SubnetIds:
+        - !Sub '{{resolve:ssm:/bpartners/private/subnet1/id}}'
+        - !Sub '{{resolve:ssm:/bpartners/private/subnet2/id}}'
+    Environment:
+      Variables:
+        ENV: !Ref Env
+        AWS_SQS_QUEUE_URL: !Sub '{{resolve:ssm:/bpartners/${Env}/sqs/mailbox-queue-url}}'
+        AWS_EVENTBRIDGE_BUS: !Sub '{{resolve:ssm:/bpartners/${Env}/eventbridge/bus-name}}'
+        AWS_S3_BUCKET: !Sub '{{resolve:ssm:/bpartners/${Env}/s3/bucket-name}}'
+        AWS_SES_SOURCE: noreply@nowhere.com
+        
+        
+        SENTRY_DSN: !Sub '{{resolve:ssm:/bpartners/sentry/dsn}}'
+        AWS_COGNITO_USERPOOL_ID: !Sub '{{resolve:ssm:/bpartners/${Env}/cognito/userpool-id}}'
+        FINTECTURE_APP_ID: !Sub '{{resolve:ssm:/bpartners/${Env}/fintecture/app-id}}'
+        FINTECTURE_APP_SECRET: !Sub '{{resolve:ssm:/bpartners/${Env}/fintecture/app-secret}}'
+        FINTECTURE_BASE_URL: !Sub '{{resolve:ssm:/bpartners/${Env}/fintecture/base-url}}'
+        AWS_BUCKET_NAME: !Sub '{{resolve:ssm:/bpartners/${Env}/s3/bucket-name}}'
+        SENDINBLUE_API_KEY: !Sub '{{resolve:ssm:/bpartners/${Env}/sendinblue/api-key}}'
+        SENDINBLUE_CONTACTLIST_ID: !Sub '{{resolve:ssm:/bpartners/${Env}/sendinblue/contactlist-id}}'
+        ADS_BASEURL: !Sub '{{resolve:ssm:/bpartners/${Env}/sogefi/ads-base-url}}'
+        ADS_BEARER: !Sub '{{resolve:ssm:/bpartners/${Env}/sogefi/ads-bearer}}'
+        ADS_DENOM_CHAR: !Sub '{{resolve:ssm:/bpartners/${Env}/sogefi/ads-denom-char}}'
+        BRIDGE_CLIENT_ID: !Sub '{{resolve:ssm:/bpartners/${Env}/bridge/client-id}}'
+        BRIDGE_CLIENT_SECRET: !Sub '{{resolve:ssm:/bpartners/${Env}/bridge/client-secret}}'
+        BRIDGE_BASE_URL: !Sub '{{resolve:ssm:/bpartners/${Env}/bridge/base-url}}'
+        BRIDGE_VERSION: !Sub '{{resolve:ssm:/bpartners/${Env}/bridge/version}}'
+        AWS_COGNITO_USERPOOL_DOMAIN: !Sub '{{resolve:ssm:/bpartners/${Env}/cognito/userpool-domain}}'
+        AWS_COGNITO_USERPOOL_CLIENTID: !Sub '{{resolve:ssm:/bpartners/${Env}/cognito/userpool-client-id}}'
+        AWS_COGNITO_USERPOOL_CLIENTSECRET: !Sub '{{resolve:ssm:/bpartners/${Env}/cognito/userpool-client-secret}}'
+        FEATURE_DETECTOR_API_KEY: !Sub '{{resolve:ssm:/bpartners/${Env}/feature/detector/api/key}}'
+        FEATURE_DETECTOR_APPLICATION_NAME: !Sub '{{resolve:ssm:/bpartners/${Env}/feature/detector/application/name}}'
+        EXPRESSIF_PROJECT_TOKEN: !Sub '{{resolve:ssm:/bpartners/${Env}/expressif/project-token}}'
+        BAN_BASE_URL: !Sub '{{resolve:ssm:/bpartners/${Env}/ban/base-url}}'
+        GOOGLE_CALENDAR_APPS_NAME: !Sub '{{resolve:ssm:/bpartners/${Env}/google/calendar/apps/name}}'
+        GOOGLE_CALENDAR_CLIENT_ID: !Sub '{{resolve:ssm:/bpartners/${Env}/google/calendar/client/id}}'
+        GOOGLE_CALENDAR_CLIENT_SECRET: !Sub '{{resolve:ssm:/bpartners/${Env}/google/calendar/client/secret}}'
+        GOOGLE_CALENDAR_REDIRECT_URIS: !Sub '{{resolve:ssm:/bpartners/${Env}/google/calendar/redirect/uris}}'
+        GOOGLE_SHEET_APPS_NAME: !Sub '{{resolve:ssm:/bpartners/${Env}/google/sheet/apps/name}}'
+        GOOGLE_SHEET_CLIENT_ID: !Sub '{{resolve:ssm:/bpartners/${Env}/google/sheet/client/id}}'
+        GOOGLE_SHEET_CLIENT_SECRET: !Sub '{{resolve:ssm:/bpartners/${Env}/google/sheet/client/secret}}'
+        GOOGLE_SHEET_REDIRECT_URIS: !Sub '{{resolve:ssm:/bpartners/${Env}/google/sheet/redirect/uris}}'
+        ADMIN_EMAIL: !Sub '{{resolve:ssm:/bpartners/${Env}/admin/email}}'
+        SNS_PLATFORM_ARN: !Sub '{{resolve:ssm:/bpartners/${Env}/sns/platform-arn}}'
+        DATABASE_URL: !Sub '{{resolve:ssm:/bpartners/${Env}/db/url}}'
+        DATABASE_USERNAME: !Sub '{{resolve:ssm:/bpartners/${Env}/db/username}}'
+        DATABASE_PASSWORD: !Sub '{{resolve:ssm:/bpartners/${Env}/db/password}}'
+        
+
+Parameters:
+  Env:
+    Type: String
+
+Resources:
+  FrontalFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: app.bpartners.api.ApiEventHandler::handleRequest
+      MemorySize: 2048
+      Role: !Sub '{{resolve:ssm:/bpartners/${Env}/execution/role-arn}}'
+      
+      Events:
+        ApiCall:
+          Type: Api
+          Properties:
+            Path: /{proxy+}
+            Method: ANY
+
+  WorkerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: app.bpartners.api.MailboxEventHandler::handleRequest
+      MemorySize: 1024
+      Role: !Sub '{{resolve:ssm:/bpartners/${Env}/execution/role-arn}}'
+      
+      Events:
+        AllEvents:
+          Type: SQS
+          Properties:
+            Queue: !Sub '{{resolve:ssm:/bpartners/${Env}/sqs/mailbox-queue-arn}}'
+            BatchSize: 5
+
+  ApplicationResourceGroup:
+    Type: AWS::ResourceGroups::Group
+    Properties:
+      Name:
+        Fn::Sub: ApplicationInsights-SAM-${AWS::StackName}
+      ResourceQuery:
+        Type: CLOUDFORMATION_STACK_1_0
+  ApplicationInsightsMonitoring:
+    Type: AWS::ApplicationInsights::Application
+    Properties:
+      ResourceGroupName: !Ref ApplicationResourceGroup
+      AutoConfigurationEnabled: 'true'
+
+  ApiUrlSSM:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Join [ '', [ /bpartners/, !Ref Env, /api/url ] ]
+      Type: String
+      Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod"
+
+Outputs:
+  ApiUrl:
+    Description: API Gateway endpoint URL
+    Value: !GetAtt ApiUrlSSM.Value

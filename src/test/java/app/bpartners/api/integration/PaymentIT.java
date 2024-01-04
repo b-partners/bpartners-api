@@ -1,41 +1,5 @@
 package app.bpartners.api.integration;
 
-import app.bpartners.api.SentryConf;
-import app.bpartners.api.endpoint.event.S3Conf;
-import app.bpartners.api.endpoint.rest.api.PayingApi;
-import app.bpartners.api.endpoint.rest.client.ApiClient;
-import app.bpartners.api.endpoint.rest.client.ApiException;
-import app.bpartners.api.endpoint.rest.model.PaymentInitiation;
-import app.bpartners.api.endpoint.rest.model.PaymentRedirection;
-import app.bpartners.api.endpoint.rest.model.PaymentStatus;
-import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
-import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
-import app.bpartners.api.integration.conf.DbEnvContextInitializer;
-import app.bpartners.api.integration.conf.utils.TestUtils;
-import app.bpartners.api.manager.ProjectTokenManager;
-import app.bpartners.api.repository.connectors.account.AccountConnectorRepository;
-import app.bpartners.api.repository.LegalFileRepository;
-import app.bpartners.api.repository.bridge.BridgeApi;
-import app.bpartners.api.repository.bridge.model.Account.BridgeAccount;
-import app.bpartners.api.repository.fintecture.FintectureConf;
-import app.bpartners.api.repository.fintecture.FintecturePaymentInitiationRepository;
-import app.bpartners.api.repository.jpa.PaymentRequestJpaRepository;
-import app.bpartners.api.repository.jpa.model.HPaymentRequest;
-import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitConf;
-import app.bpartners.api.repository.sendinblue.SendinblueConf;
-import app.bpartners.api.service.PaymentScheduleService;
-import java.util.List;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestMethodOrder;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.context.ContextConfiguration;
-import org.testcontainers.junit.jupiter.Testcontainers;
-
 import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ID;
 import static app.bpartners.api.integration.conf.utils.TestUtils.SESSION1_ID;
@@ -51,44 +15,39 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
-import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
-@SpringBootTest(webEnvironment = RANDOM_PORT)
+import app.bpartners.api.endpoint.rest.api.PayingApi;
+import app.bpartners.api.endpoint.rest.client.ApiClient;
+import app.bpartners.api.endpoint.rest.client.ApiException;
+import app.bpartners.api.endpoint.rest.model.PaymentInitiation;
+import app.bpartners.api.endpoint.rest.model.PaymentRedirection;
+import app.bpartners.api.endpoint.rest.model.PaymentStatus;
+import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
+import app.bpartners.api.integration.conf.MockedThirdParties;
+import app.bpartners.api.integration.conf.utils.TestUtils;
+import app.bpartners.api.repository.bridge.model.Account.BridgeAccount;
+import app.bpartners.api.repository.fintecture.FintecturePaymentInitiationRepository;
+import app.bpartners.api.repository.jpa.PaymentRequestJpaRepository;
+import app.bpartners.api.repository.jpa.model.HPaymentRequest;
+import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.testcontainers.junit.jupiter.Testcontainers;
+
 @Testcontainers
-@ContextConfiguration(initializers = DbEnvContextInitializer.class)
 @AutoConfigureMockMvc
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-class PaymentIT {
-  @MockBean
-  private PaymentScheduleService paymentScheduleService;
-  @MockBean
-  private BuildingPermitConf buildingPermitConf;
-  @Autowired
-  private PaymentRequestJpaRepository requestJpaRepository;
-  @MockBean
-  private SentryConf sentryConf;
-  @MockBean
-  private SendinblueConf sendinblueConf;
-  @MockBean
-  private S3Conf s3Conf;
-  @MockBean
-  private BridgeApi bridgeApi;
-  @MockBean
-  private CognitoComponent cognitoComponentMock;
-  @MockBean
-  private ProjectTokenManager projectTokenManager;
-  @MockBean
-  private FintectureConf fintectureConf;
-  @MockBean
-  private AccountConnectorRepository accountConnectorRepositoryMock;
-  @MockBean
-  private FintecturePaymentInitiationRepository paymentInitiationRepositoryMock;
-  @MockBean
-  private LegalFileRepository legalFileRepositoryMock;
+class PaymentIT extends MockedThirdParties {
+  @Autowired private PaymentRequestJpaRepository requestJpaRepository;
+  @MockBean private FintecturePaymentInitiationRepository paymentInitiationRepositoryMock;
 
-  private static ApiClient anApiClient() {
-    return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN,
-        DbEnvContextInitializer.getHttpServerPort());
+  private ApiClient anApiClient() {
+    return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN, localPort);
   }
 
   @BeforeEach
@@ -145,9 +104,10 @@ class PaymentIT {
   private static PaymentRedirection paymentRedirectionTemplate() {
     return new PaymentRedirection()
         .redirectionUrl("https://connect-v2-sbx.fintecture.com")
-        .redirectionStatusUrls(new RedirectionStatusUrls()
-            .successUrl("https://dashboard-dev.bpartners.app")
-            .failureUrl("https://dashboard-dev.bpartners.app/error"));
+        .redirectionStatusUrls(
+            new RedirectionStatusUrls()
+                .successUrl("https://dashboard-dev.bpartners.app")
+                .failureUrl("https://dashboard-dev.bpartners.app/error"));
   }
 
   @Test
@@ -155,45 +115,41 @@ class PaymentIT {
     ApiClient joeDoeClient = anApiClient();
     PayingApi api = new PayingApi(joeDoeClient);
 
-    List<PaymentRedirection> actual = api.initiatePayments(JOE_DOE_ACCOUNT_ID,
-        List.of(paymentInitiation1(), paymentInitiation2()));
+    List<PaymentRedirection> actual =
+        api.initiatePayments(
+            JOE_DOE_ACCOUNT_ID, List.of(paymentInitiation1(), paymentInitiation2()));
     actual.forEach(paymentRedirection -> paymentRedirection.setId(null));
 
     assertEquals(2, actual.size());
     assertTrue(actual.contains(paymentRedirectionTemplate()));
     List<HPaymentRequest> allEntities = requestJpaRepository.findAll();
-    allEntities.forEach(entity -> {
-      entity.setId(null);
-      entity.setCreatedDatetime(null);
-    });
-    assertTrue(allEntities.containsAll(
-        List.of(
-            entityPaymentRequest(
-                SESSION1_ID,
-                paymentInitiation1().getLabel()),
-            entityPaymentRequest(
-                SESSION2_ID,
-                paymentInitiation2().getLabel()))));
+    allEntities.forEach(
+        entity -> {
+          entity.setId(null);
+          entity.setCreatedDatetime(null);
+        });
+    allEntities.forEach(hPaymentRequest -> hPaymentRequest.setPaymentStatusUpdatedAt(null));
+    assertTrue(
+        allEntities.containsAll(
+            List.of(
+                entityPaymentRequest(SESSION1_ID, paymentInitiation1().getLabel()),
+                entityPaymentRequest(SESSION2_ID, paymentInitiation2().getLabel()))));
   }
 
   @Test
   void initiate_payment_ko() {
-    BridgeAccount accountNoIban = otherBridgeAccount()
-        .toBuilder()
-        .iban(null)
-        .build();
+    BridgeAccount accountNoIban = otherBridgeAccount().toBuilder().iban(null).build();
     when(accountConnectorRepositoryMock.findByBearer(any()))
         .thenReturn(List.of(toConnector(accountNoIban)));
-    when(accountConnectorRepositoryMock.findById(any()))
-        .thenReturn(toConnector(accountNoIban));
+    when(accountConnectorRepositoryMock.findById(any())).thenReturn(toConnector(accountNoIban));
 
     ApiClient joeDoeClient = anApiClient();
     PayingApi api = new PayingApi(joeDoeClient);
 
-    assertThrowsApiException("{\"type\":\"400 BAD_REQUEST\","
+    assertThrowsApiException(
+        "{\"type\":\"400 BAD_REQUEST\","
             + "\"message\":\""
             + "Iban is mandatory for initiating payments. \"}",
-        () -> api.initiatePayments(JOE_DOE_ACCOUNT_ID,
-            List.of(paymentInitiation1())));
+        () -> api.initiatePayments(JOE_DOE_ACCOUNT_ID, List.of(paymentInitiation1())));
   }
 }

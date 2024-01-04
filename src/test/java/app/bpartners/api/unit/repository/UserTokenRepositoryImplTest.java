@@ -1,5 +1,12 @@
 package app.bpartners.api.unit.repository;
 
+import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_TOKEN;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import app.bpartners.api.endpoint.rest.model.AccountStatus;
 import app.bpartners.api.endpoint.rest.model.EnableStatus;
 import app.bpartners.api.endpoint.rest.model.Geojson;
@@ -30,13 +37,6 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_TOKEN;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 class UserTokenRepositoryImplTest {
   UserMapper userMapper;
   UserJpaRepository userJpaRepository;
@@ -54,22 +54,24 @@ class UserTokenRepositoryImplTest {
     userMapper = mock(UserMapper.class);
     accountJpaRepository = mock(AccountJpaRepository.class);
     holderJpaRepository = mock(AccountHolderJpaRepository.class);
-    subject = new UserTokenRepositoryImpl(
-        userJpaRepository, userTokenMapper, bridgeApi, userMapper,
-        accountJpaRepository, holderJpaRepository);
+    subject =
+        new UserTokenRepositoryImpl(
+            userJpaRepository,
+            userTokenMapper,
+            bridgeApi,
+            userMapper,
+            accountJpaRepository,
+            holderJpaRepository);
 
     when(userTokenMapper.toBridgeAuthUser(any())).thenReturn(bridgeUser());
-    when(bridgeApi.authenticateUser(any())).thenReturn(
-        BridgeTokenResponse.builder()
-            .user(BridgeUser.builder()
-                .email(user().getEmail())
-                .build())
-            .accessToken(user().getAccessToken())
-            .build());
-    when(userTokenMapper.toDomain(any())).thenReturn(UserToken.builder()
-        .user(user())
-        .accessToken(user().getAccessToken())
-        .build());
+    when(bridgeApi.authenticateUser(any()))
+        .thenReturn(
+            BridgeTokenResponse.builder()
+                .user(BridgeUser.builder().email(user().getEmail()).build())
+                .accessToken(user().getAccessToken())
+                .build());
+    when(userTokenMapper.toDomain(any()))
+        .thenReturn(UserToken.builder().user(user()).accessToken(user().getAccessToken()).build());
     when(userMapper.toEntity(any(), any(), any())).thenReturn(HUser.builder().build());
     when(userJpaRepository.getHUserById(any())).thenReturn(entity());
     when(userJpaRepository.save(any())).thenReturn(entity());
@@ -132,12 +134,13 @@ class UserTokenRepositoryImplTest {
         .iban("iban")
         .bic("bic")
         .availableBalance(new Money())
-        .bank(Bank.builder()
-            .id("bank_id")
-            .externalId(1234L)
-            .name("bank")
-            .logoUrl("http://logo.url")
-            .build())
+        .bank(
+            Bank.builder()
+                .id("bank_id")
+                .externalId(1234L)
+                .name("bank")
+                .logoUrl("http://logo.url")
+                .build())
         .active(true)
         .status(AccountStatus.OPENED)
         .build();
@@ -170,9 +173,6 @@ class UserTokenRepositoryImplTest {
   }
 
   CreateBridgeUser bridgeUser() {
-    return CreateBridgeUser.builder()
-        .email(user().getEmail())
-        .password("password")
-        .build();
+    return CreateBridgeUser.builder().email(user().getEmail()).password("password").build();
   }
 }

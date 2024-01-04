@@ -1,5 +1,9 @@
 package app.bpartners.api.repository.prospecting.datasource.buildingpermit;
 
+import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
+import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
+import static java.util.UUID.randomUUID;
+
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.model.BuildingPermitList;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.model.SingleBuildingPermit;
@@ -15,10 +19,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
-import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
-import static java.util.UUID.randomUUID;
-
 @Component
 @Slf4j
 public class BuildingPermitApi {
@@ -27,8 +27,7 @@ public class BuildingPermitApi {
   private final BuildingPermitConf buildingPermitConf;
   private HttpClient httpClient;
 
-  @Autowired
-  private RetryerConfig retryerConfig;
+  @Autowired private RetryerConfig retryerConfig;
 
   public BuildingPermitApi(BuildingPermitConf buildingPermitConf, RetryerConfig retryerConfig) {
     this.buildingPermitConf = buildingPermitConf;
@@ -37,42 +36,41 @@ public class BuildingPermitApi {
   }
 
   public BuildingPermitList getBuildingPermitList(String townCode) {
-    return getData(buildingPermitConf.getApiWithFilterUrl(townCode),
-        BuildingPermitList.class);
+    return getData(buildingPermitConf.getApiWithFilterUrl(townCode), BuildingPermitList.class);
   }
 
   public SingleBuildingPermit getSingleBuildingPermit(String sogefiFileId) {
-    return getData(buildingPermitConf.getSinglePermitUrl(sogefiFileId),
-        SingleBuildingPermit.class);
+    return getData(buildingPermitConf.getSinglePermitUrl(sogefiFileId), SingleBuildingPermit.class);
   }
 
   public <T> T getData(String url, Class<T> valueType) {
-    return retryerConfig.retryTemplate().execute(context -> {
-      UUID requestId = randomUUID();
-      try {
-        HttpRequest request = HttpRequest.newBuilder()
-            .uri(new URI(url))
-            .GET()
-            .build();
-        log.info("SOGEFI CALL - id={}, url={}", requestId, request.uri());
-        HttpResponse<String> response =
-            httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-        log.info("SOGEFI CALL - id={}, httpStatusCode={}", requestId, response.statusCode());
-        return objectMapper.readValue(response.body(), valueType);
-      } catch (InterruptedException e) {
-        log.error("SOGEFI CALL - id={}, InterruptedException", requestId);
-        Thread.currentThread().interrupt();
-        throw new ApiException(SERVER_EXCEPTION, e);
-      } catch (URISyntaxException | IOException e) {
-        if (e instanceof URISyntaxException) {
-          log.error("SOGEFI CALL - id={}, URISyntaxException", requestId);
-        }
-        if (e instanceof IOException && e.getMessage().contains("<!doctype html>")) {
-          log.error("SOGEFI CALL - id={}, IOException-SOGEFI-429", requestId);
-        }
-        throw new ApiException(SERVER_EXCEPTION, e.getMessage());
-      }
-    });
+    return retryerConfig
+        .retryTemplate()
+        .execute(
+            context -> {
+              UUID requestId = randomUUID();
+              try {
+                HttpRequest request = HttpRequest.newBuilder().uri(new URI(url)).GET().build();
+                log.info("SOGEFI CALL - id={}, url={}", requestId, request.uri());
+                HttpResponse<String> response =
+                    httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+                log.info(
+                    "SOGEFI CALL - id={}, httpStatusCode={}", requestId, response.statusCode());
+                return objectMapper.readValue(response.body(), valueType);
+              } catch (InterruptedException e) {
+                log.error("SOGEFI CALL - id={}, InterruptedException", requestId);
+                Thread.currentThread().interrupt();
+                throw new ApiException(SERVER_EXCEPTION, e);
+              } catch (URISyntaxException | IOException e) {
+                if (e instanceof URISyntaxException) {
+                  log.error("SOGEFI CALL - id={}, URISyntaxException", requestId);
+                }
+                if (e instanceof IOException && e.getMessage().contains("<!doctype html>")) {
+                  log.error("SOGEFI CALL - id={}, IOException-SOGEFI-429", requestId);
+                }
+                throw new ApiException(SERVER_EXCEPTION, e.getMessage());
+              }
+            });
   }
 
   public BuildingPermitApi httpClient(HttpClient httpClient) {

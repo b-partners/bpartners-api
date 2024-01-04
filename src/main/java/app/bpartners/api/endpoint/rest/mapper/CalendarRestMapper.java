@@ -1,5 +1,7 @@
 package app.bpartners.api.endpoint.rest.mapper;
 
+import static app.bpartners.api.repository.google.calendar.CalendarApi.zonedDateTimeFrom;
+
 import app.bpartners.api.endpoint.rest.model.Calendar;
 import app.bpartners.api.endpoint.rest.model.CalendarEvent;
 import app.bpartners.api.endpoint.rest.model.CreateCalendarEvent;
@@ -7,15 +9,12 @@ import app.bpartners.api.endpoint.rest.validator.CalendarEventValidator;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import static app.bpartners.api.repository.google.calendar.CalendarApi.zonedDateTimeFrom;
-
 @Component
 @AllArgsConstructor
 public class CalendarRestMapper {
   private final CalendarEventValidator validator;
 
-  public CalendarEvent toRest(
-      app.bpartners.api.model.CalendarEvent domain) {
+  public CalendarEvent toRest(app.bpartners.api.model.CalendarEvent domain) {
     return new CalendarEvent()
         .id(domain.getId())
         .summary(domain.getSummary())

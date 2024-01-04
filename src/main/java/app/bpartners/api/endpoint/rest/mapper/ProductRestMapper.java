@@ -1,12 +1,12 @@
 package app.bpartners.api.endpoint.rest.mapper;
 
+import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
+
 import app.bpartners.api.endpoint.rest.model.CreateProduct;
 import app.bpartners.api.endpoint.rest.model.Product;
 import app.bpartners.api.endpoint.rest.validator.CreateProductValidator;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
-
-import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 
 @Component
 @AllArgsConstructor
@@ -58,5 +58,4 @@ public class ProductRestMapper {
         .vatPercent(parseFraction(createProduct.getVatPercent()))
         .build();
   }
-
 }

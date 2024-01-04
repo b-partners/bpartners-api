@@ -1,0 +1,100 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Storage stack for BPartners
+
+Parameters:
+  Env:
+    Type: String
+  DBName:
+    Type: String
+    Default: bpartners
+  DBClass:
+    Default: db.t3.micro
+    Description: Database instance class
+    Type: String
+    ConstraintDescription: must select a valid database instance type.
+  DBSnapshot:
+    Type: String
+Conditions:
+  NotCreatingDatabaseFromSnapshot: !Equals
+    - !Ref DBSnapshot
+    - ''
+
+Resources:
+  SubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: !Join ['', [Subnet group for , !Ref Env]]
+      DBSubnetGroupName: !Join ['', [bpartners-, !Ref Env, -subnet-group]]
+      SubnetIds:
+        - !Sub '{{resolve:ssm:/bpartners/private/subnet1/id}}'
+        - !Sub '{{resolve:ssm:/bpartners/private/subnet2/id}}'
+
+  Database:
+    Type: AWS::RDS::DBInstance
+    DeletionPolicy: Retain
+    Properties:
+      DBName:
+        !If [NotCreatingDatabaseFromSnapshot, !Ref DBName, !Ref "AWS::NoValue"]
+      DBSnapshotIdentifier:
+        !If [ NotCreatingDatabaseFromSnapshot, !Ref "AWS::NoValue", !Ref DBSnapshot ]
+      AllocatedStorage:
+        !If [ NotCreatingDatabaseFromSnapshot, '5', !Ref "AWS::NoValue" ]
+      BackupRetentionPeriod: 35
+      DBInstanceClass:
+        Ref: DBClass
+      Engine: postgres
+      MasterUsername:
+        !If [NotCreatingDatabaseFromSnapshot, !Sub '{{resolve:ssm:/bpartners/${Env}/db/username}}', !Ref "AWS::NoValue" ]
+      MasterUserPassword:
+        !If [NotCreatingDatabaseFromSnapshot, !Sub '{{resolve:ssm:/bpartners/${Env}/db/password}}', !Ref "AWS::NoValue" ]
+      DBSubnetGroupName: !Ref SubnetGroup
+      VPCSecurityGroups:
+        - !Sub '{{resolve:ssm:/bpartners/sg/id}}'
+  DatabaseSSM:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Join ['', [/bpartners/, !Ref Env, /db/url]]
+      Type: String
+      Value:
+        Fn::Join:
+          - ''
+          - - jdbc:postgresql://
+            - Fn::GetAtt:
+                - Database
+                - Endpoint.Address
+            - ':'
+            - Fn::GetAtt:
+                - Database
+                - Endpoint.Port
+            - '/'
+            - !Ref DBName
+  DatabaseIdentifierSSM:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Join [ '', [ /bpartners/, !Ref Env, /db/identifier ] ]
+      Type: String
+      Value: !GetAtt Database.Endpoint.Address
+
+  Bucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    Properties:
+      VersioningConfiguration:
+        Status: Enabled
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+  BucketSSM:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Join ['', [/bpartners/, !Ref Env, /s3/bucket-name]]
+      Type: String
+      Value: !Ref Bucket
+
+Outputs:
+  DatabaseSSM:
+    Value: !Ref DatabaseSSM
+  BucketSSM:
+    Value: !Ref BucketSSM

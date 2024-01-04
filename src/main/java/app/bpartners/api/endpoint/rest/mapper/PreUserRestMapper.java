@@ -12,8 +12,7 @@ public class PreUserRestMapper {
 
   private final PreUserRestValidator preUserValidator;
 
-  public app.bpartners.api.model.PreUser toDomain(
-      CreatePreUser toCreate) {
+  public app.bpartners.api.model.PreUser toDomain(CreatePreUser toCreate) {
     preUserValidator.accept(toCreate);
     return app.bpartners.api.model.PreUser.builder()
         .firstname(toCreate.getFirstName())

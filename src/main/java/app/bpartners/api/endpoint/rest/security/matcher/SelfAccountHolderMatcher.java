@@ -6,8 +6,8 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 public class SelfAccountHolderMatcher extends SelfMatcher {
-  public SelfAccountHolderMatcher(HttpMethod method, String antPattern,
-                                  AuthenticatedResourceProvider authResourceProvider) {
+  public SelfAccountHolderMatcher(
+      HttpMethod method, String antPattern, AuthenticatedResourceProvider authResourceProvider) {
     super(method, antPattern, authResourceProvider);
   }
 

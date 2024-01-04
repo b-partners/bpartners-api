@@ -24,6 +24,7 @@ public class MonthlyTransactionsSummary {
   private Fraction income;
   private Fraction outcome;
   private Fraction cashFlow;
+
   @Getter(AccessLevel.NONE)
   private Instant updatedAt;
 

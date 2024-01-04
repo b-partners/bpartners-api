@@ -9,8 +9,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class FractionUtils {
-  private FractionUtils() {
-  }
+  private FractionUtils() {}
 
   public static Aprational toAprational(BigInteger numerator, BigInteger denominator) {
     return new Aprational(new Apint(numerator), new Apint(denominator));
@@ -21,8 +20,8 @@ public class FractionUtils {
       return new Fraction();
     }
     if (!fraction.contains("/")) {
-      throw new ApiException(ApiException.ExceptionType.SERVER_EXCEPTION,
-          "Invalid fraction format");
+      throw new ApiException(
+          ApiException.ExceptionType.SERVER_EXCEPTION, "Invalid fraction format");
     }
     String[] array = fraction.split("/");
     return new Fraction(new BigInteger(array[0]), new BigInteger(array[1]));
@@ -32,8 +31,8 @@ public class FractionUtils {
     if (aprational == null) {
       return new Fraction();
     }
-    return new Fraction(aprational.numerator().toBigInteger(),
-        aprational.denominator().toBigInteger());
+    return new Fraction(
+        aprational.numerator().toBigInteger(), aprational.denominator().toBigInteger());
   }
 
   public static Fraction parseFraction(Integer number) {

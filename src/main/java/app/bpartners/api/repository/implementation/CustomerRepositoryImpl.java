@@ -1,5 +1,7 @@
 package app.bpartners.api.repository.implementation;
 
+import static app.bpartners.api.repository.jpa.model.HCustomer.UPDATED_AT_PROPERTY;
+
 import app.bpartners.api.endpoint.rest.model.CustomerStatus;
 import app.bpartners.api.endpoint.rest.model.CustomerType;
 import app.bpartners.api.endpoint.rest.model.UpdateCustomerStatus;
@@ -26,8 +28,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.query.QueryUtils;
 import org.springframework.stereotype.Repository;
 
-import static app.bpartners.api.repository.jpa.model.HCustomer.UPDATED_AT_PROPERTY;
-
 @Repository
 @AllArgsConstructor
 @Slf4j
@@ -46,104 +46,110 @@ public class CustomerRepositoryImpl implements CustomerRepository {
   private static void warnDeprecated(String field) {
     log.warn(
         "DEPRECATED: query parameter {} is still used for filtering customers."
-            + " Use the query parameter filters instead.", field);
+            + " Use the query parameter filters instead.",
+        field);
   }
 
   private static Predicate[] retrieveNotNullPredicates(
-      String idUser, String firstname, String lastname,
-      String email, String phoneNumber, String city,
-      String country, CustomerStatus status, CriteriaBuilder builder,
-      Root<HCustomer> root, List<Predicate> predicates) {
+      String idUser,
+      String firstname,
+      String lastname,
+      String email,
+      String phoneNumber,
+      String city,
+      String country,
+      CustomerStatus status,
+      CriteriaBuilder builder,
+      Root<HCustomer> root,
+      List<Predicate> predicates) {
 
-    predicates.add(
-        builder.equal(root.get("idUser"), idUser)
-    );
+    predicates.add(builder.equal(root.get("idUser"), idUser));
     if (firstname != null) {
       warnDeprecated(FIRST_NAME);
-      predicates.add(builder.or(
-          builder.like(root.get(FIRST_NAME), "%" + firstname.toLowerCase() + "%"),
-          builder.like(builder.lower(root.get(FIRST_NAME)),
-              "%" + firstname.toLowerCase() + "%")
-      ));
+      predicates.add(
+          builder.or(
+              builder.like(root.get(FIRST_NAME), "%" + firstname.toLowerCase() + "%"),
+              builder.like(
+                  builder.lower(root.get(FIRST_NAME)), "%" + firstname.toLowerCase() + "%")));
     }
     if (lastname != null) {
       warnDeprecated(LAST_NAME);
-      predicates.add(builder.or(
-          builder.like(builder.lower(root.get(LAST_NAME)), "%" + lastname.toLowerCase() + "%"),
-          builder.like(root.get(LAST_NAME), "%" + lastname.toLowerCase() + "%")
-      ));
+      predicates.add(
+          builder.or(
+              builder.like(builder.lower(root.get(LAST_NAME)), "%" + lastname.toLowerCase() + "%"),
+              builder.like(root.get(LAST_NAME), "%" + lastname.toLowerCase() + "%")));
     }
 
     if (email != null) {
       warnDeprecated(EMAIL);
-      predicates.add(builder.or(
-          builder.like(builder.lower(root.get(EMAIL)), "%" + email.toLowerCase() + "%"),
-          builder.like(root.get(EMAIL), "%" + email.toLowerCase() + "%")
-      ));
+      predicates.add(
+          builder.or(
+              builder.like(builder.lower(root.get(EMAIL)), "%" + email.toLowerCase() + "%"),
+              builder.like(root.get(EMAIL), "%" + email.toLowerCase() + "%")));
     }
     if (phoneNumber != null) {
       warnDeprecated("phoneNumber");
-      predicates.add(builder.or(
-          builder.like(builder.lower(root.get(PHONE)), "%" + phoneNumber.toLowerCase() + "%"),
-          builder.like(root.get(PHONE), "%" + phoneNumber.toLowerCase() + "%")
-      ));
+      predicates.add(
+          builder.or(
+              builder.like(builder.lower(root.get(PHONE)), "%" + phoneNumber.toLowerCase() + "%"),
+              builder.like(root.get(PHONE), "%" + phoneNumber.toLowerCase() + "%")));
     }
     if (city != null) {
       warnDeprecated(CITY);
       predicates.add(
           builder.or(
               builder.like(builder.lower(root.get(CITY)), "%" + city.toLowerCase() + "%"),
-              builder.like(root.get(CITY), "%" + city.toLowerCase() + "%")
-          ));
+              builder.like(root.get(CITY), "%" + city.toLowerCase() + "%")));
     }
     if (country != null) {
       warnDeprecated(COUNTRY);
-      predicates.add(builder.or(
-          builder.like(builder.lower(root.get(COUNTRY)), "%" + country.toLowerCase() + "%"),
-          builder.like(root.get(COUNTRY), "%" + country.toLowerCase() + "%")
-      ));
+      predicates.add(
+          builder.or(
+              builder.like(builder.lower(root.get(COUNTRY)), "%" + country.toLowerCase() + "%"),
+              builder.like(root.get(COUNTRY), "%" + country.toLowerCase() + "%")));
     }
     if (status != null) {
-      predicates.add(
-          builder.equal(root.get(STATUS), status)
-      );
+      predicates.add(builder.equal(root.get(STATUS), status));
     } else {
-      predicates.add(
-          builder.equal(root.get(STATUS), CustomerStatus.ENABLED)
-      );
+      predicates.add(builder.equal(root.get(STATUS), CustomerStatus.ENABLED));
     }
     return new Predicate[predicates.size()];
   }
 
-  private static List<Customer> filterBy(String idUser, List<String> keywords,
-                                         CustomerStatus status, Pageable pageable,
-                                         EntityManager entityManager, CustomerMapper mapper) {
+  private static List<Customer> filterBy(
+      String idUser,
+      List<String> keywords,
+      CustomerStatus status,
+      Pageable pageable,
+      EntityManager entityManager,
+      CustomerMapper mapper) {
     CriteriaBuilder builder = entityManager.getCriteriaBuilder();
     CriteriaQuery<HCustomer> query = builder.createQuery(HCustomer.class);
     List<Predicate> predicates = new ArrayList<>();
     Root<HCustomer> root = query.from(HCustomer.class);
     predicates.add(builder.equal(root.get("idUser"), idUser));
     predicates.add(
-        status != null ? builder.equal(root.get(STATUS), status) :
-            builder.equal(root.get(STATUS), CustomerStatus.ENABLED)
-    );
+        status != null
+            ? builder.equal(root.get(STATUS), status)
+            : builder.equal(root.get(STATUS), CustomerStatus.ENABLED));
     List<Predicate> keywordsPredicates = new ArrayList<>();
     for (String keyword : keywords) {
-      keywordsPredicates.add(builder.like(builder.lower(root.get(FIRST_NAME)),
-          "%" + keyword + "%"));
       keywordsPredicates.add(
-          builder.like(builder.lower(root.get(LAST_NAME)), "%" + keyword + "%"));
+          builder.like(builder.lower(root.get(FIRST_NAME)), "%" + keyword + "%"));
+      keywordsPredicates.add(
+          builder.like(builder.lower(root.get(FIRST_NAME)), "%" + keyword + "%"));
+      keywordsPredicates.add(builder.like(builder.lower(root.get(LAST_NAME)), "%" + keyword + "%"));
       keywordsPredicates.add(builder.like(builder.lower(root.get(EMAIL)), "%" + keyword + "%"));
       keywordsPredicates.add(builder.like(builder.lower(root.get(PHONE)), "%" + keyword + "%"));
       keywordsPredicates.add(builder.like(builder.lower(root.get("city")), "%" + keyword + "%"));
-      keywordsPredicates.add(
-          builder.like(builder.lower(root.get(COUNTRY)), "%" + keyword + "%"));
+      keywordsPredicates.add(builder.like(builder.lower(root.get(COUNTRY)), "%" + keyword + "%"));
     }
     predicates.add(builder.or(keywordsPredicates.toArray(new Predicate[0])));
     query
         .where(builder.and(predicates.toArray(new Predicate[0])))
         .orderBy(QueryUtils.toOrders(updatedAtDescSort(), root, builder));
-    return entityManager.createQuery(query)
+    return entityManager
+        .createQuery(query)
         .setFirstResult((pageable.getPageNumber()) * pageable.getPageSize())
         .setMaxResults(pageable.getPageSize())
         .getResultList()
@@ -152,24 +158,40 @@ public class CustomerRepositoryImpl implements CustomerRepository {
         .collect(Collectors.toList());
   }
 
-  private static List<Customer> filterBy(String idUser, String firstName, String lastName,
-                                         String email, String phoneNumber, String city,
-                                         String country, CustomerStatus status, Pageable pageable,
-                                         EntityManager entityManager, CustomerMapper mapper) {
+  private static List<Customer> filterBy(
+      String idUser,
+      String firstName,
+      String lastName,
+      String email,
+      String phoneNumber,
+      String city,
+      String country,
+      CustomerStatus status,
+      Pageable pageable,
+      EntityManager entityManager,
+      CustomerMapper mapper) {
     CriteriaBuilder builder = entityManager.getCriteriaBuilder();
     CriteriaQuery<HCustomer> query = builder.createQuery(HCustomer.class);
     List<Predicate> predicates = new ArrayList<>();
     Root<HCustomer> root = query.from(HCustomer.class);
     Predicate[] arrays =
-        retrieveNotNullPredicates(idUser, firstName, lastName, email, phoneNumber, city, country,
-            status, builder, root, predicates);
+        retrieveNotNullPredicates(
+            idUser,
+            firstName,
+            lastName,
+            email,
+            phoneNumber,
+            city,
+            country,
+            status,
+            builder,
+            root,
+            predicates);
     query
         .where(builder.and(predicates.toArray(arrays)))
-        .orderBy(
-            QueryUtils.toOrders(updatedAtDescSort(),
-                root,
-                builder));
-    return entityManager.createQuery(query)
+        .orderBy(QueryUtils.toOrders(updatedAtDescSort(), root, builder));
+    return entityManager
+        .createQuery(query)
         .setFirstResult((pageable.getPageNumber()) * pageable.getPageSize())
         .setMaxResults(pageable.getPageSize())
         .getResultList()
@@ -179,33 +201,54 @@ public class CustomerRepositoryImpl implements CustomerRepository {
   }
 
   @Override
-  public List<Customer> findByIdUserAndCriteria(String idUser, String firstName, String lastName,
-                                                String email, String phoneNumber, String city,
-                                                String country, List<String> keywords,
-                                                CustomerStatus status, int page, int pageSize) {
+  public List<Customer> findByIdUserAndCriteria(
+      String idUser,
+      String firstName,
+      String lastName,
+      String email,
+      String phoneNumber,
+      String city,
+      String country,
+      List<String> keywords,
+      CustomerStatus status,
+      int page,
+      int pageSize) {
     Pageable pageable = PageRequest.of(page, pageSize);
     if (keywords != null && !keywords.isEmpty()) {
       return filterBy(idUser, keywords, status, pageable, entityManager, mapper);
     } else {
-      return filterBy(idUser, firstName, lastName, email, phoneNumber, city, country,
-          status, pageable, entityManager, mapper);
+      return filterBy(
+          idUser,
+          firstName,
+          lastName,
+          email,
+          phoneNumber,
+          city,
+          country,
+          status,
+          pageable,
+          entityManager,
+          mapper);
     }
   }
 
   @Override
   public List<Customer> updateCustomersStatuses(List<UpdateCustomerStatus> customerStatusList) {
-    List<HCustomer> customersToUpdate = customerStatusList.stream()
-        .map(customerStatus ->
-            jpaRepository.findById(customerStatus.getId()).orElseThrow(
-                    () -> new NotFoundException(
-                        "Customer(id=" + customerStatus.getId() + " not found"))
-                .toBuilder()
-                .status(customerStatus.getStatus())
-                .build())
-        .collect(Collectors.toList());
-    return jpaRepository.saveAll(customersToUpdate).stream()
-        .map(mapper::toDomain)
-        .toList();
+    List<HCustomer> customersToUpdate =
+        customerStatusList.stream()
+            .map(
+                customerStatus ->
+                    jpaRepository
+                        .findById(customerStatus.getId())
+                        .orElseThrow(
+                            () ->
+                                new NotFoundException(
+                                    "Customer(id=" + customerStatus.getId() + " not found"))
+                        .toBuilder()
+                        .status(customerStatus.getStatus())
+                        .build())
+            .collect(Collectors.toList());
+    return jpaRepository.saveAll(customersToUpdate).stream().map(mapper::toDomain).toList();
   }
 
   @Override
@@ -234,18 +277,14 @@ public class CustomerRepositoryImpl implements CustomerRepository {
 
   @Override
   public List<Customer> saveAll(List<Customer> toCreate) {
-    List<HCustomer> toSave = toCreate.stream()
-        .map(this::checkExisting)
-        .map(mapper::toEntity)
-        .toList();
+    List<HCustomer> toSave =
+        toCreate.stream().map(this::checkExisting).map(mapper::toEntity).toList();
 
     List<HCustomer> entitySaved = jpaRepository.saveAll(toSave);
 
     checkRecentlyAdded(toSave, entitySaved);
 
-    return entitySaved.stream()
-        .map(mapper::toDomain)
-        .toList();
+    return entitySaved.stream().map(mapper::toDomain).toList();
   }
 
   @Override
@@ -266,9 +305,10 @@ public class CustomerRepositoryImpl implements CustomerRepository {
 
   @Override
   public Customer findById(String id) {
-    return mapper.toDomain(jpaRepository.findById(id)
-        .orElseThrow(() ->
-            new NotFoundException("Customer." + id + " is not found.")));
+    return mapper.toDomain(
+        jpaRepository
+            .findById(id)
+            .orElseThrow(() -> new NotFoundException("Customer." + id + " is not found.")));
   }
 
   @Override
@@ -280,20 +320,26 @@ public class CustomerRepositoryImpl implements CustomerRepository {
   private Customer checkExisting(Customer domain) {
     Optional<HCustomer> optionalCustomer = jpaRepository.findById(domain.getId());
     if (optionalCustomer.isEmpty()) {
-      Customer customer = domain.toBuilder()
-          .recentlyAdded(true)
-          .customerType(domain.getCustomerType() == null ? CustomerType.INDIVIDUAL
-              : domain.getCustomerType())
-          .build();
+      Customer customer =
+          domain.toBuilder()
+              .recentlyAdded(true)
+              .customerType(
+                  domain.getCustomerType() == null
+                      ? CustomerType.INDIVIDUAL
+                      : domain.getCustomerType())
+              .build();
       return customer;
     } else {
       HCustomer existing = optionalCustomer.get();
-      Customer customer = domain.toBuilder()
-          .latestFullAddress(existing.getFullAddress())
-          .customerType(domain.getCustomerType() == null ? existing.getCustomerType()
-              : domain.getCustomerType())
-          .createdAt(existing.getCreatedAt())
-          .build();
+      Customer customer =
+          domain.toBuilder()
+              .latestFullAddress(existing.getFullAddress())
+              .customerType(
+                  domain.getCustomerType() == null
+                      ? existing.getCustomerType()
+                      : domain.getCustomerType())
+              .createdAt(existing.getCreatedAt())
+              .build();
       return customer;
     }
   }
@@ -303,8 +349,6 @@ public class CustomerRepositoryImpl implements CustomerRepository {
   }
 
   private static Sort.Order updatedAtDescOrder() {
-    return new Sort.Order(
-        Sort.Direction.DESC, UPDATED_AT_PROPERTY);
+    return new Sort.Order(Sort.Direction.DESC, UPDATED_AT_PROPERTY);
   }
-
 }

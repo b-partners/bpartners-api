@@ -1,5 +1,8 @@
 package app.bpartners.api.endpoint.rest.controller;
 
+import static app.bpartners.api.endpoint.rest.security.SecurityConf.AUTHORIZATION_HEADER;
+import static app.bpartners.api.service.utils.SecurityUtils.BEARER_PREFIX;
+
 import app.bpartners.api.endpoint.rest.mapper.UserRestMapper;
 import app.bpartners.api.endpoint.rest.model.DeviceToken;
 import app.bpartners.api.endpoint.rest.model.User;
@@ -15,9 +18,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import static app.bpartners.api.endpoint.rest.security.SecurityConf.AUTHORIZATION_HEADER;
-import static app.bpartners.api.service.utils.SecurityUtils.BEARER_PREFIX;
-
 @RestController
 @AllArgsConstructor
 public class UserController {
@@ -26,8 +26,7 @@ public class UserController {
   private final UserService service;
 
   @PostMapping(value = "/users/{uId}/deviceRegistration")
-  public User registerDevice(@PathVariable String uId,
-                             @RequestBody DeviceToken deviceToken) {
+  public User registerDevice(@PathVariable String uId, @RequestBody DeviceToken deviceToken) {
     if (deviceToken.getToken() == null) {
       throw new BadRequestException("DeviceToken.token is mandatory");
     }
@@ -44,7 +43,7 @@ public class UserController {
     return mapper.toRest(getAuthUser(request, id));
   }
 
-  //TODO: put into a customAuthProvider that does not needs legal file check
+  // TODO: put into a customAuthProvider that does not needs legal file check
   private app.bpartners.api.model.User getAuthUser(HttpServletRequest request, String userId) {
     String bearer = request.getHeader(AUTHORIZATION_HEADER);
     if (bearer == null) {
@@ -55,8 +54,7 @@ public class UserController {
       if (email == null) {
         throw new ForbiddenException();
       }
-      app.bpartners.api.model.User
-          user = service.getUserByEmail(email);
+      app.bpartners.api.model.User user = service.getUserByEmail(email);
       if (!userId.equals(user.getId())) {
         throw new ForbiddenException();
       }

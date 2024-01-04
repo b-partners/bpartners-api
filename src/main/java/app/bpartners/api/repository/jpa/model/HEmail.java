@@ -31,17 +31,18 @@ import org.hibernate.annotations.Type;
 @ToString
 @EqualsAndHashCode
 public class HEmail implements Serializable {
-  @Id
-  private String id;
+  @Id private String id;
   private String idUser;
   private String recipients;
   private String object;
   private String body;
   private Instant updatedAt;
   private Instant sendingDatetime;
+
   @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
   @JoinColumn(name = "id_email")
   List<HAttachment> attachments;
+
   @Type(type = "pgsql_enum")
   @Enumerated(EnumType.STRING)
   private EmailStatus status;

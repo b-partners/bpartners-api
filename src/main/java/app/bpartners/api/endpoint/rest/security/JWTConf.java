@@ -19,9 +19,10 @@ public class JWTConf {
   private final Integer connectTimeout;
   private final Integer readTimeout;
 
-  public JWTConf(@Value("${jwt.jwsAlgorithm}") final String rs256,
-                 @Value("${jwt.connectTimeout}") final Integer connectTimeout,
-                 @Value("${jwt.readTimeout}") final Integer readTimeout) {
+  public JWTConf(
+      @Value("${jwt.jwsAlgorithm}") final String rs256,
+      @Value("${jwt.connectTimeout}") final Integer connectTimeout,
+      @Value("${jwt.readTimeout}") final Integer readTimeout) {
     this.rs256 = new JWSAlgorithm(rs256);
     this.connectTimeout = connectTimeout;
     this.readTimeout = readTimeout;

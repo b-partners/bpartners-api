@@ -19,6 +19,7 @@ import lombok.ToString;
 public class InputForm {
   @JsonProperty("EvaluationDate")
   private Instant evaluationDate;
+
   @JsonProperty("InputValues")
   private List<InputValue> inputValues;
 }

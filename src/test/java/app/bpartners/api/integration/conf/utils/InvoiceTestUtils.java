@@ -1,24 +1,5 @@
 package app.bpartners.api.integration.conf.utils;
 
-import app.bpartners.api.endpoint.rest.api.PayingApi;
-import app.bpartners.api.endpoint.rest.model.CreatePaymentRegulation;
-import app.bpartners.api.endpoint.rest.model.CreateProduct;
-import app.bpartners.api.endpoint.rest.model.CrupdateInvoice;
-import app.bpartners.api.endpoint.rest.model.Invoice;
-import app.bpartners.api.endpoint.rest.model.InvoiceDiscount;
-import app.bpartners.api.endpoint.rest.model.InvoicePaymentReq;
-import app.bpartners.api.endpoint.rest.model.PaymentMethod;
-import app.bpartners.api.endpoint.rest.model.PaymentRegStatus;
-import app.bpartners.api.endpoint.rest.model.PaymentRegulation;
-import app.bpartners.api.endpoint.rest.model.Product;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-import org.junit.jupiter.api.function.Executable;
-
 import static app.bpartners.api.endpoint.rest.model.ArchiveStatus.ENABLED;
 import static app.bpartners.api.endpoint.rest.model.CrupdateInvoice.PaymentTypeEnum.IN_INSTALMENT;
 import static app.bpartners.api.endpoint.rest.model.Invoice.PaymentTypeEnum.CASH;
@@ -43,160 +24,189 @@ import static app.bpartners.api.model.Invoice.DEFAULT_DELAY_PENALTY_PERCENT;
 import static app.bpartners.api.model.Invoice.DEFAULT_TO_PAY_DELAY_DAYS;
 import static java.util.UUID.randomUUID;
 
+import app.bpartners.api.endpoint.rest.api.PayingApi;
+import app.bpartners.api.endpoint.rest.model.*;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import org.junit.jupiter.api.function.Executable;
+
 public class InvoiceTestUtils {
   public static final String DRAFT_REF_PREFIX = "BROUILLON-";
   public static final String NEW_INVOICE_ID = "invoice_uuid";
 
-  public static Executable payment_reg_amount_less_than_100_percent_exec(PayingApi api,
-                                                                         List<CreateProduct> products) {
-    return () -> api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, String.valueOf(randomUUID()),
-        new CrupdateInvoice()
-            .status(DRAFT)
-            .paymentType(IN_INSTALMENT)
-            .products(products)
-            .paymentRegulations(List.of(
-                new CreatePaymentRegulation()
-                    .amount(10)
-                    .percent(null)
-                    .maturityDate(LocalDate.now()),
-                new CreatePaymentRegulation()
-                    .amount(10)
-                    .percent(null)
-                    .maturityDate(LocalDate.now()))));
+  public static Executable payment_reg_amount_less_than_100_percent_exec(
+      PayingApi api, List<CreateProduct> products) {
+    return () ->
+        api.crupdateInvoice(
+            JOE_DOE_ACCOUNT_ID,
+            String.valueOf(randomUUID()),
+            new CrupdateInvoice()
+                .status(DRAFT)
+                .paymentType(IN_INSTALMENT)
+                .products(products)
+                .paymentRegulations(
+                    List.of(
+                        new CreatePaymentRegulation()
+                            .amount(10)
+                            .percent(null)
+                            .maturityDate(LocalDate.now()),
+                        new CreatePaymentRegulation()
+                            .amount(10)
+                            .percent(null)
+                            .maturityDate(LocalDate.now()))));
   }
 
-  public static Executable payment_reg_percent_less_than_100_percent_exec(PayingApi api,
-                                                                          List<CreateProduct> products) {
-    return () -> api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, String.valueOf(randomUUID()),
-        new CrupdateInvoice()
-            .status(DRAFT)
-            .paymentType(IN_INSTALMENT)
-            .products(products)
-            .paymentRegulations(List.of(
-                new CreatePaymentRegulation()
-                    .amount(null)
-                    .percent(512)
-                    .maturityDate(LocalDate.now()),
-                new CreatePaymentRegulation()
-                    .amount(null)
-                    .percent(9000)
-                    .maturityDate(LocalDate.now()))));
+  public static Executable payment_reg_percent_less_than_100_percent_exec(
+      PayingApi api, List<CreateProduct> products) {
+    return () ->
+        api.crupdateInvoice(
+            JOE_DOE_ACCOUNT_ID,
+            String.valueOf(randomUUID()),
+            new CrupdateInvoice()
+                .status(DRAFT)
+                .paymentType(IN_INSTALMENT)
+                .products(products)
+                .paymentRegulations(
+                    List.of(
+                        new CreatePaymentRegulation()
+                            .amount(null)
+                            .percent(512)
+                            .maturityDate(LocalDate.now()),
+                        new CreatePaymentRegulation()
+                            .amount(null)
+                            .percent(9000)
+                            .maturityDate(LocalDate.now()))));
   }
 
-  public static Executable payment_reg_percent_higher_than_100_percent_exec(PayingApi api,
-                                                                            List<CreateProduct> products) {
-    return () -> api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, String.valueOf(randomUUID()),
-        new CrupdateInvoice()
-            .status(DRAFT)
-            .paymentType(IN_INSTALMENT)
-            .products(products)
-            .paymentRegulations(List.of(
-                new CreatePaymentRegulation()
-                    .amount(null)
-                    .percent(2000)
-                    .maturityDate(LocalDate.now()),
-                new CreatePaymentRegulation()
-                    .amount(null)
-                    .percent(9000)
-                    .maturityDate(LocalDate.now()))));
+  public static Executable payment_reg_percent_higher_than_100_percent_exec(
+      PayingApi api, List<CreateProduct> products) {
+    return () ->
+        api.crupdateInvoice(
+            JOE_DOE_ACCOUNT_ID,
+            String.valueOf(randomUUID()),
+            new CrupdateInvoice()
+                .status(DRAFT)
+                .paymentType(IN_INSTALMENT)
+                .products(products)
+                .paymentRegulations(
+                    List.of(
+                        new CreatePaymentRegulation()
+                            .amount(null)
+                            .percent(2000)
+                            .maturityDate(LocalDate.now()),
+                        new CreatePaymentRegulation()
+                            .amount(null)
+                            .percent(9000)
+                            .maturityDate(LocalDate.now()))));
   }
 
-  public static Executable payment_reg_amount_higher_than_100_percent_exec(PayingApi api,
-                                                                           List<CreateProduct> products) {
-    return () -> api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, String.valueOf(randomUUID()),
-        new CrupdateInvoice()
-            .status(DRAFT)
-            .paymentType(IN_INSTALMENT)
-            .products(products)
-            .paymentRegulations(List.of(
-                new CreatePaymentRegulation()
-                    .amount(261)
-                    .maturityDate(LocalDate.now()),
-                new CreatePaymentRegulation()
-                    .amount(60)
-                    .maturityDate(LocalDate.now()))));
+  public static Executable payment_reg_amount_higher_than_100_percent_exec(
+      PayingApi api, List<CreateProduct> products) {
+    return () ->
+        api.crupdateInvoice(
+            JOE_DOE_ACCOUNT_ID,
+            String.valueOf(randomUUID()),
+            new CrupdateInvoice()
+                .status(DRAFT)
+                .paymentType(IN_INSTALMENT)
+                .products(products)
+                .paymentRegulations(
+                    List.of(
+                        new CreatePaymentRegulation().amount(261).maturityDate(LocalDate.now()),
+                        new CreatePaymentRegulation().amount(60).maturityDate(LocalDate.now()))));
   }
 
   public static Executable payment_reg_more_than_one_payment_exec(PayingApi api) {
-    return () -> api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, String.valueOf(randomUUID()),
-        new CrupdateInvoice()
-            .status(DRAFT)
-            .paymentType(IN_INSTALMENT)
-            .paymentRegulations(List.of(new CreatePaymentRegulation())));
+    return () ->
+        api.crupdateInvoice(
+            JOE_DOE_ACCOUNT_ID,
+            String.valueOf(randomUUID()),
+            new CrupdateInvoice()
+                .status(DRAFT)
+                .paymentType(IN_INSTALMENT)
+                .paymentRegulations(List.of(new CreatePaymentRegulation())));
   }
 
   public static Executable discount_percent_excedeed_exec(PayingApi api) {
-    return () -> api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, randomUUID().toString(),
-        validInvoice().globalDiscount(new InvoiceDiscount()
-            .percentValue(12000)
-            .amountValue(null)));
+    return () ->
+        api.crupdateInvoice(
+            JOE_DOE_ACCOUNT_ID,
+            randomUUID().toString(),
+            validInvoice()
+                .globalDiscount(new InvoiceDiscount().percentValue(12000).amountValue(null)));
   }
 
   public static Executable discount_amount_not_supported_exec(PayingApi api) {
-    return () -> api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, randomUUID().toString(),
-        validInvoice().globalDiscount(new InvoiceDiscount()
-            .amountValue(0)
-            .percentValue(null)));
+    return () ->
+        api.crupdateInvoice(
+            JOE_DOE_ACCOUNT_ID,
+            randomUUID().toString(),
+            validInvoice().globalDiscount(new InvoiceDiscount().amountValue(0).percentValue(null)));
   }
 
-  public static Executable non_existent_customer_exec(PayingApi api,
-                                                      CrupdateInvoice crupdateInvoiceWithNonExistentCustomer) {
-    return () -> api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, NEW_INVOICE_ID,
-        crupdateInvoiceWithNonExistentCustomer);
+  public static Executable non_existent_customer_exec(
+      PayingApi api, CrupdateInvoice crupdateInvoiceWithNonExistentCustomer) {
+    return () ->
+        api.crupdateInvoice(
+            JOE_DOE_ACCOUNT_ID, NEW_INVOICE_ID, crupdateInvoiceWithNonExistentCustomer);
   }
 
   public static Executable unique_ref_violation_exec(PayingApi api, String uniqueRef) {
-    return () -> api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, randomUUID().toString(),
-        validInvoice().ref(uniqueRef));
+    return () ->
+        api.crupdateInvoice(
+            JOE_DOE_ACCOUNT_ID, randomUUID().toString(), validInvoice().ref(uniqueRef));
   }
 
   public static Executable first_ref_exec(PayingApi api, String firstInvoiceId, String uniqueRef) {
-    return () -> api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, firstInvoiceId,
-        validInvoice().ref(uniqueRef));
+    return () ->
+        api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, firstInvoiceId, validInvoice().ref(uniqueRef));
   }
 
   private static PaymentRegulation expectedDated2() {
     return new PaymentRegulation()
-        .status(new PaymentRegStatus()
-            .paymentStatus(UNPAID))
+        .status(new PaymentRegStatus().paymentStatus(UNPAID))
         .maturityDate(LocalDate.of(2023, 2, 15))
-        .paymentRequest(new InvoicePaymentReq()
-            .reference("BP005")
-            .payerName(customer1().getFirstName() + " " + customer1().getLastName())
-            .payerEmail(customer1().getEmail())
-            .paymentUrl("https://connect-v2-sbx.fintecture.com")
-            .percentValue(10000 - 909)
-            .amount(1000)
-            .comment("Montant restant")
-            .label("Facture achat - Restant dû")
-            .paymentStatus(UNPAID));
+        .paymentRequest(
+            new InvoicePaymentReq()
+                .reference("BP005")
+                .payerName(customer1().getFirstName())
+                .payerEmail(customer1().getEmail())
+                .paymentUrl("https://connect-v2-sbx.fintecture.com")
+                .percentValue(10000 - 909)
+                .amount(1000)
+                .comment("Montant restant")
+                .label("Facture achat - Restant dû")
+                .paymentStatus(UNPAID));
   }
 
   private static PaymentRegulation expectedDated1() {
     return new PaymentRegulation()
-        .status(new PaymentRegStatus()
-            .paymentStatus(UNPAID))
+        .status(new PaymentRegStatus().paymentStatus(UNPAID))
         .maturityDate(LocalDate.of(2023, 2, 1))
-        .paymentRequest(new InvoicePaymentReq()
-            .reference("BP005")
-            .payerName(customer1().getFirstName() + " " + customer1().getLastName())
-            .payerEmail(customer1().getEmail())
-            .paymentUrl("https://connect-v2-sbx.fintecture.com")
-            .percentValue(909)
-            .amount(100)
-            .comment("Un euro")
-            .label("Facture achat - Acompte N°1")
-            .paymentStatus(UNPAID));
+        .paymentRequest(
+            new InvoicePaymentReq()
+                .reference("BP005")
+                .payerName(customer1().getFirstName())
+                .payerEmail(customer1().getEmail())
+                .paymentUrl("https://connect-v2-sbx.fintecture.com")
+                .percentValue(909)
+                .amount(100)
+                .comment("Un euro")
+                .label("Facture achat - Acompte N°1")
+                .paymentStatus(UNPAID));
   }
 
   public static List<PaymentRegulation> ignoreIdsAndDatetime(Invoice actualConfirmed) {
     List<PaymentRegulation> paymentRegulations =
         new ArrayList<>(actualConfirmed.getPaymentRegulations());
     paymentRegulations.forEach(
-        datedPaymentRequest -> datedPaymentRequest.setPaymentRequest(
-            datedPaymentRequest.getPaymentRequest()
-                .id(null)
-                .initiatedDatetime(null)));
+        datedPaymentRequest ->
+            datedPaymentRequest.setPaymentRequest(
+                datedPaymentRequest.getPaymentRequest().id(null).initiatedDatetime(null)));
     return paymentRegulations;
   }
 
@@ -204,22 +214,43 @@ public class InvoiceTestUtils {
     List<PaymentRegulation> paymentRegulations =
         new ArrayList<>(actualConfirmed.getPaymentRegulations());
     paymentRegulations.forEach(
-        datedPaymentRequest -> datedPaymentRequest.setPaymentRequest(
-            datedPaymentRequest.getPaymentRequest()
-                .id(null)
-                .paymentUrl(null)
-                .initiatedDatetime(null)));
+        datedPaymentRequest ->
+            datedPaymentRequest.setPaymentRequest(
+                datedPaymentRequest
+                    .getPaymentRequest()
+                    .id(null)
+                    .paymentUrl(null)
+                    .initiatedDatetime(null)));
+    ignoreSeconds(paymentRegulations);
     return paymentRegulations;
   }
 
-  public static List<PaymentRegulation> ignoreIdsAndDatetimeAndUrl(
-      List<PaymentRegulation> paymentRegulations) {
+  public static List<PaymentRegulation> ignoreStatusDatetime(Invoice actualConfirmed) {
+    List<PaymentRegulation> paymentRegulations = actualConfirmed.getPaymentRegulations();
     paymentRegulations.forEach(
-        datedPaymentRequest -> datedPaymentRequest.setPaymentRequest(
-            datedPaymentRequest.getPaymentRequest()
-                .id(null)
-                .paymentUrl(null)
-                .initiatedDatetime(null)));
+        paymentRegulation ->
+            paymentRegulation.setStatus(paymentRegulation.getStatus().updatedAt(null)));
+    return paymentRegulations;
+  }
+
+  public static Customer ignoreCustomerDatetime(Invoice actualConfirmed) {
+    Customer actualCustomer = actualConfirmed.getCustomer();
+    actualCustomer.setUpdatedAt(null);
+    actualCustomer.setCreatedAt(null);
+    return actualCustomer;
+  }
+
+  public static List<PaymentRegulation> ignoreSeconds(List<PaymentRegulation> paymentRegulations) {
+    paymentRegulations.forEach(
+        datedPaymentRequest ->
+            datedPaymentRequest.setStatus(
+                datedPaymentRequest
+                    .getStatus()
+                    .updatedAt(
+                        datedPaymentRequest
+                            .getStatus()
+                            .getUpdatedAt()
+                            .truncatedTo(ChronoUnit.MINUTES))));
     return paymentRegulations;
   }
 
@@ -229,16 +260,18 @@ public class InvoiceTestUtils {
         .title("Facture achat")
         .customer(customer1())
         .products(List.of(createProduct5()))
-        .paymentRegulations(List.of(new CreatePaymentRegulation()
-                .maturityDate(LocalDate.of(2023, 2, 1))
-                .amount(100)
-                .percent(null)
-                .comment("Un euro"),
-            new CreatePaymentRegulation()
-                .maturityDate(LocalDate.of(2023, 2, 15))
-                .amount(1000)
-                .percent(null)
-                .comment("Montant restant")))
+        .paymentRegulations(
+            List.of(
+                new CreatePaymentRegulation()
+                    .maturityDate(LocalDate.of(2023, 2, 1))
+                    .amount(100)
+                    .percent(null)
+                    .comment("Un euro"),
+                new CreatePaymentRegulation()
+                    .maturityDate(LocalDate.of(2023, 2, 15))
+                    .amount(1000)
+                    .percent(null)
+                    .comment("Montant restant")))
         .paymentType(IN_INSTALMENT)
         .status(CONFIRMED)
         .sendingDate(LocalDate.of(2022, 10, 12))
@@ -274,7 +307,8 @@ public class InvoiceTestUtils {
         .paymentUrl("https://connect-v2-sbx.fintecture.com")
         .paymentType(Invoice.PaymentTypeEnum.IN_INSTALMENT)
         .paymentRegulations(List.of(datedPaymentRequest1(), datedPaymentRequest2()))
-        .customer(customer1()).ref("BP001")
+        .customer(customer1())
+        .ref("BP001")
         .createdAt(Instant.parse("2022-01-01T01:00:00.00Z"))
         .sendingDate(LocalDate.of(2022, 9, 1))
         .validityDate(LocalDate.of(2022, 10, 3))
@@ -288,9 +322,7 @@ public class InvoiceTestUtils {
         .totalVat(800)
         .totalPriceWithoutVat(8000)
         .totalPriceWithoutDiscount(8000)
-        .globalDiscount(new InvoiceDiscount()
-            .amountValue(0)
-            .percentValue(0))
+        .globalDiscount(new InvoiceDiscount().amountValue(0).percentValue(0))
         .paymentMethod(UNKNOWN)
         .metadata(Map.of());
   }
@@ -319,12 +351,9 @@ public class InvoiceTestUtils {
         .delayInPaymentAllowed(actualConfirmed.getDelayInPaymentAllowed())
         .paymentUrl(actualConfirmed.getPaymentUrl())
         .paymentMethod(UNKNOWN)
-        .globalDiscount(new InvoiceDiscount()
-            .amountValue(0)
-            .percentValue(0))
+        .globalDiscount(new InvoiceDiscount().amountValue(0).percentValue(0))
         .paymentRegulations(confirmedPaymentRegulations(id));
   }
-
 
   public static CrupdateInvoice validInvoice() {
     return initializeDraft()
@@ -335,9 +364,7 @@ public class InvoiceTestUtils {
         .products(List.of(createProduct4(), createProduct5()))
         .sendingDate(LocalDate.now())
         .validityDate(LocalDate.now().plusDays(3L))
-        .globalDiscount(new InvoiceDiscount()
-            .amountValue(null)
-            .percentValue(1000))
+        .globalDiscount(new InvoiceDiscount().amountValue(null).percentValue(1000))
         .delayInPaymentAllowed(null)
         .paymentMethod(PaymentMethod.CASH)
         .delayPenaltyPercent(null);
@@ -355,22 +382,15 @@ public class InvoiceTestUtils {
         .validityDate(validInvoice().getValidityDate())
         .delayInPaymentAllowed(null)
         .delayPenaltyPercent(DEFAULT_DELAY_PENALTY_PERCENT)
-        .products(List.of(
-            product4()
-                .id(null)
-                .totalVat(180)
-                .totalPriceWithVat(1980),
-            product5()
-                .id(null)
-                .totalVat(90)
-                .totalPriceWithVat(990)))
+        .products(
+            List.of(
+                product4().id(null).totalVat(180).totalPriceWithVat(1980),
+                product5().id(null).totalVat(90).totalPriceWithVat(990)))
         .totalPriceWithoutDiscount(3000)
-        .totalPriceWithoutVat(1800 + 900) //with discount without vat
+        .totalPriceWithoutVat(1800 + 900) // with discount without vat
         .totalVat(180 + 90)
-        .totalPriceWithVat(1980 + 990) //or 2700 + 270 of vat
-        .globalDiscount(new InvoiceDiscount()
-            .amountValue(300)
-            .percentValue(1000))
+        .totalPriceWithVat(1980 + 990) // or 2700 + 270 of vat
+        .globalDiscount(new InvoiceDiscount().amountValue(300).percentValue(1000))
         .paymentRegulations(List.of())
         .paymentType(CASH)
         .paymentMethod(PaymentMethod.CASH)
@@ -396,9 +416,7 @@ public class InvoiceTestUtils {
         .totalVat(100)
         .totalPriceWithoutVat(1000)
         .totalPriceWithoutDiscount(1000)
-        .globalDiscount(new InvoiceDiscount()
-            .amountValue(0)
-            .percentValue(0))
+        .globalDiscount(new InvoiceDiscount().amountValue(0).percentValue(0))
         .paymentMethod(CHEQUE)
         .metadata(Map.of());
   }
@@ -417,9 +435,7 @@ public class InvoiceTestUtils {
         .archiveStatus(ENABLED)
         .delayInPaymentAllowed(DEFAULT_TO_PAY_DELAY_DAYS)
         .delayPenaltyPercent(DEFAULT_DELAY_PENALTY_PERCENT)
-        .globalDiscount(new InvoiceDiscount()
-            .percentValue(0)
-            .amountValue(0))
+        .globalDiscount(new InvoiceDiscount().percentValue(0).amountValue(0))
         .paymentMethod(UNKNOWN)
         .metadata(Map.of());
   }
@@ -444,121 +460,119 @@ public class InvoiceTestUtils {
         .totalPriceWithoutDiscount(1000)
         .metadata(Map.of())
         .paymentMethod(BANK_TRANSFER)
-        .globalDiscount(new InvoiceDiscount()
-            .amountValue(0)
-            .percentValue(0));
+        .globalDiscount(new InvoiceDiscount().amountValue(0).percentValue(0));
   }
 
   public static List<PaymentRegulation> initPaymentReg(String id) {
-    return List.of(new PaymentRegulation()
-            .status(new PaymentRegStatus()
-                .paymentStatus(UNPAID))
-            .maturityDate(LocalDate.of(2023, 1, 1))
-            .paymentRequest(new InvoicePaymentReq()
-                .paymentUrl(null)
-                .reference(id)
-                .percentValue(2510)
-                .amount(552)
-                .payerName("Luc Artisan")
-                .payerEmail("bpartners.artisans@gmail.com")
-                .comment("Acompte de 10%")
-                .label("Fabrication Jean" + " - Acompte N°1")
-                .paymentStatus(UNPAID)),
+    return List.of(
         new PaymentRegulation()
-            .status(new PaymentRegStatus()
-                .paymentStatus(UNPAID))
+            .status(new PaymentRegStatus().paymentStatus(UNPAID))
             .maturityDate(LocalDate.of(2023, 1, 1))
-            .paymentRequest(new InvoicePaymentReq()
-                .paymentUrl(null)
-                .percentValue(10000 - 2510)
-                .amount(1648)
-                .reference(id)
-                .payerName("Luc Artisan")
-                .payerEmail("bpartners.artisans@gmail.com")
-                .comment("Reste 90%")
-                .label("Fabrication Jean" + " - Restant dû")
-                .paymentStatus(UNPAID)));
+            .paymentRequest(
+                new InvoicePaymentReq()
+                    .paymentUrl(null)
+                    .reference(id)
+                    .percentValue(2510)
+                    .amount(552)
+                    .payerName("Luc")
+                    .payerEmail("bpartners.artisans@gmail.com")
+                    .comment("Acompte de 10%")
+                    .label("Fabrication Jean" + " - Acompte N°1")
+                    .paymentStatus(UNPAID)),
+        new PaymentRegulation()
+            .status(new PaymentRegStatus().paymentStatus(UNPAID))
+            .maturityDate(LocalDate.of(2023, 1, 1))
+            .paymentRequest(
+                new InvoicePaymentReq()
+                    .paymentUrl(null)
+                    .percentValue(10000 - 2510)
+                    .amount(1648)
+                    .reference(id)
+                    .payerName("Luc")
+                    .payerEmail("bpartners.artisans@gmail.com")
+                    .comment("Reste 90%")
+                    .label("Fabrication Jean" + " - Restant dû")
+                    .paymentStatus(UNPAID)));
   }
 
   public static List<PaymentRegulation> updatedPaymentRegulations(String id) {
-    return List.of(new PaymentRegulation()
-            .status(new PaymentRegStatus()
-                .paymentStatus(UNPAID))
-            .maturityDate(LocalDate.of(2023, 1, 1))
-            .paymentRequest(new InvoicePaymentReq()
-                .paymentUrl(null)
-                .reference(id)
-                .percentValue(1025)
-                .amount(225)
-                .payerName("Luc Artisan")
-                .payerEmail("bpartners.artisans@gmail.com")
-                .comment("Acompte de 10%")
-                .label("Fabrication Jean" + " - Acompte N°1")
-                .paymentStatus(UNPAID)),
+    return List.of(
         new PaymentRegulation()
-            .status(new PaymentRegStatus()
-                .paymentStatus(UNPAID))
+            .status(new PaymentRegStatus().paymentStatus(UNPAID))
             .maturityDate(LocalDate.of(2023, 1, 1))
-            .paymentRequest(new InvoicePaymentReq()
-                .paymentUrl(null)
-                .percentValue(10000 - 1025)
-                .amount(1975)
-                .reference(id)
-                .payerName("Luc Artisan")
-                .comment("Reste 90%")
-                .payerEmail("bpartners.artisans@gmail.com")
-                .label("Fabrication Jean" + " - Restant dû")
-                .paymentStatus(UNPAID)));
+            .paymentRequest(
+                new InvoicePaymentReq()
+                    .paymentUrl(null)
+                    .reference(id)
+                    .percentValue(1025)
+                    .amount(225)
+                    .payerName("Luc")
+                    .payerEmail("bpartners.artisans@gmail.com")
+                    .comment("Acompte de 10%")
+                    .label("Fabrication Jean" + " - Acompte N°1")
+                    .paymentStatus(UNPAID)),
+        new PaymentRegulation()
+            .status(new PaymentRegStatus().paymentStatus(UNPAID))
+            .maturityDate(LocalDate.of(2023, 1, 1))
+            .paymentRequest(
+                new InvoicePaymentReq()
+                    .paymentUrl(null)
+                    .percentValue(10000 - 1025)
+                    .amount(1975)
+                    .reference(id)
+                    .payerName("Luc")
+                    .comment("Reste 90%")
+                    .payerEmail("bpartners.artisans@gmail.com")
+                    .label("Fabrication Jean" + " - Restant dû")
+                    .paymentStatus(UNPAID)));
   }
 
   public static List<PaymentRegulation> confirmedPaymentRegulations(String id) {
-    return List.of(new PaymentRegulation()
-            .status(new PaymentRegStatus()
-                .paymentStatus(UNPAID))
-            .maturityDate(LocalDate.of(2023, 1, 1))
-            .paymentRequest(new InvoicePaymentReq()
-                .paymentUrl("https://connect-v2-sbx.fintecture.com")
-                .reference(id)
-                .percentValue(1025)
-                .amount(225)
-                .payerName("Luc Artisan")
-                .comment("Acompte de 10%")
-                .payerEmail("bpartners.artisans@gmail.com")
-                .label("Fabrication Jean" + " - Acompte N°1")
-                .paymentStatus(UNPAID)),
+    return List.of(
         new PaymentRegulation()
-            .status(new PaymentRegStatus()
-                .paymentStatus(UNPAID))
+            .status(new PaymentRegStatus().paymentStatus(UNPAID))
             .maturityDate(LocalDate.of(2023, 1, 1))
-            .paymentRequest(new InvoicePaymentReq()
-                .paymentUrl("https://connect-v2-sbx.fintecture.com")
-                .percentValue(10000 - 1025)
-                .amount(1975)
-                .reference(id)
-                .payerName("Luc Artisan")
-                .payerEmail("bpartners.artisans@gmail.com")
-                .comment("Reste 90%")
-                .label("Fabrication Jean" + " - Restant dû")
-                .paymentStatus(UNPAID)));
+            .paymentRequest(
+                new InvoicePaymentReq()
+                    .paymentUrl("https://connect-v2-sbx.fintecture.com")
+                    .reference(id)
+                    .percentValue(1025)
+                    .amount(225)
+                    .payerName("Luc")
+                    .comment("Acompte de 10%")
+                    .payerEmail("bpartners.artisans@gmail.com")
+                    .label("Fabrication Jean" + " - Acompte N°1")
+                    .paymentStatus(UNPAID)),
+        new PaymentRegulation()
+            .status(new PaymentRegStatus().paymentStatus(UNPAID))
+            .maturityDate(LocalDate.of(2023, 1, 1))
+            .paymentRequest(
+                new InvoicePaymentReq()
+                    .paymentUrl("https://connect-v2-sbx.fintecture.com")
+                    .percentValue(10000 - 1025)
+                    .amount(1975)
+                    .reference(id)
+                    .payerName("Luc")
+                    .payerEmail("bpartners.artisans@gmail.com")
+                    .comment("Reste 90%")
+                    .label("Fabrication Jean" + " - Restant dû")
+                    .paymentStatus(UNPAID)));
   }
 
-
   public static List<Product> ignoreIdsOf(List<Product> actual) {
-    return actual.stream()
-        .peek(product -> product.setId(null))
-        .toList();
+    return actual.stream().peek(product -> product.setId(null)).toList();
   }
 
   public static List<Invoice> ignoreUpdatedAt(List<Invoice> actual) {
-    actual.forEach(invoice -> {
-      invoice.setUpdatedAt(null);
-    });
+    actual.forEach(
+        invoice -> {
+          invoice.setUpdatedAt(null);
+        });
     return actual;
   }
 
   public static CrupdateInvoice initializeDraft() {
-    return new CrupdateInvoice()
-        .status(DRAFT);
+    return new CrupdateInvoice().status(DRAFT);
   }
 
   public static Invoice invoice6() {
@@ -584,9 +598,7 @@ public class InvoiceTestUtils {
         .totalPriceWithoutVat(0)
         .totalPriceWithoutDiscount(0)
         .totalVat(0)
-        .globalDiscount(new InvoiceDiscount()
-            .amountValue(0)
-            .percentValue(0))
+        .globalDiscount(new InvoiceDiscount().amountValue(0).percentValue(0))
         .paymentMethod(UNKNOWN)
         .metadata(Map.of());
   }

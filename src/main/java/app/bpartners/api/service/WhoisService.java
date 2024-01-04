@@ -14,8 +14,10 @@ import org.springframework.stereotype.Service;
 public class WhoisService {
   @Value("${feature.detector.api.key}")
   private String FEATURE_DETECTOR_API_KEY;
+
   @Value("${feature.detector.application.name}")
   private String FEATURE_DETECTOR_APPLICATION;
+
   private final UserService userService;
 
   public WhoisService(UserService userService) {
@@ -37,8 +39,11 @@ public class WhoisService {
 
   public User getSpecifiedUser(IntegratingApplication application, String userId) {
     User retrievedUser = userService.getUserById(userId);
-    log.info("The application {} is getting the user {} (id={})", application.getApplicationName(),
-        retrievedUser.getName(), retrievedUser.getId());
+    log.info(
+        "The application {} is getting the user {} (id={})",
+        application.getApplicationName(),
+        retrievedUser.getName(),
+        retrievedUser.getId());
     return retrievedUser;
   }
 }

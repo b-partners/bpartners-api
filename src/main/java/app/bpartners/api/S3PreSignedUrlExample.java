@@ -30,11 +30,8 @@ public class S3PreSignedUrlExample {
     String outputZipFileName = "output.zip";
 
     // Initialisation du client S3
-    S3Client s3Client = S3Client.builder()
-        .build();
-    S3Presigner s3Presigner = S3Presigner.builder()
-        .build();
-
+    S3Client s3Client = S3Client.builder().build();
+    S3Presigner s3Presigner = S3Presigner.builder().build();
 
     // Création du fichier ZIP en mémoire
     byte[] zipFileBytes = createZipFile(sourceFolderPath);
@@ -46,13 +43,13 @@ public class S3PreSignedUrlExample {
     String preSignedUrl = generatePreSignedUrl(s3Presigner, bucketName, outputZipFileName);
 
     System.out.println(
-        "Le fichier ZIP a été téléchargé sur S3. Lien de téléchargement pré-signé : " +
-            preSignedUrl);
+        "Le fichier ZIP a été téléchargé sur S3. Lien de téléchargement pré-signé : "
+            + preSignedUrl);
   }
 
   private static byte[] createZipFile(String sourceFolderPath) {
     try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
-         ZipOutputStream zos = new ZipOutputStream(baos)) {
+        ZipOutputStream zos = new ZipOutputStream(baos)) {
 
       // Obtenez la liste des fichiers dans le dossier source
       // (vous devrez probablement utiliser l'API S3 pour obtenir la liste des objets dans un seau)
@@ -61,8 +58,8 @@ public class S3PreSignedUrlExample {
 
       for (String fileName : fileNames) {
         // Lire chaque fichier depuis S3 et l'ajouter au fichier ZIP en mémoire
-        ResponseInputStream<GetObjectResponse>
-            objectContent = getObjectContentFromS3(sourceFolderPath, fileName);
+        ResponseInputStream<GetObjectResponse> objectContent =
+            getObjectContentFromS3(sourceFolderPath, fileName);
         ZipEntry zipEntry = new ZipEntry(fileName);
         zos.putNextEntry(zipEntry);
 
@@ -87,48 +84,41 @@ public class S3PreSignedUrlExample {
     }
   }
 
-  private static ResponseInputStream<GetObjectResponse> getObjectContentFromS3(String bucketName,
-                                                                               String key) {
+  private static ResponseInputStream<GetObjectResponse> getObjectContentFromS3(
+      String bucketName, String key) {
     // Utilisez l'API S3 pour obtenir le contenu d'un objet
     S3Client s3Client = S3Client.builder().build();
-    GetObjectRequest getObjectRequest = GetObjectRequest.builder()
-        .bucket(bucketName)
-        .key(key)
-        .build();
+    GetObjectRequest getObjectRequest =
+        GetObjectRequest.builder().bucket(bucketName).key(key).build();
 
     return s3Client.getObject(getObjectRequest);
   }
 
-  private static void uploadZipFileToS3(S3Client s3Client, String bucketName, String objectKey,
-                                        byte[] zipFileBytes) {
-    PutObjectRequest putObjectRequest = PutObjectRequest.builder()
-        .bucket(bucketName)
-        .key(objectKey)
-        .build();
+  private static void uploadZipFileToS3(
+      S3Client s3Client, String bucketName, String objectKey, byte[] zipFileBytes) {
+    PutObjectRequest putObjectRequest =
+        PutObjectRequest.builder().bucket(bucketName).key(objectKey).build();
 
     s3Client.putObject(putObjectRequest, RequestBody.fromBytes(zipFileBytes));
   }
 
-  private static String generatePreSignedUrl(S3Presigner s3Presigner,
-                                             String bucketName,
-                                             String objectKey) {
+  private static String generatePreSignedUrl(
+      S3Presigner s3Presigner, String bucketName, String objectKey) {
     // Générer l'URL pré-signée pour le fichier ZIP
 
     Instant now = Instant.now();
     Instant expirationInstant = now.plusSeconds(3600);
     Duration expirationDuration = Duration.between(now, expirationInstant);
 
-    GetObjectRequest getObjectRequest = GetObjectRequest.builder()
-        .bucket(bucketName)
-        .key(objectKey)
-        .build();
+    GetObjectRequest getObjectRequest =
+        GetObjectRequest.builder().bucket(bucketName).key(objectKey).build();
 
     PresignedGetObjectRequest presignRequest =
-        s3Presigner.presignGetObject(GetObjectPresignRequest.builder()
-            .signatureDuration(expirationDuration)
-            .getObjectRequest(getObjectRequest)
-            .build());
-
+        s3Presigner.presignGetObject(
+            GetObjectPresignRequest.builder()
+                .signatureDuration(expirationDuration)
+                .getObjectRequest(getObjectRequest)
+                .build());
 
     return presignRequest.url().toString();
   }

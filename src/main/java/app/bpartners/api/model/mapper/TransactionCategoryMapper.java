@@ -1,5 +1,7 @@
 package app.bpartners.api.model.mapper;
 
+import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
+
 import app.bpartners.api.model.TransactionCategory;
 import app.bpartners.api.model.TransactionCategoryTemplate;
 import app.bpartners.api.repository.jpa.TransactionCategoryJpaRepository;
@@ -12,27 +14,26 @@ import java.time.temporal.ChronoUnit;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
-
 @Component
 @AllArgsConstructor
 public class TransactionCategoryMapper {
   private final TransactionCategoryTemplateJpaRepository templateJpaRepository;
   private final TransactionCategoryJpaRepository jpaRepository;
 
-  public TransactionCategory toDomain(HTransactionCategory entity, LocalDate startDate,
-                                      LocalDate endDate) {
+  public TransactionCategory toDomain(
+      HTransactionCategory entity, LocalDate startDate, LocalDate endDate) {
     if (entity == null) {
       return null;
     }
-    TransactionCategory domain = TransactionCategory.builder()
-        .id(entity.getId())
-        .idAccount(entity.getIdAccount())
-        .type(entity.getType())
-        .vat(parseFraction(entity.getVat()))
-        .idTransactionCategoryTmpl(entity.getIdCategoryTemplate())
-        .comment(entity.getComment())
-        .build();
+    TransactionCategory domain =
+        TransactionCategory.builder()
+            .id(entity.getId())
+            .idAccount(entity.getIdAccount())
+            .type(entity.getType())
+            .vat(parseFraction(entity.getVat()))
+            .idTransactionCategoryTmpl(entity.getIdCategoryTemplate())
+            .comment(entity.getComment())
+            .build();
     HTransactionCategoryTemplate categoryTemplate =
         templateJpaRepository.getById(entity.getIdCategoryTemplate());
     domain.setTransactionType(categoryTemplate.getTransactionType());
@@ -42,7 +43,7 @@ public class TransactionCategoryMapper {
     }
     domain.setDescription(categoryTemplate.getDescription());
     domain.setOther(categoryTemplate.isOther());
-    //Since the count is not used during the creation or in singleton, leave this comment
+    // Since the count is not used during the creation or in singleton, leave this comment
     //    long typeCount = getCategoryCount(
     //        entity.getIdAccount(), startDate, endDate, domain.getType()
     //    );
@@ -51,8 +52,7 @@ public class TransactionCategoryMapper {
   }
 
   public TransactionCategory toDomain(
-      String idAccount, HTransactionCategory entity,
-      LocalDate startDate, LocalDate endDate) {
+      String idAccount, HTransactionCategory entity, LocalDate startDate, LocalDate endDate) {
     String idCategoryTemplate = entity.getIdCategoryTemplate();
     HTransactionCategoryTemplate categoryTemplate =
         templateJpaRepository.getById(idCategoryTemplate);
@@ -64,8 +64,8 @@ public class TransactionCategoryMapper {
         .idTransactionCategoryTmpl(idCategoryTemplate)
         .other(categoryTemplate.isOther())
         .transactionType(categoryTemplate.getTransactionType())
-        //Since the count is not used during the creation or in singleton, leave this comment
-        //.typeCount(getCategoryCount(idAccount, startDate, endDate, entity.getType()))
+        // Since the count is not used during the creation or in singleton, leave this comment
+        // .typeCount(getCategoryCount(idAccount, startDate, endDate, entity.getType()))
         .description(categoryTemplate.getDescription())
         .build();
   }
@@ -85,16 +85,13 @@ public class TransactionCategoryMapper {
         .build();
   }
 
-  private long getCategoryCount(String idAccount, LocalDate startDate, LocalDate endDate,
-                                String type) {
-    //TODO: a better count would consider type and comment
+  private long getCategoryCount(
+      String idAccount, LocalDate startDate, LocalDate endDate, String type) {
+    // TODO: a better count would consider type and comment
     return jpaRepository.countByCriteria(
         idAccount,
         type,
-        startDate
-            .atStartOfDay()
-            .truncatedTo(ChronoUnit.DAYS)
-            .toInstant(ZoneOffset.UTC),
+        startDate.atStartOfDay().truncatedTo(ChronoUnit.DAYS).toInstant(ZoneOffset.UTC),
         endDate
             .atStartOfDay()
             .truncatedTo(ChronoUnit.DAYS)

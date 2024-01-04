@@ -1,5 +1,8 @@
 package app.bpartners.api.repository.google.sheets;
 
+import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
+import static app.bpartners.api.repository.google.calendar.CalendarConf.JSON_FACTORY;
+
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.ForbiddenException;
@@ -28,9 +31,6 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
-import static app.bpartners.api.repository.google.calendar.CalendarConf.JSON_FACTORY;
-
 @Slf4j
 @Data
 @Component
@@ -50,11 +50,8 @@ public class SheetApi {
         .build();
   }
 
-  public Spreadsheet getSpreadsheetByNames(String idUser,
-                                           String spreadsheetName,
-                                           String sheetName,
-                                           Integer minRange,
-                                           Integer maxRange) {
+  public Spreadsheet getSpreadsheetByNames(
+      String idUser, String spreadsheetName, String sheetName, Integer minRange, Integer maxRange) {
     File spreadSheetFile = driveApi.getFileByIdUserAndName(idUser, spreadsheetName);
     String spreadSheetFileId = spreadSheetFile.getId();
     return getSpreadsheet(idUser, spreadSheetFileId, sheetName, minRange, maxRange);
@@ -68,35 +65,36 @@ public class SheetApi {
       String idSpreadsheet, String artisanOwner, Credential credential) {
     Sheets sheetsService = initService(sheetsConf, credential);
     try {
-      FilterCriteria filterCriteria = new FilterCriteria()
-          .setHiddenValues(new ArrayList<>())
-          .setCondition(new BooleanCondition()
-              .setType("TEXT_CONTAINS")
-              .setValues(List.of(
-                  new ConditionValue().setUserEnteredValue(artisanOwner))));
+      FilterCriteria filterCriteria =
+          new FilterCriteria()
+              .setHiddenValues(new ArrayList<>())
+              .setCondition(
+                  new BooleanCondition()
+                      .setType("TEXT_CONTAINS")
+                      .setValues(List.of(new ConditionValue().setUserEnteredValue(artisanOwner))));
 
-      FilterView filterView = new FilterView()
-          .setFilterViewId(1)
-          .setTitle("Artisan owner filter")
-          .setRange(new GridRange()
-              .setSheetId(821911047)
-              .setStartRowIndex(1)
-              .setEndColumnIndex(10000)
-              .setStartColumnIndex(0)
-              .setEndColumnIndex(12))
-          .setFilterSpecs(List.of(new FilterSpec()
-              .setFilterCriteria(filterCriteria)
-              .setColumnIndex(9))
-          );
+      FilterView filterView =
+          new FilterView()
+              .setFilterViewId(1)
+              .setTitle("Artisan owner filter")
+              .setRange(
+                  new GridRange()
+                      .setSheetId(821911047)
+                      .setStartRowIndex(1)
+                      .setEndColumnIndex(10000)
+                      .setStartColumnIndex(0)
+                      .setEndColumnIndex(12))
+              .setFilterSpecs(
+                  List.of(new FilterSpec().setFilterCriteria(filterCriteria).setColumnIndex(9)));
 
-      BatchUpdateSpreadsheetRequest batchUpdateRequest = new BatchUpdateSpreadsheetRequest()
-          .setRequests(List.of(
-              new Request()
-                  .setAddFilterView(new AddFilterViewRequest()
-                      .setFilter(filterView))));
-      var response = sheetsService.spreadsheets()
-          .batchUpdate(idSpreadsheet, batchUpdateRequest)
-          .execute();
+      BatchUpdateSpreadsheetRequest batchUpdateRequest =
+          new BatchUpdateSpreadsheetRequest()
+              .setRequests(
+                  List.of(
+                      new Request()
+                          .setAddFilterView(new AddFilterViewRequest().setFilter(filterView))));
+      var response =
+          sheetsService.spreadsheets().batchUpdate(idSpreadsheet, batchUpdateRequest).execute();
       return response.getUpdatedSpreadsheet();
     } catch (GoogleJsonResponseException e) {
       if (e.getStatusCode() == 401) {
@@ -111,28 +109,29 @@ public class SheetApi {
   }
 
   @SneakyThrows
-  public Spreadsheet getSpreadsheet(String idUser,
-                                    String idSpreadsheet,
-                                    String sheetName,
-                                    Integer minRange,
-                                    Integer maxRange) {
+  public Spreadsheet getSpreadsheet(
+      String idUser, String idSpreadsheet, String sheetName, Integer minRange, Integer maxRange) {
     return getSpreadsheet(
         idSpreadsheet, sheetName, minRange, maxRange, sheetsConf.googleCredential());
   }
 
-  public Spreadsheet getSpreadsheet(String idSpreadsheet,
-                                    String sheetName,
-                                    Integer minRange,
-                                    Integer maxRange,
-                                    Credential credential) {
+  public Spreadsheet getSpreadsheet(
+      String idSpreadsheet,
+      String sheetName,
+      Integer minRange,
+      Integer maxRange,
+      Credential credential) {
     Sheets sheetsService = initService(sheetsConf, credential);
     Spreadsheet spreadsheet;
     try {
       String range = String.format("'%s'!A%d:AF%d", sheetName, minRange, maxRange);
-      spreadsheet = sheetsService.spreadsheets().get(idSpreadsheet)
-          .setRanges(List.of(range))
-          .setIncludeGridData(true)
-          .execute();
+      spreadsheet =
+          sheetsService
+              .spreadsheets()
+              .get(idSpreadsheet)
+              .setRanges(List.of(range))
+              .setIncludeGridData(true)
+              .execute();
     } catch (GoogleJsonResponseException e) {
       switch (e.getStatusCode()) {
         case 400:

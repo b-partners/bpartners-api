@@ -30,8 +30,7 @@ import org.hibernate.annotations.Type;
 @NoArgsConstructor
 @EqualsAndHashCode
 public class HProspectEvalInfo {
-  @Id
-  private String id;
+  @Id private String id;
   private Long reference;
   private String idAccountHolder;
   private String name;
@@ -43,15 +42,18 @@ public class HProspectEvalInfo {
   private String mailSent;
   private String postalCode;
   private String city;
-  private String category; //TODO: check if must be enum
-  private String subcategory; //TODO: check if must be enum
+  private String category; // TODO: check if must be enum
+  private String subcategory; // TODO: check if must be enum
   private String defaultComment;
+
   @Type(type = "pgsql_enum")
   @Enumerated(EnumType.STRING)
   private ProspectEvalInfo.ContactNature contactNature;
+
   private Double posLongitude;
   private Double posLatitude;
   private Date companyCreationDate;
+
   @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
   @JoinColumn(name = "id_prospect_eval_info")
   @OrderBy("evaluationDate desc")

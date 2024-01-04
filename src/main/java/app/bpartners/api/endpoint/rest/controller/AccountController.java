@@ -26,12 +26,10 @@ public class AccountController {
 
   @GetMapping("/users/{id}/accounts")
   public List<Account> getAccountsByUserId(@PathVariable(name = "id") String userId) {
-    return service.getAccountsByUserId(userId).stream()
-        .map(mapper::toRest)
-        .toList();
+    return service.getAccountsByUserId(userId).stream().map(mapper::toRest).toList();
   }
 
-  //TODO: check redirection urls
+  // TODO: check redirection urls
   @PostMapping("/users/{userId}/accounts/{accountId}/initiateAccountValidation")
   public AccountValidationRedirection initiateAccountValidation(
       @PathVariable(name = "userId") String userId,
@@ -39,9 +37,10 @@ public class AccountController {
       @RequestBody RedirectionStatusUrls redirectionUrls) {
     return new AccountValidationRedirection()
         .redirectionUrl(service.initiateAccountValidation(accountId))
-        .redirectionStatusUrls(new RedirectionStatusUrls()
-            .successUrl(redirectionUrls.getSuccessUrl())
-            .failureUrl(redirectionUrls.getFailureUrl()));
+        .redirectionStatusUrls(
+            new RedirectionStatusUrls()
+                .successUrl(redirectionUrls.getSuccessUrl())
+                .failureUrl(redirectionUrls.getFailureUrl()));
   }
 
   @PostMapping("/users/{userId}/accounts/{accountId}/initiateBankConnection")
@@ -54,8 +53,7 @@ public class AccountController {
 
   @PostMapping("/users/{userId}/initiateBankConnection")
   public BankConnectionRedirection initiateBankConnectionWithoutAccount(
-      @PathVariable String userId,
-      @RequestBody(required = false) RedirectionStatusUrls urls) {
+      @PathVariable String userId, @RequestBody(required = false) RedirectionStatusUrls urls) {
     return service.initiateBankConnection(userId, urls);
   }
 

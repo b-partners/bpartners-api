@@ -8,8 +8,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 @Primary
 @AllArgsConstructor
-public class TransactionConnectorRepositoryFacade
-    implements TransactionConnectorRepository {
+public class TransactionConnectorRepositoryFacade implements TransactionConnectorRepository {
   private final BridgeTransactionConnectorRepository bridgeConnector;
 
   private TransactionConnectorRepository getTransactionConnectorDependentRep() {

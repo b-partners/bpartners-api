@@ -10,11 +10,9 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 public class GeoUtils {
-  private GeoUtils() {
-  }
+  private GeoUtils() {}
 
-  public static double computeDistanceKm(
-      Coordinate coordinate1, Coordinate coordinate2) {
+  public static double computeDistanceKm(Coordinate coordinate1, Coordinate coordinate2) {
 
     // The math module contains a function
     // named toRadians which converts from
@@ -27,9 +25,9 @@ public class GeoUtils {
     // Haversine formula
     double dlon = lon2 - lon1;
     double dlat = lat2 - lat1;
-    double a = Math.pow(Math.sin(dlat / 2), 2)
-        + Math.cos(lat1) * Math.cos(lat2)
-        * Math.pow(Math.sin(dlon / 2), 2);
+    double a =
+        Math.pow(Math.sin(dlat / 2), 2)
+            + Math.cos(lat1) * Math.cos(lat2) * Math.pow(Math.sin(dlon / 2), 2);
 
     double c = 2 * Math.asin(Math.sqrt(a));
 
@@ -41,8 +39,7 @@ public class GeoUtils {
     return (c * r);
   }
 
-  public static double computeDistanceM(
-      Coordinate coordinate1, Coordinate coordinate2) {
+  public static double computeDistanceM(Coordinate coordinate1, Coordinate coordinate2) {
     BigDecimal roundedDecimal =
         BigDecimal.valueOf(computeDistanceKm(coordinate1, coordinate2) * 1000.0)
             .setScale(1, RoundingMode.HALF_UP);
@@ -60,7 +57,8 @@ public class GeoUtils {
     private Double longitude;
 
     public Double getDistanceFrom(Coordinate other) {
-      return other == null || other.getLatitude() == null || other.getLongitude() == null ? null
+      return other == null || other.getLatitude() == null || other.getLongitude() == null
+          ? null
           : computeDistanceM(this, other);
     }
   }

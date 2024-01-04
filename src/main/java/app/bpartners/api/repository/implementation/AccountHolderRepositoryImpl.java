@@ -66,9 +66,10 @@ public class AccountHolderRepositoryImpl implements AccountHolderRepository {
   @Override
   public AccountHolder findById(String idAccountHolder) {
     return mapper.toDomain(
-        jpaRepository.findById(idAccountHolder)
+        jpaRepository
+            .findById(idAccountHolder)
             .orElseThrow(
-                () -> new NotFoundException("AccountHolder.id=" + idAccountHolder + " not found.")
-            ));
+                () ->
+                    new NotFoundException("AccountHolder.id=" + idAccountHolder + " not found.")));
   }
 }

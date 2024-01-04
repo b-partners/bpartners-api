@@ -13,9 +13,7 @@ public class BusinessActivityRestMapper {
   private final AccountHolderService accountHolderService;
 
   public BusinessActivity toRest(app.bpartners.api.model.BusinessActivityTemplate domain) {
-    return new BusinessActivity()
-        .id(domain.getId())
-        .name(domain.getName());
+    return new BusinessActivity().id(domain.getId()).name(domain.getName());
   }
 
   public app.bpartners.api.model.BusinessActivity toDomain(

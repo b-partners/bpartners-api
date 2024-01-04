@@ -25,6 +25,7 @@ public class HSheetStoredCredential {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private String id;
+
   private String idUser;
   private String accessToken;
   private String refreshToken;

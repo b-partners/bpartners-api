@@ -1,5 +1,7 @@
 package app.bpartners.api.repository.jpa.model;
 
+import static javax.persistence.GenerationType.IDENTITY;
+
 import java.io.Serializable;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -18,8 +20,6 @@ import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
 
-import static javax.persistence.GenerationType.IDENTITY;
-
 @Entity
 @Table(name = "\"pre_user\"")
 @Getter
@@ -33,12 +33,16 @@ public class HPreUser implements Serializable {
   @Id
   @GeneratedValue(strategy = IDENTITY)
   private String id;
+
   private String firstName;
   private String lastName;
   private String society;
+
   @NotBlank(message = "Email is mandatory")
   private String email;
+
   private String phoneNumber;
+
   @CreationTimestamp
   @Getter(AccessLevel.NONE)
   private Instant entranceDatetime;

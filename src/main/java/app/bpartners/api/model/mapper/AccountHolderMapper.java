@@ -1,5 +1,7 @@
 package app.bpartners.api.model.mapper;
 
+import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
+
 import app.bpartners.api.endpoint.rest.model.Geojson;
 import app.bpartners.api.endpoint.rest.model.VerificationStatus;
 import app.bpartners.api.model.AccountHolder;
@@ -8,8 +10,6 @@ import app.bpartners.api.model.validator.AccountHolderValidator;
 import app.bpartners.api.repository.jpa.model.HAccountHolder;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
-
-import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 
 @AllArgsConstructor
 @Component
@@ -24,10 +24,11 @@ public class AccountHolderMapper {
   public AccountHolder toDomain(HAccountHolder entity) {
     Geojson location = null;
     if (entity.getLongitude() != null && entity.getLatitude() != null) {
-      location = new Geojson()
-          .type(GEOJSON_TYPE_POINT)
-          .longitude(entity.getLongitude())
-          .latitude(entity.getLatitude());
+      location =
+          new Geojson()
+              .type(GEOJSON_TYPE_POINT)
+              .longitude(entity.getLongitude())
+              .latitude(entity.getLatitude());
     }
     return AccountHolder.builder()
         .id(entity.getId())

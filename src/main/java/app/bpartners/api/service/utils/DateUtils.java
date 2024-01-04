@@ -1,5 +1,7 @@
 package app.bpartners.api.service.utils;
 
+import static app.bpartners.api.model.mapper.CalendarEventMapper.PARIS_TIMEZONE;
+
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
@@ -9,12 +11,9 @@ import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import lombok.extern.slf4j.Slf4j;
 
-import static app.bpartners.api.model.mapper.CalendarEventMapper.PARIS_TIMEZONE;
-
 @Slf4j
 public class DateUtils {
-  private DateUtils() {
-  }
+  private DateUtils() {}
 
   public static Date from_dd_MM_YYYY(String date) {
     SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");

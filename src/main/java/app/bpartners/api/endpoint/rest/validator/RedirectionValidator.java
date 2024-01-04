@@ -4,12 +4,10 @@ import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
 import app.bpartners.api.model.exception.BadRequestException;
 
 public class RedirectionValidator {
-  private RedirectionValidator() {
+  private RedirectionValidator() {}
 
-  }
-
-  public static void verifyRedirectionStatusUrls(StringBuilder exceptionMessageBuilder,
-                                                 RedirectionStatusUrls statusUrls) {
+  public static void verifyRedirectionStatusUrls(
+      StringBuilder exceptionMessageBuilder, RedirectionStatusUrls statusUrls) {
     if (statusUrls == null) {
       exceptionMessageBuilder.append("redirectionStatusUrls is mandatory. ");
     }

@@ -28,11 +28,9 @@ public class MailingController {
 
   @PutMapping("/users/{userId}/emails")
   public List<Email> editOrSendEmails(
-      @PathVariable String userId,
-      @RequestBody List<CreateEmail> createEmailList) {
-    List<app.bpartners.api.model.Email> emailList = createEmailList.stream()
-        .map(email -> mapper.toDomain(userId, email))
-        .toList();
+      @PathVariable String userId, @RequestBody List<CreateEmail> createEmailList) {
+    List<app.bpartners.api.model.Email> emailList =
+        createEmailList.stream().map(email -> mapper.toDomain(userId, email)).toList();
     return mailingService.editOrSendEmails(emailList).stream()
         .map(mapper::toRest)
         .collect(Collectors.toList());

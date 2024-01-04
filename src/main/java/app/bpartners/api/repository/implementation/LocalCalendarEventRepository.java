@@ -15,15 +15,14 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 @AllArgsConstructor
-public class LocalCalendarEventRepository
-    implements CalendarEventRepository {
+public class LocalCalendarEventRepository implements CalendarEventRepository {
   private final CalendarEventMapper eventMapper;
   private final CalendarRepository calendarRepository;
   private final CalendarEventJpaRepository jpaRepository;
 
   @Override
-  public List<CalendarEvent> findByIdUserAndIdCalendar(String idUser, String idCalendar,
-                                                       Instant from, Instant to) {
+  public List<CalendarEvent> findByIdUserAndIdCalendar(
+      String idUser, String idCalendar, Instant from, Instant to) {
     Calendar calendar = calendarRepository.getById(idCalendar);
     return jpaRepository.findAllByIdUserAndIdCalendar(idUser, calendar.getId()).stream()
         .map(eventMapper::toDomain)
@@ -33,9 +32,10 @@ public class LocalCalendarEventRepository
   @Override
   public List<CalendarEvent> saveAll(String idUser, String idCalendar, List<CalendarEvent> toSave) {
     Calendar calendar = calendarRepository.getById(idCalendar);
-    List<HCalendarEvent> entities = toSave.stream()
-        .map(event -> eventMapper.toEntity(idUser, calendar.getId(), event))
-        .collect(Collectors.toList());
+    List<HCalendarEvent> entities =
+        toSave.stream()
+            .map(event -> eventMapper.toEntity(idUser, calendar.getId(), event))
+            .collect(Collectors.toList());
     return jpaRepository.saveAll(entities).stream()
         .map(eventMapper::toDomain)
         .collect(Collectors.toList());
@@ -44,11 +44,7 @@ public class LocalCalendarEventRepository
   @Override
   public List<CalendarEvent> removeAllByIdUser(String idUser) {
     List<HCalendarEvent> userCalendarEvents = jpaRepository.findAllByIdUser(idUser);
-    jpaRepository.deleteAllById(userCalendarEvents.stream()
-        .map(HCalendarEvent::getId)
-        .toList());
-    return userCalendarEvents.stream()
-        .map(eventMapper::toDomain)
-        .collect(Collectors.toList());
+    jpaRepository.deleteAllById(userCalendarEvents.stream().map(HCalendarEvent::getId).toList());
+    return userCalendarEvents.stream().map(eventMapper::toDomain).collect(Collectors.toList());
   }
 }

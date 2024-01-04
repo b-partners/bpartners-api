@@ -8,7 +8,6 @@ import app.bpartners.api.endpoint.rest.validator.DateFilterValidator;
 import app.bpartners.api.service.TransactionCategoryService;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -30,14 +29,11 @@ public class TransactionCategoryController {
       @RequestParam(name = "from") String startDateValue,
       @RequestParam(name = "to") String endDateValue,
       @RequestParam(name = "transactionType", required = false)
-      TransactionTypeEnum transactionType) {
+          TransactionTypeEnum transactionType) {
     LocalDate startDate = LocalDate.parse(startDateValue);
     LocalDate endDate = LocalDate.parse(endDateValue);
     dateValidator.accept(startDate, endDate);
-    return service.getCategoryTemplates(accountId,
-            transactionType,
-            startDate, endDate)
-        .stream()
+    return service.getCategoryTemplates(accountId, transactionType, startDate, endDate).stream()
         .map(mapper::toRest)
         .toList();
   }
@@ -47,11 +43,10 @@ public class TransactionCategoryController {
       @PathVariable String accountId,
       @PathVariable String transactionId,
       @RequestBody List<CreateTransactionCategory> toCreate) {
-    List<app.bpartners.api.model.TransactionCategory> domainToCreate = toCreate.stream()
-        .map(category -> mapper.toDomain(transactionId, accountId, category))
-        .toList();
-    return service.createCategories(domainToCreate).stream()
-        .map(mapper::toRest)
-        .toList();
+    List<app.bpartners.api.model.TransactionCategory> domainToCreate =
+        toCreate.stream()
+            .map(category -> mapper.toDomain(transactionId, accountId, category))
+            .toList();
+    return service.createCategories(domainToCreate).stream().map(mapper::toRest).toList();
   }
 }

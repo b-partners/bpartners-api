@@ -1,5 +1,15 @@
 ID,Nom,Prénom,Email,Site web,Adresse,Code postal,Ville,Pays,Commentaire
 customer1_id,Artisan,Luc,bpartners.artisans@gmail.com,https://luc.website.com,15 rue Porte d'Orange,95160,Metz,,Rencontre avec Luc
+f3069263-8a44-43d9-a0f9-ad545416127b,customer 1,Create,create@email.com,https://customer.website.com,New address,75001,Paris,France,Nouvelle rencontre
+a4075f33-75eb-4787-85b2-6b30ddf65092,customer 1,Create,create@email.com,https://customer.website.com,New address,75001,Paris,France,Nouvelle rencontre
 customer4_id, LeBlanc,Jean Olivier,olivier.jean@email.com,https://olivier.website.com,4 Avenue des Près,95160,Berlin,Allemagne,Rencontre à Berlin
-customer3_id, Montagnier,Marc,marc@email.com,https://marc.website.com,4 Avenue des Près,95160,Montmorency,France,Nouvelle rencontre
+customer3_id,Montagnier,Marc,marcmontagnier@gmail.com,https://marc.website.com,15 rue Porte d'Orange,95160,Montmorency,France,Rencontre avec Marc
+c512f678-f331-4578-83e1-bcaed50045ab,NotNullLastName,NotNullFirstName,notnull@email.com,https://customer.website.com,New address,75001,Paris,France,Nouvelle rencontre
 customer2_id,Plombier,Jean,,https://jean.website.com,4 Avenue des Près,95160,Montmorency,France,Rencontre avec le plombier
+2df8b680-6030-40ed-b73b-d3593a342396,Test,test,test@email.com,,Test,75000,Test,FR,
+b783c3d9-4a0a-4e40-8754-ec2e6732c719,Test,,test+test@email.com,,Test,null,Test,FR,
+5d228eaf-ff59-4852-9748-fd067fa0d366,Test 2,test 2,test+2@email.com,,Test,null,Test,FR,
+c1b7b0d1-52b0-47ca-865e-6399095f911e,Test 3,test3,test+3@email.com,,Test,75000,Test,FR,
+c267e312-f224-408d-b280-ec045f16dca5,Test 4,test4,test+other+email@email.com,,Paris,75000,Test,France,
+74a46f40-429b-4b4c-a743-9e1f859f6b09,Test 4,test4,test+4@email.com,,Test,75000,Test,FR,
+a590afb8-9458-4308-bd52-412c65888227,Test 5,test5,test+5@email.com,,Test,75000,Test,FR,

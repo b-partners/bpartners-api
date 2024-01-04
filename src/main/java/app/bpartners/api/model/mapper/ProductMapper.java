@@ -1,5 +1,8 @@
 package app.bpartners.api.model.mapper;
 
+import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
+import static org.apfloat.Apcomplex.ONE;
+
 import app.bpartners.api.endpoint.rest.model.ProductStatus;
 import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.Product;
@@ -10,9 +13,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import lombok.AllArgsConstructor;
 import org.apfloat.Aprational;
 import org.springframework.stereotype.Component;
-
-import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
-import static org.apfloat.Apcomplex.ONE;
 
 @Component
 @AllArgsConstructor
@@ -26,11 +26,13 @@ public class ProductMapper {
         .id(entity.getId())
         .description(entity.getDescription())
         .unitPrice(unitPrice)
-        .unitPriceWithVat(unitPrice.operate(vatPercent,
-            (price, vat) -> {
-              Aprational vatAprational = ONE.add(vat.divide(new Aprational(10000)));
-              return price.multiply(vatAprational);
-            }))
+        .unitPriceWithVat(
+            unitPrice.operate(
+                vatPercent,
+                (price, vat) -> {
+                  Aprational vatAprational = ONE.add(vat.divide(new Aprational(10000)));
+                  return price.multiply(vatAprational);
+                }))
         .vatPercent(vatPercent)
         .createdAt(entity.getCreatedAt())
         .status(entity.getStatus() == null ? ProductStatus.ENABLED : entity.getStatus())
@@ -40,7 +42,8 @@ public class ProductMapper {
   public HProduct toEntity(String idUser, Product product) {
     AtomicReference<Instant> createdDatetimeRef = new AtomicReference<>(Instant.now());
     if (product.getId() != null) {
-      jpaRepository.findById(product.getId())
+      jpaRepository
+          .findById(product.getId())
           .ifPresent(prod -> createdDatetimeRef.set(prod.getCreatedAt()));
     }
     return HProduct.builder()

@@ -1,5 +1,7 @@
 package app.bpartners.api.repository.connectors.account;
 
+import static java.util.UUID.randomUUID;
+
 import app.bpartners.api.endpoint.rest.model.EnableStatus;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.exception.NotImplementedException;
@@ -16,8 +18,6 @@ import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
-
-import static java.util.UUID.randomUUID;
 
 @Repository
 @AllArgsConstructor
@@ -56,9 +56,10 @@ public class SavableAccountConnectorRepository implements AccountConnectorReposi
 
   @Override
   public List<AccountConnector> saveAll(String idUser, List<AccountConnector> accountConnectors) {
-    List<HAccount> accountList = accountConnectors.stream()
-        .map(accountConnector -> checkIdentityUpdate(idUser, accountConnector))
-        .collect(Collectors.toList());
+    List<HAccount> accountList =
+        accountConnectors.stream()
+            .map(accountConnector -> checkIdentityUpdate(idUser, accountConnector))
+            .collect(Collectors.toList());
     return jpaRepository.saveAll(accountList).stream()
         .map(mapper::toConnector)
         .collect(Collectors.toList());
@@ -70,18 +71,17 @@ public class SavableAccountConnectorRepository implements AccountConnectorReposi
         AccountUtils.findByExternalId(accountConnector.getId(), jpaRepository);
 
     HAccount existingAccount =
-        optionalAccountByExternalId.orElseGet(() -> {
-          Optional<HAccount> optionalAccountByIban =
-              AccountUtils.findByIbanOrNameAndBank(accountConnector, jpaRepository);
-          if (optionalAccountByIban.isEmpty()) {
-            return fromNewAccount(accountConnector, associatedUser);
-          } else {
-            HAccount accountSameIban = optionalAccountByIban.get();
-            return accountSameIban.toBuilder()
-                .enableStatus(EnableStatus.ENABLED)
-                .build();
-          }
-        });
+        optionalAccountByExternalId.orElseGet(
+            () -> {
+              Optional<HAccount> optionalAccountByIban =
+                  AccountUtils.findByIbanOrNameAndBank(accountConnector, jpaRepository);
+              if (optionalAccountByIban.isEmpty()) {
+                return fromNewAccount(accountConnector, associatedUser);
+              } else {
+                HAccount accountSameIban = optionalAccountByIban.get();
+                return accountSameIban.toBuilder().enableStatus(EnableStatus.ENABLED).build();
+              }
+            });
     return mapper.toEntity(accountConnector, existingAccount);
   }
 
@@ -99,8 +99,10 @@ public class SavableAccountConnectorRepository implements AccountConnectorReposi
   }
 
   private HUser associatedUser(String idUser) {
-    return idUser == null ? null : userJpaRepository.findById(idUser)
-        .orElseThrow(
-            () -> new NotFoundException("User(id=" + idUser + " not found"));
+    return idUser == null
+        ? null
+        : userJpaRepository
+            .findById(idUser)
+            .orElseThrow(() -> new NotFoundException("User(id=" + idUser + " not found"));
   }
 }

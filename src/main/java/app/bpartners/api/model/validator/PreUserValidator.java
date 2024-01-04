@@ -1,12 +1,12 @@
 package app.bpartners.api.model.validator;
 
+import static app.bpartners.api.service.utils.EmailUtils.isValidEmail;
+
 import app.bpartners.api.model.PreUser;
 import app.bpartners.api.model.exception.BadRequestException;
 import java.util.List;
 import java.util.regex.Pattern;
 import org.springframework.stereotype.Component;
-
-import static app.bpartners.api.service.utils.EmailUtils.isValidEmail;
 
 @Component
 public class PreUserValidator {
@@ -30,8 +30,6 @@ public class PreUserValidator {
 
   private boolean hasValidPhoneNumber(PreUser preUser) {
     String emailPattern = "^(\\+\\d{1,3}( )?)?((\\(\\d{3}\\))|\\d{3})[- .]?\\d{3}[- .]?\\d{4}$";
-    return Pattern.compile(emailPattern)
-        .matcher(preUser.getMobilePhoneNumber())
-        .matches();
+    return Pattern.compile(emailPattern).matcher(preUser.getMobilePhoneNumber()).matches();
   }
 }

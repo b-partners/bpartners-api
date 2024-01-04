@@ -1,5 +1,9 @@
 package app.bpartners.api.repository.implementation;
 
+import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
+import static app.bpartners.api.repository.expressif.fact.NewIntervention.OldCustomer.OldCustomerType.INDIVIDUAL;
+import static org.springframework.transaction.annotation.Isolation.SERIALIZABLE;
+
 import app.bpartners.api.endpoint.rest.model.ContactNature;
 import app.bpartners.api.endpoint.rest.model.Geojson;
 import app.bpartners.api.endpoint.rest.model.ProspectStatus;
@@ -52,10 +56,6 @@ import org.apfloat.Aprational;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
-import static app.bpartners.api.repository.expressif.fact.NewIntervention.OldCustomer.OldCustomerType.INDIVIDUAL;
-import static org.springframework.transaction.annotation.Isolation.SERIALIZABLE;
-
 @AllArgsConstructor
 @Repository
 @Slf4j
@@ -82,82 +82,97 @@ public class ProspectRepositoryImpl implements ProspectRepository {
   @Override
   public Prospect getById(String id) {
     HProspect prospect = jpaRepository.findById(id).orElse(null);
-    return prospect == null ? null : mapper.toDomain(prospect,
-        prospect.getPosLatitude() == null && prospect.getPosLongitude() == null ? null
-            : new Geojson()
-            .latitude(prospect.getPosLatitude())
-            .longitude(prospect.getPosLongitude()));
+    return prospect == null
+        ? null
+        : mapper.toDomain(
+            prospect,
+            prospect.getPosLatitude() == null && prospect.getPosLongitude() == null
+                ? null
+                : new Geojson()
+                    .latitude(prospect.getPosLatitude())
+                    .longitude(prospect.getPosLongitude()));
   }
 
   @Override
   public List<Prospect> findAllByStatus(ProspectStatus status) {
     return jpaRepository.findAllByStatus(status.getValue()).stream()
-        .map(prospect -> mapper.toDomain(prospect,
-            prospect.getPosLatitude() == null && prospect.getPosLongitude() == null ? null
-                : new Geojson()
-                .latitude(prospect.getPosLatitude())
-                .longitude(prospect.getPosLongitude())))
+        .map(
+            prospect ->
+                mapper.toDomain(
+                    prospect,
+                    prospect.getPosLatitude() == null && prospect.getPosLongitude() == null
+                        ? null
+                        : new Geojson()
+                            .latitude(prospect.getPosLatitude())
+                            .longitude(prospect.getPosLongitude())))
         .collect(Collectors.toList());
   }
 
   @Override
-  public List<Prospect> findAllByIdAccountHolder(String idAccountHolder,
-                                                 String name,
-                                                 ContactNature contactNature) {
+  public List<Prospect> findAllByIdAccountHolder(
+      String idAccountHolder, String name, ContactNature contactNature) {
     BusinessActivity businessActivity =
         businessActivityService.findByAccountHolderId(idAccountHolder);
     boolean isSogefiProspector = isSogefiProspector(businessActivity);
     if (!isSogefiProspector) {
-      List<HProspect> prospects = contactNature == null
-          ? jpaRepository.findAllByIdAccountHolderAndOldNameContainingIgnoreCase(
-          idAccountHolder,
-          name)
-          : jpaRepository.findAllByIdAccountHolderAndOldNameContainingIgnoreCaseAndContactNature(
-          idAccountHolder,
-          name,
-          contactNature);
+      List<HProspect> prospects =
+          contactNature == null
+              ? jpaRepository.findAllByIdAccountHolderAndOldNameContainingIgnoreCase(
+                  idAccountHolder, name)
+              : jpaRepository
+                  .findAllByIdAccountHolderAndOldNameContainingIgnoreCaseAndContactNature(
+                      idAccountHolder, name, contactNature);
       return prospects.stream()
-          .map(prospect -> mapper.toDomain(prospect,
-              prospect.getPosLatitude() == null && prospect.getPosLongitude() == null ? null
-                  : new Geojson()
-                  .latitude(prospect.getPosLatitude())
-                  .longitude(prospect.getPosLongitude())))
+          .map(
+              prospect ->
+                  mapper.toDomain(
+                      prospect,
+                      prospect.getPosLatitude() == null && prospect.getPosLongitude() == null
+                          ? null
+                          : new Geojson()
+                              .latitude(prospect.getPosLatitude())
+                              .longitude(prospect.getPosLongitude())))
           .sorted(Comparator.reverseOrder())
           .collect(Collectors.toList());
     }
     AccountHolder accountHolder = accountHolderRepository.findById(idAccountHolder);
     if (accountHolder.getTownCode() == null) {
       throw new BadRequestException(
-          "AccountHolder.id=" + idAccountHolder + " is missing the " + "required property town "
+          "AccountHolder.id="
+              + idAccountHolder
+              + " is missing the "
+              + "required property town "
               + "code");
     }
 
-    //TODO: Refactor municipality not use postgis extension
-//    List<HMunicipality> municipalities =
-//        municipalityJpaRepository.findMunicipalitiesWithinDistance(
-//            String.valueOf(accountHolder.getTownCode()), accountHolder.getProspectingPerimeter());
-//    String townCodes =
-//        municipalities.stream()
-//            .map(HMunicipality::getCode)
-//            .collect(Collectors.joining(","));
-//    List<Integer> townCodesAsInt = municipalities.stream()
-//        .map(HMunicipality::getCode)
-//        .mapToInt(Integer::parseInt)
-//        .boxed()
-//        .collect(toUnmodifiableList());
-//    BuildingPermitList buildingPermitList = buildingPermitApi.getBuildingPermitList(townCodes);
-//    if (buildingPermitList != null && buildingPermitList.getRecords() != null) {
-//      buildingPermitList.getRecords().forEach(buildingPermit -> {
-//        SingleBuildingPermit singleBuildingPermit =
-//            buildingPermitApi.getSingleBuildingPermit(String.valueOf(buildingPermit.getFileId()));
-//        sogefiBuildingPermitRepository.saveByBuildingPermit(idAccountHolder, buildingPermit,
-//            singleBuildingPermit);
-//      });
-//    }
-    //TODO: why do prospects must be filtered by town code
+    // TODO: Refactor municipality not use postgis extension
+    //    List<HMunicipality> municipalities =
+    //        municipalityJpaRepository.findMunicipalitiesWithinDistance(
+    //            String.valueOf(accountHolder.getTownCode()),
+    // accountHolder.getProspectingPerimeter());
+    //    String townCodes =
+    //        municipalities.stream()
+    //            .map(HMunicipality::getCode)
+    //            .collect(Collectors.joining(","));
+    //    List<Integer> townCodesAsInt = municipalities.stream()
+    //        .map(HMunicipality::getCode)
+    //        .mapToInt(Integer::parseInt)
+    //        .boxed()
+    //        .collect(toUnmodifiableList());
+    //    BuildingPermitList buildingPermitList =
+    // buildingPermitApi.getBuildingPermitList(townCodes);
+    //    if (buildingPermitList != null && buildingPermitList.getRecords() != null) {
+    //      buildingPermitList.getRecords().forEach(buildingPermit -> {
+    //        SingleBuildingPermit singleBuildingPermit =
+    //
+    // buildingPermitApi.getSingleBuildingPermit(String.valueOf(buildingPermit.getFileId()));
+    //        sogefiBuildingPermitRepository.saveByBuildingPermit(idAccountHolder, buildingPermit,
+    //            singleBuildingPermit);
+    //      });
+    //    }
+    // TODO: why do prospects must be filtered by town code
     // while it is already attached to account holder ?
-    return jpaRepository.findAllByIdAccountHolder(idAccountHolder)
-        .stream()
+    return jpaRepository.findAllByIdAccountHolder(idAccountHolder).stream()
         .map(prospect -> toDomain(isSogefiProspector, prospect))
         .sorted(Comparator.reverseOrder())
         .collect(Collectors.toList());
@@ -175,28 +190,27 @@ public class ProspectRepositoryImpl implements ProspectRepository {
       return false;
     }
     return primaryActivity != null
-        && Objects.equals(0, TILE_LAYER.compareToIgnoreCase(primaryActivity))
+            && Objects.equals(0, TILE_LAYER.compareToIgnoreCase(primaryActivity))
         || secondaryActivity != null
-        && Objects.equals(0, TILE_LAYER.compareToIgnoreCase(secondaryActivity))
+            && Objects.equals(0, TILE_LAYER.compareToIgnoreCase(secondaryActivity))
         || primaryActivity != null && Objects.equals(0, ROOFER.compareToIgnoreCase(primaryActivity))
         || secondaryActivity != null
-        && Objects.equals(0, ROOFER.compareToIgnoreCase(secondaryActivity));
+            && Objects.equals(0, ROOFER.compareToIgnoreCase(secondaryActivity));
   }
 
   public boolean isSogefiProspector(BusinessActivity businessActivity) {
     return (businessActivity.getPrimaryActivity() != null
-        && Objects.equals(0, TILE_LAYER.compareToIgnoreCase(businessActivity.getPrimaryActivity())))
+            && Objects.equals(
+                0, TILE_LAYER.compareToIgnoreCase(businessActivity.getPrimaryActivity())))
         || (businessActivity.getSecondaryActivity() != null
-        && Objects.equals(0,
-        TILE_LAYER.compareToIgnoreCase(businessActivity.getSecondaryActivity())))
+            && Objects.equals(
+                0, TILE_LAYER.compareToIgnoreCase(businessActivity.getSecondaryActivity())))
         || (businessActivity.getPrimaryActivity() != null
-        && Objects.equals(
-        0, ROOFER.compareToIgnoreCase(businessActivity.getPrimaryActivity())))
+            && Objects.equals(0, ROOFER.compareToIgnoreCase(businessActivity.getPrimaryActivity())))
         || (businessActivity.getSecondaryActivity() != null
-        && Objects.equals(0,
-        ROOFER.compareToIgnoreCase(businessActivity.getSecondaryActivity())));
+            && Objects.equals(
+                0, ROOFER.compareToIgnoreCase(businessActivity.getSecondaryActivity())));
   }
-
 
   @Override
   public List<ProspectResult> evaluate(List<ProspectEval> toEvaluate) {
@@ -208,27 +222,27 @@ public class ProspectRepositoryImpl implements ProspectRepository {
       convertEvalDefaultAttr(prospectEval, evaluationDate, evalInputs);
       convertEvalRuleAttr(prospectEval, evaluationDate, evalInputs);
 
-      List<OutputValue> evalResult = expressifApi.process(InputForm.builder()
-          .evaluationDate(evaluationDate)
-          .inputValues(evalInputs)
-          .build());
+      List<OutputValue> evalResult =
+          expressifApi.process(
+              InputForm.builder().evaluationDate(evaluationDate).inputValues(evalInputs).build());
 
       AtomicReference<Double> prospectRating = new AtomicReference<>(UNPROCESSED_VALUE);
       AtomicReference<Double> customerRating = new AtomicReference<>(UNPROCESSED_VALUE);
       if (evalResult.isEmpty()) {
         log.warn("[ExpressIF] Any result retrieved from " + evalInputs);
       } else {
-        evalResult.forEach(result -> {
-          if (result.getName().equals("Notation du prospect")) {
-            prospectRating.set((Double) result.getValue());
-          } else if (result.getName().equals("Notation de l'ancien client")) {
-            customerRating.set((Double) result.getValue());
-          }
-        });
+        evalResult.forEach(
+            result -> {
+              if (result.getName().equals("Notation du prospect")) {
+                prospectRating.set((Double) result.getValue());
+              } else if (result.getName().equals("Notation de l'ancien client")) {
+                customerRating.set((Double) result.getValue());
+              }
+            });
       }
       HProspectEval lastEval =
-          evalMapper.toInfoEntity(prospectEval, evaluationDate,
-              prospectRating.get(), customerRating.get());
+          evalMapper.toInfoEntity(
+              prospectEval, evaluationDate, prospectRating.get(), customerRating.get());
       prospectEvalEntities.add(getInfoEntity(prospectEval, lastEval));
     }
     return evalRepository.saveAll(prospectEvalEntities).stream()
@@ -237,8 +251,11 @@ public class ProspectRepositoryImpl implements ProspectRepository {
   }
 
   private HProspectEvalInfo getInfoEntity(ProspectEval prospectEval, HProspectEval lastEval) {
-    HProspectEvalInfo entity = evalRepository.findById(prospectEval.getId())
-        .orElse(evalMapper.toInfoEntity(prospectEval, getNextEvalReference(), new ArrayList<>()));
+    HProspectEvalInfo entity =
+        evalRepository
+            .findById(prospectEval.getId())
+            .orElse(
+                evalMapper.toInfoEntity(prospectEval, getNextEvalReference(), new ArrayList<>()));
 
     entity.getProspectEvals().add(lastEval);
     return entity;
@@ -260,25 +277,28 @@ public class ProspectRepositoryImpl implements ProspectRepository {
       ProspectEval prospectEval, Instant evaluationDate, List<InputValue> evalInputs) {
     Robbery depaRule = (Robbery) prospectEval.getDepaRule();
     if (depaRule.getDeclared() != null) {
-      evalInputs.add(InputValue.builder()
-          .evaluationDate(evaluationDate)
-          .name("La déclaration de cambriolage")
-          .value(depaRule.getDeclared())
-          .build());
+      evalInputs.add(
+          InputValue.builder()
+              .evaluationDate(evaluationDate)
+              .name("La déclaration de cambriolage")
+              .value(depaRule.getDeclared())
+              .build());
     }
     if (depaRule.getDistRobberyAndProspect() != null) {
-      evalInputs.add(InputValue.builder()
-          .evaluationDate(evaluationDate)
-          .name("La distance entre un cambriolage et le prospect")
-          .value(depaRule.getDistRobberyAndProspect())
-          .build());
+      evalInputs.add(
+          InputValue.builder()
+              .evaluationDate(evaluationDate)
+              .name("La distance entre un cambriolage et le prospect")
+              .value(depaRule.getDistRobberyAndProspect())
+              .build());
     }
     if (depaRule.getOldCustomer() != null) {
-      evalInputs.add(InputValue.builder()
-          .evaluationDate(evaluationDate)
-          .name("La distance entre un cambriolage et l'ancien client")
-          .value(depaRule.getOldCustomer().getDistRobberyAndOldCustomer())
-          .build());
+      evalInputs.add(
+          InputValue.builder()
+              .evaluationDate(evaluationDate)
+              .name("La distance entre un cambriolage et l'ancien client")
+              .value(depaRule.getOldCustomer().getDistRobberyAndOldCustomer())
+              .build());
     }
   }
 
@@ -286,109 +306,121 @@ public class ProspectRepositoryImpl implements ProspectRepository {
       ProspectEval prospectEval, Instant evaluationDate, List<InputValue> evalInputs) {
     NewIntervention depaRule = (NewIntervention) prospectEval.getDepaRule();
     if (depaRule.getPlanned() != null) {
-      evalInputs.add(InputValue.builder()
-          .evaluationDate(evaluationDate)
-          .name("Intervention prévue")
-          .value(depaRule.getPlanned())
-          .build());
+      evalInputs.add(
+          InputValue.builder()
+              .evaluationDate(evaluationDate)
+              .name("Intervention prévue")
+              .value(depaRule.getPlanned())
+              .build());
     }
     if (depaRule.getInterventionType() != null) {
-      evalInputs.add(InputValue.builder()
-          .evaluationDate(evaluationDate)
-          .name("Le type de l'intervention prévue contre les nuisibles")
-          .value(depaRule.getInterventionType())
-          .build());
+      evalInputs.add(
+          InputValue.builder()
+              .evaluationDate(evaluationDate)
+              .name("Le type de l'intervention prévue contre les nuisibles")
+              .value(depaRule.getInterventionType())
+              .build());
     }
     if (depaRule.getInfestationType() != null) {
-      evalInputs.add(InputValue.builder()
-          .evaluationDate(evaluationDate)
-          .name("Le type de l'infestation")
-          .value(depaRule.getInfestationType())
-          .build());
+      evalInputs.add(
+          InputValue.builder()
+              .evaluationDate(evaluationDate)
+              .name("Le type de l'infestation")
+              .value(depaRule.getInfestationType())
+              .build());
     }
     if (depaRule.getDistNewIntAndProspect() != null) {
-      evalInputs.add(InputValue.builder()
-          .evaluationDate(evaluationDate)
-          .name("La distance entre l'intervention prévue et le prospect")
-          .value(depaRule.getDistNewIntAndProspect())
-          .build());
+      evalInputs.add(
+          InputValue.builder()
+              .evaluationDate(evaluationDate)
+              .name("La distance entre l'intervention prévue et le prospect")
+              .value(depaRule.getDistNewIntAndProspect())
+              .build());
     }
     NewIntervention.OldCustomer oldCustomerFact = depaRule.getOldCustomer();
     if (oldCustomerFact.getProfessionalType() != null) {
-      evalInputs.add(InputValue.builder()
-          .evaluationDate(evaluationDate)
-          .name("Le type de professionnel")
-          .value(oldCustomerFact.getProfessionalType())
-          .build());
+      evalInputs.add(
+          InputValue.builder()
+              .evaluationDate(evaluationDate)
+              .name("Le type de professionnel")
+              .value(oldCustomerFact.getProfessionalType())
+              .build());
     }
     if (oldCustomerFact.getType() != null) {
-      evalInputs.add(InputValue.builder()
-          .evaluationDate(evaluationDate)
-          .name("Le type de client")
-          .value(oldCustomerFact.getType() == INDIVIDUAL
-              ? "particulier"
-              : "professionnel")
-          .build());
+      evalInputs.add(
+          InputValue.builder()
+              .evaluationDate(evaluationDate)
+              .name("Le type de client")
+              .value(oldCustomerFact.getType() == INDIVIDUAL ? "particulier" : "professionnel")
+              .build());
     }
     if (oldCustomerFact.getDistNewIntAndOldCustomer() != null) {
-      evalInputs.add(InputValue.builder()
-          .evaluationDate(evaluationDate)
-          .name("La distance entre l'intervention prévue et l'ancien client")
-          .value(oldCustomerFact.getDistNewIntAndOldCustomer())
-          .build());
+      evalInputs.add(
+          InputValue.builder()
+              .evaluationDate(evaluationDate)
+              .name("La distance entre l'intervention prévue et l'ancien client")
+              .value(oldCustomerFact.getDistNewIntAndOldCustomer())
+              .build());
     }
   }
 
   private void convertEvalDefaultAttr(
       ProspectEval prospectEval, Instant evaluationDate, List<InputValue> evalInputs) {
     if (prospectEval.getLockSmith() != null) {
-      evalInputs.add(InputValue.builder()
-          .evaluationDate(evaluationDate)
-          .name("Serrurier")
-          .value(prospectEval.getLockSmith())
-          .build());
+      evalInputs.add(
+          InputValue.builder()
+              .evaluationDate(evaluationDate)
+              .name("Serrurier")
+              .value(prospectEval.getLockSmith())
+              .build());
     }
     if (prospectEval.getAntiHarm() != null) {
-      evalInputs.add(InputValue.builder()
-          .evaluationDate(evaluationDate)
-          .name("Antinuisibles 3D")
-          .value(prospectEval.getAntiHarm())
-          .build());
+      evalInputs.add(
+          InputValue.builder()
+              .evaluationDate(evaluationDate)
+              .name("Antinuisibles 3D")
+              .value(prospectEval.getAntiHarm())
+              .build());
     }
     if (prospectEval.getInsectControl() != null) {
-      evalInputs.add(InputValue.builder()
-          .evaluationDate(evaluationDate)
-          .name("Service de désinsectisation")
-          .value(prospectEval.getInsectControl())
-          .build());
+      evalInputs.add(
+          InputValue.builder()
+              .evaluationDate(evaluationDate)
+              .name("Service de désinsectisation")
+              .value(prospectEval.getInsectControl())
+              .build());
     }
     if (prospectEval.getDisinfection() != null) {
-      evalInputs.add(InputValue.builder()
-          .evaluationDate(evaluationDate)
-          .name("Service de désinfection")
-          .value(prospectEval.getDisinfection())
-          .build());
+      evalInputs.add(
+          InputValue.builder()
+              .evaluationDate(evaluationDate)
+              .name("Service de désinfection")
+              .value(prospectEval.getDisinfection())
+              .build());
     }
     if (prospectEval.getRatRemoval() != null) {
-      evalInputs.add(InputValue.builder()
-          .evaluationDate(evaluationDate)
-          .name("Service de dératisation")
-          .value(prospectEval.getRatRemoval())
-          .build());
+      evalInputs.add(
+          InputValue.builder()
+              .evaluationDate(evaluationDate)
+              .name("Service de dératisation")
+              .value(prospectEval.getRatRemoval())
+              .build());
     }
     if (prospectEval.getProfessionalCustomer() != null) {
-      evalInputs.add(InputValue.builder()
-          .evaluationDate(evaluationDate)
-          .name("Clientèle professionnelle")
-          .value(prospectEval.getProfessionalCustomer())
-          .build());
+      evalInputs.add(
+          InputValue.builder()
+              .evaluationDate(evaluationDate)
+              .name("Clientèle professionnelle")
+              .value(prospectEval.getProfessionalCustomer())
+              .build());
     }
     if (prospectEval.getParticularCustomer() != null) {
-      evalInputs.add(InputValue.builder()
-          .evaluationDate(evaluationDate)
-          .name("Clientèle particulier")
-          .value(prospectEval.getParticularCustomer())
-          .build());
+      evalInputs.add(
+          InputValue.builder()
+              .evaluationDate(evaluationDate)
+              .name("Clientèle particulier")
+              .value(prospectEval.getParticularCustomer())
+              .build());
     }
   }
 
@@ -399,11 +431,12 @@ public class ProspectRepositoryImpl implements ProspectRepository {
     boolean isSogefiProspector = isSogefiProspector(authenticatedAccount.getId());
     List<HProspect> entities =
         prospects.stream()
-            .map(prospect -> {
-              Optional<HProspect> optionalProspect = jpaRepository.findById(prospect.getId());
-              HProspect existing = optionalProspect.orElse(null);
-              return mapper.toEntity(prospect, existing);
-            })
+            .map(
+                prospect -> {
+                  Optional<HProspect> optionalProspect = jpaRepository.findById(prospect.getId());
+                  HProspect existing = optionalProspect.orElse(null);
+                  return mapper.toEntity(prospect, existing);
+                })
             .toList();
     return jpaRepository.saveAll(entities).stream()
         .map(entity -> toDomain(isSogefiProspector, entity))
@@ -412,8 +445,7 @@ public class ProspectRepositoryImpl implements ProspectRepository {
 
   @Override
   public Prospect save(Prospect prospect) {
-    HProspect existing = jpaRepository.findById(prospect.getId())
-        .orElse(null);
+    HProspect existing = jpaRepository.findById(prospect.getId()).orElse(null);
     HProspect entity = mapper.toEntity(prospect, existing);
     boolean isSogefiProspector = isSogefiProspector(prospect.getIdHolderOwner());
     return toDomain(isSogefiProspector, jpaRepository.save(entity));
@@ -421,10 +453,9 @@ public class ProspectRepositoryImpl implements ProspectRepository {
 
   private Prospect toDomain(boolean isSogefiProspector, HProspect entity) {
     Geojson domainGeojson =
-        entity.getPosLatitude() == null && entity.getPosLongitude() == null ? null
-            : new Geojson()
-            .latitude(entity.getPosLatitude())
-            .longitude(entity.getPosLongitude());
+        entity.getPosLatitude() == null && entity.getPosLongitude() == null
+            ? null
+            : new Geojson().latitude(entity.getPosLatitude()).longitude(entity.getPosLongitude());
     Geojson location = domainGeojson;
     if (isSogefiProspector) {
       location = sogefiRepository.findLocationByIdProspect(entity.getId());
@@ -438,22 +469,28 @@ public class ProspectRepositoryImpl implements ProspectRepository {
 
   @Override
   public List<Prospect> create(List<Prospect> prospects) {
-    List<HProspect> toSave = prospects.stream()
-        .map(prospect -> {
-          Prospect.ProspectRating prospectRating = prospect.getRating();
-          return mapper.toEntity(
-              prospect,
-              prospect.getIdHolderOwner(),
-              prospectRating.getValue(),
-              prospectRating.getLastEvaluationDate());
-        })
-        .collect(Collectors.toList());
+    List<HProspect> toSave =
+        prospects.stream()
+            .map(
+                prospect -> {
+                  Prospect.ProspectRating prospectRating = prospect.getRating();
+                  return mapper.toEntity(
+                      prospect,
+                      prospect.getIdHolderOwner(),
+                      prospectRating.getValue(),
+                      prospectRating.getLastEvaluationDate());
+                })
+            .collect(Collectors.toList());
     return jpaRepository.saveAll(toSave).stream()
-        .map(prospect -> mapper.toDomain(prospect,
-            prospect.getPosLatitude() == null && prospect.getPosLongitude() == null ? null
-                : new Geojson()
-                .latitude(prospect.getPosLatitude())
-                .longitude(prospect.getPosLongitude())))
+        .map(
+            prospect ->
+                mapper.toDomain(
+                    prospect,
+                    prospect.getPosLatitude() == null && prospect.getPosLongitude() == null
+                        ? null
+                        : new Geojson()
+                            .latitude(prospect.getPosLatitude())
+                            .longitude(prospect.getPosLongitude())))
         .collect(Collectors.toList());
   }
 
@@ -470,8 +507,9 @@ public class ProspectRepositoryImpl implements ProspectRepository {
     Fraction expectedAmountAttemptedPerDay =
         revenueTargetsInAyear.get().getAmountTarget().operate(year, Aprational::divide);
     Fraction todayAsFraction =
-        date == null ? new Fraction(BigInteger.valueOf(LocalDate.now().getDayOfYear())) :
-            new Fraction(BigInteger.valueOf(date.getDayOfYear()));
+        date == null
+            ? new Fraction(BigInteger.valueOf(LocalDate.now().getDayOfYear()))
+            : new Fraction(BigInteger.valueOf(date.getDayOfYear()));
     Fraction expectedAmountAttemptedToday =
         expectedAmountAttemptedPerDay.operate(todayAsFraction, Aprational::multiply);
     return revenueTargetsInAyear.get().getAmountAttempted().compareTo(expectedAmountAttemptedToday)

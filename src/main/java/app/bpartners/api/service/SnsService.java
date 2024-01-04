@@ -1,6 +1,8 @@
 package app.bpartners.api.service;
 
-import app.bpartners.api.endpoint.event.EventConf;
+import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
+
+import app.bpartners.api.endpoint.event.SnsConf;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.exception.BadRequestException;
@@ -16,20 +18,16 @@ import software.amazon.awssdk.services.sns.model.NotFoundException;
 import software.amazon.awssdk.services.sns.model.PublishRequest;
 import software.amazon.awssdk.services.sns.model.PublishResponse;
 
-import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
-
 @Service
 @AllArgsConstructor
 @Slf4j
 public class SnsService {
   private SnsClient snsClient;
-  private EventConf eventConf;
+  private SnsConf snsConf;
 
   public void deleteEndpointArn(String arn) {
     try {
-      snsClient.deleteEndpoint(DeleteEndpointRequest.builder()
-          .endpointArn(arn)
-          .build());
+      snsClient.deleteEndpoint(DeleteEndpointRequest.builder().endpointArn(arn).build());
     } catch (Exception e) {
       throw new ApiException(SERVER_EXCEPTION, e);
     }
@@ -38,10 +36,11 @@ public class SnsService {
   public String createEndpointArn(String deviceToken) {
     try {
       CreatePlatformEndpointResponse platformEndpoint =
-          snsClient.createPlatformEndpoint(CreatePlatformEndpointRequest.builder()
-              .token(deviceToken)
-              .platformApplicationArn(eventConf.getSnsPlatformArn())
-              .build());
+          snsClient.createPlatformEndpoint(
+              CreatePlatformEndpointRequest.builder()
+                  .token(deviceToken)
+                  .platformApplicationArn(snsConf.getSnsPlatformArn())
+                  .build());
       return platformEndpoint.endpointArn();
     } catch (InvalidParameterException | NotFoundException e) {
       throw new BadRequestException("Invalid provided device token " + deviceToken);
@@ -56,19 +55,20 @@ public class SnsService {
       log.warn(
           "[FAILED] Mobile notification with message content [{}]"
               + " not sent to {} because SNS ARN is null",
-          message, user.getName());
+          message,
+          user.getName());
     } else {
       try {
-        PublishResponse publishResponse = snsClient.publish(PublishRequest.builder()
-            .targetArn(snsArn)
-            .message(message)
-            .build());
+        PublishResponse publishResponse =
+            snsClient.publish(PublishRequest.builder().targetArn(snsArn).message(message).build());
         log.info("Notifications pushed with messageId=" + publishResponse.messageId());
       } catch (Exception e) {
         log.warn(
             "[FAILED] Mobile notification with message content [{}]"
                 + " not sent to {} because {}}",
-            message, user.getName(), e.getMessage());
+            message,
+            user.getName(),
+            e.getMessage());
       }
     }
   }

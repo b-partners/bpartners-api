@@ -15,23 +15,27 @@ public class PaymentRegValidator implements Consumer<CreatePaymentRegulation> {
     payments.forEach(this);
     AtomicReference<Integer> totalAmount = new AtomicReference<>(0);
     AtomicReference<Integer> totalPercent = new AtomicReference<>(0);
-    payments.forEach(payment -> {
-      if (payment.getAmount() != null) {
-        totalAmount.set(payment.getAmount() + totalAmount.get());
-      }
-      if (payment.getPercent() != null) {
-        totalPercent.set(payment.getPercent() + totalPercent.get());
-      }
-    });
-    if (totalAmount.get() != 0
-        && !Objects.equals(totalAmount.get(), totalPriceWithVat)) {
-      throw new BadRequestException("Multiple payments amount " + totalAmount.get()
-          + " is not equals to total price with vat " + totalPriceWithVat);
+    payments.forEach(
+        payment -> {
+          if (payment.getAmount() != null) {
+            totalAmount.set(payment.getAmount() + totalAmount.get());
+          }
+          if (payment.getPercent() != null) {
+            totalPercent.set(payment.getPercent() + totalPercent.get());
+          }
+        });
+    if (totalAmount.get() != 0 && !Objects.equals(totalAmount.get(), totalPriceWithVat)) {
+      throw new BadRequestException(
+          "Multiple payments amount "
+              + totalAmount.get()
+              + " is not equals to total price with vat "
+              + totalPriceWithVat);
     }
-    if (totalPercent.get() != 0
-        && totalPercent.get() != 10000) {
-      throw new BadRequestException("Multiple payments percent "
-          + (double) totalPercent.get() / 100 + "% is not equals to 100%");
+    if (totalPercent.get() != 0 && totalPercent.get() != 10000) {
+      throw new BadRequestException(
+          "Multiple payments percent "
+              + (double) totalPercent.get() / 100
+              + "% is not equals to 100%");
     }
   }
 
@@ -45,9 +49,7 @@ public class PaymentRegValidator implements Consumer<CreatePaymentRegulation> {
     if (percent == null && invoicePayment.getAmount() == null) {
       exceptionBuilder.append("Either percent or amount is mandatory");
     }
-    if (percent != null
-        && (percent < 0 || percent > 10000)
-        && invoicePayment.getAmount() == null) {
+    if (percent != null && (percent < 0 || percent > 10000) && invoicePayment.getAmount() == null) {
       exceptionBuilder.append("Percent can not be less than 0 or greater than 100");
     }
     String message = exceptionBuilder.toString();

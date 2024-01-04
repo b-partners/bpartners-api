@@ -22,7 +22,7 @@ import lombok.ToString;
 public class TransactionConnector {
   private String id;
   private String label;
-  private Money amount; //Cents -> Currency
+  private Money amount; // Cents -> Currency
   private LocalDate transactionDate;
   private Instant updatedAt;
   private String currency = "EUR";

@@ -33,16 +33,16 @@ public class UserRepositoryImpl implements UserRepository {
 
   @Override
   public User getByIdAccount(String idAccount) {
-    HAccount account = accountJpaRepository.findById(idAccount)
-        .orElseThrow(() -> new NotFoundException("Account(id=" + idAccount + ") not found"));
+    HAccount account =
+        accountJpaRepository
+            .findById(idAccount)
+            .orElseThrow(() -> new NotFoundException("Account(id=" + idAccount + ") not found"));
     return userMapper.toDomain(account.getUser());
   }
 
   @Override
   public List<User> findAll() {
-    return jpaRepository.findAll().stream()
-        .map(userMapper::toDomain)
-        .collect(Collectors.toList());
+    return jpaRepository.findAll().stream().map(userMapper::toDomain).collect(Collectors.toList());
   }
 
   @Override
@@ -54,9 +54,11 @@ public class UserRepositoryImpl implements UserRepository {
     } else {
       String cognitoToken = token;
       String email = cognitoComponent.getEmailByToken(cognitoToken);
-      entityUser = jpaRepository.findByEmail(email).orElseThrow(
-          () -> new NotFoundException(
-              "No user with the email " + email + " was found"));
+      entityUser =
+          jpaRepository
+              .findByEmail(email)
+              .orElseThrow(
+                  () -> new NotFoundException("No user with the email " + email + " was found"));
     }
     return userMapper.toDomain(entityUser);
   }
@@ -64,9 +66,10 @@ public class UserRepositoryImpl implements UserRepository {
   @Override
   public User getByEmail(String email) {
     return userMapper.toDomain(
-        jpaRepository.findByEmail(email).orElseThrow(
-            () -> new NotFoundException(
-                "No user with the email " + email + " was found")));
+        jpaRepository
+            .findByEmail(email)
+            .orElseThrow(
+                () -> new NotFoundException("No user with the email " + email + " was found")));
   }
 
   @Override
@@ -78,23 +81,20 @@ public class UserRepositoryImpl implements UserRepository {
 
   @Override
   public User getById(String id) {
-    return userMapper.toDomain(jpaRepository.findById(id)
-        .orElseThrow(() -> new NotFoundException("User(id=" + id + " not found)")));
+    return userMapper.toDomain(
+        jpaRepository
+            .findById(id)
+            .orElseThrow(() -> new NotFoundException("User(id=" + id + " not found)")));
   }
 
   @Override
   public User save(User toSave) {
-    List<HAccountHolder> accountHolders =
-        holderJpaRepository.findAllByIdUser(toSave.getId());
-    List<HAccount> accounts =
-        accountJpaRepository.findByUser_Id(toSave.getId());
-    HUser savedUser = jpaRepository.save(
-        userMapper.toEntity(toSave, accountHolders, accounts));
-    Optional<HAccount> optionalAccount = accounts.stream()
-        .filter(account -> account.getIdBank() != null)
-        .findAny();
-    String idBank = optionalAccount.isEmpty() ? null
-        : optionalAccount.get().getIdBank();
+    List<HAccountHolder> accountHolders = holderJpaRepository.findAllByIdUser(toSave.getId());
+    List<HAccount> accounts = accountJpaRepository.findByUser_Id(toSave.getId());
+    HUser savedUser = jpaRepository.save(userMapper.toEntity(toSave, accountHolders, accounts));
+    Optional<HAccount> optionalAccount =
+        accounts.stream().filter(account -> account.getIdBank() != null).findAny();
+    String idBank = optionalAccount.isEmpty() ? null : optionalAccount.get().getIdBank();
     return userMapper.toDomain(savedUser, bankRepository.findByExternalId(idBank));
   }
 

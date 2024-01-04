@@ -115,4 +115,8 @@ public class HInvoice implements Serializable {
     this.status = status;
     return this;
   }
+
+  public String describe() {
+    return "Invoice(id=" + id + ",reference=" + ref + ",user=" + idUser + ")";
+  }
 }

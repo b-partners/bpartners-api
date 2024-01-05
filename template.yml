@@ -83,6 +83,8 @@ Resources:
           Properties:
             Path: /{proxy+}
             Method: ANY
+            BinaryMediaTypes:
+              - "*~1*"
 
   WorkerFunction:
     Type: AWS::Serverless::Function

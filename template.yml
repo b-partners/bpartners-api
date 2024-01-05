@@ -70,6 +70,13 @@ Parameters:
     Type: String
 
 Resources:
+  FrontalApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: Prod
+      BinaryMediaTypes:
+        - "*~1*"
+
   FrontalFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -83,6 +90,8 @@ Resources:
           Properties:
             Path: /{proxy+}
             Method: ANY
+            RestApiId:
+              Ref: FrontalApi
 
   WorkerFunction:
     Type: AWS::Serverless::Function

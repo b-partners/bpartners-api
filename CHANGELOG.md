@@ -1,3 +1,14 @@
+## [0.38.1](https://github.com/b-partners/bpartners-api/compare/v0.38.0...v0.38.1) (2024-01-08)
+
+
+### Bug Fixes
+
+* do not set database username in application.properties ([fb8000c](https://github.com/b-partners/bpartners-api/commit/fb8000c5b7c9b31069f3babecf879ac0f89ef318))
+* rename account ID for transactions supporting documents API ([9964cca](https://github.com/b-partners/bpartners-api/commit/9964cca5745ea5c2ec9e77248a33c961ae5e21e4))
+* set checksum algorithm only when uploading file ([e3b8760](https://github.com/b-partners/bpartners-api/commit/e3b87602f8fbabc7c2d7031f841dd20aa6051765))
+
+
+
 # [0.38.0](https://github.com/b-partners/bpartners-api/compare/v0.37.2...v0.38.0) (2024-01-03)
 
 
@@ -191,33 +202,6 @@
 * rename account identifier param in products export ([702e311](https://github.com/b-partners/bpartners-api/commit/702e311e4c328f89e1156fa6212cf1faec338381))
 * unable to save events with expired google calendar token ([2aae567](https://github.com/b-partners/bpartners-api/commit/2aae567ceb54ea5268f6ed0f50248111bc68ddcf))
 * update TO_CONTACT prospect informations correctly ([271f7da](https://github.com/b-partners/bpartners-api/commit/271f7da6fe193b38ca4ae1e7d69834191a71c021))
-
-
-
-# [0.34.0](https://github.com/b-partners/bpartners-api/compare/v0.33.0...v0.34.0) (2023-10-12)
-
-
-### Bug Fixes
-
-* compare prospect status to update with existing prospect status ([a425c6a](https://github.com/b-partners/bpartners-api/commit/a425c6a646ed29a07c9b17e07eb4b14945115c6c))
-* do not scan geoposition through BAN API when reading spreadsheet ([06a2c66](https://github.com/b-partners/bpartners-api/commit/06a2c66ee36e8c6e7fce4deff2aeb9e1ccf0250c))
-* set customers location update scheduled task to 30 minutes intervals ([f5e8841](https://github.com/b-partners/bpartners-api/commit/f5e8841ddaacb7e4d3eda03b14cc536982158bc8))
-* skip address less than 3 chars and more than 200 chars when updating customer position ([51f96cc](https://github.com/b-partners/bpartners-api/commit/51f96ccadca23b8729e784f2d8ee5b566ebdf31f))
-* update customer geoposition after crupdate ([a0443ee](https://github.com/b-partners/bpartners-api/commit/a0443ee948d71d30b9196314483af52760dfe7c7))
-* use google calendar provider when converting event to prospect ([e8619b6](https://github.com/b-partners/bpartners-api/commit/e8619b65184535ed081e8723b7cef82db94f108b))
-
-
-### Features
-
-* add default comment to prospect ([8fcc202](https://github.com/b-partners/bpartners-api/commit/8fcc2028bcaea381fedeb45cc7248bc57bcb7df2))
-* add manager name to prospect ([87d6ac8](https://github.com/b-partners/bpartners-api/commit/87d6ac8f6194fff284dfb8d9c1fe6c4ab31c9f15))
-* set invoice relaunch email body from scratch ([eb54aa6](https://github.com/b-partners/bpartners-api/commit/eb54aa69d78b1026e215789e9d95f737938a2d62))
-
-
-### Reverts
-
-* Revert "chore(to-reset): re deploy old api at api-prod" ([13e86cb](https://github.com/b-partners/bpartners-api/commit/13e86cb989a60f07826f0e8e8744cf605a97698f))
-* Revert "chore(to-reset): use 20 as listenerRulePriority to old-api" ([f431c21](https://github.com/b-partners/bpartners-api/commit/f431c21fd4b2daabe3da4e3f4443543666680937))
 
 
 

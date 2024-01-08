@@ -84,7 +84,7 @@ paths:
     $ref: './paying-api.yml#/operations/transactionsExportLink'
   /accounts/{id}/transactions/{tId}:
     $ref: './paying-api.yml#/operations/getTransactionById'
-  /accounts/{id}/transactions/{tId}/supportingDocuments:
+  /accounts/{aId}/transactions/{tId}/supportingDocuments:
     $ref: './paying-api.yml#/operations/transactionSupportingDocuments'
   /accounts/{aId}/transactions/{tId}/invoices/{iId}:
     $ref: './paying-api.yml#/operations/justifyTransaction'

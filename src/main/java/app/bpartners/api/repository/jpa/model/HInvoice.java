@@ -15,6 +15,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
@@ -78,11 +79,12 @@ public class HInvoice implements Serializable {
   private String customerCountry;
   @OneToMany(
       orphanRemoval = true,
-      cascade = CascadeType.ALL
+      cascade = CascadeType.ALL,
+      fetch = FetchType.EAGER
   )
   @JoinColumn(name = "id_invoice")
   private List<HInvoiceProduct> products = new ArrayList<>();
-  @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+  @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
   @JoinColumn(name = "id_invoice")
   private List<HPaymentRequest> paymentRequests;
   @CreationTimestamp

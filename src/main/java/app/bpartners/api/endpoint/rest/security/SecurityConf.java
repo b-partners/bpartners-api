@@ -104,6 +104,7 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
         .antMatchers(GET, "/whois/*").permitAll()
         .antMatchers(POST, "/webhooks/paymentStatus").permitAll()
         .antMatchers(GET, "/accountHolders").hasAnyRole(EVAL_PROSPECT.getRole())
+        .antMatchers(POST, "/invoicesRefresh").hasAnyRole(EVAL_PROSPECT.getRole())
         .requestMatchers(
             new SelfAccountMatcher(GET, "/accounts/*/customers", authResourceProvider)
         ).authenticated()

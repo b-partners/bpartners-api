@@ -70,7 +70,7 @@ Parameters:
     Type: String
 
 Resources:
-  FrontalApi:
+  FrontalServerlessRestApi:
     Type: AWS::Serverless::Api
     Properties:
       StageName: Prod
@@ -91,7 +91,7 @@ Resources:
             Path: /{proxy+}
             Method: ANY
             RestApiId:
-              Ref: FrontalApi
+              Ref: FrontalServerlessRestApi
 
   WorkerFunction:
     Type: AWS::Serverless::Function
@@ -125,7 +125,7 @@ Resources:
     Properties:
       Name: !Join [ '', [ /bpartners/, !Ref Env, /api/url ] ]
       Type: String
-      Value: !Sub "https://${FrontalApi}.execute-api.${AWS::Region}.amazonaws.com/Prod"
+      Value: !Sub "https://${FrontalServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod"
 
 Outputs:
   ApiUrl:

@@ -7,7 +7,7 @@ frontal_memory: 2048
 jacoco_min_coverage: '0.2'
 package_full_name: app.bpartners.api
 region: eu-west-3
-ses_source: noreply@nowhere.com
+ses_source: contact@bpartners.app
 ssm_sg_id: /bpartners/sg/id
 ssm_subnet1_id: /bpartners/private/subnet1/id
 ssm_subnet2_id: /bpartners/private/subnet2/id

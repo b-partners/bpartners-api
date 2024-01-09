@@ -75,7 +75,7 @@ task generateTsClient(type: org.openapitools.generator.gradle.plugin.tasks.Gener
     ]
     additionalProperties = [
             enumPropertyNaming: "original",
-            npmName           : "bpartners-react-client",
+            npmName           : "@bpartners/typescript-client",
             npmVersion        : project.properties["args"] ?: "latest"
     ]
 }

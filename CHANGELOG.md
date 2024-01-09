@@ -1,3 +1,12 @@
+## [0.38.2](https://github.com/b-partners/bpartners-api/compare/v0.38.1...v0.38.2) (2024-01-09)
+
+
+### Bug Fixes
+
+* set ses source correctly ([2cd4a2f](https://github.com/b-partners/bpartners-api/commit/2cd4a2faeebcc495455ace9afd184813733136a9))
+
+
+
 ## [0.38.1](https://github.com/b-partners/bpartners-api/compare/v0.38.0...v0.38.1) (2024-01-08)
 
 
@@ -191,17 +200,6 @@
 
 * add website to account holder ([0c9e563](https://github.com/b-partners/bpartners-api/commit/0c9e5635d2133469538df17aaca9bde82a0ceaa2))
 * persist and return prospect status changes ([394e0b3](https://github.com/b-partners/bpartners-api/commit/394e0b3f2554cfb8a05d4e09419a93a99426d22c))
-
-
-
-## [0.34.1](https://github.com/b-partners/bpartners-api/compare/v0.34.0...v0.34.1) (2023-10-16)
-
-
-### Bug Fixes
-
-* rename account identifier param in products export ([702e311](https://github.com/b-partners/bpartners-api/commit/702e311e4c328f89e1156fa6212cf1faec338381))
-* unable to save events with expired google calendar token ([2aae567](https://github.com/b-partners/bpartners-api/commit/2aae567ceb54ea5268f6ed0f50248111bc68ddcf))
-* update TO_CONTACT prospect informations correctly ([271f7da](https://github.com/b-partners/bpartners-api/commit/271f7da6fe193b38ca4ae1e7d69834191a71c021))
 
 
 

@@ -31,6 +31,7 @@ public class GeoJsonResponse {
   public static class Feature {
     @JsonProperty("geometry")
     private Geometry geometry;
+
     @JsonProperty("properties")
     private GeoJsonProperty properties;
   }
@@ -45,9 +46,8 @@ public class GeoJsonResponse {
   public static class Geometry {
     @JsonProperty("type")
     private String type;
+
     @JsonProperty("coordinates")
     private List<Double> coordinates;
   }
 }
-
-

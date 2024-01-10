@@ -170,3 +170,4 @@ components:
         - LOGO
         - ATTACHMENT
         - IMAGE
+        - TRANSACTION_SUPPORTING_DOCS

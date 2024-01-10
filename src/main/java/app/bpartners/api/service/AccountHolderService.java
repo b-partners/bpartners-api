@@ -27,7 +27,8 @@ public class AccountHolderService {
 
   public List<AccountHolder> getAll(String name, Integer page, Integer pageSize) {
     Pageable pageable = PageRequest.of(page, pageSize);
-    return name == null ? accountHolderRepository.findAll(pageable)
+    return name == null
+        ? accountHolderRepository.findAll(pageable)
         : accountHolderRepository.findAllByName(name, pageable);
   }
 
@@ -39,41 +40,46 @@ public class AccountHolderService {
     List<AccountHolder> accountHolders = accountHolderRepository.findAllByAccountId(accountId);
     AccountHolder defaultAccountHolder = accountHolders.get(0);
     if (accountHolders.size() > 1) {
-      log.warn("Multiple account holders not supported. "
-          + defaultAccountHolder.describe() + " chosen by default.");
+      log.warn(
+          "Multiple account holders not supported. "
+              + defaultAccountHolder.describe()
+              + " chosen by default.");
     }
     return defaultAccountHolder;
   }
 
-  public AccountHolder updateCompanyInfo(String accountHolderId,
-                                         CompanyInfo companyInfo) {
+  public AccountHolder updateCompanyInfo(String accountHolderId, CompanyInfo companyInfo) {
     AccountHolder accountHolder = accountHolderRepository.findById(accountHolderId);
-    AccountHolder toSave = accountHolder.toBuilder()
-        .socialCapital(companyInfo == null || companyInfo.getSocialCapital() == null
-            ? accountHolder.getSocialCapital()
-            : companyInfo.getSocialCapital())
-        .email(companyInfo == null || companyInfo.getEmail() == null
-            ? accountHolder.getEmail()
-            : companyInfo.getEmail())
-        .website(companyInfo == null
-            ? accountHolder.getWebsite()
-            : companyInfo.getWebsite())
-        .mobilePhoneNumber(companyInfo == null || companyInfo.getPhone() == null
-            ? accountHolder.getMobilePhoneNumber()
-            : companyInfo.getPhone())
-        .subjectToVat(companyInfo == null
-            ? accountHolder.isSubjectToVat()
-            : companyInfo.isSubjectToVat())
-        .location(companyInfo == null || companyInfo.getLocation() == null
-            ? accountHolder.getLocation()
-            : companyInfo.getLocation())
-        .townCode(companyInfo == null || companyInfo.getTownCode() == null
-            ? accountHolder.getTownCode()
-            : companyInfo.getTownCode())
-        .vatNumber(companyInfo == null || companyInfo.getTvaNumber() == null
-            ? accountHolder.getVatNumber()
-            : companyInfo.getTvaNumber())
-        .build();
+    AccountHolder toSave =
+        accountHolder.toBuilder()
+            .socialCapital(
+                companyInfo == null || companyInfo.getSocialCapital() == null
+                    ? accountHolder.getSocialCapital()
+                    : companyInfo.getSocialCapital())
+            .email(
+                companyInfo == null || companyInfo.getEmail() == null
+                    ? accountHolder.getEmail()
+                    : companyInfo.getEmail())
+            .website(companyInfo == null ? accountHolder.getWebsite() : companyInfo.getWebsite())
+            .mobilePhoneNumber(
+                companyInfo == null || companyInfo.getPhone() == null
+                    ? accountHolder.getMobilePhoneNumber()
+                    : companyInfo.getPhone())
+            .subjectToVat(
+                companyInfo == null ? accountHolder.isSubjectToVat() : companyInfo.isSubjectToVat())
+            .location(
+                companyInfo == null || companyInfo.getLocation() == null
+                    ? accountHolder.getLocation()
+                    : companyInfo.getLocation())
+            .townCode(
+                companyInfo == null || companyInfo.getTownCode() == null
+                    ? accountHolder.getTownCode()
+                    : companyInfo.getTownCode())
+            .vatNumber(
+                companyInfo == null || companyInfo.getTvaNumber() == null
+                    ? accountHolder.getVatNumber()
+                    : companyInfo.getTvaNumber())
+            .build();
     return accountHolderRepository.save(toSave);
   }
 
@@ -81,11 +87,9 @@ public class AccountHolderService {
     return accountHolderRepository.save(accountHolder);
   }
 
-  //TODO: map this update with the companyInfoUpdate and refactor to save method only
+  // TODO: map this update with the companyInfoUpdate and refactor to save method only
   public AccountHolder updateBusinessActivities(
-      String accountId,
-      String accountHolderId,
-      BusinessActivity businessActivity) {
+      String accountId, String accountHolderId, BusinessActivity businessActivity) {
     businessActivityService.save(businessActivity);
     return accountHolderRepository.findById(accountHolderId);
   }
@@ -107,11 +111,12 @@ public class AccountHolderService {
   @Transactional
   public AccountHolder findDefaultByIdUser(String idUser) {
     List<AccountHolder> accountHolders = findAllByIdUser(idUser);
-    AccountHolder defaultAccountHolder = accountHolders.isEmpty() ? null
-        : accountHolders.get(0);
+    AccountHolder defaultAccountHolder = accountHolders.isEmpty() ? null : accountHolders.get(0);
     if (accountHolders.size() > 1) {
-      log.warn("Multiple account holders not supported. "
-          + defaultAccountHolder.describe() + " chosen by default.");
+      log.warn(
+          "Multiple account holders not supported. "
+              + defaultAccountHolder.describe()
+              + " chosen by default.");
     }
     return defaultAccountHolder;
   }

@@ -20,6 +20,7 @@ import lombok.ToString;
 public class BridgeListResponse<T> {
   @JsonProperty("resources")
   private List<T> resources;
+
   @JsonProperty("pagination")
   private Pagination pagination;
 

@@ -32,23 +32,28 @@ import org.hibernate.annotations.Type;
 @ToString
 @EqualsAndHashCode
 public class HAccount implements Serializable {
-  @Id
-  private String id;
+  @Id private String id;
+
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "id_user")
   @JsonIgnore
   private HUser user;
+
   private String idBank;
   private String externalId;
+
   @Column(name = "\"name\"")
   private String name;
+
   private String iban;
   private String bic;
-  //TODO: It should be updated each time an account is persisted
+  // TODO: It should be updated each time an account is persisted
   private String availableBalance;
+
   @Type(type = "pgsql_enum")
   @Enumerated(EnumType.STRING)
   private AccountStatus status;
+
   @Type(type = "pgsql_enum")
   @Enumerated(EnumType.STRING)
   private EnableStatus enableStatus;

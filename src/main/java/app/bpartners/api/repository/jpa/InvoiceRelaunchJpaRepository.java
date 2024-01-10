@@ -8,13 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface InvoiceRelaunchJpaRepository extends JpaRepository<HInvoiceRelaunch, String> {
   List<HInvoiceRelaunch> getByInvoiceIdAndType(
-      String invoiceId,
-      RelaunchType type,
-      Pageable pageable
-  );
+      String invoiceId, RelaunchType type, Pageable pageable);
 
-  List<HInvoiceRelaunch> getByInvoiceId(
-      String invoiceId,
-      Pageable pageable
-  );
+  List<HInvoiceRelaunch> getByInvoiceId(String invoiceId, Pageable pageable);
 }

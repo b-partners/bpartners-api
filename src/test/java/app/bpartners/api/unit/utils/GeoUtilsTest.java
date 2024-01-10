@@ -1,9 +1,9 @@
 package app.bpartners.api.unit.utils;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import app.bpartners.api.service.utils.GeoUtils;
 import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class GeoUtilsTest {
   private static GeoUtils.Coordinate coordinate1() {
@@ -16,10 +16,7 @@ class GeoUtilsTest {
 
   @Test
   void compute_distance_km_ok() {
-    assertEquals(0.21126616566096512,
-        GeoUtils.computeDistanceKm(
-            coordinate1(),
-            coordinate2()));
+    assertEquals(0.21126616566096512, GeoUtils.computeDistanceKm(coordinate1(), coordinate2()));
   }
 
   @Test

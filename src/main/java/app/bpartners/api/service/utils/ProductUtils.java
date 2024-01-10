@@ -1,5 +1,11 @@
 package app.bpartners.api.service.utils;
 
+import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
+import static app.bpartners.api.service.utils.FilterUtils.distinctByKeys;
+import static java.util.Objects.isNull;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.jsoup.internal.StringUtil.isBlank;
+
 import app.bpartners.api.endpoint.rest.model.CreateProduct;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.exception.BadRequestException;
@@ -9,7 +15,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
@@ -17,15 +22,8 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 
-import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
-import static app.bpartners.api.service.utils.FilterUtils.distinctByKeys;
-import static java.util.Objects.isNull;
-import static org.apache.commons.lang3.StringUtils.isEmpty;
-import static org.jsoup.internal.StringUtil.isBlank;
-
 public class ProductUtils {
-  private ProductUtils() {
-  }
+  private ProductUtils() {}
 
   public static List<CreateProduct> getProductsFromFile(InputStream fileToRead) {
     try {
@@ -47,9 +45,7 @@ public class ProductUtils {
       workbook.close();
       return createProducts.stream()
           .filter(createProduct -> !hasBlankFields(createProduct))
-          .filter(distinctByKeys(
-              CreateProduct::getDescription
-          ))
+          .filter(distinctByKeys(CreateProduct::getDescription))
           .toList();
     } catch (InvalidFormatException | IOException e) {
       throw new ApiException(SERVER_EXCEPTION, "Failed to parse Excel file : " + e.getMessage());
@@ -98,9 +94,9 @@ public class ProductUtils {
       Cell current = cell.next();
       switch (index) {
         case 0:
-          if (!current.getStringCellValue().trim()
-              .equalsIgnoreCase("description")) {
-            messageBuilder.append("\"Description\" instead of ")
+          if (!current.getStringCellValue().trim().equalsIgnoreCase("description")) {
+            messageBuilder
+                .append("\"Description\" instead of ")
                 .append("\"")
                 .append(current.getStringCellValue())
                 .append("\"")
@@ -109,9 +105,9 @@ public class ProductUtils {
           break;
 
         case 1:
-          if (!current.getStringCellValue().trim()
-              .equalsIgnoreCase("quantité")) {
-            messageBuilder.append("\"Quantité\" instead of ")
+          if (!current.getStringCellValue().trim().equalsIgnoreCase("quantité")) {
+            messageBuilder
+                .append("\"Quantité\" instead of ")
                 .append("\"")
                 .append(current.getStringCellValue())
                 .append("\"")
@@ -120,9 +116,9 @@ public class ProductUtils {
           break;
 
         case 2:
-          if (!current.getStringCellValue().trim()
-              .equalsIgnoreCase("prix unitaire (€)")) {
-            messageBuilder.append("\"Prix unitaire (€)\" instead of ")
+          if (!current.getStringCellValue().trim().equalsIgnoreCase("prix unitaire (€)")) {
+            messageBuilder
+                .append("\"Prix unitaire (€)\" instead of ")
                 .append("\"")
                 .append(current.getStringCellValue())
                 .append("\"")
@@ -131,9 +127,9 @@ public class ProductUtils {
           break;
 
         default:
-          if (!current.getStringCellValue().trim()
-              .equalsIgnoreCase("tva (%)")) {
-            messageBuilder.append("\"TVA (%)\" instead of ")
+          if (!current.getStringCellValue().trim().equalsIgnoreCase("tva (%)")) {
+            messageBuilder
+                .append("\"TVA (%)\" instead of ")
                 .append("\"")
                 .append(current.getStringCellValue())
                 .append("\"")

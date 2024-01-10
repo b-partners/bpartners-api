@@ -16,6 +16,7 @@ import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
+import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
@@ -43,10 +44,11 @@ import org.hibernate.annotations.TypeDef;
 @NoArgsConstructor
 @EqualsAndHashCode
 public class HInvoice implements Serializable {
-  @Id
-  private String id;
+  @Id private String id;
+
   @Column(name = "\"ref\"")
   private String ref;
+
   private String title;
   private String idUser;
   private String paymentUrl;
@@ -56,19 +58,25 @@ public class HInvoice implements Serializable {
   private String delayPenaltyPercent;
   private LocalDate toPayAt;
   private String comment;
+
   @Type(type = "pgsql_enum")
   @Enumerated(EnumType.STRING)
   private PaymentTypeEnum paymentType;
+
   private String fileId;
+
   @Type(type = "pgsql_enum")
   @Enumerated(EnumType.STRING)
   private InvoiceStatus status;
+
   @Type(type = "pgsql_enum")
   @Enumerated(EnumType.STRING)
   private ArchiveStatus archiveStatus;
+
   @ManyToOne
   @JoinColumn(name = "id_customer")
   private HCustomer customer;
+
   private String customerEmail;
 
   private String customerPhone;
@@ -77,23 +85,24 @@ public class HInvoice implements Serializable {
   private String customerCity;
   private Integer customerZipCode;
   private String customerCountry;
-  @OneToMany(
-      orphanRemoval = true,
-      cascade = CascadeType.ALL,
-      fetch = FetchType.EAGER
-  )
+
+  @OneToMany(orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.EAGER)
   @JoinColumn(name = "id_invoice")
   private List<HInvoiceProduct> products = new ArrayList<>();
+
   @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
   @JoinColumn(name = "id_invoice")
   private List<HPaymentRequest> paymentRequests;
+
   @CreationTimestamp
   @Column(updatable = false)
   private Instant createdDatetime;
+
   private Instant updatedAt;
   private boolean toBeRelaunched;
   private String metadataString;
   private String discountPercent;
+
   @Type(type = "pgsql_enum")
   @Enumerated(EnumType.STRING)
   private PaymentMethod paymentMethod;

@@ -1,5 +1,7 @@
 package app.bpartners.api.model.mapper;
 
+import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
+
 import app.bpartners.api.endpoint.rest.model.IdentificationStatus;
 import app.bpartners.api.endpoint.rest.security.model.Role;
 import app.bpartners.api.model.Bank;
@@ -17,8 +19,6 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
-
 @Component
 @AllArgsConstructor
 @Slf4j
@@ -33,9 +33,12 @@ public class UserMapper {
 
   public User toDomain(HUser entity, Bank bank) {
     return toDomain(entity).toBuilder()
-        .accounts(entity.getAccounts() == null ? null : entity.getAccounts().stream()
-            .map(account -> accountMapper.toDomain(account, bank))
-            .collect(Collectors.toList()))
+        .accounts(
+            entity.getAccounts() == null
+                ? null
+                : entity.getAccounts().stream()
+                    .map(account -> accountMapper.toDomain(account, bank))
+                    .collect(Collectors.toList()))
         .build();
   }
 
@@ -57,18 +60,22 @@ public class UserMapper {
         .idVerified(entityUser.getIdVerified())
         .identificationStatus(entityUser.getIdentificationStatus())
         .oldS3key(entityUser.getOldS3AccountKey())
-        .accounts(entityUser.getAccounts() == null ? null : entityUser.getAccounts().stream()
-            .map(account -> accountMapper.toDomain(account, null))
-            .collect(Collectors.toList()))
-        .accountHolders(entityUser.getAccountHolders() == null ? null
-            : entityUser.getAccountHolders().stream()
-            .map(accountHolderMapper::toDomain)
-            .collect(Collectors.toList()))
+        .accounts(
+            entityUser.getAccounts() == null
+                ? null
+                : entityUser.getAccounts().stream()
+                    .map(account -> accountMapper.toDomain(account, null))
+                    .collect(Collectors.toList()))
+        .accountHolders(
+            entityUser.getAccountHolders() == null
+                ? null
+                : entityUser.getAccountHolders().stream()
+                    .map(accountHolderMapper::toDomain)
+                    .collect(Collectors.toList()))
         .preferredAccountId(entityUser.getPreferredAccountId())
         .externalUserId(entityUser.getBridgeUserId())
         .connectionStatus(entityUser.getBankConnectionStatus())
-        .roles(entityUser.getRoles() == null ? List.of()
-            : Arrays.asList(entityUser.getRoles()))
+        .roles(entityUser.getRoles() == null ? List.of() : Arrays.asList(entityUser.getRoles()))
         .snsArn(entityUser.getSnsArn())
         .deviceToken(entityUser.getDeviceToken())
         .build();
@@ -111,18 +118,14 @@ public class UserMapper {
         .bridgeItemId(toSave.getBankConnectionId())
         .logoFileId(toSave.getLogoFileId())
         .monthlySubscription(toSave.getMonthlySubscription())
-        .roles(toSave.getRoles() == null ? new Role[] {}
-            : toSave.getRoles().toArray(Role[]::new))
+        .roles(toSave.getRoles() == null ? new Role[] {} : toSave.getRoles().toArray(Role[]::new))
         .snsArn(toSave.getSnsArn())
         .deviceToken(toSave.getDeviceToken())
         .build();
   }
 
   public HUser toEntity(User user, List<HAccountHolder> accountHolders, List<HAccount> accounts) {
-    return toEntity(user).toBuilder()
-        .accountHolders(accountHolders)
-        .accounts(accounts)
-        .build();
+    return toEntity(user).toBuilder().accountHolders(accountHolders).accounts(accounts).build();
   }
 
   public HUser toEntity(User toSave, BridgeUser bridgeUser) {

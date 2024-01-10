@@ -13,6 +13,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -27,34 +28,44 @@ import org.hibernate.annotations.Type;
 @AllArgsConstructor
 @Builder(toBuilder = true)
 @NoArgsConstructor
+@EqualsAndHashCode
 public class HTransaction {
-  @Id
-  private String id;
+  @Id private String id;
   private String idAccount;
   private Long idBridge;
+
   @ManyToOne
   @JoinColumn(name = "id_invoice")
   private HInvoice invoice;
+
   private String amount;
   private String currency;
   private String label;
   private String reference;
   private String side;
+
   @Type(type = "pgsql_enum")
   @Enumerated(EnumType.STRING)
   private TransactionStatus status;
-  //Used to filter transactions summary only for enabled
+
+  // Used to filter transactions summary only for enabled
   @Type(type = "pgsql_enum")
   @Enumerated(EnumType.STRING)
   @Column(name = "transaction_enable_status")
   private EnableStatus enableStatus;
+
   private Instant paymentDateTime;
 
   public String describe() {
     return "Transaction("
-        + "id='" + id + '\''
-        + ", idBridge=" + idBridge
-        + ", label='" + label + '\''
+        + "id='"
+        + id
+        + '\''
+        + ", idBridge="
+        + idBridge
+        + ", label='"
+        + label
+        + '\''
         + ')';
   }
 }

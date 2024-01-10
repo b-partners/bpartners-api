@@ -19,24 +19,17 @@ public class EmailRepositoryImpl implements EmailRepository {
   @Override
   public Email findById(String id) {
     Optional<HEmail> optionEmail = jpaRepository.findById(id);
-    return optionEmail.map(emailMapper::toDomain)
-        .orElse(null);
+    return optionEmail.map(emailMapper::toDomain).orElse(null);
   }
 
   @Override
   public List<Email> findAllByUserId(String userId) {
-    return jpaRepository.findAllByIdUser(userId).stream()
-        .map(emailMapper::toDomain)
-        .toList();
+    return jpaRepository.findAllByIdUser(userId).stream().map(emailMapper::toDomain).toList();
   }
 
   @Override
   public List<Email> saveAll(List<Email> emails) {
-    List<HEmail> emailEntities = emails.stream()
-        .map(emailMapper::toEntity)
-        .toList();
-    return jpaRepository.saveAll(emailEntities).stream()
-        .map(emailMapper::toDomain)
-        .toList();
+    List<HEmail> emailEntities = emails.stream().map(emailMapper::toEntity).toList();
+    return jpaRepository.saveAll(emailEntities).stream().map(emailMapper::toDomain).toList();
   }
 }

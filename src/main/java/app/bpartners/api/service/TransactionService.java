@@ -6,6 +6,7 @@ import app.bpartners.api.endpoint.rest.model.TransactionStatus;
 import app.bpartners.api.endpoint.rest.model.TransactionTypeEnum;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.BoundedPageSize;
+import app.bpartners.api.model.FileInfo;
 import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.JustifyTransaction;
@@ -14,6 +15,7 @@ import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.model.Transaction;
 import app.bpartners.api.model.TransactionExportDetails;
 import app.bpartners.api.model.TransactionInvoiceDetails;
+import app.bpartners.api.model.TransactionSupportingDocs;
 import app.bpartners.api.model.TransactionsSummary;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.ApiException;
@@ -22,6 +24,8 @@ import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.repository.BridgeTransactionRepository;
 import app.bpartners.api.repository.DbTransactionRepository;
 import app.bpartners.api.repository.TransactionsSummaryRepository;
+import app.bpartners.api.repository.jpa.TransactionSupportingDocsJpaRepository;
+import app.bpartners.api.repository.jpa.model.HTransactionSupportingDocs;
 import app.bpartners.api.service.aws.S3Service;
 import app.bpartners.api.service.utils.DateUtils;
 import java.io.ByteArrayOutputStream;
@@ -47,9 +51,9 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.apfloat.Aprational;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import static app.bpartners.api.endpoint.rest.model.FileType.TRANSACTION_SUPPORTING_DOCS;
 import static app.bpartners.api.endpoint.rest.model.TransactionStatus.BOOKED;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 import static java.time.Instant.now;
@@ -62,15 +66,58 @@ public class TransactionService {
   public static final long ONE_HOUR_IN_SECONDS = 3600L;
   private final DbTransactionRepository dbTransactionRepository;
   private final BridgeTransactionRepository bridgeTransactionRepository;
+  private final TransactionSupportingDocsJpaRepository docsJpaRepository;
   private final TransactionsSummaryRepository summaryRepository;
   private final AccountService accountService;
   private final InvoiceService invoiceService;
   private final S3Service s3Service;
   private final UserService userService;
+  private final FileService fileService;
 
-  public TransactionExportDetails generateTransactionSummaryLink(String idAccount,
-                                                                 Instant from, Instant to,
-                                                                 TransactionStatus transactionStatus) {
+  public List<TransactionSupportingDocs> getSupportingDocuments(String transactionId) {
+    Transaction transaction = dbTransactionRepository.findById(transactionId);
+    return transaction.getSupportingDocuments();
+  }
+
+  public List<TransactionSupportingDocs> addSupportingDocuments(
+      String idUser, String transactionId, byte[] documentAsBytes) {
+    Transaction transaction = dbTransactionRepository.findById(transactionId);
+
+    String fileId = String.valueOf(randomUUID());
+    String supportingDocsId = String.valueOf(randomUUID());
+
+    FileInfo uploadedFileInfo =
+        fileService.upload(fileId, TRANSACTION_SUPPORTING_DOCS, idUser, documentAsBytes);
+
+    /*
+    TODO: historize by ENABLE and DISABLE status instead of replacing old
+    List<TransactionSupportingDocs> actualDocs =
+        new ArrayList<>(transaction.getSupportingDocuments());
+
+    actualDocs.add(
+        TransactionSupportingDocs.builder()
+            .id(supportingDocsId)
+            .fileInfo(uploadedFileInfo)
+            .build());*/
+
+    List<TransactionSupportingDocs> newSupportingDocs =
+        List.of(TransactionSupportingDocs.builder()
+            .id(supportingDocsId)
+            .fileInfo(uploadedFileInfo)
+            .build());
+
+    Transaction savedTransaction =
+        dbTransactionRepository
+            .saveAll(List.of(transaction.toBuilder()
+                .invoiceDetails(null)
+                .supportingDocuments(newSupportingDocs).build()))
+            .get(0);
+
+    return savedTransaction.getSupportingDocuments();
+  }
+
+  public TransactionExportDetails generateTransactionSummaryLink(
+      String idAccount, Instant from, Instant to, TransactionStatus transactionStatus) {
     if (from.isAfter(to)) {
       throw new BadRequestException(
           String.format("Min interval (%s) must be after max interval (%s)", from, to));
@@ -80,9 +127,7 @@ public class TransactionService {
     }
     List<Transaction> transactions =
         dbTransactionRepository.findByAccountIdAndStatusBetweenInstants(
-            idAccount,
-            transactionStatus,
-            from, to);
+            idAccount, transactionStatus, from, to);
     User user = userService.getByIdAccount(idAccount);
 
     Map<byte[], Map<String, String>> excelFileWithAssociatedInvoices =
@@ -92,9 +137,9 @@ public class TransactionService {
         convertToFileNameAndBytes(user, excelFileWithAssociatedInvoices.get(transactionExcelBytes));
 
     String transactionExcelFileName =
-        String.format("Transactions du %s au %s.xlsx",
-            DateUtils.formatFrenchDateUnderscore(from),
-            DateUtils.formatFrenchDateUnderscore(to));
+        String.format(
+            "Transactions du %s au %s.xlsx",
+            DateUtils.formatFrenchDateUnderscore(from), DateUtils.formatFrenchDateUnderscore(to));
     byte[] compressed =
         compressedFiles(transactionExcelFileName, transactionExcelBytes, pdfInvoices);
     String compressedFileId = String.valueOf(randomUUID());
@@ -102,11 +147,9 @@ public class TransactionService {
 
     Instant createdAt = now();
     Instant expiredAt = createdAt.plusSeconds(ONE_HOUR_IN_SECONDS);
-    String presignedUrl = s3Service.getPresignedUrl(
-        FileType.TRANSACTION,
-        user.getId(),
-        compressedFileId,
-        ONE_HOUR_IN_SECONDS);
+    String presignedUrl =
+        s3Service.getPresignedUrl(
+            FileType.TRANSACTION, user.getId(), compressedFileId, ONE_HOUR_IN_SECONDS);
     return TransactionExportDetails.builder()
         .downloadLink(presignedUrl)
         .createdAt(createdAt)
@@ -114,13 +157,13 @@ public class TransactionService {
         .build();
   }
 
-  private Map<String, byte[]> convertToFileNameAndBytes(User user,
-                                                        Map<String, String> invoiceFileInfos) {
+  private Map<String, byte[]> convertToFileNameAndBytes(
+      User user, Map<String, String> invoiceFileInfos) {
     Map<String, byte[]> pdfInvoices = new HashMap<>();
     invoiceFileInfos.forEach(
-        (fileName, fileId) -> pdfInvoices.put(
-            fileName, s3Service.downloadFile(FileType.INVOICE, user.getId(), fileId))
-    );
+        (fileName, fileId) ->
+            pdfInvoices.put(
+                fileName, s3Service.downloadFile(FileType.INVOICE, user.getId(), fileId)));
     return pdfInvoices;
   }
 
@@ -136,14 +179,14 @@ public class TransactionService {
     return mapWithoutDuplicates;
   }
 
-  private byte[] compressedFiles(String transactionExcelFileName,
-                                 byte[] transactionExcelFile,
-                                 Map<String, byte[]> filesWithName) {
+  private byte[] compressedFiles(
+      String transactionExcelFileName,
+      byte[] transactionExcelFile,
+      Map<String, byte[]> filesWithName) {
     try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
          ZipOutputStream zos = new ZipOutputStream(baos)) {
 
-      zos.putNextEntry(
-          new ZipEntry(transactionExcelFileName));
+      zos.putNextEntry(new ZipEntry(transactionExcelFileName));
       zos.write(transactionExcelFile, 0, transactionExcelFile.length);
       zos.closeEntry();
 
@@ -179,14 +222,17 @@ public class TransactionService {
       headerRow.createCell(5).setCellValue("Facture associée");
       headerRow.createCell(6).setCellValue("Date de paiement");
 
-      List<Transaction> transactionsByPaymentDateDesc = transactions.stream()
-          .sorted(Comparator.comparing(Transaction::getPaymentDatetime).reversed())
-          .toList();
+      List<Transaction> transactionsByPaymentDateDesc =
+          transactions.stream()
+              .sorted(Comparator.comparing(Transaction::getPaymentDatetime).reversed())
+              .toList();
       int row = 1;
       for (Transaction transaction : transactionsByPaymentDateDesc) {
         TransactionInvoiceDetails invoiceDetails = transaction.getInvoiceDetails();
-        Invoice invoice = invoiceDetails == null || invoiceDetails.getIdInvoice() == null ? null :
-            invoiceService.getById(invoiceDetails.getIdInvoice());
+        Invoice invoice =
+            invoiceDetails == null || invoiceDetails.getIdInvoice() == null
+                ? null
+                : invoiceService.getById(invoiceDetails.getIdInvoice());
         if (invoice != null && invoice.getFileId() != null) {
           invoiceNameAndFileIds.put(invoice.getRef(), invoice.getFileId());
         }
@@ -195,15 +241,22 @@ public class TransactionService {
         currentRow.createCell(0).setCellValue(transaction.getId());
         currentRow.createCell(1).setCellValue(transaction.getLabel());
         currentRow.createCell(2).setCellValue(transaction.getSide());
-        currentRow.createCell(3)
+        currentRow
+            .createCell(3)
             .setCellValue(transaction.getAmount().getValue().getCentsAsDecimal());
-        currentRow.createCell(4).setCellValue(
-            transaction.getCategory() == null ? "" : transaction.getCategory().getDescription());
-        currentRow.createCell(5).setCellValue(
-            invoice == null ? "" : invoice.getRef());
-        currentRow.createCell(6)
-            .setCellValue(transaction.getPaymentDatetime() == null ? ""
-                : DateUtils.formatFrenchDate(transaction.getPaymentDatetime()));
+        currentRow
+            .createCell(4)
+            .setCellValue(
+                transaction.getCategory() == null
+                    ? ""
+                    : transaction.getCategory().getDescription());
+        currentRow.createCell(5).setCellValue(invoice == null ? "" : invoice.getRef());
+        currentRow
+            .createCell(6)
+            .setCellValue(
+                transaction.getPaymentDatetime() == null
+                    ? ""
+                    : DateUtils.formatFrenchDate(transaction.getPaymentDatetime()));
         row++;
       }
       outputStream = new ByteArrayOutputStream();
@@ -218,7 +271,6 @@ public class TransactionService {
 
   private static Instant getFirstDayOfYear(int year) {
     return getFirstDayOfMonth(YearMonth.of(year, Month.JANUARY.getValue()));
-
   }
 
   private static Instant getLastDayOfYear(int year) {
@@ -226,11 +278,7 @@ public class TransactionService {
   }
 
   private static Instant getFirstDayOfMonth(YearMonth yearMonth) {
-    return yearMonth
-        .atDay(1)
-        .atStartOfDay()
-        .toInstant(ZoneOffset.UTC)
-        .truncatedTo(ChronoUnit.DAYS);
+    return yearMonth.atDay(1).atStartOfDay().toInstant(ZoneOffset.UTC).truncatedTo(ChronoUnit.DAYS);
   }
 
   private static Instant getLastDayOfMonth(YearMonth yearMonth) {
@@ -245,26 +293,28 @@ public class TransactionService {
 
   private static List<Transaction> filterByTwoInstants(
       List<Transaction> transactions, Instant from, Instant to) {
-    return transactions.stream().filter(
-            transaction -> transaction.getPaymentDatetime().isAfter(from)
-                &&
-                transaction.getPaymentDatetime().isBefore(to)
-        )
+    return transactions.stream()
+        .filter(
+            transaction ->
+                transaction.getPaymentDatetime().isAfter(from)
+                    && transaction.getPaymentDatetime().isBefore(to))
         .toList();
   }
 
-  public List<Transaction> getPersistedByIdAccount(String idAccount,
-                                                   String label,
-                                                   TransactionStatus status,
-                                                   String category,
-                                                   PageFromOne page, BoundedPageSize pageSize) {
+  public List<Transaction> getPersistedByIdAccount(
+      String idAccount,
+      String label,
+      TransactionStatus status,
+      String category,
+      PageFromOne page,
+      BoundedPageSize pageSize) {
     int pageValue = page == null ? 0 : page.getValue() - 1;
     int pageSizeValue = pageSize == null ? 30 : pageSize.getValue();
     if (category != null) {
       throw new NotImplementedException("prospect conversion not implemented yet");
     }
-    return dbTransactionRepository.findByIdAccount(idAccount, label, status, pageValue,
-        pageSizeValue);
+    return dbTransactionRepository.findByIdAccount(
+        idAccount, label, status, pageValue, pageSizeValue);
   }
 
   public Transaction getById(String transactionId) {
@@ -278,11 +328,16 @@ public class TransactionService {
     return summaryRepository.getByIdUserAndYear(idUser, year);
   }
 
+  //TODO: change to transactionRepository.save(Transaction toSsave)
   public Transaction justifyTransaction(String idTransaction, String idInvoice) {
-    return dbTransactionRepository.save(JustifyTransaction.builder()
-        .idTransaction(idTransaction)
-        .idInvoice(idInvoice)
-        .build());
+    List<HTransactionSupportingDocs> supportingDocs =
+        docsJpaRepository.findAllByIdTransaction(idTransaction);
+    docsJpaRepository.deleteAllById(supportingDocs.stream()
+        .map(HTransactionSupportingDocs::getId)
+        .toList());
+
+    return dbTransactionRepository.save(
+        JustifyTransaction.builder().idTransaction(idTransaction).idInvoice(idInvoice).build());
   }
 
   public void refreshCurrentYearSummary(Account account) {
@@ -290,14 +345,15 @@ public class TransactionService {
     List<Transaction> yearlyTransactions =
         bridgeTransactionRepository.findByAccountIdAndStatusBetweenInstants(
             account.getId(), BOOKED, getFirstDayOfYear(actualYear), getLastDayOfYear(actualYear));
-    List<Transaction> enabledTransactions = yearlyTransactions.stream()
-        .filter(transaction -> transaction.getEnableStatus() == EnableStatus.ENABLED)
-        .toList();
+    List<Transaction> enabledTransactions =
+        yearlyTransactions.stream()
+            .filter(transaction -> transaction.getEnableStatus() == EnableStatus.ENABLED)
+            .toList();
     for (int i = Month.JANUARY.getValue(); i <= Month.DECEMBER.getValue(); i++) {
       YearMonth yearMonth = YearMonth.of(actualYear, i);
-      List<Transaction> monthlyTransactions = filterByTwoInstants(enabledTransactions,
-          getFirstDayOfMonth(yearMonth),
-          getLastDayOfMonth(yearMonth));
+      List<Transaction> monthlyTransactions =
+          filterByTwoInstants(
+              enabledTransactions, getFirstDayOfMonth(yearMonth), getLastDayOfMonth(yearMonth));
       refreshMonthSummary(account, YearMonth.of(actualYear, i), monthlyTransactions);
     }
   }
@@ -314,8 +370,9 @@ public class TransactionService {
           }
           if (transaction.getType().equals(TransactionTypeEnum.OUTCOME)) {
             outcomeReference.set(
-                outcomeReference.get().operate(
-                    transaction.getAmount().getValue(), Aprational::add));
+                outcomeReference
+                    .get()
+                    .operate(transaction.getAmount().getValue(), Aprational::add));
           }
         });
 
@@ -327,8 +384,7 @@ public class TransactionService {
     saveSummariesByYearMonth(
         account.getUserId(),
         yearMonth.getYear(),
-        MonthlyTransactionsSummary
-            .builder()
+        MonthlyTransactionsSummary.builder()
             .id(actualSummary == null ? null : actualSummary.getId())
             .income(incomeValue)
             .outcome(outcomeValue)
@@ -342,22 +398,19 @@ public class TransactionService {
     summaryRepository.updateYearMonthSummary(idUser, year, monthlyTransactionsSummary);
   }
 
-  public MonthlyTransactionsSummary getByIdUserAndYearMonth(
-      String idUser, YearMonth yearMonth) {
+  public MonthlyTransactionsSummary getByIdUserAndYearMonth(String idUser, YearMonth yearMonth) {
     return summaryRepository.getByIdUserAndYearMonth(
         idUser, yearMonth.getYear(), yearMonth.getMonthValue() - 1);
   }
 
-  //TODO: check if 1 hour of refresh is enough or too much
-  //TODO: note that account (balance) is _NOT_ updated by this scheduled task anymore
-  @Scheduled(fixedRate = 60 * 60 * 1_000)
+  // TODO: check if 1 hour of refresh is enough or too much
+  // TODO: note that account (balance) is _NOT_ updated by this scheduled task anymore
   public void refreshTransactionsSummaries() {
     List<Account> activeAccounts = accountService.findAllActiveAccounts();
     activeAccounts.forEach(
         account -> {
           refreshCurrentYearSummary(account);
           log.info("Transactions summaries refreshed for {}", account.describeInfos());
-        }
-    );
+        });
   }
 }

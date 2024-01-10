@@ -7,10 +7,11 @@ import app.bpartners.api.repository.jpa.model.HCalendarStoredCredential;
 import org.springframework.stereotype.Component;
 
 @Component
-public class CalendarDbCredentialStore extends
-    DbCredentialStore<HCalendarStoredCredential, CalendarStoredCredentialJpaRep, CalendarCredentialMapper> {
-  public CalendarDbCredentialStore(CalendarStoredCredentialJpaRep repository,
-                                   CalendarCredentialMapper mapper) {
+public class CalendarDbCredentialStore
+    extends DbCredentialStore<
+        HCalendarStoredCredential, CalendarStoredCredentialJpaRep, CalendarCredentialMapper> {
+  public CalendarDbCredentialStore(
+      CalendarStoredCredentialJpaRep repository, CalendarCredentialMapper mapper) {
     super(repository, mapper);
   }
 }

@@ -28,7 +28,8 @@ public class FintectureMapper {
         .street(accountHolder.getAddress())
         .city(accountHolder.getCity())
         .country(accountHolder.getCountry().substring(0, 2))
-        .zip(accountHolder.getPostalCode()).build();
+        .zip(accountHolder.getPostalCode())
+        .build();
   }
 
   private void checkMandatoryHolderInfos(AccountHolder accountHolder) {
@@ -51,21 +52,27 @@ public class FintectureMapper {
     }
   }
 
-  //TODO: put these checks properly
+  // TODO: put these checks properly
   public FPaymentInitiation toFintectureResource(
       PaymentInitiation domain, Account account, AccountHolder accountHolder) {
     if (account.getIban() == null) {
       throw new BadRequestException(
           "Account("
-              + "id=" + account.getId()
-              + ", name=" + account.getName() + ") "
+              + "id="
+              + account.getId()
+              + ", name="
+              + account.getName()
+              + ") "
               + "does not have iban. Iban is mandatory to initiate payment");
     }
     if (account.getBic() == null) {
       throw new BadRequestException(
           "Account("
-              + "id=" + account.getId()
-              + ", name=" + account.getName() + ") "
+              + "id="
+              + account.getId()
+              + ", name="
+              + account.getName()
+              + ") "
               + "does not have bic. Bic is mandatory to initiate payment");
     }
     Beneficiary beneficiary = toBeneficiary(account, accountHolder);
@@ -87,12 +94,15 @@ public class FintectureMapper {
 
   private String getCommunicationValue(PaymentInitiation domain) {
     if (domain.getLabel() == null || domain.getLabel().length() < 3) {
-      log.warn("Payment label " + domain.getLabel() + " was null or < 3 chars. "
-          + "EMPTY_LABEL set by default for " + domain);
+      log.warn(
+          "Payment label "
+              + domain.getLabel()
+              + " was null or < 3 chars. "
+              + "EMPTY_LABEL set by default for "
+              + domain);
       return "EMPTY_LABEL";
     }
-    return PatternMatcher.filterCharacters(
-        domain.getLabel(), CUSTOM_COMMUNICATION_PATTERN);
+    return PatternMatcher.filterCharacters(domain.getLabel(), CUSTOM_COMMUNICATION_PATTERN);
   }
 
   public app.bpartners.api.model.PaymentRedirection toDomain(

@@ -20,9 +20,7 @@ public class EmailMapper {
         .object(entity.getObject())
         .body(entity.getBody())
         .status(entity.getStatus())
-        .attachments(entity.getAttachments().stream()
-            .map(attachmentMapper::toDomain)
-            .toList())
+        .attachments(entity.getAttachments().stream().map(attachmentMapper::toDomain).toList())
         .sendingDatetime(entity.getSendingDatetime())
         .updatedAt(entity.getUpdatedAt())
         .build();
@@ -36,9 +34,7 @@ public class EmailMapper {
         .body(domain.getBody())
         .recipients(DataTypeUtils.encodeJsonList(domain.getRecipients()))
         .status(domain.getStatus())
-        .attachments(domain.getAttachments().stream()
-            .map(attachmentMapper::toEntity)
-            .toList())
+        .attachments(domain.getAttachments().stream().map(attachmentMapper::toEntity).toList())
         .sendingDatetime(domain.getSendingDatetime())
         .updatedAt(Instant.now())
         .build();

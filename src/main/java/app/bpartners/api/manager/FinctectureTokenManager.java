@@ -1,5 +1,8 @@
 package app.bpartners.api.manager;
 
+import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
+import static app.bpartners.api.repository.fintecture.FintectureConf.PIS_SCOPE;
+
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.repository.fintecture.FintectureConf;
 import app.bpartners.api.repository.fintecture.model.TokenResponse;
@@ -19,9 +22,6 @@ import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
-import static app.bpartners.api.repository.fintecture.FintectureConf.PIS_SCOPE;
-
 @Component
 @AllArgsConstructor
 public class FinctectureTokenManager {
@@ -32,15 +32,20 @@ public class FinctectureTokenManager {
     try {
       HttpClient httpClient = HttpClient.newBuilder().build();
       HttpRequest.BodyPublisher data = getParamsUrlEncoded(tokenMap());
-      HttpRequest request = HttpRequest.newBuilder()
-          .uri(new URI(fintectureConf.getOauthUrl()))
-          .header("Content-Type", "application/x-www-form-urlencoded")
-          .header("Accept", "application/json")
-          .header("Authorization", BASIC_PREFIX + Base64.getEncoder()
-              .encodeToString(
-                  (fintectureConf.getAppId() + ":" + fintectureConf.getAppSecret()).getBytes()))
-          .POST(data)
-          .build();
+      HttpRequest request =
+          HttpRequest.newBuilder()
+              .uri(new URI(fintectureConf.getOauthUrl()))
+              .header("Content-Type", "application/x-www-form-urlencoded")
+              .header("Accept", "application/json")
+              .header(
+                  "Authorization",
+                  BASIC_PREFIX
+                      + Base64.getEncoder()
+                          .encodeToString(
+                              (fintectureConf.getAppId() + ":" + fintectureConf.getAppSecret())
+                                  .getBytes()))
+              .POST(data)
+              .build();
       HttpResponse<String> response =
           httpClient.send(request, HttpResponse.BodyHandlers.ofString());
       return new ObjectMapper()
@@ -55,10 +60,10 @@ public class FinctectureTokenManager {
   }
 
   private HttpRequest.BodyPublisher getParamsUrlEncoded(Map<String, String> parameters) {
-    String urlEncoded = parameters.entrySet()
-        .stream()
-        .map(e -> e.getKey() + "=" + URLEncoder.encode(e.getValue(), StandardCharsets.UTF_8))
-        .collect(Collectors.joining("&"));
+    String urlEncoded =
+        parameters.entrySet().stream()
+            .map(e -> e.getKey() + "=" + URLEncoder.encode(e.getValue(), StandardCharsets.UTF_8))
+            .collect(Collectors.joining("&"));
     return HttpRequest.BodyPublishers.ofString(urlEncoded);
   }
 

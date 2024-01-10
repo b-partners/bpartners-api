@@ -114,6 +114,149 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
+  transactionSupportingDocuments:
+    get:
+      tags:
+        - Paying
+      summary: Get supporting documents file infos for a transaction
+      operationId: getTransactionSupportingDocuments
+      parameters:
+        - in: path
+          name: aId
+          description: Account identifier
+          schema:
+            type: string
+          required: true
+        - in: path
+          name: tId
+          description: Transaction identifier
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description: Supporting documents file infos associated to transactions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: './files-api.yml/#/components/schemas/FileInfo'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
+    post:
+      tags:
+        - Paying
+      summary: |
+        Add supporting documents file infos for a transaction.
+        For now, only one document can be uploaded at once.
+      operationId: addTransactionSupportingDocuments
+      parameters:
+        - in: path
+          name: aId
+          description: Account identifier
+          schema:
+            type: string
+          required: true
+        - in: path
+          name: tId
+          description: Transaction identifier
+          schema:
+            type: string
+          required: true
+      requestBody:
+        required: true
+        description: |
+          Allowed file types are JPEG, PNG and PDF.
+          Only one supporting document can be uploaded at once for now.
+          File size must be under or equals 1MB.
+        content:
+          image/jpeg:
+            schema:
+              type: string
+              format: binary
+          image/png:
+            schema:
+              type: string
+              format: binary
+          application/pdf:
+            schema:
+              type: string
+              format: binary
+      responses:
+        200:
+          description: Supporting documents file infos associated to transactions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: './files-api.yml/#/components/schemas/FileInfo'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
+    delete:
+      tags:
+        - Paying
+      summary: Delete supporting documents associated to transaction
+      operationId: deleteTransactionSupportingDocuments
+      parameters:
+        - in: path
+          name: aId
+          description: Account identifier
+          schema:
+            type: string
+          required: true
+        - in: path
+          name: tId
+          description: Deleted supporting documents
+          schema:
+            type: string
+          required: true
+      requestBody:
+        required: true
+        description: Supporting documents file infos identifier
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: string
+                description: Supporting documents file infos identifier
+      responses:
+        200:
+          description: Deleted transaction supporting documents
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: './files-api.yml/#/components/schemas/FileInfo'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
   justifyTransaction:
     put:
       tags:
@@ -1178,7 +1321,12 @@ components:
         status:
           $ref: '#/components/schemas/TransactionStatus'
         invoice:
+          deprecated: true
           $ref: '#/components/schemas/TransactionInvoice'
+        supportingDocs:
+          type: array
+          items:
+            $ref: './files-api.yml/#/components/schemas/FileInfo'
     TransactionTypeEnum:
       type: string
       enum:

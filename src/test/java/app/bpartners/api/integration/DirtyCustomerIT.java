@@ -1,45 +1,34 @@
 package app.bpartners.api.integration;
 
-import app.bpartners.api.endpoint.rest.api.CustomersApi;
-import app.bpartners.api.endpoint.rest.client.ApiClient;
-import app.bpartners.api.endpoint.rest.client.ApiException;
-import app.bpartners.api.endpoint.rest.model.Customer;
-import app.bpartners.api.integration.conf.DbEnvContextInitializer;
-import app.bpartners.api.integration.conf.MockedThirdParties;
-import app.bpartners.api.integration.conf.utils.TestUtils;
-import app.bpartners.api.service.aws.SesService;
-import java.util.ArrayList;
-import java.util.List;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.testcontainers.junit.jupiter.Testcontainers;
-
 import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_TOKEN;
 import static app.bpartners.api.integration.conf.utils.TestUtils.customer1;
 import static app.bpartners.api.integration.conf.utils.TestUtils.customer2;
 import static app.bpartners.api.integration.conf.utils.TestUtils.setUpCognito;
 import static app.bpartners.api.integration.conf.utils.TestUtils.setUpLegalFileRepository;
-import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import static org.springframework.test.annotation.DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD;
 
-@SpringBootTest(webEnvironment = RANDOM_PORT)
+import app.bpartners.api.endpoint.rest.api.CustomersApi;
+import app.bpartners.api.endpoint.rest.client.ApiClient;
+import app.bpartners.api.endpoint.rest.client.ApiException;
+import app.bpartners.api.endpoint.rest.model.Customer;
+import app.bpartners.api.integration.conf.MockedThirdParties;
+import app.bpartners.api.integration.conf.utils.TestUtils;
+import java.util.ArrayList;
+import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.test.annotation.DirtiesContext;
+import org.testcontainers.junit.jupiter.Testcontainers;
+
 @Testcontainers
-@ContextConfiguration(initializers = DbEnvContextInitializer.class)
 @DirtiesContext(classMode = BEFORE_EACH_TEST_METHOD)
 class DirtyCustomerIT extends MockedThirdParties {
-  @MockBean
-  private SesService sesServiceMock;
 
-  private static ApiClient anApiClient() {
-    return TestUtils.anApiClient(JOE_DOE_TOKEN, DbEnvContextInitializer.getHttpServerPort());
+  private ApiClient anApiClient() {
+    return TestUtils.anApiClient(JOE_DOE_TOKEN, localPort);
   }
 
   @BeforeEach
@@ -53,29 +42,67 @@ class DirtyCustomerIT extends MockedThirdParties {
     ApiClient joeDoeClient = anApiClient();
     CustomersApi api = new CustomersApi(joeDoeClient);
 
-    List<Customer> actualNoFilter = ignoreUpdatedAndCreatedAt(api.getCustomers(
-        JOE_DOE_ACCOUNT_ID, null, null, null, null, null, null,
-        null, null, 1, 20));
-    List<Customer> actualFilteredByFirstAndLastName = ignoreUpdatedAndCreatedAt(api.getCustomers(
-        JOE_DOE_ACCOUNT_ID, "Jean", "Plombier", null, null, null, null,
-        null, null, 1, 20));
-    List<Customer> actualFilteredByEmail = ignoreUpdatedAndCreatedAt(api.getCustomers(
-        JOE_DOE_ACCOUNT_ID, null, null,
-        "bpartners.artisans@gmail.com", null, null, null,
-        null, null, 1, 20));
-    List<Customer> actualFilteredByPhoneNumber = ignoreUpdatedAndCreatedAt(api.getCustomers(
-        JOE_DOE_ACCOUNT_ID, null, null, null, "+33 12 34 56 78", null, null,
-        null, null, 1, 20));
-    List<Customer> actualFilteredByCity = ignoreUpdatedAndCreatedAt(api.getCustomers(
-        JOE_DOE_ACCOUNT_ID, null, null, null, null, "Metz", null,
-        null, null, 1, 20));
-    List<Customer> actualFilteredByCountry = ignoreUpdatedAndCreatedAt(api.getCustomers(
-        JOE_DOE_ACCOUNT_ID, null, null, null, null, null, "Allemagne",
-        null, null, 1, 20));
-    List<Customer> actualFilteredByFirstNameAndCity = ignoreUpdatedAndCreatedAt(api.getCustomers(
-        JOE_DOE_ACCOUNT_ID, "Jean", null, null, null, "Montmorency", null,
-        null, null, 1, 20));
+    List<Customer> actualNoFilter =
+        ignoreUpdatedAndCreatedAt(
+            api.getCustomers(
+                JOE_DOE_ACCOUNT_ID, null, null, null, null, null, null, null, null, 1, 20));
+    List<Customer> actualFilteredByFirstAndLastName =
+        ignoreUpdatedAndCreatedAt(
+            api.getCustomers(
+                JOE_DOE_ACCOUNT_ID, "Jean", "Plombier", null, null, null, null, null, null, 1, 20));
+    List<Customer> actualFilteredByEmail =
+        ignoreUpdatedAndCreatedAt(
+            api.getCustomers(
+                JOE_DOE_ACCOUNT_ID,
+                null,
+                null,
+                "bpartners.artisans@gmail.com",
+                null,
+                null,
+                null,
+                null,
+                null,
+                1,
+                20));
+    List<Customer> actualFilteredByPhoneNumber =
+        ignoreUpdatedAndCreatedAt(
+            api.getCustomers(
+                JOE_DOE_ACCOUNT_ID,
+                null,
+                null,
+                null,
+                "+33 12 34 56 78",
+                null,
+                null,
+                null,
+                null,
+                1,
+                20));
+    List<Customer> actualFilteredByCity =
+        ignoreUpdatedAndCreatedAt(
+            api.getCustomers(
+                JOE_DOE_ACCOUNT_ID, null, null, null, null, "Metz", null, null, null, 1, 20));
+    List<Customer> actualFilteredByCountry =
+        ignoreUpdatedAndCreatedAt(
+            api.getCustomers(
+                JOE_DOE_ACCOUNT_ID, null, null, null, null, null, "Allemagne", null, null, 1, 20));
+    List<Customer> actualFilteredByFirstNameAndCity =
+        ignoreUpdatedAndCreatedAt(
+            api.getCustomers(
+                JOE_DOE_ACCOUNT_ID,
+                "Jean",
+                null,
+                null,
+                null,
+                "Montmorency",
+                null,
+                null,
+                null,
+                1,
+                20));
     List<Customer> allFilteredResults = new ArrayList<>();
+    Customer expectedCustomer1 = customer1().lastName("Nouvel artisan");
+
     allFilteredResults.addAll(actualFilteredByFirstAndLastName);
     allFilteredResults.addAll(actualFilteredByEmail);
     allFilteredResults.addAll(actualFilteredByPhoneNumber);
@@ -90,13 +117,13 @@ class DirtyCustomerIT extends MockedThirdParties {
     assertEquals(1, actualFilteredByCity.size());
     assertEquals(1, actualFilteredByCountry.size());
     assertEquals(1, actualFilteredByFirstNameAndCity.size());
-    assertTrue(actualNoFilter.contains(customer1()));
+    assertTrue(actualNoFilter.contains(expectedCustomer1));
     assertTrue(actualNoFilter.contains(customer2()));
     assertTrue(actualFilteredByFirstAndLastName.contains(customer2()));
-    assertTrue(actualFilteredByEmail.contains(customer1()));
-    assertTrue(actualFilteredByPhoneNumber.contains(customer1()));
+    assertTrue(actualFilteredByEmail.contains(expectedCustomer1));
+    assertTrue(actualFilteredByPhoneNumber.contains(expectedCustomer1));
     assertTrue(actualFilteredByPhoneNumber.contains(customer2()));
-    assertTrue(actualFilteredByCity.contains(customer1()));
+    assertTrue(actualFilteredByCity.contains(expectedCustomer1));
     assertEquals("Jean Olivier", actualFilteredByCountry.get(0).getFirstName());
     assertTrue(actualNoFilter.containsAll(allFilteredResults));
   }
@@ -105,35 +132,34 @@ class DirtyCustomerIT extends MockedThirdParties {
   void update_then_read_customer_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
     CustomersApi api = new CustomersApi(joeDoeClient);
-    var customersToUpdate = api.getCustomers(
-        JOE_DOE_ACCOUNT_ID,
-        null, null, null, null, null, null, null,
-        null, 1, 20);
+    var customersToUpdate =
+        api.getCustomers(JOE_DOE_ACCOUNT_ID, null, null, null, null, null, null, null, null, 1, 20);
     var customerToUpdate = customersToUpdate.get(0);
 
-    String newLastName = randomUUID().toString();
-    customerToUpdate.setLastName(newLastName);
+    customerToUpdate.setLastName("Nouvel artisan");
     api.updateCustomers(JOE_DOE_ACCOUNT_ID, List.of(customerToUpdate));
     var updatedCustomer = api.getCustomerById(JOE_DOE_ACCOUNT_ID, customerToUpdate.getId());
 
-    assertEquals(newLastName, updatedCustomer.getLastName());
+    assertEquals("Nouvel artisan", updatedCustomer.getLastName());
   }
 
   public static List<Customer> ignoreUpdatedAndCreatedAt(List<Customer> customers) {
     return customers.stream()
-        .peek(customer -> {
-          customer.setCreatedAt(null);
-          customer.setUpdatedAt(null);
-        })
+        .peek(
+            customer -> {
+              customer.setCreatedAt(null);
+              customer.setUpdatedAt(null);
+            })
         .toList();
   }
 
   public static List<Customer> ignoreLatitudeAndLongitude(List<Customer> customers) {
     return customers.stream()
-        .peek(customer -> {
-          customer.getLocation().setLatitude(0.0);
-          customer.getLocation().setLongitude(0.0);
-        })
+        .peek(
+            customer -> {
+              customer.getLocation().setLatitude(0.0);
+              customer.getLocation().setLongitude(0.0);
+            })
         .toList();
   }
 }

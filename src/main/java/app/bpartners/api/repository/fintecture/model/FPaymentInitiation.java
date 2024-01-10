@@ -14,6 +14,7 @@ import lombok.Setter;
 public class FPaymentInitiation {
   @JsonProperty("meta")
   private Meta meta;
+
   @JsonProperty("data")
   private Data data;
 
@@ -32,6 +33,7 @@ public class FPaymentInitiation {
   public static class Meta {
     @JsonProperty("psu_name")
     private String psuName;
+
     @JsonProperty("psu_email")
     private String psuEmail;
   }
@@ -58,8 +60,10 @@ public class FPaymentInitiation {
   public static class Attributes {
     @JsonProperty("amount")
     private String amount;
+
     @JsonProperty("communication")
     private String communication;
+
     @JsonProperty("beneficiary")
     private Beneficiary beneficiary;
 

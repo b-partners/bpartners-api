@@ -24,14 +24,17 @@ import org.hibernate.annotations.Type;
 @NoArgsConstructor
 @EqualsAndHashCode
 public class HProspectEval {
-  @Id
-  private String id;
+  @Id private String id;
+
   @Column(name = "id_prospect_eval_info")
   private String idProspectEvalInfo;
+
   private Instant evaluationDate;
+
   @Type(type = "pgsql_enum")
   @Enumerated(EnumType.STRING)
   private ProspectEvalRule rule;
+
   private Boolean individualCustomer;
   private Boolean professionalCustomer;
   private Boolean declared;
@@ -46,6 +49,7 @@ public class HProspectEval {
   private Double customerRating;
 
   public enum ProspectEvalRule {
-    NEW_INTERVENTION, ROBBERY
+    NEW_INTERVENTION,
+    ROBBERY
   }
 }

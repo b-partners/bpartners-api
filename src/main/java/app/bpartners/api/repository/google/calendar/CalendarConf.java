@@ -1,5 +1,8 @@
 package app.bpartners.api.repository.google.calendar;
 
+import static com.google.api.services.calendar.CalendarScopes.CALENDAR;
+import static com.google.api.services.calendar.CalendarScopes.CALENDAR_EVENTS;
+
 import app.bpartners.api.model.exception.ForbiddenException;
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.auth.oauth2.TokenResponseException;
@@ -16,9 +19,6 @@ import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 
-import static com.google.api.services.calendar.CalendarScopes.CALENDAR;
-import static com.google.api.services.calendar.CalendarScopes.CALENDAR_EVENTS;
-
 @Configuration
 @Getter(AccessLevel.PACKAGE)
 public class CalendarConf {
@@ -26,6 +26,7 @@ public class CalendarConf {
   private final String applicationName;
   private final String clientId;
   private final String clientSecret;
+
   @Getter(AccessLevel.PUBLIC)
   private final List<String> redirectUris;
 
@@ -35,12 +36,12 @@ public class CalendarConf {
   private final GoogleAuthorizationCodeFlow flow;
 
   @SneakyThrows
-  public CalendarConf(@Value("${google.calendar.apps.name}") String applicationName,
-                      @Value("${google.calendar.client.id}") String clientId,
-                      @Value("${google.calendar.client.secret}") String clientSecret,
-                      @Value("${google.calendar.redirect.uris}")
-                      List<String> redirectUris,
-                      CalendarDbCredentialStore dbCredentialStore) {
+  public CalendarConf(
+      @Value("${google.calendar.apps.name}") String applicationName,
+      @Value("${google.calendar.client.id}") String clientId,
+      @Value("${google.calendar.client.secret}") String clientSecret,
+      @Value("${google.calendar.redirect.uris}") List<String> redirectUris,
+      CalendarDbCredentialStore dbCredentialStore) {
     this.applicationName = applicationName;
     this.clientId = clientId;
     this.clientSecret = clientSecret;
@@ -52,24 +53,16 @@ public class CalendarConf {
 
   @SneakyThrows
   public Credential getLocalCredentials(String idUser) {
-    LocalServerReceiver receiver = new LocalServerReceiver.Builder()
-        .setPort(8888)
-        .build();
-    return new AuthorizationCodeInstalledApp(flow, receiver)
-        .authorize(idUser);
+    LocalServerReceiver receiver = new LocalServerReceiver.Builder().setPort(8888).build();
+    return new AuthorizationCodeInstalledApp(flow, receiver).authorize(idUser);
   }
 
   public String getOauthRedirectUri(String redirectUri, String state) {
-    return flow.newAuthorizationUrl()
-        .setRedirectUri(redirectUri)
-        .setState(state)
-        .build();
+    return flow.newAuthorizationUrl().setRedirectUri(redirectUri).setState(state).build();
   }
 
   public String getOauthRedirectUri(String redirectUri) {
-    return flow.newAuthorizationUrl()
-        .setRedirectUri(redirectUri)
-        .build();
+    return flow.newAuthorizationUrl().setRedirectUri(redirectUri).build();
   }
 
   @SneakyThrows
@@ -81,14 +74,14 @@ public class CalendarConf {
   public Credential storeCredential(String idUser, String authorizationCode, String redirectUri) {
     if (authorizationCode != null) {
       try {
-        var tokenResponse = flow.newTokenRequest(authorizationCode)
-            .setRedirectUri(redirectUri)
-            .execute();
+        var tokenResponse =
+            flow.newTokenRequest(authorizationCode).setRedirectUri(redirectUri).execute();
         return flow.createAndStoreCredential(tokenResponse, idUser);
       } catch (TokenResponseException e) {
         if (e.getStatusCode() == 400) {
           throw new ForbiddenException(
-              "Invalid grant (code=" + authorizationCode
+              "Invalid grant (code="
+                  + authorizationCode
                   + ") when exchanging it to calendar API token");
         }
       }
@@ -99,11 +92,7 @@ public class CalendarConf {
   @SneakyThrows
   private GoogleAuthorizationCodeFlow getGoogleAuthorizationCodeFlow() {
     return new GoogleAuthorizationCodeFlow.Builder(
-        trustedTransport,
-        JSON_FACTORY,
-        clientId,
-        clientSecret,
-        allowedScopes())
+            trustedTransport, JSON_FACTORY, clientId, clientSecret, allowedScopes())
         .setCredentialDataStore(dbCredentialStore)
         .build();
   }

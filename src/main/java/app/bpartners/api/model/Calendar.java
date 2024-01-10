@@ -17,7 +17,7 @@ import lombok.ToString;
 public class Calendar {
   private String id;
   private String eteId;
-  //TODO: private User owner;
+  // TODO: private User owner;
   private String summary;
   private CalendarPermission calendarPermission;
 }

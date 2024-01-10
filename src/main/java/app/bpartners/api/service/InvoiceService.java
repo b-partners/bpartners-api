@@ -1,5 +1,17 @@
 package app.bpartners.api.service;
 
+import static app.bpartners.api.endpoint.rest.model.Invoice.PaymentTypeEnum.CASH;
+import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
+import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.DRAFT;
+import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
+import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PROPOSAL;
+import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PROPOSAL_CONFIRMED;
+import static app.bpartners.api.endpoint.rest.model.PaymentMethod.MULTIPLE;
+import static app.bpartners.api.model.Invoice.DEFAULT_TO_PAY_DELAY_DAYS;
+import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
+import static app.bpartners.api.service.utils.PaymentUtils.computeTotalPriceFromPaymentReq;
+import static java.util.UUID.randomUUID;
+
 import app.bpartners.api.endpoint.rest.model.ArchiveStatus;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.endpoint.rest.model.PaymentMethod;
@@ -33,18 +45,6 @@ import org.apfloat.Aprational;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import static app.bpartners.api.endpoint.rest.model.Invoice.PaymentTypeEnum.CASH;
-import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
-import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.DRAFT;
-import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
-import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PROPOSAL;
-import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PROPOSAL_CONFIRMED;
-import static app.bpartners.api.endpoint.rest.model.PaymentMethod.MULTIPLE;
-import static app.bpartners.api.model.Invoice.DEFAULT_TO_PAY_DELAY_DAYS;
-import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
-import static app.bpartners.api.service.utils.PaymentUtils.computeTotalPriceFromPaymentReq;
-import static java.util.UUID.randomUUID;
-
 @Service
 @AllArgsConstructor
 @Slf4j
@@ -62,12 +62,13 @@ public class InvoiceService {
 
   private static List<CreatePaymentRegulation> initPaymentReg(Invoice actual) {
     List<CreatePaymentRegulation> paymentReg = actual.getPaymentRegulations();
-    paymentReg.forEach(payment -> {
-      PaymentRequest request = payment.getPaymentRequest();
-      request.setId(String.valueOf(randomUUID()));
-      request.setExternalId(null);
-      request.setPaymentUrl(null);
-    });
+    paymentReg.forEach(
+        payment -> {
+          PaymentRequest request = payment.getPaymentRequest();
+          request.setId(String.valueOf(randomUUID()));
+          request.setExternalId(null);
+          request.setPaymentUrl(null);
+        });
     return paymentReg;
   }
 
@@ -75,56 +76,59 @@ public class InvoiceService {
   public Invoice updatePaymentStatus(String invoiceId, String paymentId, PaymentMethod method) {
     boolean isUserUpdated = true;
     Invoice invoice = getById(invoiceId);
-    PaymentRequest paymentRequest = invoice.getPaymentRegulations().stream()
-        .filter(payment -> payment.getPaymentRequest().getId().equals(paymentId))
-        .findAny().orElseThrow(
-            () -> new NotFoundException(
-                "Invoice(id=" + invoiceId + ") "
-                    + "does not contain PaymentRequest(id=" + paymentId
-                    + ")"
-            ))
-        .getPaymentRequest();
-    PaymentRequest toSave = paymentRequest.toBuilder()
-        .invoiceId(invoiceId)
-        .status(PaymentStatus.PAID)
-        .paymentHistoryStatus(PaymentHistoryStatus.builder()
+    PaymentRequest paymentRequest =
+        invoice.getPaymentRegulations().stream()
+            .filter(payment -> payment.getPaymentRequest().getId().equals(paymentId))
+            .findAny()
+            .orElseThrow(
+                () ->
+                    new NotFoundException(
+                        "Invoice(id="
+                            + invoiceId
+                            + ") "
+                            + "does not contain PaymentRequest(id="
+                            + paymentId
+                            + ")"))
+            .getPaymentRequest();
+    PaymentRequest toSave =
+        paymentRequest.toBuilder()
+            .invoiceId(invoiceId)
             .status(PaymentStatus.PAID)
-            .paymentMethod(method)
-            .updatedAt(Instant.now())
-            .userUpdated(isUserUpdated)
-            .build())
-        .build();
-    List<PaymentRequest> savedPayments =
-        paymentRepository.saveAll(List.of(toSave));
-    invoice.getPaymentRegulations().forEach(
-        payment -> {
-          var request = payment.getPaymentRequest();
-          if (request.getId().equals(paymentId)) {
-            if (savedPayments.isEmpty()) {
-              throw new ApiException(SERVER_EXCEPTION,
-                  "PaymentRequest(id=" + paymentId + ") was not saved");
-            }
-            payment.setPaymentRequest(savedPayments.get(0));
-          }
-        }
-    );
-    boolean allPaymentsPaid = invoice.getPaymentRegulations().stream()
-        .allMatch(payment ->
-            payment.getPaymentRequest().getStatus()
-                == PaymentStatus.PAID);
+            .paymentHistoryStatus(
+                PaymentHistoryStatus.builder()
+                    .status(PaymentStatus.PAID)
+                    .paymentMethod(method)
+                    .updatedAt(Instant.now())
+                    .userUpdated(isUserUpdated)
+                    .build())
+            .build();
+    List<PaymentRequest> savedPayments = paymentRepository.saveAll(List.of(toSave));
+    invoice
+        .getPaymentRegulations()
+        .forEach(
+            payment -> {
+              var request = payment.getPaymentRequest();
+              if (request.getId().equals(paymentId)) {
+                if (savedPayments.isEmpty()) {
+                  throw new ApiException(
+                      SERVER_EXCEPTION, "PaymentRequest(id=" + paymentId + ") was not saved");
+                }
+                payment.setPaymentRequest(savedPayments.get(0));
+              }
+            });
+    boolean allPaymentsPaid =
+        invoice.getPaymentRegulations().stream()
+            .allMatch(payment -> payment.getPaymentRequest().getStatus() == PaymentStatus.PAID);
     if (allPaymentsPaid) {
-      Invoice paidInvoice = invoice.toBuilder()
-          .status(PAID)
-          .paymentMethod(MULTIPLE)
-          .build();
+      Invoice paidInvoice = invoice.toBuilder().status(PAID).paymentMethod(MULTIPLE).build();
       return crupdateInvoice(paidInvoice);
     }
     repositoryImpl.processAsPdf(invoice);
     return invoice;
   }
 
-  //TODO: refactor and use EntityManager inside Repository to match dynamically
-  //TODO: handle invoice with null title value
+  // TODO: refactor and use EntityManager inside Repository to match dynamically
+  // TODO: handle invoice with null title value
   @Transactional
   public List<Invoice> getInvoices(
       String idUser,
@@ -132,7 +136,8 @@ public class InvoiceService {
       BoundedPageSize pageSize,
       List<InvoiceStatus> statusList,
       ArchiveStatus archiveStatus,
-      String title, List<String> filters) {
+      String title,
+      List<String> filters) {
     if (archiveStatus == null) {
       archiveStatus = ArchiveStatus.ENABLED;
     }
@@ -149,11 +154,7 @@ public class InvoiceService {
               + " Use the query parameter filters instead.");
     }
     return repository.findAllByIdUserAndCriteria(
-        idUser,
-        statusList,
-        archiveStatus,
-        keywords,
-        pageValue, pageSizeValue);
+        idUser, statusList, archiveStatus, keywords, pageValue, pageSizeValue);
   }
 
   public Invoice getById(String invoiceId) {
@@ -170,9 +171,7 @@ public class InvoiceService {
           "La référence " + invoice.getRealReference() + " est déjà utilisée");
     }
     if (!invoice.getActualHolder().isSubjectToVat()) {
-      invoice.getProducts().forEach(
-          product -> product.setVatPercent(new Fraction())
-      );
+      invoice.getProducts().forEach(product -> product.setVatPercent(new Fraction()));
     }
     Invoice actual = handleStatusChanges(invoice);
     return repository.crupdate(actual);
@@ -190,8 +189,7 @@ public class InvoiceService {
     if (reference == null) {
       return true;
     }
-    List<Invoice> existingInvoice =
-        repository.findByIdUserAndRef(idUser, reference);
+    List<Invoice> existingInvoice = repository.findByIdUserAndRef(idUser, reference);
 
     /*Case when crupdating CONFIRMED invoice*/
     if (existingInvoice.size() == 1
@@ -201,20 +199,22 @@ public class InvoiceService {
     } else if ((invoice.getStatus() == CONFIRMED)
         && !existingInvoice.isEmpty()
         && existingInvoice.stream()
-        .anyMatch(existing -> existing.getStatus() == CONFIRMED
-            && existing.getId().equals(invoice.getId()))) {
+            .anyMatch(
+                existing ->
+                    existing.getStatus() == CONFIRMED
+                        && existing.getId().equals(invoice.getId()))) {
       return true;
     }
 
-    boolean isTobeConfirmed = existingInvoice.isEmpty() || existingInvoice.stream()
-        .anyMatch(existing -> existing.getStatus() == PROPOSAL);
-    boolean isToBePaid = existingInvoice.stream()
-        .anyMatch(existing -> existing.getStatus() == CONFIRMED);
+    boolean isTobeConfirmed =
+        existingInvoice.isEmpty()
+            || existingInvoice.stream().anyMatch(existing -> existing.getStatus() == PROPOSAL);
+    boolean isToBePaid =
+        existingInvoice.stream().anyMatch(existing -> existing.getStatus() == CONFIRMED);
     return (status != CONFIRMED && status != PAID)
-        ? (existingInvoice.isEmpty() || existingInvoice.stream()
-        .anyMatch(existing -> existing.getId().equals(idInvoice)))
-        : (status == CONFIRMED ? isTobeConfirmed
-        : isToBePaid);
+        ? (existingInvoice.isEmpty()
+            || existingInvoice.stream().anyMatch(existing -> existing.getId().equals(idInvoice)))
+        : (status == CONFIRMED ? isTobeConfirmed : isToBePaid);
   }
 
   private Invoice handleStatusChanges(Invoice invoice) {
@@ -225,8 +225,8 @@ public class InvoiceService {
 
     if (actual.getStatus() == CONFIRMED || actual.getStatus() == PROPOSAL_CONFIRMED) {
       checkHolderMandatoryData(invoice);
-      //TODO: check everything is ok before marking invoice as CONFIRMED
-      //Example : check if account has IBAN and BIC ...
+      // TODO: check everything is ok before marking invoice as CONFIRMED
+      // Example : check if account has IBAN and BIC ...
       if (actual.getPaymentType() == CASH) {
         handleCashType(actual);
       } else {
@@ -264,7 +264,7 @@ public class InvoiceService {
       actual.setFileId(oldInvoice.getFileId());
 
       if (actual.getStatus() == CONFIRMED && oldInvoice.getStatus() == PROPOSAL) {
-        //To be saved later as another HInvoice with diff status but same reference
+        // To be saved later as another HInvoice with diff status but same reference
         actual.setStatus(PROPOSAL_CONFIRMED);
       } else if (actual.getStatus() == PAID && oldInvoice.getStatus() == CONFIRMED) {
         actual.setValidityDate(null);
@@ -288,13 +288,14 @@ public class InvoiceService {
       delayInPaymentAllowed = DEFAULT_TO_PAY_DELAY_DAYS;
     }
     actual.setToPayAt(actual.getSendingDate().plusDays(delayInPaymentAllowed));
-    actual.setPaymentUrl(actual.getTotalPriceWithVat().getCentsAsDecimal() != 0
-        ? pis.initiateInvoicePayment(actual).getRedirectUrl()
-        : actual.getPaymentUrl());
+    actual.setPaymentUrl(
+        actual.getTotalPriceWithVat().getCentsAsDecimal() != 0
+            ? pis.initiateInvoicePayment(actual).getRedirectUrl()
+            : actual.getPaymentUrl());
   }
 
   private void handleMultipleRegType(Invoice invoice, Invoice actual) {
-    //TODO: check amount changes before creating new payments to optimize perf
+    // TODO: check amount changes before creating new payments to optimize perf
     List<CreatePaymentRegulation> paymentRegWithUrl = getPaymentRegWithUrl(invoice);
     actual.setPaymentRegulations(paymentRegWithUrl);
     actual.setPaymentUrl(null);
@@ -318,31 +319,41 @@ public class InvoiceService {
       List<PaymentRequest> paymentRequests) {
     Fraction totalPrice = computeTotalPriceFromPaymentReq(paymentRequests);
     return paymentRequests.stream()
-        .map(payment -> {
-          Fraction percent = totalPrice.getCentsRoundUp() == 0 ? new Fraction()
-              : payment.getAmount().operate(totalPrice,
-              Aprational::divide);
-          return requestMapper.toPaymentRegulation(payment, percent);
-        })
+        .map(
+            payment -> {
+              Fraction percent =
+                  totalPrice.getCentsRoundUp() == 0
+                      ? new Fraction()
+                      : payment.getAmount().operate(totalPrice, Aprational::divide);
+              return requestMapper.toPaymentRegulation(payment, percent);
+            })
         .collect(Collectors.toList());
   }
 
   private List<PaymentInitiation> getPaymentInitiations(Invoice domain) {
     List<CreatePaymentRegulation> paymentReg = domain.getPaymentRegulations();
-    List<PaymentInitiation> payments = paymentReg.stream()
-        .map(payment -> {
-          String randomId = String.valueOf(randomUUID());
-          PaymentRequest paymentRequest = payment.getPaymentRequest();
-          paymentRequest.setExternalId(randomId);
-          String label = paymentRequest.getLabel();
-          String reference = paymentRequest.getReference() == null ? domain.getRealReference()
-              : paymentRequest.getReference();
-          return requestMapper.convertFromInvoice(
-              randomId, label, reference, domain, payment,
-              paymentRequest.getPaymentHistoryStatus());
-        })
-        .sorted(Comparator.comparing(PaymentInitiation::getPaymentDueDate))
-        .toList();
+    List<PaymentInitiation> payments =
+        paymentReg.stream()
+            .map(
+                payment -> {
+                  String randomId = String.valueOf(randomUUID());
+                  PaymentRequest paymentRequest = payment.getPaymentRequest();
+                  paymentRequest.setExternalId(randomId);
+                  String label = paymentRequest.getLabel();
+                  String reference =
+                      paymentRequest.getReference() == null
+                          ? domain.getRealReference()
+                          : paymentRequest.getReference();
+                  return requestMapper.convertFromInvoice(
+                      randomId,
+                      label,
+                      reference,
+                      domain,
+                      payment,
+                      paymentRequest.getPaymentHistoryStatus());
+                })
+            .sorted(Comparator.comparing(PaymentInitiation::getPaymentDueDate))
+            .toList();
     for (int i = 0; i < payments.size(); i++) {
       PaymentInitiation paymentInitiation = payments.get(i);
       if (paymentInitiation.getLabel() == null) {
@@ -360,17 +371,20 @@ public class InvoiceService {
   public Invoice duplicateAsDraft(String idInvoice, String reference) {
     Invoice actual = getById(idInvoice);
     List<CreatePaymentRegulation> paymentRegulations = initPaymentReg(actual);
-    Invoice duplicatedInvoice = actual.toBuilder()
-        .id(String.valueOf(randomUUID()))
-        .fileId(String.valueOf(randomUUID()))
-        .ref(reference)
-        .status(DRAFT)
-        .paymentUrl(null)
-        .paymentRegulations(paymentRegulations)
-        .products(new ArrayList<>(actual.getProducts()).stream()
-            .peek(product -> product.setId(String.valueOf(randomUUID())))
-            .collect(Collectors.toList()))
-        .build();
+    Invoice duplicatedInvoice =
+        actual.toBuilder()
+            .id(String.valueOf(randomUUID()))
+            .fileId(String.valueOf(randomUUID()))
+            .ref(reference)
+            .status(DRAFT)
+            .paymentUrl(null)
+            .paymentRegulations(paymentRegulations)
+            .products(
+                new ArrayList<>(actual.getProducts())
+                    .stream()
+                        .peek(product -> product.setId(String.valueOf(randomUUID())))
+                        .collect(Collectors.toList()))
+            .build();
     return crupdateInvoice(duplicatedInvoice);
   }
 }

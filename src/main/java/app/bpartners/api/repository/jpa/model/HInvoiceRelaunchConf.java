@@ -1,5 +1,7 @@
 package app.bpartners.api.repository.jpa.model;
 
+import static javax.persistence.GenerationType.IDENTITY;
+
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
@@ -9,8 +11,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import static javax.persistence.GenerationType.IDENTITY;
 
 @Entity
 @Getter
@@ -23,6 +23,7 @@ public class HInvoiceRelaunchConf {
   @Id
   @GeneratedValue(strategy = IDENTITY)
   private String id;
+
   private String idInvoice;
   private int delay;
   private int rehearsalNumber;

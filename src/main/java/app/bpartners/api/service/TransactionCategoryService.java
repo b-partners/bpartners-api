@@ -17,15 +17,11 @@ public class TransactionCategoryService {
   private final TransactionCategoryTemplateRepository templateRepository;
 
   public List<TransactionCategory> getCategoriesByAccountAndType(
-      String idAccount,
-      TransactionTypeEnum type,
-      LocalDate startDate,
-      LocalDate endDate) {
+      String idAccount, TransactionTypeEnum type, LocalDate startDate, LocalDate endDate) {
     return repository.findByIdAccountAndType(idAccount, type, startDate, endDate);
   }
 
-  public List<TransactionCategory> createCategories(
-      List<TransactionCategory> toCreate) {
+  public List<TransactionCategory> createCategories(List<TransactionCategory> toCreate) {
     return repository.saveAll(toCreate);
   }
 

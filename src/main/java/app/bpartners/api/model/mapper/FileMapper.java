@@ -46,6 +46,4 @@ public class FileMapper {
         .idUser(file.getUserUploaderId())
         .build();
   }
-
-
 }

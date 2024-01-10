@@ -13,16 +13,22 @@ import lombok.Setter;
 public class Beneficiary {
   @JsonProperty("name")
   private String name;
+
   @JsonProperty("street")
   private String street;
+
   @JsonProperty("city")
   private String city;
+
   @JsonProperty("zip")
   private String zip;
+
   @JsonProperty("country")
   private String country;
+
   @JsonProperty("iban")
   private String iban;
+
   @JsonProperty("swift_bic")
   private String swiftBic;
 }

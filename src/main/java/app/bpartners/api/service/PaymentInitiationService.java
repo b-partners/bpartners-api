@@ -36,21 +36,22 @@ public class PaymentInitiationService {
     return repository.saveAll(paymentInitiations, null, null);
   }
 
-  public PaymentRedirection initiateInvoicePayment(
-      Invoice invoice) {
+  public PaymentRedirection initiateInvoicePayment(Invoice invoice) {
     if (Objects.equals(invoice.getTotalPriceWithVat(), new Fraction())) {
       return new PaymentRedirection();
     }
     CreatePaymentRegulation paymentReg = null;
     PaymentHistoryStatus paymentHistoryStatus = null;
-    PaymentInitiation paymentInitiation = mapper.convertFromInvoice(
-        String.valueOf(randomUUID()),
-        invoice.getTitle(),
-        invoice.getRealReference(),
-        invoice,
-        paymentReg,
-        paymentHistoryStatus);
-    return repository.saveAll(List.of(paymentInitiation), invoice.getId(), invoice.getUser())
+    PaymentInitiation paymentInitiation =
+        mapper.convertFromInvoice(
+            String.valueOf(randomUUID()),
+            invoice.getTitle(),
+            invoice.getRealReference(),
+            invoice,
+            paymentReg,
+            paymentHistoryStatus);
+    return repository
+        .saveAll(List.of(paymentInitiation), invoice.getId(), invoice.getUser())
         .get(0);
   }
 

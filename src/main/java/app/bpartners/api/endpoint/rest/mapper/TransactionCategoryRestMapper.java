@@ -1,5 +1,7 @@
 package app.bpartners.api.endpoint.rest.mapper;
 
+import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
+
 import app.bpartners.api.endpoint.rest.model.CreateTransactionCategory;
 import app.bpartners.api.endpoint.rest.model.TransactionCategory;
 import app.bpartners.api.endpoint.rest.model.TransactionTypeEnum;
@@ -11,8 +13,6 @@ import app.bpartners.api.repository.TransactionCategoryTemplateRepository;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
-
-import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 
 @Component
 @AllArgsConstructor
@@ -44,7 +44,6 @@ public class TransactionCategoryRestMapper {
         .comment(domain.getComment());
   }
 
-
   public app.bpartners.api.model.TransactionCategory toDomain(
       String transactionId, String accountId, CreateTransactionCategory rest) {
     validator.accept(rest);
@@ -58,11 +57,14 @@ public class TransactionCategoryRestMapper {
     if (categoryTemplate.getTransactionType() != null
         && !transactionType.equals(categoryTemplate.getTransactionType())) {
       throw new BadRequestException(
-          "Cannot add category." + categoryTemplate.getId() + " of type "
+          "Cannot add category."
+              + categoryTemplate.getId()
+              + " of type "
               + categoryTemplate.getTransactionType()
-              + " to transaction." + transactionId + " of type "
-              + transactionType
-      );
+              + " to transaction."
+              + transactionId
+              + " of type "
+              + transactionType);
     }
 
     return app.bpartners.api.model.TransactionCategory.builder()

@@ -46,9 +46,10 @@ public class Prospect implements Comparable<Prospect> {
   private ContactNature contactNature;
 
   public ProspectStatus getActualStatus() {
-    List<ProspectStatusHistory> orderedByStatusUpdateDesc = statusHistories.stream()
-        .sorted(Comparator.comparing(ProspectStatusHistory::getUpdatedAt).reversed())
-        .toList();
+    List<ProspectStatusHistory> orderedByStatusUpdateDesc =
+        statusHistories.stream()
+            .sorted(Comparator.comparing(ProspectStatusHistory::getUpdatedAt).reversed())
+            .toList();
     return statusHistories.isEmpty() ? null : orderedByStatusUpdateDesc.get(0).getStatus();
   }
 
@@ -58,9 +59,15 @@ public class Prospect implements Comparable<Prospect> {
 
   public String describe() {
     return "Prospect{"
-        + "id='" + id + '\''
-        + ", name='" + name + '\''
-        + ", email='" + email + '\''
+        + "id='"
+        + id
+        + '\''
+        + ", name='"
+        + name
+        + '\''
+        + ", email='"
+        + email
+        + '\''
         + '}';
   }
 
@@ -81,7 +88,6 @@ public class Prospect implements Comparable<Prospect> {
       }
       return actualRatingValue.compareTo(otherRatingValue);
     }
-
   }
 
   @Data

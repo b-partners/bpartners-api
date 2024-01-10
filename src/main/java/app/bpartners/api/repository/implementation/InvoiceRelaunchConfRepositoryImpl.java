@@ -19,25 +19,24 @@ public class InvoiceRelaunchConfRepositoryImpl implements InvoiceRelaunchConfRep
   @Override
   public InvoiceRelaunchConf findByInvoiceId(String idInvoice) {
     return mapper.toDomain(
-        jpaRepository.findByIdInvoice(idInvoice)
-            .orElseThrow(() -> new NotFoundException("No relaunch configuration found for"
-                + " Invoice." + idInvoice))
-    );
+        jpaRepository
+            .findByIdInvoice(idInvoice)
+            .orElseThrow(
+                () ->
+                    new NotFoundException(
+                        "No relaunch configuration found for" + " Invoice." + idInvoice)));
   }
 
   @Override
   public InvoiceRelaunchConf save(InvoiceRelaunchConf invoiceRelaunchConf) {
-    Optional<HInvoiceRelaunchConf> optionalPersisted = jpaRepository.findByIdInvoice(
-        invoiceRelaunchConf.getIdInvoice()
-    );
+    Optional<HInvoiceRelaunchConf> optionalPersisted =
+        jpaRepository.findByIdInvoice(invoiceRelaunchConf.getIdInvoice());
     if (optionalPersisted.isPresent()) {
       HInvoiceRelaunchConf persisted = optionalPersisted.get();
       persisted.setDelay(invoiceRelaunchConf.getDelay());
       persisted.setRehearsalNumber(invoiceRelaunchConf.getRehearsalNumber());
       return mapper.toDomain(jpaRepository.save(persisted));
     }
-    return mapper.toDomain(
-        jpaRepository.save(mapper.toEntity(invoiceRelaunchConf))
-    );
+    return mapper.toDomain(jpaRepository.save(mapper.toEntity(invoiceRelaunchConf)));
   }
 }

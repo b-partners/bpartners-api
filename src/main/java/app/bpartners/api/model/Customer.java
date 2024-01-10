@@ -1,5 +1,7 @@
 package app.bpartners.api.model;
 
+import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
+
 import app.bpartners.api.endpoint.rest.model.CustomerStatus;
 import app.bpartners.api.endpoint.rest.model.CustomerType;
 import app.bpartners.api.model.exception.ApiException;
@@ -12,8 +14,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
-import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
-
 @Getter
 @Setter
 @AllArgsConstructor
@@ -25,12 +25,15 @@ public class Customer {
   protected String idAccount;
   protected String idUser;
   protected String name;
+
   @Getter(AccessLevel.NONE)
   @Deprecated
   protected String firstName;
+
   @Getter(AccessLevel.NONE)
   @Deprecated
   protected String lastName;
+
   protected String email;
   protected String phone;
   protected String website;

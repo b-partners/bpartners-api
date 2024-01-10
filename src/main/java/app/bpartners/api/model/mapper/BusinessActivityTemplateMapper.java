@@ -7,9 +7,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class BusinessActivityTemplateMapper {
   public BusinessActivityTemplate toDomain(HBusinessActivityTemplate entity) {
-    return BusinessActivityTemplate.builder()
-        .id(entity.getId())
-        .name(entity.getName())
-        .build();
+    return BusinessActivityTemplate.builder().id(entity.getId()).name(entity.getName()).build();
   }
 }

@@ -1,0 +1,89 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Bpartners - Schedulers
+
+Parameters:
+  Env:
+    Type: String
+
+Resources:
+  ScheduledEventExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Join [ '', [ bpartners-, !Ref Env, -ScheduledEventExecutionRole ] ]
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: scheduler.amazonaws.com
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - 'arn:aws:iam::aws:policy/AdministratorAccess'
+
+  RefreshTransactionSummariesScheduler:
+    Type: AWS::Scheduler::Schedule
+    Properties:
+      Description: Scheduler that trigger the refresh of transaction summaries
+      FlexibleTimeWindow:
+        Mode: "OFF"
+      Name: RefreshTransactionSummaries
+      ScheduleExpression: "rate(1 hour)"
+      Target:
+        Arn: !Sub '{{resolve:ssm:/bpartners/${Env}/eventbridge/bus-arn}}'
+        RoleArn: !GetAtt ScheduledEventExecutionRole.Arn
+        DeadLetterConfig:
+          Arn: !Sub '{{resolve:ssm:/bpartners/${Env}/sqs/dead-letter-queue-arn}}'
+        EventBridgeParameters:
+          DetailType: 'app.bpartners.api.endpoint.event.gen.RefreshTransactionsSummariesTriggered'
+          Source: 'app.bpartners.api'
+
+  UpdatePaymentScheduler:
+    Type: AWS::Scheduler::Schedule
+    Properties:
+      Description: Scheduler that trigger the update of payments
+      FlexibleTimeWindow:
+        Mode: "OFF"
+      Name: UpdatePayments
+      ScheduleExpression: "rate(12 hours)"
+      Target:
+        Arn: !Sub '{{resolve:ssm:/bpartners/${Env}/eventbridge/bus-arn}}'
+        RoleArn: !GetAtt ScheduledEventExecutionRole.Arn
+        DeadLetterConfig:
+          Arn: !Sub '{{resolve:ssm:/bpartners/${Env}/sqs/dead-letter-queue-arn}}'
+        EventBridgeParameters:
+          DetailType: 'app.bpartners.api.endpoint.event.gen.UpdatePaymentTriggered'
+          Source: 'app.bpartners.api'
+
+  RefreshFintectureProjectTokenScheduler:
+    Type: AWS::Scheduler::Schedule
+    Properties:
+      Description: Scheduler that trigger the refresh of fintecture project token
+      FlexibleTimeWindow:
+        Mode: "OFF"
+      Name: RefreshFintectureToken
+      ScheduleExpression: "rate(45 minutes)"
+      Target:
+        Arn: !Sub '{{resolve:ssm:/bpartners/${Env}/eventbridge/bus-arn}}'
+        RoleArn: !GetAtt ScheduledEventExecutionRole.Arn
+        DeadLetterConfig:
+          Arn: !Sub '{{resolve:ssm:/bpartners/${Env}/sqs/dead-letter-queue-arn}}'
+        EventBridgeParameters:
+          DetailType: 'app.bpartners.api.endpoint.event.gen.RefreshFintectureProjectTokenTriggered'
+          Source: 'app.bpartners.api'
+
+  RelaunchProspectsScheduler:
+    Type: AWS::Scheduler::Schedule
+    Properties:
+      Description: Scheduler that trigger the relaunch of prospects
+      FlexibleTimeWindow:
+        Mode: "OFF"
+      Name: RelaunchProspects
+      ScheduleExpression: "cron(0 14 ? * FRI *)"
+      ScheduleExpressionTimezone: "Europe/Paris"
+      Target:
+        Arn: !Sub '{{resolve:ssm:/bpartners/${Env}/eventbridge/bus-arn}}'
+        RoleArn: !GetAtt ScheduledEventExecutionRole.Arn
+        DeadLetterConfig:
+          Arn: !Sub '{{resolve:ssm:/bpartners/${Env}/sqs/dead-letter-queue-arn}}'
+        EventBridgeParameters:
+          DetailType: 'app.bpartners.api.endpoint.event.gen.RelaunchHoldersProspectTriggered'
+          Source: 'app.bpartners.api'

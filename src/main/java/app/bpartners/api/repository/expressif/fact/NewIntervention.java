@@ -19,7 +19,7 @@ public class NewIntervention {
   private String interventionType;
   private String infestationType;
   private String newIntAddress;
-  private Double distNewIntAndProspect; //TODO: convert two addresses to distance
+  private Double distNewIntAndProspect; // TODO: convert two addresses to distance
   private GeoUtils.Coordinate coordinate;
 
   private OldCustomer oldCustomer;
@@ -35,10 +35,11 @@ public class NewIntervention {
     private OldCustomerType type;
     private String professionalType;
     private String oldCustomerAddress;
-    private Double distNewIntAndOldCustomer; //TODO: convert two addresses to distance
+    private Double distNewIntAndOldCustomer; // TODO: convert two addresses to distance
 
     public enum OldCustomerType {
-      PROFESSIONAL, INDIVIDUAL
+      PROFESSIONAL,
+      INDIVIDUAL
     }
   }
 }

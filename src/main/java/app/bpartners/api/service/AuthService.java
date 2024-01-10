@@ -28,16 +28,18 @@ public class AuthService {
   }
 
   public Token generateTokenUrl(CreateToken toCreate) {
-    Token createdToken = cognitoComponent.getTokenByCode(
-        toCreate.getCode(),
-        toCreate.getRedirectionStatusUrls().getSuccessUrl());
+    Token createdToken =
+        cognitoComponent.getTokenByCode(
+            toCreate.getCode(), toCreate.getRedirectionStatusUrls().getSuccessUrl());
     if (createdToken == null) {
-      throw new BadRequestException("Code is invalid, expired, revoked or the redirectUrl "
-          + toCreate.getRedirectionStatusUrls().getSuccessUrl()
-          + " does not match in the authorization request");
+      throw new BadRequestException(
+          "Code is invalid, expired, revoked or the redirectUrl "
+              + toCreate.getRedirectionStatusUrls().getSuccessUrl()
+              + " does not match in the authorization request");
     }
-    Whoami whoami = new Whoami()
-        .user(userRestMapper.toRest(userService.getUserByToken(createdToken.getAccessToken())));
+    Whoami whoami =
+        new Whoami()
+            .user(userRestMapper.toRest(userService.getUserByToken(createdToken.getAccessToken())));
     createdToken.setWhoami(whoami);
     return createdToken;
   }

@@ -37,9 +37,8 @@ public class PaymentController {
   List<PaymentRedirection> initiatePayments(
       @PathVariable(name = "id") String accountId,
       @RequestBody List<PaymentInitiation> paymentRequests) {
-    List<app.bpartners.api.model.PaymentInitiation> domain = paymentRequests.stream()
-        .map(mapper::toDomain)
-        .toList();
+    List<app.bpartners.api.model.PaymentInitiation> domain =
+        paymentRequests.stream().map(mapper::toDomain).toList();
     return initiationService.initiatePayments(accountId, domain).stream()
         .map(mapper::toRest)
         .toList();

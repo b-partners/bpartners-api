@@ -1,6 +1,11 @@
 package app.bpartners.api.service.aws;
 
-import app.bpartners.api.endpoint.event.EventConf;
+import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
+import static javax.mail.Message.RecipientType.BCC;
+import static javax.mail.Message.RecipientType.CC;
+import static javax.mail.Message.RecipientType.TO;
+
+import app.bpartners.api.endpoint.event.SesConf;
 import app.bpartners.api.model.Attachment;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.service.utils.FileInfoUtils;
@@ -28,15 +33,10 @@ import software.amazon.awssdk.services.ses.model.RawMessage;
 import software.amazon.awssdk.services.ses.model.SendRawEmailRequest;
 import software.amazon.awssdk.services.ses.model.VerifyEmailIdentityRequest;
 
-import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
-import static javax.mail.Message.RecipientType.BCC;
-import static javax.mail.Message.RecipientType.CC;
-import static javax.mail.Message.RecipientType.TO;
-
 @Service
 @AllArgsConstructor
 public class SesService {
-  private final EventConf eventConf;
+  private final SesConf sesConf;
   private final SesClient client;
 
   private static void addBodyPart(MimeMultipart mimeMultipart, MimeBodyPart e) {
@@ -47,12 +47,13 @@ public class SesService {
     }
   }
 
-  public void sendEmail(String recipient,
-                        String concerned,
-                        String subject,
-                        String htmlBody,
-                        List<Attachment> attachments,
-                        String invisibleRecipient)
+  public void sendEmail(
+      String recipient,
+      String concerned,
+      String subject,
+      String htmlBody,
+      List<Attachment> attachments,
+      String invisibleRecipient)
       throws IOException, MessagingException {
 
     Session session = Session.getDefaultInstance(new Properties());
@@ -61,8 +62,12 @@ public class SesService {
     sendEmail(htmlBody, attachments, mimeMessage);
   }
 
-  public void sendEmail(String recipient, String concerned, String subject, String htmlBody,
-                        List<Attachment> attachments)
+  public void sendEmail(
+      String recipient,
+      String concerned,
+      String subject,
+      String htmlBody,
+      List<Attachment> attachments)
       throws IOException, MessagingException {
 
     Session session = Session.getDefaultInstance(new Properties());
@@ -73,9 +78,8 @@ public class SesService {
   private void sendEmail(String htmlBody, List<Attachment> attachments, MimeMessage mimeMessage)
       throws MessagingException {
     MimeBodyPart htmlPart = configureHtmlPart(htmlBody);
-    List<MimeBodyPart> attachmentsAsMimeBodyPart = attachments.stream()
-        .map(this::toMimeBodyPart)
-        .toList();
+    List<MimeBodyPart> attachmentsAsMimeBodyPart =
+        attachments.stream().map(this::toMimeBodyPart).toList();
 
     MimeMultipart mimeMultipart = new MimeMultipart("mixed");
     mimeMultipart.addBodyPart(htmlPart);
@@ -89,11 +93,10 @@ public class SesService {
       byte[] bytes = new byte[byteBuffer.remaining()];
       byteBuffer.get(bytes);
 
-      SendRawEmailRequest rawEmailRequest = SendRawEmailRequest.builder()
-          .rawMessage(RawMessage.builder()
-              .data(SdkBytes.fromByteArray(bytes))
-              .build())
-          .build();
+      SendRawEmailRequest rawEmailRequest =
+          SendRawEmailRequest.builder()
+              .rawMessage(RawMessage.builder().data(SdkBytes.fromByteArray(bytes)).build())
+              .build();
 
       client.sendRawEmail(rawEmailRequest);
     } catch (IOException | MessagingException | AwsServiceException | SdkClientException e) {
@@ -109,13 +112,13 @@ public class SesService {
     }
   }
 
-  private MimeMessage configureMimeMessage(Session session, String subject, String recipient,
-                                           String concerned)
+  private MimeMessage configureMimeMessage(
+      Session session, String subject, String recipient, String concerned)
       throws MessagingException {
     MimeMessage message = new MimeMessage(session);
     // Add subject, from and to lines.
     message.setSubject(subject, "UTF-8");
-    message.setFrom(new InternetAddress(eventConf.getSesSource()));
+    message.setFrom(new InternetAddress(sesConf.getSesSource()));
     message.setRecipients(TO, InternetAddress.parse(recipient));
     if (concerned != null) {
       message.setRecipients(CC, InternetAddress.parse(concerned));
@@ -123,16 +126,17 @@ public class SesService {
     return message;
   }
 
-  private MimeMessage configureMimeMessage(Session session,
-                                           String subject,
-                                           String recipient,
-                                           String concerned,
-                                           String invisibleRecipient)
+  private MimeMessage configureMimeMessage(
+      Session session,
+      String subject,
+      String recipient,
+      String concerned,
+      String invisibleRecipient)
       throws MessagingException {
     MimeMessage message = new MimeMessage(session);
     // Add subject, from and to lines.
     message.setSubject(subject, "UTF-8");
-    message.setFrom(new InternetAddress(eventConf.getSesSource()));
+    message.setFrom(new InternetAddress(sesConf.getSesSource()));
     message.setRecipients(TO, InternetAddress.parse(recipient));
     if (concerned != null) {
       message.setRecipients(CC, InternetAddress.parse(concerned));
@@ -161,11 +165,6 @@ public class SesService {
   }
 
   public void verifyEmailIdentity(String email) {
-    client.verifyEmailIdentity(
-        VerifyEmailIdentityRequest.builder()
-            .emailAddress(email)
-            .build()
-    );
+    client.verifyEmailIdentity(VerifyEmailIdentityRequest.builder().emailAddress(email).build());
   }
-
 }

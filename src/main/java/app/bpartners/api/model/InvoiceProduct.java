@@ -1,5 +1,7 @@
 package app.bpartners.api.model;
 
+import static org.apfloat.Apcomplex.ONE;
+
 import app.bpartners.api.endpoint.rest.model.ProductStatus;
 import java.math.BigInteger;
 import java.time.Instant;
@@ -11,8 +13,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import org.apfloat.Aprational;
-
-import static org.apfloat.Apcomplex.ONE;
 
 @Getter
 @Setter
@@ -37,21 +37,24 @@ public class InvoiceProduct {
   public Fraction getDiscountAmount(Fraction discount) {
     Fraction price =
         unitPrice.operate(new Fraction(BigInteger.valueOf(quantity)), Aprational::multiply);
-    return price.operate(discount,
+    return price.operate(
+        discount,
         (priceValue, discountValue) ->
             priceValue.multiply(discountValue.divide(new Aprational(10000))));
   }
-
 
   public Fraction getVatWithDiscount(Fraction discountPercent) {
     if (vatPercent == null) {
       return new Fraction();
     }
-    vatWithDiscount = getVatAmount().operate(discountPercent,
-        (vat, discount) -> {
-          Aprational discountValue = vat.multiply(discount.divide(new Aprational(10000)));
-          return vat.subtract(discountValue);
-        });
+    vatWithDiscount =
+        getVatAmount()
+            .operate(
+                discountPercent,
+                (vat, discount) -> {
+                  Aprational discountValue = vat.multiply(discount.divide(new Aprational(10000)));
+                  return vat.subtract(discountValue);
+                });
     return vatWithDiscount;
   }
 
@@ -59,11 +62,13 @@ public class InvoiceProduct {
     if (vatPercent == null) {
       return new Fraction();
     }
-    return getPriceWithoutVat().operate(vatPercent,
-        (price, vat) -> {
-          Aprational vatRational = vat.divide(new Aprational(10000));
-          return price.multiply(vatRational);
-        });
+    return getPriceWithoutVat()
+        .operate(
+            vatPercent,
+            (price, vat) -> {
+              Aprational vatRational = vat.divide(new Aprational(10000));
+              return price.multiply(vatRational);
+            });
   }
 
   public Fraction getPriceWithoutVat() {
@@ -79,18 +84,20 @@ public class InvoiceProduct {
     }
     Fraction price =
         unitPrice.operate(new Fraction(BigInteger.valueOf(quantity)), Aprational::multiply);
-    priceNoVatWithDiscount = price.operate(discount,
-        (priceValue, discountValue) -> {
-          Aprational discountRational =
-              priceValue.multiply(discountValue.divide(new Aprational(10000)));
-          return priceValue.subtract(discountRational);
-        });
+    priceNoVatWithDiscount =
+        price.operate(
+            discount,
+            (priceValue, discountValue) -> {
+              Aprational discountRational =
+                  priceValue.multiply(discountValue.divide(new Aprational(10000)));
+              return priceValue.subtract(discountRational);
+            });
     return priceNoVatWithDiscount;
   }
 
   public Fraction getPriceWithVatAndDiscount(Fraction discount) {
-    totalWithDiscount = getPriceNoVatWithDiscount(discount)
-        .operate(getVatWithDiscount(discount), Aprational::add);
+    totalWithDiscount =
+        getPriceNoVatWithDiscount(discount).operate(getVatWithDiscount(discount), Aprational::add);
     return totalWithDiscount;
   }
 
@@ -98,7 +105,8 @@ public class InvoiceProduct {
     if (unitPrice == null || vatPercent == null) {
       return new Fraction();
     }
-    return unitPrice.operate(vatPercent,
+    return unitPrice.operate(
+        vatPercent,
         (price, vat) -> {
           Aprational vatAprational = ONE.add(vat.divide(new Aprational(10000)));
           return price.multiply(vatAprational);

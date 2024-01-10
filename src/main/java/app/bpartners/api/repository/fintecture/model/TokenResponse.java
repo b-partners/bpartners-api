@@ -41,5 +41,4 @@ public class TokenResponse {
   public String getExpiresIn() {
     return expiresIn;
   }
-
 }

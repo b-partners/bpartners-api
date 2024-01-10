@@ -10,8 +10,7 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class ExpressifConf {
-  @Getter
-  private final String projectToken;
+  @Getter private final String projectToken;
   private final String baseUrl;
   private final Integer port;
 
@@ -29,10 +28,10 @@ public class ExpressifConf {
   }
 
   public String getProcessUrl(Map<String, String> queryParams) {
-    String params = queryParams.entrySet()
-        .stream()
-        .map(e -> e.getKey() + "=" + URLEncoder.encode(e.getValue(), StandardCharsets.UTF_8))
-        .collect(Collectors.joining("&"));
+    String params =
+        queryParams.entrySet().stream()
+            .map(e -> e.getKey() + "=" + URLEncoder.encode(e.getValue(), StandardCharsets.UTF_8))
+            .collect(Collectors.joining("&"));
     String url = baseUrl() + "/api/sync/process";
     return queryParams.isEmpty() ? url : url + "?" + params;
   }

@@ -1,5 +1,7 @@
 package app.bpartners.api.model;
 
+import static app.bpartners.api.service.utils.FractionUtils.toAprational;
+
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -12,8 +14,6 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apfloat.Aprational;
-
-import static app.bpartners.api.service.utils.FractionUtils.toAprational;
 
 @Getter
 @Setter
@@ -68,8 +68,7 @@ public class Fraction implements Serializable {
 
   private BigDecimal getRoundedBigDecimal(RoundingMode roundingMode) {
     double doubleValue = numerator.doubleValue() / denominator.doubleValue();
-    BigDecimal bigDecimal = BigDecimal.valueOf(doubleValue / 100)
-        .setScale(2, roundingMode);
+    BigDecimal bigDecimal = BigDecimal.valueOf(doubleValue / 100).setScale(2, roundingMode);
     return bigDecimal;
   }
 

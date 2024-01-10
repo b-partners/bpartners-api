@@ -29,7 +29,8 @@ public class InvoiceDiscount {
 
   public Fraction getAmount(Fraction totalPrice) {
     if (amountValue == null && percentValue != null) {
-      return totalPrice.operate(percentValue,
+      return totalPrice.operate(
+          percentValue,
           (price, percent) -> {
             Aprational percentRational = percent.divide(new Aprational(1000));
             return price.multiply(percentRational);

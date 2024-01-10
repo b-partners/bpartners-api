@@ -32,7 +32,8 @@ public class ProspectEvaluationJob {
   private Map<String, String> metadata;
 
   public Duration getDuration() {
-    return endedAt == null ? Duration.between(startedAt, Instant.now())
+    return endedAt == null
+        ? Duration.between(startedAt, Instant.now())
         : Duration.between(startedAt, endedAt);
   }
 

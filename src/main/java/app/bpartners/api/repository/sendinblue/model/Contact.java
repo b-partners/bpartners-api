@@ -35,7 +35,6 @@ public class Contact {
   private Attributes attributes;
   public static final String JSON_PROPERTY_ATTRIBUTES = "attributes";
 
-
   @JsonProperty(JSON_PROPERTY_EMAIL)
   @JsonInclude(JsonInclude.Include.USE_DEFAULTS)
   public String getEmail() {

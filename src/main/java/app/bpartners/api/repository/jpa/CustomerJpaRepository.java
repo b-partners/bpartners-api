@@ -12,8 +12,9 @@ public interface CustomerJpaRepository extends JpaRepository<HCustomer, String> 
 
   List<HCustomer> findAllByLatitudeIsNullOrLongitudeIsNull();
 
-  @Query("select c from HCustomer c join HUser u on c.idUser = u.id"
-      + " join HAccountHolder a on a.idUser = u.id"
-      + " where a.id = :accountHolderId")
+  @Query(
+      "select c from HCustomer c join HUser u on c.idUser = u.id"
+          + " join HAccountHolder a on a.idUser = u.id"
+          + " where a.id = :accountHolderId")
   List<HCustomer> findAllByIdAccountHolder(@Param("accountHolderId") String accountHolderId);
 }

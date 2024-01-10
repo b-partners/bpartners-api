@@ -1,5 +1,7 @@
 package app.bpartners.api.repository.jpa.model;
 
+import static javax.persistence.GenerationType.IDENTITY;
+
 import java.time.Instant;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -15,8 +17,6 @@ import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
 
-import static javax.persistence.GenerationType.IDENTITY;
-
 @Entity
 @Table(name = "\"transaction_category\"")
 @Getter
@@ -29,6 +29,7 @@ public class HTransactionCategory {
   @Id
   @GeneratedValue(strategy = IDENTITY)
   private String id;
+
   public static final String ID_TRANSACTION_ATTRIBUTE = "idTransaction";
   private String idTransaction;
   private String idAccount;
@@ -36,24 +37,31 @@ public class HTransactionCategory {
 
   @Column(name = "id_transaction_category_tmpl")
   private String idCategoryTemplate;
+
   public static final String ID_CATEGORY_TMPL_ATTRIBUTE = "idCategoryTemplate";
 
   @Column(name = "\"type\"")
   private String type;
+
   public static final String TYPE_ATTRIBUTE = "type";
 
   private String vat;
   public static final String VAT_ATTRIBUTE = "vat";
-  @CreationTimestamp
-  private Instant createdDatetime;
+  @CreationTimestamp private Instant createdDatetime;
   public static final String CREATED_DATETIME_ATTRIBUTE = "createdDatetime";
   private String comment;
-  @Transient
-  private String description;
+  @Transient private String description;
 
-  public HTransactionCategory(String id, String idTransaction, String idAccount,
-                              String idCategoryTemplate, String type, String vat,
-                              Instant createdDatetime, String comment, String description) {
+  public HTransactionCategory(
+      String id,
+      String idTransaction,
+      String idAccount,
+      String idCategoryTemplate,
+      String type,
+      String vat,
+      Instant createdDatetime,
+      String comment,
+      String description) {
     this.id = id;
     this.idTransaction = idTransaction;
     this.idAccount = idAccount;
@@ -64,5 +72,4 @@ public class HTransactionCategory {
     this.comment = comment;
     this.description = description;
   }
-
 }

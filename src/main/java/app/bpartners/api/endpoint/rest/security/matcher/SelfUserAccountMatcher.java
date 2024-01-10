@@ -15,7 +15,7 @@ import org.springframework.security.web.util.matcher.RequestMatcher;
 @AllArgsConstructor
 @Slf4j
 public class SelfUserAccountMatcher implements RequestMatcher {
-  //TODO: before setting up another selfMatcher with multiple group_names,
+  // TODO: before setting up another selfMatcher with multiple group_names,
   // create an abstract class like SelfMatcher
   // to avoid duplicates
   private static final Pattern SELFABLE_URI_PATTERN =
@@ -37,7 +37,7 @@ public class SelfUserAccountMatcher implements RequestMatcher {
     var principalUserId = AuthProvider.getPrincipal().getUserId();
     return Objects.equals(selfUserId, principalUserId)
         && authResourceProvider.getAccounts().stream()
-        .anyMatch(account -> account.getId().equals(selfAccountId));
+            .anyMatch(account -> account.getId().equals(selfAccountId));
   }
 
   private String getSelfUserId(HttpServletRequest request) {

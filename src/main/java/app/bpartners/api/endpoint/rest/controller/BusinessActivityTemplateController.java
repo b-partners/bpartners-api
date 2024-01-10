@@ -6,7 +6,6 @@ import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.service.BusinessActivityTemplateService;
 import java.util.List;
-import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -23,7 +22,7 @@ public class BusinessActivityTemplateController {
       @RequestParam(required = false) PageFromOne page,
       @RequestParam(required = false) BoundedPageSize pageSize) {
     return templateService.getBusinessActivities(page, pageSize).stream()
-        .map(mapper::toRest).toList();
+        .map(mapper::toRest)
+        .toList();
   }
-
 }

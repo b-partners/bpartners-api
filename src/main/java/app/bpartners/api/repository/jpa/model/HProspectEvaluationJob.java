@@ -36,20 +36,23 @@ import org.hibernate.annotations.TypeDef;
 @ToString
 @EqualsAndHashCode
 public class HProspectEvaluationJob implements Serializable {
-  @Id
-  private String id;
+  @Id private String id;
   private String idAccountHolder;
   private String jobStatusMessage;
+
   @OneToMany(cascade = CascadeType.ALL)
   @JoinColumn(name = "id_job")
   private List<HProspect> results;
+
   @Type(type = "pgsql_enum")
   @Enumerated(EnumType.STRING)
   private JobStatusValue jobStatus;
+
   @Type(type = "pgsql_enum")
   @Enumerated(EnumType.STRING)
   @Column(name = "\"type\"")
   private ProspectEvaluationJobType type;
+
   private Instant startedAt;
   private Instant endedAt;
   private String metadataString;

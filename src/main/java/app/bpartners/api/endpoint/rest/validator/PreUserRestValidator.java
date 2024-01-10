@@ -1,6 +1,5 @@
 package app.bpartners.api.endpoint.rest.validator;
 
-
 import app.bpartners.api.endpoint.rest.model.CreatePreUser;
 import app.bpartners.api.model.exception.BadRequestException;
 import java.util.function.Consumer;

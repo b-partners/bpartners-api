@@ -6,6 +6,8 @@ import app.bpartners.api.endpoint.rest.model.TransactionTypeEnum;
 import app.bpartners.api.model.exception.ApiException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -46,8 +48,22 @@ public class Transaction {
   private TransactionStatus status;
   private TransactionInvoiceDetails invoiceDetails;
   private EnableStatus enableStatus;
+
+  public List<TransactionSupportingDocs> getSupportingDocuments() {
+    //TODO: deprecated
+    if (invoiceDetails != null && invoiceDetails.getFileId() != null) {
+      return List.of((TransactionSupportingDocs.builder()
+          .fileInfo(FileInfo.builder()
+              .id(invoiceDetails.getFileId())
+              .build())
+          .build()));
+    }
+    return supportingDocuments;
+  }
+
   @Getter(AccessLevel.NONE)
   private Instant paymentDatetime;
+  private List<TransactionSupportingDocs> supportingDocuments = new ArrayList<>();
 
   public Instant getPaymentDatetime() {
     return paymentDatetime.truncatedTo(ChronoUnit.MILLIS);
@@ -62,7 +78,7 @@ public class Transaction {
       case DEBIT_SIDE_VALUE:
         return TransactionTypeEnum.OUTCOME;
       default:
-        //TODO: add unknown side
+        // TODO: add unknown side
         throw new ApiException(SERVER_EXCEPTION, "Unexpected side " + side);
     }
   }

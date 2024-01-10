@@ -12,7 +12,7 @@ public class AccountHolderRestValidator implements Consumer<AccountHolder> {
   public void accept(AccountHolder accountHolder) {
     StringBuilder exceptionMessageBuilder = new StringBuilder();
     ContactAddress contactAddress = accountHolder.getContactAddress();
-    //TODO: add the new invoice attributes checks
+    // TODO: add the new invoice attributes checks
     if (accountHolder.getId() == null) {
       exceptionMessageBuilder.append("id is mandatory. ");
     }

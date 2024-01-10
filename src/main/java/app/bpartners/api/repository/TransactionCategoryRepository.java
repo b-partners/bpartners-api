@@ -7,9 +7,7 @@ import java.util.List;
 
 public interface TransactionCategoryRepository {
   List<TransactionCategory> findByIdAccountAndType(
-      String idAccount,
-      TransactionTypeEnum type,
-      LocalDate startDate, LocalDate endDate);
+      String idAccount, TransactionTypeEnum type, LocalDate startDate, LocalDate endDate);
 
   List<TransactionCategory> saveAll(List<TransactionCategory> toCreate);
 

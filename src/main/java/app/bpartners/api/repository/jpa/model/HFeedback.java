@@ -30,17 +30,18 @@ import org.hibernate.annotations.TypeDef;
 @NoArgsConstructor
 @EqualsAndHashCode
 public class HFeedback {
-  @Id
-  private String id;
+  @Id private String id;
+
   @ManyToOne
   @JoinColumn(name = "account_holder_id")
   private HAccountHolder accountHolder;
+
   @ManyToMany
   @JoinTable(
       name = "customer_feedback",
       joinColumns = @JoinColumn(name = "feedback_id"),
-      inverseJoinColumns = @JoinColumn(name = "customer_id")
-  )
+      inverseJoinColumns = @JoinColumn(name = "customer_id"))
   private List<HCustomer> customers;
+
   private Instant creationDatetime;
 }

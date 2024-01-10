@@ -5,8 +5,7 @@ import lombok.Getter;
 
 public class PageFromOne {
   public static final int MIN_PAGE = 1;
-  @Getter
-  private final int value;
+  @Getter private final int value;
 
   public PageFromOne(int value) {
     if (value < MIN_PAGE) {

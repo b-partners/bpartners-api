@@ -3,7 +3,7 @@ info:
   version: 'latest'
   title: BPartners API
 servers:
-  - url: https://api-dev.bpartners.app
+  - url: https://api.prod.bpartners.app
 security:
   - BearerAuth: [ ]
 
@@ -84,6 +84,8 @@ paths:
     $ref: './paying-api.yml#/operations/transactionsExportLink'
   /accounts/{id}/transactions/{tId}:
     $ref: './paying-api.yml#/operations/getTransactionById'
+  /accounts/{aId}/transactions/{tId}/supportingDocuments:
+    $ref: './paying-api.yml#/operations/transactionSupportingDocuments'
   /accounts/{aId}/transactions/{tId}/invoices/{iId}:
     $ref: './paying-api.yml#/operations/justifyTransaction'
   /accounts/{aId}/transactionsSummary:

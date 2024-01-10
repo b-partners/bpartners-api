@@ -1,5 +1,13 @@
 package app.bpartners.api.unit.validator;
 
+import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PROPOSAL;
+import static app.bpartners.api.integration.conf.utils.TestUtils.createProduct4;
+import static app.bpartners.api.integration.conf.utils.TestUtils.createProduct5;
+import static app.bpartners.api.integration.conf.utils.TestUtils.customer1;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.mock;
+
 import app.bpartners.api.endpoint.rest.model.CrupdateInvoice;
 import app.bpartners.api.endpoint.rest.validator.CreateProductValidator;
 import app.bpartners.api.endpoint.rest.validator.CrupdateInvoiceValidator;
@@ -9,20 +17,11 @@ import java.time.LocalDate;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
-import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PROPOSAL;
-import static app.bpartners.api.integration.conf.utils.TestUtils.createProduct4;
-import static app.bpartners.api.integration.conf.utils.TestUtils.createProduct5;
-import static app.bpartners.api.integration.conf.utils.TestUtils.customer1;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.mock;
-
 class CrupdateInvoiceValidatorTest {
 
   private final CrupdateInvoiceValidator validator =
       new CrupdateInvoiceValidator(
-          mock(PaymentRegValidator.class),
-          mock(CreateProductValidator.class));
+          mock(PaymentRegValidator.class), mock(CreateProductValidator.class));
 
   CrupdateInvoice validInvoice() {
     return new CrupdateInvoice()
@@ -55,7 +54,6 @@ class CrupdateInvoiceValidatorTest {
   @Test
   void invalid_invoice() {
     CrupdateInvoice invoice = new CrupdateInvoice().status(null);
-    assertThrows(BadRequestException.class,
-        () -> validator.accept(invoice));
+    assertThrows(BadRequestException.class, () -> validator.accept(invoice));
   }
 }

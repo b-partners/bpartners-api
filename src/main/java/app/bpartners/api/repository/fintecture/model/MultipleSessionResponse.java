@@ -35,6 +35,7 @@ public class MultipleSessionResponse {
   public static class Meta {
     @JsonProperty("session_id")
     private String sessionId;
+
     @JsonProperty("status")
     private String status;
   }

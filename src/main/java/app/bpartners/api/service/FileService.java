@@ -36,7 +36,8 @@ public class FileService {
   }
 
   public List<byte[]> downloadOptionalFile(FileType fileType, String idUser, String fileId) {
-    return fileId == null || repository.findOptionalById(fileId).isEmpty() ? List.of()
+    return fileId == null || repository.findOptionalById(fileId).isEmpty()
+        ? List.of()
         : List.of(s3Service.downloadFile(fileType, idUser, fileId));
   }
 
@@ -45,9 +46,7 @@ public class FileService {
   }
 
   private void saveUserFileId(String fileId, String idUser) {
-    HUser entity = userJpaRepository.getById(idUser).toBuilder()
-        .logoFileId(fileId)
-        .build();
+    HUser entity = userJpaRepository.getById(idUser).toBuilder().logoFileId(fileId).build();
     userJpaRepository.save(entity);
   }
 }

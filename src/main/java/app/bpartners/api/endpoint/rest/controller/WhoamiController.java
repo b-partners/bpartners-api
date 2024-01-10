@@ -1,5 +1,7 @@
 package app.bpartners.api.endpoint.rest.controller;
 
+import static app.bpartners.api.endpoint.rest.security.SecurityConf.AUTHORIZATION_HEADER;
+
 import app.bpartners.api.endpoint.rest.mapper.UserRestMapper;
 import app.bpartners.api.endpoint.rest.model.Whoami;
 import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
@@ -11,8 +13,6 @@ import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import static app.bpartners.api.endpoint.rest.security.SecurityConf.AUTHORIZATION_HEADER;
-
 @RestController
 @AllArgsConstructor
 public class WhoamiController {
@@ -21,14 +21,12 @@ public class WhoamiController {
   private final UserService userService;
   private final CognitoComponent cognitoComponent;
 
-
   @GetMapping("/whoami")
   public Whoami whoami(HttpServletRequest request) {
-    return new Whoami()
-        .user(userRestMapper.toRest(getAuthUser(request)));
+    return new Whoami().user(userRestMapper.toRest(getAuthUser(request)));
   }
 
-  //TODO: put into a customAuthProvider that does not needs legal file check
+  // TODO: put into a customAuthProvider that does not needs legal file check
   private User getAuthUser(HttpServletRequest request) {
     String bearer = request.getHeader(AUTHORIZATION_HEADER);
     if (bearer == null) {

@@ -1,12 +1,12 @@
 package app.bpartners.api.unit.validator;
 
-import app.bpartners.api.endpoint.rest.model.UpdateProspect;
-import app.bpartners.api.endpoint.rest.validator.ProspectRestValidator;
-import org.junit.jupiter.api.Test;
-
 import static app.bpartners.api.endpoint.rest.model.ProspectStatus.TO_CONTACT;
 import static app.bpartners.api.integration.conf.utils.TestUtils.assertThrowsBadRequestException;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+
+import app.bpartners.api.endpoint.rest.model.UpdateProspect;
+import app.bpartners.api.endpoint.rest.validator.ProspectRestValidator;
+import org.junit.jupiter.api.Test;
 
 class ProspectRestValidatorTest {
   private final ProspectRestValidator subject = new ProspectRestValidator();
@@ -30,7 +30,7 @@ class ProspectRestValidatorTest {
 
   @Test
   void subject_reject_invalid_prospect_ko() {
-    assertThrowsBadRequestException("Id is mandatory. " + "Status is mandatory. ",
-        () -> subject.accept(new UpdateProspect()));
+    assertThrowsBadRequestException(
+        "Id is mandatory. " + "Status is mandatory. ", () -> subject.accept(new UpdateProspect()));
   }
 }

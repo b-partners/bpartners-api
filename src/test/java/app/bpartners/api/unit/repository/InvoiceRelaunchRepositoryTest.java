@@ -1,5 +1,13 @@
 package app.bpartners.api.unit.repository;
 
+import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.DRAFT;
+import static app.bpartners.api.endpoint.rest.model.RelaunchType.PROPOSAL;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.InvoiceProduct;
 import app.bpartners.api.model.mapper.InvoiceRelaunchMapper;
@@ -17,14 +25,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
-import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.DRAFT;
-import static app.bpartners.api.endpoint.rest.model.RelaunchType.PROPOSAL;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 class InvoiceRelaunchRepositoryTest {
   private static final String OBJECT = "relaunch_object";
   private static final String EMAILBODY = "<p>Hello World!</p>";
@@ -41,16 +41,17 @@ class InvoiceRelaunchRepositoryTest {
     invoiceRelaunchMapperMock = mock(InvoiceRelaunchMapper.class);
     invoiceRepositoryMock = mock(InvoiceRepository.class);
     invoiceJpaRepositoryMock = mock(InvoiceJpaRepository.class);
-    subject = new InvoiceRelaunchRepositoryImpl(
-        invoiceRelaunchJpaRepositoryMock,
-        invoiceRelaunchMapperMock,
-        invoiceRepositoryMock,
-        invoiceJpaRepositoryMock);
+    subject =
+        new InvoiceRelaunchRepositoryImpl(
+            invoiceRelaunchJpaRepositoryMock,
+            invoiceRelaunchMapperMock,
+            invoiceRepositoryMock,
+            invoiceJpaRepositoryMock);
 
-    when(invoiceRelaunchMapperMock.toEntity(any(HInvoice.class), any(String.class),
-        any(String.class), any(Boolean.class))).thenReturn(invoiceRelaunch());
-    when(invoiceJpaRepositoryMock.findById("invoice_id")).thenReturn(
-        Optional.of(invoiceEntity()));
+    when(invoiceRelaunchMapperMock.toEntity(
+            any(HInvoice.class), any(String.class), any(String.class), any(Boolean.class)))
+        .thenReturn(invoiceRelaunch());
+    when(invoiceJpaRepositoryMock.findById("invoice_id")).thenReturn(Optional.of(invoiceEntity()));
   }
 
   HInvoice invoiceEntity() {
@@ -74,13 +75,15 @@ class InvoiceRelaunchRepositoryTest {
     ArgumentCaptor<String> emailBodyCaptor = ArgumentCaptor.forClass(String.class);
     ArgumentCaptor<HInvoiceRelaunch> invoiceRelaunchCaptor =
         ArgumentCaptor.forClass(HInvoiceRelaunch.class);
-    ArgumentCaptor<Boolean> userRelaunchedCaptor =
-        ArgumentCaptor.forClass(Boolean.class);
-
+    ArgumentCaptor<Boolean> userRelaunchedCaptor = ArgumentCaptor.forClass(Boolean.class);
 
     subject.save(invoice(), OBJECT, EMAILBODY, IS_USER_RELAUNCHED);
-    verify(invoiceRelaunchMapperMock).toEntity(invoiceCaptor.capture(), objectCaptor.capture(),
-        emailBodyCaptor.capture(), userRelaunchedCaptor.capture());
+    verify(invoiceRelaunchMapperMock)
+        .toEntity(
+            invoiceCaptor.capture(),
+            objectCaptor.capture(),
+            emailBodyCaptor.capture(),
+            userRelaunchedCaptor.capture());
     verify(invoiceRelaunchJpaRepositoryMock).save(invoiceRelaunchCaptor.capture());
 
     assertEquals(invoiceEntity(), invoiceCaptor.getValue());
@@ -89,7 +92,6 @@ class InvoiceRelaunchRepositoryTest {
     assertEquals(invoiceRelaunch(), invoiceRelaunchCaptor.getValue());
     assertEquals(IS_USER_RELAUNCHED, userRelaunchedCaptor.getValue());
   }
-
 
   private Invoice invoice() {
     return Invoice.builder()

@@ -1,5 +1,7 @@
 package app.bpartners.api.repository.jpa.model;
 
+import static javax.persistence.GenerationType.IDENTITY;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -12,8 +14,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-
-import static javax.persistence.GenerationType.IDENTITY;
 
 @Entity
 @Setter
@@ -28,9 +28,12 @@ public class HAttachment {
   @Id
   @GeneratedValue(strategy = IDENTITY)
   private String id;
+
   private String idInvoiceRelaunch;
+
   @Column(name = "id_email")
   private String idEmail;
+
   private String idFile;
   private String name;
 }

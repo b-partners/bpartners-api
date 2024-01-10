@@ -42,16 +42,21 @@ public class Account implements Serializable {
   }
 
   public String describeInfos() {
-    return "Account(id=" + id
-        + ",name=" + name
-        + ",iban=" + iban
-        + ",status=" + status + ","
-        + "active=" + active + ")";
+    return "Account(id="
+        + id
+        + ",name="
+        + name
+        + ",iban="
+        + iban
+        + ",status="
+        + status
+        + ","
+        + "active="
+        + active
+        + ")";
   }
 
   public String describeMinInfos() {
-    return "Account(id=" + id
-        + ",iban=" + iban
-        + ",status=" + status + ")";
+    return "Account(id=" + id + ",iban=" + iban + ",status=" + status + ")";
   }
 }

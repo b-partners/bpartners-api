@@ -16,9 +16,7 @@ public class TransactionsSummaryRestMapper {
         .annualOutcome(domain.getAnnualOutcome())
         .annualCashFlow(domain.getAnnualCashFlow())
         .updatedAt(getLastInstantUpdate(domain))
-        .summary(domain.getSummary().stream()
-            .map(this::toRest)
-            .toList());
+        .summary(domain.getSummary().stream().map(this::toRest).toList());
   }
 
   public MonthlyTransactionsSummary toRest(
@@ -35,8 +33,7 @@ public class TransactionsSummaryRestMapper {
   private static Instant getLastInstantUpdate(app.bpartners.api.model.TransactionsSummary domain) {
     AtomicReference<Instant> lastUpdate = new AtomicReference<>(Instant.now());
     domain.getSummary().stream()
-        .max(Comparator.comparing(
-            app.bpartners.api.model.MonthlyTransactionsSummary::getUpdatedAt))
+        .max(Comparator.comparing(app.bpartners.api.model.MonthlyTransactionsSummary::getUpdatedAt))
         .ifPresent(
             monthlyTransactionsSummary ->
                 lastUpdate.set(monthlyTransactionsSummary.getUpdatedAt()));

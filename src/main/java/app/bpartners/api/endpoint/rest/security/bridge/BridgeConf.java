@@ -15,15 +15,10 @@ public class BridgeConf {
   private String bridgeVersion;
 
   public BridgeConf(
-      @Value("${bridge.client.id}")
-      String clientId,
-      @Value("${bridge.client.secret}")
-      String clientSecret,
-      @Value("${bridge.base.url}")
-      String baseUrl,
-      @Value("${bridge.version}")
-      String bridgeVersion
-  ) {
+      @Value("${bridge.client.id}") String clientId,
+      @Value("${bridge.client.secret}") String clientSecret,
+      @Value("${bridge.base.url}") String baseUrl,
+      @Value("${bridge.version}") String bridgeVersion) {
     this.clientId = clientId;
     this.clientSecret = clientSecret;
     this.baseUrl = baseUrl;
@@ -89,5 +84,4 @@ public class BridgeConf {
   public String getBankUrl() {
     return baseUrl + "/banks";
   }
-
 }

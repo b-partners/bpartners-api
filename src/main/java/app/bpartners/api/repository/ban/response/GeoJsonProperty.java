@@ -19,12 +19,16 @@ import lombok.ToString;
 public class GeoJsonProperty {
   @JsonProperty("label")
   private String label;
+
   @JsonProperty("score")
   private Double score;
+
   @JsonProperty("city")
   private String city;
+
   @JsonProperty("x")
   private Double geoLegalPosX;
+
   @JsonProperty("y")
   private Double geoLegalPosY;
 }

@@ -8,16 +8,13 @@ import lombok.SneakyThrows;
 public class StringUtils {
   private static final ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
 
-  private StringUtils() {
-
-  }
+  private StringUtils() {}
 
   @SneakyThrows
   public static Map<String, String> toMetadataMap(String metadataString) {
     if (metadataString == null) {
       return Map.of();
     }
-    return objectMapper.readValue(metadataString, new TypeReference<>() {
-    });
+    return objectMapper.readValue(metadataString, new TypeReference<>() {});
   }
 }

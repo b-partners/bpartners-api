@@ -1,5 +1,8 @@
 package app.bpartners.api.repository.implementation;
 
+import static app.bpartners.api.service.utils.AccountUtils.filterActive;
+import static app.bpartners.api.service.utils.FilterUtils.distinctByKeys;
+
 import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.UpdateAccountIdentity;
@@ -21,9 +24,6 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
 
-import static app.bpartners.api.service.utils.AccountUtils.filterActive;
-import static app.bpartners.api.service.utils.FilterUtils.distinctByKeys;
-
 @Repository
 @AllArgsConstructor
 @Slf4j
@@ -35,13 +35,13 @@ public class AccountRepositoryImpl implements AccountRepository {
   private final BankRepository bankRepository;
 
   /*
-    TODO:
-    /!\ IMPORTANT NOTE !
-    To respect Facade pattern abstraction, JPA Repository must be a connector as Bridge.
-    So the entities must be return through AccountConnector first, then convert into Account
-    through JPA inside this class AccountRepositoryImpl.
-    Meanwhile, to avoid two database requests, we broke the abstraction here.
-     */
+  TODO:
+  /!\ IMPORTANT NOTE !
+  To respect Facade pattern abstraction, JPA Repository must be a connector as Bridge.
+  So the entities must be return through AccountConnector first, then convert into Account
+  through JPA inside this class AccountRepositoryImpl.
+  Meanwhile, to avoid two database requests, we broke the abstraction here.
+   */
   @Override
   public List<Account> findByBearer(String bearer) {
     List<AccountConnector> accountConnectors = connectorRepository.findByBearer(bearer);
@@ -53,22 +53,24 @@ public class AccountRepositoryImpl implements AccountRepository {
 
   private List<Account> convertConnectors(
       String preferredAccountId, List<AccountConnector> accountConnectors) {
-    return filterByActive(preferredAccountId, accountConnectors.stream()
-        .map(this::convertConnector)
-        .collect(Collectors.toList()));
+    return filterByActive(
+        preferredAccountId,
+        accountConnectors.stream().map(this::convertConnector).collect(Collectors.toList()));
   }
 
   @Override
   public Account findById(String id) {
-    HAccount entity = jpaRepository.findById(id).orElseThrow(
-        () -> new NotFoundException("Account(id=" + id + ") not found"));
+    HAccount entity =
+        jpaRepository
+            .findById(id)
+            .orElseThrow(() -> new NotFoundException("Account(id=" + id + ") not found"));
     String externalId = entity.getExternalId(); // Default for Bridge
     AccountConnector accountConnector = connectorRepository.findById(externalId);
     if (accountConnector == null) {
       return mapper.toDomain(entity, bankRepository.findByExternalId(entity.getIdBank()));
     }
-    return mapper.toDomain(accountConnector, entity,
-        bankRepository.findByExternalId(accountConnector.getBankId()));
+    return mapper.toDomain(
+        accountConnector, entity, bankRepository.findByExternalId(accountConnector.getBankId()));
   }
 
   @Override
@@ -85,27 +87,38 @@ public class AccountRepositoryImpl implements AccountRepository {
     Account account = findById(updateAccount.getAccountId());
     HUser user = getUserById(account.getUserId());
     HAccount existing = mapper.toEntity(account, user);
-    HAccount saved = jpaRepository.save(existing.toBuilder()
-        .name(updateAccount.getName() == null ? existing.getName() : updateAccount.getName())
-        .iban(updateAccount.getIban() == null ? existing.getIban() : updateAccount.getIban())
-        .bic(updateAccount.getBic())
-        .build());
-    return mapper.toDomain(saved,
+    HAccount saved =
+        jpaRepository.save(
+            existing.toBuilder()
+                .name(
+                    updateAccount.getName() == null ? existing.getName() : updateAccount.getName())
+                .iban(
+                    updateAccount.getIban() == null ? existing.getIban() : updateAccount.getIban())
+                .bic(updateAccount.getBic())
+                .build());
+    return mapper.toDomain(
+        saved,
         saved.getIdBank() == null ? null : bankRepository.findByExternalId(saved.getIdBank()));
   }
 
   @Override
   public List<Account> saveAll(List<Account> toSave) {
-    List<HAccount> entities = toSave.stream()
-        .map(account -> {
-          HUser user = getUserById(account.getUserId());
-          return mapper.toEntity(account, user);
-        })
-        .toList();
+    List<HAccount> entities =
+        toSave.stream()
+            .map(
+                account -> {
+                  HUser user = getUserById(account.getUserId());
+                  return mapper.toEntity(account, user);
+                })
+            .toList();
     return jpaRepository.saveAll(entities).stream()
-        .map(saved -> mapper.toDomain(
-            saved, saved.getIdBank() == null ? null :
-                bankRepository.findByExternalId(saved.getIdBank())))
+        .map(
+            saved ->
+                mapper.toDomain(
+                    saved,
+                    saved.getIdBank() == null
+                        ? null
+                        : bankRepository.findByExternalId(saved.getIdBank())))
         .toList();
   }
 
@@ -114,42 +127,47 @@ public class AccountRepositoryImpl implements AccountRepository {
     HUser user = getUserById(toSave.getUserId());
     HAccount entity = mapper.toEntity(toSave, user);
     HAccount saved = jpaRepository.save(entity);
-    return mapper.toDomain(saved,
+    return mapper.toDomain(
+        saved,
         saved.getIdBank() == null ? null : bankRepository.findByExternalId(saved.getIdBank()));
   }
 
   @Override
   public void removeAll(List<Account> toRemove) {
     List<String> ids = new ArrayList<>();
-    toRemove.forEach(
-        account -> ids.add(account.getId())
-    );
+    toRemove.forEach(account -> ids.add(account.getId()));
     jpaRepository.deleteAllById(ids);
   }
 
   @Override
   public List<Account> findAll() {
     return jpaRepository.findAll().stream()
-        .map(account -> mapper.toDomain(account,
-            bankRepository.findByExternalId(account.getIdBank())))
+        .map(
+            account ->
+                mapper.toDomain(account, bankRepository.findByExternalId(account.getIdBank())))
         .collect(Collectors.toList());
   }
 
   private Account convertConnector(AccountConnector accountConnector) {
     String accountConnectorId = accountConnector.getId();
-    HAccount entity = AccountUtils.findByExternalId(accountConnectorId, jpaRepository)
-        .orElseThrow(() -> new NotFoundException(
-            "Account(externalId=" + accountConnectorId + ") not found"));
-    return mapper.toDomain(accountConnector, entity,
-        bankRepository.findByExternalId(accountConnector.getBankId()));
+    HAccount entity =
+        AccountUtils.findByExternalId(accountConnectorId, jpaRepository)
+            .orElseThrow(
+                () ->
+                    new NotFoundException(
+                        "Account(externalId=" + accountConnectorId + ") not found"));
+    return mapper.toDomain(
+        accountConnector, entity, bankRepository.findByExternalId(accountConnector.getBankId()));
   }
 
   private List<Account> getJpaAccounts(String userId, String preferredAccountId) {
     List<HAccount> accountEntities = jpaRepository.findByUser_Id(userId);
-    List<Account> accounts = accountEntities.stream()
-        .map(entity ->
-            mapper.toDomain(entity, bankRepository.findByExternalId(entity.getIdBank())))
-        .collect(Collectors.toList());
+    List<Account> accounts =
+        accountEntities.stream()
+            .map(
+                entity ->
+                    mapper.toDomain(entity, bankRepository.findByExternalId(entity.getIdBank())))
+            .collect(Collectors.toList());
     return filterByActive(preferredAccountId, accounts);
   }
 
@@ -160,9 +178,7 @@ public class AccountRepositoryImpl implements AccountRepository {
     }
     if (preferredAccountId == null || !preferredAccountId.equals(activeAccount.getId())) {
       HUser user = getUserById(activeAccount.getUserId());
-      userJpaRepository.save(user.toBuilder()
-          .preferredAccountId(activeAccount.getId())
-          .build());
+      userJpaRepository.save(user.toBuilder().preferredAccountId(activeAccount.getId()).build());
     }
     return accounts;
   }
@@ -182,8 +198,8 @@ public class AccountRepositoryImpl implements AccountRepository {
   }
 
   private HUser getUserById(String idUser) {
-    return userJpaRepository.findById(idUser)
-        .orElseThrow(() -> new NotFoundException(
-            "User(id=" + idUser + " not found"));
+    return userJpaRepository
+        .findById(idUser)
+        .orElseThrow(() -> new NotFoundException("User(id=" + idUser + " not found"));
   }
 }

@@ -1,18 +1,17 @@
 package app.bpartners.api.unit.validator;
 
+import static app.bpartners.api.integration.conf.utils.TestUtils.assertThrowsBadRequestException;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import app.bpartners.api.endpoint.rest.model.CreateInvoiceRelaunch;
 import app.bpartners.api.endpoint.rest.validator.CreateInvoiceRelaunchValidator;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
-import static app.bpartners.api.integration.conf.utils.TestUtils.assertThrowsBadRequestException;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
 class CreateInvoiceRelaunchValidatorTest {
   private static final String MAL_FORMED_HTML_EXCEPTION =
-      "Your HTML syntax is malformed or you use other tags than these allowed : "
-          + allowedTags();
+      "Your HTML syntax is malformed or you use other tags than these allowed : " + allowedTags();
   private final CreateInvoiceRelaunchValidator subject = new CreateInvoiceRelaunchValidator();
 
   private static String allowedTags() {
@@ -23,8 +22,7 @@ class CreateInvoiceRelaunchValidatorTest {
   }
 
   CreateInvoiceRelaunch baseCreateInvoiceRelaunch() {
-    return new CreateInvoiceRelaunch()
-        .attachments(List.of());
+    return new CreateInvoiceRelaunch().attachments(List.of());
   }
 
   CreateInvoiceRelaunch messageWithTextPlain() {
@@ -32,8 +30,8 @@ class CreateInvoiceRelaunchValidatorTest {
   }
 
   CreateInvoiceRelaunch messageCorrectlyFormed() {
-    return baseCreateInvoiceRelaunch().emailBody(
-        "<p><strong><i><em><del>Hello</del></em></i></strong></p>");
+    return baseCreateInvoiceRelaunch()
+        .emailBody("<p><strong><i><em><del>Hello</del></em></i></strong></p>");
   }
 
   CreateInvoiceRelaunch messageWithNotClosedTags() {
@@ -50,39 +48,29 @@ class CreateInvoiceRelaunchValidatorTest {
 
   @Test
   void invoice_relaunch_has_allowed_tags_correctly_formed_ok() {
-    assertDoesNotThrow(
-        () -> subject.accept(messageCorrectlyFormed())
-    );
+    assertDoesNotThrow(() -> subject.accept(messageCorrectlyFormed()));
   }
 
   @Test
   void invoice_relaunch_has_text_plain_ok() {
-    assertDoesNotThrow(
-        () -> subject.accept(messageWithTextPlain())
-    );
+    assertDoesNotThrow(() -> subject.accept(messageWithTextPlain()));
   }
 
   @Test
   void invoice_relaunch_has_allowed_tags_mal_formed_ok() {
-    assertDoesNotThrow(
-        () -> subject.accept(messageWithNotClosedTags())
-    );
+    assertDoesNotThrow(() -> subject.accept(messageWithNotClosedTags()));
   }
 
   @Test
   void invoice_relaunch_has_mal_formed_tags_ko() {
     assertThrowsBadRequestException(
-        MAL_FORMED_HTML_EXCEPTION,
-        () -> subject.accept(messageMalFormed())
-    );
+        MAL_FORMED_HTML_EXCEPTION, () -> subject.accept(messageMalFormed()));
   }
 
   @Test
   void invoice_relaunch_has_bad_tags_ko() {
     assertThrowsBadRequestException(
-        MAL_FORMED_HTML_EXCEPTION,
-        () -> subject.accept(messageWithBadTags())
-    );
+        MAL_FORMED_HTML_EXCEPTION, () -> subject.accept(messageWithBadTags()));
   }
 
   @Test

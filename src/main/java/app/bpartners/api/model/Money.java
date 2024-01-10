@@ -1,5 +1,7 @@
 package app.bpartners.api.model;
 
+import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
+
 import app.bpartners.api.model.exception.NotImplementedException;
 import java.io.Serializable;
 import java.math.BigInteger;
@@ -9,8 +11,6 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
 import org.apfloat.Aprational;
-
-import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 
 @Data
 @Slf4j
@@ -51,18 +51,14 @@ public class Money implements Serializable {
     Class<?> clazz = minorValue.getClass();
     switch (clazz.getTypeName()) {
       case INTEGER_TYPE_NAME:
-        return Money.builder()
-            .value(parseFraction((Integer) minorValue * 100))
-            .build();
+        return Money.builder().value(parseFraction((Integer) minorValue * 100)).build();
       case DOUBLE_TYPE_NAME:
-        return Money.builder()
-            .value(parseFraction((Double) minorValue * 100))
-            .build();
+        return Money.builder().value(parseFraction((Double) minorValue * 100)).build();
       case STRING_TYPE_NAME:
         return Money.builder()
             .value(
-                parseFraction((String) minorValue).operate(
-                    new Fraction(BigInteger.valueOf(100L)), Aprational::multiply))
+                parseFraction((String) minorValue)
+                    .operate(new Fraction(BigInteger.valueOf(100L)), Aprational::multiply))
             .build();
       default:
         throw new NotImplementedException(
@@ -74,17 +70,11 @@ public class Money implements Serializable {
     Class<?> clazz = majorValue.getClass();
     switch (clazz.getTypeName()) {
       case DOUBLE_TYPE_NAME:
-        return Money.builder()
-            .value(parseFraction((Double) majorValue))
-            .build();
+        return Money.builder().value(parseFraction((Double) majorValue)).build();
       case INTEGER_TYPE_NAME:
-        return Money.builder()
-            .value(parseFraction((Integer) majorValue))
-            .build();
+        return Money.builder().value(parseFraction((Integer) majorValue)).build();
       case STRING_TYPE_NAME:
-        return Money.builder()
-            .value(parseFraction((String) majorValue))
-            .build();
+        return Money.builder().value(parseFraction((String) majorValue)).build();
       default:
         throw new NotImplementedException(
             clazz.getTypeName() + " conversion to Money is not supported");

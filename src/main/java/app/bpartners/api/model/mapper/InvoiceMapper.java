@@ -1,5 +1,14 @@
 package app.bpartners.api.model.mapper;
 
+import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
+import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
+import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PROPOSAL;
+import static app.bpartners.api.service.InvoiceService.DRAFT_REF_PREFIX;
+import static app.bpartners.api.service.InvoiceService.PROPOSAL_REF_PREFIX;
+import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
+import static app.bpartners.api.service.utils.FractionUtils.toAprational;
+import static app.bpartners.api.service.utils.PaymentUtils.computeTotalPriceFromPaymentReqEntity;
+
 import app.bpartners.api.endpoint.rest.model.ArchiveStatus;
 import app.bpartners.api.model.CreatePaymentRegulation;
 import app.bpartners.api.model.Fraction;
@@ -24,15 +33,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apfloat.Aprational;
 import org.springframework.stereotype.Component;
 
-import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
-import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
-import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PROPOSAL;
-import static app.bpartners.api.service.InvoiceService.DRAFT_REF_PREFIX;
-import static app.bpartners.api.service.InvoiceService.PROPOSAL_REF_PREFIX;
-import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
-import static app.bpartners.api.service.utils.FractionUtils.toAprational;
-import static app.bpartners.api.service.utils.PaymentUtils.computeTotalPriceFromPaymentReqEntity;
-
 @Component
 @AllArgsConstructor
 @Slf4j
@@ -43,12 +43,10 @@ public class InvoiceMapper {
   private final PaymentRequestMapper paymentRequestMapper;
 
   public Invoice toDomain(HInvoice entity, User user) {
-    return toDomain(entity).toBuilder()
-        .user(user)
-        .build();
+    return toDomain(entity).toBuilder().user(user).build();
   }
 
-  //TODO: split to specific sub-mapper
+  // TODO: split to specific sub-mapper
   public Invoice toDomain(HInvoice entity) {
     if (entity == null) {
       return null;
@@ -57,51 +55,52 @@ public class InvoiceMapper {
     String delayPenaltyPercent = entity.getDelayPenaltyPercent();
     List<InvoiceProduct> actualProducts = toInvoiceProducts(entity);
     Fraction discount = parseFraction(entity.getDiscountPercent());
-    Invoice invoice = Invoice.builder()
-        .id(entity.getId())
-        .ref(entity.getRef())
-        .fileId(entity.getFileId())
-        .title(entity.getTitle())
-        .comment(entity.getComment())
-        .paymentType(entity.getPaymentType())
-        .paymentUrl(entity.getPaymentUrl())
-        .products(actualProducts)
-        .sendingDate(entity.getSendingDate())
-        .validityDate(entity.getValidityDate())
-        .delayInPaymentAllowed(delayInPaymentAllowed)
-        .delayPenaltyPercent(parseFraction(delayPenaltyPercent))
-        .updatedAt(entity.getUpdatedAt())
-        .toPayAt(entity.getToPayAt())
-        .customer(customerMapper.toDomain(entity.getCustomer()))
-        .customerEmail(entity.getCustomerEmail())
-        .customerAddress(entity.getCustomerAddress())
-        .customerCity(entity.getCustomerCity())
-        .customerPhone(entity.getCustomerPhone())
-        .customerCountry(entity.getCustomerCountry())
-        .customerWebsite(entity.getCustomerWebsite())
-        .customerZipCode(entity.getCustomerZipCode())
-        //TODO: add user
-        .status(entity.getStatus())
-        .archiveStatus(entity.getArchiveStatus())
-        .toBeRelaunched(entity.isToBeRelaunched())
-        .createdAt(entity.getCreatedDatetime())
-        .metadata(toMetadataMap(entity.getMetadataString()))
-        //total without vat and without discount
-        .totalPriceWithoutDiscount(computePriceWithoutDiscount(actualProducts))
-        //total without vat but with discount
-        .totalPriceWithoutVat(computePriceNoVatWithDiscount(discount, actualProducts))
-        //total vat with discount
-        .totalVat(computeTotalVatWithDiscount(discount, actualProducts))
-        //total with vat and with discount
-        .totalPriceWithVat(
-            computeTotalPriceWithVatAndDiscount(discount, actualProducts))
-        .discount(InvoiceDiscount.builder()
-            .percentValue(parseFraction(entity.getDiscountPercent()))
-            .amountValue(computeTotalDiscountAmount(discount, actualProducts))
-            .build())
-        .paymentRegulations(toCreatePaymentRegulations(entity))
-        .paymentMethod(entity.getPaymentMethod())
-        .build();
+    Invoice invoice =
+        Invoice.builder()
+            .id(entity.getId())
+            .ref(entity.getRef())
+            .fileId(entity.getFileId())
+            .title(entity.getTitle())
+            .comment(entity.getComment())
+            .paymentType(entity.getPaymentType())
+            .paymentUrl(entity.getPaymentUrl())
+            .products(actualProducts)
+            .sendingDate(entity.getSendingDate())
+            .validityDate(entity.getValidityDate())
+            .delayInPaymentAllowed(delayInPaymentAllowed)
+            .delayPenaltyPercent(parseFraction(delayPenaltyPercent))
+            .updatedAt(entity.getUpdatedAt())
+            .toPayAt(entity.getToPayAt())
+            .customer(customerMapper.toDomain(entity.getCustomer()))
+            .customerEmail(entity.getCustomerEmail())
+            .customerAddress(entity.getCustomerAddress())
+            .customerCity(entity.getCustomerCity())
+            .customerPhone(entity.getCustomerPhone())
+            .customerCountry(entity.getCustomerCountry())
+            .customerWebsite(entity.getCustomerWebsite())
+            .customerZipCode(entity.getCustomerZipCode())
+            // TODO: add user
+            .status(entity.getStatus())
+            .archiveStatus(entity.getArchiveStatus())
+            .toBeRelaunched(entity.isToBeRelaunched())
+            .createdAt(entity.getCreatedDatetime())
+            .metadata(toMetadataMap(entity.getMetadataString()))
+            // total without vat and without discount
+            .totalPriceWithoutDiscount(computePriceWithoutDiscount(actualProducts))
+            // total without vat but with discount
+            .totalPriceWithoutVat(computePriceNoVatWithDiscount(discount, actualProducts))
+            // total vat with discount
+            .totalVat(computeTotalVatWithDiscount(discount, actualProducts))
+            // total with vat and with discount
+            .totalPriceWithVat(computeTotalPriceWithVatAndDiscount(discount, actualProducts))
+            .discount(
+                InvoiceDiscount.builder()
+                    .percentValue(parseFraction(entity.getDiscountPercent()))
+                    .amountValue(computeTotalDiscountAmount(discount, actualProducts))
+                    .build())
+            .paymentRegulations(toCreatePaymentRegulations(entity))
+            .paymentMethod(entity.getPaymentMethod())
+            .build();
     return updateInvoiceReference(entity, invoice);
   }
 
@@ -124,29 +123,30 @@ public class InvoiceMapper {
     List<HPaymentRequest> paymentRequests = entity.getPaymentRequests();
     Fraction totalPrice = computeTotalPriceFromPaymentReqEntity(paymentRequests);
     return paymentRequests.stream()
-        .map(payment -> {
-          Fraction percent = totalPrice.getCentsRoundUp() == 0 ? new Fraction()
-              : parseFraction(payment.getAmount()).operate(totalPrice,
-              Aprational::divide);
-          return paymentRequestMapper.toPaymentRegulation(
-              new PaymentRequest(payment), percent);
-        })
+        .map(
+            payment -> {
+              Fraction percent =
+                  totalPrice.getCentsRoundUp() == 0
+                      ? new Fraction()
+                      : parseFraction(payment.getAmount()).operate(totalPrice, Aprational::divide);
+              return paymentRequestMapper.toPaymentRegulation(new PaymentRequest(payment), percent);
+            })
         .toList();
   }
 
   public TransactionInvoiceDetails toTransactionInvoice(HInvoice entity) {
-    return entity == null ? null
+    return entity == null
+        ? null
         : TransactionInvoiceDetails.builder()
-        .idInvoice(entity.getId())
-        .fileId(entity.getFileId())
-        .build();
+            .idInvoice(entity.getId())
+            .fileId(entity.getFileId())
+            .build();
   }
 
   private List<InvoiceProduct> toInvoiceProducts(HInvoice entity) {
     return entity.getProducts() == null
-        ? List.of() : entity.getProducts().stream()
-        .map(productMapper::toDomain)
-        .toList();
+        ? List.of()
+        : entity.getProducts().stream().map(productMapper::toDomain).toList();
   }
 
   @SneakyThrows
@@ -154,15 +154,12 @@ public class InvoiceMapper {
     if (metadataString == null) {
       return Map.of();
     }
-    return objectMapper.readValue(metadataString, new TypeReference<>() {
-    });
+    return objectMapper.readValue(metadataString, new TypeReference<>() {});
   }
 
   @SneakyThrows
   public HInvoice toEntity(
-      Invoice domain,
-      List<HPaymentRequest> paymentRequests,
-      List<HInvoiceProduct> products) {
+      Invoice domain, List<HPaymentRequest> paymentRequests, List<HInvoiceProduct> products) {
     return HInvoice.builder()
         .id(domain.getId())
         .fileId(domain.getFileId())
@@ -173,13 +170,10 @@ public class InvoiceMapper {
         .idUser(domain.getUser().getId())
         .status(domain.getStatus())
         .archiveStatus(
-            domain.getArchiveStatus() == null
-                ? ArchiveStatus.ENABLED
-                : domain.getArchiveStatus())
+            domain.getArchiveStatus() == null ? ArchiveStatus.ENABLED : domain.getArchiveStatus())
         .toBeRelaunched(domain.isToBeRelaunched())
-        .customer(domain.getCustomer() == null
-            ? null
-            : customerMapper.toEntity(domain.getCustomer()))
+        .customer(
+            domain.getCustomer() == null ? null : customerMapper.toEntity(domain.getCustomer()))
         .customerEmail(domain.getCustomerEmail())
         .customerAddress(domain.getCustomerAddress())
         .customerCity(domain.getCustomerCity())
@@ -203,47 +197,44 @@ public class InvoiceMapper {
         .build();
   }
 
-  public static Fraction computeTotalDiscountAmount(Fraction discount,
-                                                    List<InvoiceProduct> products) {
-    return computeSum(products, products.stream()
-        .map(product ->
-            product.getDiscountAmount(discount)));
+  public static Fraction computeTotalDiscountAmount(
+      Fraction discount, List<InvoiceProduct> products) {
+    return computeSum(
+        products, products.stream().map(product -> product.getDiscountAmount(discount)));
   }
 
-  public static Fraction computeTotalVatWithDiscount(Fraction discount,
-                                                     List<InvoiceProduct> products) {
-    return computeSum(products, products.stream()
-        .map(product ->
-            product.getVatWithDiscount(discount)));
+  public static Fraction computeTotalVatWithDiscount(
+      Fraction discount, List<InvoiceProduct> products) {
+    return computeSum(
+        products, products.stream().map(product -> product.getVatWithDiscount(discount)));
   }
 
   public static Fraction computePriceWithoutDiscount(List<InvoiceProduct> products) {
-    return computeSum(products, products.stream()
-        .map(InvoiceProduct::getPriceWithoutVat));
+    return computeSum(products, products.stream().map(InvoiceProduct::getPriceWithoutVat));
   }
 
   public static Fraction computeTotalPriceWithVatAndDiscount(
       Fraction discount, List<InvoiceProduct> products) {
-    return computeSum(products, products.stream()
-        .map(product ->
-            product.getPriceWithVatAndDiscount(discount)));
+    return computeSum(
+        products, products.stream().map(product -> product.getPriceWithVatAndDiscount(discount)));
   }
 
-  public static Fraction computePriceNoVatWithDiscount(Fraction discount,
-                                                       List<InvoiceProduct> actualProducts) {
-    return computeSum(actualProducts, actualProducts.stream()
-        .map(product ->
-            product.getPriceNoVatWithDiscount(discount)));
+  public static Fraction computePriceNoVatWithDiscount(
+      Fraction discount, List<InvoiceProduct> actualProducts) {
+    return computeSum(
+        actualProducts,
+        actualProducts.stream().map(product -> product.getPriceNoVatWithDiscount(discount)));
   }
 
-  private static Fraction computeSum(List<InvoiceProduct> products,
-                                     Stream<Fraction> fractionStream) {
+  private static Fraction computeSum(
+      List<InvoiceProduct> products, Stream<Fraction> fractionStream) {
     if (products == null) {
       return new Fraction();
     }
-    Aprational aprational = fractionStream
-        .map(a -> toAprational(a.getNumerator(), a.getDenominator()))
-        .reduce(new Aprational(0), Aprational::add);
+    Aprational aprational =
+        fractionStream
+            .map(a -> toAprational(a.getNumerator(), a.getDenominator()))
+            .reduce(new Aprational(0), Aprational::add);
     return parseFraction(aprational);
   }
 }

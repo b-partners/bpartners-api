@@ -19,8 +19,7 @@ public class WhoisController {
   private final WhoisService whoisService;
 
   @GetMapping("/whois/{id}")
-  public Whois whois(
-      HttpServletRequest request, @PathVariable(name = "id") String userId) {
+  public Whois whois(HttpServletRequest request, @PathVariable(name = "id") String userId) {
     String apiKeyProvided = request.getHeader(API_KEY_HEADER);
     IntegratingApplication application = whoisService.validateApiKey(apiKeyProvided);
     return new Whois()

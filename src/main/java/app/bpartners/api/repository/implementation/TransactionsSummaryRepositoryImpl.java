@@ -34,24 +34,26 @@ public class TransactionsSummaryRepositoryImpl implements TransactionsSummaryRep
   public MonthlyTransactionsSummary updateYearMonthSummary(
       String idUser, int year, MonthlyTransactionsSummary monthlySummary) {
     HMonthlyTransactionsSummary summaryEntity =
-        jpaRepository.findByIdUserAndYearAndMonth(idUser, year, monthlySummary.getMonth())
-            .orElse(HMonthlyTransactionsSummary.builder()
-                .idUser(idUser)
-                .month(monthlySummary.getMonth())
-                .year(year)
-                .build());
-    HMonthlyTransactionsSummary toSave = summaryEntity.toBuilder()
-        .cashFlow(monthlySummary.getCashFlow().toString())
-        .income(monthlySummary.getIncome().toString())
-        .outcome(monthlySummary.getOutcome().toString())
-        .updatedAt(Instant.now())
-        .build();
+        jpaRepository
+            .findByIdUserAndYearAndMonth(idUser, year, monthlySummary.getMonth())
+            .orElse(
+                HMonthlyTransactionsSummary.builder()
+                    .idUser(idUser)
+                    .month(monthlySummary.getMonth())
+                    .year(year)
+                    .build());
+    HMonthlyTransactionsSummary toSave =
+        summaryEntity.toBuilder()
+            .cashFlow(monthlySummary.getCashFlow().toString())
+            .income(monthlySummary.getIncome().toString())
+            .outcome(monthlySummary.getOutcome().toString())
+            .updatedAt(Instant.now())
+            .build();
     return mapper.toDomain(jpaRepository.save(toSave));
   }
 
   @Override
-  public MonthlyTransactionsSummary getByIdUserAndYearMonth(
-      String idUser, int year, int month) {
+  public MonthlyTransactionsSummary getByIdUserAndYearMonth(String idUser, int year, int month) {
     return mapper.toDomain(jpaRepository.getByIdUserAndYearAndMonth(idUser, year, month));
   }
 

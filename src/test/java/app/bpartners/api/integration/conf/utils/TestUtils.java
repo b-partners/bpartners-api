@@ -1,23 +1,5 @@
 package app.bpartners.api.integration.conf.utils;
 
-import static app.bpartners.api.endpoint.rest.model.AccountStatus.OPENED;
-import static app.bpartners.api.endpoint.rest.model.EnableStatus.ENABLED;
-import static app.bpartners.api.endpoint.rest.model.IdentificationStatus.VALID_IDENTITY;
-import static app.bpartners.api.endpoint.rest.model.Invoice.PaymentTypeEnum.IN_INSTALMENT;
-import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
-import static app.bpartners.api.endpoint.rest.model.PaymentMethod.UNKNOWN;
-import static app.bpartners.api.endpoint.rest.model.ProspectStatus.TO_CONTACT;
-import static app.bpartners.api.endpoint.rest.model.TransactionTypeEnum.INCOME;
-import static app.bpartners.api.endpoint.rest.model.TransactionTypeEnum.OUTCOME;
-import static app.bpartners.api.model.Invoice.DEFAULT_DELAY_PENALTY_PERCENT;
-import static app.bpartners.api.model.Invoice.DEFAULT_TO_PAY_DELAY_DAYS;
-import static app.bpartners.api.model.Money.fromMinor;
-import static app.bpartners.api.repository.bridge.model.Account.BridgeAccount.BRIDGE_STATUS_OK;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
-
 import app.bpartners.api.endpoint.event.S3Conf;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
@@ -108,6 +90,24 @@ import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsRequest;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsResponse;
 import software.amazon.awssdk.services.s3.S3Client;
+
+import static app.bpartners.api.endpoint.rest.model.AccountStatus.OPENED;
+import static app.bpartners.api.endpoint.rest.model.EnableStatus.ENABLED;
+import static app.bpartners.api.endpoint.rest.model.IdentificationStatus.VALID_IDENTITY;
+import static app.bpartners.api.endpoint.rest.model.Invoice.PaymentTypeEnum.IN_INSTALMENT;
+import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
+import static app.bpartners.api.endpoint.rest.model.PaymentMethod.UNKNOWN;
+import static app.bpartners.api.endpoint.rest.model.ProspectStatus.TO_CONTACT;
+import static app.bpartners.api.endpoint.rest.model.TransactionTypeEnum.INCOME;
+import static app.bpartners.api.endpoint.rest.model.TransactionTypeEnum.OUTCOME;
+import static app.bpartners.api.model.Invoice.DEFAULT_DELAY_PENALTY_PERCENT;
+import static app.bpartners.api.model.Invoice.DEFAULT_TO_PAY_DELAY_DAYS;
+import static app.bpartners.api.model.Money.fromMinor;
+import static app.bpartners.api.repository.bridge.model.Account.BridgeAccount.BRIDGE_STATUS_OK;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
 public class TestUtils {
   public static final String CREDIT_SIDE = "Credit";
@@ -488,7 +488,8 @@ public class TestUtils {
         .type(INCOME)
         .status(TransactionStatus.PENDING)
         .category(null)
-        .paymentDatetime(Instant.parse("2022-08-26T06:33:50.595Z"));
+        .paymentDatetime(Instant.parse("2022-08-26T06:33:50.595Z"))
+        .supportingDocs(List.of());
   }
 
   public static app.bpartners.api.endpoint.rest.model.Transaction restTransaction3() {

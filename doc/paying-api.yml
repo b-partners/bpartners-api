@@ -1321,7 +1321,12 @@ components:
         status:
           $ref: '#/components/schemas/TransactionStatus'
         invoice:
+          deprecated: true
           $ref: '#/components/schemas/TransactionInvoice'
+        supportingDocs:
+          type: array
+          items:
+            $ref: './files-api.yml/#/components/schemas/FileInfo'
     TransactionTypeEnum:
       type: string
       enum:

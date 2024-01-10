@@ -21,7 +21,6 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -167,13 +166,14 @@ public class DbTransactionRepository implements TransactionRepository {
                           ? null
                           : invoiceJpaRepository.getById(invoiceDetails.getIdInvoice());
 
+                  /*
+                  TODO: historize by ENABLE and DISABLE status instead of replacing old*/
                   List<HTransactionSupportingDocs> existingSuppDocs =
                       transactionDocsRep.findAllByIdTransaction(transaction.getId());
-
-                  supportingDocsList.addAll(
-                      Stream.of(existingSuppDocs, computeSupportingDocs(transaction))
-                          .flatMap(List::stream)
-                          .toList());
+                  transactionDocsRep.deleteAllById(existingSuppDocs.stream()
+                      .map(HTransactionSupportingDocs::getId)
+                      .toList());
+                  supportingDocsList.addAll(computeSupportingDocs(transaction));
 
                   return mapper.toEntity(transaction, invoice);
                 })

@@ -1,11 +1,5 @@
 package app.bpartners.api.service;
 
-import static app.bpartners.api.endpoint.rest.model.FileType.TRANSACTION_SUPPORTING_DOCS;
-import static app.bpartners.api.endpoint.rest.model.TransactionStatus.BOOKED;
-import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
-import static java.time.Instant.now;
-import static java.util.UUID.randomUUID;
-
 import app.bpartners.api.endpoint.rest.model.EnableStatus;
 import app.bpartners.api.endpoint.rest.model.FileType;
 import app.bpartners.api.endpoint.rest.model.TransactionStatus;
@@ -30,6 +24,8 @@ import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.repository.BridgeTransactionRepository;
 import app.bpartners.api.repository.DbTransactionRepository;
 import app.bpartners.api.repository.TransactionsSummaryRepository;
+import app.bpartners.api.repository.jpa.TransactionSupportingDocsJpaRepository;
+import app.bpartners.api.repository.jpa.model.HTransactionSupportingDocs;
 import app.bpartners.api.service.aws.S3Service;
 import app.bpartners.api.service.utils.DateUtils;
 import java.io.ByteArrayOutputStream;
@@ -41,7 +37,6 @@ import java.time.Year;
 import java.time.YearMonth;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -58,6 +53,12 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.apfloat.Aprational;
 import org.springframework.stereotype.Service;
 
+import static app.bpartners.api.endpoint.rest.model.FileType.TRANSACTION_SUPPORTING_DOCS;
+import static app.bpartners.api.endpoint.rest.model.TransactionStatus.BOOKED;
+import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
+import static java.time.Instant.now;
+import static java.util.UUID.randomUUID;
+
 @Service
 @AllArgsConstructor
 @Slf4j
@@ -65,6 +66,7 @@ public class TransactionService {
   public static final long ONE_HOUR_IN_SECONDS = 3600L;
   private final DbTransactionRepository dbTransactionRepository;
   private final BridgeTransactionRepository bridgeTransactionRepository;
+  private final TransactionSupportingDocsJpaRepository docsJpaRepository;
   private final TransactionsSummaryRepository summaryRepository;
   private final AccountService accountService;
   private final InvoiceService invoiceService;
@@ -87,6 +89,8 @@ public class TransactionService {
     FileInfo uploadedFileInfo =
         fileService.upload(fileId, TRANSACTION_SUPPORTING_DOCS, idUser, documentAsBytes);
 
+    /*
+    TODO: historize by ENABLE and DISABLE status instead of replacing old
     List<TransactionSupportingDocs> actualDocs =
         new ArrayList<>(transaction.getSupportingDocuments());
 
@@ -94,11 +98,19 @@ public class TransactionService {
         TransactionSupportingDocs.builder()
             .id(supportingDocsId)
             .fileInfo(uploadedFileInfo)
+            .build());*/
+
+    List<TransactionSupportingDocs> newSupportingDocs =
+        List.of(TransactionSupportingDocs.builder()
+            .id(supportingDocsId)
+            .fileInfo(uploadedFileInfo)
             .build());
 
     Transaction savedTransaction =
         dbTransactionRepository
-            .saveAll(List.of(transaction.toBuilder().supportingDocuments(actualDocs).build()))
+            .saveAll(List.of(transaction.toBuilder()
+                .invoiceDetails(null)
+                .supportingDocuments(newSupportingDocs).build()))
             .get(0);
 
     return savedTransaction.getSupportingDocuments();
@@ -172,7 +184,7 @@ public class TransactionService {
       byte[] transactionExcelFile,
       Map<String, byte[]> filesWithName) {
     try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        ZipOutputStream zos = new ZipOutputStream(baos)) {
+         ZipOutputStream zos = new ZipOutputStream(baos)) {
 
       zos.putNextEntry(new ZipEntry(transactionExcelFileName));
       zos.write(transactionExcelFile, 0, transactionExcelFile.length);
@@ -316,7 +328,14 @@ public class TransactionService {
     return summaryRepository.getByIdUserAndYear(idUser, year);
   }
 
+  //TODO: change to transactionRepository.save(Transaction toSsave)
   public Transaction justifyTransaction(String idTransaction, String idInvoice) {
+    List<HTransactionSupportingDocs> supportingDocs =
+        docsJpaRepository.findAllByIdTransaction(idTransaction);
+    docsJpaRepository.deleteAllById(supportingDocs.stream()
+        .map(HTransactionSupportingDocs::getId)
+        .toList());
+
     return dbTransactionRepository.save(
         JustifyTransaction.builder().idTransaction(idTransaction).idInvoice(idInvoice).build());
   }

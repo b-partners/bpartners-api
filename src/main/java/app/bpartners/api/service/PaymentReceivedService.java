@@ -1,6 +1,6 @@
 package app.bpartners.api.service;
 
-import app.bpartners.api.endpoint.event.EventConf;
+import app.bpartners.api.endpoint.event.SesConf;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.endpoint.rest.model.PaymentMethod;
 import app.bpartners.api.model.AccountHolder;
@@ -46,7 +46,7 @@ public class PaymentReceivedService {
   private final PaymentRequestJpaRepository jpaRepository;
   private final FintectureConf fintectureConf;
   private final SesService sesService;
-  private final EventConf eventConf;
+  private final SesConf sesConf;
   private final UserRepository userRepository;
   private final InvoiceJpaRepository invoiceJpaRepository;
   private final InvoiceRepositoryImpl invoiceRepositoryImpl;
@@ -166,7 +166,7 @@ public class PaymentReceivedService {
 
       String recipient = accountHolder.getEmail();
       String cc = null;
-      String bcc = eventConf.getAdminEmail();
+      String bcc = sesConf.getAdminEmail();
       String subject = getNotificationTitle(payment);
       String htmlBody = emailBody;
       List<Attachment> attachments = List.of();

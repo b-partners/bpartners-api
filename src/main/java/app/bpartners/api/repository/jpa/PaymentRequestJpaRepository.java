@@ -11,7 +11,5 @@ public interface PaymentRequestJpaRepository extends JpaRepository<HPaymentReque
 
   List<HPaymentRequest> findAllByStatus(PaymentStatus status);
 
-  List<HPaymentRequest> findAllByReferenceContainingIgnoreCase(String reference);
-
   void deleteAllByIdInvoice(String idInvoice);
 }

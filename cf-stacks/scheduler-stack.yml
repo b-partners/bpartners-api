@@ -25,7 +25,7 @@ Resources:
       Description: Scheduler that trigger the refresh of transaction summaries
       FlexibleTimeWindow:
         Mode: "OFF"
-      Name: RefreshTransactionSummaries
+      Name: !Join ['', [!Ref Env, -RefreshTransactionSummaries]]
       ScheduleExpression: "rate(1 hour)"
       Target:
         Arn: !Sub '{{resolve:ssm:/bpartners/${Env}/eventbridge/bus-arn}}'
@@ -42,7 +42,7 @@ Resources:
       Description: Scheduler that trigger the update of payments
       FlexibleTimeWindow:
         Mode: "OFF"
-      Name: UpdatePayments
+      Name: !Join ['', [!Ref Env, -UpdatePayments]]
       ScheduleExpression: "rate(12 hours)"
       Target:
         Arn: !Sub '{{resolve:ssm:/bpartners/${Env}/eventbridge/bus-arn}}'
@@ -59,7 +59,7 @@ Resources:
       Description: Scheduler that trigger the refresh of fintecture project token
       FlexibleTimeWindow:
         Mode: "OFF"
-      Name: RefreshFintectureToken
+      Name: !Join ['', [!Ref Env, -RefreshFintectureToken]]
       ScheduleExpression: "rate(45 minutes)"
       Target:
         Arn: !Sub '{{resolve:ssm:/bpartners/${Env}/eventbridge/bus-arn}}'
@@ -76,7 +76,7 @@ Resources:
       Description: Scheduler that trigger the relaunch of prospects
       FlexibleTimeWindow:
         Mode: "OFF"
-      Name: RelaunchProspects
+      Name: !Join ['', [!Ref Env, -RelaunchProspects]]
       ScheduleExpression: "cron(0 14 ? * FRI *)"
       ScheduleExpressionTimezone: "Europe/Paris"
       Target:

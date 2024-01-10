@@ -128,8 +128,11 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
         .permitAll()
         .antMatchers(GET, "/accountHolders")
         .hasAnyRole(EVAL_PROSPECT.getRole())
+        .antMatchers(POST, "/invoicesRefresh")
+        .hasAnyRole(EVAL_PROSPECT.getRole())
         .requestMatchers(new SelfAccountMatcher(GET, "/accounts/*/customers", authResourceProvider))
         .authenticated()
+        .antMatchers(POST, "/invoicesRefresh").hasAnyRole(EVAL_PROSPECT.getRole())
         .requestMatchers(
             new SelfAccountMatcher(GET, "/accounts/*/customers/export", authResourceProvider))
         .authenticated()

@@ -31,4 +31,11 @@ public class PaymentRepositoryImpl implements PaymentRequestRepository {
         .map(mapper::toDomain)
         .collect(Collectors.toList());
   }
+
+  @Override
+  public List<PaymentRequest> findAllByReference(String reference) {
+    return jpaRepository.findAllByReferenceContainingIgnoreCase(reference).stream()
+        .map(mapper::toDomain)
+        .toList();
+  }
 }

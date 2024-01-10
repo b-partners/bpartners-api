@@ -84,10 +84,7 @@ public class InvoiceRestMapper {
         .delayInPaymentAllowed(domain.getDelayInPaymentAllowed())
         .delayPenaltyPercent(domain.getDelayPenaltyPercent().getCentsRoundUp())
         .metadata(domain.getMetadata())
-        .paymentRegulations(
-            domain.getPaymentRegulations().stream()
-                .map(payment -> getPaymentRegulation(domain.getTotalPriceWithVat(), payment))
-                .toList())
+        .paymentRegulations(toRestFromInvoice(domain))
         .toPayAt(toPayAt)
         .paymentMethod(domain.getPaymentMethod())
         .globalDiscount(
@@ -102,6 +99,19 @@ public class InvoiceRestMapper {
                         .getDiscount()
                         .getAmount(domain.getTotalPriceWithVat())
                         .getCentsRoundUp()));
+  }
+
+  private List<PaymentRegulation> toRestFromInvoice(app.bpartners.api.model.Invoice domain) {
+    List<CreatePaymentRegulation> paymentRegulations = domain.getPaymentRegulations();
+    if (domain.getPaymentType() == Invoice.PaymentTypeEnum.CASH
+        && paymentRegulations.size() == 1
+        && paymentRegulations.stream()
+        .allMatch(payment -> payment.getPaymentRequest().getStatus() == PaymentStatus.PAID)) {
+      return List.of();
+    }
+    return paymentRegulations.stream()
+        .map(payment -> getPaymentRegulation(domain.getTotalPriceWithVat(), payment))
+        .toList();
   }
 
   public TransactionInvoice toRest(TransactionInvoiceDetails invoiceDetails) {

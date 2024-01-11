@@ -36,3 +36,8 @@ jobs:
 
       - name: Deploy application
         run: sam deploy --no-confirm-changeset --no-fail-on-empty-changeset --stack-name ${{ github.ref_name }}-compute-bpartners --capabilities CAPABILITY_IAM --parameter-overrides Env=${{ github.ref_name }} --resolve-s3
+
+  health-check-infra:
+    needs: [deploy-api]
+    if: ${{ needs.deploy-api.result == 'success' }}
+    uses: ./.github/workflows/health-check-infra.yml

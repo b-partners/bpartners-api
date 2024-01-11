@@ -13,8 +13,6 @@ import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.integration.conf.utils.TestUtils;
 import app.bpartners.api.model.BusinessActivity;
 import app.bpartners.api.repository.BusinessActivityRepository;
-import app.bpartners.api.repository.jpa.MunicipalityJpaRepository;
-import app.bpartners.api.repository.jpa.model.HMunicipality;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitApi;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.model.BuildingPermit;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.model.BuildingPermitList;
@@ -27,7 +25,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -37,13 +34,17 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import static app.bpartners.api.endpoint.rest.model.ProspectStatus.CONTACTED;
 import static app.bpartners.api.endpoint.rest.model.ProspectStatus.TO_CONTACT;
 import static app.bpartners.api.integration.conf.utils.TestUtils.ACCOUNTHOLDER_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.JANE_DOE_HOLDER_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.JANE_DOE_TOKEN;
 import static app.bpartners.api.integration.conf.utils.TestUtils.NOT_JOE_DOE_ACCOUNT_HOLDER_ID;
 import static app.bpartners.api.integration.conf.utils.TestUtils.assertThrowsApiException;
 import static app.bpartners.api.integration.conf.utils.TestUtils.assertThrowsForbiddenException;
 import static app.bpartners.api.integration.conf.utils.TestUtils.getStatusHistory;
-import static app.bpartners.api.integration.conf.utils.TestUtils.joeDoeAccountHolder;
+import static app.bpartners.api.integration.conf.utils.TestUtils.janeDoeAccountHolder;
 import static app.bpartners.api.integration.conf.utils.TestUtils.prospect1;
-import static app.bpartners.api.integration.conf.utils.TestUtils.prospect2;
+import static app.bpartners.api.integration.conf.utils.TestUtils.prospect10;
+import static app.bpartners.api.integration.conf.utils.TestUtils.prospect8;
+import static app.bpartners.api.integration.conf.utils.TestUtils.prospect9;
 import static app.bpartners.api.integration.conf.utils.TestUtils.setUpCognito;
 import static app.bpartners.api.integration.conf.utils.TestUtils.setUpLegalFileRepository;
 import static app.bpartners.api.repository.implementation.ProspectRepositoryImpl.ANTI_HARM;
@@ -57,12 +58,17 @@ import static org.mockito.Mockito.when;
 @Slf4j
 class ProspectIT extends MockedThirdParties {
   private static final String UNKNOWN_PROSPECT_ID = "unknown_prospect_id";
-  @MockBean private BuildingPermitApi buildingPermitApiMock;
-  @Autowired private MunicipalityJpaRepository municipalityJpaRepository;
-  @Autowired private BusinessActivityRepository businessRepository;
+  @MockBean
+  private BuildingPermitApi buildingPermitApiMock;
+  @Autowired
+  private BusinessActivityRepository businessRepository;
 
   private ApiClient anApiClient() {
-    return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN, localPort);
+    return anApiClient(TestUtils.JOE_DOE_TOKEN);
+  }
+
+  private ApiClient anApiClient(String token) {
+    return TestUtils.anApiClient(token, localPort);
   }
 
   @BeforeEach
@@ -186,32 +192,25 @@ class ProspectIT extends MockedThirdParties {
                 .lastEvaluation(Instant.parse("2023-01-01T00:00:00.00Z")));
   }
 
-  HMunicipality antony() {
-    return HMunicipality.builder()
-        .id("43c152ed-89f2-43c5-a3d2-d5cb1fb59f62")
-        .name("Antony")
-        .code("92002")
-        .build();
-  }
-
   @Test
   void read_prospects_ok() throws ApiException {
-    ApiClient joeDoeClient = anApiClient();
-    ProspectingApi api = new ProspectingApi(joeDoeClient);
+    ApiClient janeDoeClient = anApiClient(JANE_DOE_TOKEN);
+    ProspectingApi api = new ProspectingApi(janeDoeClient);
 
-    List<Prospect> actual1 = api.getProspects(ACCOUNTHOLDER_ID, null, null);
+    List<Prospect> actual1 = api.getProspects(JANE_DOE_HOLDER_ID, null, null);
     businessRepository.save(
         BusinessActivity.builder()
-            .accountHolder(joeDoeAccountHolder())
+            .accountHolder(janeDoeAccountHolder())
             .primaryActivity(ANTI_HARM)
             .secondaryActivity(null)
             .build());
-    List<Prospect> actual2 = api.getProspects(ACCOUNTHOLDER_ID, null, null);
-    String prospectName = "Alyssa";
-    List<Prospect> actual3 = api.getProspects(ACCOUNTHOLDER_ID, prospectName, null);
+    List<Prospect> actual2 = api.getProspects(JANE_DOE_HOLDER_ID, null, null);
+    String prospectName = "mark";
+    List<Prospect> actual3 = api.getProspects(JANE_DOE_HOLDER_ID, prospectName, null);
 
-    assertTrue(actual1.containsAll(List.of(prospect1(), prospect2())));
-    assertTrue(actual2.containsAll(List.of(prospect1(), prospect2(), prospect3())));
+    List<Prospect> expected = List.of(prospect8(), prospect9());
+    assertTrue(actual1.containsAll(expected));
+    assertTrue(actual2.containsAll(List.of(prospect8(), prospect9(), prospect10())));
     assertEquals(1, actual3.size());
     assertTrue(
         actual3.stream()
@@ -228,22 +227,6 @@ class ProspectIT extends MockedThirdParties {
     List<Prospect> actual = api.updateProspects(ACCOUNTHOLDER_ID, List.of(updateProspect()));
 
     assertEquals(List.of(expectedProspect()), ignoreIdsAndHistoryUpdatedOf(actual));
-  }
-
-  @Test
-  @Disabled
-  // disabled as now we could crupdate prospect
-  void update_prospects_ko() {
-    ApiClient joeDoeClient = anApiClient();
-    ProspectingApi api = new ProspectingApi(joeDoeClient);
-
-    assertThrowsApiException(
-        "{\"type\":\"404 NOT_FOUND\",\"message\":\"Prospect."
-            + UNKNOWN_PROSPECT_ID
-            + " not found. \"}",
-        () ->
-            api.updateProspects(
-                ACCOUNTHOLDER_ID, List.of(updateProspect().id(UNKNOWN_PROSPECT_ID))));
   }
 
   @Test
@@ -336,15 +319,6 @@ class ProspectIT extends MockedThirdParties {
               Objects.requireNonNull(prospect.getStatusHistory())
                   .forEach(history -> history.setUpdatedAt(null));
             })
-        .toList();
-  }
-
-  private List<Prospect> ignoreHistoryUpdatedOf(List<Prospect> prospects) {
-    return prospects.stream()
-        .peek(
-            prospect ->
-                Objects.requireNonNull(prospect.getStatusHistory())
-                    .forEach(history -> history.setUpdatedAt(null)))
         .toList();
   }
 

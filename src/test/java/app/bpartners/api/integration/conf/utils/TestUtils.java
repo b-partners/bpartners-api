@@ -159,7 +159,7 @@ public class TestUtils {
 
   public static final String NOT_JOE_DOE_ACCOUNT_ID = "NOT_" + JOE_DOE_ACCOUNT_ID;
   public static final String ACCOUNTHOLDER_ID = "b33e6eb0-e262-4596-a91f-20c6a7bfd343";
-  public static final String ACCOUNTHOLDER2_ID = "account_holder_id_2";
+  public static final String JANE_DOE_HOLDER_ID = "account_holder_id_2";
   public static final String JANE_ACCOUNT_ID = "jane_account_id";
   public static final String JANE_DOE_TOKEN = "jane_doe_token";
   public static final String JANE_DOE_ID = "jane_doe_id";
@@ -693,14 +693,6 @@ public class TestUtils {
                 .lastEvaluation(Instant.parse("2023-01-01T00:00:00.00Z")));
   }
 
-  public static List<ProspectStatusHistory> getStatusHistory(ProspectStatus status) {
-    return List.of(new ProspectStatusHistory().status(status).updatedAt(defaultInstant()));
-  }
-
-  private static Instant defaultInstant() {
-    return Instant.parse("2023-01-01T00:00:00.00Z");
-  }
-
   public static Prospect prospect2() {
     return new Prospect()
         .id("prospect2_id")
@@ -713,6 +705,60 @@ public class TestUtils {
         .address("30 Rue de la Montagne Sainte-Genevieve")
         .townCode(92002)
         .rating(new ProspectRating().value(BigDecimal.valueOf(-1.0)).lastEvaluation(null));
+  }
+
+  public static Prospect prospect8() {
+    return new Prospect()
+        .id("prospect8_id")
+        .name("John doe")
+        .location(null)
+        .status(TO_CONTACT)
+        .statusHistory(getStatusHistory(TO_CONTACT))
+        .email(null)
+        .phone(null)
+        .address(null)
+        .townCode(92002)
+        .rating(
+            new ProspectRating()
+                .value(BigDecimal.valueOf(9.993))
+                .lastEvaluation(Instant.parse("2023-01-01T00:00:00.00Z")));
+  }
+
+  public static Prospect prospect9() {
+    return new Prospect()
+        .id("prospect9_id")
+        .name("jane doe")
+        .location(null)
+        .status(TO_CONTACT)
+        .statusHistory(getStatusHistory(TO_CONTACT))
+        .email("janeDoe@gmail.com")
+        .phone("+261340465339")
+        .address("30 Rue de la Montagne Sainte-Genevieve")
+        .townCode(92002)
+        .rating(new ProspectRating().value(BigDecimal.valueOf(-1.0))
+            .lastEvaluation(null));
+  }
+
+  public static Prospect prospect10() {
+    return new Prospect()
+        .id("prospect10_id")
+        .name("markus adams")
+        .location(null)
+        .status(TO_CONTACT)
+        .statusHistory(getStatusHistory(TO_CONTACT))
+        .email("markusAdams@gmail.com")
+        .phone("+261340465340")
+        .address("30 Rue de la Montagne Sainte-Genevieve")
+        .townCode(92001)
+        .rating(new ProspectRating().value(BigDecimal.valueOf(0.0)).lastEvaluation(Instant.parse("2023-01-01T00:00:00.00Z")));
+  }
+
+  public static List<ProspectStatusHistory> getStatusHistory(ProspectStatus status) {
+    return List.of(new ProspectStatusHistory().status(status).updatedAt(defaultInstant()));
+  }
+
+  private static Instant defaultInstant() {
+    return Instant.parse("2023-01-01T00:00:00.00Z");
   }
 
   public static GeoPosition geoPosZero() {
@@ -908,6 +954,10 @@ public class TestUtils {
 
   public static AccountHolder joeDoeAccountHolder() {
     return AccountHolder.builder().id(JOE_DOE_ACCOUNT_HOLDER_ID).build();
+  }
+
+  public static AccountHolder janeDoeAccountHolder() {
+    return AccountHolder.builder().id(JANE_DOE_HOLDER_ID).build();
   }
 
   public static HAccountHolder accountHolderEntity1() {

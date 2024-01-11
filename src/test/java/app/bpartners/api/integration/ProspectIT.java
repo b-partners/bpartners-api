@@ -1,23 +1,5 @@
 package app.bpartners.api.integration;
 
-import static app.bpartners.api.endpoint.rest.model.ProspectStatus.CONTACTED;
-import static app.bpartners.api.endpoint.rest.model.ProspectStatus.TO_CONTACT;
-import static app.bpartners.api.integration.conf.utils.TestUtils.ACCOUNTHOLDER_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.NOT_JOE_DOE_ACCOUNT_HOLDER_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.assertThrowsApiException;
-import static app.bpartners.api.integration.conf.utils.TestUtils.assertThrowsForbiddenException;
-import static app.bpartners.api.integration.conf.utils.TestUtils.getStatusHistory;
-import static app.bpartners.api.integration.conf.utils.TestUtils.joeDoeAccountHolder;
-import static app.bpartners.api.integration.conf.utils.TestUtils.prospect1;
-import static app.bpartners.api.integration.conf.utils.TestUtils.prospect2;
-import static app.bpartners.api.integration.conf.utils.TestUtils.setUpCognito;
-import static app.bpartners.api.integration.conf.utils.TestUtils.setUpLegalFileRepository;
-import static app.bpartners.api.repository.implementation.ProspectRepositoryImpl.ANTI_HARM;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
-
 import app.bpartners.api.endpoint.rest.api.ProspectingApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
@@ -44,16 +26,34 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.annotation.DirtiesContext;
 import org.testcontainers.junit.jupiter.Testcontainers;
+
+import static app.bpartners.api.endpoint.rest.model.ProspectStatus.CONTACTED;
+import static app.bpartners.api.endpoint.rest.model.ProspectStatus.TO_CONTACT;
+import static app.bpartners.api.integration.conf.utils.TestUtils.ACCOUNTHOLDER_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.NOT_JOE_DOE_ACCOUNT_HOLDER_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.assertThrowsApiException;
+import static app.bpartners.api.integration.conf.utils.TestUtils.assertThrowsForbiddenException;
+import static app.bpartners.api.integration.conf.utils.TestUtils.getStatusHistory;
+import static app.bpartners.api.integration.conf.utils.TestUtils.joeDoeAccountHolder;
+import static app.bpartners.api.integration.conf.utils.TestUtils.prospect1;
+import static app.bpartners.api.integration.conf.utils.TestUtils.prospect2;
+import static app.bpartners.api.integration.conf.utils.TestUtils.setUpCognito;
+import static app.bpartners.api.integration.conf.utils.TestUtils.setUpLegalFileRepository;
+import static app.bpartners.api.repository.implementation.ProspectRepositoryImpl.ANTI_HARM;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
 @Testcontainers
 @AutoConfigureMockMvc
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @Slf4j
 class ProspectIT extends MockedThirdParties {
   private static final String UNKNOWN_PROSPECT_ID = "unknown_prospect_id";
@@ -194,9 +194,7 @@ class ProspectIT extends MockedThirdParties {
         .build();
   }
 
-  @Order(1)
   @Test
-  @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
   void read_prospects_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
     ProspectingApi api = new ProspectingApi(joeDoeClient);
@@ -222,9 +220,7 @@ class ProspectIT extends MockedThirdParties {
                     prospect.getName() != null && prospect.getName().contains(prospectName)));
   }
 
-  @Order(2)
   @Test
-  @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
   void update_prospects_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
     ProspectingApi api = new ProspectingApi(joeDoeClient);
@@ -250,7 +246,6 @@ class ProspectIT extends MockedThirdParties {
                 ACCOUNTHOLDER_ID, List.of(updateProspect().id(UNKNOWN_PROSPECT_ID))));
   }
 
-  @Order(2)
   @Test
   void update_prospect_status_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();

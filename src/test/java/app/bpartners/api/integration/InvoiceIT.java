@@ -1,5 +1,26 @@
 package app.bpartners.api.integration;
 
+import app.bpartners.api.endpoint.rest.api.PayingApi;
+import app.bpartners.api.endpoint.rest.client.ApiClient;
+import app.bpartners.api.endpoint.rest.client.ApiException;
+import app.bpartners.api.endpoint.rest.model.CreatePaymentRegulation;
+import app.bpartners.api.endpoint.rest.model.CrupdateInvoice;
+import app.bpartners.api.endpoint.rest.model.Invoice;
+import app.bpartners.api.endpoint.rest.model.InvoiceDiscount;
+import app.bpartners.api.integration.conf.S3MockedThirdParties;
+import app.bpartners.api.integration.conf.utils.TestUtils;
+import app.bpartners.api.repository.fintecture.FintecturePaymentInitiationRepository;
+import app.bpartners.api.repository.jpa.AccountHolderJpaRepository;
+import java.time.LocalDate;
+import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.testcontainers.junit.jupiter.Testcontainers;
+import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
+
 import static app.bpartners.api.endpoint.rest.model.ArchiveStatus.ENABLED;
 import static app.bpartners.api.endpoint.rest.model.CrupdateInvoice.PaymentTypeEnum.IN_INSTALMENT;
 import static app.bpartners.api.endpoint.rest.model.Invoice.PaymentTypeEnum.CASH;
@@ -7,8 +28,23 @@ import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.DRAFT;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PROPOSAL;
 import static app.bpartners.api.endpoint.rest.model.PaymentMethod.UNKNOWN;
-import static app.bpartners.api.integration.conf.utils.InvoiceTestUtils.*;
+import static app.bpartners.api.integration.conf.utils.InvoiceTestUtils.DRAFT_REF_PREFIX;
+import static app.bpartners.api.integration.conf.utils.InvoiceTestUtils.NEW_INVOICE_ID;
+import static app.bpartners.api.integration.conf.utils.InvoiceTestUtils.confirmedInvoice;
+import static app.bpartners.api.integration.conf.utils.InvoiceTestUtils.expectedConfirmed;
+import static app.bpartners.api.integration.conf.utils.InvoiceTestUtils.expectedDraft;
+import static app.bpartners.api.integration.conf.utils.InvoiceTestUtils.expectedInitializedDraft;
+import static app.bpartners.api.integration.conf.utils.InvoiceTestUtils.expectedMultiplePayments;
+import static app.bpartners.api.integration.conf.utils.InvoiceTestUtils.expectedPaid;
+import static app.bpartners.api.integration.conf.utils.InvoiceTestUtils.ignoreCustomerDatetime;
+import static app.bpartners.api.integration.conf.utils.InvoiceTestUtils.ignoreIdsAndDatetime;
+import static app.bpartners.api.integration.conf.utils.InvoiceTestUtils.ignoreIdsOf;
 import static app.bpartners.api.integration.conf.utils.InvoiceTestUtils.ignoreStatusDatetime;
+import static app.bpartners.api.integration.conf.utils.InvoiceTestUtils.initPaymentReg;
+import static app.bpartners.api.integration.conf.utils.InvoiceTestUtils.initializeDraft;
+import static app.bpartners.api.integration.conf.utils.InvoiceTestUtils.paidInvoice;
+import static app.bpartners.api.integration.conf.utils.InvoiceTestUtils.updatedPaymentRegulations;
+import static app.bpartners.api.integration.conf.utils.InvoiceTestUtils.validInvoice;
 import static app.bpartners.api.integration.conf.utils.TestUtils.INVOICE4_ID;
 import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ID;
@@ -29,28 +65,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
-
-import app.bpartners.api.endpoint.rest.api.PayingApi;
-import app.bpartners.api.endpoint.rest.client.ApiClient;
-import app.bpartners.api.endpoint.rest.client.ApiException;
-import app.bpartners.api.endpoint.rest.model.CreatePaymentRegulation;
-import app.bpartners.api.endpoint.rest.model.CrupdateInvoice;
-import app.bpartners.api.endpoint.rest.model.Invoice;
-import app.bpartners.api.endpoint.rest.model.InvoiceDiscount;
-import app.bpartners.api.integration.conf.S3MockedThirdParties;
-import app.bpartners.api.integration.conf.utils.TestUtils;
-import app.bpartners.api.repository.fintecture.FintecturePaymentInitiationRepository;
-import app.bpartners.api.repository.jpa.AccountHolderJpaRepository;
-import java.time.LocalDate;
-import java.util.List;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Order;
-import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.testcontainers.junit.jupiter.Testcontainers;
-import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
 
 @Testcontainers
 @AutoConfigureMockMvc
@@ -169,8 +183,6 @@ class InvoiceIT extends S3MockedThirdParties {
   // /!\ It seems that the localstack does not support the SES service using the default
   // credentials. So note that SES service is mocked and do nothing for this test
   @Test
-  @Order(4)
-  // TODO: ordered tests are bad, use for example @DirtiesContext of SpringBootTest for resetting DB
   void crupdate_draft_invoice_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
     PayingApi api = new PayingApi(joeDoeClient);
@@ -209,7 +221,6 @@ class InvoiceIT extends S3MockedThirdParties {
 
   // note(no-ses)
   @Test
-  @Order(4)
   void crupdate_confirmed_invoice_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
     PayingApi api = new PayingApi(joeDoeClient);
@@ -256,7 +267,6 @@ class InvoiceIT extends S3MockedThirdParties {
   }
 
   @Test
-  @Order(3)
   void crupdate_with_null_discount_percent_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
     PayingApi api = new PayingApi(joeDoeClient);

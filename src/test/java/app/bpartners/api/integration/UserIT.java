@@ -245,7 +245,7 @@ class UserIT extends MockedThirdParties {
   }
 
   @Test
-  @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+  
   void onboard_users_ok() throws IOException, InterruptedException {
     when(bridgeUserRepositoryMock.createUser(any())).thenReturn(bridgeUser());
 

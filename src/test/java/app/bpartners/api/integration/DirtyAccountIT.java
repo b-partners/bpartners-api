@@ -1,37 +1,5 @@
 package app.bpartners.api.integration;
 
-import static app.bpartners.api.integration.conf.utils.TestUtils.BERNARD_DOE_ACCOUNT_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.BERNARD_DOE_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.BERNARD_DOE_TOKEN;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JANE_DOE_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_COGNITO_TOKEN;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_TOKEN;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_EMAIL;
-import static app.bpartners.api.integration.conf.utils.TestUtils.REDIRECT_FAILURE_URL;
-import static app.bpartners.api.integration.conf.utils.TestUtils.REDIRECT_SUCCESS_URL;
-import static app.bpartners.api.integration.conf.utils.TestUtils.assertThrowsApiException;
-import static app.bpartners.api.integration.conf.utils.TestUtils.assertThrowsForbiddenException;
-import static app.bpartners.api.integration.conf.utils.TestUtils.filterAccountsById;
-import static app.bpartners.api.integration.conf.utils.TestUtils.joeDoeBridgeAccount;
-import static app.bpartners.api.integration.conf.utils.TestUtils.joePersistedAccount;
-import static app.bpartners.api.integration.conf.utils.TestUtils.otherBridgeAccount;
-import static app.bpartners.api.integration.conf.utils.TestUtils.setUpCognito;
-import static app.bpartners.api.integration.conf.utils.TestUtils.setUpLegalFileRepository;
-import static app.bpartners.api.repository.bridge.model.Account.BridgeAccount.BRIDGE_STATUS_OK;
-import static app.bpartners.api.repository.bridge.model.Account.BridgeAccount.BRIDGE_STATUS_SCA;
-import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
-import static java.util.concurrent.Executors.newFixedThreadPool;
-import static java.util.stream.Collectors.toUnmodifiableList;
-import static org.hibernate.validator.internal.util.Contracts.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.annotation.DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD;
-
 import app.bpartners.api.endpoint.rest.api.UserAccountsApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
@@ -67,13 +35,44 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.annotation.DirtiesContext;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import static app.bpartners.api.integration.conf.utils.TestUtils.BERNARD_DOE_ACCOUNT_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.BERNARD_DOE_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.BERNARD_DOE_TOKEN;
+import static app.bpartners.api.integration.conf.utils.TestUtils.JANE_DOE_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_COGNITO_TOKEN;
+import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_TOKEN;
+import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_EMAIL;
+import static app.bpartners.api.integration.conf.utils.TestUtils.REDIRECT_FAILURE_URL;
+import static app.bpartners.api.integration.conf.utils.TestUtils.REDIRECT_SUCCESS_URL;
+import static app.bpartners.api.integration.conf.utils.TestUtils.assertThrowsApiException;
+import static app.bpartners.api.integration.conf.utils.TestUtils.assertThrowsForbiddenException;
+import static app.bpartners.api.integration.conf.utils.TestUtils.filterAccountsById;
+import static app.bpartners.api.integration.conf.utils.TestUtils.joeDoeBridgeAccount;
+import static app.bpartners.api.integration.conf.utils.TestUtils.joePersistedAccount;
+import static app.bpartners.api.integration.conf.utils.TestUtils.otherBridgeAccount;
+import static app.bpartners.api.integration.conf.utils.TestUtils.setUpCognito;
+import static app.bpartners.api.integration.conf.utils.TestUtils.setUpLegalFileRepository;
+import static app.bpartners.api.repository.bridge.model.Account.BridgeAccount.BRIDGE_STATUS_OK;
+import static app.bpartners.api.repository.bridge.model.Account.BridgeAccount.BRIDGE_STATUS_SCA;
+import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
+import static java.util.concurrent.Executors.newFixedThreadPool;
+import static java.util.stream.Collectors.toUnmodifiableList;
+import static org.hibernate.validator.internal.util.Contracts.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.when;
+
 @Testcontainers
-@DirtiesContext(classMode = BEFORE_EACH_TEST_METHOD)
-@Disabled("TODO(fail)")
+@AutoConfigureMockMvc
+@Disabled("TODO:fail")
 class DirtyAccountIT extends MockedThirdParties {
   @MockBean private UserRepository userRepositoryMock;
   @MockBean private BridgeBankRepository bridgeBankRepositoryMock;

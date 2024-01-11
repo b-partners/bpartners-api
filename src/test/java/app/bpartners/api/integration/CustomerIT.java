@@ -98,7 +98,7 @@ class CustomerIT extends MockedThirdParties {
         .comment("Nouvelle rencontre");
   }
 
-  @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+  
   @Test
   void export_customers_ok() throws IOException, InterruptedException, ApiException {
     InputStream expectedFileIs = new ClassPathResource("files/customers.csv").getInputStream();

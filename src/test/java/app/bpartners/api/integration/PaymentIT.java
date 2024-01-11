@@ -41,7 +41,6 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 @Testcontainers
 @AutoConfigureMockMvc
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class PaymentIT extends MockedThirdParties {
   @Autowired private PaymentRequestJpaRepository requestJpaRepository;
   @MockBean private FintecturePaymentInitiationRepository paymentInitiationRepositoryMock;

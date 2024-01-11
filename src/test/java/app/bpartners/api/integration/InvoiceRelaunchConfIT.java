@@ -1,8 +1,5 @@
 package app.bpartners.api.integration;
 
-import static app.bpartners.api.integration.conf.utils.TestUtils.*;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
 import app.bpartners.api.endpoint.rest.api.PayingApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
@@ -13,17 +10,22 @@ import app.bpartners.api.repository.fintecture.FintecturePaymentInfoRepository;
 import app.bpartners.api.repository.fintecture.FintecturePaymentInitiationRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import static app.bpartners.api.integration.conf.utils.TestUtils.INVOICE1_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.INVOICE2_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.setUpCognito;
+import static app.bpartners.api.integration.conf.utils.TestUtils.setUpLegalFileRepository;
+import static app.bpartners.api.integration.conf.utils.TestUtils.setUpPaymentInfoRepository;
+import static app.bpartners.api.integration.conf.utils.TestUtils.setUpPaymentInitiationRep;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 @Testcontainers
 @AutoConfigureMockMvc
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @Disabled("TODO(fail)")
 class InvoiceRelaunchConfIT extends S3MockedThirdParties {
   private static final String RELAUNCH_CONF1_ID = "relaunchConf1_id";
@@ -43,7 +45,6 @@ class InvoiceRelaunchConfIT extends S3MockedThirdParties {
   }
 
   @Test
-  @Order(1)
   void read_conf_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
     PayingApi api = new PayingApi(joeDoeClient);
@@ -54,7 +55,6 @@ class InvoiceRelaunchConfIT extends S3MockedThirdParties {
   }
 
   @Test
-  @Order(2)
   void crupdate_conf_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
     PayingApi api = new PayingApi(joeDoeClient);

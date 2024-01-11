@@ -171,7 +171,7 @@ class AccountHolderIT extends MockedThirdParties {
     setUpCognito(cognitoComponentMock);
   }
 
-  @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
+  
   @Test
   void get_all_account_holders_ok() throws ApiException {
     User user = userService.getUserById(JOE_DOE_ID);

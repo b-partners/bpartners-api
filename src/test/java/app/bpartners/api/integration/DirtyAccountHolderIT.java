@@ -1,21 +1,5 @@
 package app.bpartners.api.integration;
 
-import static app.bpartners.api.integration.conf.utils.TestUtils.ACCOUNTHOLDER2_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JANE_ACCOUNT_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JANE_DOE_USER_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_USER_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.annualRevenueTarget1;
-import static app.bpartners.api.integration.conf.utils.TestUtils.annualRevenueTarget2;
-import static app.bpartners.api.integration.conf.utils.TestUtils.companyBusinessActivity;
-import static app.bpartners.api.integration.conf.utils.TestUtils.companyInfo;
-import static app.bpartners.api.integration.conf.utils.TestUtils.location;
-import static app.bpartners.api.integration.conf.utils.TestUtils.setUpCognito;
-import static app.bpartners.api.integration.conf.utils.TestUtils.setUpLegalFileRepository;
-import static app.bpartners.api.integration.conf.utils.TestUtils.toUpdateAnnualRevenueTarget;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.springframework.test.annotation.DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD;
-
 import app.bpartners.api.endpoint.rest.api.UserAccountsApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
@@ -33,11 +17,24 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.springframework.test.annotation.DirtiesContext;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import static app.bpartners.api.integration.conf.utils.TestUtils.ACCOUNTHOLDER2_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.JANE_ACCOUNT_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.JANE_DOE_USER_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_USER_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.annualRevenueTarget1;
+import static app.bpartners.api.integration.conf.utils.TestUtils.annualRevenueTarget2;
+import static app.bpartners.api.integration.conf.utils.TestUtils.companyBusinessActivity;
+import static app.bpartners.api.integration.conf.utils.TestUtils.companyInfo;
+import static app.bpartners.api.integration.conf.utils.TestUtils.location;
+import static app.bpartners.api.integration.conf.utils.TestUtils.setUpCognito;
+import static app.bpartners.api.integration.conf.utils.TestUtils.setUpLegalFileRepository;
+import static app.bpartners.api.integration.conf.utils.TestUtils.toUpdateAnnualRevenueTarget;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 @Testcontainers
-@DirtiesContext(classMode = BEFORE_EACH_TEST_METHOD)
 @Slf4j
 @Disabled("TODO(fail)")
 class DirtyAccountHolderIT extends MockedThirdParties {

@@ -1,29 +1,5 @@
 package app.bpartners.api.integration;
 
-import static app.bpartners.api.integration.conf.utils.TestUtils.BEARER_PREFIX;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JANE_ACCOUNT_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_TOKEN;
-import static app.bpartners.api.integration.conf.utils.TestUtils.OTHER_PRODUCT_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.assertThrowsApiException;
-import static app.bpartners.api.integration.conf.utils.TestUtils.assertThrowsForbiddenException;
-import static app.bpartners.api.integration.conf.utils.TestUtils.disabledProduct;
-import static app.bpartners.api.integration.conf.utils.TestUtils.getApiException;
-import static app.bpartners.api.integration.conf.utils.TestUtils.isAfterOrEquals;
-import static app.bpartners.api.integration.conf.utils.TestUtils.product1;
-import static app.bpartners.api.integration.conf.utils.TestUtils.product6;
-import static app.bpartners.api.integration.conf.utils.TestUtils.setUpCognito;
-import static app.bpartners.api.integration.conf.utils.TestUtils.setUpLegalFileRepository;
-import static app.bpartners.api.integration.conf.utils.TestUtils.setUpPaymentInfoRepository;
-import static app.bpartners.api.integration.conf.utils.TestUtils.setUpPaymentInitiationRep;
-import static app.bpartners.api.repository.google.calendar.drive.DriveApi.EXCEL_MIME_TYPE;
-import static app.bpartners.api.service.CustomerService.TEXT_CSV_MIME_TYPE;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import app.bpartners.api.endpoint.rest.api.PayingApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
@@ -48,21 +24,40 @@ import java.net.http.HttpResponse;
 import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
-import org.springframework.test.annotation.DirtiesContext;
 import org.testcontainers.junit.jupiter.Testcontainers;
+
+import static app.bpartners.api.integration.conf.utils.TestUtils.BEARER_PREFIX;
+import static app.bpartners.api.integration.conf.utils.TestUtils.JANE_ACCOUNT_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_TOKEN;
+import static app.bpartners.api.integration.conf.utils.TestUtils.OTHER_PRODUCT_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.assertThrowsApiException;
+import static app.bpartners.api.integration.conf.utils.TestUtils.assertThrowsForbiddenException;
+import static app.bpartners.api.integration.conf.utils.TestUtils.disabledProduct;
+import static app.bpartners.api.integration.conf.utils.TestUtils.getApiException;
+import static app.bpartners.api.integration.conf.utils.TestUtils.isAfterOrEquals;
+import static app.bpartners.api.integration.conf.utils.TestUtils.product1;
+import static app.bpartners.api.integration.conf.utils.TestUtils.product6;
+import static app.bpartners.api.integration.conf.utils.TestUtils.setUpCognito;
+import static app.bpartners.api.integration.conf.utils.TestUtils.setUpLegalFileRepository;
+import static app.bpartners.api.integration.conf.utils.TestUtils.setUpPaymentInfoRepository;
+import static app.bpartners.api.integration.conf.utils.TestUtils.setUpPaymentInitiationRep;
+import static app.bpartners.api.repository.google.calendar.drive.DriveApi.EXCEL_MIME_TYPE;
+import static app.bpartners.api.service.CustomerService.TEXT_CSV_MIME_TYPE;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Testcontainers
 @AutoConfigureMockMvc
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class ProductIT extends MockedThirdParties {
   @MockBean private FintecturePaymentInitiationRepository paymentInitiationRepositoryMock;
   @MockBean private FintecturePaymentInfoRepository paymentInfoRepositoryMock;
@@ -121,7 +116,6 @@ class ProductIT extends MockedThirdParties {
         .vatPercent(1000);
   }
 
-  @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
   @Test
   void export_products_ok() throws IOException, InterruptedException, ApiException {
     InputStream expectedFileIs = new ClassPathResource("files/products.csv").getInputStream();
@@ -140,7 +134,7 @@ class ProductIT extends MockedThirdParties {
     */
   }
 
-  @Order(1)
+  
   @Test
   void read_products_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
@@ -180,7 +174,7 @@ class ProductIT extends MockedThirdParties {
     assertTrue(actualDisabledProducts.contains(disabledProduct()));
   }
 
-  @Order(1)
+  
   @Test
   void read_unique_product_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
@@ -191,7 +185,7 @@ class ProductIT extends MockedThirdParties {
     assertEquals(product1(), actualProduct1);
   }
 
-  @Order(1)
+  
   @Test
   void read_unique_product_ko() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
@@ -205,7 +199,7 @@ class ProductIT extends MockedThirdParties {
     assertThrowsForbiddenException(() -> api.getProductById(JANE_ACCOUNT_ID, "product1_id"));
   }
 
-  @Order(1)
+  
   @Test
   void filter_product_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
@@ -236,7 +230,6 @@ class ProductIT extends MockedThirdParties {
         actualSearchedByDescriptionAndUnitPrice.get(0));
   }
 
-  @Order(2)
   @Test
   void create_products_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
@@ -253,7 +246,6 @@ class ProductIT extends MockedThirdParties {
     assertTrue(ignoreCreatedAt(actualProducts).containsAll(ignoreCreatedAt(actual)));
   }
 
-  @Order(3)
   @Test
   void create_and_update_products_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
@@ -283,8 +275,6 @@ class ProductIT extends MockedThirdParties {
     assertEquals(oldProduct, actualProduct);
     assertEquals(expectedProduct, actualUpdated);
   }
-
-  @Order(3)
   @Test
   void update_product_ko() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
@@ -301,7 +291,7 @@ class ProductIT extends MockedThirdParties {
         () -> api.crupdateProducts(JOE_DOE_ACCOUNT_ID, List.of(createProduct)));
   }
 
-  @Order(1)
+  
   @Test
   void read_products_ordered_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
@@ -394,7 +384,6 @@ class ProductIT extends MockedThirdParties {
     return response;
   }
 
-  @Order(4)
   @Test
   void product_status_is_disabled_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
@@ -411,7 +400,6 @@ class ProductIT extends MockedThirdParties {
     assertFalse(allProducts.containsAll(actual));
   }
 
-  @Order(4)
   @Test
   void product_status_is_disabled_ko() {
     ApiClient joeDoeClient = anApiClient();

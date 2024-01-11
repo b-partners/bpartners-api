@@ -1,32 +1,5 @@
 package app.bpartners.api.integration;
 
-import static app.bpartners.api.endpoint.rest.model.JobStatusValue.FAILED;
-import static app.bpartners.api.endpoint.rest.model.JobStatusValue.FINISHED;
-import static app.bpartners.api.endpoint.rest.model.JobStatusValue.IN_PROGRESS;
-import static app.bpartners.api.endpoint.rest.model.JobStatusValue.NOT_STARTED;
-import static app.bpartners.api.endpoint.rest.validator.ProspectRestValidator.XLSX_FILE;
-import static app.bpartners.api.integration.conf.utils.TestUtils.BEARER_PREFIX;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_HOLDER_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_TOKEN;
-import static app.bpartners.api.integration.conf.utils.TestUtils.geoPosZero;
-import static app.bpartners.api.integration.conf.utils.TestUtils.joeDoeAccountHolder;
-import static app.bpartners.api.integration.conf.utils.TestUtils.prospect1;
-import static app.bpartners.api.integration.conf.utils.TestUtils.prospect2;
-import static app.bpartners.api.integration.conf.utils.TestUtils.setUpCognito;
-import static app.bpartners.api.integration.conf.utils.TestUtils.setUpLegalFileRepository;
-import static app.bpartners.api.repository.expressif.utils.ProspectEvalUtils.customerType;
-import static app.bpartners.api.repository.expressif.utils.ProspectEvalUtils.infestationType;
-import static app.bpartners.api.repository.expressif.utils.ProspectEvalUtils.interventionType;
-import static app.bpartners.api.repository.expressif.utils.ProspectEvalUtils.professionalCustomerType;
-import static app.bpartners.api.repository.implementation.ProspectRepositoryImpl.ANTI_HARM;
-import static app.bpartners.api.service.ProspectService.DEFAULT_RATING_PROSPECT_TO_CONVERT;
-import static app.bpartners.api.service.ProspectService.defaultStatusHistory;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
-
 import app.bpartners.api.endpoint.rest.api.ProspectingApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
@@ -82,12 +55,37 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.test.annotation.DirtiesContext;
 import org.testcontainers.junit.jupiter.Testcontainers;
+
+import static app.bpartners.api.endpoint.rest.model.JobStatusValue.FAILED;
+import static app.bpartners.api.endpoint.rest.model.JobStatusValue.FINISHED;
+import static app.bpartners.api.endpoint.rest.model.JobStatusValue.IN_PROGRESS;
+import static app.bpartners.api.endpoint.rest.model.JobStatusValue.NOT_STARTED;
+import static app.bpartners.api.endpoint.rest.validator.ProspectRestValidator.XLSX_FILE;
+import static app.bpartners.api.integration.conf.utils.TestUtils.BEARER_PREFIX;
+import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_HOLDER_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_TOKEN;
+import static app.bpartners.api.integration.conf.utils.TestUtils.geoPosZero;
+import static app.bpartners.api.integration.conf.utils.TestUtils.joeDoeAccountHolder;
+import static app.bpartners.api.integration.conf.utils.TestUtils.prospect1;
+import static app.bpartners.api.integration.conf.utils.TestUtils.prospect2;
+import static app.bpartners.api.integration.conf.utils.TestUtils.setUpCognito;
+import static app.bpartners.api.integration.conf.utils.TestUtils.setUpLegalFileRepository;
+import static app.bpartners.api.repository.expressif.utils.ProspectEvalUtils.customerType;
+import static app.bpartners.api.repository.expressif.utils.ProspectEvalUtils.infestationType;
+import static app.bpartners.api.repository.expressif.utils.ProspectEvalUtils.interventionType;
+import static app.bpartners.api.repository.expressif.utils.ProspectEvalUtils.professionalCustomerType;
+import static app.bpartners.api.repository.implementation.ProspectRepositoryImpl.ANTI_HARM;
+import static app.bpartners.api.service.ProspectService.DEFAULT_RATING_PROSPECT_TO_CONVERT;
+import static app.bpartners.api.service.ProspectService.defaultStatusHistory;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
 @Testcontainers
 @AutoConfigureMockMvc
-@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
 @Slf4j
 class ProspectEvaluationIT extends MockedThirdParties {
   public static final String PROSPECT_EVAL_JOB1_ID = "pe_job_id1";
@@ -227,7 +225,7 @@ class ProspectEvaluationIT extends MockedThirdParties {
 
   /*
   TODO: make test pass
-  @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
+  
   @Test
   void read_prospect_evaluation_job_details_ok() throws ApiException {
     Prospect prospect1 = prospectService.getById(prospect1().getId());

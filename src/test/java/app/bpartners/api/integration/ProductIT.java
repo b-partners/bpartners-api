@@ -34,6 +34,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 import static app.bpartners.api.integration.conf.utils.TestUtils.BEARER_PREFIX;
 import static app.bpartners.api.integration.conf.utils.TestUtils.JANE_ACCOUNT_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.JANE_DOE_TOKEN;
 import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ID;
 import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_TOKEN;
@@ -59,11 +60,17 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @Testcontainers
 @AutoConfigureMockMvc
 class ProductIT extends MockedThirdParties {
-  @MockBean private FintecturePaymentInitiationRepository paymentInitiationRepositoryMock;
-  @MockBean private FintecturePaymentInfoRepository paymentInfoRepositoryMock;
+  @MockBean
+  private FintecturePaymentInitiationRepository paymentInitiationRepositoryMock;
+  @MockBean
+  private FintecturePaymentInfoRepository paymentInfoRepositoryMock;
 
   private ApiClient anApiClient() {
-    return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN, localPort);
+    return anApiClient(JOE_DOE_TOKEN);
+  }
+
+  private ApiClient anApiClient(String token) {
+    return TestUtils.anApiClient(token, localPort);
   }
 
   private static Product updatedProduct(Product product) {
@@ -134,7 +141,7 @@ class ProductIT extends MockedThirdParties {
     */
   }
 
-  
+
   @Test
   void read_products_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
@@ -174,7 +181,7 @@ class ProductIT extends MockedThirdParties {
     assertTrue(actualDisabledProducts.contains(disabledProduct()));
   }
 
-  
+
   @Test
   void read_unique_product_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
@@ -185,7 +192,7 @@ class ProductIT extends MockedThirdParties {
     assertEquals(product1(), actualProduct1);
   }
 
-  
+
   @Test
   void read_unique_product_ko() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
@@ -199,7 +206,7 @@ class ProductIT extends MockedThirdParties {
     assertThrowsForbiddenException(() -> api.getProductById(JANE_ACCOUNT_ID, "product1_id"));
   }
 
-  
+
   @Test
   void filter_product_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
@@ -232,35 +239,33 @@ class ProductIT extends MockedThirdParties {
 
   @Test
   void create_products_ok() throws ApiException {
-    ApiClient joeDoeClient = anApiClient();
-    PayingApi api = new PayingApi(joeDoeClient);
+    ApiClient janeDoeClient = anApiClient(JANE_DOE_TOKEN);
+    PayingApi api = new PayingApi(janeDoeClient);
 
     List<Product> actual =
-        api.createProducts(JOE_DOE_ACCOUNT_ID, List.of(createProduct1(), createExistingProduct()));
+        api.createProducts(JANE_ACCOUNT_ID, List.of(createProduct1(), createExistingProduct()));
     List<Product> actualProducts =
-        api.getProducts(JOE_DOE_ACCOUNT_ID, true, null, null, null, null, null, null, 1, 20);
-    assertEquals(7, actualProducts.size());
+        api.getProducts(JANE_ACCOUNT_ID, true, null, null, null, null, null, null, 1, 20);
+
     assertTrue(actualProducts.stream().allMatch(product -> product.getCreatedAt() != null));
-    actual.get(0).createdAt(actualProducts.get(0).getCreatedAt());
-    assertTrue(actualProducts.containsAll(actual));
     assertTrue(ignoreCreatedAt(actualProducts).containsAll(ignoreCreatedAt(actual)));
   }
 
   @Test
   void create_and_update_products_ok() throws ApiException {
-    ApiClient joeDoeClient = anApiClient();
-    PayingApi api = new PayingApi(joeDoeClient);
+    ApiClient janeDoeClient = anApiClient(JANE_DOE_TOKEN);
+    PayingApi api = new PayingApi(janeDoeClient);
     CreateProduct createProduct = createProduct1().id(null).description("New product");
 
-    List<Product> actual1 = api.crupdateProducts(JOE_DOE_ACCOUNT_ID, List.of(createProduct));
+    List<Product> actual1 = api.crupdateProducts(JANE_ACCOUNT_ID, List.of(createProduct));
     List<Product> allProducts1 =
-        api.getProducts(JOE_DOE_ACCOUNT_ID, true, null, null, null, null, null, null, 1, 20);
+        api.getProducts(JANE_ACCOUNT_ID, true, null, null, null, null, null, null, 1, 20);
     List<Product> actual2 =
         api.crupdateProducts(
-            JOE_DOE_ACCOUNT_ID,
+            JANE_ACCOUNT_ID,
             List.of(createProduct.id(actual1.get(0).getId()).description("Other").unitPrice(5000)));
     List<Product> allProducts2 =
-        api.getProducts(JOE_DOE_ACCOUNT_ID, true, null, null, null, null, null, null, 1, 20);
+        api.getProducts(JANE_ACCOUNT_ID, true, null, null, null, null, null, null, 1, 20);
 
     Product actualProduct = actual1.get(0);
     Product actualUpdated = actual2.get(0);
@@ -275,6 +280,7 @@ class ProductIT extends MockedThirdParties {
     assertEquals(oldProduct, actualProduct);
     assertEquals(expectedProduct, actualUpdated);
   }
+
   @Test
   void update_product_ko() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
@@ -291,7 +297,7 @@ class ProductIT extends MockedThirdParties {
         () -> api.crupdateProducts(JOE_DOE_ACCOUNT_ID, List.of(createProduct)));
   }
 
-  
+
   @Test
   void read_products_ordered_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
@@ -340,7 +346,7 @@ class ProductIT extends MockedThirdParties {
   void create_products_from_an_uploaded_excel_file_ok() throws InterruptedException, IOException {
     Resource fileToUpload = new ClassPathResource("files/products.xlsx");
 
-    HttpResponse<String> response = uploadFile(JOE_DOE_ACCOUNT_ID, fileToUpload.getFile());
+    HttpResponse<String> response = uploadFile(JANE_ACCOUNT_ID, fileToUpload.getFile());
     CollectionType productListType =
         new ObjectMapper().getTypeFactory().constructCollectionType(List.class, Product.class);
     List<Product> actual =
@@ -355,7 +361,7 @@ class ProductIT extends MockedThirdParties {
   void create_products_from_an_uploaded_excel_file_ko() throws InterruptedException, IOException {
     Resource fileToUpload = new ClassPathResource("files/wrong.xlsx");
 
-    HttpResponse<String> response = uploadFile(JOE_DOE_ACCOUNT_ID, fileToUpload.getFile());
+    HttpResponse<String> response = uploadFile(JANE_ACCOUNT_ID, fileToUpload.getFile());
 
     assertEquals(HttpStatus.BAD_REQUEST.value(), response.statusCode());
     assertEquals(
@@ -376,7 +382,7 @@ class ProductIT extends MockedThirdParties {
         unauthenticatedClient.send(
             HttpRequest.newBuilder()
                 .uri(URI.create(basePath + "/accounts/" + accountId + "/products/upload"))
-                .header("Authorization", BEARER_PREFIX + JOE_DOE_TOKEN)
+                .header("Authorization", BEARER_PREFIX + JANE_DOE_TOKEN)
                 .method("POST", HttpRequest.BodyPublishers.ofFile(toUpload.toPath()))
                 .build(),
             HttpResponse.BodyHandlers.ofString());

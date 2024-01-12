@@ -97,6 +97,7 @@ import static app.bpartners.api.endpoint.rest.model.IdentificationStatus.VALID_I
 import static app.bpartners.api.endpoint.rest.model.Invoice.PaymentTypeEnum.IN_INSTALMENT;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
 import static app.bpartners.api.endpoint.rest.model.PaymentMethod.UNKNOWN;
+import static app.bpartners.api.endpoint.rest.model.ProspectStatus.CONTACTED;
 import static app.bpartners.api.endpoint.rest.model.ProspectStatus.TO_CONTACT;
 import static app.bpartners.api.endpoint.rest.model.TransactionTypeEnum.INCOME;
 import static app.bpartners.api.endpoint.rest.model.TransactionTypeEnum.OUTCOME;
@@ -705,6 +706,22 @@ public class TestUtils {
         .address("30 Rue de la Montagne Sainte-Genevieve")
         .townCode(92002)
         .rating(new ProspectRating().value(BigDecimal.valueOf(-1.0)).lastEvaluation(null));
+  }
+  public static Prospect prospect4() {
+    return new Prospect()
+        .id("prospect4_id")
+        .name("Alyssa Hain")
+        .location(null)
+        .status(CONTACTED)
+        .statusHistory(getStatusHistory(CONTACTED))
+        .email("alyssaHain@gmail.com")
+        .phone("+261340465341")
+        .address("30 Rue de la Montagne Sainte-Genevieve")
+        .townCode(92002)
+        .rating(
+            new ProspectRating()
+                .value(BigDecimal.valueOf(-1.0))
+                .lastEvaluation(null));
   }
 
   public static Prospect prospect8() {

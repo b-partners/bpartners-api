@@ -43,6 +43,7 @@ import static app.bpartners.api.integration.conf.utils.TestUtils.getStatusHistor
 import static app.bpartners.api.integration.conf.utils.TestUtils.janeDoeAccountHolder;
 import static app.bpartners.api.integration.conf.utils.TestUtils.prospect1;
 import static app.bpartners.api.integration.conf.utils.TestUtils.prospect10;
+import static app.bpartners.api.integration.conf.utils.TestUtils.prospect4;
 import static app.bpartners.api.integration.conf.utils.TestUtils.prospect8;
 import static app.bpartners.api.integration.conf.utils.TestUtils.prospect9;
 import static app.bpartners.api.integration.conf.utils.TestUtils.setUpCognito;
@@ -119,7 +120,7 @@ class ProspectIT extends MockedThirdParties {
 
   UpdateProspect updateProspect() {
     return new UpdateProspect()
-        .id("prospect1_id")
+        .id(prospect4().getId())
         .name("paul adams")
         .status(CONTACTED)
         .email("paulAdams@gmail.com")
@@ -146,17 +147,12 @@ class ProspectIT extends MockedThirdParties {
     return interestingProspect().prospectFeedback(ProspectFeedback.NOT_INTERESTED);
   }
 
-  ExtendedProspectStatus prospectToReset() {
-    return interestingProspect().status(TO_CONTACT);
-  }
-
   Prospect expectedInterestingProspect() {
     Prospect expected =
         ignoreHistoryUpdatedOf(
             prospect1()
                 .statusHistory(
                     Stream.of(
-                            getStatusHistory(CONTACTED),
                             prospect1().getStatusHistory(),
                             getStatusHistory(CONTACTED))
                         .flatMap(List::stream)
@@ -172,7 +168,7 @@ class ProspectIT extends MockedThirdParties {
 
   Prospect expectedProspect() {
     List<ProspectStatusHistory> statusHistory =
-        Stream.of(getStatusHistory(TO_CONTACT), getStatusHistory(CONTACTED))
+        Stream.of(getStatusHistory(CONTACTED), getStatusHistory(CONTACTED))
             .flatMap(List::stream)
             .toList();
     return new Prospect()
@@ -188,8 +184,8 @@ class ProspectIT extends MockedThirdParties {
         .address("30 Rue de la Montagne Sainte-Genevieve")
         .rating(
             new ProspectRating()
-                .value(BigDecimal.valueOf(9.993))
-                .lastEvaluation(Instant.parse("2023-01-01T00:00:00.00Z")));
+                .value(BigDecimal.valueOf(-1.0))
+                .lastEvaluation(null));
   }
 
   @Test
@@ -226,7 +222,8 @@ class ProspectIT extends MockedThirdParties {
 
     List<Prospect> actual = api.updateProspects(ACCOUNTHOLDER_ID, List.of(updateProspect()));
 
-    assertEquals(List.of(expectedProspect()), ignoreIdsAndHistoryUpdatedOf(actual));
+    assertEquals(List.of(ignoreHistoryUpdatedOf(expectedProspect())),
+        ignoreIdsAndHistoryUpdatedOf(actual));
   }
 
   @Test
@@ -238,32 +235,22 @@ class ProspectIT extends MockedThirdParties {
         api.updateProspectsStatus(ACCOUNTHOLDER_ID, prospect1().getId(), interestingProspect());
     Prospect actualNotInterstingProspect =
         api.updateProspectsStatus(ACCOUNTHOLDER_ID, prospect1().getId(), notInterestingProspect());
-    Prospect actualResetProspect =
-        api.updateProspectsStatus(ACCOUNTHOLDER_ID, prospect1().getId(), prospectToReset());
 
-    Prospect expected =
-        ignoreHistoryUpdatedOf(
-            prospect1()
-                .statusHistory(
-                    Stream.of(
-                            getStatusHistory(CONTACTED),
-                            getStatusHistory(CONTACTED),
-                            prospect1().getStatusHistory(),
-                            getStatusHistory(TO_CONTACT))
-                        .flatMap(List::stream)
-                        .toList()));
-    assertEquals(
-        ignoreHistoryUpdatedOf(expectedInterestingProspect()),
-        ignoreHistoryUpdatedOf(actualInterestingProspect));
-    assertEquals(expected, ignoreHistoryUpdatedOf(actualNotInterstingProspect));
-    /*
-    TODO: check why it is not reset correctly
-    assertEquals(ignoreHistoryUpdatedOf(
-        expected.statusHistory(
-            Stream.of(getStatusHistory(TO_CONTACT),
-                    expected.getStatusHistory())
-                .flatMap(List::stream)
-                .toList())), ignoreHistoryUpdatedOf(actualResetProspect));*/
+    Prospect expectedInterested = ignoreHistoryUpdatedOf(expectedInterestingProspect());
+    List<ProspectStatusHistory> expectedRestoredStatuses = Stream.of(
+            getStatusHistory(TO_CONTACT),
+            actualInterestingProspect.getStatusHistory())
+        .flatMap(List::stream)
+        .toList();
+    Prospect expectedReset = prospect1().statusHistory(null);
+    assertEquals(expectedInterested, ignoreHistoryUpdatedOf(actualInterestingProspect));
+    assertTrue(
+        actualNotInterstingProspect.getStatusHistory().stream()
+            .peek(status -> status.setUpdatedAt(null))
+            .toList().containsAll(expectedRestoredStatuses.stream()
+                .peek(status -> status.setUpdatedAt(null))
+                .toList()));
+    assertEquals(expectedReset, actualNotInterstingProspect.statusHistory(null));
   }
 
   @Test

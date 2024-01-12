@@ -1,26 +1,5 @@
 package app.bpartners.api.integration;
 
-import static app.bpartners.api.integration.conf.utils.TestUtils.ACCOUNTHOLDER_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_HOLDER_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_USER_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.annualRevenueTarget1;
-import static app.bpartners.api.integration.conf.utils.TestUtils.annualRevenueTarget2;
-import static app.bpartners.api.integration.conf.utils.TestUtils.assertThrowsApiException;
-import static app.bpartners.api.integration.conf.utils.TestUtils.assertThrowsForbiddenException;
-import static app.bpartners.api.integration.conf.utils.TestUtils.companyBusinessActivity;
-import static app.bpartners.api.integration.conf.utils.TestUtils.companyInfo;
-import static app.bpartners.api.integration.conf.utils.TestUtils.createAnnualRevenueTarget;
-import static app.bpartners.api.integration.conf.utils.TestUtils.customer1;
-import static app.bpartners.api.integration.conf.utils.TestUtils.customer2;
-import static app.bpartners.api.integration.conf.utils.TestUtils.location;
-import static app.bpartners.api.integration.conf.utils.TestUtils.setUpCognito;
-import static app.bpartners.api.integration.conf.utils.TestUtils.setUpLegalFileRepository;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import app.bpartners.api.endpoint.rest.api.UserAccountsApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
@@ -46,16 +25,46 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.annotation.DirtiesContext;
 import org.testcontainers.junit.jupiter.Testcontainers;
+
+import static app.bpartners.api.integration.conf.utils.TestUtils.JANE_ACCOUNT_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.JANE_DOE_HOLDER_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.JANE_DOE_TOKEN;
+import static app.bpartners.api.integration.conf.utils.TestUtils.JANE_DOE_USER_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_HOLDER_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_TOKEN;
+import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_USER_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.annualRevenueTarget1;
+import static app.bpartners.api.integration.conf.utils.TestUtils.annualRevenueTarget2;
+import static app.bpartners.api.integration.conf.utils.TestUtils.assertThrowsApiException;
+import static app.bpartners.api.integration.conf.utils.TestUtils.assertThrowsForbiddenException;
+import static app.bpartners.api.integration.conf.utils.TestUtils.companyBusinessActivity;
+import static app.bpartners.api.integration.conf.utils.TestUtils.companyInfo;
+import static app.bpartners.api.integration.conf.utils.TestUtils.createAnnualRevenueTarget;
+import static app.bpartners.api.integration.conf.utils.TestUtils.customer1;
+import static app.bpartners.api.integration.conf.utils.TestUtils.customer2;
+import static app.bpartners.api.integration.conf.utils.TestUtils.janeDoeAccountHolder;
+import static app.bpartners.api.integration.conf.utils.TestUtils.location;
+import static app.bpartners.api.integration.conf.utils.TestUtils.setUpCognito;
+import static app.bpartners.api.integration.conf.utils.TestUtils.setUpLegalFileRepository;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Testcontainers
 @Slf4j
 class AccountHolderIT extends MockedThirdParties {
-  @Autowired private UserService userService;
+  @Autowired
+  private UserService userService;
 
   private ApiClient anApiClient() {
-    return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN, localPort);
+    return anApiClient(JOE_DOE_TOKEN);
+  }
+
+  private ApiClient anApiClient(String token) {
+    return TestUtils.anApiClient(token, localPort);
   }
 
   private static AccountHolder joeDoeAccountHolder() {
@@ -171,7 +180,7 @@ class AccountHolderIT extends MockedThirdParties {
     setUpCognito(cognitoComponentMock);
   }
 
-  
+
   @Test
   void get_all_account_holders_ok() throws ApiException {
     User user = userService.getUserById(JOE_DOE_ID);
@@ -210,17 +219,17 @@ class AccountHolderIT extends MockedThirdParties {
 
   @Test
   void create_annual_revenue_target_ok() throws ApiException {
-    ApiClient joeDoeClient = anApiClient();
-    UserAccountsApi api = new UserAccountsApi(joeDoeClient);
+    ApiClient janeDoeClient = anApiClient(JANE_DOE_TOKEN);
+    UserAccountsApi api = new UserAccountsApi(janeDoeClient);
 
     AccountHolder actual =
         api.updateRevenueTargets(
-            JOE_DOE_USER_ID,
-            JOE_DOE_ACCOUNT_ID,
-            joeDoeAccountHolder().getId(),
+            JANE_DOE_USER_ID,
+            JANE_ACCOUNT_ID,
+            janeDoeAccountHolder().getId(),
             List.of(createAnnualRevenueTarget()));
 
-    assertEquals(3, actual.getRevenueTargets().size());
+    assertEquals(1, actual.getRevenueTargets().size());
   }
 
   @Test
@@ -247,9 +256,9 @@ class AccountHolderIT extends MockedThirdParties {
 
     AccountHolder actualUpdated =
         api.updateAccountHolderInfo(
-            JOE_DOE_USER_ID, JOE_DOE_ACCOUNT_ID, ACCOUNTHOLDER_ID, globalInfo());
+            JANE_DOE_USER_ID, JANE_ACCOUNT_ID, JANE_DOE_HOLDER_ID, globalInfo());
 
-    assertEquals(ACCOUNTHOLDER_ID, actualUpdated.getId());
+    assertEquals(JANE_DOE_HOLDER_ID, actualUpdated.getId());
     assertEquals(expectedGlobalInfo().getContactAddress(), actualUpdated.getContactAddress());
   }
 
@@ -260,18 +269,18 @@ class AccountHolderIT extends MockedThirdParties {
 
     AccountHolder actualAddedFeedbackLink =
         api.updateFeedbackConf(
-            JOE_DOE_ID,
-            JOE_DOE_ACCOUNT_HOLDER_ID,
+            JANE_DOE_USER_ID,
+            JANE_DOE_HOLDER_ID,
             new AccountHolderFeedback().feedbackLink("https://feedback.com"));
     AccountHolder actualUpdatedFeedbackLink =
         api.updateFeedbackConf(
-            JOE_DOE_ID,
-            JOE_DOE_ACCOUNT_HOLDER_ID,
+            JANE_DOE_USER_ID,
+            JANE_DOE_HOLDER_ID,
             new AccountHolderFeedback().feedbackLink("https://updateFeedbackLink.com"));
     AccountHolder actualNoFeedbackLink =
-        api.updateFeedbackConf(JOE_DOE_ID, JOE_DOE_ACCOUNT_HOLDER_ID, new AccountHolderFeedback());
+        api.updateFeedbackConf(JANE_DOE_USER_ID, JANE_DOE_HOLDER_ID, new AccountHolderFeedback());
 
-    assertEquals(JOE_DOE_ACCOUNT_HOLDER_ID, actualAddedFeedbackLink.getId());
+    assertEquals(JANE_DOE_HOLDER_ID, actualAddedFeedbackLink.getId());
     assertEquals("https://feedback.com", actualAddedFeedbackLink.getFeedback().getFeedbackLink());
     assertEquals(
         "https://updateFeedbackLink.com",

@@ -41,3 +41,4 @@ jobs:
     needs: [deploy-api]
     if: ${{ needs.deploy-api.result == 'success' && github.ref_name == 'prod' }}
     uses: ./.github/workflows/health-check-infra.yml
+    secrets: inherit

@@ -32,7 +32,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Future;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -72,7 +71,6 @@ import static org.mockito.Mockito.when;
 
 @Testcontainers
 @AutoConfigureMockMvc
-@Disabled("TODO:fail")
 class DirtyAccountIT extends MockedThirdParties {
   @MockBean private UserRepository userRepositoryMock;
   @MockBean private BridgeBankRepository bridgeBankRepositoryMock;

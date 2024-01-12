@@ -1,11 +1,5 @@
 package app.bpartners.api.integration;
 
-import static java.util.concurrent.Executors.newFixedThreadPool;
-import static java.util.stream.Collectors.toUnmodifiableList;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
-
 import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.integration.conf.utils.TestUtils;
 import app.bpartners.api.model.User;
@@ -26,12 +20,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_ID;
+import static java.util.concurrent.Executors.newFixedThreadPool;
+import static java.util.stream.Collectors.toUnmodifiableList;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+
 @Testcontainers
 @AutoConfigureMockMvc
 @Slf4j
 public class UserTokenServiceIT extends MockedThirdParties {
 
-  public static final String ACCOUNT_ID = "other_joe_account_id";
   @Autowired private UserService userService;
 
   public static User user() {
@@ -48,7 +48,7 @@ public class UserTokenServiceIT extends MockedThirdParties {
   @SneakyThrows
   private UserToken getUserLatestTokenByAccount(UserService userService, CountDownLatch latch) {
     latch.await();
-    return userService.getLatestTokenByAccount(ACCOUNT_ID);
+    return userService.getLatestTokenByAccount(JOE_DOE_ACCOUNT_ID);
   }
 
   @SneakyThrows
@@ -106,7 +106,7 @@ public class UserTokenServiceIT extends MockedThirdParties {
             .map(TestUtils::getOptionalFutureResult)
             .filter(Optional::isPresent)
             .map(Optional::get)
-            .collect(toUnmodifiableList());
+            .toList();
     assertEquals(callerNb, retrieved.size());
   }
 }

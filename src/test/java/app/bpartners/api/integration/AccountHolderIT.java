@@ -207,6 +207,7 @@ class AccountHolderIT extends MockedThirdParties {
                 accountHolder ->
                     Objects.requireNonNull(accountHolder.getName().toLowerCase())
                         .contains(nameFilter2.toLowerCase())));
+    userService.saveUser(user.toBuilder().roles(List.of()).build()); // set user to default
   }
 
   @Test

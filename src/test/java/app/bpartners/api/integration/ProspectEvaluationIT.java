@@ -44,6 +44,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -152,6 +153,13 @@ class ProspectEvaluationIT extends MockedThirdParties {
     when(banApiMock.fSearch(any())).thenReturn(geoPosZero());
     User user = userService.getUserById(JOE_DOE_ID);
     userService.saveUser(user.toBuilder().roles(List.of(Role.EVAL_PROSPECT)).build());
+  }
+
+  @AfterEach
+  public void tearDown() {
+    //after each method, reset users
+    User user = userService.getUserById(JOE_DOE_ID);
+    userService.saveUser(user.toBuilder().roles(List.of()).build());
   }
 
   /*

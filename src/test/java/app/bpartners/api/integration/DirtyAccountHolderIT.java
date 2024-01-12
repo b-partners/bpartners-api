@@ -15,12 +15,11 @@ import app.bpartners.api.integration.conf.utils.TestUtils;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import static app.bpartners.api.integration.conf.utils.TestUtils.JANE_DOE_HOLDER_ID;
 import static app.bpartners.api.integration.conf.utils.TestUtils.JANE_ACCOUNT_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.JANE_DOE_HOLDER_ID;
 import static app.bpartners.api.integration.conf.utils.TestUtils.JANE_DOE_USER_ID;
 import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_USER_ID;
@@ -36,7 +35,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @Testcontainers
 @Slf4j
-@Disabled("TODO(fail)")
 class DirtyAccountHolderIT extends MockedThirdParties {
 
   private ApiClient anApiClient() {

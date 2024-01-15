@@ -35,6 +35,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.query.QueryUtils;
 import org.springframework.stereotype.Repository;
 
+import static java.util.UUID.randomUUID;
+
 @Primary
 @Repository
 @AllArgsConstructor
@@ -244,7 +246,8 @@ public class DbTransactionRepository implements TransactionRepository {
               FileInfo fileInfo = newDocs.getFileInfo();
               HFileInfo fileInfoEntity = fileInfoJpaRepository.getById(fileInfo.getId());
               return HTransactionSupportingDocs.builder()
-                  .id(newDocs.getId())
+                  .id(newDocs.getId() == null ? String.valueOf(randomUUID())
+                      : newDocs.getId())
                   .idTransaction(transaction.getId())
                   .fileInfo(fileInfoEntity)
                   .build();

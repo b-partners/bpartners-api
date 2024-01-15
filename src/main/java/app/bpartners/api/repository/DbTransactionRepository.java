@@ -19,6 +19,7 @@ import app.bpartners.api.repository.jpa.model.HTransaction;
 import app.bpartners.api.repository.jpa.model.HTransactionSupportingDocs;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
@@ -165,16 +166,24 @@ public class DbTransactionRepository implements TransactionRepository {
                       invoiceDetails == null || invoiceDetails.getIdInvoice() == null
                           ? null
                           : invoiceJpaRepository.getById(invoiceDetails.getIdInvoice());
-
                   /*
                   TODO: historize by ENABLE and DISABLE status instead of replacing old*/
+                  List<HTransactionSupportingDocs> newSuppDocs = computeSupportingDocs(transaction);
                   List<HTransactionSupportingDocs> existingSuppDocs =
                       transactionDocsRep.findAllByIdTransaction(transaction.getId());
-                  transactionDocsRep.deleteAllById(existingSuppDocs.stream()
+                  List<String> existingDocsIds = existingSuppDocs.stream()
                       .map(HTransactionSupportingDocs::getId)
-                      .toList());
-                  supportingDocsList.addAll(computeSupportingDocs(transaction));
-
+                      .toList();
+                  List<String> newDocsIds = newSuppDocs.stream()
+                      .map(HTransactionSupportingDocs::getId)
+                      .toList();
+                  // If new supporting documents are to be set
+                  if (!new HashSet<>(existingDocsIds).containsAll(newDocsIds)) {
+                    transactionDocsRep.deleteAllById(existingSuppDocs.stream()
+                        .map(HTransactionSupportingDocs::getId)
+                        .toList());
+                    supportingDocsList.addAll(newSuppDocs);
+                  }
                   return mapper.toEntity(transaction, invoice);
                 })
             .toList();

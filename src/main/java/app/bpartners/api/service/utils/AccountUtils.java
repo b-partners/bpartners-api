@@ -12,7 +12,8 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class AccountUtils {
-  private AccountUtils() {}
+  private AccountUtils() {
+  }
 
   public static Optional<HAccount> findByExternalId(
       String externalId, AccountJpaRepository jpaRepository) {
@@ -80,11 +81,14 @@ public class AccountUtils {
 
   private static Supplier<Account> getAccountWithIbanFirst(List<Account> accounts) {
     return () -> {
+      Account firstEnableAccount = accounts.stream()
+          .filter(Account::isEnabled)
+          .findFirst().orElse(accounts.get(0)); // No IBAN must be default account
       Account firstAccount =
           accounts.stream()
               .filter(account -> account.getIban() != null && account.isEnabled())
               .findFirst()
-              .orElse(accounts.get(0)); // No IBAN must be default account
+              .orElse(firstEnableAccount);
       List<Account> others = new ArrayList<>(accounts);
       others.remove(firstAccount);
       log.info(

@@ -111,7 +111,11 @@ public class AccountService {
   public BankConnectionRedirection initiateBankConnection(
       String userId, RedirectionStatusUrls urls) {
     User user = userRepository.getById(userId);
-    Account defaultAccount = user.getDefaultAccount();
+    Account defaultAccount = user.getAccounts().stream()
+        .filter(account -> account.getExternalId() == null
+            &&
+            account.getName().contains(user.getName()))
+        .findAny().orElse(user.getDefaultAccount());
     // TODO: map bank when mapping account inside userMapper and use it here
     if (user.getBankConnectionId() != null && user.getBankConnectionId() != TRY_AGAIN) {
       throw new BadRequestException(
@@ -120,7 +124,7 @@ public class AccountService {
               + " Disconnect before initiating another bank connection.");
     }
     String redirectionUrl = bankRepository.initiateConnection(user);
-    resetDefaultAccount(userId, user, user.getDefaultAccount());
+    resetDefaultAccount(userId, user, defaultAccount);
     return new BankConnectionRedirection()
         .redirectionUrl(redirectionUrl)
         .redirectionStatusUrls(urls);
@@ -154,11 +158,11 @@ public class AccountService {
       allTransactions.forEach(transaction -> transaction.setEnableStatus(EnableStatus.DISABLED));
       transactionRepository.saveAll(allTransactions);
 
-      Account defaultAccount =
-          accounts.stream()
-              .filter(account -> account.getBank() == null && account.getExternalId() == null)
-              .findFirst()
-              .orElse(null);
+      Account defaultAccount = user.getAccounts().stream()
+          .filter(account -> account.getExternalId() == null
+              &&
+              account.getName().contains(user.getName()))
+          .findAny().orElse(user.getDefaultAccount());
 
       List<Account> toDisableAccounts = new ArrayList<>(accounts);
       toDisableAccounts.remove(defaultAccount);
@@ -211,11 +215,10 @@ public class AccountService {
     Account defaultAccount =
         account.toBuilder()
             .userId(userId)
-            .name(user.getName())
-            .availableBalance(new Money())
             .bank(null)
             .bic(null)
             .iban(null)
+            .externalId(null)
             .build();
     repository.save(defaultAccount);
   }

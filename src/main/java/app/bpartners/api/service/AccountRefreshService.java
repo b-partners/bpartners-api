@@ -70,6 +70,7 @@ public class AccountRefreshService {
         log.warn("Unable to refresh user {} : {}", user.describe(), e.getMessage());
       }
     });
+    log.warn("{} accounts disconnected inside database", refreshedUsers.size());
     return refreshedUsers;
   }
 }

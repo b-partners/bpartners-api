@@ -172,13 +172,14 @@ public class AccountService {
               .toList());
 
       Account newDefaultAccount =
-          defaultAccount == null ? resetDefaultAccount(user, active) : defaultAccount;
+          defaultAccount == null ? resetDefaultAccount(user, active)
+              : defaultAccount.toBuilder().enableStatus(EnableStatus.DISABLED).build();
       // repository.save(resetDefaultAccount(user, active));
 
       userRepository.save(resetDefaultUser(user, newDefaultAccount));
 
       // End of treatment
-      return newDefaultAccount;
+      return repository.save(newDefaultAccount);
     }
     throw new ApiException(SERVER_EXCEPTION, active.describeInfos() + " was not disconnected");
   }

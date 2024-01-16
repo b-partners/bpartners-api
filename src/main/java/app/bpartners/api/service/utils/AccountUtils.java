@@ -32,11 +32,15 @@ public class AccountUtils {
     String iban = accountConnector.getIban();
     String name = accountConnector.getName();
     String bankId = accountConnector.getBankId();
-
-    List<HAccount> accountsWithIbanOrNameAndBank =
-        iban == null
-            ? jpaRepository.findAllByNameContainingIgnoreCaseAndIdBank(name, bankId)
-            : jpaRepository.findAllByIban(iban);
+    List<HAccount> accountsWithIbanOrNameAndBank;
+    if (iban != null) {
+      accountsWithIbanOrNameAndBank = jpaRepository.findAllByIban(iban);
+    } else if (bankId == null) {
+      accountsWithIbanOrNameAndBank = jpaRepository.findAllByNameContainingIgnoreCase(name);
+    } else {
+      accountsWithIbanOrNameAndBank =
+          jpaRepository.findAllByNameContainingIgnoreCaseAndIdBank(name, bankId);
+    }
     if (accountsWithIbanOrNameAndBank.isEmpty()) {
       return Optional.empty();
     }

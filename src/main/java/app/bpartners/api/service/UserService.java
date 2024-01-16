@@ -34,7 +34,7 @@ public class UserService {
       snsService.deleteEndpointArn(actualArn);
     }
     String snsArn = snsService.createEndpointArn(token);
-    return saveUser(user.toBuilder().snsArn(snsArn).deviceToken(token).build());
+    return save(user.toBuilder().snsArn(snsArn).deviceToken(token).build());
   }
 
   @Transactional
@@ -54,7 +54,7 @@ public class UserService {
   }
 
   @Transactional
-  public User saveUser(User toSave) {
+  public User save(User toSave) {
     return userRepository.save(toSave);
   }
 

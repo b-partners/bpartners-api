@@ -153,7 +153,7 @@ class ProspectEvaluationIT extends MockedThirdParties {
     when(banApiMock.search(any())).thenReturn(geoPosZero());
     when(banApiMock.fSearch(any())).thenReturn(geoPosZero());
     User user = userService.getUserById(JOE_DOE_ID);
-    userService.saveUser(user.toBuilder().roles(List.of(Role.EVAL_PROSPECT)).build());
+    userService.save(user.toBuilder().roles(List.of(Role.EVAL_PROSPECT)).build());
   }
 
   /*

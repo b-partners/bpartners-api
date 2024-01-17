@@ -39,6 +39,6 @@ jobs:
 
   health-check-infra:
     needs: [deploy-api]
-    if: ${{ needs.deploy-api.result == 'success' && github.ref_name == 'prod' }}
+    if: ${{ needs.deploy-api.result == 'success' && (github.ref_name == 'prod' || github.ref_name == 'preprod') }}
     uses: ./.github/workflows/health-check-infra.yml
     secrets: inherit

@@ -175,7 +175,7 @@ class AccountHolderIT extends MockedThirdParties {
   @Test
   void get_all_account_holders_ok() throws ApiException {
     User user = userService.getUserById(JOE_DOE_ID);
-    userService.saveUser(user.toBuilder().roles(List.of(Role.EVAL_PROSPECT)).build());
+    userService.save(user.toBuilder().roles(List.of(Role.EVAL_PROSPECT)).build());
     ApiClient joeDoeClient = anApiClient();
     UserAccountsApi api = new UserAccountsApi(joeDoeClient);
     String nameFilter1 = "NUMER";

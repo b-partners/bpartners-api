@@ -161,7 +161,7 @@ public class SheetIT extends MockedThirdParties {
     when(banApiMock.search(any())).thenReturn(geoPosZero());
     when(banApiMock.fSearch(any())).thenReturn(geoPosZero());
     User user = userService.getUserById(JOE_DOE_ID);
-    userService.saveUser(user.toBuilder().roles(List.of(Role.EVAL_PROSPECT)).build());
+    userService.save(user.toBuilder().roles(List.of(Role.EVAL_PROSPECT)).build());
   }
 
   private static ApiClient anApiClient() {
@@ -173,7 +173,7 @@ public class SheetIT extends MockedThirdParties {
   void import_prospects_through_sheet_ok() throws ApiException {
     User user = userService.getUserById(JOE_DOE_ID);
     User savedUser =
-        userService.saveUser(user.toBuilder().roles(List.of(Role.EVAL_PROSPECT)).build());
+        userService.save(user.toBuilder().roles(List.of(Role.EVAL_PROSPECT)).build());
     businessRepository.save(
         BusinessActivity.builder()
             .accountHolder(joeDoeAccountHolder())
@@ -204,7 +204,7 @@ public class SheetIT extends MockedThirdParties {
   void convert_events_to_prospect_ok() throws ApiException {
     User user = userService.getUserById(JOE_DOE_ID);
     User savedUser =
-        userService.saveUser(user.toBuilder().roles(List.of(Role.EVAL_PROSPECT)).build());
+        userService.save(user.toBuilder().roles(List.of(Role.EVAL_PROSPECT)).build());
     businessRepository.save(
         BusinessActivity.builder()
             .accountHolder(joeDoeAccountHolder())

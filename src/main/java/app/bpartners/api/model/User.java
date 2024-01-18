@@ -1,7 +1,5 @@
 package app.bpartners.api.model;
 
-import static app.bpartners.api.service.utils.AccountUtils.filterActive;
-
 import app.bpartners.api.endpoint.rest.model.EnableStatus;
 import app.bpartners.api.endpoint.rest.model.IdentificationStatus;
 import app.bpartners.api.endpoint.rest.security.model.Role;
@@ -17,6 +15,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
+
+import static app.bpartners.api.service.utils.AccountUtils.filterActive;
 
 @Getter
 @Setter
@@ -51,6 +51,10 @@ public class User implements Serializable {
   private List<Role> roles;
   private String snsArn;
   private String deviceToken;
+
+  public String describe() {
+    return "User(id" + id + ", name=" + getName() + ", email=" + email + ")";
+  }
 
   public String getEncodedDeviceToken() {
     return deviceToken == null ? null : Base64.encode(deviceToken).toString();

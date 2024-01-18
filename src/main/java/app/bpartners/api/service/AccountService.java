@@ -1,11 +1,5 @@
 package app.bpartners.api.service;
 
-import static app.bpartners.api.endpoint.rest.model.AccountStatus.OPENED;
-import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
-import static app.bpartners.api.repository.implementation.BankRepositoryImpl.TRY_AGAIN;
-import static app.bpartners.api.service.utils.AccountUtils.describeAccountList;
-import static java.util.UUID.randomUUID;
-
 import app.bpartners.api.endpoint.rest.model.BankConnectionRedirection;
 import app.bpartners.api.endpoint.rest.model.EnableStatus;
 import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
@@ -31,6 +25,12 @@ import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import static app.bpartners.api.endpoint.rest.model.AccountStatus.OPENED;
+import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
+import static app.bpartners.api.repository.implementation.BankRepositoryImpl.TRY_AGAIN;
+import static app.bpartners.api.service.utils.AccountUtils.describeAccountList;
+import static java.util.UUID.randomUUID;
 
 @Service
 @AllArgsConstructor
@@ -63,6 +63,11 @@ public class AccountService {
     return repository.findByBearer(bearer).stream()
         .filter(app.bpartners.api.model.Account::isEnabled)
         .toList();
+  }
+
+  @Transactional
+  public Account save(Account toSave) {
+    return repository.save(toSave);
   }
 
   @Transactional
@@ -106,7 +111,11 @@ public class AccountService {
   public BankConnectionRedirection initiateBankConnection(
       String userId, RedirectionStatusUrls urls) {
     User user = userRepository.getById(userId);
-    Account defaultAccount = user.getDefaultAccount();
+    Account defaultAccount = user.getAccounts().stream()
+        .filter(account -> account.getExternalId() == null
+            &&
+            account.getName().contains(user.getName()))
+        .findAny().orElse(user.getDefaultAccount());
     // TODO: map bank when mapping account inside userMapper and use it here
     if (user.getBankConnectionId() != null && user.getBankConnectionId() != TRY_AGAIN) {
       throw new BadRequestException(
@@ -115,7 +124,7 @@ public class AccountService {
               + " Disconnect before initiating another bank connection.");
     }
     String redirectionUrl = bankRepository.initiateConnection(user);
-    resetDefaultAccount(userId, user, user.getDefaultAccount());
+    resetDefaultAccount(userId, user, defaultAccount);
     return new BankConnectionRedirection()
         .redirectionUrl(redirectionUrl)
         .redirectionStatusUrls(urls);
@@ -149,11 +158,11 @@ public class AccountService {
       allTransactions.forEach(transaction -> transaction.setEnableStatus(EnableStatus.DISABLED));
       transactionRepository.saveAll(allTransactions);
 
-      Account defaultAccount =
-          accounts.stream()
-              .filter(account -> account.getBank() == null && account.getExternalId() == null)
-              .findFirst()
-              .orElse(null);
+      Account defaultAccount = user.getAccounts().stream()
+          .filter(account -> account.getExternalId() == null
+              &&
+              account.getName().contains(user.getName()))
+          .findAny().orElse(user.getDefaultAccount());
 
       List<Account> toDisableAccounts = new ArrayList<>(accounts);
       toDisableAccounts.remove(defaultAccount);
@@ -163,13 +172,14 @@ public class AccountService {
               .toList());
 
       Account newDefaultAccount =
-          defaultAccount == null ? resetDefaultAccount(user, active) : defaultAccount;
+          defaultAccount == null ? resetDefaultAccount(user, active)
+              : defaultAccount.toBuilder().enableStatus(EnableStatus.DISABLED).build();
       // repository.save(resetDefaultAccount(user, active));
 
       userRepository.save(resetDefaultUser(user, newDefaultAccount));
 
       // End of treatment
-      return newDefaultAccount;
+      return repository.save(newDefaultAccount);
     }
     throw new ApiException(SERVER_EXCEPTION, active.describeInfos() + " was not disconnected");
   }
@@ -206,11 +216,10 @@ public class AccountService {
     Account defaultAccount =
         account.toBuilder()
             .userId(userId)
-            .name(user.getName())
-            .availableBalance(new Money())
             .bank(null)
             .bic(null)
             .iban(null)
+            .externalId(null)
             .build();
     repository.save(defaultAccount);
   }

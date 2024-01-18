@@ -1,13 +1,5 @@
 package app.bpartners.api.endpoint.rest.security;
 
-import static app.bpartners.api.endpoint.rest.security.model.Role.EVAL_PROSPECT;
-import static app.bpartners.api.endpoint.rest.security.model.Role.INVOICE_RELAUNCHER;
-import static org.springframework.http.HttpMethod.DELETE;
-import static org.springframework.http.HttpMethod.GET;
-import static org.springframework.http.HttpMethod.OPTIONS;
-import static org.springframework.http.HttpMethod.POST;
-import static org.springframework.http.HttpMethod.PUT;
-
 import app.bpartners.api.endpoint.rest.security.matcher.SelfAccountHolderMatcher;
 import app.bpartners.api.endpoint.rest.security.matcher.SelfAccountMatcher;
 import app.bpartners.api.endpoint.rest.security.matcher.SelfUserAccountMatcher;
@@ -25,6 +17,14 @@ import org.springframework.security.web.util.matcher.NegatedRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.servlet.HandlerExceptionResolver;
+
+import static app.bpartners.api.endpoint.rest.security.model.Role.EVAL_PROSPECT;
+import static app.bpartners.api.endpoint.rest.security.model.Role.INVOICE_RELAUNCHER;
+import static org.springframework.http.HttpMethod.DELETE;
+import static org.springframework.http.HttpMethod.GET;
+import static org.springframework.http.HttpMethod.OPTIONS;
+import static org.springframework.http.HttpMethod.POST;
+import static org.springframework.http.HttpMethod.PUT;
 
 @Configuration
 @Slf4j
@@ -133,6 +133,7 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
         .requestMatchers(new SelfAccountMatcher(GET, "/accounts/*/customers", authResourceProvider))
         .authenticated()
         .antMatchers(POST, "/invoicesRefresh").hasAnyRole(EVAL_PROSPECT.getRole())
+        .antMatchers(POST, "/users/accounts/refresh").hasAnyRole(EVAL_PROSPECT.getRole())
         .requestMatchers(
             new SelfAccountMatcher(GET, "/accounts/*/customers/export", authResourceProvider))
         .authenticated()

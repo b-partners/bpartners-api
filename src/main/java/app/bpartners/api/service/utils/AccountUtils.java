@@ -12,7 +12,8 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class AccountUtils {
-  private AccountUtils() {}
+  private AccountUtils() {
+  }
 
   public static Optional<HAccount> findByExternalId(
       String externalId, AccountJpaRepository jpaRepository) {
@@ -31,11 +32,15 @@ public class AccountUtils {
     String iban = accountConnector.getIban();
     String name = accountConnector.getName();
     String bankId = accountConnector.getBankId();
-
-    List<HAccount> accountsWithIbanOrNameAndBank =
-        iban == null
-            ? jpaRepository.findAllByNameContainingIgnoreCaseAndIdBank(name, bankId)
-            : jpaRepository.findAllByIban(iban);
+    List<HAccount> accountsWithIbanOrNameAndBank;
+    if (iban != null) {
+      accountsWithIbanOrNameAndBank = jpaRepository.findAllByIban(iban);
+    } else if (bankId == null) {
+      accountsWithIbanOrNameAndBank = jpaRepository.findAllByNameContainingIgnoreCase(name);
+    } else {
+      accountsWithIbanOrNameAndBank =
+          jpaRepository.findAllByNameContainingIgnoreCaseAndIdBank(name, bankId);
+    }
     if (accountsWithIbanOrNameAndBank.isEmpty()) {
       return Optional.empty();
     }
@@ -80,11 +85,14 @@ public class AccountUtils {
 
   private static Supplier<Account> getAccountWithIbanFirst(List<Account> accounts) {
     return () -> {
+      Account firstEnableAccount = accounts.stream()
+          .filter(Account::isEnabled)
+          .findFirst().orElse(accounts.get(0)); // No IBAN must be default account
       Account firstAccount =
           accounts.stream()
               .filter(account -> account.getIban() != null && account.isEnabled())
               .findFirst()
-              .orElse(accounts.get(0)); // No IBAN must be default account
+              .orElse(firstEnableAccount);
       List<Account> others = new ArrayList<>(accounts);
       others.remove(firstAccount);
       log.info(

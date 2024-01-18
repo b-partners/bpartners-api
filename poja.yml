@@ -1,5 +1,5 @@
 app_name: bpartners
-cli_version: 10.4.2
+cli_version: 10.4.3
 custom_java_deps: poja-custom-java-deps.txt
 custom_java_env_vars: poja-custom-java-env-vars.txt
 custom_java_repositories: poja-custom-java-repositories.txt

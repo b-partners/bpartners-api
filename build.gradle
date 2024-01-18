@@ -96,12 +96,40 @@ test {
 }
 
 jacocoTestCoverageVerification {
+    dependsOn test
     violationRules {
         rule {
             limit {
                 counter = "LINE"
                 minimum = 0.2
             }
+        }
+    }
+    finalizedBy jacocoTestReport
+}
+
+jacocoTestReport {
+    reports {
+        xml.required = true
+        html.required = true
+    }
+    doLast {
+        def coverageReportFile = file("$buildDir/reports/jacoco/test/jacocoTestReport.xml")
+
+        if (coverageReportFile.exists()) {
+            def xmlParser = new XmlParser()
+            xmlParser.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false)
+            xmlParser.setFeature("http://apache.org/xml/features/disallow-doctype-decl", false)
+
+            def xml = xmlParser.parse(coverageReportFile)
+
+            def totalLines = xml.'counter'.find { it.@type == 'LINE' }.@missed.toInteger() + xml.'counter'.find { it.@type == 'LINE' }.@covered.toInteger()
+            def coveredLines = xml.'counter'.find { it.@type == 'LINE' }.@covered.toInteger()
+            def coverageRate = coveredLines / totalLines.toDouble() * 100
+
+            println "Total Line Coverage Rate: ${coverageRate.round(2)}%"
+        } else {
+            println "No JaCoCo coverage report found. Make sure you run 'gradle test jacocoTestReport' first."
         }
     }
 }

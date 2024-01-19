@@ -7,6 +7,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import app.bpartners.api.PojaGenerated;
 import app.bpartners.api.endpoint.event.EventConsumer;
 import app.bpartners.api.endpoint.event.gen.UuidCreated;
 import app.bpartners.api.integration.conf.MockedThirdParties;
@@ -20,6 +21,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.DeleteMessageRequest;
 
+@PojaGenerated
 public class SqsMessageAckTyperTest extends MockedThirdParties {
   public static final String UNKNOWN_TYPENAME = "unknown_typename";
   @Autowired EventConsumer.SqsMessageAckTyper subject;

@@ -137,8 +137,16 @@
                 </p>
             </td>
             <td class="text-right" th:if="${invoice.customer != null}">
-                <p><strong
-                        th:text="${#strings.toUpperCase(invoice.customer.getFullName())}"></strong>
+                <p th:if="${invoice.customer.isProfessional()}">
+                    <strong th:text="${#strings.toUpperCase(invoice.customer.getName())}"></strong>
+                </p>
+                <p>
+                    <span th:if="${invoice.customer.isProfessional()}">
+                        <span class="muted" th:text="${#strings.toUpperCase(invoice.customer.getFullName())}"></span>
+                    </span>
+                    <span th:unless="${invoice.customer.isProfessional()}">
+                        <strong th:text="${#strings.toUpperCase(invoice.customer.getFullName())}"></strong>
+                    </span>
                 </p>
                 <p class="muted"><span
                         th:text="${invoice.customer.address}"></span>
@@ -350,7 +358,7 @@
         </table>
     </div>
     <div style="width: 100%;" class="no-break-inside">
-<!--        TODO : change delay in payment allowed properly-->
+        <!--        TODO : change delay in payment allowed properly-->
         <p><span class="muted text-justify"
                  th:if="${invoice.delayPenaltyPercent.getApproximatedValue() != 0}">
             Après acceptation de ce devis, la facture correspondante devra être réglée sous <span

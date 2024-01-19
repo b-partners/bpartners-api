@@ -1,7 +1,5 @@
 package app.bpartners.api.model;
 
-import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
-
 import app.bpartners.api.endpoint.rest.model.CustomerStatus;
 import app.bpartners.api.endpoint.rest.model.CustomerType;
 import app.bpartners.api.model.exception.ApiException;
@@ -13,6 +11,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+
+import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 
 @Getter
 @Setter
@@ -80,6 +80,10 @@ public class Customer {
     } else {
       throw new ApiException(SERVER_EXCEPTION, "Unknown customerType " + customerType);
     }
+  }
+
+  public boolean isProfessional() {
+    return customerType == CustomerType.PROFESSIONAL;
   }
 
   public String getFullAddress() {

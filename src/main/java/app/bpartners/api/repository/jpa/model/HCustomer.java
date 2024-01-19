@@ -63,6 +63,10 @@ public class HCustomer {
   private Instant updatedAt;
   private String latestFullAddress;
 
+  public boolean isProfessional() {
+    return customerType == CustomerType.PROFESSIONAL;
+  }
+
   public String getFullAddress() {
     return address + " " + zipCode + " " + city + " " + country;
   }

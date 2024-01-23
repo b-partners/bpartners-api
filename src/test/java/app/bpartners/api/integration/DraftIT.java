@@ -1,12 +1,7 @@
 package app.bpartners.api.integration;
 
-import static app.bpartners.api.endpoint.rest.model.Invoice.PaymentTypeEnum.IN_INSTALMENT;
-import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
-import static app.bpartners.api.integration.conf.utils.TestUtils.INVOICE1_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ID;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
+import app.bpartners.api.endpoint.rest.model.CustomerType;
 import app.bpartners.api.endpoint.rest.model.PaymentMethod;
 import app.bpartners.api.endpoint.rest.model.PaymentStatus;
 import app.bpartners.api.integration.conf.MockedThirdParties;
@@ -23,7 +18,10 @@ import app.bpartners.api.model.PaymentRequest;
 import app.bpartners.api.model.User;
 import app.bpartners.api.service.aws.SesService;
 import app.bpartners.api.service.utils.InvoicePdfUtils;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.math.BigInteger;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -37,11 +35,20 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import static app.bpartners.api.endpoint.rest.model.Invoice.PaymentTypeEnum.IN_INSTALMENT;
+import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
+import static app.bpartners.api.integration.conf.utils.TestUtils.INVOICE1_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ID;
+import static java.util.UUID.randomUUID;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+
 @Testcontainers
 @AutoConfigureMockMvc
 @Disabled
 class DraftIT extends MockedThirdParties {
-  @Autowired private SesService subject;
+  @Autowired
+  private SesService subject;
 
   private static void generatePdf(String templateName) throws IOException {
     List<CreatePaymentRegulation> paymentRegulations =
@@ -108,11 +115,13 @@ class DraftIT extends MockedThirdParties {
             .products(creatableProds(1))
             .customer(
                 Customer.builder()
+                    .name("Must be not shown")
                     .firstName("Olivier")
                     .lastName("Durant")
                     .phone("+33 6 12 45 89 76")
                     .email("exemple@email.com")
                     .address("Paris 745")
+                    .customerType(CustomerType.PROFESSIONAL)
                     .build())
             .paymentUrl("text")
             .build();
@@ -130,10 +139,10 @@ class DraftIT extends MockedThirdParties {
             .subjectToVat(true)
             .build();
     byte[] data = pdfUtils.generatePdf(invoice, accountHolder, logoAsBytes, templateName);
-    /*File generatedFile = new File(randomUUID() + ".pdf");
+    File generatedFile = new File(randomUUID() + ".pdf");
     OutputStream os = new FileOutputStream(generatedFile);
     os.write(data);
-    os.close();*/
+    os.close();
   }
 
   /*@Test

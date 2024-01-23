@@ -173,7 +173,7 @@ public class AccountService {
 
       Account newDefaultAccount =
           defaultAccount == null ? resetDefaultAccount(user, active)
-              : defaultAccount.toBuilder().enableStatus(EnableStatus.DISABLED).build();
+              : defaultAccount.toBuilder().enableStatus(EnableStatus.ENABLED).build();
       // repository.save(resetDefaultAccount(user, active));
 
       userRepository.save(resetDefaultUser(user, newDefaultAccount));

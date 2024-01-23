@@ -1,15 +1,5 @@
 package app.bpartners.api.repository.implementation;
 
-import static app.bpartners.api.endpoint.rest.model.FileType.INVOICE;
-import static app.bpartners.api.endpoint.rest.model.FileType.LOGO;
-import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
-import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
-import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PROPOSAL_CONFIRMED;
-import static app.bpartners.api.service.InvoiceService.DRAFT_TEMPLATE;
-import static app.bpartners.api.service.InvoiceService.INVOICE_TEMPLATE;
-import static java.util.UUID.randomUUID;
-import static org.springframework.data.domain.Sort.Direction.DESC;
-
 import app.bpartners.api.endpoint.rest.model.ArchiveStatus;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.model.ArchiveInvoice;
@@ -46,6 +36,16 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.query.QueryUtils;
 import org.springframework.stereotype.Repository;
 
+import static app.bpartners.api.endpoint.rest.model.FileType.INVOICE;
+import static app.bpartners.api.endpoint.rest.model.FileType.LOGO;
+import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
+import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
+import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PROPOSAL_CONFIRMED;
+import static app.bpartners.api.service.InvoiceService.DRAFT_TEMPLATE;
+import static app.bpartners.api.service.InvoiceService.INVOICE_TEMPLATE;
+import static java.util.UUID.randomUUID;
+import static org.springframework.data.domain.Sort.Direction.DESC;
+
 @Repository
 @AllArgsConstructor
 public class InvoiceRepositoryImpl implements InvoiceRepository {
@@ -58,6 +58,11 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
   private final EntityManager entityManager;
   protected final UserRepository userRepository;
   private final InvoicePdfUtils pdfUtils = new InvoicePdfUtils();
+
+  @Override
+  public List<Invoice> findAllByIdUser(String idUser) {
+    return jpaRepository.findAllByIdUser(idUser).stream().map(mapper::toDomain).toList();
+  }
 
   @Override
   public Invoice crupdate(Invoice actual) {

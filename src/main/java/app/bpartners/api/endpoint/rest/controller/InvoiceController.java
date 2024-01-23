@@ -1,14 +1,15 @@
 package app.bpartners.api.endpoint.rest.controller;
 
 import app.bpartners.api.endpoint.rest.mapper.InvoiceRestMapper;
+import app.bpartners.api.endpoint.rest.mapper.InvoicesSummaryRestMapper;
 import app.bpartners.api.endpoint.rest.model.ArchiveStatus;
 import app.bpartners.api.endpoint.rest.model.CrupdateInvoice;
 import app.bpartners.api.endpoint.rest.model.Invoice;
 import app.bpartners.api.endpoint.rest.model.InvoiceReference;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
+import app.bpartners.api.endpoint.rest.model.InvoicesSummary;
 import app.bpartners.api.endpoint.rest.model.UpdateInvoiceArchivedStatus;
 import app.bpartners.api.endpoint.rest.model.UpdatePaymentRegMethod;
-import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.endpoint.rest.validator.InvoiceReferenceValidator;
 import app.bpartners.api.endpoint.rest.validator.UpdatePaymentRegValidator;
 import app.bpartners.api.model.ArchiveInvoice;
@@ -27,6 +28,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import static app.bpartners.api.endpoint.rest.security.AuthProvider.getAuthenticatedUserId;
+
 @RestController
 @AllArgsConstructor
 @Slf4j
@@ -35,6 +38,12 @@ public class InvoiceController {
   private final InvoiceService service;
   private final InvoiceReferenceValidator referenceValidator;
   private final UpdatePaymentRegValidator paymentValidator;
+  private final InvoicesSummaryRestMapper summaryRestMapper;
+
+  @GetMapping("accounts/{aId}/invoicesSummary")
+  public InvoicesSummary getInvoicesSummary(@PathVariable("aId") String accountId) {
+    return summaryRestMapper.toRest(service.getInvoicesSummary(getAuthenticatedUserId()));
+  }
 
   @PutMapping("/accounts/{id}/invoices/{iId}/paymentRegulations/{pId}/paymentMethod")
   public Invoice updatePaymentMethod(
@@ -53,7 +62,7 @@ public class InvoiceController {
       @PathVariable("iId") String invoiceId,
       @RequestBody CrupdateInvoice crupdateInvoice) {
     String idUser =
-        AuthProvider.getAuthenticatedUserId(); // TODO: should be changed when endpoint changed
+        getAuthenticatedUserId(); // TODO: should be changed when endpoint changed
     app.bpartners.api.model.Invoice domain = mapper.toDomain(idUser, invoiceId, crupdateInvoice);
     return mapper.toRest(service.crupdateInvoice(domain));
   }
@@ -75,7 +84,7 @@ public class InvoiceController {
       @RequestParam(name = "title", required = false) String title,
       @RequestParam(name = "filters", required = false) List<String> filters) {
     String idUser =
-        AuthProvider.getAuthenticatedUserId(); // TODO: should be changed when endpoint changed
+        getAuthenticatedUserId(); // TODO: should be changed when endpoint changed
     if (status != null && (statusList == null || statusList.isEmpty())) {
       log.warn("DEPRECATED: GET /accounts/{aId}/invoices query_param=status is still used");
       statusList = new ArrayList<>();

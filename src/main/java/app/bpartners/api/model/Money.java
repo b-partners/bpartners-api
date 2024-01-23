@@ -1,7 +1,5 @@
 package app.bpartners.api.model;
 
-import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
-
 import app.bpartners.api.model.exception.NotImplementedException;
 import java.io.Serializable;
 import java.math.BigInteger;
@@ -11,6 +9,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
 import org.apfloat.Aprational;
+
+import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 
 @Data
 @Slf4j
@@ -45,6 +45,10 @@ public class Money implements Serializable {
 
   public Money operate(Money money, BinaryOperator<Fraction> operator) {
     return new Money(operator.apply(value, money.getValue()));
+  }
+
+  public Money add(Money toAdd) {
+    return new Money(value.operate(toAdd.getValue(), Aprational::add));
   }
 
   public static Money fromMinor(Object minorValue) {

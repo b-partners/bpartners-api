@@ -1,44 +1,5 @@
 package app.bpartners.api.integration;
 
-import static app.bpartners.api.endpoint.rest.model.ArchiveStatus.DISABLED;
-import static app.bpartners.api.endpoint.rest.model.CrupdateInvoice.PaymentTypeEnum.IN_INSTALMENT;
-import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
-import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.DRAFT;
-import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
-import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PROPOSAL;
-import static app.bpartners.api.endpoint.rest.model.PaymentMethod.MULTIPLE;
-import static app.bpartners.api.endpoint.rest.model.PaymentMethod.UNKNOWN;
-import static app.bpartners.api.integration.conf.utils.InvoiceTestUtils.*;
-import static app.bpartners.api.integration.conf.utils.TestUtils.INVOICE1_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_TOKEN;
-import static app.bpartners.api.integration.conf.utils.TestUtils.NOT_JOE_DOE_ACCOUNT_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.accountHolderEntity1;
-import static app.bpartners.api.integration.conf.utils.TestUtils.assertThrowsApiException;
-import static app.bpartners.api.integration.conf.utils.TestUtils.assertThrowsForbiddenException;
-import static app.bpartners.api.integration.conf.utils.TestUtils.createProduct2;
-import static app.bpartners.api.integration.conf.utils.TestUtils.createProduct4;
-import static app.bpartners.api.integration.conf.utils.TestUtils.createProduct5;
-import static app.bpartners.api.integration.conf.utils.TestUtils.customer1;
-import static app.bpartners.api.integration.conf.utils.TestUtils.invoice1;
-import static app.bpartners.api.integration.conf.utils.TestUtils.product5;
-import static app.bpartners.api.integration.conf.utils.TestUtils.setUpCognito;
-import static app.bpartners.api.integration.conf.utils.TestUtils.setUpEventBridge;
-import static app.bpartners.api.integration.conf.utils.TestUtils.setUpLegalFileRepository;
-import static app.bpartners.api.integration.conf.utils.TestUtils.setUpPaymentInitiationRep;
-import static app.bpartners.api.model.BoundedPageSize.MAX_SIZE;
-import static java.util.UUID.randomUUID;
-import static java.util.concurrent.Executors.newFixedThreadPool;
-import static java.util.stream.Collectors.toUnmodifiableList;
-import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
-
 import app.bpartners.api.endpoint.rest.api.PayingApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
@@ -47,6 +8,8 @@ import app.bpartners.api.endpoint.rest.model.CreateProduct;
 import app.bpartners.api.endpoint.rest.model.CrupdateInvoice;
 import app.bpartners.api.endpoint.rest.model.Invoice;
 import app.bpartners.api.endpoint.rest.model.InvoiceReference;
+import app.bpartners.api.endpoint.rest.model.InvoiceSummaryContent;
+import app.bpartners.api.endpoint.rest.model.InvoicesSummary;
 import app.bpartners.api.endpoint.rest.model.PaymentMethod;
 import app.bpartners.api.endpoint.rest.model.PaymentRegStatus;
 import app.bpartners.api.endpoint.rest.model.PaymentRegulation;
@@ -81,16 +44,74 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
 
+import static app.bpartners.api.endpoint.rest.model.ArchiveStatus.DISABLED;
+import static app.bpartners.api.endpoint.rest.model.CrupdateInvoice.PaymentTypeEnum.IN_INSTALMENT;
+import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
+import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.DRAFT;
+import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
+import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PROPOSAL;
+import static app.bpartners.api.endpoint.rest.model.PaymentMethod.MULTIPLE;
+import static app.bpartners.api.endpoint.rest.model.PaymentMethod.UNKNOWN;
+import static app.bpartners.api.integration.conf.utils.InvoiceTestUtils.discount_amount_not_supported_exec;
+import static app.bpartners.api.integration.conf.utils.InvoiceTestUtils.discount_percent_excedeed_exec;
+import static app.bpartners.api.integration.conf.utils.InvoiceTestUtils.first_ref_exec;
+import static app.bpartners.api.integration.conf.utils.InvoiceTestUtils.ignoreIdsAndDatetime;
+import static app.bpartners.api.integration.conf.utils.InvoiceTestUtils.ignoreIdsOf;
+import static app.bpartners.api.integration.conf.utils.InvoiceTestUtils.ignoreSeconds;
+import static app.bpartners.api.integration.conf.utils.InvoiceTestUtils.initializeDraft;
+import static app.bpartners.api.integration.conf.utils.InvoiceTestUtils.non_existent_customer_exec;
+import static app.bpartners.api.integration.conf.utils.InvoiceTestUtils.payment_reg_amount_higher_than_100_percent_exec;
+import static app.bpartners.api.integration.conf.utils.InvoiceTestUtils.payment_reg_amount_less_than_100_percent_exec;
+import static app.bpartners.api.integration.conf.utils.InvoiceTestUtils.payment_reg_more_than_one_payment_exec;
+import static app.bpartners.api.integration.conf.utils.InvoiceTestUtils.payment_reg_percent_higher_than_100_percent_exec;
+import static app.bpartners.api.integration.conf.utils.InvoiceTestUtils.payment_reg_percent_less_than_100_percent_exec;
+import static app.bpartners.api.integration.conf.utils.InvoiceTestUtils.unique_ref_violation_exec;
+import static app.bpartners.api.integration.conf.utils.InvoiceTestUtils.validInvoice;
+import static app.bpartners.api.integration.conf.utils.TestUtils.INVOICE1_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_TOKEN;
+import static app.bpartners.api.integration.conf.utils.TestUtils.NOT_JOE_DOE_ACCOUNT_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.accountHolderEntity1;
+import static app.bpartners.api.integration.conf.utils.TestUtils.assertThrowsApiException;
+import static app.bpartners.api.integration.conf.utils.TestUtils.assertThrowsForbiddenException;
+import static app.bpartners.api.integration.conf.utils.TestUtils.createProduct2;
+import static app.bpartners.api.integration.conf.utils.TestUtils.createProduct4;
+import static app.bpartners.api.integration.conf.utils.TestUtils.createProduct5;
+import static app.bpartners.api.integration.conf.utils.TestUtils.customer1;
+import static app.bpartners.api.integration.conf.utils.TestUtils.invoice1;
+import static app.bpartners.api.integration.conf.utils.TestUtils.product5;
+import static app.bpartners.api.integration.conf.utils.TestUtils.setUpCognito;
+import static app.bpartners.api.integration.conf.utils.TestUtils.setUpEventBridge;
+import static app.bpartners.api.integration.conf.utils.TestUtils.setUpLegalFileRepository;
+import static app.bpartners.api.integration.conf.utils.TestUtils.setUpPaymentInitiationRep;
+import static app.bpartners.api.model.BoundedPageSize.MAX_SIZE;
+import static java.util.UUID.randomUUID;
+import static java.util.concurrent.Executors.newFixedThreadPool;
+import static java.util.stream.Collectors.toUnmodifiableList;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+
 @Testcontainers
 @AutoConfigureMockMvc
 @Slf4j
 @Disabled("TODO(fail)")
 class LocalInvoiceIT extends MockedThirdParties {
-  @MockBean private BanApi banApi;
-  @MockBean private AccountHolderJpaRepository holderJpaRepository;
-  @MockBean private EventBridgeClient eventBridgeClientMock;
-  @MockBean private FintecturePaymentInitiationRepository paymentInitiationRepositoryMock;
-  @MockBean private S3Service s3Service;
+  @MockBean
+  private BanApi banApi;
+  @MockBean
+  private AccountHolderJpaRepository holderJpaRepository;
+  @MockBean
+  private EventBridgeClient eventBridgeClientMock;
+  @MockBean
+  private FintecturePaymentInitiationRepository paymentInitiationRepositoryMock;
+  @MockBean
+  private S3Service s3Service;
 
   @BeforeEach
   public void setUp() {
@@ -107,6 +128,25 @@ class LocalInvoiceIT extends MockedThirdParties {
 
   public ApiClient anApiClient() {
     return TestUtils.anApiClient(JOE_DOE_TOKEN, localPort);
+  }
+
+  @Test
+  void read_invoices_summary_ok() throws ApiException {
+    ApiClient joeDoeClient = anApiClient();
+    PayingApi api = new PayingApi(joeDoeClient);
+
+    InvoicesSummary actual = api.getInvoicesSummary(JOE_DOE_ACCOUNT_ID);
+
+    assertEquals(new InvoicesSummary()
+        .paid(new InvoiceSummaryContent()
+            .amount(4400)
+            .count(2))
+        .unpaid(new InvoiceSummaryContent()
+            .amount(5500)
+            .count(2))
+        .proposal(new InvoiceSummaryContent()
+            .amount(6700)
+            .count(2)), actual);
   }
 
   @Test

@@ -27,4 +27,6 @@ public interface InvoiceJpaRepository extends JpaRepository<HInvoice, String> {
   List<HInvoice> findByIdUserAndRef(String idAccount, String ref);
 
   List<HInvoice> findAllByToBeRelaunched(boolean toBeRelaunched);
+
+  List<HInvoice> findAllByIdUser(String idUser);
 }

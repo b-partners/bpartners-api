@@ -1,3 +1,24 @@
+# [0.39.0](https://github.com/b-partners/bpartners-api/compare/v0.38.2...v0.39.0) (2024-01-23)
+
+
+### Bug Fixes
+
+* add invoice supporting docs inside transaction other supporting docs ([8083194](https://github.com/b-partners/bpartners-api/commit/808319490208adc51bdebff75e197e6c2c0c805f))
+* avoid deleting old transactions supporting documents when disconnecting bank account ([853e61b](https://github.com/b-partners/bpartners-api/commit/853e61b2deb614d8e7bcf9e236caa6150cdae6ef))
+* avoid NPE for transaction supporting docs when disconnecting bank account ([120d158](https://github.com/b-partners/bpartners-api/commit/120d1589f77d32c1ebc445295d41b2fa9f0d670f))
+* bank disconnection ([cbfa18e](https://github.com/b-partners/bpartners-api/commit/cbfa18e63ac09a497ebb25814ea31e34253d8d09))
+* enable default account after bank disconnection ([a54c450](https://github.com/b-partners/bpartners-api/commit/a54c4502a4a7789d9d75eb1ad1c517051eabb320))
+* enable known accounts after bank connection ([ba20867](https://github.com/b-partners/bpartners-api/commit/ba208676291de3eb2d1f56f82c871f3e42aeb4ae))
+* show company name into invoice PDF when customer is professional ([0a4aed6](https://github.com/b-partners/bpartners-api/commit/0a4aed64ec63e191259a9a9b62ab1e167e52de8c))
+* update invoice and its pdf after fintecture payment reception ([b5334c4](https://github.com/b-partners/bpartners-api/commit/b5334c45875a407bfdbf2cdf382c2b25191f9fbf))
+
+
+### Features
+
+* get invoices summary ([01018f9](https://github.com/b-partners/bpartners-api/commit/01018f9b763f57b5f0504c22c27434e7e263e618))
+
+
+
 ## [0.38.2](https://github.com/b-partners/bpartners-api/compare/v0.38.1...v0.38.2) (2024-01-09)
 
 
@@ -183,23 +204,6 @@
 * convert address to coordinates when reading prospects through sheets ([0c34efa](https://github.com/b-partners/bpartners-api/commit/0c34efad58cfae847530b2ed35d8dafa56c72bea))
 * enrich invoice reference check during crupdate ([d650788](https://github.com/b-partners/bpartners-api/commit/d6507889bd58752dcd7abaa8cf6ff44e75d6b589))
 * let invoice crupdate and listing without authenticated user ([550dacf](https://github.com/b-partners/bpartners-api/commit/550dacfd49b70e831e96c54dec8ab53389dbdb5c))
-
-
-
-# [0.35.0](https://github.com/b-partners/bpartners-api/compare/v0.34.1...v0.35.0) (2023-10-17)
-
-
-### Bug Fixes
-
-* remove duplicated email subject when relaunching invoice ([d77ccb9](https://github.com/b-partners/bpartners-api/commit/d77ccb95f12b4bd30277048ecb4a3f064aafc2be))
-* set google calendar provider when listing events by default ([ab1620a](https://github.com/b-partners/bpartners-api/commit/ab1620addce3cbef08d9102b6d0f30c153b285a5))
-* throw bad request exception instead of empty array when listing calendar events with expired token ([ba59a3c](https://github.com/b-partners/bpartners-api/commit/ba59a3c3a4bd8acac418dfa29e59ccd2078f9e0d))
-
-
-### Features
-
-* add website to account holder ([0c9e563](https://github.com/b-partners/bpartners-api/commit/0c9e5635d2133469538df17aaca9bde82a0ceaa2))
-* persist and return prospect status changes ([394e0b3](https://github.com/b-partners/bpartners-api/commit/394e0b3f2554cfb8a05d4e09419a93a99426d22c))
 
 
 

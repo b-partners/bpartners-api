@@ -886,6 +886,35 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
+  invoicesSummaryOperations:
+    get:
+      tags:
+        - Paying
+      operationId: getInvoicesSummary
+      summary: Get invoices summary of the account
+      parameters:
+        - in: path
+          name: aId
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description: The invoices summary of the account
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvoicesSummary'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
   getInvoices:
     get:
       tags:
@@ -1806,3 +1835,20 @@ components:
         downloadLink:
           type: string
           description: Expired after 1 hour
+    InvoicesSummary:
+      type: object
+      properties:
+        paid:
+          $ref: '#/components/schemas/InvoiceSummaryContent'
+        unpaid:
+          $ref: '#/components/schemas/InvoiceSummaryContent'
+        proposal:
+          $ref: '#/components/schemas/InvoiceSummaryContent'
+    InvoiceSummaryContent:
+      type: object
+      properties:
+        amount:
+          type: integer
+        count:
+          type: integer
+

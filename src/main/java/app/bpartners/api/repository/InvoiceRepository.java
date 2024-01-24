@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Optional;
 
 public interface InvoiceRepository {
+  List<Invoice> findAllByIdUser(String idUser);
+
   Invoice crupdate(Invoice toCrupdate);
 
   Invoice getById(String id);

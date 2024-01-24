@@ -1,5 +1,7 @@
 package app.bpartners.api.model.mapper;
 
+import static app.bpartners.api.endpoint.rest.model.AccountStatus.UNKNOWN;
+
 import app.bpartners.api.endpoint.rest.model.AccountStatus;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.Bank;
@@ -11,8 +13,6 @@ import app.bpartners.api.repository.model.AccountConnector;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-
-import static app.bpartners.api.endpoint.rest.model.AccountStatus.UNKNOWN;
 
 @Slf4j
 @Component

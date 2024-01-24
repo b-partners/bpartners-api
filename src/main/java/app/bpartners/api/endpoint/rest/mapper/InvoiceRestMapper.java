@@ -106,7 +106,7 @@ public class InvoiceRestMapper {
     if (domain.getPaymentType() == Invoice.PaymentTypeEnum.CASH
         && paymentRegulations.size() == 1
         && paymentRegulations.stream()
-        .allMatch(payment -> payment.getPaymentRequest().getStatus() == PaymentStatus.PAID)) {
+            .allMatch(payment -> payment.getPaymentRequest().getStatus() == PaymentStatus.PAID)) {
       return List.of();
     }
     return paymentRegulations.stream()

@@ -1,5 +1,7 @@
 package app.bpartners.api.service;
 
+import static java.util.UUID.randomUUID;
+
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.CreatePaymentRegulation;
@@ -19,8 +21,6 @@ import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-
-import static java.util.UUID.randomUUID;
 
 @Service
 @AllArgsConstructor

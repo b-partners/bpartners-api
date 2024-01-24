@@ -1,5 +1,11 @@
 package app.bpartners.api.service;
 
+import static app.bpartners.api.endpoint.rest.model.AccountStatus.OPENED;
+import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
+import static app.bpartners.api.repository.implementation.BankRepositoryImpl.TRY_AGAIN;
+import static app.bpartners.api.service.utils.AccountUtils.describeAccountList;
+import static java.util.UUID.randomUUID;
+
 import app.bpartners.api.endpoint.rest.model.BankConnectionRedirection;
 import app.bpartners.api.endpoint.rest.model.EnableStatus;
 import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
@@ -25,12 +31,6 @@ import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import static app.bpartners.api.endpoint.rest.model.AccountStatus.OPENED;
-import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
-import static app.bpartners.api.repository.implementation.BankRepositoryImpl.TRY_AGAIN;
-import static app.bpartners.api.service.utils.AccountUtils.describeAccountList;
-import static java.util.UUID.randomUUID;
 
 @Service
 @AllArgsConstructor
@@ -111,11 +111,13 @@ public class AccountService {
   public BankConnectionRedirection initiateBankConnection(
       String userId, RedirectionStatusUrls urls) {
     User user = userRepository.getById(userId);
-    Account defaultAccount = user.getAccounts().stream()
-        .filter(account -> account.getExternalId() == null
-            &&
-            account.getName().contains(user.getName()))
-        .findAny().orElse(user.getDefaultAccount());
+    Account defaultAccount =
+        user.getAccounts().stream()
+            .filter(
+                account ->
+                    account.getExternalId() == null && account.getName().contains(user.getName()))
+            .findAny()
+            .orElse(user.getDefaultAccount());
     // TODO: map bank when mapping account inside userMapper and use it here
     if (user.getBankConnectionId() != null && user.getBankConnectionId() != TRY_AGAIN) {
       throw new BadRequestException(
@@ -158,11 +160,13 @@ public class AccountService {
       allTransactions.forEach(transaction -> transaction.setEnableStatus(EnableStatus.DISABLED));
       transactionRepository.saveAll(allTransactions);
 
-      Account defaultAccount = user.getAccounts().stream()
-          .filter(account -> account.getExternalId() == null
-              &&
-              account.getName().contains(user.getName()))
-          .findAny().orElse(user.getDefaultAccount());
+      Account defaultAccount =
+          user.getAccounts().stream()
+              .filter(
+                  account ->
+                      account.getExternalId() == null && account.getName().contains(user.getName()))
+              .findAny()
+              .orElse(user.getDefaultAccount());
 
       List<Account> toDisableAccounts = new ArrayList<>(accounts);
       toDisableAccounts.remove(defaultAccount);
@@ -172,7 +176,8 @@ public class AccountService {
               .toList());
 
       Account newDefaultAccount =
-          defaultAccount == null ? resetDefaultAccount(user, active)
+          defaultAccount == null
+              ? resetDefaultAccount(user, active)
               : defaultAccount.toBuilder().enableStatus(EnableStatus.ENABLED).build();
       // repository.save(resetDefaultAccount(user, active));
 
@@ -214,13 +219,7 @@ public class AccountService {
 
   private void resetDefaultAccount(String userId, User user, Account account) {
     Account defaultAccount =
-        account.toBuilder()
-            .userId(userId)
-            .bank(null)
-            .bic(null)
-            .iban(null)
-            .externalId(null)
-            .build();
+        account.toBuilder().userId(userId).bank(null).bic(null).iban(null).externalId(null).build();
     repository.save(defaultAccount);
   }
 

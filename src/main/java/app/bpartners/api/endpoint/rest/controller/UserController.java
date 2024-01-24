@@ -1,5 +1,8 @@
 package app.bpartners.api.endpoint.rest.controller;
 
+import static app.bpartners.api.endpoint.rest.security.SecurityConf.AUTHORIZATION_HEADER;
+import static app.bpartners.api.service.utils.SecurityUtils.BEARER_PREFIX;
+
 import app.bpartners.api.endpoint.rest.mapper.UserRestMapper;
 import app.bpartners.api.endpoint.rest.model.DeviceToken;
 import app.bpartners.api.endpoint.rest.model.User;
@@ -17,9 +20,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import static app.bpartners.api.endpoint.rest.security.SecurityConf.AUTHORIZATION_HEADER;
-import static app.bpartners.api.service.utils.SecurityUtils.BEARER_PREFIX;
-
 @RestController
 @AllArgsConstructor
 public class UserController {
@@ -30,9 +30,7 @@ public class UserController {
 
   @PostMapping("/users/accounts/refresh")
   public List<User> refreshUserAccounts() {
-    return accountRefreshService.refreshDisconnectedUsers().stream()
-        .map(mapper::toRest)
-        .toList();
+    return accountRefreshService.refreshDisconnectedUsers().stream().map(mapper::toRest).toList();
   }
 
   @PostMapping(value = "/users/{uId}/deviceRegistration")

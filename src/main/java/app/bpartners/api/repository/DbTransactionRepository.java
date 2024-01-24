@@ -1,5 +1,7 @@
 package app.bpartners.api.repository;
 
+import static java.util.UUID.randomUUID;
+
 import app.bpartners.api.endpoint.rest.model.EnableStatus;
 import app.bpartners.api.endpoint.rest.model.TransactionStatus;
 import app.bpartners.api.model.FileInfo;
@@ -34,8 +36,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.query.QueryUtils;
 import org.springframework.stereotype.Repository;
-
-import static java.util.UUID.randomUUID;
 
 @Primary
 @Repository
@@ -173,17 +173,14 @@ public class DbTransactionRepository implements TransactionRepository {
                   List<HTransactionSupportingDocs> newSuppDocs = computeSupportingDocs(transaction);
                   List<HTransactionSupportingDocs> existingSuppDocs =
                       transactionDocsRep.findAllByIdTransaction(transaction.getId());
-                  List<String> existingDocsIds = existingSuppDocs.stream()
-                      .map(HTransactionSupportingDocs::getId)
-                      .toList();
-                  List<String> newDocsIds = newSuppDocs.stream()
-                      .map(HTransactionSupportingDocs::getId)
-                      .toList();
+                  List<String> existingDocsIds =
+                      existingSuppDocs.stream().map(HTransactionSupportingDocs::getId).toList();
+                  List<String> newDocsIds =
+                      newSuppDocs.stream().map(HTransactionSupportingDocs::getId).toList();
                   // If new supporting documents are to be set
                   if (!new HashSet<>(existingDocsIds).containsAll(newDocsIds)) {
-                    transactionDocsRep.deleteAllById(existingSuppDocs.stream()
-                        .map(HTransactionSupportingDocs::getId)
-                        .toList());
+                    transactionDocsRep.deleteAllById(
+                        existingSuppDocs.stream().map(HTransactionSupportingDocs::getId).toList());
                     supportingDocsList.addAll(newSuppDocs);
                   }
                   return mapper.toEntity(transaction, invoice);
@@ -246,8 +243,7 @@ public class DbTransactionRepository implements TransactionRepository {
               FileInfo fileInfo = newDocs.getFileInfo();
               HFileInfo fileInfoEntity = fileInfoJpaRepository.getById(fileInfo.getId());
               return HTransactionSupportingDocs.builder()
-                  .id(newDocs.getId() == null ? String.valueOf(randomUUID())
-                      : newDocs.getId())
+                  .id(newDocs.getId() == null ? String.valueOf(randomUUID()) : newDocs.getId())
                   .idTransaction(transaction.getId())
                   .fileInfo(fileInfoEntity)
                   .build();

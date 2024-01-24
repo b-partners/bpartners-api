@@ -1,5 +1,7 @@
 package app.bpartners.api.model;
 
+import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
+
 import app.bpartners.api.model.exception.NotImplementedException;
 import java.io.Serializable;
 import java.math.BigInteger;
@@ -9,8 +11,6 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
 import org.apfloat.Aprational;
-
-import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 
 @Data
 @Slf4j

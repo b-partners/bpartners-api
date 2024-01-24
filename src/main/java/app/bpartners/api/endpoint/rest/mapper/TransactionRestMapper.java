@@ -33,9 +33,10 @@ public class TransactionRestMapper {
             .status(internal.getStatus())
             .type(internal.getType())
             .invoice(invoiceRestMapper.toRest(internal.getInvoiceDetails()))
-            .supportingDocs(internal.getSupportingDocuments().stream()
-                .map(docs -> fileMapper.toRest(docs.getFileInfo()))
-                .toList());
+            .supportingDocs(
+                internal.getSupportingDocuments().stream()
+                    .map(docs -> fileMapper.toRest(docs.getFileInfo()))
+                    .toList());
     if (internal.getCategory() != null) {
       transaction.setCategory(List.of(categoryRestMapper.toRest(internal.getCategory())));
     }

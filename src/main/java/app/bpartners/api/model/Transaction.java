@@ -1,5 +1,7 @@
 package app.bpartners.api.model;
 
+import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
+
 import app.bpartners.api.endpoint.rest.model.EnableStatus;
 import app.bpartners.api.endpoint.rest.model.TransactionStatus;
 import app.bpartners.api.endpoint.rest.model.TransactionTypeEnum;
@@ -16,8 +18,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-
-import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 
 @Getter
 @Setter
@@ -50,19 +50,19 @@ public class Transaction {
   private EnableStatus enableStatus;
 
   public List<TransactionSupportingDocs> getSupportingDocuments() {
-    //TODO: deprecated
+    // TODO: deprecated
     if (invoiceDetails != null && invoiceDetails.getFileId() != null) {
-      return List.of((TransactionSupportingDocs.builder()
-          .fileInfo(FileInfo.builder()
-              .id(invoiceDetails.getFileId())
-              .build())
-          .build()));
+      return List.of(
+          (TransactionSupportingDocs.builder()
+              .fileInfo(FileInfo.builder().id(invoiceDetails.getFileId()).build())
+              .build()));
     }
     return supportingDocuments;
   }
 
   @Getter(AccessLevel.NONE)
   private Instant paymentDatetime;
+
   private List<TransactionSupportingDocs> supportingDocuments = new ArrayList<>();
 
   public Instant getPaymentDatetime() {

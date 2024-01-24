@@ -1,5 +1,12 @@
 package app.bpartners.api.service;
 
+import static app.bpartners.api.endpoint.rest.model.Invoice.PaymentTypeEnum.CASH;
+import static app.bpartners.api.endpoint.rest.model.PaymentStatus.PAID;
+import static app.bpartners.api.repository.fintecture.implementation.utils.FintecturePaymentUtils.getSignature;
+import static app.bpartners.api.service.PaymentScheduleService.PAYMENT_CREATED;
+import static app.bpartners.api.service.PaymentScheduleService.paymentMessage;
+import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
+
 import app.bpartners.api.endpoint.event.SesConf;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.endpoint.rest.model.PaymentMethod;
@@ -31,13 +38,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.context.Context;
 
-import static app.bpartners.api.endpoint.rest.model.Invoice.PaymentTypeEnum.CASH;
-import static app.bpartners.api.endpoint.rest.model.PaymentStatus.PAID;
-import static app.bpartners.api.repository.fintecture.implementation.utils.FintecturePaymentUtils.getSignature;
-import static app.bpartners.api.service.PaymentScheduleService.PAYMENT_CREATED;
-import static app.bpartners.api.service.PaymentScheduleService.paymentMessage;
-import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
-
 @Service
 @AllArgsConstructor
 @Slf4j
@@ -61,23 +61,26 @@ public class PaymentReceivedService {
           if (statusValue.equals(PAYMENT_CREATED)) {
             Optional<HPaymentRequest> optionalPayment = jpaRepository.findBySessionId(sessionId);
             if (optionalPayment.isEmpty()) {
-              msgBuilder.append("Unable to found payment with session_id=")
+              msgBuilder
+                  .append("Unable to found payment with session_id=")
                   .append(sessionId)
                   .append(". ");
             } else {
               HPaymentRequest paymentRequest = optionalPayment.get();
-              toSave.add(paymentRequest.toBuilder()
-                  .status(PAID)
-                  .paymentMethod(PaymentMethod.BANK_TRANSFER)
-                  .paymentStatusUpdatedAt(Instant.now())
-                  .build());
+              toSave.add(
+                  paymentRequest.toBuilder()
+                      .status(PAID)
+                      .paymentMethod(PaymentMethod.BANK_TRANSFER)
+                      .paymentStatusUpdatedAt(Instant.now())
+                      .build());
             }
           } else {
-            log.warn("Payment(sessionId={}, statusValue={}) received successfully but not treated.",
-                sessionId, statusValue);
+            log.warn(
+                "Payment(sessionId={}, statusValue={}) received successfully but not treated.",
+                sessionId,
+                statusValue);
           }
-        }
-    );
+        });
     String msgValue = msgBuilder.toString();
     if (!msgValue.isEmpty()) {
       log.warn(msgValue);
@@ -87,29 +90,31 @@ public class PaymentReceivedService {
       savedPaidPayments.stream()
           .filter(payment -> payment.getIdInvoice() != null)
           .toList()
-          .forEach(payment -> {
-            HInvoice invoice = invoiceJpaRepository.getById(payment.getIdInvoice());
-            HInvoice toRefresh = invoice.toBuilder().build();
-            List<HPaymentRequest> paymentRegulations = invoice.getPaymentRequests();
-            if (paymentRegulations.stream()
-                .allMatch(p -> p.getStatus() == PAID)) {
-              toRefresh.setStatus(InvoiceStatus.PAID);
-              if (invoice.getPaymentType() == CASH) {
-                toRefresh.setPaymentMethod(
-                    PaymentMethod.BANK_TRANSFER); //TODO: must check every payment reg if necessary
-              } else {
-                if (paymentRegulations.stream().allMatch(
-                    p -> p.getPaymentMethod() == PaymentMethod.BANK_TRANSFER)) {
-                  toRefresh.setPaymentMethod(PaymentMethod.BANK_TRANSFER);
-                } else {
-                  toRefresh.setPaymentMethod(PaymentMethod.MULTIPLE);
+          .forEach(
+              payment -> {
+                HInvoice invoice = invoiceJpaRepository.getById(payment.getIdInvoice());
+                HInvoice toRefresh = invoice.toBuilder().build();
+                List<HPaymentRequest> paymentRegulations = invoice.getPaymentRequests();
+                if (paymentRegulations.stream().allMatch(p -> p.getStatus() == PAID)) {
+                  toRefresh.setStatus(InvoiceStatus.PAID);
+                  if (invoice.getPaymentType() == CASH) {
+                    toRefresh.setPaymentMethod(
+                        PaymentMethod
+                            .BANK_TRANSFER); // TODO: must check every payment reg if necessary
+                  } else {
+                    if (paymentRegulations.stream()
+                        .allMatch(p -> p.getPaymentMethod() == PaymentMethod.BANK_TRANSFER)) {
+                      toRefresh.setPaymentMethod(PaymentMethod.BANK_TRANSFER);
+                    } else {
+                      toRefresh.setPaymentMethod(PaymentMethod.MULTIPLE);
+                    }
+                  }
                 }
-              }
-            }
-            HInvoice savedInvoice = invoiceJpaRepository.save(toRefresh);
-            invoiceRepositoryImpl.processAsPdf(invoiceRepositoryImpl.getById(savedInvoice.getId()));
-            log.info("{} Invoice is refreshed with its PDF", invoice.describe());
-          });
+                HInvoice savedInvoice = invoiceJpaRepository.save(toRefresh);
+                invoiceRepositoryImpl.processAsPdf(
+                    invoiceRepositoryImpl.getById(savedInvoice.getId()));
+                log.info("{} Invoice is refreshed with its PDF", invoice.describe());
+              });
       log.info("Payment requests " + paymentMessage(savedPaidPayments) + " updated successfully");
       notifyByEmail(savedPaidPayments);
       notifyByMobileNotification(savedPaidPayments);
@@ -124,8 +129,7 @@ public class PaymentReceivedService {
           for (var payment : paymentRequests) {
             snsService.pushNotification(getNotificationTitle(payment), user);
           }
-        }
-    );
+        });
   }
 
   private static Map<String, List<HPaymentRequest>> dispatchPaymentsByUser(
@@ -151,18 +155,20 @@ public class PaymentReceivedService {
     for (var payment : paymentRequests) {
       User user = userRepository.getById(payment.getIdUser());
       AccountHolder accountHolder = user.getDefaultHolder();
-      HInvoice invoice = payment.getIdInvoice() == null ? null
-          : invoiceJpaRepository.getById(payment.getIdInvoice());
+      HInvoice invoice =
+          payment.getIdInvoice() == null
+              ? null
+              : invoiceJpaRepository.getById(payment.getIdInvoice());
       Context context = new Context();
       context.setVariable("payment", payment);
       Fraction paymentAmount = parseFraction(payment.getAmount());
       context.setVariable("paymentAmount", paymentAmount);
       context.setVariable("accountHolder", accountHolder);
       context.setVariable("invoice", invoice);
-      context.setVariable("paymentDatetime",
-          DateUtils.formatFrenchDatetime(payment.getPaymentStatusUpdatedAt()));
-      String emailBody = TemplateResolverUtils.parseTemplateResolver(
-          PAYMENT_STATUS_CHANGED_TEMPLATE, context);
+      context.setVariable(
+          "paymentDatetime", DateUtils.formatFrenchDatetime(payment.getPaymentStatusUpdatedAt()));
+      String emailBody =
+          TemplateResolverUtils.parseTemplateResolver(PAYMENT_STATUS_CHANGED_TEMPLATE, context);
 
       String recipient = accountHolder.getEmail();
       String cc = null;
@@ -170,18 +176,15 @@ public class PaymentReceivedService {
       String subject = getNotificationTitle(payment);
       String htmlBody = emailBody;
       List<Attachment> attachments = List.of();
-      sesService.sendEmail(recipient,
-          cc,
-          subject,
-          htmlBody,
-          attachments, bcc);
+      sesService.sendEmail(recipient, cc, subject, htmlBody, attachments, bcc);
       log.info("Mail sent to {} after updating payment status id.{}", recipient, payment.getId());
     }
   }
 
   private static String getNotificationTitle(HPaymentRequest payment) {
     Fraction paymentAmount = parseFraction(payment.getAmount());
-    return String.format("Réception d'un nouveau paiement de %s € de la part de %s",
+    return String.format(
+        "Réception d'un nouveau paiement de %s € de la part de %s",
         paymentAmount.getCentsAsDecimal(), payment.getPayerName());
   }
 
@@ -190,7 +193,8 @@ public class PaymentReceivedService {
     String signatureAttribute = "signature=\"";
     int signatureAttributeIndex = signatureHeader.indexOf(signatureAttribute);
     String signatureValue =
-        signatureHeader.substring(signatureAttributeIndex + 1)
+        signatureHeader
+            .substring(signatureAttributeIndex + 1)
             .replaceAll(signatureAttribute, "")
             .replaceAll("\"", "");
     Signature sign = getSignature(fintectureConf.getPrivateKey(), signatureValue);
@@ -201,7 +205,10 @@ public class PaymentReceivedService {
       log.warn(
           "Unable to verify signature {} when trying to handle payment status change "
               + "of Payment(sessionId={}, status={}). Exception thrown : {}",
-          signatureValue, sessionId, paymentStatus, e.getMessage());
+          signatureValue,
+          sessionId,
+          paymentStatus,
+          e.getMessage());
     }
   }
 }

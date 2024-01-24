@@ -1,5 +1,11 @@
 package app.bpartners.api.service;
 
+import static app.bpartners.api.endpoint.rest.model.FileType.TRANSACTION_SUPPORTING_DOCS;
+import static app.bpartners.api.endpoint.rest.model.TransactionStatus.BOOKED;
+import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
+import static java.time.Instant.now;
+import static java.util.UUID.randomUUID;
+
 import app.bpartners.api.endpoint.rest.model.EnableStatus;
 import app.bpartners.api.endpoint.rest.model.FileType;
 import app.bpartners.api.endpoint.rest.model.TransactionStatus;
@@ -53,12 +59,6 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.apfloat.Aprational;
 import org.springframework.stereotype.Service;
 
-import static app.bpartners.api.endpoint.rest.model.FileType.TRANSACTION_SUPPORTING_DOCS;
-import static app.bpartners.api.endpoint.rest.model.TransactionStatus.BOOKED;
-import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
-import static java.time.Instant.now;
-import static java.util.UUID.randomUUID;
-
 @Service
 @AllArgsConstructor
 @Slf4j
@@ -101,16 +101,20 @@ public class TransactionService {
             .build());*/
 
     List<TransactionSupportingDocs> newSupportingDocs =
-        List.of(TransactionSupportingDocs.builder()
-            .id(supportingDocsId)
-            .fileInfo(uploadedFileInfo)
-            .build());
+        List.of(
+            TransactionSupportingDocs.builder()
+                .id(supportingDocsId)
+                .fileInfo(uploadedFileInfo)
+                .build());
 
     Transaction savedTransaction =
         dbTransactionRepository
-            .saveAll(List.of(transaction.toBuilder()
-                .invoiceDetails(null)
-                .supportingDocuments(newSupportingDocs).build()))
+            .saveAll(
+                List.of(
+                    transaction.toBuilder()
+                        .invoiceDetails(null)
+                        .supportingDocuments(newSupportingDocs)
+                        .build()))
             .get(0);
 
     return savedTransaction.getSupportingDocuments();
@@ -184,7 +188,7 @@ public class TransactionService {
       byte[] transactionExcelFile,
       Map<String, byte[]> filesWithName) {
     try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
-         ZipOutputStream zos = new ZipOutputStream(baos)) {
+        ZipOutputStream zos = new ZipOutputStream(baos)) {
 
       zos.putNextEntry(new ZipEntry(transactionExcelFileName));
       zos.write(transactionExcelFile, 0, transactionExcelFile.length);
@@ -328,13 +332,12 @@ public class TransactionService {
     return summaryRepository.getByIdUserAndYear(idUser, year);
   }
 
-  //TODO: change to transactionRepository.save(Transaction toSsave)
+  // TODO: change to transactionRepository.save(Transaction toSsave)
   public Transaction justifyTransaction(String idTransaction, String idInvoice) {
     List<HTransactionSupportingDocs> supportingDocs =
         docsJpaRepository.findAllByIdTransaction(idTransaction);
-    docsJpaRepository.deleteAllById(supportingDocs.stream()
-        .map(HTransactionSupportingDocs::getId)
-        .toList());
+    docsJpaRepository.deleteAllById(
+        supportingDocs.stream().map(HTransactionSupportingDocs::getId).toList());
 
     return dbTransactionRepository.save(
         JustifyTransaction.builder().idTransaction(idTransaction).idInvoice(idInvoice).build());

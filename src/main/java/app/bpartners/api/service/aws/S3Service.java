@@ -1,5 +1,10 @@
 package app.bpartners.api.service.aws;
 
+import static app.bpartners.api.endpoint.rest.model.FileType.ATTACHMENT;
+import static app.bpartners.api.endpoint.rest.model.FileType.INVOICE;
+import static app.bpartners.api.endpoint.rest.model.FileType.LOGO;
+import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
+
 import app.bpartners.api.endpoint.event.S3Conf;
 import app.bpartners.api.endpoint.rest.model.FileType;
 import app.bpartners.api.endpoint.rest.security.AuthProvider;
@@ -23,11 +28,6 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
-
-import static app.bpartners.api.endpoint.rest.model.FileType.ATTACHMENT;
-import static app.bpartners.api.endpoint.rest.model.FileType.INVOICE;
-import static app.bpartners.api.endpoint.rest.model.FileType.LOGO;
-import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 
 @Service
 @Slf4j

@@ -64,7 +64,7 @@ public class InvoiceService {
   private final PaymentRequestRepository paymentRepository;
 
   public InvoicesSummary getInvoicesSummary(String idUser) {
-    List<Invoice> invoices = repository.findAllByIdUser(idUser);
+    List<Invoice> invoices = repository.findAllEnabledByIdUser(idUser);
     InvoicesSummary.InvoiceSummaryContent paid = filterPaidInvoicesSummary(invoices);
     InvoicesSummary.InvoiceSummaryContent unpaid = filterUnpaidInvoicesSummary(invoices);
     InvoicesSummary.InvoiceSummaryContent proposal = filterProposalInvoicesSummary(invoices);
@@ -78,8 +78,7 @@ public class InvoiceService {
   private InvoicesSummary.InvoiceSummaryContent filterPaidInvoicesSummary(
       List<Invoice> invoices) {
     Stream<Invoice> invoiceStream = invoices.parallelStream()
-        .filter(invoice -> invoice.getArchiveStatus() == ArchiveStatus.ENABLED
-            && (invoice.getStatus() == PAID
+        .filter(invoice -> (invoice.getStatus() == PAID
             || (invoice.getStatus() == CONFIRMED && invoice.getPaymentRegulations().stream()
             .anyMatch(payment -> payment.getPaymentRequest().getStatus() == PaymentStatus.PAID))));
     Money amount = invoiceStream
@@ -105,8 +104,7 @@ public class InvoiceService {
   private InvoicesSummary.InvoiceSummaryContent filterUnpaidInvoicesSummary(
       List<Invoice> invoices) {
     Stream<Invoice> invoiceStream = invoices.parallelStream()
-        .filter(invoice -> invoice.getArchiveStatus() == ArchiveStatus.ENABLED
-            && invoice.getStatus() == CONFIRMED);
+        .filter(invoice -> invoice.getStatus() == CONFIRMED);
     Money amount = invoiceStream
         .flatMap(invoice -> {
           if (invoice.getPaymentType() == CASH) {
@@ -128,8 +126,7 @@ public class InvoiceService {
   private InvoicesSummary.InvoiceSummaryContent filterProposalInvoicesSummary(
       List<Invoice> invoices) {
     Stream<Invoice> filteredInvoices = invoices.parallelStream()
-        .filter(invoice -> invoice.getStatus() == PROPOSAL &&
-            invoice.getArchiveStatus() == ArchiveStatus.ENABLED);
+        .filter(invoice -> invoice.getStatus() == PROPOSAL);
     Money amount = filteredInvoices
         .flatMap(invoice -> {
           if (invoice.getPaymentType() == CASH) {

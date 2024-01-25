@@ -102,16 +102,11 @@ import static org.mockito.Mockito.when;
 @Slf4j
 @Disabled("TODO(fail)")
 class LocalInvoiceIT extends MockedThirdParties {
-  @MockBean
-  private BanApi banApi;
-  @MockBean
-  private AccountHolderJpaRepository holderJpaRepository;
-  @MockBean
-  private EventBridgeClient eventBridgeClientMock;
-  @MockBean
-  private FintecturePaymentInitiationRepository paymentInitiationRepositoryMock;
-  @MockBean
-  private S3Service s3Service;
+  @MockBean private BanApi banApi;
+  @MockBean private AccountHolderJpaRepository holderJpaRepository;
+  @MockBean private EventBridgeClient eventBridgeClientMock;
+  @MockBean private FintecturePaymentInitiationRepository paymentInitiationRepositoryMock;
+  @MockBean private S3Service s3Service;
 
   @BeforeEach
   public void setUp() {
@@ -137,16 +132,12 @@ class LocalInvoiceIT extends MockedThirdParties {
 
     InvoicesSummary actual = api.getInvoicesSummary(JOE_DOE_ACCOUNT_ID);
 
-    assertEquals(new InvoicesSummary()
-        .paid(new InvoiceSummaryContent()
-            .amount(4400)
-            .count(2))
-        .unpaid(new InvoiceSummaryContent()
-            .amount(5500)
-            .count(2))
-        .proposal(new InvoiceSummaryContent()
-            .amount(6700)
-            .count(2)), actual);
+    assertEquals(
+        new InvoicesSummary()
+            .paid(new InvoiceSummaryContent().amount(4400).count(-1))
+            .unpaid(new InvoiceSummaryContent().amount(5500).count(-1))
+            .proposal(new InvoiceSummaryContent().amount(6700).count(-1)),
+        actual);
   }
 
   @Test

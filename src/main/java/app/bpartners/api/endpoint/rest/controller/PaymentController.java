@@ -29,7 +29,7 @@ public class PaymentController {
       @RequestParam("session_id") String sessionId,
       @RequestParam("status") String status,
       @RequestHeader("Signature") String signatureHeader) {
-    //TODO: initiationService.verifySignature(signatureHeader, sessionId, status);
+    // TODO: initiationService.verifySignature(signatureHeader, sessionId, status);
     receiptService.updatePaymentStatuses(Map.of(sessionId, status));
   }
 

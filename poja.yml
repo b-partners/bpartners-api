@@ -1,10 +1,10 @@
 app_name: bpartners
-cli_version: 10.4.3
+cli_version: 10.6.1
 custom_java_deps: poja-custom-java-deps.txt
 custom_java_env_vars: poja-custom-java-env-vars.txt
 custom_java_repositories: poja-custom-java-repositories.txt
 frontal_memory: 512
-jacoco_min_coverage: '0.2'
+jacoco_min_coverage: '0.4'
 package_full_name: app.bpartners.api
 region: eu-west-3
 ses_source: contact@bpartners.app

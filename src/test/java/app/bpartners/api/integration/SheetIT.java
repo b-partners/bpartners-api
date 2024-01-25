@@ -172,8 +172,7 @@ public class SheetIT extends MockedThirdParties {
   @Test
   void import_prospects_through_sheet_ok() throws ApiException {
     User user = userService.getUserById(JOE_DOE_ID);
-    User savedUser =
-        userService.save(user.toBuilder().roles(List.of(Role.EVAL_PROSPECT)).build());
+    User savedUser = userService.save(user.toBuilder().roles(List.of(Role.EVAL_PROSPECT)).build());
     businessRepository.save(
         BusinessActivity.builder()
             .accountHolder(joeDoeAccountHolder())
@@ -203,8 +202,7 @@ public class SheetIT extends MockedThirdParties {
   @Test
   void convert_events_to_prospect_ok() throws ApiException {
     User user = userService.getUserById(JOE_DOE_ID);
-    User savedUser =
-        userService.save(user.toBuilder().roles(List.of(Role.EVAL_PROSPECT)).build());
+    User savedUser = userService.save(user.toBuilder().roles(List.of(Role.EVAL_PROSPECT)).build());
     businessRepository.save(
         BusinessActivity.builder()
             .accountHolder(joeDoeAccountHolder())

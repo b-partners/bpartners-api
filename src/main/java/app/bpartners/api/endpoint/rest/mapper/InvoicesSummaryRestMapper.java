@@ -6,6 +6,9 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class InvoicesSummaryRestMapper {
+
+  public static final int NOT_PROVIDED_VALUE = -1;
+
   public InvoicesSummary toRest(app.bpartners.api.model.InvoicesSummary domain) {
     return new InvoicesSummary()
         .paid(toRest(domain.getPaid()))
@@ -17,6 +20,6 @@ public class InvoicesSummaryRestMapper {
       app.bpartners.api.model.InvoicesSummary.InvoiceSummaryContent domain) {
     return new InvoiceSummaryContent()
         .amount(domain.getAmount().getCents())
-        .count(domain.getCount());
+        .count(NOT_PROVIDED_VALUE);
   }
 }

@@ -3,7 +3,7 @@ cli_version: 10.7.0
 custom_java_deps: poja-custom-java-deps.txt
 custom_java_env_vars: poja-custom-java-env-vars.txt
 custom_java_repositories: poja-custom-java-repositories.txt
-frontal_memory: 512
+frontal_memory: 300
 jacoco_min_coverage: '0.4'
 java_facade_it: app.bpartners.api.integration.conf.MockedThirdParties
 package_full_name: app.bpartners.api
@@ -21,4 +21,4 @@ with_publish_to_npm_registry: 'true'
 with_snapstart: 'true'
 with_swagger_ui: 'false'
 worker_batch: 5
-worker_memory: 1024
+worker_memory: 512

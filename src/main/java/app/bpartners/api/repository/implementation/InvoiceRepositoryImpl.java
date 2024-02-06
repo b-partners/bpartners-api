@@ -60,8 +60,8 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
   private final InvoicePdfUtils pdfUtils = new InvoicePdfUtils();
 
   @Override
-  public List<Invoice> findAllByIdUser(String idUser) {
-    return jpaRepository.findAllByIdUser(idUser).stream().map(mapper::toDomain).toList();
+  public List<Invoice> findAllEnabledByIdUser(String idUser) {
+    return jpaRepository.findAllByIdUserAndArchiveStatus(idUser, ArchiveStatus.ENABLED).stream().map(mapper::toDomain).toList();
   }
 
   @Override

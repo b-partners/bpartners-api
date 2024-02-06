@@ -1,5 +1,48 @@
 package app.bpartners.api.integration;
 
+import app.bpartners.api.endpoint.rest.api.PayingApi;
+import app.bpartners.api.endpoint.rest.client.ApiClient;
+import app.bpartners.api.endpoint.rest.client.ApiException;
+import app.bpartners.api.endpoint.rest.model.CreatePaymentRegulation;
+import app.bpartners.api.endpoint.rest.model.CreateProduct;
+import app.bpartners.api.endpoint.rest.model.CrupdateInvoice;
+import app.bpartners.api.endpoint.rest.model.Invoice;
+import app.bpartners.api.endpoint.rest.model.InvoiceReference;
+import app.bpartners.api.endpoint.rest.model.InvoiceSummaryContent;
+import app.bpartners.api.endpoint.rest.model.InvoicesSummary;
+import app.bpartners.api.endpoint.rest.model.PaymentMethod;
+import app.bpartners.api.endpoint.rest.model.PaymentRegStatus;
+import app.bpartners.api.endpoint.rest.model.PaymentRegulation;
+import app.bpartners.api.endpoint.rest.model.PaymentStatus;
+import app.bpartners.api.endpoint.rest.model.UpdateInvoiceArchivedStatus;
+import app.bpartners.api.endpoint.rest.model.UpdatePaymentRegMethod;
+import app.bpartners.api.integration.conf.MockedThirdParties;
+import app.bpartners.api.integration.conf.utils.InvoiceTestUtils;
+import app.bpartners.api.integration.conf.utils.TestUtils;
+import app.bpartners.api.repository.ban.BanApi;
+import app.bpartners.api.repository.fintecture.FintecturePaymentInitiationRepository;
+import app.bpartners.api.repository.jpa.AccountHolderJpaRepository;
+import app.bpartners.api.service.aws.S3Service;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Future;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.annotation.DirtiesContext;
+import org.testcontainers.junit.jupiter.Testcontainers;
+import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
+
 import static app.bpartners.api.endpoint.rest.model.ArchiveStatus.DISABLED;
 import static app.bpartners.api.endpoint.rest.model.CrupdateInvoice.PaymentTypeEnum.IN_INSTALMENT;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
@@ -53,54 +96,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
-import app.bpartners.api.endpoint.rest.api.PayingApi;
-import app.bpartners.api.endpoint.rest.client.ApiClient;
-import app.bpartners.api.endpoint.rest.client.ApiException;
-import app.bpartners.api.endpoint.rest.model.CreatePaymentRegulation;
-import app.bpartners.api.endpoint.rest.model.CreateProduct;
-import app.bpartners.api.endpoint.rest.model.CrupdateInvoice;
-import app.bpartners.api.endpoint.rest.model.Invoice;
-import app.bpartners.api.endpoint.rest.model.InvoiceReference;
-import app.bpartners.api.endpoint.rest.model.InvoiceSummaryContent;
-import app.bpartners.api.endpoint.rest.model.InvoicesSummary;
-import app.bpartners.api.endpoint.rest.model.PaymentMethod;
-import app.bpartners.api.endpoint.rest.model.PaymentRegStatus;
-import app.bpartners.api.endpoint.rest.model.PaymentRegulation;
-import app.bpartners.api.endpoint.rest.model.PaymentStatus;
-import app.bpartners.api.endpoint.rest.model.UpdateInvoiceArchivedStatus;
-import app.bpartners.api.endpoint.rest.model.UpdatePaymentRegMethod;
-import app.bpartners.api.integration.conf.MockedThirdParties;
-import app.bpartners.api.integration.conf.utils.InvoiceTestUtils;
-import app.bpartners.api.integration.conf.utils.TestUtils;
-import app.bpartners.api.repository.ban.BanApi;
-import app.bpartners.api.repository.fintecture.FintecturePaymentInitiationRepository;
-import app.bpartners.api.repository.jpa.AccountHolderJpaRepository;
-import app.bpartners.api.service.aws.S3Service;
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Future;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.annotation.DirtiesContext;
-import org.testcontainers.junit.jupiter.Testcontainers;
-import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
-
 @Testcontainers
 @AutoConfigureMockMvc
 @Slf4j
-@Disabled("TODO(fail)")
 class LocalInvoiceIT extends MockedThirdParties {
   @MockBean private BanApi banApi;
   @MockBean private AccountHolderJpaRepository holderJpaRepository;
@@ -134,6 +132,7 @@ class LocalInvoiceIT extends MockedThirdParties {
 
     assertEquals(
         new InvoicesSummary()
+            .lastUpdateDatetime(actual.getLastUpdateDatetime())
             .paid(new InvoiceSummaryContent().amount(4400).count(-1))
             .unpaid(new InvoiceSummaryContent().amount(5500).count(-1))
             .proposal(new InvoiceSummaryContent().amount(6700).count(-1)),

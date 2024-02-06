@@ -61,7 +61,9 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
 
   @Override
   public List<Invoice> findAllEnabledByIdUser(String idUser) {
-    return jpaRepository.findAllByIdUserAndArchiveStatus(idUser, ArchiveStatus.ENABLED).stream().map(mapper::toDomain).toList();
+    return jpaRepository.findAllByIdUserAndArchiveStatus(idUser, ArchiveStatus.ENABLED).stream()
+        .map(mapper::toDomain)
+        .toList();
   }
 
   @Override

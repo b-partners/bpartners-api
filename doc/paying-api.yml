@@ -1838,6 +1838,9 @@ components:
     InvoicesSummary:
       type: object
       properties:
+        lastUpdateDatetime:
+          type: string
+          format: date-time
         paid:
           $ref: '#/components/schemas/InvoiceSummaryContent'
         unpaid:

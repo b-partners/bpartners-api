@@ -19,13 +19,30 @@ Resources:
       ManagedPolicyArns:
         - 'arn:aws:iam::aws:policy/AdministratorAccess'
 
+  RefreshInvoiceSummaryScheduler:
+    Type: AWS::Scheduler::Schedule
+    Properties:
+      Description: Scheduler that trigger the refresh of invoices summaries
+      FlexibleTimeWindow:
+        Mode: "OFF"
+      Name: !Join ['', [!Ref Env, -RefreshInvoiceSummary]]
+      ScheduleExpression: "rate(5 minutes)"
+      Target:
+        Arn: !Sub '{{resolve:ssm:/bpartners/${Env}/eventbridge/bus-arn}}'
+        RoleArn: !GetAtt ScheduledEventExecutionRole.Arn
+        DeadLetterConfig:
+          Arn: !Sub '{{resolve:ssm:/bpartners/${Env}/sqs/dead-letter-queue-arn}}'
+        EventBridgeParameters:
+          DetailType: 'app.bpartners.api.endpoint.event.gen.RefreshInvoiceSummaryTriggered'
+          Source: 'app.bpartners.api'
+
   RefreshTransactionSummariesScheduler:
     Type: AWS::Scheduler::Schedule
     Properties:
       Description: Scheduler that trigger the refresh of transaction summaries
       FlexibleTimeWindow:
         Mode: "OFF"
-      Name: !Join ['', [!Ref Env, -RefreshTransactionSummaries]]
+      Name: !Join [ '', [ !Ref Env, -RefreshTransactionSummaries ] ]
       ScheduleExpression: "rate(1 hour)"
       Target:
         Arn: !Sub '{{resolve:ssm:/bpartners/${Env}/eventbridge/bus-arn}}'

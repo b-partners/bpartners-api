@@ -1,11 +1,5 @@
 package app.bpartners.api.service;
 
-import static app.bpartners.api.endpoint.rest.model.Invoice.PaymentTypeEnum.CASH;
-import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
-import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
-import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PROPOSAL;
-import static java.time.Instant.now;
-
 import app.bpartners.api.endpoint.rest.model.EnableStatus;
 import app.bpartners.api.endpoint.rest.model.PaymentStatus;
 import app.bpartners.api.model.Invoice;
@@ -19,6 +13,12 @@ import javax.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import static app.bpartners.api.endpoint.rest.model.Invoice.PaymentTypeEnum.CASH;
+import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
+import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
+import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PROPOSAL;
+import static java.time.Instant.now;
+
 @Service
 @AllArgsConstructor
 public class InvoiceSummaryService {
@@ -26,6 +26,7 @@ public class InvoiceSummaryService {
   private final InvoiceRepository invoiceRepository;
   private final UserService userService;
 
+  @Transactional
   public List<InvoiceSummary> updateInvoicesSummary() {
     return userService.findAll().stream()
         .filter(user -> user.getStatus() == EnableStatus.ENABLED)
@@ -59,11 +60,11 @@ public class InvoiceSummaryService {
                 invoice ->
                     (invoice.getStatus() == PAID
                         || (invoice.getStatus() == CONFIRMED
-                            && invoice.getPaymentRegulations().stream()
-                                .anyMatch(
-                                    payment ->
-                                        payment.getPaymentRequest().getStatus()
-                                            == PaymentStatus.PAID))));
+                        && invoice.getPaymentRegulations().stream()
+                        .anyMatch(
+                            payment ->
+                                payment.getPaymentRequest().getStatus()
+                                    == PaymentStatus.PAID))));
     Money amount =
         invoiceStream
             .map(

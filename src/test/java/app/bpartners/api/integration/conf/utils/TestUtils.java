@@ -27,6 +27,7 @@ import app.bpartners.api.endpoint.rest.model.ArchiveStatus;
 import app.bpartners.api.endpoint.rest.model.BusinessActivity;
 import app.bpartners.api.endpoint.rest.model.CompanyBusinessActivity;
 import app.bpartners.api.endpoint.rest.model.CompanyInfo;
+import app.bpartners.api.endpoint.rest.model.ContactNature;
 import app.bpartners.api.endpoint.rest.model.CreateAccountInvoiceRelaunchConf;
 import app.bpartners.api.endpoint.rest.model.CreateAnnualRevenueTarget;
 import app.bpartners.api.endpoint.rest.model.CreateProduct;
@@ -687,6 +688,7 @@ public class TestUtils {
         .phone(null)
         .address(null)
         .townCode(92002)
+        .contactNature(ContactNature.PROSPECT)
         .rating(
             new ProspectRating()
                 .value(BigDecimal.valueOf(9.993))
@@ -706,6 +708,7 @@ public class TestUtils {
         .id("prospect2_id")
         .name("jane doe")
         .location(null)
+        .contactNature(ContactNature.PROSPECT)
         .status(TO_CONTACT)
         .statusHistory(getStatusHistory(TO_CONTACT))
         .email("janeDoe@gmail.com")

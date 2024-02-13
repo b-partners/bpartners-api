@@ -1,5 +1,20 @@
 package app.bpartners.api.model.mapper;
 
+import static app.bpartners.api.endpoint.rest.model.ProspectStatus.TO_CONTACT;
+import static app.bpartners.api.repository.expressif.utils.ProspectEvalUtils.ANTI_HORM_VALUE;
+import static app.bpartners.api.repository.expressif.utils.ProspectEvalUtils.DEPA_RULE_NEW_INTERVENTION;
+import static app.bpartners.api.repository.expressif.utils.ProspectEvalUtils.INDIVIDUAL_VALUE;
+import static app.bpartners.api.repository.expressif.utils.ProspectEvalUtils.LOCK_SMITH_VALUE;
+import static app.bpartners.api.repository.expressif.utils.ProspectEvalUtils.customerType;
+import static app.bpartners.api.repository.expressif.utils.ProspectEvalUtils.getDistNewIntAndOldCustomer;
+import static app.bpartners.api.repository.expressif.utils.ProspectEvalUtils.getRealValue;
+import static app.bpartners.api.repository.expressif.utils.ProspectEvalUtils.infestationType;
+import static app.bpartners.api.repository.expressif.utils.ProspectEvalUtils.interventionType;
+import static app.bpartners.api.repository.expressif.utils.ProspectEvalUtils.professionalCustomerType;
+import static app.bpartners.api.service.ProspectService.defaultStatusHistoryEntity;
+import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
+import static java.util.UUID.randomUUID;
+
 import app.bpartners.api.endpoint.rest.model.ContactNature;
 import app.bpartners.api.endpoint.rest.model.Geojson;
 import app.bpartners.api.endpoint.rest.model.ProspectFeedback;
@@ -27,21 +42,6 @@ import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-
-import static app.bpartners.api.endpoint.rest.model.ProspectStatus.TO_CONTACT;
-import static app.bpartners.api.repository.expressif.utils.ProspectEvalUtils.ANTI_HORM_VALUE;
-import static app.bpartners.api.repository.expressif.utils.ProspectEvalUtils.DEPA_RULE_NEW_INTERVENTION;
-import static app.bpartners.api.repository.expressif.utils.ProspectEvalUtils.INDIVIDUAL_VALUE;
-import static app.bpartners.api.repository.expressif.utils.ProspectEvalUtils.LOCK_SMITH_VALUE;
-import static app.bpartners.api.repository.expressif.utils.ProspectEvalUtils.customerType;
-import static app.bpartners.api.repository.expressif.utils.ProspectEvalUtils.getDistNewIntAndOldCustomer;
-import static app.bpartners.api.repository.expressif.utils.ProspectEvalUtils.getRealValue;
-import static app.bpartners.api.repository.expressif.utils.ProspectEvalUtils.infestationType;
-import static app.bpartners.api.repository.expressif.utils.ProspectEvalUtils.interventionType;
-import static app.bpartners.api.repository.expressif.utils.ProspectEvalUtils.professionalCustomerType;
-import static app.bpartners.api.service.ProspectService.defaultStatusHistoryEntity;
-import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
-import static java.util.UUID.randomUUID;
 
 @Component
 @AllArgsConstructor
@@ -223,7 +223,8 @@ public class ProspectMapper {
         .idInvoice(entity.getIdInvoice())
         .contractAmount(
             entity.getContractAmount() == null ? null : parseFraction(entity.getContractAmount()))
-        .contactNature(entity.getContactNature())
+        .contactNature(
+            entity.getContactNature() == null ? ContactNature.PROSPECT : entity.getContactNature())
         .latestOldHolder(entity.getLatestOldHolder())
         .build();
   }

@@ -1,8 +1,5 @@
 package app.bpartners.api.endpoint.rest.mapper;
 
-import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
-import static java.util.UUID.randomUUID;
-
 import app.bpartners.api.endpoint.rest.model.Area;
 import app.bpartners.api.endpoint.rest.model.ContactNature;
 import app.bpartners.api.endpoint.rest.model.EvaluatedProspect;
@@ -30,6 +27,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
+
+import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
+import static java.util.UUID.randomUUID;
 
 @Component
 @AllArgsConstructor
@@ -69,7 +69,7 @@ public class ProspectRestMapper {
                         ? toGeoJson(info.getCoordinates())
                         : toGeoJson(customerInfo.getLocation().getCoordinate())))
         .managerName(customerInfo == null ? info.getManagerName() : customerInfo.getFullName())
-        .contactNature(customerResult != null ? ContactNature.OLD_CUSTOMER : getProspect(info))
+        .contactNature(getProspect(info))
         .evaluationDate(prospectResult.getEvaluationDate())
         .interventionResult(
             interventionResult == null || customerResult != null

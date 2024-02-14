@@ -83,7 +83,12 @@
                         </span>
                         </td>
                         <td>
-                            <span th:text="${#numbers.formatDecimal(prospect.getOldCustomerResult().getDistanceFromProspect().doubleValue(),1,2)}"></span>
+                            <span th:if="${prospect.getOldCustomerResult() != null && prospect.getDistanceFromProspect().getDistanceFromProspect() != null}">
+                                <span th:text="${#numbers.formatDecimal(prospect.getOldCustomerResult().getDistanceFromProspect().doubleValue(),1,2)}"></span>
+                            </span>
+                            <span th:unless="${prospect.getOldCustomerResult() != null && prospect.getDistanceFromProspect().getDistanceFromProspect() != null}">
+                                Inconnu
+                            </span>
                         </td>
                     </tr>
                 </th:block>

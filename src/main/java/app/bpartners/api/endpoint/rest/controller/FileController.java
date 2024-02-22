@@ -63,18 +63,20 @@ public class FileController {
         .body(toUpload);
   }
 
-  @PostMapping(value = "/accounts/{accountId}/files/{id}/multipart", consumes = MULTIPART_FORM_DATA_VALUE)
+  @PostMapping(
+      value = "/accounts/{accountId}/files/{id}/multipart",
+      consumes = MULTIPART_FORM_DATA_VALUE)
   public ResponseEntity<byte[]> uploadMultipartFile(
-          @PathVariable(name = "accountId") String accountId,
-          @PathVariable(name = "id") String fileId,
-          @RequestParam(name = "fileType") FileType fileType,
-          @RequestPart(name = "file") MultipartFile file) {
+      @PathVariable(name = "accountId") String accountId,
+      @PathVariable(name = "id") String fileId,
+      @RequestParam(name = "fileType") FileType fileType,
+      @RequestPart(name = "file") MultipartFile file) {
     var toUpload = multipartFileConverter.apply(file);
     String idUser =
-            AuthProvider.getAuthenticatedUserId(); // TODO: should be changed when endpoint changed
+        AuthProvider.getAuthenticatedUserId(); // TODO: should be changed when endpoint changed
     service.upload(fileId, fileType, idUser, toUpload);
     return ResponseEntity.ok()
-            .contentType(FileInfoUtils.parseMediaTypeFromBytes(toUpload))
-            .body(toUpload);
+        .contentType(FileInfoUtils.parseMediaTypeFromBytes(toUpload))
+        .body(toUpload);
   }
 }

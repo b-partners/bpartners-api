@@ -269,7 +269,7 @@ public class SecurityConf extends WebSecurityConfigurerAdapter {
             new SelfAccountMatcher(POST, "/accounts/*/files/*/raw", authResourceProvider))
         .authenticated()
         .requestMatchers(
-                new SelfAccountMatcher(POST, "/accounts/*/files/*/multipart", authResourceProvider))
+            new SelfAccountMatcher(POST, "/accounts/*/files/*/multipart", authResourceProvider))
         .authenticated()
         .requestMatchers(
             new SelfAccountMatcher(GET, "/accounts/*/files/*/raw", authResourceProvider))

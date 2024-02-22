@@ -1,11 +1,11 @@
 package app.bpartners.api.model.mapper;
 
+import static java.util.UUID.randomUUID;
+
 import app.bpartners.api.model.InvoiceSummary;
 import app.bpartners.api.model.Money;
 import app.bpartners.api.repository.jpa.model.HInvoiceSummary;
 import org.springframework.stereotype.Component;
-
-import static java.util.UUID.randomUUID;
 
 @Component
 public class InvoiceSummaryMapper {

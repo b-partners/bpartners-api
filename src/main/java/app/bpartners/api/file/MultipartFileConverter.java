@@ -8,12 +8,12 @@ import org.springframework.web.multipart.MultipartFile;
 
 @Component
 public class MultipartFileConverter implements Function<MultipartFile, byte[]> {
-    @Override
-    public byte[] apply(MultipartFile file) {
-        try {
-            return file.getBytes();
-        } catch (IOException e) {
-            throw new ApiException(ApiException.ExceptionType.SERVER_EXCEPTION, e);
-        }
+  @Override
+  public byte[] apply(MultipartFile file) {
+    try {
+      return file.getBytes();
+    } catch (IOException e) {
+      throw new ApiException(ApiException.ExceptionType.SERVER_EXCEPTION, e);
     }
+  }
 }

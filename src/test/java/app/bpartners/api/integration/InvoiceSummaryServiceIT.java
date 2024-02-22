@@ -1,5 +1,8 @@
 package app.bpartners.api.integration;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import app.bpartners.api.endpoint.rest.model.EnableStatus;
 import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.model.InvoiceSummary;
@@ -13,39 +16,43 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
 @Testcontainers
 @AutoConfigureMockMvc
 public class InvoiceSummaryServiceIT extends MockedThirdParties {
-  @Autowired
-  InvoiceSummaryService subject;
+  @Autowired InvoiceSummaryService subject;
   @Autowired UserService userService;
 
   @Test
   void update_invoices_summaries_ok() {
     List<User> enabledUsers =
-        userService.findAll().stream().filter(user -> user.getStatus() == EnableStatus.ENABLED)
+        userService.findAll().stream()
+            .filter(user -> user.getStatus() == EnableStatus.ENABLED)
             .toList();
 
     List<InvoiceSummary> actual = subject.updateInvoicesSummary();
 
     assertEquals(enabledUsers.size(), actual.size());
-    assertTrue(ignoreUpdateDatetime(actual).contains(InvoiceSummary.builder()
-        .updatedAt(null)
-        .paid(InvoiceSummary.InvoiceSummaryContent.builder().amount(Money.fromMajor(4400))
-            .build())
-        .unpaid(InvoiceSummary.InvoiceSummaryContent.builder().amount(Money.fromMajor(5500))
-            .build())
-        .proposal(InvoiceSummary.InvoiceSummaryContent.builder().amount(Money.fromMajor(6700))
-            .build())
-        .build()));
+    assertTrue(
+        ignoreUpdateDatetime(actual)
+            .contains(
+                InvoiceSummary.builder()
+                    .updatedAt(null)
+                    .paid(
+                        InvoiceSummary.InvoiceSummaryContent.builder()
+                            .amount(Money.fromMajor(4400))
+                            .build())
+                    .unpaid(
+                        InvoiceSummary.InvoiceSummaryContent.builder()
+                            .amount(Money.fromMajor(5500))
+                            .build())
+                    .proposal(
+                        InvoiceSummary.InvoiceSummaryContent.builder()
+                            .amount(Money.fromMajor(6700))
+                            .build())
+                    .build()));
   }
 
   List<InvoiceSummary> ignoreUpdateDatetime(List<InvoiceSummary> summaries) {
-    return summaries.stream()
-        .peek(summary -> summary.setUpdatedAt(null))
-        .toList();
+    return summaries.stream().peek(summary -> summary.setUpdatedAt(null)).toList();
   }
 }

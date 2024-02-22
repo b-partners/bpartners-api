@@ -1,5 +1,11 @@
 package app.bpartners.api.service;
 
+import static app.bpartners.api.endpoint.rest.model.AccountStatus.OPENED;
+import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
+import static app.bpartners.api.repository.implementation.BankRepositoryImpl.TRY_AGAIN;
+import static app.bpartners.api.service.utils.AccountUtils.describeAccountList;
+import static java.util.UUID.randomUUID;
+
 import app.bpartners.api.endpoint.rest.model.BankConnectionRedirection;
 import app.bpartners.api.endpoint.rest.model.EnableStatus;
 import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
@@ -28,12 +34,6 @@ import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import static app.bpartners.api.endpoint.rest.model.AccountStatus.OPENED;
-import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
-import static app.bpartners.api.repository.implementation.BankRepositoryImpl.TRY_AGAIN;
-import static app.bpartners.api.service.utils.AccountUtils.describeAccountList;
-import static java.util.UUID.randomUUID;
 
 @Service
 @AllArgsConstructor

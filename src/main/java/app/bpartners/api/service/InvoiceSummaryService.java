@@ -1,5 +1,11 @@
 package app.bpartners.api.service;
 
+import static app.bpartners.api.endpoint.rest.model.Invoice.PaymentTypeEnum.CASH;
+import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
+import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
+import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PROPOSAL;
+import static java.time.Instant.now;
+
 import app.bpartners.api.endpoint.rest.model.EnableStatus;
 import app.bpartners.api.endpoint.rest.model.PaymentStatus;
 import app.bpartners.api.model.Invoice;
@@ -12,12 +18,6 @@ import java.util.stream.Stream;
 import javax.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
-
-import static app.bpartners.api.endpoint.rest.model.Invoice.PaymentTypeEnum.CASH;
-import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
-import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
-import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PROPOSAL;
-import static java.time.Instant.now;
 
 @Service
 @AllArgsConstructor
@@ -60,11 +60,11 @@ public class InvoiceSummaryService {
                 invoice ->
                     (invoice.getStatus() == PAID
                         || (invoice.getStatus() == CONFIRMED
-                        && invoice.getPaymentRegulations().stream()
-                        .anyMatch(
-                            payment ->
-                                payment.getPaymentRequest().getStatus()
-                                    == PaymentStatus.PAID))));
+                            && invoice.getPaymentRegulations().stream()
+                                .anyMatch(
+                                    payment ->
+                                        payment.getPaymentRequest().getStatus()
+                                            == PaymentStatus.PAID))));
     Money amount =
         invoiceStream
             .map(

@@ -7,7 +7,8 @@ import app.bpartners.api.repository.jpa.types.PostgresEnumType;
 import java.time.Instant;
 import java.util.Comparator;
 import java.util.List;
-import javax.persistence.*;
+
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -15,8 +16,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-import org.hibernate.annotations.Type;
-import org.hibernate.annotations.TypeDef;
+import org.hibernate.annotations.JdbcTypeCode;
+
+import static org.hibernate.type.SqlTypes.NAMED_ENUM;
 
 @Entity
 @Table(name = "\"prospect\"")
@@ -27,9 +29,9 @@ import org.hibernate.annotations.TypeDef;
 @AllArgsConstructor
 @NoArgsConstructor
 @EqualsAndHashCode
-@TypeDef(name = "pgsql_enum", typeClass = PostgresEnumType.class)
 public class HProspect {
-  @Id private String id;
+  @Id
+  private String id;
   private String idAccountHolder;
   private String latestOldHolder;
 
@@ -61,11 +63,11 @@ public class HProspect {
   private String contractAmount;
   private String idInvoice;
 
-  @Type(type = "pgsql_enum")
+  @JdbcTypeCode(NAMED_ENUM)
   @Enumerated(EnumType.STRING)
   private ProspectFeedback prospectFeedback;
 
-  @Type(type = "pgsql_enum")
+  @JdbcTypeCode(NAMED_ENUM)
   @Enumerated(EnumType.STRING)
   private ContactNature contactNature;
 

@@ -6,6 +6,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 
+import app.bpartners.api.concurrency.Workers;
 import app.bpartners.api.endpoint.event.EventConsumer;
 import app.bpartners.api.endpoint.event.EventServiceInvoker;
 import app.bpartners.api.endpoint.event.gen.InvoiceRelaunchSaved;
@@ -17,13 +18,15 @@ import org.junit.jupiter.api.Test;
 class EventConsumerTest {
   EventConsumer eventConsumer;
   EventServiceInvoker eventServiceInvoker;
+  Workers<Void> workers;
+
 
   static final Duration TIMEOUT = Duration.ofSeconds(3);
 
   @BeforeEach
   void setUp() {
     eventServiceInvoker = mock(EventServiceInvoker.class);
-    eventConsumer = new EventConsumer(eventServiceInvoker);
+    eventConsumer = new EventConsumer(workers, eventServiceInvoker);
   }
 
   @Test

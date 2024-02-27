@@ -5,7 +5,6 @@ import app.bpartners.api.model.exception.ForbiddenException;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.model.exception.TooManyRequestsException;
-import javax.persistence.OptimisticLockException;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.exception.LockAcquisitionException;
 import org.springframework.dao.CannotAcquireLockException;
@@ -73,7 +72,7 @@ public class InternalToRestExceptionHandler {
       value = {
         LockAcquisitionException.class,
         CannotAcquireLockException.class,
-        OptimisticLockException.class
+        // TODO: handle OptimisticLockException class
       })
   ResponseEntity<app.bpartners.api.endpoint.rest.model.Exception> handleLockAcquisitionException(
       Exception e) {

@@ -15,7 +15,7 @@ import app.bpartners.api.repository.InvoiceRepository;
 import app.bpartners.api.repository.InvoiceSummaryRepository;
 import java.util.List;
 import java.util.stream.Stream;
-import javax.transaction.Transactional;
+import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 

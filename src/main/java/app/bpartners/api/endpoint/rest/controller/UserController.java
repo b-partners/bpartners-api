@@ -12,7 +12,7 @@ import app.bpartners.api.model.exception.ForbiddenException;
 import app.bpartners.api.service.AccountRefreshService;
 import app.bpartners.api.service.UserService;
 import java.util.List;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;

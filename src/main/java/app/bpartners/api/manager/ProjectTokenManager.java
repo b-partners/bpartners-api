@@ -3,7 +3,7 @@ package app.bpartners.api.manager;
 import app.bpartners.api.endpoint.event.SsmComponent;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.EnableAsync;

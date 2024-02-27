@@ -6,15 +6,15 @@ import app.bpartners.api.repository.jpa.types.PostgresEnumType;
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.List;
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -22,12 +22,12 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-import org.hibernate.annotations.Type;
-import org.hibernate.annotations.TypeDef;
+import org.hibernate.annotations.JdbcTypeCode;
+
+import static org.hibernate.type.SqlTypes.NAMED_ENUM;
 
 @Entity
 @Table(name = "\"prospect_evaluation_job\"")
-@TypeDef(name = "pgsql_enum", typeClass = PostgresEnumType.class)
 @Getter
 @Setter
 @NoArgsConstructor
@@ -44,11 +44,11 @@ public class HProspectEvaluationJob implements Serializable {
   @JoinColumn(name = "id_job")
   private List<HProspect> results;
 
-  @Type(type = "pgsql_enum")
+  @JdbcTypeCode(NAMED_ENUM)
   @Enumerated(EnumType.STRING)
   private JobStatusValue jobStatus;
 
-  @Type(type = "pgsql_enum")
+  @JdbcTypeCode(NAMED_ENUM)
   @Enumerated(EnumType.STRING)
   @Column(name = "\"type\"")
   private ProspectEvaluationJobType type;

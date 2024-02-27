@@ -25,7 +25,7 @@ import app.bpartners.api.service.AnnualRevenueTargetService;
 import app.bpartners.api.service.BusinessActivityService;
 import java.time.LocalDate;
 import java.util.Optional;
-import javax.persistence.EntityManager;
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

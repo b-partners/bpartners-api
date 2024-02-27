@@ -27,7 +27,7 @@ public class MailboxEventHandler implements RequestHandler<SQSEvent, String> {
     EventConsumer.SqsMessageAckTyper messageConverter =
         applicationContext.getBean(EventConsumer.SqsMessageAckTyper.class);
 
-    eventConsumer.accept(messageConverter.toAcknowledgeableEvent(messages));
+    eventConsumer.accept(messageConverter.toAcknowledgeableEvents(messages));
 
     applicationContext.close();
     return "ok";

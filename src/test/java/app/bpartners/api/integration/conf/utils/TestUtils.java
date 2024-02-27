@@ -100,7 +100,6 @@ import javax.net.ssl.SSLSession;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.function.Executable;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.util.SocketUtils;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
@@ -950,11 +949,11 @@ public class TestUtils {
     ApiException apiException = assertThrows(ApiException.class, executable);
     String responseBody = apiException.getResponseBody();
     assertEquals(
-        "{" + "\"type\":\"403 FORBIDDEN\"," + "\"message\":\"Access is denied\"}", responseBody);
+        "{" + "\"type\":\"403 FORBIDDEN\"," + "\"message\":\"Access Denied\"}", responseBody);
   }
 
   public static int findAvailableTcpPort() {
-    return SocketUtils.findAvailableTcpPort();
+    return 0;
   }
 
   public static ApiException getApiException(String operationId, HttpResponse<byte[]> response) {

@@ -1,6 +1,6 @@
 package app.bpartners.api.repository.jpa;
 
-import static javax.persistence.LockModeType.PESSIMISTIC_WRITE;
+import static jakarta.persistence.LockModeType.PESSIMISTIC_WRITE;
 
 import app.bpartners.api.repository.jpa.model.HUser;
 import java.util.Optional;

@@ -7,8 +7,8 @@ import static java.util.stream.Collectors.joining;
 
 import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.endpoint.rest.security.model.Principal;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
@@ -47,7 +47,7 @@ public class RequestLoggerConfigurer implements WebMvcConfigurer {
 
     @Override
     public boolean preHandle(
-        HttpServletRequest request, HttpServletResponse response, Object handler) {
+            HttpServletRequest request, HttpServletResponse response, Object handler) {
       request.setAttribute(REQUEST_START_TIME, currentTimeMillis());
 
       Thread current = currentThread();

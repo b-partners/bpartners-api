@@ -1,8 +1,12 @@
 app_name: bpartners
-cli_version: 10.8.0
+aurora_max_capacity: null
+aurora_min_capacity: null
+cli_version: 11.7.1
 custom_java_deps: poja-custom-java-deps.txt
 custom_java_env_vars: poja-custom-java-env-vars.txt
 custom_java_repositories: poja-custom-java-repositories.txt
+database_non_root_password: null
+database_non_root_username: null
 frontal_memory: 512
 jacoco_min_coverage: '0.4'
 java_facade_it: app.bpartners.api.integration.conf.MockedThirdParties
@@ -14,6 +18,7 @@ ssm_subnet1_id: /bpartners/private/subnet1/id
 ssm_subnet2_id: /bpartners/private/subnet2/id
 ts_client_api_url_env_var_name: REACT_APP_BPARTNERS_API_URL
 ts_client_default_openapi_server_url: api.prod.bpartners.app
+with_codeql: 'false'
 with_database: non-poja-managed-postgres
 with_gen_clients: 'true'
 with_own_vpc: 'true'

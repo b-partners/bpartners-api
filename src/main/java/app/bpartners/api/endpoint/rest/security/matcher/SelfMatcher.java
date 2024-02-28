@@ -1,10 +1,9 @@
 package app.bpartners.api.endpoint.rest.security.matcher;
 
 import app.bpartners.api.endpoint.rest.security.AuthenticatedResourceProvider;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.web.util.matcher.RequestMatcher;

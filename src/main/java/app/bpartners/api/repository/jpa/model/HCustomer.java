@@ -1,9 +1,9 @@
 package app.bpartners.api.repository.jpa.model;
 
+import static org.hibernate.type.SqlTypes.NAMED_ENUM;
+
 import app.bpartners.api.endpoint.rest.model.CustomerStatus;
 import app.bpartners.api.endpoint.rest.model.CustomerType;
-import app.bpartners.api.repository.jpa.types.PostgresEnumType;
-import java.time.Instant;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -11,6 +11,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
+import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -18,8 +19,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.JdbcTypeCode;
-
-import static org.hibernate.type.SqlTypes.NAMED_ENUM;
 
 @Entity
 @Table(name = "\"customer\"")

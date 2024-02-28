@@ -1,14 +1,14 @@
 package app.bpartners.api.conf;
 
-import static app.bpartners.api.integration.conf.utils.TestUtils.findAvailableTcpPort;
-
+import app.bpartners.api.integration.conf.utils.TestUtils;
 import org.springframework.test.context.DynamicPropertyRegistry;
 
 public class EnvConf {
   void configureProperties(DynamicPropertyRegistry registry) {
-    registry.add("server.port", () -> findAvailableTcpPort());
+    registry.add("server.port", TestUtils::findAvailableTcpPort);
     registry.add("sns.platform.arn", () -> "dummy");
     registry.add("admin.email", () -> "dummy");
+    registry.add("sentry.dsn", () -> "dummy");
     registry.add("aws.bucket.name", () -> "bpartners");
     registry.add("aws.cognito.userPool.id", () -> "eu-west-3_vq2jlNjq7");
     registry.add("aws.cognito.userPool.domain", () -> "dummy");

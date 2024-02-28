@@ -1,9 +1,8 @@
 package app.bpartners.api.endpoint.rest.security.matcher;
 
 import app.bpartners.api.endpoint.rest.security.AuthenticatedResourceProvider;
-import java.util.Objects;
-
 import jakarta.servlet.http.HttpServletRequest;
+import java.util.Objects;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 

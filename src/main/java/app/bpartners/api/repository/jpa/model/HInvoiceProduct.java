@@ -4,7 +4,6 @@ import static jakarta.persistence.GenerationType.IDENTITY;
 import static org.hibernate.type.SqlTypes.NAMED_ENUM;
 
 import app.bpartners.api.endpoint.rest.model.ProductStatus;
-import java.io.Serializable;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -12,6 +11,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import java.io.Serializable;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;

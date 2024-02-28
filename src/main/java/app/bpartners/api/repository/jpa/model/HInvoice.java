@@ -1,15 +1,11 @@
 package app.bpartners.api.repository.jpa.model;
 
+import static org.hibernate.type.SqlTypes.NAMED_ENUM;
+
 import app.bpartners.api.endpoint.rest.model.ArchiveStatus;
 import app.bpartners.api.endpoint.rest.model.Invoice.PaymentTypeEnum;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.endpoint.rest.model.PaymentMethod;
-import app.bpartners.api.repository.jpa.types.PostgresEnumType;
-import java.io.Serializable;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -21,6 +17,11 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import java.io.Serializable;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -30,8 +31,6 @@ import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.JdbcTypeCode;
-
-import static org.hibernate.type.SqlTypes.NAMED_ENUM;
 
 @Entity
 @Table(name = "\"invoice\"")

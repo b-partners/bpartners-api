@@ -4,7 +4,6 @@ import static jakarta.persistence.GenerationType.IDENTITY;
 import static org.hibernate.type.SqlTypes.NAMED_ENUM;
 
 import app.bpartners.api.endpoint.rest.model.TransactionTypeEnum;
-import app.bpartners.api.repository.jpa.types.PostgresEnumType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;

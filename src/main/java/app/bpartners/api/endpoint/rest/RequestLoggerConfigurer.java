@@ -47,7 +47,7 @@ public class RequestLoggerConfigurer implements WebMvcConfigurer {
 
     @Override
     public boolean preHandle(
-            HttpServletRequest request, HttpServletResponse response, Object handler) {
+        HttpServletRequest request, HttpServletResponse response, Object handler) {
       request.setAttribute(REQUEST_START_TIME, currentTimeMillis());
 
       Thread current = currentThread();

@@ -2,18 +2,12 @@ package app.bpartners.api.repository.jpa.model;
 
 import static io.hypersistence.utils.hibernate.type.array.internal.AbstractArrayType.SQL_ARRAY_TYPE;
 import static jakarta.persistence.GenerationType.IDENTITY;
-import static org.hibernate.type.SqlTypes.ARRAY;
 import static org.hibernate.type.SqlTypes.NAMED_ENUM;
 
 import app.bpartners.api.endpoint.rest.model.EnableStatus;
 import app.bpartners.api.endpoint.rest.model.IdentificationStatus;
 import app.bpartners.api.endpoint.rest.security.model.Role;
 import app.bpartners.api.model.BankConnection;
-import java.io.Serializable;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.List;
-
 import io.hypersistence.utils.hibernate.type.array.EnumArrayType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -24,6 +18,10 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import java.io.Serializable;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.List;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -98,7 +96,9 @@ public class HUser implements Serializable {
   @Column(name = "old_s3_id_account")
   private String oldS3AccountKey;
 
- @Type(value = EnumArrayType.class, parameters = @Parameter(name = SQL_ARRAY_TYPE, value = "user_role"))
+  @Type(
+      value = EnumArrayType.class,
+      parameters = @Parameter(name = SQL_ARRAY_TYPE, value = "user_role"))
   @Column(name = "roles", columnDefinition = "user_role[]")
   private Role[] roles;
 

@@ -13,9 +13,9 @@ import app.bpartners.api.model.InvoiceSummary;
 import app.bpartners.api.model.Money;
 import app.bpartners.api.repository.InvoiceRepository;
 import app.bpartners.api.repository.InvoiceSummaryRepository;
+import jakarta.transaction.Transactional;
 import java.util.List;
 import java.util.stream.Stream;
-import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 

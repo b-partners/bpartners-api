@@ -56,22 +56,23 @@ public class SecurityConf {
   public SecurityFilterChain configure(HttpSecurity http) throws Exception {
     // @formatter:off
     http.exceptionHandling(
-                    (exceptionHandler) ->
-                            exceptionHandler
-                                    .authenticationEntryPoint(
-                                            // note(spring-exception)
-                                            // https://stackoverflow.com/questions/59417122/how-to-handle-usernamenotfoundexception-spring-security
-                                            // issues like when a user tries to access a resource
-                                            // without appropriate authentication elements
-                                            (req, res, e) ->
-                                                    exceptionResolver.resolveException(req, res, null, forbiddenWithRemoteInfo(e, req)))
-                                    .accessDeniedHandler(
-                                            // note(spring-exception): issues like when a user not having required roles
-                                            (req, res, e) ->
-                                                    exceptionResolver.resolveException(req, res, null, forbiddenWithRemoteInfo(e, req)))
-            )
-            .sessionManagement(
-                    session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            (exceptionHandler) ->
+                exceptionHandler
+                    .authenticationEntryPoint(
+                        // note(spring-exception)
+                        // https://stackoverflow.com/questions/59417122/how-to-handle-usernamenotfoundexception-spring-security
+                        // issues like when a user tries to access a resource
+                        // without appropriate authentication elements
+                        (req, res, e) ->
+                            exceptionResolver.resolveException(
+                                req, res, null, forbiddenWithRemoteInfo(e, req)))
+                    .accessDeniedHandler(
+                        // note(spring-exception): issues like when a user not having required roles
+                        (req, res, e) ->
+                            exceptionResolver.resolveException(
+                                req, res, null, forbiddenWithRemoteInfo(e, req))))
+        .sessionManagement(
+            session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         // authenticate
         .authenticationProvider(authProvider)
         .addFilterBefore(
@@ -98,312 +99,382 @@ public class SecurityConf {
             AnonymousAuthenticationFilter.class)
         // authorize
         .authorizeHttpRequests(
-                (authorize) ->
-                        authorize
-                                .requestMatchers("/ping")
-                                .permitAll()
-                                .requestMatchers("/authInitiation")
-                                .permitAll()
-                                .requestMatchers("/token")
-                                .permitAll()
-                                .requestMatchers(GET, "/whoami")
-                                .permitAll()
-                                .requestMatchers("/onboarding")
-                                .permitAll()
-                                .requestMatchers(GET, "/users/*")
-                                .permitAll()
-                                .requestMatchers("/onboardingInitiation")
-                                .permitAll()
-                                .requestMatchers(POST, "/preUsers")
-                                .permitAll()
-                                // Authentication check done in controller for legalFiles
-                                .requestMatchers(GET, "/users/*/legalFiles")
-                                .permitAll()
-                                .requestMatchers(PUT, "/users/*/legalFiles/*")
-                                .permitAll()
-                                .requestMatchers(OPTIONS, "/**")
-                                .permitAll()
-                                .requestMatchers(GET, "/whois/*")
-                                .permitAll()
-                                .requestMatchers(POST, "/webhooks/paymentStatus")
-                                .permitAll()
-                                .requestMatchers(GET, "/health/db")
-                                .permitAll()
-                                .requestMatchers(GET, "/health/bucket")
-                                .permitAll()
-                                .requestMatchers(GET, "/health/event")
-                                .permitAll()
-                                .requestMatchers(GET, "/health/email")
-                                .permitAll()
-                                .requestMatchers(GET, "/accountHolders")
-                                .hasAnyRole(EVAL_PROSPECT.getRole())
-                                .requestMatchers(POST, "/invoicesRefresh")
-                                .hasAnyRole(EVAL_PROSPECT.getRole())
-                                .requestMatchers(new SelfAccountMatcher(GET, "/accounts/*/customers", authResourceProvider))
-                                .authenticated()
-                                .requestMatchers(POST, "/invoicesRefresh")
-                                .hasAnyRole(EVAL_PROSPECT.getRole())
-                                .requestMatchers(POST, "/users/accounts/refresh")
-                                .hasAnyRole(EVAL_PROSPECT.getRole())
-                                .requestMatchers(
-                                        new SelfAccountMatcher(GET, "/accounts/*/customers/export", authResourceProvider))
-                                .authenticated()
-                                .requestMatchers(
-                                        new SelfAccountMatcher(POST, "/accounts/*/customers", authResourceProvider))
-                                .authenticated()
-                                .requestMatchers(new SelfAccountMatcher(PUT, "/accounts/*/customers", authResourceProvider))
-                                .authenticated()
-                                .requestMatchers(
-                                        new SelfAccountMatcher(GET, "/accounts/*/customers/*", authResourceProvider))
-                                .authenticated()
-                                .requestMatchers(
-                                        new SelfAccountMatcher(POST, "/accounts/*/customers/upload", authResourceProvider))
-                                .authenticated()
-                                .requestMatchers(
-                                        new SelfAccountMatcher(PUT, "/accounts/{id}/customers/status", authResourceProvider))
-                                .authenticated()
-                                .requestMatchers(
-                                        new SelfAccountMatcher(GET, "/accounts/*/transactions", authResourceProvider))
-                                .authenticated()
-                                .requestMatchers(
-                                        new SelfAccountMatcher(GET, "/accounts/*/transactions/*", authResourceProvider))
-                                .authenticated()
-                                .requestMatchers(
-                                        new SelfAccountMatcher(
-                                                POST, "/accounts/*/transactions/exportLink", authResourceProvider))
-                                .authenticated()
-                                .requestMatchers(
-                                        new SelfAccountMatcher(
-                                                PUT, "/accounts/*/transactions/*/invoices/*", authResourceProvider))
-                                .authenticated()
-                                .requestMatchers(
-                                        new SelfAccountMatcher(GET, "/accounts/*/transactions/*", authResourceProvider))
-                                .authenticated()
-                                .requestMatchers(
-                                        new SelfAccountMatcher(
-                                                POST, "/accounts/*/transactions/exportLink", authResourceProvider))
-                                .authenticated()
-                                .requestMatchers(
-                                        new SelfAccountMatcher(
-                                                PUT, "/accounts/*/transactions/*/invoices/*", authResourceProvider))
-                                .authenticated()
-                                .requestMatchers(
-                                        new SelfAccountMatcher(
-                                                GET, "/accounts/*/transactions/*/supportingDocuments", authResourceProvider))
-                                .authenticated()
-                                .requestMatchers(
-                                        new SelfAccountMatcher(
-                                                POST, "/accounts/*/transactions/*/supportingDocuments", authResourceProvider))
-                                .authenticated()
-                                .requestMatchers(
-                                        new SelfAccountMatcher(
-                                                DELETE, "/accounts/*/transactions/*/supportingDocuments", authResourceProvider))
-                                .authenticated()
-                                .requestMatchers(new SelfUserMatcher(GET, "/users/*/accounts", authResourceProvider))
-                                .authenticated()
-                                .requestMatchers(
-                                        new SelfUserMatcher(POST, "/users/*/deviceRegistration", authResourceProvider))
-                                .authenticated()
-                                .requestMatchers(
-                                        new SelfUserAccountMatcher(
-                                                GET, "/users/*/accounts/*/accountHolders", authResourceProvider))
-                                .authenticated()
-                                .requestMatchers(
-                                        new SelfAccountHolderMatcher(
-                                                GET, "/accountHolders/*/prospects/evaluationJobs/*", authResourceProvider))
-                                .authenticated()
-                                .requestMatchers(
-                                        new SelfUserAccountMatcher(
-                                                POST, "/users/*/accounts/*/initiateAccountValidation", authResourceProvider))
-                                .authenticated()
-                                .requestMatchers(
-                                        new SelfUserAccountMatcher(PUT, "/users/*/accounts/*/identity", authResourceProvider))
-                                .authenticated()
-                                .requestMatchers(
-                                        new SelfUserAccountMatcher(POST, "/users/*/accounts/*/active", authResourceProvider))
-                                .authenticated()
-                                .requestMatchers(
-                                        new SelfUserAccountMatcher(
-                                                POST, "/users/*/accounts/*/initiateBankConnection", authResourceProvider))
-                                .authenticated()
-                                .requestMatchers(
-                                        new SelfUserMatcher(POST, "/users/*/initiateBankConnection", authResourceProvider))
-                                .authenticated()
-                                .requestMatchers(new SelfUserMatcher(POST, "/users/*/disconnectBank", authResourceProvider))
-                                .authenticated()
-                                .requestMatchers(
-                                        new SelfAccountMatcher(GET, "/accounts/*/invoices/*", authResourceProvider))
-                                .authenticated()
-                                .requestMatchers(
-                                        new SelfAccountMatcher(PUT, "/accounts/*/invoices/*", authResourceProvider))
-                                .authenticated()
-                                .requestMatchers(
-                                        new SelfAccountMatcher(PUT, "/accounts/*/invoices/archive", authResourceProvider))
-                                .authenticated()
-                                .requestMatchers(new SelfAccountMatcher(GET, "/accounts/*/products", authResourceProvider))
-                                .authenticated()
-                                .requestMatchers(
-                                        new SelfAccountMatcher(GET, "/accounts/*/products/export", authResourceProvider))
-                                .authenticated()
-                                .requestMatchers(
-                                        new SelfAccountMatcher(GET, "/accounts/*/products/*", authResourceProvider))
-                                .authenticated()
-                                .requestMatchers(new SelfAccountMatcher(PUT, "/accounts/*/products", authResourceProvider))
-                                .authenticated()
-                                .requestMatchers(new SelfAccountMatcher(POST, "/accounts/*/products", authResourceProvider))
-                                .authenticated()
-                                .requestMatchers(
-                                        new SelfAccountMatcher(POST, "/accounts/*/products/upload", authResourceProvider))
-                                .authenticated()
-                                .requestMatchers(
-                                        new SelfAccountMatcher(PUT, "/accounts/{aId}/products/status", authResourceProvider))
-                                .authenticated()
-                                .requestMatchers(new SelfAccountMatcher(GET, "/accounts/*/invoices", authResourceProvider))
-                                .authenticated()
-                                .requestMatchers(
-                                        new SelfAccountMatcher(POST, "/accounts/*/paymentInitiations", authResourceProvider))
-                                .authenticated()
-                                .requestMatchers(
-                                        new SelfAccountMatcher(GET, "/accounts/*/transactionCategories", authResourceProvider))
-                                .authenticated()
-                                .requestMatchers(
-                                        new SelfAccountMatcher(
-                                                POST, "/accounts/*/transactions/*/transactionCategories", authResourceProvider))
-                                .authenticated()
-                                .requestMatchers(GET, "/users")
-                                .authenticated()
-                                .requestMatchers(new SelfAccountMatcher(GET, "/accounts/*/files/*", authResourceProvider))
-                                .authenticated()
-                                .requestMatchers(
-                                        new SelfAccountMatcher(POST, "/accounts/*/files/*/raw", authResourceProvider))
-                                .authenticated()
-                                .requestMatchers(
-                                        new SelfAccountMatcher(POST, "/accounts/*/files/*/multipart", authResourceProvider))
-                                .authenticated()
-                                .requestMatchers(
-                                        new SelfAccountMatcher(GET, "/accounts/*/files/*/raw", authResourceProvider))
-                                .authenticated()
-                                .requestMatchers(
-                                        new SelfAccountMatcher(GET, "/accounts/*/marketplaces", authResourceProvider))
-                                .authenticated()
-                                .requestMatchers(
-                                        new SelfAccountMatcher(GET, "/accounts/*/transactionsSummary", authResourceProvider))
-                                .authenticated()
-                                .requestMatchers(
-                                        new SelfAccountMatcher(GET, "/accounts/*/invoicesSummary", authResourceProvider))
-                                .authenticated()
-                                .requestMatchers(
-                                        new SelfAccountMatcher(GET, "/accounts/*/invoiceRelaunchConf", authResourceProvider))
-                                .authenticated()
-                                .requestMatchers(
-                                        new SelfAccountMatcher(PUT, "/accounts/*/invoiceRelaunchConf", authResourceProvider))
-                                .authenticated()
-                                .requestMatchers(
-                                        new SelfAccountMatcher(GET, "/accounts/*/invoices/*/relaunches", authResourceProvider))
-                                .authenticated()
-                                .requestMatchers(
-                                        new SelfAccountMatcher(POST, "/accounts/*/invoices/*/relaunch", authResourceProvider))
-                                .authenticated()
-                                .requestMatchers(
-                                        new SelfAccountMatcher(POST, "/accounts/*/invoices/relaunches", authResourceProvider))
-                                .hasAnyRole(INVOICE_RELAUNCHER.getRole())
-                                .requestMatchers(
-                                        new SelfAccountMatcher(
-                                                GET, "/accounts/*/invoices/*/relaunchConf", authResourceProvider))
-                                .authenticated()
-                                .requestMatchers(
-                                        new SelfAccountMatcher(
-                                                PUT, "/accounts/*/invoices/*/relaunchConf", authResourceProvider))
-                                .authenticated()
-                                .requestMatchers(
-                                        new SelfAccountMatcher(
-                                                POST, "/accounts/*/invoices/*/duplication", authResourceProvider))
-                                .authenticated()
-                                .requestMatchers(GET, "/businessActivities")
-                                .authenticated()
-                                // TODO: set SelfUserAccountHolderMatcher
-                                .requestMatchers(PUT, "/users/*/accounts/*/accountHolders/*/businessActivities")
-                                .authenticated()
-                                .requestMatchers(PUT, "/users/*/accounts/*/accountHolders/*/revenueTargets")
-                                .authenticated()
-                                .requestMatchers(PUT, "/users/*/accounts/*/accountHolders/*/companyInfo")
-                                .authenticated()
-                                .requestMatchers(PUT, "/users/*/accounts/*/accountHolders/*/globalInfo")
-                                .authenticated()
-                                .requestMatchers(PUT, "/users/*/accountHolders/*/feedback/*")
-                                .authenticated()
-                                .requestMatchers(POST, "/users/*/accountHolders/*/feedback")
-                                .authenticated()
-                                .requestMatchers(
-                                        new SelfAccountMatcher(GET, "/accounts/*/paymentRequests", authResourceProvider))
-                                .authenticated()
-                                .requestMatchers(
-                                        new SelfAccountHolderMatcher(GET, "/accountHolders/*/prospects", authResourceProvider))
-                                .authenticated()
-                                .requestMatchers(
-                                        new SelfAccountHolderMatcher(
-                                                GET, "/accountHolders/*/prospects/evaluationJobs", authResourceProvider))
-                                .authenticated()
-                                .requestMatchers(
-                                        new SelfAccountHolderMatcher(
-                                                PUT, "/accountHolders/*/prospects/evaluationJobs", authResourceProvider))
-                                .authenticated()
-                                .requestMatchers(
-                                        new SelfAccountHolderMatcher(
-                                                PUT, "/accountHolders/*/prospects/*/prospectConversion", authResourceProvider))
-                                .authenticated()
-                                .requestMatchers(
-                                        new SelfAccountHolderMatcher(PUT, "/accountHolders/*/prospects", authResourceProvider))
-                                .authenticated()
-                                .requestMatchers(
-                                        new SelfAccountHolderMatcher(
-                                                POST, "/accountHolders/*/prospects/prospectsEvaluation", authResourceProvider))
-                                .hasAnyRole(EVAL_PROSPECT.getRole())
-                                .requestMatchers(
-                                        new SelfAccountHolderMatcher(
-                                                POST, "/accountHolders/*/prospects/evaluations", authResourceProvider))
-                                .hasAnyRole(EVAL_PROSPECT.getRole())
-                                .requestMatchers(
-                                        new SelfAccountHolderMatcher(
-                                                POST, "/accountHolders/*/prospects/import", authResourceProvider))
-                                .hasAnyRole(EVAL_PROSPECT.getRole())
-                                .requestMatchers(
-                                        new SelfAccountHolderMatcher(
-                                                PUT, "/accountHolders/*/prospects/*", authResourceProvider))
-                                .authenticated()
-                                .requestMatchers(
-                                        new SelfUserMatcher(GET, "/users/*/calendars/*/events", authResourceProvider))
-                                .authenticated()
-                                .requestMatchers(
-                                        new SelfUserMatcher(PUT, "/users/*/calendars/*/events", authResourceProvider))
-                                .authenticated()
-                                .requestMatchers(
-                                        new SelfUserMatcher(POST, "/users/*/calendars/oauth2/consent", authResourceProvider))
-                                .authenticated()
-                                .requestMatchers(new SelfUserMatcher(GET, "/users/*/calendars", authResourceProvider))
-                                .authenticated()
-                                .requestMatchers(
-                                        new SelfUserMatcher(POST, "/users/*/calendars/oauth2/auth", authResourceProvider))
-                                .authenticated()
-                                .requestMatchers(
-                                        new SelfUserMatcher(POST, "/users/*/sheets/oauth2/consent", authResourceProvider))
-                                .authenticated()
-                                .requestMatchers(
-                                        new SelfUserMatcher(POST, "/users/*/sheets/oauth2/auth", authResourceProvider))
-                                .authenticated()
-                                .requestMatchers(
-                                        new SelfAccountMatcher(
-                                                PUT,
-                                                "/accounts/*/invoices/{iId}/paymentRegulations/*/paymentMethod",
-                                                authResourceProvider))
-                                .authenticated()
-                                .requestMatchers(new SelfUserMatcher(PUT, "/users/*/emails", authResourceProvider))
-                                .authenticated()
-                                .requestMatchers(new SelfUserMatcher(GET, "/users/*/emails", authResourceProvider))
-                                .authenticated()
-                                .requestMatchers("/**")
-                                .denyAll()
-        )
+            (authorize) ->
+                authorize
+                    .requestMatchers("/ping")
+                    .permitAll()
+                    .requestMatchers("/authInitiation")
+                    .permitAll()
+                    .requestMatchers("/token")
+                    .permitAll()
+                    .requestMatchers(GET, "/whoami")
+                    .permitAll()
+                    .requestMatchers("/onboarding")
+                    .permitAll()
+                    .requestMatchers(GET, "/users/*")
+                    .permitAll()
+                    .requestMatchers("/onboardingInitiation")
+                    .permitAll()
+                    .requestMatchers(POST, "/preUsers")
+                    .permitAll()
+                    // Authentication check done in controller for legalFiles
+                    .requestMatchers(GET, "/users/*/legalFiles")
+                    .permitAll()
+                    .requestMatchers(PUT, "/users/*/legalFiles/*")
+                    .permitAll()
+                    .requestMatchers(OPTIONS, "/**")
+                    .permitAll()
+                    .requestMatchers(GET, "/whois/*")
+                    .permitAll()
+                    .requestMatchers(POST, "/webhooks/paymentStatus")
+                    .permitAll()
+                    .requestMatchers(GET, "/health/db")
+                    .permitAll()
+                    .requestMatchers(GET, "/health/bucket")
+                    .permitAll()
+                    .requestMatchers(GET, "/health/event")
+                    .permitAll()
+                    .requestMatchers(GET, "/health/email")
+                    .permitAll()
+                    .requestMatchers(GET, "/accountHolders")
+                    .hasAnyRole(EVAL_PROSPECT.getRole())
+                    .requestMatchers(POST, "/invoicesRefresh")
+                    .hasAnyRole(EVAL_PROSPECT.getRole())
+                    .requestMatchers(
+                        new SelfAccountMatcher(GET, "/accounts/*/customers", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(POST, "/invoicesRefresh")
+                    .hasAnyRole(EVAL_PROSPECT.getRole())
+                    .requestMatchers(POST, "/users/accounts/refresh")
+                    .hasAnyRole(EVAL_PROSPECT.getRole())
+                    .requestMatchers(
+                        new SelfAccountMatcher(
+                            GET, "/accounts/*/customers/export", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfAccountMatcher(POST, "/accounts/*/customers", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfAccountMatcher(PUT, "/accounts/*/customers", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfAccountMatcher(
+                            GET, "/accounts/*/customers/*", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfAccountMatcher(
+                            POST, "/accounts/*/customers/upload", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfAccountMatcher(
+                            PUT, "/accounts/{id}/customers/status", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfAccountMatcher(
+                            GET, "/accounts/*/transactions", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfAccountMatcher(
+                            GET, "/accounts/*/transactions/*", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfAccountMatcher(
+                            POST, "/accounts/*/transactions/exportLink", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfAccountMatcher(
+                            PUT, "/accounts/*/transactions/*/invoices/*", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfAccountMatcher(
+                            GET, "/accounts/*/transactions/*", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfAccountMatcher(
+                            POST, "/accounts/*/transactions/exportLink", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfAccountMatcher(
+                            PUT, "/accounts/*/transactions/*/invoices/*", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfAccountMatcher(
+                            GET,
+                            "/accounts/*/transactions/*/supportingDocuments",
+                            authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfAccountMatcher(
+                            POST,
+                            "/accounts/*/transactions/*/supportingDocuments",
+                            authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfAccountMatcher(
+                            DELETE,
+                            "/accounts/*/transactions/*/supportingDocuments",
+                            authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfUserMatcher(GET, "/users/*/accounts", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfUserMatcher(
+                            POST, "/users/*/deviceRegistration", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfUserAccountMatcher(
+                            GET, "/users/*/accounts/*/accountHolders", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfAccountHolderMatcher(
+                            GET,
+                            "/accountHolders/*/prospects/evaluationJobs/*",
+                            authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfUserAccountMatcher(
+                            POST,
+                            "/users/*/accounts/*/initiateAccountValidation",
+                            authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfUserAccountMatcher(
+                            PUT, "/users/*/accounts/*/identity", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfUserAccountMatcher(
+                            POST, "/users/*/accounts/*/active", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfUserAccountMatcher(
+                            POST,
+                            "/users/*/accounts/*/initiateBankConnection",
+                            authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfUserMatcher(
+                            POST, "/users/*/initiateBankConnection", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfUserMatcher(POST, "/users/*/disconnectBank", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfAccountMatcher(GET, "/accounts/*/invoices/*", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfAccountMatcher(PUT, "/accounts/*/invoices/*", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfAccountMatcher(
+                            PUT, "/accounts/*/invoices/archive", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfAccountMatcher(GET, "/accounts/*/products", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfAccountMatcher(
+                            GET, "/accounts/*/products/export", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfAccountMatcher(GET, "/accounts/*/products/*", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfAccountMatcher(PUT, "/accounts/*/products", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfAccountMatcher(POST, "/accounts/*/products", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfAccountMatcher(
+                            POST, "/accounts/*/products/upload", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfAccountMatcher(
+                            PUT, "/accounts/{aId}/products/status", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfAccountMatcher(GET, "/accounts/*/invoices", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfAccountMatcher(
+                            POST, "/accounts/*/paymentInitiations", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfAccountMatcher(
+                            GET, "/accounts/*/transactionCategories", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfAccountMatcher(
+                            POST,
+                            "/accounts/*/transactions/*/transactionCategories",
+                            authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(GET, "/users")
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfAccountMatcher(GET, "/accounts/*/files/*", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfAccountMatcher(
+                            POST, "/accounts/*/files/*/raw", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfAccountMatcher(
+                            POST, "/accounts/*/files/*/multipart", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfAccountMatcher(
+                            GET, "/accounts/*/files/*/raw", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfAccountMatcher(
+                            GET, "/accounts/*/marketplaces", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfAccountMatcher(
+                            GET, "/accounts/*/transactionsSummary", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfAccountMatcher(
+                            GET, "/accounts/*/invoicesSummary", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfAccountMatcher(
+                            GET, "/accounts/*/invoiceRelaunchConf", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfAccountMatcher(
+                            PUT, "/accounts/*/invoiceRelaunchConf", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfAccountMatcher(
+                            GET, "/accounts/*/invoices/*/relaunches", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfAccountMatcher(
+                            POST, "/accounts/*/invoices/*/relaunch", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfAccountMatcher(
+                            POST, "/accounts/*/invoices/relaunches", authResourceProvider))
+                    .hasAnyRole(INVOICE_RELAUNCHER.getRole())
+                    .requestMatchers(
+                        new SelfAccountMatcher(
+                            GET, "/accounts/*/invoices/*/relaunchConf", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfAccountMatcher(
+                            PUT, "/accounts/*/invoices/*/relaunchConf", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfAccountMatcher(
+                            POST, "/accounts/*/invoices/*/duplication", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(GET, "/businessActivities")
+                    .authenticated()
+                    // TODO: set SelfUserAccountHolderMatcher
+                    .requestMatchers(PUT, "/users/*/accounts/*/accountHolders/*/businessActivities")
+                    .authenticated()
+                    .requestMatchers(PUT, "/users/*/accounts/*/accountHolders/*/revenueTargets")
+                    .authenticated()
+                    .requestMatchers(PUT, "/users/*/accounts/*/accountHolders/*/companyInfo")
+                    .authenticated()
+                    .requestMatchers(PUT, "/users/*/accounts/*/accountHolders/*/globalInfo")
+                    .authenticated()
+                    .requestMatchers(PUT, "/users/*/accountHolders/*/feedback/*")
+                    .authenticated()
+                    .requestMatchers(POST, "/users/*/accountHolders/*/feedback")
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfAccountMatcher(
+                            GET, "/accounts/*/paymentRequests", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfAccountHolderMatcher(
+                            GET, "/accountHolders/*/prospects", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfAccountHolderMatcher(
+                            GET,
+                            "/accountHolders/*/prospects/evaluationJobs",
+                            authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfAccountHolderMatcher(
+                            PUT,
+                            "/accountHolders/*/prospects/evaluationJobs",
+                            authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfAccountHolderMatcher(
+                            PUT,
+                            "/accountHolders/*/prospects/*/prospectConversion",
+                            authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfAccountHolderMatcher(
+                            PUT, "/accountHolders/*/prospects", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfAccountHolderMatcher(
+                            POST,
+                            "/accountHolders/*/prospects/prospectsEvaluation",
+                            authResourceProvider))
+                    .hasAnyRole(EVAL_PROSPECT.getRole())
+                    .requestMatchers(
+                        new SelfAccountHolderMatcher(
+                            POST, "/accountHolders/*/prospects/evaluations", authResourceProvider))
+                    .hasAnyRole(EVAL_PROSPECT.getRole())
+                    .requestMatchers(
+                        new SelfAccountHolderMatcher(
+                            POST, "/accountHolders/*/prospects/import", authResourceProvider))
+                    .hasAnyRole(EVAL_PROSPECT.getRole())
+                    .requestMatchers(
+                        new SelfAccountHolderMatcher(
+                            PUT, "/accountHolders/*/prospects/*", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfUserMatcher(
+                            GET, "/users/*/calendars/*/events", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfUserMatcher(
+                            PUT, "/users/*/calendars/*/events", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfUserMatcher(
+                            POST, "/users/*/calendars/oauth2/consent", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfUserMatcher(GET, "/users/*/calendars", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfUserMatcher(
+                            POST, "/users/*/calendars/oauth2/auth", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfUserMatcher(
+                            POST, "/users/*/sheets/oauth2/consent", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfUserMatcher(
+                            POST, "/users/*/sheets/oauth2/auth", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfAccountMatcher(
+                            PUT,
+                            "/accounts/*/invoices/{iId}/paymentRegulations/*/paymentMethod",
+                            authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfUserMatcher(PUT, "/users/*/emails", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfUserMatcher(GET, "/users/*/emails", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers("/**")
+                    .denyAll())
 
         // disable superfluous protections
         // Eg if all clients are non-browser then no csrf

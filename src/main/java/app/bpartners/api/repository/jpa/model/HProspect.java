@@ -1,14 +1,14 @@
 package app.bpartners.api.repository.jpa.model;
 
+import static org.hibernate.type.SqlTypes.NAMED_ENUM;
+
 import app.bpartners.api.endpoint.rest.model.ContactNature;
 import app.bpartners.api.endpoint.rest.model.ProspectFeedback;
 import app.bpartners.api.endpoint.rest.model.ProspectStatus;
-import app.bpartners.api.repository.jpa.types.PostgresEnumType;
+import jakarta.persistence.*;
 import java.time.Instant;
 import java.util.Comparator;
 import java.util.List;
-
-import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -17,8 +17,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.annotations.JdbcTypeCode;
-
-import static org.hibernate.type.SqlTypes.NAMED_ENUM;
 
 @Entity
 @Table(name = "\"prospect\"")
@@ -30,8 +28,7 @@ import static org.hibernate.type.SqlTypes.NAMED_ENUM;
 @NoArgsConstructor
 @EqualsAndHashCode
 public class HProspect {
-  @Id
-  private String id;
+  @Id private String id;
   private String idAccountHolder;
   private String latestOldHolder;
 

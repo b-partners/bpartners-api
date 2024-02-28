@@ -375,8 +375,8 @@ class UserIT extends MockedThirdParties {
     HttpResponse<String> response1 = client.send(request1, HttpResponse.BodyHandlers.ofString());
     HttpResponse<String> response2 = client.send(request2, HttpResponse.BodyHandlers.ofString());
 
-    assertEquals("{\"type\":\"403 FORBIDDEN\",\"message\":\"Access is denied\"}", response1.body());
-    assertEquals("{\"type\":\"403 FORBIDDEN\",\"message\":\"Access is denied\"}", response2.body());
+    assertEquals("{\"type\":\"403 FORBIDDEN\",\"message\":\"Access Denied\"}", response1.body());
+    assertEquals("{\"type\":\"403 FORBIDDEN\",\"message\":\"Access Denied\"}", response2.body());
   }
 
   private List<OnboardedUser> convertBody(String responseBody) throws JsonProcessingException {

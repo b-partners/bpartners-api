@@ -1,9 +1,6 @@
 package app.bpartners.api.event;
 
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.timeout;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 import app.bpartners.api.concurrency.Workers;
 import app.bpartners.api.endpoint.event.EventConsumer;
@@ -58,6 +55,9 @@ class EventConsumerTest {
 
   @Test
   void email_sent_event_is_not_ack_if_eventServiceInvoker_failed() {
+    EventConsumer.AcknowledgeableTypedEvent acknowledgeableTypedEventMock =
+        mock(EventConsumer.AcknowledgeableTypedEvent.class);
+
     InvoiceRelaunchSaved emailSent =
         InvoiceRelaunchSaved.builder()
             .subject(null)
@@ -75,18 +75,6 @@ class EventConsumerTest {
             new EventConsumer.TypedEvent(
                 "app.bpartners.api.endpoint.event.gen.InvoiceRelaunchSaved", emailSent));
 
-    // TODO: refactor this test assertion
-    //    assertThrows(
-    //        RuntimeException.class,
-    //        () ->
-    //            eventConsumer.accept(
-    //                List.of(
-    //                    new EventConsumer.AcknowledgeableTypedEvent(
-    //                        new EventConsumer.TypedEvent(
-    //                            "app.bpartners.api.endpoint.event.gen.InvoiceRelaunchSaved",
-    // emailSent),
-    //                        acknowledger))));
-
     eventConsumer.accept(
         List.of(
             new EventConsumer.AcknowledgeableTypedEvent(
@@ -94,6 +82,7 @@ class EventConsumerTest {
                     "app.bpartners.api.endpoint.event.gen.InvoiceRelaunchSaved", emailSent),
                 acknowledger)));
 
+    verify(acknowledgeableTypedEventMock, never()).ack();
     verify(eventServiceInvoker, timeout(TIMEOUT.toMillis()))
         .accept(
             new EventConsumer.TypedEvent(

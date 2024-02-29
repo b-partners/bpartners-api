@@ -214,7 +214,7 @@ public class ProspectMapper {
         .townCode(entity.getTownCode())
         .rating(
             Prospect.ProspectRating.builder()
-                .value(entity.getRating())
+                .value(entity.getRating() == null ? -1 : entity.getRating())
                 .lastEvaluationDate(entity.getLastEvaluationDate())
                 .build())
         .comment(entity.getComment())
@@ -223,7 +223,8 @@ public class ProspectMapper {
         .idInvoice(entity.getIdInvoice())
         .contractAmount(
             entity.getContractAmount() == null ? null : parseFraction(entity.getContractAmount()))
-        .contactNature(entity.getContactNature())
+        .contactNature(
+            entity.getContactNature() == null ? ContactNature.PROSPECT : entity.getContactNature())
         .latestOldHolder(entity.getLatestOldHolder())
         .build();
   }

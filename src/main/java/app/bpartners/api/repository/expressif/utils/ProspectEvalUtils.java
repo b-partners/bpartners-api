@@ -1,8 +1,6 @@
 package app.bpartners.api.repository.expressif.utils;
 
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
-import static app.bpartners.api.repository.expressif.ProspectEvalInfo.ContactNature.OTHER;
-import static app.bpartners.api.repository.expressif.ProspectEvalInfo.ContactNature.PROSPECT;
 import static java.util.UUID.randomUUID;
 import static org.apache.poi.ss.usermodel.Cell.CELL_TYPE_BLANK;
 import static org.apache.poi.ss.usermodel.Cell.CELL_TYPE_ERROR;
@@ -14,6 +12,7 @@ import app.bpartners.api.endpoint.rest.model.OldCustomerResult;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.NotImplementedException;
+import app.bpartners.api.model.mapper.ProspectMapper;
 import app.bpartners.api.repository.ban.BanApi;
 import app.bpartners.api.repository.ban.model.GeoPosition;
 import app.bpartners.api.repository.expressif.ProspectEval;
@@ -520,8 +519,7 @@ public class ProspectEvalUtils {
           if (natureValue == null) {
             prospectEvalInfo.setContactNature(null);
           } else {
-            prospectEvalInfo.setContactNature(
-                natureValue.equals(PROSPECT_NATURE_VALUE) ? PROSPECT : OTHER);
+            prospectEvalInfo.setContactNature(ProspectMapper.getContactNature(natureValue));
           }
           break;
         default:

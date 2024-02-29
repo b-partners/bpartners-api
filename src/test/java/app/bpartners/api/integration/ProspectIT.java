@@ -21,6 +21,7 @@ import static org.mockito.Mockito.when;
 import app.bpartners.api.endpoint.rest.api.ProspectingApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
+import app.bpartners.api.endpoint.rest.model.ContactNature;
 import app.bpartners.api.endpoint.rest.model.ExtendedProspectStatus;
 import app.bpartners.api.endpoint.rest.model.Prospect;
 import app.bpartners.api.endpoint.rest.model.ProspectFeedback;
@@ -44,7 +45,12 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -104,6 +110,7 @@ class ProspectIT extends MockedThirdParties {
         .email("markusAdams@gmail.com")
         .phone("+261340465340")
         .address("30 Rue de la Montagne Sainte-Genevieve")
+        .contactNature(ContactNature.PROSPECT)
         .townCode(92001)
         .rating(
             new ProspectRating()
@@ -180,6 +187,7 @@ class ProspectIT extends MockedThirdParties {
         .email("paulAdams@gmail.com")
         .phone("+261340465341")
         .address("30 Rue de la Montagne Sainte-Genevieve")
+        .contactNature(ContactNature.PROSPECT)
         .rating(
             new ProspectRating()
                 .value(BigDecimal.valueOf(9.993))

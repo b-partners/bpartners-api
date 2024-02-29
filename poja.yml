@@ -1,7 +1,10 @@
 app_name: bpartners
+aurora_auto_pause: 'false'
 aurora_max_capacity: null
 aurora_min_capacity: null
-cli_version: 11.7.1
+aurora_scale_point: null
+aurora_sleep: null
+cli_version: 11.8.1
 custom_java_deps: poja-custom-java-deps.txt
 custom_java_env_vars: poja-custom-java-env-vars.txt
 custom_java_repositories: poja-custom-java-repositories.txt
@@ -12,6 +15,7 @@ jacoco_min_coverage: '0.4'
 java_facade_it: app.bpartners.api.integration.conf.MockedThirdParties
 package_full_name: app.bpartners.api
 region: eu-west-3
+reserved_concurrent_executions_nb: null
 ses_source: contact@bpartners.app
 ssm_sg_id: /bpartners/sg/id
 ssm_subnet1_id: /bpartners/private/subnet1/id

@@ -1,4 +1,3 @@
-SENTRY_DSN: !Sub '{{resolve:ssm:/bpartners/sentry/dsn}}'
 AWS_COGNITO_USERPOOL_ID: !Sub '{{resolve:ssm:/bpartners/${Env}/cognito/userpool-id}}'
 FINTECTURE_APP_ID: !Sub '{{resolve:ssm:/bpartners/${Env}/fintecture/app-id}}'
 FINTECTURE_APP_SECRET: !Sub '{{resolve:ssm:/bpartners/${Env}/fintecture/app-secret}}'

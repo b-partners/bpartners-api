@@ -4,7 +4,7 @@ aurora_max_capacity: null
 aurora_min_capacity: null
 aurora_scale_point: null
 aurora_sleep: null
-cli_version: 11.10.0
+cli_version: 11.11.1
 custom_java_deps: poja-custom-java-deps.txt
 custom_java_env_vars: poja-custom-java-env-vars.txt
 custom_java_repositories: poja-custom-java-repositories.txt
@@ -16,7 +16,6 @@ java_facade_it: app.bpartners.api.integration.conf.MockedThirdParties
 package_full_name: app.bpartners.api
 region: eu-west-3
 reserved_concurrent_executions_nb: null
-sentry_dsn: '{{resolve:ssm:/bpartners/sentry/dsn}}'
 ses_source: contact@bpartners.app
 ssm_sg_id: /bpartners/sg/id
 ssm_subnet1_id: /bpartners/private/subnet1/id

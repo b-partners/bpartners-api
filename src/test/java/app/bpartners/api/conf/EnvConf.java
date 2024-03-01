@@ -8,7 +8,6 @@ public class EnvConf {
     registry.add("server.port", TestUtils::findAvailableTcpPort);
     registry.add("sns.platform.arn", () -> "dummy");
     registry.add("admin.email", () -> "dummy");
-    registry.add("sentry.dsn", () -> "dummy");
     registry.add("aws.bucket.name", () -> "bpartners");
     registry.add("aws.cognito.userPool.id", () -> "eu-west-3_vq2jlNjq7");
     registry.add("aws.cognito.userPool.domain", () -> "dummy");

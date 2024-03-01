@@ -196,7 +196,9 @@ dependencies {
     testImplementation 'org.testcontainers:junit-jupiter:1.19.1'
     testImplementation 'org.junit-pioneer:junit-pioneer:2.2.0'
 
-implementation 'com.google.api-client:google-api-client:2.2.0'
+
+    implementation 'io.sentry:sentry-spring-boot-starter-jakarta:7.4.0'
+    implementation 'com.google.api-client:google-api-client:2.2.0'
 implementation 'com.google.oauth-client:google-oauth-client-jetty:1.34.1'
 implementation 'com.google.apis:google-api-services-calendar:v3-rev20220715-2.0.0'
 implementation 'com.google.apis:google-api-services-drive:v3-rev20220815-2.0.0'
@@ -212,7 +214,6 @@ implementation 'software.amazon.awssdk:transfer:2.17.271'
 implementation 'software.amazon.awssdk:protocol-core:2.17.292'
 implementation 'software.amazon.awssdk:sns:2.20.153'
 implementation 'org.springframework.retry:spring-retry:1.3.1'
-implementation 'io.sentry:sentry-spring-boot-starter:5.5.3'
 implementation 'io.sentry:sentry-logback:5.5.3'
 implementation 'org.apache.tika:tika-core:1.18'
 implementation 'org.thymeleaf:thymeleaf:3.0.15.RELEASE'
@@ -230,5 +231,6 @@ testImplementation 'org.springframework.security:spring-security-test'
 implementation 'org.testcontainers:localstack:1.19.3'
 implementation 'javax.activation:activation:1.1.1'
 implementation 'io.hypersistence:hypersistence-utils-hibernate-63:3.7.3'
+    
 
 }

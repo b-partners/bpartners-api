@@ -59,6 +59,7 @@ public class MailboxEventHandler implements RequestHandler<SQSEvent, String> {
     application.setDefaultProperties(
         Map.of(
             "spring.flyway.enabled", "false", "server.port", SPRING_SERVER_PORT_FOR_RANDOM_VALUE));
+    application.setAdditionalProfiles("worker");
     return application.run(args);
   }
 }

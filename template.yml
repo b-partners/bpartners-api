@@ -10,6 +10,8 @@ Globals:
     Architectures:
       - x86_64
     Timeout: 600
+    EventInvokeConfig:
+      MaximumRetryAttempts: 0
     AutoPublishAlias: live
     SnapStart:
       ApplyOn: PublishedVersions
@@ -28,7 +30,9 @@ Globals:
         AWS_SES_SOURCE: contact@bpartners.app
         
         
+        
         SENTRY_DSN: !Sub '{{resolve:ssm:/bpartners/sentry/dsn}}'
+        SENTRY_ENVIRONMENT: !Ref Env
         AWS_COGNITO_USERPOOL_ID: !Sub '{{resolve:ssm:/bpartners/${Env}/cognito/userpool-id}}'
         FINTECTURE_APP_ID: !Sub '{{resolve:ssm:/bpartners/${Env}/fintecture/app-id}}'
         FINTECTURE_APP_SECRET: !Sub '{{resolve:ssm:/bpartners/${Env}/fintecture/app-secret}}'
@@ -63,6 +67,7 @@ Globals:
         DATABASE_URL: !Sub '{{resolve:ssm:/bpartners/${Env}/db/url}}'
         DATABASE_USERNAME: !Sub '{{resolve:ssm:/bpartners/${Env}/db/username}}'
         DATABASE_PASSWORD: !Sub '{{resolve:ssm:/bpartners/${Env}/db/password}}'
+    
         
 
 Parameters:
@@ -97,7 +102,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: app.bpartners.api.MailboxEventHandler::handleRequest
-      MemorySize: 1024
+      MemorySize: 512
       Role: !Sub '{{resolve:ssm:/bpartners/${Env}/execution/role-arn}}'
       
       Events:

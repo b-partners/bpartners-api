@@ -3,14 +3,13 @@ package app.bpartners.api.unit.objectMapper;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import app.bpartners.api.integration.conf.MockedThirdParties;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.exc.InvalidDefinitionException;
 import java.time.Instant;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-public class ObjectMapperTest extends MockedThirdParties {
+public class ObjectMapperTest extends app.bpartners.api.integration.conf.MockedThirdParties {
   @Autowired ObjectMapper injectedBean;
   ObjectMapper newInstance = new ObjectMapper();
 

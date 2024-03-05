@@ -1,16 +1,18 @@
 package app.bpartners.api.repository.jpa.model;
 
+import static org.hibernate.type.SqlTypes.NAMED_ENUM;
+
 import app.bpartners.api.endpoint.rest.model.EnableStatus;
 import app.bpartners.api.endpoint.rest.model.TransactionStatus;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 import java.time.Instant;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -18,7 +20,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-import org.hibernate.annotations.Type;
+import org.hibernate.annotations.JdbcTypeCode;
 
 @Entity
 @Table(name = "\"transaction\"")
@@ -44,12 +46,12 @@ public class HTransaction {
   private String reference;
   private String side;
 
-  @Type(type = "pgsql_enum")
+  @JdbcTypeCode(NAMED_ENUM)
   @Enumerated(EnumType.STRING)
   private TransactionStatus status;
 
   // Used to filter transactions summary only for enabled
-  @Type(type = "pgsql_enum")
+  @JdbcTypeCode(NAMED_ENUM)
   @Enumerated(EnumType.STRING)
   @Column(name = "transaction_enable_status")
   private EnableStatus enableStatus;

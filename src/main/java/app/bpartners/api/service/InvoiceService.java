@@ -22,8 +22,6 @@ import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.CreatePaymentRegulation;
 import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.Invoice;
-import app.bpartners.api.model.InvoicesSummary;
-import app.bpartners.api.model.Money;
 import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.model.PaymentHistoryStatus;
 import app.bpartners.api.model.PaymentInitiation;
@@ -41,7 +39,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apfloat.Aprational;
@@ -62,93 +59,6 @@ public class InvoiceService {
   private final PaymentInitiationService pis;
   private final PaymentRequestMapper requestMapper;
   private final PaymentRequestRepository paymentRepository;
-
-  public InvoicesSummary getInvoicesSummary(String idUser) {
-    List<Invoice> invoices = repository.findAllEnabledByIdUser(idUser);
-    InvoicesSummary.InvoiceSummaryContent paid = filterPaidInvoicesSummary(invoices);
-    InvoicesSummary.InvoiceSummaryContent unpaid = filterUnpaidInvoicesSummary(invoices);
-    InvoicesSummary.InvoiceSummaryContent proposal = filterProposalInvoicesSummary(invoices);
-    return InvoicesSummary.builder().paid(paid).unpaid(unpaid).proposal(proposal).build();
-  }
-
-  private InvoicesSummary.InvoiceSummaryContent filterPaidInvoicesSummary(List<Invoice> invoices) {
-    Stream<Invoice> invoiceStream =
-        invoices.parallelStream()
-            .filter(
-                invoice ->
-                    (invoice.getStatus() == PAID
-                        || (invoice.getStatus() == CONFIRMED
-                            && invoice.getPaymentRegulations().stream()
-                                .anyMatch(
-                                    payment ->
-                                        payment.getPaymentRequest().getStatus()
-                                            == PaymentStatus.PAID))));
-    Money amount =
-        invoiceStream
-            .map(
-                invoice -> {
-                  if (invoice.getPaymentType() == CASH) {
-                    return new Money(invoice.getTotalPriceWithVat());
-                  } else {
-                    return invoice.getPaymentRegulations().stream()
-                        .filter(
-                            payment ->
-                                payment.getPaymentRequest().getStatus() == PaymentStatus.PAID)
-                        .map(payment -> new Money(payment.getPaymentRequest().getAmount()))
-                        .reduce(Money::add)
-                        .orElse(new Money());
-                  }
-                })
-            .reduce(Money::add)
-            .orElse(new Money());
-
-    return InvoicesSummary.InvoiceSummaryContent.builder().amount(amount).build();
-  }
-
-  private InvoicesSummary.InvoiceSummaryContent filterUnpaidInvoicesSummary(
-      List<Invoice> invoices) {
-    Stream<Invoice> invoiceStream =
-        invoices.parallelStream().filter(invoice -> invoice.getStatus() == CONFIRMED);
-    Money amount =
-        invoiceStream
-            .flatMap(
-                invoice -> {
-                  if (invoice.getPaymentType() == CASH) {
-                    return Stream.of(new Money(invoice.getTotalPriceWithVat()));
-                  } else {
-                    return invoice.getPaymentRegulations().stream()
-                        .filter(
-                            payment ->
-                                payment.getPaymentRequest().getStatus() == PaymentStatus.UNPAID)
-                        .map(payment -> new Money(payment.getPaymentRequest().getAmount()));
-                  }
-                })
-            .reduce(Money::add)
-            .orElse(new Money());
-
-    return InvoicesSummary.InvoiceSummaryContent.builder().amount(amount).build();
-  }
-
-  private InvoicesSummary.InvoiceSummaryContent filterProposalInvoicesSummary(
-      List<Invoice> invoices) {
-    Stream<Invoice> filteredInvoices =
-        invoices.parallelStream().filter(invoice -> invoice.getStatus() == PROPOSAL);
-    Money amount =
-        filteredInvoices
-            .flatMap(
-                invoice -> {
-                  if (invoice.getPaymentType() == CASH) {
-                    return Stream.of(new Money(invoice.getTotalPriceWithVat()));
-                  } else {
-                    return invoice.getPaymentRegulations().stream()
-                        .map(payment -> new Money(payment.getPaymentRequest().getAmount()));
-                  }
-                })
-            .reduce(Money::add)
-            .orElse(new Money());
-
-    return InvoicesSummary.InvoiceSummaryContent.builder().amount(amount).build();
-  }
 
   private static List<CreatePaymentRegulation> initPaymentReg(Invoice actual) {
     List<CreatePaymentRegulation> paymentReg = actual.getPaymentRegulations();

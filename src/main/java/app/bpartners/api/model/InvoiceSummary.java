@@ -1,5 +1,6 @@
 package app.bpartners.api.model;
 
+import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -15,7 +16,9 @@ import lombok.ToString;
 @NoArgsConstructor
 @EqualsAndHashCode
 @ToString
-public class InvoicesSummary {
+public class InvoiceSummary {
+  private Instant updatedAt;
+  private String idUser;
   private InvoiceSummaryContent paid;
   private InvoiceSummaryContent unpaid;
   private InvoiceSummaryContent proposal;

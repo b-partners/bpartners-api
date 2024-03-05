@@ -18,6 +18,7 @@ import app.bpartners.api.model.ArchiveInvoice;
 import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.service.InvoiceService;
+import app.bpartners.api.service.InvoiceSummaryService;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.AllArgsConstructor;
@@ -39,10 +40,12 @@ public class InvoiceController {
   private final InvoiceReferenceValidator referenceValidator;
   private final UpdatePaymentRegValidator paymentValidator;
   private final InvoicesSummaryRestMapper summaryRestMapper;
+  private final InvoiceSummaryService summaryService;
 
   @GetMapping("accounts/{aId}/invoicesSummary")
   public InvoicesSummary getInvoicesSummary(@PathVariable("aId") String accountId) {
-    return summaryRestMapper.toRest(service.getInvoicesSummary(getAuthenticatedUserId()));
+    return summaryRestMapper.toRest(
+        summaryService.getOrComputeLatestSummary(getAuthenticatedUserId()));
   }
 
   @PutMapping("/accounts/{id}/invoices/{iId}/paymentRegulations/{pId}/paymentMethod")

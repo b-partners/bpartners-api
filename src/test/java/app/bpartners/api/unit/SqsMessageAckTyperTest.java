@@ -10,7 +10,6 @@ import static org.mockito.Mockito.verify;
 import app.bpartners.api.PojaGenerated;
 import app.bpartners.api.endpoint.event.EventConsumer;
 import app.bpartners.api.endpoint.event.gen.UuidCreated;
-import app.bpartners.api.integration.conf.MockedThirdParties;
 import com.amazonaws.services.lambda.runtime.events.SQSEvent;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -22,7 +21,7 @@ import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.DeleteMessageRequest;
 
 @PojaGenerated
-public class SqsMessageAckTyperTest extends MockedThirdParties {
+public class SqsMessageAckTyperTest extends app.bpartners.api.integration.conf.MockedThirdParties {
   public static final String UNKNOWN_TYPENAME = "unknown_typename";
   @Autowired EventConsumer.SqsMessageAckTyper subject;
   @Autowired ObjectMapper om;

@@ -9,6 +9,7 @@ import static java.util.UUID.randomUUID;
 import app.bpartners.api.endpoint.rest.model.BankConnectionRedirection;
 import app.bpartners.api.endpoint.rest.model.EnableStatus;
 import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
+import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.Money;
 import app.bpartners.api.model.Transaction;
@@ -23,6 +24,8 @@ import app.bpartners.api.repository.BankRepository;
 import app.bpartners.api.repository.DbTransactionRepository;
 import app.bpartners.api.repository.TransactionsSummaryRepository;
 import app.bpartners.api.repository.UserRepository;
+import app.bpartners.api.repository.bridge.BridgeApi;
+import app.bpartners.api.repository.bridge.model.Item.BridgeItem;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -40,6 +43,7 @@ public class AccountService {
   private final UserRepository userRepository;
   private final TransactionsSummaryRepository summaryRepository;
   private final DbTransactionRepository transactionRepository;
+  private final BridgeApi bridgeApi;
 
   public Account getActive(List<Account> accounts) {
     return accounts.stream()
@@ -138,7 +142,8 @@ public class AccountService {
     User user = userRepository.getById(userId);
     List<Account> accounts = getAccountsByUserId(userId);
     Account active = getActive(accounts);
-    if (user.getBankConnectionId() == null) {
+    List<BridgeItem> bridgeBankConnections = bridgeApi.findItemsByToken(AuthProvider.getBearer());
+    if (bridgeBankConnections.isEmpty()) {
       throw new BadRequestException(
           "User(id="
               + userId

@@ -100,7 +100,7 @@ import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
 @Testcontainers
 @AutoConfigureMockMvc
 @Slf4j
-@Disabled("TODO(fail)")
+@Disabled("TODO:fail")
 class LocalInvoiceIT extends MockedThirdParties {
   @MockBean private BanApi banApi;
   @MockBean private AccountHolderJpaRepository holderJpaRepository;
@@ -134,6 +134,7 @@ class LocalInvoiceIT extends MockedThirdParties {
 
     assertEquals(
         new InvoicesSummary()
+            .lastUpdateDatetime(actual.getLastUpdateDatetime())
             .paid(new InvoiceSummaryContent().amount(4400).count(-1))
             .unpaid(new InvoiceSummaryContent().amount(5500).count(-1))
             .proposal(new InvoiceSummaryContent().amount(6700).count(-1)),

@@ -1,28 +1,27 @@
 package app.bpartners.api.repository.jpa.model;
 
-import static javax.persistence.GenerationType.IDENTITY;
+import static io.hypersistence.utils.hibernate.type.array.internal.AbstractArrayType.SQL_ARRAY_TYPE;
+import static jakarta.persistence.GenerationType.IDENTITY;
+import static org.hibernate.type.SqlTypes.NAMED_ENUM;
 
 import app.bpartners.api.endpoint.rest.model.EnableStatus;
 import app.bpartners.api.endpoint.rest.model.IdentificationStatus;
-import app.bpartners.api.endpoint.rest.model.UserRole;
 import app.bpartners.api.endpoint.rest.security.model.Role;
 import app.bpartners.api.model.BankConnection;
-import app.bpartners.api.repository.jpa.types.PostgresEnumType;
 import io.hypersistence.utils.hibernate.type.array.EnumArrayType;
-import io.hypersistence.utils.hibernate.type.array.internal.AbstractArrayType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 import java.io.Serializable;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -32,18 +31,12 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.Parameter;
 import org.hibernate.annotations.Type;
-import org.hibernate.annotations.TypeDef;
 
 @Entity
 @Table(name = "\"user\"")
-@TypeDef(name = "pgsql_enum", typeClass = PostgresEnumType.class)
-@TypeDef(
-    name = "user_roles",
-    typeClass = EnumArrayType.class,
-    defaultForType = UserRole[].class,
-    parameters = @Parameter(name = AbstractArrayType.SQL_ARRAY_TYPE, value = "user_role"))
 @Getter
 @Setter
 @ToString
@@ -84,26 +77,28 @@ public class HUser implements Serializable {
   @Getter(AccessLevel.NONE)
   private Instant bridgeItemLastRefresh;
 
-  @Type(type = "pgsql_enum")
+  @JdbcTypeCode(NAMED_ENUM)
   @Enumerated(EnumType.STRING)
   private BankConnection.BankConnectionStatus bankConnectionStatus;
 
   private String logoFileId;
 
-  @Type(type = "pgsql_enum")
+  @JdbcTypeCode(NAMED_ENUM)
   @Enumerated(EnumType.STRING)
   private EnableStatus status;
 
   private Boolean idVerified;
 
-  @Type(type = "pgsql_enum")
+  @JdbcTypeCode(NAMED_ENUM)
   @Enumerated(EnumType.STRING)
   private IdentificationStatus identificationStatus;
 
   @Column(name = "old_s3_id_account")
   private String oldS3AccountKey;
 
-  @Type(type = "user_roles")
+  @Type(
+      value = EnumArrayType.class,
+      parameters = @Parameter(name = SQL_ARRAY_TYPE, value = "user_role"))
   @Column(name = "roles", columnDefinition = "user_role[]")
   private Role[] roles;
 

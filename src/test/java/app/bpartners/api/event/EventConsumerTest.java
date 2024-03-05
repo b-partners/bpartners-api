@@ -1,11 +1,8 @@
 package app.bpartners.api.event;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.timeout;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
+import app.bpartners.api.concurrency.Workers;
 import app.bpartners.api.endpoint.event.EventConsumer;
 import app.bpartners.api.endpoint.event.EventServiceInvoker;
 import app.bpartners.api.endpoint.event.gen.InvoiceRelaunchSaved;
@@ -17,13 +14,15 @@ import org.junit.jupiter.api.Test;
 class EventConsumerTest {
   EventConsumer eventConsumer;
   EventServiceInvoker eventServiceInvoker;
+  Workers<Void> workers;
 
   static final Duration TIMEOUT = Duration.ofSeconds(3);
 
   @BeforeEach
   void setUp() {
     eventServiceInvoker = mock(EventServiceInvoker.class);
-    eventConsumer = new EventConsumer(eventServiceInvoker);
+    workers = new Workers<>(1);
+    eventConsumer = new EventConsumer(workers, eventServiceInvoker);
   }
 
   @Test
@@ -56,6 +55,9 @@ class EventConsumerTest {
 
   @Test
   void email_sent_event_is_not_ack_if_eventServiceInvoker_failed() {
+    EventConsumer.AcknowledgeableTypedEvent acknowledgeableTypedEventMock =
+        mock(EventConsumer.AcknowledgeableTypedEvent.class);
+
     InvoiceRelaunchSaved emailSent =
         InvoiceRelaunchSaved.builder()
             .subject(null)
@@ -73,16 +75,14 @@ class EventConsumerTest {
             new EventConsumer.TypedEvent(
                 "app.bpartners.api.endpoint.event.gen.InvoiceRelaunchSaved", emailSent));
 
-    assertThrows(
-        RuntimeException.class,
-        () ->
-            eventConsumer.accept(
-                List.of(
-                    new EventConsumer.AcknowledgeableTypedEvent(
-                        new EventConsumer.TypedEvent(
-                            "app.bpartners.api.endpoint.event.gen.InvoiceRelaunchSaved", emailSent),
-                        acknowledger))));
+    eventConsumer.accept(
+        List.of(
+            new EventConsumer.AcknowledgeableTypedEvent(
+                new EventConsumer.TypedEvent(
+                    "app.bpartners.api.endpoint.event.gen.InvoiceRelaunchSaved", emailSent),
+                acknowledger)));
 
+    verify(acknowledgeableTypedEventMock, never()).ack();
     verify(eventServiceInvoker, timeout(TIMEOUT.toMillis()))
         .accept(
             new EventConsumer.TypedEvent(

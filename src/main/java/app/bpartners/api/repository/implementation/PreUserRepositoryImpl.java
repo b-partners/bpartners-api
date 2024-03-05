@@ -7,9 +7,9 @@ import app.bpartners.api.repository.PreUserRepository;
 import app.bpartners.api.repository.jpa.PreUserJpaRepository;
 import app.bpartners.api.repository.jpa.model.HPreUser;
 import app.bpartners.api.repository.sendinblue.ContactRepository;
+import jakarta.transaction.Transactional;
 import java.time.Instant;
 import java.util.List;
-import javax.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Repository;
 

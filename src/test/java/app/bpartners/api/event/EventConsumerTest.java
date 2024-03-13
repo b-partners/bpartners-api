@@ -21,7 +21,7 @@ class EventConsumerTest {
   @BeforeEach
   void setUp() {
     eventServiceInvoker = mock(EventServiceInvoker.class);
-    workers = new Workers<>(1);
+    workers = new Workers<>();
     eventConsumer = new EventConsumer(workers, eventServiceInvoker);
   }
 

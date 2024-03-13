@@ -33,7 +33,7 @@ jobs:
         with:
           name: ${{ github.ref_name }}-event-bpartners
           template: cf-stacks/event-stack.yml
-          tags: "[ { \"Key\": \"app\", \"Value\": \"bpartners\" }, { \"Key\": \"env\", \"Value\": \"${{ github.ref_name }}\" } ]"
+          tags: "[ { \"Key\": \"app\", \"Value\": \"bpartners\" }, { \"Key\": \"env\", \"Value\": \"${{ github.ref_name }}\" }, { \"Key\": \"user:poja\", \"Value\": \"bpartners\" } ]"
           capabilities: CAPABILITY_NAMED_IAM
           no-fail-on-empty-changeset: "1"
           parameter-overrides:

@@ -5,7 +5,7 @@ Description: bpartners - Computation and API
 Globals:
   Function:
     CodeUri: .
-    Runtime: java17
+    Runtime: java21
     Tracing: Active
     Architectures:
       - x86_64

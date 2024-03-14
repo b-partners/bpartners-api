@@ -6,7 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
-import app.bpartners.api.SentryConf;
+import app.bpartners.api.endpoint.SentryConf;
 import app.bpartners.api.endpoint.event.S3Conf;
 import app.bpartners.api.integration.conf.BridgeAbstractContextInitializer;
 import app.bpartners.api.integration.conf.utils.TestUtils;

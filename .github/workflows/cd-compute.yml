@@ -33,7 +33,7 @@ jobs:
 
       - uses: actions/setup-java@v3
         with:
-          java-version: '17'
+          java-version: '21'
           distribution: 'corretto'
 
       - uses: hei-school/aws-credentials-setter@v1.0.3
@@ -49,7 +49,7 @@ jobs:
       - run: sam build
 
       - name: Deploy application
-        run: sam deploy --no-confirm-changeset --no-fail-on-empty-changeset --stack-name ${{ github.ref_name }}-compute-bpartners --capabilities CAPABILITY_IAM --parameter-overrides Env=${{ github.ref_name }} --resolve-s3
+        run: sam deploy --no-confirm-changeset --no-fail-on-empty-changeset --stack-name ${{ github.ref_name }}-compute-bpartners --capabilities CAPABILITY_IAM --parameter-overrides Env=${{ github.ref_name }} --resolve-s3 --tags app=bpartners env=${{ github.ref_name }} user:poja=bpartners
 
   health-check-infra:
     needs: [deploy-api]

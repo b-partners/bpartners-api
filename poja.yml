@@ -4,7 +4,7 @@ aurora_max_capacity: null
 aurora_min_capacity: null
 aurora_scale_point: null
 aurora_sleep: null
-cli_version: 11.11.2
+cli_version: 12.2.0
 custom_java_deps: poja-custom-java-deps.txt
 custom_java_env_vars: poja-custom-java-env-vars.txt
 custom_java_repositories: poja-custom-java-repositories.txt

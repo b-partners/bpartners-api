@@ -67,6 +67,7 @@ Globals:
         DATABASE_URL: !Sub '{{resolve:ssm:/bpartners/${Env}/db/url}}'
         DATABASE_USERNAME: !Sub '{{resolve:ssm:/bpartners/${Env}/db/username}}'
         DATABASE_PASSWORD: !Sub '{{resolve:ssm:/bpartners/${Env}/db/password}}'
+        SPRING_JPA_DATABASEPLATFORM: org.hibernate.dialect.PostgreSQLDialect
     
         
 

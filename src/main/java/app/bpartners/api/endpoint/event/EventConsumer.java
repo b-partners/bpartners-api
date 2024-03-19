@@ -92,6 +92,7 @@ public class EventConsumer implements Consumer<List<EventConsumer.Acknowledgeabl
                             .queueUrl(eventConf.getSqsQueue())
                             .receiptHandle(message.getReceiptHandle())
                             .build()));
+        log.info("Message.id({}) successfully treated and deleted.", message.getMessageId());
         res.add(acknowledgeableTypedEvent);
       }
       return res;

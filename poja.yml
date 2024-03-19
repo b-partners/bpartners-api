@@ -4,7 +4,7 @@ aurora_max_capacity: null
 aurora_min_capacity: null
 aurora_scale_point: null
 aurora_sleep: null
-cli_version: 12.2.1
+cli_version: 12.3.1
 custom_java_deps: poja-custom-java-deps.txt
 custom_java_env_vars: poja-custom-java-env-vars.txt
 custom_java_repositories: poja-custom-java-repositories.txt
@@ -29,6 +29,7 @@ with_own_vpc: 'true'
 with_publish_to_npm_registry: 'true'
 with_sentry: 'true'
 with_snapstart: 'true'
+with_sonar: 'false'
 with_swagger_ui: 'false'
 worker_batch: 5
 worker_memory: 512

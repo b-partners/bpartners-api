@@ -26,7 +26,7 @@ Resources:
       FlexibleTimeWindow:
         Mode: "OFF"
       Name: !Join ['', [!Ref Env, -RefreshInvoiceSummary]]
-      ScheduleExpression: "rate(5 minutes)"
+      ScheduleExpression: "rate(30 minutes)"
       Target:
         Arn: !Sub '{{resolve:ssm:/bpartners/${Env}/eventbridge/bus-arn}}'
         RoleArn: !GetAtt ScheduledEventExecutionRole.Arn

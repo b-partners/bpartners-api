@@ -31,5 +31,5 @@ with_sentry: 'true'
 with_snapstart: 'true'
 with_sonar: 'false'
 with_swagger_ui: 'false'
-worker_batch: 5
+worker_batch: 1
 worker_memory: 512

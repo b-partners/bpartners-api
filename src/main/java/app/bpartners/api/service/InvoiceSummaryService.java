@@ -6,7 +6,6 @@ import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PROPOSAL;
 import static java.time.Instant.now;
 
-import app.bpartners.api.endpoint.rest.model.EnableStatus;
 import app.bpartners.api.endpoint.rest.model.PaymentStatus;
 import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.InvoiceSummary;
@@ -24,16 +23,8 @@ import org.springframework.stereotype.Service;
 public class InvoiceSummaryService {
   private final InvoiceSummaryRepository repository;
   private final InvoiceRepository invoiceRepository;
-  private final UserService userService;
 
   @Transactional
-  public List<InvoiceSummary> updateInvoicesSummary() {
-    return userService.findAll().stream()
-        .filter(user -> user.getStatus() == EnableStatus.ENABLED)
-        .map(user -> updateInvoiceSummary(user.getId()))
-        .toList();
-  }
-
   public InvoiceSummary updateInvoiceSummary(String idUser) {
     InvoiceSummary computedSummary = computeInvoiceSummary(idUser);
     return save(computedSummary);

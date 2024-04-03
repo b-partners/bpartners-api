@@ -73,8 +73,8 @@ public enum ArcgisZoom {
       case 21 -> HOUSES_1;
       case 22 -> HOUSES_2;
       case 23 -> HOUSE_PROPERTY;
-      default ->
-          throw new IllegalArgumentException("Zoom Level = " + zoomLevel + " not supported.");
+      default -> throw new IllegalArgumentException(
+          "Zoom Level = " + zoomLevel + " not supported.");
     };
   }
 
@@ -104,8 +104,8 @@ public enum ArcgisZoom {
       case HOUSES_1 -> HOUSES_1;
       case HOUSES_2 -> HOUSES_2;
       case HOUSE_PROPERTY -> HOUSE_PROPERTY;
-      default ->
-          throw new IllegalArgumentException("Zoom Level = " + zoomLevel + " not supported.");
+      default -> throw new IllegalArgumentException(
+          "Zoom Level = " + zoomLevel + " not supported.");
     };
   }
 

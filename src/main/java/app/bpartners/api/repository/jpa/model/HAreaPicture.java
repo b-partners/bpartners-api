@@ -48,6 +48,7 @@ public class HAreaPicture {
 
   @Convert(converter = OpenStreetMapLayerConverter.class)
   private OpenStreetMapLayer layer;
+
   private String filename;
 
   @Override

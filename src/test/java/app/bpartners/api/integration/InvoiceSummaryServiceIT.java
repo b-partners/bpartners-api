@@ -24,16 +24,14 @@ public class InvoiceSummaryServiceIT extends MockedThirdParties {
 
   @Test
   void update_invoices_summaries_ok() {
-    List<String> enabledUsersIds =
+    List<User> enabledUsers =
         userService.findAll().stream()
             .filter(user -> user.getStatus() == EnableStatus.ENABLED)
-            .map(User::getId)
             .toList();
 
-    List<InvoiceSummary> actual =
-        enabledUsersIds.stream().map(userId -> subject.updateInvoiceSummary(userId)).toList();
+    List<InvoiceSummary> actual = subject.updateInvoicesSummary();
 
-    assertEquals(enabledUsersIds.size(), actual.size());
+    assertEquals(enabledUsers.size(), actual.size());
     assertTrue(
         ignoreUpdateDatetime(actual)
             .contains(

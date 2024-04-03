@@ -15,7 +15,7 @@ jacoco_min_coverage: '0.4'
 java_facade_it: app.bpartners.api.integration.conf.MockedThirdParties
 package_full_name: app.bpartners.api
 region: eu-west-3
-reserved_concurrent_executions_nb: 70
+reserved_concurrent_executions_nb: null
 ses_source: contact@bpartners.app
 ssm_sg_id: /bpartners/sg/id
 ssm_subnet1_id: /bpartners/private/subnet1/id

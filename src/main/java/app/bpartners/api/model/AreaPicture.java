@@ -2,6 +2,7 @@ package app.bpartners.api.model;
 
 import app.bpartners.api.endpoint.rest.model.OpenStreetMapLayer;
 import app.bpartners.api.endpoint.rest.model.ZoomLevel;
+import app.bpartners.api.service.WMS.Tile;
 import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -28,4 +29,5 @@ public class AreaPicture {
   private ZoomLevel zoomLevel;
   private String filename;
   private OpenStreetMapLayer layer;
+  private Tile tile;
 }

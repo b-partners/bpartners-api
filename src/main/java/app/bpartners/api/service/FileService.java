@@ -1,5 +1,7 @@
 package app.bpartners.api.service;
 
+import static app.bpartners.api.endpoint.rest.model.FileType.LOGO;
+
 import app.bpartners.api.endpoint.rest.model.FileType;
 import app.bpartners.api.model.FileInfo;
 import app.bpartners.api.model.exception.NotFoundException;
@@ -22,7 +24,7 @@ public class FileService {
 
   public FileInfo upload(String fileId, FileType fileType, String idUser, byte[] fileAsBytes) {
     String sha256 = s3Service.uploadFile(fileType, idUser, fileId, fileAsBytes);
-    if (fileType.equals(FileType.LOGO)) {
+    if (fileType.equals(LOGO)) {
       saveUserFileId(fileId, idUser);
     }
     return repository.save(mapper.toDomain(fileId, fileAsBytes, sha256, idUser));

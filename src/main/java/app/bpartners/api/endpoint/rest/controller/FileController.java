@@ -1,11 +1,13 @@
 package app.bpartners.api.endpoint.rest.controller;
 
+import static app.bpartners.api.endpoint.rest.model.FileType.AREA_PICTURE;
 import static org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE;
 
 import app.bpartners.api.endpoint.rest.model.FileInfo;
 import app.bpartners.api.endpoint.rest.model.FileType;
 import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.file.MultipartFileConverter;
+import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.model.mapper.FileMapper;
 import app.bpartners.api.service.FileService;
 import app.bpartners.api.service.utils.FileInfoUtils;
@@ -55,6 +57,9 @@ public class FileController {
       @PathVariable(name = "id") String fileId,
       @RequestParam(name = "fileType") FileType fileType,
       @RequestBody byte[] toUpload) {
+    if (AREA_PICTURE.equals(fileType)) {
+      throw new NotImplementedException("Area picture upload is made through a specific endpoint");
+    }
     String idUser =
         AuthProvider.getAuthenticatedUserId(); // TODO: should be changed when endpoint changed
     service.upload(fileId, fileType, idUser, toUpload);
@@ -71,6 +76,9 @@ public class FileController {
       @PathVariable(name = "id") String fileId,
       @RequestParam(name = "fileType") FileType fileType,
       @RequestPart(name = "file") MultipartFile file) {
+    if (AREA_PICTURE.equals(fileType)) {
+      throw new NotImplementedException("Area picture upload is made through a specific endpoint");
+    }
     var toUpload = multipartFileConverter.apply(file);
     String idUser =
         AuthProvider.getAuthenticatedUserId(); // TODO: should be changed when endpoint changed

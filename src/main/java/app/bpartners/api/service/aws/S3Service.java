@@ -1,9 +1,11 @@
 package app.bpartners.api.service.aws;
 
+import static app.bpartners.api.endpoint.rest.model.FileType.AREA_PICTURE;
 import static app.bpartners.api.endpoint.rest.model.FileType.ATTACHMENT;
 import static app.bpartners.api.endpoint.rest.model.FileType.INVOICE;
 import static app.bpartners.api.endpoint.rest.model.FileType.LOGO;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
+import static software.amazon.awssdk.services.s3.model.ChecksumAlgorithm.SHA256;
 
 import app.bpartners.api.endpoint.event.S3Conf;
 import app.bpartners.api.endpoint.rest.model.FileType;
@@ -19,7 +21,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.core.internal.waiters.ResponseOrException;
 import software.amazon.awssdk.core.sync.RequestBody;
-import software.amazon.awssdk.services.s3.model.ChecksumAlgorithm;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
 import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
@@ -33,6 +34,7 @@ import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequ
 @Slf4j
 @AllArgsConstructor
 public class S3Service {
+  // TODO: refactor using poja BucketComponent
   private static final String S3_KEY_FORMAT = "%s/accounts/%s/%s/%s";
   private final S3Conf s3Conf;
   private final UserRepository userRepository;
@@ -60,18 +62,13 @@ public class S3Service {
   public String getPresignedUrl(
       FileType fileType, String idUser, String fileId, Long expirationInSeconds) {
     String key = getKey(idUser);
-    switch (fileType) {
-      case TRANSACTION:
-        return getPresignedUrl(getTransactionKey(fileId), expirationInSeconds);
-      case LOGO:
-        return getPresignedUrl(getLogoKey(key, fileId), expirationInSeconds);
-      case INVOICE:
-        return getPresignedUrl(getInvoiceKey(key, fileId), expirationInSeconds);
-      case ATTACHMENT:
-        return getPresignedUrl(getAttachmentKey(key, fileId), expirationInSeconds);
-      default:
-        throw new BadRequestException("Unknown file type " + fileType);
-    }
+    return switch (fileType) {
+      case TRANSACTION -> getPresignedUrl(getTransactionKey(fileId), expirationInSeconds);
+      case LOGO -> getPresignedUrl(getLogoKey(key, fileId), expirationInSeconds);
+      case INVOICE -> getPresignedUrl(getInvoiceKey(key, fileId), expirationInSeconds);
+      case ATTACHMENT -> getPresignedUrl(getAttachmentKey(key, fileId), expirationInSeconds);
+      default -> throw new BadRequestException("Unknown file type " + fileType);
+    };
   }
 
   private String uploadFile(String key, byte[] toUpload) {
@@ -85,7 +82,7 @@ public class S3Service {
             .bucket(s3Conf.getBucketName())
             .key(key)
             .contentType(FileInfoUtils.parseMediaTypeFromBytes(toUpload).toString())
-            .checksumAlgorithm(ChecksumAlgorithm.SHA256)
+            .checksumAlgorithm(SHA256)
             .build();
 
     PutObjectResponse objectResponse =
@@ -111,19 +108,15 @@ public class S3Service {
 
   public String uploadFile(FileType fileType, String idUser, String fileId, byte[] toUpload) {
     String key = getKey(idUser);
-    switch (fileType) {
-      case TRANSACTION:
-      case TRANSACTION_SUPPORTING_DOCS:
-        return uploadFile(getTransactionKey(fileId), toUpload);
-      case LOGO:
-        return uploadFile(getLogoKey(key, fileId), toUpload);
-      case INVOICE:
-        return uploadFile(getInvoiceKey(key, fileId), toUpload);
-      case ATTACHMENT:
-        return uploadFile(getAttachmentKey(key, fileId), toUpload);
-      default:
-        throw new BadRequestException("Unknown file type " + fileType);
-    }
+    return switch (fileType) {
+      case TRANSACTION, TRANSACTION_SUPPORTING_DOCS -> uploadFile(
+          getTransactionKey(fileId), toUpload);
+      case LOGO -> uploadFile(getLogoKey(key, fileId), toUpload);
+      case INVOICE -> uploadFile(getInvoiceKey(key, fileId), toUpload);
+      case ATTACHMENT -> uploadFile(getAttachmentKey(key, fileId), toUpload);
+      case AREA_PICTURE -> uploadFile(getAreaPictureKey(key, fileId), toUpload);
+      default -> throw new BadRequestException("Unknown file type " + fileType);
+    };
   }
 
   private byte[] downloadFile(String key) {
@@ -139,19 +132,14 @@ public class S3Service {
 
   public byte[] downloadFile(FileType fileType, String idUser, String fileId) {
     String key = getKey(idUser);
-    switch (fileType) {
-      case TRANSACTION:
-      case TRANSACTION_SUPPORTING_DOCS:
-        return downloadFile(getTransactionKey(fileId));
-      case LOGO:
-        return downloadFile(getLogoKey(key, fileId));
-      case INVOICE:
-        return downloadFile(getInvoiceKey(key, fileId));
-      case ATTACHMENT:
-        return downloadFile(getAttachmentKey(key, fileId));
-      default:
-        throw new BadRequestException("Unknown file type " + fileType);
-    }
+    return switch (fileType) {
+      case TRANSACTION, TRANSACTION_SUPPORTING_DOCS -> downloadFile(getTransactionKey(fileId));
+      case LOGO -> downloadFile(getLogoKey(key, fileId));
+      case INVOICE -> downloadFile(getInvoiceKey(key, fileId));
+      case ATTACHMENT -> downloadFile(getAttachmentKey(key, fileId));
+      case AREA_PICTURE -> downloadFile(getAreaPictureKey(key, fileId));
+      default -> throw new BadRequestException("Unknown file type " + fileType);
+    };
   }
 
   private String getKey(String idUser) {
@@ -176,5 +164,9 @@ public class S3Service {
 
   private String getAttachmentKey(String idUser, String fileId) {
     return getBucketName(s3Conf.getEnv(), idUser, fileId, ATTACHMENT.name().toLowerCase());
+  }
+
+  private String getAreaPictureKey(String idUser, String fileId) {
+    return getBucketName(s3Conf.getEnv(), idUser, fileId, AREA_PICTURE.name().toLowerCase());
   }
 }

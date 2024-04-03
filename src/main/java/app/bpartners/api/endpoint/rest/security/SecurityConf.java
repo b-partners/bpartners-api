@@ -317,6 +317,14 @@ public class SecurityConf {
                     .authenticated()
                     .requestMatchers(
                         new SelfAccountMatcher(
+                            GET, "/accounts/*/areaPictures", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfAccountMatcher(
+                            GET, "/accounts/*/areaPictures/*", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfAccountMatcher(
                             POST, "/accounts/*/files/*/raw", authResourceProvider))
                     .authenticated()
                     .requestMatchers(

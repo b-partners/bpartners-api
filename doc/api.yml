@@ -136,6 +136,16 @@ paths:
     $ref: './files-api.yml#/operations/downloadOrUploadFile'
 
   #############################################
+  ################# Area Picture API #################
+  #############################################
+  /accounts/{aId}/areaPictures:
+    $ref: './files-api.yml#/operations/getAllAreaPictures'
+  /accounts/{aId}/areaPictures/{id}:
+    $ref: './files-api.yml#/operations/getAreaPictureById'
+  /accounts/{aId}/areaPictures/{id}/raw:
+    $ref: './files-api.yml#/operations/areaPictureUpload'
+
+  #############################################
   ############## Customers API ################
   #############################################
   /accounts/{aId}/customers/{cId}:

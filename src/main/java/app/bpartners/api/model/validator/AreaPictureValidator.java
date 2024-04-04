@@ -3,7 +3,6 @@ package app.bpartners.api.model.validator;
 import app.bpartners.api.model.AreaPicture;
 import app.bpartners.api.model.exception.BadRequestException;
 import java.util.function.Consumer;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.springframework.stereotype.Component;
 

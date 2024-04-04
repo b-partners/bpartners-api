@@ -30,15 +30,15 @@ public class CrupdateAreaPictureDetailsValidator implements Consumer<CrupdateAre
     }
     if (filename == null) {
       exceptionMessageBuilder.append("filename is mandatory. ");
-    } else {
-      Matcher matcher = AREA_PICTURE_FILENAME_PATTERN.matcher(filename);
-      if (!matcher.matches()) {
-        exceptionMessageBuilder
-            .append("filename does not match pattern: ")
-            .append(AREA_PICTURE_FILENAME_PATTERN)
-            .append(".");
-      }
-    }
+    } /*else {
+        Matcher matcher = AREA_PICTURE_FILENAME_PATTERN.matcher(filename);
+        if (!matcher.matches()) {
+          exceptionMessageBuilder
+              .append("filename does not match pattern: ")
+              .append(AREA_PICTURE_FILENAME_PATTERN)
+              .append(".");
+        }
+      }*/
 
     String exceptionMessage = exceptionMessageBuilder.toString();
     if (!exceptionMessage.isEmpty()) {

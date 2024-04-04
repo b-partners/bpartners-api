@@ -18,7 +18,7 @@ public class EnvConf {
     registry.add("feature.detector.api.key", () -> "dummy");
     registry.add("feature.detector.application.name", () -> "dummy");
     registry.add("expressif.project.token", () -> "dummy");
-    registry.add("ban.base.url", () -> "dummy");
+    registry.add("ban.base.url", () -> "https://api-adresse.data.gouv.fr");
     registry.add("bridge.base.url", () -> "dummy");
     registry.add("bridge.version", () -> "dummy");
     registry.add("bridge.client.id", () -> "dummy");

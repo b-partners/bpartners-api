@@ -77,8 +77,7 @@ import app.bpartners.api.repository.sendinblue.SendinblueApi;
 import app.bpartners.api.repository.sendinblue.model.Attributes;
 import app.bpartners.api.repository.sendinblue.model.Contact;
 import app.bpartners.api.service.utils.GeoUtils;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -725,7 +724,7 @@ public class TestUtils {
     return GeoUtils.Coordinate.builder().latitude(0.0).longitude(0.0).build();
   }
 
-  public static HttpResponse<Object> httpResponseMock(Object body) {
+  public static <T> HttpResponse<T> httpResponseMock(T body) {
     return new HttpResponse<>() {
       @Override
       public int statusCode() {
@@ -738,7 +737,7 @@ public class TestUtils {
       }
 
       @Override
-      public Optional<HttpResponse<Object>> previousResponse() {
+      public Optional<HttpResponse<T>> previousResponse() {
         return Optional.empty();
       }
 
@@ -748,15 +747,8 @@ public class TestUtils {
       }
 
       @Override
-      public Object body() {
-        if (body.getClass() == String.class) {
-          return body;
-        }
-        try {
-          return new ObjectMapper().writeValueAsString(body);
-        } catch (JsonProcessingException e) {
-          return null;
-        }
+      public T body() {
+        return body;
       }
 
       @Override
@@ -1008,6 +1000,20 @@ public class TestUtils {
       return Optional.of(future.get());
     } catch (Exception e) {
       return Optional.empty();
+    }
+  }
+
+  public static HttpResponse<byte[]> downloadBytes(HttpRequest request, String operationId)
+      throws ApiException, IOException, InterruptedException {
+    try (HttpClient unauthenticatedClient = HttpClient.newBuilder().build(); ) {
+      HttpResponse<byte[]> response =
+          unauthenticatedClient.send(request, HttpResponse.BodyHandlers.ofByteArray());
+      if (response.statusCode() / 100 != 2) {
+        throw getApiException(operationId, response);
+      }
+      return response;
+    } catch (IOException | InterruptedException e) {
+      throw e;
     }
   }
 }

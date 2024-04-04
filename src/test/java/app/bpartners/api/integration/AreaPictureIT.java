@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.time.Instant;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
@@ -50,7 +51,11 @@ public class AreaPictureIT extends S3MockedThirdParties {
         .id(AREA_PICTURE_1_ID)
         .zoomLevel(HOUSES_0)
         .layer(MONTAUBAN_2020)
+        .xTile(553415)
+        .yTile(492049)
         .address("Montauban Address")
+        .createdAt(Instant.parse("2022-01-08T01:00:00Z"))
+        .updatedAt(Instant.parse("2022-01-08T01:00:00Z"))
         .fileId("montauban_5cm_544729_383060.jpg")
         .filename("montauban_5cm_544729_383060.jpg");
   }
@@ -60,6 +65,10 @@ public class AreaPictureIT extends S3MockedThirdParties {
         .id("area_picture_2_id")
         .zoomLevel(HOUSES_0)
         .layer(MULHOUSE_2018)
+        .xTile(553415)
+        .yTile(492049)
+        .createdAt(Instant.parse("2022-01-08T01:00:00Z"))
+        .updatedAt(Instant.parse("2022-01-08T01:00:00Z"))
         .address("Cannes Address")
         .fileId("mulhouse_1_5cm_544729_383060.jpg")
         .filename("mulhouse_5cm_544729_383060.jpg");

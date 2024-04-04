@@ -1,3 +1,26 @@
+# [0.40.0](https://github.com/b-partners/bpartners-api/compare/v0.39.0...v0.40.0) (2024-04-04)
+
+
+### Bug Fixes
+
+* avoid NPE during old customer import evaluation ([258e977](https://github.com/b-partners/bpartners-api/commit/258e97777ddb7f37a557f3def280c05d4254cbd9))
+* disconnect bank when bridge items is empty ([1da7948](https://github.com/b-partners/bpartners-api/commit/1da7948ed6a8020b9aea405ed5bf44f650237a48))
+* implement invoice summary scheduled task ([38dad3e](https://github.com/b-partners/bpartners-api/commit/38dad3ef0238b183e4a1ffef0a5bc8a94f27e0ac))
+* optimize invoices summary without count value ([4b78a90](https://github.com/b-partners/bpartners-api/commit/4b78a903d94c13d6eca0725ed3d6899c97ceb66d))
+* set prospect contact nature to prospect and reformat project ([1707b0a](https://github.com/b-partners/bpartners-api/commit/1707b0ad63cc9f6b0299b3156359a21bcde97e05))
+* set prospect rating default value to 1 ([bda7576](https://github.com/b-partners/bpartners-api/commit/bda7576a97eef39bedc35804a43669b02e0d641b))
+* **test:** event is not ack if eventserviceInvoker fails ([1f765c1](https://github.com/b-partners/bpartners-api/commit/1f765c17ef497d9a6880cc068c74848bb2a67745))
+* **test:** make broken tests pass ([44d25d7](https://github.com/b-partners/bpartners-api/commit/44d25d7ec2dd28b2257db3b5f1ef3082d3f66602))
+
+
+### Features
+
+* area picture download from s3 or from osm ([e7140b3](https://github.com/b-partners/bpartners-api/commit/e7140b36075bdaf1c66a586625983a1b3d903da2))
+* multipart upload ([117b2bf](https://github.com/b-partners/bpartners-api/commit/117b2bf154eaeb0cc40e7785b1fcf0f467446598))
+* read area pictures ([a393e3e](https://github.com/b-partners/bpartners-api/commit/a393e3e4c6b12049b31aab8703dd959053e57639))
+
+
+
 # [0.39.0](https://github.com/b-partners/bpartners-api/compare/v0.38.2...v0.39.0) (2024-01-23)
 
 
@@ -191,19 +214,6 @@
 
 * Revert "chore: set account holder prospects relaunch to 4pm" ([473dbac](https://github.com/b-partners/bpartners-api/commit/473dbac3265de66c2ab73bbcce94e3d4d3a00085))
 * Revert "chore(to-revert): refresh unpaid invoices for artisan alphanuisible" ([2142ad5](https://github.com/b-partners/bpartners-api/commit/2142ad59106c0305ef1a093b1fc969ed0cfeb312))
-
-
-
-## [0.35.1](https://github.com/b-partners/bpartners-api/compare/v0.35.0...v0.35.1) (2023-10-24)
-
-
-### Bug Fixes
-
-* add additional info to prospect sent after status change ([152b46c](https://github.com/b-partners/bpartners-api/commit/152b46c0d889d8c71be20585b2867546ae2b54c4))
-* complete signature verification with payment_status_changes webhooks ([2672d53](https://github.com/b-partners/bpartners-api/commit/2672d5307fbdfc76c38960c9dc4e0f7e3e5bbf75))
-* convert address to coordinates when reading prospects through sheets ([0c34efa](https://github.com/b-partners/bpartners-api/commit/0c34efad58cfae847530b2ed35d8dafa56c72bea))
-* enrich invoice reference check during crupdate ([d650788](https://github.com/b-partners/bpartners-api/commit/d6507889bd58752dcd7abaa8cf6ff44e75d6b589))
-* let invoice crupdate and listing without authenticated user ([550dacf](https://github.com/b-partners/bpartners-api/commit/550dacfd49b70e831e96c54dec8ab53389dbdb5c))
 
 
 

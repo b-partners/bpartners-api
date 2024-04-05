@@ -1,40 +1,12 @@
 package app.bpartners.api.integration;
 
-import static app.bpartners.api.endpoint.rest.mapper.AreaPictureRestMapper.DEFAULT_FRANCE_LAYER;
-import static app.bpartners.api.endpoint.rest.model.OpenStreetMapLayer.MONTAUBAN_2020;
-import static app.bpartners.api.endpoint.rest.model.OpenStreetMapLayer.MULHOUSE_2018;
-import static app.bpartners.api.endpoint.rest.model.ZoomLevel.HOUSES_0;
-import static app.bpartners.api.integration.conf.utils.TestUtils.BEARER_PREFIX;
-import static app.bpartners.api.integration.conf.utils.TestUtils.BEARER_QUERY_PARAMETER_NAME;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_TOKEN;
-import static app.bpartners.api.integration.conf.utils.TestUtils.PROSPECT_1_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.downloadBytes;
-import static app.bpartners.api.integration.conf.utils.TestUtils.setUpCognito;
-import static app.bpartners.api.integration.conf.utils.TestUtils.setUpLegalFileRepository;
-import static java.util.UUID.randomUUID;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import app.bpartners.api.endpoint.rest.api.AreaPictureApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
-import app.bpartners.api.endpoint.rest.client.ApiException;
-import app.bpartners.api.endpoint.rest.model.AreaPictureDetails;
-import app.bpartners.api.endpoint.rest.model.CrupdateAreaPictureDetails;
 import app.bpartners.api.integration.conf.S3MockedThirdParties;
 import app.bpartners.api.integration.conf.utils.TestUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.io.IOException;
-import java.net.URI;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.time.Instant;
-import java.util.List;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 @Slf4j
@@ -45,8 +17,9 @@ public class AreaPictureIT extends S3MockedThirdParties {
     return TestUtils.anApiClient(JOE_DOE_TOKEN, localPort);
   }
 
-  private static final String AREA_PICTURE_1_ID = "area_picture_1_id";
-
+  public static final String AREA_PICTURE_1_ID = "area_picture_1_id";
+  public static final String AREA_PICTURE_2_ID = "area_picture_2_id";
+  /*
   static AreaPictureDetails areaPicture1() {
     return new AreaPictureDetails()
         .id(AREA_PICTURE_1_ID)
@@ -178,4 +151,5 @@ public class AreaPictureIT extends S3MockedThirdParties {
 
     return downloadBytes(requestBuilder.build(), "downloadAndSaveAreaPicture");
   }
+  */
 }

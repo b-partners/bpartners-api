@@ -1,0 +1,390 @@
+operations:
+  areaPictureUpload:
+    put:
+      tags:
+        - Files
+        - AreaPicture
+      summary: |
+        Download a file from external image source if it doesn't exist yet, and saves it in S3.
+        Otherwise, download from S3
+      operationId: downloadAndSaveAreaPicture
+      parameters:
+        - in: path
+          name: aId
+          schema:
+            type: string
+          required: true
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+      requestBody:
+        required: true
+        description:
+          |
+          an address readable by BAN API 
+          to convert into geographical coordinates in order to get a specific area
+          as a picture
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CrupdateAreaPictureDetails"
+      responses:
+        200:
+          description: The file
+          content:
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+            image/png:
+              schema:
+                type: string
+                format: binary
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
+  getAllAreaPictures:
+    get:
+      tags:
+        - AreaPicture
+      summary: |
+        list all existing area pictures linked to this account
+      operationId: getAllAreaPictures
+      parameters:
+        - in: query
+          name: page
+          schema:
+            $ref: './api.yml#/components/schemas/Page'
+        - in: query
+          name: pageSize
+          schema:
+            $ref: './api.yml#/components/schemas/PageSize'
+        - in: path
+          name: aId
+          schema:
+            type: string
+          required: true
+        - in: query
+          name: address
+          schema:
+            type: string
+        - in: query
+          name: filename
+          schema:
+            type: string
+      responses:
+        200:
+          description: area pictures
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AreaPictureDetails"
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
+  getAreaPictureById:
+    get:
+      tags:
+        - Files
+        - AreaPicture
+      summary: get specified area picture
+      operationId: getAreaPictureById
+      parameters:
+        - in: path
+          name: aId
+          schema:
+            type: string
+          required: true
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description: The Area Picture Details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AreaPictureDetails"
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
+  areaPictureAnnotationListOperations:
+    get:
+      tags:
+        - AreaPicture
+      summary: get area picture annotations
+      operationId: getAreaPictureAnnotations
+      parameters:
+        - in: path
+          name: aId
+          schema:
+            type: string
+          required: true
+        - in: path
+          name: areaPictureId
+          schema:
+            type: string
+          required: true
+        - in: query
+          name: page
+          schema:
+            $ref: './api.yml#/components/schemas/Page'
+        - in: query
+          name: pageSize
+          schema:
+            $ref: './api.yml#/components/schemas/PageSize'
+      responses:
+        200:
+          description: annotations made on the area picture, ordered by creation date-time
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AreaPictureAnnotation"
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
+  areaPictureAnnotationSingleOperation:
+    get:
+      tags:
+        - AreaPicture
+      summary: get area picture annotations
+      operationId: getAreaPictureAnnotation
+      parameters:
+        - in: path
+          name: aId
+          schema:
+            type: string
+          required: true
+        - in: path
+          name: areaPictureId
+          schema:
+            type: string
+          required: true
+        - in: path
+          name: annotationId
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description:
+            the requested annotation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AreaPictureAnnotation"
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
+    put:
+      tags:
+        - AreaPicture
+      summary: get area picture annotations
+      operationId: annotateAreaPicture
+      parameters:
+        - in: path
+          name: aId
+          schema:
+            type: string
+          required: true
+        - in: path
+          name: areaPictureId
+          schema:
+            type: string
+          required: true
+        - in: path
+          name: annotationId
+          schema:
+            type: string
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AreaPictureAnnotation"
+      responses:
+        200:
+          description: the created annotation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AreaPictureAnnotation"
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
+components:
+  schemas:
+    ZoomLevel:
+      type: string
+      enum:
+        - WORLD_0
+        - WORLD_1
+        - WORLD_2
+        - CONTINENT_0
+        - CONTINENT_1
+        - COUNTRIES
+        - COUNTRY
+        - STATES
+        - COUNTIES_0
+        - COUNTIES_1
+        - COUNTY
+        - METROPOLITAN_AREA
+        - CITIES
+        - CITY
+        - TOWN
+        - NEIGHBORHOOD
+        - STREETS
+        - CITY_BLOCK
+        - BUILDINGS
+        - BUILDING
+        - HOUSES_0
+        - HOUSES_1
+        - HOUSES_2
+        - HOUSE_PROPERTY
+    OpenStreetMapLayer:
+      type: string
+      enum:
+        - tous_fr
+    CrupdateAreaPictureDetails:
+      type: object
+      properties:
+        address:
+          type: string
+        zoomLevel:
+          $ref: "#/components/schemas/ZoomLevel"
+        fileId:
+          type: string
+        filename:
+          type: string
+        prospectId:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    AreaPictureDetails:
+      allOf:
+        - $ref: "#/components/schemas/CrupdateAreaPictureDetails"
+      properties:
+        id:
+          type: string
+        xTile:
+          type: integer
+        yTile:
+          type: integer
+        layer:
+          $ref: "#/components/schemas/OpenStreetMapLayer"
+    Point:
+      type: object
+      properties:
+        x:
+          type: number
+          format: double
+        y:
+          type: number
+          format: double
+    Polygon:
+      type: object
+      properties:
+        points:
+          type: array
+          items:
+            $ref: '#/components/schemas/Point'
+    AreaPictureAnnotationInstance:
+      type: object
+      properties:
+        id:
+          type: string
+        areaPictureId:
+          type: string
+        annotationId:
+          type: string
+        metadata:
+          $ref: '#/components/schemas/AreaPictureAnnotationInstanceMetadata'
+        userId:
+          type: string
+        labelName:
+          type: string
+        polygon:
+          $ref: '#/components/schemas/Polygon'
+    AreaPictureAnnotationInstanceMetadata:
+      type: object
+      properties:
+        area:
+          type: number
+          format: double
+        slope:
+          type: number
+          format: double
+        covering:
+          type: string
+        wearLevel:
+          type: number
+          format: double
+    AreaPictureAnnotation:
+      type: object
+      properties:
+        id:
+          type: string
+        idAreaPicture:
+          type: string
+        creationDatetime:
+          description: ignored in requestBody for creation
+          type: string
+          format: date-time
+        annotations:
+          type: array
+          items:
+            $ref: "#/components/schemas/AreaPictureAnnotationInstance"

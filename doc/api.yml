@@ -139,11 +139,16 @@ paths:
   ################# Area Picture API #################
   #############################################
   /accounts/{aId}/areaPictures:
-    $ref: './files-api.yml#/operations/getAllAreaPictures'
+    $ref: './area-pictures-api.yml#/operations/getAllAreaPictures'
   /accounts/{aId}/areaPictures/{id}:
-    $ref: './files-api.yml#/operations/getAreaPictureById'
+    $ref: './area-pictures-api.yml#/operations/getAreaPictureById'
   /accounts/{aId}/areaPictures/{id}/raw:
-    $ref: './files-api.yml#/operations/areaPictureUpload'
+    $ref: './area-pictures-api.yml#/operations/areaPictureUpload'
+  /accounts/{aId}/areaPictures/{areaPictureId}/annotations:
+    $ref: './area-pictures-api.yml#/operations/areaPictureAnnotationListOperations'
+  /accounts/{aId}/areaPictures/{areaPictureId}/annotations/{annotationId}:
+    $ref: './area-pictures-api.yml#/operations/areaPictureAnnotationSingleOperation'
+
 
   #############################################
   ############## Customers API ################

@@ -3,12 +3,10 @@ package app.bpartners.api.endpoint.rest.validator;
 import app.bpartners.api.endpoint.rest.model.CrupdateAreaPictureDetails;
 import app.bpartners.api.model.exception.BadRequestException;
 import java.util.function.Consumer;
-import java.util.regex.Pattern;
 import org.springframework.stereotype.Component;
 
 @Component
 public class CrupdateAreaPictureDetailsValidator implements Consumer<CrupdateAreaPictureDetails> {
-  private static final Pattern AREA_PICTURE_FILENAME_PATTERN = Pattern.compile("");
 
   @Override
   public void accept(CrupdateAreaPictureDetails crupdateAreaPictureDetails) {
@@ -29,14 +27,6 @@ public class CrupdateAreaPictureDetailsValidator implements Consumer<CrupdateAre
     }
     if (filename == null) {
       exceptionMessageBuilder.append("filename is mandatory. ");
-    } else {
-      Matcher matcher = AREA_PICTURE_FILENAME_PATTERN.matcher(filename);
-      if (!matcher.matches()) {
-        exceptionMessageBuilder
-            .append("filename does not match pattern: ")
-            .append(AREA_PICTURE_FILENAME_PATTERN)
-            .append(".");
-      }
     }
 
     String exceptionMessage = exceptionMessageBuilder.toString();

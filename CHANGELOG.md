@@ -1,3 +1,17 @@
+# [0.41.0](https://github.com/b-partners/bpartners-api/compare/v0.40.0...v0.41.0) (2024-04-05)
+
+
+### Features
+
+* add mandatory prospect_id to area_picture ([13e8d26](https://github.com/b-partners/bpartners-api/commit/13e8d2636593c705c66e3386fc8f732a7e0294cc))
+
+
+### Reverts
+
+* Revert "chore(to-revert): disable filename pattern matching" ([a4f07d4](https://github.com/b-partners/bpartners-api/commit/a4f07d41b780d8e62a13f849a7d56eddd76a5b81))
+
+
+
 # [0.40.0](https://github.com/b-partners/bpartners-api/compare/v0.39.0...v0.40.0) (2024-04-04)
 
 
@@ -186,34 +200,6 @@
 * handle query parameters when initiating calendar consent ([2d563fc](https://github.com/b-partners/bpartners-api/commit/2d563fca7d0b02b928f856707dff26bb10feae2c))
 * set payment created datetime as default payment status updated datetime ([1594533](https://github.com/b-partners/bpartners-api/commit/159453301718e7269f9dc08a1cc143095f39aced))
 * set payment value as cents in notification ([f78eb2f](https://github.com/b-partners/bpartners-api/commit/f78eb2f02d25f65b41c1ac858a9acf2f6ef7d824))
-
-
-
-# [0.36.0](https://github.com/b-partners/bpartners-api/compare/v0.35.1...v0.36.0) (2023-11-03)
-
-
-### Bug Fixes
-
-* add contact nature to prospect ([53d9ab2](https://github.com/b-partners/bpartners-api/commit/53d9ab2225f21059637630f0fd6c3eaa04ec23c2))
-* add encoded sns arn inside users attributes ([d90113b](https://github.com/b-partners/bpartners-api/commit/d90113b5c53cd17197de43c91fae4450628d0fd1))
-* avoid NPE when crupdating prospects ([3a95d13](https://github.com/b-partners/bpartners-api/commit/3a95d130e2017e464494712963d2a7bdc590e4f6))
-* crupdate prospects ([f12e445](https://github.com/b-partners/bpartners-api/commit/f12e44580956da5e81f7582956c2365b2982ad29))
-* filter invoice keywords by customer infos ([6d2e061](https://github.com/b-partners/bpartners-api/commit/6d2e0613f859386657582f21142a18024968059c))
-* order customers by updated datetime desc ([1279aef](https://github.com/b-partners/bpartners-api/commit/1279aefab718c07bf5c4e23e756651dfae3f3743))
-* relaunch TO_CONTACT prospects to 2pm and only with rating > 0 ([cf8b1e0](https://github.com/b-partners/bpartners-api/commit/cf8b1e0f737b6517ae36a9d6e68736a2dc59e536))
-* remove spreadsheet properties when prospecting through calendar ([a632059](https://github.com/b-partners/bpartners-api/commit/a6320598437d3f0b0bf0f8d5cabb9fea602b877f))
-* set payment amount value inside email status changed to cents ([ad5348e](https://github.com/b-partners/bpartners-api/commit/ad5348eb8d75f64027dbfb0ace6166318d7acc1d))
-
-
-### Features
-
-* relaunch account holders every friday 02:00 PM for prospect with status TO_CONTACT ([b351a8d](https://github.com/b-partners/bpartners-api/commit/b351a8dbe8cc3b53b1d192176c5545e57692fccb))
-
-
-### Reverts
-
-* Revert "chore: set account holder prospects relaunch to 4pm" ([473dbac](https://github.com/b-partners/bpartners-api/commit/473dbac3265de66c2ab73bbcce94e3d4d3a00085))
-* Revert "chore(to-revert): refresh unpaid invoices for artisan alphanuisible" ([2142ad5](https://github.com/b-partners/bpartners-api/commit/2142ad59106c0305ef1a093b1fc969ed0cfeb312))
 
 
 

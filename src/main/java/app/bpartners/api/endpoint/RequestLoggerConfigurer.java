@@ -6,6 +6,7 @@ import static java.lang.System.currentTimeMillis;
 import static java.lang.Thread.currentThread;
 import static java.util.stream.Collectors.joining;
 
+import app.bpartners.api.PojaGenerated;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
@@ -16,6 +17,7 @@ import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+@PojaGenerated
 @Configuration
 @AllArgsConstructor
 public class RequestLoggerConfigurer implements WebMvcConfigurer {
@@ -24,6 +26,7 @@ public class RequestLoggerConfigurer implements WebMvcConfigurer {
     registry.addInterceptor(new RequestLogger());
   }
 
+  @PojaGenerated
   @AllArgsConstructor
   @Slf4j
   private static class RequestLogger implements HandlerInterceptor {

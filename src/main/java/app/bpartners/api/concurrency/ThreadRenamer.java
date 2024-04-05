@@ -1,8 +1,10 @@
 package app.bpartners.api.concurrency;
 
+import app.bpartners.api.PojaGenerated;
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 
+@PojaGenerated
 @Slf4j
 public class ThreadRenamer {
   public static void renameWorkerThread(Thread thread) {

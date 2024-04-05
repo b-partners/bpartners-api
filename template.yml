@@ -112,6 +112,7 @@ Resources:
           Properties:
             Queue: !Sub '{{resolve:ssm:/bpartners/${Env}/sqs/mailbox-queue-arn}}'
             BatchSize: 1
+      ReservedConcurrentExecutions: 70
 
   ApplicationResourceGroup:
     Type: AWS::ResourceGroups::Group

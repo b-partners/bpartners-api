@@ -16,6 +16,7 @@ import app.bpartners.api.repository.fintecture.FintectureConf;
 import app.bpartners.api.repository.fintecture.implementation.FintecturePaymentInfoRepositoryImpl;
 import app.bpartners.api.repository.fintecture.model.PaymentMeta;
 import app.bpartners.api.repository.fintecture.model.Session;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.net.http.HttpClient;
 import java.security.NoSuchAlgorithmException;
@@ -26,6 +27,7 @@ class FintecturePaymentInfoRepositoryTest {
   FintectureConf fintectureConf;
   ProjectTokenManager projectTokenManager;
   FintecturePaymentInfoRepositoryImpl fintecturePaymentInfoRepository;
+  private static final ObjectMapper OM = new ObjectMapper().findAndRegisterModules();
   HttpClient httpClient;
 
   PaymentMeta meta() {
@@ -51,7 +53,8 @@ class FintecturePaymentInfoRepositoryTest {
 
   @Test
   void read_payment_info_ok() throws IOException, InterruptedException {
-    when(httpClient.send(any(), any())).thenReturn(httpResponseMock(validSession()));
+    when(httpClient.send(any(), any()))
+        .thenReturn(httpResponseMock(OM.writeValueAsString(validSession())));
 
     Session actual = fintecturePaymentInfoRepository.getPaymentBySessionId(SESSION_ID);
 
@@ -68,7 +71,8 @@ class FintecturePaymentInfoRepositoryTest {
 
   @Test
   void read_payment_info_ko_on_invalid_session() throws IOException, InterruptedException {
-    when(httpClient.send(any(), any())).thenReturn(httpResponseMock(new Session()));
+    when(httpClient.send(any(), any()))
+        .thenReturn(httpResponseMock(OM.writeValueAsString(new Session())));
     Session actualNull = fintecturePaymentInfoRepository.getPaymentBySessionId(SESSION_ID);
 
     assertNull(actualNull);

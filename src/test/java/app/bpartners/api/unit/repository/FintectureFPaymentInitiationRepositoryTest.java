@@ -25,12 +25,14 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 
 class FintectureFPaymentInitiationRepositoryTest {
   FintectureConf fintectureConf;
   ProjectTokenManager projectTokenManager;
   FintecturePaymentInitiationRepositoryImpl fintecturePaymentInitiationRepository;
   HttpClient httpClient;
+  private static final ObjectMapper OM = new ObjectMapper().findAndRegisterModules();
 
   @BeforeEach
   void setUp() throws NoSuchAlgorithmException {
@@ -74,7 +76,8 @@ class FintectureFPaymentInitiationRepositoryTest {
 
   @Test
   void save_payment_ok() throws IOException, InterruptedException {
-    when(httpClient.send(any(), any())).thenReturn(httpResponseMock(validPaymentRedirection()));
+    when(httpClient.send(any(), any()))
+        .thenReturn(httpResponseMock(OM.writeValueAsString(validPaymentRedirection())));
 
     FPaymentRedirection actual =
         fintecturePaymentInitiationRepository.save(paymentInitiation(), REDIRECT_SUCCESS_URL);
@@ -84,7 +87,8 @@ class FintectureFPaymentInitiationRepositoryTest {
 
   @Test
   void save_payment_without_status_code_ko() throws IOException, InterruptedException {
-    when(httpClient.send(any(), any())).thenReturn(httpResponseMock(invalidPaymentRedirection()));
+    when(httpClient.send(any(), any()))
+        .thenReturn(httpResponseMock(OM.writeValueAsString(invalidPaymentRedirection())));
 
     FPaymentRedirection actualResponse =
         fintecturePaymentInitiationRepository.save(paymentInitiation(), REDIRECT_SUCCESS_URL);
@@ -94,7 +98,8 @@ class FintectureFPaymentInitiationRepositoryTest {
 
   @Test
   void save_payment_with_status_code_400_ko() throws IOException, InterruptedException {
-    when(httpClient.send(any(), any())).thenReturn(httpResponseMock(invalidPaymentRedirection2()));
+    when(httpClient.send(any(), any()))
+        .thenReturn(httpResponseMock(OM.writeValueAsString(invalidPaymentRedirection2())));
     FPaymentRedirection actualResponse =
         fintecturePaymentInitiationRepository.save(paymentInitiation(), REDIRECT_SUCCESS_URL);
 

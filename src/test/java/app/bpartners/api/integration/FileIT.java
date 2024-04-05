@@ -12,6 +12,7 @@ import static app.bpartners.api.integration.conf.utils.TestUtils.TEST_FILE_ID;
 import static app.bpartners.api.integration.conf.utils.TestUtils.TO_UPLOAD_FILE_ID;
 import static app.bpartners.api.integration.conf.utils.TestUtils.assertThrowsApiException;
 import static app.bpartners.api.integration.conf.utils.TestUtils.assertThrowsForbiddenException;
+import static app.bpartners.api.integration.conf.utils.TestUtils.downloadBytes;
 import static app.bpartners.api.integration.conf.utils.TestUtils.getApiException;
 import static app.bpartners.api.integration.conf.utils.TestUtils.setUpCognito;
 import static app.bpartners.api.integration.conf.utils.TestUtils.setUpLegalFileRepository;
@@ -143,29 +144,31 @@ class FileIT extends S3MockedThirdParties {
 
   private HttpResponse<byte[]> upload(String fileType, String fileId, File toUpload)
       throws IOException, InterruptedException, ApiException {
-    HttpClient unauthenticatedClient = HttpClient.newBuilder().build();
-    String basePath = "http://localhost:" + localPort;
+    try (HttpClient unauthenticatedClient = HttpClient.newBuilder().build(); ) {
+      String basePath = "http://localhost:" + localPort;
 
-    HttpResponse<byte[]> response =
-        unauthenticatedClient.send(
-            HttpRequest.newBuilder()
-                .uri(
-                    URI.create(
-                        basePath
-                            + "/accounts/"
-                            + JOE_DOE_ACCOUNT_ID
-                            + "/files/"
-                            + fileId
-                            + "/raw?fileType="
-                            + fileType))
-                .header("Authorization", BEARER_PREFIX + JOE_DOE_TOKEN)
-                .method("POST", HttpRequest.BodyPublishers.ofFile(toUpload.toPath()))
-                .build(),
-            HttpResponse.BodyHandlers.ofByteArray());
-    if (response.statusCode() / 100 != 2) {
-      throw getApiException("downloadFile", response);
+      HttpResponse<byte[]> response =
+          unauthenticatedClient.send(
+              HttpRequest.newBuilder()
+                  .uri(
+                      URI.create(
+                          basePath
+                              + "/accounts/"
+                              + JOE_DOE_ACCOUNT_ID
+                              + "/files/"
+                              + fileId
+                              + "/raw?fileType="
+                              + fileType))
+                  .header("Authorization", BEARER_PREFIX + JOE_DOE_TOKEN)
+                  .method("POST", HttpRequest.BodyPublishers.ofFile(toUpload.toPath()))
+                  .build(),
+              HttpResponse.BodyHandlers.ofByteArray());
+
+      if (response.statusCode() / 100 != 2) {
+        throw getApiException("downloadFile", response);
+      }
+      return response;
     }
-    return response;
   }
 
   @Test
@@ -198,7 +201,7 @@ class FileIT extends S3MockedThirdParties {
   }
 
   @Test
-  void download_file_ok() throws IOException, InterruptedException, ApiException {
+  void download_file_ok() throws ApiException, IOException, InterruptedException {
     String basePath = "http://localhost:" + localPort;
 
     HttpResponse<byte[]> responseBearerInHeader =
@@ -224,63 +227,51 @@ class FileIT extends S3MockedThirdParties {
 
   public HttpResponse<byte[]> download(
       FileType fileType, String basePath, String token, String queryBearer, String fileId)
-      throws IOException, InterruptedException, ApiException {
-    HttpClient unauthenticatedClient = HttpClient.newBuilder().build();
-    HttpResponse<byte[]> response =
-        unauthenticatedClient.send(
-            HttpRequest.newBuilder()
-                .uri(
-                    URI.create(
-                        basePath
-                            + "/accounts/"
-                            + JOE_DOE_ACCOUNT_ID
-                            + "/files/"
-                            + fileId
-                            + "/raw?"
-                            + BEARER_QUERY_PARAMETER_NAME
-                            + "="
-                            + queryBearer
-                            + "&fileType="
-                            + fileType))
-                .header("Access-Control-Request-Method", "GET")
-                .header("Authorization", BEARER_PREFIX + token)
-                .GET()
-                .build(),
-            HttpResponse.BodyHandlers.ofByteArray());
-    if (response.statusCode() / 100 != 2) {
-      throw getApiException("downloadFile", response);
-    }
-    return response;
+      throws ApiException, IOException, InterruptedException {
+    var request =
+        HttpRequest.newBuilder()
+            .uri(
+                URI.create(
+                    basePath
+                        + "/accounts/"
+                        + JOE_DOE_ACCOUNT_ID
+                        + "/files/"
+                        + fileId
+                        + "/raw?"
+                        + BEARER_QUERY_PARAMETER_NAME
+                        + "="
+                        + queryBearer
+                        + "&fileType="
+                        + fileType))
+            .header("Access-Control-Request-Method", "GET")
+            .header("Authorization", BEARER_PREFIX + token)
+            .GET()
+            .build();
+    return downloadBytes(request, "downloadFile");
   }
 
   public HttpResponse<byte[]> download(
       FileType fileType, String basePath, String queryBearer, String fileId)
-      throws IOException, InterruptedException, ApiException {
-    HttpClient unauthenticatedClient = HttpClient.newBuilder().build();
-    HttpResponse<byte[]> response =
-        unauthenticatedClient.send(
-            HttpRequest.newBuilder()
-                .uri(
-                    URI.create(
-                        basePath
-                            + "/accounts/"
-                            + JOE_DOE_ACCOUNT_ID
-                            + "/files/"
-                            + fileId
-                            + "/raw?"
-                            + BEARER_QUERY_PARAMETER_NAME
-                            + "="
-                            + queryBearer
-                            + "&fileType="
-                            + fileType))
-                .header("Access-Control-Request-Method", "GET")
-                .GET()
-                .build(),
-            HttpResponse.BodyHandlers.ofByteArray());
-    if (response.statusCode() / 100 != 2) {
-      throw getApiException("downloadFile", response);
-    }
-    return response;
+      throws ApiException, IOException, InterruptedException {
+    HttpRequest request =
+        HttpRequest.newBuilder()
+            .uri(
+                URI.create(
+                    basePath
+                        + "/accounts/"
+                        + JOE_DOE_ACCOUNT_ID
+                        + "/files/"
+                        + fileId
+                        + "/raw?"
+                        + BEARER_QUERY_PARAMETER_NAME
+                        + "="
+                        + queryBearer
+                        + "&fileType="
+                        + fileType))
+            .header("Access-Control-Request-Method", "GET")
+            .GET()
+            .build();
+    return downloadBytes(request, "downloadFile");
   }
 
   // TODO: write upload_triggers_event_ok as done in InvoiceIT

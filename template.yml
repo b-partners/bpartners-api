@@ -98,6 +98,7 @@ Resources:
             Method: ANY
             RestApiId:
               Ref: FrontalServerlessRestApi
+      ReservedConcurrentExecutions: 20
 
   WorkerFunction:
     Type: AWS::Serverless::Function
@@ -111,8 +112,8 @@ Resources:
           Type: SQS
           Properties:
             Queue: !Sub '{{resolve:ssm:/bpartners/${Env}/sqs/mailbox-queue-arn}}'
-            BatchSize: 1
-      ReservedConcurrentExecutions: 70
+            BatchSize: 5
+      ReservedConcurrentExecutions: 30
 
   ApplicationResourceGroup:
     Type: AWS::ResourceGroups::Group

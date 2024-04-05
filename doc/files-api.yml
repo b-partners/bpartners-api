@@ -301,6 +301,8 @@ components:
           type: string
         filename:
           type: string
+        prospectId:
+          type: string
         createdAt:
           type: string
           format: date-time

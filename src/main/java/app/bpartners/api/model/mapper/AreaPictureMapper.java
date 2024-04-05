@@ -26,6 +26,7 @@ public class AreaPictureMapper {
             .idFileInfo(entity.getIdFileInfo())
             .createdAt(entity.getCreatedAt())
             .updatedAt(entity.getUpdatedAt())
+            .idProspect(entity.getIdProspect())
             .build();
     domain.setTile(Tile.from(domain));
     return domain;
@@ -45,6 +46,7 @@ public class AreaPictureMapper {
         .idFileInfo(domain.getIdFileInfo())
         .createdAt(domain.getCreatedAt())
         .updatedAt(domain.getUpdatedAt())
+        .idProspect(domain.getIdProspect())
         .build();
   }
 }

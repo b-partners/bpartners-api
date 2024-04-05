@@ -39,6 +39,7 @@ public class HAreaPicture {
   private String address;
   private double longitude;
   private double latitude;
+  private String idProspect;
   @CreationTimestamp private Instant createdAt;
   @UpdateTimestamp private Instant updatedAt;
 

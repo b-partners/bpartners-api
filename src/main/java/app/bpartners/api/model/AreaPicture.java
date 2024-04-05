@@ -20,6 +20,7 @@ import lombok.ToString;
 public class AreaPicture {
   private String id;
   private String idUser;
+  private String idProspect;
   private String idFileInfo;
   private String address;
   private double longitude;

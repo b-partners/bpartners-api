@@ -173,6 +173,8 @@ public class TestUtils {
   public static final String JANE_EMAIL = "jane@email.com";
   public static final String BERNARD_EMAIL = "bernard@email.com";
   public static final String TRANSACTION3_ID = "transaction3_id";
+  public static final String PROSPECT_1_ID = "prospect1_id";
+  public static final String PROSPECT_2_ID = "prospect2_id";
 
   public static User restJoeDoeUser() {
     return new User()
@@ -677,7 +679,7 @@ public class TestUtils {
 
   public static Prospect prospect1() {
     return new Prospect()
-        .id("prospect1_id")
+        .id(PROSPECT_1_ID)
         .name("John doe")
         .location(null)
         .status(TO_CONTACT)
@@ -703,7 +705,7 @@ public class TestUtils {
 
   public static Prospect prospect2() {
     return new Prospect()
-        .id("prospect2_id")
+        .id(PROSPECT_2_ID)
         .name("jane doe")
         .location(null)
         .contactNature(ContactNature.PROSPECT)

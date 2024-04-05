@@ -28,6 +28,9 @@ public class CrupdateAreaPictureDetailsValidator implements Consumer<CrupdateAre
     if (filename == null) {
       exceptionMessageBuilder.append("filename is mandatory. ");
     }
+    if (crupdateAreaPictureDetails.getProspectId() == null) {
+      exceptionMessageBuilder.append("prospectId is mandatory. ");
+    }
 
     String exceptionMessage = exceptionMessageBuilder.toString();
     if (!exceptionMessage.isEmpty()) {

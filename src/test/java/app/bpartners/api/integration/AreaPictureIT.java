@@ -8,6 +8,7 @@ import static app.bpartners.api.integration.conf.utils.TestUtils.BEARER_PREFIX;
 import static app.bpartners.api.integration.conf.utils.TestUtils.BEARER_QUERY_PARAMETER_NAME;
 import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_TOKEN;
+import static app.bpartners.api.integration.conf.utils.TestUtils.PROSPECT_1_ID;
 import static app.bpartners.api.integration.conf.utils.TestUtils.downloadBytes;
 import static app.bpartners.api.integration.conf.utils.TestUtils.setUpCognito;
 import static app.bpartners.api.integration.conf.utils.TestUtils.setUpLegalFileRepository;
@@ -57,6 +58,7 @@ public class AreaPictureIT extends S3MockedThirdParties {
         .createdAt(Instant.parse("2022-01-08T01:00:00Z"))
         .updatedAt(Instant.parse("2022-01-08T01:00:00Z"))
         .fileId("montauban_5cm_544729_383060.jpg")
+        .prospectId(PROSPECT_1_ID)
         .filename("montauban_5cm_544729_383060.jpg");
   }
 
@@ -71,6 +73,7 @@ public class AreaPictureIT extends S3MockedThirdParties {
         .updatedAt(Instant.parse("2022-01-08T01:00:00Z"))
         .address("Cannes Address")
         .fileId("mulhouse_1_5cm_544729_383060.jpg")
+        .prospectId(PROSPECT_1_ID)
         .filename("mulhouse_5cm_544729_383060.jpg");
   }
 

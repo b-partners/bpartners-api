@@ -23,6 +23,7 @@ public class AreaPictureRestMapper {
         .updatedAt(domain.getUpdatedAt())
         .xTile(domain.getTile().getX())
         .yTile(domain.getTile().getY())
+        .prospectId(domain.getIdProspect())
         .layer(domain.getLayer());
   }
 
@@ -34,6 +35,7 @@ public class AreaPictureRestMapper {
         .idFileInfo(rest.getFileId())
         .filename(rest.getFilename())
         .zoomLevel(rest.getZoomLevel())
+        .idProspect(rest.getProspectId())
         .layer(rest.getLayer())
         .idUser(userId)
         .createdAt(rest.getCreatedAt())

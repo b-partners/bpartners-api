@@ -30,5 +30,5 @@ GOOGLE_SHEET_REDIRECT_URIS: !Sub '{{resolve:ssm:/bpartners/${Env}/google/sheet/r
 ADMIN_EMAIL: !Sub '{{resolve:ssm:/bpartners/${Env}/admin/email}}'
 SNS_PLATFORM_ARN: !Sub '{{resolve:ssm:/bpartners/${Env}/sns/platform-arn}}'
 DATABASE_URL: !Sub '{{resolve:ssm:/bpartners/${Env}/db/url}}'
-DATABASE_USERNAME: !Sub '{{resolve:ssm:/bpartners/${Env}/db/username}}'
-DATABASE_PASSWORD: !Sub '{{resolve:ssm:/bpartners/${Env}/db/password}}'
+DATABASE_USERNAME: !Sub '{{resolve:ssm:/bpartners/${Env}/db/user/username}}'
+DATABASE_PASSWORD: !Sub '{{resolve:ssm:/bpartners/${Env}/db/user/password}}'

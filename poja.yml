@@ -11,8 +11,8 @@ codeartifact_repository_name: bpartners-store
 custom_java_deps: poja-custom-java-deps.txt
 custom_java_env_vars: poja-custom-java-env-vars.txt
 custom_java_repositories: poja-custom-java-repositories.txt
-database_non_root_password: null
-database_non_root_username: null
+database_non_root_password: /bpartners/${Env}/db/user/password
+database_non_root_username: /bpartners/${Env}/db/user/username
 frontal_memory: 512
 frontal_reserved_concurrent_executions_nb: 20
 jacoco_min_coverage: '0.4'

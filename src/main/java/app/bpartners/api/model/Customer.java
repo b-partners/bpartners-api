@@ -49,6 +49,7 @@ public class Customer {
   protected Instant createdAt;
   protected String latestFullAddress;
   protected CustomerType customerType;
+  protected boolean isConverted;
 
   public String describe() {
     return "Customer(id=" + id + ", name=" + getFullName() + ", idUser=" + idUser + ")";

@@ -1,6 +1,9 @@
 package app.bpartners.api.service.event;
 
+import static app.bpartners.api.endpoint.rest.model.CustomerType.PROFESSIONAL;
+import static app.bpartners.api.endpoint.rest.model.ProspectStatus.CONVERTED;
 import static app.bpartners.api.service.utils.DateUtils.formatFrenchDatetime;
+import static java.util.UUID.randomUUID;
 
 import app.bpartners.api.endpoint.event.SesConf;
 import app.bpartners.api.endpoint.event.gen.ProspectUpdated;
@@ -8,14 +11,22 @@ import app.bpartners.api.endpoint.rest.model.ProspectFeedback;
 import app.bpartners.api.endpoint.rest.model.ProspectStatus;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.Attachment;
+import app.bpartners.api.model.Customer;
+import app.bpartners.api.model.Location;
+import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.prospect.Prospect;
 import app.bpartners.api.repository.AccountHolderRepository;
+import app.bpartners.api.repository.jpa.HasCustomerJpaRepository;
+import app.bpartners.api.repository.jpa.model.HHasCustomer;
+import app.bpartners.api.service.CustomerService;
+import app.bpartners.api.service.UserService;
 import app.bpartners.api.service.aws.SesService;
 import app.bpartners.api.service.utils.TemplateResolverUtils;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Consumer;
 import javax.mail.MessagingException;
 import lombok.AllArgsConstructor;
@@ -29,8 +40,11 @@ import org.thymeleaf.context.Context;
 public class ProspectUpdatedService implements Consumer<ProspectUpdated> {
   public static final String PROSPECT_UPDATED_TEMPLATE = "prospect_updated";
   private final AccountHolderRepository holderRepository;
+  private final CustomerService customerService;
+  private final UserService userService;
   private final SesService sesService;
   private final SesConf sesConf;
+  private final HasCustomerJpaRepository hasCustomerJpaRepository;
 
   @Override
   public void accept(ProspectUpdated prospectUpdated) {
@@ -39,6 +53,8 @@ public class ProspectUpdatedService implements Consumer<ProspectUpdated> {
         prospect.isGivenUp()
             ? holderRepository.findById(prospect.getLatestOldHolder())
             : holderRepository.findById(prospect.getIdHolderOwner());
+    String userId = accountHolder.getUserId();
+    createAndLinkCustomerToProspect(userService.getUserById(userId), prospect);
     ProspectUpdateType updateType =
         prospect.isGivenUp() ? ProspectUpdateType.GIVE_UP : ProspectUpdateType.CONTINUE_PROCESS;
     Instant updatedAt = prospectUpdated.getUpdatedAt();
@@ -71,7 +87,7 @@ public class ProspectUpdatedService implements Consumer<ProspectUpdated> {
       sesService.sendEmail(recipient, concerned, subject, htmlBody, attachments);
       log.info("{} updated and mail sent to recipient={}", prospect.describe(), recipient);
     } catch (IOException | MessagingException e) {
-      log.warn("Enable to send email after " + prospect + " update. Exception was :" + e);
+      log.warn("Unable to send email after " + prospect + " update. Exception was :" + e);
       throw new ApiException(ApiException.ExceptionType.SERVER_EXCEPTION, e);
     }
   }
@@ -117,6 +133,50 @@ public class ProspectUpdatedService implements Consumer<ProspectUpdated> {
     context.setVariable("translatedStatus", translatedStatus);
     context.setVariable("frenchUpdatedDatetime", frenchUpdatedDatetime);
     return TemplateResolverUtils.parseTemplateResolver(PROSPECT_UPDATED_TEMPLATE, context);
+  }
+
+  private void createAndLinkCustomerToProspect(User user, Prospect prospect) {
+    Optional<Customer> optionalLinkedCustomer = customerService.getByProspectId(prospect.getId());
+    var crupdatedCustomer =
+        customerService
+            .crupdateCustomers(user, List.of(customerFrom(prospect, optionalLinkedCustomer)))
+            .getFirst();
+    if (optionalLinkedCustomer.isEmpty()) {
+      hasCustomerJpaRepository.save(
+          HHasCustomer.builder()
+              .idProspect(prospect.getId())
+              .idCustomer(crupdatedCustomer.getId())
+              .build());
+    }
+    log.info("{} updated ", crupdatedCustomer.describe());
+  }
+
+  private Customer customerFrom(Prospect prospect, Optional<Customer> optionalLinkedCustomer) {
+    var isConverted = CONVERTED.equals(prospect.getActualStatus());
+    var prospectLocation = prospect.getLocation();
+    Location location =
+        prospectLocation == null
+            ? null
+            : Location.builder()
+                .longitude(prospectLocation.getLongitude())
+                .latitude(prospectLocation.getLatitude())
+                .build();
+    if (optionalLinkedCustomer.isPresent()) {
+      Customer persistedCustomer = optionalLinkedCustomer.get();
+      return persistedCustomer.toBuilder().isConverted(isConverted).build();
+    }
+    return Customer.builder()
+        .id(randomUUID().toString())
+        .email(prospect.getEmail())
+        .name(prospect.getName())
+        .address(prospect.getAddress())
+        .phone(prospect.getPhone())
+        .comment(prospect.getComment())
+        .isConverted(isConverted)
+        .location(location)
+        // TODO: this defaults to PROFESSIONAL for now
+        .customerType(PROFESSIONAL)
+        .build();
   }
 
   enum ProspectUpdateType {

@@ -312,6 +312,11 @@ public class CustomerRepositoryImpl implements CustomerRepository {
   }
 
   @Override
+  public Optional<Customer> findOptionalByProspectId(String idProspect) {
+    return jpaRepository.findByIdProspect(idProspect).map(mapper::toDomain);
+  }
+
+  @Override
   public Optional<Customer> findOptionalById(String id) {
     Optional<HCustomer> optionalCustomer = jpaRepository.findById(id);
     return optionalCustomer.map(mapper::toDomain);

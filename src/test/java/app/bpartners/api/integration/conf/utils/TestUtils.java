@@ -175,6 +175,7 @@ public class TestUtils {
   public static final String TRANSACTION3_ID = "transaction3_id";
   public static final String PROSPECT_1_ID = "prospect1_id";
   public static final String PROSPECT_2_ID = "prospect2_id";
+  public static final String CUSTOMER_1_ID = "customer1_id";
 
   public static User restJoeDoeUser() {
     return new User()
@@ -264,7 +265,7 @@ public class TestUtils {
 
   public static Customer customer1() {
     return new Customer()
-        .id("customer1_id")
+        .id(CUSTOMER_1_ID)
         .name("Luc Artisan")
         .firstName("Luc")
         .lastName("Artisan")

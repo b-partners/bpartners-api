@@ -19,6 +19,11 @@ values ('prospect1_id', 'John doe', null, null, null,
        ('prospect7_id', 'Killy	Waddilove', '+261340465344', 'killyWaddilove@gmail.com',
         '30 Rue de la Montagne Sainte-Genevieve',
         'b33e6eb0-e262-4596-a91f-20c6a7bfd343', null, -1, null);
+insert into prospect (id, old_name, old_phone, old_email, old_address, id_account_holder, town_code, rating,
+                      last_evaluation_date, pos_latitude, pos_longitude)
+values ('prospect8_id', 'Johnny	Paul', '+261340465345', 'johnny@gmail.com',
+        '30 Rue de la Montagne Sainte-Genevieve',
+        'b33e6eb0-e262-4596-a91f-20c6a7bfd343', null, -1, null, 1.0, 1.0);
 
 insert into "prospect_status_history"(id, id_prospect, status, updated_at)
 values ('prospect_status1_id', 'prospect1_id', 'TO_CONTACT', '2023-01-01T00:00:00.00Z'),
@@ -27,5 +32,16 @@ values ('prospect_status1_id', 'prospect1_id', 'TO_CONTACT', '2023-01-01T00:00:0
        ('prospect_status4_id', 'prospect4_id', 'CONTACTED', '2023-01-01T00:00:00.00Z'),
        ('prospect_status5_id', 'prospect5_id', 'CONTACTED', '2023-01-01T00:00:00.00Z'),
        ('prospect_status6_id', 'prospect6_id', 'CONVERTED', '2023-01-01T00:00:00.00Z'),
-       ('prospect_status7_id', 'prospect7_id', 'CONVERTED', '2023-01-01T00:00:00.00Z')
-;
+       ('prospect_status7_id', 'prospect7_id', 'CONVERTED', '2023-01-01T00:00:00.00Z'),
+       ('prospect_status8_id', 'prospect8_id', 'TO_CONTACT', '2023-01-01T00:00:00.00Z');
+
+insert into "customer"
+(id, id_user, first_name, last_name, email, phone, website, address, zip_code, city, country,
+ comment, latitude, longitude, customer_type)
+values ('prospect_8_customer_1_id', 'joe_doe_id', 'Johnny Paul', '', 'johnny@gmail.com',
+        '+261340465345', 'https://johnny.website.com', '30 Rue de la Montagne Sainte-Genevieve', 95160,
+        'Metz', null, 'Rencontre avec Johnny', 0, 0, 'INDIVIDUAL');
+
+insert into "has_customer" (id, id_prospect, id_customer)
+VALUES ('has_customer_prospect_8_customer_1_id', 'prospect8_id', 'prospect_8_customer_1_id')
+

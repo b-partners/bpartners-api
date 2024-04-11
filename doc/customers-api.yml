@@ -366,6 +366,8 @@ components:
         updatedAt:
           type: string
           format: date-time
+        isConverted:
+          type: boolean
       allOf:
         - $ref: '#/components/schemas/CreateCustomer'
     CustomerStatus:

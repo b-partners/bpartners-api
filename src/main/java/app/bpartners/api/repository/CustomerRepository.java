@@ -17,6 +17,8 @@ public interface CustomerRepository {
 
   Customer findById(String id);
 
+  Optional<Customer> findOptionalByProspectId(String prospectId);
+
   Optional<Customer> findOptionalById(String id);
 
   List<Customer> findByIdUserAndCriteria(

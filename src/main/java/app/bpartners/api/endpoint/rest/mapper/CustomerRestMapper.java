@@ -1,11 +1,11 @@
 package app.bpartners.api.endpoint.rest.mapper;
 
+import static app.bpartners.api.endpoint.rest.model.CustomerStatus.ENABLED;
 import static java.util.UUID.randomUUID;
 
 import app.bpartners.api.endpoint.rest.model.CreateCustomer;
 import app.bpartners.api.endpoint.rest.model.Customer;
 import app.bpartners.api.endpoint.rest.model.CustomerLocation;
-import app.bpartners.api.endpoint.rest.model.CustomerStatus;
 import app.bpartners.api.endpoint.rest.validator.CreateCustomerValidator;
 import app.bpartners.api.endpoint.rest.validator.CustomerValidator;
 import lombok.AllArgsConstructor;
@@ -48,6 +48,7 @@ public class CustomerRestMapper {
         .status(domain.getStatus())
         .updatedAt(domain.getUpdatedAt())
         .customerType(domain.getCustomerType())
+        .isConverted(domain.isConverted())
         .createdAt(domain.getCreatedAt());
   }
 
@@ -109,6 +110,7 @@ public class CustomerRestMapper {
         .location(customerLocation)
         .status(rest.getStatus())
         .customerType(rest.getCustomerType())
+        .isConverted(rest.getIsConverted() == null || rest.getIsConverted())
         .build();
   }
 
@@ -149,8 +151,9 @@ public class CustomerRestMapper {
         .country(rest.getCountry())
         .comment(rest.getComment())
         .location(app.bpartners.api.model.Location.builder().address(rest.getAddress()).build())
-        .status(CustomerStatus.ENABLED) // set to enabled by default
+        .status(ENABLED) // set to enabled by default
         .customerType(rest.getCustomerType())
+        .isConverted(true) // set to true by default
         .build();
   }
 

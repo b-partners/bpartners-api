@@ -113,31 +113,41 @@ public class CustomerController {
   public List<Customer> createCustomers(
       @PathVariable(name = "id") String idAccount, @RequestBody List<CreateCustomer> toCreate) {
     log.warn("POST /accounts/{id}/customers is deprecated. Use PUT instead");
-    String idUser =
-        AuthProvider.getAuthenticatedUserId(); // TODO: should be changed when endpoint changed
+    var authenticatedUser =
+        AuthProvider.getAuthenticatedUser(); // TODO: should be changed when endpoint changed
     List<app.bpartners.api.model.Customer> customers =
-        toCreate.stream().map(createCustomer -> mapper.toDomain(idUser, createCustomer)).toList();
-    return service.crupdateCustomers(customers).stream().map(mapper::toRest).toList();
+        toCreate.stream()
+            .map(createCustomer -> mapper.toDomain(authenticatedUser.getId(), createCustomer))
+            .toList();
+    return service.crupdateCustomers(authenticatedUser, customers).stream()
+        .map(mapper::toRest)
+        .toList();
   }
 
   @PutMapping("/accounts/{id}/customers")
   public List<Customer> crupdateCustomers(
       @PathVariable("id") String id, @RequestBody List<Customer> toUpdate) {
-    String idUser =
-        AuthProvider.getAuthenticatedUserId(); // TODO: should be changed when endpoint changed
+    var authenticatedUser =
+        AuthProvider.getAuthenticatedUser(); // TODO: should be changed when endpoint changed
     List<app.bpartners.api.model.Customer> customers =
-        toUpdate.stream().map(customer -> mapper.toDomain(idUser, customer)).toList();
-    return service.crupdateCustomers(customers).stream().map(mapper::toRest).toList();
+        toUpdate.stream()
+            .map(customer -> mapper.toDomain(authenticatedUser.getId(), customer))
+            .toList();
+    return service.crupdateCustomers(authenticatedUser, customers).stream()
+        .map(mapper::toRest)
+        .toList();
   }
 
   @PostMapping(value = "/accounts/{accountId}/customers/upload")
   public List<Customer> importCustomers(
       @PathVariable(name = "accountId") String accountId, @RequestBody byte[] toUpload) {
-    String idUser =
-        AuthProvider.getAuthenticatedUserId(); // TODO: should be changed when endpoint changed
+    var authenticatedUser =
+        AuthProvider.getAuthenticatedUser(); // TODO: should be changed when endpoint changed
     List<app.bpartners.api.model.Customer> customerTemplates =
-        service.getDataFromFile(idUser, toUpload);
-    return service.crupdateCustomers(customerTemplates).stream().map(mapper::toRest).toList();
+        service.getDataFromFile(authenticatedUser.getId(), toUpload);
+    return service.crupdateCustomers(authenticatedUser, customerTemplates).stream()
+        .map(mapper::toRest)
+        .toList();
   }
 
   @PutMapping(value = "/accounts/{id}/customers/status")

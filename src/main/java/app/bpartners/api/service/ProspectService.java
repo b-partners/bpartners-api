@@ -53,7 +53,6 @@ import app.bpartners.api.repository.jpa.model.HAccountHolder;
 import app.bpartners.api.repository.jpa.model.HProspectStatusHistory;
 import app.bpartners.api.service.aws.SesService;
 import app.bpartners.api.service.dataprocesser.ProspectDataProcesser;
-import app.bpartners.api.service.event.ProspectUpdatedService;
 import app.bpartners.api.service.utils.DateUtils;
 import app.bpartners.api.service.utils.GeoUtils;
 import com.google.api.services.sheets.v4.model.Sheet;
@@ -98,7 +97,6 @@ public class ProspectService {
   private final ProspectStatusService statusService;
   private final SnsService snsService;
   private final UserService userService;
-  private final ProspectUpdatedService prospectUpdatedService;
   private final CalendarApi calendarApi;
 
   private static List<ProspectResult> ratedCustomers(

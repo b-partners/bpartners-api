@@ -1,5 +1,6 @@
 package app.bpartners.api.integration;
 
+import static app.bpartners.api.integration.conf.utils.TestUtils.CUSTOMER_1_ID;
 import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_TOKEN;
 import static app.bpartners.api.integration.conf.utils.TestUtils.customer1;
@@ -110,11 +111,11 @@ class DirtyCustomerIT extends MockedThirdParties {
     allFilteredResults.addAll(actualFilteredByCountry);
     allFilteredResults.addAll(actualFilteredByFirstNameAndCity);
 
-    assertEquals(4, actualNoFilter.size());
+    assertEquals(5, actualNoFilter.size());
     assertEquals(1, actualFilteredByFirstAndLastName.size());
     assertEquals(1, actualFilteredByEmail.size());
     assertEquals(2, actualFilteredByPhoneNumber.size());
-    assertEquals(1, actualFilteredByCity.size());
+    assertEquals(2, actualFilteredByCity.size());
     assertEquals(1, actualFilteredByCountry.size());
     assertEquals(1, actualFilteredByFirstNameAndCity.size());
     assertTrue(actualNoFilter.contains(expectedCustomer1));
@@ -132,11 +133,9 @@ class DirtyCustomerIT extends MockedThirdParties {
   void update_then_read_customer_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
     CustomersApi api = new CustomersApi(joeDoeClient);
-    var customersToUpdate =
-        api.getCustomers(JOE_DOE_ACCOUNT_ID, null, null, null, null, null, null, null, null, 1, 20);
-    var customerToUpdate = customersToUpdate.get(0);
-
+    var customerToUpdate = api.getCustomerById(JOE_DOE_ACCOUNT_ID, CUSTOMER_1_ID);
     customerToUpdate.setLastName("Nouvel artisan");
+
     api.updateCustomers(JOE_DOE_ACCOUNT_ID, List.of(customerToUpdate));
     var updatedCustomer = api.getCustomerById(JOE_DOE_ACCOUNT_ID, customerToUpdate.getId());
 

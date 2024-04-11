@@ -67,7 +67,6 @@ class ProspectServiceTest {
           prospectStatusService,
           snsServiceMock,
           userServiceMock,
-          prospectUpdatedService,
           calendarApiMock);
 
   @BeforeEach

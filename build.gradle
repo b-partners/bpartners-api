@@ -20,10 +20,11 @@ jacoco {
 
 
 repositories {
+maven {
+    url 'https://repo.osgeo.org/repository/release/'
+}
 mavenLocal()
-    maven {
-        url 'https://repo.osgeo.org/repository/release/'
-    }
+
     mavenCentral()
 }
 
@@ -37,6 +38,11 @@ configurations {
     compileOnly {
         extendsFrom annotationProcessor
     }
+}
+
+repositories {
+    mavenLocal()
+    mavenCentral()
 }
 
 task generateJavaClient(type: GenerateTask) {
@@ -232,6 +238,5 @@ implementation 'org.testcontainers:localstack:1.19.3'
 implementation 'javax.activation:activation:1.1.1'
 implementation 'io.hypersistence:hypersistence-utils-hibernate-63:3.7.3'
 implementation 'org.geotools:gt-geojson:31.0'
-
 
 }

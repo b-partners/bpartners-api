@@ -1,11 +1,10 @@
 package app.bpartners.api.integration;
 
-import static app.bpartners.api.endpoint.rest.mapper.AreaPictureRestMapper.DEFAULT_FRANCE_LAYER;
-import static app.bpartners.api.endpoint.rest.model.OpenStreetMapLayer.MONTAUBAN_2020;
-import static app.bpartners.api.endpoint.rest.model.OpenStreetMapLayer.MULHOUSE_2018;
+import static app.bpartners.api.endpoint.rest.model.OpenStreetMapLayer.TOUS_FR;
 import static app.bpartners.api.endpoint.rest.model.ZoomLevel.HOUSES_0;
 import static app.bpartners.api.integration.conf.utils.TestUtils.BEARER_PREFIX;
 import static app.bpartners.api.integration.conf.utils.TestUtils.BEARER_QUERY_PARAMETER_NAME;
+import static app.bpartners.api.integration.conf.utils.TestUtils.DEFAULT_FRANCE_LAYER;
 import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_TOKEN;
 import static app.bpartners.api.integration.conf.utils.TestUtils.PROSPECT_1_ID;
@@ -15,6 +14,7 @@ import static app.bpartners.api.integration.conf.utils.TestUtils.setUpLegalFileR
 import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import app.bpartners.api.endpoint.rest.api.AreaPictureApi;
@@ -24,6 +24,10 @@ import app.bpartners.api.endpoint.rest.model.AreaPictureDetails;
 import app.bpartners.api.endpoint.rest.model.CrupdateAreaPictureDetails;
 import app.bpartners.api.integration.conf.S3MockedThirdParties;
 import app.bpartners.api.integration.conf.utils.TestUtils;
+import app.bpartners.api.model.AreaPicture;
+import app.bpartners.api.model.exception.BadRequestException;
+import app.bpartners.api.service.WMS.MapLayer;
+import app.bpartners.api.service.WMS.MapLayerGuesser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.net.URI;
@@ -40,6 +44,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 @Slf4j
 public class AreaPictureIT extends S3MockedThirdParties {
   @Autowired ObjectMapper om;
+  @Autowired MapLayerGuesser guesser;
+  @Autowired MapLayerGuesser mapLayerGuesser;
 
   private ApiClient joeDoeClient() {
     return TestUtils.anApiClient(JOE_DOE_TOKEN, localPort);
@@ -50,31 +56,33 @@ public class AreaPictureIT extends S3MockedThirdParties {
   static AreaPictureDetails areaPicture1() {
     return new AreaPictureDetails()
         .id(AREA_PICTURE_1_ID)
+        .xTile(524720)
+        .yTile(374531)
         .zoomLevel(HOUSES_0)
-        .layer(MONTAUBAN_2020)
-        .xTile(553415)
-        .yTile(492049)
+        .layer(TOUS_FR)
         .address("Montauban Address")
         .createdAt(Instant.parse("2022-01-08T01:00:00Z"))
         .updatedAt(Instant.parse("2022-01-08T01:00:00Z"))
         .fileId("montauban_5cm_544729_383060.jpg")
         .prospectId(PROSPECT_1_ID)
-        .filename("montauban_5cm_544729_383060.jpg");
+        .availableLayers(List.of(TOUS_FR))
+        .filename("tous_fr_HOUSES_0_524720/374531");
   }
 
   static AreaPictureDetails areaPicture2() {
     return new AreaPictureDetails()
         .id("area_picture_2_id")
         .zoomLevel(HOUSES_0)
-        .layer(MULHOUSE_2018)
-        .xTile(553415)
-        .yTile(492049)
+        .layer(TOUS_FR)
+        .xTile(524720)
+        .yTile(374531)
+        .availableLayers(List.of(TOUS_FR))
         .createdAt(Instant.parse("2022-01-08T01:00:00Z"))
         .updatedAt(Instant.parse("2022-01-08T01:00:00Z"))
         .address("Cannes Address")
         .fileId("mulhouse_1_5cm_544729_383060.jpg")
         .prospectId(PROSPECT_1_ID)
-        .filename("mulhouse_5cm_544729_383060.jpg");
+        .filename("tous_fr_HOUSES_0_524720/374531");
   }
 
   @BeforeEach
@@ -96,13 +104,18 @@ public class AreaPictureIT extends S3MockedThirdParties {
         api.getAllAreaPictures(JOE_DOE_ACCOUNT_ID, 1, 10, null, "Montauban");
     AreaPictureDetails actualAreaPictureOne =
         api.getAreaPictureById(JOE_DOE_ACCOUNT_ID, AREA_PICTURE_1_ID);
+    AreaPictureDetails actualAreaPictureTwo =
+        api.getAreaPictureById(JOE_DOE_ACCOUNT_ID, "area_picture_2_id");
 
     assertEquals(areaPicture1(), actualAreaPictureOne);
-    assertTrue(allAreaPictures.containsAll(List.of(areaPicture1(), areaPicture2())));
-    assertTrue(addressFilteredAreaPictures.contains(areaPicture1()));
-    assertFalse(addressFilteredAreaPictures.contains(areaPicture2()));
-    assertTrue(filenameFilteredAreaPictures.contains(areaPicture1()));
-    assertFalse(filenameFilteredAreaPictures.contains(areaPicture2()));
+    assertEquals(areaPicture2(), actualAreaPictureTwo);
+    assertTrue(
+        allAreaPictures.containsAll(
+            List.of(removeAvailableLayers(areaPicture1()), removeAvailableLayers(areaPicture2()))));
+    assertTrue(addressFilteredAreaPictures.contains(removeAvailableLayers(areaPicture1())));
+    assertFalse(addressFilteredAreaPictures.contains(removeAvailableLayers(areaPicture2())));
+    assertTrue(filenameFilteredAreaPictures.contains(removeAvailableLayers(areaPicture1())));
+    assertFalse(filenameFilteredAreaPictures.contains(removeAvailableLayers(areaPicture2())));
   }
 
   @Test
@@ -120,13 +133,16 @@ public class AreaPictureIT extends S3MockedThirdParties {
     assertEquals(expected, saved);
   }
 
+  static AreaPictureDetails removeAvailableLayers(AreaPictureDetails areaPictureDetails) {
+    return areaPictureDetails.availableLayers(List.of());
+  }
+
   static CrupdateAreaPictureDetails crupdatableAreaPictureDetails() {
     String fileId = randomUUID().toString();
     return new CrupdateAreaPictureDetails()
         .address("Angoulême")
         .fileId(fileId)
         .zoomLevel(HOUSES_0)
-        .filename(fileId)
         .createdAt(null)
         .updatedAt(null);
   }
@@ -138,7 +154,6 @@ public class AreaPictureIT extends S3MockedThirdParties {
         .fileId(crupdate.getFileId())
         .layer(DEFAULT_FRANCE_LAYER)
         .zoomLevel(crupdate.getZoomLevel())
-        .filename(crupdate.getFilename())
         // need to update or nullify createdAt and updatedAt during equality check
         .createdAt(null)
         .updatedAt(null);
@@ -177,5 +192,21 @@ public class AreaPictureIT extends S3MockedThirdParties {
     }
 
     return downloadBytes(requestBuilder.build(), "downloadAndSaveAreaPicture");
+  }
+
+  @Test
+  void openstreetmap_layer_guesser_ok() {
+    var guessedLayers =
+        mapLayerGuesser.apply(
+            AreaPicture.builder().longitude(0.148409).latitude(45.644018).build());
+
+    assertEquals(List.of(MapLayer.TOUS_FR), guessedLayers);
+  }
+
+  @Test
+  void openstreetmap_layer_guesser_ko() {
+    assertThrows(
+        BadRequestException.class,
+        () -> mapLayerGuesser.apply(AreaPicture.builder().longitude(10).latitude(11).build()));
   }
 }

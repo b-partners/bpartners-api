@@ -1,6 +1,5 @@
 package app.bpartners.api.service.WMS;
 
-import app.bpartners.api.endpoint.rest.model.OpenStreetMapLayer;
 import app.bpartners.api.model.AreaPicture;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -13,7 +12,7 @@ public class Tile {
   private final int x;
   private final int y;
   private ArcgisZoom arcgisZoom;
-  private OpenStreetMapLayer layer;
+  private MapLayer layer;
 
   private static int getxTile(double longitude, int zoom) {
     int xtile = (int) Math.floor((longitude + 180) / 360 * (1 << zoom));
@@ -47,7 +46,7 @@ public class Tile {
   }
 
   public static Tile from(
-      double longitude, double latitude, ArcgisZoom arcgisZoom, OpenStreetMapLayer layer) {
+      double longitude, double latitude, ArcgisZoom arcgisZoom, MapLayer layer) {
     int xTile = getxTile(longitude, arcgisZoom.getZoomLevel());
     int yTile = getyTile(latitude, arcgisZoom.getZoomLevel());
     return Tile.builder().x(xTile).y(yTile).layer(layer).arcgisZoom(arcgisZoom).build();
@@ -58,7 +57,7 @@ public class Tile {
         areaPicture.getLongitude(),
         areaPicture.getLatitude(),
         ArcgisZoom.from(areaPicture.getZoomLevel()),
-        areaPicture.getLayer());
+        areaPicture.getCurrentLayer());
   }
 
   public double getLongitude() {

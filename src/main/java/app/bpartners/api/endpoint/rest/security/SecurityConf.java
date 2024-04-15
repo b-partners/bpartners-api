@@ -79,23 +79,9 @@ public class SecurityConf {
             bearerFilter(
                 new NegatedRequestMatcher(
                     new OrRequestMatcher(
-                        new AntPathRequestMatcher("/ping"),
-                        new AntPathRequestMatcher("/preUsers", POST.name()),
-                        new AntPathRequestMatcher("/authInitiation"),
-                        new AntPathRequestMatcher("/token"),
-                        new AntPathRequestMatcher("/onboarding"),
-                        new AntPathRequestMatcher("/whoami", GET.name()),
-                        new AntPathRequestMatcher("/users/*", GET.name()),
-                        new AntPathRequestMatcher("/onboardingInitiation", POST.name()),
+                        // TODO: add a specific filter for legalFiles authentication
                         new AntPathRequestMatcher("/users/*/legalFiles", GET.name()),
-                        new AntPathRequestMatcher("/users/*/legalFiles/*", PUT.name()),
-                        new AntPathRequestMatcher("/**", OPTIONS.toString()),
-                        new AntPathRequestMatcher("/whois/*", GET.name()),
-                        new AntPathRequestMatcher("/webhooks/paymentStatus", POST.name()),
-                        new AntPathRequestMatcher("/health/db", GET.name()),
-                        new AntPathRequestMatcher("/health/bucket", GET.name()),
-                        new AntPathRequestMatcher("/health/email", GET.name()),
-                        new AntPathRequestMatcher("/health/event", GET.name())))),
+                        new AntPathRequestMatcher("/users/*/legalFiles/*", PUT.name())))),
             AnonymousAuthenticationFilter.class)
         // authorize
         .authorizeHttpRequests(

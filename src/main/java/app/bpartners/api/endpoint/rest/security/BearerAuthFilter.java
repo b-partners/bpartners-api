@@ -20,9 +20,12 @@ public class BearerAuthFilter extends AbstractAuthenticationProcessingFilter {
   private static final String BEARER_QUERY_PARAMETER_NAME = "accessToken";
   private static final String BEARER_PREFIX = "Bearer ";
   private final String authHeader;
+  private final RequestMatcher requiresAuthenticationRequestMatchers;
 
-  protected BearerAuthFilter(RequestMatcher requestMatcher, String authHeader) {
-    super(requestMatcher);
+  protected BearerAuthFilter(
+      RequestMatcher requiresAuthenticationRequestMatchers, String authHeader) {
+    super(requiresAuthenticationRequestMatchers);
+    this.requiresAuthenticationRequestMatchers = requiresAuthenticationRequestMatchers;
     this.authHeader = authHeader;
   }
 
@@ -30,12 +33,26 @@ public class BearerAuthFilter extends AbstractAuthenticationProcessingFilter {
   public Authentication attemptAuthentication(
       HttpServletRequest request, HttpServletResponse response) {
     String bearer = request.getHeader(authHeader);
-    if (bearer == null && verifyAntMatcher(request)) {
+    if (bearer == null
+        && verifyAntMatcher(
+            request) /*we can skip verifyAntMatcher as this function only execute if requiresAuthentication is true*/) {
       String accessToken = request.getParameterMap().get(BEARER_QUERY_PARAMETER_NAME)[0];
       bearer = BEARER_PREFIX + accessToken;
     }
     return getAuthenticationManager()
         .authenticate(new UsernamePasswordAuthenticationToken(bearer, bearer));
+  }
+
+  @Override
+  protected boolean requiresAuthentication(
+      HttpServletRequest request, HttpServletResponse response) {
+    if (!this.requiresAuthenticationRequestMatchers.matches(request)) {
+      return false;
+    }
+    String authHeaderValue = request.getHeader(authHeader);
+    var requestHasAuthHeader = authHeaderValue != null;
+    var requestHasAuthParamAndMatchesPath = authHeaderValue == null && verifyAntMatcher(request);
+    return requestHasAuthHeader || requestHasAuthParamAndMatchesPath;
   }
 
   @Override

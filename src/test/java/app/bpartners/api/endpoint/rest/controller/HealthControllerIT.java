@@ -8,6 +8,8 @@ import app.bpartners.api.endpoint.rest.controller.health.HealthDbController;
 import app.bpartners.api.endpoint.rest.controller.health.PingController;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 @PojaGenerated
 class HealthControllerIT extends app.bpartners.api.integration.conf.MockedThirdParties {
@@ -17,7 +19,7 @@ class HealthControllerIT extends app.bpartners.api.integration.conf.MockedThirdP
 
   @Test
   void ping() {
-    assertEquals("pong", pingController.ping());
+    assertEquals("pong", pingController.ping(SecurityContextHolder.createEmptyContext()));
   }
 
   @Test

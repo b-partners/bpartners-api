@@ -295,8 +295,6 @@ components:
           type: string
         zoomLevel:
           $ref: "#/components/schemas/ZoomLevel"
-        layer:
-          $ref: "#/components/schemas/OpenStreetMapLayer"
         fileId:
           type: string
         filename:
@@ -319,6 +317,8 @@ components:
           type: integer
         yTile:
           type: integer
+        layer:
+          $ref: "#/components/schemas/OpenStreetMapLayer"
     FileInfo:
       type: object
       properties:

@@ -1,6 +1,6 @@
 package app.bpartners.api.integration;
 
-import static app.bpartners.api.endpoint.rest.model.OpenStreetMapLayer.ANGOULEME_2019;
+import static app.bpartners.api.endpoint.rest.mapper.AreaPictureRestMapper.DEFAULT_FRANCE_LAYER;
 import static app.bpartners.api.endpoint.rest.model.OpenStreetMapLayer.MONTAUBAN_2020;
 import static app.bpartners.api.endpoint.rest.model.OpenStreetMapLayer.MULHOUSE_2018;
 import static app.bpartners.api.endpoint.rest.model.ZoomLevel.HOUSES_0;
@@ -125,7 +125,6 @@ public class AreaPictureIT extends S3MockedThirdParties {
     return new CrupdateAreaPictureDetails()
         .address("Angoulême")
         .fileId(fileId)
-        .layer(ANGOULEME_2019)
         .zoomLevel(HOUSES_0)
         .filename(fileId)
         .createdAt(null)
@@ -137,7 +136,7 @@ public class AreaPictureIT extends S3MockedThirdParties {
         .id(payloadId)
         .address(crupdate.getAddress())
         .fileId(crupdate.getFileId())
-        .layer(crupdate.getLayer())
+        .layer(DEFAULT_FRANCE_LAYER)
         .zoomLevel(crupdate.getZoomLevel())
         .filename(crupdate.getFilename())
         // need to update or nullify createdAt and updatedAt during equality check

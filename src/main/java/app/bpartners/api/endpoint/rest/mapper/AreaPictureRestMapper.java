@@ -1,7 +1,10 @@
 package app.bpartners.api.endpoint.rest.mapper;
 
+import static app.bpartners.api.endpoint.rest.model.OpenStreetMapLayer.TOUS_FR;
+
 import app.bpartners.api.endpoint.rest.model.AreaPictureDetails;
 import app.bpartners.api.endpoint.rest.model.CrupdateAreaPictureDetails;
+import app.bpartners.api.endpoint.rest.model.OpenStreetMapLayer;
 import app.bpartners.api.endpoint.rest.validator.CrupdateAreaPictureDetailsValidator;
 import app.bpartners.api.model.AreaPicture;
 import lombok.AllArgsConstructor;
@@ -10,6 +13,7 @@ import org.springframework.stereotype.Component;
 @Component
 @AllArgsConstructor
 public class AreaPictureRestMapper {
+  public static final OpenStreetMapLayer DEFAULT_FRANCE_LAYER = TOUS_FR;
   private final CrupdateAreaPictureDetailsValidator validator;
 
   public AreaPictureDetails toRest(AreaPicture domain) {
@@ -36,7 +40,7 @@ public class AreaPictureRestMapper {
         .filename(rest.getFilename())
         .zoomLevel(rest.getZoomLevel())
         .idProspect(rest.getProspectId())
-        .layer(rest.getLayer())
+        .layer(DEFAULT_FRANCE_LAYER)
         .idUser(userId)
         .createdAt(rest.getCreatedAt())
         .updatedAt(rest.getUpdatedAt())

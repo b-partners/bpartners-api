@@ -130,6 +130,10 @@ operations:
               type: string
           description: Filter customer by the given keywords
         - in: query
+          name: prospectId
+          schema:
+            type: string
+        - in: query
           name: page
           schema:
             $ref: './api.yml#/components/schemas/Page'

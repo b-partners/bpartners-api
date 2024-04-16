@@ -81,6 +81,7 @@ public class CustomerController {
       @RequestParam(required = false) String country,
       @RequestParam(required = false) List<String> filters,
       @RequestParam(required = false) CustomerStatus status,
+      @RequestParam(required = false) String prospectId,
       @RequestParam(required = false) PageFromOne page,
       @RequestParam(required = false) BoundedPageSize pageSize) {
     String idUser =
@@ -95,6 +96,7 @@ public class CustomerController {
             city,
             country,
             filters,
+            prospectId,
             status,
             page,
             pageSize)

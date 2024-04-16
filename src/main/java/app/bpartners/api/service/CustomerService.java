@@ -91,6 +91,7 @@ public class CustomerService {
       String city,
       String country,
       List<String> filters,
+      String prospectId,
       CustomerStatus status,
       PageFromOne page,
       BoundedPageSize pageSize) {
@@ -109,6 +110,7 @@ public class CustomerService {
         city,
         country,
         keywords,
+        prospectId,
         status,
         pageValue,
         pageSizeValue);

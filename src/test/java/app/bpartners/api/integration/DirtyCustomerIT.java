@@ -46,11 +46,22 @@ class DirtyCustomerIT extends MockedThirdParties {
     List<Customer> actualNoFilter =
         ignoreUpdatedAndCreatedAt(
             api.getCustomers(
-                JOE_DOE_ACCOUNT_ID, null, null, null, null, null, null, null, null, 1, 20));
+                JOE_DOE_ACCOUNT_ID, null, null, null, null, null, null, null, null, null, 1, 20));
     List<Customer> actualFilteredByFirstAndLastName =
         ignoreUpdatedAndCreatedAt(
             api.getCustomers(
-                JOE_DOE_ACCOUNT_ID, "Jean", "Plombier", null, null, null, null, null, null, 1, 20));
+                JOE_DOE_ACCOUNT_ID,
+                "Jean",
+                "Plombier",
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                1,
+                20));
     List<Customer> actualFilteredByEmail =
         ignoreUpdatedAndCreatedAt(
             api.getCustomers(
@@ -58,6 +69,7 @@ class DirtyCustomerIT extends MockedThirdParties {
                 null,
                 null,
                 "bpartners.artisans@gmail.com",
+                null,
                 null,
                 null,
                 null,
@@ -77,16 +89,28 @@ class DirtyCustomerIT extends MockedThirdParties {
                 null,
                 null,
                 null,
+                null,
                 1,
                 20));
     List<Customer> actualFilteredByCity =
         ignoreUpdatedAndCreatedAt(
             api.getCustomers(
-                JOE_DOE_ACCOUNT_ID, null, null, null, null, "Metz", null, null, null, 1, 20));
+                JOE_DOE_ACCOUNT_ID, null, null, null, null, "Metz", null, null, null, null, 1, 20));
     List<Customer> actualFilteredByCountry =
         ignoreUpdatedAndCreatedAt(
             api.getCustomers(
-                JOE_DOE_ACCOUNT_ID, null, null, null, null, null, "Allemagne", null, null, 1, 20));
+                JOE_DOE_ACCOUNT_ID,
+                null,
+                null,
+                null,
+                null,
+                null,
+                "Allemagne",
+                null,
+                null,
+                null,
+                1,
+                20));
     List<Customer> actualFilteredByFirstNameAndCity =
         ignoreUpdatedAndCreatedAt(
             api.getCustomers(
@@ -96,6 +120,7 @@ class DirtyCustomerIT extends MockedThirdParties {
                 null,
                 null,
                 "Montmorency",
+                null,
                 null,
                 null,
                 null,

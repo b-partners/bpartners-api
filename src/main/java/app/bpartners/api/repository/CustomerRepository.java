@@ -30,6 +30,7 @@ public interface CustomerRepository {
       String city,
       String country,
       List<String> keywords,
+      String prospectId,
       CustomerStatus status,
       int page,
       int pageSize);

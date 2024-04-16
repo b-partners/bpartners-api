@@ -123,13 +123,30 @@ class CustomerIT extends MockedThirdParties {
 
     List<Customer> actual =
         api.getCustomers(
-            JOE_DOE_ACCOUNT_ID, null, null, null, null, null, null, null, null, null, null);
+            JOE_DOE_ACCOUNT_ID, null, null, null, null, null, null, null, null, null, null, null);
+
+    List<Customer> actualFilteredByProspectId =
+        api.getCustomers(
+            JOE_DOE_ACCOUNT_ID,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            "prospect8_id",
+            null,
+            null);
 
     List<app.bpartners.api.model.Customer> holderCustomers =
         customerService.findByAccountHolderId(JOE_DOE_ACCOUNT_HOLDER_ID);
     List<Customer> restHolderCustomers =
         holderCustomers.stream().map(customerRestMapper::toRest).collect(Collectors.toList());
+
     assertTrue(restHolderCustomers.containsAll(actual));
+    assertEquals(1, actualFilteredByProspectId.size());
   }
 
   @Test
@@ -167,7 +184,7 @@ class CustomerIT extends MockedThirdParties {
     assertThrowsForbiddenException(
         () ->
             api.getCustomers(
-                BAD_USER_ID, null, null, null, null, null, null, null, null, null, null));
+                BAD_USER_ID, null, null, null, null, null, null, null, null, null, null, null));
   }
 
   @Test
@@ -196,7 +213,7 @@ class CustomerIT extends MockedThirdParties {
     List<Customer> actualList =
         ignoreUpdatedAndCreatedAt(
             api.getCustomers(
-                JOE_DOE_ACCOUNT_ID, null, null, null, null, null, null, null, null, 1, 20));
+                JOE_DOE_ACCOUNT_ID, null, null, null, null, null, null, null, null, null, 1, 20));
     assertTrue(
         ignoreLatitudeAndLongitude(actualList).containsAll(ignoreLatitudeAndLongitude(actual1)));
     Customer customer1 = actual1.get(0);
@@ -245,6 +262,7 @@ class CustomerIT extends MockedThirdParties {
                 JOE_DOE_ACCOUNT_ID,
                 "Marc",
                 "Montagnier",
+                null,
                 null,
                 null,
                 null,
@@ -338,6 +356,7 @@ class CustomerIT extends MockedThirdParties {
                 null,
                 keywords,
                 null,
+                null,
                 null));
 
     assertEquals(2, actual.size());
@@ -354,11 +373,33 @@ class CustomerIT extends MockedThirdParties {
     List<Customer> enabledCustomers =
         ignoreUpdatedAndCreatedAt(
             api.getCustomers(
-                JOE_DOE_ACCOUNT_ID, null, null, null, null, null, null, ENABLED, null, 1, 20));
+                JOE_DOE_ACCOUNT_ID,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                ENABLED,
+                null,
+                null,
+                1,
+                20));
     List<Customer> disabledCustomers =
         ignoreUpdatedAndCreatedAt(
             api.getCustomers(
-                JOE_DOE_ACCOUNT_ID, null, null, null, null, null, null, DISABLED, null, 1, 20));
+                JOE_DOE_ACCOUNT_ID,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                DISABLED,
+                null,
+                null,
+                1,
+                20));
 
     assertTrue(
         disabledCustomers.containsAll(

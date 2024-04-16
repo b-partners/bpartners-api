@@ -112,7 +112,7 @@ Resources:
           Type: SQS
           Properties:
             Queue: !Sub '{{resolve:ssm:/bpartners/${Env}/sqs/mailbox-queue-arn}}'
-            BatchSize: 5
+            BatchSize: 1
       ReservedConcurrentExecutions: 30
 
   ApplicationResourceGroup:

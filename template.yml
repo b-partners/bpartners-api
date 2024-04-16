@@ -104,7 +104,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: app.bpartners.api.MailboxEventHandler::handleRequest
-      MemorySize: 512
+      MemorySize: 1024
       Role: !Sub '{{resolve:ssm:/bpartners/${Env}/execution/role-arn}}'
       
       Events:

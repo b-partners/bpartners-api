@@ -65,8 +65,8 @@ Globals:
         ADMIN_EMAIL: !Sub '{{resolve:ssm:/bpartners/${Env}/admin/email}}'
         SNS_PLATFORM_ARN: !Sub '{{resolve:ssm:/bpartners/${Env}/sns/platform-arn}}'
         SPRING_DATASOURCE_URL: !Sub '{{resolve:ssm:/bpartners/${Env}/db/url}}'
-        SPRING_DATASOURCE_USERNAME: !Sub '{{resolve:ssm:/bpartners/${Env}/db/user/username}}'
-        SPRING_DATASOURCE_PASSWORD: !Sub '{{resolve:ssm:/bpartners/${Env}/db/user/password}}'
+        SPRING_DATASOURCE_USERNAME: !Sub '{{resolve:ssm:/bpartners/${Env}/db/username}}'
+        SPRING_DATASOURCE_PASSWORD: !Sub '{{resolve:ssm:/bpartners/${Env}/db/password}}'
 
     
         
@@ -104,7 +104,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: app.bpartners.api.MailboxEventHandler::handleRequest
-      MemorySize: 512
+      MemorySize: 1024
       Role: !Sub '{{resolve:ssm:/bpartners/${Env}/execution/role-arn}}'
       
       Events:
@@ -112,7 +112,7 @@ Resources:
           Type: SQS
           Properties:
             Queue: !Sub '{{resolve:ssm:/bpartners/${Env}/sqs/mailbox-queue-arn}}'
-            BatchSize: 5
+            BatchSize: 1
       ReservedConcurrentExecutions: 30
 
   ApplicationResourceGroup:

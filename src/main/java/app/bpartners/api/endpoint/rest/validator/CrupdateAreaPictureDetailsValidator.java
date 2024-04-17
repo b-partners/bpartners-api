@@ -12,7 +12,6 @@ public class CrupdateAreaPictureDetailsValidator implements Consumer<CrupdateAre
   public void accept(CrupdateAreaPictureDetails crupdateAreaPictureDetails) {
     StringBuilder exceptionMessageBuilder = new StringBuilder();
 
-    String filename = crupdateAreaPictureDetails.getFilename();
     if (crupdateAreaPictureDetails.getAddress() == null) {
       exceptionMessageBuilder.append("address is mandatory. ");
     }
@@ -21,9 +20,6 @@ public class CrupdateAreaPictureDetailsValidator implements Consumer<CrupdateAre
     }
     if (crupdateAreaPictureDetails.getZoomLevel() == null) {
       exceptionMessageBuilder.append("zoomLevel is mandatory. ");
-    }
-    if (filename == null) {
-      exceptionMessageBuilder.append("filename is mandatory. ");
     }
     if (crupdateAreaPictureDetails.getProspectId() == null) {
       exceptionMessageBuilder.append("prospectId is mandatory. ");

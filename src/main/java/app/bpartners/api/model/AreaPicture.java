@@ -1,9 +1,10 @@
 package app.bpartners.api.model;
 
-import app.bpartners.api.endpoint.rest.model.OpenStreetMapLayer;
 import app.bpartners.api.endpoint.rest.model.ZoomLevel;
+import app.bpartners.api.service.WMS.MapLayer;
 import app.bpartners.api.service.WMS.Tile;
 import java.time.Instant;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -28,7 +29,11 @@ public class AreaPicture {
   private Instant createdAt;
   private Instant updatedAt;
   private ZoomLevel zoomLevel;
-  private String filename;
-  private OpenStreetMapLayer layer;
+  private MapLayer currentLayer;
   private Tile tile;
+  private List<MapLayer> layers;
+
+  public String getFilename() {
+    return "%s_%s_%s/%s".formatted(currentLayer, zoomLevel.getValue(), tile.getX(), tile.getY());
+  }
 }

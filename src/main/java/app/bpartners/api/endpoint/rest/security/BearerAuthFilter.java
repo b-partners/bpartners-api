@@ -20,6 +20,8 @@ public class BearerAuthFilter extends AbstractAuthenticationProcessingFilter {
   private static final String BEARER_QUERY_PARAMETER_NAME = "accessToken";
   private static final String BEARER_PREFIX = "Bearer ";
   private final String authHeader;
+  static final RequestMatcher accessTokenAccessibleRequestMatcher =
+      new AntPathRequestMatcher("/accounts/*/files/*/raw", GET.name());
 
   protected BearerAuthFilter(
       RequestMatcher requiresAuthenticationRequestMatchers, String authHeader) {
@@ -32,7 +34,7 @@ public class BearerAuthFilter extends AbstractAuthenticationProcessingFilter {
       HttpServletRequest request, HttpServletResponse response) {
     String bearer = request.getHeader(authHeader);
     if (bearer == null
-        && verifyAntMatcher(
+        && accessTokenAccessibleRequestMatcher.matches(
             request) /*we can skip verifyAntMatcher as this function only execute if requiresAuthentication is true*/) {
       String accessToken = request.getParameterMap().get(BEARER_QUERY_PARAMETER_NAME)[0];
       bearer = BEARER_PREFIX + accessToken;
@@ -50,9 +52,5 @@ public class BearerAuthFilter extends AbstractAuthenticationProcessingFilter {
       throws IOException, ServletException {
     super.successfulAuthentication(request, response, chain, authenticated);
     chain.doFilter(request, response);
-  }
-
-  private boolean verifyAntMatcher(HttpServletRequest request) {
-    return new AntPathRequestMatcher("/accounts/*/files/*/raw", GET.name()).matches(request);
   }
 }

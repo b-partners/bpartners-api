@@ -1,0 +1,1 @@
+update area_picture set layer = 'tous_fr';

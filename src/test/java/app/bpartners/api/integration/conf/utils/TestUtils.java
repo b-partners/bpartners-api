@@ -40,6 +40,7 @@ import app.bpartners.api.endpoint.rest.model.Invoice;
 import app.bpartners.api.endpoint.rest.model.InvoiceDiscount;
 import app.bpartners.api.endpoint.rest.model.InvoicePaymentReq;
 import app.bpartners.api.endpoint.rest.model.LegalFile;
+import app.bpartners.api.endpoint.rest.model.OpenStreetMapLayer;
 import app.bpartners.api.endpoint.rest.model.PaymentRegulation;
 import app.bpartners.api.endpoint.rest.model.Product;
 import app.bpartners.api.endpoint.rest.model.ProductStatus;
@@ -76,6 +77,7 @@ import app.bpartners.api.repository.model.AccountConnector;
 import app.bpartners.api.repository.sendinblue.SendinblueApi;
 import app.bpartners.api.repository.sendinblue.model.Attributes;
 import app.bpartners.api.repository.sendinblue.model.Contact;
+import app.bpartners.api.service.WMS.MapLayerGuesser;
 import app.bpartners.api.service.utils.GeoUtils;
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -176,6 +178,8 @@ public class TestUtils {
   public static final String PROSPECT_1_ID = "prospect1_id";
   public static final String PROSPECT_2_ID = "prospect2_id";
   public static final String CUSTOMER_1_ID = "customer1_id";
+  public static final OpenStreetMapLayer DEFAULT_FRANCE_LAYER =
+      OpenStreetMapLayer.fromValue(MapLayerGuesser.DEFAULT_FRANCE_LAYER.getValue());
 
   public static User restJoeDoeUser() {
     return new User()

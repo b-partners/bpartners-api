@@ -1,19 +1,19 @@
 package app.bpartners.api.repository.jpa.model.converter;
 
-import app.bpartners.api.endpoint.rest.model.OpenStreetMapLayer;
+import app.bpartners.api.service.WMS.MapLayer;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 
 @Converter(autoApply = true)
-public class OpenStreetMapLayerConverter implements AttributeConverter<OpenStreetMapLayer, String> {
+public class OpenStreetMapLayerConverter implements AttributeConverter<MapLayer, String> {
 
   @Override
-  public String convertToDatabaseColumn(OpenStreetMapLayer attribute) {
+  public String convertToDatabaseColumn(MapLayer attribute) {
     return attribute.getValue();
   }
 
   @Override
-  public OpenStreetMapLayer convertToEntityAttribute(String dbData) {
-    return OpenStreetMapLayer.fromValue(dbData);
+  public MapLayer convertToEntityAttribute(String dbData) {
+    return MapLayer.fromValue(dbData);
   }
 }

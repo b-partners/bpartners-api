@@ -9,10 +9,9 @@ import app.bpartners.api.model.AreaPicture;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.mapper.AreaPictureMapper;
-import app.bpartners.api.repository.ban.BanApi;
-import app.bpartners.api.repository.ban.model.GeoPosition;
 import app.bpartners.api.repository.jpa.AreaPictureJpaRepository;
-import app.bpartners.api.service.WMS.Tile;
+import app.bpartners.api.service.WMS.MapLayerGuesser;
+import app.bpartners.api.service.WMS.TileCreator;
 import app.bpartners.api.service.WMS.WmsUrlGetter;
 import java.io.IOException;
 import java.net.http.HttpClient;
@@ -30,7 +29,8 @@ public class AreaPictureService {
   private final FileService fileService;
   private final FileDownloader fileDownloader = new FileDownloader(HttpClient.newBuilder().build());
   private final WmsUrlGetter wmsUrlGetter;
-  private final BanApi banApi;
+  private final TileCreator tileCreator;
+  private final MapLayerGuesser mapLayerGuesser;
 
   public List<AreaPicture> findAllBy(String userId, String address, String filename) {
     return jpaRepository
@@ -42,32 +42,34 @@ public class AreaPictureService {
   }
 
   public AreaPicture findBy(String userId, String id) {
-    return mapper.toDomain(
-        jpaRepository
-            .findByIdUserAndId(userId, id)
-            .orElseThrow(
-                () ->
-                    new NotFoundException(
-                        "HAreaPicture with UserId = "
-                            + userId
-                            + " and Id = "
-                            + id
-                            + " was not found.")));
+    var domain =
+        mapper.toDomain(
+            jpaRepository
+                .findByIdUserAndId(userId, id)
+                .orElseThrow(
+                    () ->
+                        new NotFoundException(
+                            "HAreaPicture with UserId = "
+                                + userId
+                                + " and Id = "
+                                + id
+                                + " was not found.")));
+    domain.setLayers(mapLayerGuesser.apply(domain));
+    return domain;
   }
 
   @Transactional
   public byte[] downloadFromExternalSourceAndSave(AreaPicture areaPicture) throws RuntimeException {
-    var refreshedAreaPicture = computeGeoPosition(areaPicture);
-    var uri = wmsUrlGetter.apply(Tile.from(refreshedAreaPicture));
-    var downloadedFile = fileDownloader.apply(refreshedAreaPicture.getFilename(), uri);
+    var uri = wmsUrlGetter.apply(tileCreator.apply(areaPicture));
+    var downloadedFile = fileDownloader.apply(areaPicture.getFilename(), uri);
     try {
       var downloadedFileAsBytes = Files.readAllBytes(downloadedFile.toPath());
       fileService.upload(
-          refreshedAreaPicture.getIdFileInfo(),
+          areaPicture.getIdFileInfo(),
           AREA_PICTURE,
-          refreshedAreaPicture.getIdUser(),
+          areaPicture.getIdUser(),
           downloadedFileAsBytes);
-      save(refreshedAreaPicture);
+      save(areaPicture);
       return downloadedFileAsBytes;
     } catch (IOException e) {
       throw new ApiException(SERVER_EXCEPTION, e);
@@ -77,14 +79,5 @@ public class AreaPictureService {
   @Transactional
   public AreaPicture save(AreaPicture areaPicture) {
     return mapper.toDomain(jpaRepository.save(mapper.toEntity(areaPicture)));
-  }
-
-  public AreaPicture computeGeoPosition(AreaPicture areaPicture) {
-    GeoPosition geoPosition = banApi.fSearch(areaPicture.getAddress());
-
-    areaPicture.setLongitude(geoPosition.getCoordinates().getLongitude());
-    areaPicture.setLatitude(geoPosition.getCoordinates().getLatitude());
-
-    return areaPicture;
   }
 }

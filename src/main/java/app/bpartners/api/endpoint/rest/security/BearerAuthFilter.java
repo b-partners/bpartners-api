@@ -21,8 +21,9 @@ public class BearerAuthFilter extends AbstractAuthenticationProcessingFilter {
   private static final String BEARER_PREFIX = "Bearer ";
   private final String authHeader;
 
-  protected BearerAuthFilter(RequestMatcher requestMatcher, String authHeader) {
-    super(requestMatcher);
+  protected BearerAuthFilter(
+      RequestMatcher requiresAuthenticationRequestMatchers, String authHeader) {
+    super(requiresAuthenticationRequestMatchers);
     this.authHeader = authHeader;
   }
 
@@ -30,7 +31,9 @@ public class BearerAuthFilter extends AbstractAuthenticationProcessingFilter {
   public Authentication attemptAuthentication(
       HttpServletRequest request, HttpServletResponse response) {
     String bearer = request.getHeader(authHeader);
-    if (bearer == null && verifyAntMatcher(request)) {
+    if (bearer == null
+        && verifyAntMatcher(
+            request) /*we can skip verifyAntMatcher as this function only execute if requiresAuthentication is true*/) {
       String accessToken = request.getParameterMap().get(BEARER_QUERY_PARAMETER_NAME)[0];
       bearer = BEARER_PREFIX + accessToken;
     }

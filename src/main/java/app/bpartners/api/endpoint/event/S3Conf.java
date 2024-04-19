@@ -1,6 +1,7 @@
 package app.bpartners.api.endpoint.event;
 
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
+import static software.amazon.awssdk.services.s3.model.ChecksumAlgorithm.SHA256;
 
 import app.bpartners.api.model.exception.ApiException;
 import java.net.URI;
@@ -11,6 +12,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.ChecksumAlgorithm;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 
 @Configuration
@@ -45,5 +47,9 @@ public class S3Conf {
   @Bean
   public S3Presigner getS3Presigner() {
     return S3Presigner.builder().region(region).build();
+  }
+
+  public ChecksumAlgorithm getDefaultChecksumAlgorithm() {
+    return "dev".equals(env) ? null : SHA256;
   }
 }

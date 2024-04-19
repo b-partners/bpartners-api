@@ -1,5 +1,6 @@
 package app.bpartners.api.service.event;
 
+import static app.bpartners.api.endpoint.rest.model.CustomerStatus.ENABLED;
 import static app.bpartners.api.endpoint.rest.model.CustomerType.PROFESSIONAL;
 import static app.bpartners.api.endpoint.rest.model.ProspectStatus.CONVERTED;
 import static app.bpartners.api.service.utils.DateUtils.formatFrenchDatetime;
@@ -22,6 +23,7 @@ import app.bpartners.api.repository.jpa.model.HHasCustomer;
 import app.bpartners.api.service.CustomerService;
 import app.bpartners.api.service.UserService;
 import app.bpartners.api.service.aws.SesService;
+import app.bpartners.api.service.utils.GeoUtils;
 import app.bpartners.api.service.utils.TemplateResolverUtils;
 import java.io.IOException;
 import java.time.Instant;
@@ -54,7 +56,7 @@ public class ProspectUpdatedService implements Consumer<ProspectUpdated> {
             ? holderRepository.findById(prospect.getLatestOldHolder())
             : holderRepository.findById(prospect.getIdHolderOwner());
     String userId = accountHolder.getUserId();
-    createAndLinkCustomerToProspect(userService.getUserById(userId), prospect);
+    crupdateAndLinkCustomerToProspect(userService.getUserById(userId), prospect);
     ProspectUpdateType updateType =
         prospect.isGivenUp() ? ProspectUpdateType.GIVE_UP : ProspectUpdateType.CONTINUE_PROCESS;
     Instant updatedAt = prospectUpdated.getUpdatedAt();
@@ -135,11 +137,12 @@ public class ProspectUpdatedService implements Consumer<ProspectUpdated> {
     return TemplateResolverUtils.parseTemplateResolver(PROSPECT_UPDATED_TEMPLATE, context);
   }
 
-  private void createAndLinkCustomerToProspect(User user, Prospect prospect) {
+  private void crupdateAndLinkCustomerToProspect(User owner, Prospect prospect) {
     Optional<Customer> optionalLinkedCustomer = customerService.getByProspectId(prospect.getId());
     var crupdatedCustomer =
         customerService
-            .crupdateCustomers(user, List.of(customerFrom(prospect, optionalLinkedCustomer)))
+            .crupdateCustomers(
+                owner, List.of(customerFrom(prospect, optionalLinkedCustomer, owner)))
             .getFirst();
     if (optionalLinkedCustomer.isEmpty()) {
       hasCustomerJpaRepository.save(
@@ -151,16 +154,25 @@ public class ProspectUpdatedService implements Consumer<ProspectUpdated> {
     log.info("{} updated ", crupdatedCustomer.describe());
   }
 
-  private Customer customerFrom(Prospect prospect, Optional<Customer> optionalLinkedCustomer) {
+  private Customer customerFrom(
+      Prospect prospect, Optional<Customer> optionalLinkedCustomer, User owner) {
     var isConverted = CONVERTED.equals(prospect.getActualStatus());
     var prospectLocation = prospect.getLocation();
-    Location location =
-        prospectLocation == null
-            ? null
-            : Location.builder()
-                .longitude(prospectLocation.getLongitude())
-                .latitude(prospectLocation.getLatitude())
-                .build();
+    Location location;
+    if (prospectLocation == null) {
+      location = null;
+    } else {
+      Double longitude = prospectLocation.getLongitude();
+      Double latitude = prospectLocation.getLatitude();
+      location =
+          Location.builder()
+              .address(prospect.getAddress())
+              .longitude(longitude)
+              .latitude(latitude)
+              .coordinate(
+                  GeoUtils.Coordinate.builder().longitude(longitude).latitude(latitude).build())
+              .build();
+    }
     if (optionalLinkedCustomer.isPresent()) {
       Customer persistedCustomer = optionalLinkedCustomer.get();
       return persistedCustomer.toBuilder().isConverted(isConverted).build();
@@ -174,6 +186,8 @@ public class ProspectUpdatedService implements Consumer<ProspectUpdated> {
         .comment(prospect.getComment())
         .isConverted(isConverted)
         .location(location)
+        .idUser(owner.getId())
+        .status(ENABLED)
         // TODO: this defaults to PROFESSIONAL for now
         .customerType(PROFESSIONAL)
         .build();

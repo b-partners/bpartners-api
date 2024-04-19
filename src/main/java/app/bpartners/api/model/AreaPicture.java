@@ -34,6 +34,6 @@ public class AreaPicture {
   private List<MapLayer> layers;
 
   public String getFilename() {
-    return "%s_%s_%s/%s".formatted(currentLayer, zoomLevel.getValue(), tile.getX(), tile.getY());
+    return "%s_%s_%s_%s".formatted(currentLayer, zoomLevel.getValue(), tile.getX(), tile.getY());
   }
 }

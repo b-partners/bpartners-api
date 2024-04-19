@@ -67,7 +67,7 @@ public class AreaPictureIT extends S3MockedThirdParties {
         .fileId("montauban_5cm_544729_383060.jpg")
         .prospectId(PROSPECT_1_ID)
         .availableLayers(List.of(TOUS_FR))
-        .filename("tous_fr_HOUSES_0_524720/374531");
+        .filename("tous_fr_HOUSES_0_524720_374531");
   }
 
   static AreaPictureDetails areaPicture2() {
@@ -83,7 +83,7 @@ public class AreaPictureIT extends S3MockedThirdParties {
         .address("Cannes Address")
         .fileId("mulhouse_1_5cm_544729_383060.jpg")
         .prospectId(PROSPECT_1_ID)
-        .filename("tous_fr_HOUSES_0_524720/374531");
+        .filename("tous_fr_HOUSES_0_524720_374531");
   }
 
   @BeforeEach

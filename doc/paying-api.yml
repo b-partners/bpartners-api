@@ -1583,6 +1583,8 @@ components:
           $ref: '#/components/schemas/InvoiceDiscount'
         paymentMethod:
           $ref: '#/components/schemas/PaymentMethod'
+        idAreaPicture:
+          type: string
     CrupdateInvoice:
       allOf:
         - $ref: '#/components/schemas/CrupdateInvoiceTemplate'

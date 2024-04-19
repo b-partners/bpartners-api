@@ -76,6 +76,7 @@ public class Invoice {
   private Fraction totalVat;
   private Fraction totalPriceWithVat;
   private PaymentMethod paymentMethod;
+  private String idAreaPicture;
 
   public String getUpdatedAtFrenchDate() {
     return DateUtils.formatFrenchDate(updatedAt);

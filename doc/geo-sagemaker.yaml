@@ -1,0 +1,120 @@
+openapi: 3.0.3
+info:
+  version: '1.0'
+  title: Geo Sagemaker API
+
+servers:
+  - url: 'https://b9zazoevcb.execute-api.eu-west-3.amazonaws.com'
+
+paths:
+  '/':
+    post:
+      tags:
+        - GeoReferencing
+      summary: Transform labelled images from AWS Sagemaker to geo-features
+      operationId: getGeofeatures
+      parameters:
+        - name: is_truncated
+          in: query
+          schema:
+            type: boolean
+          required: false
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Payload'
+      responses:
+        '200':
+          description: Features collection
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GeoFeaturesCollection'
+        '500':
+          $ref: '#/components/responses/500'
+components:
+  responses:
+    '500':
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/InternalServerException'
+  schemas:
+    Payload:
+      type: object
+      properties:
+        sagemaker_output_uri:
+          type: string
+        sagemaker_job_name:
+          type: string
+    GeoFeaturesCollection:
+      type: object
+      properties:
+        type:
+          type: string
+        features:
+          type: array
+          items:
+            $ref: '#/components/schemas/Features'
+    Features:
+      type: object
+      properties:
+        type:
+          type: string
+        geometry:
+          type: object
+          properties:
+            type:
+              type: string
+            coordinates:
+              type: array
+              items:
+                type: array
+                items:
+                  type: string
+                  format: double
+        properties:
+          type: object
+          properties:
+            area:
+              type: string
+              format: double
+              description: polygon area in square meter
+            ref-coordinate:
+              type: object
+              properties:
+                latitude:
+                  type: string
+                  format: double
+                longitude:
+                  type: string
+                  format: double
+            zoom-level:
+              type: integer
+            class-name:
+              type: string
+            is-truncated:
+              type: boolean
+            source-ref:
+              type: string
+            creation-date:
+              type: string
+              format: date-time
+              description: formatted like Java.Instant
+
+
+    Exception:
+      type: object
+      properties:
+        type:
+          type: string
+        message:
+          type: string
+    InternalServerException:
+      allOf:
+        - $ref: '#/components/schemas/Exception'
+      example:
+        type: InternalServerException
+        message: Unexpected error

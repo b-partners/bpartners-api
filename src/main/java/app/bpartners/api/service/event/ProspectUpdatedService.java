@@ -157,26 +157,21 @@ public class ProspectUpdatedService implements Consumer<ProspectUpdated> {
   private Customer customerFrom(
       Prospect prospect, Optional<Customer> optionalLinkedCustomer, User owner) {
     var isConverted = CONVERTED.equals(prospect.getActualStatus());
-    var prospectLocation = prospect.getLocation();
-    Location location;
-    if (prospectLocation == null) {
-      location = null;
-    } else {
-      Double longitude = prospectLocation.getLongitude();
-      Double latitude = prospectLocation.getLatitude();
-      location =
-          Location.builder()
-              .address(prospect.getAddress())
-              .longitude(longitude)
-              .latitude(latitude)
-              .coordinate(
-                  GeoUtils.Coordinate.builder().longitude(longitude).latitude(latitude).build())
-              .build();
-    }
     if (optionalLinkedCustomer.isPresent()) {
       Customer persistedCustomer = optionalLinkedCustomer.get();
       return persistedCustomer.toBuilder().isConverted(isConverted).build();
     }
+    var prospectLocation = prospect.getLocation();
+    Double longitude = prospectLocation == null ? null : prospectLocation.getLongitude();
+    Double latitude = prospectLocation == null ? null : prospectLocation.getLatitude();
+    Location location =
+        Location.builder()
+            .address(prospect.getAddress())
+            .longitude(longitude)
+            .latitude(latitude)
+            .coordinate(
+                GeoUtils.Coordinate.builder().longitude(longitude).latitude(latitude).build())
+            .build();
     return Customer.builder()
         .id(randomUUID().toString())
         .email(prospect.getEmail())

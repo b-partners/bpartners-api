@@ -10,7 +10,7 @@ plugins {
 
     id 'jacoco'
 
-
+    
 }
 
 jacoco {
@@ -27,7 +27,6 @@ mavenLocal()
 
     mavenCentral()
 }
-
 
 java {
     group = 'app.bpartners.api'
@@ -239,6 +238,6 @@ implementation 'org.testcontainers:localstack:1.19.3'
 implementation 'javax.activation:activation:1.1.1'
 implementation 'io.hypersistence:hypersistence-utils-hibernate-63:3.7.3'
 implementation 'org.geotools:gt-geojson:31.0'
-
+    
 
 }

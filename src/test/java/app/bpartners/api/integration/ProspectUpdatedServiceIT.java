@@ -43,6 +43,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 public class ProspectUpdatedServiceIT extends MockedThirdParties {
   private static final String PROSPECT_8_ID = "prospect8_id";
   private static final String PROSPECT_9_ID = "prospect9_id";
+  private static final String PROSPECT_10_ID = "prospect10_id";
   private static final String PROSPECT_8_CUSTOMER_1_ID = "prospect_8_customer_1_id";
   public static final Instant DEFAULT_INSTANT = Instant.parse("2023-02-01T00:00:00.00Z");
   @Autowired ProspectUpdatedService subject;
@@ -91,6 +92,22 @@ public class ProspectUpdatedServiceIT extends MockedThirdParties {
         .statusHistories(defaultStatusHistory())
         .townCode(null)
         .location(new Geojson().type(null).longitude(1.0).latitude(1.0))
+        .rating(Prospect.ProspectRating.builder().value(-1.0D).build())
+        .contactNature(PROSPECT)
+        .build();
+  }
+
+  static Prospect prospect10() {
+    return Prospect.builder()
+        .idHolderOwner(JOE_DOE_ACCOUNT_HOLDER_ID)
+        .id(PROSPECT_10_ID)
+        .name("Johnny	Paulinette")
+        .email("johnnypette@gmail.com")
+        .phone("+261340465347")
+        .address("30 Rue de la Montagne Sainte-Genevieve")
+        .statusHistories(defaultStatusHistory())
+        .townCode(null)
+        .location(null)
         .rating(Prospect.ProspectRating.builder().value(-1.0D).build())
         .contactNature(PROSPECT)
         .build();
@@ -146,6 +163,30 @@ public class ProspectUpdatedServiceIT extends MockedThirdParties {
   }
 
   @Test
+  void create_customer_from_locationless_prospect_ok() throws MessagingException, IOException {
+    Prospect actualProspect10 = prospectService.getById(PROSPECT_10_ID);
+    Optional<Customer> optionalLinkedCustomer = customerService.getByProspectId(PROSPECT_10_ID);
+    String prospectUpdatedHtmlSubject =
+        "Le prospect intitulé Johnny\tPaulinette appartenant à l'artisan NUMER est passé en statut"
+            + " À CONTACTER le 01/02/2023 01:00";
+    Prospect payloadProspect = prospect10();
+    ProspectUpdated payload = new ProspectUpdated(payloadProspect, DEFAULT_INSTANT);
+
+    subject.accept(payload);
+
+    assertTrue(optionalLinkedCustomer.isEmpty());
+    assertEquals(ignoreHistoryUpdatedOf(payloadProspect), ignoreHistoryUpdatedOf(actualProspect10));
+    verify(sesService, times(1))
+        .sendEmail(eq(null), eq(null), eq(prospectUpdatedHtmlSubject), any(), anyList());
+    Optional<Customer> optionalLinkedCustomerAfterInsert =
+        customerService.getByProspectId(PROSPECT_10_ID);
+    assertTrue(optionalLinkedCustomerAfterInsert.isPresent());
+    assertEquals(
+        createCustomerFrom(payloadProspect),
+        ignoreIdOf(Objects.requireNonNull(ignoreDatesOf(optionalLinkedCustomerAfterInsert.get()))));
+  }
+
+  @Test
   void update_customer_ok() throws MessagingException, IOException {
     Prospect actualProspect8 = prospectService.getById(PROSPECT_8_ID);
     Customer actualProspect8Customer = customerService.getCustomerById(PROSPECT_8_CUSTOMER_1_ID);
@@ -186,22 +227,17 @@ public class ProspectUpdatedServiceIT extends MockedThirdParties {
   }
 
   private static Customer createCustomerFrom(Prospect prospect) {
-    Geojson prospectLocation = prospect.getLocation();
-    Location location;
-    if (prospectLocation == null) {
-      location = null;
-    } else {
-      Double longitude = prospectLocation.getLongitude();
-      Double latitude = prospectLocation.getLatitude();
-      location =
-          Location.builder()
-              .address(prospect.getAddress())
-              .longitude(longitude)
-              .latitude(latitude)
-              .coordinate(
-                  GeoUtils.Coordinate.builder().latitude(latitude).longitude(longitude).build())
-              .build();
-    }
+    var prospectLocation = prospect.getLocation();
+    Double longitude = prospectLocation == null ? null : prospectLocation.getLongitude();
+    Double latitude = prospectLocation == null ? null : prospectLocation.getLatitude();
+    Location location =
+        Location.builder()
+            .address(prospect.getAddress())
+            .longitude(longitude)
+            .latitude(latitude)
+            .coordinate(
+                GeoUtils.Coordinate.builder().longitude(longitude).latitude(latitude).build())
+            .build();
     return Customer.builder()
         .id(null)
         .email(prospect.getEmail())

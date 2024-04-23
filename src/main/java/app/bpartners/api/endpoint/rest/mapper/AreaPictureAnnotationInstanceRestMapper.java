@@ -30,6 +30,7 @@ public class AreaPictureAnnotationInstanceRestMapper {
         .userId(domain.getIdUser())
         .annotationId(domain.getIdAnnotation())
         .labelName(domain.getLabelName())
+        .labelType(domain.getLabelType())
         .polygon(polygon);
   }
 
@@ -61,6 +62,7 @@ public class AreaPictureAnnotationInstanceRestMapper {
         .metadata(metadata)
         .polygon(polygon)
         .labelName(rest.getLabelName())
+        .labelType(rest.getLabelType())
         .idAnnotation(rest.getAnnotationId())
         .idUser(rest.getUserId())
         .idAreaPicture(rest.getAreaPictureId())

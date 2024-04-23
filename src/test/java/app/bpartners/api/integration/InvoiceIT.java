@@ -199,7 +199,8 @@ class InvoiceIT extends S3MockedThirdParties {
             .fileId(actualUpdatedDraft.getFileId())
             .archiveStatus(ENABLED)
             .createdAt(actualUpdatedDraft.getCreatedAt())
-            .updatedAt(actualUpdatedDraft.getUpdatedAt()),
+            .updatedAt(actualUpdatedDraft.getUpdatedAt())
+            .idAreaPicture("area_picture_1_id"),
         actualUpdatedDraft
             // TODO: deprecated,remove when validity date is correctly set
             .toPayAt(null));
@@ -396,6 +397,7 @@ class InvoiceIT extends S3MockedThirdParties {
                             .percent(10000 - 1025)
                             .comment("Test 90%")
                             .amount(null))));
+
     assertEquals(2, invoice.getPaymentRegulations().size());
 
     // First get

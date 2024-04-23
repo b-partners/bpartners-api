@@ -47,7 +47,7 @@ jobs:
 
       - name: Conventional changelog
         id: conventional-ch
-        uses: TriPSs/conventional-changelog-action@v3
+        uses: TriPSs/conventional-changelog-action@v5.2.1
         with:
           github-token: ${{ secrets.POJA_GH_TOKEN_FOR_CONVENTIONAL_CHANGELOG }}
           git-message: 'release: {version}'

@@ -178,7 +178,8 @@ class InvoiceIT extends S3MockedThirdParties {
     Invoice actualDraft =
         api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, NEW_INVOICE_ID, initializeDraft().ref(null));
     Invoice actualUpdatedDraft =
-        api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, NEW_INVOICE_ID, validInvoice().idAreaPicture(AREA_PICTURE_1_ID));
+        api.crupdateInvoice(
+            JOE_DOE_ACCOUNT_ID, NEW_INVOICE_ID, validInvoice().idAreaPicture(AREA_PICTURE_1_ID));
     actualUpdatedDraft.setProducts(ignoreIdsOf(actualUpdatedDraft.getProducts()));
     actualUpdatedDraft.setCustomer(ignoreCustomerDatetime(actualUpdatedDraft));
 

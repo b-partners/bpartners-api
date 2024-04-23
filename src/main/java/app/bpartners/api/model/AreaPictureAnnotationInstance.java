@@ -23,6 +23,7 @@ public class AreaPictureAnnotationInstance {
   private Polygon polygon;
 
   private String labelName;
+  private String labelType;
   private String idAnnotation;
   private String idUser;
   private String idAreaPicture;

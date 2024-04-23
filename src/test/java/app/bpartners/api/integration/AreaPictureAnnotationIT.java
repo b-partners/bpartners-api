@@ -102,6 +102,7 @@ public class AreaPictureAnnotationIT extends MockedThirdParties {
         .annotationId(AREA_PICTURE_ANNOTATION_1_ID)
         .polygon(new Polygon().points(List.of(new Point().x(1.0).y(1.0))))
         .labelName("roof nord-est")
+        .labelType("roof")
         .userId(JOE_DOE_ID)
         .metadata(
             new AreaPictureAnnotationInstanceMetadata()
@@ -118,6 +119,7 @@ public class AreaPictureAnnotationIT extends MockedThirdParties {
         .annotationId(annotationId)
         .polygon(new Polygon().points(List.of(new Point().x(1.0).y(1.0))))
         .labelName("roof nord-est")
+        .labelType("roof")
         .userId(JOE_DOE_ID)
         .areaPictureId(areaPictureId)
         .metadata(
@@ -135,6 +137,7 @@ public class AreaPictureAnnotationIT extends MockedThirdParties {
         .annotationId(AREA_PICTURE_ANNOTATION_1_ID)
         .polygon(new Polygon().points(List.of(new Point().x(2.0).y(2.0))))
         .labelName("roof nord-est 2")
+        .labelType("roof")
         .userId(JOE_DOE_ID)
         .metadata(
             new AreaPictureAnnotationInstanceMetadata()

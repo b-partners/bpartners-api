@@ -359,6 +359,8 @@ components:
           $ref: '#/components/schemas/AreaPictureAnnotationInstanceMetadata'
         userId:
           type: string
+        labelType:
+          type: string
         labelName:
           type: string
         polygon:

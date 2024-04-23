@@ -11,9 +11,11 @@ import app.bpartners.api.model.mapper.CustomerMapper;
 import app.bpartners.api.repository.CustomerRepository;
 import app.bpartners.api.repository.jpa.CustomerJpaRepository;
 import app.bpartners.api.repository.jpa.model.HCustomer;
+import app.bpartners.api.repository.jpa.model.HHasCustomer;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import java.util.ArrayList;
@@ -59,10 +61,10 @@ public class CustomerRepositoryImpl implements CustomerRepository {
       String city,
       String country,
       CustomerStatus status,
+      String prospectId,
       CriteriaBuilder builder,
       Root<HCustomer> root,
       List<Predicate> predicates) {
-
     predicates.add(builder.equal(root.get("idUser"), idUser));
     if (firstname != null) {
       warnDeprecated(FIRST_NAME);
@@ -108,18 +110,23 @@ public class CustomerRepositoryImpl implements CustomerRepository {
               builder.like(builder.lower(root.get(COUNTRY)), "%" + country.toLowerCase() + "%"),
               builder.like(root.get(COUNTRY), "%" + country.toLowerCase() + "%")));
     }
+    if (prospectId != null) {
+      Join<HCustomer, HHasCustomer> customerProspectJoin = root.join("prospect");
+      predicates.add(builder.equal(customerProspectJoin.get("id"), prospectId));
+    }
     if (status != null) {
       predicates.add(builder.equal(root.get(STATUS), status));
     } else {
       predicates.add(builder.equal(root.get(STATUS), CustomerStatus.ENABLED));
     }
-    return new Predicate[predicates.size()];
+    return predicates.toArray(new Predicate[0]);
   }
 
   private static List<Customer> filterBy(
       String idUser,
       List<String> keywords,
       CustomerStatus status,
+      String prospectId,
       Pageable pageable,
       EntityManager entityManager,
       CustomerMapper mapper) {
@@ -132,6 +139,10 @@ public class CustomerRepositoryImpl implements CustomerRepository {
         status != null
             ? builder.equal(root.get(STATUS), status)
             : builder.equal(root.get(STATUS), CustomerStatus.ENABLED));
+    if (prospectId != null) {
+      Join<HCustomer, HHasCustomer> customerProspectJoin = root.join("prospect");
+      predicates.add(builder.equal(customerProspectJoin.get("id"), prospectId));
+    }
     List<Predicate> keywordsPredicates = new ArrayList<>();
     for (String keyword : keywords) {
       keywordsPredicates.add(
@@ -141,7 +152,7 @@ public class CustomerRepositoryImpl implements CustomerRepository {
       keywordsPredicates.add(builder.like(builder.lower(root.get(LAST_NAME)), "%" + keyword + "%"));
       keywordsPredicates.add(builder.like(builder.lower(root.get(EMAIL)), "%" + keyword + "%"));
       keywordsPredicates.add(builder.like(builder.lower(root.get(PHONE)), "%" + keyword + "%"));
-      keywordsPredicates.add(builder.like(builder.lower(root.get("city")), "%" + keyword + "%"));
+      keywordsPredicates.add(builder.like(builder.lower(root.get(CITY)), "%" + keyword + "%"));
       keywordsPredicates.add(builder.like(builder.lower(root.get(COUNTRY)), "%" + keyword + "%"));
     }
     predicates.add(builder.or(keywordsPredicates.toArray(new Predicate[0])));
@@ -167,6 +178,7 @@ public class CustomerRepositoryImpl implements CustomerRepository {
       String city,
       String country,
       CustomerStatus status,
+      String prospectId,
       Pageable pageable,
       EntityManager entityManager,
       CustomerMapper mapper) {
@@ -184,6 +196,7 @@ public class CustomerRepositoryImpl implements CustomerRepository {
             city,
             country,
             status,
+            prospectId,
             builder,
             root,
             predicates);
@@ -210,12 +223,13 @@ public class CustomerRepositoryImpl implements CustomerRepository {
       String city,
       String country,
       List<String> keywords,
+      String prospectId,
       CustomerStatus status,
       int page,
       int pageSize) {
     Pageable pageable = PageRequest.of(page, pageSize);
     if (keywords != null && !keywords.isEmpty()) {
-      return filterBy(idUser, keywords, status, pageable, entityManager, mapper);
+      return filterBy(idUser, keywords, status, prospectId, pageable, entityManager, mapper);
     } else {
       return filterBy(
           idUser,
@@ -226,6 +240,7 @@ public class CustomerRepositoryImpl implements CustomerRepository {
           city,
           country,
           status,
+          prospectId,
           pageable,
           entityManager,
           mapper);
@@ -309,6 +324,11 @@ public class CustomerRepositoryImpl implements CustomerRepository {
         jpaRepository
             .findById(id)
             .orElseThrow(() -> new NotFoundException("Customer." + id + " is not found.")));
+  }
+
+  @Override
+  public Optional<Customer> findOptionalByProspectId(String idProspect) {
+    return jpaRepository.findByIdProspect(idProspect).map(mapper::toDomain);
   }
 
   @Override

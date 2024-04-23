@@ -79,6 +79,7 @@ public class InvoiceMapper {
             .customerCountry(entity.getCustomerCountry())
             .customerWebsite(entity.getCustomerWebsite())
             .customerZipCode(entity.getCustomerZipCode())
+            .idAreaPicture(entity.getIdAreaPicture())
             // TODO: add user
             .status(entity.getStatus())
             .archiveStatus(entity.getArchiveStatus())
@@ -194,6 +195,7 @@ public class InvoiceMapper {
         .metadataString(objectMapper.writeValueAsString(domain.getMetadata()))
         .discountPercent(domain.getDiscount().getPercentValue().toString())
         .paymentMethod(domain.getPaymentMethod())
+        .idAreaPicture(domain.getIdAreaPicture())
         .build();
   }
 

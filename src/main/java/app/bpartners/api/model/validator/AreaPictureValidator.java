@@ -16,7 +16,7 @@ public class AreaPictureValidator implements Consumer<AreaPicture> {
     if (areaPicture.getAddress() == null) {
       exceptionMessageBuilder.append("address is mandatory. ");
     }
-    if (areaPicture.getLayer() == null) {
+    if (areaPicture.getCurrentLayer() == null) {
       exceptionMessageBuilder.append("layer is mandatory. ");
     }
     if (areaPicture.getIdFileInfo() == null) {

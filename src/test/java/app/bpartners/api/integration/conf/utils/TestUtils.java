@@ -40,6 +40,7 @@ import app.bpartners.api.endpoint.rest.model.Invoice;
 import app.bpartners.api.endpoint.rest.model.InvoiceDiscount;
 import app.bpartners.api.endpoint.rest.model.InvoicePaymentReq;
 import app.bpartners.api.endpoint.rest.model.LegalFile;
+import app.bpartners.api.endpoint.rest.model.OpenStreetMapLayer;
 import app.bpartners.api.endpoint.rest.model.PaymentRegulation;
 import app.bpartners.api.endpoint.rest.model.Product;
 import app.bpartners.api.endpoint.rest.model.ProductStatus;
@@ -76,6 +77,7 @@ import app.bpartners.api.repository.model.AccountConnector;
 import app.bpartners.api.repository.sendinblue.SendinblueApi;
 import app.bpartners.api.repository.sendinblue.model.Attributes;
 import app.bpartners.api.repository.sendinblue.model.Contact;
+import app.bpartners.api.service.WMS.MapLayerGuesser;
 import app.bpartners.api.service.utils.GeoUtils;
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -175,6 +177,9 @@ public class TestUtils {
   public static final String TRANSACTION3_ID = "transaction3_id";
   public static final String PROSPECT_1_ID = "prospect1_id";
   public static final String PROSPECT_2_ID = "prospect2_id";
+  public static final String CUSTOMER_1_ID = "customer1_id";
+  public static final OpenStreetMapLayer DEFAULT_FRANCE_LAYER =
+      OpenStreetMapLayer.fromValue(MapLayerGuesser.DEFAULT_FRANCE_LAYER.getValue());
 
   public static User restJoeDoeUser() {
     return new User()
@@ -264,7 +269,7 @@ public class TestUtils {
 
   public static Customer customer1() {
     return new Customer()
-        .id("customer1_id")
+        .id(CUSTOMER_1_ID)
         .name("Luc Artisan")
         .firstName("Luc")
         .lastName("Artisan")
@@ -276,6 +281,7 @@ public class TestUtils {
         .city("Metz")
         .country(null)
         .comment("Rencontre avec Luc")
+        .isConverted(true)
         .location(
             new CustomerLocation().address("15 rue Porte d'Orange").longitude(0d).latitude(0d))
         .status(CustomerStatus.ENABLED)
@@ -296,6 +302,7 @@ public class TestUtils {
         .city("Montmorency")
         .country("France")
         .comment("Rencontre avec le plombier")
+        .isConverted(true)
         .location(new CustomerLocation().address("4 Avenue des Près").longitude(0d).latitude(0d))
         .status(CustomerStatus.ENABLED)
         .customerType(CustomerType.INDIVIDUAL);
@@ -313,6 +320,7 @@ public class TestUtils {
         .zipCode(95160)
         .city("Montmorency")
         .country("France")
+        .isConverted(true)
         .comment("Rencontre avec Marc")
         .status(CustomerStatus.ENABLED);
   }
@@ -330,6 +338,7 @@ public class TestUtils {
         .city(null)
         .country(null)
         .comment(null)
+        .isConverted(true)
         .status(CustomerStatus.ENABLED);
   }
 

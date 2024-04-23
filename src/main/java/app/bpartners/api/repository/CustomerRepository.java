@@ -17,6 +17,8 @@ public interface CustomerRepository {
 
   Customer findById(String id);
 
+  Optional<Customer> findOptionalByProspectId(String prospectId);
+
   Optional<Customer> findOptionalById(String id);
 
   List<Customer> findByIdUserAndCriteria(
@@ -28,6 +30,7 @@ public interface CustomerRepository {
       String city,
       String country,
       List<String> keywords,
+      String prospectId,
       CustomerStatus status,
       int page,
       int pageSize);

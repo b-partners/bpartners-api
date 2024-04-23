@@ -9,6 +9,7 @@ import java.time.Instant;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -20,6 +21,7 @@ import lombok.ToString;
 @NoArgsConstructor
 @Builder(toBuilder = true)
 @ToString
+@EqualsAndHashCode
 public class Customer {
   protected String id;
   protected String idAccount;
@@ -49,6 +51,7 @@ public class Customer {
   protected Instant createdAt;
   protected String latestFullAddress;
   protected CustomerType customerType;
+  protected boolean isConverted;
 
   public String describe() {
     return "Customer(id=" + id + ", name=" + getFullName() + ", idUser=" + idUser + ")";

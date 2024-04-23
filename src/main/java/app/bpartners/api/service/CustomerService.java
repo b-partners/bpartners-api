@@ -2,6 +2,7 @@ package app.bpartners.api.service;
 
 import static app.bpartners.api.endpoint.event.EventProducer.Conf.MAX_PUT_EVENT_ENTRIES;
 import static app.bpartners.api.service.utils.CustomerUtils.getCustomersInfoFromFile;
+import static java.util.stream.Collectors.toList;
 
 import app.bpartners.api.endpoint.event.EventConf;
 import app.bpartners.api.endpoint.event.EventProducer;
@@ -11,7 +12,6 @@ import app.bpartners.api.endpoint.rest.mapper.CustomerRestMapper;
 import app.bpartners.api.endpoint.rest.model.CreateCustomer;
 import app.bpartners.api.endpoint.rest.model.CustomerStatus;
 import app.bpartners.api.endpoint.rest.model.UpdateCustomerStatus;
-import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.Customer;
 import app.bpartners.api.model.Location;
@@ -27,7 +27,7 @@ import java.io.ByteArrayInputStream;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Optional;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -91,6 +91,7 @@ public class CustomerService {
       String city,
       String country,
       List<String> filters,
+      String prospectId,
       CustomerStatus status,
       PageFromOne page,
       BoundedPageSize pageSize) {
@@ -98,7 +99,7 @@ public class CustomerService {
     int pageSizeValue = pageSize != null ? pageSize.getValue() : 30;
     List<String> keywords = new ArrayList<>();
     if (filters != null && !filters.isEmpty()) {
-      keywords.addAll(filters.stream().map(String::toLowerCase).collect(Collectors.toList()));
+      keywords.addAll(filters.stream().map(String::toLowerCase).collect(toList()));
     }
     return repository.findByIdUserAndCriteria(
         idUser,
@@ -109,6 +110,7 @@ public class CustomerService {
         city,
         country,
         keywords,
+        prospectId,
         status,
         pageValue,
         pageSizeValue);
@@ -118,20 +120,20 @@ public class CustomerService {
     return repository.findById(id);
   }
 
+  public Optional<Customer> getByProspectId(String prospectId) {
+    return repository.findOptionalByProspectId(prospectId);
+  }
+
   @Transactional
-  public List<Customer> crupdateCustomers(List<Customer> customers) {
+  public List<Customer> crupdateCustomers(User owner, List<Customer> customers) {
     List<Customer> saved = repository.saveAll(customers);
 
     List<Object> typedEvent =
         saved.isEmpty()
             ? List.of()
             : saved.stream()
-                .map(
-                    customer -> {
-                      User user = AuthProvider.getAuthenticatedUser();
-                      return toTypedEvent(user, customer, customer.isRecentlyAdded());
-                    })
-                .collect(Collectors.toList());
+                .map(customer -> toTypedEvent(owner, customer, customer.isRecentlyAdded()))
+                .collect(toList());
     int typedEventSize = typedEvent.size();
     if (typedEventSize > MAX_PUT_EVENT_ENTRIES) {
       int subdivision = (int) Math.ceil(typedEventSize / (double) MAX_PUT_EVENT_ENTRIES);
@@ -156,7 +158,7 @@ public class CustomerService {
         getCustomersInfoFromFile(new ByteArrayInputStream(file));
     return customersFromFile.stream()
         .map(customer -> restMapper.toDomain(idUser, customer))
-        .collect(Collectors.toList());
+        .collect(toList());
   }
 
   public void checkCustomerExistence(Customer toCheck) {

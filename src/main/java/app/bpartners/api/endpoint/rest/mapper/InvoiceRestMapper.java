@@ -87,6 +87,7 @@ public class InvoiceRestMapper {
         .paymentRegulations(toRestFromInvoice(domain))
         .toPayAt(toPayAt)
         .paymentMethod(domain.getPaymentMethod())
+        .idAreaPicture(domain.getIdAreaPicture())
         .globalDiscount(
             new InvoiceDiscount()
                 .percentValue(
@@ -192,6 +193,7 @@ public class InvoiceRestMapper {
         .metadata(rest.getMetadata() == null ? Map.of() : rest.getMetadata())
         .discount(discountDomain)
         .paymentMethod(paymentMethod)
+        .idAreaPicture(rest.getIdAreaPicture())
         .build();
   }
 

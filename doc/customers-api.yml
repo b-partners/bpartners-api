@@ -130,6 +130,10 @@ operations:
               type: string
           description: Filter customer by the given keywords
         - in: query
+          name: prospectId
+          schema:
+            type: string
+        - in: query
           name: page
           schema:
             $ref: './api.yml#/components/schemas/Page'
@@ -366,6 +370,8 @@ components:
         updatedAt:
           type: string
           format: date-time
+        isConverted:
+          type: boolean
       allOf:
         - $ref: '#/components/schemas/CreateCustomer'
     CustomerStatus:

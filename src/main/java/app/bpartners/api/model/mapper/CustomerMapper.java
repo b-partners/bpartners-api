@@ -47,6 +47,7 @@ public class CustomerMapper {
         .updatedAt(entity.getUpdatedAt())
         .createdAt(entity.getCreatedAt())
         .latestFullAddress(entity.getLatestFullAddress())
+        .isConverted(entity.isConverted())
         .build();
   }
 
@@ -77,6 +78,7 @@ public class CustomerMapper {
         .recentlyAdded(domain.isRecentlyAdded())
         .updatedAt(Instant.now())
         .latestFullAddress(domain.getLatestFullAddress())
+        .isConverted(domain.isConverted())
         .build();
   }
 }

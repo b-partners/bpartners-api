@@ -12,21 +12,14 @@ public class CrupdateAreaPictureDetailsValidator implements Consumer<CrupdateAre
   public void accept(CrupdateAreaPictureDetails crupdateAreaPictureDetails) {
     StringBuilder exceptionMessageBuilder = new StringBuilder();
 
-    String filename = crupdateAreaPictureDetails.getFilename();
     if (crupdateAreaPictureDetails.getAddress() == null) {
       exceptionMessageBuilder.append("address is mandatory. ");
-    }
-    if (crupdateAreaPictureDetails.getLayer() == null) {
-      exceptionMessageBuilder.append("layer is mandatory. ");
     }
     if (crupdateAreaPictureDetails.getFileId() == null) {
       exceptionMessageBuilder.append("fileId is mandatory. ");
     }
     if (crupdateAreaPictureDetails.getZoomLevel() == null) {
       exceptionMessageBuilder.append("zoomLevel is mandatory. ");
-    }
-    if (filename == null) {
-      exceptionMessageBuilder.append("filename is mandatory. ");
     }
     if (crupdateAreaPictureDetails.getProspectId() == null) {
       exceptionMessageBuilder.append("prospectId is mandatory. ");

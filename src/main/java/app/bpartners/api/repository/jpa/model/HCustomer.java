@@ -1,14 +1,18 @@
 package app.bpartners.api.repository.jpa.model;
 
+import static app.bpartners.api.endpoint.rest.model.CustomerType.PROFESSIONAL;
+import static jakarta.persistence.EnumType.STRING;
 import static org.hibernate.type.SqlTypes.NAMED_ENUM;
 
 import app.bpartners.api.endpoint.rest.model.CustomerStatus;
 import app.bpartners.api.endpoint.rest.model.CustomerType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
 import java.time.Instant;
@@ -46,11 +50,11 @@ public class HCustomer {
   private Double longitude;
 
   @JdbcTypeCode(NAMED_ENUM)
-  @Enumerated(EnumType.STRING)
+  @Enumerated(STRING)
   private CustomerType customerType;
 
   @JdbcTypeCode(NAMED_ENUM)
-  @Enumerated(EnumType.STRING)
+  @Enumerated(STRING)
   private CustomerStatus status;
 
   @Transient private boolean recentlyAdded;
@@ -62,8 +66,22 @@ public class HCustomer {
   private Instant updatedAt;
   private String latestFullAddress;
 
+  @Column(updatable = false)
+  private boolean isConverted;
+
+  @JoinTable(
+      name = "has_customer",
+      joinColumns = @JoinColumn(name = "id_customer", insertable = false, updatable = false),
+      inverseJoinColumns = @JoinColumn(name = "id_prospect", insertable = false, updatable = false))
+  @OneToOne
+  private HProspect prospect;
+
+  public boolean isConverted() {
+    return isConverted;
+  }
+
   public boolean isProfessional() {
-    return customerType == CustomerType.PROFESSIONAL;
+    return PROFESSIONAL == customerType;
   }
 
   public String getFullAddress() {

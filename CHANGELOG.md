@@ -1,3 +1,25 @@
+# [0.42.0](https://github.com/b-partners/bpartners-api/compare/v0.41.0...v0.42.0) (2024-04-24)
+
+
+### Bug Fixes
+
+* bad file naming in area_picture ([c83a4eb](https://github.com/b-partners/bpartners-api/commit/c83a4ebc6905576b0af5f4f7d4134430efd0400d))
+* missing mapped data from prospect to customer ([037897f](https://github.com/b-partners/bpartners-api/commit/037897f50496f431ccf0658cf8cf12b30b45d317))
+* NPE on customer.location when prospect.location is null ([615730f](https://github.com/b-partners/bpartners-api/commit/615730fc4b28efc9e60a2cf690912f778e277dbf))
+
+
+### Features
+
+* add labelType to AreaPictureAnnotationInstance ([d620268](https://github.com/b-partners/bpartners-api/commit/d620268717c6f9efd4bfa4565bab7b3b275e1855))
+* annotate area pictures and read made annotations ([eb7e8e7](https://github.com/b-partners/bpartners-api/commit/eb7e8e7ea3f1c1d9ee70161ac83ec740b71e266e))
+* crupdate prospect crupdates customer, however if customer exists, it updates the isConverted field only ([040faa9](https://github.com/b-partners/bpartners-api/commit/040faa9e7069c006eb33b50dd316fa51201fc0c6))
+* default osm layer TOUS_FR containing all regions, but quality might be poor ([9d0d70f](https://github.com/b-partners/bpartners-api/commit/9d0d70fbcf1bd80ed647a661dc2aa3d7df841be3))
+* filter customers by id prospect ([60dfa6c](https://github.com/b-partners/bpartners-api/commit/60dfa6c2b11b41ee2c5dd4e8579d01a9c326b7f8))
+* map invoice with area picture ([74786f8](https://github.com/b-partners/bpartners-api/commit/74786f8280d2c568234bfaf4a0e505c073591470))
+* set openstreetmap layer from given layer or from geoposition via src/main/resources/files/france-geojson/departements.geojson, only use tous_fr for now and log most used regions ([13bc3c9](https://github.com/b-partners/bpartners-api/commit/13bc3c9f65493fff2d48353f5ce02f31919bc256))
+
+
+
 # [0.41.0](https://github.com/b-partners/bpartners-api/compare/v0.40.0...v0.41.0) (2024-04-05)
 
 
@@ -185,21 +207,6 @@
 
 * Revert "fix: add id_user criteria when comparing account with same iban or bank account infos" ([21df7e2](https://github.com/b-partners/bpartners-api/commit/21df7e2a0b138ce004fddd4b23039caefd074550))
 * Revert "infra: 2 big prod instances" ([d2bc064](https://github.com/b-partners/bpartners-api/commit/d2bc064f844cfc188c5078ac574851ef6bf56a8d))
-
-
-
-## [0.36.1](https://github.com/b-partners/bpartners-api/compare/v0.36.0...v0.36.1) (2023-11-08)
-
-
-### Bug Fixes
-
-* add contact nature inside prospect view ([707349c](https://github.com/b-partners/bpartners-api/commit/707349c56fd02943639d486aaf23fdab6e31e1cc))
-* add payment datetime under invoice stamp ([da87dd2](https://github.com/b-partners/bpartners-api/commit/da87dd2d066d6dd31f30ee11dcc3c6cb99805097))
-* attach saved prospect to account holder owner ([543a5e5](https://github.com/b-partners/bpartners-api/commit/543a5e56b90e3b337318b47d1de3041a0265fae5))
-* handle -1 value for port not set when extracting url ([2730d62](https://github.com/b-partners/bpartners-api/commit/2730d62bd24e8aea03d3001b05c1f4563bf63f4f))
-* handle query parameters when initiating calendar consent ([2d563fc](https://github.com/b-partners/bpartners-api/commit/2d563fca7d0b02b928f856707dff26bb10feae2c))
-* set payment created datetime as default payment status updated datetime ([1594533](https://github.com/b-partners/bpartners-api/commit/159453301718e7269f9dc08a1cc143095f39aced))
-* set payment value as cents in notification ([f78eb2f](https://github.com/b-partners/bpartners-api/commit/f78eb2f02d25f65b41c1ac858a9acf2f6ef7d824))
 
 
 

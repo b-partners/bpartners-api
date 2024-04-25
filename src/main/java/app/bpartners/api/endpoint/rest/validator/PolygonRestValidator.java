@@ -16,8 +16,6 @@ public class PolygonRestValidator implements Consumer<Polygon> {
     List<Point> points = polygon.getPoints();
     if (points == null || points.isEmpty()) {
       exceptionMessageBuilder.append("polygon points attribute is mandatory");
-    } else if (points.getFirst() != points.getLast()) {
-      exceptionMessageBuilder.append("polygon is not complete, first and last points differ");
     }
     String exceptionMessage = exceptionMessageBuilder.toString();
     if (!exceptionMessage.isBlank()) {

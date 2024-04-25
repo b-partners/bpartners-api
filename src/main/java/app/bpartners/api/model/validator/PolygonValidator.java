@@ -15,8 +15,6 @@ public class PolygonValidator implements Consumer<AreaPictureAnnotationInstance.
     List<AreaPictureAnnotationInstance.Point> points = polygon.points();
     if (points == null || points.isEmpty()) {
       exceptionMessageBuilder.append("polygon points attribute is mandatory");
-    } else if (points.getFirst() != points.getLast()) {
-      exceptionMessageBuilder.append("polygon is not complete, first and last points differ");
     }
     String exceptionMessage = exceptionMessageBuilder.toString();
     if (!exceptionMessage.isBlank()) {

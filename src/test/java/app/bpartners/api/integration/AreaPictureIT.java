@@ -16,6 +16,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
 import app.bpartners.api.endpoint.rest.api.AreaPictureApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
@@ -26,8 +28,12 @@ import app.bpartners.api.integration.conf.S3MockedThirdParties;
 import app.bpartners.api.integration.conf.utils.TestUtils;
 import app.bpartners.api.model.AreaPicture;
 import app.bpartners.api.model.exception.BadRequestException;
+import app.bpartners.api.repository.ban.BanApi;
+import app.bpartners.api.repository.ban.model.GeoPosition;
 import app.bpartners.api.service.WMS.MapLayer;
 import app.bpartners.api.service.WMS.MapLayerGuesser;
+import app.bpartners.api.service.WMS.Tile;
+import app.bpartners.api.service.utils.GeoUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.net.URI;
@@ -37,15 +43,16 @@ import java.time.Instant;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
 
 @Slf4j
 public class AreaPictureIT extends S3MockedThirdParties {
   @Autowired ObjectMapper om;
 
   @Autowired MapLayerGuesser mapLayerGuesser;
+  @MockBean BanApi banApiMock;
 
   private ApiClient joeDoeClient() {
     return TestUtils.anApiClient(JOE_DOE_TOKEN, localPort);
@@ -90,7 +97,20 @@ public class AreaPictureIT extends S3MockedThirdParties {
   public void setUp() {
     setUpLegalFileRepository(legalFileRepositoryMock);
     setUpCognito(cognitoComponentMock);
+    setUpBanApiMock(banApiMock);
   }
+
+  void setUpBanApiMock(BanApi banApi) {
+    when(banApi.search(any())).thenReturn(DEFAULT_KNOWN_GEO_POSITION);
+    when(banApi.fSearch(any())).thenReturn(DEFAULT_KNOWN_GEO_POSITION);
+  }
+
+  private static final GeoUtils.Coordinate DEFAULT_KNOWN_COORDINATES =
+      GeoUtils.Coordinate.builder().longitude(0.148409).latitude(45.644018).build();
+  private static final GeoPosition DEFAULT_KNOWN_GEO_POSITION =
+      GeoPosition.builder().coordinates(DEFAULT_KNOWN_COORDINATES).build();
+
+  private static final Tile DEFAULT_KNOWN_TILE = Tile.builder().x(524720).y(374531).build();
 
   @Test
   void joe_doe_read_his_pictures_ok() throws ApiException {
@@ -120,18 +140,24 @@ public class AreaPictureIT extends S3MockedThirdParties {
   }
 
   @Test
-  @Disabled("TODO: fail because of LocalStack")
   void download_and_save_area_picture_ok() throws IOException, InterruptedException, ApiException {
     ApiClient joeDoeClient = joeDoeClient();
     AreaPictureApi api = new AreaPictureApi(joeDoeClient);
     String basePath = "http://localhost:" + localPort;
     String payloadId = randomUUID().toString();
     CrupdateAreaPictureDetails payload = crupdatableAreaPictureDetails();
-    var expected = from(payload, payloadId);
-    var actual = download_with_request_body(basePath, payloadId, null, JOE_DOE_TOKEN, payload);
+
+    var actual = downloadAndSaveAreaPicture(basePath, payloadId, null, JOE_DOE_TOKEN, payload);
     var saved = api.getAreaPictureById(JOE_DOE_ACCOUNT_ID, payloadId);
 
-    assertEquals(expected, saved);
+    assertEquals(createFrom(payload, payloadId), ignoreDatesOf(saved));
+    assertTrue(actual.body().length > 0);
+  }
+
+  static AreaPictureDetails ignoreDatesOf(AreaPictureDetails areaPictureDetails) {
+    areaPictureDetails.setCreatedAt(null);
+    areaPictureDetails.setUpdatedAt(null);
+    return areaPictureDetails;
   }
 
   static AreaPictureDetails removeAvailableLayers(AreaPictureDetails areaPictureDetails) {
@@ -143,24 +169,37 @@ public class AreaPictureIT extends S3MockedThirdParties {
     return new CrupdateAreaPictureDetails()
         .address("Angoulême")
         .fileId(fileId)
+        .prospectId(PROSPECT_1_ID)
         .zoomLevel(HOUSES_0)
         .createdAt(null)
         .updatedAt(null);
   }
 
-  static AreaPictureDetails from(CrupdateAreaPictureDetails crupdate, String payloadId) {
+  static AreaPictureDetails createFrom(CrupdateAreaPictureDetails crupdate, String payloadId) {
+    var tile = DEFAULT_KNOWN_TILE;
     return new AreaPictureDetails()
         .id(payloadId)
+        .xTile(tile.getX())
+        .yTile(tile.getY())
         .address(crupdate.getAddress())
+        .prospectId(crupdate.getProspectId())
         .fileId(crupdate.getFileId())
         .layer(DEFAULT_FRANCE_LAYER)
         .zoomLevel(crupdate.getZoomLevel())
+        .availableLayers(List.of(DEFAULT_FRANCE_LAYER))
+        .filename(getFilename(crupdate, tile))
         // need to update or nullify createdAt and updatedAt during equality check
         .createdAt(null)
         .updatedAt(null);
   }
 
-  public HttpResponse<byte[]> download_with_request_body(
+  private static String getFilename(CrupdateAreaPictureDetails crupdate, Tile tile) {
+    return "%s_%s_%s_%s"
+        .formatted(
+            DEFAULT_FRANCE_LAYER, crupdate.getZoomLevel().getValue(), tile.getX(), tile.getY());
+  }
+
+  public HttpResponse<byte[]> downloadAndSaveAreaPicture(
       String basePath,
       String areaPictureId,
       String queryBearer,
@@ -199,7 +238,10 @@ public class AreaPictureIT extends S3MockedThirdParties {
   void openstreetmap_layer_guesser_ok() {
     var guessedLayers =
         mapLayerGuesser.apply(
-            AreaPicture.builder().longitude(0.148409).latitude(45.644018).build());
+            AreaPicture.builder()
+                .longitude(DEFAULT_KNOWN_COORDINATES.getLongitude())
+                .latitude(DEFAULT_KNOWN_COORDINATES.getLatitude())
+                .build());
 
     assertEquals(List.of(MapLayer.TOUS_FR), guessedLayers);
   }

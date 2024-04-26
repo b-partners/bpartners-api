@@ -35,7 +35,6 @@ import java.net.http.HttpResponse;
 import java.time.Instant;
 import org.apache.tika.Tika;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.core.io.ClassPathResource;
@@ -46,7 +45,6 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 @Testcontainers
 @AutoConfigureMockMvc
-@Disabled("TODO(fail)")
 class FileIT extends S3MockedThirdParties {
   public static final String NON_EXISTENT_FILE_ID = "NOT" + TEST_FILE_ID;
   public static final String NOT_EXISTING_FILE_ID = "not_existing_file_id.jpeg";

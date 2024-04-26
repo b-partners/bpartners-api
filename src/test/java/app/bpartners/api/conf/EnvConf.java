@@ -33,5 +33,7 @@ public class EnvConf {
     registry.add("google.sheet.redirect.uris", () -> "https://dummy.com/success");
     registry.add("fintecture.base.url", () -> "https://api-sandbox.fintecture.com");
     registry.add("spring.flyway.locations", () -> "classpath:/db/migration,classpath:/db/testdata");
+    registry.add("aws.access.key.id", () -> "dummy");
+    registry.add("aws.secret.access.key", () -> "dummy");
   }
 }

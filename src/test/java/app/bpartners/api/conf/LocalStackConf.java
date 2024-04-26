@@ -3,6 +3,7 @@ package app.bpartners.api.conf;
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.S3;
 
 import java.io.File;
+import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.testcontainers.containers.localstack.LocalStackContainer;
@@ -11,6 +12,7 @@ import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.Bucket;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
@@ -37,7 +39,12 @@ public class LocalStackConf {
                 StaticCredentialsProvider.create(AwsBasicCredentials.create("test", "test")))
             .build();
 
-    s3Client.createBucket(CreateBucketRequest.builder().bucket(BUCKET_NAME).build());
+    List<Bucket> buckets = s3Client.listBuckets().buckets();
+
+    if (buckets.size() == 0) {
+      s3Client.createBucket(CreateBucketRequest.builder().bucket(BUCKET_NAME).build());
+    }
+
     s3Client.putObject(
         PutObjectRequest.builder()
             .bucket(BUCKET_NAME)

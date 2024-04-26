@@ -7,6 +7,7 @@ import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.DRAFT;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PROPOSAL;
 import static app.bpartners.api.endpoint.rest.model.PaymentMethod.UNKNOWN;
+import static app.bpartners.api.integration.AreaPictureIT.AREA_PICTURE_1_ID;
 import static app.bpartners.api.integration.conf.utils.InvoiceTestUtils.*;
 import static app.bpartners.api.integration.conf.utils.InvoiceTestUtils.ignoreStatusDatetime;
 import static app.bpartners.api.integration.conf.utils.TestUtils.INVOICE4_ID;
@@ -44,7 +45,6 @@ import app.bpartners.api.repository.jpa.AccountHolderJpaRepository;
 import java.time.LocalDate;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -54,7 +54,6 @@ import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
 
 @Testcontainers
 @AutoConfigureMockMvc
-@Disabled("TODO(fail)")
 class InvoiceIT extends S3MockedThirdParties {
   @MockBean private FintecturePaymentInitiationRepository paymentInitiationRepositoryMock;
   @MockBean private EventBridgeClient eventBridgeClientMock;
@@ -179,7 +178,8 @@ class InvoiceIT extends S3MockedThirdParties {
     Invoice actualDraft =
         api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, NEW_INVOICE_ID, initializeDraft().ref(null));
     Invoice actualUpdatedDraft =
-        api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, NEW_INVOICE_ID, validInvoice());
+        api.crupdateInvoice(
+            JOE_DOE_ACCOUNT_ID, NEW_INVOICE_ID, validInvoice().idAreaPicture(AREA_PICTURE_1_ID));
     actualUpdatedDraft.setProducts(ignoreIdsOf(actualUpdatedDraft.getProducts()));
     actualUpdatedDraft.setCustomer(ignoreCustomerDatetime(actualUpdatedDraft));
 
@@ -199,7 +199,8 @@ class InvoiceIT extends S3MockedThirdParties {
             .fileId(actualUpdatedDraft.getFileId())
             .archiveStatus(ENABLED)
             .createdAt(actualUpdatedDraft.getCreatedAt())
-            .updatedAt(actualUpdatedDraft.getUpdatedAt()),
+            .updatedAt(actualUpdatedDraft.getUpdatedAt())
+            .idAreaPicture("area_picture_1_id"),
         actualUpdatedDraft
             // TODO: deprecated,remove when validity date is correctly set
             .toPayAt(null));
@@ -396,6 +397,7 @@ class InvoiceIT extends S3MockedThirdParties {
                             .percent(10000 - 1025)
                             .comment("Test 90%")
                             .amount(null))));
+
     assertEquals(2, invoice.getPaymentRegulations().size());
 
     // First get
@@ -404,7 +406,7 @@ class InvoiceIT extends S3MockedThirdParties {
     invoice.setPaymentRegulations(ignoreIdsAndDatetime(invoice));
     persisted1.setPaymentRegulations(ignoreIdsAndDatetime(persisted1));
     assertEquals(
-        persisted1.createdAt(null).updatedAt(invoice.getUpdatedAt()), invoice.createdAt(null));
+        persisted1.createdAt(null).updatedAt(null), invoice.createdAt(null).updatedAt(null));
 
     Invoice firstUpdate =
         api.crupdateInvoice(

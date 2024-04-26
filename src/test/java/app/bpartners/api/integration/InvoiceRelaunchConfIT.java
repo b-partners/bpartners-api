@@ -12,7 +12,6 @@ import app.bpartners.api.integration.conf.utils.TestUtils;
 import app.bpartners.api.repository.fintecture.FintecturePaymentInfoRepository;
 import app.bpartners.api.repository.fintecture.FintecturePaymentInitiationRepository;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -24,7 +23,6 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @Testcontainers
 @AutoConfigureMockMvc
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-@Disabled("TODO(fail)")
 class InvoiceRelaunchConfIT extends S3MockedThirdParties {
   private static final String RELAUNCH_CONF1_ID = "relaunchConf1_id";
   @MockBean private FintecturePaymentInitiationRepository paymentInitiationRepositoryMock;

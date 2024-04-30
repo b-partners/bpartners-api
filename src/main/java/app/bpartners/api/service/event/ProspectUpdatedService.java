@@ -175,6 +175,8 @@ public class ProspectUpdatedService implements Consumer<ProspectUpdated> {
     return Customer.builder()
         .id(randomUUID().toString())
         .email(prospect.getEmail())
+        .firstName("")
+        .lastName("")
         .name(prospect.getName())
         .address(prospect.getAddress())
         .phone(prospect.getPhone())

@@ -327,11 +327,17 @@ public class SecurityConf {
                         new SelfAccountMatcher(
                             PUT, "/accounts/*/areaPictures/*/raw", authResourceProvider))
                     .authenticated()
-                    .requestMatchers(GET, "/accounts/*/areaPictures/*/annotations")
+                    .requestMatchers(
+                        new SelfAccountMatcher(
+                            GET, "/accounts/*/areaPictures/*/annotations", authResourceProvider))
                     .authenticated()
-                    .requestMatchers(PUT, "/accounts/*/areaPictures/*/annotations/*")
+                    .requestMatchers(
+                        new SelfAccountMatcher(
+                            PUT, "/accounts/*/areaPictures/*/annotations/*", authResourceProvider))
                     .authenticated()
-                    .requestMatchers(GET, "/accounts/*/areaPictures/*/annotations/*")
+                    .requestMatchers(
+                        new SelfAccountMatcher(
+                            GET, "/accounts/*/areaPictures/*/annotations/*", authResourceProvider))
                     .authenticated()
                     .requestMatchers(
                         new SelfAccountMatcher(

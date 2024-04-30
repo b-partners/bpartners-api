@@ -27,6 +27,10 @@ public class HAreaPictureAnnotationInstance {
   private double slope;
   private double area;
   private String covering;
+  private String obstacle;
+  private String comment;
+  private String fillColor;
+  private String strokeColor;
   private double wearLevel;
 
   @JdbcTypeCode(JSON)

@@ -1,3 +1,17 @@
+# [0.43.0](https://github.com/b-partners/bpartners-api/compare/v0.42.0...v0.43.0) (2024-04-30)
+
+
+### Bug Fixes
+
+* unable to assert point equality ([dd3878b](https://github.com/b-partners/bpartners-api/commit/dd3878bc938131dee640e73fa20ef78c93d32b9e))
+
+
+### Features
+
+* add colors, obstacle and comment to annotation instance metadata ([cc205bf](https://github.com/b-partners/bpartners-api/commit/cc205bf797c139eca133c1598b232f3f54c37961))
+
+
+
 # [0.42.0](https://github.com/b-partners/bpartners-api/compare/v0.41.0...v0.42.0) (2024-04-24)
 
 
@@ -148,65 +162,6 @@
 * handle customerCrupdated event synchronously ([2b25448](https://github.com/b-partners/bpartners-api/commit/2b25448705dc17a802dfd4389e6628e2d7e4e36c))
 * send email for every update on prospect ([03919ae](https://github.com/b-partners/bpartners-api/commit/03919ae392a8946834a612e2a2782bffc4d28e7a))
 * set fintecture private key env dependant ([1a81f6a](https://github.com/b-partners/bpartners-api/commit/1a81f6a64cc9f9581baeadbeaa5c2299622e5716))
-
-
-
-# [0.37.0](https://github.com/b-partners/bpartners-api/compare/v0.36.1...v0.37.0) (2023-12-05)
-
-
-### Bug Fixes
-
-* add admin email as invisible recipient when notifying prospects evluations result by email ([41de5e1](https://github.com/b-partners/bpartners-api/commit/41de5e18cd44792aa62009e7f3934c61eca3ae5c))
-* add annulation message inside object ([f446429](https://github.com/b-partners/bpartners-api/commit/f446429aebfd525a0f3f215dee339a0b55f52455))
-* add bank connection status UNDERGOING_REFRESHMENT ([388b3c7](https://github.com/b-partners/bpartners-api/commit/388b3c784629d050fb7124abb5c4f674b9f0f542))
-* add default payment status update datetime when crupdating invoice ([5dc534d](https://github.com/b-partners/bpartners-api/commit/5dc534d09f1b1bbe0cef745b332f12128381970a))
-* add prospect.latest_old_holder inside view_prospect_actual_status and its usage ([00767ea](https://github.com/b-partners/bpartners-api/commit/00767ea1efa0e95424034f9670e5e44d647159b0))
-* add prospect.latest_old_holder inside view_prospect_actual_status and its usage ([f077e34](https://github.com/b-partners/bpartners-api/commit/f077e3492fd384ff94de2c463e519e9c42773ab9))
-* add script to delete duplicated transaction summary ([f0de6e1](https://github.com/b-partners/bpartners-api/commit/f0de6e1cc1d8c07544295cbbbf217c5fb7ed03b3))
-* add UNDERGOING_REFRESHMENT account and bank status ([b960b80](https://github.com/b-partners/bpartners-api/commit/b960b80748617cb0d9b93c446ae5f1bb531d102f))
-* add UNKNOWN type of calendar permission ([7b865fa](https://github.com/b-partners/bpartners-api/commit/7b865fa9260b29e6dcbf8c5fae8967fa1e63dfae))
-* after update attach prospect to account holder ([1d86105](https://github.com/b-partners/bpartners-api/commit/1d861050e710020940853d9d809d359d1018d75d))
-* associate prospects directly to account holder ([0d8485e](https://github.com/b-partners/bpartners-api/commit/0d8485e8f56477779ecf0cd0a6f2e0ebcd1b0c65))
-* avoid NPE when relaunching prospects ([04a5ec3](https://github.com/b-partners/bpartners-api/commit/04a5ec39e78ba2d0faf76dd1d65017d4b89f7bea))
-* avoid NPE when sending email ([afa6440](https://github.com/b-partners/bpartners-api/commit/afa64405d336e5d59a7854ffad5fa21f3e13a15f))
-* avoid NumberFormatException when converting postal code ([1055e36](https://github.com/b-partners/bpartners-api/commit/1055e36919c7beb91da11a88c01ea8a56554be5b))
-* compute enable transactions only for transaction summary ([d554b04](https://github.com/b-partners/bpartners-api/commit/d554b04a6720870b5af08cd9dac1ba01afb24501))
-* disable invoice refresh after each instace deployment ([82bdaa2](https://github.com/b-partners/bpartners-api/commit/82bdaa277ef48c09595415924d425b5bf6f44b79))
-* disable mobile notification after payment received ([50b5c1d](https://github.com/b-partners/bpartners-api/commit/50b5c1d6667aa5360e5f1729bf44ff5566cd3f49))
-* disable prospects relaunch when launching apps ([09333bc](https://github.com/b-partners/bpartners-api/commit/09333bc3870318a52597278706afff0a0f102384))
-* do not show payment datetime when payment is not still paid ([76105a7](https://github.com/b-partners/bpartners-api/commit/76105a7fb6be0705824029327157db6109018b25))
-* do not use authProvider.getUser inside S3 service and invoice service ([19bd40f](https://github.com/b-partners/bpartners-api/commit/19bd40f5b44aefab5c3a545dc53f7b415dfc7c56))
-* handle null rating prospect ([bbc4f49](https://github.com/b-partners/bpartners-api/commit/bbc4f49cdff2e2ea702153b75f953a121238cdfe))
-* handle oauth2 success url parameters through state ([d7f1132](https://github.com/b-partners/bpartners-api/commit/d7f11323b911c751a52113ad222e69327b03f33f))
-* ignore holderId inside spreadsheet when evaluating prospects ([36902e2](https://github.com/b-partners/bpartners-api/commit/36902e22cdd17e528011c07b9a47c733812c8c01))
-* let authorized user to relaunch invoice and hide duplicated account holder prefix ([d98007f](https://github.com/b-partners/bpartners-api/commit/d98007fabf49661791059fd49c74a8e8d858bb72))
-* log exception when error occured in mobile notification ([7248579](https://github.com/b-partners/bpartners-api/commit/724857957bb17c3453fc3991369312e347d3d45e))
-* read prospect dynamically from artisan sheet name ([bc96022](https://github.com/b-partners/bpartners-api/commit/bc96022224ef64fd7a4fc943ba35cffe6bf8673e))
-* relaunch invoice synchronously ([7fe8e83](https://github.com/b-partners/bpartners-api/commit/7fe8e8381175283a9ffdab75d2cebd967a23fdd7))
-* replace device token and endpoint arn after updates and delete old endpoint arn ([8d41609](https://github.com/b-partners/bpartners-api/commit/8d41609fa7f5aef6e0f5a263d97f44b036cc8d41))
-* return prospects without business activities fitlers ([d4f6685](https://github.com/b-partners/bpartners-api/commit/d4f66853af89f98abb926b70b0a2da576219901f))
-* save payment status updated datetime when saving invoice ([ab8f6e8](https://github.com/b-partners/bpartners-api/commit/ab8f6e8fa771e8949abcbdc39c377f65cca6d49b))
-* send email when prospect is given up ([27124d7](https://github.com/b-partners/bpartners-api/commit/27124d70d2ae91850c726ffda65c5982befd378b))
-* send email when prospect is given up even from TO_CONTACT to TO_CONTACT ([b3617a5](https://github.com/b-partners/bpartners-api/commit/b3617a513cc669f863472bacdb9ad418881aa1d9))
-* send emails synchronously during onboarding and generate manually account ID ([2217ca5](https://github.com/b-partners/bpartners-api/commit/2217ca562310d8b72714b33acd65312ba2455f36))
-* send prospect updated mail synchronous ([ff80233](https://github.com/b-partners/bpartners-api/commit/ff802339e14cacdfd1b813a4c5b32647299236ba))
-* use google service-account credentials when using sheets API ([74eb092](https://github.com/b-partners/bpartners-api/commit/74eb0921ea4057efcfd03d58f7a9b03e2831c4b5))
-* use invoice owner account - holder - users informations when relaunching ([8db166c](https://github.com/b-partners/bpartners-api/commit/8db166c720e61a0a7d8869710cc5574d58233265))
-
-
-### Features
-
-* generate transactions export link ([4c7a6f4](https://github.com/b-partners/bpartners-api/commit/4c7a6f4e5e54e2dca7849c7ca84191c1a29e9d0c))
-* register device for a specific user ([2358ac8](https://github.com/b-partners/bpartners-api/commit/2358ac8794e99a23984f02c297584f481d0115b0))
-* send and read emails for an user ([f5acbb9](https://github.com/b-partners/bpartners-api/commit/f5acbb94e33491c6e5c3f0bfbc6476011da76268))
-* send notification to account holders devices when prospects not relaunched ([99a4c3d](https://github.com/b-partners/bpartners-api/commit/99a4c3dcac97704394622e61e42275992b19ddf1))
-* send notification to device when successfully evaluating prospects ([281e6c5](https://github.com/b-partners/bpartners-api/commit/281e6c5bc1bec47d5f71066a890be811c43a7f7d))
-
-
-### Reverts
-
-* Revert "fix: add id_user criteria when comparing account with same iban or bank account infos" ([21df7e2](https://github.com/b-partners/bpartners-api/commit/21df7e2a0b138ce004fddd4b23039caefd074550))
-* Revert "infra: 2 big prod instances" ([d2bc064](https://github.com/b-partners/bpartners-api/commit/d2bc064f844cfc188c5078ac574851ef6bf56a8d))
 
 
 

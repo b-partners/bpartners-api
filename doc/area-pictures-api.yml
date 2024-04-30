@@ -359,6 +359,8 @@ components:
           $ref: '#/components/schemas/AreaPictureAnnotationInstanceMetadata'
         userId:
           type: string
+        labelType:
+          type: string
         labelName:
           type: string
         polygon:
@@ -373,6 +375,14 @@ components:
           type: number
           format: double
         covering:
+          type: string
+        comment:
+          type: string
+        fillColor:
+          type: string
+        strokeColor:
+          type: string
+        obstacle:
           type: string
         wearLevel:
           type: number

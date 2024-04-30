@@ -23,6 +23,7 @@ public class AreaPictureAnnotationInstance {
   private Polygon polygon;
 
   private String labelName;
+  private String labelType;
   private String idAnnotation;
   private String idUser;
   private String idAreaPicture;
@@ -34,6 +35,14 @@ public class AreaPictureAnnotationInstance {
   public record Point(double x, double y) {}
 
   @Builder
-  public record Metadata(double slope, double area, String covering, double wearLevel)
+  public record Metadata(
+      double slope,
+      double area,
+      String covering,
+      double wearLevel,
+      String obstacle,
+      String comment,
+      String fillColor,
+      String strokeColor)
       implements Serializable {}
 }

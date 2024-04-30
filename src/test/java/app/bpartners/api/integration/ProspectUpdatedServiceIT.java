@@ -240,6 +240,8 @@ public class ProspectUpdatedServiceIT extends MockedThirdParties {
             .build();
     return Customer.builder()
         .id(null)
+        .firstName("")
+        .lastName("")
         .email(prospect.getEmail())
         .name(prospect.getName())
         .address(prospect.getAddress())

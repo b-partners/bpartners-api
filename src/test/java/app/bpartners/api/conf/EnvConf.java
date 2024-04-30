@@ -1,5 +1,7 @@
 package app.bpartners.api.conf;
 
+import static app.bpartners.api.endpoint.event.AwsConf.TEST_ENV;
+
 import app.bpartners.api.integration.conf.utils.TestUtils;
 import org.springframework.test.context.DynamicPropertyRegistry;
 
@@ -33,5 +35,6 @@ public class EnvConf {
     registry.add("google.sheet.redirect.uris", () -> "https://dummy.com/success");
     registry.add("fintecture.base.url", () -> "https://api-sandbox.fintecture.com");
     registry.add("spring.flyway.locations", () -> "classpath:/db/migration,classpath:/db/testdata");
+    registry.add("env", () -> TEST_ENV);
   }
 }

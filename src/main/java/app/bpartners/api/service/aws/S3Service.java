@@ -5,7 +5,6 @@ import static app.bpartners.api.endpoint.rest.model.FileType.ATTACHMENT;
 import static app.bpartners.api.endpoint.rest.model.FileType.INVOICE;
 import static app.bpartners.api.endpoint.rest.model.FileType.LOGO;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
-import static software.amazon.awssdk.services.s3.model.ChecksumAlgorithm.SHA256;
 
 import app.bpartners.api.endpoint.event.S3Conf;
 import app.bpartners.api.endpoint.rest.model.FileType;
@@ -77,12 +76,13 @@ public class S3Service {
             + AuthProvider.getAuthenticatedUserId()
             + ") with key {}",
         key);
+
     PutObjectRequest request =
         PutObjectRequest.builder()
             .bucket(s3Conf.getBucketName())
             .key(key)
             .contentType(FileInfoUtils.parseMediaTypeFromBytes(toUpload).toString())
-            .checksumAlgorithm(SHA256)
+            .checksumAlgorithm(s3Conf.getDefaultChecksumAlgorithm())
             .build();
 
     PutObjectResponse objectResponse =

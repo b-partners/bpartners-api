@@ -32,6 +32,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.function.Executable;
 
 public class InvoiceTestUtils {
@@ -202,11 +203,14 @@ public class InvoiceTestUtils {
 
   public static List<PaymentRegulation> ignoreIdsAndDatetime(Invoice actualConfirmed) {
     List<PaymentRegulation> paymentRegulations =
-        new ArrayList<>(actualConfirmed.getPaymentRegulations());
-    paymentRegulations.forEach(
-        datedPaymentRequest ->
-            datedPaymentRequest.setPaymentRequest(
-                datedPaymentRequest.getPaymentRequest().id(null).initiatedDatetime(null)));
+        actualConfirmed.getPaymentRegulations().stream()
+            .map(
+                datedPaymentRequest -> {
+                  datedPaymentRequest.getPaymentRequest().id(null).initiatedDatetime(null);
+                  datedPaymentRequest.getStatus().updatedAt(null);
+                  return datedPaymentRequest;
+                })
+            .collect(Collectors.toList());
     return paymentRegulations;
   }
 

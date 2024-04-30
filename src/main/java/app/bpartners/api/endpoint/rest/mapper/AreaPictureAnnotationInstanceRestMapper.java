@@ -30,6 +30,7 @@ public class AreaPictureAnnotationInstanceRestMapper {
         .userId(domain.getIdUser())
         .annotationId(domain.getIdAnnotation())
         .labelName(domain.getLabelName())
+        .labelType(domain.getLabelType())
         .polygon(polygon);
   }
 
@@ -39,6 +40,10 @@ public class AreaPictureAnnotationInstanceRestMapper {
         .area(domain.area())
         .wearLevel(domain.wearLevel())
         .covering(domain.covering())
+        .comment(domain.comment())
+        .strokeColor(domain.strokeColor())
+        .fillColor(domain.fillColor())
+        .obstacle(domain.obstacle())
         .slope(domain.slope());
   }
 
@@ -61,6 +66,7 @@ public class AreaPictureAnnotationInstanceRestMapper {
         .metadata(metadata)
         .polygon(polygon)
         .labelName(rest.getLabelName())
+        .labelType(rest.getLabelType())
         .idAnnotation(rest.getAnnotationId())
         .idUser(rest.getUserId())
         .idAreaPicture(rest.getAreaPictureId())
@@ -74,6 +80,10 @@ public class AreaPictureAnnotationInstanceRestMapper {
         .wearLevel(rest.getWearLevel())
         .covering(rest.getCovering())
         .slope(rest.getSlope())
+        .comment(rest.getComment())
+        .strokeColor(rest.getStrokeColor())
+        .fillColor(rest.getFillColor())
+        .obstacle(rest.getObstacle())
         .build();
   }
 

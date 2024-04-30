@@ -376,6 +376,14 @@ components:
           format: double
         covering:
           type: string
+        comment:
+          type: string
+        fillColor:
+          type: string
+        strokeColor:
+          type: string
+        obstacle:
+          type: string
         wearLevel:
           type: number
           format: double

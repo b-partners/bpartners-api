@@ -35,6 +35,14 @@ public class AreaPictureAnnotationInstance {
   public record Point(double x, double y) {}
 
   @Builder
-  public record Metadata(double slope, double area, String covering, double wearLevel)
+  public record Metadata(
+      double slope,
+      double area,
+      String covering,
+      double wearLevel,
+      String obstacle,
+      String comment,
+      String fillColor,
+      String strokeColor)
       implements Serializable {}
 }

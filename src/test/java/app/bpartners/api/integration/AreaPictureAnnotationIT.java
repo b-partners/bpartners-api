@@ -109,6 +109,10 @@ public class AreaPictureAnnotationIT extends MockedThirdParties {
                 .slope(80.0)
                 .area(90.0)
                 .covering("Tuiles")
+                .comment("pas de commentaire")
+                .strokeColor("#090909")
+                .fillColor("#909090")
+                .obstacle("panneau")
                 .wearLevel(100.0));
   }
 
@@ -127,6 +131,10 @@ public class AreaPictureAnnotationIT extends MockedThirdParties {
                 .slope(80.0)
                 .area(90.0)
                 .covering("Beton")
+                .comment("pas de commentaire")
+                .strokeColor("#090909")
+                .fillColor("#909090")
+                .obstacle("panneau")
                 .wearLevel(100.0));
   }
 
@@ -144,6 +152,10 @@ public class AreaPictureAnnotationIT extends MockedThirdParties {
                 .slope(80.0)
                 .area(90.0)
                 .covering("Beton")
+                .comment("pas de commentaire")
+                .strokeColor("#090909")
+                .fillColor("#909090")
+                .obstacle("panneau")
                 .wearLevel(100.0));
   }
 

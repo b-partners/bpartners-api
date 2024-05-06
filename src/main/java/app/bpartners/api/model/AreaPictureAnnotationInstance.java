@@ -36,10 +36,10 @@ public class AreaPictureAnnotationInstance {
 
   @Builder
   public record Metadata(
-      double slope,
-      double area,
+      Double slope,
+      Double area,
       String covering,
-      double wearLevel,
+      Double wearLevel,
       String obstacle,
       String comment,
       String fillColor,

@@ -24,14 +24,14 @@ import org.hibernate.annotations.JdbcTypeCode;
 @NoArgsConstructor
 public class HAreaPictureAnnotationInstance {
   @Id private String id;
-  private double slope;
-  private double area;
+  private Double slope;
+  private Double area;
   private String covering;
   private String obstacle;
   private String comment;
   private String fillColor;
   private String strokeColor;
-  private double wearLevel;
+  private Double wearLevel;
 
   @JdbcTypeCode(JSON)
   private Polygon polygon;

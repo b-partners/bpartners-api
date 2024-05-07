@@ -30,6 +30,7 @@ public class Prospect implements Comparable<Prospect> {
   private String idHolderOwner;
   private String latestOldHolder;
   private String managerName;
+  private String firstName;
   private String name;
   private String email;
   private String phone;

@@ -1,35 +1,35 @@
 insert into prospect (id, old_name, old_phone, old_email, old_address, id_account_holder, town_code, rating,
-                      last_evaluation_date)
+                      last_evaluation_date, first_name)
 values ('prospect1_id', 'John doe', null, null, null,
-        'b33e6eb0-e262-4596-a91f-20c6a7bfd343', 92002, 9.993, '2023-01-01T00:00:00.00Z'),
+        'b33e6eb0-e262-4596-a91f-20c6a7bfd343', 92002, 9.993, '2023-01-01T00:00:00.00Z', 'john'),
        ('prospect2_id', 'jane doe', '+261340465339', 'janeDoe@gmail.com', '30 Rue de la Montagne Sainte-Genevieve',
-        'b33e6eb0-e262-4596-a91f-20c6a7bfd343', 92002, -1, null),
+        'b33e6eb0-e262-4596-a91f-20c6a7bfd343', 92002, -1, null, null),
        ('prospect3_id', 'markus adams', '+261340465340', 'markusAdams@gmail.com',
         '30 Rue de la Montagne Sainte-Genevieve',
-        'b33e6eb0-e262-4596-a91f-20c6a7bfd343', 92001, 0, '2023-01-01T00:00:00.00Z'),
+        'b33e6eb0-e262-4596-a91f-20c6a7bfd343', 92001, 0, '2023-01-01T00:00:00.00Z', null),
        ('prospect4_id', 'Alyssa Hain', '+261340465341', 'alyssaHain@gmail.com',
         '30 Rue de la Montagne Sainte-Genevieve',
-        'b33e6eb0-e262-4596-a91f-20c6a7bfd343', null, -1, null),
+        'b33e6eb0-e262-4596-a91f-20c6a7bfd343', null, -1, null, null),
        ('prospect5_id', 'Michele Klaffs', '+261340465342', 'micheleKlaffs@gmail.com',
         '30 Rue de la Montagne Sainte-Genevieve',
-        'b33e6eb0-e262-4596-a91f-20c6a7bfd343', null, -1, null),
+        'b33e6eb0-e262-4596-a91f-20c6a7bfd343', null, -1, null, null),
        ('prospect6_id', 'Timmie	Accombe', '+261340465343', 'timmieAccombe@gmail.com',
         '30 Rue de la Montagne Sainte-Genevieve',
-        'b33e6eb0-e262-4596-a91f-20c6a7bfd343', null, -1, null),
+        'b33e6eb0-e262-4596-a91f-20c6a7bfd343', null, -1, null, null),
        ('prospect7_id', 'Killy	Waddilove', '+261340465344', 'killyWaddilove@gmail.com',
         '30 Rue de la Montagne Sainte-Genevieve',
-        'b33e6eb0-e262-4596-a91f-20c6a7bfd343', null, -1, null);
+        'b33e6eb0-e262-4596-a91f-20c6a7bfd343', null, -1, null, null);
 insert into prospect (id, old_name, old_phone, old_email, old_address, id_account_holder, town_code, rating,
-                      last_evaluation_date, pos_latitude, pos_longitude)
+                      last_evaluation_date, pos_latitude, pos_longitude, first_name)
 values ('prospect8_id', 'Johnny	Paul', '+261340465345', 'johnny@gmail.com',
         '30 Rue de la Montagne Sainte-Genevieve',
-        'b33e6eb0-e262-4596-a91f-20c6a7bfd343', null, -1, null, 1.0, 1.0),
+        'b33e6eb0-e262-4596-a91f-20c6a7bfd343', null, -1, null, 1.0, 1.0, 'paul'),
        ('prospect9_id', 'Johnny	Pauline', '+261340465346', 'johnnyp@gmail.com',
         '30 Rue de la Montagne Sainte-Genevieve',
-        'b33e6eb0-e262-4596-a91f-20c6a7bfd343', null, -1, null, 1.0, 1.0),
+        'b33e6eb0-e262-4596-a91f-20c6a7bfd343', null, -1, null, 1.0, 1.0, 'pauline'),
        ('prospect10_id', 'Johnny	Paulinette', '+261340465347', 'johnnypette@gmail.com',
         '30 Rue de la Montagne Sainte-Genevieve',
-        'b33e6eb0-e262-4596-a91f-20c6a7bfd343', null, -1, null, null, null);
+        'b33e6eb0-e262-4596-a91f-20c6a7bfd343', null, -1, null, null, null, 'paulinette');
 
 insert into "prospect_status_history"(id, id_prospect, status, updated_at)
 values ('prospect_status1_id', 'prospect1_id', 'TO_CONTACT', '2023-01-01T00:00:00.00Z'),

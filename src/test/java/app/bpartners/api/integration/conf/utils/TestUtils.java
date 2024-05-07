@@ -698,6 +698,7 @@ public class TestUtils {
         .address(null)
         .townCode(92002)
         .contactNature(ContactNature.PROSPECT)
+        .firstName("john")
         .rating(
             new ProspectRating()
                 .value(BigDecimal.valueOf(9.993))

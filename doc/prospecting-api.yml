@@ -504,6 +504,8 @@ components:
           type: string
         managerName:
           type: string
+        firstName:
+          type: string
         name:
           type: string
         email:

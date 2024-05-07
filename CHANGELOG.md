@@ -1,3 +1,19 @@
+# [0.44.0](https://github.com/b-partners/bpartners-api/compare/v0.43.0...v0.44.0) (2024-05-07)
+
+
+### Bug Fixes
+
+* annotation instance metadata are not mandatory ([b978c5e](https://github.com/b-partners/bpartners-api/commit/b978c5e5ecc68a00295f8b5915f249012aa02272))
+* put empty string as firstName and lastName to avoid null values ([4e72a81](https://github.com/b-partners/bpartners-api/commit/4e72a8113ef6739893acc88d6d6604b7acf15711))
+
+
+### Features
+
+* add first name to prospect ([fd9942b](https://github.com/b-partners/bpartners-api/commit/fd9942b3ef34af15dd64c076fbc947016422705a))
+* update customer firstName when prospect is created or updated ([029300b](https://github.com/b-partners/bpartners-api/commit/029300b0d482d5cdd24d109918820b5297368ece))
+
+
+
 # [0.43.0](https://github.com/b-partners/bpartners-api/compare/v0.42.0...v0.43.0) (2024-04-30)
 
 
@@ -147,21 +163,6 @@
 ### Bug Fixes
 
 * define parameters inside api for transactionExportLink operations ([e838770](https://github.com/b-partners/bpartners-api/commit/e8387706e1197ae8f98a8d074dc6d3b07073b64e))
-
-
-
-## [0.37.1](https://github.com/b-partners/bpartners-api/compare/v0.37.0...v0.37.1) (2023-12-07)
-
-
-### Bug Fixes
-
-* add update datetime and sending datetime attributes to email ([752cc78](https://github.com/b-partners/bpartners-api/commit/752cc7874d6e5319250cbca38bfce6e01aa9f0b9))
-* allow authenticated users to list their own emails ([e793e91](https://github.com/b-partners/bpartners-api/commit/e793e9181ad491e95e926a95a51db9096a92e5a0))
-* compare business activity for sogefi prospecting when values not null only ([4ec3c13](https://github.com/b-partners/bpartners-api/commit/4ec3c1327dfb71b37cb994a6e5e8ec353602848b))
-* do not update coordinates if customer address did not change ([81e095a](https://github.com/b-partners/bpartners-api/commit/81e095a09fb077c31c432498f0298a8eda921297))
-* handle customerCrupdated event synchronously ([2b25448](https://github.com/b-partners/bpartners-api/commit/2b25448705dc17a802dfd4389e6628e2d7e4e36c))
-* send email for every update on prospect ([03919ae](https://github.com/b-partners/bpartners-api/commit/03919ae392a8946834a612e2a2782bffc4d28e7a))
-* set fintecture private key env dependant ([1a81f6a](https://github.com/b-partners/bpartners-api/commit/1a81f6a64cc9f9581baeadbeaa5c2299622e5716))
 
 
 

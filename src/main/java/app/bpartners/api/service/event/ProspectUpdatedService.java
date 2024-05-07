@@ -159,7 +159,12 @@ public class ProspectUpdatedService implements Consumer<ProspectUpdated> {
     var isConverted = CONVERTED.equals(prospect.getActualStatus());
     if (optionalLinkedCustomer.isPresent()) {
       Customer persistedCustomer = optionalLinkedCustomer.get();
-      return persistedCustomer.toBuilder().isConverted(isConverted).build();
+      return persistedCustomer.toBuilder().isConverted(isConverted)
+        .firstName(prospect.getFirstName())
+        .lastName(prospect.getName())
+        .name(prospect.getName())
+        .address(prospect.getAddress())
+        .build();
     }
     var prospectLocation = prospect.getLocation();
     Double longitude = prospectLocation == null ? null : prospectLocation.getLongitude();
@@ -175,8 +180,8 @@ public class ProspectUpdatedService implements Consumer<ProspectUpdated> {
     return Customer.builder()
         .id(randomUUID().toString())
         .email(prospect.getEmail())
-        .firstName("")
-        .lastName("")
+        .firstName(prospect.getFirstName())
+        .lastName(prospect.getName())
         .name(prospect.getName())
         .address(prospect.getAddress())
         .phone(prospect.getPhone())

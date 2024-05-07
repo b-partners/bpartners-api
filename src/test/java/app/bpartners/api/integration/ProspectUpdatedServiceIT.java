@@ -58,6 +58,7 @@ public class ProspectUpdatedServiceIT extends MockedThirdParties {
         .idHolderOwner(JOE_DOE_ACCOUNT_HOLDER_ID)
         .id(PROSPECT_8_ID)
         .name("Johnny	Paul")
+        .firstName("paul")
         .email("johnny@gmail.com")
         .phone("+261340465345")
         .address("30 Rue de la Montagne Sainte-Genevieve")
@@ -86,6 +87,7 @@ public class ProspectUpdatedServiceIT extends MockedThirdParties {
         .idHolderOwner(JOE_DOE_ACCOUNT_HOLDER_ID)
         .id(PROSPECT_9_ID)
         .name("Johnny	Pauline")
+        .firstName("pauline")
         .email("johnnyp@gmail.com")
         .phone("+261340465346")
         .address("30 Rue de la Montagne Sainte-Genevieve")
@@ -102,6 +104,7 @@ public class ProspectUpdatedServiceIT extends MockedThirdParties {
         .idHolderOwner(JOE_DOE_ACCOUNT_HOLDER_ID)
         .id(PROSPECT_10_ID)
         .name("Johnny	Paulinette")
+        .firstName("paulinette")
         .email("johnnypette@gmail.com")
         .phone("+261340465347")
         .address("30 Rue de la Montagne Sainte-Genevieve")
@@ -240,8 +243,8 @@ public class ProspectUpdatedServiceIT extends MockedThirdParties {
             .build();
     return Customer.builder()
         .id(null)
-        .firstName("")
-        .lastName("")
+        .firstName(prospect.getFirstName())
+        .lastName(prospect.getName())
         .email(prospect.getEmail())
         .name(prospect.getName())
         .address(prospect.getAddress())
@@ -257,6 +260,9 @@ public class ProspectUpdatedServiceIT extends MockedThirdParties {
   }
 
   private static Customer updateCustomerFrom(Customer original, Prospect prospect) {
+    original.setFirstName(prospect.getFirstName());
+    original.setLastName(prospect.getName());
+    original.setName(prospect.getName());
     original.setConverted(CONVERTED.equals(prospect.getActualStatus()));
     original.setLatestFullAddress(original.getFullAddress());
     return original;

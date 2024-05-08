@@ -1,6 +1,6 @@
 package app.bpartners.api.service.WMS;
 
-import static app.bpartners.api.service.WMS.GeojsonFeatureCollection.FRANCE_DEPARTEMENTS;
+import static app.bpartners.api.service.WMS.GeojsonFeatureCollection.getFranceDepartementsSimpleFeaturesMatchingPredicate;
 import static app.bpartners.api.service.WMS.MapLayer.TOUS_FR;
 
 import app.bpartners.api.model.AreaPicture;
@@ -32,20 +32,21 @@ public class MapLayerGuesser implements Function<AreaPicture, List<MapLayer>> {
     var areaPictureCoordinatesAsPoint =
         geometryFactory.createPoint(
             new Coordinate(areaPicture.getLongitude(), areaPicture.getLatitude()));
-    List<SimpleFeature> features = FRANCE_DEPARTEMENTS.featureCollection();
+    List<SimpleFeature> features =
+        getFranceDepartementsSimpleFeaturesMatchingPredicate(
+            feature -> {
+              var geometry = (Geometry) feature.getDefaultGeometry();
+              return geometry.contains(areaPictureCoordinatesAsPoint);
+            });
     for (SimpleFeature feature : features) {
-      var geometry = (Geometry) feature.getDefaultGeometry();
-      if (geometry.contains(areaPictureCoordinatesAsPoint)) {
-        String featureDepartementName = feature.getAttribute("nom").toString();
-        var guessedLayers =
-            Arrays.stream(MapLayer.values())
-                .filter(
-                    a -> StringUtils.containsIgnoreCase(a.getZoneName(), featureDepartementName))
-                .toList();
-        log.info(
-            "feature.name {} was requested and we found {}", featureDepartementName, guessedLayers);
-        return List.of(DEFAULT_FRANCE_LAYER);
-      }
+      String featureDepartementName = feature.getAttribute("nom").toString();
+      var guessedLayers =
+          Arrays.stream(MapLayer.values())
+              .filter(a -> StringUtils.containsIgnoreCase(a.getZoneName(), featureDepartementName))
+              .toList();
+      log.info(
+          "feature.name {} was requested and we found {}", featureDepartementName, guessedLayers);
+      return List.of(DEFAULT_FRANCE_LAYER);
     }
     throw new BadRequestException(
         "no matching layer found for point " + areaPictureCoordinatesAsPoint);

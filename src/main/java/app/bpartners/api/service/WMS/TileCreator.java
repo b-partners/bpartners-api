@@ -15,8 +15,7 @@ public class TileCreator implements Function<AreaPicture, Tile> {
   @Override
   public Tile apply(AreaPicture areaPicture) {
     var refreshed = computeGeoPosition(areaPicture);
-    refreshed.setTile(Tile.from(areaPicture));
-    return refreshed.getTile();
+    return Tile.from(refreshed);
   }
 
   public AreaPicture computeGeoPosition(AreaPicture areaPicture) {

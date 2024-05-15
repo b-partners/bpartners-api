@@ -9,10 +9,10 @@ import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.mapper.AreaPictureMapper;
 import app.bpartners.api.repository.jpa.AreaPictureJpaRepository;
-import app.bpartners.api.service.WMS.MapLayerGuesser;
+import app.bpartners.api.service.WMS.AreaPictureMapLayerService;
 import app.bpartners.api.service.WMS.Tile;
 import app.bpartners.api.service.WMS.TileCreator;
-import app.bpartners.api.service.WMS.WmsUrlGetter;
+import app.bpartners.api.service.WMS.imageSource.WmsImageSource;
 import java.io.IOException;
 import java.net.http.HttpClient;
 import java.nio.file.Files;
@@ -28,9 +28,9 @@ public class AreaPictureService {
   private final AreaPictureMapper mapper;
   private final FileService fileService;
   private final FileDownloader fileDownloader = new FileDownloader(HttpClient.newBuilder().build());
-  private final WmsUrlGetter wmsUrlGetter;
+  private final WmsImageSource wmsImageSource;
   private final TileCreator tileCreator;
-  private final MapLayerGuesser mapLayerGuesser;
+  private final AreaPictureMapLayerService mapLayerService;
 
   public List<AreaPicture> findAllBy(String userId, String address, String filename) {
     return jpaRepository
@@ -54,15 +54,15 @@ public class AreaPictureService {
                                 + " and Id = "
                                 + id
                                 + " was not found.")));
-    domain.setLayers(mapLayerGuesser.apply(domain.getTile()));
+    domain.setLayers(mapLayerService.getAvailableLayersFrom(domain.getTile()));
     return domain;
   }
 
   @Transactional
   public AreaPicture downloadFromExternalSourceAndSave(AreaPicture areaPicture)
       throws RuntimeException {
-    var refreshed = refreshAreaPicture(areaPicture);
-    var uri = wmsUrlGetter.apply(refreshed.getTile(), refreshed.getCurrentLayer());
+    var refreshed = refreshAreaPictureTileAndLayers(areaPicture);
+    var uri = wmsImageSource.apply(refreshed.getTile(), refreshed.getCurrentLayer());
     var downloadedFile = fileDownloader.apply(refreshed.getFilename(), uri);
     try {
       var downloadedFileAsBytes = Files.readAllBytes(downloadedFile.toPath());
@@ -76,15 +76,15 @@ public class AreaPictureService {
     }
   }
 
-  private AreaPicture refreshAreaPicture(AreaPicture areaPicture) {
+  private AreaPicture refreshAreaPictureTileAndLayers(AreaPicture areaPicture) {
     refreshAreaPictureTile(areaPicture);
     refreshAreaPictureMapLayers(areaPicture);
     return areaPicture;
   }
 
   private void refreshAreaPictureMapLayers(AreaPicture areaPicture) {
-    var guessedMaps = mapLayerGuesser.apply(areaPicture.getTile());
-    var latest = mapLayerGuesser.getLatestOrDefault(guessedMaps);
+    var guessedMaps = mapLayerService.getAvailableLayersFrom(areaPicture.getTile());
+    var latest = mapLayerService.getLatestOrDefault(guessedMaps);
     areaPicture.setCurrentLayer(latest);
     areaPicture.setLayers(guessedMaps);
   }

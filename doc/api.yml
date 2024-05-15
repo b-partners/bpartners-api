@@ -141,9 +141,7 @@ paths:
   /accounts/{aId}/areaPictures:
     $ref: './area-pictures-api.yml#/operations/getAllAreaPictures'
   /accounts/{aId}/areaPictures/{id}:
-    $ref: './area-pictures-api.yml#/operations/getAreaPictureById'
-  /accounts/{aId}/areaPictures/{id}/raw:
-    $ref: './area-pictures-api.yml#/operations/areaPictureUpload'
+    $ref: './area-pictures-api.yml#/operations/AreaPictureSingleOperations'
   /accounts/{aId}/areaPictures/{areaPictureId}/annotations:
     $ref: './area-pictures-api.yml#/operations/areaPictureAnnotationListOperations'
   /accounts/{aId}/areaPictures/{areaPictureId}/annotations/{annotationId}:

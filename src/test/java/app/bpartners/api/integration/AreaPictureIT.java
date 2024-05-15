@@ -2,13 +2,10 @@ package app.bpartners.api.integration;
 
 import static app.bpartners.api.endpoint.rest.model.OpenStreetMapLayer.TOUS_FR;
 import static app.bpartners.api.endpoint.rest.model.ZoomLevel.HOUSES_0;
-import static app.bpartners.api.integration.conf.utils.TestUtils.BEARER_PREFIX;
-import static app.bpartners.api.integration.conf.utils.TestUtils.BEARER_QUERY_PARAMETER_NAME;
 import static app.bpartners.api.integration.conf.utils.TestUtils.DEFAULT_FRANCE_LAYER;
 import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_TOKEN;
 import static app.bpartners.api.integration.conf.utils.TestUtils.PROSPECT_1_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.downloadBytes;
 import static app.bpartners.api.integration.conf.utils.TestUtils.setUpCognito;
 import static app.bpartners.api.integration.conf.utils.TestUtils.setUpLegalFileRepository;
 import static java.util.UUID.randomUUID;
@@ -26,19 +23,15 @@ import app.bpartners.api.endpoint.rest.model.AreaPictureDetails;
 import app.bpartners.api.endpoint.rest.model.CrupdateAreaPictureDetails;
 import app.bpartners.api.integration.conf.S3MockedThirdParties;
 import app.bpartners.api.integration.conf.utils.TestUtils;
-import app.bpartners.api.model.AreaPicture;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.repository.ban.BanApi;
 import app.bpartners.api.repository.ban.model.GeoPosition;
+import app.bpartners.api.service.WMS.ArcgisZoom;
 import app.bpartners.api.service.WMS.MapLayer;
 import app.bpartners.api.service.WMS.MapLayerGuesser;
 import app.bpartners.api.service.WMS.Tile;
 import app.bpartners.api.service.utils.GeoUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.io.IOException;
-import java.net.URI;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.time.Instant;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
@@ -140,18 +133,15 @@ public class AreaPictureIT extends S3MockedThirdParties {
   }
 
   @Test
-  void download_and_save_area_picture_ok() throws IOException, InterruptedException, ApiException {
+  void download_and_save_area_picture_ok() throws ApiException {
     ApiClient joeDoeClient = joeDoeClient();
     AreaPictureApi api = new AreaPictureApi(joeDoeClient);
-    String basePath = "http://localhost:" + localPort;
     String payloadId = randomUUID().toString();
     CrupdateAreaPictureDetails payload = crupdatableAreaPictureDetails();
 
-    var actual = downloadAndSaveAreaPicture(basePath, payloadId, null, JOE_DOE_TOKEN, payload);
-    var saved = api.getAreaPictureById(JOE_DOE_ACCOUNT_ID, payloadId);
+    var actual = api.crupdateAreaPictureDetails(JOE_DOE_ACCOUNT_ID, payloadId, payload);
 
-    assertEquals(createFrom(payload, payloadId), ignoreDatesOf(saved));
-    assertTrue(actual.body().length > 0);
+    assertEquals(createFrom(payload, payloadId), ignoreDatesOf(actual));
   }
 
   static AreaPictureDetails ignoreDatesOf(AreaPictureDetails areaPictureDetails) {
@@ -199,49 +189,12 @@ public class AreaPictureIT extends S3MockedThirdParties {
             DEFAULT_FRANCE_LAYER, crupdate.getZoomLevel().getValue(), tile.getX(), tile.getY());
   }
 
-  public HttpResponse<byte[]> downloadAndSaveAreaPicture(
-      String basePath,
-      String areaPictureId,
-      String queryBearer,
-      String token,
-      CrupdateAreaPictureDetails toCreate)
-      throws ApiException, IOException, InterruptedException {
-    var requestBuilder =
-        HttpRequest.newBuilder()
-            .uri(
-                URI.create(
-                    basePath
-                        + "/accounts/"
-                        + JOE_DOE_ACCOUNT_ID
-                        + "/areaPictures/"
-                        + areaPictureId
-                        + "/raw?"
-                        + BEARER_QUERY_PARAMETER_NAME
-                        + "="
-                        + queryBearer))
-            .header("Access-Control-Request-Method", "POST")
-            .header("Authorization", BEARER_PREFIX + token)
-            .header("Content-Type", "application/json")
-            .header("Accept", "image/png,image/jpeg");
-
-    try {
-      var body = om.writeValueAsBytes(toCreate);
-      requestBuilder.method("PUT", HttpRequest.BodyPublishers.ofByteArray(body));
-    } catch (IOException e) {
-      throw new ApiException(e);
-    }
-
-    return downloadBytes(requestBuilder.build(), "downloadAndSaveAreaPicture");
-  }
-
   @Test
   void openstreetmap_layer_guesser_ok() {
+    GeoUtils.Coordinate coordinates = DEFAULT_KNOWN_COORDINATES;
     var guessedLayers =
         mapLayerGuesser.apply(
-            AreaPicture.builder()
-                .longitude(DEFAULT_KNOWN_COORDINATES.getLongitude())
-                .latitude(DEFAULT_KNOWN_COORDINATES.getLatitude())
-                .build());
+            Tile.from(coordinates.getLongitude(), coordinates.getLatitude(), ArcgisZoom.HOUSES_0));
 
     assertEquals(List.of(MapLayer.TOUS_FR), guessedLayers);
   }
@@ -250,6 +203,6 @@ public class AreaPictureIT extends S3MockedThirdParties {
   void openstreetmap_layer_guesser_ko() {
     assertThrows(
         BadRequestException.class,
-        () -> mapLayerGuesser.apply(AreaPicture.builder().longitude(10).latitude(11).build()));
+        () -> mapLayerGuesser.apply(Tile.from(10, 11, ArcgisZoom.HOUSES_0)));
   }
 }

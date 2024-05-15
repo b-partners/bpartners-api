@@ -12,7 +12,6 @@ public class Tile {
   private final int x;
   private final int y;
   private ArcgisZoom arcgisZoom;
-  private MapLayer layer;
 
   private static int getxTile(double longitude, int zoom) {
     int xtile = (int) Math.floor((longitude + 180) / 360 * (1 << zoom));
@@ -45,19 +44,17 @@ public class Tile {
     return ytile;
   }
 
-  public static Tile from(
-      double longitude, double latitude, ArcgisZoom arcgisZoom, MapLayer layer) {
+  public static Tile from(double longitude, double latitude, ArcgisZoom arcgisZoom) {
     int xTile = getxTile(longitude, arcgisZoom.getZoomLevel());
     int yTile = getyTile(latitude, arcgisZoom.getZoomLevel());
-    return Tile.builder().x(xTile).y(yTile).layer(layer).arcgisZoom(arcgisZoom).build();
+    return Tile.builder().x(xTile).y(yTile).arcgisZoom(arcgisZoom).build();
   }
 
   public static Tile from(AreaPicture areaPicture) {
     return from(
         areaPicture.getLongitude(),
         areaPicture.getLatitude(),
-        ArcgisZoom.from(areaPicture.getZoomLevel()),
-        areaPicture.getCurrentLayer());
+        ArcgisZoom.from(areaPicture.getZoomLevel()));
   }
 
   public double getLongitude() {

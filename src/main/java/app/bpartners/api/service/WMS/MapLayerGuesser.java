@@ -3,7 +3,6 @@ package app.bpartners.api.service.WMS;
 import static app.bpartners.api.service.WMS.GeojsonFeatureCollection.FRANCE_DEPARTEMENTS;
 import static app.bpartners.api.service.WMS.MapLayer.TOUS_FR;
 
-import app.bpartners.api.model.AreaPicture;
 import app.bpartners.api.model.exception.BadRequestException;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -22,16 +21,15 @@ import org.springframework.stereotype.Component;
 @Component
 @AllArgsConstructor
 @Slf4j
-public class MapLayerGuesser implements Function<AreaPicture, List<MapLayer>> {
+public class MapLayerGuesser implements Function<Tile, List<MapLayer>> {
   public static final MapLayer DEFAULT_FRANCE_LAYER = TOUS_FR;
   public static final int WGS_84_SRID = 4326;
 
   @Override
-  public List<MapLayer> apply(AreaPicture areaPicture) {
+  public List<MapLayer> apply(Tile tile) {
     var geometryFactory = new GeometryFactory(new PrecisionModel(), WGS_84_SRID);
     var areaPictureCoordinatesAsPoint =
-        geometryFactory.createPoint(
-            new Coordinate(areaPicture.getLongitude(), areaPicture.getLatitude()));
+        geometryFactory.createPoint(new Coordinate(tile.getLongitude(), tile.getLatitude()));
     List<SimpleFeature> features = FRANCE_DEPARTEMENTS.featureCollection();
     for (SimpleFeature feature : features) {
       var geometry = (Geometry) feature.getDefaultGeometry();

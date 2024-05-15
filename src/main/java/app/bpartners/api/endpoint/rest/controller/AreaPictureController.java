@@ -1,8 +1,6 @@
 package app.bpartners.api.endpoint.rest.controller;
 
 import static java.util.stream.Collectors.toUnmodifiableList;
-import static org.springframework.http.MediaType.IMAGE_JPEG_VALUE;
-import static org.springframework.http.MediaType.IMAGE_PNG_VALUE;
 
 import app.bpartners.api.endpoint.rest.mapper.AreaPictureRestMapper;
 import app.bpartners.api.endpoint.rest.model.AreaPictureDetails;
@@ -11,8 +9,6 @@ import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.service.AreaPictureService;
 import java.util.List;
 import lombok.AllArgsConstructor;
-import org.springframework.core.io.ByteArrayResource;
-import org.springframework.core.io.Resource;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -45,17 +41,15 @@ public class AreaPictureController {
     return mapper.toRest(service.findBy(userId, areaPictureId));
   }
 
-  @PutMapping(
-      value = "/accounts/{accountId}/areaPictures/{id}/raw",
-      produces = {IMAGE_PNG_VALUE, IMAGE_JPEG_VALUE})
-  public Resource downloadAndSaveAreaPicture(
+  @PutMapping(value = "/accounts/{accountId}/areaPictures/{id}")
+  public AreaPictureDetails crupdateAreaPictureDetails(
       @PathVariable(name = "accountId") String accountId,
       @PathVariable(name = "id") String areaPictureId,
       @RequestBody CrupdateAreaPictureDetails toCrupdate) {
     String userId = AuthProvider.getAuthenticatedUserId();
-    var bytes =
+    var result =
         service.downloadFromExternalSourceAndSave(
             mapper.toDomain(toCrupdate, areaPictureId, userId));
-    return new ByteArrayResource(bytes);
+    return mapper.toRest(result);
   }
 }

@@ -325,7 +325,7 @@ public class SecurityConf {
                     .authenticated()
                     .requestMatchers(
                         new SelfAccountMatcher(
-                            PUT, "/accounts/*/areaPictures/*/raw", authResourceProvider))
+                            PUT, "/accounts/*/areaPictures/*", authResourceProvider))
                     .authenticated()
                     .requestMatchers(
                         new SelfAccountMatcher(

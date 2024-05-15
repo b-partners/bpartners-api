@@ -1,5 +1,7 @@
 package app.bpartners.api.service.WMS;
 
+import static java.lang.Math.PI;
+
 import app.bpartners.api.model.AreaPicture;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -32,7 +34,7 @@ public class Tile {
                         - Math.log(
                                 Math.tan(Math.toRadians(latitude))
                                     + 1 / Math.cos(Math.toRadians(latitude)))
-                            / Math.PI)
+                            / PI)
                     / 2
                     * (1 << zoom));
     if (ytile < 0) {
@@ -62,7 +64,7 @@ public class Tile {
   }
 
   public double getLatitude() {
-    double n = Math.PI - (2.0 * Math.PI * y) / Math.pow(2.0, arcgisZoom.getZoomLevel());
+    double n = PI - (2.0 * PI * y) / Math.pow(2.0, arcgisZoom.getZoomLevel());
     return Math.toDegrees(Math.atan(Math.sinh(n)));
   }
 }

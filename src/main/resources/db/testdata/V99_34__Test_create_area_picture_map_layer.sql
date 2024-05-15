@@ -1,0 +1,2 @@
+insert into "area_picture_map_layer" (id, source, year, name, departement_name, precision_level_in_cm, maximum_zoom_level)
+VALUES ('area_picture_map_1_id', 'GEOSERVER', '2020', 'area_picture_map_1_name', 'ain', '20', 'HOUSES_0');

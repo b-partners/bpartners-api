@@ -285,19 +285,41 @@ components:
         - HOUSES_1
         - HOUSES_2
         - HOUSE_PROPERTY
+    AreaPictureImageSource:
+      type: string
+      enum:
+        - OPENSTREETMAP
+        - GEOSERVER
+    AreaPictureMapLayer:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        year:
+          type: int
+        source:
+          $ref: "#/components/schemas/AreaPictureImageSource"
+        departementName:
+          type: string
+        maximumZoomLevel:
+          $ref: "#/components/schemas/ZoomLevel"
+        precisionLevelInCm:
+          type: int
     OpenStreetMapLayer:
+      deprecated: true
+      description: deprecated, use AreaMapLayer
       type: string
       enum:
         - tous_fr
-    CrupdateAreaPictureDetails:
+    AreaPictureDetailsTemplate:
       type: object
       properties:
         address:
           type: string
         zoomLevel:
           $ref: "#/components/schemas/ZoomLevel"
-        layer:
-          $ref: "#/components/schemas/OpenStreetMapLayer"
         fileId:
           type: string
         filename:
@@ -310,9 +332,18 @@ components:
         updatedAt:
           type: string
           format: date-time
+        layer:
+          $ref: "#/components/schemas/OpenStreetMapLayer"
+    CrupdateAreaPictureDetails:
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/AreaPictureDetailsTemplate"
+      properties:
+        layerId:
+          type: string
     AreaPictureDetails:
       allOf:
-        - $ref: "#/components/schemas/CrupdateAreaPictureDetails"
+        - $ref: "#/components/schemas/AreaPictureDetailsTemplate"
       properties:
         id:
           type: string
@@ -322,8 +353,16 @@ components:
           type: integer
         availableLayers:
           type: array
+          deprecated: true
+          description: use otherLayers instead
           items:
             $ref: "#/components/schemas/OpenStreetMapLayer"
+        actualLayer:
+          $ref: "#/components/schemas/AreaPictureMapLayer"
+        otherLayers:
+          type: array
+          items:
+            $ref: "#/components/schemas/AreaPictureMapLayer"
     Point:
       type: object
       properties:

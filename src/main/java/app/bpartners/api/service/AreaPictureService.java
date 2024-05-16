@@ -51,7 +51,6 @@ public class AreaPictureService {
                                 + " and Id = "
                                 + id
                                 + " was not found.")));
-    domain.setLayers(mapLayerService.getAvailableLayersFrom(domain.getTile()));
     return domain;
   }
 
@@ -66,9 +65,7 @@ public class AreaPictureService {
       var downloadedFileAsBytes = Files.readAllBytes(downloadedFile.toPath());
       fileService.upload(
           refreshed.getIdFileInfo(), AREA_PICTURE, refreshed.getIdUser(), downloadedFileAsBytes);
-      var saved = save(refreshed);
-      saved.setLayers(refreshed.getLayers());
-      return saved;
+      return save(refreshed);
     } catch (IOException e) {
       throw new ApiException(SERVER_EXCEPTION, e);
     }

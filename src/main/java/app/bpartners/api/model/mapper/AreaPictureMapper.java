@@ -33,7 +33,9 @@ public class AreaPictureMapper {
             .idProspect(entity.getIdProspect())
             .layers(List.of())
             .build();
-    domain.setTile(Tile.from(domain));
+    Tile tile = Tile.from(domain);
+    domain.setTile(tile);
+    domain.setLayers(areaPictureMapLayerService.getAvailableLayersFrom(tile));
     return domain;
   }
 

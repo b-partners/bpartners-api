@@ -10,7 +10,7 @@ import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
 @Component
-public class GeoserverImageSource implements WmsImageSource {
+final class GeoserverImageSource extends AbstractWmsImageSource {
   private final UriComponents baseUrl;
 
   public GeoserverImageSource(@Value("${geoserver.baseurl}") String geoserverBaseUrl) {
@@ -25,7 +25,7 @@ public class GeoserverImageSource implements WmsImageSource {
   }
 
   @Override
-  public URI apply(Tile tile, AreaPictureMapLayer mapLayer) {
+  public URI getURI(Tile tile, AreaPictureMapLayer mapLayer) {
     Map<String, Object> uriVariables =
         Map.of(
             "layer",

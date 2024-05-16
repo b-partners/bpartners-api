@@ -3,12 +3,10 @@ package app.bpartners.api.service.WMS.imageSource;
 import app.bpartners.api.model.AreaPictureMapLayer;
 import app.bpartners.api.service.WMS.AreaPictureMapLayerService;
 import app.bpartners.api.service.WMS.Tile;
-import java.awt.image.BufferedImage;
+import app.bpartners.api.service.WMS.imageSource.exception.BlankImageException;
 import java.io.File;
 import java.net.URI;
-import javax.imageio.ImageIO;
 import lombok.AllArgsConstructor;
-import lombok.SneakyThrows;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 
@@ -19,6 +17,7 @@ final class WmsImageSourceFacade extends AbstractWmsImageSource {
   private final OpenStreetMapImageSource openStreetMapImageSource;
   private final GeoserverImageSource geoserverImageSource;
   private final AreaPictureMapLayerService areaPictureMapLayerService;
+  private final ImageValidator imageValidator;
 
   @Override
   protected URI getURI(Tile tile, AreaPictureMapLayer areaPictureMapLayer) {
@@ -30,25 +29,20 @@ final class WmsImageSourceFacade extends AbstractWmsImageSource {
 
   @Override
   public File downloadImage(String filename, Tile tile, AreaPictureMapLayer areaPictureMapLayer) {
-    var uri = getURI(tile, areaPictureMapLayer);
     return switch (areaPictureMapLayer.getSource()) {
-      case OPENSTREETMAP -> fileDownloader.apply(filename, uri);
+      case OPENSTREETMAP -> openStreetMapImageSource.downloadImage(
+          filename, tile, areaPictureMapLayer);
       case GEOSERVER -> {
-        var file = fileDownloader.apply(filename, uri);
-        if (checkImageValidityAsFile(file)) {
+        var file = geoserverImageSource.downloadImage(filename, tile, areaPictureMapLayer);
+        try {
+          imageValidator.accept(file);
           yield file;
-        } else {
+        } catch (BlankImageException e) {
           file.delete();
-          yield fileDownloader.apply(
-              filename, getURI(tile, areaPictureMapLayerService.getDefaultLayer()));
+          yield openStreetMapImageSource.downloadImage(
+              filename, tile, areaPictureMapLayerService.getDefaultLayer());
         }
       }
     };
-  }
-
-  @SneakyThrows
-  public static boolean checkImageValidityAsFile(File file) {
-    BufferedImage bufferedImage = ImageIO.read(file);
-    return true;
   }
 }

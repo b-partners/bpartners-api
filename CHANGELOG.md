@@ -1,3 +1,12 @@
+# [0.45.0](https://github.com/b-partners/bpartners-api/compare/v0.44.0...v0.45.0) (2024-05-16)
+
+
+### Features
+
+* crupdateAreaPictureDetails returns AreaPictureDetails ([c69eb48](https://github.com/b-partners/bpartners-api/commit/c69eb48b1a302143a5e14c08ab6b1a0ec421eabf))
+
+
+
 # [0.44.0](https://github.com/b-partners/bpartners-api/compare/v0.43.0...v0.44.0) (2024-05-07)
 
 
@@ -154,15 +163,6 @@
 
 * add  and get external supporting documents to transaction ([9994bdc](https://github.com/b-partners/bpartners-api/commit/9994bdcf07c8a06f9b223d1c2f4c7be91f7fa316))
 * add customer type to customers ([e035bb2](https://github.com/b-partners/bpartners-api/commit/e035bb270544c1f4db155c1563d9b206293b71e6))
-
-
-
-## [0.37.2](https://github.com/b-partners/bpartners-api/compare/v0.37.1...v0.37.2) (2023-12-07)
-
-
-### Bug Fixes
-
-* define parameters inside api for transactionExportLink operations ([e838770](https://github.com/b-partners/bpartners-api/commit/e8387706e1197ae8f98a8d074dc6d3b07073b64e))
 
 
 

@@ -5,7 +5,6 @@ import static app.bpartners.api.endpoint.rest.model.AreaPictureImageSource.OPENS
 import static app.bpartners.api.endpoint.rest.model.OpenStreetMapLayer.TOUS_FR;
 import static app.bpartners.api.endpoint.rest.model.ZoomLevel.HOUSES_0;
 import static app.bpartners.api.integration.conf.utils.TestUtils.DEFAULT_FRANCE_LAYER;
-import static app.bpartners.api.integration.conf.utils.TestUtils.GEOSERVER_MOCK_BASE_URL;
 import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_TOKEN;
 import static app.bpartners.api.integration.conf.utils.TestUtils.PROSPECT_1_ID;
@@ -32,15 +31,11 @@ import app.bpartners.api.repository.ban.model.GeoPosition;
 import app.bpartners.api.service.WMS.ArcgisZoom;
 import app.bpartners.api.service.WMS.AreaPictureMapLayerService;
 import app.bpartners.api.service.WMS.Tile;
-import app.bpartners.api.service.WMS.imageSource.WmsImageSource;
 import app.bpartners.api.service.utils.GeoUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.net.URI;
 import java.time.Instant;
 import java.util.List;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,7 +48,6 @@ public class AreaPictureIT extends S3MockedThirdParties {
 
   @Autowired AreaPictureMapLayerService mapLayerService;
   @MockBean BanApi banApiMock;
-  @Autowired WmsImageSource wmsImageSource;
 
   private ApiClient joeDoeClient() {
     return TestUtils.anApiClient(JOE_DOE_TOKEN, localPort);
@@ -265,46 +259,5 @@ public class AreaPictureIT extends S3MockedThirdParties {
             Tile.from(coordinates.getLongitude(), coordinates.getLatitude(), ArcgisZoom.HOUSES_0));
 
     assertEquals(List.of(domainOsmLayer()), guessedLayers);
-  }
-
-  @Test
-  void each_image_source_guesses_ok() {
-    ArcgisZoom zoom = ArcgisZoom.HOUSES_0;
-    Tile tile = Tile.builder().x(19).y(10).arcgisZoom(zoom).build();
-    app.bpartners.api.model.AreaPictureMapLayer osmLayer = domainOsmLayer();
-    app.bpartners.api.model.AreaPictureMapLayer geoserverLayer = domainGeoserverLayer();
-    URI expectedFromOpenStreetMap = getOpenStreetMapUri(osmLayer, zoom, tile);
-    URI expectedFromGeoServer = getGeoserverMapLayer(geoserverLayer, zoom, tile);
-
-    var wmsImageSourceResult = wmsImageSource.apply(tile, domainOsmLayer());
-    var geoserverImageSourceResult = wmsImageSource.apply(tile, domainGeoserverLayer());
-
-    assertEquals(expectedFromOpenStreetMap, wmsImageSourceResult);
-    assertEquals(expectedFromGeoServer, geoserverImageSourceResult);
-  }
-
-  @SneakyThrows
-  @NotNull
-  private static URI getOpenStreetMapUri(
-      app.bpartners.api.model.AreaPictureMapLayer layer, ArcgisZoom zoom, Tile tile) {
-    return new URI(
-        "https://wms.openstreetmap.fr/tms/1.0.0/{layer}/{zoom}/{x}/{y}.jpeg"
-            .replace("{layer}", layer.getName())
-            .replace("{zoom}", String.valueOf(zoom.getZoomLevel()))
-            .replace("{x}", String.valueOf(tile.getX()))
-            .replace("{y}", String.valueOf(tile.getY())));
-  }
-
-  @SneakyThrows
-  @NotNull
-  private static URI getGeoserverMapLayer(
-      app.bpartners.api.model.AreaPictureMapLayer layer, ArcgisZoom zoom, Tile tile) {
-    return new URI(
-        "{geoserver.baseurl}?layers={layer}&zoom={zoom}&x={x}&y={y}&format=image/jpeg"
-            .replace("{geoserver.baseurl}", GEOSERVER_MOCK_BASE_URL)
-            .replace("{layer}", layer.getName())
-            .replace("{zoom}", String.valueOf(zoom.getZoomLevel()))
-            .replace("{x}", String.valueOf(tile.getX()))
-            .replace("{y}", String.valueOf(tile.getY())));
   }
 }

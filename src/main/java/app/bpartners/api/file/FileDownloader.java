@@ -31,7 +31,7 @@ public class FileDownloader implements BiFunction<String, URI, File> {
       }
       return response.body().toFile();
     } catch (IOException | InterruptedException e) {
-      throw new RuntimeException(e);
+      throw new ApiException(SERVER_EXCEPTION, e);
     }
   }
 }

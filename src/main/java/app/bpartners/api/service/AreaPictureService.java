@@ -3,7 +3,6 @@ package app.bpartners.api.service;
 import static app.bpartners.api.endpoint.rest.model.FileType.AREA_PICTURE;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 
-import app.bpartners.api.file.FileDownloader;
 import app.bpartners.api.model.AreaPicture;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.exception.NotFoundException;
@@ -14,7 +13,6 @@ import app.bpartners.api.service.WMS.Tile;
 import app.bpartners.api.service.WMS.TileCreator;
 import app.bpartners.api.service.WMS.imageSource.WmsImageSource;
 import java.io.IOException;
-import java.net.http.HttpClient;
 import java.nio.file.Files;
 import java.util.List;
 import lombok.AllArgsConstructor;
@@ -27,7 +25,6 @@ public class AreaPictureService {
   private final AreaPictureJpaRepository jpaRepository;
   private final AreaPictureMapper mapper;
   private final FileService fileService;
-  private final FileDownloader fileDownloader = new FileDownloader(HttpClient.newBuilder().build());
   private final WmsImageSource wmsImageSource;
   private final TileCreator tileCreator;
   private final AreaPictureMapLayerService mapLayerService;
@@ -62,8 +59,9 @@ public class AreaPictureService {
   public AreaPicture downloadFromExternalSourceAndSave(AreaPicture areaPicture)
       throws RuntimeException {
     var refreshed = refreshAreaPictureTileAndLayers(areaPicture);
-    var uri = wmsImageSource.apply(refreshed.getTile(), refreshed.getCurrentLayer());
-    var downloadedFile = fileDownloader.apply(refreshed.getFilename(), uri);
+    var downloadedFile =
+        wmsImageSource.downloadImage(
+            refreshed.getFilename(), refreshed.getTile(), refreshed.getCurrentLayer());
     try {
       var downloadedFileAsBytes = Files.readAllBytes(downloadedFile.toPath());
       fileService.upload(

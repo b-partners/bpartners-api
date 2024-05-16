@@ -2,7 +2,8 @@ package app.bpartners.api.service.WMS.imageSource;
 
 import app.bpartners.api.model.AreaPictureMapLayer;
 import app.bpartners.api.service.WMS.Tile;
-import java.net.URI;
-import java.util.function.BiFunction;
+import java.io.File;
 
-public interface WmsImageSource extends BiFunction<Tile, AreaPictureMapLayer, URI> {}
+public interface WmsImageSource {
+  File downloadImage(String filename, Tile tile, AreaPictureMapLayer areaPictureMapLayer);
+}

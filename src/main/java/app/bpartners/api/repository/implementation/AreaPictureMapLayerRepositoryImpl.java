@@ -28,10 +28,4 @@ public class AreaPictureMapLayerRepositoryImpl implements AreaPictureMapLayerRep
         .map(mapper::toDomain)
         .toList();
   }
-
-  @Override
-  public Optional<AreaPictureMapLayer> findByDepartementNameIgnoreCaseAndYear(
-      String departementName, int year) {
-    return Optional.empty();
-  }
 }

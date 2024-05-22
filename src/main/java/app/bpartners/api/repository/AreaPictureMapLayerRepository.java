@@ -10,7 +10,4 @@ public interface AreaPictureMapLayerRepository {
 
   List<AreaPictureMapLayer> findAllByDepartementNameInIgnoreCaseOrderByYear(
       Collection<String> departementName);
-
-  Optional<AreaPictureMapLayer> findByDepartementNameIgnoreCaseAndYear(
-      String departementName, int year);
 }

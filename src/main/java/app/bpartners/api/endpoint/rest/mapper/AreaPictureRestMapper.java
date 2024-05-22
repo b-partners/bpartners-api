@@ -9,6 +9,7 @@ import app.bpartners.api.endpoint.rest.validator.CrupdateAreaPictureDetailsValid
 import app.bpartners.api.model.AreaPicture;
 import app.bpartners.api.model.AreaPictureMapLayer;
 import app.bpartners.api.service.WMS.AreaPictureMapLayerService;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -32,6 +33,7 @@ public class AreaPictureRestMapper {
         .yTile(domain.getTile().getY())
         .prospectId(domain.getIdProspect())
         .layer(TOUS_FR)
+        .availableLayers(List.of(TOUS_FR))
         .actualLayer(layerRestMapper.toRest(domain.getCurrentLayer()))
         .otherLayers(domain.getLayers().stream().map(layerRestMapper::toRest).toList());
   }

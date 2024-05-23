@@ -11,8 +11,11 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.util.function.BiFunction;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class FileDownloader implements BiFunction<String, URI, File> {
+  // cannot be a bean as it uses HttpClient, TODO: refactor using RestTemplate
   private final HttpClient httpClient;
 
   public FileDownloader(HttpClient httpClient) {
@@ -23,6 +26,7 @@ public class FileDownloader implements BiFunction<String, URI, File> {
   public File apply(String filename, URI uri) {
     HttpRequest request = HttpRequest.newBuilder().uri(uri).GET().build();
     try {
+      log.info("downloading {} from {}", filename, uri);
       var file = Files.createTempFile(filename, null);
       var response =
           httpClient.send(request, HttpResponse.BodyHandlers.ofFile(file.toAbsolutePath()));

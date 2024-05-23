@@ -1,3 +1,12 @@
+# [0.47.0](https://github.com/b-partners/bpartners-api/compare/v0.46.0...v0.47.0) (2024-05-23)
+
+
+### Features
+
+* use Zoom instead of ZoomLevel, Zoom groups its level and its value as a number ([df42f91](https://github.com/b-partners/bpartners-api/commit/df42f9147b2c0465871e2add8f12fb052bd9ed3a))
+
+
+
 # [0.46.0](https://github.com/b-partners/bpartners-api/compare/v0.45.0...v0.46.0) (2024-05-23)
 
 
@@ -132,17 +141,6 @@
 ### Bug Fixes
 
 * set ses source correctly ([2cd4a2f](https://github.com/b-partners/bpartners-api/commit/2cd4a2faeebcc495455ace9afd184813733136a9))
-
-
-
-## [0.38.1](https://github.com/b-partners/bpartners-api/compare/v0.38.0...v0.38.1) (2024-01-08)
-
-
-### Bug Fixes
-
-* do not set database username in application.properties ([fb8000c](https://github.com/b-partners/bpartners-api/commit/fb8000c5b7c9b31069f3babecf879ac0f89ef318))
-* rename account ID for transactions supporting documents API ([9964cca](https://github.com/b-partners/bpartners-api/commit/9964cca5745ea5c2ec9e77248a33c961ae5e21e4))
-* set checksum algorithm only when uploading file ([e3b8760](https://github.com/b-partners/bpartners-api/commit/e3b87602f8fbabc7c2d7031f841dd20aa6051765))
 
 
 

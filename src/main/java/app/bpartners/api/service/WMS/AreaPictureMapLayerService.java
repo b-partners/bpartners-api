@@ -6,7 +6,6 @@ import app.bpartners.api.model.AreaPictureMapLayer;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.repository.AreaPictureMapLayerRepository;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,6 +21,7 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class AreaPictureMapLayerService {
   public static final int WGS_84_SRID = 4326;
+  private static final String DEFAULT_LAYER_UUID = "2cb589c1-45b0-4cb8-b84e-f1ed40e97bd8";
   private final AreaPictureMapLayerRepository repository;
 
   public List<AreaPictureMapLayer> getAvailableLayersFrom(Tile tile) {
@@ -57,13 +57,11 @@ public class AreaPictureMapLayerService {
   }
 
   public AreaPictureMapLayer getLatestMostPreciseOrDefault(List<AreaPictureMapLayer> layers) {
-    return layers.stream()
-        .max(AreaPictureMapLayer::compareTo)
-        .orElse(getDefaultLayer());
+    return layers.stream().max(AreaPictureMapLayer::compareTo).orElse(getDefaultLayer());
   }
 
   public AreaPictureMapLayer getDefaultLayer() {
-    return getById("2cb589c1-45b0-4cb8-b84e-f1ed40e97bd8");
+    return getById(DEFAULT_LAYER_UUID);
   }
 
   public AreaPictureMapLayer getById(String id) {

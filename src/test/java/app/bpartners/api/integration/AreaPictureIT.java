@@ -105,6 +105,7 @@ public class AreaPictureIT extends S3MockedThirdParties {
         .prospectId(PROSPECT_1_ID)
         .otherLayers(List.of(tousFrLayer()))
         .layer(DEFAULT_OSM_LAYER)
+        .availableLayers(List.of(DEFAULT_OSM_LAYER))
         .filename("tous_fr_HOUSES_0_524720_374531");
   }
 
@@ -122,6 +123,7 @@ public class AreaPictureIT extends S3MockedThirdParties {
         .address("Cannes Address")
         .fileId("mulhouse_1_5cm_544729_383060.jpg")
         .prospectId(PROSPECT_1_ID)
+        .availableLayers(List.of(DEFAULT_OSM_LAYER))
         .filename("tous_fr_HOUSES_0_524720_374531");
   }
 

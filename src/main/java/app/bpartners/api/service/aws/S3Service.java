@@ -60,7 +60,7 @@ public class S3Service {
 
   public String getPresignedUrl(
       FileType fileType, String idUser, String fileId, Long expirationInSeconds) {
-    String key = getKey(idUser);
+    String key = getKey(userRepository, idUser);
     return switch (fileType) {
       case TRANSACTION -> getPresignedUrl(getTransactionKey(fileId), expirationInSeconds);
       case LOGO -> getPresignedUrl(getLogoKey(key, fileId), expirationInSeconds);
@@ -107,14 +107,14 @@ public class S3Service {
   }
 
   public String uploadFile(FileType fileType, String idUser, String fileId, byte[] toUpload) {
-    String key = getKey(idUser);
+    String key = getKey(userRepository, idUser);
     return switch (fileType) {
-      case TRANSACTION, TRANSACTION_SUPPORTING_DOCS -> uploadFile(
-          getTransactionKey(fileId), toUpload);
+      case TRANSACTION, TRANSACTION_SUPPORTING_DOCS ->
+          uploadFile(getTransactionKey(fileId), toUpload);
       case LOGO -> uploadFile(getLogoKey(key, fileId), toUpload);
       case INVOICE -> uploadFile(getInvoiceKey(key, fileId), toUpload);
       case ATTACHMENT -> uploadFile(getAttachmentKey(key, fileId), toUpload);
-      case AREA_PICTURE -> uploadFile(getAreaPictureKey(key, fileId), toUpload);
+      case AREA_PICTURE -> uploadFile(getAreaPictureKey(s3Conf, key, fileId), toUpload);
       default -> throw new BadRequestException("Unknown file type " + fileType);
     };
   }
@@ -131,22 +131,22 @@ public class S3Service {
   }
 
   public byte[] downloadFile(FileType fileType, String idUser, String fileId) {
-    String key = getKey(idUser);
+    String key = getKey(userRepository, idUser);
     return switch (fileType) {
       case TRANSACTION, TRANSACTION_SUPPORTING_DOCS -> downloadFile(getTransactionKey(fileId));
       case LOGO -> downloadFile(getLogoKey(key, fileId));
       case INVOICE -> downloadFile(getInvoiceKey(key, fileId));
       case ATTACHMENT -> downloadFile(getAttachmentKey(key, fileId));
-      case AREA_PICTURE -> downloadFile(getAreaPictureKey(key, fileId));
+      case AREA_PICTURE -> downloadFile(getAreaPictureKey(s3Conf, key, fileId));
       default -> throw new BadRequestException("Unknown file type " + fileType);
     };
   }
 
-  private String getKey(String idUser) {
+  public  static String getKey(UserRepository userRepository, String idUser) {
     return userRepository.getById(idUser).getOldS3key();
   }
 
-  private String getBucketName(String env, String idUser, String fileId, String type) {
+  private static String getBucketName(String env, String idUser, String fileId, String type) {
     return String.format(S3_KEY_FORMAT, env, idUser, type, fileId);
   }
 
@@ -166,7 +166,7 @@ public class S3Service {
     return getBucketName(s3Conf.getEnv(), idUser, fileId, ATTACHMENT.name().toLowerCase());
   }
 
-  private String getAreaPictureKey(String idUser, String fileId) {
+  public static String getAreaPictureKey(S3Conf s3Conf, String idUser, String fileId) {
     return getBucketName(s3Conf.getEnv(), idUser, fileId, AREA_PICTURE.name().toLowerCase());
   }
 }

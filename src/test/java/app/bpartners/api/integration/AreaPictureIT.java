@@ -24,6 +24,8 @@ import app.bpartners.api.endpoint.rest.model.AreaPictureDetails;
 import app.bpartners.api.endpoint.rest.model.AreaPictureMapLayer;
 import app.bpartners.api.endpoint.rest.model.CrupdateAreaPictureDetails;
 import app.bpartners.api.endpoint.rest.model.OpenStreetMapLayer;
+import app.bpartners.api.endpoint.rest.model.Zoom;
+import app.bpartners.api.endpoint.rest.model.ZoomLevel;
 import app.bpartners.api.integration.conf.S3MockedThirdParties;
 import app.bpartners.api.integration.conf.utils.TestUtils;
 import app.bpartners.api.repository.ban.BanApi;
@@ -64,6 +66,7 @@ public class AreaPictureIT extends S3MockedThirdParties {
         .precisionLevelInCm(20)
         .maximumZoomLevel(HOUSES_0)
         .departementName("ALL")
+        .maximumZoom(new Zoom().level(HOUSES_0).number(20))
         .source(OPENSTREETMAP);
   }
 
@@ -105,6 +108,7 @@ public class AreaPictureIT extends S3MockedThirdParties {
         .prospectId(PROSPECT_1_ID)
         .otherLayers(List.of(tousFrLayer()))
         .layer(DEFAULT_OSM_LAYER)
+        .zoom(new Zoom().level(HOUSES_0).number(20))
         .availableLayers(List.of(DEFAULT_OSM_LAYER))
         .filename("tous_fr_HOUSES_0_524720_374531");
   }
@@ -124,6 +128,7 @@ public class AreaPictureIT extends S3MockedThirdParties {
         .fileId("mulhouse_1_5cm_544729_383060.jpg")
         .prospectId(PROSPECT_1_ID)
         .availableLayers(List.of(DEFAULT_OSM_LAYER))
+        .zoom(new Zoom().level(HOUSES_0).number(20))
         .filename("tous_fr_HOUSES_0_524720_374531");
   }
 
@@ -230,6 +235,7 @@ public class AreaPictureIT extends S3MockedThirdParties {
 
   static AreaPictureDetails createFrom(CrupdateAreaPictureDetails crupdate, String payloadId) {
     var tile = DEFAULT_KNOWN_TILE;
+    ZoomLevel zoomLevel = crupdate.getZoomLevel();
     return new AreaPictureDetails()
         .id(payloadId)
         .xTile(tile.getX())
@@ -238,12 +244,13 @@ public class AreaPictureIT extends S3MockedThirdParties {
         .prospectId(crupdate.getProspectId())
         .fileId(crupdate.getFileId())
         .actualLayer(tousFrLayer())
-        .zoomLevel(crupdate.getZoomLevel())
+        .zoomLevel(zoomLevel)
         .otherLayers(List.of(tousFrLayer()))
         .filename(getFilename(crupdate, tile))
         .layer(TOUS_FR)
         // need to update or nullify createdAt and updatedAt during equality check
         .createdAt(null)
+        .zoom(new Zoom().level(zoomLevel).number(ArcgisZoom.from(zoomLevel).getZoomLevel()))
         .updatedAt(null);
   }
 

@@ -1,6 +1,7 @@
 package app.bpartners.api.model;
 
 import app.bpartners.api.endpoint.rest.model.ZoomLevel;
+import app.bpartners.api.service.WMS.ArcgisZoom;
 import app.bpartners.api.service.WMS.Tile;
 import java.time.Instant;
 import java.util.List;
@@ -35,5 +36,9 @@ public class AreaPicture {
   public String getFilename() {
     return "%s_%s_%s_%s"
         .formatted(currentLayer.getName(), zoomLevel.getValue(), tile.getX(), tile.getY());
+  }
+
+  public ArcgisZoom getArcgisZoom() {
+    return ArcgisZoom.from(this.zoomLevel);
   }
 }

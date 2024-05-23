@@ -258,6 +258,13 @@ operations:
           $ref: './api.yml#/components/responses/500'
 components:
   schemas:
+    Zoom:
+      type: object
+      properties:
+        level:
+          $ref: "#/components/schemas/ZoomLevel"
+        number:
+          type: integer
     ZoomLevel:
       type: string
       enum:
@@ -305,6 +312,8 @@ components:
           type: string
         maximumZoomLevel:
           $ref: "#/components/schemas/ZoomLevel"
+        maximumZoom:
+          $ref: "#/components/schemas/Zoom"
         precisionLevelInCm:
           type: int
     OpenStreetMapLayer:
@@ -320,6 +329,8 @@ components:
           type: string
         zoomLevel:
           $ref: "#/components/schemas/ZoomLevel"
+        zoom:
+          $ref: "#/components/schemas/Zoom"
         fileId:
           type: string
         filename:

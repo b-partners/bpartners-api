@@ -2,6 +2,7 @@ package app.bpartners.api.model;
 
 import app.bpartners.api.endpoint.rest.model.AreaPictureImageSource;
 import app.bpartners.api.endpoint.rest.model.ZoomLevel;
+import app.bpartners.api.service.WMS.ArcgisZoom;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -31,5 +32,9 @@ public class AreaPictureMapLayer implements Comparable<AreaPictureMapLayer> {
       return Integer.compare(this.year, o2.year);
     }
     return precisionComparison;
+  }
+
+  public ArcgisZoom getMaxZoomLevelAsArcgisZoom(){
+    return ArcgisZoom.from(this.maximumZoomLevel);
   }
 }

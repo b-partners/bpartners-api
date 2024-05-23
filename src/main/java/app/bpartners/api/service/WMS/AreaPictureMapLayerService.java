@@ -56,9 +56,9 @@ public class AreaPictureMapLayerService {
     return result;
   }
 
-  public AreaPictureMapLayer getLatestOrDefault(List<AreaPictureMapLayer> layers) {
+  public AreaPictureMapLayer getLatestMostPreciseOrDefault(List<AreaPictureMapLayer> layers) {
     return layers.stream()
-        .max(Comparator.comparingInt(AreaPictureMapLayer::getYear))
+        .max(AreaPictureMapLayer::compareTo)
         .orElse(getDefaultLayer());
   }
 

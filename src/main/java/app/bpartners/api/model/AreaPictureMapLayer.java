@@ -15,7 +15,7 @@ import lombok.ToString;
 @Builder(toBuilder = true)
 @ToString
 @EqualsAndHashCode
-public class AreaPictureMapLayer {
+public class AreaPictureMapLayer implements Comparable<AreaPictureMapLayer> {
   private String id;
   private AreaPictureImageSource source;
   private int year;
@@ -23,4 +23,13 @@ public class AreaPictureMapLayer {
   private String departementName;
   private ZoomLevel maximumZoomLevel;
   private int precisionLevelInCm;
+
+  @Override
+  public int compareTo(AreaPictureMapLayer o2) {
+    var precisionComparison = Integer.compare(this.precisionLevelInCm, o2.precisionLevelInCm);
+    if (precisionComparison == 0) {
+      return Integer.compare(this.year, o2.year);
+    }
+    return precisionComparison;
+  }
 }

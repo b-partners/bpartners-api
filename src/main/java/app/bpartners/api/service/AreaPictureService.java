@@ -79,8 +79,10 @@ public class AreaPictureService {
 
   private void refreshAreaPictureMapLayers(AreaPicture areaPicture) {
     var guessedMaps = mapLayerService.getAvailableLayersFrom(areaPicture.getTile());
-    var latest = mapLayerService.getLatestOrDefault(guessedMaps);
-    areaPicture.setCurrentLayer(latest);
+    if (areaPicture.getCurrentLayer() == null) {
+      var latest = mapLayerService.getLatestMostPreciseOrDefault(guessedMaps);
+      areaPicture.setCurrentLayer(latest);
+    }
     areaPicture.setLayers(guessedMaps);
   }
 

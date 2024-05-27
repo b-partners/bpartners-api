@@ -30,6 +30,7 @@ GOOGLE_SHEET_REDIRECT_URIS: !Sub '{{resolve:ssm:/bpartners/${Env}/google/sheet/r
 ADMIN_EMAIL: !Sub '{{resolve:ssm:/bpartners/${Env}/admin/email}}'
 SNS_PLATFORM_ARN: !Sub '{{resolve:ssm:/bpartners/${Env}/sns/platform-arn}}'
 GEOSERVER_BASEURL: !Sub '{{resolve:ssm:/bpartners/${Env}/geoserver/base-url}}'
+TILE_EXTENDER_BASEURL: !Sub '{{resolve:ssm:/bpartners/${Env}/tile-extender/base-url}}'
 SPRING_DATASOURCE_URL: !Sub '{{resolve:ssm:/bpartners/${Env}/db/url}}'
 SPRING_DATASOURCE_USERNAME: !Sub '{{resolve:ssm:/bpartners/${Env}/db/username}}'
 SPRING_DATASOURCE_PASSWORD: !Sub '{{resolve:ssm:/bpartners/${Env}/db/password}}'

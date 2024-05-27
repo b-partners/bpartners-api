@@ -47,6 +47,7 @@ public class HAreaPicture {
   private String idLayer;
 
   private String filename;
+  private boolean isExtended;
 
   @Override
   public final boolean equals(Object o) {

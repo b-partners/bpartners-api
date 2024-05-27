@@ -19,6 +19,9 @@ import lombok.ToString;
 @ToString
 @EqualsAndHashCode
 public class AreaPicture {
+  private static final String NORMAL_AREA_PICTURE_FILENAME_FORMAT = "%s_%s_%s_%s";
+  private static final String EXTENDED_AREA_PICTURE_FILENAME_FORMAT = "%s_%s_%s_%s_%s";
+  private static final String EXTENDED_KEYWORD = "extended";
   private String id;
   private String idUser;
   private String idProspect;
@@ -32,10 +35,22 @@ public class AreaPicture {
   private AreaPictureMapLayer currentLayer;
   private Tile tile;
   private List<AreaPictureMapLayer> layers;
+  private boolean isExtended;
 
   public String getFilename() {
-    return "%s_%s_%s_%s"
-        .formatted(currentLayer.getName(), zoomLevel.getValue(), tile.getX(), tile.getY());
+    return isExtended
+        ? getExtendedAreaPictureFilenameFormat()
+        : getNormalAreaPictureFilenameFormat();
+  }
+
+  private String getNormalAreaPictureFilenameFormat() {
+    return NORMAL_AREA_PICTURE_FILENAME_FORMAT.formatted(
+        currentLayer.getName(), zoomLevel.getValue(), tile.getX(), tile.getY());
+  }
+
+  private String getExtendedAreaPictureFilenameFormat() {
+    return EXTENDED_AREA_PICTURE_FILENAME_FORMAT.formatted(
+        currentLayer.getName(), zoomLevel.getValue(), tile.getX(), tile.getY(), EXTENDED_KEYWORD);
   }
 
   public ArcgisZoom getArcgisZoom() {

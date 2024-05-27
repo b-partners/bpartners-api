@@ -1,5 +1,8 @@
 package app.bpartners.api.service.WMS.imageSource;
 
+import static app.bpartners.api.endpoint.rest.model.AreaPictureImageSource.GEOSERVER;
+
+import app.bpartners.api.model.AreaPicture;
 import app.bpartners.api.model.AreaPictureMapLayer;
 import app.bpartners.api.service.WMS.Tile;
 import java.net.URI;
@@ -37,5 +40,10 @@ final class GeoserverImageSource extends AbstractWmsImageSource {
             "y",
             tile.getY());
     return baseUrl.expand(uriVariables).toUri();
+  }
+
+  @Override
+  public boolean supports(AreaPicture areaPicture) {
+    return GEOSERVER.equals(areaPicture.getCurrentLayer().getSource());
   }
 }

@@ -1,7 +1,11 @@
 package app.bpartners.api.service.WMS.imageSource;
 
+import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
+
 import app.bpartners.api.file.FileDownloader;
+import app.bpartners.api.model.AreaPicture;
 import app.bpartners.api.model.AreaPictureMapLayer;
+import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.service.WMS.Tile;
 import java.io.File;
 import java.net.URI;
@@ -16,8 +20,14 @@ abstract sealed class AbstractWmsImageSource implements WmsImageSource
   }
 
   @Override
-  public File downloadImage(String filename, Tile tile, AreaPictureMapLayer areaPictureMapLayer) {
-    return fileDownloader.apply(filename, getURI(tile, areaPictureMapLayer));
+  public File downloadImage(AreaPicture areaPicture) {
+    if (!supports(areaPicture)) {
+      throw new ApiException(
+          SERVER_EXCEPTION,
+          "cannot download " + areaPicture.toString() + " from " + this.getClass().getTypeName());
+    }
+    return fileDownloader.apply(
+        areaPicture.getFilename(), getURI(areaPicture.getTile(), areaPicture.getCurrentLayer()));
   }
 
   protected abstract URI getURI(Tile tile, AreaPictureMapLayer areaPictureMapLayer);

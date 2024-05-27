@@ -1,5 +1,6 @@
 package app.bpartners.api.service.WMS.imageSource;
 
+import app.bpartners.api.model.AreaPicture;
 import app.bpartners.api.model.AreaPictureMapLayer;
 import app.bpartners.api.service.WMS.AreaPictureMapLayerService;
 import app.bpartners.api.service.WMS.Tile;
@@ -28,21 +29,25 @@ final class WmsImageSourceFacade extends AbstractWmsImageSource {
   }
 
   @Override
-  public File downloadImage(String filename, Tile tile, AreaPictureMapLayer areaPictureMapLayer) {
-    return switch (areaPictureMapLayer.getSource()) {
-      case OPENSTREETMAP -> openStreetMapImageSource.downloadImage(
-          filename, tile, areaPictureMapLayer);
+  public File downloadImage(AreaPicture areaPicture) {
+    return switch (areaPicture.getCurrentLayer().getSource()) {
+      case OPENSTREETMAP -> openStreetMapImageSource.downloadImage(areaPicture);
       case GEOSERVER -> {
-        var file = geoserverImageSource.downloadImage(filename, tile, areaPictureMapLayer);
+        var file = geoserverImageSource.downloadImage(areaPicture);
         try {
           imageValidator.accept(file);
           yield file;
         } catch (BlankImageException e) {
           file.delete();
-          yield openStreetMapImageSource.downloadImage(
-              filename, tile, areaPictureMapLayerService.getDefaultLayer());
+          areaPicture.setCurrentLayer(areaPictureMapLayerService.getDefaultLayer());
+          yield openStreetMapImageSource.downloadImage(areaPicture);
         }
       }
     };
+  }
+
+  @Override
+  public boolean supports(AreaPicture areaPicture) {
+    return true;
   }
 }

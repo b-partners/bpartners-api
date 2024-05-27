@@ -51,7 +51,7 @@ public class AreaPictureIT extends S3MockedThirdParties {
 
   @Autowired AreaPictureMapLayerService mapLayerService;
   @MockBean BanApi banApiMock;
-  @MockBean WmsImageSource wmsImageSource;
+  @MockBean WmsImageSource wmsImageSourceMock;
 
   private ApiClient joeDoeClient() {
     return TestUtils.anApiClient(JOE_DOE_TOKEN, localPort);
@@ -153,29 +153,28 @@ public class AreaPictureIT extends S3MockedThirdParties {
     setUpLegalFileRepository(legalFileRepositoryMock);
     setUpCognito(cognitoComponentMock);
     setUpBanApiMock(banApiMock);
-    setUpWmsImageSource(wmsImageSource);
+    setUpWmsImageSourceMock(wmsImageSourceMock);
+  }
+
+  private void setUpWmsImageSourceMock(WmsImageSource wmsImageSource) {
+    FileSystemResource mockJpegFile =
+        new FileSystemResource(
+            this.getClass().getClassLoader().getResource("files/downloaded.jpeg").getFile());
+    when(wmsImageSource.downloadImage(any())).thenReturn(mockJpegFile.getFile());
   }
 
   void setUpBanApiMock(BanApi banApi) {
-    when(banApi.search(any())).thenReturn(DEFAULT_KNOWN_GEO_POSITION);
-    when(banApi.fSearch(any())).thenReturn(DEFAULT_KNOWN_GEO_POSITION);
+    when(banApi.search(any())).thenReturn(CHARENTE_KNOWN_GEO_POSITION);
+    when(banApi.fSearch(any())).thenReturn(CHARENTE_KNOWN_GEO_POSITION);
   }
 
   private static final GeoUtils.Coordinate SOMEWHERE_IN_CHARENTE_KNOWN_COORDINATES =
       GeoUtils.Coordinate.builder().longitude(0.148409).latitude(45.644018).build();
-  private static final GeoPosition DEFAULT_KNOWN_GEO_POSITION =
+  private static final GeoPosition CHARENTE_KNOWN_GEO_POSITION =
       GeoPosition.builder()
           .label("charente")
           .coordinates(SOMEWHERE_IN_CHARENTE_KNOWN_COORDINATES)
           .build();
-
-  void setUpWmsImageSource(WmsImageSource wmsImageSource) {
-    FileSystemResource fileSystemResource =
-        new FileSystemResource(
-            this.getClass().getClassLoader().getResource("files/downloaded.jpeg").getFile());
-    when(wmsImageSource.downloadImage(any(), any(), any()))
-        .thenReturn(fileSystemResource.getFile());
-  }
 
   private static final Tile DEFAULT_KNOWN_TILE = Tile.builder().x(524720).y(374531).build();
 

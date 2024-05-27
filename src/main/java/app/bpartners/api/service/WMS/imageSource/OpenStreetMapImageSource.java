@@ -1,5 +1,8 @@
 package app.bpartners.api.service.WMS.imageSource;
 
+import static app.bpartners.api.endpoint.rest.model.AreaPictureImageSource.OPENSTREETMAP;
+
+import app.bpartners.api.model.AreaPicture;
 import app.bpartners.api.model.AreaPictureMapLayer;
 import app.bpartners.api.service.WMS.Tile;
 import java.net.URI;
@@ -30,5 +33,10 @@ final class OpenStreetMapImageSource extends AbstractWmsImageSource {
             "y",
             tile.getY());
     return BASE_URL_BUILDER.expand(uriVariables).toUri();
+  }
+
+  @Override
+  public boolean supports(AreaPicture areaPicture) {
+    return OPENSTREETMAP.equals(areaPicture.getCurrentLayer().getSource());
   }
 }

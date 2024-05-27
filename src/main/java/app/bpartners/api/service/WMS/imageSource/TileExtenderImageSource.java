@@ -1,10 +1,13 @@
 package app.bpartners.api.service.WMS.imageSource;
 
-import static app.bpartners.api.endpoint.rest.model.AreaPictureImageSource.GEOSERVER;
+import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 
+import app.bpartners.api.file.FileDownloader;
 import app.bpartners.api.model.AreaPicture;
 import app.bpartners.api.model.AreaPictureMapLayer;
+import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.service.WMS.Tile;
+import java.io.File;
 import java.net.URI;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Value;
@@ -16,7 +19,10 @@ import org.springframework.web.util.UriComponentsBuilder;
 final class TileExtenderImageSource extends AbstractWmsImageSource {
   private final UriComponents baseUrl;
 
-  public TileExtenderImageSource(@Value("${tile.extender.baseurl}") String tileExtenderBaseUrl) {
+  public TileExtenderImageSource(
+      FileDownloader fileDownloader,
+      @Value("${tile.extender.baseurl}") String tileExtenderBaseUrl) {
+    super(fileDownloader);
     this.baseUrl =
         UriComponentsBuilder.fromHttpUrl(tileExtenderBaseUrl)
             .query("layers={layer}")
@@ -43,7 +49,22 @@ final class TileExtenderImageSource extends AbstractWmsImageSource {
   }
 
   @Override
+  public File downloadImage(AreaPicture areaPicture) {
+    if (!supports(areaPicture)) {
+      throw new ApiException(
+          SERVER_EXCEPTION,
+          "cannot download " + areaPicture + " from " + this.getClass().getTypeName());
+    }
+    boolean isBase64Encoded = true;
+    return fileDownloaderImpl.postJson(
+        areaPicture.getFilename(),
+        getURI(areaPicture.getTile(), areaPicture.getCurrentLayer()),
+        null,
+        isBase64Encoded);
+  }
+
+  @Override
   public boolean supports(AreaPicture areaPicture) {
-    return GEOSERVER.equals(areaPicture.getCurrentLayer().getSource());
+    return areaPicture.isExtended();
   }
 }

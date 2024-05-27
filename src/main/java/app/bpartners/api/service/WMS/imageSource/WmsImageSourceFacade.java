@@ -1,5 +1,6 @@
 package app.bpartners.api.service.WMS.imageSource;
 
+import app.bpartners.api.file.FileDownloader;
 import app.bpartners.api.model.AreaPicture;
 import app.bpartners.api.model.AreaPictureMapLayer;
 import app.bpartners.api.service.WMS.AreaPictureMapLayerService;
@@ -7,18 +8,29 @@ import app.bpartners.api.service.WMS.Tile;
 import app.bpartners.api.service.WMS.imageSource.exception.BlankImageException;
 import java.io.File;
 import java.net.URI;
-import lombok.AllArgsConstructor;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 
 @Component
-@AllArgsConstructor
 @Primary
 final class WmsImageSourceFacade extends AbstractWmsImageSource {
   private final OpenStreetMapImageSource openStreetMapImageSource;
   private final GeoserverImageSource geoserverImageSource;
   private final AreaPictureMapLayerService areaPictureMapLayerService;
   private final ImageValidator imageValidator;
+
+  private WmsImageSourceFacade(
+      FileDownloader fileDownloader,
+      OpenStreetMapImageSource openStreetMapImageSource,
+      GeoserverImageSource geoserverImageSource,
+      AreaPictureMapLayerService areaPictureMapLayerService,
+      ImageValidator imageValidator) {
+    super(fileDownloader);
+    this.openStreetMapImageSource = openStreetMapImageSource;
+    this.geoserverImageSource = geoserverImageSource;
+    this.areaPictureMapLayerService = areaPictureMapLayerService;
+    this.imageValidator = imageValidator;
+  }
 
   @Override
   protected URI getURI(Tile tile, AreaPictureMapLayer areaPictureMapLayer) {

@@ -175,7 +175,7 @@ public class TestUtils {
   public static final String TRANSACTION3_ID = "transaction3_id";
   public static final String PROSPECT_1_ID = "prospect1_id";
   public static final String PROSPECT_2_ID = "prospect2_id";
-  public static final String GEOSERVER_MOCK_BASE_URL = "http://localhost.com";
+  public static final String MOCK_SERVER_URL = "http://localhost.com";
   public static final String CUSTOMER_1_ID = "customer1_id";
   public static final String DEFAULT_FRANCE_LAYER = "tous_fr";
 

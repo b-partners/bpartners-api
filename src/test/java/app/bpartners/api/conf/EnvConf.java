@@ -1,7 +1,7 @@
 package app.bpartners.api.conf;
 
 import static app.bpartners.api.endpoint.event.AwsConf.TEST_ENV;
-import static app.bpartners.api.integration.conf.utils.TestUtils.GEOSERVER_MOCK_BASE_URL;
+import static app.bpartners.api.integration.conf.utils.TestUtils.MOCK_SERVER_URL;
 
 import app.bpartners.api.integration.conf.utils.TestUtils;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -37,6 +37,7 @@ public class EnvConf {
     registry.add("fintecture.base.url", () -> "https://api-sandbox.fintecture.com");
     registry.add("spring.flyway.locations", () -> "classpath:/db/migration,classpath:/db/testdata");
     registry.add("env", () -> TEST_ENV);
-    registry.add("geoserver.baseurl", () -> GEOSERVER_MOCK_BASE_URL);
+    registry.add("geoserver.baseurl", () -> MOCK_SERVER_URL);
+    registry.add("tile.extender.baseurl", () -> MOCK_SERVER_URL);
   }
 }

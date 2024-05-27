@@ -17,6 +17,7 @@ final class WmsImageSourceFacade extends AbstractWmsImageSource {
   private final OpenStreetMapImageSource openStreetMapImageSource;
   private final GeoserverImageSource geoserverImageSource;
   private final AreaPictureMapLayerService areaPictureMapLayerService;
+  private final TileExtenderImageSource tileExtenderImageSource;
   private final ImageValidator imageValidator;
 
   private WmsImageSourceFacade(
@@ -24,11 +25,13 @@ final class WmsImageSourceFacade extends AbstractWmsImageSource {
       OpenStreetMapImageSource openStreetMapImageSource,
       GeoserverImageSource geoserverImageSource,
       AreaPictureMapLayerService areaPictureMapLayerService,
+      TileExtenderImageSource tileExtenderImageSource,
       ImageValidator imageValidator) {
     super(fileDownloader);
     this.openStreetMapImageSource = openStreetMapImageSource;
     this.geoserverImageSource = geoserverImageSource;
     this.areaPictureMapLayerService = areaPictureMapLayerService;
+    this.tileExtenderImageSource = tileExtenderImageSource;
     this.imageValidator = imageValidator;
   }
 
@@ -42,6 +45,9 @@ final class WmsImageSourceFacade extends AbstractWmsImageSource {
 
   @Override
   public File downloadImage(AreaPicture areaPicture) {
+    if (areaPicture.isExtended()) {
+      return tileExtenderImageSource.downloadImage(areaPicture);
+    }
     return switch (areaPicture.getCurrentLayer().getSource()) {
       case OPENSTREETMAP -> openStreetMapImageSource.downloadImage(areaPicture);
       case GEOSERVER -> {

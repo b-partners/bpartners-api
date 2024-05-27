@@ -3,6 +3,7 @@ package app.bpartners.api.service.WMS.imageSource;
 import static app.bpartners.api.endpoint.rest.model.AreaPictureImageSource.GEOSERVER;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 
+import app.bpartners.api.file.FileDownloader;
 import app.bpartners.api.model.AreaPicture;
 import app.bpartners.api.model.AreaPictureMapLayer;
 import app.bpartners.api.model.exception.ApiException;
@@ -19,8 +20,9 @@ import org.springframework.web.util.UriComponentsBuilder;
 final class GeoserverImageSource extends AbstractWmsImageSource {
   private final UriComponents baseUrl;
 
-  public GeoserverImageSource(@Value("${geoserver.baseurl}") String geoserverBaseUrl) {
-    super();
+  public GeoserverImageSource(
+      FileDownloader fileDownloader, @Value("${geoserver.baseurl}") String geoserverBaseUrl) {
+    super(fileDownloader);
     this.baseUrl =
         UriComponentsBuilder.fromHttpUrl(geoserverBaseUrl)
             .query("layers={layer}")

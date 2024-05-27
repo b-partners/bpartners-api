@@ -24,6 +24,7 @@ public class FileDownloader implements BiFunction<String, URI, File> {
 
   @Override
   public File apply(String filename, URI uri) {
+    //TODO: implement downloads with specific request (POST, GET, PUT)
     HttpRequest request = HttpRequest.newBuilder().uri(uri).GET().build();
     try {
       log.info("downloading {} from {}", filename, uri);

@@ -4,7 +4,6 @@ import static app.bpartners.api.endpoint.rest.model.AreaPictureImageSource.GEOSE
 import static app.bpartners.api.endpoint.rest.model.AreaPictureImageSource.OPENSTREETMAP;
 import static app.bpartners.api.endpoint.rest.model.OpenStreetMapLayer.TOUS_FR;
 import static app.bpartners.api.endpoint.rest.model.ZoomLevel.HOUSES_0;
-import static app.bpartners.api.integration.conf.utils.TestUtils.DEFAULT_FRANCE_LAYER;
 import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_TOKEN;
 import static app.bpartners.api.integration.conf.utils.TestUtils.PROSPECT_1_ID;
@@ -73,6 +72,18 @@ public class AreaPictureIT extends S3MockedThirdParties {
         .source(OPENSTREETMAP);
   }
 
+  static AreaPictureMapLayer geoserverCharenteLayer() {
+    return new AreaPictureMapLayer()
+        .id("area_picture_map_1_id")
+        .name("area_picture_map_1_name")
+        .year(2023)
+        .precisionLevelInCm(20)
+        .maximumZoomLevel(HOUSES_0)
+        .departementName("charente")
+        .maximumZoom(new Zoom().level(HOUSES_0).number(20))
+        .source(GEOSERVER);
+  }
+
   static app.bpartners.api.model.AreaPictureMapLayer domainOsmLayer() {
     return app.bpartners.api.model.AreaPictureMapLayer.builder()
         .id("2cb589c1-45b0-4cb8-b84e-f1ed40e97bd8")
@@ -85,12 +96,12 @@ public class AreaPictureIT extends S3MockedThirdParties {
         .build();
   }
 
-  static app.bpartners.api.model.AreaPictureMapLayer domainGeoserverLayer() {
+  static app.bpartners.api.model.AreaPictureMapLayer domainGeoserverCharenteLayer() {
     return app.bpartners.api.model.AreaPictureMapLayer.builder()
         .id("area_picture_map_1_id")
         .name("area_picture_map_1_name")
-        .year(2020)
-        .departementName("ain")
+        .year(2023)
+        .departementName("charente")
         .source(GEOSERVER)
         .maximumZoomLevel(HOUSES_0)
         .precisionLevelInCm(20)
@@ -109,10 +120,11 @@ public class AreaPictureIT extends S3MockedThirdParties {
         .updatedAt(Instant.parse("2022-01-08T01:00:00Z"))
         .fileId("montauban_5cm_544729_383060.jpg")
         .prospectId(PROSPECT_1_ID)
-        .otherLayers(List.of(tousFrLayer()))
+        .otherLayers(List.of(geoserverCharenteLayer(), tousFrLayer()))
         .layer(DEFAULT_OSM_LAYER)
         .zoom(new Zoom().level(HOUSES_0).number(20))
         .availableLayers(List.of(DEFAULT_OSM_LAYER))
+        .isExtended(false)
         .filename("tous_fr_HOUSES_0_524720_374531");
   }
 
@@ -124,7 +136,7 @@ public class AreaPictureIT extends S3MockedThirdParties {
         .xTile(524720)
         .yTile(374531)
         .layer(DEFAULT_OSM_LAYER)
-        .otherLayers(List.of(tousFrLayer()))
+        .otherLayers(List.of(geoserverCharenteLayer(), tousFrLayer()))
         .createdAt(Instant.parse("2022-01-08T01:00:00Z"))
         .updatedAt(Instant.parse("2022-01-08T01:00:00Z"))
         .address("Cannes Address")
@@ -132,7 +144,8 @@ public class AreaPictureIT extends S3MockedThirdParties {
         .prospectId(PROSPECT_1_ID)
         .availableLayers(List.of(DEFAULT_OSM_LAYER))
         .zoom(new Zoom().level(HOUSES_0).number(20))
-        .filename("tous_fr_HOUSES_0_524720_374531");
+        .isExtended(true)
+        .filename("tous_fr_HOUSES_0_524720_374531_extended");
   }
 
   @BeforeEach
@@ -148,6 +161,14 @@ public class AreaPictureIT extends S3MockedThirdParties {
     when(banApi.fSearch(any())).thenReturn(DEFAULT_KNOWN_GEO_POSITION);
   }
 
+  private static final GeoUtils.Coordinate SOMEWHERE_IN_CHARENTE_KNOWN_COORDINATES =
+      GeoUtils.Coordinate.builder().longitude(0.148409).latitude(45.644018).build();
+  private static final GeoPosition DEFAULT_KNOWN_GEO_POSITION =
+      GeoPosition.builder()
+          .label("charente")
+          .coordinates(SOMEWHERE_IN_CHARENTE_KNOWN_COORDINATES)
+          .build();
+
   void setUpWmsImageSource(WmsImageSource wmsImageSource) {
     FileSystemResource fileSystemResource =
         new FileSystemResource(
@@ -155,11 +176,6 @@ public class AreaPictureIT extends S3MockedThirdParties {
     when(wmsImageSource.downloadImage(any(), any(), any()))
         .thenReturn(fileSystemResource.getFile());
   }
-
-  private static final GeoUtils.Coordinate DEFAULT_KNOWN_COORDINATES =
-      GeoUtils.Coordinate.builder().longitude(0.148409).latitude(45.644018).build();
-  private static final GeoPosition DEFAULT_KNOWN_GEO_POSITION =
-      GeoPosition.builder().coordinates(DEFAULT_KNOWN_COORDINATES).build();
 
   private static final Tile DEFAULT_KNOWN_TILE = Tile.builder().x(524720).y(374531).build();
 
@@ -221,12 +237,13 @@ public class AreaPictureIT extends S3MockedThirdParties {
 
     assertEquals(
         removeAvailableLayers(createFrom(payload, payloadId)),
-        removeAvailableLayers(ignoreDatesOf(actual)));
+        removeAvailableLayers(ignoreGeneratedDataOf(actual)));
   }
 
-  static AreaPictureDetails ignoreDatesOf(AreaPictureDetails areaPictureDetails) {
+  static AreaPictureDetails ignoreGeneratedDataOf(AreaPictureDetails areaPictureDetails) {
     areaPictureDetails.setCreatedAt(null);
     areaPictureDetails.setUpdatedAt(null);
+    areaPictureDetails.setFilename(null);
     return areaPictureDetails;
   }
 
@@ -248,6 +265,7 @@ public class AreaPictureIT extends S3MockedThirdParties {
   static AreaPictureDetails createFrom(CrupdateAreaPictureDetails crupdate, String payloadId) {
     var tile = DEFAULT_KNOWN_TILE;
     ZoomLevel zoomLevel = crupdate.getZoomLevel();
+    var isExtended = crupdate.getIsExtended();
     return new AreaPictureDetails()
         .id(payloadId)
         .xTile(tile.getX())
@@ -255,30 +273,26 @@ public class AreaPictureIT extends S3MockedThirdParties {
         .address(crupdate.getAddress())
         .prospectId(crupdate.getProspectId())
         .fileId(crupdate.getFileId())
-        .actualLayer(tousFrLayer())
+        .actualLayer(geoserverCharenteLayer())
         .zoomLevel(zoomLevel)
         .otherLayers(List.of(tousFrLayer()))
-        .filename(getFilename(crupdate, tile))
+        .filename(null)
         .layer(TOUS_FR)
         // need to update or nullify createdAt and updatedAt during equality check
         .createdAt(null)
         .zoom(new Zoom().level(zoomLevel).number(ArcgisZoom.from(zoomLevel).getZoomLevel()))
+        .isExtended(isExtended != null && isExtended)
         .updatedAt(null);
   }
 
-  private static String getFilename(CrupdateAreaPictureDetails crupdate, Tile tile) {
-    return "%s_%s_%s_%s"
-        .formatted(
-            DEFAULT_FRANCE_LAYER, crupdate.getZoomLevel().getValue(), tile.getX(), tile.getY());
-  }
-
   @Test
-  void openstreetmap_layer_guesser_ok() {
-    GeoUtils.Coordinate coordinates = DEFAULT_KNOWN_COORDINATES;
+  void map_layer_guesser_ok() {
+    GeoUtils.Coordinate coordinates = SOMEWHERE_IN_CHARENTE_KNOWN_COORDINATES;
+
     var guessedLayers =
         mapLayerService.getAvailableLayersFrom(
             Tile.from(coordinates.getLongitude(), coordinates.getLatitude(), ArcgisZoom.HOUSES_0));
 
-    assertEquals(List.of(domainOsmLayer()), guessedLayers);
+    assertEquals(List.of(domainGeoserverCharenteLayer(), domainOsmLayer()), guessedLayers);
   }
 }

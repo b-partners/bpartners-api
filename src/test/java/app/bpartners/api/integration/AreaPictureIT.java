@@ -33,6 +33,7 @@ import app.bpartners.api.repository.ban.model.GeoPosition;
 import app.bpartners.api.service.WMS.ArcgisZoom;
 import app.bpartners.api.service.WMS.AreaPictureMapLayerService;
 import app.bpartners.api.service.WMS.Tile;
+import app.bpartners.api.service.WMS.imageSource.WmsImageSource;
 import app.bpartners.api.service.utils.GeoUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Instant;
@@ -42,6 +43,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.core.io.FileSystemResource;
 
 @Slf4j
 public class AreaPictureIT extends S3MockedThirdParties {
@@ -50,6 +52,7 @@ public class AreaPictureIT extends S3MockedThirdParties {
 
   @Autowired AreaPictureMapLayerService mapLayerService;
   @MockBean BanApi banApiMock;
+  @MockBean WmsImageSource wmsImageSource;
 
   private ApiClient joeDoeClient() {
     return TestUtils.anApiClient(JOE_DOE_TOKEN, localPort);
@@ -137,11 +140,20 @@ public class AreaPictureIT extends S3MockedThirdParties {
     setUpLegalFileRepository(legalFileRepositoryMock);
     setUpCognito(cognitoComponentMock);
     setUpBanApiMock(banApiMock);
+    setUpWmsImageSource(wmsImageSource);
   }
 
   void setUpBanApiMock(BanApi banApi) {
     when(banApi.search(any())).thenReturn(DEFAULT_KNOWN_GEO_POSITION);
     when(banApi.fSearch(any())).thenReturn(DEFAULT_KNOWN_GEO_POSITION);
+  }
+
+  void setUpWmsImageSource(WmsImageSource wmsImageSource) {
+    FileSystemResource fileSystemResource =
+        new FileSystemResource(
+            this.getClass().getClassLoader().getResource("files/downloaded.jpeg").getFile());
+    when(wmsImageSource.downloadImage(any(), any(), any()))
+        .thenReturn(fileSystemResource.getFile());
   }
 
   private static final GeoUtils.Coordinate DEFAULT_KNOWN_COORDINATES =

@@ -49,7 +49,7 @@ public class AreaPictureRestMapper {
     AreaPictureMapLayer mapLayer;
     validator.accept(rest);
     OpenStreetMapLayer restOsmLayer = rest.getLayer();
-    if (TOUS_FR.equals(restOsmLayer)) {
+    if (TOUS_FR.equals(restOsmLayer) && rest.getLayerId() == null) {
       mapLayer = areaPictureMapLayer.getDefaultLayer();
     } else {
       mapLayer = rest.getLayerId() == null ? null : layerRestMapper.toDomain(rest.getLayerId());

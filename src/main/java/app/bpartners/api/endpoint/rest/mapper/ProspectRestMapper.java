@@ -93,6 +93,7 @@ public class ProspectRestMapper {
         .id(domain.getId())
         .email(domain.getEmail())
         .name(domain.getName())
+        .firstName(domain.getFirstName())
         .managerName(domain.getManagerName())
         .phone(domain.getPhone())
         .address(domain.getAddress())
@@ -153,6 +154,7 @@ public class ProspectRestMapper {
     validator.accept(rest);
     return app.bpartners.api.model.prospect.Prospect.builder()
         .id(rest.getId())
+        .firstName(rest.getFirstName())
         .idHolderOwner(ownerId)
         .email(rest.getEmail())
         .name(rest.getName())
@@ -174,6 +176,7 @@ public class ProspectRestMapper {
     prospectUpdateValidator.accept(rest);
     return app.bpartners.api.model.prospect.Prospect.builder()
         .id(rest.getId())
+        .firstName(rest.getFirstName())
         .idHolderOwner(ownerId)
         .email(rest.getEmail())
         .name(rest.getName())

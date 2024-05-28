@@ -122,6 +122,7 @@ class ProspectIT extends MockedThirdParties {
     return new UpdateProspect()
         .id("prospect1_id")
         .name("paul adams")
+        .firstName("paul")
         .status(CONTACTED)
         .email("paulAdams@gmail.com")
         .phone("+261340465341")
@@ -132,6 +133,7 @@ class ProspectIT extends MockedThirdParties {
     return new ExtendedProspectStatus()
         .id(prospect1().getId())
         .name("Interesting prospect")
+        .firstName(prospect1().getFirstName())
         .email(prospect1().getEmail())
         .phone(prospect1().getPhone())
         .address(prospect1().getAddress())
@@ -188,6 +190,7 @@ class ProspectIT extends MockedThirdParties {
         .phone("+261340465341")
         .address("30 Rue de la Montagne Sainte-Genevieve")
         .contactNature(ContactNature.PROSPECT)
+        .firstName("paul")
         .rating(
             new ProspectRating()
                 .value(BigDecimal.valueOf(9.993))

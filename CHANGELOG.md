@@ -1,3 +1,46 @@
+# [0.47.0](https://github.com/b-partners/bpartners-api/compare/v0.46.0...v0.47.0) (2024-05-23)
+
+
+### Features
+
+* use Zoom instead of ZoomLevel, Zoom groups its level and its value as a number ([df42f91](https://github.com/b-partners/bpartners-api/commit/df42f9147b2c0465871e2add8f12fb052bd9ed3a))
+
+
+
+# [0.46.0](https://github.com/b-partners/bpartners-api/compare/v0.45.0...v0.46.0) (2024-05-23)
+
+
+### Features
+
+* link AreaPicture with AreaPictureImageLayer and refactor area picture image get ([154f301](https://github.com/b-partners/bpartners-api/commit/154f3017ad9e0c2fd8c2d0e90a130754f69348e8))
+
+
+
+# [0.45.0](https://github.com/b-partners/bpartners-api/compare/v0.44.0...v0.45.0) (2024-05-16)
+
+
+### Features
+
+* crupdateAreaPictureDetails returns AreaPictureDetails ([c69eb48](https://github.com/b-partners/bpartners-api/commit/c69eb48b1a302143a5e14c08ab6b1a0ec421eabf))
+
+
+
+# [0.44.0](https://github.com/b-partners/bpartners-api/compare/v0.43.0...v0.44.0) (2024-05-07)
+
+
+### Bug Fixes
+
+* annotation instance metadata are not mandatory ([b978c5e](https://github.com/b-partners/bpartners-api/commit/b978c5e5ecc68a00295f8b5915f249012aa02272))
+* put empty string as firstName and lastName to avoid null values ([4e72a81](https://github.com/b-partners/bpartners-api/commit/4e72a8113ef6739893acc88d6d6604b7acf15711))
+
+
+### Features
+
+* add first name to prospect ([fd9942b](https://github.com/b-partners/bpartners-api/commit/fd9942b3ef34af15dd64c076fbc947016422705a))
+* update customer firstName when prospect is created or updated ([029300b](https://github.com/b-partners/bpartners-api/commit/029300b0d482d5cdd24d109918820b5297368ece))
+
+
+
 # [0.43.0](https://github.com/b-partners/bpartners-api/compare/v0.42.0...v0.43.0) (2024-04-30)
 
 
@@ -98,70 +141,6 @@
 ### Bug Fixes
 
 * set ses source correctly ([2cd4a2f](https://github.com/b-partners/bpartners-api/commit/2cd4a2faeebcc495455ace9afd184813733136a9))
-
-
-
-## [0.38.1](https://github.com/b-partners/bpartners-api/compare/v0.38.0...v0.38.1) (2024-01-08)
-
-
-### Bug Fixes
-
-* do not set database username in application.properties ([fb8000c](https://github.com/b-partners/bpartners-api/commit/fb8000c5b7c9b31069f3babecf879ac0f89ef318))
-* rename account ID for transactions supporting documents API ([9964cca](https://github.com/b-partners/bpartners-api/commit/9964cca5745ea5c2ec9e77248a33c961ae5e21e4))
-* set checksum algorithm only when uploading file ([e3b8760](https://github.com/b-partners/bpartners-api/commit/e3b87602f8fbabc7c2d7031f841dd20aa6051765))
-
-
-
-# [0.38.0](https://github.com/b-partners/bpartners-api/compare/v0.37.2...v0.38.0) (2024-01-03)
-
-
-### Bug Fixes
-
-* add name attribute to customer instead of first or last name ([262447f](https://github.com/b-partners/bpartners-api/commit/262447f746daf445f5690dee0529b9f2663edb79))
-* avoid NPE when checking customers locations update ([fdb05f5](https://github.com/b-partners/bpartners-api/commit/fdb05f577822f82f416089c9fa57f4ccb16b7f54))
-* do not check sogefi prospector when business activity is null ([25e13b8](https://github.com/b-partners/bpartners-api/commit/25e13b88039cf73a8b30c7ec40f572a3175209e8))
-* do not rethrow error when terminating job in prospectEvaluationJob ([d38c99c](https://github.com/b-partners/bpartners-api/commit/d38c99c4a17bc2228431be7f4362966411816389))
-* drop postgis extension cascade ([2dadc67](https://github.com/b-partners/bpartners-api/commit/2dadc67cd6e3450af41e6605d4212c72af44bc6e))
-* only give INDIVIDUAL type for customer when provided type is null ([73d89ac](https://github.com/b-partners/bpartners-api/commit/73d89ac0323910f0308d72f26fc71c0b81192c19))
-* order calendar list by OWNER permission ([eaa5f6f](https://github.com/b-partners/bpartners-api/commit/eaa5f6f104d9525027ebe23ecc24026ebcc7f911))
-* refresh calendars when exchanging calendar token ([16762b4](https://github.com/b-partners/bpartners-api/commit/16762b419782aac55945f4c485bdd04bb1459972))
-* refresh invoice after payment webhook update ([aba6815](https://github.com/b-partners/bpartners-api/commit/aba681517024e450beb6f0a08e7a0d12d0af242f))
-* rename customer fullName method ([14fa14f](https://github.com/b-partners/bpartners-api/commit/14fa14f9a8f9b3de34254fd715eb859f2fb70fed))
-* retrieve customer name for POST endpoint creation ([1be6a29](https://github.com/b-partners/bpartners-api/commit/1be6a29e4223f2bc52f0960ed131ef881d184655))
-* send email when saving prospects ([a5fe147](https://github.com/b-partners/bpartners-api/commit/a5fe14784c2a4ee166e07ca9843d077ad87a9ae5))
-* update customer position if latest value is null ([46ad8f5](https://github.com/b-partners/bpartners-api/commit/46ad8f5e7cba6ff73078f53684f933b87d904727))
-* validate email body before sending email from scratch ([3cdd601](https://github.com/b-partners/bpartners-api/commit/3cdd601294069e69678c1c3246dc8c6d985ebd5f))
-* verify calendar access token before running job service ([768c359](https://github.com/b-partners/bpartners-api/commit/768c35997ec989a27c8da299f0eff6ae7585e52b))
-
-
-### Features
-
-* add  and get external supporting documents to transaction ([9994bdc](https://github.com/b-partners/bpartners-api/commit/9994bdcf07c8a06f9b223d1c2f4c7be91f7fa316))
-* add customer type to customers ([e035bb2](https://github.com/b-partners/bpartners-api/commit/e035bb270544c1f4db155c1563d9b206293b71e6))
-
-
-
-## [0.37.2](https://github.com/b-partners/bpartners-api/compare/v0.37.1...v0.37.2) (2023-12-07)
-
-
-### Bug Fixes
-
-* define parameters inside api for transactionExportLink operations ([e838770](https://github.com/b-partners/bpartners-api/commit/e8387706e1197ae8f98a8d074dc6d3b07073b64e))
-
-
-
-## [0.37.1](https://github.com/b-partners/bpartners-api/compare/v0.37.0...v0.37.1) (2023-12-07)
-
-
-### Bug Fixes
-
-* add update datetime and sending datetime attributes to email ([752cc78](https://github.com/b-partners/bpartners-api/commit/752cc7874d6e5319250cbca38bfce6e01aa9f0b9))
-* allow authenticated users to list their own emails ([e793e91](https://github.com/b-partners/bpartners-api/commit/e793e9181ad491e95e926a95a51db9096a92e5a0))
-* compare business activity for sogefi prospecting when values not null only ([4ec3c13](https://github.com/b-partners/bpartners-api/commit/4ec3c1327dfb71b37cb994a6e5e8ec353602848b))
-* do not update coordinates if customer address did not change ([81e095a](https://github.com/b-partners/bpartners-api/commit/81e095a09fb077c31c432498f0298a8eda921297))
-* handle customerCrupdated event synchronously ([2b25448](https://github.com/b-partners/bpartners-api/commit/2b25448705dc17a802dfd4389e6628e2d7e4e36c))
-* send email for every update on prospect ([03919ae](https://github.com/b-partners/bpartners-api/commit/03919ae392a8946834a612e2a2782bffc4d28e7a))
-* set fintecture private key env dependant ([1a81f6a](https://github.com/b-partners/bpartners-api/commit/1a81f6a64cc9f9581baeadbeaa5c2299622e5716))
 
 
 

@@ -38,6 +38,7 @@ public class HProspect {
   private String managerName;
   private String oldName;
   private String newName;
+  private String firstName;
   private String oldEmail;
   private String newEmail;
   private String oldPhone;

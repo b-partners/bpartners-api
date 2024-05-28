@@ -1,5 +1,7 @@
 package app.bpartners.api.service.WMS;
 
+import static java.lang.Math.PI;
+
 import app.bpartners.api.model.AreaPicture;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -12,7 +14,6 @@ public class Tile {
   private final int x;
   private final int y;
   private ArcgisZoom arcgisZoom;
-  private MapLayer layer;
 
   private static int getxTile(double longitude, int zoom) {
     int xtile = (int) Math.floor((longitude + 180) / 360 * (1 << zoom));
@@ -33,7 +34,7 @@ public class Tile {
                         - Math.log(
                                 Math.tan(Math.toRadians(latitude))
                                     + 1 / Math.cos(Math.toRadians(latitude)))
-                            / Math.PI)
+                            / PI)
                     / 2
                     * (1 << zoom));
     if (ytile < 0) {
@@ -45,19 +46,17 @@ public class Tile {
     return ytile;
   }
 
-  public static Tile from(
-      double longitude, double latitude, ArcgisZoom arcgisZoom, MapLayer layer) {
+  public static Tile from(double longitude, double latitude, ArcgisZoom arcgisZoom) {
     int xTile = getxTile(longitude, arcgisZoom.getZoomLevel());
     int yTile = getyTile(latitude, arcgisZoom.getZoomLevel());
-    return Tile.builder().x(xTile).y(yTile).layer(layer).arcgisZoom(arcgisZoom).build();
+    return Tile.builder().x(xTile).y(yTile).arcgisZoom(arcgisZoom).build();
   }
 
   public static Tile from(AreaPicture areaPicture) {
     return from(
         areaPicture.getLongitude(),
         areaPicture.getLatitude(),
-        ArcgisZoom.from(areaPicture.getZoomLevel()),
-        areaPicture.getCurrentLayer());
+        ArcgisZoom.from(areaPicture.getZoomLevel()));
   }
 
   public double getLongitude() {
@@ -65,7 +64,7 @@ public class Tile {
   }
 
   public double getLatitude() {
-    double n = Math.PI - (2.0 * Math.PI * y) / Math.pow(2.0, arcgisZoom.getZoomLevel());
+    double n = PI - (2.0 * PI * y) / Math.pow(2.0, arcgisZoom.getZoomLevel());
     return Math.toDegrees(Math.atan(Math.sinh(n)));
   }
 }

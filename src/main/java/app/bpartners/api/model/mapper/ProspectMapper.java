@@ -124,6 +124,7 @@ public class ProspectMapper {
                   .build());
       return entity.toBuilder()
           .id(domain.getId())
+          .firstName(domain.getFirstName())
           .idJob(domain.getIdJob())
           .managerName(domain.getManagerName())
           .oldPhone(existingEntity == null ? domain.getPhone() : existingEntity.getOldPhone())
@@ -181,6 +182,7 @@ public class ProspectMapper {
     Geojson location = domain.getLocation();
     return HProspect.builder()
         .id(domain.getId())
+        .firstName(domain.getFirstName())
         .oldPhone(domain.getPhone())
         .managerName(domain.getManagerName())
         .oldName(domain.getName())
@@ -201,6 +203,7 @@ public class ProspectMapper {
   public Prospect toDomain(HProspect entity, Geojson location) {
     return Prospect.builder()
         .id(entity.getId())
+        .firstName(entity.getFirstName())
         .idJob(entity.getIdJob())
         .idHolderOwner(entity.getIdAccountHolder())
         .email(isNewExists(entity.getNewEmail(), entity.getOldEmail()))

@@ -1,57 +1,4 @@
 operations:
-  areaPictureUpload:
-    put:
-      tags:
-        - Files
-        - AreaPicture
-      summary: |
-        Download a file from external image source if it doesn't exist yet, and saves it in S3.
-        Otherwise, download from S3
-      operationId: downloadAndSaveAreaPicture
-      parameters:
-        - in: path
-          name: aId
-          schema:
-            type: string
-          required: true
-        - in: path
-          name: id
-          schema:
-            type: string
-          required: true
-      requestBody:
-        required: true
-        description:
-          |
-          an address readable by BAN API 
-          to convert into geographical coordinates in order to get a specific area
-          as a picture
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/CrupdateAreaPictureDetails"
-      responses:
-        200:
-          description: The file
-          content:
-            image/jpeg:
-              schema:
-                type: string
-                format: binary
-            image/png:
-              schema:
-                type: string
-                format: binary
-        400:
-          $ref: './api.yml#/components/responses/400'
-        403:
-          $ref: './api.yml#/components/responses/403'
-        404:
-          $ref: './api.yml#/components/responses/404'
-        429:
-          $ref: './api.yml#/components/responses/429'
-        500:
-          $ref: './api.yml#/components/responses/500'
   getAllAreaPictures:
     get:
       tags:
@@ -100,7 +47,54 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
-  getAreaPictureById:
+  AreaPictureSingleOperations:
+    put:
+      tags:
+        - Files
+        - AreaPicture
+      summary: |
+        Download a file from external image source if it doesn't exist yet, and saves it in S3.
+        Otherwise, download from S3
+      operationId: crupdateAreaPictureDetails
+      parameters:
+        - in: path
+          name: aId
+          schema:
+            type: string
+          required: true
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+      requestBody:
+        required: true
+        description:
+          |
+          an address readable by BAN API 
+          to convert into geographical coordinates in order to get a specific area
+          as a picture
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CrupdateAreaPictureDetails"
+      responses:
+        200:
+          description: The file
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AreaPictureDetails'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
     get:
       tags:
         - Files
@@ -264,6 +258,13 @@ operations:
           $ref: './api.yml#/components/responses/500'
 components:
   schemas:
+    Zoom:
+      type: object
+      properties:
+        level:
+          $ref: "#/components/schemas/ZoomLevel"
+        number:
+          type: integer
     ZoomLevel:
       type: string
       enum:
@@ -291,19 +292,45 @@ components:
         - HOUSES_1
         - HOUSES_2
         - HOUSE_PROPERTY
+    AreaPictureImageSource:
+      type: string
+      enum:
+        - OPENSTREETMAP
+        - GEOSERVER
+    AreaPictureMapLayer:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        year:
+          type: int
+        source:
+          $ref: "#/components/schemas/AreaPictureImageSource"
+        departementName:
+          type: string
+        maximumZoomLevel:
+          $ref: "#/components/schemas/ZoomLevel"
+        maximumZoom:
+          $ref: "#/components/schemas/Zoom"
+        precisionLevelInCm:
+          type: int
     OpenStreetMapLayer:
+      deprecated: true
+      description: deprecated, use AreaMapLayer
       type: string
       enum:
         - tous_fr
-    CrupdateAreaPictureDetails:
+    AreaPictureDetailsTemplate:
       type: object
       properties:
         address:
           type: string
         zoomLevel:
           $ref: "#/components/schemas/ZoomLevel"
-        layer:
-          $ref: "#/components/schemas/OpenStreetMapLayer"
+        zoom:
+          $ref: "#/components/schemas/Zoom"
         fileId:
           type: string
         filename:
@@ -316,9 +343,18 @@ components:
         updatedAt:
           type: string
           format: date-time
+        layer:
+          $ref: "#/components/schemas/OpenStreetMapLayer"
+    CrupdateAreaPictureDetails:
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/AreaPictureDetailsTemplate"
+      properties:
+        layerId:
+          type: string
     AreaPictureDetails:
       allOf:
-        - $ref: "#/components/schemas/CrupdateAreaPictureDetails"
+        - $ref: "#/components/schemas/AreaPictureDetailsTemplate"
       properties:
         id:
           type: string
@@ -328,8 +364,16 @@ components:
           type: integer
         availableLayers:
           type: array
+          deprecated: true
+          description: use otherLayers instead
           items:
             $ref: "#/components/schemas/OpenStreetMapLayer"
+        actualLayer:
+          $ref: "#/components/schemas/AreaPictureMapLayer"
+        otherLayers:
+          type: array
+          items:
+            $ref: "#/components/schemas/AreaPictureMapLayer"
     Point:
       type: object
       properties:

@@ -2,19 +2,17 @@ package app.bpartners.api.service;
 
 import static app.bpartners.api.endpoint.rest.model.FileType.AREA_PICTURE;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
-import static java.util.stream.Collectors.toUnmodifiableList;
 
-import app.bpartners.api.file.FileDownloader;
 import app.bpartners.api.model.AreaPicture;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.mapper.AreaPictureMapper;
 import app.bpartners.api.repository.jpa.AreaPictureJpaRepository;
-import app.bpartners.api.service.WMS.MapLayerGuesser;
+import app.bpartners.api.service.WMS.AreaPictureMapLayerService;
+import app.bpartners.api.service.WMS.Tile;
 import app.bpartners.api.service.WMS.TileCreator;
-import app.bpartners.api.service.WMS.WmsUrlGetter;
+import app.bpartners.api.service.WMS.imageSource.WmsImageSource;
 import java.io.IOException;
-import java.net.http.HttpClient;
 import java.nio.file.Files;
 import java.util.List;
 import lombok.AllArgsConstructor;
@@ -27,10 +25,9 @@ public class AreaPictureService {
   private final AreaPictureJpaRepository jpaRepository;
   private final AreaPictureMapper mapper;
   private final FileService fileService;
-  private final FileDownloader fileDownloader = new FileDownloader(HttpClient.newBuilder().build());
-  private final WmsUrlGetter wmsUrlGetter;
+  private final WmsImageSource wmsImageSource;
   private final TileCreator tileCreator;
-  private final MapLayerGuesser mapLayerGuesser;
+  private final AreaPictureMapLayerService mapLayerService;
 
   public List<AreaPicture> findAllBy(String userId, String address, String filename) {
     return jpaRepository
@@ -38,7 +35,7 @@ public class AreaPictureService {
             userId, address, filename)
         .stream()
         .map(mapper::toDomain)
-        .collect(toUnmodifiableList());
+        .toList();
   }
 
   public AreaPicture findBy(String userId, String id) {
@@ -54,26 +51,46 @@ public class AreaPictureService {
                                 + " and Id = "
                                 + id
                                 + " was not found.")));
-    domain.setLayers(mapLayerGuesser.apply(domain));
     return domain;
   }
 
   @Transactional
-  public byte[] downloadFromExternalSourceAndSave(AreaPicture areaPicture) throws RuntimeException {
-    var uri = wmsUrlGetter.apply(tileCreator.apply(areaPicture));
-    var downloadedFile = fileDownloader.apply(areaPicture.getFilename(), uri);
+  public AreaPicture downloadFromExternalSourceAndSave(AreaPicture areaPicture)
+      throws RuntimeException {
+    var refreshed = refreshAreaPictureTileAndLayers(areaPicture);
+    var downloadedFile =
+        wmsImageSource.downloadImage(
+            refreshed.getFilename(), refreshed.getTile(), refreshed.getCurrentLayer());
     try {
       var downloadedFileAsBytes = Files.readAllBytes(downloadedFile.toPath());
       fileService.upload(
-          areaPicture.getIdFileInfo(),
-          AREA_PICTURE,
-          areaPicture.getIdUser(),
-          downloadedFileAsBytes);
-      save(areaPicture);
-      return downloadedFileAsBytes;
+          refreshed.getIdFileInfo(), AREA_PICTURE, refreshed.getIdUser(), downloadedFileAsBytes);
+      return save(refreshed);
     } catch (IOException e) {
       throw new ApiException(SERVER_EXCEPTION, e);
     }
+  }
+
+  private AreaPicture refreshAreaPictureTileAndLayers(AreaPicture areaPicture) {
+    refreshAreaPictureTile(areaPicture);
+    refreshAreaPictureMapLayers(areaPicture);
+    return areaPicture;
+  }
+
+  private void refreshAreaPictureMapLayers(AreaPicture areaPicture) {
+    var guessedMaps = mapLayerService.getAvailableLayersFrom(areaPicture.getTile());
+    if (areaPicture.getCurrentLayer() == null) {
+      var latest = mapLayerService.getLatestMostPreciseOrDefault(guessedMaps);
+      areaPicture.setCurrentLayer(latest);
+    }
+    areaPicture.setLayers(guessedMaps);
+  }
+
+  private void refreshAreaPictureTile(AreaPicture areaPicture) {
+    Tile tile = tileCreator.apply(areaPicture);
+    areaPicture.setTile(tile);
+    areaPicture.setLongitude(tile.getLongitude());
+    areaPicture.setLatitude(tile.getLatitude());
   }
 
   @Transactional

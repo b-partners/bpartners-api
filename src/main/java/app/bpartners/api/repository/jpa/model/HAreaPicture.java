@@ -4,9 +4,6 @@ import static jakarta.persistence.EnumType.STRING;
 import static org.hibernate.type.SqlTypes.NAMED_ENUM;
 
 import app.bpartners.api.endpoint.rest.model.ZoomLevel;
-import app.bpartners.api.repository.jpa.model.converter.OpenStreetMapLayerConverter;
-import app.bpartners.api.service.WMS.MapLayer;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
@@ -47,8 +44,7 @@ public class HAreaPicture {
   @JdbcTypeCode(NAMED_ENUM)
   private ZoomLevel zoomLevel;
 
-  @Convert(converter = OpenStreetMapLayerConverter.class)
-  private MapLayer layer;
+  private String idLayer;
 
   private String filename;
 

@@ -58,9 +58,7 @@ public class AreaPictureService {
   public AreaPicture downloadFromExternalSourceAndSave(AreaPicture areaPicture)
       throws RuntimeException {
     var refreshed = refreshAreaPictureTileAndLayers(areaPicture);
-    var downloadedFile =
-        wmsImageSource.downloadImage(
-            refreshed.getFilename(), refreshed.getTile(), refreshed.getCurrentLayer());
+    var downloadedFile = wmsImageSource.downloadImage(refreshed);
     try {
       var downloadedFileAsBytes = Files.readAllBytes(downloadedFile.toPath());
       fileService.upload(

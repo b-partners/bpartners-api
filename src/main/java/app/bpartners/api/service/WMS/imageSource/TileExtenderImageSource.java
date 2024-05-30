@@ -1,6 +1,5 @@
 package app.bpartners.api.service.WMS.imageSource;
 
-import static app.bpartners.api.endpoint.rest.model.AreaPictureImageSource.OPENSTREETMAP;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 
 import app.bpartners.api.file.FileDownloader;
@@ -10,35 +9,25 @@ import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.service.WMS.Tile;
 import java.io.File;
 import java.net.URI;
-import java.util.Map;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
 @Component
-final class OpenStreetMapImageSource extends AbstractWmsImageSource {
-  private static final UriComponents BASE_URL_BUILDER =
-      UriComponentsBuilder.fromUriString(
-              "https://wms.openstreetmap.fr/tms/1.0.0/{layer}/{zoom}/{x}/{y}.jpeg")
-          .build();
+final class TileExtenderImageSource extends AbstractWmsImageSource {
+  private final UriComponents baseUrl;
 
-  private OpenStreetMapImageSource(FileDownloader fileDownloader) {
+  public TileExtenderImageSource(
+      FileDownloader fileDownloader,
+      @Value("${tile.extender.baseurl}") String tileExtenderBaseUrl) {
     super(fileDownloader);
+    this.baseUrl = UriComponentsBuilder.fromHttpUrl(tileExtenderBaseUrl).path("/extend").build();
   }
 
   @Override
   public URI getURI(Tile tile, AreaPictureMapLayer mapLayer) {
-    Map<String, Object> uriVariables =
-        Map.of(
-            "layer",
-            mapLayer.getName(),
-            "zoom",
-            tile.getArcgisZoom().getZoomLevel(),
-            "x",
-            tile.getX(),
-            "y",
-            tile.getY());
-    return BASE_URL_BUILDER.expand(uriVariables).toUri();
+    return baseUrl.toUri();
   }
 
   @Override
@@ -48,12 +37,16 @@ final class OpenStreetMapImageSource extends AbstractWmsImageSource {
           SERVER_EXCEPTION,
           "cannot download " + areaPicture + " from " + this.getClass().getTypeName());
     }
-    return fileDownloaderImpl.get(
-        areaPicture.getFilename(), getURI(areaPicture.getTile(), areaPicture.getCurrentLayer()));
+    boolean isBase64Encoded = true;
+    return fileDownloaderImpl.postJson(
+        areaPicture.getFilename(),
+        getURI(areaPicture.getTile(), areaPicture.getCurrentLayer()),
+        TileExtenderRequestBody.from(areaPicture),
+        isBase64Encoded);
   }
 
   @Override
   public boolean supports(AreaPicture areaPicture) {
-    return OPENSTREETMAP.equals(areaPicture.getCurrentLayer().getSource());
+    return areaPicture.isExtended();
   }
 }

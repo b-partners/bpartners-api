@@ -6,7 +6,6 @@ import app.bpartners.api.model.validator.AreaPictureValidator;
 import app.bpartners.api.repository.jpa.model.HAreaPicture;
 import app.bpartners.api.service.WMS.AreaPictureMapLayerService;
 import app.bpartners.api.service.WMS.Tile;
-import java.util.List;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -31,7 +30,7 @@ public class AreaPictureMapper {
             .createdAt(entity.getCreatedAt())
             .updatedAt(entity.getUpdatedAt())
             .idProspect(entity.getIdProspect())
-            .layers(List.of())
+            .isExtended(entity.isExtended())
             .build();
     Tile tile = Tile.from(domain);
     domain.setTile(tile);
@@ -54,6 +53,7 @@ public class AreaPictureMapper {
         .createdAt(domain.getCreatedAt())
         .updatedAt(domain.getUpdatedAt())
         .idProspect(domain.getIdProspect())
+        .isExtended(domain.isExtended())
         .build();
   }
 }

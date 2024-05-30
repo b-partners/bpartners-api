@@ -1,3 +1,12 @@
+# [0.48.0](https://github.com/b-partners/bpartners-api/compare/v0.47.0...v0.48.0) (2024-05-30)
+
+
+### Features
+
+* permit area picture extension ([45ee400](https://github.com/b-partners/bpartners-api/commit/45ee400d194031632cdff4635cd99682b7d07881))
+
+
+
 # [0.47.0](https://github.com/b-partners/bpartners-api/compare/v0.46.0...v0.47.0) (2024-05-23)
 
 
@@ -132,15 +141,6 @@
 ### Features
 
 * get invoices summary ([01018f9](https://github.com/b-partners/bpartners-api/commit/01018f9b763f57b5f0504c22c27434e7e263e618))
-
-
-
-## [0.38.2](https://github.com/b-partners/bpartners-api/compare/v0.38.1...v0.38.2) (2024-01-09)
-
-
-### Bug Fixes
-
-* set ses source correctly ([2cd4a2f](https://github.com/b-partners/bpartners-api/commit/2cd4a2faeebcc495455ace9afd184813733136a9))
 
 
 

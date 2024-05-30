@@ -34,7 +34,7 @@ public class AreaPictureMapLayer implements Comparable<AreaPictureMapLayer> {
     return precisionComparison;
   }
 
-  public ArcgisZoom getMaxZoomLevelAsArcgisZoom(){
+  public ArcgisZoom getMaxZoomLevelAsArcgisZoom() {
     return ArcgisZoom.from(this.maximumZoomLevel);
   }
 }

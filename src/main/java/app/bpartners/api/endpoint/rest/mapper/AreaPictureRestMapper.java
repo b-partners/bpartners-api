@@ -42,14 +42,15 @@ public class AreaPictureRestMapper {
         .layer(TOUS_FR)
         .availableLayers(List.of(TOUS_FR))
         .actualLayer(layerRestMapper.toRest(domain.getCurrentLayer()))
-        .otherLayers(domain.getLayers().stream().map(layerRestMapper::toRest).toList());
+        .otherLayers(domain.getLayers().stream().map(layerRestMapper::toRest).toList())
+        .isExtended(domain.isExtended());
   }
 
   public AreaPicture toDomain(CrupdateAreaPictureDetails rest, String id, String userId) {
     AreaPictureMapLayer mapLayer;
     validator.accept(rest);
     OpenStreetMapLayer restOsmLayer = rest.getLayer();
-    if (TOUS_FR.equals(restOsmLayer)) {
+    if (TOUS_FR.equals(restOsmLayer) && rest.getLayerId() == null) {
       mapLayer = areaPictureMapLayer.getDefaultLayer();
     } else {
       mapLayer = rest.getLayerId() == null ? null : layerRestMapper.toDomain(rest.getLayerId());
@@ -62,6 +63,7 @@ public class AreaPictureRestMapper {
     } else {
       zoomLevel = zoom.getLevel();
     }
+    Boolean isExtended = rest.getIsExtended();
     return AreaPicture.builder()
         .id(id)
         .address(rest.getAddress())
@@ -72,6 +74,7 @@ public class AreaPictureRestMapper {
         .idUser(userId)
         .createdAt(rest.getCreatedAt())
         .updatedAt(rest.getUpdatedAt())
+        .isExtended(isExtended != null && isExtended)
         .build();
   }
 }

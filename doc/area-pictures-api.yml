@@ -345,6 +345,8 @@ components:
           format: date-time
         layer:
           $ref: "#/components/schemas/OpenStreetMapLayer"
+        isExtended:
+          type: boolean
     CrupdateAreaPictureDetails:
       type: object
       allOf:

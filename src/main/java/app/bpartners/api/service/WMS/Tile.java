@@ -2,6 +2,7 @@ package app.bpartners.api.service.WMS;
 
 import static java.lang.Math.PI;
 
+import app.bpartners.api.endpoint.rest.model.GeoPosition;
 import app.bpartners.api.model.AreaPicture;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -53,9 +54,10 @@ public class Tile {
   }
 
   public static Tile from(AreaPicture areaPicture) {
+    GeoPosition currentGeoPosition = areaPicture.getCurrentGeoPosition();
     return from(
-        areaPicture.getLongitude(),
-        areaPicture.getLatitude(),
+        currentGeoPosition.getLongitude(),
+        currentGeoPosition.getLatitude(),
         ArcgisZoom.from(areaPicture.getZoomLevel()));
   }
 
@@ -66,5 +68,9 @@ public class Tile {
   public double getLatitude() {
     double n = PI - (2.0 * PI * y) / Math.pow(2.0, arcgisZoom.getZoomLevel());
     return Math.toDegrees(Math.atan(Math.sinh(n)));
+  }
+
+  public Tile getTopLeftTile() {
+    return new Tile(x - 1, y - 1, arcgisZoom);
   }
 }

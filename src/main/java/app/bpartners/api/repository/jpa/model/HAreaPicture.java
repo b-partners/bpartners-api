@@ -1,14 +1,18 @@
 package app.bpartners.api.repository.jpa.model;
 
 import static jakarta.persistence.EnumType.STRING;
+import static org.hibernate.type.SqlTypes.JSON;
 import static org.hibernate.type.SqlTypes.NAMED_ENUM;
 
+import app.bpartners.api.endpoint.rest.model.GeoPosition;
 import app.bpartners.api.endpoint.rest.model.ZoomLevel;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.Instant;
+import java.util.List;
 import java.util.Objects;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -36,6 +40,7 @@ public class HAreaPicture {
   private String address;
   private double longitude;
   private double latitude;
+  private double score;
   private String idProspect;
   @CreationTimestamp private Instant createdAt;
   @UpdateTimestamp private Instant updatedAt;
@@ -48,6 +53,10 @@ public class HAreaPicture {
 
   private String filename;
   private boolean isExtended;
+
+  @JdbcTypeCode(JSON)
+  @Column(name = "geopositions")
+  private List<GeoPosition> geoPositions;
 
   @Override
   public final boolean equals(Object o) {
@@ -71,5 +80,9 @@ public class HAreaPicture {
     return this instanceof HibernateProxy
         ? ((HibernateProxy) this).getHibernateLazyInitializer().getPersistentClass().hashCode()
         : getClass().hashCode();
+  }
+
+  public GeoPosition getCurrentGeoPosition() {
+    return new GeoPosition().score(score).longitude(longitude).latitude(latitude);
   }
 }

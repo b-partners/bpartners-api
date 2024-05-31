@@ -1,5 +1,6 @@
 package app.bpartners.api.model;
 
+import app.bpartners.api.endpoint.rest.model.GeoPosition;
 import app.bpartners.api.endpoint.rest.model.ZoomLevel;
 import app.bpartners.api.service.WMS.ArcgisZoom;
 import app.bpartners.api.service.WMS.Tile;
@@ -27,15 +28,15 @@ public class AreaPicture {
   private String idProspect;
   private String idFileInfo;
   private String address;
-  private double longitude;
-  private double latitude;
+  private GeoPosition currentGeoPosition;
   private Instant createdAt;
   private Instant updatedAt;
   private ZoomLevel zoomLevel;
   private AreaPictureMapLayer currentLayer;
-  private Tile tile;
+  private Tile currentTile;
   private List<AreaPictureMapLayer> layers;
   private boolean isExtended;
+  private List<GeoPosition> geoPositions;
 
   public String getFilename() {
     return isExtended
@@ -45,15 +46,24 @@ public class AreaPicture {
 
   private String getNormalAreaPictureFilenameFormat() {
     return NORMAL_AREA_PICTURE_FILENAME_FORMAT.formatted(
-        currentLayer.getName(), zoomLevel.getValue(), tile.getX(), tile.getY());
+        currentLayer.getName(), zoomLevel.getValue(), currentTile.getX(), currentTile.getY());
   }
 
   private String getExtendedAreaPictureFilenameFormat() {
+    Tile referenceTile = getReferenceTile();
     return EXTENDED_AREA_PICTURE_FILENAME_FORMAT.formatted(
-        currentLayer.getName(), zoomLevel.getValue(), tile.getX(), tile.getY(), EXTENDED_KEYWORD);
+        currentLayer.getName(),
+        zoomLevel.getValue(),
+        referenceTile.getX(),
+        referenceTile.getY(),
+        EXTENDED_KEYWORD);
   }
 
   public ArcgisZoom getArcgisZoom() {
     return ArcgisZoom.from(this.zoomLevel);
+  }
+
+  public Tile getReferenceTile() {
+    return isExtended ? currentTile.getTopLeftTile() : currentTile;
   }
 }

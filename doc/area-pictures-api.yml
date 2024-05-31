@@ -364,6 +364,12 @@ components:
           type: integer
         yTile:
           type: integer
+        currentTile:
+          $ref: "#/components/schemas/Tile"
+        referenceTile:
+          $ref: "#/components/schemas/Tile"
+        currentGeoPosition:
+          $ref: "#/components/schemas/GeoPosition"
         availableLayers:
           type: array
           deprecated: true
@@ -376,6 +382,31 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/AreaPictureMapLayer"
+        geoPositions:
+          type: array
+          items:
+            $ref: "#/components/schemas/GeoPosition"
+    Tile:
+      type: object
+      properties:
+        x:
+          type: integer
+        y:
+          type: integer
+        zoom:
+          $ref: "#/components/schemas/Zoom"
+    GeoPosition:
+      type: object
+      properties:
+        score:
+          type: number
+          format: double
+        longitude:
+          type: number
+          format: double
+        latitude:
+          type: number
+          format: double
     Point:
       type: object
       properties:

@@ -56,7 +56,8 @@ final class GeoserverImageSource extends AbstractWmsImageSource {
           "cannot download " + areaPicture + " from " + this.getClass().getTypeName());
     }
     return fileDownloaderImpl.get(
-        areaPicture.getFilename(), getURI(areaPicture.getTile(), areaPicture.getCurrentLayer()));
+        areaPicture.getFilename(),
+        getURI(areaPicture.getCurrentTile(), areaPicture.getCurrentLayer()));
   }
 
   @Override

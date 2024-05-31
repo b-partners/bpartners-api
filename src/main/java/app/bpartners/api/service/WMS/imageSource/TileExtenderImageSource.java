@@ -40,7 +40,7 @@ final class TileExtenderImageSource extends AbstractWmsImageSource {
     boolean isBase64Encoded = true;
     return fileDownloaderImpl.postJson(
         areaPicture.getFilename(),
-        getURI(areaPicture.getTile(), areaPicture.getCurrentLayer()),
+        getURI(areaPicture.getCurrentTile(), areaPicture.getCurrentLayer()),
         TileExtenderRequestBody.from(areaPicture),
         isBase64Encoded);
   }

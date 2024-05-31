@@ -19,4 +19,5 @@ import lombok.ToString;
 public class GeoPosition {
   private String label;
   private GeoUtils.Coordinate coordinates;
+  private Double score;
 }

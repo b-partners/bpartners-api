@@ -1,11 +1,13 @@
 package app.bpartners.api.model.mapper;
 
+import app.bpartners.api.endpoint.rest.model.GeoPosition;
 import app.bpartners.api.model.AreaPicture;
 import app.bpartners.api.model.AreaPictureMapLayer;
 import app.bpartners.api.model.validator.AreaPictureValidator;
 import app.bpartners.api.repository.jpa.model.HAreaPicture;
 import app.bpartners.api.service.WMS.AreaPictureMapLayerService;
 import app.bpartners.api.service.WMS.Tile;
+import java.util.Objects;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -21,8 +23,7 @@ public class AreaPictureMapper {
         AreaPicture.builder()
             .id(entity.getId())
             .address(entity.getAddress())
-            .latitude(entity.getLatitude())
-            .longitude(entity.getLongitude())
+            .currentGeoPosition(entity.getCurrentGeoPosition())
             .zoomLevel(entity.getZoomLevel())
             .currentLayer(layer)
             .idUser(entity.getIdUser())
@@ -31,21 +32,24 @@ public class AreaPictureMapper {
             .updatedAt(entity.getUpdatedAt())
             .idProspect(entity.getIdProspect())
             .isExtended(entity.isExtended())
+            .geoPositions(entity.getGeoPositions())
             .build();
     Tile tile = Tile.from(domain);
-    domain.setTile(tile);
+    domain.setCurrentTile(tile);
     domain.setLayers(areaPictureMapLayerService.getAvailableLayersFrom(tile));
     return domain;
   }
 
   public HAreaPicture toEntity(AreaPicture domain) {
     validator.accept(domain);
+    GeoPosition currentGeoPosition = Objects.requireNonNull(domain.getCurrentGeoPosition());
     return HAreaPicture.builder()
         .id(domain.getId())
         .address(domain.getAddress())
         .filename(domain.getFilename())
-        .latitude(domain.getLatitude())
-        .longitude(domain.getLongitude())
+        .latitude(currentGeoPosition.getLatitude())
+        .longitude(currentGeoPosition.getLongitude())
+        .score(currentGeoPosition.getScore())
         .zoomLevel(domain.getZoomLevel())
         .idLayer(domain.getCurrentLayer().getId())
         .idUser(domain.getIdUser())
@@ -54,6 +58,7 @@ public class AreaPictureMapper {
         .updatedAt(domain.getUpdatedAt())
         .idProspect(domain.getIdProspect())
         .isExtended(domain.isExtended())
+        .geoPositions(domain.getGeoPositions())
         .build();
   }
 }

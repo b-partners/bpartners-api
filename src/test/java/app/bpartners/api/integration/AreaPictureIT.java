@@ -9,6 +9,7 @@ import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_TOKEN;
 import static app.bpartners.api.integration.conf.utils.TestUtils.PROSPECT_1_ID;
 import static app.bpartners.api.integration.conf.utils.TestUtils.setUpCognito;
 import static app.bpartners.api.integration.conf.utils.TestUtils.setUpLegalFileRepository;
+import static java.lang.Boolean.TRUE;
 import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -23,15 +24,17 @@ import app.bpartners.api.endpoint.rest.model.AreaPictureDetails;
 import app.bpartners.api.endpoint.rest.model.AreaPictureMapLayer;
 import app.bpartners.api.endpoint.rest.model.CrupdateAreaPictureDetails;
 import app.bpartners.api.endpoint.rest.model.OpenStreetMapLayer;
+import app.bpartners.api.endpoint.rest.model.Tile;
 import app.bpartners.api.endpoint.rest.model.Zoom;
 import app.bpartners.api.endpoint.rest.model.ZoomLevel;
 import app.bpartners.api.integration.conf.S3MockedThirdParties;
 import app.bpartners.api.integration.conf.utils.TestUtils;
 import app.bpartners.api.repository.ban.BanApi;
 import app.bpartners.api.repository.ban.model.GeoPosition;
+import app.bpartners.api.repository.ban.response.GeoJsonProperty;
+import app.bpartners.api.repository.ban.response.GeoJsonResponse;
 import app.bpartners.api.service.WMS.ArcgisZoom;
 import app.bpartners.api.service.WMS.AreaPictureMapLayerService;
-import app.bpartners.api.service.WMS.Tile;
 import app.bpartners.api.service.WMS.imageSource.WmsImageSource;
 import app.bpartners.api.service.utils.GeoUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -47,18 +50,40 @@ import org.springframework.core.io.FileSystemResource;
 @Slf4j
 public class AreaPictureIT extends S3MockedThirdParties {
   @Deprecated public static final OpenStreetMapLayer DEFAULT_OSM_LAYER = TOUS_FR;
+  public static final String AREA_PICTURE_1_ID = "area_picture_1_id";
+  public static final String AREA_PICTURE_2_ID = "area_picture_2_id";
+  private static final GeoUtils.Coordinate SOMEWHERE_IN_CHARENTE_KNOWN_COORDINATES =
+      GeoUtils.Coordinate.builder().longitude(0.148409).latitude(45.644018).build();
+  private static final GeoPosition CHARENTE_KNOWN_GEO_POSITION =
+      GeoPosition.builder()
+          .label("charente")
+          .coordinates(SOMEWHERE_IN_CHARENTE_KNOWN_COORDINATES)
+          .build();
+  private static final app.bpartners.api.service.WMS.Tile DEFAULT_KNOWN_TILE =
+      app.bpartners.api.service.WMS.Tile.builder()
+          .x(524720)
+          .y(374531)
+          .arcgisZoom(ArcgisZoom.HOUSES_0)
+          .build();
+  private static final GeoJsonResponse.Feature HIGHEST_FEAT_GEOJSON_FEATURE =
+      GeoJsonResponse.Feature.builder()
+          .properties(
+              GeoJsonProperty.builder()
+                  .label("Adresse")
+                  .geoLegalPosX(DEFAULT_KNOWN_TILE.getLongitude())
+                  .geoLegalPosY(DEFAULT_KNOWN_TILE.getLatitude())
+                  .score(15.0)
+                  .build())
+          .geometry(
+              GeoJsonResponse.Geometry.builder()
+                  .coordinates(
+                      List.of(DEFAULT_KNOWN_TILE.getLongitude(), DEFAULT_KNOWN_TILE.getLatitude()))
+                  .build())
+          .build();
   @Autowired ObjectMapper om;
-
   @Autowired AreaPictureMapLayerService mapLayerService;
   @MockBean BanApi banApiMock;
   @MockBean WmsImageSource wmsImageSourceMock;
-
-  private ApiClient joeDoeClient() {
-    return TestUtils.anApiClient(JOE_DOE_TOKEN, localPort);
-  }
-
-  public static final String AREA_PICTURE_1_ID = "area_picture_1_id";
-  public static final String AREA_PICTURE_2_ID = "area_picture_2_id";
 
   static AreaPictureMapLayer tousFrLayer() {
     return new AreaPictureMapLayer()
@@ -109,11 +134,17 @@ public class AreaPictureIT extends S3MockedThirdParties {
   }
 
   static AreaPictureDetails areaPicture1() {
+    int xTile = 524720;
+    int yTile = 374531;
+    ZoomLevel zoomLevel = HOUSES_0;
+    Zoom zoom = new Zoom().level(zoomLevel).number(20);
+    boolean isExtended = false;
+    Tile currentTile = new Tile().x(xTile).y(yTile).zoom(zoom);
     return new AreaPictureDetails()
         .id(AREA_PICTURE_1_ID)
-        .xTile(524720)
-        .yTile(374531)
-        .zoomLevel(HOUSES_0)
+        .xTile(xTile)
+        .yTile(yTile)
+        .zoomLevel(zoomLevel)
         .actualLayer(tousFrLayer())
         .address("Montauban Address")
         .createdAt(Instant.parse("2022-01-08T01:00:00Z"))
@@ -122,19 +153,55 @@ public class AreaPictureIT extends S3MockedThirdParties {
         .prospectId(PROSPECT_1_ID)
         .otherLayers(List.of(geoserverCharenteLayer(), tousFrLayer()))
         .layer(DEFAULT_OSM_LAYER)
-        .zoom(new Zoom().level(HOUSES_0).number(20))
+        .zoom(zoom)
         .availableLayers(List.of(DEFAULT_OSM_LAYER))
-        .isExtended(false)
-        .filename("tous_fr_HOUSES_0_524720_374531");
+        .isExtended(isExtended)
+        .currentTile(currentTile)
+        .referenceTile(getReferenceTile(currentTile, isExtended))
+        .currentGeoPosition(
+            new app.bpartners.api.endpoint.rest.model.GeoPosition()
+                .score(90.0)
+                .longitude(0.148409)
+                .latitude(45.644018))
+        .filename("tous_fr_HOUSES_0_524720_374531")
+        .geoPositions(
+            List.of(
+                new app.bpartners.api.endpoint.rest.model.GeoPosition()
+                    .score(90.0)
+                    .longitude(0.148409)
+                    .latitude(45.644018),
+                new app.bpartners.api.endpoint.rest.model.GeoPosition()
+                    .score(30.0)
+                    .longitude(0.148409)
+                    .latitude(45.644018),
+                new app.bpartners.api.endpoint.rest.model.GeoPosition()
+                    .score(40.0)
+                    .longitude(0.148409)
+                    .latitude(45.644018)));
+  }
+
+  private static Tile getReferenceTile(Tile originalTile, boolean isExtended) {
+    return isExtended
+        ? new Tile()
+            .x(originalTile.getX() - 1)
+            .y(originalTile.getY() - 1)
+            .zoom(originalTile.getZoom())
+        : originalTile;
   }
 
   static AreaPictureDetails areaPicture2() {
+    int xTile = 524720;
+    int yTile = 374531;
+    Zoom zoom = new Zoom().level(HOUSES_0).number(20);
+    Tile currentTile = new Tile().x(xTile).y(yTile).zoom(zoom);
+    boolean isExtended = true;
+    Tile referenceTile = getReferenceTile(currentTile, isExtended);
     return new AreaPictureDetails()
         .id("area_picture_2_id")
         .zoomLevel(HOUSES_0)
         .actualLayer(tousFrLayer())
-        .xTile(524720)
-        .yTile(374531)
+        .xTile(xTile)
+        .yTile(yTile)
         .layer(DEFAULT_OSM_LAYER)
         .otherLayers(List.of(geoserverCharenteLayer(), tousFrLayer()))
         .createdAt(Instant.parse("2022-01-08T01:00:00Z"))
@@ -143,9 +210,78 @@ public class AreaPictureIT extends S3MockedThirdParties {
         .fileId("mulhouse_1_5cm_544729_383060.jpg")
         .prospectId(PROSPECT_1_ID)
         .availableLayers(List.of(DEFAULT_OSM_LAYER))
-        .zoom(new Zoom().level(HOUSES_0).number(20))
-        .isExtended(true)
-        .filename("tous_fr_HOUSES_0_524720_374531_extended");
+        .zoom(zoom)
+        .isExtended(isExtended)
+        .filename(
+            "tous_fr_HOUSES_0_" + referenceTile.getX() + "_" + referenceTile.getY() + "_extended")
+        .currentTile(currentTile)
+        .referenceTile(referenceTile)
+        .currentGeoPosition(
+            new app.bpartners.api.endpoint.rest.model.GeoPosition()
+                .score(60.0)
+                .longitude(0.148409)
+                .latitude(45.644018))
+        .geoPositions(
+            List.of(
+                new app.bpartners.api.endpoint.rest.model.GeoPosition()
+                    .score(60.0)
+                    .longitude(0.148409)
+                    .latitude(45.644018)));
+  }
+
+  static AreaPictureDetails ignoreGeneratedDataOf(AreaPictureDetails areaPictureDetails) {
+    areaPictureDetails.setCreatedAt(null);
+    areaPictureDetails.setUpdatedAt(null);
+    areaPictureDetails.setFilename(null);
+    return areaPictureDetails;
+  }
+
+  static AreaPictureDetails removeAvailableLayers(AreaPictureDetails areaPictureDetails) {
+    return areaPictureDetails.availableLayers(List.of()).otherLayers(List.of());
+  }
+
+  static CrupdateAreaPictureDetails crupdatableAreaPictureDetails() {
+    String fileId = randomUUID().toString();
+    return new CrupdateAreaPictureDetails()
+        .address("Angoulême")
+        .fileId(fileId)
+        .prospectId(PROSPECT_1_ID)
+        .zoomLevel(HOUSES_0)
+        .createdAt(null)
+        .updatedAt(null);
+  }
+
+  static AreaPictureDetails createFrom(CrupdateAreaPictureDetails crupdate, String payloadId) {
+    var tile = DEFAULT_KNOWN_TILE;
+    ZoomLevel zoomLevel = crupdate.getZoomLevel();
+    var isExtended = TRUE.equals(crupdate.getIsExtended());
+    int xTile = tile.getX();
+    int yTile = tile.getY();
+    Zoom zoom = new Zoom().level(zoomLevel).number(ArcgisZoom.from(zoomLevel).getZoomLevel());
+    Tile currentTile = new Tile().x(xTile).y(yTile).zoom(zoom);
+    return new AreaPictureDetails()
+        .id(payloadId)
+        .xTile(xTile)
+        .yTile(yTile)
+        .address(crupdate.getAddress())
+        .prospectId(crupdate.getProspectId())
+        .fileId(crupdate.getFileId())
+        .actualLayer(geoserverCharenteLayer())
+        .zoomLevel(zoomLevel)
+        .otherLayers(List.of(tousFrLayer()))
+        .filename(null)
+        .layer(TOUS_FR)
+        .currentTile(currentTile)
+        .referenceTile(getReferenceTile(currentTile, isExtended))
+        // need to update or nullify createdAt and updatedAt during equality check
+        .createdAt(null)
+        .zoom(zoom)
+        .isExtended(isExtended)
+        .updatedAt(null);
+  }
+
+  private ApiClient joeDoeClient() {
+    return TestUtils.anApiClient(JOE_DOE_TOKEN, localPort);
   }
 
   @BeforeEach
@@ -165,18 +301,28 @@ public class AreaPictureIT extends S3MockedThirdParties {
 
   void setUpBanApiMock(BanApi banApi) {
     when(banApi.search(any())).thenReturn(CHARENTE_KNOWN_GEO_POSITION);
+    when(banApi.searchMultiplePos(any()))
+        .thenReturn(
+            GeoJsonResponse.builder()
+                .features(
+                    List.of(
+                        GeoJsonResponse.Feature.builder()
+                            .properties(
+                                GeoJsonProperty.builder()
+                                    .label("Adresse")
+                                    .geoLegalPosX(13.0)
+                                    .geoLegalPosY(10.0)
+                                    .score(10.0)
+                                    .build())
+                            .geometry(
+                                GeoJsonResponse.Geometry.builder()
+                                    .coordinates(List.of(13.0, 10.0))
+                                    .build())
+                            .build(),
+                        HIGHEST_FEAT_GEOJSON_FEATURE))
+                .build());
     when(banApi.fSearch(any())).thenReturn(CHARENTE_KNOWN_GEO_POSITION);
   }
-
-  private static final GeoUtils.Coordinate SOMEWHERE_IN_CHARENTE_KNOWN_COORDINATES =
-      GeoUtils.Coordinate.builder().longitude(0.148409).latitude(45.644018).build();
-  private static final GeoPosition CHARENTE_KNOWN_GEO_POSITION =
-      GeoPosition.builder()
-          .label("charente")
-          .coordinates(SOMEWHERE_IN_CHARENTE_KNOWN_COORDINATES)
-          .build();
-
-  private static final Tile DEFAULT_KNOWN_TILE = Tile.builder().x(524720).y(374531).build();
 
   @Test
   void joe_doe_read_his_pictures_ok() throws ApiException {
@@ -234,54 +380,10 @@ public class AreaPictureIT extends S3MockedThirdParties {
 
     var actual = api.crupdateAreaPictureDetails(JOE_DOE_ACCOUNT_ID, payloadId, payload);
 
-    assertEquals(
-        removeAvailableLayers(createFrom(payload, payloadId)),
-        removeAvailableLayers(ignoreGeneratedDataOf(actual)));
-  }
-
-  static AreaPictureDetails ignoreGeneratedDataOf(AreaPictureDetails areaPictureDetails) {
-    areaPictureDetails.setCreatedAt(null);
-    areaPictureDetails.setUpdatedAt(null);
-    areaPictureDetails.setFilename(null);
-    return areaPictureDetails;
-  }
-
-  static AreaPictureDetails removeAvailableLayers(AreaPictureDetails areaPictureDetails) {
-    return areaPictureDetails.availableLayers(List.of()).otherLayers(List.of());
-  }
-
-  static CrupdateAreaPictureDetails crupdatableAreaPictureDetails() {
-    String fileId = randomUUID().toString();
-    return new CrupdateAreaPictureDetails()
-        .address("Angoulême")
-        .fileId(fileId)
-        .prospectId(PROSPECT_1_ID)
-        .zoomLevel(HOUSES_0)
-        .createdAt(null)
-        .updatedAt(null);
-  }
-
-  static AreaPictureDetails createFrom(CrupdateAreaPictureDetails crupdate, String payloadId) {
-    var tile = DEFAULT_KNOWN_TILE;
-    ZoomLevel zoomLevel = crupdate.getZoomLevel();
-    var isExtended = crupdate.getIsExtended();
-    return new AreaPictureDetails()
-        .id(payloadId)
-        .xTile(tile.getX())
-        .yTile(tile.getY())
-        .address(crupdate.getAddress())
-        .prospectId(crupdate.getProspectId())
-        .fileId(crupdate.getFileId())
-        .actualLayer(geoserverCharenteLayer())
-        .zoomLevel(zoomLevel)
-        .otherLayers(List.of(tousFrLayer()))
-        .filename(null)
-        .layer(TOUS_FR)
-        // need to update or nullify createdAt and updatedAt during equality check
-        .createdAt(null)
-        .zoom(new Zoom().level(zoomLevel).number(ArcgisZoom.from(zoomLevel).getZoomLevel()))
-        .isExtended(isExtended != null && isExtended)
-        .updatedAt(null);
+    AreaPictureDetails expected = removeAvailableLayers(createFrom(payload, payloadId));
+    expected.setGeoPositions(actual.getGeoPositions());
+    expected.setCurrentGeoPosition(actual.getCurrentGeoPosition());
+    assertEquals(expected, removeAvailableLayers(ignoreGeneratedDataOf(actual)));
   }
 
   @Test
@@ -290,7 +392,8 @@ public class AreaPictureIT extends S3MockedThirdParties {
 
     var guessedLayers =
         mapLayerService.getAvailableLayersFrom(
-            Tile.from(coordinates.getLongitude(), coordinates.getLatitude(), ArcgisZoom.HOUSES_0));
+            app.bpartners.api.service.WMS.Tile.from(
+                coordinates.getLongitude(), coordinates.getLatitude(), ArcgisZoom.HOUSES_0));
 
     assertEquals(List.of(domainGeoserverCharenteLayer(), domainOsmLayer()), guessedLayers);
   }

@@ -6,6 +6,7 @@ import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.repository.ban.model.GeoPosition;
+import app.bpartners.api.repository.ban.response.GeoJsonProperty;
 import app.bpartners.api.repository.ban.response.GeoJsonResponse;
 import app.bpartners.api.service.utils.GeoUtils;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -18,6 +19,8 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -60,23 +63,37 @@ public class BanApi {
     if (address == null || address.isEmpty()) {
       throw new BadRequestException("Address is mandatory for getting GeoPosition");
     }
+    GeoJsonResponse geoJsonResponse = searchMultiplePos(address);
     NotFoundException notFoundException =
         new NotFoundException(
             "Given address " + address + " is not found." + " Check if it's not mal formed.");
-    GeoJsonResponse geoJsonResponse = searchMultiplePos(address);
     if (geoJsonResponse == null) {
       throw notFoundException;
     }
-    GeoJsonResponse.Feature highestFeat =
+    return getHighestFeatGeoPosition(geoJsonResponse).orElseThrow(() -> notFoundException);
+  }
+
+  private static Optional<GeoPosition> getHighestFeatGeoPosition(GeoJsonResponse geoJsonResponse) {
+    var optionalHighestFeat =
         geoJsonResponse.getFeatures().stream()
-            .max(Comparator.comparing(feature -> feature.getProperties().getScore()))
-            .orElseThrow(() -> notFoundException);
+            .max(Comparator.comparing(feature -> feature.getProperties().getScore()));
+    return optionalHighestFeat.map(BanApi::mapToGeoPosition);
+  }
+
+  public static Optional<GeoPosition> getHighestFeatGeoPosition(List<GeoPosition> geoPositions) {
+    return geoPositions.stream().max(Comparator.comparing(GeoPosition::getScore));
+  }
+
+  public static GeoPosition mapToGeoPosition(GeoJsonResponse.Feature feature) {
+    GeoJsonProperty properties = feature.getProperties();
+    List<Double> coordinates = feature.getGeometry().getCoordinates();
     return GeoPosition.builder()
-        .label(highestFeat.getProperties().getLabel())
+        .label(properties.getLabel())
+        .score(properties.getScore())
         .coordinates(
             GeoUtils.Coordinate.builder()
-                .longitude(highestFeat.getGeometry().getCoordinates().get(0))
-                .latitude(highestFeat.getGeometry().getCoordinates().get(1))
+                .longitude(coordinates.getFirst())
+                .latitude(coordinates.get(1))
                 .build())
         .build();
   }

@@ -13,6 +13,7 @@ import app.bpartners.api.endpoint.rest.security.matcher.SelfAccountMatcher;
 import app.bpartners.api.endpoint.rest.security.matcher.SelfUserAccountMatcher;
 import app.bpartners.api.endpoint.rest.security.matcher.SelfUserMatcher;
 import app.bpartners.api.model.exception.ForbiddenException;
+import app.bpartners.api.service.LegalFileService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -27,7 +28,6 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
-import org.springframework.security.web.util.matcher.NegatedRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.servlet.HandlerExceptionResolver;
@@ -38,18 +38,119 @@ import org.springframework.web.servlet.HandlerExceptionResolver;
 public class SecurityConf {
 
   public static final String AUTHORIZATION_HEADER = "Authorization";
+  public static final OrRequestMatcher REQUIRES_AUTHENTICATION_REQUEST_MATCHER =
+      new OrRequestMatcher(
+          new AntPathRequestMatcher("/accountHolders", GET.name()),
+          new AntPathRequestMatcher("/invoicesRefresh", POST.name()),
+          new AntPathRequestMatcher("/accounts/*/customers", GET.name()),
+          new AntPathRequestMatcher("/users/accounts/refresh", POST.name()),
+          new AntPathRequestMatcher("/accounts/*/customers/export", GET.name()),
+          new AntPathRequestMatcher("/accounts/*/customers", POST.name()),
+          new AntPathRequestMatcher("/accounts/*/customers", PUT.name()),
+          new AntPathRequestMatcher("/accounts/*/customers/*", GET.name()),
+          new AntPathRequestMatcher("/accounts/*/customers/upload", POST.name()),
+          new AntPathRequestMatcher("/accounts/{id}/customers/status", PUT.name()),
+          new AntPathRequestMatcher("/accounts/*/transactions", GET.name()),
+          new AntPathRequestMatcher("/accounts/*/transactions/*", GET.name()),
+          new AntPathRequestMatcher("/accounts/*/transactions/exportLink", POST.name()),
+          new AntPathRequestMatcher("/accounts/*/transactions/*/invoices/*", PUT.name()),
+          new AntPathRequestMatcher("/accounts/*/transactions/*/supportingDocuments", GET.name()),
+          new AntPathRequestMatcher("/accounts/*/transactions/*/supportingDocuments", POST.name()),
+          new AntPathRequestMatcher(
+              "/accounts/*/transactions/*/supportingDocuments", DELETE.name()),
+          new AntPathRequestMatcher("/users/*/accounts", GET.name()),
+          new AntPathRequestMatcher("/users/*/deviceRegistration", POST.name()),
+          new AntPathRequestMatcher("/users/*/accounts/*/accountHolders", GET.name()),
+          new AntPathRequestMatcher("/accountHolders/*/prospects/evaluationJobs/*", GET.name()),
+          new AntPathRequestMatcher("/users/*/accounts/*/initiateAccountValidation", POST.name()),
+          new AntPathRequestMatcher("/users/*/accounts/*/identity", PUT.name()),
+          new AntPathRequestMatcher("/users/*/accounts/*/active", POST.name()),
+          new AntPathRequestMatcher("/users/*/accounts/*/initiateBankConnection", POST.name()),
+          new AntPathRequestMatcher("/users/*/initiateBankConnection", POST.name()),
+          new AntPathRequestMatcher("/users/*/disconnectBank", POST.name()),
+          new AntPathRequestMatcher("/accounts/*/invoices/*", GET.name()),
+          new AntPathRequestMatcher("/accounts/*/invoices/*", PUT.name()),
+          new AntPathRequestMatcher("/accounts/*/invoices/archive", PUT.name()),
+          new AntPathRequestMatcher("/accounts/*/products", GET.name()),
+          new AntPathRequestMatcher("/accounts/*/products/export", GET.name()),
+          new AntPathRequestMatcher("/accounts/*/products/*", GET.name()),
+          new AntPathRequestMatcher("/accounts/*/products", PUT.name()),
+          new AntPathRequestMatcher("/accounts/*/products", POST.name()),
+          new AntPathRequestMatcher("/accounts/*/products/upload", POST.name()),
+          new AntPathRequestMatcher("/accounts/*/products/status", PUT.name()),
+          new AntPathRequestMatcher("/accounts/*/invoices", GET.name()),
+          new AntPathRequestMatcher("/accounts/*/paymentInitiations", POST.name()),
+          new AntPathRequestMatcher("/accounts/*/transactionCategories", GET.name()),
+          new AntPathRequestMatcher("/accounts/*/transactions/*/transactionCategories", GET.name()),
+          new AntPathRequestMatcher("/users", GET.name()),
+          new AntPathRequestMatcher("/accounts/*/files/*", GET.name()),
+          new AntPathRequestMatcher("/accounts/*/areaPictures", GET.name()),
+          new AntPathRequestMatcher("/accounts/*/areaPictures/*", GET.name()),
+          new AntPathRequestMatcher("/accounts/*/areaPictures/*/raw", PUT.name()),
+          new AntPathRequestMatcher("/accounts/*/areaPictures/*/raw", PUT.name()),
+          new AntPathRequestMatcher("/accounts/*/areaPictures/*/raw", PUT.name()),
+          new AntPathRequestMatcher("/accounts/*/areaPictures/*/annotations", GET.name()),
+          new AntPathRequestMatcher("/accounts/*/areaPictures/*/annotations/*", PUT.name()),
+          new AntPathRequestMatcher("/accounts/*/areaPictures/*/annotations/*", GET.name()),
+          new AntPathRequestMatcher("/accounts/*/files/*/raw", POST.name()),
+          new AntPathRequestMatcher("/accounts/*/files/*/multipart", POST.name()),
+          new AntPathRequestMatcher("/accounts/*/files/*/raw", GET.name()),
+          new AntPathRequestMatcher("/accounts/*/marketplaces", GET.name()),
+          new AntPathRequestMatcher("/accounts/*/transactionsSummary", GET.name()),
+          new AntPathRequestMatcher("/accounts/*/invoicesSummary", GET.name()),
+          new AntPathRequestMatcher("/accounts/*/invoiceRelaunchConf", GET.name()),
+          new AntPathRequestMatcher("/accounts/*/invoiceRelaunchConf", PUT.name()),
+          new AntPathRequestMatcher("/accounts/*/invoices/*/relaunches", GET.name()),
+          new AntPathRequestMatcher("/accounts/*/invoices/*/relaunch", POST.name()),
+          new AntPathRequestMatcher("/accounts/*/invoices/relaunches", POST.name()),
+          new AntPathRequestMatcher("/accounts/*/invoices/*/relaunchConf", GET.name()),
+          new AntPathRequestMatcher("/accounts/*/invoices/*/relaunchConf", PUT.name()),
+          new AntPathRequestMatcher("/accounts/*/invoices/*/duplication", POST.name()),
+          new AntPathRequestMatcher("/businessActivities", GET.name()),
+          new AntPathRequestMatcher(
+              "/users/*/accounts/*/accountHolders/*/businessActivities", PUT.name()),
+          new AntPathRequestMatcher(
+              "/users/*/accounts/*/accountHolders/*/revenueTargets", PUT.name()),
+          new AntPathRequestMatcher("/users/*/accounts/*/accountHolders/*/companyInfo", PUT.name()),
+          new AntPathRequestMatcher("/users/*/accounts/*/accountHolders/*/globalInfo", PUT.name()),
+          new AntPathRequestMatcher("/users/*/accountHolders/*/feedback/*", PUT.name()),
+          new AntPathRequestMatcher("/users/*/accountHolders/*/feedback", POST.name()),
+          new AntPathRequestMatcher("/accounts/*/paymentRequests", GET.name()),
+          new AntPathRequestMatcher("/accountHolders/*/prospects", GET.name()),
+          new AntPathRequestMatcher("/accountHolders/*/prospects/evaluationJobs", GET.name()),
+          new AntPathRequestMatcher("/accountHolders/*/prospects/evaluationJobs", PUT.name()),
+          new AntPathRequestMatcher("/accountHolders/*/prospects/*/prospectConversion", PUT.name()),
+          new AntPathRequestMatcher("/accountHolders/*/prospects", PUT.name()),
+          new AntPathRequestMatcher("/accountHolders/*/prospects/prospectsEvaluation", POST.name()),
+          new AntPathRequestMatcher("/accountHolders/*/prospects/evaluations", POST.name()),
+          new AntPathRequestMatcher("/accountHolders/*/prospects/import", POST.name()),
+          new AntPathRequestMatcher("/accountHolders/*/prospects/*", PUT.name()),
+          new AntPathRequestMatcher("/users/*/calendars/*/events", GET.name()),
+          new AntPathRequestMatcher("/users/*/calendars/*/events", PUT.name()),
+          new AntPathRequestMatcher("/users/*/calendars/oauth2/consent", POST.name()),
+          new AntPathRequestMatcher("/users/*/calendars", GET.name()),
+          new AntPathRequestMatcher("/users/*/calendars/oauth2/auth", POST.name()),
+          new AntPathRequestMatcher("/users/*/sheets/oauth2/consent", POST.name()),
+          new AntPathRequestMatcher("/users/*/sheets/oauth2/auth", POST.name()),
+          new AntPathRequestMatcher(
+              "/accounts/*/invoices/{iId}/paymentRegulations/*/paymentMethod", PUT.name()),
+          new AntPathRequestMatcher("/users/*/emails", PUT.name()),
+          new AntPathRequestMatcher("/users/*/emails", GET.name()));
   private final AuthProvider authProvider;
   private final HandlerExceptionResolver exceptionResolver;
   private final AuthenticatedResourceProvider authResourceProvider;
+  private final LegalFileService legalFileService;
 
   public SecurityConf(
       AuthProvider authProvider,
       // InternalToExternalErrorHandler behind
       @Qualifier("handlerExceptionResolver") HandlerExceptionResolver exceptionResolver,
-      AuthenticatedResourceProvider authResourceProvider) {
+      AuthenticatedResourceProvider authResourceProvider,
+      LegalFileService legalFileService) {
     this.authProvider = authProvider;
     this.exceptionResolver = exceptionResolver;
     this.authResourceProvider = authResourceProvider;
+    this.legalFileService = legalFileService;
   }
 
   @Bean
@@ -76,27 +177,11 @@ public class SecurityConf {
         // authenticate
         .authenticationProvider(authProvider)
         .addFilterBefore(
-            bearerFilter(
-                new NegatedRequestMatcher(
-                    new OrRequestMatcher(
-                        new AntPathRequestMatcher("/ping"),
-                        new AntPathRequestMatcher("/preUsers", POST.name()),
-                        new AntPathRequestMatcher("/authInitiation"),
-                        new AntPathRequestMatcher("/token"),
-                        new AntPathRequestMatcher("/onboarding"),
-                        new AntPathRequestMatcher("/whoami", GET.name()),
-                        new AntPathRequestMatcher("/users/*", GET.name()),
-                        new AntPathRequestMatcher("/onboardingInitiation", POST.name()),
-                        new AntPathRequestMatcher("/users/*/legalFiles", GET.name()),
-                        new AntPathRequestMatcher("/users/*/legalFiles/*", PUT.name()),
-                        new AntPathRequestMatcher("/**", OPTIONS.toString()),
-                        new AntPathRequestMatcher("/whois/*", GET.name()),
-                        new AntPathRequestMatcher("/webhooks/paymentStatus", POST.name()),
-                        new AntPathRequestMatcher("/health/db", GET.name()),
-                        new AntPathRequestMatcher("/health/bucket", GET.name()),
-                        new AntPathRequestMatcher("/health/email", GET.name()),
-                        new AntPathRequestMatcher("/health/event", GET.name())))),
+            bearerFilter(REQUIRES_AUTHENTICATION_REQUEST_MATCHER),
             AnonymousAuthenticationFilter.class)
+        .addFilterAfter(
+            legalFilesApprovalFilter(REQUIRES_AUTHENTICATION_REQUEST_MATCHER),
+            BearerAuthFilter.class)
         // authorize
         .authorizeHttpRequests(
             (authorize) ->
@@ -117,11 +202,12 @@ public class SecurityConf {
                     .permitAll()
                     .requestMatchers(POST, "/preUsers")
                     .permitAll()
-                    // Authentication check done in controller for legalFiles
-                    .requestMatchers(GET, "/users/*/legalFiles")
-                    .permitAll()
-                    .requestMatchers(PUT, "/users/*/legalFiles/*")
-                    .permitAll()
+                    .requestMatchers(
+                        new SelfUserMatcher(GET, "/users/*/legalFiles", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfUserMatcher(PUT, "/users/*/legalFiles/*", authResourceProvider))
+                    .authenticated()
                     .requestMatchers(OPTIONS, "/**")
                     .permitAll()
                     .requestMatchers(GET, "/whois/*")
@@ -291,7 +377,7 @@ public class SecurityConf {
                     .authenticated()
                     .requestMatchers(
                         new SelfAccountMatcher(
-                            PUT, "/accounts/{aId}/products/status", authResourceProvider))
+                            PUT, "/accounts/*/products/status", authResourceProvider))
                     .authenticated()
                     .requestMatchers(
                         new SelfAccountMatcher(GET, "/accounts/*/invoices", authResourceProvider))
@@ -524,8 +610,9 @@ public class SecurityConf {
     return new ProviderManager(authProvider);
   }
 
-  private BearerAuthFilter bearerFilter(RequestMatcher requestMatcher) throws Exception {
-    BearerAuthFilter bearerFilter = new BearerAuthFilter(requestMatcher, AUTHORIZATION_HEADER);
+  private BearerAuthFilter bearerFilter(RequestMatcher requiresAuthenticationRequestMatcher) {
+    BearerAuthFilter bearerFilter =
+        new BearerAuthFilter(requiresAuthenticationRequestMatcher, AUTHORIZATION_HEADER);
     bearerFilter.setAuthenticationManager(authenticationManager());
     bearerFilter.setAuthenticationSuccessHandler(
         (httpServletRequest, httpServletResponse, authentication) -> {});
@@ -538,5 +625,11 @@ public class SecurityConf {
             // not handled by AccessDeniedException and AuthenticationEntryPoint
             exceptionResolver.resolveException(req, res, null, forbiddenWithRemoteInfo(e, req)));
     return bearerFilter;
+  }
+
+  private LegalFilesApprovalFilter legalFilesApprovalFilter(
+      RequestMatcher requiresLegalFileApprovalRequestMatcher) {
+    return new LegalFilesApprovalFilter(
+        requiresLegalFileApprovalRequestMatcher, legalFileService, authResourceProvider);
   }
 }

@@ -3,14 +3,11 @@ package app.bpartners.api.endpoint.rest.security;
 import static app.bpartners.api.service.utils.SecurityUtils.BEARER_PREFIX;
 
 import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
-import app.bpartners.api.endpoint.rest.security.exception.UnapprovedLegalFileException;
 import app.bpartners.api.endpoint.rest.security.model.Principal;
-import app.bpartners.api.model.LegalFile;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.UserToken;
 import app.bpartners.api.service.LegalFileService;
 import app.bpartners.api.service.UserService;
-import java.util.List;
 import lombok.AllArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.authentication.dao.AbstractUserDetailsAuthenticationProvider;
@@ -80,9 +77,6 @@ public class AuthProvider extends AbstractUserDetailsAuthenticationProvider {
     User user = userService.getUserByEmail(email);
     UserToken bridgeUserToken = userService.getLatestToken(user);
     bearer = bridgeUserToken == null ? bearer : bridgeUserToken.getAccessToken();
-    List<LegalFile> legalFilesList =
-        legalFileService.getAllToBeApprovedLegalFilesByUserId(user.getId());
-    checkLegalFiles(legalFilesList, user);
     return new Principal(user, bearer);
   }
 
@@ -93,25 +87,5 @@ public class AuthProvider extends AbstractUserDetailsAuthenticationProvider {
       return null;
     }
     return ((String) tokenObject).substring(BEARER_PREFIX.length()).trim();
-  }
-
-  private void checkLegalFiles(List<LegalFile> legalFiles, User user) {
-    if (!legalFiles.isEmpty()) {
-      StringBuilder exceptionMessageBuilder = new StringBuilder();
-      legalFiles.forEach(
-          legalFile -> {
-            if (!legalFile.isApproved()) {
-              exceptionMessageBuilder
-                  .append("User.")
-                  .append(user.getId())
-                  .append(" has not approved the legal file ")
-                  .append(legalFile.getName());
-            }
-          });
-      String exceptionMessage = exceptionMessageBuilder.toString();
-      if (!exceptionMessage.isEmpty()) {
-        throw new UnapprovedLegalFileException(exceptionMessage);
-      }
-    }
   }
 }

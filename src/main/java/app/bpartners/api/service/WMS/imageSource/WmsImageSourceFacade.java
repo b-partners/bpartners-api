@@ -1,13 +1,17 @@
 package app.bpartners.api.service.WMS.imageSource;
 
+import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
+
 import app.bpartners.api.file.FileDownloader;
 import app.bpartners.api.model.AreaPicture;
 import app.bpartners.api.model.AreaPictureMapLayer;
+import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.service.WMS.AreaPictureMapLayerService;
 import app.bpartners.api.service.WMS.Tile;
 import app.bpartners.api.service.WMS.imageSource.exception.BlankImageException;
 import java.io.File;
 import java.net.URI;
+import org.jetbrains.annotations.Range;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 
@@ -50,18 +54,36 @@ final class WmsImageSourceFacade extends AbstractWmsImageSource {
     }
     return switch (areaPicture.getCurrentLayer().getSource()) {
       case OPENSTREETMAP -> openStreetMapImageSource.downloadImage(areaPicture);
-      case GEOSERVER -> {
-        var file = geoserverImageSource.downloadImage(areaPicture);
-        try {
-          imageValidator.accept(file);
-          yield file;
-        } catch (BlankImageException e) {
-          file.delete();
-          areaPicture.setCurrentLayer(areaPictureMapLayerService.getDefaultLayer());
-          yield openStreetMapImageSource.downloadImage(areaPicture);
-        }
-      }
+      case GEOSERVER -> cascadeRetryImageDownloadUntilValid(geoserverImageSource, areaPicture, 0);
     };
+  }
+
+  private File cascadeRetryImageDownloadUntilValid(
+      WmsImageSource wmsImageSource,
+      AreaPicture areaPicture,
+      @Range(from = 0, to = 3) int iteration) {
+    WmsImageSource alternativeSource;
+    AreaPictureMapLayer alternativeAreaPictureMapLayer;
+    if (iteration == 0) {
+      alternativeSource = wmsImageSource;
+      alternativeAreaPictureMapLayer = areaPicture.getCurrentLayer();
+    } else if (iteration == 1) {
+      alternativeSource = geoserverImageSource;
+      alternativeAreaPictureMapLayer = areaPictureMapLayerService.getDefaultIGNLayer();
+    } else if (iteration == 2) {
+      alternativeSource = openStreetMapImageSource;
+      alternativeAreaPictureMapLayer = areaPictureMapLayerService.getDefaultOSMLayer();
+    } else {
+      throw new ApiException(SERVER_EXCEPTION, "could not find any server for " + areaPicture);
+    }
+    try {
+      File image = alternativeSource.downloadImage(areaPicture);
+      imageValidator.accept(image);
+      return image;
+    } catch (ApiException | BlankImageException e) {
+      areaPicture.setCurrentLayer(alternativeAreaPictureMapLayer);
+      return cascadeRetryImageDownloadUntilValid(alternativeSource, areaPicture, ++iteration);
+    }
   }
 
   @Override

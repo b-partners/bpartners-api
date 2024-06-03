@@ -109,6 +109,18 @@ public class AreaPictureIT extends S3MockedThirdParties {
         .source(GEOSERVER);
   }
 
+  static AreaPictureMapLayer geoserverIGNPrimaryDefaultServerLayer() {
+    return new AreaPictureMapLayer()
+        .id("9a4bd8b7-556b-49a1-bea0-c35e961dab64")
+        .name("FLUX_IGN_2023_20CM")
+        .year(2023)
+        .precisionLevelInCm(20)
+        .maximumZoomLevel(HOUSES_0)
+        .departementName("ALL")
+        .maximumZoom(new Zoom().level(HOUSES_0).number(20))
+        .source(GEOSERVER);
+  }
+
   static app.bpartners.api.model.AreaPictureMapLayer domainOsmLayer() {
     return app.bpartners.api.model.AreaPictureMapLayer.builder()
         .id("2cb589c1-45b0-4cb8-b84e-f1ed40e97bd8")
@@ -116,6 +128,18 @@ public class AreaPictureIT extends S3MockedThirdParties {
         .year(0)
         .departementName("ALL")
         .source(OPENSTREETMAP)
+        .maximumZoomLevel(HOUSES_0)
+        .precisionLevelInCm(20)
+        .build();
+  }
+
+  static app.bpartners.api.model.AreaPictureMapLayer domainIgnLayer() {
+    return app.bpartners.api.model.AreaPictureMapLayer.builder()
+        .id("9a4bd8b7-556b-49a1-bea0-c35e961dab64")
+        .name("FLUX_IGN_2023_20CM")
+        .year(2023)
+        .departementName("ALL")
+        .source(GEOSERVER)
         .maximumZoomLevel(HOUSES_0)
         .precisionLevelInCm(20)
         .build();
@@ -151,7 +175,9 @@ public class AreaPictureIT extends S3MockedThirdParties {
         .updatedAt(Instant.parse("2022-01-08T01:00:00Z"))
         .fileId("montauban_5cm_544729_383060.jpg")
         .prospectId(PROSPECT_1_ID)
-        .otherLayers(List.of(geoserverCharenteLayer(), tousFrLayer()))
+        .otherLayers(
+            List.of(
+                geoserverCharenteLayer(), geoserverIGNPrimaryDefaultServerLayer(), tousFrLayer()))
         .layer(DEFAULT_OSM_LAYER)
         .zoom(zoom)
         .availableLayers(List.of(DEFAULT_OSM_LAYER))
@@ -203,7 +229,9 @@ public class AreaPictureIT extends S3MockedThirdParties {
         .xTile(xTile)
         .yTile(yTile)
         .layer(DEFAULT_OSM_LAYER)
-        .otherLayers(List.of(geoserverCharenteLayer(), tousFrLayer()))
+        .otherLayers(
+            List.of(
+                geoserverCharenteLayer(), geoserverIGNPrimaryDefaultServerLayer(), tousFrLayer()))
         .createdAt(Instant.parse("2022-01-08T01:00:00Z"))
         .updatedAt(Instant.parse("2022-01-08T01:00:00Z"))
         .address("Cannes Address")
@@ -395,6 +423,7 @@ public class AreaPictureIT extends S3MockedThirdParties {
             app.bpartners.api.service.WMS.Tile.from(
                 coordinates.getLongitude(), coordinates.getLatitude(), ArcgisZoom.HOUSES_0));
 
-    assertEquals(List.of(domainGeoserverCharenteLayer(), domainOsmLayer()), guessedLayers);
+    assertEquals(
+        List.of(domainGeoserverCharenteLayer(), domainIgnLayer(), domainOsmLayer()), guessedLayers);
   }
 }

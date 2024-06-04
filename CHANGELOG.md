@@ -1,3 +1,12 @@
+# [0.49.0](https://github.com/b-partners/bpartners-api/compare/v0.48.0...v0.49.0) (2024-06-04)
+
+
+### Features
+
+* add geopositions, currentTile and topLeftTile details to AreaPicture ([3e900a2](https://github.com/b-partners/bpartners-api/commit/3e900a27479b7e00eca4b455bba5ed6b687d2bc6))
+
+
+
 # [0.48.0](https://github.com/b-partners/bpartners-api/compare/v0.47.0...v0.48.0) (2024-05-30)
 
 
@@ -120,27 +129,6 @@
 * area picture download from s3 or from osm ([e7140b3](https://github.com/b-partners/bpartners-api/commit/e7140b36075bdaf1c66a586625983a1b3d903da2))
 * multipart upload ([117b2bf](https://github.com/b-partners/bpartners-api/commit/117b2bf154eaeb0cc40e7785b1fcf0f467446598))
 * read area pictures ([a393e3e](https://github.com/b-partners/bpartners-api/commit/a393e3e4c6b12049b31aab8703dd959053e57639))
-
-
-
-# [0.39.0](https://github.com/b-partners/bpartners-api/compare/v0.38.2...v0.39.0) (2024-01-23)
-
-
-### Bug Fixes
-
-* add invoice supporting docs inside transaction other supporting docs ([8083194](https://github.com/b-partners/bpartners-api/commit/808319490208adc51bdebff75e197e6c2c0c805f))
-* avoid deleting old transactions supporting documents when disconnecting bank account ([853e61b](https://github.com/b-partners/bpartners-api/commit/853e61b2deb614d8e7bcf9e236caa6150cdae6ef))
-* avoid NPE for transaction supporting docs when disconnecting bank account ([120d158](https://github.com/b-partners/bpartners-api/commit/120d1589f77d32c1ebc445295d41b2fa9f0d670f))
-* bank disconnection ([cbfa18e](https://github.com/b-partners/bpartners-api/commit/cbfa18e63ac09a497ebb25814ea31e34253d8d09))
-* enable default account after bank disconnection ([a54c450](https://github.com/b-partners/bpartners-api/commit/a54c4502a4a7789d9d75eb1ad1c517051eabb320))
-* enable known accounts after bank connection ([ba20867](https://github.com/b-partners/bpartners-api/commit/ba208676291de3eb2d1f56f82c871f3e42aeb4ae))
-* show company name into invoice PDF when customer is professional ([0a4aed6](https://github.com/b-partners/bpartners-api/commit/0a4aed64ec63e191259a9a9b62ab1e167e52de8c))
-* update invoice and its pdf after fintecture payment reception ([b5334c4](https://github.com/b-partners/bpartners-api/commit/b5334c45875a407bfdbf2cdf382c2b25191f9fbf))
-
-
-### Features
-
-* get invoices summary ([01018f9](https://github.com/b-partners/bpartners-api/commit/01018f9b763f57b5f0504c22c27434e7e263e618))
 
 
 

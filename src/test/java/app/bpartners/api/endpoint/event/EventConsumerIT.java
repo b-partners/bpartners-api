@@ -4,7 +4,6 @@ import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import app.bpartners.api.PojaGenerated;
-import app.bpartners.api.conf.FacadeIT;
 import app.bpartners.api.endpoint.event.consumer.EventConsumer;
 import app.bpartners.api.endpoint.event.consumer.model.ConsumableEvent;
 import app.bpartners.api.endpoint.event.consumer.model.TypedEvent;
@@ -17,7 +16,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 @PojaGenerated
-class EventConsumerIT extends FacadeIT {
+class EventConsumerIT extends app.bpartners.api.integration.conf.MockedThirdParties {
 
   @Autowired EventConsumer subject;
   @Autowired DummyUuidRepository dummyUuidRepository;

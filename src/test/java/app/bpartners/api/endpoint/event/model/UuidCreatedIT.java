@@ -3,7 +3,6 @@ package app.bpartners.api.endpoint.event.model;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import app.bpartners.api.PojaGenerated;
-import app.bpartners.api.conf.FacadeIT;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Duration;
@@ -11,7 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 @PojaGenerated
-class UuidCreatedIT extends FacadeIT {
+class UuidCreatedIT extends app.bpartners.api.integration.conf.MockedThirdParties {
 
   @Autowired ObjectMapper om;
 

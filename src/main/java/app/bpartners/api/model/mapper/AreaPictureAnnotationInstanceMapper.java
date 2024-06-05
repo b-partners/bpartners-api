@@ -24,6 +24,8 @@ public class AreaPictureAnnotationInstanceMapper {
             .strokeColor(entity.getStrokeColor())
             .fillColor(entity.getFillColor())
             .obstacle(entity.getObstacle())
+            .wearness(entity.getWearness())
+            .moldRate(entity.getMoldRate())
             .build();
     return AreaPictureAnnotationInstance.builder()
         .id(entity.getId())
@@ -57,6 +59,8 @@ public class AreaPictureAnnotationInstanceMapper {
         .idAnnotation(domain.getIdAnnotation())
         .idUser(domain.getIdUser())
         .idAreaPicture(domain.getIdAreaPicture())
+        .wearness(metadata.wearness())
+        .moldRate(metadata.moldRate())
         .build();
   }
 }

@@ -464,6 +464,18 @@ components:
         wearLevel:
           type: number
           format: double
+        wearness:
+          $ref: "#/components/schemas/Wearness"
+        moldRate:
+          type: number
+          format: double
+    Wearness:
+      type: string
+      enum:
+        - LOW
+        - PARTIAL
+        - ADVANCED
+        - EXTREME
     AreaPictureAnnotation:
       type: object
       properties:

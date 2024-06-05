@@ -2,7 +2,7 @@ package app.bpartners.api.service.event;
 
 import static app.bpartners.api.service.utils.TemplateResolverUtils.parseTemplateResolver;
 
-import app.bpartners.api.endpoint.event.gen.CustomerCrupdated;
+import app.bpartners.api.endpoint.event.model.CustomerCrupdated;
 import app.bpartners.api.model.Attachment;
 import app.bpartners.api.model.Customer;
 import app.bpartners.api.model.Location;

@@ -1,6 +1,6 @@
 package app.bpartners.api.service.event;
 
-import app.bpartners.api.endpoint.event.gen.RelaunchHoldersProspectTriggered;
+import app.bpartners.api.endpoint.event.model.RelaunchHoldersProspectTriggered;
 import app.bpartners.api.service.ProspectService;
 import java.util.function.Consumer;
 import lombok.AllArgsConstructor;

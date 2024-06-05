@@ -1,6 +1,6 @@
 package app.bpartners.api.service.event;
 
-import app.bpartners.api.endpoint.event.gen.InvoiceCrupdated;
+import app.bpartners.api.endpoint.event.model.InvoiceCrupdated;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.Invoice;
 import app.bpartners.api.service.InvoiceService;

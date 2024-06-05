@@ -1,6 +1,7 @@
 package app.bpartners.api.endpoint.event;
 
 import app.bpartners.api.PojaGenerated;
+import app.bpartners.api.datastructure.ListGrouper;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
@@ -27,20 +28,27 @@ public class EventProducer implements Consumer<List<Object>> {
   private final String eventBusName;
   private final EventBridgeClient eventBridgeClient;
 
+  private static final int MAX_EVENTS_FOR_PUT_REQUEST = 10;
+  private final ListGrouper<Object> listGrouper;
+
   public EventProducer(
       ObjectMapper om,
       @Value("${aws.eventBridge.bus}") String eventBusName,
-      EventBridgeClient eventBridgeClient) {
+      EventBridgeClient eventBridgeClient,
+      ListGrouper<Object> listGrouper) {
     this.om = om;
     this.eventBusName = eventBusName;
     this.eventBridgeClient = eventBridgeClient;
+    this.listGrouper = listGrouper;
   }
 
   @Override
   public void accept(List<Object> events) {
-    log.info("Events to send {}", events);
-    PutEventsResponse response = sendRequest(events);
-    checkResponse(response);
+    for (var batch : listGrouper.apply(events, MAX_EVENTS_FOR_PUT_REQUEST)) {
+      log.info("Events to send: {}", batch);
+      PutEventsResponse response = sendRequest(batch);
+      checkResponse(response);
+    }
   }
 
   private PutEventsRequest toEventsRequest(List<Object> events) {

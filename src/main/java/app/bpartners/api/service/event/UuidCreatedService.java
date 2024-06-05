@@ -1,7 +1,7 @@
 package app.bpartners.api.service.event;
 
 import app.bpartners.api.PojaGenerated;
-import app.bpartners.api.endpoint.event.gen.UuidCreated;
+import app.bpartners.api.endpoint.event.model.UuidCreated;
 import app.bpartners.api.repository.DummyUuidRepository;
 import app.bpartners.api.repository.model.DummyUuid;
 import java.util.function.Consumer;

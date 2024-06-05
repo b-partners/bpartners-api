@@ -1,6 +1,6 @@
 package app.bpartners.api.service.event;
 
-import app.bpartners.api.endpoint.event.gen.RefreshFintectureProjectTokenTriggered;
+import app.bpartners.api.endpoint.event.model.RefreshFintectureProjectTokenTriggered;
 import app.bpartners.api.manager.ProjectTokenManager;
 import java.util.function.Consumer;
 import lombok.AllArgsConstructor;

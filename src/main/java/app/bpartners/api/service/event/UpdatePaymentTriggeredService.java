@@ -1,6 +1,6 @@
 package app.bpartners.api.service.event;
 
-import app.bpartners.api.endpoint.event.gen.UpdatePaymentTriggered;
+import app.bpartners.api.endpoint.event.model.UpdatePaymentTriggered;
 import app.bpartners.api.service.PaymentScheduleService;
 import java.util.function.Consumer;
 import lombok.AllArgsConstructor;

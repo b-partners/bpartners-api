@@ -2,30 +2,44 @@ package app.bpartners.api;
 
 import static app.bpartners.api.concurrency.ThreadRenamer.renameWorkerThread;
 import static java.lang.Runtime.getRuntime;
+import static java.lang.System.getenv;
 import static java.lang.Thread.currentThread;
 
-import app.bpartners.api.endpoint.event.EventConsumer;
+import app.bpartners.api.endpoint.EndpointConf;
+import app.bpartners.api.endpoint.event.EventConf;
+import app.bpartners.api.endpoint.event.consumer.EventConsumer;
+import app.bpartners.api.endpoint.event.consumer.model.ConsumableEvent;
+import app.bpartners.api.endpoint.event.consumer.model.ConsumableEventTyper;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.SQSEvent;
+import com.amazonaws.services.lambda.runtime.events.SQSEvent.SQSMessage;
 import com.zaxxer.hikari.HikariDataSource;
 import java.util.List;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
 import org.springframework.context.ConfigurableApplicationContext;
+import software.amazon.awssdk.regions.Region;
 
 @Slf4j
 @PojaGenerated
 public class MailboxEventHandler implements RequestHandler<SQSEvent, String> {
 
   public static final String SPRING_SERVER_PORT_FOR_RANDOM_VALUE = "0";
+  private final ConsumableEventTyper consumableEventTyper =
+      new ConsumableEventTyper(
+          new EndpointConf().objectMapper(),
+          new EventConf(Region.of(getenv("AWS_REGION")), getenv("AWS_SQS_QUEUE_URL")));
 
   @Override
   public String handleRequest(SQSEvent event, Context context) {
     renameWorkerThread(currentThread());
     log.info("Received: event={}, awsReqId={}", event, context.getAwsRequestId());
-    List<SQSEvent.SQSMessage> messages = event.getRecords();
+    List<SQSMessage> messages = event.getRecords();
+    consumableEventTyper
+        .apply(messages)
+        .forEach(ConsumableEvent::newRandomVisibilityTimeout); // note(init-visibility)
     log.info("SQS messages: {}", messages);
 
     var applicationContext = applicationContext();
@@ -39,9 +53,9 @@ public class MailboxEventHandler implements RequestHandler<SQSEvent, String> {
             new Thread(() -> onHandled(applicationContext)));
 
     var eventConsumer = applicationContext.getBean(EventConsumer.class);
-    var messageConverter = applicationContext.getBean(EventConsumer.SqsMessageAckTyper.class);
+    var messageConverter = applicationContext.getBean(ConsumableEventTyper.class);
 
-    eventConsumer.accept(messageConverter.toAcknowledgeableEvents(messages));
+    eventConsumer.accept(messageConverter.apply(messages));
 
     onHandled(applicationContext);
     return "ok";

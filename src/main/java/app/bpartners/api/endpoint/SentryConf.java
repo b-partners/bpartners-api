@@ -1,5 +1,6 @@
 package app.bpartners.api.endpoint;
 
+import app.bpartners.api.PojaGenerated;
 import io.sentry.Sentry;
 import io.sentry.Sentry.OptionsConfiguration;
 import io.sentry.SentryOptions;
@@ -7,6 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+@PojaGenerated
 @Configuration
 public class SentryConf {
 

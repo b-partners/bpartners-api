@@ -1,6 +1,6 @@
 package app.bpartners.api.service.event;
 
-import app.bpartners.api.endpoint.event.gen.FeedbackRequested;
+import app.bpartners.api.endpoint.event.model.FeedbackRequested;
 import app.bpartners.api.model.Attachment;
 import app.bpartners.api.service.aws.SesService;
 import java.io.IOException;

@@ -10,7 +10,7 @@ Resources:
     Type: AWS::SQS::Queue
     Properties:
       QueueName: !Join ['' , [!Ref Env , -bpartners]]
-      VisibilityTimeout: 601
+      VisibilityTimeout: 90 #note(init-visibility)
       RedrivePolicy:
         deadLetterTargetArn: !GetAtt DeadLetterQueue.Arn
         maxReceiveCount: 5

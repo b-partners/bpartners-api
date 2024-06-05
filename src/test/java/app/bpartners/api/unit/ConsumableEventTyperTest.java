@@ -8,8 +8,11 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import app.bpartners.api.PojaGenerated;
-import app.bpartners.api.endpoint.event.EventConsumer;
-import app.bpartners.api.endpoint.event.gen.UuidCreated;
+import app.bpartners.api.conf.FacadeIT;
+import app.bpartners.api.endpoint.event.consumer.model.ConsumableEvent;
+import app.bpartners.api.endpoint.event.consumer.model.ConsumableEventTyper;
+import app.bpartners.api.endpoint.event.consumer.model.TypedEvent;
+import app.bpartners.api.endpoint.event.model.UuidCreated;
 import com.amazonaws.services.lambda.runtime.events.SQSEvent;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -21,14 +24,13 @@ import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.DeleteMessageRequest;
 
 @PojaGenerated
-public class SqsMessageAckTyperTest extends app.bpartners.api.integration.conf.MockedThirdParties {
+public class ConsumableEventTyperTest extends FacadeIT {
   public static final String UNKNOWN_TYPENAME = "unknown_typename";
-  @Autowired EventConsumer.SqsMessageAckTyper subject;
+  @Autowired ConsumableEventTyper subject;
   @Autowired ObjectMapper om;
   @MockBean SqsClient sqsClient;
 
-  private SQSEvent.SQSMessage sqsMessageFrom(EventConsumer.TypedEvent typedEvent)
-      throws JsonProcessingException {
+  private SQSEvent.SQSMessage sqsMessageFrom(TypedEvent typedEvent) throws JsonProcessingException {
     var message = new SQSEvent.SQSMessage();
     message.setBody(
         "{\"detail-type\":\""
@@ -39,9 +41,8 @@ public class SqsMessageAckTyperTest extends app.bpartners.api.integration.conf.M
     return message;
   }
 
-  private EventConsumer.AcknowledgeableTypedEvent ackTypedEventfrom(
-      EventConsumer.TypedEvent typedEvent) {
-    return new EventConsumer.AcknowledgeableTypedEvent(typedEvent, () -> {});
+  private ConsumableEvent ackTypedEventfrom(TypedEvent typedEvent) {
+    return new ConsumableEvent(typedEvent, () -> {}, () -> {});
   }
 
   @Test
@@ -49,8 +50,7 @@ public class SqsMessageAckTyperTest extends app.bpartners.api.integration.conf.M
     var uuid = randomUUID().toString();
     var uuidCreated = UuidCreated.builder().uuid(uuid).build();
     var payload = om.readValue(om.writeValueAsString(uuidCreated), UuidCreated.class);
-    var typedEvent =
-        new EventConsumer.TypedEvent("app.bpartners.api.endpoint.event.gen.UuidCreated", payload);
+    var typedEvent = new TypedEvent("app.bpartners.api.endpoint.event.model.UuidCreated", payload);
 
     var actualAcknowledgeableEvents = subject.apply(List.of(sqsMessageFrom(typedEvent)));
     var actualAcknowledgeableEvent = actualAcknowledgeableEvents.get(0);
@@ -65,9 +65,9 @@ public class SqsMessageAckTyperTest extends app.bpartners.api.integration.conf.M
     var uuid = randomUUID().toString();
     var uuidCreated = UuidCreated.builder().uuid(uuid).build();
     var payload = om.readValue(om.writeValueAsString(uuidCreated), UuidCreated.class);
-    var unknownTypenameTypedEvent = new EventConsumer.TypedEvent(UNKNOWN_TYPENAME, payload);
+    var unknownTypenameTypedEvent = new TypedEvent(UNKNOWN_TYPENAME, payload);
     var validTypedEvent =
-        new EventConsumer.TypedEvent("app.bpartners.api.endpoint.event.gen.UuidCreated", payload);
+        new TypedEvent("app.bpartners.api.endpoint.event.model.UuidCreated", payload);
 
     var actualAcknowledgeableEvents =
         subject.apply(

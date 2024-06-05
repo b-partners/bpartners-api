@@ -19,6 +19,8 @@ jacoco {
 
 sonarqube {
     properties {
+        property "sonar.java.source", "21"
+        property "sonar.java.target", "21"
     }
 } 
 

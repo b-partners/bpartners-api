@@ -28,13 +28,13 @@ public class DurablyFallibleUuidCreated extends PojaEvent {
   }
 
   @Override
-  public Duration maxDuration() {
+  public Duration maxConsumerDuration() {
     return Duration.ofSeconds(
-        waitDurationBeforeConsumingInSeconds + uuidCreated.maxDuration().toSeconds());
+        waitDurationBeforeConsumingInSeconds + uuidCreated.maxConsumerDuration().toSeconds());
   }
 
   @Override
-  public Duration maxBackoffBetweenRetries() {
-    return uuidCreated.maxBackoffBetweenRetries();
+  public Duration maxConsumerBackoffBetweenRetries() {
+    return uuidCreated.maxConsumerBackoffBetweenRetries();
   }
 }

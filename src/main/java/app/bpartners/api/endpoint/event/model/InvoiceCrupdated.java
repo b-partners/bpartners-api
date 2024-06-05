@@ -3,7 +3,6 @@ package app.bpartners.api.endpoint.event.model;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.Invoice;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.io.Serializable;
 import java.time.Duration;
 import java.util.Objects;
 import javax.annotation.processing.Generated;
@@ -49,12 +48,12 @@ public class InvoiceCrupdated extends PojaEvent {
   }
 
   @Override
-  public Duration maxDuration() {
+  public Duration maxConsumerDuration() {
     return Duration.ofMinutes(3);
   }
 
   @Override
-  public Duration maxBackoffBetweenRetries() {
+  public Duration maxConsumerBackoffBetweenRetries() {
     return Duration.ofMinutes(1);
   }
 }

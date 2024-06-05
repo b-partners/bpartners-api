@@ -1,7 +1,6 @@
 package app.bpartners.api.endpoint.event.model;
 
 import app.bpartners.api.model.prospect.Prospect;
-import java.io.Serializable;
 import java.time.Duration;
 import java.time.Instant;
 import lombok.AllArgsConstructor;
@@ -23,12 +22,12 @@ public class ProspectUpdated extends PojaEvent {
   private Instant updatedAt;
 
   @Override
-  public Duration maxDuration() {
+  public Duration maxConsumerDuration() {
     return Duration.ofMinutes(1);
   }
 
   @Override
-  public Duration maxBackoffBetweenRetries() {
+  public Duration maxConsumerBackoffBetweenRetries() {
     return Duration.ofMinutes(1);
   }
 }

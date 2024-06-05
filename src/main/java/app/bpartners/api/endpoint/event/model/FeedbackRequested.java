@@ -1,7 +1,6 @@
 package app.bpartners.api.endpoint.event.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.io.Serializable;
 import java.time.Duration;
 import java.util.List;
 import javax.annotation.processing.Generated;
@@ -35,12 +34,12 @@ public class FeedbackRequested extends PojaEvent {
   private List<String> recipientsEmails;
 
   @Override
-  public Duration maxDuration() {
+  public Duration maxConsumerDuration() {
     return Duration.ofMinutes(1);
   }
 
   @Override
-  public Duration maxBackoffBetweenRetries() {
+  public Duration maxConsumerBackoffBetweenRetries() {
     return Duration.ofMinutes(1);
   }
 }

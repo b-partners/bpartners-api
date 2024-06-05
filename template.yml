@@ -9,7 +9,6 @@ Globals:
     Tracing: Active
     Architectures:
       - x86_64
-    Timeout: 600
     EventInvokeConfig:
       MaximumRetryAttempts: 0
     AutoPublishAlias: live
@@ -90,6 +89,7 @@ Resources:
     Properties:
       Handler: app.bpartners.api.ApiEventHandler::handleRequest
       MemorySize: 512
+      Timeout: 30
       Role: !Sub '{{resolve:ssm:/bpartners/${Env}/execution/role-arn}}'
       
       Events:
@@ -107,6 +107,7 @@ Resources:
     Properties:
       Handler: app.bpartners.api.MailboxEventHandler::handleRequest
       MemorySize: 1024
+      Timeout: 600 #note(sqs-visibility)
       Role: !Sub '{{resolve:ssm:/bpartners/${Env}/execution/role-arn}}'
       
       Events:

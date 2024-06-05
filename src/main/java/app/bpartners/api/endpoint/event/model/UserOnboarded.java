@@ -2,7 +2,6 @@ package app.bpartners.api.endpoint.event.model;
 
 import app.bpartners.api.model.OnboardedUser;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.io.Serializable;
 import java.time.Duration;
 import javax.annotation.processing.Generated;
 import lombok.Data;
@@ -41,12 +40,12 @@ public class UserOnboarded extends PojaEvent {
   }
 
   @Override
-  public Duration maxDuration() {
+  public Duration maxConsumerDuration() {
     return Duration.ofMinutes(1);
   }
 
   @Override
-  public Duration maxBackoffBetweenRetries() {
+  public Duration maxConsumerBackoffBetweenRetries() {
     return Duration.ofMinutes(1);
   }
 }

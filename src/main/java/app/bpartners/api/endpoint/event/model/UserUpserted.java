@@ -1,7 +1,6 @@
 package app.bpartners.api.endpoint.event.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.io.Serializable;
 import java.time.Duration;
 import java.util.Objects;
 import javax.annotation.processing.Generated;
@@ -81,12 +80,12 @@ public class UserUpserted extends PojaEvent {
   }
 
   @Override
-  public Duration maxDuration() {
+  public Duration maxConsumerDuration() {
     return Duration.ofMinutes(2);
   }
 
   @Override
-  public Duration maxBackoffBetweenRetries() {
+  public Duration maxConsumerBackoffBetweenRetries() {
     return Duration.ofMinutes(1);
   }
 }

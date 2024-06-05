@@ -24,7 +24,7 @@ class UuidCreatedIT extends FacadeIT {
 
     assertEquals(uuid, deserialized);
     assertEquals("dummy", deserialized.getUuid());
-    assertEquals(Duration.ofSeconds(10), deserialized.maxDuration());
-    assertEquals(Duration.ofSeconds(30), deserialized.maxBackoffBetweenRetries());
+    assertEquals(Duration.ofSeconds(10), deserialized.maxConsumerDuration());
+    assertEquals(Duration.ofSeconds(30), deserialized.maxConsumerBackoffBetweenRetries());
   }
 }

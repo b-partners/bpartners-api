@@ -1,3 +1,12 @@
+# [0.50.0](https://github.com/b-partners/bpartners-api/compare/v0.49.0...v0.50.0) (2024-06-05)
+
+
+### Features
+
+* add additional properties to area picture annotation metadata ([e3971b8](https://github.com/b-partners/bpartners-api/commit/e3971b87eeb927662bc4817b0c6e66f641673c45))
+
+
+
 # [0.49.0](https://github.com/b-partners/bpartners-api/compare/v0.48.0...v0.49.0) (2024-06-04)
 
 
@@ -106,29 +115,6 @@
 ### Reverts
 
 * Revert "chore(to-revert): disable filename pattern matching" ([a4f07d4](https://github.com/b-partners/bpartners-api/commit/a4f07d41b780d8e62a13f849a7d56eddd76a5b81))
-
-
-
-# [0.40.0](https://github.com/b-partners/bpartners-api/compare/v0.39.0...v0.40.0) (2024-04-04)
-
-
-### Bug Fixes
-
-* avoid NPE during old customer import evaluation ([258e977](https://github.com/b-partners/bpartners-api/commit/258e97777ddb7f37a557f3def280c05d4254cbd9))
-* disconnect bank when bridge items is empty ([1da7948](https://github.com/b-partners/bpartners-api/commit/1da7948ed6a8020b9aea405ed5bf44f650237a48))
-* implement invoice summary scheduled task ([38dad3e](https://github.com/b-partners/bpartners-api/commit/38dad3ef0238b183e4a1ffef0a5bc8a94f27e0ac))
-* optimize invoices summary without count value ([4b78a90](https://github.com/b-partners/bpartners-api/commit/4b78a903d94c13d6eca0725ed3d6899c97ceb66d))
-* set prospect contact nature to prospect and reformat project ([1707b0a](https://github.com/b-partners/bpartners-api/commit/1707b0ad63cc9f6b0299b3156359a21bcde97e05))
-* set prospect rating default value to 1 ([bda7576](https://github.com/b-partners/bpartners-api/commit/bda7576a97eef39bedc35804a43669b02e0d641b))
-* **test:** event is not ack if eventserviceInvoker fails ([1f765c1](https://github.com/b-partners/bpartners-api/commit/1f765c17ef497d9a6880cc068c74848bb2a67745))
-* **test:** make broken tests pass ([44d25d7](https://github.com/b-partners/bpartners-api/commit/44d25d7ec2dd28b2257db3b5f1ef3082d3f66602))
-
-
-### Features
-
-* area picture download from s3 or from osm ([e7140b3](https://github.com/b-partners/bpartners-api/commit/e7140b36075bdaf1c66a586625983a1b3d903da2))
-* multipart upload ([117b2bf](https://github.com/b-partners/bpartners-api/commit/117b2bf154eaeb0cc40e7785b1fcf0f467446598))
-* read area pictures ([a393e3e](https://github.com/b-partners/bpartners-api/commit/a393e3e4c6b12049b31aab8703dd959053e57639))
 
 
 

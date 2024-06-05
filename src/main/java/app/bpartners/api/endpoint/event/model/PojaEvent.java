@@ -6,19 +6,19 @@ import java.time.Duration;
 
 @PojaGenerated
 public abstract class PojaEvent implements Serializable {
-  public abstract Duration maxDuration();
+  public abstract Duration maxConsumerDuration();
 
-  private Duration randomBackoffBetweenRetries() {
-    return Duration.ofSeconds(maxBackoffBetweenRetries().toSeconds());
+  private Duration randomConsumerBackoffBetweenRetries() {
+    return Duration.ofSeconds(maxConsumerBackoffBetweenRetries().toSeconds());
   }
 
-  public abstract Duration maxBackoffBetweenRetries();
+  public abstract Duration maxConsumerBackoffBetweenRetries();
 
   public final Duration randomVisibilityTimeout() {
     var eventHandlerInitMaxDuration = Duration.ofSeconds(90); // note(init-visibility)
     return Duration.ofSeconds(
         eventHandlerInitMaxDuration.toSeconds()
-            + maxDuration().toSeconds()
-            + randomBackoffBetweenRetries().toSeconds());
+            + maxConsumerDuration().toSeconds()
+            + randomConsumerBackoffBetweenRetries().toSeconds());
   }
 }

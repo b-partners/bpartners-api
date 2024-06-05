@@ -22,12 +22,12 @@ public class UuidCreated extends PojaEvent {
   private String uuid;
 
   @Override
-  public Duration maxDuration() {
+  public Duration maxConsumerDuration() {
     return Duration.ofSeconds(10);
   }
 
   @Override
-  public Duration maxBackoffBetweenRetries() {
+  public Duration maxConsumerBackoffBetweenRetries() {
     return Duration.ofSeconds(30);
   }
 }

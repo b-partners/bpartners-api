@@ -1,8 +1,9 @@
-package app.bpartners.api.endpoint.event.gen;
+package app.bpartners.api.endpoint.event.model;
 
 import app.bpartners.api.endpoint.rest.model.FileType;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;
+import java.time.Duration;
 import java.util.Objects;
 import javax.annotation.processing.Generated;
 import lombok.AllArgsConstructor;
@@ -17,7 +18,7 @@ import lombok.ToString;
 @Builder
 @Data
 @ToString
-public class FileSaved implements Serializable {
+public class FileSaved extends PojaEvent {
   private static final long serialVersionUID = 1L;
 
   @JsonProperty("fileType")
@@ -54,5 +55,15 @@ public class FileSaved implements Serializable {
   @Override
   public int hashCode() {
     return Objects.hash(fileId, fileType, fileAsBytes, accountId);
+  }
+
+  @Override
+  public Duration maxDuration() {
+    return Duration.ofMinutes(3);
+  }
+
+  @Override
+  public Duration maxBackoffBetweenRetries() {
+    return Duration.ofMinutes(1);
   }
 }

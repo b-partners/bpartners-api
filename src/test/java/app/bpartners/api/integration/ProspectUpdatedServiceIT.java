@@ -17,7 +17,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import app.bpartners.api.endpoint.event.SesConf;
-import app.bpartners.api.endpoint.event.gen.ProspectUpdated;
+import app.bpartners.api.endpoint.event.model.ProspectUpdated;
 import app.bpartners.api.endpoint.rest.model.Geojson;
 import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.model.Customer;

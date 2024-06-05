@@ -18,8 +18,8 @@ import static java.util.UUID.randomUUID;
 
 import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.endpoint.event.SesConf;
-import app.bpartners.api.endpoint.event.gen.ProspectEvaluationJobInitiated;
-import app.bpartners.api.endpoint.event.gen.ProspectUpdated;
+import app.bpartners.api.endpoint.event.model.ProspectEvaluationJobInitiated;
+import app.bpartners.api.endpoint.event.model.ProspectUpdated;
 import app.bpartners.api.endpoint.rest.model.ContactNature;
 import app.bpartners.api.endpoint.rest.model.Geojson;
 import app.bpartners.api.endpoint.rest.model.JobStatusValue;

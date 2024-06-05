@@ -11,7 +11,7 @@ import static app.bpartners.api.service.utils.FileInfoUtils.PDF_EXTENSION;
 import static java.util.UUID.randomUUID;
 
 import app.bpartners.api.endpoint.event.SesConf;
-import app.bpartners.api.endpoint.event.gen.InvoiceRelaunchSaved;
+import app.bpartners.api.endpoint.event.model.InvoiceRelaunchSaved;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.endpoint.rest.security.model.Principal;
 import app.bpartners.api.endpoint.rest.security.principal.PrincipalProvider;

@@ -11,7 +11,7 @@ import static app.bpartners.api.service.utils.DateUtils.formatFrenchDatetime;
 import static java.util.UUID.randomUUID;
 
 import app.bpartners.api.endpoint.event.SesConf;
-import app.bpartners.api.endpoint.event.gen.ProspectEvaluationJobInitiated;
+import app.bpartners.api.endpoint.event.model.ProspectEvaluationJobInitiated;
 import app.bpartners.api.endpoint.rest.mapper.ProspectRestMapper;
 import app.bpartners.api.endpoint.rest.model.CalendarProvider;
 import app.bpartners.api.endpoint.rest.model.EvaluatedProspect;

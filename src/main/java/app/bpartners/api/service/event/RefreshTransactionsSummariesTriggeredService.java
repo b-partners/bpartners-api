@@ -1,6 +1,6 @@
 package app.bpartners.api.service.event;
 
-import app.bpartners.api.endpoint.event.gen.RefreshTransactionsSummariesTriggered;
+import app.bpartners.api.endpoint.event.model.RefreshTransactionsSummariesTriggered;
 import app.bpartners.api.service.TransactionService;
 import java.util.function.Consumer;
 import lombok.AllArgsConstructor;

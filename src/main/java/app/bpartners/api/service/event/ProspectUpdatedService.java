@@ -7,7 +7,7 @@ import static app.bpartners.api.service.utils.DateUtils.formatFrenchDatetime;
 import static java.util.UUID.randomUUID;
 
 import app.bpartners.api.endpoint.event.SesConf;
-import app.bpartners.api.endpoint.event.gen.ProspectUpdated;
+import app.bpartners.api.endpoint.event.model.ProspectUpdated;
 import app.bpartners.api.endpoint.rest.model.ProspectFeedback;
 import app.bpartners.api.endpoint.rest.model.ProspectStatus;
 import app.bpartners.api.model.AccountHolder;

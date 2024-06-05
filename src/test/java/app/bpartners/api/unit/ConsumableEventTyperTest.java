@@ -8,7 +8,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import app.bpartners.api.PojaGenerated;
-import app.bpartners.api.conf.FacadeIT;
 import app.bpartners.api.endpoint.event.consumer.model.ConsumableEvent;
 import app.bpartners.api.endpoint.event.consumer.model.ConsumableEventTyper;
 import app.bpartners.api.endpoint.event.consumer.model.TypedEvent;
@@ -24,7 +23,8 @@ import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.DeleteMessageRequest;
 
 @PojaGenerated
-public class ConsumableEventTyperTest extends FacadeIT {
+public class ConsumableEventTyperTest
+    extends app.bpartners.api.integration.conf.MockedThirdParties {
   public static final String UNKNOWN_TYPENAME = "unknown_typename";
   @Autowired ConsumableEventTyper subject;
   @Autowired ObjectMapper om;

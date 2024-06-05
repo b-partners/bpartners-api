@@ -1,5 +1,6 @@
 package app.bpartners.api.model;
 
+import app.bpartners.api.endpoint.rest.model.Wearness;
 import jakarta.persistence.Id;
 import java.io.Serializable;
 import java.util.List;
@@ -43,6 +44,9 @@ public class AreaPictureAnnotationInstance {
       String obstacle,
       String comment,
       String fillColor,
-      String strokeColor)
+      String strokeColor,
+      Wearness wearness,
+      Double moldRate,
+      Boolean hasVelux)
       implements Serializable {}
 }

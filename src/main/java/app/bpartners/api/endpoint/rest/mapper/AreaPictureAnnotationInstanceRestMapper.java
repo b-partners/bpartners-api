@@ -44,6 +44,8 @@ public class AreaPictureAnnotationInstanceRestMapper {
         .strokeColor(domain.strokeColor())
         .fillColor(domain.fillColor())
         .obstacle(domain.obstacle())
+        .wearness(domain.wearness())
+        .moldRate(domain.moldRate())
         .slope(domain.slope());
   }
 
@@ -84,6 +86,8 @@ public class AreaPictureAnnotationInstanceRestMapper {
         .strokeColor(rest.getStrokeColor())
         .fillColor(rest.getFillColor())
         .obstacle(rest.getObstacle())
+        .wearness(rest.getWearness())
+        .moldRate(rest.getMoldRate())
         .build();
   }
 

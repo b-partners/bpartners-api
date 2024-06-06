@@ -7,8 +7,8 @@ import static org.springframework.transaction.annotation.Isolation.SERIALIZABLE;
 
 import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.endpoint.event.SesConf;
-import app.bpartners.api.endpoint.event.gen.UserOnboarded;
-import app.bpartners.api.endpoint.event.gen.UserUpserted;
+import app.bpartners.api.endpoint.event.model.UserOnboarded;
+import app.bpartners.api.endpoint.event.model.UserUpserted;
 import app.bpartners.api.endpoint.rest.model.AccountStatus;
 import app.bpartners.api.endpoint.rest.model.EnableStatus;
 import app.bpartners.api.endpoint.rest.model.IdentificationStatus;

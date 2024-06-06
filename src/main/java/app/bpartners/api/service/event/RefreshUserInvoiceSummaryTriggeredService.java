@@ -1,6 +1,6 @@
 package app.bpartners.api.service.event;
 
-import app.bpartners.api.endpoint.event.gen.RefreshUserInvoiceSummaryTriggered;
+import app.bpartners.api.endpoint.event.model.RefreshUserInvoiceSummaryTriggered;
 import app.bpartners.api.service.InvoiceSummaryService;
 import java.util.function.Consumer;
 import lombok.AllArgsConstructor;

@@ -1,5 +1,6 @@
 package app.bpartners.api.integration;
 
+import static app.bpartners.api.endpoint.rest.model.Wearness.PARTIAL;
 import static app.bpartners.api.integration.AreaPictureIT.AREA_PICTURE_1_ID;
 import static app.bpartners.api.integration.AreaPictureIT.AREA_PICTURE_2_ID;
 import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_ID;
@@ -29,43 +30,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class AreaPictureAnnotationIT extends MockedThirdParties {
-  @Autowired ObjectMapper om;
-
-  private ApiClient joeDoeClient() {
-    return TestUtils.anApiClient(JOE_DOE_TOKEN, localPort);
-  }
-
   private static final String AREA_PICTURE_ANNOTATION_1_ID = "area_picture_annotation_1_id";
   private static final String AREA_PICTURE_ANNOTATION_2_ID = "area_picture_annotation_2_id";
-
-  @Test
-  void joe_doe_read_his_annotations_ok() throws ApiException {
-    ApiClient apiClient = joeDoeClient();
-    AreaPictureApi api = new AreaPictureApi(apiClient);
-
-    var actualAnnotations =
-        api.getAreaPictureAnnotations(JOE_DOE_ACCOUNT_ID, AREA_PICTURE_1_ID, null, null);
-    var actualAnnotation =
-        api.getAreaPictureAnnotation(
-            JOE_DOE_ACCOUNT_ID, AREA_PICTURE_1_ID, AREA_PICTURE_ANNOTATION_1_ID);
-
-    assertEquals(areaPictureAnnotation1(), actualAnnotation);
-    assertTrue(
-        actualAnnotations.containsAll(List.of(areaPictureAnnotation2(), areaPictureAnnotation1())));
-  }
-
-  @Test
-  void joe_doe_annotate_his_images_ok() throws ApiException {
-    ApiClient apiClient = joeDoeClient();
-    AreaPictureApi api = new AreaPictureApi(apiClient);
-    String payloadId = randomUUID().toString();
-    AreaPictureAnnotation expected = createAreaPictureAnnotation(payloadId, AREA_PICTURE_2_ID);
-
-    var createdAnnotation =
-        api.annotateAreaPicture(JOE_DOE_ACCOUNT_ID, AREA_PICTURE_1_ID, payloadId, expected);
-
-    assertEquals(ignoreCreationDatetime(expected), ignoreCreationDatetime(createdAnnotation));
-  }
+  @Autowired ObjectMapper om;
 
   static AreaPictureAnnotation createAreaPictureAnnotation(String payloadId, String areaPictureId) {
     return new AreaPictureAnnotation()
@@ -113,6 +80,8 @@ public class AreaPictureAnnotationIT extends MockedThirdParties {
                 .strokeColor("#090909")
                 .fillColor("#909090")
                 .obstacle("panneau")
+                .moldRate(10.0)
+                .wearness(PARTIAL)
                 .wearLevel(100.0));
   }
 
@@ -135,6 +104,8 @@ public class AreaPictureAnnotationIT extends MockedThirdParties {
                 .strokeColor("#090909")
                 .fillColor("#909090")
                 .obstacle("panneau")
+                .moldRate(10.0)
+                .wearness(PARTIAL)
                 .wearLevel(100.0));
   }
 
@@ -156,7 +127,42 @@ public class AreaPictureAnnotationIT extends MockedThirdParties {
                 .strokeColor("#090909")
                 .fillColor("#909090")
                 .obstacle("panneau")
-                .wearLevel(100.0));
+                .wearLevel(100.0)
+                .moldRate(10.0)
+                .wearness(PARTIAL));
+  }
+
+  private ApiClient joeDoeClient() {
+    return TestUtils.anApiClient(JOE_DOE_TOKEN, localPort);
+  }
+
+  @Test
+  void joe_doe_read_his_annotations_ok() throws ApiException {
+    ApiClient apiClient = joeDoeClient();
+    AreaPictureApi api = new AreaPictureApi(apiClient);
+
+    var actualAnnotations =
+        api.getAreaPictureAnnotations(JOE_DOE_ACCOUNT_ID, AREA_PICTURE_1_ID, null, null);
+    var actualAnnotation =
+        api.getAreaPictureAnnotation(
+            JOE_DOE_ACCOUNT_ID, AREA_PICTURE_1_ID, AREA_PICTURE_ANNOTATION_1_ID);
+
+    assertEquals(areaPictureAnnotation1(), actualAnnotation);
+    assertTrue(
+        actualAnnotations.containsAll(List.of(areaPictureAnnotation2(), areaPictureAnnotation1())));
+  }
+
+  @Test
+  void joe_doe_annotate_his_images_ok() throws ApiException {
+    ApiClient apiClient = joeDoeClient();
+    AreaPictureApi api = new AreaPictureApi(apiClient);
+    String payloadId = randomUUID().toString();
+    AreaPictureAnnotation expected = createAreaPictureAnnotation(payloadId, AREA_PICTURE_2_ID);
+
+    var createdAnnotation =
+        api.annotateAreaPicture(JOE_DOE_ACCOUNT_ID, AREA_PICTURE_1_ID, payloadId, expected);
+
+    assertEquals(ignoreCreationDatetime(expected), ignoreCreationDatetime(createdAnnotation));
   }
 
   @BeforeEach

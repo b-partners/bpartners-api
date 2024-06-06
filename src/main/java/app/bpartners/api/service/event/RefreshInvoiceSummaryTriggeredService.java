@@ -1,8 +1,8 @@
 package app.bpartners.api.service.event;
 
 import app.bpartners.api.endpoint.event.EventProducer;
-import app.bpartners.api.endpoint.event.gen.RefreshInvoiceSummaryTriggered;
-import app.bpartners.api.endpoint.event.gen.RefreshUserInvoiceSummaryTriggered;
+import app.bpartners.api.endpoint.event.model.RefreshInvoiceSummaryTriggered;
+import app.bpartners.api.endpoint.event.model.RefreshUserInvoiceSummaryTriggered;
 import app.bpartners.api.endpoint.rest.model.EnableStatus;
 import app.bpartners.api.service.UserService;
 import java.util.List;

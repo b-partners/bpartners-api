@@ -2,7 +2,7 @@ package app.bpartners.api.service.event;
 
 import static app.bpartners.api.service.utils.TemplateResolverUtils.parseTemplateResolver;
 
-import app.bpartners.api.endpoint.event.gen.UserOnboarded;
+import app.bpartners.api.endpoint.event.model.UserOnboarded;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.Attachment;

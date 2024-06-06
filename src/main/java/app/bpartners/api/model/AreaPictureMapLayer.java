@@ -27,7 +27,8 @@ public class AreaPictureMapLayer implements Comparable<AreaPictureMapLayer> {
 
   @Override
   public int compareTo(AreaPictureMapLayer o2) {
-    var precisionComparison = Integer.compare(this.precisionLevelInCm, o2.precisionLevelInCm);
+    // i.e 5cm precision is better than 20cm precision
+    var precisionComparison = Integer.compare(o2.precisionLevelInCm, this.precisionLevelInCm);
     if (precisionComparison == 0) {
       return Integer.compare(this.year, o2.year);
     }

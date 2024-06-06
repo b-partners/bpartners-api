@@ -1,7 +1,7 @@
-package app.bpartners.api.endpoint.event.gen;
+package app.bpartners.api.endpoint.event.model;
 
 import app.bpartners.api.model.prospect.Prospect;
-import java.io.Serializable;
+import java.time.Duration;
 import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -15,9 +15,19 @@ import lombok.ToString;
 @Builder(toBuilder = true)
 @AllArgsConstructor
 @NoArgsConstructor
-@EqualsAndHashCode
+@EqualsAndHashCode(callSuper = false)
 @ToString
-public class ProspectUpdated implements Serializable {
+public class ProspectUpdated extends PojaEvent {
   private Prospect prospect;
   private Instant updatedAt;
+
+  @Override
+  public Duration maxConsumerDuration() {
+    return Duration.ofMinutes(1);
+  }
+
+  @Override
+  public Duration maxConsumerBackoffBetweenRetries() {
+    return Duration.ofMinutes(1);
+  }
 }

@@ -4,7 +4,10 @@ import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import app.bpartners.api.PojaGenerated;
-import app.bpartners.api.endpoint.event.gen.UuidCreated;
+import app.bpartners.api.endpoint.event.consumer.EventConsumer;
+import app.bpartners.api.endpoint.event.consumer.model.ConsumableEvent;
+import app.bpartners.api.endpoint.event.consumer.model.TypedEvent;
+import app.bpartners.api.endpoint.event.model.UuidCreated;
 import app.bpartners.api.repository.DummyUuidRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -27,9 +30,10 @@ class EventConsumerIT extends app.bpartners.api.integration.conf.MockedThirdPart
 
     subject.accept(
         List.of(
-            new EventConsumer.AcknowledgeableTypedEvent(
-                new EventConsumer.TypedEvent(
-                    "app.bpartners.api.endpoint.event.gen.UuidCreated", payloadReceived),
+            new ConsumableEvent(
+                new TypedEvent(
+                    "app.bpartners.api.endpoint.event.model.UuidCreated", payloadReceived),
+                () -> {},
                 () -> {})));
 
     Thread.sleep(2_000);

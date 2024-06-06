@@ -1,14 +1,14 @@
-package app.bpartners.api.endpoint.event.gen;
+package app.bpartners.api.endpoint.event.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.io.Serializable;
+import java.time.Duration;
 import java.util.Objects;
 import javax.annotation.processing.Generated;
 import lombok.ToString;
 
 @Generated("EventBridge")
 @ToString
-public class UserUpserted implements Serializable {
+public class UserUpserted extends PojaEvent {
   private static final long serialVersionUID = 1L;
 
   @JsonProperty("userId")
@@ -77,5 +77,15 @@ public class UserUpserted implements Serializable {
       return "null";
     }
     return o.toString().replace("\n", "\n    ");
+  }
+
+  @Override
+  public Duration maxConsumerDuration() {
+    return Duration.ofMinutes(2);
+  }
+
+  @Override
+  public Duration maxConsumerBackoffBetweenRetries() {
+    return Duration.ofMinutes(1);
   }
 }

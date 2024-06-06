@@ -30,6 +30,7 @@ class BanIT extends MockedThirdParties {
     assertEquals(
         GeoPosition.builder()
             .label("356 Rue des Pyrénées 75020 Paris")
+            .score(0.9865981818181818)
             .coordinates(
                 GeoUtils.Coordinate.builder().latitude(48.87398).longitude(2.386415).build())
             .build(),

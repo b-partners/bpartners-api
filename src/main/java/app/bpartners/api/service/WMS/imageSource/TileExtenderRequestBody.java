@@ -29,7 +29,7 @@ public class TileExtenderRequestBody implements Serializable {
   }
 
   public static TileExtenderRequestBody from(AreaPicture areaPicture) {
-    var tile = areaPicture.getTile();
+    var tile = areaPicture.getCurrentTile();
     var currentLayer = areaPicture.getCurrentLayer();
     return TileExtenderRequestBody.builder()
         .x(tile.getX())

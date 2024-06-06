@@ -7,7 +7,7 @@ import static java.util.stream.Collectors.toList;
 import app.bpartners.api.endpoint.event.EventConf;
 import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.endpoint.event.SesConf;
-import app.bpartners.api.endpoint.event.gen.CustomerCrupdated;
+import app.bpartners.api.endpoint.event.model.CustomerCrupdated;
 import app.bpartners.api.endpoint.rest.mapper.CustomerRestMapper;
 import app.bpartners.api.endpoint.rest.model.CreateCustomer;
 import app.bpartners.api.endpoint.rest.model.CustomerStatus;

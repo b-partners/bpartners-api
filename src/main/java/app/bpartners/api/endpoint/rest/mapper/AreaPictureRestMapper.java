@@ -5,6 +5,7 @@ import static app.bpartners.api.endpoint.rest.model.OpenStreetMapLayer.TOUS_FR;
 import app.bpartners.api.endpoint.rest.model.AreaPictureDetails;
 import app.bpartners.api.endpoint.rest.model.CrupdateAreaPictureDetails;
 import app.bpartners.api.endpoint.rest.model.OpenStreetMapLayer;
+import app.bpartners.api.endpoint.rest.model.Tile;
 import app.bpartners.api.endpoint.rest.model.Zoom;
 import app.bpartners.api.endpoint.rest.model.ZoomLevel;
 import app.bpartners.api.endpoint.rest.validator.CrupdateAreaPictureDetailsValidator;
@@ -22,11 +23,17 @@ import org.springframework.stereotype.Component;
 public class AreaPictureRestMapper {
   private final CrupdateAreaPictureDetailsValidator validator;
   private final AreaPictureMapLayerRestMapper layerRestMapper;
-  @Deprecated private final AreaPictureMapLayerService areaPictureMapLayer;
+  @Deprecated private final AreaPictureMapLayerService areaPictureMapLayerService;
+
+  private static Tile toRestTile(app.bpartners.api.service.WMS.Tile domain, Zoom zoom) {
+    return new Tile().x(domain.getX()).y(domain.getY()).zoom(zoom);
+  }
 
   public AreaPictureDetails toRest(AreaPicture domain) {
     var arcgisZoom = domain.getArcgisZoom();
     Zoom zoom = new Zoom().level(domain.getZoomLevel()).number(arcgisZoom.getZoomLevel());
+    var tile = toRestTile(domain.getCurrentTile(), zoom);
+    Tile referenceTile = toRestTile(domain.getReferenceTile(), zoom);
     return new AreaPictureDetails()
         .id(domain.getId())
         .fileId(domain.getIdFileInfo())
@@ -35,14 +42,18 @@ public class AreaPictureRestMapper {
         .zoomLevel(domain.getZoomLevel())
         .createdAt(domain.getCreatedAt())
         .updatedAt(domain.getUpdatedAt())
-        .xTile(domain.getTile().getX())
-        .yTile(domain.getTile().getY())
+        .xTile(tile.getX())
+        .yTile(tile.getY())
         .prospectId(domain.getIdProspect())
         .zoom(zoom)
         .layer(TOUS_FR)
         .availableLayers(List.of(TOUS_FR))
         .actualLayer(layerRestMapper.toRest(domain.getCurrentLayer()))
         .otherLayers(domain.getLayers().stream().map(layerRestMapper::toRest).toList())
+        .currentGeoPosition(domain.getCurrentGeoPosition())
+        .geoPositions(domain.getGeoPositions())
+        .currentTile(tile)
+        .referenceTile(referenceTile)
         .isExtended(domain.isExtended());
   }
 
@@ -51,7 +62,7 @@ public class AreaPictureRestMapper {
     validator.accept(rest);
     OpenStreetMapLayer restOsmLayer = rest.getLayer();
     if (TOUS_FR.equals(restOsmLayer) && rest.getLayerId() == null) {
-      mapLayer = areaPictureMapLayer.getDefaultLayer();
+      mapLayer = areaPictureMapLayerService.getDefaultOSMLayer();
     } else {
       mapLayer = rest.getLayerId() == null ? null : layerRestMapper.toDomain(rest.getLayerId());
     }

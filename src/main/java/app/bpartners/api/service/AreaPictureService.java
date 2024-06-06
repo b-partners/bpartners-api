@@ -76,7 +76,7 @@ public class AreaPictureService {
   }
 
   private void refreshAreaPictureMapLayers(AreaPicture areaPicture) {
-    var guessedMaps = mapLayerService.getAvailableLayersFrom(areaPicture.getTile());
+    var guessedMaps = mapLayerService.getAvailableLayersFrom(areaPicture.getCurrentTile());
     if (areaPicture.getCurrentLayer() == null) {
       var latest = mapLayerService.getLatestMostPreciseOrDefault(guessedMaps);
       areaPicture.setCurrentLayer(latest);
@@ -86,9 +86,7 @@ public class AreaPictureService {
 
   private void refreshAreaPictureTile(AreaPicture areaPicture) {
     Tile tile = tileCreator.apply(areaPicture);
-    areaPicture.setTile(tile);
-    areaPicture.setLongitude(tile.getLongitude());
-    areaPicture.setLatitude(tile.getLatitude());
+    areaPicture.setCurrentTile(tile);
   }
 
   @Transactional

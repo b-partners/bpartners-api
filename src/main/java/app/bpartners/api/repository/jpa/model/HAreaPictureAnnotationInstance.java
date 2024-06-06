@@ -1,9 +1,12 @@
 package app.bpartners.api.repository.jpa.model;
 
+import static jakarta.persistence.EnumType.STRING;
 import static org.hibernate.type.SqlTypes.JSON;
 
+import app.bpartners.api.endpoint.rest.model.Wearness;
 import app.bpartners.api.model.AreaPictureAnnotationInstance.Polygon;
 import jakarta.persistence.Entity;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
@@ -32,6 +35,11 @@ public class HAreaPictureAnnotationInstance {
   private String fillColor;
   private String strokeColor;
   private Double wearLevel;
+
+  @Enumerated(STRING)
+  private Wearness wearness;
+
+  private Double moldRate;
 
   @JdbcTypeCode(JSON)
   private Polygon polygon;

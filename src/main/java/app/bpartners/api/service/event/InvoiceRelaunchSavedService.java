@@ -9,7 +9,7 @@ import static app.bpartners.api.service.event.InvoiceCrupdatedService.DRAFT_TEMP
 import static app.bpartners.api.service.event.InvoiceCrupdatedService.INVOICE_TEMPLATE;
 
 import app.bpartners.api.endpoint.event.SesConf;
-import app.bpartners.api.endpoint.event.gen.InvoiceRelaunchSaved;
+import app.bpartners.api.endpoint.event.model.InvoiceRelaunchSaved;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.Attachment;
 import app.bpartners.api.model.Invoice;

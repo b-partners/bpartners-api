@@ -5,7 +5,7 @@ aurora_min_capacity: null
 aurora_scale_point: null
 aurora_sleep: null
 aws_account_id: '688605879718'
-cli_version: 13.3.1
+cli_version: 13.4.0
 codeartifact_domain_name: npm-bpartners-app
 codeartifact_repository_name: bpartners-store
 custom_java_deps: poja-custom-java-deps.txt

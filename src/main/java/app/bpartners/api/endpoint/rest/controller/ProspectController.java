@@ -1,5 +1,8 @@
 package app.bpartners.api.endpoint.rest.controller;
 
+import static app.bpartners.api.endpoint.rest.validator.ProspectRestValidator.XLSX_FILE;
+import static app.bpartners.api.endpoint.rest.validator.ProspectRestValidator.XLS_FILE;
+
 import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.endpoint.event.model.RelaunchHoldersProspectTriggered;
 import app.bpartners.api.endpoint.rest.mapper.ProspectJobRestMapper;
@@ -44,9 +47,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
-import static app.bpartners.api.endpoint.rest.validator.ProspectRestValidator.XLSX_FILE;
-import static app.bpartners.api.endpoint.rest.validator.ProspectRestValidator.XLS_FILE;
 
 @RestController
 @AllArgsConstructor

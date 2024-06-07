@@ -26,6 +26,7 @@ public interface ProspectJpaRepository extends JpaRepository<HProspect, String> 
       nativeQuery = true,
       value =
           "select id,"
+              + "       first_name,"
               + "       old_name,"
               + "       old_email,"
               + "       old_phone,"

@@ -1,8 +1,7 @@
 package app.bpartners.api.endpoint.rest.controller;
 
-import static app.bpartners.api.endpoint.rest.validator.ProspectRestValidator.XLSX_FILE;
-import static app.bpartners.api.endpoint.rest.validator.ProspectRestValidator.XLS_FILE;
-
+import app.bpartners.api.endpoint.event.EventProducer;
+import app.bpartners.api.endpoint.event.model.RelaunchHoldersProspectTriggered;
 import app.bpartners.api.endpoint.rest.mapper.ProspectJobRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.ProspectRestMapper;
 import app.bpartners.api.endpoint.rest.model.EvaluatedProspect;
@@ -46,6 +45,9 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import static app.bpartners.api.endpoint.rest.validator.ProspectRestValidator.XLSX_FILE;
+import static app.bpartners.api.endpoint.rest.validator.ProspectRestValidator.XLS_FILE;
+
 @RestController
 @AllArgsConstructor
 @Slf4j
@@ -58,6 +60,7 @@ public class ProspectController {
   private final ProspectEvalUtils prospectUtils;
   private final ProspectRestValidator validator;
   private final ProspectJobRestMapper jobRestMapper;
+  private final EventProducer eventProducer;
 
   private static Double getMinCustomerRating(HttpHeaders headers) {
     try {
@@ -103,6 +106,17 @@ public class ProspectController {
       default:
         return null;
     }
+  }
+
+  @PostMapping("/prospectsRelaunch")
+  public ResponseEntity<String> relaunchProspects() {
+    try {
+      eventProducer.accept(List.of(new RelaunchHoldersProspectTriggered()));
+    } catch (Exception e) {
+      return new ResponseEntity<>(
+          "Exception occurred : " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+    return ResponseEntity.ok("Account holders prospects are to be relaunched");
   }
 
   @PostMapping("/accountHolders/{ahId}/prospects/import")

@@ -11,12 +11,14 @@ import app.bpartners.api.service.WMS.Tile;
 import app.bpartners.api.service.WMS.imageSource.exception.BlankImageException;
 import java.io.File;
 import java.net.URI;
+import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.Range;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 
 @Component
 @Primary
+@Slf4j
 final class WmsImageSourceFacade extends AbstractWmsImageSource {
   private final OpenStreetMapImageSource openStreetMapImageSource;
   private final GeoserverImageSource geoserverImageSource;
@@ -81,6 +83,7 @@ final class WmsImageSourceFacade extends AbstractWmsImageSource {
       imageValidator.accept(image);
       return image;
     } catch (ApiException | BlankImageException e) {
+      log.info("could not resolve {}, due to exception {}", areaPicture, e.getMessage());
       areaPicture.setCurrentLayer(alternativeAreaPictureMapLayer);
       return cascadeRetryImageDownloadUntilValid(alternativeSource, areaPicture, ++iteration);
     }

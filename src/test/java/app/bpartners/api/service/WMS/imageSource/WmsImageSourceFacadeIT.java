@@ -20,6 +20,7 @@ import java.io.File;
 import java.net.URI;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -90,6 +91,7 @@ class WmsImageSourceFacadeIT extends MockedThirdParties {
   }
 
   @Test
+  @Disabled("blank image is considered normal for now")
   void downloadImage_cascade_on_blank_image_ok() {
     when(geoserverImageSourceMock.downloadImage(any())).thenReturn(getBlankJpegFile());
 

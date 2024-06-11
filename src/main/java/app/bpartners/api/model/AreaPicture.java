@@ -66,4 +66,8 @@ public class AreaPicture {
   public Tile getReferenceTile() {
     return isExtended ? currentTile.getTopLeftTile() : currentTile;
   }
+
+  public String describe() {
+    return String.format("%s, %s", currentTile, currentLayer);
+  }
 }

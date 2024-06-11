@@ -76,13 +76,15 @@ final class WmsImageSourceFacade extends AbstractWmsImageSource {
       alternativeSource = openStreetMapImageSource;
       alternativeAreaPictureMapLayer = areaPictureMapLayerService.getDefaultOSMLayer();
     } else {
-      throw new ApiException(SERVER_EXCEPTION, "could not find any server for " + areaPicture);
+      throw new ApiException(
+          SERVER_EXCEPTION, "could not find any server for " + areaPicture.describe());
     }
     try {
       // imageValidator.accept(image);
       return alternativeSource.downloadImage(areaPicture);
     } catch (ApiException | BlankImageException e) {
-      log.info("could not resolve {}, due to exception {}", areaPicture, e.getMessage());
+      log.info(
+          "could not resolve {} , due to exception {}", areaPicture.describe(), e.getMessage());
       areaPicture.setCurrentLayer(alternativeAreaPictureMapLayer);
       return cascadeRetryImageDownloadUntilValid(alternativeSource, areaPicture, ++iteration);
     }

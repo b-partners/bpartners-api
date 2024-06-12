@@ -15,10 +15,9 @@ import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.UserTokenRepository;
 import app.bpartners.api.service.SnsService;
 import app.bpartners.api.service.UserService;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import java.util.List;
 
 class UserServiceTest {
   UserService userService;
@@ -61,19 +60,19 @@ class UserServiceTest {
         .id(JOE_DOE_ID)
         .email("exemple@gmail.com")
         .accessToken(JOE_DOE_TOKEN)
-            .preferredAccountId(JOE_DOE_ACCOUNT_ID)
-            .accounts(List.of(account()))
-            .build();
+        .preferredAccountId(JOE_DOE_ACCOUNT_ID)
+        .accounts(List.of(account()))
+        .build();
   }
 
   Account account() {
     return Account.builder()
-            .id(JOE_DOE_ACCOUNT_ID)
-            .userId(JOE_DOE_ID)
-            .iban("iban")
-            .enableStatus(ENABLED)
-            .active(true)
-            .build();
+        .id(JOE_DOE_ACCOUNT_ID)
+        .userId(JOE_DOE_ID)
+        .iban("iban")
+        .enableStatus(ENABLED)
+        .active(true)
+        .build();
   }
 
   @Test
@@ -84,14 +83,16 @@ class UserServiceTest {
   }
 
   @Test
-  void change_active_account_ko(){
+  void change_active_account_ko() {
     when(userRepository.getById(any())).thenReturn(user());
 
-    assertThrows(NotFoundException.class, () -> userService.changeActiveAccount(JOE_DOE_USER_ID, OTHER_ACCOUNT_ID));
+    assertThrows(
+        NotFoundException.class,
+        () -> userService.changeActiveAccount(JOE_DOE_USER_ID, OTHER_ACCOUNT_ID));
   }
 
   @Test
-  void get_by_id_account_ok(){
+  void get_by_id_account_ok() {
     when(userRepository.getByIdAccount(any())).thenReturn(user());
     var actual = userService.getByIdAccount(JOE_DOE_ACCOUNT_ID);
 
@@ -107,13 +108,13 @@ class UserServiceTest {
 
   User userWithToken() {
     return User.builder()
-            .id(JOE_DOE_ID)
-            .email("exemple@gmail.com")
-            .accessToken(JOE_DOE_TOKEN)
-            .preferredAccountId(JOE_DOE_ACCOUNT_ID)
-            .accounts(List.of(account()))
-            .deviceToken(JOE_DOE_TOKEN)
-            .build();
+        .id(JOE_DOE_ID)
+        .email("exemple@gmail.com")
+        .accessToken(JOE_DOE_TOKEN)
+        .preferredAccountId(JOE_DOE_ACCOUNT_ID)
+        .accounts(List.of(account()))
+        .deviceToken(JOE_DOE_TOKEN)
+        .build();
   }
 
   @Test

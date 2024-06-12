@@ -81,4 +81,12 @@ class UserServiceTest {
 
     assertEquals(user(), actual);
   }
+
+  @Test
+  void get_by_id_account_ok(){
+    when(userRepository.getByIdAccount(any())).thenReturn(user());
+    var actual = userService.getByIdAccount(JOE_DOE_ACCOUNT_ID);
+
+    assertEquals(user(), actual);
+  }
 }

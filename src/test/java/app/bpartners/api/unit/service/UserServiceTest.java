@@ -36,6 +36,7 @@ class UserServiceTest {
     when(userRepository.getByEmail(any())).thenReturn(user());
     when(userRepository.getUserByToken(any())).thenReturn(user());
     when(userRepository.getById(any())).thenReturn(user());
+    when(userRepository.save(any())).thenReturn(user());
     when(userTokenRepository.getLatestTokenByUser(any())).thenReturn(new UserToken());
   }
 
@@ -86,6 +87,13 @@ class UserServiceTest {
   void get_by_id_account_ok(){
     when(userRepository.getByIdAccount(any())).thenReturn(user());
     var actual = userService.getByIdAccount(JOE_DOE_ACCOUNT_ID);
+
+    assertEquals(user(), actual);
+  }
+
+  @Test
+  void register_device_ok() {
+    var actual = userService.registerDevice(JOE_DOE_USER_ID, JOE_DOE_TOKEN);
 
     assertEquals(user(), actual);
   }

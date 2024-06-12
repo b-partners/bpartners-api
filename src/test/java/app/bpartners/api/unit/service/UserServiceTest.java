@@ -1,12 +1,14 @@
 package app.bpartners.api.unit.service;
 
-import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_TOKEN;
+import static app.bpartners.api.endpoint.rest.model.EnableStatus.ENABLED;
+import static app.bpartners.api.integration.conf.utils.TestUtils.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import app.bpartners.api.model.Account;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.UserToken;
 import app.bpartners.api.repository.UserRepository;
@@ -15,6 +17,8 @@ import app.bpartners.api.service.SnsService;
 import app.bpartners.api.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import java.util.List;
 
 class UserServiceTest {
   UserService userService;
@@ -31,6 +35,7 @@ class UserServiceTest {
 
     when(userRepository.getByEmail(any())).thenReturn(user());
     when(userRepository.getUserByToken(any())).thenReturn(user());
+    when(userRepository.getById(any())).thenReturn(user());
     when(userTokenRepository.getLatestTokenByUser(any())).thenReturn(new UserToken());
   }
 
@@ -55,6 +60,25 @@ class UserServiceTest {
         .id(JOE_DOE_ID)
         .email("exemple@gmail.com")
         .accessToken(JOE_DOE_TOKEN)
-        .build();
+            .preferredAccountId(JOE_DOE_ACCOUNT_ID)
+            .accounts(List.of(account()))
+            .build();
+  }
+
+  Account account() {
+    return Account.builder()
+            .id(JOE_DOE_ACCOUNT_ID)
+            .userId(JOE_DOE_ID)
+            .iban("iban")
+            .enableStatus(ENABLED)
+            .active(true)
+            .build();
+  }
+
+  @Test
+  void change_active_account_ok() {
+    var actual = userService.changeActiveAccount(JOE_DOE_USER_ID, JOE_DOE_ACCOUNT_ID);
+
+    assertEquals(user(), actual);
   }
 }

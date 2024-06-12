@@ -97,4 +97,23 @@ class UserServiceTest {
 
     assertEquals(user(), actual);
   }
+
+  User userWithToken() {
+    return User.builder()
+            .id(JOE_DOE_ID)
+            .email("exemple@gmail.com")
+            .accessToken(JOE_DOE_TOKEN)
+            .preferredAccountId(JOE_DOE_ACCOUNT_ID)
+            .accounts(List.of(account()))
+            .deviceToken(JOE_DOE_TOKEN)
+            .build();
+  }
+
+  @Test
+  void register_device_with_token_ok() {
+    when(userRepository.getById(any())).thenReturn(userWithToken());
+    var actual = userService.registerDevice(JOE_DOE_USER_ID, JOE_DOE_TOKEN);
+
+    assertEquals(userWithToken(), actual);
+  }
 }

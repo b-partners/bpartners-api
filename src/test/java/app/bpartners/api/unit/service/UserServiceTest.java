@@ -2,8 +2,7 @@ package app.bpartners.api.unit.service;
 
 import static app.bpartners.api.endpoint.rest.model.EnableStatus.ENABLED;
 import static app.bpartners.api.integration.conf.utils.TestUtils.*;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -11,6 +10,7 @@ import static org.mockito.Mockito.when;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.UserToken;
+import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.UserTokenRepository;
 import app.bpartners.api.service.SnsService;
@@ -81,6 +81,13 @@ class UserServiceTest {
     var actual = userService.changeActiveAccount(JOE_DOE_USER_ID, JOE_DOE_ACCOUNT_ID);
 
     assertEquals(user(), actual);
+  }
+
+  @Test
+  void change_active_account_ko(){
+    when(userRepository.getById(any())).thenReturn(user());
+
+    assertThrows(NotFoundException.class, () -> userService.changeActiveAccount(JOE_DOE_USER_ID, OTHER_ACCOUNT_ID));
   }
 
   @Test

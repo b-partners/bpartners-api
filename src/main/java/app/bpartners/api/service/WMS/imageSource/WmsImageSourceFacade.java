@@ -54,7 +54,7 @@ final class WmsImageSourceFacade extends AbstractWmsImageSource {
   private File cascadeRetryImageDownloadUntilValid(
       WmsImageSource wmsImageSource,
       AreaPicture areaPicture,
-      @Range(from = 0, to = 3) int iteration) {
+      @Range(from = 0, to = 2) int iteration) {
     WmsImageSource alternativeSource;
     AreaPictureMapLayer alternativeAreaPictureMapLayer;
     if (iteration == 0) {

@@ -85,18 +85,6 @@ public class AreaPictureIT extends S3MockedThirdParties {
   @MockBean BanApi banApiMock;
   @MockBean WmsImageSource wmsImageSourceMock;
 
-//  static AreaPictureMapLayer tousFrLayer() {
-//    return new AreaPictureMapLayer()
-//        .id("2cb589c1-45b0-4cb8-b84e-f1ed40e97bd8")
-//        .name("tous_fr")
-//        .year(0)
-//        .precisionLevelInCm(20)
-//        .maximumZoomLevel(HOUSES_0)
-//        .departementName("ALL")
-//        .maximumZoom(new Zoom().level(HOUSES_0).number(20))
-//        .source(OPENSTREETMAP);
-//  }
-
   static AreaPictureMapLayer geoserverCharenteLayer() {
     return new AreaPictureMapLayer()
         .id("area_picture_map_1_id")
@@ -178,7 +166,7 @@ public class AreaPictureIT extends S3MockedThirdParties {
                 .score(90.0)
                 .longitude(0.148409)
                 .latitude(45.644018))
-        .filename("tous_fr_HOUSES_0_524720_374531")
+        .filename("FLUX_IGN_2023_20CM_HOUSES_0_524720_374531")
         .geoPositions(
             List.of(
                 new app.bpartners.api.endpoint.rest.model.GeoPosition()
@@ -230,7 +218,7 @@ public class AreaPictureIT extends S3MockedThirdParties {
         .zoom(zoom)
         .isExtended(isExtended)
         .filename(
-            "tous_fr_HOUSES_0_" + referenceTile.getX() + "_" + referenceTile.getY() + "_extended")
+            "FLUX_IGN_2023_20CM_HOUSES_0_" + referenceTile.getX() + "_" + referenceTile.getY() + "_extended")
         .currentTile(currentTile)
         .referenceTile(referenceTile)
         .currentGeoPosition(

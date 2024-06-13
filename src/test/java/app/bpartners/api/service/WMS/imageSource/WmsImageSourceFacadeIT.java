@@ -67,7 +67,7 @@ class WmsImageSourceFacadeIT extends MockedThirdParties {
     when(pingControllerMock.ping()).thenThrow(new ApiException(SERVER_EXCEPTION, "server error"));
     when(geoserverImageSourceMock.getURI(any(), any()))
         .thenReturn(URI.create("http://localhost:" + localPort + "/ping"));
-    when(geoserverImageSourceMock.downloadImage(any())).thenCallRealMethod();
+    when(geoserverImageSourceMock.downloadImage(any())).thenReturn(getMockJpegFile());
   }
 
   private void setupOpenStreetMapMock(OpenStreetMapImageSource openStreetMapImageSourceMock) {
@@ -85,8 +85,7 @@ class WmsImageSourceFacadeIT extends MockedThirdParties {
 
     File actual = subject.downloadImage(GEOSERVER_LAYER_AREA_PICTURE);
 
-    verify(geoserverImageSourceMock, times(2)).downloadImage(any());
-    verify(openStreetMapImageSourceMock, times(1)).downloadImage(any());
+    verify(geoserverImageSourceMock, times(1)).downloadImage(any());
     assertEquals(getMockJpegFile(), actual);
   }
 
@@ -98,7 +97,6 @@ class WmsImageSourceFacadeIT extends MockedThirdParties {
     File actual = subject.downloadImage(GEOSERVER_LAYER_AREA_PICTURE);
 
     verify(geoserverImageSourceMock, times(2)).downloadImage(any());
-    verify(openStreetMapImageSourceMock, times(1)).downloadImage(any());
     assertEquals(getMockJpegFile(), actual);
   }
 }

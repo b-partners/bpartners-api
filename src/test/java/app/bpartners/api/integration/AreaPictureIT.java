@@ -1,7 +1,6 @@
 package app.bpartners.api.integration;
 
 import static app.bpartners.api.endpoint.rest.model.AreaPictureImageSource.GEOSERVER;
-import static app.bpartners.api.endpoint.rest.model.AreaPictureImageSource.OPENSTREETMAP;
 import static app.bpartners.api.endpoint.rest.model.OpenStreetMapLayer.TOUS_FR;
 import static app.bpartners.api.endpoint.rest.model.ZoomLevel.HOUSES_0;
 import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_ID;
@@ -121,18 +120,17 @@ public class AreaPictureIT extends S3MockedThirdParties {
         .build();
   }
 
-  static app.bpartners.api.model.AreaPictureMapLayer domainGeoserverIGNLayer(){
+  static app.bpartners.api.model.AreaPictureMapLayer domainGeoserverIGNLayer() {
     return app.bpartners.api.model.AreaPictureMapLayer.builder()
-            .id("9a4bd8b7-556b-49a1-bea0-c35e961dab64")
-            .name("FLUX_IGN_2023_20CM")
-            .year(2023)
-            .departementName("ALL")
-            .source(GEOSERVER)
-            .maximumZoomLevel(HOUSES_0)
-            .precisionLevelInCm(20)
-            .build();
+        .id("9a4bd8b7-556b-49a1-bea0-c35e961dab64")
+        .name("FLUX_IGN_2023_20CM")
+        .year(2023)
+        .departementName("ALL")
+        .source(GEOSERVER)
+        .maximumZoomLevel(HOUSES_0)
+        .precisionLevelInCm(20)
+        .build();
   }
-
 
   static AreaPictureDetails areaPicture1() {
     int xTile = 524720;
@@ -152,9 +150,7 @@ public class AreaPictureIT extends S3MockedThirdParties {
         .updatedAt(Instant.parse("2022-01-08T01:00:00Z"))
         .fileId("montauban_5cm_544729_383060.jpg")
         .prospectId(PROSPECT_1_ID)
-        .otherLayers(
-            List.of(
-                geoserverCharenteLayer(), geoserverIGNPrimaryDefaultServerLayer()))
+        .otherLayers(List.of(geoserverCharenteLayer(), geoserverIGNPrimaryDefaultServerLayer()))
         .layer(DEFAULT_OSM_LAYER)
         .zoom(zoom)
         .availableLayers(List.of(DEFAULT_OSM_LAYER))
@@ -206,9 +202,7 @@ public class AreaPictureIT extends S3MockedThirdParties {
         .xTile(xTile)
         .yTile(yTile)
         .layer(DEFAULT_OSM_LAYER)
-        .otherLayers(
-            List.of(
-                geoserverCharenteLayer(), geoserverIGNPrimaryDefaultServerLayer()))
+        .otherLayers(List.of(geoserverCharenteLayer(), geoserverIGNPrimaryDefaultServerLayer()))
         .createdAt(Instant.parse("2022-01-08T01:00:00Z"))
         .updatedAt(Instant.parse("2022-01-08T01:00:00Z"))
         .address("Cannes Address")
@@ -218,7 +212,11 @@ public class AreaPictureIT extends S3MockedThirdParties {
         .zoom(zoom)
         .isExtended(isExtended)
         .filename(
-            "FLUX_IGN_2023_20CM_HOUSES_0_" + referenceTile.getX() + "_" + referenceTile.getY() + "_extended")
+            "FLUX_IGN_2023_20CM_HOUSES_0_"
+                + referenceTile.getX()
+                + "_"
+                + referenceTile.getY()
+                + "_extended")
         .currentTile(currentTile)
         .referenceTile(referenceTile)
         .currentGeoPosition(
@@ -400,7 +398,6 @@ public class AreaPictureIT extends S3MockedThirdParties {
             app.bpartners.api.service.WMS.Tile.from(
                 coordinates.getLongitude(), coordinates.getLatitude(), ArcgisZoom.HOUSES_0));
 
-    assertEquals(
-        List.of(domainGeoserverCharenteLayer(), domainGeoserverIGNLayer()), guessedLayers);
+    assertEquals(List.of(domainGeoserverCharenteLayer(), domainGeoserverIGNLayer()), guessedLayers);
   }
 }

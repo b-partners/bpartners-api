@@ -3,7 +3,7 @@ insert into "area_picture"
  id_prospect, is_extended, score, geopositions)
 values ('area_picture_1_id', 'joe_doe_id', 'montauban_5cm_544729_383060.jpg', 'Montauban Address', '0.148409',
         '45.644018',
-        '2022-01-08T01:00:00.00Z', '2022-01-08T01:00:00.00Z', 'HOUSES_0', '2cb589c1-45b0-4cb8-b84e-f1ed40e97bd8',
+        '2022-01-08T01:00:00.00Z', '2022-01-08T01:00:00.00Z', 'HOUSES_0', '9a4bd8b7-556b-49a1-bea0-c35e961dab64',
         'montauban_5cm_544729_383060.jpg', 'prospect1_id', false, 90, '[
     {
       "score": 90.0,
@@ -23,7 +23,7 @@ values ('area_picture_1_id', 'joe_doe_id', 'montauban_5cm_544729_383060.jpg', 'M
   ]'),
        ('area_picture_2_id', 'joe_doe_id', 'mulhouse_1_5cm_544729_383060.jpg', 'Cannes Address', '0.148409',
         '45.644018',
-        '2022-01-08T01:00:00.00Z', '2022-01-08T01:00:00.00Z', 'HOUSES_0', '2cb589c1-45b0-4cb8-b84e-f1ed40e97bd8',
+        '2022-01-08T01:00:00.00Z', '2022-01-08T01:00:00.00Z', 'HOUSES_0', '9a4bd8b7-556b-49a1-bea0-c35e961dab64',
         'mulhouse_5cm_544729_383060_extended.jpg', 'prospect1_id', true, 60, '[
          {
            "score": 60.0,
@@ -33,7 +33,7 @@ values ('area_picture_1_id', 'joe_doe_id', 'montauban_5cm_544729_383060.jpg', 'M
        ]'),
        ('area_picture_3_id', 'jane_doe_id', 'mulhouse_2_5cm_544729_383060.jpg', 'Cannes Address', '0.148409',
         '45.644018',
-        '2022-01-08T01:00:00.00Z', '2022-01-08T01:00:00.00Z', 'HOUSES_0', '2cb589c1-45b0-4cb8-b84e-f1ed40e97bd8',
+        '2022-01-08T01:00:00.00Z', '2022-01-08T01:00:00.00Z', 'HOUSES_0', '9a4bd8b7-556b-49a1-bea0-c35e961dab64',
         'mulhouse_5cm_544729_383060.jpg', 'prospect2_id', false, 50, '[
          {
            "score": 50.0,

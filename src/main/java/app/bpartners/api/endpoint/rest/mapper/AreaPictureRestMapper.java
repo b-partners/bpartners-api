@@ -60,12 +60,7 @@ public class AreaPictureRestMapper {
   public AreaPicture toDomain(CrupdateAreaPictureDetails rest, String id, String userId) {
     AreaPictureMapLayer mapLayer;
     validator.accept(rest);
-    OpenStreetMapLayer restOsmLayer = rest.getLayer();
-    if (TOUS_FR.equals(restOsmLayer) && rest.getLayerId() == null) {
-      mapLayer = areaPictureMapLayerService.getDefaultOSMLayer();
-    } else {
-      mapLayer = rest.getLayerId() == null ? null : layerRestMapper.toDomain(rest.getLayerId());
-    }
+    mapLayer = rest.getLayerId() == null ? null : layerRestMapper.toDomain(rest.getLayerId());
     ZoomLevel zoomLevel;
     Zoom zoom = rest.getZoom();
     if (zoom == null) {

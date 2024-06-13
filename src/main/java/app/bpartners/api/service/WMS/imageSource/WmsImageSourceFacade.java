@@ -20,7 +20,6 @@ import org.springframework.stereotype.Component;
 @Primary
 @Slf4j
 final class WmsImageSourceFacade extends AbstractWmsImageSource {
-  private final OpenStreetMapImageSource openStreetMapImageSource;
   private final GeoserverImageSource geoserverImageSource;
   private final AreaPictureMapLayerService areaPictureMapLayerService;
   private final TileExtenderImageSource tileExtenderImageSource;
@@ -28,13 +27,11 @@ final class WmsImageSourceFacade extends AbstractWmsImageSource {
 
   private WmsImageSourceFacade(
       FileDownloader fileDownloader,
-      OpenStreetMapImageSource openStreetMapImageSource,
       GeoserverImageSource geoserverImageSource,
       AreaPictureMapLayerService areaPictureMapLayerService,
       TileExtenderImageSource tileExtenderImageSource,
       ImageValidator imageValidator) {
     super(fileDownloader);
-    this.openStreetMapImageSource = openStreetMapImageSource;
     this.geoserverImageSource = geoserverImageSource;
     this.areaPictureMapLayerService = areaPictureMapLayerService;
     this.tileExtenderImageSource = tileExtenderImageSource;
@@ -43,10 +40,7 @@ final class WmsImageSourceFacade extends AbstractWmsImageSource {
 
   @Override
   protected URI getURI(Tile tile, AreaPictureMapLayer areaPictureMapLayer) {
-    return switch (areaPictureMapLayer.getSource()) {
-      case OPENSTREETMAP -> openStreetMapImageSource.getURI(tile, areaPictureMapLayer);
-      case GEOSERVER -> geoserverImageSource.getURI(tile, areaPictureMapLayer);
-    };
+    return geoserverImageSource.getURI(tile, areaPictureMapLayer);
   }
 
   @Override
@@ -54,10 +48,7 @@ final class WmsImageSourceFacade extends AbstractWmsImageSource {
     if (areaPicture.isExtended()) {
       return tileExtenderImageSource.downloadImage(areaPicture);
     }
-    return switch (areaPicture.getCurrentLayer().getSource()) {
-      case OPENSTREETMAP -> openStreetMapImageSource.downloadImage(areaPicture);
-      case GEOSERVER -> cascadeRetryImageDownloadUntilValid(geoserverImageSource, areaPicture, 0);
-    };
+    return cascadeRetryImageDownloadUntilValid(geoserverImageSource, areaPicture, 0);
   }
 
   private File cascadeRetryImageDownloadUntilValid(
@@ -72,9 +63,6 @@ final class WmsImageSourceFacade extends AbstractWmsImageSource {
     } else if (iteration == 1) {
       alternativeSource = geoserverImageSource;
       alternativeAreaPictureMapLayer = areaPictureMapLayerService.getDefaultIGNLayer();
-    } else if (iteration == 2) {
-      alternativeSource = openStreetMapImageSource;
-      alternativeAreaPictureMapLayer = areaPictureMapLayerService.getDefaultOSMLayer();
     } else {
       throw new ApiException(
           SERVER_EXCEPTION, "could not find any server for " + areaPicture.describe());

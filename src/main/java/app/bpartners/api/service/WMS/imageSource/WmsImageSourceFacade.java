@@ -11,12 +11,14 @@ import app.bpartners.api.service.WMS.Tile;
 import app.bpartners.api.service.WMS.imageSource.exception.BlankImageException;
 import java.io.File;
 import java.net.URI;
+import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.Range;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 
 @Component
 @Primary
+@Slf4j
 final class WmsImageSourceFacade extends AbstractWmsImageSource {
   private final OpenStreetMapImageSource openStreetMapImageSource;
   private final GeoserverImageSource geoserverImageSource;
@@ -74,13 +76,15 @@ final class WmsImageSourceFacade extends AbstractWmsImageSource {
       alternativeSource = openStreetMapImageSource;
       alternativeAreaPictureMapLayer = areaPictureMapLayerService.getDefaultOSMLayer();
     } else {
-      throw new ApiException(SERVER_EXCEPTION, "could not find any server for " + areaPicture);
+      throw new ApiException(
+          SERVER_EXCEPTION, "could not find any server for " + areaPicture.describe());
     }
     try {
-      File image = alternativeSource.downloadImage(areaPicture);
-      imageValidator.accept(image);
-      return image;
+      // imageValidator.accept(image);
+      return alternativeSource.downloadImage(areaPicture);
     } catch (ApiException | BlankImageException e) {
+      log.info(
+          "could not resolve {} , due to exception {}", areaPicture.describe(), e.getMessage());
       areaPicture.setCurrentLayer(alternativeAreaPictureMapLayer);
       return cascadeRetryImageDownloadUntilValid(alternativeSource, areaPicture, ++iteration);
     }

@@ -940,6 +940,11 @@ public class TestUtils {
         .redirectionStatusUrls(redirectionStatusUrls());
   }
 
+  public static void assertThrowsDomainApiException(String expectedBody, Executable executable) {
+    var exception = assertThrows(app.bpartners.api.model.exception.ApiException.class, executable);
+    assertEquals(expectedBody, exception.getMessage());
+  }
+
   public static void assertThrowsApiException(String expectedBody, Executable executable) {
     ApiException apiException = assertThrows(ApiException.class, executable);
     assertEquals(expectedBody, apiException.getResponseBody());
@@ -1015,7 +1020,7 @@ public class TestUtils {
 
   public static HttpResponse<byte[]> downloadBytes(HttpRequest request, String operationId)
       throws ApiException, IOException, InterruptedException {
-    try (HttpClient unauthenticatedClient = HttpClient.newBuilder().build(); ) {
+    try (HttpClient unauthenticatedClient = HttpClient.newBuilder().build()) {
       HttpResponse<byte[]> response =
           unauthenticatedClient.send(request, HttpResponse.BodyHandlers.ofByteArray());
       if (response.statusCode() / 100 != 2) {

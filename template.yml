@@ -102,7 +102,7 @@ Resources:
               Ref: FrontalServerlessRestApi
       ReservedConcurrentExecutions: 20
 
-  WorkerFunction:
+  WorkerFunction1:
     Type: AWS::Serverless::Function
     Properties:
       Handler: app.bpartners.api.MailboxEventHandler::handleRequest
@@ -114,7 +114,23 @@ Resources:
         AllEvents:
           Type: SQS
           Properties:
-            Queue: !Sub '{{resolve:ssm:/bpartners/${Env}/sqs/mailbox-queue-arn}}'
+            Queue: !Sub '{{resolve:ssm:/bpartners/${Env}/1/sqs/mailbox-queue-arn}}'
+            BatchSize: 1
+      ReservedConcurrentExecutions: 30
+
+  WorkerFunction2:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: app.bpartners.api.MailboxEventHandler::handleRequest
+      MemorySize: 1024
+      Timeout: 600 #note(sqs-visibility)
+      Role: !Sub '{{resolve:ssm:/bpartners/${Env}/execution/role-arn}}'
+      
+      Events:
+        AllEvents:
+          Type: SQS
+          Properties:
+            Queue: !Sub '{{resolve:ssm:/bpartners/${Env}/2/sqs/mailbox-queue-arn}}'
             BatchSize: 1
       ReservedConcurrentExecutions: 30
 

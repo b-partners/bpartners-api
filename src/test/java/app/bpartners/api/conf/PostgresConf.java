@@ -5,6 +5,7 @@ import org.springframework.test.context.DynamicPropertyRegistry;
 import org.testcontainers.containers.PostgreSQLContainer;
 
 @PojaGenerated
+@SuppressWarnings("all")
 public class PostgresConf {
 
   private final PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:13.9");

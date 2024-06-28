@@ -1,7 +1,8 @@
 package app.bpartners.api.endpoint.event.model;
 
+import static java.lang.Math.random;
+
 import app.bpartners.api.PojaGenerated;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.Duration;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -18,17 +19,23 @@ import lombok.ToString;
 @Data
 @EqualsAndHashCode(callSuper = false)
 @ToString
-public class UuidCreated extends PojaEvent {
-  @JsonProperty("uuid")
-  private String uuid;
+public class DurablyFallibleUuidCreated1 extends PojaEvent {
+  private UuidCreated uuidCreated;
+  private int waitDurationBeforeConsumingInSeconds;
+  private double failureRate;
+
+  public boolean shouldFail() {
+    return random() < failureRate;
+  }
 
   @Override
   public Duration maxConsumerDuration() {
-    return Duration.ofSeconds(10);
+    return Duration.ofSeconds(
+        waitDurationBeforeConsumingInSeconds + uuidCreated.maxConsumerDuration().toSeconds());
   }
 
   @Override
   public Duration maxConsumerBackoffBetweenRetries() {
-    return Duration.ofSeconds(30);
+    return uuidCreated.maxConsumerBackoffBetweenRetries();
   }
 }

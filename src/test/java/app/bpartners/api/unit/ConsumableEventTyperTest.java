@@ -23,6 +23,7 @@ import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.DeleteMessageRequest;
 
 @PojaGenerated
+@SuppressWarnings("all")
 public class ConsumableEventTyperTest
     extends app.bpartners.api.integration.conf.MockedThirdParties {
   public static final String UNKNOWN_TYPENAME = "unknown_typename";

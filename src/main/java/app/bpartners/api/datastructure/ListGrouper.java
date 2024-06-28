@@ -9,6 +9,7 @@ import java.util.function.BiFunction;
 import org.springframework.stereotype.Component;
 
 @PojaGenerated
+@SuppressWarnings("all")
 @Component
 public class ListGrouper<T> implements BiFunction<List<T>, Integer, List<List<T>>> {
   @Override

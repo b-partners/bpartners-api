@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 @PojaGenerated
+@SuppressWarnings("all")
 class UuidCreatedIT extends app.bpartners.api.integration.conf.MockedThirdParties {
 
   @Autowired ObjectMapper om;

@@ -6,6 +6,7 @@ import java.io.File;
 import java.util.List;
 
 @PojaGenerated
+@SuppressWarnings("all")
 public record Email(
     InternetAddress to,
     List<InternetAddress> cc,

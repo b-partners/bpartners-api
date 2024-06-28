@@ -16,6 +16,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 @PojaGenerated
+@SuppressWarnings("all")
 class EventConsumerIT extends app.bpartners.api.integration.conf.MockedThirdParties {
 
   @Autowired EventConsumer subject;

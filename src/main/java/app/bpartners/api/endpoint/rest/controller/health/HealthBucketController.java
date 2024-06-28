@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @PojaGenerated
+@SuppressWarnings("all")
 @RestController
 @AllArgsConstructor
 public class HealthBucketController {

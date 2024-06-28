@@ -8,6 +8,7 @@ import java.io.Serializable;
 import java.time.Duration;
 
 @PojaGenerated
+@SuppressWarnings("all")
 public abstract class PojaEvent implements Serializable {
   public abstract Duration maxConsumerDuration();
 

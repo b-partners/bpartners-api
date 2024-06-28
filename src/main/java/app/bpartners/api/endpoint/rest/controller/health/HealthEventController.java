@@ -2,57 +2,107 @@ package app.bpartners.api.endpoint.rest.controller.health;
 
 import static app.bpartners.api.endpoint.rest.controller.health.PingController.KO;
 import static app.bpartners.api.endpoint.rest.controller.health.PingController.OK;
-import static java.lang.Thread.sleep;
 import static java.util.UUID.randomUUID;
 
 import app.bpartners.api.PojaGenerated;
 import app.bpartners.api.endpoint.event.EventProducer;
-import app.bpartners.api.endpoint.event.model.DurablyFallibleUuidCreated;
+import app.bpartners.api.endpoint.event.model.DurablyFallibleUuidCreated1;
+import app.bpartners.api.endpoint.event.model.DurablyFallibleUuidCreated2;
 import app.bpartners.api.endpoint.event.model.UuidCreated;
 import app.bpartners.api.repository.DummyUuidRepository;
 import app.bpartners.api.repository.model.DummyUuid;
 import java.util.ArrayList;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @PojaGenerated
+@SuppressWarnings("all")
 @RestController
 @AllArgsConstructor
 public class HealthEventController {
 
-  DummyUuidRepository dummyUuidRepository;
-  EventProducer eventProducer;
+  private final DummyUuidRepository dummyUuidRepository;
+  private final EventProducer eventProducer;
 
-  @GetMapping(value = "/health/event")
-  public ResponseEntity<String> random_durably_fallible_uuid_are_fired_then_created(
+  @GetMapping(value = "/health/event1")
+  public List<String> handleEvent1(
       @RequestParam(defaultValue = "1") int nbEvent,
-      @RequestParam(defaultValue = "2") int waitInSeconds)
-      throws InterruptedException {
+      @RequestParam(defaultValue = "2") int waitInSeconds) {
+    return handleEvent(nbEvent, waitInSeconds, DurablyFallibleUuidCreated1.class);
+  }
+
+  @GetMapping(value = "/health/event2")
+  public List<String> handleEvent2(
+      @RequestParam(defaultValue = "1") int nbEvent,
+      @RequestParam(defaultValue = "2") int waitInSeconds) {
+    return handleEvent(nbEvent, waitInSeconds, DurablyFallibleUuidCreated2.class);
+  }
+
+  @PostMapping(value = "/health/event/uuids")
+  public ResponseEntity<String> checkUuids(@RequestBody List<String> uuids) {
+    return checkUuidsSaved(uuids) ? OK : KO;
+  }
+
+  private <T> List<String> handleEvent(int nbEvent, int waitInSeconds, Class<T> eventType) {
+    validateNbEvent(nbEvent);
+
+    List<String> uuids = generateUuids(nbEvent);
+    fireEvents(uuids, waitInSeconds, eventType);
+
+    return uuids;
+  }
+
+  private void validateNbEvent(int nbEvent) {
     if (nbEvent < 1 || nbEvent > 500) {
-      throw new RuntimeException("nbEvent must be between 1 and 500");
+      throw new IllegalArgumentException("nbEvent must be between 1 and 500");
     }
-    var uuids = new ArrayList<String>();
+  }
+
+  private List<String> generateUuids(int nbEvent) {
+    List<String> uuids = new ArrayList<>();
     for (int i = 0; i < nbEvent; i++) {
       uuids.add(randomUUID().toString());
     }
+    return uuids;
+  }
 
+  private <T> void fireEvents(List<String> uuids, int waitInSeconds, Class<T> eventType) {
     eventProducer.accept(
-        uuids.stream()
-            .map(
-                uuid ->
-                    (Object)
-                        DurablyFallibleUuidCreated.builder()
-                            .uuidCreated(new UuidCreated(uuid))
-                            .failureRate(0.1)
-                            .waitDurationBeforeConsumingInSeconds(waitInSeconds)
-                            .build())
-            .toList());
+        uuids.stream().map(uuid -> createEvent(uuid, waitInSeconds, eventType)).toList());
+  }
 
-    sleep(20_000);
-    var savedUuids = dummyUuidRepository.findAllById(uuids).stream().map(DummyUuid::getId).toList();
-    return savedUuids.containsAll(uuids) ? OK : KO;
+  private <T> T createEvent(String uuid, int waitInSeconds, Class<T> eventType) {
+    UuidCreated uuidCreated = new UuidCreated(uuid);
+    double failureRate = 0.1;
+
+    if (eventType.equals(DurablyFallibleUuidCreated1.class)) {
+      return eventType.cast(
+          DurablyFallibleUuidCreated1.builder()
+              .uuidCreated(uuidCreated)
+              .failureRate(failureRate)
+              .waitDurationBeforeConsumingInSeconds(waitInSeconds)
+              .build());
+    } else if (eventType.equals(DurablyFallibleUuidCreated2.class)) {
+      return eventType.cast(
+          DurablyFallibleUuidCreated2.builder()
+              .uuidCreated(uuidCreated)
+              .failureRate(failureRate)
+              .waitDurationBeforeConsumingInSeconds(waitInSeconds)
+              .build());
+    } else {
+      throw new IllegalArgumentException("Unknown event type: " + eventType);
+    }
+  }
+
+  private boolean checkUuidsSaved(List<String> uuids) {
+    List<String> savedUuids =
+        dummyUuidRepository.findAllById(uuids).stream().map(DummyUuid::getId).toList();
+    return savedUuids.containsAll(uuids);
   }
 }

@@ -19,6 +19,7 @@ import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityRequest;
 import software.amazon.awssdk.services.sqs.model.DeleteMessageRequest;
 
 @PojaGenerated
+@SuppressWarnings("all")
 @Component
 @Slf4j
 @AllArgsConstructor
@@ -42,8 +43,10 @@ public class ConsumableEventTyper implements Function<List<SQSMessage>, List<Con
         log.error("Message could not be unmarshalled, message : {} \n", message);
         continue;
       }
+      String sqsQueueUrl = typedEvent.payload().getEventStack().getSqsQueueUrl();
       ConsumableEvent consumableEvent =
-          new ConsumableEvent(typedEvent, acknowledger(message), failer(message));
+          new ConsumableEvent(
+              typedEvent, acknowledger(message, sqsQueueUrl), failer(message, sqsQueueUrl));
       res.add(consumableEvent);
     }
     return res;
@@ -55,29 +58,29 @@ public class ConsumableEventTyper implements Function<List<SQSMessage>, List<Con
     Map<String, Object> body = om.readValue(message.getBody(), typeRef);
     String typeName = body.get(DETAIL_TYPE_PROPERTY).toString();
     return new TypedEvent(
-        typeName, om.convertValue(body.get(DETAIL_PROPERTY), Class.forName(typeName)));
+        typeName, (PojaEvent) om.convertValue(body.get(DETAIL_PROPERTY), Class.forName(typeName)));
   }
 
-  private Runnable acknowledger(SQSMessage message) {
+  private Runnable acknowledger(SQSMessage message, String sqsQueueUrl) {
     return () -> {
       sqsClient()
           .deleteMessage(
               DeleteMessageRequest.builder()
-                  .queueUrl(eventConf.getSqsQueue())
+                  .queueUrl(sqsQueueUrl)
                   .receiptHandle(message.getReceiptHandle())
                   .build());
       log.info("deleted message: {}", message);
     };
   }
 
-  private Runnable failer(SQSMessage message) {
+  private Runnable failer(SQSMessage message, String sqsQueueUrl) {
     return () -> {
       var newRandomVisibility =
-          (int) ((PojaEvent) toTypedEvent(message).payload()).randomVisibilityTimeout().toSeconds();
+          (int) (toTypedEvent(message).payload()).randomVisibilityTimeout().toSeconds();
       sqsClient()
           .changeMessageVisibility(
               ChangeMessageVisibilityRequest.builder()
-                  .queueUrl(eventConf.getSqsQueue())
+                  .queueUrl(sqsQueueUrl)
                   .receiptHandle(message.getReceiptHandle())
                   .visibilityTimeout(newRandomVisibility)
                   .build());

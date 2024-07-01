@@ -24,13 +24,13 @@ import software.amazon.awssdk.regions.Region;
 
 @Slf4j
 @PojaGenerated
+@SuppressWarnings("all")
 public class MailboxEventHandler implements RequestHandler<SQSEvent, String> {
 
   public static final String SPRING_SERVER_PORT_FOR_RANDOM_VALUE = "0";
   private final ConsumableEventTyper consumableEventTyper =
       new ConsumableEventTyper(
-          new EndpointConf().objectMapper(),
-          new EventConf(Region.of(getenv("AWS_REGION")), getenv("AWS_SQS_QUEUE_URL")));
+          new EndpointConf().objectMapper(), new EventConf(Region.of(getenv("AWS_REGION"))));
 
   @Override
   public String handleRequest(SQSEvent event, Context context) {

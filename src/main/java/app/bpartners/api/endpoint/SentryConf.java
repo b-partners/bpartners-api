@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @PojaGenerated
+@SuppressWarnings("all")
 @Configuration
 public class SentryConf {
 

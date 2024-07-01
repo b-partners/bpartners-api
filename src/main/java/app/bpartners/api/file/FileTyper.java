@@ -11,6 +11,7 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 
 @PojaGenerated
+@SuppressWarnings("all")
 @Component
 public class FileTyper implements Function<File, MediaType> {
 

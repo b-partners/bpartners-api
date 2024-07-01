@@ -5,6 +5,7 @@ import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 
 @PojaGenerated
+@SuppressWarnings("all")
 @Slf4j
 public class ThreadRenamer {
   public static void renameWorkerThread(Thread thread) {

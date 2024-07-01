@@ -14,6 +14,7 @@ import lombok.SneakyThrows;
 import org.springframework.stereotype.Component;
 
 @PojaGenerated
+@SuppressWarnings("all")
 @Component
 public class Workers<T> {
   private final ExecutorService executorService;

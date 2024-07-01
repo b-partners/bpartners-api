@@ -5,7 +5,7 @@ aurora_min_capacity: null
 aurora_scale_point: null
 aurora_sleep: null
 aws_account_id: '688605879718'
-cli_version: 13.4.0
+cli_version: 14.0.0
 codeartifact_domain_name: npm-bpartners-app
 codeartifact_repository_name: bpartners-store
 custom_java_deps: poja-custom-java-deps.txt
@@ -13,6 +13,7 @@ custom_java_env_vars: poja-custom-java-env-vars.txt
 custom_java_repositories: poja-custom-java-repositories.txt
 database_non_root_password: /bpartners/${Env}/db/user/password
 database_non_root_username: /bpartners/${Env}/db/user/username
+frontal_function_timeout: 30
 frontal_memory: 512
 frontal_reserved_concurrent_executions_nb: 20
 jacoco_min_coverage: '0.4'
@@ -39,5 +40,6 @@ with_snapstart: 'true'
 with_sonar: 'true'
 with_swagger_ui: 'false'
 worker_batch: 1
+worker_function_timeout: 600
 worker_memory: 1024
 worker_reserved_concurrent_executions_nb: 30

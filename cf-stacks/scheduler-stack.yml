@@ -31,7 +31,7 @@ Resources:
         Arn: !Sub '{{resolve:ssm:/bpartners/${Env}/eventbridge/bus-arn}}'
         RoleArn: !GetAtt ScheduledEventExecutionRole.Arn
         DeadLetterConfig:
-          Arn: !Sub '{{resolve:ssm:/bpartners/${Env}/sqs/dead-letter-queue-arn}}'
+          Arn: !Sub '{{resolve:ssm:/bpartners/${Env}/1/sqs/dead-letter-queue-arn}}'
         EventBridgeParameters:
           DetailType: 'app.bpartners.api.endpoint.event.model.RefreshInvoiceSummaryTriggered'
           Source: 'app.bpartners.api'
@@ -48,7 +48,7 @@ Resources:
         Arn: !Sub '{{resolve:ssm:/bpartners/${Env}/eventbridge/bus-arn}}'
         RoleArn: !GetAtt ScheduledEventExecutionRole.Arn
         DeadLetterConfig:
-          Arn: !Sub '{{resolve:ssm:/bpartners/${Env}/sqs/dead-letter-queue-arn}}'
+          Arn: !Sub '{{resolve:ssm:/bpartners/${Env}/1/sqs/dead-letter-queue-arn}}'
         EventBridgeParameters:
           DetailType: 'app.bpartners.api.endpoint.event.model.RefreshTransactionsSummariesTriggered'
           Source: 'app.bpartners.api'
@@ -65,7 +65,7 @@ Resources:
         Arn: !Sub '{{resolve:ssm:/bpartners/${Env}/eventbridge/bus-arn}}'
         RoleArn: !GetAtt ScheduledEventExecutionRole.Arn
         DeadLetterConfig:
-          Arn: !Sub '{{resolve:ssm:/bpartners/${Env}/sqs/dead-letter-queue-arn}}'
+          Arn: !Sub '{{resolve:ssm:/bpartners/${Env}/1/sqs/dead-letter-queue-arn}}'
         EventBridgeParameters:
           DetailType: 'app.bpartners.api.endpoint.event.model.UpdatePaymentTriggered'
           Source: 'app.bpartners.api'
@@ -82,7 +82,7 @@ Resources:
         Arn: !Sub '{{resolve:ssm:/bpartners/${Env}/eventbridge/bus-arn}}'
         RoleArn: !GetAtt ScheduledEventExecutionRole.Arn
         DeadLetterConfig:
-          Arn: !Sub '{{resolve:ssm:/bpartners/${Env}/sqs/dead-letter-queue-arn}}'
+          Arn: !Sub '{{resolve:ssm:/bpartners/${Env}/1/sqs/dead-letter-queue-arn}}'
         EventBridgeParameters:
           DetailType: 'app.bpartners.api.endpoint.event.model.RefreshFintectureProjectTokenTriggered'
           Source: 'app.bpartners.api'
@@ -100,7 +100,7 @@ Resources:
         Arn: !Sub '{{resolve:ssm:/bpartners/${Env}/eventbridge/bus-arn}}'
         RoleArn: !GetAtt ScheduledEventExecutionRole.Arn
         DeadLetterConfig:
-          Arn: !Sub '{{resolve:ssm:/bpartners/${Env}/sqs/dead-letter-queue-arn}}'
+          Arn: !Sub '{{resolve:ssm:/bpartners/${Env}/1/sqs/dead-letter-queue-arn}}'
         EventBridgeParameters:
           DetailType: 'app.bpartners.api.endpoint.event.model.RelaunchHoldersProspectTriggered'
           Source: 'app.bpartners.api'

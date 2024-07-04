@@ -1,0 +1,1 @@
+alter type payment_method_type add value 'CREDIT_CARD';

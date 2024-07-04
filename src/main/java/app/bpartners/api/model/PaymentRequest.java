@@ -105,6 +105,9 @@ public class PaymentRequest {
       case UNKNOWN:
         path = "static/stamp/paid-no-bg.png";
         break;
+      case CREDIT_CARD:
+        path = "static/stamp/credit-card.png";
+        break;
       case MULTIPLE:
         throw new NotImplementedException("MULTIPLE method not supported");
       default:

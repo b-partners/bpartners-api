@@ -7,6 +7,7 @@ import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT
 import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ID;
 import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import app.bpartners.api.endpoint.rest.model.CustomerType;
 import app.bpartners.api.endpoint.rest.model.PaymentMethod;
@@ -34,6 +35,8 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import lombok.SneakyThrows;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,110 +47,128 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 @Testcontainers
 @AutoConfigureMockMvc
-@Disabled
 class DraftIT extends MockedThirdParties {
-  @Autowired private SesService subject;
+  @Autowired private SesService sesService;
 
-  private static void generatePdf(String templateName) throws IOException {
-    List<CreatePaymentRegulation> paymentRegulations =
-        List.of(
-            CreatePaymentRegulation.builder()
-                .paymentRequest(
-                    PaymentRequest.builder()
-                        .paymentHistoryStatus(
-                            PaymentHistoryStatus.builder()
-                                .status(PaymentStatus.PAID)
-                                .paymentMethod(PaymentMethod.CASH)
-                                .userUpdated(true)
-                                .updatedAt(Instant.now())
-                                .build())
-                        .amount(new Fraction(BigInteger.valueOf(100)))
-                        .paymentUrl("https://connect-v2-sbx.fintecture.com")
-                        .build())
-                .maturityDate(LocalDate.now().plusDays(1L))
-                .comment(null)
-                .build(),
-            CreatePaymentRegulation.builder()
-                .paymentRequest(
-                    PaymentRequest.builder()
-                        .paymentHistoryStatus(
-                            PaymentHistoryStatus.builder().status(PaymentStatus.UNPAID).build())
-                        .amount(new Fraction(BigInteger.TEN))
-                        .paymentUrl("https://connect-v2-sbx.fintecture.com")
-                        .build())
-                .comment("Avec un assez long commentaire pour voir si ça descend automatiquement")
-                .maturityDate(LocalDate.now())
-                .build());
-    app.bpartners.api.model.Invoice invoice =
-        Invoice.builder()
-            .id(INVOICE1_ID)
-            .ref("invoice_ref")
-            .title("invoice_title")
-            .status(CONFIRMED)
-            .paymentMethod(PaymentMethod.UNKNOWN)
-            .sendingDate(LocalDate.now())
-            .toPayAt(LocalDate.now())
-            .delayInPaymentAllowed(2)
-            .delayPenaltyPercent(new Fraction(BigInteger.TEN, BigInteger.ONE))
-            .totalPriceWithoutVat(new Fraction())
-            .totalVat(new Fraction())
-            .totalPriceWithoutDiscount(new Fraction())
-            .totalPriceWithVat(new Fraction())
-            .discount(
-                new InvoiceDiscount()
-                    .toBuilder().percentValue(new Fraction()).amountValue(new Fraction()).build())
-            .user(
-                User.builder()
-                    .id(JOE_DOE_ID)
-                    .accounts(
-                        List.of(
-                            Account.builder()
-                                .id(JOE_DOE_ACCOUNT_ID)
-                                .name("BPartners")
-                                .iban("FR7630001007941234567890185")
-                                .bic("BPFRPP751")
-                                .build()))
-                    .build())
-            .paymentType(IN_INSTALMENT)
-            .paymentRegulations(paymentRegulations)
-            .products(creatableProds(1))
-            .customer(
-                Customer.builder()
-                    .name("Must be not shown")
-                    .firstName("Olivier")
-                    .lastName("Durant")
-                    .phone("+33 6 12 45 89 76")
-                    .email("exemple@email.com")
-                    .address("Paris 745")
-                    .customerType(CustomerType.PROFESSIONAL)
-                    .build())
-            .paymentUrl("text")
-            .build();
+  private static File generatePdf(String templateName) throws IOException {
+    app.bpartners.api.model.Invoice invoice = anInvoice(paymentRegulations());
     InvoicePdfUtils pdfUtils = new InvoicePdfUtils();
-    byte[] logoAsBytes =
-        new ClassPathResource("files/downloaded.jpeg").getInputStream().readAllBytes();
-    AccountHolder accountHolder =
-        AccountHolder.builder()
-            .name("Numer")
-            .mobilePhoneNumber("06 12 34 56 78")
-            .email("numer@hei.school")
-            .siren("9120384183")
-            .vatNumber("FR2938410231")
-            .socialCapital(10000)
-            .subjectToVat(true)
-            .build();
-    byte[] data = pdfUtils.generatePdf(invoice, accountHolder, logoAsBytes, templateName);
+
+    byte[] data = pdfUtils.generatePdf(invoice, accountHolder(), logoAsByte(), templateName);
     File generatedFile = new File(randomUUID() + ".pdf");
     OutputStream os = new FileOutputStream(generatedFile);
     os.write(data);
     os.close();
+
+    return generatedFile;
   }
 
-  /*@Test
-  void find_legal_files_ok() {
-    List<LegalFile> actual = legalFileRepository.findAllByUserId(JOE_DOE_ID);
-    assertEquals(3, actual.size());
-  }*/
+  private static byte[] logoAsByte() throws IOException {
+    return new ClassPathResource("files/downloaded.jpeg").getInputStream().readAllBytes();
+  }
+
+  private static AccountHolder accountHolder() {
+    return AccountHolder.builder()
+        .name("Numer")
+        .mobilePhoneNumber("06 12 34 56 78")
+        .email("numer@hei.school")
+        .siren("9120384183")
+        .vatNumber("FR2938410231")
+        .socialCapital(10000)
+        .subjectToVat(true)
+        .build();
+  }
+
+  @NotNull
+  private static List<CreatePaymentRegulation> paymentRegulations() {
+    return List.of(
+        aPaymentRegulation(
+            BigInteger.valueOf(100), null, LocalDate.now().plusDays(1L), PaymentMethod.CREDIT_CARD),
+        aPaymentRegulation(
+            BigInteger.TEN,
+            "Avec un assez long commentaire pour voir si ça descend automatiquement",
+            LocalDate.now(),
+            PaymentMethod.CASH));
+  }
+
+  private static Invoice anInvoice(List<CreatePaymentRegulation> paymentRegulations) {
+    return Invoice.builder()
+        .id(INVOICE1_ID)
+        .ref("invoice_ref")
+        .title("invoice_title")
+        .status(CONFIRMED)
+        .paymentMethod(PaymentMethod.CREDIT_CARD)
+        .sendingDate(LocalDate.now())
+        .toPayAt(LocalDate.now())
+        .delayInPaymentAllowed(2)
+        .delayPenaltyPercent(new Fraction(BigInteger.TEN, BigInteger.ONE))
+        .totalPriceWithoutVat(new Fraction())
+        .totalVat(new Fraction())
+        .totalPriceWithoutDiscount(new Fraction())
+        .totalPriceWithVat(new Fraction())
+        .discount(
+            new InvoiceDiscount()
+                .toBuilder().percentValue(new Fraction()).amountValue(new Fraction()).build())
+        .user(joneDoeUser())
+        .paymentType(IN_INSTALMENT)
+        .paymentRegulations(paymentRegulations)
+        .products(creatableProds(1))
+        .customer(customer())
+        .paymentUrl("text")
+        .build();
+  }
+
+  private static Customer customer() {
+    return Customer.builder()
+        .name("Must be not shown")
+        .firstName("Olivier")
+        .lastName("Durant")
+        .phone("+33 6 12 45 89 76")
+        .email("exemple@email.com")
+        .address("Paris 745")
+        .customerType(CustomerType.PROFESSIONAL)
+        .build();
+  }
+
+  private static User joneDoeUser() {
+    return User.builder()
+        .id(JOE_DOE_ID)
+        .accounts(
+            List.of(
+                Account.builder()
+                    .id(JOE_DOE_ACCOUNT_ID)
+                    .name("BPartners")
+                    .iban("FR7630001007941234567890185")
+                    .bic("BPFRPP751")
+                    .build()))
+        .build();
+  }
+
+  private static CreatePaymentRegulation aPaymentRegulation(
+      BigInteger amount, String comment, LocalDate maturityDate, PaymentMethod paymentMethod) {
+    return CreatePaymentRegulation.builder()
+        .paymentRequest(aPaymentRequest(amount, paymentMethod))
+        .maturityDate(maturityDate)
+        .comment(comment)
+        .build();
+  }
+
+  private static PaymentRequest aPaymentRequest(BigInteger amount, PaymentMethod paymentMethod) {
+    return PaymentRequest.builder()
+        .paymentHistoryStatus(paymentHistoryStatus(paymentMethod))
+        .amount(new Fraction(amount))
+        .paymentUrl("https://connect-v2-sbx.fintecture.com")
+        .build();
+  }
+
+  private static PaymentHistoryStatus paymentHistoryStatus(PaymentMethod paymentMethod) {
+    return PaymentHistoryStatus.builder()
+        .status(PaymentStatus.PAID)
+        .paymentMethod(paymentMethod)
+        .userUpdated(true)
+        .updatedAt(Instant.now())
+        .build();
+  }
 
   private static List<app.bpartners.api.model.InvoiceProduct> creatableProds(int n) {
     List<app.bpartners.api.model.InvoiceProduct> result = new ArrayList<>();
@@ -170,6 +191,7 @@ class DraftIT extends MockedThirdParties {
   }
 
   // TODO: use for local test only and set localstack for CI
+  @Disabled
   @Test
   void send_mail_ok() throws IOException {
     Resource attachmentResource = new ClassPathResource("files/modèle-facture.pdf");
@@ -191,17 +213,20 @@ class DraftIT extends MockedThirdParties {
             + ".</p>"
             + "<p>Bien à vous et merci pour votre confiance.</p>"
             + "</body></html>";
-    /*
-    TODO: DraftIT must only execute in local
-    assertDoesNotThrow(() -> this.subject.verifyEmailIdentity(recipient));
+
+    assertDoesNotThrow(() -> this.sesService.verifyEmailIdentity(recipient));
     assertDoesNotThrow(
         () ->
-            this.subject.sendEmail(
-                recipient, null, subject, htmlBody, List.of(attachment, secondAttachment)));*/
+            this.sesService.sendEmail(
+                recipient, null, subject, htmlBody, List.of(attachment, secondAttachment)));
   }
 
+  @SneakyThrows
   @Test
   void generate_invoice_pdf_ok() {
-    assertDoesNotThrow(() -> generatePdf("invoice"));
+    File invoice = generatePdf("invoice");
+
+    assertNotNull(invoice);
+    invoice.delete();
   }
 }

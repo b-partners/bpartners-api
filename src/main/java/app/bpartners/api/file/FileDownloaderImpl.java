@@ -25,7 +25,7 @@ import org.springframework.web.client.RestTemplate;
 
 @Slf4j
 @Component
-final class FileDownloaderImpl implements FileDownloader {
+public final class FileDownloaderImpl implements FileDownloader {
   private final RestTemplate restTemplate;
   private final ObjectMapper om;
 

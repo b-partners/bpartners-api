@@ -6,10 +6,7 @@ import app.bpartners.api.service.WMS.Tile;
 import java.net.URI;
 
 abstract sealed class AbstractWmsImageSource implements WmsImageSource
-    permits GeoserverImageSource,
-        OpenStreetMapImageSource,
-        TileExtenderImageSource,
-        WmsImageSourceFacade {
+    permits GeoserverImageSource, TileExtenderImageSource, WmsImageSourceFacade {
   protected final FileDownloader fileDownloaderImpl;
 
   protected AbstractWmsImageSource(FileDownloader fileDownloader) {

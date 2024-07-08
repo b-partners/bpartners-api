@@ -11,11 +11,13 @@ import app.bpartners.api.service.WMS.Tile;
 import java.io.File;
 import java.net.URI;
 import java.util.Map;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
+@Slf4j
 @Component
 final class GeoserverImageSource extends AbstractWmsImageSource {
   private final UriComponents baseUrl;

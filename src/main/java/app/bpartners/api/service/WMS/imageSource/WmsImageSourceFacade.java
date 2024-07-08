@@ -54,26 +54,28 @@ final class WmsImageSourceFacade extends AbstractWmsImageSource {
   private File cascadeRetryImageDownloadUntilValid(
       WmsImageSource wmsImageSource,
       AreaPicture areaPicture,
-      @Range(from = 0, to = 2) int iteration) {
+      @Range(from = 0, to = 1) int iteration) {
     WmsImageSource alternativeSource;
     AreaPictureMapLayer alternativeAreaPictureMapLayer;
     if (iteration == 0) {
       alternativeSource = wmsImageSource;
       alternativeAreaPictureMapLayer = areaPicture.getCurrentLayer();
+      log.info("Current layer");
     } else if (iteration == 1) {
       alternativeSource = geoserverImageSource;
       alternativeAreaPictureMapLayer = areaPictureMapLayerService.getDefaultIGNLayer();
+      log.info("Geoserver layer");
     } else {
       throw new ApiException(
           SERVER_EXCEPTION, "could not find any server for " + areaPicture.describe());
     }
     try {
       // imageValidator.accept(image);
+      areaPicture.setCurrentLayer(alternativeAreaPictureMapLayer);
       return alternativeSource.downloadImage(areaPicture);
-    } catch (ApiException | BlankImageException e) {
+    } catch (ApiException | IllegalArgumentException | BlankImageException e) {
       log.info(
           "could not resolve {} , due to exception {}", areaPicture.describe(), e.getMessage());
-      areaPicture.setCurrentLayer(alternativeAreaPictureMapLayer);
       return cascadeRetryImageDownloadUntilValid(alternativeSource, areaPicture, ++iteration);
     }
   }

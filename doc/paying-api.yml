@@ -1792,6 +1792,7 @@ components:
         - CASH
         - BANK_TRANSFER
         - CHEQUE
+        - CREDIT_CARD
     InvoiceReference:
       type: object
       properties:

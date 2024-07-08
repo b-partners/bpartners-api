@@ -168,6 +168,9 @@ public class Invoice {
       case UNKNOWN:
         path = "static/stamp/paid.png";
         break;
+      case CREDIT_CARD:
+        path = "static/stamp/credit-card.png";
+        break;
       case MULTIPLE:
         return null; // No stamp when multiple payments
       default:

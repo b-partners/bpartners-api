@@ -1,3 +1,14 @@
+## [0.50.1](https://github.com/b-partners/bpartners-api/compare/v0.50.0...v0.50.1) (2024-07-05)
+
+
+### Bug Fixes
+
+* add CREDIT CARD payment method ([572e3e1](https://github.com/b-partners/bpartners-api/commit/572e3e1d98db0b66892a72198cdb64f6c2aa11dc))
+* add firstName to prospectJpaRepository.findAllByStatus native query ([6db59df](https://github.com/b-partners/bpartners-api/commit/6db59dfada41f9cccc8bd0b609533b428894f699))
+* permitAll on poja endpoints ([86bd23c](https://github.com/b-partners/bpartners-api/commit/86bd23c29e99130cf8f97da7c2738d7bf8d8d63c))
+
+
+
 # [0.50.0](https://github.com/b-partners/bpartners-api/compare/v0.49.0...v0.50.0) (2024-06-05)
 
 
@@ -101,20 +112,6 @@
 * filter customers by id prospect ([60dfa6c](https://github.com/b-partners/bpartners-api/commit/60dfa6c2b11b41ee2c5dd4e8579d01a9c326b7f8))
 * map invoice with area picture ([74786f8](https://github.com/b-partners/bpartners-api/commit/74786f8280d2c568234bfaf4a0e505c073591470))
 * set openstreetmap layer from given layer or from geoposition via src/main/resources/files/france-geojson/departements.geojson, only use tous_fr for now and log most used regions ([13bc3c9](https://github.com/b-partners/bpartners-api/commit/13bc3c9f65493fff2d48353f5ce02f31919bc256))
-
-
-
-# [0.41.0](https://github.com/b-partners/bpartners-api/compare/v0.40.0...v0.41.0) (2024-04-05)
-
-
-### Features
-
-* add mandatory prospect_id to area_picture ([13e8d26](https://github.com/b-partners/bpartners-api/commit/13e8d2636593c705c66e3386fc8f732a7e0294cc))
-
-
-### Reverts
-
-* Revert "chore(to-revert): disable filename pattern matching" ([a4f07d4](https://github.com/b-partners/bpartners-api/commit/a4f07d41b780d8e62a13f849a7d56eddd76a5b81))
 
 
 

@@ -34,7 +34,7 @@ Resources:
           Arn: !Sub '{{resolve:ssm:/bpartners/${Env}/1/sqs/dead-letter-queue-arn}}'
         EventBridgeParameters:
           DetailType: 'app.bpartners.api.endpoint.event.model.RefreshInvoiceSummaryTriggered'
-          Source: 'app.bpartners.api'
+          Source: 'app.bpartners.api.event1'
 
   RefreshTransactionSummariesScheduler:
     Type: AWS::Scheduler::Schedule
@@ -51,7 +51,7 @@ Resources:
           Arn: !Sub '{{resolve:ssm:/bpartners/${Env}/1/sqs/dead-letter-queue-arn}}'
         EventBridgeParameters:
           DetailType: 'app.bpartners.api.endpoint.event.model.RefreshTransactionsSummariesTriggered'
-          Source: 'app.bpartners.api'
+          Source: 'app.bpartners.api.event1'
 
   UpdatePaymentScheduler:
     Type: AWS::Scheduler::Schedule
@@ -68,7 +68,7 @@ Resources:
           Arn: !Sub '{{resolve:ssm:/bpartners/${Env}/1/sqs/dead-letter-queue-arn}}'
         EventBridgeParameters:
           DetailType: 'app.bpartners.api.endpoint.event.model.UpdatePaymentTriggered'
-          Source: 'app.bpartners.api'
+          Source: 'app.bpartners.api.event1'
 
   RefreshFintectureProjectTokenScheduler:
     Type: AWS::Scheduler::Schedule
@@ -85,7 +85,7 @@ Resources:
           Arn: !Sub '{{resolve:ssm:/bpartners/${Env}/1/sqs/dead-letter-queue-arn}}'
         EventBridgeParameters:
           DetailType: 'app.bpartners.api.endpoint.event.model.RefreshFintectureProjectTokenTriggered'
-          Source: 'app.bpartners.api'
+          Source: 'app.bpartners.api.event1'
 
   RelaunchProspectsScheduler:
     Type: AWS::Scheduler::Schedule
@@ -103,4 +103,4 @@ Resources:
           Arn: !Sub '{{resolve:ssm:/bpartners/${Env}/1/sqs/dead-letter-queue-arn}}'
         EventBridgeParameters:
           DetailType: 'app.bpartners.api.endpoint.event.model.RelaunchHoldersProspectTriggered'
-          Source: 'app.bpartners.api'
+          Source: 'app.bpartners.api.event1'

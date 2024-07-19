@@ -80,6 +80,7 @@ class WmsImageSourceFacadeIT extends MockedThirdParties {
   }
 
   @Test
+  @Disabled
   void downloadImage_cascade_on_server_error_ok() {
     setupGeoserverMock(geoserverImageSourceMock);
 

@@ -21,6 +21,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 final class WmsImageSourceFacade extends AbstractWmsImageSource {
   private final GeoserverImageSource geoserverImageSource;
+  private final IGNGeoserverImageSource ignGeoserverImageSource;
   private final AreaPictureMapLayerService areaPictureMapLayerService;
   private final TileExtenderImageSource tileExtenderImageSource;
   private final ImageValidator imageValidator;
@@ -28,11 +29,13 @@ final class WmsImageSourceFacade extends AbstractWmsImageSource {
   private WmsImageSourceFacade(
       FileDownloader fileDownloader,
       GeoserverImageSource geoserverImageSource,
+      IGNGeoserverImageSource ignGeoserverImageSource,
       AreaPictureMapLayerService areaPictureMapLayerService,
       TileExtenderImageSource tileExtenderImageSource,
       ImageValidator imageValidator) {
     super(fileDownloader);
     this.geoserverImageSource = geoserverImageSource;
+    this.ignGeoserverImageSource = ignGeoserverImageSource;
     this.areaPictureMapLayerService = areaPictureMapLayerService;
     this.tileExtenderImageSource = tileExtenderImageSource;
     this.imageValidator = imageValidator;
@@ -61,15 +64,16 @@ final class WmsImageSourceFacade extends AbstractWmsImageSource {
       alternativeSource = wmsImageSource;
       alternativeAreaPictureMapLayer = areaPicture.getCurrentLayer();
     } else if (iteration == 1) {
-      alternativeSource = geoserverImageSource;
+      alternativeSource = ignGeoserverImageSource;
       alternativeAreaPictureMapLayer = areaPictureMapLayerService.getDefaultIGNLayer();
     } else {
       throw new ApiException(
           SERVER_EXCEPTION, "could not find any server for " + areaPicture.describe());
     }
     try {
-      // imageValidator.accept(image);
-      return alternativeSource.downloadImage(areaPicture);
+      var image = alternativeSource.downloadImage(areaPicture);
+      imageValidator.accept(image);
+      return image;
     } catch (ApiException | BlankImageException e) {
       log.info(
           "could not resolve {} , due to exception {}", areaPicture.describe(), e.getMessage());

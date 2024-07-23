@@ -15,7 +15,7 @@ import lombok.Data;
 public class TileExtenderRequestBody implements Serializable {
   public static final String OPENSTREETMAP_SERVER_NAME = "openstreetmap";
   public static final String GEOSERVER_SERVER_NAME = "geoserver";
-  public static final String GEOSERVER_IGN_NAME = "geoserverIgn";
+  public static final String GEOSERVER_IGN_NAME = "geoserver_ign";
   private int x;
   private int y;
   private int z;

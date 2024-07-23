@@ -1,6 +1,7 @@
 package app.bpartners.api.file;
 
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
+import static java.io.File.createTempFile;
 import static org.springframework.http.HttpMethod.POST;
 import static org.springframework.http.MediaType.ALL;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
@@ -22,16 +23,21 @@ import org.springframework.http.RequestEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StreamUtils;
 import org.springframework.web.client.RestTemplate;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.transfer.s3.model.DownloadFileRequest;
+import software.amazon.awssdk.transfer.s3.model.FileDownload;
 
 @Slf4j
 @Component
 final class FileDownloaderImpl implements FileDownloader {
   private final RestTemplate restTemplate;
   private final ObjectMapper om;
+  private final BucketConf bucketConf;
 
-  public FileDownloaderImpl(RestTemplate restTemplate, ObjectMapper objectMapper) {
+  public FileDownloaderImpl(RestTemplate restTemplate, ObjectMapper objectMapper, BucketConf bucketConf) {
     this.restTemplate = restTemplate;
     this.om = objectMapper;
+    this.bucketConf = bucketConf;
   }
 
   @Override
@@ -40,6 +46,52 @@ final class FileDownloaderImpl implements FileDownloader {
     log.info("GET downloading {} from {}", filename, uri);
     var response = restTemplate.getForObject(uri, byte[].class);
     return createFileFrom(filename, response);
+  }
+
+  @Override
+  @SneakyThrows
+  public File getFromS3(String filename, URI uri) {
+    log.info("GET downloading {} from {}", filename, uri);
+    var response = restTemplate.getForObject(uri, s3Prop.class);
+    return download(response.bucketName, response.s3Key);
+  }
+
+  public record s3Prop(String bucketName, String s3Key){};
+
+  @SneakyThrows
+  public File download(String bucketName, String bucketKey) {
+    var destination =
+            createTempFile(prefixFromBucketKey(bucketKey), suffixFromBucketKey(bucketKey));
+    FileDownload download =
+            bucketConf
+                    .getS3TransferManager()
+                    .downloadFile(
+                            DownloadFileRequest.builder()
+                                    .getObjectRequest(
+                                            GetObjectRequest.builder()
+                                                    .bucket(bucketName)
+                                                    .key(bucketKey)
+                                                    .build())
+                                    .destination(destination)
+                                    .build());
+    download.completionFuture().join();
+    return destination;
+  }
+
+
+  private String prefixFromBucketKey(String bucketKey) {
+    return lastNameSplitByDot(bucketKey)[0];
+  }
+
+  private String suffixFromBucketKey(String bucketKey) {
+    var splitByDot = lastNameSplitByDot(bucketKey);
+    return splitByDot.length == 1 ? "" : splitByDot[splitByDot.length - 1];
+  }
+
+  private String[] lastNameSplitByDot(String bucketKey) {
+    var splitByDash = bucketKey.split("/");
+    var lastName = splitByDash[splitByDash.length - 1];
+    return lastName.split("\\.");
   }
 
   @Override
@@ -72,4 +124,6 @@ final class FileDownloaderImpl implements FileDownloader {
     StreamUtils.copy(response, new FileOutputStream(res));
     return res;
   }
+
+
 }

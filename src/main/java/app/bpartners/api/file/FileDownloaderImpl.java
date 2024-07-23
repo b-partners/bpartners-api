@@ -34,7 +34,8 @@ final class FileDownloaderImpl implements FileDownloader {
   private final ObjectMapper om;
   private final BucketConf bucketConf;
 
-  public FileDownloaderImpl(RestTemplate restTemplate, ObjectMapper objectMapper, BucketConf bucketConf) {
+  public FileDownloaderImpl(
+      RestTemplate restTemplate, ObjectMapper objectMapper, BucketConf bucketConf) {
     this.restTemplate = restTemplate;
     this.om = objectMapper;
     this.bucketConf = bucketConf;
@@ -56,28 +57,25 @@ final class FileDownloaderImpl implements FileDownloader {
     return download(response.bucketName, response.s3Key);
   }
 
-  public record s3Prop(String bucketName, String s3Key){};
+  public record s3Prop(String bucketName, String s3Key) {}
+  ;
 
   @SneakyThrows
   public File download(String bucketName, String bucketKey) {
     var destination =
-            createTempFile(prefixFromBucketKey(bucketKey), suffixFromBucketKey(bucketKey));
+        createTempFile(prefixFromBucketKey(bucketKey), suffixFromBucketKey(bucketKey));
     FileDownload download =
-            bucketConf
-                    .getS3TransferManager()
-                    .downloadFile(
-                            DownloadFileRequest.builder()
-                                    .getObjectRequest(
-                                            GetObjectRequest.builder()
-                                                    .bucket(bucketName)
-                                                    .key(bucketKey)
-                                                    .build())
-                                    .destination(destination)
-                                    .build());
+        bucketConf
+            .getS3TransferManager()
+            .downloadFile(
+                DownloadFileRequest.builder()
+                    .getObjectRequest(
+                        GetObjectRequest.builder().bucket(bucketName).key(bucketKey).build())
+                    .destination(destination)
+                    .build());
     download.completionFuture().join();
     return destination;
   }
-
 
   private String prefixFromBucketKey(String bucketKey) {
     return lastNameSplitByDot(bucketKey)[0];
@@ -124,6 +122,4 @@ final class FileDownloaderImpl implements FileDownloader {
     StreamUtils.copy(response, new FileOutputStream(res));
     return res;
   }
-
-
 }

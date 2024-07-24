@@ -136,6 +136,12 @@ final class FileDownloaderImpl implements FileDownloader {
 
   @NotNull
   private static File createFileFrom(String filename, byte[] response) throws IOException {
+    if (filename == null
+        || filename.contains("..")
+        || filename.contains("/")
+        || filename.contains("\\")) {
+      throw new IllegalArgumentException("Invalid filename");
+    }
     File res = File.createTempFile(filename, null);
     StreamUtils.copy(response, new FileOutputStream(res));
     return res;

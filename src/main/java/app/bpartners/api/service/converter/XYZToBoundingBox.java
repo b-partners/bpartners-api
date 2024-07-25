@@ -13,10 +13,10 @@ import org.springframework.web.util.UriComponentsBuilder;
 public class XYZToBoundingBox implements XYZConverter {
   private final UriComponents baseUrl;
   private final RestTemplate restTemplate;
-  private String converterUrl;
+  private final String converterUrl;
 
-
-  public XYZToBoundingBox(RestTemplate restTemplate, @Value("${xyz.to.bbox.converter.url}") String converterUrl) {
+  public XYZToBoundingBox(
+      RestTemplate restTemplate, @Value("${xyz.to.bbox.converter.url}") String converterUrl) {
     this.restTemplate = restTemplate;
     this.baseUrl =
         UriComponentsBuilder.fromHttpUrl(converterUrl)

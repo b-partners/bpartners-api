@@ -21,7 +21,6 @@ public class ImageValidator implements Consumer<File> {
   public void accept(File file) throws BlankImageException {
     try {
       BufferedImage image = ImageIO.read(file);
-      image = scaleImage(image, 100, -1); // Scale the image
       int w = image.getWidth();
       int h = image.getHeight();
       boolean isBlank = true;

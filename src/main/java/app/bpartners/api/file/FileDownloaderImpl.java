@@ -1,7 +1,6 @@
 package app.bpartners.api.file;
 
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
-import static java.io.File.createTempFile;
 import static org.springframework.http.HttpMethod.POST;
 import static org.springframework.http.MediaType.ALL;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
@@ -14,6 +13,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.Serializable;
 import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Base64;
 import java.util.List;
 import lombok.SneakyThrows;
@@ -54,26 +55,34 @@ final class FileDownloaderImpl implements FileDownloader {
   public File getFromS3(String filename, URI uri) {
     log.info("GET downloading {} from {}", filename, uri);
     var response = restTemplate.getForObject(uri, s3Prop.class);
+    assert response != null;
     return download(response.bucketName, response.s3Key);
   }
 
   public record s3Prop(String bucketName, String s3Key) {}
-  ;
 
   @SneakyThrows
-  public File download(String bucketName, String bucketKey) {
-    var destination =
-        createTempFile(prefixFromBucketKey(bucketKey), suffixFromBucketKey(bucketKey));
-    FileDownload download =
-        bucketConf
-            .getS3TransferManager()
-            .downloadFile(
-                DownloadFileRequest.builder()
-                    .getObjectRequest(
-                        GetObjectRequest.builder().bucket(bucketName).key(bucketKey).build())
-                    .destination(destination)
-                    .build());
-    download.completionFuture().join();
+  private File download(String bucketName, String bucketKey) {
+    File destination;
+    try {
+      Path tempDir = Files.createTempDirectory("myTempDir");
+      destination =
+          Files.createTempFile(
+                  tempDir, prefixFromBucketKey(bucketKey), suffixFromBucketKey(bucketKey))
+              .toFile();
+      FileDownload download =
+          bucketConf
+              .getS3TransferManager()
+              .downloadFile(
+                  DownloadFileRequest.builder()
+                      .getObjectRequest(
+                          GetObjectRequest.builder().bucket(bucketName).key(bucketKey).build())
+                      .destination(destination)
+                      .build());
+      download.completionFuture().join();
+    } catch (IOException e) {
+      throw new RuntimeException("Failed to create or download file", e);
+    }
     return destination;
   }
 

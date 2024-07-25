@@ -38,6 +38,9 @@ final class GeoserverImageSource extends AbstractWmsImageSource {
             .query("height=1024")
             .query("bbox={bbox}")
             .query("SRS=EPSG:3857")
+            .query("transparent=true")
+            .query("service=WMS")
+            .query("request=GetMap")
             .build();
     this.xyzToBoundingBox = xyzToBoundingBox;
   }

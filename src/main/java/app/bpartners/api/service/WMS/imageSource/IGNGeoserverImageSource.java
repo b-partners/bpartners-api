@@ -8,11 +8,11 @@ import app.bpartners.api.file.FileDownloader;
 import app.bpartners.api.model.AreaPicture;
 import app.bpartners.api.model.AreaPictureMapLayer;
 import app.bpartners.api.model.exception.ApiException;
+import app.bpartners.api.model.validator.AreaPictureValidator;
 import app.bpartners.api.service.WMS.Tile;
 import java.io.File;
 import java.net.URI;
 import java.util.Map;
-import java.util.Objects;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponents;
@@ -21,9 +21,12 @@ import org.springframework.web.util.UriComponentsBuilder;
 @Component
 final class IGNGeoserverImageSource extends AbstractWmsImageSource {
   private final UriComponents baseUrl;
+  private final AreaPictureValidator areaPictureValidator;
 
   public IGNGeoserverImageSource(
-      @Value("${ign.geoserver.baseurl}") String geoserverBaseUrl, FileDownloader fileDownloader) {
+      @Value("${ign.geoserver.baseurl}") String geoserverBaseUrl,
+      FileDownloader fileDownloader,
+      AreaPictureValidator areaPictureValidator) {
     super(fileDownloader);
     this.baseUrl =
         UriComponentsBuilder.fromHttpUrl(geoserverBaseUrl)
@@ -31,6 +34,7 @@ final class IGNGeoserverImageSource extends AbstractWmsImageSource {
             .query("lat={lat}")
             .query("long={long}")
             .build();
+    this.areaPictureValidator = areaPictureValidator;
   }
 
   @Override
@@ -50,12 +54,10 @@ final class IGNGeoserverImageSource extends AbstractWmsImageSource {
   }
 
   private URI getURI(AreaPicture areaPicture) {
+    areaPictureValidator.accept(areaPicture);
     GeoPosition geoPosition = areaPicture.getCurrentGeoPosition();
     Double longitude = geoPosition.getLongitude();
     Double latitude = geoPosition.getLatitude();
-
-    Objects.requireNonNull(latitude, "Latitude cannot be null");
-    Objects.requireNonNull(longitude, "Longitude cannot be null");
 
     Map<String, Object> uriVariables =
         Map.of(

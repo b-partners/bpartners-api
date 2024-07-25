@@ -1,6 +1,9 @@
 package app.bpartners.api.file;
 
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
+import static java.nio.file.attribute.PosixFilePermissions.asFileAttribute;
+import static java.nio.file.attribute.PosixFilePermissions.fromString;
+import static java.util.UUID.randomUUID;
 import static org.springframework.http.HttpMethod.POST;
 import static org.springframework.http.MediaType.ALL;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
@@ -17,6 +20,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Base64;
 import java.util.List;
+import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
@@ -30,17 +34,12 @@ import software.amazon.awssdk.transfer.s3.model.FileDownload;
 
 @Slf4j
 @Component
+@AllArgsConstructor
 final class FileDownloaderImpl implements FileDownloader {
+  private static final String TEMP_FOLDER_PERMISSION = "rwx------";
   private final RestTemplate restTemplate;
   private final ObjectMapper om;
   private final BucketConf bucketConf;
-
-  public FileDownloaderImpl(
-      RestTemplate restTemplate, ObjectMapper objectMapper, BucketConf bucketConf) {
-    this.restTemplate = restTemplate;
-    this.om = objectMapper;
-    this.bucketConf = bucketConf;
-  }
 
   @Override
   @SneakyThrows
@@ -53,7 +52,6 @@ final class FileDownloaderImpl implements FileDownloader {
   @Override
   @SneakyThrows
   public File getFromS3(String filename, URI uri) {
-    log.info("GET downloading {} from {}", filename, uri);
     var response = restTemplate.getForObject(uri, s3Prop.class);
     assert response != null;
     return download(response.bucketName, response.s3Key);
@@ -65,10 +63,10 @@ final class FileDownloaderImpl implements FileDownloader {
   private File download(String bucketName, String bucketKey) {
     File destination;
     try {
-      Path tempDir = Files.createTempDirectory("myTempDir");
+      File tempDir = createTempDirectory();
       destination =
           Files.createTempFile(
-                  tempDir, prefixFromBucketKey(bucketKey), suffixFromBucketKey(bucketKey))
+                  tempDir.toPath(), prefixFromBucketKey(bucketKey), suffixFromBucketKey(bucketKey))
               .toFile();
       FileDownload download =
           bucketConf
@@ -84,6 +82,16 @@ final class FileDownloaderImpl implements FileDownloader {
       throw new RuntimeException("Failed to create or download file", e);
     }
     return destination;
+  }
+
+  @SneakyThrows
+  public File createTempDirectory() {
+    Path tempDir =
+        Files.createTempDirectory(
+            randomUUID().toString(), asFileAttribute(fromString(TEMP_FOLDER_PERMISSION)));
+    var dirFile = tempDir.toFile();
+    dirFile.deleteOnExit();
+    return dirFile;
   }
 
   private String prefixFromBucketKey(String bucketKey) {

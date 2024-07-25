@@ -21,7 +21,7 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class AreaPictureMapLayerService {
   public static final int WGS_84_SRID = 4326;
-  private static final String DEFAULT_IGN_LAYER_UUID = "1cccfc17-cbef-4320-bdfa-0d1920b91f11";
+  public static final String DEFAULT_IGN_LAYER_UUID = "1cccfc17-cbef-4320-bdfa-0d1920b91f11";
   private final AreaPictureMapLayerRepository repository;
 
   public List<AreaPictureMapLayer> getAvailableLayersFrom(Tile tile) {

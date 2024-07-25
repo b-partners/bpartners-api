@@ -1,6 +1,7 @@
 package app.bpartners.api.integration;
 
 import static app.bpartners.api.endpoint.rest.model.AreaPictureImageSource.GEOSERVER;
+import static app.bpartners.api.endpoint.rest.model.AreaPictureImageSource.GEOSERVER_IGN;
 import static app.bpartners.api.endpoint.rest.model.OpenStreetMapLayer.TOUS_FR;
 import static app.bpartners.api.endpoint.rest.model.ZoomLevel.HOUSES_0;
 import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_ID;
@@ -98,6 +99,18 @@ public class AreaPictureIT extends S3MockedThirdParties {
 
   static AreaPictureMapLayer geoserverIGNPrimaryDefaultServerLayer() {
     return new AreaPictureMapLayer()
+        .id("1cccfc17-cbef-4320-bdfa-0d1920b91f11")
+        .name("ORTHOIMAGERY.ORTHOPHOTOS")
+        .year(2023)
+        .precisionLevelInCm(20)
+        .maximumZoomLevel(HOUSES_0)
+        .departementName("ALL")
+        .maximumZoom(new Zoom().level(HOUSES_0).number(20))
+        .source(GEOSERVER_IGN);
+  }
+
+  static AreaPictureMapLayer geoserverIGNServerLayer() {
+    return new AreaPictureMapLayer()
         .id("9a4bd8b7-556b-49a1-bea0-c35e961dab64")
         .name("FLUX_IGN_2023_20CM")
         .year(2023)
@@ -122,11 +135,11 @@ public class AreaPictureIT extends S3MockedThirdParties {
 
   static app.bpartners.api.model.AreaPictureMapLayer domainGeoserverIGNLayer() {
     return app.bpartners.api.model.AreaPictureMapLayer.builder()
-        .id("9a4bd8b7-556b-49a1-bea0-c35e961dab64")
-        .name("FLUX_IGN_2023_20CM")
+        .id("1cccfc17-cbef-4320-bdfa-0d1920b91f11")
+        .name("ORTHOIMAGERY.ORTHOPHOTOS")
         .year(2023)
         .departementName("ALL")
-        .source(GEOSERVER)
+        .source(GEOSERVER_IGN)
         .maximumZoomLevel(HOUSES_0)
         .precisionLevelInCm(20)
         .build();
@@ -144,7 +157,7 @@ public class AreaPictureIT extends S3MockedThirdParties {
         .xTile(xTile)
         .yTile(yTile)
         .zoomLevel(zoomLevel)
-        .actualLayer(geoserverIGNPrimaryDefaultServerLayer())
+        .actualLayer(geoserverIGNServerLayer())
         .address("Montauban Address")
         .createdAt(Instant.parse("2022-01-08T01:00:00Z"))
         .updatedAt(Instant.parse("2022-01-08T01:00:00Z"))
@@ -198,7 +211,7 @@ public class AreaPictureIT extends S3MockedThirdParties {
     return new AreaPictureDetails()
         .id("area_picture_2_id")
         .zoomLevel(HOUSES_0)
-        .actualLayer(geoserverIGNPrimaryDefaultServerLayer())
+        .actualLayer(geoserverIGNServerLayer())
         .xTile(xTile)
         .yTile(yTile)
         .layer(DEFAULT_OSM_LAYER)
@@ -331,7 +344,6 @@ public class AreaPictureIT extends S3MockedThirdParties {
   void joe_doe_read_his_pictures_ok() throws ApiException {
     ApiClient joeDoeClient = joeDoeClient();
     AreaPictureApi api = new AreaPictureApi(joeDoeClient);
-
     List<AreaPictureDetails> allAreaPictures =
         api.getAllAreaPictures(JOE_DOE_ACCOUNT_ID, 1, 10, null, null);
     List<AreaPictureDetails> addressFilteredAreaPictures =

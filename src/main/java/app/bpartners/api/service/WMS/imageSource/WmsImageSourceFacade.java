@@ -75,13 +75,13 @@ final class WmsImageSourceFacade extends AbstractWmsImageSource {
           SERVER_EXCEPTION, "could not find any server for " + areaPicture.describe());
     }
     try {
+      areaPicture.setCurrentLayer(alternativeAreaPictureMapLayer);
       var image = alternativeSource.downloadImage(areaPicture);
-      imageValidator.accept(image);
+//      imageValidator.accept(image);
       return image;
     } catch (ApiException | BlankImageException e) {
       log.info(
           "could not resolve {} , due to exception {}", areaPicture.describe(), e.getMessage());
-      areaPicture.setCurrentLayer(alternativeAreaPictureMapLayer);
       return cascadeRetryImageDownloadUntilValid(alternativeSource, areaPicture, ++iteration);
     }
   }

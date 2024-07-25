@@ -63,11 +63,11 @@ final class GeoserverImageSource extends AbstractWmsImageSource {
 
   @Override
   public File downloadImage(AreaPicture areaPicture) {
-    if (!supports(areaPicture)) {
-      throw new ApiException(
-          SERVER_EXCEPTION,
-          "cannot download " + areaPicture + " from " + this.getClass().getTypeName());
-    }
+//    if (!supports(areaPicture)) {
+//      throw new ApiException(
+//          SERVER_EXCEPTION,
+//          "cannot download " + areaPicture + " from " + this.getClass().getTypeName());
+//    }
     return fileDownloaderImpl.get(
         areaPicture.getFilename(),
         getURI(areaPicture.getCurrentTile(), areaPicture.getCurrentLayer()));
@@ -75,6 +75,7 @@ final class GeoserverImageSource extends AbstractWmsImageSource {
 
   @Override
   public boolean supports(AreaPicture areaPicture) {
+    log.info("GEOSERVER is the expected layer: {}", areaPicture.getCurrentLayer().getSource());
     return GEOSERVER.equals(areaPicture.getCurrentLayer().getSource());
   }
 }

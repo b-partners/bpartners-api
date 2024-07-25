@@ -13,12 +13,15 @@ import app.bpartners.api.service.WMS.Tile;
 import java.io.File;
 import java.net.URI;
 import java.util.Map;
+
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
 @Component
+@Slf4j
 final class IGNGeoserverImageSource extends AbstractWmsImageSource {
   private final UriComponents baseUrl;
   private final AreaPictureValidator areaPictureValidator;
@@ -39,17 +42,18 @@ final class IGNGeoserverImageSource extends AbstractWmsImageSource {
 
   @Override
   public File downloadImage(AreaPicture areaPicture) {
-    if (!supports(areaPicture)) {
-      throw new ApiException(
-          SERVER_EXCEPTION,
-          "cannot download " + areaPicture + " from " + this.getClass().getTypeName());
-    }
+//    if (!supports(areaPicture)) {
+//      throw new ApiException(
+//          SERVER_EXCEPTION,
+//          "cannot download " + areaPicture + " from " + this.getClass().getTypeName());
+//    }
 
     return fileDownloaderImpl.getFromS3(areaPicture.getFilename(), getURI(areaPicture));
   }
 
   @Override
   public boolean supports(AreaPicture areaPicture) {
+    log.info("IGN is the expected layer: {}", areaPicture.getCurrentLayer().getSource());
     return GEOSERVER_IGN.equals(areaPicture.getCurrentLayer().getSource());
   }
 

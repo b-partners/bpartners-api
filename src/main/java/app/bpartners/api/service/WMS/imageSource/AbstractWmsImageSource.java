@@ -9,6 +9,7 @@ abstract sealed class AbstractWmsImageSource implements WmsImageSource
     permits GeoserverImageSource,
         OpenStreetMapImageSource,
         TileExtenderImageSource,
+        IGNGeoserverImageSource,
         WmsImageSourceFacade {
   protected final FileDownloader fileDownloaderImpl;
 

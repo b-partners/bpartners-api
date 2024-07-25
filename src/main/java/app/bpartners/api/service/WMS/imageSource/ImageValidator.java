@@ -4,9 +4,9 @@ import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVE
 
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.service.WMS.imageSource.exception.BlankImageException;
+import java.awt.*;
 import java.awt.Color;
-import java.awt.Image;
-import java.awt.image.PixelGrabber;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.function.Consumer;
@@ -15,27 +15,39 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class ImageValidator implements Consumer<File> {
-  public static final int WHITE_COLOR_RGB = Color.WHITE.getRGB();
-
-  @Override
   public void accept(File file) throws BlankImageException {
     try {
-      Image image = ImageIO.read(file);
-      image = image.getScaledInstance(100, -1, Image.SCALE_FAST);
-      int w = image.getWidth(null);
-      int h = image.getHeight(null);
-      int[] pixels = new int[w * h];
-      PixelGrabber pg = new PixelGrabber(image, 0, 0, w, h, pixels, 0, w);
-      pg.grabPixels();
+      BufferedImage image = ImageIO.read(file);
+      int w = image.getWidth();
+      int h = image.getHeight();
+      int[] pixels = image.getRGB(0, 0, w, h, null, 0, w);
+      boolean isBlank = true;
+      boolean isBlack = true;
+
       for (int pixel : pixels) {
-        Color color = new Color(pixel);
-        if (color.getAlpha() == 0 || color.getRGB() != WHITE_COLOR_RGB) {
-          return;
+        if ((pixel & 0xFF000000) != 0 && !isWhite(pixel)) {
+          isBlank = false;
+        }
+        if (pixel != Color.BLACK.getRGB()) {
+          isBlack = false;
+        }
+        if (!isBlank && !isBlack) {
+          break;
         }
       }
-    } catch (IOException | InterruptedException e) {
+
+      if (isBlank) {
+        throw new BlankImageException("Image from " + file.getName() + " is blank");
+      }
+      if (isBlack) {
+        throw new BlankImageException("Image from " + file.getName() + " is completely black");
+      }
+    } catch (IOException e) {
       throw new ApiException(SERVER_EXCEPTION, e);
     }
-    throw new BlankImageException("Image from " + file.getName() + " is blank");
+  }
+
+  private boolean isWhite(int pixel) {
+    return (pixel & 0xFFFFFF) == 0xFFFFFF;
   }
 }

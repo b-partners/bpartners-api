@@ -297,6 +297,7 @@ components:
       enum:
         - OPENSTREETMAP
         - GEOSERVER
+        - GEOSERVER_IGN
     AreaPictureMapLayer:
       type: object
       properties:

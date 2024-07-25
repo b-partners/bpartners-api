@@ -13,11 +13,10 @@ import org.springframework.web.util.UriComponentsBuilder;
 public class XYZToBoundingBox implements XYZConverter {
   private final UriComponents baseUrl;
   private final RestTemplate restTemplate;
-
-  @Value("${xyz.to.bbox.converter.url}")
   private String converterUrl;
 
-  public XYZToBoundingBox(RestTemplate restTemplate) {
+
+  public XYZToBoundingBox(RestTemplate restTemplate, @Value("${xyz.to.bbox.converter.url}") String converterUrl) {
     this.restTemplate = restTemplate;
     this.baseUrl =
         UriComponentsBuilder.fromHttpUrl(converterUrl)
@@ -25,6 +24,7 @@ public class XYZToBoundingBox implements XYZConverter {
             .query("y={y}")
             .query("z={z}")
             .build();
+    this.converterUrl = converterUrl;
   }
 
   @Override

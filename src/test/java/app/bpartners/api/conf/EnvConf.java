@@ -40,5 +40,6 @@ public class EnvConf {
     registry.add("geoserver.baseurl", () -> MOCK_SERVER_URL);
     registry.add("tile.extender.baseurl", () -> MOCK_SERVER_URL);
     registry.add("ign.geoserver.baseurl", () -> MOCK_SERVER_URL);
+    registry.add("xyz.to.bbox.converter.url", () -> MOCK_SERVER_URL);
   }
 }

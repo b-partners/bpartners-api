@@ -49,7 +49,7 @@ final class GeoserverImageSource extends AbstractWmsImageSource {
     BigDecimal miny = boundingBox.miny();
     BigDecimal maxx = boundingBox.maxx();
     BigDecimal maxy = boundingBox.maxy();
-    Map<String, Object> uriVariables =
+    Map<String, String> uriVariables =
         Map.of(
             "layer",
             mapLayer.getName(),

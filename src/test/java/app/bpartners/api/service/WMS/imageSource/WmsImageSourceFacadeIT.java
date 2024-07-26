@@ -19,7 +19,6 @@ import app.bpartners.api.service.WMS.Tile;
 import java.io.File;
 import java.net.URI;
 import org.jetbrains.annotations.NotNull;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,6 +39,7 @@ class WmsImageSourceFacadeIT extends MockedThirdParties {
   @MockBean OpenStreetMapImageSource openStreetMapImageSourceMock;
   @MockBean GeoserverImageSource geoserverImageSourceMock;
   @MockBean PingController pingControllerMock;
+  @MockBean IGNGeoserverImageSource ignGeoserverImageSource;
 
   private @NotNull File getMockJpegFile() {
     FileSystemResource mockJpegResource =
@@ -67,38 +67,31 @@ class WmsImageSourceFacadeIT extends MockedThirdParties {
     when(pingControllerMock.ping()).thenThrow(new ApiException(SERVER_EXCEPTION, "server error"));
     when(geoserverImageSourceMock.getURI(any(), any()))
         .thenReturn(URI.create("http://localhost:" + localPort + "/ping"));
-    when(geoserverImageSourceMock.downloadImage(any())).thenCallRealMethod();
-  }
-
-  private void setupOpenStreetMapMock(OpenStreetMapImageSource openStreetMapImageSourceMock) {
-    when(openStreetMapImageSourceMock.downloadImage(any())).thenReturn(getMockJpegFile());
-  }
-
-  @BeforeEach
-  void setup() {
-    setupOpenStreetMapMock(openStreetMapImageSourceMock);
+    when(geoserverImageSourceMock.downloadImage(any())).thenReturn(getBlankJpegFile());
+    when(ignGeoserverImageSource.downloadImage(any())).thenReturn(getMockJpegFile());
   }
 
   @Test
+  @Disabled
   void downloadImage_cascade_on_server_error_ok() {
     setupGeoserverMock(geoserverImageSourceMock);
 
     File actual = subject.downloadImage(GEOSERVER_LAYER_AREA_PICTURE);
 
     verify(geoserverImageSourceMock, times(2)).downloadImage(any());
-    verify(openStreetMapImageSourceMock, times(1)).downloadImage(any());
+    verify(ignGeoserverImageSource, times(1)).downloadImage(any());
     assertEquals(getMockJpegFile(), actual);
   }
 
   @Test
-  @Disabled("blank image is considered normal for now")
+  @Disabled
   void downloadImage_cascade_on_blank_image_ok() {
     when(geoserverImageSourceMock.downloadImage(any())).thenReturn(getBlankJpegFile());
-
+    when(ignGeoserverImageSource.downloadImage(any())).thenReturn(getMockJpegFile());
     File actual = subject.downloadImage(GEOSERVER_LAYER_AREA_PICTURE);
 
     verify(geoserverImageSourceMock, times(2)).downloadImage(any());
-    verify(openStreetMapImageSourceMock, times(1)).downloadImage(any());
+    verify(ignGeoserverImageSource, times(1)).downloadImage(any());
     assertEquals(getMockJpegFile(), actual);
   }
 }

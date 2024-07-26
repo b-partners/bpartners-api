@@ -20,22 +20,23 @@ import org.springframework.stereotype.Component;
 @Primary
 @Slf4j
 final class WmsImageSourceFacade extends AbstractWmsImageSource {
-  private final OpenStreetMapImageSource openStreetMapImageSource;
   private final GeoserverImageSource geoserverImageSource;
+  private final IGNGeoserverImageSource ignGeoserverImageSource;
   private final AreaPictureMapLayerService areaPictureMapLayerService;
   private final TileExtenderImageSource tileExtenderImageSource;
   private final ImageValidator imageValidator;
+  private final String FLUX_IGN_GEOSERVER_ID = "9a4bd8b7-556b-49a1-bea0-c35e961dab64";
 
   private WmsImageSourceFacade(
       FileDownloader fileDownloader,
-      OpenStreetMapImageSource openStreetMapImageSource,
       GeoserverImageSource geoserverImageSource,
+      IGNGeoserverImageSource ignGeoserverImageSource,
       AreaPictureMapLayerService areaPictureMapLayerService,
       TileExtenderImageSource tileExtenderImageSource,
       ImageValidator imageValidator) {
     super(fileDownloader);
-    this.openStreetMapImageSource = openStreetMapImageSource;
     this.geoserverImageSource = geoserverImageSource;
+    this.ignGeoserverImageSource = ignGeoserverImageSource;
     this.areaPictureMapLayerService = areaPictureMapLayerService;
     this.tileExtenderImageSource = tileExtenderImageSource;
     this.imageValidator = imageValidator;
@@ -43,10 +44,7 @@ final class WmsImageSourceFacade extends AbstractWmsImageSource {
 
   @Override
   protected URI getURI(Tile tile, AreaPictureMapLayer areaPictureMapLayer) {
-    return switch (areaPictureMapLayer.getSource()) {
-      case OPENSTREETMAP -> openStreetMapImageSource.getURI(tile, areaPictureMapLayer);
-      case GEOSERVER -> geoserverImageSource.getURI(tile, areaPictureMapLayer);
-    };
+    return geoserverImageSource.getURI(tile, areaPictureMapLayer);
   }
 
   @Override
@@ -54,10 +52,7 @@ final class WmsImageSourceFacade extends AbstractWmsImageSource {
     if (areaPicture.isExtended()) {
       return tileExtenderImageSource.downloadImage(areaPicture);
     }
-    return switch (areaPicture.getCurrentLayer().getSource()) {
-      case OPENSTREETMAP -> openStreetMapImageSource.downloadImage(areaPicture);
-      case GEOSERVER -> cascadeRetryImageDownloadUntilValid(geoserverImageSource, areaPicture, 0);
-    };
+    return cascadeRetryImageDownloadUntilValid(geoserverImageSource, areaPicture, 0);
   }
 
   private File cascadeRetryImageDownloadUntilValid(
@@ -71,21 +66,22 @@ final class WmsImageSourceFacade extends AbstractWmsImageSource {
       alternativeAreaPictureMapLayer = areaPicture.getCurrentLayer();
     } else if (iteration == 1) {
       alternativeSource = geoserverImageSource;
-      alternativeAreaPictureMapLayer = areaPictureMapLayerService.getDefaultIGNLayer();
+      alternativeAreaPictureMapLayer = areaPictureMapLayerService.getById(FLUX_IGN_GEOSERVER_ID);
     } else if (iteration == 2) {
-      alternativeSource = openStreetMapImageSource;
-      alternativeAreaPictureMapLayer = areaPictureMapLayerService.getDefaultOSMLayer();
+      alternativeSource = ignGeoserverImageSource;
+      alternativeAreaPictureMapLayer = areaPictureMapLayerService.getDefaultIGNLayer();
     } else {
       throw new ApiException(
           SERVER_EXCEPTION, "could not find any server for " + areaPicture.describe());
     }
     try {
-      // imageValidator.accept(image);
-      return alternativeSource.downloadImage(areaPicture);
+      areaPicture.setCurrentLayer(alternativeAreaPictureMapLayer);
+      var image = alternativeSource.downloadImage(areaPicture);
+//      imageValidator.accept(image);
+      return image;
     } catch (ApiException | BlankImageException e) {
       log.info(
           "could not resolve {} , due to exception {}", areaPicture.describe(), e.getMessage());
-      areaPicture.setCurrentLayer(alternativeAreaPictureMapLayer);
       return cascadeRetryImageDownloadUntilValid(alternativeSource, areaPicture, ++iteration);
     }
   }

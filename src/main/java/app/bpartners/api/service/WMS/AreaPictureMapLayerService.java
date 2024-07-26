@@ -21,8 +21,7 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class AreaPictureMapLayerService {
   public static final int WGS_84_SRID = 4326;
-  private static final String DEFAULT_OSM_LAYER_UUID = "2cb589c1-45b0-4cb8-b84e-f1ed40e97bd8";
-  private static final String DEFAULT_IGN_LAYER_UUID = "9a4bd8b7-556b-49a1-bea0-c35e961dab64";
+  public static final String DEFAULT_IGN_LAYER_UUID = "1cccfc17-cbef-4320-bdfa-0d1920b91f11";
   private final AreaPictureMapLayerRepository repository;
 
   public List<AreaPictureMapLayer> getAvailableLayersFrom(Tile tile) {
@@ -36,7 +35,7 @@ public class AreaPictureMapLayerService {
               return geometry.contains(areaPictureCoordinatesAsPoint);
             });
     if (features.isEmpty()) {
-      return List.of(getDefaultIGNLayer(), getDefaultOSMLayer());
+      return List.of(getDefaultIGNLayer());
     }
     List<String> matchingFeaturesName =
         features.stream().map(f -> (String) f.getAttribute("nom")).toList();
@@ -54,16 +53,11 @@ public class AreaPictureMapLayerService {
         new ArrayList<>(
             repository.findAllByDepartementNameInIgnoreCaseOrderByYear(matchingFeaturesName));
     result.add(getDefaultIGNLayer());
-    result.add(getDefaultOSMLayer());
     return result;
   }
 
   public AreaPictureMapLayer getLatestMostPreciseOrDefault(List<AreaPictureMapLayer> layers) {
     return layers.stream().max(AreaPictureMapLayer::compareTo).orElse(getDefaultIGNLayer());
-  }
-
-  public AreaPictureMapLayer getDefaultOSMLayer() {
-    return getById(DEFAULT_OSM_LAYER_UUID);
   }
 
   public AreaPictureMapLayer getDefaultIGNLayer() {

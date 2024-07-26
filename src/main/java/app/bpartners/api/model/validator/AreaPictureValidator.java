@@ -31,6 +31,9 @@ public class AreaPictureValidator implements Consumer<AreaPicture> {
     if (areaPicture.getIdProspect() == null) {
       exceptionMessageBuilder.append("prospectId is mandatory. ");
     }
+    if (areaPicture.getCurrentGeoPosition() == null) {
+      exceptionMessageBuilder.append("currentGeoPosition is mandatory. ");
+    }
 
     String exceptionMessage = exceptionMessageBuilder.toString();
     if (!exceptionMessage.isEmpty()) {

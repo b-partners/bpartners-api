@@ -4,6 +4,7 @@ import static app.bpartners.api.endpoint.rest.model.AreaPictureImageSource.GEOSE
 import static app.bpartners.api.endpoint.rest.model.ZoomLevel.HOUSES_0;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -11,6 +12,8 @@ import static org.mockito.Mockito.when;
 
 import app.bpartners.api.endpoint.rest.controller.health.PingController;
 import app.bpartners.api.integration.conf.MockedThirdParties;
+import app.bpartners.api.mail.Mailer;
+import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.AreaPicture;
 import app.bpartners.api.model.AreaPictureMapLayer;
 import app.bpartners.api.model.exception.ApiException;
@@ -39,6 +42,7 @@ class WmsImageSourceFacadeIT extends MockedThirdParties {
   @MockBean GeoserverImageSource geoserverImageSourceMock;
   @MockBean PingController pingControllerMock;
   @MockBean IGNGeoserverImageSource ignGeoserverImageSource;
+  @MockBean Mailer mailer;
 
   private @NotNull File getMockJpegFile() {
     FileSystemResource mockJpegResource =
@@ -74,7 +78,9 @@ class WmsImageSourceFacadeIT extends MockedThirdParties {
   void downloadImage_cascade_on_server_error_ok() {
     setupGeoserverMock(geoserverImageSourceMock);
 
-    File actual = subject.downloadImage(GEOSERVER_LAYER_AREA_PICTURE);
+    File actual =
+        subject.downloadImage(
+            GEOSERVER_LAYER_AREA_PICTURE, AccountHolder.builder().id("ahId").build());
 
     verify(geoserverImageSourceMock, times(1)).downloadImage(any());
     verify(ignGeoserverImageSource, times(1)).downloadImage(any());
@@ -85,7 +91,9 @@ class WmsImageSourceFacadeIT extends MockedThirdParties {
   void downloadImage_cascade_on_blank_image_ok() {
     when(geoserverImageSourceMock.downloadImage(any())).thenReturn(getBlankJpegFile());
     when(ignGeoserverImageSource.downloadImage(any())).thenReturn(getMockJpegFile());
-    File actual = subject.downloadImage(GEOSERVER_LAYER_AREA_PICTURE);
+    File actual =
+        subject.downloadImage(
+            GEOSERVER_LAYER_AREA_PICTURE, AccountHolder.builder().id("ahId").build());
 
     verify(geoserverImageSourceMock, times(1)).downloadImage(any());
     verify(ignGeoserverImageSource, times(1)).downloadImage(any());
@@ -97,10 +105,25 @@ class WmsImageSourceFacadeIT extends MockedThirdParties {
     when(geoserverImageSourceMock.downloadImage(any())).thenReturn(null);
     when(ignGeoserverImageSource.downloadImage(any())).thenReturn(getMockJpegFile());
 
-    File actual = subject.downloadImage(GEOSERVER_LAYER_AREA_PICTURE);
+    File actual =
+        subject.downloadImage(
+            GEOSERVER_LAYER_AREA_PICTURE, AccountHolder.builder().id("ahId").build());
 
     verify(geoserverImageSourceMock, times(1)).downloadImage(any());
     verify(ignGeoserverImageSource, times(1)).downloadImage(any());
     assertEquals(getMockJpegFile(), actual);
+  }
+
+  @Test
+  void send_email_when_image_not_found() {
+    when(geoserverImageSourceMock.downloadImage(any())).thenReturn(getBlankJpegFile());
+    when(ignGeoserverImageSource.downloadImage(any())).thenReturn(getBlankJpegFile());
+    assertThrows(
+        ApiException.class,
+        () ->
+            subject.downloadImage(
+                GEOSERVER_LAYER_AREA_PICTURE, AccountHolder.builder().id("ahId").build()));
+
+    verify(mailer, times(1)).accept(any());
   }
 }

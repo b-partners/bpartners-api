@@ -6,6 +6,7 @@ import static app.bpartners.api.endpoint.rest.model.ZoomLevel.HOUSES_0;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -14,6 +15,7 @@ import static org.mockito.Mockito.when;
 import app.bpartners.api.endpoint.rest.model.GeoPosition;
 import app.bpartners.api.file.FileDownloaderImpl;
 import app.bpartners.api.integration.conf.MockedThirdParties;
+import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.AreaPicture;
 import app.bpartners.api.model.AreaPictureMapLayer;
 import app.bpartners.api.model.exception.ApiException;
@@ -51,17 +53,7 @@ class GeoserverImageSourceIT extends MockedThirdParties {
   }
 
   @Test
-  void source_is_supported_ok() {
-    AreaPicture areaPicture =
-        AreaPicture.builder()
-            .currentLayer(AreaPictureMapLayer.builder().source(GEOSERVER).build())
-            .build();
-
-    assertTrue(subject.supports(areaPicture));
-  }
-
-  @Test
-  void dowload_image_ok() {
+  void download_image_ok() {
     AreaPicture areaPicture =
         AreaPicture.builder()
             .currentLayer(AreaPictureMapLayer.builder().name("layerName").source(GEOSERVER).build())
@@ -92,11 +84,7 @@ class GeoserverImageSourceIT extends MockedThirdParties {
             .build();
 
     ApiException thrown =
-        assertThrows(
-            ApiException.class,
-            () -> {
-              subject.downloadImage(areaPicture);
-            });
+        assertThrows(ApiException.class, () -> subject.downloadImage(areaPicture));
 
     assertEquals(SERVER_EXCEPTION, thrown.getType());
     assertTrue(thrown.getMessage().contains("cannot download"));
@@ -120,5 +108,16 @@ class GeoserverImageSourceIT extends MockedThirdParties {
         "http://localhost:8080/wms?layers=layerName&format=image/jpeg&width=1024&height=1024&bbox=1,%201,%201,%201&SRS=EPSG:3857&transparent=true&service=WMS&request=GetMap";
 
     assertEquals(expectedUri, actualUri.toString());
+  }
+
+  @Test
+  void download_image_with_account_holder_in_param_ok() {
+    AreaPicture areaPicture =
+        AreaPicture.builder()
+            .currentLayer(AreaPictureMapLayer.builder().source(GEOSERVER).build())
+            .build();
+    var actual = subject.downloadImage(areaPicture, AccountHolder.builder().id("ahId").build());
+
+    assertNull(actual);
   }
 }

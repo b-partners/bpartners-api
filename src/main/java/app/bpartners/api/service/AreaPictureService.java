@@ -3,10 +3,13 @@ package app.bpartners.api.service;
 import static app.bpartners.api.endpoint.rest.model.FileType.AREA_PICTURE;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 
+import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.AreaPicture;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.mapper.AreaPictureMapper;
+import app.bpartners.api.repository.AccountHolderRepository;
+import app.bpartners.api.repository.AccountRepository;
 import app.bpartners.api.repository.jpa.AreaPictureJpaRepository;
 import app.bpartners.api.service.WMS.AreaPictureMapLayerService;
 import app.bpartners.api.service.WMS.Tile;
@@ -28,6 +31,8 @@ public class AreaPictureService {
   private final WmsImageSource wmsImageSource;
   private final TileCreator tileCreator;
   private final AreaPictureMapLayerService mapLayerService;
+  private final AccountRepository accountRepository;
+  private final AccountHolderRepository accountHolderRepository;
 
   public List<AreaPicture> findAllBy(String userId, String address, String filename) {
     return jpaRepository
@@ -55,10 +60,13 @@ public class AreaPictureService {
   }
 
   @Transactional
-  public AreaPicture downloadFromExternalSourceAndSave(AreaPicture areaPicture)
+  public AreaPicture downloadFromExternalSourceAndSave(AreaPicture areaPicture, String accountId)
       throws RuntimeException {
+    var account = accountRepository.findById(accountId);
+    String ahId = account.getIdAccountHolder();
+    AccountHolder accountHolder = accountHolderRepository.findById(ahId);
     var refreshed = refreshAreaPictureTileAndLayers(areaPicture);
-    var downloadedFile = wmsImageSource.downloadImage(refreshed);
+    var downloadedFile = wmsImageSource.downloadImage(areaPicture, accountHolder);
     try {
       var downloadedFileAsBytes = Files.readAllBytes(downloadedFile.toPath());
       fileService.upload(

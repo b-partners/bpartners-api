@@ -5,6 +5,7 @@ import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVE
 
 import app.bpartners.api.endpoint.rest.model.GeoPosition;
 import app.bpartners.api.file.FileDownloader;
+import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.AreaPicture;
 import app.bpartners.api.model.AreaPictureMapLayer;
 import app.bpartners.api.model.exception.ApiException;
@@ -40,13 +41,22 @@ public final class IGNGeoserverImageSource extends AbstractWmsImageSource {
   }
 
   @Override
+  public File downloadImage(AreaPicture areaPicture, AccountHolder accountHolder) {
+    if (!supports(areaPicture)) {
+      throw new ApiException(
+          SERVER_EXCEPTION,
+          "cannot download " + areaPicture + " from " + this.getClass().getTypeName());
+    }
+    return fileDownloaderImpl.getFromS3(areaPicture.getFilename(), getURI(areaPicture));
+  }
+
+  @Override
   public File downloadImage(AreaPicture areaPicture) {
     if (!supports(areaPicture)) {
       throw new ApiException(
           SERVER_EXCEPTION,
           "cannot download " + areaPicture + " from " + this.getClass().getTypeName());
     }
-
     return fileDownloaderImpl.getFromS3(areaPicture.getFilename(), getURI(areaPicture));
   }
 

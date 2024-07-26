@@ -41,15 +41,15 @@ public class AreaPictureController {
     return mapper.toRest(service.findBy(userId, areaPictureId));
   }
 
-  @PutMapping(value = "/accounts/{accountId}/areaPictures/{id}")
+  @PutMapping(value = "/accounts/{aId}/areaPictures/{id}")
   public AreaPictureDetails crupdateAreaPictureDetails(
-      @PathVariable(name = "accountId") String accountId,
+      @PathVariable(name = "aId") String accountId,
       @PathVariable(name = "id") String areaPictureId,
       @RequestBody CrupdateAreaPictureDetails toCrupdate) {
     String userId = AuthProvider.getAuthenticatedUserId();
     var result =
         service.downloadFromExternalSourceAndSave(
-            mapper.toDomain(toCrupdate, areaPictureId, userId));
+            mapper.toDomain(toCrupdate, areaPictureId, userId), accountId);
     return mapper.toRest(result);
   }
 }

@@ -4,6 +4,7 @@ import static app.bpartners.api.endpoint.rest.model.AreaPictureImageSource.OPENS
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 
 import app.bpartners.api.file.FileDownloader;
+import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.AreaPicture;
 import app.bpartners.api.model.AreaPictureMapLayer;
 import app.bpartners.api.model.exception.ApiException;
@@ -39,6 +40,11 @@ final class OpenStreetMapImageSource extends AbstractWmsImageSource {
             "y",
             tile.getY());
     return BASE_URL_BUILDER.expand(uriVariables).toUri();
+  }
+
+  @Override
+  public File downloadImage(AreaPicture areaPicture, AccountHolder accountHolder) {
+    return null;
   }
 
   @Override

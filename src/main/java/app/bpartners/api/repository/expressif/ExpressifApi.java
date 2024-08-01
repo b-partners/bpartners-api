@@ -30,7 +30,7 @@ import org.springframework.stereotype.Component;
 @Component
 @Slf4j
 public class ExpressifApi {
-  public static final String SSL_PROTOCOL = "SSL";
+  public static final String SSL_PROTOCOL = "TLSv1.2";
   private final HttpClient httpClient =
       HttpClient.newBuilder().sslContext(mockedSslContext()).build();
   private final ObjectMapper objectMapper =

@@ -142,8 +142,10 @@ final class FileDownloaderImpl implements FileDownloader {
         || filename.contains("\\")) {
       throw new IllegalArgumentException("Invalid filename");
     }
-    Path tempDir = Files.createTempDirectory("safe_temp");
-    File res = File.createTempFile(filename, null, tempDir.toFile());
+    var safeTemp = "safe_temp";
+    Path tempDir = Files.createTempDirectory(safeTemp);
+    String suffix = null;
+    File res = File.createTempFile(filename, suffix, tempDir.toFile());
     StreamUtils.copy(response, new FileOutputStream(res));
     return res;
   }

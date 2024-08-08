@@ -18,6 +18,7 @@ import java.io.Serializable;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.util.Base64;
 import java.util.List;
 import lombok.AllArgsConstructor;
@@ -144,8 +145,14 @@ final class FileDownloaderImpl implements FileDownloader {
     }
     var safeTemp = "safe_temp";
     Path tempDir = Files.createTempDirectory(safeTemp);
-    String suffix = null;
-    File res = File.createTempFile(filename, suffix, tempDir.toFile());
+    File res =
+        Files.createTempFile(
+                tempDir,
+                filename,
+                null,
+                PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rw-------")))
+            .toFile();
+
     StreamUtils.copy(response, new FileOutputStream(res));
     return res;
   }

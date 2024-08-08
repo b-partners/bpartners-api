@@ -143,7 +143,7 @@ final class FileDownloaderImpl implements FileDownloader {
         || filename.contains("\\")) {
       throw new IllegalArgumentException("Invalid filename");
     }
-    var safeTemp = "safe_temp";
+    var safeTemp = "safe_temp_" + randomUUID();
     Path tempDir = Files.createTempDirectory(safeTemp);
     File res =
         Files.createTempFile(

@@ -18,6 +18,7 @@ import java.io.Serializable;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.util.Base64;
 import java.util.List;
 import lombok.AllArgsConstructor;
@@ -142,7 +143,13 @@ final class FileDownloaderImpl implements FileDownloader {
         || filename.contains("\\")) {
       throw new IllegalArgumentException("Invalid filename");
     }
-    File res = File.createTempFile(filename, null);
+    File res =
+        Files.createTempFile(
+                filename,
+                null,
+                PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rw-------")))
+            .toFile();
+
     StreamUtils.copy(response, new FileOutputStream(res));
     return res;
   }

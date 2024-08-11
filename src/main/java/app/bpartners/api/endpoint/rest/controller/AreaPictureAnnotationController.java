@@ -37,7 +37,9 @@ public class AreaPictureAnnotationController {
 
   @GetMapping("/accounts/{aId}/areaPictures/{areaPictureId}/annotations/{annotationId}")
   public AreaPictureAnnotation getAreaPictureAnnotation(
-      @PathVariable String areaPictureId, @PathVariable String annotationId) {
+      @PathVariable String areaPictureId,
+      @PathVariable String annotationId,
+      @PathVariable String aId) {
     var authenticatedUserId = AuthProvider.getAuthenticatedUserId();
     return mapper.toRest(service.findBy(authenticatedUserId, areaPictureId, annotationId));
   }

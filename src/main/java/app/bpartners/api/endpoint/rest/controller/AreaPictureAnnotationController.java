@@ -46,7 +46,10 @@ public class AreaPictureAnnotationController {
 
   @PutMapping("/accounts/{aId}/areaPictures/{areaPictureId}/annotations/{annotationId}")
   public AreaPictureAnnotation annotateAreaPicture(
-      @PathVariable String annotationId, @RequestBody AreaPictureAnnotation toCreate) {
+      @PathVariable String annotationId,
+      @RequestBody AreaPictureAnnotation toCreate,
+      @PathVariable String aId,
+      @PathVariable String areaPictureId) {
     var authenticatedUserId = AuthProvider.getAuthenticatedUserId();
     return mapper.toRest(
         service.save(mapper.toDomain(annotationId, authenticatedUserId, toCreate)));

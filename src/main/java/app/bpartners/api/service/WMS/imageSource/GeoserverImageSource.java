@@ -54,7 +54,7 @@ final class GeoserverImageSource extends AbstractWmsImageSource {
     BigDecimal maxy = boundingBox.maxy();
     Map<String, String> uriVariables =
         Map.of(
-            "layer",
+            "layers",
             mapLayer.getName(),
             "bbox",
             String.format("%s, %s, %s, %s", minx, miny, maxx, maxy));
@@ -63,11 +63,11 @@ final class GeoserverImageSource extends AbstractWmsImageSource {
 
   @Override
   public File downloadImage(AreaPicture areaPicture) {
-        if (!supports(areaPicture)) {
-          throw new ApiException(
-              SERVER_EXCEPTION,
-              "cannot download " + areaPicture + " from " + this.getClass().getTypeName());
-        }
+    if (!supports(areaPicture)) {
+      throw new ApiException(
+          SERVER_EXCEPTION,
+          "cannot download " + areaPicture + " from " + this.getClass().getTypeName());
+    }
     return fileDownloaderImpl.get(
         areaPicture.getFilename(),
         getURI(areaPicture.getCurrentTile(), areaPicture.getCurrentLayer()));

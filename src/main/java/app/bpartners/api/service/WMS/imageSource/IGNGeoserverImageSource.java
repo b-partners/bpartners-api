@@ -21,7 +21,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 @Component
 @Slf4j
-final class IGNGeoserverImageSource extends AbstractWmsImageSource {
+public final class IGNGeoserverImageSource extends AbstractWmsImageSource {
   private final UriComponents baseUrl;
   private final AreaPictureValidator areaPictureValidator;
 
@@ -41,11 +41,11 @@ final class IGNGeoserverImageSource extends AbstractWmsImageSource {
 
   @Override
   public File downloadImage(AreaPicture areaPicture) {
-        if (!supports(areaPicture)) {
-          throw new ApiException(
-              SERVER_EXCEPTION,
-              "cannot download " + areaPicture + " from " + this.getClass().getTypeName());
-        }
+    if (!supports(areaPicture)) {
+      throw new ApiException(
+          SERVER_EXCEPTION,
+          "cannot download " + areaPicture + " from " + this.getClass().getTypeName());
+    }
 
     return fileDownloaderImpl.getFromS3(areaPicture.getFilename(), getURI(areaPicture));
   }
@@ -56,7 +56,7 @@ final class IGNGeoserverImageSource extends AbstractWmsImageSource {
     return GEOSERVER_IGN.equals(areaPicture.getCurrentLayer().getSource());
   }
 
-  private URI getURI(AreaPicture areaPicture) {
+  public URI getURI(AreaPicture areaPicture) {
     areaPictureValidator.accept(areaPicture);
     GeoPosition geoPosition = areaPicture.getCurrentGeoPosition();
     Double longitude = geoPosition.getLongitude();
@@ -72,7 +72,7 @@ final class IGNGeoserverImageSource extends AbstractWmsImageSource {
   }
 
   @Override
-  protected URI getURI(Tile tile, AreaPictureMapLayer areaPictureMapLayer) {
+  public URI getURI(Tile tile, AreaPictureMapLayer areaPictureMapLayer) {
     Map<String, Object> uriVariables =
         Map.of(
             "layer",

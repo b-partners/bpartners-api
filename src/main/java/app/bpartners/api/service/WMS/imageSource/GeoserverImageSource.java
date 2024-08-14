@@ -21,7 +21,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 @Component
 @Slf4j
-final class GeoserverImageSource extends AbstractWmsImageSource {
+public final class GeoserverImageSource extends AbstractWmsImageSource {
   private final UriComponents baseUrl;
   private final XYZToBoundingBox xyzToBoundingBox;
 
@@ -32,7 +32,7 @@ final class GeoserverImageSource extends AbstractWmsImageSource {
     super(fileDownloader);
     this.baseUrl =
         UriComponentsBuilder.fromHttpUrl(geoserverBaseUrl)
-            .query("layers={layer}")
+            .query("layers={layers}")
             .query("format=image/jpeg")
             .query("width=1024")
             .query("height=1024")

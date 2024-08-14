@@ -1,4 +1,4 @@
-package app.bpartners.api.unit.wms;
+package app.bpartners.api.integration.wms;
 
 import static app.bpartners.api.endpoint.rest.model.AreaPictureImageSource.GEOSERVER;
 import static app.bpartners.api.endpoint.rest.model.AreaPictureImageSource.GEOSERVER_IGN;
@@ -9,6 +9,7 @@ import static org.mockito.Mockito.*;
 
 import app.bpartners.api.endpoint.rest.model.GeoPosition;
 import app.bpartners.api.file.FileDownloaderImpl;
+import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.model.AreaPicture;
 import app.bpartners.api.model.AreaPictureMapLayer;
 import app.bpartners.api.model.exception.ApiException;
@@ -21,13 +22,13 @@ import java.net.URI;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.io.FileSystemResource;
 
-class IGNGeoserverImageSourceTest {
-  @Mock private FileDownloaderImpl fileDownloader;
-  @Mock private AreaPictureValidator areaPictureValidator;
+class IGNGeoserverImageSourceIT extends MockedThirdParties {
+  @MockBean private FileDownloaderImpl fileDownloader;
+  @MockBean private AreaPictureValidator areaPictureValidator;
   private IGNGeoserverImageSource subject;
 
   @BeforeEach

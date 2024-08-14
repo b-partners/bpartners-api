@@ -1,4 +1,4 @@
-package app.bpartners.api.unit.wms;
+package app.bpartners.api.integration.wms;
 
 import static app.bpartners.api.endpoint.rest.model.AreaPictureImageSource.GEOSERVER;
 import static app.bpartners.api.endpoint.rest.model.AreaPictureImageSource.GEOSERVER_IGN;
@@ -13,6 +13,7 @@ import static org.mockito.Mockito.when;
 
 import app.bpartners.api.endpoint.rest.model.GeoPosition;
 import app.bpartners.api.file.FileDownloaderImpl;
+import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.model.AreaPicture;
 import app.bpartners.api.model.AreaPictureMapLayer;
 import app.bpartners.api.model.exception.ApiException;
@@ -26,13 +27,13 @@ import java.net.URI;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.io.FileSystemResource;
 
-class GeoserverImageSourceTest {
-  @Mock private FileDownloaderImpl fileDownloader;
-  @Mock private XYZToBoundingBox xyzToBoundingBox;
+class GeoserverImageSourceIT extends MockedThirdParties {
+  @MockBean private FileDownloaderImpl fileDownloader;
+  @MockBean private XYZToBoundingBox xyzToBoundingBox;
   private GeoserverImageSource subject;
 
   private @NotNull File getMockJpegFile() {
@@ -60,7 +61,7 @@ class GeoserverImageSourceTest {
   }
 
   @Test
-  void donwload_image_ok() {
+  void dowload_image_ok() {
     AreaPicture areaPicture =
         AreaPicture.builder()
             .currentLayer(AreaPictureMapLayer.builder().name("layerName").source(GEOSERVER).build())
@@ -102,7 +103,7 @@ class GeoserverImageSourceTest {
   }
 
   @Test
-  void testGetURI() {
+  void get_uri_ok() {
     Tile tile = Tile.builder().y(1).x(1).arcgisZoom(ArcgisZoom.HOUSES_0).build();
     AreaPictureMapLayer areaPictureMapLayer =
         AreaPictureMapLayer.builder().name("layerName").build();

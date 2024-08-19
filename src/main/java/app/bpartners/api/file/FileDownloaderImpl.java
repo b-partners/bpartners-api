@@ -36,7 +36,7 @@ import software.amazon.awssdk.transfer.s3.model.FileDownload;
 @Slf4j
 @Component
 @AllArgsConstructor
-final class FileDownloaderImpl implements FileDownloader {
+public final class FileDownloaderImpl implements FileDownloader {
   private static final String TEMP_FOLDER_PERMISSION = "rwx------";
   private final RestTemplate restTemplate;
   private final ObjectMapper om;

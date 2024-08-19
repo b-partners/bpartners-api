@@ -58,6 +58,7 @@ public final class GeoserverImageSource extends AbstractWmsImageSource {
             mapLayer.getName(),
             "bbox",
             String.format("%s, %s, %s, %s", minx, miny, maxx, maxy));
+    log.info("Geoserver expected url: {}", baseUrl.expand(uriVariables).toUri());
     return baseUrl.expand(uriVariables).toUri();
   }
 

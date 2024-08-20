@@ -34,13 +34,12 @@ public class XYZToBoundingBox implements XYZConverter {
   public BBOX apply(Tile tile) {
     log.info("Tile to BBOX converter processing");
     Map<String, Object> uriVariables =
-        Map.of("x", tile.getX(), "y", tile.getArcgisZoom().getZoomLevel(), "z", tile.getY());
+        Map.of("x", tile.getX(), "y", tile.getY(), "z", tile.getArcgisZoom().getZoomLevel());
     UriComponentsBuilder builder =
         UriComponentsBuilder.fromUri(baseUrl.expand(uriVariables).toUri());
     String url = builder.toUriString();
     log.info("url: {}",url);
     BBOX bbox = restTemplate.getForObject(url, BBOX.class);
-    log.info("Finished, bbox={}", bbox);
     return bbox;
   }
 

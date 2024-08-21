@@ -77,7 +77,7 @@ final class WmsImageSourceFacade extends AbstractWmsImageSource {
     try {
       areaPicture.setCurrentLayer(alternativeAreaPictureMapLayer);
       var image = alternativeSource.downloadImage(areaPicture);
-//      imageValidator.accept(image);
+      //      imageValidator.accept(image);
       return image;
     } catch (ApiException | BlankImageException e) {
       log.info(

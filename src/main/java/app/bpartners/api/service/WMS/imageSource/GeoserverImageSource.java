@@ -1,12 +1,10 @@
 package app.bpartners.api.service.WMS.imageSource;
 
 import static app.bpartners.api.endpoint.rest.model.AreaPictureImageSource.GEOSERVER;
-import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 
 import app.bpartners.api.file.FileDownloader;
 import app.bpartners.api.model.AreaPicture;
 import app.bpartners.api.model.AreaPictureMapLayer;
-import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.service.WMS.Tile;
 import app.bpartners.api.service.converter.XYZToBoundingBox;
 import java.io.File;
@@ -63,11 +61,11 @@ final class GeoserverImageSource extends AbstractWmsImageSource {
 
   @Override
   public File downloadImage(AreaPicture areaPicture) {
-//    if (!supports(areaPicture)) {
-//      throw new ApiException(
-//          SERVER_EXCEPTION,
-//          "cannot download " + areaPicture + " from " + this.getClass().getTypeName());
-//    }
+    //    if (!supports(areaPicture)) {
+    //      throw new ApiException(
+    //          SERVER_EXCEPTION,
+    //          "cannot download " + areaPicture + " from " + this.getClass().getTypeName());
+    //    }
     return fileDownloaderImpl.get(
         areaPicture.getFilename(),
         getURI(areaPicture.getCurrentTile(), areaPicture.getCurrentLayer()));

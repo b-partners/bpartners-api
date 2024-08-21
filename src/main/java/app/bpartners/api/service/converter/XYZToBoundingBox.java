@@ -3,7 +3,6 @@ package app.bpartners.api.service.converter;
 import app.bpartners.api.service.WMS.Tile;
 import java.math.BigDecimal;
 import java.util.Map;
-
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -38,7 +37,7 @@ public class XYZToBoundingBox implements XYZConverter {
     UriComponentsBuilder builder =
         UriComponentsBuilder.fromUri(baseUrl.expand(uriVariables).toUri());
     String url = builder.toUriString();
-    log.info("url: {}",url);
+    log.info("url: {}", url);
     BBOX bbox = restTemplate.getForObject(url, BBOX.class);
     return bbox;
   }

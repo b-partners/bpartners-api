@@ -1,7 +1,7 @@
 package app.bpartners.api.unit.service;
 
-import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_TOKEN;
+import static app.bpartners.api.integration.conf.utils.TestUtils.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -35,6 +35,14 @@ class UserServiceTest {
   }
 
   @Test
+  void register_device_ok() {
+    when(userRepository.getById(any())).thenReturn(user());
+    when(userRepository.save(any())).thenReturn(user());
+
+    assertEquals(user(), userService.registerDevice(USER1_ID, JANE_DOE_TOKEN));
+  }
+
+  @Test
   void read_user_ok() {
     User userFromEmail = userService.getUserByEmail(user().getEmail());
     User userFromToken = userService.getUserByToken(user().getAccessToken());
@@ -55,6 +63,7 @@ class UserServiceTest {
         .id(JOE_DOE_ID)
         .email("exemple@gmail.com")
         .accessToken(JOE_DOE_TOKEN)
+        .deviceToken("device_token")
         .build();
   }
 }

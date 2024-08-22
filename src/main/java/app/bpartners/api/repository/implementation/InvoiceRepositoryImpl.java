@@ -29,6 +29,7 @@ import app.bpartners.api.repository.jpa.model.HPaymentRequest;
 import app.bpartners.api.service.FileService;
 import app.bpartners.api.service.utils.InvoicePdfUtils;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.LockModeType;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Path;
@@ -43,6 +44,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.query.QueryUtils;
 import org.springframework.stereotype.Repository;
 
@@ -66,6 +68,7 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
         .toList();
   }
 
+  @Lock(LockModeType.PESSIMISTIC_WRITE)
   @Override
   public Invoice crupdate(Invoice actual) {
     List<HPaymentRequest> paymentRequests =

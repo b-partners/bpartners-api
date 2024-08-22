@@ -4,23 +4,28 @@ import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVE
 
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.service.WMS.imageSource.exception.BlankImageException;
-import java.awt.*;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.function.Consumer;
 import javax.imageio.ImageIO;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 @Component
+@Slf4j
 public class ImageValidator implements Consumer<File> {
   public void accept(File file) throws BlankImageException {
+    log.info("File content: {}", file);
     if (file == null) {
-      throw new ApiException(SERVER_EXCEPTION, "Image is null");
+      throw new ApiException(SERVER_EXCEPTION, "File is null");
     }
     try {
       BufferedImage image = ImageIO.read(file);
+      if (image == null) {
+        throw new ApiException(SERVER_EXCEPTION, "Image is null");
+      }
       int w = image.getWidth();
       int h = image.getHeight();
       int[] pixels = image.getRGB(0, 0, w, h, null, 0, w);

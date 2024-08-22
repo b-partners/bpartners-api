@@ -156,7 +156,9 @@ class InvoiceIT extends S3MockedThirdParties {
             .allMatch(
                 paymentRegulation ->
                     paymentRegulation.getPaymentRequest().getPaymentUrl() == null));
-    assertEquals(expectedMultiplePayments(id, actualConfirmed), actualConfirmed);
+    assertEquals(
+        expectedMultiplePayments(id, actualConfirmed).paymentRegulations(List.of()),
+        actualConfirmed);
     assertTrue(
         actualConfirmed.getPaymentRegulations().stream()
             .allMatch(
@@ -233,6 +235,7 @@ class InvoiceIT extends S3MockedThirdParties {
             .id(actualConfirmed.getId())
             .fileId(actualConfirmed.getFileId())
             .archiveStatus(ENABLED)
+            .paymentRegulations(List.of())
             .sendingDate(LocalDate.now())
             .updatedAt(actualConfirmed.getUpdatedAt()),
         actualConfirmed.createdAt(null));

@@ -76,7 +76,7 @@ class WmsImageSourceFacadeIT extends MockedThirdParties {
 
     File actual = subject.downloadImage(GEOSERVER_LAYER_AREA_PICTURE);
 
-    verify(geoserverImageSourceMock, times(2)).downloadImage(any());
+    verify(geoserverImageSourceMock, times(1)).downloadImage(any());
     verify(ignGeoserverImageSource, times(1)).downloadImage(any());
     assertEquals(getMockJpegFile(), actual);
   }
@@ -87,7 +87,7 @@ class WmsImageSourceFacadeIT extends MockedThirdParties {
     when(ignGeoserverImageSource.downloadImage(any())).thenReturn(getMockJpegFile());
     File actual = subject.downloadImage(GEOSERVER_LAYER_AREA_PICTURE);
 
-    verify(geoserverImageSourceMock, times(2)).downloadImage(any());
+    verify(geoserverImageSourceMock, times(1)).downloadImage(any());
     verify(ignGeoserverImageSource, times(1)).downloadImage(any());
     assertEquals(getMockJpegFile(), actual);
   }
@@ -99,7 +99,7 @@ class WmsImageSourceFacadeIT extends MockedThirdParties {
 
     File actual = subject.downloadImage(GEOSERVER_LAYER_AREA_PICTURE);
 
-    verify(geoserverImageSourceMock, times(2)).downloadImage(any());
+    verify(geoserverImageSourceMock, times(1)).downloadImage(any());
     verify(ignGeoserverImageSource, times(1)).downloadImage(any());
     assertEquals(getMockJpegFile(), actual);
   }

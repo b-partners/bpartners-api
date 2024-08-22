@@ -115,7 +115,7 @@ class UserServiceTest {
 
   @Test
   void read_user_token_ok() {
-    UserToken userToken = subject.getLatestToken(user());
+    UserToken userToken = userService.getLatestToken(user());
 
     assertNotNull(userToken);
   }

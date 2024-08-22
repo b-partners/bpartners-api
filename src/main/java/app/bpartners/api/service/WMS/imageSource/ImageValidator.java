@@ -16,6 +16,9 @@ import org.springframework.stereotype.Component;
 @Component
 public class ImageValidator implements Consumer<File> {
   public void accept(File file) throws BlankImageException {
+    if (file == null) {
+      throw new ApiException(SERVER_EXCEPTION, "Image is null");
+    }
     try {
       BufferedImage image = ImageIO.read(file);
       int w = image.getWidth();

@@ -43,6 +43,13 @@ class UserServiceTest {
   }
 
   @Test
+  void register_device_with_actual_token_ok() {
+    when(userRepository.getById(any())).thenReturn(user());
+
+    assertEquals(user(), userService.registerDevice(USER1_ID, "DEVICE_TOKEN"));
+  }
+
+  @Test
   void read_user_ok() {
     User userFromEmail = userService.getUserByEmail(user().getEmail());
     User userFromToken = userService.getUserByToken(user().getAccessToken());
@@ -63,7 +70,7 @@ class UserServiceTest {
         .id(JOE_DOE_ID)
         .email("exemple@gmail.com")
         .accessToken(JOE_DOE_TOKEN)
-        .deviceToken("device_token")
+        .deviceToken("DEVICE_TOKEN")
         .build();
   }
 }

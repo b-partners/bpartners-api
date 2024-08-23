@@ -47,11 +47,11 @@ class UserServiceTest {
 
   @Test
   void register_device_with_actual_token_ok() {
-    var device_token = "DEVICE_TOKEN";
+    var deviceToken = "DEVICE_TOKEN";
 
     when(userRepositoryMock.getById(any())).thenReturn(user());
 
-    assertEquals(user(), userServiceMock.registerDevice(USER1_ID, device_token));
+    assertEquals(user(), userServiceMock.registerDevice(USER1_ID, deviceToken));
   }
 
   @Test

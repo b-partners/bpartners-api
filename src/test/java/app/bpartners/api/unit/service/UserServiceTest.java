@@ -56,8 +56,6 @@ class UserServiceTest {
 
   @Test
   void read_user_ok() {
-    User userFromEmail = userService.getUserByEmail(user().getEmail());
-    User userFromToken = userService.getUserByToken(user().getAccessToken());
     User userFromEmail = userServiceMock.getUserByEmail(user().getEmail());
     User userFromToken = userServiceMock.getUserByToken(user().getAccessToken());
 
@@ -83,12 +81,13 @@ class UserServiceTest {
     var user = mock(User.class);
     var defaultAccount = mock(Account.class);
     var accounts = mock(List.class);
+    var defaultAccountId = "default_account_id";
 
     when(userRepositoryMock.getById(any())).thenReturn(user);
     when(user.getDefaultAccount()).thenReturn(defaultAccount);
     when(user.getAccounts()).thenReturn(accounts);
     when(accounts.get(anyInt())).thenReturn(defaultAccount);
-    when(defaultAccount.getId()).thenReturn("default_account_id");
+    when(defaultAccount.getId()).thenReturn(defaultAccountId);
 
     assertThrows(
         NotFoundException.class,

@@ -28,7 +28,7 @@ class TransactionCategoryServiceTest {
   }
 
   @Test
-  public void getCategoriesByAccountType_ok() {
+  void getCategoriesByAccountTypeOk() {
     var transactionCategory1 = new TransactionCategory();
     var transactionCategory2 = new TransactionCategory();
 

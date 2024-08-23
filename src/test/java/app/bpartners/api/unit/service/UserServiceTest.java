@@ -114,6 +114,26 @@ class UserServiceTest {
   }
 
   @Test
+  void change_active_account_not_found_exception() {
+    var user = mock(User.class);
+    var defaultAccount = mock(Account.class);
+    var accounts = mock(List.class);
+
+    when(userRepository.getById(any())).thenReturn(user);
+    when(user.getDefaultAccount()).thenReturn(defaultAccount);
+    when(user.getAccounts()).thenReturn(accounts);
+    when(accounts.get(anyInt())).thenReturn(defaultAccount);
+    when(defaultAccount.getId()).thenReturn("default_account_id");
+    when(userRepository.save(any())).thenReturn(user());
+
+    assertThrows(
+        NotFoundException.class,
+        () -> {
+          userService.changeActiveAccount(JOE_DOE_USER_ID, JANE_ACCOUNT_ID);
+        });
+  }
+
+  @Test
   void read_user_token_ok() {
     UserToken userToken = subject.getLatestToken(user());
 

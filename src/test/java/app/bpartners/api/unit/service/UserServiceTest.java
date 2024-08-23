@@ -7,6 +7,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import app.bpartners.api.model.Account;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.UserToken;
 import app.bpartners.api.repository.UserRepository;
@@ -56,6 +57,19 @@ class UserServiceTest {
 
     assertNotNull(userFromEmail);
     assertNotNull(userFromToken);
+  }
+
+  @Test
+  void change_active_account_equals_default_account_ok() {
+    var user = mock(User.class);
+    var defaultAccount = mock(Account.class);
+
+    when(userRepository.getById(any())).thenReturn(user);
+    when(user.getDefaultAccount()).thenReturn(defaultAccount);
+    when(defaultAccount.getId()).thenReturn(JOE_DOE_ACCOUNT_ID);
+
+    var actual = userService.changeActiveAccount(JOE_DOE_ID, JOE_DOE_ACCOUNT_ID);
+    assertEquals(user, actual);
   }
 
   @Test

@@ -16,19 +16,19 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class TransactionCategoryServiceTest {
-  TransactionCategoryService subject;
+  TransactionCategoryService serviceMock;
   TransactionCategoryRepository repositoryMock;
   TransactionCategoryTemplateRepository templateRepositoryMock;
 
   @BeforeEach
-  void setUp() {
+  void setUp() throws Exception {
     repositoryMock = mock(TransactionCategoryRepository.class);
     templateRepositoryMock = mock(TransactionCategoryTemplateRepository.class);
-    subject = new TransactionCategoryService(repositoryMock, templateRepositoryMock);
+    serviceMock = new TransactionCategoryService(repositoryMock, templateRepositoryMock);
   }
 
   @Test
-  void getCategoriesByAccountTypeOk() {
+  public void getCategoriesByAccountType_ok() {
     var transactionCategory1 = new TransactionCategory();
     var transactionCategory2 = new TransactionCategory();
 
@@ -36,7 +36,7 @@ class TransactionCategoryServiceTest {
         .thenReturn(List.of(transactionCategory1, transactionCategory2));
 
     var actual =
-        subject.getCategoriesByAccountAndType(
+        serviceMock.getCategoriesByAccountAndType(
             "", TransactionTypeEnum.INCOME, LocalDate.now(), LocalDate.now());
     assertTrue(actual.contains(transactionCategory1));
     assertTrue(actual.contains(transactionCategory2));

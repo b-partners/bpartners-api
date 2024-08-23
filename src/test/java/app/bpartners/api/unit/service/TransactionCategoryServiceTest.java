@@ -15,16 +15,16 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class TransactionCategoryServiceTest {
-  TransactionCategoryService service;
-  TransactionCategoryRepository repository;
-  TransactionCategoryTemplateRepository templateRepository;
+class TransactionCategoryServiceTest {
+  TransactionCategoryService serviceMock;
+  TransactionCategoryRepository repositoryMock;
+  TransactionCategoryTemplateRepository templateRepositoryMock;
 
   @BeforeEach
-  public void setUp() throws Exception {
-    repository = mock(TransactionCategoryRepository.class);
-    templateRepository = mock(TransactionCategoryTemplateRepository.class);
-    service = new TransactionCategoryService(repository, templateRepository);
+  void setUp() throws Exception {
+    repositoryMock = mock(TransactionCategoryRepository.class);
+    templateRepositoryMock = mock(TransactionCategoryTemplateRepository.class);
+    serviceMock = new TransactionCategoryService(repositoryMock, templateRepositoryMock);
   }
 
   @Test
@@ -32,11 +32,11 @@ public class TransactionCategoryServiceTest {
     var transactionCategory1 = new TransactionCategory();
     var transactionCategory2 = new TransactionCategory();
 
-    when(repository.findByIdAccountAndType(any(), any(), any(), any()))
+    when(repositoryMock.findByIdAccountAndType(any(), any(), any(), any()))
         .thenReturn(List.of(transactionCategory1, transactionCategory2));
 
     var actual =
-        service.getCategoriesByAccountAndType(
+        serviceMock.getCategoriesByAccountAndType(
             "", TransactionTypeEnum.INCOME, LocalDate.now(), LocalDate.now());
     assertTrue(actual.contains(transactionCategory1));
     assertTrue(actual.contains(transactionCategory2));

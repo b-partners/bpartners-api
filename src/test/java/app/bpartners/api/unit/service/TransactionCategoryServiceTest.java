@@ -21,7 +21,7 @@ class TransactionCategoryServiceTest {
   TransactionCategoryTemplateRepository templateRepositoryMock;
 
   @BeforeEach
-  void setUp()  {
+  void setUp() {
     repositoryMock = mock(TransactionCategoryRepository.class);
     templateRepositoryMock = mock(TransactionCategoryTemplateRepository.class);
     serviceMock = new TransactionCategoryService(repositoryMock, templateRepositoryMock);

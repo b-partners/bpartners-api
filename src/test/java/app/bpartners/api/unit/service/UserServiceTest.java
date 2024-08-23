@@ -20,7 +20,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class UserServiceTest {
-  UserService userServiceMock;
+  UserService subject;
   UserRepository userRepositoryMock;
   UserTokenRepository userTokenRepositoryMock;
   SnsService snsServiceMock;
@@ -30,7 +30,7 @@ class UserServiceTest {
     userRepositoryMock = mock(UserRepository.class);
     userTokenRepositoryMock = mock(UserTokenRepository.class);
     snsServiceMock = mock(SnsService.class);
-    userServiceMock = new UserService(userRepositoryMock, userTokenRepositoryMock, snsServiceMock);
+    subject = new UserService(userRepositoryMock, userTokenRepositoryMock, snsServiceMock);
 
     when(userRepositoryMock.getByEmail(any())).thenReturn(user());
     when(userRepositoryMock.getUserByToken(any())).thenReturn(user());
@@ -42,7 +42,7 @@ class UserServiceTest {
     when(userRepositoryMock.getById(any())).thenReturn(user());
     when(userRepositoryMock.save(any())).thenReturn(user());
 
-    assertEquals(user(), userServiceMock.registerDevice(USER1_ID, JANE_DOE_TOKEN));
+    assertEquals(user(), subject.registerDevice(USER1_ID, JANE_DOE_TOKEN));
   }
 
   @Test
@@ -51,13 +51,13 @@ class UserServiceTest {
 
     when(userRepositoryMock.getById(any())).thenReturn(user());
 
-    assertEquals(user(), userServiceMock.registerDevice(USER1_ID, deviceToken));
+    assertEquals(user(), subject.registerDevice(USER1_ID, deviceToken));
   }
 
   @Test
   void read_user_ok() {
-    User userFromEmail = userServiceMock.getUserByEmail(user().getEmail());
-    User userFromToken = userServiceMock.getUserByToken(user().getAccessToken());
+    User userFromEmail = subject.getUserByEmail(user().getEmail());
+    User userFromToken = subject.getUserByToken(user().getAccessToken());
 
     assertNotNull(userFromEmail);
     assertNotNull(userFromToken);
@@ -72,7 +72,7 @@ class UserServiceTest {
     when(user.getDefaultAccount()).thenReturn(defaultAccount);
     when(defaultAccount.getId()).thenReturn(JOE_DOE_ACCOUNT_ID);
 
-    var actual = userServiceMock.changeActiveAccount(JOE_DOE_ID, JOE_DOE_ACCOUNT_ID);
+    var actual = subject.changeActiveAccount(JOE_DOE_ID, JOE_DOE_ACCOUNT_ID);
     assertEquals(user, actual);
   }
 
@@ -92,7 +92,7 @@ class UserServiceTest {
     assertThrows(
         NotFoundException.class,
         () -> {
-          userServiceMock.changeActiveAccount(JOE_DOE_USER_ID, JANE_ACCOUNT_ID);
+          subject.changeActiveAccount(JOE_DOE_USER_ID, JANE_ACCOUNT_ID);
         });
   }
 
@@ -109,13 +109,13 @@ class UserServiceTest {
     when(accounts.get(anyInt())).thenReturn(defaultAccount);
     when(userRepositoryMock.save(any())).thenReturn(user());
 
-    var actual = userServiceMock.changeActiveAccount(USER1_ID, JOE_DOE_ACCOUNT_ID);
+    var actual = subject.changeActiveAccount(USER1_ID, JOE_DOE_ACCOUNT_ID);
     assertEquals(user, actual);
   }
 
   @Test
   void read_user_token_ok() {
-    UserToken userToken = userServiceMock.getLatestToken(user());
+    UserToken userToken = subject.getLatestToken(user());
 
     assertNotNull(userToken);
   }

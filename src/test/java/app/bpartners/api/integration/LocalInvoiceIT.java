@@ -89,7 +89,6 @@ import java.util.stream.Stream;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -100,7 +99,6 @@ import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
 @Testcontainers
 @AutoConfigureMockMvc
 @Slf4j
-@Disabled("TODO:fail")
 class LocalInvoiceIT extends MockedThirdParties {
   @MockBean private BanApi banApi;
   @MockBean private AccountHolderJpaRepository holderJpaRepository;

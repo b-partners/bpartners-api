@@ -124,13 +124,29 @@ class UserServiceTest {
     when(user.getAccounts()).thenReturn(accounts);
     when(accounts.get(anyInt())).thenReturn(defaultAccount);
     when(defaultAccount.getId()).thenReturn("default_account_id");
-    when(userRepository.save(any())).thenReturn(user());
 
     assertThrows(
         NotFoundException.class,
         () -> {
           userService.changeActiveAccount(JOE_DOE_USER_ID, JANE_ACCOUNT_ID);
         });
+  }
+
+  @Test
+  void change_active_account_ok() {
+    var user = mock(User.class);
+    var defaultAccount = mock(Account.class);
+    var accounts = mock(List.class);
+
+    when(userRepository.getById(any())).thenReturn(user);
+    when(user.getDefaultAccount()).thenReturn(defaultAccount);
+    when(defaultAccount.getId()).thenReturn(JOE_DOE_ACCOUNT_ID);
+    when(user.getAccounts()).thenReturn(accounts);
+    when(accounts.get(anyInt())).thenReturn(defaultAccount);
+    when(userRepository.save(any())).thenReturn(user());
+
+    var actual = userService.changeActiveAccount(USER1_ID, JOE_DOE_ACCOUNT_ID);
+    assertEquals(user, actual);
   }
 
   @Test

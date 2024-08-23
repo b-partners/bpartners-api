@@ -20,42 +20,46 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class UserServiceTest {
-  UserService userService;
-  UserRepository userRepository;
-  UserTokenRepository userTokenRepository;
+  UserService userServiceMock;
+  UserRepository userRepositoryMock;
+  UserTokenRepository userTokenRepositoryMock;
   SnsService snsServiceMock;
 
   @BeforeEach
   void setUp() {
-    userRepository = mock(UserRepository.class);
-    userTokenRepository = mock(UserTokenRepository.class);
+    userRepositoryMock = mock(UserRepository.class);
+    userTokenRepositoryMock = mock(UserTokenRepository.class);
     snsServiceMock = mock(SnsService.class);
-    userService = new UserService(userRepository, userTokenRepository, snsServiceMock);
+    userServiceMock = new UserService(userRepositoryMock, userTokenRepositoryMock, snsServiceMock);
 
-    when(userRepository.getByEmail(any())).thenReturn(user());
-    when(userRepository.getUserByToken(any())).thenReturn(user());
-    when(userTokenRepository.getLatestTokenByUser(any())).thenReturn(new UserToken());
+    when(userRepositoryMock.getByEmail(any())).thenReturn(user());
+    when(userRepositoryMock.getUserByToken(any())).thenReturn(user());
+    when(userTokenRepositoryMock.getLatestTokenByUser(any())).thenReturn(new UserToken());
   }
 
   @Test
   void register_device_ok() {
-    when(userRepository.getById(any())).thenReturn(user());
-    when(userRepository.save(any())).thenReturn(user());
+    when(userRepositoryMock.getById(any())).thenReturn(user());
+    when(userRepositoryMock.save(any())).thenReturn(user());
 
-    assertEquals(user(), userService.registerDevice(USER1_ID, JANE_DOE_TOKEN));
+    assertEquals(user(), userServiceMock.registerDevice(USER1_ID, JANE_DOE_TOKEN));
   }
 
   @Test
   void register_device_with_actual_token_ok() {
-    when(userRepository.getById(any())).thenReturn(user());
+    var device_token = "DEVICE_TOKEN";
 
-    assertEquals(user(), userService.registerDevice(USER1_ID, "DEVICE_TOKEN"));
+    when(userRepositoryMock.getById(any())).thenReturn(user());
+
+    assertEquals(user(), userServiceMock.registerDevice(USER1_ID, device_token));
   }
 
   @Test
   void read_user_ok() {
     User userFromEmail = userService.getUserByEmail(user().getEmail());
     User userFromToken = userService.getUserByToken(user().getAccessToken());
+    User userFromEmail = userServiceMock.getUserByEmail(user().getEmail());
+    User userFromToken = userServiceMock.getUserByToken(user().getAccessToken());
 
     assertNotNull(userFromEmail);
     assertNotNull(userFromToken);
@@ -66,11 +70,11 @@ class UserServiceTest {
     var user = mock(User.class);
     var defaultAccount = mock(Account.class);
 
-    when(userRepository.getById(any())).thenReturn(user);
+    when(userRepositoryMock.getById(any())).thenReturn(user);
     when(user.getDefaultAccount()).thenReturn(defaultAccount);
     when(defaultAccount.getId()).thenReturn(JOE_DOE_ACCOUNT_ID);
 
-    var actual = userService.changeActiveAccount(JOE_DOE_ID, JOE_DOE_ACCOUNT_ID);
+    var actual = userServiceMock.changeActiveAccount(JOE_DOE_ID, JOE_DOE_ACCOUNT_ID);
     assertEquals(user, actual);
   }
 
@@ -80,7 +84,7 @@ class UserServiceTest {
     var defaultAccount = mock(Account.class);
     var accounts = mock(List.class);
 
-    when(userRepository.getById(any())).thenReturn(user);
+    when(userRepositoryMock.getById(any())).thenReturn(user);
     when(user.getDefaultAccount()).thenReturn(defaultAccount);
     when(user.getAccounts()).thenReturn(accounts);
     when(accounts.get(anyInt())).thenReturn(defaultAccount);
@@ -89,7 +93,7 @@ class UserServiceTest {
     assertThrows(
         NotFoundException.class,
         () -> {
-          userService.changeActiveAccount(JOE_DOE_USER_ID, JANE_ACCOUNT_ID);
+          userServiceMock.changeActiveAccount(JOE_DOE_USER_ID, JANE_ACCOUNT_ID);
         });
   }
 
@@ -99,20 +103,20 @@ class UserServiceTest {
     var defaultAccount = mock(Account.class);
     var accounts = mock(List.class);
 
-    when(userRepository.getById(any())).thenReturn(user);
+    when(userRepositoryMock.getById(any())).thenReturn(user);
     when(user.getDefaultAccount()).thenReturn(defaultAccount);
     when(defaultAccount.getId()).thenReturn(JOE_DOE_ACCOUNT_ID);
     when(user.getAccounts()).thenReturn(accounts);
     when(accounts.get(anyInt())).thenReturn(defaultAccount);
-    when(userRepository.save(any())).thenReturn(user());
+    when(userRepositoryMock.save(any())).thenReturn(user());
 
-    var actual = userService.changeActiveAccount(USER1_ID, JOE_DOE_ACCOUNT_ID);
+    var actual = userServiceMock.changeActiveAccount(USER1_ID, JOE_DOE_ACCOUNT_ID);
     assertEquals(user, actual);
   }
 
   @Test
   void read_user_token_ok() {
-    UserToken userToken = userService.getLatestToken(user());
+    UserToken userToken = userServiceMock.getLatestToken(user());
 
     assertNotNull(userToken);
   }

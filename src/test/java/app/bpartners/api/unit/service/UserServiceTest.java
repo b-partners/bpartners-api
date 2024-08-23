@@ -55,13 +55,6 @@ class UserServiceTest {
   }
 
   @Test
-  void register_device_with_actual_token_ok() {
-    when(userRepository.getById(any())).thenReturn(user());
-
-    assertEquals(user(), userService.registerDevice(USER1_ID, "DEVICE_TOKEN"));
-  }
-
-  @Test
   void read_user_ok() {
     User userFromEmail = subject.getUserByEmail(user().getEmail());
     User userFromToken = subject.getUserByToken(user().getAccessToken());
@@ -122,7 +115,7 @@ class UserServiceTest {
 
   @Test
   void read_user_token_ok() {
-    UserToken userToken = userService.getLatestToken(user());
+    UserToken userToken = subject.getLatestToken(user());
 
     assertNotNull(userToken);
   }

@@ -11,6 +11,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 
 public interface InvoiceJpaRepository extends JpaRepository<HInvoice, String> {
+  @Lock(LockModeType.OPTIMISTIC_FORCE_INCREMENT)
+  Optional<HInvoice> findById(String id);
+
   @Lock(LockModeType.PESSIMISTIC_WRITE)
   Optional<HInvoice> findOptionalById(String id);
 

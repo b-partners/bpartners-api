@@ -41,15 +41,19 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.query.QueryUtils;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 
 @Repository
 @AllArgsConstructor
+@Slf4j
 public class InvoiceRepositoryImpl implements InvoiceRepository {
   private final InvoiceJpaRepository jpaRepository;
   private final PaymentRequestJpaRepository paymentReqJpaRepository;
@@ -68,7 +72,7 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
         .toList();
   }
 
-  @Lock(LockModeType.PESSIMISTIC_WRITE)
+  @Transactional
   @Override
   public Invoice crupdate(Invoice actual) {
     List<HPaymentRequest> paymentRequests =
@@ -107,7 +111,8 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
             actual.getUser());
     HInvoice toSave = actualEntity.fileId(processAsPdf(toGenerateAsPdf));
     HInvoice savedInvoice = jpaRepository.save(toSave);
-
+    log.info("Invoice identifier={}", savedInvoice.getId());
+    jpaRepository.flush();
     return mapper.toDomain(savedInvoice, toGenerateAsPdf.getUser());
   }
 

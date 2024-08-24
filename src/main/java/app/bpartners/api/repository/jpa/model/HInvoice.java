@@ -1,7 +1,5 @@
 package app.bpartners.api.repository.jpa.model;
 
-import static org.hibernate.type.SqlTypes.NAMED_ENUM;
-
 import app.bpartners.api.endpoint.rest.model.ArchiveStatus;
 import app.bpartners.api.endpoint.rest.model.Invoice.PaymentTypeEnum;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
@@ -11,7 +9,6 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -31,6 +28,9 @@ import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.JdbcTypeCode;
+
+import static jakarta.persistence.FetchType.EAGER;
+import static org.hibernate.type.SqlTypes.NAMED_ENUM;
 
 @Entity
 @Table(name = "\"invoice\"")
@@ -84,11 +84,11 @@ public class HInvoice implements Serializable {
   private Integer customerZipCode;
   private String customerCountry;
 
-  @OneToMany(orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+  @OneToMany(orphanRemoval = true, cascade = CascadeType.ALL, fetch = EAGER)
   @JoinColumn(name = "id_invoice")
   private List<HInvoiceProduct> products = new ArrayList<>();
 
-  @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+  @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = EAGER)
   @JoinColumn(name = "id_invoice")
   private List<HPaymentRequest> paymentRequests;
 

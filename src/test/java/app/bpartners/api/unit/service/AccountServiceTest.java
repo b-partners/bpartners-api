@@ -15,6 +15,7 @@ import app.bpartners.api.model.Account;
 import app.bpartners.api.model.UpdateAccountIdentity;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.BadRequestException;
+import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.repository.*;
 import app.bpartners.api.repository.bridge.BridgeApi;
 import app.bpartners.api.service.AccountService;
@@ -38,6 +39,7 @@ class AccountServiceTest {
     summaryRepositoryMock = mock(TransactionsSummaryRepository.class);
     transactionRepositoryMock = mock(DbTransactionRepository.class);
     repositoryMock = mock(AccountRepository.class);
+    bridgeApiMock = mock(BridgeApi.class);
     subject =
         new AccountService(
             repositoryMock,
@@ -159,5 +161,25 @@ class AccountServiceTest {
     var actual = subject.initiateBankConnection(USER1_ID, urls);
     assertEquals(redirectionUrl, actual.getRedirectionUrl());
     assertEquals(urls, actual.getRedirectionStatusUrls());
+  }
+
+  @Test
+  void disconnect_bank_not_implemented_exception(){
+    var user = mock(User.class);
+    var accounts = mock(List.class);
+    var account = mock(Account.class);
+    var bridgeBankConnections = mock(List.class);
+
+    when(userRepositoryMock.getById(any())).thenReturn(user);
+    when(repositoryMock.findByUserId(any())).thenReturn(accounts);
+    when(accounts.get(anyInt())).thenReturn(account);
+    when(account.isEnabled()).thenReturn(true);
+    when(account.isActive()).thenReturn(true);
+    when(bridgeApiMock.findItemsByToken(any())).thenReturn(bridgeBankConnections);
+    when(bridgeBankConnections.isEmpty()).thenReturn(true);
+
+    assertThrows(NotImplementedException.class, () -> {
+      subject.disconnectBank(USER1_ID);
+    });
   }
 }

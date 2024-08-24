@@ -257,7 +257,7 @@ public class InvoiceService {
     }
   }
 
-  private void handleStatusesFromExistingInvoice(Invoice actual) {
+  private Invoice handleStatusesFromExistingInvoice(Invoice actual) {
     Optional<Invoice> optionalInvoice = repository.pwFindOptionalById(actual.getId());
     if (optionalInvoice.isPresent()) {
       Invoice oldInvoice = optionalInvoice.get();
@@ -277,6 +277,7 @@ public class InvoiceService {
         }
       }
     }
+    return actual;
   }
 
   private void handleCashType(Invoice actual) {

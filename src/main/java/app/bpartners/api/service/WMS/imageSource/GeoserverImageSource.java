@@ -19,7 +19,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 @Component
 @Slf4j
-final class GeoserverImageSource extends AbstractWmsImageSource {
+public final class GeoserverImageSource extends AbstractWmsImageSource {
   private final UriComponents baseUrl;
   private final XYZToBoundingBox xyzToBoundingBox;
 

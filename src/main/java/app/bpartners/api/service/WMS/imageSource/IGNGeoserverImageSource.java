@@ -19,7 +19,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 @Component
 @Slf4j
-final class IGNGeoserverImageSource extends AbstractWmsImageSource {
+public final class IGNGeoserverImageSource extends AbstractWmsImageSource {
   private final UriComponents baseUrl;
   private final AreaPictureValidator areaPictureValidator;
 
@@ -54,7 +54,7 @@ final class IGNGeoserverImageSource extends AbstractWmsImageSource {
     return GEOSERVER_IGN.equals(areaPicture.getCurrentLayer().getSource());
   }
 
-  private URI getURI(AreaPicture areaPicture) {
+  public URI getURI(AreaPicture areaPicture) {
     areaPictureValidator.accept(areaPicture);
     GeoPosition geoPosition = areaPicture.getCurrentGeoPosition();
     Double longitude = geoPosition.getLongitude();

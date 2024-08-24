@@ -18,6 +18,7 @@ import java.io.Serializable;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.util.Base64;
 import java.util.List;
 import lombok.AllArgsConstructor;
@@ -35,7 +36,7 @@ import software.amazon.awssdk.transfer.s3.model.FileDownload;
 @Slf4j
 @Component
 @AllArgsConstructor
-final class FileDownloaderImpl implements FileDownloader {
+public final class FileDownloaderImpl implements FileDownloader {
   private static final String TEMP_FOLDER_PERMISSION = "rwx------";
   private final RestTemplate restTemplate;
   private final ObjectMapper om;
@@ -136,7 +137,19 @@ final class FileDownloaderImpl implements FileDownloader {
 
   @NotNull
   private static File createFileFrom(String filename, byte[] response) throws IOException {
-    File res = File.createTempFile(filename, null);
+    if (filename == null
+        || filename.contains("..")
+        || filename.contains("/")
+        || filename.contains("\\")) {
+      throw new IllegalArgumentException("Invalid filename");
+    }
+    File res =
+        Files.createTempFile(
+                filename,
+                null,
+                PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rw-------")))
+            .toFile();
+
     StreamUtils.copy(response, new FileOutputStream(res));
     return res;
   }

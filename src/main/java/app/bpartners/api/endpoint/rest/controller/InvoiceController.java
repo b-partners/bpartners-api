@@ -19,9 +19,12 @@ import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.service.InvoiceService;
 import app.bpartners.api.service.InvoiceSummaryService;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import lombok.AllArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -66,7 +69,7 @@ public class InvoiceController {
       @RequestBody CrupdateInvoice crupdateInvoice) {
     String idUser = getAuthenticatedUserId(); // TODO: should be changed when endpoint changed
     app.bpartners.api.model.Invoice domain = mapper.toDomain(idUser, invoiceId, crupdateInvoice);
-    return mapper.toRest(service.crupdateInvoice(domain));
+    return mapper.toRest(retryCrupdate(domain));
   }
 
   @GetMapping("/accounts/{id}/invoices/{iId}")
@@ -113,5 +116,24 @@ public class InvoiceController {
       @RequestBody(required = false) InvoiceReference invoiceReference) {
     referenceValidator.accept(invoiceReference);
     return mapper.toRest(service.duplicateAsDraft(iId, invoiceReference.getNewReference()));
+  }
+
+  // After refactoring invoice, remove
+  @SneakyThrows
+  private app.bpartners.api.model.Invoice retryCrupdate(app.bpartners.api.model.Invoice invoice) {
+    int retries = 5;
+    while (retries > 0) {
+      try {
+        return service.crupdateInvoice(invoice);
+      } catch (Exception e) {
+        Random random = new Random();
+        Thread.sleep(Duration.ofSeconds((long) (1 + random.nextDouble() * 2)));
+        retries--;
+        if (retries == 0) {
+          throw e;
+        }
+      }
+    }
+    throw new RuntimeException("Unable to crupdate invoice " + invoice);
   }
 }

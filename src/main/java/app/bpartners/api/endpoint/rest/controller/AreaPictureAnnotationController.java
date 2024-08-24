@@ -25,6 +25,7 @@ public class AreaPictureAnnotationController {
 
   @GetMapping("/accounts/{aId}/areaPictures/{areaPictureId}/annotations")
   public List<AreaPictureAnnotation> getAreaPictureAnnotations(
+      @PathVariable String aId,
       @PathVariable String areaPictureId,
       @RequestParam(defaultValue = "1", required = false) PageFromOne page,
       @RequestParam(defaultValue = "10", required = false) BoundedPageSize pageSize) {

@@ -64,9 +64,19 @@ class AccountServiceTest {
 
     when(repositoryMock.findById(any())).thenReturn(account);
     when(account.getStatus()).thenReturn(AccountStatus.VALIDATION_REQUIRED);
-    when(bankRepositoryMock.initiateProValidation(any())).thenReturn("succesful");
+    when(bankRepositoryMock.initiateProValidation(any())).thenReturn("");
 
-    var actual = subject.initiateAccountValidation("accountId");
-    assertNotNull(actual);
+    assertNotNull(subject.initiateAccountValidation("accountId"));
+  }
+
+  @Test
+  void initiate_account_validation_invalid_credentials(){
+    var account = mock(Account.class);
+
+    when(repositoryMock.findById(any())).thenReturn(account);
+    when(account.getStatus()).thenReturn(AccountStatus.INVALID_CREDENTIALS);
+    when(bankRepositoryMock.initiateBankConnectionEdition(any())).thenReturn("");
+
+    assertNotNull(subject.initiateAccountValidation("accountId"));
   }
 }

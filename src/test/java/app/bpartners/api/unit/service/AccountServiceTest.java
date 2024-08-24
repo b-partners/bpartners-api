@@ -1,8 +1,7 @@
 package app.bpartners.api.unit.service;
 
 import static app.bpartners.api.integration.conf.utils.TestUtils.joePersistedAccount;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -10,6 +9,7 @@ import static org.mockito.Mockito.when;
 import app.bpartners.api.endpoint.rest.model.AccountStatus;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.UpdateAccountIdentity;
+import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.repository.*;
 import app.bpartners.api.repository.bridge.BridgeApi;
 import app.bpartners.api.service.AccountService;
@@ -59,7 +59,7 @@ class AccountServiceTest {
   }
 
   @Test
-  void initiate_account_validation_validation_required(){
+  void initiate_account_validation_validation_required() {
     var account = mock(Account.class);
 
     when(repositoryMock.findById(any())).thenReturn(account);
@@ -70,7 +70,7 @@ class AccountServiceTest {
   }
 
   @Test
-  void initiate_account_validation_invalid_credentials(){
+  void initiate_account_validation_invalid_credentials() {
     var account = mock(Account.class);
 
     when(repositoryMock.findById(any())).thenReturn(account);
@@ -81,7 +81,7 @@ class AccountServiceTest {
   }
 
   @Test
-  void initiate_account_validation_sca_required(){
+  void initiate_account_validation_sca_required() {
     var account = mock(Account.class);
 
     when(repositoryMock.findById(any())).thenReturn(account);
@@ -89,5 +89,19 @@ class AccountServiceTest {
     when(bankRepositoryMock.initiateScaSync(any())).thenReturn("");
 
     assertNotNull(subject.initiateAccountValidation("accountId"));
+  }
+
+  @Test
+  void initiate_account_validation_default() {
+    var account = mock(Account.class);
+
+    when(repositoryMock.findById(any())).thenReturn(account);
+    when(account.getStatus()).thenReturn(AccountStatus.OPENED);
+
+    assertThrows(
+        BadRequestException.class,
+        () -> {
+          subject.initiateAccountValidation("accountId");
+        });
   }
 }

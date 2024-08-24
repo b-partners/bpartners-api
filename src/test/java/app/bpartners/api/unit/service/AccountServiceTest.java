@@ -2,10 +2,12 @@ package app.bpartners.api.unit.service;
 
 import static app.bpartners.api.integration.conf.utils.TestUtils.joePersistedAccount;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import app.bpartners.api.endpoint.rest.model.AccountStatus;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.UpdateAccountIdentity;
 import app.bpartners.api.repository.*;
@@ -54,5 +56,17 @@ class AccountServiceTest {
     when(repositoryMock.save((UpdateAccountIdentity) any())).thenReturn(joePersistedAccount());
 
     assertEquals(joePersistedAccount(), subject.updateAccountIdentity(account));
+  }
+
+  @Test
+  void initiate_account_validation_validation_required(){
+    var account = mock(Account.class);
+
+    when(repositoryMock.findById(any())).thenReturn(account);
+    when(account.getStatus()).thenReturn(AccountStatus.VALIDATION_REQUIRED);
+    when(bankRepositoryMock.initiateProValidation(any())).thenReturn("succesful");
+
+    var actual = subject.initiateAccountValidation("accountId");
+    assertNotNull(actual);
   }
 }

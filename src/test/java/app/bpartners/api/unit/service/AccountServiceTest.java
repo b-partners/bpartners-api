@@ -1,20 +1,26 @@
 package app.bpartners.api.unit.service;
 
+import static app.bpartners.api.integration.conf.utils.TestUtils.USER1_ID;
 import static app.bpartners.api.integration.conf.utils.TestUtils.joePersistedAccount;
+import static app.bpartners.api.repository.implementation.BankRepositoryImpl.ITEM_STATUS_OK;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import app.bpartners.api.endpoint.rest.model.AccountStatus;
+import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.UpdateAccountIdentity;
+import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.repository.*;
 import app.bpartners.api.repository.bridge.BridgeApi;
 import app.bpartners.api.service.AccountService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import java.util.List;
 
 class AccountServiceTest {
   AccountService subject;
@@ -103,5 +109,26 @@ class AccountServiceTest {
         () -> {
           subject.initiateAccountValidation("accountId");
         });
+  }
+
+  @Test
+  void initiate_bank_conneciton_throws_bad_request_exception(){
+    var urls = mock(RedirectionStatusUrls.class);
+    var user = mock(User.class);
+    var accounts = mock(List.class);
+    var account = mock(Account.class);
+
+
+    when(userRepositoryMock.getById(any())).thenReturn(user);
+    when(user.getAccounts()).thenReturn(accounts);
+    when(user.getName()).thenReturn("user_name");
+    when(accounts.get(anyInt())).thenReturn(account);
+    when(user.getDefaultAccount()).thenReturn(account);
+    when(user.getBankConnectionId()).thenReturn((long) ITEM_STATUS_OK);
+    when(user.getBankConnectionId()).thenReturn((long) ITEM_STATUS_OK);
+
+    assertThrows(BadRequestException.class, () -> {
+      subject.initiateBankConnection(USER1_ID, urls);
+    });
   }
 }

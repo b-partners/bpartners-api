@@ -79,4 +79,15 @@ class AccountServiceTest {
 
     assertNotNull(subject.initiateAccountValidation("accountId"));
   }
+
+  @Test
+  void initiate_account_validation_sca_required(){
+    var account = mock(Account.class);
+
+    when(repositoryMock.findById(any())).thenReturn(account);
+    when(account.getStatus()).thenReturn(AccountStatus.SCA_REQUIRED);
+    when(bankRepositoryMock.initiateScaSync(any())).thenReturn("");
+
+    assertNotNull(subject.initiateAccountValidation("accountId"));
+  }
 }

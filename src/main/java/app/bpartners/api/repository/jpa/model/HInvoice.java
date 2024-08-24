@@ -1,5 +1,8 @@
 package app.bpartners.api.repository.jpa.model;
 
+import static jakarta.persistence.FetchType.EAGER;
+import static org.hibernate.type.SqlTypes.NAMED_ENUM;
+
 import app.bpartners.api.endpoint.rest.model.ArchiveStatus;
 import app.bpartners.api.endpoint.rest.model.Invoice.PaymentTypeEnum;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
@@ -28,9 +31,6 @@ import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.JdbcTypeCode;
-
-import static jakarta.persistence.FetchType.EAGER;
-import static org.hibernate.type.SqlTypes.NAMED_ENUM;
 
 @Entity
 @Table(name = "\"invoice\"")

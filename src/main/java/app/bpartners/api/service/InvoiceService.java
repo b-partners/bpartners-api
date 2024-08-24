@@ -1,17 +1,5 @@
 package app.bpartners.api.service;
 
-import static app.bpartners.api.endpoint.rest.model.Invoice.PaymentTypeEnum.CASH;
-import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
-import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.DRAFT;
-import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
-import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PROPOSAL;
-import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PROPOSAL_CONFIRMED;
-import static app.bpartners.api.endpoint.rest.model.PaymentMethod.MULTIPLE;
-import static app.bpartners.api.model.Invoice.DEFAULT_TO_PAY_DELAY_DAYS;
-import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
-import static app.bpartners.api.service.utils.PaymentUtils.computeTotalPriceFromPaymentReq;
-import static java.util.UUID.randomUUID;
-
 import app.bpartners.api.endpoint.rest.model.ArchiveStatus;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.endpoint.rest.model.PaymentMethod;
@@ -44,6 +32,18 @@ import lombok.extern.slf4j.Slf4j;
 import org.apfloat.Aprational;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import static app.bpartners.api.endpoint.rest.model.Invoice.PaymentTypeEnum.CASH;
+import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
+import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.DRAFT;
+import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
+import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PROPOSAL;
+import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PROPOSAL_CONFIRMED;
+import static app.bpartners.api.endpoint.rest.model.PaymentMethod.MULTIPLE;
+import static app.bpartners.api.model.Invoice.DEFAULT_TO_PAY_DELAY_DAYS;
+import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
+import static app.bpartners.api.service.utils.PaymentUtils.computeTotalPriceFromPaymentReq;
+import static java.util.UUID.randomUUID;
 
 @Service
 @AllArgsConstructor
@@ -257,7 +257,7 @@ public class InvoiceService {
     }
   }
 
-  private void handleStatusesFromExistingInvoice(Invoice actual) {
+  private Invoice handleStatusesFromExistingInvoice(Invoice actual) {
     Optional<Invoice> optionalInvoice = repository.pwFindOptionalById(actual.getId());
     if (optionalInvoice.isPresent()) {
       Invoice oldInvoice = optionalInvoice.get();
@@ -277,6 +277,7 @@ public class InvoiceService {
         }
       }
     }
+    return actual;
   }
 
   private void handleCashType(Invoice actual) {

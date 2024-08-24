@@ -7,6 +7,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import app.bpartners.api.model.Account;
+import app.bpartners.api.model.UpdateAccountIdentity;
 import app.bpartners.api.repository.*;
 import app.bpartners.api.repository.bridge.BridgeApi;
 import app.bpartners.api.service.AccountService;
@@ -44,5 +45,14 @@ class AccountServiceTest {
     when(repositoryMock.save((Account) any())).thenReturn(joePersistedAccount());
 
     assertEquals(joePersistedAccount(), subject.save(joePersistedAccount()));
+  }
+
+  @Test
+  void update_account_identity_ok() {
+    var account = mock(UpdateAccountIdentity.class);
+
+    when(repositoryMock.save((UpdateAccountIdentity) any())).thenReturn(joePersistedAccount());
+
+    assertEquals(joePersistedAccount(), subject.updateAccountIdentity(account));
   }
 }

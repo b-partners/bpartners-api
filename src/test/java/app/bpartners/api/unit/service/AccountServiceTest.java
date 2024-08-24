@@ -3,6 +3,7 @@ package app.bpartners.api.unit.service;
 import static app.bpartners.api.integration.conf.utils.TestUtils.USER1_ID;
 import static app.bpartners.api.integration.conf.utils.TestUtils.joePersistedAccount;
 import static app.bpartners.api.repository.implementation.BankRepositoryImpl.ITEM_STATUS_OK;
+import static app.bpartners.api.repository.implementation.BankRepositoryImpl.TRY_AGAIN;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.mock;
@@ -17,10 +18,9 @@ import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.repository.*;
 import app.bpartners.api.repository.bridge.BridgeApi;
 import app.bpartners.api.service.AccountService;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import java.util.List;
 
 class AccountServiceTest {
   AccountService subject;
@@ -112,12 +112,11 @@ class AccountServiceTest {
   }
 
   @Test
-  void initiate_bank_conneciton_throws_bad_request_exception(){
+  void initiate_bank_conneciton_throws_bad_request_exception() {
     var urls = mock(RedirectionStatusUrls.class);
     var user = mock(User.class);
     var accounts = mock(List.class);
     var account = mock(Account.class);
-
 
     when(userRepositoryMock.getById(any())).thenReturn(user);
     when(user.getAccounts()).thenReturn(accounts);
@@ -125,10 +124,40 @@ class AccountServiceTest {
     when(accounts.get(anyInt())).thenReturn(account);
     when(user.getDefaultAccount()).thenReturn(account);
     when(user.getBankConnectionId()).thenReturn((long) ITEM_STATUS_OK);
-    when(user.getBankConnectionId()).thenReturn((long) ITEM_STATUS_OK);
 
-    assertThrows(BadRequestException.class, () -> {
-      subject.initiateBankConnection(USER1_ID, urls);
-    });
+    assertThrows(
+        BadRequestException.class,
+        () -> {
+          subject.initiateBankConnection(USER1_ID, urls);
+        });
+  }
+
+  @Test
+  void initiate_bank_connection_ok() {
+    var urls = mock(RedirectionStatusUrls.class);
+    var user = mock(User.class);
+    var accounts = mock(List.class);
+    var account = mock(Account.class);
+    var redirectionUrl = "redirectionUrl";
+    var accountBuilder = mock(Account.AccountBuilder.class);
+
+    when(userRepositoryMock.getById(any())).thenReturn(user);
+    when(repositoryMock.save(any(Account.class))).thenReturn(account);
+    when(user.getAccounts()).thenReturn(accounts);
+    when(user.getName()).thenReturn("user_name");
+    when(accounts.get(anyInt())).thenReturn(account);
+    when(user.getDefaultAccount()).thenReturn(account);
+    when(user.getBankConnectionId()).thenReturn((long) TRY_AGAIN);
+    when(bankRepositoryMock.initiateConnection(any(User.class))).thenReturn(redirectionUrl);
+    when(account.toBuilder()).thenReturn(accountBuilder);
+    when(accountBuilder.userId(any())).thenReturn(accountBuilder);
+    when(accountBuilder.bank(any())).thenReturn(accountBuilder);
+    when(accountBuilder.bic(any())).thenReturn(accountBuilder);
+    when(accountBuilder.iban(any())).thenReturn(accountBuilder);
+    when(accountBuilder.externalId(any())).thenReturn(accountBuilder);
+
+    var actual = subject.initiateBankConnection(USER1_ID, urls);
+    assertEquals(redirectionUrl, actual.getRedirectionUrl());
+    assertEquals(urls, actual.getRedirectionStatusUrls());
   }
 }

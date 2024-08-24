@@ -1,13 +1,11 @@
 package app.bpartners.api.service.WMS.imageSource;
 
 import static app.bpartners.api.endpoint.rest.model.AreaPictureImageSource.GEOSERVER_IGN;
-import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 
 import app.bpartners.api.endpoint.rest.model.GeoPosition;
 import app.bpartners.api.file.FileDownloader;
 import app.bpartners.api.model.AreaPicture;
 import app.bpartners.api.model.AreaPictureMapLayer;
-import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.validator.AreaPictureValidator;
 import app.bpartners.api.service.WMS.Tile;
 import java.io.File;
@@ -41,11 +39,11 @@ public final class IGNGeoserverImageSource extends AbstractWmsImageSource {
 
   @Override
   public File downloadImage(AreaPicture areaPicture) {
-    if (!supports(areaPicture)) {
-      throw new ApiException(
-          SERVER_EXCEPTION,
-          "cannot download " + areaPicture + " from " + this.getClass().getTypeName());
-    }
+    //    if (!supports(areaPicture)) {
+    //      throw new ApiException(
+    //          SERVER_EXCEPTION,
+    //          "cannot download " + areaPicture + " from " + this.getClass().getTypeName());
+    //    }
 
     return fileDownloaderImpl.getFromS3(areaPicture.getFilename(), getURI(areaPicture));
   }
@@ -72,7 +70,7 @@ public final class IGNGeoserverImageSource extends AbstractWmsImageSource {
   }
 
   @Override
-  public URI getURI(Tile tile, AreaPictureMapLayer areaPictureMapLayer) {
+  protected URI getURI(Tile tile, AreaPictureMapLayer areaPictureMapLayer) {
     Map<String, Object> uriVariables =
         Map.of(
             "layer",

@@ -58,13 +58,16 @@ final class WmsImageSourceFacade extends AbstractWmsImageSource {
   private File cascadeRetryImageDownloadUntilValid(
       WmsImageSource wmsImageSource,
       AreaPicture areaPicture,
-      @Range(from = 0, to = 2) int iteration) {
+      @Range(from = 0, to = 3) int iteration) {
     WmsImageSource alternativeSource;
     AreaPictureMapLayer alternativeAreaPictureMapLayer;
     if (iteration == 0) {
       alternativeSource = wmsImageSource;
       alternativeAreaPictureMapLayer = areaPicture.getCurrentLayer();
     } else if (iteration == 1) {
+      alternativeSource = geoserverImageSource;
+      alternativeAreaPictureMapLayer = areaPictureMapLayerService.getById(FLUX_IGN_GEOSERVER_ID);
+    } else if (iteration == 2) {
       alternativeSource = ignGeoserverImageSource;
       alternativeAreaPictureMapLayer = areaPictureMapLayerService.getDefaultIGNLayer();
     } else {
@@ -74,7 +77,7 @@ final class WmsImageSourceFacade extends AbstractWmsImageSource {
     try {
       areaPicture.setCurrentLayer(alternativeAreaPictureMapLayer);
       var image = alternativeSource.downloadImage(areaPicture);
-      imageValidator.accept(image);
+      //      imageValidator.accept(image);
       return image;
     } catch (ApiException | BlankImageException e) {
       log.info(

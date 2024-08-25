@@ -6,18 +6,19 @@ import static app.bpartners.api.repository.implementation.BankRepositoryImpl.ITE
 import static app.bpartners.api.repository.implementation.BankRepositoryImpl.TRY_AGAIN;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import app.bpartners.api.endpoint.rest.model.AccountStatus;
 import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.UpdateAccountIdentity;
 import app.bpartners.api.model.User;
+import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.repository.*;
 import app.bpartners.api.repository.bridge.BridgeApi;
+import app.bpartners.api.repository.bridge.model.Item.BridgeItem;
 import app.bpartners.api.service.AccountService;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -183,5 +184,28 @@ class AccountServiceTest {
         () -> {
           subject.disconnectBank(USER1_ID);
         });
+  }
+
+  @Test
+  void disconnectBankThrowsApiExceptionWhenDisconnectFails() {
+    var user = mock(User.class);
+    var accounts = mock(List.class);
+    var account = mock(Account.class);
+    var bridgeBankConnections = mock(List.class);
+    var bridgeItem = mock(BridgeItem.class);
+
+    when(userRepositoryMock.getById(any())).thenReturn(user);
+    when(repositoryMock.findByUserId(any())).thenReturn(accounts);
+    when(accounts.get(0)).thenReturn(account);  // Sélectionne le premier élément de la liste
+    when(account.isEnabled()).thenReturn(true);
+    when(account.isActive()).thenReturn(true);
+    when(bridgeApiMock.findItemsByToken(any())).thenReturn(bridgeBankConnections);
+    when(bridgeBankConnections.isEmpty()).thenReturn(false);
+    when(bridgeBankConnections.get(0)).thenReturn(bridgeItem);  // Sélectionne le premier élément de la liste
+    when(bankRepositoryMock.disconnectBank(any(User.class))).thenReturn(false);
+
+    assertThrows(
+            ApiException.class,
+            () -> subject.disconnectBank(USER1_ID));
   }
 }

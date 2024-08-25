@@ -9,8 +9,9 @@ import app.bpartners.api.service.BusinessActivityService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static app.bpartners.api.integration.conf.utils.TestUtils.ACCOUNTHOLDER_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.location;
+import java.util.List;
+
+import static app.bpartners.api.integration.conf.utils.TestUtils.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -70,5 +71,15 @@ class AccountHolderServiceTest {
         when(repositoryMock.save(any())).thenReturn(accountHolder);
 
         assertEquals(accountHolder, subject.updateCompanyInfo(ACCOUNTHOLDER_ID, companyInfo()));
+    }
+
+    @Test
+    void find_default_by_id_user_return_null() {
+        var accountHolders = mock(List.class);
+
+        when(repositoryMock.findAllByUserId(any())).thenReturn(accountHolders);
+        when(accountHolders.isEmpty()).thenReturn(true);
+
+        assertEquals(null, subject.findDefaultByIdUser(USER1_ID));
     }
 }

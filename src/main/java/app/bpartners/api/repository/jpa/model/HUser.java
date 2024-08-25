@@ -7,7 +7,7 @@ import static org.hibernate.type.SqlTypes.NAMED_ENUM;
 import app.bpartners.api.endpoint.rest.model.EnableStatus;
 import app.bpartners.api.endpoint.rest.model.IdentificationStatus;
 import app.bpartners.api.endpoint.rest.security.model.Role;
-import app.bpartners.api.model.BankConnection;
+import app.bpartners.api.model.bank.BankConnection;
 import io.hypersistence.utils.hibernate.type.array.EnumArrayType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

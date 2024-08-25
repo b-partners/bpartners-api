@@ -1,5 +1,7 @@
-package app.bpartners.api.model;
+package app.bpartners.api.model.bank;
 
+import app.bpartners.api.model.Bank;
+import app.bpartners.api.model.User;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;

@@ -15,6 +15,8 @@ public interface BridgeBankRepository {
 
   List<BridgeItem> getBridgeItems();
 
+  List<BridgeItem> getBridgeItems(String token);
+
   String refreshBankConnection(Long itemId, String token);
 
   BridgeConnectItem synchronizeSca(Long id);

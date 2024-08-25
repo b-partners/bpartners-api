@@ -5,6 +5,7 @@ import static app.bpartners.api.service.utils.AccountUtils.filterActive;
 import app.bpartners.api.endpoint.rest.model.EnableStatus;
 import app.bpartners.api.endpoint.rest.model.IdentificationStatus;
 import app.bpartners.api.endpoint.rest.security.model.Role;
+import app.bpartners.api.model.bank.BankConnection;
 import com.nimbusds.jose.util.Base64;
 import java.io.Serializable;
 import java.time.Instant;

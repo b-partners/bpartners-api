@@ -26,6 +26,7 @@ import app.bpartners.api.repository.TransactionsSummaryRepository;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.bridge.BridgeApi;
 import app.bpartners.api.repository.bridge.model.Item.BridgeItem;
+import app.bpartners.api.service.account.AccountConnectionValidator;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -44,6 +45,7 @@ public class AccountService {
   private final TransactionsSummaryRepository summaryRepository;
   private final DbTransactionRepository transactionRepository;
   private final BridgeApi bridgeApi;
+  private final AccountConnectionValidator connectionValidator;
 
   public Account getActive(List<Account> accounts) {
     return accounts.stream()
@@ -99,6 +101,8 @@ public class AccountService {
   @Transactional
   public String initiateAccountValidation(String accountId) {
     Account account = repository.findById(accountId);
+    connectionValidator.accept(account);
+
     switch (account.getStatus()) {
       case VALIDATION_REQUIRED:
         return bankRepository.initiateProValidation(accountId);
@@ -130,7 +134,15 @@ public class AccountService {
               + " Disconnect before initiating another bank connection.");
     }
     String redirectionUrl = bankRepository.initiateConnection(user);
-    resetDefaultAccount(userId, user, defaultAccount);
+    Account newAccount =
+        defaultAccount.toBuilder()
+            .userId(userId)
+            .bank(null)
+            .bic(null)
+            .iban(null)
+            .externalId(null)
+            .build();
+    repository.save(newAccount);
     return new BankConnectionRedirection()
         .redirectionUrl(redirectionUrl)
         .redirectionStatusUrls(urls);
@@ -222,11 +234,7 @@ public class AccountService {
         .build();
   }
 
-  private void resetDefaultAccount(String userId, User user, Account account) {
-    Account defaultAccount =
-        account.toBuilder().userId(userId).bank(null).bic(null).iban(null).externalId(null).build();
-    repository.save(defaultAccount);
-  }
+  private void resetDefaultAccount(String userId, User user, Account account) {}
 
   private User resetDefaultUser(User user, Account account) {
     return user.toBuilder()

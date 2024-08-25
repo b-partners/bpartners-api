@@ -11,9 +11,9 @@ import static org.mockito.Mockito.when;
 
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.Bank;
-import app.bpartners.api.model.BankConnection;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.UserToken;
+import app.bpartners.api.model.bank.BankConnection;
 import app.bpartners.api.model.mapper.BankMapper;
 import app.bpartners.api.model.mapper.UserMapper;
 import app.bpartners.api.repository.UserTokenRepository;

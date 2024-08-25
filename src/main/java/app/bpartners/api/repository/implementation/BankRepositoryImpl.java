@@ -1,18 +1,18 @@
 package app.bpartners.api.repository.implementation;
 
-import static app.bpartners.api.model.BankConnection.BankConnectionStatus.INVALID_CREDENTIALS;
-import static app.bpartners.api.model.BankConnection.BankConnectionStatus.NOT_SUPPORTED;
-import static app.bpartners.api.model.BankConnection.BankConnectionStatus.OK;
-import static app.bpartners.api.model.BankConnection.BankConnectionStatus.SCA_REQUIRED;
-import static app.bpartners.api.model.BankConnection.BankConnectionStatus.UNDERGOING_REFRESHMENT;
-import static app.bpartners.api.model.BankConnection.BankConnectionStatus.UNKNOWN;
-import static app.bpartners.api.model.BankConnection.BankConnectionStatus.VALIDATION_REQUIRED;
+import static app.bpartners.api.model.bank.BankConnection.BankConnectionStatus.INVALID_CREDENTIALS;
+import static app.bpartners.api.model.bank.BankConnection.BankConnectionStatus.NOT_SUPPORTED;
+import static app.bpartners.api.model.bank.BankConnection.BankConnectionStatus.OK;
+import static app.bpartners.api.model.bank.BankConnection.BankConnectionStatus.SCA_REQUIRED;
+import static app.bpartners.api.model.bank.BankConnection.BankConnectionStatus.UNDERGOING_REFRESHMENT;
+import static app.bpartners.api.model.bank.BankConnection.BankConnectionStatus.UNKNOWN;
+import static app.bpartners.api.model.bank.BankConnection.BankConnectionStatus.VALIDATION_REQUIRED;
 
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.Bank;
-import app.bpartners.api.model.BankConnection;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.UserToken;
+import app.bpartners.api.model.bank.BankConnection;
 import app.bpartners.api.model.mapper.BankMapper;
 import app.bpartners.api.model.mapper.UserMapper;
 import app.bpartners.api.repository.BankRepository;
@@ -180,6 +180,22 @@ public class BankRepositoryImpl implements BankRepository {
   }
 
   @Override
+  public List<BankConnection> getAllConnectionByUser(User user) {
+    return bridgeRepository.getBridgeItems().stream()
+        .map(
+            item -> {
+              var bank = findByExternalId(String.valueOf(item.getBankId()));
+              return BankConnection.builder()
+                  .bridgeId(item.getId())
+                  .bank(bank)
+                  .status(getBankConnectionStatus(item.getStatus()))
+                  .user(user)
+                  .build();
+            })
+        .toList();
+  }
+
+  @Override
   public String initiateScaSync(Account account) {
     BridgeItem defaultItem = getDefaultItem(account);
     return bridgeRepository.synchronizeSca(defaultItem.getId()).getRedirectUrl();
@@ -190,10 +206,13 @@ public class BankRepositoryImpl implements BankRepository {
     return bridgeRepository.deleteItem(user.getBankConnectionId(), user.getAccessToken());
   }
 
-  private BridgeItem getDefaultItem(Account account) {
+  public BridgeItem getDefaultItem(Account account) {
     // TODO: item should be retrieved from HAccount not from Bridge
     List<BridgeItem> items = bridgeRepository.getBridgeItems();
-    BridgeItem defaultItem = items.get(0);
+    if (items.isEmpty()) {
+      throw new RuntimeException("Account(id=" + account.getId() + ") is not associated to a bank");
+    }
+    BridgeItem defaultItem = items.getFirst();
     if (items.size() > 1) {
       log.warn(
           "[Bridge] Multiple items ("

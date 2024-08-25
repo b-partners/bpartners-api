@@ -164,7 +164,7 @@ class AccountServiceTest {
   }
 
   @Test
-  void disconnect_bank_not_implemented_exception(){
+  void disconnect_bank_not_implemented_exception() {
     var user = mock(User.class);
     var accounts = mock(List.class);
     var account = mock(Account.class);
@@ -178,8 +178,10 @@ class AccountServiceTest {
     when(bridgeApiMock.findItemsByToken(any())).thenReturn(bridgeBankConnections);
     when(bridgeBankConnections.isEmpty()).thenReturn(true);
 
-    assertThrows(NotImplementedException.class, () -> {
-      subject.disconnectBank(USER1_ID);
-    });
+    assertThrows(
+        NotImplementedException.class,
+        () -> {
+          subject.disconnectBank(USER1_ID);
+        });
   }
 }

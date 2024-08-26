@@ -25,7 +25,6 @@ final class WmsImageSourceFacade extends AbstractWmsImageSource {
   private final AreaPictureMapLayerService areaPictureMapLayerService;
   private final TileExtenderImageSource tileExtenderImageSource;
   private final ImageValidator imageValidator;
-  private final String FLUX_IGN_GEOSERVER_ID = "9a4bd8b7-556b-49a1-bea0-c35e961dab64";
 
   private WmsImageSourceFacade(
       FileDownloader fileDownloader,
@@ -58,16 +57,13 @@ final class WmsImageSourceFacade extends AbstractWmsImageSource {
   private File cascadeRetryImageDownloadUntilValid(
       WmsImageSource wmsImageSource,
       AreaPicture areaPicture,
-      @Range(from = 0, to = 3) int iteration) {
+      @Range(from = 0, to = 2) int iteration) {
     WmsImageSource alternativeSource;
     AreaPictureMapLayer alternativeAreaPictureMapLayer;
     if (iteration == 0) {
       alternativeSource = wmsImageSource;
       alternativeAreaPictureMapLayer = areaPicture.getCurrentLayer();
     } else if (iteration == 1) {
-      alternativeSource = geoserverImageSource;
-      alternativeAreaPictureMapLayer = areaPictureMapLayerService.getById(FLUX_IGN_GEOSERVER_ID);
-    } else if (iteration == 2) {
       alternativeSource = ignGeoserverImageSource;
       alternativeAreaPictureMapLayer = areaPictureMapLayerService.getDefaultIGNLayer();
     } else {
@@ -77,7 +73,7 @@ final class WmsImageSourceFacade extends AbstractWmsImageSource {
     try {
       areaPicture.setCurrentLayer(alternativeAreaPictureMapLayer);
       var image = alternativeSource.downloadImage(areaPicture);
-      //      imageValidator.accept(image);
+      imageValidator.accept(image);
       return image;
     } catch (ApiException | BlankImageException e) {
       log.info(

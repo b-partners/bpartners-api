@@ -23,6 +23,7 @@ import app.bpartners.api.repository.bridge.model.Item.BridgeItem;
 import app.bpartners.api.service.AccountService;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -52,6 +53,16 @@ class AccountServiceTest {
             summaryRepositoryMock,
             transactionRepositoryMock,
             bridgeApiMock);
+  }
+
+  @Test
+  void findAllActiveAccountsNoActiveAccounts() {
+    when(userRepositoryMock.findAll()).thenReturn(new ArrayList<>());
+
+    List<Account> activeAccounts = subject.findAllActiveAccounts();
+
+    assertTrue(activeAccounts.isEmpty());
+    verify(userRepositoryMock, times(1)).findAll();
   }
 
   @Test

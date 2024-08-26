@@ -23,7 +23,8 @@ class AreaPictureAnnotationRepositoryTest {
   @InjectMocks
   private AreaPictureAnnotationRepositoryImpl
       areaPictureAnnotationRepositoryImpl; // Suppose que c'est l'implémentation de
-                                           // AreaPictureAnnotationRepository
+
+  // AreaPictureAnnotationRepository
 
   private AreaPictureAnnotation areaPictureAnnotation;
   private Pageable pageable;

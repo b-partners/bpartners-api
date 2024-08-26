@@ -21,7 +21,6 @@ import app.bpartners.api.repository.*;
 import app.bpartners.api.repository.bridge.BridgeApi;
 import app.bpartners.api.repository.bridge.model.Item.BridgeItem;
 import app.bpartners.api.service.AccountService;
-
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;

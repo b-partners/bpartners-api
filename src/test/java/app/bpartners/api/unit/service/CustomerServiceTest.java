@@ -10,12 +10,10 @@ import app.bpartners.api.repository.CustomerRepository;
 import app.bpartners.api.repository.ban.BanApi;
 import app.bpartners.api.repository.ban.model.GeoPosition;
 import app.bpartners.api.service.CustomerService;
-import java.util.*;
-
 import app.bpartners.api.service.utils.GeoUtils;
+import java.util.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.locationtech.jts.geom.Coordinates;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -97,5 +95,20 @@ class CustomerServiceTest {
     customerService.updateCustomersLocation();
     verify(customer, times(1)).setLocation(any(Location.class));
     verify(repository, times(1)).save(customer);
+  }
+
+  @Test
+  void testUpdateCustomersLocationInvalidAddress() {
+    Customer customer = mock(Customer.class);
+
+    when(customer.getId()).thenReturn("1");
+    when(customer.getFullAddress()).thenReturn("12");
+    when(customer.getAddress()).thenReturn("12");
+    when(repository.findWhereLatitudeOrLongitudeIsNull()).thenReturn(List.of(customer));
+
+    customerService.updateCustomersLocation();
+    verify(banApi, never()).search(anyString());
+    verify(customer, never()).setLocation(any(Location.class));
+    verify(repository, never()).save(customer);
   }
 }

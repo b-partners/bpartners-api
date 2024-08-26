@@ -56,6 +56,25 @@ class AccountServiceTest {
   }
 
   @Test
+  void findAllActiveAccountsOk() {
+    var user1 = mock(User.class);
+    var user2 = mock(User.class);
+    var account1 = mock(Account.class);
+    var account2 = mock(Account.class);
+
+    when(user1.getDefaultAccount()).thenReturn(account1);
+    when(user2.getDefaultAccount()).thenReturn(account2);
+    when(userRepositoryMock.findAll()).thenReturn(List.of(user1, user2));
+
+    List<Account> activeAccounts = subject.findAllActiveAccounts();
+
+    assertEquals(2, activeAccounts.size());
+    assertTrue(activeAccounts.contains(account1));
+    assertTrue(activeAccounts.contains(account2));
+    verify(userRepositoryMock, times(1)).findAll();
+  }
+
+  @Test
   void findAllActiveAccountsNoActiveAccounts() {
     when(userRepositoryMock.findAll()).thenReturn(new ArrayList<>());
 

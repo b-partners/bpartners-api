@@ -26,13 +26,11 @@ import java.math.BigDecimal;
 import java.net.URI;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockitoAnnotations;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.io.FileSystemResource;
 
-@Disabled("TODO: fail after merging prod to preprod")
 class GeoserverImageSourceIT extends MockedThirdParties {
   @MockBean private FileDownloaderImpl fileDownloader;
   @MockBean private XYZToBoundingBox xyzToBoundingBox;

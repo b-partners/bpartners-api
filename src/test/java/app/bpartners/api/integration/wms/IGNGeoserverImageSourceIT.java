@@ -25,7 +25,6 @@ import java.io.File;
 import java.net.URI;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockitoAnnotations;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -78,8 +77,7 @@ class IGNGeoserverImageSourceIT extends MockedThirdParties {
   }
 
   @Test
-  @Disabled("TODO: fail after merging prod to preprod")
-  void donwload_image_when_source_is_not_supported_ok() {
+  void download_image_when_source_is_not_supported_ok() {
     AreaPicture areaPicture =
         AreaPicture.builder()
             .currentLayer(AreaPictureMapLayer.builder().source(GEOSERVER).build())

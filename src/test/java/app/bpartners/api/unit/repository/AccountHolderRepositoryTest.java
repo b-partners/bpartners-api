@@ -10,23 +10,21 @@ import app.bpartners.api.repository.implementation.AccountHolderRepositoryImpl;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.springframework.data.domain.Pageable;
 
 class AccountHolderRepositoryTest {
 
-  @Mock private AccountHolderRepository accountHolderRepository;
-
-  @InjectMocks private AccountHolderRepositoryImpl accountHolderRepositoryImpl;
-
-  private AccountHolder accountHolder;
-  private Pageable pageable;
+  AccountHolderRepository accountHolderRepository;
+  AccountHolderRepositoryImpl accountHolderRepositoryImpl;
+  AccountHolder accountHolder;
+  Pageable pageable;
 
   @BeforeEach
   void setUp() {
-    MockitoAnnotations.openMocks(this);
+    accountHolderRepository = mock(AccountHolderRepository.class);
+    accountHolderRepositoryImpl = mock(AccountHolderRepositoryImpl.class);
+    accountHolder = mock(AccountHolder.class);
+    pageable = mock(Pageable.class);
 
     accountHolder =
         AccountHolder.builder()

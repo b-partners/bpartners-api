@@ -13,6 +13,7 @@ import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.UpdateAccountIdentity;
 import app.bpartners.api.model.User;
+import app.bpartners.api.model.UserToken;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.NotImplementedException;
@@ -20,6 +21,8 @@ import app.bpartners.api.repository.*;
 import app.bpartners.api.repository.bridge.BridgeApi;
 import app.bpartners.api.repository.bridge.model.Item.BridgeItem;
 import app.bpartners.api.service.AccountService;
+
+import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -49,6 +52,18 @@ class AccountServiceTest {
             summaryRepositoryMock,
             transactionRepositoryMock,
             bridgeApiMock);
+  }
+
+  @Test
+  void refresh_bank_connection_ok() {
+    var userToken = mock(UserToken.class);
+    var expectedTime = Instant.now();
+
+    when(bankRepositoryMock.refreshBankConnection(any(UserToken.class))).thenReturn(expectedTime);
+
+    var actualTime = subject.refreshBankConnection(userToken);
+    assertEquals(expectedTime, actualTime);
+    verify(bankRepositoryMock, times(1)).refreshBankConnection(userToken);
   }
 
   @Test

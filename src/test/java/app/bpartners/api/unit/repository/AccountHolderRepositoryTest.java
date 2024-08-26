@@ -19,9 +19,7 @@ class AccountHolderRepositoryTest {
 
   @Mock private AccountHolderRepository accountHolderRepository;
 
-  @InjectMocks
-  private AccountHolderRepositoryImpl
-      accountHolderRepositoryImpl; // Suppose que c'est l'implémentation de AccountHolderRepository
+  @InjectMocks private AccountHolderRepositoryImpl accountHolderRepositoryImpl;
 
   private AccountHolder accountHolder;
   private Pageable pageable;
@@ -39,7 +37,7 @@ class AccountHolderRepositoryTest {
             .verificationStatus(VerificationStatus.VERIFIED)
             .build();
 
-    pageable = Pageable.unpaged(); // Utiliser un pageable non paginé pour les tests
+    pageable = Pageable.unpaged();
   }
 
   @Test

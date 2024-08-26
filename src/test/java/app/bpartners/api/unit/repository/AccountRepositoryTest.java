@@ -19,9 +19,7 @@ class AccountRepositoryTest {
 
   @Mock private AccountRepository accountRepository;
 
-  @InjectMocks
-  private AccountRepositoryImpl
-      accountRepositoryImpl; // Suppose que c'est l'implémentation de AccountRepository
+  @InjectMocks private AccountRepositoryImpl accountRepositoryImpl;
 
   private Account account;
 

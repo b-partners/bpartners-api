@@ -20,9 +20,7 @@ class CustomerRepositoryTest {
 
   @Mock private CustomerRepository customerRepository;
 
-  @InjectMocks
-  private CustomerRepositoryImpl
-      customerRepositoryImpl; // Suppose que c'est l'implémentation de CustomerRepository
+  @InjectMocks private CustomerRepositoryImpl customerRepositoryImpl;
 
   private Customer customer;
 
@@ -30,7 +28,6 @@ class CustomerRepositoryTest {
   void setUp() {
     MockitoAnnotations.openMocks(this);
 
-    // Initialiser un exemple de Customer pour les tests
     customer =
         Customer.builder()
             .id("1")

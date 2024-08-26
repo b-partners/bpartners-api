@@ -20,11 +20,7 @@ class AreaPictureAnnotationRepositoryTest {
 
   @Mock private AreaPictureAnnotationRepository areaPictureAnnotationRepository;
 
-  @InjectMocks
-  private AreaPictureAnnotationRepositoryImpl
-      areaPictureAnnotationRepositoryImpl; // Suppose que c'est l'implémentation de
-
-  // AreaPictureAnnotationRepository
+  @InjectMocks private AreaPictureAnnotationRepositoryImpl areaPictureAnnotationRepositoryImpl;
 
   private AreaPictureAnnotation areaPictureAnnotation;
   private Pageable pageable;
@@ -45,7 +41,7 @@ class AreaPictureAnnotationRepositoryTest {
             .annotationInstances(List.of())
             .build();
 
-    pageable = Pageable.unpaged(); // Utiliser un pageable non paginé pour les tests
+    pageable = Pageable.unpaged();
   }
 
   @Test

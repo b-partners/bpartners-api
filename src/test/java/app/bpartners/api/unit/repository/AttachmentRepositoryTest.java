@@ -17,9 +17,7 @@ class AttachmentRepositoryTest {
 
   @Mock private AttachmentRepository attachmentRepository;
 
-  @InjectMocks
-  private AttachmentRepositoryImpl
-      attachmentRepositoryImpl; // Suppose que c'est l'implémentation de AttachmentRepository
+  @InjectMocks private AttachmentRepositoryImpl attachmentRepositoryImpl;
 
   private Attachment attachment;
   private List<Attachment> attachments;

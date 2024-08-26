@@ -240,13 +240,12 @@ class AccountServiceTest {
 
     when(userRepositoryMock.getById(any())).thenReturn(user);
     when(repositoryMock.findByUserId(any())).thenReturn(accounts);
-    when(accounts.get(0)).thenReturn(account); // Sélectionne le premier élément de la liste
+    when(accounts.get(0)).thenReturn(account);
     when(account.isEnabled()).thenReturn(true);
     when(account.isActive()).thenReturn(true);
     when(bridgeApiMock.findItemsByToken(any())).thenReturn(bridgeBankConnections);
     when(bridgeBankConnections.isEmpty()).thenReturn(false);
-    when(bridgeBankConnections.get(0))
-        .thenReturn(bridgeItem); // Sélectionne le premier élément de la liste
+    when(bridgeBankConnections.get(0)).thenReturn(bridgeItem);
     when(bankRepositoryMock.disconnectBank(any(User.class))).thenReturn(false);
 
     assertThrows(ApiException.class, () -> subject.disconnectBank(USER1_ID));

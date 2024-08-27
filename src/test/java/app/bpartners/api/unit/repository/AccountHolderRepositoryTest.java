@@ -46,7 +46,7 @@ class AccountHolderRepositoryTest {
     List<AccountHolder> foundAccountHolders = accountHolderRepository.findAll(pageable);
     assertNotNull(foundAccountHolders);
     assertEquals(1, foundAccountHolders.size());
-    assertEquals(accountHolder(), foundAccountHolders.get(0));
+    assertEquals(accountHolder(), foundAccountHolders.getFirst());
   }
 
   @Test
@@ -60,7 +60,7 @@ class AccountHolderRepositoryTest {
         accountHolderRepository.findAllByName("Account Holder Name", pageable);
     assertNotNull(foundAccountHolders);
     assertEquals(1, foundAccountHolders.size());
-    assertEquals(accountHolder(), foundAccountHolders.get(0));
+    assertEquals(accountHolder(), foundAccountHolders.getFirst());
   }
 
   @Test
@@ -73,7 +73,7 @@ class AccountHolderRepositoryTest {
         accountHolderRepository.findAllByAccountId(JOE_DOE_ACCOUNT_HOLDER_ID);
     assertNotNull(foundAccountHolders);
     assertEquals(1, foundAccountHolders.size());
-    assertEquals(accountHolder(), foundAccountHolders.get(0));
+    assertEquals(accountHolder(), foundAccountHolders.getFirst());
   }
 
   @Test
@@ -85,7 +85,7 @@ class AccountHolderRepositoryTest {
     List<AccountHolder> foundAccountHolders = accountHolderRepository.findAllByUserId("user1");
     assertNotNull(foundAccountHolders);
     assertEquals(1, foundAccountHolders.size());
-    assertEquals(accountHolder(), foundAccountHolders.get(0));
+    assertEquals(accountHolder(), foundAccountHolders.getFirst());
   }
 
   @Test

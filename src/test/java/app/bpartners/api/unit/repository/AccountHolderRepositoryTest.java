@@ -1,7 +1,6 @@
 package app.bpartners.api.unit.repository;
 
-import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_HOLDER_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.USER1_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -31,7 +30,7 @@ class AccountHolderRepositoryTest {
 
   AccountHolder accountHolder(){
     return AccountHolder.builder()
-            .id("1")
+            .id(ACCOUNTHOLDER_ID)
             .userId(USER1_ID)
             .name("Account Holder Name")
             .siren("123456789")
@@ -100,9 +99,9 @@ class AccountHolderRepositoryTest {
 
   @Test
   void findById_returnsAccountHolder() {
-    when(accountHolderRepository.findById("1")).thenReturn(accountHolder());
+    when(accountHolderRepository.findById(ACCOUNTHOLDER_ID)).thenReturn(accountHolder());
 
-    AccountHolder foundAccountHolder = accountHolderRepository.findById("1");
+    AccountHolder foundAccountHolder = accountHolderRepository.findById(ACCOUNTHOLDER_ID);
     assertNotNull(foundAccountHolder);
     assertEquals(accountHolder(), foundAccountHolder);
   }

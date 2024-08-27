@@ -1,6 +1,7 @@
 package app.bpartners.api.unit.repository;
 
 import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_HOLDER_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.USER1_ID;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -31,7 +32,7 @@ class AccountHolderRepositoryTest {
   AccountHolder accountHolder(){
     return AccountHolder.builder()
             .id("1")
-            .userId("user1")
+            .userId(USER1_ID)
             .name("Account Holder Name")
             .siren("123456789")
             .verificationStatus(VerificationStatus.VERIFIED)
@@ -80,9 +81,9 @@ class AccountHolderRepositoryTest {
   void findAllByUserId_returnsAccountHolderList() {
     List<AccountHolder> accountHolders = List.of(accountHolder());
 
-    when(accountHolderRepository.findAllByUserId("user1")).thenReturn(accountHolders);
+    when(accountHolderRepository.findAllByUserId(USER1_ID)).thenReturn(accountHolders);
 
-    List<AccountHolder> foundAccountHolders = accountHolderRepository.findAllByUserId("user1");
+    List<AccountHolder> foundAccountHolders = accountHolderRepository.findAllByUserId(USER1_ID);
     assertNotNull(foundAccountHolders);
     assertEquals(1, foundAccountHolders.size());
     assertEquals(accountHolder(), foundAccountHolders.getFirst());

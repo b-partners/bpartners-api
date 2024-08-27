@@ -16,42 +16,42 @@ class AccountHolderRepositoryTest {
 
   AccountHolderRepository accountHolderRepository;
   AccountHolderRepositoryImpl accountHolderRepositoryImpl;
-  AccountHolder accountHolder;
   Pageable pageable;
 
   @BeforeEach
   void setUp() {
     accountHolderRepository = mock(AccountHolderRepository.class);
     accountHolderRepositoryImpl = mock(AccountHolderRepositoryImpl.class);
-    accountHolder = mock(AccountHolder.class);
     pageable = mock(Pageable.class);
 
-    accountHolder =
-        AccountHolder.builder()
+    pageable = Pageable.unpaged();
+  }
+
+  AccountHolder accountHolder(){
+    return AccountHolder.builder()
             .id("1")
             .userId("user1")
             .name("Account Holder Name")
             .siren("123456789")
             .verificationStatus(VerificationStatus.VERIFIED)
             .build();
-
-    pageable = Pageable.unpaged();
   }
-
   @Test
   void findAll_returnsAccountHolderList() {
-    List<AccountHolder> accountHolders = List.of(accountHolder);
+    List<AccountHolder> accountHolders = List.of(accountHolder());
+
     when(accountHolderRepository.findAll(pageable)).thenReturn(accountHolders);
 
     List<AccountHolder> foundAccountHolders = accountHolderRepository.findAll(pageable);
     assertNotNull(foundAccountHolders);
     assertEquals(1, foundAccountHolders.size());
-    assertEquals(accountHolder, foundAccountHolders.get(0));
+    assertEquals(accountHolder(), foundAccountHolders.get(0));
   }
 
   @Test
   void findAllByName_returnsAccountHolderList() {
-    List<AccountHolder> accountHolders = List.of(accountHolder);
+    List<AccountHolder> accountHolders = List.of(accountHolder());
+
     when(accountHolderRepository.findAllByName("Account Holder Name", pageable))
         .thenReturn(accountHolders);
 
@@ -59,48 +59,50 @@ class AccountHolderRepositoryTest {
         accountHolderRepository.findAllByName("Account Holder Name", pageable);
     assertNotNull(foundAccountHolders);
     assertEquals(1, foundAccountHolders.size());
-    assertEquals(accountHolder, foundAccountHolders.get(0));
+    assertEquals(accountHolder(), foundAccountHolders.get(0));
   }
 
   @Test
   void findAllByAccountId_returnsAccountHolderList() {
-    List<AccountHolder> accountHolders = List.of(accountHolder);
+    List<AccountHolder> accountHolders = List.of(accountHolder());
+
     when(accountHolderRepository.findAllByAccountId("accountId")).thenReturn(accountHolders);
 
     List<AccountHolder> foundAccountHolders =
         accountHolderRepository.findAllByAccountId("accountId");
     assertNotNull(foundAccountHolders);
     assertEquals(1, foundAccountHolders.size());
-    assertEquals(accountHolder, foundAccountHolders.get(0));
+    assertEquals(accountHolder(), foundAccountHolders.get(0));
   }
 
   @Test
   void findAllByUserId_returnsAccountHolderList() {
-    List<AccountHolder> accountHolders = List.of(accountHolder);
+    List<AccountHolder> accountHolders = List.of(accountHolder());
+
     when(accountHolderRepository.findAllByUserId("user1")).thenReturn(accountHolders);
 
     List<AccountHolder> foundAccountHolders = accountHolderRepository.findAllByUserId("user1");
     assertNotNull(foundAccountHolders);
     assertEquals(1, foundAccountHolders.size());
-    assertEquals(accountHolder, foundAccountHolders.get(0));
+    assertEquals(accountHolder(), foundAccountHolders.get(0));
   }
 
   @Test
   void save_returnsSavedAccountHolder() {
-    when(accountHolderRepository.save(accountHolder)).thenReturn(accountHolder);
+    when(accountHolderRepository.save(any())).thenReturn(accountHolder());
 
-    AccountHolder savedAccountHolder = accountHolderRepository.save(accountHolder);
+    AccountHolder savedAccountHolder = accountHolderRepository.save(accountHolder());
     assertNotNull(savedAccountHolder);
-    assertEquals(accountHolder, savedAccountHolder);
+    assertEquals(accountHolder(), savedAccountHolder);
   }
 
   @Test
   void findById_returnsAccountHolder() {
-    when(accountHolderRepository.findById("1")).thenReturn(accountHolder);
+    when(accountHolderRepository.findById("1")).thenReturn(accountHolder());
 
     AccountHolder foundAccountHolder = accountHolderRepository.findById("1");
     assertNotNull(foundAccountHolder);
-    assertEquals(accountHolder, foundAccountHolder);
+    assertEquals(accountHolder(), foundAccountHolder);
   }
 
   @Test

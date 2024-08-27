@@ -17,63 +17,65 @@ import org.mockito.MockitoAnnotations;
 
 class AccountRepositoryTest {
 
-  @Mock private AccountRepository accountRepository;
+  AccountRepository accountRepository;
 
-  @InjectMocks private AccountRepositoryImpl accountRepositoryImpl;
+  AccountRepositoryImpl accountRepositoryImpl;
 
-  private Account account;
 
   @BeforeEach
   void setUp() {
-    MockitoAnnotations.openMocks(this);
+    accountRepository = mock(AccountRepository.class);
+    accountRepositoryImpl = mock(AccountRepositoryImpl.class);
+  }
 
-    account =
-        Account.builder()
-            .id("1")
-            .externalId("ext-1")
-            .idAccountHolder("holder1")
-            .userId("user1")
-            .name("AccountName")
-            .iban("IBAN123")
-            .bic("BIC123")
-            .active(true)
-            .status(AccountStatus.OPENED)
-            .build();
+  Account account(){
+    return
+            Account.builder()
+                    .id("1")
+                    .externalId("ext-1")
+                    .idAccountHolder("holder1")
+                    .userId("user1")
+                    .name("AccountName")
+                    .iban("IBAN123")
+                    .bic("BIC123")
+                    .active(true)
+                    .status(AccountStatus.OPENED)
+                    .build();
   }
 
   @Test
   void findByBearer_returnsAccountList() {
-    when(accountRepository.findByBearer("someBearerToken")).thenReturn(List.of(account));
+    when(accountRepository.findByBearer("someBearerToken")).thenReturn(List.of(account()));
 
     List<Account> accounts = accountRepository.findByBearer("someBearerToken");
     assertNotNull(accounts);
     assertEquals(1, accounts.size());
-    assertEquals(account, accounts.get(0));
+    assertEquals(account(), accounts.get(0));
   }
 
   @Test
   void findById_returnsAccount() {
-    when(accountRepository.findById("1")).thenReturn(account);
+    when(accountRepository.findById("1")).thenReturn(account());
 
     Account foundAccount = accountRepository.findById("1");
     assertNotNull(foundAccount);
-    assertEquals(account, foundAccount);
+    assertEquals(account(), foundAccount);
   }
 
   @Test
   void findByUserId_returnsAccountList() {
-    when(accountRepository.findByUserId("user1")).thenReturn(List.of(account));
+    when(accountRepository.findByUserId("user1")).thenReturn(List.of(account()));
 
     List<Account> accounts = accountRepository.findByUserId("user1");
     assertNotNull(accounts);
     assertEquals(1, accounts.size());
-    assertEquals(account, accounts.get(0));
+    assertEquals(account(), accounts.get(0));
   }
 
   @Test
   void saveUpdateAccountIdentity_returnsUpdatedAccount() {
     UpdateAccountIdentity updateAccountIdentity = new UpdateAccountIdentity();
-    Account updatedAccount = account.toBuilder().name("newName").iban("newIBAN").build();
+    Account updatedAccount = account().toBuilder().name("newName").iban("newIBAN").build();
 
     when(accountRepository.save(updateAccountIdentity)).thenReturn(updatedAccount);
 
@@ -84,27 +86,28 @@ class AccountRepositoryTest {
 
   @Test
   void saveAccount_returnsSavedAccount() {
-    when(accountRepository.save(account)).thenReturn(account);
+    when(accountRepository.save(any(Account.class))).thenReturn(account());
 
-    Account savedAccount = accountRepository.save(account);
+    Account savedAccount = accountRepository.save(account());
     assertNotNull(savedAccount);
-    assertEquals(account, savedAccount);
+    assertEquals(account(), savedAccount);
   }
 
   @Test
   void saveAll_returnsSavedAccounts() {
-    List<Account> accountsToSave = List.of(account);
+    List<Account> accountsToSave = List.of(account());
+
     when(accountRepository.saveAll(accountsToSave)).thenReturn(accountsToSave);
 
     List<Account> savedAccounts = accountRepository.saveAll(accountsToSave);
     assertNotNull(savedAccounts);
     assertEquals(1, savedAccounts.size());
-    assertEquals(account, savedAccounts.get(0));
+    assertEquals(account(), savedAccounts.get(0));
   }
 
   @Test
   void removeAll_removesAccounts() {
-    List<Account> accountsToRemove = List.of(account);
+    List<Account> accountsToRemove = List.of(account());
     doNothing().when(accountRepository).removeAll(accountsToRemove);
 
     accountRepository.removeAll(accountsToRemove);
@@ -114,12 +117,13 @@ class AccountRepositoryTest {
 
   @Test
   void findAll_returnsAllAccounts() {
-    List<Account> accounts = List.of(account);
+    List<Account> accounts = List.of(account());
+
     when(accountRepository.findAll()).thenReturn(accounts);
 
     List<Account> allAccounts = accountRepository.findAll();
     assertNotNull(allAccounts);
     assertEquals(1, allAccounts.size());
-    assertEquals(account, allAccounts.get(0));
+    assertEquals(account(), allAccounts.get(0));
   }
 }

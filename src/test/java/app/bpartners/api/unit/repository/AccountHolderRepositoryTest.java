@@ -108,9 +108,9 @@ class AccountHolderRepositoryTest {
 
   @Test
   void findById_notFound() {
-    when(accountHolderRepository.findById("999")).thenReturn(null);
+    when(accountHolderRepository.findById(ACCOUNTHOLDER_ID)).thenReturn(null);
 
-    AccountHolder foundAccountHolder = accountHolderRepository.findById("999");
+    AccountHolder foundAccountHolder = accountHolderRepository.findById(ACCOUNTHOLDER_ID);
     assertNull(foundAccountHolder);
   }
 }

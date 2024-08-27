@@ -11,9 +11,6 @@ import app.bpartners.api.repository.implementation.AccountRepositoryImpl;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 
 class AccountRepositoryTest {
 
@@ -21,33 +18,33 @@ class AccountRepositoryTest {
 
   AccountRepositoryImpl accountRepositoryImpl;
 
-
   @BeforeEach
   void setUp() {
     accountRepository = mock(AccountRepository.class);
     accountRepositoryImpl = mock(AccountRepositoryImpl.class);
   }
 
-  Account account(){
-    return
-            Account.builder()
-                    .id("1")
-                    .externalId("ext-1")
-                    .idAccountHolder("holder1")
-                    .userId("user1")
-                    .name("AccountName")
-                    .iban("IBAN123")
-                    .bic("BIC123")
-                    .active(true)
-                    .status(AccountStatus.OPENED)
-                    .build();
+  Account account() {
+    return Account.builder()
+        .id("1")
+        .externalId("ext-1")
+        .idAccountHolder("holder1")
+        .userId("user1")
+        .name("AccountName")
+        .iban("IBAN123")
+        .bic("BIC123")
+        .active(true)
+        .status(AccountStatus.OPENED)
+        .build();
   }
 
   @Test
   void findByBearer_returnsAccountList() {
-    when(accountRepository.findByBearer("someBearerToken")).thenReturn(List.of(account()));
+    var someBearerToken = "someBearerToken";
 
-    List<Account> accounts = accountRepository.findByBearer("someBearerToken");
+    when(accountRepository.findByBearer(someBearerToken)).thenReturn(List.of(account()));
+
+    List<Account> accounts = accountRepository.findByBearer(someBearerToken);
     assertNotNull(accounts);
     assertEquals(1, accounts.size());
     assertEquals(account(), accounts.get(0));

@@ -28,15 +28,16 @@ class AccountHolderRepositoryTest {
     pageable = Pageable.unpaged();
   }
 
-  AccountHolder accountHolder(){
+  AccountHolder accountHolder() {
     return AccountHolder.builder()
-            .id(ACCOUNTHOLDER_ID)
-            .userId(USER1_ID)
-            .name("Account Holder Name")
-            .siren("123456789")
-            .verificationStatus(VerificationStatus.VERIFIED)
-            .build();
+        .id(ACCOUNTHOLDER_ID)
+        .userId(USER1_ID)
+        .name("Account Holder Name")
+        .siren("123456789")
+        .verificationStatus(VerificationStatus.VERIFIED)
+        .build();
   }
+
   @Test
   void findAll_returnsAccountHolderList() {
     List<AccountHolder> accountHolders = List.of(accountHolder());
@@ -67,7 +68,8 @@ class AccountHolderRepositoryTest {
   void findAllByAccountId_returnsAccountHolderList() {
     List<AccountHolder> accountHolders = List.of(accountHolder());
 
-    when(accountHolderRepository.findAllByAccountId(JOE_DOE_ACCOUNT_HOLDER_ID)).thenReturn(accountHolders);
+    when(accountHolderRepository.findAllByAccountId(JOE_DOE_ACCOUNT_HOLDER_ID))
+        .thenReturn(accountHolders);
 
     List<AccountHolder> foundAccountHolders =
         accountHolderRepository.findAllByAccountId(JOE_DOE_ACCOUNT_HOLDER_ID);

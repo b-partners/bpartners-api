@@ -45,7 +45,7 @@ public class AreaPictureMapLayerService {
     log.info("Available layers: {}", layers);
     if (layers.isEmpty()) {
       log.info("no layer found for {}", tile);
-      return List.of(getDefaultIGNLayer(), getDefaultIGNLayer());
+      return List.of(getDefaultIGNLayer());
     }
     return layers;
   }

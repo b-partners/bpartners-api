@@ -1,5 +1,6 @@
 package app.bpartners.api.unit.repository;
 
+import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_HOLDER_ID;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -66,10 +67,10 @@ class AccountHolderRepositoryTest {
   void findAllByAccountId_returnsAccountHolderList() {
     List<AccountHolder> accountHolders = List.of(accountHolder());
 
-    when(accountHolderRepository.findAllByAccountId("accountId")).thenReturn(accountHolders);
+    when(accountHolderRepository.findAllByAccountId(JOE_DOE_ACCOUNT_HOLDER_ID)).thenReturn(accountHolders);
 
     List<AccountHolder> foundAccountHolders =
-        accountHolderRepository.findAllByAccountId("accountId");
+        accountHolderRepository.findAllByAccountId(JOE_DOE_ACCOUNT_HOLDER_ID);
     assertNotNull(foundAccountHolders);
     assertEquals(1, foundAccountHolders.size());
     assertEquals(accountHolder(), foundAccountHolders.get(0));

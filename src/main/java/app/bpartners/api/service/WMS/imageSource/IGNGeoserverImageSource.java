@@ -46,7 +46,6 @@ public final class IGNGeoserverImageSource extends AbstractWmsImageSource {
           SERVER_EXCEPTION,
           "cannot download " + areaPicture + " from " + this.getClass().getTypeName());
     }
-
     return fileDownloaderImpl.getFromS3(areaPicture.getFilename(), getURI(areaPicture));
   }
 

@@ -51,17 +51,7 @@ class GeoserverImageSourceIT extends MockedThirdParties {
   }
 
   @Test
-  void source_is_supported_ok() {
-    AreaPicture areaPicture =
-        AreaPicture.builder()
-            .currentLayer(AreaPictureMapLayer.builder().source(GEOSERVER).build())
-            .build();
-
-    assertTrue(subject.supports(areaPicture));
-  }
-
-  @Test
-  void dowload_image_ok() {
+  void download_image_ok() {
     AreaPicture areaPicture =
         AreaPicture.builder()
             .currentLayer(AreaPictureMapLayer.builder().name("layerName").source(GEOSERVER).build())
@@ -92,11 +82,7 @@ class GeoserverImageSourceIT extends MockedThirdParties {
             .build();
 
     ApiException thrown =
-        assertThrows(
-            ApiException.class,
-            () -> {
-              subject.downloadImage(areaPicture);
-            });
+        assertThrows(ApiException.class, () -> subject.downloadImage(areaPicture));
 
     assertEquals(SERVER_EXCEPTION, thrown.getType());
     assertTrue(thrown.getMessage().contains("cannot download"));

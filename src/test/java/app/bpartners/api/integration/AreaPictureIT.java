@@ -29,6 +29,9 @@ import app.bpartners.api.endpoint.rest.model.Zoom;
 import app.bpartners.api.endpoint.rest.model.ZoomLevel;
 import app.bpartners.api.integration.conf.S3MockedThirdParties;
 import app.bpartners.api.integration.conf.utils.TestUtils;
+import app.bpartners.api.model.AccountHolder;
+import app.bpartners.api.repository.AccountHolderRepository;
+import app.bpartners.api.repository.AccountRepository;
 import app.bpartners.api.repository.ban.BanApi;
 import app.bpartners.api.repository.ban.model.GeoPosition;
 import app.bpartners.api.repository.ban.response.GeoJsonProperty;
@@ -84,6 +87,8 @@ public class AreaPictureIT extends S3MockedThirdParties {
   @Autowired AreaPictureMapLayerService mapLayerService;
   @MockBean BanApi banApiMock;
   @MockBean WmsImageSource wmsImageSourceMock;
+  @Autowired AccountRepository accountRepository;
+  @MockBean AccountHolderRepository accountHolderRepository;
 
   static AreaPictureMapLayer geoserverCharenteLayer() {
     return new AreaPictureMapLayer()
@@ -392,7 +397,8 @@ public class AreaPictureIT extends S3MockedThirdParties {
     AreaPictureApi api = new AreaPictureApi(joeDoeClient);
     String payloadId = randomUUID().toString();
     CrupdateAreaPictureDetails payload = crupdatableAreaPictureDetails();
-
+    when(accountHolderRepository.findById(any()))
+        .thenReturn(AccountHolder.builder().id("accountHolderId").build());
     var actual = api.crupdateAreaPictureDetails(JOE_DOE_ACCOUNT_ID, payloadId, payload);
 
     AreaPictureDetails expected = removeAvailableLayers(createFrom(payload, payloadId));

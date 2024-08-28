@@ -4,15 +4,19 @@ import static app.bpartners.api.endpoint.rest.model.AreaPictureImageSource.GEOSE
 import static app.bpartners.api.endpoint.rest.model.ZoomLevel.HOUSES_0;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import app.bpartners.api.endpoint.rest.controller.health.PingController;
+import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.integration.conf.MockedThirdParties;
+import app.bpartners.api.mail.Mailer;
 import app.bpartners.api.model.AreaPicture;
 import app.bpartners.api.model.AreaPictureMapLayer;
+import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.service.WMS.ArcgisZoom;
 import app.bpartners.api.service.WMS.Tile;
@@ -20,6 +24,8 @@ import java.io.File;
 import java.net.URI;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.io.FileSystemResource;
@@ -35,10 +41,11 @@ class WmsImageSourceFacadeIT extends MockedThirdParties {
           .build();
   @Autowired WmsImageSourceFacade subject;
   @MockBean RestTemplate restTemplateMock;
-  @MockBean OpenStreetMapImageSource openStreetMapImageSourceMock;
   @MockBean GeoserverImageSource geoserverImageSourceMock;
   @MockBean PingController pingControllerMock;
   @MockBean IGNGeoserverImageSource ignGeoserverImageSource;
+  @MockBean Mailer mailer;
+  @MockBean AuthProvider authProviderMock;
 
   private @NotNull File getMockJpegFile() {
     FileSystemResource mockJpegResource =
@@ -102,5 +109,26 @@ class WmsImageSourceFacadeIT extends MockedThirdParties {
     verify(geoserverImageSourceMock, times(1)).downloadImage(any());
     verify(ignGeoserverImageSource, times(1)).downloadImage(any());
     assertEquals(getMockJpegFile(), actual);
+  }
+
+  @Test
+  void send_email_when_image_not_found() {
+    when(geoserverImageSourceMock.downloadImage(any())).thenReturn(getBlankJpegFile());
+    when(ignGeoserverImageSource.downloadImage(any())).thenReturn(getBlankJpegFile());
+
+    try (MockedStatic<AuthProvider> mockedAuthProvider = Mockito.mockStatic(AuthProvider.class)) {
+      mockedAuthProvider
+          .when(AuthProvider::getAuthenticatedUser)
+          .thenReturn(
+              User.builder()
+                  .firstName("dummy")
+                  .lastName("dummy")
+                  .email("dummy@gmail.com")
+                  .id("userId")
+                  .build());
+
+      assertThrows(ApiException.class, () -> subject.downloadImage(GEOSERVER_LAYER_AREA_PICTURE));
+      verify(mailer, times(1)).accept(any());
+    }
   }
 }

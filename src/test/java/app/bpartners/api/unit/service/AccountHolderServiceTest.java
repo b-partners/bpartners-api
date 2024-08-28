@@ -4,8 +4,7 @@ import static app.bpartners.api.integration.conf.utils.TestUtils.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.CompanyInfo;
@@ -31,6 +30,15 @@ class AccountHolderServiceTest {
     subject =
         new AccountHolderService(
             repositoryMock, buisnessActivityServiceMock, annualRevenueTargetServiceMock);
+  }
+
+  @Test
+  void get_by_id_ok() {
+    var accountHolder = mock(AccountHolder.class);
+
+    when(repositoryMock.findById(any())).thenReturn(accountHolder);
+
+    assertEquals(accountHolder, subject.getById(JOE_DOE_ACCOUNT_HOLDER_ID));
   }
 
   @Test

@@ -142,7 +142,8 @@ public class AccountService {
     User user = userRepository.getById(userId);
     List<Account> accounts = getAccountsByUserId(userId);
     Account active = getActive(accounts);
-    List<BridgeItem> bridgeBankConnections = bridgeApi.findItemsByToken(AuthProvider.getBearer());
+    var token = AuthProvider.getAuthenticatedUser().getAccessToken();
+    List<BridgeItem> bridgeBankConnections = bridgeApi.findItemsByToken(token);
     if (bridgeBankConnections.isEmpty()) {
       throw new BadRequestException(
           "User(id="

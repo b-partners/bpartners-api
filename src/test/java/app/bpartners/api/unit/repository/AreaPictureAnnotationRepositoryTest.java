@@ -45,7 +45,7 @@ class AreaPictureAnnotationRepositoryTest {
   }
 
   @Test
-  void findAllBy_returnsAnnotationList() {
+  void findAllByReturnsAnnotationList() {
     List<AreaPictureAnnotation> annotations = List.of(areaPictureAnnotation);
     when(areaPictureAnnotationRepository.findAllBy(idUser, idAreaPicture, pageable))
         .thenReturn(annotations);
@@ -58,7 +58,7 @@ class AreaPictureAnnotationRepositoryTest {
   }
 
   @Test
-  void findBy_returnsAnnotation() {
+  void findByReturnsAnnotation() {
     when(areaPictureAnnotationRepository.findBy(idUser, idAreaPicture, annotationId))
         .thenReturn(Optional.of(areaPictureAnnotation));
 
@@ -69,7 +69,7 @@ class AreaPictureAnnotationRepositoryTest {
   }
 
   @Test
-  void findBy_notFound() {
+  void findByNotFound() {
     when(areaPictureAnnotationRepository.findBy(idUser, idAreaPicture, invalidId))
         .thenReturn(Optional.empty());
 
@@ -79,7 +79,7 @@ class AreaPictureAnnotationRepositoryTest {
   }
 
   @Test
-  void save_returnsSavedAnnotation() {
+  void saveReturnsSavedAnnotation() {
     when(areaPictureAnnotationRepository.save(areaPictureAnnotation))
         .thenReturn(areaPictureAnnotation);
 

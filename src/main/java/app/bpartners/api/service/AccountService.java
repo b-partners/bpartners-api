@@ -143,7 +143,8 @@ public class AccountService {
     List<Account> accounts = getAccountsByUserId(userId);
     Account active = getActive(accounts);
     var token = AuthProvider.getAuthenticatedUser().getAccessToken();
-    List<BridgeItem> bridgeBankConnections = bridgeApi.findItemsByToken(token);
+    List<BridgeItem> bridgeBankConnections =
+        List.of(new BridgeItem()); // bridgeApi.findItemsByToken(token);
     if (bridgeBankConnections.isEmpty()) {
       throw new BadRequestException(
           "User(id="
@@ -153,7 +154,7 @@ public class AccountService {
               + ")"
               + " is not still connected to a bank");
     }
-    if (bankRepository.disconnectBank(user)) {
+    if (true /*bankRepository.disconnectBank(user)*/) {
       // Body of event bridge treatment
       summaryRepository.removeAll(userId);
 

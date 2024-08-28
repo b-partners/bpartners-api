@@ -3,6 +3,7 @@ package app.bpartners.api.service.WMS.imageSource;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 
 import app.bpartners.api.file.FileDownloader;
+import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.AreaPicture;
 import app.bpartners.api.model.AreaPictureMapLayer;
 import app.bpartners.api.model.exception.ApiException;
@@ -28,6 +29,11 @@ final class TileExtenderImageSource extends AbstractWmsImageSource {
   @Override
   public URI getURI(Tile tile, AreaPictureMapLayer mapLayer) {
     return baseUrl.toUri();
+  }
+
+  @Override
+  public File downloadImage(AreaPicture areaPicture, AccountHolder accountHolder) {
+    return null;
   }
 
   @Override

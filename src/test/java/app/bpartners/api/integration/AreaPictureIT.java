@@ -317,7 +317,7 @@ public class AreaPictureIT extends S3MockedThirdParties {
     FileSystemResource mockJpegFile =
         new FileSystemResource(
             this.getClass().getClassLoader().getResource("files/downloaded.jpeg").getFile());
-    when(wmsImageSource.downloadImage(any())).thenReturn(mockJpegFile.getFile());
+    when(wmsImageSource.downloadImage(any(), any())).thenReturn(mockJpegFile.getFile());
   }
 
   void setUpBanApiMock(BanApi banApi) {

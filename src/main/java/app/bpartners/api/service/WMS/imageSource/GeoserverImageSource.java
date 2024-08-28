@@ -4,6 +4,7 @@ import static app.bpartners.api.endpoint.rest.model.AreaPictureImageSource.GEOSE
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 
 import app.bpartners.api.file.FileDownloader;
+import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.AreaPicture;
 import app.bpartners.api.model.AreaPictureMapLayer;
 import app.bpartners.api.model.exception.ApiException;
@@ -59,6 +60,11 @@ public final class GeoserverImageSource extends AbstractWmsImageSource {
             "bbox",
             String.format("%s, %s, %s, %s", minx, miny, maxx, maxy));
     return baseUrl.expand(uriVariables).toUri();
+  }
+
+  @Override
+  public File downloadImage(AreaPicture areaPicture, AccountHolder accountHolder) {
+    return null;
   }
 
   @Override

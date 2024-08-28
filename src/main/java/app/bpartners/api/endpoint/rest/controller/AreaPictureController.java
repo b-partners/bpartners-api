@@ -49,7 +49,7 @@ public class AreaPictureController {
     String userId = AuthProvider.getAuthenticatedUserId();
     var result =
         service.downloadFromExternalSourceAndSave(
-            mapper.toDomain(toCrupdate, areaPictureId, userId));
+            mapper.toDomain(toCrupdate, areaPictureId, userId), accountId);
     return mapper.toRest(result);
   }
 }

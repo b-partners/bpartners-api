@@ -47,7 +47,7 @@ class AccountRepositoryTest {
     List<Account> accounts = accountRepository.findByBearer(someBearerToken);
     assertNotNull(accounts);
     assertEquals(1, accounts.size());
-    assertEquals(account(), accounts.get(0));
+    assertEquals(account(), accounts.getFirst());
   }
 
   @Test
@@ -66,7 +66,7 @@ class AccountRepositoryTest {
     List<Account> accounts = accountRepository.findByUserId("user1");
     assertNotNull(accounts);
     assertEquals(1, accounts.size());
-    assertEquals(account(), accounts.get(0));
+    assertEquals(account(), accounts.getFirst());
   }
 
   @Test
@@ -99,7 +99,7 @@ class AccountRepositoryTest {
     List<Account> savedAccounts = accountRepository.saveAll(accountsToSave);
     assertNotNull(savedAccounts);
     assertEquals(1, savedAccounts.size());
-    assertEquals(account(), savedAccounts.get(0));
+    assertEquals(account(), savedAccounts.getFirst());
   }
 
   @Test
@@ -121,6 +121,6 @@ class AccountRepositoryTest {
     List<Account> allAccounts = accountRepository.findAll();
     assertNotNull(allAccounts);
     assertEquals(1, allAccounts.size());
-    assertEquals(account(), allAccounts.get(0));
+    assertEquals(account(), allAccounts.getFirst());
   }
 }

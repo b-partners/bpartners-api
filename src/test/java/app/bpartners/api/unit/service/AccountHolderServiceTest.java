@@ -4,8 +4,7 @@ import static app.bpartners.api.integration.conf.utils.TestUtils.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.CompanyInfo;
@@ -34,9 +33,16 @@ class AccountHolderServiceTest {
   }
 
   @Test
+  void get_by_id_ok() {
+    var accountHolder = mock(AccountHolder.class);
+    when(repositoryMock.findById(any())).thenReturn(accountHolder);
+
+    assertEquals(accountHolder, subject.getById(JOE_DOE_ACCOUNT_HOLDER_ID));
+  }
+
+  @Test
   void update_company_info_ok_with_company_info_null() {
     var accountHolder = new AccountHolder();
-
     when(repositoryMock.findById(any())).thenReturn(accountHolder);
     when(repositoryMock.save(any())).thenReturn(accountHolder);
 
@@ -69,7 +75,6 @@ class AccountHolderServiceTest {
             .townCode(92002)
             .vatNumber("FR12323456789")
             .build();
-
     when(repositoryMock.findById(any())).thenReturn(accountHolder);
     when(repositoryMock.save(any())).thenReturn(accountHolder);
 
@@ -79,7 +84,6 @@ class AccountHolderServiceTest {
   @Test
   void find_default_by_id_user_return_null() {
     var accountHolders = mock(List.class);
-
     when(repositoryMock.findAllByUserId(any())).thenReturn(accountHolders);
     when(accountHolders.isEmpty()).thenReturn(true);
 
@@ -91,7 +95,6 @@ class AccountHolderServiceTest {
     var accountHolders = mock(List.class);
     var defaultAccountHolder = mock(AccountHolder.class);
     var accountHoldersSize = 2;
-
     when(repositoryMock.findAllByUserId(any())).thenReturn(accountHolders);
     when(accountHolders.isEmpty()).thenReturn(false);
     when(accountHolders.get(anyInt())).thenReturn(defaultAccountHolder);

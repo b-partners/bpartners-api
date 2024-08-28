@@ -80,8 +80,9 @@ class IGNGeoserverImageSourceIT extends MockedThirdParties {
 
   @Test
   void download_image_when_source_is_not_supported_ok() {
+    var areaPicture = geoserverAreaPicture();
     ApiException thrown =
-        assertThrows(ApiException.class, () -> subject.downloadImage(geoserverAreaPicture()));
+        assertThrows(ApiException.class, () -> subject.downloadImage(areaPicture));
 
     assertEquals(SERVER_EXCEPTION, thrown.getType());
     assertTrue(thrown.getMessage().contains("cannot download"));

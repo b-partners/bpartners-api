@@ -38,7 +38,6 @@ class WmsImageSourceFacadeIT extends MockedThirdParties {
           .build();
   @Autowired WmsImageSourceFacade subject;
   @MockBean RestTemplate restTemplateMock;
-  @MockBean OpenStreetMapImageSource openStreetMapImageSourceMock;
   @MockBean GeoserverImageSource geoserverImageSourceMock;
   @MockBean PingController pingControllerMock;
   @MockBean IGNGeoserverImageSource ignGeoserverImageSource;
@@ -118,11 +117,10 @@ class WmsImageSourceFacadeIT extends MockedThirdParties {
   void send_email_when_image_not_found() {
     when(geoserverImageSourceMock.downloadImage(any())).thenReturn(getBlankJpegFile());
     when(ignGeoserverImageSource.downloadImage(any())).thenReturn(getBlankJpegFile());
+    var accountHolder = AccountHolder.builder().id("ahId").build();
     assertThrows(
         ApiException.class,
-        () ->
-            subject.downloadImage(
-                GEOSERVER_LAYER_AREA_PICTURE, AccountHolder.builder().id("ahId").build()));
+        () -> subject.downloadImage(GEOSERVER_LAYER_AREA_PICTURE, accountHolder));
 
     verify(mailer, times(1)).accept(any());
   }

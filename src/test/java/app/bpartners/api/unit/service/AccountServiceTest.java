@@ -6,10 +6,7 @@ import static app.bpartners.api.repository.implementation.BankRepositoryImpl.ITE
 import static app.bpartners.api.repository.implementation.BankRepositoryImpl.TRY_AGAIN;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.endpoint.event.model.DisconnectionInitiated;
@@ -18,11 +15,15 @@ import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.UpdateAccountIdentity;
 import app.bpartners.api.model.User;
+import app.bpartners.api.model.UserToken;
+import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.repository.*;
 import app.bpartners.api.repository.bridge.BridgeApi;
 import app.bpartners.api.repository.bridge.model.Item.BridgeItem;
 import app.bpartners.api.service.AccountService;
+import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -57,7 +58,48 @@ class AccountServiceTest {
   }
 
   @Test
-  void save_ok() {
+  void findAllActiveAccountsOk() {
+    var user1 = mock(User.class);
+    var user2 = mock(User.class);
+    var account1 = mock(Account.class);
+    var account2 = mock(Account.class);
+
+    when(user1.getDefaultAccount()).thenReturn(account1);
+    when(user2.getDefaultAccount()).thenReturn(account2);
+    when(userRepositoryMock.findAll()).thenReturn(List.of(user1, user2));
+
+    List<Account> activeAccounts = subject.findAllActiveAccounts();
+
+    assertEquals(2, activeAccounts.size());
+    assertTrue(activeAccounts.contains(account1));
+    assertTrue(activeAccounts.contains(account2));
+    verify(userRepositoryMock, times(1)).findAll();
+  }
+
+  @Test
+  void findAllActiveAccountsNoActiveAccounts() {
+    when(userRepositoryMock.findAll()).thenReturn(new ArrayList<>());
+
+    List<Account> activeAccounts = subject.findAllActiveAccounts();
+
+    assertTrue(activeAccounts.isEmpty());
+    verify(userRepositoryMock, times(1)).findAll();
+  }
+
+  @Test
+  void refreshBankConnectionOk() {
+    var userToken = mock(UserToken.class);
+    var expectedTime = Instant.now();
+
+    when(bankRepositoryMock.refreshBankConnection(any(UserToken.class))).thenReturn(expectedTime);
+
+    var actualTime = subject.refreshBankConnection(userToken);
+    assertEquals(expectedTime, actualTime);
+    verify(bankRepositoryMock, times(1)).refreshBankConnection(userToken);
+  }
+
+  @Test
+  void saveOk() {
     when(repositoryMock.save((Account) any())).thenReturn(joePersistedAccount());
 
     assertEquals(joePersistedAccount(), subject.save(joePersistedAccount()));
@@ -186,5 +228,26 @@ class AccountServiceTest {
 
     assertEquals(new DisconnectionInitiated(USER1_ID), eventValue);
     assertNull(actual);
+  }
+
+  @Test
+  void disconnectBankThrowsApiExceptionWhenDisconnectFails() {
+    var user = mock(User.class);
+    var accounts = mock(List.class);
+    var account = mock(Account.class);
+    var bridgeBankConnections = mock(List.class);
+    var bridgeItem = mock(BridgeItem.class);
+
+    when(userRepositoryMock.getById(any())).thenReturn(user);
+    when(repositoryMock.findByUserId(any())).thenReturn(accounts);
+    when(accounts.get(0)).thenReturn(account);
+    when(account.isEnabled()).thenReturn(true);
+    when(account.isActive()).thenReturn(true);
+    when(bridgeApiMock.findItemsByToken(any())).thenReturn(bridgeBankConnections);
+    when(bridgeBankConnections.isEmpty()).thenReturn(false);
+    when(bridgeBankConnections.get(0)).thenReturn(bridgeItem);
+    when(bankRepositoryMock.disconnectBank(any(User.class))).thenReturn(false);
+
+    assertThrows(ApiException.class, () -> subject.disconnectBank(USER1_ID));
   }
 }

@@ -495,7 +495,7 @@ public class TestUtils {
         .amount(50000)
         .type(INCOME)
         .status(TransactionStatus.PENDING)
-        .category(null)
+        .category(List.of())
         .paymentDatetime(Instant.parse("2022-08-26T06:33:50.595Z"))
         .supportingDocs(List.of());
   }

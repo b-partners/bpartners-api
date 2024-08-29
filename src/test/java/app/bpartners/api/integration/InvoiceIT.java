@@ -222,7 +222,6 @@ class InvoiceIT extends S3MockedThirdParties {
     actualConfirmed.setProducts(ignoreIdsOf(actualConfirmed.getProducts()));
     actualConfirmed.setPaymentRegulations(ignoreStatusDatetime(actualConfirmed));
     actualConfirmed.setCustomer(ignoreCustomerDatetime(actualConfirmed));
-    actualConfirmed.setPaymentRegulations(ignoreIdsAndDatetime(actualConfirmed));
     Invoice actualPaid =
         api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, actualConfirmed.getId(), paidInvoice());
     actualPaid.setProducts(ignoreIdsOf(actualPaid.getProducts()));

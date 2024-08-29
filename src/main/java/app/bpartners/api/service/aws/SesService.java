@@ -75,15 +75,26 @@ public class SesService {
     sendEmail(htmlBody, attachments, mimeMessage);
   }
 
-  private void sendEmail(String htmlBody, List<Attachment> attachments, MimeMessage mimeMessage)
-      throws MessagingException {
-    MimeBodyPart htmlPart = configureHtmlPart(htmlBody);
-    List<MimeBodyPart> attachmentsAsMimeBodyPart =
-        attachments.stream().map(this::toMimeBodyPart).toList();
+  public void sendEmail(
+          String recipient,
+          String concerned,
+          String subject,
+          String htmlBody)
+          throws IOException, MessagingException {
 
+    Session session = Session.getDefaultInstance(new Properties());
+    MimeMessage mimeMessage = configureMimeMessage(session, subject, recipient, concerned);
+    sendEmail(htmlBody, mimeMessage);
+  }
+
+  private void sendEmail(String htmlBody, MimeMessage mimeMessage) throws MessagingException {
+    MimeBodyPart htmlPart = configureHtmlPart(htmlBody);
     MimeMultipart mimeMultipart = new MimeMultipart("mixed");
     mimeMultipart.addBodyPart(htmlPart);
-    attachmentsAsMimeBodyPart.forEach(e -> addBodyPart(mimeMultipart, e));
+    setContent(mimeMessage, mimeMultipart);
+  }
+
+  private void setContent(MimeMessage mimeMessage, MimeMultipart mimeMultipart) throws MessagingException {
     mimeMessage.setContent(mimeMultipart);
 
     try {
@@ -94,14 +105,26 @@ public class SesService {
       byteBuffer.get(bytes);
 
       SendRawEmailRequest rawEmailRequest =
-          SendRawEmailRequest.builder()
-              .rawMessage(RawMessage.builder().data(SdkBytes.fromByteArray(bytes)).build())
-              .build();
+              SendRawEmailRequest.builder()
+                      .rawMessage(RawMessage.builder().data(SdkBytes.fromByteArray(bytes)).build())
+                      .build();
 
       client.sendRawEmail(rawEmailRequest);
     } catch (IOException | MessagingException | AwsServiceException | SdkClientException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  private void sendEmail(String htmlBody, List<Attachment> attachments, MimeMessage mimeMessage)
+      throws MessagingException {
+    MimeBodyPart htmlPart = configureHtmlPart(htmlBody);
+    List<MimeBodyPart> attachmentsAsMimeBodyPart =
+        attachments.stream().map(this::toMimeBodyPart).toList();
+
+    MimeMultipart mimeMultipart = new MimeMultipart("mixed");
+    mimeMultipart.addBodyPart(htmlPart);
+    attachmentsAsMimeBodyPart.forEach(e -> addBodyPart(mimeMultipart, e));
+    setContent(mimeMessage, mimeMultipart);
   }
 
   private MimeBodyPart toMimeBodyPart(Attachment attachment) {

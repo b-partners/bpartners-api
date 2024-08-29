@@ -25,7 +25,6 @@ import java.io.File;
 import java.net.URI;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockitoAnnotations;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -50,47 +49,39 @@ class IGNGeoserverImageSourceIT extends MockedThirdParties {
     return mockJpegResource.getFile();
   }
 
-  @Test
-  void source_is_supported_ok() {
-    AreaPicture areaPicture =
-        AreaPicture.builder()
-            .currentLayer(AreaPictureMapLayer.builder().source(GEOSERVER_IGN).build())
-            .build();
+  public static AreaPicture geoserverAreaPicture() {
+    return AreaPicture.builder()
+        .currentTile(Tile.builder().y(10).y(10).arcgisZoom(ArcgisZoom.from(HOUSES_0)).build())
+        .currentLayer(AreaPictureMapLayer.builder().source(GEOSERVER).build())
+        .zoomLevel(HOUSES_0)
+        .currentGeoPosition(new GeoPosition().latitude(12.34).longitude(56.78))
+        .build();
+  }
 
-    assertTrue(subject.supports(areaPicture));
+  public static AreaPicture ignAreaPicture() {
+    return AreaPicture.builder()
+        .currentLayer(AreaPictureMapLayer.builder().source(GEOSERVER_IGN).build())
+        .currentGeoPosition(new GeoPosition().latitude(12.34).longitude(56.78))
+        .zoomLevel(HOUSES_0)
+        .currentTile(Tile.builder().arcgisZoom(ArcgisZoom.HOUSES_0).x(1).y(1).build())
+        .build();
   }
 
   @Test
   void download_image_ok() {
-    AreaPicture areaPicture =
-        AreaPicture.builder()
-            .currentLayer(AreaPictureMapLayer.builder().source(GEOSERVER_IGN).build())
-            .currentGeoPosition(new GeoPosition().latitude(12.34).longitude(56.78))
-            .zoomLevel(HOUSES_0)
-            .currentTile(Tile.builder().arcgisZoom(ArcgisZoom.HOUSES_0).x(1).y(1).build())
-            .build();
-
     when(fileDownloader.getFromS3(any(), any())).thenReturn(getMockJpegFile());
-    File result = subject.downloadImage(areaPicture);
+
+    File result = subject.downloadImage(ignAreaPicture());
 
     assertNotNull(result);
     assertEquals("downloaded.jpeg", result.getName());
   }
 
   @Test
-  @Disabled("TODO: fail after merging prod to preprod")
-  void donwload_image_when_source_is_not_supported_ok() {
-    AreaPicture areaPicture =
-        AreaPicture.builder()
-            .currentLayer(AreaPictureMapLayer.builder().source(GEOSERVER).build())
-            .build();
-
+  void download_image_when_source_is_not_supported_ok() {
+    var areaPicture = geoserverAreaPicture();
     ApiException thrown =
-        assertThrows(
-            ApiException.class,
-            () -> {
-              subject.downloadImage(areaPicture);
-            });
+        assertThrows(ApiException.class, () -> subject.downloadImage(areaPicture));
 
     assertEquals(SERVER_EXCEPTION, thrown.getType());
     assertTrue(thrown.getMessage().contains("cannot download"));
@@ -98,15 +89,8 @@ class IGNGeoserverImageSourceIT extends MockedThirdParties {
 
   @Test
   void get_uri_ok() {
-    AreaPicture areaPicture =
-        AreaPicture.builder()
-            .currentLayer(AreaPictureMapLayer.builder().source(GEOSERVER).build())
-            .zoomLevel(HOUSES_0)
-            .currentGeoPosition(new GeoPosition().latitude(12.34).longitude(56.78))
-            .build();
-
     URI expectedUri = URI.create("http://localhost:8080/wms?zoom=20&lat=12.34&long=56.78");
-    URI actualUri = subject.getURI(areaPicture);
+    URI actualUri = subject.getURI(geoserverAreaPicture());
 
     assertEquals(expectedUri, actualUri);
   }

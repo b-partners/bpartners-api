@@ -7,7 +7,6 @@ import java.net.URI;
 
 abstract sealed class AbstractWmsImageSource implements WmsImageSource
     permits GeoserverImageSource,
-        OpenStreetMapImageSource,
         TileExtenderImageSource,
         IGNGeoserverImageSource,
         WmsImageSourceFacade {

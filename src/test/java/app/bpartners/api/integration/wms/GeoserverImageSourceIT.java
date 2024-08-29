@@ -26,13 +26,11 @@ import java.math.BigDecimal;
 import java.net.URI;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockitoAnnotations;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.io.FileSystemResource;
 
-@Disabled("TODO: fail after merging prod to preprod")
 class GeoserverImageSourceIT extends MockedThirdParties {
   @MockBean private FileDownloaderImpl fileDownloader;
   @MockBean private XYZToBoundingBox xyzToBoundingBox;
@@ -53,17 +51,7 @@ class GeoserverImageSourceIT extends MockedThirdParties {
   }
 
   @Test
-  void source_is_supported_ok() {
-    AreaPicture areaPicture =
-        AreaPicture.builder()
-            .currentLayer(AreaPictureMapLayer.builder().source(GEOSERVER).build())
-            .build();
-
-    assertTrue(subject.supports(areaPicture));
-  }
-
-  @Test
-  void dowload_image_ok() {
+  void download_image_ok() {
     AreaPicture areaPicture =
         AreaPicture.builder()
             .currentLayer(AreaPictureMapLayer.builder().name("layerName").source(GEOSERVER).build())
@@ -94,11 +82,7 @@ class GeoserverImageSourceIT extends MockedThirdParties {
             .build();
 
     ApiException thrown =
-        assertThrows(
-            ApiException.class,
-            () -> {
-              subject.downloadImage(areaPicture);
-            });
+        assertThrows(ApiException.class, () -> subject.downloadImage(areaPicture));
 
     assertEquals(SERVER_EXCEPTION, thrown.getType());
     assertTrue(thrown.getMessage().contains("cannot download"));

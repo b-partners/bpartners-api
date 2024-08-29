@@ -1,0 +1,40 @@
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .highlight {
+            font-weight: bold;
+            color: #333;
+        }
+        .label {
+            font-weight: bold;
+            color: #555;
+        }
+        .section {
+            margin-bottom: 15px;
+        }
+    </style>
+    <title>Area picture not found email</title>
+</head>
+<body>
+<div class="container">
+    <div class="section">
+        <span class="label">Adresse:</span> <span class="highlight" th:text="${areaPicture.address}">Address</span>
+    </div>
+    <div class="section">
+        <span class="label">Client:</span> <span class="highlight" th:text="${user.name}">User</span>
+    </div>
+    <div class="section">
+        <span class="label">Email du client:</span> <span class="highlight" th:text="${user.email}">Email</span>
+    </div>
+    <div class="section">
+        <span class="label">Client id:</span> <span class="highlight" th:text="${user.id}">ClientId</span>
+    </div>
+</div>
+</body>
+</html>

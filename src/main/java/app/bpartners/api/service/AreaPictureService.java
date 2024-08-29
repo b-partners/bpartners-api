@@ -7,6 +7,8 @@ import app.bpartners.api.model.AreaPicture;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.mapper.AreaPictureMapper;
+import app.bpartners.api.repository.AccountHolderRepository;
+import app.bpartners.api.repository.AccountRepository;
 import app.bpartners.api.repository.jpa.AreaPictureJpaRepository;
 import app.bpartners.api.service.WMS.AreaPictureMapLayerService;
 import app.bpartners.api.service.WMS.Tile;
@@ -28,6 +30,8 @@ public class AreaPictureService {
   private final WmsImageSource wmsImageSource;
   private final TileCreator tileCreator;
   private final AreaPictureMapLayerService mapLayerService;
+  private final AccountRepository accountRepository;
+  private final AccountHolderRepository accountHolderRepository;
 
   public List<AreaPicture> findAllBy(String userId, String address, String filename) {
     return jpaRepository
@@ -58,7 +62,7 @@ public class AreaPictureService {
   public AreaPicture downloadFromExternalSourceAndSave(AreaPicture areaPicture)
       throws RuntimeException {
     var refreshed = refreshAreaPictureTileAndLayers(areaPicture);
-    var downloadedFile = wmsImageSource.downloadImage(refreshed);
+    var downloadedFile = wmsImageSource.downloadImage(areaPicture);
     try {
       var downloadedFileAsBytes = Files.readAllBytes(downloadedFile.toPath());
       fileService.upload(

@@ -34,15 +34,18 @@ public class AreaPictureMapLayerService {
               var geometry = (Geometry) feature.getDefaultGeometry();
               return geometry.contains(areaPictureCoordinatesAsPoint);
             });
+    log.info("Tile features: {}", tile);
     if (features.isEmpty()) {
       return List.of(getDefaultIGNLayer());
     }
     List<String> matchingFeaturesName =
         features.stream().map(f -> (String) f.getAttribute("nom")).toList();
+    log.info("Features name: {}", matchingFeaturesName);
     var layers = getAllByDepartementNameInIgnoreCaseOrderByYearAndAddDefault(matchingFeaturesName);
+    log.info("Available layers: {}", layers);
     if (layers.isEmpty()) {
       log.info("no layer found for {}", tile);
-      return List.of(getDefaultIGNLayer(), getDefaultIGNLayer());
+      return List.of(getDefaultIGNLayer());
     }
     return layers;
   }

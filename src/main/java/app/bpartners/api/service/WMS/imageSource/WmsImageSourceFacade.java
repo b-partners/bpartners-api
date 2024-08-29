@@ -3,14 +3,17 @@ package app.bpartners.api.service.WMS.imageSource;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 
 import app.bpartners.api.file.FileDownloader;
+import app.bpartners.api.mail.Mailer;
 import app.bpartners.api.model.AreaPicture;
 import app.bpartners.api.model.AreaPictureMapLayer;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.service.WMS.AreaPictureMapLayerService;
 import app.bpartners.api.service.WMS.Tile;
 import app.bpartners.api.service.WMS.imageSource.exception.BlankImageException;
+import jakarta.mail.internet.AddressException;
 import java.io.File;
 import java.net.URI;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.Range;
 import org.springframework.context.annotation.Primary;
@@ -25,7 +28,7 @@ final class WmsImageSourceFacade extends AbstractWmsImageSource {
   private final AreaPictureMapLayerService areaPictureMapLayerService;
   private final TileExtenderImageSource tileExtenderImageSource;
   private final ImageValidator imageValidator;
-  private final String FLUX_IGN_GEOSERVER_ID = "9a4bd8b7-556b-49a1-bea0-c35e961dab64";
+  private final Mailer mailer;
 
   private WmsImageSourceFacade(
       FileDownloader fileDownloader,
@@ -33,13 +36,15 @@ final class WmsImageSourceFacade extends AbstractWmsImageSource {
       IGNGeoserverImageSource ignGeoserverImageSource,
       AreaPictureMapLayerService areaPictureMapLayerService,
       TileExtenderImageSource tileExtenderImageSource,
-      ImageValidator imageValidator) {
+      ImageValidator imageValidator,
+      Mailer mailer) {
     super(fileDownloader);
     this.geoserverImageSource = geoserverImageSource;
     this.ignGeoserverImageSource = ignGeoserverImageSource;
     this.areaPictureMapLayerService = areaPictureMapLayerService;
     this.tileExtenderImageSource = tileExtenderImageSource;
     this.imageValidator = imageValidator;
+    this.mailer = mailer;
   }
 
   @Override
@@ -48,6 +53,7 @@ final class WmsImageSourceFacade extends AbstractWmsImageSource {
   }
 
   @Override
+  @SneakyThrows
   public File downloadImage(AreaPicture areaPicture) {
     if (areaPicture.isExtended()) {
       return tileExtenderImageSource.downloadImage(areaPicture);
@@ -58,16 +64,14 @@ final class WmsImageSourceFacade extends AbstractWmsImageSource {
   private File cascadeRetryImageDownloadUntilValid(
       WmsImageSource wmsImageSource,
       AreaPicture areaPicture,
-      @Range(from = 0, to = 3) int iteration) {
+      @Range(from = 0, to = 2) int iteration)
+      throws AddressException {
     WmsImageSource alternativeSource;
     AreaPictureMapLayer alternativeAreaPictureMapLayer;
     if (iteration == 0) {
       alternativeSource = wmsImageSource;
       alternativeAreaPictureMapLayer = areaPicture.getCurrentLayer();
     } else if (iteration == 1) {
-      alternativeSource = geoserverImageSource;
-      alternativeAreaPictureMapLayer = areaPictureMapLayerService.getById(FLUX_IGN_GEOSERVER_ID);
-    } else if (iteration == 2) {
       alternativeSource = ignGeoserverImageSource;
       alternativeAreaPictureMapLayer = areaPictureMapLayerService.getDefaultIGNLayer();
     } else {
@@ -77,7 +81,7 @@ final class WmsImageSourceFacade extends AbstractWmsImageSource {
     try {
       areaPicture.setCurrentLayer(alternativeAreaPictureMapLayer);
       var image = alternativeSource.downloadImage(areaPicture);
-      //      imageValidator.accept(image);
+      imageValidator.accept(image);
       return image;
     } catch (ApiException | BlankImageException e) {
       log.info(

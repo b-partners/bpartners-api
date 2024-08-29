@@ -1,6 +1,7 @@
 package app.bpartners.api.service.WMS.imageSource;
 
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
+import static app.bpartners.api.service.WMS.TileCreator.getEmail;
 
 import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.file.FileDownloader;
@@ -96,30 +97,6 @@ final class WmsImageSourceFacade extends AbstractWmsImageSource {
           "could not resolve {} , due to exception {}", areaPicture.describe(), e.getMessage());
       return cascadeRetryImageDownloadUntilValid(alternativeSource, areaPicture, ++iteration);
     }
-  }
-
-  private static @NotNull Email getEmail(AreaPicture areaPicture) throws AddressException {
-    User user = AuthProvider.getAuthenticatedUser();
-    var toInternetAddress = new InternetAddress("hei.dinasoa@gmail.com");
-    return new Email(
-        toInternetAddress,
-        List.of(),
-        List.of(),
-        "Bpartners - Adresse introuvable",
-        "<p> Adresse: <strong>"
-            + areaPicture.getAddress()
-            + "</strong>"
-            + "Client: <strong>"
-            + user.getName()
-            + "</strong> "
-            + "Email du client: <strong>"
-            + user.getEmail()
-            + "</strong> "
-            + "Client id: <strong>"
-            + user.getId()
-            + "</strong> "
-            + "</p>",
-        List.of());
   }
 
   @Override

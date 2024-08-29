@@ -312,6 +312,16 @@ public class InvoiceTestUtils {
         .toPayAt(LocalDate.of(2022, 11, 13))
         .delayInPaymentAllowed(15)
         .paymentMethod(BANK_TRANSFER)
+        .paymentRegulations(
+            List.of(
+                new CreatePaymentRegulation()
+                    .amount(100)
+                    .percent(null)
+                    .maturityDate(LocalDate.now()),
+                new CreatePaymentRegulation()
+                    .amount(1000)
+                    .percent(null)
+                    .maturityDate(LocalDate.now())))
         .delayPenaltyPercent(20);
   }
 

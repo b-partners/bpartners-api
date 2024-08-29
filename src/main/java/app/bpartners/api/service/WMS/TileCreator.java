@@ -3,8 +3,6 @@ package app.bpartners.api.service.WMS;
 import static app.bpartners.api.repository.ban.BanApi.getHighestFeatGeoPosition;
 
 import app.bpartners.api.endpoint.rest.security.AuthProvider;
-import app.bpartners.api.mail.Email;
-import app.bpartners.api.mail.Mailer;
 import app.bpartners.api.model.AreaPicture;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.NotFoundException;
@@ -12,22 +10,23 @@ import app.bpartners.api.repository.ban.BanApi;
 import app.bpartners.api.repository.ban.model.GeoPosition;
 import app.bpartners.api.service.aws.SesService;
 import app.bpartners.api.service.utils.GeoUtils;
+import app.bpartners.api.service.utils.TemplateResolverUtils;
 import jakarta.mail.internet.AddressException;
-import jakarta.mail.internet.InternetAddress;
 import java.io.IOException;
 import java.util.List;
 import java.util.function.Function;
 import javax.mail.MessagingException;
 import lombok.AllArgsConstructor;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
+import org.thymeleaf.context.Context;
 
 @AllArgsConstructor
 @Component
 public class TileCreator implements Function<AreaPicture, Tile> {
   private final BanApi banApi;
-  private final Mailer mailer;
   private final SesService sesService;
+  private static final String AREA_PICTURE_NOT_FOUND_EMAIL_TEMPLATE =
+      "area_picture_not_found_email";
 
   @Override
   public Tile apply(AreaPicture areaPicture) {
@@ -47,33 +46,16 @@ public class TileCreator implements Function<AreaPicture, Tile> {
     return updateAreaPictureGeoCoordinates(areaPicture, geoPositions);
   }
 
-  public static @NotNull Email getEmail(AreaPicture areaPicture) throws AddressException {
-    User user = AuthProvider.getAuthenticatedUser();
-    var toInternetAddress = new InternetAddress("hei.dinasoa@gmail.com");
-    return new Email(
-        toInternetAddress,
-        List.of(),
-        List.of(),
-        "Bpartners - Adresse introuvable",
-        "<p> Adresse: <strong>"
-            + areaPicture.getAddress()
-            + "</strong>"
-            + "Client: <strong>"
-            + user.getName()
-            + "</strong> "
-            + "Email du client: <strong>"
-            + user.getEmail()
-            + "</strong> "
-            + "Client id: <strong>"
-            + user.getId()
-            + "</strong> "
-            + "</p>",
-        List.of());
+  public Context setAreaPictureContext(AreaPicture areaPicture, User user) {
+    Context context = new Context();
+    context.setVariable("user", user);
+    context.setVariable("areaPicture", areaPicture);
+    return context;
   }
 
   public AreaPicture updateAreaPictureGeoCoordinates(
       AreaPicture areaPicture, List<GeoPosition> geoPositions)
-      throws AddressException, MessagingException, IOException {
+      throws MessagingException, IOException {
     NotFoundException notFoundException =
         new NotFoundException(
             "Given address "
@@ -81,25 +63,15 @@ public class TileCreator implements Function<AreaPicture, Tile> {
                 + " is not found."
                 + " Check if it's not mal formed.");
     User user = AuthProvider.getAuthenticatedUser();
-
     var highestFeatGeoPosition = getHighestFeatGeoPosition(geoPositions);
     if (highestFeatGeoPosition.isEmpty()) {
-      String body =
-          "<p> Adresse: <strong>"
-              + areaPicture.getAddress()
-              + "</strong>"
-              + "Client: <strong>"
-              + user.getName()
-              + "</strong> "
-              + "Email du client: <strong>"
-              + user.getEmail()
-              + "</strong> "
-              + "Client id: <strong>"
-              + user.getId()
-              + "</strong> "
-              + "</p>";
+      Context context = setAreaPictureContext(areaPicture, user);
+      String emailBody =
+          TemplateResolverUtils.parseTemplateResolver(
+              AREA_PICTURE_NOT_FOUND_EMAIL_TEMPLATE, context);
+      assert user != null;
       sesService.sendEmail(
-          "hei.dinasoa@gmail.com", user.getEmail(), "Bpartners - Adresse introuvable", body);
+          "sofiane@bpartners.app", user.getEmail(), "Bpartners - Adresse introuvable", emailBody);
       throw notFoundException;
     }
     areaPicture.setCurrentGeoPosition(toDomain(highestFeatGeoPosition.get()));

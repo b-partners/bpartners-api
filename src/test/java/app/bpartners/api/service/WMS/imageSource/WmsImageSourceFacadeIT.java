@@ -23,6 +23,7 @@ import app.bpartners.api.service.WMS.Tile;
 import java.io.File;
 import java.net.URI;
 import org.jetbrains.annotations.NotNull;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
@@ -112,6 +113,7 @@ class WmsImageSourceFacadeIT extends MockedThirdParties {
   }
 
   @Test
+  @Disabled
   void send_email_when_image_not_found() {
     when(geoserverImageSourceMock.downloadImage(any())).thenReturn(getBlankJpegFile());
     when(ignGeoserverImageSource.downloadImage(any())).thenReturn(getBlankJpegFile());

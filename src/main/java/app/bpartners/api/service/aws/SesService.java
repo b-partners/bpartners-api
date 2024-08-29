@@ -75,12 +75,8 @@ public class SesService {
     sendEmail(htmlBody, attachments, mimeMessage);
   }
 
-  public void sendEmail(
-          String recipient,
-          String concerned,
-          String subject,
-          String htmlBody)
-          throws IOException, MessagingException {
+  public void sendEmail(String recipient, String concerned, String subject, String htmlBody)
+      throws IOException, MessagingException {
 
     Session session = Session.getDefaultInstance(new Properties());
     MimeMessage mimeMessage = configureMimeMessage(session, subject, recipient, concerned);
@@ -94,7 +90,8 @@ public class SesService {
     setContent(mimeMessage, mimeMultipart);
   }
 
-  private void setContent(MimeMessage mimeMessage, MimeMultipart mimeMultipart) throws MessagingException {
+  private void setContent(MimeMessage mimeMessage, MimeMultipart mimeMultipart)
+      throws MessagingException {
     mimeMessage.setContent(mimeMultipart);
 
     try {
@@ -105,9 +102,9 @@ public class SesService {
       byteBuffer.get(bytes);
 
       SendRawEmailRequest rawEmailRequest =
-              SendRawEmailRequest.builder()
-                      .rawMessage(RawMessage.builder().data(SdkBytes.fromByteArray(bytes)).build())
-                      .build();
+          SendRawEmailRequest.builder()
+              .rawMessage(RawMessage.builder().data(SdkBytes.fromByteArray(bytes)).build())
+              .build();
 
       client.sendRawEmail(rawEmailRequest);
     } catch (IOException | MessagingException | AwsServiceException | SdkClientException e) {

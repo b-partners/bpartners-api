@@ -193,7 +193,7 @@ public class BankRepositoryImpl implements BankRepository {
   private BridgeItem getDefaultItem(Account account) {
     // TODO: item should be retrieved from HAccount not from Bridge
     List<BridgeItem> items = bridgeRepository.getBridgeItems();
-    BridgeItem defaultItem = items.get(0);
+    BridgeItem defaultItem = items.getFirst();
     if (items.size() > 1) {
       log.warn(
           "[Bridge] Multiple items ("

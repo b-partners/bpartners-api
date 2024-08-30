@@ -41,7 +41,8 @@ public class BridgeBankRepositoryImpl implements BridgeBankRepository {
 
   @Override
   public List<BridgeItem> getBridgeItems() {
-    return bridgeApi.findItemsByToken(AuthProvider.getBearer());
+    var token = AuthProvider.getAuthenticatedUser().getAccessToken();
+    return bridgeApi.findItemsByToken(token);
   }
 
   @Override
@@ -56,7 +57,8 @@ public class BridgeBankRepositoryImpl implements BridgeBankRepository {
 
   @Override
   public BridgeConnectItem editItem(Long id) {
-    return bridgeApi.editItem(AuthProvider.getBearer(), id);
+    var token = AuthProvider.getAuthenticatedUser().getAccessToken();
+    return bridgeApi.editItem(token, id);
   }
 
   @Override

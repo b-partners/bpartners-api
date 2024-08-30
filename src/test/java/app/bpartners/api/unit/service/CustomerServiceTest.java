@@ -1,5 +1,6 @@
 package app.bpartners.api.unit.service;
 
+import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ID;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
@@ -41,11 +42,16 @@ class CustomerServiceTest {
             banApiMock);
   }
 
+  Customer.CustomerBuilder customerBuilder() {
+    return Customer.builder().id(JOE_DOE_ID);
+  }
+
   @Test
   void testUpdateCustomersLocationAddressTooShort() {
-    Customer customer = Customer.builder().id("1").address("12").build();
-    List<Customer> customers = Collections.singletonList(customer);
+    var customer = customerBuilder().address("12").build();
+    var customers = mock(List.class);
 
+    when(customers.get(anyInt())).thenReturn(customer);
     when(repositoryMock.findWhereLatitudeOrLongitudeIsNull()).thenReturn(customers);
 
     subject.updateCustomersLocation();
@@ -54,9 +60,10 @@ class CustomerServiceTest {
 
   @Test
   void testUpdateCustomersLocationAddressTooLong() {
-    Customer customer = Customer.builder().id("1").address("A".repeat(201)).build();
-    List<Customer> customers = Collections.singletonList(customer);
+    var customer = customerBuilder().address("A".repeat(201)).build();
+    var customers = mock(List.class);
 
+    when(customers.get(anyInt())).thenReturn(customer);
     when(repositoryMock.findWhereLatitudeOrLongitudeIsNull()).thenReturn(customers);
 
     subject.updateCustomersLocation();
@@ -65,9 +72,10 @@ class CustomerServiceTest {
 
   @Test
   void testUpdateCustomersLocationAddressNotFound() {
-    Customer customer = Customer.builder().id("1").address("123 Street").build();
-    List<Customer> customers = Collections.singletonList(customer);
+    var customer = customerBuilder().address("123 Street").build();
+    var customers = mock(List.class);
 
+    when(customers.get(anyInt())).thenReturn(customer);
     when(repositoryMock.findWhereLatitudeOrLongitudeIsNull()).thenReturn(customers);
     when(banApiMock.search("123 Street")).thenReturn(null);
 
@@ -77,11 +85,12 @@ class CustomerServiceTest {
 
   @Test
   void testUpdateCustomersLocationExceptionHandling() {
-    Customer customer = Customer.builder().id("1").address("123 Street").build();
-    List<Customer> customers = Collections.singletonList(customer);
+    var customer = customerBuilder().address("123 Street").build();
+    var customers = mock(List.class);
 
+    when(customers.get(anyInt())).thenReturn(customer);
     when(repositoryMock.findWhereLatitudeOrLongitudeIsNull()).thenReturn(customers);
-    when(banApiMock.search("123 Street")).thenThrow(new BadRequestException("Bad Request"));
+    when(banApiMock.search(any())).thenThrow(new BadRequestException("Bad Request"));
 
     subject.updateCustomersLocation();
     verify(repositoryMock, never()).save(any(Customer.class));
@@ -90,8 +99,8 @@ class CustomerServiceTest {
   @Test
   void testUpdateCustomersLocationSuccessfulUpdate() {
     var geoPosition = mock(GeoPosition.class);
-    GeoUtils.Coordinate coordinates = mock(GeoUtils.Coordinate.class);
-    Customer customer = mock(Customer.class);
+    var coordinates = mock(GeoUtils.Coordinate.class);
+    var customer = mock(Customer.class);
 
     when(customer.getId()).thenReturn("1");
     when(customer.getFullAddress()).thenReturn("123 Main St, Springfield");
@@ -109,7 +118,7 @@ class CustomerServiceTest {
 
   @Test
   void testUpdateCustomersLocationInvalidAddress() {
-    Customer customer = mock(Customer.class);
+    var customer = mock(Customer.class);
 
     when(customer.getId()).thenReturn("1");
     when(customer.getFullAddress()).thenReturn("12");

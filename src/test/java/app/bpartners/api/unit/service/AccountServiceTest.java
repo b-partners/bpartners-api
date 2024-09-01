@@ -9,6 +9,8 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import app.bpartners.api.endpoint.event.EventProducer;
+import app.bpartners.api.endpoint.event.model.DisconnectionInitiated;
 import app.bpartners.api.endpoint.rest.model.AccountStatus;
 import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
 import app.bpartners.api.model.Account;
@@ -31,6 +33,7 @@ class AccountServiceTest {
   TransactionsSummaryRepository summaryRepositoryMock;
   DbTransactionRepository transactionRepositoryMock;
   BridgeApi bridgeApiMock;
+  EventProducer<DisconnectionInitiated> eventProducerMock;
 
   @BeforeEach
   void setUp() {
@@ -40,14 +43,14 @@ class AccountServiceTest {
     transactionRepositoryMock = mock(DbTransactionRepository.class);
     repositoryMock = mock(AccountRepository.class);
     bridgeApiMock = mock(BridgeApi.class);
+    eventProducerMock = mock(EventProducer.class);
     subject =
         new AccountService(
             repositoryMock,
             bankRepositoryMock,
             userRepositoryMock,
-            summaryRepositoryMock,
-            transactionRepositoryMock,
-            bridgeApiMock);
+            bridgeApiMock,
+            eventProducerMock);
   }
 
   @Test

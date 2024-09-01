@@ -6,6 +6,8 @@ import static app.bpartners.api.repository.implementation.BankRepositoryImpl.TRY
 import static app.bpartners.api.service.utils.AccountUtils.describeAccountList;
 import static java.util.UUID.randomUUID;
 
+import app.bpartners.api.endpoint.event.EventProducer;
+import app.bpartners.api.endpoint.event.model.DisconnectionInitiated;
 import app.bpartners.api.endpoint.rest.model.BankConnectionRedirection;
 import app.bpartners.api.endpoint.rest.model.EnableStatus;
 import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
@@ -41,9 +43,8 @@ public class AccountService {
   private final AccountRepository repository;
   private final BankRepository bankRepository;
   private final UserRepository userRepository;
-  private final TransactionsSummaryRepository summaryRepository;
-  private final DbTransactionRepository transactionRepository;
   private final BridgeApi bridgeApi;
+  private final EventProducer<DisconnectionInitiated> eventProducer;
 
   public Account getActive(List<Account> accounts) {
     return accounts.stream()
@@ -136,14 +137,10 @@ public class AccountService {
         .redirectionStatusUrls(urls);
   }
 
-  // TODO: set into an event (bridge)
   @Transactional
   public Account disconnectBank(String userId) {
     User user = userRepository.getById(userId);
-    List<Account> accounts = getAccountsByUserId(userId);
-    Account active = getActive(accounts);
-    var token = AuthProvider.getAuthenticatedUser().getAccessToken();
-    List<BridgeItem> bridgeBankConnections = bridgeApi.findItemsByToken(token);
+    List<BridgeItem> bridgeBankConnections = bridgeApi.findItemsByToken(user.getAccessToken());
     if (bridgeBankConnections.isEmpty()) {
       throw new BadRequestException(
           "User(id="
@@ -154,45 +151,9 @@ public class AccountService {
               + " is not still connected to a bank");
     }
     if (bankRepository.disconnectBank(user)) {
-      // Body of event bridge treatment
-      summaryRepository.removeAll(userId);
-
-      // Disable transactions
-      List<Transaction> allTransactions = new ArrayList<>();
-      for (Account account : accounts) {
-        List<Transaction> transactions = transactionRepository.findByAccountId(account.getId());
-        allTransactions.addAll(transactions);
-      }
-      allTransactions.forEach(transaction -> transaction.setEnableStatus(EnableStatus.DISABLED));
-      transactionRepository.saveAll(allTransactions);
-
-      Account defaultAccount =
-          user.getAccounts().stream()
-              .filter(
-                  account ->
-                      account.getExternalId() == null && account.getName().contains(user.getName()))
-              .findAny()
-              .orElse(user.getDefaultAccount());
-
-      List<Account> toDisableAccounts = new ArrayList<>(accounts);
-      toDisableAccounts.remove(defaultAccount);
-      repository.saveAll(
-          toDisableAccounts.stream()
-              .peek(account -> account.setEnableStatus(EnableStatus.DISABLED))
-              .toList());
-
-      Account newDefaultAccount =
-          defaultAccount == null
-              ? resetDefaultAccount(user, active)
-              : defaultAccount.toBuilder().enableStatus(EnableStatus.ENABLED).build();
-      // repository.save(resetDefaultAccount(user, active));
-
-      userRepository.save(resetDefaultUser(user, newDefaultAccount));
-
-      // End of treatment
-      return repository.save(newDefaultAccount);
+      eventProducer.accept(List.of(new DisconnectionInitiated(userId)));
     }
-    throw new ApiException(SERVER_EXCEPTION, active.describeInfos() + " was not disconnected");
+    return user.getDefaultAccount();
   }
 
   @Transactional
@@ -208,7 +169,7 @@ public class AccountService {
     return activeAccounts;
   }
 
-  private Account resetDefaultAccount(User user, Account defaultAccount) {
+  public static Account resetDefaultAccount(User user, Account defaultAccount) {
     return defaultAccount.toBuilder()
         .id(String.valueOf(randomUUID()))
         .name(user.getName())
@@ -229,7 +190,7 @@ public class AccountService {
     repository.save(defaultAccount);
   }
 
-  private User resetDefaultUser(User user, Account account) {
+  public static User resetDefaultUser(User user, Account account) {
     return user.toBuilder()
         .preferredAccountId(account.getId())
         .bankConnectionId(null)
@@ -242,5 +203,9 @@ public class AccountService {
   @Transactional
   public Instant refreshBankConnection(UserToken userToken) {
     return bankRepository.refreshBankConnection(userToken);
+  }
+
+  public List<Account> saveAll(List<Account> accounts) {
+    return repository.saveAll(accounts);
   }
 }

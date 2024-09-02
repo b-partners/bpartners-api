@@ -30,7 +30,7 @@ public class AreaPictureAnnotationController {
       @RequestParam(defaultValue = "1", required = false) PageFromOne page,
       @RequestParam(defaultValue = "10", required = false) BoundedPageSize pageSize) {
     var authenticatedUserId = AuthProvider.getAuthenticatedUserId();
-    return service.findAllBy(authenticatedUserId, areaPictureId, page, pageSize).stream()
+    return service.findAllCompleted(authenticatedUserId, areaPictureId, page, pageSize).stream()
         .map(mapper::toRest)
         .collect(toUnmodifiableList());
   }
@@ -48,5 +48,17 @@ public class AreaPictureAnnotationController {
     var authenticatedUserId = AuthProvider.getAuthenticatedUserId();
     return mapper.toRest(
         service.save(mapper.toDomain(annotationId, authenticatedUserId, toCreate)));
+  }
+
+  @GetMapping("/accounts/{aId}/areaPictures/{areaPictureId}/annotations/drafts")
+  public List<AreaPictureAnnotation> getDraftAreaPictureAnnotations(
+          @PathVariable String aId,
+          @PathVariable String areaPictureId,
+          @RequestParam(defaultValue = "1", required = false) PageFromOne page,
+          @RequestParam(defaultValue = "10", required = false) BoundedPageSize pageSize) {
+    var authenticatedUserId = AuthProvider.getAuthenticatedUserId();
+    return service.findAllDraft(authenticatedUserId, areaPictureId, page, pageSize).stream()
+            .map(mapper::toRest)
+            .collect(toUnmodifiableList());
   }
 }

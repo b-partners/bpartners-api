@@ -24,10 +24,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4.1.6
-      - uses: hei-school/aws-credentials-setter@v1.0.3
-        with:
-          secrets: ${{ toJSON(secrets) }}
-          region: ${{ env.AWS_REGION }}
 
       - uses: actions/setup-java@v4.2.1
         with:

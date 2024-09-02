@@ -37,6 +37,7 @@ public class AreaPictureAnnotationIT extends MockedThirdParties {
   static AreaPictureAnnotation createAreaPictureAnnotation(String payloadId, String areaPictureId) {
     return new AreaPictureAnnotation()
         .id(payloadId)
+        .isDraft(false)
         .idAreaPicture(areaPictureId)
         .creationDatetime(Instant.parse("2024-04-17T01:02:00.00Z"))
         .annotations(List.of(areaPictureAnnotationInstance(payloadId, areaPictureId)));
@@ -49,6 +50,7 @@ public class AreaPictureAnnotationIT extends MockedThirdParties {
   static AreaPictureAnnotation areaPictureAnnotation1() {
     return new AreaPictureAnnotation()
         .id(AREA_PICTURE_ANNOTATION_1_ID)
+        .isDraft(false)
         .idAreaPicture(AREA_PICTURE_1_ID)
         .creationDatetime(Instant.parse("2022-01-08T01:00:00Z"))
         .annotations(List.of(areaPictureAnnotationInstance1(), areaPictureAnnotationInstance2()));
@@ -57,6 +59,7 @@ public class AreaPictureAnnotationIT extends MockedThirdParties {
   static AreaPictureAnnotation areaPictureAnnotation2() {
     return new AreaPictureAnnotation()
         .id(AREA_PICTURE_ANNOTATION_2_ID)
+        .isDraft(false)
         .idAreaPicture(AREA_PICTURE_1_ID)
         .creationDatetime(Instant.parse("2022-01-08T01:02:00.00Z"))
         .annotations(List.of());

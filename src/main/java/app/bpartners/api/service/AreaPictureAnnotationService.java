@@ -20,11 +20,12 @@ public class AreaPictureAnnotationService {
     return repository.save(areaPictureAnnotation);
   }
 
-  public List<AreaPictureAnnotation> findAllBy(
-      String idUser, String idAreaPicture, PageFromOne page, BoundedPageSize pageSize) {
+  private List<AreaPictureAnnotation> findAllBy(
+      String idUser, String idAreaPicture, Boolean isDraft, PageFromOne page, BoundedPageSize pageSize) {
     return repository.findAllBy(
         idUser,
         idAreaPicture,
+        isDraft,
         PageRequest.of(
             page.getValue() - 1,
             pageSize.getValue(),
@@ -35,5 +36,15 @@ public class AreaPictureAnnotationService {
     return repository
         .findBy(idUser, idAreaPicture, id)
         .orElseThrow(() -> new NotFoundException("AreaPictureAnnotation.Id = " + id + "not found"));
+  }
+
+  public List<AreaPictureAnnotation> findAllCompleted(String idUser, String idAreaPicture, PageFromOne page, BoundedPageSize pageSize) {
+    final var isDraft = false;
+    return findAllBy(idUser, idAreaPicture, isDraft, page, pageSize);
+  }
+
+  public List<AreaPictureAnnotation> findAllDraft(String idUser, String idAreaPicture, PageFromOne page, BoundedPageSize pageSize) {
+    final var isDraft = true;
+    return findAllBy(idUser, idAreaPicture, isDraft, page, pageSize);
   }
 }

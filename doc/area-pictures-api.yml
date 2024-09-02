@@ -256,6 +256,50 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
+  draftAreaPictureAnnotationListOperations:
+    get:
+      tags:
+        - AreaPicture
+      summary: get area picture annotations
+      operationId: getAreaPictureAnnotations
+      parameters:
+        - in: path
+          name: aId
+          schema:
+            type: string
+          required: true
+        - in: path
+          name: areaPictureId
+          schema:
+            type: string
+          required: true
+        - in: query
+          name: page
+          schema:
+            $ref: './api.yml#/components/schemas/Page'
+        - in: query
+          name: pageSize
+          schema:
+            $ref: './api.yml#/components/schemas/PageSize'
+      responses:
+        200:
+          description: annotations made on the area picture, ordered by creation date-time
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AreaPictureAnnotation"
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
 components:
   schemas:
     Zoom:
@@ -488,6 +532,8 @@ components:
           description: ignored in requestBody for creation
           type: string
           format: date-time
+        isDraft:
+          type: boolean
         annotations:
           type: array
           items:

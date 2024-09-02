@@ -146,6 +146,8 @@ paths:
     $ref: './area-pictures-api.yml#/operations/areaPictureAnnotationListOperations'
   /accounts/{aId}/areaPictures/{areaPictureId}/annotations/{annotationId}:
     $ref: './area-pictures-api.yml#/operations/areaPictureAnnotationSingleOperation'
+  /accounts/{aId}/areaPictures/{areaPictureId}/annotations/drafts:
+    $ref: './area-pictures-api.yml#/operations/draftAreaPictureAnnotationListOperations'
 
 
   #############################################

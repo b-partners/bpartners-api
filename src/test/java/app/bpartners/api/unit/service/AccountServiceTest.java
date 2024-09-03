@@ -7,6 +7,8 @@ import static app.bpartners.api.repository.implementation.BankRepositoryImpl.TRY
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import app.bpartners.api.endpoint.event.EventProducer;
@@ -20,10 +22,12 @@ import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.repository.*;
 import app.bpartners.api.repository.bridge.BridgeApi;
+import app.bpartners.api.repository.bridge.model.Item.BridgeItem;
 import app.bpartners.api.service.AccountService;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 class AccountServiceTest {
   AccountService subject;
@@ -166,25 +170,26 @@ class AccountServiceTest {
     assertEquals(urls, actual.getRedirectionStatusUrls());
   }
 
+  User user(){
+    return User.builder()
+        .id(USER1_ID)
+        .accessToken("dummy")
+        .accounts(List.of())
+        .build();
+  }
+
   @Test
-  void disconnect_bank_not_implemented_exception() {
-    var user = mock(User.class);
-    var accounts = mock(List.class);
-    var account = mock(Account.class);
-    var bridgeBankConnections = mock(List.class);
+  void disconnect_bank_ok() {
+    when(userRepositoryMock.getById(any())).thenReturn(user());
+    when(bridgeApiMock.findItemsByToken(any())).thenReturn(List.of(BridgeItem.builder().build()));
+    when(bankRepositoryMock.disconnectBank(user())).thenReturn(true);
+    var eventCaptor = ArgumentCaptor.forClass(List.class);
 
-    when(userRepositoryMock.getById(any())).thenReturn(user);
-    when(repositoryMock.findByUserId(any())).thenReturn(accounts);
-    when(accounts.get(anyInt())).thenReturn(account);
-    when(account.isEnabled()).thenReturn(true);
-    when(account.isActive()).thenReturn(true);
-    when(bridgeApiMock.findItemsByToken(any())).thenReturn(bridgeBankConnections);
-    when(bridgeBankConnections.isEmpty()).thenReturn(true);
+    var actual = subject.disconnectBank(USER1_ID);
+    verify(eventProducerMock, times(1)).accept(eventCaptor.capture());
+    var eventValue = eventCaptor.getValue().getFirst();
 
-    assertThrows(
-        NotImplementedException.class,
-        () -> {
-          subject.disconnectBank(USER1_ID);
-        });
+    assertEquals(new DisconnectionInitiated(USER1_ID), eventValue);
+    assertNull(actual);
   }
 }

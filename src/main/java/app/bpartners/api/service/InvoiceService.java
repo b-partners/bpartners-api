@@ -296,30 +296,10 @@ public class InvoiceService {
   }
 
   private void handleMultipleRegType(Invoice invoice, Invoice actual) {
-    var actualAmount = getPaymentsAmount(actual);
-    var newAmount = getPaymentsAmount(invoice);
-    var actualPercentValue = getPaymentPercent(actual);
-    var newPercentValue = getPaymentPercent(invoice);
-    if (actualAmount != newAmount && actualPercentValue != newPercentValue) {
-      List<CreatePaymentRegulation> paymentRegWithUrl = getPaymentRegWithUrl(invoice);
-      actual.setPaymentRegulations(paymentRegWithUrl);
-      actual.setPaymentUrl(null);
-    }
-  }
-
-  private double getPaymentsAmount(Invoice invoice) {
-    return invoice.getSortedMultiplePayments().stream()
-        .map(CreatePaymentRegulation::getPaymentRequest)
-        .map(PaymentRequest::getAmount)
-        .map(Fraction::getApproximatedValue)
-        .reduce(0.0, Double::sum);
-  }
-
-  private double getPaymentPercent(Invoice invoice) {
-    return invoice.getSortedMultiplePayments().stream()
-        .map(CreatePaymentRegulation::getPercent)
-        .map(Fraction::getApproximatedValue)
-        .reduce(0.0, Double::sum);
+    // TODO: check amount changes before creating new payments to optimize perf
+    List<CreatePaymentRegulation> paymentRegWithUrl = getPaymentRegWithUrl(invoice);
+    actual.setPaymentRegulations(paymentRegWithUrl);
+    actual.setPaymentUrl(null);
   }
 
   private List<CreatePaymentRegulation> getPaymentRegWithUrl(Invoice actual) {

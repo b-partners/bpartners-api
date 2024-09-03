@@ -1,6 +1,6 @@
 package app.bpartners.api.model;
 
-import static app.bpartners.api.service.utils.FileUtils.base64Image;
+import static app.bpartners.api.file.FileWriter.base64Image;
 import static org.apfloat.Apcomplex.ZERO;
 
 import app.bpartners.api.service.utils.QrCodeUtils;

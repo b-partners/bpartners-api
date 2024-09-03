@@ -33,6 +33,7 @@ import app.bpartners.api.model.mapper.PaymentRequestMapper;
 import app.bpartners.api.repository.InvoiceRepository;
 import app.bpartners.api.repository.PaymentRequestRepository;
 import app.bpartners.api.repository.implementation.InvoiceRepositoryImpl;
+import app.bpartners.api.service.invoice.InvoicePDFProcessor;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -59,6 +60,7 @@ public class InvoiceService {
   private final PaymentInitiationService pis;
   private final PaymentRequestMapper requestMapper;
   private final PaymentRequestRepository paymentRepository;
+  private final InvoicePDFProcessor invoicePDFProcessor;
 
   private static List<CreatePaymentRegulation> initPaymentReg(Invoice actual) {
     List<CreatePaymentRegulation> paymentReg = actual.getPaymentRegulations();
@@ -123,7 +125,7 @@ public class InvoiceService {
       Invoice paidInvoice = invoice.toBuilder().status(PAID).paymentMethod(MULTIPLE).build();
       return crupdateInvoice(paidInvoice);
     }
-    repositoryImpl.processAsPdf(invoice);
+    invoicePDFProcessor.apply(invoice);
     return invoice;
   }
 

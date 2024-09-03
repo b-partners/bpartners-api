@@ -14,9 +14,9 @@ import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.model.PaymentRequest;
 import app.bpartners.api.model.User;
 import app.bpartners.api.repository.PaymentRequestRepository;
-import app.bpartners.api.repository.implementation.InvoiceRepositoryImpl;
 import app.bpartners.api.repository.jpa.InvoiceJpaRepository;
 import app.bpartners.api.repository.jpa.model.HInvoice;
+import app.bpartners.api.service.invoice.InvoicePDFProcessor;
 import java.time.Instant;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -34,8 +34,8 @@ public class InvoiceRefreshService {
   private final InvoiceService invoiceService;
   private final UserService userService;
   private final PaymentRequestRepository paymentRequestRepository;
-  private final InvoiceRepositoryImpl invoiceRepository;
   private final InvoiceJpaRepository invoiceJpaRepository;
+  private final InvoicePDFProcessor invoicePDFProcessor;
 
   @Transactional
   public void refreshInvoices() {
@@ -95,7 +95,7 @@ public class InvoiceRefreshService {
                   invoiceEntity.setStatus(InvoiceStatus.CONFIRMED);
                   invoiceJpaRepository.save(invoiceEntity);
 
-                  invoiceRepository.processAsPdf(invoice);
+                  invoicePDFProcessor.apply(invoice);
                   successful.getAndIncrement();
                   log.info("{} refreshed successfully", invoice.describe());
                 } catch (Exception e) {

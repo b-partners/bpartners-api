@@ -13,7 +13,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import app.bpartners.api.conf.FacadeIT;
 import app.bpartners.api.endpoint.SentryConf;
 import app.bpartners.api.endpoint.event.EventProducer;
-import app.bpartners.api.endpoint.event.S3Conf;
 import app.bpartners.api.endpoint.rest.api.UserAccountsApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
@@ -43,7 +42,6 @@ class LegalFileIT extends FacadeIT {
   @MockBean BuildingPermitConf buildingPermitConf;
   @MockBean SentryConf sentryConf;
   @MockBean SendinblueConf sendinblueConf;
-  @MockBean S3Conf s3Conf;
   @MockBean CognitoComponent cognitoComponentMock;
   @MockBean FintectureConf fintectureConf;
   @MockBean ProjectTokenManager projectTokenManager;

@@ -5,18 +5,20 @@ import static app.bpartners.api.endpoint.rest.model.FileType.LOGO;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
-import static app.bpartners.api.service.event.InvoiceCrupdatedService.DRAFT_TEMPLATE;
-import static app.bpartners.api.service.event.InvoiceCrupdatedService.INVOICE_TEMPLATE;
+import static app.bpartners.api.service.InvoiceService.DRAFT_TEMPLATE;
+import static app.bpartners.api.service.InvoiceService.INVOICE_TEMPLATE;
 
 import app.bpartners.api.endpoint.event.SesConf;
 import app.bpartners.api.endpoint.event.model.InvoiceRelaunchSaved;
+import app.bpartners.api.file.FileWriter;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.Attachment;
 import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.service.FileService;
 import app.bpartners.api.service.aws.SesService;
-import app.bpartners.api.service.utils.InvoicePdfUtils;
+import app.bpartners.api.service.invoice.InvoicePDFGenerator;
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -34,7 +36,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class InvoiceRelaunchSavedService implements Consumer<InvoiceRelaunchSaved> {
   private final SesService sesService;
   private final FileService fileService;
-  private final InvoicePdfUtils pdfUtils = new InvoicePdfUtils();
+  private final InvoicePDFGenerator invoicePDFGenerator;
+  private final FileWriter fileWriter;
   private final SesConf sesConf;
 
   @Transactional(isolation = Isolation.SERIALIZABLE)
@@ -62,11 +65,11 @@ public class InvoiceRelaunchSavedService implements Consumer<InvoiceRelaunchSave
         accountHolder,
         logoFileId,
         fileService,
-        pdfUtils,
+        invoicePDFGenerator,
         sesService);
   }
 
-  public static void relaunchInvoiceAction(
+  public void relaunchInvoiceAction(
       String recipient,
       String concerned,
       String invisibleRecipient,
@@ -78,24 +81,25 @@ public class InvoiceRelaunchSavedService implements Consumer<InvoiceRelaunchSave
       AccountHolder accountHolder,
       String logoFileId,
       FileService fileService,
-      InvoicePdfUtils pdfUtils,
+      InvoicePDFGenerator invoicePDFGenerator,
       SesService service) {
-    List<byte[]> logoFiles =
-        fileService.downloadOptionalFile(LOGO, invoice.getUser().getId(), logoFileId);
-    byte[] logoAsBytes = logoFiles.isEmpty() ? new byte[0] : logoFiles.get(0);
-
-    byte[] attachmentAsBytes =
+    File logoFile = fileService.downloadFile(LOGO, invoice.getUser().getId(), logoFileId);
+    File attachmentAsFile =
         invoice.getStatus().equals(CONFIRMED) || invoice.getStatus().equals(PAID)
-            ? pdfUtils.generatePdf(invoice, accountHolder, logoAsBytes, INVOICE_TEMPLATE)
-            : pdfUtils.generatePdf(invoice, accountHolder, logoAsBytes, DRAFT_TEMPLATE);
+            ? invoicePDFGenerator.apply(invoice, accountHolder, logoFile, INVOICE_TEMPLATE)
+            : invoicePDFGenerator.apply(invoice, accountHolder, logoFile, DRAFT_TEMPLATE);
     Attachment attachment =
-        Attachment.builder().name(attachmentName).content(attachmentAsBytes).build();
+        Attachment.builder()
+            .name(attachmentName)
+            .content(fileWriter.writeAsByte(attachmentAsFile))
+            .build();
     attachments.forEach(
         contentlessAttachment -> {
           if (contentlessAttachment.getContent() == null) {
             byte[] content =
-                fileService.downloadFile(
-                    ATTACHMENT, invoice.getUser().getId(), contentlessAttachment.getFileId());
+                fileWriter.writeAsByte(
+                    fileService.downloadFile(
+                        ATTACHMENT, invoice.getUser().getId(), contentlessAttachment.getFileId()));
             contentlessAttachment.setContent(content);
           }
         });

@@ -48,6 +48,6 @@ public class HAreaPictureAnnotation {
   private String idAreaPicture;
   private Boolean isDraft;
 
-  @OneToMany(mappedBy = "idAnnotation", cascade = CascadeType.ALL)
+  @OneToMany(mappedBy = "idAnnotation", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<HAreaPictureAnnotationInstance> annotationInstances;
 }

@@ -38,7 +38,7 @@ public class AreaPictureAnnotationRestMapper {
         .idUser(idUser)
         .idAreaPicture(rest.getIdAreaPicture())
         .creationDatetime(rest.getCreationDatetime())
-        .isDraft(rest.getIsDraft())
+        .isDraft(rest.getIsDraft() != null && rest.getIsDraft())
         .annotationInstances(
             rest.getAnnotations().stream()
                 .map(instanceRestMapper::toDomain)

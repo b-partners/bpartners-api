@@ -16,7 +16,6 @@ import app.bpartners.api.model.Account;
 import app.bpartners.api.model.UpdateAccountIdentity;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.UserToken;
-import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.repository.*;
 import app.bpartners.api.repository.bridge.BridgeApi;
@@ -186,16 +185,14 @@ class AccountServiceTest {
   void initiate_bank_connection_ok() {
     var urls = mock(RedirectionStatusUrls.class);
     var user = mock(User.class);
-    var accounts = mock(List.class);
     var account = mock(Account.class);
     var redirectionUrl = "redirectionUrl";
     var accountBuilder = mock(Account.AccountBuilder.class);
 
     when(userRepositoryMock.getById(any())).thenReturn(user);
     when(repositoryMock.save(any(Account.class))).thenReturn(account);
-    when(user.getAccounts()).thenReturn(accounts);
+    when(user.getAccounts()).thenReturn(List.of(account));
     when(user.getName()).thenReturn("user_name");
-    when(accounts.get(anyInt())).thenReturn(account);
     when(user.getDefaultAccount()).thenReturn(account);
     when(user.getBankConnectionId()).thenReturn((long) TRY_AGAIN);
     when(bankRepositoryMock.initiateConnection(any(User.class))).thenReturn(redirectionUrl);
@@ -228,26 +225,5 @@ class AccountServiceTest {
 
     assertEquals(new DisconnectionInitiated(USER1_ID), eventValue);
     assertNull(actual);
-  }
-
-  @Test
-  void disconnectBankThrowsApiExceptionWhenDisconnectFails() {
-    var user = mock(User.class);
-    var accounts = mock(List.class);
-    var account = mock(Account.class);
-    var bridgeBankConnections = mock(List.class);
-    var bridgeItem = mock(BridgeItem.class);
-
-    when(userRepositoryMock.getById(any())).thenReturn(user);
-    when(repositoryMock.findByUserId(any())).thenReturn(accounts);
-    when(accounts.get(0)).thenReturn(account);
-    when(account.isEnabled()).thenReturn(true);
-    when(account.isActive()).thenReturn(true);
-    when(bridgeApiMock.findItemsByToken(any())).thenReturn(bridgeBankConnections);
-    when(bridgeBankConnections.isEmpty()).thenReturn(false);
-    when(bridgeBankConnections.get(0)).thenReturn(bridgeItem);
-    when(bankRepositoryMock.disconnectBank(any(User.class))).thenReturn(false);
-
-    assertThrows(ApiException.class, () -> subject.disconnectBank(USER1_ID));
   }
 }

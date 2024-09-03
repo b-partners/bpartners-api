@@ -2,13 +2,11 @@ package app.bpartners.api.integration.event;
 
 import static app.bpartners.api.integration.conf.utils.TestUtils.USER1_ID;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import app.bpartners.api.endpoint.event.model.DisconnectionInitiated;
-import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.Transaction;
@@ -20,7 +18,6 @@ import app.bpartners.api.service.AccountService;
 import app.bpartners.api.service.event.DisconnectionInitiatedService;
 import java.util.List;
 import org.junit.jupiter.api.Test;
-import org.mockito.MockedStatic;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -41,11 +38,8 @@ public class DisconnectionInitiatedServiceTest extends MockedThirdParties {
 
   @Test
   void accept_ok() {
-    MockedStatic<AuthProvider> authProviderMock = mockStatic(AuthProvider.class);
-    authProviderMock
-        .when(AuthProvider::getAuthenticatedUser)
-        .thenReturn(User.builder().accounts(List.of(account())).build());
-
+    when(userRepositoryMock.getById(USER1_ID))
+        .thenReturn(User.builder().id(USER1_ID).accounts(List.of(account())).build());
     when(accountServiceMock.getAccountsByUserId(any())).thenReturn(List.of(account()));
     when(accountServiceMock.getActive(any())).thenReturn(account());
     when(transactionRepositoryMock.findByAccountId(any())).thenReturn(List.of(new Transaction()));

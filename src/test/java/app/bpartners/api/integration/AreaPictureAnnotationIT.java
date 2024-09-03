@@ -1,8 +1,7 @@
 package app.bpartners.api.integration;
 
 import static app.bpartners.api.endpoint.rest.model.Wearness.PARTIAL;
-import static app.bpartners.api.integration.AreaPictureIT.AREA_PICTURE_1_ID;
-import static app.bpartners.api.integration.AreaPictureIT.AREA_PICTURE_2_ID;
+import static app.bpartners.api.integration.AreaPictureIT.*;
 import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ID;
 import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_TOKEN;
@@ -15,11 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import app.bpartners.api.endpoint.rest.api.AreaPictureApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
-import app.bpartners.api.endpoint.rest.model.AreaPictureAnnotation;
-import app.bpartners.api.endpoint.rest.model.AreaPictureAnnotationInstance;
-import app.bpartners.api.endpoint.rest.model.AreaPictureAnnotationInstanceMetadata;
-import app.bpartners.api.endpoint.rest.model.Point;
-import app.bpartners.api.endpoint.rest.model.Polygon;
+import app.bpartners.api.endpoint.rest.model.*;
 import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.integration.conf.utils.TestUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -32,6 +27,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class AreaPictureAnnotationIT extends MockedThirdParties {
   private static final String AREA_PICTURE_ANNOTATION_1_ID = "area_picture_annotation_1_id";
   private static final String AREA_PICTURE_ANNOTATION_2_ID = "area_picture_annotation_2_id";
+  private static final String DRAFT_AREA_PICTURE_ANNOTATION_1_ID = "area_picture_annotation_4_id";
+  private static final String DRAFT_AREA_PICTURE_ANNOTATION_2_ID = "area_picture_annotation_5_id";
+
   @Autowired ObjectMapper om;
 
   static AreaPictureAnnotation createAreaPictureAnnotation(String payloadId, String areaPictureId) {
@@ -135,6 +133,26 @@ public class AreaPictureAnnotationIT extends MockedThirdParties {
                 .wearness(PARTIAL));
   }
 
+  static DraftAreaPictureAnnotation draftAreaPictureAnnotation1() {
+    return new DraftAreaPictureAnnotation()
+        .id(DRAFT_AREA_PICTURE_ANNOTATION_1_ID)
+        .idAreaPicture(AREA_PICTURE_1_ID)
+        .isDraft(true)
+        .areaPicture(areaPicture1())
+        .annotations(List.of())
+        .creationDatetime(Instant.parse("2024-01-08T01:00:00.00Z"));
+  }
+
+  static DraftAreaPictureAnnotation draftAreaPictureAnnotation2() {
+    return new DraftAreaPictureAnnotation()
+        .id(DRAFT_AREA_PICTURE_ANNOTATION_2_ID)
+        .idAreaPicture(AREA_PICTURE_1_ID)
+        .isDraft(true)
+        .areaPicture(areaPicture1())
+        .annotations(List.of())
+        .creationDatetime(Instant.parse("2024-01-08T01:05:00.00Z"));
+  }
+
   private ApiClient joeDoeClient() {
     return TestUtils.anApiClient(JOE_DOE_TOKEN, localPort);
   }
@@ -153,6 +171,7 @@ public class AreaPictureAnnotationIT extends MockedThirdParties {
     assertEquals(areaPictureAnnotation1(), actualAnnotation);
     assertTrue(
         actualAnnotations.containsAll(List.of(areaPictureAnnotation2(), areaPictureAnnotation1())));
+    assertTrue(actualAnnotations.stream().noneMatch(AreaPictureAnnotation::getIsDraft));
   }
 
   @Test
@@ -166,6 +185,20 @@ public class AreaPictureAnnotationIT extends MockedThirdParties {
         api.annotateAreaPicture(JOE_DOE_ACCOUNT_ID, AREA_PICTURE_1_ID, payloadId, expected);
 
     assertEquals(ignoreCreationDatetime(expected), ignoreCreationDatetime(createdAnnotation));
+  }
+
+  @Test
+  void joe_doe_read_his_draft_annotations_ok() throws ApiException {
+    ApiClient apiClient = joeDoeClient();
+    AreaPictureApi api = new AreaPictureApi(apiClient);
+
+    var actualAnnotations =
+        api.getDraftAreaPictureAnnotations(JOE_DOE_ACCOUNT_ID, AREA_PICTURE_1_ID, null, null);
+
+    assertTrue(
+        actualAnnotations.containsAll(
+            List.of(draftAreaPictureAnnotation1(), draftAreaPictureAnnotation2())));
+    assertTrue(actualAnnotations.stream().allMatch(DraftAreaPictureAnnotation::getIsDraft));
   }
 
   @BeforeEach

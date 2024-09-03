@@ -1,6 +1,12 @@
 package app.bpartners.api.integration.event;
 
-import app.bpartners.api.conf.FacadeIT;
+import static app.bpartners.api.integration.conf.utils.TestUtils.USER1_ID;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import app.bpartners.api.endpoint.event.model.DisconnectionInitiated;
 import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.integration.conf.MockedThirdParties;
@@ -20,36 +26,25 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import static app.bpartners.api.integration.conf.utils.TestUtils.USER1_ID;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 @Testcontainers
 @AutoConfigureMockMvc
 public class DisconnectionInitiatedServiceTest extends MockedThirdParties {
-  @MockBean
-  AccountService accountServiceMock;
-  @MockBean
-  UserRepository userRepositoryMock;
-  @MockBean
-  TransactionsSummaryRepository transactionsSummaryRepositoryMock;
-  @MockBean
-  DbTransactionRepository transactionRepositoryMock;
+  @MockBean AccountService accountServiceMock;
+  @MockBean UserRepository userRepositoryMock;
+  @MockBean TransactionsSummaryRepository transactionsSummaryRepositoryMock;
+  @MockBean DbTransactionRepository transactionRepositoryMock;
   @Autowired DisconnectionInitiatedService subject;
 
-  Account account(){
-    return Account.builder()
-        .id("accountId")
-        .name("Account name")
-        .build();
+  Account account() {
+    return Account.builder().id("accountId").name("Account name").build();
   }
+
   @Test
-  void accept_ok(){
+  void accept_ok() {
     MockedStatic<AuthProvider> authProviderMock = mockStatic(AuthProvider.class);
-    authProviderMock.when(AuthProvider::getAuthenticatedUser).thenReturn(User.builder().accounts(List.of(account())).build());
+    authProviderMock
+        .when(AuthProvider::getAuthenticatedUser)
+        .thenReturn(User.builder().accounts(List.of(account())).build());
 
     when(accountServiceMock.getAccountsByUserId(any())).thenReturn(List.of(account()));
     when(accountServiceMock.getActive(any())).thenReturn(account());

@@ -1,25 +1,22 @@
 package app.bpartners.api.service.event;
 
+import static app.bpartners.api.service.AccountService.resetDefaultAccount;
+import static app.bpartners.api.service.AccountService.resetDefaultUser;
+
 import app.bpartners.api.endpoint.event.model.DisconnectionInitiated;
 import app.bpartners.api.endpoint.rest.model.EnableStatus;
 import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.Transaction;
-import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.repository.DbTransactionRepository;
 import app.bpartners.api.repository.TransactionsSummaryRepository;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.service.AccountService;
-import lombok.AllArgsConstructor;
-import org.springframework.stereotype.Service;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
-
-import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
-import static app.bpartners.api.service.AccountService.resetDefaultAccount;
-import static app.bpartners.api.service.AccountService.resetDefaultUser;
+import lombok.AllArgsConstructor;
+import org.springframework.stereotype.Service;
 
 @Service
 @AllArgsConstructor
@@ -38,8 +35,7 @@ public class DisconnectionInitiatedService implements Consumer<DisconnectionInit
     saveDefaultAccount(accounts, active);
   }
 
-
-  private void disableTransactions(String userId, List<Account> accounts){
+  private void disableTransactions(String userId, List<Account> accounts) {
     summaryRepository.removeAll(userId);
     List<Transaction> allTransactions = new ArrayList<>();
     for (Account account : accounts) {
@@ -50,9 +46,10 @@ public class DisconnectionInitiatedService implements Consumer<DisconnectionInit
     transactionRepository.saveAll(allTransactions);
   }
 
-  private void saveDefaultAccount(List<Account> accounts, Account activeAccount){
+  private void saveDefaultAccount(List<Account> accounts, Account activeAccount) {
     var user = AuthProvider.getAuthenticatedUser();
-    Account defaultAccount = accounts.stream()
+    Account defaultAccount =
+        accounts.stream()
             .filter(
                 account ->
                     account.getExternalId() == null && account.getName().contains(user.getName()))

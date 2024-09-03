@@ -1,13 +1,12 @@
 package app.bpartners.api.endpoint.event.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.time.Duration;
+import javax.annotation.processing.Generated;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-
-import javax.annotation.processing.Generated;
-import java.time.Duration;
 
 @Generated("EventBridge")
 @Data
@@ -16,6 +15,7 @@ import java.time.Duration;
 @ToString
 public class DisconnectionInitiated extends PojaEvent {
   private static final long serialVersionUID = 1L;
+
   @JsonProperty("userId")
   private String userId;
 

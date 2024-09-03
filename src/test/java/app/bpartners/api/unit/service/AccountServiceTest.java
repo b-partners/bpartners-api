@@ -19,7 +19,6 @@ import app.bpartners.api.model.Account;
 import app.bpartners.api.model.UpdateAccountIdentity;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.BadRequestException;
-import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.repository.*;
 import app.bpartners.api.repository.bridge.BridgeApi;
 import app.bpartners.api.repository.bridge.model.Item.BridgeItem;
@@ -170,12 +169,8 @@ class AccountServiceTest {
     assertEquals(urls, actual.getRedirectionStatusUrls());
   }
 
-  User user(){
-    return User.builder()
-        .id(USER1_ID)
-        .accessToken("dummy")
-        .accounts(List.of())
-        .build();
+  User user() {
+    return User.builder().id(USER1_ID).accessToken("dummy").accounts(List.of()).build();
   }
 
   @Test

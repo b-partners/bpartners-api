@@ -260,8 +260,8 @@ operations:
     get:
       tags:
         - AreaPicture
-      summary: get area picture annotations
-      operationId: getAreaPictureAnnotations
+      summary: get draft area picture annotations
+      operationId: getDraftAreaPictureAnnotations
       parameters:
         - in: path
           name: aId
@@ -283,13 +283,13 @@ operations:
             $ref: './api.yml#/components/schemas/PageSize'
       responses:
         200:
-          description: annotations made on the area picture, ordered by creation date-time
+          description: draft annotations made on the area picture, ordered by creation date-time
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/AreaPictureAnnotation"
+                  $ref: "#/components/schemas/DraftAreaPictureAnnotation"
         400:
           $ref: './api.yml#/components/responses/400'
         403:
@@ -538,3 +538,10 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/AreaPictureAnnotationInstance"
+    DraftAreaPictureAnnotation:
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/AreaPictureAnnotation"
+      properties:
+        areaPicture:
+          $ref: "#/components/schemas/AreaPictureDetails"

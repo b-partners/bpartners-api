@@ -14,7 +14,7 @@ custom_java_repositories: poja-custom-java-repositories.txt
 database_non_root_password: /bpartners/${Env}/db/user/password
 database_non_root_username: /bpartners/${Env}/db/user/username
 frontal_function_timeout: 30
-frontal_memory: 512
+frontal_memory: 1024
 frontal_reserved_concurrent_executions_nb: 20
 jacoco_min_coverage: '0.4'
 java_facade_it: app.bpartners.api.integration.conf.MockedThirdParties

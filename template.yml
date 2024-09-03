@@ -90,7 +90,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: app.bpartners.api.ApiEventHandler::handleRequest
-      MemorySize: 512
+      MemorySize: 1024
       Timeout: 30
       Role: !Sub '{{resolve:ssm:/bpartners/${Env}/execution/role-arn}}'
       

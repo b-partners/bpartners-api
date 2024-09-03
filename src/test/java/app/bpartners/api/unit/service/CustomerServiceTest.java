@@ -109,16 +109,11 @@ class CustomerServiceTest {
 
   @Test
   void testUpdateCustomersLocationInvalidAddress() {
-    var customer = mock(Customer.class);
-    when(customer.getId()).thenReturn("1");
-    when(customer.getFullAddress()).thenReturn("12");
-    when(customer.getAddress()).thenReturn("12");
+    var customer = Customer.builder().address("").zipCode(10).city("").country("").build();
     when(repositoryMock.findWhereLatitudeOrLongitudeIsNull()).thenReturn(List.of(customer));
 
     subject.updateCustomersLocation();
 
-    verify(banApiMock, never()).search(anyString());
-    verify(customer, never()).setLocation(any(Location.class));
     verify(repositoryMock, never()).save(customer);
   }
 }

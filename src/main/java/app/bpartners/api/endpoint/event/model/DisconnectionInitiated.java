@@ -6,11 +6,13 @@ import javax.annotation.processing.Generated;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 @Generated("EventBridge")
 @Data
 @EqualsAndHashCode
+@NoArgsConstructor
 @AllArgsConstructor
 @ToString
 public class DisconnectionInitiated extends PojaEvent {

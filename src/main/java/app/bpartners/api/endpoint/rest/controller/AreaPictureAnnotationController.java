@@ -60,6 +60,6 @@ public class AreaPictureAnnotationController {
     var authenticatedUserId = AuthProvider.getAuthenticatedUserId();
     return service.findAllDraft(authenticatedUserId, areaPictureId, page, pageSize).stream()
         .map(annotation -> mapper.toRestDraft(authenticatedUserId, annotation))
-        .collect(toUnmodifiableList());
+        .toList();
   }
 }

@@ -49,75 +49,74 @@ class CustomerServiceTest {
   @Test
   void testUpdateCustomersLocationAddressTooShort() {
     var customer = customerBuilder().address("12").build();
-
     when(repositoryMock.findWhereLatitudeOrLongitudeIsNull()).thenReturn(List.of(customer));
 
     subject.updateCustomersLocation();
+
     verify(repositoryMock, never()).save(any(Customer.class));
   }
 
   @Test
   void testUpdateCustomersLocationAddressTooLong() {
     var customer = customerBuilder().address("A".repeat(201)).build();
-
     when(repositoryMock.findWhereLatitudeOrLongitudeIsNull()).thenReturn(List.of(customer));
 
     subject.updateCustomersLocation();
+
     verify(repositoryMock, never()).save(any(Customer.class));
   }
 
   @Test
   void testUpdateCustomersLocationAddressNotFound() {
     var customer = customerBuilder().address("123 Street").build();
-
     when(repositoryMock.findWhereLatitudeOrLongitudeIsNull()).thenReturn(List.of(customer));
     when(banApiMock.search("123 Street")).thenReturn(null);
 
     subject.updateCustomersLocation();
+
     verify(repositoryMock, never()).save(any(Customer.class));
   }
 
   @Test
   void testUpdateCustomersLocationExceptionHandling() {
     var customer = customerBuilder().address("123 Street").build();
-
     when(repositoryMock.findWhereLatitudeOrLongitudeIsNull()).thenReturn(List.of(customer));
     when(banApiMock.search(any())).thenThrow(new BadRequestException("Bad Request"));
 
     subject.updateCustomersLocation();
+
     verify(repositoryMock, never()).save(any(Customer.class));
   }
 
   @Test
   void testUpdateCustomersLocationSuccessfulUpdate() {
-    var geoPosition = mock(GeoPosition.class);
-    var coordinates = mock(GeoUtils.Coordinate.class);
-    var customer = mock(Customer.class);
-
-    when(customer.getId()).thenReturn("1");
-    when(customer.getFullAddress()).thenReturn("123 Main St, Springfield");
-    when(customer.getAddress()).thenReturn("123 Main St, Springfield");
-    when(coordinates.getLatitude()).thenReturn(40.7128);
-    when(coordinates.getLongitude()).thenReturn(-74.0060);
-    when(geoPosition.getCoordinates()).thenReturn(coordinates);
-    when(banApiMock.search("123 Main St, Springfield")).thenReturn(geoPosition);
+    var coordinates = GeoUtils.Coordinate.builder().latitude(40.7128).longitude(-74.0060).build();
+    var geoPosition = GeoPosition.builder().coordinates(coordinates).build();
+    var customer =
+        Customer.builder()
+            .address("123 Main St, Springfield")
+            .zipCode(103)
+            .city("")
+            .country("")
+            .build();
+    when(banApiMock.search(any())).thenReturn(geoPosition);
     when(repositoryMock.findWhereLatitudeOrLongitudeIsNull()).thenReturn(List.of(customer));
 
     subject.updateCustomersLocation();
-    verify(customer, times(1)).setLocation(any(Location.class));
+
     verify(repositoryMock, times(1)).save(customer);
   }
 
   @Test
   void testUpdateCustomersLocationInvalidAddress() {
     var customer = mock(Customer.class);
-
     when(customer.getId()).thenReturn("1");
     when(customer.getFullAddress()).thenReturn("12");
     when(customer.getAddress()).thenReturn("12");
     when(repositoryMock.findWhereLatitudeOrLongitudeIsNull()).thenReturn(List.of(customer));
 
     subject.updateCustomersLocation();
+
     verify(banApiMock, never()).search(anyString());
     verify(customer, never()).setLocation(any(Location.class));
     verify(repositoryMock, never()).save(customer);

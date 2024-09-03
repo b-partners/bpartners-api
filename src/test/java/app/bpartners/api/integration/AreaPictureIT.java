@@ -49,7 +49,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.io.FileSystemResource;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
+@Testcontainers
 @Slf4j
 public class AreaPictureIT extends S3MockedThirdParties {
   @Deprecated public static final OpenStreetMapLayer DEFAULT_OSM_LAYER = TOUS_FR;

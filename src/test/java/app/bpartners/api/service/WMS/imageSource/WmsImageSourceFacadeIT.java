@@ -31,7 +31,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.web.client.RestTemplate;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
+@Testcontainers
 class WmsImageSourceFacadeIT extends MockedThirdParties {
   private static final AreaPicture GEOSERVER_LAYER_AREA_PICTURE =
       AreaPicture.builder()

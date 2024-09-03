@@ -49,10 +49,8 @@ class CustomerServiceTest {
   @Test
   void testUpdateCustomersLocationAddressTooShort() {
     var customer = customerBuilder().address("12").build();
-    var customers = mock(List.class);
 
-    when(customers.get(anyInt())).thenReturn(customer);
-    when(repositoryMock.findWhereLatitudeOrLongitudeIsNull()).thenReturn(customers);
+    when(repositoryMock.findWhereLatitudeOrLongitudeIsNull()).thenReturn(List.of(customer));
 
     subject.updateCustomersLocation();
     verify(repositoryMock, never()).save(any(Customer.class));
@@ -61,10 +59,8 @@ class CustomerServiceTest {
   @Test
   void testUpdateCustomersLocationAddressTooLong() {
     var customer = customerBuilder().address("A".repeat(201)).build();
-    var customers = mock(List.class);
 
-    when(customers.get(anyInt())).thenReturn(customer);
-    when(repositoryMock.findWhereLatitudeOrLongitudeIsNull()).thenReturn(customers);
+    when(repositoryMock.findWhereLatitudeOrLongitudeIsNull()).thenReturn(List.of(customer));
 
     subject.updateCustomersLocation();
     verify(repositoryMock, never()).save(any(Customer.class));
@@ -73,10 +69,8 @@ class CustomerServiceTest {
   @Test
   void testUpdateCustomersLocationAddressNotFound() {
     var customer = customerBuilder().address("123 Street").build();
-    var customers = mock(List.class);
 
-    when(customers.get(anyInt())).thenReturn(customer);
-    when(repositoryMock.findWhereLatitudeOrLongitudeIsNull()).thenReturn(customers);
+    when(repositoryMock.findWhereLatitudeOrLongitudeIsNull()).thenReturn(List.of(customer));
     when(banApiMock.search("123 Street")).thenReturn(null);
 
     subject.updateCustomersLocation();
@@ -86,10 +80,8 @@ class CustomerServiceTest {
   @Test
   void testUpdateCustomersLocationExceptionHandling() {
     var customer = customerBuilder().address("123 Street").build();
-    var customers = mock(List.class);
 
-    when(customers.get(anyInt())).thenReturn(customer);
-    when(repositoryMock.findWhereLatitudeOrLongitudeIsNull()).thenReturn(customers);
+    when(repositoryMock.findWhereLatitudeOrLongitudeIsNull()).thenReturn(List.of(customer));
     when(banApiMock.search(any())).thenThrow(new BadRequestException("Bad Request"));
 
     subject.updateCustomersLocation();

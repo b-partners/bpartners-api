@@ -64,7 +64,10 @@ public class DisconnectionInitiatedService implements Consumer<DisconnectionInit
     Account newDefaultAccount =
         defaultAccount == null
             ? resetDefaultAccount(user, activeAccount)
-            : defaultAccount.toBuilder().enableStatus(EnableStatus.ENABLED).build();
+            : defaultAccount.toBuilder()
+                .userId(user.getId())
+                .enableStatus(EnableStatus.ENABLED)
+                .build();
     userRepository.save(resetDefaultUser(user, newDefaultAccount));
     accountService.save(newDefaultAccount);
   }

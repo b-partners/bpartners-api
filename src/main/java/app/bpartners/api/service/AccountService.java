@@ -167,6 +167,7 @@ public class AccountService {
     return defaultAccount.toBuilder()
         .id(String.valueOf(randomUUID()))
         .name(user.getName())
+        .userId(user.getId())
         .bic(null)
         .iban(null)
         .externalId(null)

@@ -5,11 +5,14 @@ import lombok.Getter;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
+
+import java.net.URI;
 
 @PojaGenerated
 @SuppressWarnings("all")
@@ -21,14 +24,19 @@ public class BucketConf {
   @Getter private final S3Presigner s3Presigner;
   @Getter private final S3Client s3Client;
 
+//  Add endpoint override and aws access as constructor
   @SneakyThrows
   public BucketConf(
-      @Value("${aws.region}") String regionString, @Value("${aws.s3.bucket}") String bucketName) {
+          @Value("eu-west-3") String regionString, @Value("${aws.s3.bucket}") String bucketName,
+          AwsCredentialsProvider awsCredentialsProvider, String endpointOverride) {
     this.bucketName = bucketName;
     var region = Region.of(regionString);
     this.s3TransferManager =
         S3TransferManager.builder()
-            .s3Client(S3AsyncClient.crtBuilder().region(region).build())
+            .s3Client(S3AsyncClient.crtBuilder()
+                    .endpointOverride(URI.create(endpointOverride))
+                    .credentialsProvider(awsCredentialsProvider)
+                    .region(region).build())
             .build();
     this.s3Presigner = S3Presigner.builder().region(region).build();
     this.s3Client = S3Client.builder().region(region).build();

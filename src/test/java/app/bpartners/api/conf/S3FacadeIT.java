@@ -14,7 +14,7 @@ import org.springframework.test.context.DynamicPropertySource;
 @Slf4j
 public class S3FacadeIT {
   private static final PostgresConf POSTGRES_CONF = new PostgresConf();
-  private static final LocalStackConf LOCAL_STACK_CONF = new LocalStackConf();
+  private static final S3LocalStackConf LOCAL_STACK_CONF = new S3LocalStackConf();
   private static final EventConf EVENT_CONF = new EventConf();
 
   @BeforeAll

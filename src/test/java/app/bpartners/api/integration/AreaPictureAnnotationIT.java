@@ -23,7 +23,9 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
+@Testcontainers
 public class AreaPictureAnnotationIT extends MockedThirdParties {
   private static final String AREA_PICTURE_ANNOTATION_1_ID = "area_picture_annotation_1_id";
   private static final String AREA_PICTURE_ANNOTATION_2_ID = "area_picture_annotation_2_id";

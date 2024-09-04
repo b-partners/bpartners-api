@@ -6,9 +6,12 @@ import static org.testcontainers.containers.localstack.LocalStackContainer.Servi
 import java.io.File;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.testcontainers.containers.localstack.LocalStackContainer;
 import org.testcontainers.utility.DockerImageName;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -38,6 +41,7 @@ public class LocalStackConf {
     S3Client s3Client =
         S3Client.builder()
             .region(Region.EU_WEST_3)
+            .credentialsProvider(staticCredentialsProvider())
             .endpointOverride(s3Container.getEndpointOverride(S3))
             .build();
     S3TransferManager s3TransferManager =
@@ -46,6 +50,7 @@ public class LocalStackConf {
                 S3AsyncClient.crtBuilder()
                     .endpointOverride(s3Container.getEndpointOverride(S3))
                     .region(Region.EU_WEST_3)
+                    .credentialsProvider(staticCredentialsProvider())
                     .build())
             .build();
 
@@ -79,6 +84,11 @@ public class LocalStackConf {
                 .addTransferListener(LoggingTransferListener.create())
                 .build());
     testUpload.completionFuture().join();
+  }
+
+  @NotNull
+  private static StaticCredentialsProvider staticCredentialsProvider() {
+    return StaticCredentialsProvider.create(AwsBasicCredentials.create("test", "test"));
   }
 
   void stop() {

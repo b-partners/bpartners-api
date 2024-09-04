@@ -62,7 +62,6 @@ class AccountServiceTest {
     var user2 = mock(User.class);
     var account1 = mock(Account.class);
     var account2 = mock(Account.class);
-
     when(user1.getDefaultAccount()).thenReturn(account1);
     when(user2.getDefaultAccount()).thenReturn(account2);
     when(userRepositoryMock.findAll()).thenReturn(List.of(user1, user2));
@@ -89,10 +88,10 @@ class AccountServiceTest {
   void refreshBankConnectionOk() {
     var userToken = mock(UserToken.class);
     var expectedTime = Instant.now();
-
     when(bankRepositoryMock.refreshBankConnection(any(UserToken.class))).thenReturn(expectedTime);
 
     var actualTime = subject.refreshBankConnection(userToken);
+
     assertEquals(expectedTime, actualTime);
     verify(bankRepositoryMock, times(1)).refreshBankConnection(userToken);
   }
@@ -107,7 +106,6 @@ class AccountServiceTest {
   @Test
   void update_account_identity_ok() {
     var account = mock(UpdateAccountIdentity.class);
-
     when(repositoryMock.save((UpdateAccountIdentity) any())).thenReturn(joePersistedAccount());
 
     assertEquals(joePersistedAccount(), subject.updateAccountIdentity(account));
@@ -116,7 +114,6 @@ class AccountServiceTest {
   @Test
   void initiate_account_validation_validation_required() {
     var account = mock(Account.class);
-
     when(repositoryMock.findById(any())).thenReturn(account);
     when(account.getStatus()).thenReturn(AccountStatus.VALIDATION_REQUIRED);
     when(bankRepositoryMock.initiateProValidation(any())).thenReturn("");
@@ -127,7 +124,6 @@ class AccountServiceTest {
   @Test
   void initiate_account_validation_invalid_credentials() {
     var account = mock(Account.class);
-
     when(repositoryMock.findById(any())).thenReturn(account);
     when(account.getStatus()).thenReturn(AccountStatus.INVALID_CREDENTIALS);
     when(bankRepositoryMock.initiateBankConnectionEdition(any())).thenReturn("");
@@ -138,7 +134,6 @@ class AccountServiceTest {
   @Test
   void initiate_account_validation_sca_required() {
     var account = mock(Account.class);
-
     when(repositoryMock.findById(any())).thenReturn(account);
     when(account.getStatus()).thenReturn(AccountStatus.SCA_REQUIRED);
     when(bankRepositoryMock.initiateScaSync(any())).thenReturn("");
@@ -149,7 +144,6 @@ class AccountServiceTest {
   @Test
   void initiate_account_validation_default() {
     var account = mock(Account.class);
-
     when(repositoryMock.findById(any())).thenReturn(account);
     when(account.getStatus()).thenReturn(AccountStatus.OPENED);
 
@@ -164,13 +158,10 @@ class AccountServiceTest {
   void initiate_bank_conneciton_throws_bad_request_exception() {
     var urls = mock(RedirectionStatusUrls.class);
     var user = mock(User.class);
-    var accounts = mock(List.class);
     var account = mock(Account.class);
-
     when(userRepositoryMock.getById(any())).thenReturn(user);
-    when(user.getAccounts()).thenReturn(accounts);
+    when(user.getAccounts()).thenReturn(List.of(account));
     when(user.getName()).thenReturn("user_name");
-    when(accounts.get(anyInt())).thenReturn(account);
     when(user.getDefaultAccount()).thenReturn(account);
     when(user.getBankConnectionId()).thenReturn((long) ITEM_STATUS_OK);
 

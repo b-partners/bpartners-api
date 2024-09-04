@@ -9,4 +9,7 @@ public interface AreaPictureAnnotationJpaRepository
     extends JpaRepository<HAreaPictureAnnotation, String> {
   List<HAreaPictureAnnotation> findAllByIdUserAndIdAreaPictureAndIsDraft(
       String idUser, String idAreaPicture, Boolean isDraft, Pageable pageable);
+
+  List<HAreaPictureAnnotation> findAllByIdUserAndIsDraft(
+      String idUser, Boolean isDraft, Pageable pageable);
 }

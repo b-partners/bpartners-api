@@ -52,13 +52,26 @@ public class AreaPictureAnnotationController {
   }
 
   @GetMapping("/accounts/{aId}/areaPictures/{areaPictureId}/annotations/drafts")
-  public List<DraftAreaPictureAnnotation> getDraftAreaPictureAnnotations(
+  public List<DraftAreaPictureAnnotation> getDraftAreaPictureAnnotationsByAccountIdAndAreaPictureId(
       @PathVariable String aId,
       @PathVariable String areaPictureId,
       @RequestParam(defaultValue = "1", required = false) PageFromOne page,
       @RequestParam(defaultValue = "10", required = false) BoundedPageSize pageSize) {
     var authenticatedUserId = AuthProvider.getAuthenticatedUserId();
-    return service.findAllDraft(authenticatedUserId, areaPictureId, page, pageSize).stream()
+    return service
+        .findAllDraftByAccountIdAndAreaPictureId(authenticatedUserId, areaPictureId, page, pageSize)
+        .stream()
+        .map(annotation -> mapper.toRestDraft(authenticatedUserId, annotation))
+        .toList();
+  }
+
+  @GetMapping("/accounts/{aId}/annotations/drafts")
+  public List<DraftAreaPictureAnnotation> getDraftAreaPictureAnnotationsByAccountId(
+      @PathVariable String aId,
+      @RequestParam(defaultValue = "1", required = false) PageFromOne page,
+      @RequestParam(defaultValue = "10", required = false) BoundedPageSize pageSize) {
+    var authenticatedUserId = AuthProvider.getAuthenticatedUserId();
+    return service.findAllDraftByAccountId(authenticatedUserId, page, pageSize).stream()
         .map(annotation -> mapper.toRestDraft(authenticatedUserId, annotation))
         .toList();
   }

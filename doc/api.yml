@@ -147,7 +147,9 @@ paths:
   /accounts/{aId}/areaPictures/{areaPictureId}/annotations/{annotationId}:
     $ref: './area-pictures-api.yml#/operations/areaPictureAnnotationSingleOperation'
   /accounts/{aId}/areaPictures/{areaPictureId}/annotations/drafts:
-    $ref: './area-pictures-api.yml#/operations/draftAreaPictureAnnotationListOperations'
+    $ref: './area-pictures-api.yml#/operations/draftAreaPictureAnnotationListOperationsByAccountIdAndAreaPictureId'
+  /accounts/{aId}/annotations/drafts:
+    $ref: './area-pictures-api.yml#/operations/draftAreaPictureAnnotationListOperationsByAccountId'
 
 
   #############################################

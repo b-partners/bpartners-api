@@ -256,12 +256,51 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
-  draftAreaPictureAnnotationListOperations:
+  draftAreaPictureAnnotationListOperationsByAccountId:
     get:
       tags:
         - AreaPicture
-      summary: get draft area picture annotations
-      operationId: getDraftAreaPictureAnnotations
+      summary: get draft area picture annotations by accountId
+      operationId: getDraftAnnotationsByAccountId
+      parameters:
+        - in: path
+          name: aId
+          schema:
+            type: string
+          required: true
+        - in: query
+          name: page
+          schema:
+            $ref: './api.yml#/components/schemas/Page'
+        - in: query
+          name: pageSize
+          schema:
+            $ref: './api.yml#/components/schemas/PageSize'
+      responses:
+        200:
+          description: all draft annotations made for the given account, ordered by creation date-time
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DraftAreaPictureAnnotation"
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
+  draftAreaPictureAnnotationListOperationsByAccountIdAndAreaPictureId:
+    get:
+      tags:
+        - AreaPicture
+      summary: get draft area picture annotations by accountId and areaPictureId
+      operationId: getDraftAnnotationsByAccountIdAndAreaPictureId
       parameters:
         - in: path
           name: aId

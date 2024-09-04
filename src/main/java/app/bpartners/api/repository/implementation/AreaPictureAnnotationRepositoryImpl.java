@@ -37,4 +37,12 @@ public class AreaPictureAnnotationRepositoryImpl implements AreaPictureAnnotatio
   public AreaPictureAnnotation save(AreaPictureAnnotation areaPictureAnnotation) {
     return mapper.toDomain(jpaRepository.save(mapper.toEntity(areaPictureAnnotation)));
   }
+
+  @Override
+  public List<AreaPictureAnnotation> findAllByIsDraftAndAccountId(
+      String idUser, Boolean isDraft, Pageable pageable) {
+    return jpaRepository.findAllByIdUserAndIsDraft(idUser, isDraft, pageable).stream()
+        .map(mapper::toDomain)
+        .toList();
+  }
 }

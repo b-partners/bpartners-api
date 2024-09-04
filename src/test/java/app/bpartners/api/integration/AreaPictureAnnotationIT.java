@@ -2,11 +2,7 @@ package app.bpartners.api.integration;
 
 import static app.bpartners.api.endpoint.rest.model.Wearness.PARTIAL;
 import static app.bpartners.api.integration.AreaPictureIT.*;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_TOKEN;
-import static app.bpartners.api.integration.conf.utils.TestUtils.setUpCognito;
-import static app.bpartners.api.integration.conf.utils.TestUtils.setUpLegalFileRepository;
+import static app.bpartners.api.integration.conf.utils.TestUtils.*;
 import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -157,6 +153,10 @@ public class AreaPictureAnnotationIT extends MockedThirdParties {
     return TestUtils.anApiClient(JOE_DOE_TOKEN, localPort);
   }
 
+  private ApiClient janeDoeClient() {
+    return TestUtils.anApiClient(JANE_DOE_TOKEN, localPort);
+  }
+
   @Test
   void joe_doe_read_his_annotations_ok() throws ApiException {
     ApiClient apiClient = joeDoeClient();
@@ -188,17 +188,41 @@ public class AreaPictureAnnotationIT extends MockedThirdParties {
   }
 
   @Test
-  void joe_doe_read_his_draft_annotations_ok() throws ApiException {
+  void joe_doe_read_his_draft_annotations_for_specific_area_picture() throws ApiException {
     ApiClient apiClient = joeDoeClient();
     AreaPictureApi api = new AreaPictureApi(apiClient);
 
     var actualAnnotations =
-        api.getDraftAreaPictureAnnotations(JOE_DOE_ACCOUNT_ID, AREA_PICTURE_1_ID, null, null);
+        api.getDraftAnnotationsByAccountIdAndAreaPictureId(
+            JOE_DOE_ACCOUNT_ID, AREA_PICTURE_1_ID, null, null);
 
     assertTrue(
         actualAnnotations.containsAll(
             List.of(draftAreaPictureAnnotation1(), draftAreaPictureAnnotation2())));
     assertTrue(actualAnnotations.stream().allMatch(DraftAreaPictureAnnotation::getIsDraft));
+  }
+
+  @Test
+  void joe_doe_read_all_draft_annotations_ok() throws ApiException {
+    ApiClient apiClient = joeDoeClient();
+    AreaPictureApi api = new AreaPictureApi(apiClient);
+
+    var actualAnnotations = api.getDraftAnnotationsByAccountId(JOE_DOE_ACCOUNT_ID, null, null);
+
+    assertTrue(
+        actualAnnotations.containsAll(
+            List.of(draftAreaPictureAnnotation1(), draftAreaPictureAnnotation2())));
+    assertTrue(actualAnnotations.stream().allMatch(DraftAreaPictureAnnotation::getIsDraft));
+  }
+
+  @Test
+  void jane_doe_read_all_draft_annotations_ok() throws ApiException {
+    ApiClient apiClient = janeDoeClient();
+    AreaPictureApi api = new AreaPictureApi(apiClient);
+
+    var actualAnnotations = api.getDraftAnnotationsByAccountId(JANE_ACCOUNT_ID, null, null);
+
+    assertTrue(actualAnnotations.isEmpty());
   }
 
   @BeforeEach

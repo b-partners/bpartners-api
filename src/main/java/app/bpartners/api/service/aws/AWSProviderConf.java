@@ -2,12 +2,12 @@ package app.bpartners.api.service.aws;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.springframework.stereotype.Service;
+import org.springframework.context.annotation.Configuration;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 
-@Service
+@Configuration
 @AllArgsConstructor
 @Getter
-public abstract class AWSServiceConf {
+public abstract class AWSProviderConf {
   private final AwsCredentialsProvider awsCredentialsProvider;
 }

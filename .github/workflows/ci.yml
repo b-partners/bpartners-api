@@ -34,7 +34,7 @@ jobs:
           java-version: '21'
           distribution: 'corretto'
       - run: chmod +x gradlew
-      - run: ./gradlew test
+      - run: ./gradlew test --info --stacktrace
 
       - name: Cache SonarCloud packages
         uses: actions/cache@v2

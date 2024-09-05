@@ -48,9 +48,21 @@ public class AreaPictureAnnotationService {
     return findAllBy(idUser, idAreaPicture, isDraft, page, pageSize);
   }
 
-  public List<AreaPictureAnnotation> findAllDraft(
+  public List<AreaPictureAnnotation> findAllDraftByAccountIdAndAreaPictureId(
       String idUser, String idAreaPicture, PageFromOne page, BoundedPageSize pageSize) {
     final var isDraft = true;
     return findAllBy(idUser, idAreaPicture, isDraft, page, pageSize);
+  }
+
+  public List<AreaPictureAnnotation> findAllDraftByAccountId(
+      String idUser, PageFromOne page, BoundedPageSize pageSize) {
+    final var isDraft = true;
+    return repository.findAllByIsDraftAndAccountId(
+        idUser,
+        isDraft,
+        PageRequest.of(
+            page.getValue() - 1,
+            pageSize.getValue(),
+            Sort.by(Sort.Order.desc("creationDatetime"))));
   }
 }

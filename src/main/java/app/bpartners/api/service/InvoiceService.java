@@ -32,8 +32,8 @@ import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.mapper.PaymentRequestMapper;
 import app.bpartners.api.repository.InvoiceRepository;
 import app.bpartners.api.repository.PaymentRequestRepository;
-import app.bpartners.api.repository.implementation.InvoiceRepositoryImpl;
 import app.bpartners.api.service.invoice.InvoicePDFProcessor;
+import app.bpartners.api.service.payment.CreatePaymentRegulationComputing;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -55,24 +55,12 @@ public class InvoiceService {
   public static final String DRAFT_REF_PREFIX = "BROUILLON-";
   public static final String PROPOSAL_REF_PREFIX = "DEVIS-";
   private final InvoiceRepository repository;
-  private final InvoiceRepositoryImpl repositoryImpl;
   private final CustomerService customerService;
   private final PaymentInitiationService pis;
   private final PaymentRequestMapper requestMapper;
   private final PaymentRequestRepository paymentRepository;
   private final InvoicePDFProcessor invoicePDFProcessor;
-
-  private static List<CreatePaymentRegulation> initPaymentReg(Invoice actual) {
-    List<CreatePaymentRegulation> paymentReg = actual.getPaymentRegulations();
-    paymentReg.forEach(
-        payment -> {
-          PaymentRequest request = payment.getPaymentRequest();
-          request.setId(String.valueOf(randomUUID()));
-          request.setExternalId(null);
-          request.setPaymentUrl(null);
-        });
-    return paymentReg;
-  }
+  private final CreatePaymentRegulationComputing paymentRegulationComputing;
 
   @Transactional
   public Invoice updatePaymentStatus(String invoiceId, String paymentId, PaymentMethod method) {
@@ -393,7 +381,7 @@ public class InvoiceService {
   @Transactional
   public Invoice duplicateAsDraft(String idInvoice, String reference) {
     Invoice actual = getById(idInvoice);
-    List<CreatePaymentRegulation> paymentRegulations = initPaymentReg(actual);
+    List<CreatePaymentRegulation> paymentRegulations = paymentRegulationComputing.apply(actual);
     Invoice duplicatedInvoice =
         actual.toBuilder()
             .id(String.valueOf(randomUUID()))

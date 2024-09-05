@@ -42,23 +42,26 @@ public class BucketConf {
   }
 
   private S3TransferManager configureTransferManager(URI endpointOverride, Region region) {
-    S3CrtAsyncClientBuilder clientBuilder = S3AsyncClient.crtBuilder()
-        .region(region)
-        .credentialsProvider(awsProviderConf.getAwsCredentialsProvider());
+    S3CrtAsyncClientBuilder clientBuilder =
+        S3AsyncClient.crtBuilder()
+            .region(region)
+            .credentialsProvider(awsProviderConf.getAwsCredentialsProvider());
     if (endpointOverride != null) clientBuilder.endpointOverride(endpointOverride);
     return S3TransferManager.builder().s3Client(clientBuilder.build()).build();
   }
 
   private S3Presigner configurePresigner(Region region) {
-    return S3Presigner.builder().region(region)
+    return S3Presigner.builder()
+        .region(region)
         .credentialsProvider(awsProviderConf.getAwsCredentialsProvider())
         .build();
   }
 
   private S3Client configureClient(URI endpointOverride, Region region) {
-    S3ClientBuilder clientBuilder = S3Client.builder()
-        .region(region)
-        .credentialsProvider(awsProviderConf.getAwsCredentialsProvider());
+    S3ClientBuilder clientBuilder =
+        S3Client.builder()
+            .region(region)
+            .credentialsProvider(awsProviderConf.getAwsCredentialsProvider());
     if (endpointOverride != null) clientBuilder.endpointOverride(endpointOverride);
     return clientBuilder.build();
   }

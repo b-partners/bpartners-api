@@ -10,6 +10,7 @@ import app.bpartners.api.endpoint.rest.model.EnableStatus;
 import app.bpartners.api.endpoint.rest.model.FileType;
 import app.bpartners.api.endpoint.rest.model.TransactionStatus;
 import app.bpartners.api.endpoint.rest.model.TransactionTypeEnum;
+import app.bpartners.api.file.FileWriter;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.FileInfo;
@@ -35,6 +36,7 @@ import app.bpartners.api.repository.jpa.model.HTransactionSupportingDocs;
 import app.bpartners.api.service.aws.S3Service;
 import app.bpartners.api.service.utils.DateUtils;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -73,6 +75,7 @@ public class TransactionService {
   private final S3Service s3Service;
   private final UserService userService;
   private final FileService fileService;
+  private final FileWriter fileWriter;
 
   public List<TransactionSupportingDocs> getSupportingDocuments(String transactionId) {
     Transaction transaction = dbTransactionRepository.findById(transactionId);
@@ -80,14 +83,14 @@ public class TransactionService {
   }
 
   public List<TransactionSupportingDocs> addSupportingDocuments(
-      String idUser, String transactionId, byte[] documentAsBytes) {
+      String idUser, String transactionId, File documentFile) {
     Transaction transaction = dbTransactionRepository.findById(transactionId);
 
     String fileId = String.valueOf(randomUUID());
     String supportingDocsId = String.valueOf(randomUUID());
 
     FileInfo uploadedFileInfo =
-        fileService.upload(fileId, TRANSACTION_SUPPORTING_DOCS, idUser, documentAsBytes);
+        fileService.upload(TRANSACTION_SUPPORTING_DOCS, fileId, idUser, documentFile);
 
     /*
     TODO: historize by ENABLE and DISABLE status instead of replacing old
@@ -147,13 +150,14 @@ public class TransactionService {
     byte[] compressed =
         compressedFiles(transactionExcelFileName, transactionExcelBytes, pdfInvoices);
     String compressedFileId = String.valueOf(randomUUID());
-    s3Service.uploadFile(FileType.TRANSACTION, user.getId(), compressedFileId, compressed);
+    s3Service.uploadFile(
+        FileType.TRANSACTION, compressedFileId, user.getId(), fileWriter.apply(compressed, null));
 
     Instant createdAt = now();
     Instant expiredAt = createdAt.plusSeconds(ONE_HOUR_IN_SECONDS);
     String presignedUrl =
-        s3Service.getPresignedUrl(
-            FileType.TRANSACTION, user.getId(), compressedFileId, ONE_HOUR_IN_SECONDS);
+        s3Service.presignURL(
+            FileType.TRANSACTION, compressedFileId, user.getId(), ONE_HOUR_IN_SECONDS);
     return TransactionExportDetails.builder()
         .downloadLink(presignedUrl)
         .createdAt(createdAt)
@@ -165,9 +169,10 @@ public class TransactionService {
       User user, Map<String, String> invoiceFileInfos) {
     Map<String, byte[]> pdfInvoices = new HashMap<>();
     invoiceFileInfos.forEach(
-        (fileName, fileId) ->
-            pdfInvoices.put(
-                fileName, s3Service.downloadFile(FileType.INVOICE, user.getId(), fileId)));
+        (fileName, fileId) -> {
+          File file = s3Service.downloadFile(FileType.INVOICE, user.getId(), fileId);
+          pdfInvoices.put(fileName, fileWriter.writeAsByte(file));
+        });
     return pdfInvoices;
   }
 

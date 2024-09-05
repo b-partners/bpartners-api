@@ -10,11 +10,13 @@ import app.bpartners.api.endpoint.rest.model.TransactionStatus;
 import app.bpartners.api.endpoint.rest.model.TransactionsSummary;
 import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.endpoint.rest.validator.TransactionExportValidator;
+import app.bpartners.api.file.FileWriter;
 import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.model.mapper.FileMapper;
 import app.bpartners.api.service.TransactionService;
+import java.io.File;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -34,6 +36,7 @@ public class TransactionController {
   private final TransactionsSummaryRestMapper summaryRestMapper;
   private final TransactionExportValidator exportValidator;
   private final FileMapper fileMapper;
+  private final FileWriter fileWriter;
 
   @GetMapping("/accounts/{aId}/transactions/{tId}/supportingDocuments")
   public List<FileInfo> getTransactionSupportingDocuments(
@@ -46,8 +49,9 @@ public class TransactionController {
   @PostMapping("/accounts/{aId}/transactions/{tId}/supportingDocuments")
   public List<FileInfo> addTransactionSupportingDocuments(
       @PathVariable String aId, @PathVariable String tId, @RequestBody byte[] documentAsBytes) {
+    File documentFile = fileWriter.apply(documentAsBytes, null);
     return service
-        .addSupportingDocuments(AuthProvider.getAuthenticatedUserId(), tId, documentAsBytes)
+        .addSupportingDocuments(AuthProvider.getAuthenticatedUserId(), tId, documentFile)
         .stream()
         .map(supportingDoc -> fileMapper.toRest(supportingDoc.getFileInfo()))
         .toList();

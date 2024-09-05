@@ -25,12 +25,13 @@ import app.bpartners.api.model.PaymentHistoryStatus;
 import app.bpartners.api.model.PaymentRequest;
 import app.bpartners.api.model.User;
 import app.bpartners.api.service.aws.SesService;
-import app.bpartners.api.service.utils.InvoicePdfUtils;
+import app.bpartners.api.service.invoice.InvoicePDFGenerator;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.math.BigInteger;
+import java.nio.file.Files;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -48,23 +49,23 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @Testcontainers
 @AutoConfigureMockMvc
 class DraftIT extends MockedThirdParties {
-  @Autowired private SesService sesService;
+  @Autowired SesService sesService;
+  @Autowired InvoicePDFGenerator invoicePDFGenerator;
 
-  private static File generatePdf(String templateName) throws IOException {
+  private File generatePdf(String templateName) throws IOException {
     app.bpartners.api.model.Invoice invoice = anInvoice(paymentRegulations());
-    InvoicePdfUtils pdfUtils = new InvoicePdfUtils();
 
-    byte[] data = pdfUtils.generatePdf(invoice, accountHolder(), logoAsByte(), templateName);
+    File data = invoicePDFGenerator.apply(invoice, accountHolder(), logoAsByte(), templateName);
     File generatedFile = new File(randomUUID() + ".pdf");
     OutputStream os = new FileOutputStream(generatedFile);
-    os.write(data);
+    os.write(Files.readAllBytes(data.toPath()));
     os.close();
 
     return generatedFile;
   }
 
-  private static byte[] logoAsByte() throws IOException {
-    return new ClassPathResource("files/downloaded.jpeg").getInputStream().readAllBytes();
+  private static File logoAsByte() throws IOException {
+    return new ClassPathResource("files/downloaded.jpeg").getFile();
   }
 
   private static AccountHolder accountHolder() {
@@ -80,7 +81,7 @@ class DraftIT extends MockedThirdParties {
   }
 
   @NotNull
-  private static List<CreatePaymentRegulation> paymentRegulations() {
+  private List<CreatePaymentRegulation> paymentRegulations() {
     return List.of(
         aPaymentRegulation(
             BigInteger.valueOf(100), null, LocalDate.now().plusDays(1L), PaymentMethod.CREDIT_CARD),
@@ -91,7 +92,7 @@ class DraftIT extends MockedThirdParties {
             PaymentMethod.CASH));
   }
 
-  private static Invoice anInvoice(List<CreatePaymentRegulation> paymentRegulations) {
+  private Invoice anInvoice(List<CreatePaymentRegulation> paymentRegulations) {
     return Invoice.builder()
         .id(INVOICE1_ID)
         .ref("invoice_ref")
@@ -118,7 +119,7 @@ class DraftIT extends MockedThirdParties {
         .build();
   }
 
-  private static Customer customer() {
+  private Customer customer() {
     return Customer.builder()
         .name("Must be not shown")
         .firstName("Olivier")
@@ -130,7 +131,7 @@ class DraftIT extends MockedThirdParties {
         .build();
   }
 
-  private static User joneDoeUser() {
+  private User joneDoeUser() {
     return User.builder()
         .id(JOE_DOE_ID)
         .accounts(
@@ -144,7 +145,7 @@ class DraftIT extends MockedThirdParties {
         .build();
   }
 
-  private static CreatePaymentRegulation aPaymentRegulation(
+  private CreatePaymentRegulation aPaymentRegulation(
       BigInteger amount, String comment, LocalDate maturityDate, PaymentMethod paymentMethod) {
     return CreatePaymentRegulation.builder()
         .paymentRequest(aPaymentRequest(amount, paymentMethod))
@@ -153,7 +154,7 @@ class DraftIT extends MockedThirdParties {
         .build();
   }
 
-  private static PaymentRequest aPaymentRequest(BigInteger amount, PaymentMethod paymentMethod) {
+  private PaymentRequest aPaymentRequest(BigInteger amount, PaymentMethod paymentMethod) {
     return PaymentRequest.builder()
         .paymentHistoryStatus(paymentHistoryStatus(paymentMethod))
         .amount(new Fraction(amount))
@@ -161,7 +162,7 @@ class DraftIT extends MockedThirdParties {
         .build();
   }
 
-  private static PaymentHistoryStatus paymentHistoryStatus(PaymentMethod paymentMethod) {
+  private PaymentHistoryStatus paymentHistoryStatus(PaymentMethod paymentMethod) {
     return PaymentHistoryStatus.builder()
         .status(PaymentStatus.PAID)
         .paymentMethod(paymentMethod)
@@ -170,7 +171,7 @@ class DraftIT extends MockedThirdParties {
         .build();
   }
 
-  private static List<app.bpartners.api.model.InvoiceProduct> creatableProds(int n) {
+  private List<app.bpartners.api.model.InvoiceProduct> creatableProds(int n) {
     List<app.bpartners.api.model.InvoiceProduct> result = new ArrayList<>();
     for (int i = 0; i < n; i++) {
       result.add(prod());
@@ -178,7 +179,7 @@ class DraftIT extends MockedThirdParties {
     return result;
   }
 
-  private static app.bpartners.api.model.InvoiceProduct prod() {
+  private app.bpartners.api.model.InvoiceProduct prod() {
     return app.bpartners.api.model.InvoiceProduct.builder()
         .id("product_id")
         .quantity(50)

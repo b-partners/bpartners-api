@@ -1,12 +1,8 @@
 package app.bpartners.api.repository.implementation;
 
-import static app.bpartners.api.endpoint.rest.model.FileType.INVOICE;
-import static app.bpartners.api.endpoint.rest.model.FileType.LOGO;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PROPOSAL_CONFIRMED;
-import static app.bpartners.api.service.InvoiceService.DRAFT_TEMPLATE;
-import static app.bpartners.api.service.InvoiceService.INVOICE_TEMPLATE;
 import static java.util.UUID.randomUUID;
 import static org.springframework.data.domain.Sort.Direction.DESC;
 
@@ -26,8 +22,7 @@ import app.bpartners.api.repository.jpa.PaymentRequestJpaRepository;
 import app.bpartners.api.repository.jpa.model.HInvoice;
 import app.bpartners.api.repository.jpa.model.HInvoiceProduct;
 import app.bpartners.api.repository.jpa.model.HPaymentRequest;
-import app.bpartners.api.service.FileService;
-import app.bpartners.api.service.utils.InvoicePdfUtils;
+import app.bpartners.api.service.invoice.InvoicePDFProcessor;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
@@ -54,10 +49,9 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
   private final InvoiceMapper mapper;
   private final InvoiceProductMapper productMapper;
   private final InvoiceProductJpaRepository productJpaRepository;
-  private final FileService fileService;
   private final EntityManager entityManager;
   protected final UserRepository userRepository;
-  private final InvoicePdfUtils pdfUtils = new InvoicePdfUtils();
+  private final InvoicePDFProcessor invoicePDFProcessor;
 
   @Override
   public List<Invoice> findAllEnabledByIdUser(String idUser) {
@@ -102,27 +96,10 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
         mapper.toDomain(
             actualEntity.products(invoiceProducts).paymentRequests(paymentRequests),
             actual.getUser());
-    HInvoice toSave = actualEntity.fileId(processAsPdf(toGenerateAsPdf));
+    HInvoice toSave = actualEntity.fileId(invoicePDFProcessor.apply(toGenerateAsPdf));
     HInvoice savedInvoice = jpaRepository.save(toSave);
 
     return mapper.toDomain(savedInvoice, toGenerateAsPdf.getUser());
-  }
-
-  public String processAsPdf(Invoice domain) {
-    String fileId = domain.getFileId() == null ? String.valueOf(randomUUID()) : domain.getFileId();
-    String idUser = domain.getUser().getId();
-
-    List<byte[]> logos =
-        fileService.downloadOptionalFile(LOGO, idUser, domain.getUser().getLogoFileId());
-    byte[] logoAsBytes = logos.isEmpty() ? null : logos.get(0);
-    byte[] fileAsBytes =
-        domain.getStatus() == CONFIRMED || domain.getStatus() == PAID
-            ? pdfUtils.generatePdf(domain, domain.getActualHolder(), logoAsBytes, INVOICE_TEMPLATE)
-            : pdfUtils.generatePdf(domain, domain.getActualHolder(), logoAsBytes, DRAFT_TEMPLATE);
-    String id = fileService.upload(fileId, INVOICE, idUser, fileAsBytes).getId(); // TODO
-    domain.setFileId(id);
-
-    return id;
   }
 
   @Override
@@ -138,23 +115,6 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
   public Optional<Invoice> pwFindOptionalById(String id) {
     Optional<HInvoice> optional = jpaRepository.findOptionalById(id);
     return optional.map(mapper::toDomain);
-  }
-
-  @Override
-  public List<Invoice> findAllByIdUserAndStatusesAndArchiveStatus(
-      String idUser,
-      List<InvoiceStatus> statusList,
-      ArchiveStatus archiveStatus,
-      String title,
-      int page,
-      int pageSize) {
-    PageRequest pageRequest = PageRequest.of(page, pageSize, Sort.by(DESC, "createdDatetime"));
-    return jpaRepository
-        .findAllByIdUserAndArchiveStatusAndTitleContainingIgnoreCaseAndStatusIn(
-            idUser, archiveStatus, title, statusList, pageRequest)
-        .stream()
-        .map(mapper::toDomain)
-        .toList();
   }
 
   @Override
@@ -226,18 +186,6 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
         builder.like(builder.lower(customerPath.get("city")), "%" + filter.toLowerCase() + "%"));
     filtersPredicates.add(
         builder.like(builder.lower(customerPath.get("country")), "%" + filter.toLowerCase() + "%"));
-  }
-
-  @Override
-  public List<Invoice> findAllByIdUserAndArchiveStatus(
-      String idUser, ArchiveStatus archiveStatus, String title, int page, int pageSize) {
-    PageRequest pageable = PageRequest.of(page, pageSize, Sort.by(DESC, "createdDatetime"));
-    return jpaRepository
-        .findAllByIdUserAndArchiveStatusAndTitleContainingIgnoreCase(
-            idUser, archiveStatus, title, pageable)
-        .stream()
-        .map(mapper::toDomain)
-        .toList();
   }
 
   @Override

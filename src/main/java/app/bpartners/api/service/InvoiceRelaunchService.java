@@ -15,6 +15,7 @@ import app.bpartners.api.endpoint.event.model.InvoiceRelaunchSaved;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.endpoint.rest.security.model.Principal;
 import app.bpartners.api.endpoint.rest.security.principal.PrincipalProvider;
+import app.bpartners.api.file.FileWriter;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.Attachment;
 import app.bpartners.api.model.BoundedPageSize;
@@ -33,8 +34,9 @@ import app.bpartners.api.repository.UserInvoiceRelaunchConfRepository;
 import app.bpartners.api.repository.jpa.InvoiceJpaRepository;
 import app.bpartners.api.service.aws.SesService;
 import app.bpartners.api.service.event.InvoiceRelaunchSavedService;
-import app.bpartners.api.service.utils.InvoicePdfUtils;
+import app.bpartners.api.service.invoice.InvoicePDFGenerator;
 import app.bpartners.api.service.utils.TemplateResolverUtils;
+import java.io.File;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -66,8 +68,10 @@ public class InvoiceRelaunchService {
   private final FileService fileService;
   private final AttachmentService attachmentService;
   private final SesConf sesConf;
-  private final InvoicePdfUtils pdfUtils = new InvoicePdfUtils();
+  private final InvoicePDFGenerator invoicePDFGenerator;
   private final SesService sesService;
+  private final InvoiceRelaunchSavedService relaunchSavedService;
+  private final FileWriter fileWriter;
 
   private static String getDefaultSubject(Invoice invoice) {
     return "Votre "
@@ -174,7 +178,7 @@ public class InvoiceRelaunchService {
     String invisibleConcerned = sesConf.getAdminEmail();
     String attachmentName = invoice.getRef() + PDF_EXTENSION;
     String htmlBody = emailBody(emailBody, invoice, accountHolder, fromScratch);
-    InvoiceRelaunchSavedService.relaunchInvoiceAction(
+    relaunchSavedService.relaunchInvoiceAction(
         recipient,
         concerned,
         invisibleConcerned,
@@ -186,7 +190,7 @@ public class InvoiceRelaunchService {
         accountHolder,
         invoice.getUser().getLogoFileId(),
         fileService,
-        pdfUtils,
+        invoicePDFGenerator,
         sesService);
     /*
     /!\ Relaunch invoice synchronously for now
@@ -203,9 +207,11 @@ public class InvoiceRelaunchService {
   }
 
   private void uploadAttachment(String idUser, Attachment attachment) {
+    byte[] attachmentAsBytes = attachment.getContent();
+    File attachmentAsFile = fileWriter.apply(attachmentAsBytes, null);
     FileInfo fileInfo =
-        fileService.upload(randomUUID().toString(), ATTACHMENT, idUser, attachment.getContent());
-    attachment.setFileId(fileInfo.getId());
+        fileService.upload(ATTACHMENT, randomUUID().toString(), idUser, attachmentAsFile);
+    attachment.setFileId(fileInfo.getId()); // TODO: suspicious .. breaks immutable attachment
   }
 
   private Attachment deleteAttachmentContent(Attachment attachment) {

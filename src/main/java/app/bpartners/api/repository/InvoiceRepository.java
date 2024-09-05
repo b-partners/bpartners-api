@@ -16,14 +16,6 @@ public interface InvoiceRepository {
 
   Optional<Invoice> pwFindOptionalById(String id);
 
-  List<Invoice> findAllByIdUserAndStatusesAndArchiveStatus(
-      String idUser,
-      List<InvoiceStatus> statusList,
-      ArchiveStatus archiveStatus,
-      String title,
-      int page,
-      int pageSize);
-
   List<Invoice> findAllByIdUserAndCriteria(
       String idUser,
       List<InvoiceStatus> statusList,
@@ -31,9 +23,6 @@ public interface InvoiceRepository {
       List<String> filters,
       int page,
       int pageSize);
-
-  List<Invoice> findAllByIdUserAndArchiveStatus(
-      String idUser, ArchiveStatus archiveStatus, String title, int page, int pageSize);
 
   List<Invoice> saveAll(List<ArchiveInvoice> archiveInvoices);
 

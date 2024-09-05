@@ -18,7 +18,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
-import app.bpartners.api.endpoint.event.S3Conf;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
 import app.bpartners.api.endpoint.rest.model.AccountInvoiceRelaunchConf;
@@ -100,13 +99,9 @@ import javax.net.ssl.SSLSession;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.function.Executable;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
-import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
-import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsRequest;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsResponse;
-import software.amazon.awssdk.services.s3.S3Client;
 
 public class TestUtils {
   public static final String CREDIT_SIDE = "Credit";
@@ -796,20 +791,6 @@ public class TestUtils {
     when(cognitoComponentMock.getEmailByToken(JOE_DOE_TOKEN)).thenReturn(JOE_EMAIL);
     when(cognitoComponentMock.getEmailByToken(JANE_DOE_TOKEN)).thenReturn(JANE_EMAIL);
     when(cognitoComponentMock.getEmailByToken(BERNARD_DOE_TOKEN)).thenReturn(BERNARD_EMAIL);
-  }
-
-  public static void setUpS3Conf(S3Conf s3Conf) {
-    when(s3Conf.getBucketName()).thenReturn("bpartners");
-    when(s3Conf.getEnv()).thenReturn("dev");
-    when(s3Conf.getS3Client())
-        .thenAnswer(
-            invocation ->
-                S3Client.builder()
-                    .region(Region.US_EAST_1)
-                    .credentialsProvider(
-                        StaticCredentialsProvider.create(
-                            AwsBasicCredentials.create("test", "test")))
-                    .build());
   }
 
   public static void setUpProvider(PrincipalProvider provider) {

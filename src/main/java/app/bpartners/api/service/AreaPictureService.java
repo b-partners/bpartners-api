@@ -1,10 +1,8 @@
 package app.bpartners.api.service;
 
 import static app.bpartners.api.endpoint.rest.model.FileType.AREA_PICTURE;
-import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 
 import app.bpartners.api.model.AreaPicture;
-import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.mapper.AreaPictureMapper;
 import app.bpartners.api.repository.AccountHolderRepository;
@@ -14,8 +12,6 @@ import app.bpartners.api.service.WMS.AreaPictureMapLayerService;
 import app.bpartners.api.service.WMS.Tile;
 import app.bpartners.api.service.WMS.TileCreator;
 import app.bpartners.api.service.WMS.imageSource.WmsImageSource;
-import java.io.IOException;
-import java.nio.file.Files;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -63,14 +59,9 @@ public class AreaPictureService {
       throws RuntimeException {
     var refreshed = refreshAreaPictureTileAndLayers(areaPicture);
     var downloadedFile = wmsImageSource.downloadImage(areaPicture);
-    try {
-      var downloadedFileAsBytes = Files.readAllBytes(downloadedFile.toPath());
-      fileService.upload(
-          refreshed.getIdFileInfo(), AREA_PICTURE, refreshed.getIdUser(), downloadedFileAsBytes);
-      return save(refreshed);
-    } catch (IOException e) {
-      throw new ApiException(SERVER_EXCEPTION, e);
-    }
+    fileService.upload(
+        AREA_PICTURE, refreshed.getIdFileInfo(), refreshed.getIdUser(), downloadedFile);
+    return save(refreshed);
   }
 
   private AreaPicture refreshAreaPictureTileAndLayers(AreaPicture areaPicture) {

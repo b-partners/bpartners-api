@@ -3,6 +3,7 @@ package app.bpartners.api.repository.jpa;
 import app.bpartners.api.endpoint.rest.model.ContactNature;
 import app.bpartners.api.repository.jpa.model.HProspect;
 import java.util.List;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -12,7 +13,7 @@ public interface ProspectJpaRepository extends JpaRepository<HProspect, String> 
   List<HProspect> findAllByIdAccountHolderAndTownCodeIsIn(
       String idAccountHolder, List<Integer> townCode);
 
-  List<HProspect> findAllByIdAccountHolder(String idAccountHolder);
+  List<HProspect> findAllByIdAccountHolder(String idAccountHolder, Pageable pageable);
 
   List<HProspect> findAllByIdAccountHolderAndOldNameContainingIgnoreCase(
       String idAccountHolder, String name);
